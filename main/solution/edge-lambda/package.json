@@ -1,0 +1,13 @@
+{
+  "name": "@aws-ee/edge-lambda",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Package for Lambda@Edge that intercepts CloudFront response and adds various security headers in the response",
+  "author": "Amazon Web Services",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@aws-ee/base-serverless-settings-helper": "workspace:*",
+    "serverless": "^1.63.0",
+    "serverless-deployment-bucket": "^1.1.0"
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "username": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 300,
+      "pattern": "^[A-Za-z0-9-_.]+$|^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$"
+    },
+    "usernameInIdp": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 300,
+      "pattern": "^[A-Za-z0-9-_.]+$|^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$"
+    },
+    "password": {
+      "type": "string"
+    },
+    "authenticationProviderId": {
+      "type": "string"
+    },
+    "identityProviderName": {
+      "type": "string"
+    },
+    "email": {
+      "type": "string",
+      "pattern": "^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$"
+    },
+    "firstName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "pattern": "^[A-Za-z0-9 .-]+$"
+    },
+    "lastName": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "pattern": "^[A-Za-z0-9 .-]+$"
+    },
+    "userType": {
+      "type": "string",
+      "enum": ["root"]
+    },
+    "isSamlAuthenticatedUser": {
+      "type": "boolean"
+    },
+    "isAdmin": {
+      "type": "boolean"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["active", "inactive"]
+    },
+    "rev": {
+      "type": "number"
+    }
+  },
+  "required": ["username", "email", "firstName", "lastName"]
+}

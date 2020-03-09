@@ -1,0 +1,8 @@
+id: st-provision-environment
+v: 1
+title: Provision Environment
+desc: |
+  Provision a new environment
+
+skippable: true # this means that if there is an error in a previous step, then this step will be skipped
+hidden: true

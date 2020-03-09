@@ -1,0 +1,23 @@
+{
+  "cSpell.words": [
+    "Cognito",
+    "Dropdown",
+    "Errored",
+    "Overrider",
+    "autorun",
+    "basedl",
+    "cloudfront",
+    "lifecycle",
+    "mobx",
+    "overridables",
+    "raas",
+    "sagemaker",
+    "skippable",
+    "stackable",
+    "webapp"
+  ],
+  "editor.formatOnSave": true,
+  "eslint.packageManager": "pnpm",
+  "prettier.packageManager": "pnpm",
+  "eslint.workingDirectories": [{ "mode": "auto" }]
+}

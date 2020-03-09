@@ -1,0 +1,78 @@
+{
+  "name": "@aws-ee/ui",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Client-side UI application",
+  "author": "Amazon Web Services",
+  "license": "Apache-2.0",
+  "homepage": "/",
+  "proxy": "http://localhost:4000",
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ],
+  "dependencies": {
+    "@aws-ee/base-ui": "workspace:*",
+    "@aws-ee/base-workflow-ui": "workspace:*",
+    "@aws-ee/base-raas-ui": "workspace:*",
+    "aws-sdk": "^2.647.0",
+    "prop-types": "^15.7.2",
+    "lodash": "^4.17.15",
+    "mobx": "^5.15.4",
+    "mobx-react": "^6.1.7",
+    "mobx-react-form": "^2.0.8",
+    "mobx-state-tree": "^3.15.0",
+    "react": "^16.12.0",
+    "react-avatar": "^3.9.0",
+    "react-dom": "^16.12.0",
+    "react-router-dom": "^5.1.2",
+    "react-table": "^6.11.5",
+    "toastr": "^2.1.4",
+    "semantic-ui-react": "^0.88.2",
+    "typeface-lato": "0.0.75",
+    "uuid": "^3.3.3"
+  },
+  "devDependencies": {
+    "@aws-ee/base-serverless-settings-helper": "workspace:*",
+    "@aws-ee/base-serverless-ui-tools": "workspace:*",
+    "babel-eslint": "^10.0.3",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb": "^18.0.1",
+    "eslint-config-prettier": "^6.10.0",
+    "eslint-import-resolver-node": "^0.3.3",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-jest": "^22.21.0",
+    "eslint-plugin-jsx-a11y": "^6.2.3",
+    "eslint-plugin-prettier": "^3.1.2",
+    "eslint-plugin-react": "^7.18.3",
+    "eslint-plugin-react-hooks": "^2.0.1",
+    "husky": "^3.1.0",
+    "jest": "^24.9.0",
+    "jest-junit": "^10.0.0",
+    "prettier": "^1.19.1",
+    "pretty-quick": "^1.11.1",
+    "react-scripts": "^3.3.1",
+    "serverless": "^1.63.0",
+    "serverless-deployment-bucket": "^1.1.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "INLINE_RUNTIME_CHUNK=false react-scripts build",
+    "test": "react-scripts test --watchAll=false --passWithNoTests",
+    "test:watch": "react-scripts test --passWithNoTests",
+    "eject": "react-scripts eject",
+    "lint": "pnpm run lint:eslint && pnpm run lint:prettier",
+    "lint:eslint": "eslint --ignore-path .gitignore . ",
+    "lint:prettier": "prettier --check --ignore-path .gitignore '**/*.{js,jsx}' ",
+    "format": "pnpm run format:eslint && pnpm run format:prettier",
+    "format:eslint": "eslint --fix --ignore-path .gitignore . ",
+    "format:prettier": "prettier --write --ignore-path .gitignore '**/*.{js,jsx}' "
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged --pattern '**/*.*(js|jsx)'"
+    }
+  }
+}

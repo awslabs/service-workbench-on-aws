@@ -1,0 +1,53 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "^[A-Za-z0-9-_ ]+$"
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 2048
+    },
+    "category": {
+      "type": "string",
+      "enum": ["My Studies", "Organization", "Open Data"]
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 8192
+    },
+    "projectId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "^[A-Za-z0-9-_]+$"
+    },
+    "uploadLocationEnabled": {
+      "type": "boolean"
+    },
+    "sha": {
+      "type": "string",
+      "maxLength": 64
+    },
+    "resources": {
+      "type": "array",
+      "items": [
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "arn": {
+              "type": "string"
+            }
+          }
+        }    
+      ]
+    }
+  },
+  "required": ["id", "category"]
+}

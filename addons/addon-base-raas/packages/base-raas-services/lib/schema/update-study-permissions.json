@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "definitions": {
+    "principalIdentifier": {
+      "type": "object",
+      "properties": {
+        "ns": { "type": "string" },
+        "username": { "type": "string" }
+      },
+      "required": ["ns", "username"]
+    },
+    "permissionLevel": {
+      "type": "string",
+      "enum": ["admin", "readonly"]
+    },
+    "userEntry": {
+      "type": "object",
+      "properties": {
+        "principalIdentifier": { "$ref": "#/definitions/principalIdentifier" },
+        "permissionLevel": { "$ref": "#/definitions/permissionLevel" }
+      },
+      "required": ["principalIdentifier", "permissionLevel"]
+    }
+  },
+  "properties": {
+    "usersToAdd": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/userEntry" }
+    },
+    "usersToRemove": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/userEntry" }
+    }
+  }
+}
