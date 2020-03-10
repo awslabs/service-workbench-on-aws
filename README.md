@@ -9,5 +9,5 @@ Be sure to:
 
 ## License
 
-This project is licensed under the terms of the Apache 2.0 license. See `LICENSE`.
-Included AWS Lambda functions are licensed under the MIT-0 license. See `LICENSE-LAMBDA`.
+This project is licensed under the terms of the Apache 2.0 license. See [LICENSE](LICENSE).
+Included AWS Lambda functions are licensed under the MIT-0 license. See [LICENSE-LAMBDA](LICENSE-LAMBDA).
