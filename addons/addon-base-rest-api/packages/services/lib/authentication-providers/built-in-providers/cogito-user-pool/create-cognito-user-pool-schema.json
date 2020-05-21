@@ -1,0 +1,78 @@
+{
+  "definitions": {},
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://example.com/root.json",
+  "type": "object",
+  "required": ["title"],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "$id": "#/properties/id",
+      "type": "string"
+    },
+    "title": {
+      "$id": "#/properties/title",
+      "type": "string"
+    },
+    "userPoolName": {
+      "$id": "#/properties/userPoolName",
+      "type": "string"
+    },
+    "userPoolId": {
+      "$id": "#/properties/userPoolId",
+      "type": "string"
+    },
+    "clientName": {
+      "$id": "#/properties/clientName",
+      "type": "string"
+    },
+    "clientId": {
+      "$id": "#/properties/clientId",
+      "type": "string"
+    },
+    "userPoolDomain": {
+      "$id": "#/properties/userPoolDomain",
+      "type": "string"
+    },
+    "signInUri": {
+      "$id": "#/properties/signInUri",
+      "type": "string"
+    },
+    "signOutUri": {
+      "$id": "#/properties/signOutUri",
+      "type": "string"
+    },
+    "enableNativeUserPoolUsers": {
+      "$id": "#/properties/enableNativeUserPoolUsers",
+      "type": "boolean"
+    },
+    "federatedIdentityProviders": {
+      "$id": "#/properties/providerConfig/properties/federatedIdentityProviders",
+      "type": "array",
+      "items": {
+        "$id": "#/properties/providerConfig/properties/federatedIdentityProviders/items",
+        "type": "object",
+        "title": "The Items Schema",
+        "required": ["id", "name", "metadata"],
+        "properties": {
+          "id": {
+            "$id": "#/properties/federatedIdentityProviders/properties/id",
+            "type": "string"
+          },
+          "name": {
+            "$id": "#/properties/federatedIdentityProviders/properties/name",
+            "type": "string"
+          },
+          "displayName": {
+            "$id": "#/properties/federatedIdentityProviders/properties/displayName",
+            "type": "string"
+          },
+          "metadata": {
+            "$id": "#/properties/federatedIdentityProviders/properties/metadata",
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

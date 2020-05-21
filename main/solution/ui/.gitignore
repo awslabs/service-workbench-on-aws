@@ -1,0 +1,42 @@
+# See https://help.github.com/ignore-files/ for more about ignoring files.
+
+**/.class
+**/.DS_Store
+**/node_modules
+
+**/npm-debug.log
+**/pnpm-debug.log
+**/npm-debug.log*
+
+# Serverless directories
+.serverless
+
+# https://github.com/github/gitignore/blob/master/Global/VisualStudioCode.gitignore
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# dependencies
+/.pnp
+.pnp.js
+
+# testing
+/coverage
+
+# production
+/build
+
+# misc
+.env.local
+.env.development
+.env.development.local
+.env.test.local
+.env.production
+.env.production.local
+
+yarn-debug.log*
+yarn-error.log*
+
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.

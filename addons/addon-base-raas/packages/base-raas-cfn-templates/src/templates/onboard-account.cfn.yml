@@ -1,0 +1,283 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Galileo-Gateway Research-Account
+
+Parameters:
+  Namespace:
+    Type: String
+    Description: An environment name that will be prefixed to resource names
+
+  CentralAccountId:
+    Type: String
+    Description: The account id of the newly created account.
+
+  ExternalId:
+    Type: String
+    Description: A unique ID used to identify this account
+
+  VpcCidr:
+    Description: Please enter the IP range (CIDR notation) for this VPC
+    Type: String
+    Default: 10.0.0.0/16
+
+  ApiHandlerArn:
+    Type: String
+    Description: The arn of apiHandler role
+
+  WorkflowRoleArn:
+    Type: String
+    Description: The arn of workflowRunner role
+
+  # Generous subnet allocation of 8192 addresses (ie room for a few concurrent EMR clusters)
+  # ending at 10.0.31.255
+  VpcPublicSubnet1Cidr:
+    Description: Please enter the IP range (CIDR notation) for the public subnet in the 1st Availability Zone
+    Type: String
+    Default: 10.0.0.0/19
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Shared Configuration
+        Parameters:
+          - Namespace
+      - Label:
+          default: Account Configuration
+        Parameters:
+          - CentralAccountId
+          - ExternalId
+      - Label:
+          default: Deployment Configuration
+        Parameters:
+          - VpcCidr
+          - VpcPublicSubnet1Cidr
+
+Resources:
+  # TODO lock these permissions down further
+  CrossAccountExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Join ['-', [Ref: Namespace, 'cross-account-role']]
+      Path: '/'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              AWS:
+                - !Join [':', ['arn:aws:iam:', Ref: CentralAccountId, 'root']]
+                - !Ref ApiHandlerArn
+                - !Ref WorkflowRoleArn
+            Action:
+              - 'sts:AssumeRole'
+            Condition:
+              StringEquals:
+                sts:ExternalId: !Ref ExternalId
+      Policies:
+        - PolicyName: cfn-access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - cloudformation:CreateStack
+                  - cloudformation:DeleteStack
+                  - cloudformation:DescribeStacks
+                  - cloudformation:DescribeStackEvents
+                Resource: '*'
+        - PolicyName: sagemaker-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - sagemaker:*
+              Resource: '*'
+        - PolicyName: iam-role-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - iam:GetRole
+                - iam:CreateRole
+                - iam:TagRole
+                - iam:GetRolePolicy
+                - iam:PutRolePolicy
+                - iam:DeleteRolePolicy
+                - iam:DeleteRole
+                - iam:PassRole
+              Resource:
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/analysis-*'
+        - PolicyName: iam-instance-profile-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - iam:AddRoleToInstanceProfile
+                - iam:CreateInstanceProfile
+                - iam:GetInstanceProfile
+                - iam:DeleteInstanceProfile
+                - iam:RemoveRoleFromInstanceProfile
+              Resource:
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:instance-profile/analysis-*'
+        - PolicyName: iam-role-service-policy-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - iam:AttachRolePolicy
+                - iam:DetachRolePolicy
+              Resource:
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/analysis-*'
+              Condition:
+                ArnLike:
+                  iam:PolicyARN: arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole
+        - PolicyName: cost-explorer-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ce:*
+              Resource: '*'
+        - PolicyName: s3-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - s3:*
+              Resource: '*'
+        - PolicyName: ec2-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ec2:*
+              Resource: '*'
+        - PolicyName: ssm-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ssm:*
+              Resource: '*'
+        - PolicyName: emr-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - elasticmapreduce:*
+              Resource: '*'
+
+  # VPC for launching EMR clusters into
+  # Just one AZ as we're aiming for transient low-cost clusters rather than HA
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${Namespace} vpc
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${Namespace} igw
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs ]
+      CidrBlock: !Ref VpcPublicSubnet1Cidr
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${Namespace} public subnet 1
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${Namespace} public routes
+
+  DefaultPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
+
+  EncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: 'This is the key used to secure resources in this account'
+      EnableKeyRotation: True
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: Allow root access
+            Effect: 'Allow'
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action:
+              - 'kms:*'
+            Resource: '*'
+          - Sid: Allow use of the key by this account
+            Effect: 'Allow'
+            Principal:
+              AWS: '*'
+            Action:
+              - 'kms:DescribeKey'
+              - 'kms:Encrypt'
+              - 'kms:Decrypt'
+              - 'kms:ReEncrypt*'
+              - 'kms:GenerateDataKey'
+              - 'kms:GenerateDataKeyWithoutPlaintext'
+              - 'kms:CreateGrant'
+              - 'kms:RevokeGrant'
+            Resource: '*'
+            Condition:
+              StringEquals:
+                kms:CallerAccount: !Ref 'AWS::AccountId'
+
+  EncryptionKeyAlias:
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: !Join ['', ['alias/', Ref: Namespace, '-encryption-key']]
+      TargetKeyId: !Ref EncryptionKey
+
+Outputs:
+  CrossAccountExecutionRoleArn:
+    Description: The arn of the cross account role.
+    Value: !GetAtt [CrossAccountExecutionRole, Arn]
+
+  VPC:
+    Description: VPC ID
+    Value: !Ref VPC
+
+  VpcPublicSubnet1:
+    Description: A reference to the public subnet in the 1st Availability Zone
+    Value: !Ref PublicSubnet1
+
+  EncryptionKeyArn:
+    Description: KMS Encryption Key Arn
+    Value: !GetAtt [EncryptionKey, Arn]

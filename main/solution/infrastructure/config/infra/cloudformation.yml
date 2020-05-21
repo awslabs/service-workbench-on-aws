@@ -1,0 +1,170 @@
+Conditions:
+  IsDev: !Equals ['${self:custom.settings.envType}', 'dev']
+
+Resources:
+  # =============================================================================================
+  # S3 Buckets
+  # =============================================================================================
+
+  # S3 Bucket for S3 access logs
+  LoggingBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ${self:custom.settings.loggingBucketName}
+      AccessControl: LogDeliveryWrite
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  LoggingBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref LoggingBucket
+      PolicyDocument:
+        Statement:
+          - Sid: Deny requests that do not use TLS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt LoggingBucket.Arn, '*']]
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Sid: Deny requests that do not use SigV4
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt LoggingBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:signatureversion: 'AWS4-HMAC-SHA256'
+
+  # S3 Bucket for the static website
+  WebsiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ${self:custom.settings.websiteBucketName}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  WebsiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref WebsiteBucket
+      PolicyDocument:
+        Statement:
+          - Sid: Allow CloudFront Origin Access Identity
+            Action:
+              - 's3:GetObject'
+            Effect: Allow
+            Principal:
+              AWS: !Join ['', ['arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ', !Ref 'CloudFrontOAI']]
+            Resource:
+              - !Join ['', ['arn:aws:s3:::', !Ref 'WebsiteBucket', '/*']]
+          - Sid: Deny requests that do not use TLS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt WebsiteBucket.Arn, '*']]
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Sid: Deny requests that do not use SigV4
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt WebsiteBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:signatureversion: 'AWS4-HMAC-SHA256'
+
+  # =============================================================================================
+  # CloudFront
+  # =============================================================================================
+
+  WebsiteCloudFront:
+    Type: AWS::CloudFront::Distribution
+    DependsOn:
+      - WebsiteBucket
+    Properties:
+      DistributionConfig:
+        Comment: 'CloudFront Distribution pointing to ${self:custom.settings.websiteBucketName}'
+        Origins:
+          - DomainName: !GetAtt WebsiteBucket.RegionalDomainName
+            Id: S3Origin
+            S3OriginConfig:
+              OriginAccessIdentity: !Join ['', ['origin-access-identity/cloudfront/', !Ref 'CloudFrontOAI']]
+        Enabled: true
+        HttpVersion: 'http2'
+        DefaultRootObject: index.html
+        CustomErrorResponses:
+          - ErrorCachingMinTTL: 300
+            ErrorCode: 404
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+          - ErrorCachingMinTTL: 300
+            ErrorCode: 403
+            ResponseCode: 200
+            ResponsePagePath: /index.html
+        DefaultCacheBehavior:
+          DefaultTTL: 0
+          MinTTL: 0
+          MaxTTL: 0
+          AllowedMethods:
+            - GET
+            - HEAD
+            - OPTIONS
+          Compress: true
+          TargetOriginId: S3Origin
+          ForwardedValues:
+            QueryString: true
+            Cookies:
+              Forward: none
+          ViewerProtocolPolicy: redirect-to-https
+        PriceClass: PriceClass_100
+        Logging:
+          Bucket: ${self:custom.settings.loggingBucketName}.s3.amazonaws.com
+          Prefix: cloudfront/
+
+  CloudFrontOAI:
+    Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: 'OAI for ${self:custom.settings.websiteBucketName}'
+
+Outputs:
+  WebsiteUrl:
+    Description: URL for the main website hosted on S3 via CloudFront
+    Value: !Join ['', ['https://', !GetAtt [WebsiteCloudFront, DomainName]]]
+
+  WebsiteBucket:
+    Description: The bucket name of the static website
+    Value: !Ref WebsiteBucket
+
+  LoggingBucket:
+    Description: The bucket name for S3 access logging
+    Value: !Ref LoggingBucket
+
+  CloudFrontEndpoint:
+    Value: !GetAtt [WebsiteCloudFront, DomainName]
+    Description: Endpoint for CloudFront distribution for the website
+
+  CloudFrontId:
+    Value: !Ref WebsiteCloudFront
+    Description: Id of the CloudFront distribution

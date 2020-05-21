@@ -1,0 +1,118 @@
+authenticationLayerHandler:
+  handler: src/lambdas/authentication-layer-handler/handler.handler
+  role: RoleAuthenticationLayerHandler
+  tags: ${self:custom.tags}
+  description: Handles the authentication layer for API handlers.
+  environment:
+    APP_PARAM_STORE_JWT_SECRET: ${self:custom.settings.paramStoreJwtSecret}
+    APP_JWT_OPTIONS: ${self:custom.settings.jwtOptions}
+
+openDataScrapeHandler:
+  handler: src/lambdas/open-data-scrape-handler/handler.handler
+  role: RoleOpenDataScrapeHandler
+  tags: ${self:custom.tags}
+  description: Handles scraping the metadata from the AWS open data registry.
+  environment:
+    APP_DB_TABLE_STUDIES_CATEGORY_INDEX: ${self:custom.settings.dbTableStudiesCategoryIndex}
+    APP_STUDY_DATA_BUCKET_NAME: ${self:custom.settings.studyDataBucketName}
+  events:
+    - schedule:
+        rate: rate(1 day)
+        description: 'Invokes the lambda function that scrapes the awslabs/open-data-registry to find new studies and insert them into DynamoDB.'
+
+apiHandler:
+  handler: src/lambdas/api-handler/handler.handler
+  role: RoleApiHandler
+  tags: ${self:custom.tags}
+  description: The API handler for all /api/* APIs
+  events:
+    # Public APIs
+    - http:
+        path: /api/authentication/public/provider/configs
+        method: GET
+        cors: true
+    - http:
+        path: /api/authentication/id-tokens
+        method: POST
+        cors: true
+    # Protected APIs
+    - http:
+        authorizer: authenticationLayerHandler
+        path: /api
+        method: GET
+        cors: true
+    - http:
+        authorizer: authenticationLayerHandler
+        path: /api/{proxy+}
+        method: GET
+        cors: true
+    - http:
+        authorizer: authenticationLayerHandler
+        path: /api
+        method: POST
+        cors: true
+    - http:
+        authorizer: authenticationLayerHandler
+        path: /api/{proxy+}
+        method: POST
+        cors: true
+    - http:
+        authorizer: authenticationLayerHandler
+        path: /api
+        method: PUT
+        cors: true
+    - http:
+        authorizer: authenticationLayerHandler
+        path: /api/{proxy+}
+        method: PUT
+        cors: true
+    - http:
+        authorizer: authenticationLayerHandler
+        path: /api
+        method: DELETE
+        cors: true
+    - http:
+        authorizer: authenticationLayerHandler
+        path: /api/{proxy+}
+        method: DELETE
+        cors: true
+  environment:
+    APP_WEBSITE_URL: ${self:custom.settings.websiteUrl}
+    APP_CORS_WHITELIST: ${self:custom.settings.corsWhiteList}
+    APP_CORS_WHITELIST_LOCAL: ${self:custom.settings.corsWhiteListLocal}
+    APP_PARAM_STORE_JWT_SECRET: ${self:custom.settings.paramStoreJwtSecret}
+    APP_JWT_OPTIONS: ${self:custom.settings.jwtOptions}
+    APP_SM_WORKFLOW: ${self:custom.settings.workflowStateMachineArn}
+    APP_PARAM_STORE_ROOT: ${self:custom.settings.paramStoreRoot}
+    APP_EC2_LINUX_AMI_PREFIX: ${self:custom.settings.ec2LinuxAmiPrefix}
+    APP_EC2_WINDOWS_AMI_PREFIX: ${self:custom.settings.ec2WindowsAmiPrefix}
+    APP_EMR_AMI_PREFIX: ${self:custom.settings.emrAmiPrefix}
+    APP_DB_TABLE_STUDIES_CATEGORY_INDEX: ${self:custom.settings.dbTableStudiesCategoryIndex}
+    APP_STUDY_DATA_BUCKET_NAME: ${self:custom.settings.studyDataBucketName}
+    APP_WORKFLOW_ROLE_ARN: ${self:custom.settings.workflowLoopRunnerRoleArn}
+    APP_API_HANDLER_ARN: ${self:custom.settings.apiHandlerRoleArn}
+    APP_EXTERNAL_CFN_TEMPLATES_BUCKET_NAME: ${self:custom.settings.externalCfnTemplatesBucketName}
+    APP_ENVIRONMENT_INSTANCE_FILES: ${self:custom.settings.environmentInstanceFiles}
+    APP_STUDY_DATA_KMS_KEY_ALIAS: ${self:custom.settings.studyDataKmsKeyAlias}
+    APP_STUDY_DATA_KMS_KEY_ARN: ${self:custom.settings.studyDataKmsKeyAliasArn}
+    APP_STUDY_DATA_KMS_POLICY_WORKSPACE_SID: ${self:custom.settings.studyDataKmsPolicyWorkspaceSid}
+
+workflowLoopRunner:
+  handler: src/lambdas/workflow-loop-runner/handler.handler
+  role: RoleWorkflowLoopRunner
+  timeout: 900 # 15 min
+  tags: ${self:custom.tags}
+  description: The workflow loop runner, it is expected to be invoked by AWS Step Functions and not directly
+  environment:
+    # We cannot use "!Ref SMWorkflow" below as that will create circular dependency
+    APP_SM_WORKFLOW: ${self:custom.settings.workflowStateMachineArn}
+    APP_PARAM_STORE_ROOT: ${self:custom.settings.paramStoreRoot}
+    APP_PARAM_STORE_JWT_SECRET: ${self:custom.settings.paramStoreJwtSecret}
+    APP_JWT_OPTIONS: ${self:custom.settings.jwtOptions}
+    APP_DB_TABLE_STUDIES_CATEGORY_INDEX: ${self:custom.settings.dbTableStudiesCategoryIndex}
+    APP_STUDY_DATA_BUCKET_NAME: ${self:custom.settings.studyDataBucketName}
+    APP_ARTIFACTS_BUCKET_NAME: ${self:custom.settings.deploymentBucketName}
+    APP_ENVIRONMENT_INSTANCE_FILES: ${self:custom.settings.environmentInstanceFiles}
+    APP_STUDY_DATA_KMS_KEY_ALIAS: ${self:custom.settings.studyDataKmsKeyAlias}
+    APP_STUDY_DATA_KMS_KEY_ARN: !Sub arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.studyDataKmsKeyAlias}
+    APP_STUDY_DATA_KMS_POLICY_WORKSPACE_SID: ${self:custom.settings.studyDataKmsPolicyWorkspaceSid}

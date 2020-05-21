@@ -1,0 +1,151 @@
+import React from 'react';
+import { decorate, action, computed, runInAction, observable } from 'mobx';
+import { inject, observer } from 'mobx-react';
+import { Header, Checkbox, Segment, Accordion, Icon } from 'semantic-ui-react';
+import c from 'classnames';
+
+import StudyFilesTable from './StudyFilesTable';
+import StudyPermissionsTable from './StudyPermissionsTable';
+import UploadStudyFiles from './UploadStudyFiles';
+
+// expected props
+// - study (via props)
+// - isSelectable (via props)
+// - filesSelection (via injection)
+class StudyRow extends React.Component {
+  constructor(props) {
+    super(props);
+    runInAction(() => {
+      this.filesExpanded = false;
+      this.permissionsExpanded = false;
+    });
+  }
+
+  get study() {
+    return this.props.study;
+  }
+
+  get isSelectable() {
+    return this.props.isSelectable;
+  }
+
+  handleFileSelection = study => {
+    const selection = this.props.filesSelection;
+    if (selection.hasFile(study.id)) {
+      selection.deleteFile(study.id);
+    } else {
+      const { id, name, description } = study;
+      // TODO: actually do different statuses?
+      selection.setFile({ id, name, description, accessStatus: 'approved' });
+    }
+  };
+
+  handleFilesExpanded = () => {
+    this.filesExpanded = !this.filesExpanded;
+  };
+
+  handlePermissionsExpanded = () => {
+    this.permissionsExpanded = !this.permissionsExpanded;
+  };
+
+  render() {
+    const isSelectable = this.isSelectable; // Internal and external guests can't select studies
+    const study = this.study;
+    const selection = this.props.filesSelection;
+    const isSelected = selection.hasFile(study.id);
+    const attrs = {};
+    const onClickAttr = {};
+
+    if (isSelected) attrs.color = 'blue';
+    if (isSelectable) onClickAttr.onClick = () => this.handleFileSelection(study);
+
+    return (
+      <Segment clearing padded raised className="mb3" {...attrs}>
+        <div className="flex">
+          <div className="mr2" {...onClickAttr}>
+            {isSelectable && <Checkbox checked={isSelected} style={{ marginTop: '3px' }} />}
+          </div>
+          <div className="flex-auto mb1">
+            {this.renderHeader(study)}
+            {this.renderDescription(study)}
+            {this.renderFilesAccordion(study)}
+            {this.renderPermissionsAccordion(study)}
+          </div>
+        </div>
+      </Segment>
+    );
+  }
+
+  renderHeader(study) {
+    const isSelectable = this.isSelectable; // Internal and external guests can't select studies
+    const onClickAttr = {};
+
+    if (isSelectable) onClickAttr.onClick = () => this.handleFileSelection(study);
+
+    return (
+      <>
+        {study.uploadLocationEnabled && study.access === 'admin' && <UploadStudyFiles studyId={study.id} />}
+        <Header as="h3" color="blue" className={c('mt0', isSelectable ? 'cursor-pointer' : '')} {...onClickAttr}>
+          {study.name}
+          <Header.Subheader>
+            <span className="pt1 fs-8 color-grey">{study.id}</span>
+            {study.projectId && <span className="fs-8 color-grey"> &middot; {study.projectId}</span>}
+          </Header.Subheader>
+        </Header>
+      </>
+    );
+  }
+
+  renderDescription(study) {
+    return <div>{study.description}</div>;
+  }
+
+  renderFilesAccordion(study) {
+    if (study.isOpenDataStudy) return null;
+    if (!study.uploadLocationEnabled) return null;
+    const expanded = this.filesExpanded;
+
+    return (
+      <Accordion className="mt2">
+        <Accordion.Title active={expanded} index={0} onClick={this.handleFilesExpanded}>
+          <Icon name="dropdown" />
+          <b>Files</b>
+        </Accordion.Title>
+        <Accordion.Content active={expanded}>
+          {expanded && study.uploadLocationEnabled && (
+            <div className="mb2">
+              <StudyFilesTable study={study} />
+            </div>
+          )}
+        </Accordion.Content>
+      </Accordion>
+    );
+  }
+
+  renderPermissionsAccordion(study) {
+    if (!study.isOrganizationStudy) return null;
+    const expanded = this.permissionsExpanded;
+
+    return (
+      <Accordion className="mt0">
+        <Accordion.Title active={expanded} index={0} onClick={this.handlePermissionsExpanded}>
+          <Icon name="dropdown" />
+          <b>Permissions</b>
+        </Accordion.Title>
+        <Accordion.Content active={expanded}>{expanded && <StudyPermissionsTable study={study} />}</Accordion.Content>
+      </Accordion>
+    );
+  }
+}
+
+decorate(StudyRow, {
+  handleFileSelection: action,
+  handleFilesExpanded: action,
+  handlePermissionsExpanded: action,
+  study: computed,
+  filesExpanded: observable,
+  permissionsExpanded: observable,
+  isSelectable: computed,
+});
+
+export default inject('filesSelection')(observer(StudyRow));

@@ -1,0 +1,108 @@
+Conditions:
+  AllowAllArtifactBuckets: !Equals ["${self:custom.settings.artifactsS3BucketArn}", "*"]
+
+Resources:
+
+  # This role grants the permissions to checkout from CodeCommit and upload code to artifacts bucket
+  # and encrypt it using the KMS key. The artifacts bucket is created in the AWS account where the
+  # CodePipeline is running. CodePipeline will assume this role to checkout the code and upload it to the artifact
+  # bucket
+  CodeCommitSourceRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: arn:aws:iam::${self:custom.settings.targetAccountId}:root
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: CopySourceCodePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: GetSourceCodePermission
+                Effect: Allow
+                Action:
+                  - codecommit:CancelUploadArchive
+                  - codecommit:GetBranch
+                  - codecommit:GitPull
+                  - codecommit:GetCommit
+                  - codecommit:GetUploadArchiveStatus
+                  - codecommit:UploadArchive
+                Resource: !Sub "arn:${AWS::Partition}:codecommit:${AWS::Region}:${AWS::AccountId}:${self:custom.settings.codeCommitRepoName}"
+              - Sid: CopySourceCodeToArtifactBucketPermission
+                Effect: Allow
+                Action:
+                  - s3:GetObject*
+                  - s3:PutObject
+                  - s3:PutObjectAcl
+                Resource: !If [AllowAllArtifactBuckets, "*", "${self:custom.settings.artifactsS3BucketArn}/*"]
+              - Sid: ListArtifactBucketPermission
+                Effect: Allow
+                Action:
+                  - s3:ListBucket
+                Resource: "${self:custom.settings.artifactsS3BucketArn}"
+              - Sid: CopySourceCodeToArtifactBucketKMSPermission
+                Effect: Allow
+                Action:
+                  - kms:Encrypt
+                  - kms:Decrypt
+                  - kms:ReEncrypt*
+                  - kms:GenerateDataKey*
+                  - kms:DescribeKey
+                Resource: "${self:custom.settings.artifactsKmsKeyArn}"
+
+  # Role to grant AWS CloudWatch Events Service permissions to publish CloudWatch Events to the default event bus
+  # of the target AWS Account
+  # See https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/CloudWatchEvents-CrossAccountEventDelivery.html
+  # for more details about how to send/receive cross-account CloudWatch events
+  CodeCommitEventRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: pipeline-execution
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              Effect: Allow
+              Action: events:PutEvents
+              Resource:
+              - !Sub "arn:${AWS::Partition}:events:${AWS::Region}:${AWS::AccountId}:event-bus/default"
+              - !Sub "arn:${AWS::Partition}:events:${AWS::Region}:${self:custom.settings.targetAccountId}:event-bus/default"
+
+  # AWS CloudWatch Event's Rule to publish the AWS CodeCommit changes related events to the default event bus of the
+  # target account. A matching event rule will be created in the target AWS account to trigger the pipeline
+  # See https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/CloudWatchEvents-CrossAccountEventDelivery.html
+  # for more details about how to send/receive cross-account CloudWatch events
+  CodeCommitSourceEventRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Description: CodeCommit Event Rule to trigger AWS CodePipeline in target account
+      EventPattern:
+        source: [aws.codecommit]
+        detail-type: [CodeCommit Repository State Change]
+        resources:
+          - !Sub 'arn:${AWS::Partition}:codecommit:${AWS::Region}:${AWS::AccountId}:${self:custom.settings.codeCommitRepoName}'
+        detail:
+          event: [referenceCreated, referenceUpdated]
+          referenceType: [branch]
+          referenceName:
+            - ${self:custom.settings.codeCommitRepoBranchName}
+      State: ENABLED
+      Targets:
+        - Id: !Sub "CodeCommitCrossAccount${AWS::AccountId}"
+          Arn: !Sub "arn:${AWS::Partition}:events:${AWS::Region}:${self:custom.settings.targetAccountId}:event-bus/default"
+          RoleArn: !GetAtt CodeCommitEventRole.Arn
+
+Outputs:
+  CodeCommitSourceRoleArn:
+    Value: !GetAtt CodeCommitSourceRole.Arn

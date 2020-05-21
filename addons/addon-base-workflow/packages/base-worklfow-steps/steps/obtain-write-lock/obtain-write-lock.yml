@@ -1,0 +1,55 @@
+id: st-obtain-write-lock
+v: 1
+title: Obtain Write Lock
+desc: |
+  This step attempts to obtain a lock given a lock id. You can configure its behavior via its config keys, such
+  as how many attempts should be tried and the time between each attempt.
+
+skippable: true # this means that if there is an error in a previous step, then this step will be skipped
+hidden: false
+
+inputManifest:
+  sections:
+    - title: Configuration
+      children:
+
+        - name: lockIdKeyName
+          type: stringInput
+          title: Payload key name
+          rules: required
+          desc: |
+            This is the key name to use when looking up the lock id from the payload
+
+        - name: attemptsCount
+          type: stringInput
+          title: Attempts count
+          rules: required|integer
+          default: 10
+          desc: |
+            How many times should this step attempt to obtain the lock? (if the previous attempt did not obtain the lock)
+
+        - name: waitPeriod
+          type: stringInput
+          title: Wait time
+          rules: required|integer
+          default: 1
+          desc: |
+            The time (in seconds) to wait before attempting again to obtain the lock (if the previous attempt did not obtain the lock)
+
+        - name: expiresIn
+          type: stringInput
+          title: Expires after
+          rules: required|integer
+          default: 7200
+          desc: |
+            The time (in seconds) before a write lock expires. Make sure you provide a value with enough buffer for your operation.
+            For example, if you are expecting your steps to take 1 second to finish, then set the lock expiry value to 7200 (2 hours) or larger.
+            Remember that this expiry mechanism is meant to address edge cases, where your "Release Lock" step fails for some reason.
+
+        - name: writeTokenKeyName
+          type: stringInput
+          title: Payload key name for the write token value
+          rules: required
+          default: writeLockToken
+          desc: |
+            This is the key name to use when populating the payload with the obtained write lock token.

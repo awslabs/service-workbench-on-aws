@@ -1,0 +1,217 @@
+import React from 'react';
+import { inject, observer } from 'mobx-react';
+import { withRouter } from 'react-router-dom';
+import { decorate, computed, runInAction } from 'mobx';
+import { Segment, Button } from 'semantic-ui-react';
+
+import { displaySuccess, displayError } from '@aws-ee/base-ui/dist//helpers/notification';
+
+import Stores from '@aws-ee/base-ui/dist/models/Stores';
+import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
+import Form from '@aws-ee/base-ui/dist/parts/helpers/fields/Form';
+import YesNo from '@aws-ee/base-ui/dist/parts/helpers/fields/YesNo';
+import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
+import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
+import DropDown from '@aws-ee/base-ui/dist/parts/helpers/fields/DropDown';
+import Input from '@aws-ee/base-ui/dist/parts/helpers/fields/Input';
+import { getAddUserForm, getAddUserFormFields } from '../../models/forms/AddUserForm';
+import { toIdpOptions } from '../../models/forms/UserFormUtils';
+
+// expected props
+// - userStore (via injection)
+// - usersStore (via injection)
+// - userRolesStore (via injection)
+// - awsAccountsStore (via injection)
+// - projectsStore (via injection)
+// - authenticationProviderConfigsStore (via injection)
+class AddSingleUser extends React.Component {
+  constructor(props) {
+    super(props);
+    runInAction(() => {
+      this.stores = new Stores([
+        this.userStore,
+        this.usersStore,
+        this.userRolesStore,
+        this.awsAccountsStore,
+        this.projectsStore,
+        this.authenticationProviderConfigsStore,
+      ]);
+    });
+    this.form = getAddUserForm();
+    this.addUserFormFields = getAddUserFormFields();
+  }
+
+  componentDidMount() {
+    swallowError(this.getStores().load());
+  }
+
+  render() {
+    const stores = this.getStores();
+    let content = null;
+    if (stores.hasError) {
+      content = <ErrorBox error={stores.error} className="p0 mb3" />;
+    } else if (stores.loading) {
+      content = <BasicProgressPlaceholder />;
+    } else if (stores.ready) {
+      content = this.renderMain();
+    } else {
+      content = null;
+    }
+
+    return content;
+  }
+
+  renderMain() {
+    const form = this.form;
+    const emailField = form.$('email');
+    const identityProviderNameField = form.$('identityProviderName');
+    const userRoleField = form.$('userRole');
+    const projectIdField = form.$('projectId');
+    const statusField = form.$('status');
+
+    const identityProviderOptions = this.getIdentityProviderOptions();
+    const userRoleOptions = this.getUserRoleOptions();
+    const projectIdOptions = this.getProjectOptions();
+
+    const isInternalUser = this.userRolesStore.isInternalUser(userRoleField.value);
+
+    return (
+      <Segment clearing className="p3">
+        <Form
+          form={form}
+          onCancel={this.handleCancel}
+          onSuccess={this.handleFormSubmission}
+          onError={this.handleFormError}
+        >
+          {({ processing, _onSubmit, onCancel }) => (
+            <>
+              <Input field={emailField} disabled={processing} />
+              <DropDown
+                field={identityProviderNameField}
+                options={identityProviderOptions}
+                selection
+                fluid
+                disabled={processing}
+              />
+              <DropDown field={userRoleField} options={userRoleOptions} selection fluid disabled={processing} />
+
+              {isInternalUser && (
+                <DropDown
+                  field={projectIdField}
+                  options={projectIdOptions}
+                  multiple
+                  selection
+                  clearable
+                  fluid
+                  disabled={processing}
+                />
+              )}
+
+              <YesNo field={statusField} disabled={processing} />
+
+              <div className="mt3">
+                <Button floated="right" color="blue" icon disabled={processing} className="ml2" type="submit">
+                  Add User
+                </Button>
+                <Button floated="right" disabled={processing} onClick={onCancel}>
+                  Cancel
+                </Button>
+              </div>
+            </>
+          )}
+        </Form>
+      </Segment>
+    );
+  }
+
+  getIdentityProviderOptions() {
+    return toIdpOptions(this.authenticationProviderConfigsStore.list);
+  }
+
+  getUserRoleOptions() {
+    return this.userRolesStore.dropdownOptions;
+  }
+
+  getProjectOptions() {
+    return this.projectsStore.dropdownOptions;
+  }
+
+  // Private methods
+  handleCancel = () => {
+    const goto = gotoFn(this);
+    goto('/users');
+  };
+
+  handleFormSubmission = async form => {
+    const values = form.values();
+    const isInternalUser = this.userRolesStore.isInternalUser(values.userRole);
+    let projectId = values.projectId || [];
+    if (!isInternalUser) {
+      // Pass projectId(s) only if it is internal user. Pass empty array otherwise.
+      projectId = [];
+    }
+    try {
+      await this.usersStore.addUser({ ...values, projectId });
+      form.clear();
+      displaySuccess('Added user successfully');
+
+      const goto = gotoFn(this);
+      goto('/users');
+    } catch (error) {
+      displayError(error);
+    }
+  };
+
+  // eslint-disable-next-line no-unused-vars
+  handleFormError = (_form, _errors) => {
+    // We don't need to do anything here
+  };
+
+  getStores() {
+    return this.stores;
+  }
+
+  get userStore() {
+    return this.props.userStore;
+  }
+
+  get usersStore() {
+    return this.props.usersStore;
+  }
+
+  get userRolesStore() {
+    return this.props.userRolesStore;
+  }
+
+  get awsAccountsStore() {
+    return this.props.awsAccountsStore;
+  }
+
+  get projectsStore() {
+    return this.props.projectsStore;
+  }
+
+  get authenticationProviderConfigsStore() {
+    return this.props.authenticationProviderConfigsStore;
+  }
+}
+
+// see https://medium.com/@mweststrate/mobx-4-better-simpler-faster-smaller-c1fbc08008da
+decorate(AddSingleUser, {
+  userStore: computed,
+  usersStore: computed,
+  userRolesStore: computed,
+  awsAccountsStore: computed,
+  projectsStore: computed,
+  authenticationProviderConfigsStore: computed,
+});
+
+export default inject(
+  'userStore',
+  'usersStore',
+  'userRolesStore',
+  'awsAccountsStore',
+  'projectsStore',
+  'authenticationProviderConfigsStore',
+)(withRouter(observer(AddSingleUser)));
