@@ -1,0 +1,21 @@
+**/.class
+**/.DS_Store
+**/node_modules
+**/npm-debug.log
+**/pnpm-debug.log
+
+.build
+
+# https://github.com/github/gitignore/blob/master/Global/VisualStudioCode.gitignore
+.vscode/*
+!.vscode/*.example.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history
+
+# IntelliJ Idea Module Files
+*.iml
+**/.idea
+
