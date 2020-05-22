@@ -1,0 +1,50 @@
+# Array of identity provider ids.
+# The usual practice is to keep this same as the domain name of the idp.
+# For example, when connecting with an IdP that has users "user1@domain1.com", "user2@domain1.com" etc then
+# the id should be set to "domain1.com"
+#
+# If you do not want to connect to Active Directory then leave this setting as empty array as follows.
+#
+# fedIdpIds: '[]'
+#
+fedIdpIds: '["datalake.amazonaws.com"]'
+
+# Array of identity provider names. This array should be in same order as the "fedIdpIds"
+# Some name for the IdPs. (such as 'com.ee', 'EEAD' etc)
+#
+# If you do not want to connect to Active Directory then leave this setting as empty array as follows.
+#
+# fedIdpNames: '[]'
+#
+fedIdpNames: '["DataLake"]'
+
+# Array of identity provider display names. This array should be in same order as the "fedIdpIds"
+# Display name (such as 'Employee Login', 'AD Login' etc). This can be used in UI to login options.
+#
+# If you do not want to connect to Active Directory then leave this setting as empty array as follows.
+#
+# fedIdpDisplayNames: '[]'
+#
+fedIdpDisplayNames: '["Login using Active Directory"]'
+
+# Array of identity provider SAML metadata. This array should be in same order as the "fedIdpIds".
+# The array should contain either
+# 1. S3 or http(s) url pointing to the IdP metadata.
+#  If S3 URL then it must be accessible by the post-deployment lambda
+#   (i.e., the lambda must have getObject permission to read the specified metadata file location from S3)
+#   The GetObject permission is given by the "RolePostDeploymentLambda" in "post-deployment/config/infra/cloudformation.yml"
+#  If it's http(s) URL then it must be reachable over the public internet.
+# (TODO: Add support for metadata URLs accessible only in private network.)
+# OR
+# 2. the metadata content XML blob as string
+# The current implementation looks for the file in "solution/post-deployment/config/saml-metadata" directory and
+# uploads the file to the S3 directory (prefix) "${self:custom.settings.deploymentBucketName}/saml-metadata/".
+# The uploading of the file is done using serverless s3-sync plugin. See "post-deployment/serverless.yml"
+# file and search for "s3Sync" to see which files are uploaded to the "${self:custom.settings.deploymentBucketName}" S3
+# bucket.
+#
+# If you do not want to connect to Active Directory then leave this setting as empty array as follows.
+#
+# fedIdpMetadatas: '[]'
+# TODO: Remove saml-metadata/datalake-demo-idp-metadata.xml file and replace this setting to use sample file
+fedIdpMetadatas: '["s3://${self:custom.settings.deploymentBucketName}/saml-metadata/datalake-demo-idp-metadata.xml"]'

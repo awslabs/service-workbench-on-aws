@@ -1,0 +1,15 @@
+#
+# Please read "documentation/aws-accounts-readme.md" first
+#
+
+# AWS Credentials profile with permissions for the master account
+awsProfile: gali-master
+
+# 12 digit AWS Account ID for the main AWS account where the solution is (will be) deployed
+mainAccountId: 123456789012
+
+# An external id to be used in the AWS IAM role being created in the master account.
+# This id will be required by the solution to assume the role in master account.
+# The external id specified here MUST match the value you specify in the "Create AWS Account" screen
+# when creating a member account via the RaaS solution UI
+externalId: spyglass-master

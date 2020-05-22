@@ -1,0 +1,24 @@
+# Id of the AWS Account containing the AWS CodeCommit source code repository
+sourceAccountId: 123456789012
+
+# AWS credentials profile for the target AWS Account where the solution needs to be deployed
+awsProfile: galimain
+
+# The source code repository name
+codeCommitRepoName: raas
+
+# Arn of the AWS Code Commit source code repository
+codeCommitRepoArn: arn:aws:codecommit:us-east-1:123456789012:raas
+
+# ARN of the code commit source role. Please provide the value of the CloudFormation output variable
+# "CodeCommitSourceRoleArn" from the "cicd-source" stack.
+codeCommitSourceRoleArn: arn:aws:iam::123456789012:role/demo-va-raas-cicd-src-CodeCommitSourceRole-FONXYL4UWDGZ
+
+# Email address to receive CodePipeline failure notifications and notifications for manual approval
+emailForNotifications: johndoe@company.com
+
+# Flag indicating whether to run integration tests against the target environment
+# Set this to false if you do not want to run automated tests against target env (such as production)
+# This flag is only to control tests against target env. The tests are always run against staging env
+# when "createStagingEnv" is "true" irrespective of this flag.
+runTestsAgainstTargetEnv: true
