@@ -12,4 +12,4 @@ mainAccountId: 123456789012
 # This id will be required by the solution to assume the role in master account.
 # The external id specified here MUST match the value you specify in the "Create AWS Account" screen
 # when creating a member account via the RaaS solution UI
-externalId: spyglass-master
+externalId: galileo-master

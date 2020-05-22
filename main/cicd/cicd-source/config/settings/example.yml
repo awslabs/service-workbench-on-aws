@@ -8,7 +8,7 @@ targetAccountId: 123456789012
 
 # name of the AWS CodeCommit repository containing the source code of the solution
 # for which you want to deploy the CI/CD pipeline
-codeCommitRepoName: raas
+codeCommitRepoName: aws-galileo-gateway
 
 # The name of the git branch of the source code repository the code pipeline needs to build and deploy
 codeCommitRepoBranchName: master
@@ -60,7 +60,7 @@ codeCommitRepoBranchName: master
 #
 # The arn of the artifacts bucket
 #artifactsS3BucketArn: "*"
-artifactsS3BucketArn: 'arn:aws:s3:::demo-va-raas-cicd-pipeline-appartifactbucket-1p9uwo3lfecrl'
+artifactsS3BucketArn: 'arn:aws:s3:::example-va-raas-cicd-pipeline-appartifactbucket-XXXXXXXXXXXXX'
 
 #artifactsKmsKeyArn: "*"
-artifactsKmsKeyArn: 'arn:aws:kms:us-east-1:123456789012:key/cc2539c0-9563-4ac5-be71-624ad1567968'
+artifactsKmsKeyArn: 'arn:aws:kms:us-east-1:123456789012:key/cc2539c0-9563-4ac5-be71-XXXXXXXXXXXX'

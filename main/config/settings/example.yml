@@ -20,4 +20,4 @@ envName: ${opt:stage}
 envType: demo
 
 # Root user's email address
-rootUserEmail: johndoe@company.com
+rootUserEmail: johndoe@example.com

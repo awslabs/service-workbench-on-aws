@@ -46,5 +46,5 @@ fedIdpDisplayNames: '["Login using Active Directory"]'
 # If you do not want to connect to Active Directory then leave this setting as empty array as follows.
 #
 # fedIdpMetadatas: '[]'
-# TODO: Remove saml-metadata/datalake-demo-idp-metadata.xml file and replace this setting to use sample file
-fedIdpMetadatas: '["s3://${self:custom.settings.deploymentBucketName}/saml-metadata/datalake-demo-idp-metadata.xml"]'
+# TODO: Remove saml-metadata/datalake-example-idp-metadata.xml file and replace this setting to use sample file
+fedIdpMetadatas: '["s3://${self:custom.settings.deploymentBucketName}/saml-metadata/datalake-example-idp-metadata.xml"]'
