@@ -222,7 +222,17 @@ function addUser(user) {
   if (user.identityProviderName) {
     params.identityProviderName = user.identityProviderName;
   }
-  return httpApiPost('api/users', { data: removeNulls(user), params });
+  const data = removeNulls(_.clone(user));
+  delete data.ns; // Server derives ns based on "authenticationProviderId" and "identityProviderName"
+  // on server side so remove it from request body
+  delete data.createdBy; // Similarly, createdBy and updatedBy are derived on server side
+  delete data.updatedBy;
+  if (!data.userType) {
+    // if userType is specified as empty string then make sure to delete it
+    // the api requires this to be only one of the supported values (currently only supported value is 'root')
+    delete data.userType;
+  }
+  return httpApiPost('api/users', { data, params });
 }
 
 function updateUser(user) {
@@ -233,7 +243,17 @@ function updateUser(user) {
   if (user.identityProviderName) {
     params.identityProviderName = user.identityProviderName;
   }
-  return httpApiPut(`api/users/${user.username}`, { data: removeNulls(user), params });
+  const data = removeNulls(_.clone(user));
+  delete data.ns; // Server derives ns based on "authenticationProviderId" and "identityProviderName"
+  // on server side so remove it from request body
+  delete data.createdBy; // Similarly, createdBy and updatedBy are derived on server side
+  delete data.updatedBy;
+  if (!data.userType) {
+    // if userType is specified as empty string then make sure to delete it
+    // the api requires this to be only one of the supported values (currently only supported value is 'root')
+    delete data.userType;
+  }
+  return httpApiPut(`api/users/${user.username}`, { data, params });
 }
 
 function getUsers() {

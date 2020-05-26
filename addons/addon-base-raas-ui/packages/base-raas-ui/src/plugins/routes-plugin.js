@@ -14,6 +14,7 @@ import AddAwsAccount from '../parts/accounts/AddAwsAccount';
 import CreateAwsAccount from '../parts/accounts/CreateAwsAccount';
 import EnvironmentSetup from '../parts/environments/EnvironmentSetup';
 import AddProject from '../parts/projects/AddProject';
+import AddSingleLocalUser from '../parts/users/AddSingleLocalUser';
 
 /**
  * Adds routes to the given routesMap.
@@ -24,13 +25,18 @@ import AddProject from '../parts/projects/AddProject';
  */
 // eslint-disable-next-line no-unused-vars
 function registerRoutes(routesMap, { location, appContext }) {
+  // Temporary solution for the routes ordering issue
+  routesMap.delete('/users/add');
+  routesMap.delete('/users');
+
   const routes = new Map([
     ...routesMap,
+    ['/users/add/local', withAuth(AddSingleLocalUser)],
     ['/users/add', withAuth(AddUser)],
+    ['/users', withAuth(User)],
     ['/indexes/add', withAuth(AddIndex)],
     ['/aws-accounts/add', withAuth(AddAwsAccount)],
     ['/aws-accounts/create', withAuth(CreateAwsAccount)],
-    ['/users', withAuth(User)],
     ['/accounts', withAuth(Accounts)],
     ['/dashboard', withAuth(Dashboard)],
     ['/studies/setup-workspace', withAuth(StudyEnvironmentSetup)],

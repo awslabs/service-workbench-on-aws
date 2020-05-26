@@ -8,7 +8,7 @@ import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
 import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
 import { isStoreError, isStoreLoading, isStoreReady } from '@aws-ee/base-ui/dist/models/BaseStore';
 import { toIdpOptions } from '../../models/forms/UserFormUtils';
-import DragnDrop from './DragnDrop';
+import DragDrop from './DragDrop';
 import AddSingleUser from './AddSingleUser';
 
 // expected props
@@ -41,7 +41,7 @@ class AddUser extends React.Component {
     return (
       <div className="mb3 flex">
         <Header as="h3" className="color-grey mt1 mb0 flex-auto">
-          <Icon name="database" className="align-top" />
+          <Icon name="user" className="align-top" />
           <Header.Content className="left-align">Add User</Header.Content>
         </Header>
       </div>
@@ -65,7 +65,7 @@ class AddUser extends React.Component {
         menuItem: 'Add Multiple Users',
         render: () => (
           <Tab.Pane basic attached={false}>
-            <DragnDrop identityProviderOption={identityProviderOptions} />
+            <DragDrop identityProviderOptions={identityProviderOptions} />
           </Tab.Pane>
         ),
       },

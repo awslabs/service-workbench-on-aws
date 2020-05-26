@@ -10,11 +10,11 @@ const User = types
     lastName: types.maybeNull(types.optional(types.string, '')),
     isAdmin: types.optional(types.boolean, false),
     username: '',
-    ns: '',
+    ns: types.maybeNull(types.optional(types.string, '')),
     email: '',
     userType: '',
     authenticationProviderId: '', // Id of the authentication provider this user is authenticated against (such as internal, cognito auth provider id etc)
-    identityProviderName: '', // Name of the identity provider this user belongs to (such as Identity Provider Id in cognito user pool in case of Federation etc)
+    identityProviderName: types.maybeNull(types.optional(types.string, '')), // Name of the identity provider this user belongs to (such as Identity Provider Id in cognito user pool in case of Federation etc)
     status: 'active',
     rev: 0,
     userRole: '',

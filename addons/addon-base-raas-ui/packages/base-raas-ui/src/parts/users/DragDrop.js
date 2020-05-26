@@ -4,15 +4,19 @@ import Dropzone from 'react-dropzone';
 import { withRouter } from 'react-router-dom';
 import { inject, observer } from 'mobx-react';
 import { Segment, Icon, Header, Button, Message, Container } from 'semantic-ui-react';
-import { decorate, observable, action, runInAction } from 'mobx';
+import { computed, decorate, observable, action, runInAction } from 'mobx';
 import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
 import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
 
+import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
+import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
+import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import Stores from '@aws-ee/base-ui/dist/models/Stores';
 import UserTable from './UserTable';
 
-class DragnDrop extends Component {
-  constructor() {
-    super();
+class DragDrop extends Component {
+  constructor(props) {
+    super(props);
     this.state = {
       files: [],
       fileContent: '',
@@ -22,7 +26,34 @@ class DragnDrop extends Component {
       this.formProcessing = false;
       this.validationErrors = new Map();
       this.user = {};
+
+      this.stores = new Stores([
+        this.authenticationProviderConfigsStore,
+        this.userRolesStore,
+        this.usersStore,
+        this.userStore,
+      ]);
     });
+  }
+
+  get userRolesStore() {
+    return this.props.userRolesStore;
+  }
+
+  get usersStore() {
+    return this.props.usersStore;
+  }
+
+  get userStore() {
+    return this.props.userStore;
+  }
+
+  get authenticationProviderConfigsStore() {
+    return this.props.authenticationProviderConfigsStore;
+  }
+
+  componentDidMount() {
+    swallowError(this.stores.load());
   }
 
   csvJSON(csv) {
@@ -76,25 +107,12 @@ class DragnDrop extends Component {
     );
   }
 
-  async addAuthenticationProviderId(value) {
-    const authStore = this.props.authenticationProviderConfigsStore;
-    let authList = authStore.list;
-    if (authList.length === 0) {
-      await authStore.doLoad();
-      authList = authStore.list;
-    }
-    let authId = null;
-    _.forEach(authList, auth => {
-      if (auth.config.title === _.find(this.props.identityProviderOption, { value }).text) {
-        authId = auth.id;
-      }
-    });
-    return authId;
-  }
-
   async addAuthProviderId(userArr) {
     const promises = userArr.map(async user => {
-      const authenticationProviderId = await this.addAuthenticationProviderId(user.identityProviderName);
+      const provider = this.authenticationProviderConfigsStore.getAuthenticationProviderConfigByIdpName(
+        user.identityProviderName,
+      );
+      const authenticationProviderId = _.get(provider, 'id');
       user.authenticationProviderId = authenticationProviderId;
       return user;
     });
@@ -105,13 +123,13 @@ class DragnDrop extends Component {
   handleSubmit = action(async () => {
     this.formProcessing = true;
     try {
-      // conmose the content to users and invoke add user
+      // compose the content to users and invoke add user
       const userArr = await this.addAuthProviderId(this.state.jsonArrayContent);
-      await this.getStore().addUsers(userArr);
+      await this.usersStore.addUsers(userArr);
       runInAction(() => {
         this.formProcessing = false;
       });
-      await this.getStore().load();
+      await this.usersStore.load();
       this.goto('/users');
     } catch (error) {
       runInAction(() => {
@@ -128,10 +146,6 @@ class DragnDrop extends Component {
     this.goto('/users');
   });
 
-  getStore() {
-    return this.props.usersStore;
-  }
-
   renderTable() {
     let content;
     if (this.state.fileContent) {
@@ -143,6 +157,21 @@ class DragnDrop extends Component {
   }
 
   render() {
+    const stores = this.stores;
+    let content = null;
+    if (stores.hasError) {
+      content = <ErrorBox error={stores.error} className="p0 mb3" />;
+    } else if (stores.loading) {
+      content = <BasicProgressPlaceholder />;
+    } else if (stores.ready) {
+      content = this.renderMain();
+    } else {
+      content = null;
+    }
+    return content;
+  }
+
+  renderMain() {
     const files = this.state.files.map(file => (
       <li key={file.name}>
         {file.name} - {file.size} bytes
@@ -189,7 +218,11 @@ class DragnDrop extends Component {
     );
   }
 }
-decorate(DragnDrop, {
+decorate(DragDrop, {
+  authenticationProviderConfigsStore: computed,
+  userRolesStore: computed,
+  usersStore: computed,
+  userStore: computed,
   formProcessing: observable,
 });
 
@@ -198,4 +231,4 @@ export default inject(
   'usersStore',
   'userRolesStore',
   'authenticationProviderConfigsStore',
-)(withRouter(observer(DragnDrop)));
+)(withRouter(observer(DragDrop)));

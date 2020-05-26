@@ -14,7 +14,9 @@ async function configure(context) {
   router.get(
     '/',
     wrap(async (req, res) => {
-      const awsAccounts = await awsAccountsService.list();
+      const requestContext = res.locals.requestContext;
+
+      const awsAccounts = await awsAccountsService.list(requestContext);
       res.status(200).json(awsAccounts);
     }),
   );

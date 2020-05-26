@@ -2,7 +2,7 @@ const _ = require('lodash');
 const crypto = require('crypto');
 const uuid = require('uuid/v4');
 const Service = require('@aws-ee/base-services-container/lib/service');
-const { ensureCurrentUserOrAdmin } = require('@aws-ee/base-services/lib/authorization/assertions');
+const { ensureCurrentUserOrAdmin } = require('../authorization/assertions');
 
 const settingKeys = {
   tableName: 'dbTablePasswords',
@@ -19,7 +19,20 @@ class DbPasswordService extends Service {
     return password && _.isString(password) && password.length >= 4;
   }
 
+  async assertValidPassword(password) {
+    const isValidPassword = await this.passwordMatchesPasswordPolicy(password);
+    if (!isValidPassword) {
+      throw this.boom.badRequest(
+        'Can not save password. Invalid password specified. Please specify a valid password with at least 4 characters',
+        true,
+      );
+    }
+  }
+
   async savePassword(requestContext, { username, password }) {
+    // Assert that the password is valid (i.e., it matches password policy)
+    await this.assertValidPassword(password);
+
     // Allow only current user or admin to update (or create) the user's password
     await ensureCurrentUserOrAdmin(requestContext, username);
 

@@ -3,6 +3,7 @@ const Service = require('@aws-ee/base-services-container/lib/service');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 
+const { isExternalGuest, isExternalResearcher, isInternalGuest } = require('../helpers/is-role');
 const createSchema = require('../schema/create-project');
 const updateSchema = require('../schema/update-project');
 
@@ -29,7 +30,12 @@ class ProjectService extends Service {
   }
 
   async find(requestContext, { id, fields = [] }) {
-    // TODO - figure out permissions
+    const restrict =
+      isExternalGuest(requestContext) || isExternalResearcher(requestContext) || isInternalGuest(requestContext);
+
+    if (restrict) return undefined;
+
+    // Future task: return undefined if the user is not associated with this project, unless they are admin
 
     const result = await this._getter()
       .key({ id })
@@ -167,8 +173,15 @@ class ProjectService extends Service {
     return result;
   }
 
-  async list({ fields = [] } = {}) {
-    // Remember doing a scanning is not a good idea if you billions of rows
+  async list(requestContext, { fields = [] } = {}) {
+    const restrict =
+      isExternalGuest(requestContext) || isExternalResearcher(requestContext) || isInternalGuest(requestContext);
+
+    if (restrict) return [];
+
+    // Future task: only return projects that the user has been associated with unless the user is an admin
+
+    // Remember doing a scan is not a good idea if you billions of rows
     return this._scanner()
       .limit(1000)
       .projection(fields)

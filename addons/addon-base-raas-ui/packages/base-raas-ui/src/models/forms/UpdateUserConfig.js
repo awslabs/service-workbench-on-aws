@@ -1,5 +1,6 @@
 import _ from 'lodash';
 import { createForm } from '../../helpers/form';
+import { toValueFromIdp } from './UserFormUtils';
 
 function getUpdateUserConfigFormFields(existingUser) {
   return {
@@ -27,7 +28,10 @@ function getUpdateUserConfigFormFields(existingUser) {
     },
     identityProviderName: {
       label: 'Identity Provider Name',
-      value: _.get(existingUser, 'identityProviderName', ''),
+      value: toValueFromIdp({
+        authenticationProviderId: _.get(existingUser, 'authenticationProviderId', ''),
+        identityProviderName: _.get(existingUser, 'identityProviderName', ''),
+      }),
     },
     projectId: {
       label: 'Project',

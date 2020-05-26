@@ -1,4 +1,5 @@
 import React from 'react';
+import _ from 'lodash';
 import { inject, observer } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { decorate, computed, runInAction } from 'mobx';
@@ -16,7 +17,7 @@ import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
 import DropDown from '@aws-ee/base-ui/dist/parts/helpers/fields/DropDown';
 import Input from '@aws-ee/base-ui/dist/parts/helpers/fields/Input';
 import { getAddUserForm, getAddUserFormFields } from '../../models/forms/AddUserForm';
-import { toIdpOptions } from '../../models/forms/UserFormUtils';
+import { toIdpFromValue, toIdpOptions } from '../../models/forms/UserFormUtils';
 
 // expected props
 // - userStore (via injection)
@@ -75,6 +76,8 @@ class AddSingleUser extends React.Component {
     const projectIdOptions = this.getProjectOptions();
 
     const isInternalUser = this.userRolesStore.isInternalUser(userRoleField.value);
+    const isInternalGuest = this.userRolesStore.isInternalGuest(userRoleField.value);
+    const showProjectField = !_.isEmpty(projectIdOptions) && isInternalUser && !isInternalGuest;
 
     return (
       <Segment clearing className="p3">
@@ -96,7 +99,7 @@ class AddSingleUser extends React.Component {
               />
               <DropDown field={userRoleField} options={userRoleOptions} selection fluid disabled={processing} />
 
-              {isInternalUser && (
+              {showProjectField && (
                 <DropDown
                   field={projectIdField}
                   options={projectIdOptions}
@@ -146,13 +149,23 @@ class AddSingleUser extends React.Component {
   handleFormSubmission = async form => {
     const values = form.values();
     const isInternalUser = this.userRolesStore.isInternalUser(values.userRole);
+    const isInternalGuest = this.userRolesStore.isInternalGuest(values.userRole);
     let projectId = values.projectId || [];
-    if (!isInternalUser) {
-      // Pass projectId(s) only if it is internal user. Pass empty array otherwise.
+    if (!isInternalUser || isInternalGuest) {
+      // Pass projectId(s) only if the user's role is internal role and if the user is not a guest.
+      // Pass empty array otherwise.
       projectId = [];
     }
+
+    // The values.identityProviderName is in JSON string format
+    // containing authentication provider id as well as identity provider name
+    // See "src/models/forms/UserFormUtils.js" for more details.
+    const idpOptionValue = toIdpFromValue(values.identityProviderName);
+    const identityProviderName = idpOptionValue.idpName;
+    const authenticationProviderId = idpOptionValue.authNProviderId;
+
     try {
-      await this.usersStore.addUser({ ...values, projectId });
+      await this.usersStore.addUser({ ...values, authenticationProviderId, identityProviderName, projectId });
       form.clear();
       displaySuccess('Added user successfully');
 
