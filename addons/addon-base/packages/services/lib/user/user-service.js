@@ -172,15 +172,39 @@ class UserService extends Service {
     return result;
   }
 
+  async validateUsers(users) {
+    if (!Array.isArray(users)) {
+      throw this.boom.badRequest(`invalid users type`, true);
+    }
+
+    // ensure there are no duplicates
+    const distinctUsers = new Set(users.map((u) => `${u.username}||||${u.ns}`));
+    if (distinctUsers.size < users.length) {
+      throw this.boom.badRequest('user list contains duplicates', true);
+    }
+
+    const findUserPromises = users.map((user) => {
+      const { username, ns } = user;
+      return this.getUser({ username, ns });
+    });
+
+    const findUserResults = await Promise.all(findUserPromises);
+    const findUserExistsStatus = findUserResults.map((user, index) => {
+      return { usersIndex: index, exists: !!user };
+    });
+    const nonExistingUsers = findUserExistsStatus
+      .filter((item) => !item.exists)
+      .map((item) => users[item.usersIndex].username);
+
+    if (nonExistingUsers.length) {
+      throw this.boom.badRequest(`non available user: [${nonExistingUsers}]`, true);
+    }
+  }
+
   async getUser({ username, ns, fields = [] }) {
     const dbService = await this.service('dbService');
     const table = this.settings.get(settingKeys.tableName);
-    return dbService.helper
-      .getter()
-      .table(table)
-      .key({ username, ns })
-      .projection(fields)
-      .get();
+    return dbService.helper.getter().table(table).key({ username, ns }).projection(fields).get();
   }
 
   async findUser({ username, authenticationProviderId, identityProviderName, fields = [] }) {
@@ -192,11 +216,7 @@ class UserService extends Service {
     const dbService = await this.service('dbService');
     const table = this.settings.get(settingKeys.tableName);
     const ns = toUserNamespace(authenticationProviderId, identityProviderName);
-    const item = await dbService.helper
-      .getter()
-      .table(table)
-      .key({ username, ns })
-      .get();
+    const item = await dbService.helper.getter().table(table).key({ username, ns }).get();
 
     if (item === undefined) return false;
     return username === item.username;
@@ -225,15 +245,10 @@ class UserService extends Service {
     const dbService = await this.service('dbService');
     const table = this.settings.get(settingKeys.tableName);
     // TODO: Handle pagination
-    const users = await dbService.helper
-      .scanner()
-      .table(table)
-      .limit(1000)
-      .projection(fields)
-      .scan();
+    const users = await dbService.helper.scanner().table(table).limit(1000).projection(fields).scan();
 
     const isAdmin = _.get(requestContext, 'principal.isAdmin', false);
-    return isAdmin ? users : users.map(user => _.omit(user, ['isAdmin']));
+    return isAdmin ? users : users.map((user) => _.omit(user, ['isAdmin']));
   }
 
   // Protected methods

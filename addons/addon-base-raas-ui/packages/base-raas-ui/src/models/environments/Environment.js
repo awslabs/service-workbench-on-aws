@@ -41,8 +41,9 @@ const Environment = types
     error: types.maybeNull(types.string),
     isExternal: types.optional(types.boolean, false),
     stackId: types.maybeNull(types.string),
+    sharedWithUsers: types.array(UserIdentifier, []),
   })
-  .actions(self => ({
+  .actions((self) => ({
     setEnvironment(rawEnvironment) {
       // Note: if you have partial data vs full data, you need to replace the applySnapshot() with
       // the appropriate logic
@@ -85,7 +86,7 @@ const Environment = types
   }))
 
   // eslint-disable-next-line no-unused-vars
-  .views(self => ({
+  .views((self) => ({
     // add view methods here
     get isTerminated() {
       return _.includes(['TERMINATING', 'TERMINATED', 'TERMINATING_FAILED'], this.status);
@@ -108,7 +109,7 @@ const Environment = types
 function registerContextItems(appContext) {
   uiEventBus.listenTo('environmentDeleted', {
     id: 'Environment',
-    listener: async event => {
+    listener: async (event) => {
       // event will be the environment object
       event.markAsTerminating();
     },

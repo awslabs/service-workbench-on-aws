@@ -31,7 +31,7 @@ const EnvironmentsStore = BaseStore.named('EnvironmentsStore')
     tickPeriod: 30 * 1000, // 30 seconds
   })
 
-  .actions(self => {
+  .actions((self) => {
     // save the base implementation of cleanup
     const superCleanup = self.cleanup;
 
@@ -40,7 +40,7 @@ const EnvironmentsStore = BaseStore.named('EnvironmentsStore')
         const environments = await getEnvironments();
 
         try {
-          const costPromises = environments.map(env => {
+          const costPromises = environments.map((env) => {
             if (env.isExternal) {
               return getEstimatedCost(env, 1);
             }
@@ -74,7 +74,7 @@ const EnvironmentsStore = BaseStore.named('EnvironmentsStore')
         }
       },
 
-      getEnvironmentStore: environmentId => {
+      getEnvironmentStore: (environmentId) => {
         let entry = self.environmentStores.get(environmentId);
         if (!entry) {
           // Lazily create the store
@@ -85,7 +85,7 @@ const EnvironmentsStore = BaseStore.named('EnvironmentsStore')
         return entry;
       },
 
-      markAsTerminating: id => {
+      markAsTerminating: (id) => {
         const previous = self.environments.get(id);
         if (previous) {
           previous.markAsTerminating();
@@ -115,7 +115,7 @@ const EnvironmentsStore = BaseStore.named('EnvironmentsStore')
         if (!response.isDone) {
           return { status: 'PENDING' };
         }
-        response.outputs.forEach(output => {
+        response.outputs.forEach((output) => {
           _.assign(instanceInfo, { [output.key]: output.value });
         });
         instanceInfo = _.omitBy(instanceInfo, _.isEmpty);
@@ -240,6 +240,10 @@ const EnvironmentsStore = BaseStore.named('EnvironmentsStore')
         return cfnParams;
       },
 
+      async updateEnvironment(environment) {
+        await updateEnvironment(environment);
+      },
+
       cleanup: () => {
         storage.removeItem(localStorageKeys.pinToken);
         self.environments.clear();
@@ -248,7 +252,7 @@ const EnvironmentsStore = BaseStore.named('EnvironmentsStore')
     };
   })
 
-  .views(self => ({
+  .views((self) => ({
     get empty() {
       return self.environments.size === 0;
     },
@@ -259,7 +263,7 @@ const EnvironmentsStore = BaseStore.named('EnvironmentsStore')
 
     get list() {
       const result = [];
-      self.environments.forEach(environment => result.push(environment));
+      self.environments.forEach((environment) => result.push(environment));
 
       return _.reverse(_.sortBy(result, ['createdAt', 'name']));
     },
