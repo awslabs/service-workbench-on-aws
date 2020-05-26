@@ -31,7 +31,7 @@ Resources:
                   - codecommit:GetCommit
                   - codecommit:GetUploadArchiveStatus
                   - codecommit:UploadArchive
-                Resource: !Sub "arn:${AWS::Partition}:codecommit:${AWS::Region}:${AWS::AccountId}:${self:custom.settings.codeCommitRepoName}"
+                Resource: !Sub "arn:${AWS::Partition}:codecommit:${AWS::Region}:${AWS::AccountId}:${self:custom.settings.repoName}"
               - Sid: CopySourceCodeToArtifactBucketPermission
                 Effect: Allow
                 Action:
@@ -91,12 +91,12 @@ Resources:
         source: [aws.codecommit]
         detail-type: [CodeCommit Repository State Change]
         resources:
-          - !Sub 'arn:${AWS::Partition}:codecommit:${AWS::Region}:${AWS::AccountId}:${self:custom.settings.codeCommitRepoName}'
+          - !Sub 'arn:${AWS::Partition}:codecommit:${AWS::Region}:${AWS::AccountId}:${self:custom.settings.repoName}'
         detail:
           event: [referenceCreated, referenceUpdated]
           referenceType: [branch]
           referenceName:
-            - ${self:custom.settings.codeCommitRepoBranchName}
+            - ${self:custom.settings.repoBranch}
       State: ENABLED
       Targets:
         - Id: !Sub "CodeCommitCrossAccount${AWS::AccountId}"
