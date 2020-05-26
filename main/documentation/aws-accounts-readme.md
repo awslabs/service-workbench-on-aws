@@ -216,6 +216,23 @@ These policies support running analytics.
           "iam:PolicyARN": "arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole"
         }
       }
+    },
+    {
+      "Sid": "iamServiceLinkedRoleCreateAccess",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateServiceLinkedRole",
+        "iam:PutRolePolicy"
+      ],
+      "Resource": "arn:aws:iam::*:role/aws-service-role/elasticmapreduce.amazonaws.com*/AWSServiceRoleForEMRCleanup*",
+      "Condition": {
+        "StringLike": {
+          "iam:AWSServiceName": [
+            "elasticmapreduce.amazonaws.com",
+            "elasticmapreduce.amazonaws.com.cn"
+          ]
+        }
+      }
     }]
 }
 ```

@@ -57,14 +57,14 @@ function updateUserApplication(user) {
 }
 
 async function deleteUser(user) {
-  const params = {};
+  const data = {};
   if (user.authenticationProviderId) {
-    params.authenticationProviderId = user.authenticationProviderId;
+    data.authenticationProviderId = user.authenticationProviderId;
   }
   if (user.identityProviderName) {
-    params.identityProviderName = user.identityProviderName;
+    data.identityProviderName = user.identityProviderName;
   }
-  return httpApiDelete(`api/users/${user.username}`, { params });
+  return httpApiDelete(`api/users/${user.username}`, { data });
 }
 
 function getStudies(category) {

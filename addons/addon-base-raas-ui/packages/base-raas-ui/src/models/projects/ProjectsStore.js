@@ -104,6 +104,7 @@ const ProjectsStore = BaseStore.named('ProjectsStore')
         res.text = project.id;
         result.push(res);
       });
+
       return result;
     },
 

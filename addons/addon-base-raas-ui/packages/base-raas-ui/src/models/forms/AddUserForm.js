@@ -30,10 +30,6 @@ const addUserFormFields = {
     label: 'Project Id',
     extra: { explain: 'Select Project for this user' },
   },
-  indexId: {
-    label: 'Index',
-    extra: { explain: 'Select Index for the project' },
-  },
   userRole: {
     label: 'UserRole',
     extra: { explain: "Select user's role" },

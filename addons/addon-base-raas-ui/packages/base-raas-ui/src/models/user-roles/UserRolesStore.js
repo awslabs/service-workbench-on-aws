@@ -73,6 +73,10 @@ const UserRolesStore = BaseStore.named('UserRolesStore')
       return _.toLower(self.getUserType(userRoleId)) === 'internal';
     },
 
+    isInternalGuest(userRoleId) {
+      return _.toLower(userRoleId) === 'internal-guest';
+    },
+
     getUserType(userRoleId) {
       const found = self.userRoles.get(userRoleId);
       return found ? found.userType : '';

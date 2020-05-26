@@ -30,7 +30,7 @@ import DropDown from '@aws-ee/base-ui/dist/parts/helpers/fields/DropDown';
 import YesNo from '@aws-ee/base-ui/dist/parts/helpers/fields/YesNo';
 import { displayError, displaySuccess } from '@aws-ee/base-ui/dist/helpers/notification';
 import { getUpdateUserConfigForm } from '../../models/forms/UpdateUserConfig';
-import { toIdpOptions } from '../../models/forms/UserFormUtils';
+import { toIdpFromValue, toIdpOptions } from '../../models/forms/UserFormUtils';
 
 class UpdateUser extends React.Component {
   constructor(props) {
@@ -223,6 +223,9 @@ class UpdateUser extends React.Component {
     const projectIdOptions = this.getProjectOptions();
 
     const isInternalUser = this.userRolesStore.isInternalUser(userRoleField.value);
+    const isInternalGuest = this.userRolesStore.isInternalGuest(userRoleField.value);
+    const showProjectField = !_.isEmpty(projectIdOptions) && isInternalUser && !isInternalGuest;
+
     const isAdminMode = this.props.adminMode;
     return (
       <Segment clearing className="p3 mb4">
@@ -252,7 +255,7 @@ class UpdateUser extends React.Component {
                     <DropDown field={userRoleField} options={userRoleOptions} selection fluid disabled={processing} />
                   )}
 
-                  {isAdminMode && isInternalUser && (
+                  {isAdminMode && showProjectField && (
                     <DropDown
                       field={projectIdField}
                       options={projectIdOptions}
@@ -319,14 +322,18 @@ class UpdateUser extends React.Component {
   handleFormSubmission = async form => {
     const values = form.values();
     const isInternalUser = this.userRolesStore.isInternalUser(values.userRole);
-    const { firstName, lastName, email, userRole, status } = values;
-    const isAdmin = userRole === 'admin';
+    const isInternalGuest = this.userRolesStore.isInternalGuest(values.userRole);
     let projectId = values.projectId || [];
-    const identityProviderNameField = form.$('identityProviderName');
-    if (!isInternalUser) {
-      // Pass projectId(s) only if it is internal user. Pass empty array otherwise.
+    if (!isInternalUser || isInternalGuest) {
+      // Pass projectId(s) only if the user's role is internal role and if the user is not a guest.
+      // Pass empty array otherwise.
       projectId = [];
     }
+
+    const { firstName, lastName, email, userRole, status } = values;
+    const isAdmin = userRole === 'admin';
+    const identityProviderNameField = form.$('identityProviderName');
+
     let userToUpdate = { ...this.getCurrentUser(), firstName, lastName, email };
     if (this.props.adminMode && !this.getCurrentUser().isRootUser) {
       userToUpdate = { ...userToUpdate, userRole, isAdmin, projectId, status };
@@ -340,7 +347,12 @@ class UpdateUser extends React.Component {
           // clear out the user namespace as it will be re-derived based on authenticationProviderId and
           // identityProviderName on server side
           userToUpdate.ns = undefined;
-          userToUpdate.identityProviderName = identityProviderNameField.value;
+          // The values.identityProviderName is in JSON string format
+          // containing authentication provider id as well as identity provider name
+          // See "src/models/forms/UserFormUtils.js" for more details.
+          const idpOptionValue = toIdpFromValue(identityProviderNameField.value);
+          userToUpdate.identityProviderName = idpOptionValue.idpName;
+          userToUpdate.authenticationProviderId = idpOptionValue.authNProviderId;
           await usersStore.addUser(userToUpdate);
 
           // Delete existing user first

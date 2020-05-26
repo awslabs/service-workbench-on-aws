@@ -53,14 +53,6 @@ async function configure(context) {
       }
       const { username, firstName, lastName, email, isAdmin, status, password } = req.body;
 
-      const isValidPassword = await dbPasswordService.passwordMatchesPasswordPolicy(password);
-      if (!isValidPassword) {
-        throw boom.badRequest(
-          'Can not save password. Invalid password specified. Please specify a valid password with at least 4 characters',
-          true,
-        );
-      }
-
       const createdUser = await userService.createUser(requestContext, {
         username,
         authenticationProviderId,
@@ -70,10 +62,8 @@ async function configure(context) {
         email,
         isAdmin: _.isNil(isAdmin) ? false : isAdmin,
         status,
+        password,
       });
-
-      // Save password salted hash for the user in internal auth provider (i.e., in passwords table)
-      await dbPasswordService.savePassword(requestContext, { username, password });
 
       res.status(200).json(createdUser);
     }),

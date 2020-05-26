@@ -14,7 +14,7 @@
  */
 
 import _ from 'lodash';
-import { applySnapshot, getSnapshot, types } from 'mobx-state-tree';
+import { applySnapshot, detach, getSnapshot, types } from 'mobx-state-tree';
 import { addUser, updateUser, getUsers } from '@aws-ee/base-ui/dist/helpers/api';
 import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
 
@@ -24,6 +24,7 @@ import { User } from './User';
 const UsersStore = BaseStore.named('UsersStore')
   .props({
     users: types.optional(types.map(User), {}),
+    tickPeriod: 60 * 1000, // 1 minute
   })
 
   .actions(self => {
@@ -40,7 +41,7 @@ const UsersStore = BaseStore.named('UsersStore')
             if (!previous) {
               self.users.set(userModel.id, userModel);
             } else {
-              previous.setUser(user);
+              applySnapshot(previous, user);
             }
           });
         });
@@ -51,7 +52,9 @@ const UsersStore = BaseStore.named('UsersStore')
         superCleanup();
       },
       addUser: async user => {
-        const addedUser = await addUser(user);
+        // if username is not specified then pass email as username
+        const username = user.username || user.email;
+        const addedUser = await addUser({ ...user, username });
         self.runInAction(() => {
           // Added newly created user to users map
           const addedUserModel = User.create(addedUser);
@@ -72,11 +75,18 @@ const UsersStore = BaseStore.named('UsersStore')
         return res;
       },
       deleteUser: async user => {
-        // const id = user && user.id ? user.id : User.create(user).id;
+        const id = user && user.id ? user.id : User.create(user).id;
         await deleteUser(user);
-        // self.runInAction(() => {
-        //   self.users.delete(id);
-        // });
+        const deletedUser = self.users.get(id);
+        self.runInAction(() => {
+          // Detaching here instead of deleting because the ReactTable component in UsersList somehow still fires
+          // "Cell" component rendering after the user is deleted from the map
+          // That results in the following error
+          // "You are trying to read or write to an object that is no longer part of a state tree. (Object type: 'User', Path upon death: "
+          detach(deletedUser);
+          // self.users.delete(id);
+        });
+        // return deletedUser;
       },
     };
   })
@@ -88,7 +98,6 @@ const UsersStore = BaseStore.named('UsersStore')
 
     get hasNonRootAdmins() {
       const nonRootAdmins = _.filter(self.list, user => user.isAdmin && !user.isRootUser);
-      console.log(nonRootAdmins);
       return !_.isEmpty(nonRootAdmins);
     },
 

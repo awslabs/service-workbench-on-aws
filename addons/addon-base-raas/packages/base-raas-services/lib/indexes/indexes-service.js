@@ -18,6 +18,7 @@ const Service = require('@aws-ee/base-services-container/lib/service');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 
+const { isExternalGuest, isExternalResearcher, isInternalGuest } = require('../helpers/is-role');
 const createSchema = require('../schema/create-indexes');
 const updateSchema = require('../schema/update-indexes');
 
@@ -44,6 +45,13 @@ class IndexesService extends Service {
   }
 
   async find(requestContext, { id, fields = [] }) {
+    const restrict =
+      isExternalGuest(requestContext) || isExternalResearcher(requestContext) || isInternalGuest(requestContext);
+
+    if (restrict) return undefined;
+
+    // Future task: add further checks
+
     const result = await this._getter()
       .key({ id })
       .projection(fields)
@@ -180,8 +188,15 @@ class IndexesService extends Service {
     return result;
   }
 
-  async list({ fields = [] } = {}) {
-    // Remember doing a scanning is not a good idea if you billions of rows
+  async list(requestContext, { fields = [] } = {}) {
+    const restrict =
+      isExternalGuest(requestContext) || isExternalResearcher(requestContext) || isInternalGuest(requestContext);
+
+    if (restrict) return [];
+
+    // Future task: add further checks
+
+    // Remember doing a scan is not a good idea if you billions of rows
     return this._scanner()
       .limit(1000)
       .projection(fields)

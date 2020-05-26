@@ -136,6 +136,23 @@ const generateDefaultIAMPolicy = accountId =>
       }
     },
     {
+      "Sid": "iamServiceLinkedRoleCreateAccess",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateServiceLinkedRole",
+        "iam:PutRolePolicy"
+      ],
+      "Resource": "arn:aws:iam::*:role/aws-service-role/elasticmapreduce.amazonaws.com*/AWSServiceRoleForEMRCleanup*",
+      "Condition": {
+        "StringLike": {
+          "iam:AWSServiceName": [
+            "elasticmapreduce.amazonaws.com",
+            "elasticmapreduce.amazonaws.com.cn"
+          ]
+        }
+      }
+    },
+    {
       "Sid": "s3",
       "Effect": "Allow",
       "Action": "s3:*",
@@ -464,13 +481,11 @@ class UserOnboarding extends React.Component {
       (async () => {
         try {
           const rc = await CfnService.validateCredentials(credentials.accessKeyId, credentials.secretAccessKey);
-          console.log('credentials valid:', rc);
           runInAction(() => {
             this.credentialsValid = true;
             this.accountId = rc.Account;
           });
         } catch (e) {
-          console.log('credentials error:', e);
           displayError(`Credential test failed: ${e}`);
           runInAction(() => {
             this.credentialsValid = false;

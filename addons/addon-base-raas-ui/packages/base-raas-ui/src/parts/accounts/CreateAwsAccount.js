@@ -161,7 +161,6 @@ class CreateAwsAccount extends React.Component {
         });
       } else {
         // There are no client side validation errors so ask the store to add user (which will make API call to server to add the user)
-        console.log(this.awsAccount);
         await this.props.awsAccountsStore.createAwsAccount(this.awsAccount);
         runInAction(() => {
           this.formProcessing = false;

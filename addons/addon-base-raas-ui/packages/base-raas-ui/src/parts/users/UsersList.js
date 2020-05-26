@@ -16,7 +16,7 @@
 import React from 'react';
 import { Button, Container, Header, Icon, Label, Dimmer, Loader, Segment, Popup } from 'semantic-ui-react';
 import { withRouter } from 'react-router-dom';
-import { decorate, observable, runInAction } from 'mobx';
+import { decorate, observable, runInAction, action } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import ReactTable from 'react-table';
 import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
@@ -74,6 +74,23 @@ class UsersList extends React.Component {
     history.push(link);
   }
 
+  handleAddUser = () => {
+    this.goto('/users/add');
+  };
+
+  handleAddLocalUser = () => {
+    this.goto('/users/add/local');
+  };
+
+  handleAddAuthenticationProvider = () => {
+    this.goto('/authentication-providers');
+  };
+
+  getAwsAccountOptions() {
+    const accountStore = this.props.awsAccountsStore;
+    return accountStore.dropdownOptions;
+  }
+
   renderHeader() {
     return (
       <div className="mb3 flex">
@@ -84,6 +101,10 @@ class UsersList extends React.Component {
             {this.renderTotal()}
           </Header.Content>
         </Header>
+        <Button color="blue" size="medium" className="mr2" basic onClick={this.handleAddLocalUser}>
+          {' '}
+          Add Local User{' '}
+        </Button>
         <Button color="blue" size="medium" basic onClick={this.handleAddUser}>
           {' '}
           Add Federated User{' '}
@@ -103,11 +124,6 @@ class UsersList extends React.Component {
 
   renderMain() {
     return this.renderUsers();
-  }
-
-  getAwsAccountOptions() {
-    const accountStore = this.props.awsAccountsStore;
-    return accountStore.dropdownOptions;
   }
 
   renderUsers() {
@@ -297,20 +313,15 @@ class UsersList extends React.Component {
       </Container>
     );
   }
-
-  handleAddUser = () => {
-    this.goto('/users/add');
-  };
-
-  handleAddAuthenticationProvider = () => {
-    this.goto('/authentication-providers');
-  };
 }
 
 // see https://medium.com/@mweststrate/mobx-4-better-simpler-faster-smaller-c1fbc08008da
 decorate(UsersList, {
   mapOfUsersBeingEdited: observable,
   formProcessing: observable,
+  handleAddUser: action,
+  handleAddAuthenticationProvider: action,
+  handleAddLocalUser: action,
 });
 
 export default inject(

@@ -135,6 +135,21 @@ const AuthenticationProviderConfigsStore = BaseStore.named('AuthenticationProvid
     getAuthenticationProviderConfig(authenticationProviderConfigId) {
       return self.authenticationProviderConfigs.get(authenticationProviderConfigId);
     },
+
+    /**
+     * Method that finds first authentication provider that has an idp with the given idp name
+     * @param idpName Name of the identity provider
+     * @returns {*}
+     */
+    getAuthenticationProviderConfigByIdpName(idpName) {
+      const providerConfig = _.find(self.list, authNProvider => {
+        const idps = _.get(authNProvider, 'config.federatedIdentityProviders');
+        const foundIdp = _.find(idps, { name: idpName });
+        // return true if idp is found under this authentication provider
+        return !!foundIdp;
+      });
+      return providerConfig;
+    },
   }));
 /**
  * Translates given authenticationProviderConfig into ConfigurationEditor compatible flat "configuration" object with key/value pairs.
