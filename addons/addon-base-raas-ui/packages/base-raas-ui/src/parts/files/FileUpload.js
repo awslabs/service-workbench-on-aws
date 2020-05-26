@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -140,7 +140,7 @@ class ConnectedFileUpload extends React.Component {
       await group.start(this.props.fileUploadHandler);
       let success = 0;
       let errors = 0;
-      group.fileUploadObjects.forEach(fileUpload => {
+      group.fileUploadObjects.forEach((fileUpload) => {
         // eslint-disable-next-line default-case
         switch (fileUpload.status) {
           case 'COMPLETE':
@@ -165,20 +165,20 @@ class ConnectedFileUpload extends React.Component {
     }
   };
 
-  handleCancelFileUpload = id => {
+  handleCancelFileUpload = (id) => {
     const fileUpload = this.fileUploadGroup.getFileUpload(id);
     if (fileUpload) {
       fileUpload.doCancel();
     }
   };
 
-  handleRemoveFileUpload = id => {
+  handleRemoveFileUpload = (id) => {
     this.fileUploadGroup.remove(id);
   };
 
-  handleSelectFiles = files => {
+  handleSelectFiles = (files) => {
     const group = this.fileUploadGroup;
-    files.forEach(file => {
+    files.forEach((file) => {
       group.add({ file });
     });
   };

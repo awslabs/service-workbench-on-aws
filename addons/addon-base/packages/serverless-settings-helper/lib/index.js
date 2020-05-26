@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -32,7 +32,7 @@ const { getCloudFormationCrossRegionValues } = require('./cloud-formation-cross-
  * @param {object} env an environment object containing keys and string values.
  * @throws if a variable is missing in the environment.
  */
-const newExpander = (env = process.env) => s =>
+const newExpander = (env = process.env) => (s) =>
   s.replace(/\\(\$)|\$([_\w]+)|\$\{([_\w]+)\}/g, (_, $, plain, braced) => {
     if ($) {
       return $;
@@ -48,15 +48,12 @@ const newExpander = (env = process.env) => s =>
 /**
  * @returns true if a file consists of only blank lines, or if the file is a YAML file that consists of only blank lines and comments.
  */
-const isEmptyFile = filename => {
-  const text = fs
-    .readFileSync(filename)
-    .toString()
-    .trim();
+const isEmptyFile = (filename) => {
+  const text = fs.readFileSync(filename).toString().trim();
   if (text) {
     const ext = path.extname(filename);
     if (ext === '.yml' || ext === '.yaml') {
-      const hasContent = text.split(/\r?\n/g).some(x => x.trim() && !x.trim().startsWith('#'));
+      const hasContent = text.split(/\r?\n/g).some((x) => x.trim() && !x.trim().startsWith('#'));
       return !hasContent;
     }
     return false;
@@ -70,7 +67,7 @@ const isEmptyFile = filename => {
  * @param {boolean|'warn'} options.missingFiles indicates whether missing files are permissible.
  * @param {boolean|'warn'} options.emptyFiles indicates whether empty files are permissible.
  */
-const newFileLoader = (serverless, options = {}) => async filename => {
+const newFileLoader = (serverless, options = {}) => async (filename) => {
   const { missingFiles = true, emptyFiles = true } = options;
   if (missingFiles && !fs.existsSync(filename)) {
     if (missingFiles === 'warn') {
@@ -128,21 +125,14 @@ module.exports = {
    * @param {boolean|"warn"} options.missingFiles allow missing files.
    * @param {boolean|"warn"} options.emptyFiles allow empty files.
    */
-  mergeSettings: (
-    cwd,
-    files,
-    { missingFiles = true, emptyFiles = true, crossRegionCloudFormation } = {},
-  ) => async serverless => {
+  mergeSettings: (cwd, files, { missingFiles = true, emptyFiles = true, crossRegionCloudFormation } = {}) => async (
+    serverless,
+  ) => {
     const stage = serverless.variables.options.s || serverless.variables.options.stage || undefined;
     const loadFile = newFileLoader(serverless, { missingFiles, emptyFiles });
     const expandVariables = newExpander({ stage });
-    const resolvePath = filename => path.resolve(cwd, filename);
-    const objects = await Promise.all(
-      files
-        .map(expandVariables)
-        .map(resolvePath)
-        .map(loadFile),
-    );
+    const resolvePath = (filename) => path.resolve(cwd, filename);
+    const objects = await Promise.all(files.map(expandVariables).map(resolvePath).map(loadFile));
     const merged = Object.assign({}, ...objects);
     const mergedSettingsObj =
       Object.keys(merged).length === 0

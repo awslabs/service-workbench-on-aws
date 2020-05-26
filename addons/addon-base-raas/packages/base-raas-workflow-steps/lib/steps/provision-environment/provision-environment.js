@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -178,9 +178,7 @@ class ProvisionEnvironment extends StepBase {
     // Update workflow state and poll for stack creation completion
     this.state.setKey('STATE_STACK_ID', response.StackId);
     await this.updateEnvironment({ stackId: response.StackId });
-    return this.wait(20)
-      .maxAttempts(120)
-      .until('checkCfnCompleted');
+    return this.wait(20).maxAttempts(120).until('checkCfnCompleted');
   }
 
   async getCloudFormationService() {
@@ -271,7 +269,7 @@ class ProvisionEnvironment extends StepBase {
 
   getCfnOutputs(stackInfo) {
     const details = {};
-    stackInfo.Outputs.forEach(option => {
+    stackInfo.Outputs.forEach((option) => {
       _.set(details, option.OutputKey, option.OutputValue);
     });
     return details;
@@ -301,8 +299,8 @@ class ProvisionEnvironment extends StepBase {
     const cfn = await this.getCloudFormationService();
 
     const events = await cfn.describeStackEvents({ StackName: stackId }).promise();
-    const failReasons = events.StackEvents.filter(e => STACK_FAILED.includes(e.ResourceStatus)).map(
-      e => e.ResourceStatusReason || '',
+    const failReasons = events.StackEvents.filter((e) => STACK_FAILED.includes(e.ResourceStatus)).map(
+      (e) => e.ResourceStatusReason || '',
     );
 
     return failReasons.join(' ');

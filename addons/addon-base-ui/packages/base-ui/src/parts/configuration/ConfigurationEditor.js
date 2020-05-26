@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -43,12 +43,12 @@ class ConfigurationEditor extends React.Component {
     return onCancel();
   };
 
-  handleNext = form => {
+  handleNext = (form) => {
     const model = this.getModel();
     model.next(form);
   };
 
-  handlePrevious = event => {
+  handlePrevious = (event) => {
     event.preventDefault();
     event.stopPropagation();
     const form = this.getForm();
@@ -57,7 +57,7 @@ class ConfigurationEditor extends React.Component {
     model.previous(form);
   };
 
-  handleClear = event => {
+  handleClear = (event) => {
     event.preventDefault();
     event.stopPropagation();
     const form = this.getForm();
@@ -141,7 +141,7 @@ class ConfigurationEditor extends React.Component {
 
     return (
       <Step.Group size="mini" fluid>
-        {_.times(totalSections, index => (
+        {_.times(totalSections, (index) => (
           <Step active={index === currentSectionIndex} completed={index < currentSectionIndex}>
             {hasError && index === currentSectionIndex ? <Icon name="times" /> : <Icon name="setting" />}
             <Step.Content>

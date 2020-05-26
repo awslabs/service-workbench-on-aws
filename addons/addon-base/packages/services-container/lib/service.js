@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -196,7 +196,7 @@ class Service {
 
   _enforce(source = {}, target = []) {
     const normalized = _.concat(target);
-    _.forEach(normalized, name => {
+    _.forEach(normalized, (name) => {
       if (this.container.isRoot(name)) return;
       if (!source[name])
         throw new Error(
@@ -222,7 +222,7 @@ class Service {
       throw new Error('You tried to use "service()" in a service but the service has not been initialized.');
     this._enforce(this._deps, nameOrNames);
     const result = await Promise.all(
-      _.concat(nameOrNames).map(async name => {
+      _.concat(nameOrNames).map(async (name) => {
         const service = await this.container.find(name); // eslint-disable-line no-await-in-loop
         if (!service)
           throw new Error(
@@ -253,7 +253,7 @@ class Service {
       throw new Error('You tried to use "optionalService()" in a service but the service has not been initialized.');
     this._enforce(this._optionalDeps, nameOrNames);
     const result = Promise.all(
-      _.concat(nameOrNames).map(async name => {
+      _.concat(nameOrNames).map(async (name) => {
         const service = await this.container.find(name); // eslint-disable-line no-await-in-loop
         return service;
       }),
@@ -293,7 +293,7 @@ class Service {
       );
     const arr = _.concat(deps); // this allows us to receive either one string or an array of strings
     if (_.isEmpty(arr)) throw new Error('You are trying to add an empty dependency to a service.');
-    _.forEach(arr, item => {
+    _.forEach(arr, (item) => {
       if (_.isEmpty(item))
         throw new Error('You tried to call "dependency()" in a service but you included an empty string.');
       if (!_.isString(item))
@@ -334,7 +334,7 @@ class Service {
       );
     const arr = _.concat(deps); // this allows us to receive either one string or an array of strings
     if (_.isEmpty(arr)) throw new Error('You are trying to add an empty optional dependency to a service.');
-    _.forEach(arr, item => {
+    _.forEach(arr, (item) => {
       if (_.isEmpty(item))
         throw new Error('You tried to call "optionalDependency()" in a service but you included an empty string.');
       if (!_.isString(item))

@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -57,12 +57,12 @@ class WorkflowCommonDraftStepsEditor extends React.Component {
     return this.getVersion().selectedSteps;
   }
 
-  handleAddStep = step => {
+  handleAddStep = (step) => {
     if (!step) return;
     this.getEditor().addStep(step);
   };
 
-  handleCancel = event => {
+  handleCancel = (event) => {
     event.preventDefault();
     event.stopPropagation();
     this.clickedOnNext = false;
@@ -71,7 +71,7 @@ class WorkflowCommonDraftStepsEditor extends React.Component {
     onCancel();
   };
 
-  handleDelete = step => {
+  handleDelete = (step) => {
     const editor = this.getEditor();
     const version = this.getVersion();
     const id = step.id;
@@ -82,12 +82,12 @@ class WorkflowCommonDraftStepsEditor extends React.Component {
     }, 150);
   };
 
-  handleNext = async event => {
+  handleNext = async (event) => {
     this.clickedOnNext = true;
     return this.handleSave(event);
   };
 
-  handlePrevious = event => {
+  handlePrevious = (event) => {
     // we don't save the form in this case
     event.preventDefault();
     event.stopPropagation();
@@ -95,7 +95,7 @@ class WorkflowCommonDraftStepsEditor extends React.Component {
     this.getEditor().previousPage();
   };
 
-  handleSave = async event => {
+  handleSave = async (event) => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -143,7 +143,7 @@ class WorkflowCommonDraftStepsEditor extends React.Component {
     }
   };
 
-  onDragEnd = result => {
+  onDragEnd = (result) => {
     const version = this.getVersion();
     if (!version.canRearrangeSteps) return;
 
@@ -268,11 +268,11 @@ class WorkflowCommonDraftStepsEditor extends React.Component {
     const version = this.getVersion();
     const canRearrange = version.canRearrangeSteps;
     const editor = this.getEditor();
-    const getStepEditor = step => editor.getStepEditor(step);
+    const getStepEditor = (step) => editor.getStepEditor(step);
     const StepEditorComponent = this.getStepEditorComponent();
 
     if (!canRearrange)
-      return _.map(selectedSteps, step => (
+      return _.map(selectedSteps, (step) => (
         <div key={step.id} className="mb3">
           <Observer>
             {() => (

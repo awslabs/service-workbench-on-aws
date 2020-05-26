@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -172,7 +172,7 @@ class UsersList extends React.Component {
             {
               Header: 'Identity Provider',
               accessor: 'identityProviderName',
-              Cell: row => {
+              Cell: (row) => {
                 const user = row.original;
                 return user.identityProviderName || 'internal';
               },
@@ -181,11 +181,11 @@ class UsersList extends React.Component {
               Header: 'Type',
               accessor: 'isExternalUser',
               width: 100,
-              Cell: row => {
+              Cell: (row) => {
                 const user = row.original;
                 return user.isExternalUser ? 'External' : 'Internal';
               },
-              filterMethod: filter => {
+              filterMethod: (filter) => {
                 if (filter.value.toLowerCase().includes('ex')) {
                   return false;
                 }
@@ -197,7 +197,7 @@ class UsersList extends React.Component {
               accessor: 'userRole',
               width: 100,
               style: { whiteSpace: 'unset' },
-              Cell: row => {
+              Cell: (row) => {
                 const user = row.original;
                 return user.userRole || 'N/A';
               },
@@ -205,7 +205,7 @@ class UsersList extends React.Component {
             {
               Header: 'Project',
               style: { whiteSpace: 'unset' },
-              Cell: row => {
+              Cell: (row) => {
                 const user = row.original;
                 return user.projectId.join(', ') || '<<none>>';
               },
@@ -214,7 +214,7 @@ class UsersList extends React.Component {
               Header: 'Status',
               accessor: 'isActive',
               width: 100,
-              Cell: row => {
+              Cell: (row) => {
                 const user = row.original;
                 let lable = null;
                 if (user.status === 'active') {
@@ -257,7 +257,7 @@ class UsersList extends React.Component {
             {
               Header: '',
               filterable: false,
-              Cell: cell => {
+              Cell: (cell) => {
                 const user = cell.original;
                 return (
                   <div style={{ textAlign: 'center', verticalAlign: 'middle' }}>

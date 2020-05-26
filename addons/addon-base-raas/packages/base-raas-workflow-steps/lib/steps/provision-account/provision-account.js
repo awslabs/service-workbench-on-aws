@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -66,10 +66,7 @@ class ProvisionAccount extends StepBase {
 
     this.print(`Waiting for Account creation process with requestID: ${await this.state.string('REQUEST_ID')}`);
     // wait until the account creation is finished
-    return this.wait(10)
-      .maxAttempts(120)
-      .until('checkAccountCreationCompleted')
-      .thenCall('saveAccountToDb');
+    return this.wait(10).maxAttempts(120).until('checkAccountCreationCompleted').thenCall('saveAccountToDb');
   }
 
   async saveAccountToDb() {
@@ -147,9 +144,7 @@ class ProvisionAccount extends StepBase {
     // Update workflow state and poll for stack creation completion
     this.state.setKey('STATE_STACK_ID', response.StackId);
     await this.updateAccount({ stackId: response.StackId });
-    return this.wait(20)
-      .maxAttempts(120)
-      .until('checkCfnCompleted');
+    return this.wait(20).maxAttempts(120).until('checkCfnCompleted');
   }
 
   async checkCfnCompleted() {
@@ -357,7 +352,7 @@ class ProvisionAccount extends StepBase {
 
   getCfnOutputs(stackInfo) {
     const details = {};
-    stackInfo.Outputs.forEach(option => {
+    stackInfo.Outputs.forEach((option) => {
       _.set(details, option.OutputKey, option.OutputValue);
     });
     return details;
@@ -429,7 +424,7 @@ class ProvisionAccount extends StepBase {
         };
 
         // Pull out existing statements if available
-        statements.forEach(statement => {
+        statements.forEach((statement) => {
           if (statement.Sid === accessSid) {
             accessStatement = statement;
           }
@@ -439,7 +434,7 @@ class ProvisionAccount extends StepBase {
         // NOTE: The S3 API *should* remove duplicate principals, if any
         accessStatement.Principal.AWS = updateAwsPrincipals(accessStatement.Principal.AWS, remoteAccountArn);
 
-        s3Policy.Statement = s3Policy.Statement.filter(statement => ![accessSid].includes(statement.Sid));
+        s3Policy.Statement = s3Policy.Statement.filter((statement) => ![accessSid].includes(statement.Sid));
         s3Policy.Statement.push(accessStatement);
 
         // Update policy

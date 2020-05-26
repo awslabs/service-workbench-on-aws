@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -34,7 +34,7 @@ async function configure(context) {
 
       // Construct/filter results based on info that's needed client-side
       const result = [];
-      providers.forEach(provider => {
+      providers.forEach((provider) => {
         const basePublicInfo = {
           id: provider.config.id,
           title: provider.config.title,
@@ -69,7 +69,7 @@ async function configure(context) {
           result.push(cognitoPublicInfo);
 
           // Add IdPs federating via Cognito as their own entries
-          provider.config.federatedIdentityProviders.forEach(idp => {
+          provider.config.federatedIdentityProviders.forEach((idp) => {
             result.push({
               ...basePublicInfo,
               id: idp.id,

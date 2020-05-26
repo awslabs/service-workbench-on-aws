@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -28,7 +28,7 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
     tickPeriod: 10 * 1000, // 10 sec
   })
 
-  .actions(self => {
+  .actions((self) => {
     // save the base implementation of cleanup
     const superCleanup = self.cleanup;
 
@@ -38,7 +38,7 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         // We try to preserve existing accounts data and merge the new data instead
         // We could have used self.accounts.replace(), but it will do clear() then merge()
         self.runInAction(() => {
-          awsAccounts.forEach(awsAccount => {
+          awsAccounts.forEach((awsAccount) => {
             const awsAccountsModel = AwsAccount.create(awsAccount);
             const previous = self.awsAccounts.get(awsAccountsModel.id);
             if (!previous) {
@@ -55,7 +55,7 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         superCleanup();
       },
 
-      addAwsAccount: async awsAccount => {
+      addAwsAccount: async (awsAccount) => {
         const addedAwsAccount = await addAwsAccount(awsAccount);
         self.runInAction(() => {
           const addedAwsAccountModel = AwsAccount.create(addedAwsAccount);
@@ -63,17 +63,17 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         });
       },
 
-      createAwsAccount: async awsAccount => {
+      createAwsAccount: async (awsAccount) => {
         await createAwsAccount(awsAccount);
       },
     };
   })
 
-  .views(self => ({
+  .views((self) => ({
     get list() {
       const result = [];
       // converting map self.users to result array
-      self.awsAccounts.forEach(awsAccount => {
+      self.awsAccounts.forEach((awsAccount) => {
         const res = {};
         res.name = awsAccount.name;
         res.accountId = awsAccount.accountId;
@@ -91,7 +91,7 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
     get dropdownOptions() {
       const result = [];
       // converting map self.users to result array
-      self.awsAccounts.forEach(awsAccount => {
+      self.awsAccounts.forEach((awsAccount) => {
         const account = {};
         account.key = awsAccount.id;
         account.value = awsAccount.id;

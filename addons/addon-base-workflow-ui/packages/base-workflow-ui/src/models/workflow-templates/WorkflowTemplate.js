@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -38,9 +38,9 @@ const PropsOverrideOption = types
   .model('PropsOverrideOption', {
     allowed: types.optional(types.array(types.string), []),
   })
-  .views(self => ({
+  .views((self) => ({
     get overrideSummaryRows() {
-      const canOverride = prop => self.allowed.includes(prop);
+      const canOverride = (prop) => self.allowed.includes(prop);
 
       const result = [
         { title: titles.steps, allowed: canOverride('steps'), name: 'steps' },
@@ -51,7 +51,7 @@ const PropsOverrideOption = types
         { title: titles.desc, allowed: canOverride('desc'), name: 'desc' },
       ];
 
-      _.forEach(self.allowed, prop => {
+      _.forEach(self.allowed, (prop) => {
         if (supportedPropsOverrideKeys.includes(prop)) return;
         result.push({ title: prop, allowed: true });
       });
@@ -72,7 +72,7 @@ const RunSpec = types
     size: '',
     target: '',
   })
-  .views(self => ({
+  .views((self) => ({
     get propertySummaryRows() {
       return [
         { title: titles.runSpecSize, value: self.size },
@@ -100,7 +100,7 @@ const WorkflowTemplateVersion = types
     propsOverrideOption: types.maybe(PropsOverrideOption),
     selectedSteps: types.optional(types.array(WorkflowTemplateStep), []),
   })
-  .actions(self => ({
+  .actions((self) => ({
     setWorkflowTemplateVersion(template) {
       applySnapshot(self, template);
     },
@@ -167,9 +167,9 @@ const WorkflowTemplateVersion = types
     },
   }))
 
-  .views(self => ({
+  .views((self) => ({
     getStep(id) {
-      return _.find(self.selectedSteps, step => step.id === id);
+      return _.find(self.selectedSteps, (step) => step.id === id);
     },
 
     get descHtml() {
@@ -218,13 +218,13 @@ const WorkflowTemplate = types
     id: types.identifier,
     versions: types.optional(types.array(WorkflowTemplateVersion), []),
   })
-  .actions(self => ({
+  .actions((self) => ({
     setWorkflowTemplate(template) {
       // we try to preserve any existing version objects and update their content instead
-      const mapOfExisting = _.keyBy(self.versions, version => version.v.toString());
+      const mapOfExisting = _.keyBy(self.versions, (version) => version.v.toString());
       const processed = [];
 
-      _.forEach(template.versions, templateVersion => {
+      _.forEach(template.versions, (templateVersion) => {
         const existing = mapOfExisting[templateVersion.v];
         if (existing) {
           existing.setWorkflowTemplateVersion(templateVersion);
@@ -238,11 +238,11 @@ const WorkflowTemplate = types
     },
   }))
 
-  .views(self => ({
+  .views((self) => ({
     get latest() {
       // we loop through all 'v' numbers and pick the template with the largest 'v' value
       let largestVersion = self.versions[0];
-      _.forEach(self.versions, version => {
+      _.forEach(self.versions, (version) => {
         if (version.v > largestVersion.v) {
           largestVersion = version;
         }
@@ -255,7 +255,7 @@ const WorkflowTemplate = types
     },
 
     get versionNumbers() {
-      return _.map(self.versions, version => version.v);
+      return _.map(self.versions, (version) => version.v);
     },
   }));
 

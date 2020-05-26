@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -90,7 +90,7 @@ class WorkflowInstancesList extends React.Component {
     this.triggerDialogShown = true;
   };
 
-  handleFormSubmission = async form => {
+  handleFormSubmission = async (form) => {
     const values = form.values();
     const workflowInputStr = values.workflowInput;
 
@@ -112,7 +112,7 @@ class WorkflowInstancesList extends React.Component {
     }
   };
 
-  handleInstanceClick = event => {
+  handleInstanceClick = (event) => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -153,7 +153,7 @@ class WorkflowInstancesList extends React.Component {
     const store = this.getInstancesStore();
     const list = store.list;
 
-    return _.map(list, instance => this.renderRow(instance));
+    return _.map(list, (instance) => this.renderRow(instance));
   }
 
   renderRow(instance) {
@@ -186,7 +186,7 @@ class WorkflowInstancesList extends React.Component {
             <Grid.Column width={13}>
               <div className="mb2 center">Steps</div>
               <Statistic.Group widths="five" size="tiny">
-                {_.map(stepsSummary, item => (
+                {_.map(stepsSummary, (item) => (
                   <Statistic key={item.statusLabel} color={item.statusColor}>
                     <Statistic.Value>{niceNumber(item.count)}</Statistic.Value>
                     <Statistic.Label>{item.statusLabel}</Statistic.Label>

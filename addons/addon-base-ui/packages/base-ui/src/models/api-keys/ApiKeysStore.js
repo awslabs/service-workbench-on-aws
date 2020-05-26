@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -26,7 +26,7 @@ const ApiKeysStore = BaseStore.named('ApiKeysStore')
     userIdentifier: UserIdentifier,
     apiKeys: types.optional(types.map(ApiKey), {}),
   })
-  .actions(self => {
+  .actions((self) => {
     // save the base implementation of cleanup
     const superCleanup = self.cleanup;
     return {
@@ -37,7 +37,7 @@ const ApiKeysStore = BaseStore.named('ApiKeysStore')
         const apiKeys = await getApiKeys(!self.isStoreForCurrentUser() && { username, ns });
         self.runInAction(() => {
           const map = {};
-          apiKeys.forEach(apiKey => {
+          apiKeys.forEach((apiKey) => {
             const apiKeyModel = ApiKey.create(apiKey);
             map[apiKeyModel.id] = apiKeyModel;
           });
@@ -69,14 +69,14 @@ const ApiKeysStore = BaseStore.named('ApiKeysStore')
       },
     };
   })
-  .views(self => ({
+  .views((self) => ({
     get empty() {
       return self.apiKeys.size === 0;
     },
     get list() {
       const result = [];
       // converting map self.apiKeys to result array
-      self.apiKeys.forEach(apiKey => result.push(apiKey));
+      self.apiKeys.forEach((apiKey) => result.push(apiKey));
       return result;
     },
     isStoreForCurrentUser: () => {

@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -210,7 +210,7 @@ class WorkflowTemplateDraftService extends Service {
 
     // We need to loop through all the steps and remove the step template, otherwise the createVersion won't work
     const template = updatedDraft.template;
-    _.forEach(template.selectedSteps, step => {
+    _.forEach(template.selectedSteps, (step) => {
       delete step.stepTemplate;
       delete step.isNew;
     });
@@ -298,12 +298,7 @@ class WorkflowTemplateDraftService extends Service {
     const dbService = await this.service('dbService');
     const table = this.tableName;
 
-    const result = await dbService.helper
-      .getter()
-      .table(table)
-      .key('id', id)
-      .projection(fields)
-      .get();
+    const result = await dbService.helper.getter().table(table).key('id', id).projection(fields).get();
 
     return result;
   }
