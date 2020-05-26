@@ -1,9 +1,20 @@
+Parameters:
+
+  GitHubOAuthToken:
+    Description: OAuth token used by AWS CodePipeline to connect to GitHub
+    Type: String
+    Default: 'to-be-specified'
+    NoEcho: true
+
+
 Conditions:
+  UseCodeCommit: !Equals ['${self:custom.settings.githubOwner}', '']
   CreateStagingEnv: !Equals ['${self:custom.settings.createStagingEnv}', true]
   RunTestsAgainstTargetEnv: !Equals ['${self:custom.settings.runTestsAgainstTargetEnv}', true]
   AddManualApproval: !Equals ['${self:custom.settings.requireManualApproval}', true]
   SubscribeNotificationEmail: !Not
     - !Equals ['${self:custom.settings.emailForNotifications}', '']
+
 
 Resources:
   # SNS Topic to receive various notifications from the pipeline
@@ -69,8 +80,12 @@ Resources:
             Effect: Allow
             Principal:
               AWS:
-                - ${self:custom.settings.codeCommitSourceRoleArn} # Allows CodePipeline's source stage to encrypt while uploading to artifact bucket
-                - !GetAtt AppDeployerRole.Arn # Allows CodeBuild (the deploy stage in pipeline) to decrypt code when downloading
+                - !If
+                  - UseCodeCommit
+                  - ${self:custom.settings.sourceRoleArn} # Allows CodePipeline's source stage to encrypt while uploading to artifact bucket
+                  - !Ref AWS::NoValue
+                - !GetAtt AppDeployerRole.Arn  # Allows CodeBuild (the deploy stage in pipeline) to decrypt code when downloading
+                - !GetAtt AppPipelineRole.Arn  # Allows CodePipeline to encrypt code when uploading
             Action:
               - kms:Encrypt
               - kms:Decrypt
@@ -114,7 +129,10 @@ Resources:
             Principal:
               AWS:
                 - !Ref AWS::AccountId
-                - ${self:custom.settings.codeCommitSourceRoleArn}
+                - !If
+                  - UseCodeCommit
+                  - ${self:custom.settings.sourceRoleArn}
+                  - !Ref AWS::NoValue
 
   # The AWS IAM role to be assumed by the AWS CodePipeline.
   # The role specified in each stage is assumed for that specific stage in the pipeline.
@@ -139,13 +157,25 @@ Resources:
                   - codecommit:GetBranch
                   - codecommit:GetCommit
                 Effect: Allow
-                Resource: ${self:custom.settings.codeCommitRepoArn}
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:codecommit:${AWS::Region}:${self:custom.settings.sourceAccountId}:${self:custom.settings.repoName}'
               - Action:
                   - logs:CreateLogGroup
                   - logs:CreateLogStream
                   - logs:PutLogEvents
                 Effect: Allow
                 Resource: '*'
+              - Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                  - s3:GetObjectVersion
+                  - s3:ListBucket
+                  - s3:GetBucketPolicy
+                Effect: Allow
+                Resource:
+                  - !Sub arn:aws:s3:::${AppArtifactBucket}
+                  - !Sub arn:aws:s3:::${AppArtifactBucket}/*
               - Action:
                   - codebuild:BatchGetBuilds
                   - codebuild:StartBuild
@@ -158,10 +188,13 @@ Resources:
                   - !GetAtt TestStgEnvProject.Arn
                   - !GetAtt TargetEnvDeployProject.Arn
                   - !GetAtt TestTargetEnvProject.Arn
-              - Action:
-                  - sts:AssumeRole
-                Effect: Allow
-                Resource: ${self:custom.settings.codeCommitSourceRoleArn}
+              - !If
+                - UseCodeCommit
+                - Action:
+                    - sts:AssumeRole
+                  Effect: Allow
+                  Resource: ${self:custom.settings.sourceRoleArn}
+                - !Ref AWS::NoValue
               - Action:
                   - sns:Publish
                 Effect: Allow
@@ -206,6 +239,7 @@ Resources:
   # where the source code is located (i.e., the account containing the AWS CodeCommit repo with the source code)
   # If you are not using AWS CodeCommit then this role needs to be removed or updated accordingly
   PipelineTriggerRole:
+    Condition: UseCodeCommit
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -240,23 +274,41 @@ Resources:
         # Assume CodeCommitSourceRole for this operation that grants the permissions to download code from CodeCommit
         # repo from source account and allows uploading it to the artifacts S3 bucket and encrypt the artifact using
         # KMS key
-        - Name: Source
-          Actions:
-            - Name: SourceAction
-              RunOrder: 1
-              ActionTypeId:
-                Category: Source
-                Owner: AWS
-                Provider: CodeCommit
-                Version: '1'
-              Configuration:
-                RepositoryName: ${self:custom.settings.codeCommitRepoName}
-                BranchName: ${self:custom.settings.codeCommitRepoBranchName}
-                PollForSourceChanges: 'false'
-              OutputArtifacts:
-                - Name: SourceArtifact
-              Region: ${self:custom.settings.codeCommitRepoAwsRegion}
-              RoleArn: ${self:custom.settings.codeCommitSourceRoleArn}
+        - !If
+          - UseCodeCommit
+          - Name: Source
+            Actions:
+              - Name: SourceAction
+                RunOrder: 1
+                ActionTypeId:
+                  Category: Source
+                  Owner: AWS
+                  Provider: CodeCommit
+                  Version: '1'
+                Configuration:
+                  RepositoryName: ${self:custom.settings.repoName}
+                  BranchName: ${self:custom.settings.repoBranch}
+                  PollForSourceChanges: 'false'
+                OutputArtifacts:
+                  - Name: SourceArtifact
+                Region: ${self:custom.settings.sourceAwsRegion}
+                RoleArn: ${self:custom.settings.sourceRoleArn}
+          - Name: Source
+            Actions:
+              - Name: GitHubSource
+                ActionTypeId:
+                  Category: Source
+                  Owner: ThirdParty
+                  Provider: GitHub
+                  Version: '1'
+                Configuration:
+                  OAuthToken: !Ref GitHubOAuthToken
+                  Owner: ${self:custom.settings.githubOwner}
+                  Repo:  ${self:custom.settings.repoName}
+                  Branch: ${self:custom.settings.repoBranch}
+                  PollForSourceChanges: true
+                OutputArtifacts:
+                  - Name: SourceArtifact
 
         # Add stage to deploy to staging env if CreateStagingEnv condition is true
         - !If
@@ -444,6 +496,7 @@ Resources:
 
   # IAM role to be assumed by CloudWatch events service to trigger the CodePipeline
   CodeCommitSourceEventRole:
+    Condition: UseCodeCommit
     Type: AWS::IAM::Role
     Properties:
       AssumeRolePolicyDocument:
@@ -464,6 +517,7 @@ Resources:
 
   # CloudWatch event rule to trigger the CodePipeline
   PipelineTriggerRule:
+    Condition: UseCodeCommit
     Type: AWS::Events::Rule
     Properties:
       Description: CloudWatch event rule to trigger the CodePipeline for [${self:custom.settings.solutionName}] and env [${self:custom.settings.envName}]
@@ -471,12 +525,12 @@ Resources:
         source: [aws.codecommit]
         detail-type: [CodeCommit Repository State Change]
         resources:
-          - ${self:custom.settings.codeCommitRepoArn}
+          - !Sub 'arn:${AWS::Partition}:codecommit:${AWS::Region}:${self:custom.settings.sourceAccountId}:${self:custom.settings.repoName}'
         detail:
           event: [referenceCreated, referenceUpdated]
           referenceType: [branch]
           referenceName:
-            - ${self:custom.settings.codeCommitRepoBranchName}
+            - ${self:custom.settings.repoBranch}
       State: ENABLED
       Targets:
         - Id: !Ref AppPipeline
@@ -510,11 +564,12 @@ Resources:
   # A resource level policy for the default event bus in the target account (target account = the AWS account where code need to be deployed)
   # to allow CodeCommit events to be published from the source account (source account = the AWS account containing the AWS CodeCommit repo with the source code)
   EventBusPolicy:
+    Condition: UseCodeCommit
     Type: AWS::Events::EventBusPolicy
     Properties:
       StatementId: ${self:custom.settings.namespace}-ebp
       Action: events:PutEvents
-      Principal: !Select [4, !Split [':', '${self:custom.settings.codeCommitRepoArn}']]
+      Principal: ${self:custom.settings.sourceAccountId}
 
 Outputs:
   AppArtifactBucketName: { Value: !Ref AppArtifactBucket }
@@ -522,5 +577,4 @@ Outputs:
   ArtifactBucketKeyArn: { Value: !GetAtt ArtifactBucketKey.Arn }
   AppPipelineName: { Value: !Ref AppPipeline }
   AppPipelineArn: { Value: !Sub 'arn:${AWS::Partition}:codepipeline:${AWS::Region}:${AWS::AccountId}:${AppPipeline}' }
-  PipelineTriggerRoleArn: { Value: !GetAtt PipelineTriggerRole.Arn }
   PipelineNotificationsTopic: { Value: !Ref PipelineNotificationsTopic }

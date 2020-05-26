@@ -21,6 +21,9 @@ custom:
   settings: ${file(./config/settings/.settings.js):merged}
   tags:
     Name: ${self:custom.settings.envName}-${self:service}
+  scripts:
+    hooks:
+      'aws:deploy:finalize:cleanup': scripts/deploy-github-token.bash ${self:provider.stackName} ${self:custom.settings.tokenName}
 
 resources:
   - Description: Galileo-Gateway ${self:custom.settings.version} ${self:custom.settings.solutionName} ${self:custom.settings.envName} CICD-Pipeline
@@ -28,3 +31,4 @@ resources:
 
 plugins:
   - serverless-deployment-bucket
+  - serverless-plugin-scripts
