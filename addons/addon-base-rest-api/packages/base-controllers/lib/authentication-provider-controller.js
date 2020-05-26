@@ -72,7 +72,10 @@ async function configure(context) {
       throw boom.badRequest('Missing id in the providerConfig', true);
     }
 
-    const providerTypeConfig = await authenticationProviderTypeService.getAuthenticationProviderType(providerTypeId);
+    const providerTypeConfig = await authenticationProviderTypeService.getAuthenticationProviderType(
+      requestContext,
+      providerTypeId,
+    );
 
     if (_.isEmpty(providerTypeConfig)) {
       throw boom.badRequest(
@@ -128,7 +131,8 @@ async function configure(context) {
   router.get(
     '/types',
     wrap(async (req, res) => {
-      const result = await authenticationProviderTypeService.getAuthenticationProviderTypes();
+      const requestContext = res.locals.requestContext;
+      const result = await authenticationProviderTypeService.getAuthenticationProviderTypes(requestContext);
       res.status(200).json(sanitize(result));
     }),
   );
