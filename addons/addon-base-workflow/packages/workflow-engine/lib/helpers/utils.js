@@ -24,9 +24,9 @@ const _ = require('lodash');
 function normalizeError(error = {}, { maxStackLength = 300 } = {}) {
   if (_.isString(error) || _.isNil(error)) return { msg: error || 'UnknownError', stack: '' };
 
-  const toMsg = (obj) => obj.msg || obj.message || 'Unknown Error';
-  const toStack = (obj) => (obj.stack || '').substring(0, maxStackLength);
-  const toResult = (obj) => {
+  const toMsg = obj => obj.msg || obj.message || 'Unknown Error';
+  const toStack = obj => (obj.stack || '').substring(0, maxStackLength);
+  const toResult = obj => {
     const output = _.omit({ ...obj, msg: toMsg(obj), stack: toStack(obj) }, ['message']);
     return output;
   };
@@ -37,7 +37,7 @@ function normalizeError(error = {}, { maxStackLength = 300 } = {}) {
 }
 
 // Just a function that protects against throwing an error
-const catchIfErrorAsync = async (fn) => {
+const catchIfErrorAsync = async fn => {
   try {
     return await fn();
   } catch (error) {
@@ -46,7 +46,7 @@ const catchIfErrorAsync = async (fn) => {
   }
 };
 
-const catchIfError = (fn) => {
+const catchIfError = fn => {
   try {
     return fn();
   } catch (error) {

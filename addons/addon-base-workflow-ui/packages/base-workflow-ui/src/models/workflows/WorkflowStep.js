@@ -46,7 +46,7 @@ const WorkflowStep = types
       {},
     ),
   })
-  .actions((self) => ({
+  .actions(self => ({
     afterCreate() {
       if (_.isEmpty(self.id)) console.warn(`There is no id provided for this workflow step`, getSnapshot(self));
     },
@@ -80,7 +80,7 @@ const WorkflowStep = types
     },
   }))
 
-  .views((self) => ({
+  .views(self => ({
     get templateId() {
       return self.stepTemplateId;
     },

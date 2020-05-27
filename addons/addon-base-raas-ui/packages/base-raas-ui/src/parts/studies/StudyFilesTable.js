@@ -72,7 +72,7 @@ class StudyFilesTable extends React.Component {
           </Table.Header>
 
           <Table.Body>
-            {this.filesStore.files.map((file) => (
+            {this.filesStore.files.map(file => (
               <Table.Row key={file.filename}>
                 <Table.Cell>{file.filename}</Table.Cell>
                 <Table.Cell>{formatBytes(file.size)}</Table.Cell>

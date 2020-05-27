@@ -32,7 +32,7 @@ const FileUpload = types
     file: undefined,
     cancel: undefined,
   }))
-  .views((self) => ({
+  .views(self => ({
     get size() {
       return self.file ? self.file.size : 0;
     },
@@ -43,7 +43,7 @@ const FileUpload = types
       return self.file;
     },
   }))
-  .actions((self) => ({
+  .actions(self => ({
     updateProgress(uploadedBytes) {
       self.uploaded = uploadedBytes;
     },
@@ -77,7 +77,7 @@ const FileUploadGroup = types
     fileUploads: types.map(FileUpload),
     state: types.union(types.literal('PENDING'), types.literal('UPLOADING'), types.literal('COMPLETE')),
   })
-  .views((self) => ({
+  .views(self => ({
     get fileUploadObjects() {
       return Array.from(self.fileUploads.values());
     },
@@ -85,15 +85,15 @@ const FileUploadGroup = types
       return self.fileUploads.get(fileUploadId);
     },
   }))
-  .actions((self) => ({
+  .actions(self => ({
     async start(fileUploadHandler) {
       if (self.state !== 'PENDING') {
         throw new Error(`Cannot transition state from ${self.state} -> UPLOADING`);
       }
       self.setStateToUploading();
-      const fileUploads = Array.from(self.fileUploads.values()).filter((fileUpload) => fileUpload.status === 'PENDING');
+      const fileUploads = Array.from(self.fileUploads.values()).filter(fileUpload => fileUpload.status === 'PENDING');
       await Promise.all(
-        fileUploads.map(async (fileUpload) => {
+        fileUploads.map(async fileUpload => {
           fileUpload.updateStatusToUploading();
           try {
             await fileUploadHandler(fileUpload);
@@ -105,7 +105,7 @@ const FileUploadGroup = types
       self.setStateToComplete();
     },
     cancel() {
-      self.fileUploads.forEach((fileUpload) => {
+      self.fileUploads.forEach(fileUpload => {
         fileUpload.doCancel();
       });
     },

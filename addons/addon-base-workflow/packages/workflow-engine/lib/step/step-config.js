@@ -18,7 +18,7 @@ const KeyGetterDelegate = require('../helpers/key-getter-delegate');
 class StepConfig {
   constructor(configs = {}) {
     this.configs = configs;
-    const getterDelegate = new KeyGetterDelegate(async (key) => this.configs[key], {
+    const getterDelegate = new KeyGetterDelegate(async key => this.configs[key], {
       storeTitle: 'Step configuration',
     });
     Object.assign(this, getterDelegate.getMethods());

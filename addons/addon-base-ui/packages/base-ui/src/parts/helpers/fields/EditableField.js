@@ -68,7 +68,7 @@ class EditableField extends React.Component {
     this.editorOn = true;
   });
 
-  handleFormSubmission = action(async (form) => {
+  handleFormSubmission = action(async form => {
     try {
       await this.notifyHandler(this.props.onSubmit, form);
       runInAction(() => {

@@ -44,7 +44,7 @@ class AuthenticationProvidersList extends Component {
     return this.props.authenticationProviderConfigsStore;
   }
 
-  handleAddAuthenticationProviderClick = (_event) => {
+  handleAddAuthenticationProviderClick = _event => {
     const goto = gotoFn(this);
     goto('/authentication-providers/add');
   };

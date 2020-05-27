@@ -85,7 +85,7 @@ class ConfigureComputePlatformStep extends React.Component {
   };
 
   // eslint-disable-next-line consistent-return
-  handleCreate = async (data) => {
+  handleCreate = async data => {
     const studyIds = this.studyIds || [];
     const store = this.environmentsStore;
     const environment = await store.createEnvironment({ ...data, studyIds });

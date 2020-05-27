@@ -52,8 +52,8 @@ class Login extends React.Component {
     swallowError(store.load());
   }
 
-  handleChange = (name) =>
-    action((event) => {
+  handleChange = name =>
+    action(event => {
       this[name] = event.target.value;
       if (name === 'username') this.usernameError = '';
       if (name === 'password') this.passwordError = '';
@@ -63,7 +63,7 @@ class Login extends React.Component {
     this.props.authentication.setSelectedAuthenticationProviderId(value);
   });
 
-  handleLogin = action((event) => {
+  handleLogin = action(event => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -120,7 +120,7 @@ class Login extends React.Component {
           password,
         }),
       )
-      .catch((err) => displayError(err))
+      .catch(err => displayError(err))
       .finally(
         action(() => {
           this.loading = false;
@@ -186,7 +186,7 @@ class Login extends React.Component {
               error={error}
               size="large"
               loading={this.loading}
-              onSubmit={(e) => {
+              onSubmit={e => {
                 e.preventDefault();
                 e.stopPropagation();
               }}

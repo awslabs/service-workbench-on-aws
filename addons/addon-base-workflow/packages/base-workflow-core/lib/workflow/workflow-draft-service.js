@@ -75,7 +75,7 @@ class WorkflowDraftService extends Service {
       if (existingWorkflow) throw this.boom.badRequest('A workflow with the same workflow id exists.', true);
       if (_.isEmpty(templateId)) throw this.boom.badRequest('A template id must be provided.', true);
       const template = await workflowTemplateService.mustFindVersion({ id: templateId, v: templateVer });
-      const selectedSteps = _.map(template.selectedSteps, (step) => ({
+      const selectedSteps = _.map(template.selectedSteps, step => ({
         stepTemplateId: step.stepTemplateId,
         stepTemplateVer: step.stepTemplateVer,
         id: step.id,
@@ -232,7 +232,7 @@ class WorkflowDraftService extends Service {
     delete workflow.createdAt;
     delete workflow.createdBy;
     delete workflow.stepsOrderChanged;
-    _.forEach(workflow.selectedSteps, (step) => {
+    _.forEach(workflow.selectedSteps, step => {
       delete step.propsOverrideOption;
       delete step.configOverrideOption;
     });
@@ -314,7 +314,12 @@ class WorkflowDraftService extends Service {
     const dbService = await this.service('dbService');
     const table = this.tableName;
 
-    const result = await dbService.helper.getter().table(table).key('id', id).projection(fields).get();
+    const result = await dbService.helper
+      .getter()
+      .table(table)
+      .key('id', id)
+      .projection(fields)
+      .get();
 
     return result;
   }

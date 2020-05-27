@@ -70,7 +70,7 @@ class StepRegistryService extends Service {
 
   // Returns a list of all steps in an array of this shape: [{ id, v, yaml, implClass }, ...]
   async listSteps() {
-    return _.map(this.store, (item) => {
+    return _.map(this.store, item => {
       const { yaml, implClass } = item.value;
       const { id, v } = yaml;
       return { id, v, yaml, implClass };

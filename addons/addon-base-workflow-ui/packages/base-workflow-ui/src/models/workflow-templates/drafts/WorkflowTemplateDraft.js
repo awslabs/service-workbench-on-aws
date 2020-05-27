@@ -33,7 +33,7 @@ const WorkflowTemplateDraft = types
     templateId: '',
     template: WorkflowTemplateVersion,
   })
-  .actions((self) => ({
+  .actions(self => ({
     setWorkflowTemplateDraft(draft) {
       applySnapshot(self, draft);
     },
@@ -43,6 +43,6 @@ const WorkflowTemplateDraft = types
     },
   }))
 
-  .views((_self) => ({}));
+  .views(_self => ({}));
 
 export default WorkflowTemplateDraft;

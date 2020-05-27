@@ -21,8 +21,8 @@ const internalAuthProviderId = require('./authentication-providers/constants').a
   .internalAuthProviderId;
 const { newInvoker } = require('./authentication-providers/helpers/invoker');
 
-const notAuthenticated = (claims) => ({ ...claims, authenticated: false });
-const authenticated = (claims) => ({ ...claims, authenticated: true });
+const notAuthenticated = claims => ({ ...claims, authenticated: false });
+const authenticated = claims => ({ ...claims, authenticated: true });
 
 class AuthenticationService extends Service {
   constructor() {

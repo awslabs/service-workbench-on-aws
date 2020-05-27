@@ -65,7 +65,7 @@ export default class CfnService {
       const status = _.get(stack, 'StackStatus', 'Unknown');
       const statusReason = _.get(stack, 'StackStatusReason', 'Unknown');
       const outputs = _.get(stack, 'Outputs', []);
-      const outputsNormalized = _.map(outputs, (item) => ({
+      const outputsNormalized = _.map(outputs, item => ({
         key: item.OutputKey,
         value: item.OutputValue,
         description: item.Description,

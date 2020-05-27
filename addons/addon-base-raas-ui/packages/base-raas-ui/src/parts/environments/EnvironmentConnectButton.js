@@ -18,7 +18,7 @@ import { observer, inject } from 'mobx-react';
 import { action, computed, decorate } from 'mobx';
 
 class EnvironmentConnectButton extends React.Component {
-  getUrl = async (environment) => {
+  getUrl = async environment => {
     switch (environment.instanceInfo.type) {
       case 'sagemaker': {
         const { AuthorizedUrl } = await environment.getEnvironmentNotebookUrl(this.user);
@@ -31,7 +31,7 @@ class EnvironmentConnectButton extends React.Component {
     }
   };
 
-  handleConnectClick = async (event) => {
+  handleConnectClick = async event => {
     event.preventDefault();
     event.stopPropagation();
     const newTab = window.open('about:blank', '_blank');

@@ -37,7 +37,7 @@ class AppContainer extends Component {
     let App = this.renderError();
 
     // We ask each plugin in reverse order if they have the App component
-    _.forEach(plugins, (plugin) => {
+    _.forEach(plugins, plugin => {
       const result = plugin.getAppComponent({ location, appContext: getEnv(app) });
       if (_.isUndefined(result)) return;
       App = result;
@@ -48,7 +48,7 @@ class AppContainer extends Component {
     plugins = _.reverse(pluginRegistry.getPluginsWithMethod('app-component', 'getAutoLogoutComponent') || []);
     let AutoLogout = () => <></>;
     // We ask each plugin in reverse order if they have the AutoLogout component
-    _.forEach(plugins, (plugin) => {
+    _.forEach(plugins, plugin => {
       const result = plugin.getAutoLogoutComponent({ location, appContext: getEnv(app) });
       if (_.isUndefined(result)) return;
       AutoLogout = result;

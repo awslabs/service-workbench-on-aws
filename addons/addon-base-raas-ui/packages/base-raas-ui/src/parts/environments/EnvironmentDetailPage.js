@@ -60,7 +60,7 @@ const ErrorInfo = ({ environment }) => {
       This research workspace encountered an {environment.error ? 'error' : 'unknown error'}.
       {environment.error ? (
         <Accordion>
-          <Accordion.Title active={visible} index={0} onClick={() => setVisible((s) => !s)}>
+          <Accordion.Title active={visible} index={0} onClick={() => setVisible(s => !s)}>
             <Icon name="dropdown" />
             Detailed error information
           </Accordion.Title>
@@ -274,7 +274,7 @@ class EnvironmentDetailPage extends React.Component {
     const { username: envUsername, ns: envNs } = environment.createdBy;
     const isOwner = user.username === envUsername && user.ns === envNs;
     const { isAdmin } = user;
-    const sharedWithUsersDropDownOptions = this.props.usersStore.asDropDownOptions().filter((item) => {
+    const sharedWithUsersDropDownOptions = this.props.usersStore.asDropDownOptions().filter(item => {
       const value = JSON.parse(item.value);
       return !(value.username === envUsername && value.ns === envNs);
     });
@@ -290,7 +290,7 @@ class EnvironmentDetailPage extends React.Component {
                   <h2 className="center">Share with Users</h2>
                   <Dropdown
                     options={sharedWithUsersDropDownOptions}
-                    defaultValue={environment.sharedWithUsers.map((item) => item.id)}
+                    defaultValue={environment.sharedWithUsers.map(item => item.id)}
                     fluid
                     multiple
                     selection
@@ -323,10 +323,10 @@ class EnvironmentDetailPage extends React.Component {
   }
 
   handleSharedWithUsersSelection = (e, { value }) => {
-    this.updateSharedWithUsers = value.map((item) => JSON.parse(item));
+    this.updateSharedWithUsers = value.map(item => JSON.parse(item));
   };
 
-  handleSubmitSharedWithUsersClick = async (event) => {
+  handleSubmitSharedWithUsersClick = async event => {
     event.preventDefault();
     event.stopPropagation();
     const environment = this.getEnvironment();
@@ -359,14 +359,14 @@ class EnvironmentDetailPage extends React.Component {
 
     let costHeadings = [];
     const rows = [];
-    environment.costs.forEach((costItemGivenADate) => {
+    environment.costs.forEach(costItemGivenADate => {
       const cost = costItemGivenADate.cost;
       const headings = Object.keys(cost);
       costHeadings.push(headings);
       const rowValues = {};
       rowValues.date = costItemGivenADate.startDate;
       let total = 0;
-      headings.forEach((heading) => {
+      headings.forEach(heading => {
         const amount = cost[heading].amount;
         rowValues[heading] = amount.toFixed(2);
         total += amount;
@@ -383,18 +383,18 @@ class EnvironmentDetailPage extends React.Component {
         <Table.Header>
           <Table.Row>
             <Table.HeaderCell>Date</Table.HeaderCell>
-            {costHeadings.map((header) => {
+            {costHeadings.map(header => {
               return <Table.HeaderCell key={header}>{header}</Table.HeaderCell>;
             })}
             <Table.HeaderCell>Total</Table.HeaderCell>
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {rows.map((row) => {
+          {rows.map(row => {
             return (
               <Table.Row key={row.date}>
                 <Table.Cell>{row.date}</Table.Cell>
-                {costHeadings.map((header) => {
+                {costHeadings.map(header => {
                   return <Table.Cell key={row}>${_.get(row, header, 0)}</Table.Cell>;
                 })}
                 <Table.Cell>${row.total}</Table.Cell>
@@ -445,7 +445,7 @@ class EnvironmentDetailPage extends React.Component {
     );
   }
 
-  handleKeyPairRequest = async (event) => {
+  handleKeyPairRequest = async event => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -458,7 +458,7 @@ class EnvironmentDetailPage extends React.Component {
     downloadLink.click();
   };
 
-  handleWindowsPasswordRequest = async (event) => {
+  handleWindowsPasswordRequest = async event => {
     event.preventDefault();
     runInAction(() => {
       this.windowsPassword = 'loading';

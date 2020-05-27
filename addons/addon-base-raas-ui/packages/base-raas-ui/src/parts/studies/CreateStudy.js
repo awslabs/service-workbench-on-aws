@@ -49,14 +49,14 @@ class CreateStudy extends React.Component {
     });
   };
 
-  handleFormCancel = (form) => {
+  handleFormCancel = form => {
     form.clear();
     this.cleanModal();
   };
 
   handleFormError = (_form, _errors) => {};
 
-  handleFormSubmission = async (form) => {
+  handleFormSubmission = async form => {
     try {
       const studyValues = form.values();
       const categoryId = studyValues.categoryId; // Type here is the category id

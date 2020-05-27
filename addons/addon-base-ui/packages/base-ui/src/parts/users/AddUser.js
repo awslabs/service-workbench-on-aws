@@ -53,7 +53,7 @@ class AddUser extends React.Component {
     const processing = this.formProcessing;
     const fields = this.addUserFormFields;
     const toEditableInput = (attributeName, type = 'text') => {
-      const handleChange = action((event) => {
+      const handleChange = action(event => {
         event.preventDefault();
         this.user[attributeName] = event.target.value;
       });
@@ -87,7 +87,7 @@ class AddUser extends React.Component {
       let count = 0;
       return (
         <span>
-          {_.map(radioOptions, (radioOption) => {
+          {_.map(radioOptions, radioOption => {
             return (
               <Radio
                 key={++count}
@@ -190,7 +190,7 @@ class AddUser extends React.Component {
         {hasError && (
           <div className="ui pointing red basic label">
             <List>
-              {_.map(fieldErrors, (fieldError) => (
+              {_.map(fieldErrors, fieldError => (
                 <List.Item key={name}>
                   <List.Content>{fieldError}</List.Content>
                 </List.Item>
@@ -208,7 +208,7 @@ class AddUser extends React.Component {
     this.props.history.push(link);
   }
 
-  handleCancel = action((event) => {
+  handleCancel = action(event => {
     event.preventDefault();
     event.stopPropagation();
     this.formProcessing = false;

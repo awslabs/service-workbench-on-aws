@@ -100,12 +100,12 @@ class Dashboard extends React.Component {
     const { envNameToCostInfo, envNameToIndex } = await this.getAccumulatedEnvCost();
 
     const projNameToUserTotalCost = {};
-    Object.keys(envNameToCostInfo).forEach((envName) => {
+    Object.keys(envNameToCostInfo).forEach(envName => {
       const projName = envNameToIndex[envName];
       if (projNameToUserTotalCost[projName] === undefined) {
         projNameToUserTotalCost[projName] = {};
       }
-      Object.keys(envNameToCostInfo[envName].pastMonthCostByUser).forEach((user) => {
+      Object.keys(envNameToCostInfo[envName].pastMonthCostByUser).forEach(user => {
         const currentUserCost = _.get(projNameToUserTotalCost, `${projName}.${user}`, 0);
         projNameToUserTotalCost[projName][user] =
           currentUserCost + envNameToCostInfo[envName].pastMonthCostByUser[user];
@@ -114,9 +114,9 @@ class Dashboard extends React.Component {
 
     const projNameToTotalCost = {};
     let totalCost = 0;
-    Object.keys(projNameToUserTotalCost).forEach((projName) => {
+    Object.keys(projNameToUserTotalCost).forEach(projName => {
       let indexCost = 0;
-      Object.keys(projNameToUserTotalCost[projName]).forEach((user) => {
+      Object.keys(projNameToUserTotalCost[projName]).forEach(user => {
         indexCost += projNameToUserTotalCost[projName][user];
       });
       totalCost += indexCost;
@@ -131,23 +131,23 @@ class Dashboard extends React.Component {
     const envIdToName = {};
 
     const envNameToIndex = {};
-    environments.forEach((env) => {
+    environments.forEach(env => {
       if (env.isExternal) return;
       envIdToName[env.id] = env.name;
       envNameToIndex[env.name] = env.indexId;
     });
 
     const envIds = Object.keys(envIdToName);
-    const envCostPromises = envIds.map((envId) => {
+    const envCostPromises = envIds.map(envId => {
       return getEnvironmentCost(envId, 30, false, true);
     });
 
     const envCostResults = await Promise.all(envCostPromises);
-    const pastMonthCostByUserArray = envCostResults.map((costResult) => {
+    const pastMonthCostByUserArray = envCostResults.map(costResult => {
       const createdByToCost = {};
-      costResult.forEach((costDate) => {
+      costResult.forEach(costDate => {
         const cost = costDate.cost;
-        Object.keys(cost).forEach((group) => {
+        Object.keys(cost).forEach(group => {
           let createdBy = group.split('$')[1];
           createdBy = createdBy || 'None';
           const currentUserCost = _.get(createdByToCost, createdBy, 0);
@@ -157,11 +157,11 @@ class Dashboard extends React.Component {
       return createdByToCost;
     });
 
-    const yesterdayCostArray = envCostResults.map((costResult) => {
+    const yesterdayCostArray = envCostResults.map(costResult => {
       const yesterdayCost = costResult[costResult.length - 1];
       let totalCost = 0;
       const arrayOfCosts = _.flatMapDeep(yesterdayCost.cost);
-      arrayOfCosts.forEach((cost) => {
+      arrayOfCosts.forEach(cost => {
         totalCost += cost.amount;
       });
       return totalCost;
@@ -184,7 +184,7 @@ class Dashboard extends React.Component {
     }
     const title = 'Index Costs for Past 30 Days';
     const labels = Object.keys(this.state.projNameToTotalCost);
-    const dataPoints = Object.keys(this.state.projNameToTotalCost).map((projName) => {
+    const dataPoints = Object.keys(this.state.projNameToTotalCost).map(projName => {
       return this.state.projNameToTotalCost[projName];
     });
     const data = {
@@ -201,9 +201,9 @@ class Dashboard extends React.Component {
     }
 
     const pastMonthCostTotalArray = [];
-    Object.keys(this.state.envNameToCostInfo).forEach((envName) => {
+    Object.keys(this.state.envNameToCostInfo).forEach(envName => {
       let total = 0;
-      Object.keys(this.state.envNameToCostInfo[envName].pastMonthCostByUser).forEach((user) => {
+      Object.keys(this.state.envNameToCostInfo[envName].pastMonthCostByUser).forEach(user => {
         total += this.state.envNameToCostInfo[envName].pastMonthCostByUser[user];
       });
       pastMonthCostTotalArray.push(total);
@@ -225,7 +225,7 @@ class Dashboard extends React.Component {
     }
     const title = "Yesterday's Env Cost";
     const labels = Object.keys(this.state.envNameToCostInfo);
-    const dataPoints = Object.keys(this.state.envNameToCostInfo).map((envName) => {
+    const dataPoints = Object.keys(this.state.envNameToCostInfo).map(envName => {
       return this.state.envNameToCostInfo[envName].yesterdayCost;
     });
     const data = {
@@ -241,14 +241,14 @@ class Dashboard extends React.Component {
       return <ProgressPlaceHolder />;
     }
     const results = [];
-    Object.keys(this.state.projNameToUserTotalCost).forEach((projName) => {
+    Object.keys(this.state.projNameToUserTotalCost).forEach(projName => {
       const projCostData = this.state.projNameToUserTotalCost[projName];
       const labels = Object.keys(projCostData);
       // NOTE: We need a color for each user
       const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#CDDC39', '#4527a0', '#f4511e'];
       const datasets = [
         {
-          data: Object.keys(projCostData).map((user) => {
+          data: Object.keys(projCostData).map(user => {
             return projCostData[user];
           }),
           backgroundColor: colors,

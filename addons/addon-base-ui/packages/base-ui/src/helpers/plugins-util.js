@@ -72,7 +72,7 @@ function getDefaultRouteLocation({ location, appContext }) {
   const plugins = _.reverse(appContext.pluginRegistry.getPluginsWithMethod('routes', 'getDefaultRouteLocation') || []);
   // We ask each plugin in reverse order if they have a default route
   let defaultRoute;
-  _.forEach(plugins, (plugin) => {
+  _.forEach(plugins, plugin => {
     const result = plugin.getDefaultRouteLocation({ location, appContext });
     if (_.isUndefined(result)) return;
     defaultRoute = result;

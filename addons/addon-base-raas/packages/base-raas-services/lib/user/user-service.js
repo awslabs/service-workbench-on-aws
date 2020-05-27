@@ -45,7 +45,7 @@ class UserService extends BaseUserService {
     const errors = [];
     let successCount = 0;
     let errorCount = 0;
-    const createUser = async (curUser) => {
+    const createUser = async curUser => {
       try {
         const isAdmin = curUser.isAdmin === true;
         const authenticationProviderId =
@@ -109,7 +109,7 @@ class UserService extends BaseUserService {
     const isAdmin = _.get(requestContext, 'principal.isAdmin', false);
 
     const fieldsToOmit = isAdmin ? ['encryptedCreds'] : ['encryptedCreds', 'userRole'];
-    const sanitizedUsers = users.map((user) => _.omit(user, fieldsToOmit));
+    const sanitizedUsers = users.map(user => _.omit(user, fieldsToOmit));
     return sanitizedUsers;
   }
 
@@ -153,7 +153,7 @@ class UserService extends BaseUserService {
   }
 
   async setDefaultAttributes(requestContext, user) {
-    const setDefaultIf = (checkFn) => {
+    const setDefaultIf = checkFn => {
       return (attribName, defaultValue) => {
         if (checkFn(user[attribName])) {
           user[attribName] = defaultValue;

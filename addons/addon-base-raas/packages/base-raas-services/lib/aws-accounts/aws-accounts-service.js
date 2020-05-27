@@ -62,7 +62,10 @@ class AwsAccountsService extends Service {
 
     // Future task: add further checks
 
-    const result = await this._getter().key({ id }).projection(fields).get();
+    const result = await this._getter()
+      .key({ id })
+      .projection(fields)
+      .get();
 
     return this._fromDbToDataObject(result);
   }
@@ -316,7 +319,10 @@ class AwsAccountsService extends Service {
     // Future task: add further checks
 
     // Remember doing a scan is not a good idea if you billions of rows
-    return this._scanner().limit(1000).projection(fields).scan();
+    return this._scanner()
+      .limit(1000)
+      .projection(fields)
+      .scan();
   }
 
   // Do some properties renaming to prepare the object to be saved in the database

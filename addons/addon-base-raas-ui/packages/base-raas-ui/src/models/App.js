@@ -24,13 +24,13 @@ function createAppType(appContext) {
     .props({
       userRegistered: false,
     })
-    .actions((self) => {
+    .actions(self => {
       // save the base implementations of the parent app
       const superInit = self.init;
       const superCleanup = self.cleanup;
 
       return {
-        init: async (payload) => {
+        init: async payload => {
           await superInit(payload);
           self.runInAction(() => {
             const userStore = getEnv(self).userStore;

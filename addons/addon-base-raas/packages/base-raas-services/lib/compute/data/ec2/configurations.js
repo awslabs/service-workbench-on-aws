@@ -177,7 +177,7 @@ const configurations = [
   },
 ];
 
-const filterByType = (platformId) => {
+const filterByType = platformId => {
   const map = { 'ec2-linux-1': 'ec2-linux', 'ec2-windows-1': 'ec2-windows' };
   const type = map[platformId];
   return _.filter(configurations, ['type', type]);

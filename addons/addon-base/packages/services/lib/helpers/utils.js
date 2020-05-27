@@ -160,7 +160,7 @@ async function processSequentially(items, processorFn) {
  * @returns a promise, that will be resolved in the requested time
  */
 function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 module.exports = {

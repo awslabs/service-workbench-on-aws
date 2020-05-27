@@ -178,7 +178,9 @@ class ProvisionEnvironment extends StepBase {
     // Update workflow state and poll for stack creation completion
     this.state.setKey('STATE_STACK_ID', response.StackId);
     await this.updateEnvironment({ stackId: response.StackId });
-    return this.wait(20).maxAttempts(120).until('checkCfnCompleted');
+    return this.wait(20)
+      .maxAttempts(120)
+      .until('checkCfnCompleted');
   }
 
   async getCloudFormationService() {
@@ -269,7 +271,7 @@ class ProvisionEnvironment extends StepBase {
 
   getCfnOutputs(stackInfo) {
     const details = {};
-    stackInfo.Outputs.forEach((option) => {
+    stackInfo.Outputs.forEach(option => {
       _.set(details, option.OutputKey, option.OutputValue);
     });
     return details;
@@ -299,8 +301,8 @@ class ProvisionEnvironment extends StepBase {
     const cfn = await this.getCloudFormationService();
 
     const events = await cfn.describeStackEvents({ StackName: stackId }).promise();
-    const failReasons = events.StackEvents.filter((e) => STACK_FAILED.includes(e.ResourceStatus)).map(
-      (e) => e.ResourceStatusReason || '',
+    const failReasons = events.StackEvents.filter(e => STACK_FAILED.includes(e.ResourceStatus)).map(
+      e => e.ResourceStatusReason || '',
     );
 
     return failReasons.join(' ');

@@ -21,7 +21,7 @@ import { Segment, Placeholder, Divider } from 'semantic-ui-react';
 // - segmentCount (via props)
 // - className (via props)
 const Component = ({ segmentCount = 1, className }) => {
-  const segment = (index) => (
+  const segment = index => (
     <Segment key={index} className="p3 mb2">
       <Placeholder fluid>
         <Placeholder.Header>
@@ -38,7 +38,7 @@ const Component = ({ segmentCount = 1, className }) => {
     </Segment>
   );
 
-  return <div className={className}>{_.map(_.times(segmentCount, String), (index) => segment(index))}</div>;
+  return <div className={className}>{_.map(_.times(segmentCount, String), index => segment(index))}</div>;
 };
 
 export default Component;

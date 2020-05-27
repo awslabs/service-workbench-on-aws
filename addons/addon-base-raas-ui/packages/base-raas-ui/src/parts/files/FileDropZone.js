@@ -33,7 +33,7 @@ const ReusableFileInput = React.forwardRef(({ onChange, ...props }, ref) => {
       key={inputKey}
       ref={ref}
       type="file"
-      onChange={(event) => {
+      onChange={event => {
         onChange(event);
         setInputKey(uuidv4());
       }}
@@ -63,7 +63,7 @@ class FileDropZone extends React.Component {
       <Segment
         tertiary={this.highlighted}
         placeholder
-        onDragEnter={(event) => {
+        onDragEnter={event => {
           if (enabled) {
             if (event.dataTransfer.types.includes('Files')) {
               event.preventDefault();
@@ -71,7 +71,7 @@ class FileDropZone extends React.Component {
             }
           }
         }}
-        onDragOver={(event) => {
+        onDragOver={event => {
           if (enabled) {
             if (event.dataTransfer.types.includes('Files')) {
               event.preventDefault();
@@ -85,7 +85,7 @@ class FileDropZone extends React.Component {
         onDragEnd={() => {
           this.setHighlight(false);
         }}
-        onDrop={(event) => {
+        onDrop={event => {
           if (enabled) {
             if (event.dataTransfer.types.includes('Files')) {
               event.preventDefault();
@@ -101,7 +101,7 @@ class FileDropZone extends React.Component {
             ref={fileInputRef}
             hidden
             multiple
-            onChange={(event) => {
+            onChange={event => {
               if (this.props.onSelectFiles) {
                 const fileList = event.currentTarget.files || [];
                 this.props.onSelectFiles([...fileList]);

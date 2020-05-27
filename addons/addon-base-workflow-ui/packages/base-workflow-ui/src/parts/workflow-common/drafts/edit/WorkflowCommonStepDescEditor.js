@@ -43,7 +43,7 @@ class WorkflowCommonStepDescEditor extends React.Component {
     return this.getStepEditor().descEdit;
   }
 
-  handleEditOn = (event) => {
+  handleEditOn = event => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -56,7 +56,7 @@ class WorkflowCommonStepDescEditor extends React.Component {
     stepEditorModel.setDescEdit(false);
   };
 
-  handleSave = async (form) => {
+  handleSave = async form => {
     const onSave = this.props.onSave || _.noop;
     const stepEditorModel = this.getStepEditor();
     const { stepTitle, stepDesc } = form.values();

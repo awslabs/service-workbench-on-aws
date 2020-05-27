@@ -66,7 +66,7 @@ class IndexesList extends React.Component {
             {
               Header: 'AWS Account',
               id: 'awsAccountId',
-              accessor: (row) => this.props.awsAccountsStore.getNameForAccountId(row.awsAccountId),
+              accessor: row => this.props.awsAccountsStore.getNameForAccountId(row.awsAccountId),
             },
             {
               Header: 'Description',

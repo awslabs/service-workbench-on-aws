@@ -171,13 +171,13 @@ class AwsAccountsList extends React.Component {
     const errorAccounts = accountsStore.listErrorAccount;
     return (
       <div className="mt3 mb3 animated fadeIn">
-        {pendingAccount.map((account) => (
+        {pendingAccount.map(account => (
           <Message>
             <Icon name="circle notched" loading />
             Trying to create accountID: {account.id}
           </Message>
         ))}
-        {errorAccounts.map((account) => (
+        {errorAccounts.map(account => (
           <Message onDismiss={() => this.handleDismiss(account.id)}>
             <Icon name="times" color="red" />
             Error happended in creating accountID: {account.id}. If the account is created, please contact follow{' '}

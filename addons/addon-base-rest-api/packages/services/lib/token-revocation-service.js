@@ -33,7 +33,12 @@ class TokenRevocationService extends Service {
     const table = this.settings.get(settingKeys.tableName);
 
     const record = await this.toTokenRevocationRecord(token);
-    return dbService.helper.updater().table(table).key({ id: record.id }).item(record).update();
+    return dbService.helper
+      .updater()
+      .table(table)
+      .key({ id: record.id })
+      .item(record)
+      .update();
   }
 
   async isRevoked({ token }) {
@@ -45,7 +50,11 @@ class TokenRevocationService extends Service {
     const dbService = await this.service('dbService');
     const table = this.settings.get(settingKeys.tableName);
     const record = await this.toTokenRevocationRecord(token);
-    const item = await dbService.helper.getter().table(table).key({ id: record.id }).get();
+    const item = await dbService.helper
+      .getter()
+      .table(table)
+      .key({ id: record.id })
+      .get();
 
     return !!item;
   }

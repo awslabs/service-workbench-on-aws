@@ -29,14 +29,14 @@ const ComputeConfiguration = types
     displayProps: types.frozen(), // an array of objects, each object has a key and a value that are purely used for displaying purposes
     params: types.frozen(),
   })
-  .actions((self) => ({
+  .actions(self => ({
     setComputeConfiguration(raw) {
       // Note: if you have partial data vs full data, you need to replace the applySnapshot() with
       // the appropriate logic
       applySnapshot(self, raw);
     },
   }))
-  .views((self) => ({
+  .views(self => ({
     get descHtml() {
       const showdown = getEnv(self).showdown;
       return showdown.convert(self.desc);

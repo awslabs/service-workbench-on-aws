@@ -40,7 +40,10 @@ class DeploymentStoreService extends Service {
   }
 
   async find({ type, id, fields = [] }) {
-    return this._getter().key({ type, id }).projection(fields).get();
+    return this._getter()
+      .key({ type, id })
+      .projection(fields)
+      .get();
   }
 
   async mustFind({ type, id, fields = [] }) {
@@ -58,7 +61,10 @@ class DeploymentStoreService extends Service {
     const { type, id } = rawData;
 
     // Time to save the the db object
-    return this._updater().key({ type, id }).item(rawData).update();
+    return this._updater()
+      .key({ type, id })
+      .item(rawData)
+      .update();
   }
 
   async delete({ type, id }) {

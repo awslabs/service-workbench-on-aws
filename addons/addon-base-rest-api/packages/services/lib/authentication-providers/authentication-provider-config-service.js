@@ -21,10 +21,10 @@ const settingKeys = {
   tableName: 'dbTableAuthenticationProviderConfigs',
 };
 
-const serializeProviderConfig = (providerConfig) => JSON.stringify(providerConfig);
-const deSerializeProviderConfig = (providerConfigStr) => JSON.parse(providerConfigStr);
+const serializeProviderConfig = providerConfig => JSON.stringify(providerConfig);
+const deSerializeProviderConfig = providerConfigStr => JSON.parse(providerConfigStr);
 
-const toProviderConfig = (dbResultItem) =>
+const toProviderConfig = dbResultItem =>
   _.assign({}, dbResultItem, {
     config: dbResultItem && deSerializeProviderConfig(dbResultItem.config),
   });
@@ -38,21 +38,34 @@ class AuthenticationProviderConfigService extends Service {
   async getAuthenticationProviderConfigs(fields = []) {
     const dbService = await this.service('dbService');
     const table = this.settings.get(settingKeys.tableName);
-    const dbResults = await dbService.helper.scanner().table(table).projection(fields).scan();
+    const dbResults = await dbService.helper
+      .scanner()
+      .table(table)
+      .projection(fields)
+      .scan();
     return _.map(dbResults, toProviderConfig);
   }
 
   async getAuthenticationProviderConfig(providerId, fields = []) {
     const dbService = await this.service('dbService');
     const table = this.settings.get(settingKeys.tableName);
-    const dbResult = await dbService.helper.getter().table(table).key({ id: providerId }).projection(fields).get();
+    const dbResult = await dbService.helper
+      .getter()
+      .table(table)
+      .key({ id: providerId })
+      .projection(fields)
+      .get();
     return dbResult && toProviderConfig(dbResult);
   }
 
   async exists(providerId) {
     const dbService = await this.service('dbService');
     const table = this.settings.get(settingKeys.tableName);
-    const item = await dbService.helper.getter().table(table).key({ id: providerId }).get();
+    const item = await dbService.helper
+      .getter()
+      .table(table)
+      .key({ id: providerId })
+      .get();
 
     if (item === undefined) return false;
     return true;

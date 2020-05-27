@@ -83,7 +83,7 @@ const FileUploadTable = observer(({ files = [], state, onClickRemoveFile, onClic
       </Table.Row>
     </Table.Header>
     <Table.Body>
-      {files.map((file) => (
+      {files.map(file => (
         <FileUploadRow
           key={file.id}
           file={file}

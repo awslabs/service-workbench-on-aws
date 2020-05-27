@@ -21,7 +21,7 @@ import * as baseFormHelper from '@aws-ee/base-ui/dist/helpers/form';
 
 const dvrRules = {
   cidr: {
-    validatorFn: (value) => {
+    validatorFn: value => {
       const result = isCidr(value);
       return result === 4 || result === 6;
     },
@@ -35,7 +35,7 @@ const formPlugins = {
   dvr: dvr({
     package: validatorjs,
     extend: ({ validator }) => {
-      Object.keys(dvrRules).forEach((key) => validator.register(key, dvrRules[key].validatorFn, dvrRules[key].message));
+      Object.keys(dvrRules).forEach(key => validator.register(key, dvrRules[key].validatorFn, dvrRules[key].message));
     },
   }),
 };

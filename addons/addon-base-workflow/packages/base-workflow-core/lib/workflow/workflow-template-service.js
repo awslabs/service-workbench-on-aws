@@ -57,7 +57,7 @@ function toDataObject(dbObject) {
 function removeEmptyStrings(srcObject) {
   const result = {};
 
-  Object.keys(srcObject).forEach((key) => {
+  Object.keys(srcObject).forEach(key => {
     const value = srcObject[key];
     if (_.isString(value) && _.isEmpty(value)) return;
     result[key] = value;
@@ -240,7 +240,7 @@ class WorkflowTemplateService extends Service {
         .limit(2000)
         .projection(fields)
         .scan();
-      return _.map(result, (item) => toDataObject(item));
+      return _.map(result, item => toDataObject(item));
     }
 
     const result = await dbService.helper
@@ -252,7 +252,7 @@ class WorkflowTemplateService extends Service {
       .limit(2000)
       .projection(fields)
       .query();
-    const versions = _.map(result, (item) => toDataObject(item));
+    const versions = _.map(result, item => toDataObject(item));
     if (versions.length === 0) throw this.boom.notFound(`The workflow template "${id}" is not found`, true);
 
     return versions;
@@ -271,7 +271,7 @@ class WorkflowTemplateService extends Service {
       .limit(2000)
       .projection(fields)
       .scan();
-    return _.map(result, (item) => toDataObject(item));
+    return _.map(result, item => toDataObject(item));
   }
 
   async findVersion({ id, v = 0, fields = [] }, { tableName } = {}) {

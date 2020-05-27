@@ -76,7 +76,7 @@ class WorkflowInstance {
   get info() {
     return {
       ..._.pick(this, ['wfInstId', 'wfId', 'wfVer', 'wfTitle']),
-      steps: _.map(this.steps, (step) => ({ ...step.logPrefixObj, stpTitle: step.stpTitle, stpConfigs: step.configs })),
+      steps: _.map(this.steps, step => ({ ...step.logPrefixObj, stpTitle: step.stpTitle, stpConfigs: step.configs })),
     };
   }
 }

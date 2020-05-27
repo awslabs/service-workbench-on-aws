@@ -22,7 +22,7 @@ class WarningBox extends React.Component {
   handleRetry = () => {
     Promise.resolve()
       .then(() => this.props.onRetry())
-      .catch((_err) => {
+      .catch(_err => {
         /* ignore */
       });
   };

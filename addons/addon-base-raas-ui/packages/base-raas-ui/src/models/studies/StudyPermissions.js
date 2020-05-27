@@ -31,7 +31,7 @@ const StudyPermissions = types
     updatedAt: '',
     updatedBy: types.optional(UserIdentifier, {}),
   })
-  .views((_self) => ({
+  .views(_self => ({
     get userTypes() {
       return ['admin', 'readonly'];
     },

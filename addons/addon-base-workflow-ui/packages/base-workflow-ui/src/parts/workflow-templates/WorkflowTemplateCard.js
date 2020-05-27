@@ -111,7 +111,7 @@ class WorkflowTemplateCard extends React.Component {
   renderVersionDropdown(currentVersion) {
     const template = this.getTemplate();
     const versions = template.versionNumbers;
-    const options = _.map(versions, (version) => ({ text: `v${version}`, value: version }));
+    const options = _.map(versions, version => ({ text: `v${version}`, value: version }));
 
     if (versions.length === 1) return <span className="bold color-grey pr2">v{template.latest.v}</span>;
 

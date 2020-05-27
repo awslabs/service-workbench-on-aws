@@ -90,8 +90,8 @@ class UpdateUser extends React.Component {
   }
 
   renderDetailView() {
-    const getFieldLabel = (fieldName) => this.form.$(fieldName).label;
-    const toRow = (fieldName) => {
+    const getFieldLabel = fieldName => this.form.$(fieldName).label;
+    const toRow = fieldName => {
       const value = _.get(this.getCurrentUser(), fieldName);
       const displayValue = _.isArray(value) ? _.map(value, (v, k) => <Label key={k} content={v} />) : value;
       return (
@@ -319,7 +319,7 @@ class UpdateUser extends React.Component {
     }
   };
 
-  handleFormSubmission = async (form) => {
+  handleFormSubmission = async form => {
     const values = form.values();
     const isInternalUser = this.userRolesStore.isInternalUser(values.userRole);
     const isInternalGuest = this.userRolesStore.isInternalGuest(values.userRole);
@@ -393,7 +393,7 @@ class UpdateUser extends React.Component {
     this.handleClose();
   };
 
-  handleApproveDisapproveClick = async (status) => {
+  handleApproveDisapproveClick = async status => {
     try {
       this.processing = true;
       await this.usersStore.updateUser({ ...this.getCurrentUser(), status });

@@ -40,7 +40,7 @@ class SelectConfigurationCards extends React.Component {
     return this.props.formField;
   }
 
-  handleSelectConfigurationId = (configId) => {
+  handleSelectConfigurationId = configId => {
     this.formField.sync(configId);
     this.formField.resetValidation();
   };
@@ -66,8 +66,8 @@ class SelectConfigurationCards extends React.Component {
   renderCards() {
     const disabled = this.formField.disabled;
     const configurations = this.configurations;
-    const isSelected = (config) => config.id === this.configurationId;
-    const getAttrs = (config) => {
+    const isSelected = config => config.id === this.configurationId;
+    const getAttrs = config => {
       const attrs = {};
       if (isSelected(config)) attrs.color = 'blue';
       if (!disabled) attrs.onClick = () => this.handleSelectConfigurationId(config.id);
@@ -77,7 +77,7 @@ class SelectConfigurationCards extends React.Component {
 
     return (
       <Card.Group stackable itemsPerRow={3} className="mt1">
-        {_.map(configurations, (config) => (
+        {_.map(configurations, config => (
           <Card key={config.id} className={c('mb3', { 'cursor-pointer': !disabled })} {...getAttrs(config)}>
             <Card.Content>
               <Card.Header>
@@ -101,12 +101,12 @@ class SelectConfigurationCards extends React.Component {
   }
 
   renderTableInfo(config) {
-    const priceTitle = (item) => {
+    const priceTitle = item => {
       const isSpot = _.get(item, 'priceInfo.type') === 'spot';
       return isSpot ? 'Maximum price per day' : 'Price per day';
     };
-    const region = (item) => _.get(item, 'priceInfo.region');
-    const price = (item) => {
+    const region = item => _.get(item, 'priceInfo.region');
+    const price = item => {
       const perDay = item.pricePerDay;
       if (_.isUndefined(perDay) || (_.isString(perDay) && _.isEmpty(perDay))) return 'N/A';
       return `$${nicePrice(perDay)}`;

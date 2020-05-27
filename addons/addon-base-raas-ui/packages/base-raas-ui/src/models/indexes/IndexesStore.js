@@ -30,7 +30,7 @@ const IndexesStore = BaseStore.named('IndexesStore')
     tickPeriod: 900 * 1000, // 15 minutes
   })
 
-  .actions((self) => {
+  .actions(self => {
     // save the base implementation of cleanup
     const superCleanup = self.cleanup;
 
@@ -44,7 +44,7 @@ const IndexesStore = BaseStore.named('IndexesStore')
         });
       },
 
-      addIndex: async (index) => {
+      addIndex: async index => {
         const addedIndex = await addIndex(index);
         self.runInAction(() => {
           // Added newly created user to users map
@@ -53,7 +53,7 @@ const IndexesStore = BaseStore.named('IndexesStore')
         });
       },
 
-      getIndexesStore: (indexesId) => {
+      getIndexesStore: indexesId => {
         let entry = self.indexesStores.get(indexesId);
         if (!entry) {
           // Lazily create the store
@@ -64,9 +64,9 @@ const IndexesStore = BaseStore.named('IndexesStore')
         return entry;
       },
 
-      getIndex: (indexesId) => {
+      getIndex: indexesId => {
         let res = {};
-        self.indexes.forEach((index) => {
+        self.indexes.forEach(index => {
           if (index.id === indexesId) res = _.clone(index);
         });
         return res;
@@ -79,11 +79,11 @@ const IndexesStore = BaseStore.named('IndexesStore')
     };
   })
 
-  .views((self) => ({
+  .views(self => ({
     get dropdownOptions() {
       const result = [];
       // converting map self.users to result array
-      self.indexes.forEach((index) => {
+      self.indexes.forEach(index => {
         const proj = {};
         proj.key = index.id;
         proj.value = index.id;
@@ -103,7 +103,7 @@ const IndexesStore = BaseStore.named('IndexesStore')
 
     get list() {
       const result = [];
-      self.indexes.forEach((indexes) => result.push(indexes));
+      self.indexes.forEach(indexes => result.push(indexes));
 
       return _.reverse(_.sortBy(result, ['createdAt', 'name']));
     },

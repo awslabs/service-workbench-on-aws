@@ -40,13 +40,13 @@ class LambdasOverrider {
     const names = _.keys(lambdasOverrides);
 
     const stackOutput = await this.getStackOutput({ aws, stackName });
-    const cfnOutput = (key) => {
+    const cfnOutput = key => {
       const value = stackOutput[key];
       if (_.isUndefined(value))
         throw new Error(`The stack output "${key}" is not found. You referenced it in environmentOverrides.`);
       return value;
     };
-    const resolveIt = (value) => _.template(value)({ cfnOutput });
+    const resolveIt = value => _.template(value)({ cfnOutput });
 
     // time to resolve all expressions in the environmentOverrides.provider
     // and then merge it to the provider.environment
@@ -61,7 +61,7 @@ class LambdasOverrider {
     // we want a map of the lambda name and all its resolved expressions
     // example:  { 'apiHandler': { 'env1': '<resolved>', 'env2': '<resolved2> } , ...}
     const resolvedMap = {};
-    _.forEach(names, (name) => {
+    _.forEach(names, name => {
       const entries = lambdasOverrides[name].environment || {};
       const envMap = {};
       _.forEach(entries, (value, key) => {
@@ -71,7 +71,7 @@ class LambdasOverrider {
     });
 
     // we now loop through all the defined functions and override their environments
-    _.forEach(names, (name) => {
+    _.forEach(names, name => {
       const lambdaEntry = _.get(service.functions, name);
       if (_.isEmpty(lambdaEntry)) {
         this.cli.warn(`Lambda "${name}" is not defined but yet it was specified in environmentOverrides`);
@@ -95,7 +95,7 @@ class LambdasOverrider {
     const outputs = _.get(data, 'Outputs', []);
 
     const result = {};
-    _.forEach(outputs, (item) => {
+    _.forEach(outputs, item => {
       result[item.OutputKey] = item.OutputValue;
     });
 

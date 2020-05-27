@@ -17,7 +17,7 @@ const createEnvironmentYaml = require('../workflows/create-environment.yml');
 const deleteEnvironmentYaml = require('../workflows/delete-environment.yml');
 const provisionAccountYaml = require('../workflows/provision-account.yml');
 
-const add = (yaml) => ({ yaml });
+const add = yaml => ({ yaml });
 
 // The order is important, add your templates here
 const workflows = [add(createEnvironmentYaml), add(deleteEnvironmentYaml), add(provisionAccountYaml)];

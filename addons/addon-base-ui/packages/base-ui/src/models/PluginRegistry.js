@@ -29,7 +29,7 @@ class PluginRegistry {
   getPluginsWithMethod(extensionPoint, methodName) {
     const registry = this.registry;
     const plugins = registry.getPlugins(extensionPoint);
-    return _.filter(plugins, (plugin) => _.isFunction(plugin[methodName]));
+    return _.filter(plugins, plugin => _.isFunction(plugin[methodName]));
   }
 
   async runPlugins(extensionPoint, methodName, ...args) {
@@ -37,7 +37,7 @@ class PluginRegistry {
 
     // Each plugin needs to be executed in order. The plugin method may be return a promise we need to await
     // it in sequence.
-    return processSequentially(plugins, (plugin) => plugin[methodName](...args));
+    return processSequentially(plugins, plugin => plugin[methodName](...args));
   }
 }
 

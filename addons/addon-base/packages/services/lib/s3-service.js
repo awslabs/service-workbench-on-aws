@@ -71,7 +71,7 @@ class S3Service extends Service {
       params.ContinuationToken = data.NextContinuationToken;
       const prefixSlash = _.endsWith(prefix, '/') ? prefix : `${prefix}/`;
 
-      _.forEach(data.Contents, (item) => {
+      _.forEach(data.Contents, item => {
         // eslint-disable-line no-loop-func
         if (item.Key === prefixSlash) return;
 

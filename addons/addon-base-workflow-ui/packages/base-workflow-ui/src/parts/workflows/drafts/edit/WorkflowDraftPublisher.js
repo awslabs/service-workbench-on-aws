@@ -62,7 +62,7 @@ class WorkflowDraftPublisher extends React.Component {
     return this.getEditor().version;
   }
 
-  handleCancel = (event) => {
+  handleCancel = event => {
     event.preventDefault();
     event.stopPropagation();
     this.processing = false;
@@ -70,14 +70,14 @@ class WorkflowDraftPublisher extends React.Component {
     onCancel();
   };
 
-  handlePrevious = (event) => {
+  handlePrevious = event => {
     event.preventDefault();
     event.stopPropagation();
     this.processing = false;
     this.getEditor().previousPage();
   };
 
-  handlePublish = async (event) => {
+  handlePublish = async event => {
     event.preventDefault();
     event.stopPropagation();
     const editor = this.getEditor();

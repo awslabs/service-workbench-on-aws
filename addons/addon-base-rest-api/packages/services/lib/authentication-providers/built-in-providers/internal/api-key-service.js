@@ -56,7 +56,7 @@ class ApiKeyService extends Service {
           username,
           ns,
         });
-        const existingActiveApiKeys = _.filter(existingApiKeys, (apiKey) => {
+        const existingActiveApiKeys = _.filter(existingApiKeys, apiKey => {
           const isActive = apiKey.status === 'active';
           const isExpired = apiKey.expiryTime && _.now() > apiKey.expiryTime;
           return isActive && !isExpired;
@@ -125,14 +125,21 @@ class ApiKeyService extends Service {
 
     // ensure that the key exists and set it's status to "reovked", if it does
     const unameWithNs = encode(username, ns);
-    const apiKey = await this.internals.dbGetter().key({ unameWithNs, id: keyId }).get();
+    const apiKey = await this.internals
+      .dbGetter()
+      .key({ unameWithNs, id: keyId })
+      .get();
     if (!apiKey) {
       throw this.boom.badRequest('Cannot revoke API Key. The API key does not exist.', true);
     }
     apiKey.status = 'revoked';
 
     // Update the key with "revoked" status
-    const revokedApiKey = await this.internals.dbUpdater().key({ unameWithNs, id: apiKey.id }).item(apiKey).update();
+    const revokedApiKey = await this.internals
+      .dbUpdater()
+      .key({ unameWithNs, id: apiKey.id })
+      .item(apiKey)
+      .update();
 
     return redactIfNotForCurrentUser(requestContext, revokedApiKey, username, ns);
   }
@@ -170,7 +177,11 @@ class ApiKeyService extends Service {
     }
 
     // save api key to db
-    const apiKey = await this.internals.dbUpdater().key({ unameWithNs, id: newApiKey.id }).item(newApiKey).update();
+    const apiKey = await this.internals
+      .dbUpdater()
+      .key({ unameWithNs, id: newApiKey.id })
+      .item(newApiKey)
+      .update();
 
     // sanitize
     return redactIfNotForCurrentUser(requestContext, apiKey, username, ns);
@@ -200,7 +211,11 @@ class ApiKeyService extends Service {
     const dbService = await this.service('dbService');
     const table = this.settings.get(settingKeys.tableName);
     const unameWithNs = encode(username, ns);
-    const apiKey = await dbService.helper.getter().table(table).key({ unameWithNs, id: apiKeyId }).get();
+    const apiKey = await dbService.helper
+      .getter()
+      .table(table)
+      .key({ unameWithNs, id: apiKeyId })
+      .get();
 
     if (!apiKey) {
       throw this.boom.invalidToken('The given key is not valid for API access', true);
@@ -216,9 +231,12 @@ class ApiKeyService extends Service {
     // ensure the caller is asking retrieve api keys for him/herself or is admin
     await ensureCurrentUserOrAdmin(requestContext, username, ns);
     const unameWithNs = encode(username, ns);
-    const apiKeys = await this.internals.dbQuery().key('unameWithNs', unameWithNs).query();
+    const apiKeys = await this.internals
+      .dbQuery()
+      .key('unameWithNs', unameWithNs)
+      .query();
 
-    return _.map(apiKeys, (apiKey) => redactIfNotForCurrentUser(requestContext, apiKey, username, ns));
+    return _.map(apiKeys, apiKey => redactIfNotForCurrentUser(requestContext, apiKey, username, ns));
   }
 
   async getApiKey(requestContext, { username, ns, keyId }) {
@@ -226,7 +244,10 @@ class ApiKeyService extends Service {
     await ensureCurrentUserOrAdmin(requestContext, username, ns);
 
     const unameWithNs = encode(username, ns);
-    const apiKey = await this.internals.dbGetter().key({ unameWithNs, id: keyId }).get();
+    const apiKey = await this.internals
+      .dbGetter()
+      .key({ unameWithNs, id: keyId })
+      .get();
 
     return redactIfNotForCurrentUser(requestContext, apiKey, username, ns);
   }

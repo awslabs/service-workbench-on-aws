@@ -86,7 +86,7 @@ class UserAuthzService extends Service {
   }
 
   async authorizeUpdateAttributes(requestContext, { action }, user, existingUser) {
-    const isBeingUpdated = (attribName) => {
+    const isBeingUpdated = attribName => {
       const oldValue = _.get(existingUser, attribName);
       const newValue = _.get(user, attribName);
       // The update ignores undefined values during update (i.e., it retains existing values for those)

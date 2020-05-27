@@ -17,7 +17,7 @@ const { parseMethodArn, buildRestApiPolicy, newUnauthorizedError, customAuthoriz
 
 const bearerPrefix = 'Bearer ';
 
-const getToken = (authorizationHeader) => {
+const getToken = authorizationHeader => {
   if (!authorizationHeader) {
     return '';
   }
@@ -27,7 +27,7 @@ const getToken = (authorizationHeader) => {
   return authorizationHeader;
 };
 
-const sanitizeResponseContext = (context) => {
+const sanitizeResponseContext = context => {
   return Object.entries(context)
     .filter(([_, value]) => typeof value === 'string' || typeof value === 'boolean' || typeof value === 'number')
     .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
@@ -57,9 +57,8 @@ module.exports = function newHandler({ authenticationService = noopAuthenticatio
     const { authenticated, error, ...claims } = result;
     if (error) {
       log.info(
-        `authentication error for ${claims.username || '<anonymous>'}/${
-          claims.authenticationProviderId || '<unknown provider>'
-        }: ${error.toString()}`,
+        `authentication error for ${claims.username || '<anonymous>'}/${claims.authenticationProviderId ||
+          '<unknown provider>'}: ${error.toString()}`,
       );
     }
     if (!authenticated) {

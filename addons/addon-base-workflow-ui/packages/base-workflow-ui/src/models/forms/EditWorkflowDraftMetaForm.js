@@ -15,11 +15,11 @@
 
 import { createForm } from '@aws-ee/base-ui/dist/helpers/form';
 
-const editWorkflowDraftMetaFields = (version) => {
+const editWorkflowDraftMetaFields = version => {
   const { title = '', desc = '', instanceTtl, runSpec = {} } = version;
   const warnMessage = 'The workflow template used by this workflow does not allow you to modify this field';
   const warnIfCanNotOverride = (prop, text = warnMessage) => (version.canOverrideProp(prop) ? undefined : text);
-  const canOverride = (prop) => version.canOverrideProp(prop);
+  const canOverride = prop => version.canOverrideProp(prop);
 
   const result = [
     {

@@ -73,7 +73,7 @@ class AddIndex extends React.Component {
     const processing = this.formProcessing;
     const fields = this.addIndexFormFields;
     const toEditableInput = (attributeName, type = 'text') => {
-      const handleChange = action((event) => {
+      const handleChange = action(event => {
         event.preventDefault();
         this.index[attributeName] = event.target.value;
       });
@@ -152,7 +152,7 @@ class AddIndex extends React.Component {
         {hasError && (
           <div className="ui pointing red basic label">
             <List>
-              {_.map(fieldErrors, (fieldError) => (
+              {_.map(fieldErrors, fieldError => (
                 <List.Item key={name}>
                   <List.Content>{fieldError}</List.Content>
                 </List.Item>
@@ -164,7 +164,7 @@ class AddIndex extends React.Component {
     );
   }
 
-  handleCancel = action((event) => {
+  handleCancel = action(event => {
     event.preventDefault();
     event.stopPropagation();
     this.formProcessing = false;

@@ -24,7 +24,9 @@ class ObtainLock extends StepBase {
     const obtained = await this.obtainToken();
     if (obtained) return undefined;
 
-    return this.wait(waitPeriod).maxAttempts(attemptsCount).until('obtainToken');
+    return this.wait(waitPeriod)
+      .maxAttempts(attemptsCount)
+      .until('obtainToken');
   }
 
   async obtainToken() {

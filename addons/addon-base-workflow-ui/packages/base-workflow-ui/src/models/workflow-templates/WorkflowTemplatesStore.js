@@ -30,7 +30,7 @@ const WorkflowTemplatesStore = BaseStore.named('WorkflowTemplatesStore')
     tickPeriod: 900 * 1000, // 15 minutes
   })
 
-  .actions((self) => {
+  .actions(self => {
     // save the base implementation of cleanup
     const superCleanup = self.cleanup;
 
@@ -45,7 +45,7 @@ const WorkflowTemplatesStore = BaseStore.named('WorkflowTemplatesStore')
           self.templates.forEach((_value, key) => {
             previousKeys[key] = true;
           });
-          templates.forEach((template) => {
+          templates.forEach(template => {
             const id = template.id;
             const hasPrevious = self.templates.has(id);
 
@@ -80,7 +80,7 @@ const WorkflowTemplatesStore = BaseStore.named('WorkflowTemplatesStore')
     };
   })
 
-  .views((self) => ({
+  .views(self => ({
     get empty() {
       return self.templates.size === 0;
     },
@@ -91,7 +91,7 @@ const WorkflowTemplatesStore = BaseStore.named('WorkflowTemplatesStore')
 
     get list() {
       const result = [];
-      self.templates.forEach((template) => result.push(template));
+      self.templates.forEach(template => result.push(template));
 
       return _.reverse(_.sortBy(result, ['latest.createdAt', 'title']));
       // return result;
@@ -107,7 +107,7 @@ const WorkflowTemplatesStore = BaseStore.named('WorkflowTemplatesStore')
 // [ { id, versions: [ ... ] }, { id, versions: [ ... ] }, ...]
 function toTemplates(versions) {
   const map = {};
-  _.forEach(versions, (version) => {
+  _.forEach(versions, version => {
     const id = version.id;
     const entry = map[id] || { id, versions: [] };
     entry.versions.push(version);
@@ -122,7 +122,7 @@ function registerContextItems(appContext) {
 
   uiEventBus.listenTo('workflowTemplatePublished', {
     id: 'WorkflowTemplatesStore',
-    listener: async (_event) => {
+    listener: async _event => {
       appContext.workflowTemplatesStore.cleanup();
     },
   });

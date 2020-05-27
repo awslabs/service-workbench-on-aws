@@ -78,7 +78,7 @@ class DbUpdater {
       throw new Error(
         'You tried to call DbUpdater.mark() after you called DbUpdater.update(). Call mark() before calling update().',
       );
-    arr.forEach((key) => {
+    arr.forEach(key => {
       this.marked[key] = true;
     });
     return this;
@@ -173,7 +173,7 @@ class DbUpdater {
     const values = {};
     const names = {};
 
-    keys.forEach((key) => {
+    keys.forEach(key => {
       const value = item[key];
       if (value === undefined) return;
       if (this.params.Key && this.params.Key.hasOwnProperty(key)) return; // eslint-disable-line no-prototype-builtins

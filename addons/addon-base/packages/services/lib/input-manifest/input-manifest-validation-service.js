@@ -23,7 +23,7 @@ module.exports = class InputManifestValidationService extends Service {
   async getValidationErrors(inputManifest, config) {
     const { sections = [] } = inputManifest;
     const errors = [];
-    sections.forEach((section) => {
+    sections.forEach(section => {
       errors.push(...validateSection(section, config));
     });
     return errors;

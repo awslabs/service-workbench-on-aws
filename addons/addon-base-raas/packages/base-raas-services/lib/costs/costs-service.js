@@ -150,9 +150,9 @@ class CostsService extends Service {
       })
       .promise();
 
-    const response = result.ResultsByTime.map((item) => {
+    const response = result.ResultsByTime.map(item => {
       const costItems = {};
-      item.Groups.forEach((group) => {
+      item.Groups.forEach(group => {
         if (group.Metrics.BlendedCost.Amount > 0) {
           costItems[group.Keys] = {
             amount: Math.round(group.Metrics.BlendedCost.Amount * 100) / 100,

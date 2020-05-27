@@ -65,9 +65,7 @@ module.exports = function newHandler({ studyService, log = consoleLogger } = {})
       // in which case lowercase the entire word
       const normalizedKey = key
         .split(' ')
-        .map((word) =>
-          /^[A-Z]*$/.test(word) ? word.toLowerCase() : `${word.slice(0, 1).toLowerCase()}${word.slice(1)}`,
-        )
+        .map(word => (/^[A-Z]*$/.test(word) ? word.toLowerCase() : `${word.slice(0, 1).toLowerCase()}${word.slice(1)}`))
         .join(' ');
       const normalizedValue = normalizeValue(value);
       return { ...result, [normalizedKey]: normalizedValue };
@@ -162,7 +160,7 @@ module.exports = function newHandler({ studyService, log = consoleLogger } = {})
     const metadata = await Promise.all(fileUrls.map(fetchFile));
 
     log.info(`Filtering for ${requiredTags} tags`);
-    const filtered = metadata.filter(({ tags }) => requiredTags.some((filterTag) => tags.includes(filterTag)));
+    const filtered = metadata.filter(({ tags }) => requiredTags.some(filterTag => tags.includes(filterTag)));
 
     return filtered;
   }
@@ -186,7 +184,7 @@ module.exports = function newHandler({ studyService, log = consoleLogger } = {})
 
     log.info('Updating studies');
     // TODO: create or update existing record
-    await Promise.all(simplified.map((study) => studyService.create(getSystemRequestContext(), study)));
+    await Promise.all(simplified.map(study => studyService.create(getSystemRequestContext(), study)));
 
     return simplified;
   };

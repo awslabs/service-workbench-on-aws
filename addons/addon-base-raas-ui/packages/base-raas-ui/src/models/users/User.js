@@ -38,7 +38,7 @@ const User = types
     encryptedCreds: types.maybeNull(types.string),
     applyReason: '',
   })
-  .actions((self) => ({
+  .actions(self => ({
     runInAction(fn) {
       return fn();
     },
@@ -77,7 +77,7 @@ const User = types
       // we don't update the other fields because they are being populated by a separate store
     },
   }))
-  .views((self) => ({
+  .views(self => ({
     get displayName() {
       return `${self.firstName}`;
     },

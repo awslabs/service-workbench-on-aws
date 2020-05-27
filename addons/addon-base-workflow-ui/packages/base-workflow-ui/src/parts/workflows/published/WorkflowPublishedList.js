@@ -64,7 +64,7 @@ class WorkflowPublishedList extends React.Component {
     return this.props.userDisplayName;
   }
 
-  handleWorkflowClick = (event) => {
+  handleWorkflowClick = event => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -140,7 +140,7 @@ class WorkflowPublishedList extends React.Component {
             <Table.HeaderCell>Updated</Table.HeaderCell>
           </Table.Row>
         </Table.Header>
-        <Table.Body>{_.map(list, (workflow) => this.renderWorkflowRow(workflow))}</Table.Body>
+        <Table.Body>{_.map(list, workflow => this.renderWorkflowRow(workflow))}</Table.Body>
       </Table>
     );
   }

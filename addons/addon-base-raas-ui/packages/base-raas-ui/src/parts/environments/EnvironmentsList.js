@@ -65,7 +65,7 @@ class EnvironmentsList extends React.Component {
     return this.props.userStore;
   }
 
-  setOnboarding = (value) => {
+  setOnboarding = value => {
     this.onboardingOpen = value;
   };
 
@@ -73,7 +73,7 @@ class EnvironmentsList extends React.Component {
     this.pinModalOpen = false;
   };
 
-  handleDetailClick = (event) => {
+  handleDetailClick = event => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -83,7 +83,7 @@ class EnvironmentsList extends React.Component {
     goto(`/workspaces/id/${instanceId}`);
   };
 
-  handleCreateEnvironment = (event) => {
+  handleCreateEnvironment = event => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -91,7 +91,7 @@ class EnvironmentsList extends React.Component {
     goto(`/workspaces/create`);
   };
 
-  handleConfigureCredentials = (event) => {
+  handleConfigureCredentials = event => {
     event.preventDefault();
     event.stopPropagation();
     this.setOnboarding(true);
@@ -189,7 +189,7 @@ class EnvironmentsList extends React.Component {
           user={this.user}
           message="PIN is required to get previously created stack information"
         />
-        {_.map(list, (item) => (
+        {_.map(list, item => (
           <Segment
             className="p3 mb2 cursor-pointer"
             clearing

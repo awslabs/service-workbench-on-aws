@@ -32,12 +32,12 @@ const WorkflowTemplateDraftEditor = types
     stepEditors: types.optional(types.map(WorkflowTemplateStepEditor), {}),
   })
 
-  .volatile((_self) => ({
+  .volatile(_self => ({
     draftCopy: undefined,
     draftMetaForm: undefined,
   }))
 
-  .actions((self) => {
+  .actions(self => {
     // private
     function makeDraftCopy() {
       self.runInAction(() => {
@@ -113,7 +113,7 @@ const WorkflowTemplateDraftEditor = types
     };
   })
 
-  .views((self) => ({
+  .views(self => ({
     get workflowTemplateDraftsStore() {
       return getEnv(self).workflowTemplateDraftsStore;
     },
@@ -185,7 +185,7 @@ function registerContextItems(appContext) {
 
   uiEventBus.listenTo('workflowTemplateDraftDeleted', {
     id: 'WorkflowTemplateDraftEditor',
-    listener: async (event) => {
+    listener: async event => {
       // event will be the draft object
       removeWizard(event.id);
     },

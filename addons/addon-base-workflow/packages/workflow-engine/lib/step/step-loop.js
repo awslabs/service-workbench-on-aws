@@ -74,9 +74,9 @@ class StepLoop {
     const supportedDecisions = [WaitDecision, PauseDecision, CallDecision];
     this.decisionQueue = [];
 
-    dq.forEach((decisionMemento) => {
+    dq.forEach(decisionMemento => {
       let found = false;
-      supportedDecisions.forEach((DecisionClass) => {
+      supportedDecisions.forEach(DecisionClass => {
         if (DecisionClass.is(decisionMemento)) {
           const decision = new DecisionClass();
           decision.setMemento(decisionMemento);
@@ -98,7 +98,7 @@ class StepLoop {
       st: stateLabels.encode(this.stateLabel),
     };
 
-    _.forEach(this.decisionQueue, (decision) => {
+    _.forEach(this.decisionQueue, decision => {
       queue.push(decision.getMemento());
     });
 

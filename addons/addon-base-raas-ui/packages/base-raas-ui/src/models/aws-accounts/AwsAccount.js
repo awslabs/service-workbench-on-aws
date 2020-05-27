@@ -37,7 +37,7 @@ const AwsAccount = types
     updatedAt: '',
     updatedBy: types.optional(UserIdentifier, {}),
   })
-  .actions((self) => ({
+  .actions(self => ({
     setAwsAccounts(rawAwsAccounts) {
       self.id = rawAwsAccounts.id;
       self.rev = rawAwsAccounts.rev || self.rev || 0;
@@ -58,7 +58,7 @@ const AwsAccount = types
   }))
 
   // eslint-disable-next-line no-unused-vars
-  .views((self) => ({
+  .views(self => ({
     // add view methods here
   }));
 

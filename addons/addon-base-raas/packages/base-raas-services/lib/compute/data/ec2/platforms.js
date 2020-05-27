@@ -34,7 +34,7 @@ const platforms = [
 ];
 
 // Which user can view which type
-const getPlatforms = (user) => (_.get(user, 'userRole') !== 'external-researcher' ? _.slice(platforms) : []); // external researchers can't view ec2 platforms for now
+const getPlatforms = user => (_.get(user, 'userRole') !== 'external-researcher' ? _.slice(platforms) : []); // external researchers can't view ec2 platforms for now
 
 module.exports = {
   getPlatforms,

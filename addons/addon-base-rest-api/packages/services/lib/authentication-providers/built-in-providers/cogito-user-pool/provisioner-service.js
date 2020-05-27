@@ -290,7 +290,7 @@ class ProvisionerService extends Service {
       //    displayName: 'some-displayable-name-for-the-idp' (such as 'Internal Users', 'External Users' etc)
       //    metadata: 'SAML XML Metadata blob for the identity provider or a URI pointing to a location that will provide the SAML metadata'
       // }]
-      const idpNames = _.map(providerConfig.federatedIdentityProviders, (idp) => idp.name);
+      const idpNames = _.map(providerConfig.federatedIdentityProviders, idp => idp.name);
       supportedIdpNames = idpNames;
     }
 
@@ -343,7 +343,7 @@ class ProvisionerService extends Service {
     const aws = await this.service('aws');
     const cognitoIdentityServiceProvider = new aws.sdk.CognitoIdentityServiceProvider();
 
-    const idpCreationPromises = _.map(providerConfig.federatedIdentityProviders, async (idp) => {
+    const idpCreationPromises = _.map(providerConfig.federatedIdentityProviders, async idp => {
       let metadata = idp.metadata;
 
       if (metadata.startsWith('s3://')) {

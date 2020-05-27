@@ -143,7 +143,7 @@ class AuthorizationService extends Service {
   async toAuthorizerPlugins(conditionFns) {
     if (conditionFns) {
       const fns = _.isArray(conditionFns) ? conditionFns : [conditionFns];
-      const conditionsAsPlugins = _.map(fns, (fn) => ({
+      const conditionsAsPlugins = _.map(fns, fn => ({
         authorize: async (requestContext, container, { resource, action, effect, reason }, ...args) => {
           // if effect is "deny" already (due to any of the previous plugins returning "deny") then return "deny" right away
           if (isDeny({ effect })) return { resource, action, effect, reason };

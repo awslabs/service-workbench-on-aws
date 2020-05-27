@@ -36,7 +36,7 @@ const WorkflowTemplateStepEditor = types
     propsOverrideEdit: false, // If we are editing mode or not for the props override section
   })
 
-  .volatile((_self) => ({
+  .volatile(_self => ({
     configurationEditor: undefined,
     stepDescForm: undefined,
     stepConfigOverrideForm: undefined,
@@ -44,7 +44,7 @@ const WorkflowTemplateStepEditor = types
     stepPropsOverrideForm: undefined,
   }))
 
-  .actions((self) => {
+  .actions(self => {
     return {
       // I had issues using runInAction from mobx
       // the issue is discussed here https://github.com/mobxjs/mobx-state-tree/issues/915
@@ -127,7 +127,7 @@ const WorkflowTemplateStepEditor = types
     };
   })
 
-  .views((self) => ({
+  .views(self => ({
     get step() {
       const version = self.version;
       return version.getStep(self.stepId);

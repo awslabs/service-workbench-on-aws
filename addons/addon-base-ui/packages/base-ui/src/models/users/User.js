@@ -30,7 +30,7 @@ const User = types
     status: 'active',
     rev: 0,
   })
-  .views((self) => ({
+  .views(self => ({
     get displayName() {
       return `${self.firstName} ${self.lastName}`;
     },

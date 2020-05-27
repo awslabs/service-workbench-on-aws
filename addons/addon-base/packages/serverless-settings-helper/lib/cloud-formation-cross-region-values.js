@@ -30,7 +30,7 @@ const settingRegexp = /\$\{([:._-\w]+)\}/g;
  * @param {object} env an environment object containing keys and string values or an object containing string values.
  * @throws if a variable is missing in the environment.
  */
-const settingExpander = (settings) => {
+const settingExpander = settings => {
   const replacer = (input, limit = 4) => {
     if (limit <= 0) {
       return input;

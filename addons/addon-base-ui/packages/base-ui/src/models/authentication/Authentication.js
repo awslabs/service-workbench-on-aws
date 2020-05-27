@@ -36,7 +36,7 @@ const Authentication = types
     processing: false,
     selectedAuthenticationProviderId: '',
   })
-  .actions((self) => ({
+  .actions(self => ({
     runInAction(fn) {
       return fn();
     },
@@ -51,7 +51,7 @@ const Authentication = types
     },
 
     clearTokens() {
-      _.forEach(localStorageKeys, (keyValue) => storage.removeItem(keyValue));
+      _.forEach(localStorageKeys, keyValue => storage.removeItem(keyValue));
     },
 
     setSelectedAuthenticationProviderId(authenticationProviderId) {
@@ -148,7 +148,7 @@ const Authentication = types
       return self.selectedAuthenticationProvider.logout({ autoLogout });
     },
   }))
-  .views((self) => ({
+  .views(self => ({
     get isCognitoUserPool() {
       return self.selectedAuthenticationProvider.type === 'cognito_user_pool';
     },

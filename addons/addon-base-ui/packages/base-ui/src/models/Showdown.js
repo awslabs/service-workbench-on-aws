@@ -26,7 +26,7 @@ const classMap = {
   img: 'ui left floated image clearfix mb2 mr2',
 };
 
-const bindings = Object.keys(classMap).map((key) => ({
+const bindings = Object.keys(classMap).map(key => ({
   type: 'output',
   regex: new RegExp(`<${key}(.*)>`, 'g'),
   replace: `<${key} class="${classMap[key]}" $1>`,

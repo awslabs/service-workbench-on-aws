@@ -30,15 +30,15 @@ const runCommand = ({ command, args, successCodes = [0], cwd, stdout }) => {
     const resolveOnce = _.once(resolve);
     const errors = [];
 
-    child.stdout.on('data', (data) => {
+    child.stdout.on('data', data => {
       stdout.raw(data.toString().trim());
     });
 
-    child.stderr.on('data', (data) => {
+    child.stderr.on('data', data => {
       errors.push(data.toString().trim());
     });
 
-    child.on('exit', (code) => {
+    child.on('exit', code => {
       if (successCodes.includes(code)) {
         callLater(resolveOnce);
       } else {
