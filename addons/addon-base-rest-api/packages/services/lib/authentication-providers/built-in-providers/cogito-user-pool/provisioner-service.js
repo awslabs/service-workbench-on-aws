@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -290,7 +290,7 @@ class ProvisionerService extends Service {
       //    displayName: 'some-displayable-name-for-the-idp' (such as 'Internal Users', 'External Users' etc)
       //    metadata: 'SAML XML Metadata blob for the identity provider or a URI pointing to a location that will provide the SAML metadata'
       // }]
-      const idpNames = _.map(providerConfig.federatedIdentityProviders, idp => idp.name);
+      const idpNames = _.map(providerConfig.federatedIdentityProviders, (idp) => idp.name);
       supportedIdpNames = idpNames;
     }
 
@@ -343,7 +343,7 @@ class ProvisionerService extends Service {
     const aws = await this.service('aws');
     const cognitoIdentityServiceProvider = new aws.sdk.CognitoIdentityServiceProvider();
 
-    const idpCreationPromises = _.map(providerConfig.federatedIdentityProviders, async idp => {
+    const idpCreationPromises = _.map(providerConfig.federatedIdentityProviders, async (idp) => {
       let metadata = idp.metadata;
 
       if (metadata.startsWith('s3://')) {

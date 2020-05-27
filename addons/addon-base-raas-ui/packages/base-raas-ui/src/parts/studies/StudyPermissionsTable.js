@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -53,8 +53,10 @@ class StudyPermissionsTable extends React.Component {
 
   enableEditMode = () => {
     // Set users who currently have permission to the study as the selected users
-    this.permissionsStore.studyPermissions.userTypes.forEach(userType => {
-      this.selectedUserIds[userType] = this.permissionsStore.studyPermissions[`${userType}Users`].map(user => user.id);
+    this.permissionsStore.studyPermissions.userTypes.forEach((userType) => {
+      this.selectedUserIds[userType] = this.permissionsStore.studyPermissions[`${userType}Users`].map(
+        (user) => user.id,
+      );
     });
 
     // Show edit dropdowns via observable
@@ -74,7 +76,7 @@ class StudyPermissionsTable extends React.Component {
 
     // Convert user ID strings back into user objects
     const selectedUsers = {};
-    this.permissionsStore.studyPermissions.userTypes.forEach(type => {
+    this.permissionsStore.studyPermissions.userTypes.forEach((type) => {
       selectedUsers[type] = this.selectedUserIds[type].map(getIdentifierObjFromId);
     });
 
@@ -110,7 +112,7 @@ class StudyPermissionsTable extends React.Component {
   renderTable() {
     const studyPermissions = this.permissionsStore.studyPermissions;
     const isEditable = studyPermissions.adminUsers.some(
-      adminUser => adminUser.ns === this.currUser.ns && adminUser.username === this.currUser.username,
+      (adminUser) => adminUser.ns === this.currUser.ns && adminUser.username === this.currUser.username,
     );
 
     return (
@@ -133,7 +135,7 @@ class StudyPermissionsTable extends React.Component {
             </Table.Header>
 
             <Table.Body>
-              {this.permissionsStore.studyPermissions.userTypes.map(userType => (
+              {this.permissionsStore.studyPermissions.userTypes.map((userType) => (
                 <Table.Row key={userType}>
                   <Table.Cell style={{ textTransform: 'capitalize' }}>{userType}</Table.Cell>
                   <Table.Cell>

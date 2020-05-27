@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -63,7 +63,7 @@ class CreateUserRolesService extends Service {
     const rolesToCreate = _.differenceBy(userRoleItems, disabledRoles, 'id');
     const requestContext = getSystemRequestContext();
 
-    const creationPromises = rolesToCreate.map(async role => {
+    const creationPromises = rolesToCreate.map(async (role) => {
       try {
         // check if the userRole already exists, do not create or update the item info
         const userRole = await userRolesService.find(requestContext, { id: role.id });
@@ -93,7 +93,7 @@ class CreateUserRolesService extends Service {
 
   async deleteRoles(requestContext, roles) {
     const [userRolesService] = await this.service(['userRolesService']);
-    const deletionPromises = roles.map(async role => {
+    const deletionPromises = roles.map(async (role) => {
       try {
         await userRolesService.delete(requestContext, { id: role.id });
       } catch (err) {

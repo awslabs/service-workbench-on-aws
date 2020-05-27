@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -65,7 +65,7 @@ class EnvironmentsList extends React.Component {
     return this.props.userStore;
   }
 
-  setOnboarding = value => {
+  setOnboarding = (value) => {
     this.onboardingOpen = value;
   };
 
@@ -73,7 +73,7 @@ class EnvironmentsList extends React.Component {
     this.pinModalOpen = false;
   };
 
-  handleDetailClick = event => {
+  handleDetailClick = (event) => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -83,7 +83,7 @@ class EnvironmentsList extends React.Component {
     goto(`/workspaces/id/${instanceId}`);
   };
 
-  handleCreateEnvironment = event => {
+  handleCreateEnvironment = (event) => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -91,7 +91,7 @@ class EnvironmentsList extends React.Component {
     goto(`/workspaces/create`);
   };
 
-  handleConfigureCredentials = event => {
+  handleConfigureCredentials = (event) => {
     event.preventDefault();
     event.stopPropagation();
     this.setOnboarding(true);
@@ -189,7 +189,7 @@ class EnvironmentsList extends React.Component {
           user={this.user}
           message="PIN is required to get previously created stack information"
         />
-        {_.map(list, item => (
+        {_.map(list, (item) => (
           <Segment
             className="p3 mb2 cursor-pointer"
             clearing

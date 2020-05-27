@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -111,7 +111,7 @@ class StudiesPage extends React.Component {
 
   renderStudyTabs() {
     const isExternalUser = this.isExternalUser;
-    const getMenuItemLabel = category => {
+    const getMenuItemLabel = (category) => {
       const store = this.getStudiesStore(category);
       const emptySpan = null;
       if (!store) return emptySpan;
@@ -122,12 +122,12 @@ class StudiesPage extends React.Component {
     };
 
     // Create tab panes for each study category. If the user is not external user, then myStudies pane should not be shown
-    const applicableCategories = _.filter(categories, category => {
+    const applicableCategories = _.filter(categories, (category) => {
       if (category.id === 'my-studies' && isExternalUser) return false;
       return true;
     });
 
-    const studyPanes = _.map(applicableCategories, category => ({
+    const studyPanes = _.map(applicableCategories, (category) => ({
       menuItem: (
         <Menu.Item key={category.id}>
           {category.name} {getMenuItemLabel(category)}

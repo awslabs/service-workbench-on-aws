@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -171,13 +171,13 @@ class AwsAccountsList extends React.Component {
     const errorAccounts = accountsStore.listErrorAccount;
     return (
       <div className="mt3 mb3 animated fadeIn">
-        {pendingAccount.map(account => (
+        {pendingAccount.map((account) => (
           <Message>
             <Icon name="circle notched" loading />
             Trying to create accountID: {account.id}
           </Message>
         ))}
-        {errorAccounts.map(account => (
+        {errorAccounts.map((account) => (
           <Message onDismiss={() => this.handleDismiss(account.id)}>
             <Icon name="times" color="red" />
             Error happended in creating accountID: {account.id}. If the account is created, please contact follow{' '}

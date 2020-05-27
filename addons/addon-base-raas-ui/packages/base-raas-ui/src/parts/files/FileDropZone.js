@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -33,7 +33,7 @@ const ReusableFileInput = React.forwardRef(({ onChange, ...props }, ref) => {
       key={inputKey}
       ref={ref}
       type="file"
-      onChange={event => {
+      onChange={(event) => {
         onChange(event);
         setInputKey(uuidv4());
       }}
@@ -63,7 +63,7 @@ class FileDropZone extends React.Component {
       <Segment
         tertiary={this.highlighted}
         placeholder
-        onDragEnter={event => {
+        onDragEnter={(event) => {
           if (enabled) {
             if (event.dataTransfer.types.includes('Files')) {
               event.preventDefault();
@@ -71,7 +71,7 @@ class FileDropZone extends React.Component {
             }
           }
         }}
-        onDragOver={event => {
+        onDragOver={(event) => {
           if (enabled) {
             if (event.dataTransfer.types.includes('Files')) {
               event.preventDefault();
@@ -85,7 +85,7 @@ class FileDropZone extends React.Component {
         onDragEnd={() => {
           this.setHighlight(false);
         }}
-        onDrop={event => {
+        onDrop={(event) => {
           if (enabled) {
             if (event.dataTransfer.types.includes('Files')) {
               event.preventDefault();
@@ -101,7 +101,7 @@ class FileDropZone extends React.Component {
             ref={fileInputRef}
             hidden
             multiple
-            onChange={event => {
+            onChange={(event) => {
               if (this.props.onSelectFiles) {
                 const fileList = event.currentTarget.files || [];
                 this.props.onSelectFiles([...fileList]);

@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -17,7 +17,7 @@ const { parseMethodArn, buildRestApiPolicy, newUnauthorizedError, customAuthoriz
 
 const bearerPrefix = 'Bearer ';
 
-const getToken = authorizationHeader => {
+const getToken = (authorizationHeader) => {
   if (!authorizationHeader) {
     return '';
   }
@@ -27,7 +27,7 @@ const getToken = authorizationHeader => {
   return authorizationHeader;
 };
 
-const sanitizeResponseContext = context => {
+const sanitizeResponseContext = (context) => {
   return Object.entries(context)
     .filter(([_, value]) => typeof value === 'string' || typeof value === 'boolean' || typeof value === 'number')
     .reduce((acc, [key, value]) => ({ ...acc, [key]: value }), {});
@@ -57,8 +57,9 @@ module.exports = function newHandler({ authenticationService = noopAuthenticatio
     const { authenticated, error, ...claims } = result;
     if (error) {
       log.info(
-        `authentication error for ${claims.username || '<anonymous>'}/${claims.authenticationProviderId ||
-          '<unknown provider>'}: ${error.toString()}`,
+        `authentication error for ${claims.username || '<anonymous>'}/${
+          claims.authenticationProviderId || '<unknown provider>'
+        }: ${error.toString()}`,
       );
     }
     if (!authenticated) {

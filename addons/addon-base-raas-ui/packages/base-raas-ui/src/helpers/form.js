@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -21,7 +21,7 @@ import * as baseFormHelper from '@aws-ee/base-ui/dist/helpers/form';
 
 const dvrRules = {
   cidr: {
-    validatorFn: value => {
+    validatorFn: (value) => {
       const result = isCidr(value);
       return result === 4 || result === 6;
     },
@@ -35,7 +35,7 @@ const formPlugins = {
   dvr: dvr({
     package: validatorjs,
     extend: ({ validator }) => {
-      Object.keys(dvrRules).forEach(key => validator.register(key, dvrRules[key].validatorFn, dvrRules[key].message));
+      Object.keys(dvrRules).forEach((key) => validator.register(key, dvrRules[key].validatorFn, dvrRules[key].message));
     },
   }),
 };

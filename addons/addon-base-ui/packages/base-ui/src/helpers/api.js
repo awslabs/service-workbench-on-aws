@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -26,7 +26,7 @@ let config = {
 
 let token;
 let decodedIdToken;
-const authHeader = tok => ({ Authorization: `${tok}` });
+const authHeader = (tok) => ({ Authorization: `${tok}` });
 
 function setIdToken(idToken, decodedToken) {
   token = idToken;
@@ -83,17 +83,17 @@ function fetchJson(url, options = {}, retryCount = 0) {
     const paramKeys = _.keys(merged.params);
 
     // Filter out params with undefined or null values
-    const paramKeysToPass = _.filter(paramKeys, key => !_.isNil(_.get(merged.params, key)));
+    const paramKeysToPass = _.filter(paramKeys, (key) => !_.isNil(_.get(merged.params, key)));
     const query = _.map(
       paramKeysToPass,
-      key => `${encodeURIComponent(key)}=${encodeURIComponent(_.get(merged.params, key))}`,
+      (key) => `${encodeURIComponent(key)}=${encodeURIComponent(_.get(merged.params, key))}`,
     ).join('&');
     url = query ? `${url}?${query}` : url;
   }
 
   return Promise.resolve()
     .then(() => fetch(url, merged))
-    .catch(err => {
+    .catch((err) => {
       // this will capture network/timeout errors, because fetch does not consider http Status 5xx or 4xx as errors
       if (retryCount < config.maxRetryCount) {
         let backoff = retryCount * retryCount;
@@ -106,16 +106,16 @@ function fetchJson(url, options = {}, retryCount = 0) {
       }
       throw parseError(err);
     })
-    .then(response => {
+    .then((response) => {
       isOk = response.ok;
       httpStatus = response.status;
       return response;
     })
-    .then(response => {
+    .then((response) => {
       if (_.isFunction(response.text)) return response.text();
       return response;
     })
-    .then(text => {
+    .then((text) => {
       let json;
       try {
         if (_.isObject(text)) {
@@ -145,7 +145,7 @@ function fetchJson(url, options = {}, retryCount = 0) {
 
       return json;
     })
-    .then(json => {
+    .then((json) => {
       if (_.isBoolean(isOk) && !isOk) {
         throw parseError({ ...json, status: httpStatus });
       } else {

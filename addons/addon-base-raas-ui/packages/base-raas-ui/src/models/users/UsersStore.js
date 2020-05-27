@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -27,7 +27,7 @@ const UsersStore = BaseStore.named('UsersStore')
     tickPeriod: 60 * 1000, // 1 minute
   })
 
-  .actions(self => {
+  .actions((self) => {
     // save the base implementation of cleanup
     const superCleanup = self.cleanup;
 
@@ -35,7 +35,7 @@ const UsersStore = BaseStore.named('UsersStore')
       async doLoad() {
         const users = (await getUsers()) || [];
         self.runInAction(() => {
-          users.forEach(user => {
+          users.forEach((user) => {
             const userModel = User.create(user);
             const previous = self.users.get(userModel.id);
             if (!previous) {
@@ -51,7 +51,7 @@ const UsersStore = BaseStore.named('UsersStore')
         self.users.clear();
         superCleanup();
       },
-      addUser: async user => {
+      addUser: async (user) => {
         // if username is not specified then pass email as username
         const username = user.username || user.email;
         const addedUser = await addUser({ ...user, username });
@@ -61,20 +61,20 @@ const UsersStore = BaseStore.named('UsersStore')
           self.users.set(addedUserModel.id, addedUserModel);
         });
       },
-      addUsers: async users => {
+      addUsers: async (users) => {
         await addUsers(users);
       },
-      updateUser: async user => {
+      updateUser: async (user) => {
         const updatedUser = await updateUser(user);
         const userModel = User.create(updatedUser);
         const previousUser = self.users.get(userModel.id);
         applySnapshot(previousUser, updatedUser);
       },
-      updateUserApplication: async user => {
+      updateUserApplication: async (user) => {
         const res = await updateUserApplication(user);
         return res;
       },
-      deleteUser: async user => {
+      deleteUser: async (user) => {
         const id = user && user.id ? user.id : User.create(user).id;
         await deleteUser(user);
         const deletedUser = self.users.get(id);
@@ -91,13 +91,13 @@ const UsersStore = BaseStore.named('UsersStore')
     };
   })
 
-  .views(self => ({
+  .views((self) => ({
     get empty() {
       return self.users.size === 0;
     },
 
     get hasNonRootAdmins() {
-      const nonRootAdmins = _.filter(self.list, user => user.isAdmin && !user.isRootUser);
+      const nonRootAdmins = _.filter(self.list, (user) => user.isAdmin && !user.isRootUser);
       return !_.isEmpty(nonRootAdmins);
     },
 
@@ -106,19 +106,19 @@ const UsersStore = BaseStore.named('UsersStore')
     },
 
     get nonRootUsers() {
-      return _.filter(self.list, user => !user.isRootUser);
+      return _.filter(self.list, (user) => !user.isRootUser);
     },
 
     get list() {
       const result = [];
       // converting map self.users to result array
-      self.users.forEach(user => result.push(user));
+      self.users.forEach((user) => result.push(user));
       return result;
     },
 
     asSelectOptions({ nonClearables = [] } = {}) {
       const result = [];
-      self.users.forEach(user =>
+      self.users.forEach((user) =>
         result.push({
           value: user.id,
           label: user.longDisplayName,
@@ -130,7 +130,7 @@ const UsersStore = BaseStore.named('UsersStore')
 
     asDropDownOptions({ status = 'active' } = {}) {
       const result = [];
-      self.users.forEach(user => {
+      self.users.forEach((user) => {
         if (user.status === status) {
           result.push({
             key: user.id,
@@ -152,7 +152,7 @@ const UsersStore = BaseStore.named('UsersStore')
 
     asUserObjects(userIdentifiers = []) {
       const result = [];
-      userIdentifiers.forEach(userIdentifier => {
+      userIdentifiers.forEach((userIdentifier) => {
         if (userIdentifier) {
           const user = self.users.get(userIdentifier.id);
           if (user) {

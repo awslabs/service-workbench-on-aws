@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -47,7 +47,7 @@ const BaseStore = types
       return fn();
     },
   }))
-  .actions(self => {
+  .actions((self) => {
     let loadingPromise;
 
     return {
@@ -71,7 +71,7 @@ const BaseStore = types
                 loadingPromise = undefined;
                 resolve();
               })
-              .catch(err => {
+              .catch((err) => {
                 self.runInAction(() => {
                   self.state = self.state === 'loading' ? 'initial' : 'ready';
                   self.error = toErr(err);
@@ -131,7 +131,7 @@ const BaseStore = types
     };
   })
 
-  .views(self => ({
+  .views((self) => ({
     get heartBeating() {
       return self.heartbeatInterval > 0;
     },
@@ -152,13 +152,13 @@ const BaseStore = types
     },
   }));
 
-const isStoreReady = obj => obj.ready || obj.reloading;
-const isStoreEmpty = obj => (obj.ready || obj.reloading) && obj.empty;
-const isStoreNotEmpty = obj => (obj.ready || obj.reloading) && !obj.empty;
-const isStoreLoading = obj => obj.loading;
-const isStoreReloading = obj => obj.reloading;
-const isStoreNew = obj => obj.initial;
-const isStoreError = obj => !!obj.error;
+const isStoreReady = (obj) => obj.ready || obj.reloading;
+const isStoreEmpty = (obj) => (obj.ready || obj.reloading) && obj.empty;
+const isStoreNotEmpty = (obj) => (obj.ready || obj.reloading) && !obj.empty;
+const isStoreLoading = (obj) => obj.loading;
+const isStoreReloading = (obj) => obj.reloading;
+const isStoreNew = (obj) => obj.initial;
+const isStoreError = (obj) => !!obj.error;
 
 export {
   BaseStore,

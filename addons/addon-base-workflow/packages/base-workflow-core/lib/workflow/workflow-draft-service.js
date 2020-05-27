@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -75,7 +75,7 @@ class WorkflowDraftService extends Service {
       if (existingWorkflow) throw this.boom.badRequest('A workflow with the same workflow id exists.', true);
       if (_.isEmpty(templateId)) throw this.boom.badRequest('A template id must be provided.', true);
       const template = await workflowTemplateService.mustFindVersion({ id: templateId, v: templateVer });
-      const selectedSteps = _.map(template.selectedSteps, step => ({
+      const selectedSteps = _.map(template.selectedSteps, (step) => ({
         stepTemplateId: step.stepTemplateId,
         stepTemplateVer: step.stepTemplateVer,
         id: step.id,
@@ -232,7 +232,7 @@ class WorkflowDraftService extends Service {
     delete workflow.createdAt;
     delete workflow.createdBy;
     delete workflow.stepsOrderChanged;
-    _.forEach(workflow.selectedSteps, step => {
+    _.forEach(workflow.selectedSteps, (step) => {
       delete step.propsOverrideOption;
       delete step.configOverrideOption;
     });
@@ -314,12 +314,7 @@ class WorkflowDraftService extends Service {
     const dbService = await this.service('dbService');
     const table = this.tableName;
 
-    const result = await dbService.helper
-      .getter()
-      .table(table)
-      .key('id', id)
-      .projection(fields)
-      .get();
+    const result = await dbService.helper.getter().table(table).key('id', id).projection(fields).get();
 
     return result;
   }

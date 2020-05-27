@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -52,10 +52,7 @@ class ProjectService extends Service {
 
     // Future task: return undefined if the user is not associated with this project, unless they are admin
 
-    const result = await this._getter()
-      .key({ id })
-      .projection(fields)
-      .get();
+    const result = await this._getter().key({ id }).projection(fields).get();
 
     return this._fromDbToDataObject(result);
   }
@@ -197,10 +194,7 @@ class ProjectService extends Service {
     // Future task: only return projects that the user has been associated with unless the user is an admin
 
     // Remember doing a scan is not a good idea if you billions of rows
-    return this._scanner()
-      .limit(1000)
-      .projection(fields)
-      .scan();
+    return this._scanner().limit(1000).projection(fields).scan();
   }
 
   // Do some properties renaming to prepare the object to be saved in the database

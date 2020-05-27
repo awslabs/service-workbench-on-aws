@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -143,7 +143,7 @@ class AuthorizationService extends Service {
   async toAuthorizerPlugins(conditionFns) {
     if (conditionFns) {
       const fns = _.isArray(conditionFns) ? conditionFns : [conditionFns];
-      const conditionsAsPlugins = _.map(fns, fn => ({
+      const conditionsAsPlugins = _.map(fns, (fn) => ({
         authorize: async (requestContext, container, { resource, action, effect, reason }, ...args) => {
           // if effect is "deny" already (due to any of the previous plugins returning "deny") then return "deny" right away
           if (isDeny({ effect })) return { resource, action, effect, reason };

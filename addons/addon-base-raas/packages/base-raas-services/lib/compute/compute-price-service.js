@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -67,7 +67,7 @@ class ComputePriceService extends Service {
 
     const region = this.settings.get(settingKeys.awsRegion);
     const priceType = originalPrinceInfo.type; // can be onDemand or spot
-    const getParam = name => {
+    const getParam = (name) => {
       // First we see if the paramter is considered immutable, if so, we return its immutable value
       // otherwise we return the mutable value if it exists
       const immutable = _.get(configuration, ['params', 'immutable', name]);
@@ -90,7 +90,7 @@ class ComputePriceService extends Service {
     const priceHistory = await this.getSpotPriceHistory(ec2Type, region);
     let bidPrice = ec2OnDemandPrice;
     if (!_.isEmpty(priceHistory)) {
-      const average = _.sum(_.map(priceHistory, item => item.spotPrice)) / priceHistory.length;
+      const average = _.sum(_.map(priceHistory, (item) => item.spotPrice)) / priceHistory.length;
       bidPrice = average * spotBidMultiplier;
     }
 

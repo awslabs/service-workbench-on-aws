@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -58,7 +58,7 @@ const ErrorInfo = ({ environment }) => {
       This research workspace encountered an {environment.error ? 'error' : 'unknown error'}.
       {environment.error ? (
         <Accordion>
-          <Accordion.Title active={visible} index={0} onClick={() => setVisible(s => !s)}>
+          <Accordion.Title active={visible} index={0} onClick={() => setVisible((s) => !s)}>
             <Icon name="dropdown" />
             Detailed error information
           </Accordion.Title>
@@ -249,14 +249,14 @@ class EnvironmentDetailPage extends React.Component {
 
     let costHeadings = [];
     const rows = [];
-    environment.costs.forEach(costItemGivenADate => {
+    environment.costs.forEach((costItemGivenADate) => {
       const cost = costItemGivenADate.cost;
       const headings = Object.keys(cost);
       costHeadings.push(headings);
       const rowValues = {};
       rowValues.date = costItemGivenADate.startDate;
       let total = 0;
-      headings.forEach(heading => {
+      headings.forEach((heading) => {
         const amount = cost[heading].amount;
         rowValues[heading] = amount.toFixed(2);
         total += amount;
@@ -273,18 +273,18 @@ class EnvironmentDetailPage extends React.Component {
         <Table.Header>
           <Table.Row>
             <Table.HeaderCell>Date</Table.HeaderCell>
-            {costHeadings.map(header => {
+            {costHeadings.map((header) => {
               return <Table.HeaderCell key={header}>{header}</Table.HeaderCell>;
             })}
             <Table.HeaderCell>Total</Table.HeaderCell>
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {rows.map(row => {
+          {rows.map((row) => {
             return (
               <Table.Row key={row.date}>
                 <Table.Cell>{row.date}</Table.Cell>
-                {costHeadings.map(header => {
+                {costHeadings.map((header) => {
                   return <Table.Cell key={row}>${_.get(row, header, 0)}</Table.Cell>;
                 })}
                 <Table.Cell>${row.total}</Table.Cell>
@@ -335,7 +335,7 @@ class EnvironmentDetailPage extends React.Component {
     );
   }
 
-  handleKeyPairRequest = async event => {
+  handleKeyPairRequest = async (event) => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -348,7 +348,7 @@ class EnvironmentDetailPage extends React.Component {
     downloadLink.click();
   };
 
-  handleWindowsPasswordRequest = async event => {
+  handleWindowsPasswordRequest = async (event) => {
     event.preventDefault();
     runInAction(() => {
       this.windowsPassword = 'loading';

@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -56,7 +56,7 @@ class CreateWorkflowTemplateDraft extends React.Component {
     const templates = store.list;
     const options = [];
 
-    _.forEach(templates, template => {
+    _.forEach(templates, (template) => {
       if (!draftsStore.hasTemplate(template.id)) {
         options.push({
           text: template.latest.title || '',
@@ -96,7 +96,7 @@ class CreateWorkflowTemplateDraft extends React.Component {
     this.props.history.push(link);
   }
 
-  handleSelectionChange = templateId => {
+  handleSelectionChange = (templateId) => {
     const form = this.form;
     const templateIdField = form.$('templateId');
     const templateTitleField = form.$('templateTitle');
@@ -104,7 +104,7 @@ class CreateWorkflowTemplateDraft extends React.Component {
       templateIdField.clear();
       templateTitleField.clear();
     };
-    const set = template => {
+    const set = (template) => {
       templateIdField.set(template.id);
       templateTitleField.set(template.latest.title);
     };
@@ -132,7 +132,7 @@ class CreateWorkflowTemplateDraft extends React.Component {
     // We don't need to do anything here
   };
 
-  handleFormSubmission = async form => {
+  handleFormSubmission = async (form) => {
     const values = form.values();
     const isNewTemplate = values.draftFor === '-1';
     const templateId = values.templateId;

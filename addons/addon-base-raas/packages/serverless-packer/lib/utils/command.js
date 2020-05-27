@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -30,15 +30,15 @@ const runCommand = ({ command, args, successCodes = [0], cwd, stdout }) => {
     const resolveOnce = _.once(resolve);
     const errors = [];
 
-    child.stdout.on('data', data => {
+    child.stdout.on('data', (data) => {
       stdout.raw(data.toString().trim());
     });
 
-    child.stderr.on('data', data => {
+    child.stderr.on('data', (data) => {
       errors.push(data.toString().trim());
     });
 
-    child.on('exit', code => {
+    child.on('exit', (code) => {
       if (successCodes.includes(code)) {
         callLater(resolveOnce);
       } else {

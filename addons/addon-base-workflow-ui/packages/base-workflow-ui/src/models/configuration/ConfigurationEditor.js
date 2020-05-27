@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -34,7 +34,7 @@ const ConfigurationEditor = types
     mode: types.optional(types.enumeration('Mode', ['create', 'edit']), 'create'), // mode - either "create" or "edit"
   })
 
-  .volatile(_self => ({
+  .volatile((_self) => ({
     originalConfig: undefined,
     originalSectionConfig: undefined, // the key/value object for the original section config after next()
   }))
@@ -47,12 +47,12 @@ const ConfigurationEditor = types
     },
   }))
 
-  .actions(self => {
+  .actions((self) => {
     // save the base implementation of cleanup
     const superCleanup = self.cleanup;
 
     // If the value of a form field is an object, then make the value a json string instead
-    const normalizeForm = obj => {
+    const normalizeForm = (obj) => {
       return _.transform(
         obj,
         (result, value, key) => {
@@ -63,12 +63,12 @@ const ConfigurationEditor = types
     };
 
     // Returns a key/value object for configuration keys that are part of the given input manifest section
-    const getSectionConfig = inputManifestSection => {
+    const getSectionConfig = (inputManifestSection) => {
       const config = {};
       const section = inputManifestSection;
       if (section === undefined) return config;
       const flattened = self.inputManifest.getSectionFlattened(section) || [];
-      flattened.forEach(item => {
+      flattened.forEach((item) => {
         const key = item.name;
         if (self.configuration.has(key)) config[key] = _.cloneDeep(self.configuration.get(key));
       });
@@ -81,10 +81,10 @@ const ConfigurationEditor = types
     };
 
     // Returns all config keys (if any) that belong to input manifest sections after the given index
-    const configKeysAfter = index => {
+    const configKeysAfter = (index) => {
       const sections = _.slice(_.get(self.inputManifest, 'sections', []), Math.max(index + 1, 0));
       const keys = [];
-      _.forEach(sections, section => {
+      _.forEach(sections, (section) => {
         const config = getSectionConfig(section);
         const configKeys = _.keys(config) || [];
         if (!_.isEmpty(configKeys)) keys.push(...configKeys);
@@ -121,7 +121,7 @@ const ConfigurationEditor = types
         // If the configuration keys changed, then it is time to clear all configuration keys (if any) after the current section
         // In case of edit mode, do not clear any section (we need to pre-populate all sections with existing values)
         if (!self.isEditMode && changed) {
-          _.forEach(keysAfter, key => {
+          _.forEach(keysAfter, (key) => {
             self.configuration.delete(key);
           });
         }
@@ -157,7 +157,7 @@ const ConfigurationEditor = types
         const section = self.inputManifestSection;
         if (section === undefined) return;
         const flattened = self.inputManifest.getSectionFlattened(section) || [];
-        flattened.forEach(item => {
+        flattened.forEach((item) => {
           self.configuration.delete(item.name);
         });
       },
@@ -182,7 +182,7 @@ const ConfigurationEditor = types
     };
   })
 
-  .views(self => ({
+  .views((self) => ({
     get isEditMode() {
       return self.mode === 'edit';
     },
@@ -203,7 +203,7 @@ const ConfigurationEditor = types
       const inputEntries = self.inputManifest.flattened;
       const configMap = self.configuration;
       const list = [];
-      _.forEach(inputEntries, entry => {
+      _.forEach(inputEntries, (entry) => {
         let value = configMap.get(entry.name);
         if (_.isUndefined(value)) value = entry.value;
         if (!_.isUndefined(value)) list.push({ ...entry, value });
@@ -218,7 +218,7 @@ const ConfigurationEditor = types
     get merged() {
       const inputEntries = self.inputManifest.flattened;
       const map = {};
-      _.forEach(inputEntries, entry => {
+      _.forEach(inputEntries, (entry) => {
         map[entry.name] = entry.value;
       });
 
@@ -300,7 +300,7 @@ const ConfigurationEditor = types
 
     get sectionsTitles() {
       const sections = self.inputManifest.sections;
-      return _.map(sections, index => index.title);
+      return _.map(sections, (index) => index.title);
     },
 
     get empty() {

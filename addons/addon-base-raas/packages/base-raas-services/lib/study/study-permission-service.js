@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -54,20 +54,14 @@ class StudyPermissionService extends Service {
    */
   async findByStudy(requestContext, studyId, fields = []) {
     const id = StudyPermissionService.getQualifiedKey(studyId, 'study');
-    const record = await this._getter()
-      .key({ id })
-      .projection(fields)
-      .get();
+    const record = await this._getter().key({ id }).projection(fields).get();
 
     return StudyPermissionService.sanitizeStudyRecord(record);
   }
 
   async findByUser(requestContext, username, fields = []) {
     const id = StudyPermissionService.getQualifiedKey(username, 'user');
-    return this._getter()
-      .key({ id })
-      .projection(fields)
-      .get();
+    return this._getter().key({ id }).projection(fields).get();
   }
 
   async create(requestContext, studyId) {
@@ -129,22 +123,22 @@ class StudyPermissionService extends Service {
       const updater = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
       studyRecord.updatedBy = updater;
 
-      const filterByLevel = filterLevel => userEntry => userEntry.permissionLevel === filterLevel;
-      ['admin', 'readonly'].forEach(permissionLevel => {
+      const filterByLevel = (filterLevel) => (userEntry) => userEntry.permissionLevel === filterLevel;
+      ['admin', 'readonly'].forEach((permissionLevel) => {
         studyRecord[`${permissionLevel}Users`] = _.pullAllWith(
           // Existing/Added users
           _.unionWith(
             studyRecord[`${permissionLevel}Users`],
             updateRequest.usersToAdd
               .filter(filterByLevel(permissionLevel))
-              .map(userEntry => userEntry.principalIdentifier),
+              .map((userEntry) => userEntry.principalIdentifier),
             _.isEqual,
           ),
 
           // Removed users
           updateRequest.usersToRemove
             .filter(filterByLevel(permissionLevel))
-            .map(userEntry => userEntry.principalIdentifier),
+            .map((userEntry) => userEntry.principalIdentifier),
           _.isEqual,
         );
       });
@@ -163,7 +157,7 @@ class StudyPermissionService extends Service {
           .update(),
 
         // Update user records
-        ...updateRequest.usersToAdd.map(userEntry =>
+        ...updateRequest.usersToAdd.map((userEntry) =>
           this.upsertUserRecord(requestContext, {
             studyId,
             principalIdentifier: userEntry.principalIdentifier,
@@ -171,7 +165,7 @@ class StudyPermissionService extends Service {
             permissionLevel: userEntry.permissionLevel,
           }),
         ),
-        ...updateRequest.usersToRemove.map(userEntry =>
+        ...updateRequest.usersToRemove.map((userEntry) =>
           this.upsertUserRecord(requestContext, {
             studyId,
             principalIdentifier: userEntry.principalIdentifier,
@@ -203,7 +197,7 @@ class StudyPermissionService extends Service {
           .delete(),
 
         // Remove study from user records
-        studyRecord.adminUsers.map(async principalIdentifier =>
+        studyRecord.adminUsers.map(async (principalIdentifier) =>
           this.upsertUserRecord(requestContext, {
             studyId,
             principalIdentifier,
@@ -212,7 +206,7 @@ class StudyPermissionService extends Service {
           }),
         ),
 
-        studyRecord.readonlyUsers.map(async principalIdentifier =>
+        studyRecord.readonlyUsers.map(async (principalIdentifier) =>
           this.upsertUserRecord(requestContext, {
             studyId,
             principalIdentifier,
@@ -252,8 +246,8 @@ class StudyPermissionService extends Service {
     }
 
     // Check whether user has any access
-    const hasAdminAccess = permissions.adminAccess.some(accessibleId => accessibleId === studyId);
-    const hasReadonlyAccess = permissions.readonlyAccess.some(accessibleId => accessibleId === studyId);
+    const hasAdminAccess = permissions.adminAccess.some((accessibleId) => accessibleId === studyId);
+    const hasReadonlyAccess = permissions.readonlyAccess.some((accessibleId) => accessibleId === studyId);
     if (!(hasAdminAccess || hasReadonlyAccess)) {
       throw notFoundError;
     }
@@ -306,10 +300,7 @@ class StudyPermissionService extends Service {
       }
 
       // Update database
-      result = await this._updater()
-        .key({ id: record.id })
-        .item(record)
-        .update();
+      result = await this._updater().key({ id: record.id }).item(record).update();
     });
 
     return result;

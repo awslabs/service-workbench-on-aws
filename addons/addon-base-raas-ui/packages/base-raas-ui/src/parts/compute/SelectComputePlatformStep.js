@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -59,17 +59,17 @@ class SelectComputePlatformStep extends React.Component {
     return this.props.computePlatformsStore;
   }
 
-  handleSelectedComputeType = typeId => {
+  handleSelectedComputeType = (typeId) => {
     this.selectedPlatformId = typeId;
   };
 
-  handlePrevious = event => {
+  handlePrevious = (event) => {
     event.preventDefault();
     event.stopPropagation();
     if (_.isFunction(this.props.onPrevious)) this.props.onPrevious();
   };
 
-  handleNext = async event => {
+  handleNext = async (event) => {
     event.preventDefault();
     event.stopPropagation();
     if (_.isFunction(this.props.onNext)) {
@@ -123,8 +123,8 @@ class SelectComputePlatformStep extends React.Component {
   renderCards() {
     const processing = this.processing;
     const computeTypes = this.computePlatformsStore.list || [];
-    const isSelected = type => type.id === this.selectedPlatformId;
-    const getAttrs = type => {
+    const isSelected = (type) => type.id === this.selectedPlatformId;
+    const getAttrs = (type) => {
       const attrs = {};
       if (isSelected(type)) attrs.color = 'blue';
       if (!processing) attrs.onClick = () => this.handleSelectedComputeType(type.id);
@@ -133,7 +133,7 @@ class SelectComputePlatformStep extends React.Component {
 
     return (
       <Card.Group stackable itemsPerRow={3}>
-        {_.map(computeTypes, type => (
+        {_.map(computeTypes, (type) => (
           <Card key={type.id} raised className={c('mb3', { 'cursor-pointer': !processing })} {...getAttrs(type)}>
             <Card.Content>
               <Card.Header>

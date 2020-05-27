@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -52,13 +52,13 @@ const WorkflowAssignment = types
     triggerType: '',
     triggerTypeData: '',
   })
-  .actions(self => ({
+  .actions((self) => ({
     setWorkflowAssignment(assignment) {
       applySnapshot(self, assignment);
     },
   }))
 
-  .views(self => ({
+  .views((self) => ({
     get system() {
       return self.createdBy.username === '_system_';
     },
@@ -84,13 +84,13 @@ const WorkflowInstance = types
     input: types.optional(types.frozen(), {}),
     workflow: types.optional(types.frozen(), {}),
   })
-  .actions(self => ({
+  .actions((self) => ({
     setWorkflowInstance(instance) {
       applySnapshot(self, instance);
     },
   }))
 
-  .views(self => ({
+  .views((self) => ({
     get system() {
       return self.createdBy.username === '_system_';
     },
@@ -108,15 +108,15 @@ const WorkflowInstance = types
     },
 
     get statusSummary() {
-      const stepSummary = status => {
-        const count = _.size(_.filter(self.stStatuses, item => item.status === status));
+      const stepSummary = (status) => {
+        const count = _.size(_.filter(self.stStatuses, (item) => item.status === status));
         return {
           count,
           statusLabel: _.startCase(status),
           statusColor: statusColorMap[status],
         };
       };
-      const is = value => self.wfStatus === value;
+      const is = (value) => self.wfStatus === value;
       const spread = {
         success: is('done'),
         error: is('error'),
@@ -140,7 +140,7 @@ const WorkflowInstance = types
 
     get steps() {
       const selectedSteps = self.workflow.selectedSteps || [];
-      const getStep = index => _.nth(selectedSteps, index);
+      const getStep = (index) => _.nth(selectedSteps, index);
       const strip = (pre, msg, color) => {
         if (_.startsWith(msg, pre)) {
           return {
@@ -154,7 +154,7 @@ const WorkflowInstance = types
           parsed: msg,
         };
       };
-      const parse = msg => {
+      const parse = (msg) => {
         if (_.isEmpty(msg)) return {};
         let item = strip('WARN|||', msg, 'orange');
         if (!item.match) {
@@ -209,7 +209,7 @@ const WorkflowVersion = types
     workflowTemplateId: '',
     workflowTemplateVer: types.maybe(types.number),
   })
-  .actions(self => ({
+  .actions((self) => ({
     setWorkflowVersion(version) {
       const instancesMap = detach(self.instancesMap); // preserve the instances value
       applySnapshot(self, version);
@@ -285,14 +285,14 @@ const WorkflowVersion = types
     },
   }))
 
-  .views(self => ({
+  .views((self) => ({
     getStep(stepId) {
-      return _.find(self.selectedSteps, step => step.id === stepId);
+      return _.find(self.selectedSteps, (step) => step.id === stepId);
     },
 
     get instances() {
       const result = [];
-      self.instancesMap.forEach(value => {
+      self.instancesMap.forEach((value) => {
         // remember instancesMap is a Map not a simple object
         result.push(value);
       });
@@ -357,13 +357,13 @@ const Workflow = types
     versions: types.optional(types.array(WorkflowVersion), []),
     assignments: types.optional(types.array(WorkflowAssignment), []),
   })
-  .actions(self => ({
+  .actions((self) => ({
     setWorkflow(workflow) {
       // we try to preserve any existing version objects and update their content instead
-      const mapOfExisting = _.keyBy(self.versions, version => version.v.toString());
+      const mapOfExisting = _.keyBy(self.versions, (version) => version.v.toString());
       const processed = [];
 
-      _.forEach(workflow.versions, workflowVersion => {
+      _.forEach(workflow.versions, (workflowVersion) => {
         const existing = mapOfExisting[workflowVersion.v];
         if (existing) {
           existing.setWorkflowVersion(workflowVersion);
@@ -381,7 +381,7 @@ const Workflow = types
       const mapOfExisting = _.keyBy(self.assignments, 'id');
       const processed = [];
 
-      _.forEach(assignments, assignment => {
+      _.forEach(assignments, (assignment) => {
         const existing = mapOfExisting[assignment.id];
         if (existing) {
           existing.setWorkflowAssignment(assignment);
@@ -395,11 +395,11 @@ const Workflow = types
     },
   }))
 
-  .views(self => ({
+  .views((self) => ({
     get latest() {
       // we loop through all 'v' numbers and pick the workflow with the largest 'v' value
       let largestVersion = self.versions[0];
-      _.forEach(self.versions, version => {
+      _.forEach(self.versions, (version) => {
         if (version.v > largestVersion.v) {
           largestVersion = version;
         }
@@ -412,7 +412,7 @@ const Workflow = types
     },
 
     get versionNumbers() {
-      return _.map(self.versions, version => version.v);
+      return _.map(self.versions, (version) => version.v);
     },
   }));
 
@@ -421,7 +421,7 @@ const Workflow = types
 // [ { id, versions: [ ... ] }, { id, versions: [ ... ] }, ...]
 function toWorkflows(versions) {
   const map = {};
-  _.forEach(versions, version => {
+  _.forEach(versions, (version) => {
     const id = version.id;
     const entry = map[id] || { id, versions: [] };
     entry.versions.push(version);

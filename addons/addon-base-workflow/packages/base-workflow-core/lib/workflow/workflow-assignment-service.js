@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -44,10 +44,7 @@ class WorkflowAssignmentService extends Service {
   }
 
   async find(requestContext, { id, fields = [] }) {
-    const result = await this._getter()
-      .key({ id })
-      .projection(fields)
-      .get();
+    const result = await this._getter().key({ id }).projection(fields).get();
 
     return this._fromDbToDataObject(result);
   }
@@ -60,18 +57,13 @@ class WorkflowAssignmentService extends Service {
 
   async listByTriggerType(requestContext, { triggerType, beginsWith, fields = [] }) {
     // beginsWith is optional
-    let op = this._query()
-      .index(typeIndexName)
-      .key('triggerType', triggerType);
+    let op = this._query().index(typeIndexName).key('triggerType', triggerType);
 
     if (!_.isEmpty(beginsWith)) op = op.sortKey('triggerTypeData').begins(beginsWith);
 
-    const result = await op
-      .limit(2000)
-      .projection(fields)
-      .query();
+    const result = await op.limit(2000).projection(fields).query();
 
-    return _.map(result, item => this._fromDbToDataObject(item));
+    return _.map(result, (item) => this._fromDbToDataObject(item));
   }
 
   async listByWorkflow(requestContext, { workflowId, fields = [] }) {
@@ -84,7 +76,7 @@ class WorkflowAssignmentService extends Service {
       .projection(fields)
       .query();
 
-    return _.map(result, item => this._fromDbToDataObject(item));
+    return _.map(result, (item) => this._fromDbToDataObject(item));
   }
 
   async create(requestContext, rawData) {

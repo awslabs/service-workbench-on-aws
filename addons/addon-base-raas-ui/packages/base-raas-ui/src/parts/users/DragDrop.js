@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -88,7 +88,7 @@ class DragDrop extends Component {
     return result;
   }
 
-  onDrop = files => {
+  onDrop = (files) => {
     const reader = new FileReader();
     reader.onabort = () => console.log('file reading was aborted');
     reader.onerror = () => console.log('file reading has failed');
@@ -98,7 +98,7 @@ class DragDrop extends Component {
       this.setState({ jsonArrayContent: jsonArray });
       this.setState({ fileContent: binaryStr });
     };
-    files.forEach(file => reader.readAsText(file));
+    files.forEach((file) => reader.readAsText(file));
     this.setState({ files });
   };
 
@@ -123,7 +123,7 @@ class DragDrop extends Component {
   }
 
   async addAuthProviderId(userArr) {
-    const promises = userArr.map(async user => {
+    const promises = userArr.map(async (user) => {
       const provider = this.authenticationProviderConfigsStore.getAuthenticationProviderConfigByIdpName(
         user.identityProviderName,
       );
@@ -154,7 +154,7 @@ class DragDrop extends Component {
     }
   });
 
-  handleCancel = action(event => {
+  handleCancel = action((event) => {
     event.preventDefault();
     event.stopPropagation();
     this.formProcessing = false;
@@ -187,7 +187,7 @@ class DragDrop extends Component {
   }
 
   renderMain() {
-    const files = this.state.files.map(file => (
+    const files = this.state.files.map((file) => (
       <li key={file.name}>
         {file.name} - {file.size} bytes
       </li>

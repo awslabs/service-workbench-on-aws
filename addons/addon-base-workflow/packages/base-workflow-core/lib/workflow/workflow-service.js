@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -230,7 +230,7 @@ class WorkflowService extends Service {
         .limit(2000)
         .projection(fields)
         .scan();
-      return _.map(result, item => toDataObject(item));
+      return _.map(result, (item) => toDataObject(item));
     }
 
     const result = await dbService.helper
@@ -242,7 +242,7 @@ class WorkflowService extends Service {
       .limit(2000)
       .projection(fields)
       .query();
-    return _.map(result, item => toDataObject(item));
+    return _.map(result, (item) => toDataObject(item));
   }
 
   // List latest versions of all the workflows
@@ -258,7 +258,7 @@ class WorkflowService extends Service {
       .limit(2000)
       .projection(fields)
       .scan();
-    return _.map(result, item => toDataObject(item));
+    return _.map(result, (item) => toDataObject(item));
   }
 
   async findVersion({ id, v = 0, fields = [] }, { tableName } = {}) {
@@ -306,7 +306,7 @@ async function findSteps(manifest, workflowTemplate) {
   const templateMap = {};
   const map = {};
 
-  _.forEach(workflowTemplate.selectedSteps, step => {
+  _.forEach(workflowTemplate.selectedSteps, (step) => {
     templateMap[step.id] = { templateSelectedStep: step, stepTemplate: step.stepTemplate };
   });
 
@@ -365,7 +365,7 @@ function applyDefaults(manifest, workflowTemplate, stepsMap) {
       stepResult.propsOverrideOption = { allowed: ['title', 'desc', 'skippable'] };
       stepResult.configOverrideOption = {
         allowed: _.flatten(
-          _.map(_.get(stepTemplate, 'inputManifest.sections', []), section => findConfigNames(section)),
+          _.map(_.get(stepTemplate, 'inputManifest.sections', []), (section) => findConfigNames(section)),
         ),
       };
     } else {
@@ -396,7 +396,7 @@ function applyOverrideConstraints(manifest, workflowTemplate, stepsMap, stepsOrd
   }
 
   // Now, we loop through each step and collect all the violations
-  _.forEach(manifest.selectedSteps, step => {
+  _.forEach(manifest.selectedSteps, (step) => {
     const { stepTemplateId, stepTemplateVer } = step;
     const mapEntry = stepsMap[step.id];
     const { templateSelectedStep = {}, stepTemplate } = mapEntry;
@@ -466,7 +466,7 @@ function didStepsOrderChange(manifest, workflowTemplate = {}) {
 // Creates an object using the provided obj but only if the provided props are not nil
 function createObj(obj, props) {
   const result = {};
-  _.forEach(props, prop => {
+  _.forEach(props, (prop) => {
     if (!_.isNil(obj[prop])) result[prop] = obj[prop];
   });
 
@@ -508,7 +508,7 @@ function findConfigNames(entry) {
   const { name, children = [] } = entry;
   if (!entry.nonInteractive) {
     out.push(name);
-    children.forEach(child => {
+    children.forEach((child) => {
       out.push(...findConfigNames(child));
     });
   }
@@ -520,7 +520,7 @@ function findConfigNames(entry) {
 function removeEmptyStrings(srcObject) {
   const result = {};
 
-  Object.keys(srcObject).forEach(key => {
+  Object.keys(srcObject).forEach((key) => {
     const value = srcObject[key];
     if (_.isString(value) && _.isEmpty(value)) return;
     result[key] = value;
