@@ -74,7 +74,7 @@ class EnvironmentCard extends React.Component {
     }
   };
 
-  handleTerminateEnvironment = async (event) => {
+  handleTerminateEnvironment = async event => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -174,7 +174,7 @@ class EnvironmentCard extends React.Component {
     }
     const costsForLatestDate = costInfo[costInfo.length - 1].cost;
     let total = 0;
-    costsForLatestDate.forEach((service) => {
+    costsForLatestDate.forEach(service => {
       total += service.amount;
     });
     return total.toFixed(2);
@@ -182,9 +182,7 @@ class EnvironmentCard extends React.Component {
 
   renderRightCard(environment) {
     const displayNameService = this.getUserDisplayNameService();
-    const sharedWithUsernames = Array.isArray(environment.sharedWithUsers)
-      ? environment.sharedWithUsers.map((u) => u.username)
-      : [];
+    const sharedWithUsernames = _.map(environment.sharedWithUsers, 'username');
 
     return (
       <div className="border-left border-grey pl2 ml2">
