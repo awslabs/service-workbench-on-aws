@@ -470,20 +470,8 @@ class EnvironmentService extends Service {
 
     // validate sharedWithUsers
     const { sharedWithUsers } = environment;
-    try {
-      if (Array.isArray(sharedWithUsers)) {
-        const userService = await this.service('userService');
-        await userService.validateUsers(sharedWithUsers);
-      }
-    } catch (error) {
-      if (error.safe) {
-        throw error;
-      }
-      const errorMessage = 'error updating environment - shared with users';
-      // eslint-disable-next-line no-console
-      console.error(errorMessage, error);
-      throw this.boom.internalError(errorMessage, true);
-    }
+    const userService = await this.service('userService');
+    await userService.ensureActiveUsers(sharedWithUsers);
 
     // Time to save the the db object
     const result = await runAndCatch(
