@@ -14,6 +14,7 @@
  */
 
 const _ = require('lodash');
+const cycle = require('cycle');
 
 class LogTransformer {
   constructor(loggingContext = {}, fieldsToMask = ['x-amz-security-token', 'user', 'accessKey', 'password']) {
@@ -74,7 +75,13 @@ class LogTransformer {
     } else {
       objToLog.msg = data;
     }
-    return JSON.stringify(objToLog, null, 2);
+    try {
+      return JSON.stringify(objToLog, null, 2);
+    } catch (e) {
+      // the most likely error when stringifying could be due to circular references in the object
+      // in that case, try stringifying after decycling (i.e., replacing circular references)
+      return JSON.stringify(cycle.decycle(objToLog), null, 2);
+    }
   }
 
   /**

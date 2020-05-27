@@ -22,23 +22,24 @@ const cognitoUserPoolAuthenticationProviderType = require('./built-in-providers/
 class AuthenticationProviderTypeService extends Service {
   constructor() {
     super();
-    this.dependency(['dbService']);
+    this.dependency(['dbService', 'pluginRegistryService']);
   }
 
-  async getAuthenticationProviderTypes() {
-    return [internalAuthenticationProviderType, cognitoUserPoolAuthenticationProviderType];
+  async getAuthenticationProviderTypes(requestContext) {
+    const types = [internalAuthenticationProviderType, cognitoUserPoolAuthenticationProviderType];
+
+    // Give all plugins a chance in registering their authentication provider types
+    // Each plugin will receive the following payload object with the shape {requestContext, container, types}
+    const pluginRegistryService = await this.service('pluginRegistryService');
+    const result = await pluginRegistryService.visitPlugins('authentication-provider-type', 'registerTypes', {
+      payload: { requestContext, container: this.container, types },
+    });
+    return result ? result.types : [];
   }
 
-  async getAuthenticationProviderType(providerTypeId) {
-    const providerTypes = await this.getAuthenticationProviderTypes();
+  async getAuthenticationProviderType(requestContext, providerTypeId) {
+    const providerTypes = await this.getAuthenticationProviderTypes(requestContext);
     return _.find(providerTypes, { type: providerTypeId });
-  }
-
-  // eslint-disable-next-line no-unused-vars
-  async registerAuthenticationProviderType(authProviderTypeInfo) {
-    // TODO: Add dynamic registration of types. Will be required when supporting custom authentication provider types
-    // via plugin architecture where the new authentication provider types can be implemented via separate lambda functions
-    // or apis
   }
 }
 

@@ -30,6 +30,7 @@ const extensionPoints = {
   'service': [baseServicesPlugin, baseWfServicesPlugin, bassRaasServicesPlugin, servicesPlugin],
   'route': [baseRoutesPlugin, baseWfRoutesPlugin, baseRaasRoutesPlugin, routesPlugin],
   'audit': [baseAuditPlugin],
+  'authentication-provider-type': [], // No plugins at this point. The built in authentication provider types are registered by "addon-base-rest-api/packages/services/lib/authentication-providers/authentication-provider-type-service.js" service
   'cfn-templates': [baseRaasCfnTemplatesPlugin],
   'user-authz': [baseRaasUserAuthzPlugin],
   'user-role-management-authz': [], // No plugins at this point. All user-role-management authz is happening inline in 'user-roles-service'

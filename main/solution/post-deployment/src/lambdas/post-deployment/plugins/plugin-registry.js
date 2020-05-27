@@ -37,6 +37,7 @@ const extensionPoints = {
     baseRaasPostDeploymentStepsPlugin,
     stepsPlugin,
   ],
+  'authentication-provider-type': [], // No plugins at this point. The built in authentication provider types are registered by "addon-base-rest-api/packages/services/lib/authentication-providers/authentication-provider-type-service.js" service
   'workflow-steps': [baseWfStepsPlugin, baseRaasWfStepsPlugin],
   'workflow-templates': [baseWfTemplatesPlugin],
   'workflows': [baseRaasWorkflowsPlugin],

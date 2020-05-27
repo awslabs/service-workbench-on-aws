@@ -15,6 +15,7 @@
 
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
+const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
 const authProviderConstants = require('@aws-ee/base-api-services/lib/authentication-providers/constants')
   .authenticationProviders;
 
@@ -45,7 +46,9 @@ class AddAuthProviders extends Service {
 
   async addDefaultAuthenticationProviderConfig() {
     const authenticationProviderTypeService = await this.service('authenticationProviderTypeService');
-    const authenticationProviderTypes = await authenticationProviderTypeService.getAuthenticationProviderTypes();
+    const authenticationProviderTypes = await authenticationProviderTypeService.getAuthenticationProviderTypes(
+      getSystemRequestContext(),
+    );
 
     const internalAuthProviderTypeConfig = _.find(authenticationProviderTypes, {
       type: authProviderConstants.internalAuthProviderTypeId,
@@ -119,7 +122,9 @@ class AddAuthProviders extends Service {
 
     // Define auth provider type config
     const authenticationProviderTypeService = await this.service('authenticationProviderTypeService');
-    const authenticationProviderTypes = await authenticationProviderTypeService.getAuthenticationProviderTypes();
+    const authenticationProviderTypes = await authenticationProviderTypeService.getAuthenticationProviderTypes(
+      getSystemRequestContext(),
+    );
 
     const cognitoAuthProviderTypeConfig = _.find(authenticationProviderTypes, {
       type: authProviderConstants.cognitoAuthProviderTypeId,
