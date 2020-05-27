@@ -56,6 +56,7 @@ const Environment = types
     error: types.maybeNull(types.string),
     isExternal: types.optional(types.boolean, false),
     stackId: types.maybeNull(types.string),
+    sharedWithUsers: types.array(UserIdentifier, []),
   })
   .actions((self) => ({
     setEnvironment(rawEnvironment) {

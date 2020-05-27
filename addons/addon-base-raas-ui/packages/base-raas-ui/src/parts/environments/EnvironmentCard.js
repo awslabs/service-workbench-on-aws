@@ -74,7 +74,7 @@ class EnvironmentCard extends React.Component {
     }
   };
 
-  handleTerminateEnvironment = async (event) => {
+  handleTerminateEnvironment = async event => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -174,7 +174,7 @@ class EnvironmentCard extends React.Component {
     }
     const costsForLatestDate = costInfo[costInfo.length - 1].cost;
     let total = 0;
-    costsForLatestDate.forEach((service) => {
+    costsForLatestDate.forEach(service => {
       total += service.amount;
     });
     return total.toFixed(2);
@@ -182,6 +182,8 @@ class EnvironmentCard extends React.Component {
 
   renderRightCard(environment) {
     const displayNameService = this.getUserDisplayNameService();
+    const sharedWithUsernames = _.map(environment.sharedWithUsers, 'username');
+
     return (
       <div className="border-left border-grey pl2 ml2">
         <div className="mt1 fs-9">
@@ -194,13 +196,13 @@ class EnvironmentCard extends React.Component {
           <Dotdotdot clamp={1}>{displayNameService.getLongDisplayName(environment.createdBy)}</Dotdotdot>
         </div>
         <div className="mt3 fs-9">
-          <span className="bold  inline-block">Research Workspace Users</span>{' '}
+          <span className="bold  inline-block">Research Workspace Shared Users</span>{' '}
           <Label circular size="mini">
-            {0}
+            {sharedWithUsernames.length}
           </Label>
         </div>
         <div className="fs-9">
-          <Dotdotdot clamp={1}>{[]}</Dotdotdot>
+          <Dotdotdot clamp={1}>{sharedWithUsernames.join(', ')}</Dotdotdot>
         </div>
 
         <div className="mt3 fs-9">

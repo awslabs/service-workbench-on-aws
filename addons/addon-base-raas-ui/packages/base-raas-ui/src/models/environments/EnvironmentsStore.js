@@ -255,6 +255,10 @@ const EnvironmentsStore = BaseStore.named('EnvironmentsStore')
         return cfnParams;
       },
 
+      async updateEnvironment(environment) {
+        await updateEnvironment(environment);
+      },
+
       cleanup: () => {
         storage.removeItem(localStorageKeys.pinToken);
         self.environments.clear();

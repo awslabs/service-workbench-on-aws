@@ -16,7 +16,7 @@
 import _ from 'lodash';
 import React from 'react';
 import { observer, inject, Observer } from 'mobx-react';
-import { decorate, observable, runInAction } from 'mobx';
+import { decorate, observable, action, runInAction } from 'mobx';
 import { withRouter } from 'react-router-dom';
 import TimeAgo from 'react-timeago';
 import {
@@ -24,6 +24,7 @@ import {
   Breadcrumb,
   Button,
   Container,
+  Dropdown,
   Header,
   Icon,
   Label,
@@ -39,6 +40,7 @@ import crypto from 'crypto';
 
 import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
 import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
+import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
 import { isStoreLoading, isStoreReady, isStoreError } from '@aws-ee/base-ui/dist/models/BaseStore';
 import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
 import ProgressPlaceHolder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
@@ -73,8 +75,17 @@ const ErrorInfo = ({ environment }) => {
 
 // expected props
 // - environmentsStore (via injection)
+// - userStore (via injection)
 // - location (from react router)
 class EnvironmentDetailPage extends React.Component {
+  constructor(props) {
+    super(props);
+    runInAction(() => {
+      this.updateSharedWithUsers = [];
+      this.formProcessing = false;
+    });
+  }
+
   componentDidMount() {
     const store = this.getInstanceStore();
     swallowError(store.load());
@@ -89,6 +100,16 @@ class EnvironmentDetailPage extends React.Component {
   getInstanceStore() {
     const instanceId = this.getInstanceId();
     return this.props.environmentsStore.getEnvironmentStore(instanceId);
+  }
+
+  getUserStore() {
+    return this.props.userStore;
+  }
+
+  getUser() {
+    const store = this.getUserStore();
+    if (!isStoreReady(store)) return {};
+    return store.user;
   }
 
   getInstanceId() {
@@ -174,6 +195,9 @@ class EnvironmentDetailPage extends React.Component {
     if (environment.isCompleted) {
       return this.renderCompletedTabs();
     }
+    if (environment.isStopped) {
+      return this.renderStoppedTabs();
+    }
     if (environment.isError) {
       return <ErrorInfo environment={environment} />;
     }
@@ -225,6 +249,7 @@ class EnvironmentDetailPage extends React.Component {
           </Tab.Pane>
         ),
       },
+      this.renderUserShareTabPane(),
     ];
 
     return <Tab menu={{ secondary: true, pointing: true }} panes={panes} />;
@@ -242,6 +267,91 @@ class EnvironmentDetailPage extends React.Component {
       </Segment>
     );
   }
+
+  renderUserShareTabPane() {
+    const environment = this.getEnvironment();
+    const user = this.getUser();
+    const { username: envUsername, ns: envNs } = environment.createdBy;
+    const isOwner = user.username === envUsername && user.ns === envNs;
+    const { isAdmin } = user;
+    const sharedWithUsersDropDownOptions = this.props.usersStore.asDropDownOptions().filter((item) => {
+      const value = JSON.parse(item.value);
+      return !(value.username === envUsername && value.ns === envNs);
+    });
+
+    return {
+      menuItem: 'Sharing',
+      render: () => (
+        <Tab.Pane attached={false}>
+          <Observer>
+            {() => {
+              return (
+                <Segment>
+                  <h2 className="center">Share with Users</h2>
+                  <Dropdown
+                    options={sharedWithUsersDropDownOptions}
+                    defaultValue={environment.sharedWithUsers.map((item) => item.id)}
+                    fluid
+                    multiple
+                    selection
+                    search
+                    placeholder={
+                      isOwner
+                        ? 'Select other users you want to share this environment'
+                        : 'Only the owner can share the environment'
+                    }
+                    disabled={!(isOwner || isAdmin) || this.formProcessing}
+                    onChange={this.handleSharedWithUsersSelection}
+                  />
+                  <div className="mb2" />
+                  <Button color="blue" disabled={this.formProcessing} onClick={this.handleSubmitSharedWithUsersClick}>
+                    Update
+                  </Button>
+                </Segment>
+              );
+            }}
+          </Observer>
+        </Tab.Pane>
+      ),
+    };
+  }
+
+  renderStoppedTabs() {
+    const panes = [this.renderUserShareTabPane(), this.renderCostDetailsTabPane()];
+
+    return <Tab menu={{ secondary: true, pointing: true }} panes={panes} />;
+  }
+
+  handleSharedWithUsersSelection = (e, { value }) => {
+    this.updateSharedWithUsers = value.map((item) => JSON.parse(item));
+  };
+
+  handleSubmitSharedWithUsersClick = async (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    const environment = this.getEnvironment();
+
+    runInAction(() => {
+      this.formProcessing = true;
+    });
+
+    const updateEnvironment = {
+      id: environment.id,
+      sharedWithUsers: this.updateSharedWithUsers,
+    };
+
+    try {
+      await this.props.environmentsStore.updateEnvironment(updateEnvironment);
+    } catch (error) {
+      runInAction(() => {
+        this.formProcessing = false;
+      });
+      displayError(error);
+    }
+    runInAction(() => {
+      this.formProcessing = false;
+    });
+  };
 
   renderCostTable() {
     // Convert from mobx obj to normal obj
@@ -504,6 +614,9 @@ class EnvironmentDetailPage extends React.Component {
 // see https://medium.com/@mweststrate/mobx-4-better-simpler-faster-smaller-c1fbc08008da
 decorate(EnvironmentDetailPage, {
   windowsPassword: observable,
+  updateSharedWithUsers: observable,
+  formProcessing: observable,
+  handleSharedWithUsersSelection: action,
 });
 
-export default inject('environmentsStore')(withRouter(observer(EnvironmentDetailPage)));
+export default inject('environmentsStore', 'userStore', 'usersStore')(withRouter(observer(EnvironmentDetailPage)));
