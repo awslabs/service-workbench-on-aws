@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -24,7 +24,7 @@ const AuditWriterService = require('@aws-ee/base-services/lib/audit/audit-writer
 const AuthorizationService = require('@aws-ee/base-services/lib/authorization/authorization-service');
 const UserAuthzService = require('@aws-ee/base-services/lib/user/user-authz-service');
 const UserService = require('@aws-ee/base-services/lib/user/user-service');
-
+const DbPasswordService = require('@aws-ee/base-services/lib/db-password/db-password-service');
 const StepRegistryService = require('../../workflow/step/step-registry-service');
 const StepTemplateService = require('../../workflow/step/step-template-service');
 const WorkflowTemplateRegistryService = require('../../workflow/workflow-template-registry-service');
@@ -57,6 +57,7 @@ async function registerServices(container, pluginRegistry) {
   container.register('pluginRegistryService', new PluginRegistryService(pluginRegistry), { lazy: false });
   container.register('lockService', new LockService());
   container.register('userService', new UserService());
+  container.register('dbPasswordService', new DbPasswordService());
   container.register('stepRegistryService', new StepRegistryService());
   container.register('stepTemplateService', new StepTemplateService());
   container.register('workflowTemplateService', new WorkflowTemplateService());

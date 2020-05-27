@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -26,7 +26,7 @@ const AuthenticationService = require('@aws-ee/base-api-services/lib/authenticat
 const AuthenticationProviderConfigService = require('@aws-ee/base-api-services/lib/authentication-providers/authentication-provider-config-service');
 const AuthenticationProviderTypeService = require('@aws-ee/base-api-services/lib/authentication-providers/authentication-provider-type-service');
 const DbAuthenticationService = require('@aws-ee/base-api-services/lib/db-authentication-service');
-const DbPasswordService = require('@aws-ee/base-api-services/lib/db-password-service');
+const DbPasswordService = require('@aws-ee/base-services/lib/db-password/db-password-service');
 const JwtService = require('@aws-ee/base-api-services/lib/jwt-service');
 const TokenRevocationService = require('@aws-ee/base-api-services/lib/token-revocation-service');
 const registerBuiltInAuthProviders = require('@aws-ee/base-api-services/lib/authentication-providers/register-built-in-provider-services');

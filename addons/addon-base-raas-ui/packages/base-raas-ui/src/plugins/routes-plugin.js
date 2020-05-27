@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -29,6 +29,7 @@ import AddAwsAccount from '../parts/accounts/AddAwsAccount';
 import CreateAwsAccount from '../parts/accounts/CreateAwsAccount';
 import EnvironmentSetup from '../parts/environments/EnvironmentSetup';
 import AddProject from '../parts/projects/AddProject';
+import AddSingleLocalUser from '../parts/users/AddSingleLocalUser';
 
 /**
  * Adds routes to the given routesMap.
@@ -39,13 +40,18 @@ import AddProject from '../parts/projects/AddProject';
  */
 // eslint-disable-next-line no-unused-vars
 function registerRoutes(routesMap, { location, appContext }) {
+  // Temporary solution for the routes ordering issue
+  routesMap.delete('/users/add');
+  routesMap.delete('/users');
+
   const routes = new Map([
     ...routesMap,
+    ['/users/add/local', withAuth(AddSingleLocalUser)],
     ['/users/add', withAuth(AddUser)],
+    ['/users', withAuth(User)],
     ['/indexes/add', withAuth(AddIndex)],
     ['/aws-accounts/add', withAuth(AddAwsAccount)],
     ['/aws-accounts/create', withAuth(CreateAwsAccount)],
-    ['/users', withAuth(User)],
     ['/accounts', withAuth(Accounts)],
     ['/dashboard', withAuth(Dashboard)],
     ['/studies/setup-workspace', withAuth(StudyEnvironmentSetup)],

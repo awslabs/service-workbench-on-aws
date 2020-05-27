@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -66,7 +66,7 @@ class WorkflowDraftMetaEditor extends React.Component {
     onCancel();
   };
 
-  handlePrevious = event => {
+  handlePrevious = (event) => {
     // we don't save the form in this case
     this.resetFlags();
     event.preventDefault();
@@ -83,7 +83,7 @@ class WorkflowDraftMetaEditor extends React.Component {
     onSubmit(event); // this will eventually call handleFormSubmission()
   }
 
-  handleFormSubmission = async form => {
+  handleFormSubmission = async (form) => {
     const editor = this.getEditor();
     const { title, desc, instanceTtl, runSpecSize, runSpecTarget } = form.values();
     const { draft } = editor;
@@ -155,7 +155,7 @@ class WorkflowDraftMetaEditor extends React.Component {
                 disabled={processing}
                 className="ml2"
                 content="Next"
-                onClick={e => this.handleOnSubmitNext(e, onSubmit)}
+                onClick={(e) => this.handleOnSubmitNext(e, onSubmit)}
               />
               {hasPrevious && (
                 <Button

@@ -132,6 +132,19 @@ Resources:
               Condition:
                 ArnLike:
                   iam:PolicyARN: arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole
+        - PolicyName: iam-service-linked-role-create-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - iam:CreateServiceLinkedRole
+                - iam:PutRolePolicy
+              Resource: arn:aws:iam::*:role/aws-service-role/elasticmapreduce.amazonaws.com*/AWSServiceRoleForEMRCleanup*
+              Condition:
+                StringLike:
+                  iam:AWSServiceName:
+                    - elasticmapreduce.amazonaws.com
+                    - elasticmapreduce.amazonaws.com.cn
         - PolicyName: cost-explorer-access
           PolicyDocument:
             Statement:

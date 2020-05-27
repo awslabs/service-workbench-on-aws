@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -20,7 +20,7 @@ const _ = require('lodash');
 async function configure(context) {
   const router = context.router();
   const wrap = context.wrap;
-  const boom = context.boom;
+  // const boom = context.boom;
   const [userService, dbPasswordService] = await context.service(['userService', 'dbPasswordService']);
 
   // ===============================================================
@@ -42,27 +42,7 @@ async function configure(context) {
     '/',
     wrap(async (req, res) => {
       const requestContext = res.locals.requestContext;
-      const authenticationProviderId =
-        req.query.authenticationProviderId || requestContext.principal.authenticationProviderId;
-      const identityProviderName = req.query.identityProviderName;
-
-      const { username, firstName, lastName, email, userRole, status, projectId, applyReason } = req.body;
-      const createdUser = await userService.createUser(requestContext, {
-        username: username || email,
-        authenticationProviderId,
-        identityProviderName,
-        email,
-        firstName,
-        lastName,
-        projectId,
-        userRole,
-        status,
-        applyReason,
-      });
-
-      // Save password salted hash for the user in internal auth provider (i.e., in passwords table)
-      // await dbPasswordService.savePassword(requestContext, { username, password });
-
+      const createdUser = await userService.createUser(requestContext, req.body);
       res.status(200).json(createdUser);
     }),
   );
@@ -76,8 +56,8 @@ async function configure(context) {
       const requestContext = res.locals.requestContext;
       const users = req.body;
       const defaultAuthNProviderId = req.query.authenticationProviderId;
-      await userService.createUsers(requestContext, users, defaultAuthNProviderId);
-      res.status(200).json({ message: 'success bulk add user' });
+      const result = await userService.createUsers(requestContext, users, defaultAuthNProviderId);
+      res.status(200).json(result);
     }),
   );
 
@@ -89,33 +69,10 @@ async function configure(context) {
     wrap(async (req, res) => {
       const requestContext = res.locals.requestContext;
       const username = req.params.username;
-      const authenticationProviderId =
-        req.query.authenticationProviderId || requestContext.principal.authenticationProviderId;
-      const {
-        firstName,
-        lastName,
-        email,
-        isAdmin,
-        status,
-        rev,
-        userRole,
-        projectId,
-        identityProviderName,
-        encryptedCreds,
-      } = req.body;
+      const userInBody = req.body || {};
       const user = await userService.updateUser(requestContext, {
+        ...userInBody,
         username,
-        authenticationProviderId,
-        identityProviderName: _.isEmpty(identityProviderName) ? req.query.identityProviderName : identityProviderName,
-        firstName,
-        lastName,
-        email,
-        isAdmin,
-        status,
-        rev,
-        userRole,
-        projectId,
-        encryptedCreds,
       });
       res.status(200).json(user);
     }),
@@ -129,14 +86,6 @@ async function configure(context) {
     wrap(async (req, res) => {
       const requestContext = res.locals.requestContext;
       const username = req.params.username;
-      const authenticationProviderId =
-        req.query.authenticationProviderId || requestContext.principal.authenticationProviderId;
-      if (authenticationProviderId !== requestContext.principal.authenticationProviderId) {
-        throw boom.badRequest(
-          `Cannot create user for authentication provider ${authenticationProviderId}. Currently adding users is only supported for internal authentication provider.`,
-          true,
-        );
-      }
       const { password } = req.body;
 
       // Save password salted hash for the user in internal auth provider (i.e., in passwords table)
@@ -152,10 +101,8 @@ async function configure(context) {
     '/:username',
     wrap(async (req, res) => {
       const requestContext = res.locals.requestContext;
-      const authenticationProviderId =
-        req.query.authenticationProviderId || requestContext.principal.authenticationProviderId;
-      const identityProviderName = req.query.identityProviderName;
       const { username } = req.params;
+      const { authenticationProviderId, identityProviderName } = req.body;
       await userService.deleteUser(requestContext, {
         username,
         authenticationProviderId,

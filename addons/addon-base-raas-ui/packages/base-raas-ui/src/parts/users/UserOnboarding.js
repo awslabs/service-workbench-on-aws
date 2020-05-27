@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -65,7 +65,7 @@ const OnboardingSteps = [
   },
 ];
 
-const generateDefaultIAMPolicy = accountId =>
+const generateDefaultIAMPolicy = (accountId) =>
   `
 {
   "Version": "2012-10-17",
@@ -132,6 +132,23 @@ const generateDefaultIAMPolicy = accountId =>
       "Condition": {
         "ArnLike": {
           "iam:PolicyARN": "arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole"
+        }
+      }
+    },
+    {
+      "Sid": "iamServiceLinkedRoleCreateAccess",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateServiceLinkedRole",
+        "iam:PutRolePolicy"
+      ],
+      "Resource": "arn:aws:iam::*:role/aws-service-role/elasticmapreduce.amazonaws.com*/AWSServiceRoleForEMRCleanup*",
+      "Condition": {
+        "StringLike": {
+          "iam:AWSServiceName": [
+            "elasticmapreduce.amazonaws.com",
+            "elasticmapreduce.amazonaws.com.cn"
+          ]
         }
       }
     },
@@ -264,7 +281,7 @@ class UserOnboarding extends React.Component {
   shouldRenderOnboarding = () => this.user.isExternalUser;
 
   resetOnboarding = () => {
-    OnboardingSteps.forEach(step => {
+    OnboardingSteps.forEach((step) => {
       step.active = false;
     });
     OnboardingSteps[0].active = true;
@@ -306,7 +323,7 @@ class UserOnboarding extends React.Component {
 
   testClipboardWrite = async () => {
     return new Promise((resolve, _reject) => {
-      navigator.permissions.query({ name: 'clipboard-write' }).then(result => {
+      navigator.permissions.query({ name: 'clipboard-write' }).then((result) => {
         resolve(result.state === 'granted' || result.state === 'prompt');
       });
     });
@@ -441,7 +458,7 @@ class UserOnboarding extends React.Component {
     return obj;
   }
 
-  onCredentialsDrop = files => {
+  onCredentialsDrop = (files) => {
     const reader = new FileReader();
 
     reader.onabort = () => {
@@ -464,13 +481,11 @@ class UserOnboarding extends React.Component {
       (async () => {
         try {
           const rc = await CfnService.validateCredentials(credentials.accessKeyId, credentials.secretAccessKey);
-          console.log('credentials valid:', rc);
           runInAction(() => {
             this.credentialsValid = true;
             this.accountId = rc.Account;
           });
         } catch (e) {
-          console.log('credentials error:', e);
           displayError(`Credential test failed: ${e}`);
           runInAction(() => {
             this.credentialsValid = false;
@@ -478,7 +493,7 @@ class UserOnboarding extends React.Component {
         }
       })();
     };
-    files.forEach(file => reader.readAsText(file));
+    files.forEach((file) => reader.readAsText(file));
   };
 
   renderCredentialsDropzone() {

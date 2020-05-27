@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -61,7 +61,7 @@ const AuthenticationProviderPublicConfig = types
     signOutUri: '',
     enableNativeUserPoolUsers: types.maybeNull(types.boolean),
   })
-  .actions(self => ({
+  .actions((self) => ({
     cleanup() {
       // No-op for now
     },
@@ -69,7 +69,7 @@ const AuthenticationProviderPublicConfig = types
     login: async ({ username, password } = {}) => {
       const pluginRegistry = getEnv(self).pluginRegistry;
 
-      const handleException = err => {
+      const handleException = (err) => {
         const code = _.get(err, 'code');
         const isBoom = _.get(err, 'isBoom');
         if (code === 'badRequest') throw boom.badRequest(err, err.message);
@@ -137,7 +137,7 @@ const AuthenticationProviderPublicConfig = types
       }
     },
   }))
-  .views(self => ({
+  .views((self) => ({
     get absoluteSignInUrl() {
       // The "signInUri" below contains redirectUrl that comes from server and points back to the actual websiteUrl
       // (even on local machines during local development)

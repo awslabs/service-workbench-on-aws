@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -36,7 +36,7 @@ class StepBase {
     this.payload = this.buildPayload(workflowPayload, step);
 
     const getterDelegate = new KeyGetterDelegate(
-      async key => {
+      async (key) => {
         let value = await this.payload.getValue(key);
         if (_.isNil(value)) {
           const rawConfig = await this.config.spread();
@@ -50,7 +50,7 @@ class StepBase {
     Object.assign(this.payloadOrConfig, getterDelegate.getMethods());
 
     const rawWorkflowMeta = workflowPayload.meta || {};
-    const getterDelegateForMeta = new KeyGetterDelegate(async key => rawWorkflowMeta[key], {
+    const getterDelegateForMeta = new KeyGetterDelegate(async (key) => rawWorkflowMeta[key], {
       storeTitle: 'Workflow Metadata',
     });
     this.meta = {};
@@ -125,11 +125,11 @@ class StepBase {
       'getStepPayload',
     ];
     const payload = {};
-    _.forEach(methodNames, name => {
+    _.forEach(methodNames, (name) => {
       payload[name] = workflowPayload[name].bind(workflowPayload);
     });
 
-    payload.getValue = async key => {
+    payload.getValue = async (key) => {
       return workflowPayload.getValue(key);
     };
 

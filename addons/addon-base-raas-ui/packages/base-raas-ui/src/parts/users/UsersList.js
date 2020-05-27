@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -16,7 +16,7 @@
 import React from 'react';
 import { Button, Container, Header, Icon, Label, Dimmer, Loader, Segment, Popup } from 'semantic-ui-react';
 import { withRouter } from 'react-router-dom';
-import { decorate, observable, runInAction } from 'mobx';
+import { decorate, observable, runInAction, action } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import ReactTable from 'react-table';
 import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
@@ -74,6 +74,23 @@ class UsersList extends React.Component {
     history.push(link);
   }
 
+  handleAddUser = () => {
+    this.goto('/users/add');
+  };
+
+  handleAddLocalUser = () => {
+    this.goto('/users/add/local');
+  };
+
+  handleAddAuthenticationProvider = () => {
+    this.goto('/authentication-providers');
+  };
+
+  getAwsAccountOptions() {
+    const accountStore = this.props.awsAccountsStore;
+    return accountStore.dropdownOptions;
+  }
+
   renderHeader() {
     return (
       <div className="mb3 flex">
@@ -84,6 +101,10 @@ class UsersList extends React.Component {
             {this.renderTotal()}
           </Header.Content>
         </Header>
+        <Button color="blue" size="medium" className="mr2" basic onClick={this.handleAddLocalUser}>
+          {' '}
+          Add Local User{' '}
+        </Button>
         <Button color="blue" size="medium" basic onClick={this.handleAddUser}>
           {' '}
           Add Federated User{' '}
@@ -103,11 +124,6 @@ class UsersList extends React.Component {
 
   renderMain() {
     return this.renderUsers();
-  }
-
-  getAwsAccountOptions() {
-    const accountStore = this.props.awsAccountsStore;
-    return accountStore.dropdownOptions;
   }
 
   renderUsers() {
@@ -156,7 +172,7 @@ class UsersList extends React.Component {
             {
               Header: 'Identity Provider',
               accessor: 'identityProviderName',
-              Cell: row => {
+              Cell: (row) => {
                 const user = row.original;
                 return user.identityProviderName || 'internal';
               },
@@ -165,11 +181,11 @@ class UsersList extends React.Component {
               Header: 'Type',
               accessor: 'isExternalUser',
               width: 100,
-              Cell: row => {
+              Cell: (row) => {
                 const user = row.original;
                 return user.isExternalUser ? 'External' : 'Internal';
               },
-              filterMethod: filter => {
+              filterMethod: (filter) => {
                 if (filter.value.toLowerCase().includes('ex')) {
                   return false;
                 }
@@ -181,7 +197,7 @@ class UsersList extends React.Component {
               accessor: 'userRole',
               width: 100,
               style: { whiteSpace: 'unset' },
-              Cell: row => {
+              Cell: (row) => {
                 const user = row.original;
                 return user.userRole || 'N/A';
               },
@@ -189,7 +205,7 @@ class UsersList extends React.Component {
             {
               Header: 'Project',
               style: { whiteSpace: 'unset' },
-              Cell: row => {
+              Cell: (row) => {
                 const user = row.original;
                 return user.projectId.join(', ') || '<<none>>';
               },
@@ -198,7 +214,7 @@ class UsersList extends React.Component {
               Header: 'Status',
               accessor: 'isActive',
               width: 100,
-              Cell: row => {
+              Cell: (row) => {
                 const user = row.original;
                 let lable = null;
                 if (user.status === 'active') {
@@ -241,7 +257,7 @@ class UsersList extends React.Component {
             {
               Header: '',
               filterable: false,
-              Cell: cell => {
+              Cell: (cell) => {
                 const user = cell.original;
                 return (
                   <div style={{ textAlign: 'center', verticalAlign: 'middle' }}>
@@ -297,20 +313,15 @@ class UsersList extends React.Component {
       </Container>
     );
   }
-
-  handleAddUser = () => {
-    this.goto('/users/add');
-  };
-
-  handleAddAuthenticationProvider = () => {
-    this.goto('/authentication-providers');
-  };
 }
 
 // see https://medium.com/@mweststrate/mobx-4-better-simpler-faster-smaller-c1fbc08008da
 decorate(UsersList, {
   mapOfUsersBeingEdited: observable,
   formProcessing: observable,
+  handleAddUser: action,
+  handleAddAuthenticationProvider: action,
+  handleAddLocalUser: action,
 });
 
 export default inject(

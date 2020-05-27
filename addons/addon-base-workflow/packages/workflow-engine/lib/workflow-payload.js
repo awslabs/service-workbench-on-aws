@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -27,12 +27,12 @@ class WorkflowPayload {
     this.loaded = false;
 
     // lets build empty StepPayload objects using the information we have about the steps
-    _.forEach(workflowInstance.steps, step => {
+    _.forEach(workflowInstance.steps, (step) => {
       this.store.push(new StepPayload({ step, workflowInstance }));
     });
 
-    const getterDelegate = new KeyGetterDelegate(async key => this.getValue(key), {
-      loadFn: async key => this.load(key),
+    const getterDelegate = new KeyGetterDelegate(async (key) => this.getValue(key), {
+      loadFn: async (key) => this.load(key),
       storeTitle: 'Workflow payload',
     });
     Object.assign(this, getterDelegate.getMethods());
@@ -59,7 +59,7 @@ class WorkflowPayload {
 
   getMemento() {
     return {
-      s: _.map(this.store, stepPayload => stepPayload.getMemento()),
+      s: _.map(this.store, (stepPayload) => stepPayload.getMemento()),
       m: this.meta || {},
     };
   }
@@ -161,7 +161,7 @@ class WorkflowPayload {
     // The _.flatten flattens them into a single array
     // The _.uniq de-duplicates keys
     const allSearchableStores = this.searchableStores();
-    return _.uniq(_.flatten(await Promise.all(_.map(allSearchableStores, async store => store.allKeys()))));
+    return _.uniq(_.flatten(await Promise.all(_.map(allSearchableStores, async (store) => store.allKeys()))));
   }
 
   /**
@@ -172,7 +172,7 @@ class WorkflowPayload {
     const allKeys = await this.allKeys();
     const payloadContent = {};
     await Promise.all(
-      _.map(allKeys, async key => {
+      _.map(allKeys, async (key) => {
         payloadContent[key] = await this.getValue(key);
       }),
     );

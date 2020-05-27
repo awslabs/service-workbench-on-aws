@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -18,6 +18,7 @@ const Service = require('@aws-ee/base-services-container/lib/service');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 
+const { isExternalGuest, isExternalResearcher, isInternalGuest } = require('../helpers/is-role');
 const createSchema = require('../schema/create-indexes');
 const updateSchema = require('../schema/update-indexes');
 
@@ -44,10 +45,14 @@ class IndexesService extends Service {
   }
 
   async find(requestContext, { id, fields = [] }) {
-    const result = await this._getter()
-      .key({ id })
-      .projection(fields)
-      .get();
+    const restrict =
+      isExternalGuest(requestContext) || isExternalResearcher(requestContext) || isInternalGuest(requestContext);
+
+    if (restrict) return undefined;
+
+    // Future task: add further checks
+
+    const result = await this._getter().key({ id }).projection(fields).get();
 
     return this._fromDbToDataObject(result);
   }
@@ -180,12 +185,16 @@ class IndexesService extends Service {
     return result;
   }
 
-  async list({ fields = [] } = {}) {
-    // Remember doing a scanning is not a good idea if you billions of rows
-    return this._scanner()
-      .limit(1000)
-      .projection(fields)
-      .scan();
+  async list(requestContext, { fields = [] } = {}) {
+    const restrict =
+      isExternalGuest(requestContext) || isExternalResearcher(requestContext) || isInternalGuest(requestContext);
+
+    if (restrict) return [];
+
+    // Future task: add further checks
+
+    // Remember doing a scan is not a good idea if you billions of rows
+    return this._scanner().limit(1000).projection(fields).scan();
   }
 
   // Do some properties renaming to prepare the object to be saved in the database

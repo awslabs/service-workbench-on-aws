@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -43,7 +43,7 @@ class WorkflowTemplateStepConfigOverrideEditor extends React.Component {
     return this.getStepEditor().configOverrideEdit;
   }
 
-  handleEditOn = event => {
+  handleEditOn = (event) => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -56,11 +56,11 @@ class WorkflowTemplateStepConfigOverrideEditor extends React.Component {
     stepEditorModel.setConfigOverrideEdit(false);
   };
 
-  handleSave = async form => {
+  handleSave = async (form) => {
     const onSave = this.props.onSave || _.noop;
     const stepEditorModel = this.getStepEditor();
     const values = form.values();
-    const allowed = _.filter(_.keys(values), key => values[key] === true);
+    const allowed = _.filter(_.keys(values), (key) => values[key] === true);
 
     stepEditorModel.applyConfigOverrides(allowed);
 
@@ -118,7 +118,7 @@ class WorkflowTemplateStepConfigOverrideEditor extends React.Component {
     const form = this.getConfigOverrideForm();
     const step = this.getStep();
     const configOverrideRows = step.configOverrideSummaryRows || [];
-    const fields = _.map(configOverrideRows, item => form.$(item.name));
+    const fields = _.map(configOverrideRows, (item) => form.$(item.name));
 
     return (
       <>

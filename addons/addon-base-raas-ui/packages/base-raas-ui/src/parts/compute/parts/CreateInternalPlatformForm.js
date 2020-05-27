@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -70,12 +70,12 @@ class CreateInternalPlatformForm extends React.Component {
   };
 
   // eslint-disable-next-line consistent-return
-  handleNext = async form => {
+  handleNext = async (form) => {
     const data = { ...form.values(), params: {}, platformId: this.platformId };
 
     // We pick the mutable parameters and put them in params object
     const configuration = _.find(this.configurations, ['id', data.configurationId]);
-    _.forEach(_.keys(configuration.mutableParams), key => {
+    _.forEach(_.keys(configuration.mutableParams), (key) => {
       if (!_.has(data, key)) return;
       data.params[key] = data[key];
       delete data[key];

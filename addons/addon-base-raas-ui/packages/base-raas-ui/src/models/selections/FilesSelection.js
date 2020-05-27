@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -35,7 +35,7 @@ const FilesSelection = types
   .model('FilesSelection', {
     files: types.optional(types.map(File), {}),
   })
-  .actions(self => ({
+  .actions((self) => ({
     setFile(file) {
       self.files.set(file.id, file);
     },
@@ -49,7 +49,7 @@ const FilesSelection = types
       applySnapshot(self.files, filesMapSnapshot);
     },
   }))
-  .views(self => ({
+  .views((self) => ({
     hasFile(id) {
       return self.files.has(id);
     },
@@ -61,23 +61,23 @@ const FilesSelection = types
     },
     get studiesCount() {
       const studyIdMap = {};
-      self.files.forEach(entry => {
+      self.files.forEach((entry) => {
         studyIdMap[entry.studyId] = true;
       });
 
       return _.size(studyIdMap);
     },
-    studiesCountByStatus: state => {
+    studiesCountByStatus: (state) => {
       const studyIdMap = {};
-      self.files.forEach(entry => {
+      self.files.forEach((entry) => {
         if (entry.accessStatus === state) studyIdMap[entry.studyId] = true;
       });
 
       return _.size(studyIdMap);
     },
-    studiesCountByNotStatus: state => {
+    studiesCountByNotStatus: (state) => {
       const studyIdMap = {};
-      self.files.forEach(entry => {
+      self.files.forEach((entry) => {
         if (entry.accessStatus !== state) studyIdMap[entry.studyId] = true;
       });
 
@@ -85,7 +85,7 @@ const FilesSelection = types
     },
     get fileNames() {
       const names = [];
-      self.files.forEach(entry => {
+      self.files.forEach((entry) => {
         names.push(entry.id);
       });
 
@@ -93,7 +93,7 @@ const FilesSelection = types
     },
     groupByStudy: () => {
       const studyIdMap = {};
-      self.files.forEach(entry => {
+      self.files.forEach((entry) => {
         const values = studyIdMap[entry.studyId];
         if (_.isArray(values)) {
           values.push(entry);
@@ -106,7 +106,7 @@ const FilesSelection = types
     },
     groupNotApprovedByStudy: () => {
       const studyIdMap = {};
-      self.files.forEach(entry => {
+      self.files.forEach((entry) => {
         if (entry.accessStatus === 'approved') return;
         const values = studyIdMap[entry.studyId];
         if (_.isArray(values)) {
@@ -118,9 +118,9 @@ const FilesSelection = types
 
       return studyIdMap;
     },
-    countByStatus: state => {
+    countByStatus: (state) => {
       let counter = 0;
-      self.files.forEach(file => {
+      self.files.forEach((file) => {
         if (file.accessStatus === state) counter += 1;
       });
 

@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -33,14 +33,14 @@ const PropsOverrideOption = types
   .model('PropsOverrideOption', {
     allowed: types.optional(types.array(types.string), []),
   })
-  .actions(self => ({
+  .actions((self) => ({
     setAllowed(allowed = []) {
       self.allowed.replace(allowed);
     },
   }))
-  .views(self => ({
+  .views((self) => ({
     get overrideSummaryRows() {
-      const canOverride = prop => self.allowed.includes(prop);
+      const canOverride = (prop) => self.allowed.includes(prop);
 
       const result = [
         { title: titles.title, allowed: canOverride('title'), name: 'title' },
@@ -64,16 +64,16 @@ const ConfigOverrideOption = types
   .model('ConfigOverrideOption', {
     allowed: types.optional(types.array(types.string), []),
   })
-  .actions(self => ({
+  .actions((self) => ({
     setAllowed(allowed = []) {
       self.allowed.replace(allowed);
     },
   }))
-  .views(self => ({
+  .views((self) => ({
     get overrideSummaryRows() {
       const result = _.cloneDeep(getParent(self).configSummaryRows || []);
       const map = _.keyBy(result, 'name');
-      self.allowed.forEach(key => {
+      self.allowed.forEach((key) => {
         const entry = map[key];
         if (entry !== undefined) {
           entry.allowed = true;
@@ -105,7 +105,7 @@ const WorkflowTemplateStep = types
       {},
     ),
   })
-  .actions(self => ({
+  .actions((self) => ({
     afterCreate() {
       if (_.isEmpty(self.id))
         console.warn(`There is no id provided for this workflow template step`, getSnapshot(self));
@@ -138,7 +138,7 @@ const WorkflowTemplateStep = types
     },
   }))
 
-  .views(self => ({
+  .views((self) => ({
     get templateId() {
       return self.stepTemplateId;
     },

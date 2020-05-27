@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -31,14 +31,14 @@
 const upload = (file, url, fields = {}) => {
   const req = new XMLHttpRequest();
   const uploadProgressListeners = [];
-  const uploadProgressCallback = uploadedBytes => {
-    uploadProgressListeners.forEach(fn => {
+  const uploadProgressCallback = (uploadedBytes) => {
+    uploadProgressListeners.forEach((fn) => {
       fn(uploadedBytes);
     });
   };
 
   const done = new Promise((resolve, reject) => {
-    req.upload.addEventListener('progress', event => {
+    req.upload.addEventListener('progress', (event) => {
       uploadProgressCallback(event.loaded || 0);
     });
     req.upload.addEventListener('error', () => {

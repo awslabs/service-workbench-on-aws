@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -30,6 +30,7 @@ class UserService extends Service {
     super();
     this.dependency([
       'dbService',
+      'dbPasswordService',
       'authorizationService',
       'userAuthzService',
       'auditWriterService',
@@ -54,12 +55,25 @@ class UserService extends Service {
     // Validate input
     await this.validateCreateUser(requestContext, user);
 
+    const { username, password } = user;
+    const authenticationProviderId = user.authenticationProviderId || 'internal';
+    if (password) {
+      // If password is specified then make sure this is for adding user to internal authentication provider only
+      // Password cannot be specified for any other auth providers
+      if (authenticationProviderId !== 'internal') {
+        throw this.boom.badRequest('Cannot specify password when adding federated users', true);
+      }
+      // Save password salted hash for the user in internal auth provider (i.e., in passwords table)
+      const dbPasswordService = await this.service('dbPasswordService');
+      await dbPasswordService.savePassword(requestContext, { username, password });
+    }
+
     const dbService = await this.service('dbService');
     const table = this.settings.get(settingKeys.tableName);
 
     const by = _.get(requestContext, 'principalIdentifier');
 
-    const { username, authenticationProviderId, identityProviderName } = user;
+    const { identityProviderName } = user;
     const ns = toUserNamespace(authenticationProviderId, identityProviderName);
 
     // Set default attributes (such as "isAdmin" flag and "status") on the user being created
@@ -81,6 +95,7 @@ class UserService extends Service {
         .key({ username, ns })
         .item({
           ...user,
+          authenticationProviderId,
           rev: 0,
           createdBy: by,
         })
@@ -105,7 +120,8 @@ class UserService extends Service {
 
     const by = _.get(requestContext, 'principalIdentifier');
 
-    const { username, authenticationProviderId, identityProviderName } = user;
+    const { username, identityProviderName } = user;
+    const authenticationProviderId = user.authenticationProviderId || 'internal';
     const ns = toUserNamespace(authenticationProviderId, identityProviderName);
     const existingUser = await this.findUser({
       username,

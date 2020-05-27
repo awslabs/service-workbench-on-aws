@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -78,7 +78,7 @@ class DbUpdater {
       throw new Error(
         'You tried to call DbUpdater.mark() after you called DbUpdater.update(). Call mark() before calling update().',
       );
-    arr.forEach(key => {
+    arr.forEach((key) => {
       this.marked[key] = true;
     });
     return this;
@@ -173,7 +173,7 @@ class DbUpdater {
     const values = {};
     const names = {};
 
-    keys.forEach(key => {
+    keys.forEach((key) => {
       const value = item[key];
       if (value === undefined) return;
       if (this.params.Key && this.params.Key.hasOwnProperty(key)) return; // eslint-disable-line no-prototype-builtins

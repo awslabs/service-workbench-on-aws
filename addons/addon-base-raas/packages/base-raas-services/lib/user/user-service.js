@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -43,7 +43,9 @@ class UserService extends BaseUserService {
     await this.assertAuthorized(requestContext, { action: 'createBulk' });
 
     const errors = [];
-    const createUser = async curUser => {
+    let successCount = 0;
+    let errorCount = 0;
+    const createUser = async (curUser) => {
       try {
         const isAdmin = curUser.isAdmin === true;
         const authenticationProviderId =
@@ -70,27 +72,35 @@ class UserService extends BaseUserService {
             authenticationProviderId: userToCreate.authenticationProviderId,
             identityProviderName: userToCreate.identityProviderName,
           });
-          if (!user) {
+          if (user) {
+            throw this.boom.alreadyExists('Cannot add user. The user already exists.', true);
+          } else {
             await this.createUser(requestContext, userToCreate);
+            successCount += 1;
           }
         }
       } catch (e) {
-        const errorMsg = `Error creating user ${curUser.email}`;
+        const errorMsg = e.safe // if error is boom error then see if it is safe to propagate it's message
+          ? `Error creating user ${curUser.email}. ${e.message}`
+          : `Error creating user ${curUser.email}`;
+
         this.log.error(errorMsg);
         this.log.error(e);
         errors.push(errorMsg);
+
+        errorCount += 1;
       }
     };
     // Create users in parallel in the specified batches
-    const result = await processInBatches(users, batchSize, createUser);
+    await processInBatches(users, batchSize, createUser);
     if (!_.isEmpty(errors)) {
-      throw this.boom(`Errors creating users in bulk`, true).withPayload(errors);
+      throw this.boom.internalError(`Errors creating users in bulk`, true).withPayload(errors);
     }
 
     // Write audit event
     await this.audit(requestContext, { action: 'create-users-batch', body: { totalUsers: _.size(users) } });
 
-    return result;
+    return { successCount, errorCount };
   }
 
   async listUsers(requestContext, { fields = [] } = {}) {
@@ -99,7 +109,7 @@ class UserService extends BaseUserService {
     const isAdmin = _.get(requestContext, 'principal.isAdmin', false);
 
     const fieldsToOmit = isAdmin ? ['encryptedCreds'] : ['encryptedCreds', 'userRole'];
-    const sanitizedUsers = users.map(user => _.omit(user, fieldsToOmit));
+    const sanitizedUsers = users.map((user) => _.omit(user, fieldsToOmit));
     return sanitizedUsers;
   }
 
@@ -123,9 +133,13 @@ class UserService extends BaseUserService {
     // Only internal users (i.e., user with userRole.userType === INTERNAL) can be assigned projects,
     const userRoleId = input.userRole;
     if (userRoleId) {
+      if (_.toLower(userRoleId) === 'internal-guest') {
+        throw this.boom.forbidden('Guest users cannot be assigned a project', true);
+      }
+
       const userRolesService = await this.service('userRolesService');
       const userRole = await userRolesService.mustFind(requestContext, { id: userRoleId, fields: ['userType'] });
-      if (_.toUpper(userRole.userType) !== 'INTERNAL') {
+      if (_.toLower(userRole.userType) !== 'internal') {
         throw this.boom.forbidden('External users cannot be assigned a project', true);
       }
     }
@@ -139,7 +153,7 @@ class UserService extends BaseUserService {
   }
 
   async setDefaultAttributes(requestContext, user) {
-    const setDefaultIf = checkFn => {
+    const setDefaultIf = (checkFn) => {
       return (attribName, defaultValue) => {
         if (checkFn(user[attribName])) {
           user[attribName] = defaultValue;

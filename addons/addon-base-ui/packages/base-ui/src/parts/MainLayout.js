@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -27,7 +27,7 @@ import { branding } from '../helpers/settings';
 // expected props
 // - userStore (via injection)
 class MainLayout extends React.Component {
-  goto = pathname => () => {
+  goto = (pathname) => () => {
     const location = this.props.location;
     const link = createLink({
       location,
@@ -37,7 +37,7 @@ class MainLayout extends React.Component {
     this.props.history.push(link);
   };
 
-  handleLogout = async event => {
+  handleLogout = async (event) => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -56,7 +56,7 @@ class MainLayout extends React.Component {
     const currentUser = this.props.userStore.user;
     const displayName = currentUser ? currentUser.displayName : 'Not Logged In';
     const pathname = _.get(this.props.location, 'pathname', '');
-    const is = value => _.startsWith(pathname, value);
+    const is = (value) => _.startsWith(pathname, value);
 
     const itemsArr = this.getMenuItems();
     return [

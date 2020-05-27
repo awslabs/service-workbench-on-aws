@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -17,7 +17,6 @@ const _ = require('lodash');
 const uuid = require('uuid/v1');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
-const { isAdmin, isCurrentUser } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 
 const createSchema = require('../schema/create-environment');
 const updateSchema = require('../schema/update-environment');
@@ -77,7 +76,9 @@ class EnvironmentService extends Service {
 
     // TODO: Handle pagination
 
-    const environments = await this._scanner().limit(1000).scan();
+    const environments = await this._scanner()
+      .limit(1000)
+      .scan();
 
     if (requestContext.principal.isAdmin) {
       return environments;
@@ -91,7 +92,7 @@ class EnvironmentService extends Service {
 
       const { sharedWithUsers = [] } = env;
       const isShared = Array.isArray(sharedWithUsers)
-        ? sharedWithUsers.some((u) => u.username === reqUsername && u.ns === reqNs)
+        ? sharedWithUsers.some(u => u.username === reqUsername && u.ns === reqNs)
         : false;
 
       return {
@@ -103,17 +104,17 @@ class EnvironmentService extends Service {
     });
 
     // environments owned by user
-    const envOwner = envMap.filter((item) => item.isOwner);
+    const envOwner = envMap.filter(item => item.isOwner);
 
     // environments shared with user
-    const envShared = envMap.filter((item) => item.isShared);
+    const envShared = envMap.filter(item => item.isShared);
 
     // enviroments not owned by user
-    const envNonOwnerOrShared = envMap.filter((item) => !item.isOwner && !item.isShared);
+    const envNonOwnerOrShared = envMap.filter(item => !item.isOwner && !item.isShared);
 
     // gather environments where the current user is a project admin
-    const envProjectAdminPromises = envNonOwnerOrShared.map((env) =>
-      this.isEnvironmentProjectAdmin(requestContext, environments[env.environmentsIndex]).catch((error) => error),
+    const envProjectAdminPromises = envNonOwnerOrShared.map(env =>
+      this.isEnvironmentProjectAdmin(requestContext, environments[env.environmentsIndex]).catch(error => error),
     );
     // NOTE refactor to use Promise.allSettled() once on Node JS >= 12
     const envProjectAdminPromiseResolutions = await Promise.all(envProjectAdminPromises);
@@ -129,9 +130,9 @@ class EnvironmentService extends Service {
           environmentsIndex: envNonOwnerOrShared[index].environmentsIndex,
         };
       })
-      .filter((item) => item.isProjectAdmin);
+      .filter(item => item.isProjectAdmin);
 
-    return [...envOwner, ...envShared, ...envProjectAdmin].map((item) => environments[item.environmentsIndex]);
+    return [...envOwner, ...envShared, ...envProjectAdmin].map(item => environments[item.environmentsIndex]);
   }
 
   async find(requestContext, { id, fields = [] }) {
@@ -139,7 +140,10 @@ class EnvironmentService extends Service {
     // If empty "fields" is specified then it means the caller is asking for all fields. No need to append 'createdBy'
     // in that case.
     const fieldsToGet = _.isEmpty(fields) ? fields : _.uniq([...fields, 'createdBy']);
-    const result = await this._getter().key({ id }).projection(fieldsToGet).get();
+    const result = await this._getter()
+      .key({ id })
+      .projection(fieldsToGet)
+      .get();
 
     if (result) {
       // ensure that the caller has permissions to retrieve the specified environment
@@ -222,8 +226,8 @@ class EnvironmentService extends Service {
     });
     const configuration = _.find(configurations, ['id', configurationId]);
 
-    const isMutableParam = (name) => _.has(configuration, ['params', 'mutable', name]);
-    const getParam = (name) => {
+    const isMutableParam = name => _.has(configuration, ['params', 'mutable', name]);
+    const getParam = name => {
       // First we see if the paramter is considered immutable, if so, we return its immutable value
       // otherwise we return the one from the rawDataV2.params if the parameter name is declared
       // in the configuration as mutable.
@@ -523,7 +527,7 @@ class EnvironmentService extends Service {
     // check if environment has been shared with user
     const { sharedWithUsers = [] } = environment;
     const isShared = Array.isArray(sharedWithUsers)
-      ? sharedWithUsers.some((u) => u.username === reqUsername && u.ns === reqNs)
+      ? sharedWithUsers.some(u => u.username === reqUsername && u.ns === reqNs)
       : false;
     if (isShared) {
       return true;

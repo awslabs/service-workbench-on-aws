@@ -1,12 +1,12 @@
- /*
+/*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *  
+ *
  *  Licensed under the Apache License, Version 2.0 (the "License").
  *  You may not use this file except in compliance with the License.
  *  A copy of the License is located at
- *  
+ *
  *  http://aws.amazon.com/apache2.0
- *  
+ *
  *  or in the "license" file accompanying this file. This file is distributed
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
  *  express or implied. See the License for the specific language governing
@@ -46,7 +46,7 @@ const WorkflowStep = types
       {},
     ),
   })
-  .actions(self => ({
+  .actions((self) => ({
     afterCreate() {
       if (_.isEmpty(self.id)) console.warn(`There is no id provided for this workflow step`, getSnapshot(self));
     },
@@ -80,7 +80,7 @@ const WorkflowStep = types
     },
   }))
 
-  .views(self => ({
+  .views((self) => ({
     get templateId() {
       return self.stepTemplateId;
     },
