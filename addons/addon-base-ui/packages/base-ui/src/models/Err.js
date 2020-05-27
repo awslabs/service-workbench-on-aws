@@ -23,7 +23,7 @@ const Err = types.model('Err', {
   requestId: '',
 });
 
-const toErr = (error) => {
+const toErr = error => {
   const parsed = parseError(error);
   return Err.create({
     message: parsed.message || '',

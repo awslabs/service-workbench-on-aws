@@ -24,7 +24,7 @@ const CurrentStep = types
     step: '',
   })
 
-  .actions((self) => ({
+  .actions(self => ({
     setStep(step) {
       self.step = step;
     },

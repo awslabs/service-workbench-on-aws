@@ -31,7 +31,7 @@ const ComputePlatformsStore = BaseStore.named('ComputePlatformsStore')
     platforms: types.map(ComputePlatform),
     platformsStores: types.map(ComputePlatformStore),
   })
-  .actions((self) => {
+  .actions(self => {
     // save the base implementation of cleanup
     const superCleanup = self.cleanup;
 
@@ -63,7 +63,7 @@ const ComputePlatformsStore = BaseStore.named('ComputePlatformsStore')
       },
     };
   })
-  .views((self) => ({
+  .views(self => ({
     get empty() {
       return self.platforms.size === 0;
     },

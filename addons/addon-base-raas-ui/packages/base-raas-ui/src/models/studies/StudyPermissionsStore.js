@@ -31,7 +31,7 @@ const StudyPermissionsStore = BaseStore.named('StudyPermissionsStore')
     tickPeriod: 300 * 1000, // 5 minutes
   })
 
-  .actions((self) => {
+  .actions(self => {
     // save the base implementation of cleanup
     const superCleanup = self.cleanup;
 
@@ -49,11 +49,11 @@ const StudyPermissionsStore = BaseStore.named('StudyPermissionsStore')
         superCleanup();
       },
 
-      update: async (selectedUsers) => {
+      update: async selectedUsers => {
         const updateRequest = { usersToAdd: [], usersToRemove: [] };
 
-        self.studyPermissions.userTypes.forEach((type) => {
-          const userToRequestFormat = (user) => ({ principalIdentifier: user, permissionLevel: type });
+        self.studyPermissions.userTypes.forEach(type => {
+          const userToRequestFormat = user => ({ principalIdentifier: user, permissionLevel: type });
 
           // Set selected users as "usersToAdd" (API is idempotent)
           updateRequest.usersToAdd.push(...selectedUsers[type].map(userToRequestFormat));

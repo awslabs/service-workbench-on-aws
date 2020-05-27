@@ -27,12 +27,12 @@ class WorkflowPayload {
     this.loaded = false;
 
     // lets build empty StepPayload objects using the information we have about the steps
-    _.forEach(workflowInstance.steps, (step) => {
+    _.forEach(workflowInstance.steps, step => {
       this.store.push(new StepPayload({ step, workflowInstance }));
     });
 
-    const getterDelegate = new KeyGetterDelegate(async (key) => this.getValue(key), {
-      loadFn: async (key) => this.load(key),
+    const getterDelegate = new KeyGetterDelegate(async key => this.getValue(key), {
+      loadFn: async key => this.load(key),
       storeTitle: 'Workflow payload',
     });
     Object.assign(this, getterDelegate.getMethods());
@@ -59,7 +59,7 @@ class WorkflowPayload {
 
   getMemento() {
     return {
-      s: _.map(this.store, (stepPayload) => stepPayload.getMemento()),
+      s: _.map(this.store, stepPayload => stepPayload.getMemento()),
       m: this.meta || {},
     };
   }
@@ -161,7 +161,7 @@ class WorkflowPayload {
     // The _.flatten flattens them into a single array
     // The _.uniq de-duplicates keys
     const allSearchableStores = this.searchableStores();
-    return _.uniq(_.flatten(await Promise.all(_.map(allSearchableStores, async (store) => store.allKeys()))));
+    return _.uniq(_.flatten(await Promise.all(_.map(allSearchableStores, async store => store.allKeys()))));
   }
 
   /**
@@ -172,7 +172,7 @@ class WorkflowPayload {
     const allKeys = await this.allKeys();
     const payloadContent = {};
     await Promise.all(
-      _.map(allKeys, async (key) => {
+      _.map(allKeys, async key => {
         payloadContent[key] = await this.getValue(key);
       }),
     );

@@ -47,7 +47,7 @@ function createSingleFieldForm(fieldName, fields, value, pluginsParam, optionsPa
   // Find field with the given fieldName from the fields
   // In case of Array: It has shape [ {fieldName1:field1}, {fieldName2:field2} ]
   // In case of Object: It has shape { fieldName1:field1, fieldName2:field2 }
-  const fieldsObj = _.isArray(fields) ? _.find(fields, (field) => _.keys(field)[0] === fieldName) : fields;
+  const fieldsObj = _.isArray(fields) ? _.find(fields, field => _.keys(field)[0] === fieldName) : fields;
   const fieldOfInterest = _.get(fieldsObj, fieldName);
 
   if (!fieldOfInterest) {

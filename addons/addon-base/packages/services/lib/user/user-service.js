@@ -206,7 +206,12 @@ class UserService extends Service {
   async getUser({ username, ns, fields = [] }) {
     const dbService = await this.service('dbService');
     const table = this.settings.get(settingKeys.tableName);
-    return dbService.helper.getter().table(table).key({ username, ns }).projection(fields).get();
+    return dbService.helper
+      .getter()
+      .table(table)
+      .key({ username, ns })
+      .projection(fields)
+      .get();
   }
 
   async findUser({ username, authenticationProviderId, identityProviderName, fields = [] }) {
@@ -218,7 +223,11 @@ class UserService extends Service {
     const dbService = await this.service('dbService');
     const table = this.settings.get(settingKeys.tableName);
     const ns = toUserNamespace(authenticationProviderId, identityProviderName);
-    const item = await dbService.helper.getter().table(table).key({ username, ns }).get();
+    const item = await dbService.helper
+      .getter()
+      .table(table)
+      .key({ username, ns })
+      .get();
 
     if (item === undefined) return false;
     return username === item.username;
@@ -247,10 +256,15 @@ class UserService extends Service {
     const dbService = await this.service('dbService');
     const table = this.settings.get(settingKeys.tableName);
     // TODO: Handle pagination
-    const users = await dbService.helper.scanner().table(table).limit(1000).projection(fields).scan();
+    const users = await dbService.helper
+      .scanner()
+      .table(table)
+      .limit(1000)
+      .projection(fields)
+      .scan();
 
     const isAdmin = _.get(requestContext, 'principal.isAdmin', false);
-    return isAdmin ? users : users.map((user) => _.omit(user, ['isAdmin']));
+    return isAdmin ? users : users.map(user => _.omit(user, ['isAdmin']));
   }
 
   // Protected methods

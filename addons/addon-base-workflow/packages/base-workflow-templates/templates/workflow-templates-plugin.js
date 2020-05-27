@@ -15,7 +15,7 @@
 
 const emptyWorkflowYaml = require('./empty-workflow.yml');
 
-const add = (yaml) => ({ yaml });
+const add = yaml => ({ yaml });
 
 // The order is important, add your templates here
 const templates = [add(emptyWorkflowYaml)];

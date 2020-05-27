@@ -29,7 +29,7 @@ const StepTemplatesStore = BaseStore.named('StepTemplatesStore')
     tickPeriod: 900 * 1000, // 15 minutes
   })
 
-  .actions((self) => {
+  .actions(self => {
     // save the base implementation of cleanup
     const superCleanup = self.cleanup;
 
@@ -44,7 +44,7 @@ const StepTemplatesStore = BaseStore.named('StepTemplatesStore')
           self.templates.forEach((value, key) => {
             previousKeys[key] = true;
           });
-          templates.forEach((template) => {
+          templates.forEach(template => {
             const id = template.id;
             const hasPrevious = self.templates.has(id);
 
@@ -79,7 +79,7 @@ const StepTemplatesStore = BaseStore.named('StepTemplatesStore')
     };
   })
 
-  .views((self) => ({
+  .views(self => ({
     get empty() {
       return self.templates.size === 0;
     },
@@ -90,7 +90,7 @@ const StepTemplatesStore = BaseStore.named('StepTemplatesStore')
 
     get list() {
       const result = [];
-      self.templates.forEach((template) => result.push(template));
+      self.templates.forEach(template => result.push(template));
 
       return _.sortBy(result, ['latest.title']);
     },
@@ -105,7 +105,7 @@ const StepTemplatesStore = BaseStore.named('StepTemplatesStore')
 // [ { id, versions: [ ... ] }, { id, versions: [ ... ] }, ...]
 function toTemplates(versions) {
   const map = {};
-  _.forEach(versions, (version) => {
+  _.forEach(versions, version => {
     const id = version.id;
     const entry = map[id] || { id, versions: [] };
     entry.versions.push(version);

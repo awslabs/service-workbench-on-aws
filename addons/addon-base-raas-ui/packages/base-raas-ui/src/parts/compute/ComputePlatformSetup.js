@@ -63,17 +63,17 @@ class ComputePlatformSetup extends React.Component {
     return this.props.currentStep;
   }
 
-  setOnboarding = (value) => {
+  setOnboarding = value => {
     this.onboardingOpen = value;
   };
 
-  handleConfigureCredentials = (event) => {
+  handleConfigureCredentials = event => {
     event.preventDefault();
     event.stopPropagation();
     this.setOnboarding(true);
   };
 
-  handleSelectComputePlatform = async (platformId) => {
+  handleSelectComputePlatform = async platformId => {
     this.selectedPlatformId = platformId;
     const platformsStore = this.computePlatformsStore;
     if (!platformsStore) return;
@@ -107,7 +107,7 @@ class ComputePlatformSetup extends React.Component {
     this.currentStep.setStep('selectComputePlatform');
   };
 
-  handleCompleted = async (environment) => {
+  handleCompleted = async environment => {
     return this.props.onCompleted(environment);
   };
 

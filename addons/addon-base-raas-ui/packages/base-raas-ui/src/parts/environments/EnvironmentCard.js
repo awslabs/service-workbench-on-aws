@@ -74,7 +74,7 @@ class EnvironmentCard extends React.Component {
     }
   };
 
-  handleTerminateEnvironment = async (event) => {
+  handleTerminateEnvironment = async event => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -174,7 +174,7 @@ class EnvironmentCard extends React.Component {
     }
     const costsForLatestDate = costInfo[costInfo.length - 1].cost;
     let total = 0;
-    costsForLatestDate.forEach((service) => {
+    costsForLatestDate.forEach(service => {
       total += service.amount;
     });
     return total.toFixed(2);

@@ -36,7 +36,7 @@ const WorkflowDraft = types
     templateVer: types.maybe(types.number),
     workflow: WorkflowVersion,
   })
-  .actions((self) => ({
+  .actions(self => ({
     setWorkflowDraft(draft) {
       applySnapshot(self, draft);
     },
@@ -46,6 +46,6 @@ const WorkflowDraft = types
     },
   }))
 
-  .views((_self) => ({}));
+  .views(_self => ({}));
 
 export default WorkflowDraft;

@@ -62,12 +62,12 @@ const AuthenticationProviderConfigsStore = BaseStore.named('AuthenticationProvid
      */
     authenticationProviderConfigEditors: types.optional(types.map(AuthenticationProviderConfigEditor), {}),
   })
-  .actions((self) => ({
+  .actions(self => ({
     async doLoad() {
       const authenticationProviderConfigs = await getAuthenticationProviderConfigs();
       self.runInAction(() => {
         const map = {};
-        authenticationProviderConfigs.forEach((authenticationProviderConfig) => {
+        authenticationProviderConfigs.forEach(authenticationProviderConfig => {
           map[authenticationProviderConfig.id] = authenticationProviderConfig;
         });
         self.authenticationProviderConfigs.replace(map);
@@ -95,8 +95,8 @@ const AuthenticationProviderConfigsStore = BaseStore.named('AuthenticationProvid
       if (inputManifestForUpdate) {
         const inputManifest = _.cloneDeep(inputManifestForUpdate);
         // "id" is read-only and should not be part of the inputManifestForUpdate when updating an existing provider so remove it
-        const filteredSections = _.map(inputManifest.sections, (section) => {
-          const filteredChildren = _.filter(section.children, (child) => child.name !== 'id');
+        const filteredSections = _.map(inputManifest.sections, section => {
+          const filteredChildren = _.filter(section.children, child => child.name !== 'id');
           section.children = filteredChildren;
           return section;
         });
@@ -125,7 +125,7 @@ const AuthenticationProviderConfigsStore = BaseStore.named('AuthenticationProvid
 
     getCreateAuthenticationProviderConfigEditor(_authenticationProviderTypeConfig) {},
   }))
-  .views((self) => ({
+  .views(self => ({
     get empty() {
       return self.authenticationProviderConfigs.size === 0;
     },
@@ -142,7 +142,7 @@ const AuthenticationProviderConfigsStore = BaseStore.named('AuthenticationProvid
      * @returns {*}
      */
     getAuthenticationProviderConfigByIdpName(idpName) {
-      const providerConfig = _.find(self.list, (authNProvider) => {
+      const providerConfig = _.find(self.list, authNProvider => {
         const idps = _.get(authNProvider, 'config.federatedIdentityProviders');
         const foundIdp = _.find(idps, { name: idpName });
         // return true if idp is found under this authentication provider
@@ -165,7 +165,7 @@ function toConfiguration(authenticationProviderConfig) {
   // [] and expects nested field structure
   // Here, we want the keys like 'a.b[0].c[1]' etc to be treated as opaque keys in MobX
   // So replace . and [] to make sure mobx does not treat them as nested keys
-  const toOpaqueKey = (key) => {
+  const toOpaqueKey = key => {
     let opaqueKey = _.replace(key, /\./g, '/');
     opaqueKey = _.replace(opaqueKey, /\[/g, '|-');
     opaqueKey = _.replace(opaqueKey, /]/g, '-|');
@@ -192,7 +192,7 @@ function fromConfiguration(configuration) {
   // Here, the configuration may have been translated to use opaque keys with dots replaced by / and
   // [ replaced by |- and ] replaced with -|
   // Convert those keys back to use dot and [] notations
-  const fromOpaqueKey = (key) => {
+  const fromOpaqueKey = key => {
     let opaqueKey = _.replace(key, /\//g, '.');
     opaqueKey = _.replace(opaqueKey, /(\|-)/g, '[');
     opaqueKey = _.replace(opaqueKey, /(-\|)/g, ']');

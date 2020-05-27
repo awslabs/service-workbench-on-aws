@@ -189,7 +189,7 @@ class StepTemplateService extends Service {
         .limit(2000)
         .projection(fields)
         .scan();
-      return _.map(result, (item) => toDataObject(item));
+      return _.map(result, item => toDataObject(item));
     }
 
     const result = await dbService.helper
@@ -201,7 +201,7 @@ class StepTemplateService extends Service {
       .limit(2000)
       .projection(fields)
       .query();
-    return _.map(result, (item) => toDataObject(item));
+    return _.map(result, item => toDataObject(item));
   }
 
   // List latest versions of all the step templates
@@ -217,7 +217,7 @@ class StepTemplateService extends Service {
       .limit(2000)
       .projection(fields)
       .scan();
-    return _.map(result, (item) => toDataObject(item));
+    return _.map(result, item => toDataObject(item));
   }
 
   async findVersion({ id, v = 0, fields = [] }, { tableName } = {}) {

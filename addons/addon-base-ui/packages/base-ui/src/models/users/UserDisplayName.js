@@ -17,7 +17,7 @@ import _ from 'lodash';
 import { types, getEnv } from 'mobx-state-tree';
 
 // A convenient model that returns the display name or long display name given a user identifier
-const UserDisplayName = types.model('UserDisplayName', {}).views((self) => ({
+const UserDisplayName = types.model('UserDisplayName', {}).views(self => ({
   // identifier: can be an instance of the UserIdentifier, or a string or undefined
   getDisplayName(identifier) {
     // TODO deal with _systems_

@@ -27,7 +27,7 @@ const ApiKey = types
     expiryTime: 0,
     key: types.optional(types.string, ''),
   })
-  .views((self) => ({
+  .views(self => ({
     get effectiveStatus() {
       if (self.status !== 'active') {
         // if status it not active then the effective status is same as status (such as "revoked")

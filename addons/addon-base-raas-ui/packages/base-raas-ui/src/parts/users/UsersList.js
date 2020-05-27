@@ -172,7 +172,7 @@ class UsersList extends React.Component {
             {
               Header: 'Identity Provider',
               accessor: 'identityProviderName',
-              Cell: (row) => {
+              Cell: row => {
                 const user = row.original;
                 return user.identityProviderName || 'internal';
               },
@@ -181,11 +181,11 @@ class UsersList extends React.Component {
               Header: 'Type',
               accessor: 'isExternalUser',
               width: 100,
-              Cell: (row) => {
+              Cell: row => {
                 const user = row.original;
                 return user.isExternalUser ? 'External' : 'Internal';
               },
-              filterMethod: (filter) => {
+              filterMethod: filter => {
                 if (filter.value.toLowerCase().includes('ex')) {
                   return false;
                 }
@@ -197,7 +197,7 @@ class UsersList extends React.Component {
               accessor: 'userRole',
               width: 100,
               style: { whiteSpace: 'unset' },
-              Cell: (row) => {
+              Cell: row => {
                 const user = row.original;
                 return user.userRole || 'N/A';
               },
@@ -205,7 +205,7 @@ class UsersList extends React.Component {
             {
               Header: 'Project',
               style: { whiteSpace: 'unset' },
-              Cell: (row) => {
+              Cell: row => {
                 const user = row.original;
                 return user.projectId.join(', ') || '<<none>>';
               },
@@ -214,7 +214,7 @@ class UsersList extends React.Component {
               Header: 'Status',
               accessor: 'isActive',
               width: 100,
-              Cell: (row) => {
+              Cell: row => {
                 const user = row.original;
                 let lable = null;
                 if (user.status === 'active') {
@@ -257,7 +257,7 @@ class UsersList extends React.Component {
             {
               Header: '',
               filterable: false,
-              Cell: (cell) => {
+              Cell: cell => {
                 const user = cell.original;
                 return (
                   <div style={{ textAlign: 'center', verticalAlign: 'middle' }}>

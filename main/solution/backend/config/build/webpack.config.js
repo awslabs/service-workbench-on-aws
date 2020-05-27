@@ -33,7 +33,7 @@ module.exports = {
   externals: [
     /aws-sdk/, // Available on AWS Lambda
     slsw.lib.webpack.isLocal && nodeExternals(),
-  ].filter((x) => !!x),
+  ].filter(x => !!x),
   plugins,
   node: {
     __dirname: false,

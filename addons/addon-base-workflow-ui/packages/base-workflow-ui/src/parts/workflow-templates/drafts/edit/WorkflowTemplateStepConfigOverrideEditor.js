@@ -43,7 +43,7 @@ class WorkflowTemplateStepConfigOverrideEditor extends React.Component {
     return this.getStepEditor().configOverrideEdit;
   }
 
-  handleEditOn = (event) => {
+  handleEditOn = event => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -56,11 +56,11 @@ class WorkflowTemplateStepConfigOverrideEditor extends React.Component {
     stepEditorModel.setConfigOverrideEdit(false);
   };
 
-  handleSave = async (form) => {
+  handleSave = async form => {
     const onSave = this.props.onSave || _.noop;
     const stepEditorModel = this.getStepEditor();
     const values = form.values();
-    const allowed = _.filter(_.keys(values), (key) => values[key] === true);
+    const allowed = _.filter(_.keys(values), key => values[key] === true);
 
     stepEditorModel.applyConfigOverrides(allowed);
 
@@ -118,7 +118,7 @@ class WorkflowTemplateStepConfigOverrideEditor extends React.Component {
     const form = this.getConfigOverrideForm();
     const step = this.getStep();
     const configOverrideRows = step.configOverrideSummaryRows || [];
-    const fields = _.map(configOverrideRows, (item) => form.$(item.name));
+    const fields = _.map(configOverrideRows, item => form.$(item.name));
 
     return (
       <>

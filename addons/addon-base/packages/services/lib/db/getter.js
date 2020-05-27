@@ -91,7 +91,7 @@ class DbGetter {
     } else if (_.isArray(expr)) {
       const names = {};
       const values = [];
-      expr.forEach((key) => {
+      expr.forEach(key => {
         names[`#${key}`] = key;
         values.push(`#${key}`);
       });

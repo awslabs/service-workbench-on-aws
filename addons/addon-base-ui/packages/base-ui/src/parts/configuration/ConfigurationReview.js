@@ -86,7 +86,7 @@ class ConfigurationReview extends React.Component {
     }
   };
 
-  handlePrevious = (event) => {
+  handlePrevious = event => {
     event.preventDefault();
     event.stopPropagation();
     const form = this.getForm();

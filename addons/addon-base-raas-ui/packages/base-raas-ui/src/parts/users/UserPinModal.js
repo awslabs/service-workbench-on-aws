@@ -28,7 +28,7 @@ class UserPinModal extends React.Component {
     });
   }
 
-  handlePinSubmission = async (e) => {
+  handlePinSubmission = async e => {
     e.preventDefault();
     e.persist();
 

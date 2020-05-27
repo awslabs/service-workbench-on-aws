@@ -40,11 +40,11 @@ async function aesGcmEncrypt(plaintext, password) {
   const ctBuffer = await crypto.subtle.encrypt(alg, key, ptUtf8); // encrypt plaintext using key
 
   const ctArray = Array.from(new Uint8Array(ctBuffer)); // ciphertext as byte array
-  const ctStr = ctArray.map((byte) => String.fromCharCode(byte)).join(''); // ciphertext as string
+  const ctStr = ctArray.map(byte => String.fromCharCode(byte)).join(''); // ciphertext as string
   const ctBase64 = btoa(ctStr); // encode ciphertext as base64
 
   const ivHex = Array.from(iv)
-    .map((b) => `00${b.toString(16)}`.slice(-2))
+    .map(b => `00${b.toString(16)}`.slice(-2))
     .join(''); // iv as hex string
 
   return ivHex + ctBase64; // return iv+ciphertext
@@ -70,14 +70,14 @@ async function aesGcmDecrypt(ciphertext, password) {
   const iv = ciphertext
     .slice(0, 24)
     .match(/.{2}/g)
-    .map((byte) => parseInt(byte, 16)); // get iv from ciphertext
+    .map(byte => parseInt(byte, 16)); // get iv from ciphertext
 
   const alg = { name: 'AES-GCM', iv: new Uint8Array(iv) }; // specify algorithm to use
 
   const key = await crypto.subtle.importKey('raw', pwHash, alg, false, ['decrypt']); // use pw to generate key
 
   const ctStr = atob(ciphertext.slice(24)); // decode base64 ciphertext
-  const ctUint8 = new Uint8Array(ctStr.match(/[\s\S]/g).map((ch) => ch.charCodeAt(0))); // ciphertext as Uint8Array
+  const ctUint8 = new Uint8Array(ctStr.match(/[\s\S]/g).map(ch => ch.charCodeAt(0))); // ciphertext as Uint8Array
 
   const plainBuffer = await crypto.subtle.decrypt(alg, key, ctUint8); // decrypt ciphertext using key
   const plaintext = new TextDecoder().decode(plainBuffer); // decode password from UTF-8

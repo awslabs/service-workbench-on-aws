@@ -51,8 +51,8 @@ class UsersList extends React.Component {
     swallowError(store.load());
   }
 
-  handleEditorOn = (user) =>
-    action((event) => {
+  handleEditorOn = user =>
+    action(event => {
       event.preventDefault();
       event.stopPropagation();
 
@@ -139,10 +139,10 @@ class UsersList extends React.Component {
     const pageSize = Math.min(nonRootUsers.length, 50);
     const showPagination = nonRootUsers.length > pageSize;
 
-    const displayEditableInput = (attributeName) => (row) => {
+    const displayEditableInput = attributeName => row => {
       const user = row.original;
       const userBeingEdited = usersBeingEditedMap[user.id];
-      const handleChange = action((event) => {
+      const handleChange = action(event => {
         event.preventDefault();
         userBeingEdited[attributeName] = event.target.value;
       });
@@ -176,7 +176,10 @@ class UsersList extends React.Component {
       const filterValue = filter.value.toLowerCase();
       // Allow filtering by typing "yes/no" or "true/false"
       return (
-        columnValueStr.indexOf(filterValue) === 0 || String(columnValueBoolean).toLowerCase().indexOf(filterValue) === 0
+        columnValueStr.indexOf(filterValue) === 0 ||
+        String(columnValueBoolean)
+          .toLowerCase()
+          .indexOf(filterValue) === 0
       );
     };
 
@@ -228,7 +231,7 @@ class UsersList extends React.Component {
               Header: 'Admin',
               accessor: 'isAdmin',
               filterMethod: booleanColumnValueFilter(),
-              Cell: (row) => {
+              Cell: row => {
                 const user = row.original;
                 const userBeingEdited = usersBeingEditedMap[user.id];
                 return userBeingEdited ? (
@@ -254,7 +257,7 @@ class UsersList extends React.Component {
               accessor: 'isActive',
               filterMethod: booleanColumnValueFilter('active', 'inactive'),
               minWidth: 125,
-              Cell: (row) => {
+              Cell: row => {
                 const user = row.original;
                 const userBeingEdited = usersBeingEditedMap[user.id];
                 const isActive = userBeingEdited ? userBeingEdited.status.toLowerCase() === 'active' : row.value;
@@ -293,7 +296,7 @@ class UsersList extends React.Component {
             {
               Header: '',
               filterable: false,
-              Cell: (cell) => {
+              Cell: cell => {
                 const user = cell.original;
                 const userBeingEdited = usersBeingEditedMap[user.id];
                 return userBeingEdited ? (
@@ -345,8 +348,8 @@ class UsersList extends React.Component {
     );
   }
 
-  handleSave = (user) =>
-    action(async (event) => {
+  handleSave = user =>
+    action(async event => {
       event.preventDefault();
       event.stopPropagation();
 
@@ -372,8 +375,8 @@ class UsersList extends React.Component {
       }
     });
 
-  handleCancel = (user) =>
-    action((event) => {
+  handleCancel = user =>
+    action(event => {
       event.preventDefault();
       event.stopPropagation();
       this.mapOfUsersBeingEdited[user.id] = undefined;

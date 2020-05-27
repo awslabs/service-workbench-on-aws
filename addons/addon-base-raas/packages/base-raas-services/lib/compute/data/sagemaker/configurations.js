@@ -97,10 +97,10 @@ const configurations = [
 ];
 
 // These configurations belong to which compute platform ids
-const filterByType = (platformId) => (['sagemaker-1'].includes(platformId) ? _.slice(configurations) : []);
+const filterByType = platformId => (['sagemaker-1'].includes(platformId) ? _.slice(configurations) : []);
 
 // Which user can view which configuration
-const getConfigurations = (platformId) => filterByType(platformId); // All users can see all configurations
+const getConfigurations = platformId => filterByType(platformId); // All users can see all configurations
 
 module.exports = {
   getConfigurations,

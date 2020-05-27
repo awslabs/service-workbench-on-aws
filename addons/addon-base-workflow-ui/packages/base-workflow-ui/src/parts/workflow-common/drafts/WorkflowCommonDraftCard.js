@@ -69,7 +69,7 @@ class WorkflowCommonDraftCard extends React.Component {
     this.getState().setMainTabIndex(data.activeIndex);
   };
 
-  handleEditDraft = async (event) => {
+  handleEditDraft = async event => {
     event.preventDefault();
     event.stopPropagation();
     const draft = this.getDraft();

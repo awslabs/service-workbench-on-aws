@@ -61,7 +61,7 @@ class WorkflowTemplateRegistryService extends Service {
 
   // Returns a list of all workflow templates in array of this shape: [{ id, v, yaml }, ...]
   async listWorkflowTemplates() {
-    return _.map(this.store, (item) => {
+    return _.map(this.store, item => {
       const { yaml } = item.value;
       const { id, v } = yaml;
       return { id, v, yaml };

@@ -27,7 +27,7 @@ const StudyStore = BaseStore.named('StudyStore')
     tickPeriod: 300 * 1000, // 5 minutes
   })
 
-  .actions((self) => {
+  .actions(self => {
     // save the base implementation of cleanup
     const superCleanup = self.cleanup;
 
@@ -44,7 +44,7 @@ const StudyStore = BaseStore.named('StudyStore')
     };
   })
 
-  .views((self) => ({
+  .views(self => ({
     get study() {
       const parent = getParent(self, 2);
       const w = parent.getStudy(self.studyId);

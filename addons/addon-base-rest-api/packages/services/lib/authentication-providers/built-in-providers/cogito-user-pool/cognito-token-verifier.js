@@ -35,7 +35,7 @@ async function getCognitoTokenVerifier(userPoolUri, logger = console) {
       if (!error && response && response.statusCode === 200) {
         const keys = body.keys;
         const keyCache = {};
-        _.forEach(keys, (key) => {
+        _.forEach(keys, key => {
           // kid = key id
           const kid = key.kid;
           keyCache[kid] = toPem(key);
@@ -48,7 +48,7 @@ async function getCognitoTokenVerifier(userPoolUri, logger = console) {
     });
   });
 
-  const verify = async (token) => {
+  const verify = async token => {
     // First attempt to decode token before attempting to verify the signature
     const decodedJwt = jwt.decode(token, { complete: true });
     if (!decodedJwt) {

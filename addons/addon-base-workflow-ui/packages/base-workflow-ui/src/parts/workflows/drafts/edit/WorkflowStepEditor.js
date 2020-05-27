@@ -48,7 +48,7 @@ class WorkflowStepEditor extends React.Component {
     return this.props.canMove === undefined ? true : this.props.canMove;
   }
 
-  handleDelete = (step) => {
+  handleDelete = step => {
     const onDelete = this.props.onDelete || _.noop;
     onDelete(step);
   };
@@ -59,7 +59,7 @@ class WorkflowStepEditor extends React.Component {
     return onSave();
   };
 
-  handleConfigSave = async (configs) => {
+  handleConfigSave = async configs => {
     const onSave = this.props.onSave || _.noop;
     const stepEditorModel = this.getStepEditor();
 

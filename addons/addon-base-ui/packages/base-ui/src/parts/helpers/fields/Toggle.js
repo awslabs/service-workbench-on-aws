@@ -41,7 +41,7 @@ const Component = observer(({ field, disabled = false, show = 'both', className 
   const errorClass = hasError ? 'error' : '';
   const yesSelected = (_.isBoolean(value) && value === true) || value === 'true';
   const cursor = isDisabled ? 'op-3' : 'cursor-pointer';
-  const handleClick = (toAssign) => (event) => {
+  const handleClick = toAssign => event => {
     event.preventDefault();
     event.stopPropagation();
     if (isDisabled) return;

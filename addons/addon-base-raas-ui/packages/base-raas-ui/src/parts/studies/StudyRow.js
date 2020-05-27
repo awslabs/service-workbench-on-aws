@@ -44,7 +44,7 @@ class StudyRow extends React.Component {
     return this.props.isSelectable;
   }
 
-  handleFileSelection = (study) => {
+  handleFileSelection = study => {
     const selection = this.props.filesSelection;
     if (selection.hasFile(study.id)) {
       selection.deleteFile(study.id);

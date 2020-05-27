@@ -35,7 +35,7 @@ const WorkflowStore = BaseStore.named('WorkflowStore')
     tickPeriod: 300 * 1000, // 5 minutes
   })
 
-  .actions((self) => {
+  .actions(self => {
     // save the base implementation of cleanup
     const superCleanup = self.cleanup;
 
@@ -93,7 +93,7 @@ const WorkflowStore = BaseStore.named('WorkflowStore')
     };
   })
 
-  .views((self) => ({
+  .views(self => ({
     get workflow() {
       const parent = getParent(self, 2);
       const w = parent.getWorkflow(self.workflowId);

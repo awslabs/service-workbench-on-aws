@@ -25,7 +25,7 @@ const UserStore = BaseStore.named('UserStore')
   .props({
     user: types.maybe(User),
   })
-  .actions((self) => {
+  .actions(self => {
     // save the base implementation of cleanup
     const superCleanup = self.cleanup;
 
@@ -43,14 +43,14 @@ const UserStore = BaseStore.named('UserStore')
     };
   })
 
-  .views((self) => ({
+  .views(self => ({
     get empty() {
       return _.isEmpty(self.user);
     },
 
     // TODO this method should really be moved to the User model and renamed to something like projectIdOptions
     get projectIdDropdown() {
-      const result = _.map(self.user.projectId, (id) => ({ key: id, value: id, text: id }));
+      const result = _.map(self.user.projectId, id => ({ key: id, value: id, text: id }));
       return result;
     },
 

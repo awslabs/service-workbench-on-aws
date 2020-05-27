@@ -35,7 +35,7 @@ const EnvironmentConfiguration = types
     spotPriceHistory: types.optional(types.array(SpotPriceHistoryItem), []),
     emrConfiguration: types.frozen(),
   })
-  .actions((self) => ({
+  .actions(self => ({
     setEnvironmentConfiguration(configuration) {
       // Note: if you have partial data vs full data, you need to replace the applySnapshot() with
       // the appropriate logic
@@ -55,7 +55,7 @@ const EnvironmentConfiguration = types
       self.spotPriceHistory = prices;
     },
   }))
-  .views((self) => ({
+  .views(self => ({
     get isOnDemandPricing() {
       return !self.spotBidMultiplier;
     },

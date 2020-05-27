@@ -16,7 +16,7 @@
 import _ from 'lodash';
 import { createForm } from '@aws-ee/base-ui/dist/helpers/form';
 
-const workflowStepPropsOverrideFields = (step) => {
+const workflowStepPropsOverrideFields = step => {
   const rows = step.propertyOverrideSummaryRows || [];
   return _.map(rows, ({ name, title, allowed = false }) => ({
     name,

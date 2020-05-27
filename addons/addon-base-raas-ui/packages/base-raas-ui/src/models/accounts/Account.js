@@ -41,7 +41,7 @@ const Account = types
     updatedAt: '',
     updatedBy: types.optional(UserIdentifier, {}),
   })
-  .actions((self) => ({
+  .actions(self => ({
     setAccount(rawAccount) {
       // Note: if you have partial data vs full data, you need to replace the applySnapshot() with
       // the appropriate logic
@@ -50,7 +50,7 @@ const Account = types
   }))
 
   // eslint-disable-next-line no-unused-vars
-  .views((self) => ({
+  .views(self => ({
     // add view methods here
   }));
 

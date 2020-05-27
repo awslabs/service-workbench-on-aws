@@ -24,7 +24,7 @@ const UserStore = BaseStore.named('UserStore')
   .props({
     user: types.maybe(User),
   })
-  .actions((self) => {
+  .actions(self => {
     // save the base implementation of cleanup
     const superCleanup = self.cleanup;
 
@@ -42,7 +42,7 @@ const UserStore = BaseStore.named('UserStore')
     };
   })
 
-  .views((self) => ({
+  .views(self => ({
     get empty() {
       return _.isEmpty(self.user);
     },

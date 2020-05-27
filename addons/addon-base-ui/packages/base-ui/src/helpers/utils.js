@@ -23,7 +23,7 @@ import { observable } from 'mobx';
 function mapToArray(map) {
   const result = [];
   // converting map to result array
-  map.forEach((value) => result.push(value));
+  map.forEach(value => result.push(value));
   return result;
 }
 
@@ -46,7 +46,7 @@ function swallowError(promise, fn = () => ({})) {
   try {
     return Promise.resolve()
       .then(() => promise)
-      .catch((err) => fn(err));
+      .catch(err => fn(err));
   } catch (err) {
     return fn(err);
   }
@@ -120,7 +120,7 @@ const storage = observable({
 
 // a promise friendly delay function
 function delay(seconds) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     _.delay(resolve, seconds * 1000);
   });
 }
@@ -153,7 +153,7 @@ function addQueryParams(location, params) {
   const queryParams = url.searchParams;
 
   const keys = _.keys(params);
-  keys.forEach((key) => {
+  keys.forEach(key => {
     queryParams.append(key, params[key]);
   });
 
@@ -171,7 +171,7 @@ function removeQueryParams(location, keys) {
   const url = new URL(location);
   const queryParams = url.searchParams;
 
-  keys.forEach((key) => {
+  keys.forEach(key => {
     queryParams.delete(key);
   });
 
@@ -190,7 +190,7 @@ function getFragmentParam(location, key) {
   const hashKeyValues = {};
   const params = fragmentParams.substring(1).split('&');
   if (params) {
-    params.forEach((param) => {
+    params.forEach(param => {
       const keyValueArr = param.split('=');
       const currentKey = keyValueArr[0];
       const value = keyValueArr[1];
@@ -208,7 +208,7 @@ function removeFragmentParams(location, keyNamesToRemove) {
   let hashStr = '#';
   const params = fragmentParams.substring(1).split('&');
   if (params) {
-    params.forEach((param) => {
+    params.forEach(param => {
       const keyValueArr = param.split('=');
       const currentKey = keyValueArr[0];
       const value = keyValueArr[1];
@@ -227,7 +227,7 @@ function isAbsoluteUrl(url) {
 }
 
 function removeNulls(obj = {}) {
-  Object.keys(obj).forEach((key) => {
+  Object.keys(obj).forEach(key => {
     if (obj[key] === null) delete obj[key];
   });
 
@@ -240,7 +240,7 @@ function chopRight(str = '', end = '') {
   return str.substring(0, str.length - end.length);
 }
 
-const isFloat = (n) => {
+const isFloat = n => {
   return n % 1 !== 0;
 };
 
@@ -248,7 +248,7 @@ const isFloat = (n) => {
 // output { <name>: { label, desc, ..}, <name2>: { label, desc } }
 function childrenArrayToMap(arr) {
   const result = {};
-  arr.forEach((item) => {
+  arr.forEach(item => {
     const key = _.keys(item)[0];
     result[key] = item[key];
   });
@@ -276,7 +276,7 @@ function consolidateToMap(map, itemsArray, mergeExistingFn) {
     unprocessedKeys[key] = true;
   });
 
-  itemsArray.forEach((item) => {
+  itemsArray.forEach(item => {
     const id = item.id;
     const hasExisting = map.has(id);
     const exiting = map.get(id);
@@ -340,7 +340,7 @@ function flattenObject(obj, filterFn = () => true, keyPrefix = '', accum = {}) {
       if (filterFn(result, value, key)) {
         if (_.isArray(value)) {
           let idx = 0;
-          _.forEach(value, (element) => {
+          _.forEach(value, element => {
             const flattenedKey = toFlattenedKey(key, idx);
             if (_.isObject(element)) {
               flattenObject(element, filterFn, flattenedKey, result);
@@ -417,9 +417,9 @@ function toUTCDate(str) {
  */
 function getOptionsFromRules(formRules) {
   let options = [];
-  formRules.forEach((rule) => {
+  formRules.forEach(rule => {
     if (typeof rule === 'object' && 'in' in rule) {
-      options = rule.in.map((option) => ({ key: option, text: option, value: option }));
+      options = rule.in.map(option => ({ key: option, text: option, value: option }));
     }
   });
   return options;

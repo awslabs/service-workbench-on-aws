@@ -111,7 +111,7 @@ class ProviderService extends Service {
     const missingAttribs = {};
     const keys = _.keys(userAttributes);
     if (!_.isEmpty(keys)) {
-      _.forEach(keys, (key) => {
+      _.forEach(keys, key => {
         const value = userAttributes[key];
         const existingValue = existingUser[key];
 

@@ -26,12 +26,12 @@ import _ from 'lodash';
 function toIdpOptions(providerConfigs) {
   const options = [];
 
-  _.forEach(providerConfigs, (providerConfig) => {
+  _.forEach(providerConfigs, providerConfig => {
     const config = providerConfig.config;
 
     // Each providerConfig (authentication provider) can have zero or more identity providers.
     if (!_.isEmpty(config.federatedIdentityProviders)) {
-      _.forEach(config.federatedIdentityProviders, (idp) => {
+      _.forEach(config.federatedIdentityProviders, idp => {
         options.push({
           key: idp.id,
           text: idp.name,

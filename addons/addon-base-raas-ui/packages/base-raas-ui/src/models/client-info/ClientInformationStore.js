@@ -28,7 +28,7 @@ const ClientInformationStore = BaseStore.named('ClientInformationStore')
   .props({
     clientInformation: types.optional(ClientInformation, {}),
   })
-  .actions((self) => {
+  .actions(self => {
     return {
       async doLoad() {
         const info = await getClientIpAddress();
@@ -37,7 +37,7 @@ const ClientInformationStore = BaseStore.named('ClientInformationStore')
           // Only for "local" development that we call http://httpbin.org/get
           // otherwise for any other development modes including for production,
           // we call our own api to get the ip address.
-          const answer = await fetch('http://httpbin.org/get').then((res) => res.json());
+          const answer = await fetch('http://httpbin.org/get').then(res => res.json());
           self.runInAction(() => {
             self.clientInformation = ClientInformation.create({ ipAddress: answer && answer.origin });
           });
@@ -50,7 +50,7 @@ const ClientInformationStore = BaseStore.named('ClientInformationStore')
       },
     };
   })
-  .views((self) => ({
+  .views(self => ({
     get ipAddress() {
       return self.clientInformation.ipAddress;
     },

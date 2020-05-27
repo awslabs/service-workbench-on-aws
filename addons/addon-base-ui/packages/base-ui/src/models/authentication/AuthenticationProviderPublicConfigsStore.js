@@ -23,7 +23,7 @@ const AuthenticationProviderPublicConfigsStore = BaseStore.named('Authentication
   .props({
     authenticationProviderPublicConfigs: types.optional(types.array(AuthenticationProviderPublicConfig), []),
   })
-  .actions((self) => ({
+  .actions(self => ({
     async doLoad() {
       const authenticationProviderPublicConfigs = await getAuthenticationProviderPublicConfigs();
       self.runInAction(() => {
@@ -35,17 +35,17 @@ const AuthenticationProviderPublicConfigsStore = BaseStore.named('Authentication
       });
     },
   }))
-  .views((self) => ({
+  .views(self => ({
     get authenticationProviderOptions() {
       if (self.authenticationProviderPublicConfigs && !_.isEmpty(self.authenticationProviderPublicConfigs)) {
         const authProviderOptions = self.authenticationProviderPublicConfigs
           // Remove user pools as an option if native users are disabled
           .filter(
-            (config) =>
+            config =>
               config.type !== 'cognito_user_pool' ||
               (config.type === 'cognito_user_pool' && config.enableNativeUserPoolUsers),
           )
-          .map((config) => ({
+          .map(config => ({
             key: config.id,
             text: config.title,
             value: config.id,

@@ -31,7 +31,7 @@ const ComputePlatform = types
     displayOrder: types.maybe(types.number),
     configurations: types.map(ComputeConfiguration),
   })
-  .actions((self) => ({
+  .actions(self => ({
     setComputePlatform(rawComputePlatform) {
       // Note: if you have partial data vs full data, you need to replace the applySnapshot() with
       // the appropriate logic
@@ -48,7 +48,7 @@ const ComputePlatform = types
       });
     },
   }))
-  .views((self) => ({
+  .views(self => ({
     get descHtml() {
       const showdown = getEnv(self).showdown;
       return showdown.convert(self.desc);

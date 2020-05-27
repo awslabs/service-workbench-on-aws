@@ -312,7 +312,12 @@ class WorkflowInstanceService extends Service {
     const dbService = await this.service('dbService');
     const table = this.tableName;
 
-    const result = await dbService.helper.getter().table(table).key({ id }).projection(fields).get();
+    const result = await dbService.helper
+      .getter()
+      .table(table)
+      .key({ id })
+      .projection(fields)
+      .get();
 
     return result;
   }
@@ -342,7 +347,7 @@ function prepareNewInstance(workflow, { runSpec = {}, status = 'not_started', as
   const wf = encode(wfId, wfVer);
   const stStatuses = [];
 
-  _.forEach(workflow.selectedSteps, (step) => {
+  _.forEach(workflow.selectedSteps, step => {
     delete step.desc;
     delete step.propsOverrideOption;
     delete step.configOverrideOption;

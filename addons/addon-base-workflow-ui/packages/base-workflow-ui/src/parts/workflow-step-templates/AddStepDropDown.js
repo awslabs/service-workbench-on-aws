@@ -44,7 +44,7 @@ class AddStepDropDown extends React.Component {
   getStepDropDownOptions() {
     const store = this.getStore();
     const list = store.list;
-    const options = _.map(list, (template) => ({
+    const options = _.map(list, template => ({
       text: template.latest.title,
       value: template.id,
     }));

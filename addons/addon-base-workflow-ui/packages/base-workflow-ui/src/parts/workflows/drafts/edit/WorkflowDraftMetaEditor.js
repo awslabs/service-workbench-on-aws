@@ -66,7 +66,7 @@ class WorkflowDraftMetaEditor extends React.Component {
     onCancel();
   };
 
-  handlePrevious = (event) => {
+  handlePrevious = event => {
     // we don't save the form in this case
     this.resetFlags();
     event.preventDefault();
@@ -83,7 +83,7 @@ class WorkflowDraftMetaEditor extends React.Component {
     onSubmit(event); // this will eventually call handleFormSubmission()
   }
 
-  handleFormSubmission = async (form) => {
+  handleFormSubmission = async form => {
     const editor = this.getEditor();
     const { title, desc, instanceTtl, runSpecSize, runSpecTarget } = form.values();
     const { draft } = editor;
@@ -155,7 +155,7 @@ class WorkflowDraftMetaEditor extends React.Component {
                 disabled={processing}
                 className="ml2"
                 content="Next"
-                onClick={(e) => this.handleOnSubmitNext(e, onSubmit)}
+                onClick={e => this.handleOnSubmitNext(e, onSubmit)}
               />
               {hasPrevious && (
                 <Button

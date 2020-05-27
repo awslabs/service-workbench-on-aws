@@ -41,7 +41,7 @@ class InputEntriesRenderer extends React.Component {
     const entries = this.getInputEntries();
     return (
       <>
-        {_.map(entries, (entry) => (
+        {_.map(entries, entry => (
           <InputEntryRenderer key={entry.name} form={form} inputEntry={entry} processing={processing} />
         ))}
       </>

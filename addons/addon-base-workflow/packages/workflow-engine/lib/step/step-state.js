@@ -20,8 +20,8 @@ class StepState {
     this.content = {};
     this.dirty = false;
     this.loaded = false;
-    const getterStore = new KeyGetterDelegate(async (key) => this.content[key], {
-      loadFn: async (key) => this.load(key),
+    const getterStore = new KeyGetterDelegate(async key => this.content[key], {
+      loadFn: async key => this.load(key),
       storeTitle: 'Step internal state',
     });
     Object.assign(this, getterStore.getMethods());

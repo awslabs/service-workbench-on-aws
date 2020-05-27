@@ -29,7 +29,7 @@ const UserRolesStore = BaseStore.named('UserRolesStore')
     userRoles: types.optional(types.map(UserRole), {}),
   })
 
-  .actions((self) => {
+  .actions(self => {
     // save the base implementation of cleanup
     const superCleanup = self.cleanup;
 
@@ -49,17 +49,17 @@ const UserRolesStore = BaseStore.named('UserRolesStore')
     };
   })
 
-  .views((self) => ({
+  .views(self => ({
     get list() {
       const result = [];
       // converting map self.users to result array
-      self.userRoles.forEach((userRole) => result.push(userRole));
+      self.userRoles.forEach(userRole => result.push(userRole));
       return result;
     },
     get dropdownOptions() {
       const result = [];
       // converting map self.users to result array
-      self.userRoles.forEach((userRole) => {
+      self.userRoles.forEach(userRole => {
         const role = {};
         role.key = userRole.id;
         role.value = userRole.id;

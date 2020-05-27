@@ -39,7 +39,7 @@ class WorkflowCommonStepConfigEditor extends React.Component {
     return this.getStepEditor().configEdit;
   }
 
-  handleEditOn = (event) => {
+  handleEditOn = event => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -52,7 +52,7 @@ class WorkflowCommonStepConfigEditor extends React.Component {
     stepEditorModel.setConfigEdit(false);
   };
 
-  handleSave = async (configs) => {
+  handleSave = async configs => {
     const onSave = this.props.onSave || _.noop;
     const stepEditorModel = this.getStepEditor();
 

@@ -30,7 +30,7 @@ const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/s
  */
 async function authenticate(authenticationPluginPayload) {
   const { token, container, authResult } = authenticationPluginPayload;
-  const notAuthenticated = (claims) => ({ token, container, authResult: { ...claims, authenticated: false } });
+  const notAuthenticated = claims => ({ token, container, authResult: { ...claims, authenticated: false } });
   const isAuthenticated = _.get(authResult, 'authenticated', false);
 
   // if the current authentication decision is "not authenticated" then return right away

@@ -35,7 +35,7 @@ function displaySuccess(msg, title = 'Submitted!') {
 function displayFormErrors(form) {
   const map = form.errors();
   const lines = [];
-  Object.keys(map).forEach((key) => {
+  Object.keys(map).forEach(key => {
     if (map[key]) lines.push(map[key]);
   });
 
@@ -67,7 +67,7 @@ function toMessage(msg, error) {
     const result = [];
     result.push('<br/>');
     result.push('<ul>');
-    _.forEach(messages, (message) => {
+    _.forEach(messages, message => {
       result.push(`<li style="margin-left: -20px;">${message}</li>`);
     });
     result.push('</ul><br/>&nbsp;');

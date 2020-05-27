@@ -16,7 +16,7 @@
 const _ = require('lodash');
 
 class PropsOverrideOption {
-  constructor(overrideOption = {}, supportedKeys = [], transformer = (key) => key) {
+  constructor(overrideOption = {}, supportedKeys = [], transformer = key => key) {
     this.overrideOption = overrideOption;
     this.supportedKeys = supportedKeys;
     this.transformer = transformer;
@@ -38,7 +38,7 @@ class PropsOverrideOption {
 
     const keys = this.supportedKeys;
 
-    _.forEach(keys, (key) => {
+    _.forEach(keys, key => {
       if (this.props.includes(key)) return;
       const transformedKey = this.transformer(key);
       const sideA = _.get(overridingObj, transformedKey);

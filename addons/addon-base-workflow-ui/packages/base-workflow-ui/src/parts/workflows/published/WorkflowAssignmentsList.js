@@ -99,7 +99,7 @@ class WorkflowAssignmentsList extends React.Component {
             <Table.HeaderCell width={3}>Updated</Table.HeaderCell>
           </Table.Row>
         </Table.Header>
-        <Table.Body>{_.map(assignments, (assignment) => this.renderAssignmentRow(assignment))}</Table.Body>
+        <Table.Body>{_.map(assignments, assignment => this.renderAssignmentRow(assignment))}</Table.Body>
       </Table>
     );
   }

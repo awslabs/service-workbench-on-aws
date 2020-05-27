@@ -17,7 +17,7 @@
 // API Gateway method arn consists of AWS ARN as above, but resource futher split into stage, method, and path (separated by '/').
 const methodArnRegexp = /^(arn:[\w-]+:[\w-]+:[\w-]+:[\w-]+:[\w-]+)\/([^/]+)\/([^/]+)(.+)$/;
 
-const parseMethodArn = (s) => {
+const parseMethodArn = s => {
   const matched = methodArnRegexp.exec(s);
   if (!matched) {
     return undefined;

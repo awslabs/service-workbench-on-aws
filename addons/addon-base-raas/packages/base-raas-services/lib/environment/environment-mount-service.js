@@ -24,7 +24,7 @@ const settingKeys = {
   studyDataKmsPolicyWorkspaceSid: 'studyDataKmsPolicyWorkspaceSid',
 };
 
-const parseS3Arn = (arn) => {
+const parseS3Arn = arn => {
   const path = arn.slice('arn:aws:s3:::'.length);
   const slashIndex = path.indexOf('/');
   return slashIndex !== -1
@@ -54,7 +54,7 @@ class EnvironmentMountService extends Service {
       s3Mounts: JSON.stringify(s3Mounts.map(({ id, bucket, prefix }) => ({ id, bucket, prefix }))),
       iamPolicyDocument: JSON.stringify(iamPolicyDocument),
       environmentInstanceFiles: this.settings.get(settingKeys.environmentInstanceFiles),
-      s3Prefixes: s3Mounts.filter(({ category }) => category !== 'Open Data').map((mount) => mount.prefix),
+      s3Prefixes: s3Mounts.filter(({ category }) => category !== 'Open Data').map(mount => mount.prefix),
     };
   }
 
@@ -78,7 +78,7 @@ class EnvironmentMountService extends Service {
     // may be an array or a string
     const updateAwsPrincipals = (awsPrincipals, removedPrincipal) => {
       if (Array.isArray(awsPrincipals)) {
-        awsPrincipals = awsPrincipals.filter((principal) => principal !== removedPrincipal);
+        awsPrincipals = awsPrincipals.filter(principal => principal !== removedPrincipal);
       } else {
         awsPrincipals = [];
       }
@@ -116,7 +116,7 @@ class EnvironmentMountService extends Service {
 
         // Get statements for listing and reading study data, respectively
         const statements = s3Policy.Statement;
-        s3Prefixes.forEach((prefix) => {
+        s3Prefixes.forEach(prefix => {
           const listSid = `List:${prefix}`;
           const getSid = `Get:${prefix}`;
 
@@ -142,7 +142,7 @@ class EnvironmentMountService extends Service {
           };
 
           // Pull out existing statements if available
-          statements.forEach((statement) => {
+          statements.forEach(statement => {
             if (statement.Sid === listSid) {
               listStatement = statement;
             } else if (statement.Sid === getSid) {
@@ -155,8 +155,8 @@ class EnvironmentMountService extends Service {
           listStatement.Principal.AWS = updateAwsPrincipals(listStatement.Principal.AWS, workspaceRoleArn);
           getStatement.Principal.AWS = updateAwsPrincipals(getStatement.Principal.AWS, workspaceRoleArn);
 
-          s3Policy.Statement = s3Policy.Statement.filter((statement) => ![listSid, getSid].includes(statement.Sid));
-          [listStatement, getStatement].forEach((statement) => {
+          s3Policy.Statement = s3Policy.Statement.filter(statement => ![listSid, getSid].includes(statement.Sid));
+          [listStatement, getStatement].forEach(statement => {
             // Only add updated statement if it contains principals (otherwise leave it out)
             if (statement.Principal.AWS.length > 0) {
               s3Policy.Statement.push(statement);
@@ -178,7 +178,7 @@ class EnvironmentMountService extends Service {
 
         // Get statement
         const sid = this.settings.get(settingKeys.studyDataKmsPolicyWorkspaceSid);
-        let environmentStatement = kmsPolicy.Statement.find((statement) => statement.Sid === sid);
+        let environmentStatement = kmsPolicy.Statement.find(statement => statement.Sid === sid);
         if (!environmentStatement) {
           // Create new statement if it doesn't already exist
           environmentStatement = {
@@ -194,7 +194,7 @@ class EnvironmentMountService extends Service {
         // NOTE: The S3 API *should* remove duplicate principals, if any
         environmentStatement.Principal.AWS = updateAwsPrincipals(environmentStatement.Principal.AWS, workspaceRoleArn);
 
-        kmsPolicy.Statement = kmsPolicy.Statement.filter((statement) => statement.Sid !== sid);
+        kmsPolicy.Statement = kmsPolicy.Statement.filter(statement => statement.Sid !== sid);
         if (environmentStatement.Principal.AWS.length > 0) {
           // Only add updated statement if it contains principals (otherwise leave it out)
           kmsPolicy.Statement.push(environmentStatement);
@@ -213,7 +213,7 @@ class EnvironmentMountService extends Service {
     if (studyIds && studyIds.length) {
       const studyService = await this.service('studyService');
       studyInfo = await Promise.all(
-        studyIds.map(async (studyId) => {
+        studyIds.map(async studyId => {
           try {
             const { id, name, category, resources } = await studyService.mustFind(requestContext, studyId);
             return { id, name, category, resources };
@@ -234,7 +234,7 @@ class EnvironmentMountService extends Service {
     let permissions = {};
     if (studyInfo.length) {
       // Get requested study IDs
-      const requestedStudyIds = studyInfo.map((study) => study.id);
+      const requestedStudyIds = studyInfo.map(study => study.id);
 
       // Retrieve and verify user's study permissions
       const studyPermissionService = await this.service('studyPermissionService');
@@ -245,7 +245,7 @@ class EnvironmentMountService extends Service {
 
       // Add Open Data read access for everyone
       permissions.readonlyAccess = permissions.readonlyAccess.concat(
-        studyInfo.filter((study) => study.category === 'Open Data').map((study) => study.id),
+        studyInfo.filter(study => study.category === 'Open Data').map(study => study.id),
       );
 
       // Determine whether any forbidden studies were requested
@@ -266,7 +266,7 @@ class EnvironmentMountService extends Service {
       mounts = studyInfo.reduce(
         (result, { id, resources, category }) =>
           result.concat(
-            resources.map((resource) => {
+            resources.map(resource => {
               const { bucket, prefix } = parseS3Arn(resource.arn);
               return { id, bucket, prefix, category };
             }),
@@ -285,14 +285,14 @@ class EnvironmentMountService extends Service {
 
       // Collect study resources
       const objectPathArns = _.flatten(
-        studyInfo.map((info) =>
+        studyInfo.map(info =>
           info.resources
             // Pull out resource ARNs
-            .map((resource) => resource.arn)
+            .map(resource => resource.arn)
             // Only grab S3 ARNs
-            .filter((arn) => arn.startsWith('arn:aws:s3:'))
+            .filter(arn => arn.startsWith('arn:aws:s3:'))
             // Normalize the ARNs by ensuring they end with "/*"
-            .map((arn) => {
+            .map(arn => {
               switch (arn.slice(-1)) {
                 case '*':
                   break;
@@ -319,7 +319,7 @@ class EnvironmentMountService extends Service {
 
       // Create map of buckets whose paths need list access
       const bucketPaths = {};
-      objectPathArns.forEach((arn) => {
+      objectPathArns.forEach(arn => {
         const { bucket, prefix } = parseS3Arn(arn);
         if (!(bucket in bucketPaths)) {
           bucketPaths[bucket] = [];
@@ -329,7 +329,7 @@ class EnvironmentMountService extends Service {
 
       // Add bucket list permissions to statements
       let bucketCtr = 1;
-      Object.keys(bucketPaths).forEach((bucketName) => {
+      Object.keys(bucketPaths).forEach(bucketName => {
         statements.push({
           Sid: `studyListS3Access${bucketCtr}`,
           Effect: 'Allow',

@@ -210,7 +210,7 @@ class WorkflowTemplateDraftService extends Service {
 
     // We need to loop through all the steps and remove the step template, otherwise the createVersion won't work
     const template = updatedDraft.template;
-    _.forEach(template.selectedSteps, (step) => {
+    _.forEach(template.selectedSteps, step => {
       delete step.stepTemplate;
       delete step.isNew;
     });
@@ -298,7 +298,12 @@ class WorkflowTemplateDraftService extends Service {
     const dbService = await this.service('dbService');
     const table = this.tableName;
 
-    const result = await dbService.helper.getter().table(table).key('id', id).projection(fields).get();
+    const result = await dbService.helper
+      .getter()
+      .table(table)
+      .key('id', id)
+      .projection(fields)
+      .get();
 
     return result;
   }

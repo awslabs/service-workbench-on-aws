@@ -44,7 +44,7 @@ class WorkflowCommonStepPropsEditor extends React.Component {
     return this.getStepEditor().propsEdit;
   }
 
-  handleEditOn = (event) => {
+  handleEditOn = event => {
     event.preventDefault();
     event.stopPropagation();
 
@@ -57,7 +57,7 @@ class WorkflowCommonStepPropsEditor extends React.Component {
     stepEditorModel.setPropsEdit(false);
   };
 
-  handleSave = async (form) => {
+  handleSave = async form => {
     const onSave = this.props.onSave || _.noop;
     const stepEditorModel = this.getStepEditor();
     const { skippable } = form.values();

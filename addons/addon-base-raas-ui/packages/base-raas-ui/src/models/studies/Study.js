@@ -42,7 +42,7 @@ const Study = types
     filesStore: types.maybe(StudyFilesStore),
     permissionsStore: types.maybe(StudyPermissionsStore),
   })
-  .actions((self) => ({
+  .actions(self => ({
     setStudy(rawStudy) {
       // Note: if you have partial data vs full data, you need to replace the applySnapshot() with
       // the appropriate logic
@@ -65,7 +65,7 @@ const Study = types
   }))
 
   // eslint-disable-next-line no-unused-vars
-  .views((self) => ({
+  .views(self => ({
     // add view methods here
     get isOpenDataStudy() {
       return self.category === categories.openData.name; // TODO the backend should really send an id and not a name

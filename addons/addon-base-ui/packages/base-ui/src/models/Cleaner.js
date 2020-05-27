@@ -31,7 +31,7 @@ class Cleaner {
     // it is important that we start with cleaning the disposers, otherwise snapshots events will be fired
     // for cleaned stores
     let keys = _.keys(disposers);
-    _.forEach(keys, (key) => {
+    _.forEach(keys, key => {
       const fn = disposers[key];
       if (_.isFunction(fn)) {
         fn();
@@ -40,7 +40,7 @@ class Cleaner {
     });
 
     keys = _.keys(intervalIds);
-    _.forEach(keys, (key) => {
+    _.forEach(keys, key => {
       const id = intervalIds[key];
       if (!_.isNil(id)) {
         clearInterval(id);
@@ -51,7 +51,7 @@ class Cleaner {
     runInAction(() => {
       forgetIdToken();
 
-      _.forEach(this.appContext, (obj) => {
+      _.forEach(this.appContext, obj => {
         if (obj === this) return; // we don't want to end up in an infinite loop
         if (_.isFunction(obj.cleanup)) {
           // console.log(`Cleaner.cleanup() : calling ${key}.clear()`);

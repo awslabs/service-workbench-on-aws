@@ -26,8 +26,8 @@ const authProviderConstants = require('@aws-ee/base-api-services/lib/authenticat
  * @param authConfigOrTypeConfig Authentication provider config or authentication provider type configuration
  * @returns {{impl}}
  */
-const sanitize = (authConfigOrTypeConfig) => {
-  const sanitizeOne = (config) => {
+const sanitize = authConfigOrTypeConfig => {
+  const sanitizeOne = config => {
     if (_.get(config, 'config.impl')) {
       // When the auth provider type config is passed the impl is at 'config.impl' path
       delete config.config.impl;

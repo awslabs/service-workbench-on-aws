@@ -66,7 +66,7 @@ class AddAwsAccount extends React.Component {
     const processing = this.formProcessing;
     const fields = this.addAwsAccountFormFields;
     const toEditableInput = (attributeName, type = 'text') => {
-      const handleChange = action((event) => {
+      const handleChange = action(event => {
         event.preventDefault();
         this.awsAccount[attributeName] = event.target.value;
       });
@@ -87,7 +87,7 @@ class AddAwsAccount extends React.Component {
         <Dimmer active={processing} inverted>
           <Loader inverted>Checking</Loader>
         </Dimmer>
-        {Object.keys(fields).map((field) => (
+        {Object.keys(fields).map(field => (
           <React.Fragment key={field}>
             {this.renderField(field, toEditableInput(field))}
             <div className="mb4" />
@@ -130,7 +130,7 @@ class AddAwsAccount extends React.Component {
         {hasError && (
           <div className="ui pointing red basic label">
             <List>
-              {_.map(fieldErrors, (fieldError) => (
+              {_.map(fieldErrors, fieldError => (
                 <List.Item key={name}>
                   <List.Content>{fieldError}</List.Content>
                 </List.Item>
@@ -148,7 +148,7 @@ class AddAwsAccount extends React.Component {
     this.props.history.push(link);
   }
 
-  handleCancel = action((event) => {
+  handleCancel = action(event => {
     event.preventDefault();
     event.stopPropagation();
     this.formProcessing = false;

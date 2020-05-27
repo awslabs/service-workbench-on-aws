@@ -88,7 +88,7 @@ class AddAuthProviders extends Service {
 
     // If user pools aren't enabled and no IdPs are configured, skip user pool creation
     const idpsConfigured = [fedIdpIds, fedIdpNames, fedIdpDisplayNames, fedIdpMetadatas].some(
-      (array) => array.length === 0,
+      array => array.length === 0,
     );
     if (!enableNativeUserPoolUsers && idpsConfigured) {
       this.log.info('Cognito user pool not enabled in settings; skipping creation');

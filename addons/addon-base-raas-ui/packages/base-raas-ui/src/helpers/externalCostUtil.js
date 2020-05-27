@@ -20,7 +20,7 @@ const getEstimatedCost = async (env, numberOfDaysToGetCostInfo) => {
   const envConfig = EnvironmentConfigurationsStore.create();
   await envConfig.load();
   const allEnvConfigs = envConfig.list;
-  const config = _.find(allEnvConfigs, (conf) => {
+  const config = _.find(allEnvConfigs, conf => {
     // Hail EMR has spot pricing and on demand price. o we need to pick the correct EMR env config
     if (env.instanceInfo.type === 'emr') {
       if (env.instanceInfo.config.spotBidPrice) {

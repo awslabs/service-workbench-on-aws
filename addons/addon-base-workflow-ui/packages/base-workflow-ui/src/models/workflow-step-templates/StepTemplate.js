@@ -28,7 +28,7 @@ import { InputManifest, applyMarkdown, visit } from '@aws-ee/base-ui/dist/models
 // - removing 'required' from rules attributes
 function deriveAdminInputManifest(inputManifest = {}) {
   const admin = _.cloneDeep(inputManifest);
-  const visitFn = (item) => {
+  const visitFn = item => {
     if (_.isString(item.rules)) {
       item.rules = item.rules.replace(/\|required\|/, '');
       item.rules = item.rules.replace(/required\|/, '');
@@ -57,7 +57,7 @@ const StepTemplateVersion = types
     inputManifest: types.maybe(InputManifest),
     adminInputManifest: types.maybe(InputManifest),
   })
-  .actions((self) => {
+  .actions(self => {
     function transformManifest(manifest) {
       // We now apply markdown
       const showdown = getEnv(self).showdown;
@@ -86,7 +86,7 @@ const StepTemplateVersion = types
     };
   })
 
-  .views((_self) => ({}));
+  .views(_self => ({}));
 
 // ==================================================================
 // StepTemplate
@@ -96,13 +96,13 @@ const StepTemplate = types
     id: types.identifier,
     versions: types.optional(types.array(StepTemplateVersion), []),
   })
-  .actions((self) => ({
+  .actions(self => ({
     setStepTemplate(template) {
       // we try to preserve any existing version objects and update their content instead
-      const mapOfExisting = _.keyBy(self.versions, (version) => version.v.toString());
+      const mapOfExisting = _.keyBy(self.versions, version => version.v.toString());
       const processed = [];
 
-      _.forEach(template.versions, (templateVersion) => {
+      _.forEach(template.versions, templateVersion => {
         const existing = mapOfExisting[templateVersion.v];
         if (existing) {
           existing.setStepTemplateVersion(templateVersion);
@@ -116,11 +116,11 @@ const StepTemplate = types
     },
   }))
 
-  .views((self) => ({
+  .views(self => ({
     get latest() {
       // we loop through all 'v' numbers and pick the template with the largest 'v' value
       let largestVersion = self.versions[0];
-      _.forEach(self.versions, (version) => {
+      _.forEach(self.versions, version => {
         if (version.v > largestVersion.v) {
           largestVersion = version;
         }
@@ -133,7 +133,7 @@ const StepTemplate = types
     },
 
     get versionNumbers() {
-      return _.map(self.versions, (version) => version.v);
+      return _.map(self.versions, version => version.v);
     },
   }));
 

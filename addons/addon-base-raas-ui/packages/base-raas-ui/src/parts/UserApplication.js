@@ -38,7 +38,7 @@ class UserApplication extends React.Component {
     this.form.$('email').value = this.currentUser.username;
   }
 
-  handleLogout = action(async (event) => {
+  handleLogout = action(async event => {
     this.logoutProcessing = true;
     event.preventDefault();
     event.stopPropagation();
@@ -127,7 +127,7 @@ class UserApplication extends React.Component {
     );
   }
 
-  handleSubmit = async (form) => {
+  handleSubmit = async form => {
     try {
       const user = form.values();
 
