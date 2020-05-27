@@ -61,7 +61,7 @@ class WorkflowRegistryService extends Service {
 
   // Returns a list of all workflow in array of this shape: [{ id, v, yaml }, ...]
   async listWorkflows() {
-    return _.map(this.store, (item) => {
+    return _.map(this.store, item => {
       const { yaml } = item.value;
       const { id, v } = yaml;
       return { id, v, yaml };

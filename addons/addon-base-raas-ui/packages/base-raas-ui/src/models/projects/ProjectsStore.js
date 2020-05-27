@@ -32,7 +32,7 @@ const ProjectsStore = BaseStore.named('ProjectsStore')
     tickPeriod: 900 * 1000, // 15 minutes
   })
 
-  .actions((self) => {
+  .actions(self => {
     // save the base implementation of cleanup
     const superCleanup = self.cleanup;
 
@@ -60,7 +60,7 @@ const ProjectsStore = BaseStore.named('ProjectsStore')
         }
       },
 
-      getProjectStore: (projectId) => {
+      getProjectStore: projectId => {
         let entry = self.projectStores.get(projectId);
         if (!entry) {
           // Lazily create the store
@@ -78,7 +78,7 @@ const ProjectsStore = BaseStore.named('ProjectsStore')
     };
   })
 
-  .views((self) => ({
+  .views(self => ({
     get empty() {
       return self.projects.size === 0;
     },
@@ -89,7 +89,7 @@ const ProjectsStore = BaseStore.named('ProjectsStore')
 
     get list() {
       const result = [];
-      self.projects.forEach((project) => result.push(project));
+      self.projects.forEach(project => result.push(project));
 
       return _.reverse(_.sortBy(result, ['createdAt', 'id']));
     },
@@ -97,7 +97,7 @@ const ProjectsStore = BaseStore.named('ProjectsStore')
     get dropdownOptions() {
       const result = [];
       // converting map self.users to result array
-      self.projects.forEach((project) => {
+      self.projects.forEach(project => {
         const res = {};
         res.key = project.id;
         res.value = project.id;

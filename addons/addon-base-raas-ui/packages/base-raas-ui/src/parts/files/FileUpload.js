@@ -140,7 +140,7 @@ class ConnectedFileUpload extends React.Component {
       await group.start(this.props.fileUploadHandler);
       let success = 0;
       let errors = 0;
-      group.fileUploadObjects.forEach((fileUpload) => {
+      group.fileUploadObjects.forEach(fileUpload => {
         // eslint-disable-next-line default-case
         switch (fileUpload.status) {
           case 'COMPLETE':
@@ -165,20 +165,20 @@ class ConnectedFileUpload extends React.Component {
     }
   };
 
-  handleCancelFileUpload = (id) => {
+  handleCancelFileUpload = id => {
     const fileUpload = this.fileUploadGroup.getFileUpload(id);
     if (fileUpload) {
       fileUpload.doCancel();
     }
   };
 
-  handleRemoveFileUpload = (id) => {
+  handleRemoveFileUpload = id => {
     this.fileUploadGroup.remove(id);
   };
 
-  handleSelectFiles = (files) => {
+  handleSelectFiles = files => {
     const group = this.fileUploadGroup;
-    files.forEach((file) => {
+    files.forEach(file => {
       group.add({ file });
     });
   };

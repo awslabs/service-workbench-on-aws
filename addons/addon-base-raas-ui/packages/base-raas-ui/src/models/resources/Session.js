@@ -62,7 +62,7 @@ function createNewSession(raw) {
   return (
     Promise.resolve()
       // .then(() => createSession(raw))
-      .then((result) => Session.create(result))
+      .then(result => Session.create(result))
   );
 }
 

@@ -71,7 +71,7 @@ class AuthenticationProviderCard extends Component {
     );
   }
 
-  handleEditModeClick = (event) => {
+  handleEditModeClick = event => {
     event.preventDefault();
     event.stopPropagation();
     const id = this.getAuthenticationProviderConfig().id;

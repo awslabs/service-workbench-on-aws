@@ -27,7 +27,7 @@ class ConfigOverrideOption {
 
     const keys = Object.keys(overridingConfig);
 
-    _.forEach(keys, (key) => {
+    _.forEach(keys, key => {
       if (this.configs.includes(key)) return;
       if (!_.isEqual(overridingConfig[key], srcConfig[key])) result.push(key);
     });

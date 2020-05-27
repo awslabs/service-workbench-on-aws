@@ -112,7 +112,7 @@ class WorkflowPublishedTemplatesList extends React.Component {
 
     return (
       <div>
-        {list.map((template) => (
+        {list.map(template => (
           <Segment className="p3 mb2" clearing key={template.id}>
             <WorkflowTemplateCard template={template} />
           </Segment>

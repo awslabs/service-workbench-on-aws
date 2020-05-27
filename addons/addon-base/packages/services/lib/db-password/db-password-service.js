@@ -65,14 +65,23 @@ class DbPasswordService extends Service {
     const salt = uuid();
     const hashed = this.hash({ password, salt });
 
-    await dbService.helper.updater().table(table).key({ username }).item({ hashed, salt }).update();
+    await dbService.helper
+      .updater()
+      .table(table)
+      .key({ username })
+      .item({ hashed, salt })
+      .update();
   }
 
   async exists({ username, password }) {
     const dbService = await this.service('dbService');
     const table = this.settings.get(settingKeys.tableName);
 
-    const item = await dbService.helper.getter().table(table).key('username', username).get();
+    const item = await dbService.helper
+      .getter()
+      .table(table)
+      .key('username', username)
+      .get();
 
     if (item === undefined) return false;
     const hashed = this.hash({ password, salt: item.salt });

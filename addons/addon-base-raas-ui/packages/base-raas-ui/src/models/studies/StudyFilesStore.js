@@ -38,7 +38,7 @@ const StudyFilesStore = BaseStore.named('StudyFilesStore')
     tickPeriod: 5 * 1000, // 5 seconds
   })
 
-  .actions((self) => {
+  .actions(self => {
     // save the base implementation of cleanup
     const superCleanup = self.cleanup;
 
@@ -57,7 +57,7 @@ const StudyFilesStore = BaseStore.named('StudyFilesStore')
           // Sort files by name and cast lastModified as Date()
           files = files
             .sort((fileA, fileB) => fileA.filename.localeCompare(fileB.filename))
-            .map((file) => ({
+            .map(file => ({
               ...file,
               lastModified: new Date(file.lastModified),
             }));
@@ -76,7 +76,7 @@ const StudyFilesStore = BaseStore.named('StudyFilesStore')
     };
   })
 
-  .views((self) => ({
+  .views(self => ({
     get empty() {
       return self.files.length === 0;
     },

@@ -127,7 +127,7 @@ async function handler({ input = {}, meta = {}, loop = {} } = {}, _context, regi
   const workflowInstance = new WorkflowInstance({ workflowInstance: instance });
 
   // A convenient function to allow us to wrap a fn with catchIfErrorAsync
-  const safeCall = (fn) => async (...params) => catchIfErrorAsync(async () => fn(...params));
+  const safeCall = fn => async (...params) => catchIfErrorAsync(async () => fn(...params));
 
   // Get the steps registry and register the steps and construct the classResolver
   const stepRegistry = await container.find('stepRegistryService');
@@ -194,7 +194,7 @@ async function handler({ input = {}, meta = {}, loop = {} } = {}, _context, regi
   // Register with the step loop provider event and the step loop events
   stepLoopProvider.on(
     'stepLoopCreated',
-    safeCall(async (stepLoop) => {
+    safeCall(async stepLoop => {
       const step = stepLoop.step;
       const reporter = workflowReporter.getStepReporter({ step });
       stepLoop
@@ -208,19 +208,19 @@ async function handler({ input = {}, meta = {}, loop = {} } = {}, _context, regi
         )
         .on(
           'stepLoopMethodCall',
-          safeCall(async (name) => reporter.print(`StepLoop - calling ${name}()`)),
+          safeCall(async name => reporter.print(`StepLoop - calling ${name}()`)),
         )
         .on(
           'stepLoopQueueAdd',
-          safeCall(async (msg) => reporter.print(msg)),
+          safeCall(async msg => reporter.print(msg)),
         )
         .on(
           'stepLoopStepPausing',
-          safeCall(async (reasonForPause) => reporter.stepPaused(reasonForPause)),
+          safeCall(async reasonForPause => reporter.stepPaused(reasonForPause)),
         )
         .on(
           'stepLoopStepResuming',
-          safeCall(async (reasonForResume) => reporter.stepResumed(reasonForResume)),
+          safeCall(async reasonForResume => reporter.stepResumed(reasonForResume)),
         )
         .on(
           'stepLoopStepMaxPauseReached',

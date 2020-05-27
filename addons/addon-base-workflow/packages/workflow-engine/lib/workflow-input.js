@@ -20,7 +20,7 @@ const KeyGetterDelegate = require('./helpers/key-getter-delegate');
 class WorkflowInput {
   constructor({ input }) {
     this.content = input;
-    const getterDelegate = new KeyGetterDelegate(async (key) => this.content[key], {
+    const getterDelegate = new KeyGetterDelegate(async key => this.content[key], {
       storeTitle: 'Workflow input',
     });
     Object.assign(this, getterDelegate.getMethods());

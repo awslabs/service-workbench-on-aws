@@ -59,17 +59,17 @@ class SelectComputePlatformStep extends React.Component {
     return this.props.computePlatformsStore;
   }
 
-  handleSelectedComputeType = (typeId) => {
+  handleSelectedComputeType = typeId => {
     this.selectedPlatformId = typeId;
   };
 
-  handlePrevious = (event) => {
+  handlePrevious = event => {
     event.preventDefault();
     event.stopPropagation();
     if (_.isFunction(this.props.onPrevious)) this.props.onPrevious();
   };
 
-  handleNext = async (event) => {
+  handleNext = async event => {
     event.preventDefault();
     event.stopPropagation();
     if (_.isFunction(this.props.onNext)) {
@@ -123,8 +123,8 @@ class SelectComputePlatformStep extends React.Component {
   renderCards() {
     const processing = this.processing;
     const computeTypes = this.computePlatformsStore.list || [];
-    const isSelected = (type) => type.id === this.selectedPlatformId;
-    const getAttrs = (type) => {
+    const isSelected = type => type.id === this.selectedPlatformId;
+    const getAttrs = type => {
       const attrs = {};
       if (isSelected(type)) attrs.color = 'blue';
       if (!processing) attrs.onClick = () => this.handleSelectedComputeType(type.id);
@@ -133,7 +133,7 @@ class SelectComputePlatformStep extends React.Component {
 
     return (
       <Card.Group stackable itemsPerRow={3}>
-        {_.map(computeTypes, (type) => (
+        {_.map(computeTypes, type => (
           <Card key={type.id} raised className={c('mb3', { 'cursor-pointer': !processing })} {...getAttrs(type)}>
             <Card.Content>
               <Card.Header>

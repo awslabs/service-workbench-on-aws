@@ -83,7 +83,7 @@ class ApiKeysList extends Component {
     }
   };
 
-  handleRevokeApiKey = async (apiKeyId) => {
+  handleRevokeApiKey = async apiKeyId => {
     try {
       await this.getStore().revokeApiKey(apiKeyId);
     } catch (error) {
@@ -152,7 +152,7 @@ class ApiKeysList extends Component {
     };
     const renderTableBody = () => {
       let rowNum = 0;
-      return _.map(apiKeys, (apiKey) => {
+      return _.map(apiKeys, apiKey => {
         ++rowNum;
         return renderRow(rowNum, apiKey);
       });

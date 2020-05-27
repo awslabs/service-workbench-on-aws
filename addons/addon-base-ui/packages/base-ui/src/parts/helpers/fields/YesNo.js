@@ -40,7 +40,7 @@ const Component = observer(({ field, disabled = false, size = 'small', className
   const errorClass = hasError ? 'error' : '';
   const yesSelected = value === yesValue;
   const noSelected = value === noValue;
-  const handleClick = (toAssign) => (event) => {
+  const handleClick = toAssign => event => {
     event.preventDefault();
     event.stopPropagation();
     sync(toAssign);

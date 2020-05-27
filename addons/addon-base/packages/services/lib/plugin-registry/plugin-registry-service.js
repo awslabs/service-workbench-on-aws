@@ -39,7 +39,7 @@ class PluginRegistryService extends Service {
 
   async getPluginsWithMethod(extensionPoint, methodName) {
     const plugins = await this.getPlugins(extensionPoint);
-    return _.filter(plugins, (plugin) => _.isFunction(plugin[methodName]));
+    return _.filter(plugins, plugin => _.isFunction(plugin[methodName]));
   }
 
   async runPlugins(extensionPoint, methodName, ...args) {
@@ -47,7 +47,7 @@ class PluginRegistryService extends Service {
 
     // Each plugin needs to be executed in order. The plugin method may return a promise we need to await
     // it in sequence.
-    return processSequentially(plugins, async (plugin) => plugin[methodName](...args));
+    return processSequentially(plugins, async plugin => plugin[methodName](...args));
   }
 
   /**

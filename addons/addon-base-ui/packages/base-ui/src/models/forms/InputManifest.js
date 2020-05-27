@@ -23,18 +23,18 @@ const InputManifest = types
   .model('InputManifest', {
     sections: types.optional(types.array(types.frozen()), []),
   })
-  .actions((_self) => ({}))
+  .actions(_self => ({}))
 
-  .views((self) => ({
+  .views(self => ({
     // An array of all the input entries (excluding non-interactive ones). This is a convenient method that
     // traverses the whole input manifest tree.
     // [ { name, title, ... }, { name, title, ...} ]
     get flattened() {
-      return _.flatten(_.map(self.sections, (section) => findEntries(section.children)));
+      return _.flatten(_.map(self.sections, section => findEntries(section.children)));
     },
 
     get names() {
-      return _.map(self.flattened, (entry) => entry.name);
+      return _.map(self.flattened, entry => entry.name);
     },
 
     get empty() {
@@ -120,14 +120,14 @@ function applyMarkdown({ inputManifest, showdown, assets = {} }) {
   function transform(obj) {
     if (_.isNil(obj)) return obj;
     if (_.isArray(obj))
-      return _.map(obj, (item) => {
+      return _.map(obj, item => {
         return transform(item);
       });
 
     if (!_.isObject(obj)) return obj;
     const keys = Object.keys(obj);
 
-    keys.forEach((key) => {
+    keys.forEach(key => {
       if (key !== 'desc') {
         obj[key] = transform(obj[key]);
         return;
@@ -147,7 +147,7 @@ function applyMarkdown({ inputManifest, showdown, assets = {} }) {
 
 // Given an array of input entries, visit each one of them by passing the item
 // to the visitFn
-function visit(input = [], visitFn = (obj) => obj) {
+function visit(input = [], visitFn = obj => obj) {
   const result = [];
   if (input.length === 0) return result;
   const queue = input.slice();
@@ -159,7 +159,7 @@ function visit(input = [], visitFn = (obj) => obj) {
     if (_.isObject(children)) {
       const entries = visit(children, visitFn); // recursive call
       if (entries.length > 0) {
-        entries.forEach((field) => {
+        entries.forEach(field => {
           result.push(visitFn(field));
         });
       }
@@ -188,7 +188,7 @@ function findEntries(input = []) {
     if (_.isObject(children)) {
       const entries = findEntries(children); // recursive call
       if (entries.length > 0) {
-        entries.forEach((field) => {
+        entries.forEach(field => {
           result.push(field);
         });
       }

@@ -29,7 +29,7 @@ const EnvironmentStore = BaseStore.named('EnvironmentStore')
     tickPeriod: 300 * 1000, // 5 minutes
   })
 
-  .actions((self) => {
+  .actions(self => {
     // save the base implementation of cleanup
     const superCleanup = self.cleanup;
 
@@ -61,7 +61,7 @@ const EnvironmentStore = BaseStore.named('EnvironmentStore')
     };
   })
 
-  .views((self) => ({
+  .views(self => ({
     get environment() {
       const parent = getParent(self, 2);
       const w = parent.getEnvironment(self.environmentId);

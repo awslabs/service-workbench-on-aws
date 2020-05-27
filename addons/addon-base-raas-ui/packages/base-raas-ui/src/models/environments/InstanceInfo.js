@@ -26,7 +26,7 @@ const InstanceInfo = types
     iamPolicyDocument: '',
     environmentInstanceFiles: '',
   })
-  .views((self) => ({
+  .views(self => ({
     get id() {
       return self.identifierStr;
     },

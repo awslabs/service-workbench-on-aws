@@ -70,12 +70,12 @@ class CreateInternalPlatformForm extends React.Component {
   };
 
   // eslint-disable-next-line consistent-return
-  handleNext = async (form) => {
+  handleNext = async form => {
     const data = { ...form.values(), params: {}, platformId: this.platformId };
 
     // We pick the mutable parameters and put them in params object
     const configuration = _.find(this.configurations, ['id', data.configurationId]);
-    _.forEach(_.keys(configuration.mutableParams), (key) => {
+    _.forEach(_.keys(configuration.mutableParams), key => {
       if (!_.has(data, key)) return;
       data.params[key] = data[key];
       delete data[key];

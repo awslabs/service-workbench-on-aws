@@ -128,7 +128,7 @@ class ServerlessUIToolsPlugin {
         args,
         stdout: {
           log: this.cli.log,
-          raw: (msg) => {
+          raw: msg => {
             this.mutatedBucket = true; // If external command outputs to stdout.raw then we probably mutated the bucket
             this.cli.raw(msg);
           },

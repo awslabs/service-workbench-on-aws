@@ -18,7 +18,7 @@ const inspect = require('util').inspect;
 
 // a promise friendly delay function
 function delay(seconds) {
-  return new Promise((resolve) => {
+  return new Promise(resolve => {
     _.delay(resolve, seconds * 1000);
   });
 }

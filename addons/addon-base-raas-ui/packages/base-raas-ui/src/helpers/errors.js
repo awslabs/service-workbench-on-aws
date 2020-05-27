@@ -46,19 +46,19 @@ const boom = {
 // inject all the codes array elements as properties for the boom
 // example 'apiError' injected => produces boom.apiError(errOrFriendlyMsg, friendlyMsg)
 // then you can call boom.apiError(err, 'Error fetching user info')
-codes.forEach((code) => {
+codes.forEach(code => {
   boom[code] = (errOrFriendlyMsg, friendlyMsg) => boom.error(errOrFriendlyMsg, code, friendlyMsg);
 });
 
-const isNotFound = (error) => {
+const isNotFound = error => {
   return _.get(error, 'code') === 'notFound';
 };
 
-const isTokenExpired = (error) => {
+const isTokenExpired = error => {
   return _.get(error, 'code') === 'tokenExpired';
 };
 
-const isForbidden = (error) => {
+const isForbidden = error => {
   return _.get(error, 'code') === 'forbidden';
 };
 

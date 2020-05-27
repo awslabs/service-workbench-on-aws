@@ -44,7 +44,10 @@ class WorkflowAssignmentService extends Service {
   }
 
   async find(requestContext, { id, fields = [] }) {
-    const result = await this._getter().key({ id }).projection(fields).get();
+    const result = await this._getter()
+      .key({ id })
+      .projection(fields)
+      .get();
 
     return this._fromDbToDataObject(result);
   }
@@ -57,13 +60,18 @@ class WorkflowAssignmentService extends Service {
 
   async listByTriggerType(requestContext, { triggerType, beginsWith, fields = [] }) {
     // beginsWith is optional
-    let op = this._query().index(typeIndexName).key('triggerType', triggerType);
+    let op = this._query()
+      .index(typeIndexName)
+      .key('triggerType', triggerType);
 
     if (!_.isEmpty(beginsWith)) op = op.sortKey('triggerTypeData').begins(beginsWith);
 
-    const result = await op.limit(2000).projection(fields).query();
+    const result = await op
+      .limit(2000)
+      .projection(fields)
+      .query();
 
-    return _.map(result, (item) => this._fromDbToDataObject(item));
+    return _.map(result, item => this._fromDbToDataObject(item));
   }
 
   async listByWorkflow(requestContext, { workflowId, fields = [] }) {
@@ -76,7 +84,7 @@ class WorkflowAssignmentService extends Service {
       .projection(fields)
       .query();
 
-    return _.map(result, (item) => this._fromDbToDataObject(item));
+    return _.map(result, item => this._fromDbToDataObject(item));
   }
 
   async create(requestContext, rawData) {

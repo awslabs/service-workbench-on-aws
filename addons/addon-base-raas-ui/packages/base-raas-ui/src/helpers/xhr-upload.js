@@ -31,14 +31,14 @@
 const upload = (file, url, fields = {}) => {
   const req = new XMLHttpRequest();
   const uploadProgressListeners = [];
-  const uploadProgressCallback = (uploadedBytes) => {
-    uploadProgressListeners.forEach((fn) => {
+  const uploadProgressCallback = uploadedBytes => {
+    uploadProgressListeners.forEach(fn => {
       fn(uploadedBytes);
     });
   };
 
   const done = new Promise((resolve, reject) => {
-    req.upload.addEventListener('progress', (event) => {
+    req.upload.addEventListener('progress', event => {
       uploadProgressCallback(event.loaded || 0);
     });
     req.upload.addEventListener('error', () => {

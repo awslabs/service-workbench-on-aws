@@ -53,10 +53,8 @@ class StudyPermissionsTable extends React.Component {
 
   enableEditMode = () => {
     // Set users who currently have permission to the study as the selected users
-    this.permissionsStore.studyPermissions.userTypes.forEach((userType) => {
-      this.selectedUserIds[userType] = this.permissionsStore.studyPermissions[`${userType}Users`].map(
-        (user) => user.id,
-      );
+    this.permissionsStore.studyPermissions.userTypes.forEach(userType => {
+      this.selectedUserIds[userType] = this.permissionsStore.studyPermissions[`${userType}Users`].map(user => user.id);
     });
 
     // Show edit dropdowns via observable
@@ -76,7 +74,7 @@ class StudyPermissionsTable extends React.Component {
 
     // Convert user ID strings back into user objects
     const selectedUsers = {};
-    this.permissionsStore.studyPermissions.userTypes.forEach((type) => {
+    this.permissionsStore.studyPermissions.userTypes.forEach(type => {
       selectedUsers[type] = this.selectedUserIds[type].map(getIdentifierObjFromId);
     });
 
@@ -112,7 +110,7 @@ class StudyPermissionsTable extends React.Component {
   renderTable() {
     const studyPermissions = this.permissionsStore.studyPermissions;
     const isEditable = studyPermissions.adminUsers.some(
-      (adminUser) => adminUser.ns === this.currUser.ns && adminUser.username === this.currUser.username,
+      adminUser => adminUser.ns === this.currUser.ns && adminUser.username === this.currUser.username,
     );
 
     return (
@@ -135,7 +133,7 @@ class StudyPermissionsTable extends React.Component {
             </Table.Header>
 
             <Table.Body>
-              {this.permissionsStore.studyPermissions.userTypes.map((userType) => (
+              {this.permissionsStore.studyPermissions.userTypes.map(userType => (
                 <Table.Row key={userType}>
                   <Table.Cell style={{ textTransform: 'capitalize' }}>{userType}</Table.Cell>
                   <Table.Cell>

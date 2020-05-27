@@ -24,7 +24,7 @@ const UserIdentifier = types
     username: '',
     ns: '',
   })
-  .views((self) => ({
+  .views(self => ({
     isSame({ username, ns }) {
       return self.username === username && self.ns === ns;
     },

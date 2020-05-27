@@ -20,7 +20,7 @@ const FileUploadsStore = types
   .model('FileUploadsStore', {
     fileUploadGroups: types.map(FileUploadGroup),
   })
-  .actions((self) => ({
+  .actions(self => ({
     getFileUploadGroup(resourceId) {
       let group = self.fileUploadGroups.get(resourceId);
       if (!group) {

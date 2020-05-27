@@ -23,7 +23,7 @@ import { swallowError } from '../helpers/utils';
 class Stores {
   constructor(stores = []) {
     const result = [];
-    _.forEach(stores, (store) => {
+    _.forEach(stores, store => {
       if (_.isEmpty(store) || _.isNil(store)) return;
       result.push(store);
     });
@@ -33,7 +33,7 @@ class Stores {
 
   // only if they are not loaded already, you can force loading if you want
   async load({ forceLoad = false } = {}) {
-    _.forEach(this.stores, (store) => {
+    _.forEach(this.stores, store => {
       if (!forceLoad && isStoreReady(store)) return;
       swallowError(store.load());
     });
@@ -41,7 +41,7 @@ class Stores {
 
   get ready() {
     let answer = true;
-    _.forEach(this.stores, (store) => {
+    _.forEach(this.stores, store => {
       answer = answer && isStoreReady(store);
     });
     return answer;
@@ -49,7 +49,7 @@ class Stores {
 
   get loading() {
     let answer = false;
-    _.forEach(this.stores, (store) => {
+    _.forEach(this.stores, store => {
       if (isStoreLoading(store)) {
         answer = true;
         return false; // to stop the loop
@@ -66,7 +66,7 @@ class Stores {
 
   get error() {
     let error;
-    _.forEach(this.stores, (store) => {
+    _.forEach(this.stores, store => {
       if (isStoreError(store)) {
         error = store.error;
         return false; // to stop the loop

@@ -29,7 +29,7 @@ const appContext = observable({});
  *
  * @returns {{intervalIds: {}, disposers: {}, pluginRegistry: {}}}
  */
-const initializeAppContext = (pluginRegistry) => {
+const initializeAppContext = pluginRegistry => {
   const registry = new PluginRegistry(pluginRegistry);
   const appContextHolder = {
     disposers: {},
@@ -41,12 +41,12 @@ const initializeAppContext = (pluginRegistry) => {
   };
 
   const registerAppContextItems = registry.getPluginsWithMethod('app-context-items', 'registerAppContextItems');
-  _.forEach(registerAppContextItems, (plugin) => {
+  _.forEach(registerAppContextItems, plugin => {
     plugin.registerAppContextItems(appContextHolder);
   });
 
   const postRegisterAppContextItems = registry.getPluginsWithMethod('app-context-items', 'postRegisterAppContextItems');
-  _.forEach(postRegisterAppContextItems, (plugin) => {
+  _.forEach(postRegisterAppContextItems, plugin => {
     plugin.postRegisterAppContextItems(appContextHolder);
   });
 

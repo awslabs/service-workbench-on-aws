@@ -23,7 +23,7 @@ const UserApiKeysStore = BaseStore.named('UserApiKeysStore')
     // key = userIdentifierStr and value = ApiKeysStore for that user
     userApiKeysStores: types.optional(types.map(ApiKeysStore), {}),
   })
-  .actions((self) => {
+  .actions(self => {
     // save the base implementation of cleanup
     const superCleanup = self.cleanup;
     return {
@@ -67,7 +67,7 @@ const UserApiKeysStore = BaseStore.named('UserApiKeysStore')
       },
     };
   })
-  .views((self) => ({
+  .views(self => ({
     get empty() {
       return self.userApiKeysStores.size === 0;
     },

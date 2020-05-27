@@ -161,7 +161,7 @@ class AddSingleUser extends React.Component {
     goto('/users');
   };
 
-  handleFormSubmission = async (form) => {
+  handleFormSubmission = async form => {
     const values = form.values();
     const isInternalUser = this.userRolesStore.isInternalUser(values.userRole);
     const isInternalGuest = this.userRolesStore.isInternalGuest(values.userRole);

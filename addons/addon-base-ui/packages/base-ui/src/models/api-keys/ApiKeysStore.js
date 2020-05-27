@@ -26,7 +26,7 @@ const ApiKeysStore = BaseStore.named('ApiKeysStore')
     userIdentifier: UserIdentifier,
     apiKeys: types.optional(types.map(ApiKey), {}),
   })
-  .actions((self) => {
+  .actions(self => {
     // save the base implementation of cleanup
     const superCleanup = self.cleanup;
     return {
@@ -37,7 +37,7 @@ const ApiKeysStore = BaseStore.named('ApiKeysStore')
         const apiKeys = await getApiKeys(!self.isStoreForCurrentUser() && { username, ns });
         self.runInAction(() => {
           const map = {};
-          apiKeys.forEach((apiKey) => {
+          apiKeys.forEach(apiKey => {
             const apiKeyModel = ApiKey.create(apiKey);
             map[apiKeyModel.id] = apiKeyModel;
           });
@@ -69,14 +69,14 @@ const ApiKeysStore = BaseStore.named('ApiKeysStore')
       },
     };
   })
-  .views((self) => ({
+  .views(self => ({
     get empty() {
       return self.apiKeys.size === 0;
     },
     get list() {
       const result = [];
       // converting map self.apiKeys to result array
-      self.apiKeys.forEach((apiKey) => result.push(apiKey));
+      self.apiKeys.forEach(apiKey => result.push(apiKey));
       return result;
     },
     isStoreForCurrentUser: () => {

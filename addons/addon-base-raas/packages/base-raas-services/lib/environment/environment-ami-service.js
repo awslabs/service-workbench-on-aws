@@ -58,7 +58,7 @@ class EnvironmentAmiService extends Service {
       ],
     };
     const images = await this.ec2.describeImages(params).promise();
-    const results = images.Images.map((image) => {
+    const results = images.Images.map(image => {
       return {
         imageId: image.ImageId,
         createdAt: new Date(image.CreationDate),

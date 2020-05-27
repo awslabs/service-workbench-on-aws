@@ -35,14 +35,14 @@ const WorkflowDraftsStore = BaseStore.named('WorkflowDraftsStore')
     tickPeriod: 900 * 1000, // 15 minutes
   })
 
-  .actions((self) => {
+  .actions(self => {
     // save the base implementation of cleanup
     const superCleanup = self.cleanup;
 
     // private
     function normalizeForSubmission(draft) {
       const normalizedDraft = _.cloneDeep(getSnapshot(draft));
-      _.forEach(normalizedDraft.workflow.selectedSteps, (step) => {
+      _.forEach(normalizedDraft.workflow.selectedSteps, step => {
         delete step.stepTemplate;
         delete step.configOverrideOption;
         delete step.propsOverrideOption;
@@ -64,7 +64,7 @@ const WorkflowDraftsStore = BaseStore.named('WorkflowDraftsStore')
           self.drafts.forEach((_value, key) => {
             previousKeys[key] = true;
           });
-          drafts.forEach((draft) => {
+          drafts.forEach(draft => {
             const id = draft.id;
             const hasPrevious = self.drafts.has(id);
 
@@ -139,7 +139,7 @@ const WorkflowDraftsStore = BaseStore.named('WorkflowDraftsStore')
     };
   })
 
-  .views((self) => ({
+  .views(self => ({
     get empty() {
       return self.drafts.size === 0;
     },
@@ -150,7 +150,7 @@ const WorkflowDraftsStore = BaseStore.named('WorkflowDraftsStore')
 
     get list() {
       const result = [];
-      self.drafts.forEach((drafts) => result.push(drafts));
+      self.drafts.forEach(drafts => result.push(drafts));
 
       return _.reverse(_.sortBy(result, ['createdAt', 'title']));
     },

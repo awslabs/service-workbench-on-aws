@@ -27,7 +27,7 @@ import Toggle from '@aws-ee/base-ui/dist/parts/helpers/fields/Toggle';
 // - className (via props)
 const Component = observer(({ rows = [], className = '', editable = false, processing = false }) => {
   if (rows.length === 0) return null;
-  const getTitle = (item) => (editable ? item.label : item.title);
+  const getTitle = item => (editable ? item.label : item.title);
 
   return (
     <Table basic="very" className={c('animated', className)}>

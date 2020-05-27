@@ -65,7 +65,7 @@ const OnboardingSteps = [
   },
 ];
 
-const generateDefaultIAMPolicy = (accountId) =>
+const generateDefaultIAMPolicy = accountId =>
   `
 {
   "Version": "2012-10-17",
@@ -281,7 +281,7 @@ class UserOnboarding extends React.Component {
   shouldRenderOnboarding = () => this.user.isExternalUser;
 
   resetOnboarding = () => {
-    OnboardingSteps.forEach((step) => {
+    OnboardingSteps.forEach(step => {
       step.active = false;
     });
     OnboardingSteps[0].active = true;
@@ -323,7 +323,7 @@ class UserOnboarding extends React.Component {
 
   testClipboardWrite = async () => {
     return new Promise((resolve, _reject) => {
-      navigator.permissions.query({ name: 'clipboard-write' }).then((result) => {
+      navigator.permissions.query({ name: 'clipboard-write' }).then(result => {
         resolve(result.state === 'granted' || result.state === 'prompt');
       });
     });
@@ -458,7 +458,7 @@ class UserOnboarding extends React.Component {
     return obj;
   }
 
-  onCredentialsDrop = (files) => {
+  onCredentialsDrop = files => {
     const reader = new FileReader();
 
     reader.onabort = () => {
@@ -493,7 +493,7 @@ class UserOnboarding extends React.Component {
         }
       })();
     };
-    files.forEach((file) => reader.readAsText(file));
+    files.forEach(file => reader.readAsText(file));
   };
 
   renderCredentialsDropzone() {

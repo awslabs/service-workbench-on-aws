@@ -23,7 +23,7 @@ const AuthenticationProviderType = types
     description: types.optional(types.string, ''),
     config: AuthenticationProviderTypeConfig,
   })
-  .actions((_self) => ({
+  .actions(_self => ({
     cleanup() {
       // No-op for now
     },

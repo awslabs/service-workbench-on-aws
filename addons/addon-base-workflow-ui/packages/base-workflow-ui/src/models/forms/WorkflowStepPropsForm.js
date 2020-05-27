@@ -19,7 +19,7 @@ const workflowStepPropsFields = (step, { isTemplate = true } = {}) => {
   const { skippable } = step;
   const propsOverrideOption = step.propsOverrideOption || { allowed: [] };
   const warnMessage = 'The workflow template used by this workflow does not allow you to modify this field';
-  const canOverride = (prop) => isTemplate || propsOverrideOption.allowed.includes(prop);
+  const canOverride = prop => isTemplate || propsOverrideOption.allowed.includes(prop);
   const warnIfCanNotOverride = (prop, text = warnMessage) => (canOverride(prop) ? undefined : text);
 
   return {

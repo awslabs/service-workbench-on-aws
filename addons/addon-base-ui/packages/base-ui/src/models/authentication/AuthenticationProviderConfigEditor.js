@@ -22,11 +22,11 @@ const AuthenticationProviderConfigEditor = types
     id: types.identifier,
     configEditor: types.optional(ConfigurationEditor, {}),
   })
-  .actions((self) => ({
+  .actions(self => ({
     setConfigEditor(configEditor) {
       self.configEditor = configEditor;
     },
   }))
-  .views((_self) => ({}));
+  .views(_self => ({}));
 
 export default AuthenticationProviderConfigEditor;

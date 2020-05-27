@@ -33,7 +33,7 @@
  *
  * @returns {{authorize: authorize}}
  */
-const factory = (authorizationServiceName) => {
+const factory = authorizationServiceName => {
   const plugin = {
     /**
      * @param requestContext The request context object containing principal (caller) information.

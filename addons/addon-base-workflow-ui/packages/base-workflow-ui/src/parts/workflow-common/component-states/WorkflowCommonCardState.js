@@ -21,7 +21,7 @@ const WorkflowCommonUIState = types
     versionNumber: -1,
     mainTabIndex: 0,
   })
-  .actions((self) => ({
+  .actions(self => ({
     setVersionNumber(v) {
       self.versionNumber = v;
     },
@@ -40,14 +40,14 @@ function getUIState(idSuffix) {
 
 uiEventBus.listenTo('workflowTemplatePublished', {
   id: 'WorkflowCommonUIState',
-  listener: async (event) => {
+  listener: async event => {
     sessionStore.removeStartsWith(`WorkflowCommonUIState-${event.id}`);
   },
 });
 
 uiEventBus.listenTo('workflowPublished', {
   id: 'WorkflowCommonUIState',
-  listener: async (event) => {
+  listener: async event => {
     sessionStore.removeStartsWith(`WorkflowCommonUIState-${event.id}`);
   },
 });

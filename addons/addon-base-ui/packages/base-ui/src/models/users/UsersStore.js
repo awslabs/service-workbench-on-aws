@@ -25,7 +25,7 @@ const UsersStore = BaseStore.named('UsersStore')
     users: types.optional(types.map(User), {}),
   })
 
-  .actions((self) => {
+  .actions(self => {
     // save the base implementation of cleanup
     const superCleanup = self.cleanup;
 
@@ -34,7 +34,7 @@ const UsersStore = BaseStore.named('UsersStore')
         const users = (await getUsers()) || [];
         self.runInAction(() => {
           const map = {};
-          users.forEach((user) => {
+          users.forEach(user => {
             const userId = getIdFromObj(user);
             map[userId] = user;
           });
@@ -46,7 +46,7 @@ const UsersStore = BaseStore.named('UsersStore')
         self.users.clear();
         superCleanup();
       },
-      addUser: async (user) => {
+      addUser: async user => {
         const addedUser = await addUser(user);
         self.runInAction(() => {
           // Added newly created user to users map
@@ -54,7 +54,7 @@ const UsersStore = BaseStore.named('UsersStore')
           self.users.set(addedUserModel.id, addedUserModel);
         });
       },
-      updateUser: async (user) => {
+      updateUser: async user => {
         const updatedUser = await updateUser(user);
         const userModel = User.create(updatedUser);
         const previousUser = self.users.get(userModel.id);
@@ -63,13 +63,13 @@ const UsersStore = BaseStore.named('UsersStore')
     };
   })
 
-  .views((self) => ({
+  .views(self => ({
     get empty() {
       return self.users.size === 0;
     },
 
     get hasNonRootAdmins() {
-      const nonRootAdmins = _.filter(self.list, (user) => user.isAdmin && !user.isRootUser);
+      const nonRootAdmins = _.filter(self.list, user => user.isAdmin && !user.isRootUser);
       return !_.isEmpty(nonRootAdmins);
     },
 
@@ -78,19 +78,19 @@ const UsersStore = BaseStore.named('UsersStore')
     },
 
     get nonRootUsers() {
-      return _.filter(self.list, (user) => !user.isRootUser);
+      return _.filter(self.list, user => !user.isRootUser);
     },
 
     get list() {
       const result = [];
       // converting map self.users to result array
-      self.users.forEach((user) => result.push(user));
+      self.users.forEach(user => result.push(user));
       return result;
     },
 
     asSelectOptions({ nonClearables = [] } = {}) {
       const result = [];
-      self.users.forEach((user) =>
+      self.users.forEach(user =>
         result.push({
           value: user.id,
           label: user.longDisplayName,
@@ -102,7 +102,7 @@ const UsersStore = BaseStore.named('UsersStore')
 
     asDropDownOptions({ status = 'active' } = {}) {
       const result = [];
-      self.users.forEach((user) => {
+      self.users.forEach(user => {
         if (user.status === status) {
           result.push({
             key: user.id,
@@ -124,7 +124,7 @@ const UsersStore = BaseStore.named('UsersStore')
 
     asUserObjects(userIdentifiers = []) {
       const result = [];
-      userIdentifiers.forEach((userIdentifier) => {
+      userIdentifiers.forEach(userIdentifier => {
         if (userIdentifier) {
           const user = self.users.get(userIdentifier.id);
           if (user) {
@@ -140,11 +140,11 @@ const UsersStore = BaseStore.named('UsersStore')
   }));
 
 function toUserIds(userObjects) {
-  return _.map(userObjects, (user) => user.id);
+  return _.map(userObjects, user => user.id);
 }
 
 function toLongNames(userObjects) {
-  return _.map(userObjects, (user) => user.longDisplayName);
+  return _.map(userObjects, user => user.longDisplayName);
 }
 
 function toLongName(object) {

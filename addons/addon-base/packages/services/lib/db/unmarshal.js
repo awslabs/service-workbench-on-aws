@@ -16,7 +16,7 @@
 const _ = require('lodash');
 
 function reader(obj) {
-  return (key) => {
+  return key => {
     if (!_.isObject(obj)) return undefined;
     if (obj[key] && obj[key].wrapperName === 'Set') return obj[key].values;
     return obj[key];
@@ -30,7 +30,7 @@ function process(obj) {
   const read = reader(obj);
   const keys = Object.keys(obj);
   const result = {};
-  keys.forEach((key) => {
+  keys.forEach(key => {
     result[key] = read(key);
   });
   return result;
@@ -38,7 +38,7 @@ function process(obj) {
 
 function unmarshal(objOrArr) {
   if (objOrArr === undefined) return objOrArr;
-  if (_.isArray(objOrArr)) return _.map(objOrArr, (item) => process(item));
+  if (_.isArray(objOrArr)) return _.map(objOrArr, item => process(item));
   if (_.size(objOrArr) === 0) return undefined;
   return process(objOrArr);
 }

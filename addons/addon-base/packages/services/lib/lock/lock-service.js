@@ -98,7 +98,10 @@ class LockService extends Service {
 
     await runAndCatch(
       async () => {
-        return this._deleter().condition('attribute_exists(id)').key('id', writeToken).delete();
+        return this._deleter()
+          .condition('attribute_exists(id)')
+          .key('id', writeToken)
+          .delete();
       },
       async () => {
         // we ignore the ConditionalCheckFailedException exception because it simply means that the entry might

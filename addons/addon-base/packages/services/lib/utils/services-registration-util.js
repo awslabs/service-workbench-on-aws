@@ -52,7 +52,7 @@ async function registerSettingsService(container, plugins, pluginRegistry) {
   // Now, register default implementation of the settings service that provides settings from environment variables
   const settingsService = new EnvSettingsService({
     provider: {
-      getDefaults: (settings) => {
+      getDefaults: settings => {
         // Ask each plugin to return their static settings. Each plugin is passed a plain JavaScript object containing the
         // static settings collected so far from other plugins. The plugins are called in the same order as returned by the
         // registry.

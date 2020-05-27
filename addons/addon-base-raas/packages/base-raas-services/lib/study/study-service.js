@@ -61,7 +61,10 @@ class StudyService extends Service {
    * Public Methods
    */
   async find(requestContext, id, fields = []) {
-    const result = await this._getter().key({ id }).projection(fields).get();
+    const result = await this._getter()
+      .key({ id })
+      .projection(fields)
+      .get();
 
     return this.fromDbToDataObject(result);
   }
@@ -225,20 +228,20 @@ class StudyService extends Service {
           const allowedStudies = _.uniq(permissions.adminAccess.concat(permissions.readonlyAccess));
           if (allowedStudies.length) {
             const rawResult = await this._getter()
-              .keys(allowedStudies.map((studyId) => ({ id: studyId })))
+              .keys(allowedStudies.map(studyId => ({ id: studyId })))
               .projection(fields)
               .get();
 
             // Filter by category and inject requestor's access level
             const studyAccessMap = {};
-            ['admin', 'readonly'].forEach((level) =>
-              permissions[`${level}Access`].forEach((studyId) => {
+            ['admin', 'readonly'].forEach(level =>
+              permissions[`${level}Access`].forEach(studyId => {
                 studyAccessMap[studyId] = level;
               }),
             );
             result = rawResult
-              .filter((study) => study.category === category)
-              .map((study) => ({
+              .filter(study => study.category === category)
+              .map(study => ({
                 ...study,
                 access: studyAccessMap[study.id],
               }));
@@ -273,7 +276,7 @@ class StudyService extends Service {
     // Loop through requested files and generate presigned POST requests
     const prefix = this.getFilesPrefix(requestContext, study.id, study.category);
     return Promise.all(
-      filenames.map((filename) => {
+      filenames.map(filename => {
         // Prep request
         /** @type {AWS.S3.PresignedPost.Params} */
         const params = { Bucket: this.studyDataBucket, Fields: { key: `${prefix}${filename}` } };
@@ -307,7 +310,7 @@ class StudyService extends Service {
           }),
         );
       }),
-    ).then((requests) =>
+    ).then(requests =>
       requests.reduce(
         (allRequests, currRequest, currIdx) => ({
           // Convert presigned request data to an object key -> data map
@@ -329,8 +332,8 @@ class StudyService extends Service {
     };
 
     // Return results, removing zero-byte prefix object and only including certain fields
-    return (await this.s3Client.listObjectsV2(params).promise()).Contents.filter((object) => object.Key !== prefix).map(
-      (object) => ({
+    return (await this.s3Client.listObjectsV2(params).promise()).Contents.filter(object => object.Key !== prefix).map(
+      object => ({
         filename: object.Key.slice(prefix.length),
         size: object.Size,
         lastModified: object.LastModified,

@@ -45,7 +45,7 @@ class ServicesContainer {
    */
   constructor(roots = []) {
     this.roots = {};
-    _.forEach(roots, (item) => {
+    _.forEach(roots, item => {
       this.roots[item] = true;
     });
 

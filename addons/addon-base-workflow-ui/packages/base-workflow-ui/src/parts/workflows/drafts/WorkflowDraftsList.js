@@ -71,7 +71,7 @@ class WorkflowDraftsList extends React.Component {
     this.showCreateDraftWizard = false;
   }
 
-  handleEditDraft = async (draft) => {
+  handleEditDraft = async draft => {
     const goto = gotoFn(this);
     goto(`/workflows/drafts/edit/${encodeURIComponent(draft.id)}`);
   };
@@ -144,7 +144,7 @@ class WorkflowDraftsList extends React.Component {
 
     return (
       <div>
-        {_.map(list, (draft) => (
+        {_.map(list, draft => (
           <Segment className="mb2" clearing key={draft.id}>
             <WorkflowCommonDraftCard
               draft={draft}

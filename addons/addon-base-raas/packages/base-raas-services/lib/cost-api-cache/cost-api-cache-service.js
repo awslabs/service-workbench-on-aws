@@ -43,7 +43,10 @@ class CostApiCacheService extends Service {
   }
 
   async find(requestContext, { indexId, query, fields = [] }) {
-    const result = await this._getter().key({ indexId, query }).projection(fields).get();
+    const result = await this._getter()
+      .key({ indexId, query })
+      .projection(fields)
+      .get();
 
     return this._fromDbToDataObject(result);
   }
@@ -69,7 +72,10 @@ class CostApiCacheService extends Service {
 
     // Time to save the the db object
     const result = await runAndCatch(async () => {
-      return this._updater().key({ indexId, query }).item(dbObject).update();
+      return this._updater()
+        .key({ indexId, query })
+        .item(dbObject)
+        .update();
     });
 
     return result;
@@ -91,7 +97,11 @@ class CostApiCacheService extends Service {
     // Time to save the the db object
     const result = await runAndCatch(
       async () => {
-        return this._updater().key({ indexId }).rev(rev).item(dbObject).update();
+        return this._updater()
+          .key({ indexId })
+          .rev(rev)
+          .item(dbObject)
+          .update();
       },
       async () => {
         // There are two scenarios here:
@@ -116,7 +126,10 @@ class CostApiCacheService extends Service {
 
   async list({ fields = [] } = {}) {
     // Remember doing a scanning is not a good idea if you billions of rows
-    return this._scanner().limit(1000).projection(fields).scan();
+    return this._scanner()
+      .limit(1000)
+      .projection(fields)
+      .scan();
   }
 
   // Do some properties renaming to prepare the object to be saved in the database

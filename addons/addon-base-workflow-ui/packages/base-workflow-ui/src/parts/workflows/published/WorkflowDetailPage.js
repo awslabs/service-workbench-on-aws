@@ -163,7 +163,7 @@ class WorkflowDetailPage extends React.Component {
     const workflow = this.getWorkflow();
     const versions = workflow.versionNumbers;
     const currentVersion = this.getVersionNumber();
-    const options = _.map(versions, (version) => ({ text: `v${version}`, value: version }));
+    const options = _.map(versions, version => ({ text: `v${version}`, value: version }));
 
     if (versions.length === 1) return <span className="bold color-grey pr2">v{currentVersion}</span>;
 

@@ -83,7 +83,7 @@ class AuditWriterService extends Service {
    * @returns {Promise<{status: string}>}
    */
   async writeAndForget(requestContext, auditEvent, ...args) {
-    this.writeAuditEvent(requestContext, auditEvent, true, ...args).catch((e) => this.log.error(e));
+    this.writeAuditEvent(requestContext, auditEvent, true, ...args).catch(e => this.log.error(e));
     return { status: 'unknown' };
   }
 

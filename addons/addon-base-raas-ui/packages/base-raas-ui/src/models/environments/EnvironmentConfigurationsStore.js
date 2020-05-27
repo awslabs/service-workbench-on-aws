@@ -25,7 +25,7 @@ const EnvironmentConfigurationsStore = BaseStore.named('EnvironmentConfiguration
     configurations: types.map(EnvironmentConfiguration),
     heartbeatInterval: -1,
   })
-  .actions((self) => {
+  .actions(self => {
     return {
       async doLoad() {
         const environmentConfigurations = await getEnvironmentConfigurations();
@@ -39,7 +39,7 @@ const EnvironmentConfigurationsStore = BaseStore.named('EnvironmentConfiguration
     };
   })
 
-  .views((self) => ({
+  .views(self => ({
     get empty() {
       return self.configurations.size === 0;
     },
@@ -50,7 +50,7 @@ const EnvironmentConfigurationsStore = BaseStore.named('EnvironmentConfiguration
 
     get list() {
       const result = [];
-      self.configurations.forEach((configuration) => result.push(configuration));
+      self.configurations.forEach(configuration => result.push(configuration));
 
       return _.sortBy(result, ['id']);
     },
@@ -406,7 +406,7 @@ async function getEnvironmentConfigurations() {
         },
       ],
     },
-  ].map((config) => ({ ...config, id: `${idCounter++}` }));
+  ].map(config => ({ ...config, id: `${idCounter++}` }));
 }
 
 function registerContextItems(appContext) {

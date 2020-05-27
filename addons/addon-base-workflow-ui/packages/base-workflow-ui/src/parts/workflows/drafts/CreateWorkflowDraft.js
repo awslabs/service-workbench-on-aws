@@ -123,7 +123,7 @@ class CreateWorkflowDraft extends React.Component {
 
     // TODO the approach of looping through all the entries in the workflowsStore is not going to scale beyond 5000 workflows, we need an autocomplete approach
     // for this
-    _.forEach(workflows, (workflow) => {
+    _.forEach(workflows, workflow => {
       if (!draftsStore.hasWorkflow(workflow.id)) {
         options.push({
           text: workflow.latest.title || '',
@@ -148,7 +148,7 @@ class CreateWorkflowDraft extends React.Component {
     const templates = templatesStore.list;
     const options = [];
 
-    _.forEach(templates, (template) => {
+    _.forEach(templates, template => {
       options.push({
         text: template.latest.title || '',
         value: template.id,
@@ -166,7 +166,7 @@ class CreateWorkflowDraft extends React.Component {
     return options;
   }
 
-  handleDraftForSelectionChange = (selection) => {
+  handleDraftForSelectionChange = selection => {
     const form = this.form;
     const templateIdField = form.$('templateId');
     const workflowIdField = form.$('workflowId');
@@ -191,7 +191,7 @@ class CreateWorkflowDraft extends React.Component {
     // We don't need to do anything here
   };
 
-  handleFormSubmission = async (form) => {
+  handleFormSubmission = async form => {
     const values = form.values();
     const draftForValue = values.draftFor;
     const isNewWorkflow = draftForValue === 'newWorkflow';

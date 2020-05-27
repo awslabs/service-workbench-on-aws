@@ -24,13 +24,13 @@ class Invoker {
   constructor(methodName, ...params) {
     this.methodName = methodName;
     const result = [];
-    _.forEach([...params], (item) => {
+    _.forEach([...params], item => {
       if (item instanceof Error) {
         const obj = {};
-        _.forEach(Object.keys(item), (key) => {
+        _.forEach(Object.keys(item), key => {
           obj[key] = item[key];
         });
-        Object.getOwnPropertyNames(item).forEach((key) => {
+        Object.getOwnPropertyNames(item).forEach(key => {
           obj[key] = item[key];
         });
 

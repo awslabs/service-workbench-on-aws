@@ -65,14 +65,14 @@ class Form extends React.Component {
     const form = this.getForm();
     const errorMap = form.errors() || {};
     const errors = [];
-    const visit = (obj) => {
+    const visit = obj => {
       if (_.isNil(obj)) return;
       if (_.isString(obj) && !_.isEmpty(obj)) {
         errors.push(obj);
         return;
       }
       if (_.isArray(obj) || _.isObject(obj)) {
-        _.forEach(obj, (value) => {
+        _.forEach(obj, value => {
           visit(value);
         });
       }
@@ -82,7 +82,7 @@ class Form extends React.Component {
     return errors;
   }
 
-  handleFormSubmission = async (form) => {
+  handleFormSubmission = async form => {
     const onSuccess = this.getOnSuccess();
     this.formProcessing = true;
     try {
@@ -101,7 +101,7 @@ class Form extends React.Component {
     }
   };
 
-  handleFormErrors = async (form) => {
+  handleFormErrors = async form => {
     const onError = this.getOnError();
     this.formProcessing = false;
     const errors = this.getFormErrors();
@@ -109,7 +109,7 @@ class Form extends React.Component {
     return onError(form, errors);
   };
 
-  handleSubmit = (event) => {
+  handleSubmit = event => {
     const form = this.getForm();
     event.preventDefault();
     event.stopPropagation();
@@ -122,7 +122,7 @@ class Form extends React.Component {
     }
   };
 
-  handleCancel = (event) => {
+  handleCancel = event => {
     const form = this.getForm();
     const onCancel = this.getOnCancel();
 
@@ -138,7 +138,7 @@ class Form extends React.Component {
     const size = errors.length;
     if (size === 0) return null;
     const title = `Please Correct The Following Error${size === 1 ? '' : 's'}`;
-    const toMessage = (msg) => (_.isObject(msg) ? JSON.stringify(msg) : `${msg}`);
+    const toMessage = msg => (_.isObject(msg) ? JSON.stringify(msg) : `${msg}`);
 
     return (
       <Message className="mb3 mt0 animated fadeIn" negative>

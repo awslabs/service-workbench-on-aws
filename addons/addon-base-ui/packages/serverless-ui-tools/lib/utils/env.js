@@ -16,9 +16,9 @@
 const _ = require('lodash');
 
 // Convert from {'REACT_APP_FOO': 'bar'} to REACT_APP_FOO=bar
-const toLines = (map) => {
+const toLines = map => {
   // Filter out nested objects
-  const flatMap = _.pickBy(map, (v) => !_.isObject(v));
+  const flatMap = _.pickBy(map, v => !_.isObject(v));
   // Convert to key-value pairs
   const lines = _.map(flatMap, (value, key) => `${key}=${value}`);
   // Separate by newlines

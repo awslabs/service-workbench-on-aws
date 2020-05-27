@@ -81,7 +81,7 @@ class AutoLogout extends React.Component {
     return this.authentication.logout({ autoLogout: true });
   };
 
-  handleLogout = async (event) => {
+  handleLogout = async event => {
     event.preventDefault();
     event.stopPropagation();
     return this.doLogout();

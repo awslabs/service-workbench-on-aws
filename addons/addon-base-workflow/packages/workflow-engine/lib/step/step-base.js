@@ -36,7 +36,7 @@ class StepBase {
     this.payload = this.buildPayload(workflowPayload, step);
 
     const getterDelegate = new KeyGetterDelegate(
-      async (key) => {
+      async key => {
         let value = await this.payload.getValue(key);
         if (_.isNil(value)) {
           const rawConfig = await this.config.spread();
@@ -50,7 +50,7 @@ class StepBase {
     Object.assign(this.payloadOrConfig, getterDelegate.getMethods());
 
     const rawWorkflowMeta = workflowPayload.meta || {};
-    const getterDelegateForMeta = new KeyGetterDelegate(async (key) => rawWorkflowMeta[key], {
+    const getterDelegateForMeta = new KeyGetterDelegate(async key => rawWorkflowMeta[key], {
       storeTitle: 'Workflow Metadata',
     });
     this.meta = {};
@@ -125,11 +125,11 @@ class StepBase {
       'getStepPayload',
     ];
     const payload = {};
-    _.forEach(methodNames, (name) => {
+    _.forEach(methodNames, name => {
       payload[name] = workflowPayload[name].bind(workflowPayload);
     });
 
-    payload.getValue = async (key) => {
+    payload.getValue = async key => {
       return workflowPayload.getValue(key);
     };
 

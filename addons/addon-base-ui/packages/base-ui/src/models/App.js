@@ -27,8 +27,8 @@ const App = types
       return fn();
     },
   }))
-  .actions((self) => ({
-    init: async (payload) => {
+  .actions(self => ({
+    init: async payload => {
       const tokenNotExpired = _.get(payload, 'tokenInfo.status') === 'notExpired';
       if (tokenNotExpired) {
         self.setUserAuthenticated(true);

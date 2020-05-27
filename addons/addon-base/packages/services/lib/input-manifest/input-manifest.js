@@ -21,7 +21,7 @@ const flatten = (entry, config) => {
   const { condition, children = [] } = entry;
   if (!condition || underscoreTemplate(condition)(config) === 'true') {
     out.push(entry);
-    children.forEach((child) => {
+    children.forEach(child => {
       out.push(...flatten(child, config));
     });
   }
@@ -31,7 +31,7 @@ const flatten = (entry, config) => {
 const flattenSection = ({ condition, children = [] }, config) => {
   const out = [];
   if (!condition || underscoreTemplate(condition)(config) === 'true') {
-    children.forEach((child) => {
+    children.forEach(child => {
       out.push(...flatten(child, config));
     });
   }
@@ -62,10 +62,10 @@ const validateSection = (section, config, extraKeysAreInvalid = false) => {
             message: validation.errors.first(name) || `The ${name} value is invalid`,
           };
     })
-    .filter((err) => !!err);
+    .filter(err => !!err);
   if (extraKeysAreInvalid) {
     errors.push(
-      ...Array.from(keysMissingInManifest).map((name) => ({
+      ...Array.from(keysMissingInManifest).map(name => ({
         type: 'extra',
         message: `The ${name} is present in config but missing in manifest`,
       })),

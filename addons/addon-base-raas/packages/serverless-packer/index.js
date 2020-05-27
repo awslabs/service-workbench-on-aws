@@ -57,7 +57,7 @@ class ServerlessPackerPlugin {
 
     this.serverless.cli.log(`Building packer images: ${filePaths.join(', ')}`);
     return Promise.all(
-      filePaths.map(async (filePath) => {
+      filePaths.map(async filePath => {
         this.serverless.cli.log(`${filePath}: Building packer image`);
 
         const args = _.concat('build', this.packageVarArgs(), `${PACKER_FILE_DIR}/${filePath}`);
@@ -68,7 +68,7 @@ class ServerlessPackerPlugin {
             args,
             stdout: {
               log: this.serverless.cli.consoleLog,
-              raw: (msg) => {
+              raw: msg => {
                 this.serverless.cli.log(`${filePath}: ${msg}`);
               },
             },
@@ -90,7 +90,7 @@ class ServerlessPackerPlugin {
         }
 
         const packerFiles = [];
-        files.forEach((file) => {
+        files.forEach(file => {
           if (file.match('packer.*.json')) {
             packerFiles.push(file);
           }

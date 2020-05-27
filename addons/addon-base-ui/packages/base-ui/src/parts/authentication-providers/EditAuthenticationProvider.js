@@ -121,7 +121,7 @@ class EditAuthenticationProvider extends Component {
     goto('/authentication-providers');
   };
 
-  handleSave = async (configs) => {
+  handleSave = async configs => {
     try {
       const authenticationProviderConfigToUpdate = fromConfiguration(configs);
       const original = this.getAuthenticationProviderConfig();

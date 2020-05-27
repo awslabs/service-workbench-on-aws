@@ -24,8 +24,8 @@ class StepPayload {
     this.content = {};
     this.dirty = false;
     this.loaded = false;
-    const getterDelegate = new KeyGetterDelegate(async (key) => this.content[key], {
-      loadFn: async (key) => this.load(key),
+    const getterDelegate = new KeyGetterDelegate(async key => this.content[key], {
+      loadFn: async key => this.load(key),
       storeTitle: 'Step payload',
     });
 

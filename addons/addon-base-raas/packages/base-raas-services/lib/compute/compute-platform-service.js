@@ -48,7 +48,7 @@ class ComputePlatformService extends Service {
     if (!_.some(allowedPlatforms, ['id', platformId])) return [];
 
     const configurations = getConfigurations(platformId, user);
-    const doWork = async (configuration) => {
+    const doWork = async configuration => {
       const priceInfo = await priceService.calculatePriceInfo(configuration);
       configuration.priceInfo = priceInfo;
     };

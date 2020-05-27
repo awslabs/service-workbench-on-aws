@@ -61,7 +61,7 @@ const AuthenticationProviderPublicConfig = types
     signOutUri: '',
     enableNativeUserPoolUsers: types.maybeNull(types.boolean),
   })
-  .actions((self) => ({
+  .actions(self => ({
     cleanup() {
       // No-op for now
     },
@@ -69,7 +69,7 @@ const AuthenticationProviderPublicConfig = types
     login: async ({ username, password } = {}) => {
       const pluginRegistry = getEnv(self).pluginRegistry;
 
-      const handleException = (err) => {
+      const handleException = err => {
         const code = _.get(err, 'code');
         const isBoom = _.get(err, 'isBoom');
         if (code === 'badRequest') throw boom.badRequest(err, err.message);
@@ -137,7 +137,7 @@ const AuthenticationProviderPublicConfig = types
       }
     },
   }))
-  .views((self) => ({
+  .views(self => ({
     get absoluteSignInUrl() {
       // The "signInUri" below contains redirectUrl that comes from server and points back to the actual websiteUrl
       // (even on local machines during local development)

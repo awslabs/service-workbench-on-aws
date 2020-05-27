@@ -26,7 +26,7 @@ import { sessionStore } from '../SessionStore';
  *
  * @returns {*}
  */
-function getComponentSessionState(uiStateModel, id, componentStateCreatorFn = (model) => model.create()) {
+function getComponentSessionState(uiStateModel, id, componentStateCreatorFn = model => model.create()) {
   const stateId = `${uiStateModel.name}-${id}`;
   const entry = sessionStore.get(stateId) || componentStateCreatorFn(uiStateModel);
   sessionStore.set(stateId, entry);

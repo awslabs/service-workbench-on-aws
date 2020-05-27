@@ -67,7 +67,7 @@ class WorkflowTemplateDraftMetaEditor extends React.Component {
     onCancel();
   };
 
-  handlePrevious = (event) => {
+  handlePrevious = event => {
     // we don't save the form in this case
     this.resetFlags();
     event.preventDefault();
@@ -84,7 +84,7 @@ class WorkflowTemplateDraftMetaEditor extends React.Component {
     onSubmit(event); // this will eventually call handleFormSubmission()
   }
 
-  handleFormSubmission = async (form) => {
+  handleFormSubmission = async form => {
     const editor = this.getEditor();
     const { templateTitle, templateDesc, instanceTtl, runSpecSize, runSpecTarget } = form.values();
     const { draft } = editor;
@@ -135,7 +135,7 @@ class WorkflowTemplateDraftMetaEditor extends React.Component {
     const runSpecSizeField = form.$('runSpecSize');
     const runSpecTargetField = form.$('runSpecTarget');
     const rows = this.getWorkflowTemplate().propertyOverrideSummaryRows || [];
-    const fields = _.map(rows, (item) => form.$(`propsOverride_${item.name}`));
+    const fields = _.map(rows, item => form.$(`propsOverride_${item.name}`));
 
     return (
       <Form
@@ -175,7 +175,7 @@ class WorkflowTemplateDraftMetaEditor extends React.Component {
                 disabled={processing}
                 className="ml2"
                 content="Next"
-                onClick={(e) => this.handleOnSubmitNext(e, onSubmit)}
+                onClick={e => this.handleOnSubmitNext(e, onSubmit)}
               />
               {hasPrevious && (
                 <Button

@@ -34,7 +34,7 @@ async function configure(context) {
 
       // Construct/filter results based on info that's needed client-side
       const result = [];
-      providers.forEach((provider) => {
+      providers.forEach(provider => {
         const basePublicInfo = {
           id: provider.config.id,
           title: provider.config.title,
@@ -69,7 +69,7 @@ async function configure(context) {
           result.push(cognitoPublicInfo);
 
           // Add IdPs federating via Cognito as their own entries
-          provider.config.federatedIdentityProviders.forEach((idp) => {
+          provider.config.federatedIdentityProviders.forEach(idp => {
             result.push({
               ...basePublicInfo,
               id: idp.id,

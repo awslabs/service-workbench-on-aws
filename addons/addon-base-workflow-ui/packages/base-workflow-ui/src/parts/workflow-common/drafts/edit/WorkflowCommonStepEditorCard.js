@@ -46,7 +46,7 @@ class WorkflowCommonStepEditorCard extends React.Component {
     return this.props.canMove === undefined ? true : this.props.canMove;
   }
 
-  handleExpandContent = (event) => {
+  handleExpandContent = event => {
     event.stopPropagation();
     event.preventDefault();
 
@@ -54,7 +54,7 @@ class WorkflowCommonStepEditorCard extends React.Component {
     editor.setContentExpanded(!this.contentExpanded);
   };
 
-  handleDelete = (event) => {
+  handleDelete = event => {
     event.stopPropagation(); // this was needed, otherwise, the handleClick was called after
     // which resulted in mobx state tree warning about instance being accessed after being deleted
     const onDelete = this.props.onDelete || _.noop;

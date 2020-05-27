@@ -258,7 +258,7 @@ const configurations = [
 ];
 
 // These configurations belong to which compute platform ids
-const filterByType = (platformId) => (['emr-1'].includes(platformId) ? _.slice(configurations) : []);
+const filterByType = platformId => (['emr-1'].includes(platformId) ? _.slice(configurations) : []);
 
 // Which user can view which configuration
 const getConfigurations = (platformId, _user) => filterByType(platformId); // All users can see all configurations
