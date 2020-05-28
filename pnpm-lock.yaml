@@ -1607,6 +1607,7 @@ importers:
       '@aws-ee/base-raas-ui': 'link:../../../addons/addon-base-raas-ui/packages/base-raas-ui'
       '@aws-ee/base-ui': 'link:../../../addons/addon-base-ui/packages/base-ui'
       '@aws-ee/base-workflow-ui': 'link:../../../addons/addon-base-workflow-ui/packages/base-workflow-ui'
+      animate.css: 3.7.0
       aws-sdk: 2.656.0
       lodash: 4.17.15
       mobx: 5.15.4
@@ -1651,6 +1652,7 @@ importers:
       '@aws-ee/base-serverless-ui-tools': 'workspace:*'
       '@aws-ee/base-ui': 'workspace:*'
       '@aws-ee/base-workflow-ui': 'workspace:*'
+      animate.css: 3.7.0
       aws-sdk: ^2.647.0
       babel-eslint: ^10.0.3
       eslint: ^6.8.0
@@ -4648,6 +4650,10 @@ packages:
     dev: true
     resolution:
       integrity: sha1-l6ERlkmyEa0zaR2fn0hqjsn74KM=
+  /animate.css/3.7.0:
+    dev: false
+    resolution:
+      integrity: sha512-u3iMXDJr0cxMdQocIciDiou9Au4L5f9uT+/jCtprw3s1j3HcfCuI+khF+90Ps2KdsEhM2soF7SXB4WUvI3HlXg==
   /ansi-align/2.0.0:
     dependencies:
       string-width: 2.1.1
