@@ -200,8 +200,6 @@ function getClientIpAddress() {
   return httpApiGet(`api/ip`);
 }
 
-// API Functions Insertion Point (do not change this text, it is being used by hygen cli)
-
 export {
   addIndex,
   addUsers,

@@ -18,7 +18,7 @@
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 
-// const sayHelloSchema = require('../schema/say-hello'); // your input schema
+// const helloMessagesSchema = require('../schema/hello-messages'); // your input schema
 
 // See ../plugins/services-plugin.js for an example of how to register this service
 class HelloService extends Service {
@@ -32,10 +32,10 @@ class HelloService extends Service {
     // If you need to do any initialization, do it here
   }
 
-  async sayHello(requestContext, rawData) {
-    // Do your input validation here
+  async getHelloMessages(requestContext, rawData) {
+    // Do your input validation here (if this method accepts input)
     // const [validationService] = await this.service(['jsonSchemaValidationService']);
-    // await validationService.ensureValid(rawData, sayHelloSchema);
+    // await validationService.ensureValid(rawData, helloMessagesSchema);
 
     // Do your authorization checks here. For example, below is an authorization assertion
     // where the user has to be active and an admin.
@@ -45,8 +45,13 @@ class HelloService extends Service {
       rawData,
     );
 
-    // This is just an example result. Your result can be something else.
-    const result = { message: 'hello world' };
+    // This is just an example result.
+    const result = [
+      { message: 'hello world' },
+      { message: 'Bonjour le monde' }, // French
+      { message: 'Hallo Welt' }, // German
+      { message: 'Hej Verden' }, // Danish
+    ];
 
     // Write audit event
     await this.audit(requestContext, { action: 'sayHello', body: result });

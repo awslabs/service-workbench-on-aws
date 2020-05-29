@@ -17,6 +17,7 @@
     "@aws-ee/base-raas-workflow-steps": "workspace:*",
     "@aws-ee/base-raas-workflows": "workspace:*",
     "@aws-ee/base-raas-post-deployment": "workspace:*",
+    "services": "workspace:*",
     "aws-sdk": "^2.647.0",
     "lodash": "^4.17.15"
   },

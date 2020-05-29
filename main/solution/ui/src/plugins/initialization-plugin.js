@@ -31,7 +31,7 @@ async function init(payload, appContext) {
 
 // eslint-disable-next-line no-unused-vars
 async function postInit(payload, appContext) {
-  // Write any solution specific post initialization logic, such as loading stores.
+  // Write any solution specific post initialization logic, such as loading stores
 }
 
 const plugin = {

@@ -19,8 +19,7 @@ const bassRaasServicesPlugin = require('@aws-ee/base-raas-rest-api/lib/plugins/s
 const baseWfServicesPlugin = require('@aws-ee/base-workflow-api/lib/plugins/services-plugin');
 const baseRaasCfnTemplatesPlugin = require('@aws-ee/base-raas-cfn-templates/dist/plugins/cfn-templates-plugin');
 const baseRaasUserAuthzPlugin = require('@aws-ee/base-raas-services/lib/user/user-authz-plugin');
-
-const servicesPlugin = require('./services-plugin');
+const servicesPlugin = require('services/lib/plugins/services-plugin');
 
 const extensionPoints = {
   'service': [baseServicesPlugin, baseWfServicesPlugin, bassRaasServicesPlugin, servicesPlugin],
