@@ -2,7 +2,7 @@
 
 A platform that provides researchers with one-click access to collaborative workspace environments operating across teams, universities, and datasets while enabling university IT stakeholders to manage, monitor, and control spending, apply security best practices, and comply with corporate governance.
 
-Platform provides one-click option to admins for easier creation (vending) of new AWS accounts specific to researchers' teams for easier governance.  
+Platform provides one-click option to admins for easier creation (vending) of new AWS accounts specific to researchers' teams for easier governance.
 
 For more information about various AWS accounts see [aws-accounts-readme.md](main/documentation/aws-accounts-readme.md).
 
@@ -92,6 +92,18 @@ $ cd main/solution/ui
 $ pnpx sls start-ui -s $STAGE
 $ cd -
 ```
+
+---
+
+## Code Customization
+
+Start by my looking at these files
+
+- main/packages/services/lib/hello/hello-service.js
+- main/packages/controllers/lib/hello-controller.js
+- main/solution/ui/src/parts/hello/HelloPage.js
+
+They are meant to provide a sample service, a sample controller and a sample UI page.
 
 ---
 

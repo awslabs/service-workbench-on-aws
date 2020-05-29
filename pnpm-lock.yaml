@@ -1335,6 +1335,44 @@ importers:
       pretty-quick: ^1.11.1
       request: ^2.88.0
       request-promise-native: ^1.0.8
+  main/packages/controllers:
+    dependencies:
+      '@aws-ee/base-controllers': 'link:../../../addons/addon-base-rest-api/packages/base-controllers'
+      lodash: 4.17.15
+      services: 'link:../services'
+    devDependencies:
+      eslint: 6.8.0
+      eslint-config-airbnb: 18.1.0_8cdb6d8c18c3319a1365bd5afa0063a3
+      eslint-config-airbnb-base: 14.1.0_8cdb6d8c18c3319a1365bd5afa0063a3
+      eslint-config-prettier: 6.10.1_eslint@6.8.0
+      eslint-import-resolver-node: 0.3.3
+      eslint-plugin-import: 2.20.2_eslint@6.8.0
+      eslint-plugin-jest: 22.21.0_eslint@6.8.0
+      eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
+      husky: 3.1.0
+      jest: 24.9.0
+      jest-junit: 10.0.0
+      prettier: 1.19.1
+      pretty-quick: 1.11.1_prettier@1.19.1
+      source-map-support: 0.5.16
+    specifiers:
+      '@aws-ee/base-controllers': 'workspace:*'
+      eslint: ^6.8.0
+      eslint-config-airbnb: ^18.1.0
+      eslint-config-airbnb-base: ^14.1.0
+      eslint-config-prettier: ^6.10.0
+      eslint-import-resolver-node: ^0.3.3
+      eslint-plugin-import: ^2.20.1
+      eslint-plugin-jest: ^22.21.0
+      eslint-plugin-prettier: ^3.1.2
+      husky: ^3.1.0
+      jest: ^24.9.0
+      jest-junit: ^10.0.0
+      lodash: ^4.17.15
+      prettier: ^1.19.1
+      pretty-quick: ^1.11.1
+      services: 'workspace:*'
+      source-map-support: ^0.5.16
   main/packages/services:
     dependencies:
       '@aws-ee/base-services': 'link:../../../addons/addon-base/packages/services'
@@ -1391,6 +1429,7 @@ importers:
       '@aws-ee/base-workflow-core': 'link:../../../addons/addon-base-workflow/packages/base-workflow-core'
       '@aws-ee/base-workflow-steps': 'link:../../../addons/addon-base-workflow/packages/base-worklfow-steps'
       aws-sdk: 2.656.0
+      controllers: 'link:../../packages/controllers'
       js-yaml: 3.13.1
       jwt-decode: 2.2.0
       lodash: 4.17.15
@@ -1455,6 +1494,7 @@ importers:
       babel-jest: ^24.9.0
       babel-loader: ^8.0.6
       babel-plugin-source-map-support: ^2.1.1
+      controllers: 'workspace:*'
       copy-webpack-plugin: ^5.1.1
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.0.0
@@ -1526,6 +1566,7 @@ importers:
       '@aws-ee/base-workflow-templates': 'link:../../../addons/addon-base-workflow/packages/base-workflow-templates'
       aws-sdk: 2.656.0
       lodash: 4.17.15
+      services: 'link:../../packages/services'
     devDependencies:
       '@aws-ee/base-serverless-backend-tools': 'link:../../../addons/addon-base/packages/serverless-backend-tools'
       '@aws-ee/base-serverless-settings-helper': 'link:../../../addons/addon-base/packages/serverless-settings-helper'
@@ -1591,6 +1632,7 @@ importers:
       serverless-deployment-bucket: ^1.1.0
       serverless-s3-sync: ^1.10.2
       serverless-webpack: ^5.3.1
+      services: 'workspace:*'
       source-map-support: ^0.5.16
       webpack: ^4.41.5
   main/solution/prepare-master-acc:

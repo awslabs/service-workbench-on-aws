@@ -13,6 +13,10 @@
  *  permissions and limitations under the License.
  */
 
+import withAuth from '@aws-ee/base-ui/dist/withAuth';
+
+import HelloPage from '../parts/hello/HelloPage';
+
 /**
  * Adds your routes to the given routesMap.
  * This function is called last after adding routes to the routesMap from all other installed addons.
@@ -44,10 +48,12 @@ function registerRoutes(routesMap, { location, appContext }) {
   //      routesMap.delete('the/route/you/want/to/delete');
   //
 
-  // TODO: Register additional routes and their React Components as per your solution requirements
+  // Register additional routes and their React Components as per your solution requirements
+
+  const routes = new Map([...routesMap, ['/hello', withAuth(HelloPage)]]);
 
   // DO NOT forget to return routes here. If you do not return here, no routes will be configured in React router
-  return routesMap;
+  return routes;
 }
 
 // eslint-disable-next-line no-unused-vars

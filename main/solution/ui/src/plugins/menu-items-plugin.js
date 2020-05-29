@@ -31,6 +31,7 @@
  *
  * @returns Map<*> Returns A Map containing navigation menu items with the same shape as "itemsMap"
  */
+
 // eslint-disable-next-line no-unused-vars
 function registerMenuItems(itemsMap, { location, appContext }) {
   // This is where you can
@@ -54,8 +55,13 @@ function registerMenuItems(itemsMap, { location, appContext }) {
   //      items.delete('the/menu/item/url/you/want/to/delete');
   //
 
-  // TODO: Register additional custom navigation menu items here
-  const items = new Map([...itemsMap]);
+  // Register additional custom navigation menu items here
+  // const isAdmin = _.get(appContext, 'userStore.user.isAdmin');
+  const items = new Map([
+    ...itemsMap,
+    // ['/hello', { title: 'Hello', icon: 'hand spock', shouldShow: true /* isAdmin */ }],
+  ]);
+
   // DO NOT forget to return items here. If you do not return any menu items here then the menu will not show any items
   return items;
 }
