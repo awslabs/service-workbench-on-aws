@@ -156,7 +156,7 @@ class AwsService extends Service {
       // IAM policy changes propagation may take some time so wrap with "retry" to retry
       // with exponential backoff
       try {
-        creds = await retry(() => this.assumeLocalRole(aws, localRoleArn));
+        creds = await retry(() => this.assumeLocalRole(aws, localRoleArn), 5);
       } catch (err) {
         // manytimes due to IAM propagation delay the assume role call fails even after retries with backoff
         // in that case just ask the user to try again, as this is ONLY for local development
