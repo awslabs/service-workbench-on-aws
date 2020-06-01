@@ -47,6 +47,12 @@ custom:
         APP_AWS_PROFILE: ${self:custom.settings.awsProfile} # this is needed for local development
         APP_USE_AWS_PROFILE: ${self:custom.settings.useAwsProfile}
         IS_OFFLINE: true
+      lambdas:
+        postDeployment:
+          environment:
+            APP_LOCAL_ROLE_ARN: ${cfnOutput('PostDeploymentRoleArn')} # When running locally, run under this role
+            APP_LOCAL_ROLE_AUTO_ADJUST_TRUST: true  # Auto adjust trust policy of the role to allow assumeRole from local machine
+
   s3Sync:
     - bucketName: ${self:custom.settings.deploymentBucketName}
       bucketPrefix: saml-metadata/
