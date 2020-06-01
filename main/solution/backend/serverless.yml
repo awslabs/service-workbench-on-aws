@@ -50,6 +50,22 @@ custom:
         APP_USE_AWS_PROFILE: ${self:custom.settings.useAwsProfile}
         IS_OFFLINE: true
       lambdas:
+        authenticationLayerHandler:
+          environment:
+            APP_LOCAL_ROLE_ARN: ${cfnOutput('AuthenticationLayerHandlerRoleArn')} # When running locally, run under this role
+            APP_LOCAL_ROLE_AUTO_ADJUST_TRUST: true # Auto adjust trust policy of the role to allow assumeRole from local machine
+        apiHandler:
+          environment:
+            APP_LOCAL_ROLE_ARN: ${cfnOutput('ApiHandlerRoleArn')} # When running locally, run under this role
+            APP_LOCAL_ROLE_AUTO_ADJUST_TRUST: true # Auto adjust trust policy of the role to allow assumeRole from local machine
+        workflowLoopRunner:
+          environment:
+            APP_LOCAL_ROLE_ARN: ${cfnOutput('WorkflowLoopRunnerRoleArn')} # When running locally, run under this role
+            APP_LOCAL_ROLE_AUTO_ADJUST_TRUST: true # Auto adjust trust policy of the role to allow assumeRole from local machine
+        openDataScrapeHandler:
+          environment:
+            APP_LOCAL_ROLE_ARN: ${cfnOutput('OpenDataScrapeHandlerRoleArn')} # When running locally, run under this role
+            APP_LOCAL_ROLE_AUTO_ADJUST_TRUST: true # Auto adjust trust policy of the role to allow assumeRole from local machine
 
   s3Sync:
     - bucketName: ${self:custom.settings.externalCfnTemplatesBucketName} # required

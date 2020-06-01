@@ -13,18 +13,28 @@
  *  permissions and limitations under the License.
  */
 
+const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
+
+const { retry } = require('../helpers/utils');
 
 const settingKeys = {
   awsRegion: 'awsRegion',
   awsProfile: 'awsProfile',
   useAwsProfile: 'useAwsProfile',
+  localRoleArn: 'localRoleArn',
+  localRoleAutoAdjustTrust: 'localRoleAutoAdjustTrust',
+  envName: 'envName',
 };
 
 class AwsService extends Service {
   async init() {
+    await super.init();
     this._sdk = require('aws-sdk'); // eslint-disable-line global-require
-    if (process.env.IS_OFFLINE || process.env.IS_LOCAL) this.prepareForLocal(this._sdk);
+
+    if (process.env.IS_OFFLINE || process.env.IS_LOCAL) {
+      await this.prepareForLocal(this._sdk);
+    }
   }
 
   get sdk() {
@@ -33,7 +43,7 @@ class AwsService extends Service {
     return this._sdk;
   }
 
-  prepareForLocal(aws) {
+  async prepareForLocal(aws) {
     const sslEnabled = true;
     const maxRetries = 3;
     const useProfile = this.settings.optionalBoolean(settingKeys.useAwsProfile, true);
@@ -75,6 +85,108 @@ class AwsService extends Service {
         credentials: creds,
       });
     }
+
+    await this.prepareWithLocalRoleCreds(aws);
+  }
+
+  async prepareWithLocalRoleCreds(aws) {
+    // If localRoleArn setting is specified then assume that role and initialize AWS sdk with resulting credentials
+    // This is useful when testing code locally and running it under specific permissions provided by some role
+    // For example, running Lambda code locally under the same Lambda execution role that the function would run in
+    // deployed environment
+    const localRoleArn = this.settings.optional(settingKeys.localRoleArn, '');
+    if (!localRoleArn) return;
+
+    this.log.log(`Initializing AWS Credentials by assuming ${localRoleArn}`);
+
+    const sts = new aws.STS({ apiVersion: '2011-06-15' });
+    let creds;
+    try {
+      creds = await this.assumeLocalRole(aws, localRoleArn);
+    } catch (e) {
+      // Error assuming the specified role for local execution.
+      // This is most likely due the role not having trust policy to allow us to assume it
+
+      // Check if the flag for auto adjusting the trust policy is set
+      const { Arn: callerArn } = await sts.getCallerIdentity().promise();
+      const autoAdjustTrustPolicy = this.settings.optionalBoolean(settingKeys.localRoleAutoAdjustTrust, false);
+      if (!autoAdjustTrustPolicy) {
+        const error = this.boom.internalError(
+          `Error assuming role "${localRoleArn}". Make sure the role's trust policy allows "${callerArn}" to assume the role.
+           To auto adjust the role's trust policy, set '${settingKeys.localRoleAutoAdjustTrust}' setting to true and try again.`,
+          true,
+        );
+        error.stack = e.stack;
+        throw error;
+      }
+
+      // Code reached here means, we need to adjust the trust policy of the role
+      this.log.log(
+        `${settingKeys.localRoleAutoAdjustTrust} is true so adjusting the role trust policy in role '${localRoleArn}'`,
+      );
+      const iam = new aws.IAM({ apiVersion: '2010-05-08' });
+      const roleName = _.split(localRoleArn, '/')[1];
+      const role = await iam
+        .getRole({
+          RoleName: roleName,
+        })
+        .promise();
+
+      // Get existing trust policy
+      // The "AssumeRolePolicyDocument" is URL encoded JSON string
+      const trustPolicy = JSON.parse(decodeURIComponent(_.get(role, 'Role.AssumeRolePolicyDocument')));
+      const statements = _.get(trustPolicy, 'Statement', []);
+      const statementToAllowAssumeRole = _.find(statements, s => _.get(s, 'Action') === 'sts:AssumeRole');
+
+      // Update trust policy to allow AssumeRole by the caller
+      let allowedPrincipal = _.get(statementToAllowAssumeRole, 'Principal.AWS', []);
+      if (_.isArray(allowedPrincipal)) {
+        allowedPrincipal.push(callerArn);
+      } else {
+        allowedPrincipal = [allowedPrincipal, callerArn];
+      }
+      _.set(statementToAllowAssumeRole, 'Principal.AWS', _.uniq(allowedPrincipal));
+      this.log.log({
+        msg: `Updating '${roleName}' to allow to assumeRole by '${callerArn}'`,
+        trustPolicy,
+      });
+      await iam.updateAssumeRolePolicy({ PolicyDocument: JSON.stringify(trustPolicy), RoleName: roleName }).promise();
+
+      // Try to assume the role again after adjusting trust policy
+      // IAM policy changes propagation may take some time so wrap with "retry" to retry
+      // with exponential backoff
+      try {
+        creds = await retry(() => this.assumeLocalRole(aws, localRoleArn));
+      } catch (err) {
+        // manytimes due to IAM propagation delay the assume role call fails even after retries with backoff
+        // in that case just ask the user to try again, as this is ONLY for local development
+        const error = new Error(`Error assuming role "${localRoleArn}" even after adjusting the role's trust policy. 
+        This is most likely IAM propagation timing issue. Please try to run the lambda again.`);
+        error.stack = err.stack;
+        throw error;
+      }
+    }
+
+    const { AccessKeyId: accessKeyId, SecretAccessKey: secretAccessKey, SessionToken: sessionToken } = creds;
+    process.env.AWS_ACCESS_KEY_ID = accessKeyId;
+    process.env.AWS_SECRET_ACCESS_KEY = secretAccessKey;
+    process.env.AWS_SESSION_TOKEN = sessionToken;
+    aws.config.update({ credentials: { accessKeyId, secretAccessKey, sessionToken } });
+
+    const { Arn: roleSessionArn } = await new aws.STS({ apiVersion: '2011-06-15' }).getCallerIdentity().promise();
+    this.log.log(`Successfully switched to '${localRoleArn}': Role Session ARN = '${roleSessionArn}'`);
+  }
+
+  async assumeLocalRole(aws, localRoleArn) {
+    const sts = new aws.STS({ apiVersion: '2011-06-15' });
+    const envName = this.settings.get(settingKeys.envName);
+    const { Credentials: creds } = await sts
+      .assumeRole({
+        RoleArn: localRoleArn,
+        RoleSessionName: `${envName}-local-dev`,
+      })
+      .promise();
+    return creds;
   }
 }
 
