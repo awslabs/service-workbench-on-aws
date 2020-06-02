@@ -1277,7 +1277,7 @@ importers:
       '@aws-ee/base-serverless-settings-helper': 'link:../../../addons/addon-base/packages/serverless-settings-helper'
       serverless: 1.67.3
       serverless-deployment-bucket: 1.1.1
-      serverless-plugin-scripts: 1.0.2
+      serverless-hooks-plugin: 1.1.0
     optionalDependencies:
       fsevents: 2.1.2
     specifiers:
@@ -1285,7 +1285,7 @@ importers:
       fsevents: '*'
       serverless: ^1.63.0
       serverless-deployment-bucket: ^1.1.0
-      serverless-plugin-scripts: ^1.0.2
+      serverless-hooks-plugin: ^1.1.0
   main/cicd/cicd-source:
     devDependencies:
       '@aws-ee/base-serverless-settings-helper': 'link:../../../addons/addon-base/packages/serverless-settings-helper'
@@ -16385,6 +16385,10 @@ packages:
     dev: true
     resolution:
       integrity: sha512-oeafNyErJ2ZQWr+chQRzz7r/iognwozRA6k6ECMnXtxFJL4BbYQJfq7+VyoI77atc9a0GXzPoc27aM+sQE1NRQ==
+  /serverless-hooks-plugin/1.1.0:
+    dev: true
+    resolution:
+      integrity: sha1-UL6hSGhbEQls7noIfN3LSd+o75k=
   /serverless-http/2.3.2:
     dev: false
     engines:
@@ -16417,10 +16421,6 @@ packages:
       serverless: '>= 1.48.1'
     resolution:
       integrity: sha512-OXgfXWZM8RxXie1NXNvjQk7TpM3KI/lyJd4pmakcL7XNZADCd1ph5yOvVdDlJAZgmrkaq2tzSG8ZaKDE66JTmg==
-  /serverless-plugin-scripts/1.0.2:
-    dev: true
-    resolution:
-      integrity: sha1-IYCMPP0KGoTkjAZgsPbzcLVmVIY=
   /serverless-s3-sync/1.12.0:
     dependencies:
       '@auth0/s3': 1.0.0

@@ -27,16 +27,16 @@ sourceRoleArn: ''
 # If this flag is set to true then you MUST also provide settings file for the staging env.
 # For example, if createStagingEnv=true and if the stgEnvName=t"prodstg" then make sure you have
 # "prodstg.yml" file in top level "config/settings" directory
-createStagingEnv: true
+createStagingEnv: false
 
 # Flag indicating whether to require manual approval before deploying to target environment
-requireManualApproval: true
+requireManualApproval: false
 
 # Flag indicating whether to run integration tests against the target environment
 # Set this to false if you do not want to run automated tests against target env (such as production)
 # This flag is only to control tests against target env. The tests are always run against staging env
 # when "createStagingEnv" is "true" irrespective of this flag.
-runTestsAgainstTargetEnv: false
+runTestsAgainstTargetEnv: true
 
 # Name of the staging environment to run the integration tests against.
 # This setting is ignored when createStagingEnv is not true.
