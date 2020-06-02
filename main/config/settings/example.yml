@@ -1,0 +1,64 @@
+# AWS profile information
+awsRegion: us-east-1
+
+# The short solution name is used to namespace a few AWS resources
+# Try to keep this setting short to avoid hitting long strings issues
+solutionName: gg
+
+# The environment name where you want to deploy the solution to. (e.g. developer1, developer2, demo, prod etc.)
+# This is also used for creating a namespace for resources. Usually, this is same as serverless "stage".
+# All resource names reference "envName" instead of directly using "opt:stage".
+# This indirection allows for easy incorporation of extra variables in the "envName", if required.
+# For example, if the same solution needs to be deployed across multiple AWS accounts we can easily
+# add account specific variable in "envName" for keeping the namespace specific to each account.
+envName: ${opt:stage}
+
+# The environment type (e.g. dev, demo). This is for grouping multiple environments into types.
+# For example, all developers' environments can be of type "dev".
+# This can be use for enabling some envType driven conditionals in code. (For example, create only single node
+# ElasticSearch cluster when envType is 'dev' but create multi-node cluster when it's 'prod')
+envType: demo
+
+# Root user's email address
+rootUserEmail: user@example.com
+
+
+# Array of identity provider ids.
+# The usual practice is to keep this same as the domain name of the idp.
+# For example, when connecting with an IdP that has users "user1@example.com", "user2@example.com" etc then
+# the id should be set to "example.com"
+#
+# If you do not want to connect to Active Directory then leave this setting as its default.
+# fedIdpIds: '["datalake.example.com"]'
+
+# Array of identity provider names. This array should be in same order as the "fedIdpIds"
+# Some name for the IdPs. (such as 'com.ee', 'EEAD' etc)
+#
+# If you do not want to connect to Active Directory then leave this setting as its default.
+# fedIdpNames: '["DataLake"]'
+
+# Array of identity provider display names. This array should be in same order as the "fedIdpIds"
+# Display name (such as 'Employee Login', 'AD Login' etc). This can be used in UI to login options.
+#
+# If you do not want to connect to Active Directory then leave this setting as its default.
+# fedIdpDisplayNames: '["Login using Active Directory"]'
+
+# Array of identity provider SAML metadata. This array should be in same order as the "fedIdpIds".
+# The array should contain either
+# 1. S3 or http(s) url pointing to the IdP metadata.
+#  If S3 URL then it must be accessible by the post-deployment lambda
+#   (i.e., the lambda must have getObject permission to read the specified metadata file location from S3)
+#   The GetObject permission is given by the "RolePostDeploymentLambda" in "post-deployment/config/infra/cloudformation.yml"
+#  If it's http(s) URL then it must be reachable over the public internet.
+# (TODO: Add support for metadata URLs accessible only in private network.)
+# OR
+# 2. the metadata content XML blob as string
+# The current implementation looks for the file in "solution/post-deployment/config/saml-metadata" directory and
+# uploads the file to the S3 directory (prefix) "${self:custom.settings.deploymentBucketName}/saml-metadata/".
+# The uploading of the file is done using serverless s3-sync plugin. See "post-deployment/serverless.yml"
+# file and search for "s3Sync" to see which files are uploaded to the "${self:custom.settings.deploymentBucketName}" S3
+# bucket.
+#
+# If you do not want to connect to Active Directory then leave this setting as its default.
+# TODO: Remove saml-metadata/datalake-example-idp-metadata.xml file and replace this setting to use sample file
+# fedIdpMetadatas: '["s3://${self:custom.settings.deploymentBucketName}/saml-metadata/datalake-example-idp-metadata.xml"]'
