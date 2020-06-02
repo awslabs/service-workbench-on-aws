@@ -1,0 +1,10 @@
+# AWS credentials profile for the target AWS Account where the solution needs to be deployed
+awsProfile: galileo-main
+
+# Github parameters
+githubOwner: awslabs
+repoName: aws-galileo-gateway
+repoBranch: master
+
+# Email address to receive CodePipeline failure notifications and notifications for manual approval
+emailForNotifications: user@example.com

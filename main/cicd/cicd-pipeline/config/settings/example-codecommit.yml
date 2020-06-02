@@ -1,0 +1,11 @@
+# AWS credentials profile for the target AWS Account where the solution needs to be deployed
+awsProfile: galileo-main
+
+# CodeCommit parameters
+sourceAccountId: 123456789012
+sourceRoleArn: arn:aws:iam::123456789012:role/example-va-gg-cicd-src-CodeCommitSourceRole-XXXXXXXXXXXX
+repoName: aws-galileo-gateway
+repoBranch: master
+
+# Email address to receive CodePipeline failure notifications and notifications for manual approval
+emailForNotifications: user@example.com
