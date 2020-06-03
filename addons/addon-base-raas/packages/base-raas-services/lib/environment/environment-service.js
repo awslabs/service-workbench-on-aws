@@ -69,6 +69,22 @@ class EnvironmentService extends Service {
       environmentAuthzService.authorize(requestContext, { resource, action, effect, reason }, ...args);
   }
 
+  async isEnvironmentProjectAdmin(requestContext, environment) {
+    const ProjectsService = await this.service('projectsService');
+    const project = await ProjectsService.find(requestContext, { id: environment.projectId });
+    if (!project) {
+      // eslint-disable-next-line no-console
+      console.error(`could not find project in isEnvironmentProjectAdmin: [${environment.projectId}]`);
+      return false;
+    }
+    const projectAdmins = project.projectAdmins || [];
+    return projectAdmins.some(projectAdmin => {
+      const { username: projectUsername, ns: projectNs } = projectAdmin;
+      const { username: requestUsername, ns: requestNs } = requestContext.principal;
+      return projectUsername === requestUsername && projectNs === requestNs;
+    });
+  }
+
   async list(requestContext) {
     // Make sure the user has permissions to "list" environments
     // The following will result in checking permissions by calling the condition function "this._allowAuthorized" first
