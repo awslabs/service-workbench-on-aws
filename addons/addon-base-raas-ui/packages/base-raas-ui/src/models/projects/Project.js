@@ -30,6 +30,7 @@ const Project = types
     createdBy: types.optional(UserIdentifier, {}),
     updatedAt: '',
     updatedBy: types.optional(UserIdentifier, {}),
+    projectAdmins: types.array(UserIdentifier, []),
   })
   .actions(self => ({
     setProject(rawProject) {

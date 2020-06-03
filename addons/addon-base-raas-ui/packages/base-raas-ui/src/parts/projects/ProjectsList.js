@@ -14,20 +14,28 @@
  */
 
 import React from 'react';
-import { Button, Container, Header, Icon, Label } from 'semantic-ui-react';
+import { Button, Container, Header, Icon, Label, Popup } from 'semantic-ui-react';
 import { withRouter } from 'react-router-dom';
+import { runInAction } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import ReactTable from 'react-table';
+import _ from 'lodash';
 
 import { isStoreError, isStoreLoading } from '@aws-ee/base-ui/dist/models/BaseStore';
 import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
 import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
 import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import Stores from '@aws-ee/base-ui/dist/models/Stores';
+
+import ProjectConfigure from './ProjectConfigure';
 
 class ProjectsList extends React.Component {
   constructor(props) {
     super(props);
     this.state = {};
+    runInAction(() => {
+      this.stores = new Stores([this.props.projectsStore]);
+    });
   }
 
   getProjectsStore() {
@@ -70,6 +78,43 @@ class ProjectsList extends React.Component {
             {
               Header: 'Description',
               accessor: 'description',
+            },
+            {
+              Header: 'Project Admins',
+              accessor: 'projectAdmins',
+              style: { whiteSpace: 'unset' },
+              Cell: row => {
+                const project = row.original;
+                const { projectAdmins } = project;
+                return _.map(projectAdmins, x => x.username).join(', ') || '<<none>>';
+              },
+            },
+            {
+              Header: '',
+              accessor: 'viewDetail',
+              filterable: false,
+              Cell: cell => {
+                const project = { ...cell.original };
+                // console.log(this.props.projectStore);
+                return (
+                  <div style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                    <span>
+                      <Popup
+                        content="View Project Detail"
+                        trigger={
+                          <ProjectConfigure
+                            project={project}
+                            userStore={this.props.userStore}
+                            usersStore={this.props.usersStore}
+                            projectsStore={this.props.projectsStore}
+                            awsAccountsStore={this.props.awsAccountsStore}
+                          />
+                        }
+                      />
+                    </span>
+                  </div>
+                );
+              },
             },
           ]}
         />
@@ -128,4 +173,9 @@ class ProjectsList extends React.Component {
   }
 }
 
-export default inject('awsAccountsStore', 'projectsStore')(withRouter(observer(ProjectsList)));
+export default inject(
+  'awsAccountsStore',
+  'projectsStore',
+  'userStore',
+  'usersStore',
+)(withRouter(observer(ProjectsList)));

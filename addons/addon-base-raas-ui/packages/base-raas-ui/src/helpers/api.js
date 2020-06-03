@@ -172,8 +172,16 @@ function getProject(id) {
   return httpApiGet(`api/projects/${id}`);
 }
 
+function deleteProject(id) {
+  return httpApiDelete(`api/projects/${id}`);
+}
+
 function addProject(project) {
   return httpApiPost('api/projects', { data: project });
+}
+
+function updateProject(project) {
+  return httpApiPut(`api/projects/${project.id}`, { data: project });
 }
 
 function getAccounts() {
@@ -239,6 +247,8 @@ export {
   getProjects,
   getProject,
   addProject,
+  updateProject,
+  deleteProject,
   getAccounts,
   getAccount,
   getComputePlatforms,

@@ -28,6 +28,7 @@ const User = types
     authenticationProviderId: '', // Id of the authentication provider this user is authenticated against (such as internal, cognito auth provider id etc)
     identityProviderName: '', // Name of the identity provider this user belongs to (such as Identity Provider Id in cognito user pool in case of Federation etc)
     status: 'active',
+    projectId: types.array(types.string, []),
     rev: 0,
   })
   .views(self => ({
