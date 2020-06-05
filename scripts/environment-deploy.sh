@@ -41,7 +41,8 @@ componentDeploy "post-deployment" "Post-Deployment"
 #$EXEC sls invoke local -f postDeployment -s $STAGE
 printf "\nInvoking post-deployment steps\n\n"
 pushd "$SOLUTION_DIR/post-deployment" > /dev/null
-$EXEC sls invoke -f postDeployment -l -s "$STAGE"
+AWS_REGION="$(grep '^awsRegion:' --ignore-case < "$CONFIG_DIR/settings/$STAGE.yml" | sed 's/ //g' | cut -d':' -f2)"
+$EXEC sls --region "$AWS_REGION" invoke -f postDeployment -l -s "$STAGE"
 popd > /dev/null
 
 # Deploy UI

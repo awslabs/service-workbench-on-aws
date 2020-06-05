@@ -1,0 +1,10 @@
+# The region to deploy to
+# DO NOT change the region here. This needs to be "us-east-1" irrespective of the AWS region you are deploying the rest
+# of the solution to.
+# The Lambda@Edge needs to be deployed only in US East Virginia (us-east-1) region and
+# it gets replicated to CloudFront edge locations when we associate it with CloudFront.
+# See https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-requirements-limits.html
+awsRegion: us-east-1
+
+# If you are deploying your environment to any location other than us-east-1 (for example, us-west-2) please mention it below
+otherAwsRegion: us-west-2
