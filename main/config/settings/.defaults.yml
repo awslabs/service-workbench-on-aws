@@ -76,6 +76,24 @@ deploymentBucketPolicy:
 # The S3 bucket name used to host environment bootstrap scripts
 environmentsBootstrapBucketName: ${self:custom.settings.globalNamespace}-environments-bootstrap-scripts
 
+# The short solution name is used to namespace a few AWS resources
+# Try to keep this setting short to avoid hitting long strings issues
+solutionName: galileo
+
+# The environment name where you want to deploy the solution to. (e.g. developer1, developer2, demo, prod etc.)
+# This is also used for creating a namespace for resources. Usually, this is same as serverless "stage".
+# All resource names reference "envName" instead of directly using "opt:stage".
+# This indirection allows for easy incorporation of extra variables in the "envName", if required.
+# For example, if the same solution needs to be deployed across multiple AWS accounts we can easily
+# add account specific variable in "envName" for keeping the namespace specific to each account.
+envName: ${opt:stage}
+
+# The environment type (e.g. dev, demo, prod). This is for grouping multiple environments
+# into types. For example, all developers' environments can be of type "dev". This can be
+# used for enabling conditionals in code that might need to be different between dev and
+# production builds (for example, enabling CORS for localhost for local development).
+envType: prod
+
 # This prefix is used to construct the full name of a table
 dbTablePrefix: ${self:custom.settings.namespace}
 
@@ -91,6 +109,8 @@ rootUserName: root
 rootUserFirstName: root
 # Root user's last name
 rootUserLastName: root
+# Root user's email address
+rootUserEmail: root@example.com
 
 # Enable/disable external researchers feature
 # When enableExternalResearchers = true, it allows users to be assigned to an "External Researcher" role.

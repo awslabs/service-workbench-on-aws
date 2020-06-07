@@ -11,9 +11,6 @@ pushd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null
 [[ $UTIL_SOURCED != yes && -f ./util.sh ]] && source ./util.sh
 popd > /dev/null
 
-# Ensure settings file exists
-ensure_setttings_file "$@"
-
 # Setup the execution command
 init_package_manager
 
@@ -42,9 +39,9 @@ function get_info() {
   # will not be present in the CI/CD pipeline YAML and that fact, combined
   # with set -o pipefail, will cause this script to exit with a non-zero rc.
   set +e
-  solution_name="$(grep '^solutionName:' --ignore-case < "$CONFIG_DIR/settings/$STAGE.yml" | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
-  aws_region="$(grep '^awsRegion:' --ignore-case < "$CONFIG_DIR/settings/$STAGE.yml" | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
-  aws_profile="$(grep '^awsProfile:' < "$CONFIG_DIR/settings/$STAGE.yml" | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
+  solution_name="$(cat "$CONFIG_DIR/settings/$STAGE.yml" "$CONFIG_DIR/settings/.defaults.yml" 2> /dev/null | grep '^solutionName:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
+  aws_region="$(cat "$CONFIG_DIR/settings/$STAGE.yml" "$CONFIG_DIR/settings/.defaults.yml" 2> /dev/null | grep '^awsRegion:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
+  aws_profile="$(cat "$CONFIG_DIR/settings/$STAGE.yml" "$CONFIG_DIR/settings/.defaults.yml" 2> /dev/null | grep '^awsProfile:' -m 1 | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
   set -e
 
   local root_psswd_cmd=''

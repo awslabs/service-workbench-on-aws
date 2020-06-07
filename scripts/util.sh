@@ -54,18 +54,3 @@ function install_dependencies() {
   [[ -n "$INSTALL_RECURSIVE" ]] && $INSTALL_RECURSIVE
   popd
 }
-
-function ensure_setttings_file() {
-  # Accept 1st argument. Default: username
-  STAGE=${1:-$USER}
-
-  ENVIRONMENT_CONFIG=$CONFIG_DIR/settings/$STAGE.yml
-
-  if ! test -f "$ENVIRONMENT_CONFIG"
-  then
-    printf "\nEnvironment configuration does not exist!"
-    printf "\nPlease either create the environment configuration by copying demo.yaml or make sure you typed the environment name correctly!\n\n"
-    printf "Exiting ...\n\n"
-    exit
-  fi
-}

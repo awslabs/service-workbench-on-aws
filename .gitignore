@@ -20,8 +20,9 @@
 **/.idea
 
 # User-config files
-main/config/settings/*.yml
-main/solution/post-deployment/config/settings/*.yml
-main/solution/prepare-master-acc/config/settings/*.yml
-main/cicd/cicd-pipeline/config/settings/*.yml
-main/cicd/cicd-source/config/settings/*.yml
+*/config/settings/*.yml
+!*/config/settings/.defaults.yml
+!*/config/settings/example.yml
+*/*/*/config/settings/*.yml
+!*/*/*/config/settings/.defaults.yml
+!*/*/*/config/settings/example.yml
