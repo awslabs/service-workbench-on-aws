@@ -111,13 +111,13 @@ class AwsService extends Service {
       const { Arn: callerArn } = await sts.getCallerIdentity().promise();
       const autoAdjustTrustPolicy = this.settings.optionalBoolean(settingKeys.localRoleAutoAdjustTrust, false);
       if (!autoAdjustTrustPolicy) {
-        const error = this.boom.internalError(
-          `Error assuming role "${localRoleArn}". Make sure the role's trust policy allows "${callerArn}" to assume the role.
+        throw this.boom
+          .internalError(
+            `Error assuming role "${localRoleArn}". Make sure the role's trust policy allows "${callerArn}" to assume the role.
            To auto adjust the role's trust policy, set '${settingKeys.localRoleAutoAdjustTrust}' setting to true and try again.`,
-          true,
-        );
-        error.stack = e.stack;
-        throw error;
+            true,
+          )
+          .cause(e);
       }
 
       // Code reached here means, we need to adjust the trust policy of the role
@@ -150,7 +150,11 @@ class AwsService extends Service {
         msg: `Updating '${roleName}' to allow to assumeRole by '${callerArn}'`,
         trustPolicy,
       });
-      await iam.updateAssumeRolePolicy({ PolicyDocument: JSON.stringify(trustPolicy), RoleName: roleName }).promise();
+      try {
+        await iam.updateAssumeRolePolicy({ PolicyDocument: JSON.stringify(trustPolicy), RoleName: roleName }).promise();
+      } catch (err) {
+        throw this.boom.internalError(`Error updating assume role policy for role "${roleName}"`).cause(err);
+      }
 
       // Try to assume the role again after adjusting trust policy
       // IAM policy changes propagation may take some time so wrap with "retry" to retry
@@ -158,12 +162,13 @@ class AwsService extends Service {
       try {
         creds = await retry(() => this.assumeLocalRole(aws, localRoleArn), 5);
       } catch (err) {
-        // manytimes due to IAM propagation delay the assume role call fails even after retries with backoff
+        // many times due to IAM propagation delay the assume role call fails even after retries with backoff
         // in that case just ask the user to try again, as this is ONLY for local development
-        const error = new Error(`Error assuming role "${localRoleArn}" even after adjusting the role's trust policy. 
-        This is most likely IAM propagation timing issue. Please try to run the lambda again.`);
-        error.stack = err.stack;
-        throw error;
+        throw this.boom
+          .internalError(
+            `Error assuming role "${localRoleArn}" even after adjusting the role's trust policy. This is most likely IAM propagation timing issue. Please try to run the lambda again.`,
+          )
+          .cause(err);
       }
     }
 
