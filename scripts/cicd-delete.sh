@@ -9,7 +9,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 install_dependencies "$@"
 
 # Delete
-printf "\nWARNING: THIS COMMAND WILL DELETE YOUR ENVIRONMENT AND LEAD TO DATA LOSS.\n"
+printf "\nWARNING: THIS COMMAND WILL DELETE YOUR CI/CD PIPELINE AND LEAD TO DATA LOSS.\n"
 printf "\nAre you sure you want to proceed? Press ENTER to ABORT OR Type the environment name to confirm removal (%s): " "$STAGE"
 read -r confirmation
 
@@ -28,10 +28,6 @@ function componentRemove {
     $EXEC sls remove -s "$STAGE"
 }
 
-componentRemove "ui" "UI"
-componentRemove "post-deployment" "Post-Deployment"
-componentRemove "edge-lambda" "Edge-Lambda"
-componentRemove "backend" "Backend"
-componentRemove "infrastructure" "Infrastructure"
+componentRemove "cicd/cicd-pipeline" "CI/CD Pipeline"
 
-printf "\n----- ENVIRONMENT DELETED SUCCESSFULLY 🎉 -----\n\n\n"
+printf "\n----- CI/CD PIPELINE DELETED SUCCESSFULLY 🎉 -----\n\n\n"

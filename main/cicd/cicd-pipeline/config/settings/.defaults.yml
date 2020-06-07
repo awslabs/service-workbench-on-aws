@@ -14,7 +14,7 @@ tokenName: /${self:custom.settings.envName}/${self:custom.settings.solutionName}
 pipelineName: ${self:custom.settings.namespace}-${self:custom.settings.repoBranch}
 
 # Either specify a Github owner (and an OAuth Token in CloudFormation) or source account and role (for CodeCommit)
-githubOwner: ''
+githubOwner: 'awslabs'
 sourceAccountId: ''
 sourceRoleArn: ''
 

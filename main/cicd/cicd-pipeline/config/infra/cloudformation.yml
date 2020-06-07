@@ -8,7 +8,8 @@ Parameters:
 
 
 Conditions:
-  UseCodeCommit: !Equals ['${self:custom.settings.githubOwner}', '']
+  UseCodeCommit: !Not
+    - !Equals ['${self:custom.settings.sourceAccountId}', '']
   CreateStagingEnv: !Equals ['${self:custom.settings.createStagingEnv}', true]
   RunTestsAgainstTargetEnv: !Equals ['${self:custom.settings.runTestsAgainstTargetEnv}', true]
   AddManualApproval: !Equals ['${self:custom.settings.requireManualApproval}', true]
