@@ -61,7 +61,8 @@ const settingExpander = settings => {
 
 /**
  * A function to get cross region CloudFormation outputs. The cloudFormationSettings parameter
- * contains details of the CloudFormation outputs to retrieve:
+ * contains details of the CloudFormation outputs to retrieve, and the targetAwsRegion is the
+ * region from which those outputs will be pulled:
  *
  * {
  *   ServerlessSettingWithStackName: [{
@@ -75,7 +76,7 @@ const settingExpander = settings => {
  *
  * @param stage
  * @param awsProfile
- * @param otherAwsRegion
+ * @param targetAwsRegion
  * @param currentSettings
  * @param cloudFormationSettings
  * @returns {Promise<{*}>}
@@ -83,14 +84,14 @@ const settingExpander = settings => {
 async function getCloudFormationCrossRegionValues(
   stage,
   awsProfile,
-  otherAwsRegion,
+  targetAwsRegion,
   currentSettings,
   cloudFormationSettings,
 ) {
-  const cf = createAwsSdkClient('CloudFormation', awsProfile, { apiVersion: '2010-05-15', region: otherAwsRegion });
+  const cf = createAwsSdkClient('CloudFormation', awsProfile, { apiVersion: '2010-05-15', region: targetAwsRegion });
 
-  // The settings for the other CloudFormation stack will be in the other region
-  const settingsForExpansion = { ...currentSettings, stage, awsRegion: otherAwsRegion };
+  // Pull in CloudFormation output values from the target region
+  const settingsForExpansion = { ...currentSettings, stage, awsRegion: targetAwsRegion };
   const expander = settingExpander(settingsForExpansion);
 
   const results = await Promise.all(
