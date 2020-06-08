@@ -70,8 +70,8 @@ class EnvironmentService extends Service {
   }
 
   async isEnvironmentProjectAdmin(requestContext, environment) {
-    const ProjectsService = await this.service('projectsService');
-    const project = await ProjectsService.find(requestContext, { id: environment.projectId });
+    const ProjectService = await this.service('projectService');
+    const project = await ProjectService.find(requestContext, { id: environment.projectId });
     if (!project) {
       // eslint-disable-next-line no-console
       console.error(`could not find project in isEnvironmentProjectAdmin: [${environment.projectId}]`);
@@ -148,6 +148,8 @@ class EnvironmentService extends Service {
       })
       .filter(item => item.isProjectAdmin);
 
+    this.projAdminLookup = envProjectAdmin;
+
     return [...envOwner, ...envShared, ...envProjectAdmin].map(item => environments[item.environmentsIndex]);
   }
 
@@ -162,9 +164,12 @@ class EnvironmentService extends Service {
       .get();
 
     if (result) {
-      // ensure that the caller has permissions to retrieve the specified environment
-      // The following will result in checking permissions by calling the condition function "this._allowAuthorized" first
-      await this.assertAuthorized(requestContext, { action: 'get', conditions: [this._allowAuthorized] }, result);
+      if (!this.isEnvironmentProjectAdmin(requestContext, result)) {
+        // If the current user is not this environment's project administrator
+        // ensure that the caller has permissions to retrieve the specified environment
+        // The following will result in checking permissions by calling the condition function "this._allowAuthorized" first
+        await this.assertAuthorized(requestContext, { action: 'get', conditions: [this._allowAuthorized] }, result);
+      }
     }
 
     return this._fromDbToDataObject(result);
