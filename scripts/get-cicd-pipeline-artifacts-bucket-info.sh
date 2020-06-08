@@ -13,14 +13,14 @@ install_dependencies "$@"
 
 function get_cicd_pipeline_artifacts_bucket_info() {
   pushd $SOLUTION_ROOT_DIR/cicd/cicd-pipeline
-  local pipeline_stack_name=$($EXEC sls info -s $STAGE | grep 'stack:' --ignore-case | sed 's/ //g' | cut -d':' -f2)
+  local pipeline_stack_name=$($EXEC sls info -s $STAGE | grep 'stack:' --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
   popd
 
   echo "pipeline_stack_name=${pipeline_stack_name}"
 
-  local solution_name="$(cat $CONFIG_DIR/settings/$STAGE.yml | grep 'solutionName:' --ignore-case | sed 's/ //g' | cut -d':' -f2)"
-  local aws_region="$(cat $CONFIG_DIR/settings/$STAGE.yml | grep 'awsRegion:' --ignore-case | sed 's/ //g' | cut -d':' -f2)"
-  local aws_profile="$(cat $CONFIG_DIR/settings/$STAGE.yml | grep 'awsProfile:' --ignore-case | sed 's/ //g' | cut -d':' -f2)"
+  local solution_name="$(cat $CONFIG_DIR/settings/$STAGE.yml | grep 'solutionName:' --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
+  local aws_region="$(cat $CONFIG_DIR/settings/$STAGE.yml | grep 'awsRegion:' --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
+  local aws_profile="$(cat $CONFIG_DIR/settings/$STAGE.yml | grep 'awsProfile:' --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
 
   if [ $aws_profile ]; then
       artifacts_s3_bucket_arn="$(aws cloudformation describe-stacks --stack-name $pipeline_stack_name --output text --region $aws_region --profile $aws_profile --query 'Stacks[0].Outputs[?OutputKey==`AppArtifactBucketArn`].OutputValue')"

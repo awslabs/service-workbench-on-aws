@@ -29,23 +29,22 @@ init_package_manager
 function get_info() {
   pushd "$SOLUTION_DIR/infrastructure" > /dev/null
   local stack_name_infrastructure
-  stack_name_infrastructure=$($EXEC sls info -s "$STAGE" | grep 'stack:' --ignore-case | sed 's/ //g' | cut -d':' -f2)
+  stack_name_infrastructure=$($EXEC sls info -s "$STAGE" | grep 'stack:' --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
   popd > /dev/null
 
   pushd "$SOLUTION_DIR/backend" > /dev/null
   local stack_name_backend
-  stack_name_backend=$($EXEC sls info -s "$STAGE" | grep 'stack:' --ignore-case | sed 's/ //g' | cut -d':' -f2)
+  stack_name_backend=$($EXEC sls info -s "$STAGE" | grep 'stack:' --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
   popd > /dev/null
 
   local solution_name aws_region aws_profile
-
   # Note that we disable exit on non-zero for this section as the awsProfile
   # will not be present in the CI/CD pipeline YAML and that fact, combined
   # with set -o pipefail, will cause this script to exit with a non-zero rc.
   set +e
-  solution_name="$(grep '^solutionName:' --ignore-case < "$CONFIG_DIR/settings/$STAGE.yml" | sed 's/ //g' | cut -d':' -f2)"
-  aws_region="$(grep '^awsRegion:' --ignore-case < "$CONFIG_DIR/settings/$STAGE.yml" | sed 's/ //g' | cut -d':' -f2)"
-  aws_profile="$(grep '^awsProfile:' < "$CONFIG_DIR/settings/$STAGE.yml" | sed 's/ //g' | cut -d':' -f2)"
+  solution_name="$(grep '^solutionName:' --ignore-case < "$CONFIG_DIR/settings/$STAGE.yml" | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
+  aws_region="$(grep '^awsRegion:' --ignore-case < "$CONFIG_DIR/settings/$STAGE.yml" | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
+  aws_profile="$(grep '^awsProfile:' < "$CONFIG_DIR/settings/$STAGE.yml" | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
   set -e
 
   local root_psswd_cmd=''
