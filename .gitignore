@@ -22,7 +22,10 @@
 # User-config files
 */config/settings/*.yml
 !*/config/settings/.defaults.yml
-!*/config/settings/example.yml
+!*/config/settings/example*.yml
+*/*/config/settings/*.yml
+!*/*/config/settings/.defaults.yml
+!*/*/config/settings/example*.yml
 */*/*/config/settings/*.yml
 !*/*/*/config/settings/.defaults.yml
-!*/*/*/config/settings/example.yml
+!*/*/*/config/settings/example*.yml
