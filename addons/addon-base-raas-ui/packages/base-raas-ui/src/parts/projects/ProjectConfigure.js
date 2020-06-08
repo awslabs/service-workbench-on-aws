@@ -21,12 +21,15 @@ import _ from 'lodash';
 import { displayError, displaySuccess } from '@aws-ee/base-ui/dist/helpers/notification';
 import Stores from '@aws-ee/base-ui/dist/models/Stores';
 import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
+import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
+import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 import { getAddProjectFormFields, getAddProjectForm } from '../../models/forms/AddProjectForm';
 
 class ProjectConfigure extends React.Component {
   constructor(props) {
     super(props);
     runInAction(() => {
+      this.stores = new Stores([this.usersStore, this.awsAccountsStore, this.projectsStore, this.userStore]);
       const { rev, id, description, indexId, projectAdmins } = this.props.project;
       this.updateProject = {
         rev,
@@ -34,12 +37,11 @@ class ProjectConfigure extends React.Component {
         description,
         indexId,
         projectAdmins,
-      };
+      }; // This needs to be fixed, use mobx-form instead
       this.formProcessing = false;
       this.modalOpen = false;
       this.confirmDeleteOpen = false;
       this.view = 'detail';
-      this.stores = new Stores([this.usersStore, this.awsAccountsStore, this.projectsStore, this.userStore]);
     });
     this.form = getAddProjectForm();
     this.addProjectFormFields = getAddProjectFormFields();
@@ -67,6 +69,18 @@ class ProjectConfigure extends React.Component {
 
   handleModalOpen = () => {
     runInAction(() => {
+      const { rev, id, description, indexId, projectAdmins } = this.props.project;
+      this.updateProject = {
+        rev,
+        id,
+        description,
+        indexId,
+        projectAdmins,
+      }; // This needs to be fixed, use mobx-form instead
+      this.formProcessing = false;
+      this.modalOpen = false;
+      this.confirmDeleteOpen = false;
+      this.view = 'detail';
       this.modalOpen = true;
     });
   };
@@ -124,13 +138,29 @@ class ProjectConfigure extends React.Component {
     );
   }
 
-  render() {
+  renderMain() {
     let content = null;
     if (this.view === 'detail') {
       content = this.renderDetailView();
     } else if (this.view === 'edit') {
-      content = this.renderUpdateProjectConfigForm();
+      content = this.renderEditView();
     }
+    return content;
+  }
+
+  render() {
+    const stores = this.getStores();
+    let content = null;
+    if (stores.hasError) {
+      content = <ErrorBox error={stores.error} className="p0 mb3" />;
+    } else if (stores.loading) {
+      content = <BasicProgressPlaceholder />;
+    } else if (stores.ready) {
+      content = this.renderMain();
+    } else {
+      content = null;
+    }
+
     return (
       <Modal closeIcon trigger={this.renderTrigger()} open={this.modalOpen} onClose={this.handleModalClose}>
         <div className="mt2 animated fadeIn">
@@ -143,7 +173,7 @@ class ProjectConfigure extends React.Component {
     );
   }
 
-  renderUpdateProjectConfigForm() {
+  renderEditView() {
     const processing = this.formProcessing;
     const fields = this.addProjectFormFields;
     const toEditableInput = (attributeName, type = 'text') => {
@@ -201,20 +231,20 @@ class ProjectConfigure extends React.Component {
     if (!this.updateProject.id) {
       this.updateProject.id = this.currentProject.id;
     }
-
     runInAction(() => {
       this.formProcessing = true;
     });
     try {
       const store = this.getStore();
       await store.updateProject(this.updateProject);
-      await store.load();
+
       runInAction(() => {
         this.formProcessing = false;
       });
+
       this.cleanUp();
+
       displaySuccess('Updated project successfully');
-      // this.goto(/accounts)
     } catch (err) {
       runInAction(() => {
         this.formProcessing = false;
@@ -364,9 +394,9 @@ class ProjectConfigure extends React.Component {
     return this.props.awsAccountsStore;
   }
 
-  // get projectStore() {
-  //   return this.props.projectStore;
-  // }
+  get projectStore() {
+    return this.props.projectsStore.getProjectStore();
+  }
 
   get projectsStore() {
     return this.props.projectsStore;
@@ -380,12 +410,12 @@ decorate(ProjectConfigure, {
   confirmDeleteOpen: observable,
   view: observable,
   updateProject: observable,
-  validationErrors: observable,
 
-  // projectStore: computed,
   projectsStore: computed,
   awsAccountsStore: computed,
   usersStore: computed,
   userStore: computed,
+
+  handleClickSubmitButton: action,
 });
 export default observer(ProjectConfigure);

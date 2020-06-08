@@ -76,7 +76,8 @@ const ProjectsStore = BaseStore.named('ProjectsStore')
       },
 
       updateProject: async project => {
-        await updateProject(project);
+        const updatedProject = await updateProject(project);
+        self.addProject(updatedProject);
       },
 
       cleanup: () => {

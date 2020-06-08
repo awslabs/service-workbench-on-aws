@@ -83,19 +83,18 @@ class ProjectsList extends React.Component {
               Header: 'Project Admins',
               accessor: 'projectAdmins',
               style: { whiteSpace: 'unset' },
-              Cell: row => {
+              Cell: observer(row => {
                 const project = row.original;
                 const { projectAdmins } = project;
                 return _.map(projectAdmins, x => x.username).join(', ') || '<<none>>';
-              },
+              }),
             },
             {
               Header: '',
               accessor: 'viewDetail',
               filterable: false,
-              Cell: cell => {
+              Cell: observer(cell => {
                 const project = { ...cell.original };
-                // console.log(this.props.projectStore);
                 return (
                   <div style={{ textAlign: 'center', verticalAlign: 'middle' }}>
                     <span>
@@ -114,7 +113,7 @@ class ProjectsList extends React.Component {
                     </span>
                   </div>
                 );
-              },
+              }),
             },
           ]}
         />
