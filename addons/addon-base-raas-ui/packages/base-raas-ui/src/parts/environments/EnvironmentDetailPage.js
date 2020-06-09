@@ -270,10 +270,7 @@ class EnvironmentDetailPage extends React.Component {
 
   renderUserShareTabPane() {
     const environment = this.getEnvironment();
-    const user = this.getUser();
     const { username: envUsername, ns: envNs } = environment.createdBy;
-    const isOwner = user.username === envUsername && user.ns === envNs;
-    const { isAdmin } = user;
     const sharedWithUsersDropDownOptions = this.props.usersStore.asDropDownOptions().filter(item => {
       const value = JSON.parse(item.value);
       return !(value.username === envUsername && value.ns === envNs);
@@ -295,12 +292,8 @@ class EnvironmentDetailPage extends React.Component {
                     multiple
                     selection
                     search
-                    placeholder={
-                      isOwner
-                        ? 'Select other users you want to share this environment'
-                        : 'Only the owner can share the environment'
-                    }
-                    disabled={!(isOwner || isAdmin) || this.formProcessing}
+                    placeholder="Select other users you want to share this environment"
+                    disabled={this.formProcessing}
                     onChange={this.handleSharedWithUsersSelection}
                   />
                   <div className="mb2" />

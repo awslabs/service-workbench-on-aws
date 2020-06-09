@@ -27,6 +27,11 @@ const {
 const { allowIfHasRole } = require('../user/helpers/user-authz-utils');
 
 class EnvironmentAuthzService extends Service {
+  constructor() {
+    super();
+    this.dependency(['projectService']);
+  }
+
   async authorize(requestContext, { resource, action, effect, reason }, ...args) {
     let permissionSoFar = { effect };
     // if effect is "deny" already (due to any of the previous plugins returning "deny") then return "deny" right away
@@ -40,7 +45,7 @@ class EnvironmentAuthzService extends Service {
       case 'get':
       case 'update':
       case 'delete':
-        return this.allowIfOwnerOrAdmin(requestContext, { action }, ...args);
+        return this.allowIfUserHasAccess(requestContext, { action }, ...args);
       case 'list':
         return this.authorizeList(requestContext, { action }, ...args);
       case 'create':
@@ -54,15 +59,23 @@ class EnvironmentAuthzService extends Service {
     }
   }
 
-  async allowIfOwnerOrAdmin(requestContext, { action }, environment) {
-    const envCreator = _.get(environment, 'createdBy');
+  async allowIfUserHasAccess(requestContext, { action }, environment) {
+    const envCreator = environment.createdBy;
     if (_.isEmpty(envCreator)) {
       return deny(`Cannot ${action} the workspace. Workspace creator information is not available`);
     }
-
     // Allow if the caller is the environment creator (owner) or admin
     let permissionSoFar = await allowIfCurrentUserOrAdmin(requestContext, { action }, envCreator);
-    if (isDeny(permissionSoFar)) return permissionSoFar; // return if denying
+
+    if (isDeny(permissionSoFar)) {
+      const isProjectAdmin = await this.isEnvironmentProjectAdmin(requestContext, environment);
+      const isSharedWithUser = await this.isSharedWithUser(requestContext, environment);
+      if (isProjectAdmin || isSharedWithUser) {
+        permissionSoFar = allow();
+      } else {
+        return permissionSoFar; // return if denying
+      }
+    }
 
     // Even if the user is owner (creator) of the env his/her role may have changed (e.g., to guest or internal-guest)
     // that may not allow it to perform the specified action on the environment (after the environment was created initially)
@@ -122,6 +135,38 @@ class EnvironmentAuthzService extends Service {
       );
     }
     return allow();
+  }
+
+  async isEnvironmentProjectAdmin(requestContext, environment) {
+    const ProjectService = await this.service('projectService');
+    const project = await ProjectService.find(requestContext, { id: environment.projectId });
+    if (!project) {
+      // eslint-disable-next-line no-console
+      console.error(`could not find project in isEnvironmentProjectAdmin: [${environment.projectId}]`);
+      return false;
+    }
+    const projectAdmins = project.projectAdmins || [];
+    return projectAdmins.some(projectAdmin => {
+      const { username: projectUsername, ns: projectNs } = projectAdmin;
+      const { username: requestUsername, ns: requestNs } = requestContext.principal;
+      return projectUsername === requestUsername && projectNs === requestNs;
+    });
+  }
+
+  async isSharedWithUser(requestContext, environment) {
+    const ProjectService = await this.service('projectService');
+    const project = await ProjectService.find(requestContext, { id: environment.projectId });
+    if (!project) {
+      // eslint-disable-next-line no-console
+      console.error(`could not find project in isSharedWithUser: [${environment.projectId}]`);
+      return false;
+    }
+    const sharedWithUsers = environment.sharedWithUsers || [];
+    return sharedWithUsers.some(sharedWithUser => {
+      const { username: projectUsername, ns: projectNs } = sharedWithUser;
+      const { username: requestUsername, ns: requestNs } = requestContext.principal;
+      return projectUsername === requestUsername && projectNs === requestNs;
+    });
   }
 }
 module.exports = EnvironmentAuthzService;
