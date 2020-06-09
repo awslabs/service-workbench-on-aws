@@ -141,8 +141,6 @@ class EnvironmentAuthzService extends Service {
     const ProjectService = await this.service('projectService');
     const project = await ProjectService.find(requestContext, { id: environment.projectId });
     if (!project) {
-      // eslint-disable-next-line no-console
-      console.error(`could not find project in isEnvironmentProjectAdmin: [${environment.projectId}]`);
       return false;
     }
     const projectAdmins = project.projectAdmins || [];
@@ -157,8 +155,6 @@ class EnvironmentAuthzService extends Service {
     const ProjectService = await this.service('projectService');
     const project = await ProjectService.find(requestContext, { id: environment.projectId });
     if (!project) {
-      // eslint-disable-next-line no-console
-      console.error(`could not find project in isSharedWithUser: [${environment.projectId}]`);
       return false;
     }
     const sharedWithUsers = environment.sharedWithUsers || [];
