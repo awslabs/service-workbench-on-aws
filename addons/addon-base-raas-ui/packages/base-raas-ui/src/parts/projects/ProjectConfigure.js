@@ -37,7 +37,7 @@ class ProjectConfigure extends React.Component {
         description,
         indexId,
         projectAdmins,
-      }; // This needs to be fixed, use mobx-form instead
+      };
       this.formProcessing = false;
       this.modalOpen = false;
       this.confirmDeleteOpen = false;
@@ -76,7 +76,7 @@ class ProjectConfigure extends React.Component {
         description,
         indexId,
         projectAdmins,
-      }; // This needs to be fixed, use mobx-form instead
+      };
       this.formProcessing = false;
       this.modalOpen = false;
       this.confirmDeleteOpen = false;
