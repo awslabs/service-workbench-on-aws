@@ -22,6 +22,11 @@ envType: demo
 # Root user's email address
 rootUserEmail: user@example.com
 
+# THIS SETTING IS ONLY APPLICABLE FOR LOCAL DEVELOPMENT
+# A flag indicating if lambda function role's trust policy (assume role policy) should be automatically adjusted to
+# allow assuming the role from local machine (applicable only for local development)
+localRoleAutoAdjustTrust: true
+
 
 # Array of identity provider ids.
 # The usual practice is to keep this same as the domain name of the idp.
