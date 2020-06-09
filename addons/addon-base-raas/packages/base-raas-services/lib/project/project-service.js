@@ -24,6 +24,7 @@ const updateSchema = require('../schema/update-project');
 
 const settingKeys = {
   tableName: 'dbTableProjects',
+  environmentTableName: 'dbTableEnvironments',
 };
 
 class ProjectService extends Service {
@@ -168,6 +169,23 @@ class ProjectService extends Service {
       { action: 'delete', conditions: [allowIfActive, allowIfAdmin] },
       { id },
     );
+
+    // ensure that the project is not linked to any active environments
+    const [dbService] = await this.service(['dbService']);
+    const environmentsTable = this.settings.get(settingKeys.tableName);
+    this._scanner = () => dbService.helper.scanner().table(environmentsTable);
+
+    const environments = await this._scanner().scan();
+    if (
+      environments.some(env => {
+        return env.id === id;
+      })
+    ) {
+      throw this.boom.badRequest(
+        `Deletion could not be completed. Project is linked to non-terminated resources`,
+        true,
+      );
+    }
 
     // Lets now remove the item from the database
     const result = await runAndCatch(

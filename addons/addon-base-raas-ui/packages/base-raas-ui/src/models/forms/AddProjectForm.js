@@ -31,7 +31,7 @@ const addProjectFormFields = {
   },
   projectAdmins: {
     label: 'Project Admins',
-    placeholder: 'Users who would be able to see, start and stop workspaces associated with this project',
+    placeholder: 'Users who automatically have full control of workspaces associated with this project',
     explain: ' ',
     rules: 'array',
   },

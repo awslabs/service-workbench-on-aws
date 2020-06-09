@@ -17,7 +17,6 @@ const _ = require('lodash');
 const uuid = require('uuid/v1');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
-const { isAllow } = require('@aws-ee/base-services/lib/authorization/authorization-utils.js');
 const createSchema = require('../schema/create-environment');
 const updateSchema = require('../schema/update-environment');
 
@@ -84,23 +83,34 @@ class EnvironmentService extends Service {
       return environments;
     }
 
-    const result = [];
-    // eslint-disable-next-line no-restricted-syntax
-    for (const environment of environments) {
-      // eslint-disable-next-line no-await-in-loop
-      const authResult = await this.service('environmentAuthzService');
-      // eslint-disable-next-line no-await-in-loop
-      const res = await authResult.authorize(
+    const envMap = environments.map((env, index) => {
+      return {
+        environmentsIndex: index,
+      };
+    });
+
+    const authResult = await this.service('environmentAuthzService');
+
+    const envPromises = envMap.map(env =>
+      authResult.authorize(
         requestContext,
         { action: 'get', conditions: [this._allowAuthorized] },
-        environment,
-      );
+        environments[env.environmentsIndex],
+      ),
+    );
 
-      if (isAllow(res)) {
-        result.push(environment);
-      }
-    }
-    return result;
+    const envPromiseResolutions = await Promise.all(envPromises);
+
+    const envAccessible = envPromiseResolutions
+      .map((isAccessible, index) => {
+        return {
+          isAccessible,
+          environmentsIndex: envMap[index].environmentsIndex,
+        };
+      })
+      .filter(item => item.isAccessible);
+
+    return [...envAccessible].map(item => environments[item.environmentsIndex]);
   }
 
   async find(requestContext, { id, fields = [] }) {

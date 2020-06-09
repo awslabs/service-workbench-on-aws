@@ -299,7 +299,7 @@ class ProjectConfigure extends React.Component {
           </Button>
           <Confirm
             open={this.confirmDeleteOpen}
-            content="WARNING: This is a destructive action and may leave resources in an orphaned state. Are you sure?"
+            content="Are you sure you want to delete this project?"
             onCancel={this.handleDeleteConfirmClose}
             onConfirm={this.handleClickDeleteButton}
           />
