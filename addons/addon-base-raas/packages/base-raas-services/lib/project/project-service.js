@@ -174,17 +174,9 @@ class ProjectService extends Service {
     const [dbService] = await this.service(['dbService']);
     const environmentsTable = this.settings.get(settingKeys.tableName);
     this._scanner = () => dbService.helper.scanner().table(environmentsTable);
-
     const environments = await this._scanner().scan();
-    if (
-      environments.some(env => {
-        return env.id === id;
-      })
-    ) {
-      throw this.boom.badRequest(
-        `Deletion could not be completed. Project is linked to non-terminated resources`,
-        true,
-      );
+    if (environments.some(env => env.id === id)) {
+      throw this.boom.badRequest(`Deletion could not be completed. Project is linked to existing resources`, true);
     }
 
     // Lets now remove the item from the database
