@@ -1,0 +1,16 @@
+{
+  "name": "load-test-workspaces",
+  "version": "1.0.0",
+  "description": "Load testing for the creation, the access and the deletion of workspaces",
+  "main": "load-test-workspaces.js",
+  "scripts": {
+    "start": "echo \"This script should be run directily with node\" && node load-test-workspaces.js --help",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "aws-sdk": "^2.667.0",
+    "yargs": "^15.3.1"
+  }
+}
