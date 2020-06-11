@@ -80,7 +80,7 @@ class MainLayout extends React.Component {
 
       <Menu inverted color="black" fixed="top" className="box-shadow zindex-1500" key="ml2">
         <Menu.Item style={{ height: '50px', verticalAlign: 'middle' }}>
-          <img src={branding.main.logo} style={{ height: '40px', width: 'auto' }} />
+          <img src={branding.main.logo} alt="logo" style={{ height: '40px', width: 'auto' }} />
           <span style={{ paddingLeft: '15px' }}>{branding.main.title}</span>
         </Menu.Item>
         <Menu.Menu position="right">
