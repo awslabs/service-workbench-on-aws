@@ -29,6 +29,7 @@ import { branding } from './helpers/settings';
 class AppContainer extends Component {
   componentDidMount() {
     document.title = branding.page.title;
+    document.querySelector("link[rel='shortcut icon']").href = branding.page.favicon;
   }
 
   render() {
