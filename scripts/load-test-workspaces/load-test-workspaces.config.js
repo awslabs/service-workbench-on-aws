@@ -5,11 +5,11 @@
 // Fastest way to retrieve its value is to perform the manipulation on the application itself and get it from your WebBrowser's request
 
 const API_TOKEN = process.env.API_TOKEN;
-const API_HOSTNAME = '' // 'pih5shmr7e.execute-api.us-east-1.amazonaws.com'
-const REGION_NAME = '' // 'us-east-1';
-const STAGE_NAME = '' // 'dbmi-dev';
-const TEST_NAME_PREFIX = 'LOAD TESTS';
-const PROJECT_NAME = '' // 'LOAD TESTING PROJECT';
+const API_HOSTNAME = ''; // 'XXXXXXXXXX.execute-api.<region>.amazonaws.com'
+const REGION_NAME = '';
+const STAGE_NAME = ''; // 'galileo-dev'
+const TEST_NAME_PREFIX = ''; // 'SCALABILITY TESTS'
+const PROJECT_NAME = ''; // 'SCALABILITY TESTS PROJECT'
 
 const config = {
     TEST_NAME_PREFIX,
