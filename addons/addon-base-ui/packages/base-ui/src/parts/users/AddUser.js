@@ -12,6 +12,7 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
+/*jshint esversion: 9 */
 
 import React from 'react';
 import { inject, observer } from 'mobx-react';
@@ -28,7 +29,13 @@ import validate from '../../models/forms/Validate';
 class AddUser extends React.Component {
   constructor(props) {
     super(props);
-
+    this.state = {
+      role: 'guest',
+      status: 'active',
+      identityProviderName: 'auth0',
+      projectId: [],
+      userRole: '',
+    };
     runInAction(() => {
       this.formProcessing = false;
       this.validationErrors = new Map();
@@ -48,7 +55,48 @@ class AddUser extends React.Component {
       </div>
     );
   }
+  handleRoleChange = (e, {
+    value
+  }) => this.setState({
+    role: value
+  });
+  handleStatusChange = (e, {
+    value
+  }) => this.setState({
+    status: value
+  });
+  handleIdentityProviderName = (e, {
+    value
+  }) => this.setState({
+    identityProviderName: value
+  });
+  handleDbmiProjectId = (e, {
+    value
+  }) => this.setState({
+    projectId: value
+  });
 
+
+  renderIdentityProviderNameSelection() {
+    const identityProviderOption = [{
+        key: 'auth0',
+        text: 'Auth0 Database',
+        value: 'auth0',
+      },
+      {
+        key: 'google-oauth2',
+        text: 'Google',
+        value: 'google-oauth2',
+      },
+    ];
+    return <Dropdown options = {
+      identityProviderOption
+    }
+    fluid selection onChange = {
+      this.handleIdentityProviderName
+    }
+    />;
+  }
   renderAddUserForm() {
     const processing = this.formProcessing;
     const fields = this.addUserFormFields;

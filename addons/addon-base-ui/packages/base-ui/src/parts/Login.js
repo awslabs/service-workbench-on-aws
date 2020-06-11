@@ -1,3 +1,4 @@
+/*jshint esversion: 9 */
 /*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -127,12 +128,47 @@ class Login extends React.Component {
         }),
       );
   });
+  handleAuth0Login = action(event => {
+    this.authenticationProviderError = '';
+    this.usernameError = '';
+    this.passwordError = '';
+    const username = _.trim(this.username) || '';
+    const password = this.password || '';
+    const authentication = this.props.authentication;
+    this.loading = true;
+
+    Promise.resolve()
+      .then(() =>
+        authentication.login({
+          username,
+          password,
+        }),
+      )
+      .catch(err => displayError(err))
+      .finally(
+        action(() => {
+          this.loading = false;
+        }),
+      );
+  });
+
 
   getAuthenticationProviderOptions = () => {
     const authenticationProviderPublicConfigsStore = this.props.authenticationProviderPublicConfigsStore;
     return authenticationProviderPublicConfigsStore.authenticationProviderOptions;
   };
-
+  renderAutoRedirect = () => {
+    const authenticationProviderOptions = this.getAuthenticationProviderOptions();
+    if (authenticationProviderOptions && authenticationProviderOptions.length >= 1) {
+      _.forEach(authenticationProviderOptions, option => {
+        if (option.redirecturi) {
+          this.props.authentication.setSelectedAuthenticationProviderId(option.key);
+        }
+      });
+    }
+    this.handleAuth0Login();
+    return '';
+  };
   render() {
     const error = !!(this.usernameError || this.passwordError || this.authenticationProviderError);
 

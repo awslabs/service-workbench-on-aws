@@ -12,9 +12,11 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
+/*jshint esversion: 9 */
 
 const InternalAuthenticationProvisionerService = require('./built-in-providers/internal/provisioner-service');
 const CognitoUserPoolAuthenticationProvisionerService = require('./built-in-providers/cogito-user-pool/provisioner-service');
+const Auth0AuthenticationProvisionerService = require('./built-in-providers/auth0/provisioner-service');
 
 function registerBuiltInAuthProvisioners(container) {
   // --- INTERNAL AUTHENTICATION PROVIDER RELATED --- //
@@ -27,6 +29,10 @@ function registerBuiltInAuthProvisioners(container) {
     'cognitoUserPoolAuthenticationProvisionerService',
     new CognitoUserPoolAuthenticationProvisionerService(),
   );
+
+  // --- AUTH0 AUTHENTICATION PROVIDER RELATED --- //
+  // auth0 - provisioner
+  container.register('auth0AuthenticationProvisionerService', new Auth0AuthenticationProvisionerService());
 }
 
 module.exports = registerBuiltInAuthProvisioners;

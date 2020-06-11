@@ -12,6 +12,7 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
+/*jshint esversion: 9 */
 
 const _ = require('lodash');
 const authProviderConstants = require('@aws-ee/base-api-services/lib/authentication-providers/constants')
@@ -21,8 +22,11 @@ async function configure(context) {
   const router = context.router();
   const wrap = context.wrap;
   const boom = context.boom;
-  const [userService, dbPasswordService] = await context.service(['userService', 'dbPasswordService']);
-
+  const [userService, dbPasswordService, auth0Service] = await context.service([
+    'userService',
+    'dbPasswordService',
+    'auth0Service',
+  ]);
   // ===============================================================
   //  GET / (mounted to /api/users)
   // ===============================================================
@@ -33,8 +37,55 @@ async function configure(context) {
       const users = await userService.listUsers(requestContext);
       res.status(200).json(users);
     }),
+    );
+  // ===============================================================
+  //  POST / (mounted to /api/users/bulk)
+  // ===============================================================
+  router.post(
+    '/bulk',
+    wrap(async (req, res) => {
+      const requestContext = res.locals.requestContext;
+      auth0Service.init();
+      const fileContent = req.body;
+      for (let i in fileContent) {
+        const auth0User = fileContent[i];
+        const isAdmin = auth0User.isAdmin === true;
+        const authenticationProviderId =
+          req.query.authenticationProviderId || requestContext.principal.authenticationProviderId;
+        let name = auth0User.email.substring(0, auth0User.email.lastIndexOf('@'));
+        let toCreateUser = {
+          firstName: _.isEmpty(auth0User.firstName) ? name : auth0User.firstName,
+          lastName: _.isEmpty(auth0User.lastName) ? name : auth0User.lastName,
+          username: auth0User.email,
+          email: auth0User.email,
+          isAdmin,
+          userRole: auth0User.userRole,
+          authenticationProviderId: authenticationProviderId,
+          identityProviderName: auth0User.identityProviderName,
+          status: 'active',
+          isExternalUser: auth0User.isExternalUser,
+        };
+        if (!_.isEmpty(toCreateUser.email)) {
+          const user = await userService.findUser({
+            username: toCreateUser.username,
+            authenticationProviderId: toCreateUser.authenticationProviderId,
+            identityProviderName: toCreateUser.identityProviderName,
+          });
+          if (!user) {
+            try {
+              await userService.createUser(requestContext, toCreateUser);
+            } catch (err) {
+              throw this.boom.internalError('error creating bulk users');
+            }
+          }
+        }
+      }
+      // await auth0Service.auth0UserToAppUser(fileContent, requestContext);
+      res.status(200).json({
+        message: 'success bulk add Auhth0 user'
+      });
+    }),
   );
-
   // ===============================================================
   //  POST / (mounted to /api/users)
   // ===============================================================
@@ -51,7 +102,15 @@ async function configure(context) {
           true,
         );
       }
-      const { username, firstName, lastName, email, isAdmin, status, password } = req.body;
+      const {
+        username,
+        firstName,
+        lastName,
+        email,
+        isAdmin,
+        status,
+        password
+      } = req.body;
 
       const createdUser = await userService.createUser(requestContext, {
         username,
@@ -80,7 +139,14 @@ async function configure(context) {
       const authenticationProviderId =
         req.query.authenticationProviderId || authProviderConstants.internalAuthProviderId;
       const identityProviderName = req.query.identityProviderName;
-      const { firstName, lastName, email, isAdmin, status, rev } = req.body;
+      const {
+        firstName,
+        lastName,
+        email,
+        isAdmin,
+        status,
+        rev
+      } = req.body;
       const user = await userService.updateUser(requestContext, {
         username,
         authenticationProviderId,
@@ -112,11 +178,19 @@ async function configure(context) {
           true,
         );
       }
-      const { password } = req.body;
+      const {
+        password
+      } = req.body;
 
       // Save password salted hash for the user in internal auth provider (i.e., in passwords table)
-      await dbPasswordService.savePassword(requestContext, { username, password });
-      res.status(200).json({ username, message: `Password successfully updated for user ${username}` });
+      await dbPasswordService.savePassword(requestContext, {
+        username,
+        password
+      });
+      res.status(200).json({
+        username,
+        message: `Password successfully updated for user ${username}`
+      });
     }),
   );
 

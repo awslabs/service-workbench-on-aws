@@ -12,10 +12,15 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
+/*jshint esversion: 9 */
 
 const _ = require('lodash');
-const { ensureAdmin } = require('@aws-ee/base-services/lib/authorization/assertions');
-const { newInvoker } = require('@aws-ee/base-api-services/lib/authentication-providers/helpers/invoker');
+const {
+  ensureAdmin
+} = require('@aws-ee/base-services/lib/authorization/assertions');
+const {
+  newInvoker
+} = require('@aws-ee/base-api-services/lib/authentication-providers/helpers/invoker');
 const authProviderConstants = require('@aws-ee/base-api-services/lib/authentication-providers/constants')
   .authenticationProviders;
 
@@ -37,9 +42,9 @@ const sanitize = authConfigOrTypeConfig => {
     }
     return config;
   };
-  return _.isArray(authConfigOrTypeConfig)
-    ? _.map(authConfigOrTypeConfig, sanitizeOne)
-    : sanitizeOne(authConfigOrTypeConfig);
+  return _.isArray(authConfigOrTypeConfig) ?
+    _.map(authConfigOrTypeConfig, sanitizeOne) :
+    sanitizeOne(authConfigOrTypeConfig);
 };
 
 async function configure(context) {
@@ -56,7 +61,10 @@ async function configure(context) {
 
   const saveAuthenticationProvider = async (res, req, action) => {
     const requestContext = res.locals.requestContext;
-    const { providerTypeId, providerConfig } = req.body;
+    const {
+      providerTypeId,
+      providerConfig
+    } = req.body;
 
     // Make sure the current user is an admin user
     // Only admins are allowed to add authentication providers

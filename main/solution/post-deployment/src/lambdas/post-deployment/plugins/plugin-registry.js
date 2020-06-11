@@ -12,6 +12,7 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
+/*jshint esversion: 9 */
 
 const baseAuditPlugin = require('@aws-ee/base-services/lib/plugins/audit-plugin');
 const baseServicesPlugin = require('@aws-ee/base-post-deployment/lib/plugins/services-plugin');
@@ -25,7 +26,7 @@ const baseRaasPostDeploymentStepsPlugin = require('@aws-ee/base-raas-post-deploy
 const baseRaasWfStepsPlugin = require('@aws-ee/base-raas-workflow-steps/lib/plugins/workflow-steps-plugin');
 const baseRaasWorkflowsPlugin = require('@aws-ee/base-raas-workflows/lib/plugins/workflows-plugin');
 const baseRaasUserAuthzPlugin = require('@aws-ee/base-raas-services/lib/user/user-authz-plugin');
-
+//const Auth0AuthenticationProvisionerService = require('@aws-ee/base-api-services/lib/authentication-providers/built-in-providers/auth0/provisioner-service');
 const servicesPlugin = require('./services-plugin');
 const stepsPlugin = require('./steps-plugin');
 

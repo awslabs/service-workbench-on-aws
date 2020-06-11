@@ -12,6 +12,7 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
+/*jshint esversion: 9 */
 
 const PluginRegistryService = require('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
 const UserAuthzService = require('@aws-ee/base-raas-services/lib/user/user-authz-service');
@@ -37,6 +38,7 @@ const ComputePlatformService = require('@aws-ee/base-raas-services/lib/compute/c
 const ComputePriceService = require('@aws-ee/base-raas-services/lib/compute/compute-price-service');
 const EnvironmentAuthzService = require('@aws-ee/base-raas-services/lib/environment/environment-authz-service');
 const EnvironmentMountService = require('@aws-ee/base-raas-services/lib/environment/environment-mount-service');
+const Auth0Service = require('@aws-ee/base-raas-services/lib/auth0-service');
 
 const settingKeys = {
   tablePrefix: 'dbTablePrefix',
@@ -75,7 +77,10 @@ async function registerServices(container, pluginRegistry) {
   container.register('externalCfnTemplateService', new ExternalCfnTemplateService());
   container.register('computePlatformService', new ComputePlatformService());
   container.register('computePriceService', new ComputePriceService());
-  container.register('pluginRegistryService', new PluginRegistryService(pluginRegistry), { lazy: false });
+  container.register('pluginRegistryService', new PluginRegistryService(pluginRegistry), {
+    lazy: false
+  });
+  container.register('auth0Service', new Auth0Service());
 
   // Authorization Services from raas addon
   container.register('raasUserAuthzService', new UserAuthzService());

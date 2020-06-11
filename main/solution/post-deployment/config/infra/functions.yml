@@ -26,3 +26,6 @@ postDeployment:
     APP_EDGE_LAMBDA_ARN: ${self:custom.settings.edgeLambdaArn}
     APP_CLOUD_FRONT_ID: ${self:custom.settings.cloudFrontId}
     APP_ENABLE_EXTERNAL_RESEARCHERS: ${self:custom.settings.enableExternalResearchers}
+    APP_PARAM_STORE_AUTH0_DOMAIN: ${self:custom.settings.paramStoreAuth0Domain}
+    APP_PARAM_STORE_AUTH0_CLIENT_ID: ${self:custom.settings.paramStoreAuth0ClientId}
+    APP_PARAM_STORE_AUTH0_CLIENT_SECRET: ${self:custom.settings.paramStoreAuth0ClientSecret}
