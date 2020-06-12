@@ -64,7 +64,7 @@ class AppContext {
   }
 
   router() {
-    return express.Router();
+    return express.Router({ mergeParams: true });
   }
 }
 
