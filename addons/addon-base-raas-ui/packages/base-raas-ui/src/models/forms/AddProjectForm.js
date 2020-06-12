@@ -17,8 +17,8 @@ import { createForm } from '../../helpers/form';
 
 const addProjectFormFields = {
   id: {
-    label: 'Project ID',
-    placeholder: 'Type id for this project',
+    label: 'Project Name',
+    placeholder: 'Type name for this project',
     rules: 'required|string|between:1,300',
   },
   indexId: {
@@ -28,6 +28,12 @@ const addProjectFormFields = {
     label: 'Description',
     placeholder: 'Type description for this project',
     rules: 'string|between:1,3000',
+  },
+  projectAdmins: {
+    label: 'Project Admins',
+    placeholder: 'Users who automatically have full control of workspaces associated with this project',
+    explain: ' ',
+    rules: 'array',
   },
 };
 

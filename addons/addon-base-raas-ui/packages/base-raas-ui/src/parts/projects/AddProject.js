@@ -40,7 +40,12 @@ class AddProject extends React.Component {
     runInAction(() => {
       this.formProcessing = false;
       this.validationErrors = new Map();
-      this.project = {};
+      this.project = {
+        id: '',
+        description: '',
+        indexId: '',
+        projectAdmins: [],
+      };
     });
     this.form = getAddProjectForm();
     this.addProjectFormFields = getAddProjectFormFields();
@@ -100,10 +105,36 @@ class AddProject extends React.Component {
         {this.renderIndexSelection()}
         <div className="mb4" />
         {this.renderField('description', toEditableInput('description', 'description'))}
+        <div className="mb4" />
+        {this.renderField('projectAdmins')}
+        {this.renderProjectAdminsSelection()}
         {this.renderButtons()}
       </Segment>
     );
   }
+
+  renderProjectAdminsSelection() {
+    const projectAdminsOption = this.props.usersStore.asDropDownOptions();
+    const fields = this.addProjectFormFields;
+    const placeholder = fields.projectAdmins.placeholder || 'Please select a user';
+
+    return (
+      <Dropdown
+        options={projectAdminsOption}
+        placeholder={placeholder}
+        fluid
+        multiple
+        selection
+        onChange={this.handleProjectAdminsSelection}
+      />
+    );
+  }
+
+  handleProjectAdminsSelection = (e, { value }) => {
+    runInAction(() => {
+      this.project.projectAdmins = value;
+    });
+  };
 
   renderButtons() {
     const processing = this.formProcessing;
@@ -176,6 +207,7 @@ class AddProject extends React.Component {
     try {
       // Perform client side validations first
       const validationResult = await validate(this.project, this.addProjectFormFields);
+      this.project.projectAdmins = _.map(this.project.projectAdmins, item => JSON.parse(item));
       // if there are any client side validation errors then do not attempt to make API call
       if (validationResult.fails()) {
         runInAction(() => {

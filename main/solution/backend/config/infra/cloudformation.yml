@@ -656,9 +656,8 @@ Resources:
       KeySchema:
         - AttributeName: 'username'
           KeyType: 'HASH'
-      ProvisionedThroughput:
-        ReadCapacityUnits: '10'
-        WriteCapacityUnits: '10'
+      BillingMode: PAY_PER_REQUEST
+
 
   DbUserApiKeys:
     Type: AWS::DynamoDB::Table
@@ -674,9 +673,8 @@ Resources:
           KeyType: 'HASH'
         - AttributeName: 'id'
           KeyType: 'RANGE'
-      ProvisionedThroughput:
-        ReadCapacityUnits: '20'
-        WriteCapacityUnits: '10'
+      BillingMode: PAY_PER_REQUEST
+
 
   DbUsers:
     Type: AWS::DynamoDB::Table
@@ -693,9 +691,7 @@ Resources:
           KeyType: 'HASH'
         - AttributeName: 'ns'
           KeyType: 'RANGE'
-      ProvisionedThroughput:
-        ReadCapacityUnits: '15'
-        WriteCapacityUnits: '15'
+      BillingMode: PAY_PER_REQUEST
 
   DbAuthenticationProviderTypes:
     Type: AWS::DynamoDB::Table
@@ -707,9 +703,7 @@ Resources:
       KeySchema:
         - AttributeName: 'type'
           KeyType: 'HASH'
-      ProvisionedThroughput:
-        ReadCapacityUnits: '5'
-        WriteCapacityUnits: '5'
+      BillingMode: PAY_PER_REQUEST
 
   DbAuthenticationProviderConfigs:
     Type: AWS::DynamoDB::Table
@@ -721,9 +715,7 @@ Resources:
       KeySchema:
         - AttributeName: 'id'
           KeyType: 'HASH'
-      ProvisionedThroughput:
-        ReadCapacityUnits: '10'
-        WriteCapacityUnits: '5'
+      BillingMode: PAY_PER_REQUEST
 
   DbRevokedTokens:
     Type: AWS::DynamoDB::Table
@@ -738,9 +730,7 @@ Resources:
       TimeToLiveSpecification:
         AttributeName: 'ttl'
         Enabled: true
-      ProvisionedThroughput:
-        ReadCapacityUnits: '10'
-        WriteCapacityUnits: '10'
+      BillingMode: PAY_PER_REQUEST
 
   DbLocks:
     Type: AWS::DynamoDB::Table
@@ -755,9 +745,7 @@ Resources:
       TimeToLiveSpecification:
         AttributeName: 'ttl'
         Enabled: true
-      ProvisionedThroughput:
-        ReadCapacityUnits: '10'
-        WriteCapacityUnits: '10'
+      BillingMode: PAY_PER_REQUEST
 
   DbStudies:
     Type: AWS::DynamoDB::Table
@@ -771,9 +759,7 @@ Resources:
       KeySchema:
         - AttributeName: 'id'
           KeyType: 'HASH'
-      ProvisionedThroughput:
-        ReadCapacityUnits: '5'
-        WriteCapacityUnits: '5'
+      BillingMode: PAY_PER_REQUEST
       GlobalSecondaryIndexes:
         - IndexName: ${self:custom.settings.dbTableStudiesCategoryIndex}
           KeySchema:
@@ -781,9 +767,6 @@ Resources:
               KeyType: 'HASH'
           Projection:
             ProjectionType: 'ALL'
-          ProvisionedThroughput:
-            ReadCapacityUnits: '5'
-            WriteCapacityUnits: '5'
 
   DbStepTemplates:
     Type: AWS::DynamoDB::Table
@@ -799,9 +782,7 @@ Resources:
           KeyType: 'HASH'
         - AttributeName: 'ver'
           KeyType: 'RANGE'
-      ProvisionedThroughput:
-        ReadCapacityUnits: '10'
-        WriteCapacityUnits: '5'
+      BillingMode: PAY_PER_REQUEST
 
   DbWorkflowTemplates:
     Type: AWS::DynamoDB::Table
@@ -817,9 +798,7 @@ Resources:
           KeyType: 'HASH'
         - AttributeName: 'ver'
           KeyType: 'RANGE'
-      ProvisionedThroughput:
-        ReadCapacityUnits: '10'
-        WriteCapacityUnits: '5'
+      BillingMode: PAY_PER_REQUEST
 
   DbWorkflows:
     Type: AWS::DynamoDB::Table
@@ -835,9 +814,7 @@ Resources:
           KeyType: 'HASH'
         - AttributeName: 'ver'
           KeyType: 'RANGE'
-      ProvisionedThroughput:
-        ReadCapacityUnits: '10'
-        WriteCapacityUnits: '5'
+      BillingMode: PAY_PER_REQUEST
 
   DbWorkflowTemplateDrafts:
     Type: AWS::DynamoDB::Table
@@ -851,9 +828,7 @@ Resources:
       KeySchema:
         - AttributeName: 'id'
           KeyType: 'HASH'
-      ProvisionedThroughput:
-        ReadCapacityUnits: '10'
-        WriteCapacityUnits: '5'
+      BillingMode: PAY_PER_REQUEST
       GlobalSecondaryIndexes:
         - IndexName: 'UsernameIndex'
           KeySchema:
@@ -861,9 +836,6 @@ Resources:
               KeyType: 'HASH'
           Projection:
             ProjectionType: 'ALL'
-          ProvisionedThroughput:
-            ReadCapacityUnits: '15'
-            WriteCapacityUnits: '15'
 
   DbWorkflowDrafts:
     Type: AWS::DynamoDB::Table
@@ -877,9 +849,7 @@ Resources:
       KeySchema:
         - AttributeName: 'id'
           KeyType: 'HASH'
-      ProvisionedThroughput:
-        ReadCapacityUnits: '10'
-        WriteCapacityUnits: '5'
+      BillingMode: PAY_PER_REQUEST
       GlobalSecondaryIndexes:
         - IndexName: 'UsernameIndex'
           KeySchema:
@@ -887,9 +857,6 @@ Resources:
               KeyType: 'HASH'
           Projection:
             ProjectionType: 'ALL'
-          ProvisionedThroughput:
-            ReadCapacityUnits: '15'
-            WriteCapacityUnits: '15'
 
   DbWorkflowInstances:
     Type: AWS::DynamoDB::Table
@@ -908,9 +875,7 @@ Resources:
       TimeToLiveSpecification:
         AttributeName: 'ttl'
         Enabled: true
-      ProvisionedThroughput:
-        ReadCapacityUnits: '15'
-        WriteCapacityUnits: '10'
+      BillingMode: PAY_PER_REQUEST
       GlobalSecondaryIndexes:
         - IndexName: 'WorkflowIndex'
           KeySchema:
@@ -920,9 +885,6 @@ Resources:
               KeyType: 'RANGE'
           Projection:
             ProjectionType: 'ALL'
-          ProvisionedThroughput:
-            ReadCapacityUnits: '20'
-            WriteCapacityUnits: '20'
 
   DbWfAssignments:
     Type: AWS::DynamoDB::Table
@@ -942,9 +904,7 @@ Resources:
       KeySchema:
         - AttributeName: 'id'
           KeyType: 'HASH'
-      ProvisionedThroughput:
-        ReadCapacityUnits: '10'
-        WriteCapacityUnits: '10'
+      BillingMode: PAY_PER_REQUEST
       GlobalSecondaryIndexes:
         - IndexName: 'WorkflowIndex'
           KeySchema:
@@ -954,9 +914,6 @@ Resources:
               KeyType: 'RANGE'
           Projection:
             ProjectionType: 'ALL'
-          ProvisionedThroughput:
-            ReadCapacityUnits: '10'
-            WriteCapacityUnits: '10'
         - IndexName: 'TypeIndex'
           KeySchema:
             - AttributeName: 'triggerType'
@@ -965,9 +922,6 @@ Resources:
               KeyType: 'RANGE'
           Projection:
             ProjectionType: 'ALL'
-          ProvisionedThroughput:
-            ReadCapacityUnits: '10'
-            WriteCapacityUnits: '10'
 
   DbEnvironments:
     Type: AWS::DynamoDB::Table
@@ -979,9 +933,7 @@ Resources:
       KeySchema:
         - AttributeName: 'id'
           KeyType: 'HASH'
-      ProvisionedThroughput:
-        ReadCapacityUnits: '10'
-        WriteCapacityUnits: '10'
+      BillingMode: PAY_PER_REQUEST
 
   DbUserRoles:
     Type: AWS::DynamoDB::Table
@@ -993,9 +945,7 @@ Resources:
       KeySchema:
         - AttributeName: 'id'
           KeyType: 'HASH'
-      ProvisionedThroughput:
-        ReadCapacityUnits: '15'
-        WriteCapacityUnits: '15'
+      BillingMode: PAY_PER_REQUEST
 
   DbAwsAccounts:
     Type: AWS::DynamoDB::Table
@@ -1007,9 +957,7 @@ Resources:
       KeySchema:
         - AttributeName: 'id'
           KeyType: 'HASH'
-      ProvisionedThroughput:
-        ReadCapacityUnits: '5'
-        WriteCapacityUnits: '5'
+      BillingMode: PAY_PER_REQUEST
 
   DbIndexes:
     Type: AWS::DynamoDB::Table
@@ -1021,9 +969,7 @@ Resources:
       KeySchema:
         - AttributeName: 'id'
           KeyType: 'HASH'
-      ProvisionedThroughput:
-        ReadCapacityUnits: '5'
-        WriteCapacityUnits: '5'
+      BillingMode: PAY_PER_REQUEST
 
   DbCostApiCaches:
     Type: AWS::DynamoDB::Table
@@ -1039,9 +985,7 @@ Resources:
           KeyType: 'HASH'
         - AttributeName: 'query'
           KeyType: 'RANGE'
-      ProvisionedThroughput:
-        ReadCapacityUnits: '5'
-        WriteCapacityUnits: '5'
+      BillingMode: PAY_PER_REQUEST
 
   DbAccounts:
     Type: AWS::DynamoDB::Table
@@ -1053,9 +997,7 @@ Resources:
       KeySchema:
         - AttributeName: 'id'
           KeyType: 'HASH'
-      ProvisionedThroughput:
-        ReadCapacityUnits: '5'
-        WriteCapacityUnits: '5'
+      BillingMode: PAY_PER_REQUEST
 
   DbProjects:
     Type: AWS::DynamoDB::Table
@@ -1067,9 +1009,7 @@ Resources:
       KeySchema:
         - AttributeName: 'id'
           KeyType: 'HASH'
-      ProvisionedThroughput:
-        ReadCapacityUnits: '5'
-        WriteCapacityUnits: '5'
+      BillingMode: PAY_PER_REQUEST
 
   DbStudyPermissions:
     Type: AWS::DynamoDB::Table
@@ -1081,9 +1021,7 @@ Resources:
       KeySchema:
         - AttributeName: 'id'
           KeyType: 'HASH'
-      ProvisionedThroughput:
-        ReadCapacityUnits: '10'
-        WriteCapacityUnits: '10'
+      BillingMode: PAY_PER_REQUEST
 
 # =============================================================================================
 # Outputs

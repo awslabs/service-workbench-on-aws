@@ -18,7 +18,7 @@ import { types } from 'mobx-state-tree';
 import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
 import { consolidateToMap } from '@aws-ee/base-ui/dist/helpers/utils';
 
-import { getProjects, addProject } from '../../helpers/api';
+import { getProjects, addProject, updateProject, deleteProject } from '../../helpers/api';
 import { Project } from './Project';
 import { ProjectStore } from './ProjectStore';
 
@@ -69,6 +69,15 @@ const ProjectsStore = BaseStore.named('ProjectsStore')
         }
 
         return entry;
+      },
+
+      deleteProject: async project => {
+        await deleteProject(project);
+      },
+
+      updateProject: async project => {
+        const updatedProject = await updateProject(project);
+        self.addProject(updatedProject);
       },
 
       cleanup: () => {
