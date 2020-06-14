@@ -447,7 +447,7 @@ class EnvironmentService extends Service {
     });
 
     // validate sharedWithUsers
-    const { sharedWithUsers } = environment;
+    const sharedWithUsers = environment.sharedWithUsers || [];
     const userService = await this.service('userService');
     await userService.ensureActiveUsers(sharedWithUsers);
 
