@@ -7,7 +7,7 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              AWS: arn:aws:iam::${self:custom.settings.mainAccountId}:root
+              AWS: !Sub arn:aws:iam::${self:custom.settings.mainAccountId}:root
             Action: sts:AssumeRole
             Condition:
               StringEquals:
