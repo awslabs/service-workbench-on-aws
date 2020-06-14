@@ -22,6 +22,9 @@ popd > /dev/null
 
 function init_package_manager() {
   PACKAGE_MANAGER=pnpm
+  if ! command -v $PACKAGE_MANAGER; then
+    npm install -g pnpm
+  fi
   case "$PACKAGE_MANAGER" in
     yarn)
       EXEC="yarn run"
