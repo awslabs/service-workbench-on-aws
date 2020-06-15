@@ -1,0 +1,26 @@
+{
+  "name": "aws-galileo-gateway",
+  "version": "1.0.0",
+  "description": "A platform that provides researchers with one-click access to collaborative workspace environments operating across teams, universities, and datasets while enabling university IT stakeholders to manage, monitor, and control spending, apply security best practices, and comply with corporate governance.",
+  "main": "index.js",
+  "dependencies": {
+    "hygen": "^5.0.3",
+    "json-loader": "^0.5.7",
+    "react": "^16.13.1",
+    "serverless": "^1.72.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AWS-Bassem/aws-galileo-gateway.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/AWS-Bassem/aws-galileo-gateway/issues"
+  },
+  "homepage": "https://github.com/AWS-Bassem/aws-galileo-gateway#readme"
+}

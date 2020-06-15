@@ -38,7 +38,7 @@ const ComputePlatformService = require('@aws-ee/base-raas-services/lib/compute/c
 const ComputePriceService = require('@aws-ee/base-raas-services/lib/compute/compute-price-service');
 const EnvironmentAuthzService = require('@aws-ee/base-raas-services/lib/environment/environment-authz-service');
 const EnvironmentMountService = require('@aws-ee/base-raas-services/lib/environment/environment-mount-service');
-const Auth0Service = require('@aws-ee/base-raas-services/lib/auth0-service');
+const Auth0Service = require('@aws-ee/base-raas-services/lib/user/auth0-service');
 
 const settingKeys = {
   tablePrefix: 'dbTablePrefix',

@@ -1,5 +1,3 @@
-/*jshint esversion: 9 */
-
 const Service = require('@aws-ee/base-services-container/lib/service');
 const _ = require('lodash');
 var request = require('request');
@@ -31,10 +29,15 @@ class Auth0Service extends Service {
 
   async getSecret(keyName) {
     const aws = await this.service('aws');
-    const ssm = new aws.sdk.SSM({ apiVersion: '2014-11-06' });
+    const ssm = new aws.sdk.SSM({
+      apiVersion: '2014-11-06'
+    });
 
     this.log.info(`Getting the "${keyName}" key from the parameter store`);
-    const result = await ssm.getParameter({ Name: keyName, WithDecryption: true }).promise();
+    const result = await ssm.getParameter({
+      Name: keyName,
+      WithDecryption: true
+    }).promise();
     return result.Parameter.Value;
   }
 
@@ -42,7 +45,9 @@ class Auth0Service extends Service {
     const options = {
       method: 'POST',
       url: `https://${this.auth0Domain}/oauth/token`,
-      headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      headers: {
+        'content-type': 'application/x-www-form-urlencoded'
+      },
       form: {
         grant_type: 'client_credentials',
         client_id: `${this.auth0ClientId}`,
@@ -50,9 +55,9 @@ class Auth0Service extends Service {
         audience: `https://${this.auth0Domain}/api/v2/`,
       },
     };
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       // Do async job
-      request(options, function(error, response, body) {
+      request(options, function (error, response, body) {
         if (error) {
           reject(error);
         } else {
@@ -67,11 +72,13 @@ class Auth0Service extends Service {
     const options = {
       method: 'GET',
       url: `https://${this.auth0Domain}/api/v2/users/${user_id}`,
-      headers: { authorization: `Bearer ${token}` },
+      headers: {
+        authorization: `Bearer ${token}`
+      },
     };
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       // Do async job
-      request(options, function(error, response, body) {
+      request(options, function (error, response, body) {
         if (error) {
           reject(error);
         } else {
@@ -87,11 +94,13 @@ class Auth0Service extends Service {
     const options = {
       method: 'GET',
       url: `https://${this.auth0Domain}/api/v2/connections?strategy=auth0`,
-      headers: { authorization: `Bearer ${token}` },
+      headers: {
+        authorization: `Bearer ${token}`
+      },
     };
-    return new Promise(function(resolve, reject) {
+    return new Promise(function (resolve, reject) {
       // Do async job
-      request(options, function(error, response, body) {
+      request(options, function (error, response, body) {
         if (error) {
           reject(error);
         } else {
@@ -133,7 +142,7 @@ class Auth0Service extends Service {
       },
       body: payload,
     };
-    request(options, function(error, response, body) {
+    request(options, function (error, response, body) {
       console.log(body);
     });
   }
