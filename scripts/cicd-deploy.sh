@@ -11,7 +11,7 @@ install_dependencies "$@"
 
 function disableStats {
   COMPONENT_DIR=$1
-  pushd "$SOLUTION_DIR/$COMPONENT_DIR" > /dev/null
+  pushd "$SOLUTION_DIR/../$COMPONENT_DIR" > /dev/null
   # Disable serverless stats (only strictly needs to be done one time)
   $EXEC sls slstats --disable -s "$STAGE"
   popd > /dev/null
@@ -21,7 +21,7 @@ function componentDeploy {
   COMPONENT_DIR=$1
   COMPONENT_NAME=$2
 
-  pushd "$SOLUTION_DIR/$COMPONENT_DIR" > /dev/null
+  pushd "$SOLUTION_DIR/../$COMPONENT_DIR" > /dev/null
   printf "\nDeploying component: %s ...\n\n" "$COMPONENT_NAME"
   $EXEC sls deploy -s "$STAGE"
   printf "\nDeployed component: %s successfully \n\n" "$COMPONENT_NAME"

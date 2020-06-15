@@ -9,19 +9,21 @@ phases:
   pre_build:
     commands:
       - echo "Installing dependencies"
-      - npm add -g pnpm
       - ./scripts/install.sh
-      - echo ""
-      - echo "Building packages"
+      - printf "\n\n"
       # Need to build all packages explicitly here.
       # This is required because somehow the "pnpm run build" script in "prepare" hook does not work in AWS CodeBuild
       # The "prepare" hook script is executed fine but the "build" script referenced in "prepare" does not execute
+      - echo "Building packages"
       - ./scripts/build-all-packages.sh
-      - echo ""
+      - printf "\n\n"
       - echo "Downloading environment config"
       - ./scripts/download-env-config.sh "$DEPLOYMENT_BUCKET" "$ENV_NAME"
+      - printf "\n\n"
   build:
     commands:
+      - export STAGE=$ENV_NAME
+
       - echo "Running static code analysis"
       - ./scripts/run-static-code-analysis.sh
       - printf "\n\n"
