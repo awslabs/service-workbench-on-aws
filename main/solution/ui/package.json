@@ -60,7 +60,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "INLINE_RUNTIME_CHUNK=false react-scripts build",
+    "build": "react-scripts build",
     "test": "react-scripts test --watchAll=false --passWithNoTests",
     "test:watch": "react-scripts test --passWithNoTests",
     "eject": "react-scripts eject",
