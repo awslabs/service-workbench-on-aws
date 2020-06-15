@@ -51,12 +51,12 @@ const Environment = types
     createdBy: types.optional(UserIdentifier, {}),
     updatedAt: '',
     updatedBy: types.optional(UserIdentifier, {}),
-    costs: types.optional(types.array(environmentCost), []),
+    costs: types.array(environmentCost, []),
     fetchingUrl: types.optional(types.boolean, false),
     error: types.maybeNull(types.string),
     isExternal: types.optional(types.boolean, false),
     stackId: types.maybeNull(types.string),
-    sharedWithUsers: types.optional(types.array(UserIdentifier, [])),
+    sharedWithUsers: types.array(UserIdentifier, []),
   })
   .actions(self => ({
     setEnvironment(rawEnvironment) {
