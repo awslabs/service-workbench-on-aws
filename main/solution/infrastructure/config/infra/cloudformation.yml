@@ -1,5 +1,6 @@
 Conditions:
   IsDev: !Equals ['${self:custom.settings.envType}', 'dev']
+  UseCloudFrontDomain: !Equals ['${self:custom.settings.domainName}', '']
 
 Resources:
   # =============================================================================================
@@ -112,6 +113,16 @@ Resources:
               OriginAccessIdentity: !Join ['', ['origin-access-identity/cloudfront/', !Ref 'CloudFrontOAI']]
         Enabled: true
         HttpVersion: 'http2'
+        Aliases: !If
+          - UseCloudFrontDomain
+          - !Ref AWS::NoValue
+          - ['${self:custom.settings.domainName}']
+        ViewerCertificate: !If
+          - UseCloudFrontDomain
+          - !Ref AWS::NoValue
+          - AcmCertificateArn: ${self:custom.settings.certificateArn}
+            MinimumProtocolVersion: TLSv1.2_2018
+            SslSupportMethod: sni-only
         DefaultRootObject: index.html
         CustomErrorResponses:
           - ErrorCachingMinTTL: 300
@@ -151,7 +162,10 @@ Resources:
 Outputs:
   WebsiteUrl:
     Description: URL for the main website hosted on S3 via CloudFront
-    Value: !Join ['', ['https://', !GetAtt [WebsiteCloudFront, DomainName]]]
+    Value: !If
+      - UseCloudFrontDomain
+      - !Join ['', ['https://', !GetAtt [WebsiteCloudFront, DomainName]]]
+      - https://${self:custom.settings.domainName}
 
   WebsiteBucket:
     Description: The bucket name of the static website
@@ -161,10 +175,6 @@ Outputs:
     Description: The bucket name for S3 access logging
     Value: !Ref LoggingBucket
 
-  CloudFrontEndpoint:
-    Value: !GetAtt [WebsiteCloudFront, DomainName]
-    Description: Endpoint for CloudFront distribution for the website
-
   CloudFrontId:
-    Value: !Ref WebsiteCloudFront
     Description: Id of the CloudFront distribution
+    Value: !Ref WebsiteCloudFront

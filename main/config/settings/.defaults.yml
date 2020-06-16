@@ -123,3 +123,6 @@ enableExternalResearchers: false
 # A flag indicating if lambda function role's trust policy (assume role policy) should be automatically adjusted to
 # allow assuming the role from local machine (applicable only for local development)
 localRoleAutoAdjustTrust: false
+
+# Optional custom domain name; if empty, use the CloudFront domain name
+domainName: ''

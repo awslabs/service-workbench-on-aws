@@ -14,8 +14,7 @@ init_package_manager
 #  Sets the following environment variables containing information about the deployed environment and displays a
 #  human friendly summary message containing info about the environment
 #
-# WEBSITE_DOMAIN_NAME
-# WEBSITE_ENDPOINT
+# WEBSITE_URL
 # API_ENDPOINT
 #
 ##
@@ -46,20 +45,19 @@ function get_info() {
   if [ "$aws_profile" ]; then
     root_psswd_cmd="aws ssm get-parameters --names /$STAGE/$solution_name/user/root/password --output text --region $aws_region --profile $aws_profile --with-decryption --query Parameters[0].Value"
     # shellcheck disable=SC2016
-    website_domain_name="$(aws cloudformation describe-stacks --stack-name "$stack_name_infrastructure" --output text --region "$aws_region" --profile "$aws_profile" --query 'Stacks[0].Outputs[?OutputKey==`CloudFrontEndpoint`].OutputValue')"
+    website_url="$(aws cloudformation describe-stacks --stack-name "$stack_name_infrastructure" --output text --region "$aws_region" --profile "$aws_profile" --query 'Stacks[0].Outputs[?OutputKey==`WebsiteUrl`].OutputValue')"
     # shellcheck disable=SC2016
     api_endpoint="$(aws cloudformation describe-stacks --stack-name "$stack_name_backend" --output text --region "$aws_region" --profile "$aws_profile" --query 'Stacks[0].Outputs[?OutputKey==`ServiceEndpoint`].OutputValue')"
   else
     root_psswd_cmd="aws ssm get-parameters --names /$STAGE/$solution_name/user/root/password --output text --region $aws_region --with-decryption --query Parameters[0].Value"
     # shellcheck disable=SC2016
-    website_domain_name="$(aws cloudformation describe-stacks --stack-name "$stack_name_infrastructure" --output text --region "$aws_region" --query 'Stacks[0].Outputs[?OutputKey==`CloudFrontEndpoint`].OutputValue')"
+    website_url="$(aws cloudformation describe-stacks --stack-name "$stack_name_infrastructure" --output text --region "$aws_region" --query 'Stacks[0].Outputs[?OutputKey==`WebsiteUrl`].OutputValue')"
     # shellcheck disable=SC2016
     api_endpoint="$(aws cloudformation describe-stacks --stack-name "$stack_name_backend" --output text --region "$aws_region" --query 'Stacks[0].Outputs[?OutputKey==`ServiceEndpoint`].OutputValue')"
   fi
 
   export ENV_NAME="${STAGE}"
-  export WEBSITE_DOMAIN_NAME="${website_domain_name}"
-  export WEBSITE_ENDPOINT="https://${website_domain_name}"
+  export WEBSITE_URL="${website_url}"
   export API_ENDPOINT="${api_endpoint}"
 
   echo "-------------------------------------------------------------------------"
@@ -67,7 +65,7 @@ function get_info() {
   echo "-------------------------------------------------------------------------"
   echo "Env Name       : ${ENV_NAME}"
   echo "Solution       : ${solution_name}"
-  echo "Website URL    : ${WEBSITE_ENDPOINT}"
+  echo "Website URL    : ${WEBSITE_URL}"
   echo "API Endpoint   : ${API_ENDPOINT}"
 
   # only show profile and root password when running in an interactive terminal
