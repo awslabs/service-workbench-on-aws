@@ -18,6 +18,7 @@ const UserService = require('@aws-ee/base-raas-services/lib/user/user-service');
 const UserAuthzService = require('@aws-ee/base-raas-services/lib/user/user-authz-service');
 const UserRoleService = require('@aws-ee/base-raas-services/lib/user-roles/user-roles-service');
 const UserAttributesMapperService = require('@aws-ee/base-raas-services/lib/user/user-attributes-mapper-service');
+const Auth0Service = require('@aws-ee/base-raas-services/lib/user/auth0-service');
 
 const settingKeys = {
   tablePrefix: 'dbTablePrefix',
@@ -40,6 +41,8 @@ async function registerServices(container, pluginRegistry) {
   container.register('userRolesService', new UserRoleService());
   container.register('pluginRegistryService', new PluginRegistryService(pluginRegistry), { lazy: false });
   container.register('raasUserAuthzService', new UserAuthzService());
+  container.register('auth0Service', new Auth0Service());
+
 }
 
 /**

@@ -19,13 +19,13 @@ class Auth0Service extends Service {
   }
 
   async init() {
-    await super.init();
-    const domainKeyName = this.settings.get(settingKeys.paramStoreAuth0Domain);
-    this.auth0Domain = await this.getSecret(domainKeyName);
-    const clientIdKeyName = this.settings.get(settingKeys.paramStoreAuth0ClientId);
-    this.auth0ClientId = await this.getSecret(clientIdKeyName);
-    const clientSecretKeyName = this.settings.get(settingKeys.paramStoreAuth0ClientSecret);
-    this.auth0ClientSecret = await this.getSecret(clientSecretKeyName);
+    // await super.init();
+    // const domainKeyName = this.settings.get(settingKeys.paramStoreAuth0Domain);
+    // this.auth0Domain = await this.getSecret(domainKeyName);
+    // const clientIdKeyName = this.settings.get(settingKeys.paramStoreAuth0ClientId);
+    // this.auth0ClientId = await this.getSecret(clientIdKeyName);
+    // const clientSecretKeyName = this.settings.get(settingKeys.paramStoreAuth0ClientSecret);
+    // this.auth0ClientSecret = await this.getSecret(clientSecretKeyName);
   }
 
   async getSecret(keyName) {
