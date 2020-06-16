@@ -5,7 +5,7 @@ jwtOptions: '{"algorithm":"HS256","expiresIn":"2 days"}'
 # issued by data lake authentication providers
 paramStoreJwtSecret: '/${self:custom.settings.paramStoreRoot}/jwt/secret'
 
-# TODO: Remove this dependency from the "infrastructure" stack and set the default "corsWhitelist" to empty array
+# TODO: Remove this dependency from the "infrastructure" stack and set the default "corsAllowList" to empty array
 # Move these settings that are dependent on "infrastructure" stack to the "addon-base-ui" once the addon cli task to
 # insert settings is available. Until then, the "addon-rest-api" cannot be installed stand alone without also having
 # to install the "addon-base-ui"
@@ -16,11 +16,11 @@ infrastructureStackName: ${self:custom.settings.namespace}-infrastructure
 # URL of the website
 websiteUrl: ${cf:${self:custom.settings.infrastructureStackName}.WebsiteUrl}
 
-# a list of domain names to whitelist in the API
-corsWhitelist: '["${self:custom.settings.websiteUrl}"]'
+# a list of domain names to allow in the API
+corsAllowList: '["${self:custom.settings.websiteUrl}"]'
 
-# a list of domain names to whitelist in the API while in dev (envType == dev)
-corsWhitelistLocal: '["http://localhost:3000"]'
+# a list of domain names to allow in the API while in dev (envType == dev)
+corsAllowListLocal: '["http://localhost:3000"]'
 
 # The S3 bucket name used to host the static website
 websiteBucketName: ${cf:${self:custom.settings.infrastructureStackName}.WebsiteBucket}

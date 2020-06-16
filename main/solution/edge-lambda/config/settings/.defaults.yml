@@ -8,7 +8,7 @@ apiUrl: ${cf:${self:custom.settings.backendStackName}.ServiceEndpoint}
 # related headers including "content-security-policy" header. The "connect-src" in that header lists the hosts the
 # browser should allow communication to for AJAX requests. See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/connect-src
 #
-# The lambda whitelists the backend api calls. In addition, it also needs to whitelist the following endpoints
+# The lambda allows the backend api calls. In addition, it also needs to allow the following endpoints
 #
 # 1. Cloud Formation Endpoints
 # ------------------------------
@@ -19,11 +19,11 @@ apiUrl: ${cf:${self:custom.settings.backendStackName}.ServiceEndpoint}
 #
 #   This setting specifies the other connect-src values to be added to the "content-security-policy" header
 #
-#   Currently, whitelisting all AWS service endpoints across all regions using wildcard as follows
-#   This also takes care of whitelisting all S3 endpoints mentioned in #2 below
+#   Currently, allowing all AWS service endpoints across all regions using wildcard as follows
+#   This also takes care of allowing all S3 endpoints mentioned in #2 below
 #   otherConnectSrc: *.amazonaws.com
 #
-#   Alternatively you can whitelist all AWS CloudFormation service endpoints across all currently supported regions.
+#   Alternatively you can allow all AWS CloudFormation service endpoints across all currently supported regions.
 #   See https://docs.aws.amazon.com/general/latest/gr/cfn.html.
 #
 # 2. S3 Endpoints
