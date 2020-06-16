@@ -2,10 +2,6 @@
 set -e
 set -o pipefail
 
-# This sets STAGE to $1 if present and not null, otherwise it sets stage to
-# $STAGE from the environment if present, else it defaults to $USER
-STAGE="${1:-${STAGE:-$USER}}"
-
 pushd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null
 # shellcheck disable=SC1091
 [[ $UTIL_SOURCED != yes && -f ./util.sh ]] && source ./util.sh

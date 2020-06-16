@@ -13,6 +13,10 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
+# This sets STAGE to $1 if present and not null, otherwise it sets stage to
+# $STAGE from the environment if present, else it defaults to $USER
+STAGE="${1:-${STAGE:-$USER}}"
+
 pushd "${DIR}/.."  > /dev/null
 export SOLUTION_ROOT_DIR="${PWD}"
 export SOLUTION_DIR="${SOLUTION_ROOT_DIR}/main/solution"
