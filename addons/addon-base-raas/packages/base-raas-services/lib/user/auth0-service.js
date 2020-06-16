@@ -1,3 +1,4 @@
+/* jshint esversion: 9 */
 const Service = require('@aws-ee/base-services-container/lib/service');
 const _ = require('lodash');
 var request = require('request');

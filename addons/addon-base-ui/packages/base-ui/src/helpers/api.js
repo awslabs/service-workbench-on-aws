@@ -1,4 +1,3 @@
-
 /*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -13,7 +12,7 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-/*jshint esversion: 9 */
+/* jshint esversion: 9 */
 import _ from 'lodash';
 import {
   parseError,
@@ -34,7 +33,7 @@ let config = {
 let token;
 let decodedIdToken;
 const authHeader = tok => ({
-  Authorization: `${tok}`
+  Authorization: `${tok}`,
 });
 
 function setIdToken(idToken, decodedToken) {
@@ -60,7 +59,7 @@ function forgetIdToken() {
 function configure(obj) {
   config = {
     ...config,
-    ...obj
+    ...obj,
   };
 }
 
@@ -83,7 +82,7 @@ function fetchJson(url, options = {}, retryCount = 0) {
     ...options,
     headers: {
       ...headers,
-      ...options.headers
+      ...options.headers,
     },
   };
 
@@ -164,7 +163,7 @@ function fetchJson(url, options = {}, retryCount = 0) {
       if (_.isBoolean(isOk) && !isOk) {
         throw parseError({
           ...json,
-          status: httpStatus
+          status: httpStatus,
         });
       } else {
         return json;
@@ -239,7 +238,7 @@ function logout() {
     // if token is already expired then no need to call logout API to revoke token just return
     return {
       expired: true,
-      revoked: false
+      revoked: false,
     };
   }
   return httpApiPost('api/authentication/logout');
@@ -252,8 +251,8 @@ function getApiKeys({
   return httpApiGet('api/api-keys', {
     params: {
       username,
-      ns
-    }
+      ns,
+    },
   });
 }
 
@@ -264,8 +263,8 @@ function createNewApiKey({
   return httpApiPost('api/api-keys', {
     params: {
       username,
-      ns
-    }
+      ns,
+    },
   });
 }
 
@@ -276,8 +275,8 @@ function revokeApiKey(apiKeyId, {
   return httpApiPut(`api/api-keys/${apiKeyId}/revoke`, {
     params: {
       username,
-      ns
-    }
+      ns,
+    },
   });
 }
 
@@ -305,7 +304,7 @@ function addUser(user) {
   }
   return httpApiPost('api/users', {
     data,
-    params
+    params,
   });
 }
 
@@ -329,7 +328,7 @@ function updateUser(user) {
   }
   return httpApiPut(`api/users/${user.username}`, {
     data,
-    params
+    params,
   });
 }
 
@@ -340,8 +339,8 @@ function getUsers() {
 function postAuth0Users(fileData) {
   return httpApiPost('api/auth0/users', {
     data: {
-      fileData
-    }
+      fileData,
+    },
   });
 }
 
@@ -352,15 +351,16 @@ function getAuthenticationProviderPublicConfigs() {
 function getAuthenticationProviderConfigs() {
   return httpApiGet('api/authentication/provider/configs');
 }
+
 function addUsers(users) {
   return httpApiPost('api/users/bulk', {
-    data: users
+    data: users,
   });
 }
 
 function updateAuthenticationProviderConfig(authenticationProvider) {
   return httpApiPut('api/authentication/provider/configs', {
-    data: authenticationProvider
+    data: authenticationProvider,
   });
 }
 
@@ -374,7 +374,7 @@ function updateUserApplication(user) {
   }
   return httpApiPut(`api/users/${user.username}/userself`, {
     data: user,
-    params
+    params,
   });
 }
 
@@ -388,7 +388,7 @@ async function deleteUser(user) {
   }
   return httpApiDelete(`api/users/${user.username}`, {
     data: user,
-    params
+    params,
   });
 }
 

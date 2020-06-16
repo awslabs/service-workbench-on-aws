@@ -12,6 +12,7 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
+/* jshint esversion: 9 */
 
 const fs = require('fs');
 
@@ -19,8 +20,12 @@ const _ = require('lodash');
 const aws = require('aws-sdk');
 const chalk = require('chalk');
 
-const { toLines } = require('./lib/utils/env.js');
-const { runCommand } = require('./lib/utils/command.js');
+const {
+  toLines
+} = require('./lib/utils/env.js');
+const {
+  runCommand
+} = require('./lib/utils/command.js');
 
 class ServerlessUIToolsPlugin {
   constructor(serverless, options) {
@@ -37,15 +42,13 @@ class ServerlessUIToolsPlugin {
             default: 'build/',
           },
           'invalidate-cache': {
-            usage:
-              'If enabled, invalidates the entire CloudFront distribution after deploying (only if the bucket was modified). Requires a `websiteCloudFrontId` setting to be specified.',
+            usage: 'If enabled, invalidates the entire CloudFront distribution after deploying (only if the bucket was modified). Requires a `websiteCloudFrontId` setting to be specified.',
             default: false,
           },
         },
       },
       'package-ui': {
-        usage:
-          'Packages the UI, ready for deployment. For Create React App (the default and only supported UI provider at present), this also generates ' +
+        usage: 'Packages the UI, ready for deployment. For Create React App (the default and only supported UI provider at present), this also generates ' +
           'an `.env.local` and `.env.production` environment file (depending whether the "--local" flag is set).',
         lifecycleEvents: ['write-env', 'build'],
         options: {
@@ -92,8 +95,12 @@ class ServerlessUIToolsPlugin {
 
     // if a an AWS SDK profile has been configured, use its credentials
     if (profile) {
-      const credentials = new aws.SharedIniFileCredentials({ profile });
-      aws.config.update({ credentials });
+      const credentials = new aws.SharedIniFileCredentials({
+        profile,
+      });
+      aws.config.update({
+        credentials,
+      });
     }
     return new aws.CloudFront();
   }
@@ -143,7 +150,9 @@ class ServerlessUIToolsPlugin {
     this.cli.log('Reading from ${self:custom.envTemplate}...'); // eslint-disable-line
 
     // ==== Load template
-    let env = { ...this.serverless.service.custom.envTemplate };
+    let env = {
+      ...this.serverless.service.custom.envTemplate,
+    };
     if (_.isEmpty(env)) {
       throw new Error('custom.envTemplate must be defined');
     }
@@ -153,7 +162,10 @@ class ServerlessUIToolsPlugin {
     if (isLocal) {
       this.cli.log('Applying local overrides:\n');
       this.cli.raw(`${toLines(env.localOverrides)}\n`);
-      env = { ...env, ...env.localOverrides };
+      env = {
+        ...env,
+        ...env.localOverrides,
+      };
     }
 
     // ==== Write CRA environment file
