@@ -132,33 +132,38 @@ function removeCfLambdaAssociations () {
 
 function removeVersionedBucket () {
 
+    set +e # Avoid interrupting this script in case an exception such as NoSuchBucket is raised.
+
     local bucket=$1
     printf "\n\n\n--- CICD AppArtifactBucket $bucket\n"
 
     printf "\nRemoving all versions from bucket ..."
-    versions=`aws s3api list-object-versions --bucket $bucket |jq '.Versions'`
-    let count=`echo $versions |jq 'length'`-1
+    versions=$(aws s3api list-object-versions --bucket $bucket |jq '.Versions')
+    let count=$(echo $versions |jq 'length')-1
     if [ $count -gt -1 ]; then
         for i in $(seq 0 $count); do
-            key=`echo $versions | jq .[$i].Key |sed -e 's/\"//g'`
-            versionId=`echo $versions | jq .[$i].VersionId |sed -e 's/\"//g'`
+            key=$(echo $versions | jq .[$i].Key |sed -e 's/\"//g')
+            versionId=$(echo $versions | jq .[$i].VersionId |sed -e 's/\"//g')
+            printf "cmd: aws s3api delete-object --bucket $bucket --key $key --version-id $versionId"
             cmd=$(aws s3api delete-object --bucket $bucket --key $key --version-id $versionId)
         done
     fi
 
     printf "\nRemoving all markers from bucket ..."
-    markers=`aws s3api list-object-versions --bucket $bucket |jq '.DeleteMarkers'`
-    let count=`echo $markers |jq 'length'`-1
+    markers=$(aws s3api list-object-versions --bucket $bucket |jq '.DeleteMarkers')
+    let count=$(echo $markers |jq 'length')-1
     if [ $count -gt -1 ]; then
         for i in $(seq 0 $count); do
-            key=`echo $markers | jq .[$i].Key |sed -e 's/\"//g'`
-            versionId=`echo $markers | jq .[$i].VersionId |sed -e 's/\"//g'`
+            key=$(echo $markers | jq .[$i].Key |sed -e 's/\"//g')
+            versionId=$(echo $markers | jq .[$i].VersionId |sed -e 's/\"//g')
             cmd=$(aws s3api delete-object --bucket $bucket --key $key --version-id $versionId)
         done
     fi
 
     printf "\nRemoving S3 bucket ..."
     cmd=$(aws s3api delete-bucket --bucket $deploymentBucketName --region $region)
+
+    set -e
 }
 
 function removeCICDStacks () {
@@ -200,7 +205,7 @@ function removeSsmParams () {
 
     local param_jwtSecret="/$STAGE/$solutionName/jwt/secret"
     local param_rootUserPwd="/$STAGE/$solutionName/user/root/password"
-    local param_githubToken=$(cat "$SOLUTION_ROOT_DIR/main/cicd/cicd-pipeline/config/settings/$STAGE.yml" "$CONFIG_DIR/settings/$STAGE.yml" "$CONFIG_DIR/settings/.defaults.yml" | grep '^tokenName:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
+    local param_githubToken="/$STAGE/$solutionName/github/token"
 
     printf "\n\n\n---- SSM Parameters"
     local paramNames=( "$param_rootUserPwd" "$param_jwtSecret" "$param_githubToken" )
