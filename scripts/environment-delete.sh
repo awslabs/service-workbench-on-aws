@@ -144,7 +144,6 @@ function removeVersionedBucket () {
         for i in $(seq 0 $count); do
             key=$(echo $versions | jq .[$i].Key |sed -e 's/\"//g')
             versionId=$(echo $versions | jq .[$i].VersionId |sed -e 's/\"//g')
-            printf "cmd: aws s3api delete-object --bucket $bucket --key $key --version-id $versionId"
             cmd=$(aws s3api delete-object --bucket $bucket --key $key --version-id $versionId)
         done
     fi
@@ -265,5 +264,5 @@ printf "\n  -[Consumer Accounts]: The resources deployed on your"
 printf "\n     AWS consumer accounts will still be there."
 printf "\n     see at "
 printf "\n       https://console.aws.amazon.com/ec2/v2/home,"
-printf "\n       https://console.aws.amazon.com/sagemaker/home )"
+printf "\n       https://console.aws.amazon.com/sagemaker/home"
 printf "\n\n\n"
