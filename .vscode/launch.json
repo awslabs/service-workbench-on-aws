@@ -4,13 +4,56 @@
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-
         {
-            "type": "chrome",
+            "type": "node",
             "request": "launch",
-            "name": "Launch Chrome against localhost",
-            "url": "http://localhost:3000",
-            "webRoot": "${workspaceFolder}"
+            "name": "Launch sls offline",
+            "program": "/home/bassem/code/AWS-Bassem/aws-galileo-gateway/main/solution/backend/node_modules/serverless/bin/serverless",
+            "cwd": "${workspaceFolder}/main/solution/backend",
+            "args": [
+                "offline",
+                "-s",
+                "demo",
+                "--noTimeout",
+                "--dontPrintOutput"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/main/solution/backend/.webpack/**/*.js"
+            ],
+            "sourceMaps": true,
+            "protocol": "inspector",
+            "runtimeExecutable": "node",
+            "runtimeArgs": [
+                "--lazy"
+            ]
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch sls post deployment",
+            "program": "/home/bassem/code/AWS-Bassem/aws-galileo-gateway/main/solution/backend/node_modules/serverless/bin/serverless",
+            "cwd": "${workspaceFolder}/main/solution/post-deployment",
+            "args": [
+                "invoke",
+                "local",
+                "-f",
+                "postDeployment",
+                "-s",
+                "demo",
+                "--noTimeout",
+                "--dontPrintOutput",
+                "--data",
+                "{}"
+            ],
+            "outFiles": [
+                "${workspaceFolder}/main/solution/post-deployment/.webpack/**/*.js"
+            ],
+            "sourceMaps": true,
+            "protocol": "inspector",
+            "runtimeExecutable": "node",
+            "runtimeArgs": [
+                "--lazy"
+            ]
         }
     ]
 }

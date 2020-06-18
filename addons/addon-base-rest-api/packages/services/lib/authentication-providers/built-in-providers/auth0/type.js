@@ -55,19 +55,19 @@ module.exports = {
     impl: {
       // In case of Auth0, the ID token is issued by the
       // the tokenIssuerLocator is not applicable in this case
-      tokenIssuerLocator: '',
+      //tokenIssuerLocator: '',
 
       // Similar to the tokenIssuerLocator mentioned above but used for token validation instead of issuing token.
       // The token validation locator is used to validate token upon each request.
       // Unlike the tokenIssuerLocator which is only used for authentication being performed via application APIs, the
       // tokenValidatorLocator is used in all cases
       tokenValidatorLocator: 'locator:service:auth0AuthenticationProviderService/validateToken',
-
+      tokenRevokerLocator: 'locator:service:internalAuthenticationProviderService/revokeToken',
       // Similar to above locators. The provisionerLocator identifies an implementation that takes care of provisioning the authentication provider.
       // In case of Internal Authentication Provider this "provisioning" step may be as simple as adding authentication provider configuration in Data Base.
       // In case of other auth providers, this step may be more elaborate (for example, in case of Cognito + SAML, the provisioner has to create Cognito User Pool,
       // configure cognito client application, configure SAML identity providers in the Cognito User Pool etc.
-      provisionerLocator: 'locator:service:auth0AuthenticationProvisionerService/provision',
+      provisionerLocator: 'locator:service:auth0AuthenticationProvisionerService/createUserIfDoesntExist',
     },
   },
 };
