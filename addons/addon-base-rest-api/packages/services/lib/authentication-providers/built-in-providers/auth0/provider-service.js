@@ -35,8 +35,6 @@ class ProviderService extends Service {
     // User the auth0TokenVerifier to validate cognito token
     const verifiedToken = await auth0TokenVerifier.verify(token);
     const auth0Service = await this.service('auth0Service');
-    //const accessToken = token;//auth0Service.getAuth0Token();
-    //const identityProviderName = auth0Service.getIdproviders(accessToken, verifiedToken.sub);
     const {
       username,
       identityProviderName
@@ -54,8 +52,7 @@ class ProviderService extends Service {
 
   async createUserIfDoesntExist(decodedToken, authenticationProviderId, identityProviderName) {//IdProviders) {
     const email = _.isEmpty(decodedToken.email) ? this.makeEmail() : decodedToken.email;
-    let username = email;
-    //let identityProviderName = '';
+    let username = email.toLowerCase();
 
     // Auth0 authentication is configured by customer, in DBMI case, the authentication will be set to Open ID Connection
 
@@ -64,10 +61,8 @@ class ProviderService extends Service {
 
     // try find user in dynamo user table
     let foundUser = false;
-    //for (let i = 0; i < IdProviders.length; i++) {
     if (identityProviderName != '') {
-      //const idp = IdProviders[i];
-      //identityProviderName = idp.provider;
+
       const user = await userService.findUser({
         username,
         authenticationProviderId,
@@ -75,7 +70,6 @@ class ProviderService extends Service {
       });
       if (user) {
         foundUser = true;
-        //break;
       }
     }
 
@@ -83,9 +77,6 @@ class ProviderService extends Service {
       // Save user if it does not exist already
       // TODO: What if the user's attributes (such as firstName or lastName) changed in IdP? Should we update our
       // user here?
-
-      // assign default idp for user here
-      //identityProviderName = IdProviders[0].provider;
 
       try {
         await userService.createUser(getSystemRequestContext(), {
