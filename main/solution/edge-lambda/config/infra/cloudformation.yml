@@ -35,6 +35,10 @@ Resources:
   # Lambda@Edge that intercepts CloudFront response and adds various security headers in the response
   EdgeLambda:
     Type: "AWS::Lambda::Function"
+    # Avoid to try to delete the Edge Lambda because it raises errors until all associations with Cloudfront are removed. 
+    # Even then, replicas are being automatically deleted only 1 hour after the removal of all associations. 
+    # After that, the Edge lambda can be deleted manually at https://console.aws.amazon.com/lambda/home
+    DeletionPolicy: Retain
     Properties:
       Description: Lambda@Edge function to set security headers in CloudFront responses
       Runtime: nodejs12.x
