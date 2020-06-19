@@ -25,7 +25,7 @@ import * as authenticationProviderPublicConfigsStore from '../models/authenticat
 import * as userDisplayName from '../models/users/UserDisplayName';
 import * as usersStore from '../models/users/UsersStore';
 import * as userStore from '../models/users/UserStore';
-import { branding } from '../helpers/settings';
+import loginImage from '../../images/login-image.gif';
 
 /**
  * Registers base stores to the appContext object
@@ -46,7 +46,7 @@ function registerAppContextItems(appContext) {
   userDisplayName.registerContextItems(appContext);
   usersStore.registerContextItems(appContext);
   userStore.registerContextItems(appContext);
-  appContext.assets.images.loginImage = branding.login.image;
+  appContext.assets.images.loginImage = loginImage;
 }
 
 // eslint-disable-next-line no-unused-vars
