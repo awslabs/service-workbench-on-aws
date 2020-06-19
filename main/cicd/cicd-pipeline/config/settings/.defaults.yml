@@ -8,7 +8,7 @@ repoName: aws-galileo-gateway
 repoBranch: master
 
 # Path to repo token (e.g. Github access token) in parameter store
-tokenName: /${self:custom.settings.envName}/${self:custom.settings.solutionName}/github/token
+tokenName: /${self:custom.settings.paramStoreRoot}/github/token
 
 # Name of the AWS CodePipeline instance
 pipelineName: ${self:custom.settings.namespace}-${self:custom.settings.repoBranch}
