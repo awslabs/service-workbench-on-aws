@@ -1,34 +1,46 @@
 #!/bin/bash
 set -e
 
+printf "\n\n\n ****** DEPLOY AWS-GALILEO-GATEWAY [$STAGE] ******"
+printf "\nYou are about to deploy a version of Aws-Galileo-Gateway on your AWS account. Stage name is [$STAGE]"
+printf "\nDo you want to proceed to the deployment ? (y/n): "
+read -r confirmation
+if [ "$confirmation" != "y" ]; then
+    printf "\n\nDeployment canceled. Exiting.\n\n"
+    exit 1
+fi
+
 pushd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null
 # shellcheck disable=SC1091
 [[ $UTIL_SOURCED != yes && -f ./util.sh ]] && source ./util.sh
 popd > /dev/null
 
-# Install
+# Install dependencies
+printf "\n\n---- Install dependencies\n"
 install_dependencies "$@"
 
-function disableStats {
-  COMPONENT_DIR=$1
-  pushd "$SOLUTION_DIR/../$COMPONENT_DIR" > /dev/null
-  # Disable serverless stats (only strictly needs to be done one time)
-  $EXEC sls slstats --disable -s "$STAGE"
-  popd > /dev/null
-}
+pushd "$SOLUTION_ROOT_DIR/main/cicd/cicd-pipeline" > /dev/null
 
-function componentDeploy {
-  COMPONENT_DIR=$1
-  COMPONENT_NAME=$2
+# Disable serverless stats (only strictly needs to be done one time)
+$EXEC sls slstats --disable -s "$STAGE"
 
-  pushd "$SOLUTION_DIR/../$COMPONENT_DIR" > /dev/null
-  printf "\nDeploying component: %s ...\n\n" "$COMPONENT_NAME"
-  $EXEC sls deploy -s "$STAGE"
-  printf "\nDeployed component: %s successfully \n\n" "$COMPONENT_NAME"
-  popd > /dev/null
-}
+# Deploy the updated stack of the CICD
+printf "\n\n---- Deploy CICD Stack\n"
+$EXEC sls deploy -s "$STAGE"
 
-disableStats "cicd/cicd-pipeline"
-componentDeploy "cicd/cicd-pipeline" "CI/CD Pipeline"
+# Update the Github token if necessary
+printf "\n\n--- Check Github Token used by the CICD pipeline"
+printf "\nThe CICD requires a valid Github Access Token to be able to pull the latest updates its associated code repository.\n"
 
-printf "\n----- CI/CD PIPELINE DEPLOYED SUCCESSFULLY 🎉 -----\n\n"
+pipeline_stack_name=$($EXEC sls info -s $STAGE | grep 'stack:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
+aws_region="$(cat $CONFIG_DIR/settings/$STAGE.yml | grep 'awsRegion:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
+solution_name="$(cat $CONFIG_DIR/settings/$STAGE.yml $CONFIG_DIR/settings/.defaults.yml | grep 'solutionName:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
+token_name="/$STAGE/$solution_name/github/token"
+
+source ./scripts/deploy-github-token.bash $pipeline_stack_name $token_name $aws_region
+popd > /dev/null
+
+printf "\n\n\n------------------------------------------------------------------------------------------"
+printf "\n-----------               CI/CD PIPELINE DEPLOYED SUCCESSFULLY 🎉              -----------"
+printf "\n-----------  https://console.aws.amazon.com/codesuite/codepipeline/pipelines/  -----------"
+printf "\n------------------------------------------------------------------------------------------\n\n\n"
