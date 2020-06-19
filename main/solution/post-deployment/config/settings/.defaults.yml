@@ -2,7 +2,7 @@
 jwtOptions: '{"algorithm":"HS256","expiresIn":"2 days"}'
 
 # Name of the parameter in the parameter store to save the generated password of the root user
-rootUserPasswordParamName: /${self:custom.settings.envName}/${self:custom.settings.solutionName}/user/root/password
+rootUserPasswordParamName: /${self:custom.settings.paramStoreRoot}/user/root/password
 
 # Name of the parameter in parameter store containing secret key for JWT. This key is used for signing and validating JWT tokens
 # issued by data lake authentication providers
