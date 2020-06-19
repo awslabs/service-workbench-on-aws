@@ -8,6 +8,7 @@
   "devDependencies": {
     "@aws-ee/base-serverless-settings-helper": "workspace:*",
     "serverless": "^1.63.0",
-    "serverless-deployment-bucket": "^1.1.0"
+    "serverless-deployment-bucket": "^1.1.0",
+    "serverless-s3-remover": "^0.6.0"
   }
 }

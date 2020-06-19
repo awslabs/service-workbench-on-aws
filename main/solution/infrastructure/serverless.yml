@@ -23,6 +23,11 @@ custom:
     Name: ${self:custom.settings.envName}-${self:service}
   deploymentBucket:
     policy: ${self:custom.settings.deploymentBucketPolicy}
+  remover:
+    prompt: false
+    buckets:
+      - ${self:custom.settings.loggingBucketName}
+      - ${self:custom.settings.websiteBucketName}
 
 resources:
   - Description: Galileo-Gateway ${self:custom.settings.version} ${self:custom.settings.solutionName} ${self:custom.settings.envName} Infrastructure
@@ -30,3 +35,4 @@ resources:
 
 plugins:
   - serverless-deployment-bucket
+  - serverless-s3-remover

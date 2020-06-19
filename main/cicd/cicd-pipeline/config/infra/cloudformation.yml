@@ -99,6 +99,7 @@ Resources:
   AppArtifactBucket:
     Type: AWS::S3::Bucket
     Properties:
+      BucketName: ${self:custom.settings.cicdAppArtifactBucketName}
       VersioningConfiguration:
         Status: Enabled
       PublicAccessBlockConfiguration: # Block all public access configuration for the S3 bucket

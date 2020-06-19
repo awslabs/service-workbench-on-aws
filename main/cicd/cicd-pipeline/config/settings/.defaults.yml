@@ -12,6 +12,7 @@ tokenName: /${self:custom.settings.envName}/${self:custom.settings.solutionName}
 
 # Name of the AWS CodePipeline instance
 pipelineName: ${self:custom.settings.namespace}-${self:custom.settings.repoBranch}
+cicdAppArtifactBucketName: ${self:custom.settings.globalNamespace}-cicd-appartifacts
 
 # Either specify a Github owner (and an OAuth Token in CloudFormation) or source account and role (for CodeCommit)
 githubOwner: 'awslabs'
