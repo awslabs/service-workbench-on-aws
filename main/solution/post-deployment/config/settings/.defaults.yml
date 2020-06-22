@@ -132,3 +132,14 @@ dbTableWorkflowDrafts: ${self:custom.settings.dbTablePrefix}-DbWorkflowDrafts
 
 # DynamoDB table name for UserRoles
 dbTableUserRoles: ${self:custom.settings.dbTablePrefix}-DbUserRoles
+# Settings Dynamo DB Insertion Point (do not change this text, it is being used by hygen cli)
+
+# ================================ Auth0 Settings ===========================================
+# Auth0 domain 
+paramStoreAuth0Domain: '/${self:custom.settings.paramStoreRoot}/auth0/domain'
+
+# Auth0 client id
+paramStoreAuth0ClientId: '/${self:custom.settings.paramStoreRoot}/auth0/client/id'
+
+# Auth0 client secret
+paramStoreAuth0ClientSecret: '/${self:custom.settings.paramStoreRoot}/auth0/client/secret'

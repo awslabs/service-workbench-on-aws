@@ -12,7 +12,6 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
@@ -30,6 +29,9 @@ const settingKeys = {
   fedIdpMetadatas: 'fedIdpMetadatas',
   defaultAuthNProviderTitle: 'defaultAuthNProviderTitle',
   cognitoAuthNProviderTitle: 'cognitoAuthNProviderTitle',
+  paramStoreAuth0Domain: 'paramStoreAuth0Domain',
+  paramStoreAuth0ClientId: 'paramStoreAuth0ClientId',
+  paramStoreAuth0ClientSecret: 'paramStoreAuth0ClientSecret',
 };
 
 class AddAuthProviders extends Service {
@@ -39,8 +41,10 @@ class AddAuthProviders extends Service {
       'aws',
       'authenticationProviderConfigService',
       'authenticationProviderTypeService',
+      'auth0AuthenticationProvisionerService',
       'cognitoUserPoolAuthenticationProvisionerService',
       'internalAuthenticationProvisionerService',
+      'auth0AuthenticationProvisionerService',
     ]);
   }
 
@@ -134,8 +138,14 @@ class AddAuthProviders extends Service {
     const aws = await this.service('aws');
     const cognitoIdentityServiceProvider = new aws.sdk.CognitoIdentityServiceProvider();
     // TODO: Handle pagination (hopefully there aren't more than 1000 user pools)
-    const result = await cognitoIdentityServiceProvider.listUserPools({ MaxResults: '60' }).promise();
-    const userPool = _.find(result.UserPools, { Name: userPoolName });
+    const result = await cognitoIdentityServiceProvider
+      .listUserPools({
+        MaxResults: '60',
+      })
+      .promise();
+    const userPool = _.find(result.UserPools, {
+      Name: userPoolName,
+    });
 
     let authProviderExists = false;
     if (userPool) {
@@ -171,10 +181,54 @@ class AddAuthProviders extends Service {
     });
   }
 
+  async getSecret(keyName) {
+    const aws = await this.service('aws');
+    const ssm = new aws.sdk.SSM({
+      apiVersion: '2014-11-06',
+    });
+
+    this.log.info(`Getting the "${keyName}" key from the parameter store`);
+    const result = await ssm
+      .getParameter({
+        Name: keyName,
+        WithDecryption: true,
+      })
+      .promise();
+    return result.Parameter.Value;
+  }
+
+  async addAuth0AuthenticationProviderConfig() {
+    const domainKeyName = this.settings.get(settingKeys.paramStoreAuth0Domain);
+    const auth0Domain = await this.getSecret(domainKeyName);
+    const clientIdKeyName = this.settings.get(settingKeys.paramStoreAuth0ClientId);
+    const auth0ClientId = await this.getSecret(clientIdKeyName);
+    const authenticationProviderTypeService = await this.service('authenticationProviderTypeService');
+    const authenticationProviderTypes = await authenticationProviderTypeService.getAuthenticationProviderTypes();
+
+    const auth0AuthProviderTypeConfig = _.find(authenticationProviderTypes, {
+      type: authProviderConstants.auth0AuthProviderTypeId,
+    });
+    // Each provider can ask for their specific config at the time of registering the provider
+    // The config below for "auth0" provider
+    // auth0Domain and auth0ClientId need to be provided by customer in parameter store
+    const providerConfig = {
+      id: authProviderConstants.auth0AuthProviderId,
+      title: 'Auth0 Authentication Provider',
+      auth0Domain,
+      auth0ClientId,
+    };
+
+    const auth0AuthenticationProvisionerService = await this.service('auth0AuthenticationProvisionerService');
+    await auth0AuthenticationProvisionerService.provision({
+      providerTypeConfig: auth0AuthProviderTypeConfig,
+      providerConfig,
+    });
+  }
   async execute() {
     // Setup both the default (internal) auth provider as well as a Cognito
     // auth provider (if configured)
     await this.addDefaultAuthenticationProviderConfig();
+    await this.addAuth0AuthenticationProviderConfig();
     await this.addCognitoAuthenticationProviderWithSamlFederation();
   }
 }

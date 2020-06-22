@@ -1089,3 +1089,11 @@ Resources:
 # Outputs
 # =============================================================================================
 Outputs:
+  AuthenticationLayerHandlerRoleArn:
+    Value: !GetAtt RoleAuthenticationLayerHandler.Arn
+  ApiHandlerRoleArn:
+    Value: !GetAtt RoleApiHandler.Arn
+  WorkflowLoopRunnerRoleArn:
+    Value: !GetAtt RoleWorkflowLoopRunner.Arn
+  OpenDataScrapeHandlerRoleArn:
+    Value: !GetAtt RoleOpenDataScrapeHandler.Arn

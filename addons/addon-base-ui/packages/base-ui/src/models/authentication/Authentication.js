@@ -147,10 +147,17 @@ const Authentication = types
       self.cleanup();
       return self.selectedAuthenticationProvider.logout({ autoLogout });
     },
+    auth0SignOut() {
+      const signoutUrl = `${self.selectedAuthenticationProvider.absoluteSignOutUrl}&returnTo=${window.location.origin}`;
+      document.location.href = signoutUrl;
+    },
   }))
   .views(self => ({
     get isCognitoUserPool() {
       return self.selectedAuthenticationProvider.type === 'cognito_user_pool';
+    },
+    get isAuth0() {
+      return self.selectedAuthenticationProvider.type === 'auth0';
     },
     get selectedAuthenticationProvider() {
       const authenticationProviderPublicConfigsStore = getEnv(self).authenticationProviderPublicConfigsStore;

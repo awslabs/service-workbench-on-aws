@@ -214,7 +214,7 @@ function removeFragmentParams(location, keyNamesToRemove) {
       const value = keyValueArr[1];
       // Do not include the currentKey if it is the one specified in the array of keyNamesToRemove
       if (value && _.indexOf(keyNamesToRemove, currentKey) < 0) {
-        hashStr = `${currentKey}${currentKey}=${value}`;
+        hashStr = `${hashStr}${currentKey}=${value}`;
       }
     });
   }

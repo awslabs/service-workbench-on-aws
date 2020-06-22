@@ -23,8 +23,7 @@ const baseRaasRoutesPlugin = require('@aws-ee/base-raas-rest-api/lib/plugins/rou
 const baseRaasCfnTemplatesPlugin = require('@aws-ee/base-raas-cfn-templates/dist/plugins/cfn-templates-plugin');
 const baseRaasUserAuthzPlugin = require('@aws-ee/base-raas-services/lib/user/user-authz-plugin');
 const servicesPlugin = require('services/lib/plugins/services-plugin');
-
-const routesPlugin = require('./routes-plugin');
+const routesPlugin = require('controllers/lib/plugins/routes-plugin');
 
 const extensionPoints = {
   'service': [baseServicesPlugin, baseWfServicesPlugin, bassRaasServicesPlugin, servicesPlugin],

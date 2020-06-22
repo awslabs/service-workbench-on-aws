@@ -3,7 +3,7 @@ jwtOptions: '{"algorithm":"HS256","expiresIn":"2 days"}'
 
 # Name of the parameter in parameter store containing secret key for JWT. This key is used for signing and validating JWT tokens
 # issued by data lake authentication providers
-paramStoreJwtSecret: '/${self:custom.settings.paramStoreRoot}/jwt/secret'
+paramStoreJwtSecret: "/${self:custom.settings.paramStoreRoot}/jwt/secret"
 
 # TODO: Remove this dependency from the "infrastructure" stack and set the default "corsWhiteList" to empty array
 # Move these settings that are dependent on "infrastructure" stack to the "addon-base-ui" once the addon cli task to
@@ -51,7 +51,7 @@ studyDataKmsPolicyWorkspaceSid: Allow workspace environments to retrieve S3 obje
 apiHandlerRoleName: ${self:custom.settings.namespace}-ApiHandler
 
 # The IAM role arn for the Lambda API handler, we need to define it in the settings because it is being passed to lambdas as an env var
-apiHandlerRoleArn: 'arn:aws:iam::${self:custom.settings.awsAccountInfo.awsAccountId}:role/${self:custom.settings.apiHandlerRoleName}'
+apiHandlerRoleArn: "arn:aws:iam::${self:custom.settings.awsAccountInfo.awsAccountId}:role/${self:custom.settings.apiHandlerRoleName}"
 
 # Enable or disable workflow processing
 workflowsEnabled: true
@@ -60,13 +60,13 @@ workflowsEnabled: true
 workflowStateMachineName: ${self:custom.settings.namespace}-workflow
 
 # The workflow state machine arn, we need to define it in the settings because it is being passed to lambdas as an env var
-workflowStateMachineArn: 'arn:aws:states:${self:custom.settings.awsRegion}:${self:custom.settings.awsAccountInfo.awsAccountId}:stateMachine:${self:custom.settings.workflowStateMachineName}'
+workflowStateMachineArn: "arn:aws:states:${self:custom.settings.awsRegion}:${self:custom.settings.awsAccountInfo.awsAccountId}:stateMachine:${self:custom.settings.workflowStateMachineName}"
 
 # The name of the IAM role created for the workflow Lambda function
 workflowLoopRunnerRoleName: ${self:custom.settings.namespace}-WorkflowLoopRunner
 
 # The IAM role arn for the Lambda API handler, we need to define it in the settings because it is being passed to lambdas as an env var
-workflowLoopRunnerRoleArn: 'arn:aws:iam::${self:custom.settings.awsAccountInfo.awsAccountId}:role/${self:custom.settings.workflowLoopRunnerRoleName}'
+workflowLoopRunnerRoleArn: "arn:aws:iam::${self:custom.settings.awsAccountInfo.awsAccountId}:role/${self:custom.settings.workflowLoopRunnerRoleName}"
 
 # The prefix of the ami used to create environments
 ec2LinuxAmiPrefix: ${self:custom.settings.namespace}-EC2-LINUX-AMI
@@ -154,3 +154,14 @@ dbTableEnvironmentTokens: ${self:custom.settings.dbTablePrefix}-DbEnvironmentTok
 
 # DynamoDB table name for StudyPermissions
 dbTableStudyPermissions: ${self:custom.settings.dbTablePrefix}-DbStudyPermissions
+
+# ================================ Auth0 Settings ===========================================
+
+# Auth0 domain
+paramStoreAuth0Domain: "/${self:custom.settings.paramStoreRoot}/auth0/domain"
+
+# Auth0 client id
+paramStoreAuth0ClientId: "/${self:custom.settings.paramStoreRoot}/auth0/client/id"
+
+# Auth0 client secret
+paramStoreAuth0ClientSecret: "/${self:custom.settings.paramStoreRoot}/auth0/client/secret"

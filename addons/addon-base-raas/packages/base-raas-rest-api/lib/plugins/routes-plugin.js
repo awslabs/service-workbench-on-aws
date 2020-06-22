@@ -12,7 +12,6 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-
 const _ = require('lodash');
 const setupAuthContext = require('@aws-ee/base-controllers/lib/middlewares/setup-auth-context');
 const prepareContext = require('@aws-ee/base-controllers/lib/middlewares/prepare-context');
@@ -32,6 +31,7 @@ const accountsController = require('../controllers/accounts-controller');
 const templateController = require('../controllers/template-controller');
 const computeController = require('../controllers/compute-controller');
 const ipController = require('../controllers/ip-controller');
+const auth0Controller = require('../controllers/auth0user-controller');
 
 /**
  * Adds routes to the given routesMap.
@@ -75,7 +75,7 @@ async function getRoutes(routesMap, pluginRegistry) {
     ['/api/template', [setupAuthContext, prepareContext, ensureActive, templateController]],
     ['/api/compute', [setupAuthContext, prepareContext, ensureActive, computeController]],
     ['/api/ip', [setupAuthContext, prepareContext, ensureActive, ipController]],
-
+    ['/api/auth0', [setupAuthContext, prepareContext, auth0Controller]],
     // PROTECTED APIS accessible only to logged in active, admin users
     ['/api/accounts', [setupAuthContext, prepareContext, ensureActive, ensureAdmin, accountsController]],
   ]);

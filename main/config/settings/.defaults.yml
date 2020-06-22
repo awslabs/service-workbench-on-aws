@@ -98,3 +98,8 @@ rootUserLastName: root
 # When enableExternalResearchers = false (default setting), it does NOT allow any user to be assigned with
 # "External Researcher" role (any existing users who have "External Researcher" role will no longer be able to login).
 enableExternalResearchers: false
+
+# THIS SETTING IS ONLY APPLICABLE FOR LOCAL DEVELOPMENT
+# A flag indicating if lambda function role's trust policy (assume role policy) should be automatically adjusted to
+# allow assuming the role from local machine (applicable only for local development)
+localRoleAutoAdjustTrust: false

@@ -22,6 +22,7 @@
     "@aws-ee/base-workflow-core": "workspace:*",
     "@aws-ee/base-workflow-steps": "workspace:*",
     "services": "workspace:*",
+    "controllers": "workspace:*",
     "aws-sdk": "^2.647.0",
     "js-yaml": "^3.13.1",
     "jwt-decode": "^2.2.0",

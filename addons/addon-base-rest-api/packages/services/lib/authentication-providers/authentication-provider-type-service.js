@@ -18,6 +18,7 @@ const _ = require('lodash');
 
 const internalAuthenticationProviderType = require('./built-in-providers/internal/type');
 const cognitoUserPoolAuthenticationProviderType = require('./built-in-providers/cogito-user-pool/type');
+const auth0AuthenticationProviderType = require('./built-in-providers/auth0/type');
 
 class AuthenticationProviderTypeService extends Service {
   constructor() {
@@ -26,20 +27,30 @@ class AuthenticationProviderTypeService extends Service {
   }
 
   async getAuthenticationProviderTypes(requestContext) {
-    const types = [internalAuthenticationProviderType, cognitoUserPoolAuthenticationProviderType];
+    const types = [
+      internalAuthenticationProviderType,
+      cognitoUserPoolAuthenticationProviderType,
+      auth0AuthenticationProviderType,
+    ];
 
     // Give all plugins a chance in registering their authentication provider types
     // Each plugin will receive the following payload object with the shape {requestContext, container, types}
     const pluginRegistryService = await this.service('pluginRegistryService');
     const result = await pluginRegistryService.visitPlugins('authentication-provider-type', 'registerTypes', {
-      payload: { requestContext, container: this.container, types },
+      payload: {
+        requestContext,
+        container: this.container,
+        types,
+      },
     });
     return result ? result.types : [];
   }
 
   async getAuthenticationProviderType(requestContext, providerTypeId) {
     const providerTypes = await this.getAuthenticationProviderTypes(requestContext);
-    return _.find(providerTypes, { type: providerTypeId });
+    return _.find(providerTypes, {
+      type: providerTypeId,
+    });
   }
 }
 

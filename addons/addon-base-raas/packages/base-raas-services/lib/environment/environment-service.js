@@ -17,7 +17,6 @@ const _ = require('lodash');
 const uuid = require('uuid/v1');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
-
 const createSchema = require('../schema/create-environment');
 const updateSchema = require('../schema/update-environment');
 
@@ -84,55 +83,34 @@ class EnvironmentService extends Service {
       return environments;
     }
 
-    // map environment ownership
-    const { username: reqUsername, ns: reqNs } = requestContext.principalIdentifier;
     const envMap = environments.map((env, index) => {
-      const { username: ownerUsername, ns: ownerNs } = env.createdBy;
-      const isOwner = reqUsername === ownerUsername && reqNs === ownerNs;
-
-      const { sharedWithUsers = [] } = env;
-      const isShared = Array.isArray(sharedWithUsers)
-        ? sharedWithUsers.some(u => u.username === reqUsername && u.ns === reqNs)
-        : false;
-
       return {
-        isOwner,
-        // should not be owner and shared at the same time
-        isShared: !isOwner && isShared,
         environmentsIndex: index,
       };
     });
 
-    // environments owned by user
-    const envOwner = envMap.filter(item => item.isOwner);
+    const authResult = await this.service('environmentAuthzService');
 
-    // environments shared with user
-    const envShared = envMap.filter(item => item.isShared);
-
-    // enviroments not owned by user
-    const envNonOwnerOrShared = envMap.filter(item => !item.isOwner && !item.isShared);
-
-    // gather environments where the current user is a project admin
-    const envProjectAdminPromises = envNonOwnerOrShared.map(env =>
-      this.isEnvironmentProjectAdmin(requestContext, environments[env.environmentsIndex]).catch(error => error),
+    const envPromises = envMap.map(env =>
+      authResult.authorize(
+        requestContext,
+        { action: 'get', conditions: [this._allowAuthorized] },
+        environments[env.environmentsIndex],
+      ),
     );
-    // NOTE refactor to use Promise.allSettled() once on Node JS >= 12
-    const envProjectAdminPromiseResolutions = await Promise.all(envProjectAdminPromises);
-    const envProjectAdmin = envProjectAdminPromiseResolutions
-      .map((isProjectAdmin, index) => {
-        if (isProjectAdmin instanceof Error) {
-          // eslint-disable-next-line no-console
-          console.error('error listing environment checking isProjectAdmin: ', isProjectAdmin);
-          return { isProjectAdmin: false };
-        }
+
+    const envPromiseResolutions = await Promise.all(envPromises);
+
+    const envAccessible = envPromiseResolutions
+      .map((isAccessible, index) => {
         return {
-          isProjectAdmin,
-          environmentsIndex: envNonOwnerOrShared[index].environmentsIndex,
+          isAccessible,
+          environmentsIndex: envMap[index].environmentsIndex,
         };
       })
-      .filter(item => item.isProjectAdmin);
+      .filter(item => item.isAccessible);
 
-    return [...envOwner, ...envShared, ...envProjectAdmin].map(item => environments[item.environmentsIndex]);
+    return [...envAccessible].map(item => environments[item.environmentsIndex]);
   }
 
   async find(requestContext, { id, fields = [] }) {
@@ -470,20 +448,8 @@ class EnvironmentService extends Service {
 
     // validate sharedWithUsers
     const { sharedWithUsers } = environment;
-    try {
-      if (Array.isArray(sharedWithUsers)) {
-        const userService = await this.service('userService');
-        await userService.validateUsers(sharedWithUsers);
-      }
-    } catch (error) {
-      if (error.safe) {
-        throw error;
-      }
-      const errorMessage = 'error updating environment - shared with users';
-      // eslint-disable-next-line no-console
-      console.error(errorMessage, error);
-      throw this.boom.internalError(errorMessage, true);
-    }
+    const userService = await this.service('userService');
+    await userService.ensureActiveUsers(sharedWithUsers);
 
     // Time to save the the db object
     const result = await runAndCatch(
@@ -503,49 +469,6 @@ class EnvironmentService extends Service {
     await this.audit(requestContext, { action: 'update-environment', body: environment });
 
     return result;
-  }
-
-  // use this authorization check function for safe changes that can be done by
-  // project admins and shared environment users
-  // this should not be used for destructive actions such as terminate/delete
-  // or other dangerous updates
-  async isSafeMutationAuthorized(requestContext, environment) {
-    // check if user is admin
-    const isAdmin = requestContext.principal.isAdmin;
-    if (isAdmin) {
-      return true;
-    }
-
-    // check if user is the environment owner
-    const { username: ownerUsername, ns: ownerNs } = environment.createdBy;
-    const { username: reqUsername, ns: reqNs } = requestContext.principalIdentifier;
-    const isOwner = reqUsername === ownerUsername && reqNs === ownerNs;
-    if (isOwner) {
-      return true;
-    }
-
-    // check if environment has been shared with user
-    const { sharedWithUsers = [] } = environment;
-    const isShared = Array.isArray(sharedWithUsers)
-      ? sharedWithUsers.some(u => u.username === reqUsername && u.ns === reqNs)
-      : false;
-    if (isShared) {
-      return true;
-    }
-
-    // check if the project associated with the environment includes the user as a project admin
-    let isProjectAdmin = false;
-    try {
-      isProjectAdmin = await this.isEnvironmentProjectAdmin(requestContext, environment);
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('error checking isProjectAdmin in mutation authorization: ', error);
-    }
-    if (isProjectAdmin) {
-      return true;
-    }
-
-    return false;
   }
 
   async delete(requestContext, { id }) {

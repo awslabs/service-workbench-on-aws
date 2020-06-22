@@ -15,6 +15,9 @@ phases:
       # This is required because somehow the "pnpm run build" script in "prepare" hook does not work in AWS CodeBuild
       # The "prepare" hook script is executed fine but the "build" script referenced in "prepare" does not execute
       - ./scripts/build-all-packages.sh
+      - echo ""
+      - echo "Downloading environment config"
+      - ./scripts/download-env-config.sh "$DEPLOYMENT_BUCKET" "$ENV_NAME"
   build:
     commands:
       - printf "\n\nRunning integration tests for environment "$ENV_NAME"\n"

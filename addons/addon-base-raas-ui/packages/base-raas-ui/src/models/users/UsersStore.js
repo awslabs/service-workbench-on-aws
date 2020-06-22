@@ -18,7 +18,7 @@ import { applySnapshot, detach, getSnapshot, types } from 'mobx-state-tree';
 import { addUser, updateUser, getUsers } from '@aws-ee/base-ui/dist/helpers/api';
 import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
 
-import { deleteUser, addUsers, updateUserApplication } from '../../helpers/api';
+import { deleteUser, addUsers, updateUserApplication, postAuth0Users } from '@aws-ee/base-raas-ui/dist/helpers/api';
 import { User } from './User';
 
 const UsersStore = BaseStore.named('UsersStore')
@@ -73,6 +73,9 @@ const UsersStore = BaseStore.named('UsersStore')
       updateUserApplication: async user => {
         const res = await updateUserApplication(user);
         return res;
+      },
+      addAuth0User: async files => {
+        await postAuth0Users(files);
       },
       deleteUser: async user => {
         const id = user && user.id ? user.id : User.create(user).id;

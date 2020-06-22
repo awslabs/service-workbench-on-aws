@@ -137,3 +137,10 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: '10'
         WriteCapacityUnits: '5'
+
+# =============================================================================================
+# Outputs
+# =============================================================================================
+Outputs:
+  PostDeploymentRoleArn:
+    Value: !GetAtt RolePostDeploymentLambda.Arn

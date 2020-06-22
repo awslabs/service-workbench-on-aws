@@ -19,10 +19,8 @@ const bassRaasServicesPlugin = require('@aws-ee/base-raas-rest-api/lib/plugins/a
 const baseRaasUserAuthzPlugin = require('@aws-ee/base-raas-services/lib/user/user-authz-plugin');
 const baseRaasAuthnPlugin = require('@aws-ee/base-raas-rest-api/lib/plugins/authentication-plugin');
 
-const servicesPlugin = require('./services-plugin');
-
 const extensionPoints = {
-  'service': [baseServicesPlugin, bassRaasServicesPlugin, servicesPlugin],
+  'service': [baseServicesPlugin, bassRaasServicesPlugin],
   'audit': [baseAuditPlugin],
   'user-authz': [baseRaasUserAuthzPlugin],
   'authentication': [baseRaasAuthnPlugin],

@@ -12,7 +12,6 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-
 const _ = require('lodash');
 const { ensureAdmin } = require('@aws-ee/base-services/lib/authorization/assertions');
 const { newInvoker } = require('@aws-ee/base-api-services/lib/authentication-providers/helpers/invoker');

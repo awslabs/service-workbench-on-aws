@@ -77,7 +77,7 @@ class LambdasOverrider {
         this.cli.warn(`Lambda "${name}" is not defined but yet it was specified in environmentOverrides`);
         return;
       }
-      lambdaEntry.environment = { ...lambdaEntry.environment, ...resolvedMap[name] };
+      lambdaEntry.environment = { ...service.provider.environment, ...lambdaEntry.environment, ...resolvedMap[name] };
 
       // Now lets check if this is a local invoke
       if (this.isInvokeLocal(name)) {

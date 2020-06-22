@@ -35,7 +35,7 @@ const ProjectStore = BaseStore.named('ProjectStore')
       async doLoad() {
         const parent = getParent(self, 2);
         const rawProject = await getProject(self.projectId);
-        parent.addProject(rawProject);
+        rawProject.map(item => parent.addProject(item));
       },
 
       cleanup: () => {

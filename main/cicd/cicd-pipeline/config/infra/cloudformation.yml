@@ -408,6 +408,8 @@ Resources:
         Type: LINUX_CONTAINER
         Image: aws/codebuild/amazonlinux2-x86_64-standard:2.0
         EnvironmentVariables:
+          - Name: DEPLOYMENT_BUCKET
+            Value: ${self:provider.deploymentBucket}
           - Name: ENV_NAME
             Value: ${self:custom.settings.stgEnvName}
       ServiceRole: !GetAtt AppDeployerRole.Arn
@@ -433,6 +435,8 @@ Resources:
         Type: LINUX_CONTAINER
         Image: aws/codebuild/amazonlinux2-x86_64-standard:2.0
         EnvironmentVariables:
+          - Name: DEPLOYMENT_BUCKET
+            Value: ${self:provider.deploymentBucket}
           - Name: ENV_NAME
             Value: ${self:custom.settings.envName}
       ServiceRole: !GetAtt AppDeployerRole.Arn
@@ -458,6 +462,8 @@ Resources:
         Type: LINUX_CONTAINER
         Image: aws/codebuild/amazonlinux2-x86_64-standard:2.0
         EnvironmentVariables:
+          - Name: DEPLOYMENT_BUCKET
+            Value: ${self:provider.deploymentBucket}
           - Name: ENV_NAME
             Value: ${self:custom.settings.stgEnvName}
       ServiceRole: !GetAtt AppDeployerRole.Arn
@@ -483,6 +489,8 @@ Resources:
         Type: LINUX_CONTAINER
         Image: aws/codebuild/amazonlinux2-x86_64-standard:2.0
         EnvironmentVariables:
+          - Name: DEPLOYMENT_BUCKET
+            Value: ${self:provider.deploymentBucket}
           - Name: ENV_NAME
             Value: ${self:custom.settings.envName}
       ServiceRole: !GetAtt AppDeployerRole.Arn

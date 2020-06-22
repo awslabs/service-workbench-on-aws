@@ -13,6 +13,8 @@
  *  permissions and limitations under the License.
  */
 
+import * as helloStore from '../models/hello/HelloStore';
+
 /**
  * Registers your app context items to the given appContext.
  *
@@ -37,7 +39,8 @@ function registerAppContextItems(appContext) {
   //      delete appContext.itemYouWantToRemoveFromContext; OR
   //      appContext.itemYouWantToRemoveFromContext = undefined;
   //
-  // TODO: Register additional custom context items (such as your custom MobX stores) here
+  // Register additional custom context items (such as your custom MobX stores) here
+  helloStore.registerContextItems(appContext);
 }
 
 const plugin = {

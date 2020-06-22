@@ -203,10 +203,19 @@ class UserService extends Service {
     return result;
   }
 
-  async validateUsers(users) {
+  async ensureActiveUsers(users) {
     if (!Array.isArray(users)) {
       throw this.boom.badRequest(`invalid users type`, true);
     }
+
+    if (_.isEmpty(users)) {
+      return;
+    }
+
+    // TODO: validate schema
+    // const [validationService] = await this.service(['jsonSchemaValidationService']);
+    // const schema = await this.getUpdateUserJsonSchema();
+    // users.forEach(user => validationService.ensureValid(user, schema));
 
     // ensure there are no duplicates
     const distinctUsers = new Set(users.map(u => `${u.username}||||${u.ns}`));

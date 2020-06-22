@@ -16,10 +16,10 @@ init_package_manager
 #  Displays human friendly summary message containing information required to configure Relying Party Trust in ADFS
 ##
 function get_rp_info() {
-  local solution_name="$(cat $CONFIG_DIR/settings/$STAGE.yml | grep 'solutionName:' --ignore-case | sed 's/ //g' | cut -d':' -f2)"
-  local aws_region="$(cat $CONFIG_DIR/settings/$STAGE.yml | grep 'awsRegion:' --ignore-case | sed 's/ //g' | cut -d':' -f2)"
+  local solution_name="$(cat $CONFIG_DIR/settings/$STAGE.yml | grep 'solutionName:' --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
+  local aws_region="$(cat $CONFIG_DIR/settings/$STAGE.yml | grep 'awsRegion:' --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
   local userpool_name="${STAGE}-${solution_name}-userPool"
-  local aws_profile="$(cat $CONFIG_DIR/settings/$STAGE.yml | grep -w 'awsProfile:' --ignore-case | sed 's/ //g' | cut -d':' -f2)"
+  local aws_profile="$(cat $CONFIG_DIR/settings/$STAGE.yml | grep -w 'awsProfile:' --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
   local aws_profile_cli_param=""
   if [ $aws_profile ]; then
     aws_profile_cli_param="--profile $aws_profile"

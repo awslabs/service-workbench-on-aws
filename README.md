@@ -2,7 +2,7 @@
 
 A platform that provides researchers with one-click access to collaborative workspace environments operating across teams, universities, and datasets while enabling university IT stakeholders to manage, monitor, and control spending, apply security best practices, and comply with corporate governance.
 
-Platform provides one-click option to admins for easier creation (vending) of new AWS accounts specific to researchers' teams for easier governance.  
+Platform provides one-click option to admins for easier creation (vending) of new AWS accounts specific to researchers' teams for easier governance.
 
 For more information about various AWS accounts see [aws-accounts-readme.md](main/documentation/aws-accounts-readme.md).
 
@@ -33,15 +33,20 @@ Before you can build this project, you need to install [pnpm](https://pnpm.js.or
 $ npm install -g pnpm
 ```
 
-To create the initial settings files, take a look at the example.yaml settings file in main/config/example.yaml and create your own copy.
+To create the initial settings files, take a look at the example.yml settings file in main/config/settings/example.yml and create your own copy.
 The stage is either 'example' or your username. This method should be used only for the very first time you install this solution.
 In the rest of this README, \$STAGE is used to designate the stage.
 
-Now, let's perform an initial deployment:
+Now, let's perform an initial deployment. Note that when invoked without parameters, this will assume a deployment stage of \$USER, which is the logged-in user name on Mac and Linux systems.
 
 ```bash
 $ scripts/environment-deploy.sh
 ```
+
+You can override the default stage name of \$USER if you prefer. For example, if you want your stage name to be `qa`, then:
+
+1. create main/config/settings/qa.yml
+2. execute `scripts/environment-deploy.sh qa`
 
 Following an initial successful deployment, you can subsequently deploy updates to the infrastructure, backend, and post-deployment components as follows:
 
@@ -92,6 +97,18 @@ $ cd main/solution/ui
 $ pnpx sls start-ui -s $STAGE
 $ cd -
 ```
+
+---
+
+## Code Customization
+
+Start by my looking at these files
+
+- main/packages/services/lib/hello/hello-service.js
+- main/packages/controllers/lib/hello-controller.js
+- main/solution/ui/src/parts/hello/HelloPage.js
+
+They are meant to provide a sample service, a sample controller and a sample UI page.
 
 ---
 
