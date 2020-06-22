@@ -86,6 +86,10 @@ importers:
       '@babel/preset-env': 7.9.5_@babel+core@7.9.0
       '@babel/preset-react': 7.9.4_@babel+core@7.9.0
       babel-eslint: 10.1.0_eslint@6.8.0
+      babel-jest: 24.9.0_@babel+core@7.9.0
+      babel-loader: 8.1.0_@babel+core@7.9.0+webpack@4.41.2
+      enzyme: 3.11.0
+      enzyme-adapter-react-16: 1.15.2_react-dom@16.13.1+react@16.13.1
       eslint: 6.8.0
       eslint-config-airbnb: 18.1.0_7221e9efc3e1df952f9031babfc371af
       eslint-config-prettier: 6.10.1_eslint@6.8.0
@@ -116,10 +120,14 @@ importers:
       '@babel/preset-react': ^7.8.3
       aws-sdk: ^2.647.0
       babel-eslint: ^10.0.3
+      babel-jest: ^24.9.0
+      babel-loader: ^8.0.6
       chart.js: ^2.9.3
       classnames: ^2.2.6
       crypto-browserify: ^3.12.0
       csvtojson: ^2.0.10
+      enzyme: ^3.11.0
+      enzyme-adapter-react-16: ^1.15.2
       eslint: ^6.8.0
       eslint-config-airbnb: ^18.0.1
       eslint-config-prettier: ^6.10.0
@@ -4670,6 +4678,24 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-quoaXsZ9/BLNae5yiNoUz+Nhkwz83GhWwtYFglcjEQB2NDHCIpApbqXxIFnm4Pq/Nvhrsq5sYJFyohrrxnTGAA==
+  /airbnb-prop-types/2.15.0_react@16.13.1:
+    dependencies:
+      array.prototype.find: 2.1.1
+      function.prototype.name: 1.1.2
+      has: 1.0.3
+      is-regex: 1.0.5
+      object-is: 1.0.2
+      object.assign: 4.1.0
+      object.entries: 1.1.1
+      prop-types: 15.7.2
+      prop-types-exact: 1.2.0
+      react: 16.13.1
+      react-is: 16.13.1
+    dev: true
+    peerDependencies:
+      react: ^0.14 || ^15.0.0 || ^16.0.0-alpha
+    resolution:
+      integrity: sha512-jUh2/hfKsRjNFC4XONQrxo/n/3GG4Tn6Hl0WlFQN5PY9OMC9loSCoAYKnZsWaP8wEfd5xcrPloK0Zg6iS1xwVA==
   /ajv-errors/1.0.1_ajv@6.12.0:
     dependencies:
       ajv: 6.12.0
@@ -4906,6 +4932,10 @@ packages:
     dev: true
     resolution:
       integrity: sha1-jCpe8kcv2ep0KwTHenUJO6J1fJM=
+  /array-filter/1.0.0:
+    dev: true
+    resolution:
+      integrity: sha1-uveeYubvTCpMC4MSMtr/7CUfnYM=
   /array-flatten/1.1.1:
     resolution:
       integrity: sha1-ml9pkFGx5wczKPKgCJaLZOopVdI=
@@ -4949,6 +4979,13 @@ packages:
       node: '>=0.10.0'
     resolution:
       integrity: sha1-qJS3XUvE9s1nnvMkSp/Y9Gri1Cg=
+  /array.prototype.find/2.1.1:
+    dependencies:
+      define-properties: 1.1.3
+      es-abstract: 1.17.5
+    dev: true
+    resolution:
+      integrity: sha512-mi+MYNJYLTx2eNYy+Yh6raoQacCsNeeMUaspFPh9Y141lFSsWxxB8V9mM2ye+eqiRs917J6/pJ4M9ZPzenWckA==
   /array.prototype.flat/1.2.3:
     dependencies:
       define-properties: 1.1.3
@@ -5185,6 +5222,23 @@ packages:
       '@babel/core': ^7.0.0
     resolution:
       integrity: sha512-qiXeX1Cmw4JZ5yQ4H57WpkO0MZ61Qj+YnsVUwAMnDV5ls+yHon11XjarDdgP7H8lTmiEi6biiZA8y3Tmvx6pCg==
+  /babel-loader/8.1.0_@babel+core@7.9.0+webpack@4.41.2:
+    dependencies:
+      '@babel/core': 7.9.0
+      find-cache-dir: 2.1.0
+      loader-utils: 1.4.0
+      mkdirp: 0.5.5
+      pify: 4.0.1
+      schema-utils: 2.6.5
+      webpack: 4.41.2_webpack@4.41.2
+    dev: true
+    engines:
+      node: '>= 6.9'
+    peerDependencies:
+      '@babel/core': ^7.0.0
+      webpack: '>=2'
+    resolution:
+      integrity: sha512-7q7nC1tYOrqvUrN3LQK4GwSk/TQorZSOlO9C+RZDZpODgyN4ZlCqE5q9cDsyWOliN+aU9B4JX01xK9eJXowJLw==
   /babel-loader/8.1.0_@babel+core@7.9.0+webpack@4.42.0:
     dependencies:
       '@babel/core': 7.9.0
@@ -6036,6 +6090,19 @@ packages:
     dev: false
     resolution:
       integrity: sha512-haqOg1+Yebys/Ts/9bLo/BqUcONQOdr/hoEr2LLTRl6C5LXctUdHxsCYfvQVg5JIxITrfCNUDr4ntqmQk9+/0w==
+  /cheerio/1.0.0-rc.3:
+    dependencies:
+      css-select: 1.2.0
+      dom-serializer: 0.1.1
+      entities: 1.1.2
+      htmlparser2: 3.10.1
+      lodash: 4.17.15
+      parse5: 3.0.3
+    dev: true
+    engines:
+      node: '>= 0.6'
+    resolution:
+      integrity: sha512-0td5ijfUPuubwLUu0OBoe98gZj8C/AA+RW3v67GPlGOrvxWjZmBXiBCRU+I8VEiNyJzjth40POfHiz2RB3gImA==
   /child-process-ext/2.1.1:
     dependencies:
       cross-spawn: 6.0.5
@@ -7529,6 +7596,10 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-WkrWp9GR4KXfKGYzOLmTuGVi1UWFfws377n9cc55/tb6DuqyF6pcQ5AbiHEshaDpY9v6oaSr2XCDidGmMwdzIA==
+  /discontinuous-range/1.0.0:
+    dev: true
+    resolution:
+      integrity: sha1-44Mx8IRLukm5qctxx3FYWqsbxlo=
   /dns-equal/1.0.0:
     dev: true
     resolution:
@@ -7584,6 +7655,13 @@ packages:
     dev: false
     resolution:
       integrity: sha512-TjMyeVUvNEnOnhzs6uAn9Ya47GmMo3qq7m+Lr/3ON0Rs5kHvb8I+SQYjLUSYn7qhEm0QjW0yrBkvz9yOrwwz1A==
+  /dom-serializer/0.1.1:
+    dependencies:
+      domelementtype: 1.3.1
+      entities: 1.1.2
+    dev: true
+    resolution:
+      integrity: sha512-l0IU0pPzLWSHBcieZbpOKgkIn3ts3vAh7ZuFyXNwJxJXk/c4Gwj9xaTJwIDVQCXawWD0qb3IzMGH5rglQaO0XA==
   /dom-serializer/0.2.2:
     dependencies:
       domelementtype: 2.0.1
@@ -7861,6 +7939,74 @@ packages:
     dev: true
     resolution:
       integrity: sha512-bHz59NlBbtS0NhftmR8+ExBEekE7br0e01jw+kk0NDro7TtZzBYZ5ScGPs3OmwnpyfHTHOtr1Y6uedCdrIldtg==
+  /enzyme-adapter-react-16/1.15.2_react-dom@16.13.1+react@16.13.1:
+    dependencies:
+      enzyme-adapter-utils: 1.13.0_react@16.13.1
+      enzyme-shallow-equal: 1.0.1
+      has: 1.0.3
+      object.assign: 4.1.0
+      object.values: 1.1.1
+      prop-types: 15.7.2
+      react: 16.13.1
+      react-dom: 16.13.1_react@16.13.1
+      react-is: 16.13.1
+      react-test-renderer: 16.13.1_react@16.13.1
+      semver: 5.7.1
+    dev: true
+    peerDependencies:
+      enzyme: ^3.0.0
+      react: ^16.0.0-0
+      react-dom: ^16.0.0-0
+    resolution:
+      integrity: sha512-SkvDrb8xU3lSxID8Qic9rB8pvevDbLybxPK6D/vW7PrT0s2Cl/zJYuXvsd1EBTz0q4o3iqG3FJhpYz3nUNpM2Q==
+  /enzyme-adapter-utils/1.13.0_react@16.13.1:
+    dependencies:
+      airbnb-prop-types: 2.15.0_react@16.13.1
+      function.prototype.name: 1.1.2
+      object.assign: 4.1.0
+      object.fromentries: 2.0.2
+      prop-types: 15.7.2
+      react: 16.13.1
+      semver: 5.7.1
+    dev: true
+    peerDependencies:
+      react: 0.13.x || 0.14.x || ^15.0.0-0 || ^16.0.0-0
+    resolution:
+      integrity: sha512-YuEtfQp76Lj5TG1NvtP2eGJnFKogk/zT70fyYHXK2j3v6CtuHqc8YmgH/vaiBfL8K1SgVVbQXtTcgQZFwzTVyQ==
+  /enzyme-shallow-equal/1.0.1:
+    dependencies:
+      has: 1.0.3
+      object-is: 1.0.2
+    dev: true
+    resolution:
+      integrity: sha512-hGA3i1so8OrYOZSM9whlkNmVHOicJpsjgTzC+wn2JMJXhq1oO4kA4bJ5MsfzSIcC71aLDKzJ6gZpIxrqt3QTAQ==
+  /enzyme/3.11.0:
+    dependencies:
+      array.prototype.flat: 1.2.3
+      cheerio: 1.0.0-rc.3
+      enzyme-shallow-equal: 1.0.1
+      function.prototype.name: 1.1.2
+      has: 1.0.3
+      html-element-map: 1.2.0
+      is-boolean-object: 1.0.1
+      is-callable: 1.1.5
+      is-number-object: 1.0.4
+      is-regex: 1.0.5
+      is-string: 1.0.5
+      is-subset: 0.1.1
+      lodash.escape: 4.0.1
+      lodash.isequal: 4.5.0
+      object-inspect: 1.7.0
+      object-is: 1.0.2
+      object.assign: 4.1.0
+      object.entries: 1.1.1
+      object.values: 1.1.1
+      raf: 3.4.1
+      rst-selector-parser: 2.2.3
+      string.prototype.trim: 1.2.1
+    dev: true
+    resolution:
+      integrity: sha512-Dw8/Gs4vRjxY6/6i9wU0V+utmQO9kvh9XLnz3LIudviOnVYDEe2ec+0k+NQoMamn1VrjKgCUOWj5jG/5M5M0Qw==
   /errno/0.1.7:
     dependencies:
       prr: 1.0.1
@@ -9326,6 +9472,7 @@ packages:
     dependencies:
       bindings: 1.5.0
       nan: 2.14.0
+    deprecated: fsevents 1 will break on node v14+ and could be using insecure binaries. Upgrade to fsevents 2.
     dev: true
     engines:
       node: '>= 4.0'
@@ -9347,10 +9494,24 @@ packages:
   /function-bind/1.1.1:
     resolution:
       integrity: sha512-yIovAzMX49sF8Yl58fSCWJ5svSLuaibPxXQJFLmBObTuCr0Mf1KiPopGM9NiFjiYBCbfaa2Fh6breQ6ANVTI0A==
+  /function.prototype.name/1.1.2:
+    dependencies:
+      define-properties: 1.1.3
+      es-abstract: 1.17.5
+      functions-have-names: 1.2.1
+    dev: true
+    engines:
+      node: '>= 0.4'
+    resolution:
+      integrity: sha512-C8A+LlHBJjB2AdcRPorc5JvJ5VUoWlXdEHLOJdCI7kjHEtGTpHQUiqMvCIKUwIsGwZX2jZJy761AXsn356bJQg==
   /functional-red-black-tree/1.0.1:
     dev: true
     resolution:
       integrity: sha1-GwqzvVU7Kg1jmdKcDj6gslIHgyc=
+  /functions-have-names/1.2.1:
+    dev: true
+    resolution:
+      integrity: sha512-j48B/ZI7VKs3sgeI2cZp7WXWmZXu7Iq5pl5/vptV5N2mq+DGFuS/ulaDjtaoLpYzuD6u8UgrUKHfgo7fDTSiBA==
   /generate-password/1.5.1:
     dev: false
     resolution:
@@ -9932,6 +10093,12 @@ packages:
     dev: true
     resolution:
       integrity: sha512-P+M65QY2JQ5Y0G9KKdlDpo0zK+/OHptU5AaBwUfAIDJZk1MYf32Frm84EcOytfJE0t5JvkAnKlmjsXDnWzCJmQ==
+  /html-element-map/1.2.0:
+    dependencies:
+      array-filter: 1.0.0
+    dev: true
+    resolution:
+      integrity: sha512-0uXq8HsuG1v2TmQ8QkIhzbrqeskE4kn52Q18QJ9iAA/SnHoEKXWiUxHQtclRsCFWEUD2So34X+0+pZZu862nnw==
   /html-encoding-sniffer/1.0.2:
     dependencies:
       whatwg-encoding: 1.0.5
@@ -10473,6 +10640,12 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-ZMERYes6pDydyuGidse7OsHxtbI7WVeUEozgR/g7rd0xUimYNlvZRE/K2MgZTjWy725IfelLeVcEM97mmtRGXw==
+  /is-boolean-object/1.0.1:
+    dev: true
+    engines:
+      node: '>= 0.4'
+    resolution:
+      integrity: sha512-TqZuVwa/sppcrhUCAYkGBk7w0yxfQQnxq28fjkO53tnK9FQXmdwz2JS5+GjsWQ6RByES1K40nI+yDic5c9/aAQ==
   /is-buffer/1.1.6:
     resolution:
       integrity: sha512-NcdALwpXkTm5Zvvbk7owOUSvVvBKDgKP5/ewfXEznmQFfs4ZRmanOeKBTjRVjka3QFoN6XJ+9F3USqfHqTaU5w==
@@ -10681,6 +10854,12 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-wsigDr1Kkschp2opC4G3yA6r9EgVA6NjRpWzIi9axXqeIaAATPRJc4uLujXe3Nd9uO8KoDyA4MD6aZSeXTADhA==
+  /is-number-object/1.0.4:
+    dev: true
+    engines:
+      node: '>= 0.4'
+    resolution:
+      integrity: sha512-zohwelOAur+5uXtk8O3GPQ1eAcu4ZX3UwxQhUlfFFMNpUd83gXgjbhJh6HmB6LUNV/ieOLQuDwJO3dWJosUeMw==
   /is-number/3.0.0:
     dependencies:
       kind-of: 3.2.2
@@ -10820,6 +10999,10 @@ packages:
       node: '>= 0.4'
     resolution:
       integrity: sha512-buY6VNRjhQMiF1qWDouloZlQbRhDPCebwxSjxMjxgemYT46YMd2NR0/H+fBhEfWX4A/w9TBJ+ol+okqJKFE6vQ==
+  /is-subset/0.1.1:
+    dev: true
+    resolution:
+      integrity: sha1-ilkRfZMt4d4A8kX83TnOQ/HpOaY=
   /is-svg/3.0.0:
     dependencies:
       html-comment-regex: 1.1.2
@@ -12409,12 +12592,24 @@ packages:
     dev: true
     resolution:
       integrity: sha1-DM8tiRZq8Ds2Y8eWU4t1rG4RTZ0=
+  /lodash.escape/4.0.1:
+    dev: true
+    resolution:
+      integrity: sha1-yQRGkMIeBClL6qUXcS/e0fqI3pg=
+  /lodash.flattendeep/4.4.0:
+    dev: true
+    resolution:
+      integrity: sha1-+wMJF/hqMTTlvJvsDWngAT3f7bI=
   /lodash.includes/4.3.0:
     resolution:
       integrity: sha1-YLuYqHy5I8aMoeUTJUgzFISfVT8=
   /lodash.isboolean/3.0.3:
     resolution:
       integrity: sha1-bC4XHbKiV82WgC/UOwGyDV9YcPY=
+  /lodash.isequal/4.5.0:
+    dev: true
+    resolution:
+      integrity: sha1-QVxEePK8wwEgwizhDtMib30+GOA=
   /lodash.isinteger/4.0.4:
     resolution:
       integrity: sha1-YZwK89A/iwTDH1iChAt3sRzWg0M=
@@ -12990,6 +13185,10 @@ packages:
   /moment/2.24.0:
     resolution:
       integrity: sha512-bV7f+6l2QigeBBZSM/6yTNq4P2fNpSWj/0e7jQcy87A8e7o2nAfP/34/2ky5Vw4B9S446EtIhodAzkFCcR4dQg==
+  /moo/0.5.1:
+    dev: true
+    resolution:
+      integrity: sha512-I1mnb5xn4fO80BH9BLcF0yLypy2UKl+Cb01Fu0hJRkJjlCRtxZMWkTdAtDd5ZqCOxtCkhmRwyI57vWT+1iZ67w==
   /move-concurrently/1.0.1:
     dependencies:
       aproba: 1.2.0
@@ -13107,11 +13306,17 @@ packages:
     dev: true
     resolution:
       integrity: sha512-gxh5Sgait8HyclaulfhgetHQGyhFm00ZQqISIfqtwFVnyWJ20rk+55SUamo9n3KhM6Vk63gemKPxIDYiSV/xZw==
-  /ncp/1.0.1:
+  /nearley/2.19.4:
+    dependencies:
+      commander: 2.20.3
+      moo: 0.5.1
+      railroad-diagrams: 1.0.0
+      randexp: 0.4.6
+      semver: 5.7.1
     dev: true
     hasBin: true
     resolution:
-      integrity: sha1-0VNn5cuHQyuhF9K/gP30Wuz7QkY=
+      integrity: sha512-oqj3m4oqwKsN77pETa9IPvxHHHLW68KrDc2KYoWMUOhDlrNUo7finubwffQMBRnwNCOXc4kRxCZO0Rvx4L6Zrw==
   /negotiator/0.6.2:
     engines:
       node: '>= 0.6'
@@ -13840,6 +14045,12 @@ packages:
       node: '>=0.10.0'
     resolution:
       integrity: sha1-bVuTSkVpk7I9N/QKOC1vFmao5cY=
+  /parse5/3.0.3:
+    dependencies:
+      '@types/node': 13.11.1
+    dev: true
+    resolution:
+      integrity: sha512-rgO9Zg5LLLkfJF9E6CCmXlSE4UVceloys8JrFqCcHloC3usd/kJCyPDwH2SOlzix2j3xaP9sUX3e8+kvkuleAA==
   /parse5/4.0.0:
     dev: true
     resolution:
@@ -15047,6 +15258,14 @@ packages:
       node: '>= 6'
     resolution:
       integrity: sha512-Q06uKs2CkNYVID0VqwfAl9mipo99zkBv/n2JtWY89Yxa3ZabWSrs0e2KTudKVa3peLUvYXMefDqIleLPVUBZMA==
+  /prop-types-exact/1.2.0:
+    dependencies:
+      has: 1.0.3
+      object.assign: 4.1.0
+      reflect.ownkeys: 0.2.0
+    dev: true
+    resolution:
+      integrity: sha512-K+Tk3Kd9V0odiXFP9fwDHUYRyvK3Nun3GVyPapSIs5OBkITAm15W0CPFD/YKTkMUAbc0b9CUwRQp2ybiBIq+eA==
   /prop-types/15.7.2:
     dependencies:
       loose-envify: 1.4.0
@@ -15194,6 +15413,10 @@ packages:
     dev: true
     resolution:
       integrity: sha512-Sq4CW4QhwOHE8ucn6J34MqtZCeWFP2aQSmrlroYgqAV1PjStIhJXxYuTgUIfkEk7zTLjmIjLmU5q+fbD1NnOJA==
+  /railroad-diagrams/1.0.0:
+    dev: true
+    resolution:
+      integrity: sha1-635iZ1SN3t+4mcG5Dlc3RVnN234=
   /ramda/0.25.0:
     dev: true
     resolution:
@@ -15202,6 +15425,15 @@ packages:
     dev: true
     resolution:
       integrity: sha512-hLWjpy7EnsDBb0p+Z3B7rPi3GDeRG5ZtiI33kJhTt+ORCd38AbAIjB/9zRIUoeTbE/AVX5ZkU7m6bznsvrf8eQ==
+  /randexp/0.4.6:
+    dependencies:
+      discontinuous-range: 1.0.0
+      ret: 0.1.15
+    dev: true
+    engines:
+      node: '>=0.12'
+    resolution:
+      integrity: sha512-80WNmd9DA0tmZrw9qQa62GPPWfuXJknrmVmLcxvq4uZBdYqb1wYoKTmnlGUchvVWe0XiLupYkBoXVOxz3C8DYQ==
   /randombytes/2.1.0:
     dependencies:
       safe-buffer: 5.2.0
@@ -15356,7 +15588,6 @@ packages:
       prop-types: 15.7.2
       react: 16.13.1
       scheduler: 0.19.1
-    dev: false
     peerDependencies:
       react: ^16.13.1
     resolution:
@@ -15626,6 +15857,18 @@ packages:
       react-dom: ^16.x.x
     resolution:
       integrity: sha512-LM+AS9v//7Y7lAlgTWW/cW6Sn5VOb3EsSkKQfQTzOW8FngB1FUskLLNEVkAYsTX9LjOWR3QlGjykJqCE6eXT/g==
+  /react-test-renderer/16.13.1_react@16.13.1:
+    dependencies:
+      object-assign: 4.1.1
+      prop-types: 15.7.2
+      react: 16.13.1
+      react-is: 16.13.1
+      scheduler: 0.19.1
+    dev: true
+    peerDependencies:
+      react: ^16.13.1
+    resolution:
+      integrity: sha512-Sn2VRyOK2YJJldOqoh8Tn/lWQ+ZiKhyZTPtaO0Q6yNj+QDbmRkVFap6pZPy3YQk8DScRDfyqm/KxKYP9gCMRiQ==
   /react-timeago/4.4.0_react@16.13.1:
     dependencies:
       react: 16.13.1
@@ -15653,7 +15896,6 @@ packages:
       loose-envify: 1.4.0
       object-assign: 4.1.1
       prop-types: 15.7.2
-    dev: false
     engines:
       node: '>=0.10.0'
     resolution:
@@ -15784,6 +16026,10 @@ packages:
     dev: false
     resolution:
       integrity: sha512-VSz1uMAH24DM6MF72vcojpYPtrTUu3ByVWfPL1nPfVRb5mZVTve5GnNCUV53QM/BZ66xfWrm0CTWoM+Xlz8V1w==
+  /reflect.ownkeys/0.2.0:
+    dev: true
+    resolution:
+      integrity: sha1-dJrO7H8/34tj+SegSAnpDFwLNGA=
   /refractor/2.10.1:
     dependencies:
       hastscript: 5.1.2
@@ -16223,6 +16469,13 @@ packages:
       inherits: 2.0.4
     resolution:
       integrity: sha512-ii4iagi25WusVoiC4B4lq7pbXfAp3D9v5CwfkY33vffw2+pkDjY1D8GaN7spsxvCSx8dkPqOZCEZyfxcmJG2IA==
+  /rst-selector-parser/2.2.3:
+    dependencies:
+      lodash.flattendeep: 4.4.0
+      nearley: 2.19.4
+    dev: true
+    resolution:
+      integrity: sha1-gbIw6i/MYGbInjRy3nlChdmwPZE=
   /rsvp/4.8.5:
     dev: true
     engines:
@@ -16351,7 +16604,6 @@ packages:
     dependencies:
       loose-envify: 1.4.0
       object-assign: 4.1.1
-    dev: false
     resolution:
       integrity: sha512-n/zwRWRYSUj0/3g/otKDRPMh6qv2SYMWNq85IEa8iZyAv8od9zDYpGSnpBEjNgcMNq6Scbu5KfIPxNF72R/2EA==
   /schema-utils/1.0.0:
@@ -17229,6 +17481,16 @@ packages:
     dev: true
     resolution:
       integrity: sha512-N/jp6O5fMf9os0JU3E72Qhf590RSRZU/ungsL/qJUYVTNv7hTG0P/dbPjxINVN9jpscu3nzYwKESU3P3RY5tOg==
+  /string.prototype.trim/1.2.1:
+    dependencies:
+      define-properties: 1.1.3
+      es-abstract: 1.17.5
+      function-bind: 1.1.1
+    dev: true
+    engines:
+      node: '>= 0.4'
+    resolution:
+      integrity: sha512-MjGFEeqixw47dAMFMtgUro/I0+wNqZB5GKXGt1fFr24u3TzDXCPu7J9Buppzoe3r/LqkSDLDDJzE15RGWDGAVw==
   /string.prototype.trimend/1.0.0:
     dependencies:
       define-properties: 1.1.3

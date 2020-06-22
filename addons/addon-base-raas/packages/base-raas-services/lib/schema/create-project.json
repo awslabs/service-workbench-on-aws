@@ -14,7 +14,8 @@
       "maxLength": 3000
     },
     "indexId": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
     "projectAdmins": {
       "type": "array",
@@ -37,5 +38,8 @@
       "default": []
     }
   },
-  "required": ["id", "indexId"]
+  "required": [
+    "id",
+    "indexId"
+  ]
 }
