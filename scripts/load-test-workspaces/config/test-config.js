@@ -5,13 +5,13 @@
 // Fastest way to retrieve its value is to perform the manipulation on the application itself and get it from your WebBrowser's request
 
 const API_TOKEN = process.env.API_TOKEN;
-const API_HOSTNAME = '3xua3srr84.execute-api.us-east-1.amazonaws.com'; // 'XXXXXXXXXX.execute-api.<region>.amazonaws.com'
-const REGION_NAME = 'us-east-1';
-const REGION_SHORT_NAME = 'va'; // find the exhaustive list at ../../main/config/settings/.defaults.yml
-const STAGE_NAME = 'ludodev'; // 'galileo-dev'
+const API_HOSTNAME = ''; // 'XXXXXXXXXX.execute-api.<region>.amazonaws.com'
+const REGION_NAME = '';
+const REGION_SHORT_NAME = ''; // find the exhaustive list at ../../main/config/settings/.defaults.yml
+const STAGE_NAME = ''; // 'galileo-dev'
 const SOLUTION_NAME = 'galileo';
-const TEST_NAME_PREFIX = 'ScaleTest'; // 'SCALABILITY-TESTS' (Case sensitive + does not support whitespaces)
-const PROJECT_NAME = 'scalability-tests'; // 'SCALABILITY-TESTS-PROJECT' (Case sensitive + does not support whitespaces)
+const TEST_NAME_PREFIX = ''; // 'SCALABILITY-TESTS' (Case sensitive + does not support whitespaces)
+const PROJECT_NAME = ''; // 'SCALABILITY-TESTS-PROJECT' (Case sensitive + does not support whitespaces)
 
 module.exports = {
     API_ROOT_END_POINT: `/${STAGE_NAME}/api`,
