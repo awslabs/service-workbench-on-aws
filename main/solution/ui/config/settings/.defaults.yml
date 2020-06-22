@@ -1,0 +1,27 @@
+# The Gateway API endpoint
+apiUrl: ${cf:${self:custom.settings.backendStackName}.ServiceEndpoint}
+
+# The stack name of the 'backend' serverless service
+backendStackName: ${self:custom.settings.namespace}-backend
+
+# The stack name of the 'cloudfront' serverless service
+infrastructureStackName: ${self:custom.settings.namespace}-infrastructure
+
+# The S3 bucket name used to host the static website
+websiteBucketName: ${cf:${self:custom.settings.infrastructureStackName}.WebsiteBucket}
+
+# The id of the CloudFront distribution for the static website
+websiteCloudFrontId: ${cf:${self:custom.settings.infrastructureStackName}.CloudFrontId}
+
+# URL of the website
+websiteUrl: ${cf:${self:custom.settings.infrastructureStackName}.WebsiteUrl}
+
+# Branding
+brandPageTitle: 'Research as a Service'
+brandMainTitle: 'Research as a Service (${self:custom.settings.envName}/${self:custom.settings.awsRegion})'
+brandLoginTitle: 'RaaS'
+brandLoginSubtitle: 'Research as a Service Portal (${self:custom.settings.envName}/${self:custom.settings.awsRegion})'
+
+# After how many minutes should the auto logout dialog be displayed? once displayed the user has 1 minute to dismiss
+# the dialog, otherwise they will be automatically logged out
+autoLogoutTimeoutInMinutes: 5

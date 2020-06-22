@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "accountName": {
+      "type": "string"
+    },
+    "accountEmail": {
+      "type": "string"
+    },
+    "masterRoleArn": {
+      "type": "string"
+    },
+    "externalId": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "required": ["accountName", "accountEmail", "masterRoleArn", "externalId"]
+}

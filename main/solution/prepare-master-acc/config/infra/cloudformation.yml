@@ -1,0 +1,38 @@
+Resources:
+  MasterRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: arn:aws:iam::${self:custom.settings.mainAccountId}:root
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                sts:ExternalId: ${self:custom.settings.externalId}
+      Policies:
+        - PolicyName: AllowOrganizationAccessInMasterAcc
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: OrgAccess
+                Effect: Allow
+                Action:
+                  - organizations:describeAccount
+                  - organizations:describeCreateAccountStatus
+                  - organizations:createAccount
+                Resource: "*"
+        - PolicyName: AllowAssumeRoleInMemberAcc
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: AssumeMemberAccOrgRole
+                Effect: Allow
+                Action:
+                  - sts:AssumeRole
+                Resource: "arn:aws:iam::*:role/OrganizationAccountAccessRole"
+Outputs:
+  MasterRoleArn:
+    Value: !GetAtt MasterRole.Arn

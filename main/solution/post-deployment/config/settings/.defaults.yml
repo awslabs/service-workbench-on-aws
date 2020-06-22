@@ -1,0 +1,145 @@
+# Options used when issuing JWT token such as which algorithm to use for hashing and how long to keep the tokens alive etc
+jwtOptions: '{"algorithm":"HS256","expiresIn":"2 days"}'
+
+# Name of the parameter in the parameter store to save the generated password of the root user
+rootUserPasswordParamName: /${self:custom.settings.envName}/${self:custom.settings.solutionName}/user/root/password
+
+# Name of the parameter in parameter store containing secret key for JWT. This key is used for signing and validating JWT tokens
+# issued by data lake authentication providers
+paramStoreJwtSecret: '/${self:custom.settings.paramStoreRoot}/jwt/secret'
+
+# The stack name of the 'infrastructure' serverless service
+infrastructureStackName: ${self:custom.settings.namespace}-infrastructure
+
+# The URL of the website as defined by the infrastructure stack
+# Used when provisioning a Cognito user pool so that Cognito can direct a user back to the site after auth
+websiteUrl: ${cf:${self:custom.settings.infrastructureStackName}.WebsiteUrl}
+
+# If a Cognito user pool is setup for the solution, this setting indicates whether native
+# Cognito users should be used or if the Cognito user pool will only be used to federate to
+# other identity providers
+enableNativeUserPoolUsers: false
+
+# Title of the default (internal) authentication provider. This shows up in the login dropdown.
+defaultAuthNProviderTitle: 'Default Login'
+
+# Title of the Cognito authentication provider that federates with Active Directory identity provider.
+cognitoAuthNProviderTitle: 'Login using Active Directory'
+
+# The stack name of the 'backend' serverless service
+backendStackName: ${self:custom.settings.namespace}-backend
+
+# The name of the workflowLoopRunner lambda
+workflowLambdaName: ${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-workflowLoopRunner
+
+# The S3 bucket name to be used to the data
+dataBucketName: ${self:custom.settings.namespace}-data
+
+# The stack name of the 'edge-lambda' serverless service
+edgeLambdaStackName: ${self:custom.settings.namespace}-edgeLambda
+edgeLambdaArn: ${cf:${self:custom.settings.edgeLambdaStackName}.EdgeLambdaArn}
+cloudFrontId: ${cf:${self:custom.settings.infrastructureStackName}.CloudFrontId}
+
+# ================================ settings for Cognito with SAML2.0 Federation  ===========================================
+
+# Array of identity provider ids.
+# The usual practice is to keep this same as the domain name of the idp.
+# For example, when connecting with an IdP that has users "user1@domain1.com", "user2@domain1.com" etc then
+# the id should be set to "domain1.com"
+#
+# If you do not want to connect to Active Directory then leave this setting as empty array as follows.
+#
+# fedIdpIds: '[]'
+#
+fedIdpIds: '[]'
+
+# Array of identity provider names. This array should be in same order as the "fedIdpIds"
+# Some name for the IdPs. (such as 'com.ee', 'EEAD' etc)
+#
+# If you do not want to connect to Active Directory then leave this setting as empty array as follows.
+#
+# fedIdpNames: '[]'
+#
+fedIdpNames: '[]'
+
+# Array of identity provider display names. This array should be in same order as the "fedIdpIds"
+# Display name (such as 'Employee Login', 'AD Login' etc). This is not used in the system.
+# This can be used in UI to show login buttons that redirect users to IdP specific login pages.
+# Currently, even UI is not using this as it directs the user to Cognito hosted UI login page.
+#
+# If you do not want to connect to Active Directory then leave this setting as empty array as follows.
+#
+# fedIdpDisplayNames: '[]'
+#
+fedIdpDisplayNames: '[]'
+
+# Array of identity provider SAML metadata. This array should be in same order as the "fedIdpIds".
+# The array should contain either
+# 1. S3 or http(s) url pointing to the IdP metadata.
+#  If S3 URL then it must be accessible by the post-deployment lambda
+#   (i.e., the lambda must have getObject permission to read the specified metadata file location from S3)
+#   The GetObject permission is given by the "RolePostDeploymentLambda" in "post-deployment/config/infra/cloudformation.yml"
+#  If it's http(s) URL then it must be reachable over the public internet.
+# (TODO: Add support for metadata URLs accessible only in private network.)
+# OR
+# 2. the metadata content XML blob as string
+# The current implementation looks for the file in "solution/post-deployment/config/saml-metadata" directory and
+# uploads the file to the S3 directory (prefix) "${self:custom.settings.deploymentBucketName}/saml-metadata/".
+# The uploading of the file is done using serverless s3-sync plugin. See "post-deployment/serverless.yml"
+# file and search for "s3Sync" to see which files are uploaded to the "${self:custom.settings.deploymentBucketName}" S3
+# bucket.
+#
+# If you do not want to connect to Active Directory then leave this setting as empty array as follows.
+#
+# fedIdpMetadatas: '[]'
+fedIdpMetadatas: '[]'
+
+# ================================ DB Settings ===========================================
+
+# DynamoDB table name for the deployment store
+dbTableDeploymentStore: ${self:custom.settings.dbTablePrefix}-DbDeploymentStore
+
+# DynamoDB table name for supported authentication provider types
+dbTableAuthenticationProviderTypes: ${self:custom.settings.dbTablePrefix}-DbAuthenticationProviderTypes
+
+# DynamoDB table name for authentication provider configurations
+dbTableAuthenticationProviderConfigs: ${self:custom.settings.dbTablePrefix}-DbAuthenticationProviderConfigs
+
+# DynamoDB table name for users
+dbTableUsers: ${self:custom.settings.dbTablePrefix}-DbUsers
+
+# DynamoDB table name for passwords for the internal users
+# (applicable only to the users authenticated by internal authentication provider)
+dbTablePasswords: ${self:custom.settings.dbTablePrefix}-DbPasswords
+
+# DynamoDB table name for Step Templates
+dbTableStepTemplates: ${self:custom.settings.dbTablePrefix}-DbStepTemplates
+
+# DynamoDB table name for Workflow Templates
+dbTableWorkflowTemplates: ${self:custom.settings.dbTablePrefix}-DbWorkflowTemplates
+
+# DynamoDB table name for Workflows
+dbTableWorkflows: ${self:custom.settings.dbTablePrefix}-DbWorkflows
+
+# DynamoDB table name for WfAssignments
+dbTableWfAssignments: ${self:custom.settings.dbTablePrefix}-DbWfAssignments
+
+# DynamoDB table name for Workflow Templates Drafts
+dbTableWorkflowTemplateDrafts: ${self:custom.settings.dbTablePrefix}-DbWorkflowTemplateDrafts
+
+# DynamoDB table name for Workflow Drafts
+dbTableWorkflowDrafts: ${self:custom.settings.dbTablePrefix}-DbWorkflowDrafts
+
+# DynamoDB table name for UserRoles
+dbTableUserRoles: ${self:custom.settings.dbTablePrefix}-DbUserRoles
+# Settings Dynamo DB Insertion Point (do not change this text, it is being used by hygen cli)
+
+# ================================ Auth0 Settings ===========================================
+# Auth0 domain 
+paramStoreAuth0Domain: '/${self:custom.settings.paramStoreRoot}/auth0/domain'
+
+# Auth0 client id
+paramStoreAuth0ClientId: '/${self:custom.settings.paramStoreRoot}/auth0/client/id'
+
+# Auth0 client secret
+paramStoreAuth0ClientSecret: '/${self:custom.settings.paramStoreRoot}/auth0/client/secret'

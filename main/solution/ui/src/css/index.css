@@ -1,0 +1,258 @@
+/* ==================================== Utility classes ==================================== */
+
+.cursor-grab {
+  cursor: grab;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.cursor-default {
+  cursor: default;
+}
+
+.fs-9 {
+  font-size: 0.9rem !important;
+}
+
+.fs-8 {
+  font-size: 0.8rem !important;
+}
+
+.fs-7 {
+  font-size: 0.7rem !important;
+}
+
+
+.color-orange {
+  color: #f2711c!important;
+}
+
+.color-brown {
+  color: #a5673f!important;
+}
+
+.color-grey {
+  color: #767676 !important;
+}
+
+.color-green {
+  color: #21ba45! important;
+}
+
+.color-red {
+  color: #9f3a38 !important; /* #db2828 !important; */
+}
+
+.color-blue {
+  color: #2185d0!important;
+}
+
+.border-grey {
+  border-color: #d4d4d5 !important;
+}
+
+.op-3 {
+  opacity: 0.3 !important;
+}
+
+.op-45 {
+  opacity: 0.45 !important;
+}
+
+.op-65 {
+  opacity: 0.65 !important;
+}
+
+.mt75 {
+  margin-top: 0.75rem !important;
+}
+
+.box-shadow {
+  box-shadow: 0px 2px 4px -1px rgba(0, 0, 0, 0.2), 0px 4px 5px 0px rgba(0, 0, 0, 0.14), 0px 1px 10px 0px rgba(0, 0, 0, 0.12) !important;
+}
+
+.bg-lightgreen {
+  background-color: #f7fcfa !important;
+}
+
+.undo-line-height {
+  line-height: inherit !important;
+}
+
+.zindex-1500 {
+  z-index: 1500 !important;
+}
+
+.w-50 {
+  width: 50% !important;
+}
+
+.w-100 {
+  width: 100% !important;
+}
+
+.min-height-55-px {
+  min-height: 55px !important;
+}
+
+.min-width-735-px {
+  min-width: 735px !important;
+}
+
+.min-width-350-px {
+  min-width: 350px !important;
+}
+
+.width-580-px {
+  width: 580px !important;
+}
+
+.width-500-px {
+  width: 500px !important;
+}
+
+.width-350-px {
+  width: 350px !important;
+}
+
+.width-300-px {
+  width: 300px !important;
+}
+
+.width-280-px {
+  width: 280px !important;
+}
+
+.width-260-px {
+  width: 260px !important;
+}
+
+.width-230-px {
+  width: 230px !important;
+}
+
+.width-200-px {
+  width: 200px !important;
+}
+
+.width-140-px {
+  width: 140px !important;
+}
+
+.width-110-px {
+  width: 110px !important;
+}
+
+.width-100-px {
+  width: 100px !important;
+}
+
+.width-90-px {
+  width: 90px !important;
+}
+
+.width-80-px {
+  width: 80px !important;
+}
+
+.width-70-px {
+  width: 70px !important;
+}
+
+.width-60-px {
+  width: 60px !important;
+}
+
+.width-40-px {
+  width: 40px !important;
+}
+
+.width-24-px {
+  width: 24px !important;
+}
+
+.height-22-px {
+  height: 22px !important;
+}
+
+.height-60-px {
+  height: 60px !important;
+}
+
+.height-50-px {
+  height: 50px !important;
+}
+
+.line-height-20-px {
+  line-height: 20px !important;
+}
+
+.ellipsis {
+  /* height: 50px; */
+  text-overflow: ellipsis;
+
+  /* required for text-overflow to do anything */
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.breakout {
+  /* see https://css-tricks.com/snippets/css/prevent-long-urls-from-breaking-out-of-container/ */
+  /* These are technically the same, but use both */
+  overflow-wrap: break-word !important;
+  word-wrap: break-word !important;
+
+  -ms-word-break: break-all !important;
+  /* This is the dangerous one in WebKit, as it breaks things wherever */
+  word-break: break-all !important;
+}
+
+/* ==================================== Semantic UI Overrides ==================================== */
+
+@media only screen and (max-width: 991px) and (min-width: 768px) {
+  .ui.container {
+    width: 639px;  /* 723 - 84 (the width of the left menu bar) */
+    margin-left: auto!important;
+    margin-right: auto!important;
+  }
+}
+
+@media only screen and (max-width: 1199px) and (min-width: 992px) {
+  .ui.container {
+    width: 849px;  /* 933 - 84 (the width of the left menu bar) */
+    margin-left: auto!important;
+    margin-right: auto!important;
+  }
+}
+
+@media only screen and (min-width: 1200px) {
+  .ui.container {
+    width: 1043px;  /* 1127 - 84 (the width of the left menu bar) */
+    margin-left: auto!important;
+    margin-right: auto!important;
+  }
+}
+
+.error .field, .error.field, .error .label, .error .field.label, .ui.form .error .field>label,
+ .ui.header .error, .ui.header.error, .error .text, .error.text, .error .ui.basic.label {
+  color: #9f3a38 !important;
+}
+
+.error .ui.basic.label {
+  background: none #fff!important;
+  border-color:#9f3a38!important;
+}
+
+.ui.form .error textarea {
+  background: #fff6f6;
+  border-color: #e0b4b4;
+}
+
+.disabled .ui.basic.label, .disabled .ui.header, .disabled .field, .disabled textarea {
+  pointer-events: none;
+  opacity: 0.45 !important;
+}
+
+/* ====================================== Others ========================================= */

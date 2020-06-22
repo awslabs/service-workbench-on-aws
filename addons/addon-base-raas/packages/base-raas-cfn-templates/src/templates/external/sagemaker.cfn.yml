@@ -1,0 +1,158 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Galileo-Gateway SageMaker-Jupyter
+
+Parameters:
+  Namespace:
+    Type: String
+    Description: An environment name that will be prefixed to resource names
+  InstanceType:
+    Type: String
+    Description: EC2 instance type to launch
+    Default: ml.t3.xlarge
+  VPC:
+    Description: VPC for EMR nodes.
+    Type: AWS::EC2::VPC::Id
+  Subnet:
+    Description: Subnet for EMR nodes, from the VPC selected above
+    Type: AWS::EC2::Subnet::Id
+  S3Mounts:
+    Type: String
+    Description: A JSON array of objects with name, bucket and prefix properties used to mount data
+  IamPolicyDocument:
+    Type: String
+    Description: The IAM policy to be associated with the launched workstation
+  EnvironmentInstanceFiles:
+    Type: String
+    Description: >-
+      An S3 URI (starting with "s3://") that specifies the location of files to be copied to
+      the environment instance, including any bootstrap scripts
+
+Conditions:
+  IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
+
+Resources:
+  EncryptionKey:
+    Type: AWS::KMS::Key
+    Properties:
+      Description: 'This is the key used to secure resources in this account'
+      EnableKeyRotation: True
+      KeyPolicy:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: Allow root access
+            Effect: 'Allow'
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action:
+              - 'kms:*'
+            Resource: '*'
+          - Sid: Allow use of the key by this account
+            Effect: 'Allow'
+            Principal:
+              AWS: '*'
+            Action:
+              - 'kms:DescribeKey'
+              - 'kms:Encrypt'
+              - 'kms:Decrypt'
+              - 'kms:ReEncrypt*'
+              - 'kms:GenerateDataKey'
+              - 'kms:GenerateDataKeyWithoutPlaintext'
+              - 'kms:CreateGrant'
+              - 'kms:RevokeGrant'
+            Resource: '*'
+            Condition:
+              StringEquals:
+                kms:CallerAccount: !Ref 'AWS::AccountId'
+
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: SageMaker Notebook Instance
+      VpcId:
+        Ref: VPC
+
+  IAMRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Join ['-', [Ref: Namespace, 'sagemaker-notebook-role']]
+      Path: '/'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service:
+                - 'sagemaker.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - !If
+          - IamPolicyEmpty
+          - !Ref 'AWS::NoValue'
+          - PolicyName: !Join ['-', [Ref: Namespace, 's3-studydata-policy']]
+            PolicyDocument: !Ref IamPolicyDocument
+        - PolicyName: !Join ['-', [Ref: Namespace, 's3-bootstrap-script-policy']]
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action: 's3:GetObject'
+                Resource: !Sub
+                  - 'arn:aws:s3:::${S3Location}/*'
+                  # Remove "s3://" prefix from EnvironmentInstanceFiles
+                  - S3Location: !Select [1, !Split ['s3://', !Ref EnvironmentInstanceFiles]]
+              - Effect: 'Allow'
+                Action: 's3:ListBucket'
+                Resource: !Sub
+                  - 'arn:aws:s3:::${S3Bucket}'
+                  - S3Bucket: !Select [2, !Split ['/', !Ref EnvironmentInstanceFiles]]
+                Condition:
+                  StringLike:
+                    s3:prefix: !Sub
+                      - '${S3Prefix}/*'
+                      - S3Prefix: !Select [3, !Split ['/', !Ref EnvironmentInstanceFiles]]
+
+        - PolicyName: cw-logs
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - logs:CreateLogStream
+                - logs:DescribeLogStreams
+                - logs:PutLogEvents
+                - logs:CreateLogGroup
+              Resource:
+                - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/sagemaker/*
+  # TODO: Consider also passing DefaultCodeRepository to allow persisting notebook data
+  BasicNotebookInstance:
+    Type: 'AWS::SageMaker::NotebookInstance'
+    Properties:
+      InstanceType: !Ref InstanceType
+      RoleArn: !GetAtt IAMRole.Arn
+      SubnetId: !Ref Subnet
+      SecurityGroupIds:
+        - !Ref SecurityGroup
+      LifecycleConfigName: !GetAtt BasicNotebookInstanceLifecycleConfig.NotebookInstanceLifecycleConfigName
+      KmsKeyId: !GetAtt EncryptionKey.Arn
+
+  BasicNotebookInstanceLifecycleConfig:
+    Type: 'AWS::SageMaker::NotebookInstanceLifecycleConfig'
+    Properties:
+      OnCreate:
+        - Content:
+            Fn::Base64: !Sub |
+              #!/usr/bin/env bash
+              # Download and execute bootstrap script
+              aws s3 cp "${EnvironmentInstanceFiles}/get_bootstrap.sh" "/tmp"
+              chmod 500 "/tmp/get_bootstrap.sh"
+              /tmp/get_bootstrap.sh "${EnvironmentInstanceFiles}" '${S3Mounts}'
+
+Outputs:
+  NotebookInstanceName:
+    Description: The name of the SageMaker notebook instance.
+    Value: !GetAtt [BasicNotebookInstance, NotebookInstanceName]
+
+  WorkspaceInstanceRoleArn:
+    Description: IAM role assumed by the SageMaker workspace instance
+    Value: !GetAtt IAMRole.Arn

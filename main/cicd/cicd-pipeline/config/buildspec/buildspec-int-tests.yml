@@ -1,0 +1,41 @@
+version: 0.2
+
+phases:
+
+  install:
+    runtime-versions:
+      nodejs: 12
+
+  pre_build:
+    commands:
+      - echo "Installing dependencies"
+      - npm add -g pnpm
+      - ./scripts/install.sh
+      # Need to build all packages explicitly here.
+      # This is required because somehow the "pnpm run build" script in "prepare" hook does not work in AWS CodeBuild
+      # The "prepare" hook script is executed fine but the "build" script referenced in "prepare" does not execute
+      - ./scripts/build-all-packages.sh
+      - echo ""
+      - echo "Downloading environment config"
+      - ./scripts/download-env-config.sh "$DEPLOYMENT_BUCKET" "$ENV_NAME"
+  build:
+    commands:
+      - printf "\n\nRunning integration tests for environment "$ENV_NAME"\n"
+      - ./scripts/run-integration-tests.sh "$ENV_NAME"
+      - printf "\n\n"
+
+reports:
+  integrationTests:
+    files:
+      - 'main/integration-tests/.build/test/junit.xml'
+    discard-paths: yes
+    file-format: JunitXml
+
+cache:
+  paths:
+    - node_modules/
+    - addons/*/packages/*/node_modules/
+    - main/solution/*/node_modules/
+    - main/cicd/*/node_modules/
+    - main/integration-tests/node_modules/
+    - main/packages/*/node_modules

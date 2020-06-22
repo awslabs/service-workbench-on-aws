@@ -1,0 +1,8 @@
+id: st-provision-account
+v: 1
+title: Provision Account
+desc: |
+  Execute the creation of an AWS Account
+
+skippable: true # this means that if there is an error in a previous step, then this step will be skipped
+hidden: true

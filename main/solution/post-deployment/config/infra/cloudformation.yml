@@ -1,0 +1,146 @@
+Resources:
+  # =============================================================================================
+  # IAM Roles
+  # =============================================================================================
+
+  # IAM Role for the postDeployment Function
+  RolePostDeploymentLambda:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
+      Policies:
+        - PolicyName: iam-access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              Effect: Allow
+              Action:
+                # required for associating lambda@edge to cf distro
+                # see https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-edge-permissions.html#lambda-edge-permissions-required
+                - iam:CreateServiceLinkedRole
+              Resource:
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/replicator.lambda.amazonaws.com/AWSServiceRoleForLambdaReplicator'
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/logger.cloudfront.amazonaws.com/AWSServiceRoleForCloudFrontLogger'
+              Condition:
+                ForAllValues:StringLike:
+                  iam:AWSServiceName:
+                    - replicator.lambda.amazonaws.com
+                    - logger.cloudfront.amazonaws.com
+        - PolicyName: s3-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - s3:GetObject
+              Resource:
+                - arn:aws:s3:::${self:custom.settings.deploymentBucketName}/saml-metadata/*
+        - PolicyName: db-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:DeleteItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:Query
+                - dynamodb:Scan
+              Resource:
+                - !GetAtt [DbDeploymentStore, Arn]
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTablePasswords}'
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableUsers}'
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableAuthenticationProviderTypes}'
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableAuthenticationProviderConfigs}'
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableStepTemplates}'
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableWorkflowTemplates}'
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableWorkflows}'
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableWfAssignments}'
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableWfAssignments}/index/*'
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableUserRoles}'
+        - PolicyName: param-store-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ssm:GetParameter
+                - ssm:PutParameter
+              Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
+        - PolicyName: kms-access
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - kms:DescribeKey
+                Resource: '*'
+        - PolicyName: cfn-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - cloudformation:DescribeStacks
+              Resource:
+                - !Sub arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${self:custom.settings.backendStackName}/*
+        - PolicyName: cloudfront-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - cloudfront:GetDistributionConfig
+                - cloudfront:UpdateDistribution
+              Resource:
+                - !Sub arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${self:custom.settings.cloudFrontId}
+        - PolicyName: lambda-access
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - lambda:GetFunction
+                  - lambda:UpdateFunctionConfiguration
+                Resource:
+                  - !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${self:custom.settings.workflowLambdaName}
+              - Effect: Allow
+                Action:
+                  - lambda:GetFunction
+                  - lambda:publishVersion
+                  - lambda:EnableReplication
+                Resource:
+                  - ${self:custom.settings.edgeLambdaArn}
+                  - ${self:custom.settings.edgeLambdaArn}:* # appending ':*' to allow actions on specific versions of the lambda
+
+  # =============================================================================================
+  # Dynamo db
+  # =============================================================================================
+
+  DbDeploymentStore:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbTableDeploymentStore}
+      AttributeDefinitions:
+        - AttributeName: 'type'
+          AttributeType: 'S'
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'type'
+          KeyType: 'HASH'
+        - AttributeName: 'id'
+          KeyType: 'RANGE'
+      ProvisionedThroughput:
+        ReadCapacityUnits: '10'
+        WriteCapacityUnits: '5'
+
+# =============================================================================================
+# Outputs
+# =============================================================================================
+Outputs:
+  PostDeploymentRoleArn:
+    Value: !GetAtt RolePostDeploymentLambda.Arn

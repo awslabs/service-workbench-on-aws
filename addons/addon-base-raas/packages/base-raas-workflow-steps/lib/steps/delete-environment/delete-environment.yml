@@ -1,0 +1,8 @@
+id: st-delete-environment
+v: 1
+title: Delete Environment
+desc: |
+  Remove an analytics environment
+
+skippable: true # this means that if there is an error in a previous step, then this step will be skipped
+hidden: true

@@ -1,0 +1,65 @@
+{
+  "definitions": {},
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "http://example.com/root.json",
+  "type": "object",
+  "required": [
+    "id",
+    "title"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "$id": "#/properties/id",
+      "type": "string"
+    },
+    "title": {
+      "$id": "#/properties/title",
+      "type": "string"
+    },
+    "IdentityPoolId": {
+      "$id": "#/properties/identityPoolId",
+      "type": "string"
+    },
+    "auth0Domain": {
+      "$id": "#/properties/auth0Domain",
+      "type": "string"
+    },
+    "auth0ClientId": {
+      "$id": "#/properties/auth0ClientId",
+      "type": "string"
+    },
+    "federatedIdentitiyProviders": {
+      "$id": "#/properties/providerConfig/properties/federatedIdentitiyProviders",
+      "type": "array",
+      "items": {
+        "$id": "#/properties/providerConfig/properties/federatedIdentitiyProviders/items",
+        "type": "object",
+        "title": "The Items Schema",
+        "required": [
+          "id",
+          "name",
+          "metadata"
+        ],
+        "properties": {
+          "id": {
+            "$id": "#/properties/federatedIdentitiyProviders/properties/id",
+            "type": "string"
+          },
+          "name": {
+            "$id": "#/properties/federatedIdentitiyProviders/properties/name",
+            "type": "string"
+          },
+          "displayName": {
+            "$id": "#/properties/federatedIdentitiyProviders/properties/displayName",
+            "type": "string"
+          },
+          "metadata": {
+            "$id": "#/properties/federatedIdentitiyProviders/properties/metadata",
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}
