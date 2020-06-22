@@ -1,8 +1,10 @@
-const https = require('https');
+"use strict"
+
+const { request } = require('https');
 
 async function makeApiRequest(options, data) {
     return new Promise((resolve, reject) => {
-        const req = https.request(options, res => {
+        const req = request(options, res => {
             const body = [];
             if (res.statusCode < 200 || res.Status > 299) {
                 reject(new Error(`request failed: ${res.StatusCode}`));

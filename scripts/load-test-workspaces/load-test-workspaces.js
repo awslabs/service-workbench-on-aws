@@ -14,83 +14,48 @@
  *  - Remove terminated or failed test workspaces from the Dynamo Db Table : $node load-test-workspaces.js delete
  */
 
-const { makeApiRequest, sleep, filterSetCookie } = require('./load-test-workspaces.utils');
-const config = require('./load-test-workspaces.config');
-const yargs = require('yargs');
-const AWS = require('aws-sdk');
-
+const { makeApiRequest, sleep, filterSetCookie } = require('./utils/helper-requests');
+const { parseCLIArguments, validateCLIArguments } = require('./utils/helper-cli');
+const { updateWorkspacesCatalogue } = require('./utils/update-catalogue');
+const { cleanUpTestWorkspacesFromDB } = require('./utils/clean-database');
+const { logResponses } = require('./utils/helper-logger');
+const config = require('./config/test-config');
 
 // ==============================================================================================================================
-//  COMMAND LINE DEFINITION
+//  PARSE COMMAND LINE
 // ==============================================================================================================================
-function parseCLIArguments() {
-  const argv = yargs
-    .command('create', '--> Create workspaces simultaneously.')
-    .command('access', '--> Access workspaces simultaneously.')
-    .command('terminate', '--> Terminate workspaces simultaneously.')
-    .command('delete', '--> Delete load test workspaces from dynamoDB simultaneously.')
-    .command('start', '--> Start workspaces simultaneously.')
-    .command('stop', '--> Stop workspaces simultaneously.')
-    .option('nb', {
-      alias: 'n',
-      description: 'Number of simultaneous workspaces to operate on',
-      type: 'number',
-    })
-    .option('type', {
-      alias: 't',
-      description: 'Type of workspaces to operate on ("sagemaker" | "hail-emr" | "rstudio")',
-      type: 'string',
-    })
-    .option('size', {
-      alias: 's',
-      description: 'Size of the workspaces to operate on.\nSagemaker: ml.t3.medium < ml.t3.xlarge < ml.t3.2xlarge,\nHail-EMR: m5.xlarge < m5.24xlarge\nRStudio: t3.xlarge < m5.8xlarge < m5a.16xlarge',
-      type: 'string',
-    })
-    .help()
-    .argv;
-
-  if (argv._.length !== 1) {
-    throw new Error('Exactly one command should be used : "create" || "access" || "terminate" || "delete" || "start" || "stop"');
-  }
-  return argv;
-}
 
 let argv;
 try {
   argv = parseCLIArguments();
+  validateCLIArguments(argv);
 } catch (err) {
-  console.error('Wrong command line arguments. Please type node load-test-workspace.js --help for usage details.');
+  console.error('Wrong command line. Please type "node load-test-workspace.js --help" for usage details.');
   console.error(err.message + '\n');
   return;
 }
-const OPERATION = argv._[0];
+const COMMAND = argv._[0];
 
 // ==============================================================================================================================
 //  LOAD TEST - CREATE WORKSPACES
 // ==============================================================================================================================
 
-async function loadTest_createWorkspaces(request_options, projectName, count, type, size) {
+async function loadTest_createWorkspaces(request_options, projectName, count, platform, size) {
 
   const req_options = {
     ...request_options,
     method: 'POST'
-  }
+  };
 
-  if (type === undefined || size === undefined) {
-    throw (new Error(`Wrong type and/or size: type[${type}], size[${size}].`));
-  }
   const payloads = [...Array(count)].map((_, index) => {
     return JSON.stringify({
-      name: `${config.TEST_NAME_PREFIX} [${type.toUpperCase()}] - ${index + 1}on${count}`,
-      description: `Load test workspace ${type} ${size} - test ${index + 1}`,
-      instanceInfo: {
-        type: type,
-        size: size,
-        cidr: '0.0.0.0/0',  // TODO: different for Hail-EMR
-        config: {},         // TODO: different for Hail-EMR
-      },
-      isExternal: false,
+      name: `${config.TEST_NAME_PREFIX}-${platform.toUpperCase()}-${index + 1}`,
+      description: `Load test workspace [${platform}] ${size} - (${index + 1})`,
       projectId: projectName,
+      configurationId: size,
+      params: {},
+      platformId: platform,
+      studyIds: [],
     });
   });
 
@@ -102,8 +67,10 @@ async function loadTest_createWorkspaces(request_options, projectName, count, ty
     workspacesList.push({ name: JSON.parse(payload).name });
     const promise = makeApiRequest(req_options, payload);
     promises.push(promise);
-    // sleep to avoid Auth0 rate limiting
-    await sleep(500);
+    // // sleep to avoid Auth0 rate limiting
+    if (i % 10 === 8) {
+      await sleep(800);
+    }
   };
 
   // Wait for the resolution of all the requests
@@ -193,7 +160,7 @@ async function accessRStudioWorkspace(request_options, workspaceId) {
 //  LOAD TEST - START OR STOP WORKSPACES
 // ==============================================================================================================================
 
-async function loadTest_toggleWorkspaces(request_options, workspacesList, operation) {
+async function loadTest_toggleWorkspaces(request_options, workspacesList, command) {
 
   const req_options = {
     ...request_options,
@@ -202,8 +169,8 @@ async function loadTest_toggleWorkspaces(request_options, workspacesList, operat
 
   const promises = [];
   workspacesList.forEach(workspace => {
-    console.log(`${operation === 'start' ? 'Starting' : 'Stopping'} ${workspace.name} (id:${workspace.id}) ...`);
-    req_options.path = `${request_options.path}/${workspace.id}/${operation}`
+    console.log(`${command === 'start' ? 'Starting' : 'Stopping'} ${workspace.name} (id:${workspace.id}) ...`);
+    req_options.path = `${request_options.path}/${workspace.id}/${command}`
     promises.push(makeApiRequest(req_options));
   });
 
@@ -236,61 +203,14 @@ async function loadTest_terminateWorkspaces(request_options, workspacesList) {
   logResponses(responses, workspacesList);
 }
 
-// ==============================================================================================================================
-//  LOAD TEST - CLEAN WORKSPACES FROM DYNAMO_DB TABLE
-// ==============================================================================================================================
-
-async function load_test_removeWorkspacesFromDB(workspacesList, tableName, region) {
-
-  AWS.config.update({ region: region });
-  const DDB = new AWS.DynamoDB();
-
-  const promises = [];
-  workspacesList.forEach(workspace => {
-    const deleteParam = {
-      Key: {
-        "id": { S: workspace.id },
-      },
-      TableName: tableName,
-    };
-    console.log(`Removing ${workspace.name} (id: ${workspace.id}) from the table...`);
-    const promise = new Promise((resolve, reject) => {
-      DDB.deleteItem(deleteParam, (err) => {
-        if (err) {
-          reject(new Error('Error when sending the dynamoDb deleteItem request. Make sure you have your AWS credentials set.'));
-        };
-        resolve({ statusCode: 200 });
-      });
-    });
-    promises.push(promise);
-  });
-
-  const responses = await Promise.all(promises);
-  logResponses(responses, workspacesList);
-}
-
 
 // ==============================================================================================================================
 //  MAIN FUNCTION
 // ==============================================================================================================================
 
-function logResponses(responses, workspacesList) {
-  for (let i = 0; i < responses.length; i++) {
-    console.log(`[${workspacesList[i].name}] : response status ---> ${responses[i].statusCode}`);
-  }
+async function fetchTestWorkspacesFilteredList(request_options, projectName, count, platform, configuration, status = ['COMPLETED']) {
 
-  for (let i = 0; i < responses.length; i++) {
-    if (responses[i].statusCode !== 200) {
-      console.log(`[RESPONSE ${responses[i].statusCode} for ${workspacesList[i].name}]. Response body :`);
-      console.log(responses[i].body);
-    }
-  }
-}
-
-
-async function fetchTestWorkspacesFilteredList(request_options, projectName, count, type, size, status = ['COMPLETED']) {
-
-  console.log(`Fetching ${count ? `${count} ` : ''}eligible workspaces. Filters: ${projectName ? `[project-name = ${projectName}],` : ''}${type ? `[type = ${type}],` : ''}${size ? `[size = ${size}],` : ''}${status ? `[status = ${status}],` : ''}`);
+  console.log(`Fetching ${count ? `${count} ` : ''}eligible workspaces. Filters: ${projectName ? `[project-name = ${projectName}],` : ''}${platform ? `[platform = ${platform}],` : ''}${configuration ? `[config = ${configuration}],` : ''}${status ? `[status = ${status}]` : ''}`);
 
   const req_options = {
     ...request_options,
@@ -305,7 +225,7 @@ async function fetchTestWorkspacesFilteredList(request_options, projectName, cou
     throw new Error('Error when trying to send requests to the API Gateway. Make sure defined properly your test configuration in ./load-test-workspaces.config.js');
   }
   if (!Array.isArray(JSON.parse(workspacesList.body))) {
-    throw new Error(`Error when fetching the eligible list of workspaces : your token might not be unauthorized. response.body: ${workspacesList.body}`);
+    throw new Error(`Error when fetching the eligible list of workspaces : your api token might not be authorized. response.body: ${workspacesList.body}`);
   }
 
   // Keep on only the test workspaces satisfying the filters
@@ -313,8 +233,8 @@ async function fetchTestWorkspacesFilteredList(request_options, projectName, cou
     if (!workspace.name.includes(config.TEST_NAME_PREFIX)) { return false; }
     else if (!status.includes(workspace.status)) { return false; }
     else if (projectName && workspace.projectId !== projectName) { return false; }
-    else if (type && workspace.instanceInfo.type !== type) { return false; }
-    else if (size && workspace.instanceInfo.size !== size) { return false; }
+    else if (platform && workspace.platformId !== platform) { return false; }
+    else if (configuration && workspace.configurationId !== configuration) { return false; }
     return true;
   });
 
@@ -328,35 +248,40 @@ async function fetchTestWorkspacesFilteredList(request_options, projectName, cou
 
 async function main() {
   try {
-    console.log('\n\n ---- BEGIN LOAD TESTING ----\n');
+    console.log('\n\n------- BEGIN LOAD TESTING -------\n');
+
     var workspaces;
     var statusFilter;
-    switch (OPERATION) {
+    switch (COMMAND) {
       case 'create':
-        await loadTest_createWorkspaces(config.BASIC_REQ_OPTIONS, config.PROJECT_NAME, argv.nb || 1, argv.type || 'rstudio', argv.size || config.DEFAULT_SIZE[argv.type || 'rstudio']);
+        await loadTest_createWorkspaces(config.BASIC_REQ_OPTIONS, config.PROJECT_NAME, argv.count, argv.platform, argv.size);
         break;
       case 'access':
-        workspaces = await fetchTestWorkspacesFilteredList(config.BASIC_REQ_OPTIONS, config.PROJECT_NAME, argv.nb, argv.type, argv.size);
+        workspaces = await fetchTestWorkspacesFilteredList(config.BASIC_REQ_OPTIONS, config.PROJECT_NAME, argv.count, argv.platform, argv.size);
         await loadTest_accessWorkspaces(config.BASIC_REQ_OPTIONS, workspaces);
         break;
       case 'terminate':
         statusFilter = ['STOPPED', 'COMPLETED', 'TERMINATING_FAILED'];
-        workspaces = await fetchTestWorkspacesFilteredList(config.BASIC_REQ_OPTIONS, config.PROJECT_NAME, argv.nb, argv.type, argv.size, status = statusFilter);
+        workspaces = await fetchTestWorkspacesFilteredList(config.BASIC_REQ_OPTIONS, config.PROJECT_NAME, argv.count, argv.platform, argv.size, status = statusFilter);
         await loadTest_terminateWorkspaces(config.BASIC_REQ_OPTIONS, workspaces);
         break;
       case 'delete':
         statusFilter = ['TERMINATED', 'FAILED'];
-        workspaces = await fetchTestWorkspacesFilteredList(config.BASIC_REQ_OPTIONS, config.PROJECT_NAME, argv.nb, argv.type, argv.size, status = statusFilter);
-        await load_test_removeWorkspacesFromDB(workspaces, config.TABLE_NAME, config.REGION_NAME);
+        workspaces = await fetchTestWorkspacesFilteredList(config.BASIC_REQ_OPTIONS, config.PROJECT_NAME, argv.count, argv.platform, argv.size, status = statusFilter);
+        await cleanUpTestWorkspacesFromDB(workspaces, config.TABLE_NAME, config.REGION_NAME);
         break;
       case 'start':
         statusFilter = ['STOPPED', 'TERMINATING_FAILED'];
-        workspaces = await fetchTestWorkspacesFilteredList(config.BASIC_REQ_OPTIONS, config.PROJECT_NAME, argv.nb, argv.type, argv.size, status = statusFilter);
+        workspaces = await fetchTestWorkspacesFilteredList(config.BASIC_REQ_OPTIONS, config.PROJECT_NAME, argv.count, argv.platform, argv.size, status = statusFilter);
         await loadTest_toggleWorkspaces(config.BASIC_REQ_OPTIONS, workspaces, 'start');
         break;
       case 'stop':
-        workspaces = await fetchTestWorkspacesFilteredList(config.BASIC_REQ_OPTIONS, config.PROJECT_NAME, argv.nb, argv.type, argv.size);
+        statusFilter = ['COMPLETED'];
+        workspaces = await fetchTestWorkspacesFilteredList(config.BASIC_REQ_OPTIONS, config.PROJECT_NAME, argv.count, argv.platform, argv.size);
         await loadTest_toggleWorkspaces(config.BASIC_REQ_OPTIONS, workspaces, 'stop');
+        break;
+      case 'update-catalogue':
+        await updateWorkspacesCatalogue(config.BASIC_REQ_OPTIONS);
         break;
       default:
         console.error('Wrong command line arguments. Please type node load-test-workspace.js --help for usage details.');
@@ -367,7 +292,7 @@ async function main() {
     return;
   }
 
-  console.log('\n---- END LOAD TESTING ----\n');
+  console.log('\n-------  END LOAD TESTING  -------\n\n');
 }
 
 main();

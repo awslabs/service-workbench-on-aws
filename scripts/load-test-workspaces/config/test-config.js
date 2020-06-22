@@ -5,18 +5,22 @@
 // Fastest way to retrieve its value is to perform the manipulation on the application itself and get it from your WebBrowser's request
 
 const API_TOKEN = process.env.API_TOKEN;
-const API_HOSTNAME = ''; // 'XXXXXXXXXX.execute-api.<region>.amazonaws.com'
-const REGION_NAME = '';
-const STAGE_NAME = ''; // 'galileo-dev'
-const TEST_NAME_PREFIX = ''; // 'SCALABILITY TESTS'
-const PROJECT_NAME = ''; // 'SCALABILITY TESTS PROJECT'
+const API_HOSTNAME = '3xua3srr84.execute-api.us-east-1.amazonaws.com'; // 'XXXXXXXXXX.execute-api.<region>.amazonaws.com'
+const REGION_NAME = 'us-east-1';
+const REGION_SHORT_NAME = 'va'; // find the exhaustive list at ../../main/config/settings/.defaults.yml
+const STAGE_NAME = 'ludodev'; // 'galileo-dev'
+const SOLUTION_NAME = 'galileo';
+const TEST_NAME_PREFIX = 'ScaleTest'; // 'SCALABILITY-TESTS' (Case sensitive + does not support whitespaces)
+const PROJECT_NAME = 'scalability-tests'; // 'SCALABILITY-TESTS-PROJECT' (Case sensitive + does not support whitespaces)
 
-const config = {
+module.exports = {
+    API_ROOT_END_POINT: `/${STAGE_NAME}/api`,
+
     TEST_NAME_PREFIX,
     PROJECT_NAME,
 
     REGION_NAME,
-    TABLE_NAME: `${STAGE_NAME}-va-galileo-DbEnvironments`,
+    TABLE_NAME: `${STAGE_NAME}-${REGION_SHORT_NAME}-${SOLUTION_NAME}-DbEnvironments`,
 
     BASIC_REQ_OPTIONS: {
         hostname: API_HOSTNAME,
@@ -26,11 +30,4 @@ const config = {
             Authorization: `Bearer ${API_TOKEN}`,
         },
     },
-
-    DEFAULT_SIZE: {
-        'rstudio': 't3.xlarge',
-        'sagemaker': 'ml.t3.medium'
-    },
-}
-
-module.exports = config;
+};

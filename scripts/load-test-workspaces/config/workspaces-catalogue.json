@@ -1,0 +1,37 @@
+[
+    {
+        "platform": "sagemaker-1",
+        "configurations": [
+            "sagemaker__small",
+            "sagemaker__medium",
+            "sagemaker__large"
+        ]
+    },
+    {
+        "platform": "emr-1",
+        "configurations": [
+            "emr_small",
+            "emr_small_spot",
+            "emr_medium",
+            "emr_medium_spot",
+            "emr_large",
+            "emr_large_spot"
+        ]
+    },
+    {
+        "platform": "ec2-linux-1",
+        "configurations": [
+            "ec2-linux_small",
+            "ec2-linux_medium",
+            "ec2-linux_large"
+        ]
+    },
+    {
+        "platform": "ec2-windows-1",
+        "configurations": [
+            "ec2-windows_large",
+            "ec2-windows_small",
+            "ec2-windows_medium"
+        ]
+    }
+]
