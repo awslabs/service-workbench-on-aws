@@ -7,6 +7,11 @@ const workspacesCatalogue = require('../config/workspaces-catalogue.json');
 //  COMMAND LINE DEFINITION
 // ==============================================================================================================================
 function parseCLIArguments() {
+    let catalogueToString = '';
+    workspacesCatalogue.forEach(page => {
+        catalogueToString += `\n[${page.platform}]: ${page.configurations.join('  ')}`;
+    })
+
     const argv = yargs
         .command('create', '--> Create workspaces simultaneously.')
         .command('access', '--> Access workspaces simultaneously.')
@@ -24,11 +29,8 @@ function parseCLIArguments() {
             type: 'string',
         })
         .option('size', {
-            description: 'Size of the workspaces to operate on.\n\n' +
-                '[sagemaker-1]:\n sagemaker__small < sagemaker__medium < sagemaker__large\n\n' +
-                '[ec2-linux-1]:\n ec2-linux_small < ec2-linux_medium < ec2-linux_large\n\n' +
-                '[ec2-windows-1]:\n ec2-windows_small < ec2-windows_medium < ec2-windows_large\n\n' +
-                '[emr-1]:\n emr_small < emr_small_spot < emr_medium < emr_medium_spot < emr_large < emr_large_spot\n\n' +
+            description: 'Size of the workspaces to operate on.\n' +
+                catalogueToString + '\n\n' +
                 'Full catalogue is stored in ./config/workspaces-catalogue.json, and updated with the command update-catalogue\n\n',
             type: 'string',
         })

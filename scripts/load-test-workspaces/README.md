@@ -7,7 +7,7 @@ This Node script aims at enabling a developer to perform load & scalability test
 ## Prerequisites 
 
 Before performing scalability test with this script, you need to prepare those things:
-- Open a terminal and `cd ./script/load-test-workspaces/`.
+- Open a terminal and `cd ./script/load-test-workspaces/` and install the packages `npm install`.
 - Store a fresh access token to Aws-Galileo-Gateway in the bash variable : `$ export API_TOKEN='<token_value>'`.
 - In a side sheet, take note of the hostname of the Api_Gateway you want to adress. You will need it to set your configuration file.  
 ___Advice : you can get those information in a few actions by connecting on web browser to your version of Aws-Galileo-Gateway. (Open the network tab and you'll find the hostname of the api and your fresh Bearer token in the requests that your web browser sent.)___
