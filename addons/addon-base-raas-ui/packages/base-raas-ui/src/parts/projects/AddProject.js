@@ -26,7 +26,7 @@ import validate from '@aws-ee/base-ui/dist/models/forms/Validate';
 
 import { getAddProjectForm, getAddProjectFormFields } from '../../models/forms/AddProjectForm';
 
-class AddProject extends React.Component {
+export class AddProject extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -132,7 +132,9 @@ class AddProject extends React.Component {
 
   handleProjectAdminsSelection = (e, { value }) => {
     runInAction(() => {
-      this.project.projectAdmins = value;
+      if (Array.isArray(value)) {
+        this.project.projectAdmins = value.map(user => JSON.parse(user));
+      }
     });
   };
 
@@ -206,8 +208,8 @@ class AddProject extends React.Component {
     this.formProcessing = true;
     try {
       // Perform client side validations first
+      this.project.indexId = this.state.indexId;
       const validationResult = await validate(this.project, this.addProjectFormFields);
-      this.project.projectAdmins = _.map(this.project.projectAdmins, item => JSON.parse(item));
       // if there are any client side validation errors then do not attempt to make API call
       if (validationResult.fails()) {
         runInAction(() => {
@@ -216,7 +218,6 @@ class AddProject extends React.Component {
         });
       } else {
         // There are no client side validation errors so ask the store to add user (which will make API call to server to add the user)
-        this.project.indexId = this.state.indexId;
         await this.props.projectsStore.addProject(this.project);
         runInAction(() => {
           this.formProcessing = false;

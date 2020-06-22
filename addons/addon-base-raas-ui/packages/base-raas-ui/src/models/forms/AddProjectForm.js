@@ -23,6 +23,7 @@ const addProjectFormFields = {
   },
   indexId: {
     label: 'Index ID',
+    rules: 'required|string',
   },
   description: {
     label: 'Description',
