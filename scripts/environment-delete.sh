@@ -97,8 +97,8 @@ function removeCfLambdaAssociations () {
     printf "\n\n\n--- Edge Lambda Associations in Cloudfront Distribution\n"
     cd "$SOLUTION_DIR/infrastructure"
     shouldStackBeRemoved "DONT_ASK_CONFIRMATION" stackName __novar
-    
-    if [[ "$stack" != "NO_STACK" ]]; then
+
+    if [[ "$stackName" != "NO_STACK" ]]; then
 
         # Find information about the Cluodfront Distribution
         local region=$(grep '^awsRegion:' --ignore-case < "$CONFIG_DIR/settings/$STAGE.yml" | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
