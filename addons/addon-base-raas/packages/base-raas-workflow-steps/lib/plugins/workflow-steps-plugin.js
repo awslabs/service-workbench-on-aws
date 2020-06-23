@@ -20,6 +20,14 @@ const provisionAccount = require('../steps/provision-account/provision-account')
 const provisionAccountYaml = require('../steps/provision-account/provision-account.yml');
 const provisionEnvironment = require('../steps/provision-environment/provision-environment');
 const provisionEnvironmentYaml = require('../steps/provision-environment/provision-environment.yml');
+const startSageMakerEnvironment = require('../steps/start-sagemaker-environment/start-sagemaker-environment');
+const startSageMakerEnvironmentYaml = require('../steps/start-sagemaker-environment/start-sagemaker-environment.yml');
+const stopSageMakerEnvironment = require('../steps/stop-sagemaker-environment/stop-sagemaker-environment');
+const stopSageMakerEnvironmentYaml = require('../steps/stop-sagemaker-environment/stop-sagemaker-environment.yml');
+const startEC2Environment = require('../steps/start-ec2-environment/start-ec2-environment');
+const startEC2EnvironmentYaml = require('../steps/start-ec2-environment/start-ec2-environment.yml');
+const stopEC2Environment = require('../steps/stop-ec2-environment/stop-ec2-environment');
+const stopEC2EnvironmentYaml = require('../steps/stop-ec2-environment/stop-ec2-environment.yml');
 
 const add = (implClass, yaml) => ({ implClass, yaml });
 
@@ -28,6 +36,10 @@ const steps = [
   add(deleteEnvironment, deleteEnvironmentYaml),
   add(provisionAccount, provisionAccountYaml),
   add(provisionEnvironment, provisionEnvironmentYaml),
+  add(startSageMakerEnvironment, startSageMakerEnvironmentYaml),
+  add(stopSageMakerEnvironment, stopSageMakerEnvironmentYaml),
+  add(startEC2Environment, startEC2EnvironmentYaml),
+  add(stopEC2Environment, stopEC2EnvironmentYaml),
 ];
 
 async function registerWorkflowSteps(registry) {

@@ -1,0 +1,8 @@
+id: st-stop-ec2-environment
+v: 1
+title: Stop EC2 Environment
+desc: |
+  Stop an EC2 Instance.
+
+skippable: true # this means that if there is an error in a previous step, then this step will be skipped
+hidden: true

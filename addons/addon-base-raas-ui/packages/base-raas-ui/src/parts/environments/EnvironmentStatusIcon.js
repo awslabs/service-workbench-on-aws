@@ -38,7 +38,7 @@ class EnvironmentStatusIcon extends React.Component {
         </Label>
       );
     }
-    if (status === 'FAILED') {
+    if (status === 'FAILED' || status.endsWith('FAILED')) {
       return (
         <Label basic size="mini" color="red">
           Error
@@ -62,10 +62,37 @@ class EnvironmentStatusIcon extends React.Component {
         </div>
       );
     }
+    if (status === 'STOPPING') {
+      return (
+        <div>
+          <Label basic size="mini">
+            Stopping
+            <Icon loading name="spinner" size="large" color="red" className="ml1 mr1" />
+          </Label>
+        </div>
+      );
+    }
+    if (status === 'STOPPED') {
+      return (
+        <Label basic size="mini" color="orange">
+          Stopped
+        </Label>
+      );
+    }
+    if (status === 'STARTING') {
+      return (
+        <Label basic size="mini">
+          Starting
+          <Icon loading name="spinner" size="large" color="yellow" className="ml1 mr1" />
+        </Label>
+      );
+    }
+
+    // unknown state - should have returned
     return (
       <Label basic size="mini">
-        Starting
-        <Icon loading name="spinner" size="large" color="yellow" className="ml1 mr1" />
+        Unknown State
+        <Icon loading name="spinner" size="large" color="red" className="ml1 mr1" />
       </Label>
     );
   }

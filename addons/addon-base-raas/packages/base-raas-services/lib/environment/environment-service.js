@@ -530,6 +530,74 @@ class EnvironmentService extends Service {
     await this.audit(requestContext, { action: 'delete-environment', body: { id } });
   }
 
+  async changeWorkspaceRunState(requestContext, { id, operation }) {
+    const existingEnvironment = await this.mustFind(requestContext, { id });
+
+    // Make sure the user has permissions to change the environment run state
+    await this.assertAuthorized(
+      requestContext,
+      { action: 'update', conditions: [this._allowAuthorized] },
+      existingEnvironment,
+    );
+
+    // expected environment run state based on operation
+    const expectedStatus = operation === 'start' ? 'STOPPED' : 'COMPLETED';
+
+    const {
+      status,
+      instanceInfo: { type },
+      projectId,
+    } = existingEnvironment;
+    if (status !== expectedStatus) {
+      throw this.boom.badRequest(
+        `unable to ${operation} environment with id "${id}" - current status "${status}"`,
+        true,
+      );
+    }
+
+    const [awsAccountsService, indexesServices, projectService] = await this.service([
+      'awsAccountsService',
+      'indexesService',
+      'projectService',
+    ]);
+    const { roleArn: cfnExecutionRole, externalId: roleExternalId } = await runAndCatch(
+      async () => {
+        const { indexId } = await projectService.mustFind(requestContext, { id: projectId });
+        const { awsAccountId } = await indexesServices.mustFind(requestContext, { id: indexId });
+
+        return awsAccountsService.mustFind(requestContext, { id: awsAccountId });
+      },
+      async () => {
+        throw this.boom.badRequest(`account with id "${projectId} is not available`);
+      },
+    );
+
+    const workflowId = this.getWorkflowId({ type, prefix: `wf-${operation}-` });
+
+    const meta = { workflowId };
+    const workflowTriggerService = await this.service('workflowTriggerService');
+    const input = {
+      environmentId: existingEnvironment.id,
+      requestContext,
+      cfnExecutionRole,
+      roleExternalId,
+    };
+    await workflowTriggerService.triggerWorkflow(requestContext, meta, input);
+    return existingEnvironment;
+  }
+
+  getWorkflowId({ type, prefix }) {
+    switch (type) {
+      case 'ec2-windows':
+      case 'ec2-linux':
+        return `${prefix}ec2-environment`;
+      case 'sagemaker':
+        return `${prefix}sagemaker-environment`;
+      default:
+        throw this.boom.badRequest(`Invalid environment type ${type}`);
+    }
+  }
+
   async credsForAccountWithEnvironment(requestContext, { id }) {
     const [aws, awsAccountsService, indexesService] = await this.service([
       'aws',

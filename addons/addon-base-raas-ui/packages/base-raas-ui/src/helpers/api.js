@@ -136,6 +136,14 @@ function updateEnvironment(body) {
   return httpApiPut('api/workspaces', { data: body });
 }
 
+function stopEnvironment(id) {
+  return httpApiPut(`api/workspaces/${id}/stop`);
+}
+
+function startEnvironment(id) {
+  return httpApiPut(`api/workspaces/${id}/start`);
+}
+
 function getEnvironmentKeypair(id) {
   return httpApiGet(`api/workspaces/${id}/keypair`);
 }
@@ -232,6 +240,8 @@ export {
   deleteEnvironment,
   createEnvironment,
   updateEnvironment,
+  stopEnvironment,
+  startEnvironment,
   getEnvironmentKeypair,
   getEnvironmentPasswordData,
   getEnvironmentNotebookUrl,

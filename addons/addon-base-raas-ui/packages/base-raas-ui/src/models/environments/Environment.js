@@ -111,6 +111,10 @@ const Environment = types
       return _.includes(['COMPLETED'], this.status);
     },
 
+    get isStopped() {
+      return _.includes(['STOPPED'], this.status);
+    },
+
     get isPending() {
       return _.includes(['PENDING'], this.status);
     },
