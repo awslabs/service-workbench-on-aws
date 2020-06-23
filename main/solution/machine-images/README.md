@@ -13,3 +13,7 @@ To build Amazon Machine Images:
 ```bash
 $ pnpx sls build-image -s $STAGE
 ```
+
+Note that if no configuration is provided the default VPC will be used to create AMIs, and if
+no default VPC exists AMI creation will fail. To instead provide a VPC and subnet to use,
+create a `config/settings/$STAGE.yml` file with ID values (see `example.yml` for an example).
