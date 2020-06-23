@@ -57,10 +57,15 @@ class StepBase {
     Object.assign(this.meta, getterDelegateForMeta.getMethods());
   }
 
-  wait(seconds) {
+  /**
+   * Returns a WaitDecisionBuilderObject including waiting, and retry mecanisms for a duration of X seconds.
+   * @param {*} seconds - duration to wait between retries
+   * @param {*} fuzz - If true, the waiting duration will be changed with a uniform randomization within the range [seconds - 30%, seconds + 30%]
+   */
+  wait(seconds, fuzz = false) {
+    if (fuzz) seconds = seconds * (1 + 0.3 * (1 - 2 * Math.random()));
     return new WaitDecisionBuilder(seconds);
   }
-
   pause(seconds) {
     return new PauseDecisionBuilder(seconds);
   }
