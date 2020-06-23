@@ -1,4 +1,4 @@
-/*jshint esversion: 9 */
+
 const request = require('request');
 const jwkToPem = require('jwk-to-pem');
 const _ = require('lodash');

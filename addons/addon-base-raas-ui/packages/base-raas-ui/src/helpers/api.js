@@ -14,7 +14,12 @@
  */
 
 /* eslint-disable import/prefer-default-export */
-import { httpApiGet, httpApiPost, httpApiPut, httpApiDelete } from '@aws-ee/base-ui/dist/helpers/api';
+import {
+  httpApiGet,
+  httpApiPost,
+  httpApiPut,
+  httpApiDelete
+} from '@aws-ee/base-ui/dist/helpers/api';
 
 function getUserRoles() {
   return httpApiGet('api/user-roles');
@@ -29,19 +34,27 @@ function getAwsAccount(accountId) {
 }
 
 function addUsers(users) {
-  return httpApiPost('api/users/bulk', { data: users });
+  return httpApiPost('api/users/bulk', {
+    data: users
+  });
 }
 
 function addAwsAccount(awsAccount) {
-  return httpApiPost('api/aws-accounts', { data: awsAccount });
+  return httpApiPost('api/aws-accounts', {
+    data: awsAccount
+  });
 }
 
 function createAwsAccount(awsAccount) {
-  return httpApiPost('api/aws-accounts/provision', { data: awsAccount });
+  return httpApiPost('api/aws-accounts/provision', {
+    data: awsAccount
+  });
 }
 
 function addIndex(index) {
-  return httpApiPost('api/indexes', { data: index });
+  return httpApiPost('api/indexes', {
+    data: index
+  });
 }
 
 function updateUserApplication(user) {
@@ -53,7 +66,9 @@ function updateUserApplication(user) {
   //   params.identityProviderName = user.identityProviderName;
   // }
   // return httpApiPut(`api/users/${user.username}/userself`, { data: user, params });
-  return httpApiPut(`api/user`, { data: user });
+  return httpApiPut(`api/user`, {
+    data: user
+  });
 }
 
 async function deleteUser(user) {
@@ -64,11 +79,17 @@ async function deleteUser(user) {
   if (user.identityProviderName) {
     data.identityProviderName = user.identityProviderName;
   }
-  return httpApiDelete(`api/users/${user.username}`, { data });
+  return httpApiDelete(`api/users/${user.username}`, {
+    data
+  });
 }
 
 function getStudies(category) {
-  return httpApiGet('api/studies', { params: { category } });
+  return httpApiGet('api/studies', {
+    params: {
+      category
+    }
+  });
 }
 
 function getStudy(id) {
@@ -76,7 +97,9 @@ function getStudy(id) {
 }
 
 function createStudy(body) {
-  return httpApiPost('api/studies', { data: body });
+  return httpApiPost('api/studies', {
+    data: body
+  });
 }
 
 function listStudyFiles(studyId) {
@@ -87,7 +110,11 @@ function getPresignedStudyUploadRequests(studyId, filenames) {
   if (Array.isArray(filenames)) {
     filenames = filenames.join(',');
   }
-  return httpApiGet(`api/studies/${studyId}/upload-requests`, { params: { filenames } });
+  return httpApiGet(`api/studies/${studyId}/upload-requests`, {
+    params: {
+      filenames
+    }
+  });
 }
 
 function getStudyPermissions(studyId) {
@@ -95,7 +122,9 @@ function getStudyPermissions(studyId) {
 }
 
 function updateStudyPermissions(studyId, updateRequest) {
-  return httpApiPut(`api/studies/${studyId}/permissions`, { data: updateRequest });
+  return httpApiPut(`api/studies/${studyId}/permissions`, {
+    data: updateRequest
+  });
 }
 
 async function getStepTemplates() {
@@ -129,11 +158,15 @@ function deleteEnvironment(id) {
 }
 
 function createEnvironment(body) {
-  return httpApiPost('api/workspaces', { data: body });
+  return httpApiPost('api/workspaces', {
+    data: body
+  });
 }
 
 function updateEnvironment(body) {
-  return httpApiPut('api/workspaces', { data: body });
+  return httpApiPut('api/workspaces', {
+    data: body
+  });
 }
 
 function getEnvironmentKeypair(id) {
@@ -177,11 +210,15 @@ function deleteProject(id) {
 }
 
 function addProject(project) {
-  return httpApiPost('api/projects', { data: project });
+  return httpApiPost('api/projects', {
+    data: project
+  });
 }
 
 function updateProject(project) {
-  return httpApiPut(`api/projects/${project.id}`, { data: project });
+  return httpApiPut(`api/projects/${project.id}`, {
+    data: project
+  });
 }
 
 function getAccounts() {
@@ -208,7 +245,20 @@ function getClientIpAddress() {
   return httpApiGet(`api/ip`);
 }
 
+function getUser() {
+  return httpApiGet('api/user');
+}
+
+function postAuth0Users(fileData) {
+  return httpApiPost('api/auth0/users', {
+    data: {
+      fileData,
+    },
+  });
+}
 export {
+  getUser,
+  postAuth0Users,
   addIndex,
   addUsers,
   removeAccountInfo,

@@ -1,4 +1,4 @@
-/*jshint esversion: 9 */
+
 const Service = require('@aws-ee/base-services-container/lib/service');
 const authProviderConstants = require('../../constants').authenticationProviders;
 

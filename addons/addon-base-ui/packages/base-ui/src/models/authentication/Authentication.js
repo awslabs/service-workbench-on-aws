@@ -12,7 +12,7 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-/*jshint esversion: 9 */
+
 
 import _ from 'lodash';
 import { getEnv, types } from 'mobx-state-tree';

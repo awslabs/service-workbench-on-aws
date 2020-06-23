@@ -1,4 +1,4 @@
-/*jshint esversion: 9 */
+
 const inputManifestForUpdate = {
   sections: [{
     title: 'General Information',

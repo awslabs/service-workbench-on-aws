@@ -12,7 +12,7 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-/*jshint esversion: 9 */
+
 
 const baseAuditPlugin = require('@aws-ee/base-services/lib/plugins/audit-plugin');
 const baseServicesPlugin = require('@aws-ee/base-post-deployment/lib/plugins/services-plugin');

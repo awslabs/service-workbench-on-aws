@@ -92,8 +92,12 @@ class ServerlessUIToolsPlugin {
 
     // if a an AWS SDK profile has been configured, use its credentials
     if (profile) {
-      const credentials = new aws.SharedIniFileCredentials({ profile });
-      aws.config.update({ credentials });
+      const credentials = new aws.SharedIniFileCredentials({
+        profile,
+      });
+      aws.config.update({
+        credentials,
+      });
     }
     return new aws.CloudFront();
   }
@@ -143,7 +147,9 @@ class ServerlessUIToolsPlugin {
     this.cli.log('Reading from ${self:custom.envTemplate}...'); // eslint-disable-line
 
     // ==== Load template
-    let env = { ...this.serverless.service.custom.envTemplate };
+    let env = {
+      ...this.serverless.service.custom.envTemplate,
+    };
     if (_.isEmpty(env)) {
       throw new Error('custom.envTemplate must be defined');
     }
@@ -153,7 +159,10 @@ class ServerlessUIToolsPlugin {
     if (isLocal) {
       this.cli.log('Applying local overrides:\n');
       this.cli.raw(`${toLines(env.localOverrides)}\n`);
-      env = { ...env, ...env.localOverrides };
+      env = {
+        ...env,
+        ...env.localOverrides,
+      };
     }
 
     // ==== Write CRA environment file

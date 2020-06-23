@@ -12,7 +12,7 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-/*jshint esversion: 9 */
+
 
 const InternalAuthenticationProvisionerService = require('./built-in-providers/internal/provisioner-service');
 const CognitoUserPoolAuthenticationProvisionerService = require('./built-in-providers/cogito-user-pool/provisioner-service');

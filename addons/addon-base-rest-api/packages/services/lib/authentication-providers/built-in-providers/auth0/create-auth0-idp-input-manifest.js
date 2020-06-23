@@ -1,4 +1,4 @@
-/*jshint esversion: 9 */
+
 const inputManifestForCreate = {
   sections: [{
       title: 'General Information',

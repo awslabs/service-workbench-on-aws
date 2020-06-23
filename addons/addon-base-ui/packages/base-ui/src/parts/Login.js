@@ -1,4 +1,4 @@
-/*jshint esversion: 9 */
+
 /*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *

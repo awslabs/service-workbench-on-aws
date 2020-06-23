@@ -13,8 +13,6 @@
  *  permissions and limitations under the License.
  */
 
- /*jshint esversion: 8 */
-
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const {

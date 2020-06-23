@@ -1,4 +1,4 @@
-/*jshint esversion: 9 */
+
 async function configure(context) {
   const router = context.router();
   const wrap = context.wrap;

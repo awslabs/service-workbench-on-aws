@@ -12,7 +12,7 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-/*jshint esversion: 9 */
+
 
 import React from 'react';
 import { inject, observer } from 'mobx-react';
@@ -70,7 +70,7 @@ class AddUser extends React.Component {
   }) => this.setState({
     identityProviderName: value
   });
-  handleDbmiProjectId = (e, {
+  handleRaasProjectId = (e, {
     value
   }) => this.setState({
     projectId: value

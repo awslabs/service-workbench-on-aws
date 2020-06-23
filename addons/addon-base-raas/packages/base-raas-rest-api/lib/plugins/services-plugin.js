@@ -12,7 +12,7 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-/*jshint esversion: 9 */
+
 
 const PluginRegistryService = require('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
 const UserAuthzService = require('@aws-ee/base-raas-services/lib/user/user-authz-service');
@@ -38,7 +38,7 @@ const ComputePlatformService = require('@aws-ee/base-raas-services/lib/compute/c
 const ComputePriceService = require('@aws-ee/base-raas-services/lib/compute/compute-price-service');
 const EnvironmentAuthzService = require('@aws-ee/base-raas-services/lib/environment/environment-authz-service');
 const EnvironmentMountService = require('@aws-ee/base-raas-services/lib/environment/environment-mount-service');
-const Auth0Service = require('@aws-ee/base-raas-services/lib/auth0-service');
+const Auth0Service = require('@aws-ee/base-raas-services/lib/user/auth0-service');
 
 const settingKeys = {
   tablePrefix: 'dbTablePrefix',
