@@ -207,6 +207,17 @@ class EnvironmentDetailPage extends React.Component {
     return this.renderPendingInfo();
   }
 
+  renderCostDetailsTabPane() {
+    return {
+      menuItem: 'Research Workspace Details',
+      render: () => (
+        <Tab.Pane attached={false}>
+          <Observer>{() => this.renderInstanceDetails()}</Observer>
+        </Tab.Pane>
+      ),
+    };
+  }
+
   renderCompletedTabs() {
     const environment = this.getEnvironment();
 
@@ -241,14 +252,7 @@ class EnvironmentDetailPage extends React.Component {
           </Tab.Pane>
         ),
       },
-      {
-        menuItem: 'Research Workspace Details',
-        render: () => (
-          <Tab.Pane attached={false}>
-            <Observer>{() => this.renderInstanceDetails()}</Observer>
-          </Tab.Pane>
-        ),
-      },
+      this.renderCostDetailsTabPane(),
       this.renderUserShareTabPane(),
     ];
 

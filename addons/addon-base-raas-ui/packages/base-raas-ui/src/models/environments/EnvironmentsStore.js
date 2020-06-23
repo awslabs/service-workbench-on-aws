@@ -25,6 +25,8 @@ import {
   getEnvironments,
   deleteEnvironment,
   createEnvironment,
+  startEnvironment,
+  stopEnvironment,
   getEnvironmentCost,
   getExternalTemplate,
   updateEnvironment,
@@ -98,6 +100,18 @@ const EnvironmentsStore = BaseStore.named('EnvironmentsStore')
         }
 
         return entry;
+      },
+
+      async stopEnvironment(environment) {
+        const uiEventBus = getEnv(self).uiEventBus;
+        await uiEventBus.fireEvent('environmentStopping', environment);
+        await stopEnvironment(environment.id);
+      },
+
+      async startEnvironment(environment) {
+        const uiEventBus = getEnv(self).uiEventBus;
+        await uiEventBus.fireEvent('environmentStarting', environment);
+        await startEnvironment(environment.id);
       },
 
       markAsTerminating: id => {
