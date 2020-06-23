@@ -18,7 +18,7 @@ import React from 'react';
 import { decorate, action } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
-import { Menu, Icon } from 'semantic-ui-react';
+import { Menu, Icon, Image } from 'semantic-ui-react';
 
 import { createLink } from '../helpers/routing';
 import { displayError } from '../helpers/notification';
@@ -79,9 +79,14 @@ class MainLayout extends React.Component {
       </Menu>,
 
       <Menu inverted color="black" fixed="top" className="box-shadow zindex-1500" key="ml2">
-        <Menu.Item className="m0 pt2 pl2 pr2" style={{ height: '30px' }}>
-          {/* <Image size="mini" src={logo} className="mr1" style={{ maxHeight: '20px' }}/> */}
-          {branding.main.title}
+        <Menu.Item style={{ height: '50px', verticalAlign: 'middle' }}>
+          <Image
+            size="mini"
+            src={this.props.assets.images.logoImage}
+            className="mr1"
+            style={{ height: '40px', width: 'auto' }}
+          />
+          <span style={{ paddingLeft: '5px' }}>{branding.main.title}</span>
         </Menu.Item>
         <Menu.Menu position="right">
           <Menu.Item>
@@ -110,4 +115,4 @@ decorate(MainLayout, {
   handleLogout: action,
 });
 
-export default inject('authentication', 'userStore')(withRouter(observer(MainLayout)));
+export default inject('authentication', 'userStore', 'assets')(withRouter(observer(MainLayout)));

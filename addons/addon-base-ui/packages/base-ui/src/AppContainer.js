@@ -29,6 +29,8 @@ import { branding } from './helpers/settings';
 class AppContainer extends Component {
   componentDidMount() {
     document.title = branding.page.title;
+    document.querySelector("link[rel='shortcut icon']").href = this.props.assets.images.faviconIcon;
+    document.querySelector("link[rel='icon']").href = this.props.assets.images.faviconImage;
   }
 
   render() {
@@ -76,4 +78,4 @@ class AppContainer extends Component {
   }
 }
 
-export default inject('pluginRegistry', 'app')(withRouter(observer(AppContainer)));
+export default inject('pluginRegistry', 'app', 'assets')(withRouter(observer(AppContainer)));
