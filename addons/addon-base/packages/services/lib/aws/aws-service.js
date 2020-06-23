@@ -32,6 +32,10 @@ class AwsService extends Service {
     await super.init();
     this._sdk = require('aws-sdk'); // eslint-disable-line global-require
 
+    // It's possible to get throttling errors during heavy load, so
+    // slow down and try more often in an attempt to recover from them.
+    this._sdk.config.update({ maxRetries: 6, retryDelayOptions: { base: 500 } });
+
     if (process.env.IS_OFFLINE || process.env.IS_LOCAL) {
       await this.prepareForLocal(this._sdk);
     }
@@ -45,7 +49,6 @@ class AwsService extends Service {
 
   async prepareForLocal(aws) {
     const sslEnabled = true;
-    const maxRetries = 3;
     const useProfile = this.settings.optionalBoolean(settingKeys.useAwsProfile, true);
 
     let profile;
@@ -72,7 +75,6 @@ class AwsService extends Service {
     aws.config.update({
       region,
       sslEnabled,
-      maxRetries,
       logger: console,
     });
 
