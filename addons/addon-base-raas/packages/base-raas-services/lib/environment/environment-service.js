@@ -102,13 +102,13 @@ class EnvironmentService extends Service {
     const envPromiseResolutions = await Promise.all(envPromises);
 
     const envAccessible = envPromiseResolutions
-      .map((isAccessible, index) => {
+      .map((permission, index) => {
         return {
-          isAccessible,
+          permission,
           environmentsIndex: envMap[index].environmentsIndex,
         };
       })
-      .filter(item => item.isAccessible);
+      .filter(item => item.permission.effect === 'allow');
 
     return [...envAccessible].map(item => environments[item.environmentsIndex]);
   }
