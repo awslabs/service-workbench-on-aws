@@ -79,7 +79,7 @@ class ProviderService extends Service {
           userRole: 'guest',
           status: 'inactive',
           rev: 0,
-          dbmiProjectId: [],
+          raasProjectId: [],
           isExternalUser: true,
           applyReason: 'N/A',
         });

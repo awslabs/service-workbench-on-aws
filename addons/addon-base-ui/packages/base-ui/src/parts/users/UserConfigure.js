@@ -31,7 +31,7 @@ class UserConfigure extends React.Component {
       view: 'detail',
       identityProviderName: 'auth0',
       status: 'active',
-      dbmiProjectId: [],
+      raasProjectId: [],
       userRole: '',
       modalOpen: false,
     };
@@ -44,7 +44,7 @@ class UserConfigure extends React.Component {
         this.props.usersStore,
         this.props.userRolesStore,
         this.props.awsAccountsStore,
-        this.props.dbmiProjectsStore,
+        this.props.raasProjectsStore,
       ]);
     });
     this.form = getUpdateUserConfigForm();
@@ -66,7 +66,7 @@ class UserConfigure extends React.Component {
       view: 'detail',
       identityProviderName: 'auth0',
       status: 'active',
-      dbmiProjectId: [],
+      raasProjectId: [],
       userRole: '',
     });
     this.props.usersStore.startHeartbeat();
@@ -90,7 +90,7 @@ class UserConfigure extends React.Component {
     this.props.usersStore.stopHeartbeat();
     this.setState({
       modalOpen: true,
-      dbmiProjectId: this.props.user.dbmiProjectId,
+      raasProjectId: this.props.user.raasProjectId,
       userRole: this.props.user.userRole,
     });
   };
@@ -114,7 +114,7 @@ class UserConfigure extends React.Component {
         <div className="mb1" />
         {this.renderField('identityProviderName')}
         <div className="mb1" />
-        {this.renderField('dbmiProjectId', null, (value = []) => value.join(', '))}
+        {this.renderField('raasProjectId', null, (value = []) => value.join(', '))}
         <div className="mb1" />
         {this.currentUser.status === 'pending' && this.renderField('applyReason')}
         <div className="mb1" />
@@ -199,8 +199,8 @@ class UserConfigure extends React.Component {
         <div className="mb2" />
         {this.adminMode && this.props.userRolesStore.getUserType(this.state.userRole) === 'INTERNAL' ? (
           <div>
-            {this.renderField('dbmiProjectId')}
-            {this.renderdbmiProjectIdSelection()}
+            {this.renderField('raasProjectId')}
+            {this.renderraasProjectIdSelection()}
           </div>
         ) : (
           ''
@@ -248,11 +248,11 @@ class UserConfigure extends React.Component {
   handleUserRoleSelection = (e, { value }) => {
     this.setState({ userRole: value });
     if (this.props.userRolesStore.getUserType(this.state.userRole) === 'EXTERNAL') {
-      this.setState({ dbmiProjectId: [] });
+      this.setState({ raasProjectId: [] });
     }
   };
 
-  handleDbmiProjectId = (e, { value }) => this.setState({ dbmiProjectId: value });
+  handleRaasProjectId = (e, { value }) => this.setState({ raasProjectId: value });
 
   handleIdentityProviderName = (e, { value }) => {
     this.setState({
@@ -274,16 +274,16 @@ class UserConfigure extends React.Component {
     );
   }
 
-  renderdbmiProjectIdSelection() {
-    const dbmiProjects = this.props.dbmiProjectsStore.dropdownOptions;
+  renderraasProjectIdSelection() {
+    const raasProjects = this.props.raasProjectsStore.dropdownOptions;
     return (
       <Dropdown
-        options={dbmiProjects}
+        options={raasProjects}
         fluid
         multiple
         selection
-        onChange={this.handleDbmiProjectId}
-        defaultValue={this.state.dbmiProjectId}
+        onChange={this.handleRaasProjectId}
+        defaultValue={this.state.raasProjectId}
       />
     );
   }
@@ -365,11 +365,11 @@ class UserConfigure extends React.Component {
         if (this.adminMode) {
           this.currentUser.userRole = this.state.userRole;
           this.currentUser.status = this.state.status;
-          this.currentUser.dbmiProjectId = this.state.dbmiProjectId;
+          this.currentUser.raasProjectId = this.state.raasProjectId;
 
           this.currentUser.isAdmin = this.state.userRole === 'admin';
           if (isExternalUser) {
-            this.currentUser.dbmiProjectId = [];
+            this.currentUser.raasProjectId = [];
           }
         }
 

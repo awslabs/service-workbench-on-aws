@@ -7,7 +7,7 @@ sudo sed -i /etc/profile -e "s#Path manipulation#Path manipulation\npathmunge /u
 PATH=$PATH:/usr/local/bin
 
 sudo chmod 777 /opt/
-git clone https://github.com/hms-dbmi/hail-on-AWS-spot-instances.git /opt/hail-on-AWS-spot-instances
+git clone https://github.com/hms-raas/hail-on-AWS-spot-instances.git /opt/hail-on-AWS-spot-instances
 
 # Fake that this is a master to start with
 sudo mkdir -p /mnt/var/lib/info

@@ -153,7 +153,7 @@ class Auth0Service extends Service {
     for (const i in userContent) {
       const auth0User = userContent[i];
       const isAdmin = auth0User.isAdmin === true;
-      const dbmiProjectId = _.isEmpty(auth0User.dbmiProjectId) ? [] : auth0User.dbmiProjectId;
+      const raasProjectId = _.isEmpty(auth0User.raasProjectId) ? [] : auth0User.raasProjectId;
       const toCreateUser = {
         username: auth0User.email,
         email: auth0User.email,
@@ -162,7 +162,7 @@ class Auth0Service extends Service {
         authenticationProviderId: auth0User.authenticationProviderId,
         identityProviderName: auth0User.identityProviderName,
         status: 'active',
-        dbmiProjectId,
+        raasProjectId,
       };
       if (!_.isEmpty(toCreateUser.email)) {
         const user = userService.findUser({

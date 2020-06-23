@@ -70,7 +70,7 @@ class AddUser extends React.Component {
       identityProviderName: value,
     });
 
-  handleDbmiProjectId = (e, { value }) =>
+  handleRaasProjectId = (e, { value }) =>
     this.setState({
       projectId: value,
     });
