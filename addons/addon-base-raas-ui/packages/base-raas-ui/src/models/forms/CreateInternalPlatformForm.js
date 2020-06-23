@@ -49,7 +49,7 @@ const getFields = ({ projectIdOptions, cidr }) => {
 
   if (!_.isUndefined(cidr)) {
     fields.cidr = {
-      label: 'Whitelisted CIDR',
+      label: 'Allowed CIDR',
       extra: {
         explain: `This research workspace will only be reachable from this CIDR. You can get your organization's CIDR range from your IT department. The provided default is the CIDR that restricts to your IP address.`,
       },

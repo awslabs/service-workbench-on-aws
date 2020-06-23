@@ -81,8 +81,8 @@ apiHandler:
         cors: true
   environment:
     APP_WEBSITE_URL: ${self:custom.settings.websiteUrl}
-    APP_CORS_WHITELIST: ${self:custom.settings.corsWhiteList}
-    APP_CORS_WHITELIST_LOCAL: ${self:custom.settings.corsWhiteListLocal}
+    APP_CORS_ALLOW_LIST: ${self:custom.settings.corsAllowList}
+    APP_CORS_ALLOW_LIST_LOCAL: ${self:custom.settings.corsAllowListLocal}
     APP_PARAM_STORE_JWT_SECRET: ${self:custom.settings.paramStoreJwtSecret}
     APP_JWT_OPTIONS: ${self:custom.settings.jwtOptions}
     APP_SM_WORKFLOW: ${self:custom.settings.workflowStateMachineArn}

@@ -149,19 +149,37 @@ module.exports = {
         ? { __suppressValidFileWarning: true } // prevents serverless from complaining about an empty object.
         : merged;
 
+    const { globalDeployment } = mergedSettingsObj;
+
+    // If a component is global (e.g. a Lambda@Edge function), it must be deployed
+    // to us-east-1, so modify the destination region setting here, and save the
+    // original region to the "additional region" setting, which will be used below
+    // to pull in cross-region CloudFormation outputs
+    if (globalDeployment) {
+      mergedSettingsObj.additionalAwsRegion = mergedSettingsObj.awsRegion;
+      mergedSettingsObj.awsRegion = 'us-east-1';
+    }
+
+    // If the destination region is not us-east-1, we still need access to CloudFormation
+    // outputs in us-east-1 for any global deployments, so use the "addtional region"
+    // setting to pull them in
+    if (mergedSettingsObj.awsRegion !== 'us-east-1') {
+      mergedSettingsObj.additionalAwsRegion = 'us-east-1';
+    }
+
     const { awsProfile, awsRegion } = mergedSettingsObj;
 
     // Adding AWS Account Context
     mergedSettingsObj.awsAccountInfo = await getAwsAccountInfo(awsProfile, awsRegion);
 
-    // Enrich settings with any cross region variables
-    // But only if the user has supplied the otherAwsRegion setting
-    if (crossRegionCloudFormation && 'otherAwsRegion' in mergedSettingsObj) {
-      const { otherAwsRegion } = mergedSettingsObj;
+    // Enrich settings with any cross-region variables if
+    // the additionalAwsRegion variable has been set above
+    if (crossRegionCloudFormation && 'additionalAwsRegion' in mergedSettingsObj) {
+      const { additionalAwsRegion } = mergedSettingsObj;
       const crossRegionSettings = await getCloudFormationCrossRegionValues(
         stage,
         awsProfile,
-        otherAwsRegion,
+        additionalAwsRegion,
         mergedSettingsObj,
         crossRegionCloudFormation,
       );

@@ -6,9 +6,6 @@ pushd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null
 [[ $UTIL_SOURCED != yes && -f ./util.sh ]] && source ./util.sh
 popd > /dev/null
 
-# Ensure settings file exists
-ensure_setttings_file "$@"
-
 # Install
 install_dependencies "$@"
 

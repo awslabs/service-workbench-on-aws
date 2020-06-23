@@ -8,7 +8,7 @@ apiUrl: ${cf:${self:custom.settings.backendStackName}.ServiceEndpoint}
 # related headers including "content-security-policy" header. The "connect-src" in that header lists the hosts the
 # browser should allow communication to for AJAX requests. See https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/connect-src
 #
-# The lambda whitelists the backend api calls. In addition, it also needs to whitelist the following endpoints
+# The lambda allows the backend api calls. In addition, it also needs to allow the following endpoints
 #
 # 1. Cloud Formation Endpoints
 # ------------------------------
@@ -19,11 +19,11 @@ apiUrl: ${cf:${self:custom.settings.backendStackName}.ServiceEndpoint}
 #
 #   This setting specifies the other connect-src values to be added to the "content-security-policy" header
 #
-#   Currently, whitelisting all AWS service endpoints across all regions using wildcard as follows
-#   This also takes care of whitelisting all S3 endpoints mentioned in #2 below
+#   Currently, allowing all AWS service endpoints across all regions using wildcard as follows
+#   This also takes care of allowing all S3 endpoints mentioned in #2 below
 #   otherConnectSrc: *.amazonaws.com
 #
-#   Alternatively you can whitelist all AWS CloudFormation service endpoints across all currently supported regions.
+#   Alternatively you can allow all AWS CloudFormation service endpoints across all currently supported regions.
 #   See https://docs.aws.amazon.com/general/latest/gr/cfn.html.
 #
 # 2. S3 Endpoints
@@ -36,10 +36,8 @@ apiUrl: ${cf:${self:custom.settings.backendStackName}.ServiceEndpoint}
 #otherConnectSrc: cloudformation.us-east-2.amazonaws.com cloudformation-fips.us-east-2.amazonaws.com cloudformation.us-east-1.amazonaws.com cloudformation-fips.us-east-1.amazonaws.com cloudformation.us-west-1.amazonaws.com cloudformation-fips.us-west-1.amazonaws.com cloudformation.us-west-2.amazonaws.com cloudformation-fips.us-west-2.amazonaws.com cloudformation.ap-south-1.amazonaws.com cloudformation.ap-northeast-3.amazonaws.com cloudformation.ap-northeast-2.amazonaws.com cloudformation.ap-southeast-1.amazonaws.com cloudformation.ap-southeast-2.amazonaws.com cloudformation.ap-northeast-1.amazonaws.com cloudformation.ca-central-1.amazonaws.com cloudformation.cn-north-1.amazonaws.com.cn cloudformation.cn-northwest-1.amazonaws.com.cn cloudformation.eu-central-1.amazonaws.com cloudformation.eu-west-1.amazonaws.com cloudformation.eu-west-2.amazonaws.com cloudformation.eu-west-3.amazonaws.com cloudformation.sa-east-1.amazonaws.com cloudformation.sa-east-1.amazonaws.com cloudformation.us-gov-west-1.amazonaws.com
 otherConnectSrc: '*.amazonaws.com'
 
-# The region to deploy to
-# DO NOT change the region here. This needs to be "us-east-1" irrespective of the AWS region you are deploying the rest
-# of the solution to.
-# The Lambda@Edge needs to be deployed only in US East Virginia (us-east-1) region and
-# it gets replicated to CloudFront edge locations when we associate it with CloudFront.
-# See https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-requirements-limits.html
-awsRegion: us-east-1
+# When this flag is set to true, the settings merge logic will override the awsRegion for this stack and
+# force it to us-east-1. This is necessary for Lambda@Edge because edge functions can only be deployed from
+# CloudFormation stacks in us-east-1 (see https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-requirements-limits.html).
+# The function is automatically replicated to Cloudfront edge locations in all regions.
+globalDeployment: true

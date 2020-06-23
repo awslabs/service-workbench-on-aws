@@ -13,6 +13,10 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
+# This sets STAGE to $1 if present and not null, otherwise it sets stage to
+# $STAGE from the environment if present, else it defaults to $USER
+STAGE="${1:-${STAGE:-$USER}}"
+
 pushd "${DIR}/.."  > /dev/null
 export SOLUTION_ROOT_DIR="${PWD}"
 export SOLUTION_DIR="${SOLUTION_ROOT_DIR}/main/solution"
@@ -22,6 +26,9 @@ popd > /dev/null
 
 function init_package_manager() {
   PACKAGE_MANAGER=pnpm
+  if ! command -v $PACKAGE_MANAGER; then
+    npm install -g pnpm
+  fi
   case "$PACKAGE_MANAGER" in
     yarn)
       EXEC="yarn run"
@@ -53,19 +60,4 @@ function install_dependencies() {
   pushd "$SOLUTION_DIR"
   [[ -n "$INSTALL_RECURSIVE" ]] && $INSTALL_RECURSIVE
   popd
-}
-
-function ensure_setttings_file() {
-  # Accept 1st argument. Default: username
-  STAGE=${1:-$USER}
-
-  ENVIRONMENT_CONFIG=$CONFIG_DIR/settings/$STAGE.yml
-
-  if ! test -f "$ENVIRONMENT_CONFIG"
-  then
-    printf "\nEnvironment configuration does not exist!"
-    printf "\nPlease either create the environment configuration by copying demo.yaml or make sure you typed the environment name correctly!\n\n"
-    printf "Exiting ...\n\n"
-    exit
-  fi
 }

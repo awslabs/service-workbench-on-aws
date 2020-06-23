@@ -21,9 +21,13 @@ custom:
   settings: ${file(./config/settings/.settings.js):merged}
   tags:
     Name: ${self:custom.settings.envName}-${self:service}
+  remover:
+    prompt: false
+    buckets:
+      - ${self:custom.settings.cicdAppArtifactBucketName}
+      - ${self:custom.settings.deploymentBucketName}
   hooks:
     'aws:deploy:finalize:cleanup':
-      - scripts/deploy-github-token.bash ${self:provider.stackName} ${self:custom.settings.tokenName}
       - scripts/upload-env-config.bash ${self:provider.deploymentBucket} ${self:custom.settings.stgEnvName}
       - scripts/upload-env-config.bash ${self:provider.deploymentBucket} ${self:custom.settings.envName}
 
@@ -34,3 +38,4 @@ resources:
 plugins:
   - serverless-deployment-bucket
   - serverless-hooks-plugin
+  - serverless-s3-remover

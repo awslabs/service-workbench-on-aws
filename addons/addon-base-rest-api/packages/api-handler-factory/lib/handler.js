@@ -56,11 +56,11 @@ function handlerFactory({ registerServices, registerRoutes }) {
 
     // setup CORS, compression and body parser
     const isDev = settingsService.get('envType') === 'dev';
-    let whitelist = settingsService.optionalObject('corsWhitelist', []);
-    if (isDev) whitelist = _.concat(whitelist, settingsService.optionalObject('corsWhitelistLocal', []));
+    let allowList = settingsService.optionalObject('corsAllowList', []);
+    if (isDev) allowList = _.concat(allowList, settingsService.optionalObject('corsAllowListLocal', []));
     const corsOptions = {
       origin: (origin, callback) => {
-        if (whitelist.indexOf(origin) !== -1) {
+        if (allowList.indexOf(origin) !== -1) {
           callback(null, true);
         } else {
           callback(null, false);
