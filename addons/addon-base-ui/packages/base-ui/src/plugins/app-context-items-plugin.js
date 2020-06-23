@@ -25,7 +25,10 @@ import * as authenticationProviderPublicConfigsStore from '../models/authenticat
 import * as userDisplayName from '../models/users/UserDisplayName';
 import * as usersStore from '../models/users/UsersStore';
 import * as userStore from '../models/users/UserStore';
+import faviconIcon from '../../images/favicon.ico';
+import faviconImage from '../../images/favicon-32x32.png';
 import loginImage from '../../images/login-image.gif';
+import logoImage from '../../images/logo-image.png';
 
 /**
  * Registers base stores to the appContext object
@@ -46,7 +49,10 @@ function registerAppContextItems(appContext) {
   userDisplayName.registerContextItems(appContext);
   usersStore.registerContextItems(appContext);
   userStore.registerContextItems(appContext);
+  appContext.assets.images.faviconIcon = faviconIcon;
+  appContext.assets.images.faviconImage = faviconImage;
   appContext.assets.images.loginImage = loginImage;
+  appContext.assets.images.logoImage = logoImage;
 }
 
 // eslint-disable-next-line no-unused-vars
