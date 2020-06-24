@@ -89,7 +89,7 @@ importers:
       babel-jest: 24.9.0_@babel+core@7.9.0
       babel-loader: 8.1.0_@babel+core@7.9.0+webpack@4.41.2
       enzyme: 3.11.0
-      enzyme-adapter-react-16: 1.15.2_react-dom@16.13.1+react@16.13.1
+      enzyme-adapter-react-16: 1.15.2_df2dc313d8031f8c2dbd009d86ca7fc7
       eslint: 6.8.0
       eslint-config-airbnb: 18.1.0_7221e9efc3e1df952f9031babfc371af
       eslint-config-prettier: 6.10.1_eslint@6.8.0
@@ -7939,8 +7939,9 @@ packages:
     dev: true
     resolution:
       integrity: sha512-bHz59NlBbtS0NhftmR8+ExBEekE7br0e01jw+kk0NDro7TtZzBYZ5ScGPs3OmwnpyfHTHOtr1Y6uedCdrIldtg==
-  /enzyme-adapter-react-16/1.15.2_react-dom@16.13.1+react@16.13.1:
+  /enzyme-adapter-react-16/1.15.2_df2dc313d8031f8c2dbd009d86ca7fc7:
     dependencies:
+      enzyme: 3.11.0
       enzyme-adapter-utils: 1.13.0_react@16.13.1
       enzyme-shallow-equal: 1.0.1
       has: 1.0.3
@@ -13306,6 +13307,11 @@ packages:
     dev: true
     resolution:
       integrity: sha512-gxh5Sgait8HyclaulfhgetHQGyhFm00ZQqISIfqtwFVnyWJ20rk+55SUamo9n3KhM6Vk63gemKPxIDYiSV/xZw==
+  /ncp/1.0.1:
+    dev: true
+    hasBin: true
+    resolution:
+      integrity: sha1-0VNn5cuHQyuhF9K/gP30Wuz7QkY=
   /nearley/2.19.4:
     dependencies:
       commander: 2.20.3
