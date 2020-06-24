@@ -178,7 +178,7 @@ class ProvisionEnvironment extends StepBase {
     // Update workflow state and poll for stack creation completion
     this.state.setKey('STATE_STACK_ID', response.StackId);
     await this.updateEnvironment({ stackId: response.StackId });
-    return this.wait(80)
+    return this.wait(20, true)
       .maxAttempts(120)
       .until('checkCfnCompleted');
   }
