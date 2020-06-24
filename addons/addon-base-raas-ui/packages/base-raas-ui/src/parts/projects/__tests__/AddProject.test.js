@@ -18,80 +18,73 @@ import { shallow } from 'enzyme';
 import { AddProject } from '../AddProject';
 
 const usersStore = {
-    asDropDownOptions: () => [
-        {
-            key: 'userABC',
-            value: 'userABC',
-            text: 'Dr. John Doe',
-        }
-    ]
+  asDropDownOptions: () => [
+    {
+      key: 'userABC',
+      value: 'userABC',
+      text: 'Dr. John Doe',
+    },
+  ],
 };
 
 const indexesStore = {
-    dropdownOptions: [
-        {
-            key: '1',
-            value: '123',
-            text: 'Index 123',
-        }
-    ],
+  dropdownOptions: [
+    {
+      key: '1',
+      value: '123',
+      text: 'Index 123',
+    },
+  ],
 };
 
 const projectsStore = {
-    addProject: jest.fn(),
+  addProject: jest.fn(),
 };
 
 describe('AddProject', () => {
+  let component = null;
+  let wrapper = null;
+  beforeEach(() => {
+    // Render AddProject component
+    wrapper = shallow(<AddProject indexesStore={indexesStore} usersStore={usersStore} projectsStore={projectsStore} />);
 
-    let component = null;
-    let wrapper = null;
-    beforeEach(() => {
-        // Render AddProject component
-        wrapper = shallow(
-            <AddProject
-                indexesStore={indexesStore}
-                usersStore={usersStore}
-                projectsStore={projectsStore}
-            />
-        );
+    // Get instance of the component
+    component = wrapper.instance();
 
-        // Get instance of the component
-        component = wrapper.instance();
+    // Mock goto function
+    component.goto = jest.fn();
+  });
 
-        // Mock goto function
-        component.goto = jest.fn();
-    });
+  it('should give an error if indexId is not present', async () => {
+    // Set project attributes, except indexId
+    component.project.id = 'my-research-project';
+    component.project.description = 'Some relevant description';
+    component.project.projectAdmins = ['userABC'];
 
-    it('should give an error if indexId is not present', async () => {
-        // Set project attributes, except indexId
-        component.project.id = 'my-research-project';
-        component.project.description = 'Some relevant description';
-        component.project.projectAdmins = ['userABC'];
+    // Submit form
+    await component.handleSubmit();
 
-        // Submit form
-        await component.handleSubmit();
+    // Verify an error is displayed
+    const errors = component.validationErrors.errors;
+    expect(errors.indexId).toBeDefined();
+    expect(errors.indexId).toContain('The indexId field is required.');
+  });
 
-        // Verify an error is displayed
-        const errors = component.validationErrors.errors;
-        expect(errors.indexId).toBeDefined();
-        expect(errors.indexId).toContain('The indexId field is required.');
-    });
+  it('should not give an error if indexId is provided', async () => {
+    // Set project attributes
+    component.project.id = 'my-research-project';
+    component.project.description = 'Some relevant description';
+    component.project.projectAdmins = ['userABC'];
 
-    it('should not give an error if indexId is provided', async () => {
-        // Set project attributes
-        component.project.id = 'my-research-project';
-        component.project.description = 'Some relevant description';
-        component.project.projectAdmins = ['userABC'];
+    // Also set indexId, which is in the component state for some reason
+    wrapper.setState({ indexId: '123' });
 
-        // Also set indexId, which is in the component state for some reason
-        wrapper.setState({ indexId: '123' });
+    // Submit form
+    await component.handleSubmit();
 
-        // Submit form
-        await component.handleSubmit();
-
-        // Verify addProject gets invoked
-        expect(component.validationErrors.errors).not.toBeDefined();
-        expect(projectsStore.addProject).toHaveBeenCalled();
-        expect(component.goto).toHaveBeenCalledWith('/accounts');
-    });
+    // Verify addProject gets invoked
+    expect(component.validationErrors.errors).not.toBeDefined();
+    expect(projectsStore.addProject).toHaveBeenCalled();
+    expect(component.goto).toHaveBeenCalledWith('/accounts');
+  });
 });
