@@ -189,7 +189,10 @@ const EnvironmentsStore = BaseStore.named('EnvironmentsStore')
         const environment = await createEnvironment({ ...rawEnvironment, accountId });
         const cfn = new CfnService(creds.accessKeyId, creds.secretAccessKey, creds.region);
         // Stacknaming combining datetime & randomString to avoid collisions when to workspaces are created at the same time
-        const name = `analysis-${new Date().getTime()}-${[...Array(12)].map(_ => (Math.random() * 36 | 0).toString(36)).join``}`;
+        const name =
+          `analysis` +
+          `-${new Date().getTime()}` +
+          `-${[...Array(12)].map(() => Math.round(Math.random() * 36).toString(36)).join('')}`;
         const params = await this.getExternalParams({ environment, name, creds });
         const url = await getExternalTemplate(`${type}.cfn.yml`);
         const response = await cfn.createStack(

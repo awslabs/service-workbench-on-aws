@@ -55,7 +55,10 @@ class ProvisionEnvironment extends StepBase {
     const environment = await environmentService.mustFind(requestContext, { id: environmentId });
     const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
     // Stacknaming combining datetime & randomString to avoid collisions when to workspaces are created at the same time
-    const stackName = `analysis-${new Date().getTime()}-${[...Array(12)].map(_ => (Math.random() * 36 | 0).toString(36)).join``}`;
+    const stackName =
+      `analysis` +
+      `-${new Date().getTime()}` +
+      `-${[...Array(12)].map(() => Math.round(Math.random() * 36).toString(36)).join('')}`;
 
     // Set initial state
     this.state.setKey('STATE_ENVIRONMENT_ID', environmentId);
