@@ -34,7 +34,7 @@ class AwsService extends Service {
 
     // It's possible to get throttling errors during heavy load, so
     // slow down and try more often in an attempt to recover from them.
-    this._sdk.config.update({ maxRetries: 6, retryDelayOptions: { base: 500 } });
+    this._sdk.config.update({ maxRetries: 6, retryDelayOptions: { base: 600 } });
     if (process.env.IS_OFFLINE || process.env.IS_LOCAL) {
       await this.prepareForLocal(this._sdk);
     }

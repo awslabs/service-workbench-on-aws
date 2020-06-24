@@ -182,7 +182,7 @@ class ProvisionEnvironment extends StepBase {
     // Update workflow state and poll for stack creation completion
     this.state.setKey('STATE_STACK_ID', response.StackId);
     await this.updateEnvironment({ stackId: response.StackId });
-    return this.wait(60, true)
+    return this.wait(80, true)
       .maxAttempts(120)
       .until('checkCfnCompleted');
   }
@@ -243,6 +243,8 @@ class ProvisionEnvironment extends StepBase {
     const cfn = await this.getCloudFormationService();
     const stackInfo = (await cfn.describeStacks({ StackName: stackId }).promise()).Stacks[0];
 
+    // Todo : Handle the case when CF Stack could not be created due to account limits 
+    // In that case we have (stackInfo.StackStatus = ROLLBACK_COMPLETED, stackInfo.StatusReason = undefined)
     if (STACK_FAILED.includes(stackInfo.StackStatus)) {
       throw new Error(`Stack operation failed with message: ${stackInfo.StackStatusReason}`);
     } else if (STACK_SUCCESS.includes(stackInfo.StackStatus)) {
