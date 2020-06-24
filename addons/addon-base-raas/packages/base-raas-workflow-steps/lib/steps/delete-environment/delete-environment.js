@@ -70,7 +70,7 @@ class DeleteEnvironment extends StepBase {
     ]);
 
     // Poll until the stack has been deleted
-    return this.wait(20)
+    return this.wait(60, true)
       .maxAttempts(120)
       .until('checkCfnCompleted')
       .thenCall('updateEnvironmentStatusToTerminated');
