@@ -177,6 +177,8 @@ class ProvisionEnvironment extends StepBase {
 
     // Create stack
     const cfn = await this.getCloudFormationService();
+    this.print('Calling CF createStack with input');
+    this.print(input);
     const response = await cfn.createStack(input).promise();
 
     // Update workflow state and poll for stack creation completion

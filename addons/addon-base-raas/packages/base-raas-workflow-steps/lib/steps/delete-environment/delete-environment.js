@@ -59,10 +59,12 @@ class DeleteEnvironment extends StepBase {
     // because the role was removed before the policy update. See
     // https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_principal.html
     // under IAM Roles
+    this.print('Removing Roles');
     await environmentMountService.removeRoleArnFromLocalResourcePolicies(
       environment.instanceInfo.WorkspaceInstanceRoleArn,
       environment.instanceInfo.s3Prefixes,
     );
+    this.print('deleting stack...');
     await Promise.all([
       this.deleteKeypair(),
       this.updateEnvironmentStatus('TERMINATING'),
