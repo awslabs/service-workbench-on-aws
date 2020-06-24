@@ -63,7 +63,7 @@ class StepBase {
    * @param {*} fuzz - If true, the waiting duration will be changed with a uniform randomization within the range [seconds - 30%, seconds + 30%]
    */
   wait(seconds, fuzz = false) {
-    if (fuzz) seconds = seconds + Math.round(seconds * 0.3 * (1 - 2 * Math.random()));
+    if (fuzz === true) seconds = seconds + Math.round(seconds * 0.3 * (1 - 2 * Math.random()));
     return new WaitDecisionBuilder(seconds);
   }
   pause(seconds) {
