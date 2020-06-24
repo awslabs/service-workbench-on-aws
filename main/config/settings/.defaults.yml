@@ -126,3 +126,4 @@ localRoleAutoAdjustTrust: false
 
 # Optional custom domain name; if empty, use the CloudFront domain name
 domainName: ''
+certificateArn: ''
