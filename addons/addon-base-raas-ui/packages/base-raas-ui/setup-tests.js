@@ -13,6 +13,9 @@
  *  permissions and limitations under the License.
  */
 
+/* eslint-disable import/no-extraneous-dependencies */
+/* eslint-disable import/no-unresolved */
+
 import { configure } from 'enzyme';
 import 'regenerator-runtime/runtime';
 import Adapter from 'enzyme-adapter-react-16';

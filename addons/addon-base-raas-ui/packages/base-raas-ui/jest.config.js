@@ -18,13 +18,8 @@ module.exports = {
   // verbose: true,
   notify: false,
   testEnvironment: 'node',
-  testPathIgnorePatterns: [
-    '/node_modules/',
-    '/dist/',
-  ],
-  setupFilesAfterEnv: [
-    '<rootDir>/setup-tests.js'
-  ],
+  testPathIgnorePatterns: ['/node_modules/', '/dist/'],
+  setupFilesAfterEnv: ['<rootDir>/setup-tests.js'],
   // Configure JUnit reporter as CodeBuild currently only supports JUnit or Cucumber reports
   // See https://docs.aws.amazon.com/codebuild/latest/userguide/test-reporting.html
   reporters: ['default', ['jest-junit', { suiteName: 'jest tests', outputDirectory: './.build/test' }]],
