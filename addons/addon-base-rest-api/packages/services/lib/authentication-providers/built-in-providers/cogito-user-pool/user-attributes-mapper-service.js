@@ -68,18 +68,31 @@ class UserAttributesMapperService extends Service {
   getUsername(decodedToken) {
     let username = decodedToken['cognito:username'];
     let usernameInIdp = username;
-    if (username.indexOf('\\') > -1) {
-      // the cognito username may contain backslash (in case the user is authenticated via some other identity provider
-      // via federation - such as SAML replace backslash with underscore in such case to satisfy various naming
-      // constraints in our code base this is because we use the username for automatically naming various dependent
-      // resources (such as IAM roles, policies, unix user groups etc) The backslash would not work in most of those
-      // cases
-      // Grab raw username on the IDP side. This is needed in certain situations
-      // For example, when creating user home directories on jupyter for LDAP users, the directory name needs to match
-      // username in IDP (i.e., AD or LDAP)
+
+    // The cognito username may contain \\ or | (in case the user is authenticated via some other identity provider
+    // via federation - such as SAML replace backslash with underscore in such case to satisfy various naming
+    // constraints in our code base this is because we use the username for automatically naming various dependent
+    // resources (such as IAM roles, policies, unix user groups etc) The backslash would not work in most of those
+    // cases
+    // Grab raw username on the IDP side. This is needed in certain situations
+    // For example, when creating user home directories on jupyter for LDAP users, the directory name needs to match
+    // username in IDP (i.e., AD or LDAP)
+
+    // Examples of how cognito:username may appear:
+    // User without federation: johndoe@example.com
+    // User with Auth0 federation: Auth0_auth0|5ef37c962da
+    // User with ADFS federation: ADFS\\123abc
+
+    if (username.includes('\\')) {
       usernameInIdp = _.split(username, '\\')[1];
       username = username.replace('\\', '_');
     }
+
+    if (username.includes('|')) {
+      usernameInIdp = _.split(username, '|')[1];
+      username = username.replace('|', '_');
+    }
+
     return { username, usernameInIdp };
   }
 }
