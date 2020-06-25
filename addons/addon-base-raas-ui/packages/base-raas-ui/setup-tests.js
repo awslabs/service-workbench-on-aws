@@ -13,7 +13,6 @@
  *  permissions and limitations under the License.
  */
 
-/* eslint-disable import/no-unresolved */
 /* eslint-disable import/no-extraneous-dependencies */
 
 import { configure } from 'enzyme';

@@ -74,7 +74,8 @@
     "typescript": "^3.7.5",
     "webpack": "4.41.2",
     "enzyme": "^3.11.0",
-    "enzyme-adapter-react-16": "^1.15.2"
+    "enzyme-adapter-react-16": "^1.15.2",
+    "regenerator-runtime": "^0.13.5"
   },
   "scripts": {
     "test": "NODE_ENV=test jest --config jest.config.js --passWithNoTests",
