@@ -56,13 +56,15 @@ describe('UserService', () => {
         email: 'example@amazon.com',
       };
 
+      // mocked functions
       service.toUserType = jest.fn(() => {
         return { userType: 'root' };
       });
       service.findUser = jest.fn(() => {
         return user;
       });
-      service.log = console;
+
+      // test
       try {
         await service.createUsers({}, [user], 'internal');
         expect.hasAssertions();
