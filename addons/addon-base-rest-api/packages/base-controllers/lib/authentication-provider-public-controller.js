@@ -66,6 +66,8 @@ async function configure(context) {
             delete cognitoPublicInfo.signInUri;
           }
 
+          // We always need to add cognito user pool info even if use native user pool flag = false
+          // For the exact reason, see the comment above.
           result.push(cognitoPublicInfo);
 
           // Add IdPs federating via Cognito as their own entries
@@ -80,6 +82,7 @@ async function configure(context) {
           });
         }
       });
+
       res.status(200).json(result);
     }),
   );
