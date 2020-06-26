@@ -162,4 +162,40 @@ describe('UserService', () => {
       }
     });
   });
+
+  describe('try to create multiple users', () => {
+    it('should call createUser 4 times', async () => {
+      const user1 = {
+        email: 'athos@dumas.com',
+        isAdmin: true,
+      };
+      const user2 = {
+        email: 'porthos@dumas.com',
+        isAdmin: true,
+      };
+      const user3 = {
+        email: 'aramis@dumas.com',
+        isAdmin: true,
+      };
+      const user4 = {
+        email: 'dArtagnan@alexandre.com',
+        isAdmin: false,
+      };
+
+      // Skip authorization
+      service.assertAuthorized = jest.fn();
+
+      // mocked functions
+      service.toUserType = jest.fn(() => {
+        return { userType: 'root' };
+      });
+      service.findUser = jest.fn(() => {
+        return null;
+      });
+      service.createUser = jest.fn();
+
+      await service.createUsers({}, [user1, user2, user3, user4], 'internal');
+      expect(service.createUser).toHaveBeenCalledTimes(4);
+    });
+  });
 });
