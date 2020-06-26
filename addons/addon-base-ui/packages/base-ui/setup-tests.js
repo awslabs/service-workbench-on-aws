@@ -13,13 +13,10 @@
  *  permissions and limitations under the License.
  */
 
-// jest.config.js
-module.exports = {
-  notify: false,
-  testEnvironment: 'node',
-  testPathIgnorePatterns: ['/node_modules/', '/dist/'],
-  setupFilesAfterEnv: ['<rootDir>/setup-tests.js'],
-  // Configure JUnit reporter as CodeBuild currently only supports JUnit or Cucumber reports
-  // See https://docs.aws.amazon.com/codebuild/latest/userguide/test-reporting.html
-  reporters: ['default', ['jest-junit', { suiteName: 'jest tests', outputDirectory: './.build/test' }]],
-};
+/* eslint-disable import/no-extraneous-dependencies */
+
+import { configure } from 'enzyme';
+import 'regenerator-runtime/runtime';
+import Adapter from 'enzyme-adapter-react-16';
+
+configure({ adapter: new Adapter() });
