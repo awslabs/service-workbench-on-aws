@@ -23,6 +23,7 @@ const addIndexFormFields = {
   },
   awsAccountId: {
     label: 'AWS Account ID',
+    rules: 'required|string',
   },
   description: {
     label: 'Description',

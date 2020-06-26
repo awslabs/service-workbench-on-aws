@@ -26,7 +26,7 @@ import validate from '@aws-ee/base-ui/dist/models/forms/Validate';
 
 import { getAddIndexForm, getAddIndexFormFields } from '../../models/forms/AddIndexForm';
 
-class AddIndex extends React.Component {
+export class AddIndex extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
@@ -175,6 +175,7 @@ class AddIndex extends React.Component {
     this.formProcessing = true;
     try {
       // Perform client side validations first
+      this.index.awsAccountId = this.state.awsAccountId;
       const validationResult = await validate(this.index, this.addIndexFormFields);
       // if there are any client side validation errors then do not attempt to make API call
       if (validationResult.fails()) {
@@ -184,7 +185,6 @@ class AddIndex extends React.Component {
         });
       } else {
         // There are no client side validation errors so ask the store to add user (which will make API call to server to add the user)
-        this.index.awsAccountId = this.state.awsAccountId;
         await this.props.indexesStore.addIndex(this.index);
         runInAction(() => {
           this.formProcessing = false;
