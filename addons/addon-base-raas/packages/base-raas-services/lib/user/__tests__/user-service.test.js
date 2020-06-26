@@ -53,10 +53,7 @@ describe('UserService', () => {
   describe('create a user', () => {
     it('should fail due because the user already exists', async () => {
       const user = {
-        isAdmin: true,
         email: 'example@amazon.com',
-        authenticationProviderId: 'internal',
-        userRole: 'dev',
       };
 
       service.toUserType = jest.fn(() => {
