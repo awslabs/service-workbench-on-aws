@@ -47,6 +47,29 @@ describe('UserService', () => {
     service = await container.find('userService');
   });
 
+  describe('create a non-existing user', () => {
+    it('should call createUser', async () => {
+      const user = {
+        email: 'example@amazon.com',
+      };
+
+      // Skip authorization
+      service.assertAuthorized = jest.fn();
+
+      // mocked functions
+      service.toUserType = jest.fn(() => {
+        return { userType: 'root' };
+      });
+      service.findUser = jest.fn(() => {
+        return null;
+      });
+      service.createUser = jest.fn();
+
+      await service.createUsers({}, [user], 'internal');
+      expect(service.createUser).toHaveBeenCalled();
+    });
+  });
+
   describe('create an existing user', () => {
     it('should fail due because the user already exists', async () => {
       const user = {
@@ -73,29 +96,6 @@ describe('UserService', () => {
         const error = err.payload[0];
         expect(error).toEqual('Error creating user example@amazon.com. Cannot add user. The user already exists.');
       }
-    });
-  });
-
-  describe('create a non-existing user', () => {
-    it('should call createUser', async () => {
-      const user = {
-        email: 'example@amazon.com',
-      };
-
-      // Skip authorization
-      service.assertAuthorized = jest.fn();
-
-      // mocked functions
-      service.toUserType = jest.fn(() => {
-        return { userType: 'root' };
-      });
-      service.findUser = jest.fn(() => {
-        return null;
-      });
-      service.createUser = jest.fn();
-
-      await service.createUsers({}, [user], 'internal');
-      expect(service.createUser).toHaveBeenCalled();
     });
   });
 
