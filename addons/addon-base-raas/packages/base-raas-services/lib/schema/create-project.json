@@ -38,8 +38,5 @@
       "default": []
     }
   },
-  "required": [
-    "id",
-    "indexId"
-  ]
+  "required": ["id", "indexId"]
 }
