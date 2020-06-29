@@ -15,7 +15,7 @@
 
 import React from 'react';
 import { shallow } from 'enzyme';
-import { AddProject } from '../AddProject';
+import AddProject from '../AddProject';
 
 const usersStore = {
   asDropDownOptions: () => [
@@ -46,7 +46,9 @@ describe('AddProject', () => {
   let wrapper = null;
   beforeEach(() => {
     // Render AddProject component
-    wrapper = shallow(<AddProject indexesStore={indexesStore} usersStore={usersStore} projectsStore={projectsStore} />);
+    wrapper = shallow(
+      <AddProject.WrappedComponent indexesStore={indexesStore} projectsStore={projectsStore} usersStore={usersStore} />,
+    );
 
     // Get instance of the component
     component = wrapper.instance();

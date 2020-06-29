@@ -26,7 +26,7 @@ import validate from '@aws-ee/base-ui/dist/models/forms/Validate';
 
 import { getAddIndexForm, getAddIndexFormFields } from '../../models/forms/AddIndexForm';
 
-export class AddIndex extends React.Component {
+class AddIndex extends React.Component {
   constructor(props) {
     super(props);
     this.state = {

@@ -26,7 +26,7 @@ import validate from '@aws-ee/base-ui/dist/models/forms/Validate';
 
 import { getAddProjectForm, getAddProjectFormFields } from '../../models/forms/AddProjectForm';
 
-export class AddProject extends React.Component {
+class AddProject extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
