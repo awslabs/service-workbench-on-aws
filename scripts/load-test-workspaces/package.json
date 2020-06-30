@@ -4,13 +4,30 @@
   "description": "Load testing for the creation, the access and the deletion of workspaces",
   "author": "Amazon Web Services",
   "license": "Apache 2.0",
-  "main": "load-test-workspaces.js",
+  "main": "load-test.js",
   "scripts": {
-    "start": "echo \"This script should be run directily with node\" && node load-test-workspaces.js --help",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "echo \"This script should be run directily with node\" && node load-test.js help",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "pnpm run lint:eslint && pnpm run lint:prettier",
+    "lint:eslint": "eslint --ignore-path .gitignore . ",
+    "lint:prettier": "prettier --check --ignore-path .gitignore '**/*.{js,jsx}' ",
+    "format": "pnpm run format:eslint && pnpm run format:prettier",
+    "format:eslint": "eslint --fix --ignore-path .gitignore . ",
+    "format:prettier": "prettier --write --ignore-path .gitignore '**/*.{js,jsx}' "
   },
   "devDependencies": {
-    "aws-sdk": "^2.667.0",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb": "^18.1.0",
+    "eslint-config-airbnb-base": "^14.1.0",
+    "eslint-config-prettier": "^6.10.0",
+    "eslint-import-resolver-node": "^0.3.3",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-jest": "^22.21.0",
+    "eslint-plugin-prettier": "^3.1.2",
+    "prettier": "^2.0.5"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.708.0",
     "yargs": "^15.3.1"
   }
 }
