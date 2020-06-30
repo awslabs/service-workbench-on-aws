@@ -13,6 +13,8 @@
  *  permissions and limitations under the License.
  */
 
+const { fuzz } = require('@aws-ee/base-services/lib/helpers/utils');
+
 const StepBase = require('@aws-ee/base-workflow-core/lib/workflow/helpers/step-base');
 
 const STACK_FAILED = [
@@ -70,7 +72,7 @@ class DeleteEnvironment extends StepBase {
     ]);
 
     // Poll until the stack has been deleted
-    return this.wait(20)
+    return this.wait(fuzz(80))
       .maxAttempts(120)
       .until('checkCfnCompleted')
       .thenCall('updateEnvironmentStatusToTerminated');

@@ -7,6 +7,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@aws-ee/base-workflow-core": "workspace:*",
+    "@aws-ee/base-services": "workspace:*",
     "lodash": "^4.17.15",
     "shortid": "^2.2.15",
     "slugify": "^1.4.0"
@@ -33,7 +34,7 @@
     "lint": "pnpm run lint:eslint && pnpm run lint:prettier",
     "lint:eslint": "eslint --quiet --ignore-path .gitignore . || true",
     "lint:prettier": "prettier --check --ignore-path .gitignore '**/*.{js,jsx}' || true",
-    "format": "pnpm run format:eslint; yarn run format:prettier",
+    "format": "pnpm run format:eslint; pnpm run format:prettier",
     "format:eslint": "eslint --fix --ignore-path .gitignore . || true",
     "format:prettier": "prettier --write --ignore-path .gitignore '**/*.{js,jsx}' || true"
   },

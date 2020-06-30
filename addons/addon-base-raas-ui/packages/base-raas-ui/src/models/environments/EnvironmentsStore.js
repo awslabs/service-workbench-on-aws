@@ -19,6 +19,7 @@ import { displayWarning } from '@aws-ee/base-ui/dist/helpers/notification';
 import { consolidateToMap, storage } from '@aws-ee/base-ui/dist/helpers/utils';
 import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
 
+import { randomString } from '@aws-ee/base-services/lib/helpers/utils';
 import { getEstimatedCost } from '../../helpers/externalCostUtil';
 import localStorageKeys from '../constants/local-storage-keys';
 import {
@@ -202,7 +203,8 @@ const EnvironmentsStore = BaseStore.named('EnvironmentsStore')
         // We first call the backend because it will enrich with id and the imageId if needed
         const environment = await createEnvironment({ ...rawEnvironment, accountId });
         const cfn = new CfnService(creds.accessKeyId, creds.secretAccessKey, creds.region);
-        const name = `analysis-${new Date().getTime()}`;
+        // Stack naming combines datetime & randomString to avoid collisions when two workspaces are created at the same time
+        const name = `analysis-${new Date().getTime()}-${randomString(10)}`;
         const params = await this.getExternalParams({ environment, name, creds });
         const url = await getExternalTemplate(`${type}.cfn.yml`);
         const response = await cfn.createStack(
