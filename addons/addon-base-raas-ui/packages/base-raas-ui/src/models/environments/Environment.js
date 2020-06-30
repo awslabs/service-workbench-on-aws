@@ -91,6 +91,14 @@ const Environment = types
       self.status = 'TERMINATING';
     },
 
+    markAsStopping() {
+      self.status = 'STOPPING';
+    },
+
+    markAsStarting() {
+      self.status = 'STARTING';
+    },
+
     async getKeyPair() {
       return getEnvironmentKeypair(self.id, `${self.id}.pem`);
     },
@@ -131,6 +139,20 @@ function registerContextItems(appContext) {
     listener: async event => {
       // event will be the environment object
       event.markAsTerminating();
+    },
+  });
+  uiEventBus.listenTo('environmentStopping', {
+    id: 'Environment',
+    listener: async event => {
+      // event will be the environment object
+      event.markAsStopping();
+    },
+  });
+  uiEventBus.listenTo('environmentStarting', {
+    id: 'Environment',
+    listener: async event => {
+      // event will be the environment object
+      event.markAsStarting();
     },
   });
 }
