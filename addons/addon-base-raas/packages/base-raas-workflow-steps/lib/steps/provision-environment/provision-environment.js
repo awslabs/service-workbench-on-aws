@@ -14,6 +14,7 @@
  */
 
 const _ = require('lodash');
+const { fuzz, randomString } = require('@aws-ee/base-services/lib/helpers/utils');
 const StepBase = require('@aws-ee/base-workflow-core/lib/workflow/helpers/step-base');
 
 const STACK_FAILED = [
@@ -54,7 +55,8 @@ class ProvisionEnvironment extends StepBase {
     ]);
     const environment = await environmentService.mustFind(requestContext, { id: environmentId });
     const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
-    const stackName = `analysis-${new Date().getTime()}`;
+    // Stack naming combines datetime & randomString to avoid collisions when two workspaces are created at the same time
+    const stackName = `analysis-${new Date().getTime()}-${randomString(10)}`;
 
     // Set initial state
     this.state.setKey('STATE_ENVIRONMENT_ID', environmentId);
@@ -178,7 +180,7 @@ class ProvisionEnvironment extends StepBase {
     // Update workflow state and poll for stack creation completion
     this.state.setKey('STATE_STACK_ID', response.StackId);
     await this.updateEnvironment({ stackId: response.StackId });
-    return this.wait(20)
+    return this.wait(fuzz(80))
       .maxAttempts(120)
       .until('checkCfnCompleted');
   }

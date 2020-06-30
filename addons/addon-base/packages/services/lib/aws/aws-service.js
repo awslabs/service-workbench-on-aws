@@ -32,6 +32,9 @@ class AwsService extends Service {
     await super.init();
     this._sdk = require('aws-sdk'); // eslint-disable-line global-require
 
+    // It's possible to get throttling errors during heavy load due to the rate limit of aws apis calls,
+    // so slow down and try more often in an attempt to recover from these errors.
+    this._sdk.config.update({ maxRetries: 6, retryDelayOptions: { base: 1000 } });
     if (process.env.IS_OFFLINE || process.env.IS_LOCAL) {
       await this.prepareForLocal(this._sdk);
     }

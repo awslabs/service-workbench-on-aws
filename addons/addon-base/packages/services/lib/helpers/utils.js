@@ -163,6 +163,23 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+/**
+ * Returns a random integer from the uniform range [baseNumber * (1 - fuzzing), baseNumber * (1 + fuzzing)].
+ * @param {Number} baseNumber - Base number.
+ * @param {Number} fuzzing - Percentage of fuzzing that determines the width of the range. Default value is 0.3.
+ */
+function fuzz(baseNumber, fuzzing = 0.3) {
+  return Math.round(baseNumber + baseNumber * fuzzing * (1 - 2 * Math.random()));
+}
+
+/**
+ * Generates a random alphanumeric string of a given length.
+ * @param {Number} strLength
+ */
+function randomString(strLength = 10) {
+  return [...Array(strLength)].map(() => Math.round(Math.random() * 36).toString(36)).join('');
+}
+
 module.exports = {
   toVersionString,
   parseVersionString,
@@ -173,4 +190,6 @@ module.exports = {
   processInBatches,
   processSequentially,
   sleep,
+  fuzz,
+  randomString,
 };
