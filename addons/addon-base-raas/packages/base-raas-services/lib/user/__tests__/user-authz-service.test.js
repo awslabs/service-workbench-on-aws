@@ -55,29 +55,19 @@ describe('UserAuthzService', () => {
   });
 
   describe('authorizeCreateBulk test', () => {
-    it('should authorize cases according to permissions', async () => {
-      // mock functions to allow all requests
+    it('should not allow non-admins to create users', async () => {
+      // BUILD
       const notActiveNotAdmin = {};
 
       const activeNotAdmin = {
         principal: { status: 'active' },
       };
 
-      const notActiveAdmin = {
-        principal: { isAdmin: true },
-      };
-      const activeAdmin = {
-        principal: {
-          status: 'active',
-          isAdmin: true,
-        },
-      };
-
+      // OPERATE
       const notActiveNotAdminTest = await service.authorizeCreateBulk(notActiveNotAdmin, { action: 'test' });
       const activeNotAdminTest = await service.authorizeCreateBulk(activeNotAdmin, { action: 'test' });
-      const notActiveAdminTest = await service.authorizeCreateBulk(notActiveAdmin, { action: 'test' });
-      const activeAdminTest = await service.authorizeCreateBulk(activeAdmin, { action: 'test' });
 
+      // CHECK
       expect(notActiveNotAdminTest).toMatchObject({
         effect: 'deny',
         reason: {
@@ -92,6 +82,25 @@ describe('UserAuthzService', () => {
           safe: false,
         },
       });
+    });
+
+    it('should only allow active admins to create users', async () => {
+      // BUILD
+      const notActiveAdmin = {
+        principal: { isAdmin: true },
+      };
+      const activeAdmin = {
+        principal: {
+          status: 'active',
+          isAdmin: true,
+        },
+      };
+
+      // OPERATE
+      const notActiveAdminTest = await service.authorizeCreateBulk(notActiveAdmin, { action: 'test' });
+      const activeAdminTest = await service.authorizeCreateBulk(activeAdmin, { action: 'test' });
+
+      // CHECK
       expect(notActiveAdminTest).toMatchObject({
         effect: 'deny',
         reason: {
@@ -106,7 +115,7 @@ describe('UserAuthzService', () => {
   });
 
   describe('authorizeUpdate test', () => {
-    it('should only allow active admins or active users in the request context', async () => {
+    it('should only allow active users in the request context to update', async () => {
       const testContext = {
         principalIdentifier: {
           username: 'Arthur Anderson',
@@ -114,13 +123,6 @@ describe('UserAuthzService', () => {
         },
         principal: {
           status: 'active',
-        },
-      };
-
-      const testContextAdmin = {
-        principal: {
-          status: 'active',
-          isAdmin: true,
         },
       };
 
@@ -148,18 +150,75 @@ describe('UserAuthzService', () => {
       const testUserInContext = await service.authorizeUpdate(testContext, {}, userInContext);
       const testPendingInactiveUserInContext = await service.authorizeUpdate(testContext, {}, pendingUserInContext);
       const testUserNotInContext = await service.authorizeUpdate(testContext, {}, userNoContext);
-      const testAdminNotInContext = await service.authorizeUpdate(testContextAdmin, {}, userInContext);
 
       expect(testUserInContext).toMatchObject({ effect: 'allow' });
       expect(testPendingInactiveUserInContext).toMatchObject({ effect: 'deny' });
       expect(testUserNotInContext).toMatchObject({ effect: 'deny' });
+    });
+
+    it('should allow active admins to update', async () => {
+      // BUILD
+      const testContextAdmin = {
+        principal: {
+          status: 'active',
+          isAdmin: true,
+        },
+      };
+      const user = {
+        identityProviderName: 'Sir Charms',
+        authenticationProviderId: 'Magically Delicious',
+        username: 'Lucky',
+        status: 'completed',
+      };
+
+      // OPERATE
+      const testAdminNotInContext = await service.authorizeUpdate(testContextAdmin, {}, user);
+
+      // CHECK
       expect(testAdminNotInContext).toMatchObject({ effect: 'allow' });
     });
   });
 
   describe('authorizeUpdateAttributes test', () => {
-    it('should allow users to change attributes of users with same or lower permissions', async () => {
+    const unprotAttr = {
+      randomAttrib: 'string',
+    };
+    const protAttr = {
+      userRole: 'string',
+    };
+    const existingUser = {
+      isExternalUser: false,
+      userRole: 'Suifu',
+      authenticationProviderId: 'Queequeg',
+      isAdmin: false,
+      projectId: 'Rokovoko',
+      randomAttrib: 'Kujira',
+      userType: 'tree',
+    };
+    const existingRootUser = {
+      userRole: 'Suifu',
+      authenticationProviderId: 'Fedallah',
+      projectId: 'Tashtego',
+      randomAttrib: 'Daggoo',
+      userType: 'root',
+    };
 
+    it('should only allow users to change unprotected attributes of other users', async () => {
+      // BUILD
+
+      // OPERATE
+      const userUserUnprot = await service.authorizeUpdateAttributes({}, {}, unprotAttr, existingUser);
+      const userUserProt = await service.authorizeUpdateAttributes({}, {}, protAttr, existingUser);
+      const userRootUnprot = await service.authorizeUpdateAttributes({}, {}, unprotAttr, existingRootUser);
+
+      // CHECK
+      expect(userUserUnprot).toMatchObject({ effect: 'allow' });
+      expect(userUserProt).toMatchObject({ effect: 'deny' });
+      expect(userRootUnprot).toMatchObject({ effect: 'deny' });
+    });
+
+    it('should allow admins to change any attribute of other non-root users', async () => {
+      // BUILD
       const adminContext = {
         principal: {
           status: 'active',
@@ -168,6 +227,19 @@ describe('UserAuthzService', () => {
         },
       };
 
+      // OPERATE
+      const adminUserUnprot = await service.authorizeUpdateAttributes(adminContext, {}, unprotAttr, existingUser);
+      const adminRootUnprot = await service.authorizeUpdateAttributes(adminContext, {}, unprotAttr, existingRootUser);
+      const adminUserProt = await service.authorizeUpdateAttributes(adminContext, {}, protAttr, existingUser);
+
+      // CHECK
+      expect(adminUserUnprot).toMatchObject({ effect: 'allow' });
+      expect(adminRootUnprot).toMatchObject({ effect: 'deny' });
+      expect(adminUserProt).toMatchObject({ effect: 'allow' });
+    });
+
+    it('should allow root to change anything except other root protected permissions', async () => {
+      // BUILD
       const rootContext = {
         principal: {
           status: 'active',
@@ -176,57 +248,13 @@ describe('UserAuthzService', () => {
         },
       };
 
-      const existingUser = {
-        isExternalUser: false,
-        userRole: 'Suifu',
-        authenticationProviderId: 'Queequeg',
-        isAdmin: false,
-        projectId: 'Rokovoko',
-        randomAttrib: 'Kujira',
-        userType: 'tree',
-      };
-
-      const existingRootUser = {
-        userRole: 'Suifu',
-        authenticationProviderId: 'Fedallah',
-        projectId: 'Tashtego',
-        randomAttrib: 'Daggoo',
-        userType: 'root',
-      };
-
-      const unprotAttr = {
-        randomAttrib: 'sakana',
-      };
-
-      const protAttr = {
-        userRole: 'yari wo nagetsukeru',
-      };
-
-      const userUserUnprot = await service.authorizeUpdateAttributes({}, {}, unprotAttr, existingUser);
-      const userRootUnprot = await service.authorizeUpdateAttributes({}, {}, unprotAttr, existingRootUser);
-      const userUserProt = await service.authorizeUpdateAttributes({}, {}, protAttr, existingUser);
-      const userRootProt = await service.authorizeUpdateAttributes({}, {}, protAttr, existingRootUser);
-
-      const adminUserUnprot = await service.authorizeUpdateAttributes(adminContext, {}, unprotAttr, existingUser);
-      const adminRootUnprot = await service.authorizeUpdateAttributes(adminContext, {}, unprotAttr, existingRootUser);
-      const adminUserProt = await service.authorizeUpdateAttributes(adminContext, {}, protAttr, existingUser);
-      const adminRootProt = await service.authorizeUpdateAttributes(adminContext, {}, protAttr, existingRootUser);
-
+      // OPERATE
       const rootUserUnprot = await service.authorizeUpdateAttributes(rootContext, {}, unprotAttr, existingUser);
       const rootRootUnprot = await service.authorizeUpdateAttributes(rootContext, {}, unprotAttr, existingRootUser);
       const rootUserProt = await service.authorizeUpdateAttributes(rootContext, {}, protAttr, existingUser);
       const rootRootProt = await service.authorizeUpdateAttributes(rootContext, {}, protAttr, existingRootUser);
 
-      expect(userUserUnprot).toMatchObject({ effect: 'allow' });
-      expect(userRootUnprot).toMatchObject({ effect: 'deny' });
-      expect(userUserProt).toMatchObject({ effect: 'deny' });
-      expect(userRootProt).toMatchObject({ effect: 'deny' });
-
-      expect(adminUserUnprot).toMatchObject({ effect: 'allow' });
-      expect(adminRootUnprot).toMatchObject({ effect: 'deny' });
-      expect(adminUserProt).toMatchObject({ effect: 'allow' });
-      expect(adminRootProt).toMatchObject({ effect: 'deny' });
-
+      // CHECK
       expect(rootUserUnprot).toMatchObject({ effect: 'allow' });
       expect(rootRootUnprot).toMatchObject({ effect: 'allow' });
       expect(rootUserProt).toMatchObject({ effect: 'allow' });

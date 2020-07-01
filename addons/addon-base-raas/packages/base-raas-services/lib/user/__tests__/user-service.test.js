@@ -45,16 +45,16 @@ describe('UserService', () => {
 
     // Get instance of the service we are testing
     service = await container.find('userService');
+
+    // Skip authorization
+    service.assertAuthorized = jest.fn();
   });
 
-  describe('create a non-existing user', () => {
-    it('should call createUser', async () => {
+  describe('createUsers', () => {
+    it('should try to create a user', async () => {
       const user = {
         email: 'example@amazon.com',
       };
-
-      // Skip authorization
-      service.assertAuthorized = jest.fn();
 
       // mocked functions
       service.toUserType = jest.fn(() => {
@@ -68,35 +68,30 @@ describe('UserService', () => {
       await service.createUsers({}, [user], 'internal');
       expect(service.createUser).toHaveBeenCalled();
     });
-  });
 
-  describe('create an existing user', () => {
     it('should fail due because the user already exists', async () => {
+      // BUILD
       const user = {
         email: 'example@amazon.com',
       };
 
-      // Skip authorization
-      service.assertAuthorized = jest.fn();
-
-      // mocked functions
       service.toUserType = jest.fn().mockResolvedValue({ userType: 'root' });
       service.findUser = jest.fn().mockResolvedValue(user);
 
-      // test
+      // OPERATE
       try {
         await service.createUsers({}, [user], 'internal');
         expect.hasAssertions();
       } catch (err) {
+        // CHECK
         expect(err.payload).toBeDefined();
         const error = err.payload[0];
         expect(error).toEqual('Error creating user example@amazon.com. Cannot add user. The user already exists.');
       }
     });
-  });
 
-  describe('create a user with same email but different name', () => {
     it('should fail because a duplicate user exists', async () => {
+      // BUILD
       const user1 = {
         email: 'example@amazon.com',
         firstName: 'Bill',
@@ -108,7 +103,7 @@ describe('UserService', () => {
         firstName: 'theScience',
         lastName: 'Guy',
       };
-      // mocked functions
+
       service.toUserType = jest.fn(() => {
         return { userType: 'root' };
       });
@@ -117,19 +112,20 @@ describe('UserService', () => {
       });
       service.createUser = jest.fn();
 
+      // OPERATE
       try {
         await service.createUsers({}, [user2], 'internal');
         expect.hasAssertions();
       } catch (err) {
+        // CHECK
         expect(err.payload).toBeDefined();
         const error = err.payload[0];
         expect(error).toEqual('Error creating user example@amazon.com. Cannot add user. The user already exists.');
       }
     });
-  });
 
-  describe('try to create a user without permissions', () => {
     it('should fail because of insufficient permissions', async () => {
+      // BUILD
       const user = {
         email: 'example@amazon.com',
       };
@@ -139,7 +135,6 @@ describe('UserService', () => {
         return false;
       });
 
-      // mocked functions
       service.toUserType = jest.fn(() => {
         return { userType: 'root' };
       });
@@ -147,20 +142,20 @@ describe('UserService', () => {
         return null;
       });
 
-      // test
+      // OPERATE
       try {
         await service.createUsers({}, [user], 'internal');
         expect.hasAssertions();
       } catch (err) {
+        // CHECK
         expect(err.payload).toBeDefined();
         const error = err.payload[0];
         expect(error).toEqual('Error creating user example@amazon.com');
       }
     });
-  });
 
-  describe('try to create multiple users', () => {
     it('should call createUser 4 times', async () => {
+      // BUILD
       const user1 = {
         email: 'athos@dumas.com',
         isAdmin: true,
@@ -178,10 +173,6 @@ describe('UserService', () => {
         isAdmin: false,
       };
 
-      // Skip authorization
-      service.assertAuthorized = jest.fn();
-
-      // mocked functions
       service.toUserType = jest.fn(() => {
         return { userType: 'root' };
       });
@@ -190,7 +181,10 @@ describe('UserService', () => {
       });
       service.createUser = jest.fn();
 
+      // OPERATE
       await service.createUsers({}, [user1, user2, user3, user4], 'internal');
+
+      // CHECK
       expect(service.createUser).toHaveBeenCalledTimes(4);
     });
   });
