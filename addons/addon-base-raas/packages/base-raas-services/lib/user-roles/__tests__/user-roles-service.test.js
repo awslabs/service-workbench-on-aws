@@ -21,6 +21,7 @@ const UserRolesService = require('../user-roles-service');
 // create, update, delete
 describe('UserRolesService', () => {
   let service = null;
+  let dbService = null;
   beforeAll(async () => {
     const container = new ServicesContainer();
     container.register('jsonSchemaValidationService', new JsonSchemaValidationServiceMock());
@@ -32,6 +33,7 @@ describe('UserRolesService', () => {
     await container.initServices();
 
     service = await container.find('userRolesService');
+    dbService = await container.find('dbService');
 
     // skip authorization
     service.assertAuthorized = jest.fn();
@@ -64,10 +66,18 @@ describe('UserRolesService', () => {
         id: 'testFAIL',
       };
 
+      // Mock dynamodb throwing an error because item.id already exists
+      const error = { code: 'ConditionalCheckFailedException' };
+      dbService.table.update.mockImplementationOnce(() => {
+        throw error;
+      });
+
       try {
         await service.create({}, roleToCreate);
         expect.hasAssertions();
       } catch (err) {
+        expect(dbService.table.condition).toHaveBeenCalledWith('attribute_not_exists(id)');
+        expect(dbService.table.key).toHaveBeenCalledWith({ id: 'testFAIL' });
         expect(err.message).toEqual('userRoles with id "testFAIL" already exists');
       }
     });
@@ -105,6 +115,12 @@ describe('UserRolesService', () => {
       };
       service.find = jest.fn().mockResolvedValue(undefined);
 
+      // Mock dynamodb throwing an error because item.id does not exist
+      const error = { code: 'ConditionalCheckFailedException' };
+      dbService.table.update.mockImplementationOnce(() => {
+        throw error;
+      });
+
       // OPERATE
       try {
         await service.update({}, datum);
@@ -119,7 +135,15 @@ describe('UserRolesService', () => {
       // BUILD
       const datum = {
         id: 'testFAIL',
+        rev: 'v1',
       };
+
+      // Mock dynamodb throwing an error because revision has already been updated
+      const error = { code: 'ConditionalCheckFailedException' };
+      dbService.table.update.mockImplementationOnce(() => {
+        throw error;
+      });
+
       service.find = jest.fn().mockResolvedValue({ updatedBy: { username: 'tsukuyomi' } });
 
       // OPERATE
@@ -128,6 +152,7 @@ describe('UserRolesService', () => {
         expect.hasAssertions();
       } catch (err) {
         // CHECK
+        expect(dbService.table.rev).toHaveBeenCalledWith('v1');
         expect(err.message).toEqual(
           'userRoles information changed by "tsukuyomi" just before your request is processed, please try again',
         );
@@ -142,12 +167,20 @@ describe('UserRolesService', () => {
         id: 'testFAIL',
       };
 
+      // Mock dynamodb throwing an error because item.id does not exist
+      const error = { code: 'ConditionalCheckFailedException' };
+      dbService.table.delete.mockImplementationOnce(() => {
+        throw error;
+      });
+
       // OPERATE
       try {
         await service.delete({}, datum);
         expect.hasAssertions();
       } catch (err) {
         // CHECK
+        expect(dbService.table.key).toHaveBeenCalledWith({ id: 'testFAIL' });
+        expect(dbService.table.delete).toHaveBeenCalled();
         expect(err.message).toEqual('userRoles with id "testFAIL" does not exist');
       }
     });
