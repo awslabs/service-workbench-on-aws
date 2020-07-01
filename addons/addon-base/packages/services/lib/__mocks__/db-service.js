@@ -18,27 +18,6 @@ const Service = require('@aws-ee/base-services-container/lib/service');
 class DbService extends Service {
   async init() {
     this.client = {};
-
-    const updaterRetVal = jest.fn(() => ({
-      condition: jest.fn(() => ({
-        key: jest.fn(() => ({
-          rev: jest.fn(() => ({
-            item: jest.fn(() => ({
-              update: jest.fn(),
-            })),
-          })),
-        })),
-      })),
-    }));
-
-    const deleterRetVal = jest.fn(() => ({
-      condition: jest.fn(() => ({
-        key: jest.fn(() => ({
-          delete: jest.fn(),
-        })),
-      })),
-    }));
-
     const scan = jest.fn(() => [
       {
         id: 'Test_ID',
@@ -47,13 +26,37 @@ class DbService extends Service {
     const table = jest.fn(() => ({
       scan,
     }));
+
+    // pass an object with id: testFAIL to make this method fail
+    // otherwise it mocks a completed function
+    const keyFn = ipt => {
+      const error = { code: 'ConditionalCheckFailedException' };
+      if (ipt.id === 'testFAIL') {
+        throw error;
+      } else {
+        return {
+          rev: jest.fn().mockReturnThis(),
+          delete: jest.fn().mockReturnThis(),
+          item: jest.fn(() => ({
+            update: jest.fn(),
+          })),
+        };
+      }
+    };
+
+    const testRetVal = jest.fn(() => ({
+      condition: jest.fn(() => ({
+        key: jest.fn(keyFn),
+      })),
+    }));
+
     this.helper = {
       unmarshal: {},
       scanner: jest.fn(() => ({ table })),
-      updater: jest.fn(() => ({ table: updaterRetVal })),
+      updater: jest.fn(() => ({ table: testRetVal })),
       getter: jest.fn(() => ({ table })),
       query: jest.fn(() => ({ table })),
-      deleter: jest.fn(() => ({ table: deleterRetVal })),
+      deleter: jest.fn(() => ({ table: testRetVal })),
     };
   }
 }

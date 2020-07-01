@@ -15,12 +15,12 @@
 
 import _ from 'lodash';
 import React from 'react';
-import { observable, action, decorate, runInAction } from 'mobx';
+import { withRouter } from 'react-router-dom';
+import { observable, action, decorate, runInAction, computed } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { Button, Form, Grid, Header, Segment, Label, Input, Select, Image } from 'semantic-ui-react';
 
 import { displayError } from '../helpers/notification';
-import { swallowError } from '../helpers/utils';
 import { branding } from '../helpers/settings';
 
 // From https://github.com/Semantic-Org/Semantic-UI-React/blob/master/docs/app/Layouts/LoginLayout.js
@@ -40,6 +40,11 @@ class Login extends React.Component {
       this.authenticationProviderError = '';
       this.usernameError = '';
       this.passwordError = '';
+
+      // When the login page is shown, we default to the auth provider id of the first provider
+      // in the this.authProviderOptions list
+      const authentication = this.props.authentication;
+      authentication.setSelectedAuthenticationProviderId(_.get(this.authProviderOptions, '[0].key', ''));
     });
   }
 
@@ -47,9 +52,21 @@ class Login extends React.Component {
     return this.props.authenticationProviderPublicConfigsStore;
   }
 
-  componentDidMount() {
+  get authProviderOptions() {
+    const params = new URL(document.location).searchParams;
+    const showInternal = _.isString(params.get('internal'));
     const store = this.getStore();
-    swallowError(store.load());
+    const options = store.authenticationProviderOptions;
+    const size = _.size(options);
+
+    // If we have one or zero options, we don't want to filter them, otherwise
+    // we might be filtering the only option available.
+    if (size <= 1) return options;
+
+    return _.filter(store.authenticationProviderOptions, config => {
+      if (config.key === 'internal' && showInternal) return true;
+      return config.key !== 'internal';
+    });
   }
 
   handleChange = name =>
@@ -128,15 +145,10 @@ class Login extends React.Component {
       );
   });
 
-  getAuthenticationProviderOptions = () => {
-    const authenticationProviderPublicConfigsStore = this.props.authenticationProviderPublicConfigsStore;
-    return authenticationProviderPublicConfigsStore.authenticationProviderOptions;
-  };
-
   render() {
     const error = !!(this.usernameError || this.passwordError || this.authenticationProviderError);
 
-    const authenticationProviderOptions = this.getAuthenticationProviderOptions();
+    const authenticationProviderOptions = this.authProviderOptions;
     const selectedAuthenticationProviderId = this.props.authentication.selectedAuthenticationProviderId;
 
     const renderAuthenticationProviders = () => {
@@ -257,6 +269,11 @@ decorate(Login, {
   authenticationProviderError: observable,
   usernameError: observable,
   passwordError: observable,
+  authProviderOptions: computed,
 });
 
-export default inject('authentication', 'authenticationProviderPublicConfigsStore', 'assets')(observer(Login));
+export default inject(
+  'authentication',
+  'authenticationProviderPublicConfigsStore',
+  'assets',
+)(withRouter(observer(Login)));

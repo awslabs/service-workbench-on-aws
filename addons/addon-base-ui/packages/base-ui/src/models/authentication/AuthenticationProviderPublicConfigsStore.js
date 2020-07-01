@@ -25,43 +25,52 @@ const AuthenticationProviderPublicConfigsStore = BaseStore.named('Authentication
   })
   .actions(self => ({
     async doLoad() {
-      const authenticationProviderPublicConfigs = await getAuthenticationProviderPublicConfigs();
+      const configs = await getAuthenticationProviderPublicConfigs();
+
       self.runInAction(() => {
-        self.authenticationProviderPublicConfigs = authenticationProviderPublicConfigs;
-        if (self.authenticationProviderPublicConfigs && !_.isEmpty(self.authenticationProviderPublicConfigs)) {
-          const authentication = getEnv(self).authentication;
-          authentication.setSelectedAuthenticationProviderId(self.authenticationProviderPublicConfigs[0].id);
-        }
+        self.authenticationProviderPublicConfigs = configs;
+        const authentication = getEnv(self).authentication;
+        const selected = _.get(configs, '[0].id', '');
+        authentication.setSelectedAuthenticationProviderId(selected);
       });
     },
   }))
   .views(self => ({
     get authenticationProviderOptions() {
-      if (self.authenticationProviderPublicConfigs && !_.isEmpty(self.authenticationProviderPublicConfigs)) {
-        const authProviderOptions = self.authenticationProviderPublicConfigs
-          // Remove user pools as an option if native users are disabled
-          .filter(
-            config =>
-              config.type !== 'cognito_user_pool' ||
-              (config.type === 'cognito_user_pool' && config.enableNativeUserPoolUsers),
-          )
-          .map(config => ({
-            key: config.id,
-            text: config.title,
-            value: config.id,
-          }));
-        return authProviderOptions;
+      const size = _.size(self.authenticationProviderPublicConfigs);
+
+      // We don't do any filtering if we only have one configuration
+      if (size === 1) {
+        const entry = self.authenticationProviderPublicConfigs[0];
+        return [
+          {
+            key: entry.id,
+            text: entry.title,
+            value: entry.id,
+          },
+        ];
       }
-      return [];
+
+      // We need to loop through all the configurations and remove any entry
+      // that is of type cognito_user_pool but only if enableNativeUserPoolUsers = false
+      const result = [];
+      _.forEach(self.authenticationProviderPublicConfigs, config => {
+        if (config.type === 'cognito_user_pool' && !config.enableNativeUserPoolUsers) return;
+        result.push({
+          key: config.id,
+          text: config.title,
+          value: config.id,
+        });
+      });
+
+      return result;
     },
 
     toAuthenticationProviderFromId(authenticationProviderId) {
-      if (self.authenticationProviderPublicConfigs && !_.isEmpty(self.authenticationProviderPublicConfigs)) {
-        return _.find(self.authenticationProviderPublicConfigs, { id: authenticationProviderId });
-      }
-      return undefined;
+      return _.find(self.authenticationProviderPublicConfigs, { id: authenticationProviderId });
     },
   }));
+
 function registerContextItems(appContext) {
   appContext.authenticationProviderPublicConfigsStore = AuthenticationProviderPublicConfigsStore.create({}, appContext);
 }

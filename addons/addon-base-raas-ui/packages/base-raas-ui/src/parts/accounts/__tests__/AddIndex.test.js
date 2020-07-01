@@ -15,7 +15,7 @@
 
 import React from 'react';
 import { shallow } from 'enzyme';
-import { AddIndex } from '../AddIndex';
+import AddIndex from '../AddIndex';
 
 const usersStore = {
   asDropDownOptions: () => [
@@ -47,7 +47,11 @@ describe('AddIndex', () => {
   beforeEach(() => {
     // Render AddIndex component
     wrapper = shallow(
-      <AddIndex indexesStore={indexesStore} usersStore={usersStore} awsAccountsStore={awsAccountsStore} />,
+      <AddIndex.WrappedComponent
+        indexesStore={indexesStore}
+        usersStore={usersStore}
+        awsAccountsStore={awsAccountsStore}
+      />,
     );
 
     // Get instance of the component
