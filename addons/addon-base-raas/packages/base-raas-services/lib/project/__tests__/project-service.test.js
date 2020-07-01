@@ -32,7 +32,7 @@ const ProjectService = require('../project-service');
 
 describe('ProjectService', () => {
   let service = null;
-  beforeEach(async () => {
+  beforeAll(async () => {
     // Initialize services container and register dependencies
     const container = new ServicesContainer();
     container.register('jsonSchemaValidationService', new JsonSchemaValidationService());
@@ -45,6 +45,9 @@ describe('ProjectService', () => {
 
     // Get instance of the service we are testing
     service = await container.find('projectService');
+
+    // Skip authorization
+    service.assertAuthorized = jest.fn();
   });
 
   describe('create', () => {
@@ -54,9 +57,6 @@ describe('ProjectService', () => {
         description: 'Some relevant description',
         indexId: '', // empty indexId should cause error
       };
-
-      // Skip authorization
-      service.assertAuthorized = jest.fn();
 
       try {
         await service.create({}, project);
@@ -80,9 +80,6 @@ describe('ProjectService', () => {
         projectAdmins: ['test@example.com'], // projectAdmins is not an object list
       };
 
-      // Skip authorization
-      service.assertAuthorized = jest.fn();
-
       try {
         await service.create({}, project);
         expect.hasAssertions();
@@ -103,9 +100,6 @@ describe('ProjectService', () => {
         description: 'Some relevant description',
         indexId: '123',
       };
-
-      // Skip authorization
-      service.assertAuthorized = jest.fn();
 
       try {
         await service.create({}, project);
@@ -131,16 +125,8 @@ describe('ProjectService', () => {
         rev: 1,
       };
 
-      // Skip authorization
-      service.assertAuthorized = jest.fn();
-
-      try {
-        await service.update({}, project);
-        expect.hasAssertions();
-        expect(service.update).toHaveBeenCalledTimes();
-      } catch (err) {
-        expect(err.payload).not.toBeDefined();
-      }
+      // Happy-path: Make sure no exceptions are thrown
+      await expect(() => service.update({}, project)).not.toThrow();
     });
 
     it('should fail if id is empty', async () => {
@@ -150,9 +136,6 @@ describe('ProjectService', () => {
         indexId: '123',
         rev: 1,
       };
-
-      // Skip authorization
-      service.assertAuthorized = jest.fn();
 
       try {
         await service.update({}, project);
@@ -177,9 +160,6 @@ describe('ProjectService', () => {
       // empty rev should cause error
     };
 
-    // Skip authorization
-    service.assertAuthorized = jest.fn();
-
     try {
       await service.update({}, project);
       expect.hasAssertions();
@@ -198,29 +178,22 @@ describe('ProjectService', () => {
 
   describe('delete', () => {
     it('should NOT fail if an environment is not linked to project', async () => {
-      // Skip authorization
-      service.assertAuthorized = jest.fn();
-
-      try {
-        // 'Test_ID' id is present on the db-service manual mock file.
-        // Using that as a project ID reference for delete
-        await service.delete({}, { id: 'Not_Test_ID' }); // Different that 'Test_ID'
-      } catch (err) {
-        expect(err.message).not.toEqual('Deletion could not be completed. Project is linked to existing resources');
-      }
+      // 'Test_ID' id is present on the db-service manual mock file.
+      // Using that as a project ID reference for delete
+      // Happy-path: Make sure no exceptions are thrown
+      await expect(() => service.delete({}, { id: 'Not_Test_ID' })).not.toThrow(); // Different that 'Test_ID'
     });
 
     it('should fail if an environment is linked to project', async () => {
-      // Skip authorization
-      service.assertAuthorized = jest.fn();
-
       try {
         // 'Test_ID' id is present on the db-service manual mock file.
         // Using that as a project ID reference for delete
         await service.delete({}, { id: 'Test_ID' });
         expect.hasAssertions();
       } catch (err) {
-        expect(err.message).toEqual('Deletion could not be completed. Project is linked to existing resources');
+        expect(err).toEqual(
+          service.boom.badRequest('Deletion could not be completed. Project is linked to existing resources'),
+        );
       }
     });
   });

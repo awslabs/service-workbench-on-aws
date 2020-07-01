@@ -18,6 +18,27 @@ const Service = require('@aws-ee/base-services-container/lib/service');
 class DbService extends Service {
   async init() {
     this.client = {};
+
+    const updaterRetVal = jest.fn(() => ({
+      condition: jest.fn(() => ({
+        key: jest.fn(() => ({
+          rev: jest.fn(() => ({
+            item: jest.fn(() => ({
+              update: jest.fn(),
+            })),
+          })),
+        })),
+      })),
+    }));
+
+    const deleterRetVal = jest.fn(() => ({
+      condition: jest.fn(() => ({
+        key: jest.fn(() => ({
+          delete: jest.fn(),
+        })),
+      })),
+    }));
+
     const scan = jest.fn(() => [
       {
         id: 'Test_ID',
@@ -29,10 +50,10 @@ class DbService extends Service {
     this.helper = {
       unmarshal: {},
       scanner: jest.fn(() => ({ table })),
-      updater: jest.fn(() => ({ table })),
+      updater: jest.fn(() => ({ table: updaterRetVal })),
       getter: jest.fn(() => ({ table })),
       query: jest.fn(() => ({ table })),
-      deleter: jest.fn(() => ({ table })),
+      deleter: jest.fn(() => ({ table: deleterRetVal })),
     };
   }
 }
