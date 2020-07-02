@@ -32,7 +32,7 @@ const ProjectService = require('../project-service');
 
 describe('ProjectService', () => {
   let service = null;
-  beforeEach(async () => {
+  beforeAll(async () => {
     // Initialize services container and register dependencies
     const container = new ServicesContainer();
     container.register('jsonSchemaValidationService', new JsonSchemaValidationService());
@@ -45,6 +45,9 @@ describe('ProjectService', () => {
 
     // Get instance of the service we are testing
     service = await container.find('projectService');
+
+    // Skip authorization
+    service.assertAuthorized = jest.fn();
   });
 
   describe('create', () => {
@@ -54,9 +57,6 @@ describe('ProjectService', () => {
         description: 'Some relevant description',
         indexId: '', // empty indexId should cause error
       };
-
-      // Skip authorization
-      service.assertAuthorized = jest.fn();
 
       try {
         await service.create({}, project);
@@ -69,6 +69,131 @@ describe('ProjectService', () => {
           dataPath: '.indexId',
           message: 'should NOT be shorter than 1 characters',
         });
+      }
+    });
+
+    it('should fail if projectAdmins is not an object', async () => {
+      const project = {
+        id: 'my-new-project',
+        description: 'Some relevant description',
+        indexId: '123',
+        projectAdmins: ['test@example.com'], // projectAdmins is not an object list
+      };
+
+      try {
+        await service.create({}, project);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(err.payload).toBeDefined();
+        const error = err.payload.validationErrors[0];
+        expect(error).toMatchObject({
+          keyword: 'type',
+          dataPath: '.projectAdmins[0]',
+          message: 'should be object',
+        });
+      }
+    });
+
+    it('should fail if id is empty', async () => {
+      const project = {
+        id: '', // empty id should cause error
+        description: 'Some relevant description',
+        indexId: '123',
+      };
+
+      try {
+        await service.create({}, project);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(err.payload).toBeDefined();
+        const error = err.payload.validationErrors[0];
+        expect(error).toMatchObject({
+          keyword: 'minLength',
+          dataPath: '.id',
+          message: 'should NOT be shorter than 1 characters',
+        });
+      }
+    });
+  });
+
+  describe('update', () => {
+    it('should NOT fail for all required properties present', async () => {
+      const project = {
+        id: 'my-new-project',
+        description: 'Some relevant description',
+        indexId: '123',
+        rev: 1,
+      };
+
+      // Happy-path: Make sure no exceptions are thrown
+      await expect(() => service.update({}, project)).not.toThrow();
+    });
+
+    it('should fail if id is empty', async () => {
+      const project = {
+        id: '', // empty id should cause error
+        description: 'Some relevant description',
+        indexId: '123',
+        rev: 1,
+      };
+
+      try {
+        await service.update({}, project);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(err.payload).toBeDefined();
+        const error = err.payload.validationErrors[0];
+        expect(error).toMatchObject({
+          keyword: 'minLength',
+          dataPath: '.id',
+          message: 'should NOT be shorter than 1 characters',
+        });
+      }
+    });
+  });
+
+  it('should fail if rev is empty', async () => {
+    const project = {
+      id: 'my-new-project',
+      description: 'Some relevant description',
+      indexId: '123',
+      // empty rev should cause error
+    };
+
+    try {
+      await service.update({}, project);
+      expect.hasAssertions();
+    } catch (err) {
+      expect(err.payload).toBeDefined();
+      const error = err.payload.validationErrors[0];
+      expect(error).toMatchObject({
+        keyword: 'required',
+        dataPath: '',
+        schemaPath: '#/required',
+        params: { missingProperty: 'rev' },
+        message: "should have required property 'rev'",
+      });
+    }
+  });
+
+  describe('delete', () => {
+    it('should NOT fail if an environment is not linked to project', async () => {
+      // 'Test_ID' id is present on the db-service manual mock file.
+      // Using that as a project ID reference for delete
+      // Happy-path: Make sure no exceptions are thrown
+      await expect(() => service.delete({}, { id: 'Not_Test_ID' })).not.toThrow(); // Different that 'Test_ID'
+    });
+
+    it('should fail if an environment is linked to project', async () => {
+      try {
+        // 'Test_ID' id is present on the db-service manual mock file.
+        // Using that as a project ID reference for delete
+        await service.delete({}, { id: 'Test_ID' });
+        expect.hasAssertions();
+      } catch (err) {
+        expect(err).toEqual(
+          service.boom.badRequest('Deletion could not be completed. Project is linked to existing resources'),
+        );
       }
     });
   });
