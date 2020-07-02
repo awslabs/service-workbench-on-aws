@@ -1,7 +1,5 @@
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
-
-jest.mock('@aws-ee/base-services/lib/json-schema-validation-service');
-const JsonSchemaValidationServiceMock = require('@aws-ee/base-services/lib/json-schema-validation-service');
+const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
 
 // Mocked dependencies
 jest.mock('@aws-ee/base-services/lib/db-service');
@@ -24,7 +22,7 @@ describe('UserRolesService', () => {
   let dbService = null;
   beforeAll(async () => {
     const container = new ServicesContainer();
-    container.register('jsonSchemaValidationService', new JsonSchemaValidationServiceMock());
+    container.register('jsonSchemaValidationService', new JsonSchemaValidationService());
     container.register('dbService', new DbServiceMock());
     container.register('authorizationService', new AuthServiceMock());
     container.register('auditWriterService', new AuditServiceMock());
@@ -42,14 +40,26 @@ describe('UserRolesService', () => {
   // create() currently assumes 'updatedBy' is always a user (see line 74 / 114)
   // if/when that is changed, we will need another unit test
   describe('create test', () => {
+    it('should fail if no id is provided', async () => {
+      const roleToCreate = {
+        description: 'this is gonna be great!',
+        userType: 'EXTERNAL',
+      };
+
+      try {
+        await service.create({}, roleToCreate);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(err.message).toEqual('Input has validation errors');
+      }
+    });
+
     it('should successfully log an audit event saying a user role was created', async () => {
       // BUILD
       const roleToCreate = {
-        properties: {
-          id: 'Murasaki Shikibu',
-          description: 'Hikaru Genji no inochi monogatari desu',
-          userType: 'internal',
-        },
+        id: 'Murasaki Shikibu',
+        description: 'Hikaru Genji no inochi monogatari desu',
+        userType: 'INTERNAL',
       };
 
       service.audit = jest.fn();
@@ -64,6 +74,7 @@ describe('UserRolesService', () => {
     it('should fail because the id already exists', async () => {
       const roleToCreate = {
         id: 'testFAIL',
+        userType: 'INTERNAL',
       };
 
       // Mock dynamodb throwing an error because item.id already exists
@@ -95,7 +106,8 @@ describe('UserRolesService', () => {
 
       const datum = {
         id: 'yasakani no magatama',
-        rev: 'yata no kagami',
+        rev: 1,
+        userType: 'INTERNAL',
       };
 
       service.audit = jest.fn();
@@ -111,7 +123,8 @@ describe('UserRolesService', () => {
       // BUILD
       const datum = {
         id: 'testFAIL',
-        rev: 'kusanagi no tsurugi',
+        rev: 1,
+        userType: 'EXTERNAL',
       };
       service.find = jest.fn().mockResolvedValue(undefined);
 
@@ -135,7 +148,8 @@ describe('UserRolesService', () => {
       // BUILD
       const datum = {
         id: 'testFAIL',
-        rev: 'v1',
+        rev: 1,
+        userType: 'INTERNAL',
       };
 
       // Mock dynamodb throwing an error because revision has already been updated
@@ -152,10 +166,26 @@ describe('UserRolesService', () => {
         expect.hasAssertions();
       } catch (err) {
         // CHECK
-        expect(dbService.table.rev).toHaveBeenCalledWith('v1');
+        expect(dbService.table.rev).toHaveBeenCalledWith(1);
         expect(err.message).toEqual(
           'userRoles information changed by "tsukuyomi" just before your request is processed, please try again',
         );
+      }
+    });
+
+    it('should fail because no value for rev was provided', async () => {
+      // BUILD
+      const ipt = {
+        id: 'testFAIL',
+        userType: 'INTERNAL',
+      };
+
+      // OPERATE
+      try {
+        await service.update({}, ipt);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(err.message).toEqual('Input has validation errors');
       }
     });
   });

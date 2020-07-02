@@ -1,11 +1,9 @@
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
+const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
 
 // Mocked dependencies
 jest.mock('@aws-ee/base-services/lib/db-service');
 const DbServiceMock = require('@aws-ee/base-services/lib/db-service');
-
-jest.mock('@aws-ee/base-services/lib/json-schema-validation-service');
-const JsonSchemaValidationServiceMock = require('@aws-ee/base-services/lib/json-schema-validation-service');
 
 jest.mock('@aws-ee/base-services/lib/authorization/authorization-service');
 const AuthServiceMock = require('@aws-ee/base-services/lib/authorization/authorization-service');
@@ -31,7 +29,7 @@ describe('accountService', () => {
   const error = { code: 'ConditionalCheckFailedException' };
   beforeAll(async () => {
     const container = new ServicesContainer();
-    container.register('jsonSchemaValidationService', new JsonSchemaValidationServiceMock());
+    container.register('jsonSchemaValidationService', new JsonSchemaValidationService());
     container.register('dbService', new DbServiceMock());
     container.register('authorizationService', new AuthServiceMock());
     container.register('auditWriterService', new AuditServiceMock());
@@ -55,9 +53,7 @@ describe('accountService', () => {
         expect.hasAssertions();
       } catch (err) {
         // CHECK
-        expect(err.message).toEqual(
-          'Creating AWS account process has not been correctly configured: missing IAM role, External ID, AWS account ID, VPC ID and VPC Subnet ID.',
-        );
+        expect(err.message).toEqual('Input has validation errors');
       }
     });
 
@@ -66,6 +62,9 @@ describe('accountService', () => {
       const dataMissing = {
         accountName: 'Winston Bishop',
         accountEmail: 'beanbagchair@example.com',
+        masterRoleArn: '',
+        externalId: '',
+        description: '',
       };
 
       // OPERATE
@@ -101,7 +100,7 @@ describe('accountService', () => {
           action: 'provision-account',
           body: {
             accountName: "Who's that girl?",
-            accountEmail: "It's jest!",
+            accountEmail: 'itsjest@example.com',
             description: 'A classic nodejs-lodash mess-around',
           },
         },
@@ -110,6 +109,20 @@ describe('accountService', () => {
   });
 
   describe('update tests', () => {
+    it('should fail if no id is provided', async () => {
+      // BUILD
+      const acct = {
+        stackId: 'example-stack-id',
+      };
+      // OPERATE
+      try {
+        await service.update({}, acct);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(err.message).toEqual('Input has validation errors');
+      }
+    });
+
     it('should fail because the account does not exist', async () => {
       // BUILD
       service.find = jest.fn().mockResolvedValue(undefined);
@@ -126,10 +139,9 @@ describe('accountService', () => {
     it('should should fail to find the environment id', async () => {
       // BUILD
       const existingAcct = {
-        cfnInfo: "there's a feather in your shoe!",
+        id: 'testFAIL',
       };
       const iptData = {
-        cfnInfo: "there's a badger in your wedding!",
         id: 'testFAIL',
       };
 
@@ -149,10 +161,10 @@ describe('accountService', () => {
     it('should successfully try to update the account', async () => {
       // BUILD
       const existingAcct = {
-        cfnInfo: 'Where did ya come from, Cotton-Eyed Joe?',
+        id: 'schmidt',
       };
       const iptData = {
-        cfnInfo: 'Is there a blueberry in my cereal?',
+        id: 'bishop',
       };
       service.mustFind = jest.fn().mockResolvedValue(existingAcct);
       service.audit = jest.fn();
@@ -174,7 +186,7 @@ describe('accountService', () => {
   describe('delete tests', () => {
     it('should fail because the id does not exist', async () => {
       // BUILD
-      dbService.table.update.mockImplementationOnce(() => {
+      dbService.table.delete.mockImplementationOnce(() => {
         throw error;
       });
 
