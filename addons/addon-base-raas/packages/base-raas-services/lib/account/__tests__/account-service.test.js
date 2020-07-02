@@ -27,6 +27,8 @@ const AccountService = require('../account-service');
 // Tested Methods: provisionAccount, update, delete
 describe('accountService', () => {
   let service = null;
+  let dbService = null;
+  const error = { code: 'ConditionalCheckFailedException' };
   beforeAll(async () => {
     const container = new ServicesContainer();
     container.register('jsonSchemaValidationService', new JsonSchemaValidationServiceMock());
@@ -40,7 +42,7 @@ describe('accountService', () => {
     await container.initServices();
 
     service = await container.find('accountService');
-
+    dbService = await container.find('dbService');
     service.assertAuthorized = jest.fn();
   });
 
@@ -62,8 +64,8 @@ describe('accountService', () => {
     it('should fail to create account with partial credentials', async () => {
       // BUILD
       const dataMissing = {
-        accountName: 'Jessica Day',
-        accountEmail: 'winston.bishop@beanbagchair.org',
+        accountName: 'Winston Bishop',
+        accountEmail: 'beanbagchair@example.com',
       };
 
       // OPERATE
@@ -82,7 +84,7 @@ describe('accountService', () => {
       // BUILD
       const iptData = {
         accountName: "Who's that girl?",
-        accountEmail: "It's jest!",
+        accountEmail: 'itsjest@example.com',
         masterRoleArn: 'reagan :/',
         externalId: '837 Traction Ave',
         description: 'A classic nodejs-lodash mess-around',
@@ -131,6 +133,9 @@ describe('accountService', () => {
         id: 'testFAIL',
       };
 
+      dbService.table.update.mockImplementationOnce(() => {
+        throw error;
+      });
       service.mustFind = jest.fn().mockResolvedValue(existingAcct);
 
       try {
@@ -169,6 +174,9 @@ describe('accountService', () => {
   describe('delete tests', () => {
     it('should fail because the id does not exist', async () => {
       // BUILD
+      dbService.table.update.mockImplementationOnce(() => {
+        throw error;
+      });
 
       // OPERATE
       try {
