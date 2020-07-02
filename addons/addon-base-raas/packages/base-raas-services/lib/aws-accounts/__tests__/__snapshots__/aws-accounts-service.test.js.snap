@@ -1,0 +1,66 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`AwsAccountService updateEnvironmentInstanceFilesBucketPolicy should set a policy on the bucket 1`] = `
+Object {
+  "Statement": Array [
+    Object {
+      "Action": "s3:*",
+      "Condition": Object {
+        "Bool": Object {
+          "aws:SecureTransport": false,
+        },
+      },
+      "Effect": "Deny",
+      "Principal": "*",
+      "Resource": "arn:aws:s3:::dummyBucket/*",
+      "Sid": "Deny requests that do not use TLS",
+    },
+    Object {
+      "Action": "s3:*",
+      "Condition": Object {
+        "StringNotEquals": Object {
+          "s3:signatureversion": "AWS4-HMAC-SHA256",
+        },
+      },
+      "Effect": "Deny",
+      "Principal": "*",
+      "Resource": "arn:aws:s3:::dummyBucket/*",
+      "Sid": "Deny requests that do not use SigV4",
+    },
+    Object {
+      "Action": "s3:ListBucket",
+      "Condition": Object {
+        "StringLike": Object {
+          "s3:prefix": Array [
+            "undefined*",
+          ],
+        },
+      },
+      "Effect": "Allow",
+      "Principal": Object {
+        "AWS": Array [
+          "arn:aws:iam::0123456789:root",
+        ],
+      },
+      "Resource": "arn:aws:s3:::dummyBucket",
+      "Sid": "List:undefined",
+    },
+    Object {
+      "Action": Array [
+        "s3:GetObject",
+      ],
+      "Effect": "Allow",
+      "Principal": Object {
+        "AWS": Array [
+          "arn:aws:iam::0123456789:root",
+        ],
+      },
+      "Resource": Array [
+        "arn:aws:s3:::dummyBucket/undefined*",
+      ],
+      "Sid": "Get:undefined",
+    },
+  ],
+  "Version": "2012-10-17",
+}
+`;

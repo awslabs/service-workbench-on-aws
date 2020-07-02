@@ -49,6 +49,7 @@ class DbService extends Service {
       rev: jest.fn().mockReturnThis(),
       item: jest.fn().mockReturnThis(),
       condition: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
       // Following functions are actual calls to dynamo
       scan: jest.fn(),
       get: jest.fn(),
