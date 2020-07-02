@@ -45,7 +45,6 @@ class EnvironmentCard extends React.Component {
     runInAction(() => {
       this.shouldShowTerminateDialog = false;
       this.terminationInProgress = false;
-      this.stateChange = false;
     });
   }
 
@@ -132,22 +131,11 @@ class EnvironmentCard extends React.Component {
     event.preventDefault();
     event.stopPropagation();
 
-    const cleanStateChange = () => {
-      runInAction(() => {
-        this.stateChange = false;
-      });
-    };
-
     try {
-      runInAction(() => {
-        this.stateChange = true;
-      });
       const store = this.getStore();
       await store.stopEnvironment(this.getEnvironment());
-      cleanStateChange();
     } catch (error) {
       displayError(error);
-      cleanStateChange();
     }
   };
 
@@ -155,22 +143,11 @@ class EnvironmentCard extends React.Component {
     event.preventDefault();
     event.stopPropagation();
 
-    const cleanStateChange = () => {
-      runInAction(() => {
-        this.stateChange = false;
-      });
-    };
-
     try {
-      runInAction(() => {
-        this.stateChange = true;
-      });
       const store = this.getStore();
       await store.startEnvironment(this.getEnvironment());
-      cleanStateChange();
     } catch (error) {
       displayError(error);
-      cleanStateChange();
     }
   };
 
@@ -382,7 +359,6 @@ decorate(EnvironmentCard, {
   handleStopEnvironment: action,
   shouldShowTerminateDialog: observable,
   terminationInProgress: observable,
-  stateChange: observable,
 });
 
 export default inject('userDisplayName')(withRouter(observer(EnvironmentCard)));

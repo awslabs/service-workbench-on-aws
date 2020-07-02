@@ -466,9 +466,17 @@ Resources:
                 - !Join ['', [!GetAtt [DbWfAssignments, Arn], '/index/*']]
                 - !GetAtt [DbEnvironments, Arn]
                 - !GetAtt [DbStudies, Arn]
+                - !GetAtt [DbProjects, Arn]
                 - !GetAtt [DbStudyPermissions, Arn]
                 - !GetAtt [DbAccounts, Arn]
                 - !GetAtt [DbAwsAccounts, Arn]
+                - !GetAtt [DbAuthenticationProviderTypes, Arn]
+                - !GetAtt [DbAuthenticationProviderConfigs, Arn]
+                - !GetAtt [DbRevokedTokens, Arn]
+                - !Join ['', [!GetAtt [DbStudies, Arn], '/index/*']]
+                - !GetAtt [DbIndexes, Arn]
+                - !GetAtt [DbCostApiCaches, Arn]
+                - !GetAtt [DbUserRoles, Arn]
 
         - PolicyName: param-store-access
           PolicyDocument:
@@ -658,7 +666,6 @@ Resources:
           KeyType: 'HASH'
       BillingMode: PAY_PER_REQUEST
 
-
   DbUserApiKeys:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -674,7 +681,6 @@ Resources:
         - AttributeName: 'id'
           KeyType: 'RANGE'
       BillingMode: PAY_PER_REQUEST
-
 
   DbUsers:
     Type: AWS::DynamoDB::Table
