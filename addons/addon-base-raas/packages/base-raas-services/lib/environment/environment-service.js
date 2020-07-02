@@ -609,7 +609,6 @@ class EnvironmentService extends Service {
     // the specified environment
     const { status, indexId } = await this.mustFind(requestContext, {
       id,
-      fields: ['status', 'indexId', 'createdBy'],
     });
 
     if (status !== 'COMPLETED') {
