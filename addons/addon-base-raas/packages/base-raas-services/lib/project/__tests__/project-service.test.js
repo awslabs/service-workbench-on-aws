@@ -32,6 +32,7 @@ const ProjectService = require('../project-service');
 
 describe('ProjectService', () => {
   let service = null;
+  let dbService = null;
   beforeAll(async () => {
     // Initialize services container and register dependencies
     const container = new ServicesContainer();
@@ -45,6 +46,7 @@ describe('ProjectService', () => {
 
     // Get instance of the service we are testing
     service = await container.find('projectService');
+    dbService = await container.find('dbService');
 
     // Skip authorization
     service.assertAuthorized = jest.fn();
@@ -178,16 +180,13 @@ describe('ProjectService', () => {
 
   describe('delete', () => {
     it('should NOT fail if an environment is not linked to project', async () => {
-      // 'Test_ID' id is present on the db-service manual mock file.
-      // Using that as a project ID reference for delete
-      // Happy-path: Make sure no exceptions are thrown
+      dbService.table.scan.mockReturnValueOnce([{ id: 'Test_ID' }]);
       await expect(() => service.delete({}, { id: 'Not_Test_ID' })).not.toThrow(); // Different that 'Test_ID'
     });
 
     it('should fail if an environment is linked to project', async () => {
       try {
-        // 'Test_ID' id is present on the db-service manual mock file.
-        // Using that as a project ID reference for delete
+        dbService.table.scan.mockReturnValueOnce([{ id: 'Test_ID' }]);
         await service.delete({}, { id: 'Test_ID' });
         expect.hasAssertions();
       } catch (err) {
