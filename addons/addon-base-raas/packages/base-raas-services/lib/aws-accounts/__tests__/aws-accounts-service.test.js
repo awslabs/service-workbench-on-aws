@@ -307,4 +307,67 @@ describe('AwsAccountService', () => {
       expect(dbService.table.scan).toHaveBeenCalled();
     });
   });
+
+  describe('update', () => {
+    const awsAccount = {
+      id: 'xyz', // must have for an update
+      rev: 2, // must have for an update
+      name: 'my-aws-account',
+      externalId: '012345678998',
+      roleArn: 'arn:aws:iam::role/AccountRole',
+      accountId: '012345678998',
+      vpcId: 'vpc-abcdef123',
+      subnetId: 'subnet-abcdef123',
+      encryptionKeyArn: 'arn:aws:kms::key/someKey',
+    };
+
+    it('should fail if user is not allowed to update account', async () => {
+      // BUILD
+      const requestContext = {};
+      service.assertAuthorized.mockImplementationOnce(() => {
+        throw new Error('User is not authorized');
+      });
+
+      // OPERATE
+      try {
+        await service.update(requestContext, awsAccount);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('User is not authorized');
+      }
+    });
+
+    it('should update awsAccount in the database', async () => {
+      // BUILD
+      const requestContext = { username: 'oneUser' };
+      service.updateEnvironmentInstanceFilesBucketPolicy = jest.fn();
+
+      // OPERATE
+      await service.update(requestContext, awsAccount);
+
+      // CHECK
+      expect(dbService.table.condition).toHaveBeenCalledWith('attribute_exists(id)');
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'xyz' });
+      expect(dbService.table.update).toHaveBeenCalled();
+    });
+
+    it('should save an audit record', async () => {
+      // BUILD
+      const requestContext = {};
+      service.updateEnvironmentInstanceFilesBucketPolicy = jest.fn();
+      service.audit = jest.fn();
+
+      // OPERATE
+      await service.update(requestContext, awsAccount);
+
+      // CHECK
+      expect(service.audit).toHaveBeenCalledWith(
+        requestContext,
+        expect.objectContaining({
+          action: 'update-aws-account',
+        }),
+      );
+    });
+  });
 });
