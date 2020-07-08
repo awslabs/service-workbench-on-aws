@@ -16,13 +16,14 @@
 import { addUser, updateUser, getUsers } from '@aws-ee/base-ui/dist/helpers/api';
 import { addUsers } from '../../../helpers/api';
 
-import { UsersStore } from '../UsersStore';
+import { registerContextItems as registerUsersStore } from '../UsersStore';
 
 jest.mock('@aws-ee/base-ui/dist/helpers/api');
 jest.mock('../../../helpers/api');
 
 describe('UsersStore', () => {
   let store = null;
+  const appContext = {};
   const exampleUser = {
     firstName: 'Ash',
     lastName: 'Ketchum',
@@ -30,12 +31,18 @@ describe('UsersStore', () => {
     ns: 'satoshi.025',
   };
 
+  beforeEach(async () => {
+    await registerUsersStore(appContext);
+    store = appContext.usersStore;
+  });
+
   describe('adding users', () => {
     it('should add a user', async () => {
       // BUILD
       getUsers.mockResolvedValueOnce([]);
       addUser.mockResolvedValueOnce(exampleUser);
-      store = UsersStore.create({}, {});
+
+      // store = UsersStore.create({}, {});
       await store.load();
 
       // OPERATE
@@ -63,7 +70,7 @@ describe('UsersStore', () => {
         await store.addUser(otherUser);
       });
 
-      store = UsersStore.create({}, {});
+      // store = UsersStore.create({}, {});
       await store.load();
 
       // OPERATE
@@ -89,7 +96,7 @@ describe('UsersStore', () => {
       getUsers.mockResolvedValueOnce([exampleUser]);
       updateUser.mockResolvedValueOnce(updatedExampleUser);
 
-      store = UsersStore.create({}, {});
+      // store = UsersStore.create({}, {});
       await store.load();
 
       // OPERATE
@@ -104,8 +111,7 @@ describe('UsersStore', () => {
   describe('deleting users', () => {
     it('should delete the user', async () => {
       // BUILD
-      getUsers.mockResolvedValueOnce([exampleUser]);
-      store = UsersStore.create({}, {});
+      getUsers.mockResolvedValue([exampleUser]);
       await store.load();
 
       // OPERATE

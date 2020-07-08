@@ -13,13 +13,14 @@
  *  permissions and limitations under the License.
  */
 
-import { IndexesStore } from '../IndexesStore';
+import { registerContextItems as registerIndexesStore } from '../IndexesStore';
 import { getIndexes, addIndex } from '../../../helpers/api';
 
 jest.mock('../../../helpers/api');
 
 describe('IndexesStore', () => {
   let store = null;
+  const appContext = {};
   const newIndex = {
     id: 'gon_freecss',
     rev: 2,
@@ -28,12 +29,17 @@ describe('IndexesStore', () => {
     createdAt: '1999',
     updatedAt: '2011',
   };
+
+  beforeEach(async () => {
+    await registerIndexesStore(appContext);
+    store = appContext.indexesStore;
+  });
+
   describe('add index', () => {
     it('should successfully add an index', async () => {
       // BUILD
       getIndexes.mockResolvedValue([]);
       addIndex.mockResolvedValue(newIndex);
-      store = IndexesStore.create({}, {});
       await store.load();
 
       // OPERATE
@@ -48,7 +54,6 @@ describe('IndexesStore', () => {
     it('should get and return the specified index', async () => {
       // BUILD
       getIndexes.mockResolvedValue([newIndex]);
-      store = IndexesStore.create({}, {});
       await store.load();
 
       // OPERATE
@@ -61,7 +66,6 @@ describe('IndexesStore', () => {
     it('should return an empty object', async () => {
       // BUILD
       getIndexes.mockResolvedValue([newIndex]);
-      store = IndexesStore.create({}, {});
       await store.load();
 
       // OPERATE
