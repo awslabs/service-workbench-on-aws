@@ -56,6 +56,7 @@ class UserService extends Service {
     await this.validateCreateUser(requestContext, user);
 
     const { username, password } = user;
+    delete user.password;
     const authenticationProviderId = user.authenticationProviderId || 'internal';
     if (password) {
       // If password is specified then make sure this is for adding user to internal authentication provider only
@@ -93,12 +94,17 @@ class UserService extends Service {
         .updater()
         .table(table)
         .key({ username, ns })
-        .item({
-          ...user,
-          authenticationProviderId,
-          rev: 0,
-          createdBy: by,
-        })
+        .item(
+          _.omit(
+            {
+              ...user,
+              authenticationProviderId,
+              rev: 0,
+              createdBy: by,
+            },
+            ['password'],
+          ),
+        )
         .update();
     }
 
