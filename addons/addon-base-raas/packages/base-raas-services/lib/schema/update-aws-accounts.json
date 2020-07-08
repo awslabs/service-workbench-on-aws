@@ -40,7 +40,11 @@
     "subnetId": {
       "type": "string",
       "pattern": "^subnet-[a-f0-9]{8,17}$"
+    },
+    "encryptionKeyArn": {
+      "type": "string",
+      "pattern": "^arn:aws:kms:.*$"
     }
   },
-  "required": ["id", "rev", "identityPoolId", "userRoleAccess", "roleArn", "externalId"]
+  "required": ["id", "rev", "roleArn", "externalId"]
 }
