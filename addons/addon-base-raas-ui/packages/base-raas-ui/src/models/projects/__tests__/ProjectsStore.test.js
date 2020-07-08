@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-import { ProjectsStore } from '../ProjectsStore';
+import { registerContextItems as registerProjectsStore } from '../ProjectsStore';
 
 import { getProjects, addProject, updateProject } from '../../../helpers/api';
 
@@ -21,6 +21,7 @@ jest.mock('../../../helpers/api');
 
 describe('ProjectsStore', () => {
   let store = null;
+  const appContext = {};
   const newProject = {
     id: 'aCreativeName!',
     rev: 1,
@@ -39,11 +40,14 @@ describe('ProjectsStore', () => {
     updatedAt: 'after',
   };
 
+  beforeEach(async () => {
+    await registerProjectsStore(appContext);
+    store = appContext.projectsStore;
+  });
   describe('add project', () => {
     it('should add a project', async () => {
       // BUILD
       getProjects.mockResolvedValueOnce([]);
-      store = ProjectsStore.create({}, {});
       await store.load();
 
       // OPERATE
@@ -56,7 +60,6 @@ describe('ProjectsStore', () => {
     it('should not add the project because it already exists', async () => {
       // BUILD
       getProjects.mockResolvedValueOnce([diffProject]);
-      store = ProjectsStore.create({}, {});
       await store.load();
 
       // OPERATE
@@ -71,7 +74,6 @@ describe('ProjectsStore', () => {
     it('should try to add the updated function', async () => {
       // BUILD
       getProjects.mockResolvedValueOnce([newProject]);
-      store = ProjectsStore.create({}, {});
       await store.load();
 
       updateProject.mockResolvedValueOnce(diffProject);
