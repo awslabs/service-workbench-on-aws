@@ -338,6 +338,7 @@ importers:
       xml: ^1.0.1
   addons/addon-base-raas/packages/base-raas-workflow-steps:
     dependencies:
+      '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
       '@aws-ee/base-workflow-core': 'link:../../../addon-base-workflow/packages/base-workflow-core'
       lodash: 4.17.15
       shortid: 2.2.15
@@ -358,6 +359,7 @@ importers:
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
     specifiers:
+      '@aws-ee/base-services': 'workspace:*'
       '@aws-ee/base-workflow-core': 'workspace:*'
       eslint: ^6.8.0
       eslint-config-airbnb: ^18.1.0
@@ -9577,7 +9579,6 @@ packages:
     resolution:
       integrity: sha512-Ggd/Ktt7E7I8pxZRbGIs7vwqAPscSESMrCSkx2FtWeqmheJgCo2R74fTsZFCifr0VTPwqRpPv17+6b8Zp7th0Q==
   /fsevents/2.1.2:
-    dev: true
     engines:
       node: ^8.16.0 || ^10.6.0 || >=11.0.0
     optional: true
