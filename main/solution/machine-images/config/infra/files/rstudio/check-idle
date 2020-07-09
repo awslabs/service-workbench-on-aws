@@ -1,0 +1,42 @@
+#!/usr/bin/env python
+
+
+import os
+import time
+
+
+LAST_ACTIVE_TIME_FILENAME = '/tmp/last-active-rsession-time'
+
+MAX_IDLE_SECONDS = 3600
+
+
+def get_uptime():
+    return float(open('/proc/uptime').read().split()[0])
+
+
+def is_rsession(pid):
+    try:
+        cmdline = open(os.path.join('/proc', pid, 'cmdline'), 'rb').read()
+        return 'rsession' in cmdline
+    except IOError:
+        return False
+
+
+all_pids = [p for p in os.listdir('/proc') if p.isdigit()]
+rsession_pids = [p for p in all_pids if is_rsession(p)]
+
+num_sessions = len(rsession_pids)
+
+current_time = time.time()
+
+if num_sessions or not os.path.exists(LAST_ACTIVE_TIME_FILENAME):
+    open(LAST_ACTIVE_TIME_FILENAME, 'w').write(str(current_time))
+    print('{0} RStudio sessions active at {1}'.format(num_sessions, current_time))
+else:
+    last_active_time = float(open(LAST_ACTIVE_TIME_FILENAME).read())
+    idle_time = current_time - last_active_time
+    uptime = get_uptime()
+    print('RStudio has been idle for {0} seconds and system uptime is {1}'.format(idle_time, uptime))
+    if idle_time >= MAX_IDLE_SECONDS and uptime >= MAX_IDLE_SECONDS:
+        print('Shutting down due to max idle')
+        os.system('sudo /usr/sbin/shutdown now')
