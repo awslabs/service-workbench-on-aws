@@ -139,7 +139,7 @@ Resources:
   BasicNotebookInstanceLifecycleConfig:
     Type: 'AWS::SageMaker::NotebookInstanceLifecycleConfig'
     Properties:
-      OnCreate:
+      OnStart:
         - Content:
             Fn::Base64: !Sub |
               #!/usr/bin/env bash
