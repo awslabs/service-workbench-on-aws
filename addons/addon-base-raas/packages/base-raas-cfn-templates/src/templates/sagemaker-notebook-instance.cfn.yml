@@ -43,20 +43,19 @@ Resources:
         Ref: VPC
 
   IAMRole:
-    Type: "AWS::IAM::Role"
+    Type: 'AWS::IAM::Role'
     Properties:
-      RoleName: !Join ["-", [Ref: Namespace, "sagemaker-notebook-role"]]
-      Path: "/"
+      RoleName: !Join ['-', [Ref: Namespace, 'sagemaker-notebook-role']]
+      Path: '/'
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
-          -
-            Effect: "Allow"
+          - Effect: 'Allow'
             Principal:
               Service:
-                - "sagemaker.amazonaws.com"
+                - 'sagemaker.amazonaws.com'
             Action:
-              - "sts:AssumeRole"
+              - 'sts:AssumeRole'
       Policies:
         - !If
           - IamPolicyEmpty
@@ -72,17 +71,17 @@ Resources:
                 Resource: !Sub
                   - 'arn:aws:s3:::${S3Location}/*'
                   # Remove "s3://" prefix from EnvironmentInstanceFiles
-                  - S3Location: !Select [ 1, !Split [ 's3://', !Ref EnvironmentInstanceFiles ] ]
+                  - S3Location: !Select [1, !Split ['s3://', !Ref EnvironmentInstanceFiles]]
               - Effect: 'Allow'
                 Action: 's3:ListBucket'
                 Resource: !Sub
                   - 'arn:aws:s3:::${S3Bucket}'
-                  - S3Bucket: !Select [ 2, !Split [ '/', !Ref EnvironmentInstanceFiles ]]
+                  - S3Bucket: !Select [2, !Split ['/', !Ref EnvironmentInstanceFiles]]
                 Condition:
                   StringLike:
                     s3:prefix: !Sub
                       - '${S3Prefix}/*'
-                      - S3Prefix: !Select [ 3, !Split [ '/', !Ref EnvironmentInstanceFiles ]]
+                      - S3Prefix: !Select [3, !Split ['/', !Ref EnvironmentInstanceFiles]]
 
         - PolicyName: cw-logs
           PolicyDocument:
@@ -97,7 +96,7 @@ Resources:
                 - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/sagemaker/*
   # TODO: Consider also passing DefaultCodeRepository to allow persisting notebook data
   BasicNotebookInstance:
-    Type: "AWS::SageMaker::NotebookInstance"
+    Type: 'AWS::SageMaker::NotebookInstance'
     Properties:
       InstanceType: !Ref InstanceType
       RoleArn: !GetAtt IAMRole.Arn
@@ -108,9 +107,9 @@ Resources:
       KmsKeyId: !Ref EncryptionKeyArn
 
   BasicNotebookInstanceLifecycleConfig:
-    Type: "AWS::SageMaker::NotebookInstanceLifecycleConfig"
+    Type: 'AWS::SageMaker::NotebookInstanceLifecycleConfig'
     Properties:
-      OnCreate:
+      OnStart:
         - Content:
             Fn::Base64: !Sub |
               #!/usr/bin/env bash
@@ -120,10 +119,9 @@ Resources:
               /tmp/get_bootstrap.sh "${EnvironmentInstanceFiles}" '${S3Mounts}'
 
 Outputs:
-
   NotebookInstanceName:
     Description: The name of the SageMaker notebook instance.
-    Value: !GetAtt [ BasicNotebookInstance, NotebookInstanceName ]
+    Value: !GetAtt [BasicNotebookInstance, NotebookInstanceName]
 
   WorkspaceInstanceRoleArn:
     Description: IAM role assumed by the SageMaker workspace instance
