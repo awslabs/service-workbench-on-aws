@@ -20,7 +20,7 @@ const platforms = [
   {
     id: 'ec2-rstudio-1',
     type: 'ec2-rstudio',
-    title: 'RStudio Server Pro',
+    title: 'RStudio Server',
     displayOrder: 3,
     desc: `Data analysis and integrated development experience for professional R users`,
   },

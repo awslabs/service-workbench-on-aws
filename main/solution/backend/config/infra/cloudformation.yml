@@ -551,6 +551,13 @@ Resources:
                 - ssm:DeleteParameter
               Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
 
+        - PolicyName: dns-record-access
+          PolicyDocument:
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - route53:ChangeResourceRecordSets
+                Resource: 'arn:aws:route53:::hostedzone/${self:custom.settings.hostedZoneId}'
         - PolicyName: keypair-creation-access
           PolicyDocument:
             Statement:

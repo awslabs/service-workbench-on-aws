@@ -67,6 +67,7 @@ class DeleteEnvironment extends StepBase {
     );
     await Promise.all([
       this.deleteKeypair(),
+      this.deleteDnsRecord(),
       this.updateEnvironmentStatus('TERMINATING'),
       cfn.deleteStack({ StackName: environment.stackId }).promise(),
     ]);
@@ -146,6 +147,20 @@ class DeleteEnvironment extends StepBase {
       if (!('code' in error) || error.code !== 'ParameterNotFound') {
         throw error;
       }
+    }
+  }
+
+  async deleteDnsRecord() {
+    const [environmentService, environmentDnsService] = await this.mustFindServices([
+      'environmentService',
+      'environmentDnsService',
+    ]);
+    const requestContext = await this.state.optionalObject('STATE_REQUEST_CONTEXT');
+    const environmentId = await this.state.string('STATE_ENVIRONMENT_ID');
+    const environment = await environmentService.mustFind(requestContext, { id: environmentId });
+    const { instanceInfo } = environment;
+    if (instanceInfo.type === 'ec2-rstudio') {
+      environmentDnsService.deleteRecord('rstudio', environmentId, instanceInfo.Ec2WorkspaceDnsName);
     }
   }
 }

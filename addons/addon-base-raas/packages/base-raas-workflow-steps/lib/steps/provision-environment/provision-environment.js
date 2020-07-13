@@ -69,6 +69,9 @@ class ProvisionEnvironment extends StepBase {
     // Add parameters unique to each environment type
     let template;
     switch (type) {
+      case 'ec2-rstudio':
+        template = await cfnTemplateService.getTemplate('ec2-rstudio-instance');
+        break;
       case 'ec2-linux':
         template = await cfnTemplateService.getTemplate('ec2-linux-instance');
         break;
@@ -233,7 +236,18 @@ class ProvisionEnvironment extends StepBase {
    * CloudFormation and Workflow-Related Methods
    */
   async checkCfnCompleted() {
-    const environmentMountService = await this.mustFindServices('environmentMountService');
+    // Get services
+    const [environmentMountService, environmentDnsService] = await this.mustFindServices([
+      'environmentMountService',
+      'environmentDnsService',
+    ]);
+
+    // Get common payload params and pull environment info
+    const [type, environmentId] = await Promise.all([
+      this.payload.string('type'),
+      this.payload.string('environmentId'),
+    ]);
+
     const stackId = await this.state.string('STATE_STACK_ID');
     this.print(`checking status of cfn stack: ${stackId}`);
 
@@ -255,6 +269,11 @@ class ProvisionEnvironment extends StepBase {
             cfnOutputs.WorkspaceInstanceRoleArn,
             s3Prefixes,
           );
+        }
+
+        // Create DNS record for RStudio workspaces
+        if (type === 'ec2-rstudio') {
+          environmentDnsService.createRecord('rstudio', environmentId, cfnOutputs.Ec2WorkspaceDnsName);
         }
 
         // Update environment metadata

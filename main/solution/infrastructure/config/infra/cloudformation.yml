@@ -1,8 +1,12 @@
 Conditions:
+
   IsDev: !Equals ['${self:custom.settings.envType}', 'dev']
-  UseCloudFrontDomain: !Equals ['${self:custom.settings.domainName}', '']
+  UseCustomDomain: !Not
+    - !Equals ['${self:custom.settings.domainName}', '']
+
 
 Resources:
+
   # =============================================================================================
   # S3 Buckets
   # =============================================================================================
@@ -114,15 +118,15 @@ Resources:
         Enabled: true
         HttpVersion: 'http2'
         Aliases: !If
-          - UseCloudFrontDomain
-          - !Ref AWS::NoValue
+          - UseCustomDomain
           - ['${self:custom.settings.domainName}']
-        ViewerCertificate: !If
-          - UseCloudFrontDomain
           - !Ref AWS::NoValue
+        ViewerCertificate: !If
+          - UseCustomDomain
           - AcmCertificateArn: ${self:custom.settings.certificateArn}
             MinimumProtocolVersion: TLSv1.2_2018
             SslSupportMethod: sni-only
+          - !Ref AWS::NoValue
         DefaultRootObject: index.html
         CustomErrorResponses:
           - ErrorCachingMinTTL: 300
@@ -159,13 +163,38 @@ Resources:
       CloudFrontOriginAccessIdentityConfig:
         Comment: 'OAI for ${self:custom.settings.websiteBucketName}'
 
+  # =============================================================================================
+  # Route 53
+  # =============================================================================================
+
+  HostedZone:
+    Type: AWS::Route53::HostedZone
+    Condition: UseCustomDomain
+    DeletionPolicy: Retain
+    Properties:
+      Name: ${self:custom.settings.domainName}
+
+  DomainRecord:
+    Type: AWS::Route53::RecordSetGroup
+    Condition: UseCustomDomain
+    Properties:
+      HostedZoneId: !Ref HostedZone
+      RecordSets:
+      - Name: ${self:custom.settings.domainName}
+        Type: A
+        AliasTarget:
+          HostedZoneId: Z2FDTNDATAQYW2
+          DNSName: !GetAtt WebsiteCloudFront.DomainName
+
+
 Outputs:
+
   WebsiteUrl:
     Description: URL for the main website hosted on S3 via CloudFront
     Value: !If
-      - UseCloudFrontDomain
-      - !Join ['', ['https://', !GetAtt [WebsiteCloudFront, DomainName]]]
+      - UseCustomDomain
       - https://${self:custom.settings.domainName}
+      - !Join ['', ['https://', !GetAtt WebsiteCloudFront.DomainName]]
 
   WebsiteBucket:
     Description: The bucket name of the static website
@@ -178,3 +207,7 @@ Outputs:
   CloudFrontId:
     Description: Id of the CloudFront distribution
     Value: !Ref WebsiteCloudFront
+
+  HostedZoneId:
+    Description: Id of the hosted zone created when a custom domain is used
+    Value: !Ref HostedZone

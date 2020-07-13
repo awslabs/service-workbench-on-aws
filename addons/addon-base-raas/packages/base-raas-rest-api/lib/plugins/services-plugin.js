@@ -22,7 +22,7 @@ const StudyPermissionService = require('@aws-ee/base-raas-services/lib/study/stu
 const EnvironmentService = require('@aws-ee/base-raas-services/lib/environment/environment-service');
 const EnvironmentKeypairService = require('@aws-ee/base-raas-services/lib/environment/environment-keypair-service');
 const EnvironmentAmiService = require('@aws-ee/base-raas-services/lib/environment/environment-ami-service');
-const EnvironmentNotebookUrlService = require('@aws-ee/base-raas-services/lib/environment/environment-notebook-url-service');
+const EnvironmentUrlService = require('@aws-ee/base-raas-services/lib/environment/environment-url-service');
 const EnvironmentScNotebookUrlService = require('@aws-ee/base-raas-services/lib/environment-sc/environment-sc-notebook-url-service');
 const EnvironmentSpotPriceHistoryService = require('@aws-ee/base-raas-services/lib/environment/environment-spot-price-history-service');
 const UserRolesService = require('@aws-ee/base-raas-services/lib/user-roles/user-roles-service');
@@ -40,6 +40,8 @@ const EnvironmentAuthzService = require('@aws-ee/base-raas-services/lib/environm
 const EnvironmentMountService = require('@aws-ee/base-raas-services/lib/environment/environment-mount-service');
 const EnvironmentScService = require('@aws-ee/base-raas-services/lib/environment-sc/environment-sc-service');
 const EnvironmentConfigVarsService = require('@aws-ee/base-raas-services/lib/environment-sc/environment-config-vars-service');
+const EnvironmentDnsService = require('@aws-ee/base-raas-services/lib/environment/environment-dns-service');
+const JwtService = require('@aws-ee/base-api-services/lib/jwt-service');
 
 const settingKeys = {
   tablePrefix: 'dbTablePrefix',
@@ -65,10 +67,11 @@ async function registerServices(container, pluginRegistry) {
   container.register('environmentService', new EnvironmentService());
   container.register('environmentKeypairService', new EnvironmentKeypairService());
   container.register('environmentAmiService', new EnvironmentAmiService());
-  container.register('environmentNotebookUrlService', new EnvironmentNotebookUrlService());
+  container.register('environmentUrlService', new EnvironmentUrlService());
   container.register('environmentScNotebookUrlService', new EnvironmentScNotebookUrlService());
   container.register('environmentSpotPriceHistoryService', new EnvironmentSpotPriceHistoryService());
   container.register('environmentMountService', new EnvironmentMountService());
+  container.register('environmentDnsService', new EnvironmentDnsService());
   container.register('cfnTemplateService', new CfnTemplateService());
   container.register('awsAccountsService', new AwsAccountsService());
   container.register('costsService', new CostsService());
@@ -82,6 +85,7 @@ async function registerServices(container, pluginRegistry) {
   container.register('environmentScService', new EnvironmentScService());
   container.register('environmentConfigVarsService', new EnvironmentConfigVarsService());
   container.register('pluginRegistryService', new PluginRegistryService(pluginRegistry), { lazy: false });
+  container.register('jwtService', new JwtService());
 
   // Authorization Services from raas addon
   container.register('raasUserAuthzService', new UserAuthzService());

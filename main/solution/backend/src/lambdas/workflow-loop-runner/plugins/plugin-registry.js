@@ -14,6 +14,7 @@
  */
 
 const baseAuditPlugin = require('@aws-ee/base-services/lib/plugins/audit-plugin');
+const baseServicesPlugin = require('@aws-ee/base-api-handler/lib/plugins/services-plugin');
 const baseWfServicesPlugin = require('@aws-ee/base-workflow-core/lib/runner/plugins/services-plugin');
 const baseWfStepsPlugin = require('@aws-ee/base-workflow-steps/steps/workflow-steps-plugin');
 const baseRaasServicesPlugin = require('@aws-ee/base-raas-rest-api/lib/plugins/services-plugin');
@@ -32,6 +33,7 @@ const servicesPlugin = require('services/lib/plugins/services-plugin');
 
 const extensionPoints = {
   'service': [
+    baseServicesPlugin,
     baseWfServicesPlugin,
     baseRaasServicesPlugin,
     // baseRaasAppStreamServicesPlugin,

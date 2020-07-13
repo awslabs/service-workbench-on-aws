@@ -23,6 +23,7 @@ const updateSchema = require('../schema/update-environment');
 const settingKeys = {
   tableName: 'dbTableEnvironments',
   awsAccountsTableName: 'dbTableAwsAccounts',
+  ec2RStudioAmiPrefix: 'ec2RStudioAmiPrefix',
   ec2LinuxAmiPrefix: 'ec2LinuxAmiPrefix',
   ec2WindowsAmiPrefix: 'ec2WindowsAmiPrefix',
   emrAmiPrefix: 'emrAmiPrefix',
@@ -171,6 +172,7 @@ class EnvironmentService extends Service {
   async ensureAmiAccess(_requestContext, accountId, type) {
     // TODO - ami prefix should be coming from compute configuration object
     const amiPrefixKey = {
+      'ec2-rstudio': settingKeys.ec2RStudioAmiPrefix,
       'ec2-linux': settingKeys.ec2LinuxAmiPrefix,
       'ec2-windows': settingKeys.ec2WindowsAmiPrefix,
       'emr': settingKeys.emrAmiPrefix,
@@ -284,7 +286,7 @@ class EnvironmentService extends Service {
       instanceInfo: { type },
     } = savedEnvironment;
     // Get AMI configuration where applicable
-    if (['ec2-linux', 'ec2-windows', 'emr'].includes(type)) {
+    if (['ec2-rstudio', 'ec2-linux', 'ec2-windows', 'emr'].includes(type)) {
       const imageId = await this.ensureAmiAccess(requestContext, accountId, type);
       savedEnvironment.amiImage = imageId;
     }
@@ -346,7 +348,7 @@ class EnvironmentService extends Service {
     // Generate environment ID
     const id = uuid();
 
-    const { instanceInfo } = rawDataV1;
+    const { instanceInfo, platformId } = rawDataV1;
     const { type, cidr } = instanceInfo;
 
     // trigger the provision environment workflow
@@ -360,11 +362,12 @@ class EnvironmentService extends Service {
       subnetId,
       encryptionKeyArn,
       type,
+      platformId,
       cidr,
     };
 
     // Get AMI configuration where applicable
-    if (['ec2-linux', 'ec2-windows', 'emr'].includes(type)) {
+    if (['ec2-rstudio', 'ec2-linux', 'ec2-windows', 'emr'].includes(type)) {
       const imageId = await this.ensureAmiAccess(requestContext, accountId, type);
       Object.assign(input, { amiImage: imageId });
     }
@@ -590,6 +593,7 @@ class EnvironmentService extends Service {
     switch (type) {
       case 'ec2-windows':
       case 'ec2-linux':
+      case 'ec2-rstudio':
         return `${prefix}ec2-environment`;
       case 'sagemaker':
         return `${prefix}sagemaker-environment`;

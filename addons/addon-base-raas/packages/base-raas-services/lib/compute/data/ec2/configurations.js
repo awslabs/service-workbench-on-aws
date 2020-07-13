@@ -38,10 +38,9 @@ const configurations = [
     params: {
       immutable: {
         size: 'm5.large',
+        cidr: '0.0.0.0/0',
       },
-      mutable: {
-        cidr: '',
-      },
+      mutable: {},
     },
   },
   {
@@ -64,10 +63,9 @@ const configurations = [
     params: {
       immutable: {
         size: 'm5.2xlarge',
+        cidr: '0.0.0.0/0',
       },
-      mutable: {
-        cidr: '',
-      },
+      mutable: {},
     },
   },
   {
@@ -90,10 +88,9 @@ const configurations = [
     params: {
       immutable: {
         size: 'm5.8xlarge',
+        cidr: '0.0.0.0/0',
       },
-      mutable: {
-        cidr: '',
-      },
+      mutable: {},
     },
   },
   {

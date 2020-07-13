@@ -220,18 +220,27 @@ class EnvironmentCard extends React.Component {
           </Header>
           <div className="flex">
             <Label className="flex-auto basic" style={{ border: 0 }}>
-              {status === 'COMPLETED' && (instanceInfo.type === 'ec2-rstudio' || instanceInfo.type === 'sagemaker' || instanceInfo.type === 'emr') && (
-                <EnvironmentConnectButton as={Label} user={this.props.user} environment={env} size="mini" color="green">
-                  {fetchingUrl ? (
-                    <>
-                      Connecting
-                      <Icon loading name="spinner" size="small" className="ml1 mr1" />
-                    </>
-                  ) : (
-                    <>Connect</>
-                  )}
-                </EnvironmentConnectButton>
-              )}
+              {status === 'COMPLETED' &&
+                (instanceInfo.type === 'ec2-rstudio' ||
+                  instanceInfo.type === 'sagemaker' ||
+                  instanceInfo.type === 'emr') && (
+                  <EnvironmentConnectButton
+                    as={Label}
+                    user={this.props.user}
+                    environment={env}
+                    size="mini"
+                    color="green"
+                  >
+                    {fetchingUrl ? (
+                      <>
+                        Connecting
+                        <Icon loading name="spinner" size="small" className="ml1 mr1" />
+                      </>
+                    ) : (
+                      <>Connect</>
+                    )}
+                  </EnvironmentConnectButton>
+                )}
             </Label>
             <Label className="flex-auto basic" style={{ border: 0 }}>
               <EnvironmentStatusIcon environment={env} />

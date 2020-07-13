@@ -124,6 +124,8 @@ localRoleAutoAdjustTrust: true
 # Optional custom domain name; if empty, use the CloudFront domain name
 domainName: ''
 certificateArn: ''
+hostedZoneId: ''
+
 # An environment management role giving AWS Service Catalog Permissions
 # This is the role that the Admin users share their AWS Service Catalog products/portfolios with.
 # The products shared with this role become candidates for being imported in the platform as environment types.
