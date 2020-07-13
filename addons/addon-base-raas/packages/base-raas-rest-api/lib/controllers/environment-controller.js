@@ -23,12 +23,12 @@ async function configure(context) {
   const [
     environmentService,
     environmentKeypairService,
-    environmentNotebookUrlService,
+    environmentUrlService,
     environmentSpotPriceHistoryService,
   ] = await context.service([
     'environmentService',
     'environmentKeypairService',
-    'environmentNotebookUrlService',
+    'environmentUrlService',
     'environmentSpotPriceHistoryService',
   ]);
 
@@ -171,7 +171,7 @@ async function configure(context) {
     wrap(async (req, res) => {
       const requestContext = res.locals.requestContext;
       const id = req.params.id;
-      const result = await environmentNotebookUrlService.getNotebookPresignedUrl(requestContext, id);
+      const result = await environmentUrlService.get(requestContext, id);
 
       res.status(200).json(result);
     }),

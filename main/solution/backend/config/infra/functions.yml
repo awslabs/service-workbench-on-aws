@@ -77,6 +77,8 @@ apiHandler:
         method: DELETE
         cors: true
   environment:
+    APP_HOSTED_ZONE_ID: ${self:custom.settings.hostedZoneId}
+    APP_DOMAIN_NAME: ${self:custom.settings.domainName}
     APP_WEBSITE_URL: ${self:custom.settings.websiteUrl}
     APP_CORS_ALLOW_LIST: ${self:custom.settings.corsAllowList}
     APP_CORS_ALLOW_LIST_LOCAL: ${self:custom.settings.corsAllowListLocal}
@@ -84,6 +86,7 @@ apiHandler:
     APP_JWT_OPTIONS: ${self:custom.settings.jwtOptions}
     APP_SM_WORKFLOW: ${self:custom.settings.workflowStateMachineArn}
     APP_PARAM_STORE_ROOT: ${self:custom.settings.paramStoreRoot}
+    APP_EC2_RSTUDIO_AMI_PREFIX: ${self:custom.settings.ec2RStudioAmiPrefix}
     APP_EC2_LINUX_AMI_PREFIX: ${self:custom.settings.ec2LinuxAmiPrefix}
     APP_EC2_WINDOWS_AMI_PREFIX: ${self:custom.settings.ec2WindowsAmiPrefix}
     APP_EMR_AMI_PREFIX: ${self:custom.settings.emrAmiPrefix}
@@ -124,3 +127,5 @@ workflowLoopRunner:
     APP_LAUNCH_CONSTRAINT_ROLE_PREFIX: ${self:custom.settings.launchConstraintRolePrefix}
     APP_LAUNCH_CONSTRAINT_POLICY_PREFIX: ${self:custom.settings.launchConstraintPolicyPrefix}
     APP_ENV_TYPE_CONFIGS_BUCKET_NAME: ${self:custom.settings.envTypeConfigsBucketName}
+    APP_HOSTED_ZONE_ID: ${self:custom.settings.hostedZoneId}
+    APP_DOMAIN_NAME: ${self:custom.settings.domainName}

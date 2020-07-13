@@ -222,9 +222,8 @@ class EnvironmentMountService extends Service {
             const { id, name, category, resources } = await studyService.mustFind(requestContext, studyId);
             return { id, name, category, resources };
           } catch (error) {
-            // Because the studies update periodically we cannot guarantee consistency
-            // so filter anything invalid here
-            console.error(error);
+            // Because the studies update periodically we cannot
+            // guarantee consistency so filter anything invalid here
             return { name: '', resources: [] };
           }
         }),

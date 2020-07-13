@@ -15,6 +15,7 @@
 
 // We are using Babel in this module to allow importing ".cfn.yml" files as plain text instead of parsing them webpack
 // "yaml-loader", because in this case we want the text value not the parsed yaml as an object.
+import ec2RStudioInstance from '../templates/ec2-rstudio-instance.cfn.yml';
 import ec2LinuxInstance from '../templates/ec2-linux-instance.cfn.yml';
 import ec2WindowsInstance from '../templates/ec2-windows-instance.cfn.yml';
 import sagemakerInstance from '../templates/sagemaker-notebook-instance.cfn.yml';
@@ -25,6 +26,7 @@ const add = (name, yaml) => ({ name, yaml });
 
 // The order is important, add your templates here
 const templates = [
+  add('ec2-rstudio-instance', ec2RStudioInstance),
   add('ec2-linux-instance', ec2LinuxInstance),
   add('ec2-windows-instance', ec2WindowsInstance),
   add('sagemaker-notebook-instance', sagemakerInstance),

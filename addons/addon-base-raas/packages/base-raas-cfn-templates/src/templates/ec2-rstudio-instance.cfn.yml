@@ -1,0 +1,178 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Galileo-Gateway EC2-RStudio
+
+Parameters:
+  Namespace:
+    Type: String
+    Description: An environment name that will be prefixed to resource names
+  AmiId:
+    Type: String
+    Description: Amazon Machine Image for the EC2 instance
+  InstanceType:
+    Type: String
+    Description: EC2 instance type to launch
+    Default: t3.xlarge
+  KeyName:
+    Type: String
+    Description: Keypair name for SSH access
+  AccessFromCIDRBlock:
+    Type: String
+    Description: The CIDR used to access the ec2 instances.
+  S3Mounts:
+    Type: String
+    Description: A JSON array of objects with name, bucket, and prefix properties used to mount data
+  IamPolicyDocument:
+    Type: String
+    Description: The IAM policy to be associated with the launched workstation
+  VPC:
+    Description: The VPC in which the EC2 instance will reside
+    Type: AWS::EC2::VPC::Id
+  Subnet:
+    Description: The VPC subnet in which the EC2 instance will reside
+    Type: AWS::EC2::Subnet::Id
+  EnvironmentInstanceFiles:
+    Type: String
+    Description: >-
+      An S3 URI (starting with "s3://") that specifies the location of files to be copied to
+      the environment instance, including any bootstrap scripts
+  EncryptionKeyArn:
+    Type: String
+    Description: The ARN of the KMS encryption Key used to encrypt data in the instance
+
+Conditions:
+  IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
+
+Resources:
+  IAMRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Join ['-', [Ref: Namespace, 'ec2-role']]
+      Path: '/'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service:
+                - 'ec2.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - !If
+          - IamPolicyEmpty
+          - !Ref 'AWS::NoValue'
+          - PolicyName: !Join ['-', [Ref: Namespace, 's3-studydata-policy']]
+            PolicyDocument: !Ref IamPolicyDocument
+        - PolicyName: !Join ['-', [Ref: Namespace, 's3-bootstrap-script-policy']]
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action: 's3:GetObject'
+                Resource: !Sub
+                  - 'arn:aws:s3:::${S3Location}/*'
+                  # Remove "s3://" prefix from EnvironmentInstanceFiles
+                  - S3Location: !Select [1, !Split ['s3://', !Ref EnvironmentInstanceFiles]]
+              - Effect: 'Allow'
+                Action: 's3:ListBucket'
+                Resource: !Sub
+                  - 'arn:aws:s3:::${S3Bucket}'
+                  - S3Bucket: !Select [2, !Split ['/', !Ref EnvironmentInstanceFiles]]
+                Condition:
+                  StringLike:
+                    s3:prefix: !Sub
+                      - '${S3Prefix}/*'
+                      - S3Prefix: !Select [3, !Split ['/', !Ref EnvironmentInstanceFiles]]
+
+  InstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      InstanceProfileName: !Join ['-', [Ref: Namespace, 'ec2-profile']]
+      Path: '/'
+      Roles:
+        - Ref: IAMRole
+
+  SecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: EC2 workspace security group
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 0
+          ToPort: 65535
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: icmp
+          FromPort: -1
+          ToPort: -1
+          CidrIp: !Ref AccessFromCIDRBlock
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: !Ref AccessFromCIDRBlock
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: !Ref AccessFromCIDRBlock
+      Tags:
+        - Key: Name
+          Value: !Join ['-', [Ref: Namespace, 'ec2-sg']]
+        - Key: Description
+          Value: EC2 workspace security group
+      VpcId: !Ref VPC
+
+  EC2Instance:
+    Type: 'AWS::EC2::Instance'
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: 'PT20M'
+    Properties:
+      ImageId: !Ref AmiId
+      InstanceType: !Ref InstanceType
+      IamInstanceProfile: !Ref InstanceProfile
+      KeyName: !Ref KeyName
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            VolumeSize: 8
+            Encrypted: true
+            KmsKeyId: !Ref EncryptionKeyArn
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: 'true'
+          DeviceIndex: '0'
+          GroupSet:
+            - !Ref SecurityGroup
+          SubnetId: !Ref Subnet
+      Tags:
+        - Key: Name
+          Value: !Join ['-', [Ref: Namespace, 'ec2-rstudio']]
+        - Key: Description
+          Value: EC2 workspace instance
+      UserData:
+        Fn::Base64: !Sub |
+          #!/usr/bin/env bash
+          # Download and execute bootstrap script
+          aws s3 cp "${EnvironmentInstanceFiles}/get_bootstrap.sh" "/tmp"
+          chmod 500 "/tmp/get_bootstrap.sh"
+          /tmp/get_bootstrap.sh "${EnvironmentInstanceFiles}" '${S3Mounts}'
+
+          # Signal result to CloudFormation
+          /opt/aws/bin/cfn-signal -e $? --stack "${AWS::StackName}" --resource "EC2Instance" --region "${AWS::Region}"
+
+Outputs:
+  Ec2WorkspaceDnsName:
+    Description: Public DNS name of the EC2 workspace instance
+    Value: !GetAtt [EC2Instance, PublicDnsName]
+
+  Ec2WorkspacePublicIp:
+    Description: Public IP address of the EC2 workspace instance
+    Value: !GetAtt [EC2Instance, PublicIp]
+
+  Ec2WorkspaceInstanceId:
+    Description: Instance Id for the EC2 workspace instance
+    Value: !Ref EC2Instance
+
+  WorkspaceInstanceRoleArn:
+    Description: IAM role assumed by the EC2 workspace instance
+    Value: !GetAtt IAMRole.Arn

@@ -43,8 +43,16 @@ class JwtService extends Service {
 
   async init() {
     await super.init();
+    const aws = await this.service('aws');
+    const ssm = new aws.sdk.SSM({ apiVersion: '2014-11-06' });
     const keyName = this.settings.get(settingKeys.paramStoreJwtSecret);
-    this.secret = await this.getSecret(keyName);
+    this.log.info(`Getting the "${keyName}" key from the parameter store`);
+    const result = await ssm.getParameter({ Name: keyName, WithDecryption: true }).promise();
+    this.secret = result.Parameter.Value;
+  }
+
+  async getSecret() {
+    return this.secret;
   }
 
   async sign(payload, optionsOverride = {}) {
@@ -91,15 +99,6 @@ class JwtService extends Service {
     } catch (err) {
       throw this.boom.invalidToken('Invalid Token', true).cause(err);
     }
-  }
-
-  async getSecret(keyName) {
-    const aws = await this.service('aws');
-    const ssm = new aws.sdk.SSM({ apiVersion: '2014-11-06' });
-
-    this.log.info(`Getting the "${keyName}" key from the parameter store`);
-    const result = await ssm.getParameter({ Name: keyName, WithDecryption: true }).promise();
-    return result.Parameter.Value;
   }
 }
 

@@ -6,6 +6,7 @@
   "author": "Amazon Web Services",
   "license": "Apache-2.0",
   "dependencies": {
+    "@aws-ee/base-api-services": "workspace:*",
     "@aws-ee/base-controllers": "workspace:*",
     "@aws-ee/base-raas-services": "workspace:*",
     "@aws-ee/base-services": "workspace:*",
