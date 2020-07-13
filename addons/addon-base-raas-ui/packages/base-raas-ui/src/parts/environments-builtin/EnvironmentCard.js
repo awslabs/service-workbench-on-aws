@@ -32,6 +32,7 @@ import localStorageKeys from '../../models/constants/local-storage-keys';
 import sagemakerNotebookIcon from '../../../images/marketplace/sagemaker-notebook-icon.svg';
 import emrIcon from '../../../images/marketplace/emr-icon.svg';
 import ec2Icon from '../../../images/marketplace/ec2-icon.svg';
+import rstudioIcon from '../../../images/marketplace/rstudio-icon.svg';
 
 const UPDATE_INTERVAL_MS = 20000;
 
@@ -183,6 +184,8 @@ class EnvironmentCard extends React.Component {
         return sagemakerNotebookIcon;
       case 'emr':
         return emrIcon;
+      case 'ec2-rstudio':
+        return rstudioIcon;
       case 'ec2-linux':
       case 'ec2-windows':
         return ec2Icon;
@@ -217,7 +220,7 @@ class EnvironmentCard extends React.Component {
           </Header>
           <div className="flex">
             <Label className="flex-auto basic" style={{ border: 0 }}>
-              {status === 'COMPLETED' && (instanceInfo.type === 'sagemaker' || instanceInfo.type === 'emr') && (
+              {status === 'COMPLETED' && (instanceInfo.type === 'ec2-rstudio' || instanceInfo.type === 'sagemaker' || instanceInfo.type === 'emr') && (
                 <EnvironmentConnectButton as={Label} user={this.props.user} environment={env} size="mini" color="green">
                   {fetchingUrl ? (
                     <>
@@ -317,7 +320,7 @@ class EnvironmentCard extends React.Component {
   renderStopButton(environment) {
     let stopButton;
     // Only the environment types listed here currently have the start/stop functionality
-    const validEnvTypes = ['ec2-windows', 'ec2-linux', 'sagemaker'];
+    const validEnvTypes = ['ec2-windows', 'ec2-linux', 'ec2-rstudio', 'sagemaker'];
     // Render button if Environment can be stopped AND prevent admins from attempting to terminate external envs
     if (
       environment.isCompleted &&

@@ -152,7 +152,7 @@ function getEnvironmentPasswordData(id) {
   return httpApiGet(`api/workspaces/built-in/${id}/password`);
 }
 
-function getEnvironmentNotebookUrl(id) {
+function getEnvironmentUrl(id) {
   return httpApiGet(`api/workspaces/built-in/${id}/url`);
 }
 
@@ -272,7 +272,7 @@ export {
   startEnvironment,
   getEnvironmentKeypair,
   getEnvironmentPasswordData,
-  getEnvironmentNotebookUrl,
+  getEnvironmentUrl,
   getEnvironmentSpotPriceHistory,
   getExternalTemplate,
   getAllProjCostGroupByUser,
