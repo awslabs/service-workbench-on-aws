@@ -183,8 +183,22 @@ module.exports = function newHandler({ studyService, log = consoleLogger } = {})
     const simplified = opendata.map(basicProjection);
 
     log.info('Updating studies');
-    // TODO: create or update existing record
-    await Promise.all(simplified.map(study => studyService.create(getSystemRequestContext(), study)));
+    // create or update existing record
+    const userContext = getSystemRequestContext();
+    await Promise.all(
+      simplified.map(async study => {
+        // studyService.find returns the entire db row for that study id
+        const existingStudy = await studyService.find(userContext, study.id);
+        if (!existingStudy) {
+          studyService.create(userContext, study);
+        } else {
+          // remove additional properties before update call to match jsonSchemaValidation
+          const studyToUpdate = _.omit(existingStudy, ['updatedAt', 'updatedBy', 'createdAt', 'createdBy', 'category']);
+
+          studyService.update(userContext, studyToUpdate);
+        }
+      }),
+    );
 
     return simplified;
   };
