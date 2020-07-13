@@ -229,6 +229,8 @@ class EnvironmentDetailPage extends React.Component {
             <Observer>
               {() => {
                 switch (environment.instanceInfo.type) {
+                  case 'ec2-rstudio':
+                    return this.renderRStudioSecurity();
                   case 'ec2-linux':
                     return this.renderEc2LinuxSecurity();
                   case 'ec2-windows':
@@ -573,6 +575,10 @@ class EnvironmentDetailPage extends React.Component {
         </p>
       </>
     );
+  }
+
+  renderRStudioSecurity() {
+    return this.renderConnectBtn('To connect to this RStudio Server instance simply click the launch button below.');
   }
 
   renderEmrSecurity() {

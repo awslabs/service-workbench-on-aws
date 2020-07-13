@@ -18,17 +18,24 @@ const _ = require('lodash');
 
 const platforms = [
   {
+    id: 'ec2-rstudio-1',
+    type: 'ec2-rstudio',
+    title: 'RStudio Server Pro',
+    displayOrder: 3,
+    desc: `Data analysis and integrated development experience for professional R users`,
+  },
+  {
     id: 'ec2-linux-1',
     type: 'ec2-linux',
     title: 'EC2 - Linux',
-    displayOrder: 3,
+    displayOrder: 4,
     desc: `Secure, resizable compute in the cloud`,
   },
   {
     id: 'ec2-windows-1',
     type: 'ec2-windows',
     title: 'EC2 - Windows',
-    displayOrder: 4,
+    displayOrder: 5,
     desc: `Secure, resizable compute in the cloud`,
   },
 ];

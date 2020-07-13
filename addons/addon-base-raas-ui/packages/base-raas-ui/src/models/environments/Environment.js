@@ -20,7 +20,7 @@ import { storage } from '@aws-ee/base-ui/dist/helpers/utils';
 import UserIdentifier from '@aws-ee/base-ui/dist/models/users/UserIdentifier';
 
 import { InstanceInfo } from './InstanceInfo';
-import { getEnvironmentKeypair, getEnvironmentNotebookUrl, getEnvironmentPasswordData } from '../../helpers/api';
+import { getEnvironmentKeypair, getEnvironmentUrl, getEnvironmentPasswordData } from '../../helpers/api';
 import SageMakerService from '../../helpers/sage-maker-service';
 import localStorageKeys from '../constants/local-storage-keys';
 
@@ -69,7 +69,7 @@ const Environment = types
       self.fetchingUrl = fetchingUrl;
     },
 
-    async getEnvironmentNotebookUrl(user) {
+    async getEnvironmentUrl(user) {
       if (self.isExternal) {
         if (!_.isEmpty(storage.getItem(localStorageKeys.pinToken))) {
           const creds = await user.unencryptedCreds(storage.getItem(localStorageKeys.pinToken));
@@ -79,7 +79,7 @@ const Environment = types
         throw new Error('No PIN to decrypt User credientials');
       } else {
         self.setFetchingUrl(true);
-        return getEnvironmentNotebookUrl(self.id);
+        return getEnvironmentUrl(self.id);
       }
     },
 

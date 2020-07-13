@@ -19,16 +19,8 @@ import { action, computed, decorate } from 'mobx';
 
 class EnvironmentConnectButton extends React.Component {
   getUrl = async environment => {
-    switch (environment.instanceInfo.type) {
-      case 'sagemaker': {
-        const { AuthorizedUrl } = await environment.getEnvironmentNotebookUrl(this.user);
-        return `${AuthorizedUrl}&view=lab`;
-      }
-      case 'emr':
-        return environment.instanceInfo.JupyterUrl;
-      default:
-        return '';
-    }
+    const { AuthorizedUrl } = await environment.getEnvironmentUrl(this.user);
+    return AuthorizedUrl;
   };
 
   handleConnectClick = async event => {
