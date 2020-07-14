@@ -128,3 +128,18 @@ Outputs:
   WorkspaceInstanceRoleArn:
     Description: IAM role assumed by the SageMaker workspace instance
     Value: !GetAtt IAMRole.Arn
+
+  # Connection related outputs. These outputs need to have prefix "Connection"
+  # The following "Connection*" outputs are inspected by the platform code to provide the "Connect" button links
+  # TODO: Document conventions around all "Connection*" outputs
+  ConnectionInfo:
+    Description: The name of the SageMaker notebook instance.
+    Value: !GetAtt [ BasicNotebookInstance, NotebookInstanceName ]
+
+  ConnectionType:
+    Description: Type of environment this connection is for
+    Value: SageMaker
+
+  ConnectionName:
+    Description: Name for this connection
+    Value: SageMaker Notebook

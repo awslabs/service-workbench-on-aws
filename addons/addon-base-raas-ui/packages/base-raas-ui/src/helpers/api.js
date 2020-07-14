@@ -103,7 +103,7 @@ async function getStepTemplates() {
 }
 
 function getEnvironments() {
-  return httpApiGet('api/workspaces');
+  return httpApiGet('api/workspaces/built-in');
 }
 
 function getEnvironmentCost(id, numberDaysInPast, groupByService = true, groupByUser = false) {
@@ -121,43 +121,43 @@ function getAllProjCostGroupByEnv(numberDaysInPast) {
 }
 
 function getEnvironment(id) {
-  return httpApiGet(`api/workspaces/${id}`);
+  return httpApiGet(`api/workspaces/built-in/${id}`);
 }
 
 function deleteEnvironment(id) {
-  return httpApiDelete(`api/workspaces/${id}`);
+  return httpApiDelete(`api/workspaces/built-in/${id}`);
 }
 
 function createEnvironment(body) {
-  return httpApiPost('api/workspaces', { data: body });
+  return httpApiPost('api/workspaces/built-in', { data: body });
 }
 
 function updateEnvironment(body) {
-  return httpApiPut('api/workspaces', { data: body });
+  return httpApiPut('api/workspaces/built-in', { data: body });
 }
 
 function stopEnvironment(id) {
-  return httpApiPut(`api/workspaces/${id}/stop`);
+  return httpApiPut(`api/workspaces/built-in/${id}/stop`);
 }
 
 function startEnvironment(id) {
-  return httpApiPut(`api/workspaces/${id}/start`);
+  return httpApiPut(`api/workspaces/built-in/${id}/start`);
 }
 
 function getEnvironmentKeypair(id) {
-  return httpApiGet(`api/workspaces/${id}/keypair`);
+  return httpApiGet(`api/workspaces/built-in/${id}/keypair`);
 }
 
 function getEnvironmentPasswordData(id) {
-  return httpApiGet(`api/workspaces/${id}/password`);
+  return httpApiGet(`api/workspaces/built-in/${id}/password`);
 }
 
 function getEnvironmentNotebookUrl(id) {
-  return httpApiGet(`api/workspaces/${id}/url`);
+  return httpApiGet(`api/workspaces/built-in/${id}/url`);
 }
 
 function getEnvironmentSpotPriceHistory(type) {
-  return httpApiGet(`api/workspaces/pricing/${type}`);
+  return httpApiGet(`api/workspaces/built-in/pricing/${type}`);
 }
 
 function getExternalTemplate(key) {
@@ -216,6 +216,34 @@ function getClientIpAddress() {
   return httpApiGet(`api/ip`);
 }
 
+function getScEnvironmentCost(id, numberDaysInPast, groupByService = true, groupByUser = false) {
+  return httpApiGet(
+    `api/costs?scEnv=${id}&numberOfDaysInPast=${numberDaysInPast}&groupByService=${groupByService}&groupByUser=${groupByUser}`,
+  );
+}
+
+function getScEnvironments() {
+  return httpApiGet(`api/workspaces/service-catalog/`);
+}
+
+function getScEnvironment(id) {
+  return httpApiGet(`api/workspaces/service-catalog/${id}`);
+}
+
+function createScEnvironment(scEnvironment) {
+  return httpApiPost('api/workspaces/service-catalog/', { data: scEnvironment });
+}
+
+function getScEnvironmentConnectionUrl(envId, connectionId) {
+  return httpApiGet(`api/workspaces/service-catalog/${envId}/connections/${connectionId}/url`);
+}
+
+function deleteScEnvironment(id) {
+  return httpApiDelete(`api/workspaces/service-catalog/${id}`);
+}
+
+// API Functions Insertion Point (do not change this text, it is being used by hygen cli)
+
 export {
   addIndex,
   addUsers,
@@ -262,4 +290,10 @@ export {
   getComputePlatforms,
   getComputeConfigurations,
   getClientIpAddress,
+  getScEnvironmentCost,
+  getScEnvironments,
+  createScEnvironment,
+  getScEnvironmentConnectionUrl,
+  deleteScEnvironment,
+  getScEnvironment,
 };

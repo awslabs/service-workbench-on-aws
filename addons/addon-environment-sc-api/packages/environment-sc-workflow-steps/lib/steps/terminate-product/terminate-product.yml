@@ -1,0 +1,8 @@
+id: st-terminate-product
+v: 1
+title: Terminate AWS Service Catalog Product
+desc: |
+  Terminates the specified AWS Service Catalog Provisioned Product
+
+skippable: true # this means that if there is an error in a previous step, then this step will be skipped
+hidden: true

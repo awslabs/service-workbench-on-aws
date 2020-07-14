@@ -20,6 +20,10 @@
       "type": "string",
       "minLength": 10
     },
+    "xAccEnvMgmtRoleArn": {
+      "type": "string",
+      "minLength": 10
+    },
     "externalId": {
       "type": "string",
       "minLength": 1

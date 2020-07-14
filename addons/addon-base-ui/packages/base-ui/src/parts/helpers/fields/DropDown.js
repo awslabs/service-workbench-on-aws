@@ -15,6 +15,7 @@
 
 import _ from 'lodash';
 import React from 'react';
+import { action, decorate, observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react';
 import { Dropdown } from 'semantic-ui-react';
 import c from 'classnames';
@@ -36,52 +37,129 @@ import ErrorPointer from './ErrorPointer';
 // - clearable (via props), default to false
 // - multiple (via props), default to false
 // - search (via props), default to false
-const Component = observer(
-  ({
-    field,
-    selection = false,
-    fluid = false,
-    disabled = false,
-    clearable = false,
-    multiple = false,
-    search = false,
-    className = 'mb4',
-    options = [],
-    onChange,
-  }) => {
-    const { id, value, sync, placeholder, error = '', extra = {} } = field;
+// - allowAdditions (via props), default to false
+// - className (via props), default to 'mb4'
+// - additionLabel (via props), default to 'Custom Value:'
+const DEFAULT_SELECTION = false;
+const DEFAULT_FLUID = false;
+const DEFAULT_DISABLED = false;
+const DEFAULT_CLEARABLE = false;
+const DEFAULT_MULTIPLE = false;
+const DEFAULT_SEARCH = false;
+const DEFAULT_ALLOW_ADDITIONS = false;
+const DEFAULT_CLASS_NAME = 'mb4';
+const DEFAULT_ADDITION_LABEL = <i style={{ color: 'red' }}>Custom Value: </i>;
+
+class DropDown extends React.Component {
+  constructor(props) {
+    super(props);
+    runInAction(() => {
+      this.optionsInState = [];
+    });
+  }
+
+  onAddItem = (e, data = {}) => {
+    // Append the item to options that just got added
+    this.optionsInState = _.concat({ text: data.value, value: data.value }, this.optionsInState);
+  };
+
+  render() {
+    const {
+      field,
+      selection,
+      fluid,
+      disabled,
+      clearable,
+      multiple,
+      search,
+      allowAdditions,
+      additionLabel,
+      className,
+      options = [],
+      onChange,
+    } = this.props;
+
+    const { id, value, sync, placeholder, error = '' } = field;
     const hasError = !_.isEmpty(error); // IMPORTANT do NOT use field.hasError
-    const mergeOptions = [...((extra && extra.options) || []), ...options];
+
+    const extra = field.extra || {};
+    extra.options = extra.options || [];
+
+    const mergeOptions = _.uniq([...this.optionsInState, ...extra.options, ...options]);
+
     const isDisabled = field.disabled || disabled;
     const disabledClass = isDisabled ? 'disabled' : '';
     const errorClass = hasError ? 'error' : '';
+
+    /**
+     * A utility function to see if the given component attribute is passed as an argument when rendering this component
+     * or specified in the "extra" object.
+     * The function returns the attribute value in the following order of precedence
+     * 1. attribute value directly specified at the time of rendering the component (i.e., passed to the component), if the attribute was not passed then
+     * 2. attribute value specified in the "extra" object of the given field, if it was not passed in the extra object as well then
+     * 3. default attribute value
+     *
+     * @param attribName The name of the attribute
+     * @param attribValue The attribute value that was passed when rendering the component
+     * @param defaultAttribValue The default attribute value to use
+     * @returns {*}
+     */
+    const useSpecifiedOrFromExtraOrDefault = (attribName, attribValue, defaultAttribValue) => {
+      const fromExtra = extra && extra[attribName];
+      // use specified attribValue if it is passed. If not, then try to use attrib value from the "extra" object
+      let toUse = _.isNil(attribValue) ? fromExtra : attribValue;
+
+      // if the attrib is neither passed nor in extra then use default value
+      if (_.isNil(toUse)) {
+        toUse = defaultAttribValue;
+      }
+      return toUse;
+    };
+
     const attrs = {
       id,
       value,
+
+      // applicable only when allowAdditions = true
+      onAddItem: this.onAddItem,
       onChange: (e, data = {}) => {
         sync(data.value);
         field.validate({ showErrors: true });
         if (onChange) onChange(data.value, field);
       },
       placeholder,
-      selection,
-      clearable,
-      multiple,
-      search,
-      fluid,
-      disabled: isDisabled,
+      selection: useSpecifiedOrFromExtraOrDefault('selection', selection, DEFAULT_SELECTION),
+      clearable: useSpecifiedOrFromExtraOrDefault('clearable', clearable, DEFAULT_CLEARABLE),
+      multiple: useSpecifiedOrFromExtraOrDefault('multiple', multiple, DEFAULT_MULTIPLE),
+      search: useSpecifiedOrFromExtraOrDefault('search', search, DEFAULT_SEARCH),
+      fluid: useSpecifiedOrFromExtraOrDefault('fluid', fluid, DEFAULT_FLUID),
+      allowAdditions: useSpecifiedOrFromExtraOrDefault('allowAdditions', allowAdditions, DEFAULT_ALLOW_ADDITIONS),
+      disabled: useSpecifiedOrFromExtraOrDefault('disabled', disabled, DEFAULT_DISABLED),
+      additionLabel: useSpecifiedOrFromExtraOrDefault('additionLabel', additionLabel, DEFAULT_ADDITION_LABEL),
       error: hasError,
     };
 
     return (
-      <div className={c(className, errorClass, disabledClass)}>
+      <div
+        className={c(
+          useSpecifiedOrFromExtraOrDefault('className', className, DEFAULT_CLASS_NAME),
+          errorClass,
+          disabledClass,
+        )}
+      >
         <Header field={field} />
         <Description field={field} />
         <Dropdown className="field" options={mergeOptions} {...attrs} />
         <ErrorPointer field={field} />
       </div>
     );
-  },
-);
+  }
+}
 
-export default Component;
+// see https://medium.com/@mweststrate/mobx-4-better-simpler-faster-smaller-c1fbc08008da
+decorate(DropDown, {
+  optionsInState: observable,
+  onAddItem: action,
+});
+
+export default observer(DropDown);

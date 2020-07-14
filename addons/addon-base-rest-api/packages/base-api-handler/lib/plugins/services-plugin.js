@@ -19,6 +19,7 @@ const DbAuthenticationService = require('@aws-ee/base-api-services/lib/db-authen
 const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
 const InputManifestValidationService = require('@aws-ee/base-services/lib/input-manifest/input-manifest-validation-service');
 const S3Service = require('@aws-ee/base-services/lib/s3-service');
+const IamService = require('@aws-ee/base-services/lib/iam/iam-service');
 const LockService = require('@aws-ee/base-services/lib/lock/lock-service');
 const PluginRegistryService = require('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
 const AuditWriterService = require('@aws-ee/base-services/lib/audit/audit-writer-service');
@@ -62,6 +63,7 @@ async function registerServices(container, pluginRegistry) {
   container.register('jwtService', new JwtService());
   container.register('userService', new UserService());
   container.register('s3Service', new S3Service());
+  container.register('iamService', new IamService());
   container.register('lockService', new LockService());
   container.register('apiKeyService', new ApiKeyService());
   container.register('tokenRevocationService', new TokenRevocationService());

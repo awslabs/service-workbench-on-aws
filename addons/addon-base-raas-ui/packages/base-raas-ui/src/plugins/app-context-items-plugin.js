@@ -29,6 +29,8 @@ import * as filesSelection from '../models/selections/FilesSelection';
 import * as studiesStore from '../models/studies/StudiesStore';
 import * as userRolesStore from '../models/user-roles/UserRolesStore';
 import * as computePlatformsStore from '../models/compute/ComputePlatformsStore';
+import * as scEnvironmentsStore from '../models/environments-sc/ScEnvironmentsStore';
+import * as scEnvironmentCostsStore from '../models/environments-sc/ScEnvironmentCostsStore';
 
 // eslint-disable-next-line no-unused-vars
 function registerAppContextItems(appContext) {
@@ -48,6 +50,8 @@ function registerAppContextItems(appContext) {
   studiesStore.registerContextItems(appContext);
   userRolesStore.registerContextItems(appContext);
   computePlatformsStore.registerContextItems(appContext);
+  scEnvironmentsStore.registerContextItems(appContext);
+  scEnvironmentCostsStore.registerContextItems(appContext);
 }
 
 // eslint-disable-next-line no-unused-vars

@@ -1,29 +1,29 @@
 version: 1.0.0
 
 regionShortNamesMap:
-  "us-east-2": "oh"
-  "us-east-1": "va"
-  "us-west-1": "ca"
-  "us-west-2": "or"
-  "ap-east-1": "hk"
-  "ap-south-1": "mum"
-  "ap-northeast-3": "osa"
-  "ap-northeast-2": "sel"
-  "ap-southeast-1": "sg"
-  "ap-southeast-2": "syd"
-  "ap-northeast-1": "ty"
-  "ca-central-1": "ca"
-  "cn-north-1": "cn"
-  "cn-northwest-1": "nx"
-  "eu-central-1": "fr"
-  "eu-west-1": "irl"
-  "eu-west-2": "ldn"
-  "eu-west-3": "par"
-  "eu-north-1": "sth"
-  "me-south-1": "bhr"
-  "sa-east-1": "sao"
-  "us-gov-east-1": "gce"
-  "us-gov-west-1": "gcw"
+  'us-east-2': 'oh'
+  'us-east-1': 'va'
+  'us-west-1': 'ca'
+  'us-west-2': 'or'
+  'ap-east-1': 'hk'
+  'ap-south-1': 'mum'
+  'ap-northeast-3': 'osa'
+  'ap-northeast-2': 'sel'
+  'ap-southeast-1': 'sg'
+  'ap-southeast-2': 'syd'
+  'ap-northeast-1': 'ty'
+  'ca-central-1': 'ca'
+  'cn-north-1': 'cn'
+  'cn-northwest-1': 'nx'
+  'eu-central-1': 'fr'
+  'eu-west-1': 'irl'
+  'eu-west-2': 'ldn'
+  'eu-west-3': 'par'
+  'eu-north-1': 'sth'
+  'me-south-1': 'bhr'
+  'sa-east-1': 'sao'
+  'us-gov-east-1': 'gce'
+  'us-gov-west-1': 'gcw'
 
 # The default region to deploy to
 awsRegion: us-east-1
@@ -48,27 +48,24 @@ deploymentBucketName: ${self:custom.settings.globalNamespace}-artifacts
 # Bucket policy for the deployment bucket.
 deploymentBucketPolicy:
   {
-    "Version": "2008-10-17",
-    "Statement":
+    'Version': '2008-10-17',
+    'Statement':
       [
         {
-          "Sid": "Deny requests that do not use TLS",
-          "Effect": "Deny",
-          "Principal": "*",
-          "Action": "s3:*",
-          "Resource": "arn:aws:s3:::${self:custom.settings.deploymentBucketName}/*",
-          "Condition": { "Bool": { "aws:SecureTransport": "false" } },
+          'Sid': 'Deny requests that do not use TLS',
+          'Effect': 'Deny',
+          'Principal': '*',
+          'Action': 's3:*',
+          'Resource': 'arn:aws:s3:::${self:custom.settings.deploymentBucketName}/*',
+          'Condition': { 'Bool': { 'aws:SecureTransport': 'false' } },
         },
         {
-          "Sid": "Deny requests that do not use SigV4",
-          "Effect": "Deny",
-          "Principal": "*",
-          "Action": "s3:*",
-          "Resource": "arn:aws:s3:::${self:custom.settings.deploymentBucketName}/*",
-          "Condition":
-            {
-              "StringNotEquals": { "s3:signatureversion": "AWS4-HMAC-SHA256" },
-            },
+          'Sid': 'Deny requests that do not use SigV4',
+          'Effect': 'Deny',
+          'Principal': '*',
+          'Action': 's3:*',
+          'Resource': 'arn:aws:s3:::${self:custom.settings.deploymentBucketName}/*',
+          'Condition': { 'StringNotEquals': { 's3:signatureversion': 'AWS4-HMAC-SHA256' } },
         },
       ],
   }
@@ -98,7 +95,7 @@ envType: prod
 dbTablePrefix: ${self:custom.settings.namespace}
 
 # Root path in parameter store for parameters used by this solution.
-paramStoreRoot: "${self:custom.settings.envName}/${self:custom.settings.solutionName}"
+paramStoreRoot: '${self:custom.settings.envName}/${self:custom.settings.solutionName}'
 
 # Information about the root admin user.
 # The root admin user is created by default in the internal authentication provider
@@ -122,8 +119,38 @@ enableExternalResearchers: false
 # THIS SETTING IS ONLY APPLICABLE FOR LOCAL DEVELOPMENT
 # A flag indicating if lambda function role's trust policy (assume role policy) should be automatically adjusted to
 # allow assuming the role from local machine (applicable only for local development)
-localRoleAutoAdjustTrust: false
+localRoleAutoAdjustTrust: true
 
 # Optional custom domain name; if empty, use the CloudFront domain name
 domainName: ''
 certificateArn: ''
+# An environment management role giving AWS Service Catalog Permissions
+# This is the role that the Admin users share their AWS Service Catalog products/portfolios with.
+# The products shared with this role become candidates for being imported in the platform as environment types.
+# The APIHandler and WorkflowLoopRunner lambdas both assume this role for any interaction
+# with the AWS Service Catalog
+# Equivalent role for launching/terminating environments in each on-boarded account with cross account trust is
+# created by "addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/onboard-account.cfn.yml"
+envMgmtRoleName: ${self:custom.settings.namespace}-EnvMgmt
+
+# AWS Service Catalog launch-constraint role name pattern. When admins publish new products under AWS Service Catalog
+# portfolios, they are expected to specify a local role name as a launch constraint. The AWS Service Catalog will assume
+# that role before launching the product (i.e., before launching the CFN stack). The platform code (the workflow that
+# launches the environments under researchers' accounts) will clone the role with the same name in the target account
+# before launching the environment.
+# Code does this cloning after assuming the role specified by the "envMgmtRoleName" above (or its equivalent role
+# created by onboard-account.cfn.yml in on-boarded account). This means the envMgmtRole needs IAM permissions to
+# read role information and create a role in target account.
+# This pattern specified here is used for restricting AWS IAM permissions required by the envMgmtRole role for
+# specific pattern
+# Specify wild-card ( i.e., '*') here to allow any prefix pattern
+launchConstraintRolePrefix: 'raas-sc-*'
+
+# Customer managed policy names' prefix for launch constraint roles.
+# Similar to "launchConstraintRolePrefix" but applicable to customer managed AWS IAM Policies
+# Specify wild-card ( i.e., '*') here to allow any prefix pattern
+launchConstraintPolicyPrefix: '*'
+
+# Enable/disable support for built-in workspaces and built-in workspace types. Galileo is in the process
+# of deprecating built-in workspaces in favor of service catalog workspaces.
+enableBuiltInWorkspaces: true

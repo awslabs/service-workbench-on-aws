@@ -93,14 +93,14 @@ class AuditWriterService extends Service {
 
     // Give all plugins a chance to write the audit event to their respective persistent locations
     // (such as logs, db, ElasticSearch etc)
-    const writtenAuditEvent = await this.pluginRegistryService.visitPlugins(
+    const result = await this.pluginRegistryService.visitPlugins(
       'audit',
       'write',
       { payload: { requestContext, container: this.container, auditEvent: preparedAuditEvent }, continueOnError },
       ...args,
     );
 
-    return { status: 'success', auditEvent: writtenAuditEvent };
+    return { status: 'success', auditEvent: result ? result.auditEvent : {} };
   }
 
   async prepareAuditEvent(requestContext, auditEvent, continueOnError, ...args) {

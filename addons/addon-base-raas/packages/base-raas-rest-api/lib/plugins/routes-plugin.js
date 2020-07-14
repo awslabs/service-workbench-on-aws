@@ -23,6 +23,7 @@ const userController = require('@aws-ee/base-controllers/lib/user-controller');
 const usersController = require('../controllers/users-controller');
 const studyController = require('../controllers/study-controller');
 const environmentController = require('../controllers/environment-controller');
+const environmentScController = require('../controllers/environment-sc-controller');
 const userRolesController = require('../controllers/user-roles-controller');
 const awsAccountsController = require('../controllers/aws-accounts-controller');
 const costsController = require('../controllers/costs-controller');
@@ -66,7 +67,8 @@ async function getRoutes(routesMap, pluginRegistry) {
     // PROTECTED APIS accessible only to logged in active users
     ['/api/users', [setupAuthContext, prepareContext, ensureActive, usersController]],
     ['/api/studies', [setupAuthContext, prepareContext, ensureActive, studyController]],
-    ['/api/workspaces', [setupAuthContext, prepareContext, ensureActive, environmentController]],
+    ['/api/workspaces/built-in', [setupAuthContext, prepareContext, ensureActive, environmentController]],
+    ['/api/workspaces/service-catalog', [setupAuthContext, prepareContext, ensureActive, environmentScController]],
     ['/api/user-roles', [setupAuthContext, prepareContext, ensureActive, userRolesController]],
     ['/api/aws-accounts', [setupAuthContext, prepareContext, ensureActive, awsAccountsController]],
     ['/api/costs', [setupAuthContext, prepareContext, ensureActive, costsController]],

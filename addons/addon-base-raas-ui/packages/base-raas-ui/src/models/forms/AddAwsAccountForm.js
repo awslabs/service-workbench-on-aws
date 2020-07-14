@@ -31,6 +31,11 @@ const addAwsAccountFormFields = {
     placeholder: 'Type Role ARN for launching resources into this AWS account',
     rules: 'required|string|between:10,300',
   },
+  xAccEnvMgmtRoleArn: {
+    label: 'AWS Service Catalog Role Arn',
+    placeholder: 'Type Role ARN for launching resources into this AWS account using AWS Service Catalog',
+    rules: 'required|string|between:10,300',
+  },
   externalId: {
     label: 'External ID',
     placeholder: 'Type external ID for this AWS account',

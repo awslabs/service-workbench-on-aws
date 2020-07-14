@@ -25,12 +25,21 @@ const baseRaasPostDeploymentStepsPlugin = require('@aws-ee/base-raas-post-deploy
 const baseRaasWfStepsPlugin = require('@aws-ee/base-raas-workflow-steps/lib/plugins/workflow-steps-plugin');
 const baseRaasWorkflowsPlugin = require('@aws-ee/base-raas-workflows/lib/plugins/workflows-plugin');
 const baseRaasUserAuthzPlugin = require('@aws-ee/base-raas-services/lib/user/user-authz-plugin');
+const environmentTypeServicesPlugin = require('@aws-ee/environment-type-mgmt-services/lib/plugins/services-plugin');
+const environmentScWfStepsPlugin = require('@aws-ee/environment-sc-workflow-steps/lib/plugins/workflow-steps-plugin');
+const environmentScWfPlugin = require('@aws-ee/environment-sc-workflows/lib/plugins/workflows-plugin');
 
 const servicesPlugin = require('./services-plugin');
 const stepsPlugin = require('./steps-plugin');
 
 const extensionPoints = {
-  'service': [baseServicesPlugin, workflowServicesPlugin, baseRaasServicesPlugin, servicesPlugin],
+  'service': [
+    baseServicesPlugin,
+    workflowServicesPlugin,
+    baseRaasServicesPlugin,
+    environmentTypeServicesPlugin,
+    servicesPlugin,
+  ],
   'postDeploymentStep': [
     baseStepsPlugin,
     workflowPostDeploymentStepsPlugin,
@@ -38,9 +47,9 @@ const extensionPoints = {
     stepsPlugin,
   ],
   'authentication-provider-type': [], // No plugins at this point. The built in authentication provider types are registered by "addon-base-rest-api/packages/services/lib/authentication-providers/authentication-provider-type-service.js" service
-  'workflow-steps': [baseWfStepsPlugin, baseRaasWfStepsPlugin],
+  'workflow-steps': [baseWfStepsPlugin, baseRaasWfStepsPlugin, environmentScWfStepsPlugin],
   'workflow-templates': [baseWfTemplatesPlugin],
-  'workflows': [baseRaasWorkflowsPlugin],
+  'workflows': [baseRaasWorkflowsPlugin, environmentScWfPlugin],
   'workflow-assignments': [],
   'audit': [baseAuditPlugin],
   'user-authz': [baseRaasUserAuthzPlugin],

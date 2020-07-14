@@ -22,7 +22,8 @@ import { Container, Header, Segment, Icon } from 'semantic-ui-react';
 import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
 import ProgressPlaceHolder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 
-import { getEnvironments, getEnvironmentCost } from '../../helpers/api';
+import { getEnvironments, getEnvironmentCost, getScEnvironments, getScEnvironmentCost } from '../../helpers/api';
+import { enableBuiltInWorkspaces } from '../../helpers/settings';
 
 import { blueDatasets } from './graphs/graph-options';
 import BarGraph from './graphs/BarGraph';
@@ -127,7 +128,7 @@ class Dashboard extends React.Component {
   }
 
   async getAccumulatedEnvCost() {
-    const environments = await getEnvironments();
+    const environments = enableBuiltInWorkspaces ? await getEnvironments() : await getScEnvironments();
     const envIdToName = {};
 
     const envNameToIndex = {};
@@ -139,7 +140,9 @@ class Dashboard extends React.Component {
 
     const envIds = Object.keys(envIdToName);
     const envCostPromises = envIds.map(envId => {
-      return getEnvironmentCost(envId, 30, false, true);
+      return enableBuiltInWorkspaces
+        ? getEnvironmentCost(envId, 30, false, true)
+        : getScEnvironmentCost(envId, 30, false, true);
     });
 
     const envCostResults = await Promise.all(envCostPromises);

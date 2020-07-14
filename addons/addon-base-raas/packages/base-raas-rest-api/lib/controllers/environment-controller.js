@@ -33,7 +33,7 @@ async function configure(context) {
   ]);
 
   // ===============================================================
-  //  GET / (mounted to /api/workspaces)
+  //  GET / (mounted to /api/workspaces/built-in)
   // ===============================================================
   router.get(
     '/',
@@ -46,7 +46,7 @@ async function configure(context) {
   );
 
   // ===============================================================
-  //  GET /:id (mounted to /api/workspaces)
+  //  GET /:id (mounted to /api/workspaces/built-in)
   // ===============================================================
   router.get(
     '/:id',
@@ -60,7 +60,7 @@ async function configure(context) {
   );
 
   // ===============================================================
-  //  POST / (mounted to /api/workspaces)
+  //  POST / (mounted to /api/workspaces/built-in)
   // ===============================================================
   router.post(
     '/',
@@ -76,7 +76,7 @@ async function configure(context) {
   );
 
   // ===============================================================
-  //  PUT / (mounted to /api/workspaces)
+  //  PUT / (mounted to /api/workspaces/built-in)
   // ===============================================================
   router.put(
     '/',
@@ -90,7 +90,7 @@ async function configure(context) {
   );
 
   // ===============================================================
-  //  PUT / (mounted to /api/workspaces)
+  //  PUT / (mounted to /api/workspaces/built-in)
   // ===============================================================
   router.put(
     '/:id/start',
@@ -105,7 +105,7 @@ async function configure(context) {
   );
 
   // ===============================================================
-  //  PUT / (mounted to /api/workspaces)
+  //  PUT / (mounted to /api/workspaces/built-in)
   // ===============================================================
   router.put(
     '/:id/stop',
@@ -120,7 +120,7 @@ async function configure(context) {
   );
 
   // ===============================================================
-  //  DELETE /:id (mounted to /api/workspaces)
+  //  DELETE /:id (mounted to /api/workspaces/built-in)
   // ===============================================================
   router.delete(
     '/:id',
@@ -134,7 +134,7 @@ async function configure(context) {
   );
 
   // ===============================================================
-  //  GET /:id/keypair (mounted to /api/workspaces)
+  //  GET /:id/keypair (mounted to /api/workspaces/built-in)
   // ===============================================================
   router.get(
     '/:id/keypair',
@@ -149,7 +149,7 @@ async function configure(context) {
   );
 
   // ===============================================================
-  //  GET /:id/password (mounted to /api/workspaces)
+  //  GET /:id/password (mounted to /api/workspaces/built-in)
   // ===============================================================
   router.get(
     '/:id/password',
@@ -164,7 +164,7 @@ async function configure(context) {
   );
 
   // ===============================================================
-  //  GET /:id/url (mounted to /api/workspaces)
+  //  GET /:id/url (mounted to /api/workspaces/built-in)
   // ===============================================================
   router.get(
     '/:id/url',
@@ -178,7 +178,7 @@ async function configure(context) {
   );
 
   // ===============================================================
-  //  GET /pricing/:type (mounted to /api/workspaces)
+  //  GET /pricing/:type (mounted to /api/workspaces/built-in)
   // ===============================================================
   router.get(
     '/pricing/:type',

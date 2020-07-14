@@ -57,9 +57,11 @@ custom:
         apiHandler:
           environment:
             APP_LOCAL_ROLE_ARN: ${cfnOutput('ApiHandlerRoleArn')} # When running locally, run under this role
+            APP_ENV_MGMT_ROLE_ARN: ${cfnOutput('EnvMgmtRoleArn')}
         workflowLoopRunner:
           environment:
             APP_LOCAL_ROLE_ARN: ${cfnOutput('WorkflowLoopRunnerRoleArn')} # When running locally, run under this role
+            APP_ENV_MGMT_ROLE_ARN: ${cfnOutput('EnvMgmtRoleArn')}
         openDataScrapeHandler:
           environment:
             APP_LOCAL_ROLE_ARN: ${cfnOutput('OpenDataScrapeHandlerRoleArn')} # When running locally, run under this role

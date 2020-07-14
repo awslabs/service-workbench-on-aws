@@ -18,12 +18,19 @@ const baseServicesPlugin = require('@aws-ee/base-authn-handler/lib/plugins/servi
 const bassRaasServicesPlugin = require('@aws-ee/base-raas-rest-api/lib/plugins/authn-handler-services-plugin');
 const baseRaasUserAuthzPlugin = require('@aws-ee/base-raas-services/lib/user/user-authz-plugin');
 const baseRaasAuthnPlugin = require('@aws-ee/base-raas-rest-api/lib/plugins/authentication-plugin');
+const baseRaasSchemaPlugin = require('@aws-ee/base-raas-services/lib/plugins/schema-plugin');
+// const baseRaasAppstreamSchemaPlugin = require('@aws-ee/base-raas-appstream-services/lib/plugins/schema-plugin');
+
+const servicesPlugin = require('services/lib/plugins/services-plugin');
 
 const extensionPoints = {
-  'service': [baseServicesPlugin, bassRaasServicesPlugin],
+  'service': [baseServicesPlugin, bassRaasServicesPlugin, servicesPlugin],
   'audit': [baseAuditPlugin],
   'user-authz': [baseRaasUserAuthzPlugin],
   'authentication': [baseRaasAuthnPlugin],
+
+  // TODO: Enable app stream plugin again. Temporarily disabled app stream plugin until appropriate extension points are added to provision-account workflow
+  'schema': [baseRaasSchemaPlugin /* ,baseRaasAppstreamSchemaPlugin */],
 };
 
 async function getPlugins(extensionPoint) {

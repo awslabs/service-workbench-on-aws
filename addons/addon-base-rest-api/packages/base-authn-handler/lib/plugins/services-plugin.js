@@ -16,6 +16,7 @@
 const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
 const DbService = require('@aws-ee/base-services/lib/db-service');
 const S3Service = require('@aws-ee/base-services/lib/s3-service');
+const IamService = require('@aws-ee/base-services/lib/iam/iam-service');
 const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
 const PluginRegistryService = require('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
 const AuditWriterService = require('@aws-ee/base-services/lib/audit/audit-writer-service');
@@ -47,7 +48,7 @@ const settingKeys = {
 async function registerServices(container, pluginRegistry) {
   container.register('aws', new AwsService());
   container.register('s3Service', new S3Service());
-
+  container.register('iamService', new IamService());
   container.register('authenticationProviderConfigService', new AuthenticationProviderConfigService());
   container.register('authenticationProviderTypeService', new AuthenticationProviderTypeService());
   container.register('authenticationService', new AuthenticationService());

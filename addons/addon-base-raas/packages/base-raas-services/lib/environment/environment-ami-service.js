@@ -84,7 +84,8 @@ class EnvironmentAmiService extends Service {
       try {
         const attributes = await this.ec2.modifyImageAttribute(params).promise();
         return attributes;
-      } catch (_e) {
+      } catch (err) {
+        this.log.error(err);
         throw this.boom.badRequest(`Unable to modify permissions on the software image for the selected index.`, true);
       }
     })();

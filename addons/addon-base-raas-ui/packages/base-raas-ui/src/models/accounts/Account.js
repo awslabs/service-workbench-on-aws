@@ -19,6 +19,7 @@ import UserIdentifier from '@aws-ee/base-ui/dist/models/users/UserIdentifier';
 
 const CfnInfo = types.model({
   crossAccountExecutionRoleArn: '',
+  crossAccountEnvMgmtRoleArn: '',
   subnetId: '',
   vpcId: '',
   stackId: '',

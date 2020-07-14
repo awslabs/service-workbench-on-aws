@@ -96,6 +96,10 @@ apiHandler:
     APP_STUDY_DATA_KMS_KEY_ALIAS: ${self:custom.settings.studyDataKmsKeyAlias}
     APP_STUDY_DATA_KMS_KEY_ARN: ${self:custom.settings.studyDataKmsKeyAliasArn}
     APP_STUDY_DATA_KMS_POLICY_WORKSPACE_SID: ${self:custom.settings.studyDataKmsPolicyWorkspaceSid}
+    APP_ENV_MGMT_ROLE_ARN: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${self:custom.settings.envMgmtRoleName}
+    APP_LAUNCH_CONSTRAINT_ROLE_PREFIX: ${self:custom.settings.launchConstraintRolePrefix}
+    APP_LAUNCH_CONSTRAINT_POLICY_PREFIX: ${self:custom.settings.launchConstraintPolicyPrefix}
+    APP_ENV_TYPE_CONFIGS_BUCKET_NAME: ${self:custom.settings.envTypeConfigsBucketName}
 
 workflowLoopRunner:
   handler: src/lambdas/workflow-loop-runner/handler.handler
@@ -116,3 +120,7 @@ workflowLoopRunner:
     APP_STUDY_DATA_KMS_KEY_ALIAS: ${self:custom.settings.studyDataKmsKeyAlias}
     APP_STUDY_DATA_KMS_KEY_ARN: !Sub arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.studyDataKmsKeyAlias}
     APP_STUDY_DATA_KMS_POLICY_WORKSPACE_SID: ${self:custom.settings.studyDataKmsPolicyWorkspaceSid}
+    APP_ENV_MGMT_ROLE_ARN: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${self:custom.settings.envMgmtRoleName}
+    APP_LAUNCH_CONSTRAINT_ROLE_PREFIX: ${self:custom.settings.launchConstraintRolePrefix}
+    APP_LAUNCH_CONSTRAINT_POLICY_PREFIX: ${self:custom.settings.launchConstraintPolicyPrefix}
+    APP_ENV_TYPE_CONFIGS_BUCKET_NAME: ${self:custom.settings.envTypeConfigsBucketName}

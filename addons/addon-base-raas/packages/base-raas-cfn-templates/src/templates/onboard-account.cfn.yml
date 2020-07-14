@@ -35,6 +35,16 @@ Parameters:
     Type: String
     Default: 10.0.0.0/19
 
+  LaunchConstraintRolePrefix:
+    Description: Role name prefix to use when creating a launch constraint role in the on-boarded account
+    Type: String
+    Default: '*'
+
+  LaunchConstraintPolicyPrefix:
+    Description: Customer managed policy name prefix to use when creating a launch constraint role in the on-boarded account
+    Type: String
+    Default: '*'
+
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
@@ -54,6 +64,85 @@ Metadata:
           - VpcPublicSubnet1Cidr
 
 Resources:
+
+  # A role used for launching environments using AWS Service Catalog
+  # This is the role that code (ApiHandlerLambda and WorkflowLoopRunnerLambda) in central account
+  # assumes before performing any AWS Service Catalog interactions in this account (the on-boarded account)
+  # for launching environments.
+  # Equivalent role for central account is created by "main/solution/backend/config/infra/cloudformation.yml"
+  CrossAccountRoleEnvMgmt:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Join ['-', [Ref: Namespace, 'xacc-env-mgmt']]
+      Path: '/'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              AWS:
+                - !Join [':', ['arn:aws:iam:', Ref: CentralAccountId, 'root']]
+                - !Ref ApiHandlerArn
+                - !Ref WorkflowRoleArn
+            Action:
+              - 'sts:AssumeRole'
+            Condition:
+              StringEquals:
+                sts:ExternalId: !Ref ExternalId
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSServiceCatalogAdminFullAccess
+      Policies:
+        - PolicyName: cost-explorer-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ce:*
+              Resource: '*'
+        - PolicyName: s3-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - s3:*
+              Resource: '*'
+        - PolicyName: sagemaker-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - sagemaker:*
+              Resource: '*'
+        - PolicyName: iam-role-access
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - iam:GetRole
+                  - iam:CreateRole
+                  - iam:TagRole
+                  - iam:GetRolePolicy
+                  - iam:PutRolePolicy
+                  - iam:DeleteRolePolicy
+                  - iam:ListRolePolicies
+                  - iam:ListAttachedRolePolicies
+                  - iam:UpdateAssumeRolePolicy
+                  - iam:UpdateRoleDescription
+                  - iam:AttachRolePolicy
+                  - iam:DetachRolePolicy
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${LaunchConstraintRolePrefix}'
+              - Effect: Allow
+                Action:
+                  - iam:CreatePolicy
+                  - iam:GetPolicy
+                  - iam:GetPolicyVersion
+                  - iam:ListPolicyVersions
+                  - iam:DeletePolicy
+                  - iam:DeletePolicyVersion
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/${LaunchConstraintPolicyPrefix}'
+
   # TODO lock these permissions down further
   CrossAccountExecutionRole:
     Type: 'AWS::IAM::Role'
@@ -279,6 +368,10 @@ Resources:
       TargetKeyId: !Ref EncryptionKey
 
 Outputs:
+  CrossAccountEnvMgmtRoleArn:
+    Description: The arn of the cross account role for environment management using AWS Service Catalog
+    Value: !GetAtt [CrossAccountRoleEnvMgmt, Arn]
+
   CrossAccountExecutionRoleArn:
     Description: The arn of the cross account role.
     Value: !GetAtt [CrossAccountExecutionRole, Arn]
