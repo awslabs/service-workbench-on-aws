@@ -65,6 +65,7 @@ describe('AddAwsAccount', () => {
       vpcId: 'vpc-abc-123456',
       subnetId: 'vpc-abc-subnet-123456',
       encryptionKeyArn: 'arn:aws:kms/*',
+      xAccEnvMgmtRoleArn: 'example-arn',
     };
 
     // Submit form
