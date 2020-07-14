@@ -18,6 +18,7 @@ const DbService = require('@aws-ee/base-services/lib/db-service');
 const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
 const InputManifestValidationService = require('@aws-ee/base-services/lib/input-manifest/input-manifest-validation-service');
 const S3Service = require('@aws-ee/base-services/lib/s3-service');
+const IamService = require('@aws-ee/base-services/lib/iam/iam-service');
 const LockService = require('@aws-ee/base-services/lib/lock/lock-service');
 const PluginRegistryService = require('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
 const AuditWriterService = require('@aws-ee/base-services/lib/audit/audit-writer-service');
@@ -53,6 +54,7 @@ async function registerServices(container, pluginRegistry) {
   container.register('jsonSchemaValidationService', new JsonSchemaValidationService());
   container.register('inputManifestValidationService', new InputManifestValidationService());
   container.register('s3Service', new S3Service());
+  container.register('iamService', new IamService());
   container.register('auditWriterService', new AuditWriterService());
   container.register('pluginRegistryService', new PluginRegistryService(pluginRegistry), { lazy: false });
   container.register('lockService', new LockService());

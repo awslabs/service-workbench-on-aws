@@ -34,7 +34,8 @@ class AwsService extends Service {
 
     // It's possible to get throttling errors during heavy load due to the rate limit of aws apis calls,
     // so slow down and try more often in an attempt to recover from these errors.
-    this._sdk.config.update({ maxRetries: 6, retryDelayOptions: { base: 1000 } });
+    // Make sure to use regional endpoints for STS. Global STS endpoints are deprecated.
+    this._sdk.config.update({ stsRegionalEndpoints: 'regional', maxRetries: 6, retryDelayOptions: { base: 1000 } });
     if (process.env.IS_OFFLINE || process.env.IS_LOCAL) {
       await this.prepareForLocal(this._sdk);
     }
@@ -44,6 +45,38 @@ class AwsService extends Service {
     if (!this.initialized)
       throw new Error('You tried to use "AwsService.sdk()" but the service has not been initialized.');
     return this._sdk;
+  }
+
+  /**
+   * Method assumes the specified role and constructs an instance of the
+   * specified AWS client SDK with the temporary credentials obtained by
+   * assuming the role.
+   *
+   * @param roleArn The ARN of the role to assume
+   * @param roleSessionName Optional name of the role session (defaults to <envName>-<current epoch time>)
+   * @param clientName Name of the client SDK to create (E.g., S3, SageMaker, ServiceCatalog etc)
+   * @param externalId Optional external id to use for assuming the role.
+   * @param options Optional options object to pass to the client SDK (E.g., { apiVersion: '2011-06-15' })
+   * @returns {Promise<*>}
+   */
+  async getClientSdkForRole({ roleArn, roleSessionName, clientName, externalId, options = {} } = {}) {
+    const sts = new this.sdk.STS({ apiVersion: '2011-06-15' });
+    const envName = this.settings.get(settingKeys.envName);
+    const params = {
+      RoleArn: roleArn,
+      RoleSessionName: roleSessionName || `${envName}-${Date.now()}`,
+    };
+    if (externalId) {
+      params.ExternalId = externalId;
+    }
+    const { Credentials: creds } = await sts.assumeRole(params).promise();
+
+    const { AccessKeyId: accessKeyId, SecretAccessKey: secretAccessKey, SessionToken: sessionToken } = creds;
+    const opts = {
+      ...options,
+      credentials: { accessKeyId, secretAccessKey, sessionToken },
+    };
+    return new this.sdk[clientName](opts);
   }
 
   async prepareForLocal(aws) {

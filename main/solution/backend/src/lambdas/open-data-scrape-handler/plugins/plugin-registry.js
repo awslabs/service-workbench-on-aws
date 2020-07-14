@@ -19,10 +19,20 @@ const bassRaasServicesPlugin = require('@aws-ee/base-raas-rest-api/lib/plugins/s
 const baseWfServicesPlugin = require('@aws-ee/base-workflow-api/lib/plugins/services-plugin');
 const baseRaasCfnTemplatesPlugin = require('@aws-ee/base-raas-cfn-templates/dist/plugins/cfn-templates-plugin');
 const baseRaasUserAuthzPlugin = require('@aws-ee/base-raas-services/lib/user/user-authz-plugin');
+const baseRaasSchemaPlugin = require('@aws-ee/base-raas-services/lib/plugins/schema-plugin');
+const environmentTypeServicesPlugin = require('@aws-ee/environment-type-mgmt-services/lib/plugins/services-plugin');
+// const baseRaasAppstreamSchemaPlugin = require('@aws-ee/base-raas-appstream-services/lib/plugins/schema-plugin');
+
 const servicesPlugin = require('services/lib/plugins/services-plugin');
 
 const extensionPoints = {
-  'service': [baseServicesPlugin, baseWfServicesPlugin, bassRaasServicesPlugin, servicesPlugin],
+  'service': [
+    baseServicesPlugin,
+    baseWfServicesPlugin,
+    bassRaasServicesPlugin,
+    environmentTypeServicesPlugin,
+    servicesPlugin,
+  ],
   'audit': [baseAuditPlugin],
   'cfn-templates': [baseRaasCfnTemplatesPlugin],
   'user-authz': [baseRaasUserAuthzPlugin],
@@ -33,6 +43,9 @@ const extensionPoints = {
   'account-authz': [], // No plugins at this point. All account authz is happening inline in 'account-service'
   'aws-account-authz': [], // No plugins at this point. All aws-account authz is happening inline in 'aws-account-service'
   'cost-authz': [], // No plugins at this point. All cost authz is happening inline in 'costs-service'
+
+  // TODO: Enable app stream plugin again. Temporarily disabled app stream plugin until appropriate extension points are added to provision-account workflow
+  'schema': [baseRaasSchemaPlugin /* , baseRaasAppstreamSchemaPlugin */],
 };
 
 async function getPlugins(extensionPoint) {

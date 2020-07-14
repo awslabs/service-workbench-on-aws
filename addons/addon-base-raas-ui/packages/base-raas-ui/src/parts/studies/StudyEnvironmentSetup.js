@@ -22,9 +22,11 @@ import { Icon, Container, Header, Segment, Button } from 'semantic-ui-react';
 import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
 import { displaySuccess } from '@aws-ee/base-ui/dist/helpers/notification';
 
+import { enableBuiltInWorkspaces } from '../../helpers/settings';
 import { CurrentStep } from '../compute/helpers/CurrentStep';
 import ComputePlatformSetup from '../compute/ComputePlatformSetup';
 import StudyStepsProgress from './StudyStepsProgress';
+import ScEnvironmentSetup from '../environments-sc/setup/ScEnvironmentSetup';
 
 // expected props
 // - filesSelection (via injection)
@@ -32,7 +34,8 @@ class StudyEnvironmentSetup extends React.Component {
   constructor(props) {
     super(props);
     runInAction(() => {
-      this.currentStep = CurrentStep.create({ step: 'selectComputePlatform' });
+      const step = enableBuiltInWorkspaces ? 'selectComputePlatform' : 'selectEnvType';
+      this.currentStep = CurrentStep.create({ step });
     });
   }
 
@@ -92,14 +95,28 @@ class StudyEnvironmentSetup extends React.Component {
       return this.renderEmpty();
     }
 
-    return (
-      <ComputePlatformSetup
-        currentStep={this.currentStep}
-        studyIds={this.studyIds}
-        onPrevious={this.handlePrevious}
-        onCompleted={this.handleCompleted}
-      />
-    );
+    let content = null;
+    if (enableBuiltInWorkspaces) {
+      content = (
+        <ComputePlatformSetup
+          currentStep={this.currentStep}
+          studyIds={this.studyIds}
+          onPrevious={this.handlePrevious}
+          onCompleted={this.handleCompleted}
+        />
+      );
+    } else {
+      content = (
+        <ScEnvironmentSetup
+          currentStep={this.currentStep}
+          studyIds={this.studyIds}
+          onPrevious={this.handlePrevious}
+          onCompleted={this.handleCompleted}
+        />
+      );
+    }
+
+    return content;
   }
 
   renderEmpty() {

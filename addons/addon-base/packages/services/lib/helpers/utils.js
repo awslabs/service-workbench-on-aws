@@ -151,6 +151,45 @@ async function processSequentially(items, processorFn) {
 }
 
 /**
+ * A utility function that returns a cumulative list by paginating through and calling the provided "listingFn"
+ * recursively with appropriate page token
+ *
+ * @param listingFn An async function that returns list of items for a given page.
+ * The function is expected to have signature "pageToken => Promise({ list, nextPageToken })"
+ * @param pageToken
+ * @returns {Promise<*|*[]>}
+ */
+async function paginatedList(listingFn, pageToken) {
+  const { list, nextPageToken } = await listingFn(pageToken);
+  let result = list || [];
+  // If there is next page then paginate through the page
+  if (nextPageToken) {
+    result = [...result, ...(await paginatedList(listingFn, nextPageToken))];
+  }
+  return result;
+}
+
+/**
+ * A utility function that finds an element that the predicate returns truthy for by paginating through and calling the
+ * provided "listingFn" recursively with appropriate page token.
+ *
+ * @param listingFn An async function that returns list of items for a given page.
+ * The function is expected to have signature "pageToken => Promise({ list, nextPageToken })"
+ * @param predicate
+ * @param pageToken
+ * @returns {Promise<*>}
+ */
+async function paginatedFind(listingFn, predicate, pageToken) {
+  const { list, nextPageToken } = await listingFn(pageToken);
+  let found = _.find(list, predicate);
+  // If no matching item found and if there are more pages then search through the next page
+  if (_.isUndefined(found) && nextPageToken) {
+    found = await paginatedFind(listingFn, predicate, nextPageToken);
+  }
+  return found;
+}
+
+/**
  * Returns a promise that will be resolved in the requested time, ms.
  * Example: await sleep(200);
  * https://stackoverflow.com/questions/951021/what-is-the-javascript-version-of-sleep/39914235#39914235
@@ -192,4 +231,6 @@ module.exports = {
   sleep,
   fuzz,
   randomString,
+  paginatedList,
+  paginatedFind,
 };

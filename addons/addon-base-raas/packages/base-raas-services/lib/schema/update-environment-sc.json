@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "^[A-Za-z0-9-_ ]+$"
+    },
+    "rev": {
+      "type": "number"
+    },
+    "status": {
+      "type": "string",
+      "maxLength": 2048
+    },
+    "error": {
+      "type": "string",
+      "maxLength": 2048
+    },
+    "provisionedProductId": {
+      "type": "string"
+    },
+    "outputs": {
+      "type": "array",
+      "items": [
+        {
+          "type": "object",
+          "properties": {
+            "OutputKey": {
+              "type": "string"
+            },
+            "OutputValue": {
+              "type": "string"
+            },
+            "Description": {
+              "type": "string"
+            }
+          }
+        }
+      ]
+    }
+  },
+  "required": ["id","rev"]
+}

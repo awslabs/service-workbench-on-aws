@@ -227,8 +227,14 @@ function isAbsoluteUrl(url) {
 }
 
 function removeNulls(obj = {}) {
+  if (!obj) {
+    return obj;
+  }
   Object.keys(obj).forEach(key => {
     if (obj[key] === null) delete obj[key];
+    if (_.isPlainObject(obj[key])) {
+      removeNulls(obj[key]);
+    }
   });
 
   return obj;
@@ -269,7 +275,7 @@ function generateId(prefix = '') {
 // - if an item in the array is also in the map, then call 'mergeExistingFn' with the existing item
 //   and the new item. It is expected that this 'mergeExistingFn', will know how to merge the
 //   properties of the new item into the existing item.
-function consolidateToMap(map, itemsArray, mergeExistingFn) {
+function consolidateToMap(map, itemsArray, mergeExistingFn, idFieldName = 'id') {
   const unprocessedKeys = {};
 
   map.forEach((_value, key) => {
@@ -277,12 +283,12 @@ function consolidateToMap(map, itemsArray, mergeExistingFn) {
   });
 
   itemsArray.forEach(item => {
-    const id = item.id;
+    const id = item[idFieldName];
     const hasExisting = map.has(id);
     const exiting = map.get(id);
 
     if (!exiting) {
-      map.set(item.id, item);
+      map.set(item[idFieldName], item);
     } else {
       mergeExistingFn(exiting, item);
     }

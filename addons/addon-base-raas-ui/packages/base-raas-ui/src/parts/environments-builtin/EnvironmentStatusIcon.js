@@ -87,6 +87,14 @@ class EnvironmentStatusIcon extends React.Component {
         </Label>
       );
     }
+    if (status === 'PENDING') {
+      return (
+        <Label basic size="mini">
+          Pending
+          <Icon loading name="spinner" size="large" color="yellow" className="ml1 mr1" />
+        </Label>
+      );
+    }
 
     // unknown state - should have returned
     return (

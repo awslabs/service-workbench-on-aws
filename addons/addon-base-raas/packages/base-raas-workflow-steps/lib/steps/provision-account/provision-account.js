@@ -29,6 +29,8 @@ const STACK_SUCCESS = ['CREATE_COMPLETE', 'DELETE_COMPLETE', 'UPDATE_COMPLETE'];
 
 const settingKeys = {
   artifactsBucketName: 'artifactsBucketName',
+  launchConstraintRolePrefix: 'launchConstraintRolePrefix',
+  launchConstraintPolicyPrefix: 'launchConstraintPolicyPrefix',
 };
 
 class ProvisionAccount extends StepBase {
@@ -126,6 +128,9 @@ class ProvisionAccount extends StepBase {
     addParam('WorkflowRoleArn', workflowRoleArn);
     addParam('ApiHandlerArn', apiHandlerArn);
 
+    addParam('LaunchConstraintRolePrefix', this.settings.get(settingKeys.launchConstraintRolePrefix));
+    addParam('LaunchConstraintPolicyPrefix', this.settings.get(settingKeys.launchConstraintPolicyPrefix));
+
     const input = {
       StackName: stackName,
       Parameters: cfnParams,
@@ -176,6 +181,7 @@ class ProvisionAccount extends StepBase {
             vpcId: cfnOutputs.VPC,
             subnetId: cfnOutputs.VpcPublicSubnet1,
             crossAccountExecutionRoleArn: cfnOutputs.CrossAccountExecutionRoleArn,
+            crossAccountEnvMgmtRoleArn: cfnOutputs.CrossAccountEnvMgmtRoleArn,
             encryptionKeyArn: cfnOutputs.EncryptionKeyArn,
           },
         });
@@ -196,6 +202,7 @@ class ProvisionAccount extends StepBase {
           externalId,
           name,
           roleArn: cfnOutputs.CrossAccountExecutionRoleArn,
+          xAccEnvMgmtRoleArn: cfnOutputs.CrossAccountEnvMgmtRoleArn,
           subnetId: cfnOutputs.VpcPublicSubnet1,
           vpcId: cfnOutputs.VPC,
           encryptionKeyArn: cfnOutputs.EncryptionKeyArn,
@@ -330,7 +337,8 @@ class ProvisionAccount extends StepBase {
       })
       .promise();
 
-    return new aws.sdk.Organizations({ accessKeyId, secretAccessKey, sessionToken });
+    // Organizations only has an endpoint in us-east-1
+    return new aws.sdk.Organizations({ accessKeyId, secretAccessKey, sessionToken, region: 'us-east-1' });
   }
 
   async getCredentials() {

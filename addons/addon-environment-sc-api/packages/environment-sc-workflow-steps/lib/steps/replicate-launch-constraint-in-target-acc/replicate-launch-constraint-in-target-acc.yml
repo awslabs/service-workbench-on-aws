@@ -1,0 +1,8 @@
+id: st-replicate-launch-constraint-in-target-acc
+v: 1
+title: Replicate Launch Constraint in Target Acc
+desc: |
+  Replicate a role in the target account with the same name as specified in the AWS Service Catalog Product/Version launch constraint with the same permissions
+
+skippable: true # this means that if there is an error in a previous step, then this step will be skipped
+hidden: true

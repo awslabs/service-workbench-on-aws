@@ -1,0 +1,14 @@
+id: wf-terminate-environment-sc
+v: 1
+workflowTemplateId: wt-empty
+workflowTemplateVer: 1
+title: Terminate AWS Service Catalog based Environment
+desc: |
+  Terminates the given environnment and the corresponding AWS Service Catalog Provisioned Product
+hidden: false
+builtin: true
+instanceTtl: 30 # In days, however, empty value means that it is indefinite
+selectedSteps:
+  - stepTemplateId: st-terminate-product
+    stepTemplateVer: 1
+    id: wf-step_1_1576783029739_26

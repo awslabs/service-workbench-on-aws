@@ -1,0 +1,58 @@
+const _ = require('lodash');
+
+const envTypeCandidateStatusEnum = require('@aws-ee/environment-type-mgmt-services/lib/environment-type/helpers/env-type-candidate-status-enum');
+const versionFilterEnum = require('@aws-ee/environment-type-mgmt-services/lib/environment-type/helpers/env-type-candidate-version-filter-enum');
+
+async function configure(context) {
+  const router = context.router();
+  const wrap = context.wrap;
+  // const boom = context.boom;
+
+  /**
+   * A utility method that converts the given query string "status" parameter
+   * and "includeVersion" to an appropriate filter status value that the service expects.
+   *
+   * @param queryStatus
+   * @param queryVersionFilter
+   * @returns {*[]} An array of status values to filter on
+   */
+  function toFilter(queryStatus, queryVersionFilter) {
+    // The service is expecting filter.status to be an array of status values to filter on (i.e., return all
+    // env type candidates matching any status specified in the filter)
+    //
+    // Convert the query string param "status" to an array if it's not an array
+    // The API will allow caller passing "status" as an array or as a comma separated string
+    // containing allowed status values
+    const filter = {};
+    if (_.isArray(queryStatus)) {
+      filter.status = queryStatus;
+    } else if (_.isString(queryStatus) && _.includes(queryStatus, ',')) {
+      filter.status = _.split(queryStatus, ',');
+    } else {
+      // if no status is specified then only return env type candidates that have not been imported yet
+      filter.status = [queryStatus || envTypeCandidateStatusEnum.notImported];
+    }
+    filter.version = queryVersionFilter || versionFilterEnum.latest;
+
+    return filter;
+  }
+
+  // ===============================================================
+  //  GET / (mounted to /api/workspace-type-candidates)
+  // ===============================================================
+  router.get(
+    '/',
+    wrap(async (req, res) => {
+      const requestContext = res.locals.requestContext;
+      const [envTypeService] = await context.service(['envTypeCandidateService']);
+
+      const list = await envTypeService.list(requestContext, {
+        filter: toFilter(req.query.status, req.query.version),
+      });
+      res.status(200).json(list);
+    }),
+  );
+
+  return router;
+}
+module.exports = configure;

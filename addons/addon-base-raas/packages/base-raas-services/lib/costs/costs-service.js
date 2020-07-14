@@ -26,6 +26,7 @@ class CostsService extends Service {
       'aws',
       'awsAccountsService',
       'environmentService',
+      'environmentScService',
       'indexesService',
       'costApiCacheService',
       'authorizationService',
@@ -47,8 +48,12 @@ class CostsService extends Service {
       query,
     );
 
-    const { env, proj, groupByUser, groupByEnv, groupByService, numberOfDaysInPast } = query;
-    const [environmentService, costApiCacheService] = await this.service(['environmentService', 'costApiCacheService']);
+    const { env, scEnv, proj, groupByUser, groupByEnv, groupByService, numberOfDaysInPast } = query;
+    const [environmentService, environmentScService, costApiCacheService] = await this.service([
+      'environmentService',
+      'environmentScService',
+      'costApiCacheService',
+    ]);
 
     if (groupByUser === 'true' && groupByEnv === 'true' && groupByService === 'true') {
       return 'Can not groupByUser, groupByEnv, and groupByService. Please pick at most 2 out of the 3.';
@@ -57,9 +62,13 @@ class CostsService extends Service {
 
     if (proj) {
       indexId = proj;
-    } else {
+    } else if (env) {
       // The following will only succeed if the user has permissions to access the specified environment
       const result = await environmentService.mustFind(requestContext, { id: env });
+      indexId = result.indexId;
+    } else if (scEnv) {
+      // The following will only succeed if the user has permissions to access the specified service catalog based environment
+      const result = await environmentScService.mustFind(requestContext, { id: scEnv, fields: ['indexId'] });
       indexId = result.indexId;
     }
 
@@ -85,7 +94,7 @@ class CostsService extends Service {
       filter = {
         Tags: {
           Key: 'Env',
-          Values: [env],
+          Values: [env || scEnv],
         },
       };
     }
@@ -117,7 +126,7 @@ class CostsService extends Service {
       query: JSON.stringify(query),
       result: JSON.stringify(response),
     };
-    costApiCacheService.create(requestContext, rawCacheData);
+    await costApiCacheService.create(requestContext, rawCacheData);
 
     return response;
   }

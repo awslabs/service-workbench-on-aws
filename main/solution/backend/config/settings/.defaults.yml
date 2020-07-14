@@ -53,6 +53,10 @@ apiHandlerRoleName: ${self:custom.settings.namespace}-ApiHandler
 # The IAM role arn for the Lambda API handler, we need to define it in the settings because it is being passed to lambdas as an env var
 apiHandlerRoleArn: 'arn:aws:iam::${self:custom.settings.awsAccountInfo.awsAccountId}:role/${self:custom.settings.apiHandlerRoleName}'
 
+# S3 bucket used to store environment type configurations (the config objects that define small, medium, large etc.
+# env launch options)
+envTypeConfigsBucketName: ${self:custom.settings.globalNamespace}-env-type-configs
+
 # Enable or disable workflow processing
 workflowsEnabled: true
 
@@ -69,6 +73,8 @@ workflowLoopRunnerRoleName: ${self:custom.settings.namespace}-WorkflowLoopRunner
 workflowLoopRunnerRoleArn: 'arn:aws:iam::${self:custom.settings.awsAccountInfo.awsAccountId}:role/${self:custom.settings.workflowLoopRunnerRoleName}'
 
 # The prefix of the ami used to create environments
+# This component expects these AMIs to exists in the account where the platform is deployed
+# Use utility component "main/solution/machine-images" to create the AMIs
 ec2LinuxAmiPrefix: ${self:custom.settings.namespace}-EC2-LINUX-AMI
 ec2WindowsAmiPrefix: ${self:custom.settings.namespace}-EC2-WINDOWS-AMI
 emrAmiPrefix: ${self:custom.settings.namespace}-EMR-AMI
@@ -130,6 +136,12 @@ dbTableStudiesCategoryIndex: CategoryIndex
 
 # DynamoDB table name for Environments
 dbTableEnvironments: ${self:custom.settings.dbTablePrefix}-DbEnvironments
+
+# DynamoDB table name for Environments created using AWS Service Catalog
+dbTableEnvironmentsSc: ${self:custom.settings.dbTablePrefix}-DbEnvironmentsSc
+
+# DynamoDB table name for Environment Types
+dbTableEnvironmentTypes: ${self:custom.settings.dbTablePrefix}-DbEnvironmentTypes
 
 # DynamoDB table name for UserRoles
 dbTableUserRoles: ${self:custom.settings.dbTablePrefix}-DbUserRoles

@@ -1,0 +1,69 @@
+{
+  "name": "@aws-ee/environment-type-mgmt-ui",
+  "private": true,
+  "version": "1.0.0",
+  "description": "A library containing user interface screens for environment types management",
+  "author": "Amazon Web Services",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@aws-ee/base-ui": "workspace:*",
+    "lodash": "^4.17.15",
+    "mobx": "^5.15.4",
+    "mobx-react": "^6.1.7",
+    "mobx-state-tree": "^3.15.0",
+    "react": "^16.12.0",
+    "react-dom": "^16.12.0",
+    "react-dotdotdot": "^1.3.1",
+    "react-router-dom": "^5.1.2",
+    "react-table": "^6.11.5",
+    "react-timeago": "^4.4.0",
+    "semantic-ui-react": "^0.88.2"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.8.4",
+    "@babel/core": "^7.8.6",
+    "@babel/plugin-proposal-class-properties": "^7.8.3",
+    "@babel/plugin-transform-react-jsx": "^7.8.3",
+    "@babel/preset-env": "^7.8.6",
+    "@babel/preset-react": "^7.8.3",
+    "babel-eslint": "^10.0.3",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb": "^18.0.1",
+    "eslint-config-prettier": "^6.10.0",
+    "eslint-import-resolver-node": "^0.3.3",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-jest": "^22.21.0",
+    "eslint-plugin-jsx-a11y": "^6.2.3",
+    "eslint-plugin-prettier": "^3.1.2",
+    "eslint-plugin-react": "^7.18.3",
+    "eslint-plugin-react-hooks": "^1.7.0",
+    "husky": "^3.1.0",
+    "jest": "^24.9.0",
+    "jest-junit": "^10.0.0",
+    "prettier": "^1.19.1",
+    "pretty-quick": "^1.11.1"
+  },
+  "scripts": {
+    "babel": "babel src/ --out-dir dist/ --source-maps",
+    "babel:watch": "babel src/ --out-dir dist/ --source-maps --watch",
+    "build": "pnpm run babel",
+    "build:watch": "pnpm run babel:watch",
+    "lint": "pnpm run lint:eslint && pnpm run lint:prettier",
+    "lint:eslint": "eslint --ignore-path .gitignore . ",
+    "lint:prettier": "prettier --check --ignore-path .gitignore '**/*.{js,jsx}' ",
+    "format": "pnpm run format:eslint && pnpm run format:prettier",
+    "format:eslint": "eslint --fix --ignore-path .gitignore . ",
+    "format:prettier": "prettier --write --ignore-path .gitignore '**/*.{js,jsx}' ",
+    "prepare": "pnpm run build"
+  },
+  "files": [
+    "README.md",
+    "dist/",
+    "src/"
+  ],
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged --pattern '**/*.*(js|jsx)'"
+    }
+  }
+}

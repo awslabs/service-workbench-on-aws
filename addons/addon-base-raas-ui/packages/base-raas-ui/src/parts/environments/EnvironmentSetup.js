@@ -21,16 +21,19 @@ import { Icon, Container, Header } from 'semantic-ui-react';
 import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
 import { displaySuccess } from '@aws-ee/base-ui/dist/helpers/notification';
 
+import { enableBuiltInWorkspaces } from '../../helpers/settings';
 import { CurrentStep } from '../compute/helpers/CurrentStep';
 import ComputePlatformSetup from '../compute/ComputePlatformSetup';
-import SetupStepsProgress from './SetupStepsProgress';
+import SetupStepsProgress from '../environments-builtin/SetupStepsProgress';
+import ScEnvironmentSetup from '../environments-sc/setup/ScEnvironmentSetup';
 
 // expected props
 class EnvironmentSetup extends React.Component {
   constructor(props) {
     super(props);
     runInAction(() => {
-      this.currentStep = CurrentStep.create({ step: 'selectComputePlatform' });
+      const step = enableBuiltInWorkspaces ? 'selectComputePlatform' : 'selectEnvType';
+      this.currentStep = CurrentStep.create({ step });
     });
   }
 
@@ -79,13 +82,26 @@ class EnvironmentSetup extends React.Component {
   }
 
   renderContent() {
-    return (
-      <ComputePlatformSetup
-        currentStep={this.currentStep}
-        onPrevious={this.handlePrevious}
-        onCompleted={this.handleCompleted}
-      />
-    );
+    let content = null;
+    if (enableBuiltInWorkspaces) {
+      content = (
+        <ComputePlatformSetup
+          currentStep={this.currentStep}
+          onPrevious={this.handlePrevious}
+          onCompleted={this.handleCompleted}
+        />
+      );
+    } else {
+      content = (
+        <ScEnvironmentSetup
+          currentStep={this.currentStep}
+          onPrevious={this.handlePrevious}
+          onCompleted={this.handleCompleted}
+        />
+      );
+    }
+
+    return content;
   }
 }
 

@@ -16,6 +16,7 @@ import YesNo from '@aws-ee/base-ui/dist/parts/helpers/fields/YesNo';
 import DropDown from '@aws-ee/base-ui/dist/parts/helpers/fields/DropDown';
 import Input from '@aws-ee/base-ui/dist/parts/helpers/fields/Input';
 
+import { isStoreLoading, isStoreReady } from '@aws-ee/base-ui/dist/models/BaseStore';
 import { getAddUserForm } from '../../models/forms/AddLocalUserForm';
 
 // expected props
@@ -83,9 +84,9 @@ class AddSingleLocalUser extends React.Component {
     let content = null;
     if (stores.hasError) {
       content = <ErrorBox error={stores.error} className="p0 mb3" />;
-    } else if (stores.loading) {
+    } else if (isStoreLoading(stores)) {
       content = <BasicProgressPlaceholder />;
-    } else if (stores.ready) {
+    } else if (isStoreReady(stores)) {
       content = this.renderContent();
     } else {
       content = null;

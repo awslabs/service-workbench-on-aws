@@ -22,6 +22,7 @@ import c from 'classnames';
 // expected props
 // - user (via props)
 // - userDisplayName (via injection)
+// - skipPrefix (via props) default to false
 // - className (via props)
 class By extends React.Component {
   get user() {
@@ -33,13 +34,17 @@ class By extends React.Component {
   }
 
   render() {
+    const skipPrefix = this.props.skipPrefix;
     const user = this.user;
     const displayNameService = this.userDisplayNameService;
     const isSystem = displayNameService.isSystem(user);
     return isSystem ? (
       ''
     ) : (
-      <span className={c(this.props.className)}>by {displayNameService.getDisplayName(user)}</span>
+      <span className={c(this.props.className)}>
+        {skipPrefix ? '' : 'by '}
+        {displayNameService.getDisplayName(user)}
+      </span>
     );
   }
 }

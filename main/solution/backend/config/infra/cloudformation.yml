@@ -218,6 +218,47 @@ Resources:
               StringNotEquals:
                 s3:signatureversion: 'AWS4-HMAC-SHA256'
 
+  # S3 bucket used to store environment type configurations (the config objects that define small, medium, large etc
+  # env launch options)
+  EnvTypeConfigsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ${self:custom.settings.envTypeConfigsBucketName}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  EnvTypeConfigsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref EnvTypeConfigsBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Id: PutObjectPolicy
+        Statement:
+          - Sid: Deny requests that do not use TLS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt EnvTypeConfigsBucket.Arn, '*']]
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Sid: Deny requests that do not use SigV4
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt EnvTypeConfigsBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:signatureversion: 'AWS4-HMAC-SHA256'
+
   # =============================================================================================
   # IAM Roles
   # =============================================================================================
@@ -316,6 +357,8 @@ Resources:
                 - !GetAtt [DbStudyPermissions, Arn]
                 - !Join ['', [!GetAtt [DbStudies, Arn], '/index/*']]
                 - !GetAtt [DbEnvironments, Arn]
+                - !GetAtt [DbEnvironmentsSc, Arn]
+                - !GetAtt [DbEnvironmentsTypes, Arn]
                 - !GetAtt [DbUserRoles, Arn]
                 - !GetAtt [DbAwsAccounts, Arn]
                 - !GetAtt [DbIndexes, Arn]
@@ -360,7 +403,7 @@ Resources:
                 Resource:
                   # NOTE: Can't use '!GetAtt StudyDataEncryptionKey.Arn' due to
                   #   circular dependency in StudyDataEncryptionKey's KeyPolicy  =[
-                  - !Sub arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.studyDataKmsKeyAlias}
+                  - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.studyDataKmsKeyAlias}'
               - Effect: Allow
                 Action:
                   - s3:*
@@ -373,6 +416,22 @@ Resources:
                 Resource:
                   - 'arn:aws:s3:::${self:custom.settings.environmentsBootstrapBucketName}'
                   - 'arn:aws:s3:::${self:custom.settings.studyDataBucketName}'
+        - PolicyName: env-type-configs-s3-access
+          PolicyDocument:
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                Resource:
+                  - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}/*'
+              - Effect: 'Allow'
+                Action:
+                  - s3:ListBucket
+                  - s3:HeadBucket
+                Resource:
+                  - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}'
 
         - PolicyName: sagemaker-access
           PolicyDocument:
@@ -419,7 +478,7 @@ Resources:
                 Resource:
                   # NOTE: Can't use '!GetAtt StudyDataEncryptionKey.Arn' due to
                   #   circular dependency in StudyDataEncryptionKey's KeyPolicy  =[
-                  - !Sub arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.studyDataKmsKeyAlias}
+                  - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.studyDataKmsKeyAlias}'
 
   # IAM Role for the workflowLoopRunner Function
   RoleWorkflowLoopRunner:
@@ -465,9 +524,13 @@ Resources:
                 - !GetAtt [DbWfAssignments, Arn]
                 - !Join ['', [!GetAtt [DbWfAssignments, Arn], '/index/*']]
                 - !GetAtt [DbEnvironments, Arn]
+                - !GetAtt [DbEnvironmentsSc, Arn]
+                - !GetAtt [DbEnvironmentsTypes, Arn]
                 - !GetAtt [DbStudies, Arn]
                 - !GetAtt [DbProjects, Arn]
                 - !GetAtt [DbStudyPermissions, Arn]
+                - !GetAtt [DbIndexes, Arn]
+                - !GetAtt [DbProjects, Arn]
                 - !GetAtt [DbAccounts, Arn]
                 - !GetAtt [DbAwsAccounts, Arn]
                 - !GetAtt [DbAuthenticationProviderTypes, Arn]
@@ -518,7 +581,7 @@ Resources:
                 Resource:
                   # NOTE: Can't use '!GetAtt StudyDataEncryptionKey.Arn' due to
                   #   circular dependency in StudyDataEncryptionKey's KeyPolicy  =[
-                  - !Sub arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.studyDataKmsKeyAlias}
+                  - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.studyDataKmsKeyAlias}'
         - PolicyName: cfn-access
           PolicyDocument:
             Version: '2012-10-17'
@@ -536,6 +599,23 @@ Resources:
               Action: 'sts:AssumeRole'
               Effect: Allow
               Resource: '*' # TODO: LOCK THIS DOWN!
+
+        - PolicyName: env-type-configs-s3-access
+          PolicyDocument:
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                  - s3:DeleteObject
+                Resource:
+                  - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}/*'
+              - Effect: 'Allow'
+                Action:
+                  - s3:ListBucket
+                  - s3:HeadBucket
+                Resource:
+                  - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}'
 
   # IAM Role for Step Functions to invoke lambda
   RoleStepFunctionsWorkflow:
@@ -586,6 +666,80 @@ Resources:
                 - dynamodb:UpdateItem
               Resource:
                 - !GetAtt [DbStudies, Arn]
+
+  # An environment management role giving AWS Service Catalog Permissions
+  # This is the role that the Admin users share their AWS Service Catalog products/portfolios with.
+  # The products shared with this role become candidates for being imported in the platform as environment types.
+  # The APIHandler and WorkflowLoopRunner lambdas both assume this role for any interaction
+  # with the AWS Service Catalog
+  # Equivalent role for launching/terminating environments in each on-boarded account with cross account trust is
+  # created by "addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/onboard-account.cfn.yml"
+  RoleEnvMgmt:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: ${self:custom.settings.envMgmtRoleName}
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS:
+                - !GetAtt RoleApiHandler.Arn
+                - !GetAtt RoleWorkflowLoopRunner.Arn
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AWSServiceCatalogAdminFullAccess
+      Policies:
+        - PolicyName: appstream-share-image
+          PolicyDocument:
+            Statement:
+              Action: 'appstream:UpdateImagePermissions'
+              Effect: Allow
+              Resource: !Sub arn:${AWS::Partition}:appstream:${AWS::Region}:${AWS::AccountId}:image/Secure-Workspace-Access-Image
+
+        - PolicyName: cfn-read-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - s3:GetObject
+              Resource:
+                # S3 GetObject required to be able to read CFN templates for service catalog products
+                # Various AWS Service Catalog APIs will fail without this (such as describeProvisioningParameters)
+                # AWS Service Catalog uploads the CFN templates to S3 bucket starting with "cf-templates-"
+                # See https://docs.aws.amazon.com/servicecatalog/latest/adminguide/portfoliomgmt-products.html for more details
+                # - !Sub arn:${AWS::Partition}:s3:::cf-templates-*/* (Somehow this pattern is not working.)
+                # TODO: Lock down S3 pattern instead of wildcard)
+                - '*'
+        - PolicyName: iam-role-access
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - iam:GetRole
+                  - iam:CreateRole
+                  - iam:TagRole
+                  - iam:GetRolePolicy
+                  - iam:PutRolePolicy
+                  - iam:DeleteRolePolicy
+                  - iam:ListRolePolicies
+                  - iam:ListAttachedRolePolicies
+                  - iam:UpdateAssumeRolePolicy
+                  - iam:UpdateRoleDescription
+                  - iam:AttachRolePolicy
+                  - iam:DetachRolePolicy
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${self:custom.settings.launchConstraintRolePrefix}'
+              - Effect: Allow
+                Action:
+                  - iam:CreatePolicy
+                  - iam:GetPolicy
+                  - iam:GetPolicyVersion
+                  - iam:ListPolicyVersions
+                  - iam:DeletePolicy
+                  - iam:DeletePolicyVersion
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/${self:custom.settings.launchConstraintPolicyPrefix}'
 
   # =============================================================================================
   # Step Functions
@@ -941,6 +1095,35 @@ Resources:
           KeyType: 'HASH'
       BillingMode: PAY_PER_REQUEST
 
+  # Table for environments created using AWS Service Catalog
+  DbEnvironmentsSc:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbTableEnvironmentsSc}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      ProvisionedThroughput:
+        ReadCapacityUnits: '10'
+        WriteCapacityUnits: '10'
+
+  DbEnvironmentsTypes:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbTableEnvironmentTypes}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      ProvisionedThroughput:
+        ReadCapacityUnits: '10'
+        WriteCapacityUnits: '10'
+
   DbUserRoles:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -1041,3 +1224,5 @@ Outputs:
     Value: !GetAtt RoleWorkflowLoopRunner.Arn
   OpenDataScrapeHandlerRoleArn:
     Value: !GetAtt RoleOpenDataScrapeHandler.Arn
+  EnvMgmtRoleArn:
+    Value: !GetAtt RoleEnvMgmt.Arn

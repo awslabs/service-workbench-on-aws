@@ -18,6 +18,7 @@
     "@aws-ee/base-ui": "workspace:*",
     "@aws-ee/base-workflow-ui": "workspace:*",
     "animate.css": "3.7.0",
+    "@aws-ee/environment-type-mgmt-ui": "workspace:*",
     "aws-sdk": "^2.647.0",
     "lodash": "^4.17.15",
     "mobx": "^5.15.4",

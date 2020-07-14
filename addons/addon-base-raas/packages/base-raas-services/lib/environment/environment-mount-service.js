@@ -45,7 +45,12 @@ class EnvironmentMountService extends Service {
   }
 
   async getCfnMountParameters(requestContext, rawDataV1) {
-    const studyInfo = await this._getStudyInfo(requestContext, rawDataV1);
+    const studyIds = _.get(rawDataV1, 'instanceInfo.files'); // Yes, studyIds are named "files" in rawDataV1
+    return this.getS3MountsInfo(requestContext, studyIds);
+  }
+
+  async getS3MountsInfo(requestContext, studyIds) {
+    const studyInfo = await this._getStudyInfo(requestContext, studyIds);
     await this._validateStudyPermissions(requestContext, studyInfo);
     const s3Mounts = this._prepareS3Mounts(studyInfo);
     const iamPolicyDocument = await this._generateIamPolicyDoc(studyInfo);
@@ -207,9 +212,8 @@ class EnvironmentMountService extends Service {
     ]);
   }
 
-  async _getStudyInfo(requestContext, environment) {
+  async _getStudyInfo(requestContext, studyIds) {
     let studyInfo = [];
-    const studyIds = environment.instanceInfo.files;
     if (studyIds && studyIds.length) {
       const studyService = await this.service('studyService');
       studyInfo = await Promise.all(

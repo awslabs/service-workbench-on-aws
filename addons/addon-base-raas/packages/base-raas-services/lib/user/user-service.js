@@ -103,6 +103,16 @@ class UserService extends BaseUserService {
     return { successCount, errorCount };
   }
 
+  async updateUser(requestContext, user) {
+    if (user.userRole) {
+      const userType = await this.toUserType(requestContext, user.userRole);
+
+      user.isExternalUser = userType === 'EXTERNAL';
+    }
+
+    return super.updateUser(requestContext, user);
+  }
+
   async listUsers(requestContext, { fields = [] } = {}) {
     const users = await super.listUsers(requestContext, fields);
 
