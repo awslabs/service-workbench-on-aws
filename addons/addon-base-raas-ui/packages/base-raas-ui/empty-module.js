@@ -13,17 +13,9 @@
  *  permissions and limitations under the License.
  */
 
-// jest.config.js
-module.exports = {
-  // verbose: true,
-  notify: false,
-  testEnvironment: 'node',
-  testPathIgnorePatterns: ['/node_modules/', '/dist/'],
-  setupFilesAfterEnv: ['<rootDir>/setup-tests.js'],
-  // Configure JUnit reporter as CodeBuild currently only supports JUnit or Cucumber reports
-  // See https://docs.aws.amazon.com/codebuild/latest/userguide/test-reporting.html
-  reporters: ['default', ['jest-junit', { suiteName: 'jest tests', outputDirectory: './.build/test' }]],
-  moduleNameMapper: {
-    '\\.(svg)$': '<rootDir>/empty-module.js',
-  },
-};
+// This module is referenced in the jest.config.js file
+// It's used as a mock for any components that use .svg files
+// jest is unable to import files that are not plain javascript,
+// so instead we redirect .svgs to this file in jest.config.js
+
+module.exports = '';
