@@ -1,2 +1,2 @@
 #!/usr/bin/env bash
-pnpm run lint --recursive --if-present
+pnpm run lint --recursive --if-present --no-bail $@
