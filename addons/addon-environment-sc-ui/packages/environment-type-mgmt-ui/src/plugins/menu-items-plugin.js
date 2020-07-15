@@ -20,6 +20,7 @@ import React from 'react';
 // eslint-disable-next-line no-unused-vars
 function registerMenuItems(itemsMap, { location, appContext }) {
   const isAdmin = _.get(appContext, 'userStore.user.isAdmin');
+  const showEnvTypeManagement = _.get(appContext, 'showEnvTypeManagement', true);
   const items = new Map([
     ...itemsMap,
     [
@@ -33,7 +34,7 @@ function registerMenuItems(itemsMap, { location, appContext }) {
           </>
         ),
         icon: 'computer',
-        shouldShow: isAdmin,
+        shouldShow: isAdmin && showEnvTypeManagement,
       },
     ],
   ]);

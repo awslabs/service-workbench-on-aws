@@ -43,6 +43,7 @@ const Component = observer(
     autoFocus = false,
     icon,
     iconPosition,
+    showHeader = true,
   }) => {
     const { error = '' } = field;
     const hasError = !_.isEmpty(error); // IMPORTANT do NOT use field.hasError
@@ -62,7 +63,7 @@ const Component = observer(
 
     return (
       <div className={c(className, errorClass, disabledClass)}>
-        <Header field={field} />
+        {showHeader && <Header field={field} />}
         <Description field={field} />
         <Input className="field" {...attrs} />
         <ErrorPointer field={field} />

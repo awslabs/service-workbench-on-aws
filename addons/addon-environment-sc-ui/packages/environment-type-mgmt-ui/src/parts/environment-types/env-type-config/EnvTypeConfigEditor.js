@@ -52,7 +52,6 @@ const steps = [
 const wizardTempStoreKeyPrefix = 'EnvTypeConfigEditor-TempStore';
 
 function clearState() {
-  console.log('clearning form');
   sessionStore.removeStartsWith(wizardTempStoreKeyPrefix);
 }
 
@@ -214,7 +213,11 @@ class EnvTypeConfigEditor extends React.Component {
 
     // The params and tags fields are submitted as JSON string via the form
     const params = !_.isEmpty(paramsJsonStr) ? JSON.parse(paramsJsonStr) : existingParams;
-    const tags = !_.isEmpty(tagsJsonStr) ? JSON.parse(tagsJsonStr) : existingTags;
+
+    // The updatedTags below has [{name,value}] form. Translate it to [{key,value}]
+    const updatedTags = JSON.parse(tagsJsonStr || '[]') || [];
+    const fromNameValueToKeyValue = nameValue => ({ key: nameValue.key || nameValue.name, value: nameValue.value });
+    const tags = !_.isEmpty(tagsJsonStr) ? _.map(updatedTags, fromNameValueToKeyValue) : existingTags;
 
     const envTypeConfig = {
       id,
