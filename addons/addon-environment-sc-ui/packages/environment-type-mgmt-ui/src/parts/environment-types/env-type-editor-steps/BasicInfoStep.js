@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import React from 'react';
 import { runInAction } from 'mobx';
 import { observer } from 'mobx-react';
