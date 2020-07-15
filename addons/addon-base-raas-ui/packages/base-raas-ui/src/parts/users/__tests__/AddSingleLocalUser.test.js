@@ -25,8 +25,8 @@ const gotoMock = require('@aws-ee/base-ui/dist/helpers/routing');
 
 const projectsStore = {};
 const userRolesStore = {
-  isInternalUser: jest.fn((val) => val === 'internalUser'),
-  isInternalGuest: jest.fn((val) => val === 'internalGuest'),
+  isInternalUser: jest.fn(val => val === 'internalUser'),
+  isInternalGuest: jest.fn(val => val === 'internalGuest'),
 };
 const usersStore = {
   addUser: jest.fn(),
@@ -49,8 +49,8 @@ describe('AddSingleLocalUser', () => {
     component = wrapper.instance();
 
     // Mock display functions because they don't function correctly in enzyme
-    displayErrorMock.displayError = jest.fn((x) => x);
-    displayErrorMock.displaySuccess = jest.fn((x) => x);
+    displayErrorMock.displayError = jest.fn(x => x);
+    displayErrorMock.displaySuccess = jest.fn(x => x);
 
     // Mock goto function
     gotoMock.gotoFn = jest.fn(() => jest.fn());
