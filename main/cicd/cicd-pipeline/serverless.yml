@@ -28,8 +28,8 @@ custom:
       - ${self:custom.settings.deploymentBucketName}
   hooks:
     'aws:deploy:finalize:cleanup':
-      - scripts/upload-env-config.bash ${self:provider.deploymentBucket} ${self:custom.settings.stgEnvName}
-      - scripts/upload-env-config.bash ${self:provider.deploymentBucket} ${self:custom.settings.envName}
+      - scripts/upload-env-config.bash ${self:provider.profile} ${self:provider.deploymentBucket} ${self:custom.settings.stgEnvName}
+      - scripts/upload-env-config.bash ${self:provider.profile} ${self:provider.deploymentBucket} ${self:custom.settings.envName}
 
 resources:
   - Description: Galileo-Gateway ${self:custom.settings.version} ${self:custom.settings.solutionName} ${self:custom.settings.envName} CICD-Pipeline
