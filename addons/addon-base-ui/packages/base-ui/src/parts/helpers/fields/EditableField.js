@@ -36,7 +36,7 @@ class EditableField extends React.Component {
   constructor(props) {
     super(props);
     runInAction(() => {
-      this.editorOn = false;
+      this.editorOn = _.isNil(props.editorOn) ? false : props.editorOn;
     });
   }
 
@@ -51,6 +51,9 @@ class EditableField extends React.Component {
     return (
       <Form
         form={form}
+        dimmer={this.props.showDimmer}
+        showErrorPanel={this.props.showErrorPanel}
+        renderFormAs={this.props.renderFormAs}
         onCancel={this.handleCancel}
         onSuccess={this.handleFormSubmission}
         onError={this.handleFormError}

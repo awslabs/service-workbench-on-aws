@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import React from 'react';
 import { inject, observer } from 'mobx-react';
-import { action, computed, decorate, observable } from 'mobx';
+import { computed, decorate } from 'mobx';
 
 import DropDown from '@aws-ee/base-ui/dist/parts/helpers/fields/DropDown';
 import BaseEnvTypeConfigStep from './BaseEnvTypeConfigStep';
@@ -32,9 +32,5 @@ class AccessControlStep extends BaseEnvTypeConfigStep {
 
 decorate(AccessControlStep, {
   userRolesStore: computed,
-
-  handleFormSubmission: action,
-
-  stores: observable,
 });
 export default inject('userRolesStore')(observer(AccessControlStep));

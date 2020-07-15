@@ -27,6 +27,7 @@ import c from 'classnames';
 // - onCancel (via props) receives (form)
 // - dimmer (via props) default to true, set to false if you don't want to use the dimmer (buttons will still be disabled during processing)
 // - className (via props)
+// - showErrorPanel (via props) default to true, set to false if you don't want the error panel to be rendered (i.e., if you only want the errors to be displayed next to the fields but not show the main error panel)
 class Form extends React.Component {
   constructor(props) {
     super(props);
@@ -159,20 +160,31 @@ class Form extends React.Component {
     const dimmer = this.getDimmer();
     const errors = this.getFormErrors();
 
-    return (
-      <form className={c('ui fluid form', className)} onSubmit={this.handleSubmit}>
+    const showErrorPanel = _.isNil(this.props.showErrorPanel) || this.props.showErrorPanel;
+
+    const formContent = (
+      <>
         {dimmer && (
           <Dimmer active={processing} inverted>
             <Loader inverted>Processing</Loader>
           </Dimmer>
         )}
-        {this.renderErrorPanel()}
+        {showErrorPanel && this.renderErrorPanel()}
         {renderer({
           processing,
           errors,
           onSubmit: this.handleSubmit,
           onCancel: this.handleCancel,
         })}
+      </>
+    );
+    const renderFormAs = this.props.renderFormAs;
+    if (_.isFunction(renderFormAs)) {
+      return renderFormAs(formContent);
+    }
+    return (
+      <form className={c('ui fluid form', className)} onSubmit={this.handleSubmit}>
+        {formContent}
       </form>
     );
   }

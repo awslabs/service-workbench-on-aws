@@ -1,5 +1,6 @@
 import withAuth from '@aws-ee/base-ui/dist/withAuth';
 
+import _ from 'lodash';
 import EnvTypesManagement from '../parts/environment-types/EnvTypesManagement';
 import EnvTypeEditor from '../parts/environment-types/EnvTypeEditor';
 
@@ -12,13 +13,16 @@ import EnvTypeEditor from '../parts/environment-types/EnvTypeEditor';
  */
 // eslint-disable-next-line no-unused-vars
 function registerRoutes(routesMap, { location, appContext }) {
-  const routes = new Map([
-    ...routesMap,
-    ['/workspace-types-management/:action/:id', withAuth(EnvTypeEditor)],
-    ['/workspace-types-management', withAuth(EnvTypesManagement)],
-  ]);
-
-  return routes;
+  const showEnvTypeManagement = _.get(appContext, 'showEnvTypeManagement', true);
+  if (showEnvTypeManagement) {
+    const routes = new Map([
+      ...routesMap,
+      ['/workspace-types-management/:action/:id', withAuth(EnvTypeEditor)],
+      ['/workspace-types-management', withAuth(EnvTypesManagement)],
+    ]);
+    return routes;
+  }
+  return routesMap;
 }
 
 const plugin = {

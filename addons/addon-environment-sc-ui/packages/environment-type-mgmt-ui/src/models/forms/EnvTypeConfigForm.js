@@ -61,6 +61,7 @@ function getEnvTypeConfigForm(envTypeConfig) {
     // This field is not used directly for display
     params: {
       label: 'AWS CloudFormation Input Params',
+      value: JSON.stringify(_.get(envTypeConfig, 'params')),
     },
 
     // The tags field is not rendered directly, the TagsStep renders other form specifically for tags and dynamically
@@ -68,6 +69,7 @@ function getEnvTypeConfigForm(envTypeConfig) {
     // This field is not used directly for display
     tags: {
       label: 'Resource Tags',
+      value: JSON.stringify(_.get(envTypeConfig, 'tags')),
     },
   };
 

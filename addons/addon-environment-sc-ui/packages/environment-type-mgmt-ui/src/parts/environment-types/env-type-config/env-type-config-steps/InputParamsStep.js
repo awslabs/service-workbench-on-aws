@@ -1,7 +1,7 @@
 import _ from 'lodash';
 import React from 'react';
 import { observer } from 'mobx-react';
-import { action, decorate, observable, runInAction } from 'mobx';
+import { action, decorate, runInAction } from 'mobx';
 import { Header, Segment } from 'semantic-ui-react';
 
 import Form from '@aws-ee/base-ui/dist/parts/helpers/fields/Form';
@@ -34,6 +34,11 @@ class InputParamsStep extends BaseEnvTypeConfigStep {
   }
 
   render() {
+    // The cfnParamsForm below is different from "this.form".
+    // cfnParamsForm is specifically for the CloudFormation params and the "this.form" is for the EnvTypeConfig.
+    // When the inner form "cfnParamsForm" is submitted, the values from "cfnParamsForm" are read and the field named "params" of
+    // the outer EnvTypeConfig form (i.e., "this.form") is set as JSON string
+    // See "handleCfnParamsFormSubmit" method for details
     const cfnParamsForm = this.cfnParamsForm;
     return (
       <Segment clearing className="mt3 p3">
@@ -100,8 +105,6 @@ class InputParamsStep extends BaseEnvTypeConfigStep {
 }
 
 decorate(InputParamsStep, {
-  handleFormSubmission: action,
-
-  stores: observable,
+  handleCfnParamsFormSubmit: action,
 });
 export default observer(InputParamsStep);

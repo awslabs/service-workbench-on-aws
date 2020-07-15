@@ -33,12 +33,11 @@ class BaseEnvTypeConfigStep extends React.Component {
   renderActionButtons({ processing, onCancel }) {
     const envTypConfig = this.getEnvTypeConfig();
     const isUpdating = !_.isEmpty(envTypConfig);
-
     const submitButtonTitle = isUpdating ? 'Save' : this.props.wizardModel.hasNext ? 'Next' : 'Add';
     return (
       <div>
         <Button
-          className="ml2"
+          className="ml2 mb2"
           primary
           content={submitButtonTitle}
           disabled={processing}
@@ -47,7 +46,7 @@ class BaseEnvTypeConfigStep extends React.Component {
         />
         {!isUpdating && this.props.wizardModel.hasPrevious && (
           <Button
-            className="ml2"
+            className="ml2 mb2"
             primary
             content="Previous"
             disabled={processing}
