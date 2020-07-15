@@ -25,8 +25,8 @@ const userFormUtilsMock = require('../../../models/forms/UserFormUtils');
 
 const projectsStore = {};
 const userRolesStore = {
-  isInternalUser: jest.fn((val) => val === 'internalUser'),
-  isInternalGuest: jest.fn((val) => val === 'internalGuest'),
+  isInternalUser: jest.fn(val => val === 'internalUser'),
+  isInternalGuest: jest.fn(val => val === 'internalGuest'),
 };
 const userStore = {
   user: {
@@ -47,8 +47,8 @@ describe('UpdateUser', () => {
   let wrapper = null;
   beforeEach(() => {
     // Mock display functions because they don't function correctly in enzyme
-    displayErrorMock.displayError = jest.fn((x) => x);
-    displayErrorMock.displaySuccess = jest.fn((x) => x);
+    displayErrorMock.displayError = jest.fn(x => x);
+    displayErrorMock.displaySuccess = jest.fn(x => x);
   });
 
   it('should fail because non-admins cannot update identityProviderName', async () => {
@@ -183,7 +183,7 @@ describe('UpdateUser', () => {
         usersStore={usersStore}
         awsAccountsStore={awsAccountsStore}
         authenticationProviderConfigsStore={authenticationProviderConfigsStore}
-        adminMode={true}
+        adminMode
         user={user}
       />,
     );

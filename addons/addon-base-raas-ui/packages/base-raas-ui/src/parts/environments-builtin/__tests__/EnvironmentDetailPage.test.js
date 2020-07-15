@@ -46,7 +46,7 @@ const environmentStore = {
 };
 
 const environmentsStore = {
-  getEnvironmentStore: jest.fn((ipt) => environmentStore),
+  getEnvironmentStore: jest.fn(() => environmentStore),
   updateEnvironment: jest.fn(),
 };
 
@@ -78,7 +78,7 @@ describe('EnvironmentDetailPage', () => {
     container = wrapper.instance();
 
     // mock display error function
-    displayErrorMock.displayError;
+    displayErrorMock.displayError = jest.fn(x => x);
 
     // Mock goto function
     gotoMock.gotoFn = jest.fn(() => jest.fn());
@@ -97,13 +97,13 @@ describe('EnvironmentDetailPage', () => {
         format: 'pem',
       },
     });
-    const real_password = 'APASSWORD';
+    const realPassword = 'APASSWORD';
     const passData = [
       { privateKey },
       {
         passwordData: publicEncrypt(
           { key: publicKey, padding: constants.RSA_PKCS1_PADDING },
-          Buffer.from(real_password, 'utf8'),
+          Buffer.from(realPassword, 'utf8'),
         ),
       },
     ];
@@ -114,7 +114,7 @@ describe('EnvironmentDetailPage', () => {
 
     // CHECK
     expect(container.windowsPassword).not.toEqual(passData.passwordData);
-    expect(container.windowsPassword).toEqual(real_password);
+    expect(container.windowsPassword).toEqual(realPassword);
   });
 
   it('should update the sharedWithUsers field of the environment', async () => {

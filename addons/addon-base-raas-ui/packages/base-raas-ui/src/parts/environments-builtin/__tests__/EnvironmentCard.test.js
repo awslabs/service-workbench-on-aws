@@ -66,7 +66,7 @@ describe('EnvironmentCard', () => {
     component = wrapper.instance();
 
     // mock error function because it doesn't function properly in enzyme
-    displayErrorMock.displayError = jest.fn((x) => x);
+    displayErrorMock.displayError = jest.fn(x => x);
   });
 
   it('should start the environment', async () => {
