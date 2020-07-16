@@ -112,7 +112,7 @@ describe('CostCacheService', () => {
       });
 
       // OPERATE and CHECK
-      await expect(service.update(requestContext, rawData)).rejects.toThrowError(
+      await expect(service.update(requestContext, rawData)).rejects.toThrow(
         `costApiCache with indexId "${INDEX_ID}" does not exist`,
       );
     });
