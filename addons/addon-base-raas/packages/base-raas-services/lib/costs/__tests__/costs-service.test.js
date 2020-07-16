@@ -28,6 +28,9 @@ const AWSAccountsServiceMock = require('../../aws-accounts/aws-accounts-service'
 jest.mock('../../environment/environment-service');
 const EnvironmentServiceMock = require('../../environment/environment-service');
 
+jest.mock('../../environment-sc/environment-sc-service');
+const EnvironmentScServiceMock = require('../../environment-sc/environment-sc-service');
+
 jest.mock('../../indexes/indexes-service');
 const IndexesServiceMock = require('../../indexes/indexes-service');
 
@@ -47,6 +50,7 @@ describe('CostsService', () => {
     container.register('aws', new AWSMock());
     container.register('awsAccountsService', new AWSAccountsServiceMock());
     container.register('environmentService', new EnvironmentServiceMock());
+    container.register('environmentScService', new EnvironmentScServiceMock());
     container.register('indexesService', new IndexesServiceMock());
     container.register('costApiCacheService', new CostAPICacheServiceMock());
     container.register('authorizationService', new AuthServiceMock());
