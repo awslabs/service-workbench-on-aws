@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-const _ = require('lodash');
+// const _ = require('lodash');
 
 async function configure(context) {
   const router = context.router();
