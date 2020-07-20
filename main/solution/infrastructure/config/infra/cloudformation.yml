@@ -1,12 +1,9 @@
 Conditions:
-
   IsDev: !Equals ['${self:custom.settings.envType}', 'dev']
   UseCustomDomain: !Not
     - !Equals ['${self:custom.settings.domainName}', '']
 
-
 Resources:
-
   # =============================================================================================
   # S3 Buckets
   # =============================================================================================
@@ -180,15 +177,13 @@ Resources:
     Properties:
       HostedZoneId: !Ref HostedZone
       RecordSets:
-      - Name: ${self:custom.settings.domainName}
-        Type: A
-        AliasTarget:
-          HostedZoneId: Z2FDTNDATAQYW2
-          DNSName: !GetAtt WebsiteCloudFront.DomainName
-
+        - Name: ${self:custom.settings.domainName}
+          Type: A
+          AliasTarget:
+            HostedZoneId: WebsiteCloudFront.DistributionId
+            DNSName: !GetAtt WebsiteCloudFront.DomainName
 
 Outputs:
-
   WebsiteUrl:
     Description: URL for the main website hosted on S3 via CloudFront
     Value: !If
@@ -210,4 +205,4 @@ Outputs:
 
   HostedZoneId:
     Description: Id of the hosted zone created when a custom domain is used
-    Value: !Ref HostedZone
+    Value: WebsiteCloudFront.DistributionId
