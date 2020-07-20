@@ -180,7 +180,7 @@ Resources:
         - Name: ${self:custom.settings.domainName}
           Type: A
           AliasTarget:
-            HostedZoneId: Z2FDTNDATAQYW2 # This is a requried hard-coded string that is to be used for AWS
+            HostedZoneId: Z2FDTNDATAQYW2 # This is a required hard-coded string that is to be used for AWS
             DNSName: !GetAtt WebsiteCloudFront.DomainName
 
 Outputs:
@@ -205,5 +205,7 @@ Outputs:
 
   HostedZoneId:
     Description: Id of the hosted zone created when a custom domain is used
-    Condition: UseCustomDomain
-    Value: WebsiteCloudFront.DistributionId
+    Value: !If
+      - UseCustomDomain
+      - !Ref HostedZone
+      - 'NotSetAsCustomDomainDisabled'
