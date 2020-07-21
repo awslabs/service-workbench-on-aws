@@ -242,20 +242,22 @@ removeComponentWithNoStack "UI" "$SOLUTION_DIR/ui" "DONT_ASK_CONFIRMATION"
 
 removeStack "Post-Deployment" "$SOLUTION_DIR/post-deployment" "DONT_ASK_CONFIRMATION"
 
-removeCfLambdaAssociations
-
 removeStack "Edge-Lambda" "$SOLUTION_DIR/edge-lambda" "DONT_ASK_CONFIRMATION"
 
 removeStack "Backend" "$SOLUTION_DIR/backend" "DONT_ASK_CONFIRMATION"
 
 removeStack "Infrastructure" "$SOLUTION_DIR/infrastructure" "DONT_ASK_CONFIRMATION"
 
+removeStack "Prep-Master-Account" "$SOLUTION_DIR/prepare-master-acc" "DONT_ASK_CONFIRMATION"
+
+removeCfLambdaAssociations
+
 removeCICDStacks "ASK_CONFIRMATION"
 
 removeSsmParams "ASK_CONFIRMATION"
 
 printf "\n\n*******************************************************************"
-printf "\n*****     ----- ENVIRONMENT DELETED SUCCESSFULLY !! -----     *****"
+printf "\n*****     ----- ENVIRONMENT DELETED SUCCESSFULLY  🎉!! -----     *****"
 printf "\n*******************************************************************"
 printf "\nYou still have to remove the following elements :"
 printf "\n  -[Edge lambda]: It can be deleted manually in 1 hour,"
