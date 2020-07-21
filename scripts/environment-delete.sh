@@ -250,6 +250,8 @@ removeStack "Infrastructure" "$SOLUTION_DIR/infrastructure" "DONT_ASK_CONFIRMATI
 
 removeStack "Prep-Master-Account" "$SOLUTION_DIR/prepare-master-acc" "DONT_ASK_CONFIRMATION"
 
+removeStack "Machine-Images" "$SOLUTION_DIR/machine-images" "DONT_ASK_CONFIRMATION"
+
 removeCfLambdaAssociations
 
 removeCICDStacks "ASK_CONFIRMATION"
