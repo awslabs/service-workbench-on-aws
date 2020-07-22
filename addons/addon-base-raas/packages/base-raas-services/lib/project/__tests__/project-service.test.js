@@ -28,6 +28,10 @@ const AuditServiceMock = require('@aws-ee/base-services/lib/audit/audit-writer-s
 
 jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
 const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
+
+jest.mock('@aws-ee/base-services/lib/user/user-service');
+const UserServiceMock = require('@aws-ee/base-services/lib/user/user-service');
+
 const ProjectService = require('../project-service');
 
 describe('ProjectService', () => {
@@ -42,6 +46,8 @@ describe('ProjectService', () => {
     container.register('dbService', new DbServiceMock());
     container.register('auditWriterService', new AuditServiceMock());
     container.register('settings', new SettingsServiceMock());
+    container.register('userService', new UserServiceMock());
+
     await container.initServices();
 
     // Get instance of the service we are testing

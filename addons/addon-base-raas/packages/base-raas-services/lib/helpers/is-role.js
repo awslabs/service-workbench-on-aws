@@ -20,9 +20,14 @@ function isInternalResearcher(requestContext) {
   return isRole(requestContext, 'researcher');
 }
 
+function isAdmin(requestContext) {
+  return isRole(requestContext, 'admin');
+}
+
 module.exports = {
   isInternalResearcher,
   isExternalResearcher,
   isInternalGuest,
   isExternalGuest,
+  isAdmin,
 };

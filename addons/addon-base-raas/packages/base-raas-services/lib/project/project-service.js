@@ -30,13 +30,20 @@ const settingKeys = {
 class ProjectService extends Service {
   constructor() {
     super();
-    this.dependency(['jsonSchemaValidationService', 'authorizationService', 'dbService', 'auditWriterService']);
+    this.dependency([
+      'jsonSchemaValidationService',
+      'authorizationService',
+      'dbService',
+      'auditWriterService',
+      'userService',
+    ]);
   }
 
   async init() {
     await super.init();
     const [dbService] = await this.service(['dbService']);
     const table = this.settings.get(settingKeys.tableName);
+    this.userService = await this.service('userService');
 
     this._getter = () => dbService.helper.getter().table(table);
     this._updater = () => dbService.helper.updater().table(table);
@@ -211,6 +218,17 @@ class ProjectService extends Service {
       .limit(1000)
       .projection(fields)
       .scan();
+  }
+
+  /**
+   * Check if user is associated with the project
+   */
+  async verifyUserProjectAssociation(principalIdentifier, projectId) {
+    const user = await this.userService.getUser(principalIdentifier);
+    if (user.projectId.includes(projectId)) {
+      return true;
+    }
+    return false;
   }
 
   // Do some properties renaming to prepare the object to be saved in the database
