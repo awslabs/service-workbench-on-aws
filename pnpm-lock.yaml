@@ -1484,6 +1484,10 @@ importers:
       '@babel/preset-env': 7.9.5_@babel+core@7.9.0
       '@babel/preset-react': 7.9.4_@babel+core@7.9.0
       babel-eslint: 10.1.0_eslint@6.8.0
+      babel-jest: 24.9.0_@babel+core@7.9.0
+      babel-loader: 8.1.0_@babel+core@7.9.0
+      enzyme: 3.11.0
+      enzyme-adapter-react-16: 1.15.2_df2dc313d8031f8c2dbd009d86ca7fc7
       eslint: 6.8.0
       eslint-config-airbnb: 18.1.0_7221e9efc3e1df952f9031babfc371af
       eslint-config-prettier: 6.10.1_eslint@6.8.0
@@ -1499,6 +1503,7 @@ importers:
       jest-junit: 10.0.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
+      regenerator-runtime: 0.13.5
     specifiers:
       '@aws-ee/base-ui': 'workspace:*'
       '@babel/cli': ^7.8.4
@@ -1508,6 +1513,10 @@ importers:
       '@babel/preset-env': ^7.8.6
       '@babel/preset-react': ^7.8.3
       babel-eslint: ^10.0.3
+      babel-jest: ^24.9.0
+      babel-loader: ^8.0.6
+      enzyme: ^3.11.0
+      enzyme-adapter-react-16: ^1.15.2
       eslint: ^6.8.0
       eslint-config-airbnb: ^18.0.1
       eslint-config-prettier: ^6.10.0
@@ -1533,6 +1542,7 @@ importers:
       react-router-dom: ^5.1.2
       react-table: ^6.11.5
       react-timeago: ^4.4.0
+      regenerator-runtime: ^0.13.5
       semantic-ui-react: ^0.88.2
   main/cicd/cicd-pipeline:
     devDependencies:
@@ -3219,7 +3229,7 @@ packages:
       integrity: sha512-NE2DtOdufG7R5vnfQUTehdTfNycfUANEtCa9PssN9O/xmTzP4E08UI797ixaei6hBEVL9BI/PsdJS5x7mWoB9Q==
   /@babel/template/7.8.6:
     dependencies:
-      '@babel/code-frame': 7.8.3
+      '@babel/code-frame': 7.10.4
       '@babel/parser': 7.9.4
       '@babel/types': 7.9.5
     dev: true
@@ -3816,7 +3826,7 @@ packages:
   /@jest/source-map/24.9.0:
     dependencies:
       callsites: 3.1.0
-      graceful-fs: 4.2.3
+      graceful-fs: 4.2.4
       source-map: 0.6.1
     dev: true
     engines:
@@ -3884,7 +3894,7 @@ packages:
       chalk: 2.4.2
       convert-source-map: 1.7.0
       fast-json-stable-stringify: 2.1.0
-      graceful-fs: 4.2.3
+      graceful-fs: 4.2.4
       jest-haste-map: 24.9.0
       jest-regex-util: 24.9.0
       jest-util: 24.9.0
@@ -5023,6 +5033,14 @@ packages:
       ajv: ^6.9.1
     resolution:
       integrity: sha512-RO1ibKvd27e6FEShVFfPALuHI3WjSVNeK5FIsmme/LYRNxjKuNj+Dt7bucLa6NdSv3JcVTyMlm9kGR84z1XpaQ==
+  /ajv-keywords/3.4.1_ajv@6.12.2:
+    dependencies:
+      ajv: 6.12.2
+    dev: true
+    peerDependencies:
+      ajv: ^6.9.1
+    resolution:
+      integrity: sha512-RO1ibKvd27e6FEShVFfPALuHI3WjSVNeK5FIsmme/LYRNxjKuNj+Dt7bucLa6NdSv3JcVTyMlm9kGR84z1XpaQ==
   /ajv/6.12.0:
     dependencies:
       fast-deep-equal: 3.1.1
@@ -5542,6 +5560,22 @@ packages:
       '@babel/core': ^7.0.0
     resolution:
       integrity: sha512-qiXeX1Cmw4JZ5yQ4H57WpkO0MZ61Qj+YnsVUwAMnDV5ls+yHon11XjarDdgP7H8lTmiEi6biiZA8y3Tmvx6pCg==
+  /babel-loader/8.1.0_@babel+core@7.9.0:
+    dependencies:
+      '@babel/core': 7.9.0
+      find-cache-dir: 2.1.0
+      loader-utils: 1.4.0
+      mkdirp: 0.5.5
+      pify: 4.0.1
+      schema-utils: 2.6.5
+    dev: true
+    engines:
+      node: '>= 6.9'
+    peerDependencies:
+      '@babel/core': ^7.0.0
+      webpack: '>=2'
+    resolution:
+      integrity: sha512-7q7nC1tYOrqvUrN3LQK4GwSk/TQorZSOlO9C+RZDZpODgyN4ZlCqE5q9cDsyWOliN+aU9B4JX01xK9eJXowJLw==
   /babel-loader/8.1.0_@babel+core@7.9.0+webpack@4.41.2:
     dependencies:
       '@babel/core': 7.9.0
@@ -11859,7 +11893,7 @@ packages:
       '@jest/types': 24.9.0
       anymatch: 2.0.0
       fb-watchman: 2.0.1
-      graceful-fs: 4.2.3
+      graceful-fs: 4.2.4
       invariant: 2.2.4
       jest-serializer: 24.9.0
       jest-util: 24.9.0
@@ -11995,7 +12029,7 @@ packages:
       integrity: sha512-ZBUJ2fchNIZt+fyzkuCFBb8SKaU//Rln45augfUtbHaGyVxCO++ANARdBK9oPGXU3hEDgyy7UHnOP/qNOJXFUg==
   /jest-message-util/24.9.0:
     dependencies:
-      '@babel/code-frame': 7.8.3
+      '@babel/code-frame': 7.10.4
       '@jest/test-result': 24.9.0
       '@jest/types': 24.9.0
       '@types/stack-utils': 1.0.1
@@ -12303,7 +12337,7 @@ packages:
       '@jest/types': 24.9.0
       callsites: 3.1.0
       chalk: 2.4.2
-      graceful-fs: 4.2.3
+      graceful-fs: 4.2.4
       is-ci: 2.0.0
       mkdirp: 0.5.5
       slash: 2.0.0
@@ -12928,7 +12962,7 @@ packages:
       integrity: sha1-eUfkIUmvgNaWy/eXvKq8/h/inKg=
   /load-json-file/4.0.0:
     dependencies:
-      graceful-fs: 4.2.3
+      graceful-fs: 4.2.4
       parse-json: 4.0.0
       pify: 3.0.0
       strip-bom: 3.0.0
@@ -14092,7 +14126,7 @@ packages:
   /object.getownpropertydescriptors/2.1.0:
     dependencies:
       define-properties: 1.1.3
-      es-abstract: 1.17.5
+      es-abstract: 1.17.6
     dev: true
     engines:
       node: '>= 0.8'
@@ -17093,8 +17127,8 @@ packages:
       integrity: sha512-i27Mic4KovM/lnGsy8whRCHhc7VicJajAjTrYg11K9zfZXnYIt4k5F+kZkwjnrhKzLic/HLU4j11mjsz2G/75g==
   /schema-utils/2.6.5:
     dependencies:
-      ajv: 6.12.0
-      ajv-keywords: 3.4.1_ajv@6.12.0
+      ajv: 6.12.2
+      ajv-keywords: 3.4.1_ajv@6.12.2
     dev: true
     engines:
       node: '>= 8.9.0'
@@ -19059,7 +19093,7 @@ packages:
   /util.promisify/1.0.1:
     dependencies:
       define-properties: 1.1.3
-      es-abstract: 1.17.5
+      es-abstract: 1.17.6
       has-symbols: 1.0.1
       object.getownpropertydescriptors: 2.1.0
     dev: true
@@ -19758,7 +19792,7 @@ packages:
       integrity: sha1-tSQ9jz7BqjXxNkYFvA0QNuMKtp8=
   /write-file-atomic/2.4.1:
     dependencies:
-      graceful-fs: 4.2.3
+      graceful-fs: 4.2.4
       imurmurhash: 0.1.4
       signal-exit: 3.0.3
     dev: true

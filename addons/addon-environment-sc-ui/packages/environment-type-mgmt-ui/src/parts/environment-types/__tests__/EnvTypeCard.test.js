@@ -13,15 +13,13 @@
  *  permissions and limitations under the License.
  */
 
-// jest.config.js
-module.exports = {
-  // verbose: true,
-  notify: false,
-  testEnvironment: 'node',
-  testPathIgnorePatterns: ['/node_modules/', '/dist/'],
-  setupFilesAfterEnv: ['<rootDir>/setup-tests.js'],
-  // testPathIgnorePatterns: ['service.test.js'],
-  // Configure JUnit reporter as CodeBuild currently only supports JUnit or Cucumber reports
-  // See https://docs.aws.amazon.com/codebuild/latest/userguide/test-reporting.html
-  reporters: ['default', ['jest-junit', { suiteName: 'jest tests', outputDirectory: './.build/test' }]],
-};
+import React from 'react';
+import { shallow } from 'enzyme';
+import EnvTypeCard from '../EnvTypeCard';
+
+describe('EnvTypeCard', () => {
+  it('should be true', () => {
+    const wrapper = shallow(<EnvTypeCard.WrappedComponent envType="Workspace" />);
+    expect(wrapper).toBeDefined();
+  });
+});

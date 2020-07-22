@@ -27,6 +27,8 @@
     "@babel/preset-env": "^7.8.6",
     "@babel/preset-react": "^7.8.3",
     "babel-eslint": "^10.0.3",
+    "babel-jest": "^24.9.0",
+    "babel-loader": "^8.0.6",
     "eslint": "^6.8.0",
     "eslint-config-airbnb": "^18.0.1",
     "eslint-config-prettier": "^6.10.0",
@@ -37,6 +39,9 @@
     "eslint-plugin-prettier": "^3.1.2",
     "eslint-plugin-react": "^7.18.3",
     "eslint-plugin-react-hooks": "^1.7.0",
+    "enzyme": "^3.11.0",
+    "enzyme-adapter-react-16": "^1.15.2",
+    "regenerator-runtime": "^0.13.5",
     "husky": "^3.1.0",
     "jest": "^24.9.0",
     "jest-junit": "^10.0.0",
@@ -44,6 +49,8 @@
     "pretty-quick": "^1.11.1"
   },
   "scripts": {
+    "test": "NODE_ENV=test jest --config jest.config.js --passWithNoTests",
+    "test:watch": "NODE_ENV=test jest --config jest.config.js  --passWithNoTests --watchAll",
     "babel": "babel src/ --out-dir dist/ --source-maps",
     "babel:watch": "babel src/ --out-dir dist/ --source-maps --watch",
     "build": "pnpm run babel",
