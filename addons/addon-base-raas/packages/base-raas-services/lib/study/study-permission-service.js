@@ -30,14 +30,13 @@ const keyPrefixes = {
 class StudyPermissionService extends Service {
   constructor() {
     super();
-    this.dependency(['dbService', 'jsonSchemaValidationService', 'lockService', 'userService']);
+    this.dependency(['dbService', 'jsonSchemaValidationService', 'lockService']);
   }
 
   async init() {
     // Get services
     this.jsonSchemaValidationService = await this.service('jsonSchemaValidationService');
     this.lockService = await this.service('lockService');
-    this.userService = await this.service('jsonSchemaValidationService');
 
     // Setup DB helpers
     const dbService = await this.service('dbService');

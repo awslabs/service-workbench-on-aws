@@ -18,6 +18,7 @@ const Service = require('@aws-ee/base-services-container/lib/service');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const { buildTaggingXml } = require('../helpers/aws-tags');
+const { isInternalResearcher, isAdmin } = require('../helpers/is-role');
 const createSchema = require('../schema/create-study');
 const updateSchema = require('../schema/update-study');
 
@@ -76,22 +77,31 @@ class StudyService extends Service {
   }
 
   async create(requestContext, rawData) {
+    if (!(isInternalResearcher(requestContext) || isAdmin(requestContext))) {
+      throw this.boom.forbidden('Only admin and internal researcher are authorized to create studies. ');
+    }
     const [validationService, projectService] = await this.service(['jsonSchemaValidationService', 'projectService']);
 
     // Validate input
     await validationService.ensureValid(rawData, createSchema);
 
+    // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
+    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+
     // The open data studies do not need to be associated to any project
     // for everything else make sure projectId is specified
     if (rawData.category !== 'Open Data') {
-      if (!rawData.projectId) {
+      const projectId = rawData.projectId;
+      if (!projectId) {
         throw this.boom.badRequest('Missing required projectId');
+      }
+      // Verify user has access to the project the new study will be associated with
+      if (!(await projectService.verifyUserProjectAssociation(by, projectId))) {
+        throw this.boom.forbidden(`Not authorized to add study related to project "${projectId}"`);
       }
       await projectService.mustFind(requestContext, { id: rawData.projectId });
     }
 
-    // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
     const id = rawData.id;
 
     // Prepare the db object

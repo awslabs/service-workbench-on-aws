@@ -42,6 +42,7 @@ const StudyService = require('../study-service');
 describe('studyService', () => {
   let service = null;
   let dbService = null;
+  let projectService = null;
   const error = { code: 'ConditionalCheckFailedException' };
   beforeEach(async () => {
     const container = new ServicesContainer();
@@ -60,6 +61,7 @@ describe('studyService', () => {
     container.initServices();
     service = await container.find('studyService');
     dbService = await container.find('dbService');
+    projectService = await container.find('projectService');
   });
 
   describe('create', () => {
@@ -72,7 +74,7 @@ describe('studyService', () => {
 
       // OPERATE
       try {
-        await service.create({}, ipt);
+        await service.create({ principal: { userRole: 'admin' } }, ipt);
         expect.hasAssertions();
       } catch (err) {
         // CHECK
@@ -89,11 +91,49 @@ describe('studyService', () => {
 
       // OPERATE
       try {
-        await service.create({}, dataIpt);
+        await service.create({ principal: { userRole: 'admin' } }, dataIpt);
         expect.hasAssertions();
       } catch (err) {
         // CHECK
         expect(err.message).toEqual('Missing required projectId');
+      }
+    });
+
+    it('should fail for users other than admin or internal-researcher ', async () => {
+      // BUILD
+      const dataIpt = {
+        id: '4 score and 7 years ago',
+        projectId: 'some_project_id',
+        category: 'Organization',
+      };
+
+      // OPERATE
+      try {
+        await service.create({ principal: { userRole: 'internal-guest' } }, dataIpt);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Only admin and internal researcher are authorized to create studies. ');
+      }
+    });
+
+    it('should fail if user project association is missing', async () => {
+      // BUILD
+      const dataIpt = {
+        id: '4 score and 7 years ago',
+        projectId: 'some_project_id',
+        category: 'Organization',
+      };
+
+      projectService.verifyUserProjectAssociation.mockImplementationOnce(() => false);
+
+      // OPERATE
+      try {
+        await service.create({ principal: { userRole: 'admin' } }, dataIpt);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Not authorized to add study related to project "some_project_id"');
       }
     });
 
@@ -109,7 +149,7 @@ describe('studyService', () => {
       });
       // OPERATE
       try {
-        await service.create({}, dataIpt);
+        await service.create({ principal: { userRole: 'admin' } }, dataIpt);
         expect.hasAssertions();
       } catch (err) {
         // CHECK
@@ -127,11 +167,11 @@ describe('studyService', () => {
       service.audit = jest.fn();
 
       // OPERATE
-      await service.create({}, dataIpt);
+      await service.create({ principal: { userRole: 'admin' } }, dataIpt);
 
       // CHECK
       expect(dbService.table.update).toHaveBeenCalled();
-      expect(service.audit).toHaveBeenCalledWith({}, { action: 'create-study', body: undefined });
+      expect(service.audit).toHaveBeenCalledWith({ principal: { userRole: 'admin' } }, { action: 'create-study', body: undefined });
     });
   });
 
