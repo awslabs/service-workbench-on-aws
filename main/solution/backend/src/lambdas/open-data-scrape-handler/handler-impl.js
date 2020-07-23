@@ -190,12 +190,12 @@ module.exports = function newHandler({ studyService, log = consoleLogger } = {})
         // studyService.find returns the entire db row for that study id
         const existingStudy = await studyService.find(userContext, study.id);
         if (!existingStudy) {
-          studyService.create(userContext, study);
+          await studyService.create(userContext, study);
         } else {
           // remove additional properties before update call to match jsonSchemaValidation
           const studyToUpdate = _.omit(existingStudy, ['updatedAt', 'updatedBy', 'createdAt', 'createdBy', 'category']);
 
-          studyService.update(userContext, studyToUpdate);
+          await studyService.update(userContext, studyToUpdate);
         }
       }),
     );
