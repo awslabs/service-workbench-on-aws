@@ -171,7 +171,10 @@ describe('studyService', () => {
 
       // CHECK
       expect(dbService.table.update).toHaveBeenCalled();
-      expect(service.audit).toHaveBeenCalledWith({ principal: { userRole: 'admin' } }, { action: 'create-study', body: undefined });
+      expect(service.audit).toHaveBeenCalledWith(
+        { principal: { userRole: 'admin' } },
+        { action: 'create-study', body: undefined },
+      );
     });
   });
 
