@@ -95,6 +95,20 @@ class StartEC2Environment extends StepBase {
     return status === 'RUNNING';
   }
 
+  async getUpdatedInstanceInfo(oldInstanceInfo) {
+    const ec2 = await this.getEc2Service();
+    const { Ec2WorkspaceInstanceId } = oldInstanceInfo;
+
+    const data = await ec2.describeInstances({ InstanceIds: [Ec2WorkspaceInstanceId] }).promise();
+
+    const instanceInfo = _.get(data, 'Reservations[0].Instances[0]');
+
+    return {
+      Ec2WorkspaceDnsName: _.get(instanceInfo, 'PublicDnsName'),
+      Ec2WorkspacePublicIp: _.get(instanceInfo, 'PublicIpAddress'),
+    };
+  }
+
   async getEc2Service() {
     const [aws] = await this.mustFindServices(['aws']);
     const [requestContext, RoleArn, ExternalId] = await Promise.all([
@@ -126,12 +140,15 @@ class StartEC2Environment extends StepBase {
     const id = await this.state.string('STATE_ENVIRONMENT_ID');
     const requestContext = await this.state.optionalObject('STATE_REQUEST_CONTEXT');
 
+    const environment = await environmentService.mustFind(requestContext, { id: id });
+    const instanceInfo = await this.getUpdatedInstanceInfo(environment.instanceInfo);
+
     // SECURITY NOTE
     // add field to authorize update on behalf of user
     // this is needed to allow shared envirnments to start/stop by other users
     requestContext.fromWorkflow = true;
 
-    await environmentService.update(requestContext, { id, status });
+    await environmentService.update(requestContext, { id, status, instanceInfo });
   }
 
   async onFail() {
