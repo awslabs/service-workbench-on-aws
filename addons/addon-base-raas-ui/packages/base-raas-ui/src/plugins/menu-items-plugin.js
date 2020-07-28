@@ -37,13 +37,14 @@ function registerMenuItems(itemsMap, { location, appContext }) {
   const canCreateWorkspaces = _.get(appContext, 'userStore.user.capabilities.canCreateWorkspace');
   const canViewDashboard = _.get(appContext, 'userStore.user.capabilities.canViewDashboard');
   const items = new Map([
-    ..._.filter([...itemsMap], item => {
+    ..._.filter([...itemsMap], (item) => {
       if (item[0] === '/dashboard' && !canViewDashboard) return false;
       return true;
     }),
     ['/accounts', { title: 'Accounts', icon: 'sitemap', shouldShow: isAdmin }],
     ['/studies', { title: 'Studies', icon: 'book', shouldShow: true }],
     ['/workspaces', { title: 'Workspaces', icon: 'server', shouldShow: canCreateWorkspaces }],
+    ['/support', { title: 'Support', icon: 'question', shouldShow: true }],
   ]);
 
   return items;

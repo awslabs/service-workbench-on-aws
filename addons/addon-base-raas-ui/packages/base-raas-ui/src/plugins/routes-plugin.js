@@ -30,6 +30,7 @@ import CreateAwsAccount from '../parts/accounts/CreateAwsAccount';
 import EnvironmentSetup from '../parts/environments/EnvironmentSetup';
 import AddProject from '../parts/projects/AddProject';
 import AddSingleLocalUser from '../parts/users/AddSingleLocalUser';
+import SupportPage from '../parts/support/SupportPage';
 
 /**
  * Adds routes to the given routesMap.
@@ -60,6 +61,7 @@ function registerRoutes(routesMap, { location, appContext }) {
     ['/workspaces/id/:instanceId', withAuth(EnvironmentDetailPage)],
     ['/workspaces', withAuth(EnvironmentsList)],
     ['/projects/add', withAuth(AddProject)],
+    ['/support', withAuth(SupportPage)],
   ]);
 
   return routes;

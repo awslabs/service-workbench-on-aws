@@ -1,0 +1,46 @@
+{
+  "categories": [
+    {
+      "title": "General",
+      "questions": [
+        {
+          "title": "What is the difference between IndexId and ProjectId?",
+          "answer": "Indexes function like cost centers--they group your projects under one category for cost allocation. ProjectIds are unique to each project, and IndexIds are unique to each index."
+        },
+        {
+          "title": "I can't create a study/workspace!",
+          "answer": "Make sure your account is associated with a project. Each workspace must be associated with a project, and you can only associate workspaces to projects associated with your account."
+        },
+        {
+          "title": "I can't create a project!",
+          "answer": "All projects need to be associated to an index. Start by creating an Index in the 'Accounts' tab. If you still cannot create a project, contact your administrator for assistance."
+        },
+        {
+          "title": "I'm trying to add my AWS account, but it asks for a ton of information I've never seen before!",
+          "answer": "Your AWS Account ID can be found in the management console. Role ARNs can be found in the IAM service of AWS, VPC and Subnet IDs can be found in the VPC service, and KMS ARN can be found in the KMS Service."
+        },
+        {
+          "title": "Why can't I create an AWS account?",
+          "answer": "If your organization uses AWS Organizations, the master account needs to create an AWS account for you. Contact your administrator for assistance."
+        }
+      ]
+    },
+    {
+      "title": "Compute Platforms",
+      "questions": [
+        {
+          "title": "I generated an EMR instance, but now it's asking for a password!",
+          "answer": "EMR notebooks are auto-generated with a password. The default value is 'aws-go-research' (no quotes)."
+        },
+        {
+          "title": "Why won't RStudio work?",
+          "answer": "Make sure you have all the requisite lines in your settings.yml file."
+        },
+        {
+          "title": "It says the AMI for the workspace is invalid/can't be found. What do I do?",
+          "answer": "Try redeploying the 'machine-images' component. See the README for details on how to do this."
+        }
+      ]
+    }
+  ]
+}
