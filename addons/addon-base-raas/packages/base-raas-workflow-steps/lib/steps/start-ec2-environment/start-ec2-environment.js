@@ -95,7 +95,7 @@ class StartEC2Environment extends StepBase {
     return status === 'RUNNING';
   }
 
-  async getUpdatedInstanceInfo(oldInstanceInfo) {
+  async getInstanceInfo(oldInstanceInfo) {
     const ec2 = await this.getEc2Service();
     const { Ec2WorkspaceInstanceId } = oldInstanceInfo;
 
@@ -141,7 +141,7 @@ class StartEC2Environment extends StepBase {
     const requestContext = await this.state.optionalObject('STATE_REQUEST_CONTEXT');
 
     const environment = await environmentService.mustFind(requestContext, { id: id });
-    const instanceInfo = await this.getUpdatedInstanceInfo(environment.instanceInfo);
+    const instanceInfo = await this.getInstanceInfo(environment.instanceInfo);
 
     // SECURITY NOTE
     // add field to authorize update on behalf of user
