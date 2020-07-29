@@ -140,7 +140,7 @@ class StartEC2Environment extends StepBase {
     const id = await this.state.string('STATE_ENVIRONMENT_ID');
     const requestContext = await this.state.optionalObject('STATE_REQUEST_CONTEXT');
 
-    const environment = await environmentService.mustFind(requestContext, { id: id });
+    const environment = await environmentService.mustFind(requestContext, { id });
     const instanceInfo = await this.getInstanceInfo(environment.instanceInfo);
 
     // SECURITY NOTE
