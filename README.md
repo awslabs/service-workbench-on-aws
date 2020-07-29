@@ -182,7 +182,7 @@ Please follow prevailing best practices for auditing your NPM dependencies and f
 
 ## Docusaurus
 
-You can now also launch the Galileo docusaurus website. Please follow the steps in documentation/README.md
+You can now also launch the Galileo docusaurus website. Please follow the steps in docs/README.md
 
 ## License
 
