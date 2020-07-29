@@ -99,15 +99,17 @@ $ cd -
 ```
 
 ---
+
 ## Using Galileo
 
 Once Galileo is fully deployed, the console will output the Website URL and Root Password for Galileo. You can log in by navigating to the Website URL in any browser, and then using the username 'root' and the Root Password given by the console. Please note that logging as the root user is highly discouraged, and should only be used for initial setup. You can create a new user by clicking the "Users" tab on the left, then "Add Local User". Follow the instructions given to create the user (you can leave the 'Project' field blank for now), then log out of the root account and into your new user account.
 
-Once in your user account, you'll need to link your AWS account. Navigate to "AWS Accounts" in the left bar, then click the "AWS Accounts" tab. From here, you can create an AWS account, or link an existing one. 
+Once in your user account, you'll need to link your AWS account. Navigate to "AWS Accounts" in the left bar, then click the "AWS Accounts" tab. From here, you can create an AWS account, or link an existing one.
 
-To create a new AWS account, you'll need the "Master Role ARN" value, which you can get by contacting the owner of your Organization's master account. If you are the owner, you can find it in the Roles section of [AWS IAM](https://aws.amazon.com/iam/) from the [AWS management console](https://aws.amazon.com/console/). 
+To create a new AWS account, you'll need the "Master Role ARN" value, which you can get by contacting the owner of your Organization's master account. If you are the owner, you can find it in the Roles section of [AWS IAM](https://aws.amazon.com/iam/) from the [AWS management console](https://aws.amazon.com/console/).
 
 To link an existing account, follow the instructions listed. You'll need the following credentials:
+
 - **AWS Account ID** ([Where can I find my AWS Account ID?](https://www.apn-portal.com/knowledgebase/articles/FAQ/Where-Can-I-Find-My-AWS-Account-ID))
 - **Role ARN**: An ARN to an IAM Role to use when launching resources using Galileo. You can find or create an IAM Role in the IAM service from the [AWS management console](https://aws.amazon.com/console/).
 - **AWS Service Catalog Role ARN**: Another ARN to an IAM Role, which will be used for launching resources using Galileo's Service Catalog. This entry can be the same as the above if you choose.
@@ -116,9 +118,10 @@ To link an existing account, follow the instructions listed. You'll need the fol
 - **KMS Encryption Key ARN**: The ARN of the KMS Encryption Key to use for the AWS Account. You can find or create a KMS Encryption Key in the [KMS service](https://aws.amazon.com/kms/) of the [AWS management console](https://aws.amazon.com/console/).
 
 ## Creating a Workspace
-Now that you have a user and have a working AWS account, we can start generating workspaces. Workspaces allow you to use AWS resources without having to manually set up and configure them. In order to create a workspace, your account has to be associated with a Project, which has to be created under an Index. 
 
-To start, create an index by navigating to Accounts, clicking the "Indexes" tab, then clicking "Add Index". Each project you create is associated with an index, allowing you to group multiple projects together under a single index linked to your AWS account. 
+Now that you have a user and have a working AWS account, we can start generating workspaces. Workspaces allow you to use AWS resources without having to manually set up and configure them. In order to create a workspace, your account has to be associated with a Project, which has to be created under an Index.
+
+To start, create an index by navigating to Accounts, clicking the "Indexes" tab, then clicking "Add Index". Each project you create is associated with an index, allowing you to group multiple projects together under a single index linked to your AWS account.
 
 Next, create a project by clicking the "Projects" tab in the Accounts page, then click "Add Project". Associate it with the Index you just created, and assign yourself as a project admin. Once this is completed, you can navigate to the Users page to see that the project has been successfully associated with your account.
 
@@ -132,13 +135,14 @@ Your workspace may take some time to launch. Once it is up and running, you can 
 - AWS Elastic Compute Cloud (EC2): EC2 instances are essentially Virtual Machines in the cloud. For more information, see the [EC2 Documentation](https://aws.amazon.com/ec2/).
 
 ## Create a Study
+
 Studies are datasets that you can tell Galileo to preload onto your workspaces. When your workspace has finished provisioning, you will immediately have access to any datasets within Studies associated with that workspace.
 
-Studies can be created via the Studies tab in the left bar. You can press "Create Study" to add a new study. The ID field will be the ID for that particular dataset. Studies can also be associated to projects via the ProjectID selection. Once the study has been created, you can upload datafiles to it with the "Upload Files" button. 
+Studies can be created via the Studies tab in the left bar. You can press "Create Study" to add a new study. The ID field will be the ID for that particular dataset. Studies can also be associated to projects via the ProjectID selection. Once the study has been created, you can upload datafiles to it with the "Upload Files" button.
 
-Once you have a study with datafiles loaded, you can start provisioning workspaces with your study data. In the Studies tab, select one or more studies. The data in these studies will be preloaded onto the AWS compute platform you choose in the next steps. In addition to your own studies, you can also choose from your Organization's studies and/or Open Data studies (publicly available datasets). 
+Once you have a study with datafiles loaded, you can start provisioning workspaces with your study data. In the Studies tab, select one or more studies. The data in these studies will be preloaded onto the AWS compute platform you choose in the next steps. In addition to your own studies, you can also choose from your Organization's studies and/or Open Data studies (publicly available datasets).
 
-After choosing your desired studies, click next to continue to create a workspace. Refer to the Workspaces section for documentation on the compute platforms offered. 
+After choosing your desired studies, click next to continue to create a workspace. Refer to the Workspaces section for documentation on the compute platforms offered.
 
 Once you have finished determining the properties of your workspace, Galileo will generate your workspace and preload it with your study data. You can access it from the Workspaces page by clicking the "Connect" button on your workspace.
 
@@ -175,6 +179,10 @@ Please follow prevailing best practices for auditing your NPM dependencies and f
 - [Serverless Stack](https://serverless-stack.com/)
 - [Configure Multiple AWS Profiles](https://serverless-stack.com/chapters/configure-multiple-aws-profiles.html)
 - [Serverless Offline](https://github.com/dherault/serverless-offline)
+
+## Docusaurus
+
+You can now also launch the Galileo docusaurus website. Please follow the steps in documentation/README.md
 
 ## License
 
