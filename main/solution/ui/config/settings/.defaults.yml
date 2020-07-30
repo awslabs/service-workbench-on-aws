@@ -24,4 +24,4 @@ brandLoginSubtitle: 'Galileo Gateway (${self:custom.settings.envName}/${self:cus
 
 # After how many minutes should the auto logout dialog be displayed? once displayed the user has 1 minute to dismiss
 # the dialog, otherwise they will be automatically logged out
-autoLogoutTimeoutInMinutes: 5
+autoLogoutTimeoutInMinutes: 30
