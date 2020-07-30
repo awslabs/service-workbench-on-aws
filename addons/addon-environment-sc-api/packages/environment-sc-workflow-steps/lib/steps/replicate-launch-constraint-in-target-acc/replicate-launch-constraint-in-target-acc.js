@@ -115,6 +115,9 @@ class ReplicateLaunchConstraintInTargetAcc extends StepBase {
     await this.payload.setKey(outPayloadKeys.launchConstraintRole, launchConstraintRoleName);
     await this.payload.setKey(outPayloadKeys.portfolioId, portfolioId);
     await this.payload.setKey(outPayloadKeys.productId, productId);
+
+    this.print('Start to wait for 60 seconds to make sure the replicated AWS IAM role propagates');
+    return this.wait(60);
   }
 
   // ------------------ PRIVATE METHODS ----------------- //

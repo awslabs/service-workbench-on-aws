@@ -26,7 +26,7 @@ function getEnvTypeConfigForm(envTypeConfig) {
           'Unique identifier for this Configuration. ' +
           'It must be an alpha numeric string between 2 and 128 characters long may contain underscore (_) and/or dash (-).',
       },
-      value: _.get(envTypeConfig, 'id') || '',
+      value: _.get(envTypeConfig, 'id', ''),
       rules: ['required', 'min:2', 'max:128', 'regex:/^[A-Za-z0-9-_]+$/'],
     },
     name: {
@@ -37,14 +37,14 @@ function getEnvTypeConfigForm(envTypeConfig) {
           'Easily identifiable name for this Configuration. ' +
           'It must be an alpha numeric string between 2 and 128 characters long may contain space, underscore (_) and/or dash (-).',
       },
-      value: _.get(envTypeConfig, 'name') || '',
+      value: _.get(envTypeConfig, 'name', ''),
       rules: ['required', 'min:2', 'max:128', 'regex:/^[A-Za-z0-9-_ ]+$/'],
     },
     desc: {
       label: 'Description',
       placeholder: 'Description for this Configuration',
       extra: { explain: 'Description for this Configuration. Markdown syntax is supported' },
-      value: _.get(envTypeConfig, 'desc') || '',
+      value: _.get(envTypeConfig, 'desc', ''),
       rules: 'max:8191|string',
     },
     estimatedCostInfo: {
@@ -53,7 +53,7 @@ function getEnvTypeConfigForm(envTypeConfig) {
       extra: {
         explain: 'Provide information about estimated cost. Markdown syntax is supported',
       },
-      value: _.get(envTypeConfig, 'estimatedCostInfo') || '',
+      value: _.get(envTypeConfig, 'estimatedCostInfo', ''),
       rules: 'max:1024|string',
     },
     allowRoleIds: {
@@ -61,14 +61,14 @@ function getEnvTypeConfigForm(envTypeConfig) {
       extra: {
         explain: 'User roles allowed to launch workspaces with this Configuration',
       },
-      value: _.get(envTypeConfig, 'allowRoleIds') || [],
+      value: _.get(envTypeConfig, 'allowRoleIds', []),
     },
     denyRoleIds: {
       label: 'Roles Not Allowed',
       extra: {
         explain: 'User roles not allowed to launch workspaces with this Configuration',
       },
-      value: _.get(envTypeConfig, 'denyRoleIds') || [],
+      value: _.get(envTypeConfig, 'denyRoleIds', []),
     },
 
     // The params field is not rendered directly, the InputParamsStep renders other form specifically for CFN
@@ -76,7 +76,7 @@ function getEnvTypeConfigForm(envTypeConfig) {
     // This field is not used directly for display
     params: {
       label: 'AWS CloudFormation Input Params',
-      value: JSON.stringify(_.get(envTypeConfig, 'params')),
+      value: JSON.stringify(_.get(envTypeConfig, 'params', [])),
     },
 
     // The tags field is not rendered directly, the TagsStep renders other form specifically for tags and dynamically
@@ -84,7 +84,7 @@ function getEnvTypeConfigForm(envTypeConfig) {
     // This field is not used directly for display
     tags: {
       label: 'Resource Tags',
-      value: JSON.stringify(_.get(envTypeConfig, 'tags')),
+      value: JSON.stringify(_.get(envTypeConfig, 'tags', [])),
     },
   };
 

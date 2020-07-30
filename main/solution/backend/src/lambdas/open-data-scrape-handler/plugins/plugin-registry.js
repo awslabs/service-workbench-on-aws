@@ -22,8 +22,7 @@ const baseRaasUserAuthzPlugin = require('@aws-ee/base-raas-services/lib/user/use
 const baseRaasSchemaPlugin = require('@aws-ee/base-raas-services/lib/plugins/schema-plugin');
 // const baseRaasAppstreamSchemaPlugin = require('@aws-ee/base-raas-appstream-services/lib/plugins/schema-plugin');
 const environmentTypeServicesPlugin = require('@aws-ee/environment-type-mgmt-services/lib/plugins/services-plugin');
-// const auditQldbServicesPlugin = require('@aws-ee/audit-qldb-rest-api/lib/plugins/services-plugin');
-// const auditQldbAuditPlugin = require('@aws-ee/audit-qldb-services/lib/plugins/audit-plugin');
+const keyPairServicesPlugin = require('@aws-ee/key-pair-mgmt-services/lib/plugins/services-plugin');
 
 const servicesPlugin = require('services/lib/plugins/services-plugin');
 
@@ -33,6 +32,7 @@ const extensionPoints = {
     baseWfServicesPlugin,
     bassRaasServicesPlugin,
     environmentTypeServicesPlugin,
+    keyPairServicesPlugin,
     servicesPlugin,
   ],
   'audit': [baseAuditPlugin],

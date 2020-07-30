@@ -170,3 +170,6 @@ dbTableEnvironmentTokens: ${self:custom.settings.dbTablePrefix}-DbEnvironmentTok
 
 # DynamoDB table name for StudyPermissions
 dbTableStudyPermissions: ${self:custom.settings.dbTablePrefix}-DbStudyPermissions
+
+# DynamoDB table name for KeyPairs
+dbTableKeyPairs: ${self:custom.settings.dbTablePrefix}-DbKeyPairs

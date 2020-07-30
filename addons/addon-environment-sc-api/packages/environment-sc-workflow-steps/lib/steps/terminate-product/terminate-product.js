@@ -51,16 +51,22 @@ class TerminateProduct extends StepBase {
   }
 
   async start() {
-    const [provisionedProductId] = await Promise.all([this.payloadOrConfig.string(inPayloadKeys.provisionedProductId)]);
+    const [provisionedProductId] = await Promise.all([
+      this.payloadOrConfig.optionalString(inPayloadKeys.provisionedProductId, ''),
+    ]);
 
-    const targetScClient = await this.getScClientForTargetAccount();
-    const { RecordDetail: recordDetail } = await targetScClient
-      .terminateProvisionedProduct({
-        ProvisionedProductId: provisionedProductId,
-        TerminateToken: uuid(),
-      })
-      .promise();
-    this.state.setKey('RECORD_ID', recordDetail.RecordId);
+    if (provisionedProductId) {
+      // The "provisionedProductId" may be empty here in cases when the environment launch had resulted in error
+      // before it can be attempted to be provisioned via AWS Service Catalog
+      const targetScClient = await this.getScClientForTargetAccount();
+      const { RecordDetail: recordDetail } = await targetScClient
+        .terminateProvisionedProduct({
+          ProvisionedProductId: provisionedProductId,
+          TerminateToken: uuid(),
+        })
+        .promise();
+      this.state.setKey('RECORD_ID', recordDetail.RecordId);
+    }
 
     return (
       this.wait(5) // check every 5 seconds
@@ -87,8 +93,14 @@ class TerminateProduct extends StepBase {
     const [envId, envName, recordId] = await Promise.all([
       this.payloadOrConfig.string(inPayloadKeys.envId),
       this.payloadOrConfig.string(inPayloadKeys.envName),
-      this.state.string('RECORD_ID'),
+      this.state.optionalString('RECORD_ID'),
     ]);
+
+    if (!recordId) {
+      // Resume workflow right away if we did not have to call AWS Service Catalog to terminate provisioned product
+      return true;
+    }
+
     const targetScClient = await this.getScClientForTargetAccount();
     const { RecordDetail: recordDetail } = await targetScClient.describeRecord({ Id: recordId }).promise();
 
@@ -126,12 +138,14 @@ class TerminateProduct extends StepBase {
     const [requestContext, envId, recordId] = await Promise.all([
       this.payloadOrConfig.object(inPayloadKeys.requestContext),
       this.payloadOrConfig.string(inPayloadKeys.envId),
-      this.state.string('RECORD_ID'),
+      this.state.optionalString('RECORD_ID'),
     ]);
 
-    const targetScClient = await this.getScClientForTargetAccount();
-
-    const record = await targetScClient.describeRecord({ Id: recordId }).promise();
+    let record;
+    if (recordId) {
+      const targetScClient = await this.getScClientForTargetAccount();
+      record = await targetScClient.describeRecord({ Id: recordId }).promise();
+    }
 
     const [pluginRegistryService] = await this.mustFindServices(['pluginRegistryService']);
 
@@ -158,8 +172,6 @@ class TerminateProduct extends StepBase {
     const [requestContext, envId, recordId] = await Promise.all([
       this.payloadOrConfig.object(inPayloadKeys.requestContext),
       this.payloadOrConfig.string(inPayloadKeys.envId),
-
-      // Using optionalString because RECORD_ID may not have been set in the state if failure occurred before calling terminateProvisionedProduct
       this.state.optionalString('RECORD_ID'),
     ]);
 
@@ -188,11 +200,14 @@ class TerminateProduct extends StepBase {
     const [envId, envName, provisionedProductId] = await Promise.all([
       this.payloadOrConfig.string(inPayloadKeys.envId),
       this.payloadOrConfig.string(inPayloadKeys.envName),
-      this.payloadOrConfig.string(inPayloadKeys.provisionedProductId),
+      this.payloadOrConfig.optionalString(inPayloadKeys.provisionedProductId),
     ]);
     throw new Error(
-      `Error terminating environment "${envName}" with id "${envId}". The workflow timed-out because the AWS Service Catalog Product "${provisionedProductId}" did not ` +
-        `terminate within the timeout period of 15 days.`,
+      provisionedProductId
+        ? `Error terminating environment "${envName}" with id "${envId}". The workflow timed-out because the AWS Service Catalog Product "${provisionedProductId}" did not ` +
+          `terminate within the timeout period of 15 days.`
+        : `Error terminating environment "${envName}" with id "${envId}". The workflow timed-out because the environment did not ` +
+          `terminate within the timeout period of 15 days.`,
     );
   }
 

@@ -54,6 +54,19 @@ function deny(message, safe = false) {
   };
 }
 
+async function allowIfCreatorOrAdmin(requestContext, { action, resource }, item) {
+  const itemCreator = _.get(item, 'createdBy');
+  if (_.isEmpty(itemCreator)) {
+    return deny(`Cannot ${action} the ${resource}. ${resource} creator information is not available`);
+  }
+
+  // Allow if the caller is the item creator (owner) or admin
+  const permissionSoFar = await allowIfCurrentUserOrAdmin(requestContext, { action, resource }, item);
+  if (isDeny(permissionSoFar)) return permissionSoFar; // return if denying
+
+  return allow();
+}
+
 async function allowIfCurrentUserOrAdmin(requestContext, { action }, { username, ns }) {
   if (!isCurrentUserOrAdmin(requestContext, { username, ns })) {
     return deny(`Cannot perform the specified action "${action}". Only admins or current user can.`);
@@ -102,6 +115,7 @@ module.exports = {
   allow,
   deny,
 
+  allowIfCreatorOrAdmin,
   allowIfCurrentUserOrAdmin,
   allowIfCurrentUser,
   allowIfActive,

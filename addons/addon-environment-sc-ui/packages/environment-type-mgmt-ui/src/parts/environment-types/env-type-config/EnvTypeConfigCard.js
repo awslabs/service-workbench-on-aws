@@ -30,6 +30,7 @@ class EnvTypeConfigCard extends Component {
       this.processing = false;
       this.shouldShowDeleteDialog = false;
       this.shouldShowEditorDialog = false;
+      this.cloning = false;
     });
   }
 
@@ -40,7 +41,7 @@ class EnvTypeConfigCard extends Component {
         <Card.Content>
           <Header as="h4">{envTypeConfig.name}</Header>
           <Card.Meta className="flex">
-            <span className="flex-auto">{_.get(envTypeConfig, 'name')}</span>
+            <span className="flex-auto">{_.get(envTypeConfig, 'id')}</span>
           </Card.Meta>
           <Divider />
           <Card.Description>
@@ -72,6 +73,16 @@ class EnvTypeConfigCard extends Component {
           >
             Delete
           </Button>
+          <Button
+            basic
+            color="grey"
+            onClick={() => this.showCloneDialog()}
+            floated="left"
+            size="mini"
+            disabled={this.processing}
+          >
+            Clone
+          </Button>
           {this.renderDeleteConfirmation(envTypeConfig)}
           {this.renderEditorPopup(envTypeConfig)}
         </Card.Content>
@@ -81,6 +92,10 @@ class EnvTypeConfigCard extends Component {
 
   renderEditorPopup(envTypeConfig) {
     const shouldShowEditorDialog = this.shouldShowEditorDialog;
+    const mode = this.cloning ? 'clone' : 'edit';
+    const envTypeConfigForEditor = this.cloning
+      ? { ...envTypeConfig, id: `${envTypeConfig.id}-copy`, name: `${envTypeConfig.name}-copy` }
+      : envTypeConfig;
     return (
       <Modal
         closeIcon
@@ -92,10 +107,11 @@ class EnvTypeConfigCard extends Component {
       >
         <EnvTypeConfigEditor
           onCancel={this.hideEditorDialog}
-          envTypeConfig={envTypeConfig}
+          envTypeConfig={envTypeConfigForEditor}
           envType={this.props.envType}
           envTypeConfigsStore={this.envTypeConfigsStore}
           onEnvTypeConfigSaveComplete={this.hideEditorDialog}
+          action={mode}
         />
       </Modal>
     );
@@ -158,6 +174,11 @@ class EnvTypeConfigCard extends Component {
     this.shouldShowDeleteDialog = false;
   };
 
+  showCloneDialog = () => {
+    this.cloning = true;
+    this.showEditorDialog();
+  };
+
   showEditorDialog = () => {
     this.shouldShowEditorDialog = true;
     this.processing = false;
@@ -166,6 +187,7 @@ class EnvTypeConfigCard extends Component {
   hideEditorDialog = () => {
     if (this.processing) return;
     this.shouldShowEditorDialog = false;
+    this.cloning = false;
   };
 
   handleDeleteClick = async id => {
@@ -193,11 +215,14 @@ decorate(EnvTypeConfigCard, {
 
   shouldShowDeleteDialog: observable,
   shouldShowEditorDialog: observable,
+  cloning: observable,
 
   handleDeleteClick: action,
 
   showDeleteDialog: action,
   hideDeleteDialog: action,
+
+  showCloneDialog: action,
 
   showEditorDialog: action,
   hideEditorDialog: action,

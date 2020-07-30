@@ -44,7 +44,8 @@ importers:
       '@auth0/auth0-spa-js': 1.6.5
       '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
       '@aws-ee/base-ui': 'link:../../../addon-base-ui/packages/base-ui'
-      aws-sdk: 2.656.0
+      '@aws-ee/key-pair-mgmt-ui': 'link:../../../addon-key-pair-mgmt-ui/packages/key-pair-mgmt-ui'
+      aws-sdk: 2.721.0
       chart.js: 2.9.3
       classnames: 2.2.6
       crypto-browserify: 3.12.0
@@ -115,13 +116,14 @@ importers:
       '@auth0/auth0-spa-js': ^1.2.3
       '@aws-ee/base-services': 'workspace:*'
       '@aws-ee/base-ui': 'workspace:*'
+      '@aws-ee/key-pair-mgmt-ui': 'workspace:*'
       '@babel/cli': ^7.8.4
       '@babel/core': ^7.8.6
       '@babel/plugin-proposal-class-properties': ^7.8.3
       '@babel/plugin-transform-react-jsx': ^7.8.3
       '@babel/preset-env': ^7.8.6
       '@babel/preset-react': ^7.8.3
-      aws-sdk: ^2.647.0
+      aws-sdk: ^2.713.0
       babel-eslint: ^10.0.3
       babel-jest: ^24.9.0
       babel-loader: ^8.0.6
@@ -1544,6 +1546,160 @@ importers:
       react-timeago: ^4.4.0
       regenerator-runtime: ^0.13.5
       semantic-ui-react: ^0.88.2
+  addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-api:
+    dependencies:
+      '@aws-ee/base-controllers': 'link:../../../addon-base-rest-api/packages/base-controllers'
+      '@aws-ee/key-pair-mgmt-services': 'link:../key-pair-mgmt-services'
+      lodash: 4.17.15
+      uuid: 3.4.0
+    devDependencies:
+      eslint: 6.8.0
+      eslint-config-airbnb-base: 14.1.0_8cdb6d8c18c3319a1365bd5afa0063a3
+      eslint-config-prettier: 6.10.1_eslint@6.8.0
+      eslint-import-resolver-node: 0.3.3
+      eslint-plugin-import: 2.20.2_eslint@6.8.0
+      eslint-plugin-jest: 22.21.0_eslint@6.8.0
+      eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
+      husky: 3.1.0
+      jest: 24.9.0
+      jest-junit: 10.0.0
+      prettier: 1.19.1
+      pretty-quick: 1.11.1_prettier@1.19.1
+      source-map-support: 0.5.16
+    specifiers:
+      '@aws-ee/base-controllers': 'workspace:*'
+      '@aws-ee/key-pair-mgmt-services': 'workspace:*'
+      eslint: ^6.8.0
+      eslint-config-airbnb-base: ^14.1.0
+      eslint-config-prettier: ^6.10.0
+      eslint-import-resolver-node: ^0.3.3
+      eslint-plugin-import: ^2.20.1
+      eslint-plugin-jest: ^22.21.0
+      eslint-plugin-prettier: ^3.1.2
+      husky: ^3.1.0
+      jest: ^24.9.0
+      jest-junit: ^10.0.0
+      lodash: ^4.17.15
+      prettier: ^1.19.1
+      pretty-quick: ^1.11.1
+      source-map-support: ^0.5.16
+      uuid: ^3.4.0
+  addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-services:
+    dependencies:
+      '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
+      '@aws-ee/base-services-container': 'link:../../../addon-base/packages/services-container'
+      lodash: 4.17.15
+      node-forge: 0.9.1
+      shortid: 2.2.15
+      uuid: 3.4.0
+    devDependencies:
+      eslint: 6.8.0
+      eslint-config-airbnb-base: 14.1.0_8cdb6d8c18c3319a1365bd5afa0063a3
+      eslint-config-prettier: 6.10.1_eslint@6.8.0
+      eslint-import-resolver-node: 0.3.3
+      eslint-plugin-import: 2.20.2_eslint@6.8.0
+      eslint-plugin-jest: 22.21.0_eslint@6.8.0
+      eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
+      husky: 3.1.0
+      jest: 24.9.0
+      jest-junit: 10.0.0
+      prettier: 1.19.1
+      pretty-quick: 1.11.1_prettier@1.19.1
+      source-map-support: 0.5.16
+    specifiers:
+      '@aws-ee/base-services': 'workspace:*'
+      '@aws-ee/base-services-container': 'workspace:*'
+      eslint: ^6.8.0
+      eslint-config-airbnb-base: ^14.1.0
+      eslint-config-prettier: ^6.10.0
+      eslint-import-resolver-node: ^0.3.3
+      eslint-plugin-import: ^2.20.1
+      eslint-plugin-jest: ^22.21.0
+      eslint-plugin-prettier: ^3.1.2
+      husky: ^3.1.0
+      jest: ^24.9.0
+      jest-junit: ^10.0.0
+      lodash: ^4.17.15
+      node-forge: ^0.9.1
+      prettier: ^1.19.1
+      pretty-quick: ^1.11.1
+      shortid: ^2.2.15
+      source-map-support: ^0.5.16
+      uuid: ^3.4.0
+  addons/addon-key-pair-mgmt-ui/packages/key-pair-mgmt-ui:
+    dependencies:
+      '@aws-ee/base-ui': 'link:../../../addon-base-ui/packages/base-ui'
+      lodash: 4.17.15
+      mobx: 5.15.4
+      mobx-react: 6.2.2_mobx@5.15.4+react@16.13.1
+      mobx-state-tree: 3.15.0_mobx@5.15.4
+      react: 16.13.1
+      react-copy-to-clipboard: 5.0.2_react@16.13.1
+      react-dom: 16.13.1_react@16.13.1
+      react-dotdotdot: 1.3.1_react-dom@16.13.1+react@16.13.1
+      react-router-dom: 5.1.2_react@16.13.1
+      react-table: 6.11.5_react-dom@16.13.1+react@16.13.1
+      react-timeago: 4.4.0_react@16.13.1
+      semantic-ui-react: 0.88.2_react-dom@16.13.1+react@16.13.1
+    devDependencies:
+      '@babel/cli': 7.8.4_@babel+core@7.9.0
+      '@babel/core': 7.9.0
+      '@babel/plugin-proposal-class-properties': 7.8.3_@babel+core@7.9.0
+      '@babel/plugin-transform-react-jsx': 7.9.4_@babel+core@7.9.0
+      '@babel/preset-env': 7.9.5_@babel+core@7.9.0
+      '@babel/preset-react': 7.9.4_@babel+core@7.9.0
+      babel-eslint: 10.1.0_eslint@6.8.0
+      eslint: 6.8.0
+      eslint-config-airbnb: 18.1.0_7221e9efc3e1df952f9031babfc371af
+      eslint-config-prettier: 6.10.1_eslint@6.8.0
+      eslint-import-resolver-node: 0.3.3
+      eslint-plugin-import: 2.20.2_eslint@6.8.0
+      eslint-plugin-jest: 22.21.0_eslint@6.8.0
+      eslint-plugin-jsx-a11y: 6.2.3_eslint@6.8.0
+      eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
+      eslint-plugin-react: 7.19.0_eslint@6.8.0
+      eslint-plugin-react-hooks: 1.7.0_eslint@6.8.0
+      husky: 3.1.0
+      jest: 24.9.0
+      jest-junit: 10.0.0
+      prettier: 1.19.1
+      pretty-quick: 1.11.1_prettier@1.19.1
+    specifiers:
+      '@aws-ee/base-ui': 'workspace:*'
+      '@babel/cli': ^7.8.4
+      '@babel/core': ^7.8.6
+      '@babel/plugin-proposal-class-properties': ^7.8.3
+      '@babel/plugin-transform-react-jsx': ^7.8.3
+      '@babel/preset-env': ^7.8.6
+      '@babel/preset-react': ^7.8.3
+      babel-eslint: ^10.0.3
+      eslint: ^6.8.0
+      eslint-config-airbnb: ^18.0.1
+      eslint-config-prettier: ^6.10.0
+      eslint-import-resolver-node: ^0.3.3
+      eslint-plugin-import: ^2.20.1
+      eslint-plugin-jest: ^22.21.0
+      eslint-plugin-jsx-a11y: ^6.2.3
+      eslint-plugin-prettier: ^3.1.2
+      eslint-plugin-react: ^7.18.3
+      eslint-plugin-react-hooks: ^1.7.0
+      husky: ^3.1.0
+      jest: ^24.9.0
+      jest-junit: ^10.0.0
+      lodash: ^4.17.15
+      mobx: ^5.15.4
+      mobx-react: ^6.1.7
+      mobx-state-tree: ^3.15.0
+      prettier: ^1.19.1
+      pretty-quick: ^1.11.1
+      react: ^16.12.0
+      react-copy-to-clipboard: ^5.0.2
+      react-dom: ^16.12.0
+      react-dotdotdot: ^1.3.1
+      react-router-dom: ^5.1.2
+      react-table: ^6.11.5
+      react-timeago: ^4.4.0
+      semantic-ui-react: ^0.88.2
   main/cicd/cicd-pipeline:
     devDependencies:
       '@aws-ee/base-serverless-settings-helper': 'link:../../../addons/addon-base/packages/serverless-settings-helper'
@@ -1706,6 +1862,8 @@ importers:
       '@aws-ee/environment-sc-workflows': 'link:../../../addons/addon-environment-sc-api/packages/environment-sc-workflows'
       '@aws-ee/environment-type-mgmt-api': 'link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-api'
       '@aws-ee/environment-type-mgmt-services': 'link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-services'
+      '@aws-ee/key-pair-mgmt-api': 'link:../../../addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-api'
+      '@aws-ee/key-pair-mgmt-services': 'link:../../../addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-services'
       aws-sdk: 2.656.0
       controllers: 'link:../../packages/controllers'
       js-yaml: 3.13.1
@@ -1770,6 +1928,8 @@ importers:
       '@aws-ee/environment-sc-workflows': 'workspace:*'
       '@aws-ee/environment-type-mgmt-api': 'workspace:*'
       '@aws-ee/environment-type-mgmt-services': 'workspace:*'
+      '@aws-ee/key-pair-mgmt-api': 'workspace:*'
+      '@aws-ee/key-pair-mgmt-services': 'workspace:*'
       '@babel/core': ^7.8.4
       '@babel/plugin-transform-runtime': ^7.8.3
       '@babel/preset-env': ^7.8.4
@@ -1854,7 +2014,8 @@ importers:
       '@aws-ee/environment-sc-workflows': 'link:../../../addons/addon-environment-sc-api/packages/environment-sc-workflows'
       '@aws-ee/environment-type-mgmt-api': 'link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-api'
       '@aws-ee/environment-type-mgmt-services': 'link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-services'
-      aws-sdk: 2.656.0
+      '@aws-ee/key-pair-mgmt-services': 'link:../../../addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-services'
+      aws-sdk: 2.721.0
       lodash: 4.17.15
       services: 'link:../../packages/services'
     devDependencies:
@@ -1902,9 +2063,10 @@ importers:
       '@aws-ee/environment-sc-workflows': 'workspace:*'
       '@aws-ee/environment-type-mgmt-api': 'workspace:*'
       '@aws-ee/environment-type-mgmt-services': 'workspace:*'
+      '@aws-ee/key-pair-mgmt-services': 'workspace:*'
       '@babel/core': ^7.8.4
       '@babel/preset-env': ^7.8.4
-      aws-sdk: ^2.647.0
+      aws-sdk: ^2.713.0
       babel-loader: ^8.0.6
       babel-plugin-source-map-support: ^2.1.1
       copy-webpack-plugin: ^5.1.1
@@ -1944,8 +2106,10 @@ importers:
       '@aws-ee/base-ui': 'link:../../../addons/addon-base-ui/packages/base-ui'
       '@aws-ee/base-workflow-ui': 'link:../../../addons/addon-base-workflow-ui/packages/base-workflow-ui'
       '@aws-ee/environment-type-mgmt-ui': 'link:../../../addons/addon-environment-sc-ui/packages/environment-type-mgmt-ui'
+      '@aws-ee/key-pair-mgmt-ui': 'link:../../../addons/addon-key-pair-mgmt-ui/packages/key-pair-mgmt-ui'
       animate.css: 3.7.0
-      aws-sdk: 2.656.0
+      aws-sdk: 2.721.0
+      classnames: 2.2.6
       lodash: 4.17.15
       mobx: 5.15.4
       mobx-react: 6.2.2_mobx@5.15.4+react@16.13.1
@@ -1990,9 +2154,11 @@ importers:
       '@aws-ee/base-ui': 'workspace:*'
       '@aws-ee/base-workflow-ui': 'workspace:*'
       '@aws-ee/environment-type-mgmt-ui': 'workspace:*'
+      '@aws-ee/key-pair-mgmt-ui': 'workspace:*'
       animate.css: 3.7.0
-      aws-sdk: ^2.647.0
+      aws-sdk: ^2.713.0
       babel-eslint: ^10.0.3
+      classnames: ^2.2.6
       eslint: ^6.8.0
       eslint-config-airbnb: ^18.0.1
       eslint-config-prettier: ^6.10.0
@@ -3213,7 +3379,6 @@ packages:
   /@babel/runtime/7.10.3:
     dependencies:
       regenerator-runtime: 0.13.5
-    dev: false
     resolution:
       integrity: sha512-RzGO0RLSdokm9Ipe/YD+7ww8X2Ro79qiXZF3HU9ljrM+qnJmH1Vqth+hbiQZy761LnMJTMitHDuKVYTk3k4dLw==
   /@babel/runtime/7.9.0:
@@ -4209,7 +4374,7 @@ packages:
       integrity: sha512-+DUO6pnp3udV/v2VfUWgaY5BIE1IfT7lLfeDzPVeMT1XKkaAp9LgSI9x5RtrFQoZ9Oi0PgXQQHPaoKu7dCjVxw==
   /@stardust-ui/react-component-event-listener/0.38.0_react-dom@16.13.1+react@16.13.1:
     dependencies:
-      '@babel/runtime': 7.9.2
+      '@babel/runtime': 7.10.3
       prop-types: 15.7.2
       react: 16.13.1
       react-dom: 16.13.1_react@16.13.1
@@ -4221,7 +4386,7 @@ packages:
       integrity: sha512-sIP/e0dyOrrlb8K7KWumfMxj/gAifswTBC4o68Aa+C/GA73ccRp/6W1VlHvF/dlOR4KLsA+5SKnhjH36xzPsWg==
   /@stardust-ui/react-component-ref/0.38.0_react-dom@16.13.1+react@16.13.1:
     dependencies:
-      '@babel/runtime': 7.9.2
+      '@babel/runtime': 7.10.3
       prop-types: 15.7.2
       react: 16.13.1
       react-dom: 16.13.1_react@16.13.1
@@ -5478,6 +5643,22 @@ packages:
       node: '>= 0.8.0'
     resolution:
       integrity: sha512-UzqDvvt6i7gpuzEdK0GT/JOfBJcsCPranzZWdQ9HR4+5E0m5kf5gybZ6OX+UseIAE2/WND6Dv0aHgiI21AKenw==
+  /aws-sdk/2.721.0:
+    dependencies:
+      buffer: 4.9.2
+      events: 1.1.1
+      ieee754: 1.1.13
+      jmespath: 0.15.0
+      querystring: 0.2.0
+      sax: 1.2.1
+      url: 0.10.3
+      uuid: 3.3.2
+      xml2js: 0.4.19
+    dev: false
+    engines:
+      node: '>= 0.8.0'
+    resolution:
+      integrity: sha512-loljx8gp4u/Y4nKO2mbcj3df8HpMkoxTFCYx5800IkLj4Y6yZqodxPTt0SZ5fHlQNx8TUtjwkmp3isBGtdEdyA==
   /aws-sign2/0.7.0:
     resolution:
       integrity: sha1-tG6JCTSpWR8tL2+G1+ap8bP+dqg=
@@ -5504,13 +5685,13 @@ packages:
       integrity: sha1-Y/1D99weO7fONZR9uP42mj9Yx0s=
   /babel-eslint/10.1.0_eslint@6.8.0:
     dependencies:
-      '@babel/code-frame': 7.8.3
+      '@babel/code-frame': 7.10.4
       '@babel/parser': 7.9.4
       '@babel/traverse': 7.9.5
       '@babel/types': 7.9.5
       eslint: 6.8.0
-      eslint-visitor-keys: 1.1.0
-      resolve: 1.15.1
+      eslint-visitor-keys: 1.3.0
+      resolve: 1.17.0
     dev: true
     engines:
       node: '>=6'
@@ -6126,7 +6307,6 @@ packages:
       base64-js: 1.3.1
       ieee754: 1.1.13
       isarray: 1.0.0
-    dev: true
     resolution:
       integrity: sha512-xq+q3SRMOxGivLhBNaUdC64hDTQwejJ+H0T/NB1XMtTVEwNTrfFF3gAxiyW0Bu/xWEGhjVKgUcMhCrUy2+uCWg==
   /buffer/5.5.0:
@@ -6480,6 +6660,7 @@ packages:
       path-is-absolute: 1.0.1
       readdirp: 2.2.1
       upath: 1.2.0
+    deprecated: Chokidar 2 will break on node v14+. Upgrade to chokidar 3 with 15x less dependencies.
     dev: true
     optionalDependencies:
       fsevents: 1.2.12
@@ -7647,8 +7828,8 @@ packages:
     dependencies:
       is-arguments: 1.0.4
       is-date-object: 1.0.2
-      is-regex: 1.0.5
-      object-is: 1.0.2
+      is-regex: 1.1.0
+      object-is: 1.1.2
       object-keys: 1.1.1
       regexp.prototype.flags: 1.3.0
     resolution:
@@ -8391,6 +8572,7 @@ packages:
       object.assign: 4.1.0
       string.prototype.trimleft: 2.1.2
       string.prototype.trimright: 2.1.2
+    dev: true
     engines:
       node: '>= 0.4'
     resolution:
@@ -8408,7 +8590,6 @@ packages:
       object.assign: 4.1.0
       string.prototype.trimend: 1.0.1
       string.prototype.trimstart: 1.0.1
-    dev: true
     engines:
       node: '>= 0.4'
     resolution:
@@ -8748,7 +8929,7 @@ packages:
       integrity: sha512-xwbnvOsotSV27MtAe7s8uGWOori0nUsrXh2f1EnpmXua8sDfY6VZhHAhHg2sqK7HBNycRQExF074XSZ7DvfoFg==
   /eslint-plugin-jsx-a11y/6.2.3_eslint@6.8.0:
     dependencies:
-      '@babel/runtime': 7.9.2
+      '@babel/runtime': 7.10.3
       aria-query: 3.0.0
       array-includes: 3.1.1
       ast-types-flow: 0.0.7
@@ -8805,11 +8986,11 @@ packages:
       eslint: 6.8.0
       has: 1.0.3
       jsx-ast-utils: 2.2.3
-      object.entries: 1.1.1
+      object.entries: 1.1.2
       object.fromentries: 2.0.2
       object.values: 1.1.1
       prop-types: 15.7.2
-      resolve: 1.15.1
+      resolve: 1.17.0
       semver: 6.3.0
       string.prototype.matchall: 4.0.2
       xregexp: 4.3.0
@@ -10438,7 +10619,7 @@ packages:
       integrity: sha512-Sc28JNQNDzaH6PORtRLMvif9RSn1mYuOoX3omVjnb0+HbpPygU2ALBI0R/wsiqCb4/fcp07Gdo8g+fhtFrQl6A==
   /history/4.10.1:
     dependencies:
-      '@babel/runtime': 7.9.2
+      '@babel/runtime': 7.10.3
       loose-envify: 1.4.0
       resolve-pathname: 3.0.0
       tiny-invariant: 1.1.0
@@ -10944,7 +11125,7 @@ packages:
       integrity: sha512-S1zBo1D6zcsyuC6PMmY5+55YMILQ9av8lotMx447Bq6SAgo/sDK6y6uUKmuYhW7eacnIhFfsPmCNYdDzsnnDCg==
   /internal-slot/1.0.2:
     dependencies:
-      es-abstract: 1.17.5
+      es-abstract: 1.17.6
       has: 1.0.3
       side-channel: 1.0.2
     dev: true
@@ -11084,6 +11265,7 @@ packages:
     resolution:
       integrity: sha1-VAVy0096wxGfj3bDDLwbHgN6/74=
   /is-callable/1.1.5:
+    dev: true
     engines:
       node: '>= 0.4'
     resolution:
@@ -11372,6 +11554,7 @@ packages:
   /is-regex/1.0.5:
     dependencies:
       has: 1.0.3
+    dev: true
     engines:
       node: '>= 0.4'
     resolution:
@@ -11379,7 +11562,6 @@ packages:
   /is-regex/1.1.0:
     dependencies:
       has-symbols: 1.0.1
-    dev: true
     engines:
       node: '>= 0.4'
     resolution:
@@ -13440,7 +13622,7 @@ packages:
       integrity: sha512-j5EctnkH7amfV/q5Hgmoal1g2QHFJRraOtmx0JpIqkxhBhI/lJSl1nMpQ45hVarwNETOoWEimndZ4QK0RHxuxQ==
   /mini-create-react-context/0.3.2_prop-types@15.7.2+react@16.13.1:
     dependencies:
-      '@babel/runtime': 7.9.2
+      '@babel/runtime': 7.10.3
       gud: 1.0.0
       prop-types: 15.7.2
       react: 16.13.1
@@ -13825,6 +14007,12 @@ packages:
       node: '>= 4.5.0'
     resolution:
       integrity: sha512-7ASaDa3pD+lJ3WvXFsxekJQelBKRpne+GOVbLbtHYdd7pFspyeuJHnWfLplGf3SwKGbfs/aYl5V/JCIaHVUKKQ==
+  /node-forge/0.9.1:
+    dev: false
+    engines:
+      node: '>= 4.5.0'
+    resolution:
+      integrity: sha512-G6RlQt5Sb4GMBzXvhfkeFmbqR6MzhtnT7VTHuLadjkii3rdYHNdw0m8zA4BTxVIh68FicCQ2NSUANpsqkr9jvQ==
   /node-int64/0.4.0:
     dev: true
     resolution:
@@ -14042,22 +14230,16 @@ packages:
     resolution:
       integrity: sha512-JPKn0GMu+Fa3zt3Bmr66JhokJU5BaNBIh4ZeTlaCBzrBsOeXzwcKKAK1tbLiPKgvwmPXsDvvLHoWh5Bm7ofIYg==
   /object-inspect/1.7.0:
+    dev: true
     resolution:
       integrity: sha512-a7pEHdh1xKIAgTySUGgLMx/xwDZskN1Ud6egYYN3EdRW4ZMPNEDUTF+hwy2LUC+Bl+SyLXANnwz/jyh/qutKUw==
   /object-inspect/1.8.0:
-    dev: true
     resolution:
       integrity: sha512-jLdtEOB112fORuypAyl/50VRVIBIdVQOSUUGQHzJ4xBSbit81zRarz7GThkEFZy1RceYrWYcPcBFPQwHyAc1gA==
-  /object-is/1.0.2:
-    engines:
-      node: '>= 0.4'
-    resolution:
-      integrity: sha512-Epah+btZd5wrrfjkJZq1AOB9O6OxUQto45hzFd7lXGrpHPGE0W1k+426yrZV+k6NJOzLNNW/nVsmZdIWsAqoOQ==
   /object-is/1.1.2:
     dependencies:
       define-properties: 1.1.3
       es-abstract: 1.17.6
-    dev: true
     engines:
       node: '>= 0.4'
     resolution:
@@ -16137,7 +16319,7 @@ packages:
       integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==
   /react-popper/1.3.7_react@16.13.1:
     dependencies:
-      '@babel/runtime': 7.9.2
+      '@babel/runtime': 7.10.3
       create-react-context: 0.3.0_prop-types@15.7.2+react@16.13.1
       deep-equal: 1.1.1
       popper.js: 1.16.1
@@ -16183,7 +16365,7 @@ packages:
       integrity: sha512-26NR93dsNUUVUjhcdB0AeCqXwk4Q/9mamp1zE1mCMgfK2XWA4SGRfHdfvngc5DKPUhBgF+m3sc+TDhplCutZDw==
   /react-router-dom/5.1.2_react@16.13.1:
     dependencies:
-      '@babel/runtime': 7.9.2
+      '@babel/runtime': 7.10.3
       history: 4.10.1
       loose-envify: 1.4.0
       prop-types: 15.7.2
@@ -16198,7 +16380,7 @@ packages:
       integrity: sha512-7BPHAaIwWpZS074UKaw1FjVdZBSVWEk8IuDXdB+OkLb8vd/WRQIpA4ag9WQk61aEfQs47wHyjWUoUGGZxpQXew==
   /react-router/5.1.2_react@16.13.1:
     dependencies:
-      '@babel/runtime': 7.9.2
+      '@babel/runtime': 7.10.3
       history: 4.10.1
       hoist-non-react-statics: 3.3.2
       loose-envify: 1.4.0
@@ -16476,7 +16658,7 @@ packages:
       integrity: sha512-BViHy7LKeTz4oNnkcLJ+lVSL6vpiFeX6/d3oSH8zCW7UxP2onchk+vTGB143xuFjHS3deTgkKoXXymXqymiIdA==
   /readdirp/2.2.1:
     dependencies:
-      graceful-fs: 4.2.3
+      graceful-fs: 4.2.4
       micromatch: 3.1.10
       readable-stream: 2.3.7
     dev: true
@@ -16554,7 +16736,7 @@ packages:
       integrity: sha512-ZS5w8CpKFinUzOwW3c83oPeVXoNsrLsaCoLtJvAClH135j/R77RuymhiSErhm2lKcwSCIpmvIWSbDkIfAqKQlA==
   /regenerator-transform/0.14.4:
     dependencies:
-      '@babel/runtime': 7.9.2
+      '@babel/runtime': 7.10.3
       private: 0.1.8
     dev: true
     resolution:
@@ -16575,7 +16757,7 @@ packages:
   /regexp.prototype.flags/1.3.0:
     dependencies:
       define-properties: 1.1.3
-      es-abstract: 1.17.5
+      es-abstract: 1.17.6
     engines:
       node: '>= 0.4'
     resolution:
@@ -17158,7 +17340,7 @@ packages:
       integrity: sha512-8M3wBCzeWIJnQfl43IKwOmC4H/RAp50S8DF60znzjW5GVqTcSe2vWclt7hmYVPkKPlHWOu5EaWOMZ2Y6W8ZXTA==
   /semantic-ui-react/0.88.2_react-dom@16.13.1+react@16.13.1:
     dependencies:
-      '@babel/runtime': 7.9.2
+      '@babel/runtime': 7.10.3
       '@semantic-ui-react/event-stack': 3.1.1_react-dom@16.13.1+react@16.13.1
       '@stardust-ui/react-component-event-listener': 0.38.0_react-dom@16.13.1+react@16.13.1
       '@stardust-ui/react-component-ref': 0.38.0_react-dom@16.13.1+react@16.13.1
@@ -17520,8 +17702,8 @@ packages:
       integrity: sha512-9cGuS382HcvExtf5AHk7Cb4pAeQQ+h0eTr33V1mu+crYWV4KvWAw6el92bDrqGEk5d46Ai/fhbEUwqJ/mTCNEA==
   /side-channel/1.0.2:
     dependencies:
-      es-abstract: 1.17.5
-      object-inspect: 1.7.0
+      es-abstract: 1.17.6
+      object-inspect: 1.8.0
     dev: true
     resolution:
       integrity: sha512-7rL9YlPHg7Ancea1S96Pa8/QWb4BtXL/TZvS6B8XFetGBeuhAsfmUspK6DokBeZ64+Kj9TCNRD/30pVz1BvQNA==
@@ -17981,7 +18163,7 @@ packages:
   /string.prototype.matchall/4.0.2:
     dependencies:
       define-properties: 1.1.3
-      es-abstract: 1.17.5
+      es-abstract: 1.17.6
       has-symbols: 1.0.1
       internal-slot: 1.0.2
       regexp.prototype.flags: 1.3.0
@@ -18003,13 +18185,13 @@ packages:
     dependencies:
       define-properties: 1.1.3
       es-abstract: 1.17.5
+    dev: true
     resolution:
       integrity: sha512-EEJnGqa/xNfIg05SxiPSqRS7S9qwDhYts1TSLR1BQfYUfPe1stofgGKvwERK9+9yf+PpfBMlpBaCHucXGPQfUA==
   /string.prototype.trimend/1.0.1:
     dependencies:
       define-properties: 1.1.3
       es-abstract: 1.17.6
-    dev: true
     resolution:
       integrity: sha512-LRPxFUaTtpqYsTeNKaFOw3R4bxIzWOnbQ837QfBylo8jIxtcbK/A/sMV7Q+OAV/vWo+7s25pOE10KYSjaSO06g==
   /string.prototype.trimleft/2.1.2:
@@ -18017,6 +18199,7 @@ packages:
       define-properties: 1.1.3
       es-abstract: 1.17.5
       string.prototype.trimstart: 1.0.0
+    dev: true
     engines:
       node: '>= 0.4'
     resolution:
@@ -18026,6 +18209,7 @@ packages:
       define-properties: 1.1.3
       es-abstract: 1.17.5
       string.prototype.trimend: 1.0.0
+    dev: true
     engines:
       node: '>= 0.4'
     resolution:
@@ -18034,13 +18218,13 @@ packages:
     dependencies:
       define-properties: 1.1.3
       es-abstract: 1.17.5
+    dev: true
     resolution:
       integrity: sha512-iCP8g01NFYiiBOnwG1Xc3WZLyoo+RuBymwIlWncShXDDJYWN6DbnM3odslBJdgCdRlq94B5s63NWAZlcn2CS4w==
   /string.prototype.trimstart/1.0.1:
     dependencies:
       define-properties: 1.1.3
       es-abstract: 1.17.6
-    dev: true
     resolution:
       integrity: sha512-XxZn+QpvrBI1FOcg6dIpxUPgWCPuNXvMD72aaRaUQv1eD4e/Qy8i/hFTe0BUmD60p/QA6bh1avmuPTfNjqVWRw==
   /string_decoder/1.1.1:

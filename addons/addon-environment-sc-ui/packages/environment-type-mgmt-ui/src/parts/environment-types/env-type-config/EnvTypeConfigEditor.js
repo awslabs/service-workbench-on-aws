@@ -107,7 +107,7 @@ class EnvTypeConfigEditor extends React.Component {
 
   renderTitle = () => {
     const envTypConfig = this.envTypeConfig;
-    const isUpdating = !_.isEmpty(envTypConfig);
+    const isUpdating = this.isEditAction();
     return (
       <div className="mb3">
         <Header as="h3" className="color-grey mt1 mb0">
@@ -120,8 +120,7 @@ class EnvTypeConfigEditor extends React.Component {
   };
 
   renderContent = () => {
-    const envTypConfig = this.envTypeConfig;
-    const isUpdating = !_.isEmpty(envTypConfig);
+    const isUpdating = this.isEditAction();
     return (
       // Render as tabs when updating configuration,
       // Render as wizard when adding configuration
@@ -196,6 +195,7 @@ class EnvTypeConfigEditor extends React.Component {
         // This component (i.e., EnvTypeConfigEditor) will take care of clearing session keys with this prefix upon
         // completion or cancel
         wizardTempStoreKeyPrefix={wizardTempStoreKeyPrefix}
+        action={this.getAction()}
       />
     );
   }
@@ -206,7 +206,7 @@ class EnvTypeConfigEditor extends React.Component {
 
   handleFormSubmission = async form => {
     const existingEnvTypeConfig = this.envTypeConfig;
-    const isUpdating = !_.isEmpty(existingEnvTypeConfig);
+    const isUpdating = this.isEditAction();
 
     const {
       id,
@@ -235,8 +235,8 @@ class EnvTypeConfigEditor extends React.Component {
     const tags = !_.isEmpty(tagsJsonStr) ? _.map(updatedTags, fromNameValueToKeyValue) : existingTags;
 
     const envTypeConfig = {
-      id,
       ...(existingEnvTypeConfig || {}),
+      id,
       name,
       desc,
       estimatedCostInfo,
@@ -285,6 +285,14 @@ class EnvTypeConfigEditor extends React.Component {
 
   get envTypeConfig() {
     return this.props.envTypeConfig;
+  }
+
+  isEditAction() {
+    return this.getAction() === 'edit';
+  }
+
+  getAction() {
+    return this.props.action;
   }
 }
 

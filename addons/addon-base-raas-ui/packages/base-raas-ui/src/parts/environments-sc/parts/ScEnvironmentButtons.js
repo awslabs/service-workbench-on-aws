@@ -1,27 +1,26 @@
-import _ from 'lodash';
 import React from 'react';
 import { decorate, computed, action, observable, runInAction } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
-import { Button, Menu, Icon, Dropdown, Modal } from 'semantic-ui-react';
+import { Button, Modal } from 'semantic-ui-react';
 
 import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
 import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
 
-const openWindow = (url, windowFeatures) => {
-  return window.open(url, '_blank', windowFeatures);
-};
+import ScEnvironmentConnections from './ScEnvironmentConnections';
 
 // expected props
 // - scEnvironment (via prop)
 // - showDetailButton (via prop)
+// - scEnvironmentsStore (via injection)
 class ScEnvironmentButtons extends React.Component {
   constructor(props) {
     super(props);
     runInAction(() => {
-      // The name of the button that is clicked recently and resulted in triggering a processing task
-      // The name can be: 'terminate' or 'connect'
-      this.processingButton = '';
+      // A flag to indicate if we are processing the call to trigger the terminate action
+      this.processing = false;
+      // A flag to indicate if the connections button is active
+      this.connectionsButtonActive = false;
     });
   }
 
@@ -33,32 +32,13 @@ class ScEnvironmentButtons extends React.Component {
     return this.props.scEnvironmentsStore;
   }
 
-  // Returns only the connections that either have a scheme = 'http' or 'https' or no scheme
-  // [ {id, index: <integer>, name: <string>(optional), url: <string>(optional)}, ... ]
-  get connections() {
-    const isHttp = scheme => scheme === 'http' || scheme === 'https' || _.isEmpty(scheme);
-    const connections = [];
-    _.forEach(this.environment.connections, (item, index) => {
-      if (!isHttp(item.scheme)) return;
-
-      connections.push({
-        id: item.id,
-        index,
-        name: item.name,
-        url: item.url,
-      });
-    });
-
-    return connections;
-  }
-
   handleViewDetail = () => {
     const goto = gotoFn(this);
     goto(`/workspaces/id/${this.environment.id}`);
   };
 
   handleTerminate = async () => {
-    this.processingButton = 'terminate';
+    this.processing = true;
     try {
       const store = this.envsStore;
       await store.terminateScEnvironment(this.environment.id);
@@ -66,105 +46,64 @@ class ScEnvironmentButtons extends React.Component {
       displayError(error);
     } finally {
       runInAction(() => {
-        this.processingButton = '';
+        this.processing = false;
       });
     }
   };
 
-  handleConnect = id =>
-    action(async () => {
-      this.processingButton = 'connect';
-      const store = this.envsStore;
-      const connections = this.environment.connections;
-      const connectInfo = _.find(connections, ['id', id]) || {};
-      let url = connectInfo.url;
-
-      try {
-        if (url) {
-          // We use noopener and noreferrer for good practices https://developer.mozilla.org/en-US/docs/Web/API/Window/open#noopener
-          openWindow(url, 'noopener,noreferrer');
-        } else {
-          const newTab = openWindow('about:blank');
-          url = await store.getConnectionUrl(this.environment.id, id);
-          newTab.location = url;
-        }
-      } catch (error) {
-        displayError(error);
-      } finally {
-        runInAction(() => {
-          this.processingButton = '';
-        });
-      }
-    });
+  handleToggle = () => {
+    this.connectionsButtonActive = !this.connectionsButtonActive;
+  };
 
   render() {
     const env = this.environment;
     const state = env.state;
-    const processing = this.processingButton;
+    const processing = this.processing;
     const showDetailButton = this.props.showDetailButton;
-    const is = name => processing === name;
-    const isProcessingTerminate = is('terminate');
+    const connectionsButtonActive = this.connectionsButtonActive;
     const canConnect = state.canConnect;
-    const showLeftButtons = canConnect || showDetailButton;
 
     return (
-      <div style={{ minHeight: '42px' }}>
-        {state.canTerminate && (
-          <Modal
-            trigger={
-              <Button floated="right" basic color="red" size="mini" className="mt1 mb1" loading={isProcessingTerminate}>
-                Terminate
-              </Button>
-            }
-            header="Are you sure?"
-            content="This action can not be reverted."
-            actions={[
-              'Cancel',
-              { key: 'terminate', content: 'Terminate', negative: true, onClick: this.handleTerminate },
-            ]}
-            size="mini"
-          />
-        )}
+      <>
+        <div className="clearfix" style={{ minHeight: '42px' }}>
+          {state.canTerminate && (
+            <Modal
+              trigger={
+                <Button floated="right" basic color="red" size="mini" className="mt1 mb1" loading={processing}>
+                  Terminate
+                </Button>
+              }
+              header="Are you sure?"
+              content="This action can not be reverted."
+              actions={[
+                'Cancel',
+                { key: 'terminate', content: 'Terminate', negative: true, onClick: this.handleTerminate },
+              ]}
+              size="mini"
+            />
+          )}
 
-        {showLeftButtons && (
-          <Menu size="mini" compact className="mt1 mb1">
-            {this.renderConnections()}
-            {showDetailButton && <Menu.Item name="View Detail" onClick={this.handleViewDetail} />}
-          </Menu>
-        )}
-      </div>
-    );
-  }
-
-  renderConnections() {
-    const env = this.environment;
-    const state = env.state;
-    const processing = this.processingButton;
-    const is = name => processing === name;
-    const isProcessingConnect = is('connect');
-    const connections = this.connections;
-    const size = _.size(connections);
-
-    if (!state.canConnect) return null;
-    if (size === 1) {
-      return (
-        <Menu.Item name="Connect" onClick={this.handleConnect(connections[0].id)} disabled={isProcessingConnect}>
-          Connect
-          {isProcessingConnect && <Icon className="ml1" name="spinner" loading />}
-        </Menu.Item>
-      );
-    }
-
-    return (
-      <Dropdown item text="Connect" disabled={isProcessingConnect} loading={isProcessingConnect}>
-        <Dropdown.Menu>
-          {_.map(connections, item => (
-            <Dropdown.Item key={item.id} onClick={this.handleConnect(item.id)}>
-              {item.name || 'Connect'}
-            </Dropdown.Item>
-          ))}
-        </Dropdown.Menu>
-      </Dropdown>
+          {canConnect && (
+            <Button
+              floated="left"
+              basic
+              size="mini"
+              className="mt1 mb1"
+              toggle
+              active={connectionsButtonActive}
+              onClick={this.handleToggle}
+            >
+              Connections
+            </Button>
+          )}
+          {showDetailButton && (
+            <Button floated="left" basic size="mini" className="mt1 mb1 ml2" onClick={this.handleViewDetail}>
+              View Detail
+            </Button>
+          )}
+        </div>
+        {canConnect && connectionsButtonActive && <ScEnvironmentConnections scEnvironment={env} />}
+      </>
     );
   }
 }
@@ -173,10 +112,11 @@ class ScEnvironmentButtons extends React.Component {
 decorate(ScEnvironmentButtons, {
   envsStore: computed,
   environment: computed,
-  connections: computed,
-  processingButton: observable,
+  processing: observable,
+  connectionsButtonActive: observable,
   handleViewDetail: action,
   handleTerminate: action,
+  handleToggle: action,
 });
 
 export default inject('scEnvironmentsStore')(withRouter(observer(ScEnvironmentButtons)));

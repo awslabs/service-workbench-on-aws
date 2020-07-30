@@ -135,9 +135,9 @@ class EnvTypeCandidatesList extends Component {
       <Segment placeholder>
         <Header icon className="color-grey">
           <Icon name="computer" />
-          No AWS Service Catalog product versions available for importing
+          No AWS Service Catalog Product Versions available for importing
           <Header.Subheader className="mt2">
-            Please create AWS Service Catalog Product Version and share the portfolio with the AWS IAM role{' '}
+            Please create AWS Service Catalog Product Version and share the Portfolio with the AWS IAM role{' '}
             <strong>{envMgmtRoleName}</strong>.
           </Header.Subheader>
         </Header>

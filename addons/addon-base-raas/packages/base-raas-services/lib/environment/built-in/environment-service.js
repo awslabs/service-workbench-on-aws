@@ -17,8 +17,10 @@ const _ = require('lodash');
 const uuid = require('uuid/v1');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
-const createSchema = require('../schema/create-environment');
-const updateSchema = require('../schema/update-environment');
+const { isAdmin, isCurrentUser } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
+
+const createSchema = require('../../schema/create-environment');
+const updateSchema = require('../../schema/update-environment');
 
 const settingKeys = {
   tableName: 'dbTableEnvironments',
@@ -274,7 +276,7 @@ class EnvironmentService extends Service {
     const { accountId, ...rawData } = rawDataV2;
     const rawDataV1 = await this.transformToRawDataV1(requestContext, rawData);
 
-    const mountInformation = await environmentMountService.getCfnMountParameters(requestContext, rawDataV1);
+    const mountInformation = await environmentMountService.getCfnStudyAccessParameters(requestContext, rawDataV1);
 
     Object.assign(rawDataV1.instanceInfo, mountInformation);
 

@@ -60,7 +60,7 @@ class MainLayout extends React.Component {
 
     const itemsArr = this.getMenuItems();
     return [
-      <Menu vertical inverted fixed="left" icon="labeled" key="ml1">
+      <Menu vertical inverted fixed="left" icon="labeled" key="ml1" style={{ overflowY: 'auto' }}>
         <Menu.Item name=" " style={{ height: '40px' }} />
         {_.map(itemsArr, (item, index) => {
           const show = (_.isFunction(item.shouldShow) && item.shouldShow()) || item.shouldShow;

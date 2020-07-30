@@ -31,6 +31,7 @@ class EnvironmentConfigVarsService extends Service {
     super();
     this.dependency([
       'environmentScService',
+      'environmentScKeypairService',
       'indexesService',
       'awsAccountsService',
       'environmentAmiService',
@@ -58,6 +59,20 @@ class EnvironmentConfigVarsService extends Service {
       {
         name: 'description',
         desc: 'Description of the environment specified at the time of launching the environment',
+      },
+      {
+        name: 'adminKeyPairName',
+        desc:
+          'AWS EC2 Key Pair Name for environment administration (useful for Windows based environments).' +
+          ' If you use this variable, a new EC2 key pair will be created at the time of launching the environment and' +
+          " the key pair's name will be passed via this variable. Use this variable ONLY IF you want to " +
+          'specify a static key pair. This may be required for ' +
+          "Windows based instances to retrieve default Administrator user's password. You do not need to use any key " +
+          'pair for SSH if you are launching instances that have EC2 ' +
+          'Instance Connect Agent (Amazon Linux 2 2.0.20190618 or later and Ubuntu 20.04 or later comes preconfigured ' +
+          'with EC2 Instance Connect). Users will be able to SSH to the linux based instances using the key pairs ' +
+          'they create on this platform. They will be able to SSH using EC2 Instance Connect without requiring any ' +
+          'static key pairs. ',
       },
       { name: 'accountId', desc: 'AWS Account ID of the target account where the environment is launched' },
       { name: 'projectId', desc: 'Project Id associated with the environment' },
@@ -112,6 +127,7 @@ class EnvironmentConfigVarsService extends Service {
   async resolveEnvConfigVars(requestContext, { envId, envTypeId, envTypeConfigId }) {
     const [
       environmentScService,
+      environmentScKeypairService,
       indexesService,
       awsAccountsService,
       environmentAmiService,
@@ -119,6 +135,7 @@ class EnvironmentConfigVarsService extends Service {
       environmentMountService,
     ] = await this.service([
       'environmentScService',
+      'environmentScKeypairService',
       'indexesService',
       'awsAccountsService',
       'environmentAmiService',
@@ -148,11 +165,12 @@ class EnvironmentConfigVarsService extends Service {
     }
 
     // Get the environment type configuration and read params to find if any of the params
-    // require AMI ids (i.e., all param names starting with "AMI" or "ami")
+    // require AMI ids (i.e., all param values that match ami naming pattern )
     const envTypeConfig = await envTypeConfigService.mustFind(requestContext, envTypeId, { id: envTypeConfigId });
     const amiRelatedParams = _.filter(
       envTypeConfig.params,
-      p => _.startsWith(p.key, 'ami') || _.startsWith(p.key, 'AMI'),
+      // AMI IDs have values similar to "ami-abcd1234" or "ami-aabbccddee1234567"
+      p => _.startsWith(p.value, 'ami-'),
     );
 
     // TODO: Move this later in the workflow after all param expressions
@@ -162,9 +180,9 @@ class EnvironmentConfigVarsService extends Service {
     if (!_.isEmpty(amisToShare)) {
       // Share AMIs with the target account (process in batches of 5 at a time)
       // if there are more than 5
-      await processInBatches(amisToShare, 5, imageId =>
-        environmentAmiService.ensurePermissions({ imageId, accountId }),
-      );
+      await processInBatches(amisToShare, 5, async imageId => {
+        return environmentAmiService.ensurePermissions({ imageId, accountId });
+      });
     }
 
     const {
@@ -172,7 +190,29 @@ class EnvironmentConfigVarsService extends Service {
       iamPolicyDocument,
       environmentInstanceFiles,
       s3Prefixes,
-    } = await environmentMountService.getS3MountsInfo(requestContext, studyIds);
+    } = await environmentMountService.getStudyAccessInfo(requestContext, studyIds, environment.createdAt);
+
+    // TODO: If the ami sharing gets moved (because it doesn't contribute to an env var)
+    // then move the update local resource policies too.
+    // Using the account root provides basically the same level of security because in either
+    // case we have to trust that the member account hasn't altered the role's assume role policy to allow other
+    // principals assume it
+    if (s3Prefixes.length > 0) {
+      await environmentMountService.addRoleArnToLocalResourcePolicies(`arn:aws:iam::${accountId}:root`, s3Prefixes);
+    }
+
+    // Check if the environment being launched needs an admin key-pair to be created in the target account
+    // If the configuration being used has any parameter that uses the "adminKeyPairName" variable then it means
+    // we need to provision that key in the target account and provide the name of the generated key as the
+    // "adminKeyPairName" variable
+    // Disabling "no-template-curly-in-string" lint rule because we need to compare with the string literal "${adminKeyPairName}"
+    // i.e., without any string interpolation
+    // eslint-disable-next-line no-template-curly-in-string
+    const isAdminKeyPairRequired = !!_.find(envTypeConfig.params, p => p.value === '${adminKeyPairName}');
+    let adminKeyPairName = '';
+    if (isAdminKeyPairRequired) {
+      adminKeyPairName = await environmentScKeypairService.create(requestContext, envId);
+    }
 
     const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
     return {
@@ -199,6 +239,8 @@ class EnvironmentConfigVarsService extends Service {
 
       username: by.username,
       userNamespace: by.ns,
+
+      adminKeyPairName,
     };
   }
 
