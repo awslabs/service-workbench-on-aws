@@ -13,7 +13,6 @@
  *  permissions and limitations under the License.
  */
 
-import _ from 'lodash';
 import React from 'react';
 import { observer } from 'mobx-react';
 import Input from '@aws-ee/base-ui/dist/parts/helpers/fields/Input';
