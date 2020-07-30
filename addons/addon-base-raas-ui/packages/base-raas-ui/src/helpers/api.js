@@ -234,12 +234,26 @@ function createScEnvironment(scEnvironment) {
   return httpApiPost('api/workspaces/service-catalog/', { data: scEnvironment });
 }
 
-function getScEnvironmentConnectionUrl(envId, connectionId) {
-  return httpApiGet(`api/workspaces/service-catalog/${envId}/connections/${connectionId}/url`);
+function createScEnvironmentConnectionUrl(envId, connectionId) {
+  return httpApiPost(`api/workspaces/service-catalog/${envId}/connections/${connectionId}/url`);
 }
 
 function deleteScEnvironment(id) {
   return httpApiDelete(`api/workspaces/service-catalog/${id}`);
+}
+
+function getScEnvironmentConnections(envId) {
+  return httpApiGet(`api/workspaces/service-catalog/${envId}/connections/`);
+}
+
+function sendSshKey(envId, connectionId, keyPairId) {
+  return httpApiPost(`api/workspaces/service-catalog/${envId}/connections/${connectionId}/send-ssh-public-key`, {
+    data: { keyPairId },
+  });
+}
+
+function getWindowsRpInfo(envId, connectionId) {
+  return httpApiGet(`api/workspaces/service-catalog/${envId}/connections/${connectionId}/windows-rdp-info`);
 }
 
 // API Functions Insertion Point (do not change this text, it is being used by hygen cli)
@@ -293,7 +307,10 @@ export {
   getScEnvironmentCost,
   getScEnvironments,
   createScEnvironment,
-  getScEnvironmentConnectionUrl,
+  createScEnvironmentConnectionUrl,
   deleteScEnvironment,
   getScEnvironment,
+  getScEnvironmentConnections,
+  sendSshKey,
+  getWindowsRpInfo,
 };

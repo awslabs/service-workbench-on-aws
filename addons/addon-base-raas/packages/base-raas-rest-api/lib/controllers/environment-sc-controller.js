@@ -1,6 +1,9 @@
+const _ = require('lodash');
+
 async function configure(context) {
   const router = context.router();
   const wrap = context.wrap;
+  const boom = context.boom;
 
   // ===============================================================
   //  GET / (mounted to /api/workspaces/service-catalog)
@@ -32,17 +35,76 @@ async function configure(context) {
   );
 
   // ===============================================================
-  //  GET /:id (mounted to /api/workspaces/service-catalog)
+  //  GET /:id/connections (mounted to /api/workspaces/service-catalog)
   // ===============================================================
   router.get(
+    '/:id/connections',
+    wrap(async (req, res) => {
+      const id = req.params.id;
+      const requestContext = res.locals.requestContext;
+
+      const [environmentScConnectionService] = await context.service(['environmentScConnectionService']);
+      const result = await environmentScConnectionService.listConnections(requestContext, id);
+      res.status(200).json(result);
+    }),
+  );
+
+  // ===============================================================
+  //  POST /:id/connections/:connectionId/url (mounted to /api/workspaces/service-catalog)
+  // ===============================================================
+  router.post(
     '/:id/connections/:connectionId/url',
     wrap(async (req, res) => {
       const id = req.params.id;
       const connectionId = req.params.connectionId;
       const requestContext = res.locals.requestContext;
+      if (!_.isEmpty(req.body)) {
+        throw boom.badRequest(`Invalid request. This API does not expect a request body.`, true);
+      }
 
-      const [environmentScNotebookUrlService] = await context.service(['environmentScNotebookUrlService']);
-      const result = await environmentScNotebookUrlService.getConnectionUrl(requestContext, id, connectionId);
+      const [environmentScConnectionService] = await context.service(['environmentScConnectionService']);
+      const result = await environmentScConnectionService.createConnectionUrl(requestContext, id, connectionId);
+      res.status(200).json(result);
+    }),
+  );
+
+  // ===============================================================
+  //  GET  /:id/connections/:connectionId/windows-rdp-info (mounted to /api/workspaces/service-catalog)
+  // ===============================================================
+  router.get(
+    '/:id/connections/:connectionId/windows-rdp-info',
+    wrap(async (req, res) => {
+      const id = req.params.id;
+      const connectionId = req.params.connectionId;
+      const requestContext = res.locals.requestContext;
+
+      const [environmentScConnectionService] = await context.service(['environmentScConnectionService']);
+      const result = await environmentScConnectionService.getWindowsPasswordDataForRdp(
+        requestContext,
+        id,
+        connectionId,
+      );
+      res.status(200).json(result);
+    }),
+  );
+
+  // ===============================================================
+  //  POST /:id/connections/:connectionId/send-ssh-public-key (mounted to /api/workspaces/service-catalog)
+  // ===============================================================
+  router.post(
+    '/:id/connections/:connectionId/send-ssh-public-key',
+    wrap(async (req, res) => {
+      const envId = req.params.id;
+      const connectionId = req.params.connectionId;
+      const requestContext = res.locals.requestContext;
+
+      const [environmentScConnectionService] = await context.service(['environmentScConnectionService']);
+      const result = await environmentScConnectionService.sendSshPublicKey(
+        requestContext,
+        envId,
+        connectionId,
+        req.body,
+      );
       res.status(200).json(result);
     }),
   );

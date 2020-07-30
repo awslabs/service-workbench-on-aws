@@ -26,6 +26,7 @@ const baseRaasWfStepsPlugin = require('@aws-ee/base-raas-workflow-steps/lib/plug
 const baseRaasWorkflowsPlugin = require('@aws-ee/base-raas-workflows/lib/plugins/workflows-plugin');
 const baseRaasUserAuthzPlugin = require('@aws-ee/base-raas-services/lib/user/user-authz-plugin');
 const environmentTypeServicesPlugin = require('@aws-ee/environment-type-mgmt-services/lib/plugins/services-plugin');
+const keyPairServicesPlugin = require('@aws-ee/key-pair-mgmt-services/lib/plugins/services-plugin');
 const environmentScWfStepsPlugin = require('@aws-ee/environment-sc-workflow-steps/lib/plugins/workflow-steps-plugin');
 const environmentScWfPlugin = require('@aws-ee/environment-sc-workflows/lib/plugins/workflows-plugin');
 
@@ -38,6 +39,7 @@ const extensionPoints = {
     workflowServicesPlugin,
     baseRaasServicesPlugin,
     environmentTypeServicesPlugin,
+    keyPairServicesPlugin,
     servicesPlugin,
   ],
   'postDeploymentStep': [

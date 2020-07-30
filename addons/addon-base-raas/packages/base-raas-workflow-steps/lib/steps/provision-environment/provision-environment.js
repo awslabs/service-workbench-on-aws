@@ -117,7 +117,7 @@ class ProvisionEnvironment extends StepBase {
         iamPolicyDocument,
         environmentInstanceFiles,
         s3Prefixes,
-      } = await environmentMountService.getCfnMountParameters(requestContext, environment);
+      } = await environmentMountService.getCfnStudyAccessParameters(requestContext, environment);
 
       addParam('S3Mounts', s3Mounts);
       addParam('IamPolicyDocument', iamPolicyDocument);

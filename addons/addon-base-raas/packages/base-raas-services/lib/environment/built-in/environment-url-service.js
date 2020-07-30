@@ -13,12 +13,6 @@
  *  permissions and limitations under the License.
  */
 
-const crypto = require('crypto');
-const querystring = require('querystring');
-const request = require('request-promise-native');
-
-const rstudioEncryptor = require('@aws-ee/base-services/lib/helpers/rstudio-encryptor');
-
 const Service = require('@aws-ee/base-services-container/lib/service');
 
 class EnvironmentUrlService extends Service {
@@ -55,24 +49,12 @@ class EnvironmentUrlService extends Service {
     return { AuthorizedUrl: authorizedUrl };
   }
 
-  async getSagemakerUrl(aws, environmentService, requestContext, id, instanceInfo) {
-    const params = { NotebookInstanceName: instanceInfo.NotebookInstanceName };
-    const credentials = await environmentService.credsForAccountWithEnvironment(requestContext, { id });
-    const sagemaker = new aws.sdk.SageMaker(credentials);
-    const url = sagemaker.createPresignedNotebookInstanceUrl(params).promise();
-    url.AuthorizedUrl += '&view=lab';
-    return url;
-  }
-
   async get(requestContext, id) {
     const [aws, environmentService] = await this.service(['aws', 'environmentService']);
-
     // The following will succeed only if the user has permissions to access the specified environment
     const environment = await environmentService.mustFind(requestContext, { id });
     const { instanceInfo } = environment;
-
     let url = '';
-
     switch (instanceInfo.type) {
       case 'ec2-rstudio':
         url = this.getRStudioUrl(id, instanceInfo);
@@ -81,7 +63,7 @@ class EnvironmentUrlService extends Service {
         url = this.getEmrUrl(instanceInfo);
         break;
       case 'sagemaker':
-        url = this.getSagemakerUrl(aws, environmentService, requestContext, id, instanceInfo);
+        url = this.getNotebookPresignedUrl(requestContext, id);
         break;
       default:
         break;
@@ -89,6 +71,26 @@ class EnvironmentUrlService extends Service {
 
     // Write audit event
     await this.audit(requestContext, { action: 'environment-url-requested', body: { id } });
+    return url;
+  }
+
+  async getNotebookPresignedUrl(requestContext, id) {
+    const [aws, environmentService] = await this.service(['aws', 'environmentService']);
+
+    // The following will succeed only if the user has permissions to access the specified environment
+    const { instanceInfo } = await environmentService.mustFind(requestContext, { id });
+
+    const params = {
+      NotebookInstanceName: instanceInfo.NotebookInstanceName,
+    };
+    const sagemaker = new aws.sdk.SageMaker(
+      await environmentService.credsForAccountWithEnvironment(requestContext, { id }),
+    );
+    const url = await sagemaker.createPresignedNotebookInstanceUrl(params).promise();
+    url.AuthorizedUrl += '&view=lab';
+
+    // Write audit event
+    await this.audit(requestContext, { action: 'notebook-presigned-url-requested', body: { id } });
 
     return url;
   }

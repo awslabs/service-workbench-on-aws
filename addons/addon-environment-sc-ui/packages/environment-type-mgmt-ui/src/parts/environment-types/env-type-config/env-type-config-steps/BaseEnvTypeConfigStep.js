@@ -18,7 +18,6 @@ import { runInAction } from 'mobx';
 import { Button, Segment } from 'semantic-ui-react';
 
 import Form from '@aws-ee/base-ui/dist/parts/helpers/fields/Form';
-import _ from 'lodash';
 
 class BaseEnvTypeConfigStep extends React.Component {
   constructor(props) {
@@ -46,8 +45,7 @@ class BaseEnvTypeConfigStep extends React.Component {
   }
 
   renderActionButtons({ processing, onCancel }) {
-    const envTypConfig = this.getEnvTypeConfig();
-    const isUpdating = !_.isEmpty(envTypConfig);
+    const isUpdating = this.isEditAction();
     const submitButtonTitle = isUpdating ? 'Save' : this.props.wizardModel.hasNext ? 'Next' : 'Add';
     return (
       <div>
@@ -74,6 +72,14 @@ class BaseEnvTypeConfigStep extends React.Component {
         </Button>
       </div>
     );
+  }
+
+  isEditAction() {
+    return this.getAction() === 'edit';
+  }
+
+  getAction() {
+    return this.props.action;
   }
 
   getEnvTypeConfig() {

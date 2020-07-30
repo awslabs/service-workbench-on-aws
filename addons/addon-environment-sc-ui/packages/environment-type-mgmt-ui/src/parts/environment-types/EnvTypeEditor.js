@@ -86,7 +86,7 @@ class EnvTypeEditor extends React.Component {
           <Header.Content className="left-align">
             {this.isEditAction() ? 'Edit' : 'Import'} Workspace Type
           </Header.Content>
-          <Header.Subheader className="mt2">{this.envType.name}</Header.Subheader>
+          <Header.Subheader className="mt2">{_.get(this.envType, 'name')}</Header.Subheader>
         </Header>
       </div>
     );

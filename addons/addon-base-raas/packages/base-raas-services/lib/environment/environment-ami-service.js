@@ -70,6 +70,18 @@ class EnvironmentAmiService extends Service {
   }
 
   async ensurePermissions({ imageId, accountId }) {
+    // First check if the image is already public.
+    const { Images: images } = await this.ec2
+      .describeImages({
+        ImageIds: [imageId],
+      })
+      .promise();
+    const image = images[0]; // Expecting only one
+    if (image.Public) {
+      // If image is already public, the given account already has permissions so return
+      return;
+    }
+
     const params = {
       ImageId: imageId,
       LaunchPermission: {
@@ -80,7 +92,7 @@ class EnvironmentAmiService extends Service {
         ],
       },
     };
-    const result = await (async () => {
+    await (async () => {
       try {
         const attributes = await this.ec2.modifyImageAttribute(params).promise();
         return attributes;
@@ -89,7 +101,6 @@ class EnvironmentAmiService extends Service {
         throw this.boom.badRequest(`Unable to modify permissions on the software image for the selected index.`, true);
       }
     })();
-    return result;
   }
 }
 

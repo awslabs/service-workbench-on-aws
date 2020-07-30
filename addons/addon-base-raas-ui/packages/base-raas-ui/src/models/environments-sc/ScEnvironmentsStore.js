@@ -4,14 +4,10 @@ import { getEnv, types } from 'mobx-state-tree';
 import { consolidateToMap } from '@aws-ee/base-ui/dist/helpers/utils';
 import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
 
-import {
-  getScEnvironments,
-  createScEnvironment,
-  getScEnvironmentConnectionUrl,
-  deleteScEnvironment,
-} from '../../helpers/api';
+import { getScEnvironments, createScEnvironment, deleteScEnvironment } from '../../helpers/api';
 import { ScEnvironment } from './ScEnvironment';
 import { ScEnvironmentStore } from './ScEnvironmentStore';
+import { ScEnvConnectionStore } from './ScEnvConnectionStore';
 
 const filterNames = {
   ALL: 'all',
@@ -37,6 +33,7 @@ const ScEnvironmentsStore = BaseStore.named('ScEnvironmentsStore')
   .props({
     environments: types.optional(types.map(ScEnvironment), {}),
     environmentStores: types.optional(types.map(ScEnvironmentStore), {}),
+    connectionStores: types.optional(types.map(ScEnvConnectionStore), {}),
     tickPeriod: 30 * 1000, // 30 seconds
   })
 
@@ -72,11 +69,6 @@ const ScEnvironmentsStore = BaseStore.named('ScEnvironmentsStore')
         return self.getScEnvironment(result.id);
       },
 
-      async getConnectionUrl(envId, connectionId) {
-        const urlObj = await getScEnvironmentConnectionUrl(envId, connectionId);
-        return _.get(urlObj, 'url');
-      },
-
       async terminateScEnvironment(id) {
         await deleteScEnvironment(id);
         const env = self.getScEnvironment(id);
@@ -95,9 +87,21 @@ const ScEnvironmentsStore = BaseStore.named('ScEnvironmentsStore')
         return entry;
       },
 
+      getScEnvConnectionStore(envId) {
+        let entry = self.connectionStores.get(envId);
+        if (!entry) {
+          // Lazily create the store
+          self.connectionStores.set(envId, ScEnvConnectionStore.create({ envId }));
+          entry = self.connectionStores.get(envId);
+        }
+
+        return entry;
+      },
+
       cleanup: () => {
         self.environments.clear();
         self.environmentStores.clear();
+        self.connectionStores.clear();
         superCleanup();
       },
     };

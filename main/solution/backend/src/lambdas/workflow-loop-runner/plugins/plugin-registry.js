@@ -25,6 +25,7 @@ const baseRaasUserAuthzPlugin = require('@aws-ee/base-raas-services/lib/user/use
 const baseRaasSchemaPlugin = require('@aws-ee/base-raas-services/lib/plugins/schema-plugin');
 // const baseRaasAppstreamSchemaPlugin = require('@aws-ee/base-raas-appstream-services/lib/plugins/schema-plugin');
 const environmentTypeServicesPlugin = require('@aws-ee/environment-type-mgmt-services/lib/plugins/services-plugin');
+const keyPairServicesPlugin = require('@aws-ee/key-pair-mgmt-services/lib/plugins/services-plugin');
 const environmentScWfStepsPlugin = require('@aws-ee/environment-sc-workflow-steps/lib/plugins/workflow-steps-plugin');
 const environmentScWfPlugin = require('@aws-ee/environment-sc-workflows/lib/plugins/workflows-plugin');
 const bassRaasEnvTypeVarsPlugin = require('@aws-ee/base-raas-services/lib/plugins/env-provisioning-plugin');
@@ -36,17 +37,12 @@ const extensionPoints = {
     baseServicesPlugin,
     baseWfServicesPlugin,
     baseRaasServicesPlugin,
-    // baseRaasAppStreamServicesPlugin,
     environmentTypeServicesPlugin,
+    keyPairServicesPlugin,
     servicesPlugin,
   ],
   'audit': [baseAuditPlugin],
-  'workflow-steps': [
-    baseWfStepsPlugin,
-    baseRaasWfStepsPlugin,
-    // baseRaasAppStreamWfStepsPlugin,
-    environmentScWfStepsPlugin,
-  ],
+  'workflow-steps': [baseWfStepsPlugin, baseRaasWfStepsPlugin, environmentScWfStepsPlugin],
   'workflow-templates': [],
   'workflows': [baseRaasWorkflowsPlugin, environmentScWfPlugin],
   'workflow-assignments': [],

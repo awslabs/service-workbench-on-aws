@@ -1,3 +1,5 @@
+const _ = require('lodash');
+
 /**
  * A plugin method to contribute to the list of available variables for usage in variable expressions in
  * Environment Type Configurations. This plugin method just provides metadata about the variables such as list of
@@ -85,14 +87,47 @@ async function getDefaultTags({ requestContext, container, resolvedVars, tags })
  * @returns {Promise<*>}
  */
 // Called by the environment provisioning workflow for service catalog based envs from "launch-product" workflow step.
-// The step calls "onEnvProvisioningSuccess" method on the plugin upon successful product launch and calls
-// "onEnvProvisioningFailure" in case of any errors
+// This step calls "onEnvOnProvisioningSuccess" method on the plugin upon successful product launch.
 // See "addons/addon-environment-sc-api/packages/environment-sc-workflow-steps/lib/steps/launch-product/launch-product.js"
-async function updateEnv({ requestContext, container, resolvedVars, status, error, outputs, provisionedProductId }) {
+async function updateEnvOnProvisioningSuccess({
+  requestContext,
+  container,
+  resolvedVars,
+  status,
+  outputs,
+  provisionedProductId,
+}) {
   const environmentScService = await container.find('environmentScService');
   const envId = resolvedVars.envId;
 
   const existingEnvRecord = await environmentScService.mustFind(requestContext, { id: envId, fields: ['rev'] });
+
+  const environment = {
+    id: envId,
+    rev: existingEnvRecord.rev || 0,
+    status,
+    outputs,
+    provisionedProductId,
+  };
+  await environmentScService.update(requestContext, environment);
+
+  return { requestContext, container, resolvedVars, status, outputs, provisionedProductId };
+}
+// This step calls "onEnvOnProvisioningFailure" in case of any errors.
+async function updateEnvOnProvisioningFailure({
+  requestContext,
+  container,
+  resolvedVars,
+  status,
+  error,
+  outputs,
+  provisionedProductId,
+}) {
+  const environmentScService = await container.find('environmentScService');
+  const envId = resolvedVars.envId;
+
+  const existingEnvRecord = await environmentScService.mustFind(requestContext, { id: envId, fields: ['rev'] });
+
   const environment = {
     id: envId,
     rev: existingEnvRecord.rev || 0,
@@ -120,17 +155,63 @@ async function updateEnv({ requestContext, container, resolvedVars, status, erro
  * @param envId Id of the environment
  * @param record Response from the AWS Service Catalog DescribeRecord API for the termination record.
  * See shape of the response at https://docs.aws.amazon.com/servicecatalog/latest/dg/API_DescribeRecord.html.
- * Or https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/ServiceCatalog.html#describeRecord-property
+ * Or https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/ServiceCatalog.html#describeRecord-property.
+ * This may be undefined when terminate was called on an environment that was never launched via AWS Service Catalog.
+ * This can happen when the environment launch fails before we attempt to provision it using AWS Service Catalog and
+ * then the user tries to terminate that environment that was never provisioned via AWS Service Catalog.
  *
  * @returns {Promise<*>}
  */
 // Called by the environment termination workflow for service catalog based envs from "terminate-product" workflow step.
 //
-// The "terminate-product" calls "onEnvTerminationSuccess" method on the plugin upon successful termination and calls
-// "onEnvTerminationFailure" in case of any errors
+// The "terminate-product" calls "onEnvTerminationSuccess" method on the plugin upon successful termination
 // See "addons/addon-environment-sc-api/packages/environment-sc-workflow-steps/lib/steps/terminate-product/terminate-product.js"
-// eslint-disable-next-line no-unused-vars
-async function updateEnvOnTermination({ requestContext, container, status, error, envId, record }) {
+async function updateEnvOnTerminationSuccess({ requestContext, container, status, envId, record }) {
+  const log = await container.find('log');
+  const environmentScService = await container.find('environmentScService');
+
+  const existingEnvRecord = await environmentScService.mustFind(requestContext, { id: envId, fields: ['rev'] });
+
+  log.debug({ msg: `Updating environment record after successful termination`, envId });
+  // -- Update environment record status in the DB
+  const environment = {
+    id: envId,
+    rev: existingEnvRecord.rev || 0,
+    status,
+  };
+  const updatedEnvironment = await environmentScService.update(requestContext, environment);
+
+  // -- Perform all required clean up
+  // --- Cleanup - Resource policies (such as S3 bucket policy, KMS key policy etc) in central account
+  log.debug({ msg: `Cleaning up local resource policies`, envId });
+  const indexesService = await container.find('indexesService');
+  const { awsAccountId } = await indexesService.mustFind(requestContext, { id: updatedEnvironment.indexId });
+  const environmentMountService = await container.find('environmentMountService');
+
+  const { s3Prefixes, databases } = await environmentMountService.getStudyAccessInfo(
+    requestContext,
+    updatedEnvironment.studyIds,
+    updatedEnvironment.createdAt,
+  );
+
+  if (s3Prefixes.length > 0) {
+    await environmentMountService.removeRoleArnFromLocalResourcePolicies(
+      `arn:aws:iam::${awsAccountId}:root`,
+      s3Prefixes,
+      databases,
+    );
+  }
+
+  // --- Cleanup - EC2 KeyPairs (the main admin key created specifically for this environment for SSH or RDP) from other account
+  log.debug({ msg: `Cleaning up admin key pairs`, envId });
+  const environmentScKeypairService = await container.find('environmentScKeypairService');
+  await environmentScKeypairService.delete(requestContext, envId);
+
+  return { requestContext, container, status, envId, record };
+}
+
+// The "terminate-product' workflow call "onEnvTerminationFailure" in case of any errors
+async function updateEnvOnTerminationFailure({ requestContext, container, status, error, envId, record }) {
   const environmentScService = await container.find('environmentScService');
 
   const existingEnvRecord = await environmentScService.mustFind(requestContext, { id: envId, fields: ['rev'] });
@@ -151,10 +232,10 @@ const plugin = {
   list,
   resolve,
   getDefaultTags,
-  onEnvProvisioningSuccess: updateEnv,
-  onEnvProvisioningFailure: updateEnv,
-  onEnvTerminationSuccess: updateEnvOnTermination,
-  onEnvTerminationFailure: updateEnvOnTermination,
+  onEnvProvisioningSuccess: updateEnvOnProvisioningSuccess,
+  onEnvProvisioningFailure: updateEnvOnProvisioningFailure,
+  onEnvTerminationSuccess: updateEnvOnTerminationSuccess,
+  onEnvTerminationFailure: updateEnvOnTerminationFailure,
 };
 
 module.exports = plugin;

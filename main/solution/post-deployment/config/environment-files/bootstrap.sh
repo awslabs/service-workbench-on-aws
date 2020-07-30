@@ -71,6 +71,9 @@ yum install -y fuse jq
 curl -LSs -o "/usr/local/bin/goofys" "$GOOFYS_URL"
 chmod +x "/usr/local/bin/goofys"
 
+# Install ec2 instance connect agent
+sudo yum install ec2-instance-connect
+
 # Create S3 mount script and config file
 chmod +x "${FILES_DIR}/bin/mount_s3.sh"
 ln -s "${FILES_DIR}/bin/mount_s3.sh" "/usr/local/bin/mount_s3.sh"

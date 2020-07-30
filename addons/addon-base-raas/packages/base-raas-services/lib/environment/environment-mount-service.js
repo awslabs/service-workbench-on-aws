@@ -44,12 +44,12 @@ class EnvironmentMountService extends Service {
     this.dependency(['aws', 'lockService', 'studyService', 'studyPermissionService']);
   }
 
-  async getCfnMountParameters(requestContext, rawDataV1) {
+  async getCfnStudyAccessParameters(requestContext, rawDataV1) {
     const studyIds = _.get(rawDataV1, 'instanceInfo.files'); // Yes, studyIds are named "files" in rawDataV1
-    return this.getS3MountsInfo(requestContext, studyIds);
+    return this.getStudyAccessInfo(requestContext, studyIds);
   }
 
-  async getS3MountsInfo(requestContext, studyIds) {
+  async getStudyAccessInfo(requestContext, studyIds) {
     const studyInfo = await this._getStudyInfo(requestContext, studyIds);
     await this._validateStudyPermissions(requestContext, studyInfo);
     const s3Mounts = this._prepareS3Mounts(studyInfo);

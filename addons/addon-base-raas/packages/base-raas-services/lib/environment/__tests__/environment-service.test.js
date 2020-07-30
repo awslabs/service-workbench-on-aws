@@ -65,7 +65,7 @@ const EnvironmentAuthZServiceMock = require('../environment-authz-service.js');
 jest.mock('../environment-mount-service.js');
 const EnvironmentMountServiceMock = require('../environment-mount-service.js');
 
-const EnvironmentService = require('../environment-service');
+const EnvironmentService = require('../built-in/environment-service');
 
 describe('EnvironmentService', () => {
   let service = null;

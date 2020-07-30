@@ -37,6 +37,7 @@ function getSystemRequestContext() {
     username: systemUsername,
     ns: systemUserNamespace,
     isAdmin: true,
+    userRole: 'admin',
     status: 'active',
   };
   ctx.principalIdentifier = {

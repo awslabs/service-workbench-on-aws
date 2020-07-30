@@ -33,20 +33,20 @@ const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-sett
 jest.mock('@aws-ee/base-services/lib/audit/audit-writer-service');
 const AuditServiceMock = require('@aws-ee/base-services/lib/audit/audit-writer-service');
 
-jest.mock('../../environment/environment-authz-service.js');
-const EnvironmentAuthZServiceMock = require('../../environment/environment-authz-service.js');
+jest.mock('../../environment-authz-service.js');
+const EnvironmentAuthZServiceMock = require('../../environment-authz-service.js');
 
-jest.mock('../../../../../../addon-base-workflow/packages/base-workflow-core/lib/workflow/workflow-trigger-service');
-const WorkflowTriggerServiceMock = require('../../../../../../addon-base-workflow/packages/base-workflow-core/lib/workflow/workflow-trigger-service');
+jest.mock('../../../../../../../addon-base-workflow/packages/base-workflow-core/lib/workflow/workflow-trigger-service');
+const WorkflowTriggerServiceMock = require('../../../../../../../addon-base-workflow/packages/base-workflow-core/lib/workflow/workflow-trigger-service');
 
-jest.mock('../../project/project-service');
-const ProjectServiceMock = require('../../project/project-service');
+jest.mock('../../../project/project-service');
+const ProjectServiceMock = require('../../../project/project-service');
 
-jest.mock('../../aws-accounts/aws-accounts-service');
-const AwsAccountsServiceMock = require('../../aws-accounts/aws-accounts-service');
+jest.mock('../../../aws-accounts/aws-accounts-service');
+const AwsAccountsServiceMock = require('../../../aws-accounts/aws-accounts-service');
 
-jest.mock('../../indexes/indexes-service');
-const IndexesServiceMock = require('../../indexes/indexes-service');
+jest.mock('../../../indexes/indexes-service');
+const IndexesServiceMock = require('../../../indexes/indexes-service');
 
 const EnvironmentSCService = require('../environment-sc-service');
 

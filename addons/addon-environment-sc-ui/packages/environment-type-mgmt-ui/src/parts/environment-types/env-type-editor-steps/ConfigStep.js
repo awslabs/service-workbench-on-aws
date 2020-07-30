@@ -130,6 +130,7 @@ class ConfigStep extends React.Component {
           envTypeConfigsStore={this.envTypeConfigsStore}
           envType={this.props.envType}
           onEnvTypeConfigSaveComplete={this.hideEnvTypeConfigDialog}
+          action="create"
         />
       </Modal>
     );

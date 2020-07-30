@@ -43,7 +43,7 @@ class ScEnvironmentCard extends React.Component {
         <Divider className="mt1 mb1" />
         {this.renderButtons(env)}
         <Divider className="mt1" />
-        {env.description || 'Not description for this workspace was provided.'}
+        {env.description || 'No description was provided for this workspace.'}
         <Grid columns={2} stackable className="mt2">
           <Grid.Row stretched>
             <Grid.Column width={12}>{this.renderDetailTable(env)}</Grid.Column>
