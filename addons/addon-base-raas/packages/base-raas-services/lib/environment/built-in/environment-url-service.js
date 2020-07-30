@@ -13,6 +13,11 @@
  *  permissions and limitations under the License.
  */
 
+const crypto = require('crypto');
+const querystring = require('querystring');
+const request = require('request-promise-native');
+
+const rstudioEncryptor = require('@aws-ee/base-services/lib/helpers/rstudio-encryptor');
 const Service = require('@aws-ee/base-services-container/lib/service');
 
 class EnvironmentUrlService extends Service {
@@ -50,7 +55,7 @@ class EnvironmentUrlService extends Service {
   }
 
   async get(requestContext, id) {
-    const [aws, environmentService] = await this.service(['aws', 'environmentService']);
+    const [environmentService] = await this.service(['environmentService']);
     // The following will succeed only if the user has permissions to access the specified environment
     const environment = await environmentService.mustFind(requestContext, { id });
     const { instanceInfo } = environment;
