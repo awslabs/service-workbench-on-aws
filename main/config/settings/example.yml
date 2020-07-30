@@ -37,12 +37,6 @@
 # allow assuming the role from local machine (applicable only for local development)
 # localRoleAutoAdjustTrust: true
 
-# Enable/disable support for built-in workspaces and built-in workspace types.
-# If enableBuiltInWorkspaces = true then built in workspaces/workspace types are used. (default)
-# If enableBuiltInWorkspaces = false then support for importing new workspace types based on
-#  AWS Service Catalog Products/Versions is enabled and the built-in workspaces feature is disabled
-# enableBuiltInWorkspaces: true
-
 # To use a custom domain name, provide the following two values, the domain name
 # itself, and the ARN for the manually-created TLS certificate to use from ACM.
 # Note the current implementation assumes that DNS is handled elsewhere; a future
