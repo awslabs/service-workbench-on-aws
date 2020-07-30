@@ -21,7 +21,7 @@ import { Icon, Container, Header } from 'semantic-ui-react';
 import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
 import { displaySuccess } from '@aws-ee/base-ui/dist/helpers/notification';
 
-import { enableBuiltInWorkspaces } from '../../helpers/settings';
+import { enableServiceCatalog } from '../../helpers/settings';
 import { CurrentStep } from '../compute/helpers/CurrentStep';
 import ComputePlatformSetup from '../compute/ComputePlatformSetup';
 import SetupStepsProgress from '../environments-builtin/SetupStepsProgress';
@@ -32,7 +32,7 @@ class EnvironmentSetup extends React.Component {
   constructor(props) {
     super(props);
     runInAction(() => {
-      const step = enableBuiltInWorkspaces ? 'selectComputePlatform' : 'selectEnvType';
+      const step = enableServiceCatalog ? 'selectComputePlatform' : 'selectEnvType';
       this.currentStep = CurrentStep.create({ step });
     });
   }
@@ -83,7 +83,7 @@ class EnvironmentSetup extends React.Component {
 
   renderContent() {
     let content = null;
-    if (enableBuiltInWorkspaces) {
+    if (enableServiceCatalog) {
       content = (
         <ComputePlatformSetup
           currentStep={this.currentStep}

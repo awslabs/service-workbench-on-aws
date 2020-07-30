@@ -31,7 +31,7 @@ import * as userRolesStore from '../models/user-roles/UserRolesStore';
 import * as computePlatformsStore from '../models/compute/ComputePlatformsStore';
 import * as scEnvironmentsStore from '../models/environments-sc/ScEnvironmentsStore';
 import * as scEnvironmentCostsStore from '../models/environments-sc/ScEnvironmentCostsStore';
-import { enableBuiltInWorkspaces } from '../helpers/settings';
+import { enableServiceCatalog } from '../helpers/settings';
 
 // eslint-disable-next-line no-unused-vars
 function registerAppContextItems(appContext) {
@@ -54,10 +54,10 @@ function registerAppContextItems(appContext) {
   scEnvironmentsStore.registerContextItems(appContext);
   scEnvironmentCostsStore.registerContextItems(appContext);
 
-  console.log('enableBuiltInWorkspaces', enableBuiltInWorkspaces);
+  console.log('enableServiceCatalog', enableServiceCatalog);
   // If built in workspaces are enabled then do not show environment type management
   // using AWS Service Catalog
-  appContext.showEnvTypeManagement = !enableBuiltInWorkspaces;
+  appContext.showEnvTypeManagement = !enableServiceCatalog;
 }
 
 // eslint-disable-next-line no-unused-vars

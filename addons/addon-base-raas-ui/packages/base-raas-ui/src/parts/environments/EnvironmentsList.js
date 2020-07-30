@@ -15,8 +15,8 @@
 
 import React from 'react';
 
-import { enableBuiltInWorkspaces } from '../../helpers/settings';
+import { enableServiceCatalog } from '../../helpers/settings';
 import BuiltIntEnvironmentsList from '../environments-builtin/EnvironmentsList';
 import ScEnvironmentsList from '../environments-sc/ScEnvironmentsList';
 
-export default () => (enableBuiltInWorkspaces ? <BuiltIntEnvironmentsList /> : <ScEnvironmentsList />);
+export default () => (enableServiceCatalog ? <BuiltIntEnvironmentsList /> : <ScEnvironmentsList />);

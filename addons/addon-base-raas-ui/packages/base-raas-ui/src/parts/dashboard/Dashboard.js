@@ -23,7 +23,7 @@ import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
 import ProgressPlaceHolder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 
 import { getEnvironments, getEnvironmentCost, getScEnvironments, getScEnvironmentCost } from '../../helpers/api';
-import { enableBuiltInWorkspaces } from '../../helpers/settings';
+import { enableServiceCatalog } from '../../helpers/settings';
 
 import { blueDatasets } from './graphs/graph-options';
 import BarGraph from './graphs/BarGraph';
@@ -128,7 +128,7 @@ class Dashboard extends React.Component {
   }
 
   async getAccumulatedEnvCost() {
-    const environments = enableBuiltInWorkspaces ? await getEnvironments() : await getScEnvironments();
+    const environments = enableServiceCatalog ? await getEnvironments() : await getScEnvironments();
     const envIdToName = {};
 
     const envNameToIndex = {};
@@ -140,7 +140,7 @@ class Dashboard extends React.Component {
 
     const envIds = Object.keys(envIdToName);
     const envCostPromises = envIds.map(envId => {
-      return enableBuiltInWorkspaces
+      return enableServiceCatalog
         ? getEnvironmentCost(envId, 30, false, true)
         : getScEnvironmentCost(envId, 30, false, true);
     });
