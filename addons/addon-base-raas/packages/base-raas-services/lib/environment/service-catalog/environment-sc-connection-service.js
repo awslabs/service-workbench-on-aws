@@ -1,18 +1,3 @@
-/*
- *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License").
- *  You may not use this file except in compliance with the License.
- *  A copy of the License is located at
- *
- *  http://aws.amazon.com/apache2.0
- *
- *  or in the "license" file accompanying this file. This file is distributed
- *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- *  express or implied. See the License for the specific language governing
- *  permissions and limitations under the License.
- */
-
 const _ = require('lodash');
 const crypto = require('crypto');
 const Service = require('@aws-ee/base-services-container/lib/service');
@@ -86,7 +71,7 @@ class EnvironmentScConnectionService extends Service {
 
     // Give plugins chance to adjust the connection (such as connection url etc)
     const adjustedConnections = await Promise.all(
-      _.map(result, async connection => {
+      _.map(result, async (connection) => {
         const pluginsResult = await pluginRegistryService.visitPlugins(
           'env-sc-connection-url',
           'createConnectionUrl',
@@ -305,7 +290,7 @@ class EnvironmentScConnectionService extends Service {
    */
   toNetworkInterfaces(instanceInfo) {
     const networkInterfaces = _.get(instanceInfo, 'NetworkInterfaces') || [];
-    const networkInterfacesTransformed = _.map(networkInterfaces, ni => {
+    const networkInterfacesTransformed = _.map(networkInterfaces, (ni) => {
       return {
         publicDnsName: _.get(ni, 'Association.PublicDnsName'),
         publicIp: _.get(ni, 'Association.PublicIp'),

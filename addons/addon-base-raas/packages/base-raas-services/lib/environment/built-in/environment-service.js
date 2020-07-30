@@ -17,6 +17,7 @@ const _ = require('lodash');
 const uuid = require('uuid/v1');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
+const { isAdmin, isCurrentUser } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 
 const createSchema = require('../../schema/create-environment');
 const updateSchema = require('../../schema/update-environment');
@@ -77,9 +78,7 @@ class EnvironmentService extends Service {
 
     // TODO: Handle pagination
 
-    const environments = await this._scanner()
-      .limit(1000)
-      .scan();
+    const environments = await this._scanner().limit(1000).scan();
 
     if (requestContext.principal.isAdmin) {
       return environments;
@@ -93,7 +92,7 @@ class EnvironmentService extends Service {
 
     const authResult = await this.service('environmentAuthzService');
 
-    const envPromises = envMap.map(env =>
+    const envPromises = envMap.map((env) =>
       authResult.authorize(
         requestContext,
         { action: 'get', conditions: [this._allowAuthorized] },
@@ -110,9 +109,9 @@ class EnvironmentService extends Service {
           environmentsIndex: envMap[index].environmentsIndex,
         };
       })
-      .filter(item => item.permission.effect === 'allow');
+      .filter((item) => item.permission.effect === 'allow');
 
-    return [...envAccessible].map(item => environments[item.environmentsIndex]);
+    return [...envAccessible].map((item) => environments[item.environmentsIndex]);
   }
 
   async find(requestContext, { id, fields = [] }) {
@@ -120,10 +119,7 @@ class EnvironmentService extends Service {
     // If empty "fields" is specified then it means the caller is asking for all fields. No need to append 'createdBy'
     // in that case.
     const fieldsToGet = _.isEmpty(fields) ? fields : _.uniq([...fields, 'createdBy']);
-    const result = await this._getter()
-      .key({ id })
-      .projection(fieldsToGet)
-      .get();
+    const result = await this._getter().key({ id }).projection(fieldsToGet).get();
 
     if (result) {
       // ensure that the caller has permissions to retrieve the specified environment
@@ -207,8 +203,8 @@ class EnvironmentService extends Service {
     });
     const configuration = _.find(configurations, ['id', configurationId]);
 
-    const isMutableParam = name => _.has(configuration, ['params', 'mutable', name]);
-    const getParam = name => {
+    const isMutableParam = (name) => _.has(configuration, ['params', 'mutable', name]);
+    const getParam = (name) => {
       // First we see if the paramter is considered immutable, if so, we return its immutable value
       // otherwise we return the one from the rawDataV2.params if the parameter name is declared
       // in the configuration as mutable.
