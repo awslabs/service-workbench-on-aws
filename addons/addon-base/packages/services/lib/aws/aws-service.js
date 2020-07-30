@@ -54,12 +54,29 @@ class AwsService extends Service {
    *
    * @param roleArn The ARN of the role to assume
    * @param roleSessionName Optional name of the role session (defaults to <envName>-<current epoch time>)
-   * @param clientName Name of the client SDK to create (E.g., S3, SageMaker, ServiceCatalog etc)
    * @param externalId Optional external id to use for assuming the role.
+   * @param clientName Name of the client SDK to create (E.g., S3, SageMaker, ServiceCatalog etc)
    * @param options Optional options object to pass to the client SDK (E.g., { apiVersion: '2011-06-15' })
    * @returns {Promise<*>}
    */
-  async getClientSdkForRole({ roleArn, roleSessionName, clientName, externalId, options = {} } = {}) {
+  async getClientSdkForRole({ roleArn, roleSessionName, externalId, clientName, options = {} } = {}) {
+    const opts = {
+      ...options,
+      credentials: await this.getCredentialsForRole({ roleArn, roleSessionName, externalId }),
+    };
+    return new this.sdk[clientName](opts);
+  }
+
+  /**
+   * Method assumes the specified role and returns the temporary credentials obtained by
+   * assuming the role.
+   *
+   * @param roleArn The ARN of the role to assume
+   * @param roleSessionName Optional name of the role session (defaults to <envName>-<current epoch time>)
+   * @param externalId Optional external id to use for assuming the role.
+   * @returns {Promise<{accessKeyId, secretAccessKey, sessionToken}>}
+   */
+  async getCredentialsForRole({ roleArn, roleSessionName, externalId }) {
     const sts = new this.sdk.STS({ apiVersion: '2011-06-15' });
     const envName = this.settings.get(settingKeys.envName);
     const params = {
@@ -72,11 +89,7 @@ class AwsService extends Service {
     const { Credentials: creds } = await sts.assumeRole(params).promise();
 
     const { AccessKeyId: accessKeyId, SecretAccessKey: secretAccessKey, SessionToken: sessionToken } = creds;
-    const opts = {
-      ...options,
-      credentials: { accessKeyId, secretAccessKey, sessionToken },
-    };
-    return new this.sdk[clientName](opts);
+    return { accessKeyId, secretAccessKey, sessionToken };
   }
 
   async prepareForLocal(aws) {

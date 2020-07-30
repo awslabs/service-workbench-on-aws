@@ -16,7 +16,7 @@
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { isAllow, allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
-const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
+const { runAndCatch, retry } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const { getServiceCatalogClient } = require('./helpers/env-type-service-catalog-helper');
 const envTypeStatusEnum = require('./helpers/env-type-status-enum');
@@ -26,6 +26,7 @@ const updateEnvTypeSchema = require('./schema/update-env-type');
 const settingKeys = {
   tableName: 'dbTableEnvironmentTypes',
   envMgmtRoleArn: 'envMgmtRoleArn',
+  launchConstraintRolePrefix: 'launchConstraintRolePrefix',
 };
 const emptyObjectIfDoesNotExist = e => {
   if (e.code === 'NoSuchEntity' || e.code === 'ResourceNotFoundException') {
@@ -33,6 +34,30 @@ const emptyObjectIfDoesNotExist = e => {
   }
   throw e; // for any other error let it bubble up
 };
+
+function matchRuleExpl(str, rule) {
+  // Based on - https://stackoverflow.com/questions/26246601/wildcard-string-comparison-in-javascript
+  // for this solution to work on any string, no matter what characters it has
+  const escapeRegex = s => s.replace(/([.*+?^=!:${}()|[\]/\\])/g, '\\$1');
+
+  // "."  => Find a single character, except newline or line terminator
+  // ".*" => Matches any string that contains zero or more characters
+  rule = rule
+    .split('*')
+    .map(escapeRegex)
+    .join('.*');
+
+  // "^"  => Matches any string with the following at the beginning of it
+  // "$"  => Matches any string with that in front at the end of it
+  rule = `^${rule}$`;
+
+  // Create a regular expression object for matching string
+  const regex = new RegExp(rule);
+
+  // Returns true if it finds a match, otherwise it returns false
+  return regex.test(str);
+}
+
 /**
  * The environment type management service
  */
@@ -150,10 +175,13 @@ class EnvTypeService extends Service {
     const serviceCatalogClient = await getServiceCatalogClient(aws, roleArn);
 
     // Make sure there is only one and only one launch path for the product being imported
-    const result = await serviceCatalogClient
-      .listLaunchPaths({ ProductId: productId })
-      .promise()
-      .catch(emptyObjectIfDoesNotExist);
+    const result = await retry(() =>
+      // wrap with retry with exponential backoff in case of throttling errors
+      serviceCatalogClient
+        .listLaunchPaths({ ProductId: productId })
+        .promise()
+        .catch(emptyObjectIfDoesNotExist),
+    );
     // expecting the product to be available to the platform via exactly
     // one portfolio i.e., it needs to have exactly one launch path
     if (_.isEmpty(result.LaunchPathSummaries)) {
@@ -164,25 +192,28 @@ class EnvTypeService extends Service {
     }
     if (result.LaunchPathSummaries.length > 1) {
       throw this.boom.internalError(
-        `The product ${productId} is shared via multiple portfolios, do not know which portfolio to launch from. Please make sure the product is shared to ${roleArn} via only one portfolio.`,
+        `The product ${productId} is shared via multiple portfolios, do not know which portfolio to launch from. Please make sure the product is shared to "${roleArn}" via only one AWS Service Catalog Portfolio.`,
         true,
       );
     }
 
     const launchPathId = result.LaunchPathSummaries[0].Id;
 
-    const provisioningParams = await serviceCatalogClient
-      .describeProvisioningParameters({
-        ProductId: productId,
-        ProvisioningArtifactId: provisioningArtifactId,
-        PathId: launchPathId,
-      })
-      .promise()
-      .catch(emptyObjectIfDoesNotExist);
+    const provisioningParams = await retry(() =>
+      // wrap with retry with exponential backoff in case of throttling errors
+      serviceCatalogClient
+        .describeProvisioningParameters({
+          ProductId: productId,
+          ProvisioningArtifactId: provisioningArtifactId,
+          PathId: launchPathId,
+        })
+        .promise()
+        .catch(emptyObjectIfDoesNotExist),
+    );
 
     if (_.isEmpty(provisioningParams)) {
       throw this.boom.internalError(
-        `Could not read provisioning information for product ${productId} and provisioning artifact ${provisioningArtifactId}.` +
+        `Could not read provisioning information for product "${productId}" and provisioning artifact "${provisioningArtifactId}".` +
           `Please add the role "${roleArn}" to the AWS Service Catalog Portfolio and try again.`,
       );
     }
@@ -191,9 +222,31 @@ class EnvTypeService extends Service {
     const launchConstraint = _.find(constraints, { Type: 'LAUNCH' });
     if (_.isEmpty(launchConstraint)) {
       throw this.boom.internalError(
-        `The product ${productId} does not have any launch constraint role specified. Please specify a local role name as launch constraint and try again`,
+        `The product "${productId}" does not have any launch constraint role specified in AWS Service Catalog Portfolio. Please specify a local role name as launch constraint in the AWS Service Catalog Portfolio and try again.`,
         true,
       );
+    }
+
+    // Make sure the launch constraint role's name matches the configured prefix.
+    // The IAM permissions required to replicate this role in the workspace environments are all locked down based on that prefix
+    // So if the role name prefix does not match the "replicate-launch-constraint-in-target-acc" step of the "provision-environment-sc"
+    // workflow would fail later when launching environments of this environment type
+
+    // Find launch constraint role arn from UsageInstructions array. The UsageInstructions array has shape [{Type,Value}].
+    // One of the usage instructions in this array is about launch constraint role with Type = 'launchAsRole'
+    const usageInstructions = _.get(provisioningParams, 'UsageInstructions', []);
+    const launchConstraintRoleArn = (_.find(usageInstructions, { Type: 'launchAsRole' }) || {}).Value;
+    const launchConstraintRolePrefix = this.settings.get(settingKeys.launchConstraintRolePrefix);
+    if (launchConstraintRoleArn && launchConstraintRolePrefix !== '*') {
+      // if launchConstraintRolePrefix is not a wild-card then make sure the specified launch constraint role name matches the specified prefix
+      const arnParts = _.split(launchConstraintRoleArn, '/');
+      const launchConstraintRoleName = arnParts[arnParts.length - 1];
+      if (!matchRuleExpl(launchConstraintRoleName, launchConstraintRolePrefix)) {
+        throw this.boom.internalError(
+          `The launch constraint role specified for "${productId}" in AWS Service Catalog Portfolio does not match the configured launch constraint role name prefix "${launchConstraintRolePrefix}". Please specify launch constraint role in the AWS Service Catalog with name matching the prefix "${launchConstraintRolePrefix}". The prefix is configured via setting named "${settingKeys.launchConstraintRolePrefix}".`,
+          true,
+        );
+      }
     }
 
     return provisioningParams.ProvisioningArtifactParameters;
@@ -256,7 +309,7 @@ class EnvTypeService extends Service {
     const [validationService] = await this.service(['jsonSchemaValidationService']);
     await validationService.ensureValid(environmentType, updateEnvTypeSchema);
 
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns }
     const { id, rev } = environmentType;
 
     // Prepare the db object

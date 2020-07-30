@@ -104,7 +104,7 @@ class DropDown extends React.Component {
      * @param defaultAttribValue The default attribute value to use
      * @returns {*}
      */
-    const useSpecifiedOrFromExtraOrDefault = (attribName, attribValue, defaultAttribValue) => {
+    const getValue = (attribName, attribValue, defaultAttribValue) => {
       const fromExtra = extra && extra[attribName];
       // use specified attribValue if it is passed. If not, then try to use attrib value from the "extra" object
       let toUse = _.isNil(attribValue) ? fromExtra : attribValue;
@@ -128,25 +128,19 @@ class DropDown extends React.Component {
         if (onChange) onChange(data.value, field);
       },
       placeholder,
-      selection: useSpecifiedOrFromExtraOrDefault('selection', selection, DEFAULT_SELECTION),
-      clearable: useSpecifiedOrFromExtraOrDefault('clearable', clearable, DEFAULT_CLEARABLE),
-      multiple: useSpecifiedOrFromExtraOrDefault('multiple', multiple, DEFAULT_MULTIPLE),
-      search: useSpecifiedOrFromExtraOrDefault('search', search, DEFAULT_SEARCH),
-      fluid: useSpecifiedOrFromExtraOrDefault('fluid', fluid, DEFAULT_FLUID),
-      allowAdditions: useSpecifiedOrFromExtraOrDefault('allowAdditions', allowAdditions, DEFAULT_ALLOW_ADDITIONS),
-      disabled: useSpecifiedOrFromExtraOrDefault('disabled', disabled, DEFAULT_DISABLED),
-      additionLabel: useSpecifiedOrFromExtraOrDefault('additionLabel', additionLabel, DEFAULT_ADDITION_LABEL),
+      selection: getValue('selection', selection, DEFAULT_SELECTION),
+      clearable: getValue('clearable', clearable, DEFAULT_CLEARABLE),
+      multiple: getValue('multiple', multiple, DEFAULT_MULTIPLE),
+      search: getValue('search', search, DEFAULT_SEARCH),
+      fluid: getValue('fluid', fluid, DEFAULT_FLUID),
+      allowAdditions: getValue('allowAdditions', allowAdditions, DEFAULT_ALLOW_ADDITIONS),
+      disabled: getValue('disabled', disabled, DEFAULT_DISABLED),
+      additionLabel: getValue('additionLabel', additionLabel, DEFAULT_ADDITION_LABEL),
       error: hasError,
     };
 
     return (
-      <div
-        className={c(
-          useSpecifiedOrFromExtraOrDefault('className', className, DEFAULT_CLASS_NAME),
-          errorClass,
-          disabledClass,
-        )}
-      >
+      <div className={c(getValue('className', className, DEFAULT_CLASS_NAME), errorClass, disabledClass)}>
         <Header field={field} />
         <Description field={field} />
         <Dropdown className="field" options={mergeOptions} {...attrs} />

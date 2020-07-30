@@ -65,7 +65,7 @@ Parameters:
     Description: Which market to purchase workers on - ON_DEMAND or SPOT.
   WorkerBidPrice:
     Type: String
-    Description: Bid price for the worker spot nodes.
+    Description: Bid price for the worker spot nodes. This is only applicable when Market = SPOT. Specify 0 for Market = ON_DEMAND.
   AccessFromCIDRBlock:
     Type: String
     MinLength: 9

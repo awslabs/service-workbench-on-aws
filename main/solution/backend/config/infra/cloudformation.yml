@@ -365,6 +365,8 @@ Resources:
                 - !GetAtt [DbCostApiCaches, Arn]
                 - !GetAtt [DbProjects, Arn]
                 - !GetAtt [DbAccounts, Arn]
+                - !GetAtt [DbKeyPairs, Arn]
+                - !Join ['', [!GetAtt [DbKeyPairs, Arn], '/index/*']]
 
         - PolicyName: param-store-access
           PolicyDocument:
@@ -558,14 +560,18 @@ Resources:
                 Action:
                   - route53:ChangeResourceRecordSets
                 Resource: 'arn:aws:route53:::hostedzone/${self:custom.settings.hostedZoneId}'
-        - PolicyName: keypair-creation-access
+
+        - PolicyName: ec2-access
           PolicyDocument:
             Statement:
               - Effect: 'Allow'
                 Action:
                   - ec2:CreateKeyPair
                   - ec2:DeleteKeyPair
+                  - ec2:ModifyImageAttribute
+                  - ec2:DescribeImages
                 Resource: '*'
+
         - PolicyName: study-s3-policy-update
           PolicyDocument:
             Statement:
@@ -697,13 +703,35 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSServiceCatalogAdminFullAccess
       Policies:
+        - PolicyName: ec2-access
+          PolicyDocument:
+            Statement:
+              Action:
+                - ec2:CreateKeyPair
+                - ec2:DeleteKeyPair
+                - ec2:GetPasswordData
+                - ec2:ModifyImageAttribute
+                - ec2:DescribeImages
+                - ec2:DescribeInstances
+                - ec2-instance-connect:SendSSHPublicKey
+              Effect: Allow
+              Resource: '*'
+        - PolicyName: param-store-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ssm:PutParameter
+                - ssm:GetParameter
+                - ssm:GetParameters
+                - ssm:DeleteParameter
+              Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
         - PolicyName: appstream-share-image
           PolicyDocument:
             Statement:
               Action: 'appstream:UpdateImagePermissions'
               Effect: Allow
               Resource: !Sub arn:${AWS::Partition}:appstream:${AWS::Region}:${AWS::AccountId}:image/Secure-Workspace-Access-Image
-
         - PolicyName: cfn-read-access
           PolicyDocument:
             Statement:
@@ -1219,6 +1247,26 @@ Resources:
           KeyType: 'HASH'
       BillingMode: PAY_PER_REQUEST
 
+  DbKeyPairs:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbTableKeyPairs}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'username' # This is username with namespace
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      GlobalSecondaryIndexes:
+        - IndexName: 'UsernameIndex'
+          KeySchema:
+            - AttributeName: 'username' # This is username with namespace
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: 'ALL'
+      BillingMode: PAY_PER_REQUEST
 # =============================================================================================
 # Outputs
 # =============================================================================================

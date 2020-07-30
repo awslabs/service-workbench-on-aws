@@ -39,10 +39,7 @@ class By extends React.Component {
     return isSystem ? (
       ''
     ) : (
-      <span className={c(this.props.className)}>
-        by
-        {displayNameService.getDisplayName(user)}
-      </span>
+      <span className={c(this.props.className)}>by {displayNameService.getDisplayName(user)}</span>
     );
   }
 }

@@ -22,8 +22,7 @@ import BaseEnvTypeConfigStep from './BaseEnvTypeConfigStep';
 
 class BasicInfoStep extends BaseEnvTypeConfigStep {
   renderFormFields({ form, processing }) {
-    const envTypConfig = this.getEnvTypeConfig();
-    const isUpdating = !_.isEmpty(envTypConfig);
+    const isUpdating = this.isEditAction();
 
     const idField = form.$('id');
     const nameField = form.$('name');

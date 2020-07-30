@@ -20,7 +20,6 @@ import { Button, Dimmer, Header, Icon, Segment, Table } from 'semantic-ui-react'
 
 import Form from '@aws-ee/base-ui/dist/parts/helpers/fields/Form';
 import NameValuesEditor from '@aws-ee/base-ui/dist/parts/helpers/fields/NameValuesEditor';
-import _ from 'lodash';
 import BaseEnvTypeConfigStep from './BaseEnvTypeConfigStep';
 
 class TagsStep extends BaseEnvTypeConfigStep {
@@ -75,8 +74,7 @@ class TagsStep extends BaseEnvTypeConfigStep {
   }
 
   renderActionButtons({ processing, onCancel }) {
-    const envTypConfig = this.getEnvTypeConfig();
-    const isUpdating = !_.isEmpty(envTypConfig);
+    const isUpdating = this.isEditAction();
     const submitButtonTitle = isUpdating ? 'Save' : this.props.wizardModel.hasNext ? 'Next' : 'Add';
     return (
       <div className="clearfix">

@@ -33,6 +33,10 @@ import envMgmtMenuItemsPlugin from '@aws-ee/environment-type-mgmt-ui/dist/plugin
 import envMgmtRoutesPlugin from '@aws-ee/environment-type-mgmt-ui/dist/plugins/routes-plugin';
 import envMgmtAppContextItemsPlugin from '@aws-ee/environment-type-mgmt-ui/dist/plugins/app-context-items-plugin';
 
+import keyPairAppContextItemsPlugin from '@aws-ee/key-pair-mgmt-ui/dist/plugins/app-context-items-plugin';
+import keyPairMenuItemsPlugin from '@aws-ee/key-pair-mgmt-ui/dist/plugins/menu-items-plugin';
+import keyPairRoutesPlugin from '@aws-ee/key-pair-mgmt-ui/dist/plugins/routes-plugin';
+
 import appContextItemsPlugin from './app-context-items-plugin';
 import initializationPlugin from './initialization-plugin';
 import menuItemsPlugin from './menu-items-plugin';
@@ -47,6 +51,7 @@ const extensionPoints = {
     baseAppContextItemsPlugin,
     workflowAppContextItemsPlugin,
     envMgmtAppContextItemsPlugin,
+    keyPairAppContextItemsPlugin,
     raasAppContextItemsPlugin,
     // raasAppStreamAppContextItemsPlugin,
     // notificationsAppContextItemsPlugin,
@@ -59,6 +64,7 @@ const extensionPoints = {
     baseMenuItemsPlugin,
     workflowMenuItemsPlugin,
     envMgmtMenuItemsPlugin,
+    keyPairMenuItemsPlugin,
     raasMenuItemsPlugin,
     // notificationsMenuItemsPlugin,
     menuItemsPlugin,
@@ -67,6 +73,7 @@ const extensionPoints = {
     baseRoutesPlugin,
     workflowRoutesPlugin,
     envMgmtRoutesPlugin,
+    keyPairRoutesPlugin,
     raasRoutesPlugin,
     // notificationsRoutesPlugin,
 

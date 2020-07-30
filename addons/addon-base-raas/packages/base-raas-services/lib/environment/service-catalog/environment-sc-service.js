@@ -19,9 +19,10 @@ const Service = require('@aws-ee/base-services-container/lib/service');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const { isAdmin, isCurrentUser } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 
-const createSchema = require('../schema/create-environment-sc');
-const updateSchema = require('../schema/update-environment-sc');
+const createSchema = require('../../schema/create-environment-sc');
+const updateSchema = require('../../schema/update-environment-sc');
 const environmentScStatus = require('./environent-sc-status-enum');
+const { hasConnections } = require('./helpers/connections-util');
 
 const settingKeys = {
   tableName: 'dbTableEnvironmentsSc',
@@ -85,72 +86,18 @@ class EnvironmentScService extends Service {
     return this.augmentWithConnectionInfo(requestContext, envs);
   }
 
-  /**
-   * Method to augment the given environment objects with connections information.
-   *
-   * The method expects the the given env objects to contain the "outputs" array containing CFN outputs in the following form
-   * "outputs": [
-   *   {
-   *     "OutputKey": STRING,
-   *     "OutputValue": STRING,
-   *     "Description": STRING
-   *   },
-   * ]
-   *
-   * The method adds additional "connections" array to the given env objects with the shape
-   * [{name: STRING,url: STRING,scheme: STRING,type: STRING,info: STRING}].
-   *
-   * The "connections" are derived based on the outputs as follows.
-   * CFN outputs with the OutputKey having format "Connection<ConnectionAttrib>" or
-   * "Connection<N><ConnectionAttrib>" are used for extracting connection information.
-   * - If the environment has only one connection then it can have outputs with "Connection<ConnectionAttrib>" format.
-   * - If it has multiple connections then it can have outputs with "Connection<N><ConnectionAttrib>" format.
-   * For example, Connection1Name, Connection2Name, etc. The following Connection* outputs are expected
-   *
-   * The expected CFN output variables used for capturing connections related information are as follows:
-   *
-   * ConnectionName (or Connection<N>Name) - Provides name for connection
-   *
-   * ConnectionUrl (or Connection<N>Url) - Provides connection url, if available
-   *
-   * ConnectionScheme (or Connection<N>Scheme) - Provides connection protocol information such as http, https, jdbc, odbc etc
-   *
-   * ConnectionType (or Connection<N>Type) - Provides type of the connection such as "SageMaker", "EMR", "FOO", "BAR" etc
-   *
-   * ConnectionInfo (or Connection<N>Info) - Provides extra information required to form connection url.
-   * For example, in case of ConnectionType = SageMaker, the ConnectionInfo should provide SageMaker notebook
-   * instance name that can be used to form pre-signed SageMaker URL.
-   *
-   * @param envs
-   * @returns {Promise<*>}
-   */
   async augmentWithConnectionInfo(requestContext, envs) {
     if (!envs) {
       return envs;
     }
-    _.forEach(envs, env => {
-      const connectionsMap = {};
-      _.forEach(env.outputs, output => {
-        const regex = /Connection([0-9]+)?(.+)/;
-        // Parse the output key
-        //    'Connection1Name' => ["Connection1Name", "1", "Name"]
-        //    'ConnectionName' => ["ConnectionName", undefined, "Name"]
-        //    'some-output-not-matching' => null
-        const parsedOutput = output.OutputKey.match(regex);
-        if (parsedOutput && _.isArray(parsedOutput) && parsedOutput.length === 3) {
-          const connectionIdx = parsedOutput[1] || 0;
-          let connection = connectionsMap[connectionIdx];
-          if (!connection) {
-            connection = {};
-          }
-          connection[_.toLower(parsedOutput[2])] = output.OutputValue;
-          connection.id = `id-${connectionIdx}`; // number to string
-          connectionsMap[connectionIdx] = connection;
-        }
-      });
 
-      env.connections = _.values(connectionsMap);
-    });
+    await Promise.all(
+      _.map(envs, async env => {
+        env.hasConnections = await hasConnections(env.outputs);
+      }),
+    );
+
+    // TODO: Add extension point so plugins can contribute in determining "hasConnections" flag
 
     return envs;
   }

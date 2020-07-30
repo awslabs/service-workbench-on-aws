@@ -100,6 +100,7 @@ const ScEnvironment = types
     updatedBy: types.optional(UserIdentifier, {}),
     error: types.maybeNull(types.string),
     connections: types.frozen([]),
+    hasConnections: false,
     studyIds: types.frozen([]),
     cidr: '',
     outputs: types.frozen([]),
@@ -108,11 +109,14 @@ const ScEnvironment = types
     setScEnvironment(rawEnvironment) {
       // Note: if you have partial data vs full data, you need to replace the applySnapshot() with
       // the appropriate logic
-
-      applySnapshot(self, rawEnvironment);
+      const raw = { ...rawEnvironment, connections: self.connections || [] };
+      applySnapshot(self, raw);
     },
     setStatus(status) {
       self.status = status;
+    },
+    setConnections(connections) {
+      self.connections = connections;
     },
   }))
 
@@ -125,10 +129,14 @@ const ScEnvironment = types
       const entry = _.cloneDeep(_.find(states, ['key', self.status]) || _.find(states, ['key', 'UNKNOWN']));
 
       // The canConnect value is also determined by looking at the existing state requirement and
-      // if the connections array is not empty
-      entry.canConnect = entry.canConnect && !_.isEmpty(self.connections);
+      // if we have any connections
+      entry.canConnect = entry.canConnect && self.hasConnections;
 
       return entry;
+    },
+
+    getConnections(filterFn = () => true) {
+      return _.filter(self.connections, filterFn);
     },
   }));
 

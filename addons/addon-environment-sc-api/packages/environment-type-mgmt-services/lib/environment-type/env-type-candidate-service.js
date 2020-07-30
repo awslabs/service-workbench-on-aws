@@ -16,6 +16,7 @@
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
+const { retry } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const envTypeCandidateStatusEnum = require('./helpers/env-type-candidate-status-enum');
 const versionFilterEnum = require('./helpers/env-type-candidate-version-filter-enum');
@@ -69,9 +70,10 @@ class EnvTypeCandidateService extends Service {
     // get service catalog client sdk with the service catalog admin role credentials
     const [aws] = await this.service(['aws']);
     const serviceCatalogClient = await getServiceCatalogClient(aws, this.settings.get(settingKeys.envMgmtRoleArn));
-    const result = await serviceCatalogClient
-      .searchProducts({ SortBy: 'CreationDate', SortOrder: 'DESCENDING' })
-      .promise();
+    const result = await retry(() =>
+      // wrap with retry with exponential backoff in case of throttling errors
+      serviceCatalogClient.searchProducts({ SortBy: 'CreationDate', SortOrder: 'DESCENDING' }).promise(),
+    );
     const products = result.ProductViewSummaries || [];
 
     // Find corresponding SC product versions (aka provisioningArtifacts)
@@ -140,16 +142,22 @@ class EnvTypeCandidateService extends Service {
    * @returns {Promise<*>}
    */
   async toEnvTypeCandidate(serviceCatalogClient, { product, provisioningArtifact }) {
-    const lpResult = await serviceCatalogClient.listLaunchPaths({ ProductId: product.ProductId }).promise();
+    const lpResult = await retry(() =>
+      // wrap with retry with exponential backoff in case of throttling errors
+      serviceCatalogClient.listLaunchPaths({ ProductId: product.ProductId }).promise(),
+    );
     // expecting only one launch path via one portfolio
     const launchPathId = _.get(lpResult, 'LaunchPathSummaries[0].Id');
-    const ppResult = await serviceCatalogClient
-      .describeProvisioningParameters({
-        ProductId: product.ProductId,
-        ProvisioningArtifactId: provisioningArtifact.Id,
-        PathId: launchPathId,
-      })
-      .promise();
+    const ppResult = await retry(() =>
+      // wrap with retry with exponential backoff in case of throttling errors
+      serviceCatalogClient
+        .describeProvisioningParameters({
+          ProductId: product.ProductId,
+          ProvisioningArtifactId: provisioningArtifact.Id,
+          PathId: launchPathId,
+        })
+        .promise(),
+    );
     const params = ppResult.ProvisioningArtifactParameters;
     const environmentType = {
       id: `${product.ProductId}-${provisioningArtifact.Id}`,
@@ -187,12 +195,16 @@ class EnvTypeCandidateService extends Service {
   async toEnvTypeCandidates(serviceCatalogClient, products, versionFilter) {
     const productEnvTypes = await Promise.all(
       _.map(products, async product => {
-        const paResult = await serviceCatalogClient
-          .listProvisioningArtifacts({ ProductId: product.ProductId })
-          .promise();
+        const paResult = await retry(() =>
+          // wrap with retry with exponential backoff in case of throttling errors
+          serviceCatalogClient.listProvisioningArtifacts({ ProductId: product.ProductId }).promise(),
+        );
 
         // Sort versions (provisioningArtifacts) in decending order of creation time (i.e., latest first)
-        let provisioningArtifacts = _.sortBy(paResult.ProvisioningArtifactDetails || [], v => -1 * v.CreatedTime);
+        let provisioningArtifacts = _.sortBy(
+          _.filter(paResult.ProvisioningArtifactDetails || [], pa => pa.Active), // filter out inactive versions
+          v => -1 * v.CreatedTime,
+        );
         const latestVersion = provisioningArtifacts[0];
         latestVersion.isLatest = true;
         provisioningArtifacts = versionFilterEnum.includeOnlyLatest(versionFilter)

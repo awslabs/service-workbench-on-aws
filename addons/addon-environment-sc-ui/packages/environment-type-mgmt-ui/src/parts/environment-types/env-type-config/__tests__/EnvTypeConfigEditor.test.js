@@ -39,6 +39,7 @@ const onEnvTypeConfigSaveComplete = jest.fn();
 describe('EnvTypeConfigEditor', () => {
   let wrapper = null;
   let component = null;
+
   beforeEach(() => {
     // render component
     wrapper = shallow(
@@ -52,6 +53,7 @@ describe('EnvTypeConfigEditor', () => {
 
     // Get instance of the component
     component = wrapper.instance();
+    component.isEditAction = jest.fn(() => true);
 
     // Mock display functions because they don't function correctly in enzyme
     displayErrorMock.displayError = jest.fn(x => x);
@@ -71,24 +73,6 @@ describe('EnvTypeConfigEditor', () => {
     await component.handleFormSubmission(form);
     // CHECK
     expect(envTypeConfigsStore.updateEnvTypeConfig).toHaveBeenCalledWith(expect.objectContaining(ret));
-    expect(onEnvTypeConfigSaveComplete).toHaveBeenCalled();
-    expect(displayErrorMock.displaySuccess).toHaveBeenCalledWith(`Successfully updated ${ret.name} configuration`);
-  });
-
-  it('should update the environment config without changing the id', async () => {
-    // BUILD
-    const ret = { name: 'some_even_newer_name', id: 'a_new_id' };
-    const form = {
-      values: jest.fn(() => {
-        return ret;
-      }),
-    };
-
-    // OPERATE
-    await component.handleFormSubmission(form);
-    // CHECK
-    expect(envTypeConfigsStore.updateEnvTypeConfig).toHaveBeenCalledWith(expect.objectContaining({ name: ret.name }));
-    expect(envTypeConfigsStore.updateEnvTypeConfig).not.toHaveBeenCalledWith(expect.objectContaining({ id: ret.id }));
     expect(onEnvTypeConfigSaveComplete).toHaveBeenCalled();
     expect(displayErrorMock.displaySuccess).toHaveBeenCalledWith(`Successfully updated ${ret.name} configuration`);
   });

@@ -25,11 +25,11 @@ const AuthServiceMock = require('@aws-ee/base-services/lib/authorization/authori
 jest.mock('../../aws-accounts/aws-accounts-service');
 const AWSAccountsServiceMock = require('../../aws-accounts/aws-accounts-service');
 
-jest.mock('../../environment/environment-service');
-const EnvironmentServiceMock = require('../../environment/environment-service');
+jest.mock('../../environment/built-in/environment-service');
+const EnvironmentServiceMock = require('../../environment/built-in/environment-service');
 
-jest.mock('../../environment-sc/environment-sc-service');
-const EnvironmentScServiceMock = require('../../environment-sc/environment-sc-service');
+jest.mock('../../environment/service-catalog/environment-sc-service');
+const EnvironmentScServiceMock = require('../../environment/service-catalog/environment-sc-service');
 
 jest.mock('../../indexes/indexes-service');
 const IndexesServiceMock = require('../../indexes/indexes-service');

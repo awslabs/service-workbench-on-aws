@@ -24,13 +24,11 @@ const baseRaasCfnTemplatesPlugin = require('@aws-ee/base-raas-cfn-templates/dist
 const baseRaasUserAuthzPlugin = require('@aws-ee/base-raas-services/lib/user/user-authz-plugin');
 const environmentTypeRoutesPlugin = require('@aws-ee/environment-type-mgmt-api/lib/plugins/routes-plugin');
 const environmentTypeServicesPlugin = require('@aws-ee/environment-type-mgmt-services/lib/plugins/services-plugin');
-// const notificationsServicesPlugin = require('@aws-ee/notifications-rest-api/lib/plugins/services-plugin');
-// const notificationsRoutesPlugin = require('@aws-ee/notifications-rest-api/lib/plugins/routes-plugin');
 const servicesPlugin = require('services/lib/plugins/services-plugin');
 const baseRaasSchemaPlugin = require('@aws-ee/base-raas-services/lib/plugins/schema-plugin');
-// const baseRaasAppstreamSchemaPlugin = require('@aws-ee/base-raas-appstream-services/lib/plugins/schema-plugin');
 const bassRaasEnvTypeVarsPlugin = require('@aws-ee/base-raas-services/lib/plugins/env-provisioning-plugin');
-// const baseRaasAppstreamSchemaPlugin = require('@aws-ee/base-raas-appstream-services/lib/plugins/schema-plugin');
+const keyPairRoutesPlugin = require('@aws-ee/key-pair-mgmt-api/lib/plugins/routes-plugin');
+const keyPairServicesPlugin = require('@aws-ee/key-pair-mgmt-services/lib/plugins/services-plugin');
 
 const routesPlugin = require('./routes-plugin');
 
@@ -40,8 +38,7 @@ const extensionPoints = {
     baseWfServicesPlugin,
     bassRaasServicesPlugin,
     environmentTypeServicesPlugin,
-    // notificationsServicesPlugin,
-    // baseRaasAppstreamServicesPlugin,
+    keyPairServicesPlugin,
     servicesPlugin,
   ],
   'route': [
@@ -49,7 +46,7 @@ const extensionPoints = {
     baseWfRoutesPlugin,
     baseRaasRoutesPlugin,
     environmentTypeRoutesPlugin,
-    // notificationsRoutesPlugin,
+    keyPairRoutesPlugin,
     routesPlugin,
   ],
   'audit': [baseAuditPlugin],
@@ -69,6 +66,7 @@ const extensionPoints = {
 
   // TODO: Enable app stream plugin again. Temporarily disabled app stream plugin until appropriate extension points are added to provision-account workflow
   'schema': [baseRaasSchemaPlugin /* , baseRaasAppstreamSchemaPlugin */],
+  'env-sc-connection-url': [],
 };
 
 async function getPlugins(extensionPoint) {

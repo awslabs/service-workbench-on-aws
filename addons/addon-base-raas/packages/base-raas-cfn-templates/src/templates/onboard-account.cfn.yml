@@ -9,7 +9,7 @@ Parameters:
 
   CentralAccountId:
     Type: String
-    Description: The account id of the newly created account.
+    Description: The account id of the main AWS account where the solution is deployed.
 
   ExternalId:
     Type: String
@@ -92,6 +92,29 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSServiceCatalogAdminFullAccess
       Policies:
+        - PolicyName: ec2-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ec2:CreateKeyPair
+                - ec2:DeleteKeyPair
+                - ec2:GetPasswordData
+                - ec2:ModifyImageAttribute
+                - ec2:DescribeImages
+                - ec2:DescribeInstances
+                - ec2-instance-connect:SendSSHPublicKey
+              Resource: '*'
+        - PolicyName: ssm-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - ssm:PutParameter
+                - ssm:GetParameter
+                - ssm:GetParameters
+                - ssm:DeleteParameter
+              Resource: '*'
         - PolicyName: cost-explorer-access
           PolicyDocument:
             Statement:

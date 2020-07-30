@@ -19,11 +19,11 @@ const UserService = require('@aws-ee/base-raas-services/lib/user/user-service');
 const UserAttributesMapperService = require('@aws-ee/base-raas-services/lib/user/user-attributes-mapper-service');
 const StudyService = require('@aws-ee/base-raas-services/lib/study/study-service');
 const StudyPermissionService = require('@aws-ee/base-raas-services/lib/study/study-permission-service');
-const EnvironmentService = require('@aws-ee/base-raas-services/lib/environment/environment-service');
-const EnvironmentKeypairService = require('@aws-ee/base-raas-services/lib/environment/environment-keypair-service');
+const EnvironmentService = require('@aws-ee/base-raas-services/lib/environment/built-in/environment-service');
+const EnvironmentKeypairService = require('@aws-ee/base-raas-services/lib/environment/built-in/environment-keypair-service');
 const EnvironmentAmiService = require('@aws-ee/base-raas-services/lib/environment/environment-ami-service');
-const EnvironmentUrlService = require('@aws-ee/base-raas-services/lib/environment/environment-url-service');
-const EnvironmentScNotebookUrlService = require('@aws-ee/base-raas-services/lib/environment-sc/environment-sc-notebook-url-service');
+const EnvironmentUrlService = require('@aws-ee/base-raas-services/lib/environment/built-in/environment-url-service');
+const EnvironmentScConnectionService = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-connection-service');
 const EnvironmentSpotPriceHistoryService = require('@aws-ee/base-raas-services/lib/environment/environment-spot-price-history-service');
 const UserRolesService = require('@aws-ee/base-raas-services/lib/user-roles/user-roles-service');
 const AwsAccountsService = require('@aws-ee/base-raas-services/lib/aws-accounts/aws-accounts-service');
@@ -38,10 +38,11 @@ const ComputePlatformService = require('@aws-ee/base-raas-services/lib/compute/c
 const ComputePriceService = require('@aws-ee/base-raas-services/lib/compute/compute-price-service');
 const EnvironmentAuthzService = require('@aws-ee/base-raas-services/lib/environment/environment-authz-service');
 const EnvironmentMountService = require('@aws-ee/base-raas-services/lib/environment/environment-mount-service');
-const EnvironmentScService = require('@aws-ee/base-raas-services/lib/environment-sc/environment-sc-service');
-const EnvironmentConfigVarsService = require('@aws-ee/base-raas-services/lib/environment-sc/environment-config-vars-service');
 const EnvironmentDnsService = require('@aws-ee/base-raas-services/lib/environment/environment-dns-service');
 const JwtService = require('@aws-ee/base-api-services/lib/jwt-service');
+const EnvironmentScService = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-service');
+const EnvironmentConfigVarsService = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-config-vars-service');
+const EnvironmentScKeypairService = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-keypair-service');
 
 const settingKeys = {
   tablePrefix: 'dbTablePrefix',
@@ -68,7 +69,7 @@ async function registerServices(container, pluginRegistry) {
   container.register('environmentKeypairService', new EnvironmentKeypairService());
   container.register('environmentAmiService', new EnvironmentAmiService());
   container.register('environmentUrlService', new EnvironmentUrlService());
-  container.register('environmentScNotebookUrlService', new EnvironmentScNotebookUrlService());
+  container.register('environmentScConnectionService', new EnvironmentScConnectionService());
   container.register('environmentSpotPriceHistoryService', new EnvironmentSpotPriceHistoryService());
   container.register('environmentMountService', new EnvironmentMountService());
   container.register('environmentDnsService', new EnvironmentDnsService());
@@ -84,6 +85,7 @@ async function registerServices(container, pluginRegistry) {
   container.register('computePriceService', new ComputePriceService());
   container.register('environmentScService', new EnvironmentScService());
   container.register('environmentConfigVarsService', new EnvironmentConfigVarsService());
+  container.register('environmentScKeypairService', new EnvironmentScKeypairService());
   container.register('pluginRegistryService', new PluginRegistryService(pluginRegistry), { lazy: false });
   container.register('jwtService', new JwtService());
 
