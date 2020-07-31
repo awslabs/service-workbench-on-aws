@@ -36,7 +36,12 @@ class FaqSection extends React.Component {
         },
       };
     });
-    return <Accordion active="true" exclusive={false} defaultActiveIndex={[]} panels={optPanels} fluid styled />;
+    return (
+      <div className="mt3 mb3 animated fadeIn">
+        {' '}
+        <Accordion active="true" exclusive={false} defaultActiveIndex={[]} panels={optPanels} fluid styled />
+      </div>
+    );
   }
 }
 

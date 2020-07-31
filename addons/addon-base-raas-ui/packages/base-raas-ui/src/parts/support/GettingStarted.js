@@ -22,8 +22,7 @@ class GettingStarted extends React.Component {
   render() {
     return (
       <Container fluid>
-        <Divider hidden />
-        <div>
+        <div className="mt3 mb3 animated fadeIn">
           <Header as="h2">Quick-Start Guide</Header>
           <Header as="h3">Setting up Users</Header>
           <p>
@@ -46,8 +45,12 @@ class GettingStarted extends React.Component {
             instructions listed. You&#39;ll need the following credentials:
           </p>
           <List bulleted>
-            <List.Item href="https://www.apn-portal.com/knowledgebase/articles/FAQ/Where-Can-I-Find-My-AWS-Account-ID">
-              <b>AWS Account ID</b>
+            <List.Item>
+              <b>AWS Account ID:</b> The ID for your AWS Account. If you do not know where to find this, see{' '}
+              <a href="https://www.apn-portal.com/knowledgebase/articles/FAQ/Where-Can-I-Find-My-AWS-Account-ID">
+                this page
+              </a>
+              .
             </List.Item>
             <List.Item>
               <b>Role ARN:</b> An ARN to an IAM Role to use when launching resources using Galileo. You can find or
@@ -72,9 +75,7 @@ class GettingStarted extends React.Component {
               <a href="https://aws.amazon.com/console/">AWS management console</a>.
             </List.Item>
           </List>
-
           <Divider hidden />
-
           <Header as="h3">Creating Workspaces</Header>
           <p>
             Now that you have a user and have a working AWS account, we can start generating workspaces. Workspaces
@@ -140,9 +141,7 @@ class GettingStarted extends React.Component {
               more information, see the <a href="https://aws.amazon.com/ec2/">EC2 Documentation</a>.
             </List.Item>
           </List>
-
           <Divider hidden />
-
           <Header as="h3">Creating Studies</Header>
           <p>
             Studies are datasets that you can tell Galileo to preload onto your workspaces. When your workspace has

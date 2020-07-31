@@ -20,7 +20,12 @@ import { observer } from 'mobx-react';
 // eslint-disable-next-line react/prefer-stateless-function
 class DevGuide extends React.Component {
   render() {
-    return <Embed url="https://v2.docusaurus.io/" active />;
+    return (
+      <div className="mt3 mb3 animated fadeIn">
+        {' '}
+        <Embed url="https://v2.docusaurus.io/" active />{' '}
+      </div>
+    );
   }
 }
 
