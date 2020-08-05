@@ -5,7 +5,7 @@ postDeployment:
   description: The Post Deployment handler that executes post deployment tasks
   timeout: 900 # 15 min timeout
   environment:
-    APP_DB_TABLE_DEPLOYMENT_STORE: ${self:custom.settings.dbTableDeploymentStore}  
+    APP_DB_TABLE_DEPLOYMENT_STORE: ${self:custom.settings.dbTableDeploymentStore}
     APP_ROOT_USER_NAME: ${self:custom.settings.rootUserName}
     APP_ROOT_USER_FIRST_NAME: ${self:custom.settings.rootUserFirstName}
     APP_ROOT_USER_LAST_NAME: ${self:custom.settings.rootUserLastName}
@@ -26,3 +26,6 @@ postDeployment:
     APP_EDGE_LAMBDA_ARN: ${self:custom.settings.edgeLambdaArn}
     APP_CLOUD_FRONT_ID: ${self:custom.settings.cloudFrontId}
     APP_ENABLE_EXTERNAL_RESEARCHERS: ${self:custom.settings.enableExternalResearchers}
+    APP_CREATE_SERVICE_CATALOG_PORTFOLIO: ${self:custom.settings.createServiceCatalogPortfolio}
+    APP_NAMESPACE: ${self:custom.settings.namespace}
+    APP_DEPLOYMENT_BUCKET_NAME: ${self:custom.settings.deploymentBucketName}

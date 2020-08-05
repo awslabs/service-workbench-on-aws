@@ -43,6 +43,7 @@ Resources:
                 - s3:GetObject
               Resource:
                 - arn:aws:s3:::${self:custom.settings.deploymentBucketName}/saml-metadata/*
+                - arn:aws:s3:::${self:custom.settings.deploymentBucketName}/service-catalog-products/*
         - PolicyName: db-access
           PolicyDocument:
             Statement:
@@ -115,6 +116,24 @@ Resources:
                 Resource:
                   - ${self:custom.settings.edgeLambdaArn}
                   - ${self:custom.settings.edgeLambdaArn}:* # appending ':*' to allow actions on specific versions of the lambda
+        # Testing...
+        - PolicyName: service-catalog-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - servicecatalog:CreatePortfolio
+                - servicecatalog:UpdatePortfolio
+                - servicecatalog:DescribePortfolio
+                - servicecatalog:CreateProduct
+                - servicecatalog:UpdateProduct
+                - servicecatalog:DescribeProduct
+                - servicecatalog:AssociatePrincipalWithPortfolio
+                - servicecatalog:AssociateProductWithPortfolio
+                - servicecatalog:CreateConstraint
+              Resource:
+                - !Sub arn:${AWS::Partition}:servicecatalog:${AWS::Region}:${AWS::AccountId}:*
+                - !Sub arn:${AWS::Partition}:catalog:${AWS::Region}:${AWS::AccountId}:portfolio/*
 
   # =============================================================================================
   # Dynamo db
