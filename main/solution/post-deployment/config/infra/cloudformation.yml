@@ -118,7 +118,6 @@ Resources:
                 Resource:
                   - ${self:custom.settings.edgeLambdaArn}
                   - ${self:custom.settings.edgeLambdaArn}:* # appending ':*' to allow actions on specific versions of the lambda
-        # Testing...
         - PolicyName: service-catalog-access
           PolicyDocument:
             Statement:
