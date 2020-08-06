@@ -133,8 +133,10 @@ Resources:
                 - servicecatalog:AssociatePrincipalWithPortfolio
                 - servicecatalog:AssociateProductWithPortfolio
                 - servicecatalog:CreateConstraint
+                - servicecatalog:ListPortfolios
               Resource:
                 - !Sub arn:${AWS::Partition}:servicecatalog:${AWS::Region}:${AWS::AccountId}:*
+                - !Sub arn:${AWS::Partition}:servicecatalog:${AWS::Region}:${AWS::AccountId}:*/*
                 - !Sub arn:${AWS::Partition}:catalog:${AWS::Region}:${AWS::AccountId}:portfolio/*
                 - !Sub arn:${AWS::Partition}:catalog:${AWS::Region}:${AWS::AccountId}:product/*
 

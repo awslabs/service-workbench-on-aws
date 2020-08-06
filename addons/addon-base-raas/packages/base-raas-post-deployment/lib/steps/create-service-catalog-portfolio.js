@@ -43,19 +43,21 @@ class CreateServiceCatalogPortfolio extends Service {
       this.log.info('Service catalog portfolio creation is disabled. Skipping this step...');
       return;
     }
-
     const aws = await this.service('aws');
     const servicecatalog = new aws.sdk.ServiceCatalog({ apiVersion: '2015-12-10' });
 
-    // guard for checking portfolio exists (would skip new stuff)
-
-    const namespace = this.settings.get(settingKeys.namespace);
-    this.log.info(`Creating portfolio with name ${namespace}`);
+    const displayName = this.settings.get(settingKeys.namespace);
     const portfolioToCreate = {
-      DisplayName: `${namespace}` /* required */,
+      DisplayName: `${displayName}` /* required */,
       ProviderName: '_system_' /* required */,
       Description: 'Created during Galileo post deployment',
     };
+
+    // guard for checking portfolio exists (would skip new stuff)
+    if (await this.duplicateExists(displayName)) {
+      this.log.info(`Portfolio with name ${displayName} already exists. Skipping this step...`);
+      return;
+    }
 
     try {
       const serviceCatalogInfo = await servicecatalog.createPortfolio(portfolioToCreate).promise();
@@ -67,6 +69,28 @@ class CreateServiceCatalogPortfolio extends Service {
       // In case of any error let it bubble up
       throw err;
     }
+  }
+
+  async duplicateExists(displayName) {
+    const aws = await this.service('aws');
+    const servicecatalog = new aws.sdk.ServiceCatalog({ apiVersion: '2015-12-10' });
+
+    // guard for checking portfolio exists
+    const params = { PageSize: 20 };
+    let duplicateHit = false;
+    do {
+      const data = await servicecatalog.listPortfolios(params).promise();
+      params.PageToken = data.NextPageToken;
+
+      _.forEach(data.PortfolioDetails, item => {
+        // eslint-disable-line no-loop-func
+        if (item.DisplayName === displayName) {
+          duplicateHit = true;
+        }
+      });
+    } while (params.PageToken);
+
+    return duplicateHit;
   }
 
   getProductsList() {
@@ -126,12 +150,8 @@ class CreateServiceCatalogPortfolio extends Service {
     const servicecatalog = new aws.sdk.ServiceCatalog({ apiVersion: '2015-12-10' });
     const productsToCreate = this.getProductsList();
 
-    this.log.info(`Creating products for portfolio id ${portfolioId}`);
-
-    const creationPromises = _.map(productsToCreate, async product => {
+    _.map(productsToCreate, async product => {
       try {
-        // Add guard - don't recreate
-
         let productInfo = await servicecatalog.createProduct(product).promise();
         const productId = productInfo.ProductViewDetail.ProductViewSummary.ProductId;
 
@@ -166,15 +186,13 @@ class CreateServiceCatalogPortfolio extends Service {
       params.PrincipalARN = `${roleArn}`;
 
       await servicecatalog.associatePrincipalWithPortfolio(params).promise();
+      this.log.info(`Associated ${envMgmtRoleName} role to portfolio id ${portfolioId}`);
+      await this.createProducts(portfolioId);
     } catch (err) {
       this.log.info(`error ${err}`);
       // In case of any error let it bubble up
       throw err;
     }
-
-    await this.createProducts(portfolioId);
-
-    this.log.info(`Associated ${envMgmtRoleName} role to portfolio id ${portfolioId}`);
   }
 
   async createLaunchConstraint(portfolioId, productId) {
