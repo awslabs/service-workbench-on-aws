@@ -31,12 +31,8 @@ class CreateServiceCatalogPortfolio extends Service {
   }
 
   /*
-   * Pseudo Code:
-   * -- Search for a portfolio with the default namespace; If found, skip
-   * -- If portfolio not found, create portfolio and add products in it
-   * -- Create role and assign to this portfolio
+   * Create a ServiceCatalogPortfolio if not found, create an IAM role and assign it to this portfolio
    */
-
   async createServiceCatalogPortfolio() {
     const createServiceCatalogPortfolio = this.settings.getBoolean(settingKeys.createServiceCatalogPortfolio);
     if (!createServiceCatalogPortfolio) {
