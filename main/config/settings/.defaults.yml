@@ -146,7 +146,8 @@ envMgmtRoleName: ${self:custom.settings.namespace}-EnvMgmt
 # This pattern specified here is used for restricting AWS IAM permissions required by the envMgmtRole role for
 # specific pattern
 # Specify wild-card ( i.e., '*') here to allow any prefix pattern
-launchConstraintRolePrefix: 'raas-sc-*'
+launchConstraintRolePrefix: '${self:custom.settings.namespace}-*'
+launchConstraintRoleName: '${self:custom.settings.namespace}-LaunchConstraint'
 
 # Customer managed policy names' prefix for launch constraint roles.
 # Similar to "launchConstraintRolePrefix" but applicable to customer managed AWS IAM Policies

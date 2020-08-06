@@ -29,3 +29,5 @@ postDeployment:
     APP_CREATE_SERVICE_CATALOG_PORTFOLIO: ${self:custom.settings.createServiceCatalogPortfolio}
     APP_NAMESPACE: ${self:custom.settings.namespace}
     APP_DEPLOYMENT_BUCKET_NAME: ${self:custom.settings.deploymentBucketName}
+    APP_ENV_MGMT_ROLE_NAME: ${self:custom.settings.envMgmtRoleName}
+    APP_LAUNCH_CONSTRAINT_ROLE_NAME: ${self:custom.settings.launchConstraintRoleName}

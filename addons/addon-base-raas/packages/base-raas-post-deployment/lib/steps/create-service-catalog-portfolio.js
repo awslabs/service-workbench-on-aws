@@ -20,13 +20,14 @@ const settingKeys = {
   createServiceCatalogPortfolio: 'createServiceCatalogPortfolio',
   namespace: 'namespace',
   deploymentBucketName: 'deploymentBucketName',
+  envMgmtRoleName: 'envMgmtRoleName',
+  launchConstraintRoleName: 'launchConstraintRoleName',
 };
 
 class CreateServiceCatalogPortfolio extends Service {
   constructor() {
     super();
     this.dependency('aws');
-    this.productIds = [];
   }
 
   /*
@@ -58,9 +59,6 @@ class CreateServiceCatalogPortfolio extends Service {
 
     try {
       const serviceCatalogInfo = await servicecatalog.createPortfolio(portfolioToCreate).promise();
-      // .then(function(serviceCatalogInfo) {
-      //   portfolioId = serviceCatalogInfo.PortfolioDetail.Id;
-      // });
       const portfolioId = serviceCatalogInfo.PortfolioDetail.Id;
       await this.associatePortfolioWithRole(portfolioId);
       this.log.info(`Finished creating service catalog portfolio ${portfolioId}`);
@@ -113,7 +111,7 @@ class CreateServiceCatalogPortfolio extends Service {
             LoadTemplateFromURL: `https://${s3BucketName}.s3.amazonaws.com/${productToCreate}`,
           },
           Type: 'CLOUD_FORMATION_TEMPLATE',
-          Name: 'Artifact', // Could be used as a version id in the future, for now, just a placeholder
+          Name: 'V1.0.0', // Could be used as a version id in the future, for now, just a placeholder
         },
       };
 
@@ -129,7 +127,6 @@ class CreateServiceCatalogPortfolio extends Service {
     const productsToCreate = this.getProductsList();
 
     this.log.info(`Creating products for portfolio id ${portfolioId}`);
-    let productIds = [];
 
     const creationPromises = _.map(productsToCreate, async product => {
       try {
@@ -141,49 +138,34 @@ class CreateServiceCatalogPortfolio extends Service {
         const associationParam = { PortfolioId: portfolioId, ProductId: productId };
         await servicecatalog.associateProductWithPortfolio(associationParam).promise();
 
-        this.log.info(`Product ${productId} created and associated with ${portfolioId}`);
-        productIds.push(productId);
+        await this.createLaunchConstraint(portfolioId, productId);
       } catch (err) {
         this.log.info(`error ${err}`);
         // In case of any error let it bubble up
         throw err;
       }
     });
-    await Promise.all(creationPromises);
-
-    await this.createConstraintForPortfolio(portfolioId, productIds);
-
-    this.log.info('Finished creating products');
   }
 
   async associatePortfolioWithRole(portfolioId) {
     const aws = await this.service('aws');
     const servicecatalog = new aws.sdk.ServiceCatalog({ apiVersion: '2015-12-10' });
     const iam = new aws.sdk.IAM({ apiVersion: '2010-05-08' });
+    const envMgmtRoleName = this.settings.get(settingKeys.envMgmtRoleName);
 
-    const namespace = this.settings.get(settingKeys.namespace);
     const params = {
       PortfolioId: `${portfolioId}` /* required */,
       PrincipalARN: '' /* required */, // Roles generated now
       PrincipalType: 'IAM' /* required */,
     };
 
-    let roleArn;
-
     try {
-      const iamParams = { RoleName: `${namespace}-EnvMgmt` };
-      await iam
-        .getRole(iamParams)
-        .promise()
-        .then(function(res) {
-          roleArn = res.Role.Arn;
-          params.PrincipalARN = `${roleArn}`;
-        });
+      const iamParams = { RoleName: `${envMgmtRoleName}` };
+      const res = await iam.getRole(iamParams).promise();
+      const roleArn = res.Role.Arn;
+      params.PrincipalARN = `${roleArn}`;
 
-      await servicecatalog
-        .associatePrincipalWithPortfolio(params)
-        .promise()
-        .then();
+      await servicecatalog.associatePrincipalWithPortfolio(params).promise();
     } catch (err) {
       this.log.info(`error ${err}`);
       // In case of any error let it bubble up
@@ -192,25 +174,34 @@ class CreateServiceCatalogPortfolio extends Service {
 
     await this.createProducts(portfolioId);
 
-    this.log.info(`Associated EnvMgmtRole to portfolio id ${portfolioId}`);
+    this.log.info(`Associated ${envMgmtRoleName} role to portfolio id ${portfolioId}`);
   }
 
-  async createConstraintForPortfolio(portfolioId, productIds) {
+  async createLaunchConstraint(portfolioId, productId) {
     const aws = await this.service('aws');
     const servicecatalog = new aws.sdk.ServiceCatalog({ apiVersion: '2015-12-10' });
-    const namespace = this.settings.get(settingKeys.namespace);
+    const launchConstraintRoleName = this.settings.get(settingKeys.launchConstraintRoleName);
 
-    // create roles
+    try {
+      // prepare createConstraint params
+      const params = {
+        Parameters: JSON.stringify({
+          LocalRoleName: `${launchConstraintRoleName}`,
+        }) /* required */,
+        PortfolioId: `${portfolioId}` /* required */,
+        ProductId: `${productId}` /* required */,
+        Type: 'LAUNCH' /* required */,
+        Description: `Launch as local role ${launchConstraintRoleName}`,
+      };
 
-    // prepare createConstraint params
-    const params = {
-      Parameters: `{"LocalRoleName": "raas-sc-"` /* required */, //Need to create roles first
-      PortfolioId: `${portfolioId}` /* required */,
-      ProductId: 'STRING_VALUE' /* required */,
-      Type: 'LAUNCH' /* required */,
-    };
-
-    // create Launch Constraints
+      // create Launch Constraint for each product
+      const response = await servicecatalog.createConstraint(params).promise();
+      this.log.info(`Applied constraint role ${launchConstraintRoleName} to product id ${productId}`);
+    } catch (err) {
+      this.log.info(`error ${err}`);
+      // In case of any error let it bubble up
+      throw err;
+    }
   }
 
   async execute() {

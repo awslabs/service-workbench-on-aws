@@ -27,9 +27,11 @@ Resources:
                 # required for associating lambda@edge to cf distro
                 # see https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-edge-permissions.html#lambda-edge-permissions-required
                 - iam:CreateServiceLinkedRole
+                - iam:PassRole
               Resource:
                 - !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/replicator.lambda.amazonaws.com/AWSServiceRoleForLambdaReplicator'
                 - !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/logger.cloudfront.amazonaws.com/AWSServiceRoleForCloudFrontLogger'
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/*'
               Condition:
                 ForAllValues:StringLike:
                   iam:AWSServiceName:
@@ -134,6 +136,43 @@ Resources:
               Resource:
                 - !Sub arn:${AWS::Partition}:servicecatalog:${AWS::Region}:${AWS::AccountId}:*
                 - !Sub arn:${AWS::Partition}:catalog:${AWS::Region}:${AWS::AccountId}:portfolio/*
+                - !Sub arn:${AWS::Partition}:catalog:${AWS::Region}:${AWS::AccountId}:product/*
+
+  ServiceCatalogLaunchConstraintRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ${self:custom.settings.launchConstraintRoleName}
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - servicecatalog.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        # The deployer role needs permissions to deploy CFN stacks and all actions those stacks are performing
+        # The permissions required by stacks are very fluid and dependent on which resources are declared in those
+        # stacks
+        - arn:aws:iam::aws:policy/PowerUserAccess
+      Policies:
+        - PolicyName: ServiceCatalogProductLaunchPermissions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - iam:AttachRolePolicy
+                  - iam:CreateRole
+                  - iam:DeleteRole
+                  - iam:DeleteRolePolicy
+                  - iam:DetachRolePolicy
+                  - iam:GetRole
+                  - iam:GetRolePolicy
+                  - iam:PassRole
+                  - iam:PutRolePolicy
+                  - iam:*TagRole*
+                Resource: '*'
+                Effect: Allow
 
   # =============================================================================================
   # Dynamo db
