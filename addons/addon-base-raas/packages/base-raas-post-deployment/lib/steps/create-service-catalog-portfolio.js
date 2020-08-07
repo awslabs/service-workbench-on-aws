@@ -15,6 +15,25 @@
 
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
+const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
+const EnvTypeCandidateService = require('../../../../../addon-environment-sc-api/packages/environment-type-mgmt-services/lib/environment-type/env-type-candidate-service.js');
+// const {
+//   getServiceCatalogClient,
+// } = require('@aws-ee/environment-type-mgmt-services/lib/environment-type/helpers/env-type-service-catalog-helper');
+
+// To add a new service catalog CfN template, perform the following steps:
+// Add the file in addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/service-catalog
+// Add the filename to this list in the variable below (productsToCreate)
+// Add a case statement in _getProductsList()
+const productsToCreate = [
+  'ec2-linux-instance.cfn.yml',
+  'sagemaker-notebook-instance.cfn.yml',
+  'emr-cluster.cfn.yml',
+  'ec2-windows-instance.cfn.yml',
+];
+
+const autoCreateVersion = 'V1.0';
+const autoCreateDesc = 'Auto-created during post deployment';
 
 const settingKeys = {
   createServiceCatalogPortfolio: 'createServiceCatalogPortfolio',
@@ -27,7 +46,7 @@ const settingKeys = {
 class CreateServiceCatalogPortfolio extends Service {
   constructor() {
     super();
-    this.dependency('aws');
+    this.dependency(['aws', 'jsonSchemaValidationService', 'deploymentStoreService']);
   }
 
   /*
@@ -36,30 +55,35 @@ class CreateServiceCatalogPortfolio extends Service {
   async createServiceCatalogPortfolio() {
     const createServiceCatalogPortfolio = this.settings.getBoolean(settingKeys.createServiceCatalogPortfolio);
     if (!createServiceCatalogPortfolio) {
-      this.log.info('Service catalog portfolio creation is disabled. Skipping this step...');
+      this.log.info('Service catalog portfolio creation is disabled. Skipping this post-deployment step...');
       return;
     }
+
+    // Before we do anything, let's check if the products we're about to add are added already
+    // If yes, skip portfolio creation entirely
+    // if (await this._duplicateExists()) {
+    //   this.log.info(`All products we were about to add already exist. Skipping this post-deployment step...`);
+    //   return;
+    // }
+
     const aws = await this.service('aws');
     const servicecatalog = new aws.sdk.ServiceCatalog({ apiVersion: '2015-12-10' });
 
     const displayName = this.settings.get(settingKeys.namespace);
     const portfolioToCreate = {
-      DisplayName: `${displayName}` /* required */,
+      DisplayName: displayName /* required */,
       ProviderName: '_system_' /* required */,
-      Description: 'Created during Galileo post deployment',
+      Description: autoCreateDesc,
     };
-
-    // guard for checking portfolio exists (would skip new stuff)
-    if (await this.duplicateExists(displayName)) {
-      this.log.info(`Portfolio with name ${displayName} already exists. Skipping this step...`);
-      return;
-    }
 
     try {
       const serviceCatalogInfo = await servicecatalog.createPortfolio(portfolioToCreate).promise();
       const portfolioId = serviceCatalogInfo.PortfolioDetail.Id;
-      await this.associatePortfolioWithRole(portfolioId);
+      await this._associatePortfolioWithRole(portfolioId);
       this.log.info(`Finished creating service catalog portfolio ${portfolioId}`);
+
+      // Portfolio's ready, now let's add products
+      await this.createProducts(portfolioId);
     } catch (err) {
       this.log.info(`error ${err}`);
       // In case of any error let it bubble up
@@ -67,54 +91,36 @@ class CreateServiceCatalogPortfolio extends Service {
     }
   }
 
-  async duplicateExists(displayName) {
-    const aws = await this.service('aws');
-    const servicecatalog = new aws.sdk.ServiceCatalog({ apiVersion: '2015-12-10' });
+  async _duplicateExists() {
+    const envTypesAvailable = EnvTypeCandidateService.list(getSystemRequestContext(), { filter: { status: '*' } });
+    let duplicateProducts = [];
 
-    // guard for checking portfolio exists
-    const params = { PageSize: 20 };
-    let duplicateHit = false;
-    do {
-      const data = await servicecatalog.listPortfolios(params).promise();
-      params.PageToken = data.NextPageToken;
-
-      _.forEach(data.PortfolioDetails, item => {
-        // eslint-disable-line no-loop-func
-        if (item.DisplayName === displayName) {
-          duplicateHit = true;
+    _.map(envTypesAvailable, envTypeAvilable => {
+      _.map(productsToCreate, productToCreate => {
+        if (_.includes(productType, envTypeAvailable)) {
         }
       });
-    } while (params.PageToken);
-
-    return duplicateHit;
+    });
   }
 
-  getProductsList() {
+  _getProductsList() {
     const s3BucketName = this.settings.get(settingKeys.deploymentBucketName);
     const productsList = [];
-
-    const productsToCreate = [
-      'service-catalog-products/ec2-linux-instance.cfn.yml',
-      'service-catalog-products/sagemaker-notebook-instance.cfn.yml',
-      'service-catalog-products/emr-cluster.cfn.yml',
-      'service-catalog-products/ec2-windows-instance.cfn.yml',
-      // List your newly added service catalog CfN templates here, and add a case statement below
-    ];
 
     _.map(productsToCreate, productToCreate => {
       let productName;
 
       switch (productToCreate) {
-        case 'service-catalog-products/ec2-linux-instance.cfn.yml':
+        case 'ec2-linux-instance.cfn.yml':
           productName = 'EC2-Linux';
           break;
-        case 'service-catalog-products/sagemaker-notebook-instance.cfn.yml':
+        case 'sagemaker-notebook-instance.cfn.yml':
           productName = 'Sagemaker';
           break;
-        case 'service-catalog-products/ec2-windows-instance.cfn.yml':
+        case 'ec2-windows-instance.cfn.yml':
           productName = 'EC2-Windows';
           break;
-        case 'service-catalog-products/emr-cluster.cfn.yml':
+        case 'emr-cluster.cfn.yml':
           productName = 'EMR';
           break;
         default:
@@ -123,15 +129,16 @@ class CreateServiceCatalogPortfolio extends Service {
 
       const product = {
         Name: productName,
+        Description: autoCreateDesc,
         Owner: '_system_',
         ProductType: 'CLOUD_FORMATION_TEMPLATE',
         ProvisioningArtifactParameters: {
           DisableTemplateValidation: true, // Ensure provisioning these products in Galileo works
           Info: {
-            LoadTemplateFromURL: `https://${s3BucketName}.s3.amazonaws.com/${productToCreate}`,
+            LoadTemplateFromURL: `https://${s3BucketName}.s3.amazonaws.com/service-catalog-products/${productToCreate}`,
           },
           Type: 'CLOUD_FORMATION_TEMPLATE',
-          Name: 'V1.0.0', // Could be used as a version id in the future, for now, just a placeholder
+          Name: autoCreateVersion, // Could be used as a version id in the future, for now, just a placeholder
         },
       };
 
@@ -144,9 +151,9 @@ class CreateServiceCatalogPortfolio extends Service {
   async createProducts(portfolioId) {
     const aws = await this.service('aws');
     const servicecatalog = new aws.sdk.ServiceCatalog({ apiVersion: '2015-12-10' });
-    const productsToCreate = this.getProductsList();
+    const productsToCreate = this._getProductsList();
 
-    _.map(productsToCreate, async product => {
+    const creationPromises = _.map(productsToCreate, async product => {
       try {
         let productInfo = await servicecatalog.createProduct(product).promise();
         const productId = productInfo.ProductViewDetail.ProductViewSummary.ProductId;
@@ -161,17 +168,28 @@ class CreateServiceCatalogPortfolio extends Service {
         throw err;
       }
     });
+    Promise.all(creationPromises);
   }
 
-  async associatePortfolioWithRole(portfolioId) {
+  async findDeploymentItem({ id }) {
+    const [deploymentStore] = await this.service(['deploymentStoreService']);
+    return deploymentStore.find({ type: 'step-template', id });
+  }
+
+  async createDeploymentItem({ encodedId, yamlStr }) {
+    const [deploymentStore] = await this.service(['deploymentStoreService']);
+    return deploymentStore.createOrUpdate({ type: 'step-template', id: encodedId, value: yamlStr });
+  }
+
+  async _associatePortfolioWithRole(portfolioId) {
     const aws = await this.service('aws');
     const servicecatalog = new aws.sdk.ServiceCatalog({ apiVersion: '2015-12-10' });
     const iam = new aws.sdk.IAM({ apiVersion: '2010-05-08' });
     const envMgmtRoleName = this.settings.get(settingKeys.envMgmtRoleName);
 
     const params = {
-      PortfolioId: `${portfolioId}` /* required */,
-      PrincipalARN: '' /* required */, // Roles generated now
+      PortfolioId: portfolioId /* required */,
+      PrincipalARN: '' /* required */,
       PrincipalType: 'IAM' /* required */,
     };
 
@@ -183,7 +201,6 @@ class CreateServiceCatalogPortfolio extends Service {
 
       await servicecatalog.associatePrincipalWithPortfolio(params).promise();
       this.log.info(`Associated ${envMgmtRoleName} role to portfolio id ${portfolioId}`);
-      await this.createProducts(portfolioId);
     } catch (err) {
       this.log.info(`error ${err}`);
       // In case of any error let it bubble up
@@ -202,14 +219,14 @@ class CreateServiceCatalogPortfolio extends Service {
         Parameters: JSON.stringify({
           LocalRoleName: `${launchConstraintRoleName}`,
         }) /* required */,
-        PortfolioId: `${portfolioId}` /* required */,
-        ProductId: `${productId}` /* required */,
+        PortfolioId: portfolioId /* required */,
+        ProductId: productId /* required */,
         Type: 'LAUNCH' /* required */,
         Description: `Launch as local role ${launchConstraintRoleName}`,
       };
 
       // create Launch Constraint for each product
-      const response = await servicecatalog.createConstraint(params).promise();
+      await servicecatalog.createConstraint(params).promise();
       this.log.info(`Applied constraint role ${launchConstraintRoleName} to product id ${productId}`);
     } catch (err) {
       this.log.info(`error ${err}`);
