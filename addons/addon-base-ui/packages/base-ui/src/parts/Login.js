@@ -219,6 +219,7 @@ class Login extends React.Component {
                       icon="user"
                       iconPosition="left"
                       placeholder="Username"
+                      data-testid="username"
                       value={this.username}
                       onChange={this.handleChange('username')}
                     />
@@ -237,6 +238,7 @@ class Login extends React.Component {
                       icon="lock"
                       iconPosition="left"
                       placeholder="Password"
+                      data-testid="password"
                       value={this.password}
                       type="password"
                       onChange={this.handleChange('password')}
@@ -249,7 +251,16 @@ class Login extends React.Component {
                   </Form.Field>
                 )}
 
-                <Button type="submit" color="blue" fluid basic size="large" className="mb2" onClick={this.handleLogin}>
+                <Button
+                  data-testid="login"
+                  type="submit"
+                  color="blue"
+                  fluid
+                  basic
+                  size="large"
+                  className="mb2"
+                  onClick={this.handleLogin}
+                >
                   Login
                 </Button>
               </Segment>

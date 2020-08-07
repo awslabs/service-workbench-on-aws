@@ -1,0 +1,22 @@
+{
+  "extends": ["plugin:cypress/recommended", "airbnb-base", "prettier"],
+  "plugins": ["cypress", "prettier"],
+  "rules": {
+    "prettier/prettier": ["error"],
+    "no-unused-vars": [
+      "error",
+      {
+        "varsIgnorePattern": "^_.+",
+        "argsIgnorePattern": "^_",
+        "caughtErrorsIgnorePattern": "^_",
+        "args": "after-used",
+        "ignoreRestSiblings": true
+      }
+    ],
+    "prefer-destructuring": 0,
+    "no-underscore-dangle": 0,
+    "no-param-reassign": 0,
+    "class-methods-use-this": 0,
+    "no-use-before-define": 0
+  }
+}

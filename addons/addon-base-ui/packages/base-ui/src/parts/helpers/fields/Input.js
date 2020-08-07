@@ -44,6 +44,7 @@ const Component = observer(
     icon,
     iconPosition,
     showHeader = true,
+    dataTestId = '',
   }) => {
     const { error = '' } = field;
     const hasError = !_.isEmpty(error); // IMPORTANT do NOT use field.hasError
@@ -65,7 +66,7 @@ const Component = observer(
       <div className={c(className, errorClass, disabledClass)}>
         {showHeader && <Header field={field} />}
         <Description field={field} />
-        <Input className="field" {...attrs} />
+        <Input data-testid={dataTestId} className="field" {...attrs} />
         <ErrorPointer field={field} />
       </div>
     );

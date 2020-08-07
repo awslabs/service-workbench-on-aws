@@ -1,0 +1,34 @@
+{
+  "name": "@aws-ee/end-to-end-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "End to end tests for the base-poc solution",
+  "author": "Amazon Web Services",
+  "license": "Apache-2.0",
+  "scripts": {
+    "cypress:open:local": "cypress open -C cypress.local.json",
+    "cypress:open:dev": "cypress open -C cypress.dev.json",
+    "cypress:run-tests:local": "cypress run -C cypress.local.json",
+    "cypress:run-tests:dev": "cypress run -C cypress.dev.json"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged --pattern '**/*.spec.js'"
+    }
+  },
+  "devDependencies": {
+    "cypress": "^4.12.1",
+    "eslint": "^6.8.0",
+    "eslint-config-airbnb": "^18.0.1",
+    "eslint-config-airbnb-base": "^14.0.0",
+    "eslint-config-prettier": "^6.10.0",
+    "eslint-import-resolver-node": "^0.3.3",
+    "eslint-plugin-cypress": "^2.11.1",
+    "eslint-plugin-import": "^2.20.1",
+    "eslint-plugin-jsx-a11y": "^6.2.3",
+    "eslint-plugin-prettier": "^3.1.2",
+    "husky": "^3.1.0",
+    "prettier": "^1.19.1",
+    "pretty-quick": "^1.11.1"
+  }
+}
