@@ -86,6 +86,7 @@ const AuthenticationProviderPublicConfig = types
           // then submit the username/password to the specified URL
           const authenticationProviderId = self.id;
 
+          console.log('public config auth url', self.absoluteSignInUrl);
           const loginResult = await authenticate(self.absoluteSignInUrl, username, password, authenticationProviderId);
 
           // If code reached here means the login was successful.

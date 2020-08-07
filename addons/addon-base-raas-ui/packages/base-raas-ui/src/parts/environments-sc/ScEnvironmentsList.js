@@ -106,7 +106,7 @@ class ScEnvironmentsList extends React.Component {
     const isEmpty = _.isEmpty(list);
 
     return (
-      <div>
+      <div data-testid="workspaces">
         <ScEnvironmentsFilterButtons
           selectedFilter={selectedFilter}
           onSelectedFilter={this.handleSelectedFilter}
@@ -133,7 +133,7 @@ class ScEnvironmentsList extends React.Component {
 
   renderEmpty() {
     return (
-      <Segment placeholder>
+      <Segment data-testid="workspaces" placeholder>
         <Header icon className="color-grey">
           <Icon name="server" />
           No research workspaces
@@ -151,7 +151,13 @@ class ScEnvironmentsList extends React.Component {
           <Header.Content className="left-align">Research Workspaces {this.renderTotal()}</Header.Content>
         </Header>
         <div>
-          <Button color="blue" size="medium" basic onClick={this.handleCreateEnvironment}>
+          <Button
+            data-testid="create-workspace"
+            color="blue"
+            size="medium"
+            basic
+            onClick={this.handleCreateEnvironment}
+          >
             Create Research Workspace
           </Button>
         </div>

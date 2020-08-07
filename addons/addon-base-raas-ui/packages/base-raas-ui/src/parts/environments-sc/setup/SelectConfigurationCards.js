@@ -63,7 +63,12 @@ class SelectConfigurationCards extends React.Component {
     return (
       <Card.Group stackable itemsPerRow={3} className="mt1">
         {_.map(configurations, config => (
-          <Card key={config.id} className={c('mb3', { 'cursor-pointer': !disabled })} {...getAttrs(config)}>
+          <Card
+            data-testid="configuration-card"
+            key={config.id}
+            className={c('mb3', { 'cursor-pointer': !disabled })}
+            {...getAttrs(config)}
+          >
             <Card.Content>
               <Card.Header>
                 <div className="flex mt1">

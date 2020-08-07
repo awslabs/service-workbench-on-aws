@@ -67,7 +67,7 @@ class Dashboard extends React.Component {
 
   renderTitle() {
     return (
-      <div className="mb3 flex">
+      <div data-testid="page-title" className="mb3 flex">
         <Header as="h3" className="color-grey mt1 mb0 flex-auto">
           <Icon name="dashboard" className="align-top" />
           <Header.Content className="left-align">Dashboard</Header.Content>

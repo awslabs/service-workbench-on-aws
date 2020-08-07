@@ -69,7 +69,15 @@ class ScEnvironmentButtons extends React.Component {
           {state.canTerminate && (
             <Modal
               trigger={
-                <Button floated="right" basic color="red" size="mini" className="mt1 mb1" loading={processing}>
+                <Button
+                  data-testid="sc-env-terminate"
+                  floated="right"
+                  basic
+                  color="red"
+                  size="mini"
+                  className="mt1 mb1"
+                  loading={processing}
+                >
                   Terminate
                 </Button>
               }

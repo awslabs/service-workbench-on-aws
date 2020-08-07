@@ -77,6 +77,7 @@ class DropDown extends React.Component {
       className,
       options = [],
       onChange,
+      dataTestId,
     } = this.props;
 
     const { id, value, sync, placeholder, error = '' } = field;
@@ -143,7 +144,7 @@ class DropDown extends React.Component {
       <div className={c(getValue('className', className, DEFAULT_CLASS_NAME), errorClass, disabledClass)}>
         <Header field={field} />
         <Description field={field} />
-        <Dropdown className="field" options={mergeOptions} {...attrs} />
+        <Dropdown data-testid={dataTestId} className="field" options={mergeOptions} {...attrs} />
         <ErrorPointer field={field} />
       </div>
     );
