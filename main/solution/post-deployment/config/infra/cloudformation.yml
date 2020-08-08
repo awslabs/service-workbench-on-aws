@@ -31,12 +31,20 @@ Resources:
               Resource:
                 - !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/replicator.lambda.amazonaws.com/AWSServiceRoleForLambdaReplicator'
                 - !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/logger.cloudfront.amazonaws.com/AWSServiceRoleForCloudFrontLogger'
-                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/*'
               Condition:
                 ForAllValues:StringLike:
                   iam:AWSServiceName:
                     - replicator.lambda.amazonaws.com
                     - logger.cloudfront.amazonaws.com
+        - PolicyName: launch-constraint-access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              Effect: Allow
+              Action:
+                - iam:PassRole
+              Resource:
+                - !GetAtt ServiceCatalogLaunchConstraintRole.Arn
         - PolicyName: s3-access
           PolicyDocument:
             Statement:

@@ -24,13 +24,7 @@ const EnvTypeCandidateService = require('../../../../../addon-environment-sc-api
 // To add a new service catalog CfN template, perform the following steps:
 // Add the file in addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/service-catalog
 // Add the filename to this list in the variable below (productsToCreate)
-// Add a case statement in _getProductsList()
-const productsToCreate = [
-  'ec2-linux-instance.cfn.yml',
-  'sagemaker-notebook-instance.cfn.yml',
-  'emr-cluster.cfn.yml',
-  'ec2-windows-instance.cfn.yml',
-];
+const productsToCreate = ['ec2-linux-instance', 'sagemaker-notebook-instance', 'emr-cluster', 'ec2-windows-instance'];
 
 const autoCreateVersion = 'V1.0';
 const autoCreateDesc = 'Auto-created during post deployment';
@@ -59,12 +53,12 @@ class CreateServiceCatalogPortfolio extends Service {
       return;
     }
 
-    // Before we do anything, let's check if the products we're about to add are added already
-    // If yes, skip portfolio creation entirely
-    // if (await this._duplicateExists()) {
-    //   this.log.info(`All products we were about to add already exist. Skipping this post-deployment step...`);
-    //   return;
-    // }
+    const existingPortfolio = await this.findDeploymentItem({ id: 'default-SC-portfolio-1' });
+    if (existingPortfolio) {
+      //TODO -  call the method that will deal with checking products in the portfolio
+      // const envTypesAvailable = EnvTypeCandidateService.list(getSystemRequestContext(), { filter: { status: '*' } });
+      return;
+    }
 
     const aws = await this.service('aws');
     const servicecatalog = new aws.sdk.ServiceCatalog({ apiVersion: '2015-12-10' });
@@ -84,6 +78,8 @@ class CreateServiceCatalogPortfolio extends Service {
 
       // Portfolio's ready, now let's add products
       await this.createProducts(portfolioId);
+
+      // TODO - create default-SC-portfolio-1 deploymentItem - Need to store to db -> portfolio id, [product id with latest provisioning artifact id]
     } catch (err) {
       this.log.info(`error ${err}`);
       // In case of any error let it bubble up
@@ -91,51 +87,42 @@ class CreateServiceCatalogPortfolio extends Service {
     }
   }
 
-  async _duplicateExists() {
-    const envTypesAvailable = EnvTypeCandidateService.list(getSystemRequestContext(), { filter: { status: '*' } });
-    let duplicateProducts = [];
+  // Possible scenarios:
+  // 1. [happy path] fresh deployment: no portfolio and/or products exists
+  // ===> Post-deployment can create both
+  // 2. [happy path] subsequent deployment: portfolio exists and product also exists,
+  //    and latest provisioning artifact in SC (and cfn content) also matches
+  // ===> Do NOT create anything
+  // 3. [edge case 1] subsequent deployment: portfolio exists and product also exists
+  //    but new provisioning artifact (product version) is created directly in AWS Service Catalog.
+  // ===> We should NOT overwrite anything in this case. (if there is an addition after auto-create version, no need to do anything)
+  // 4. [edge case 2] subsequent deployment: portfolio exists and product also exists
+  //    (but new cfn template in repo) and no new product version is created directly in AWS Service Catalog.
+  // ===> We should NOT create the new product, but we should create a new product version in SC for the same product
 
-    _.map(envTypesAvailable, envTypeAvilable => {
-      _.map(productsToCreate, productToCreate => {
-        if (_.includes(productType, envTypeAvailable)) {
-        }
-      });
-    });
-  }
+  // My notes:
+  // #2
+  // compare hash of cfn template in repo, skip if same
+  // if not, call a function to create new prov artifact version for this product id (covers #4)
+  // #5
+  // check for each product in repo - if not found in db row, create everything for it and add to existing portfolio
+  // #3
+  // Check if this product's stored prov artifact is still available for this product, skip this product if not (this means user made changes/deleted it directly in SC)
 
   _getProductsList() {
     const s3BucketName = this.settings.get(settingKeys.deploymentBucketName);
     const productsList = [];
 
     _.map(productsToCreate, productToCreate => {
-      let productName;
-
-      switch (productToCreate) {
-        case 'ec2-linux-instance.cfn.yml':
-          productName = 'EC2-Linux';
-          break;
-        case 'sagemaker-notebook-instance.cfn.yml':
-          productName = 'Sagemaker';
-          break;
-        case 'ec2-windows-instance.cfn.yml':
-          productName = 'EC2-Windows';
-          break;
-        case 'emr-cluster.cfn.yml':
-          productName = 'EMR';
-          break;
-        default:
-          break;
-      }
-
       const product = {
-        Name: productName,
+        Name: productToCreate,
         Description: autoCreateDesc,
         Owner: '_system_',
         ProductType: 'CLOUD_FORMATION_TEMPLATE',
         ProvisioningArtifactParameters: {
           DisableTemplateValidation: true, // Ensure provisioning these products in Galileo works
           Info: {
-            LoadTemplateFromURL: `https://${s3BucketName}.s3.amazonaws.com/service-catalog-products/${productToCreate}`,
+            LoadTemplateFromURL: `https://${s3BucketName}.s3.amazonaws.com/service-catalog-products/${productToCreate}.cfn.yml`,
           },
           Type: 'CLOUD_FORMATION_TEMPLATE',
           Name: autoCreateVersion, // Could be used as a version id in the future, for now, just a placeholder
@@ -169,16 +156,6 @@ class CreateServiceCatalogPortfolio extends Service {
       }
     });
     Promise.all(creationPromises);
-  }
-
-  async findDeploymentItem({ id }) {
-    const [deploymentStore] = await this.service(['deploymentStoreService']);
-    return deploymentStore.find({ type: 'step-template', id });
-  }
-
-  async createDeploymentItem({ encodedId, yamlStr }) {
-    const [deploymentStore] = await this.service(['deploymentStoreService']);
-    return deploymentStore.createOrUpdate({ type: 'step-template', id: encodedId, value: yamlStr });
   }
 
   async _associatePortfolioWithRole(portfolioId) {
@@ -233,6 +210,16 @@ class CreateServiceCatalogPortfolio extends Service {
       // In case of any error let it bubble up
       throw err;
     }
+  }
+
+  async findDeploymentItem({ id }) {
+    const [deploymentStore] = await this.service(['deploymentStoreService']);
+    return deploymentStore.find({ type: 'post-deployment-step', id });
+  }
+
+  async createDeploymentItem({ id, yamlStr }) {
+    const [deploymentStore] = await this.service(['deploymentStoreService']);
+    return deploymentStore.createOrUpdate({ type: 'post-deployment-step', id: id, value: yamlStr });
   }
 
   async execute() {
