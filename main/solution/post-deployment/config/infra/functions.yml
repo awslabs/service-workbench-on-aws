@@ -31,3 +31,4 @@ postDeployment:
     APP_DEPLOYMENT_BUCKET_NAME: ${self:custom.settings.deploymentBucketName}
     APP_ENV_MGMT_ROLE_NAME: ${self:custom.settings.envMgmtRoleName}
     APP_LAUNCH_CONSTRAINT_ROLE_NAME: ${self:custom.settings.launchConstraintRoleName}
+    APP_ENV_MGMT_ROLE_ARN: !Sub arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${self:custom.settings.envMgmtRoleName}

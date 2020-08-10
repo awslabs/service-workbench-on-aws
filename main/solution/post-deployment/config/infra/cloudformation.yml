@@ -141,6 +141,7 @@ Resources:
                 - servicecatalog:AssociateProductWithPortfolio
                 - servicecatalog:CreateConstraint
                 - servicecatalog:ListPortfolios
+                - servicecatalog:CreateProvisioningArtifact
               Resource:
                 - !Sub arn:${AWS::Partition}:servicecatalog:${AWS::Region}:${AWS::AccountId}:*
                 - !Sub arn:${AWS::Partition}:servicecatalog:${AWS::Region}:${AWS::AccountId}:*/*

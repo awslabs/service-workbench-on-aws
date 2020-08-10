@@ -22,7 +22,7 @@ const AwsServiceMock = require('../../../../../../addon-base/packages/services/l
 const CreateServiceCatalogPortfolio = require('../create-service-catalog-portfolio');
 
 describe('CreateServiceCatalogPortfolio', () => {
-  let createServiceCatalogPortfolioStep = null;
+  const createServiceCatalogPortfolioStep = null;
   beforeEach(async () => {
     // Initialize services container and register dependencies
     const container = new ServicesContainer();
