@@ -14,6 +14,7 @@
  */
 
 const _ = require('lodash');
+const crypto = require('crypto');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
 // const EnvTypeCandidateService = require('../../../../../addon-environment-sc-api/packages/environment-type-mgmt-services/lib/environment-type/env-type-candidate-service.js');
@@ -168,7 +169,7 @@ class CreateServiceCatalogPortfolio extends Service {
     const retProd = {
       productId: productId,
       provisioiningArtifactId: provisioningArtifactId,
-      data: '' /*await this.createHash(documentData)*/,
+      data: this._createHash(documentData),
     };
     return retProd;
   }
@@ -203,7 +204,7 @@ class CreateServiceCatalogPortfolio extends Service {
   async updateProducts(portfolioToUpdate) {
     const envTypeCandidateService = await this.service('envTypeCandidateService');
     const envTypesAvailable = await envTypeCandidateService.list(getSystemRequestContext(), {
-      filter: { status: '*' },
+      filter: { status: ['*'], version: 'latest' },
     });
 
     let envTypeProductNames = [];
@@ -213,39 +214,33 @@ class CreateServiceCatalogPortfolio extends Service {
 
     const updatePromises = _.map(productsToCreate, async productToCreate => {
       if (_.includes(envTypeProductNames, productToCreate)) {
-        // Check if artifact we created exists.
+        // Check if artifact we created exists and is latest.
         const deploymentItem = await this.findDeploymentItem({ id: deploymentItemId });
-        const existingPortfolioValue = JSON.parse(deploymentItem.value);
+        // safeguarding against undefined deploymentItem
+        const existingPortfolioValue = JSON.parse(deploymentItem.value) || {};
         const deployedProducts = existingPortfolioValue.products || [];
         const productFound = deployedProducts.find(x => x.productId === productToCreate);
-        if (!productFound) {
-          // new product, create it
-          const product = this._getProductParam(productToCreate);
-          portfolioToUpdate = await this.createProduct(product, portfolioToUpdate);
-        } else {
-          // check if productFound.provisioiningArtifactId exists in envTypesAvailable's products
+        // If not found here, product must be created in SC manually
+        if (productFound) {
+          // const product = this._getProductParam(productToCreate);
+          // const productData = await this.createProduct(product, portfolioToUpdate);
+          // portfolioToUpdate.products.push(productData);
+          //
+          // find DB productFound.provisioiningArtifactId in envTypesAvailable products
           //
           // If yes, compare hash - new artifact and update deploymentItem if different - else skip
           // const artifactData = await this.getS3Object(productToCreate).promise();    // Latest in S3
           // compute hash of above
-          // // -- If some Lambda@Edge function version is configured on CloudFront then get CodeSha256 for that version
-          // const existingSha256 = existingLambdaArn && (await this.getLambdaCodeSha256(existingLambdaArn));
-          // // -- Get latest CodeSha256 value for the Lambda
-          // const latestSha256 = await this.getLambdaCodeSha256(latestEdgeLambdaArn);
-          // // -- If the CodeSha256 value for the latest Lambda@Edge matches the one that's configured on CloudFront, then
-          // //    -- There is nothing to do. The latest Lambda is already configured on CloudFront. Just return.
-          // if (existingSha256 === latestSha256) {
-          //   this.log.info(
-          //     `Skip updating cloudfront distribution "${cloudFrontId}"". The Lambda@Edge version "${latestEdgeLambdaArn}" is already configured and has latest code.`,
-          //   );
-          //   return;
           //
-          // If artifact does not exist, user either deleted it or this is a different product - skip either way
+          // If the provisioning artifact ids do NOT match then it means the latest product version in SC is not the
+          // same as what we created earlier. This can happen if someone directly
+          // updates the CFN template and pushes newer version in SC
         }
       } else {
-        // product does not exist in envTypesAvailable
+        // Product does not exist in envTypesAvailable. Creating...
         const product = this._getProductParam(productToCreate);
-        portfolioToUpdate = await this.createProduct(product);
+        const productData = await this.createProduct(product, portfolioToUpdate);
+        portfolioToUpdate.products.push(productData);
       }
     });
     await Promise.all(updatePromises);
@@ -272,9 +267,10 @@ class CreateServiceCatalogPortfolio extends Service {
     const data = await servicecatalog.createProvisioningArtifact(params).promise();
   }
 
-  async createHash() {
-    // TODO
-    return 'TempHash';
+  _createHash(strData) {
+    const hash = crypto.createHash('sha256');
+    hash.update(`${strData}`);
+    return hash.digest('hex');
   }
 
   async getS3Object(productName) {
