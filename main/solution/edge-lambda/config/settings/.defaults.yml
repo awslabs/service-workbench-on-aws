@@ -35,6 +35,7 @@ apiUrl: ${cf:${self:custom.settings.backendStackName}.ServiceEndpoint}
 #
 #otherConnectSrc: cloudformation.us-east-2.amazonaws.com cloudformation-fips.us-east-2.amazonaws.com cloudformation.us-east-1.amazonaws.com cloudformation-fips.us-east-1.amazonaws.com cloudformation.us-west-1.amazonaws.com cloudformation-fips.us-west-1.amazonaws.com cloudformation.us-west-2.amazonaws.com cloudformation-fips.us-west-2.amazonaws.com cloudformation.ap-south-1.amazonaws.com cloudformation.ap-northeast-3.amazonaws.com cloudformation.ap-northeast-2.amazonaws.com cloudformation.ap-southeast-1.amazonaws.com cloudformation.ap-southeast-2.amazonaws.com cloudformation.ap-northeast-1.amazonaws.com cloudformation.ca-central-1.amazonaws.com cloudformation.cn-north-1.amazonaws.com.cn cloudformation.cn-northwest-1.amazonaws.com.cn cloudformation.eu-central-1.amazonaws.com cloudformation.eu-west-1.amazonaws.com cloudformation.eu-west-2.amazonaws.com cloudformation.eu-west-3.amazonaws.com cloudformation.sa-east-1.amazonaws.com cloudformation.sa-east-1.amazonaws.com cloudformation.us-gov-west-1.amazonaws.com
 otherConnectSrc: '*.amazonaws.com'
+frameSrc: 'https://awslabs.github.io/galileo-gateway'
 
 # When this flag is set to true, the settings merge logic will override the awsRegion for this stack and
 # force it to us-east-1. This is necessary for Lambda@Edge because edge functions can only be deployed from

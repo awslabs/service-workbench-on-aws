@@ -8,8 +8,8 @@ import faqJson from '../../../faq-questions.json';
 // eslint-disable-next-line react/prefer-stateless-function
 class FaqSection extends React.Component {
   render() {
-    const optPanels = faqJson.categories.map((category) => {
-      const interiorPanels = category.questions.map((question) => {
+    const optPanels = faqJson.categories.map(category => {
+      const interiorPanels = category.questions.map(question => {
         const ret = {
           key: question.title,
           title: question.title,

@@ -37,7 +37,7 @@ function registerMenuItems(itemsMap, { location, appContext }) {
   const canCreateWorkspaces = _.get(appContext, 'userStore.user.capabilities.canCreateWorkspace');
   const canViewDashboard = _.get(appContext, 'userStore.user.capabilities.canViewDashboard');
   const items = new Map([
-    ..._.filter([...itemsMap], (item) => {
+    ..._.filter([...itemsMap], item => {
       if (item[0] === '/dashboard' && !canViewDashboard) return false;
       return true;
     }),

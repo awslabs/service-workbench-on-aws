@@ -30,3 +30,6 @@
 */*/*/config/settings/*.yml
 !*/*/*/config/settings/.defaults.yml
 !*/*/*/config/settings/example*.yml
+
+# Email files?
+*.eml

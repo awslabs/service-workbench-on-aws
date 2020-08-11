@@ -23,7 +23,7 @@ class DevGuide extends React.Component {
     return (
       <div className="mt3 mb3 animated fadeIn">
         {' '}
-        <Embed url="https://v2.docusaurus.io/" active />{' '}
+        <Embed url="https://awslabs.github.io/galileo-gateway/" active />{' '}
       </div>
     );
   }
