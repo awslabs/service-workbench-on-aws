@@ -17,14 +17,11 @@ const _ = require('lodash');
 const crypto = require('crypto');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
-// const EnvTypeCandidateService = require('../../../../../addon-environment-sc-api/packages/environment-type-mgmt-services/lib/environment-type/env-type-candidate-service.js');
-// const {
-//   getServiceCatalogClient,
-// } = require('@aws-ee/environment-type-mgmt-services/lib/environment-type/helpers/env-type-service-catalog-helper');
 
 // To add a new service catalog CfN template, perform the following steps:
 // Add the file in addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/service-catalog
 // Add the filename to this list in the variable below (productsToCreate)
+// Note: Ensure there isn't a product with the same filename already in SC, else it will get skipped during creation
 const productsToCreate = ['ec2-linux-instance', 'sagemaker-notebook-instance', 'emr-cluster', 'ec2-windows-instance'];
 
 const autoCreateVersion = 'V1.0';
@@ -52,13 +49,12 @@ class CreateServiceCatalogPortfolio extends Service {
       return;
     }
 
-    let existingPortfolio = '';
     let portfolioToUpdate = {
       portfolioId: '',
       products: [],
     };
 
-    existingPortfolio = await this.findDeploymentItem({ id: deploymentItemId });
+    const existingPortfolio = await this.findDeploymentItem({ id: deploymentItemId });
     if (!existingPortfolio) {
       // No portfolio was created yet. Creating...
       portfolioToUpdate = await this.createPortfolio(portfolioToUpdate);
@@ -104,36 +100,6 @@ class CreateServiceCatalogPortfolio extends Service {
     return deploymentItem;
   }
 
-  _getAllProductParams() {
-    const productsList = [];
-
-    _.map(productsToCreate, productToCreate => {
-      const product = this._getProductParam(productToCreate);
-      productsList.push(product);
-    });
-
-    return productsList;
-  }
-
-  _getProductParam(productToCreate) {
-    const s3BucketName = this.settings.get(settingKeys.deploymentBucketName);
-    const product = {
-      Name: productToCreate,
-      Description: autoCreateDesc,
-      Owner: '_system_',
-      ProductType: 'CLOUD_FORMATION_TEMPLATE',
-      ProvisioningArtifactParameters: {
-        DisableTemplateValidation: true, // Ensure provisioning these products in Galileo works
-        Info: {
-          LoadTemplateFromURL: `https://${s3BucketName}.s3.amazonaws.com/service-catalog-products/${productToCreate}.cfn.yml`,
-        },
-        Type: 'CLOUD_FORMATION_TEMPLATE',
-        Name: autoCreateVersion, // Could be used as a version id in the future, for now, just a placeholder
-      },
-    };
-    return product;
-  }
-
   async createAllProducts(portfolioToUpdate) {
     const productsList = this._getAllProductParams();
     await Promise.all(
@@ -157,7 +123,6 @@ class CreateServiceCatalogPortfolio extends Service {
     const servicecatalog = new aws.sdk.ServiceCatalog({ apiVersion: '2015-12-10' });
 
     let productInfo = await servicecatalog.createProduct(product).promise();
-    this.log.info('Created a product');
     const productId = productInfo.ProductViewDetail.ProductViewSummary.ProductId;
     const provisioningArtifactId = productInfo.ProvisioningArtifactDetail.Id;
     const documentData = await this.getS3Object(product.Name);
@@ -167,74 +132,62 @@ class CreateServiceCatalogPortfolio extends Service {
     await this.createLaunchConstraint(portfolioToUpdate.portfolioId, productId);
 
     const retProd = {
+      productName: product.Name,
       productId: productId,
-      provisioiningArtifactId: provisioningArtifactId,
+      provisioningArtifactId: provisioningArtifactId,
       data: this._createHash(documentData),
     };
     return retProd;
   }
 
-  async _associatePortfolioWithRole(portfolioId) {
-    const aws = await this.service('aws');
-    const servicecatalog = new aws.sdk.ServiceCatalog({ apiVersion: '2015-12-10' });
-    const iam = new aws.sdk.IAM({ apiVersion: '2010-05-08' });
-    const envMgmtRoleName = this.settings.get(settingKeys.envMgmtRoleName);
-
-    const params = {
-      PortfolioId: portfolioId /* required */,
-      PrincipalARN: '' /* required */,
-      PrincipalType: 'IAM' /* required */,
-    };
-
-    try {
-      const iamParams = { RoleName: envMgmtRoleName };
-      const res = await iam.getRole(iamParams).promise();
-      const roleArn = res.Role.Arn;
-      params.PrincipalARN = roleArn;
-
-      await servicecatalog.associatePrincipalWithPortfolio(params).promise();
-      this.log.info(`Associated ${envMgmtRoleName} role to portfolio id ${portfolioId}`);
-    } catch (err) {
-      this.log.info(`error ${err}`);
-      // In case of any error let it bubble up
-      throw err;
-    }
-  }
-
   async updateProducts(portfolioToUpdate) {
     const envTypeCandidateService = await this.service('envTypeCandidateService');
     const envTypesAvailable = await envTypeCandidateService.list(getSystemRequestContext(), {
-      filter: { status: ['*'], version: 'latest' },
+      filter: { status: ['*'] },
     });
 
-    let envTypeProductNames = [];
+    let ScAvailableProducts = [];
     _.map(envTypesAvailable, obj => {
-      envTypeProductNames.push(obj.product.name);
+      ScAvailableProducts.push({
+        productName: obj.product.name,
+        provisioningArtifactId: obj.provisioningArtifact.id,
+      });
     });
+    const ScAvailableProductNames = ScAvailableProducts.map(p => p.productName);
 
     const updatePromises = _.map(productsToCreate, async productToCreate => {
-      if (_.includes(envTypeProductNames, productToCreate)) {
+      if (_.includes(ScAvailableProductNames, productToCreate)) {
         // Check if artifact we created exists and is latest.
         const deploymentItem = await this.findDeploymentItem({ id: deploymentItemId });
         // safeguarding against undefined deploymentItem
-        const existingPortfolioValue = JSON.parse(deploymentItem.value) || {};
-        const deployedProducts = existingPortfolioValue.products || [];
-        const productFound = deployedProducts.find(x => x.productId === productToCreate);
-        // If not found here, product must be created in SC manually
-        if (productFound) {
-          // const product = this._getProductParam(productToCreate);
-          // const productData = await this.createProduct(product, portfolioToUpdate);
-          // portfolioToUpdate.products.push(productData);
-          //
-          // find DB productFound.provisioiningArtifactId in envTypesAvailable products
-          //
-          // If yes, compare hash - new artifact and update deploymentItem if different - else skip
-          // const artifactData = await this.getS3Object(productToCreate).promise();    // Latest in S3
-          // compute hash of above
-          //
-          // If the provisioning artifact ids do NOT match then it means the latest product version in SC is not the
-          // same as what we created earlier. This can happen if someone directly
-          // updates the CFN template and pushes newer version in SC
+        if (deploymentItem) {
+          const existingPortfolioValue = JSON.parse(deploymentItem.value);
+          const deployedProducts = existingPortfolioValue.products || [];
+          const productFound = deployedProducts.find(p => p.productName === productToCreate);
+          // If product not found in DB, product must be created in SC manually
+          if (productFound) {
+            // Find DB productFound.provisioningArtifactId in envTypesAvailable products
+            const ScProduct = ScAvailableProducts.find(s => s.productName === productToCreate);
+            if (productFound.provisioningArtifactId === ScProduct.provisioningArtifactId) {
+              // If found, compare hash - upload new artifact if different - else skip
+              const artifactData = await this.getS3Object(productToCreate); // Latest in S3
+              const s3DataHash = this._createHash(artifactData);
+              const currentScObjectHash = productFound.data;
+              let productDetails = {
+                productName: productFound.productName,
+                productId: productFound.productId,
+                provisioningArtifactId: productFound.provisioningArtifactId,
+                data: s3DataHash,
+              };
+              if (s3DataHash !== currentScObjectHash) {
+                const newProvisioningId = await this.createProductArtifact(productFound.productId, productToCreate);
+                productDetails.provisioningArtifactId = newProvisioningId;
+              }
+              // Record in DB the latest (or unchanged) product details
+              portfolioToUpdate.products.push(productDetails);
+            }
+            // If the provisioning artifact ids do NOT match, a newer version was pushed in SC for this product name manually
+          }
         }
       } else {
         // Product does not exist in envTypesAvailable. Creating...
@@ -265,12 +218,7 @@ class CreateServiceCatalogPortfolio extends Service {
       ProductId: productId /* required */,
     };
     const data = await servicecatalog.createProvisioningArtifact(params).promise();
-  }
-
-  _createHash(strData) {
-    const hash = crypto.createHash('sha256');
-    hash.update(`${strData}`);
-    return hash.digest('hex');
+    return data.ProvisioningArtifactDetail.Id;
   }
 
   async getS3Object(productName) {
@@ -323,6 +271,69 @@ class CreateServiceCatalogPortfolio extends Service {
 
   async execute() {
     return this.createOrUpdatePortfolio();
+  }
+
+  _createHash(strData) {
+    const hash = crypto.createHash('sha256');
+    hash.update(`${strData}`);
+    return hash.digest('hex');
+  }
+
+  async _associatePortfolioWithRole(portfolioId) {
+    const aws = await this.service('aws');
+    const servicecatalog = new aws.sdk.ServiceCatalog({ apiVersion: '2015-12-10' });
+    const iam = new aws.sdk.IAM({ apiVersion: '2010-05-08' });
+    const envMgmtRoleName = this.settings.get(settingKeys.envMgmtRoleName);
+
+    const params = {
+      PortfolioId: portfolioId /* required */,
+      PrincipalARN: '' /* required */,
+      PrincipalType: 'IAM' /* required */,
+    };
+
+    try {
+      const iamParams = { RoleName: envMgmtRoleName };
+      const res = await iam.getRole(iamParams).promise();
+      const roleArn = res.Role.Arn;
+      params.PrincipalARN = roleArn;
+
+      await servicecatalog.associatePrincipalWithPortfolio(params).promise();
+      this.log.info(`Associated ${envMgmtRoleName} role to portfolio id ${portfolioId}`);
+    } catch (err) {
+      this.log.info(`error ${err}`);
+      // In case of any error let it bubble up
+      throw err;
+    }
+  }
+
+  _getAllProductParams() {
+    const productsList = [];
+
+    _.map(productsToCreate, productToCreate => {
+      const product = this._getProductParam(productToCreate);
+      productsList.push(product);
+    });
+
+    return productsList;
+  }
+
+  _getProductParam(productToCreate) {
+    const s3BucketName = this.settings.get(settingKeys.deploymentBucketName);
+    const product = {
+      Name: productToCreate,
+      Description: autoCreateDesc,
+      Owner: '_system_',
+      ProductType: 'CLOUD_FORMATION_TEMPLATE',
+      ProvisioningArtifactParameters: {
+        DisableTemplateValidation: true, // Ensure provisioning these products in Galileo works
+        Info: {
+          LoadTemplateFromURL: `https://${s3BucketName}.s3.amazonaws.com/service-catalog-products/${productToCreate}.cfn.yml`,
+        },
+        Type: 'CLOUD_FORMATION_TEMPLATE',
+        Name: autoCreateVersion, // Could be used as a version id in the future, for now, just a placeholder
+      },
+    };
+    return product;
   }
 }
 
