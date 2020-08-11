@@ -30,12 +30,6 @@ const autoCreateVersion = 'V1.0';
 const autoCreateDesc = 'Auto-created during post deployment';
 const deploymentItemId = 'default-SC-portfolio-1';
 
-let existingPortfolio = '';
-let portfolioToUpdate = {
-  portfolioId: '',
-  products: [],
-};
-
 const settingKeys = {
   createServiceCatalogPortfolio: 'createServiceCatalogPortfolio',
   namespace: 'namespace',
@@ -57,19 +51,29 @@ class CreateServiceCatalogPortfolio extends Service {
       return;
     }
 
+    let existingPortfolio = '';
+    let portfolioToUpdate = {
+      portfolioId: '',
+      products: [],
+    };
+
     existingPortfolio = await this.findDeploymentItem({ id: deploymentItemId });
     if (!existingPortfolio) {
-      this.createPortfolio();
-      this.log.info('Service catalog portfolio creation completed.');
+      // No portfolio was created yet. Creating...
+      portfolioToUpdate = await this.createPortfolio(portfolioToUpdate);
     } else {
+      const existingPortfolioValue = JSON.parse(existingPortfolio.value);
+      portfolioToUpdate.portfolioId = existingPortfolioValue.portfolioId;
       // Portfolio alreday exists, need to check and update products as necessary
-      this.updateProducts(existingPortfolio.portfolioId);
+      portfolioToUpdate = await this.updateProducts(portfolioToUpdate);
     }
+
     // Either create/update, we'll be updating deploymentItem in DB
-    this.createDeploymentItem({ id: deploymentItemId, yamlStr: JSON.stringify(portfolioToUpdate) });
+    await this.createDeploymentItem({ id: deploymentItemId, strValue: JSON.stringify(portfolioToUpdate) });
+    this.log.info('Service catalog portfolio create/update completed.');
   }
 
-  async createPortfolio() {
+  async createPortfolio(portfolioToUpdate) {
     const aws = await this.service('aws');
     const servicecatalog = new aws.sdk.ServiceCatalog({ apiVersion: '2015-12-10' });
 
@@ -79,6 +83,7 @@ class CreateServiceCatalogPortfolio extends Service {
       ProviderName: '_system_' /* required */,
       Description: autoCreateDesc,
     };
+    let deploymentItem;
 
     try {
       const serviceCatalogInfo = await servicecatalog.createPortfolio(portfolioToCreate).promise();
@@ -89,67 +94,13 @@ class CreateServiceCatalogPortfolio extends Service {
       this.log.info(`Finished creating service catalog portfolio ${portfolioId}`);
 
       // Portfolio's ready, now let's add products
-      await this.createAllProducts();
+      deploymentItem = await this.createAllProducts(portfolioToUpdate);
     } catch (err) {
       this.log.info(`error ${err}`);
       // In case of any error let it bubble up
       throw err;
     }
-  }
-
-  async updateProducts(portfolioId) {
-    const envTypeCandidateService = await this.service('envTypeCandidateService');
-    const envTypesAvailable = envTypeCandidateService.list(getSystemRequestContext(), { filter: { status: '*' } });
-    let productNames = [];
-    _.map(envTypesAvailable, obj => {
-      productNames.push(obj.product.name);
-    });
-
-    const updatePromises = _.map(productsToCreate, async productToCreate => {
-      if (_.includes(productNames, productToCreate)) {
-        // Check if artifact we created exists.
-        const deploymentItem = this.findDeploymentItem({ id: deploymentItemId });
-        const deployedProducts = deploymentItem.products || [];
-        const productFound = deployedProducts.find(x => x.productId === productToCreate);
-        if (!productFound) {
-          // new product, create it
-          const product = this._getProductParam(productToCreate);
-          this.createProduct(product);
-        } else {
-          // check if productFound.provisioiningArtifactId exists in envTypesAvailable's products
-          // If yes, compare hash - new artifact and update deploymentItem if different - else skip
-          // const artifactData = await this.getS3Object(productToCreate).promise();    // Latest in S3
-          // compute hash of above
-          // If artifact does not exist, user either deleted it or this is a different product - skip either way
-        }
-      } else {
-        // product does not exist in envTypesAvailable
-        const product = this._getProductParam(productToCreate);
-        await this.createProduct(product);
-      }
-    });
-    Promise.all(updatePromises);
-  }
-
-  async createProductArtifact() {
-    // TODO
-  }
-
-  async createHash() {
-    // TODO
-    return 'TempHash';
-  }
-
-  async getS3Object(productName) {
-    const aws = await this.service('aws');
-    const s3Client = new aws.sdk.S3();
-    const s3BucketName = this.settings.get(settingKeys.deploymentBucketName);
-    const params = {
-      Bucket: s3BucketName,
-      Key: `service-catalog-products/${productName}.cfn.yml`,
-    };
-    const data = await s3Client.getObject(params).promise();
-    return data.Body.toString('utf-8');
+    return deploymentItem;
   }
 
   _getAllProductParams() {
@@ -182,38 +133,44 @@ class CreateServiceCatalogPortfolio extends Service {
     return product;
   }
 
-  async createAllProducts() {
+  async createAllProducts(portfolioToUpdate) {
     const productsList = this._getAllProductParams();
-    const creationPromises = _.map(productsList, async product => {
-      try {
-        await this.createProduct(product);
-      } catch (err) {
-        this.log.info(`error ${err}`);
-        // In case of any error let it bubble up
-        throw err;
-      }
-    });
-    Promise.all(creationPromises);
+    await Promise.all(
+      _.map(productsList, async product => {
+        try {
+          const productData = await this.createProduct(product, portfolioToUpdate);
+          portfolioToUpdate.products.push(productData);
+        } catch (err) {
+          this.log.info(`error ${err}`);
+          // In case of any error let it bubble up
+          throw err;
+        }
+      }),
+    );
+
+    return portfolioToUpdate;
   }
 
-  async createProduct(product) {
+  async createProduct(product, portfolioToUpdate) {
     const aws = await this.service('aws');
     const servicecatalog = new aws.sdk.ServiceCatalog({ apiVersion: '2015-12-10' });
 
     let productInfo = await servicecatalog.createProduct(product).promise();
+    this.log.info('Created a product');
     const productId = productInfo.ProductViewDetail.ProductViewSummary.ProductId;
     const provisioningArtifactId = productInfo.ProvisioningArtifactDetail.Id;
     const documentData = await this.getS3Object(product.Name);
 
-    portfolioToUpdate.products.push({
-      productId: productId,
-      provisioiningArtifactId: provisioningArtifactId,
-      data: this.createHash(documentData),
-    });
-
     const associationParam = { PortfolioId: portfolioToUpdate.portfolioId, ProductId: productId };
     await servicecatalog.associateProductWithPortfolio(associationParam).promise();
     await this.createLaunchConstraint(portfolioToUpdate.portfolioId, productId);
+
+    const retProd = {
+      productId: productId,
+      provisioiningArtifactId: provisioningArtifactId,
+      data: '' /*await this.createHash(documentData)*/,
+    };
+    return retProd;
   }
 
   async _associatePortfolioWithRole(portfolioId) {
@@ -229,10 +186,10 @@ class CreateServiceCatalogPortfolio extends Service {
     };
 
     try {
-      const iamParams = { RoleName: `${envMgmtRoleName}` };
+      const iamParams = { RoleName: envMgmtRoleName };
       const res = await iam.getRole(iamParams).promise();
       const roleArn = res.Role.Arn;
-      params.PrincipalARN = `${roleArn}`;
+      params.PrincipalARN = roleArn;
 
       await servicecatalog.associatePrincipalWithPortfolio(params).promise();
       this.log.info(`Associated ${envMgmtRoleName} role to portfolio id ${portfolioId}`);
@@ -243,13 +200,101 @@ class CreateServiceCatalogPortfolio extends Service {
     }
   }
 
+  async updateProducts(portfolioToUpdate) {
+    const envTypeCandidateService = await this.service('envTypeCandidateService');
+    const envTypesAvailable = await envTypeCandidateService.list(getSystemRequestContext(), {
+      filter: { status: '*' },
+    });
+
+    let envTypeProductNames = [];
+    _.map(envTypesAvailable, obj => {
+      envTypeProductNames.push(obj.product.name);
+    });
+
+    const updatePromises = _.map(productsToCreate, async productToCreate => {
+      if (_.includes(envTypeProductNames, productToCreate)) {
+        // Check if artifact we created exists.
+        const deploymentItem = await this.findDeploymentItem({ id: deploymentItemId });
+        const existingPortfolioValue = JSON.parse(deploymentItem.value);
+        const deployedProducts = existingPortfolioValue.products || [];
+        const productFound = deployedProducts.find(x => x.productId === productToCreate);
+        if (!productFound) {
+          // new product, create it
+          const product = this._getProductParam(productToCreate);
+          portfolioToUpdate = await this.createProduct(product, portfolioToUpdate);
+        } else {
+          // check if productFound.provisioiningArtifactId exists in envTypesAvailable's products
+          //
+          // If yes, compare hash - new artifact and update deploymentItem if different - else skip
+          // const artifactData = await this.getS3Object(productToCreate).promise();    // Latest in S3
+          // compute hash of above
+          // // -- If some Lambda@Edge function version is configured on CloudFront then get CodeSha256 for that version
+          // const existingSha256 = existingLambdaArn && (await this.getLambdaCodeSha256(existingLambdaArn));
+          // // -- Get latest CodeSha256 value for the Lambda
+          // const latestSha256 = await this.getLambdaCodeSha256(latestEdgeLambdaArn);
+          // // -- If the CodeSha256 value for the latest Lambda@Edge matches the one that's configured on CloudFront, then
+          // //    -- There is nothing to do. The latest Lambda is already configured on CloudFront. Just return.
+          // if (existingSha256 === latestSha256) {
+          //   this.log.info(
+          //     `Skip updating cloudfront distribution "${cloudFrontId}"". The Lambda@Edge version "${latestEdgeLambdaArn}" is already configured and has latest code.`,
+          //   );
+          //   return;
+          //
+          // If artifact does not exist, user either deleted it or this is a different product - skip either way
+        }
+      } else {
+        // product does not exist in envTypesAvailable
+        const product = this._getProductParam(productToCreate);
+        portfolioToUpdate = await this.createProduct(product);
+      }
+    });
+    await Promise.all(updatePromises);
+
+    return portfolioToUpdate;
+  }
+
+  async createProductArtifact(productId, productToCreate) {
+    const aws = await this.service('aws');
+    const servicecatalog = new aws.sdk.ServiceCatalog({ apiVersion: '2015-12-10' });
+    const s3BucketName = this.settings.get(settingKeys.deploymentBucketName);
+    var params = {
+      Parameters: {
+        /* required */
+        Info: {
+          /* required */
+          LoadTemplateFromURL: `https://${s3BucketName}.s3.amazonaws.com/service-catalog-products/${productToCreate}.cfn.yml`,
+        },
+        DisableTemplateValidation: true,
+        Type: CLOUD_FORMATION_TEMPLATE,
+      },
+      ProductId: productId /* required */,
+    };
+    const data = await servicecatalog.createProvisioningArtifact(params).promise();
+  }
+
+  async createHash() {
+    // TODO
+    return 'TempHash';
+  }
+
+  async getS3Object(productName) {
+    const aws = await this.service('aws');
+    const s3Client = new aws.sdk.S3();
+    const s3BucketName = this.settings.get(settingKeys.deploymentBucketName);
+    const params = {
+      Bucket: s3BucketName,
+      Key: `service-catalog-products/${productName}.cfn.yml`,
+    };
+    const data = await s3Client.getObject(params).promise();
+    return data.Body.toString('utf-8');
+  }
+
   async createLaunchConstraint(portfolioId, productId) {
     const aws = await this.service('aws');
     const servicecatalog = new aws.sdk.ServiceCatalog({ apiVersion: '2015-12-10' });
     const launchConstraintRoleName = this.settings.get(settingKeys.launchConstraintRoleName);
 
     try {
-      // prepare createConstraint params
       const params = {
         Parameters: JSON.stringify({
           LocalRoleName: `${launchConstraintRoleName}`,
@@ -275,9 +320,9 @@ class CreateServiceCatalogPortfolio extends Service {
     return deploymentStore.find({ type: 'post-deployment-step', id });
   }
 
-  async createDeploymentItem({ id, yamlStr }) {
+  async createDeploymentItem({ id, strValue }) {
     const [deploymentStore] = await this.service(['deploymentStoreService']);
-    return deploymentStore.createOrUpdate({ type: 'post-deployment-step', id: id, value: yamlStr });
+    return deploymentStore.createOrUpdate({ type: 'post-deployment-step', id: id, value: strValue });
   }
 
   async execute() {

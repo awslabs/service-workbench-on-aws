@@ -18,6 +18,12 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
         - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
       Policies:
+        - PolicyName: assume-role
+          PolicyDocument:
+            Statement:
+              Action: 'sts:AssumeRole'
+              Effect: Allow
+              Resource: !Sub ${self:custom.settings.envMgmtRoleArn}
         - PolicyName: iam-access
           PolicyDocument:
             Version: '2012-10-17'
