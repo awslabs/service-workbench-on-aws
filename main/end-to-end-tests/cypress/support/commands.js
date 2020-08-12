@@ -39,6 +39,8 @@
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
 
+// TODO: Look into using requests for logging in, instead of using the UI
+// https://docs.cypress.io/api/commands/request.html#HTML-form-submissions-using-form-option
 Cypress.Commands.add('login', () => {
   const loginInfo = {
     researcherEmail: Cypress.env('researcherEmail'),
