@@ -108,7 +108,7 @@ class CreateServiceCatalogPortfolio extends Service {
       ProviderName: '_system_' /* required */,
       Description: autoCreateDesc,
     };
-    let portfolioToUpdate = {
+    const portfolioToUpdate = {
       portfolioId: '',
       products: [],
     };
@@ -138,7 +138,7 @@ class CreateServiceCatalogPortfolio extends Service {
 
   async createAllProducts() {
     const productsList = this._getAllProductParams();
-    let productDataList = [];
+    const productDataList = [];
     await Promise.all(
       _.map(productsList, async product => {
         try {
@@ -167,7 +167,7 @@ class CreateServiceCatalogPortfolio extends Service {
     const aws = await this.service('aws');
     const servicecatalog = new aws.sdk.ServiceCatalog({ apiVersion: '2015-12-10' });
 
-    let productInfo = await servicecatalog.createProduct(product).promise();
+    const productInfo = await servicecatalog.createProduct(product).promise();
     const productId = productInfo.ProductViewDetail.ProductViewSummary.ProductId;
     const provisioningArtifactId = productInfo.ProvisioningArtifactDetail.Id;
 
@@ -183,8 +183,8 @@ class CreateServiceCatalogPortfolio extends Service {
 
     const retProd = {
       productName: product.Name,
-      productId: productId,
-      provisioningArtifactId: provisioningArtifactId,
+      productId,
+      provisioningArtifactId,
       data: createHash(productArtifactCfn),
     };
     return retProd;
@@ -196,12 +196,12 @@ class CreateServiceCatalogPortfolio extends Service {
       filter: { status: ['*'] },
     });
 
-    let portfolioToUpdate = {
+    const portfolioToUpdate = {
       portfolioId: existingPortfolioId,
       products: [],
     };
 
-    let scAvailableProducts = _.map(envTypesAvailable, obj => ({
+    const scAvailableProducts = _.map(envTypesAvailable, obj => ({
       productName: obj.product.name,
       provisioningArtifactId: obj.provisioningArtifact.id,
     }));
@@ -224,7 +224,7 @@ class CreateServiceCatalogPortfolio extends Service {
             const cfnTemplateBody = await this.getS3Object(productToCreate.filename); // Latest in S3
             const s3DataHash = createHash(cfnTemplateBody);
             const currentScObjectHash = productFound.data;
-            let productDetails = {
+            const productDetails = {
               productName: productFound.productName,
               productId: productFound.productId,
               provisioningArtifactId: productFound.provisioningArtifactId,
@@ -272,7 +272,7 @@ class CreateServiceCatalogPortfolio extends Service {
     const servicecatalog = new aws.sdk.ServiceCatalog({ apiVersion: '2015-12-10' });
     const s3BucketName = this.settings.get(settingKeys.deploymentBucketName);
     const productToCreate = productsToCreate.find(p => p.filename === productFileName);
-    var params = {
+    const params = {
       Parameters: {
         Info: {
           LoadTemplateFromURL: `https://${s3BucketName}.s3.amazonaws.com/service-catalog-products/${productFileName}.cfn.yml`,
@@ -332,7 +332,7 @@ class CreateServiceCatalogPortfolio extends Service {
 
   async createDeploymentItem({ id, strValue }) {
     const [deploymentStore] = await this.service(['deploymentStoreService']);
-    return deploymentStore.createOrUpdate({ type: 'post-deployment-step', id: id, value: strValue });
+    return deploymentStore.createOrUpdate({ type: 'post-deployment-step', id, value: strValue });
   }
 
   async execute() {
