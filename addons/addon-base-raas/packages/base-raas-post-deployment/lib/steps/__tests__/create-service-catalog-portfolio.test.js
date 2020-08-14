@@ -30,7 +30,6 @@ jest.mock(
 );
 const EnvTypeCandidateServiceMock = require('../../../../../../addon-environment-sc-api/packages/environment-type-mgmt-services/lib/environment-type/env-type-candidate-service');
 const CreateServiceCatalogPortfolio = require('../create-service-catalog-portfolio');
-const JsonSchemaValidationService = require('../../../../../../addon-base/packages/services/lib/json-schema-validation-service');
 
 describe('CreateServiceCatalogPortfolio', () => {
   let service;
@@ -38,7 +37,6 @@ describe('CreateServiceCatalogPortfolio', () => {
   beforeEach(async () => {
     // Initialize services container and register dependencies
     const container = new ServicesContainer();
-    container.register('jsonSchemaValidationService', new JsonSchemaValidationService());
     container.register('log', new Logger());
     container.register('deploymentStoreService', new DeploymentStoreServiceMock());
     container.register('envTypeCandidateService', new EnvTypeCandidateServiceMock());
@@ -108,28 +106,8 @@ describe('CreateServiceCatalogPortfolio', () => {
     service = await container.find('scPortfolioService');
   });
 
-  describe('Create portfolio', () => {
-    it('should fail since DisplayName is empty', async () => {
-      // BUILD
-      // This will assign empty string to portfolioToCreate.DisplayName
-      settings.get = jest.fn(x => '');
-      try {
-        // OPERATE
-        await service.createPortfolio();
-        expect.hasAssertions();
-      } catch (err) {
-        // CHECK
-        expect(err.payload).toBeDefined();
-        const error = err.payload.validationErrors[0];
-        expect(error).toMatchObject({
-          keyword: 'minLength',
-          dataPath: '.DisplayName',
-          message: 'should NOT be shorter than 1 characters',
-        });
-      }
-    });
-
-    it('should NOT fail since portfolioToCreate schema is valid', async () => {
+  describe('Create/update portfolio', () => {
+    it('should NOT fail', async () => {
       // BUILD
       // This will assign 'sample-user-namespace' to portfolioToCreate.DisplayName
       settings.get = jest.fn(x => 'sample-user-namespace');
@@ -160,9 +138,12 @@ describe('CreateServiceCatalogPortfolio', () => {
       }));
       JSON.parse = jest.fn(() => service.findDeploymentItem);
 
-      // OPERATE & CHECK
+      // OPERATE
       // Happy-path: Make sure no exceptions are thrown
       await service.createOrUpdatePortfolio();
+
+      // CHECK
+      expect(service.updateProducts).toHaveBeenCalled();
     });
 
     it('should NOT fail if a previously created one does not exist', async () => {
@@ -173,116 +154,12 @@ describe('CreateServiceCatalogPortfolio', () => {
       service.createPortfolio = jest.fn();
       service.findDeploymentItem = jest.fn(() => undefined);
 
-      // OPERATE & CHECK
+      // OPERATE
       // Happy-path: Make sure no exceptions are thrown
       await service.createOrUpdatePortfolio();
-    });
-  });
 
-  describe('Create product', () => {
-    it('should fail since required param Name is missing', async () => {
-      // BUILD
-      const product = {
-        Description: 'Auto-Create Desc',
-        Owner: '_system_',
-        ProductType: 'CLOUD_FORMATION_TEMPLATE',
-        ProvisioningArtifactParameters: {
-          SampleParam: 'SampleValue',
-        },
-      };
-
-      try {
-        // OPERATE
-        await service.createProduct(product);
-        expect.hasAssertions();
-      } catch (err) {
-        // CHECK
-        expect(err.payload).toBeDefined();
-        const error = err.payload.validationErrors[0];
-        expect(error).toMatchObject({
-          keyword: 'required',
-          params: { missingProperty: 'Name' },
-          message: "should have required property 'Name'",
-        });
-      }
-    });
-
-    it('should fail since param ProductType has invalid value', async () => {
-      // BUILD
-      const product = {
-        Name: 'Auto-Create-Prod',
-        Description: 'Auto-Create Desc',
-        Owner: '_system_',
-        ProductType: 'INVALID_TYPE',
-        ProvisioningArtifactParameters: {
-          SampleParam: 'SampleValue',
-        },
-      };
-
-      try {
-        // OPERATE
-        await service.createProduct(product);
-        expect.hasAssertions();
-      } catch (err) {
-        // CHECK
-        expect(err.payload).toBeDefined();
-        const error = err.payload.validationErrors[0];
-        expect(error).toMatchObject({
-          keyword: 'enum',
-          dataPath: '.ProductType',
-          params: { allowedValues: ['CLOUD_FORMATION_TEMPLATE', 'MARKETPLACE'] },
-          message: 'should be equal to one of the allowed values',
-        });
-      }
-    });
-
-    it('should NOT fail since product object is valid', async () => {
-      // BUILD
-      const product = {
-        Name: 'Auto-Create-Prod',
-        Description: 'Auto-Create Desc',
-        Owner: '_system_',
-        ProductType: 'CLOUD_FORMATION_TEMPLATE',
-        ProvisioningArtifactParameters: {
-          SampleParam: 'SampleValue',
-        },
-      };
-
-      // OPERATE
-      // Happy-path: Make sure no exceptions are thrown
-      await service.createProduct(product);
-    });
-  });
-
-  describe('Create provisioning artifact', () => {
-    it('should fail since required param productId is missing', async () => {
-      // BUILD
-      const productId = undefined;
-      const productToCreate = 'SampleProd';
-      try {
-        // OPERATE
-        await service.createProductArtifact(productId, productToCreate);
-        expect.hasAssertions();
-      } catch (err) {
-        // CHECK
-        expect(err.payload).toBeDefined();
-        const error = err.payload.validationErrors[0];
-        expect(error).toMatchObject({
-          keyword: 'required',
-          params: { missingProperty: 'ProductId' },
-          message: "should have required property 'ProductId'",
-        });
-      }
-    });
-
-    it('should NOT fail since product params are valid', async () => {
-      // BUILD
-      const productId = 'SampleProductId';
-      const productToCreate = 'SampleProd';
-
-      // OPERATE
-      // Happy-path: Make sure no exceptions are thrown
-      await service.createProductArtifact(productId, productToCreate);
+      // CHECK
+      expect(service.createPortfolio).toHaveBeenCalled();
     });
   });
 });

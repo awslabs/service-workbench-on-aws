@@ -17,9 +17,6 @@ const _ = require('lodash');
 const { createHash } = require('@aws-ee/base-services/lib/helpers/utils');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
-const createPortfolioSchema = require('./schema/create-portfolio');
-const createProductSchema = require('./schema/create-product');
-const createProvisioningArtifactSchema = require('./schema/create-provisioning-artifact');
 
 // To add a new service catalog CfN template,
 // Add the file in addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/service-catalog
@@ -40,7 +37,7 @@ const productsToCreate = [
   {
     filename: 'ec2-linux-instance',
     displayName: 'EC2 Linux',
-    description: `* An EC2 Linux instance with SSH access \n* Secure, resizable compute in the cloud`,
+    description: `* An EC2 Linux instance with SSH access \n* Secure compute in the cloud`,
   },
   {
     filename: 'sagemaker-notebook-instance',
@@ -57,7 +54,7 @@ const productsToCreate = [
   {
     filename: 'ec2-windows-instance',
     displayName: 'EC2 Windows',
-    description: `* An EC2 Windows instance with RDP access \n* Secure, resizable compute in the cloud`,
+    description: `* An EC2 Windows instance with RDP access \n* Secure compute in the cloud`,
   },
 ];
 
@@ -76,7 +73,7 @@ const settingKeys = {
 class CreateServiceCatalogPortfolio extends Service {
   constructor() {
     super();
-    this.dependency(['aws', 'jsonSchemaValidationService', 'deploymentStoreService', 'envTypeCandidateService']);
+    this.dependency(['aws', 'deploymentStoreService', 'envTypeCandidateService']);
   }
 
   async createOrUpdatePortfolio() {
@@ -103,7 +100,7 @@ class CreateServiceCatalogPortfolio extends Service {
   }
 
   async createPortfolio() {
-    const [aws, validationService] = await this.service(['aws', 'jsonSchemaValidationService']);
+    const aws = await this.service('aws');
     const servicecatalog = new aws.sdk.ServiceCatalog({ apiVersion: '2015-12-10' });
     const displayName = this.settings.get(settingKeys.namespace);
     const portfolioToCreate = {
@@ -116,7 +113,6 @@ class CreateServiceCatalogPortfolio extends Service {
       products: [],
     };
 
-    await validationService.ensureValid(portfolioToCreate, createPortfolioSchema);
     try {
       const serviceCatalogInfo = await servicecatalog.createPortfolio(portfolioToCreate).promise();
       const portfolioId = serviceCatalogInfo.PortfolioDetail.Id;
@@ -168,10 +164,9 @@ class CreateServiceCatalogPortfolio extends Service {
   }
 
   async createProduct(product) {
-    const [aws, validationService] = await this.service(['aws', 'jsonSchemaValidationService']);
+    const aws = await this.service('aws');
     const servicecatalog = new aws.sdk.ServiceCatalog({ apiVersion: '2015-12-10' });
 
-    await validationService.ensureValid(product, createProductSchema);
     let productInfo = await servicecatalog.createProduct(product).promise();
     const productId = productInfo.ProductViewDetail.ProductViewSummary.ProductId;
     const provisioningArtifactId = productInfo.ProvisioningArtifactDetail.Id;
@@ -273,7 +268,7 @@ class CreateServiceCatalogPortfolio extends Service {
   }
 
   async createProductArtifact(productId, productFileName) {
-    const [aws, validationService] = await this.service(['aws', 'jsonSchemaValidationService']);
+    const aws = await this.service('aws');
     const servicecatalog = new aws.sdk.ServiceCatalog({ apiVersion: '2015-12-10' });
     const s3BucketName = this.settings.get(settingKeys.deploymentBucketName);
     const productToCreate = productsToCreate.find(p => p.filename === productFileName);
@@ -288,7 +283,6 @@ class CreateServiceCatalogPortfolio extends Service {
       ProductId: productId,
       Description: productToCreate.description || autoCreateDesc,
     };
-    await validationService.ensureValid(params, createProvisioningArtifactSchema);
     const data = await servicecatalog.createProvisioningArtifact(params).promise();
     return data.ProvisioningArtifactDetail.Id;
   }
