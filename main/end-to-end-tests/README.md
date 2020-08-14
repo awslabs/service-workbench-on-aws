@@ -21,7 +21,7 @@ The **baseUrl** for `cypress.local.json` should be `http://localhost:3000` while
 Example of what the other variable values could be is shown below.
 
 ![projects](./instruction-assets/projects.png)
-**projectId**
+**projectId**: GalCrossAccount2Project
 
 ![workspaces](./instruction-assets/workspaces.png)
 **sagemaker-workspaceTypeName:** sagemaker-notebook-instances
@@ -31,7 +31,7 @@ Example of what the other variable values could be is shown below.
 **sagemaker-configuration:** sagemaker-medium
 
 ### Running tests
-**Locally**
+#### Locally
 
 To run the E2E tests against your local Galileo environment, make sure that you have a `cypress.local.json` config file. Also make sure that your environment is currently accessible at `http://localhost:3000`. 
 
@@ -39,7 +39,7 @@ Run this command: `pnpm run cypress:run-tests:local`
 
 You can also see the tests live by running: `pnpm run cypress:open:local`
 
-**Hosted Dev Environment**
+#### Hosted Dev Environment
 
 To run the E2E tests against your hosted dev environment, make sure that you have a `cypress.dev.json` config file. Also make sure that your environment is currently accessible at the **baseUrl** specified in `cypress.dev.json`. 
 
