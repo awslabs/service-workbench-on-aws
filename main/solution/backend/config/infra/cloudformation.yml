@@ -696,9 +696,7 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              AWS:
-                - !GetAtt RoleApiHandler.Arn
-                - !GetAtt RoleWorkflowLoopRunner.Arn
+              AWS: !Sub ${AWS::AccountId}
             Action: 'sts:AssumeRole'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSServiceCatalogAdminFullAccess
