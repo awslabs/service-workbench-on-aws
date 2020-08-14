@@ -100,6 +100,6 @@ describe('Launch a new sagemaker workspace', () => {
     // Check that the workspace you created is in PENDING mode
     cy.contains(workspaceName)
       .parent()
-      .contains('PENDING');
+      .contains('PENDING', { timeout: 600000 });
   };
 });
