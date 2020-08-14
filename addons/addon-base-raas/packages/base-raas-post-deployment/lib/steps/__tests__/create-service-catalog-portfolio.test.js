@@ -19,12 +19,16 @@ const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
 // Mocked dependencies
 jest.mock('../../../../../../addon-base/packages/services/lib/aws/aws-service');
 const AwsServiceMock = require('../../../../../../addon-base/packages/services/lib/aws/aws-service');
+
 jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
 const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
+
 jest.mock('../../../../../../addon-base/packages/services/lib/db-service');
 const DbServiceMock = require('../../../../../../addon-base/packages/services/lib/db-service');
+
 jest.mock('../../../../../../addon-base-post-deployment/packages/base-post-deployment/lib/deployment-store-service');
 const DeploymentStoreServiceMock = require('../../../../../../addon-base-post-deployment/packages/base-post-deployment/lib/deployment-store-service');
+
 jest.mock(
   '../../../../../../addon-environment-sc-api/packages/environment-type-mgmt-services/lib/environment-type/env-type-candidate-service',
 );
