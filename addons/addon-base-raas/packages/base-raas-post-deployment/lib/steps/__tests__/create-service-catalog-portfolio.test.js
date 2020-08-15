@@ -13,6 +13,7 @@
  *  permissions and limitations under the License.
  */
 
+// TODO: Remove extra classes if found a better way
 /* eslint:disable:max-classes-per-file */
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
 const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
