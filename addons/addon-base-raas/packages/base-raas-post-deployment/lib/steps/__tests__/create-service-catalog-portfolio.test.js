@@ -13,15 +13,16 @@
  *  permissions and limitations under the License.
  */
 
+/* eslint:disable:max-classes-per-file */
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
 const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
+
+jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
+const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
 
 // Mocked dependencies
 jest.mock('../../../../../../addon-base/packages/services/lib/aws/aws-service');
 const AwsServiceMock = require('../../../../../../addon-base/packages/services/lib/aws/aws-service');
-
-jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
-const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
 
 jest.mock('../../../../../../addon-base/packages/services/lib/db-service');
 const DbServiceMock = require('../../../../../../addon-base/packages/services/lib/db-service');
@@ -38,6 +39,9 @@ const CreateServiceCatalogPortfolio = require('../create-service-catalog-portfol
 describe('CreateServiceCatalogPortfolio', () => {
   let service;
   let aws;
+  let envTypeCandidateService;
+  let settings;
+  let loggingService;
   beforeEach(async () => {
     // Initialize services container and register dependencies
     const container = new ServicesContainer();
@@ -114,7 +118,7 @@ describe('CreateServiceCatalogPortfolio', () => {
     it('should NOT fail', async () => {
       // BUILD
       // This will assign 'sample-user-namespace' to portfolioToCreate.DisplayName
-      settings.get = jest.fn(x => 'sample-user-namespace');
+      settings.get = jest.fn(() => 'sample-user-namespace');
       service.getS3Object = jest.fn();
 
       // OPERATE & CHECK
@@ -124,8 +128,8 @@ describe('CreateServiceCatalogPortfolio', () => {
 
     it('should NOT fail if a previously created one exists', async () => {
       // BUILD
-      settings.getBoolean = jest.fn(x => true);
-      settings.get = jest.fn(x => 'sample-user-namespace');
+      settings.getBoolean = jest.fn(() => true);
+      settings.get = jest.fn(() => 'sample-user-namespace');
       service.updateProducts = jest.fn();
       service.findDeploymentItem = jest.fn(() => ({
         value: {
@@ -152,9 +156,9 @@ describe('CreateServiceCatalogPortfolio', () => {
 
     it('should NOT fail if a previously created one does not exist', async () => {
       // BUILD
-      settings.getBoolean = jest.fn(x => true);
+      settings.getBoolean = jest.fn(() => true);
       // This will assign 'sample-user-namespace' to portfolioToCreate.DisplayName
-      settings.get = jest.fn(x => 'sample-user-namespace');
+      settings.get = jest.fn(() => 'sample-user-namespace');
       service.createPortfolio = jest.fn();
       service.findDeploymentItem = jest.fn(() => undefined);
 
