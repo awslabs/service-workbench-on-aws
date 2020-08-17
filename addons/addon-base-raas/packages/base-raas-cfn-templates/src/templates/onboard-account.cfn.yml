@@ -264,6 +264,14 @@ Resources:
               Action:
                 - ce:*
               Resource: '*'
+        - PolicyName: budget-access
+            PolicyDocument:
+              Statement:
+                Effect: Allow
+                Action:
+                  - budgets:ViewBudget
+                  - budgets:ModifyBudget
+                Resource: '*'
         - PolicyName: s3-access
           PolicyDocument:
             Statement:

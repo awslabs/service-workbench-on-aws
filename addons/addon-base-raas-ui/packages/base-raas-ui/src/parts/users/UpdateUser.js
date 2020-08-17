@@ -221,6 +221,8 @@ class UpdateUser extends React.Component {
     const identityProviderOptions = this.getIdentityProviderOptions();
     const userRoleOptions = this.getUserRoleOptions();
     const projectIdOptions = this.getProjectOptions();
+    console.log(projectIdOptions);
+    console.log(projectIdOptions);
 
     const isInternalUser = this.userRolesStore.isInternalUser(userRoleField.value);
     const isInternalGuest = this.userRolesStore.isInternalGuest(userRoleField.value);
