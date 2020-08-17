@@ -9,13 +9,13 @@
     "workspaces": {
       "sagemaker": {
         "workspaceTypeName": "<NAME OF SAGEMAKER WORKSPACE TYPE>",
-        "projectId": "<PROJECT TO LAUNCH SAGEMAKER WORKSPACE IN>",
-        "configuration": "<SAGEMAKER WORKSPACE CONFIGURATION>"
+        "configuration": "<SAGEMAKER WORKSPACE CONFIGURATION>",
+        "projectId": "<PROJECT TO LAUNCH SAGEMAKER WORKSPACE IN>"
       },
       "ec2": {
         "workspaceTypeName": "<NAME OF EC2 WORKSPACE TYPE>",
-        "projectId": "<PROJECT TO LAUNCH EC2 WORKSPACE IN>",
-        "configuration": "<EC2 WORKSPACE CONFIGURATION>"
+        "configuration": "<EC2 WORKSPACE CONFIGURATION>",
+        "projectId": "<PROJECT TO LAUNCH EC2 WORKSPACE IN>"
       }
     }
   },
