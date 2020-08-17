@@ -29,14 +29,14 @@ const platforms = [
     type: 'ec2-linux',
     title: 'EC2 - Linux',
     displayOrder: 4,
-    desc: `Secure, resizable compute in the cloud`,
+    desc: `Secure compute in the cloud`,
   },
   {
     id: 'ec2-windows-1',
     type: 'ec2-windows',
     title: 'EC2 - Windows',
     displayOrder: 5,
-    desc: `Secure, resizable compute in the cloud`,
+    desc: `Secure compute in the cloud`,
   },
 ];
 
