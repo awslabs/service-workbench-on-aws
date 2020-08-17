@@ -14,17 +14,18 @@ To run the E2E tests, you will need the following items:
 * A configured EC2 workspace
 * A configured Sagemaker workspace
 
-Once you've confirmed that you have the items above setup, you can create a `cypress.dev.json` and a `cypress.local.json` file with the configurations needed for your tests. You can use `cypress.json` as a template for your new configuration files.
+Once you've confirmed that you have the items above setup, you can create a `cypress.dev.json` and a `cypress.local.json` file with the configurations needed for your tests. You can use `cypress.json` as a template for your new configuration files. An example file is included as `cypress.local.example.json`
 
 The **baseUrl** for `cypress.local.json` should be `http://localhost:3000` while the **baseUrl** for `cypress.dev.json` should be the cloudfront url for your Galileo instance. Something like `https://abcd1234.cloudfront.net`
 
 Example of what the other variable values could be is shown below.
 
 ![projects](./instruction-assets/projects.png)
-**projectId**: GalCrossAccount2Project
+**projectId**: GalCrossAccountProject
 
 ![workspaces](./instruction-assets/workspaces.png)
 **sagemaker-workspaceTypeName:** sagemaker-notebook-instances
+
 **ec2-workspaceTypeName:** ec2-linux-instance
 
 ![workspace-configuration](./instruction-assets/workspace-configuration.png) 
