@@ -141,13 +141,8 @@ class CreateServiceCatalogPortfolio extends Service {
     const productDataList = [];
     await Promise.all(
       _.map(productsList, async product => {
-        try {
-          const productData = await this.createProduct(product);
-          productDataList.push(productData);
-        } catch (err) {
-          // In case of any error let it bubble up
-          throw err;
-        }
+        const productData = await this.createProduct(product);
+        productDataList.push(productData);
       }),
     );
 
