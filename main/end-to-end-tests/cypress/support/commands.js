@@ -41,6 +41,9 @@
 
 // TODO: Look into using requests for logging in, instead of using the UI
 // https://docs.cypress.io/api/commands/request.html#HTML-form-submissions-using-form-option
+
+// TODO: If an environment is configured with an Identity Provider, the login steps needs to select an
+// identity provider
 Cypress.Commands.add('login', () => {
   const loginInfo = {
     researcherEmail: Cypress.env('researcherEmail'),

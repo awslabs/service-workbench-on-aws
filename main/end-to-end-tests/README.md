@@ -1,6 +1,6 @@
 # Cypress End to End Testing
 
-This package runs End to End tests on Galileo from the perspective of a customer. While unit tests helps ensure that each component works as designed, E2E tests will helps us that the components still fit together as a whole. 
+This package runs End to End tests on Galileo from the perspective of a customer. While unit tests helps ensure that each component works as designed, E2E tests will help us ensure that the components still fit together as a whole. 
 
 To see videos of the test cases that are covered, please check out the videos in `test-case-videos`. Each test case in `cypress/integration` will have a corresponding video saved in `test-case-videos`. The video shows what the test looks like when it passes.
 
