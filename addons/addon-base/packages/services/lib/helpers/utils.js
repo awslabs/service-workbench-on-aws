@@ -14,6 +14,7 @@
  */
 
 const _ = require('lodash');
+const crypto = require('crypto');
 
 function toVersionString(num) {
   return `v${_.padStart(num, 4, '0')}_`;
@@ -35,6 +36,17 @@ async function runAndCatch(fn, handler, code = 'ConditionalCheckFailedException'
 
     throw error;
   }
+}
+
+/**
+ * A utility function for creating a SHA256 hash for the given string
+ *
+ * @param {String} strData
+ */
+function createHash(strData) {
+  const hash = crypto.createHash('sha256');
+  hash.update(`${strData}`);
+  return hash.digest('hex');
 }
 
 /**
@@ -233,4 +245,5 @@ module.exports = {
   randomString,
   paginatedList,
   paginatedFind,
+  createHash,
 };

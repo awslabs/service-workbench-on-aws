@@ -21,11 +21,6 @@ custom:
   settings: ${file(./config/settings/.settings.js):merged}
   tags:
     Name: ${self:custom.settings.envName}-${self:service}
-  remover:
-    prompt: false
-    buckets:
-      - ${self:custom.settings.cicdAppArtifactBucketName}
-      - ${self:custom.settings.deploymentBucketName}
   hooks:
     'aws:deploy:finalize:cleanup':
       - scripts/upload-env-config.bash ${self:provider.profile} ${self:provider.deploymentBucket} ${self:custom.settings.stgEnvName}
@@ -38,4 +33,3 @@ resources:
 plugins:
   - serverless-deployment-bucket
   - serverless-hooks-plugin
-  - serverless-s3-remover

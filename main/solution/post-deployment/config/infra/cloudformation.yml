@@ -18,6 +18,12 @@ Resources:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
         - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
       Policies:
+        - PolicyName: assume-role
+          PolicyDocument:
+            Statement:
+              Action: 'sts:AssumeRole'
+              Effect: Allow
+              Resource: !Sub ${self:custom.settings.envMgmtRoleArn}
         - PolicyName: iam-access
           PolicyDocument:
             Version: '2012-10-17'
@@ -27,6 +33,7 @@ Resources:
                 # required for associating lambda@edge to cf distro
                 # see https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/lambda-edge-permissions.html#lambda-edge-permissions-required
                 - iam:CreateServiceLinkedRole
+                - iam:GetRole
               Resource:
                 - !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/replicator.lambda.amazonaws.com/AWSServiceRoleForLambdaReplicator'
                 - !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/logger.cloudfront.amazonaws.com/AWSServiceRoleForCloudFrontLogger'
@@ -35,6 +42,15 @@ Resources:
                   iam:AWSServiceName:
                     - replicator.lambda.amazonaws.com
                     - logger.cloudfront.amazonaws.com
+        - PolicyName: launch-constraint-access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              Effect: Allow
+              Action:
+                - iam:PassRole
+              Resource:
+                - !GetAtt ServiceCatalogLaunchConstraintRole.Arn
         - PolicyName: s3-access
           PolicyDocument:
             Statement:
@@ -43,6 +59,7 @@ Resources:
                 - s3:GetObject
               Resource:
                 - arn:aws:s3:::${self:custom.settings.deploymentBucketName}/saml-metadata/*
+                - arn:aws:s3:::${self:custom.settings.deploymentBucketName}/service-catalog-products/*
         - PolicyName: db-access
           PolicyDocument:
             Statement:
@@ -115,7 +132,63 @@ Resources:
                 Resource:
                   - ${self:custom.settings.edgeLambdaArn}
                   - ${self:custom.settings.edgeLambdaArn}:* # appending ':*' to allow actions on specific versions of the lambda
+        - PolicyName: service-catalog-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - servicecatalog:CreatePortfolio
+                - servicecatalog:UpdatePortfolio
+                - servicecatalog:DescribePortfolio
+                - servicecatalog:CreateProduct
+                - servicecatalog:UpdateProduct
+                - servicecatalog:DescribeProduct
+                - servicecatalog:AssociatePrincipalWithPortfolio
+                - servicecatalog:AssociateProductWithPortfolio
+                - servicecatalog:CreateConstraint
+                - servicecatalog:ListPortfolios
+                - servicecatalog:CreateProvisioningArtifact
+              Resource:
+                - !Sub arn:${AWS::Partition}:servicecatalog:${AWS::Region}:${AWS::AccountId}:*
+                - !Sub arn:${AWS::Partition}:servicecatalog:${AWS::Region}:${AWS::AccountId}:*/*
+                - !Sub arn:${AWS::Partition}:catalog:${AWS::Region}:${AWS::AccountId}:portfolio/*
+                - !Sub arn:${AWS::Partition}:catalog:${AWS::Region}:${AWS::AccountId}:product/*
 
+  ServiceCatalogLaunchConstraintRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: ${self:custom.settings.launchConstraintRoleName}
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - servicecatalog.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        # The deployer role needs permissions to deploy CFN stacks and all actions those stacks are performing
+        # The permissions required by stacks are very fluid and dependent on which resources are declared in those
+        # stacks
+        - arn:aws:iam::aws:policy/PowerUserAccess
+      Policies:
+        - PolicyName: ServiceCatalogProductLaunchPermissions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Action:
+                  - iam:AttachRolePolicy
+                  - iam:CreateRole
+                  - iam:DeleteRole
+                  - iam:DeleteRolePolicy
+                  - iam:DetachRolePolicy
+                  - iam:GetRole
+                  - iam:GetRolePolicy
+                  - iam:PassRole
+                  - iam:PutRolePolicy
+                  - iam:*TagRole*
+                Resource: '*'
+                Effect: Allow
   # =============================================================================================
   # Dynamo db
   # =============================================================================================

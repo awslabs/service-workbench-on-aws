@@ -132,3 +132,7 @@ dbTableWorkflowDrafts: ${self:custom.settings.dbTablePrefix}-DbWorkflowDrafts
 
 # DynamoDB table name for UserRoles
 dbTableUserRoles: ${self:custom.settings.dbTablePrefix}-DbUserRoles
+
+# ================================ Env Settings ===========================================
+
+envMgmtRoleArn: ${cf:${self:custom.settings.backendStackName}.EnvMgmtRoleArn}

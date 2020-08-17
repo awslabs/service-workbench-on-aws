@@ -28,6 +28,10 @@
 # Defaults to prod if unspecified.
 # envType: dev
 
+# Enable this to create a Service Catalog portfolio and populate workspace products
+# Override and disable this setting if you wish to create your portfolio manually
+# createServiceCatalogPortfolio: true
+
 # Root user's email address. Currently unused, and can be left unspecified for test environments,
 # though future features might use it for capabilities such as usage reports and system alerts.
 # rootUserEmail: user@example.com

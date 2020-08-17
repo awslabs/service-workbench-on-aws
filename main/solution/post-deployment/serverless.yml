@@ -47,7 +47,7 @@ custom:
         APP_AWS_PROFILE: ${self:custom.settings.awsProfile} # this is needed for local development
         APP_USE_AWS_PROFILE: ${self:custom.settings.useAwsProfile}
         IS_OFFLINE: true
-        APP_LOCAL_ROLE_AUTO_ADJUST_TRUST: ${self:custom.settings.localRoleAutoAdjustTrust}  # Auto adjust trust policy of the lambda execution role to allow assumeRole from local machine
+        APP_LOCAL_ROLE_AUTO_ADJUST_TRUST: ${self:custom.settings.localRoleAutoAdjustTrust} # Auto adjust trust policy of the lambda execution role to allow assumeRole from local machine
       lambdas:
         postDeployment:
           environment:
@@ -60,7 +60,9 @@ custom:
     - bucketName: ${self:custom.settings.environmentsBootstrapBucketName}
       bucketPrefix: environment-files/
       localDir: config/environment-files
-
+    - bucketName: ${self:custom.settings.deploymentBucketName}
+      bucketPrefix: service-catalog-products/
+      localDir: ../../../addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/service-catalog
 functions: ${file(./config/infra/functions.yml)}
 
 resources:
