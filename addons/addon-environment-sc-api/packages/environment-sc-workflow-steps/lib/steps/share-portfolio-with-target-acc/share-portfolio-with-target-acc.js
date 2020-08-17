@@ -130,6 +130,9 @@ class SharePortfolioWithTargetAcc extends StepBase {
         PrincipalType: 'IAM',
       })
       .promise();
+
+    this.print('Start to wait for 60 seconds to make sure the imported AWS Service Catalog is available for use');
+    return this.wait(60);
   }
 
   /**
