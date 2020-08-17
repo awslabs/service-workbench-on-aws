@@ -66,10 +66,42 @@ class UserAttributesMapperService extends Service {
   }
 
   getUsername(decodedToken) {
-    let username = decodedToken['cognito:username'];
-    let usernameInIdp = username;
+    /*
+    An example decodedToken contains the following user specific attributes:
+    {
+      "cognito:username": "AWS-SSO_some_user_id@example.com",
+      "identities": [
+        {
+          "userId": "some_user_id@example.com",
+          "providerName": "AWS-SSO",
+          "providerType": "SAML",
+          "issuer": "https://portal.sso.us-west-2.amazonaws.com/saml/assertion/SOMEISSUERID",
+          "primary": "true",
+          "dateCreated": "1596771547011"
+        }]
+      ...
+      ...
+    }
+    We will get the userId from identities structure if present since it doesn't have the custom providerName
+    prepended
+     */
+    let username = '';
+    let usernameInIdp = '';
+    if (
+      decodedToken.identities &&
+      decodedToken.identities.length === 1 &&
+      decodedToken.identities[0] &&
+      decodedToken.identities[0].providerName &&
+      decodedToken.identities[0].userId
+    ) {
+      username = decodedToken.identities[0].userId;
+      usernameInIdp = username;
+    } else {
+      username = decodedToken['cognito:username'];
+      usernameInIdp = username;
+    }
 
-    // The cognito username may contain \\ or | (in case the user is authenticated via some other identity provider
+    // The username may contain \\ or | (in case the user is authenticated via some other identity provider
     // via federation - such as SAML replace backslash with underscore in such case to satisfy various naming
     // constraints in our code base this is because we use the username for automatically naming various dependent
     // resources (such as IAM roles, policies, unix user groups etc) The backslash would not work in most of those
@@ -78,10 +110,11 @@ class UserAttributesMapperService extends Service {
     // For example, when creating user home directories on jupyter for LDAP users, the directory name needs to match
     // username in IDP (i.e., AD or LDAP)
 
-    // Examples of how cognito:username may appear:
+    // Examples of how username may appear:
     // User without federation: johndoe@example.com
-    // User with Auth0 federation: Auth0_auth0|5ef37c962da
+    // User with Auth0 federation: auth0|5ef37c962da
     // User with ADFS federation: ADFS\\123abc
+    // User with AWS SSO: johndoe@example.com
 
     if (username.includes('\\')) {
       usernameInIdp = _.split(username, '\\')[1];
