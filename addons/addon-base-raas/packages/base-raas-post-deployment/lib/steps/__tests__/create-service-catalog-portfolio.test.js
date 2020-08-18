@@ -101,7 +101,6 @@ describe('CreateServiceCatalogPortfolio', () => {
       IAM: MockIAM,
       S3: MockS3,
     };
-    envTypeCandidateService = await container.find('envTypeCandidateService');
     settings = await container.find('settings');
     loggingService = await container.find('log');
     loggingService.log = jest.fn(msg => {
