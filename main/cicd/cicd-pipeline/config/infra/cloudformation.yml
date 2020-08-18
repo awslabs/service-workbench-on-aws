@@ -1,11 +1,9 @@
 Parameters:
-
   GitHubOAuthToken:
     Description: OAuth token used by AWS CodePipeline to connect to GitHub
     Type: String
     Default: 'to-be-specified'
     NoEcho: true
-
 
 Conditions:
   UseCodeCommit: !Not
@@ -15,7 +13,6 @@ Conditions:
   AddManualApproval: !Equals ['${self:custom.settings.requireManualApproval}', true]
   SubscribeNotificationEmail: !Not
     - !Equals ['${self:custom.settings.emailForNotifications}', '']
-
 
 Resources:
   # SNS Topic to receive various notifications from the pipeline
@@ -85,8 +82,8 @@ Resources:
                   - UseCodeCommit
                   - ${self:custom.settings.sourceRoleArn} # Allows CodePipeline's source stage to encrypt while uploading to artifact bucket
                   - !Ref AWS::NoValue
-                - !GetAtt AppDeployerRole.Arn  # Allows CodeBuild (the deploy stage in pipeline) to decrypt code when downloading
-                - !GetAtt AppPipelineRole.Arn  # Allows CodePipeline to encrypt code when uploading
+                - !GetAtt AppDeployerRole.Arn # Allows CodeBuild (the deploy stage in pipeline) to decrypt code when downloading
+                - !GetAtt AppPipelineRole.Arn # Allows CodePipeline to encrypt code when uploading
             Action:
               - kms:Encrypt
               - kms:Decrypt
@@ -233,6 +230,7 @@ Resources:
                   - iam:GetRolePolicy
                   - iam:PassRole
                   - iam:PutRolePolicy
+                  - iam:UpdateAssumeRolePolicyDocument
                   - iam:*TagRole*
                 Resource: '*'
                 Effect: Allow
@@ -306,7 +304,7 @@ Resources:
                 Configuration:
                   OAuthToken: !Ref GitHubOAuthToken
                   Owner: ${self:custom.settings.githubOwner}
-                  Repo:  ${self:custom.settings.repoName}
+                  Repo: ${self:custom.settings.repoName}
                   Branch: ${self:custom.settings.repoBranch}
                   PollForSourceChanges: true
                 OutputArtifacts:
@@ -392,7 +390,6 @@ Resources:
                 InputArtifacts:
                   - Name: SourceArtifact
           - !Ref AWS::NoValue
-
 
   # A CodeBuild project to deploy solution to the staging environment before deploying it to target env
   # Create this CodeBuild project only if the condition CreateStagingEnv is set to true
@@ -568,8 +565,8 @@ Resources:
           Arn: !Ref PipelineNotificationsTopic
           InputTransformer:
             InputPathsMap:
-              pipeline : "$.detail.pipeline"
-            InputTemplate: "{\"The Pipeline has failed.\":<pipeline>}"
+              pipeline: '$.detail.pipeline'
+            InputTemplate: '{"The Pipeline has failed.":<pipeline>}'
 
   # A resource level policy for the default event bus in the target account (target account = the AWS account where code need to be deployed)
   # to allow CodeCommit events to be published from the source account (source account = the AWS account containing the AWS CodeCommit repo with the source code)
