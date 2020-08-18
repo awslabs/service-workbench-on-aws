@@ -55,16 +55,16 @@ class Dashboard extends React.Component {
     } catch (error) {
       const store = this.getStore();
 
-      // "Something went wrong" is thrown when Cost Explorer hasn't been configured
-      if (error.message === 'Something went wrong') {
+      // "AccessDeniedException" error code is thrown when Cost Explorer hasn't been configured
+      if (error.code === 'AccessDeniedException') {
         if (store.user.isAdmin) {
           // Cost Explorer related errors are only to be shown to admins, not researchers (GALI-266)
           displayWarning(
-            'Error encountered retrieving cost data. Please enable Cost Explorer in the AWS Management Console and wait for 24 hours.',
+            'Error encountered accessing cost data. Please enable Cost Explorer in the AWS Management Console and wait for 24 hours.',
           );
         }
       } else {
-        displayError('Error encountered retrieving cost data.');
+        displayError(error.message);
       }
     }
   }
