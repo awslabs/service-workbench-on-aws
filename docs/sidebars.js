@@ -21,6 +21,7 @@ module.exports = {
           "deployment/post_deployment/link_aws_account",
           "deployment/post_deployment/create_index_project",
           "deployment/post_deployment/create_admin_user",
+          "deployment/post_deployment/import_service_catalog_products",
         ],
       },
       {
@@ -59,6 +60,7 @@ module.exports = {
                 Workspaces: [
                   "user_guide/sidebar/common/workspaces/introduction",
                   "user_guide/sidebar/common/workspaces/create_workspace_study",
+                  "user_guide/sidebar/common/workspaces/accessing_a_workspace",
                   "user_guide/sidebar/common/workspaces/terminating_a_workspace",
                 ],
               },

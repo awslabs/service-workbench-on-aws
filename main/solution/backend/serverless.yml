@@ -69,12 +69,6 @@ custom:
   s3Sync:
     - bucketName: ${self:custom.settings.externalCfnTemplatesBucketName} # required
       localDir: ../../../addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/external
-  remover:
-    prompt: false
-    buckets:
-      - ${self:custom.settings.studyDataBucketName}
-      - ${self:custom.settings.externalCfnTemplatesBucketName}
-      - ${self:custom.settings.environmentsBootstrapBucketName}
 
 functions: ${file(./config/infra/functions.yml)}
 
@@ -87,5 +81,4 @@ plugins:
   - serverless-offline
   - serverless-deployment-bucket
   - serverless-s3-sync
-  - serverless-s3-remover
   - '@aws-ee/base-serverless-backend-tools'

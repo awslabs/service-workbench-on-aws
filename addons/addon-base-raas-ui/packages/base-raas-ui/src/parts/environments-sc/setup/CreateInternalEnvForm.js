@@ -87,11 +87,11 @@ class CreateInternalEnvForm extends React.Component {
         <Form form={form} onCancel={this.handlePrevious} onSuccess={this.handleNext}>
           {({ processing, /* onSubmit, */ onCancel }) => (
             <>
-              <Input field={form.$('name')} />
+              <Input dataTestId="workspace-name" field={form.$('name')} />
               {askForCidr && <Input field={form.$('cidr')} />}
-              <Dropdown field={form.$('projectId')} fluid selection />
+              <Dropdown dataTestId="project-id" field={form.$('projectId')} fluid selection />
               <SelectConfigurationCards configurations={configurations} formField={form.$('envTypeConfigId')} />
-              <TextArea field={form.$('description')} />
+              <TextArea dataTestId="description-text-area" field={form.$('description')} />
 
               <Button
                 floated="right"

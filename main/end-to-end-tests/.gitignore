@@ -1,0 +1,6 @@
+cypress/videos
+cypress/screenshots
+cypress.env.json
+
+cypress.local.json
+cypress.dev.json

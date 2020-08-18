@@ -1,0 +1,25 @@
+{
+  "chromeWebSecurity": true,
+  "viewportWidth": 1400,
+  "viewportHeight": 1000,
+  "video": true,
+  "env": {
+    "researcherEmail": "<EMAIL ACCOUNT OF PREMADE RESEARCHER>",
+    "researcherPassword": "<RESEARCHER ACCOUNT PASSWORD>",
+    "workspaces": {
+      "sagemaker": {
+        "workspaceTypeName": "<NAME OF SAGEMAKER WORKSPACE TYPE>",
+        "configuration": "<SAGEMAKER WORKSPACE CONFIGURATION>",
+        "projectId": "<PROJECT TO LAUNCH SAGEMAKER WORKSPACE IN>"
+      },
+      "ec2": {
+        "workspaceTypeName": "<NAME OF EC2 WORKSPACE TYPE>",
+        "configuration": "<EC2 WORKSPACE CONFIGURATION>",
+        "projectId": "<PROJECT TO LAUNCH EC2 WORKSPACE IN>"
+      }
+    }
+  },
+  "defaultCommandTimeout": 20000,
+  "watchForFileChanges": false,
+  "baseUrl": "<URL OF UI TO TEST>"
+}

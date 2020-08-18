@@ -16,10 +16,11 @@
 import React from 'react';
 import _ from 'lodash';
 import { decorate } from 'mobx';
-import { observer } from 'mobx-react';
+import { observer, inject } from 'mobx-react';
+import { withRouter } from 'react-router-dom';
 import { Pie } from 'react-chartjs-2';
 import { Container, Header, Segment, Icon } from 'semantic-ui-react';
-import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
+import { displayError, displayWarning } from '@aws-ee/base-ui/dist/helpers/notification';
 import ProgressPlaceHolder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 
 import { getEnvironments, getEnvironmentCost, getScEnvironments, getScEnvironmentCost } from '../../helpers/api';
@@ -52,8 +53,24 @@ class Dashboard extends React.Component {
         isLoading: false,
       });
     } catch (error) {
-      displayError('Error encountered retrieving cost data. Please refresh the page or try again later.');
+      const store = this.getStore();
+
+      // "AccessDeniedException" error code is thrown when Cost Explorer hasn't been configured
+      if (error.code === 'AccessDeniedException') {
+        if (store.user.isAdmin) {
+          // Cost Explorer related errors are only to be shown to admins, not researchers (GALI-266)
+          displayWarning(
+            'Error encountered accessing cost data. Please enable Cost Explorer in the AWS Management Console and wait for 24 hours.',
+          );
+        }
+      } else {
+        displayError(error.message);
+      }
     }
+  }
+
+  getStore() {
+    return this.props.userStore;
   }
 
   render() {
@@ -67,7 +84,7 @@ class Dashboard extends React.Component {
 
   renderTitle() {
     return (
-      <div className="mb3 flex">
+      <div data-testid="page-title" className="mb3 flex">
         <Header as="h3" className="color-grey mt1 mb0 flex-auto">
           <Icon name="dashboard" className="align-top" />
           <Header.Content className="left-align">Dashboard</Header.Content>
@@ -283,4 +300,4 @@ class Dashboard extends React.Component {
 // see https://medium.com/@mweststrate/mobx-4-better-simpler-faster-smaller-c1fbc08008da
 decorate(Dashboard, {});
 
-export default observer(Dashboard);
+export default inject('userStore')(withRouter(observer(Dashboard)));

@@ -21,13 +21,15 @@ Run main deployment script
     and user **root**. The root user will be used only to create
     administrative users which is covered in [Post Deployment](/deployment/post_deployment/index)
 
-Deploy the machine-images SDC (optional)
-----------------------------------------
+Deploy the machine-images SDC 
+-----------------------------
 
 The machine-images SDC provides the ability to launch EC2 images from
 within Galileo. The default Galileo installation currently provides
-Sagemaker, EMR, and Linux and Windows EC2 as workspace options. The EC2
-options will not be available unless you run this step.
+Sagemaker, EMR, and Linux and Windows EC2 as workspace options. The EC2 and EMR
+options will not be available unless you have the corresponding machine images created.
+
+> Note: You can choose to create your own machine image if you do not wish to use the ones included in this SDC. 
 
 -   Follow the steps outlined in
     `main/solution/machine-images/README.md`

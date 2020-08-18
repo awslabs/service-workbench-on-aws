@@ -5,14 +5,13 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 # shellcheck disable=SC1091
 [[ $UTIL_SOURCED != yes && -f ./util.sh ]] && source ./util.sh
 
-function removeComponentWithNoStack () {
+function removeComponentWithNoStack() {
     local COMPONENT_NAME=$1
     local COMPONENT_DIR=$2
     local ASK_CONFIRMATION=$3
 
     local shouldRemoveComponent="FALSE"
 
-    printf "\n\n\n--- Component $COMPONENT_NAME (with no stack)\n"
     cd "$COMPONENT_DIR"
 
     if [[ "$ASK_CONFIRMATION" != "DONT_ASK_CONFIRMATION" ]]; then
@@ -26,30 +25,31 @@ function removeComponentWithNoStack () {
     fi
 
     if [ "$shouldRemoveComponent" == "TRUE" ]; then
-        printf "\nRemoving Component $COMPONENT_NAME ...\n"
+        printf "\n- Removing Component $COMPONENT_NAME ... \n"
         $EXEC sls remove -s "$STAGE"
     fi
 }
 
-function removeStack () {
+function removeStack() {
     local COMPONENT_NAME=$1
     local COMPONENT_DIR=$2
     local ASK_CONFIRMATION=$3
+    local bucket_names=("${@:4}")
 
     local stackName
     local shouldBeRemoved
 
-    printf "\n\n\n--- Stack $COMPONENT_NAME\n"
     cd "$COMPONENT_DIR"
     shouldStackBeRemoved $ASK_CONFIRMATION stackName shouldBeRemoved
 
     if [[ "$shouldBeRemoved" == "TRUE" && "$stackName" != "NO_STACK" ]]; then
-        printf "\nRemoving stack $COMPONENT_NAME ...\n"
+        emptyS3BucketsFromNames "DO_NOT_DELETE" ${bucket_names[@]}
+        printf "\n- Removing Stack $COMPONENT_NAME ...\n"
         $EXEC sls remove -s "$STAGE"
     fi
 }
 
-function shouldStackBeRemoved () {
+function shouldStackBeRemoved() {
 
     local output_stackName=$2
     local output_shouldBeRemoved=$3
@@ -72,7 +72,7 @@ function shouldStackBeRemoved () {
         __stackName="$(grep 'stack:' --ignore-case <<<$stackInfo | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
         if [[ "$__stackName" != "NO_STACK" ]]; then
             if [ "$__askConfirmation" != "DONT_ASK_CONFIRMATION" ]; then
-                printf "\nStack [$__stackName] is up and running. Do you want to remove it ? (y/n): "
+                printf "\nDo you want to remove the stack $__stackname ? (y/n): "
                 read -r __confirmation
                 if [ "$__confirmation" == "y" ]; then
                     __shouldBeRemoved="TRUE"
@@ -90,134 +90,124 @@ function shouldStackBeRemoved () {
     eval $output_shouldBeRemoved=$__shouldBeRemoved
 }
 
-function removeCfLambdaAssociations () {
+function removeCfLambdaAssociations() {
     local stackName
     local __novar
 
-    printf "\n\n\n--- Edge Lambda Associations in Cloudfront Distribution\n"
     cd "$SOLUTION_DIR/infrastructure"
     shouldStackBeRemoved "DONT_ASK_CONFIRMATION" stackName __novar
 
     if [[ "$stackName" != "NO_STACK" ]]; then
 
         # Find information about the Cluodfront Distribution
-        local region=$(grep '^awsRegion:' --ignore-case < "$CONFIG_DIR/settings/$STAGE.yml" | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
+        local region=$(grep '^awsRegion:' --ignore-case <"$CONFIG_DIR/settings/$STAGE.yml" | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
         local distributionId=$(aws cloudformation describe-stacks --stack-name "$stackName" --output text --region "$region" --query 'Stacks[0].Outputs[?OutputKey==`CloudFrontId`].OutputValue')
 
-        printf "\nRemoving Edge Lambda Associations from Cloudfront Distribution $distributionId ..."
+        printf "\n-> Removing Edge Lambda Associations from Cloudfront Distribution $distributionId ..."
 
         # Retrieve distribution configuration
         local response=$(aws cloudfront get-distribution-config --id "$distributionId" | jq '.')
 
         # Keep ETag for later, and save up-to-date configuration with no Lambda associations in a temporary json file
-        local ETag=$(jq '.ETag' <<<$response | tr -d \") 
+        local ETag=$(jq '.ETag' <<<$response | tr -d \")
         local distributionConfig=$(jq '.DistributionConfig' <<<$response)
-        
+
         currentAssociations=$(jq '.DefaultCacheBehavior.LambdaFunctionAssociations' <<<$distributionConfig)
         jsonString='{ "Quantity": 0 }'
         noAssociations=$(jq '.' <<<$jsonString)
 
         if [[ "$currentAssociations" != "$jsonString" ]]; then
             # Update Cloudfront Distribution
-            jq '.DefaultCacheBehavior.LambdaFunctionAssociations = { "Quantity": 0 }' <<<$distributionConfig > temp_cf_config.json
+            jq '.DefaultCacheBehavior.LambdaFunctionAssociations = { "Quantity": 0 }' <<<$distributionConfig >temp_cf_config.json
             cmd=$(aws cloudfront update-distribution --distribution-config file://temp_cf_config.json --id $distributionId --if-match $ETag)
             rm temp_cf_config.json
-            printf "\nDone !"
+            printf "Done !"
         else
             printf "\nNo need to update config. currentAssociations: $currentAssociations"
         fi
-    
+
     fi
 }
 
-function removeVersionedBucket () {
+function emptyS3Bucket() {
 
     set +e # Avoid interrupting this script in case an exception such as NoSuchBucket is raised.
 
     local bucket=$1
-    printf "\n\n\n--- CICD AppArtifactBucket $bucket\n"
+    local region=$2
+    local delete_option=$3
+    printf "\n- Emptying bucket $bucket ... "
 
-    printf "\nRemoving all versions from bucket ..."
-    versions=$(aws s3api list-object-versions --bucket $bucket |jq '.Versions')
-    let count=$(echo $versions |jq 'length')-1
+    # Remove Versions for all objects
+    versions=$(aws s3api list-object-versions --bucket $bucket | jq '.Versions')
+    let count=$(echo $versions | jq 'length')-1
     if [ $count -gt -1 ]; then
         for i in $(seq 0 $count); do
-            key=$(echo $versions | jq .[$i].Key |sed -e 's/\"//g')
-            versionId=$(echo $versions | jq .[$i].VersionId |sed -e 's/\"//g')
+            key=$(echo $versions | jq .[$i].Key | sed -e 's/\"//g')
+            versionId=$(echo $versions | jq .[$i].VersionId | sed -e 's/\"//g')
             cmd=$(aws s3api delete-object --bucket $bucket --key $key --version-id $versionId)
         done
     fi
 
-    printf "\nRemoving all markers from bucket ..."
-    markers=$(aws s3api list-object-versions --bucket $bucket |jq '.DeleteMarkers')
-    let count=$(echo $markers |jq 'length')-1
+    # Remove Markers
+    markers=$(aws s3api list-object-versions --bucket $bucket | jq '.DeleteMarkers')
+    let count=$(echo $markers | jq 'length')-1
     if [ $count -gt -1 ]; then
         for i in $(seq 0 $count); do
-            key=$(echo $markers | jq .[$i].Key |sed -e 's/\"//g')
-            versionId=$(echo $markers | jq .[$i].VersionId |sed -e 's/\"//g')
+            key=$(echo $markers | jq .[$i].Key | sed -e 's/\"//g')
+            versionId=$(echo $markers | jq .[$i].VersionId | sed -e 's/\"//g')
             cmd=$(aws s3api delete-object --bucket $bucket --key $key --version-id $versionId)
         done
     fi
+    printf "Done !"
 
-    printf "\nRemoving S3 bucket ..."
-    cmd=$(aws s3api delete-bucket --bucket $deploymentBucketName --region $region)
-
+    if [ $delete_option == "DELETE_AFTER_EMPTYING" ]; then
+        printf "\n- Deleting bucket $bucket ... "
+        cmd=$(aws s3api delete-bucket --bucket $bucket --region $region)
+        printf "Done !"
+    fi
     set -e
 }
 
-function removeCICDStacks () {
+function emptyS3BucketsFromNames() {
+    local deleteBucket=$1
+    local buckets_to_remove=("${@:2}")
+    local aws_region="$(cat $CONFIG_DIR/settings/$STAGE.yml | grep 'awsRegion:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
+    local aws_region_shortname=$(cat $CONFIG_DIR/settings/.defaults.yml | grep \'$aws_region\' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015' | tr -d "'")
+    local solution_name="$(cat $CONFIG_DIR/settings/$STAGE.yml $CONFIG_DIR/settings/.defaults.yml | grep 'solutionName:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
+    local bucket_prefix="$STAGE-$aws_region_shortname-$solution_name"
 
-    local ASK_CONFIRMATION=$1
-
-    local stackName
-    local shouldBeRemoved
-
-    printf "\n\n\n--- CICD STACKS\n"
-
-    cd "$SOLUTION_ROOT_DIR/main/cicd/cicd-pipeline"
-    shouldStackBeRemoved $ASK_CONFIRMATION stackName shouldBeRemoved
-
-    if [[ "$shouldBeRemoved" == "TRUE" && "$stackName" != "NO_STACK" ]]; then
-        # Remove versioned bucket used by CICD-Pipelin (AppArtifactBucket)
-        region=$(grep '^awsRegion:' --ignore-case < "$CONFIG_DIR/settings/$STAGE.yml" | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
-        deploymentBucketName=$(aws cloudformation describe-stacks --stack-name "$stackName" --output text --region "$region" --query 'Stacks[0].Outputs[?OutputKey==`AppArtifactBucketName`].OutputValue')
-        removeVersionedBucket $deploymentBucketName
-
-        removeStack "CICD-Pipeline" "$SOLUTION_ROOT_DIR/main/cicd/cicd-pipeline" "DONT_ASK_CONFIRMATION"
-    fi
-    
-    printf "\n"
-
-    cd "$SOLUTION_ROOT_DIR/main/cicd/cicd-source"
-    shouldStackBeRemoved $ASK_CONFIRMATION stackName shouldBeRemoved
-
-    if [[ "$shouldBeRemoved" == "TRUE" && "$stackName" != "NO_STACK" ]]; then
-        removeStack "CICD-Pipeline" "$SOLUTION_ROOT_DIR/main/cicd/cicd-source" "DONT_ASK_CONFIRMATION"
-    fi
+    for bucket_to_remove in "${buckets_to_remove[@]}"; do
+        local buckets_list=$(aws s3api list-buckets --query "Buckets[].Name" | jq '.[]' | sed 's/"//g')
+        local buckets_list=(${buckets_list[0]})
+        for bucket in "${buckets_list[@]}"; do
+            if [[ $bucket == *"$bucket_prefix-$bucket_to_remove" ]]; then
+                emptyS3Bucket $bucket $aws_region $deleteBucket
+            fi
+        done
+    done
 }
 
-function removeSsmParams () {
+function removeSsmParams() {
     local ASK_CONFIRMATION=$1
-    
+
     local solutionName=$(cat "$CONFIG_DIR/settings/$STAGE.yml" "$CONFIG_DIR/settings/.defaults.yml" | grep '^solutionName:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
     local regionName=$(cat "$CONFIG_DIR/settings/$STAGE.yml" "$CONFIG_DIR/settings/.defaults.yml" | grep '^awsRegion:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
 
-    local param_jwtSecret="/$STAGE/$solutionName/jwt/secret"
-    local param_rootUserPwd="/$STAGE/$solutionName/user/root/password"
-    local param_githubToken="/$STAGE/$solutionName/github/token"
-
     printf "\n\n\n---- SSM Parameters"
-    local paramNames=( "$param_rootUserPwd" "$param_jwtSecret" "$param_githubToken" )
-    local _confirmation="y"
+    local paramNames=("/$STAGE/$solutionName/jwt/secret" "/$STAGE/$solutionName/user/root/password" "/$STAGE/$solutionName/github/token")
+    local existing_params="$(aws ssm describe-parameters)"
 
-    for param in "${paramNames[@]}"
-    do
-        if [ "$ASK_CONFIRMATION" != "DONT_ASK_CONFIRMATION" ]; then
+    local _confirmation="y"
+    for param in "${paramNames[@]}"; do
+        if [[ $existing_params != *"$param"* ]]; then _confirmation="n"; fi
+
+        if [[ "$ASK_CONFIRMATION" != "DONT_ASK_CONFIRMATION" && "$_confirmation" == "y" ]]; then
             printf "\nRemove param $param ? (y/n): "
             read -r _confirmation
         fi
 
-        if [ "$_confirmation" == "y" ]; then
+        if [[ "$_confirmation" == "y" ]]; then
             set +e
             aws ssm delete-parameter --region $regionName --name $param
             set -e
@@ -228,7 +218,7 @@ function removeSsmParams () {
 # Ask for confirmation to begin removal procedure
 printf "\n\n\n ****** WARNING ******"
 printf "\nTHIS COMMAND WILL HELP YOU CLEAN UP YOUR ENVIRONMENT STACKS AND LEAD TO DATA LOSS."
-printf "\nAre you sure you want to proceed to the deletion the stacks of the environment [$STAGE] ?"
+printf "\nAre you sure you want to proceed to the deletion of the resources of the environment [$STAGE] ?"
 printf "\nType the environment name to confirm the removal : "
 read -r confirmation
 if [[ "$STAGE" != "$confirmation" ]]; then
@@ -238,24 +228,55 @@ fi
 
 printf "\n\nStarting to clear the application for stage [$STAGE] ...\n"
 
+# -- UI
+printf "\n\n\n--- UI builds\n"
 removeComponentWithNoStack "UI" "$SOLUTION_DIR/ui" "DONT_ASK_CONFIRMATION"
 
+# -- Post-Deployment stack
+printf "\n\n\n--- Post-Deployment stack\n"
 removeStack "Post-Deployment" "$SOLUTION_DIR/post-deployment" "DONT_ASK_CONFIRMATION"
 
+# -- Edge-Lambda stack
+printf "\n\n\n--- Edge-Lambda stack"
 removeStack "Edge-Lambda" "$SOLUTION_DIR/edge-lambda" "DONT_ASK_CONFIRMATION"
 
-removeStack "Backend" "$SOLUTION_DIR/backend" "DONT_ASK_CONFIRMATION"
+# -- Backend stack
+printf "\n\n\n--- Backend stack"
+buckets=("studydata" "external-templates" "env-type-configs" "environments-bootstrap-scripts")
+removeStack "Backend" "$SOLUTION_DIR/backend" "DONT_ASK_CONFIRMATION" ${buckets[@]}
 
-removeStack "Infrastructure" "$SOLUTION_DIR/infrastructure" "DONT_ASK_CONFIRMATION"
+# -- Infrastructure stack
+printf "\n\n\n--- Infrastructure stack"
+buckets=("website" "logging")
+removeStack "Infrastructure" "$SOLUTION_DIR/infrastructure" "DONT_ASK_CONFIRMATION" ${buckets[@]}
 
+# -- Prep-Master stack (master role)
+printf "\n\n\n--- Master-Account-Role stack"
+buckets=("raas-master-artifacts")
 removeStack "Prep-Master-Account" "$SOLUTION_DIR/prepare-master-acc" "DONT_ASK_CONFIRMATION"
+# The '-raas-master-artifacts' bucket is the deployment bucket and has to be removed after the stack deletion
+emptyS3BucketsFromNames "DELETE_AFTER_EMPTYING" ${buckets[@]}
 
+# -- Machine images
+printf "\n\n\n--- Machine Images stack"
 removeStack "Machine-Images" "$SOLUTION_DIR/machine-images" "DONT_ASK_CONFIRMATION"
 
+# -- Lambda@edge associations in Cloudfront (if Cloudfront has not been deleted yet)
+printf "\n\n\n--- Edge Lambda Associations in Cloudfront Distribution\n"
 removeCfLambdaAssociations
 
-removeCICDStacks "ASK_CONFIRMATION"
+# -- CICD
+printf "\n\n\n--- CICD"
+buckets=("cicd-appartifacts")
+removeStack "CICD-Pipeline" "$SOLUTION_ROOT_DIR/main/cicd/cicd-pipeline" "ASK_CONFIRMATION" ${buckets[@]}
+removeStack "CICD-Source" "$SOLUTION_ROOT_DIR/main/cicd/cicd-source" "ASK_CONFIRMATION" ${buckets[@]}
 
+# -- Deployment buckets
+printf "\n\n\n--- Deployment buckets"
+buckets=("artifacts")
+emptyS3BucketsFromNames "DELETE_AFTER_EMPTYING" ${buckets[@]}
+
+# -- SSM parameters
 removeSsmParams "ASK_CONFIRMATION"
 
 printf "\n\n*******************************************************************"

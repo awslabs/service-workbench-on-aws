@@ -14,7 +14,7 @@
  */
 
 // TODO: Remove extra classes if found a better way
-/* eslint:disable:max-classes-per-file */
+/* eslint-disable max-classes-per-file */
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
 const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
 
@@ -40,7 +40,6 @@ const CreateServiceCatalogPortfolio = require('../create-service-catalog-portfol
 describe('CreateServiceCatalogPortfolio', () => {
   let service;
   let aws;
-  let envTypeCandidateService;
   let settings;
   let loggingService;
   beforeEach(async () => {
@@ -102,7 +101,6 @@ describe('CreateServiceCatalogPortfolio', () => {
       IAM: MockIAM,
       S3: MockS3,
     };
-    envTypeCandidateService = await container.find('envTypeCandidateService');
     settings = await container.find('settings');
     loggingService = await container.find('log');
     loggingService.log = jest.fn(msg => {

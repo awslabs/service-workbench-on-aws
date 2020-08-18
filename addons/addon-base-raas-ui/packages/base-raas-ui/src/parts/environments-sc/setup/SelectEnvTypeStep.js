@@ -120,7 +120,13 @@ class SelectEnvTypeStep extends React.Component {
     return (
       <Card.Group stackable itemsPerRow={3}>
         {_.map(envTypes, type => (
-          <Card key={type.id} raised className={c('mb3', { 'cursor-pointer': !processing })} {...getAttrs(type)}>
+          <Card
+            data-testid="env-type-card"
+            key={type.id}
+            raised
+            className={c('mb3', { 'cursor-pointer': !processing })}
+            {...getAttrs(type)}
+          >
             <Card.Content>
               <Card.Header>
                 <div className="flex mt1">
