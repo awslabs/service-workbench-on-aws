@@ -260,13 +260,13 @@ class CreateServiceCatalogPortfolio extends Service {
         // Since this is a new product, we need to also associate the necessary roles and access while we're here
         const tempProductList = [productData];
         await Promise.all(
-          _.map(tempProductList, async product => {
-            await this.associatePortfolio(product.productId, portfolioToUpdate.portfolioId);
+          _.map(tempProductList, async currentProduct => {
+            await this.associatePortfolio(currentProduct.productId, portfolioToUpdate.portfolioId);
           }),
         );
         await Promise.all(
-          _.map(tempProductList, async product => {
-            await this.createLaunchConstraint(portfolioToUpdate.portfolioId, product.productId);
+          _.map(tempProductList, async currentProduct => {
+            await this.createLaunchConstraint(portfolioToUpdate.portfolioId, currentProduct.productId);
           }),
         );
         portfolioToUpdate.products.push(productData);
