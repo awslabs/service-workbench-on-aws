@@ -230,7 +230,7 @@ Resources:
                   - iam:GetRolePolicy
                   - iam:PassRole
                   - iam:PutRolePolicy
-                  - iam:UpdateAssumeRolePolicyDocument
+                  - iam:UpdateAssumeRolePolicy
                   - iam:*TagRole*
                 Resource: '*'
                 Effect: Allow

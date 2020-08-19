@@ -123,9 +123,14 @@ class CreateServiceCatalogPortfolio extends Service {
 
       // Portfolio's ready, now let's add products
       portfolioToUpdate.products = await this.createAllProducts();
-      Promise.all(
+      await Promise.all(
         _.map(portfolioToUpdate.products, async product => {
-          await this.associatePortfolioAndConstraint(product.productId, portfolioId);
+          await this.associatePortfolio(product.productId, portfolioId);
+        }),
+      );
+      await Promise.all(
+        _.map(portfolioToUpdate.products, async product => {
+          await this.createLaunchConstraint(portfolioId, product.productId);
         }),
       );
     } catch (err) {
@@ -149,13 +154,13 @@ class CreateServiceCatalogPortfolio extends Service {
     return productDataList;
   }
 
-  async associatePortfolioAndConstraint(productId, portfolioId) {
+  async associatePortfolio(productId, portfolioId) {
     const aws = await this.service('aws');
     const servicecatalog = new aws.sdk.ServiceCatalog({ apiVersion: '2015-12-10' });
 
     const associationParam = { PortfolioId: portfolioId, ProductId: productId };
-    await servicecatalog.associateProductWithPortfolio(associationParam).promise();
-    await this.createLaunchConstraint(portfolioId, productId);
+    const portfolioAssociation = await servicecatalog.associateProductWithPortfolio(associationParam).promise();
+    return portfolioAssociation;
   }
 
   async createProduct(product) {
@@ -253,7 +258,17 @@ class CreateServiceCatalogPortfolio extends Service {
         const product = this._getProductParam(productToCreate);
         const productData = await this.createProduct(product);
         // Since this is a new product, we need to also associate the necessary roles and access while we're here
-        await this.associatePortfolioAndConstraint(productData.productId, portfolioToUpdate.portfolioId);
+        const tempProductList = [productData];
+        await Promise.all(
+          _.map(tempProductList, async product => {
+            await this.associatePortfolio(product.productId, portfolioToUpdate.portfolioId);
+          }),
+        );
+        await Promise.all(
+          _.map(tempProductList, async product => {
+            await this.createLaunchConstraint(portfolioToUpdate.portfolioId, product.productId);
+          }),
+        );
         portfolioToUpdate.products.push(productData);
       }
     });
@@ -311,8 +326,9 @@ class CreateServiceCatalogPortfolio extends Service {
       };
 
       // create Launch Constraint for each product
-      await servicecatalog.createConstraint(params).promise();
+      const launchConstraintAssoc = await servicecatalog.createConstraint(params).promise();
       this.log.info(`Applied constraint role ${launchConstraintRoleName} to product id ${productId}`);
+      return launchConstraintAssoc;
     } catch (err) {
       this.log.error(err);
       // In case of any error let it bubble up
