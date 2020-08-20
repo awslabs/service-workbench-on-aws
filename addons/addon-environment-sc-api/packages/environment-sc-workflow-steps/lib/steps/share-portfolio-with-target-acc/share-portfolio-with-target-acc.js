@@ -89,7 +89,7 @@ class SharePortfolioWithTargetAcc extends StepBase {
           })
           .promise();
       }
-      return undefined;
+      return this.wait(60);
     }
 
     this.print({
