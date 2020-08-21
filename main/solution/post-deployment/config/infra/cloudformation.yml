@@ -189,6 +189,14 @@ Resources:
                   - iam:*TagRole*
                 Resource: '*'
                 Effect: Allow
+              - Action:
+                  - iam:GetInstanceProfile
+                  - iam:CreateInstanceProfile
+                  - iam:DeleteInstanceProfile
+                  - iam:AddRoleToInstanceProfile
+                  - iam:RemoveRoleFromInstanceProfile
+                Resource: '*'
+                Effect: Allow
   # =============================================================================================
   # Dynamo db
   # =============================================================================================
