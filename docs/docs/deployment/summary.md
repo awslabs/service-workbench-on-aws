@@ -24,7 +24,7 @@ The solution also includes a Continuous Integration/Continuous Delivery feature:
 
 
 A Galileo installation can be run from your laptop or an EC2 instance
-and involves:
+and involves the following stages that will be described in detail in this section of the documentation and its sub-sections:
 
 -   If deploying from EC2, create an instance with an appropriate
     instance profile

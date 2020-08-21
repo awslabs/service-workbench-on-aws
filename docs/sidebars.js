@@ -3,7 +3,6 @@ module.exports = {
     Galileo: ["introduction"],
     "Deployment Guide": [
       "deployment/summary",
-      "deployment/quick_install",
       {
         "Pre Deployment": [
           "deployment/pre_deployment/prerequisites",
