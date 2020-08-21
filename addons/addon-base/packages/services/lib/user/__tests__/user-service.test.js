@@ -18,10 +18,8 @@ const ServicesContainer = require('@aws-ee/base-services-container/lib/services-
 // Mocked dependencies
 
 // we need the custom DbService Mock
-jest.mock(
-  '../../../../../../addon-base-raas/packages/base-raas-services/node_modules/@aws-ee/base-services/lib/db-service',
-);
-const DbServiceMock = require('../../../../../../addon-base-raas/packages/base-raas-services/node_modules/@aws-ee/base-services/lib/db-service');
+jest.mock('../../db-service');
+const DbServiceMock = require('../../db-service');
 
 jest.mock('../../db-password/db-password-service');
 const DbPasswordServiceMock = require('../../db-password/db-password-service');
@@ -35,10 +33,8 @@ const UserAuthzServiceMock = require('../user-authz-service');
 jest.mock('../../audit/audit-writer-service');
 const AuditServiceMock = require('../../audit/audit-writer-service');
 
-jest.mock(
-  '../../../../../../addon-base-raas/packages/base-raas-services/node_modules/@aws-ee/base-services/lib/settings/env-settings-service',
-);
-const SettingsServiceMock = require('../../../../../../addon-base-raas/packages/base-raas-services/node_modules/@aws-ee/base-services/lib/settings/env-settings-service');
+jest.mock('../../settings/env-settings-service');
+const SettingsServiceMock = require('../../settings/env-settings-service');
 
 const UserService = require('../user-service');
 const JsonSchemaValidationService = require('../../json-schema-validation-service');
