@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: Galileo-Gateway Research-Account
+Description: Service-Workbench-on-AWS Research-Account
 
 Parameters:
   Namespace:
@@ -64,7 +64,6 @@ Metadata:
           - VpcPublicSubnet1Cidr
 
 Resources:
-
   # A role used for launching environments using AWS Service Catalog
   # This is the role that code (ApiHandlerLambda and WorkflowLoopRunnerLambda) in central account
   # assumes before performing any AWS Service Catalog interactions in this account (the on-boarded account)

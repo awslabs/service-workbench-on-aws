@@ -1,30 +1,30 @@
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: Galileo-Gateway EMR-Hail-Jupyter
+Description: Service-Workbench-on-AWS EMR-Hail-Jupyter
 
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
-    - Label:
-        default: EMR Options
-      Parameters:
-        - Namespace
-        - KeyName
-        - VPC
-        - Subnet
-        - CoreNodeCount
-        - DiskSizeGB
-        - MasterInstanceType
-        - WorkerInstanceType
-        - WorkerBidPrice
-        - AccessFromCIDRBlock
-        - AmiId
-    - Label:
-        default: Tags
-      Parameters:
-        - NameTag
-        - OwnerTag
-        - PurposeTag
+      - Label:
+          default: EMR Options
+        Parameters:
+          - Namespace
+          - KeyName
+          - VPC
+          - Subnet
+          - CoreNodeCount
+          - DiskSizeGB
+          - MasterInstanceType
+          - WorkerInstanceType
+          - WorkerBidPrice
+          - AccessFromCIDRBlock
+          - AmiId
+      - Label:
+          default: Tags
+        Parameters:
+          - NameTag
+          - OwnerTag
+          - PurposeTag
 
 Parameters:
   Namespace:
@@ -90,11 +90,9 @@ Parameters:
 
 Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
-  IsOnDemandCondition:
-    !Equals [!Ref Market, ON_DEMAND]
+  IsOnDemandCondition: !Equals [!Ref Market, ON_DEMAND]
 
 Resources:
-
   # TODO: Use one bucket for EMR logs per account, so shift deployment to account on-boarding and pass here as param
   LogBucket:
     Type: AWS::S3::Bucket
@@ -113,17 +111,17 @@ Resources:
       VpcId:
         Ref: VPC
       SecurityGroupIngress:
-      - IpProtocol: tcp
-        FromPort: 8192
-        ToPort: 8192
-        CidrIp:
-          Ref: AccessFromCIDRBlock
+        - IpProtocol: tcp
+          FromPort: 8192
+          ToPort: 8192
+          CidrIp:
+            Ref: AccessFromCIDRBlock
 
   InstanceProfile:
     Properties:
-      Path: "/"
+      Path: '/'
       Roles:
-      - Ref: Ec2Role
+        - Ref: Ec2Role
     Type: AWS::IAM::InstanceProfile
 
   Ec2Role:
@@ -157,52 +155,54 @@ Resources:
                   - !Sub
                     - 'arn:aws:s3:::${S3Location}/*'
                     # Remove "s3://" prefix from EnvironmentInstanceFiles
-                    - S3Location: !Select [ 1, !Split [ 's3://', !Ref EnvironmentInstanceFiles ] ]
+                    - S3Location: !Select [1, !Split ['s3://', !Ref EnvironmentInstanceFiles]]
               - Effect: 'Allow'
                 Action: 's3:ListBucket'
                 Resource: !Sub
                   - 'arn:aws:s3:::${S3Bucket}'
-                  - S3Bucket: !Select [ 2, !Split [ '/', !Ref EnvironmentInstanceFiles ]]
+                  - S3Bucket: !Select [2, !Split ['/', !Ref EnvironmentInstanceFiles]]
                 Condition:
                   StringLike:
                     s3:prefix: !Sub
                       - '${S3Prefix}/*'
-                      - S3Prefix: !Select [ 3, !Split [ '/', !Ref EnvironmentInstanceFiles ]]
+                      - S3Prefix: !Select [3, !Split ['/', !Ref EnvironmentInstanceFiles]]
 
   ServiceRole:
     Type: AWS::IAM::Role
     Properties:
-      Path: "/"
+      Path: '/'
       AssumeRolePolicyDocument:
         Statement:
-        - Action:
-          - sts:AssumeRole
-          Effect: Allow
-          Principal:
-            Service:
-            - elasticmapreduce.amazonaws.com
+          - Action:
+              - sts:AssumeRole
+            Effect: Allow
+            Principal:
+              Service:
+                - elasticmapreduce.amazonaws.com
         Version: '2012-10-17'
       ManagedPolicyArns:
-      - arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole
-
+        - arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole
 
   EmrSecurityConfiguration:
     Type: AWS::EMR::SecurityConfiguration
     Properties:
-      SecurityConfiguration: {
-        "EncryptionConfiguration": {
-          "AtRestEncryptionConfiguration": {
-            "LocalDiskEncryptionConfiguration": {
-              "EncryptionKeyProviderType": "AwsKms",
-              "AwsKmsKey": { "Ref": "EncryptionKeyArn" },
-              "EnableEbsEncryption": true
-            }
-          },
-          "EnableInTransitEncryption": false,
-          "EnableAtRestEncryption": true
+      SecurityConfiguration:
+        {
+          'EncryptionConfiguration':
+            {
+              'AtRestEncryptionConfiguration':
+                {
+                  'LocalDiskEncryptionConfiguration':
+                    {
+                      'EncryptionKeyProviderType': 'AwsKms',
+                      'AwsKmsKey': { 'Ref': 'EncryptionKeyArn' },
+                      'EnableEbsEncryption': true,
+                    },
+                },
+              'EnableInTransitEncryption': false,
+              'EnableAtRestEncryption': true,
+            },
         }
-      }
-
 
   # TODO: customise jupyter password from launch ui
   # TODO: Add security configuration to cluster
@@ -212,44 +212,44 @@ Resources:
     Type: AWS::EMR::Cluster
     Properties:
       Applications:
-      - Name: Hadoop
-      - Name: Hive
-      - Name: Spark
+        - Name: Hadoop
+        - Name: Hive
+        - Name: Spark
       BootstrapActions:
-      - Name: Run-Python-Jupyter
-        ScriptBootstrapAction:
-          Path: s3://us-east-1.elasticmapreduce/bootstrap-actions/run-if
-          Args:
-          - "instance.isMaster=true"
-          - "/opt/hail-on-AWS-spot-instances/src/jupyter_run.sh"
-      - Name: Mount-S3-Resources
-        ScriptBootstrapAction:
-          Path: !Sub "${EnvironmentInstanceFiles}/get_bootstrap.sh"
-          Args:
-            - !Ref EnvironmentInstanceFiles
-            - !Ref S3Mounts
+        - Name: Run-Python-Jupyter
+          ScriptBootstrapAction:
+            Path: s3://us-east-1.elasticmapreduce/bootstrap-actions/run-if
+            Args:
+              - 'instance.isMaster=true'
+              - '/opt/hail-on-AWS-spot-instances/src/jupyter_run.sh'
+        - Name: Mount-S3-Resources
+          ScriptBootstrapAction:
+            Path: !Sub '${EnvironmentInstanceFiles}/get_bootstrap.sh'
+            Args:
+              - !Ref EnvironmentInstanceFiles
+              - !Ref S3Mounts
       CustomAmiId:
         Ref: AmiId
       Configurations:
-      - Classification: spark
-        ConfigurationProperties:
-          maximizeResourceAllocation: true
-      - Classification: yarn-site
-        ConfigurationProperties:
-          yarn.nodemanager.vmem-check-enabled: false
-      - Classification: spark-defaults
-        ConfigurationProperties:
-          spark.hadoop.io.compression.codecs: "org.apache.hadoop.io.compress.DefaultCodec,is.hail.io.compress.BGzipCodec,org.apache.hadoop.io.compress.GzipCodec"
-          spark.serializer: "org.apache.spark.serializer.KryoSerializer"
-          spark.hadoop.parquet.block.size: "1099511627776"
-          spark.sql.files.maxPartitionBytes: "1099511627776"
-          spark.sql.files.openCostInBytes: "1099511627776"
-        Configurations: []
+        - Classification: spark
+          ConfigurationProperties:
+            maximizeResourceAllocation: true
+        - Classification: yarn-site
+          ConfigurationProperties:
+            yarn.nodemanager.vmem-check-enabled: false
+        - Classification: spark-defaults
+          ConfigurationProperties:
+            spark.hadoop.io.compression.codecs: 'org.apache.hadoop.io.compress.DefaultCodec,is.hail.io.compress.BGzipCodec,org.apache.hadoop.io.compress.GzipCodec'
+            spark.serializer: 'org.apache.spark.serializer.KryoSerializer'
+            spark.hadoop.parquet.block.size: '1099511627776'
+            spark.sql.files.maxPartitionBytes: '1099511627776'
+            spark.sql.files.openCostInBytes: '1099511627776'
+          Configurations: []
       Instances:
         AdditionalMasterSecurityGroups:
-        - Fn::GetAtt:
-          - MasterSecurityGroup
-          - GroupId
+          - Fn::GetAtt:
+              - MasterSecurityGroup
+              - GroupId
         Ec2KeyName:
           Ref: KeyName
         Ec2SubnetId:
@@ -258,57 +258,54 @@ Resources:
           InstanceCount: 1
           InstanceType:
             Ref: MasterInstanceType
-        CoreInstanceGroup:
-          !If
-            - IsOnDemandCondition
-            -
-              InstanceCount:
-                Ref: CoreNodeCount
-              InstanceType:
-                Ref: WorkerInstanceType
-              Market:
-                Ref: Market
-              EbsConfiguration:
-                EbsOptimized: true
-                EbsBlockDeviceConfigs:
+        CoreInstanceGroup: !If
+          - IsOnDemandCondition
+          - InstanceCount:
+              Ref: CoreNodeCount
+            InstanceType:
+              Ref: WorkerInstanceType
+            Market:
+              Ref: Market
+            EbsConfiguration:
+              EbsOptimized: true
+              EbsBlockDeviceConfigs:
                 - VolumeSpecification:
                     SizeInGB:
                       Ref: DiskSizeGB
                     VolumeType: gp2
-            -
-              InstanceCount:
-                Ref: CoreNodeCount
-              InstanceType:
-                Ref: WorkerInstanceType
-              Market:
-                Ref: Market
-              BidPrice:
-                Ref: WorkerBidPrice
-              EbsConfiguration:
-                EbsOptimized: true
-                EbsBlockDeviceConfigs:
+          - InstanceCount:
+              Ref: CoreNodeCount
+            InstanceType:
+              Ref: WorkerInstanceType
+            Market:
+              Ref: Market
+            BidPrice:
+              Ref: WorkerBidPrice
+            EbsConfiguration:
+              EbsOptimized: true
+              EbsBlockDeviceConfigs:
                 - VolumeSpecification:
                     SizeInGB:
                       Ref: DiskSizeGB
                     VolumeType: gp2
       JobFlowRole:
         Ref: InstanceProfile
-      Name: !Sub "${Namespace}-emr"
+      Name: !Sub '${Namespace}-emr'
       Tags: # Add Name tag so EC2 instances are easily identifiable
         - Key: Name
-          Value: !Sub "${Namespace}-emr"
+          Value: !Sub '${Namespace}-emr'
       ServiceRole:
         Ref: ServiceRole
       ReleaseLabel: emr-5.27.0
       # This has to be true because we assume a new user each time.
       VisibleToAllUsers: true
       SecurityConfiguration: !Ref EmrSecurityConfiguration
-      LogUri: !Sub "s3://${LogBucket}"
+      LogUri: !Sub 's3://${LogBucket}'
 
 Outputs:
   JupyterUrl:
     Description: Open Jupyter on your new EMR cluster
-    Value: !Sub "http://${EmrCluster.MasterPublicDNS}:8192"
+    Value: !Sub 'http://${EmrCluster.MasterPublicDNS}:8192'
   LogBucket:
     Description: EMR Scratch data and Logs bucket
     Value: !Ref LogBucket

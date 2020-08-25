@@ -3,6 +3,7 @@ id: iam_role
 title: Add an IAM role to an instance
 sidebar_label: Add an IAM role to an instance
 ---
+
 import useBaseUrl from '@docusaurus/useBaseUrl';
 
 An EC2 instance can be assigned an Instance Profile which contains a
@@ -11,14 +12,13 @@ permissions given by the role. In this way you can allow your
 application to make API calls securely, without having to manage
 security credentials.
 
-We require that the Galileo deployment application be able to create AWS
+We require that the Service Workbench deployment application be able to create AWS
 resources. The easiest way to do this is to give our EC2 instance an
 administrator role.
 
-Adding a role to a new instance
--------------------------------
+## Adding a role to a new instance
 
-When creating a new instance from which to deploy Galileo, an instance
+When creating a new instance from which to deploy Service Workbench, an instance
 profile may be assigned to the instance in Step 3: Configure Instance
 Details. Click \'Create a new IAM role\' next to the IAM role drop-down.
 
@@ -48,8 +48,7 @@ administrator role to attach to the new instance.
 
 Now proceed through to creation of the instance.
 
-Adding a role to an existing instance
--------------------------------------
+## Adding a role to an existing instance
 
 To add a role to an instance that is already running, select the
 instance in the EC2 console, open the **Action** -\> **Instance

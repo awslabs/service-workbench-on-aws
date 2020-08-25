@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: Galileo-Gateway EC2-RStudio
+Description: Service-Workbench-on-AWS EC2-RStudio
 
 Parameters:
   Namespace:

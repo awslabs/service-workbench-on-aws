@@ -6,6 +6,6 @@ sidebar_label: Source Code
 
 Download source code from provided URL:
 
-``` {.sh}
-curl -o galileo.zip <provided_url>
+```{.sh}
+curl -o serviceworkbench.zip <provided_url>
 ```

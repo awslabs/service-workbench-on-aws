@@ -4,7 +4,7 @@
 
 # AWS profile to use for deployment; if not specified here, defaults to using the same credentials
 # the AWS CLI is set up to use (either a profile in ~/.aws/config or an instance role if on EC2).
-# awsProfile: galileo-main
+# awsProfile: sw-main
 
 # The short solution name is used to namespace a few AWS resources. Try to keep this
 # setting short to avoid hitting long strings issues; the default should be fine in most cases,
@@ -45,7 +45,7 @@
 # itself, and the ARN for the manually-created TLS certificate to use from ACM.
 # Note the current implementation assumes that DNS is handled elsewhere; a future
 # improvement will automatically handle creation of the cert and Route53 entries.
-# domainName: galileo.example.com
+# domainName: sw.example.com
 # certificateArn: arn:aws:acm:us-east-1:123456789012:certificate/abcdef01-abcd-ef01-2345-abcdef012345
 
 # Array of identity provider ids.

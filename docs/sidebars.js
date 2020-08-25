@@ -1,6 +1,6 @@
 module.exports = {
-  galileoSidebar: {
-    Galileo: ["introduction"],
+  serviceWorkbenchSidebar: {
+    ServiceWorkBench: ["introduction"],
     "Deployment Guide": [
       "deployment/summary",
       {

@@ -23,7 +23,7 @@ custom:
     Name: ${self:custom.settings.envName}-${self:service}
 
 resources:
-  - Description: Galileo-Gateway ${self:custom.settings.version} ${self:custom.settings.solutionName} ${self:custom.settings.envName} Edge-Lambda
+  - Description: Service-Workbench-on-AWS ${self:custom.settings.version} ${self:custom.settings.solutionName} ${self:custom.settings.envName} Edge-Lambda
   - ${file(./config/infra/cloudformation.yml)}
 
 plugins:

@@ -36,9 +36,9 @@ When [**Creating a Member AWS Account(s)**](create_member_account) in the organi
 
 The principals listed above are:
 
-* ApiHandlerRole: A role in the Main AWS account associated with the Galileo backend API execution.
-* WorkflowLoopRunnerRole: A role in the Main AWS account associated with background workflow execution as initiated by backend API calls.
-* The Member AWS account itself.
+- ApiHandlerRole: A role in the Main AWS account associated with the Service Workbench backend API execution.
+- WorkflowLoopRunnerRole: A role in the Main AWS account associated with background workflow execution as initiated by backend API calls.
+- The Member AWS account itself.
 
 ## Permissions
 
@@ -48,19 +48,19 @@ These policies support running analytics.
 
 ```json
 {
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Action": [
-                "cloudformation:CreateStack",
-                "cloudformation:DeleteStack",
-                "cloudformation:DescribeStacks",
-                "cloudformation:DescribeStackEvents"
-            ],
-            "Resource": "*",
-            "Effect": "Allow"
-        }
-    ]
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": [
+        "cloudformation:CreateStack",
+        "cloudformation:DeleteStack",
+        "cloudformation:DescribeStacks",
+        "cloudformation:DescribeStackEvents"
+      ],
+      "Resource": "*",
+      "Effect": "Allow"
+    }
+  ]
 }
 ```
 
@@ -68,13 +68,11 @@ These policies support running analytics.
 
 ```json
 {
-    "Statement": {
-        "Action": [
-            "ce:*"
-        ],
-        "Resource": "*",
-        "Effect": "Allow"
-    }
+  "Statement": {
+    "Action": ["ce:*"],
+    "Resource": "*",
+    "Effect": "Allow"
+  }
 }
 ```
 
@@ -86,13 +84,11 @@ You will need to ensure that **Cost Explorer** has been enabled in the member ac
 
 ```json
 {
-    "Statement": {
-        "Action": [
-            "ec2:*"
-        ],
-        "Resource": "*",
-        "Effect": "Allow"
-    }
+  "Statement": {
+    "Action": ["ec2:*"],
+    "Resource": "*",
+    "Effect": "Allow"
+  }
 }
 ```
 
@@ -100,13 +96,11 @@ You will need to ensure that **Cost Explorer** has been enabled in the member ac
 
 ```json
 {
-    "Statement": {
-        "Action": [
-            "elasticmapreduce:*"
-        ],
-        "Resource": "*",
-        "Effect": "Allow"
-    }
+  "Statement": {
+    "Action": ["elasticmapreduce:*"],
+    "Resource": "*",
+    "Effect": "Allow"
+  }
 }
 ```
 
@@ -114,13 +108,11 @@ You will need to ensure that **Cost Explorer** has been enabled in the member ac
 
 ```json
 {
-    "Statement": {
-        "Action": [
-            "iam:*"
-        ],
-        "Resource": "*",
-        "Effect": "Allow"
-    }
+  "Statement": {
+    "Action": ["iam:*"],
+    "Resource": "*",
+    "Effect": "Allow"
+  }
 }
 ```
 
@@ -128,13 +120,11 @@ You will need to ensure that **Cost Explorer** has been enabled in the member ac
 
 ```json
 {
-    "Statement": {
-        "Action": [
-            "s3:*"
-        ],
-        "Resource": "*",
-        "Effect": "Allow"
-    }
+  "Statement": {
+    "Action": ["s3:*"],
+    "Resource": "*",
+    "Effect": "Allow"
+  }
 }
 ```
 
@@ -142,13 +132,11 @@ You will need to ensure that **Cost Explorer** has been enabled in the member ac
 
 ```json
 {
-    "Statement": {
-        "Action": [
-            "sagemaker:*"
-        ],
-        "Resource": "*",
-        "Effect": "Allow"
-    }
+  "Statement": {
+    "Action": ["sagemaker:*"],
+    "Resource": "*",
+    "Effect": "Allow"
+  }
 }
 ```
 
@@ -156,12 +144,10 @@ You will need to ensure that **Cost Explorer** has been enabled in the member ac
 
 ```json
 {
-    "Statement": {
-        "Action": [
-            "ssm:*"
-        ],
-        "Resource": "*",
-        "Effect": "Allow"
-    }
+  "Statement": {
+    "Action": ["ssm:*"],
+    "Resource": "*",
+    "Effect": "Allow"
+  }
 }
 ```

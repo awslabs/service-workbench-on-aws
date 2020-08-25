@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: Galileo-Gateway EMR-Hail-Jupyter
+Description: Service-Workbench-on-AWS EMR-Hail-Jupyter
 
 Metadata:
   AWS::CloudFormation::Interface:

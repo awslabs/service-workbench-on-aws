@@ -73,7 +73,7 @@ custom:
 functions: ${file(./config/infra/functions.yml)}
 
 resources:
-  - Description: Galileo-Gateway ${self:custom.settings.version} ${self:custom.settings.solutionName} ${self:custom.settings.envName} Backend
+  - Description: Service-Workbench-on-AWS ${self:custom.settings.version} ${self:custom.settings.solutionName} ${self:custom.settings.envName} Backend
   - ${file(./config/infra/cloudformation.yml)}
 
 plugins:

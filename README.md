@@ -1,4 +1,4 @@
-# AWS Galileo Gateway
+# Service Workbench on AWS
 
 A platform that provides researchers with one-click access to collaborative workspace environments operating across teams, universities, and datasets while enabling university IT stakeholders to manage, monitor, and control spending, apply security best practices, and comply with corporate governance.
 
@@ -100,9 +100,9 @@ $ cd -
 
 ---
 
-## Using Galileo
+## Using Service Workbench
 
-Once Galileo is fully deployed, the console will output the Website URL and Root Password for Galileo. You can log in by navigating to the Website URL in any browser, and then using the username 'root' and the Root Password given by the console. Please note that logging as the root user is highly discouraged, and should only be used for initial setup. You can create a new user by clicking the "Users" tab on the left, then "Add Local User". Follow the instructions given to create the user (you can leave the 'Project' field blank for now), then log out of the root account and into your new user account.
+Once Service Workbench is fully deployed, the console will output the Website URL and Root Password for Service Workbench. You can log in by navigating to the Website URL in any browser, and then using the username 'root' and the Root Password given by the console. Please note that logging as the root user is highly discouraged, and should only be used for initial setup. You can create a new user by clicking the "Users" tab on the left, then "Add Local User". Follow the instructions given to create the user (you can leave the 'Project' field blank for now), then log out of the root account and into your new user account.
 
 Once in your user account, you'll need to link your AWS account. Navigate to "AWS Accounts" in the left bar, then click the "AWS Accounts" tab. From here, you can create an AWS account, or link an existing one.
 
@@ -111,8 +111,8 @@ To create a new AWS account, you'll need the "Master Role ARN" value, which you 
 To link an existing account, follow the instructions listed. You'll need the following credentials:
 
 - **AWS Account ID** ([Where can I find my AWS Account ID?](https://www.apn-portal.com/knowledgebase/articles/FAQ/Where-Can-I-Find-My-AWS-Account-ID))
-- **Role ARN**: An ARN to an IAM Role to use when launching resources using Galileo. You can find or create an IAM Role in the IAM service from the [AWS management console](https://aws.amazon.com/console/).
-- **AWS Service Catalog Role ARN**: Another ARN to an IAM Role, which will be used for launching resources using Galileo's Service Catalog. This entry can be the same as the above if you choose.
+- **Role ARN**: An ARN to an IAM Role to use when launching resources using Service Workbench. You can find or create an IAM Role in the IAM service from the [AWS management console](https://aws.amazon.com/console/).
+- **AWS Service Catalog Role ARN**: Another ARN to an IAM Role, which will be used for launching resources using Service Workbench's Service Catalog. This entry can be the same as the above if you choose.
 - **VPC ID**: The ID of the VPC your AWS account uses. You can find this in the [VPC Service](https://aws.amazon.com/vpc/) of the [AWS management console](https://aws.amazon.com/console/).
 - **Subnet ID**: The ID for the subnet of the VPC to use. This can also be found in the [VPC Service](https://aws.amazon.com/vpc/) of the [AWS management console](https://aws.amazon.com/console/).
 - **KMS Encryption Key ARN**: The ARN of the KMS Encryption Key to use for the AWS Account. You can find or create a KMS Encryption Key in the [KMS service](https://aws.amazon.com/kms/) of the [AWS management console](https://aws.amazon.com/console/).
@@ -125,18 +125,18 @@ To start, create an index by navigating to Accounts, clicking the "Indexes" tab,
 
 Next, create a project by clicking the "Projects" tab in the Accounts page, then click "Add Project". Associate it with the Index you just created, and assign yourself as a project admin. Once this is completed, you can navigate to the Users page to see that the project has been successfully associated with your account.
 
-Now that we have a project associated with our account, we can create a workspace! Navigate to the Workspaces tab, then click "Create Research Workspace". This will bring up a menu with a number of options. Galileo automatically provisions AWS resources according to your selection, so you can run your projects on AWS without having to worry about the setup. Click on your desired platform and then click "Next". You can then fill in the fields (leave 'Restricted CIDR' as-is if you don't know what it is) and pick a configuration. Each configuration lists the details for its instance--On Demand instances are more expensive than Spot instances, but they're available whenever you need them. For more details on pricing and configurations, please see the [Instance Purchasing Options](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-purchasing-options.html) and the [AWS Pricing](https://aws.amazon.com/pricing/) pages.
+Now that we have a project associated with our account, we can create a workspace! Navigate to the Workspaces tab, then click "Create Research Workspace". This will bring up a menu with a number of options. Service Workbench automatically provisions AWS resources according to your selection, so you can run your projects on AWS without having to worry about the setup. Click on your desired platform and then click "Next". You can then fill in the fields (leave 'Restricted CIDR' as-is if you don't know what it is) and pick a configuration. Each configuration lists the details for its instance--On Demand instances are more expensive than Spot instances, but they're available whenever you need them. For more details on pricing and configurations, please see the [Instance Purchasing Options](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-purchasing-options.html) and the [AWS Pricing](https://aws.amazon.com/pricing/) pages.
 
 Your workspace may take some time to launch. Once it is up and running, you can connect to it by clicking "Connect". For more details, see the following documentation pages:
 
-- AWS SageMaker: Galileo takes care of provisioning the workspace for you, so you can jump straight to working with SageMaker Notebooks. For more information, see the [SageMaker Getting Started Guide](https://docs.aws.amazon.com/sagemaker/latest/dg/gs-console.html) (you can jump straight to Step 4).
-- AWS ElasticMapReduce (EMR): Galileo takes care of setting up the EMR instance for you, so you can jump straight to working with EMR Notebooks. For more information on using EMR Notebooks, see [Using EMR Notebooks](https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-managed-notebooks.html). **NOTE:** A password may be required to access the EMR Notebooks. By default, this password is 'go-research-on-aws' (without the quotes).
+- AWS SageMaker: Service Workbench takes care of provisioning the workspace for you, so you can jump straight to working with SageMaker Notebooks. For more information, see the [SageMaker Getting Started Guide](https://docs.aws.amazon.com/sagemaker/latest/dg/gs-console.html) (you can jump straight to Step 4).
+- AWS ElasticMapReduce (EMR): Service Workbench takes care of setting up the EMR instance for you, so you can jump straight to working with EMR Notebooks. For more information on using EMR Notebooks, see [Using EMR Notebooks](https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-managed-notebooks.html). **NOTE:** A password may be required to access the EMR Notebooks. By default, this password is 'go-research-on-aws' (without the quotes).
 - RStudio: See the [RStudio Server Documentation](https://support.rstudio.com/hc/en-us/sections/200150693-RStudio-Server) for assistance.
 - AWS Elastic Compute Cloud (EC2): EC2 instances are essentially Virtual Machines in the cloud. For more information, see the [EC2 Documentation](https://aws.amazon.com/ec2/).
 
 ## Create a Study
 
-Studies are datasets that you can tell Galileo to preload onto your workspaces. When your workspace has finished provisioning, you will immediately have access to any datasets within Studies associated with that workspace.
+Studies are datasets that you can tell Service Workbench to preload onto your workspaces. When your workspace has finished provisioning, you will immediately have access to any datasets within Studies associated with that workspace.
 
 Studies can be created via the Studies tab in the left bar. You can press "Create Study" to add a new study. The ID field will be the ID for that particular dataset. Studies can also be associated to projects via the ProjectID selection. Once the study has been created, you can upload datafiles to it with the "Upload Files" button.
 
@@ -144,7 +144,7 @@ Once you have a study with datafiles loaded, you can start provisioning workspac
 
 After choosing your desired studies, click next to continue to create a workspace. Refer to the Workspaces section for documentation on the compute platforms offered.
 
-Once you have finished determining the properties of your workspace, Galileo will generate your workspace and preload it with your study data. You can access it from the Workspaces page by clicking the "Connect" button on your workspace.
+Once you have finished determining the properties of your workspace, Service Workbench will generate your workspace and preload it with your study data. You can access it from the Workspaces page by clicking the "Connect" button on your workspace.
 
 ---
 
@@ -182,7 +182,7 @@ Please follow prevailing best practices for auditing your NPM dependencies and f
 
 ## Docusaurus
 
-You can now also launch the Galileo docusaurus website. Please follow the steps in docs/README.md
+You can now also launch the Service Workbench docusaurus website. Please follow the steps in docs/README.md
 
 ## License
 
