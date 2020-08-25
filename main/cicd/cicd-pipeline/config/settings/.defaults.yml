@@ -2,7 +2,7 @@
 sourceAwsRegion: ${self:custom.settings.awsRegion}
 
 # Name of the repository in either CodeCommit or Github
-repoName: aws-galileo-gateway
+repoName: service-workbench-on-aws
 
 # The git branch name of the source code repository the code pipeline should build and deploy
 repoBranch: master

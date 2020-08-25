@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: Galileo-Gateway SageMaker-Jupyter
+Description: Service-Workbench-on-AWS SageMaker-Jupyter
 
 Parameters:
   Namespace:

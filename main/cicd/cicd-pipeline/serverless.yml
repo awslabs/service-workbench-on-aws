@@ -27,7 +27,7 @@ custom:
       - scripts/upload-env-config.bash ${self:provider.profile} ${self:provider.deploymentBucket} ${self:custom.settings.envName}
 
 resources:
-  - Description: Galileo-Gateway ${self:custom.settings.version} ${self:custom.settings.solutionName} ${self:custom.settings.envName} CICD-Pipeline
+  - Description: Service-Workbench-on-AWS ${self:custom.settings.version} ${self:custom.settings.solutionName} ${self:custom.settings.envName} CICD-Pipeline
   - ${file(./config/infra/cloudformation.yml)}
 
 plugins:

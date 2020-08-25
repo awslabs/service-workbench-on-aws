@@ -1,14 +1,14 @@
 # AWS credentials profile for the AWS Account holding the source code repository
 # Make sure to specify the profile for Source Account and NOT the Target Account here.
 # The cicd-source stack needs to be deployed to the Source Account and not the Target Account.
-awsProfile: galileo-source
+awsProfile: sw-source
 
 # the AWS Account ID of the Target AWS account where the solution and the AWS code pipeline needs to be deployed
 targetAccountId: 123456789012
 
 # name of the AWS CodeCommit repository containing the source code of the solution
 # for which you want to deploy the CI/CD pipeline
-repoName: aws-galileo-gateway
+repoName: service-workbench-on-aws
 
 # The name of the git branch of the source code repository the code pipeline needs to build and deploy
 repoBranch: master
@@ -59,5 +59,5 @@ repoBranch: master
 #       artifactsKmsKeyArn: "arn:aws:kms:<region>:<target-aws-account>:key/<kms-key-id>"
 #
 
-artifactsS3BucketArn: "*"
-artifactsKmsKeyArn: "*"
+artifactsS3BucketArn: '*'
+artifactsKmsKeyArn: '*'

@@ -16,7 +16,6 @@ provider:
   # See https://github.com/serverless/serverless/issues/5011
   variableSyntax: '\$\{((((self|opt|deep|cf):)|file)((?!\$\{).)+?)}'
 
-
 custom:
   settings: ${file(./config/settings/.settings.js):merged}
   envTemplate: ${file(./config/environment/env-template.yml)}
@@ -24,7 +23,7 @@ custom:
     policy: ${self:custom.settings.deploymentBucketPolicy}
 
 resources:
-  - Description: Galileo-Gateway ${self:custom.settings.version} ${self:custom.settings.solutionName} ${self:custom.settings.envName} UI
+  - Description: Service-Workbench-on-AWS ${self:custom.settings.version} ${self:custom.settings.solutionName} ${self:custom.settings.envName} UI
 
 plugins:
   - serverless-deployment-bucket

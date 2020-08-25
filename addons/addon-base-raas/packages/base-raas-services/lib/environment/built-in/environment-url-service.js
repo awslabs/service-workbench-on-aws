@@ -44,7 +44,7 @@ class EnvironmentUrlService extends Service {
     const jwtService = await this.service('jwtService');
     const jwtSecret = await jwtService.getSecret();
     const hash = crypto.createHash('sha256');
-    const username = 'galileo';
+    const username = 'workbenchuser';
     const password = hash.update(`${instanceId}${jwtSecret}`).digest('hex');
     const credentials = `${username}\n${password}`;
     const publicKey = await request(rstudioPublicKeyUrl);

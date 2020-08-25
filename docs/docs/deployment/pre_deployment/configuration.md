@@ -7,10 +7,9 @@ sidebar_label: Configuration
 **Note**: Configuration is optional. If deploying a simple installation,
 the default configuration can be used.
 
-Stage Name
-----------
+## Stage Name
 
-A stage name is used to allow multiple Galileo deployments from the same
+A stage name is used to allow multiple Service Workbench deployments from the same
 account. The stage name will be the name of the configuration files and
 also forms part of the name of the AWS resources created in this
 deployment. For limitations in the S3 buckets used for the deployment, the stage name should be no longer than 5 characters.
@@ -19,17 +18,15 @@ Decide on a **stage name**; for this example we will show this as
 `<stage>`. A common convention, if you are planning to deploy only
 onece, is to use your login.
 
-Separately Deployable Components
---------------------------------
+## Separately Deployable Components
 
-Galileo code is divided into multiple (currently 7) *Separately
-Deployable Components* (*SDCs*) with names such as `backend`, `ui`,
+Service Workbench code is divided into multiple (currently 7) _Separately
+Deployable Components_ (_SDCs_) with names such as `backend`, `ui`,
 `post-deployment`. Each SDC has a directory in `main/solution`. We will
 be running a script that deploys all SDCs in sequence, but they can each
 be deployed separately.
 
-Prepare Main Configuration File
--------------------------------
+## Prepare Main Configuration File
 
 In this optional step you will make a copy of a sample global config
 file, name it for your stage, and modify it. Current default values for
@@ -44,31 +41,30 @@ overridden in this file and have the following values:
 
 **awsRegion**
 
-:   `us-east-1`
+: `us-east-1`
 
 **awsProfile**
 
-:   No default; set this to your current AWS profile unless using a
-    default or instance profile.
+: No default; set this to your current AWS profile unless using a
+default or instance profile.
 
 **solutionName**
 
-:   `galileo`
+: `sw`
 
 **envName**
 
-:   Same as stage name
+: Same as stage name
 
 **envType**
 
-:   `prod`
+: `prod`
 
 **enableExternalResearchers**
 
-:   `false`
+: `false`
 
-Custom Domain names
--------------------
+## Custom Domain names
 
 To use a custom domain name, provide the following two values, the domain name
 itself, and the ARN for the manually-created TLS certificate to use from ACM.
@@ -79,20 +75,17 @@ domainName: `host.domain.toplevel`
 
 certificateArn: `<ARN>`
 
-
-Namespace
----------
+## Namespace
 
 The name of many deployed resources will include a namespace string such
-as `mystage-va-galileo`. This string is made up by concatenating:
+as `mystage-va-sw`. This string is made up by concatenating:
 
--   Environment name
--   Region short name (eg: `va` for US-East-1, `or` for US-West-2,
-    defined in `.defaults.yml`)
--   Solution name
+- Environment name
+- Region short name (eg: `va` for US-East-1, `or` for US-West-2,
+  defined in `.defaults.yml`)
+- Solution name
 
-Prepare SDC Configuration Files (Optional)
-------------------------------------------
+## Prepare SDC Configuration Files (Optional)
 
 Each SDC has a `config/settings` directory, where customized settings
 files may be placed. Settings files are named after your stage name:

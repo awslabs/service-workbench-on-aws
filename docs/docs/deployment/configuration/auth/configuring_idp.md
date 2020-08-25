@@ -30,11 +30,11 @@ At high level the steps are as follows:
 14. To configure claims, the “Edit Claims” window may already be open at this point from last wizard. If not, you can open it by clicking the “Edit Claim Rules” link.
 15. To configure claims, the “Edit Claims” window may already be open at this point from last wizard. If not, you can open it by clicking the “Edit Claim Rules” link.
     1. Add the following claims:
-        1. Name ID
-        2. Name
-        3. Mail
-        4. Surname
-        5. Given Name
+       1. Name ID
+       2. Name
+       3. Mail
+       4. Surname
+       5. Given Name
 16. To add Name ID claim:
     1. Click “Add Rule”.
     2. Select “Transform an Incoming Claim”, Click Next and then configure the Claim.
@@ -44,7 +44,7 @@ At high level the steps are as follows:
     2. Select “Send LDAP Attributes as Claims”, Click Next and then configure the Claim.
 19. Similarly add the Surname and Given Name claims.
 
-## Configure Relying Party information on the Galileo side
+## Configure Relying Party information on the Service Workbench side
 
 Once you have created a Relying Party in ADFS you can then configure it within the Research as a Service solution.
 

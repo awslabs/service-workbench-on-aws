@@ -17,10 +17,10 @@ websiteCloudFrontId: ${cf:${self:custom.settings.infrastructureStackName}.CloudF
 websiteUrl: ${cf:${self:custom.settings.infrastructureStackName}.WebsiteUrl}
 
 # Branding
-brandPageTitle: 'Galileo'
-brandMainTitle: 'Galileo - Gateway (${self:custom.settings.envName}/${self:custom.settings.awsRegion})'
-brandLoginTitle: 'Galileo'
-brandLoginSubtitle: 'Galileo Gateway (${self:custom.settings.envName}/${self:custom.settings.awsRegion})'
+brandPageTitle: 'Service Workbench'
+brandMainTitle: 'Service Workbench on AWS (${self:custom.settings.envName}/${self:custom.settings.awsRegion})'
+brandLoginTitle: 'Service Workbench'
+brandLoginSubtitle: 'Service Workbench on AWS (${self:custom.settings.envName}/${self:custom.settings.awsRegion})'
 
 # After how many minutes should the auto logout dialog be displayed? once displayed the user has 1 minute to dismiss
 # the dialog, otherwise they will be automatically logged out

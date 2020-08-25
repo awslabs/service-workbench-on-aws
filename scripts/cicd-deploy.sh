@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-printf "\n\n\n ****** DEPLOY AWS-GALILEO-GATEWAY [$STAGE] ******"
-printf "\nYou are about to deploy a version of Aws-Galileo-Gateway on your AWS account. Stage name is [$STAGE]"
+printf "\n\n\n ****** DEPLOY SERVICE-WORKBENCH-ON-AWS [$STAGE] ******"
+printf "\nYou are about to deploy a version of Service-Workbench-On-Aws on your AWS account. Stage name is [$STAGE]"
 printf "\nDo you want to proceed to the deployment ? (y/n): "
 read -r confirmation
 if [ "$confirmation" != "y" ]; then

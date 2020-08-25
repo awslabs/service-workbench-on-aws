@@ -11,7 +11,7 @@ sudo systemctl restart rstudio-server
 
 
 # Create a user for RStudio to use; its password is set at boot time
-sudo useradd -m galileo
+sudo useradd -m workbenchuser
 
 
 # Install and configure nginx
@@ -26,7 +26,7 @@ sudo systemctl enable nginx
 sudo systemctl restart nginx
 
 
-# Install script that sets the galileo user password at boot
+# Install script that sets the service workbench user password at boot
 sudo mv "/tmp/rstudio/secret.txt" "/root/"
 sudo chown root: "/root/secret.txt"
 sudo chmod 600 "/root/secret.txt"

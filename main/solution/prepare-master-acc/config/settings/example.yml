@@ -1,5 +1,5 @@
 # AWS Credentials profile with permissions for the master account
-awsProfile: galileo-master
+awsProfile: sw-master
 
 # 12 digit AWS Account ID for the main AWS account where the solution is (or will be) deployed
 mainAccountId: 123456789012
@@ -8,4 +8,4 @@ mainAccountId: 123456789012
 # This id will be required by the solution to assume the role in master account.
 # The external id specified here MUST match the value you specify in the "Create AWS Account" screen
 # when creating a member account via the RaaS solution UI
-externalId: galileo-1234567890
+externalId: sw-1234567890
