@@ -189,6 +189,18 @@ Resources:
                   - iam:*TagRole*
                 Resource: '*'
                 Effect: Allow
+        - PolicyName: iam-instance-profile-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              - Action:
+                  - iam:AddRoleToInstanceProfile
+                  - iam:CreateInstanceProfile
+                  - iam:GetInstanceProfile
+                  - iam:DeleteInstanceProfile
+                  - iam:RemoveRoleFromInstanceProfile
+                Resource:
+                  - !Sub 'arn:aws:iam::${AWS::AccountId}:instance-profile/analysis-*'
   # =============================================================================================
   # Dynamo db
   # =============================================================================================
