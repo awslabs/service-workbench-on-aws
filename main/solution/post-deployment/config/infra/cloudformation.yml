@@ -199,8 +199,7 @@ Resources:
                 - iam:GetInstanceProfile
                 - iam:DeleteInstanceProfile
                 - iam:RemoveRoleFromInstanceProfile
-              Resource:
-                - !Sub 'arn:aws:iam::${AWS::AccountId}:instance-profile/analysis-*'
+              Resource: '*'
   # =============================================================================================
   # Dynamo db
   # =============================================================================================
