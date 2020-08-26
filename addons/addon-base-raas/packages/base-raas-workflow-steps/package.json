@@ -2,7 +2,7 @@
   "name": "@aws-ee/base-raas-workflow-steps",
   "private": true,
   "version": "1.0.0",
-  "description": "A collection of base RaaS workflow steps",
+  "description": "A collection of base Service Workbench workflow steps",
   "author": "Amazon Web Services",
   "license": "Apache-2.0",
   "dependencies": {

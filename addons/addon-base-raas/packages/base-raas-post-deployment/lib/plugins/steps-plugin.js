@@ -28,7 +28,7 @@ const CreateServiceCatalogPortfolio = require('../steps/create-service-catalog-p
 // eslint-disable-next-line no-unused-vars
 async function getSteps(existingStepsMap, pluginRegistry) {
   const stepsMap = new Map([
-    // The userService implementation of RaaS requires the roles to be created first before a user can be created
+    // The userService implementation of Service Workbench requires the roles to be created first before a user can be created
     // One of the steps from the "existingStepsMap" tries to create root user.
     // Make sure the CreateUserRoles gets executed first before executing other post deployment steps otherwise the root
     // user creation step will fail

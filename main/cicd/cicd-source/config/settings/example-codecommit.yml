@@ -1,7 +1,7 @@
 # AWS credentials profile for the AWS Account holding the source code repository
 # Make sure to specify the profile for Source Account and NOT the Target Account here.
 # The cicd-source stack needs to be deployed to the Source Account and not the Target Account.
-awsProfile: sw-source
+awsProfile: service-workbench-source
 
 # the AWS Account ID of the Target AWS account where the solution and the AWS code pipeline needs to be deployed
 targetAccountId: 123456789012

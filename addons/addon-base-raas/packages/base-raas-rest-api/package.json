@@ -2,7 +2,7 @@
   "name": "@aws-ee/base-raas-rest-api",
   "private": true,
   "version": "1.0.0",
-  "description": "A library containing a set of base RaaS related controllers",
+  "description": "A library containing a set of base Service Workbench related controllers",
   "author": "Amazon Web Services",
   "license": "Apache-2.0",
   "dependencies": {

@@ -1,5 +1,5 @@
 # AWS credentials profile for the target AWS Account where the solution needs to be deployed
-awsProfile: sw-main
+awsProfile: service-workbench-main
 
 # CodeCommit parameters
 sourceAccountId: 123456789012

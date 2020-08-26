@@ -24,7 +24,7 @@ const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
  * The Environment Type Configuration Variables denote all such variables that can be referenced in the variable
  * expressions.
  *
- * This service provides list of RaaS specific Environment Type Configuration Variables
+ * This service provides list of Service Workbench specific Environment Type Configuration Variables
  */
 class EnvironmentConfigVarsService extends Service {
   constructor() {
