@@ -10,7 +10,7 @@
 # setting short to avoid hitting long strings issues; the default should be fine in most cases,
 # but if multiple separate instances of the system are deployed within a single account,
 # this name can be changed to ensure they are disambiguated.
-# solutionName: gg
+# solutionName: sw
 
 # The environment name where you want to deploy the solution to. Normally this defaults to
 # the serverless stage name and should be left unchanged here.
