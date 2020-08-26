@@ -11,7 +11,7 @@ sudo systemctl restart rstudio-server
 
 
 # Create a user for RStudio to use; its password is set at boot time
-sudo useradd -m workbenchuser
+sudo useradd -m rstudio-user
 
 
 # Install and configure nginx

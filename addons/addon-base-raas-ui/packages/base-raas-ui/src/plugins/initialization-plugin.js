@@ -16,7 +16,7 @@
 import _ from 'lodash';
 
 /**
- * This is where we run the post initialization logic that is specific to RaaS.
+ * This is where we run the post initialization logic that is specific to Service Workbench.
  *
  * @param payload A free form object. This function expects a property named 'tokenInfo' to be available on the payload object.
  * @param appContext An application context object containing various Mobx Stores, Models etc.

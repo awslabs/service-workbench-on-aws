@@ -53,7 +53,7 @@ async function getRoutes(routesMap, pluginRegistry) {
   // PROTECTED APIS for workflows accessible only to logged in ADMIN users. These routes are already registered by
   // the workflow's api plugin (addons/addon-base-workflow-api/packages/base-worklfow-api/lib/plugins/routes-plugin.js)
   // but are made available to all users.
-  // For RaaS, we want these APIs to be ONLY available to admin users. So append ensureAdmin middleware to existing
+  // For Service Workbench, we want these APIs to be ONLY available to admin users. So append ensureAdmin middleware to existing
   // routes middlewares
   appendMiddleware(routesMap, '/api/step-templates', ensureAdmin);
   appendMiddleware(routesMap, '/api/workflow-templates', ensureAdmin);

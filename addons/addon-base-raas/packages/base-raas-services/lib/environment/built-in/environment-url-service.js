@@ -36,6 +36,15 @@ class EnvironmentUrlService extends Service {
   }
 
   async getRStudioUrl(id, instanceInfo) {
+    // The username for RStudio url access was changed as of 08/26/20
+    // If you're experiencing difficulty accessing previously provisioned RStudio instance,
+    // the steps to perform for backwards compatibility are:
+    // 1. Redeploy machine-images SDC (this will update the RStudio AMIs to have the new username)
+    // 2. For already provisioned RStudio instances, get sudo/root access on the box and add the user
+    // as a linux user using the command 'sudo useradd -m rstudio-user'
+    // 3. Update the username in boot script 'set-password' (found in /usr/local/bin/)
+    // 4. Reboot the box
+
     const environmentDnsService = await this.service('environmentDnsService');
     const rstudioDomainName = environmentDnsService.getHostname('rstudio', id);
     const rstudioPublicKeyUrl = `https://${rstudioDomainName}/auth-public-key`;
@@ -44,7 +53,7 @@ class EnvironmentUrlService extends Service {
     const jwtService = await this.service('jwtService');
     const jwtSecret = await jwtService.getSecret();
     const hash = crypto.createHash('sha256');
-    const username = 'workbenchuser';
+    const username = 'rstudio-user';
     const password = hash.update(`${instanceId}${jwtSecret}`).digest('hex');
     const credentials = `${username}\n${password}`;
     const publicKey = await request(rstudioPublicKeyUrl);

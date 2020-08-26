@@ -7,5 +7,5 @@ mainAccountId: 123456789012
 # An external id to be used in the AWS IAM role being created in the master account.
 # This id will be required by the solution to assume the role in master account.
 # The external id specified here MUST match the value you specify in the "Create AWS Account" screen
-# when creating a member account via the RaaS solution UI
+# when creating a member account via the Service Workbench solution UI
 externalId: sw-1234567890
