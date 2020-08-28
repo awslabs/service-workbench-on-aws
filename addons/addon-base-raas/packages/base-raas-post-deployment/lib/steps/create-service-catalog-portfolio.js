@@ -124,12 +124,12 @@ class CreateServiceCatalogPortfolio extends Service {
       // Portfolio's ready, now let's add products
       portfolioToUpdate.products = await this.createAllProducts();
       await Promise.all(
-        _.map(portfolioToUpdate.products, async product => {
+        _.map(portfolioToUpdate.products, async (product) => {
           await this.associatePortfolio(product.productId, portfolioId);
         }),
       );
       await Promise.all(
-        _.map(portfolioToUpdate.products, async product => {
+        _.map(portfolioToUpdate.products, async (product) => {
           await this.createLaunchConstraint(portfolioId, product.productId);
         }),
       );
@@ -145,7 +145,7 @@ class CreateServiceCatalogPortfolio extends Service {
     const productsList = this._getAllProductParams();
     const productDataList = [];
     await Promise.all(
-      _.map(productsList, async product => {
+      _.map(productsList, async (product) => {
         const productData = await this.createProduct(product);
         productDataList.push(productData);
       }),
@@ -173,11 +173,11 @@ class CreateServiceCatalogPortfolio extends Service {
 
     // The name of the product we search for in S3 needs to be the filename
     // Since the users can chose to have a custom product display name, we search for its filename as follows
-    let prodFileName = productsToCreate.find(p => p.displayName === product.Name).filename;
+    let prodFileName = productsToCreate.find((p) => p.displayName === product.Name).filename;
     if (!prodFileName) {
       // Maybe the user didn't add a custom display name for their product
       // In that case, match the name by filename
-      prodFileName = productsToCreate.find(p => p.filename === product.Name).filename;
+      prodFileName = productsToCreate.find((p) => p.filename === product.Name).filename;
     }
     const productArtifactCfn = await this.getS3Object(prodFileName);
 
@@ -201,13 +201,13 @@ class CreateServiceCatalogPortfolio extends Service {
       products: [],
     };
 
-    const scAvailableProducts = _.map(envTypesAvailable, obj => ({
+    const scAvailableProducts = _.map(envTypesAvailable, (obj) => ({
       productName: obj.product.name,
       provisioningArtifactId: obj.provisioningArtifact.id,
     }));
-    const scAvailableProductNames = _.map(scAvailableProducts, p => p.productName);
+    const scAvailableProductNames = _.map(scAvailableProducts, (p) => p.productName);
 
-    const updatePromises = _.map(productsToCreate, async productToCreate => {
+    const updatePromises = _.map(productsToCreate, async (productToCreate) => {
       // If the user forgot to add displayName, we'll use filename instead to search
       const productName = productToCreate.displayName || productToCreate.filename;
       if (_.includes(scAvailableProductNames, productName)) {
@@ -215,10 +215,10 @@ class CreateServiceCatalogPortfolio extends Service {
         const deploymentItem = await this.findDeploymentItem({ id: deploymentItemId });
         const existingPortfolioValue = JSON.parse(deploymentItem.value);
         const deployedProducts = existingPortfolioValue.products || [];
-        const productFound = deployedProducts.find(p => p.productName === productName);
+        const productFound = deployedProducts.find((p) => p.productName === productName);
         if (productFound) {
           // Find DB productFound.provisioningArtifactId in envTypesAvailable products
-          const ScProduct = scAvailableProducts.find(s => s.productName === productName);
+          const ScProduct = scAvailableProducts.find((s) => s.productName === productName);
           if (productFound.provisioningArtifactId === ScProduct.provisioningArtifactId) {
             // If found, compare hash - upload new artifact if different - else skip
             const cfnTemplateBody = await this.getS3Object(productToCreate.filename); // Latest in S3
@@ -260,12 +260,12 @@ class CreateServiceCatalogPortfolio extends Service {
         // Since this is a new product, we need to also associate the necessary roles and access while we're here
         const tempProductList = [productData];
         await Promise.all(
-          _.map(tempProductList, async currentProduct => {
+          _.map(tempProductList, async (currentProduct) => {
             await this.associatePortfolio(currentProduct.productId, portfolioToUpdate.portfolioId);
           }),
         );
         await Promise.all(
-          _.map(tempProductList, async currentProduct => {
+          _.map(tempProductList, async (currentProduct) => {
             await this.createLaunchConstraint(portfolioToUpdate.portfolioId, currentProduct.productId);
           }),
         );
@@ -281,7 +281,7 @@ class CreateServiceCatalogPortfolio extends Service {
     const aws = await this.service('aws');
     const servicecatalog = new aws.sdk.ServiceCatalog({ apiVersion: '2015-12-10' });
     const s3BucketName = this.settings.get(settingKeys.deploymentBucketName);
-    const productToCreate = productsToCreate.find(p => p.filename === productFileName);
+    const productToCreate = productsToCreate.find((p) => p.filename === productFileName);
     const params = {
       Parameters: {
         Info: {
@@ -289,9 +289,9 @@ class CreateServiceCatalogPortfolio extends Service {
         },
         DisableTemplateValidation: true,
         Type: 'CLOUD_FORMATION_TEMPLATE',
+        Description: productToCreate.description || autoCreateDesc,
       },
       ProductId: productId,
-      Description: productToCreate.description || autoCreateDesc,
     };
     const data = await servicecatalog.createProvisioningArtifact(params).promise();
     return data.ProvisioningArtifactDetail.Id;
@@ -378,7 +378,7 @@ class CreateServiceCatalogPortfolio extends Service {
   }
 
   _getAllProductParams() {
-    return _.map(productsToCreate, productToCreate => this._getProductParam(productToCreate));
+    return _.map(productsToCreate, (productToCreate) => this._getProductParam(productToCreate));
   }
 
   _getProductParam(productToCreate) {
