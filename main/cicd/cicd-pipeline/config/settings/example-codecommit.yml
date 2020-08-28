@@ -3,7 +3,7 @@ awsProfile: service-workbench-main
 
 # CodeCommit parameters
 sourceAccountId: 123456789012
-sourceRoleArn: arn:aws:iam::123456789012:role/example-va-gg-cicd-src-CodeCommitSourceRole-XXXXXXXXXXXX
+sourceRoleArn: arn:aws:iam::123456789012:role/example-va-sw-cicd-src-CodeCommitSourceRole-XXXXXXXXXXXX
 repoName: service-workbench-on-aws
 repoBranch: master
 
