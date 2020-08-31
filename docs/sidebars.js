@@ -88,6 +88,7 @@ module.exports = {
                       "user_guide/sidebar/admin/accounts/aws_accounts/introduction",
                       "user_guide/sidebar/admin/accounts/aws_accounts/create_member_account",
                       "user_guide/sidebar/admin/accounts/aws_accounts/invite_member_account",
+                      "user_guide/sidebar/admin/accounts/aws_accounts/set_account_budget",
                       {
                         "Roles and Permissions": [
                           "user_guide/sidebar/admin/accounts/aws_accounts/master_role",

@@ -24,8 +24,22 @@ function getAwsAccounts() {
   return httpApiGet('api/aws-accounts');
 }
 
-function getAwsAccount(accountId) {
-  return httpApiGet(`api/aws-accounts/${accountId}`);
+// Note the accountUUID used here is the 'id' column in dbAwsAccounts table and 'id' attribute in AwsAccount.js, not AWS account id
+function getAwsAccount(accountUUID) {
+  return httpApiGet(`api/aws-accounts/${accountUUID}`);
+}
+
+// Note the accountUUID used here is the 'id' column in dbAwsAccounts table and 'id' attribute in AwsAccount.js, not AWS account id
+function getAwsAccountBudget(accountUUID) {
+  return httpApiGet(`api/budgets/aws-account/${accountUUID}`);
+}
+
+function createAwsAccountBudget(budgetConfiguration) {
+  return httpApiPut(`api/budgets/aws-account`, { data: budgetConfiguration });
+}
+
+function updateAwsAccountBudget(budgetConfiguration) {
+  return httpApiPost(`api/budgets/aws-account`, { data: budgetConfiguration });
 }
 
 function addUsers(users) {
@@ -266,6 +280,9 @@ export {
   getUserRoles,
   getAwsAccounts,
   getAwsAccount,
+  getAwsAccountBudget,
+  createAwsAccountBudget,
+  updateAwsAccountBudget,
   getStudies,
   getStudy,
   createStudy,
