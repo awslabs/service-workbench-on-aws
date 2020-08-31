@@ -302,12 +302,15 @@ importers:
       '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
       '@aws-ee/base-services-container': 'link:../../../addon-base/packages/services-container'
       lodash: 4.17.15
+      moment: 2.27.0
       node-cache: 4.2.1
       request: 2.88.2
       request-promise-native: 1.0.8_request@2.88.2
+      sinon: 9.0.3
       uuid: 3.4.0
       xml: 1.0.1
     devDependencies:
+      aws-sdk-mock: 5.1.0
       eslint: 6.8.0
       eslint-config-airbnb-base: 14.1.0_8cdb6d8c18c3319a1365bd5afa0063a3
       eslint-config-prettier: 6.10.1_eslint@6.8.0
@@ -325,6 +328,7 @@ importers:
       '@aws-ee/base-api-services': 'workspace:*'
       '@aws-ee/base-services': 'workspace:*'
       '@aws-ee/base-services-container': 'workspace:*'
+      aws-sdk-mock: ^5.1.0
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.1.0
       eslint-config-prettier: ^6.10.0
@@ -336,11 +340,13 @@ importers:
       jest: ^24.9.0
       jest-junit: ^10.0.0
       lodash: ^4.17.15
+      moment: ^2.27.0
       node-cache: ^4.2.1
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
       request: ^2.88.2
       request-promise-native: ^1.0.8
+      sinon: ^9.0.3
       source-map-support: ^0.5.16
       uuid: ^3.4.0
       xml: ^1.0.1
@@ -4445,9 +4451,37 @@ packages:
   /@sinonjs/commons/1.7.2:
     dependencies:
       type-detect: 4.0.8
-    dev: true
     resolution:
       integrity: sha512-+DUO6pnp3udV/v2VfUWgaY5BIE1IfT7lLfeDzPVeMT1XKkaAp9LgSI9x5RtrFQoZ9Oi0PgXQQHPaoKu7dCjVxw==
+  /@sinonjs/fake-timers/6.0.1:
+    dependencies:
+      '@sinonjs/commons': 1.7.2
+    resolution:
+      integrity: sha512-MZPUxrmFubI36XS1DI3qmI0YdN1gks62JtFZvxR67ljjSNCeK6U08Zx4msEWOXuofgqUt6zPHSi1H9fbjR/NRA==
+  /@sinonjs/formatio/5.0.1:
+    dependencies:
+      '@sinonjs/commons': 1.7.2
+      '@sinonjs/samsam': 5.1.0
+    resolution:
+      integrity: sha512-KaiQ5pBf1MpS09MuA0kp6KBQt2JUOQycqVG1NZXvzeaXe5LGFqAKueIS0bw4w0P9r7KuBSVdUk5QjXsUdu2CxQ==
+  /@sinonjs/samsam/5.0.3:
+    dependencies:
+      '@sinonjs/commons': 1.7.2
+      lodash.get: 4.4.2
+      type-detect: 4.0.8
+    dev: true
+    resolution:
+      integrity: sha512-QucHkc2uMJ0pFGjJUDP3F9dq5dx8QIaqISl9QgwLOh6P9yv877uONPGXh/OH/0zmM3tW1JjuJltAZV2l7zU+uQ==
+  /@sinonjs/samsam/5.1.0:
+    dependencies:
+      '@sinonjs/commons': 1.7.2
+      lodash.get: 4.4.2
+      type-detect: 4.0.8
+    resolution:
+      integrity: sha512-42nyaQOVunX5Pm6GRJobmzbS7iLI+fhERITnETXzzwDZh+TtDr/Au3yAvXVjFmZ4wEUaE4Y3NFZfKv0bV0cbtg==
+  /@sinonjs/text-encoding/0.7.1:
+    resolution:
+      integrity: sha512-+iTbntw2IZPb/anVDbypzfQa+ay64MW0Zo8aJ8gZPWMMK6/OubMVb6lUPMagqjOPnmtauXnFCACVl3O7ogjeqQ==
   /@stardust-ui/react-component-event-listener/0.38.0_react-dom@16.13.1+react@16.13.1:
     dependencies:
       '@babel/runtime': 7.10.3
@@ -5720,6 +5754,14 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-F7cYpbN7uVVhACZTeeIeealwdGM6wMtfWARVLTy5xmKtgVdBNJvbDRoCK3YO1orcs7gv/KwYlb3iXwu9Ug9BkQ==
+  /aws-sdk-mock/5.1.0:
+    dependencies:
+      aws-sdk: 2.656.0
+      sinon: 9.0.2
+      traverse: 0.6.6
+    dev: true
+    resolution:
+      integrity: sha512-Wa5eCSo8HX0Snqb7FdBylaXMmfrAWoWZ+d7MFhiYsgHPvNvMEGjV945FF2qqE1U0Tolr1ALzik1fcwgaOhqUWQ==
   /aws-sdk/2.656.0:
     dependencies:
       buffer: 4.9.1
@@ -8270,6 +8312,11 @@ packages:
       node: '>=0.3.1'
     resolution:
       integrity: sha512-A46qtFgd+g7pDZinpnwiRJtxbC1hpgf0uzP3iG89scHk0AUC7A1TGxf5OiiOUv/JMZR8GOt8hL900hV0bOy5xA==
+  /diff/4.0.2:
+    engines:
+      node: '>=0.3.1'
+    resolution:
+      integrity: sha512-58lmxKSA4BNyLz+HHMUzlOEpg09FV+ev6ZMe3vJihgdxzgcwZ8VoEEPmALCZG9LmqfVoNMMKpttIYTVG6uDY7A==
   /diffie-hellman/5.0.3:
     dependencies:
       bn.js: 4.11.8
@@ -10268,6 +10315,7 @@ packages:
     resolution:
       integrity: sha512-Ggd/Ktt7E7I8pxZRbGIs7vwqAPscSESMrCSkx2FtWeqmheJgCo2R74fTsZFCifr0VTPwqRpPv17+6b8Zp7th0Q==
   /fsevents/2.1.2:
+    dev: true
     engines:
       node: ^8.16.0 || ^10.6.0 || >=11.0.0
     optional: true
@@ -10740,7 +10788,6 @@ packages:
     resolution:
       integrity: sha1-tdRU3CGZriJWmfNGfloH87lVuv0=
   /has-flag/4.0.0:
-    dev: true
     engines:
       node: '>=8'
     resolution:
@@ -11925,7 +11972,6 @@ packages:
     resolution:
       integrity: sha512-VjSeb/lHmkoyd8ryPVIKvOCn4D1koMqY+vqyjjUfc3xyKtP4dYOxM44sZrnqQSzSds3xyOrUTLTC9LVCVgLngw==
   /isarray/0.0.1:
-    dev: false
     resolution:
       integrity: sha1-ihis/Kmo9Bd+Cav8YDiTmwXR7t8=
   /isarray/1.0.0:
@@ -13203,6 +13249,9 @@ packages:
     dev: true
     resolution:
       integrity: sha512-EJ9k766htB1ZWnsV5ZMDkKLgA+201r/ouFF8R2OigVjVdcm2rurcBrrdXaeqBJbqnUVMko512PYmlncBKE1Huw==
+  /just-extend/4.1.0:
+    resolution:
+      integrity: sha512-ApcjaOdVTJ7y4r08xI5wIqpvwS48Q0PBG4DJROcEkH1f8MdAiNFyFxz3xoL0LWAVwjrwPYZdVHHxhRHcx/uGLA==
   /jwa/1.4.1:
     dependencies:
       buffer-equal-constant-time: 1.0.1
@@ -13540,6 +13589,9 @@ packages:
     dev: true
     resolution:
       integrity: sha1-+wMJF/hqMTTlvJvsDWngAT3f7bI=
+  /lodash.get/4.4.2:
+    resolution:
+      integrity: sha1-LRd/ZS+jHpObRDjVNBSZ36OCXpk=
   /lodash.includes/4.3.0:
     resolution:
       integrity: sha1-YLuYqHy5I8aMoeUTJUgzFISfVT8=
@@ -14168,7 +14220,7 @@ packages:
     resolution:
       integrity: sha512-bV7f+6l2QigeBBZSM/6yTNq4P2fNpSWj/0e7jQcy87A8e7o2nAfP/34/2ky5Vw4B9S446EtIhodAzkFCcR4dQg==
   /moment/2.27.0:
-    dev: true
+    dev: false
     resolution:
       integrity: sha512-al0MUK7cpIcglMv3YF13qSgdAIqxHTO7brRtaz3DlSULbqfazqkc5kEjNrLDOM7fsjshoFIihnU8snrP7zUvhQ==
   /moo/0.5.1:
@@ -14323,6 +14375,15 @@ packages:
   /nice-try/1.0.5:
     resolution:
       integrity: sha512-1nh45deeb5olNY7eX82BkPO7SSxR5SSYJiPTrTdFUVYwAl8CKMA5N9PjTYkHiRjisVcxcQ1HXdLhx2qxxJzLNQ==
+  /nise/4.0.4:
+    dependencies:
+      '@sinonjs/commons': 1.7.2
+      '@sinonjs/fake-timers': 6.0.1
+      '@sinonjs/text-encoding': 0.7.1
+      just-extend: 4.1.0
+      path-to-regexp: 1.8.0
+    resolution:
+      integrity: sha512-bTTRUNlemx6deJa+ZyoCUTRvH3liK5+N6VQZ4NIw90AgDXY6iPnsqplNFf6STcj+ePk0H/xqxnP75Lr0J0Fq3A==
   /no-case/3.0.3:
     dependencies:
       lower-case: 2.0.1
@@ -15175,7 +15236,6 @@ packages:
   /path-to-regexp/1.8.0:
     dependencies:
       isarray: 0.0.1
-    dev: false
     resolution:
       integrity: sha512-n43JRhlUKUAlibEJhPeir1ncUID16QnEjNpwzNdO3Lm4ywrBpBZ5oLD0I6br9evr1Y9JTqwRtAh7JLoOzAQdVA==
   /path-type/2.0.0:
@@ -18067,6 +18127,30 @@ packages:
     dev: true
     resolution:
       integrity: sha1-pNprY1/8zMoz9w0Xy5JZLeleVXo=
+  /sinon/9.0.2:
+    dependencies:
+      '@sinonjs/commons': 1.7.2
+      '@sinonjs/fake-timers': 6.0.1
+      '@sinonjs/formatio': 5.0.1
+      '@sinonjs/samsam': 5.0.3
+      diff: 4.0.2
+      nise: 4.0.4
+      supports-color: 7.1.0
+    dev: true
+    resolution:
+      integrity: sha512-0uF8Q/QHkizNUmbK3LRFqx5cpTttEVXudywY9Uwzy8bTfZUhljZ7ARzSxnRHWYWtVTeh4Cw+tTb3iU21FQVO9A==
+  /sinon/9.0.3:
+    dependencies:
+      '@sinonjs/commons': 1.7.2
+      '@sinonjs/fake-timers': 6.0.1
+      '@sinonjs/formatio': 5.0.1
+      '@sinonjs/samsam': 5.1.0
+      diff: 4.0.2
+      nise: 4.0.4
+      supports-color: 7.1.0
+    dev: false
+    resolution:
+      integrity: sha512-IKo9MIM111+smz9JGwLmw5U1075n1YXeAq8YeSFlndCLhAL5KGn6bLgu7b/4AYHTV/LcEMcRm2wU2YiL55/6Pg==
   /sisteransi/1.0.5:
     dev: true
     resolution:
@@ -18767,7 +18851,6 @@ packages:
   /supports-color/7.1.0:
     dependencies:
       has-flag: 4.0.0
-    dev: true
     engines:
       node: '>=8'
     resolution:
@@ -19288,7 +19371,6 @@ packages:
     resolution:
       integrity: sha1-WITKtRLPHTVeP7eE8wgEsrUg23I=
   /type-detect/4.0.8:
-    dev: true
     engines:
       node: '>=4'
     resolution:
