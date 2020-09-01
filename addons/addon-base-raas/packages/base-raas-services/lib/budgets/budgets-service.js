@@ -18,14 +18,12 @@ const moment = require('moment');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const { isAdmin, isActive } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
-const budgetBaseTemplates = require('./budget-base-templates');
 const createSchema = require('../schema/create-budget');
 
 class BudgetsService extends Service {
   constructor() {
     super();
     this.dependency(['aws', 'awsAccountsService', 'jsonSchemaValidationService']);
-    this.budgetBaseTemplates = budgetBaseTemplates;
     this.budgetName = 'service-workbench-system-generated-budget-do-not-update';
   }
 
@@ -152,10 +150,8 @@ class BudgetsService extends Service {
   }
 
   async _getANotificationEmail(requestParams, notification, budgetsClient) {
-    const requestParamsClone = _.clone(requestParams);
-    requestParamsClone.Notification = notification;
     const budgetApiSubscribersResponse = await budgetsClient
-      .describeSubscribersForNotification(requestParamsClone)
+      .describeSubscribersForNotification({ ...requestParams, Notification: notification })
       .promise();
     return budgetApiSubscribersResponse.Subscribers[0].Address;
   }
@@ -177,25 +173,53 @@ class BudgetsService extends Service {
   }
 
   _formBudgetObject(newBudgetConfig) {
-    const budget = this.budgetBaseTemplates.BudgetTemplate;
-    budget.BudgetName = this.budgetName;
-    budget.BudgetLimit.Amount = newBudgetConfig.budgetLimit;
-    budget.TimePeriod.Start = newBudgetConfig.startDate;
-    budget.TimePeriod.End = newBudgetConfig.endDate;
+    const budget = {
+      BudgetName: this.budgetName,
+      BudgetType: 'COST',
+      TimeUnit: 'ANNUALLY',
+      BudgetLimit: {
+        Amount: newBudgetConfig.budgetLimit,
+        Unit: 'USD',
+      },
+      CostTypes: {
+        IncludeCredit: true,
+        IncludeDiscount: true,
+        IncludeOtherSubscription: true,
+        IncludeRecurring: true,
+        IncludeRefund: true,
+        IncludeSubscription: true,
+        IncludeSupport: true,
+        IncludeTax: true,
+        IncludeUpfront: true,
+        UseAmortized: true,
+        UseBlended: false,
+      },
+      TimePeriod: {
+        End: newBudgetConfig.endDate,
+        Start: newBudgetConfig.startDate,
+      },
+    };
     return budget;
   }
 
   _formNotificationObjects(newBudgetConfig) {
-    const notifications = [];
-    const notification = this.budgetBaseTemplates.NotificationTemplate;
     const thresholds = _.get(newBudgetConfig, 'thresholds', []);
-    thresholds.forEach(threshold => {
-      const notificationCopy = _.cloneDeep(notification);
-      notificationCopy.Notification.Threshold = threshold;
-      notificationCopy.Subscribers[0].Address = newBudgetConfig.notificationEmail;
-      notifications.push(notificationCopy);
+    return thresholds.map(threshold => {
+      return {
+        Notification: {
+          ComparisonOperator: 'GREATER_THAN',
+          NotificationType: 'ACTUAL',
+          Threshold: threshold,
+          ThresholdType: 'PERCENTAGE',
+        },
+        Subscribers: [
+          {
+            Address: newBudgetConfig.notificationEmail,
+            SubscriptionType: 'EMAIL',
+          },
+        ],
+      };
     });
-    return notifications;
   }
 
   async _getBudgetClientAndAWSAccountId(requestContext, id) {
