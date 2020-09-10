@@ -42,10 +42,20 @@ const EnvironmentSCServiceMock = require('../environment-sc-service');
 jest.mock('../environment-sc-keypair-service');
 const EnvironmentScKeyPairServiceMock = require('../environment-sc-keypair-service');
 
+jest.mock('request-promise-native', () => jest.fn(() => 'keyExponent:keyModulus'));
+jest.mock('querystring', () => ({
+  encode: jest.fn(() => 'SampleEncodedParams'),
+}));
+jest.mock('@aws-ee/base-services/lib/helpers/rstudio-encryptor', () => ({
+  encrypt: jest.fn(() => 'SampleEncryptedKey'), // This will be used as sample sign-in params for RStudio URL
+}));
+
 const EnvironmentScConnectionService = require('../environment-sc-connection-service');
 
 describe('EnvironmentScConnectionService', () => {
   let service = null;
+  let envDnsService = null;
+
   beforeEach(async () => {
     const container = new ServicesContainer();
     container.register('jsonSchemaValidationService', new JsonSchemaValidationService());
@@ -66,6 +76,8 @@ describe('EnvironmentScConnectionService', () => {
 
     // Get instance of the service we are testing
     service = await container.find('environmentScConnectionService');
+
+    envDnsService = await container.find('environmentDnsService');
   });
 
   describe('create connection', () => {
@@ -105,6 +117,20 @@ describe('EnvironmentScConnectionService', () => {
 
       // CHECK
       expect(service.getRStudioUrl).not.toHaveBeenCalled();
+    });
+
+    it('should get RStudio auth URL correctly', async () => {
+      // BUILD
+      const id = 'exampleId';
+      const connection = { instanceId: 'RStudioInstanceId' };
+      envDnsService.getHostname = jest.fn(() => `rstudio-${id}.example.com`);
+      service.mustFindConnection = jest.fn(() => connection);
+
+      // OPERATE
+      const authUrl = await service.getRStudioUrl(id, connection);
+
+      // CHECK
+      expect(authUrl).toEqual(`https://rstudio-${id}.example.com/auth-do-sign-in?SampleEncodedParams`);
     });
   });
 });
