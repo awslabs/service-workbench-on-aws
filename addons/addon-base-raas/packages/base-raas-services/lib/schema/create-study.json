@@ -47,6 +47,10 @@
           }
         }    
       ]
+    },
+    "accessType": {
+      "type": "string",
+      "enum": ["ReadOnly", "ReadWrite"]
     }
   },
   "required": ["id", "category"]
