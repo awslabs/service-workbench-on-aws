@@ -50,6 +50,33 @@ async function configure(context) {
   );
 
   // ===============================================================
+  //  PUT /:id (mounted to /api/studies)
+  // ===============================================================
+  router.put(
+    '/:id',
+    wrap(async (req, res) => {
+      const studyId = req.params.id;
+      const requestContext = res.locals.requestContext;
+      const updateRequest = req.body;
+
+      // verify that studyId in request params is equal to the studyId provided in body of the request
+      const updateRequestId = updateRequest.id;
+      if (studyId !== updateRequestId) {
+        throw context.boom.badRequest(
+          `PUT request for "${studyId}" does not match id "${updateRequestId}" specified in the request`,
+          true,
+        );
+      }
+
+      // Validate permissions and usage
+      await studyPermissionService.verifyRequestorAccess(requestContext, studyId, req.method);
+
+      const result = await studyService.update(requestContext, updateRequest);
+      res.status(200).json(result);
+    }),
+  );
+
+  // ===============================================================
   //  POST / (mounted to /api/studies)
   // ===============================================================
   router.post(
