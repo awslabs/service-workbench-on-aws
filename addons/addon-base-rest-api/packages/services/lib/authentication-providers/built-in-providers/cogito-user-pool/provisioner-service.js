@@ -424,6 +424,9 @@ class ProvisionerService extends Service {
       if (err.code === 'InvalidParameterException' && err.message.indexOf('already exists') >= 0) {
         // The domain already exists so nothing to do. Just log and move on.
         this.log.info(`The Cognito User Pool Domain with Prefix "${userPoolDomain}" already exists. Nothing to do.`);
+      } else {
+        // Re-throw any other error, so it doesn't fail silently
+        throw err;
       }
     }
     providerConfig.userPoolDomain = userPoolDomain;
