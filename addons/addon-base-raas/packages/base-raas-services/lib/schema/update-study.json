@@ -40,7 +40,7 @@
     },
     "accessType": {
       "type": "string",
-      "enum": ["ReadOnly", "ReadWrite"]
+      "enum": ["readonly", "readwrite"]
     }
   },
   "required": ["id", "rev"]

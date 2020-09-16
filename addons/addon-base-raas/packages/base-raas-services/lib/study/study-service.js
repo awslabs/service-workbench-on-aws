@@ -404,7 +404,7 @@ class StudyService extends Service {
 
   // ensure that study accessType is read/write for Open Data category
   validateStudyType(accessType, studyCategory) {
-    if (accessType === 'ReadWrite' && studyCategory === 'Open Data') {
+    if (accessType === 'readwrite' && studyCategory === 'Open Data') {
       throw this.boom.badRequest('Open Data study cannot be read/write', true);
     }
   }

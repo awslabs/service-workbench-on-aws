@@ -177,12 +177,12 @@ describe('studyService', () => {
       );
     });
 
-    it('should try to create the study successfully when accessType is ReadOnly', async () => {
+    it('should try to create the study successfully when accessType is readonly', async () => {
       // BUILD
       const dataIpt = {
         id: 'doppelganger',
         category: 'Open Data',
-        accessType: 'ReadOnly',
+        accessType: 'readonly',
       };
 
       service.audit = jest.fn();
@@ -198,7 +198,7 @@ describe('studyService', () => {
       );
     });
 
-    it('should try to create the study successfully when accessType is ReadWrite for My Studies', async () => {
+    it('should try to create the study successfully when accessType is readwrite for My Studies', async () => {
       // BUILD
       projectService.verifyUserProjectAssociation = jest.fn().mockImplementationOnce(() => {
         return true;
@@ -206,7 +206,7 @@ describe('studyService', () => {
       const dataIpt = {
         id: 'doppelganger',
         category: 'My Studies',
-        accessType: 'ReadWrite',
+        accessType: 'readwrite',
         projectId: 'some_project_id',
       };
 
@@ -223,7 +223,7 @@ describe('studyService', () => {
       );
     });
 
-    it('should try to create the study successfully when accessType is ReadWrite for Organization', async () => {
+    it('should try to create the study successfully when accessType is readwrite for Organization', async () => {
       // BUILD
       projectService.verifyUserProjectAssociation = jest.fn().mockImplementationOnce(() => {
         return true;
@@ -231,7 +231,7 @@ describe('studyService', () => {
       const dataIpt = {
         id: 'doppelganger',
         category: 'Organization',
-        accessType: 'ReadWrite',
+        accessType: 'readwrite',
         projectId: 'some_project_id',
       };
 
@@ -248,12 +248,12 @@ describe('studyService', () => {
       );
     });
 
-    it('should fail because accessType specified is readonly in lowercase', async () => {
+    it('should fail because accessType specified is ReadOnly in camelcase', async () => {
       // BUILD
       const ipt = {
         name: 'doppelganger',
         category: 'My Studies',
-        accessType: 'readonly',
+        accessType: 'ReadOnly',
       };
 
       // OPERATE
@@ -284,7 +284,7 @@ describe('studyService', () => {
       }
     });
 
-    it('should fail because accessType is ReadWrite for Open Data', async () => {
+    it('should fail because accessType is readwrite for Open Data', async () => {
       // BUILD
       projectService.verifyUserProjectAssociation = jest.fn().mockImplementationOnce(() => {
         return true;
@@ -292,7 +292,7 @@ describe('studyService', () => {
       const ipt = {
         id: 'doppelganger',
         category: 'Open Data',
-        accessType: 'ReadWrite',
+        accessType: 'readwrite',
         projectId: 'some_project_id',
       };
 
@@ -342,11 +342,11 @@ describe('studyService', () => {
       }
     });
 
-    it('should fail due to ReadWrite accessType on Open Data study', async () => {
+    it('should fail due to readwrite accessType on Open Data study', async () => {
       // BUILD
       const dataIpt = {
         id: 'doppelganger',
-        accessType: 'ReadWrite',
+        accessType: 'readwrite',
         rev: 1,
       };
       service.find = jest.fn().mockImplementationOnce(() => {
@@ -394,7 +394,7 @@ describe('studyService', () => {
       const dataIpt = {
         id: 'doppelganger',
         rev: 1,
-        accessType: 'ReadOnly',
+        accessType: 'readonly',
       };
 
       dbService.table.update.mockImplementationOnce(() => {
@@ -441,11 +441,11 @@ describe('studyService', () => {
       expect(service.audit).toHaveBeenCalledWith({}, { action: 'update-study', body: undefined });
     });
 
-    it('should succeed with ReadWrite accessType', async () => {
+    it('should succeed with readwrite accessType', async () => {
       // BUILD
       const dataIpt = {
         id: 'doppelganger',
-        accessType: 'ReadWrite',
+        accessType: 'readwrite',
         rev: 1,
       };
       service.find = jest.fn().mockImplementationOnce(() => {
@@ -461,11 +461,11 @@ describe('studyService', () => {
       expect(service.audit).toHaveBeenCalledWith({}, { action: 'update-study', body: undefined });
     });
 
-    it('should succeed with ReadOnly accessType', async () => {
+    it('should succeed with readonly accessType', async () => {
       // BUILD
       const dataIpt = {
         id: 'doppelganger',
-        accessType: 'ReadOnly',
+        accessType: 'readonly',
         rev: 1,
       };
       service.find = jest.fn().mockImplementationOnce(() => {
