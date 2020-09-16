@@ -161,6 +161,9 @@ async function configure(context) {
       if (study.category === 'My Studies') {
         throw context.boom.forbidden('Permissions cannot be set for studies in the "My Studies" category', true);
       }
+      if (study.category === 'Open Data') {
+        throw context.boom.forbidden('Permissions cannot be set for studies in the "Open Data" category', true);
+      }
 
       const result = await studyPermissionService.update(requestContext, studyId, updateRequest);
       res.status(200).json(result);
