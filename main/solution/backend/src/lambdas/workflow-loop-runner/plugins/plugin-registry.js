@@ -23,7 +23,6 @@ const baseRaasWfStepsPlugin = require('@aws-ee/base-raas-workflow-steps/lib/plug
 const baseRaasWorkflowsPlugin = require('@aws-ee/base-raas-workflows/lib/plugins/workflows-plugin');
 const baseRaasUserAuthzPlugin = require('@aws-ee/base-raas-services/lib/user/user-authz-plugin');
 const baseRaasSchemaPlugin = require('@aws-ee/base-raas-services/lib/plugins/schema-plugin');
-// const baseRaasAppstreamSchemaPlugin = require('@aws-ee/base-raas-appstream-services/lib/plugins/schema-plugin');
 const environmentTypeServicesPlugin = require('@aws-ee/environment-type-mgmt-services/lib/plugins/services-plugin');
 const keyPairServicesPlugin = require('@aws-ee/key-pair-mgmt-services/lib/plugins/services-plugin');
 const environmentScWfStepsPlugin = require('@aws-ee/environment-sc-workflow-steps/lib/plugins/workflow-steps-plugin');
@@ -60,8 +59,7 @@ const extensionPoints = {
   'aws-account-authz': [], // No plugins at this point. All aws-account authz is happening inline in 'aws-account-service'
   'cost-authz': [], // No plugins at this point. All cost authz is happening inline in 'costs-service'
 
-  // TODO: Enable app stream plugin again. Temporarily disabled app stream plugin until appropriate extension points are added to provision-account workflow
-  'schema': [baseRaasSchemaPlugin /* , baseRaasAppstreamSchemaPlugin */],
+  'schema': [baseRaasSchemaPlugin],
 };
 
 async function getPlugins(extensionPoint) {

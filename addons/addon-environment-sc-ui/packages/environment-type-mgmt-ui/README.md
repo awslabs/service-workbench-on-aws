@@ -1,3 +1,3 @@
-# @aws-ee/base-raas-appstream-ui
+# Addon for Environment Types Management UI
 
-This package implements UI changes to RaaS to allow AppStream to secure the workspaces.
+This add-on adds UI models and static web content for Environment Types Management APIs.

@@ -64,8 +64,7 @@ const extensionPoints = {
   'cost-authz': [], // No plugins at this point. All cost authz is happening inline in 'costs-service'
   'approval-authz': [], // No plugins at this point. All approval authz is happening inline in 'approval-service'
 
-  // TODO: Enable app stream plugin again. Temporarily disabled app stream plugin until appropriate extension points are added to provision-account workflow
-  'schema': [baseRaasSchemaPlugin /* , baseRaasAppstreamSchemaPlugin */],
+  'schema': [baseRaasSchemaPlugin],
   'env-sc-connection-url': [],
 };
 

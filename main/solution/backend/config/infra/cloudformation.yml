@@ -724,12 +724,6 @@ Resources:
                 - ssm:GetParameters
                 - ssm:DeleteParameter
               Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
-        - PolicyName: appstream-share-image
-          PolicyDocument:
-            Statement:
-              Action: 'appstream:UpdateImagePermissions'
-              Effect: Allow
-              Resource: !Sub arn:${AWS::Partition}:appstream:${AWS::Region}:${AWS::AccountId}:image/Secure-Workspace-Access-Image
         - PolicyName: cfn-read-access
           PolicyDocument:
             Statement:

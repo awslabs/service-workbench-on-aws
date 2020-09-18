@@ -13,6 +13,8 @@
  *  permissions and limitations under the License.
  */
 
+const _ = require('lodash');
+
 /**
  * A plugin method to contribute to the list of available variables for usage in variable expressions in
  * Environment Type Configurations. This plugin method just provides metadata about the variables such as list of
@@ -115,6 +117,14 @@ async function updateEnvOnProvisioningSuccess({
 
   const existingEnvRecord = await environmentScService.mustFind(requestContext, { id: envId, fields: ['rev'] });
 
+  // Create DNS record for RStudio workspaces
+  const connectionType = _.find(outputs, o => o.OutputKey === 'MetaConnection1Type').OutputValue;
+  if (connectionType.toLowerCase() === 'rstudio') {
+    const dnsName = _.find(outputs, o => o.OutputKey === 'Ec2WorkspaceDnsName').OutputValue;
+    const environmentDnsService = await container.find('environmentDnsService');
+    environmentDnsService.createRecord('rstudio', envId, dnsName);
+  }
+
   const environment = {
     id: envId,
     rev: existingEnvRecord.rev || 0,
@@ -183,7 +193,10 @@ async function updateEnvOnTerminationSuccess({ requestContext, container, status
   const log = await container.find('log');
   const environmentScService = await container.find('environmentScService');
 
-  const existingEnvRecord = await environmentScService.mustFind(requestContext, { id: envId, fields: ['rev'] });
+  const existingEnvRecord = await environmentScService.mustFind(requestContext, {
+    id: envId,
+    fields: ['rev'],
+  });
 
   log.debug({ msg: `Updating environment record after successful termination`, envId });
   // -- Update environment record status in the DB
@@ -197,6 +210,15 @@ async function updateEnvOnTerminationSuccess({ requestContext, container, status
   // -- Perform all required clean up
   // --- Cleanup - Resource policies (such as S3 bucket policy, KMS key policy etc) in central account
   log.debug({ msg: `Cleaning up local resource policies`, envId });
+
+  // Delete DNS record for RStudio workspaces
+  const connectionType = _.find(updatedEnvironment.outputs, x => x.OutputKey === 'MetaConnection1Type').OutputValue;
+  if (connectionType.toLowerCase() === 'rstudio') {
+    const dnsName = _.find(updatedEnvironment.outputs, x => x.OutputKey === 'Ec2WorkspaceDnsName').OutputValue;
+    const environmentDnsService = await container.find('environmentDnsService');
+    environmentDnsService.deleteRecord('rstudio', envId, dnsName);
+  }
+
   const indexesService = await container.find('indexesService');
   const { awsAccountId } = await indexesService.mustFind(requestContext, { id: updatedEnvironment.indexId });
   const environmentMountService = await container.find('environmentMountService');
