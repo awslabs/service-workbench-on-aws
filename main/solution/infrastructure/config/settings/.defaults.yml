@@ -1,5 +1,8 @@
+# The S3 bucket name to be used for S3 access logging
+loggingBucketName: ${self:custom.settings.globalNamespace}-logging
+
 # The S3 bucket name to be used to host the static website
 websiteBucketName: ${self:custom.settings.globalNamespace}-website
 
-# The S3 bucket name to be used for S3 access logging
-loggingBucketName: ${self:custom.settings.globalNamespace}-logging
+# The S3 bucket name to be used to host the documentation website
+docsSiteBucketName: ${self:custom.settings.globalNamespace}-docs-site

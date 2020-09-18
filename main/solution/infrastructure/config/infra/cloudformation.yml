@@ -47,7 +47,7 @@ Resources:
               StringNotEquals:
                 s3:signatureversion: 'AWS4-HMAC-SHA256'
 
-  # S3 Bucket for the static website
+  # S3 Bucket for the solution static website
   WebsiteBucket:
     Type: AWS::S3::Bucket
     Properties:
@@ -96,6 +96,56 @@ Resources:
               StringNotEquals:
                 s3:signatureversion: 'AWS4-HMAC-SHA256'
 
+  # S3 Bucket for the documentation website
+  DocsSiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ${self:custom.settings.docsSiteBucketName}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  DocsSiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref DocsSiteBucket
+      PolicyDocument:
+        Statement:
+          - Sid: Allow CloudFront Origin Access Identity
+            Action:
+              - 's3:GetObject'
+            Effect: Allow
+            Principal:
+              AWS: !Join ['', ['arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ', !Ref 'CloudFrontOAI']]
+            Resource:
+              - !Join ['', ['arn:aws:s3:::', !Ref 'DocsSiteBucket', '/*']]
+          - Sid: Deny requests that do not use TLS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt DocsSiteBucket.Arn, '*']]
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Sid: Deny requests that do not use SigV4
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt DocsSiteBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:signatureversion: 'AWS4-HMAC-SHA256'
+
+
   # =============================================================================================
   # CloudFront
   # =============================================================================================
@@ -104,12 +154,17 @@ Resources:
     Type: AWS::CloudFront::Distribution
     DependsOn:
       - WebsiteBucket
+      - DocsSiteBucket
     Properties:
       DistributionConfig:
         Comment: 'CloudFront Distribution pointing to ${self:custom.settings.websiteBucketName}'
         Origins:
           - DomainName: !GetAtt WebsiteBucket.RegionalDomainName
-            Id: S3Origin
+            Id: WebsiteBucketOrigin
+            S3OriginConfig:
+              OriginAccessIdentity: !Join ['', ['origin-access-identity/cloudfront/', !Ref 'CloudFrontOAI']]
+          - DomainName: !GetAtt DocsSiteBucket.RegionalDomainName
+            Id: DocsSiteBucketOrigin
             S3OriginConfig:
               OriginAccessIdentity: !Join ['', ['origin-access-identity/cloudfront/', !Ref 'CloudFrontOAI']]
         Enabled: true
@@ -135,6 +190,7 @@ Resources:
             ResponseCode: 200
             ResponsePagePath: /index.html
         DefaultCacheBehavior:
+          # By default, route to WebsiteBucket
           DefaultTTL: 0
           MinTTL: 0
           MaxTTL: 0
@@ -143,12 +199,29 @@ Resources:
             - HEAD
             - OPTIONS
           Compress: true
-          TargetOriginId: S3Origin
+          TargetOriginId: WebsiteBucketOrigin
           ForwardedValues:
             QueryString: true
             Cookies:
               Forward: none
           ViewerProtocolPolicy: redirect-to-https
+        CacheBehaviors:
+          # Route to DocsSiteBucket on docs/* requests only
+          - PathPattern: 'docs/*'
+            DefaultTTL: 0
+            MinTTL: 0
+            MaxTTL: 0
+            AllowedMethods:
+              - GET
+              - HEAD
+              - OPTIONS
+            Compress: true
+            TargetOriginId: DocsSiteBucketOrigin
+            ForwardedValues:
+              QueryString: true
+              Cookies:
+                Forward: none
+            ViewerProtocolPolicy: redirect-to-https
         PriceClass: PriceClass_100
         Logging:
           Bucket: ${self:custom.settings.loggingBucketName}.s3.amazonaws.com
@@ -158,7 +231,7 @@ Resources:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity
     Properties:
       CloudFrontOriginAccessIdentityConfig:
-        Comment: 'OAI for ${self:custom.settings.websiteBucketName}'
+        Comment: 'OAI for ${self:custom.settings.websiteBucketName} and ${self:custom.settings.docsSiteBucketName}'
 
   # =============================================================================================
   # Route 53
@@ -194,6 +267,17 @@ Outputs:
   WebsiteBucket:
     Description: The bucket name of the static website
     Value: !Ref WebsiteBucket
+
+  DocsSiteUrl:
+    Description: URL for the documentation website hosted on S3 via CloudFront
+    Value: !If
+      - UseCustomDomain
+      - https://${self:custom.settings.domainName}
+      - !Join ['', ['https://', !GetAtt WebsiteCloudFront.DomainName, '/docs']]
+
+  DocsSiteBucket:
+    Description: The bucket name of the documentation website
+    Value: !Ref DocsSiteBucket
 
   LoggingBucket:
     Description: The bucket name for S3 access logging
