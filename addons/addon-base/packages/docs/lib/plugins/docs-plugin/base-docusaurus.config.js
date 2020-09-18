@@ -1,10 +1,11 @@
 module.exports = {
-  title: 'Solution Documentation',
+  title: 'Service Workbench Platform',
+  tagline: 'Researching data made easy',
   url: 'https://override-me.com',
   baseUrl: '/',
   favicon: 'img/favicon.ico',
-  organizationName: 'aws-ee',
-  projectName: 'docs',
+  organizationName: 'aws',
+  projectName: 'docusaurus',
   themeConfig: {
     navbar: {
       title: 'Home',
