@@ -182,7 +182,7 @@ Please follow prevailing best practices for auditing your NPM dependencies and f
 
 ## Docusaurus
 
-You can now also launch the Service Workbench docusaurus website. Please follow the steps in docs/README.md
+You can now also view the solution's Docusaurus website. This is accessible from `<website-url>/docs`.
 
 ## License
 
