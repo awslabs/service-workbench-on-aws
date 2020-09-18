@@ -18,12 +18,28 @@ committed to source control).
 
 - `cert.key`: The TLS private key in PEM format for the RStudio domain.
 
-- `cert.pem`: TLS certificate chain for the above in PEM format, with the intermediate certs first and the root last.
+- `cert.pem`: TLS certificate chain for the above in PEM format, with the intermediate certs first and the root last. This chain should therefore look as follows:
+
+-----BEGIN CERTIFICATE-----<br />
+_Main Certificate_<br />
+-----END CERTIFICATE-----<br />
+-----BEGIN CERTIFICATE-----<br />
+_Intermediate Certificate_<br />
+-----END CERTIFICATE-----<br />
+-----BEGIN CERTIFICATE-----<br />
+_Root Certificate_<br />
+-----END CERTIFICATE-----<br />
 
 The current implementation assigns hostnames to RStudio instances with the form `rstudio-$env.$domain_name` where `$env`
-is the environment identifier for the workspace, and `$domain_name` is the custom domain used for Service Workbench. This means that
-the certificate above must be a wildcard certificate for `*.$domain_name`. It also means that Service Workbench must be deployed
-with a custom domain for RStudio to work properly.
+is the environment identifier for the workspace, and `$domain_name` is the custom domain used for Service Workbench. This means that all certificates
+(the private key and the certificate chain mentioned above) must be for the wildcard (`*.$domain_name`). Failing to do so would cause nginx to not start in the EC2 instance that is backing the RStudio environment. You could also check if nginx setup is successful by running "systemctl restart nginx" on this EC2 instance.
+
+This also means that Service Workbench must be deployed
+with a custom domain for RStudio to work properly. In order to configure your custom domain name, please override and specify the following config settings in your `main/config/settings/$stage.yml` file:
+
+1. domainName
+2. certificateArn
+3. hostedZoneId
 
 ## Package and Deploy
 

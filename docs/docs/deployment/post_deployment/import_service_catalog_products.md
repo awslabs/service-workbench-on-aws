@@ -132,6 +132,13 @@ EMR requires a few more fields not available in drop down
 <img src={useBaseUrl('img/deployment/post_deployment/sc_emr_01.png')} />
 <img src={useBaseUrl('img/deployment/post_deployment/sc_emr_02.png')} />
 
+### Configuration for RStudio
+
+For RStudio, the only two fields not available in drop down are instance type and AMI id (same as EC2 Linux).
+
+<img src={useBaseUrl('img/deployment/post_deployment/sc_rstudio_00.png')} />
+<img src={useBaseUrl('img/deployment/post_deployment/sc_rstudio_01.png')} />
+
 ### Approve
 
 Once configuration completes, click the approve button, the newly created workspace type would be available for launch in
