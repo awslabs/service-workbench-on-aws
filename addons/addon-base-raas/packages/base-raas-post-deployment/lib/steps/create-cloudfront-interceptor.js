@@ -1,24 +1,9 @@
-/*
- *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
- *
- *  Licensed under the Apache License, Version 2.0 (the "License").
- *  You may not use this file except in compliance with the License.
- *  A copy of the License is located at
- *
- *  http://aws.amazon.com/apache2.0
- *
- *  or in the "license" file accompanying this file. This file is distributed
- *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
- *  express or implied. See the License for the specific language governing
- *  permissions and limitations under the License.
- */
-
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 
 /**
- * Post deployment step implementation that configures cloudFront interceptor (Lambda@Edge) to the website
- * cloudFront distribution.
+ * Post-deployment step implementation that configures one or many CloudFront interceptors
+ * (Lambda@Edge functions) on the given CloudFront Distribution.
  */
 class CreateCloudFrontInterceptor extends Service {
   constructor() {
@@ -31,115 +16,177 @@ class CreateCloudFrontInterceptor extends Service {
   }
 
   async execute() {
+    this.aws = await this.service('aws');
+    this.cloudFrontApi = new this.aws.sdk.CloudFront({ apiVersion: '2019-03-26' });
+    this.cloudFrontId = this.settings.get('cloudFrontId');
+    this.cloudFrontConfig = await this.cloudFrontApi.getDistributionConfig({ Id: this.cloudFrontId }).promise();
+    this.lambdaApi = new this.aws.sdk.Lambda({ apiVersion: '2015-03-31', region: 'us-east-1' });
+
+    // TODO: @aws-ee/base-serverless-settings-helper needs to support
+    // updating stringified JSON object Serverless settings when resolving
+    // crossRegionCloudFormation, so that we don't have to build this object here
+    const edgeLambdaConfigs = [
+      { lambdaArn: this.settings.get('securityEdgeLambdaArn'), behavior: 'default', eventType: 'origin-response' },
+      { lambdaArn: this.settings.get('securityEdgeLambdaArn'), behavior: 'docs/*', eventType: 'origin-response' },
+      { lambdaArn: this.settings.get('redirectsEdgeLambdaArn'), behavior: 'docs/*', eventType: 'origin-request' },
+    ];
+
+    let didPublishLambdaVersion;
+    /* eslint-disable no-await-in-loop, no-restricted-syntax */
+    for (const [i, { lambdaArn, behavior, eventType }] of edgeLambdaConfigs.entries()) {
+      this.log.info(
+        `Processing Lambda@Edge function (${i + 1}/${
+          edgeLambdaConfigs.length
+        }) with ARN "${lambdaArn}" and EventType "${eventType}"`,
+      );
+      const shouldPublish = await this.shouldPublishLambdaVersion(lambdaArn, behavior);
+      if (shouldPublish) {
+        await this.publishNewLambdaVersion(lambdaArn);
+        didPublishLambdaVersion = true;
+      }
+    }
+    /* eslint-enable no-await-in-loop, no-restricted-syntax */
+
+    if (!didPublishLambdaVersion) {
+      this.log.info(
+        `Skipping updating CloudFront Distribution "${this.cloudFrontId}" as no new Lambda versions were published`,
+      );
+      return;
+    }
+    await this.associateLambdasWithDistribution(edgeLambdaConfigs);
+  }
+
+  async shouldPublishLambdaVersion(lambdaArn, behavior) {
     /*
      * Pseudo Code:
-     * -- Get latest Lambda@Edge function ARN that needs to be configured from the settings
      * -- Get existing Lambda@Edge function version ARN configured on CloudFront
-     * -- If no Lambda@Edge function is configured on CloudFront yet, then skip all checks and
-     *    -- Publish new version of the Lambda@Edge function and
-     *    -- Configure the new lambda version ARN on CloudFront and exit.
-     * -- If some Lambda@Edge function version is configured on CloudFront then get CodeSha256 for that version
-     * -- Get latest CodeSha256 value for the Lambda
-     * -- If the CodeSha256 value for the latest Lambda@Edge matches the one that's configured on CloudFront, then
-     *    -- There is nothing to do. The latest Lambda is already configured on CloudFront. Just return.
-     * -- If the latest lambda@edge code Sha256 is different from what's configured then
-     *    -- Publish new version of the Lambda@Edge function with latest Lambda code and
-     *    -- Configure the new lambda version ARN on CloudFront
+     * -- Determine new Lambda@Edge function version should be published if:
+     *    -- No Lambda@Edge function with the given ARN is configured on CloudFront
+     *    -- Lambda@Edge function version is configured on CloudFront and CodeSha256      *       for that version is different from what is configured
      *
      * Note: We need to publish Lambda Version using Lambda SDK here instead of simply using "AWS::Lambda::Version"
      * CloudFormation resource in the "edge-lambda" stack to publish Lambda. That's because the "AWS::Lambda::Version"
      * will end up publishing new version of the Lambda function every time. We want to publish only if the lambda@edge
      * code has changed.
      */
-    const aws = await this.service('aws');
-    const cloudFrontApi = new aws.sdk.CloudFront({ apiVersion: '2019-03-26' });
-    const cloudFrontId = this.settings.get('cloudFrontId');
-
-    // -- Get latest Lambda@Edge function ARN that needs to be configured from the settings
-    const latestEdgeLambdaArn = this.settings.get('edgeLambdaArn');
-
     // -- Get existing Lambda@Edge function version ARN configured on CloudFront
-    const cloudFrontConfig = await cloudFrontApi.getDistributionConfig({ Id: cloudFrontId }).promise();
-    const existingLambdaArn = _.get(
-      cloudFrontConfig,
-      'DistributionConfig.DefaultCacheBehavior.LambdaFunctionAssociations.Items.0.LambdaFunctionARN',
+    const existingLambdaAssociations = _.get(
+      this.cloudFrontConfig,
+      behavior === 'default'
+        ? 'DistributionConfig.DefaultCacheBehavior.LambdaFunctionAssociations.Items'
+        : `DistributionConfig.CacheBehaviors.Items[${this.cloudFrontConfig.DistributionConfig.CacheBehaviors.Items.findIndex(
+            cb => cb.PathPattern === behavior,
+          )}].LambdaFunctionAssociations.Items`,
     );
+    let existingVersionedArn;
+    existingLambdaAssociations.forEach(association => {
+      // Remove version ARN suffix to compare to `lambdaArn`
+      const existingArn = association.LambdaFunctionARN.substring(0, association.LambdaFunctionARN.lastIndexOf(':'));
+      if (existingArn === lambdaArn) {
+        existingVersionedArn = association.LambdaFunctionARN;
+      }
+    });
 
-    // -- If no Lambda@Edge function is configured on CloudFront yet, then skip all checks and
-    //    -- Publish new version of the Lambda@Edge function and
-    //    -- Configure the new lambda version ARN on CloudFront and exit
-    if (_.isEmpty(existingLambdaArn)) {
-      this.log.info(`No edge lambda configured for cloudfront distribution "${cloudFrontId}"".`);
-      const publishedVersionArn = await this.publishNewLambdaVersion(latestEdgeLambdaArn);
-      await this.updateCloudFrontConfig(cloudFrontId, cloudFrontConfig, publishedVersionArn);
-      return;
+    if (!existingVersionedArn) {
+      this.log.info(
+        `Publishing new version of Lambda with ARN "${lambdaArn}" because no function with this ARN is yet configured for behavior "${behavior}" of CloudFront Distribution "${this.cloudFrontId}".`,
+      );
+      return true;
     }
 
-    // -- If some Lambda@Edge function version is configured on CloudFront then get CodeSha256 for that version
-    const existingSha256 = existingLambdaArn && (await this.getLambdaCodeSha256(existingLambdaArn));
-    // -- Get latest CodeSha256 value for the Lambda
-    const latestSha256 = await this.getLambdaCodeSha256(latestEdgeLambdaArn);
+    // -- If a Lambda@Edge function version is configured on CloudFront then get CodeSha256 for that version
+    const existingSha256 = existingVersionedArn && (await this.getLambdaCodeSha256(existingVersionedArn));
+    // -- Get latest CodeSha256 value for the Lambda (assumes latest version by default)
+    const latestSha256 = await this.getLambdaCodeSha256(lambdaArn);
 
-    // -- If the CodeSha256 value for the latest Lambda@Edge matches the one that's configured on CloudFront, then
-    //    -- There is nothing to do. The latest Lambda is already configured on CloudFront. Just return.
     if (existingSha256 === latestSha256) {
       this.log.info(
-        `Skip updating cloudfront distribution "${cloudFrontId}"". The Lambda@Edge version "${latestEdgeLambdaArn}" is already configured and has latest code.`,
+        `Skipping publishing new version of Lambda with ARN "${lambdaArn}" because behavior "${behavior}" of CloudFront distribution "${this.cloudFrontId}" is already configured with a version of the function with the same code.`,
       );
-      return;
+      return false;
     }
 
-    // -- If the latest lambda@edge code Sha256 is different from what's configured then
-    //    -- Publish new version of the Lambda@Edge function with latest Lambda code and
-    //    -- Configure the new lambda version ARN on CloudFront
-    const publishedVersionArn = await this.publishNewLambdaVersion(latestEdgeLambdaArn);
-    await this.updateCloudFrontConfig(cloudFrontId, cloudFrontConfig, publishedVersionArn);
+    this.log.info(
+      `Publishing new version of Lambda with ARN "${lambdaArn}" because the existing version "${existingVersionedArn}" associated with behavior "${behavior}" of CloudFront distribution "${this.cloudFrontId}" has different code.`,
+    );
+    return true;
   }
 
   async getLambdaCodeSha256(lambdaArn) {
-    const aws = await this.service('aws');
-    const lambdaApi = new aws.sdk.Lambda({ apiVersion: '2015-03-31', region: 'us-east-1' });
-    const lambdaInfo = await lambdaApi.getFunction({ FunctionName: lambdaArn }).promise();
+    const lambdaInfo = await this.lambdaApi.getFunction({ FunctionName: lambdaArn }).promise();
 
     return lambdaInfo.Configuration.CodeSha256;
   }
 
   async publishNewLambdaVersion(lambdaArn) {
-    const aws = await this.service('aws');
-    const lambdaApi = new aws.sdk.Lambda({ apiVersion: '2015-03-31', region: 'us-east-1' });
-    const lambdaInfo = await lambdaApi.publishVersion({ FunctionName: lambdaArn }).promise();
+    this.log.info(`Publishing new version of function with ARN "${lambdaArn}"`);
+    const lambdaInfo = await this.lambdaApi.publishVersion({ FunctionName: lambdaArn }).promise();
 
-    // Return ARN pointing to the new Lambda version we just published
-    return lambdaInfo.FunctionArn;
+    const publishedArn = lambdaInfo.FunctionArn;
+    this.log.info(`Published versioned Lambda ARN is "${publishedArn}"`);
+    return publishedArn;
   }
 
-  async updateCloudFrontConfig(cloudFrontId, cloudFrontConfig, lambdaVersionArn) {
-    const aws = await this.service('aws');
-    const cloudFrontApi = new aws.sdk.CloudFront({ apiVersion: '2019-03-26' });
-
-    this.log.info(`Updating cloudfront distribution "${cloudFrontId}"`);
+  async associateLambdasWithDistribution(edgeLambdaConfigs) {
+    this.log.info(`Associating latest Lambda@Edge functions with CloudFront Distribution "${this.cloudFrontId}"`);
 
     // Prepare updateDistribution parameters
     // 1. Set cloudFrontID
     // 2. Set IfMatch to the value of ETag
     // 3. Remove ETag
     // See "https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/CloudFront.html#updateDistribution-property" for details
-    cloudFrontConfig.Id = cloudFrontId;
-    cloudFrontConfig.IfMatch = cloudFrontConfig.ETag;
-    delete cloudFrontConfig.ETag;
+    const newCloudFrontConfig = {
+      ...this.cloudFrontConfig,
+      Id: this.cloudFrontId,
+      IfMatch: this.cloudFrontConfig.ETag,
+    };
+    delete newCloudFrontConfig.ETag;
 
-    // 4. Add Lambda@Edge's ARN
-    _.set(cloudFrontConfig, 'DistributionConfig.DefaultCacheBehavior.LambdaFunctionAssociations', {
-      Quantity: 1, // The number of Lambda function associations for this cache behavior. This needs to be same as Items.length
-      Items: [
-        {
-          LambdaFunctionARN: lambdaVersionArn,
-          EventType: 'origin-response',
-        },
-      ],
+    // 4. Add Lambda@Edge function ARNs and EventTypes per cache behavior
+
+    // -- Group by cache behavior
+    const groupedConfigs = _.groupBy(edgeLambdaConfigs, config => config.behavior);
+    /* eslint-disable no-await-in-loop, no-restricted-syntax */
+    for (const [behavior, configs] of Object.entries(groupedConfigs)) {
+      let pathToUpdate;
+      if (behavior === 'default') {
+        pathToUpdate = 'DistributionConfig.DefaultCacheBehavior.LambdaFunctionAssociations';
+      } else {
+        pathToUpdate = `DistributionConfig.CacheBehaviors.Items[${newCloudFrontConfig.DistributionConfig.CacheBehaviors.Items.findIndex(
+          cb => cb.PathPattern === behavior,
+        )}].LambdaFunctionAssociations`;
+      }
+
+      _.set(newCloudFrontConfig, pathToUpdate, {
+        Quantity: configs.length, // The number of Lambda function associations for this cache behavior. This needs to be same as Items.length
+        Items: await Promise.all(
+          configs.map(async config => {
+            const latestVersionNum = await this.getLatestLambdaVersionNum(config.lambdaArn);
+            return {
+              LambdaFunctionARN: `${config.lambdaArn}:${latestVersionNum}`,
+              EventType: config.eventType,
+            };
+          }),
+        ),
+      });
+    }
+    /* eslint-enable no-await-in-loop, no-restricted-syntax */
+
+    return this.cloudFrontApi.updateDistribution(newCloudFrontConfig).promise();
+  }
+
+  async getLatestLambdaVersionNum(lambdaArn) {
+    const lambdaInfo = await this.lambdaApi.listVersionsByFunction({ FunctionName: lambdaArn }).promise();
+
+    let maxVersionNum = 1;
+    lambdaInfo.Versions.forEach(version => {
+      const versionNum = Number(version.Version);
+      if (!Number.isNaN(versionNum) && versionNum > maxVersionNum) {
+        maxVersionNum = versionNum;
+      }
     });
 
-    return cloudFrontApi.updateDistribution(cloudFrontConfig).promise();
+    return maxVersionNum;
   }
 }
 
