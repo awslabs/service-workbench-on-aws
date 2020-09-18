@@ -1,0 +1,55 @@
+{
+  "name": "@aws-ee/docs-dist-autogen",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Documentation UI that hosts all the solution's documentation",
+  "author": "Amazon Web Services",
+  "license": "SEE LICENSE IN LICENSE",
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ],
+  "dependencies": {
+    "@docusaurus/core": "^2.0.0-alpha.62",
+    "@docusaurus/preset-classic": "^2.0.0-alpha.62",
+    "@mdx-js/react": "^1.6.16",
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1"
+  },
+  "devDependencies": {
+    "babel-eslint": "^10.1.0",
+    "eslint": "^7.7.0",
+    "eslint-config-airbnb": "^18.2.0",
+    "eslint-config-airbnb-base": "^14.2.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-import-resolver-node": "^0.3.4",
+    "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-jest": "^23.20.0",
+    "eslint-plugin-jsx-a11y": "^6.3.1",
+    "eslint-plugin-prettier": "^3.1.4",
+    "eslint-plugin-react": "^7.20.6",
+    "eslint-plugin-react-hooks": "^4.1.0",
+    "husky": "^4.2.5",
+    "jest": "^26.4.2",
+    "jest-junit": "^11.1.0",
+    "prettier": "^2.1.0",
+    "pretty-quick": "^3.0.0"
+  },
+  "scripts": {
+    "test": "NODE_ENV=test jest --config jest.config.js --passWithNoTests",
+    "test:watch": "NODE_ENV=test jest --config jest.config.js  --passWithNoTests --watchAll",
+    "lint": "pnpm run lint:eslint && pnpm run lint:prettier",
+    "lint:eslint": "pnpx eslint --ignore-path .gitignore . ",
+    "lint:prettier": "pnpx prettier --check --ignore-path .gitignore '**/*.{js,jsx}' ",
+    "format": "pnpm run format:eslint && pnpm run format:prettier",
+    "format:eslint": "pnpx eslint --fix --ignore-path .gitignore . ",
+    "format:prettier": "pnpx prettier --write --ignore-path .gitignore '**/*.{js,jsx}' "
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "pretty-quick --staged --pattern '**/*.*(js|jsx)'"
+    }
+  }
+}

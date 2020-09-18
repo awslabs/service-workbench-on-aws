@@ -1,0 +1,46 @@
+**/.class
+**/.DS_Store
+**/node_modules
+
+**/npm-debug.log
+**/pnpm-debug.log
+
+# Serverless directories
+.serverless
+
+# Webpack generated directories
+.webpack
+
+config/saml-metadata/exclude-*
+
+# https://github.com/github/gitignore/blob/master/Global/VisualStudioCode.gitignore
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# IntelliJ Idea Module Files
+*.iml
+
+# Bundled solution artifacts
+build
+
+# Docusaurus cache
+.docusaurus
+
+# We can ignore these directories, as we should only commit them if we
+# have a versioned site, in which case they will live under "versioned_docs/"
+# and "versioned_sidebars/". Otherwise, we build these directories anyway
+# when we package the UI, so there's no need to keep a copy in source control
+sidebars.json
+docs
+
+# This file is re-written whenever we package the UI and so can be safely
+# re-built - even with versioning enabled - as it's independent of versions
+docusaurus.config.js
+
+# We keep the "static/" directory around because, by default when versioning
+# We use a global static asset directory:
+# https://v2.docusaurus.io/docs/versioning/#global-or-versioned-colocated-assets
+!static

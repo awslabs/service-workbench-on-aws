@@ -1,0 +1,25 @@
+# ====================== S3 Deployment =================================
+
+# S3 bucket name used to host the static website
+s3BucketName: ${cf:${self:custom.settings.infrastructureStackName}.DocsSiteBucket}
+
+# ID of the CloudFront Distribution for the static website
+s3CloudFrontDistributionId: ${cf:${self:custom.settings.infrastructureStackName}.CloudFrontId}
+
+# ================= GitHub Pages Deployment ============================
+
+# The username for a GitHub account that has commit access to this repo.
+# For your own repositories, this will usually be your GitHub username
+ghpGitUser: 'changeme'
+
+# Set to true to use SSH instead of the default HTTPS for the connection to the GitHub repo
+ghpUseSsh: true
+
+# The branch that the website will be deployed to.
+# Defaults to `gh-pages` for normal repos and `master` for repository names ending in "github.io"
+ghpDeploymentBranch: 'master'
+
+# The branch that contains the latest docs changes that will be deployed.
+# Usually, the branch will be master, but it could be any branch (default or otherwise) except for `gh-pages`.
+# If nothing is set for this variable, then the current branch will be used.
+ghpCurrentBranch: null

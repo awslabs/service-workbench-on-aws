@@ -1,0 +1,9 @@
+/* Hide burger icon overlay on small screens */
+.button.button--secondary.button--sm.menu__button {
+  display: none;
+}
+
+/* Hide shadow on sidebar as distracting on small screens */
+.navbar-sidebar {
+  box-shadow: none;
+}
