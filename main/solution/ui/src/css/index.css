@@ -255,4 +255,12 @@
   opacity: 0.45 !important;
 }
 
+.ui.top.right.popup::before {
+  display: none;
+}
+
+.ui.bottom.right.popup::before {
+  display: none;
+}
+
 /* ====================================== Others ========================================= */
