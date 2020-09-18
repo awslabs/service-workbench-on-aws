@@ -30,6 +30,8 @@ import {
   isStoreNotEmpty,
   isStoreReady,
 } from '@aws-ee/base-ui/dist/models/BaseStore';
+import DocumentationClient from '@aws-ee/base-ui/dist/parts/documentation-client/DocumentationClient';
+
 import { envMgmtRoleName } from '../../helpers/settings';
 import * as EnvTypeStatusEnum from '../../models/environment-types/EnvTypeStatusEnum';
 import EnvTypeCard from './EnvTypeCard';
@@ -77,6 +79,7 @@ class EnvTypesList extends React.Component {
 
     return (
       <Container className="mt3 mb4">
+        <DocumentationClient urlSuffix="user_guide/sidebar/common/workspaces/introduction" />
         {this.renderTitle()}
         {content}
       </Container>

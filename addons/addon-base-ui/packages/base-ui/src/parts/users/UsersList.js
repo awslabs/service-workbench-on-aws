@@ -28,6 +28,7 @@ import { createLink } from '../../helpers/routing';
 import { displayError } from '../../helpers/notification';
 import BasicProgressPlaceholder from '../helpers/BasicProgressPlaceholder';
 import { swallowError } from '../../helpers/utils';
+import DocumentationClient from '../documentation-client/DocumentationClient';
 
 class UsersList extends React.Component {
   constructor(props) {
@@ -341,6 +342,7 @@ class UsersList extends React.Component {
 
     return (
       <Container className="mt3 animated fadeIn">
+        <DocumentationClient urlSuffix="user_guide/sidebar/admin/users/introduction" />
         {this.renderHeader()}
         {content}
       </Container>

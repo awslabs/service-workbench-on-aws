@@ -25,6 +25,7 @@ import { isStoreError, isStoreLoading } from '@aws-ee/base-ui/dist/models/BaseSt
 import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
 import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
+import DocumentationClient from '@aws-ee/base-ui/dist/parts/documentation-client/DocumentationClient';
 
 class AwsAccountsList extends React.Component {
   constructor(props) {
@@ -219,6 +220,7 @@ class AwsAccountsList extends React.Component {
     }
     return (
       <Container className="mt3 animated fadeIn">
+        <DocumentationClient urlSuffix="user_guide/sidebar/admin/accounts/aws_accounts/introduction" />
         {this.renderHeader()}
         {this.renderCreatingAccountNotification()}
         {content}

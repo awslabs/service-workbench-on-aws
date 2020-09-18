@@ -22,6 +22,7 @@ import { Pie } from 'react-chartjs-2';
 import { Container, Header, Segment, Icon } from 'semantic-ui-react';
 import { displayError, displayWarning } from '@aws-ee/base-ui/dist/helpers/notification';
 import ProgressPlaceHolder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import DocumentationClient from '@aws-ee/base-ui/dist/parts/documentation-client/DocumentationClient';
 
 import { getEnvironments, getEnvironmentCost, getScEnvironments, getScEnvironmentCost } from '../../helpers/api';
 import { enableBuiltInWorkspaces } from '../../helpers/settings';
@@ -76,6 +77,7 @@ class Dashboard extends React.Component {
   render() {
     return (
       <Container className="mt3 mb4">
+        <DocumentationClient urlSuffix="user_guide/sidebar/common/dashboard/introduction" />
         {this.renderTitle()}
         {this.renderContent()}
       </Container>

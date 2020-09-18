@@ -22,8 +22,9 @@ import { withRouter } from 'react-router-dom';
 import { Container, Icon, Button, Label, Header, Tab, Message, Menu } from 'semantic-ui-react';
 import { niceNumber } from '@aws-ee/base-ui/dist/helpers/utils';
 import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
-
 import { isStoreError, isStoreNew, isStoreLoading } from '@aws-ee/base-ui/dist/models/BaseStore';
+import DocumentationClient from '@aws-ee/base-ui/dist/parts/documentation-client/DocumentationClient';
+
 import { categories } from '../../models/studies/categories';
 import StudiesTab from './StudiesTab';
 import CreateStudy from './CreateStudy';
@@ -87,6 +88,7 @@ class StudiesPage extends React.Component {
 
     return (
       <Container className="mt3">
+        <DocumentationClient urlSuffix="user_guide/sidebar/common/studies/introduction" />
         {this.renderTitle()}
         {canSelectStudy && this.renderStepsProgress()}
         {this.renderSelection()}

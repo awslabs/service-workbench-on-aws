@@ -18,6 +18,8 @@ import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Container } from 'semantic-ui-react';
 
+import DocumentationClient from '@aws-ee/base-ui/dist/parts/documentation-client/DocumentationClient';
+
 import WorkflowPublishedList from './published/WorkflowPublishedList';
 import WorkflowDraftsList from './drafts/WorkflowDraftsList';
 
@@ -31,6 +33,7 @@ class WorkflowsList extends React.Component {
   render() {
     return (
       <Container className="mt3">
+        <DocumentationClient urlSuffix="user_guide/sidebar/admin/workflows/introduction" />
         <WorkflowPublishedList />
         <WorkflowDraftsList />
       </Container>

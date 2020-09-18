@@ -25,6 +25,7 @@ import { isStoreError, isStoreLoading, isStoreReady } from '@aws-ee/base-ui/dist
 import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
 import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
 import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import DocumentationClient from '@aws-ee/base-ui/dist/parts/documentation-client/DocumentationClient';
 
 import UpdateUser from './UpdateUser';
 
@@ -308,6 +309,7 @@ class UsersList extends React.Component {
 
     return (
       <Container className="mt3 animated fadeIn">
+        <DocumentationClient urlSuffix="user_guide/sidebar/admin/users/introduction" />
         {this.renderHeader()}
         {content}
       </Container>

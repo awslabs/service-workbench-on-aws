@@ -22,6 +22,7 @@ import { Container, Header, Segment, Icon, Divider, Label } from 'semantic-ui-re
 
 import { blueDatasets } from './graphs/graph-options';
 import BarGraph from './graphs/BarGraph';
+import DocumentationClient from '../documentation-client/DocumentationClient';
 
 // expected props
 // - location (from react router)
@@ -33,6 +34,7 @@ class Dashboard extends React.Component {
   render() {
     return (
       <Container className="mt3 mb4">
+        <DocumentationClient urlSuffix="user_guide/sidebar/common/dashboard/introduction" />
         {this.renderTitle()}
         {this.renderContent()}
       </Container>

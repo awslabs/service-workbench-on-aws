@@ -13,13 +13,15 @@
  *  permissions and limitations under the License.
  */
 
+import _ from 'lodash';
+import TimeAgo from 'react-timeago';
 import React, { Component } from 'react';
 import { inject, observer } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Container, Header, Icon, Accordion, Table, Button, Label } from 'semantic-ui-react';
 
-import TimeAgo from 'react-timeago';
-import _ from 'lodash';
+import DocumentationClient from '../documentation-client/DocumentationClient';
+
 import { swallowError } from '../../helpers/utils';
 import { isStoreEmpty, isStoreError, isStoreLoading, isStoreNotEmpty, isStoreReady } from '../../models/BaseStore';
 import Progress from '../helpers/Progress';
@@ -62,6 +64,7 @@ class ApiKeysList extends Component {
   renderEmpty() {
     return (
       <Container text className="mt4 center">
+        <DocumentationClient urlSuffix="user_guide/sidebar/admin/api_keys/introduction" />
         <Header as="h2" icon textAlign="center" className="mt3" color="grey">
           <Icon name="key" circular />
           <div className="mt3 ml3 mr3 animated fadeIn">You do not have any API Keys.</div>

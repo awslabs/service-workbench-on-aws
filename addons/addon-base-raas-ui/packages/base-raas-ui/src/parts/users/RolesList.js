@@ -24,6 +24,7 @@ import { isStoreError, isStoreLoading } from '@aws-ee/base-ui/dist/models/BaseSt
 import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
 import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
 import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import DocumentationClient from '@aws-ee/base-ui/dist/parts/documentation-client/DocumentationClient';
 
 class RolesList extends React.Component {
   constructor(props) {
@@ -125,6 +126,7 @@ class RolesList extends React.Component {
     }
     return (
       <Container className="mt3 animated fadeIn">
+        <DocumentationClient urlSuffix="user_guide/sidebar/admin/users/user_roles" />
         {this.renderHeader()}
         {content}
       </Container>

@@ -18,13 +18,14 @@ import React, { Component } from 'react';
 import { inject, observer } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Container, Header, Icon, Label, Segment } from 'semantic-ui-react';
-import { gotoFn } from '../../helpers/routing';
 
+import { gotoFn } from '../../helpers/routing';
 import { swallowError } from '../../helpers/utils';
 import { isStoreError, isStoreLoading, isStoreNotEmpty, isStoreReady } from '../../models/BaseStore';
 import BasicProgressPlaceholder from '../helpers/BasicProgressPlaceholder';
 import ErrorBox from '../helpers/ErrorBox';
 import AuthenticationProviderCard from './AuthenticationProviderCard';
+import DocumentationClient from '../documentation-client/DocumentationClient';
 
 // expected props
 // -  authenticationProviderConfigsStore (via injection)
@@ -65,6 +66,7 @@ class AuthenticationProvidersList extends Component {
 
     return (
       <Container className="mt3">
+        <DocumentationClient urlSuffix="user_guide/sidebar/admin/auth/introduction" />
         <div className="mb4">
           {this.renderTitle()}
           {content}

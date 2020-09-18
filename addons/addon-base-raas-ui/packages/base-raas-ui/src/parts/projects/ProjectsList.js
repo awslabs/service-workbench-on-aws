@@ -26,6 +26,7 @@ import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
 import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
 import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 import Stores from '@aws-ee/base-ui/dist/models/Stores';
+import DocumentationClient from '@aws-ee/base-ui/dist/parts/documentation-client/DocumentationClient';
 
 import ProjectConfigure from './ProjectConfigure';
 
@@ -165,6 +166,7 @@ class ProjectsList extends React.Component {
     }
     return (
       <Container className="mt3 animated fadeIn">
+        <DocumentationClient urlSuffix="user_guide/sidebar/admin/accounts/projects/introduction" />
         {this.renderHeader()}
         {content}
       </Container>

@@ -10,6 +10,7 @@ import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
 import { isStoreLoading, isStoreEmpty, isStoreNotEmpty, isStoreError } from '@aws-ee/base-ui/dist/models/BaseStore';
 import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
 import ProgressPlaceHolder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import DocumentationClient from '@aws-ee/base-ui/dist/parts/documentation-client/DocumentationClient';
 
 import KeyPairCard from './KeyPairCard';
 
@@ -52,6 +53,7 @@ class KeyPairsList extends React.Component {
 
     return (
       <Container className="mt3 animated fadeIn">
+        <DocumentationClient urlSuffix="user_guide/sidebar/common/workspaces/introduction" />
         {this.renderTitle()}
         {content}
       </Container>

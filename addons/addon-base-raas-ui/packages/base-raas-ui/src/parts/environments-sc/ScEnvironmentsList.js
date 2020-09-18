@@ -17,6 +17,7 @@ import {
 } from '@aws-ee/base-ui/dist/models/BaseStore';
 import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
 import ProgressPlaceHolder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import DocumentationClient from '@aws-ee/base-ui/dist/parts/documentation-client/DocumentationClient';
 
 import { filterNames } from '../../models/environments-sc/ScEnvironmentsStore';
 import ScEnvironmentCard from './ScEnvironmentCard';
@@ -93,6 +94,7 @@ class ScEnvironmentsList extends React.Component {
 
     return (
       <Container className="mt3 animated fadeIn">
+        <DocumentationClient urlSuffix="user_guide/sidebar/common/workspaces/introduction" />
         {this.renderTitle()}
         {content}
       </Container>
