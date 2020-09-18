@@ -120,9 +120,10 @@ async function configure(context) {
       const requestContext = res.locals.requestContext;
       const filenames = req.query.filenames.split(',');
 
-      // Check permissions against a PUT request since uploading files to the study
-      //   is a mutating action
-      await studyPermissionService.verifyRequestorAccess(requestContext, studyId, 'PUT');
+      // Check permissions against an UPLOAD request.
+      // Note that we are not checking against 'PUT' which is an admin only feature since a user with 'Write'
+      // access should also be able to upload files to the study
+      await studyPermissionService.verifyRequestorAccess(requestContext, studyId, 'UPLOAD');
 
       const result = await studyService.createPresignedPostRequests(requestContext, studyId, filenames);
       res.status(200).json(result);

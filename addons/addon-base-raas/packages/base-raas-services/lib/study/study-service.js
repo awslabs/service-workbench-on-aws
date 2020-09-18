@@ -402,7 +402,7 @@ class StudyService extends Service {
     return auditWriterService.writeAndForget(requestContext, auditEvent);
   }
 
-  // ensure that study accessType is read/write for Open Data category
+  // ensure that study accessType isn't read/write for Open Data category
   validateStudyType(accessType, studyCategory) {
     if (accessType === 'readwrite' && studyCategory === 'Open Data') {
       throw this.boom.badRequest('Open Data study cannot be read/write', true);

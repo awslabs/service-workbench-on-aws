@@ -13,7 +13,7 @@
     },
     "permissionLevel": {
       "type": "string",
-      "enum": ["admin", "readonly"]
+      "enum": ["admin", "readonly", "writeonly", "readwrite"]
     },
     "userEntry": {
       "type": "object",
