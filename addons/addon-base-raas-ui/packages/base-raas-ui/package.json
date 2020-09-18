@@ -7,6 +7,7 @@
   "dependencies": {
     "@auth0/auth0-spa-js": "^1.2.3",
     "@aws-ee/base-ui": "workspace:*",
+    "@aws-ee/base-docs": "workspace:*",
     "@aws-ee/base-services": "workspace:*",
     "@aws-ee/key-pair-mgmt-ui": "workspace:*",
     "aws-sdk": "^2.713.0",
