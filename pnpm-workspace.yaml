@@ -2,6 +2,7 @@ packages:
   - addons/*/packages/*
   - main/packages/*
   - main/solution/*
+  - main/solution/docs/dist-autogen
   - main/integration-tests
   - main/end-to-end-tests
   - main/cicd/*
