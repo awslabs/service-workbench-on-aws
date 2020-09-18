@@ -176,9 +176,12 @@ Resources:
                   - lambda:GetFunction
                   - lambda:publishVersion
                   - lambda:EnableReplication
+                  - lambda:ListVersionsByFunction
                 Resource:
-                  - ${self:custom.settings.edgeLambdaArn}
-                  - ${self:custom.settings.edgeLambdaArn}:* # appending ':*' to allow actions on specific versions of the lambda
+                  - ${self:custom.settings.securityEdgeLambdaArn}
+                  - ${self:custom.settings.securityEdgeLambdaArn}:* # appending ':*' to allow actions on specific versions of the lambda
+                  - ${self:custom.settings.redirectsEdgeLambdaArn}
+                  - ${self:custom.settings.redirectsEdgeLambdaArn}:* # appending ':*' to allow actions on specific versions of the lambda
         - PolicyName: service-catalog-access
           PolicyDocument:
             Statement:

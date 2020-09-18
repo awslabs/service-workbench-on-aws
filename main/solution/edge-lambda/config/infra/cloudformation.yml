@@ -1,6 +1,6 @@
 Resources:
   # =============================================================================================
-  # IAM Role for CloudFront Interceptor Lambda (Lambda@Edge)
+  # IAM Role for CloudFront Interceptor Lambdas (Lambda@Edge)
   # =============================================================================================
   RoleCloudFrontInterceptor:
     Type: "AWS::IAM::Role"
@@ -29,14 +29,14 @@ Resources:
               Resource: "arn:aws:logs:*:*:*"
 
   # =============================================================================================
-  # CloudFront Interceptor Lambda (Lambda@Edge)
+  # CloudFront Interceptor Lambdas (Lambda@Edge)
   # =============================================================================================
 
-  # Lambda@Edge that intercepts CloudFront response and adds various security headers in the response
-  EdgeLambda:
+  # Lambda@Edge that intercepts CloudFront responses and adds various security headers
+  SecurityEdgeLambda:
     Type: "AWS::Lambda::Function"
-    # Avoid to try to delete the Edge Lambda because it raises errors until all associations with Cloudfront are removed. 
-    # Even then, replicas are being automatically deleted only 1 hour after the removal of all associations. 
+    # Avoid to try to delete the Edge Lambda because it raises errors until all associations with Cloudfront are removed.
+    # Even then, replicas are being automatically deleted only 1 hour after the removal of all associations.
     # After that, the Edge lambda can be deleted manually at https://console.aws.amazon.com/lambda/home
     DeletionPolicy: Retain
     Properties:
@@ -73,14 +73,14 @@ Resources:
             headers["content-security-policy"] = [
               {
                 key: "Content-Security-Policy",
-                value: `default-src 'none'; connect-src ${connectSrc}; img-src 'self' data:; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:`
+                value: `default-src 'none'; connect-src ${connectSrc}; img-src 'self' data:; script-src 'self'; style-src 'self' 'unsafe-inline'; frame-src 'self'; font-src 'self' data:`
               }
             ];
 
             headers["x-content-type-options"] = [
               { key: "X-Content-Type-Options", value: "nosniff" }
             ];
-            headers["x-frame-options"] = [{ key: "X-Frame-Options", value: "DENY" }];
+            headers["x-frame-options"] = [{ key: "X-Frame-Options", value: "SAMEORIGIN" }];
             headers["x-xss-protection"] = [
               { key: "X-XSS-Protection", value: "1; mode=block" }
             ];
@@ -93,7 +93,62 @@ Resources:
 
           module.exports.handler = handler;
 
+  # Lambda@Edge that implements standard web server redirects that simplify directory handling when hosting a static site on S3.
+  # Inspired by https://aws.amazon.com/blogs/compute/implementing-default-directory-indexes-in-amazon-s3-backed-amazon-cloudfront-origins-using-lambdaedge/
+  RedirectsEdgeLambda:
+    Type: "AWS::Lambda::Function"
+    # Avoid to try to delete the Edge Lambda because it raises errors until all associations with Cloudfront are removed.
+    # Even then, replicas are being automatically deleted only 1 hour after the removal of all associations.
+    # After that, the Edge lambda can be deleted manually at https://console.aws.amazon.com/lambda/home
+    DeletionPolicy: Retain
+    Properties:
+      Description: Lambda@Edge function that implements standard web server redirects that simplify directory handling when hosting a static site on S3
+      Runtime: nodejs12.x
+      Handler: index.handler
+      Role: !GetAtt RoleCloudFrontInterceptor.Arn
+      Code:
+        # Adapted from: https://github.com/digital-sailors/standard-redirects-for-cloudfront
+        ZipFile: |
+          exports.handler = (event, context, callback) => {
+            const request = event.Records[0].cf.request;
+
+            let prefixPath; // needed for 2nd condition
+
+            if (request.uri.match('.+/$')) {
+              request.uri += 'index.html';
+              callback(null, request);
+            } else if (prefixPath = request.uri.match('(.+)/index.html')) {
+              const response = {
+                status: '301',
+                statusDescription: 'Found',
+                headers: {
+                  location: [{
+                    key: 'Location', value: prefixPath[1] + '/',
+                  }],
+                }
+              };
+              callback(null, response);
+            } else if (request.uri.match('/[^/.]+$')) {
+              const response = {
+                status: '301',
+                statusDescription: 'Found',
+                headers: {
+                  location: [{
+                    key: 'Location', value: request.uri + '/',
+                  }],
+                }
+              };
+              callback(null, response);
+            } else {
+              callback(null, request);
+            }
+          }
+
+
 Outputs:
-  EdgeLambdaArn:
-    Description: The ARN of the Lambda@Edge function
-    Value: !GetAtt [EdgeLambda, Arn]
+  SecurityEdgeLambdaArn:
+    Description: The ARN of the Security Lambda@Edge function
+    Value: !GetAtt [SecurityEdgeLambda, Arn]
+  RedirectsEdgeLambdaArn:
+    Description: The ARN of the Web Server Redirects Lambda@Edge function
+    Value: !GetAtt [RedirectsEdgeLambda, Arn]

@@ -23,7 +23,8 @@ postDeployment:
     APP_COGNITO_AUTH_N_PROVIDER_TITLE: ${self:custom.settings.cognitoAuthNProviderTitle}
     APP_BACKEND_STACK_NAME: ${self:custom.settings.backendStackName}
     APP_WORKFLOW_LAMBDA_NAME: ${self:custom.settings.workflowLambdaName}
-    APP_EDGE_LAMBDA_ARN: ${self:custom.settings.edgeLambdaArn}
+    APP_SECURITY_EDGE_LAMBDA_ARN: ${self:custom.settings.securityEdgeLambdaArn}
+    APP_REDIRECTS_EDGE_LAMBDA_ARN: ${self:custom.settings.redirectsEdgeLambdaArn}
     APP_CLOUD_FRONT_ID: ${self:custom.settings.cloudFrontId}
     APP_ENABLE_EXTERNAL_RESEARCHERS: ${self:custom.settings.enableExternalResearchers}
     APP_CREATE_SERVICE_CATALOG_PORTFOLIO: ${self:custom.settings.createServiceCatalogPortfolio}

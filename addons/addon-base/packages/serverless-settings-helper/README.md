@@ -8,7 +8,7 @@ In `<rootDir>/sls-settings.defaults.yml`:
 
 ```yaml
 solutionName: awesome-poc
-dbPrefix: ${opt:stage}-db-
+dbTablePrefix: ${opt:stage}-db-
 ```
 
 In `<rootDir>/sls-settings.alice.yml`:
@@ -16,7 +16,7 @@ In `<rootDir>/sls-settings.alice.yml`:
 ```yaml
 awsProfile: awesome-poc-admin
 awsRegion: us-east-1
-dbPrefix: bob-db- # temporarily override to point at Bob's stack.
+dbTablePrefix: bob-db- # temporarily override to point at Bob's stack.
 ```
 
 In `<rootDir>/serverless.yml`:
@@ -56,7 +56,7 @@ custom:
   settings:
     solutionName: awesome-poc
     envName: alice
-    dbPrefix: bob-db- # Note the override of `alice-db-` with `bob-db-`
+    dbTablePrefix: bob-db- # Note the override of `alice-db-` with `bob-db-`
     awsProfile: awesome-poc-admin
     awsRegion: us-east-1
 resources:

@@ -37,7 +37,14 @@ dataBucketName: ${self:custom.settings.namespace}-data
 
 # The stack name of the 'edge-lambda' serverless service
 edgeLambdaStackName: ${self:custom.settings.namespace}-edgeLambda
-edgeLambdaArn: ${cf:${self:custom.settings.edgeLambdaStackName}.EdgeLambdaArn}
+
+# ARN of a Lambda@Edge function that intercepts CloudFront responses and adds various security headers
+securityEdgeLambdaArn: ${cf:${self:custom.settings.edgeLambdaStackName}.SecurityEdgeLambdaArn}
+
+# ARN of a Lambda@Edge function that implements standard web server redirects that simplify directory handling when hosting a static site on S3
+redirectsEdgeLambdaArn: ${cf:${self:custom.settings.edgeLambdaStackName}.RedirectsEdgeLambdaArn}
+
+# ID of the CloudFront Distribution that should have Lambda@Edge function(s) associated
 cloudFrontId: ${cf:${self:custom.settings.infrastructureStackName}.CloudFrontId}
 
 # ================================ settings for Cognito with SAML2.0 Federation  ===========================================
