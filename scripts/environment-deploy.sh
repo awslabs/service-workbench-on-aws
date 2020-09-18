@@ -41,20 +41,32 @@ pushd "$SOLUTION_DIR/post-deployment" > /dev/null
 $EXEC sls invoke -f postDeployment -l -s "$STAGE"
 popd > /dev/null
 
-# Deploy UI
+# Deploy solution UI
 pushd "$SOLUTION_DIR/ui" > /dev/null
 
 # first we package locally (to populate .env.local only)
-printf "\nPackaging website UI\n\n"
+printf "\nPackaging solution UI\n\n"
 $EXEC sls package-ui --local=true -s "$STAGE"
 # then we package for deployment
 # (to populate .env.production and create a build via "npm build")
 $EXEC sls package-ui -s "$STAGE"
 
-printf "\nDeploying website UI\n\n"
+printf "\nDeploying solution UI\n\n"
 # Deploy it to S3, invalidate CloudFront cache
 $EXEC sls deploy-ui --invalidate-cache=true -s "$STAGE"
-printf "\nDeployed website UI successfully\n\n"
+printf "\nDeployed solution UI successfully\n\n"
+popd > /dev/null
+
+# Deploy docs UI to S3
+pushd "$SOLUTION_DIR/docs" > /dev/null
+
+# Package for deployment
+$EXEC sls package-ui -s "$STAGE"
+
+printf "\nDeploying docs UI\n\n"
+# Deploy it to S3, invalidate CloudFront cache
+$EXEC sls deploy-ui-s3 --invalidate-cache=true -s "$STAGE"
+printf "\nDeployed docs UI successfully\n\n"
 popd > /dev/null
 
 printf "\n----- ENVIRONMENT DEPLOYED SUCCESSFULLY 🎉 -----\n\n"
