@@ -16,6 +16,9 @@ websiteCloudFrontId: ${cf:${self:custom.settings.infrastructureStackName}.CloudF
 # URL of the website
 websiteUrl: ${cf:${self:custom.settings.infrastructureStackName}.WebsiteUrl}
 
+# URL of the documentation site
+docsUrl: ${cf:${self:custom.settings.infrastructureStackName}.DocsSiteUrl}
+
 # Branding
 brandPageTitle: 'Service Workbench'
 brandMainTitle: 'Service Workbench on AWS (${self:custom.settings.envName}/${self:custom.settings.awsRegion})'

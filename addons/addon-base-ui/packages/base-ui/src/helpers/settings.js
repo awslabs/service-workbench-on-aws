@@ -17,6 +17,7 @@ const isLocalDev = process.env.REACT_APP_LOCAL_DEV === 'true';
 const awsRegion = process.env.REACT_APP_AWS_REGION;
 const apiPath = process.env.REACT_APP_API_URL;
 const websiteUrl = process.env.REACT_APP_WEBSITE_URL;
+const docsUrl = process.env.REACT_APP_DOCS_URL;
 const stage = process.env.REACT_APP_STAGE;
 const region = process.env.REACT_APP_REGION;
 const autoLogoutTimeoutInMinutes = process.env.REACT_APP_AUTO_LOGOUT_TIMEOUT_IN_MINUTES || 30;
@@ -34,4 +35,4 @@ const branding = {
   },
 };
 
-export { awsRegion, apiPath, isLocalDev, websiteUrl, stage, region, branding, autoLogoutTimeoutInMinutes };
+export { awsRegion, apiPath, isLocalDev, websiteUrl, docsUrl, stage, region, branding, autoLogoutTimeoutInMinutes };

@@ -7,6 +7,7 @@ REACT_APP_LOCAL_DEV: false
 REACT_APP_AWS_REGION: ${self:custom.settings.awsRegion}
 REACT_APP_API_URL: ${self:custom.settings.apiUrl}
 REACT_APP_WEBSITE_URL: ${self:custom.settings.websiteUrl}
+REACT_APP_DOCS_URL: ${self:custom.settings.docsUrl}
 REACT_APP_STAGE: ${self:custom.settings.envName}
 REACT_APP_REGION: ${self:custom.settings.awsRegion}
 REACT_APP_BRAND_PAGE_TITLE: ${self:custom.settings.brandPageTitle}
@@ -25,4 +26,5 @@ localOverrides:
   REACT_APP_LOCAL_DEV: true
   REACT_APP_API_URL: 'http://localhost:4000'
   REACT_APP_WEBSITE_URL: 'http://localhost:3000'
+  REACT_APP_DOCS_URL: 'http://localhost:3001/docs'
   REACT_APP_BRAND_PAGE_TITLE: LOCAL ${self:custom.settings.brandPageTitle}
