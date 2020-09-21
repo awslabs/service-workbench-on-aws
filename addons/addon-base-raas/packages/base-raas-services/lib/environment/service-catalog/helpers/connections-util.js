@@ -30,9 +30,17 @@ async function cfnOutputsToConnections(outputs) {
   return result;
 }
 
+function cfnOutputsToObject(outputs) {
+  const outputsObject = {};
+  _.forEach(outputs, output => {
+    _.set(outputsObject, output.OutputKey, output.OutputValue);
+  });
+  return outputsObject;
+}
+
 async function hasConnections(outputs) {
   // if there is any CFN output starting with "MetaConnection" then there are connections
   return !!_.find(outputs, output => _.startsWith(output.OutputKey, 'MetaConnection'));
 }
 
-module.exports = { cfnOutputsToConnections, hasConnections };
+module.exports = { cfnOutputsToConnections, cfnOutputsToObject, hasConnections };

@@ -22,7 +22,7 @@ const { isAdmin, isCurrentUser } = require('@aws-ee/base-services/lib/authorizat
 const createSchema = require('../../schema/create-environment-sc');
 const updateSchema = require('../../schema/update-environment-sc');
 const environmentScStatus = require('./environent-sc-status-enum');
-const { hasConnections } = require('./helpers/connections-util');
+const { hasConnections, cfnOutputsToObject } = require('./helpers/connections-util');
 
 const settingKeys = {
   tableName: 'dbEnvironmentsSc',
@@ -30,6 +30,10 @@ const settingKeys = {
 const workflowIds = {
   create: 'wf-provision-environment-sc',
   delete: 'wf-terminate-environment-sc',
+  stopEC2: 'wf-stop-ec2-environment-sc',
+  startEC2: 'wf-start-ec2-environment-sc',
+  stopSagemaker: 'wf-stop-sagemaker-environment-sc',
+  startSagemaker: 'wf-start-sagemaker-environment-sc',
 };
 
 /**
@@ -269,6 +273,89 @@ class EnvironmentScService extends Service {
     return result;
   }
 
+  async changeWorkspaceRunState(requestContext, { id, operation }) {
+    const existingEnvironment = await this.mustFind(requestContext, { id });
+
+    // Make sure the user has permissions to change the environment run state
+    await this.assertAuthorized(
+      requestContext,
+      { action: 'update-sc', conditions: [this._allowAuthorized] },
+      existingEnvironment,
+    );
+
+    const { status, outputs, projectId } = existingEnvironment;
+
+    // expected environment run state based on operation
+    const expectedStatus = operation === 'start' ? 'STOPPED' : 'COMPLETED';
+    if (status !== expectedStatus) {
+      throw this.boom.badRequest(
+        `unable to ${operation} environment with id "${id}" - current status "${status}"`,
+        true,
+      );
+    }
+    let instanceType;
+    let instanceIdentifier;
+    const outputsObject = cfnOutputsToObject(outputs);
+    if ('Ec2WorkspaceInstanceId' in outputsObject) {
+      instanceType = 'ec2';
+      instanceIdentifier = outputsObject.Ec2WorkspaceInstanceId;
+    } else if ('NotebookInstanceName' in outputsObject) {
+      instanceType = 'sagemaker';
+      instanceIdentifier = outputsObject.NotebookInstanceName;
+    } else {
+      throw this.boom.badRequest(
+        `unable to ${operation} environment with id "${id}" - operation only supported for sagemaker and EC2 environemnt.`,
+        true,
+      );
+    }
+
+    const [awsAccountsService, indexesServices, projectService] = await this.service([
+      'awsAccountsService',
+      'indexesService',
+      'projectService',
+    ]);
+    const { roleArn: cfnExecutionRole, externalId: roleExternalId } = await runAndCatch(
+      async () => {
+        const { indexId } = await projectService.mustFind(requestContext, { id: projectId });
+        const { awsAccountId } = await indexesServices.mustFind(requestContext, { id: indexId });
+
+        return awsAccountsService.mustFind(requestContext, { id: awsAccountId });
+      },
+      async () => {
+        throw this.boom.badRequest(`account with id "${projectId} is not available`);
+      },
+    );
+
+    // TODO: Update this to support other types and actions
+    const meta = { workflowId: `wf-${operation}-${instanceType}-environment-sc` };
+    const workflowTriggerService = await this.service('workflowTriggerService');
+    const input = {
+      environmentId: existingEnvironment.id,
+      instanceIdentifier,
+      requestContext,
+      cfnExecutionRole,
+      roleExternalId,
+    };
+
+    await workflowTriggerService.triggerWorkflow(requestContext, meta, input);
+    return existingEnvironment;
+  }
+
+  // Do some properties renaming to prepare the object to be saved in the database
+  _fromRawToDbObject(rawObject, overridingProps = {}) {
+    const dbObject = { ...rawObject, ...overridingProps };
+    return dbObject;
+  }
+
+  // Do some properties renaming to restore the object that was saved in the database
+  _fromDbToDataObject(rawDb, overridingProps = {}) {
+    if (_.isNil(rawDb)) return rawDb; // important, leave this if statement here, otherwise, your update methods won't work correctly
+    if (!_.isObject(rawDb)) return rawDb;
+
+    const dataObject = { ...rawDb, ...overridingProps };
+    return dataObject;
+  }
+
   async delete(requestContext, { id }) {
     if (requestContext.principal.isExternalUser) {
       // Launching/Terminating external environments for AWS Service Catalog based environments is not supported currently
@@ -319,21 +406,6 @@ class EnvironmentScService extends Service {
 
       throw error;
     }
-  }
-
-  // Do some properties renaming to prepare the object to be saved in the database
-  _fromRawToDbObject(rawObject, overridingProps = {}) {
-    const dbObject = { ...rawObject, ...overridingProps };
-    return dbObject;
-  }
-
-  // Do some properties renaming to restore the object that was saved in the database
-  _fromDbToDataObject(rawDb, overridingProps = {}) {
-    if (_.isNil(rawDb)) return rawDb; // important, leave this if statement here, otherwise, your update methods won't work correctly
-    if (!_.isObject(rawDb)) return rawDb;
-
-    const dataObject = { ...rawDb, ...overridingProps };
-    return dataObject;
   }
 
   /**

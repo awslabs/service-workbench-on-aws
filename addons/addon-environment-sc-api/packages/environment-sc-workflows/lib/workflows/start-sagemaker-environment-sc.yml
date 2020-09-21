@@ -1,0 +1,14 @@
+id: wf-start-sagemaker-environment-sc
+v: 1
+workflowTemplateId: wt-empty
+workflowTemplateVer: 1
+title: Start a SageMaker Notebook
+desc: |
+  Start a SageMaker Jupyter Notebook.
+hidden: false
+builtin: true
+instanceTtl: 30 # In days, however, empty value means that it is indefinite
+selectedSteps:
+  - stepTemplateId: st-start-sagemaker-environment-sc
+    stepTemplateVer: 1
+    id: wf-step_1_1517380435823_28 # Randomly generated id, no need to change it

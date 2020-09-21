@@ -1,0 +1,14 @@
+id: wf-start-ec2-environment-sc
+v: 1
+workflowTemplateId: wt-empty
+workflowTemplateVer: 1
+title: Start an EC2 instance
+desc: |
+  Start an EC2 instance.
+hidden: false
+builtin: true
+instanceTtl: 30 # In days, however, empty value means that it is indefinite
+selectedSteps:
+  - stepTemplateId: st-start-ec2-environment-sc
+    stepTemplateVer: 1
+    id: wf-step_1_1731283159456_05 # Randomly generated id, no need to change it

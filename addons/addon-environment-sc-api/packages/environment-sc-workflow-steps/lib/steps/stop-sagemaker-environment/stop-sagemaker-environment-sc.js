@@ -15,7 +15,7 @@
 
 const StepBase = require('@aws-ee/base-workflow-core/lib/workflow/helpers/step-base');
 
-class StartSagemakerEnvironment extends StepBase {
+class StopSagemakerEnvironmentSc extends StepBase {
   async start() {
     const environmentId = await this.payload.string('environmentId');
     this.state.setKey('STATE_ENVIRONMENT_ID', environmentId);
@@ -23,11 +23,9 @@ class StartSagemakerEnvironment extends StepBase {
     const requestContext = await this.payload.object('requestContext');
     this.state.setKey('STATE_REQUEST_CONTEXT', requestContext);
 
-    const [environmentService] = await this.mustFindServices(['environmentService']);
-    const environment = await environmentService.mustFind(requestContext, { id: environmentId });
+    const NotebookInstanceName = await this.payload.string('instanceIdentifier');
 
     const sm = await this.getSageMakerService();
-    const { NotebookInstanceName } = environment.instanceInfo;
     const params = {
       NotebookInstanceName,
     };
@@ -44,34 +42,35 @@ class StartSagemakerEnvironment extends StepBase {
     const { NotebookInstanceStatus: notebookInstanceStatus } = notebookInstanceInfo;
     const status = notebookInstanceStatus.toUpperCase();
 
-    if (status !== 'STOPPED') {
-      throw new Error(`Notebook instance [${NotebookInstanceName}] is not stopped`);
+    if (status !== 'INSERVICE') {
+      throw new Error(`Notebook instance [${NotebookInstanceName}] is not running`);
     }
 
     try {
-      await sm.startNotebookInstance(params).promise();
+      await sm.stopNotebookInstance(params).promise();
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.error('start notebook instance error: ', error);
+      console.error('stop notebook instance error: ', error);
       throw error;
     }
 
-    await this.updateEnvironmentStatus('STARTING');
+    await this.updateEnvironmentStatus('STOPPING');
+
     this.state.setKey('STATE_NOTEBOOK_INSTANCE_NAME', NotebookInstanceName);
 
     return this.wait(5)
       .maxAttempts(120)
-      .until('checkNotebookStarted')
-      .thenCall('updateEnvironmentStatusToCompleted');
+      .until('checkNotebookStopped')
+      .thenCall('updateEnvironmentStatusToStopped');
   }
 
-  async checkNotebookStarted() {
-    const NotebookInstanceName = await this.state.string('STATE_NOTEBOOK_INSTANCE_NAME');
-    this.print(`Notebook instance name: [${NotebookInstanceName}]`);
+  async checkNotebookStopped() {
+    const notebookInstanceName = await this.state.string('STATE_NOTEBOOK_INSTANCE_NAME');
+    this.print(`Notebook instance name: [${notebookInstanceName}]`);
 
     const sm = await this.getSageMakerService();
     const params = {
-      NotebookInstanceName,
+      NotebookInstanceName: notebookInstanceName,
     };
 
     let notebookInstanceInfo;
@@ -89,19 +88,18 @@ class StartSagemakerEnvironment extends StepBase {
 
     if (status === 'FAILED') {
       throw new Error(
-        `Notebook instance [${NotebookInstanceName}] is in failed state with reason: ${notebookInstanceStatus.FailureReason}`,
+        `Notebook instance [${notebookInstanceName}] is in failed state with reason: ${notebookInstanceStatus.FailureReason}`,
       );
     }
     if (status === 'DELETING') {
-      throw new Error(`Notebook instance [${NotebookInstanceName}] is being deleted`);
+      throw new Error(`Notebook instance [${notebookInstanceName}] is being deleted`);
     }
 
-    return status === 'INSERVICE';
+    return status === 'STOPPED';
   }
 
   async getSageMakerService() {
     const [aws] = await this.mustFindServices(['aws']);
-
     const [requestContext, RoleArn, ExternalId] = await Promise.all([
       this.payload.object('requestContext'),
       this.payload.string('cfnExecutionRole'),
@@ -114,7 +112,7 @@ class StartSagemakerEnvironment extends StepBase {
     } = await sts
       .assumeRole({
         RoleArn,
-        RoleSessionName: `RaaS-${requestContext.principalIdentifier.uid}`,
+        RoleSessionName: `RaaS-${requestContext.principalIdentifier.username}`,
         ExternalId,
       })
       .promise();
@@ -122,26 +120,34 @@ class StartSagemakerEnvironment extends StepBase {
     return new aws.sdk.SageMaker({ accessKeyId, secretAccessKey, sessionToken });
   }
 
-  async updateEnvironmentStatusToCompleted() {
-    return this.updateEnvironmentStatus('COMPLETED');
+  async updateEnvironmentStatusToStopped() {
+    return this.updateEnvironmentStatus('STOPPED');
   }
 
   async updateEnvironmentStatus(status) {
-    const environmentService = await this.mustFindServices('environmentService');
+    const environmentScService = await this.mustFindServices('environmentScService');
     const id = await this.state.string('STATE_ENVIRONMENT_ID');
     const requestContext = await this.state.optionalObject('STATE_REQUEST_CONTEXT');
+
+    const existingEnvRecord = await environmentScService.mustFind(requestContext, { id });
 
     // SECURITY NOTE
     // add field to authorize update on behalf of user
     // this is needed to allow shared envirnments to start/stop by other users
     requestContext.fromWorkflow = true;
 
-    await environmentService.update(requestContext, { id, status });
+    const newEnvironment = {
+      id,
+      rev: existingEnvRecord.rev || 0,
+      status,
+    };
+
+    await environmentScService.update(requestContext, newEnvironment);
   }
 
   async onFail() {
-    return this.updateEnvironmentStatus('STARTING_FAILED');
+    return this.updateEnvironmentStatus('STOPPING_FAILED');
   }
 }
 
-module.exports = StartSagemakerEnvironment;
+module.exports = StopSagemakerEnvironmentSc;
