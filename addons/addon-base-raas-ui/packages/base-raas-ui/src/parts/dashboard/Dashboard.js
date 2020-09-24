@@ -165,7 +165,7 @@ class Dashboard extends React.Component {
     const envCostResults = await Promise.all(envCostPromises);
     const pastMonthCostByUserArray = envCostResults.map(costResult => {
       const createdByToCost = {};
-      costResult.forEach(costDate => {
+      _.forEach(costResult, costDate => {
         const cost = costDate.cost;
         Object.keys(cost).forEach(group => {
           let createdBy = group.split('$')[1];
@@ -178,12 +178,14 @@ class Dashboard extends React.Component {
     });
 
     const yesterdayCostArray = envCostResults.map(costResult => {
-      const yesterdayCost = costResult[costResult.length - 1];
+      const yesterdayCost = costResult.length > 0 ? costResult[costResult.length - 1] : {};
       let totalCost = 0;
-      const arrayOfCosts = _.flatMapDeep(yesterdayCost.cost);
-      arrayOfCosts.forEach(cost => {
-        totalCost += cost.amount;
-      });
+      if (yesterdayCost) {
+        const arrayOfCosts = _.flatMapDeep(yesterdayCost.cost);
+        arrayOfCosts.forEach(cost => {
+          totalCost += cost.amount;
+        });
+      }
       return totalCost;
     });
 

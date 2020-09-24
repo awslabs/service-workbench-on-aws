@@ -20,8 +20,12 @@ const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const updateSchema = require('../schema/update-study-permissions');
 
 const settingKeys = {
-  tableName: 'dbTableStudyPermissions',
+  tableName: 'dbStudyPermissions',
 };
+
+// The StudyPermissions table has study permissions records stored both ways to answer following questions easily
+// 1. Given a study, give me all users who have admin and/or readonly access. These records are stored with study id as partition key. In this case, the id attribute in DDB has format "Study:<study-id>".
+// 2. Given a user, give ma all studies it has admin and/or readonly access to. These records are stored with user id as partition key. In this case, the id attribute in DDB has format "User:<uid>".
 const keyPrefixes = {
   study: 'Study:',
   user: 'User:',
@@ -62,8 +66,8 @@ class StudyPermissionService extends Service {
     return StudyPermissionService.sanitizeStudyRecord(record);
   }
 
-  async findByUser(requestContext, username, fields = []) {
-    const id = StudyPermissionService.getQualifiedKey(username, 'user');
+  async findByUser(requestContext, uid, fields = []) {
+    const id = StudyPermissionService.getQualifiedKey(uid, 'user');
     return this._getter()
       .key({ id })
       .projection(fields)
@@ -74,15 +78,15 @@ class StudyPermissionService extends Service {
     let result;
 
     // Build study record
-    const creator = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     const studyRecord = {
       id: StudyPermissionService.getQualifiedKey(studyId, 'study'),
       recordType: 'study',
-      adminUsers: [creator],
+      adminUsers: [by],
       readonlyUsers: [],
       writeonlyUsers: [],
       readwriteUsers: [],
-      createdBy: creator,
+      createdBy: by,
     };
 
     // Create DB records
@@ -90,7 +94,7 @@ class StudyPermissionService extends Service {
       // Create/Update user record
       this.upsertUserRecord(requestContext, {
         studyId,
-        principalIdentifier: creator,
+        uid: by,
         addOrRemove: 'add',
         permissionLevel: 'admin',
       }),
@@ -128,8 +132,8 @@ class StudyPermissionService extends Service {
       const studyRecord = await this.findByStudy(requestContext, studyId);
 
       // Build updated study record
-      const updater = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
-      studyRecord.updatedBy = updater;
+      const by = _.get(requestContext, 'principalIdentifier.uid');
+      studyRecord.updatedBy = by;
 
       const filterByLevel = filterLevel => userEntry => userEntry.permissionLevel === filterLevel;
       permissionLevels.forEach(permissionLevel => {
@@ -137,16 +141,12 @@ class StudyPermissionService extends Service {
           // Existing/Added users
           _.unionWith(
             studyRecord[`${permissionLevel}Users`],
-            updateRequest.usersToAdd
-              .filter(filterByLevel(permissionLevel))
-              .map(userEntry => userEntry.principalIdentifier),
+            updateRequest.usersToAdd.filter(filterByLevel(permissionLevel)).map(userEntry => userEntry.uid),
             _.isEqual,
           ),
 
           // Removed users
-          updateRequest.usersToRemove
-            .filter(filterByLevel(permissionLevel))
-            .map(userEntry => userEntry.principalIdentifier),
+          updateRequest.usersToRemove.filter(filterByLevel(permissionLevel)).map(userEntry => userEntry.uid),
           _.isEqual,
         );
       });
@@ -171,7 +171,7 @@ class StudyPermissionService extends Service {
         ...updateRequest.usersToAdd.map(userEntry =>
           this.upsertUserRecord(requestContext, {
             studyId,
-            principalIdentifier: userEntry.principalIdentifier,
+            uid: userEntry.uid,
             addOrRemove: 'add',
             permissionLevel: userEntry.permissionLevel,
           }),
@@ -179,7 +179,7 @@ class StudyPermissionService extends Service {
         ...updateRequest.usersToRemove.map(userEntry =>
           this.upsertUserRecord(requestContext, {
             studyId,
-            principalIdentifier: userEntry.principalIdentifier,
+            uid: userEntry.uid,
             addOrRemove: 'remove',
             permissionLevel: userEntry.permissionLevel,
           }),
@@ -210,10 +210,10 @@ class StudyPermissionService extends Service {
         // Remove study from user records
         permissionLevels.forEach(permissionLevel => {
           if (studyRecord[`${permissionLevel}Users`]) {
-            studyRecord[`${permissionLevel}Users`].map(async principalIdentifier =>
+            studyRecord[`${permissionLevel}Users`].map(async ({ uid }) =>
               this.upsertUserRecord(requestContext, {
                 studyId,
-                principalIdentifier,
+                uid,
                 addOrRemove: 'remove',
                 permissionLevel: `${permissionLevel}`,
               }),
@@ -230,7 +230,7 @@ class StudyPermissionService extends Service {
   async getRequestorPermissions(requestContext) {
     return this.findByUser(
       requestContext,
-      requestContext.principalIdentifier.username,
+      requestContext.principalIdentifier.uid,
       permissionLevels.map(level => level.concat('Access')),
     );
   }
@@ -283,18 +283,18 @@ class StudyPermissionService extends Service {
   /**
    * Private Methods
    */
-  async upsertUserRecord(requestContext, { studyId, principalIdentifier, addOrRemove, permissionLevel }) {
+  async upsertUserRecord(requestContext, { studyId, uid, addOrRemove, permissionLevel }) {
     // Create DB lock before pulling existing record
     let result;
-    const lockKey = this.getLockKey(principalIdentifier.username, 'user');
+    const lockKey = this.getLockKey(uid, 'user');
     await this.lockService.tryWriteLockAndRun({ id: lockKey }, async () => {
       // Check for existing record; build new record if necessary
-      let record = await this.findByUser(requestContext, principalIdentifier.username);
+      let record = await this.findByUser(requestContext, uid);
       if (!record) {
         record = {
-          id: StudyPermissionService.getQualifiedKey(principalIdentifier.username, 'user'),
+          id: StudyPermissionService.getQualifiedKey(uid, 'user'),
           recordType: 'user',
-          principalIdentifier,
+          uid,
           ...this.getEmptyUserPermissions(),
         };
       }
@@ -351,17 +351,15 @@ class StudyPermissionService extends Service {
   // validates if users to be added are valid by going through all the non-admin permission levels and
   // ensuring that a single user isn't specified twice
   validateUpdateRequest(studyRecord) {
-    const userIdFn = obj => obj.username;
     const userIdToPermissionsMap = permissionLevels
       .filter(permissionLevel => permissionLevel !== 'admin')
       .filter(permissionLevel => studyRecord[`${permissionLevel}Users`] !== undefined)
       .reduce(function(userIdToPermissionsMapLocal, permissionLevel) {
-        studyRecord[`${permissionLevel}Users`].forEach(obj => {
-          const userId = userIdFn(obj);
-          if (userId in userIdToPermissionsMapLocal) {
-            userIdToPermissionsMapLocal[userId].push(permissionLevel);
+        studyRecord[`${permissionLevel}Users`].forEach(uid => {
+          if (uid in userIdToPermissionsMapLocal) {
+            userIdToPermissionsMapLocal[uid].push(permissionLevel);
           } else {
-            userIdToPermissionsMapLocal[userId] = [permissionLevel];
+            userIdToPermissionsMapLocal[uid] = [permissionLevel];
           }
         });
         return userIdToPermissionsMapLocal;

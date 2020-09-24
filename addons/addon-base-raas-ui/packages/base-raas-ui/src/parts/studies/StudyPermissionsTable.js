@@ -13,6 +13,7 @@
  *  permissions and limitations under the License.
  */
 
+import _ from 'lodash';
 import React from 'react';
 import { action, decorate, observable, runInAction } from 'mobx';
 import { inject, observer } from 'mobx-react';
@@ -21,7 +22,6 @@ import { Button, Dimmer, Dropdown, Loader, Icon, Table } from 'semantic-ui-react
 import { displayError, displaySuccess } from '@aws-ee/base-ui/dist/helpers/notification';
 import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
 import { isStoreError, isStoreLoading, isStoreNew } from '@aws-ee/base-ui/dist/models/BaseStore';
-import { getIdentifierObjFromId } from '@aws-ee/base-ui/dist/models/users/User';
 import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
 import UserLabels from '@aws-ee/base-ui/dist/parts/helpers/UserLabels';
@@ -54,7 +54,7 @@ class StudyPermissionsTable extends React.Component {
   enableEditMode = () => {
     // Set users who currently have permission to the study as the selected users
     this.permissionsStore.studyPermissions.userTypes.forEach(userType => {
-      this.selectedUserIds[userType] = this.permissionsStore.studyPermissions[`${userType}Users`].map(user => user.id);
+      this.selectedUserIds[userType] = this.permissionsStore.studyPermissions[`${userType}Users`];
     });
 
     // Show edit dropdowns via observable
@@ -72,15 +72,9 @@ class StudyPermissionsTable extends React.Component {
       this.isProcessing = true;
     });
 
-    // Convert user ID strings back into user objects
-    const selectedUsers = {};
-    this.permissionsStore.studyPermissions.userTypes.forEach(type => {
-      selectedUsers[type] = this.selectedUserIds[type].map(getIdentifierObjFromId);
-    });
-
     // Perform update
     try {
-      await this.permissionsStore.update(selectedUsers);
+      await this.permissionsStore.update(this.selectedUserIds);
       displaySuccess('Update Succeeded');
       runInAction(() => {
         this.resetForm();
@@ -109,9 +103,7 @@ class StudyPermissionsTable extends React.Component {
 
   renderTable() {
     const studyPermissions = this.permissionsStore.studyPermissions;
-    const isEditable = studyPermissions.adminUsers.some(
-      adminUser => adminUser.ns === this.currUser.ns && adminUser.username === this.currUser.username,
-    );
+    const isEditable = studyPermissions.adminUsers.some(uid => uid === this.currUser.uid);
 
     return (
       <>
@@ -133,18 +125,19 @@ class StudyPermissionsTable extends React.Component {
             </Table.Header>
 
             <Table.Body>
-              {this.permissionsStore.studyPermissions.userTypes.map(userType => (
-                <Table.Row key={userType}>
-                  <Table.Cell style={{ textTransform: 'capitalize' }}>{userType}</Table.Cell>
-                  <Table.Cell>
-                    {this.editModeOn ? (
-                      this.renderUsersDropdown(userType)
-                    ) : (
-                      <UserLabels users={this.usersStore.asUserObjects(studyPermissions[`${userType}Users`])} />
-                    )}
-                  </Table.Cell>
-                </Table.Row>
-              ))}
+              {this.permissionsStore.studyPermissions.userTypes.map(userType => {
+                const uids = studyPermissions[`${userType}Users`];
+                const userIdentifiers = _.map(uids, uid => ({ uid }));
+                const users = this.usersStore.asUserObjects(userIdentifiers);
+                return (
+                  <Table.Row key={userType}>
+                    <Table.Cell style={{ textTransform: 'capitalize' }}>{userType}</Table.Cell>
+                    <Table.Cell>
+                      {this.editModeOn ? this.renderUsersDropdown(userType) : <UserLabels users={users} />}
+                    </Table.Cell>
+                  </Table.Row>
+                );
+              })}
             </Table.Body>
           </Table>
 

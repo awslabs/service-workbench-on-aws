@@ -1,7 +1,7 @@
 const KeyPairService = require('../key-pair/key-pair-service.js');
 
 const settingKeys = {
-  tablePrefix: 'dbTablePrefix',
+  tablePrefix: 'dbPrefix',
 };
 
 /**
@@ -35,7 +35,7 @@ function getStaticSettings(existingStaticSettings, settings, pluginRegistry) {
   const table = (key, suffix) => {
     staticSettings[key] = `${tablePrefix}-${suffix}`;
   };
-  table('dbTableKeyPairs', 'DbKeyPairs');
+  table('dbKeyPairs', 'KeyPairs');
 
   return staticSettings;
 }

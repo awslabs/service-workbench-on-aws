@@ -135,7 +135,7 @@ class KeyPairCard extends React.Component {
           <Header.Subheader>
             <span className="fs-8 color-grey">
               Created <TimeAgo date={keyPair.createdAt} className="mr2" />{' '}
-              <By user={keyPair.createdBy} className="mr2" />
+              <By uid={keyPair.createdBy} className="mr2" />
             </span>
             <span className="fs-8 color-grey mr2"> {keyPair.id}</span>
           </Header.Subheader>

@@ -92,7 +92,7 @@ envName: ${opt:stage}
 envType: prod
 
 # This prefix is used to construct the full name of a table
-dbTablePrefix: ${self:custom.settings.namespace}
+dbPrefix: ${self:custom.settings.namespace}
 
 # Root path in parameter store for parameters used by this solution.
 paramStoreRoot: '${self:custom.settings.envName}/${self:custom.settings.solutionName}'

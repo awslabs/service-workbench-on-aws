@@ -1,3 +1,3 @@
 # Addon for Environment Types Management UI
 
-This add-on adds UI models and static web content for Environment Types Management APIs.
+This package adds UI for Workspace Type management (i.e., UI for importing workspace types based on AWS Service Catalog Products)

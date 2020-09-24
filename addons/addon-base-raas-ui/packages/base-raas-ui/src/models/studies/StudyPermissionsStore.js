@@ -49,18 +49,18 @@ const StudyPermissionsStore = BaseStore.named('StudyPermissionsStore')
         superCleanup();
       },
 
-      update: async selectedUsers => {
+      update: async selectedUserIds => {
         const updateRequest = { usersToAdd: [], usersToRemove: [] };
 
         self.studyPermissions.userTypes.forEach(type => {
-          const userToRequestFormat = user => ({ principalIdentifier: user, permissionLevel: type });
+          const userToRequestFormat = uid => ({ uid, permissionLevel: type });
 
           // Set selected users as "usersToAdd" (API is idempotent)
-          updateRequest.usersToAdd.push(...selectedUsers[type].map(userToRequestFormat));
+          updateRequest.usersToAdd.push(...selectedUserIds[type].map(userToRequestFormat));
 
           // Set removed users as "usersToRemove"
           updateRequest.usersToRemove.push(
-            ..._.differenceWith(self.studyPermissions[`${type}Users`], selectedUsers[type], _.isEqual).map(
+            ..._.differenceWith(self.studyPermissions[`${type}Users`], selectedUserIds[type], _.isEqual).map(
               userToRequestFormat,
             ),
           );

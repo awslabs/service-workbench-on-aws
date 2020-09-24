@@ -67,12 +67,7 @@ describe('studyPermissionService', () => {
     // ** This function has no input validation **
     it('should fail because a permission record already exists', async () => {
       // BUILD
-      const context = {
-        principalIdentifier: {
-          username: 'daffyduck',
-          ns: 'daffyduck.ltunes',
-        },
-      };
+      const context = { principalIdentifier: { uid: 'u-daffyduck' } };
 
       dbService.table.update.mockImplementationOnce(() => {
         throw error;
@@ -89,37 +84,32 @@ describe('studyPermissionService', () => {
 
     it('should try to create a study permission for new write permissions', async () => {
       // BUILD
-      const context = {
-        principalIdentifier: {
-          username: 'elmerfudd',
-          ns: 'elmerfudd.ltunes',
-        },
-      };
+      const context = { principalIdentifier: { uid: 'u-elmerfudd' } };
 
       const retVal = {
         id: 'Study:bugsbunny',
         recordType: 'study',
-        adminUsers: [context.principalIdentifier],
+        adminUsers: [context.principalIdentifier.uid],
         readonlyUsers: [],
         writeonlyUsers: [],
         readwriteUsers: [],
-        createdBy: context.principalIdentifier,
+        createdBy: context.principalIdentifier.uid,
       };
 
       const studyPermissionRecord = {
         id: 'Study:bugsbunny',
         recordType: 'study',
-        adminUsers: [context.principalIdentifier],
+        adminUsers: [context.principalIdentifier.uid],
         readonlyUsers: [],
         writeonlyUsers: [],
         readwriteUsers: [],
-        createdBy: context.principalIdentifier,
+        createdBy: context.principalIdentifier.uid,
       };
 
       const userPermissionRecord = {
-        id: 'User:elmerfudd',
+        id: 'User:u-elmerfudd',
         recordType: 'user',
-        principalIdentifier: context.principalIdentifier,
+        uid: context.principalIdentifier.uid,
         adminAccess: ['bugsbunny'],
         readonlyAccess: [],
         writeonlyAccess: [],
@@ -132,36 +122,31 @@ describe('studyPermissionService', () => {
       const result = await service.create(context, 'bugsbunny');
 
       // CHECK
-      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'User:elmerfudd' });
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'User:u-elmerfudd' });
       expect(dbService.table.key).toHaveBeenCalledWith({ id: 'Study:bugsbunny' });
       expect(dbService.table.item).toHaveBeenCalledWith(studyPermissionRecord);
       expect(dbService.table.item).toHaveBeenCalledWith(userPermissionRecord);
       expect(result).toEqual({
         id: 'bugsbunny',
         recordType: undefined,
-        adminUsers: [context.principalIdentifier],
+        adminUsers: [context.principalIdentifier.uid],
         readonlyUsers: [],
         writeonlyUsers: [],
         readwriteUsers: [],
-        createdBy: context.principalIdentifier,
+        createdBy: context.principalIdentifier.uid,
       });
     });
 
     it('should try to create a study permission', async () => {
       // BUILD
-      const context = {
-        principalIdentifier: {
-          username: 'elmerfudd',
-          ns: 'elmerfudd.ltunes',
-        },
-      };
+      const context = { principalIdentifier: { uid: 'u-elmerfudd' } };
 
       const retVal = {
         id: 'Study:bugsbunny',
         recordType: 'study',
-        adminUsers: [context.principalIdentifier],
+        adminUsers: [context.principalIdentifier.uid],
         readonlyUsers: [],
-        createdBy: context.principalIdentifier,
+        createdBy: context.principalIdentifier.uid,
       };
 
       dbService.table.update.mockReturnValueOnce(retVal);
@@ -172,9 +157,9 @@ describe('studyPermissionService', () => {
       expect(result).toEqual({
         id: 'bugsbunny',
         recordType: undefined,
-        adminUsers: [context.principalIdentifier],
+        adminUsers: [context.principalIdentifier.uid],
         readonlyUsers: [],
-        createdBy: context.principalIdentifier,
+        createdBy: context.principalIdentifier.uid,
       });
     });
   });
@@ -183,10 +168,7 @@ describe('studyPermissionService', () => {
     it('should fail due to missing permissionLevel value', async () => {
       // BUILD
       const user = {
-        principalIdentifier: {
-          ns: 'yosemitesam.looneytunes',
-          username: 'yosemitesam',
-        },
+        uid: 'u-yosemitesam',
       };
 
       const updateRequest = {
@@ -207,18 +189,12 @@ describe('studyPermissionService', () => {
     it('should fail because all admins were removed', async () => {
       // BUILD
       const user1 = {
-        principalIdentifier: {
-          ns: 'tweetybird.looneytunes',
-          username: 'tweetybird',
-        },
+        uid: 'u-tweetybird',
         permissionLevel: 'readonly',
       };
 
       const user2 = {
-        principalIdentifier: {
-          ns: 'porkypig.looneytunes',
-          username: 'porkypig',
-        },
+        uid: 'u-porkypig',
         permissionLevel: 'admin',
       };
 
@@ -228,7 +204,7 @@ describe('studyPermissionService', () => {
       };
 
       service.findByStudy = jest.fn().mockResolvedValue({
-        adminUsers: [{ ns: user2.principalIdentifier.ns, username: user2.principalIdentifier.username }],
+        adminUsers: [user2.uid],
         readonlyUsers: [],
       });
 
@@ -245,10 +221,7 @@ describe('studyPermissionService', () => {
     it('should succeed', async () => {
       // BUILD
       const user1 = {
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes',
-          username: 'speedygonzales',
-        },
+        uid: 'u-someUserId',
         permissionLevel: 'readonly',
       };
 
@@ -260,15 +233,15 @@ describe('studyPermissionService', () => {
       service.findByStudy = jest.fn().mockResolvedValue({
         id: 'studyEXAMPLE',
         recordType: 'TEST',
-        adminUsers: [{ ns: 'efudd.looneytunes', username: 'efudd' }],
+        adminUsers: ['u-efudd'],
         readonlyUsers: [],
       });
 
       dbService.table.update.mockReturnValueOnce({
         id: 'study:EXAMPLE',
         recordType: 'TEST',
-        adminUsers: [{ ns: 'efudd.looneytunes', username: 'efudd' }],
-        readonlyUsers: [{ ns: 'speedygonzales.looneytunes', username: 'speedygonzales' }],
+        adminUsers: ['u-someAdminUserId'],
+        readonlyUsers: ['u-someUserId'],
       });
 
       // OPERATE
@@ -282,42 +255,27 @@ describe('studyPermissionService', () => {
     it('update permissions should fail if same user is specified multiple non-admin permissions', async () => {
       // BUILD
       const multiplePermissionsUserWithReadOnly = {
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes.multiple',
-          username: 'speedygonzales.multiple',
-        },
+        uid: 'u-speedygonzales.looneytunes.multiple',
         permissionLevel: 'readonly',
       };
 
       const multiplePermissionsUserWithWriteOnly = {
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes.multiple',
-          username: 'speedygonzales.multiple',
-        },
+        uid: 'u-speedygonzales.looneytunes.multiple',
         permissionLevel: 'writeonly',
       };
 
       const readonlyuser = {
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes.readonly',
-          username: 'speedygonzales.readonly',
-        },
+        uid: 'u-speedygonzales.looneytunes.readonly',
         permissionLevel: 'readonly',
       };
 
       const readwriteuser = {
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes.readwrite',
-          username: 'speedygonzales.readwrite',
-        },
+        uid: 'u-speedygonzales.looneytunes.readwrite',
         permissionLevel: 'readwrite',
       };
 
       const writeonlyuser = {
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes.writeonly',
-          username: 'speedygonzales.writeonly',
-        },
+        uid: 'u-speedygonzales.looneytunes.writeonly',
         permissionLevel: 'writeonly',
       };
 
@@ -335,17 +293,17 @@ describe('studyPermissionService', () => {
       service.findByStudy = jest.fn().mockResolvedValue({
         id: 'studyId',
         recordType: 'TEST',
-        adminUsers: [{ ns: 'efudd.looneytunes', username: 'efudd' }],
+        adminUsers: ['u-efudd'],
         readonlyUsers: [],
       });
 
       dbService.table.update.mockReturnValueOnce({
         id: 'Study:studyId',
         recordType: 'TEST',
-        adminUsers: [{ ns: 'efudd.looneytunes', username: 'efudd' }],
-        readonlyUsers: [{ ns: 'speedygonzales.looneytunes.readonly', username: 'speedygonzales.readonly' }],
-        writeonlyUsers: [{ ns: 'speedygonzales.looneytunes.writeonly', username: 'speedygonzales.writeonly' }],
-        readwriteUsers: [{ ns: 'speedygonzales.looneytunes.readwrite', username: 'speedygonzales.readwrite' }],
+        adminUsers: ['u-efudd'],
+        readonlyUsers: ['u-speedygonzales.readonly'],
+        writeonlyUsers: ['u-speedygonzales.writeonly'],
+        readwriteUsers: ['u-speedygonzales.readwrite'],
       });
 
       // OPERATE
@@ -355,7 +313,7 @@ describe('studyPermissionService', () => {
       } catch (err) {
         // CHECK
         expect(err.message).toEqual(
-          'User speedygonzales.multiple cannot have multiple permissions: readonly,writeonly',
+          'User u-speedygonzales.looneytunes.multiple cannot have multiple permissions: readonly,writeonly',
         );
       }
     });
@@ -363,26 +321,17 @@ describe('studyPermissionService', () => {
     it('update permissions for study with multiple admins', async () => {
       // BUILD
       const admin1 = {
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes.admin1',
-          username: 'speedygonzales.admin1',
-        },
+        uid: 'u-speedygonzales.admin1',
         permissionLevel: 'admin',
       };
 
       const admin2 = {
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes.admin2',
-          username: 'speedygonzales.admin2',
-        },
+        uid: 'u-speedygonzales.admin2',
         permissionLevel: 'admin',
       };
 
       const writeonlyadmin = {
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes.admin1',
-          username: 'speedygonzales.admin1',
-        },
+        uid: 'u-speedygonzales.admin1',
         permissionLevel: 'writeonly',
       };
 
@@ -394,29 +343,17 @@ describe('studyPermissionService', () => {
       const studyPermissionRecord = {
         id: 'studyId',
         recordType: 'TEST',
-        adminUsers: [
-          { ns: 'efudd.looneytunes', username: 'efudd' },
-          { ns: 'speedygonzales.looneytunes.admin1', username: 'speedygonzales.admin1' },
-          { ns: 'speedygonzales.looneytunes.admin2', username: 'speedygonzales.admin2' },
-        ],
+        adminUsers: ['u-efudd', 'u-speedygonzales.admin1', 'u-speedygonzales.admin2'],
         readonlyUsers: [],
         updatedBy: undefined,
-        writeonlyUsers: [
-          {
-            ns: 'speedygonzales.looneytunes.admin1',
-            username: 'speedygonzales.admin1',
-          },
-        ],
+        writeonlyUsers: ['u-speedygonzales.admin1'],
         readwriteUsers: [],
       };
 
       const admin1UserPermission = {
-        id: 'User:speedygonzales.admin1',
+        id: 'User:u-speedygonzales.admin1',
         recordType: 'user',
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes.admin1',
-          username: 'speedygonzales.admin1',
-        },
+        uid: 'u-speedygonzales.admin1',
         adminAccess: ['studyId'],
         readonlyAccess: [],
         writeonlyAccess: ['studyId'],
@@ -424,12 +361,9 @@ describe('studyPermissionService', () => {
       };
 
       const admin2UserPermission = {
-        id: 'User:speedygonzales.admin2',
+        id: 'User:u-speedygonzales.admin2',
         recordType: 'user',
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes.admin2',
-          username: 'speedygonzales.admin2',
-        },
+        uid: 'u-speedygonzales.admin2',
         adminAccess: ['studyId'],
         readonlyAccess: [],
         writeonlyAccess: [],
@@ -439,20 +373,17 @@ describe('studyPermissionService', () => {
       service.findByStudy = jest.fn().mockResolvedValue({
         id: 'studyId',
         recordType: 'TEST',
-        adminUsers: [{ ns: 'efudd.looneytunes', username: 'efudd' }],
+        adminUsers: ['u-efudd'],
         readonlyUsers: [],
       });
 
       service.findByUser = jest.fn().mockImplementation((_, key) => {
         switch (key) {
-          case 'speedygonzales.admin1':
+          case 'u-speedygonzales.admin1':
             return {
-              id: 'User:speedygonzales.admin1',
+              id: 'User:u-speedygonzales.admin1',
               recordType: 'user',
-              principalIdentifier: {
-                ns: 'speedygonzales.looneytunes.admin1',
-                username: 'speedygonzales.admin1',
-              },
+              uid: 'u-speedygonzales.admin1',
               adminAccess: ['studyId'],
               readonlyAccess: [],
               writeonlyAccess: [],
@@ -466,13 +397,9 @@ describe('studyPermissionService', () => {
       dbService.table.update.mockReturnValueOnce({
         id: 'Study:studyId',
         recordType: 'TEST',
-        adminUsers: [
-          { ns: 'efudd.looneytunes', username: 'efudd' },
-          { ns: 'speedygonzales.looneytunes.admin1', username: 'speedygonzales.admin1' },
-          { ns: 'speedygonzales.looneytunes.admin2', username: 'speedygonzales.admin2' },
-        ],
+        adminUsers: ['u-efudd', 'u-speedygonzales.admin1', 'u-speedygonzales.admin2'],
         readonlyUsers: [],
-        writeonlyUsers: [{ ns: 'speedygonzales.looneytunes.admin1', username: 'speedygonzales.admin1' }],
+        writeonlyUsers: ['u-speedygonzales.admin1'],
         readwriteUsers: [],
       });
 
@@ -480,8 +407,8 @@ describe('studyPermissionService', () => {
       const res = await service.update({}, 'studyId', updateRequest);
 
       // CHECK
-      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'User:speedygonzales.admin1' });
-      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'User:speedygonzales.admin2' });
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'User:u-speedygonzales.admin1' });
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'User:u-speedygonzales.admin2' });
       expect(dbService.table.key).toHaveBeenCalledWith({ id: 'Study:studyId' });
       expect(dbService.table.item).toHaveBeenCalledWith(studyPermissionRecord);
       expect(dbService.table.item).toHaveBeenCalledWith(admin1UserPermission);
@@ -493,26 +420,17 @@ describe('studyPermissionService', () => {
     it('update permissions for study that switched to readwrite', async () => {
       // BUILD
       const readonlyuser = {
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes.readonly',
-          username: 'speedygonzales.readonly',
-        },
+        uid: 'u-speedygonzales.readonly',
         permissionLevel: 'readonly',
       };
 
       const readwriteuser = {
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes.readwrite',
-          username: 'speedygonzales.readwrite',
-        },
+        uid: 'u-speedygonzales.readwrite',
         permissionLevel: 'readwrite',
       };
 
       const writeonlyuser = {
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes.writeonly',
-          username: 'speedygonzales.writeonly',
-        },
+        uid: 'u-speedygonzales.writeonly',
         permissionLevel: 'writeonly',
       };
 
@@ -524,35 +442,17 @@ describe('studyPermissionService', () => {
       const studyPermissionRecord = {
         id: 'studyId',
         recordType: 'TEST',
-        adminUsers: [{ ns: 'efudd.looneytunes', username: 'efudd' }],
-        readonlyUsers: [
-          {
-            ns: 'speedygonzales.looneytunes.readonly',
-            username: 'speedygonzales.readonly',
-          },
-        ],
+        adminUsers: ['u-efudd'],
+        readonlyUsers: ['u-speedygonzales.readonly'],
         updatedBy: undefined,
-        writeonlyUsers: [
-          {
-            ns: 'speedygonzales.looneytunes.writeonly',
-            username: 'speedygonzales.writeonly',
-          },
-        ],
-        readwriteUsers: [
-          {
-            ns: 'speedygonzales.looneytunes.readwrite',
-            username: 'speedygonzales.readwrite',
-          },
-        ],
+        writeonlyUsers: ['u-speedygonzales.writeonly'],
+        readwriteUsers: ['u-speedygonzales.readwrite'],
       };
 
       const readOnlyUserPermission = {
-        id: 'User:speedygonzales.readonly',
+        id: 'User:u-speedygonzales.readonly',
         recordType: 'user',
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes.readonly',
-          username: 'speedygonzales.readonly',
-        },
+        uid: 'u-speedygonzales.readonly',
         adminAccess: [],
         readonlyAccess: ['studyId'],
         writeonlyAccess: [],
@@ -560,12 +460,9 @@ describe('studyPermissionService', () => {
       };
 
       const writeOnlyUserPermission = {
-        id: 'User:speedygonzales.writeonly',
+        id: 'User:u-speedygonzales.writeonly',
         recordType: 'user',
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes.writeonly',
-          username: 'speedygonzales.writeonly',
-        },
+        uid: 'u-speedygonzales.writeonly',
         adminAccess: [],
         readonlyAccess: [],
         writeonlyAccess: ['studyId'],
@@ -573,12 +470,9 @@ describe('studyPermissionService', () => {
       };
 
       const readWriteUserPermission = {
-        id: 'User:speedygonzales.readwrite',
+        id: 'User:u-speedygonzales.readwrite',
         recordType: 'user',
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes.readwrite',
-          username: 'speedygonzales.readwrite',
-        },
+        uid: 'u-speedygonzales.readwrite',
         adminAccess: [],
         readonlyAccess: [],
         writeonlyAccess: [],
@@ -588,26 +482,26 @@ describe('studyPermissionService', () => {
       service.findByStudy = jest.fn().mockResolvedValue({
         id: 'studyId',
         recordType: 'TEST',
-        adminUsers: [{ ns: 'efudd.looneytunes', username: 'efudd' }],
+        adminUsers: ['u-efudd'],
         readonlyUsers: [],
       });
 
       dbService.table.update.mockReturnValueOnce({
         id: 'Study:studyId',
         recordType: 'TEST',
-        adminUsers: [{ ns: 'efudd.looneytunes', username: 'efudd' }],
-        readonlyUsers: [{ ns: 'speedygonzales.looneytunes.readonly', username: 'speedygonzales.readonly' }],
-        writeonlyUsers: [{ ns: 'speedygonzales.looneytunes.writeonly', username: 'speedygonzales.writeonly' }],
-        readwriteUsers: [{ ns: 'speedygonzales.looneytunes.readwrite', username: 'speedygonzales.readwrite' }],
+        adminUsers: ['u-efudd'],
+        readonlyUsers: ['u-speedygonzales.readonly'],
+        writeonlyUsers: ['u-speedygonzales.writeonly'],
+        readwriteUsers: ['u-speedygonzales.readwrite'],
       });
 
       // OPERATE
       const res = await service.update({}, 'studyId', updateRequest);
 
       // CHECK
-      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'User:speedygonzales.writeonly' });
-      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'User:speedygonzales.readonly' });
-      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'User:speedygonzales.readwrite' });
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'User:u-speedygonzales.writeonly' });
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'User:u-speedygonzales.readonly' });
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'User:u-speedygonzales.readwrite' });
       expect(dbService.table.key).toHaveBeenCalledWith({ id: 'Study:studyId' });
       expect(dbService.table.item).toHaveBeenCalledWith(studyPermissionRecord);
       expect(dbService.table.item).toHaveBeenCalledWith(readOnlyUserPermission);
@@ -620,26 +514,17 @@ describe('studyPermissionService', () => {
     it('remove permissions for readwrite users', async () => {
       // BUILD
       const readonlyuser = {
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes.readonly',
-          username: 'speedygonzales.readonly',
-        },
+        uid: 'u-speedygonzales.readonly',
         permissionLevel: 'readonly',
       };
 
       const readwriteuser = {
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes.readwrite',
-          username: 'speedygonzales.readwrite',
-        },
+        uid: 'u-speedygonzales.readwrite',
         permissionLevel: 'readwrite',
       };
 
       const writeonlyuser = {
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes.writeonly',
-          username: 'speedygonzales.writeonly',
-        },
+        uid: 'u-speedygonzales.writeonly',
         permissionLevel: 'writeonly',
       };
 
@@ -651,25 +536,17 @@ describe('studyPermissionService', () => {
       const studyPermissionRecord = {
         id: 'studyId',
         recordType: 'TEST',
-        adminUsers: [{ ns: 'efudd.looneytunes', username: 'efudd' }],
-        readonlyUsers: [
-          {
-            ns: 'speedygonzales.looneytunes.readonly',
-            username: 'speedygonzales.readonly',
-          },
-        ],
+        adminUsers: ['u-efudd'],
+        readonlyUsers: ['u-speedygonzales.readonly'],
         updatedBy: undefined,
         writeonlyUsers: [],
         readwriteUsers: [],
       };
 
       const readOnlyUserPermission = {
-        id: 'User:speedygonzales.readonly',
+        id: 'User:u-speedygonzales.readonly',
         recordType: 'user',
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes.readonly',
-          username: 'speedygonzales.readonly',
-        },
+        uid: 'u-speedygonzales.readonly',
         adminAccess: [],
         readonlyAccess: ['studyId'],
         writeonlyAccess: [],
@@ -677,12 +554,9 @@ describe('studyPermissionService', () => {
       };
 
       const writeOnlyUserPermissionRemoved = {
-        id: 'User:speedygonzales.writeonly',
+        id: 'User:u-speedygonzales.writeonly',
         recordType: 'user',
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes.writeonly',
-          username: 'speedygonzales.writeonly',
-        },
+        uid: 'u-speedygonzales.writeonly',
         adminAccess: [],
         readonlyAccess: [],
         writeonlyAccess: [],
@@ -690,12 +564,9 @@ describe('studyPermissionService', () => {
       };
 
       const readWriteUserPermissionRemoved = {
-        id: 'User:speedygonzales.readwrite',
+        id: 'User:u-speedygonzales.readwrite',
         recordType: 'user',
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes.readwrite',
-          username: 'speedygonzales.readwrite',
-        },
+        uid: 'u-speedygonzales.readwrite',
         adminAccess: [],
         readonlyAccess: [],
         writeonlyAccess: [],
@@ -705,26 +576,26 @@ describe('studyPermissionService', () => {
       service.findByStudy = jest.fn().mockResolvedValue({
         id: 'studyId',
         recordType: 'TEST',
-        adminUsers: [{ ns: 'efudd.looneytunes', username: 'efudd' }],
+        adminUsers: ['u-efudd'],
         readonlyUsers: [],
       });
 
       dbService.table.update.mockReturnValueOnce({
         id: 'Study:studyId',
         recordType: 'TEST',
-        adminUsers: [{ ns: 'efudd.looneytunes', username: 'efudd' }],
-        readonlyUsers: [{ ns: 'speedygonzales.looneytunes.readonly', username: 'speedygonzales.readonly' }],
-        writeonlyUsers: [{ ns: 'speedygonzales.looneytunes.writeonly', username: 'speedygonzales.writeonly' }],
-        readwriteUsers: [{ ns: 'speedygonzales.looneytunes.readwrite', username: 'speedygonzales.readwrite' }],
+        adminUsers: ['u-efudd'],
+        readonlyUsers: ['u-speedygonzales.readonly'],
+        writeonlyUsers: ['u-speedygonzales.writeonly'],
+        readwriteUsers: ['u-speedygonzales.readwrite'],
       });
 
       // OPERATE
       const res = await service.update({}, 'studyId', updateRequest);
 
       // CHECK
-      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'User:speedygonzales.writeonly' });
-      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'User:speedygonzales.readonly' });
-      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'User:speedygonzales.readwrite' });
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'User:u-speedygonzales.writeonly' });
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'User:u-speedygonzales.readonly' });
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'User:u-speedygonzales.readwrite' });
       expect(dbService.table.key).toHaveBeenCalledWith({ id: 'Study:studyId' });
       expect(dbService.table.item).toHaveBeenCalledWith(studyPermissionRecord);
       expect(dbService.table.item).toHaveBeenCalledWith(readOnlyUserPermission);
@@ -739,17 +610,11 @@ describe('studyPermissionService', () => {
     it('passes', async () => {
       // BUILD
       const user1 = {
-        principalIdentifier: {
-          username: 'foghorn',
-          ns: 'foghorn.leghorn',
-        },
+        uid: 'u-foghorn',
         permissionLevel: 'admin',
       };
       const user2 = {
-        principalIdentifier: {
-          username: 'tweety',
-          ns: 'tweety.bird',
-        },
+        uid: 'u-tweety',
         permissionLevel: 'readonly',
       };
       const studyRecord = {
@@ -770,24 +635,15 @@ describe('studyPermissionService', () => {
     it('delete study with accessType defined as readwrite', async () => {
       // BUILD
       const adminUser = {
-        principalIdentifier: {
-          username: 'foghorn',
-          ns: 'foghorn.leghorn',
-        },
+        uid: 'u-foghorn',
         permissionLevel: 'admin',
       };
       const writeOnlyUser = {
-        principalIdentifier: {
-          username: 'tweety.writeonly',
-          ns: 'tweety.bird.writeonly',
-        },
+        uid: 'u-tweety.writeonly',
         permissionLevel: 'writeonly',
       };
       const readWriteUser = {
-        principalIdentifier: {
-          username: 'tweety.readwrite',
-          ns: 'tweety.bird.readwrite',
-        },
+        uid: 'u-tweety.readwrite',
         permissionLevel: 'readwrite',
       };
       const studyRecord = {
@@ -811,16 +667,11 @@ describe('studyPermissionService', () => {
   describe('verify requestor access', () => {
     it('admin should have UPLOAD access', async () => {
       // BUILD
-      const request = {
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes',
-          username: 'speedygonzales',
-        },
-      };
+      const request = { principalIdentifier: { uid: 'u-speedygonzales' } };
       service.findByUser = jest.fn().mockResolvedValue({
-        id: 'User:speedygonzales',
+        id: 'User:u-speedygonzales',
         recordType: 'user',
-        principalIdentifier: request.principalIdentifier,
+        uid: request.principalIdentifier.uid,
         adminAccess: ['studyId'],
         readonlyAccess: [],
         writeonlyAccess: [],
@@ -836,16 +687,11 @@ describe('studyPermissionService', () => {
 
     it('admin should have GET access', async () => {
       // BUILD
-      const request = {
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes',
-          username: 'speedygonzales',
-        },
-      };
+      const request = { principalIdentifier: { uid: 'u-speedygonzales' } };
       service.findByUser = jest.fn().mockResolvedValue({
-        id: 'User:speedygonzales',
+        id: 'User:u-speedygonzales',
         recordType: 'user',
-        principalIdentifier: request.principalIdentifier,
+        uid: request.principalIdentifier.uid,
         adminAccess: ['studyId'],
         readonlyAccess: [],
         writeonlyAccess: [],
@@ -861,16 +707,11 @@ describe('studyPermissionService', () => {
 
     it('admin should have PUT access', async () => {
       // BUILD
-      const request = {
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes.admin1',
-          username: 'speedygonzales.admin1',
-        },
-      };
+      const request = { principalIdentifier: { uid: 'u-speedygonzales.admin1' } };
       service.findByUser = jest.fn().mockResolvedValue({
-        id: 'User:speedygonzales.admin1',
+        id: 'User:u-speedygonzales.admin1',
         recordType: 'user',
-        principalIdentifier: request.principalIdentifier,
+        uid: request.principalIdentifier.uid,
         adminAccess: ['studyId'],
         readonlyAccess: [],
       });
@@ -884,16 +725,11 @@ describe('studyPermissionService', () => {
 
     it('writeonly user should have UPLOAD access', async () => {
       // BUILD
-      const request = {
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes',
-          username: 'speedygonzales',
-        },
-      };
+      const request = { principalIdentifier: { uid: 'u-speedygonzales' } };
       service.findByUser = jest.fn().mockResolvedValue({
-        id: 'User:speedygonzales',
+        id: 'User:u-speedygonzales',
         recordType: 'user',
-        principalIdentifier: request.principalIdentifier,
+        uid: request.principalIdentifier.uid,
         adminAccess: [],
         readonlyAccess: [],
         writeonlyAccess: ['studyId'],
@@ -909,16 +745,11 @@ describe('studyPermissionService', () => {
 
     it('writeonly user should have GET access', async () => {
       // BUILD
-      const request = {
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes',
-          username: 'speedygonzales',
-        },
-      };
+      const request = { principalIdentifier: { uid: 'u-speedygonzales' } };
       service.findByUser = jest.fn().mockResolvedValue({
-        id: 'User:speedygonzales',
+        id: 'User:u-speedygonzales',
         recordType: 'user',
-        principalIdentifier: request.principalIdentifier,
+        uid: request.principalIdentifier.uid,
         adminAccess: [],
         readonlyAccess: [],
         writeonlyAccess: ['studyId'],
@@ -934,16 +765,11 @@ describe('studyPermissionService', () => {
 
     it('writeonly user should not have PUT access', async () => {
       // BUILD
-      const request = {
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes',
-          username: 'speedygonzales',
-        },
-      };
+      const request = { principalIdentifier: { uid: 'u-speedygonzales' } };
       service.findByUser = jest.fn().mockResolvedValue({
-        id: 'User:speedygonzales',
+        id: 'User:u-speedygonzales',
         recordType: 'user',
-        principalIdentifier: request.principalIdentifier,
+        uid: request.principalIdentifier.uid,
         adminAccess: [],
         readonlyAccess: [],
         writeonlyAccess: ['studyId'],
@@ -964,16 +790,11 @@ describe('studyPermissionService', () => {
 
     it('readwrite user should have UPLOAD access', async () => {
       // BUILD
-      const request = {
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes',
-          username: 'speedygonzales',
-        },
-      };
+      const request = { principalIdentifier: { uid: 'u-speedygonzales' } };
       service.findByUser = jest.fn().mockResolvedValue({
-        id: 'User:speedygonzales',
+        id: 'User:u-speedygonzales',
         recordType: 'user',
-        principalIdentifier: request.principalIdentifier,
+        uid: request.principalIdentifier.uid,
         adminAccess: [],
         readonlyAccess: [],
         writeonlyAccess: [],
@@ -989,16 +810,11 @@ describe('studyPermissionService', () => {
 
     it('readwrite user should have GET access', async () => {
       // BUILD
-      const request = {
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes',
-          username: 'speedygonzales',
-        },
-      };
+      const request = { principalIdentifier: { uid: 'u-speedygonzales' } };
       service.findByUser = jest.fn().mockResolvedValue({
-        id: 'User:speedygonzales',
+        id: 'User:u-speedygonzales',
         recordType: 'user',
-        principalIdentifier: request.principalIdentifier,
+        uid: request.principalIdentifier.uid,
         adminAccess: [],
         readonlyAccess: [],
         writeonlyAccess: [],
@@ -1014,16 +830,11 @@ describe('studyPermissionService', () => {
 
     it('readwrite user should not have PUT access', async () => {
       // BUILD
-      const request = {
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes',
-          username: 'speedygonzales',
-        },
-      };
+      const request = { principalIdentifier: { uid: 'u-speedygonzales' } };
       service.findByUser = jest.fn().mockResolvedValue({
-        id: 'User:speedygonzales',
+        id: 'User:u-speedygonzales',
         recordType: 'user',
-        principalIdentifier: request.principalIdentifier,
+        uid: request.principalIdentifier.uid,
         adminAccess: [],
         readonlyAccess: [],
         writeonlyAccess: [],
@@ -1044,16 +855,11 @@ describe('studyPermissionService', () => {
 
     it('readonly user should not have UPLOAD access', async () => {
       // BUILD
-      const request = {
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes',
-          username: 'speedygonzales',
-        },
-      };
+      const request = { principalIdentifier: { uid: 'u-speedygonzales' } };
       service.findByUser = jest.fn().mockResolvedValue({
-        id: 'User:speedygonzales',
+        id: 'User:u-speedygonzales',
         recordType: 'user',
-        principalIdentifier: request.principalIdentifier,
+        uid: request.principalIdentifier.uid,
         adminAccess: [],
         readonlyAccess: ['studyId'],
         writeonlyAccess: [],
@@ -1074,16 +880,11 @@ describe('studyPermissionService', () => {
 
     it('readonly user should have GET access', async () => {
       // BUILD
-      const request = {
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes',
-          username: 'speedygonzales',
-        },
-      };
+      const request = { principalIdentifier: { uid: 'u-speedygonzales' } };
       service.findByUser = jest.fn().mockResolvedValue({
-        id: 'User:speedygonzales',
+        id: 'User:u-speedygonzales',
         recordType: 'user',
-        principalIdentifier: request.principalIdentifier,
+        uid: request.principalIdentifier.uid,
         adminAccess: [],
         readonlyAccess: ['studyId'],
         writeonlyAccess: [],
@@ -1099,16 +900,11 @@ describe('studyPermissionService', () => {
 
     it('readonly user should not have PUT access', async () => {
       // BUILD
-      const request = {
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes',
-          username: 'speedygonzales',
-        },
-      };
+      const request = { principalIdentifier: { uid: 'u-speedygonzales' } };
       service.findByUser = jest.fn().mockResolvedValue({
-        id: 'User:speedygonzales',
+        id: 'User:u-u-speedygonzales',
         recordType: 'user',
-        principalIdentifier: request.principalIdentifier,
+        uid: request.principalIdentifier.uid,
         adminAccess: [],
         readonlyAccess: ['studyId'],
       });

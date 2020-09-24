@@ -13,8 +13,6 @@
  *  permissions and limitations under the License.
  */
 
-const _ = require('lodash');
-
 async function configure(context) {
   const router = context.router();
   const wrap = context.wrap;
@@ -30,8 +28,7 @@ async function configure(context) {
     '/drafts',
     wrap(async (req, res) => {
       const requestContext = res.locals.requestContext;
-      const principalIdentifier = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
-      const result = await workflowTemplateDraftService.list({ principalIdentifier });
+      const result = await workflowTemplateDraftService.list(requestContext);
 
       res.status(200).json(result);
     }),

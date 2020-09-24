@@ -49,7 +49,7 @@ class CreateRootUserService extends Service {
     const [userService, dbPasswordService, aws] = await this.service(['userService', 'dbPasswordService', 'aws']);
 
     try {
-      await userService.createUser(getSystemRequestContext(), {
+      const createdUser = await userService.createUser(getSystemRequestContext(), {
         username: rootUserName,
         authenticationProviderId: authProviderConstants.internalAuthProviderId,
         firstName: rootUserFirstName,
@@ -61,6 +61,7 @@ class CreateRootUserService extends Service {
       this.log.info('Created root user in the data lake');
 
       await dbPasswordService.savePassword(getSystemRequestContext(), {
+        uid: createdUser.uid,
         username: rootUserName,
         password: rootUserPassword,
       });

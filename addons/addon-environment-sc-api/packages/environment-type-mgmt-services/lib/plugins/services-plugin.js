@@ -20,7 +20,7 @@ const EnvTypeConfigVarService = require('../environment-type/env-type-config-var
 const EnvTypeCandidateService = require('../environment-type/env-type-candidate-service');
 
 const settingKeys = {
-  tablePrefix: 'dbTablePrefix',
+  tablePrefix: 'dbPrefix',
 };
 
 /**
@@ -58,7 +58,7 @@ function getStaticSettings(existingStaticSettings, settings, pluginRegistry) {
   const table = (key, suffix) => {
     staticSettings[key] = `${tablePrefix}-${suffix}`;
   };
-  table('dbTableEnvironmentTypes', 'DbEnvironmentTypes');
+  table('dbEnvironmentTypes', 'EnvironmentTypes');
 
   return staticSettings;
 }

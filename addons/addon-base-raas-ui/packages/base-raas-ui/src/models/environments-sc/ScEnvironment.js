@@ -1,7 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 import _ from 'lodash';
 import { types, applySnapshot } from 'mobx-state-tree';
-import UserIdentifier from '@aws-ee/base-ui/dist/models/users/UserIdentifier';
 
 // 'COMPLETED', 'PENDING', 'TAINTED', 'FAILED', 'TERMINATING', 'TERMINATED', 'TERMINATING_FAILED', 'UNKNOWN'
 // Note: 'UNKNOWN' is not something that is returned from the server, it is here to catch any other status
@@ -95,9 +94,9 @@ const ScEnvironment = types
     projectId: '',
     envTypeId: '',
     createdAt: '',
-    createdBy: types.optional(UserIdentifier, {}),
+    createdBy: '',
     updatedAt: '',
-    updatedBy: types.optional(UserIdentifier, {}),
+    updatedBy: '',
     error: types.maybeNull(types.string),
     connections: types.frozen([]),
     hasConnections: false,

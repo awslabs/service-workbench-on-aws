@@ -59,7 +59,7 @@ describe('handler', () => {
     authenticationService.authenticate = jest.fn(() =>
       Promise.resolve({
         authenticated: true,
-        username: 'me',
+        uid: 'me',
         authenticationProviderId: 'my.provider.id',
         identityProviderId: 'my.idp.com',
       }),
@@ -83,7 +83,7 @@ describe('handler', () => {
       context: {
         authenticationProviderId: 'my.provider.id',
         identityProviderId: 'my.idp.com',
-        username: 'me',
+        uid: 'me',
       },
     });
   });
@@ -92,7 +92,7 @@ describe('handler', () => {
     authenticationService.authenticate = jest.fn(() =>
       Promise.resolve({
         authenticated: true,
-        username: 'me',
+        uid: 'me',
         authenticationProviderId: 'my.provider.id',
         identityProviderId: 'my.idp.com',
         some: { invalid: { context: 'object' } },
@@ -117,7 +117,7 @@ describe('handler', () => {
       context: {
         authenticationProviderId: 'my.provider.id',
         identityProviderId: 'my.idp.com',
-        username: 'me',
+        uid: 'me',
       },
     });
   });

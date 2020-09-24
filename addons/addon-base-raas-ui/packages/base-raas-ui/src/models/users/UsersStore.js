@@ -144,8 +144,8 @@ const UsersStore = BaseStore.named('UsersStore')
 
     asUserObject(userIdentifier) {
       if (userIdentifier) {
-        const user = self.users.get(userIdentifier.id);
-        return user || User.create({ username: userIdentifier.username, ns: userIdentifier.ns }); // this could happen in the employee is no longer active or with the company
+        const user = self.users.get(userIdentifier.uid);
+        return user || User.create({ username: userIdentifier.username, ns: userIdentifier.ns });
       }
       return undefined;
     },
@@ -154,7 +154,7 @@ const UsersStore = BaseStore.named('UsersStore')
       const result = [];
       userIdentifiers.forEach(userIdentifier => {
         if (userIdentifier) {
-          const user = self.users.get(userIdentifier.id);
+          const user = self.users.get(userIdentifier.uid);
           if (user) {
             result.push(user);
           } else {
@@ -166,68 +166,6 @@ const UsersStore = BaseStore.named('UsersStore')
       return result;
     },
   }));
-
-// function registerModels(globals) {
-//   globals.usersStore = UsersStore.create({}, globals);
-// }
-
-// export { UsersStore, toUserIds, toLongNames, toLongName, registerModels };
-
-// const UsersStore = BaseUsersStore.named('UsersStore')
-//   .actions(self => {
-//     return {
-//       addUser: async user => {
-//         const addedUser = await addUser(user);
-//         self.runInAction(() => {
-//           // Added newly created user to users map
-//           const addedUserModel = User.create(addedUser);
-//           self.users.set(addedUserModel.id, addedUserModel);
-//         });
-//       },
-//       updateUser: async user => {
-//         const updatedUser = await updateUser(user);
-//         const userModel = User.create(updatedUser);
-//         const previousUser = self.users.get(userModel.id);
-//         applySnapshot(previousUser, updatedUser);
-//       },
-//       addUsers: async users => {
-//         await addUsers(users);
-//       },
-//       updateUserApplication: async user => {
-//         const res = await updateUserApplication(user);
-//         return res;
-//       },
-//       deleteUser: async user => {
-//         await deleteUser(user);
-//       },
-//     };
-//   })
-
-//   .views(self => ({
-//     asUserObject(userIdentifier) {
-//       if (userIdentifier) {
-//         const user = self.users.get(userIdentifier.id);
-//         return user || User.create({ username: userIdentifier.username, ns: userIdentifier.ns });
-//       }
-//       return undefined;
-//     },
-
-//     asUserObjects(userIdentifiers = []) {
-//       const result = [];
-//       userIdentifiers.forEach(userIdentifier => {
-//         if (userIdentifier) {
-//           const user = self.users.get(userIdentifier.id);
-//           if (user) {
-//             result.push(user);
-//           } else {
-//             result.push(User.create(getSnapshot(userIdentifier)));
-//           }
-//         }
-//       });
-
-//       return result;
-//     },
-//   }));
 
 function registerContextItems(appContext) {
   appContext.usersStore = UsersStore.create({}, appContext);

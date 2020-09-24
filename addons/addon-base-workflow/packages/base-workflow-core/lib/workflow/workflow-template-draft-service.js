@@ -23,15 +23,8 @@ const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const inputSchema = require('../schema/workflow-template');
 
 const settingKeys = {
-  tableName: 'dbTableWorkflowTemplateDrafts',
+  tableName: 'dbWorkflowTemplateDrafts',
 };
-const usernameIndexName = 'UsernameIndex';
-
-function encodePrincipalIdentifier(principalIdentifier = {}) {
-  // principalIdentifier shape is { username, ns: user.ns }
-  const { username = 'unknown', ns = 'unknown' } = principalIdentifier;
-  return `ns=${ns},us=${username}`;
-}
 
 class WorkflowTemplateDraftService extends Service {
   constructor() {
@@ -58,17 +51,16 @@ class WorkflowTemplateDraftService extends Service {
 
     await ensureAdmin(requestContext);
     // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
-    const username = encodePrincipalIdentifier(by);
+    const by = _.get(requestContext, 'principalIdentifier.uid');
 
     const now = new Date().toISOString();
     const templateId = slugify(_.kebabCase(_.startsWith(templateIdRaw, 'wt-') ? templateIdRaw : `wt-${templateIdRaw}`));
-    const draftId = `${username}_${templateId}_${templateVer}`;
+    const draftId = `${by}_${templateId}_${templateVer}`;
     const draft = {
       id: draftId,
       templateVer,
       templateId,
-      username,
+      uid: by,
     };
 
     if (isNewTemplate) {
@@ -139,15 +131,13 @@ class WorkflowTemplateDraftService extends Service {
 
     await ensureAdmin(requestContext);
     // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
-    const username = encodePrincipalIdentifier(by);
+    const by = _.get(requestContext, 'principalIdentifier.uid');
 
     const template = draft.template;
     const originalDraft = await this.mustFindDraft({ id: draft.id });
 
     // Check if the owner of this draft is the same entity that is trying to update the draft
-    if (originalDraft.username !== username)
-      throw this.boom.forbidden('You are not authorized to perform this operation', true);
+    if (originalDraft.uid !== by) throw this.boom.forbidden('You are not authorized to perform this operation', true);
 
     let originalTemplate = originalDraft.template;
     if (template.id !== originalTemplate.id || template.v !== originalTemplate.v) {
@@ -253,13 +243,11 @@ class WorkflowTemplateDraftService extends Service {
   async deleteDraft(requestContext, { id }) {
     await ensureAdmin(requestContext);
     // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
-    const username = encodePrincipalIdentifier(by);
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     const originalDraft = await this.mustFindDraft({ id });
 
     // Check if the owner of this draft is the same entity that is trying to delete the draft
-    if (originalDraft.username !== username)
-      throw this.boom.forbidden('You are not authorized to perform this operation', true);
+    if (originalDraft.uid !== by) throw this.boom.forbidden('You are not authorized to perform this operation', true);
 
     // Lets now remove the draft from the database
     const dbService = await this.service('dbService');
@@ -275,18 +263,19 @@ class WorkflowTemplateDraftService extends Service {
     await this.audit(requestContext, { action: 'delete-workflow-template-draft', body: { id } });
   }
 
-  // List all drafts for a username
-  async list({ principalIdentifier, fields = [] } = {}) {
+  // List all drafts for a uid
+  async list(requestContext, { fields = [] } = {}) {
     const dbService = await this.service('dbService');
     const table = this.tableName;
-    const username = encodePrincipalIdentifier(principalIdentifier);
+
+    const uid = _.get(requestContext, 'principalIdentifier.uid');
 
     // The query route
     const result = await dbService.helper
       .query()
       .table(table)
-      .index(usernameIndexName)
-      .key('username', username)
+      .index('ByUID')
+      .key('uid', uid)
       .limit(2000)
       .projection(fields)
       .query();

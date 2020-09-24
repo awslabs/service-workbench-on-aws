@@ -45,16 +45,21 @@ class DbService extends Service {
     this.table = {
       // Following functions use builder pattern to enhance request
       key: jest.fn().mockReturnThis(),
+      sortKey: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
       projection: jest.fn().mockReturnThis(),
       rev: jest.fn().mockReturnThis(),
       item: jest.fn().mockReturnThis(),
       condition: jest.fn().mockReturnThis(),
       limit: jest.fn().mockReturnThis(),
+      index: jest.fn().mockReturnThis(),
+
       // Following functions are actual calls to dynamo
       scan: jest.fn(),
       get: jest.fn(),
       update: jest.fn(),
       delete: jest.fn(),
+      query: jest.fn(),
     };
 
     const tableFn = jest.fn().mockReturnValue(this.table);

@@ -110,7 +110,7 @@ class AuditWriterService extends Service {
     }
     if (!auditEvent.actor) {
       // Add actor, if it's not there
-      auditEvent.actor = _.get(requestContext, 'principalIdentifier');
+      auditEvent.actor = _.get(requestContext, 'principalIdentifier.uid');
     }
     if (auditEvent.timestamp) {
       // Add timestamp, if it's not there

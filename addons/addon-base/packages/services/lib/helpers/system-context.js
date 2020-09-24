@@ -29,11 +29,13 @@ const internalAuthProviderId = 'internal'; // TODO - make this string comes from
 function getSystemRequestContext() {
   const ctx = new RequestContext();
 
+  const systemUid = '_system_';
   const systemUsername = '_system_';
   const systemUserNamespace = internalAuthProviderId;
 
   ctx.authenticated = true;
   ctx.principal = {
+    uid: systemUid,
     username: systemUsername,
     ns: systemUserNamespace,
     isAdmin: true,
@@ -41,8 +43,7 @@ function getSystemRequestContext() {
     status: 'active',
   };
   ctx.principalIdentifier = {
-    username: systemUsername,
-    ns: systemUserNamespace,
+    uid: systemUid,
   };
 
   return ctx;

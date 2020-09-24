@@ -19,7 +19,7 @@ const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const createOrUpdateSchema = require('./schema/deployment-item');
 
 const settingKeys = {
-  tableName: 'dbTableDeploymentStore',
+  tableName: 'dbDeploymentStore',
 };
 
 class DeploymentStoreService extends Service {

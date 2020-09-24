@@ -417,7 +417,7 @@ describe('studyService', () => {
       } catch (err) {
         // CHECK
         expect(err.message).toEqual(
-          'study information changed by "another doppelganger" just before your request is processed, please try again',
+          'study information changed just before your request is processed, please try again',
         );
       }
     });

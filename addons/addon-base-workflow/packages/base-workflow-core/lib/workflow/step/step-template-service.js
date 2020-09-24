@@ -21,7 +21,7 @@ const { toVersionString, parseVersionString, runAndCatch } = require('@aws-ee/ba
 const inputSchema = require('../../schema/step-template');
 
 const settingKeys = {
-  tableName: 'dbTableStepTemplates',
+  tableName: 'dbStepTemplates',
 };
 
 class StepTemplateService extends Service {

@@ -21,7 +21,7 @@ const schema = {
     },
 
     // optionally associate key-pair to some user
-    username: {
+    uid: {
       type: 'string',
     },
 

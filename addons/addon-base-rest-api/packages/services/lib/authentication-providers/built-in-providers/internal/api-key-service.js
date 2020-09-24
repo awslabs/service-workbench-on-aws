@@ -16,24 +16,24 @@
 const _ = require('lodash');
 const uuid = require('uuid');
 const Service = require('@aws-ee/base-services-container/lib/service');
+const { toUserNamespace } = require('@aws-ee/base-services/lib/user/helpers/user-namespace');
 const { ensureCurrentUserOrAdmin, isCurrentUser } = require('@aws-ee/base-services/lib/authorization/assertions');
 
 const authProviderConstants = require('../../constants').authenticationProviders;
 
 const settingKeys = {
-  tableName: 'dbTableUserApiKeys',
+  tableName: 'dbUserApiKeys',
 };
 const maxActiveApiKeysPerUser = 5;
 
-const redactIfNotForCurrentUser = (requestContext, apiKey, username, ns) => {
-  if (!isCurrentUser(requestContext, username, ns)) {
+const redactIfNotForCurrentUser = (requestContext, apiKey, uid) => {
+  if (!isCurrentUser(requestContext, { uid })) {
     // if the api key is issued for some other user then redact the api key material as user should be
     // only able to read his/her own api key value (even if the user is an admin)
     apiKey.key = undefined;
   }
   return apiKey;
 };
-const encode = (username, ns) => `${ns}/${username}`;
 
 class ApiKeyService extends Service {
   constructor() {
@@ -51,11 +51,8 @@ class ApiKeyService extends Service {
       const dbGetter = () => dbService.helper.getter().table(table);
       const dbUpdater = () => dbService.helper.updater().table(table);
       const dbQuery = () => dbService.helper.query().table(table);
-      const ensureMaxApiKeysLimitNotReached = async (requestContext, { username, ns }) => {
-        const existingApiKeys = await this.getApiKeys(requestContext, {
-          username,
-          ns,
-        });
+      const ensureMaxApiKeysLimitNotReached = async (requestContext, { uid }) => {
+        const existingApiKeys = await this.getApiKeys(requestContext, { uid });
         const existingActiveApiKeys = _.filter(existingApiKeys, apiKey => {
           const isActive = apiKey.status === 'active';
           const isExpired = apiKey.expiryTime && _.now() > apiKey.expiryTime;
@@ -78,12 +75,9 @@ class ApiKeyService extends Service {
     this.internals = await createInternals();
   }
 
-  async createApiKeyMaterial(requestContext, { apiKeyId, username, ns, expiryTime }) {
-    if (!username) {
-      throw this.boom.badRequest(
-        "Cannot issue API Key. Missing username. Don't know who to issue the API key for.",
-        true,
-      );
+  async createApiKeyMaterial(requestContext, { apiKeyId, uid, expiryTime }) {
+    if (!uid) {
+      throw this.boom.badRequest("Cannot issue API Key. Missing uid. Don't know who to issue the API key for.", true);
     }
     if (expiryTime && !_.isNumber(expiryTime)) {
       // Make sure if "expiryTime" is specified then it is a valid "NumericDate" i.e., epoch time as number
@@ -96,11 +90,12 @@ class ApiKeyService extends Service {
 
     const authenticationProviderId = _.get(requestContext, 'principal.authenticationProviderId');
     const identityProviderName = _.get(requestContext, 'principal.identityProviderName');
+    const ns = toUserNamespace(authenticationProviderId, identityProviderName);
 
     // The JWT service sets "expiresIn" by default based on the settings.
     // Make sure JWT service does not set it here as we are controlling that via the "exp" claim directly
     const apiKeyJwtToken = {
-      'sub': username,
+      'sub': uid,
       'iss': authProviderConstants.internalAuthProviderId, // This is validated by internal auth provider so set issuer as internal
       // Add private claims under "custom:". These claims are then used at the time of verifying token
       'custom:tokenType': 'api',
@@ -119,15 +114,14 @@ class ApiKeyService extends Service {
     return jwtService.sign(apiKeyJwtToken, { expiresIn: undefined });
   }
 
-  async revokeApiKey(requestContext, { username, ns, keyId }) {
+  async revokeApiKey(requestContext, { uid, keyId }) {
     // ensure the caller is asking to revoke api key for him/herself or is admin
-    await ensureCurrentUserOrAdmin(requestContext, username, ns);
+    await ensureCurrentUserOrAdmin(requestContext, { uid });
 
     // ensure that the key exists and set it's status to "reovked", if it does
-    const unameWithNs = encode(username, ns);
     const apiKey = await this.internals
       .dbGetter()
-      .key({ unameWithNs, id: keyId })
+      .key({ id: keyId })
       .get();
     if (!apiKey) {
       throw this.boom.badRequest('Cannot revoke API Key. The API key does not exist.', true);
@@ -137,37 +131,30 @@ class ApiKeyService extends Service {
     // Update the key with "revoked" status
     const revokedApiKey = await this.internals
       .dbUpdater()
-      .key({ unameWithNs, id: apiKey.id })
+      .key({ id: apiKey.id })
       .item(apiKey)
       .update();
 
-    return redactIfNotForCurrentUser(requestContext, revokedApiKey, username, ns);
+    return redactIfNotForCurrentUser(requestContext, revokedApiKey, uid);
   }
 
-  async issueApiKey(requestContext, { username, ns, expiryTime }) {
+  async issueApiKey(requestContext, { uid, expiryTime }) {
     // ensure the caller is asking to issue new api key for him/herself or is admin
-    await ensureCurrentUserOrAdmin(requestContext, username, ns);
+    await ensureCurrentUserOrAdmin(requestContext, { uid });
 
     // ensure max active api keys limit is not reached before issuing new key
-    await this.internals.ensureMaxApiKeysLimitNotReached(requestContext, {
-      username,
-      ns,
-    });
+    await this.internals.ensureMaxApiKeysLimitNotReached(requestContext, { uid });
 
     // create new api key object
     const apiKeyId = uuid.v4();
     const apiKeyMaterial = await this.createApiKeyMaterial(requestContext, {
       apiKeyId,
-      username,
-      ns,
+      uid,
       expiryTime,
     });
-    const unameWithNs = encode(username, ns);
     // TODO: Add TTL based on revocation status and expiry time
     const newApiKey = {
-      unameWithNs,
-      username,
-      ns,
+      uid,
       id: apiKeyId,
       key: apiKeyMaterial,
       status: 'active',
@@ -179,12 +166,12 @@ class ApiKeyService extends Service {
     // save api key to db
     const apiKey = await this.internals
       .dbUpdater()
-      .key({ unameWithNs, id: newApiKey.id })
+      .key({ id: newApiKey.id })
       .item(newApiKey)
       .update();
 
     // sanitize
-    return redactIfNotForCurrentUser(requestContext, apiKey, username, ns);
+    return redactIfNotForCurrentUser(requestContext, apiKey, uid);
   }
 
   async validateApiKey(signedApiKey) {
@@ -196,8 +183,8 @@ class ApiKeyService extends Service {
     // Make sure the key is a valid non-expired JWT token and has correct signature
     const jwtService = await this.service('jwtService');
     const verifiedApiKeyJwtToken = await jwtService.verify(signedApiKey);
-    const { 'sub': username, 'custom:userNs': ns } = verifiedApiKeyJwtToken;
-    if (_.isEmpty(username)) {
+    const { sub: uid } = verifiedApiKeyJwtToken;
+    if (_.isEmpty(uid)) {
       throw this.boom.invalidToken('No "sub" is provided in the api key', true);
     }
 
@@ -210,11 +197,10 @@ class ApiKeyService extends Service {
     const apiKeyId = _.get(verifiedApiKeyJwtToken, 'custom:apiKeyId');
     const dbService = await this.service('dbService');
     const table = this.settings.get(settingKeys.tableName);
-    const unameWithNs = encode(username, ns);
     const apiKey = await dbService.helper
       .getter()
       .table(table)
-      .key({ unameWithNs, id: apiKeyId })
+      .key({ id: apiKeyId })
       .get();
 
     if (!apiKey) {
@@ -224,32 +210,31 @@ class ApiKeyService extends Service {
       throw this.boom.invalidToken('The given API key is not active', true);
     }
     // If code reached here then this is a valid key
-    return { verifiedToken: verifiedApiKeyJwtToken, username, ns };
+    return { verifiedToken: verifiedApiKeyJwtToken, uid };
   }
 
-  async getApiKeys(requestContext, { username, ns }) {
+  async getApiKeys(requestContext, { uid }) {
     // ensure the caller is asking retrieve api keys for him/herself or is admin
-    await ensureCurrentUserOrAdmin(requestContext, username, ns);
-    const unameWithNs = encode(username, ns);
+    await ensureCurrentUserOrAdmin(requestContext, { uid });
     const apiKeys = await this.internals
       .dbQuery()
-      .key('unameWithNs', unameWithNs)
+      .index('ByUID')
+      .key('uid', uid)
       .query();
 
-    return _.map(apiKeys, apiKey => redactIfNotForCurrentUser(requestContext, apiKey, username, ns));
+    return _.map(apiKeys, apiKey => redactIfNotForCurrentUser(requestContext, apiKey, uid));
   }
 
-  async getApiKey(requestContext, { username, ns, keyId }) {
+  async getApiKey(requestContext, { uid, keyId }) {
     // ensure the caller is asking to retrieve api key for him/herself or is admin
-    await ensureCurrentUserOrAdmin(requestContext, username, ns);
+    await ensureCurrentUserOrAdmin(requestContext, { uid });
 
-    const unameWithNs = encode(username, ns);
     const apiKey = await this.internals
       .dbGetter()
-      .key({ unameWithNs, id: keyId })
+      .key({ id: keyId })
       .get();
 
-    return redactIfNotForCurrentUser(requestContext, apiKey, username, ns);
+    return redactIfNotForCurrentUser(requestContext, apiKey, uid);
   }
 
   async isApiKeyToken(decodedToken) {

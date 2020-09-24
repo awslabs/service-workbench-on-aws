@@ -74,7 +74,7 @@ class WorkflowTemplateCard extends React.Component {
     return version;
   }
 
-  getUserDisplayNameService() {
+  getUserDisplayName() {
     return this.props.userDisplayName;
   }
 
@@ -85,9 +85,10 @@ class WorkflowTemplateCard extends React.Component {
   render() {
     const templateVersion = this.getTemplateVersion();
     const { id, v, title, createdAt, createdBy } = templateVersion;
-    const displayNameService = this.getUserDisplayNameService();
-    const isSystem = displayNameService.isSystem(createdBy);
-    const by = () => (isSystem ? '' : <span className="ml1">by {displayNameService.getDisplayName(createdBy)}</span>);
+    const userDisplayName = this.getUserDisplayName();
+    const isSystem = userDisplayName.isSystem({ uid: createdBy });
+    const by = () =>
+      isSystem ? '' : <span className="ml1">by {userDisplayName.getDisplayName({ uid: createdBy })}</span>;
 
     return (
       <>

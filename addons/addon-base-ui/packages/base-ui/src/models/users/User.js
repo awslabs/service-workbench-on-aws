@@ -18,17 +18,17 @@ import _ from 'lodash';
 
 const User = types
   .model('User', {
-    firstName: '',
-    lastName: '',
+    uid: '',
+    firstName: types.maybeNull(types.optional(types.string, '')),
+    lastName: types.maybeNull(types.optional(types.string, '')),
     isAdmin: types.optional(types.boolean, false),
     username: '',
-    ns: '',
+    ns: types.maybeNull(types.optional(types.string, '')),
     email: '',
     userType: '',
     authenticationProviderId: '', // Id of the authentication provider this user is authenticated against (such as internal, cognito auth provider id etc)
-    identityProviderName: '', // Name of the identity provider this user belongs to (such as Identity Provider Id in cognito user pool in case of Federation etc)
+    identityProviderName: types.maybeNull(types.optional(types.string, '')), // Name of the identity provider this user belongs to (such as Identity Provider Id in cognito user pool in case of Federation etc)
     status: 'active',
-    projectId: types.array(types.string, []),
     rev: 0,
   })
   .views(self => ({
@@ -60,33 +60,35 @@ const User = types
     },
 
     get isSystem() {
-      const identifier = self.identifier;
-      return identifier.username === '_system_';
+      return self.id === '_system_';
     },
 
-    isSame({ username, ns }) {
+    isSame(uid) {
+      return self.uid === uid;
+    },
+
+    isSamePrincipal({ username, ns }) {
       return self.username === username && self.ns === ns;
     },
 
     get id() {
-      return self.identifierStr;
+      return self.uid;
     },
 
-    get identifier() {
+    get principal() {
       return { username: self.username, ns: self.ns };
     },
 
-    get identifierStr() {
-      return JSON.stringify(self.identifier);
+    get principalStr() {
+      return JSON.stringify(self.principal);
     },
   }));
 
-function getIdentifierObjFromId(identifierStr) {
-  return JSON.parse(identifierStr);
+function getPrincipalObjFromPrincipalStr(principalStr) {
+  return JSON.parse(principalStr);
 }
 
-function getIdFromObj({ username, ns }) {
+function getPrincipalStrFromPrincipalObj({ username, ns }) {
   return JSON.stringify({ username, ns });
 }
-
-export { User, getIdentifierObjFromId, getIdFromObj };
+export { User, getPrincipalObjFromPrincipalStr, getPrincipalStrFromPrincipalObj };

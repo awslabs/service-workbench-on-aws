@@ -32,7 +32,12 @@ class EnvironmentSetup extends React.Component {
   constructor(props) {
     super(props);
     runInAction(() => {
-      const step = enableBuiltInWorkspaces ? 'selectComputePlatform' : 'selectEnvType';
+      let step = 'selectEnvType';
+      if (enableBuiltInWorkspaces) {
+        step = 'selectComputePlatform';
+      } else if (this.envTypeId) {
+        step = 'selectEnvConfig'; // If envTypeId id is passed then jump to env config step
+      }
       this.currentStep = CurrentStep.create({ step });
     });
   }
@@ -47,7 +52,13 @@ class EnvironmentSetup extends React.Component {
   }
 
   handlePrevious = () => {
-    this.goto('/workspaces');
+    if (this.envTypeId) {
+      // If envTypeId is already preselected selected
+      // then we must have reached here via env type management page so go back to that page
+      this.goto('/workspace-types-management');
+    } else {
+      this.goto('/workspaces');
+    }
   };
 
   // eslint-disable-next-line no-unused-vars
@@ -78,7 +89,7 @@ class EnvironmentSetup extends React.Component {
   }
 
   renderStepsProgress() {
-    return <SetupStepsProgress currentStep={this.currentStep} />;
+    return <SetupStepsProgress currentStep={this.currentStep} envTypeImmutable={!!this.envTypeId} />;
   }
 
   renderContent() {
@@ -97,11 +108,17 @@ class EnvironmentSetup extends React.Component {
           currentStep={this.currentStep}
           onPrevious={this.handlePrevious}
           onCompleted={this.handleCompleted}
+          envTypeId={this.envTypeId}
+          envTypeImmutable={!!this.envTypeId} // If envTypeId is passed already then do not allow selecting it
         />
       );
     }
 
     return content;
+  }
+
+  get envTypeId() {
+    return (this.props.match.params || {}).envTypeId;
   }
 }
 

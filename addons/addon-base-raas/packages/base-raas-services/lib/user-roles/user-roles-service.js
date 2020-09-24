@@ -22,7 +22,7 @@ const createSchema = require('../schema/create-user-roles');
 const updateSchema = require('../schema/update-user-roles');
 
 const settingKeys = {
-  tableName: 'dbTableUserRoles',
+  tableName: 'dbUserRoles',
 };
 
 class UserRolesService extends Service {
@@ -72,7 +72,7 @@ class UserRolesService extends Service {
     await validationService.ensureValid(userRole, createSchema);
 
     // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     const { id } = userRole;
 
     // Prepare the db object
@@ -112,7 +112,7 @@ class UserRolesService extends Service {
     await validationService.ensureValid(rawData, updateSchema);
 
     // For now, we assume that 'updatedBy' is always a user and not a group
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     const { id, rev } = rawData;
 
     // Prepare the db object
@@ -136,9 +136,7 @@ class UserRolesService extends Service {
         const existing = await this.find(requestContext, { id, fields: ['id', 'updatedBy'] });
         if (existing) {
           throw this.boom.badRequest(
-            `userRoles information changed by "${
-              (existing.updatedBy || {}).username
-            }" just before your request is processed, please try again`,
+            `userRoles information changed just before your request is processed, please try again`,
             true,
           );
         }

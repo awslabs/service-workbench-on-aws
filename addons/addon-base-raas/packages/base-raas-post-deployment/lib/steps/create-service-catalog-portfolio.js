@@ -343,12 +343,21 @@ class CreateServiceCatalogPortfolio extends Service {
 
   async findDeploymentItem({ id }) {
     const [deploymentStore] = await this.service(['deploymentStoreService']);
-    return deploymentStore.find({ type: 'post-deployment-step', id });
+    let record = await deploymentStore.find({ type: 'default-sc-portfolio', id });
+    if (!record) {
+      // The old code had type = 'post-deployment-step', due to this the DB may have record with old type value
+      record = await deploymentStore.find({ type: 'post-deployment-step', id });
+    }
+    return record;
   }
 
   async createDeploymentItem({ id, strValue }) {
     const [deploymentStore] = await this.service(['deploymentStoreService']);
-    return deploymentStore.createOrUpdate({ type: 'post-deployment-step', id, value: strValue });
+    // The old code had type = 'post-deployment-step', due to this the DB may have record with old type value
+    const recordWithOldType = await deploymentStore.find({ type: 'post-deployment-step', id });
+    // Continue to use type = 'post-deployment-step' if db already has a record with that type
+    const recordType = recordWithOldType ? 'post-deployment-step' : 'default-sc-portfolio';
+    return deploymentStore.createOrUpdate({ type: recordType, id, value: strValue });
   }
 
   async execute() {

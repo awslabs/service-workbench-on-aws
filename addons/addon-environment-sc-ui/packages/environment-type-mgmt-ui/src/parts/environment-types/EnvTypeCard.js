@@ -15,7 +15,7 @@
 
 import _ from 'lodash';
 import React, { Component } from 'react';
-import { observer } from 'mobx-react';
+import { inject, observer } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Button, Card, Divider, Header, Icon, Label, Modal } from 'semantic-ui-react';
 import { action, computed, decorate, observable, runInAction } from 'mobx';
@@ -36,16 +36,74 @@ class EnvTypeCard extends Component {
   render() {
     const envType = this.props.envType;
     const isApproved = EnvTypeStatusEnum.isApproved(envType.status);
+
+    const pluginRegistry = this.props.pluginRegistry;
+    const defaultMetaActions = [];
+    const metaActions = pluginRegistry.visitPlugins(
+      'env-type-management',
+      'getEnvTypeCardMetaActions',
+      {
+        payload: defaultMetaActions,
+      },
+      envType,
+    );
+
+    const defaultMgmtActions = [
+      <Button
+        key="env-type-mgmt-action-edit"
+        basic
+        color="blue"
+        onClick={() => this.handleEditClick(envType.id)}
+        floated="right"
+        size="mini"
+        disabled={this.processing}
+      >
+        Edit
+      </Button>,
+      <Button
+        key="env-type-mgmt-action-delete"
+        basic
+        color="red"
+        onClick={() => this.showDeleteDialog()}
+        floated="right"
+        size="mini"
+        disabled={this.processing}
+      >
+        Delete
+      </Button>,
+      this.renderDeleteConfirmation(envType),
+      <Button
+        key="env-type-mgmt-action-revoke-or-approve"
+        basic
+        color={isApproved ? 'red' : 'blue'}
+        onClick={() => this.handleApproveRevokeClick(envType.id, isApproved)}
+        floated="right"
+        size="mini"
+        disabled={this.processing}
+      >
+        {isApproved ? 'Revoke' : 'Approve'}
+      </Button>,
+    ];
+    const mgmtActions = pluginRegistry.visitPlugins(
+      'env-type-management',
+      'getEnvTypeCardMgmtActions',
+      {
+        payload: defaultMgmtActions,
+      },
+      envType,
+    );
+
     return (
       <Card key={`et-${envType.id}`} raised className="mb3">
         <Card.Content>
           <Header as="h4">{envType.name}</Header>
           <Card.Meta className="flex">
-            <span className="flex-auto">{_.get(envType, 'provisioningArtifact.name')}</span>
+            <span className="fs-8 color-grey mr2">{envType.id}</span>
             <Label className="ml1" size="mini" color={isApproved ? 'green' : 'red'}>
               {isApproved ? 'Approved' : 'Not Approved'}
             </Label>
           </Card.Meta>
+          {_.map(metaActions, c => c)}
           <Divider />
           <Card.Description>
             <div className="mb3 pr1 pl1 pb1">
@@ -55,39 +113,7 @@ class EnvTypeCard extends Component {
             </div>
           </Card.Description>
         </Card.Content>
-        <Card.Content extra>
-          <Button
-            basic
-            color="blue"
-            onClick={() => this.handleEditClick(envType.id)}
-            floated="right"
-            size="mini"
-            disabled={this.processing}
-          >
-            Edit
-          </Button>
-          <Button
-            basic
-            color="red"
-            onClick={() => this.showDeleteDialog()}
-            floated="right"
-            size="mini"
-            disabled={this.processing}
-          >
-            Delete
-          </Button>
-          {this.renderDeleteConfirmation(envType)}
-          <Button
-            basic
-            color={isApproved ? 'red' : 'blue'}
-            onClick={() => this.handleApproveRevokeClick(envType.id, isApproved)}
-            floated="right"
-            size="mini"
-            disabled={this.processing}
-          >
-            {isApproved ? 'Revoke' : 'Approve'}
-          </Button>
-        </Card.Content>
+        <Card.Content extra>{_.map(mgmtActions, c => c)}</Card.Content>
       </Card>
     );
   }
@@ -96,7 +122,12 @@ class EnvTypeCard extends Component {
     const shouldShowDeleteDialog = this.shouldShowDeleteDialog;
     const processing = this.processing;
     return (
-      <Modal open={shouldShowDeleteDialog} onClose={this.hideDeleteDialog} closeOnDimmerClick={!processing}>
+      <Modal
+        key="env-type-mgmt-action-delete-confirmation"
+        open={shouldShowDeleteDialog}
+        onClose={this.hideDeleteDialog}
+        closeOnDimmerClick={!processing}
+      >
         <Modal.Header>Delete {envType.name}</Modal.Header>
         <Modal.Content>
           <p>Are you sure you want to delete {envType.name}?</p>
@@ -197,4 +228,4 @@ decorate(EnvTypeCard, {
   showDeleteDialog: action,
   hideDeleteDialog: action,
 });
-export default withRouter(observer(EnvTypeCard));
+export default inject('pluginRegistry')(withRouter(observer(EnvTypeCard)));

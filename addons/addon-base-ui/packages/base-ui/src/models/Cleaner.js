@@ -54,7 +54,6 @@ class Cleaner {
       _.forEach(this.appContext, obj => {
         if (obj === this) return; // we don't want to end up in an infinite loop
         if (_.isFunction(obj.cleanup)) {
-          // console.log(`Cleaner.cleanup() : calling ${key}.clear()`);
           obj.cleanup();
         }
       });

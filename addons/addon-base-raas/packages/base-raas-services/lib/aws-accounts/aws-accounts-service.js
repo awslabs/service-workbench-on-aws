@@ -25,7 +25,7 @@ const ensureExternalSchema = require('../schema/ensure-external-aws-accounts');
 const updateSchema = require('../schema/update-aws-accounts');
 
 const settingKeys = {
-  tableName: 'dbTableAwsAccounts',
+  tableName: 'dbAwsAccounts',
   environmentInstanceFiles: 'environmentInstanceFiles',
 };
 
@@ -157,7 +157,7 @@ class AwsAccountsService extends Service {
     await validationService.ensureValid(rawData, createSchema);
 
     // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     const id = uuid();
 
     // Prepare the db object
@@ -201,11 +201,10 @@ class AwsAccountsService extends Service {
       return account;
     }
 
-    // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     const id = uuid();
 
-    rawData.description = `External account for user ${by.username}`;
+    rawData.description = `External account for user ${by}`;
 
     // Prepare the db object
     const dbObject = this._fromRawToDbObject(rawData, { rev: 0, createdBy: by, updatedBy: by });
@@ -242,7 +241,7 @@ class AwsAccountsService extends Service {
     await validationService.ensureValid(rawData, updateSchema);
 
     // For now, we assume that 'updatedBy' is always a user and not a group
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     const { id, rev } = rawData;
 
     // Prepare the db object
@@ -266,9 +265,7 @@ class AwsAccountsService extends Service {
         const existing = await this.find(requestContext, { id, fields: ['id', 'updatedBy'] });
         if (existing) {
           throw this.boom.badRequest(
-            `awsAccounts information changed by "${
-              (existing.updatedBy || {}).username
-            }" just before your request is processed, please try again`,
+            `awsAccounts information changed just before your request is processed, please try again`,
             true,
           );
         }
