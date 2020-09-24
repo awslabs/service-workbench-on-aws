@@ -27,6 +27,7 @@ import raasInitializationPlugin from '@aws-ee/base-raas-ui/dist/plugins/initiali
 import raasAppComponentPlugin from '@aws-ee/base-raas-ui/dist/plugins/app-component-plugin';
 import raasMenuItemsPlugin from '@aws-ee/base-raas-ui/dist/plugins/menu-items-plugin';
 import raasRoutesPlugin from '@aws-ee/base-raas-ui/dist/plugins/routes-plugin';
+import raasEnvTypeMgmtPlugin from '@aws-ee/base-raas-ui/dist/plugins/env-type-mgmt-plugin';
 
 import envMgmtMenuItemsPlugin from '@aws-ee/environment-type-mgmt-ui/dist/plugins/menu-items-plugin';
 import envMgmtRoutesPlugin from '@aws-ee/environment-type-mgmt-ui/dist/plugins/routes-plugin';
@@ -73,6 +74,7 @@ const extensionPoints = {
     raasRoutesPlugin,
     routesPlugin,
   ],
+  'env-type-management': [raasEnvTypeMgmtPlugin],
 };
 
 function getPlugins(extensionPoint) {

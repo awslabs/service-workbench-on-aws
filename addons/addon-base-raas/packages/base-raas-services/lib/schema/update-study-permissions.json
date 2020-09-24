@@ -3,14 +3,6 @@
   "type": "object",
   "additionalProperties": false,
   "definitions": {
-    "principalIdentifier": {
-      "type": "object",
-      "properties": {
-        "ns": { "type": "string" },
-        "username": { "type": "string" }
-      },
-      "required": ["ns", "username"]
-    },
     "permissionLevel": {
       "type": "string",
       "enum": ["admin", "readonly", "writeonly", "readwrite"]
@@ -18,10 +10,10 @@
     "userEntry": {
       "type": "object",
       "properties": {
-        "principalIdentifier": { "$ref": "#/definitions/principalIdentifier" },
+        "uid": { "type": "string"},
         "permissionLevel": { "$ref": "#/definitions/permissionLevel" }
       },
-      "required": ["principalIdentifier", "permissionLevel"]
+      "required": ["uid"]
     }
   },
   "properties": {

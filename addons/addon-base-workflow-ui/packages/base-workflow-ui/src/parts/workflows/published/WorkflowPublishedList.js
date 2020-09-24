@@ -60,7 +60,7 @@ class WorkflowPublishedList extends React.Component {
     return this.props.workflowsStore;
   }
 
-  getUserDisplayNameService() {
+  getUserDisplayName() {
     return this.props.userDisplayName;
   }
 
@@ -159,9 +159,9 @@ class WorkflowPublishedList extends React.Component {
       );
 
     const { id, v, title, updatedAt, updatedBy } = latest;
-    const displayNameService = this.getUserDisplayNameService();
-    const isSystem = displayNameService.isSystem(updatedBy);
-    const by = () => (isSystem ? '' : <span>{displayNameService.getDisplayName(updatedBy)}</span>);
+    const userDisplayName = this.getUserDisplayName();
+    const isSystem = userDisplayName.isSystem({ uid: updatedBy });
+    const by = () => (isSystem ? '' : <span>{userDisplayName.getDisplayName({ uid: updatedBy })}</span>);
 
     return (
       <Table.Row

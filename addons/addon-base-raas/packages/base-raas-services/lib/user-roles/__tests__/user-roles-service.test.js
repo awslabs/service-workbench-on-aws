@@ -185,7 +185,7 @@ describe('UserRolesService', () => {
         // CHECK
         expect(dbService.table.rev).toHaveBeenCalledWith(1);
         expect(err.message).toEqual(
-          'userRoles information changed by "tsukuyomi" just before your request is processed, please try again',
+          'userRoles information changed just before your request is processed, please try again',
         );
       }
     });

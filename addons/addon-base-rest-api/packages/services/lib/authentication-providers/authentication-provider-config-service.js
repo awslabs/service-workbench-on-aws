@@ -18,7 +18,7 @@ const _ = require('lodash');
 const authProviderConstants = require('./constants').authenticationProviders;
 
 const settingKeys = {
-  tableName: 'dbTableAuthenticationProviderConfigs',
+  tableName: 'dbAuthenticationProviderConfigs',
 };
 
 const serializeProviderConfig = providerConfig => JSON.stringify(providerConfig);

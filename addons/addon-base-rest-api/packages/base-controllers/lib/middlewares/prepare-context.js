@@ -30,20 +30,14 @@ async function configure(context) {
       const requestContext = new RequestContext();
       res.locals.requestContext = requestContext;
       const authenticated = res.locals.authenticated;
-      const username = res.locals.username;
-      const authenticationProviderId = res.locals.authenticationProviderId;
-      const identityProviderName = res.locals.identityProviderName;
+      const uid = res.locals.uid;
 
-      if (!authenticated || !username) return next();
+      if (!authenticated || !uid) return next();
 
-      const user = await userService.mustFindUser({
-        username,
-        authenticationProviderId,
-        identityProviderName,
-      });
+      const user = await userService.mustFindUser({ uid });
       requestContext.authenticated = authenticated;
       requestContext.principal = user;
-      requestContext.principalIdentifier = { username, ns: user.ns };
+      requestContext.principalIdentifier = { uid };
 
       return next();
     }),

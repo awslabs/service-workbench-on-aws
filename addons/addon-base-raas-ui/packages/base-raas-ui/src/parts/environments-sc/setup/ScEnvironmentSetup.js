@@ -1,12 +1,15 @@
 import React from 'react';
 import { decorate, computed, runInAction, observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
+import { withRouter } from 'react-router-dom';
 import { Icon, Header, Segment, Button } from 'semantic-ui-react';
 import { isStoreLoading, isStoreError, isStoreEmpty } from '@aws-ee/base-ui/dist/models/BaseStore';
 import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
 import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
+import Stores from '@aws-ee/base-ui/dist/models/Stores';
 
+import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
 import UserOnboarding from '../../users/UserOnboarding';
 import SelectEnvTypeStep from './SelectEnvTypeStep';
 import ConfigureEnvTypeStep from './ConfigureEnvTypeStep';
@@ -15,6 +18,8 @@ import ConfigureEnvTypeStep from './ConfigureEnvTypeStep';
 // - onPrevious (via props)
 // - onCompleted (via props) a function is called after a call to create an environment is performed
 // - studyIds (via props) (optional) an array of the selected study ids
+// - envTypeId (via props) (optional) id of the env type
+// - envTypeImmutable (via props) (optional) flag indicating if env type is immutable and env type selection should be disallowed
 // - currentStep (via props) an instance of the CurrentStep model
 // - envTypesStore (via injection)
 // - clientInformationStore (via injection)
@@ -22,13 +27,14 @@ class ScEnvironmentSetup extends React.Component {
   constructor(props) {
     super(props);
     runInAction(() => {
-      this.selectedTypeId = undefined;
+      this.stores = new Stores([this.envTypesStore, this.clientInformationStore]);
+      this.selectedTypeId = props.envTypeId;
     });
   }
 
   componentDidMount() {
     window.scrollTo(0, 0);
-    swallowError(this.envTypesStore.load());
+    swallowError(this.stores.load());
   }
 
   get userStore() {
@@ -66,29 +72,24 @@ class ScEnvironmentSetup extends React.Component {
     const configurationStore = this.envTypesStore.getEnvTypeConfigsStore(envTypeId);
     await configurationStore.load();
 
-    // We also try to figure out the ip address and if there is an error,
-    // then that is okay, we show an empty string for the cidr field
-    const clientInformationStore = this.clientInformationStore;
-    try {
-      await clientInformationStore.load();
-    } catch (error) {
-      // ignore intentionally
-    }
-
     window.scrollTo(0, 0);
     runInAction(() => {
       this.currentStep.setStep('selectEnvConfig');
     });
   };
 
+  goto(pathname) {
+    const goto = gotoFn(this);
+    goto(pathname);
+  }
+
   handlePrevious = () => {
     const currentStep = this.currentStep;
-    if (currentStep.step === 'selectEnvType') {
+    if (currentStep.step === 'selectEnvType' || this.props.envTypeImmutable) {
       this.props.onPrevious();
-      return;
+    } else {
+      this.currentStep.setStep('selectEnvType');
     }
-
-    this.currentStep.setStep('selectEnvType');
   };
 
   handleCompleted = async environment => {
@@ -275,4 +276,4 @@ decorate(ScEnvironmentSetup, {
   onboardingOpen: observable,
 });
 
-export default inject('userStore', 'envTypesStore', 'clientInformationStore')(observer(ScEnvironmentSetup));
+export default inject('userStore', 'envTypesStore', 'clientInformationStore')(withRouter(observer(ScEnvironmentSetup)));

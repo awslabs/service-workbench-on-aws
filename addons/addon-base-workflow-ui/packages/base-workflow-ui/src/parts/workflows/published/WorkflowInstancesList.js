@@ -78,7 +78,7 @@ class WorkflowInstancesList extends React.Component {
     return workflowStore.getInstancesStore(workflowVersion.id, workflowVersion.v);
   }
 
-  getUserDisplayNameService() {
+  getUserDisplayName() {
     return this.props.userDisplayName;
   }
 
@@ -158,8 +158,8 @@ class WorkflowInstancesList extends React.Component {
 
   renderRow(instance) {
     const { id, createdAt, createdBy, statusSummary } = instance;
-    const displayNameService = this.getUserDisplayNameService();
-    const by = () => <span>{displayNameService.getDisplayName(createdBy)}</span>;
+    const userDisplayName = this.getUserDisplayName();
+    const by = () => <span>{userDisplayName.getDisplayName({ uid: createdBy })}</span>;
     const { statusLabel, statusColor, stepsSummary } = statusSummary;
 
     return (

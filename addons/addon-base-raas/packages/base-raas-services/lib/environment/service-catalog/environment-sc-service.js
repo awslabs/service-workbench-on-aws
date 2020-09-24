@@ -25,7 +25,7 @@ const environmentScStatus = require('./environent-sc-status-enum');
 const { hasConnections } = require('./helpers/connections-util');
 
 const settingKeys = {
-  tableName: 'dbTableEnvironmentsSc',
+  tableName: 'dbEnvironmentsSc',
 };
 const workflowIds = {
   create: 'wf-provision-environment-sc',
@@ -80,7 +80,7 @@ class EnvironmentScService extends Service {
         if (isAdmin(requestContext)) {
           return environments;
         }
-        return environments.filter(env => isCurrentUser(requestContext, env.createdBy));
+        return environments.filter(env => isCurrentUser(requestContext, { uid: env.createdBy }));
       });
 
     return this.augmentWithConnectionInfo(requestContext, envs);
@@ -162,7 +162,7 @@ class EnvironmentScService extends Service {
     const { indexId } = await projectService.mustFind(requestContext, { id: projectId, fields: ['indexId'] });
 
     // Save environment to db and trigger the workflow
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     // Generate environment ID
     const id = uuid();
     // Prepare the db object
@@ -231,7 +231,7 @@ class EnvironmentScService extends Service {
       existingEnvironment,
     );
 
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     const { id, rev } = environment;
 
     // Prepare the db object
@@ -255,9 +255,7 @@ class EnvironmentScService extends Service {
         const existing = await this.find(requestContext, { id, fields: ['id', 'updatedBy'] });
         if (existing) {
           throw this.boom.badRequest(
-            `environment information changed by "${
-              (existing.updatedBy || {}).username
-            }" just before your request is processed, please try again`,
+            `environment information changed just before your request is processed, please try again`,
             true,
           );
         }

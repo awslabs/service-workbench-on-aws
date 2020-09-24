@@ -16,13 +16,13 @@
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 
-const { runAndCatch } = require('../helpers/utils');
+const { runAndCatch, generateId } = require('../helpers/utils');
 const { toUserNamespace } = require('./helpers/user-namespace');
 const createUserJsonSchema = require('../schema/create-user');
 const updateUserJsonSchema = require('../schema/update-user');
 
 const settingKeys = {
-  tableName: 'dbTableUsers',
+  tableName: 'dbUsers',
 };
 
 class UserService extends Service {
@@ -58,21 +58,16 @@ class UserService extends Service {
     const { username, password } = user;
     delete user.password;
     const authenticationProviderId = user.authenticationProviderId || 'internal';
-    if (password) {
+    if (password && authenticationProviderId !== 'internal') {
       // If password is specified then make sure this is for adding user to internal authentication provider only
       // Password cannot be specified for any other auth providers
-      if (authenticationProviderId !== 'internal') {
-        throw this.boom.badRequest('Cannot specify password when adding federated users', true);
-      }
-      // Save password salted hash for the user in internal auth provider (i.e., in passwords table)
-      const dbPasswordService = await this.service('dbPasswordService');
-      await dbPasswordService.savePassword(requestContext, { username, password });
+      throw this.boom.badRequest('Cannot specify password when adding federated users', true);
     }
 
     const dbService = await this.service('dbService');
     const table = this.settings.get(settingKeys.tableName);
 
-    const by = _.get(requestContext, 'principalIdentifier');
+    const by = _.get(requestContext, 'principalIdentifier.uid');
 
     const { identityProviderName } = user;
     const ns = toUserNamespace(authenticationProviderId, identityProviderName);
@@ -80,12 +75,9 @@ class UserService extends Service {
     // Set default attributes (such as "isAdmin" flag and "status") on the user being created
     await this.setDefaultAttributes(requestContext, user);
 
-    const existingUser = await this.findUser({
-      username,
-      authenticationProviderId,
-      identityProviderName,
-    });
+    const existingUser = await this.getUserByPrincipal({ username, ns });
     let result;
+    const uid = await generateId('u-');
     if (existingUser) {
       throw this.boom.alreadyExists('Cannot add user. The user already exists.', true);
     } else {
@@ -93,11 +85,13 @@ class UserService extends Service {
       result = await dbService.helper
         .updater()
         .table(table)
-        .key({ username, ns })
+        .condition('attribute_not_exists(uid)')
+        .key({ uid })
         .item(
           _.omit(
             {
               ...user,
+              ns,
               authenticationProviderId,
               rev: 0,
               createdBy: by,
@@ -106,6 +100,12 @@ class UserService extends Service {
           ),
         )
         .update();
+    }
+
+    if (password) {
+      // Save password salted hash for the user in internal auth provider (i.e., in passwords table)
+      const dbPasswordService = await this.service('dbPasswordService');
+      await dbPasswordService.savePassword(requestContext, { uid, username, password });
     }
 
     // Write audit event
@@ -124,16 +124,10 @@ class UserService extends Service {
     const dbService = await this.service('dbService');
     const table = this.settings.get(settingKeys.tableName);
 
-    const by = _.get(requestContext, 'principalIdentifier');
+    const by = _.get(requestContext, 'principalIdentifier.uid');
 
-    const { username, identityProviderName } = user;
-    const authenticationProviderId = user.authenticationProviderId || 'internal';
-    const ns = toUserNamespace(authenticationProviderId, identityProviderName);
-    const existingUser = await this.findUser({
-      username,
-      authenticationProviderId,
-      identityProviderName,
-    });
+    const { uid } = user;
+    const existingUser = await this.findUser({ uid });
 
     let result;
     if (existingUser) {
@@ -155,14 +149,14 @@ class UserService extends Service {
           return dbService.helper
             .updater()
             .table(table)
-            .key({ username, ns })
+            .key({ uid })
             .item(_.omit({ ...existingUser, ...user, updatedBy: by }, ['rev'])) // Remove 'rev' from the item. The "rev" method call below adds it correctly in update expression
             .rev(user.rev)
             .update();
         },
         async () => {
           throw this.boom.outdatedUpdateAttempt(
-            `User "${username}" was just updated before your request could be processed, please refresh and try again`,
+            `User "${uid}" was just updated before your request could be processed, please refresh and try again`,
             true,
           );
         },
@@ -171,42 +165,50 @@ class UserService extends Service {
       // Write audit event
       await this.audit(requestContext, { action: 'update-user', body: result });
     } else {
-      throw this.boom.notFound(`Cannot update user "${username}". The user does not exist`, true);
+      throw this.boom.notFound(`Cannot update user "${uid}". The user does not exist`, true);
     }
     return result;
   }
 
-  async deleteUser(requestContext, user) {
-    const { username, authenticationProviderId, identityProviderName } = user;
-    const existingUser = await this.mustFindUser({ username, authenticationProviderId, identityProviderName });
+  async deleteUser(requestContext, { uid }) {
+    const existingUser = await this.mustFindUser({ uid });
 
     // ensure that the caller has permissions to delete the user
     // The following will result in checking permissions by calling the condition function "this.allowAuthorized" first
     await this.assertAuthorized(requestContext, { action: 'delete', conditions: [this.allowAuthorized] }, existingUser);
 
-    const ns = toUserNamespace(authenticationProviderId, identityProviderName);
-
     const dbService = await this.service('dbService');
     const table = this.settings.get(settingKeys.tableName);
 
-    const result = await runAndCatch(
+    await runAndCatch(
       async () => {
         return dbService.helper
           .deleter()
           .table(table)
-          .condition('attribute_exists(ns)') // yes we need this
-          .key({ username, ns })
+          .condition('attribute_exists(uid)')
+          .key({ uid })
           .delete();
       },
       async () => {
-        throw this.boom.notFound(`The user with username "${username}" does not exist`, true);
+        throw this.boom.notFound(`The user "${uid}" does not exist`, true);
       },
     );
 
-    // Write audit event
-    await this.audit(requestContext, { action: 'delete-user', body: user });
+    // If user is authenticated by internal authn provider then also make sure to remove user's password
+    // The passwords are stored as salted hash only for users with internal authn provider
+    if (existingUser.authenticationProviderId === 'internal') {
+      // Save password salted hash for the user in internal auth provider (i.e., in passwords table)
+      const dbPasswordService = await this.service('dbPasswordService');
+      await dbPasswordService.deletePassword(requestContext, { username: existingUser.username, uid });
+    }
 
-    return result;
+    // Write audit event
+    await this.audit(requestContext, {
+      action: 'delete-user',
+      body: { uid, username: existingUser.username, ns: existingUser.ns },
+    });
+
+    return existingUser;
   }
 
   async ensureActiveUsers(users) {
@@ -218,20 +220,15 @@ class UserService extends Service {
       return;
     }
 
-    // TODO: validate schema
-    // const [validationService] = await this.service(['jsonSchemaValidationService']);
-    // const schema = await this.getUpdateUserJsonSchema();
-    // users.forEach(user => validationService.ensureValid(user, schema));
-
     // ensure there are no duplicates
-    const distinctUsers = new Set(users.map(u => `${u.username}||||${u.ns}`));
+    const distinctUsers = new Set(users.map(u => u.uid));
     if (distinctUsers.size < users.length) {
       throw this.boom.badRequest('user list contains duplicates', true);
     }
 
     const findUserPromises = users.map(user => {
-      const { username, ns } = user;
-      return this.getUser({ username, ns });
+      const { uid } = user;
+      return this.findUser({ uid });
     });
 
     const findUserResults = await Promise.all(findUserPromises);
@@ -247,34 +244,68 @@ class UserService extends Service {
     }
   }
 
-  async getUser({ username, ns, fields = [] }) {
+  async findUser({ uid, fields = [] }) {
     const dbService = await this.service('dbService');
     const table = this.settings.get(settingKeys.tableName);
     return dbService.helper
       .getter()
       .table(table)
-      .key({ username, ns })
+      .key({ uid })
       .projection(fields)
       .get();
   }
 
-  async findUser({ username, authenticationProviderId, identityProviderName, fields = [] }) {
-    const ns = toUserNamespace(authenticationProviderId, identityProviderName);
-    return this.getUser({ username, ns, fields });
+  async mustFindUser({ uid, fields = [] }) {
+    const user = await this.findUser({ uid, fields });
+    if (!user) throw this.boom.notFound(`The user id "${uid}" is not found`, true);
+    return user;
   }
 
-  async exists({ username, authenticationProviderId, identityProviderName }) {
+  async getUserByPrincipal({ username, ns, fields = [] }) {
     const dbService = await this.service('dbService');
     const table = this.settings.get(settingKeys.tableName);
-    const ns = toUserNamespace(authenticationProviderId, identityProviderName);
-    const item = await dbService.helper
-      .getter()
+    const users = await dbService.helper
+      .query()
       .table(table)
-      .key({ username, ns })
-      .get();
+      .index('Principal')
+      .key('username', username)
+      .sortKey('ns')
+      .eq(ns)
+      .projection(fields)
+      .limit(1)
+      .query();
+    return users.length !== 0 ? users[0] : undefined;
+  }
 
-    if (item === undefined) return false;
-    return username === item.username;
+  async findUserByPrincipal({ username, authenticationProviderId, identityProviderName, fields = [] }) {
+    const ns = toUserNamespace(authenticationProviderId, identityProviderName);
+    return this.getUserByPrincipal({ username, ns, fields });
+  }
+
+  async mustFindUserByPrincipal({ username, authenticationProviderId, identityProviderName, fields = [] }) {
+    const user = await this.findUserByPrincipal({
+      username,
+      authenticationProviderId,
+      identityProviderName,
+      fields,
+    });
+    if (!user) throw this.boom.notFound(`The user "${username}" is not found`, true);
+    return user;
+  }
+
+  async existsByPrincipal({ username, authenticationProviderId, identityProviderName }) {
+    const result = await this.findUserByPrincipal({
+      username,
+      authenticationProviderId,
+      identityProviderName,
+      fields: ['uid'],
+    });
+    return !!result;
+  }
+
+  async exists({ uid }) {
+    const result = await this.findUser({ uid, fields: ['uid'] });
+    return !!result;
   }
 
   async isCurrentUserActive(requestContext) {
@@ -283,17 +314,6 @@ class UserService extends Service {
 
   async isUserActive(user) {
     return user.status && user.status.toLowerCase() === 'active';
-  }
-
-  async mustFindUser({ username, authenticationProviderId, identityProviderName, fields = [] }) {
-    const user = await this.findUser({
-      username,
-      authenticationProviderId,
-      identityProviderName,
-      fields,
-    });
-    if (!user) throw this.boom.notFound(`The user "${username}" is not found`, true);
-    return user;
   }
 
   async listUsers(requestContext, { fields = [] } = {}) {

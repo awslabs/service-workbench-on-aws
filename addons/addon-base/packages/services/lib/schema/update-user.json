@@ -3,22 +3,7 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
-    "username": {
-      "type": "string",
-      "minLength": 3,
-      "maxLength": 300,
-      "pattern": "^[A-Za-z0-9-_]+$"
-    },
-    "usernameInIdp": {
-      "type": "string",
-      "minLength": 3,
-      "maxLength": 300,
-      "pattern": "^[A-Za-z0-9-_]+$"
-    },
-    "authenticationProviderId": {
-      "type": "string"
-    },
-    "identityProviderName": {
+    "uid": {
       "type": "string"
     },
     "email": {
@@ -55,5 +40,5 @@
       "type": "number"
     }
   },
-  "required": ["username", "rev"]
+  "required": ["uid", "rev"]
 }

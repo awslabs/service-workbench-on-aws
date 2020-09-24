@@ -10,7 +10,6 @@
     "@aws-ee/base-workflow-core": "workspace:*",
     "@aws-ee/environment-type-mgmt-services": "workspace:*",
     "lodash": "^4.17.15",
-    "shortid": "^2.2.15",
     "slugify": "^1.4.0",
     "uuid": "^8.2.0"
   },

@@ -18,10 +18,8 @@ const ServicesContainer = require('@aws-ee/base-services-container/lib/services-
 // Mocked dependencies
 
 // we need the custom DbService Mock
-jest.mock(
-  '../../../../../../addon-base-raas/packages/base-raas-services/node_modules/@aws-ee/base-services/lib/db-service',
-);
-const DbServiceMock = require('../../../../../../addon-base-raas/packages/base-raas-services/node_modules/@aws-ee/base-services/lib/db-service');
+jest.mock('../../db-service');
+const DbServiceMock = require('../../db-service');
 
 jest.mock('../../db-password/db-password-service');
 const DbPasswordServiceMock = require('../../db-password/db-password-service');
@@ -35,10 +33,8 @@ const UserAuthzServiceMock = require('../user-authz-service');
 jest.mock('../../audit/audit-writer-service');
 const AuditServiceMock = require('../../audit/audit-writer-service');
 
-jest.mock(
-  '../../../../../../addon-base-raas/packages/base-raas-services/node_modules/@aws-ee/base-services/lib/settings/env-settings-service',
-);
-const SettingsServiceMock = require('../../../../../../addon-base-raas/packages/base-raas-services/node_modules/@aws-ee/base-services/lib/settings/env-settings-service');
+jest.mock('../../settings/env-settings-service');
+const SettingsServiceMock = require('../../settings/env-settings-service');
 
 const UserService = require('../user-service');
 const JsonSchemaValidationService = require('../../json-schema-validation-service');
@@ -118,7 +114,7 @@ describe('UserService', () => {
         firstName: 'Jon',
         lastName: 'Snow',
       };
-      service.findUser = jest.fn().mockResolvedValue(newUser);
+      service.getUserByPrincipal = jest.fn().mockResolvedValue(newUser);
 
       // OPERATE
       try {
@@ -139,7 +135,7 @@ describe('UserService', () => {
         lastName: 'Pie',
         password: 'i-hope-youre-not-storing-me!',
       };
-      service.findUser = jest.fn();
+      service.getUserByPrincipal = jest.fn();
       service.audit = jest.fn();
 
       const toCheck = { password: newUser.password };
@@ -159,7 +155,7 @@ describe('UserService', () => {
         firstName: 'Ned',
         lastName: 'Stark',
       };
-      service.findUser = jest.fn();
+      service.getUserByPrincipal = jest.fn();
       service.audit = jest.fn();
 
       // OPERATE
@@ -168,7 +164,7 @@ describe('UserService', () => {
       // CHECK
       expect(dbService.table.key).toHaveBeenCalledWith(
         expect.objectContaining({
-          username: newUser.username,
+          uid: expect.any(String),
         }),
       );
       expect(service.audit).toHaveBeenCalledWith({}, expect.objectContaining({ action: 'create-user' }));
@@ -176,7 +172,9 @@ describe('UserService', () => {
   });
 
   describe('updateUser', () => {
+    const uid = 'u-testUpdateUserId';
     const newUser = {
+      uid,
       username: 'dtargaryen',
       email: 'dragonseverywhere@example.com',
       firstName: 'Daenerys',
@@ -203,7 +201,7 @@ describe('UserService', () => {
     it('should fail because the user does not exist', async () => {
       // BUILD
       const toUpdate = {
-        username: 'jtargaryen',
+        uid,
         rev: 2,
       };
 
@@ -215,14 +213,14 @@ describe('UserService', () => {
         expect.hasAssertions();
       } catch (err) {
         // CHECK
-        expect(err.message).toEqual('Cannot update user "jtargaryen". The user does not exist');
+        expect(err.message).toEqual(`Cannot update user "${uid}". The user does not exist`);
       }
     });
 
     it('should fail because the user was just updated', async () => {
       // BUILD
       const toUpdate = {
-        username: 'dtargaryen',
+        uid,
         rev: 2,
       };
 
@@ -244,7 +242,7 @@ describe('UserService', () => {
     it('should successfully try to update the user', async () => {
       // BUILD
       const toUpdate = {
-        username: 'dtargaryen',
+        uid,
         rev: 2,
       };
 
@@ -255,13 +253,15 @@ describe('UserService', () => {
       await service.updateUser({}, toUpdate);
 
       // CHECK
-      expect(dbService.table.key).toHaveBeenCalledWith(expect.objectContaining({ username: newUser.username }));
+      expect(dbService.table.key).toHaveBeenCalledWith(expect.objectContaining({ uid }));
       expect(service.audit).toHaveBeenCalledWith({}, expect.objectContaining({ action: 'update-user' }));
     });
   });
 
   describe('deleteUser', () => {
+    const uid = 'u-testDeleteUserId';
     const curUser = {
+      uid,
       username: 'astark',
       email: 'ilovemasks@example.com',
       firstName: 'Arya',
@@ -297,7 +297,7 @@ describe('UserService', () => {
         expect.hasAssertions();
       } catch (err) {
         // CHECK
-        expect(err.message).toEqual('The user with username "astark" does not exist');
+        expect(err.message).toEqual(`The user "${uid}" does not exist`);
       }
     });
 
@@ -309,7 +309,7 @@ describe('UserService', () => {
       // OPERATE
       await service.deleteUser({}, curUser);
       // CHECK
-      expect(dbService.table.key).toHaveBeenCalledWith(expect.objectContaining({ username: curUser.username }));
+      expect(dbService.table.key).toHaveBeenCalledWith(expect.objectContaining({ uid }));
       expect(service.audit).toHaveBeenCalledWith({}, expect.objectContaining({ action: 'delete-user' }));
     });
   });

@@ -18,9 +18,10 @@ const crypto = require('crypto');
 const uuid = require('uuid/v4');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { ensureCurrentUserOrAdmin } = require('../authorization/assertions');
+const { runAndCatch } = require('../helpers/utils');
 
 const settingKeys = {
-  tableName: 'dbTablePasswords',
+  tableName: 'dbPasswords',
 };
 
 class DbPasswordService extends Service {
@@ -44,12 +45,9 @@ class DbPasswordService extends Service {
     }
   }
 
-  async savePassword(requestContext, { username, password }) {
-    // Assert that the password is valid (i.e., it matches password policy)
-    await this.assertValidPassword(password);
-
+  async savePassword(requestContext, { username, password, uid }) {
     // Allow only current user or admin to update (or create) the user's password
-    await ensureCurrentUserOrAdmin(requestContext, username);
+    await ensureCurrentUserOrAdmin(requestContext, { uid });
 
     const isValidPassword = await this.passwordMatchesPasswordPolicy(password);
     if (!isValidPassword) {
@@ -69,11 +67,32 @@ class DbPasswordService extends Service {
       .updater()
       .table(table)
       .key({ username })
-      .item({ hashed, salt })
+      .item({ hashed, salt, uid })
       .update();
   }
 
-  async exists({ username, password }) {
+  async deletePassword(requestContext, { username, uid }) {
+    // Allow only current user or admin to delete the user's password
+    await ensureCurrentUserOrAdmin(requestContext, { uid });
+
+    const dbService = await this.service('dbService');
+    const table = this.settings.get(settingKeys.tableName);
+    await runAndCatch(
+      async () => {
+        return dbService.helper
+          .deleter()
+          .table(table)
+          .condition('attribute_exists(username)')
+          .key({ username })
+          .delete();
+      },
+      async () => {
+        throw this.boom.notFound(`Password for the user does not exist`, true);
+      },
+    );
+  }
+
+  async validatePassword({ username, password }) {
     const dbService = await this.service('dbService');
     const table = this.settings.get(settingKeys.tableName);
 
@@ -86,7 +105,7 @@ class DbPasswordService extends Service {
     if (item === undefined) return false;
     const hashed = this.hash({ password, salt: item.salt });
 
-    return hashed === item.hashed && username === item.username;
+    return { uid: item.uid, isValid: hashed === item.hashed && username === item.username };
   }
 
   hash({ password, salt }) {

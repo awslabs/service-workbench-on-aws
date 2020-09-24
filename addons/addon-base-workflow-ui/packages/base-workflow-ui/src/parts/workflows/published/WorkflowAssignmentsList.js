@@ -57,7 +57,7 @@ class WorkflowAssignmentsList extends React.Component {
     return workflowStore.getAssignmentsStore();
   }
 
-  getUserDisplayNameService() {
+  getUserDisplayName() {
     return this.props.userDisplayName;
   }
 
@@ -106,9 +106,9 @@ class WorkflowAssignmentsList extends React.Component {
 
   renderAssignmentRow(assignment) {
     const { id, updatedAt, updatedBy, triggerType, triggerTypeData: config } = assignment;
-    const displayNameService = this.getUserDisplayNameService();
-    const isSystem = displayNameService.isSystem(updatedBy);
-    const by = () => (isSystem ? '' : <span>by {displayNameService.getDisplayName(updatedBy)}</span>);
+    const userDisplayName = this.getUserDisplayName();
+    const isSystem = userDisplayName.isSystem({ uid: updatedBy });
+    const by = () => (isSystem ? '' : <span>by {userDisplayName.getDisplayName({ uid: updatedBy })}</span>);
 
     return (
       <Table.Row key={id}>

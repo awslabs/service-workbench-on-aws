@@ -1,6 +1,5 @@
 /* eslint-disable import/prefer-default-export */
 import { types, applySnapshot } from 'mobx-state-tree';
-import UserIdentifier from '@aws-ee/base-ui/dist/models/users/UserIdentifier';
 
 const statuses = {
   active: {
@@ -22,15 +21,15 @@ const KeyPair = types
   .model('KeyPair', {
     id: types.identifier,
     rev: types.maybe(types.number),
-    owner: types.optional(UserIdentifier, {}),
+    owner: '',
     name: '',
     status: '',
     publicKey: '',
     desc: types.maybeNull(types.string),
     updatedAt: '',
-    updatedBy: types.optional(UserIdentifier, {}),
+    updatedBy: '',
     createdAt: '',
-    createdBy: types.optional(UserIdentifier, {}),
+    createdBy: '',
     privateKey: '', // The server will not return this value
   })
   .actions(self => ({

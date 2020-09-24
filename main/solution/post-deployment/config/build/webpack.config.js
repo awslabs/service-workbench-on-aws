@@ -13,6 +13,7 @@
  *  permissions and limitations under the License.
  */
 
+const path = require('path');
 const slsw = require('serverless-webpack');
 const CopyPlugin = require('copy-webpack-plugin'); // see https://github.com/boazdejong/webpack-plugin-copy
 
@@ -63,5 +64,18 @@ module.exports = {
         use: 'js-yaml-loader',
       },
     ],
+  },
+
+  // We need the following 'output' section so that the source map file uses the file:/// protocol instead of the
+  // webpack:/// protocol to specify the source file. Use the webpack:/// protocol confuses vscode and will not
+  // allow you to stop and breakpoints in any code instead the addons folder
+  // Links:
+  // https://github.com/serverless-heaven/serverless-webpack#readme
+  // https://gist.github.com/jarshwah/389f93f2282a165563990ed60f2b6d6c
+  output: {
+    libraryTarget: 'commonjs',
+    path: path.resolve(__dirname, '.webpack'),
+    filename: '[name].js',
+    devtoolModuleFilenameTemplate: 'file:///[absolute-resource-path]',
   },
 };

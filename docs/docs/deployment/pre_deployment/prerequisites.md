@@ -4,16 +4,11 @@ title: Prerequisites
 sidebar_label: Prerequisites
 ---
 
-## Main Account
-
-Service Workbench must be deployed from an account that is not a member of an AWS
-Organization. This account must itself be capable of creating an
-Organization. See: [Organizations](/deployment/reference/aws_services). If the account is not capable of creating an organization
-you will not be able to create an account in Service Workbench in the post-installation step ['Create or add an AWS Account'](/deployment/post_deployment/link_aws_account).
-
-Note that this account will be billed for all resources deployed by user
-accounts linked to it.
+## Deployment Account
+------------
+Service Workbench can be deployed to an existing AWS Organization master account, or a member account, or some other account not part of the AWS Organization.
 
 ## Cost Explorer
+-------------
+In order to see any actual cost in dashboards and workspaces, the master account must have Cost Explorer set up. 
 
-In order to see any actual cost in dashboards and workspaces, the master account must have Cost Explorer set up.

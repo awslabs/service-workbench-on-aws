@@ -33,13 +33,16 @@ const UserAuthzServiceMock = require('@aws-ee/base-services/lib/user/user-authz-
 jest.mock('@aws-ee/base-services/lib/audit/audit-writer-service');
 const AuditServiceMock = require('@aws-ee/base-services/lib/audit/audit-writer-service');
 
+jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
+const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
+
 jest.mock('../../user-roles/user-roles-service');
 const UserRolesServiceMock = require('../../user-roles/user-roles-service');
 
 const UserService = require('../user-service');
 
 describe('UserService', () => {
-  let service = null;
+  let service;
   beforeEach(async () => {
     // Initialize services container and register dependencies
     const container = new ServicesContainer();
@@ -51,6 +54,7 @@ describe('UserService', () => {
     container.register('userAuthzService', new UserAuthzServiceMock());
     container.register('auditWriterService', new AuditServiceMock());
     container.register('userRolesService', new UserRolesServiceMock());
+    container.register('settings', new SettingsServiceMock());
     container.register('userService', new UserService());
 
     await container.initServices();
@@ -75,7 +79,7 @@ describe('UserService', () => {
       service.toUserType = jest.fn(() => {
         return { userType: 'root' };
       });
-      service.findUser = jest.fn(() => {
+      service.getUserByPrincipal = jest.fn(() => {
         return null;
       });
       service.createUser = jest.fn();
@@ -91,7 +95,7 @@ describe('UserService', () => {
       };
 
       service.toUserType = jest.fn().mockResolvedValue({ userType: 'root' });
-      service.findUser = jest.fn().mockResolvedValue(user);
+      service.getUserByPrincipal = jest.fn().mockResolvedValue(user);
 
       // OPERATE
       try {
@@ -122,7 +126,7 @@ describe('UserService', () => {
       service.toUserType = jest.fn(() => {
         return { userType: 'root' };
       });
-      service.findUser = jest.fn(() => {
+      service.getUserByPrincipal = jest.fn(() => {
         return user1;
       });
       service.createUser = jest.fn();
@@ -147,13 +151,13 @@ describe('UserService', () => {
 
       // Fail authorization
       service.assertAuthorized = jest.fn(() => {
-        return false;
+        throw service.boom.forbidden('You are not authorized to perform this operation', true);
       });
 
       service.toUserType = jest.fn(() => {
         return { userType: 'root' };
       });
-      service.findUser = jest.fn(() => {
+      service.getUserByPrincipal = jest.fn(() => {
         return null;
       });
 
@@ -163,9 +167,9 @@ describe('UserService', () => {
         expect.hasAssertions();
       } catch (err) {
         // CHECK
-        expect(err.payload).toBeDefined();
-        const error = err.payload[0];
-        expect(error).toEqual('Error creating user example@amazon.com');
+        expect(err.status).toEqual(403);
+        expect(err.code).toEqual('forbidden');
+        expect(err.message).toEqual('You are not authorized to perform this operation');
       }
     });
 
@@ -191,7 +195,7 @@ describe('UserService', () => {
       service.toUserType = jest.fn(() => {
         return { userType: 'root' };
       });
-      service.findUser = jest.fn(() => {
+      service.getUserByPrincipal = jest.fn(() => {
         return null;
       });
       service.createUser = jest.fn();

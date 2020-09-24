@@ -20,7 +20,7 @@ const UserRoleService = require('@aws-ee/base-raas-services/lib/user-roles/user-
 const UserAttributesMapperService = require('@aws-ee/base-raas-services/lib/user/user-attributes-mapper-service');
 
 const settingKeys = {
-  tablePrefix: 'dbTablePrefix',
+  tablePrefix: 'dbPrefix',
 };
 
 /**
@@ -61,7 +61,7 @@ function getStaticSettings(existingStaticSettings, settings, pluginRegistry) {
   const table = (key, suffix) => {
     staticSettings[key] = `${tablePrefix}-${suffix}`;
   };
-  table('dbTableUserRoles', 'DbUserRoles');
+  table('dbUserRoles', 'UserRoles');
 
   return staticSettings;
 }

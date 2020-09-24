@@ -25,11 +25,10 @@ async function configure(context) {
     '/',
     wrap(async (req, res) => {
       const requestContext = res.locals.requestContext;
-      const { username, ns } = requestContext.principalIdentifier;
+      const { uid } = requestContext.principalIdentifier;
       // Is user is specified then perform operation for that user or else for current user
-      const usernameToUse = req.query.username || username;
-      const nsToUse = req.query.ns || ns;
-      const apiKeys = await apiKeyService.getApiKeys(requestContext, { username: usernameToUse, ns: nsToUse });
+      const uidToUse = req.query.uid || uid;
+      const apiKeys = await apiKeyService.getApiKeys(requestContext, { uid: uidToUse });
       res.status(200).json(apiKeys);
     }),
   );
@@ -41,12 +40,11 @@ async function configure(context) {
     '/:id',
     wrap(async (req, res) => {
       const requestContext = res.locals.requestContext;
-      const { username, ns } = requestContext.principalIdentifier;
+      const { uid } = requestContext.principalIdentifier;
       // Is user is specified then perform operation for that user or else for current user
-      const usernameToUse = req.query.username || username;
-      const nsToUse = req.query.ns || ns;
+      const uidToUse = req.query.uid || uid;
       const keyId = req.params.id;
-      const apiKey = await apiKeyService.getApiKey(requestContext, { username: usernameToUse, ns: nsToUse, keyId });
+      const apiKey = await apiKeyService.getApiKey(requestContext, { uid: uidToUse, keyId });
       res.status(200).json(apiKey);
     }),
   );
@@ -58,12 +56,11 @@ async function configure(context) {
     '/:id/revoke',
     wrap(async (req, res) => {
       const requestContext = res.locals.requestContext;
-      const { username, ns } = requestContext.principalIdentifier;
+      const { uid } = requestContext.principalIdentifier;
       // Is user is specified then perform operation for that user or else for current user
-      const usernameToUse = req.query.username || username;
-      const nsToUse = req.query.ns || ns;
+      const uidToUse = req.query.uid || uid;
       const keyId = req.params.id;
-      const apiKey = await apiKeyService.revokeApiKey(requestContext, { username: usernameToUse, ns: nsToUse, keyId });
+      const apiKey = await apiKeyService.revokeApiKey(requestContext, { uid: uidToUse, keyId });
       res.status(200).json(apiKey);
     }),
   );
@@ -75,13 +72,11 @@ async function configure(context) {
     '/',
     wrap(async (req, res) => {
       const requestContext = res.locals.requestContext;
-      const { username, ns } = requestContext.principalIdentifier;
+      const { uid } = requestContext.principalIdentifier;
       // Is user is specified then perform operation for that user or else for current user
-      const usernameToUse = req.query.username || username;
-      const nsToUse = req.query.ns || ns;
+      const uidToUse = req.query.uid || uid;
       const apiKey = await apiKeyService.issueApiKey(requestContext, {
-        username: usernameToUse,
-        ns: nsToUse,
+        uid: uidToUse,
         expiryTime: req.body.expiryTime,
       });
       res.status(200).json(apiKey);

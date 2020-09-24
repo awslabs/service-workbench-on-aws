@@ -121,14 +121,16 @@ class CostsService extends Service {
 
     const response = await this.callAwsCostExplorerApi(requestContext, indexId, numberOfDaysInPast, filter, groupBy);
 
-    const rawCacheData = {
-      indexId,
-      query: JSON.stringify(query),
-      result: JSON.stringify(response),
-    };
-    await costApiCacheService.create(requestContext, rawCacheData);
+    if (response) {
+      const rawCacheData = {
+        indexId,
+        query: JSON.stringify(query),
+        result: JSON.stringify(response),
+      };
+      await costApiCacheService.create(requestContext, rawCacheData);
+    }
 
-    return response;
+    return response || [];
   }
 
   async callAwsCostExplorerApi(requestContext, indexId, numberOfDaysInPast, filter, groupBy) {
@@ -157,23 +159,34 @@ class CostsService extends Service {
         Filter: filter,
         GroupBy: groupBy,
       })
-      .promise();
-
-    const response = result.ResultsByTime.map(item => {
-      const costItems = {};
-      item.Groups.forEach(group => {
-        if (group.Metrics.BlendedCost.Amount > 0) {
-          costItems[group.Keys] = {
-            amount: Math.round(group.Metrics.BlendedCost.Amount * 100) / 100,
-            unit: group.Metrics.BlendedCost.Unit,
-          };
+      .promise()
+      .catch(e => {
+        // The DataUnavailableException represents non-availability of data for specific cost usage search criteria.
+        // Just return undefined instead of throwing error in this case for easier API usage in the client code.
+        if (e.code === 'DataUnavailableException') {
+          return undefined;
         }
+        throw e;
       });
-      return {
-        startDate: item.TimePeriod.Start,
-        cost: costItems,
-      };
-    });
+
+    let response;
+    if (result) {
+      response = result.ResultsByTime.map(item => {
+        const costItems = {};
+        item.Groups.forEach(group => {
+          if (group.Metrics.BlendedCost.Amount > 0) {
+            costItems[group.Keys] = {
+              amount: Math.round(group.Metrics.BlendedCost.Amount * 100) / 100,
+              unit: group.Metrics.BlendedCost.Unit,
+            };
+          }
+        });
+        return {
+          startDate: item.TimePeriod.Start,
+          cost: costItems,
+        };
+      });
+    }
 
     return response;
   }
@@ -195,14 +208,14 @@ class CostsService extends Service {
       },
     );
 
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     const sts = new aws.sdk.STS({ region: 'us-east-1' });
     const {
       Credentials: { AccessKeyId: accessKeyId, SecretAccessKey: secretAccessKey, SessionToken: sessionToken },
     } = await sts
       .assumeRole({
         RoleArn,
-        RoleSessionName: `RaaS-${by.username}`,
+        RoleSessionName: `RaaS-${by}`,
         ExternalId,
       })
       .promise();

@@ -30,6 +30,7 @@ class EnvironmentConfigVarsService extends Service {
   constructor() {
     super();
     this.dependency([
+      'userService',
       'environmentScService',
       'environmentScKeypairService',
       'indexesService',
@@ -113,6 +114,10 @@ class EnvironmentConfigVarsService extends Service {
           'instance, including any bootstrap scripts',
       },
       {
+        name: 'uid',
+        desc: 'A unique identifier for the user launching the environment',
+      },
+      {
         name: 'username',
         desc: 'Username of the user launching the environment',
       },
@@ -126,6 +131,7 @@ class EnvironmentConfigVarsService extends Service {
 
   async resolveEnvConfigVars(requestContext, { envId, envTypeId, envTypeConfigId }) {
     const [
+      userService,
       environmentScService,
       environmentScKeypairService,
       indexesService,
@@ -134,6 +140,7 @@ class EnvironmentConfigVarsService extends Service {
       envTypeConfigService,
       environmentMountService,
     ] = await this.service([
+      'userService',
       'environmentScService',
       'environmentScKeypairService',
       'indexesService',
@@ -214,7 +221,8 @@ class EnvironmentConfigVarsService extends Service {
       adminKeyPairName = await environmentScKeypairService.create(requestContext, envId);
     }
 
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
+    const user = await userService.mustFindUser({ uid: by });
     return {
       envId,
       envTypeId,
@@ -237,8 +245,9 @@ class EnvironmentConfigVarsService extends Service {
       environmentInstanceFiles,
       s3Prefixes,
 
-      username: by.username,
-      userNamespace: by.ns,
+      uid: user.uid,
+      username: user.username,
+      userNamespace: user.ns,
 
       adminKeyPairName,
     };
