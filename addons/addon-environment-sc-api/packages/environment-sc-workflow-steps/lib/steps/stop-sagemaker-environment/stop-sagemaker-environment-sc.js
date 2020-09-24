@@ -41,17 +41,18 @@ class StopSagemakerEnvironmentSc extends StepBase {
 
     const { NotebookInstanceStatus: notebookInstanceStatus } = notebookInstanceInfo;
     const status = notebookInstanceStatus.toUpperCase();
+    if (!['STOPPING', 'STOPPED'].includes(status)) {
+      if (status !== 'INSERVICE') {
+        throw new Error(`Notebook instance [${NotebookInstanceName}] is not running`);
+      }
 
-    if (status !== 'INSERVICE') {
-      throw new Error(`Notebook instance [${NotebookInstanceName}] is not running`);
-    }
-
-    try {
-      await sm.stopNotebookInstance(params).promise();
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('stop notebook instance error: ', error);
-      throw error;
+      try {
+        await sm.stopNotebookInstance(params).promise();
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('stop notebook instance error: ', error);
+        throw error;
+      }
     }
 
     await this.updateEnvironmentStatus('STOPPING');

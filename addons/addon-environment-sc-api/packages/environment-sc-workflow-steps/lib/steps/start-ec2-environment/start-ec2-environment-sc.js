@@ -43,19 +43,18 @@ class StartEc2EnvironmentSc extends StepBase {
     }
 
     const status = _.get(instanceStatusInfo, 'InstanceStatuses[0].InstanceState.Name').toUpperCase();
-
-    if (status !== 'STOPPED') {
-      throw new Error(`EC2 instance [${instanceId}] is not stopped`);
+    if (!['PENDING', 'RUNNING'].includes(status)) {
+      if (status !== 'STOPPED') {
+        throw new Error(`EC2 instance [${instanceId}] is not stopped`);
+      }
+      try {
+        await ec2.startInstances(params).promise();
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('start ec2 instance error: ', error);
+        throw error;
+      }
     }
-
-    try {
-      await ec2.startInstances(params).promise();
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('start ec2 instance error: ', error);
-      throw error;
-    }
-
     await this.updateEnvironment({ status: 'STARTING' });
     this.state.setKey('STATE_INSTANCE_ID', instanceId);
 
