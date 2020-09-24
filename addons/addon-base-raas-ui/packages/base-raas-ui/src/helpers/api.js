@@ -256,6 +256,14 @@ function deleteScEnvironment(id) {
   return httpApiDelete(`api/workspaces/service-catalog/${id}`);
 }
 
+function stopScEnvironment(id) {
+  return httpApiPut(`api/workspaces/service-catalog/${id}/stop`);
+}
+
+function startScEnvironment(id) {
+  return httpApiPut(`api/workspaces/service-catalog/${id}/start`);
+}
+
 function getScEnvironmentConnections(envId) {
   return httpApiGet(`api/workspaces/service-catalog/${envId}/connections/`);
 }
@@ -326,6 +334,8 @@ export {
   createScEnvironment,
   createScEnvironmentConnectionUrl,
   deleteScEnvironment,
+  stopScEnvironment,
+  startScEnvironment,
   getScEnvironment,
   getScEnvironmentConnections,
   sendSshKey,
