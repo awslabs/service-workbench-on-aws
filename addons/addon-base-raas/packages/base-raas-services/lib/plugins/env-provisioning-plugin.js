@@ -118,11 +118,15 @@ async function updateEnvOnProvisioningSuccess({
   const existingEnvRecord = await environmentScService.mustFind(requestContext, { id: envId, fields: ['rev'] });
 
   // Create DNS record for RStudio workspaces
-  const connectionType = _.find(outputs, o => o.OutputKey === 'MetaConnection1Type').OutputValue;
-  if (connectionType.toLowerCase() === 'rstudio') {
-    const dnsName = _.find(outputs, o => o.OutputKey === 'Ec2WorkspaceDnsName').OutputValue;
-    const environmentDnsService = await container.find('environmentDnsService');
-    environmentDnsService.createRecord('rstudio', envId, dnsName);
+  const connectionType = _.find(outputs, o => o.OutputKey === 'MetaConnection1Type');
+  let connectionTypeValue;
+  if (connectionType) {
+    connectionTypeValue = connectionType.OutputValue;
+    if (connectionTypeValue.toLowerCase() === 'rstudio') {
+      const dnsName = _.find(outputs, o => o.OutputKey === 'Ec2WorkspaceDnsName').OutputValue;
+      const environmentDnsService = await container.find('environmentDnsService');
+      environmentDnsService.createRecord('rstudio', envId, dnsName);
+    }
   }
 
   const environment = {
@@ -212,11 +216,15 @@ async function updateEnvOnTerminationSuccess({ requestContext, container, status
   log.debug({ msg: `Cleaning up local resource policies`, envId });
 
   // Delete DNS record for RStudio workspaces
-  const connectionType = _.find(updatedEnvironment.outputs, x => x.OutputKey === 'MetaConnection1Type').OutputValue;
-  if (connectionType.toLowerCase() === 'rstudio') {
-    const dnsName = _.find(updatedEnvironment.outputs, x => x.OutputKey === 'Ec2WorkspaceDnsName').OutputValue;
-    const environmentDnsService = await container.find('environmentDnsService');
-    environmentDnsService.deleteRecord('rstudio', envId, dnsName);
+  const connectionType = _.find(updatedEnvironment.outputs, o => o.OutputKey === 'MetaConnection1Type');
+  let connectionTypeValue;
+  if (connectionType) {
+    connectionTypeValue = connectionType.OutputValue;
+    if (connectionTypeValue.toLowerCase() === 'rstudio') {
+      const dnsName = _.find(updatedEnvironment.outputs, x => x.OutputKey === 'Ec2WorkspaceDnsName').OutputValue;
+      const environmentDnsService = await container.find('environmentDnsService');
+      environmentDnsService.deleteRecord('rstudio', envId, dnsName);
+    }
   }
 
   const indexesService = await container.find('indexesService');
