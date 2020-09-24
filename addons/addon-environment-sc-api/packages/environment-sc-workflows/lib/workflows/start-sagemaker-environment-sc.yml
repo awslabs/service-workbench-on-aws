@@ -2,9 +2,9 @@ id: wf-start-sagemaker-environment-sc
 v: 1
 workflowTemplateId: wt-empty
 workflowTemplateVer: 1
-title: Start a SageMaker Notebook
+title: Start a Service Catalog SageMaker Notebook
 desc: |
-  Start a SageMaker Jupyter Notebook.
+  Start a Service Catalog SageMaker Jupyter Notebook.
 hidden: false
 builtin: true
 instanceTtl: 30 # In days, however, empty value means that it is indefinite

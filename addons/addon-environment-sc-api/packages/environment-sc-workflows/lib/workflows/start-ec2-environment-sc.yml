@@ -2,9 +2,9 @@ id: wf-start-ec2-environment-sc
 v: 1
 workflowTemplateId: wt-empty
 workflowTemplateVer: 1
-title: Start an EC2 instance
+title: Start an Service Catalog EC2 instance
 desc: |
-  Start an EC2 instance.
+  Start an Service Catalog EC2 instance.
 hidden: false
 builtin: true
 instanceTtl: 30 # In days, however, empty value means that it is indefinite

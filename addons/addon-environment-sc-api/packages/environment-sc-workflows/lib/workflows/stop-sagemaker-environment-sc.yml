@@ -2,9 +2,9 @@ id: wf-stop-sagemaker-environment-sc
 v: 1
 workflowTemplateId: wt-empty
 workflowTemplateVer: 1
-title: Stop a SageMaker Notebook
+title: Stop a Service Catalog SageMaker Notebook
 desc: |
-  Stop a SageMaker Jupyter Notebook.
+  Stop a Service Catalog SageMaker Jupyter Notebook.
 hidden: false
 builtin: true
 instanceTtl: 30 # In days, however, empty value means that it is indefinite
