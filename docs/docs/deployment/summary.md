@@ -3,7 +3,7 @@ id: summary
 title: Summary
 sidebar_label: Summary
 ---
-
+## Structure
 Service Workbench has been designed from the ground up to be easy to install and get running quickly. To deploy this solution the Serverless Framework is used.
 
 The solution contains 5 serverless projects:
@@ -21,17 +21,21 @@ The solution also includes a Continuous Integration/Continuous Delivery feature:
 - cicd/cicd-pipeline/serverless.yml
 - cicd/cicd-source/serverless.yml
 
-A Service Workbench installation can be run from your laptop or an EC2 instance
-and involves the following stages that will be described in detail in this section of the documentation and its sub-sections:
+## Installation
+A Service Workbench installation can be run from any machine (local or EC2 instance) in which you can install the AWS CLI and some Node-based software.
+It involves the following stages that will be described in detail in this documentation:
 
-- If deploying from EC2, create an instance with an appropriate
-  instance profile
-- Installing Node and some Node-based software on your local machine
-  or EC2 instance
-- Downloading and unpacking the Service Workbench code
-- Choosing a stage name
-- Optionally editing a configuration file
-- Running the main installation script `environment-deploy.sh`
-- Running the post-deployment script `master-account-deploy.sh`
-- Log in and add an AWS account to your Service Workbench deployment
-- Create local user accounts
+* Choose an account in which to deploy Service Workbench (master or member account of an Organization)
+* Configure and test an AWS CLI profile for this account
+* Install AWS CLI, Node, and some Node-based software on the local machine or EC2 instance
+* Download and unpack the Service Workbench code
+* Choose a stage name
+* Edit the main configuration file
+* Run the main installation script `environment-deploy.sh` (20 minutes)
+* Deploy the **Machine Images** stage
+* (If vending accounts from Service Workbench, deploy the stage :code:`prepare-master-acc`)
+* Log in to the Service Workbench deployment with the root account
+* Add (import) or create an AWS account for billing
+* Create Service Workbench user accounts
+* Provision workspace types in Service Catalog (4 example products already supplied)
+
