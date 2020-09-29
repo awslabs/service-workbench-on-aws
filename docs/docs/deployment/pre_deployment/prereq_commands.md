@@ -4,28 +4,21 @@ title: Prerequisite Software
 sidebar_label: Prerequisite Software
 ---
 ## Required Tools
-Before you can build this solution, you need the following tools installed:
+Before you can build this solution, you need the following tools installed on the machine from which you will be deploying:
 
-* Node.js (10.15.x or later) (<https://nodejs.org/>)
 * AWS Command Line Interface (<https://aws.amazon.com/cli/>)
+* Node.js (10.15.x or later) (<https://nodejs.org/>)
 * PNPM (<https://pnpm.js.org/>)
 * Serverless Framework (<http://www.serverless.com>)
 * Hygen CLI (<http://www.hygen.io>)
 
-Install the most commonly used prerequisites the following way:
+Install Node, and the Node-based prerequisites the following way:
 
 ``` {.sh}
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
-source .bashrc
+source ~/.bashrc
 nvm install 12
-npm install -g serverless pnpm hygen DELETEME
-```
-
-## Installing PNPM, Serverless Framework & Hygen CLI
-
-Execute the following command to install PNPM, Serverless Framework and Hygen CLI on the machine you will be using to deploy the solution from:
-```bash
-$ npm install -g serverless pnpm hygen
+npm install -g serverless pnpm hygen 
 ```
 
 ## AWS Account & Access
