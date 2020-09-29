@@ -5,7 +5,7 @@ module.exports = {
       "deployment/summary",
       {
         "Pre Deployment": [
-          "deployment/pre_deployment/prerequisites",
+          "deployment/pre_deployment/accounts",
           "deployment/pre_deployment/prereq_commands",
           "deployment/pre_deployment/deployment_instance",
           "deployment/pre_deployment/source_code",
