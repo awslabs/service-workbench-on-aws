@@ -27,6 +27,7 @@ module.exports = {
         Configuration: [
           {
             Authentication: [
+              "deployment/configuration/auth/enabling_ad",
               "deployment/configuration/auth/configuring_auth0",
               "deployment/configuration/auth/configuring_idp",
             ],
