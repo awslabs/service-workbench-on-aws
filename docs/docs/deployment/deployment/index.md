@@ -1,7 +1,7 @@
 ---
 id: index
-title: Deploying Service Workbench
-sidebar_label: Deploying Service Workbench
+title: Deployment Procedure
+sidebar_label: Deployment Procedure
 ---
 
 ## Run main deployment script

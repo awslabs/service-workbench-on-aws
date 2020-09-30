@@ -85,11 +85,12 @@ as `mystage-va-sw`. This string is made up by concatenating:
   defined in `.defaults.yml`)
 - Solution name
 
-## Prepare SDC Configuration Files (Optional)
+## Prepare SDC Configuration Files
 
-Each SDC has a `config/settings` directory, where customized settings
-files may be placed. Settings files are named after your stage name:
-`<mystagename.yml>`. Some of the SDC settings directories contain an
-`example.yml` file that may be copied and renamed as a settings file for
-that SDC. Otherwise, a default file `.defaults.yml` in that directory is
-read and used regardless of the stage name.
+Each SDC has a `config/settings` directory, where customized settings files may be placed, in the same way as the main setting file.  Settings files are named after the stage name: `<stage>.yml`.  Some of the SDC settings directories contain an `example.yml` file that may be copied and renamed as a settings file for that SDC.  A default file `.defaults.yml` in the settings directory is read prior to reading the stage configuration file.  Any settings in the stage configuration file override those in the default file.
+
+If deploying in a non-default profile, a stage settings file is necessary, containing in `awsProfile` the profile with permissions for the desired account.
+
+```{.sh}
+    awsProfile: main-account-profile-name
+```

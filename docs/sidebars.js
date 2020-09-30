@@ -17,7 +17,8 @@ module.exports = {
         "Post Deployment": [
           "deployment/post_deployment/index",
           // "deployment/post_deployment/cost_explorer",
-          "deployment/post_deployment/link_aws_account",
+          "deployment/post_deployment/aws_accounts",
+          "deployment/post_deployment/prepare_master_account",
           "deployment/post_deployment/create_index_project",
           "deployment/post_deployment/create_admin_user",
           "deployment/post_deployment/import_service_catalog_products",
@@ -127,6 +128,9 @@ module.exports = {
       "best_practices/cicd",
       "best_practices/rotating_jwt_token",
     ],
-    "Development Guide": ["development/introduction"],
+    "Development Guide": [
+      "development/introduction",
+      "development/aws_services"
+    ],
   },
 };
