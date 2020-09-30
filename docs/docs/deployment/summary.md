@@ -32,8 +32,8 @@ It involves the following stages that will be described in detail in this docume
 * Choose a stage name
 * Edit the main configuration file
 * Run the main installation script `environment-deploy.sh` (20 minutes)
-* Deploy the **Machine Images** stage
-* (If vending accounts from Service Workbench, deploy the stage :code:`prepare-master-acc`)
+* Deploy the **machine-images** stage (20 minutes)
+* If vending accounts from Service Workbench, deploy the **prepare-master-acc** stage
 * Log in to the Service Workbench deployment with the root account
 * Add (import) or create an AWS account for billing
 * Create Service Workbench user accounts
