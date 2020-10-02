@@ -309,7 +309,8 @@ class EnvironmentScService extends Service {
     let instanceType;
     let instanceIdentifier;
     const outputsObject = cfnOutputsArrayToObject(outputs);
-    if ('Ec2WorkspaceInstanceId' in outputsObject) {
+    // TODO: Remove MetaConnection1Type check to include RStudio after CNAME patch
+    if ('Ec2WorkspaceInstanceId' in outputsObject && !('MetaConnection1Type' in outputsObject)) {
       instanceType = 'ec2';
       instanceIdentifier = outputsObject.Ec2WorkspaceInstanceId;
     } else if ('NotebookInstanceName' in outputsObject) {
