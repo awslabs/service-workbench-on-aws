@@ -160,12 +160,17 @@ const ScEnvironmentsStore = BaseStore.named('ScEnvironmentsStore')
     canChangeState(id) {
       const outputs = self.environments.get(id).outputs;
       let result = false;
+      // TODO: Remove isRStudio check after CNAME patch
+      let isRStudio = false;
       outputs.forEach(output => {
         if (output.OutputKey === 'Ec2WorkspaceInstanceId' || output.OutputKey === 'NotebookInstanceName') {
           result = true;
         }
+        if (output.OutputKey === 'MetaConnection1Type') {
+          isRStudio = true;
+        }
       });
-      return result;
+      return result && !isRStudio;
     },
 
     get user() {
