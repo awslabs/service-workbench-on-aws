@@ -3,30 +3,30 @@ const path = require('path');
 const baseDocusaurusConfig = require('./docs-plugin/base-docusaurus.config');
 const baseSidebarsConfig = require('./docs-plugin/base-sidebars');
 
-function getPagesPaths(pagesPathsSoFar) {
+function _getPagesPaths(pagesPathsSoFar) {
   return pagesPathsSoFar;
 }
 
-function getStaticFilesPaths(staticFilesPathsSoFar) {
+function _getStaticFilesPaths(staticFilesPathsSoFar) {
   return [...staticFilesPathsSoFar, path.resolve(__dirname, '../static')];
 }
 
-function getDocusaurusConfig(_docusaurusConfigSoFar) {
+function _getDocusaurusConfig(_docusaurusConfigSoFar) {
   // Set base config, ignoring any previous plugin contributions
   return baseDocusaurusConfig;
 }
 
-function getSidebarsConfig(_sidebarsConfigSoFar) {
+function _getSidebarsConfig(_sidebarsConfigSoFar) {
   // Set base config, ignoring any previous plugin contributions
   return baseSidebarsConfig;
 }
 
 async function getConfiguration(configSoFar) {
   const updatedConfig = {
-    pagesPaths: getPagesPaths(configSoFar.pagesPaths),
-    staticFilesPaths: getStaticFilesPaths(configSoFar.staticFilesPaths),
-    docusaurusConfig: getDocusaurusConfig(configSoFar.docusaurusConfig),
-    sidebarsConfig: getSidebarsConfig(configSoFar.sidebarsConfig),
+    pagesPaths: _getPagesPaths(configSoFar.pagesPaths),
+    staticFilesPaths: _getStaticFilesPaths(configSoFar.staticFilesPaths),
+    docusaurusConfig: _getDocusaurusConfig(configSoFar.docusaurusConfig),
+    sidebarsConfig: _getSidebarsConfig(configSoFar.sidebarsConfig),
   };
   return updatedConfig;
 }

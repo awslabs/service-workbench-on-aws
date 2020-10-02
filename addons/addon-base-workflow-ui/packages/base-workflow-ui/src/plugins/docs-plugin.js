@@ -2,19 +2,19 @@ const path = require('path');
 
 const { setSidebarsEntry } = require('@aws-ee/base-docs/lib/update-config-utils');
 
-function getPagesPaths(pagesPathsSoFar) {
+function _getPagesPaths(pagesPathsSoFar) {
   return [...pagesPathsSoFar, path.resolve(__dirname, './docs-plugin/pages')];
 }
 
-function getStaticFilesPaths(staticFilesPathsSoFar) {
+function _getStaticFilesPaths(staticFilesPathsSoFar) {
   return staticFilesPathsSoFar;
 }
 
-function getDocusaurusConfig(docusaurusConfigSoFar) {
+function _getDocusaurusConfig(docusaurusConfigSoFar) {
   return docusaurusConfigSoFar;
 }
 
-function getSidebarsConfig(sidebarsConfigSoFar) {
+function _getSidebarsConfig(sidebarsConfigSoFar) {
   return setSidebarsEntry(
     sidebarsConfigSoFar,
     'docs.User Guide.Sidebar.Administrator View.Workflows',
@@ -24,10 +24,10 @@ function getSidebarsConfig(sidebarsConfigSoFar) {
 
 async function getConfiguration(configSoFar) {
   const updatedConfig = {
-    pagesPaths: getPagesPaths(configSoFar.pagesPaths),
-    staticFilesPaths: getStaticFilesPaths(configSoFar.staticFilesPaths),
-    docusaurusConfig: getDocusaurusConfig(configSoFar.docusaurusConfig),
-    sidebarsConfig: getSidebarsConfig(configSoFar.sidebarsConfig),
+    pagesPaths: _getPagesPaths(configSoFar.pagesPaths),
+    staticFilesPaths: _getStaticFilesPaths(configSoFar.staticFilesPaths),
+    docusaurusConfig: _getDocusaurusConfig(configSoFar.docusaurusConfig),
+    sidebarsConfig: _getSidebarsConfig(configSoFar.sidebarsConfig),
   };
   return updatedConfig;
 }

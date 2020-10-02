@@ -80,6 +80,7 @@ Resources:
             headers["x-content-type-options"] = [
               { key: "X-Content-Type-Options", value: "nosniff" }
             ];
+            // Required for the UI to contextually embed the documentation site (on the same origin) as an iframe
             headers["x-frame-options"] = [{ key: "X-Frame-Options", value: "SAMEORIGIN" }];
             headers["x-xss-protection"] = [
               { key: "X-XSS-Protection", value: "1; mode=block" }

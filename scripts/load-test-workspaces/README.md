@@ -26,8 +26,8 @@ const API_TOKEN = process.env.API_TOKEN;
 const API_HOSTNAME = ''; // 'XXXXXXXXXX.execute-api.<region>.amazonaws.com'
 const REGION_NAME = '';
 const REGION_SHORT_NAME = ''; // find the exhaustive list at ../../main/config/settings/.defaults.yml
-const STAGE_NAME = ''; // 'changeme'
-const SOLUTION_NAME = 'changeme';
+const STAGE_NAME = ''; // 'sw'
+const SOLUTION_NAME = 'sw-dev';
 const TEST_NAME_PREFIX = ''; // 'SCALABILITY-TESTS' (Case sensitive + does not support whitespaces)
 const PROJECT_NAME = ''; // 'SCALABILITY-TESTS-PROJECT' (Case sensitive + does not support whitespaces)
 ```
