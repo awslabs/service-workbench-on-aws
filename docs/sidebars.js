@@ -39,12 +39,12 @@ module.exports = {
       {
         Reference: [
           "deployment/reference/iam_role",
-          "deployment/reference/aws_services",
-          "deployment/reference/account_structure",
+          "deployment/reference/aws_services"
         ],
       },
     ],
     "User Guide": [
+      "user_guide/account_structure",
       "user_guide/introduction",
       {
         Sidebar: [
@@ -129,8 +129,7 @@ module.exports = {
       "best_practices/rotating_jwt_token",
     ],
     "Development Guide": [
-      "development/introduction",
-      "development/aws_services"
+      "development/introduction"
     ],
   },
 };

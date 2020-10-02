@@ -65,13 +65,13 @@ The output will contain similar lines to:
 
 ```{.sh}
     Stack Outputs
-    AuthenticationLayerHandlerRoleArn: arn:aws:iam::0000:role/stage-va-galileo-backend-RoleAuthenticationLayerHan-F00
-    EnvMgmtRoleArn: arn:aws:iam::0000:role/stage-va-galileo-EnvMgmt
-    ApiHandlerRoleArn: arn:aws:iam::0000:role/stage-va-galileo-ApiHandler
-    WorkflowLoopRunnerRoleArn: arn:aws:iam::0000:role/stage-va-galileo-WorkflowLoopRunner
-    OpenDataScrapeHandlerRoleArn: arn:aws:iam::0000:role/stage-va-galileo-backend-RoleOpenDataScrapeHandler-F00
+    AuthenticationLayerHandlerRoleArn: arn:aws:iam::0000:role/stage-va-sw-backend-RoleAuthenticationLayerHan-F00
+    EnvMgmtRoleArn: arn:aws:iam::0000:role/stage-va-sw-EnvMgmt
+    ApiHandlerRoleArn: arn:aws:iam::0000:role/stage-va-sw-ApiHandler
+    WorkflowLoopRunnerRoleArn: arn:aws:iam::0000:role/stage-va-sw-WorkflowLoopRunner
+    OpenDataScrapeHandlerRoleArn: arn:aws:iam::0000:role/stage-va-sw-backend-RoleOpenDataScrapeHandler-F00
     ServiceEndpoint: https://f00.execute-api.us-east-1.amazonaws.com/demo
-    ServerlessDeploymentBucketName: 0000-stage-va-galileo-artifacts
+    ServerlessDeploymentBucketName: 0000-stage-va-sw-artifacts
 ```
 
 Copy the values for **ApiHandlerRoleArn** and **WorkflowLoopRunnerRoleArn**.
@@ -101,8 +101,8 @@ Deploy the stack.  The Outputs of the stack will contain values similar to:
 
 |             Key              |                          Value                          |
 -------------------------------|---------------------------------------------------------
-| CrossAccountEnvMgmtRoleArn   | arn:aws:iam::0000:role/galileo-stage-xacc-env-mgmt      |
-| CrossAccountExecutionRoleArn | arn:aws:iam::0000:role/galileo-stage-cross-account-role |
+| CrossAccountEnvMgmtRoleArn   | arn:aws:iam::0000:role/sw-stage-xacc-env-mgmt      |
+| CrossAccountExecutionRoleArn | arn:aws:iam::0000:role/sw-stage-cross-account-role |
 | EncryptionKeyArn             | arn:aws:kms:us-east-2:0000:key/f00-f00-f00              |
 | VPC                          | vpc-f00f00                                              |
 | VpcPublicSubnet1             | subnet-f00f00                                           |
@@ -121,7 +121,7 @@ Open the Accounts tab of an Administrator login in Service Workbench, select **A
 | AWS Account ID               | 12-digit ID of imported account        |
 | Role ARN                     | **CrossAccountExecutionRoleArn** value |
 | AWS Service Catalog Role Arn | **CrossAccountEnvMgmtRoleArn** value   |
-| External ID                  | As specified (default: **galileo**)    |
+| External ID                  | As specified (default: **workbench**)    |
 | Description                  | As desired                             |
 | VPC ID                       | **VPC** value                          |
 | Subnet ID                    | **VpcPublicSubnet1** value             |
