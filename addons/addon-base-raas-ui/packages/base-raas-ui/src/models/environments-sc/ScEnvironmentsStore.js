@@ -166,7 +166,7 @@ const ScEnvironmentsStore = BaseStore.named('ScEnvironmentsStore')
         if (output.OutputKey === 'Ec2WorkspaceInstanceId' || output.OutputKey === 'NotebookInstanceName') {
           result = true;
         }
-        if (output.OutputKey === 'MetaConnection1Type' && output.OutputValue === 'RStudio') {
+        if (output.OutputKey === 'MetaConnection1Type') {
           isRStudio = true;
         }
       });
