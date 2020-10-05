@@ -38,34 +38,10 @@ class ScEnvironmentButtons extends React.Component {
   };
 
   handleTerminate = async () => {
-    await this.handleAction(async () => {
-      const store = this.envsStore;
-      await store.terminateScEnvironment(this.environment.id);
-    });
-  };
-
-  handleStop = async () => {
-    await this.handleAction(async () => {
-      const store = this.envsStore;
-      await store.stopScEnvironment(this.environment.id);
-    });
-  };
-
-  handleStart = async () => {
-    await this.handleAction(async () => {
-      const store = this.envsStore;
-      await store.startScEnvironment(this.environment.id);
-    });
-  };
-
-  canChangeState() {
-    return this.envsStore.canChangeState(this.environment.id);
-  }
-
-  handleAction = async fn => {
     this.processing = true;
     try {
-      await fn();
+      const store = this.envsStore;
+      await store.terminateScEnvironment(this.environment.id);
     } catch (error) {
       displayError(error);
     } finally {
@@ -86,8 +62,6 @@ class ScEnvironmentButtons extends React.Component {
     const showDetailButton = this.props.showDetailButton;
     const connectionsButtonActive = this.connectionsButtonActive;
     const canConnect = state.canConnect;
-    const canStart = state.canStart && this.canChangeState();
-    const canStop = state.canStop && this.canChangeState();
 
     return (
       <>
@@ -115,34 +89,6 @@ class ScEnvironmentButtons extends React.Component {
               ]}
               size="mini"
             />
-          )}
-          {canStart && (
-            <Button
-              data-testid="sc-env-start"
-              floated="right"
-              basic
-              color="green"
-              size="mini"
-              className="mt1 mb1 ml2"
-              onClick={this.handleStart}
-              loading={processing}
-            >
-              Start
-            </Button>
-          )}
-          {canStop && (
-            <Button
-              data-testid="sc-env-stop"
-              floated="right"
-              basic
-              color="green"
-              size="mini"
-              className="mt1 mb1 ml2"
-              onClick={this.handleStop}
-              loading={processing}
-            >
-              Stop
-            </Button>
           )}
 
           {canConnect && (
@@ -177,7 +123,7 @@ decorate(ScEnvironmentButtons, {
   processing: observable,
   connectionsButtonActive: observable,
   handleViewDetail: action,
-  handleAction: action,
+  handleTerminate: action,
   handleToggle: action,
 });
 

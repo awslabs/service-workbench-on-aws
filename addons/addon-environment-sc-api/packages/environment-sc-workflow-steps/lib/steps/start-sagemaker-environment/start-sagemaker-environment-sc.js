@@ -93,6 +93,7 @@ class StartSagemakerEnvironmentSc extends StepBase {
     if (status === 'DELETING') {
       throw new Error(`Notebook instance [${notebookInstanceName}] is being deleted`);
     }
+
     return status === 'INSERVICE';
   }
 
