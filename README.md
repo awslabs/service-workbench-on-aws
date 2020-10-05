@@ -188,3 +188,7 @@ You can now also launch the Service Workbench docusaurus website. Please follow 
 
 This project is licensed under the terms of the Apache 2.0 license. See [LICENSE](LICENSE).
 Included AWS Lambda functions are licensed under the MIT-0 license. See [LICENSE-LAMBDA](LICENSE-LAMBDA).
+
+## Feedback
+
+We'd love to hear from you! Please reach out to our team: [service-workbench-dev](mailto:service-workbench-dev@amazon.com) for any feedback.
