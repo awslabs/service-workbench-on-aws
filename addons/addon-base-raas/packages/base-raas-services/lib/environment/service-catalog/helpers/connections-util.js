@@ -30,7 +30,7 @@ async function cfnOutputsToConnections(outputs) {
   return result;
 }
 
-function cfnOutputsArrayToObject(outputs) {
+function cfnOutputsToObject(outputs) {
   const outputsObject = {};
   _.forEach(outputs, output => {
     _.set(outputsObject, output.OutputKey, output.OutputValue);
@@ -43,4 +43,4 @@ async function hasConnections(outputs) {
   return !!_.find(outputs, output => _.startsWith(output.OutputKey, 'MetaConnection'));
 }
 
-module.exports = { cfnOutputsToConnections, cfnOutputsArrayToObject, hasConnections };
+module.exports = { cfnOutputsToConnections, cfnOutputsToObject, hasConnections };

@@ -42,17 +42,16 @@ class StartSagemakerEnvironmentSc extends StepBase {
     const { NotebookInstanceStatus: notebookInstanceStatus } = notebookInstanceInfo;
     const status = notebookInstanceStatus.toUpperCase();
 
-    if (!['PENDING', 'INSERVICE'].includes(status)) {
-      if (status !== 'STOPPED') {
-        throw new Error(`Notebook instance [${NotebookInstanceName}] is not stopped`);
-      }
-      try {
-        await sm.startNotebookInstance(params).promise();
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error('start notebook instance error: ', error);
-        throw error;
-      }
+    if (status !== 'STOPPED') {
+      throw new Error(`Notebook instance [${NotebookInstanceName}] is not stopped`);
+    }
+
+    try {
+      await sm.startNotebookInstance(params).promise();
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error('start notebook instance error: ', error);
+      throw error;
     }
 
     await this.updateEnvironmentStatus('STARTING');
@@ -99,6 +98,14 @@ class StartSagemakerEnvironmentSc extends StepBase {
 
   async getSageMakerService() {
     const [aws] = await this.mustFindServices(['aws']);
+    // increase retry defaults to reduce the risk of failures caused
+    // by throttles
+    aws.sdk.config.update({
+      maxRetries: 6, // default 3
+      retryDelayOptions: {
+        base: 300, // default 100
+      },
+    });
 
     const [requestContext, RoleArn, ExternalId] = await Promise.all([
       this.payload.object('requestContext'),

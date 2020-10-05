@@ -22,7 +22,7 @@ const { isAdmin, isCurrentUser } = require('@aws-ee/base-services/lib/authorizat
 const createSchema = require('../../schema/create-environment-sc');
 const updateSchema = require('../../schema/update-environment-sc');
 const environmentScStatus = require('./environent-sc-status-enum');
-const { hasConnections, cfnOutputsArrayToObject } = require('./helpers/connections-util');
+const { hasConnections, cfnOutputsToObject } = require('./helpers/connections-util');
 
 const settingKeys = {
   tableName: 'dbEnvironmentsSc',
@@ -286,18 +286,7 @@ class EnvironmentScService extends Service {
     const { status, outputs, projectId } = existingEnvironment;
 
     // expected environment run state based on operation
-    let expectedStatus;
-    switch (operation) {
-      case 'start':
-        expectedStatus = 'STOPPED';
-        break;
-      case 'stop':
-        expectedStatus = 'COMPLETED';
-        break;
-      default:
-        throw this.boom.badRequest(`operation ${operation} is not valid, only "start" and "stop" are supported`, true);
-    }
-
+    const expectedStatus = operation === 'start' ? 'STOPPED' : 'COMPLETED';
     if (status !== expectedStatus) {
       throw this.boom.badRequest(
         `unable to ${operation} environment with id "${id}" - current status "${status}"`,
@@ -306,7 +295,7 @@ class EnvironmentScService extends Service {
     }
     let instanceType;
     let instanceIdentifier;
-    const outputsObject = cfnOutputsArrayToObject(outputs);
+    const outputsObject = cfnOutputsToObject(outputs);
     if ('Ec2WorkspaceInstanceId' in outputsObject) {
       instanceType = 'ec2';
       instanceIdentifier = outputsObject.Ec2WorkspaceInstanceId;
@@ -348,8 +337,6 @@ class EnvironmentScService extends Service {
       roleExternalId,
     };
 
-    // This triggers the workflow defined in a workflow-plugin file
-    // 'addons/addon-environment-sc-api/packages/environment-sc-workflows/lib/workflows'
     await workflowTriggerService.triggerWorkflow(requestContext, meta, input);
     return existingEnvironment;
   }
