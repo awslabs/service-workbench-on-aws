@@ -20,6 +20,16 @@ openDataScrapeHandler:
         rate: rate(1 day)
         description: 'Invokes the lambda function that scrapes the awslabs/open-data-registry to find new studies and insert them into DynamoDB.'
 
+envStatusPollHandler:
+  handler: src/lambdas/env-status-poll-handler/handler.handler
+  role: RoleEnvStatusPollHandler
+  tags: ${self:custom.tags}
+  description: Handles status polling for sc environments
+  events:
+    - schedule:
+        rate: rate(5 minutes)
+        description: 'Invokes the lambda function that scrapes the awslabs/open-data-registry to find new studies and insert them into DynamoDB.'
+
 apiHandler:
   handler: src/lambdas/api-handler/handler.handler
   role: RoleApiHandler
