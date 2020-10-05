@@ -59,9 +59,7 @@ describe('EnvironmentSCService', () => {
   let service = null;
   let dbService = null;
   let projectService = null;
-  let indexesService = null;
   let wfService = null;
-  let awsAccountsService = null;
   const error = { code: 'ConditionalCheckFailedException' };
   beforeEach(async () => {
     const container = new ServicesContainer();
@@ -87,8 +85,6 @@ describe('EnvironmentSCService', () => {
     service = await container.find('environmentSCService');
     dbService = await container.find('dbService');
     projectService = await container.find('projectService');
-    indexesService = await container.find('indexesService');
-    awsAccountsService = await container.find('awsAccountsService');
     wfService = await container.find('workflowTriggerService');
 
     // Skip authorization by default
@@ -97,12 +93,6 @@ describe('EnvironmentSCService', () => {
     // Other function mocks
     projectService.mustFind = jest.fn(() => {
       return { indexId: 'exampleIndexId' };
-    });
-    indexesService.mustFind = jest.fn(() => {
-      return { awsAccountId: 'exampleAwsAccountId' };
-    });
-    awsAccountsService.mustFind = jest.fn(() => {
-      return { roleArn: 'cfnExecutionRole', externalId: 'roleExternalId' };
     });
     service._fromRawToDbObject = jest.fn(x => x);
   });
@@ -372,87 +362,6 @@ describe('EnvironmentSCService', () => {
       expect(service.audit).toHaveBeenCalledWith(
         requestContext,
         expect.objectContaining({ action: 'update-environment-sc' }),
-      );
-    });
-  });
-
-  describe('changeWorkspaceRunState function', () => {
-    it('Should throw bad request exception when trying to stop an instance NOT in COMPLETED status', async () => {
-      // BUILD
-      const requestContext = {
-        principalIdentifier: {
-          username: 'uname',
-          ns: 'user.ns',
-        },
-      };
-
-      const oldEnv = {
-        status: 'STOPPING',
-      };
-
-      service.mustFind = jest.fn().mockResolvedValueOnce(oldEnv);
-
-      // OPERATE
-      try {
-        await service.changeWorkspaceRunState(requestContext, { id: '1234567', operation: 'stop' });
-        expect.hasAssertions();
-      } catch (err) {
-        expect(service.boom.is(err, 'badRequest')).toBe(true);
-        expect(err.message).toContain('unable to stop environment with id "1234567" - current status "STOPPING"');
-      }
-    });
-
-    it('Should throw bad request exception when trying to stop an instance other than Sagemaker or EC2', async () => {
-      // BUILD
-      const requestContext = {
-        principalIdentifier: {
-          username: 'uname',
-          ns: 'user.ns',
-        },
-      };
-
-      const oldEnv = {
-        status: 'COMPLETED',
-        outputs: [],
-      };
-
-      service.mustFind = jest.fn().mockResolvedValueOnce(oldEnv);
-
-      // OPERATE
-      try {
-        await service.changeWorkspaceRunState(requestContext, { id: '1234567', operation: 'stop' });
-        expect.hasAssertions();
-      } catch (err) {
-        expect(service.boom.is(err, 'badRequest')).toBe(true);
-        expect(err.message).toContain(
-          'unable to stop environment with id "1234567" - operation only supported for sagemaker and EC2 environemnt.',
-        );
-      }
-    });
-
-    it('Should call the correct workflow with the correct inputs', async () => {
-      // BUILD
-      const requestContext = {
-        principalIdentifier: {
-          username: 'uname',
-          ns: 'user.ns',
-        },
-      };
-
-      const oldEnv = {
-        status: 'STOPPED',
-        outputs: [{ OutputKey: 'Ec2WorkspaceInstanceId', OutputValue: 'some-ec2-instance-id' }],
-        id: '1234567',
-      };
-
-      service.mustFind = jest.fn().mockResolvedValueOnce(oldEnv);
-
-      // OPERATE
-      await service.changeWorkspaceRunState(requestContext, { id: '1234567', operation: 'start' });
-      expect(wfService.triggerWorkflow).toHaveBeenCalledWith(
-        requestContext,
-        { workflowId: `wf-start-ec2-environment-sc` },
-        expect.objectContaining({ environmentId: '1234567', instanceIdentifier: 'some-ec2-instance-id' }),
       );
     });
   });

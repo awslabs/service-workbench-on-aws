@@ -35,40 +35,6 @@ async function configure(context) {
   );
 
   // ===============================================================
-  //  PUT / (mounted to /api/workspaces/service-catalog)
-  // ===============================================================
-  router.put(
-    '/:id/start',
-    wrap(async (req, res) => {
-      const requestContext = res.locals.requestContext;
-      const id = req.params.id;
-      const operation = 'start';
-
-      const [environmentScService] = await context.service(['environmentScService']);
-      const result = await environmentScService.changeWorkspaceRunState(requestContext, { id, operation });
-
-      res.status(200).json(result);
-    }),
-  );
-
-  // ===============================================================
-  //  PUT / (mounted to /api/workspaces/service-catalog)
-  // ===============================================================
-  router.put(
-    '/:id/stop',
-    wrap(async (req, res) => {
-      const requestContext = res.locals.requestContext;
-      const id = req.params.id;
-      const operation = 'stop';
-
-      const [environmentScService] = await context.service(['environmentScService']);
-      const result = await environmentScService.changeWorkspaceRunState(requestContext, { id, operation });
-
-      res.status(200).json(result);
-    }),
-  );
-
-  // ===============================================================
   //  GET /:id/connections (mounted to /api/workspaces/service-catalog)
   // ===============================================================
   router.get(

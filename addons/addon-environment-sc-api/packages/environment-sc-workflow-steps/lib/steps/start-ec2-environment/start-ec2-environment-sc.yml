@@ -1,8 +1,0 @@
-id: st-start-ec2-environment-sc
-v: 1
-title: Start EC2 Environment
-desc: |
-  Start an EC2 Instance.
-
-skippable: true # this means that if there is an error in a previous step, then this step will be skipped
-hidden: true

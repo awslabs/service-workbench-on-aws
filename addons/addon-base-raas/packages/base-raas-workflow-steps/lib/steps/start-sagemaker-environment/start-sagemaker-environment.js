@@ -101,6 +101,14 @@ class StartSagemakerEnvironment extends StepBase {
 
   async getSageMakerService() {
     const [aws] = await this.mustFindServices(['aws']);
+    // increase retry defaults to reduce the risk of failures caused
+    // by throttles
+    aws.sdk.config.update({
+      maxRetries: 6, // default 3
+      retryDelayOptions: {
+        base: 300, // default 100
+      },
+    });
 
     const [requestContext, RoleArn, ExternalId] = await Promise.all([
       this.payload.object('requestContext'),

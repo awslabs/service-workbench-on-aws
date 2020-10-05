@@ -1,8 +1,0 @@
-id: st-stop-sagemaker-environment-sc
-v: 1
-title: Stop SageMaker Environment
-desc: |
-  Stop a SageMaker Jupyter Notebook.
-
-skippable: true # this means that if there is an error in a previous step, then this step will be skipped
-hidden: true

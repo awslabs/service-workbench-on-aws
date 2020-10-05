@@ -1,8 +1,0 @@
-id: st-start-sagemaker-environment-sc
-v: 1
-title: Start SageMaker Environment
-desc: |
-  Start a SageMaker Jupyter Notebook.
-
-skippable: true # this means that if there is an error in a previous step, then this step will be skipped
-hidden: true
