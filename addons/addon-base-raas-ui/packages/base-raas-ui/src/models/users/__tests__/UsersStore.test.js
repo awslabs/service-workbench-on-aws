@@ -24,11 +24,13 @@ jest.mock('../../../helpers/api');
 describe('UsersStore', () => {
   let store = null;
   const appContext = {};
+  const uid = 'u-exampleUserId';
   const exampleUser = {
-    firstName: 'Ash',
-    lastName: 'Ketchum',
-    username: 'satoshi',
-    ns: 'satoshi.025',
+    uid,
+    firstName: 'ExampleFn',
+    lastName: 'ExampleLn',
+    username: 'example',
+    ns: 'example.025',
   };
 
   beforeEach(async () => {
@@ -58,10 +60,11 @@ describe('UsersStore', () => {
       // BUILD
       getUsers.mockResolvedValueOnce([]);
       const otherUser = {
-        firstName: 'Gary',
-        lastName: 'Oak',
-        username: 'shigeru',
-        ns: 'shigeru.009',
+        uid: 'u-exampleUserId2',
+        firstName: 'ExampleFn2',
+        lastName: 'ExampleLn2',
+        username: 'example2',
+        ns: 'example2.025',
       };
 
       addUser.mockResolvedValueOnce(exampleUser).mockResolvedValueOnce(otherUser);
@@ -88,10 +91,11 @@ describe('UsersStore', () => {
     it('should update the user', async () => {
       // BUILD
       const updatedExampleUser = {
-        firstName: 'brock',
-        lastName: 'takeshi',
-        username: 'satoshi',
-        ns: 'satoshi.025',
+        uid,
+        firstName: 'ExampleFnUpdated',
+        lastName: 'ExampleLnUpdated',
+        username: 'example',
+        ns: 'example.025',
       };
       getUsers.mockResolvedValueOnce([exampleUser]);
       updateUser.mockResolvedValueOnce(updatedExampleUser);

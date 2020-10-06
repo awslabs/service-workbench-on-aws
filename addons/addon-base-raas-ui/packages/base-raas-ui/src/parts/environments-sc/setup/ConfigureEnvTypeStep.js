@@ -4,6 +4,10 @@ import { decorate, computed, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { Icon, Header, Segment, Button } from 'semantic-ui-react';
 
+import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
+import { isStoreEmpty, isStoreError, isStoreLoading } from '@aws-ee/base-ui/dist/models/BaseStore';
+import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
 import CreateInternalEnvForm from './CreateInternalEnvForm';
 
 // expected props
@@ -18,6 +22,8 @@ import CreateInternalEnvForm from './CreateInternalEnvForm';
 class ConfigureEnvTypeStep extends React.Component {
   componentDidMount() {
     window.scrollTo(0, 0);
+
+    swallowError(this.envTypeConfigsStore.load());
   }
 
   get envTypeId() {
@@ -44,9 +50,12 @@ class ConfigureEnvTypeStep extends React.Component {
     return this.props.scEnvironmentsStore;
   }
 
+  get envTypeConfigsStore() {
+    return this.envTypesStore.getEnvTypeConfigsStore(this.envTypeId);
+  }
+
   get configurations() {
-    const store = this.envTypesStore.getEnvTypeConfigsStore(this.envTypeId);
-    return store.list;
+    return this.envTypeConfigsStore.list;
   }
 
   get defaultCidr() {
@@ -72,18 +81,30 @@ class ConfigureEnvTypeStep extends React.Component {
   };
 
   render() {
-    // Note: we assume that whatever component that is including this component, has
-    // already loaded and verified that the envTypesStore has no errors
-    const configurations = this.configurations;
+    const store = this.envTypeConfigsStore;
     let content = null;
 
-    if (_.isEmpty(configurations)) {
+    if (isStoreError(store)) {
+      content = this.renderLoadingError();
+    } else if (isStoreLoading(store)) {
+      content = <BasicProgressPlaceholder className="mt2" />;
+    } else if (isStoreEmpty(store)) {
       content = this.renderEmpty();
     } else {
       content = this.renderContent();
     }
 
     return content;
+  }
+
+  renderLoadingError() {
+    const store = this.envTypeConfigsStore;
+    return (
+      <>
+        <ErrorBox error={store.error} className="p0 mt2 mb3" />
+        {this.renderButtons()}
+      </>
+    );
   }
 
   renderContent() {

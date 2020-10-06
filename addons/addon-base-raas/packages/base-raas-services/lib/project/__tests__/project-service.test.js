@@ -85,7 +85,7 @@ describe('ProjectService', () => {
         id: 'my-new-project',
         description: 'Some relevant description',
         indexId: '123',
-        projectAdmins: ['test@example.com'], // projectAdmins is not an object list
+        projectAdmins: [{ username: 'un', ns: 'ns' }], // projectAdmins is not an object list, the service expects this to be an array of uid
       };
 
       try {
@@ -97,7 +97,7 @@ describe('ProjectService', () => {
         expect(error).toMatchObject({
           keyword: 'type',
           dataPath: '.projectAdmins[0]',
-          message: 'should be object',
+          message: 'should be string',
         });
       }
     });

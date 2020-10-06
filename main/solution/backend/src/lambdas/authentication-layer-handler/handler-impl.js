@@ -65,7 +65,7 @@ module.exports = function newHandler({ authenticationService = noopAuthenticatio
       throw newUnauthorizedError();
     }
     return customAuthorizerResponse({
-      principalId: claims.username,
+      principalId: claims.uid,
       policyDocument: buildRestApiPolicy(methodArn, 'Allow'),
       context: sanitizeResponseContext(claims),
     });

@@ -23,7 +23,7 @@ const createSchema = require('../schema/create-indexes');
 const updateSchema = require('../schema/update-indexes');
 
 const settingKeys = {
-  tableName: 'dbTableIndexes',
+  tableName: 'dbIndexes',
 };
 
 class IndexesService extends Service {
@@ -80,7 +80,7 @@ class IndexesService extends Service {
     await validationService.ensureValid(rawData, createSchema);
 
     // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     const id = rawData.id;
 
     // Prepare the db object
@@ -120,7 +120,7 @@ class IndexesService extends Service {
     await validationService.ensureValid(rawData, updateSchema);
 
     // For now, we assume that 'updatedBy' is always a user and not a group
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     const { id, rev } = rawData;
 
     // Prepare the db object
@@ -144,9 +144,7 @@ class IndexesService extends Service {
         const existing = await this.find(requestContext, { id, fields: ['id', 'updatedBy'] });
         if (existing) {
           throw this.boom.badRequest(
-            `indexes information changed by "${
-              (existing.updatedBy || {}).username
-            }" just before your request is processed, please try again`,
+            `indexes information changed just before your request is processed, please try again`,
             true,
           );
         }

@@ -5,7 +5,7 @@ postDeployment:
   description: The Post Deployment handler that executes post deployment tasks
   timeout: 900 # 15 min timeout
   environment:
-    APP_DB_TABLE_DEPLOYMENT_STORE: ${self:custom.settings.dbTableDeploymentStore}
+    APP_DB_DEPLOYMENT_STORE: ${self:custom.settings.dbDeploymentStore}
     APP_ROOT_USER_NAME: ${self:custom.settings.rootUserName}
     APP_ROOT_USER_FIRST_NAME: ${self:custom.settings.rootUserFirstName}
     APP_ROOT_USER_LAST_NAME: ${self:custom.settings.rootUserLastName}

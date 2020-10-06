@@ -25,25 +25,25 @@ import c from 'classnames';
 // - skipPrefix (via props) default to false
 // - className (via props)
 class By extends React.Component {
-  get user() {
-    return this.props.user;
+  get uid() {
+    return this.props.uid;
   }
 
-  get userDisplayNameService() {
+  get userDisplayName() {
     return this.props.userDisplayName;
   }
 
   render() {
     const skipPrefix = this.props.skipPrefix;
-    const user = this.user;
-    const displayNameService = this.userDisplayNameService;
-    const isSystem = displayNameService.isSystem(user);
+    const uid = this.uid;
+    const userDisplayName = this.userDisplayName;
+    const isSystem = userDisplayName.isSystem({ uid });
     return isSystem ? (
       ''
     ) : (
       <span className={c(this.props.className)}>
         {skipPrefix ? '' : 'by '}
-        {displayNameService.getDisplayName(user)}
+        {userDisplayName.getDisplayName({ uid })}
       </span>
     );
   }

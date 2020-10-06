@@ -19,15 +19,17 @@ import { Step, Icon } from 'semantic-ui-react';
 
 // expected props
 // currentStep an instance of the CurrentStep model
-const Component = observer(({ currentStep = {} }) => {
+const Component = observer(({ currentStep = {}, envTypeImmutable = false }) => {
   let activeIndex;
   const step = currentStep.step;
 
   switch (step) {
     case 'selectComputePlatform':
+    case 'selectEnvType':
       activeIndex = 1;
       break;
     case 'selectComputeConfiguration':
+    case 'selectEnvConfig':
       activeIndex = 2;
       break;
     default:
@@ -43,13 +45,15 @@ const Component = observer(({ currentStep = {} }) => {
           <Step.Description>Select the desired studies</Step.Description>
         </Step.Content>
       </Step>
-      <Step active={activeIndex === 1} disabled={activeIndex < 1}>
-        <Icon name="server" />
-        <Step.Content>
-          <Step.Title>Select Compute</Step.Title>
-          <Step.Description>Select a compute platform</Step.Description>
-        </Step.Content>
-      </Step>
+      {!envTypeImmutable && (
+        <Step active={activeIndex === 1} disabled={activeIndex < 1}>
+          <Icon name="server" />
+          <Step.Content>
+            <Step.Title>Select Compute</Step.Title>
+            <Step.Description>Select a compute platform</Step.Description>
+          </Step.Content>
+        </Step>
+      )}
       <Step active={activeIndex === 2} disabled={activeIndex < 2}>
         <Icon name="hdd outline" />
         <Step.Content>

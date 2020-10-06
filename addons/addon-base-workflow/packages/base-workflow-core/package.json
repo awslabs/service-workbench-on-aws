@@ -10,7 +10,6 @@
     "@aws-ee/base-services-container": "workspace:*",
     "@aws-ee/workflow-engine": "workspace:*",
     "lodash": "^4.17.15",
-    "shortid": "^2.2.15",
     "slugify": "^1.4.0"
   },
   "devDependencies": {

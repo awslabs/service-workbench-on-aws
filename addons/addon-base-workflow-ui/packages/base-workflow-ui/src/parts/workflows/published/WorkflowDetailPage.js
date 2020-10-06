@@ -54,7 +54,7 @@ class WorkflowDetailPage extends React.Component {
     return this.props.workflowsStore.getWorkflowStore(workflowId);
   }
 
-  getUserDisplayNameService() {
+  getUserDisplayName() {
     return this.props.userDisplayName;
   }
 
@@ -125,9 +125,10 @@ class WorkflowDetailPage extends React.Component {
   renderMain() {
     const version = this.getVersion();
     const { id, title, updatedAt, updatedBy, descHtml } = version;
-    const displayNameService = this.getUserDisplayNameService();
-    const isSystem = displayNameService.isSystem(updatedBy);
-    const by = () => (isSystem ? '' : <span className="ml1">by {displayNameService.getDisplayName(updatedBy)}</span>);
+    const userDisplayName = this.getUserDisplayName();
+    const isSystem = userDisplayName.isSystem({ uid: updatedBy });
+    const by = () =>
+      isSystem ? '' : <span className="ml1">by {userDisplayName.getDisplayName({ uid: updatedBy })}</span>;
 
     const uiState = this.getState();
 

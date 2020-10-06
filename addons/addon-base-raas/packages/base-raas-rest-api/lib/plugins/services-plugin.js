@@ -46,7 +46,7 @@ const EnvironmentConfigVarsService = require('@aws-ee/base-raas-services/lib/env
 const EnvironmentScKeypairService = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-keypair-service');
 
 const settingKeys = {
-  tablePrefix: 'dbTablePrefix',
+  tablePrefix: 'dbPrefix',
 };
 
 /**
@@ -115,16 +115,16 @@ function getStaticSettings(existingStaticSettings, settings, pluginRegistry) {
   const table = (key, suffix) => {
     staticSettings[key] = `${tablePrefix}-${suffix}`;
   };
-  table('dbTableStudies', 'DbStudies');
-  table('dbTableEnvironments', 'DbEnvironments');
-  table('dbTableEnvironmentsSc', 'DbEnvironmentsSc');
-  table('dbTableUserRoles', 'DbUserRoles');
-  table('dbTableAwsAccounts', 'DbAwsAccounts');
-  table('dbTableIndexes', 'DbIndexes');
-  table('dbTableCostApiCaches', 'DbCostApiCaches');
-  table('dbTableAccounts', 'DbAccounts');
-  table('dbTableProjects', 'DbProjects');
-  table('dbTableStudyPermissions', 'DbStudyPermissions');
+  table('dbStudies', 'Studies');
+  table('dbEnvironments', 'Environments');
+  table('dbEnvironmentsSc', 'EnvironmentsSc');
+  table('dbUserRoles', 'UserRoles');
+  table('dbAwsAccounts', 'AwsAccounts');
+  table('dbIndexes', 'Indexes');
+  table('dbCostApiCaches', 'CostApiCaches');
+  table('dbAccounts', 'Accounts');
+  table('dbProjects', 'Projects');
+  table('dbStudyPermissions', 'StudyPermissions');
 
   return staticSettings;
 }

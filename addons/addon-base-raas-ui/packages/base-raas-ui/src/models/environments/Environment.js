@@ -17,7 +17,6 @@ import _ from 'lodash';
 import { types, applySnapshot } from 'mobx-state-tree';
 import { uiEventBus } from '@aws-ee/base-ui/dist/models/SessionStore';
 import { storage } from '@aws-ee/base-ui/dist/helpers/utils';
-import UserIdentifier from '@aws-ee/base-ui/dist/models/users/UserIdentifier';
 
 import { InstanceInfo } from './InstanceInfo';
 import { getEnvironmentKeypair, getEnvironmentUrl, getEnvironmentPasswordData } from '../../helpers/api';
@@ -48,15 +47,15 @@ const Environment = types
     indexId: '',
     projectId: '',
     createdAt: '',
-    createdBy: types.optional(UserIdentifier, {}),
+    createdBy: '',
     updatedAt: '',
-    updatedBy: types.optional(UserIdentifier, {}),
-    costs: types.array(environmentCost, []),
+    updatedBy: '',
+    costs: types.optional(types.array(environmentCost), []),
     fetchingUrl: types.optional(types.boolean, false),
     error: types.maybeNull(types.string),
     isExternal: types.optional(types.boolean, false),
     stackId: types.maybeNull(types.string),
-    sharedWithUsers: types.array(UserIdentifier, []),
+    sharedWithUsers: types.optional(types.array(types.string), []),
   })
   .actions(self => ({
     setEnvironment(rawEnvironment) {

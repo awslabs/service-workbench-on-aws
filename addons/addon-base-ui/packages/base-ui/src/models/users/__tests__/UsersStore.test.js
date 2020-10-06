@@ -21,12 +21,15 @@ jest.mock('../../../helpers/api');
 describe('UsersStore', () => {
   let store = null;
   const appContext = {};
+  const uid = 'u-exampleUserId';
+
   const newUser = {
-    firstName: 'gordon',
-    lastName: 'freeman',
-    username: 'gf_lambda',
-    ns: 'gf_lambda.xen',
-    email: 'gfreeman@example.com',
+    uid,
+    firstName: 'exampleFn',
+    lastName: 'exampleLn',
+    username: 'example',
+    ns: 'example',
+    email: 'example@example.com',
     userType: 'Researcher',
     isAdmin: true,
     authenticationProviderId: 'black_mesa', // Id of the authentication provider this user is authenticated against (such as internal, cognito auth provider id etc)
@@ -37,11 +40,12 @@ describe('UsersStore', () => {
   };
 
   const updatedUser = {
-    firstName: 'G-man',
+    uid,
+    firstName: 'exampleFnUpdated',
     lastName: 'unknown',
-    username: 'gf_lambda',
-    ns: 'gf_lambda.xen',
-    email: 'redacted@example.com',
+    username: 'example',
+    ns: 'example',
+    email: 'example@example.com',
     userType: 'Administrator',
     isAdmin: true,
   };

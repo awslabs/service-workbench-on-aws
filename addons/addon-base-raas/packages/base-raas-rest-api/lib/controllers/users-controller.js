@@ -61,14 +61,14 @@ async function configure(context) {
   //  PUT /:username (mounted to /api/users)
   // ===============================================================
   router.put(
-    '/:username',
+    '/:uid',
     wrap(async (req, res) => {
       const requestContext = res.locals.requestContext;
-      const username = req.params.username;
+      const uid = req.params.uid;
       const userInBody = req.body || {};
       const user = await userService.updateUser(requestContext, {
         ...userInBody,
-        username,
+        uid,
       });
       res.status(200).json(user);
     }),
@@ -76,6 +76,7 @@ async function configure(context) {
 
   // ===============================================================
   //  PUT /:username/password (mounted to /api/users)
+  //  In this case it is relevant to identify user by username/authProvider
   // ===============================================================
   router.put(
     '/:username/password',
@@ -91,20 +92,17 @@ async function configure(context) {
   );
 
   // ===============================================================
-  //  DELETE /:id (mounted to /api/users)
+  //  DELETE /:uid (mounted to /api/users)
   // ===============================================================
   router.delete(
-    '/:username',
+    '/:uid',
     wrap(async (req, res) => {
       const requestContext = res.locals.requestContext;
-      const { username } = req.params;
-      const { authenticationProviderId, identityProviderName } = req.body;
-      await userService.deleteUser(requestContext, {
-        username,
-        authenticationProviderId,
-        identityProviderName,
+      const { uid } = req.params;
+      const deletedUser = await userService.deleteUser(requestContext, {
+        uid,
       });
-      res.status(200).json({ message: `user ${username} deleted` });
+      res.status(200).json({ message: `user ${deletedUser.username} deleted` });
     }),
   );
 

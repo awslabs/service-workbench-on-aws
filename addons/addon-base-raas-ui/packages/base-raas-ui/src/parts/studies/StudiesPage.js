@@ -75,7 +75,11 @@ class StudiesPage extends React.Component {
   }
 
   handleNext = () => {
-    this.goto('/studies/setup-workspace');
+    if (this.envTypeId) {
+      this.goto(`/studies/setup-workspace/type/${encodeURIComponent(this.envTypeId)}`);
+    } else {
+      this.goto('/studies/setup-workspace');
+    }
   };
 
   render() {
@@ -106,7 +110,7 @@ class StudiesPage extends React.Component {
   }
 
   renderStepsProgress() {
-    return <StudyStepsProgress />;
+    return <StudyStepsProgress envTypeImmutable={!!this.envTypeId} />;
   }
 
   renderStudyTabs() {
@@ -190,6 +194,19 @@ class StudiesPage extends React.Component {
           Next
           <Icon name="right arrow" />
         </Button>
+        {// If envTypeId is present then it means we landed on this page after
+        // env type selection from workspace-type-management page.
+        // Show previous button in this case to allow to go back to workspace-type-management screen
+        this.envTypeId && (
+          <Button
+            floated="right"
+            icon="left arrow"
+            labelPosition="left"
+            className="ml2"
+            content="Previous"
+            onClick={this.handlePrevious}
+          />
+        )}
         <div className="mt1">
           <span>
             Selected studies
@@ -221,9 +238,30 @@ class StudiesPage extends React.Component {
           Next
           <Icon name="right arrow" />
         </Button>
+        {// If envTypeId is present then it means we landed on this page after
+        // env type selection from workspace-type-management page.
+        // Show previous button in this case to allow to go back to workspace-type-management screen
+        this.envTypeId && (
+          <Button
+            floated="right"
+            icon="left arrow"
+            labelPosition="left"
+            className="ml2"
+            content="Previous"
+            onClick={this.handlePrevious}
+          />
+        )}
         <div className="mt1">{content}</div>
       </Message>
     );
+  }
+
+  handlePrevious = () => {
+    this.goto('/workspace-types-management');
+  };
+
+  get envTypeId() {
+    return (this.props.match.params || {}).envTypeId;
   }
 }
 

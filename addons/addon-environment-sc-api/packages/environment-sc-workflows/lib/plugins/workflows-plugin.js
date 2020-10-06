@@ -14,12 +14,23 @@
  */
 
 const provisionEnvironmentScYaml = require('../workflows/provision-environment-sc.yml');
+const startEC2ScYaml = require('../workflows/start-ec2-environment-sc.yml');
+const stopEC2ScYaml = require('../workflows/stop-ec2-environment-sc.yml');
+const startSageMakerScYaml = require('../workflows/start-sagemaker-environment-sc.yml');
+const stopSageMakerScYaml = require('../workflows/stop-sagemaker-environment-sc.yml');
 const terminateEnvironmentScYaml = require('../workflows/terminate-environment-sc.yml');
 
 const add = yaml => ({ yaml });
 
 // The order is important, add your templates here
-const workflows = [add(provisionEnvironmentScYaml), add(terminateEnvironmentScYaml)];
+const workflows = [
+  add(provisionEnvironmentScYaml),
+  add(startEC2ScYaml),
+  add(stopEC2ScYaml),
+  add(startSageMakerScYaml),
+  add(stopSageMakerScYaml),
+  add(terminateEnvironmentScYaml),
+];
 
 async function registerWorkflows(registry) {
   // eslint-disable-next-line no-restricted-syntax

@@ -67,12 +67,7 @@ describe('studyPermissionService', () => {
     // ** This function has no input validation **
     it('should fail because a permission record already exists', async () => {
       // BUILD
-      const context = {
-        principalIdentifier: {
-          username: 'daffyduck',
-          ns: 'daffyduck.ltunes',
-        },
-      };
+      const context = { principalIdentifier: { uid: 'u-daffyduck' } };
 
       dbService.table.update.mockImplementationOnce(() => {
         throw error;
@@ -87,21 +82,71 @@ describe('studyPermissionService', () => {
       }
     });
 
-    it('should try to create a study permission', async () => {
+    it('should try to create a study permission for new write permissions', async () => {
       // BUILD
-      const context = {
-        principalIdentifier: {
-          username: 'elmerfudd',
-          ns: 'elmerfudd.ltunes',
-        },
-      };
+      const context = { principalIdentifier: { uid: 'u-elmerfudd' } };
 
       const retVal = {
         id: 'Study:bugsbunny',
         recordType: 'study',
-        adminUsers: [context.principalIdentifier],
+        adminUsers: [context.principalIdentifier.uid],
         readonlyUsers: [],
-        createdBy: context.principalIdentifier,
+        writeonlyUsers: [],
+        readwriteUsers: [],
+        createdBy: context.principalIdentifier.uid,
+      };
+
+      const studyPermissionRecord = {
+        id: 'Study:bugsbunny',
+        recordType: 'study',
+        adminUsers: [context.principalIdentifier.uid],
+        readonlyUsers: [],
+        writeonlyUsers: [],
+        readwriteUsers: [],
+        createdBy: context.principalIdentifier.uid,
+      };
+
+      const userPermissionRecord = {
+        id: 'User:u-elmerfudd',
+        recordType: 'user',
+        uid: context.principalIdentifier.uid,
+        adminAccess: ['bugsbunny'],
+        readonlyAccess: [],
+        writeonlyAccess: [],
+        readwriteAccess: [],
+      };
+
+      dbService.table.update.mockReturnValueOnce(retVal);
+
+      // OPERATE
+      const result = await service.create(context, 'bugsbunny');
+
+      // CHECK
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'User:u-elmerfudd' });
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'Study:bugsbunny' });
+      expect(dbService.table.item).toHaveBeenCalledWith(studyPermissionRecord);
+      expect(dbService.table.item).toHaveBeenCalledWith(userPermissionRecord);
+      expect(result).toEqual({
+        id: 'bugsbunny',
+        recordType: undefined,
+        adminUsers: [context.principalIdentifier.uid],
+        readonlyUsers: [],
+        writeonlyUsers: [],
+        readwriteUsers: [],
+        createdBy: context.principalIdentifier.uid,
+      });
+    });
+
+    it('should try to create a study permission', async () => {
+      // BUILD
+      const context = { principalIdentifier: { uid: 'u-elmerfudd' } };
+
+      const retVal = {
+        id: 'Study:bugsbunny',
+        recordType: 'study',
+        adminUsers: [context.principalIdentifier.uid],
+        readonlyUsers: [],
+        createdBy: context.principalIdentifier.uid,
       };
 
       dbService.table.update.mockReturnValueOnce(retVal);
@@ -112,9 +157,9 @@ describe('studyPermissionService', () => {
       expect(result).toEqual({
         id: 'bugsbunny',
         recordType: undefined,
-        adminUsers: [context.principalIdentifier],
+        adminUsers: [context.principalIdentifier.uid],
         readonlyUsers: [],
-        createdBy: context.principalIdentifier,
+        createdBy: context.principalIdentifier.uid,
       });
     });
   });
@@ -123,10 +168,7 @@ describe('studyPermissionService', () => {
     it('should fail due to missing permissionLevel value', async () => {
       // BUILD
       const user = {
-        principalIdentifier: {
-          ns: 'yosemitesam.looneytunes',
-          username: 'yosemitesam',
-        },
+        uid: 'u-yosemitesam',
       };
 
       const updateRequest = {
@@ -147,18 +189,12 @@ describe('studyPermissionService', () => {
     it('should fail because all admins were removed', async () => {
       // BUILD
       const user1 = {
-        principalIdentifier: {
-          ns: 'tweetybird.looneytunes',
-          username: 'tweetybird',
-        },
+        uid: 'u-tweetybird',
         permissionLevel: 'readonly',
       };
 
       const user2 = {
-        principalIdentifier: {
-          ns: 'porkypig.looneytunes',
-          username: 'porkypig',
-        },
+        uid: 'u-porkypig',
         permissionLevel: 'admin',
       };
 
@@ -168,7 +204,7 @@ describe('studyPermissionService', () => {
       };
 
       service.findByStudy = jest.fn().mockResolvedValue({
-        adminUsers: [{ ns: user2.principalIdentifier.ns, username: user2.principalIdentifier.username }],
+        adminUsers: [user2.uid],
         readonlyUsers: [],
       });
 
@@ -185,10 +221,7 @@ describe('studyPermissionService', () => {
     it('should succeed', async () => {
       // BUILD
       const user1 = {
-        principalIdentifier: {
-          ns: 'speedygonzales.looneytunes',
-          username: 'speedygonzales',
-        },
+        uid: 'u-someUserId',
         permissionLevel: 'readonly',
       };
 
@@ -200,15 +233,15 @@ describe('studyPermissionService', () => {
       service.findByStudy = jest.fn().mockResolvedValue({
         id: 'studyEXAMPLE',
         recordType: 'TEST',
-        adminUsers: [{ ns: 'efudd.looneytunes', username: 'efudd' }],
+        adminUsers: ['u-efudd'],
         readonlyUsers: [],
       });
 
       dbService.table.update.mockReturnValueOnce({
         id: 'study:EXAMPLE',
         recordType: 'TEST',
-        adminUsers: [{ ns: 'efudd.looneytunes', username: 'efudd' }],
-        readonlyUsers: [{ ns: 'speedygonzales.looneytunes', username: 'speedygonzales' }],
+        adminUsers: ['u-someAdminUserId'],
+        readonlyUsers: ['u-someUserId'],
       });
 
       // OPERATE
@@ -218,23 +251,370 @@ describe('studyPermissionService', () => {
       expect(dbService.table.update).toHaveBeenCalled();
       expect(res).toMatchObject({ id: 'EXAMPLE' });
     });
+
+    it('update permissions should fail if same user is specified multiple non-admin permissions', async () => {
+      // BUILD
+      const multiplePermissionsUserWithReadOnly = {
+        uid: 'u-speedygonzales.looneytunes.multiple',
+        permissionLevel: 'readonly',
+      };
+
+      const multiplePermissionsUserWithWriteOnly = {
+        uid: 'u-speedygonzales.looneytunes.multiple',
+        permissionLevel: 'writeonly',
+      };
+
+      const readonlyuser = {
+        uid: 'u-speedygonzales.looneytunes.readonly',
+        permissionLevel: 'readonly',
+      };
+
+      const readwriteuser = {
+        uid: 'u-speedygonzales.looneytunes.readwrite',
+        permissionLevel: 'readwrite',
+      };
+
+      const writeonlyuser = {
+        uid: 'u-speedygonzales.looneytunes.writeonly',
+        permissionLevel: 'writeonly',
+      };
+
+      const updateRequest = {
+        usersToAdd: [
+          readonlyuser,
+          readwriteuser,
+          writeonlyuser,
+          multiplePermissionsUserWithWriteOnly,
+          multiplePermissionsUserWithReadOnly,
+        ],
+        usersToRemove: [],
+      };
+
+      service.findByStudy = jest.fn().mockResolvedValue({
+        id: 'studyId',
+        recordType: 'TEST',
+        adminUsers: ['u-efudd'],
+        readonlyUsers: [],
+      });
+
+      dbService.table.update.mockReturnValueOnce({
+        id: 'Study:studyId',
+        recordType: 'TEST',
+        adminUsers: ['u-efudd'],
+        readonlyUsers: ['u-speedygonzales.readonly'],
+        writeonlyUsers: ['u-speedygonzales.writeonly'],
+        readwriteUsers: ['u-speedygonzales.readwrite'],
+      });
+
+      // OPERATE
+      try {
+        await service.update({}, 'studyId', updateRequest);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual(
+          'User u-speedygonzales.looneytunes.multiple cannot have multiple permissions: readonly,writeonly',
+        );
+      }
+    });
+
+    it('update permissions for study with multiple admins', async () => {
+      // BUILD
+      const admin1 = {
+        uid: 'u-speedygonzales.admin1',
+        permissionLevel: 'admin',
+      };
+
+      const admin2 = {
+        uid: 'u-speedygonzales.admin2',
+        permissionLevel: 'admin',
+      };
+
+      const writeonlyadmin = {
+        uid: 'u-speedygonzales.admin1',
+        permissionLevel: 'writeonly',
+      };
+
+      const updateRequest = {
+        usersToAdd: [admin1, admin2, writeonlyadmin],
+        usersToRemove: [],
+      };
+
+      const studyPermissionRecord = {
+        id: 'studyId',
+        recordType: 'TEST',
+        adminUsers: ['u-efudd', 'u-speedygonzales.admin1', 'u-speedygonzales.admin2'],
+        readonlyUsers: [],
+        updatedBy: undefined,
+        writeonlyUsers: ['u-speedygonzales.admin1'],
+        readwriteUsers: [],
+      };
+
+      const admin1UserPermission = {
+        id: 'User:u-speedygonzales.admin1',
+        recordType: 'user',
+        uid: 'u-speedygonzales.admin1',
+        adminAccess: ['studyId'],
+        readonlyAccess: [],
+        writeonlyAccess: ['studyId'],
+        readwriteAccess: [],
+      };
+
+      const admin2UserPermission = {
+        id: 'User:u-speedygonzales.admin2',
+        recordType: 'user',
+        uid: 'u-speedygonzales.admin2',
+        adminAccess: ['studyId'],
+        readonlyAccess: [],
+        writeonlyAccess: [],
+        readwriteAccess: [],
+      };
+
+      service.findByStudy = jest.fn().mockResolvedValue({
+        id: 'studyId',
+        recordType: 'TEST',
+        adminUsers: ['u-efudd'],
+        readonlyUsers: [],
+      });
+
+      service.findByUser = jest.fn().mockImplementation((_, key) => {
+        switch (key) {
+          case 'u-speedygonzales.admin1':
+            return {
+              id: 'User:u-speedygonzales.admin1',
+              recordType: 'user',
+              uid: 'u-speedygonzales.admin1',
+              adminAccess: ['studyId'],
+              readonlyAccess: [],
+              writeonlyAccess: [],
+              readwriteAccess: [],
+            };
+          default:
+            return undefined;
+        }
+      });
+
+      dbService.table.update.mockReturnValueOnce({
+        id: 'Study:studyId',
+        recordType: 'TEST',
+        adminUsers: ['u-efudd', 'u-speedygonzales.admin1', 'u-speedygonzales.admin2'],
+        readonlyUsers: [],
+        writeonlyUsers: ['u-speedygonzales.admin1'],
+        readwriteUsers: [],
+      });
+
+      // OPERATE
+      const res = await service.update({}, 'studyId', updateRequest);
+
+      // CHECK
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'User:u-speedygonzales.admin1' });
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'User:u-speedygonzales.admin2' });
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'Study:studyId' });
+      expect(dbService.table.item).toHaveBeenCalledWith(studyPermissionRecord);
+      expect(dbService.table.item).toHaveBeenCalledWith(admin1UserPermission);
+      expect(dbService.table.item).toHaveBeenCalledWith(admin2UserPermission);
+      expect(dbService.table.update).toHaveBeenCalled();
+      expect(res).toMatchObject({ id: 'studyId' });
+    });
+
+    it('update permissions for study that switched to readwrite', async () => {
+      // BUILD
+      const readonlyuser = {
+        uid: 'u-speedygonzales.readonly',
+        permissionLevel: 'readonly',
+      };
+
+      const readwriteuser = {
+        uid: 'u-speedygonzales.readwrite',
+        permissionLevel: 'readwrite',
+      };
+
+      const writeonlyuser = {
+        uid: 'u-speedygonzales.writeonly',
+        permissionLevel: 'writeonly',
+      };
+
+      const updateRequest = {
+        usersToAdd: [readonlyuser, readwriteuser, writeonlyuser],
+        usersToRemove: [],
+      };
+
+      const studyPermissionRecord = {
+        id: 'studyId',
+        recordType: 'TEST',
+        adminUsers: ['u-efudd'],
+        readonlyUsers: ['u-speedygonzales.readonly'],
+        updatedBy: undefined,
+        writeonlyUsers: ['u-speedygonzales.writeonly'],
+        readwriteUsers: ['u-speedygonzales.readwrite'],
+      };
+
+      const readOnlyUserPermission = {
+        id: 'User:u-speedygonzales.readonly',
+        recordType: 'user',
+        uid: 'u-speedygonzales.readonly',
+        adminAccess: [],
+        readonlyAccess: ['studyId'],
+        writeonlyAccess: [],
+        readwriteAccess: [],
+      };
+
+      const writeOnlyUserPermission = {
+        id: 'User:u-speedygonzales.writeonly',
+        recordType: 'user',
+        uid: 'u-speedygonzales.writeonly',
+        adminAccess: [],
+        readonlyAccess: [],
+        writeonlyAccess: ['studyId'],
+        readwriteAccess: [],
+      };
+
+      const readWriteUserPermission = {
+        id: 'User:u-speedygonzales.readwrite',
+        recordType: 'user',
+        uid: 'u-speedygonzales.readwrite',
+        adminAccess: [],
+        readonlyAccess: [],
+        writeonlyAccess: [],
+        readwriteAccess: ['studyId'],
+      };
+
+      service.findByStudy = jest.fn().mockResolvedValue({
+        id: 'studyId',
+        recordType: 'TEST',
+        adminUsers: ['u-efudd'],
+        readonlyUsers: [],
+      });
+
+      dbService.table.update.mockReturnValueOnce({
+        id: 'Study:studyId',
+        recordType: 'TEST',
+        adminUsers: ['u-efudd'],
+        readonlyUsers: ['u-speedygonzales.readonly'],
+        writeonlyUsers: ['u-speedygonzales.writeonly'],
+        readwriteUsers: ['u-speedygonzales.readwrite'],
+      });
+
+      // OPERATE
+      const res = await service.update({}, 'studyId', updateRequest);
+
+      // CHECK
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'User:u-speedygonzales.writeonly' });
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'User:u-speedygonzales.readonly' });
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'User:u-speedygonzales.readwrite' });
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'Study:studyId' });
+      expect(dbService.table.item).toHaveBeenCalledWith(studyPermissionRecord);
+      expect(dbService.table.item).toHaveBeenCalledWith(readOnlyUserPermission);
+      expect(dbService.table.item).toHaveBeenCalledWith(readWriteUserPermission);
+      expect(dbService.table.item).toHaveBeenCalledWith(writeOnlyUserPermission);
+      expect(dbService.table.update).toHaveBeenCalled();
+      expect(res).toMatchObject({ id: 'studyId' });
+    });
+
+    it('remove permissions for readwrite users', async () => {
+      // BUILD
+      const readonlyuser = {
+        uid: 'u-speedygonzales.readonly',
+        permissionLevel: 'readonly',
+      };
+
+      const readwriteuser = {
+        uid: 'u-speedygonzales.readwrite',
+        permissionLevel: 'readwrite',
+      };
+
+      const writeonlyuser = {
+        uid: 'u-speedygonzales.writeonly',
+        permissionLevel: 'writeonly',
+      };
+
+      const updateRequest = {
+        usersToAdd: [readonlyuser],
+        usersToRemove: [readwriteuser, writeonlyuser],
+      };
+
+      const studyPermissionRecord = {
+        id: 'studyId',
+        recordType: 'TEST',
+        adminUsers: ['u-efudd'],
+        readonlyUsers: ['u-speedygonzales.readonly'],
+        updatedBy: undefined,
+        writeonlyUsers: [],
+        readwriteUsers: [],
+      };
+
+      const readOnlyUserPermission = {
+        id: 'User:u-speedygonzales.readonly',
+        recordType: 'user',
+        uid: 'u-speedygonzales.readonly',
+        adminAccess: [],
+        readonlyAccess: ['studyId'],
+        writeonlyAccess: [],
+        readwriteAccess: [],
+      };
+
+      const writeOnlyUserPermissionRemoved = {
+        id: 'User:u-speedygonzales.writeonly',
+        recordType: 'user',
+        uid: 'u-speedygonzales.writeonly',
+        adminAccess: [],
+        readonlyAccess: [],
+        writeonlyAccess: [],
+        readwriteAccess: [],
+      };
+
+      const readWriteUserPermissionRemoved = {
+        id: 'User:u-speedygonzales.readwrite',
+        recordType: 'user',
+        uid: 'u-speedygonzales.readwrite',
+        adminAccess: [],
+        readonlyAccess: [],
+        writeonlyAccess: [],
+        readwriteAccess: [],
+      };
+
+      service.findByStudy = jest.fn().mockResolvedValue({
+        id: 'studyId',
+        recordType: 'TEST',
+        adminUsers: ['u-efudd'],
+        readonlyUsers: [],
+      });
+
+      dbService.table.update.mockReturnValueOnce({
+        id: 'Study:studyId',
+        recordType: 'TEST',
+        adminUsers: ['u-efudd'],
+        readonlyUsers: ['u-speedygonzales.readonly'],
+        writeonlyUsers: ['u-speedygonzales.writeonly'],
+        readwriteUsers: ['u-speedygonzales.readwrite'],
+      });
+
+      // OPERATE
+      const res = await service.update({}, 'studyId', updateRequest);
+
+      // CHECK
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'User:u-speedygonzales.writeonly' });
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'User:u-speedygonzales.readonly' });
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'User:u-speedygonzales.readwrite' });
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'Study:studyId' });
+      expect(dbService.table.item).toHaveBeenCalledWith(studyPermissionRecord);
+      expect(dbService.table.item).toHaveBeenCalledWith(readOnlyUserPermission);
+      expect(dbService.table.item).toHaveBeenCalledWith(readWriteUserPermissionRemoved);
+      expect(dbService.table.item).toHaveBeenCalledWith(writeOnlyUserPermissionRemoved);
+      expect(dbService.table.update).toHaveBeenCalled();
+      expect(res).toMatchObject({ id: 'studyId' });
+    });
   });
 
   describe('delete function', () => {
     it('passes', async () => {
       // BUILD
       const user1 = {
-        principalIdentifier: {
-          username: 'foghorn',
-          ns: 'foghorn.leghorn',
-        },
+        uid: 'u-foghorn',
         permissionLevel: 'admin',
       };
       const user2 = {
-        principalIdentifier: {
-          username: 'tweety',
-          ns: 'tweety.bird',
-        },
+        uid: 'u-tweety',
         permissionLevel: 'readonly',
       };
       const studyRecord = {
@@ -250,6 +630,306 @@ describe('studyPermissionService', () => {
       await service.delete(studyRecord, 'exampleStudyId');
       expect(service.upsertUserRecord).toHaveBeenCalledTimes(2);
       expect(dbService.table.delete).toHaveBeenCalled();
+    });
+
+    it('delete study with accessType defined as readwrite', async () => {
+      // BUILD
+      const adminUser = {
+        uid: 'u-foghorn',
+        permissionLevel: 'admin',
+      };
+      const writeOnlyUser = {
+        uid: 'u-tweety.writeonly',
+        permissionLevel: 'writeonly',
+      };
+      const readWriteUser = {
+        uid: 'u-tweety.readwrite',
+        permissionLevel: 'readwrite',
+      };
+      const studyRecord = {
+        adminUsers: [adminUser],
+        readonlyUsers: [],
+        writeonlyUsers: [writeOnlyUser],
+        readwriteUsers: [readWriteUser],
+      };
+
+      lockService.getLockKey = jest.fn();
+      service.findByStudy = jest.fn().mockResolvedValueOnce(studyRecord);
+      dbService.table.delete.mockResolvedValueOnce({ id: 'study:DELETETEST', recordType: 'extraneous' });
+      service.upsertUserRecord = jest.fn();
+
+      await service.delete(studyRecord, 'exampleStudyId');
+      expect(service.upsertUserRecord).toHaveBeenCalledTimes(3);
+      expect(dbService.table.delete).toHaveBeenCalled();
+    });
+  });
+
+  describe('verify requestor access', () => {
+    it('admin should have UPLOAD access', async () => {
+      // BUILD
+      const request = { principalIdentifier: { uid: 'u-speedygonzales' } };
+      service.findByUser = jest.fn().mockResolvedValue({
+        id: 'User:u-speedygonzales',
+        recordType: 'user',
+        uid: request.principalIdentifier.uid,
+        adminAccess: ['studyId'],
+        readonlyAccess: [],
+        writeonlyAccess: [],
+        readwriteAccess: [],
+      });
+
+      lockService.getLockKey = jest.fn();
+
+      // OPERATE
+      await service.verifyRequestorAccess(request, 'studyId', 'UPLOAD');
+      expect(service.findByUser).toHaveBeenCalled();
+    });
+
+    it('admin should have GET access', async () => {
+      // BUILD
+      const request = { principalIdentifier: { uid: 'u-speedygonzales' } };
+      service.findByUser = jest.fn().mockResolvedValue({
+        id: 'User:u-speedygonzales',
+        recordType: 'user',
+        uid: request.principalIdentifier.uid,
+        adminAccess: ['studyId'],
+        readonlyAccess: [],
+        writeonlyAccess: [],
+        readwriteAccess: [],
+      });
+
+      lockService.getLockKey = jest.fn();
+
+      // OPERATE
+      await service.verifyRequestorAccess(request, 'studyId', 'GET');
+      expect(service.findByUser).toHaveBeenCalled();
+    });
+
+    it('admin should have PUT access', async () => {
+      // BUILD
+      const request = { principalIdentifier: { uid: 'u-speedygonzales.admin1' } };
+      service.findByUser = jest.fn().mockResolvedValue({
+        id: 'User:u-speedygonzales.admin1',
+        recordType: 'user',
+        uid: request.principalIdentifier.uid,
+        adminAccess: ['studyId'],
+        readonlyAccess: [],
+      });
+
+      lockService.getLockKey = jest.fn();
+
+      // OPERATE
+      await service.verifyRequestorAccess(request, 'studyId', 'PUT');
+      expect(service.findByUser).toHaveBeenCalled();
+    });
+
+    it('writeonly user should have UPLOAD access', async () => {
+      // BUILD
+      const request = { principalIdentifier: { uid: 'u-speedygonzales' } };
+      service.findByUser = jest.fn().mockResolvedValue({
+        id: 'User:u-speedygonzales',
+        recordType: 'user',
+        uid: request.principalIdentifier.uid,
+        adminAccess: [],
+        readonlyAccess: [],
+        writeonlyAccess: ['studyId'],
+        readwriteAccess: [],
+      });
+
+      lockService.getLockKey = jest.fn();
+
+      // OPERATE
+      await service.verifyRequestorAccess(request, 'studyId', 'UPLOAD');
+      expect(service.findByUser).toHaveBeenCalled();
+    });
+
+    it('writeonly user should have GET access', async () => {
+      // BUILD
+      const request = { principalIdentifier: { uid: 'u-speedygonzales' } };
+      service.findByUser = jest.fn().mockResolvedValue({
+        id: 'User:u-speedygonzales',
+        recordType: 'user',
+        uid: request.principalIdentifier.uid,
+        adminAccess: [],
+        readonlyAccess: [],
+        writeonlyAccess: ['studyId'],
+        readwriteAccess: [],
+      });
+
+      lockService.getLockKey = jest.fn();
+
+      // OPERATE
+      await service.verifyRequestorAccess(request, 'studyId', 'GET');
+      expect(service.findByUser).toHaveBeenCalled();
+    });
+
+    it('writeonly user should not have PUT access', async () => {
+      // BUILD
+      const request = { principalIdentifier: { uid: 'u-speedygonzales' } };
+      service.findByUser = jest.fn().mockResolvedValue({
+        id: 'User:u-speedygonzales',
+        recordType: 'user',
+        uid: request.principalIdentifier.uid,
+        adminAccess: [],
+        readonlyAccess: [],
+        writeonlyAccess: ['studyId'],
+        readwriteAccess: [],
+      });
+
+      lockService.getLockKey = jest.fn();
+
+      // OPERATE
+      try {
+        await service.verifyRequestorAccess(request, 'studyId', 'PUT');
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('');
+      }
+    });
+
+    it('readwrite user should have UPLOAD access', async () => {
+      // BUILD
+      const request = { principalIdentifier: { uid: 'u-speedygonzales' } };
+      service.findByUser = jest.fn().mockResolvedValue({
+        id: 'User:u-speedygonzales',
+        recordType: 'user',
+        uid: request.principalIdentifier.uid,
+        adminAccess: [],
+        readonlyAccess: [],
+        writeonlyAccess: [],
+        readwriteAccess: ['studyId'],
+      });
+
+      lockService.getLockKey = jest.fn();
+
+      // OPERATE
+      await service.verifyRequestorAccess(request, 'studyId', 'UPLOAD');
+      expect(service.findByUser).toHaveBeenCalled();
+    });
+
+    it('readwrite user should have GET access', async () => {
+      // BUILD
+      const request = { principalIdentifier: { uid: 'u-speedygonzales' } };
+      service.findByUser = jest.fn().mockResolvedValue({
+        id: 'User:u-speedygonzales',
+        recordType: 'user',
+        uid: request.principalIdentifier.uid,
+        adminAccess: [],
+        readonlyAccess: [],
+        writeonlyAccess: [],
+        readwriteAccess: ['studyId'],
+      });
+
+      lockService.getLockKey = jest.fn();
+
+      // OPERATE
+      await service.verifyRequestorAccess(request, 'studyId', 'GET');
+      expect(service.findByUser).toHaveBeenCalled();
+    });
+
+    it('readwrite user should not have PUT access', async () => {
+      // BUILD
+      const request = { principalIdentifier: { uid: 'u-speedygonzales' } };
+      service.findByUser = jest.fn().mockResolvedValue({
+        id: 'User:u-speedygonzales',
+        recordType: 'user',
+        uid: request.principalIdentifier.uid,
+        adminAccess: [],
+        readonlyAccess: [],
+        writeonlyAccess: [],
+        readwriteAccess: ['studyId'],
+      });
+
+      lockService.getLockKey = jest.fn();
+
+      // OPERATE
+      try {
+        await service.verifyRequestorAccess(request, 'studyId', 'PUT');
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('');
+      }
+    });
+
+    it('readonly user should not have UPLOAD access', async () => {
+      // BUILD
+      const request = { principalIdentifier: { uid: 'u-speedygonzales' } };
+      service.findByUser = jest.fn().mockResolvedValue({
+        id: 'User:u-speedygonzales',
+        recordType: 'user',
+        uid: request.principalIdentifier.uid,
+        adminAccess: [],
+        readonlyAccess: ['studyId'],
+        writeonlyAccess: [],
+        readwriteAccess: [],
+      });
+
+      lockService.getLockKey = jest.fn();
+
+      // OPERATE
+      try {
+        await service.verifyRequestorAccess(request, 'studyId', 'UPLOAD');
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('');
+      }
+    });
+
+    it('readonly user should have GET access', async () => {
+      // BUILD
+      const request = { principalIdentifier: { uid: 'u-speedygonzales' } };
+      service.findByUser = jest.fn().mockResolvedValue({
+        id: 'User:u-speedygonzales',
+        recordType: 'user',
+        uid: request.principalIdentifier.uid,
+        adminAccess: [],
+        readonlyAccess: ['studyId'],
+        writeonlyAccess: [],
+        readwriteAccess: [],
+      });
+
+      lockService.getLockKey = jest.fn();
+
+      // OPERATE
+      await service.verifyRequestorAccess(request, 'studyId', 'GET');
+      expect(service.findByUser).toHaveBeenCalled();
+    });
+
+    it('readonly user should not have PUT access', async () => {
+      // BUILD
+      const request = { principalIdentifier: { uid: 'u-speedygonzales' } };
+      service.findByUser = jest.fn().mockResolvedValue({
+        id: 'User:u-u-speedygonzales',
+        recordType: 'user',
+        uid: request.principalIdentifier.uid,
+        adminAccess: [],
+        readonlyAccess: ['studyId'],
+      });
+
+      lockService.getLockKey = jest.fn();
+
+      // OPERATE
+      try {
+        await service.verifyRequestorAccess(request, 'studyId', 'PUT');
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('');
+      }
+    });
+
+    it('invalid action', async () => {
+      // OPERATE
+      try {
+        await service.verifyRequestorAccess({}, 'studyId', 'GARBAGE');
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Invalid action passed to verifyRequestorAccess(): GARBAGE');
+      }
     });
   });
 });

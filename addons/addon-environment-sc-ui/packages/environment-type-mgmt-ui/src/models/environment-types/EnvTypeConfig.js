@@ -14,7 +14,6 @@
  */
 
 import { types, applySnapshot, getEnv } from 'mobx-state-tree';
-import UserIdentifier from '@aws-ee/base-ui/dist/models/users/UserIdentifier';
 
 const KeyValuePair = types.model('KeyValuePair', {
   key: '',
@@ -35,9 +34,9 @@ const EnvTypeConfig = types
     params: types.optional(types.array(KeyValuePair), []),
     tags: types.optional(types.array(KeyValuePair), []),
     createdAt: '',
-    createdBy: types.optional(UserIdentifier, {}),
+    createdBy: '',
     updatedAt: '',
-    updatedBy: types.optional(UserIdentifier, {}),
+    updatedBy: '',
 
     // flag indicating if the env type config is allowed to be used
     // defaulting this to true as the API only returns those env type configs that are usable

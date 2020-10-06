@@ -15,7 +15,6 @@
 
 import _ from 'lodash';
 import { types, getEnv, applySnapshot, detach, clone } from 'mobx-state-tree';
-import UserIdentifier from '@aws-ee/base-ui/dist/models/users/UserIdentifier';
 import { generateId } from '@aws-ee/base-ui/dist/helpers/utils';
 
 import { WorkflowTemplateStep } from './WorkflowTemplateStep';
@@ -90,9 +89,9 @@ const WorkflowTemplateVersion = types
     v: types.number,
     rev: types.maybeNull(types.number),
     createdAt: '',
-    createdBy: types.optional(UserIdentifier, {}),
+    createdBy: '',
     updatedAt: '',
-    updatedBy: types.optional(UserIdentifier, {}),
+    updatedBy: '',
     title: '',
     desc: '',
     instanceTtl: types.maybeNull(types.number),

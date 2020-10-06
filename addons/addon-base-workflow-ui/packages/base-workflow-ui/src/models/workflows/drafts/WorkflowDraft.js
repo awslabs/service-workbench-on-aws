@@ -14,8 +14,6 @@
  */
 
 import { types, applySnapshot } from 'mobx-state-tree';
-import UserIdentifier from '@aws-ee/base-ui/dist/models/users/UserIdentifier';
-
 import { WorkflowVersion } from '../Workflow';
 
 // ==================================================================
@@ -25,11 +23,12 @@ const WorkflowDraft = types
   .model('WorkflowDraft', {
     id: types.identifier,
     rev: types.maybe(types.number),
-    username: '',
+    uid: '',
+    username: types.maybeNull(types.optional(types.string, '')),
     createdAt: '',
-    createdBy: types.optional(UserIdentifier, {}),
+    createdBy: '',
     updatedAt: '',
-    updatedBy: types.optional(UserIdentifier, {}),
+    updatedBy: '',
     workflowId: '',
     workflowVer: types.maybe(types.number),
     templateId: '',

@@ -37,6 +37,10 @@
           }
         }    
       ]
+    },
+    "accessType": {
+      "type": "string",
+      "enum": ["readonly", "readwrite"]
     }
   },
   "required": ["id", "rev"]

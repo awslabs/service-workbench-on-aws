@@ -42,6 +42,16 @@ class EnvTypeConfigCard extends Component {
           <Header as="h4">{envTypeConfig.name}</Header>
           <Card.Meta className="flex">
             <span className="flex-auto">{_.get(envTypeConfig, 'id')}</span>
+            <Button
+              basic
+              color="grey"
+              onClick={() => this.showCloneDialog()}
+              floated="right"
+              size="mini"
+              disabled={this.processing}
+            >
+              Clone
+            </Button>
           </Card.Meta>
           <Divider />
           <Card.Description>
@@ -72,16 +82,6 @@ class EnvTypeConfigCard extends Component {
             disabled={this.processing}
           >
             Delete
-          </Button>
-          <Button
-            basic
-            color="grey"
-            onClick={() => this.showCloneDialog()}
-            floated="left"
-            size="mini"
-            disabled={this.processing}
-          >
-            Clone
           </Button>
           {this.renderDeleteConfirmation(envTypeConfig)}
           {this.renderEditorPopup(envTypeConfig)}

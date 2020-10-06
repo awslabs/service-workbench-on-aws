@@ -23,8 +23,8 @@ const createSchema = require('../schema/create-study');
 const updateSchema = require('../schema/update-study');
 
 const settingKeys = {
-  tableName: 'dbTableStudies',
-  categoryIndexName: 'dbTableStudiesCategoryIndex',
+  tableName: 'dbStudies',
+  categoryIndexName: 'dbStudiesCategoryIndex',
   studyDataBucketName: 'studyDataBucketName',
 };
 
@@ -86,7 +86,10 @@ class StudyService extends Service {
     await validationService.ensureValid(rawData, createSchema);
 
     // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
+
+    // validate if study can be read/write
+    this.validateStudyType(rawData.accessType, rawData.category);
 
     // The open data studies do not need to be associated to any project
     // for everything else make sure projectId is specified
@@ -156,8 +159,18 @@ class StudyService extends Service {
     await validationService.ensureValid(rawData, updateSchema);
 
     // For now, we assume that 'updatedBy' is always a user and not a group
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     const { id, rev } = rawData;
+
+    const study = await this.mustFind(requestContext, id);
+
+    // validate if study can be read/write
+    this.validateStudyType(rawData.accessType, study.category);
+
+    // TODO: Add logic for the following when full write functionality is implemented:
+    // 1. Permissions removal for Read/Write and Write if ReadWrite accessType switches to ReadOnly
+    // 2. Workspace mounts to be corrected
+    // 3. Deleting any additional resources created as part of the ReadWrite functionality
 
     // Prepare the db object
     const dbObject = _.omit(this.fromRawToDbObject(rawData, { updatedBy: by }), ['rev']);
@@ -180,9 +193,7 @@ class StudyService extends Service {
         const existing = await this.find(requestContext, id, ['id', 'updatedBy']);
         if (existing) {
           throw this.boom.badRequest(
-            `study information changed by "${
-              (existing.updatedBy || {}).username
-            }" just before your request is processed, please try again`,
+            `study information changed just before your request is processed, please try again`,
             true,
           );
         }
@@ -387,6 +398,13 @@ class StudyService extends Service {
     // If the main call also needs to fail in case writing to any audit destination fails then switch to "write" method as follows
     // return auditWriterService.write(requestContext, auditEvent);
     return auditWriterService.writeAndForget(requestContext, auditEvent);
+  }
+
+  // ensure that study accessType isn't read/write for Open Data category
+  validateStudyType(accessType, studyCategory) {
+    if (accessType === 'readwrite' && studyCategory === 'Open Data') {
+      throw this.boom.badRequest('Open Data study cannot be read/write', true);
+    }
   }
 }
 

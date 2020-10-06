@@ -186,7 +186,7 @@ function removeQueryParams(location, keys) {
 }
 
 function getFragmentParam(location, key) {
-  const fragmentParams = new URL(location).hash;
+  const fragmentParams = _.get(location, 'hash') || new URL(location).hash;
   const hashKeyValues = {};
   const params = fragmentParams.substring(1).split('&');
   if (params) {

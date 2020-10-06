@@ -35,8 +35,8 @@ Resources:
                 - iam:CreateServiceLinkedRole
                 - iam:GetRole
               Resource:
-                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/replicator.lambda.amazonaws.com/AWSServiceRoleForLambdaReplicator'
-                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/logger.cloudfront.amazonaws.com/AWSServiceRoleForCloudFrontLogger'
+                - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/aws-service-role/replicator.lambda.amazonaws.com/AWSServiceRoleForLambdaReplicator'
+                - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/aws-service-role/logger.cloudfront.amazonaws.com/AWSServiceRoleForCloudFrontLogger'
               Condition:
                 ForAllValues:StringLike:
                   iam:AWSServiceName:
@@ -58,8 +58,8 @@ Resources:
               Action:
                 - s3:GetObject
               Resource:
-                - arn:aws:s3:::${self:custom.settings.deploymentBucketName}/saml-metadata/*
-                - arn:aws:s3:::${self:custom.settings.deploymentBucketName}/service-catalog-products/*
+                - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.deploymentBucketName}/saml-metadata/*'
+                - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.deploymentBucketName}/service-catalog-products/*'
         - PolicyName: db-access
           PolicyDocument:
             Statement:
@@ -72,17 +72,64 @@ Resources:
                 - dynamodb:Query
                 - dynamodb:Scan
               Resource:
+                - !GetAtt [DeploymentStoreDb, Arn]
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbPasswords}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbUsers}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbUsers}/index/*'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbAuthenticationProviderTypes}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbAuthenticationProviderConfigs}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbStepTemplates}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbWorkflowTemplates}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbWorkflows}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbWfAssignments}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbWfAssignments}/index/*'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbUserRoles}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbWorkflowInstances}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbWorkflowTemplateDrafts}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbWorkflowDrafts}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbRevokedTokens}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbLocks}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbUserApiKeys}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbAccounts}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbAwsAccounts}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbCostApiCaches}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEnvironmentsSc}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbIndexes}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEnvironmentTypes}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEnvironments}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbKeyPairs}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbProjects}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbStudyPermissions}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbStudies}'
+
+                # DEPRECATED
                 - !GetAtt [DbDeploymentStore, Arn]
-                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTablePasswords}'
-                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableUsers}'
-                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableAuthenticationProviderTypes}'
-                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableAuthenticationProviderConfigs}'
-                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableStepTemplates}'
-                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableWorkflowTemplates}'
-                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableWorkflows}'
-                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableWfAssignments}'
-                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableWfAssignments}/index/*'
-                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableUserRoles}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTablePasswords}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableUsers}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableAuthenticationProviderTypes}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableAuthenticationProviderConfigs}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableStepTemplates}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableWorkflowTemplates}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableWorkflows}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableWfAssignments}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableWorkflowInstances}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableWorkflowTemplateDrafts}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableWorkflowDrafts}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableRevokedTokens}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableLocks}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableUserApiKeys}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableAccounts}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableUserRoles}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableAwsAccounts}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableCostApiCaches}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableEnvironmentsSc}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableIndexes}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableEnvironmentTypes}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableEnvironments}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableKeyPairs}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableProjects}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableStudyPermissions}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbTableStudies}'
         - PolicyName: param-store-access
           PolicyDocument:
             Statement:
@@ -90,7 +137,7 @@ Resources:
               Action:
                 - ssm:GetParameter
                 - ssm:PutParameter
-              Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
+              Resource: !Sub 'arn:${AWS::Partition}:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
         - PolicyName: kms-access
           PolicyDocument:
             Statement:
@@ -105,7 +152,7 @@ Resources:
               Action:
                 - cloudformation:DescribeStacks
               Resource:
-                - !Sub arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${self:custom.settings.backendStackName}/*
+                - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${self:custom.settings.backendStackName}/*'
         - PolicyName: cloudfront-access
           PolicyDocument:
             Statement:
@@ -114,7 +161,7 @@ Resources:
                 - cloudfront:GetDistributionConfig
                 - cloudfront:UpdateDistribution
               Resource:
-                - !Sub arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${self:custom.settings.cloudFrontId}
+                - !Sub 'arn:${AWS::Partition}:cloudfront::${AWS::AccountId}:distribution/${self:custom.settings.cloudFrontId}'
         - PolicyName: lambda-access
           PolicyDocument:
             Statement:
@@ -123,7 +170,7 @@ Resources:
                   - lambda:GetFunction
                   - lambda:UpdateFunctionConfiguration
                 Resource:
-                  - !Sub arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${self:custom.settings.workflowLambdaName}
+                  - !Sub 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${self:custom.settings.workflowLambdaName}'
               - Effect: Allow
                 Action:
                   - lambda:GetFunction
@@ -202,6 +249,26 @@ Resources:
               Resource: '*'
   # =============================================================================================
   # Dynamo db
+  # =============================================================================================
+
+  DeploymentStoreDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbDeploymentStore}
+      AttributeDefinitions:
+        - AttributeName: 'type'
+          AttributeType: 'S'
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'type'
+          KeyType: 'HASH'
+        - AttributeName: 'id'
+          KeyType: 'RANGE'
+      BillingMode: PAY_PER_REQUEST
+
+  # =============================================================================================
+  # DEPRECATED -- Dynamo DB
   # =============================================================================================
 
   DbDeploymentStore:

@@ -132,8 +132,7 @@ describe('UserAuthzService', () => {
     it('should only allow active users in the request context to update', async () => {
       const testContext = {
         principalIdentifier: {
-          username: 'Arthur Anderson',
-          ns: 'Sir Charms||||Magically Delicious',
+          uid: 'u-currentUserId',
         },
         principal: {
           status: 'active',
@@ -141,23 +140,17 @@ describe('UserAuthzService', () => {
       };
 
       const userInContext = {
-        identityProviderName: 'Sir Charms',
-        authenticationProviderId: 'Magically Delicious',
-        username: 'Arthur Anderson',
+        uid: 'u-currentUserId',
         status: 'completed',
       };
 
       const pendingUserInContext = {
-        identityProviderName: 'Cuckoo',
-        authenticationProviderId: 'Cocoa Puffs',
-        username: 'birdy',
+        uid: 'u-pendingUserId',
         status: 'pending',
       };
 
       const userNoContext = {
-        identityProviderName: 'Sir Charms',
-        authenticationProviderId: 'Magically Delicious',
-        username: 'Lucky',
+        uid: 'u-someUserId',
         status: 'completed',
       };
 
@@ -179,9 +172,7 @@ describe('UserAuthzService', () => {
         },
       };
       const user = {
-        identityProviderName: 'Sir Charms',
-        authenticationProviderId: 'Magically Delicious',
-        username: 'Lucky',
+        uid: 'u-someUserId',
         status: 'completed',
       };
 

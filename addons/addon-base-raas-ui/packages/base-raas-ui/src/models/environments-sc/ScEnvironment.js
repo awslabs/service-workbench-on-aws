@@ -1,7 +1,6 @@
 /* eslint-disable import/prefer-default-export */
 import _ from 'lodash';
 import { types, applySnapshot } from 'mobx-state-tree';
-import UserIdentifier from '@aws-ee/base-ui/dist/models/users/UserIdentifier';
 
 // 'COMPLETED', 'PENDING', 'TAINTED', 'FAILED', 'TERMINATING', 'TERMINATED', 'TERMINATING_FAILED', 'UNKNOWN'
 // Note: 'UNKNOWN' is not something that is returned from the server, it is here to catch any other status
@@ -15,6 +14,8 @@ const states = [
     spinner: false,
     canTerminate: true,
     canConnect: true,
+    canStop: true,
+    canStart: false,
   },
   {
     key: 'PENDING',
@@ -24,6 +25,41 @@ const states = [
     spinner: true,
     canTerminate: false,
     canConnect: false,
+    canStop: false,
+    canStart: false,
+  },
+  {
+    key: 'STOPPED',
+    display: 'STOPPED',
+    color: 'orange',
+    tip: 'The workspace is stopped.',
+    spinner: false,
+    canTerminate: true,
+    canConnect: false,
+    canStop: false,
+    canStart: true,
+  },
+  {
+    key: 'STOPPING',
+    display: 'STOPPING',
+    color: 'orange',
+    tip: 'The workspace is stopping.',
+    spinner: true,
+    canTerminate: true,
+    canConnect: false,
+    canStop: false,
+    canStart: false,
+  },
+  {
+    key: 'STARTING',
+    display: 'STARTING',
+    color: 'orange',
+    tip: 'The workspace is starting.',
+    spinner: true,
+    canTerminate: true,
+    canConnect: false,
+    canStop: false,
+    canStart: false,
   },
   {
     key: 'TAINTED',
@@ -33,6 +69,8 @@ const states = [
     spinner: false,
     canTerminate: true,
     canConnect: true,
+    canStop: false,
+    canStart: false,
   },
   {
     key: 'FAILED',
@@ -42,6 +80,8 @@ const states = [
     spinner: false,
     canTerminate: true,
     canConnect: false,
+    canStop: false,
+    canStart: false,
   },
   {
     key: 'TERMINATING',
@@ -51,6 +91,8 @@ const states = [
     spinner: true,
     canTerminate: false,
     canConnect: false,
+    canStop: false,
+    canStart: false,
   },
   {
     key: 'TERMINATED',
@@ -60,6 +102,8 @@ const states = [
     spinner: false,
     canTerminate: false,
     canConnect: false,
+    canStop: false,
+    canStart: false,
   },
   {
     key: 'TERMINATING_FAILED',
@@ -70,6 +114,8 @@ const states = [
     spinner: false,
     canTerminate: true,
     canConnect: true,
+    canStop: false,
+    canStart: false,
   },
   {
     key: 'UNKNOWN',
@@ -79,6 +125,8 @@ const states = [
     spinner: false,
     canTerminate: true,
     canConnect: true,
+    canStop: false,
+    canStart: false,
   },
 ];
 
@@ -95,9 +143,9 @@ const ScEnvironment = types
     projectId: '',
     envTypeId: '',
     createdAt: '',
-    createdBy: types.optional(UserIdentifier, {}),
+    createdBy: '',
     updatedAt: '',
-    updatedBy: types.optional(UserIdentifier, {}),
+    updatedBy: '',
     error: types.maybeNull(types.string),
     connections: types.frozen([]),
     hasConnections: false,

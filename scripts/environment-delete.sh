@@ -5,6 +5,8 @@ cd "$(dirname "${BASH_SOURCE[0]}")"
 # shellcheck disable=SC1091
 [[ $UTIL_SOURCED != yes && -f ./util.sh ]] && source ./util.sh
 
+init_package_manager
+
 function removeComponentWithNoStack() {
     local COMPONENT_NAME=$1
     local COMPONENT_DIR=$2
