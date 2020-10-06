@@ -22,14 +22,18 @@ const { isAdmin, isCurrentUser } = require('@aws-ee/base-services/lib/authorizat
 const createSchema = require('../../schema/create-environment-sc');
 const updateSchema = require('../../schema/update-environment-sc');
 const environmentScStatus = require('./environent-sc-status-enum');
-const { hasConnections } = require('./helpers/connections-util');
+const { hasConnections, cfnOutputsArrayToObject } = require('./helpers/connections-util');
 
 const settingKeys = {
-  tableName: 'dbTableEnvironmentsSc',
+  tableName: 'dbEnvironmentsSc',
 };
 const workflowIds = {
   create: 'wf-provision-environment-sc',
   delete: 'wf-terminate-environment-sc',
+  stopEC2: 'wf-stop-ec2-environment-sc',
+  startEC2: 'wf-start-ec2-environment-sc',
+  stopSagemaker: 'wf-stop-sagemaker-environment-sc',
+  startSagemaker: 'wf-start-sagemaker-environment-sc',
 };
 
 /**
@@ -80,7 +84,7 @@ class EnvironmentScService extends Service {
         if (isAdmin(requestContext)) {
           return environments;
         }
-        return environments.filter(env => isCurrentUser(requestContext, env.createdBy));
+        return environments.filter(env => isCurrentUser(requestContext, { uid: env.createdBy }));
       });
 
     return this.augmentWithConnectionInfo(requestContext, envs);
@@ -162,7 +166,7 @@ class EnvironmentScService extends Service {
     const { indexId } = await projectService.mustFind(requestContext, { id: projectId, fields: ['indexId'] });
 
     // Save environment to db and trigger the workflow
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     // Generate environment ID
     const id = uuid();
     // Prepare the db object
@@ -231,7 +235,7 @@ class EnvironmentScService extends Service {
       existingEnvironment,
     );
 
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     const { id, rev } = environment;
 
     // Prepare the db object
@@ -255,9 +259,7 @@ class EnvironmentScService extends Service {
         const existing = await this.find(requestContext, { id, fields: ['id', 'updatedBy'] });
         if (existing) {
           throw this.boom.badRequest(
-            `environment information changed by "${
-              (existing.updatedBy || {}).username
-            }" just before your request is processed, please try again`,
+            `environment information changed just before your request is processed, please try again`,
             true,
           );
         }
@@ -269,6 +271,103 @@ class EnvironmentScService extends Service {
     await this.audit(requestContext, { action: 'update-environment-sc', body: environment });
 
     return result;
+  }
+
+  async changeWorkspaceRunState(requestContext, { id, operation }) {
+    const existingEnvironment = await this.mustFind(requestContext, { id });
+
+    // Make sure the user has permissions to change the environment run state
+    await this.assertAuthorized(
+      requestContext,
+      { action: 'update-sc', conditions: [this._allowAuthorized] },
+      existingEnvironment,
+    );
+
+    const { status, outputs, projectId } = existingEnvironment;
+
+    // expected environment run state based on operation
+    let expectedStatus;
+    switch (operation) {
+      case 'start':
+        expectedStatus = 'STOPPED';
+        break;
+      case 'stop':
+        expectedStatus = 'COMPLETED';
+        break;
+      default:
+        throw this.boom.badRequest(`operation ${operation} is not valid, only "start" and "stop" are supported`, true);
+    }
+
+    if (status !== expectedStatus) {
+      throw this.boom.badRequest(
+        `unable to ${operation} environment with id "${id}" - current status "${status}"`,
+        true,
+      );
+    }
+    let instanceType;
+    let instanceIdentifier;
+    const outputsObject = cfnOutputsArrayToObject(outputs);
+    // TODO: Remove MetaConnection1Type check to include RStudio after CNAME patch
+    if ('Ec2WorkspaceInstanceId' in outputsObject && _.get(outputsObject, 'MetaConnection1Type') !== 'RStudio') {
+      instanceType = 'ec2';
+      instanceIdentifier = outputsObject.Ec2WorkspaceInstanceId;
+    } else if ('NotebookInstanceName' in outputsObject) {
+      instanceType = 'sagemaker';
+      instanceIdentifier = outputsObject.NotebookInstanceName;
+    } else {
+      throw this.boom.badRequest(
+        `unable to ${operation} environment with id "${id}" - operation only supported for sagemaker and EC2 environemnt.`,
+        true,
+      );
+    }
+
+    const [awsAccountsService, indexesServices, projectService] = await this.service([
+      'awsAccountsService',
+      'indexesService',
+      'projectService',
+    ]);
+    const { roleArn: cfnExecutionRole, externalId: roleExternalId } = await runAndCatch(
+      async () => {
+        const { indexId } = await projectService.mustFind(requestContext, { id: projectId });
+        const { awsAccountId } = await indexesServices.mustFind(requestContext, { id: indexId });
+
+        return awsAccountsService.mustFind(requestContext, { id: awsAccountId });
+      },
+      async () => {
+        throw this.boom.badRequest(`account with id "${projectId} is not available`);
+      },
+    );
+
+    // TODO: Update this to support other types and actions
+    const meta = { workflowId: `wf-${operation}-${instanceType}-environment-sc` };
+    const workflowTriggerService = await this.service('workflowTriggerService');
+    const input = {
+      environmentId: existingEnvironment.id,
+      instanceIdentifier,
+      requestContext,
+      cfnExecutionRole,
+      roleExternalId,
+    };
+
+    // This triggers the workflow defined in a workflow-plugin file
+    // 'addons/addon-environment-sc-api/packages/environment-sc-workflows/lib/workflows'
+    await workflowTriggerService.triggerWorkflow(requestContext, meta, input);
+    return existingEnvironment;
+  }
+
+  // Do some properties renaming to prepare the object to be saved in the database
+  _fromRawToDbObject(rawObject, overridingProps = {}) {
+    const dbObject = { ...rawObject, ...overridingProps };
+    return dbObject;
+  }
+
+  // Do some properties renaming to restore the object that was saved in the database
+  _fromDbToDataObject(rawDb, overridingProps = {}) {
+    if (_.isNil(rawDb)) return rawDb; // important, leave this if statement here, otherwise, your update methods won't work correctly
+    if (!_.isObject(rawDb)) return rawDb;
+
+    const dataObject = { ...rawDb, ...overridingProps };
+    return dataObject;
   }
 
   async delete(requestContext, { id }) {
@@ -321,21 +420,6 @@ class EnvironmentScService extends Service {
 
       throw error;
     }
-  }
-
-  // Do some properties renaming to prepare the object to be saved in the database
-  _fromRawToDbObject(rawObject, overridingProps = {}) {
-    const dbObject = { ...rawObject, ...overridingProps };
-    return dbObject;
-  }
-
-  // Do some properties renaming to restore the object that was saved in the database
-  _fromDbToDataObject(rawDb, overridingProps = {}) {
-    if (_.isNil(rawDb)) return rawDb; // important, leave this if statement here, otherwise, your update methods won't work correctly
-    if (!_.isObject(rawDb)) return rawDb;
-
-    const dataObject = { ...rawDb, ...overridingProps };
-    return dataObject;
   }
 
   /**

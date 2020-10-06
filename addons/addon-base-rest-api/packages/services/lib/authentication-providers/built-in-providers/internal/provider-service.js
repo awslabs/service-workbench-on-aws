@@ -31,12 +31,13 @@ class ProviderService extends Service {
   async issueToken({ username, password }, providerConfig) {
     const [dbAuthenticationService, jwtService] = await this.service(['dbAuthenticationService', 'jwtService']);
 
-    await dbAuthenticationService.authenticate({
+    const uid = await dbAuthenticationService.authenticate({
       username,
       password,
     });
     const idToken = await jwtService.sign({
-      sub: username,
+      sub: uid,
+      username,
 
       // The "iss" (i.e., the issuer) below is used for selecting appropriate authentication provider
       // for validating JWT tokens on subsequent requests.
@@ -54,9 +55,9 @@ class ProviderService extends Service {
     }
     const jwtService = await this.service('jwtService');
     const verifiedToken = await jwtService.verify(token);
-    const { sub: username } = verifiedToken;
+    const { sub: uid, username } = verifiedToken;
 
-    if (_.isEmpty(username)) {
+    if (_.isEmpty(uid)) {
       throw this.boom.invalidToken('No "sub" is provided in the token', true);
     }
 
@@ -67,7 +68,7 @@ class ProviderService extends Service {
       throw this.boom.invalidToken('The token is revoked', true);
     }
 
-    return { verifiedToken, username };
+    return { verifiedToken, uid, username };
   }
 
   // eslint-disable-next-line no-unused-vars

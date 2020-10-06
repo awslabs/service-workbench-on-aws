@@ -15,7 +15,6 @@
 
 const _ = require('lodash');
 const { ensureCurrentUser } = require('@aws-ee/base-services/lib/authorization/assertions');
-const { toUserNamespace } = require('@aws-ee/base-services/lib/user/helpers/user-namespace');
 const BaseUserService = require('@aws-ee/base-services/lib/user/user-service');
 const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
 
@@ -67,7 +66,7 @@ class UserService extends BaseUserService {
           isExternalUser: userType === 'EXTERNAL',
         };
         if (!_.isEmpty(userToCreate.email)) {
-          const user = await this.findUser({
+          const user = await this.findUserByPrincipal({
             username: userToCreate.username,
             authenticationProviderId: userToCreate.authenticationProviderId,
             identityProviderName: userToCreate.identityProviderName,
@@ -211,9 +210,8 @@ class UserService extends BaseUserService {
 
   async selfServiceUpdateUser(requestContext, user = {}) {
     // user can only update his/her own info via self-service update
-    const { username, authenticationProviderId, identityProviderName } = user;
-    const ns = toUserNamespace(authenticationProviderId, identityProviderName);
-    await ensureCurrentUser(requestContext, username, ns);
+    const { uid } = user;
+    await ensureCurrentUser(requestContext, { uid });
 
     return this.updateUser(requestContext, user);
   }

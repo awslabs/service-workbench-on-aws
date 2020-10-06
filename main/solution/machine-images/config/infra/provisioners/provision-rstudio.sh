@@ -38,16 +38,15 @@ echo '@reboot /usr/local/bin/set-password 2>&1 >> /var/log/set-password.log' >> 
 sudo crontab "/tmp/crontab"
 
 
-# Auto-stop feature needs re-work that's coming soon. 
-# Right now, this auto-stop technique renders Route 53 CNAME record useless after restarting EC2
+# TODO: This auto-stop technique renders Route 53 CNAME record useless after restarting EC2. Add in service
 
 # Install script that checks idle time and shuts down if max idle is reached
-# sudo mv "/tmp/rstudio/check-idle" "/usr/local/bin/"
-# sudo chown root: "/usr/local/bin/check-idle"
-# sudo chmod 775 "/usr/local/bin/check-idle"
-# sudo crontab -l 2>/dev/null > "/tmp/crontab"
-# echo '*/5 * * * * /usr/local/bin/check-idle 2>&1 >> /var/log/check-idle.log' >> "/tmp/crontab"
-# sudo crontab "/tmp/crontab"
+sudo mv "/tmp/rstudio/check-idle" "/usr/local/bin/"
+sudo chown root: "/usr/local/bin/check-idle"
+sudo chmod 775 "/usr/local/bin/check-idle"
+sudo crontab -l 2>/dev/null > "/tmp/crontab"
+echo '*/5 * * * * /usr/local/bin/check-idle 2>&1 >> /var/log/check-idle.log' >> "/tmp/crontab"
+sudo crontab "/tmp/crontab"
 
 
 # Wipe out all traces of provisioning files

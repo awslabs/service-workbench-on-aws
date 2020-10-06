@@ -23,8 +23,8 @@ const createSchema = require('../schema/create-study');
 const updateSchema = require('../schema/update-study');
 
 const settingKeys = {
-  tableName: 'dbTableStudies',
-  categoryIndexName: 'dbTableStudiesCategoryIndex',
+  tableName: 'dbStudies',
+  categoryIndexName: 'dbStudiesCategoryIndex',
   studyDataBucketName: 'studyDataBucketName',
 };
 
@@ -86,7 +86,7 @@ class StudyService extends Service {
     await validationService.ensureValid(rawData, createSchema);
 
     // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
 
     // validate if study can be read/write
     this.validateStudyType(rawData.accessType, rawData.category);
@@ -159,7 +159,7 @@ class StudyService extends Service {
     await validationService.ensureValid(rawData, updateSchema);
 
     // For now, we assume that 'updatedBy' is always a user and not a group
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     const { id, rev } = rawData;
 
     const study = await this.mustFind(requestContext, id);
@@ -193,9 +193,7 @@ class StudyService extends Service {
         const existing = await this.find(requestContext, id, ['id', 'updatedBy']);
         if (existing) {
           throw this.boom.badRequest(
-            `study information changed by "${
-              (existing.updatedBy || {}).username
-            }" just before your request is processed, please try again`,
+            `study information changed just before your request is processed, please try again`,
             true,
           );
         }

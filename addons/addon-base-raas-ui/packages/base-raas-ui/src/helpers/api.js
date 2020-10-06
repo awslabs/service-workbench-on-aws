@@ -14,7 +14,9 @@
  */
 
 /* eslint-disable import/prefer-default-export */
+import _ from 'lodash';
 import { httpApiGet, httpApiPost, httpApiPut, httpApiDelete } from '@aws-ee/base-ui/dist/helpers/api';
+import { removeNulls } from '@aws-ee/base-ui/dist/helpers/utils';
 
 function getUserRoles() {
   return httpApiGet('api/user-roles');
@@ -59,26 +61,30 @@ function addIndex(index) {
 }
 
 function updateUserApplication(user) {
-  // const params = {};
-  // if (user.authenticationProviderId) {
-  //   params.authenticationProviderId = user.authenticationProviderId;
-  // }
-  // if (user.identityProviderName) {
-  //   params.identityProviderName = user.identityProviderName;
-  // }
-  // return httpApiPut(`api/users/${user.username}/userself`, { data: user, params });
-  return httpApiPut(`api/user`, { data: user });
+  // Remove nulls and omit extra fields from the payload before calling the API
+  // The user is identified by the uid in the url
+  const data = removeNulls(
+    _.omit(
+      _.clone(user),
+      'uid',
+      'authenticationProviderId',
+      'identityProviderName',
+      'username',
+      'ns',
+      'createdBy',
+      'updatedBy',
+    ),
+  );
+  if (!data.userType) {
+    // if userType is specified as empty string then make sure to delete it
+    // the api requires this to be only one of the supported values (currently only supported value is 'root')
+    delete data.userType;
+  }
+  return httpApiPut(`api/user`, { data });
 }
 
 async function deleteUser(user) {
-  const data = {};
-  if (user.authenticationProviderId) {
-    data.authenticationProviderId = user.authenticationProviderId;
-  }
-  if (user.identityProviderName) {
-    data.identityProviderName = user.identityProviderName;
-  }
-  return httpApiDelete(`api/users/${user.username}`, { data });
+  return httpApiDelete(`api/users/${user.uid}`);
 }
 
 function getStudies(category) {
@@ -256,6 +262,14 @@ function deleteScEnvironment(id) {
   return httpApiDelete(`api/workspaces/service-catalog/${id}`);
 }
 
+function stopScEnvironment(id) {
+  return httpApiPut(`api/workspaces/service-catalog/${id}/stop`);
+}
+
+function startScEnvironment(id) {
+  return httpApiPut(`api/workspaces/service-catalog/${id}/start`);
+}
+
 function getScEnvironmentConnections(envId) {
   return httpApiGet(`api/workspaces/service-catalog/${envId}/connections/`);
 }
@@ -326,6 +340,8 @@ export {
   createScEnvironment,
   createScEnvironmentConnectionUrl,
   deleteScEnvironment,
+  stopScEnvironment,
+  startScEnvironment,
   getScEnvironment,
   getScEnvironmentConnections,
   sendSshKey,

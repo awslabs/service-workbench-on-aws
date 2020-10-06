@@ -21,7 +21,7 @@ const createSchema = require('../schema/create-wf-assignment');
 const updateSchema = require('../schema/update-wf-assignment');
 
 const settingKeys = {
-  tableName: 'dbTableWfAssignments',
+  tableName: 'dbWfAssignments',
 };
 const typeIndexName = 'TypeIndex';
 const workflowIndexName = 'WorkflowIndex';
@@ -94,7 +94,7 @@ class WorkflowAssignmentService extends Service {
     await validationService.ensureValid(rawData, createSchema);
 
     // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     const { id } = rawData;
 
     // Prepare the db object
@@ -127,7 +127,7 @@ class WorkflowAssignmentService extends Service {
     await validationService.ensureValid(rawData, updateSchema);
 
     // For now, we assume that 'updatedBy' is always a user and not a group
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     const { id, rev } = rawData;
 
     // Prepare the db object
@@ -151,9 +151,7 @@ class WorkflowAssignmentService extends Service {
         const existing = await this.find(requestContext, { id, fields: ['id', 'updatedBy'] });
         if (existing) {
           throw this.boom.badRequest(
-            `workflow assignment information changed by "${
-              (existing.updatedBy || {}).username
-            }" just before your request is processed, please try again`,
+            `workflow assignment information changed just before your request is processed, please try again`,
             true,
           );
         }

@@ -13,9 +13,8 @@
  *  permissions and limitations under the License.
  */
 
-import { types, applySnapshot } from 'mobx-state-tree';
-
-import UserIdentifier from '@aws-ee/base-ui/dist/models/users/UserIdentifier';
+import _ from 'lodash';
+import { types, applySnapshot, getEnv } from 'mobx-state-tree';
 
 // ==================================================================
 // Project
@@ -27,10 +26,10 @@ const Project = types
     description: '',
     indexId: '',
     createdAt: '',
-    createdBy: types.optional(UserIdentifier, {}),
+    createdBy: '',
     updatedAt: '',
-    updatedBy: types.optional(UserIdentifier, {}),
-    projectAdmins: types.array(UserIdentifier, []),
+    updatedBy: '',
+    projectAdmins: types.optional(types.array(types.string), []),
   })
   .actions(self => ({
     setProject(rawProject) {
@@ -43,6 +42,10 @@ const Project = types
   // eslint-disable-next-line no-unused-vars
   .views(self => ({
     // add view methods here
+    get projectAdminUsers() {
+      const usersStore = getEnv(self).usersStore;
+      return _.map(self.projectAdmins, uid => usersStore.asUserObject({ uid }));
+    },
   }));
 
 // eslint-disable-next-line import/prefer-default-export

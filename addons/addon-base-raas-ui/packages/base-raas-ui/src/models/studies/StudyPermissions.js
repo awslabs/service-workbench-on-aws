@@ -16,20 +16,18 @@
 /* eslint-disable import/prefer-default-export */
 import { types } from 'mobx-state-tree';
 
-import UserIdentifier from '@aws-ee/base-ui/dist/models/users/UserIdentifier';
-
 // ==================================================================
 // Study Permissions
 // ==================================================================
 const StudyPermissions = types
   .model('StudyPermissions', {
     id: types.identifier,
-    adminUsers: types.array(UserIdentifier),
-    readonlyUsers: types.array(UserIdentifier),
+    adminUsers: types.optional(types.array(types.string), []),
+    readonlyUsers: types.optional(types.array(types.string), []),
     createdAt: '',
-    createdBy: UserIdentifier,
+    createdBy: '',
     updatedAt: '',
-    updatedBy: types.optional(UserIdentifier, {}),
+    updatedBy: '',
   })
   .views(_self => ({
     get userTypes() {

@@ -252,23 +252,27 @@ function addUser(user) {
 
 function updateUser(user) {
   const params = {};
-  if (user.authenticationProviderId) {
-    params.authenticationProviderId = user.authenticationProviderId;
-  }
-  if (user.identityProviderName) {
-    params.identityProviderName = user.identityProviderName;
-  }
-  const data = removeNulls(_.clone(user));
-  delete data.ns; // Server derives ns based on "authenticationProviderId" and "identityProviderName"
-  // on server side so remove it from request body
-  delete data.createdBy; // Similarly, createdBy and updatedBy are derived on server side
-  delete data.updatedBy;
+
+  // Remove nulls and omit extra fields from the payload before calling the API
+  // The user is identified by the uid in the url
+  const data = removeNulls(
+    _.omit(
+      _.clone(user),
+      'uid',
+      'authenticationProviderId',
+      'identityProviderName',
+      'username',
+      'ns',
+      'createdBy',
+      'updatedBy',
+    ),
+  );
   if (!data.userType) {
     // if userType is specified as empty string then make sure to delete it
     // the api requires this to be only one of the supported values (currently only supported value is 'root')
     delete data.userType;
   }
-  return httpApiPut(`api/users/${user.username}`, { data, params });
+  return httpApiPut(`api/users/${user.uid}`, { data, params });
 }
 
 function getUsers() {

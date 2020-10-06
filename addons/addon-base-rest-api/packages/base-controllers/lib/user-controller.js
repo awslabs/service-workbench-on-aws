@@ -39,13 +39,11 @@ async function configure(context) {
       const requestContext = res.locals.requestContext;
       const currentUser = requestContext.principal;
       // Get current user's attributes to identify the user in the system
-      const { username, authenticationProviderId, identityProviderName } = currentUser;
+      const { uid } = currentUser;
       const userToUpdate = req.body;
       const updatedUser = await userService.updateUser(requestContext, {
         ...userToUpdate,
-        username,
-        authenticationProviderId,
-        identityProviderName,
+        uid,
       });
       res.status(200).json(updatedUser);
     }),

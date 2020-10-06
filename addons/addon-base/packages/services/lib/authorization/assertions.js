@@ -17,22 +17,20 @@ const _ = require('lodash');
 const Boom = require('@aws-ee/base-services-container/lib/boom');
 
 const boom = new Boom();
-const internalAuthProviderId = 'internal';
 
-const isCurrentUser = (requestContext, username, ns) =>
-  requestContext.principalIdentifier.username === username && requestContext.principalIdentifier.ns === ns;
+function isCurrentUser(requestContext, { uid }) {
+  return _.get(requestContext, 'principalIdentifier.uid') === uid;
+}
 
-async function ensureCurrentUserOrAdmin(requestContext, username, ns = internalAuthProviderId) {
-  const isCurrentUserOrAdmin = isCurrentUser(requestContext, username, ns) || requestContext.principal.isAdmin;
+async function ensureCurrentUserOrAdmin(requestContext, { uid }) {
+  const isCurrentUserOrAdmin = isCurrentUser(requestContext, { uid }) || requestContext.principal.isAdmin;
   if (!isCurrentUserOrAdmin) {
     throw boom.forbidden('You are not authorized to perform this operation', true);
   }
 }
 
-async function ensureCurrentUser(requestContext, username, ns) {
-  const identifer = requestContext.principalIdentifier;
-
-  if (identifer.username !== username || identifer.ns !== ns) {
+async function ensureCurrentUser(requestContext, { uid }) {
+  if (!isCurrentUser(requestContext, { uid })) {
     throw boom.forbidden('You are not authorized to perform this operation on another user', true);
   }
 }

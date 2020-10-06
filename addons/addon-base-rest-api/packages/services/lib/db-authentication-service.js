@@ -34,10 +34,11 @@ class DbAuthenticationService extends Service {
     await jsonSchemaValidationService.ensureValid(credentials, inputSchema);
 
     const { username, password } = credentials;
-    const exists = await dbPasswordService.exists({ username, password });
-    if (!exists) {
+    const { uid, isValid } = await dbPasswordService.validatePassword({ username, password });
+    if (!isValid) {
       throw this.boom.invalidCredentials('Either the password is incorrect or the user does not exist', true);
     }
+    return uid;
   }
 }
 

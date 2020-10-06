@@ -15,8 +15,6 @@
 
 import { types, applySnapshot } from 'mobx-state-tree';
 
-import UserIdentifier from '@aws-ee/base-ui/dist/models/users/UserIdentifier';
-
 import { StudyFilesStore } from './StudyFilesStore';
 import { StudyPermissionsStore } from './StudyPermissionsStore';
 import { categories } from './categories';
@@ -36,9 +34,9 @@ const Study = types
     description: types.maybeNull(types.string),
     uploadLocationEnabled: false,
     createdAt: '',
-    createdBy: types.optional(UserIdentifier, {}),
+    createdBy: '',
     updatedAt: '',
-    updatedBy: types.optional(UserIdentifier, {}),
+    updatedBy: '',
     filesStore: types.maybe(StudyFilesStore),
     permissionsStore: types.maybe(StudyPermissionsStore),
   })

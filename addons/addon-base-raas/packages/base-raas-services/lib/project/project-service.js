@@ -23,8 +23,8 @@ const createSchema = require('../schema/create-project');
 const updateSchema = require('../schema/update-project');
 
 const settingKeys = {
-  tableName: 'dbTableProjects',
-  environmentTableName: 'dbTableEnvironments',
+  tableName: 'dbProjects',
+  environmentTableName: 'dbEnvironments',
 };
 
 class ProjectService extends Service {
@@ -88,7 +88,7 @@ class ProjectService extends Service {
     await validationService.ensureValid(rawData, createSchema);
 
     // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     const id = rawData.id;
 
     // Prepare the db object
@@ -128,7 +128,7 @@ class ProjectService extends Service {
     await validationService.ensureValid(rawData, updateSchema);
 
     // For now, we assume that 'updatedBy' is always a user and not a group
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     const { id, rev } = rawData;
 
     // Prepare the db object
@@ -152,9 +152,7 @@ class ProjectService extends Service {
         const existing = await this.find(requestContext, { id, fields: ['id', 'updatedBy'] });
         if (existing) {
           throw this.boom.badRequest(
-            `project information changed by "${
-              (existing.updatedBy || {}).username
-            }" just before your request is processed, please try again`,
+            `project information changed just before your request is processed, please try again`,
             true,
           );
         }
@@ -223,8 +221,8 @@ class ProjectService extends Service {
   /**
    * Check if user is associated with the project
    */
-  async verifyUserProjectAssociation(principalIdentifier, projectId) {
-    const user = await this.userService.getUser(principalIdentifier);
+  async verifyUserProjectAssociation(uid, projectId) {
+    const user = await this.userService.mustFindUser({ uid });
     if (user.projectId.includes(projectId)) {
       return true;
     }

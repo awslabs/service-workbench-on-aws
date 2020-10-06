@@ -21,6 +21,7 @@ import localStorageKeys from '../constants/local-storage-keys';
 
 const User = types
   .model('User', {
+    uid: '',
     firstName: types.maybeNull(types.optional(types.string, '')),
     lastName: types.maybeNull(types.optional(types.string, '')),
     isAdmin: types.optional(types.boolean, false),
@@ -79,7 +80,7 @@ const User = types
   }))
   .views(self => ({
     get displayName() {
-      return `${self.firstName}`;
+      return `${self.firstName} ${self.lastName}`;
     },
 
     get longDisplayName() {
@@ -122,24 +123,27 @@ const User = types
     },
 
     get isSystem() {
-      const identifier = self.identifier;
-      return identifier.username === '_system_';
+      return self.id === '_system_';
     },
 
-    isSame({ username, ns }) {
+    isSame(uid) {
+      return self.uid === uid;
+    },
+
+    isSamePrincipal({ username, ns }) {
       return self.username === username && self.ns === ns;
     },
 
     get id() {
-      return self.identifierStr;
+      return self.uid;
     },
 
-    get identifier() {
+    get principal() {
       return { username: self.username, ns: self.ns };
     },
 
-    get identifierStr() {
-      return JSON.stringify(self.identifier);
+    get principalStr() {
+      return JSON.stringify(self.principal);
     },
 
     get hasProjects() {
@@ -188,8 +192,12 @@ const User = types
     },
   }));
 
-function getIdentifierObjFromId(identifierStr) {
-  return JSON.parse(identifierStr);
+function getPrincipalObjFromPrincipalStr(principalStr) {
+  return JSON.parse(principalStr);
 }
 
-export { User, getIdentifierObjFromId };
+function getPrincipalStrFromPrincipalObj({ username, ns }) {
+  return JSON.stringify({ username, ns });
+}
+
+export { User, getPrincipalObjFromPrincipalStr, getPrincipalStrFromPrincipalObj };

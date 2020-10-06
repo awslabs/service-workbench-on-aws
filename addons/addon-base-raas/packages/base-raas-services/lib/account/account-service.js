@@ -23,7 +23,7 @@ const createSchema = require('../schema/create-account');
 const updateSchema = require('../schema/update-account');
 
 const settingKeys = {
-  tableName: 'dbTableAccounts',
+  tableName: 'dbAccounts',
   apiHandlerArn: 'apiHandlerArn',
   workflowRoleArn: 'workflowRoleArn',
 };
@@ -123,7 +123,7 @@ class AccountService extends Service {
 
   async saveAccountToDb(requestContext, rawData, id, status = 'PENDING') {
     // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     // Prepare the db object
     const date = new Date().toISOString();
     const dbObject = this._fromRawToDbObject(rawData, {
@@ -168,7 +168,7 @@ class AccountService extends Service {
     const jsonSchemaValidationService = await this.service('jsonSchemaValidationService');
     await jsonSchemaValidationService.ensureValid(rawData, updateSchema);
 
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
 
     // Prepare the db object
     const existingAccount = await this.mustFind(requestContext, { id: rawData.id });

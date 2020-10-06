@@ -28,16 +28,16 @@ The following sections list the add-on contribution.
   - workflowStateMachineName
   - workflowStateMachineArn
   - (static) these settings are computed in code:
-    - dbTableStepTemplates
-    - dbTableWorkflowTemplates
-    - dbTableWorkflows
-    - dbTableWorkflowTemplateDrafts
-    - dbTableWorkflowDrafts
-    - dbTableWorkflowInstances
-    - dbTableWfAssignments
+    - dbStepTemplates
+    - dbWorkflowTemplates
+    - dbWorkflows
+    - dbWorkflowTemplateDrafts
+    - dbWorkflowDrafts
+    - dbWorkflowInstances
+    - dbWfAssignments
 
 - Used
-  - dbTablePrefix
+  - dbPrefix
 
 ## Runtime extension points
 - New

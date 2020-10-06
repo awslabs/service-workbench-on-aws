@@ -16,10 +16,9 @@
 /* eslint-disable no-await-in-loop */
 
 const _ = require('lodash');
-const shortid = require('shortid');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { ensureAdmin } = require('@aws-ee/base-services/lib/authorization/assertions');
-const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
+const { runAndCatch, generateId } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const inputSchema = require('../schema/create-workflow-instance');
 const changeWorkflowStatusSchema = require('../schema/change-workflow-status');
@@ -27,7 +26,7 @@ const changeStepStatusSchema = require('../schema/change-step-status');
 const saveStepAttributesSchema = require('../schema/save-step-attributes');
 
 const settingKeys = {
-  tableName: 'dbTableWorkflowInstances',
+  tableName: 'dbWorkflowInstances',
 };
 
 const workflowIndexName = 'WorkflowIndex';
@@ -59,9 +58,9 @@ class WorkflowInstanceService extends Service {
     const table = this.tableName;
 
     // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
 
-    const instance = prepareNewInstance(workflow, { runSpec, status, assignmentId, input });
+    const instance = await prepareNewInstance(workflow, { runSpec, status, assignmentId, input });
 
     const result = await runAndCatch(
       async () => {
@@ -340,8 +339,8 @@ class WorkflowInstanceService extends Service {
 
 // This captures the logic of populating the workflow instance object given a workflow object.
 // Note: the provided workflow object will be mutated in process of creating the workflow instance.
-function prepareNewInstance(workflow, { runSpec = {}, status = 'not_started', assignmentId, input } = {}) {
-  const id = shortid.generate();
+async function prepareNewInstance(workflow, { runSpec = {}, status = 'not_started', assignmentId, input } = {}) {
+  const id = await generateId();
   const wfId = workflow.id;
   const wfVer = workflow.v;
   const wf = encode(wfId, wfVer);

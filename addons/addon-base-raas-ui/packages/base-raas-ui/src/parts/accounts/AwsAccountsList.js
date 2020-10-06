@@ -32,7 +32,7 @@ class AwsAccountsList extends React.Component {
     this.state = {};
     runInAction(() => {
       // An object that keeps track of which user is being edited
-      // Each key in the object below has key as user's unique id (<ns>/<username>)
+      // Each key in the object below has key as user's unique id (i.e., uid)
       // and value as flag indicating whether to show the editor for the user
       this.mapOfUsersBeingEdited = {};
     });

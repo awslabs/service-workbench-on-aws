@@ -56,7 +56,8 @@ describe('CostCacheService', () => {
   describe('create', () => {
     it('should call DBService with correct input', async () => {
       // BUILD
-      const requestContext = { principalIdentifier: 'createPrincipalIdentifier' };
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid } };
       const rawData = { indexId: INDEX_ID, query: QUERY, result: RESULT };
 
       // OPERATE
@@ -66,8 +67,8 @@ describe('CostCacheService', () => {
       expect(dbService.table.key).toHaveBeenCalledWith({ indexId: INDEX_ID, query: QUERY });
       const dbData = {
         rev: 0,
-        createdBy: 'createPrincipalIdentifier',
-        updatedBy: 'createPrincipalIdentifier',
+        createdBy: uid,
+        updatedBy: uid,
         indexId: INDEX_ID,
         query: QUERY,
         result: RESULT,
@@ -79,7 +80,8 @@ describe('CostCacheService', () => {
   describe('update', () => {
     it('should call DBService with correct input', async () => {
       // BUILD
-      const requestContext = { principalIdentifier: 'updatePrincipalIdentifier' };
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid } };
       const rawData = {
         indexId: INDEX_ID,
         query: QUERY,
@@ -93,8 +95,7 @@ describe('CostCacheService', () => {
       expect(dbService.table.key).toHaveBeenCalledWith({ indexId: INDEX_ID });
       expect(dbService.table.rev).toHaveBeenCalledWith(undefined);
       const dbData = {
-        // createdBy: 'createPrincipalIdentifier',
-        updatedBy: 'updatePrincipalIdentifier',
+        updatedBy: uid,
         indexId: INDEX_ID,
         query: QUERY,
         result: RESULT,

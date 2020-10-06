@@ -85,8 +85,8 @@ class ProjectsList extends React.Component {
               style: { whiteSpace: 'unset' },
               Cell: observer(row => {
                 const project = row.original;
-                const { projectAdmins } = project;
-                return _.map(projectAdmins, x => x.username).join(', ') || '<<none>>';
+                const projectAdminUsers = project.projectAdminUsers;
+                return _.map(projectAdminUsers, u => u.username).join(', ') || '<<none>>';
               }),
             },
             {

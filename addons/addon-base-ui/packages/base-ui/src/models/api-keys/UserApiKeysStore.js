@@ -20,7 +20,7 @@ import ApiKeysStore from './ApiKeysStore';
 
 const UserApiKeysStore = BaseStore.named('UserApiKeysStore')
   .props({
-    // key = userIdentifierStr and value = ApiKeysStore for that user
+    // key = uid and value = ApiKeysStore for that user
     userApiKeysStores: types.optional(types.map(ApiKeysStore), {}),
   })
   .actions(self => {
@@ -35,7 +35,7 @@ const UserApiKeysStore = BaseStore.named('UserApiKeysStore')
         }
 
         const currentUser = userStore.user;
-        const currentUserApiKeyStore = ApiKeysStore.create({ userIdentifierStr: currentUser.id });
+        const currentUserApiKeyStore = ApiKeysStore.create({ uid: currentUser.uid });
         if (!isStoreReady(currentUserApiKeyStore)) {
           // Load API keys for the current user
           await currentUserApiKeyStore.load();
@@ -48,18 +48,18 @@ const UserApiKeysStore = BaseStore.named('UserApiKeysStore')
           self.userApiKeysStores.put(currentUserApiKeyStore);
         });
       },
-      getApiKeysStore: (userIdentifierStr, userIdentifier) => {
-        let entry = self.userApiKeysStores.get(userIdentifierStr);
+      getApiKeysStore: uid => {
+        let entry = self.userApiKeysStores.get(uid);
         if (!entry) {
-          self.userApiKeysStores.put(ApiKeysStore.create({ userIdentifierStr, userIdentifier }));
-          entry = self.userApiKeysStores.get(userIdentifierStr);
+          self.userApiKeysStores.put(ApiKeysStore.create({ uid }));
+          entry = self.userApiKeysStores.get(uid);
         }
         return entry;
       },
       getCurrentUserApiKeysStore: () => {
         const userStore = getEnv(self).userStore;
         const currentUser = userStore.user;
-        return self.getApiKeysStore(currentUser.id, currentUser.identifier);
+        return self.getApiKeysStore(currentUser.id);
       },
       cleanup: () => {
         self.user = undefined;

@@ -22,7 +22,7 @@ const { toVersionString, parseVersionString, runAndCatch } = require('@aws-ee/ba
 const inputSchema = require('../schema/workflow-template');
 
 const settingKeys = {
-  tableName: 'dbTableWorkflowTemplates',
+  tableName: 'dbWorkflowTemplates',
 };
 
 // Do some properties renaming to prepare the object to be saved in the database
@@ -94,7 +94,7 @@ class WorkflowTemplateService extends Service {
     const dbObject = toDbObject(manifest);
 
     // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
 
     // TODO - we need to wrap the creation of the version and the update of the latest record in a transaction
     const result = await runAndCatch(
@@ -166,7 +166,7 @@ class WorkflowTemplateService extends Service {
     const dbObject = toDbObject(manifest);
 
     // For now, we assume that updatedBy' is always a user and not a group
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
 
     // TODO: we need to wrap the creation of the version and the update of the latest record in a transaction
     const result = await runAndCatch(

@@ -143,7 +143,12 @@ class ApiKeysList extends Component {
             </Label>
           </Table.Cell>
           <Table.Cell textAlign="center" collapsing>
-            <Button size="small" color="red" onClick={() => this.handleRevokeApiKey(apiKey.id)}>
+            <Button
+              size="small"
+              color="red"
+              disabled={!apiKey.isActive}
+              onClick={() => this.handleRevokeApiKey(apiKey.id)}
+            >
               Revoke
             </Button>
           </Table.Cell>

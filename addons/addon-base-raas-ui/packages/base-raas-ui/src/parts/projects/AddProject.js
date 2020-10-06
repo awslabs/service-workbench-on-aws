@@ -133,7 +133,7 @@ class AddProject extends React.Component {
   handleProjectAdminsSelection = (e, { value }) => {
     runInAction(() => {
       if (Array.isArray(value)) {
-        this.project.projectAdmins = value.map(user => JSON.parse(user));
+        this.project.projectAdmins = value;
       }
     });
   };
