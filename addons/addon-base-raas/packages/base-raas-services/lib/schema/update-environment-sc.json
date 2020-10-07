@@ -16,6 +16,10 @@
       "type": "string",
       "maxLength": 2048
     },
+    "inWorkflow": {
+      "type": "string",
+      "maxLength": 2048
+    },
     "error": {
       "type": "string",
       "maxLength": 2048
