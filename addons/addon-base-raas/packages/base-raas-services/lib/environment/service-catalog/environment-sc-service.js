@@ -71,14 +71,14 @@ class EnvironmentScService extends Service {
       environmentAuthzService.authorize(requestContext, { resource, action, effect, reason }, ...args);
   }
 
-  async list(requestContext) {
+  async list(requestContext, limit = 1000) {
     // Make sure the user has permissions to "list" environments
     // The following will result in checking permissions by calling the condition function "this._allowAuthorized" first
     await this.assertAuthorized(requestContext, { action: 'list-sc', conditions: [this._allowAuthorized] });
 
     // TODO: Handle pagination and search for user's own environments directly instead of filtering here
     const envs = await this._scanner()
-      .limit(1000)
+      .limit(limit)
       .scan()
       .then(environments => {
         if (isAdmin(requestContext)) {
@@ -88,6 +88,59 @@ class EnvironmentScService extends Service {
       });
 
     return this.augmentWithConnectionInfo(requestContext, envs);
+  }
+
+  async pollAndSyncWsStatus(requestContext) {
+    const [indexesService, awsAccountsService] = await this.service(['indexesService', 'awsAccountsService']);
+    let envs = await this._scanner()
+      .limit(1000)
+      .scan();
+    envs = _.filter(
+      envs,
+      env => _.includes(['COMPLETED', 'STARTING', 'STOPPING', 'TERMINATING'], env.status) && env.inWorkflow !== 'true',
+    );
+    const indexes = await indexesService.list(requestContext, { fields: ['id', 'awsAccountId'] });
+    const indexesGroups = _.groupBy(indexes, index => index.awsAccountId);
+    const envGroups = _.groupBy(envs, env => env.indexId);
+    const accounts = await awsAccountsService.list(requestContext);
+    const pollAndSyncPromises = accounts.map(account =>
+      this.pollAndSyncWsStatusForAccount(requestContext, account, indexesGroups, envGroups),
+    );
+    const testReturn = await Promise.all(pollAndSyncPromises);
+    return testReturn;
+  }
+
+  async pollAndSyncWsStatusForAccount(requestContext, account, indexesGroups, envGroups) {
+    const aws = await this.service('aws');
+    const { roleArn, externalId, id } = account;
+    const { ec2Instances, sagemakerInstances } = this.getInstanceToCheck(_.get(indexesGroups, id), envGroups);
+    const ec2Client = await aws.getClientSdkForRole({ roleArn, externalId, clientName: 'EC2' });
+    ec2Client.describeInstances();
+    const sagemakerClient = await aws.getClientSdkForRole({ roleArn, externalId, clientName: 'SageMaker' });
+    sagemakerClient.listNotebookInstances();
+    return { ec2Instances, sagemakerInstances };
+    // TODO:
+    // Use instanceId in API calls to get filtered status results
+    // Check status, update if does not match
+  }
+
+  getInstanceToCheck(indexList, envGroups) {
+    const ec2Instances = {};
+    const sagemakerInstances = {};
+    _.forEach(indexList, index => {
+      const envs = _.get(envGroups, index.id);
+      if (envs) {
+        envs.forEach(env => {
+          const outputsObject = cfnOutputsArrayToObject(env.outputs);
+          if ('Ec2WorkspaceInstanceId' in outputsObject) {
+            ec2Instances[outputsObject.Ec2WorkspaceInstanceId] = env;
+          } else if ('NotebookInstanceName' in outputsObject) {
+            sagemakerInstances[outputsObject.NotebookInstanceName] = env;
+          }
+        });
+      }
+    });
+    return { ec2Instances, sagemakerInstances };
   }
 
   async augmentWithConnectionInfo(requestContext, envs) {
