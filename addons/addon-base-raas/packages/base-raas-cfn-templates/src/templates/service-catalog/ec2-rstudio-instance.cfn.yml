@@ -217,9 +217,6 @@ Outputs:
   #  Currently this is applicable only when ConnectionScheme = 'ssh'.
   #  This instanceId will be used for sending user's SSH public key using AWS EC2 Instance Connect when user wants to SSH to the instance.
   #
-  MetaConnection1Info:
-    Description: The name of the RStudio notebook instance.
-    Value: !GetAtt [EC2Instance, PublicDnsName]
 
   MetaConnection1Type:
     Description: Type of environment this connection is for

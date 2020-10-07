@@ -37,7 +37,10 @@ Since RStudio currently requires a custom domain name, please configure the same
 1. The EC2 instance backing this workspace must be in the **Ready** state. Also make sure its security group allows your IP HTTPS access to it.
 2. Click on the connections button and hit **Connect**.
 
-> Note: If your EC2 instance, which is backing RStudio, goes through a reboot (manual or automatic), it’s public DNS might change and would need to be updated manually in the Hosted Zone’s corresponding CNAME record.
+> Notes:
+>
+> 1. If you're provisioning an RStudio instance with studies selected, these studies will only get mounted on your instance once you click on the RStudio workspace's "Terminal" tab.
+> 2. If you started a previously stopped RStudio instance (manually or automatically) and connect to it, you might see an error dialog box saying the session closed abruptly. Although this typically does not affect your data, it is recommended to quit your session from within your RStudio workspace before stopping the instance through SWB.
 
 ### Common connection issues
 
