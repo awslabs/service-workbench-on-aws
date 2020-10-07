@@ -698,7 +698,7 @@ Resources:
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
       Policies:
-        - PolicyName: db-access
+        - PolicyName: db-environment-access
           PolicyDocument:
             Statement:
               Effect: Allow
@@ -708,7 +708,23 @@ Resources:
                 - dynamodb:Scan
                 - dynamodb:UpdateItem
               Resource:
-                - !GetAtt [DbEnvironmentsSc, Arn]
+                - !GetAtt [EnvironmentsScDb, Arn]
+        - PolicyName: db-scan
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - dynamodb:Scan
+              Resource:
+                - !GetAtt [IndexesDb, Arn]
+                - !GetAtt [ProjectsDb, Arn]
+                - !GetAtt [AwsAccountsDb, Arn]
+        - PolicyName: assume-role
+          PolicyDocument:
+            Statement:
+              Action: 'sts:AssumeRole'
+              Effect: Allow
+              Resource: '*' # TODO: LOCK THIS DOWN!
 
   # An environment management role giving AWS Service Catalog Permissions
   # This is the role that the Admin users share their AWS Service Catalog products/portfolios with.

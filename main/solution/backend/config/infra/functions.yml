@@ -28,7 +28,7 @@ envStatusPollHandler:
   events:
     - schedule:
         rate: rate(5 minutes)
-        description: 'Invokes the lambda function that scrapes the awslabs/open-data-registry to find new studies and insert them into DynamoDB.'
+        description: 'Invokes the lambda function that polls and synchronize .'
 
 apiHandler:
   handler: src/lambdas/api-handler/handler.handler
