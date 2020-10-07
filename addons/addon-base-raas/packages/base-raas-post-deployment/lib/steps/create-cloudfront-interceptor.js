@@ -28,16 +28,16 @@ class CreateCloudFrontInterceptor extends Service {
 
   async init() {
     await super.init();
-  }
 
-  async execute() {
     this.aws = await this.service('aws');
     this.cloudFrontApi = new this.aws.sdk.CloudFront({ apiVersion: '2019-03-26' });
     this.cloudFrontId = this.settings.get('cloudFrontId');
     this.cloudFrontConfig = await this.cloudFrontApi.getDistributionConfig({ Id: this.cloudFrontId }).promise();
     // CloudFront Lambda@Edge currently only supports Lambda functions created in us-east-1
     this.lambdaApi = new this.aws.sdk.Lambda({ apiVersion: '2015-03-31', region: 'us-east-1' });
+  }
 
+  async execute() {
     // TODO: @aws-ee/base-serverless-settings-helper needs to support
     // updating stringified JSON object Serverless settings when resolving
     // crossRegionCloudFormation, so that we don't have to build this object here
