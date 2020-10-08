@@ -55,7 +55,7 @@ class StopSagemakerEnvironmentSc extends StepBase {
       }
     }
 
-    await this.updateEnvironmentStatus('STOPPING');
+    await this.updateEnvironment({ status: 'STOPPING', inWorkflow: 'true' });
 
     this.state.setKey('STATE_NOTEBOOK_INSTANCE_NAME', NotebookInstanceName);
 
@@ -122,10 +122,10 @@ class StopSagemakerEnvironmentSc extends StepBase {
   }
 
   async updateEnvironmentStatusToStopped() {
-    return this.updateEnvironmentStatus('STOPPED');
+    return this.updateEnvironment({ status: 'STOPPED', inWorkflow: 'false' });
   }
 
-  async updateEnvironmentStatus(status) {
+  async updateEnvironment(updatedAttributes) {
     const environmentScService = await this.mustFindServices('environmentScService');
     const id = await this.state.string('STATE_ENVIRONMENT_ID');
     const requestContext = await this.state.optionalObject('STATE_REQUEST_CONTEXT');
@@ -140,14 +140,14 @@ class StopSagemakerEnvironmentSc extends StepBase {
     const newEnvironment = {
       id,
       rev: existingEnvRecord.rev || 0,
-      status,
+      ...updatedAttributes,
     };
 
     await environmentScService.update(requestContext, newEnvironment);
   }
 
   async onFail() {
-    return this.updateEnvironmentStatus('STOPPING_FAILED');
+    return this.updateEnvironment({ status: 'STOPPING_FAILED', inWorkflow: 'false' });
   }
 }
 

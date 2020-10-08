@@ -55,7 +55,7 @@ class StartEc2EnvironmentSc extends StepBase {
         throw error;
       }
     }
-    await this.updateEnvironment({ status: 'STARTING' });
+    await this.updateEnvironment({ status: 'STARTING', inWorkflow: 'true' });
     this.state.setKey('STATE_INSTANCE_ID', instanceId);
 
     return this.wait(5)
@@ -156,7 +156,7 @@ class StartEc2EnvironmentSc extends StepBase {
       _.get(currentEC2Info, 'Reservations[0].Instances[0].PublicDnsName'),
     );
 
-    return this.updateEnvironment({ status: 'COMPLETED', outputs });
+    return this.updateEnvironment({ status: 'COMPLETED', outputs, inWorkflow: 'false' });
   }
 
   async updateEnvironment(updatedAttributes) {
@@ -178,7 +178,7 @@ class StartEc2EnvironmentSc extends StepBase {
   }
 
   async onFail() {
-    return this.updateEnvironment({ status: 'STARTING_FAILED' });
+    return this.updateEnvironment({ status: 'STARTING_FAILED', inWorkflow: 'false' });
   }
 }
 

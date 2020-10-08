@@ -58,7 +58,7 @@ class StopEc2EnvironmentSc extends StepBase {
         throw error;
       }
     }
-    await this.updateEnvironmentStatus('STOPPING');
+    await this.updateEnvironment({ status: 'STOPPING', inWorkflow: 'true' });
 
     this.state.setKey('STATE_INSTANCE_ID', instanceId);
 
@@ -119,10 +119,10 @@ class StopEc2EnvironmentSc extends StepBase {
   }
 
   async updateEnvironmentStatusToStopped() {
-    return this.updateEnvironmentStatus('STOPPED');
+    return this.updateEnvironment({ status: 'STOPPED', inWorkflow: 'false' });
   }
 
-  async updateEnvironmentStatus(status) {
+  async updateEnvironment(updatedAttributes) {
     const environmentScService = await this.mustFindServices('environmentScService');
     const id = await this.state.string('STATE_ENVIRONMENT_ID');
     const requestContext = await this.state.optionalObject('STATE_REQUEST_CONTEXT');
@@ -136,13 +136,13 @@ class StopEc2EnvironmentSc extends StepBase {
     const environment = {
       id,
       rev: existingEnvRecord.rev || 0,
-      status,
+      ...updatedAttributes,
     };
     await environmentScService.update(requestContext, environment);
   }
 
   async onFail() {
-    return this.updateEnvironmentStatus('STOPPING_FAILED');
+    return this.updateEnvironment({ status: 'STOPPING_FAILED', inWorkflow: 'false' });
   }
 }
 

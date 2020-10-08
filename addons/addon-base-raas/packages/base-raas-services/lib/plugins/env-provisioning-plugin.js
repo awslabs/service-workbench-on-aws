@@ -135,6 +135,7 @@ async function updateEnvOnProvisioningSuccess({
     status,
     outputs,
     provisionedProductId,
+    inWorkflow: 'false',
   };
   await environmentScService.update(requestContext, environment);
 
@@ -208,6 +209,7 @@ async function updateEnvOnTerminationSuccess({ requestContext, container, status
     id: envId,
     rev: existingEnvRecord.rev || 0,
     status,
+    inWorkflow: 'false',
   };
   const updatedEnvironment = await environmentScService.update(requestContext, environment);
 

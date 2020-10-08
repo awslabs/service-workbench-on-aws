@@ -73,14 +73,14 @@ class EnvironmentScService extends Service {
       environmentAuthzService.authorize(requestContext, { resource, action, effect, reason }, ...args);
   }
 
-  async list(requestContext) {
+  async list(requestContext, limit = 10000) {
     // Make sure the user has permissions to "list" environments
     // The following will result in checking permissions by calling the condition function "this._allowAuthorized" first
     await this.assertAuthorized(requestContext, { action: 'list-sc', conditions: [this._allowAuthorized] });
 
     // TODO: Handle pagination and search for user's own environments directly instead of filtering here
     const envs = await this._scanner()
-      .limit(1000)
+      .limit(limit)
       .scan()
       .then(environments => {
         if (isAdmin(requestContext)) {
@@ -90,6 +90,159 @@ class EnvironmentScService extends Service {
       });
 
     return this.augmentWithConnectionInfo(requestContext, envs);
+  }
+
+  async pollAndSyncWsStatus(requestContext) {
+    const [indexesService, awsAccountsService] = await this.service(['indexesService', 'awsAccountsService']);
+    let envs = await this._scanner({ fields: ['id', 'indexId', 'status', 'outputs'] })
+      // Verified with EC2 support team that EC2 describe instances API can take 10K instanceIds without issue
+      .limit(10000)
+      .scan();
+    envs = _.filter(
+      envs,
+      // Status polling is created to account for instance auto stop functionality
+      // COMPLETED is included since the corresponding instance could be stopped
+      // Other 'unstalbe' statuses are included as they could be result of a previous poll and sync
+      env => _.includes(['COMPLETED', 'STARTING', 'STOPPING', 'TERMINATING'], env.status) && env.inWorkflow !== 'true',
+    );
+    const indexes = await indexesService.list(requestContext, { fields: ['id', 'awsAccountId'] });
+    const indexesGroups = _.groupBy(indexes, index => index.awsAccountId);
+    const envGroups = _.groupBy(envs, env => env.indexId);
+    const accounts = await awsAccountsService.list(requestContext);
+    const pollAndSyncPromises = accounts.map(account =>
+      this.pollAndSyncWsStatusForAccount(requestContext, account, indexesGroups, envGroups),
+    );
+    return Promise.all(pollAndSyncPromises);
+  }
+
+  async pollAndSyncWsStatusForAccount(requestContext, account, indexesGroups, envGroups) {
+    const { roleArn, externalId, id, accountId } = account;
+    const { ec2Instances, sagemakerInstances } = this.getInstanceToCheck(_.get(indexesGroups, id), envGroups);
+    let ec2Updated = {};
+    let sagemakerUpdated = {};
+    if (!_.isEmpty(ec2Instances)) {
+      ec2Updated = await this.pollAndSyncEc2Status(roleArn, externalId, ec2Instances, requestContext);
+    }
+    if (!_.isEmpty(sagemakerInstances)) {
+      sagemakerUpdated = await this.pollAndSyncSageMakerStatus(roleArn, externalId, sagemakerInstances, requestContext);
+    }
+    return { accountId, ec2Updated, sagemakerUpdated };
+  }
+
+  async pollAndSyncEc2Status(roleArn, externalId, ec2Instances, requestContext) {
+    const EC2StatusMap = {
+      'running': 'COMPLETED',
+      'pending': 'STARTING',
+      'stopping': 'STOPPING',
+      'stopped': 'STOPPED',
+      'shutting-down': 'TERMINATING',
+      'terminated': 'TERMINATED',
+    };
+    const ec2RealtimeStatus = await this.pollEc2RealtimeStatus(roleArn, externalId, ec2Instances);
+    const ec2Updated = {};
+    _.forEach(ec2Instances, async (existingEnvRecord, ec2InstanceId) => {
+      const expectedDDBStatus = EC2StatusMap[ec2RealtimeStatus[ec2InstanceId]];
+      if (expectedDDBStatus && existingEnvRecord.status !== expectedDDBStatus) {
+        ec2Updated[ec2InstanceId] = {
+          ddbID: existingEnvRecord.id,
+          currentStatus: expectedDDBStatus,
+          staleStatus: existingEnvRecord.status,
+        };
+        const newEnvironment = {
+          id: existingEnvRecord.id,
+          rev: existingEnvRecord.rev || 0,
+          status: expectedDDBStatus.toUpperCase(),
+        };
+        await this.update(requestContext, newEnvironment);
+      }
+    });
+    return ec2Updated;
+  }
+
+  async pollEc2RealtimeStatus(roleArn, externalId, ec2Instances) {
+    const aws = await this.service('aws');
+    const ec2Client = await aws.getClientSdkForRole({ roleArn, externalId, clientName: 'EC2' });
+    const params = {
+      InstanceIds: Object.keys(ec2Instances),
+    };
+    const ec2RealtimeStatus = {};
+    let data;
+    do {
+      data = await ec2Client.describeInstances(params).promise(); // eslint-disable-line no-await-in-loop
+      params.NextToken = data.NextToken;
+      data.Reservations.forEach(reservation => {
+        reservation.Instances.forEach(instance => {
+          ec2RealtimeStatus[instance.InstanceId] = instance.State.Name;
+        });
+      });
+    } while (params.NextToken);
+    return ec2RealtimeStatus;
+  }
+
+  async pollAndSyncSageMakerStatus(roleArn, externalId, sagemakerInstances, requestContext) {
+    const SageMakerStatusMap = {
+      InService: 'COMPLETED',
+      Pending: 'STARTING',
+      Updating: 'STARTING',
+      Stopping: 'STOPPING',
+      Stopped: 'STOPPED',
+      Deleting: 'TERMINATING',
+      Failed: 'FAILED',
+    };
+    const sagemakerRealtimeStatus = await this.pollSageMakerRealtimeStatus(roleArn, externalId);
+    const sagemakerUpdated = {};
+    _.forEach(sagemakerInstances, async (existingEnvRecord, key) => {
+      const expectedDDBStatus = SageMakerStatusMap[sagemakerRealtimeStatus[key]];
+      if (expectedDDBStatus && existingEnvRecord.status !== expectedDDBStatus) {
+        sagemakerUpdated[key] = {
+          ddbID: existingEnvRecord.id,
+          currentStatus: expectedDDBStatus,
+          staleStatus: existingEnvRecord.status,
+        };
+        const newEnvironment = {
+          id: existingEnvRecord.id,
+          rev: existingEnvRecord.rev || 0,
+          status: SageMakerStatusMap[sagemakerRealtimeStatus[key]].toUpperCase(),
+        };
+        await this.update(requestContext, newEnvironment);
+      }
+    });
+    return sagemakerUpdated;
+  }
+
+  async pollSageMakerRealtimeStatus(roleArn, externalId) {
+    const aws = await this.service('aws');
+    const sagemakerClient = await aws.getClientSdkForRole({ roleArn, externalId, clientName: 'SageMaker' });
+    const params = {};
+    const sagemakerRealtimeStatus = {};
+    let data;
+    do {
+      data = await sagemakerClient.listNotebookInstances().promise(); // eslint-disable-line no-await-in-loop
+      params.NextToken = data.NextToken;
+      data.NotebookInstances.forEach(instance => {
+        sagemakerRealtimeStatus[instance.NotebookInstanceName] = instance.NotebookInstanceStatus;
+      });
+    } while (params.NextToken);
+    return sagemakerRealtimeStatus;
+  }
+
+  getInstanceToCheck(indexList, envGroups) {
+    const ec2Instances = {};
+    const sagemakerInstances = {};
+    _.forEach(indexList, index => {
+      const envs = _.get(envGroups, index.id);
+      if (envs) {
+        envs.forEach(env => {
+          const outputsObject = cfnOutputsArrayToObject(env.outputs);
+          if ('Ec2WorkspaceInstanceId' in outputsObject) {
+            ec2Instances[outputsObject.Ec2WorkspaceInstanceId] = env;
+          } else if ('NotebookInstanceName' in outputsObject) {
+            sagemakerInstances[outputsObject.NotebookInstanceName] = env;
+          }
+        });
+      }
+    });
+    return { ec2Instances, sagemakerInstances };
   }
 
   async augmentWithConnectionInfo(requestContext, envs) {
@@ -181,6 +334,7 @@ class EnvironmentScService extends Service {
       updatedBy: by,
       createdAt: date,
       updatedAt: date,
+      inWorkflow: 'true',
     });
     const dbResult = await runAndCatch(
       async () => {
@@ -213,7 +367,7 @@ class EnvironmentScService extends Service {
       // if workflow trigger failed then update environment record in db with failed status
       // first retrieve the revision number of the record we just created above
       const { rev } = await this.mustFind(requestContext, { id, fields: ['rev'] });
-      await this.update(requestContext, { id, rev, status: environmentScStatus.FAILED });
+      await this.update(requestContext, { id, rev, status: environmentScStatus.FAILED, inWorkflow: 'false' });
 
       throw error;
     }
@@ -393,7 +547,12 @@ class EnvironmentScService extends Service {
       existingEnvironment,
     );
 
-    await this.update(requestContext, { id, rev: existingEnvironment.rev, status: environmentScStatus.TERMINATING });
+    await this.update(requestContext, {
+      id,
+      rev: existingEnvironment.rev,
+      status: environmentScStatus.TERMINATING,
+      inWorkflow: 'true',
+    });
 
     // Write audit event
     await this.audit(requestContext, { action: 'delete-environment-sc', body: existingEnvironment });
@@ -420,7 +579,12 @@ class EnvironmentScService extends Service {
       // if workflow trigger failed then update environment record in db with failed status
       // first retrieve the revision number of the record we just created above
       const { rev } = await this.mustFind(requestContext, { id, fields: ['rev'] });
-      await this.update(requestContext, { id, rev, status: environmentScStatus.TERMINATING_FAILED });
+      await this.update(requestContext, {
+        id,
+        rev,
+        status: environmentScStatus.TERMINATING_FAILED,
+        inWorkflow: 'false',
+      });
 
       throw error;
     }
