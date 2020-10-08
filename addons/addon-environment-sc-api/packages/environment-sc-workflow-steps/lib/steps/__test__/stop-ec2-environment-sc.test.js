@@ -63,7 +63,7 @@ describe('StopEc2EnvironmentStep', () => {
     };
     step.getEc2Service = jest.fn().mockResolvedValue(ec2);
     step.getExistingEnvironmentRecord = jest.fn(() => {});
-    step.updateEnvironmentStatus = jest.fn(() => {});
+    step.updateEnvironment = jest.fn(() => {});
   });
 
   afterEach(() => {});

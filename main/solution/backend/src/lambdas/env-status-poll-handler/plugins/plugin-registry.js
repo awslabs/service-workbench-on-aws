@@ -45,9 +45,7 @@ const extensionPoints = {
   'account-authz': [], // No plugins at this point. All account authz is happening inline in 'account-service'
   'aws-account-authz': [], // No plugins at this point. All aws-account authz is happening inline in 'aws-account-service'
   'cost-authz': [], // No plugins at this point. All cost authz is happening inline in 'costs-service'
-
-  // TODO: Enable app stream plugin again. Temporarily disabled app stream plugin until appropriate extension points are added to provision-account workflow
-  'schema': [baseRaasSchemaPlugin /* , baseRaasAppstreamSchemaPlugin */],
+  'schema': [baseRaasSchemaPlugin],
 };
 
 async function getPlugins(extensionPoint) {

@@ -92,11 +92,15 @@ class EnvironmentScService extends Service {
 
   async pollAndSyncWsStatus(requestContext) {
     const [indexesService, awsAccountsService] = await this.service(['indexesService', 'awsAccountsService']);
-    let envs = await this._scanner()
+    let envs = await this._scanner({ fields: ['id', 'indexId', 'status', 'outputs'] })
+      // Verified with EC2 support team that EC2 describe instances API can take 10K instanceIds without issue
       .limit(10000)
       .scan();
     envs = _.filter(
       envs,
+      // Status polling is created to account for instance auto stop functionality
+      // COMPLETED is included since the corresponding instance could be stopped
+      // Other 'unstalbe' statuses are included as they could be result of a previous poll and sync
       env => _.includes(['COMPLETED', 'STARTING', 'STOPPING', 'TERMINATING'], env.status) && env.inWorkflow !== 'true',
     );
     const indexes = await indexesService.list(requestContext, { fields: ['id', 'awsAccountId'] });
@@ -134,10 +138,10 @@ class EnvironmentScService extends Service {
     };
     const ec2RealtimeStatus = await this.pollEc2RealtimeStatus(roleArn, externalId, ec2Instances);
     const ec2Updated = {};
-    _.forEach(ec2Instances, async (existingEnvRecord, key) => {
-      const expectedDDBStatus = EC2StatusMap[ec2RealtimeStatus[key]];
-      if (existingEnvRecord.status !== expectedDDBStatus) {
-        ec2Updated[key] = {
+    _.forEach(ec2Instances, async (existingEnvRecord, ec2InstanceId) => {
+      const expectedDDBStatus = EC2StatusMap[ec2RealtimeStatus[ec2InstanceId]];
+      if (expectedDDBStatus && existingEnvRecord.status !== expectedDDBStatus) {
+        ec2Updated[ec2InstanceId] = {
           ddbID: existingEnvRecord.id,
           currentStatus: expectedDDBStatus,
           staleStatus: existingEnvRecord.status,
@@ -145,7 +149,7 @@ class EnvironmentScService extends Service {
         const newEnvironment = {
           id: existingEnvRecord.id,
           rev: existingEnvRecord.rev || 0,
-          status: EC2StatusMap[ec2RealtimeStatus[key]].toUpperCase(),
+          status: expectedDDBStatus.toUpperCase(),
         };
         await this.update(requestContext, newEnvironment);
       }
@@ -186,8 +190,13 @@ class EnvironmentScService extends Service {
     const sagemakerRealtimeStatus = await this.pollSageMakerRealtimeStatus(roleArn, externalId);
     const sagemakerUpdated = {};
     _.forEach(sagemakerInstances, async (existingEnvRecord, key) => {
-      if (existingEnvRecord.status !== SageMakerStatusMap[sagemakerRealtimeStatus[key]]) {
-        sagemakerUpdated[key] = existingEnvRecord;
+      const expectedDDBStatus = SageMakerStatusMap[sagemakerRealtimeStatus[key]];
+      if (expectedDDBStatus && existingEnvRecord.status !== expectedDDBStatus) {
+        sagemakerUpdated[key] = {
+          ddbID: existingEnvRecord.id,
+          currentStatus: expectedDDBStatus,
+          staleStatus: existingEnvRecord.status,
+        };
         const newEnvironment = {
           id: existingEnvRecord.id,
           rev: existingEnvRecord.rev || 0,

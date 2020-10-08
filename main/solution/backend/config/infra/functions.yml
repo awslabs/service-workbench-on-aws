@@ -24,6 +24,7 @@ envStatusPollHandler:
   handler: src/lambdas/env-status-poll-handler/handler.handler
   role: RoleEnvStatusPollHandler
   tags: ${self:custom.tags}
+  timeout: 900 # in seconds, default is 6
   description: Handles status polling for sc environments
   events:
     - schedule:

@@ -66,7 +66,7 @@ describe('StopSageMakerEnvironmentStep', () => {
     };
     step.getSageMakerService = jest.fn().mockResolvedValue(sagemaker);
     step.getExistingEnvironmentRecord = jest.fn(() => {});
-    step.updateEnvironmentStatus = jest.fn(() => {});
+    step.updateEnvironment = jest.fn(() => {});
   });
 
   afterEach(() => {});
