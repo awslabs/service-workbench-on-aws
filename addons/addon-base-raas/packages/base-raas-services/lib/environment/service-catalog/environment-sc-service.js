@@ -73,7 +73,7 @@ class EnvironmentScService extends Service {
       environmentAuthzService.authorize(requestContext, { resource, action, effect, reason }, ...args);
   }
 
-  async list(requestContext, limit = 1000) {
+  async list(requestContext, limit = 10000) {
     // Make sure the user has permissions to "list" environments
     // The following will result in checking permissions by calling the condition function "this._allowAuthorized" first
     await this.assertAuthorized(requestContext, { action: 'list-sc', conditions: [this._allowAuthorized] });

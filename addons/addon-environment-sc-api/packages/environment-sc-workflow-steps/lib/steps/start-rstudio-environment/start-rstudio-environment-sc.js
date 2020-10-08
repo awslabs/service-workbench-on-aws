@@ -55,7 +55,7 @@ class StartRStudioEnvironmentSc extends StepBase {
         throw error;
       }
     }
-    await this.updateEnvironment({ status: 'STARTING' });
+    await this.updateEnvironment({ status: 'STARTING', inWorkflow: 'true' });
     this.state.setKey('STATE_INSTANCE_ID', instanceId);
 
     return this.wait(5)
@@ -155,7 +155,7 @@ class StartRStudioEnvironmentSc extends StepBase {
     const envId = await this.state.string('STATE_ENVIRONMENT_ID');
     await this.updateCnameRecords(envId, oldDnsName, newDnsName);
 
-    return this.updateEnvironment({ status: 'COMPLETED', outputs });
+    return this.updateEnvironment({ status: 'COMPLETED', outputs, inWorkflow: 'false' });
   }
 
   async updateCnameRecords(envId, oldDnsName, newDnsName) {
@@ -183,7 +183,7 @@ class StartRStudioEnvironmentSc extends StepBase {
   }
 
   async onFail() {
-    return this.updateEnvironment({ status: 'STARTING_FAILED' });
+    return this.updateEnvironment({ status: 'STARTING_FAILED', inWorkflow: 'false' });
   }
 }
 
