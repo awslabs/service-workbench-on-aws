@@ -41,6 +41,11 @@ with a custom domain for RStudio to work properly. In order to configure your cu
 2. certificateArn
 3. hostedZoneId
 
+> Some RStudio-specific things to remember:
+>
+> 1. If you're provisioning an RStudio instance with studies selected, these studies will only get mounted on your instance once you click on the RStudio workspace's "Terminal" tab.
+> 2. Although stopping an instance directly typically does not affect your data, it is recommended to quit your session from within your RStudio workspace before stopping the instance through SWB. After starting it back, allow an extra minute for the RStudio Server to boot up after the workspace becomes available on SWB.
+
 ## Package and Deploy
 
 To build Amazon Machine Images:

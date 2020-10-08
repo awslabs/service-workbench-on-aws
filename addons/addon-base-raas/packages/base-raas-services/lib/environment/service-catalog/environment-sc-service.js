@@ -32,6 +32,8 @@ const workflowIds = {
   delete: 'wf-terminate-environment-sc',
   stopEC2: 'wf-stop-ec2-environment-sc',
   startEC2: 'wf-start-ec2-environment-sc',
+  stopRStudio: 'wf-stop-rstudio-environment-sc',
+  startRStudio: 'wf-start-rstudio-environment-sc',
   stopSagemaker: 'wf-stop-sagemaker-environment-sc',
   startSagemaker: 'wf-start-sagemaker-environment-sc',
 };
@@ -461,9 +463,11 @@ class EnvironmentScService extends Service {
     let instanceType;
     let instanceIdentifier;
     const outputsObject = cfnOutputsArrayToObject(outputs);
-    // TODO: Remove MetaConnection1Type check to include RStudio after CNAME patch
     if ('Ec2WorkspaceInstanceId' in outputsObject && _.get(outputsObject, 'MetaConnection1Type') !== 'RStudio') {
       instanceType = 'ec2';
+      instanceIdentifier = outputsObject.Ec2WorkspaceInstanceId;
+    } else if ('Ec2WorkspaceInstanceId' in outputsObject && _.get(outputsObject, 'MetaConnection1Type') === 'RStudio') {
+      instanceType = 'rstudio';
       instanceIdentifier = outputsObject.Ec2WorkspaceInstanceId;
     } else if ('NotebookInstanceName' in outputsObject) {
       instanceType = 'sagemaker';

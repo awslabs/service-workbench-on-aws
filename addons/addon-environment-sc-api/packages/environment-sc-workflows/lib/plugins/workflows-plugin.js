@@ -16,6 +16,8 @@
 const provisionEnvironmentScYaml = require('../workflows/provision-environment-sc.yml');
 const startEC2ScYaml = require('../workflows/start-ec2-environment-sc.yml');
 const stopEC2ScYaml = require('../workflows/stop-ec2-environment-sc.yml');
+const startRStudioScYaml = require('../workflows/start-rstudio-environment-sc.yml');
+const stopRStudioScYaml = require('../workflows/stop-rstudio-environment-sc.yml');
 const startSageMakerScYaml = require('../workflows/start-sagemaker-environment-sc.yml');
 const stopSageMakerScYaml = require('../workflows/stop-sagemaker-environment-sc.yml');
 const terminateEnvironmentScYaml = require('../workflows/terminate-environment-sc.yml');
@@ -27,6 +29,8 @@ const workflows = [
   add(provisionEnvironmentScYaml),
   add(startEC2ScYaml),
   add(stopEC2ScYaml),
+  add(startRStudioScYaml),
+  add(stopRStudioScYaml),
   add(startSageMakerScYaml),
   add(stopSageMakerScYaml),
   add(terminateEnvironmentScYaml),
