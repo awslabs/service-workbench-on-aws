@@ -28,8 +28,8 @@ envStatusPollHandler:
   description: Handles status polling for sc environments
   events:
     - schedule:
-        rate: rate(5 minutes)
-        description: 'Invokes the lambda function that polls and synchronize .'
+        rate: rate(3 minutes)
+        description: 'Invokes the lambda function that polls and synchronize environment status.'
 
 apiHandler:
   handler: src/lambdas/api-handler/handler.handler
