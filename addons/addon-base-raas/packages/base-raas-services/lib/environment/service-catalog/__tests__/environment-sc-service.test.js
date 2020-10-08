@@ -378,9 +378,42 @@ describe('EnvironmentSCService', () => {
   });
 
   describe('pollAndSyncWsStatus function', () => {
+    const sagemakerResponse = {
+      NotebookInstances: [
+        {
+          NotebookInstanceName: 'notebook-instance-name',
+          NotebookInstanceStatus: 'Stopped',
+        },
+      ],
+    };
+    const requestContext = {
+      principalIdentifier: {
+        username: 'uname',
+        ns: 'user.ns',
+      },
+    };
+    const stsResponse = {
+      AccessKeyId: 'accessKeyId',
+      SecretAccessKey: 'secretAccessKey',
+      SessionToken: 'sessionToken',
+    };
+    const ec2Response = {
+      Reservations: [
+        {
+          Instances: [
+            {
+              InstanceId: 'ec2-instance-id',
+              State: {
+                Name: 'stopped',
+              },
+            },
+          ],
+        },
+      ],
+    };
+
     it('Should sync EC2 status when stale status is COMPLETED and real time status is stopped', async () => {
       // BUILD
-      AWSMock.setSDKInstance(aws.sdk);
       indexesService.list = jest
         .fn()
         .mockResolvedValue([{ id: 'some-index-id', awsAccountId: 'some-aws-account-uuid' }]);
@@ -400,31 +433,8 @@ describe('EnvironmentSCService', () => {
           outputs: [{ OutputKey: 'Ec2WorkspaceInstanceId', OutputValue: 'ec2-instance-id' }],
         },
       ]);
-      const ec2Response = {
-        Reservations: [
-          {
-            Instances: [
-              {
-                InstanceId: 'ec2-instance-id',
-                State: {
-                  Name: 'stopped',
-                },
-              },
-            ],
-          },
-        ],
-      };
-      const requestContext = {
-        principalIdentifier: {
-          username: 'uname',
-          ns: 'user.ns',
-        },
-      };
-      const stsResponse = {
-        AccessKeyId: 'accessKeyId',
-        SecretAccessKey: 'secretAccessKey',
-        SessionToken: 'sessionToken',
-      };
+      service.update = jest.fn();
+      AWSMock.setSDKInstance(aws.sdk);
       AWSMock.mock('STS', 'assumeRole', { Credentials: stsResponse });
       AWSMock.mock('EC2', 'describeInstances', ec2Response);
 
@@ -445,7 +455,6 @@ describe('EnvironmentSCService', () => {
 
     it('Should not sync EC2 status when stale status is STARTING and inWorkflow is true', async () => {
       // BUILD
-      AWSMock.setSDKInstance(aws.sdk);
       indexesService.list = jest
         .fn()
         .mockResolvedValue([{ id: 'some-index-id', awsAccountId: 'some-aws-account-uuid' }]);
@@ -466,36 +475,15 @@ describe('EnvironmentSCService', () => {
           inWorkflow: 'true',
         },
       ]);
-      const ec2Response = {
-        Reservations: [
-          {
-            Instances: [
-              {
-                InstanceId: 'ec2-instance-id',
-                State: {
-                  Name: 'stopped',
-                },
-              },
-            ],
-          },
-        ],
-      };
-      const requestContext = {
-        principalIdentifier: {
-          username: 'uname',
-          ns: 'user.ns',
-        },
-      };
-      const stsResponse = {
-        AccessKeyId: 'accessKeyId',
-        SecretAccessKey: 'secretAccessKey',
-        SessionToken: 'sessionToken',
-      };
+      service.update = jest.fn();
+
+      AWSMock.setSDKInstance(aws.sdk);
       AWSMock.mock('STS', 'assumeRole', { Credentials: stsResponse });
       AWSMock.mock('EC2', 'describeInstances', ec2Response);
 
       // OPERATE
       const result = await service.pollAndSyncWsStatus(requestContext);
+      // CHECK
       expect(result).toMatchObject([
         {
           accountId: 'some-aws-account-id',
@@ -503,13 +491,65 @@ describe('EnvironmentSCService', () => {
           sagemakerUpdated: {},
         },
       ]);
+      AWSMock.restore();
+    });
+
+    it('Should continue to update other workspace status if one update errors out', async () => {
+      // BUILD
+      indexesService.list = jest
+        .fn()
+        .mockResolvedValue([{ id: 'some-index-id', awsAccountId: 'some-aws-account-uuid' }]);
+      awsAccountsService.list = jest.fn().mockResolvedValue([
+        {
+          roleArn: 'some-role-arn',
+          externalId: 'some-external-id',
+          id: 'some-aws-account-uuid',
+          accountId: 'some-aws-account-id',
+        },
+      ]);
+      dbService.table.scan.mockResolvedValueOnce([
+        {
+          id: 'some-environment-id',
+          indexId: 'some-index-id',
+          status: 'COMPLETED',
+          outputs: [{ OutputKey: 'Ec2WorkspaceInstanceId', OutputValue: 'ec2-instance-id' }],
+        },
+        {
+          id: 'some-environment-id',
+          indexId: 'some-index-id',
+          status: 'STOPPING',
+          outputs: [{ OutputKey: 'NotebookInstanceName', OutputValue: 'notebook-instance-name' }],
+        },
+      ]);
+      service.update = jest.fn().mockImplementationOnce(() => {
+        throw Error(`environment information changed just before your request is processed, please try again`);
+      });
+      AWSMock.setSDKInstance(aws.sdk);
+      AWSMock.mock('STS', 'assumeRole', { Credentials: stsResponse });
+      AWSMock.mock('EC2', 'describeInstances', ec2Response);
+      AWSMock.mock('SageMaker', 'listNotebookInstances', sagemakerResponse);
+
+      // OPERATE
+      const result = await service.pollAndSyncWsStatus(requestContext);
       // CHECK
+      expect(result).toMatchObject([
+        {
+          accountId: 'some-aws-account-id',
+          ec2Updated: {},
+          sagemakerUpdated: {
+            'notebook-instance-name': {
+              currentStatus: 'STOPPED',
+              ddbID: 'some-environment-id',
+              staleStatus: 'STOPPING',
+            },
+          },
+        },
+      ]);
       AWSMock.restore();
     });
 
     it('Should sync SageMaker status when stale status is STOPPING(not in workflow) and real time status is stopped', async () => {
       // BUILD
-      AWSMock.setSDKInstance(aws.sdk);
       indexesService.list = jest
         .fn()
         .mockResolvedValue([{ id: 'some-index-id', awsAccountId: 'some-aws-account-uuid' }]);
@@ -529,30 +569,15 @@ describe('EnvironmentSCService', () => {
           outputs: [{ OutputKey: 'NotebookInstanceName', OutputValue: 'notebook-instance-name' }],
         },
       ]);
-      const sagemakerResponse = {
-        NotebookInstances: [
-          {
-            NotebookInstanceName: 'notebook-instance-name',
-            NotebookInstanceStatus: 'Stopped',
-          },
-        ],
-      };
-      const requestContext = {
-        principalIdentifier: {
-          username: 'uname',
-          ns: 'user.ns',
-        },
-      };
-      const stsResponse = {
-        AccessKeyId: 'accessKeyId',
-        SecretAccessKey: 'secretAccessKey',
-        SessionToken: 'sessionToken',
-      };
+      service.update = jest.fn();
+
+      AWSMock.setSDKInstance(aws.sdk);
       AWSMock.mock('STS', 'assumeRole', { Credentials: stsResponse });
       AWSMock.mock('SageMaker', 'listNotebookInstances', sagemakerResponse);
 
       // OPERATE
       const result = await service.pollAndSyncWsStatus(requestContext);
+      // CHECK
       expect(result).toMatchObject([
         {
           accountId: 'some-aws-account-id',
@@ -566,7 +591,6 @@ describe('EnvironmentSCService', () => {
           },
         },
       ]);
-      // CHECK
       AWSMock.restore();
     });
   });

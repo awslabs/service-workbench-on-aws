@@ -42,6 +42,10 @@ Since RStudio currently requires a custom domain name, please configure the same
 > 1. If you're provisioning an RStudio instance with studies selected, these studies will only get mounted on your instance once you click on the RStudio workspace's "Terminal" tab.
 > 2. If you started a previously stopped RStudio instance (manually or automatically) and connect to it, you might see an error dialog box saying the session closed abruptly. Although this typically does not affect your data, it is recommended to quit your session from within your RStudio workspace before stopping the instance through SWB.
 
+### Start and Stop workspace
+
+EC2 Windows, EC2 Linux, RStudio and SageMaker workspaces can be stopped when not in use. Click the stop button to stop the workspace, and click the start button to start the workspace again. 
+
 ### Common connection issues
 
 Connection to workspace is restricted to specific CIDR block.
