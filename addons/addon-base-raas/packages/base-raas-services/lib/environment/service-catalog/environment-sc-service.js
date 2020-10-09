@@ -113,7 +113,9 @@ class EnvironmentScService extends Service {
     const pollAndSyncPromises = accounts.map(account =>
       this.pollAndSyncWsStatusForAccount(requestContext, account, indexesGroups, envGroups),
     );
-    return Promise.all(pollAndSyncPromises);
+    const result = await Promise.all(pollAndSyncPromises);
+    this.log.info(result);
+    return result;
   }
 
   async pollAndSyncWsStatusForAccount(requestContext, account, indexesGroups, envGroups) {

@@ -22,7 +22,7 @@ openDataScrapeHandler:
 
 envStatusPollHandler:
   handler: src/lambdas/env-status-poll-handler/handler.handler
-  role: RoleEnvStatusPollHandler
+  role: RoleApiHandler # This is a temporary patch for cross account assume role
   tags: ${self:custom.tags}
   timeout: 900 # in seconds, default is 6
   description: Handles status polling for sc environments
