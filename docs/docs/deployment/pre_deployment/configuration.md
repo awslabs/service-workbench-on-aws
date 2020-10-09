@@ -60,8 +60,14 @@ as **mystage-va-sw**. This string is made up by concatenating:
 - Region short name (eg: **va** for US-East-1, **or** for US-West-2, defined in `.defaults.yml`)
 - Solution name
 
-### Prepare SDC Configuration Files
+## Prepare SDC Configuration Files
 
-Service Workbench code is divided into multiple (currently 7) _Separately Deployable Components_ (_SDCs_) with names such as `backend`, `ui`, `post-deployment`. Each SDC has a directory in `main/solution`. We will be running a script that deploys all SDCs in sequence, but they can each be deployed separately.
+Service Workbench code is divided into multiple _Separately Deployable Components_ (_SDCs_) with names such as `backend`, `ui`, `post-deployment`. Each SDC has a directory in `main/solution`. The main installatino script deploys all SDCs in sequence, but they can each be deployed separately.
 
-Each SDC has a `config/settings` directory, where customized settings files may be placed, in the same way as the main setting file. Follow the procedure described above in **Configuration File Structure** to create and edit a configuration file for an SDC.  If you are using a CLI profile other than the default profile, you will need to create a configuration file containing the entry **awsProfile** to specify which profile to use for the SDC deployment.
+Each SDC has a `config/settings` directory, where customized settings files may be placed, in the same way as the main setting file. Follow the procedure described above in **Configuration File Structure** to create and edit a configuration file for an SDC. Some of the SDC settings directories contain an `example.yml` file that may be copied and renamed as a settings file for that SDC.  A default file `.defaults.yml` in the settings directory is read prior to reading the stage configuration file.  Any settings in the stage configuration file override those in the default file.
+
+If deploying in a non-default CLI profile, a stage settings file is necessary, containing in `awsProfile` the CLI profile with permissions for the desired account.
+
+```{.sh}
+    awsProfile: main-account-profile-name
+```
