@@ -102,6 +102,10 @@ class AccountService extends Service {
     }
     const workflowRoleArn = this.settings.get(settingKeys.workflowRoleArn);
     const apiHandlerArn = this.settings.get(settingKeys.apiHandlerArn);
+    const aws = await this.service('aws');
+    const { Account: callerAccountId } = await new aws.sdk.STS({ apiVersion: '2011-06-15' })
+      .getCallerIdentity()
+      .promise();
 
     // trigger the provision environment workflow
     // TODO: remove CIDR default once its in the gui and backend
@@ -114,6 +118,7 @@ class AccountService extends Service {
       description,
       workflowRoleArn,
       apiHandlerArn,
+      callerAccountId,
     };
     await workflowTriggerService.triggerWorkflow(requestContext, { workflowId: 'wf-provision-account' }, input);
 

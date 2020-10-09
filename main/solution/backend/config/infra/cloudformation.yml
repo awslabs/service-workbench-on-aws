@@ -469,7 +469,9 @@ Resources:
         - PolicyName: assume-role
           PolicyDocument:
             Statement:
-              Action: 'sts:AssumeRole'
+              Action:
+                - sts:AssumeRole
+                - sts:GetCallerIdentity
               Effect: Allow
               Resource: '*' # TODO: LOCK THIS DOWN!
 

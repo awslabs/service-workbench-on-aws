@@ -108,11 +108,11 @@ class ProvisionAccount extends StepBase {
     const [userService] = await this.mustFindServices(['userService']);
     const user = await userService.mustFindUser({ uid: by });
     const externalId = await this.payload.string('externalId');
-    const [workflowRoleArn, apiHandlerArn] = await Promise.all([
+    const [workflowRoleArn, apiHandlerArn, callerAccountId] = await Promise.all([
       this.payload.string('workflowRoleArn'),
       this.payload.string('apiHandlerArn'),
+      this.payload.string('callerAccountId'),
     ]);
-    const centralAccountId = await this.state.string('ACCOUNT_ID');
     // deploy basic stacks to the account just created
     const [cfnTemplateService] = await this.mustFindServices(['cfnTemplateService']);
     const cfn = await this.getCloudFormationService();
@@ -123,7 +123,7 @@ class ProvisionAccount extends StepBase {
     const addParam = (key, v) => cfnParams.push({ ParameterKey: key, ParameterValue: v });
 
     addParam('Namespace', stackName);
-    addParam('CentralAccountId', centralAccountId);
+    addParam('CentralAccountId', callerAccountId);
     addParam('ExternalId', externalId);
     // TODO: consider if following params are needed
     // addParam('TrustUserArn', userArn);
