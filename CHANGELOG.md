@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2020-10-09
+
+### Added
+
+- feat: manual stop and start functionality for EC2 Linux, EC2 Windows, RStudio and Sagemaker workspaces
+- feat: auto stop functionality for SageMaker and RStudio workspaces
+- bugfix: outdated lock file
+- doc: update deployment and post-deployment documentation
+
 ## [1.2.0] - 2020-09-29
 
 ### Added
