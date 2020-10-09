@@ -94,7 +94,7 @@ class EnvironmentScService extends Service {
 
   async pollAndSyncWsStatus(requestContext) {
     const [indexesService, awsAccountsService] = await this.service(['indexesService', 'awsAccountsService']);
-    console.log('Start DB scan for status poll and sync.');
+    this.log.info('Start DB scan for status poll and sync.');
     let envs = await this._scanner({ fields: ['id', 'indexId', 'status', 'outputs'] })
       // Verified with EC2 support team that EC2 describe instances API can take 10K instanceIds without issue
       .limit(10000)
@@ -160,8 +160,8 @@ class EnvironmentScService extends Service {
             staleStatus: existingEnvRecord.status,
           };
         } catch (e) {
-          console.log(`Error updating record ${existingEnvRecord.id}`);
-          console.log(e);
+          this.log.error(`Error updating record ${existingEnvRecord.id}`);
+          this.log.error(e);
         }
       }
     });
@@ -203,11 +203,6 @@ class EnvironmentScService extends Service {
     _.forEach(sagemakerInstances, async (existingEnvRecord, key) => {
       const expectedDDBStatus = SageMakerStatusMap[sagemakerRealtimeStatus[key]];
       if (expectedDDBStatus && existingEnvRecord.status !== expectedDDBStatus) {
-        sagemakerUpdated[key] = {
-          ddbID: existingEnvRecord.id,
-          currentStatus: expectedDDBStatus,
-          staleStatus: existingEnvRecord.status,
-        };
         const newEnvironment = {
           id: existingEnvRecord.id,
           rev: existingEnvRecord.rev || 0,
@@ -218,9 +213,14 @@ class EnvironmentScService extends Service {
           // Log the error and skip the update for now
           // The next invocation of poll and sync will do the sync if it's still needed
           await this.update(requestContext, newEnvironment);
+          sagemakerUpdated[key] = {
+            ddbID: existingEnvRecord.id,
+            currentStatus: expectedDDBStatus,
+            staleStatus: existingEnvRecord.status,
+          };
         } catch (e) {
-          console.log(`Error updating record ${existingEnvRecord.id}`);
-          console.log(e);
+          this.log.error(`Error updating record ${existingEnvRecord.id}`);
+          this.log.error(e);
         }
       }
     });
