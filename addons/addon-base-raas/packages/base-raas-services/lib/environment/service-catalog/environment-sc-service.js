@@ -94,6 +94,7 @@ class EnvironmentScService extends Service {
 
   async pollAndSyncWsStatus(requestContext) {
     const [indexesService, awsAccountsService] = await this.service(['indexesService', 'awsAccountsService']);
+    this.log.info('Start DB scan for status poll and sync.');
     let envs = await this._scanner({ fields: ['id', 'indexId', 'status', 'outputs'] })
       // Verified with EC2 support team that EC2 describe instances API can take 10K instanceIds without issue
       .limit(10000)
@@ -112,7 +113,9 @@ class EnvironmentScService extends Service {
     const pollAndSyncPromises = accounts.map(account =>
       this.pollAndSyncWsStatusForAccount(requestContext, account, indexesGroups, envGroups),
     );
-    return Promise.all(pollAndSyncPromises);
+    const result = await Promise.all(pollAndSyncPromises);
+    this.log.info(result);
+    return result;
   }
 
   async pollAndSyncWsStatusForAccount(requestContext, account, indexesGroups, envGroups) {
@@ -143,17 +146,25 @@ class EnvironmentScService extends Service {
     _.forEach(ec2Instances, async (existingEnvRecord, ec2InstanceId) => {
       const expectedDDBStatus = EC2StatusMap[ec2RealtimeStatus[ec2InstanceId]];
       if (expectedDDBStatus && existingEnvRecord.status !== expectedDDBStatus) {
-        ec2Updated[ec2InstanceId] = {
-          ddbID: existingEnvRecord.id,
-          currentStatus: expectedDDBStatus,
-          staleStatus: existingEnvRecord.status,
-        };
         const newEnvironment = {
           id: existingEnvRecord.id,
           rev: existingEnvRecord.rev || 0,
           status: expectedDDBStatus.toUpperCase(),
         };
-        await this.update(requestContext, newEnvironment);
+        try {
+          // Might run into situation where the environment was just updated and rev number does not match
+          // Log the error and skip the update for now
+          // The next invocation of poll and sync will do the sync if it's still needed
+          await this.update(requestContext, newEnvironment);
+          ec2Updated[ec2InstanceId] = {
+            ddbID: existingEnvRecord.id,
+            currentStatus: expectedDDBStatus,
+            staleStatus: existingEnvRecord.status,
+          };
+        } catch (e) {
+          this.log.error(`Error updating record ${existingEnvRecord.id}`);
+          this.log.error(e);
+        }
       }
     });
     return ec2Updated;
@@ -194,17 +205,25 @@ class EnvironmentScService extends Service {
     _.forEach(sagemakerInstances, async (existingEnvRecord, key) => {
       const expectedDDBStatus = SageMakerStatusMap[sagemakerRealtimeStatus[key]];
       if (expectedDDBStatus && existingEnvRecord.status !== expectedDDBStatus) {
-        sagemakerUpdated[key] = {
-          ddbID: existingEnvRecord.id,
-          currentStatus: expectedDDBStatus,
-          staleStatus: existingEnvRecord.status,
-        };
         const newEnvironment = {
           id: existingEnvRecord.id,
           rev: existingEnvRecord.rev || 0,
           status: SageMakerStatusMap[sagemakerRealtimeStatus[key]].toUpperCase(),
         };
-        await this.update(requestContext, newEnvironment);
+        try {
+          // Might run into situation where the environment was just updated and rev number does not match
+          // Log the error and skip the update for now
+          // The next invocation of poll and sync will do the sync if it's still needed
+          await this.update(requestContext, newEnvironment);
+          sagemakerUpdated[key] = {
+            ddbID: existingEnvRecord.id,
+            currentStatus: expectedDDBStatus,
+            staleStatus: existingEnvRecord.status,
+          };
+        } catch (e) {
+          this.log.error(`Error updating record ${existingEnvRecord.id}`);
+          this.log.error(e);
+        }
       }
     });
     return sagemakerUpdated;

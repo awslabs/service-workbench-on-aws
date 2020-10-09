@@ -12,7 +12,6 @@ const handler = async () => {
   const environmentScService = await container.find('environmentScService');
   const userContext = getSystemRequestContext();
   const updatedEnvData = await environmentScService.pollAndSyncWsStatus(userContext);
-  console.log(updatedEnvData);
   return { statusCode: 200, body: updatedEnvData };
 };
 

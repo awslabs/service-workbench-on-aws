@@ -44,6 +44,10 @@ Since RStudio currently requires a custom domain name, please configure the same
 > 3. The auto-stop feature is enabled by default and configured to 1 hour. For configuring a different auto-stop timeout, please assign the MAX_IDLE_SECONDS value accordingly in `main/solution/machine-images/config/infra/files/rstudio/check-idle` and redeploy the machine-images SDC.
 > 4. To disable auto-stop, comment out lines referencing `check-idle` in `main/solution/machine-images/config/infra/provisioners/provision-rstudio.sh` and redploy machine-images SDC.
 
+### Start and Stop workspace
+
+EC2 Windows, EC2 Linux, RStudio and SageMaker workspaces can be stopped when not in use. Click the stop button to stop the workspace, and click the start button to start the workspace again. 
+
 ### Common connection issues
 
 Connection to workspace is restricted to specific CIDR block.
