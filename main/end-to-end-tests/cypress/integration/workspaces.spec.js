@@ -80,7 +80,7 @@ describe('Launch a new sagemaker workspace', () => {
     // Select project id
     cy.get('[data-testid=project-id]').click();
     cy.get('[data-testid=project-id]')
-      .find('.selected')
+      .find('.item')
       .contains(workspaceParam.projectId)
       .click();
 
