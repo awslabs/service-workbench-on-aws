@@ -28,7 +28,9 @@ function removeComponentWithNoStack() {
 
     if [ "$shouldRemoveComponent" == "TRUE" ]; then
         printf "\n- Removing Component $COMPONENT_NAME ... \n"
+        set +e
         $EXEC sls remove -s "$STAGE"
+        set -e
     fi
 }
 
@@ -47,7 +49,9 @@ function removeStack() {
     if [[ "$shouldBeRemoved" == "TRUE" && "$stackName" != "NO_STACK" ]]; then
         emptyS3BucketsFromNames "DO_NOT_DELETE" ${bucket_names[@]}
         printf "\n- Removing Stack $COMPONENT_NAME ...\n"
+        set +e
         $EXEC sls remove -s "$STAGE"
+        set -e
     fi
 }
 
