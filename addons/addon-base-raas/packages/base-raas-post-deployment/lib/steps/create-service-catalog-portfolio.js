@@ -63,7 +63,7 @@ const productsToCreate = [
   },
 ];
 
-const autoCreateVersion = 'V1.0.0';
+const autoCreateVersion = 'v1';
 const autoCreateDesc = 'Auto-created during post deployment';
 const deploymentItemId = 'default-SC-portfolio-1';
 
@@ -209,6 +209,7 @@ class CreateServiceCatalogPortfolio extends Service {
     const scAvailableProducts = _.map(envTypesAvailable, obj => ({
       productName: obj.product.name,
       provisioningArtifactId: obj.provisioningArtifact.id,
+      provisioningArtifactName: obj.provisioningArtifact.name,
     }));
     const scAvailableProductNames = _.map(scAvailableProducts, p => p.productName);
 
@@ -239,9 +240,12 @@ class CreateServiceCatalogPortfolio extends Service {
               this.log.info(
                 `A previously used CfN file was updated with new CfN product template data for ${productName}`,
               );
+              // Get all provisioning artifacts for this product
+              const latestVersionInSC = ScProduct.provisioningArtifactName;
               const newProvisioningId = await this.createProductArtifact(
                 productFound.productId,
                 productToCreate.filename,
+                latestVersionInSC,
               );
 
               productDetails.provisioningArtifactId = newProvisioningId;
@@ -282,11 +286,12 @@ class CreateServiceCatalogPortfolio extends Service {
     return portfolioToUpdate;
   }
 
-  async createProductArtifact(productId, productFileName) {
+  async createProductArtifact(productId, productFileName, latestVersionInSC) {
     const aws = await this.service('aws');
     const servicecatalog = new aws.sdk.ServiceCatalog({ apiVersion: '2015-12-10' });
     const s3BucketName = this.settings.get(settingKeys.deploymentBucketName);
     const productToCreate = productsToCreate.find(p => p.filename === productFileName);
+    const nextProvArtifact = await this.getNextArtifactVersion(latestVersionInSC);
     const params = {
       Parameters: {
         Info: {
@@ -295,11 +300,53 @@ class CreateServiceCatalogPortfolio extends Service {
         DisableTemplateValidation: true,
         Type: 'CLOUD_FORMATION_TEMPLATE',
         Description: productToCreate.description || autoCreateDesc,
+        Name: nextProvArtifact,
       },
       ProductId: productId,
     };
     const data = await servicecatalog.createProvisioningArtifact(params).promise();
     return data.ProvisioningArtifactDetail.Id;
+  }
+
+  async getNextArtifactVersion(latestVersionInSC) {
+    // For product artifacts in Service Catalog, versions and names are the same thing
+    // If no previous version found, assign 'v2' (this will help in next update cycle)
+    let returnVal = 'v2';
+    // Only finds version strings that match patterns:
+    // "V<n>", "V<n>.0", "V<n>.0.0", "v<n>", "v<n>.0", "v<n>.0.0"
+    const pattern = /^(v|V)(\d+\.)?(\d+\.)?(\*|\d+)$/;
+    let latestVersionNo;
+    if (latestVersionInSC) {
+      const parsedOutput = latestVersionInSC.match(pattern);
+      this.log.info(`${parsedOutput}`);
+      if (parsedOutput && parsedOutput.length > 1) {
+        const longestMatch = parsedOutput.sort(function(a, b) {
+          return b.length - a.length;
+        })[0];
+        latestVersionNo = longestMatch.substring(1);
+        // Increment major version of the string and assign to the new artifact
+        const versionToCompute = [latestVersionNo]
+          .map(a =>
+            a
+              .split('.')
+              .map(n => +n + 100000)
+              .join('.'),
+          )
+          .sort()
+          .reverse()
+          .map(a =>
+            a
+              .split('.')
+              .map(n => +n - 100000)
+              .join('.'),
+          );
+        // Only consider the major of the highest version
+        // in the list to keep versioning easy
+        const highestVersion = versionToCompute[0];
+        returnVal = `v${parseInt(highestVersion.split('.')[0], 10) + 1}`;
+      }
+    }
+    return returnVal;
   }
 
   async getS3Object(productName) {
