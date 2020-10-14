@@ -320,7 +320,7 @@ class CreateServiceCatalogPortfolio extends Service {
     if (latestVersionInSC) {
       const parsedOutput = latestVersionInSC.match(pattern);
       if (parsedOutput && parsedOutput.length > 0) {
-        returnVal = `v${parsedOutput[1]}`;
+        returnVal = `v${parseInt(parsedOutput[1], 10) + 1}`;
       }
     }
     return returnVal;
