@@ -1,0 +1,216 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Service-Workbench-on-AWS Networking Infrastructure for Storage Gateway
+
+Parameters:
+  Namespace:
+    Type: String
+    Description: An environment name that will be prefixed to resource names
+    Default: jeetend
+  VpcCidr:
+    Description: Please enter the IP range (CIDR notation) for this VPC
+    Type: String
+    Default: 10.0.0.0/16
+  VpcPublicSubnet1Cidr:
+    Description: Please enter the IP range (CIDR notation) for the public subnet in the 1st Availability Zone
+    Type: String
+    Default: 10.0.0.0/19
+  AmiId:
+    Type: String
+    Description: Amazon Machine Image for the EC2 instance
+  InstanceType:
+    Type: String
+    Description: EC2 instance type to launch
+    Default: m5.xlarge
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Shared Configuration
+        Parameters:
+          - Namespace
+      - Label:
+          default: Deployment Configuration
+        Parameters:
+          - VpcCidr
+          - VpcPublicSubnet1Cidr
+
+Resources:
+  IAMRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Join ['-', [Ref: Namespace, 'ec2-storage-gateway-role']]
+      Path: '/'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service:
+                - 'ec2.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+
+  InstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      InstanceProfileName: !Join ['-', [Ref: Namespace, 'ec2-storage-gateway-profile']]
+      Path: '/'
+      Roles:
+        - Ref: IAMRole
+
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${Namespace} vpc
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${Namespace} igw
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref VPC
+
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs ]
+      CidrBlock: !Ref VpcPublicSubnet1Cidr
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${Namespace} public subnet 1
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: !Sub ${Namespace} public routes
+
+  DefaultPublicRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet1
+
+  SecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: EC2 workspace security group
+      Tags:
+        - Key: Name
+          Value: !Join ['-', [Ref: Namespace, 'ec2-storage-gateway']]
+        - Key: Description
+          Value: EC2 workspace security group
+      VpcId: !Ref VPC
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 0
+          ToPort: 65535
+          CidrIp: 0.0.0.0/0
+
+  EC2Instance:
+    Type: 'AWS::EC2::Instance'
+    CreationPolicy:
+      ResourceSignal:
+        Timeout: 'PT20M'
+    Properties:
+      ImageId: !Ref AmiId
+      InstanceType: !Ref InstanceType
+      IamInstanceProfile: !Ref InstanceProfile
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: 'true'
+          DeviceIndex: '0'
+          GroupSet:
+            - !Ref SecurityGroup
+          SubnetId: !Ref PublicSubnet1
+      Tags:
+        - Key: Name
+          Value: !Join ['-', [Ref: Namespace, 'ec2-storage-gateway-linux']]
+        - Key: Description
+          Value: EC2 workspace instance
+      UserData:
+        Fn::Base64: !Sub |
+          #!/usr/bin/env bash
+          # Signal result to CloudFormation
+          /opt/aws/bin/cfn-signal -e $? --stack "${AWS::StackName}" --resource "EC2Instance" --region "${AWS::Region}"
+
+  VolumeAttach:
+    Type: 'AWS::EC2::VolumeAttachment'
+    Properties:
+      Device: /dev/sdc
+      InstanceId: !Ref EC2Instance
+      VolumeId: !Ref CacheVolume
+
+  CacheVolume:
+    Type: 'AWS::EC2::Volume'
+    Properties:
+      AvailabilityZone: !GetAtt
+        - EC2Instance
+        - AvailabilityZone
+      Size: 150
+      VolumeType: gp2
+      Tags:
+        - Key: Name
+          Value: !Join ['-', [Ref: Namespace, 'ec2-storage-gateway-volume']]
+
+  ElasticIP:
+    Type: AWS::EC2::EIP
+    Properties:
+      InstanceId: !Ref EC2Instance
+
+Outputs:
+  VPC:
+    Description: VPC ID
+    Value: !Ref VPC
+
+  VpcPublicSubnet1:
+    Description: A reference to the public subnet in the 1st Availability Zone
+    Value: !Ref PublicSubnet1
+
+  EC2Instance:
+    Description: EC2 ID
+    Value: !Ref EC2Instance
+
+  ElasticIP:
+    Description: Elastic IP
+    Value: !Ref ElasticIP
+
+  CacheVolume:
+    Description: EC2 Volume
+    Value: !Ref CacheVolume
+
+  SecurityGroup:
+    Description: Security Group
+    Value: !Ref SecurityGroup
+
+  EC2RoleArn:
+    Description: EC2 Role Arn
+    Value: !GetAtt [IAMRole, Arn]
+
+  Region:
+    Description: AWS Region
+    Value: !Ref "AWS::Region"

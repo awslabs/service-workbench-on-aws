@@ -28,6 +28,8 @@ const startEC2Environment = require('../steps/start-ec2-environment/start-ec2-en
 const startEC2EnvironmentYaml = require('../steps/start-ec2-environment/start-ec2-environment.yml');
 const stopEC2Environment = require('../steps/stop-ec2-environment/stop-ec2-environment');
 const stopEC2EnvironmentYaml = require('../steps/stop-ec2-environment/stop-ec2-environment.yml');
+const networkInfra = require('../steps/storage-gateway/create-network-infrastructure');
+const networkInfraYaml = require('../steps/storage-gateway/create-network-infrastructure.yml');
 
 const add = (implClass, yaml) => ({ implClass, yaml });
 
@@ -40,6 +42,7 @@ const steps = [
   add(stopSageMakerEnvironment, stopSageMakerEnvironmentYaml),
   add(startEC2Environment, startEC2EnvironmentYaml),
   add(stopEC2Environment, stopEC2EnvironmentYaml),
+  add(networkInfra, networkInfraYaml),
 ];
 
 async function registerWorkflowSteps(registry) {

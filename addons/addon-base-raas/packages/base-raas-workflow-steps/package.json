@@ -12,6 +12,8 @@
     "slugify": "^1.4.0"
   },
   "devDependencies": {
+    "@aws-ee/workflow-engine": "workspace:*",
+    "@aws-ee/base-services-container": "workspace:*",
     "eslint": "^6.8.0",
     "eslint-config-airbnb": "^18.1.0",
     "eslint-config-airbnb-base": "^14.1.0",
@@ -25,7 +27,8 @@
     "jest-junit": "^10.0.0",
     "prettier": "^1.19.1",
     "pretty-quick": "^1.11.1",
-    "source-map-support": "^0.5.16"
+    "source-map-support": "^0.5.16",
+    "aws-sdk-mock": "^5.1.0"
   },
   "scripts": {
     "test": "NODE_ENV=test jest --config jest.config.js --passWithNoTests",
