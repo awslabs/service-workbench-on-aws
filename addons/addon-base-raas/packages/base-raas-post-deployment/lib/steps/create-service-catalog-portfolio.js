@@ -308,22 +308,19 @@ class CreateServiceCatalogPortfolio extends Service {
     return data.ProvisioningArtifactDetail.Id;
   }
 
+  // For product artifacts in Service Catalog, versions and names are the same thing
+  // If no previous version found, assign 'v2' (this will help in next update cycle)
+  // This supports matching previous version format ("V1.0.0") but for simplification
+  // the upcoming product artifact versions will have the format "v2"
   async getNextArtifactVersion(latestVersionInSC) {
-    // For product artifacts in Service Catalog, versions and names are the same thing
-    // If no previous version found, assign 'v2' (this will help in next update cycle)
     let returnVal = 'v2';
     // Only finds version strings that match patterns:
     // "V<n>", "V<n>.0", "V<n>.0.0", "v<n>", "v<n>.0", "v<n>.0.0"
-    const pattern = /^(v|V)(\d+\.)?(\d+\.)?(\*|\d+)$/;
-    let latestVersionNo;
+    const pattern = /^(?:v|V)(\d+)?(?:\.\d+)?(?:\.(?:\d+))?$/;
     if (latestVersionInSC) {
       const parsedOutput = latestVersionInSC.match(pattern);
-      if (parsedOutput && parsedOutput.length > 1) {
-        const longestMatch = parsedOutput.sort(function(a, b) {
-          return b.length - a.length;
-        })[0];
-        latestVersionNo = longestMatch.substring(1);
-        returnVal = `v${parseInt(latestVersionNo.split('.')[0], 10) + 1}`;
+      if (parsedOutput && parsedOutput.length > 0) {
+        returnVal = `v${parsedOutput[1]}`;
       }
     }
     return returnVal;
