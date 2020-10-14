@@ -112,7 +112,7 @@ class AddAuthProviders extends Service {
       }),
     );
 
-    const userPoolName = `${envName}-${solutionName}`;
+    const userPoolName = `${envName}-${solutionName}-userPool`;
     const cognitoAuthProviderConfig = {
       title: this.settings.get(settingKeys.cognitoAuthNProviderTitle),
       userPoolName,
