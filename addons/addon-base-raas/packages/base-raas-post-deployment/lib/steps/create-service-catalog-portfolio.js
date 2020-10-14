@@ -318,7 +318,6 @@ class CreateServiceCatalogPortfolio extends Service {
     let latestVersionNo;
     if (latestVersionInSC) {
       const parsedOutput = latestVersionInSC.match(pattern);
-      this.log.info(`${parsedOutput}`);
       if (parsedOutput && parsedOutput.length > 1) {
         const longestMatch = parsedOutput.sort(function(a, b) {
           return b.length - a.length;
