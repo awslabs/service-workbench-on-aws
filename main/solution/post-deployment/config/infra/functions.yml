@@ -14,6 +14,7 @@ postDeployment:
     APP_PARAM_STORE_JWT_SECRET: ${self:custom.settings.paramStoreJwtSecret}
     APP_JWT_OPTIONS: ${self:custom.settings.jwtOptions}
     APP_ENABLE_NATIVE_USER_POOL_USERS: ${self:custom.settings.enableNativeUserPoolUsers}
+    APP_COGNITO_USER_POOL_DOMAIN_PREFIX: ${self:custom.settings.cognitoUserPoolDomainPrefix}
     APP_FED_IDP_IDS: ${self:custom.settings.fedIdpIds}
     APP_FED_IDP_NAMES: ${self:custom.settings.fedIdpNames}
     APP_FED_IDP_DISPLAY_NAMES: ${self:custom.settings.fedIdpDisplayNames}

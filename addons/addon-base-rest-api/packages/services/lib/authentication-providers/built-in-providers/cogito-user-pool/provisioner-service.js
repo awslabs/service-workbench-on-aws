@@ -15,6 +15,7 @@
 
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
+const { generateIdSync } = require('@aws-ee/base-services/lib/helpers/utils');
 const authProviderConstants = require('../../constants').authenticationProviders;
 
 const settingKeys = {
@@ -424,6 +425,11 @@ class ProvisionerService extends Service {
       if (err.code === 'InvalidParameterException' && err.message.indexOf('already exists') >= 0) {
         // The domain already exists so nothing to do. Just log and move on.
         this.log.info(`The Cognito User Pool Domain with Prefix "${userPoolDomain}" already exists. Nothing to do.`);
+      } else if (
+        err.code === 'InvalidParameterException' &&
+        err.message.indexOf('already associated with another user pool') >= 0
+      ) {
+        await this.retryCreateDomain(cognitoIdentityServiceProvider, params, userPoolDomain);
       } else {
         // Re-throw any other error, so it doesn't fail silently
         throw err;
@@ -431,6 +437,25 @@ class ProvisionerService extends Service {
     }
     providerConfig.userPoolDomain = userPoolDomain;
     return providerConfig;
+  }
+
+  async retryCreateDomain(cognitoIdentityServiceProvider, params, userPoolDomain) {
+    // Cognito requires domain prefix to be 63 or shorter
+    params.Domain = generateIdSync(userPoolDomain)
+      .substr(0, 63)
+      .toLowerCase();
+    try {
+      await cognitoIdentityServiceProvider.createUserPoolDomain(params).promise();
+    } catch (err) {
+      if (
+        err.code === 'InvalidParameterException' &&
+        err.message.indexOf('already associated with another user pool') >= 0
+      ) {
+        await this.retryCreateDomain(cognitoIdentityServiceProvider, params, userPoolDomain);
+      } else {
+        throw err;
+      }
+    }
   }
 }
 
