@@ -323,26 +323,7 @@ class CreateServiceCatalogPortfolio extends Service {
           return b.length - a.length;
         })[0];
         latestVersionNo = longestMatch.substring(1);
-        // Increment major version of the string and assign to the new artifact
-        const versionToCompute = [latestVersionNo]
-          .map(a =>
-            a
-              .split('.')
-              .map(n => +n + 100000)
-              .join('.'),
-          )
-          .sort()
-          .reverse()
-          .map(a =>
-            a
-              .split('.')
-              .map(n => +n - 100000)
-              .join('.'),
-          );
-        // Only consider the major of the highest version
-        // in the list to keep versioning easy
-        const highestVersion = versionToCompute[0];
-        returnVal = `v${parseInt(highestVersion.split('.')[0], 10) + 1}`;
+        returnVal = `v${parseInt(latestVersionNo.split('.')[0], 10) + 1}`;
       }
     }
     return returnVal;
