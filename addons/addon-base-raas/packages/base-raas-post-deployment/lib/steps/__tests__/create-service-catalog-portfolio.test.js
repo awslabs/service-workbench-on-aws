@@ -220,5 +220,18 @@ describe('CreateServiceCatalogPortfolio', () => {
       // CHECK
       expect(nextVersion).toEqual(expectedNextVersion);
     });
+
+    it('should carry on version updates with updated format', async () => {
+      // BUILD
+      const lastVersion = 'v10';
+      const expectedNextVersion = 'v11';
+
+      // OPERATE
+      // Happy-path: Make sure no exceptions are thrown
+      const nextVersion = await service.getNextArtifactVersion(lastVersion);
+
+      // CHECK
+      expect(nextVersion).toEqual(expectedNextVersion);
+    });
   });
 });
