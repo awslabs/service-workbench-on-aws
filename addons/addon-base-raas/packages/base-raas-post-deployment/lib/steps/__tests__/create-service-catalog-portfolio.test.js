@@ -168,5 +168,70 @@ describe('CreateServiceCatalogPortfolio', () => {
       // CHECK
       expect(service.createPortfolio).toHaveBeenCalled();
     });
+
+    it('should NOT fail if a previous version was undefined', async () => {
+      // BUILD
+      const lastVersion = undefined;
+      const expectedNextVersion = 'v2';
+
+      // OPERATE
+      // Happy-path: Make sure no exceptions are thrown
+      const nextVersion = await service.getNextArtifactVersion(lastVersion);
+
+      // CHECK
+      expect(nextVersion).toEqual(expectedNextVersion);
+    });
+
+    it('should NOT fail if a previous version had a different version format', async () => {
+      // BUILD
+      const lastVersion = 'ABC-XYZ';
+      const expectedNextVersion = 'v2';
+
+      // OPERATE
+      // Happy-path: Make sure no exceptions are thrown
+      const nextVersion = await service.getNextArtifactVersion(lastVersion);
+
+      // CHECK
+      expect(nextVersion).toEqual(expectedNextVersion);
+    });
+
+    it('should give the next best version for format V2.0.0', async () => {
+      // BUILD
+      const lastVersion = 'V2.0.0';
+      const expectedNextVersion = 'v3';
+
+      // OPERATE
+      // Happy-path: Make sure no exceptions are thrown
+      const nextVersion = await service.getNextArtifactVersion(lastVersion);
+
+      // CHECK
+      expect(nextVersion).toEqual(expectedNextVersion);
+    });
+
+    it('should give the next best version for format V50', async () => {
+      // BUILD
+      const lastVersion = 'V50';
+      const expectedNextVersion = 'v51';
+
+      // OPERATE
+      // Happy-path: Make sure no exceptions are thrown
+      const nextVersion = await service.getNextArtifactVersion(lastVersion);
+
+      // CHECK
+      expect(nextVersion).toEqual(expectedNextVersion);
+    });
+
+    it('should carry on version updates with updated format', async () => {
+      // BUILD
+      const lastVersion = 'v10';
+      const expectedNextVersion = 'v11';
+
+      // OPERATE
+      // Happy-path: Make sure no exceptions are thrown
+      const nextVersion = await service.getNextArtifactVersion(lastVersion);
+
+      // CHECK
+      expect(nextVersion).toEqual(expectedNextVersion);
+    });
   });
 });
