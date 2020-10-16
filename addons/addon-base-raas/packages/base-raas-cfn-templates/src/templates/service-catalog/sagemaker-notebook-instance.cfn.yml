@@ -16,6 +16,9 @@ Parameters:
   Subnet:
     Description: Subnet for EMR nodes, from the VPC selected above
     Type: AWS::EC2::Subnet::Id
+  AccessFromCIDRBlock:
+    Type: String
+    Description: The CIDR used to access sagemaker.
   S3Mounts:
     Type: String
     Description: A JSON array of objects with name, bucket and prefix properties used to mount data
@@ -44,6 +47,11 @@ Resources:
       GroupDescription: SageMaker Notebook Instance
       VpcId:
         Ref: VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: !Ref AccessFromCIDRBlock
 
   IAMRole:
     Type: 'AWS::IAM::Role'
