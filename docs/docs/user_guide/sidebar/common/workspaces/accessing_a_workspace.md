@@ -41,8 +41,8 @@ Since RStudio currently requires a custom domain name, please configure the same
 >
 > 1. If you're provisioning an RStudio instance with studies selected, these studies will only get mounted on your instance once you click on the RStudio workspace's "Terminal" tab.
 > 2. If you started a previously stopped RStudio instance (manually or automatically) and connect to it, you might see an error dialog box saying the session closed abruptly. Although this typically does not affect your data, it is recommended to quit your session from within your RStudio workspace before stopping the instance through SWB.
-> 3. The auto-stop feature is enabled by default and configured to 1 hour. For configuring a different auto-stop timeout, please assign the MAX_IDLE_SECONDS value accordingly in `main/solution/machine-images/config/infra/files/rstudio/check-idle` and redeploy the machine-images SDC.
-> 4. To disable auto-stop, comment out lines referencing `check-idle` in `main/solution/machine-images/config/infra/provisioners/provision-rstudio.sh` and redploy machine-images SDC.
+> 3. The auto-stop feature is enabled by default and configured to 1 hour. For configuring a different auto-stop timeout, please assign the MAX_IDLE_MINUTES value accordingly in `main/solution/machine-images/config/infra/files/rstudio/check-idle` and redeploy the machine-images SDC.
+> 4. To disable auto-stop, assign the value 0 to MAX_IDLE_MINUTES and redploy machine-images SDC.
 
 ### Start and Stop workspace
 

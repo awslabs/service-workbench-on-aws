@@ -42,7 +42,7 @@ sudo mv "/tmp/rstudio/check-idle" "/usr/local/bin/"
 sudo chown root: "/usr/local/bin/check-idle"
 sudo chmod 775 "/usr/local/bin/check-idle"
 sudo crontab -l 2>/dev/null > "/tmp/crontab"
-echo '*/5 * * * * /usr/local/bin/check-idle 2>&1 >> /var/log/check-idle.log' >> "/tmp/crontab"
+echo '*/2 * * * * /usr/local/bin/check-idle 2>&1 >> /var/log/check-idle.log' >> "/tmp/crontab"
 sudo crontab "/tmp/crontab"
 
 
