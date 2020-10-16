@@ -427,7 +427,9 @@ class ProvisionerService extends Service {
         this.log.info(`The Cognito User Pool Domain with Prefix "${userPoolDomain}" already exists. Nothing to do.`);
       } else if (
         err.code === 'InvalidParameterException' &&
-        err.message.indexOf('already associated with another user pool') >= 0
+        err.message.indexOf('already associated with another user pool') >= 0 &&
+        // Cognito user pool domain prefix hard limit is 63, we keep it at less then 62 so the retry logic has a decent chance to succeed
+        userPoolDomain.length < 62
       ) {
         await this.retryCreateDomain(cognitoIdentityServiceProvider, params, userPoolDomain, 10);
       } else {
