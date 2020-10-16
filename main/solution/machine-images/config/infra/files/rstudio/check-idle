@@ -11,6 +11,10 @@ ACCESS_LOG_FILENAME = '/var/log/nginx/access.log'
 # To disable auto-stop for RStudio, enter 0 as the value below for MAX_IDLE_MINUTES
 MAX_IDLE_MINUTES = 60
 
+if MAX_IDLE_MINUTES == 0:
+    print('Auto-stop disabled. Exiting..')
+    exit(0)
+
 
 def get_uptime_seconds():
     return round(float(open('/proc/uptime').read().split()[0]))
@@ -53,6 +57,6 @@ if latest_activity_count > last_activity_count:
 else:
     # If time difference between file time and now exceeds MAX_IDLE_MINUTES, shutdown
     idle_minutes = (current_time - last_active_time).total_seconds()/60
-    if MAX_IDLE_MINUTES != 0 and idle_minutes >= MAX_IDLE_MINUTES and system_uptime >= MAX_IDLE_MINUTES:
+    if idle_minutes >= MAX_IDLE_MINUTES and system_uptime >= MAX_IDLE_MINUTES:
         print('Shutting down due to max idle')
         os.system('sudo /usr/sbin/shutdown now')
