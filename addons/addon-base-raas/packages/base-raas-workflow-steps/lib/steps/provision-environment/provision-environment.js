@@ -133,16 +133,16 @@ class ProvisionEnvironment extends StepBase {
 
     if (type !== 'sagemaker') {
       const credential = await this.getCredentials();
-      const [amiImage, cidr, keyName] = await Promise.all([
+      const [amiImage, keyName] = await Promise.all([
         this.payload.string('amiImage'),
-        this.payload.string('cidr'),
         environmentKeypairService.create(requestContext, environmentId, credential),
       ]);
 
       addParam('AmiId', amiImage);
-      addParam('AccessFromCIDRBlock', cidr);
       addParam('KeyName', keyName);
     }
+    const cidr = await this.payload.string('cidr');
+    addParam('AccessFromCIDRBlock', cidr);
 
     if (type !== 'emr') {
       addParam('InstanceType', environment.instanceInfo.size);
