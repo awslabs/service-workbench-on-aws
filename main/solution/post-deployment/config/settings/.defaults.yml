@@ -20,6 +20,9 @@ websiteUrl: ${cf:${self:custom.settings.infrastructureStackName}.WebsiteUrl}
 # other identity providers
 enableNativeUserPoolUsers: false
 
+# Cognito domain prefix. Note random string will be padded at the end if specified domain is not available
+cognitoUserPoolDomainPrefix: ${self:custom.settings.envName}-${self:custom.settings.solutionName}
+
 # Title of the default (internal) authentication provider. This shows up in the login dropdown.
 defaultAuthNProviderTitle: 'Default Login'
 
