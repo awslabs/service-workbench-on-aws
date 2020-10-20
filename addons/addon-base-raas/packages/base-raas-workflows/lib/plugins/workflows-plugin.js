@@ -20,6 +20,7 @@ const startSageMakerYaml = require('../workflows/start-sagemaker-environment.yml
 const stopSageMakerYaml = require('../workflows/stop-sagemaker-environment.yml');
 const startEC2Yaml = require('../workflows/start-ec2-environment.yml');
 const stopEC2Yaml = require('../workflows/stop-ec2-environment.yml');
+const networkInfraYaml = require('../workflows/create-network-infra.yml');
 
 const add = yaml => ({ yaml });
 
@@ -32,6 +33,7 @@ const workflows = [
   add(stopSageMakerYaml),
   add(startEC2Yaml),
   add(stopEC2Yaml),
+  add(networkInfraYaml),
 ];
 
 async function registerWorkflows(registry) {

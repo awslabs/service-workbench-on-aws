@@ -17,7 +17,7 @@
     "uuid": "^3.4.0",
     "xml": "^1.0.1",
     "moment": "^2.27.0",
-    "sinon": "^9.0.3"
+    "node-fetch": "^2.6.0"
   },
   "devDependencies": {
     "eslint": "^6.8.0",
@@ -33,7 +33,8 @@
     "jest-junit": "^10.0.0",
     "prettier": "^1.19.1",
     "pretty-quick": "^1.11.1",
-    "source-map-support": "^0.5.16"
+    "source-map-support": "^0.5.16",
+    "sinon": "^9.0.3"
   },
   "scripts": {
     "test": "NODE_ENV=test jest --config jest.config.js --passWithNoTests",
