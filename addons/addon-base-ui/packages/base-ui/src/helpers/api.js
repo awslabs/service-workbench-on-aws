@@ -89,6 +89,16 @@ function fetchJson(url, options = {}, retryCount = 0) {
       key => `${encodeURIComponent(key)}=${encodeURIComponent(_.get(merged.params, key))}`,
     ).join('&');
     url = query ? `${url}?${query}` : url;
+
+    // Delete merged.params after they are added to the url as query string params
+    // This is required otherwise, if the call fails for some reason (e.g., time out) the same query string params
+    // will be added once again to the URL causing duplicate params being passed in.
+    // For example, if the merge.params = { param1: 'value1', param2: 'value2' }
+    // The url will become something like `https://some-host/some-path?param1=value1&param2=value2`
+    // If we do not delete "merged.params" here and if the call is retried (with a recursive call to "fetchJson") due
+    // to timeout or any other issue, the url will then become
+    // `https://some-host/some-path?param1=value1&param2=value2?param1=value1&param2=value2`
+    delete merged.params;
   }
 
   return Promise.resolve()
