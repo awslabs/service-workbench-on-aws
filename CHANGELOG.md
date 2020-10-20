@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.1] - 2020-10-20
+
+### Added
+
+- chore: Create better env delete logs
+- fix: Apply version name to products out of the box
+- fix: changing rstudio check-idle logic
+- fix: Cognito user pool domain name clashing issue
+- fix(End to End test): When creating a workspace, select project by class item
+- fix: Sagemaker instances respect CIDR blocks that are provided to the instance
+  - For existing service workbench deployments you will need to import Sagemaker as a workspace type again to mitigate the risk of exposing workspaces to all IPs
+  - Existing Sagemaker workspaces will continue to have this issue
+
 ## [1.3.0] - 2020-10-09
 
 ### Added
