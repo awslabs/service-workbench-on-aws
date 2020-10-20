@@ -28,7 +28,9 @@ function removeComponentWithNoStack() {
 
     if [ "$shouldRemoveComponent" == "TRUE" ]; then
         printf "\n- Removing Component $COMPONENT_NAME ... \n"
+        set +e
         $EXEC sls remove -s "$STAGE"
+        set -e
     fi
 }
 
@@ -47,7 +49,9 @@ function removeStack() {
     if [[ "$shouldBeRemoved" == "TRUE" && "$stackName" != "NO_STACK" ]]; then
         emptyS3BucketsFromNames "DO_NOT_DELETE" ${bucket_names[@]}
         printf "\n- Removing Stack $COMPONENT_NAME ...\n"
+        set +e
         $EXEC sls remove -s "$STAGE"
+        set -e
     fi
 }
 
@@ -138,13 +142,17 @@ function emptyS3Bucket() {
     local bucket=$1
     local region=$2
     local delete_option=$3
-    printf "\n- Emptying bucket $bucket ... "
+
+    blank="                                                                                                                        "
+    message="\\r$blank\\r- Emptying bucket $bucket ... "
+    printf "\n$message"
 
     # Remove Versions for all objects
     versions=$(aws s3api list-object-versions --bucket $bucket | jq '.Versions')
     let count=$(echo $versions | jq 'length')-1
     if [ $count -gt -1 ]; then
         for i in $(seq 0 $count); do
+            printf "$message Removing objects versions : $i/$count"
             key=$(echo $versions | jq .[$i].Key | sed -e 's/\"//g')
             versionId=$(echo $versions | jq .[$i].VersionId | sed -e 's/\"//g')
             cmd=$(aws s3api delete-object --bucket $bucket --key $key --version-id $versionId)
@@ -156,12 +164,13 @@ function emptyS3Bucket() {
     let count=$(echo $markers | jq 'length')-1
     if [ $count -gt -1 ]; then
         for i in $(seq 0 $count); do
+            printf "$message Removing markers : $i/$count"
             key=$(echo $markers | jq .[$i].Key | sed -e 's/\"//g')
             versionId=$(echo $markers | jq .[$i].VersionId | sed -e 's/\"//g')
             cmd=$(aws s3api delete-object --bucket $bucket --key $key --version-id $versionId)
         done
     fi
-    printf "Done !"
+    printf "$message Done !"
 
     if [ $delete_option == "DELETE_AFTER_EMPTYING" ]; then
         printf "\n- Deleting bucket $bucket ... "
