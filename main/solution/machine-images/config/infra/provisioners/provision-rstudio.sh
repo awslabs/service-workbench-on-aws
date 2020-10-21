@@ -9,6 +9,7 @@ sudo yum install -y "/tmp/rstudio/${rstudio_rpm}"
 sudo systemctl enable rstudio-server
 sudo systemctl restart rstudio-server
 
+sudo yum install -y git
 
 # Create a user for RStudio to use; its password is set at boot time
 sudo useradd -m rstudio-user
