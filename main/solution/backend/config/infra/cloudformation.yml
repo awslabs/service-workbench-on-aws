@@ -1192,7 +1192,7 @@ Resources:
 
   EnvironmentsDb:
     Type: AWS::DynamoDB::Table
-    DependsOn: EnvironmentsScDb
+    DependsOn: AccountsDb
     Properties:
       TableName: ${self:custom.settings.dbEnvironments}
       AttributeDefinitions:
@@ -1441,7 +1441,6 @@ Resources:
 
   DbLocks:
     Type: AWS::DynamoDB::Table
-    DependsOn: DbStudies
     Properties:
       TableName: ${self:custom.settings.dbTableLocks}
       AttributeDefinitions:
@@ -1457,6 +1456,7 @@ Resources:
 
   DbStudies:
     Type: AWS::DynamoDB::Table
+    DependsOn: DbLocks
     Properties:
       TableName: ${self:custom.settings.dbTableStudies}
       AttributeDefinitions:
@@ -1478,7 +1478,6 @@ Resources:
 
   DbStepTemplates:
     Type: AWS::DynamoDB::Table
-    DependsOn: DbWorkflowTemplates
     Properties:
       TableName: ${self:custom.settings.dbTableStepTemplates}
       AttributeDefinitions:
@@ -1511,7 +1510,7 @@ Resources:
 
   DbWorkflows:
     Type: AWS::DynamoDB::Table
-    DependsOn: DbWorkflowTemplateDrafts
+    DependsOn: DbWorkflowInstances
     Properties:
       TableName: ${self:custom.settings.dbTableWorkflows}
       AttributeDefinitions:
@@ -1549,7 +1548,7 @@ Resources:
 
   DbWorkflowDrafts:
     Type: AWS::DynamoDB::Table
-    DependsOn: DbWorkflowInstances
+    DependsOn: DbWorkflowTemplates
     Properties:
       TableName: ${self:custom.settings.dbTableWorkflowDrafts}
       AttributeDefinitions:
