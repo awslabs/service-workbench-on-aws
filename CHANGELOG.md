@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.2] - 2020-10-23
+
+### Added 
+
+- fix: Adding dependencies for Dynamo table creation to prevent install crash
+- fix: Query string parameters were getting duplicated in the url
+- feat: Pre-install git on RStudio workspaces
+
 ## [1.3.1] - 2020-10-20
 
 ### Added
