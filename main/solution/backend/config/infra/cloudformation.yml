@@ -383,6 +383,22 @@ Resources:
                 - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
                 - !Sub 'arn:aws:ssm:${AWS::Region}:*:parameter/aws/service/storagegateway/ami/FILE_S3/latest'
 
+        - PolicyName: storage-gateway-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - storagegateway:CreateNFSFileShare
+              Resource: '*'
+
+        - PolicyName: iam-pass-role
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - iam:PassRole
+              Resource: '*'
+
         - PolicyName: step-functions-invocation
           PolicyDocument:
             Statement:
