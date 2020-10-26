@@ -16,14 +16,14 @@ repoBranch: master
 #
 # NOTE: CIRCULAR DEPENDENCY between "cicd-source" and "cicd-pipeline" stacks for the following settings
 #
-# artifactsS3BucketArn:
+#artifactsS3BucketArn:
 # ----------------------
 # ARN of the artifacts S3 bucket that holds input and ouput artifacts consumed and produced by
 # various stages of the CodePipeline.
 # See "https://docs.aws.amazon.com/codepipeline/latest/userguide/concepts.html" to learn more about artifacts and other
 # CodePipeline concepts. This bucket is created by the "cicd-pipeline" stack.
 #
-# artifactsKmsKeyArn:
+#artifactsKmsKeyArn:
 # ----------------------
 # ARN of the KMS key to be used for server-side encryption (SSE-KMS) of the artifacts S3 bucket.
 # This KMS key is created by the "cicd-pipeline" stack.
