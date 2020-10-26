@@ -1,4 +1,4 @@
 # VPC ID and Subnet ID where EC2 instances will be launched to
 # create AMIs from. If left blank, the default VPC will be used.
-# vpcId: vpc-0123456789abcdef0
-# subnetId: subnet-0123456789abcdef0
+#vpcId: vpc-0123456789abcdef0
+#subnetId: subnet-0123456789abcdef0
