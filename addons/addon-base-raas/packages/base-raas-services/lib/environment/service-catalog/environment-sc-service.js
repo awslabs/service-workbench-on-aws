@@ -442,6 +442,8 @@ class EnvironmentScService extends Service {
       },
     );
 
+    // TODO: Update IAM role for workspace for S3 access (similar to built-in)
+
     // Write audit event
     await this.audit(requestContext, { action: 'update-environment-sc', body: environment });
 

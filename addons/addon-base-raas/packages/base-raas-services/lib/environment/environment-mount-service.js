@@ -119,11 +119,12 @@ class EnvironmentMountService extends Service {
         // Get existing policy
         const s3Policy = JSON.parse((await s3Client.getBucketPolicy({ Bucket: s3BucketName }).promise()).Policy);
 
-        // Get statements for listing and reading study data, respectively
+        // Get statements for listing, reading and writing study data, respectively
         const statements = s3Policy.Statement;
         s3Prefixes.forEach(prefix => {
           const listSid = `List:${prefix}`;
           const getSid = `Get:${prefix}`;
+          const putSid = `Put:${prefix}`;
 
           // Define default statements to be used if we can't find existing ones
           let listStatement = {
@@ -145,6 +146,13 @@ class EnvironmentMountService extends Service {
             Action: ['s3:GetObject'],
             Resource: [`arn:aws:s3:::${s3BucketName}/${prefix}*`],
           };
+          let putStatement = {
+            Sid: putSid,
+            Effect: 'Allow',
+            Principal: { AWS: [] },
+            Action: ['s3:PutObject'],
+            Resource: [`arn:aws:s3:::${s3BucketName}/${prefix}*`],
+          };
 
           // Pull out existing statements if available
           statements.forEach(statement => {
@@ -152,6 +160,8 @@ class EnvironmentMountService extends Service {
               listStatement = statement;
             } else if (statement.Sid === getSid) {
               getStatement = statement;
+            } else if (statement.Sid === putSid) {
+              putStatement = statement;
             }
           });
 
@@ -159,6 +169,9 @@ class EnvironmentMountService extends Service {
           // NOTE: The S3 API *should* remove duplicate principals, if any
           listStatement.Principal.AWS = updateAwsPrincipals(listStatement.Principal.AWS, workspaceRoleArn);
           getStatement.Principal.AWS = updateAwsPrincipals(getStatement.Principal.AWS, workspaceRoleArn);
+
+          // TODO: Conditional, applies only if readwrite is assigned instead of readonly
+          putStatement.Principal.AWS = updateAwsPrincipals(putStatement.Principal.AWS, workspaceRoleArn);
 
           s3Policy.Statement = s3Policy.Statement.filter(statement => ![listSid, getSid].includes(statement.Sid));
           [listStatement, getStatement].forEach(statement => {

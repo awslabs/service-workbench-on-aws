@@ -255,7 +255,7 @@ class StudyService extends Service {
 
             // Filter by category and inject requestor's access level
             const studyAccessMap = {};
-            ['admin', 'readonly'].forEach(level =>
+            ['admin', 'readwrite', 'readonly'].forEach(level =>
               permissions[`${level}Access`].forEach(studyId => {
                 studyAccessMap[studyId] = level;
               }),

@@ -31,7 +31,7 @@ const StudyPermissions = types
   })
   .views(_self => ({
     get userTypes() {
-      return ['admin', 'readonly'];
+      return ['admin', 'readwrite', 'readonly'];
     },
   }));
 
