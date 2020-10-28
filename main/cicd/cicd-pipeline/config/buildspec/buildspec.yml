@@ -3,8 +3,10 @@ version: 0.2
 phases:
 
   install:
+    # See supported runtimes at https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-available.html
     runtime-versions:
       nodejs: 12
+      golang: 1.13
 
   pre_build:
     commands:
