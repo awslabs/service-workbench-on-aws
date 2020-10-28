@@ -25,13 +25,14 @@ The solution also includes a Continuous Integration/Continuous Delivery feature:
 
 ## Getting Started
 
-Node.js v12.x or later is required.
+Before you can build this project, please install the following prerequisites.
 
-Before you can build this project, you need to install [pnpm](https://pnpm.js.org/en/). Run the following command:
-
+- **Node.Js:** [Node.js v12.x](https://nodejs.org/en/) or later is required. 
+- **PNPM:** Install [pnpm](https://pnpm.js.org/en/) as follows 
 ```bash
-npm install -g pnpm
+$ npm install -g pnpm
 ```
+- **Go:** You also need to install [Go](https://golang.org/doc/install). `Go` is used for creating a multipart S3 downloader tool that is used in AWS Service Catalog EC2 Windows based research environments.
 
 To create the initial settings files, take a look at the example.yml settings file in main/config/settings/example.yml and create your own copy.
 The stage is either 'example' or your username. This method should be used only for the very first time you install this solution.
