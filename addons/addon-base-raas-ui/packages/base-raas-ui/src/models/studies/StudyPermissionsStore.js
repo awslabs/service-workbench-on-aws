@@ -56,7 +56,7 @@ const StudyPermissionsStore = BaseStore.named('StudyPermissionsStore')
           const userToRequestFormat = uid => ({ uid, permissionLevel: type });
 
           // Set selected users as "usersToAdd" (API is idempotent)
-          updateRequest.usersToAdd.push(...selectedUserIds[type].map(userToRequestFormat));
+          updateRequest.usersToAdd.push(..._.map(selectedUserIds[type], userToRequestFormat));
 
           // Set removed users as "usersToRemove"
           updateRequest.usersToRemove.push(
