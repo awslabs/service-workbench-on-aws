@@ -31,7 +31,7 @@ const settingKeys = {
   tableName: 'StorageGateway',
 };
 
-class StorageGateway extends Service {
+class StorageGatewayService extends Service {
   constructor() {
     super();
     this.dependency(['aws', 'dbService', 'userService', 'jsonSchemaValidationService']);
@@ -345,4 +345,4 @@ class StorageGateway extends Service {
   }
 }
 
-module.exports = StorageGateway;
+module.exports = StorageGatewayService;

@@ -30,7 +30,7 @@ const UserServiceMock = require('@aws-ee/base-services/lib/user/user-service');
 jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
 const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
 
-const StorageGateway = require('../storage-gateway');
+const StorageGateway = require('../storage-gateway-service');
 
 describe('storageGateway', () => {
   let storageGateway;
