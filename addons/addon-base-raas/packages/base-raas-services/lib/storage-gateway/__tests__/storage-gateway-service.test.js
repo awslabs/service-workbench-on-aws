@@ -32,7 +32,7 @@ const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-sett
 
 const StorageGateway = require('../storage-gateway-service');
 
-describe('storageGateway', () => {
+describe('storageGatewayService', () => {
   let storageGateway;
   let userService;
   let log;
@@ -44,7 +44,7 @@ describe('storageGateway', () => {
     const container = new ServicesContainer();
     container.register('log', new Logger());
     container.register('aws', new AwsService());
-    container.register('storageGateway', new StorageGateway());
+    container.register('storageGatewayService', new StorageGateway());
     container.register('dbService', new DbServiceMock());
     container.register('userService', new UserServiceMock());
     container.register('settings', new SettingsServiceMock());
@@ -53,7 +53,7 @@ describe('storageGateway', () => {
     await container.initServices();
 
     // Get instance of the service we are testing
-    storageGateway = await container.find('storageGateway');
+    storageGateway = await container.find('storageGatewayService');
     userService = await container.find('userService');
     log = await container.find('log');
     dbService = await container.find('dbService');
