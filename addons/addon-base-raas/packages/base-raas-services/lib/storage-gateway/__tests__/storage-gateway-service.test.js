@@ -573,5 +573,57 @@ describe('storageGatewayService', () => {
         file_share_s3_locations: { anotherS3LocationArn: 'anotherFileShareArn', s3LocationArn: 'newFileShareArn' },
       });
     });
+
+    it('should create new file share with KMS key when override is provided', async () => {
+      // BUILD
+      dbService.table.item.mockClear();
+      dbService.table.get
+        .mockReturnValueOnce({
+          file_share_s3_locations: { anotherS3LocationArn: 'anotherFileShareArn' },
+        })
+        .mockReturnValueOnce({
+          elasticIP: '10.52.4.93',
+          fileShares: { anotherS3LocationArn: 'anotherFileShareArn' },
+          rev: 3,
+        })
+        .mockReturnValueOnce({
+          elasticIP: '10.52.4.93',
+          fileShares: { anotherS3LocationArn: 'anotherFileShareArn' },
+          rev: 3,
+        });
+
+      const expectedRequest = {
+        ClientToken: expect.any(String),
+        GatewayARN: 'gatewayArn',
+        LocationARN: 's3LocationArn',
+        Role: 'roleArn',
+        ClientList: ['10.52.4.93/32'],
+        KMSEncrypted: true,
+        KMSKey: 'arn:aws:kms:us-east-1:1234567890:key/some-kms-key-name',
+      };
+      const sgResponse = { FileShareARN: 'newFileShareArn' };
+      AWSMock.mock('StorageGateway', 'createNFSFileShare', (params, callback) => {
+        expect(params).toEqual(expectedRequest);
+        callback(null, sgResponse);
+      });
+      // OPERATE
+      const result = await storageGateway.createFileShare(context, 'gatewayArn', 's3LocationArn', 'roleArn', {
+        KMSEncrypted: true,
+        KMSKey: 'arn:aws:kms:us-east-1:1234567890:key/some-kms-key-name',
+      });
+      // CHECK
+      expect(result).toEqual('newFileShareArn');
+      expect(dbService.table.item).toHaveBeenNthCalledWith(1, {
+        fileShares: {
+          anotherS3LocationArn: 'anotherFileShareArn',
+          s3LocationArn: 'newFileShareArn',
+        },
+        rev: 3,
+        updatedBy: 'u-daffyduck',
+      });
+      expect(dbService.table.item).toHaveBeenNthCalledWith(2, {
+        file_share_s3_locations: { anotherS3LocationArn: 'anotherFileShareArn', s3LocationArn: 'newFileShareArn' },
+      });
+    });
   });
 });
