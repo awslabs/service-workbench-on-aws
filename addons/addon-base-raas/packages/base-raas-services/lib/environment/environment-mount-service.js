@@ -170,9 +170,10 @@ class EnvironmentMountService extends Service {
           listStatement.Principal.AWS = updateAwsPrincipals(listStatement.Principal.AWS, workspaceRoleArn);
           getStatement.Principal.AWS = updateAwsPrincipals(getStatement.Principal.AWS, workspaceRoleArn);
 
-          // TODO: Conditional, applies only if readwrite is assigned instead of readonly
+          // TODO: Conditional, applies only if readwrite is assigned
           putStatement.Principal.AWS = updateAwsPrincipals(putStatement.Principal.AWS, workspaceRoleArn);
 
+          // TODO: Conditional - Add the putSid here as well (for writeable studies)
           s3Policy.Statement = s3Policy.Statement.filter(statement => ![listSid, getSid].includes(statement.Sid));
           [listStatement, getStatement].forEach(statement => {
             // Only add updated statement if it contains principals (otherwise leave it out)

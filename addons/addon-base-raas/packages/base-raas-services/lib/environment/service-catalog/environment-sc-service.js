@@ -280,6 +280,21 @@ class EnvironmentScService extends Service {
     return envs;
   }
 
+  async getActiveEnvsForUser(userUid) {
+    const filterStatus = ['TERMINATING', 'TERMINATED'];
+    const envs = await this._scanner()
+      .scan()
+      .then(environments => {
+        // Filter out terminated and bad state environments
+        return _.filter(
+          environments,
+          env => userUid === env.createdBy && !_.includes(filterStatus, env.status) && !env.status.includes('FAILED'),
+        );
+      });
+
+    return envs;
+  }
+
   async find(requestContext, { id, fields = [] }) {
     // Make sure 'createdBy' is always returned as that's required for authorizing the 'get' action
     // If empty "fields" is specified then it means the caller is asking for all fields. No need to append 'createdBy'
@@ -441,8 +456,6 @@ class EnvironmentScService extends Service {
         throw this.boom.notFound(`environment with id "${id}" does not exist`, true);
       },
     );
-
-    // TODO: Update IAM role for workspace for S3 access (similar to built-in)
 
     // Write audit event
     await this.audit(requestContext, { action: 'update-environment-sc', body: environment });
