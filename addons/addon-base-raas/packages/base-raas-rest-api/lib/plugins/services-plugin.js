@@ -18,7 +18,7 @@ const UserAuthzService = require('@aws-ee/base-raas-services/lib/user/user-authz
 const UserService = require('@aws-ee/base-raas-services/lib/user/user-service');
 const UserAttributesMapperService = require('@aws-ee/base-raas-services/lib/user/user-attributes-mapper-service');
 const StudyService = require('@aws-ee/base-raas-services/lib/study/study-service');
-const StorageGateway = require('@aws-ee/base-raas-services/lib/storage-gateway/storage-gateway');
+const StorageGatewayService = require('@aws-ee/base-raas-services/lib/storage-gateway/storage-gateway-service');
 const StudyPermissionService = require('@aws-ee/base-raas-services/lib/study/study-permission-service');
 const EnvironmentService = require('@aws-ee/base-raas-services/lib/environment/built-in/environment-service');
 const EnvironmentKeypairService = require('@aws-ee/base-raas-services/lib/environment/built-in/environment-keypair-service');
@@ -79,7 +79,7 @@ async function registerServices(container, pluginRegistry) {
   container.register('awsAccountsService', new AwsAccountsService());
   container.register('budgetsService', new BudgetsService());
   container.register('costsService', new CostsService());
-  container.register('storageGateway', new StorageGateway());
+  container.register('storageGatewayService', new StorageGatewayService());
   container.register('costApiCacheService', new CostApiCacheService());
   container.register('indexesService', new IndexesService());
   container.register('projectService', new ProjectService());
