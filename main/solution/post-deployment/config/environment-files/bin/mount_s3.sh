@@ -49,7 +49,7 @@ do
     then
         printf 'Mounting study "%s" at "%s"\n' "$study_id" "$study_dir"
         mkdir -p "$study_dir"
-        goofys "${s3_bucket}:${s3_prefix}" "$study_dir"
+        goofys --acl "bucket-owner-full-control" "${s3_bucket}:${s3_prefix}" "$study_dir"
     fi
 done
 

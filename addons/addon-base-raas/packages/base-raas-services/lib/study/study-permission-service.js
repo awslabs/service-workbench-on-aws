@@ -205,16 +205,13 @@ class StudyPermissionService extends Service {
       // For each env remove permission from IAM role (according to user.permissionLevel)
       _.map(envsWithStudy, env => {
         const workspaceRoleArn = _.find(env.outputs, { OutputKey: 'WorkspaceInstanceRoleArn' }).OutputValue;
-        
       });
-
     });
 
-    // _.map(updateRequest.usersToAdd, user => 
+    // _.map(updateRequest.usersToAdd, user =>
     // // For each workspace createdBy this user having this studyId
     // // Change IAM role
     // );
-
   }
 
   async delete(requestContext, studyId) {

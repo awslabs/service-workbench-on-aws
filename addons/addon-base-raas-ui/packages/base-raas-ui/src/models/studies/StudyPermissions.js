@@ -24,6 +24,7 @@ const StudyPermissions = types
     id: types.identifier,
     adminUsers: types.optional(types.array(types.string), []),
     readonlyUsers: types.optional(types.array(types.string), []),
+    readwriteUsers: types.optional(types.array(types.string), []),
     createdAt: '',
     createdBy: '',
     updatedAt: '',
