@@ -168,19 +168,19 @@ class StudyPermissionService extends Service {
           .update(),
 
         // Update user records
-        ...updateRequest.usersToAdd.map(userEntry =>
-          this.upsertUserRecord(requestContext, {
-            studyId,
-            uid: userEntry.uid,
-            addOrRemove: 'add',
-            permissionLevel: userEntry.permissionLevel,
-          }),
-        ),
         ...updateRequest.usersToRemove.map(userEntry =>
           this.upsertUserRecord(requestContext, {
             studyId,
             uid: userEntry.uid,
             addOrRemove: 'remove',
+            permissionLevel: userEntry.permissionLevel,
+          }),
+        ),
+        ...updateRequest.usersToAdd.map(userEntry =>
+          this.upsertUserRecord(requestContext, {
+            studyId,
+            uid: userEntry.uid,
+            addOrRemove: 'add',
             permissionLevel: userEntry.permissionLevel,
           }),
         ),
@@ -194,18 +194,15 @@ class StudyPermissionService extends Service {
     return StudyPermissionService.sanitizeStudyRecord(result[0]);
   }
 
-  async updateWorkspaceInstanceRoles(updateRequest, studyId) {
+  async updateWorkspaceInstanceRoles(user, studyId, permissionLevel, addOrRemove) {
     const environmentScService = await this.service('environmentScService');
 
-    _.map(updateRequest.usersToRemove, async user => {
-      // For each workspace createdBy this user having this studyId
-      const userOwnedEnvs = await environmentScService.getActiveEnvsForUser(user.uid);
-      const envsWithStudy = _.filter(userOwnedEnvs, env => _.contains(env.studyIds, studyId));
+    const userOwnedEnvs = await environmentScService.getActiveEnvsForUser(user.uid);
+    const envsWithStudy = _.filter(userOwnedEnvs, env => _.contains(env.studyIds, studyId));
 
-      // For each env remove permission from IAM role (according to user.permissionLevel)
-      _.map(envsWithStudy, env => {
-        const workspaceRoleArn = _.find(env.outputs, { OutputKey: 'WorkspaceInstanceRoleArn' }).OutputValue;
-      });
+    // For each env remove permission from IAM role (according to user.permissionLevel)
+    _.map(envsWithStudy, env => {
+      const workspaceRoleArn = _.find(env.outputs, { OutputKey: 'WorkspaceInstanceRoleArn' }).OutputValue;
     });
 
     // _.map(updateRequest.usersToAdd, user =>

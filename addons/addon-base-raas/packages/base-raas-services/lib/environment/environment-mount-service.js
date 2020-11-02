@@ -124,6 +124,7 @@ class EnvironmentMountService extends Service {
         s3Prefixes.forEach(prefix => {
           const listSid = `List:${prefix}`;
           const getSid = `Get:${prefix}`;
+          const putSid = `Put:${prefix}`;
 
           // Define default statements to be used if we can't find existing ones
           let listStatement = {
@@ -138,11 +139,20 @@ class EnvironmentMountService extends Service {
               },
             },
           };
+          // Read Permission
           let getStatement = {
             Sid: getSid,
             Effect: 'Allow',
             Principal: { AWS: [] },
             Action: ['s3:GetObject'],
+            Resource: [`arn:aws:s3:::${s3BucketName}/${prefix}*`],
+          };
+          // Write Permission
+          let putStatement = {
+            Sid: putSid,
+            Effect: 'Allow',
+            Principal: { AWS: [] },
+            Action: ['s3:PutObject'],
             Resource: [`arn:aws:s3:::${s3BucketName}/${prefix}*`],
           };
 
@@ -152,6 +162,8 @@ class EnvironmentMountService extends Service {
               listStatement = statement;
             } else if (statement.Sid === getSid) {
               getStatement = statement;
+            } else if (statement.Sid === putSid) {
+              putStatement = statement;
             }
           });
 
@@ -159,9 +171,10 @@ class EnvironmentMountService extends Service {
           // NOTE: The S3 API *should* remove duplicate principals, if any
           listStatement.Principal.AWS = updateAwsPrincipals(listStatement.Principal.AWS, workspaceRoleArn);
           getStatement.Principal.AWS = updateAwsPrincipals(getStatement.Principal.AWS, workspaceRoleArn);
+          putStatement.Principal.AWS = updateAwsPrincipals(putStatement.Principal.AWS, workspaceRoleArn);
 
           s3Policy.Statement = s3Policy.Statement.filter(statement => ![listSid, getSid].includes(statement.Sid));
-          [listStatement, getStatement].forEach(statement => {
+          [listStatement, getStatement, putStatement].forEach(statement => {
             // Only add updated statement if it contains principals (otherwise leave it out)
             if (statement.Principal.AWS.length > 0) {
               s3Policy.Statement.push(statement);
@@ -215,12 +228,18 @@ class EnvironmentMountService extends Service {
   async _getStudyInfo(requestContext, studyIds) {
     let studyInfo = [];
     if (studyIds && studyIds.length) {
-      const studyService = await this.service('studyService');
+      const [studyService, studyPermissionService] = await this.service(['studyService', 'studyPermissionService']);
+
       studyInfo = await Promise.all(
         studyIds.map(async studyId => {
           try {
             const { id, name, category, resources } = await studyService.mustFind(requestContext, studyId);
-            return { id, name, category, resources };
+
+            // Find out if the current user has Read/Write access
+            const uid = _.get(requestContext, 'principalIdentifier.uid');
+            const studyPermission = await studyPermissionService.findByUser(requestContext, uid);
+            const writeable = _.includes(studyPermission.readwriteAccess, studyId);
+            return { id, name, category, resources, writeable };
           } catch (error) {
             // Because the studies update periodically we cannot
             // guarantee consistency so filter anything invalid here
@@ -229,7 +248,6 @@ class EnvironmentMountService extends Service {
         }),
       );
     }
-
     return studyInfo;
   }
 
@@ -243,7 +261,7 @@ class EnvironmentMountService extends Service {
       const studyPermissionService = await this.service('studyPermissionService');
       const storedPermissions = await studyPermissionService.getRequestorPermissions(requestContext);
 
-      // If there are no stored permissions, use a empty permissions object
+      // If there are no stored permissions, use an empty permissions object
       permissions = storedPermissions || studyPermissionService.getEmptyUserPermissions();
 
       // Add Open Data read access for everyone
@@ -281,48 +299,66 @@ class EnvironmentMountService extends Service {
     return mounts;
   }
 
+  _getObjectPathArns(studyInfo) {
+    // Collect study resources
+    const objectPathArns = _.flatten(
+      _.map(studyInfo, info =>
+        info.resources
+          // Pull out resource ARNs
+          .map(resource => resource.arn)
+          // Only grab S3 ARNs
+          .filter(arn => arn.startsWith('arn:aws:s3:'))
+          // Normalize the ARNs by ensuring they end with "/*"
+          .map(arn => {
+            switch (arn.slice(-1)) {
+              case '*':
+                break;
+              case '/':
+                arn += '*';
+                break;
+              default:
+                arn += '/*';
+            }
+
+            return arn;
+          }),
+      ),
+    );
+    return objectPathArns;
+  }
+
   async _generateIamPolicyDoc(studyInfo) {
     let policyDoc = {};
+    // Build policy statements for object-level permissions
+    const statements = [];
+
     if (studyInfo.length) {
-      const objectLevelActions = ['s3:GetObject'];
+      const writeableStudies = _.filter(studyInfo, study => study.writeable);
+      const readonlyStudies = _.filter(studyInfo, study => !study.writeable);
 
-      // Collect study resources
-      const objectPathArns = _.flatten(
-        studyInfo.map(info =>
-          info.resources
-            // Pull out resource ARNs
-            .map(resource => resource.arn)
-            // Only grab S3 ARNs
-            .filter(arn => arn.startsWith('arn:aws:s3:'))
-            // Normalize the ARNs by ensuring they end with "/*"
-            .map(arn => {
-              switch (arn.slice(-1)) {
-                case '*':
-                  break;
-                case '/':
-                  arn += '*';
-                  break;
-                default:
-                  arn += '/*';
-              }
+      if (writeableStudies.length) {
+        const objectLevelWriteActions = ['s3:GetObject', 's3:PutObject'];
+        statements.push({
+          Sid: 'S3StudyReadWriteAccess',
+          Effect: 'Allow',
+          Action: objectLevelWriteActions,
+          Resource: this._getObjectPathArns(writeableStudies),
+        });
+      }
 
-              return arn;
-            }),
-        ),
-      );
-
-      // Build policy statements for object-level permissions
-      const statements = [];
-      statements.push({
-        Sid: 'S3StudyReadAccess',
-        Effect: 'Allow',
-        Action: objectLevelActions,
-        Resource: objectPathArns,
-      });
+      if (readonlyStudies.length) {
+        const objectLevelReadActions = ['s3:GetObject'];
+        statements.push({
+          Sid: 'S3StudyReadAccess',
+          Effect: 'Allow',
+          Action: objectLevelReadActions,
+          Resource: this._getObjectPathArns(readonlyStudies),
+        });
+      }
 
       // Create map of buckets whose paths need list access
       const bucketPaths = {};
-      objectPathArns.forEach(arn => {
+      this._getObjectPathArns(studyInfo).forEach(arn => {
         const { bucket, prefix } = parseS3Arn(arn);
         if (!(bucket in bucketPaths)) {
           bucketPaths[bucket] = [];
