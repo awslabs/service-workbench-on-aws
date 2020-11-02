@@ -22,7 +22,6 @@ func main() {
 	destinationBasePtr := flag.String("destination", "./", "The directory to download to")
 	concurrencyPtr := flag.Int("concurrency", 20, "The number of concurrent parts to download")
 	debugPtr := flag.Bool("debug", false, "Whether to print debug information")
-	//pollIntervalPtr := flag.Int("pollInterval", 60, "The delay (in seconds) between api http requests")
 
 	flag.Parse()
 
@@ -82,9 +81,6 @@ func main() {
 		}
 	}()
 
-	// TODO: Add support for fetching S3 mounts dynamically using SWB APIs
-	//// Poll for environment info
-	//for {
 	if debug == true {
 		log.Println("Fetching environment info")
 	}
@@ -134,8 +130,6 @@ func main() {
 		// Add to the currentMounts
 		currentMounts[s] = struct{}{}
 	}
-	//	time.Sleep(time.Duration(pollInterval) * time.Second)
-	//}
 
 	wg.Wait() // Wait until all spawned go routines complete before existing the program
 }

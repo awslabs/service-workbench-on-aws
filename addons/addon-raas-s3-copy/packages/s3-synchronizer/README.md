@@ -1,13 +1,11 @@
 # s3-synchronizer
 
-This program polls the provided api URL to check for new s3 dataset information.
-When a new dataset is specified, the program will copy the files to the local instance
-(using a s3 multi-part download). If the JSON returned by the api specifies that this
-dataset should be writable, the program will then setup file watchers and any file changes
-will be persisted back to s3.
+This program loads the S3 data on local file system by copying the data from S3 bucket based on the specified S3 mounts (i.e., `defaultS3Mounts`) JSON configuration.
+The program does not download any further changes to objects in s3 beyond the initial download.
 
-The program does not download any further changes to objects in s3 beyond the initial
-download.
+If a specific S3 mount is marked `writable` in the `defaultS3Mounts` JSON , the program will then setup file watchers and any file changes locally in the corresponding directory will be persisted back to s3.
+This "writable" feature in the program is currently not integrated with the rest of the Service Workbench code. The "writable" feature of the tool is tested in isolation. 
+It is added for future Read-Write support on EC2 Windows workspaces and will be integrated with the rest of the Service Workbench code when the Read-Write support is added.
 
 ## Prerequisites
 
