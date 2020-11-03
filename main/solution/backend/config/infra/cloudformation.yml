@@ -15,7 +15,7 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: aws:kms
-              KMSMasterKeyID: !Ref StudyDataEncryptionKey
+              KMSMasterKeyID: !GetAtt StudyDataEncryptionKey.Arn
       LoggingConfiguration:
         DestinationBucketName: ${self:custom.settings.loggingBucketName}
         LogFilePrefix: studydata/

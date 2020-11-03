@@ -337,7 +337,7 @@ class EnvironmentMountService extends Service {
       const readonlyStudies = _.filter(studyInfo, study => !study.writeable);
 
       if (writeableStudies.length) {
-        const objectLevelWriteActions = ['s3:GetObject', 's3:PutObject'];
+        const objectLevelWriteActions = ['s3:GetObject', 's3:PutObject', 's3:PutObjectAcl'];
         statements.push({
           Sid: 'S3StudyReadWriteAccess',
           Effect: 'Allow',
