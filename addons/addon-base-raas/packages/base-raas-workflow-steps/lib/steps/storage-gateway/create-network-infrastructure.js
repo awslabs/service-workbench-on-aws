@@ -230,7 +230,7 @@ class CreateNetworkInfrastructure extends StepBase {
   }
 
   async getStorageGateway() {
-    const [storageGateway] = await this.mustFindServices(['storageGateway']);
+    const [storageGateway] = await this.mustFindServices(['storageGatewayService']);
     return storageGateway;
   }
 

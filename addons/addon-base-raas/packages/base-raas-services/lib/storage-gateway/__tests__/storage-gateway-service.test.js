@@ -30,9 +30,9 @@ const UserServiceMock = require('@aws-ee/base-services/lib/user/user-service');
 jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
 const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
 
-const StorageGateway = require('../storage-gateway');
+const StorageGateway = require('../storage-gateway-service');
 
-describe('storageGateway', () => {
+describe('storageGatewayService', () => {
   let storageGateway;
   let userService;
   let log;
@@ -44,7 +44,7 @@ describe('storageGateway', () => {
     const container = new ServicesContainer();
     container.register('log', new Logger());
     container.register('aws', new AwsService());
-    container.register('storageGateway', new StorageGateway());
+    container.register('storageGatewayService', new StorageGateway());
     container.register('dbService', new DbServiceMock());
     container.register('userService', new UserServiceMock());
     container.register('settings', new SettingsServiceMock());
@@ -53,7 +53,7 @@ describe('storageGateway', () => {
     await container.initServices();
 
     // Get instance of the service we are testing
-    storageGateway = await container.find('storageGateway');
+    storageGateway = await container.find('storageGatewayService');
     userService = await container.find('userService');
     log = await container.find('log');
     dbService = await container.find('dbService');
@@ -498,11 +498,132 @@ describe('storageGateway', () => {
           rev: 0,
           createdBy: userId,
           updatedBy: userId,
-          createdAt: expect.any(String),
-          updatedAt: expect.any(String),
         }),
       );
       expect(dbService.table.update).toHaveBeenCalled();
+    });
+  });
+
+  describe('createFileShare', () => {
+    it('should return existing file share', async () => {
+      // BUILD
+      dbService.table.get.mockImplementationOnce(() => {
+        return { file_share_s3_locations: { s3LocationArn: 'fileShareArn' } };
+      });
+      // OPERATE
+      const result = await storageGateway.createFileShare(context, 'gatewayArn', 's3LocationArn', 'roleArn');
+      // CHECK
+      expect(result).toEqual('fileShareArn');
+    });
+
+    it('should throw error if SG record can not be found', async () => {
+      // OPERATE and CHECK
+      try {
+        await storageGateway.createFileShare(context, 'gatewayArn', 's3LocationArn', 'roleArn');
+        expect.hasAssertions();
+      } catch (err) {
+        expect(storageGateway.boom.is(err, 'notFound')).toBe(true);
+        expect(err.message).toContain('storage gateway with id "gatewayArn" does not exist');
+      }
+    });
+
+    it('should create new file share and save to DDB', async () => {
+      // BUILD
+      dbService.table.item.mockClear();
+      dbService.table.get
+        .mockReturnValueOnce({
+          file_share_s3_locations: { anotherS3LocationArn: 'anotherFileShareArn' },
+        })
+        .mockReturnValueOnce({
+          elasticIP: '10.52.4.93',
+          fileShares: { anotherS3LocationArn: 'anotherFileShareArn' },
+          rev: 3,
+        })
+        .mockReturnValueOnce({
+          elasticIP: '10.52.4.93',
+          fileShares: { anotherS3LocationArn: 'anotherFileShareArn' },
+          rev: 3,
+        });
+
+      const expectedRequest = {
+        ClientToken: expect.any(String),
+        GatewayARN: 'gatewayArn',
+        LocationARN: 's3LocationArn',
+        Role: 'roleArn',
+        ClientList: ['10.52.4.93/32'],
+      };
+      const sgResponse = { FileShareARN: 'newFileShareArn' };
+      AWSMock.mock('StorageGateway', 'createNFSFileShare', (params, callback) => {
+        expect(params).toEqual(expectedRequest);
+        callback(null, sgResponse);
+      });
+      // OPERATE
+      const result = await storageGateway.createFileShare(context, 'gatewayArn', 's3LocationArn', 'roleArn');
+      // CHECK
+      expect(result).toEqual('newFileShareArn');
+      expect(dbService.table.item).toHaveBeenNthCalledWith(1, {
+        fileShares: {
+          anotherS3LocationArn: 'anotherFileShareArn',
+          s3LocationArn: 'newFileShareArn',
+        },
+        rev: 3,
+        updatedBy: 'u-daffyduck',
+      });
+      expect(dbService.table.item).toHaveBeenNthCalledWith(2, {
+        file_share_s3_locations: { anotherS3LocationArn: 'anotherFileShareArn', s3LocationArn: 'newFileShareArn' },
+      });
+    });
+
+    it('should create new file share with KMS key when override is provided', async () => {
+      // BUILD
+      dbService.table.item.mockClear();
+      dbService.table.get
+        .mockReturnValueOnce({
+          file_share_s3_locations: { anotherS3LocationArn: 'anotherFileShareArn' },
+        })
+        .mockReturnValueOnce({
+          elasticIP: '10.52.4.93',
+          fileShares: { anotherS3LocationArn: 'anotherFileShareArn' },
+          rev: 3,
+        })
+        .mockReturnValueOnce({
+          elasticIP: '10.52.4.93',
+          fileShares: { anotherS3LocationArn: 'anotherFileShareArn' },
+          rev: 3,
+        });
+
+      const expectedRequest = {
+        ClientToken: expect.any(String),
+        GatewayARN: 'gatewayArn',
+        LocationARN: 's3LocationArn',
+        Role: 'roleArn',
+        ClientList: ['10.52.4.93/32'],
+        KMSEncrypted: true,
+        KMSKey: 'arn:aws:kms:us-east-1:1234567890:key/some-kms-key-name',
+      };
+      const sgResponse = { FileShareARN: 'newFileShareArn' };
+      AWSMock.mock('StorageGateway', 'createNFSFileShare', (params, callback) => {
+        expect(params).toEqual(expectedRequest);
+        callback(null, sgResponse);
+      });
+      // OPERATE
+      const result = await storageGateway.createFileShare(context, 'gatewayArn', 's3LocationArn', 'roleArn', {
+        KMSEncrypted: true,
+        KMSKey: 'arn:aws:kms:us-east-1:1234567890:key/some-kms-key-name',
+      });
+      // CHECK
+      expect(result).toEqual('newFileShareArn');
+      expect(dbService.table.item).toHaveBeenNthCalledWith(1, {
+        fileShares: {
+          anotherS3LocationArn: 'anotherFileShareArn',
+          s3LocationArn: 'newFileShareArn',
+        },
+        rev: 3,
+        updatedBy: 'u-daffyduck',
+      });
+      expect(dbService.table.item).toHaveBeenNthCalledWith(2, {
+        file_share_s3_locations: { anotherS3LocationArn: 'anotherFileShareArn', s3LocationArn: 'newFileShareArn' },
+      });
     });
   });
 });
