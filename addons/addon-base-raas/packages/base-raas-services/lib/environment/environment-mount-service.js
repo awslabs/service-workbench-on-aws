@@ -173,7 +173,9 @@ class EnvironmentMountService extends Service {
           getStatement.Principal.AWS = updateAwsPrincipals(getStatement.Principal.AWS, workspaceRoleArn);
           putStatement.Principal.AWS = updateAwsPrincipals(putStatement.Principal.AWS, workspaceRoleArn);
 
-          s3Policy.Statement = s3Policy.Statement.filter(statement => ![listSid, getSid].includes(statement.Sid));
+          s3Policy.Statement = s3Policy.Statement.filter(
+            statement => ![listSid, getSid, putSid].includes(statement.Sid),
+          );
           [listStatement, getStatement, putStatement].forEach(statement => {
             // Only add updated statement if it contains principals (otherwise leave it out)
             if (statement.Principal.AWS.length > 0) {
