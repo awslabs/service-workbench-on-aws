@@ -48,7 +48,7 @@ func newMountConfiguration(bucket string, prefix string, destination string, wri
 // Downloads the files based on the given mount configuration from S3 using
 // s3Manager https://docs.aws.amazon.com/sdk-for-go/api/service/s3/s3manager/#NewDownloader.
 // It downloads each file as multipart download (i.e., downloads in chunks).
-func downloadFiles(sess *session.Session, config *mountConfiguration, debug bool) {
+func downloadFiles(sess *session.Session, config *mountConfiguration, concurrency int, debug bool) {
 	destination := config.destination
 	bucket := config.bucket
 	prefix := config.prefix
@@ -57,7 +57,7 @@ func downloadFiles(sess *session.Session, config *mountConfiguration, debug bool
 		log.Println("Getting all files from the s3 bucket :", bucket, " and prefix: ", prefix)
 		log.Println("And will download them to :", destination)
 	}
-	stats := getBucketObjects(sess, config, debug)
+	stats := getBucketObjects(sess, config, concurrency, debug)
 
 	end := time.Now()
 	duration := end.Sub(start)
@@ -74,7 +74,7 @@ func downloadFiles(sess *session.Session, config *mountConfiguration, debug bool
 	}
 }
 
-func getBucketObjects(sess *session.Session, config *mountConfiguration, debug bool) *downloadStats {
+func getBucketObjects(sess *session.Session, config *mountConfiguration, concurrency int, debug bool) *downloadStats {
 	stats := newDownloadStats()
 	bucket := config.bucket
 	prefix := config.prefix
@@ -94,7 +94,7 @@ func getBucketObjects(sess *session.Session, config *mountConfiguration, debug b
 			time.Sleep(time.Duration(30) * time.Second)
 			continue
 		}
-		getObjectsAll(resp, sess, config, stats, debug)
+		getObjectsAll(resp, sess, config, concurrency, stats, debug)
 
 		query.ContinuationToken = resp.NextContinuationToken
 		truncatedListing = *resp.IsTruncated
@@ -107,6 +107,7 @@ func getObjectsAll(
 	bucketObjectsList *s3.ListObjectsV2Output,
 	sess *session.Session,
 	config *mountConfiguration,
+	concurrency int,
 	stats *downloadStats,
 	debug bool,
 ) *downloadStats {

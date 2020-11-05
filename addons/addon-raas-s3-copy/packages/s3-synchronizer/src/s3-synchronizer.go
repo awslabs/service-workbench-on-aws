@@ -10,45 +10,17 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 )
 
-var region string
-var profile string
-var destinationBase string
-var concurrency int
-
 func main() {
-	defaultS3MountsPtr := flag.String("defaultS3Mounts", "", `A JSON string containing information about the default S3 mounts E.g., [{"id":"some-id","bucket":"some-s3-bucket-name","prefix":"some/s3/prefix/path","writeable":false,"kmsKeyId":"some-kms-key-arn"}]`)
-	regionPtr := flag.String("region", "us-east-1", "The aws region to use for the session")
-	profilePtr := flag.String("profile", "", "AWS Credentials profile. Default is no profile. The code will look for credentials in the following order: ENV variables, default credentials profile, EC2 instance metadata")
-	destinationBasePtr := flag.String("destination", "./", "The directory to download to")
-	concurrencyPtr := flag.Int("concurrency", 20, "The number of concurrent parts to download")
-	debugPtr := flag.Bool("debug", false, "Whether to print debug information")
+	defaultS3Mounts, region, profile, destinationBase, concurrency, debug := readConfigFromArgs()
+	sess := makeSession(profile, region)
 
-	flag.Parse()
+	mainImpl(sess, debug, concurrency, defaultS3Mounts, destinationBase)
+}
 
-	defaultS3Mounts := *defaultS3MountsPtr
-	log.Print("defaultS3Mounts: " + defaultS3Mounts)
-
-	region = *regionPtr
-	log.Print("region: " + region)
-
-	profile = *profilePtr
-	log.Print("profile: " + profile)
-
-	destinationBase = *destinationBasePtr
-	log.Print("destinationBase: " + destinationBase)
-
-	concurrency = *concurrencyPtr
-	log.Printf("concurrency: %v", concurrency)
-
-	debug := *debugPtr
-	log.Printf("debug: %v", debug)
-
-	//pollInterval := *pollIntervalPtr
-
+func mainImpl(sess *session.Session, debug bool, concurrency int, defaultS3Mounts string, destinationBase string) error {
 	// Use a map to emulate a set to keep track of existing mounts
 	currentMounts := make(map[string]struct{}, 0)
 	mountsCh := make(chan *mountConfiguration, 50)
-	sess := makeSession()
 
 	// Create wait group to keep track of go routines being spawned
 	// so the main go routine can wait for them to completes
@@ -63,7 +35,7 @@ func main() {
 			if debug == true {
 				log.Printf("Received mount configuration from channel: %+v\n", mountConfig)
 			}
-			downloadFiles(sess, mountConfig, debug)
+			downloadFiles(sess, mountConfig, concurrency, debug)
 			if mountConfig.writeable {
 				go func() {
 					err := setupUploadWatcher(sess, mountConfig, debug)
@@ -93,6 +65,7 @@ func main() {
 
 	if err != nil {
 		log.Print("Error getting environment info: " + err.Error())
+		return err
 	}
 
 	var s3Mounts []s3Mount
@@ -132,9 +105,45 @@ func main() {
 	}
 
 	wg.Wait() // Wait until all spawned go routines complete before existing the program
+
+	return nil
 }
 
-func makeSession() *session.Session {
+// Read configuration information fro the program arguments
+func readConfigFromArgs() (string, string, string, string, int, bool) {
+	defaultS3MountsPtr := flag.String("defaultS3Mounts", "", `A JSON string containing information about the default S3 mounts E.g., [{"id":"some-id","bucket":"some-s3-bucket-name","prefix":"some/s3/prefix/path","writeable":false,"kmsKeyId":"some-kms-key-arn"}]`)
+	regionPtr := flag.String("region", "us-east-1", "The aws region to use for the session")
+	profilePtr := flag.String("profile", "", "AWS Credentials profile. Default is no profile. The code will look for credentials in the following order: ENV variables, default credentials profile, EC2 instance metadata")
+	destinationBasePtr := flag.String("destination", "./", "The directory to download to")
+	concurrencyPtr := flag.Int("concurrency", 20, "The number of concurrent parts to download")
+	debugPtr := flag.Bool("debug", false, "Whether to print debug information")
+
+	flag.Parse()
+
+	defaultS3Mounts := *defaultS3MountsPtr
+	log.Print("defaultS3Mounts: " + defaultS3Mounts)
+
+	region := *regionPtr
+	log.Print("region: " + region)
+
+	profile := *profilePtr
+	log.Print("profile: " + profile)
+
+	destinationBase := *destinationBasePtr
+	log.Print("destinationBase: " + destinationBase)
+
+	concurrency := *concurrencyPtr
+	log.Printf("concurrency: %v", concurrency)
+
+	debug := *debugPtr
+	log.Printf("debug: %v", debug)
+
+	//pollInterval := *pollIntervalPtr
+
+	return defaultS3Mounts, region, profile, destinationBase, concurrency, debug
+}
+
+func makeSession(profile string, region string) *session.Session {
 	var sess *session.Session
 	if profile == "" {
 		sess = session.Must(session.NewSessionWithOptions(session.Options{
