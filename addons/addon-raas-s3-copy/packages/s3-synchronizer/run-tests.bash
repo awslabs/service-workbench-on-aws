@@ -2,8 +2,6 @@
 # exit when any command fails
 set -e
 
-./build.sh
-
 mkdir -p ./.build/test
 pushd src  > /dev/null
 
@@ -20,6 +18,6 @@ then
 fi
 
 echo "GOPATH=$GOPATH"
-set -o pipefail; go test -v ./... 2>&1 | tee /dev/stderr |  $GOPATH/bin/go-junit-report -set-exit-code > ../.build/test/report.xml
+set -o pipefail; go test -v ./... 2>&1 | tee >&2 |  $GOPATH/bin/go-junit-report -set-exit-code > ../.build/test/report.xml
 
 popd > /dev/null
