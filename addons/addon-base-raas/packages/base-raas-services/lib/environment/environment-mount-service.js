@@ -15,6 +15,8 @@
 
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
+const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
+const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const settingKeys = {
   environmentInstanceFiles: 'environmentInstanceFiles',
@@ -41,7 +43,14 @@ const parseS3Arn = arn => {
 class EnvironmentMountService extends Service {
   constructor() {
     super();
-    this.dependency(['aws', 'lockService', 'studyService', 'studyPermissionService']);
+    this.dependency([
+      'aws',
+      'lockService',
+      'studyService',
+      'studyPermissionService',
+      'environmentScService',
+      'iamService',
+    ]);
   }
 
   async getCfnStudyAccessParameters(requestContext, rawDataV1) {
@@ -227,20 +236,100 @@ class EnvironmentMountService extends Service {
     ]);
   }
 
+  async updateExistingPermissions(studyId, updateRequest) {
+    // Update IAM role (WorkspaceInstanceRoleArn) for workspaces for S3 access if studyId in studyIds list
+    await Promise.all(
+      _.map(updateRequest.usersToRemove, async user => {
+        await this.updateIamPolicyDoc(user, studyId, 'remove');
+      }),
+    );
+    sleep(5000);
+    await Promise.all(
+      _.map(updateRequest.usersToAdd, async user => {
+        await this.updateIamPolicyDoc(user, studyId, 'add');
+      }),
+    );
+    // TODO: Make sure ListBucket permission is present for all R/O and R/W users
+  }
+
+  async updateIamPolicyDoc(user, studyId, addOrRemove) {
+    const [environmentScService, iamService] = await this.service(['environmentScService', 'iamService']);
+    const userOwnedEnvs = await environmentScService.getActiveEnvsForUser(user.uid);
+    const envsWithStudy = _.filter(userOwnedEnvs, env => _.includes(env.studyIds, studyId));
+
+    // For each env remove permission from IAM role (according to user.permissionLevel)
+    await Promise.all(
+      _.map(envsWithStudy, async env => {
+        const sysRequestContext = getSystemRequestContext();
+        const iamClient = await this._getEnvIamClient(sysRequestContext, env);
+        const workspaceRoleArn = _.find(env.outputs, { OutputKey: 'WorkspaceInstanceRoleArn' }).OutputValue;
+        const roleName = workspaceRoleArn.split('role/')[1];
+        const studyDataPolicyName = `analysis-${workspaceRoleArn.split('-')[1]}-s3-studydata-policy`;
+        const { PolicyDocument: policyDocStr } = await iamService.getRolePolicy(
+          roleName,
+          studyDataPolicyName,
+          iamClient,
+        );
+        const policyDoc = JSON.parse(policyDocStr);
+
+        let statementSidToUse = '';
+        if (user.permissionLevel === 'readwrite') {
+          statementSidToUse = 'S3StudyReadWriteAccess';
+        } else if (user.permissionLevel === 'readonly') {
+          statementSidToUse = 'S3StudyReadAccess';
+        }
+
+        // Get study ARN for studyId (from studyService)
+        const studyPathArn = await this._getStudyArn(sysRequestContext, studyId);
+
+        // Change permission statements for this study in policy doc
+        _.forEach(policyDoc.Statement, statement => {
+          // TODO: Handle scenarios where there is no statement with this Sid (only for add)
+          // TODO: Handle scenarios where there is only one Resource in the list (only for remove)
+          if (statement.Sid === statementSidToUse) {
+            if (addOrRemove === 'add') {
+              statement.Resource.push(studyPathArn); // Push is unreliable
+              // statement.Resource[statement.Resource.length] = studyPathArn;
+              // TODO: Make sure all resources are distinct
+            } else if (addOrRemove === 'remove') {
+              const index = statement.Resource.indexOf(studyPathArn);
+              if (index !== -1) {
+                statement.Resource.splice(index, 1);
+              }
+            }
+          }
+        });
+
+        this.log.info(policyDoc); // Policy Doc does not append resources. Why?
+
+        await iamService.putRolePolicy(roleName, studyDataPolicyName, JSON.stringify(policyDoc), iamClient);
+      }),
+    );
+  }
+
+  async _getStudyArn(requestContext, studyId) {
+    const studyService = await this.service('studyService');
+    const studyInfo = [];
+    const { id, name, category, resources } = await studyService.mustFind(requestContext, studyId);
+    studyInfo.push({ id, name, category, resources });
+    const studyPathArn = await this._getObjectPathArns(studyInfo);
+    return studyPathArn[0];
+  }
+
   async _getStudyInfo(requestContext, studyIds) {
     let studyInfo = [];
     if (studyIds && studyIds.length) {
       const [studyService, studyPermissionService] = await this.service(['studyService', 'studyPermissionService']);
 
       studyInfo = await Promise.all(
-        studyIds.map(async studyId => {
+        _.map(studyIds, async studyId => {
           try {
             const { id, name, category, resources } = await studyService.mustFind(requestContext, studyId);
 
             // Find out if the current user has Read/Write access
             const uid = _.get(requestContext, 'principalIdentifier.uid');
             const studyPermission = await studyPermissionService.findByUser(requestContext, uid);
-            const writeable = _.includes(studyPermission.readwriteAccess, studyId);
+            const writeable = _.includes(studyPermission.readwriteAccess, studyId) || category === 'My Studies';
             return { id, name, category, resources, writeable };
           } catch (error) {
             // Because the studies update periodically we cannot
@@ -251,6 +340,22 @@ class EnvironmentMountService extends Service {
       );
     }
     return studyInfo;
+  }
+
+  async _getEnvIamClient(requestContext, env) {
+    const [environmentScService, aws] = await this.service(['environmentScService', 'aws']);
+    const { cfnExecutionRoleArn, roleExternalId } = await environmentScService.getCfnExecutionRoleArn(
+      requestContext,
+      env,
+    );
+
+    const iamClient = await aws.getClientSdkForRole({
+      roleArn: cfnExecutionRoleArn,
+      externalId: roleExternalId,
+      clientName: 'IAM',
+    });
+
+    return iamClient;
   }
 
   async _validateStudyPermissions(requestContext, studyInfo) {

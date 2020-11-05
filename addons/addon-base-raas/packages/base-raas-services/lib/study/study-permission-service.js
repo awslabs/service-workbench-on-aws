@@ -35,7 +35,7 @@ const permissionLevels = ['admin', 'readonly', 'writeonly', 'readwrite'];
 class StudyPermissionService extends Service {
   constructor() {
     super();
-    this.dependency(['dbService', 'jsonSchemaValidationService', 'lockService', 'environmentScService']);
+    this.dependency(['dbService', 'jsonSchemaValidationService', 'lockService']);
   }
 
   async init() {
@@ -185,30 +185,9 @@ class StudyPermissionService extends Service {
           }),
         ),
       ]);
-
-      // Update IAM role (WorkspaceInstanceRoleArn) for workspaces for S3 access if studyId in studyIds list
-      await this.updateWorkspaceInstanceRoles(updateRequest, studyId);
     });
-
     // Return study record
     return StudyPermissionService.sanitizeStudyRecord(result[0]);
-  }
-
-  async updateWorkspaceInstanceRoles(user, studyId, permissionLevel, addOrRemove) {
-    const environmentScService = await this.service('environmentScService');
-
-    const userOwnedEnvs = await environmentScService.getActiveEnvsForUser(user.uid);
-    const envsWithStudy = _.filter(userOwnedEnvs, env => _.contains(env.studyIds, studyId));
-
-    // For each env remove permission from IAM role (according to user.permissionLevel)
-    _.map(envsWithStudy, env => {
-      const workspaceRoleArn = _.find(env.outputs, { OutputKey: 'WorkspaceInstanceRoleArn' }).OutputValue;
-    });
-
-    // _.map(updateRequest.usersToAdd, user =>
-    // // For each workspace createdBy this user having this studyId
-    // // Change IAM role
-    // );
   }
 
   async delete(requestContext, studyId) {

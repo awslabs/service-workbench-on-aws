@@ -17,7 +17,11 @@ async function configure(context) {
   const router = context.router();
   const wrap = context.wrap;
 
-  const [studyService, studyPermissionService] = await context.service(['studyService', 'studyPermissionService']);
+  const [studyService, studyPermissionService, environmentMountService] = await context.service([
+    'studyService',
+    'studyPermissionService',
+    'environmentMountService',
+  ]);
 
   // ===============================================================
   //  GET / (mounted to /api/studies)
@@ -167,6 +171,7 @@ async function configure(context) {
       }
 
       const result = await studyPermissionService.update(requestContext, studyId, updateRequest);
+      await environmentMountService.updateExistingPermissions(studyId, updateRequest);
       res.status(200).json(result);
     }),
   );

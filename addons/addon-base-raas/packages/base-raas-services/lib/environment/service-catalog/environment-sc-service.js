@@ -547,6 +547,27 @@ class EnvironmentScService extends Service {
     return existingEnvironment;
   }
 
+  async getCfnExecutionRoleArn(requestContext, env) {
+    const [awsAccountsService, indexesServices, projectService] = await this.service([
+      'awsAccountsService',
+      'indexesService',
+      'projectService',
+    ]);
+    const { roleArn: cfnExecutionRoleArn, externalId: roleExternalId } = await runAndCatch(
+      async () => {
+        const { indexId } = await projectService.mustFind(requestContext, { id: env.projectId });
+        const { awsAccountId } = await indexesServices.mustFind(requestContext, { id: indexId });
+
+        return awsAccountsService.mustFind(requestContext, { id: awsAccountId });
+      },
+      async () => {
+        throw this.boom.badRequest(`account with id "${env.projectId} is not available`);
+      },
+    );
+
+    return { cfnExecutionRoleArn, roleExternalId };
+  }
+
   // Do some properties renaming to prepare the object to be saved in the database
   _fromRawToDbObject(rawObject, overridingProps = {}) {
     const dbObject = { ...rawObject, ...overridingProps };
