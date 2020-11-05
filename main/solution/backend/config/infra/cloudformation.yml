@@ -604,17 +604,6 @@ Resources:
                   - ec2:*
                 Resource: '*'
 
-        - PolicyName: storage-gateway-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - storagegateway:CreateNFSFileShare
-                - storagegateway:ListFileShares
-                - storagegateway:DescribeNFSFileShares
-                - storagegateway:UpdateNFSFileShare
-              Resource: '*'
-
         - PolicyName: storage-gateway
           PolicyDocument:
             Statement:
@@ -624,6 +613,10 @@ Resources:
                   - storagegateway:ListLocalDisks
                   - storagegateway:AddCache
                   - storagegateway:DeleteGateway
+                  - storagegateway:CreateNFSFileShare
+                  - storagegateway:ListFileShares
+                  - storagegateway:DescribeNFSFileShares
+                  - storagegateway:UpdateNFSFileShare
                 Resource: '*'
 
         - PolicyName: study-s3-policy-update
@@ -1222,6 +1215,7 @@ Resources:
 
   EnvironmentsDb:
     Type: AWS::DynamoDB::Table
+    DependsOn: AccountsDb
     Properties:
       TableName: ${self:custom.settings.dbEnvironments}
       AttributeDefinitions:
@@ -1247,6 +1241,7 @@ Resources:
 
   EnvironmentsTypesDb:
     Type: AWS::DynamoDB::Table
+    DependsOn: UserRolesDb
     Properties:
       TableName: ${self:custom.settings.dbEnvironmentTypes}
       AttributeDefinitions:
@@ -1368,6 +1363,7 @@ Resources:
 
   StorageGatewayDb:
     Type: AWS::DynamoDB::Table
+    DependsOn: StudiesDb
     Properties:
       TableName: ${self:custom.settings.dbStorageGateway}
       AttributeDefinitions:
@@ -1483,6 +1479,7 @@ Resources:
 
   DbStudies:
     Type: AWS::DynamoDB::Table
+    DependsOn: DbLocks
     Properties:
       TableName: ${self:custom.settings.dbTableStudies}
       AttributeDefinitions:
@@ -1536,6 +1533,7 @@ Resources:
 
   DbWorkflows:
     Type: AWS::DynamoDB::Table
+    DependsOn: DbWorkflowInstances
     Properties:
       TableName: ${self:custom.settings.dbTableWorkflows}
       AttributeDefinitions:
@@ -1573,6 +1571,7 @@ Resources:
 
   DbWorkflowDrafts:
     Type: AWS::DynamoDB::Table
+    DependsOn: DbWorkflowTemplates
     Properties:
       TableName: ${self:custom.settings.dbTableWorkflowDrafts}
       AttributeDefinitions:

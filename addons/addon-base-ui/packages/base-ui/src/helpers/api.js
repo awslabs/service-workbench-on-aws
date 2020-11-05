@@ -74,6 +74,7 @@ function fetchJson(url, options = {}, retryCount = 0) {
 
   if (merged.method === 'GET') delete merged.body; // otherwise fetch will throw an error
 
+  let retryOptions = options;
   if (merged.params) {
     // if query string parameters are specified then add them to the URL
     // The merged.params here is just a plain JavaScript object with key and value
@@ -89,6 +90,16 @@ function fetchJson(url, options = {}, retryCount = 0) {
       key => `${encodeURIComponent(key)}=${encodeURIComponent(_.get(merged.params, key))}`,
     ).join('&');
     url = query ? `${url}?${query}` : url;
+
+    // Omit options.params after they are added to the url as query string params
+    // This is required otherwise, if the call fails for some reason (e.g., time out) the same query string params
+    // will be added once again to the URL causing duplicate params being passed in.
+    // For example, if the options.params = { param1: 'value1', param2: 'value2' }
+    // The url will become something like `https://some-host/some-path?param1=value1&param2=value2`
+    // If we do not omit "options.params" here and if the call is retried (with a recursive call to "fetchJson") due
+    // to timeout or any other issue, the url will then become
+    // `https://some-host/some-path?param1=value1&param2=value2?param1=value1&param2=value2`
+    retryOptions = _.omit(options, 'params');
   }
 
   return Promise.resolve()
@@ -102,7 +113,7 @@ function fetchJson(url, options = {}, retryCount = 0) {
         return Promise.resolve()
           .then(() => console.log(`Retrying count = ${retryCount}, Backoff = ${backoff}`))
           .then(() => delay(backoff))
-          .then(() => fetchJson(url, options, retryCount + 1));
+          .then(() => fetchJson(url, retryOptions, retryCount + 1));
       }
       throw parseError(err);
     })
@@ -132,7 +143,7 @@ function fetchJson(url, options = {}, retryCount = 0) {
             return Promise.resolve()
               .then(() => console.log(`Retrying count = ${retryCount}, Backoff = ${backoff}`))
               .then(() => delay(backoff))
-              .then(() => fetchJson(url, options, retryCount + 1));
+              .then(() => fetchJson(url, retryOptions, retryCount + 1));
           }
           throw parseError({
             message: text,

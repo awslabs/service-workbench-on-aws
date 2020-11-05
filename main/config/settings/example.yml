@@ -1,16 +1,17 @@
 # Target AWS region, defaults to us-east-1 if not provided.  Note thet some global system components
 # (e.g. Lambda@Edge) are always deployed via a stack in us-east-1 no matter the setting here.
-# awsRegion: us-east-1
+# Note: Please delete the hashtag and empty space for settings to be in effect
+#awsRegion: us-east-1
 
 # AWS profile to use for deployment; if not specified here, defaults to using the same credentials
 # the AWS CLI is set up to use (either a profile in ~/.aws/config or an instance role if on EC2).
-# awsProfile: sw-main
+#awsProfile: sw-main
 
 # The short solution name is used to namespace a few AWS resources. Try to keep this
 # setting short to avoid hitting long strings issues; the default should be fine in most cases,
 # but if multiple separate instances of the system are deployed within a single account,
 # this name can be changed to ensure they are disambiguated.
-# solutionName: sw
+#solutionName: sw
 
 # The environment name where you want to deploy the solution to. Normally this defaults to
 # the serverless stage name and should be left unchanged here.
@@ -19,34 +20,34 @@
 # This indirection allows for easy incorporation of extra variables in the "envName", if required.
 # For example, if the same solution needs to be deployed across multiple AWS accounts we can easily
 # add account specific variable in "envName" for keeping the namespace specific to each account.
-# envName: ${opt:stage}
+#envName: ${opt:stage}
 
 # The environment type (e.g. dev, demo, prod). This is for grouping multiple environments
 # into types. For example, all developers' environments can be of type "dev". This can be
 # used for enabling conditionals in code that might need to be different between dev and
 # production builds (for example, enabling CORS for localhost for local development).
 # Defaults to prod if unspecified.
-# envType: dev
+#envType: dev
 
 # Enable this to create a Service Catalog portfolio and populate workspace products
 # Override and disable this setting if you wish to create your portfolio manually
-# createServiceCatalogPortfolio: true
+#createServiceCatalogPortfolio: true
 
 # Root user's email address. Currently unused, and can be left unspecified for test environments,
 # though future features might use it for capabilities such as usage reports and system alerts.
-# rootUserEmail: user@example.com
+#rootUserEmail: user@example.com
 
 # THIS SETTING IS ONLY APPLICABLE FOR LOCAL DEVELOPMENT
 # A flag indicating if lambda function role's trust policy (assume role policy) should be automatically adjusted to
 # allow assuming the role from local machine (applicable only for local development)
-# localRoleAutoAdjustTrust: true
+#localRoleAutoAdjustTrust: true
 
 # To use a custom domain name, provide the following two values, the domain name
 # itself, and the ARN for the manually-created TLS certificate to use from ACM.
 # Note the current implementation assumes that DNS is handled elsewhere; a future
 # improvement will automatically handle creation of the cert and Route53 entries.
-# domainName: sw.example.com
-# certificateArn: arn:aws:acm:us-east-1:123456789012:certificate/abcdef01-abcd-ef01-2345-abcdef012345
+#domainName: sw.example.com
+#certificateArn: arn:aws:acm:us-east-1:123456789012:certificate/abcdef01-abcd-ef01-2345-abcdef012345
 
 # Array of identity provider ids.
 # The usual practice is to keep this same as the domain name of the idp.
@@ -54,19 +55,19 @@
 # the id should be set to "example.com"
 #
 # If you do not want to connect to Active Directory then leave this setting as its default.
-# fedIdpIds: '["datalake.example.com"]'
+#fedIdpIds: '["datalake.example.com"]'
 
 # Array of identity provider names. This array should be in same order as the "fedIdpIds"
 # Some name for the IdPs. (such as 'com.ee', 'EEAD' etc)
 #
 # If you do not want to connect to Active Directory then leave this setting as its default.
-# fedIdpNames: '["DataLake"]'
+#fedIdpNames: '["DataLake"]'
 
 # Array of identity provider display names. This array should be in same order as the "fedIdpIds"
 # Display name (such as 'Employee Login', 'AD Login' etc). This can be used in UI to login options.
 #
 # If you do not want to connect to Active Directory then leave this setting as its default.
-# fedIdpDisplayNames: '["Login using Active Directory"]'
+#fedIdpDisplayNames: '["Login using Active Directory"]'
 
 # Array of identity provider SAML metadata. This array should be in same order as the "fedIdpIds".
 # The array should contain either
@@ -86,4 +87,4 @@
 #
 # If you do not want to connect to Active Directory then leave this setting as its default.
 # TODO: Remove saml-metadata/datalake-example-idp-metadata.xml file and replace this setting to use sample file
-# fedIdpMetadatas: '["s3://${self:custom.settings.deploymentBucketName}/saml-metadata/datalake-example-idp-metadata.xml"]'
+#fedIdpMetadatas: '["s3://${self:custom.settings.deploymentBucketName}/saml-metadata/datalake-example-idp-metadata.xml"]'
