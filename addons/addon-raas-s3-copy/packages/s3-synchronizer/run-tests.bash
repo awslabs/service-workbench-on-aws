@@ -2,6 +2,8 @@
 # exit when any command fails
 set -e
 
+./build.sh
+
 mkdir -p ./.build/test
 pushd src  > /dev/null
 
