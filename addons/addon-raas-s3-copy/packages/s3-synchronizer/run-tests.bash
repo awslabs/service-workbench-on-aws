@@ -18,8 +18,6 @@ then
 fi
 
 echo "GOPATH=$GOPATH"
-#set -o pipefail; go test -v ./... 2>&1 | tee >&2 |  $GOPATH/bin/go-junit-report -set-exit-code > ../.build/test/report.xml
-
-go test
-
-popd > /dev/null
+set -o pipefail; go test -v 2>&1 \
+  | tee >($GOPATH/bin/go-junit-report -set-exit-code > ../.build/test/report.xml) \
+  | cat -e
