@@ -21,6 +21,6 @@ echo "GOPATH=$GOPATH"
 set -o pipefail; go test -v ./... 2>&1 | tee ../.build/test/go-tests.out
 
 # Convert raw go tests output to JUnit XML report
-cat ../.build/test/go-tests.out | $GOPATH/bin/go-junit-report -set-exit-code > ../.build/test/report.xml
+# cat ../.build/test/go-tests.out | $GOPATH/bin/go-junit-report -set-exit-code > ../.build/test/report.xml
 
 popd > /dev/null
