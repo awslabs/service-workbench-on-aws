@@ -41,7 +41,7 @@ const parseS3Arn = arn => {
 class EnvironmentMountService extends Service {
   constructor() {
     super();
-    this.dependency(['aws', 'lockService', 'studyService', 'studyPermissionService']);
+    this.dependency(['aws', 'lockService', 'studyService', 'studyPermissionService', 'storageGatewayService']);
   }
 
   async getCfnStudyAccessParameters(requestContext, rawDataV1) {
@@ -91,6 +91,30 @@ class EnvironmentMountService extends Service {
     };
 
     return this._updateResourcePolicies({ updateAwsPrincipals, workspaceRoleArn, s3Prefixes });
+  }
+
+  async updateStudyFileMountIPAllowList(requestContext, existingEnvironment, ipAllowListAction) {
+    const [storageGatewayService, studyService] = await this.service(['storageGatewayService', 'studyService']);
+    // Check if the mounted study is using StorageGateway
+    const studiesList = await studyService.listByIds(
+      requestContext,
+      existingEnvironment.studyIds.map(id => {
+        return { id };
+      }),
+    );
+
+    // If yes, get the file share ARNs and call to update IP allow list
+    const fileShareARNs = studiesList.map(study => study.resources[0].fileShareArn).filter(arn => !_.isUndefined(arn));
+    if (!_.isEmpty(fileShareARNs)) {
+      let ip;
+      // If IP is in ipAllowListAction, use that, if not, find it in existingEnvironment
+      if ('ip' in ipAllowListAction) {
+        ip = ipAllowListAction.ip;
+      } else {
+        ip = existingEnvironment.outputs.filter(output => output.OutputKey === 'Ec2WorkspaceInstanceId')[0].OutputValue;
+      }
+      await storageGatewayService.updateFileShareIPAllowedList(fileShareARNs, ip, ipAllowListAction.action);
+    }
   }
 
   async _updateResourcePolicies({ updateAwsPrincipals, workspaceRoleArn, s3Prefixes }) {

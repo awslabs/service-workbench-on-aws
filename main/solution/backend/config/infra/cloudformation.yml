@@ -389,6 +389,9 @@ Resources:
               Effect: Allow
               Action:
                 - storagegateway:CreateNFSFileShare
+                - storagegateway:ListFileShares
+                - storagegateway:DescribeNFSFileShares
+                - storagegateway:UpdateNFSFileShare
               Resource: '*'
 
         - PolicyName: iam-pass-role
@@ -600,6 +603,17 @@ Resources:
                 Action:
                   - ec2:*
                 Resource: '*'
+
+        - PolicyName: storage-gateway-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - storagegateway:CreateNFSFileShare
+                - storagegateway:ListFileShares
+                - storagegateway:DescribeNFSFileShares
+                - storagegateway:UpdateNFSFileShare
+              Resource: '*'
 
         - PolicyName: storage-gateway
           PolicyDocument:

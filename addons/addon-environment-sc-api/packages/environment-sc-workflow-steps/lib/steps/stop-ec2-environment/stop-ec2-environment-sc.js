@@ -138,7 +138,7 @@ class StopEc2EnvironmentSc extends StepBase {
       rev: existingEnvRecord.rev || 0,
       ...updatedAttributes,
     };
-    await environmentScService.update(requestContext, environment);
+    await environmentScService.update(requestContext, environment, { action: 'REMOVE' });
   }
 
   async onFail() {
