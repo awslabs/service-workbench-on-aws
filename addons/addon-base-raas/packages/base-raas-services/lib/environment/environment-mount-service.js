@@ -271,10 +271,6 @@ class EnvironmentMountService extends Service {
         ) && userToRemove.permissionLevel !== 'admin',
     );
 
-    // TODO: BUG-FIX required
-    // These are not newlyAllowed/newlyRemoved - updateRequest contains everything
-    // Add/remove from role policy requires to check for uniqueness and emptiness every time
-
     if (allowedUsers.length) {
       await this.addToWorkspacePermissionPolicy(allowedUsers, studyId);
     }
@@ -288,16 +284,6 @@ class EnvironmentMountService extends Service {
     // TODO: Make sure ListBucket permission is present for all R/O and R/W users
   }
 
-  async _getWorkspacePolicy(iamClient, env) {
-    const iamService = await this.service('iamService');
-    const workspaceRoleArn = _.find(env.outputs, { OutputKey: 'WorkspaceInstanceRoleArn' }).OutputValue;
-    const roleName = workspaceRoleArn.split('role/')[1];
-    const studyDataPolicyName = `analysis-${workspaceRoleArn.split('-')[1]}-s3-studydata-policy`;
-    const { PolicyDocument: policyDocStr } = await iamService.getRolePolicy(roleName, studyDataPolicyName, iamClient);
-    const policyDoc = JSON.parse(policyDocStr);
-    return { policyDoc, roleName, studyDataPolicyName };
-  }
-
   // This method will add the ReadOnly or Read/Write access for workspaces owned by users in the given list,
   // Only if these workspaces have this study mounted on it during provision time
   // This will not mount studies on user-owned workspaces which did not have them
@@ -309,21 +295,32 @@ class EnvironmentMountService extends Service {
         const envsWithStudy = _.filter(userOwnedEnvs, env => _.includes(env.studyIds, studyId));
         await Promise.all(
           _.map(envsWithStudy, async env => {
-            const sysRequestContext = getSystemRequestContext();
-            const iamClient = await this._getEnvIamClient(sysRequestContext, env);
-            const { policyDoc, roleName, studyDataPolicyName } = await this._getWorkspacePolicy(iamClient, env);
-            const studyPathArn = await this._getStudyArn(sysRequestContext, studyId);
+            const {
+              iamClient,
+              studyPathArn,
+              policyDoc,
+              roleName,
+              studyDataPolicyName,
+            } = await this._getIamUpdateParams(env, studyId);
             const statementSidToUse = this._getStatementSidToUse(user.permissionLevel);
 
-            // Change permission statements for this study in policy doc
-            _.forEach(policyDoc.Statement, statement => {
-              // TODO: Handle scenarios where there is no statement with this Sid (only for add)
-              // TODO: Make sure all resources are distinct
-              if (statement.Sid === statementSidToUse) {
-                statement.Resource.push(studyPathArn);
-                // statement.Resource[statement.Resource.length] = studyPathArn;
-              }
-            });
+            if (
+              !_.includes(
+                _.map(policyDoc.Statement, s => s.Sid),
+                statementSidToUse,
+              )
+            ) {
+              // If the statement didn't exist for this policy, add it now
+              policyDoc.Statement.push(this._getStatementObject(statementSidToUse, studyPathArn));
+            } else {
+              // Change permission statements for this study in policy doc
+              _.forEach(policyDoc.Statement, statement => {
+                // Check if study ARN already exists in the specific statement's resources
+                if (statement.Sid === statementSidToUse && !_.includes(statement.Resource, studyPathArn)) {
+                  statement.Resource.push(studyPathArn);
+                }
+              });
+            }
 
             await iamService.putRolePolicy(roleName, studyDataPolicyName, JSON.stringify(policyDoc), iamClient);
           }),
@@ -343,24 +340,32 @@ class EnvironmentMountService extends Service {
         const envsWithStudy = _.filter(userOwnedEnvs, env => _.includes(env.studyIds, studyId));
         await Promise.all(
           _.map(envsWithStudy, async env => {
-            const sysRequestContext = getSystemRequestContext();
-            const iamClient = await this._getEnvIamClient(sysRequestContext, env);
-            const { policyDoc, roleName, studyDataPolicyName } = await this._getWorkspacePolicy(iamClient, env);
-            const studyPathArn = await this._getStudyArn(sysRequestContext, studyId);
+            const {
+              iamClient,
+              studyPathArn,
+              policyDoc,
+              roleName,
+              studyDataPolicyName,
+            } = await this._getIamUpdateParams(env, studyId);
+
             const statementSidToUse = this._getStatementSidToUse(user.permissionLevel);
+            const selectedStatement = _.find(policyDoc.Statement, statement => statement.Sid === statementSidToUse);
 
-            // Change permission statements for this study in policy doc
-            _.forEach(policyDoc.Statement, statement => {
-              // TODO: Handle scenarios where there is only one Resource in the list (only for remove)
-              if (statement.Sid === statementSidToUse) {
-                const index = statement.Resource.indexOf(studyPathArn);
-                if (index !== -1) {
-                  statement.Resource.splice(index, 1);
-                }
+            if (selectedStatement) {
+              if (_.includes(selectedStatement.Resource, studyPathArn) && selectedStatement.Resource.length === 1) {
+                // Handle scenarios where there is only one Resource in the list
+                policyDoc.Statement = _.filter(policyDoc.Statement, statement => statement.Sid !== statementSidToUse);
+              } else {
+                // Change permission statements for this study in policy doc
+                _.forEach(policyDoc.Statement, statement => {
+                  if (statement.Sid === statementSidToUse && _.includes(statement.Resource, studyPathArn)) {
+                    const index = statement.Resource.indexOf(studyPathArn);
+                    statement.Resource.splice(index, 1);
+                  }
+                });
               }
-            });
-
-            await iamService.putRolePolicy(roleName, studyDataPolicyName, JSON.stringify(policyDoc), iamClient);
+              await iamService.putRolePolicy(roleName, studyDataPolicyName, JSON.stringify(policyDoc), iamClient);
+            }
           }),
         );
       }),
@@ -386,36 +391,91 @@ class EnvironmentMountService extends Service {
 
         await Promise.all(
           _.map(envsWithStudy, async env => {
-            const sysRequestContext = getSystemRequestContext();
-            const iamClient = await this._getEnvIamClient(sysRequestContext, env);
-            const { policyDoc, roleName, studyDataPolicyName } = await this._getWorkspacePolicy(iamClient, env);
-            const studyPathArn = await this._getStudyArn(sysRequestContext, studyId);
+            const {
+              iamClient,
+              studyPathArn,
+              policyDoc,
+              roleName,
+              studyDataPolicyName,
+            } = await this._getIamUpdateParams(env, studyId);
 
             const removePermissionSid = this._getStatementSidToUse(removeUserPermission);
             const addPermissionSid = this._getStatementSidToUse(addUserPermission);
 
-            _.forEach(policyDoc.Statement, statement => {
-              // TODO: Handle scenarios where there is no statement with this Sid (only for add)
-              // TODO: Handle scenarios where there is only one Resource in the list (only for remove)
-              if (statement.Sid === addPermissionSid) {
-                statement.Resource.push(studyPathArn);
-                // statement.Resource[statement.Resource.length] = studyPathArn;
-                // TODO: Make sure all resources are distinct
-              } else if (statement.Sid === removePermissionSid) {
-                const index = statement.Resource.indexOf(studyPathArn);
-                if (index !== -1) {
-                  statement.Resource.splice(index, 1);
+            // Handle scenarios where there is no statement with this Sid (only for add)
+            if (
+              !_.includes(
+                _.map(policyDoc.Statement, s => s.Sid),
+                addPermissionSid,
+              )
+            ) {
+              // If the statement didn't exist for this policy, add it now
+              policyDoc.Statement.push(this._getStatementObject(addPermissionSid, studyPathArn));
+            } else {
+              // If a statement exists, add the resource if it didn't exist already for this permission level
+              _.forEach(policyDoc.Statement, statement => {
+                if (statement.Sid === addPermissionSid && !_.includes(statement.Resource, studyPathArn)) {
+                  statement.Resource.push(studyPathArn);
                 }
+              });
+            }
+            const selectedRemoveStatement = _.find(
+              policyDoc.Statement,
+              statement => statement.Sid === removePermissionSid,
+            );
+            if (selectedRemoveStatement) {
+              if (
+                _.includes(selectedRemoveStatement.Resource, studyPathArn) &&
+                selectedRemoveStatement.Resource.length === 1
+              ) {
+                // Handle scenarios where there is only one Resource in the list
+                policyDoc.Statement = _.filter(policyDoc.Statement, statement => statement.Sid !== removePermissionSid);
+              } else {
+                // Change permission statements for this study in policy doc
+                _.forEach(policyDoc.Statement, statement => {
+                  if (statement.Sid === removePermissionSid && _.includes(statement.Resource, studyPathArn)) {
+                    const index = statement.Resource.indexOf(studyPathArn);
+                    statement.Resource.splice(index, 1);
+                  }
+                });
               }
-            });
-
-            this.log.info(policyDoc); // Policy Doc does not append resources. Why?
+            }
 
             await iamService.putRolePolicy(roleName, studyDataPolicyName, JSON.stringify(policyDoc), iamClient);
           }),
         );
       }),
     );
+  }
+
+  _getStatementObject(statementSidToUse, studyPathArn) {
+    return {
+      Sid: statementSidToUse,
+      Effect: 'Allow',
+      Action:
+        statementSidToUse === 'S3StudyReadWriteAccess'
+          ? ['s3:GetObject', 's3:PutObject', 's3:PutObjectAcl']
+          : ['s3:GetObject'],
+      Resource: [studyPathArn],
+    };
+  }
+
+  async _getWorkspacePolicy(iamClient, env) {
+    const iamService = await this.service('iamService');
+    const workspaceRoleArn = _.find(env.outputs, { OutputKey: 'WorkspaceInstanceRoleArn' }).OutputValue;
+    const roleName = workspaceRoleArn.split('role/')[1];
+    const studyDataPolicyName = `analysis-${workspaceRoleArn.split('-')[1]}-s3-studydata-policy`;
+    const { PolicyDocument: policyDocStr } = await iamService.getRolePolicy(roleName, studyDataPolicyName, iamClient);
+    const policyDoc = JSON.parse(policyDocStr);
+    return { policyDoc, roleName, studyDataPolicyName };
+  }
+
+  async _getIamUpdateParams(env, studyId) {
+    const sysRequestContext = getSystemRequestContext();
+    const iamClient = await this._getEnvIamClient(sysRequestContext, env);
+    const { policyDoc, roleName, studyDataPolicyName } = await this._getWorkspacePolicy(iamClient, env);
+    const studyPathArn = await this._getStudyArn(sysRequestContext, studyId);
+    return { iamClient, studyPathArn, policyDoc, roleName, studyDataPolicyName };
   }
 
   async _getStudyArn(requestContext, studyId) {
@@ -504,6 +564,11 @@ class EnvironmentMountService extends Service {
       statementSidToUse = 'S3StudyReadWriteAccess';
     } else if (permissionLevel === 'readonly') {
       statementSidToUse = 'S3StudyReadAccess';
+    }
+    if (statementSidToUse === '') {
+      throw new Error(
+        `Currently only readonly and readwrite permissions can be updated. Permission changed: ${permissionLevel}`,
+      );
     }
     return statementSidToUse;
   }
