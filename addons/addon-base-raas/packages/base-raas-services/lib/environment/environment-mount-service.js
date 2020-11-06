@@ -16,7 +16,6 @@
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
-const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const settingKeys = {
   environmentInstanceFiles: 'environmentInstanceFiles',
@@ -236,73 +235,185 @@ class EnvironmentMountService extends Service {
     ]);
   }
 
-  async updateExistingPermissions(studyId, updateRequest) {
-    // Update IAM role (WorkspaceInstanceRoleArn) for workspaces for S3 access if studyId in studyIds list
-    await Promise.all(
-      _.map(updateRequest.usersToRemove, async user => {
-        await this.updateIamPolicyDoc(user, studyId, 'remove');
-      }),
+  // Update IAM role (WorkspaceInstanceRoleArn) for workspaces for S3 access if studyId in studyIds list
+  async manageWorkspacePermissions(studyId, updateRequest) {
+    const allowedUsers = _.filter(
+      updateRequest.usersToAdd,
+      userToAdd =>
+        !_.includes(
+          _.map(
+            _.filter(updateRequest.usersToRemove, u => u.permissionLevel !== 'admin'),
+            userToRemove => userToRemove.uid,
+          ),
+          userToAdd.uid,
+        ) && userToAdd.permissionLevel !== 'admin',
     );
-    sleep(5000);
-    await Promise.all(
-      _.map(updateRequest.usersToAdd, async user => {
-        await this.updateIamPolicyDoc(user, studyId, 'add');
-      }),
+    const disAllowedUsers = _.filter(
+      updateRequest.usersToRemove,
+      userToRemove =>
+        !_.includes(
+          _.map(
+            _.filter(updateRequest.usersToAdd, u => u.permissionLevel !== 'admin'),
+            userToAdd => userToAdd.uid,
+          ),
+          userToRemove.uid,
+        ) && userToRemove.permissionLevel !== 'admin',
     );
+    const permissionChangeUsers = _.filter(
+      updateRequest.usersToRemove,
+      userToRemove =>
+        _.includes(
+          _.map(
+            _.filter(updateRequest.usersToAdd, u => u.permissionLevel !== 'admin'),
+            userToAdd => userToAdd.uid,
+          ),
+          userToRemove.uid,
+        ) && userToRemove.permissionLevel !== 'admin',
+    );
+
+    // TODO: BUG-FIX required
+    // These are not newlyAllowed/newlyRemoved - updateRequest contains everything
+    // Add/remove from role policy requires to check for uniqueness and emptiness every time
+
+    if (allowedUsers.length) {
+      await this.addToWorkspacePermissionPolicy(allowedUsers, studyId);
+    }
+    if (disAllowedUsers.length) {
+      await this.removeFromWorkspacePermissionPolicy(disAllowedUsers, studyId);
+    }
+    if (permissionChangeUsers.length) {
+      await this.updateWorkspacePermissionPolicy(permissionChangeUsers, studyId, updateRequest);
+    }
+
     // TODO: Make sure ListBucket permission is present for all R/O and R/W users
   }
 
-  async updateIamPolicyDoc(user, studyId, addOrRemove) {
+  async _getWorkspacePolicy(iamClient, env) {
+    const iamService = await this.service('iamService');
+    const workspaceRoleArn = _.find(env.outputs, { OutputKey: 'WorkspaceInstanceRoleArn' }).OutputValue;
+    const roleName = workspaceRoleArn.split('role/')[1];
+    const studyDataPolicyName = `analysis-${workspaceRoleArn.split('-')[1]}-s3-studydata-policy`;
+    const { PolicyDocument: policyDocStr } = await iamService.getRolePolicy(roleName, studyDataPolicyName, iamClient);
+    const policyDoc = JSON.parse(policyDocStr);
+    return { policyDoc, roleName, studyDataPolicyName };
+  }
+
+  // This method will add the ReadOnly or Read/Write access for workspaces owned by users in the given list,
+  // Only if these workspaces have this study mounted on it during provision time
+  // This will not mount studies on user-owned workspaces which did not have them
+  async addToWorkspacePermissionPolicy(allowedUsers, studyId) {
     const [environmentScService, iamService] = await this.service(['environmentScService', 'iamService']);
-    const userOwnedEnvs = await environmentScService.getActiveEnvsForUser(user.uid);
-    const envsWithStudy = _.filter(userOwnedEnvs, env => _.includes(env.studyIds, studyId));
-
-    // For each env remove permission from IAM role (according to user.permissionLevel)
     await Promise.all(
-      _.map(envsWithStudy, async env => {
-        const sysRequestContext = getSystemRequestContext();
-        const iamClient = await this._getEnvIamClient(sysRequestContext, env);
-        const workspaceRoleArn = _.find(env.outputs, { OutputKey: 'WorkspaceInstanceRoleArn' }).OutputValue;
-        const roleName = workspaceRoleArn.split('role/')[1];
-        const studyDataPolicyName = `analysis-${workspaceRoleArn.split('-')[1]}-s3-studydata-policy`;
-        const { PolicyDocument: policyDocStr } = await iamService.getRolePolicy(
-          roleName,
-          studyDataPolicyName,
-          iamClient,
-        );
-        const policyDoc = JSON.parse(policyDocStr);
+      _.map(allowedUsers, async user => {
+        const userOwnedEnvs = await environmentScService.getActiveEnvsForUser(user.uid);
+        const envsWithStudy = _.filter(userOwnedEnvs, env => _.includes(env.studyIds, studyId));
+        await Promise.all(
+          _.map(envsWithStudy, async env => {
+            const sysRequestContext = getSystemRequestContext();
+            const iamClient = await this._getEnvIamClient(sysRequestContext, env);
+            const { policyDoc, roleName, studyDataPolicyName } = await this._getWorkspacePolicy(iamClient, env);
+            const studyPathArn = await this._getStudyArn(sysRequestContext, studyId);
+            const statementSidToUse = this._getStatementSidToUse(user.permissionLevel);
 
-        let statementSidToUse = '';
-        if (user.permissionLevel === 'readwrite') {
-          statementSidToUse = 'S3StudyReadWriteAccess';
-        } else if (user.permissionLevel === 'readonly') {
-          statementSidToUse = 'S3StudyReadAccess';
-        }
-
-        // Get study ARN for studyId (from studyService)
-        const studyPathArn = await this._getStudyArn(sysRequestContext, studyId);
-
-        // Change permission statements for this study in policy doc
-        _.forEach(policyDoc.Statement, statement => {
-          // TODO: Handle scenarios where there is no statement with this Sid (only for add)
-          // TODO: Handle scenarios where there is only one Resource in the list (only for remove)
-          if (statement.Sid === statementSidToUse) {
-            if (addOrRemove === 'add') {
-              statement.Resource.push(studyPathArn); // Push is unreliable
-              // statement.Resource[statement.Resource.length] = studyPathArn;
+            // Change permission statements for this study in policy doc
+            _.forEach(policyDoc.Statement, statement => {
+              // TODO: Handle scenarios where there is no statement with this Sid (only for add)
               // TODO: Make sure all resources are distinct
-            } else if (addOrRemove === 'remove') {
-              const index = statement.Resource.indexOf(studyPathArn);
-              if (index !== -1) {
-                statement.Resource.splice(index, 1);
+              if (statement.Sid === statementSidToUse) {
+                statement.Resource.push(studyPathArn);
+                // statement.Resource[statement.Resource.length] = studyPathArn;
               }
-            }
-          }
-        });
+            });
 
-        this.log.info(policyDoc); // Policy Doc does not append resources. Why?
+            await iamService.putRolePolicy(roleName, studyDataPolicyName, JSON.stringify(policyDoc), iamClient);
+          }),
+        );
+      }),
+    );
+  }
 
-        await iamService.putRolePolicy(roleName, studyDataPolicyName, JSON.stringify(policyDoc), iamClient);
+  // This method will remove the ReadOnly or Read/Write access for workspaces owned by users in the given list,
+  // Only if these workspaces have this study mounted on it during provision time
+  // This will not unmount studies from user-owned workspaces, and therefore could be re-assigned access later
+  async removeFromWorkspacePermissionPolicy(disAllowedUsers, studyId) {
+    const [environmentScService, iamService] = await this.service(['environmentScService', 'iamService']);
+    await Promise.all(
+      _.map(disAllowedUsers, async user => {
+        const userOwnedEnvs = await environmentScService.getActiveEnvsForUser(user.uid);
+        const envsWithStudy = _.filter(userOwnedEnvs, env => _.includes(env.studyIds, studyId));
+        await Promise.all(
+          _.map(envsWithStudy, async env => {
+            const sysRequestContext = getSystemRequestContext();
+            const iamClient = await this._getEnvIamClient(sysRequestContext, env);
+            const { policyDoc, roleName, studyDataPolicyName } = await this._getWorkspacePolicy(iamClient, env);
+            const studyPathArn = await this._getStudyArn(sysRequestContext, studyId);
+            const statementSidToUse = this._getStatementSidToUse(user.permissionLevel);
+
+            // Change permission statements for this study in policy doc
+            _.forEach(policyDoc.Statement, statement => {
+              // TODO: Handle scenarios where there is only one Resource in the list (only for remove)
+              if (statement.Sid === statementSidToUse) {
+                const index = statement.Resource.indexOf(studyPathArn);
+                if (index !== -1) {
+                  statement.Resource.splice(index, 1);
+                }
+              }
+            });
+
+            await iamService.putRolePolicy(roleName, studyDataPolicyName, JSON.stringify(policyDoc), iamClient);
+          }),
+        );
+      }),
+    );
+  }
+
+  async updateWorkspacePermissionPolicy(permissionChangeUsers, studyId, updateRequest) {
+    const [environmentScService, iamService] = await this.service(['environmentScService', 'iamService']);
+    const userUids = _.uniq(_.map(permissionChangeUsers, user => user.uid));
+    await Promise.all(
+      _.map(userUids, async userUid => {
+        const removeUserPermission = _.find(
+          updateRequest.usersToRemove,
+          user => user.uid === userUid && user.permissionLevel !== 'admin',
+        ).permissionLevel;
+        const addUserPermission = _.find(
+          updateRequest.usersToAdd,
+          user => user.uid === userUid && user.permissionLevel !== 'admin',
+        ).permissionLevel;
+
+        const userOwnedEnvs = await environmentScService.getActiveEnvsForUser(userUid);
+        const envsWithStudy = _.filter(userOwnedEnvs, env => _.includes(env.studyIds, studyId));
+
+        await Promise.all(
+          _.map(envsWithStudy, async env => {
+            const sysRequestContext = getSystemRequestContext();
+            const iamClient = await this._getEnvIamClient(sysRequestContext, env);
+            const { policyDoc, roleName, studyDataPolicyName } = await this._getWorkspacePolicy(iamClient, env);
+            const studyPathArn = await this._getStudyArn(sysRequestContext, studyId);
+
+            const removePermissionSid = this._getStatementSidToUse(removeUserPermission);
+            const addPermissionSid = this._getStatementSidToUse(addUserPermission);
+
+            _.forEach(policyDoc.Statement, statement => {
+              // TODO: Handle scenarios where there is no statement with this Sid (only for add)
+              // TODO: Handle scenarios where there is only one Resource in the list (only for remove)
+              if (statement.Sid === addPermissionSid) {
+                statement.Resource.push(studyPathArn);
+                // statement.Resource[statement.Resource.length] = studyPathArn;
+                // TODO: Make sure all resources are distinct
+              } else if (statement.Sid === removePermissionSid) {
+                const index = statement.Resource.indexOf(studyPathArn);
+                if (index !== -1) {
+                  statement.Resource.splice(index, 1);
+                }
+              }
+            });
+
+            this.log.info(policyDoc); // Policy Doc does not append resources. Why?
+
+            await iamService.putRolePolicy(roleName, studyDataPolicyName, JSON.stringify(policyDoc), iamClient);
+          }),
+        );
       }),
     );
   }
@@ -385,6 +496,16 @@ class EnvironmentMountService extends Service {
       }
     }
     return permissions;
+  }
+
+  _getStatementSidToUse(permissionLevel) {
+    let statementSidToUse = '';
+    if (permissionLevel === 'readwrite') {
+      statementSidToUse = 'S3StudyReadWriteAccess';
+    } else if (permissionLevel === 'readonly') {
+      statementSidToUse = 'S3StudyReadAccess';
+    }
+    return statementSidToUse;
   }
 
   _prepareS3Mounts(studyInfo) {

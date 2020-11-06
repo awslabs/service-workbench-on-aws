@@ -171,7 +171,7 @@ async function configure(context) {
       }
 
       const result = await studyPermissionService.update(requestContext, studyId, updateRequest);
-      await environmentMountService.updateExistingPermissions(studyId, updateRequest);
+      await environmentMountService.manageWorkspacePermissions(studyId, updateRequest);
       res.status(200).json(result);
     }),
   );
