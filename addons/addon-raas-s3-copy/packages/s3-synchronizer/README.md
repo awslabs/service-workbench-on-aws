@@ -3,10 +3,6 @@
 This program loads the S3 data on local file system by copying the data from S3 bucket based on the specified S3 mounts (i.e., `defaultS3Mounts`) JSON configuration.
 The program does not download any further changes to objects in s3 beyond the initial download.
 
-If a specific S3 mount is marked `writable` in the `defaultS3Mounts` JSON , the program will then setup file watchers and any file changes locally in the corresponding directory will be persisted back to s3.
-This "writable" feature in the program is currently not integrated with the rest of the Service Workbench code. The "writable" feature of the tool is tested in isolation. 
-It is added for future Read-Write support on EC2 Windows workspaces and will be integrated with the rest of the Service Workbench code when the Read-Write support is added.
-
 ## Prerequisites
 
 #### Tools
@@ -19,7 +15,9 @@ It is added for future Read-Write support on EC2 Windows workspaces and will be 
 $ s3-synchronizer-darwin-amd64 -h
 Usage of bin/s3-synchronizer-darwin-amd64:
   -defaultS3Mounts string
-        A JSON string containing information about the default S3 mounts E.g., [{"id":"some-id","bucket":"some-s3-bucket-name","prefix":"some/s3/prefix/path","writeable":false,"kmsKeyId":"some-kms-key-arn"}] 
+        A JSON string containing information about the default S3 mounts 
+        E.g., [{"id":"some-id","bucket":"some-s3-bucket-name","prefix":"some/s3/prefix/path","writeable":false,"kmsKeyId":"some-kms-key-arn"}]
+        The "writeable" is not implemented yet but supported in the JSON structure, for future.
   -concurrency int
         The number of concurrent parts to download (default 20)
   -debug

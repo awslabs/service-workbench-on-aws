@@ -37,14 +37,7 @@ func mainImpl(sess *session.Session, debug bool, concurrency int, defaultS3Mount
 			}
 			downloadFiles(sess, mountConfig, concurrency, debug)
 			if mountConfig.writeable {
-				go func() {
-					err := setupUploadWatcher(sess, mountConfig, debug)
-					if err == nil {
-						wg.Add(1) // Increment wait group counter everytime we spawn upload watcher
-					} else {
-						log.Printf("Error setting up file watcher: " + err.Error())
-					}
-				}()
+				log.Print("WARNING: writeable mounts are no implemented yet")
 			}
 			if debug == true {
 				log.Printf("Decrement wg counter")
