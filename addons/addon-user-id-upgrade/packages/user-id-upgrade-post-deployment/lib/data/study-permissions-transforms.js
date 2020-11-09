@@ -65,7 +65,6 @@ module.exports = [
   addUid,
   updateId,
   listValue('readonlyUsers'),
-  listValue('readwriteUsers'),
   listValue('adminUsers'),
   deleteProp('principalIdentifier'),
 ];

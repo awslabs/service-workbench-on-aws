@@ -242,7 +242,7 @@ class EnvironmentMountService extends Service {
    * @param {String} studyId
    * @param {Object} updateRequest - permission add/remove/update requests coming from SWB UI
    */
-  async manageWorkspacePermissions(studyId, updateRequest) {
+  async applyWorkspacePermissions(studyId, updateRequest) {
     const allowedUsers = this._getAllowedUsers(updateRequest);
     const disAllowedUsers = this._getDisAllowedUsers(updateRequest);
     const permissionChangeUsers = this._getPermissionChangeUsers(updateRequest);
