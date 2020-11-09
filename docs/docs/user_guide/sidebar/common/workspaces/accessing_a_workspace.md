@@ -12,6 +12,10 @@ In the list of Workspaces, find the Workspace that you want to connect to.
 ### Connect to SageMaker and EMR worksapce
 
 Click on the **Connect** button, the Workspace must be in the **Ready** state to access it.
+The selected studies will show up as mounted directories in the Jupyter notebook running on the workspace (EMR or SageMaker).
+These study directories will contain files uploaded to the corresponding study. 
+Any files uploaded to the study from the Service Workbench will automatically appear in the mounted study directories 
+after a short delay.
 
 > Note: the password for EMR instance is 'go-research-on-aws'
 
@@ -22,10 +26,15 @@ Click on the **Connect** button, the Workspace must be in the **Ready** state to
 3. Save the key file locally and run `chmod 600` to restrict access to the key file
 4. Click ‘Use this SSH Key’ button and follow the instructions to link to EC2 instance
 5. If the 60 seconds count down on the page times out, simply click ‘Use this SSH Key’ button again and continue
+6. SSH to the EC2 Linux machine using the command shown on the screen. Note that you may need to adjust the path of the private key on your local machine.
+7. Once you SSH, the selected studies will show up as mounted directories on the EC2 Linux instance. These study directories will contain files uploaded to the corresponding study. Any files uploaded to the study from the Service Workbench will automatically appear in the mounted study directories after a short delay.
 
 ### Connect to EC2 Windows
 
 Click the connections button, follow the instruction to link to the instance using a local RDP client.
+Once you RDP, the selected studies will show up as directories on the EC2 Windows instance in "D" drive. 
+These study directories will contain files uploaded to the corresponding study. 
+> LIMITATION: Currently, EC2 Windows in Service Workbench only supports initial load. i.e., for EC2 Windows, any files uploaded to the study from the Service Workbench will NOT automatically appear in the mounted study directories.
 
 > Note: A warning message may pop up for EC2 certificate. This is a normal behavior as the EC2 Windows instance has self
 > signed SSL cert. Click continue to get connected.
@@ -36,6 +45,7 @@ Since RStudio currently requires a custom domain name, please configure the same
 
 1. The EC2 instance backing this workspace must be in the **Ready** state. Also make sure its security group allows your IP HTTPS access to it.
 2. Click on the connections button and hit **Connect**.
+3. The selected studies will show up as mounted directories in the RStudio. These study directories will contain files uploaded to the corresponding study. Any files uploaded to the study from the Service Workbench will automatically appear in the mounted study directories after a short delay.
 
 > Notes:
 >
