@@ -362,6 +362,7 @@ Resources:
                 - !Join ['', [!GetAtt [StudiesDb, Arn], '/index/*']]
                 - !GetAtt [EnvironmentsDb, Arn]
                 - !GetAtt [EnvironmentsScDb, Arn]
+                - !Join ['', [!GetAtt [EnvironmentsScDb, Arn], '/index/*']]
                 - !GetAtt [EnvironmentsTypesDb, Arn]
                 - !GetAtt [UserRolesDb, Arn]
                 - !GetAtt [AwsAccountsDb, Arn]
@@ -536,6 +537,7 @@ Resources:
                 - !Join ['', [!GetAtt [WfAssignmentsDb, Arn], '/index/*']]
                 - !GetAtt [EnvironmentsDb, Arn]
                 - !GetAtt [EnvironmentsScDb, Arn]
+                - !Join ['', [!GetAtt [EnvironmentsScDb, Arn], '/index/*']]
                 - !GetAtt [EnvironmentsTypesDb, Arn]
                 - !GetAtt [StudiesDb, Arn]
                 - !GetAtt [ProjectsDb, Arn]
@@ -729,6 +731,7 @@ Resources:
                 - dynamodb:UpdateItem
               Resource:
                 - !GetAtt [EnvironmentsScDb, Arn]
+                - !Join ['', [!GetAtt [EnvironmentsScDb, Arn], '/index/*']]
         - PolicyName: db-scan
           PolicyDocument:
             Statement:

@@ -275,9 +275,9 @@ class EnvironmentMountService extends Service {
       }
     };
 
-    runAndCaptureErrors(allowedUsers, this.addPermissions);
-    runAndCaptureErrors(disAllowedUsers, this.removePermissions);
-    runAndCaptureErrors(permissionChangeUsers, this.updatePermissions);
+    runAndCaptureErrors(allowedUsers, users => this.addPermissions(users, studyId));
+    runAndCaptureErrors(disAllowedUsers, users => this.removePermissions(users, studyId));
+    runAndCaptureErrors(permissionChangeUsers, users => this.updatePermissions(users, studyId, updateRequest));
 
     if (!_.isEmpty(errors)) {
       const count = _.size(errors);
