@@ -19,7 +19,7 @@ func setupUploadWatcher(sess *session.Session, config *mountConfiguration, debug
 	prefix := config.prefix
 	kmsKeyId := config.kmsKeyId
 
-	if debug == true {
+	if debug {
 		log.Println("syncdir: " + syncdir + " bucket: " + bucket + " prefix: " + prefix)
 	}
 	watcher, err := fsnotify.NewWatcher()
@@ -39,11 +39,11 @@ func setupUploadWatcher(sess *session.Session, config *mountConfiguration, debug
 		for {
 			select {
 			case event := <-watcher.Events:
-				if debug == true {
+				if debug {
 					log.Println("event:", event)
 				}
 				if event.Op&fsnotify.Write == fsnotify.Write || event.Op&fsnotify.Create == fsnotify.Create && !excludeFile(event.Name) {
-					if debug == true {
+					if debug {
 						log.Println("modified file:", event.Name)
 					}
 					// First check that this is a file
@@ -55,7 +55,7 @@ func setupUploadWatcher(sess *session.Session, config *mountConfiguration, debug
 
 					if fi.Mode().IsDir() {
 						if event.Op&fsnotify.Create == fsnotify.Create {
-							if debug == true {
+							if debug {
 								log.Println(event.Name, "is a new directory, watching")
 							}
 							if err := filepath.Walk(
@@ -66,7 +66,7 @@ func setupUploadWatcher(sess *session.Session, config *mountConfiguration, debug
 							}
 							continue
 						}
-						if debug == true {
+						if debug {
 							log.Println(event.Name, "is a directory, skipping")
 						}
 						continue
@@ -110,7 +110,7 @@ func uploadToS3(sess *session.Session, syncdir string, filename string, bucket s
 	if err != nil {
 		log.Println("Unable to upload", filename, bucket, err)
 	}
-	if debug == true {
+	if debug {
 		log.Println("Successfully uploaded", filename, "to", bucket+"/"+prefix+"/"+key)
 	}
 	return nil
@@ -122,7 +122,7 @@ func watchDirFactory(watcher *fsnotify.Watcher, debug bool) func(path string, fi
 		// since fsnotify can watch all the files in a directory, watchers only need
 		// to be added to each nested directory
 		if fi.Mode().IsDir() {
-			if debug == true {
+			if debug {
 				log.Println("Watching directory", path)
 			}
 			return watcher.Add(path)

@@ -43,6 +43,21 @@ Parameters:
     Type: Number
     Description: The size of each volume in the RAID array used to hold studies data, in GiB. The template creates a striped volume (RAID 0) by joining 8 volumes. The total size of the data volume would be roughly 8 times the size specified here.
     Default: 4
+  RecurringDownloads:
+    Type: String
+    Description: A flag indicating whether to keep syncing studies data to local EBS volumes on recurring basis. Setting this to false will download studies data only once at the instance bootstrap time. When this flag is set to true the instance will periodically sync changes from S3 to local EBS i.e., it will download any new files added to S3, re-download any files changed in S3 (will use object ETag value to determine if file changed in S3), delete files from local EBS if they are deleted from S3.
+    Default: "true"
+    AllowedValues:
+      - "true"
+      - "false"
+  DownloadInterval:
+    Type: Number
+    Description: An interval in seconds to wait between two downloads in case of recurring downloads. This is only applicable when RecurringDownloads is set to "true".
+    Default: 30
+  StopRecurringDownloadsAfter:
+    Type: Number
+    Description: Duration in seconds after which to stop the recurring downloads. Value of -1 means keep doing the recurring downloads (sync) indefinitely.
+    Default: 30
 
 Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, "{}"]
@@ -256,7 +271,7 @@ Resources:
 
           $defaultS3Mounts = '${S3Mounts}' | ConvertTo-Json
 
-          $arguments = "-defaultS3Mounts=$defaultS3Mounts -destination=d:\ -region=${AWS::Region}"
+          $arguments = "-defaultS3Mounts=$defaultS3Mounts -destination=d:\ -region=${AWS::Region} -recurringDownloads=${RecurringDownloads} -downloadInterval=${DownloadInterval} -stopRecurringDownloadsAfter=${StopRecurringDownloadsAfter}"
           Start-Process -NoNewWindow -RedirectStandardOutput s3-synchronizer-stdout.txt -RedirectStandardError s3-synchronizer-stderr.txt -FilePath "c:\workdir\s3-synchronizer.exe" -ArgumentList $arguments  -WorkingDirectory "d:\"
 
           cfn-signal.exe -e $lastexitcode --stack ${AWS::StackId} --resource EC2Instance --region ${AWS::Region}
