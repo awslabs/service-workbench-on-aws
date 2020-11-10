@@ -73,6 +73,9 @@ deploymentBucketPolicy:
 # The S3 bucket name used to host environment bootstrap scripts
 environmentsBootstrapBucketName: ${self:custom.settings.globalNamespace}-environments-bootstrap-scripts
 
+# The S3 prefix for the environment bootstrap scripts
+environmentsBootstrapBucketPrefix: environment-files
+
 # The short solution name is used to namespace a few AWS resources
 # Try to keep this setting short to avoid hitting long strings issues
 # solutionName: sw

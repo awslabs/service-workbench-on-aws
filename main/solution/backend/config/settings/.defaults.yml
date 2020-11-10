@@ -84,7 +84,7 @@ ec2WindowsAmiPrefix: ${self:custom.settings.namespace}-EC2-WINDOWS-AMI
 emrAmiPrefix: ${self:custom.settings.namespace}-EMR-AMI
 
 # S3 location of files copied to an environment instance along with bootstrap scripts
-environmentInstanceFiles: s3://${self:custom.settings.environmentsBootstrapBucketName}/environment-files
+environmentInstanceFiles: s3://${self:custom.settings.environmentsBootstrapBucketName}/${self:custom.settings.environmentsBootstrapBucketPrefix}
 
 # ================================ DB Settings ===========================================
 

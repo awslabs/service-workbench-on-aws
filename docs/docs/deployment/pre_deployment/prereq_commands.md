@@ -11,14 +11,19 @@ Before you can build this solution, you need the following tools installed on th
 * PNPM (<https://pnpm.js.org/>)
 * Serverless Framework (<http://www.serverless.com>)
 * Hygen CLI (<http://www.hygen.io>)
+* Go (<https://golang.org/doc/install>)
 
-Install Node, and the Node-based prerequisites the following way:
+You can install NodeJS, and other prerequisites the following way:
 
 ``` {.sh}
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
 source ~/.bashrc
 nvm install 12
-npm install -g serverless pnpm hygen 
+npm install -g serverless pnpm hygen
+
+wget https://golang.org/dl/go1.15.3.linux-amd64.tar.gz
+tar -C /usr/local -xzf go1.15.3.linux-amd64.tar.gz
+export PATH=$PATH:/usr/local/go/bin 
 ```
 
 ## AWS Account & Access

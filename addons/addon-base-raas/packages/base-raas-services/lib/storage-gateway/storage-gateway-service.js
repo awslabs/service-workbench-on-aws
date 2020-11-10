@@ -19,7 +19,8 @@ const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const uuid = require('uuid/v1');
 let fetch = require('node-fetch');
-const storageGatewayDbRecord = require('../schema/storage-gateway-db-record');
+const createStorageGatewaySchema = require('../schema/create-storage-gateway');
+const updateStorageGatewaySchema = require('../schema/update-storage-gateway');
 
 // Webpack messes with the fetch function import and it breaks in lambda.
 if (typeof fetch !== 'function' && fetch.default && typeof fetch.default === 'function') {
@@ -30,7 +31,7 @@ const settingKeys = {
   tableName: 'StorageGateway',
 };
 
-class StorageGateway extends Service {
+class StorageGatewayService extends Service {
   constructor() {
     super();
     this.dependency(['aws', 'dbService', 'userService', 'jsonSchemaValidationService']);
@@ -41,6 +42,7 @@ class StorageGateway extends Service {
     const dbService = await this.service('dbService');
     const table = this.settings.get(settingKeys.tableName);
     this._updater = () => dbService.helper.updater().table(table);
+    this._getter = () => dbService.helper.getter().table(table);
   }
 
   async activateGateway(requestContext, rawData) {
@@ -98,6 +100,68 @@ class StorageGateway extends Service {
     return gatewayARN;
   }
 
+  /**
+   * Create NFS file share in an existing Storage Gateway
+   * @param requestContext
+   * @param gatewayArn: Arn of the Storage Gateway for file share creation(The method assumes there's still capacity for another file share in this gateway)
+   * @param s3LocationArn: Arn and path for S3 location. (Path under S3 bucket must end with '/')
+   * @param roleArn: Arn of the role that has access to the S3 location and list Storage Gateway as a trusted entity
+   * @param overrideParameters: Other parameters that you wish to override
+   * @return Arn of existing file share if one is already created for the S3 path; Arn of newly created file share if there isn't one for the S3 path
+   * See https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/StorageGateway.html#createNFSFileShare-property for complete list of parameters for override
+   */
+  async createFileShare(requestContext, gatewayArn, s3LocationArn, roleArn, overrideParameters = {}) {
+    // Check if there's an existing file share
+    // The record 'file_shares' is used to keep track of all file shares so we don't need to scan the table for all file shares
+    // The size limit of one DDB item 400KB, the record 'file_shares' can store up to 3,000 file shares
+    let existingFileShare;
+    try {
+      existingFileShare = await this._getter()
+        .key({
+          id: 'file_shares',
+        })
+        .projection('file_share_s3_locations')
+        .get();
+      existingFileShare = existingFileShare.file_share_s3_locations;
+      if (s3LocationArn in existingFileShare) {
+        return existingFileShare[s3LocationArn];
+      }
+      this.log.info(`File share for ${s3LocationArn} does not exist, continue to create file share.`);
+    } catch (e) {
+      existingFileShare = {};
+      this.log.info(`File share does not exist, continue to create file share.`);
+    }
+
+    const existingSG = await this.mustFind(requestContext, { id: gatewayArn });
+    const storageGateway = await this.getStorageGateway();
+    const clientToken = uuid();
+    const params = {
+      ClientToken: clientToken,
+      GatewayARN: gatewayArn,
+      LocationARN: s3LocationArn,
+      Role: roleArn,
+      ClientList: [`${existingSG.elasticIP}/32`],
+    };
+    const result = await storageGateway.createNFSFileShare({ ...params, ...overrideParameters }).promise();
+    const fileShareArn = result.FileShareARN;
+    // Update storage gateway record
+    let newFileShares = {};
+    if ('fileShares' in existingSG) {
+      newFileShares = existingSG.fileShares;
+    }
+    newFileShares[s3LocationArn] = fileShareArn;
+    await this.update(requestContext, { fileShares: newFileShares }, gatewayArn);
+    // Create or update file_shares record
+    existingFileShare[s3LocationArn] = fileShareArn;
+    await this._updater()
+      .key({
+        id: 'file_shares',
+      })
+      .item({ file_share_s3_locations: existingFileShare })
+      .update();
+    return fileShareArn;
+  }
+
   async fetchIP() {
     const ipAddressResult = await fetch('http://httpbin.org/get').then(function(res) {
       return res.json();
@@ -153,17 +217,14 @@ class StorageGateway extends Service {
   async saveToDDB(requestContext, rawData, id) {
     // Validate input
     const jsonSchemaValidationService = await this.service('jsonSchemaValidationService');
-    await jsonSchemaValidationService.ensureValid(rawData, storageGatewayDbRecord);
+    await jsonSchemaValidationService.ensureValid(rawData, createStorageGatewaySchema);
 
     const by = _.get(requestContext, 'principalIdentifier.uid');
     // Prepare the db object
-    const date = new Date().toISOString();
     const dbObject = this._fromRawToDbObject(rawData, {
       rev: 0,
       createdBy: by,
       updatedBy: by,
-      createdAt: date,
-      updatedAt: date,
     });
     // Time to save the the db object
     let dbResult;
@@ -186,10 +247,79 @@ class StorageGateway extends Service {
     return dbResult;
   }
 
+  async find(requestContext, { id, fields = [] }) {
+    // Make sure 'createdBy' is always returned
+    // If empty "fields" is specified then it means the caller is asking for all fields. No need to append 'createdBy'
+    // in that case.
+    const fieldsToGet = _.isEmpty(fields) ? fields : _.uniq([...fields, 'createdBy']);
+    const result = await this._getter()
+      .key({ id })
+      .projection(fieldsToGet)
+      .get();
+    return this._fromDbToDataObject(result);
+  }
+
+  async mustFind(requestContext, { id, fields = [] }) {
+    const result = await this.find(requestContext, { id, fields });
+    if (!result) throw this.boom.notFound(`storage gateway with id "${id}" does not exist`, true);
+    return result;
+  }
+
+  async update(requestContext, rawData, id) {
+    // Validate input
+    const jsonSchemaValidationService = await this.service('jsonSchemaValidationService');
+    await jsonSchemaValidationService.ensureValid(rawData, updateStorageGatewaySchema);
+
+    // Retrieve the existing environment, this is required for authorization below
+    const existingSG = await this.mustFind(requestContext, { id });
+
+    const by = _.get(requestContext, 'principalIdentifier.uid');
+    // Prepare the db object
+    const dbObject = this._fromRawToDbObject(rawData, {
+      rev: existingSG.rev,
+      updatedBy: by,
+    });
+    // Time to save the the db object
+
+    const dbResult = await runAndCatch(
+      async () => {
+        return this._updater()
+          .condition('attribute_exists(id)') // ensure that id doesn't already exist
+          .key({ id })
+          .item(dbObject)
+          .update();
+      },
+      async () => {
+        // There are two scenarios here:
+        // 1 - The record does not exist
+        // 2 - The "rev" does not match
+        // We will display the appropriate error message accordingly
+        const existing = await this.find(requestContext, { id, fields: ['id', 'updatedBy'] });
+        if (existing) {
+          throw this.boom.badRequest(
+            `environment information changed just before your request is processed, please try again`,
+            true,
+          );
+        }
+        throw this.boom.notFound(`Storage gateway with id "${id}" does not exist`, true);
+      },
+    );
+    return dbResult;
+  }
+
   // Do some properties renaming to prepare the object to be saved in the database
   _fromRawToDbObject(rawObject, overridingProps = {}) {
     const dbObject = { ...rawObject, ...overridingProps };
     return dbObject;
+  }
+
+  // Do some properties renaming to restore the object that was saved in the database
+  _fromDbToDataObject(rawDb, overridingProps = {}) {
+    if (_.isNil(rawDb)) return rawDb; // important, leave this if statement here, otherwise, your update methods won't work correctly
+    if (!_.isObject(rawDb)) return rawDb;
+
+    const dataObject = { ...rawDb, ...overridingProps };
+    return dataObject;
   }
 
   async getUser(requestContext) {
@@ -215,4 +345,4 @@ class StorageGateway extends Service {
   }
 }
 
-module.exports = StorageGateway;
+module.exports = StorageGatewayService;
