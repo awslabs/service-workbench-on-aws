@@ -17,10 +17,11 @@ async function configure(context) {
   const router = context.router();
   const wrap = context.wrap;
 
-  const [studyService, studyPermissionService, environmentMountService] = await context.service([
+  const [studyService, studyPermissionService, environmentMountService, lockService] = await context.service([
     'studyService',
     'studyPermissionService',
     'environmentMountService',
+    'lockService',
   ]);
 
   // ===============================================================
@@ -170,9 +171,12 @@ async function configure(context) {
         throw context.boom.forbidden('Permissions cannot be set for studies in the "Open Data" category', true);
       }
 
-      const result = await studyPermissionService.update(requestContext, studyId, updateRequest);
-      await environmentMountService.applyWorkspacePermissions(studyId, updateRequest); // Nice-to-have: Add number of workspaces updated to result object
-      res.status(200).json(result);
+      lockService.tryWriteLockAndRun({ id: `${studyId}-workspaces` }, async () => {
+        const result = await studyPermissionService.update(requestContext, studyId, updateRequest);
+        await environmentMountService.applyWorkspacePermissions(studyId, updateRequest);
+        // Nice-to-have: Add number of workspaces updated to result object
+        res.status(200).json(result);
+      });
     }),
   );
 
