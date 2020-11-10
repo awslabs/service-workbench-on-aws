@@ -1211,6 +1211,8 @@ Resources:
       AttributeDefinitions:
         - AttributeName: 'id'
           AttributeType: 'S'
+        - AttributeName: 'createdBy'
+          AttributeType: 'S'
       KeySchema:
         - AttributeName: 'id'
           KeyType: 'HASH'
