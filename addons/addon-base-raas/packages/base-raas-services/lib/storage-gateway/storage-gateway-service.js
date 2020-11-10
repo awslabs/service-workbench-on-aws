@@ -136,15 +136,18 @@ class StorageGatewayService extends Service {
     const fileSharesArnList = listFileSharesResult.FileShareInfoList.filter(
       fileShare => fileShare.FileShareType === 'NFS',
     ).map(fileShare => fileShare.FileShareARN);
-    const describeFileSharesResult = await storageGateway
-      .describeNFSFileShares({
-        FileShareARNList: fileSharesArnList,
-      })
-      .promise();
+
     const fileShareS3ToArnList = {};
-    describeFileSharesResult.NFSFileShareInfoList.forEach(fileShare => {
-      fileShareS3ToArnList[fileShare.LocationARN] = fileShare.FileShareARN;
-    });
+    if (!_.isEmpty(fileSharesArnList)) {
+      const describeFileSharesResult = await storageGateway
+        .describeNFSFileShares({
+          FileShareARNList: fileSharesArnList,
+        })
+        .promise();
+      describeFileSharesResult.NFSFileShareInfoList.forEach(fileShare => {
+        fileShareS3ToArnList[fileShare.LocationARN] = fileShare.FileShareARN;
+      });
+    }
 
     // Move forward with DB update if file share already exist
     // Create file share if it does not exist
@@ -177,34 +180,38 @@ class StorageGatewayService extends Service {
     return fileShareArn;
   }
 
-  async updateFileShareIPAllowedList(fileShareARNs, ip, action) {
+  async updateFileSharesIPAllowedList(fileShareARNs, ip, action) {
     if (!['ADD', 'REMOVE'].includes(action)) {
       throw this.boom.badRequest(`Action ${action} is not valid, only ADD and REMOVE are supported.`);
     }
     // Get existing file share
+    const updatePromises = fileShareARNs.map(fileShareARN =>
+      this.updateFileShareIPAllowedList(fileShareARN, ip, action),
+    );
+    await Promise.all(updatePromises);
+  }
+
+  async updateFileShareIPAllowedList(fileShareARN, ip, action) {
     const storageGateway = await this.getStorageGateway();
     const [lockService] = await this.service(['lockService']);
-    const updatePromises = fileShareARNs.map(fileShareARN => {
-      return lockService.tryWriteLockAndRun({ id: fileShareARN }, async () => {
-        const existingFileShare = await storageGateway
-          .describeNFSFileShares({
-            FileShareARNList: [fileShareARN],
-          })
-          .promise();
-        let clientList = existingFileShare.NFSFileShareInfoList[0].ClientList;
-        const cidr = `${ip}/32`;
-        if (action === 'ADD' && !clientList.includes(cidr)) {
-          clientList.push(cidr);
-        } else if (action === 'REMOVE') {
-          clientList = clientList.filter(includedIP => includedIP !== cidr);
-        } else {
-          // Update not needed
-          return;
-        }
-        await storageGateway.updateNFSFileShare({ FileShareARN: fileShareARN, ClientList: clientList }).promise();
-      });
+    await lockService.tryWriteLockAndRun({ id: fileShareARN }, async () => {
+      const existingFileShare = await storageGateway
+        .describeNFSFileShares({
+          FileShareARNList: [fileShareARN],
+        })
+        .promise();
+      let clientList = existingFileShare.NFSFileShareInfoList[0].ClientList;
+      const cidr = `${ip}/32`;
+      if (action === 'ADD' && !clientList.includes(cidr)) {
+        clientList.push(cidr);
+      } else if (action === 'REMOVE') {
+        clientList = clientList.filter(includedIP => includedIP !== cidr);
+      } else {
+        // Update not needed
+        return;
+      }
+      await storageGateway.updateNFSFileShare({ FileShareARN: fileShareARN, ClientList: clientList }).promise();
     });
-    Promise.all(updatePromises);
   }
 
   async fetchIP() {

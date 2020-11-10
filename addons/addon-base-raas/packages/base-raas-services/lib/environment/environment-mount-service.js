@@ -113,7 +113,7 @@ class EnvironmentMountService extends Service {
       } else {
         ip = existingEnvironment.outputs.filter(output => output.OutputKey === 'Ec2WorkspaceInstanceId')[0].OutputValue;
       }
-      await storageGatewayService.updateFileShareIPAllowedList(fileShareARNs, ip, ipAllowListAction.action);
+      await storageGatewayService.updateFileSharesIPAllowedList(fileShareARNs, ip, ipAllowListAction.action);
     }
   }
 
