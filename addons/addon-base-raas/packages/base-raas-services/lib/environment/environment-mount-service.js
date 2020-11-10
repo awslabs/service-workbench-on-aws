@@ -163,6 +163,8 @@ class EnvironmentMountService extends Service {
             Action: ['s3:PutObject'],
             Resource: [`arn:aws:s3:::${s3BucketName}/${prefix}*`],
           };
+          // For writeable permission, PutObjectAcl is not required on the S3 bucket policy
+          // but is required on Workspace Role policy
 
           // Pull out existing statements if available
           statements.forEach(statement => {
@@ -260,25 +262,22 @@ class EnvironmentMountService extends Service {
     }
 
     const errors = [];
+    const runAndCaptureErrors = async (users, fn) => {
+      if (_.isEmpty(users)) return;
+      try {
+        await fn(users, studyId, updateRequest);
+      } catch (error) {
+        if (_.isArray(error)) {
+          errors.push(...error);
+        } else {
+          errors.push(error);
+        }
+      }
+    };
 
-    if (!_.isEmpty(allowedUsers)) {
-      const errorsforAdd = await this.addPermissions(allowedUsers, studyId);
-      if (!_.isEmpty(errorsforAdd)) {
-        errors.push(errorsforAdd);
-      }
-    }
-    if (!_.isEmpty(disAllowedUsers)) {
-      const errorsforRemove = await this.removePermissions(disAllowedUsers, studyId);
-      if (!_.isEmpty(errorsforRemove)) {
-        errors.push(errorsforRemove);
-      }
-    }
-    if (!_.isEmpty(permissionChangeUsers)) {
-      const errorsforUpdate = await this.updatePermissions(permissionChangeUsers, studyId, updateRequest);
-      if (!_.isEmpty(errorsforUpdate)) {
-        errors.push(errorsforUpdate);
-      }
-    }
+    runAndCaptureErrors(allowedUsers, this.addPermissions);
+    runAndCaptureErrors(disAllowedUsers, this.removePermissions);
+    runAndCaptureErrors(permissionChangeUsers, this.updatePermissions);
 
     if (!_.isEmpty(errors)) {
       const count = _.size(errors);
@@ -329,7 +328,9 @@ class EnvironmentMountService extends Service {
         );
       }),
     );
-    return errors;
+    if (!_.isEmpty(errors)) {
+      throw errors;
+    }
   }
 
   /**
@@ -370,7 +371,9 @@ class EnvironmentMountService extends Service {
         );
       }),
     );
-    return errors;
+    if (!_.isEmpty(errors)) {
+      throw errors;
+    }
   }
 
   /**
@@ -425,7 +428,9 @@ class EnvironmentMountService extends Service {
         );
       }),
     );
-    return errors;
+    if (!_.isEmpty(errors)) {
+      throw errors;
+    }
   }
 
   async _updateWorkspaceRolePolicy(envId, roleName, studyDataPolicyName, policyDoc, iamClient) {
