@@ -247,14 +247,46 @@ class EnvironmentMountService extends Service {
     const disAllowedUsers = this._getDisAllowedUsers(updateRequest);
     const permissionChangeUsers = this._getPermissionChangeUsers(updateRequest);
 
-    if (allowedUsers.length) {
-      await this.addPermissions(allowedUsers, studyId);
+    if (_.isEmpty(allowedUsers) && _.isEmpty(disAllowedUsers) && _.isEmpty(permissionChangeUsers)) {
+      return;
     }
-    if (disAllowedUsers.length) {
-      await this.removePermissions(disAllowedUsers, studyId);
+
+    const total = _.size(allowedUsers) + _.size(disAllowedUsers) + _.size(permissionChangeUsers);
+    if (total > 1000) {
+      this.boom.internalError(
+        `Cannot update ${total} workspace permissions at a time. Please reduce the number of user permission changes and try again`,
+      );
     }
-    if (permissionChangeUsers.length) {
-      await this.updatePermissions(permissionChangeUsers, studyId, updateRequest);
+
+    const errors = [];
+
+    if (!_.isEmpty(allowedUsers)) {
+      const errorsforAdd = await this.addPermissions(allowedUsers, studyId);
+      if (!_.isEmpty(errorsforAdd)) {
+        errors.push(errorsforAdd);
+      }
+    }
+    if (!_.isEmpty(disAllowedUsers)) {
+      const errorsforRemove = await this.removePermissions(disAllowedUsers, studyId);
+      if (!_.isEmpty(errorsforRemove)) {
+        errors.push(errorsforRemove);
+      }
+    }
+    if (!_.isEmpty(permissionChangeUsers)) {
+      const errorsforUpdate = await this.updatePermissions(permissionChangeUsers, studyId, updateRequest);
+      if (!_.isEmpty(errorsforUpdate)) {
+        errors.push(errorsforUpdate);
+      }
+    }
+
+    if (!_.isEmpty(errors)) {
+      const count = _.size(errors);
+      throw this.boom.internalError(`Could not update permissions for ${count} workspaces`, true).withPayload(
+        {
+          errors,
+        },
+        true,
+      );
     }
   }
 
@@ -268,28 +300,35 @@ class EnvironmentMountService extends Service {
    */
   async addPermissions(allowedUsers, studyId) {
     const [environmentScService, iamService] = await this.service(['environmentScService', 'iamService']);
+    const errors = [];
     await Promise.all(
       _.map(allowedUsers, async user => {
         const userOwnedEnvs = await environmentScService.getActiveEnvsForUser(user.uid);
         const envsWithStudy = _.filter(userOwnedEnvs, env => _.includes(env.studyIds, studyId));
         await Promise.all(
           _.map(envsWithStudy, async env => {
-            const {
-              iamClient,
-              studyPathArn,
-              policyDoc,
-              roleName,
-              studyDataPolicyName,
-            } = await this._getIamUpdateParams(env, studyId);
+            try {
+              const {
+                iamClient,
+                studyPathArn,
+                policyDoc,
+                roleName,
+                studyDataPolicyName,
+              } = await this._getIamUpdateParams(env, studyId);
 
-            const statementSidToUse = this._getStatementSidToUse(user.permissionLevel);
-            policyDoc.Statement = this._getStatementsAfterAddition(policyDoc, studyPathArn, statementSidToUse);
-            policyDoc.Statement = this._ensureListAccess(policyDoc, studyPathArn);
-            await iamService.putRolePolicy(roleName, studyDataPolicyName, JSON.stringify(policyDoc), iamClient);
+              const statementSidToUse = this._getStatementSidToUse(user.permissionLevel);
+              policyDoc.Statement = this._getStatementsAfterAddition(policyDoc, studyPathArn, statementSidToUse);
+              policyDoc.Statement = this._ensureListAccess(policyDoc, studyPathArn);
+              await iamService.putRolePolicy(roleName, studyDataPolicyName, JSON.stringify(policyDoc), iamClient);
+            } catch (error) {
+              const envId = env.id;
+              errors.push({ envId, reason: error.message || 'Unknown error' });
+            }
           }),
         );
       }),
     );
+    return errors;
   }
 
   /**
@@ -302,28 +341,35 @@ class EnvironmentMountService extends Service {
    */
   async removePermissions(disAllowedUsers, studyId) {
     const [environmentScService, iamService] = await this.service(['environmentScService', 'iamService']);
+    const errors = [];
     await Promise.all(
       _.map(disAllowedUsers, async user => {
         const userOwnedEnvs = await environmentScService.getActiveEnvsForUser(user.uid);
         const envsWithStudy = _.filter(userOwnedEnvs, env => _.includes(env.studyIds, studyId));
         await Promise.all(
           _.map(envsWithStudy, async env => {
-            const {
-              iamClient,
-              studyPathArn,
-              policyDoc,
-              roleName,
-              studyDataPolicyName,
-            } = await this._getIamUpdateParams(env, studyId);
+            try {
+              const {
+                iamClient,
+                studyPathArn,
+                policyDoc,
+                roleName,
+                studyDataPolicyName,
+              } = await this._getIamUpdateParams(env, studyId);
 
-            const statementSidToUse = this._getStatementSidToUse(user.permissionLevel);
-            policyDoc.Statement = this._getStatementsAfterRemoval(policyDoc, studyPathArn, statementSidToUse);
-            policyDoc.Statement = this._removeListAccess(policyDoc, studyPathArn);
-            await iamService.putRolePolicy(roleName, studyDataPolicyName, JSON.stringify(policyDoc), iamClient);
+              const statementSidToUse = this._getStatementSidToUse(user.permissionLevel);
+              policyDoc.Statement = this._getStatementsAfterRemoval(policyDoc, studyPathArn, statementSidToUse);
+              policyDoc.Statement = this._removeListAccess(policyDoc, studyPathArn);
+              await iamService.putRolePolicy(roleName, studyDataPolicyName, JSON.stringify(policyDoc), iamClient);
+            } catch (error) {
+              const envId = env.id;
+              errors.push({ envId, reason: error.message || 'Unknown error' });
+            }
           }),
         );
       }),
     );
+    return errors;
   }
 
   /**
@@ -336,6 +382,7 @@ class EnvironmentMountService extends Service {
    */
   async updatePermissions(permissionChangeUsers, studyId, updateRequest) {
     const [environmentScService, iamService] = await this.service(['environmentScService', 'iamService']);
+    const errors = [];
     const userUids = _.uniq(_.map(permissionChangeUsers, user => user.uid));
     await Promise.all(
       _.map(userUids, async userUid => {
@@ -353,24 +400,30 @@ class EnvironmentMountService extends Service {
 
         await Promise.all(
           _.map(envsWithStudy, async env => {
-            const {
-              iamClient,
-              studyPathArn,
-              policyDoc,
-              roleName,
-              studyDataPolicyName,
-            } = await this._getIamUpdateParams(env, studyId);
+            try {
+              const {
+                iamClient,
+                studyPathArn,
+                policyDoc,
+                roleName,
+                studyDataPolicyName,
+              } = await this._getIamUpdateParams(env, studyId);
 
-            const removePermissionsSid = this._getStatementSidToUse(removeUserPermission);
-            const addPermissionsSid = this._getStatementSidToUse(addUserPermission);
-            policyDoc.Statement = this._getStatementsAfterRemoval(policyDoc, studyPathArn, removePermissionsSid);
-            policyDoc.Statement = this._getStatementsAfterAddition(policyDoc, studyPathArn, addPermissionsSid);
-            await iamService.putRolePolicy(roleName, studyDataPolicyName, JSON.stringify(policyDoc), iamClient);
-            // No need to manage list access for updates, that is only for add/update permissions
+              const removePermissionsSid = this._getStatementSidToUse(removeUserPermission);
+              const addPermissionsSid = this._getStatementSidToUse(addUserPermission);
+              policyDoc.Statement = this._getStatementsAfterRemoval(policyDoc, studyPathArn, removePermissionsSid);
+              policyDoc.Statement = this._getStatementsAfterAddition(policyDoc, studyPathArn, addPermissionsSid);
+              await iamService.putRolePolicy(roleName, studyDataPolicyName, JSON.stringify(policyDoc), iamClient);
+              // No need to manage list access for updates, that is only for add/update permissions
+            } catch (error) {
+              const envId = env.id;
+              errors.push({ envId, reason: error.message || 'Unknown error' });
+            }
           }),
         );
       }),
     );
+    return errors;
   }
 
   /**
@@ -449,8 +502,8 @@ class EnvironmentMountService extends Service {
   }
 
   /**
-   * This method will filter out users from the original updateRequest
-   * which newly/continue-to have access to the study
+   * This method will filter out existing/added users from the original updateRequest
+   * for access to the study
    *
    * @param {Object} updateRequest - permission add/remove/update requests coming from SWB UI
    * @returns {Object[]} - List of users which newly/continue-to have access to the study
@@ -471,7 +524,7 @@ class EnvironmentMountService extends Service {
 
   /**
    * This method will filter out users from the original updateRequest
-   * which lost access to the study
+   * who lost access to the study
    *
    * @param {Object} updateRequest - permission add/remove/update requests coming from SWB UI
    * @returns {Object[]} - List of users which lost access to the study
@@ -492,7 +545,7 @@ class EnvironmentMountService extends Service {
 
   /**
    * This method will filter out users from the original updateRequest
-   * which have switched permission levels for the study
+   * who have switched permission levels for the study
    *
    * @param {Object} updateRequest - permission add/remove/update requests coming from SWB UI
    * @returns {Object[]} - List of users which have switched permission levels for the study

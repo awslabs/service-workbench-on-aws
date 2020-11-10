@@ -64,6 +64,7 @@ class EnvironmentScService extends Service {
     const table = this.settings.get(settingKeys.tableName);
 
     this._getter = () => dbService.helper.getter().table(table);
+    this._query = () => dbService.helper.query().table(table);
     this._updater = () => dbService.helper.updater().table(table);
     this._deleter = () => dbService.helper.deleter().table(table);
     this._scanner = () => dbService.helper.scanner().table(table);
@@ -282,17 +283,13 @@ class EnvironmentScService extends Service {
 
   async getActiveEnvsForUser(userUid) {
     const filterStatus = ['TERMINATING', 'TERMINATED'];
-    const envs = await this._scanner()
-      .scan()
-      .then(environments => {
-        // Filter out terminated and bad state environments
-        return _.filter(
-          environments,
-          env => userUid === env.createdBy && !_.includes(filterStatus, env.status) && !env.status.includes('FAILED'),
-        );
-      });
+    const envs = await this._query()
+      .index('ByOwnerUID')
+      .key('createdBy', userUid)
+      .query();
 
-    return envs;
+    // Filter out terminated and bad state environments
+    return _.filter(envs, env => !_.includes(filterStatus, env.status) && !env.status.includes('FAILED'));
   }
 
   async find(requestContext, { id, fields = [] }) {
