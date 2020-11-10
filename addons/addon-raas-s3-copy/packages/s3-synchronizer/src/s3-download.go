@@ -231,7 +231,7 @@ func setupRecurringDownloads(wg *sync.WaitGroup, sess *session.Session, config *
 
 			statsCh <- stats // Push download stats to the stats channel. The reporter will read from statsCh and report it
 
-			// stopRecurringDownloadsAfter is negative then continue recurring downloads indefinitely
+			// stopRecurringDownloadsAfter is ZERO or negative then continue recurring downloads indefinitely
 			if stopRecurringDownloadsAfter > 0 {
 				current := time.Now()
 				duration := current.Sub(setupStartTime)
