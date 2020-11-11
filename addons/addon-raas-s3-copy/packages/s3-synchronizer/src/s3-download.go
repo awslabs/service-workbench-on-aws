@@ -315,7 +315,7 @@ func downloadAllObjects(
 		}
 
 		downloader := s3manager.NewDownloader(sess, func(d *s3manager.Downloader) {
-			d.PartSize = 100 * 1024 * 1024
+			d.PartSize = 100 * 1024 * 1024 // 100MB per part
 			d.Concurrency = concurrency
 		})
 		numBytes, err := downloader.Download(destFile,

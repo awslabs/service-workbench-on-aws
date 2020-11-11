@@ -37,7 +37,8 @@ Usage of bin/s3-synchronizer-darwin-amd64:
   -stopRecurringDownloadsAfter int
         Stop recurring downloads after certain number of seconds. ZERO or Negative value means continue indefinitely. (default -1 i.e., indefinitely)
   -downloadInterval int
-        The interval at which to re-download changes from S3 in seconds. This is only applicable when recurringDownloads is true. (default 60)
+        The interval at which to re-download changes from S3 in seconds. This is only applicable when recurringDownloads is true. (default 60).
+        Note that this does not include the download time. This specifies the duration in seconds to wait before initiating the next download after the previous one completes.
   -region string
         The aws region to use for the session (default "us-east-1")
   -profile string

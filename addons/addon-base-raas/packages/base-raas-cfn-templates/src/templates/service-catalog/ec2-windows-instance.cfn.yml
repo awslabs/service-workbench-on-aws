@@ -52,7 +52,7 @@ Parameters:
       - "false"
   DownloadInterval:
     Type: Number
-    Description: An interval in seconds to wait between two downloads in case of recurring downloads. This is only applicable when RecurringDownloads is set to "true".
+    Description: An interval in seconds to wait between two downloads in case of recurring downloads. This is only applicable when RecurringDownloads is set to "true". Note that this does not include the download time. This specifies the duration in seconds to wait before initiating the next download after the previous one completes.
     Default: 30
   StopRecurringDownloadsAfter:
     Type: Number
