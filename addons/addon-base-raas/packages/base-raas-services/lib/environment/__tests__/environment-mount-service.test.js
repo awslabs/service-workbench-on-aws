@@ -42,6 +42,9 @@ const EnvironmentMountService = require('../environment-mount-service.js');
 
 describe('EnvironmentMountService', () => {
   let service = null;
+  let environmentScService = null;
+  let iamService = null;
+
   beforeEach(async () => {
     // Initialize services container and register dependencies
     const container = new ServicesContainer();
@@ -59,20 +62,152 @@ describe('EnvironmentMountService', () => {
 
     // Get instance of the service we are testing
     service = await container.find('environmentMountService');
+    environmentScService = await container.find('environmentScService');
+    iamService = await container.find('iamService');
   });
 
   describe('Update paths', () => {
     it('should call nothing if all are admin changes', async () => {
-      const params = {
-        id: 'my-environment',
-        operation: 'start',
+      // BUILD
+      const updateRequest = {
+        usersToAdd: [{ uid: 'User1-UID', permissionLevel: 'admin' }],
+        usersToRemove: [{ uid: 'User2-UID', permissionLevel: 'admin' }],
       };
+      const studyId = 'StudyA';
+      service.addPermissions = jest.fn();
+      service.removePermissions = jest.fn();
+      service.updatePermissions = jest.fn();
 
-      try {
-        await service.changeWorkspaceRunState({}, params);
-      } catch (err) {
-        // TODO
-      }
+      // OPERATE
+      await service.applyWorkspacePermissions(studyId, updateRequest);
+
+      // CHECK
+      expect(service.addPermissions).not.toHaveBeenCalled();
+      expect(service.removePermissions).not.toHaveBeenCalled();
+      expect(service.updatePermissions).not.toHaveBeenCalled();
+    });
+
+    it('should call add when only add', async () => {
+      // BUILD
+      const updateRequest = {
+        usersToAdd: [{ uid: 'User1-UID', permissionLevel: 'readonly' }],
+        usersToRemove: [{ uid: 'User2-UID', permissionLevel: 'admin' }],
+      };
+      const studyId = 'StudyA';
+      service.addPermissions = jest.fn();
+      service.removePermissions = jest.fn();
+      service.updatePermissions = jest.fn();
+
+      // OPERATE
+      await service.applyWorkspacePermissions(studyId, updateRequest);
+
+      // CHECK
+      expect(service.addPermissions).toHaveBeenCalledWith([{ uid: 'User1-UID', permissionLevel: 'readonly' }], studyId);
+      expect(service.removePermissions).not.toHaveBeenCalled();
+      expect(service.updatePermissions).not.toHaveBeenCalled();
+    });
+
+    it('should call remove when only remove', async () => {
+      // BUILD
+      const updateRequest = {
+        usersToAdd: [{ uid: 'User1-UID', permissionLevel: 'admin' }],
+        usersToRemove: [{ uid: 'User2-UID', permissionLevel: 'readwrite' }],
+      };
+      const studyId = 'StudyA';
+      service.addPermissions = jest.fn();
+      service.removePermissions = jest.fn();
+      service.updatePermissions = jest.fn();
+
+      // OPERATE
+      await service.applyWorkspacePermissions(studyId, updateRequest);
+
+      // CHECK
+      expect(service.addPermissions).not.toHaveBeenCalled();
+      expect(service.removePermissions).toHaveBeenCalledWith(
+        [{ uid: 'User2-UID', permissionLevel: 'readwrite' }],
+        studyId,
+      );
+      expect(service.updatePermissions).not.toHaveBeenCalled();
+    });
+
+    it('should call update when only update', async () => {
+      // BUILD
+      const updateRequest = {
+        usersToAdd: [{ uid: 'User1-UID', permissionLevel: 'readonly' }],
+        usersToRemove: [{ uid: 'User1-UID', permissionLevel: 'readwrite' }],
+      };
+      const studyId = 'StudyA';
+      service.addPermissions = jest.fn();
+      service.removePermissions = jest.fn();
+      service.updatePermissions = jest.fn();
+
+      // OPERATE
+      await service.applyWorkspacePermissions(studyId, updateRequest);
+
+      // CHECK
+      expect(service.addPermissions).not.toHaveBeenCalled();
+      expect(service.removePermissions).not.toHaveBeenCalled();
+      // We send a list of all users in the remove list, who are also present in the add list.
+      expect(service.updatePermissions).toHaveBeenCalledWith(
+        [{ uid: 'User1-UID', permissionLevel: 'readwrite' }],
+        studyId,
+        updateRequest,
+      );
+    });
+
+    it('should call everything when everything', async () => {
+      // BUILD
+      const updateRequest = {
+        usersToAdd: [{ uid: 'User1-UID', permissionLevel: 'readonly' }],
+        usersToRemove: [{ uid: 'User2-UID', permissionLevel: 'admin' }],
+      };
+      const studyId = 'StudyA';
+      service.addPermissions = jest.fn();
+      service.removePermissions = jest.fn();
+      service.updatePermissions = jest.fn();
+
+      // OPERATE
+      await service.applyWorkspacePermissions(studyId, updateRequest);
+
+      // CHECK
+      expect(service.addPermissions).toHaveBeenCalled();
+      expect(service.removePermissions).not.toHaveBeenCalled();
+      expect(service.updatePermissions).not.toHaveBeenCalled();
+    });
+
+    it('should not call putRolePolicy when user does not own any environments', async () => {
+      // BUILD
+      const updateRequest = {
+        usersToAdd: [{ uid: 'User1-UID', permissionLevel: 'readonly' }],
+      };
+      const studyId = 'StudyA';
+      service.addPermissions = jest.fn();
+      environmentScService.getActiveEnvsForUser = jest.fn(); // No environments returned
+      iamService.putRolePolicy = jest.fn();
+
+      // OPERATE
+      await service.applyWorkspacePermissions(studyId, updateRequest);
+
+      // CHECK
+      expect(iamService.putRolePolicy).not.toHaveBeenCalled();
+    });
+
+    it('should not call putRolePolicy when environment does not have the study mounted', async () => {
+      // BUILD
+      const updateRequest = {
+        usersToAdd: [{ uid: 'User1-UID', permissionLevel: 'readonly' }],
+      };
+      const studyId = 'StudyA';
+      const envsForUser = [{ studyIds: ['StudyB'] }]; // StudyA not mounted on env
+      service.addPermissions = jest.fn();
+      environmentScService.getActiveEnvsForUser = jest.fn().mockResolvedValue(envsForUser);
+      iamService.putRolePolicy = jest.fn();
+
+      // OPERATE
+      await service.applyWorkspacePermissions(studyId, updateRequest);
+
+      // CHECK
+      expect(iamService.putRolePolicy).not.toHaveBeenCalled();
     });
   });
 });
