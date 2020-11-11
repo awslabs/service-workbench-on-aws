@@ -265,7 +265,7 @@ class EnvironmentMountService extends Service {
     const runAndCaptureErrors = async (users, fn) => {
       if (_.isEmpty(users)) return;
       try {
-        await fn(users, studyId, updateRequest);
+        await fn(users);
       } catch (error) {
         if (_.isArray(error)) {
           errors.push(...error);
@@ -275,9 +275,9 @@ class EnvironmentMountService extends Service {
       }
     };
 
-    runAndCaptureErrors(allowedUsers, users => this.addPermissions(users, studyId));
-    runAndCaptureErrors(disAllowedUsers, users => this.removePermissions(users, studyId));
-    runAndCaptureErrors(permissionChangeUsers, users => this.updatePermissions(users, studyId, updateRequest));
+    await runAndCaptureErrors(allowedUsers, users => this.addPermissions(users, studyId));
+    await runAndCaptureErrors(disAllowedUsers, users => this.removePermissions(users, studyId));
+    await runAndCaptureErrors(permissionChangeUsers, users => this.updatePermissions(users, studyId, updateRequest));
 
     if (!_.isEmpty(errors)) {
       const count = _.size(errors);
