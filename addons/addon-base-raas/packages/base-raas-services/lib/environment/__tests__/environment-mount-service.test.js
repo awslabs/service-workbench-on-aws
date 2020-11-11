@@ -87,7 +87,7 @@ describe('EnvironmentMountService', () => {
       expect(service.updatePermissions).not.toHaveBeenCalled();
     });
 
-    it('should call add when only add', async () => {
+    it('should call add when only adds are requested', async () => {
       // BUILD
       const updateRequest = {
         usersToAdd: [{ uid: 'User1-UID', permissionLevel: 'readonly' }],
@@ -107,7 +107,7 @@ describe('EnvironmentMountService', () => {
       expect(service.updatePermissions).not.toHaveBeenCalled();
     });
 
-    it('should call remove when only remove', async () => {
+    it('should call remove when only removals are requested', async () => {
       // BUILD
       const updateRequest = {
         usersToAdd: [{ uid: 'User1-UID', permissionLevel: 'admin' }],
@@ -130,7 +130,7 @@ describe('EnvironmentMountService', () => {
       expect(service.updatePermissions).not.toHaveBeenCalled();
     });
 
-    it('should call update when only update', async () => {
+    it('should call update when only updates are requested', async () => {
       // BUILD
       const updateRequest = {
         usersToAdd: [{ uid: 'User1-UID', permissionLevel: 'readonly' }],
