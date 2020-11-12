@@ -328,7 +328,8 @@ class EnvironmentMountService extends Service {
               policyDoc.Statement = this._getStatementsAfterAddition(policyDoc, studyPathArn, statementSidToUse);
               policyDoc.Statement = this._ensureListAccess(policyDoc, studyPathArn);
               if (isStudyAdmin && user.permissionLevel === readWritePermissionLevel) {
-                policyDoc.Statement = this._ensureDistinctAccess(policyDoc, studyPathArn);
+                policyDoc.Statement = this._ensureListAccess(policyDoc, studyPathArn);
+                policyDoc.Statement = this._getStatementsAfterRemoval(policyDoc, studyPathArn, readOnlyStatementId);
               }
               await iamService.putRolePolicy(roleName, studyDataPolicyName, JSON.stringify(policyDoc), iamClient);
             } catch (error) {
@@ -378,7 +379,7 @@ class EnvironmentMountService extends Service {
               policyDoc.Statement = this._getStatementsAfterRemoval(policyDoc, studyPathArn, statementSidToUse);
               policyDoc.Statement = this._removeListAccess(policyDoc, studyPathArn);
               if (isStudyAdmin) {
-                policyDoc.Statement = this._ensureReadAccess(policyDoc, studyPathArn);
+                policyDoc.Statement = this._ensureReadAccessForAdmin(policyDoc, studyPathArn);
               }
               await iamService.putRolePolicy(roleName, studyDataPolicyName, JSON.stringify(policyDoc), iamClient);
             } catch (error) {
@@ -451,27 +452,13 @@ class EnvironmentMountService extends Service {
   }
 
   /**
-   * Function that returns updated policy document after making sure study admin
-   * has access to only one of the permission level access
-   *
-   * @param {Object} policyDoc - S3 studydata policy document for workspace role
-   * @param {String} studyPathArn
-   * @returns {Object[]} - the statement to update in the policy
-   */
-  _ensureDistinctAccess(policyDoc, studyPathArn) {
-    policyDoc.Statement = this._ensureListAccess(policyDoc, studyPathArn);
-    policyDoc.Statement = this._getStatementsAfterRemoval(policyDoc, studyPathArn, readOnlyStatementId);
-    return policyDoc.Statement;
-  }
-
-  /**
    * Function that returns updated policy document after making sure study admin at least continues to have R/O access
    *
    * @param {Object} policyDoc - S3 studydata policy document for workspace role
    * @param {String} studyPathArn
    * @returns {Object[]} - the statement to update in the policy
    */
-  _ensureReadAccess(policyDoc, studyPathArn) {
+  _ensureReadAccessForAdmin(policyDoc, studyPathArn) {
     policyDoc.Statement = this._ensureListAccess(policyDoc, studyPathArn);
     policyDoc.Statement = this._getStatementsAfterAddition(policyDoc, studyPathArn, readOnlyStatementId);
     return policyDoc.Statement;
@@ -835,7 +822,7 @@ class EnvironmentMountService extends Service {
       const writeableStudies = _.filter(studyInfo, study => study.writeable);
       const readonlyStudies = _.filter(studyInfo, study => !study.writeable);
 
-      if (writeableStudies.length) {
+      if (writeableStudies.length && writeableStudies.length > 0) {
         const objectLevelWriteActions = ['s3:GetObject', 's3:PutObject', 's3:PutObjectAcl'];
         statements.push({
           Sid: readWriteStatementId,
@@ -845,7 +832,7 @@ class EnvironmentMountService extends Service {
         });
       }
 
-      if (readonlyStudies.length) {
+      if (readonlyStudies.length && readonlyStudies.length > 0) {
         const objectLevelReadActions = ['s3:GetObject'];
         statements.push({
           Sid: readOnlyStatementId,
