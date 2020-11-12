@@ -10,6 +10,7 @@ type SynchronizerState interface {
 	recordFileDeletionFromLocal(filePath string, config *mountConfiguration)
 	hasFileChangedInS3(item *s3.Object) bool
 	isFileDownloadedFromS3(filePath string, config *mountConfiguration) bool
+	Clean() error
 }
 
 type persistentSynchronizerState struct {
@@ -36,6 +37,10 @@ func (state persistentSynchronizerState) load() error {
 
 func (state persistentSynchronizerState) save() error {
 	return state.persistence.Save(&state.s3FileETagsMap)
+}
+
+func (state persistentSynchronizerState) Clean() error {
+	return state.persistence.Clean()
 }
 
 func (state persistentSynchronizerState) recordFileDownloadToLocal(item *s3.Object) {

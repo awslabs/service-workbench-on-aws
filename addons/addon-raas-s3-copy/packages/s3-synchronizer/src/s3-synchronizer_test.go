@@ -457,7 +457,7 @@ func TestMainImplForBiDirectionalSyncSingleMount(t *testing.T) {
 	recurringDownloads := true
 	stopRecurringDownloadsAfter := 5
 	downloadInterval := 1
-	stopUploadWatchersAfter := -1
+	stopUploadWatchersAfter := 10
 
 	fmt.Printf("Input: \n\n%s\n\n", testMountsJson)
 
@@ -479,6 +479,9 @@ func TestMainImplForBiDirectionalSyncSingleMount(t *testing.T) {
 	}()
 
 	time.Sleep(time.Duration(2*downloadInterval) * time.Second)
+
+	// Running S3 --> Local and Local --> S3 sync in separate threads to make sure they can happen in parallel
+	// and work well with each other
 
 	// In a separate thread add/update/delete few files to the S3 location and verify that they get downloaded
 	// by the recurring downloader thread after the downloadInterval
@@ -530,13 +533,14 @@ func TestMainImplForBiDirectionalSyncSingleMount(t *testing.T) {
 		wg.Done()
 	}()
 
+	// In a yet another thread add/update/delete few files to the local file system and verify that they get synced up to S3 correctly
 	wg.Add(1)
 	go func() {
 		// TEST FOR ADD -- NEW FILE TO LOCAL FILE SYSTEM --> S3 SYNC
 		// ------------------------------------------------------------
 
 		// Upload same number of files to the file system (i.e., double the noOfFilesInMount)
-		createTestFilesLocally(t, testMountId, 2*noOfFilesInMount)
+		createTestFilesLocally(t, testMountId, noOfFilesInMount)
 
 		// Sleep for some duration (e.g., download interval duration) to allow for
 		// file system creation event to trigger and upload to complete
@@ -544,35 +548,68 @@ func TestMainImplForBiDirectionalSyncSingleMount(t *testing.T) {
 
 		// ---- Assertions ----
 		// Verify that the newly created files are automatically uploaded
-		assertFilesUploaded(t, testFakeBucketName, testMountId, 2*noOfFilesInMount)
+		assertFilesUploaded(t, testFakeBucketName, testMountId, noOfFilesInMount)
 
-		//// TEST FOR UPDATE -- UPLOAD TO EXISTING FILES IN LOCAL FILE SYSTEM --> S3 SYNC
-		//// -----------------------------------------------------------------------------
-		//
-		//// Update the files in local file system
-		//updateTestFilesLocally(t, testMountId, noOfFilesInMount)
-		//
-		//// Sleep for some duration (e.g., download interval duration) to allow for
-		//// file system update event to trigger and upload to complete
-		//time.Sleep(time.Duration(2*downloadInterval) * time.Second)
-		//
-		//// ---- Assertions ----
-		//// Verify that the updated files are automatically uploaded
-		//assertUpdatedFilesUploaded(t, testFakeBucketName, testMountId, noOfFilesInMount)
-		//
-		//// TEST FOR DELETE -- DELETE FROM LOCAL FILE SYSTEM --> S3 SYNC
-		//// ------------------------------------------------------------
-		//fileIdxToDelete := noOfFilesInMount + 1
-		//// Delete some files from local file system and make sure they automatically get uploaded to S3
-		//deleteTestFilesLocally(t, testMountId, fileIdxToDelete)
-		//
-		//// Sleep for some duration (e.g., download interval duration) to allow for
-		//// file system update event to trigger and upload to complete
-		//time.Sleep(time.Duration(2*downloadInterval) * time.Second)
-		//
-		//// ---- Assertions ----
-		//// Verify that the deleted files are automatically deleted from S3
-		//assertFileDeletedFromS3(t, testFakeBucketName, testMountId, fileIdxToDelete)
+		// TEST FOR UPDATE -- UPLOAD TO EXISTING FILES IN LOCAL FILE SYSTEM --> S3 SYNC
+		// -----------------------------------------------------------------------------
+
+		// Update the files in local file system
+		updateTestFilesLocally(t, testMountId, noOfFilesInMount)
+
+		// Sleep for some duration (e.g., download interval duration) to allow for
+		// file system update event to trigger and upload to complete
+		time.Sleep(time.Duration(2*downloadInterval) * time.Second)
+
+		// ---- Assertions ----
+		// Verify that the updated files are automatically uploaded
+		assertUpdatedFilesUploaded(t, testFakeBucketName, testMountId, noOfFilesInMount)
+
+		// TEST FOR DELETE -- DELETE FROM LOCAL FILE SYSTEM --> S3 SYNC
+		// ------------------------------------------------------------
+		fileIdxToDelete := 1
+		// Delete some files from local file system and make sure they automatically get uploaded to S3
+		deleteTestFilesLocally(t, testMountId, fileIdxToDelete)
+
+		// Sleep for some duration (e.g., download interval duration) to allow for
+		// file system update event to trigger and upload to complete
+		time.Sleep(time.Duration(2*downloadInterval) * time.Second)
+
+		// ---- Assertions ----
+		// Verify that the deleted files are automatically deleted from S3
+		assertFileDeletedFromS3(t, testFakeBucketName, testMountId, fileIdxToDelete)
+
+		// TEST FOR RENAME (MOVE) -- RENAME IN LOCAL FILE SYSTEM --> S3 SYNC
+		// --------------------------------------------------------------------
+		fileIdxToMove := 0
+		// Rename some files from local file system and make sure they automatically get renamed in S3
+		moveTestFilesLocally(t, testMountId, fileIdxToMove, "")
+
+		// Sleep for some duration (e.g., download interval duration) to allow for
+		// file system update event to trigger and upload to complete
+		time.Sleep(time.Duration(2*downloadInterval) * time.Second)
+
+		// ---- Assertions ----
+		// Verify that the renamed files are automatically renamed in S3
+		assertFileMovedInS3(t, testFakeBucketName, testMountId, fileIdxToMove, "", testFileUpdatedContentTemplate)
+
+		// TEST FOR MOVE to NESTED DIR -- RENAME IN LOCAL FILE SYSTEM TO NESTED DIRECTORY --> S3 SYNC
+		// --------------------------------------------------------------------------------------------
+		fileIdxToMove = 2
+		moveToSubDir := "nested-level1/nested-level2/nested-level3/"
+		// Move some files in local file system to some nested directory that is part of the mount location
+		// and make sure they automatically get moved in S3
+		moveTestFilesLocally(t, testMountId, fileIdxToMove, moveToSubDir)
+
+		// Sleep for some duration (e.g., download interval duration) to allow for
+		// file system update event to trigger and upload to complete
+		time.Sleep(time.Duration(5*downloadInterval) * time.Second)
+
+		// ---- Assertions ----
+		// Verify that the moved files are automatically moved in S3
+		assertFileMovedInS3(t, testFakeBucketName, testMountId, fileIdxToMove, moveToSubDir, testFileUpdatedContentTemplate)
+
+		// Decrement wait group counter to allow this test case to exit
+		wg.Done()
 	}()
 
 	wg.Wait() // Wait until all spawned go routines complete before existing the test case
@@ -686,6 +723,24 @@ func deleteTestFilesLocally(t *testing.T, testMountId string, fileIdx int) {
 	}
 }
 
+func moveTestFilesLocally(t *testing.T, testMountId string, fileIdx int, moveToSubDir string) {
+	fileName := fmt.Sprintf("%s/%s/test-local%d.txt", destinationBase, testMountId, fileIdx)
+	renamedFileName := fmt.Sprintf("%s/%s/%stest-local-renamed%d.txt", destinationBase, testMountId, moveToSubDir, fileIdx)
+
+	// Ensure the directory where the file is being moved to exists
+	destDirPath := filepath.Dir(renamedFileName)
+	if _, err := os.Stat(destDirPath); os.IsNotExist(err) {
+		os.MkdirAll(destDirPath, os.ModePerm)
+	}
+
+	fmt.Printf("Moving file from: '%s' to '%s'\n", fileName, renamedFileName)
+	err := os.Rename(fileName, renamedFileName)
+	if err != nil {
+		// Fail test in case of any errors
+		t.Errorf("Could not move test file from '%v' to '%v' in local file system for testing: %v", fileName, renamedFileName, err)
+	}
+}
+
 func assertFilesDownloaded(t *testing.T, testMountId string, noOfFiles int) {
 	assertFilesDownloadedWithContent(t, testMountId, noOfFiles, testFileContentTemplate)
 }
@@ -724,26 +779,33 @@ func assertUpdatedFilesUploaded(t *testing.T, bucketName string, testMountId str
 }
 
 func assertFilesUploadedWithContent(t *testing.T, bucketName string, testMountId string, noOfFiles int, expectedContentTemplate string) {
-	s3Client := s3.New(testAwsSession)
 	mountPrefix := fmt.Sprintf("studies/Organization/%s", testMountId)
-
 	for i := 0; i < noOfFiles; i++ {
 		key := fmt.Sprintf("%s/test-local%d.txt", mountPrefix, i)
-		resp, err := s3Client.GetObject(&s3.GetObjectInput{
-			Bucket: aws.String(bucketName),
-			Key:    aws.String(key),
-		})
-		if err != nil {
-			// Fail test in case of any errors
-			t.Errorf("Could not put get objects from fake S3 server for testing: %v", err)
-		}
+		assertObjectInS3WithContent(t, bucketName, key, expectedContentTemplate, i)
+	}
+}
 
-		fmt.Printf("\n\nkey == %v, resp == %v\n\n", key, resp)
+func assertObjectInS3WithContent(t *testing.T, bucketName string, key string, expectedContentTemplate string, fileIdx int) {
+	s3Client := s3.New(testAwsSession)
+	resp, err := s3Client.GetObject(&s3.GetObjectInput{
+		Bucket: aws.String(bucketName),
+		Key:    aws.String(key),
+	})
+	if err != nil {
+		// Fail test in case of any errors
+		t.Errorf("Could not put get objects from fake S3 server for testing: %v", err)
+	}
 
+	fmt.Printf("\n\nRead key == %v from fake S3 server, Got resp == %v\n\n", key, resp)
+
+	if resp.Body == nil {
+		t.Errorf(`ASSERT_FAILURE: NOT_FOUND: Expected: S3 object "%v" to exist in S3 | Actual: Not found in S3`, key)
+	} else {
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(resp.Body)
 		fileContentInS3 := buf.String()
-		expectedFileContent := fmt.Sprintf(expectedContentTemplate, i)
+		expectedFileContent := fmt.Sprintf(expectedContentTemplate, fileIdx)
 		if expectedFileContent != fileContentInS3 {
 			t.Errorf(`ASSERT_FAILURE: CONTENT_MISMATCH: Expected: S3 file "%v" to contain text "%v" | Actual: It contains "%v" instead`, key, expectedFileContent, fileContentInS3)
 		}
@@ -760,6 +822,9 @@ func assertFileDeleted(t *testing.T, testMountId string, fileIdx int) {
 func assertFileDeletedFromS3(t *testing.T, bucketName string, testMountId string, fileIdx int) {
 	mountPrefix := fmt.Sprintf("studies/Organization/%s", testMountId)
 	key := fmt.Sprintf("%s/test-local%d.txt", mountPrefix, fileIdx)
+	assertObjectDeletedFromS3(t, bucketName, key)
+}
+func assertObjectDeletedFromS3(t *testing.T, bucketName string, key string) {
 	s3Client := s3.New(testAwsSession)
 	resp, err := s3Client.ListObjectsV2(&s3.ListObjectsV2Input{
 		Bucket: aws.String(bucketName),
@@ -774,6 +839,18 @@ func assertFileDeletedFromS3(t *testing.T, bucketName string, testMountId string
 	}
 }
 
+func assertFileMovedInS3(t *testing.T, bucketName string, testMountId string, fileIdx int, moveToSubDir string, expectedContentTemplate string) {
+	mountPrefix := fmt.Sprintf("studies/Organization/%s", testMountId)
+	oldKey := fmt.Sprintf("%s/test-local%d.txt", mountPrefix, fileIdx)
+	newKey := fmt.Sprintf("%s/%stest-local-renamed%d.txt", mountPrefix, moveToSubDir, fileIdx)
+
+	// The object from old key should have been removed in S3
+	assertObjectDeletedFromS3(t, bucketName, oldKey)
+
+	// The object with new name should have been created in S3
+	assertObjectInS3WithContent(t, bucketName, newKey, expectedContentTemplate, fileIdx)
+}
+
 func setup() *httptest.Server {
 	// fake s3
 	backend := s3mem.New()
@@ -782,6 +859,10 @@ func setup() *httptest.Server {
 	testAwsSession = makeTestSession(fakeS3Server)
 
 	createFakeS3BucketForTesting()
+
+	var synchronizerState = NewPersistentSynchronizerState()
+	// Clean synchronizer state from any previous test runs
+	synchronizerState.Clean()
 
 	return fakeS3Server
 }

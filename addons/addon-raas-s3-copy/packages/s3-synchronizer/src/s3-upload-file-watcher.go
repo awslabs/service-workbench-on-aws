@@ -29,71 +29,137 @@ func setupUploadWatcher(wg *sync.WaitGroup, sess *session.Session, config *mount
 	if err != nil {
 		return err
 	}
-	defer watcher.Close()
 
 	// This shouldn't happen, but make the directory if it doesn't exist
 	if _, err := os.Stat(syncDir); os.IsNotExist(err) {
 		os.MkdirAll(syncDir, os.ModePerm)
 	}
 
-	// We have to stop this thread from exiting
-	done := make(chan bool)
+	// Increment wait group counter everytime we spawn file upload watcher thread to make sure
+	// the caller (main) can wait
+	wg.Add(1)
+
+	continueFileUploadWatcher := true
+
+	// Create a channel for sub directories that get added
+	// These directories require explicit crawling to sync files up to S3 instead if just relying on file watcher
+	// This is required to capture the following edge case:
+	// 1. User directly creates a file and sub directories in one operation
+	// 2. This will result in OS firing CREATE events for the sub directories and the file
+	// 3. The code in processFileWatcherEvent will capture the CREATE event for the directories and attach
+	//	   new file watchers
+	// 4. The initial CREATE event of the file is never captured in this case because that event was fired
+	//	  BEFORE we could complete registration of the file watchers for the created sub directories
+	// To work around this timing issue, we need to enqueue these directories and crawl them after they are
+	// registered for file watching. This crawling is for catch up of any files that existed in that directory
+	//	before the watching began.
+	dirRequiringCrawlCh := make(chan string, 1000)
 	go func() {
-		for {
-			select {
-			case event := <-watcher.Events:
+
+		processFileWatcherEvent := func(event *fsnotify.Event) {
+			if debug {
+				log.Println("event:", event)
+			}
+			if event.Op&fsnotify.Rename == fsnotify.Rename && !excludeFile(event.Name) {
 				if debug {
-					log.Println("event:", event)
+					log.Println("rename file:", event.Name)
 				}
-				if event.Op&fsnotify.Rename == fsnotify.Rename && !excludeFile(event.Name) {
-					if debug {
-						log.Println("rename file:", event.Name)
-					}
-					// When file is renamed event.Name has the file's old name
-					// Rename will also cause "Create" event for the file with new name if the file is moved
-					// to a directory that is also monitored
+				// When file is renamed event.Name has the file's old name
+				// Rename will also cause "Create" event for the file with new name if the file is moved
+				// to a directory that is also monitored
+				deleteFromS3(sess, syncDir, event.Name, bucket, prefix, debug)
+			} else if event.Op&fsnotify.Remove == fsnotify.Remove && !excludeFile(event.Name) {
+				if debug {
+					log.Println("deleted file:", event.Name)
+				}
+				deleteFromS3(sess, syncDir, event.Name, bucket, prefix, debug)
+			} else if event.Op&fsnotify.Write == fsnotify.Write || event.Op&fsnotify.Create == fsnotify.Create && !excludeFile(event.Name) {
+				if debug {
+					log.Println("modified file:", event.Name)
+				}
+				// First check that this is a file
+				fi, err := os.Stat(event.Name)
+				if err != nil {
+					log.Println("Unable to stat file", err)
+					return
+				}
 
-					deleteFromS3(sess, syncDir, event.Name, bucket, prefix, debug)
-				} else if event.Op&fsnotify.Remove == fsnotify.Remove && !excludeFile(event.Name) {
-					if debug {
-						log.Println("deleted file:", event.Name)
-					}
-					deleteFromS3(sess, syncDir, event.Name, bucket, prefix, debug)
-				} else if event.Op&fsnotify.Write == fsnotify.Write || event.Op&fsnotify.Create == fsnotify.Create && !excludeFile(event.Name) {
-					if debug {
-						log.Println("modified file:", event.Name)
-					}
-					// First check that this is a file
-					fi, err := os.Stat(event.Name)
-					if err != nil {
-						log.Println("Unable to stat file", err)
-						continue
-					}
-
-					if fi.Mode().IsDir() {
-						if event.Op&fsnotify.Create == fsnotify.Create {
-							if debug {
-								log.Println(event.Name, "is a new directory, watching")
-							}
-							if err := filepath.Walk(
-								event.Name,
-								watchDirFactory(watcher, debug),
-							); err != nil {
-								log.Println("Unable to watch directory", err)
-							}
-							continue
-						}
+				if fi.Mode().IsDir() {
+					if event.Op&fsnotify.Create == fsnotify.Create {
 						if debug {
-							log.Println(event.Name, "is a directory, skipping")
+							log.Println(event.Name, "is a new directory, watching")
 						}
-						continue
+						if err := filepath.Walk(
+							event.Name,
+							watchDirFactory(watcher, dirRequiringCrawlCh, debug),
+						); err != nil {
+							log.Println("Unable to watch directory", err)
+						}
+						return
 					}
-
-					uploadToS3(sess, syncDir, event.Name, bucket, prefix, kmsKeyId, debug)
+					if debug {
+						log.Println(event.Name, "is a directory, skipping")
+					}
+					return
 				}
 
-			case err := <-watcher.Errors:
-				log.Println("error:", err)
+				uploadToS3(sess, syncDir, event.Name, bucket, prefix, kmsKeyId, debug)
+			}
+		}
+
+		uploadDir := func(dirToUpload string, debug bool) {
+			if debug {
+				log.Println("Crawling directory", dirToUpload, "to upload file to s3 who may have been missed by file watcher")
+			}
+			if err := filepath.Walk(
+				dirToUpload,
+				func(path string, fi os.FileInfo, err error) error {
+					if fi != nil && !fi.Mode().IsDir() {
+						if debug {
+							log.Println("Uploading file", path, "to S3")
+						}
+						uploadToS3(sess, syncDir, path, bucket, prefix, kmsKeyId, debug)
+						return nil
+					}
+					return nil
+				},
+			); err != nil {
+				log.Println("Unable to upload directory", err)
+			}
+		}
+
+		timeOut := func() {
+			continueFileUploadWatcher = false
+
+			// Decrement from the wait group indicating we are done
+			wg.Done()
+
+			// Close the watcher once we are done watching file changes
+			watcher.Close()
+		}
+
+		for continueFileUploadWatcher {
+			if stopUploadWatchersAfter > 0 {
+				select {
+				case <-time.After(time.Duration(stopUploadWatchersAfter) * time.Second):
+					timeOut()
+					break
+				case dirToUpload := <-dirRequiringCrawlCh:
+					uploadDir(dirToUpload, debug)
+				case event := <-watcher.Events:
+					processFileWatcherEvent(&event)
+				case err := <-watcher.Errors:
+					log.Println("error:", err)
+				}
+			} else {
+				select {
+				case event := <-watcher.Events:
+					processFileWatcherEvent(&event)
+				case dirToUpload := <-dirRequiringCrawlCh:
+					uploadDir(dirToUpload, debug)
+				case err := <-watcher.Errors:
+					log.Println("error:", err)
+				}
 			}
 		}
 	}()
@@ -101,14 +167,12 @@ func setupUploadWatcher(wg *sync.WaitGroup, sess *session.Session, config *mount
 	// Watch the syncDir and all it's children directories
 	err = filepath.Walk(
 		syncDir,
-		watchDirFactory(watcher, debug))
+		watchDirFactory(watcher, dirRequiringCrawlCh, debug))
 
 	if err != nil {
 		log.Printf("Error setting up file watcher: " + err.Error())
 	}
 
-	<-done
-	// We will never get to here
 	return nil
 }
 
@@ -214,7 +278,7 @@ func areSizesDifferent(sess *session.Session, bucket string, fileKeyInS3 string,
 	return true
 }
 
-func watchDirFactory(watcher *fsnotify.Watcher, debug bool) func(path string, fi os.FileInfo, err error) error {
+func watchDirFactory(watcher *fsnotify.Watcher, dirRequiringCrawlCh chan string, debug bool) func(path string, fi os.FileInfo, err error) error {
 	return func(path string, fi os.FileInfo, err error) error {
 
 		// since fsnotify can watch all the files in a directory, watchers only need
@@ -223,7 +287,9 @@ func watchDirFactory(watcher *fsnotify.Watcher, debug bool) func(path string, fi
 			if debug {
 				log.Println("Watching directory", path)
 			}
-			return watcher.Add(path)
+			err := watcher.Add(path)
+			dirRequiringCrawlCh <- path
+			return err
 		}
 		return nil
 	}

@@ -38,6 +38,7 @@ func (marshaller JsonMarshaller) unmarshal(r io.Reader, v interface{}) error {
 type Persistence interface {
 	Save(v interface{}) error
 	Load(v interface{}) error
+	Clean() error
 }
 type fileBasedPersistence struct {
 	filePath   string
@@ -101,4 +102,14 @@ func (persistence fileBasedPersistence) Load(v interface{}) error {
 	}
 	defer f.Close()
 	return persistence.marshaller.unmarshal(f, v)
+}
+
+func (persistence fileBasedPersistence) Clean() error {
+	persistence.fileLock.Lock()
+	defer persistence.fileLock.Unlock()
+	err := os.Remove(persistence.filePath)
+	if err != nil {
+		return err
+	}
+	return err
 }
