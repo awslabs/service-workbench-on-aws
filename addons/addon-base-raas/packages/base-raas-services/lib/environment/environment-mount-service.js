@@ -25,6 +25,11 @@ const settingKeys = {
   studyDataKmsPolicyWorkspaceSid: 'studyDataKmsPolicyWorkspaceSid',
 };
 
+const readOnlyPermissionLevel = 'readonly';
+const readWritePermissionLevel = 'readwrite';
+const readWriteStatementId = 'S3StudyReadWriteAccess';
+const readOnlyStatementId = 'S3StudyReadAccess';
+
 const parseS3Arn = arn => {
   const path = arn.slice('arn:aws:s3:::'.length);
   const slashIndex = path.indexOf('/');
@@ -303,9 +308,8 @@ class EnvironmentMountService extends Service {
     const errors = [];
     await Promise.all(
       _.map(allowedUsers, async user => {
-        const isStudyAdmin = _.includes(
-          updateRequest.usersToAdd,
-          u => u.permissionLevel === 'admin' && u.uid === user.uid,
+        const isStudyAdmin = !_.isEmpty(
+          _.filter(updateRequest.usersToAdd, u => u.permissionLevel === 'admin' && u.uid === user.uid),
         );
         const userOwnedEnvs = await environmentScService.getActiveEnvsForUser(user.uid);
         const envsWithStudy = _.filter(userOwnedEnvs, env => _.includes(env.studyIds, studyId));
@@ -323,7 +327,7 @@ class EnvironmentMountService extends Service {
               const statementSidToUse = this._getStatementSidToUse(user.permissionLevel);
               policyDoc.Statement = this._getStatementsAfterAddition(policyDoc, studyPathArn, statementSidToUse);
               policyDoc.Statement = this._ensureListAccess(policyDoc, studyPathArn);
-              if (isStudyAdmin && user.permissionLevel === 'readwrite') {
+              if (isStudyAdmin && user.permissionLevel === readWritePermissionLevel) {
                 policyDoc.Statement = this._ensureDistinctAccess(policyDoc, studyPathArn);
               }
               await iamService.putRolePolicy(roleName, studyDataPolicyName, JSON.stringify(policyDoc), iamClient);
@@ -353,9 +357,8 @@ class EnvironmentMountService extends Service {
     const errors = [];
     await Promise.all(
       _.map(disAllowedUsers, async user => {
-        const isStudyAdmin = _.includes(
-          updateRequest.usersToAdd,
-          u => u.permissionLevel === 'admin' && u.uid === user.uid,
+        const isStudyAdmin = !_.isEmpty(
+          _.filter(updateRequest.usersToAdd, u => u.permissionLevel === 'admin' && u.uid === user.uid),
         );
         const userOwnedEnvs = await environmentScService.getActiveEnvsForUser(user.uid);
         const envsWithStudy = _.filter(userOwnedEnvs, env => _.includes(env.studyIds, studyId));
@@ -456,9 +459,8 @@ class EnvironmentMountService extends Service {
    * @returns {Object[]} - the statement to update in the policy
    */
   _ensureDistinctAccess(policyDoc, studyPathArn) {
-    const readOnlyStatementSid = 'S3StudyReadOnlyAccess';
     policyDoc.Statement = this._ensureListAccess(policyDoc, studyPathArn);
-    policyDoc.Statement = this._getStatementsAfterRemoval(policyDoc, studyPathArn, readOnlyStatementSid);
+    policyDoc.Statement = this._getStatementsAfterRemoval(policyDoc, studyPathArn, readOnlyStatementId);
     return policyDoc.Statement;
   }
 
@@ -470,9 +472,8 @@ class EnvironmentMountService extends Service {
    * @returns {Object[]} - the statement to update in the policy
    */
   _ensureReadAccess(policyDoc, studyPathArn) {
-    const readOnlyStatementSid = 'S3StudyReadOnlyAccess';
     policyDoc.Statement = this._ensureListAccess(policyDoc, studyPathArn);
-    policyDoc.Statement = this._getStatementsAfterAddition(policyDoc, studyPathArn, readOnlyStatementSid);
+    policyDoc.Statement = this._getStatementsAfterAddition(policyDoc, studyPathArn, readOnlyStatementId);
     return policyDoc.Statement;
   }
 
@@ -544,7 +545,7 @@ class EnvironmentMountService extends Service {
       Sid: statementSidToUse,
       Effect: 'Allow',
       Action:
-        statementSidToUse === 'S3StudyReadWriteAccess'
+        statementSidToUse === readWriteStatementId
           ? ['s3:GetObject', 's3:PutObject', 's3:PutObjectAcl']
           : ['s3:GetObject'],
       Resource: [studyPathArn],
@@ -694,10 +695,10 @@ class EnvironmentMountService extends Service {
 
   _getStatementSidToUse(permissionLevel) {
     let statementSidToUse = '';
-    if (permissionLevel === 'readwrite') {
-      statementSidToUse = 'S3StudyReadWriteAccess';
-    } else if (permissionLevel === 'readonly') {
-      statementSidToUse = 'S3StudyReadAccess';
+    if (permissionLevel === readWritePermissionLevel) {
+      statementSidToUse = readWriteStatementId;
+    } else if (permissionLevel === readOnlyPermissionLevel) {
+      statementSidToUse = readOnlyStatementId;
     }
     if (statementSidToUse === '') {
       throw new Error(
@@ -837,7 +838,7 @@ class EnvironmentMountService extends Service {
       if (writeableStudies.length) {
         const objectLevelWriteActions = ['s3:GetObject', 's3:PutObject', 's3:PutObjectAcl'];
         statements.push({
-          Sid: 'S3StudyReadWriteAccess',
+          Sid: readWriteStatementId,
           Effect: 'Allow',
           Action: objectLevelWriteActions,
           Resource: this._getObjectPathArns(writeableStudies),
@@ -847,7 +848,7 @@ class EnvironmentMountService extends Service {
       if (readonlyStudies.length) {
         const objectLevelReadActions = ['s3:GetObject'];
         statements.push({
-          Sid: 'S3StudyReadAccess',
+          Sid: readOnlyStatementId,
           Effect: 'Allow',
           Action: objectLevelReadActions,
           Resource: this._getObjectPathArns(readonlyStudies),
