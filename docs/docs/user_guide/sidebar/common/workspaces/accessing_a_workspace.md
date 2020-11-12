@@ -40,14 +40,20 @@ Once you RDP, the selected studies will show up as directories on the EC2 Window
 These study directories will contain files uploaded to the corresponding study.
 
 For EC2 Windows, the selected study data is copied to the attached EBS volumes as opposed to being FUSE mounted in case of other workspace types.
+If the selected study is writeable, the local changes are synchronized back to S3 as soon as possible.
+   
 Due to this, please be aware of the following limitations
 
-LIMITATIONs:
-- Currently, the EC2 Windows only supports Read-Only studies. For EC2 Windows, the study data is periodically synchronized from S3 back to local EBS volumes.
-- Any changes made under the locally mapped study directory and it's subdirectories will be **LOST** after the periodic sync. No local changes will persist.
+**LIMITATIONS:**
+
+**Downloader Limitations:**
+- If the selected study is Read-Only, any changes made under the locally mapped study directory and it's subdirectories will be **LOST** after the periodic sync. No local changes will persist.
 - There will be delay of at least the duration equal to the periodic download interval plus the download time for the S3 changes to reflect on local EBS volumes.
 - Deleting a subdirectory in studies S3 location will leave the corresponding subdirectory as empty directory on local EBS volume. 
 
+**Uploader Limitations:**
+- Will not upload changes from local to S3 if there is no change in file size (bytes)
+- **Conflict resolution is undefined:** i.e., if a file is modified in S3 and locally at the same time, the behavior is undefined. Whichever change gets synchronized first may win.
 
 ### Connect to RStudio
 
