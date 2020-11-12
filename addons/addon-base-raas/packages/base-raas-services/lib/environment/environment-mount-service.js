@@ -275,8 +275,8 @@ class EnvironmentMountService extends Service {
       }
     };
 
-    await runAndCaptureErrors(allowedUsers, users => this.addPermissions(users, studyId));
-    await runAndCaptureErrors(disAllowedUsers, users => this.removePermissions(users, studyId));
+    await runAndCaptureErrors(allowedUsers, users => this.addPermissions(users, studyId, updateRequest));
+    await runAndCaptureErrors(disAllowedUsers, users => this.removePermissions(users, studyId, updateRequest));
     await runAndCaptureErrors(permissionChangeUsers, users => this.updatePermissions(users, studyId, updateRequest));
 
     if (!_.isEmpty(errors)) {
@@ -298,11 +298,15 @@ class EnvironmentMountService extends Service {
    * @param {Object[]} allowedUsers - Users that newly/continue-to have access to given studyId
    * @param {String} studyId
    */
-  async addPermissions(allowedUsers, studyId) {
+  async addPermissions(allowedUsers, studyId, updateRequest) {
     const [iamService, environmentScService] = await this.service(['iamService', 'environmentScService']);
     const errors = [];
     await Promise.all(
       _.map(allowedUsers, async user => {
+        const isStudyAdmin = _.includes(
+          updateRequest.usersToAdd,
+          u => u.permissionLevel === 'admin' && u.uid === user.uid,
+        );
         const userOwnedEnvs = await environmentScService.getActiveEnvsForUser(user.uid);
         const envsWithStudy = _.filter(userOwnedEnvs, env => _.includes(env.studyIds, studyId));
         await Promise.all(
@@ -319,6 +323,9 @@ class EnvironmentMountService extends Service {
               const statementSidToUse = this._getStatementSidToUse(user.permissionLevel);
               policyDoc.Statement = this._getStatementsAfterAddition(policyDoc, studyPathArn, statementSidToUse);
               policyDoc.Statement = this._ensureListAccess(policyDoc, studyPathArn);
+              if (isStudyAdmin && user.permissionLevel === 'readwrite') {
+                policyDoc.Statement = this._ensureDistinctAccess(policyDoc, studyPathArn);
+              }
               await iamService.putRolePolicy(roleName, studyDataPolicyName, JSON.stringify(policyDoc), iamClient);
             } catch (error) {
               const envId = env.id;
@@ -341,11 +348,15 @@ class EnvironmentMountService extends Service {
    * @param {Object[]} disAllowedUsers - Users that lost access to given studyId
    * @param {String} studyId
    */
-  async removePermissions(disAllowedUsers, studyId) {
+  async removePermissions(disAllowedUsers, studyId, updateRequest) {
     const [iamService, environmentScService] = await this.service(['iamService', 'environmentScService']);
     const errors = [];
     await Promise.all(
       _.map(disAllowedUsers, async user => {
+        const isStudyAdmin = _.includes(
+          updateRequest.usersToAdd,
+          u => u.permissionLevel === 'admin' && u.uid === user.uid,
+        );
         const userOwnedEnvs = await environmentScService.getActiveEnvsForUser(user.uid);
         const envsWithStudy = _.filter(userOwnedEnvs, env => _.includes(env.studyIds, studyId));
         await Promise.all(
@@ -360,8 +371,12 @@ class EnvironmentMountService extends Service {
               } = await this._getIamUpdateParams(env, studyId);
 
               const statementSidToUse = this._getStatementSidToUse(user.permissionLevel);
+              // Study admin should always have R/O access (for backwards compatibility)
               policyDoc.Statement = this._getStatementsAfterRemoval(policyDoc, studyPathArn, statementSidToUse);
               policyDoc.Statement = this._removeListAccess(policyDoc, studyPathArn);
+              if (isStudyAdmin) {
+                policyDoc.Statement = this._ensureReadAccess(policyDoc, studyPathArn);
+              }
               await iamService.putRolePolicy(roleName, studyDataPolicyName, JSON.stringify(policyDoc), iamClient);
             } catch (error) {
               const envId = env.id;
@@ -430,6 +445,35 @@ class EnvironmentMountService extends Service {
     if (!_.isEmpty(errors)) {
       throw errors;
     }
+  }
+
+  /**
+   * Function that returns updated policy document after making sure study admin
+   * has access to only one of the permission level access
+   *
+   * @param {Object} policyDoc - S3 studydata policy document for workspace role
+   * @param {String} studyPathArn
+   * @returns {Object[]} - the statement to update in the policy
+   */
+  _ensureDistinctAccess(policyDoc, studyPathArn) {
+    const readOnlyStatementSid = 'S3StudyReadOnlyAccess';
+    policyDoc.Statement = this._ensureListAccess(policyDoc, studyPathArn);
+    policyDoc.Statement = this._getStatementsAfterRemoval(policyDoc, studyPathArn, readOnlyStatementSid);
+    return policyDoc.Statement;
+  }
+
+  /**
+   * Function that returns updated policy document after making sure study admin at least continues to have R/O access
+   *
+   * @param {Object} policyDoc - S3 studydata policy document for workspace role
+   * @param {String} studyPathArn
+   * @returns {Object[]} - the statement to update in the policy
+   */
+  _ensureReadAccess(policyDoc, studyPathArn) {
+    const readOnlyStatementSid = 'S3StudyReadOnlyAccess';
+    policyDoc.Statement = this._ensureListAccess(policyDoc, studyPathArn);
+    policyDoc.Statement = this._getStatementsAfterAddition(policyDoc, studyPathArn, readOnlyStatementSid);
+    return policyDoc.Statement;
   }
 
   /**
