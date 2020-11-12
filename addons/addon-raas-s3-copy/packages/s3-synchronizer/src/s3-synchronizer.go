@@ -47,7 +47,14 @@ func mainImpl(sess *session.Session, debug bool, recurringDownloads bool, stopRe
 				downloadFiles(sess, mountConfig, concurrency, debug)
 			}
 			if mountConfig.writeable {
-				log.Print("WARNING: writeable mounts are no implemented yet")
+				go func() {
+					wg.Add(1) // Increment wait group counter everytime we spawn upload watcher
+					err := setupUploadWatcher(sess, mountConfig, debug)
+					if err != nil {
+						wg.Done() // Decrement wait group counter in case of any errors to allow main program to exit
+						log.Printf("Error setting up file watcher: " + err.Error())
+					}
+				}()
 			}
 			if debug {
 				log.Printf("Decrement wg counter")
