@@ -50,7 +50,7 @@ class EnvironmentScService extends Service {
       'dbService',
       'authorizationService',
       'environmentAuthzService',
-      'environmentMountService',
+      'storageGatewayService',
       'auditWriterService',
       'workflowTriggerService',
       'projectService',
@@ -409,9 +409,9 @@ class EnvironmentScService extends Service {
 
   async update(requestContext, environment, ipAllowListAction = {}) {
     // Validate input
-    const [validationService, environmentMountService] = await this.service([
+    const [validationService, storageGatewayService] = await this.service([
       'jsonSchemaValidationService',
-      'environmentMountService',
+      'storageGatewayService',
     ]);
     await validationService.ensureValid(environment, updateSchema);
 
@@ -460,7 +460,7 @@ class EnvironmentScService extends Service {
 
     // Handle IP allow list update if needed
     if (!_.isEmpty(existingEnvironment.studyIds) && !_.isEmpty(ipAllowListAction)) {
-      await environmentMountService.updateStudyFileMountIPAllowList(
+      await storageGatewayService.updateStudyFileMountIPAllowList(
         requestContext,
         existingEnvironment,
         ipAllowListAction,

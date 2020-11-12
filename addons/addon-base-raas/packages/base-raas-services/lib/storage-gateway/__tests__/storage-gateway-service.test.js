@@ -848,4 +848,83 @@ describe('storageGatewayService', () => {
       }
     });
   });
+
+  describe('updateStudyFileMountIPAllowList', () => {
+    it('should not call storageGatewayService if mounted studies do not have file share', async () => {
+      // BUILD
+      storageGateway.updateFileSharesIPAllowedList = jest.fn();
+      const studiesList = [
+        { id: 'study1', resources: [{ arn: 'study1-s3-path-arn' }] },
+        { id: 'study2', resources: [{ arn: 'study2-s3-path-arn' }] },
+      ];
+      studyService.listByIds = jest.fn().mockResolvedValueOnce(studiesList);
+      const environment = { studyIds: ['study1', 'study2'] };
+      // OPERATE
+      await storageGateway.updateStudyFileMountIPAllowList(context, environment, {});
+      // CHECK
+      expect(storageGateway.updateFileSharesIPAllowedList).not.toHaveBeenCalled();
+    });
+
+    it('should call storageGatewayService with correct parameter for Add IP to allow list', async () => {
+      // BUILD
+      storageGateway.updateFileSharesIPAllowedList = jest.fn();
+      const studiesList = [
+        { id: 'study1', resources: [{ arn: 'study1-s3-path-arn', fileShareArn: 'study1-file-share-arn' }] },
+        { id: 'study2', resources: [{ arn: 'study2-s3-path-arn', fileShareArn: 'study2-file-share-arn' }] },
+      ];
+      studyService.listByIds = jest.fn().mockResolvedValueOnce(studiesList);
+      const environment = { studyIds: ['study1', 'study2'] };
+      const ipAllowListAction = { ip: '12.23.34.45', action: 'ADD' };
+      // OPERATE
+      await storageGateway.updateStudyFileMountIPAllowList(context, environment, ipAllowListAction);
+      // CHECK
+      expect(storageGateway.updateFileSharesIPAllowedList).toHaveBeenCalledWith(
+        ['study1-file-share-arn', 'study2-file-share-arn'],
+        '12.23.34.45',
+        'ADD',
+      );
+    });
+
+    it('should not call storageGatewayService when ip it not in environment or ipAllowListAction', async () => {
+      // BUILD
+      storageGateway.updateFileSharesIPAllowedList = jest.fn();
+      const studiesList = [
+        { id: 'study1', resources: [{ arn: 'study1-s3-path-arn', fileShareArn: 'study1-file-share-arn' }] },
+        { id: 'study2', resources: [{ arn: 'study2-s3-path-arn', fileShareArn: 'study2-file-share-arn' }] },
+      ];
+      studyService.listByIds = jest.fn().mockResolvedValueOnce(studiesList);
+      const environment = {
+        studyIds: ['study1', 'study2'],
+        outputs: [{ OutputKey: 'Ec2WorkspaceInstanceId', OutputValue: 'some-ec2-instance-id' }],
+      };
+      const ipAllowListAction = { action: 'REMOVE' };
+      // OPERATE
+      await storageGateway.updateStudyFileMountIPAllowList(context, environment, ipAllowListAction);
+      // CHECK
+      expect(storageGateway.updateFileSharesIPAllowedList).not.toHaveBeenCalled();
+    });
+
+    it('should call storageGatewayService with correct parameter for REMOVE IP to allow list', async () => {
+      // BUILD
+      storageGateway.updateFileSharesIPAllowedList = jest.fn();
+      const studiesList = [
+        { id: 'study1', resources: [{ arn: 'study1-s3-path-arn', fileShareArn: 'study1-file-share-arn' }] },
+        { id: 'study2', resources: [{ arn: 'study2-s3-path-arn', fileShareArn: 'study2-file-share-arn' }] },
+      ];
+      studyService.listByIds = jest.fn().mockResolvedValueOnce(studiesList);
+      const environment = {
+        studyIds: ['study1', 'study2'],
+        outputs: [{ OutputKey: 'Ec2WorkspacePublicIp', OutputValue: '34.45.56.67' }],
+      };
+      const ipAllowListAction = { action: 'REMOVE' };
+      // OPERATE
+      await storageGateway.updateStudyFileMountIPAllowList(context, environment, ipAllowListAction);
+      // CHECK
+      expect(storageGateway.updateFileSharesIPAllowedList).toHaveBeenCalledWith(
+        ['study1-file-share-arn', 'study2-file-share-arn'],
+        '34.45.56.67',
+        'REMOVE',
+      );
+    });
+  });
 });

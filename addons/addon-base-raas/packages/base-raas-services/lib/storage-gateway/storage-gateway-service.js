@@ -180,6 +180,43 @@ class StorageGatewayService extends Service {
     return fileShareArn;
   }
 
+  /**
+   * This method is triggered when EC2 Linux, Windows and RStudio Start / Stop
+   * And when any workspace is terminated
+   * @param requestContext
+   * @param existingEnvironment: environment that's being stopped / started or terminated
+   * @param ipAllowListAction: One required field action and one optional field ip
+   * @return {Promise<void>}
+   */
+  async updateStudyFileMountIPAllowList(requestContext, existingEnvironment, ipAllowListAction) {
+    const studyService = await this.service('studyService');
+    // Check if the mounted study is using StorageGateway
+    const studiesList = await studyService.listByIds(
+      requestContext,
+      existingEnvironment.studyIds.map(id => {
+        return { id };
+      }),
+    );
+
+    // If yes, get the file share ARNs and call to update IP allow list
+    const fileShareARNs = studiesList.map(study => study.resources[0].fileShareArn).filter(arn => !_.isUndefined(arn));
+    if (!_.isEmpty(fileShareARNs)) {
+      let ip;
+      // If IP is in ipAllowListAction, use that, if not, find it in existingEnvironment
+      if ('ip' in ipAllowListAction) {
+        ip = ipAllowListAction.ip;
+      } else {
+        ip = existingEnvironment.outputs.filter(output => output.OutputKey === 'Ec2WorkspacePublicIp');
+        // When terminating a product that's not EC2 based, do nothing
+        if (_.isEmpty(ip)) {
+          return;
+        }
+        ip = ip[0].OutputValue;
+      }
+      await this.updateFileSharesIPAllowedList(fileShareARNs, ip, ipAllowListAction.action);
+    }
+  }
+
   async updateFileSharesIPAllowedList(fileShareARNs, ip, action) {
     if (!['ADD', 'REMOVE'].includes(action)) {
       throw this.boom.badRequest(`Action ${action} is not valid, only ADD and REMOVE are supported.`);

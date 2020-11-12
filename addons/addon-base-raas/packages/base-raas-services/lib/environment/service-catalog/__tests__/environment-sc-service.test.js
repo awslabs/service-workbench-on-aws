@@ -47,8 +47,8 @@ const AwsAccountsServiceMock = require('../../../aws-accounts/aws-accounts-servi
 jest.mock('../../../indexes/indexes-service');
 const IndexesServiceMock = require('../../../indexes/indexes-service');
 
-jest.mock('../../environment-mount-service');
-const EnvironmentMountService = require('../../environment-mount-service');
+jest.mock('../../../storage-gateway/storage-gateway-service');
+const StorageGatewayService = require('../../../storage-gateway/storage-gateway-service');
 
 const EnvironmentSCService = require('../environment-sc-service');
 
@@ -65,7 +65,7 @@ describe('EnvironmentSCService', () => {
   let wfService = null;
   let awsAccountsService = null;
   let aws = null;
-  let environmentMountService = null;
+  let storageGatewayService = null;
   const error = { code: 'ConditionalCheckFailedException' };
   beforeEach(async () => {
     const container = new ServicesContainer();
@@ -82,7 +82,7 @@ describe('EnvironmentSCService', () => {
     container.register('awsAccountsService', new AwsAccountsServiceMock());
     container.register('indexesService', new IndexesServiceMock());
     container.register('environmentSCService', new EnvironmentSCService());
-    container.register('environmentMountService', new EnvironmentMountService());
+    container.register('storageGatewayService', new StorageGatewayService());
     await container.initServices();
 
     // suppress expected console errors
@@ -96,7 +96,7 @@ describe('EnvironmentSCService', () => {
     awsAccountsService = await container.find('awsAccountsService');
     wfService = await container.find('workflowTriggerService');
     aws = await container.find('aws');
-    environmentMountService = await container.find('environmentMountService');
+    storageGatewayService = await container.find('storageGatewayService');
 
     // Skip authorization by default
     service.assertAuthorized = jest.fn();
@@ -381,7 +381,7 @@ describe('EnvironmentSCService', () => {
         requestContext,
         expect.objectContaining({ action: 'update-environment-sc' }),
       );
-      expect(environmentMountService.updateStudyFileMountIPAllowList).not.toHaveBeenCalled();
+      expect(storageGatewayService.updateStudyFileMountIPAllowList).not.toHaveBeenCalled();
     });
 
     it('should call updateStudyFileMountIPAllowList to update IP when needed', async () => {
@@ -421,7 +421,7 @@ describe('EnvironmentSCService', () => {
         requestContext,
         expect.objectContaining({ action: 'update-environment-sc' }),
       );
-      expect(environmentMountService.updateStudyFileMountIPAllowList).toHaveBeenCalledWith(requestContext, oldEnv, {
+      expect(storageGatewayService.updateStudyFileMountIPAllowList).toHaveBeenCalledWith(requestContext, oldEnv, {
         action: 'ADD',
         ip: '1.2.3.4',
       });
