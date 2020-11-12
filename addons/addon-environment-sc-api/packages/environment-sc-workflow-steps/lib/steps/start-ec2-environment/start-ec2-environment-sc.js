@@ -145,21 +145,21 @@ class StartEc2EnvironmentSc extends StepBase {
     const outputs = existingEnvRecord.outputs;
     const instanceId = this.getOutputValue(outputs, 'Ec2WorkspaceInstanceId');
     const currentEC2Info = await ec2.describeInstances({ InstanceIds: [instanceId] }).promise();
-    this.updateOutputValue(
-      outputs,
-      'Ec2WorkspacePublicIp',
-      _.get(currentEC2Info, 'Reservations[0].Instances[0].PublicIpAddress'),
-    );
+    const currentIP = _.get(currentEC2Info, 'Reservations[0].Instances[0].PublicIpAddress');
+    this.updateOutputValue(outputs, 'Ec2WorkspacePublicIp', currentIP);
     this.updateOutputValue(
       outputs,
       'Ec2WorkspaceDnsName',
       _.get(currentEC2Info, 'Reservations[0].Instances[0].PublicDnsName'),
     );
 
-    return this.updateEnvironment({ status: 'COMPLETED', outputs, inWorkflow: 'false' });
+    return this.updateEnvironment(
+      { status: 'COMPLETED', outputs, inWorkflow: 'false' },
+      { action: 'ADD', ip: currentIP },
+    );
   }
 
-  async updateEnvironment(updatedAttributes) {
+  async updateEnvironment(updatedAttributes, ipAllowListAction = {}) {
     const environmentScService = await this.mustFindServices('environmentScService');
     const requestContext = await this.state.optionalObject('STATE_REQUEST_CONTEXT');
     const existingEnvRecord = await this.getExistingEnvironmentRecord();
@@ -174,7 +174,7 @@ class StartEc2EnvironmentSc extends StepBase {
       rev: existingEnvRecord.rev || 0,
       ...updatedAttributes,
     };
-    await environmentScService.update(requestContext, newEnvironment);
+    await environmentScService.update(requestContext, newEnvironment, ipAllowListAction);
   }
 
   async onFail() {

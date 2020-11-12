@@ -50,6 +50,7 @@ class EnvironmentScService extends Service {
       'dbService',
       'authorizationService',
       'environmentAuthzService',
+      'environmentMountService',
       'auditWriterService',
       'workflowTriggerService',
       'projectService',
@@ -406,9 +407,12 @@ class EnvironmentScService extends Service {
     return dbResult;
   }
 
-  async update(requestContext, environment) {
+  async update(requestContext, environment, ipAllowListAction = {}) {
     // Validate input
-    const [validationService] = await this.service(['jsonSchemaValidationService']);
+    const [validationService, environmentMountService] = await this.service([
+      'jsonSchemaValidationService',
+      'environmentMountService',
+    ]);
     await validationService.ensureValid(environment, updateSchema);
 
     // Retrieve the existing environment, this is required for authorization below
@@ -453,6 +457,15 @@ class EnvironmentScService extends Service {
         throw this.boom.notFound(`environment with id "${id}" does not exist`, true);
       },
     );
+
+    // Handle IP allow list update if needed
+    if (!_.isEmpty(existingEnvironment.studyIds) && !_.isEmpty(ipAllowListAction)) {
+      await environmentMountService.updateStudyFileMountIPAllowList(
+        requestContext,
+        existingEnvironment,
+        ipAllowListAction,
+      );
+    }
 
     // Write audit event
     await this.audit(requestContext, { action: 'update-environment-sc', body: environment });

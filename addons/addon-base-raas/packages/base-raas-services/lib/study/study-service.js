@@ -76,6 +76,15 @@ class StudyService extends Service {
     return result;
   }
 
+  async listByIds(requestContext, ids, fields = []) {
+    const result = await this._getter()
+      .keys(ids)
+      .projection(fields)
+      .get();
+
+    return result.map(record => this.fromDbToDataObject(record));
+  }
+
   async create(requestContext, rawData) {
     if (!(isInternalResearcher(requestContext) || isAdmin(requestContext))) {
       throw this.boom.forbidden('Only admin and internal researcher are authorized to create studies. ');

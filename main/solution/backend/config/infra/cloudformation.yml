@@ -390,6 +390,9 @@ Resources:
               Effect: Allow
               Action:
                 - storagegateway:CreateNFSFileShare
+                - storagegateway:ListFileShares
+                - storagegateway:DescribeNFSFileShares
+                - storagegateway:UpdateNFSFileShare
               Resource: '*'
 
         - PolicyName: iam-pass-role
@@ -612,6 +615,10 @@ Resources:
                   - storagegateway:ListLocalDisks
                   - storagegateway:AddCache
                   - storagegateway:DeleteGateway
+                  - storagegateway:CreateNFSFileShare
+                  - storagegateway:ListFileShares
+                  - storagegateway:DescribeNFSFileShares
+                  - storagegateway:UpdateNFSFileShare
                 Resource: '*'
 
         - PolicyName: study-s3-policy-update

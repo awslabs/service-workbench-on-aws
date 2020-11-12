@@ -211,7 +211,7 @@ async function updateEnvOnTerminationSuccess({ requestContext, container, status
     status,
     inWorkflow: 'false',
   };
-  const updatedEnvironment = await environmentScService.update(requestContext, environment);
+  const updatedEnvironment = await environmentScService.update(requestContext, environment, { action: 'REMOVE' });
 
   // -- Perform all required clean up
   // --- Cleanup - Resource policies (such as S3 bucket policy, KMS key policy etc) in central account
