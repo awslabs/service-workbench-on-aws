@@ -17,4 +17,4 @@ During the installation, we will require access to the billing account (Created 
 ## Cost Explorer
 
 In order to see any actual cost in dashboards and workspaces, the master account must have Cost Explorer set up. 
-
+Service Workbench has the ability to provide detailed cost breakdowns based on cost allocation tags. In order to benefit from this feature, you should activate the following list of cost allocation tags in the [Billing](https://console.aws.amazon.com/billing/home?#/tags) service of the AWS accounts that will host workspaces : `CreatedBy`, `Env`, `Proj`.
