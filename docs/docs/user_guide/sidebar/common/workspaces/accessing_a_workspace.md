@@ -32,12 +32,22 @@ after a short delay.
 ### Connect to EC2 Windows
 
 Click the connections button, follow the instruction to link to the instance using a local RDP client.
-Once you RDP, the selected studies will show up as directories on the EC2 Windows instance in "D" drive. 
-These study directories will contain files uploaded to the corresponding study. 
-> LIMITATION: Currently, EC2 Windows in Service Workbench only supports initial load. i.e., for EC2 Windows, any files uploaded to the study from the Service Workbench will NOT automatically appear in the mounted study directories.
 
 > Note: A warning message may pop up for EC2 certificate. This is a normal behavior as the EC2 Windows instance has self
 > signed SSL cert. Click continue to get connected.
+
+Once you RDP, the selected studies will show up as directories on the EC2 Windows instance in "D" drive. 
+These study directories will contain files uploaded to the corresponding study.
+
+For EC2 Windows, the selected study data is copied to the attached EBS volumes as opposed to being FUSE mounted in case of other workspace types.
+Due to this, please be aware of the following limitations
+
+LIMITATIONs:
+- Currently, the EC2 Windows only supports Read-Only studies. For EC2 Windows, the study data is periodically synchronized from S3 back to local EBS volumes.
+- Any changes made under the locally mapped study directory and it's subdirectories will be **LOST** after the periodic sync. No local changes will persist.
+- There will be delay of at least the duration equal to the periodic download interval plus the download time for the S3 changes to reflect on local EBS volumes.
+- Deleting a subdirectory in studies S3 location will leave the corresponding subdirectory as empty directory on local EBS volume. 
+
 
 ### Connect to RStudio
 
