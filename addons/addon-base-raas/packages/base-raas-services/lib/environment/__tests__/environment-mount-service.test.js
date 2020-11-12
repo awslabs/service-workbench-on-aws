@@ -90,11 +90,8 @@ describe('EnvironmentMountService', () => {
     it('should call add when only adds are requested', async () => {
       // BUILD
       const updateRequest = {
-        usersToAdd: [
-          { uid: 'User1-UID', permissionLevel: 'readwrite' },
-          { uid: 'User1-UID', permissionLevel: 'admin' },
-        ],
-        usersToRemove: [{ uid: 'User2-UID', permissionLevel: 'readonly' }],
+        usersToAdd: [{ uid: 'User1-UID', permissionLevel: 'readonly' }],
+        usersToRemove: [{ uid: 'User2-UID', permissionLevel: 'admin' }],
       };
       const studyId = 'StudyA';
       service.addPermissions = jest.fn();
