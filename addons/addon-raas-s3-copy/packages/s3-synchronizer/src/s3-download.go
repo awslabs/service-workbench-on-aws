@@ -19,9 +19,8 @@ import (
 
 // Global Variable to hold map of S3 object path vs their ETags
 // This map is to avoid unnecessary re-downloads
-// If the program is restarted this map will be re-initialized
-// and that's fine. This will just cause extra re-downloads but will not break
-// anything functionally
+// If the program is restarted this map will be re-initialized from the persistent state
+// (currently implemented as a state file under user home directory)
 var synchronizerState = NewPersistentSynchronizerState()
 
 // To hold the number retrieved files and other download related statistics
