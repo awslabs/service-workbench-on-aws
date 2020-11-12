@@ -1,0 +1,34 @@
+# For full config options, check the docs:
+#    docs.serverless.com
+
+# NOTE: most of the values here are coming from the appropriate settings.yaml file
+#       if you want to update the values then do so from the settings.yaml file instead
+service: ${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-environment-tools
+
+package:
+  individually: true
+  excludeDevDependencies: true
+
+provider:
+  name: aws
+  region: ${self:custom.settings.awsRegion}
+  profile: ${self:custom.settings.awsProfile}
+
+custom:
+  settings: ${file(./config/settings/.settings.js):merged}
+  goBuilds:
+    - name: '@aws-ee/s3-synchronizer'
+      packagePath: ${file(./config/settings/.synchronizer.js):path}
+      sourceDirectory: ./src
+      outputPrefix: bin/s3-synchronizer-
+      buildOptions: -ldflags="-s -w"
+      architectures:
+        - amd64
+      operatingSystems:
+        - linux
+        - windows
+      destinationBucket: ${self:custom.settings.environmentsBootstrapBucketName}
+      destinationPrefix: ${self:custom.settings.environmentsBootstrapBucketPrefix}
+
+plugins:
+  - '@aws-ee/serverless-go-build-tools'

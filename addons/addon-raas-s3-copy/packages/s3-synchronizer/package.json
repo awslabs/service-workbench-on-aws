@@ -1,0 +1,13 @@
+{
+  "name": "@aws-ee/s3-synchronizer",
+  "private": true,
+  "version": "1.0.0",
+  "description": "An application that replicates files to/from an S3 prefix.",
+  "author": "Amazon Web Services",
+  "license": "Apache-2.0",
+  "dependencies": {},
+  "devDependencies": {},
+  "scripts": {
+    "test": "./run-tests.bash"
+  }
+}
