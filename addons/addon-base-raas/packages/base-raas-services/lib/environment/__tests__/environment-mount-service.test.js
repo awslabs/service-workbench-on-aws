@@ -46,11 +46,8 @@ const EnvironmentMountService = require('../environment-mount-service');
 
 describe('EnvironmentMountService', () => {
   let service = null;
-  let studyService = null;
-  let storageGatewayService = null;
   let environmentScService = null;
   let iamService = null;
-  const context = { principalIdentifier: { uid: 'u-daffyduck' } };
 
   beforeEach(async () => {
     // Initialize services container and register dependencies
@@ -70,8 +67,6 @@ describe('EnvironmentMountService', () => {
 
     // Get instance of the service we are testing
     service = await container.find('environmentMountService');
-    studyService = await container.find('studyService');
-    storageGatewayService = await container.find('storageGatewayService');
     environmentScService = await container.find('environmentScService');
     iamService = await container.find('iamService');
   });
