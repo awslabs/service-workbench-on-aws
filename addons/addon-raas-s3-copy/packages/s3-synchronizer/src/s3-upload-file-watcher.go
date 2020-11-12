@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -15,7 +16,7 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
-func setupUploadWatcher(sess *session.Session, config *mountConfiguration, debug bool) error {
+func setupUploadWatcher(wg *sync.WaitGroup, sess *session.Session, config *mountConfiguration, stopUploadWatchersAfter int, debug bool) error {
 	syncDir := config.destination
 	bucket := config.bucket
 	prefix := config.prefix
@@ -51,6 +52,7 @@ func setupUploadWatcher(sess *session.Session, config *mountConfiguration, debug
 					// When file is renamed event.Name has the file's old name
 					// Rename will also cause "Create" event for the file with new name if the file is moved
 					// to a directory that is also monitored
+
 					deleteFromS3(sess, syncDir, event.Name, bucket, prefix, debug)
 				} else if event.Op&fsnotify.Remove == fsnotify.Remove && !excludeFile(event.Name) {
 					if debug {

@@ -19,10 +19,13 @@ func main() {
 
 	sess := makeSession(profile, region)
 
-	mainImpl(sess, debug, recurringDownloads, stopRecurringDownloadsAfter, downloadInterval, concurrency, defaultS3Mounts, destinationBase)
+	// Passing stopUploadWatchersAfter as -1 to let file watchers continue indefinitely if mount is writeable
+	stopUploadWatchersAfter := -1
+
+	mainImpl(sess, debug, recurringDownloads, stopRecurringDownloadsAfter, downloadInterval, stopUploadWatchersAfter, concurrency, defaultS3Mounts, destinationBase)
 }
 
-func mainImpl(sess *session.Session, debug bool, recurringDownloads bool, stopRecurringDownloadsAfter int, downloadInterval int, concurrency int, defaultS3Mounts string, destinationBase string) error {
+func mainImpl(sess *session.Session, debug bool, recurringDownloads bool, stopRecurringDownloadsAfter int, downloadInterval int, stopUploadWatchersAfter int, concurrency int, defaultS3Mounts string, destinationBase string) error {
 	// Use a map to emulate a set to keep track of existing mounts
 	currentMounts := make(map[string]struct{}, 0)
 	mountsCh := make(chan *mountConfiguration, 50)
@@ -48,10 +51,8 @@ func mainImpl(sess *session.Session, debug bool, recurringDownloads bool, stopRe
 			}
 			if mountConfig.writeable {
 				go func() {
-					wg.Add(1) // Increment wait group counter everytime we spawn upload watcher
-					err := setupUploadWatcher(sess, mountConfig, debug)
+					err := setupUploadWatcher(&wg, sess, mountConfig, stopUploadWatchersAfter, debug)
 					if err != nil {
-						wg.Done() // Decrement wait group counter in case of any errors to allow main program to exit
 						log.Printf("Error setting up file watcher: " + err.Error())
 					}
 				}()
