@@ -328,7 +328,6 @@ class EnvironmentMountService extends Service {
               policyDoc.Statement = this._getStatementsAfterAddition(policyDoc, studyPathArn, statementSidToUse);
               policyDoc.Statement = this._ensureListAccess(policyDoc, studyPathArn);
               if (isStudyAdmin && user.permissionLevel === readWritePermissionLevel) {
-                policyDoc.Statement = this._ensureListAccess(policyDoc, studyPathArn);
                 policyDoc.Statement = this._getStatementsAfterRemoval(policyDoc, studyPathArn, readOnlyStatementId);
               }
               await iamService.putRolePolicy(roleName, studyDataPolicyName, JSON.stringify(policyDoc), iamClient);
