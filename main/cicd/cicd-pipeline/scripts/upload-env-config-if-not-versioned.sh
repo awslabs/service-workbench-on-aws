@@ -19,11 +19,10 @@ for environment_name in "$@"; do
       echo "File '${config_filename}' is tracked in version control; not uploaded to S3"
     ) || (
       echo "File '${config_filename}' is not tracked in version control"
-      # no need to echo the upload, as the aws command does that anyway
-      # echo "Uploading '${config_filename}' to '${config_s3_path}'"
+      # no need to echo an acknowledgement of upload, as the aws command does that anyway
       aws --profile "${aws_profile}" s3 cp --sse aws:kms "${config_filename}" "${config_s3_path}"
     )
   else
-    echo "File not found: '${config_filename}'; condition ignored!"
+    echo "File not found: '${config_filename}'; ignored!"
   fi
 done
