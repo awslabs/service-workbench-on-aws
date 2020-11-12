@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"log"
 	"path/filepath"
@@ -11,13 +12,17 @@ import (
 )
 
 func main() {
-	defaultS3Mounts, region, profile, destinationBase, concurrency, debug := readConfigFromArgs()
+	defaultS3Mounts, region, profile, destinationBase, concurrency, recurringDownloads, stopRecurringDownloadsAfter, downloadInterval, debug, err := readConfigFromArgs()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	sess := makeSession(profile, region)
 
-	mainImpl(sess, debug, concurrency, defaultS3Mounts, destinationBase)
+	mainImpl(sess, debug, recurringDownloads, stopRecurringDownloadsAfter, downloadInterval, concurrency, defaultS3Mounts, destinationBase)
 }
 
-func mainImpl(sess *session.Session, debug bool, concurrency int, defaultS3Mounts string, destinationBase string) error {
+func mainImpl(sess *session.Session, debug bool, recurringDownloads bool, stopRecurringDownloadsAfter int, downloadInterval int, concurrency int, defaultS3Mounts string, destinationBase string) error {
 	// Use a map to emulate a set to keep track of existing mounts
 	currentMounts := make(map[string]struct{}, 0)
 	mountsCh := make(chan *mountConfiguration, 50)
@@ -32,21 +37,26 @@ func mainImpl(sess *session.Session, debug bool, concurrency int, defaultS3Mount
 	go func() {
 		for {
 			mountConfig := <-mountsCh
-			if debug == true {
+			if debug {
 				log.Printf("Received mount configuration from channel: %+v\n", mountConfig)
 			}
-			downloadFiles(sess, mountConfig, concurrency, debug)
+			if recurringDownloads {
+				// Trigger recurring download
+				setupRecurringDownloads(&wg, sess, mountConfig, concurrency, debug, downloadInterval, stopRecurringDownloadsAfter)
+			} else {
+				downloadFiles(sess, mountConfig, concurrency, debug)
+			}
 			if mountConfig.writeable {
 				log.Print("WARNING: writeable mounts are no implemented yet")
 			}
-			if debug == true {
+			if debug {
 				log.Printf("Decrement wg counter")
 			}
 			wg.Done() // Decrement wait group counter everytime we receive config from the mount channel and complete processing it
 		}
 	}()
 
-	if debug == true {
+	if debug {
 		log.Println("Fetching environment info")
 	}
 
@@ -66,14 +76,14 @@ func mainImpl(sess *session.Session, debug bool, concurrency int, defaultS3Mount
 		s3Mounts = *s3MountsPtr
 	}
 
-	if debug == true {
+	if debug {
 		log.Println("Parsing mounts...")
 	}
 	for _, mount := range s3Mounts {
 		s := mountToString(&mount)
 		_, exists := currentMounts[s]
 
-		if debug == true {
+		if debug {
 			log.Printf("Mount: %v, Adding to mount queue: %t\n", *mount.Id, !exists)
 		}
 
@@ -87,7 +97,7 @@ func mainImpl(sess *session.Session, debug bool, concurrency int, defaultS3Mount
 				*mount.KmsKeyId,
 			)
 			wg.Add(1) // Increment wait group counter everytime we push config to the mount channel
-			if debug == true {
+			if debug {
 				log.Printf("Increment wg counter")
 			}
 			mountsCh <- config
@@ -103,12 +113,15 @@ func mainImpl(sess *session.Session, debug bool, concurrency int, defaultS3Mount
 }
 
 // Read configuration information fro the program arguments
-func readConfigFromArgs() (string, string, string, string, int, bool) {
+func readConfigFromArgs() (string, string, string, string, int, bool, int, int, bool, error) {
 	defaultS3MountsPtr := flag.String("defaultS3Mounts", "", `A JSON string containing information about the default S3 mounts E.g., [{"id":"some-id","bucket":"some-s3-bucket-name","prefix":"some/s3/prefix/path","writeable":false,"kmsKeyId":"some-kms-key-arn"}]`)
 	regionPtr := flag.String("region", "us-east-1", "The aws region to use for the session")
 	profilePtr := flag.String("profile", "", "AWS Credentials profile. Default is no profile. The code will look for credentials in the following order: ENV variables, default credentials profile, EC2 instance metadata")
 	destinationBasePtr := flag.String("destination", "./", "The directory to download to")
 	concurrencyPtr := flag.Int("concurrency", 20, "The number of concurrent parts to download")
+	recurringDownloadsPtr := flag.Bool("recurringDownloads", false, "Whether to periodically download changes from S3")
+	stopRecurringDownloadsAfterPtr := flag.Int("stopRecurringDownloadsAfter", -1, "Stop recurring downloads after certain number of seconds. ZERO or Negative value means continue indefinitely.")
+	downloadIntervalPtr := flag.Int("downloadInterval", 60, "The interval at which to re-download changes from S3 in seconds. This is only applicable when recurringDownloads is true")
 	debugPtr := flag.Bool("debug", false, "Whether to print debug information")
 
 	flag.Parse()
@@ -128,12 +141,22 @@ func readConfigFromArgs() (string, string, string, string, int, bool) {
 	concurrency := *concurrencyPtr
 	log.Printf("concurrency: %v", concurrency)
 
+	recurringDownloads := *recurringDownloadsPtr
+	log.Printf("recurringDownloads: %v", recurringDownloads)
+
+	stopRecurringDownloadsAfter := *stopRecurringDownloadsAfterPtr
+	log.Printf("stopRecurringDownloadsAfter: %v", stopRecurringDownloadsAfter)
+
+	downloadInterval := *downloadIntervalPtr
+	log.Printf("downloadInterval: %v", downloadInterval)
+	if downloadInterval <= 0 {
+		return "", "", "", "", 0, false, -1, 0, false, fmt.Errorf("incorrect downloadInterval %v specified; the downloadInterval must be a positive integer", downloadInterval)
+	}
+
 	debug := *debugPtr
 	log.Printf("debug: %v", debug)
 
-	//pollInterval := *pollIntervalPtr
-
-	return defaultS3Mounts, region, profile, destinationBase, concurrency, debug
+	return defaultS3Mounts, region, profile, destinationBase, concurrency, recurringDownloads, stopRecurringDownloadsAfter, downloadInterval, debug, nil
 }
 
 func makeSession(profile string, region string) *session.Session {

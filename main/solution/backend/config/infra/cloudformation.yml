@@ -15,7 +15,7 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: aws:kms
-              KMSMasterKeyID: !Ref StudyDataEncryptionKey
+              KMSMasterKeyID: !GetAtt StudyDataEncryptionKey.Arn
       LoggingConfiguration:
         DestinationBucketName: ${self:custom.settings.loggingBucketName}
         LogFilePrefix: studydata/
@@ -362,6 +362,7 @@ Resources:
                 - !Join ['', [!GetAtt [StudiesDb, Arn], '/index/*']]
                 - !GetAtt [EnvironmentsDb, Arn]
                 - !GetAtt [EnvironmentsScDb, Arn]
+                - !Join ['', [!GetAtt [EnvironmentsScDb, Arn], '/index/*']]
                 - !GetAtt [EnvironmentsTypesDb, Arn]
                 - !GetAtt [UserRolesDb, Arn]
                 - !GetAtt [AwsAccountsDb, Arn]
@@ -389,6 +390,9 @@ Resources:
               Effect: Allow
               Action:
                 - storagegateway:CreateNFSFileShare
+                - storagegateway:ListFileShares
+                - storagegateway:DescribeNFSFileShares
+                - storagegateway:UpdateNFSFileShare
               Resource: '*'
 
         - PolicyName: iam-pass-role
@@ -552,6 +556,7 @@ Resources:
                 - !Join ['', [!GetAtt [WfAssignmentsDb, Arn], '/index/*']]
                 - !GetAtt [EnvironmentsDb, Arn]
                 - !GetAtt [EnvironmentsScDb, Arn]
+                - !Join ['', [!GetAtt [EnvironmentsScDb, Arn], '/index/*']]
                 - !GetAtt [EnvironmentsTypesDb, Arn]
                 - !GetAtt [StudiesDb, Arn]
                 - !GetAtt [ProjectsDb, Arn]
@@ -610,6 +615,10 @@ Resources:
                   - storagegateway:ListLocalDisks
                   - storagegateway:AddCache
                   - storagegateway:DeleteGateway
+                  - storagegateway:CreateNFSFileShare
+                  - storagegateway:ListFileShares
+                  - storagegateway:DescribeNFSFileShares
+                  - storagegateway:UpdateNFSFileShare
                 Resource: '*'
 
         - PolicyName: study-s3-policy-update
@@ -745,6 +754,7 @@ Resources:
                 - dynamodb:UpdateItem
               Resource:
                 - !GetAtt [EnvironmentsScDb, Arn]
+                - !Join ['', [!GetAtt [EnvironmentsScDb, Arn], '/index/*']]
         - PolicyName: db-scan
           PolicyDocument:
             Statement:
@@ -1227,9 +1237,18 @@ Resources:
       AttributeDefinitions:
         - AttributeName: 'id'
           AttributeType: 'S'
+        - AttributeName: 'createdBy'
+          AttributeType: 'S'
       KeySchema:
         - AttributeName: 'id'
           KeyType: 'HASH'
+      GlobalSecondaryIndexes:
+        - IndexName: ByOwnerUID
+          KeySchema:
+            - AttributeName: 'createdBy'
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: ALL
       BillingMode: PAY_PER_REQUEST
 
   EnvironmentsTypesDb:
