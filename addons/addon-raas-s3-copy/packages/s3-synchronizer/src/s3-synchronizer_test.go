@@ -30,7 +30,8 @@ const debug = true
 // WARNING: Since this directory gets automatically cleaned up at the end of the test,
 // make sure to not specify some higher path here as the test program will end up deleting the directory
 // you specify here.
-const destinationBase = "../.build/temp-output"
+const buildDir = "../.build"
+const destinationBase = buildDir + "/temp-output"
 
 const testFakeBucketName = "test-bucket"
 
@@ -592,7 +593,7 @@ func TestMainImplForBiDirectionalSyncSingleMount(t *testing.T) {
 		// Verify that the renamed files are automatically renamed in S3
 		assertFileMovedInS3(t, testFakeBucketName, testMountId, fileIdxToMove, "", testFileUpdatedContentTemplate)
 
-		// TEST FOR MOVE to NESTED DIR -- RENAME IN LOCAL FILE SYSTEM TO NESTED DIRECTORY --> S3 SYNC
+		// TEST FOR MOVE to NESTED DIR -- MOVE IN LOCAL FILE SYSTEM TO NESTED DIRECTORY --> S3 SYNC
 		// --------------------------------------------------------------------------------------------
 		fileIdxToMove = 2
 		moveToSubDir := "nested-level1/nested-level2/nested-level3/"
@@ -602,11 +603,27 @@ func TestMainImplForBiDirectionalSyncSingleMount(t *testing.T) {
 
 		// Sleep for some duration (e.g., download interval duration) to allow for
 		// file system update event to trigger and upload to complete
-		time.Sleep(time.Duration(5*downloadInterval) * time.Second)
+		time.Sleep(time.Duration(2*downloadInterval) * time.Second)
 
 		// ---- Assertions ----
 		// Verify that the moved files are automatically moved in S3
 		assertFileMovedInS3(t, testFakeBucketName, testMountId, fileIdxToMove, moveToSubDir, testFileUpdatedContentTemplate)
+
+		// TEST FOR MOVE OUT OF THE MOUNT DIRECTORY -- MOVE IN LOCAL FILE SYSTEM TO AN OUTSIDE DIRECTORY --> S3 SYNC
+		// ------------------------------------------------------------------------------------------------------------
+		fileIdxToMove = 3
+		moveToSubDir = buildDir+"/"
+		// Move some files in local file system to an outside directory i.e., directory outside of the mount directory that is monitored
+		// and make sure they automatically get deleted from S3
+		moveTestFilesLocally(t, testMountId, fileIdxToMove, moveToSubDir)
+
+		// Sleep for some duration (e.g., download interval duration) to allow for
+		// file system update event to trigger and upload to complete
+		time.Sleep(time.Duration(2*downloadInterval) * time.Second)
+
+		// ---- Assertions ----
+		// Verify that the files are automatically deleted from S3
+		assertFileDeletedFromS3(t, testFakeBucketName, testMountId, fileIdxToMove)
 
 		// Decrement wait group counter to allow this test case to exit
 		wg.Done()
