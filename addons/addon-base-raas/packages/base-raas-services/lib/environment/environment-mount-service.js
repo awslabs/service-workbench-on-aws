@@ -93,6 +93,14 @@ class EnvironmentMountService extends Service {
     return this._updateResourcePolicies({ updateAwsPrincipals, workspaceRoleArn, s3Prefixes });
   }
 
+  /**
+   * This method is triggered when EC2 Linux, Windows and RStudio Start / Stop
+   * And when any workspace is terminated
+   * @param requestContext
+   * @param existingEnvironment: environment that's being stopped / started or terminated
+   * @param ipAllowListAction: One required field action and one optional field ip
+   * @return {Promise<void>}
+   */
   async updateStudyFileMountIPAllowList(requestContext, existingEnvironment, ipAllowListAction) {
     const [storageGatewayService, studyService] = await this.service(['storageGatewayService', 'studyService']);
     // Check if the mounted study is using StorageGateway
@@ -111,7 +119,12 @@ class EnvironmentMountService extends Service {
       if ('ip' in ipAllowListAction) {
         ip = ipAllowListAction.ip;
       } else {
-        ip = existingEnvironment.outputs.filter(output => output.OutputKey === 'Ec2WorkspaceInstanceId')[0].OutputValue;
+        ip = existingEnvironment.outputs.filter(output => output.OutputKey === 'Ec2WorkspacePublicIp');
+        // When terminating a product that's not EC2 based, do nothing
+        if (_.isEmpty(ip)) {
+          return;
+        }
+        ip = ip[0].OutputValue;
       }
       await storageGatewayService.updateFileSharesIPAllowedList(fileShareARNs, ip, ipAllowListAction.action);
     }
