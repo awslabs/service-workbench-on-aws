@@ -672,9 +672,9 @@ func TestMainImplForBiDirectionalSyncMultipleMounts(t *testing.T) {
 	// ---- Inputs ----
 	concurrency := 5
 	recurringDownloads := true
-	stopRecurringDownloadsAfter := 30
+	stopRecurringDownloadsAfter := 45
 	downloadInterval := 1
-	stopUploadWatchersAfter := 30
+	stopUploadWatchersAfter := 45
 
 	fmt.Printf("Input: \n\n%s\n\n", testMountsJson)
 
