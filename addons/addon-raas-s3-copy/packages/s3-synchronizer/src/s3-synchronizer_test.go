@@ -540,7 +540,7 @@ func TestMainImplForBiDirectionalSyncSingleMount(t *testing.T) {
 		// TEST FOR ADD -- NEW FILE TO LOCAL FILE SYSTEM --> S3 SYNC
 		// ------------------------------------------------------------
 
-		// Upload same number of files to the file system (i.e., double the noOfFilesInMount)
+		// Upload all files in the file system
 		createTestFilesLocally(t, testMountId, noOfFilesInMount)
 
 		// Sleep for some duration (e.g., download interval duration) to allow for
@@ -631,6 +631,256 @@ func TestMainImplForBiDirectionalSyncSingleMount(t *testing.T) {
 
 	wg.Wait() // Wait until all spawned go routines complete before existing the test case
 }
+
+//Test for multiple writeable S3Mounts with recurring downloads (i.e., bi-directional sync)
+//- Make sure S3 --> Local sync works correctly
+//	 - Make sure S3 ADDs are synced to local automatically
+//	 - Make sure S3 UPDATEs are synced to local automatically
+//	 - Make sure S3 DELETEs are synced to local automatically
+//
+//- Make sure Local --> S3 sync works correctly
+//  - Make sure local ADDs are synced to S3 automatically
+//	 - Make sure local UPDATEs are synced to S3 automatically
+//	 - Make sure local DELETEs are synced to S3 automatically
+//	 - Make sure local RENAMEs are synced to S3 automatically
+func TestMainImplForBiDirectionalSyncMultipleMounts(t *testing.T) {
+	// ---- Data setup ----
+	noOfMounts := 3
+	testMounts := make([]s3Mount, noOfMounts)
+
+	testMountId1 := "TestMainImplForBiDirectionalSyncMultipleMounts1"
+	noOfFilesInMount1 := 5
+	testMounts[0] = *putWriteableTestMountFiles(t, testFakeBucketName, testMountId1, noOfFilesInMount1)
+
+	testMountId2 := "TestMainImplForBiDirectionalSyncMultipleMounts2"
+	noOfFilesInMount2 := 5
+	testMounts[1] = *putWriteableTestMountFiles(t, testFakeBucketName, testMountId2, noOfFilesInMount2)
+
+	testMountId3 := "TestMainImplForBiDirectionalSyncMultipleMounts3"
+	noOfFilesInMount3 := 5
+	// Make the third mount read-only to mix read-write and read-only mounts
+	testMounts[2] = *putReadOnlyTestMountFiles(t, testFakeBucketName, testMountId3, noOfFilesInMount3)
+
+	testMountsJsonBytes, err := json.Marshal(testMounts)
+	testMountsJson := string(testMountsJsonBytes)
+
+	if err != nil {
+		// Fail test in case of any errors
+		t.Logf("Error creating test mount setup data %s", err)
+	}
+
+	// ---- Inputs ----
+	concurrency := 5
+	recurringDownloads := true
+	stopRecurringDownloadsAfter := 5
+	downloadInterval := 1
+	stopUploadWatchersAfter := 10
+
+	fmt.Printf("Input: \n\n%s\n\n", testMountsJson)
+
+	var wg sync.WaitGroup
+
+	// Trigger recurring download in a separate thread and increment the wait group counter
+	wg.Add(1)
+	go func() {
+		// ---- Run code under test ----
+		err = mainImpl(testAwsSession, debug, recurringDownloads, stopRecurringDownloadsAfter, downloadInterval, stopUploadWatchersAfter, concurrency, testMountsJson, destinationBase)
+		if err != nil {
+			// Fail test in case of any errors
+			t.Logf("Error running the main s3-synchronizer with testMountsJson %s", testMountsJson)
+			t.Errorf("Error: %v", err)
+		}
+
+		// Decrement wait group counter to allow this test case to exit
+		wg.Done()
+	}()
+
+	time.Sleep(time.Duration(2*downloadInterval) * time.Second)
+
+	// Running S3 --> Local and Local --> S3 sync in separate threads to make sure they can happen in parallel
+	// and work well with each other
+
+	// In a separate thread add/update/delete few files to the S3 location and verify that they get downloaded
+	// by the recurring downloader thread after the downloadInterval
+	wg.Add(1)
+	go func() {
+		// TEST FOR ADD -- NEW UPLOAD TO S3 --> LOCAL FILE SYSTEM SYNC
+		// ------------------------------------------------------------
+
+		// Upload same number of files in the mount again (i.e., double the noOfFilesInMount)
+		testMounts[0] = *putWriteableTestMountFiles(t, testFakeBucketName, testMountId1, 2*noOfFilesInMount1)
+		testMounts[1] = *putWriteableTestMountFiles(t, testFakeBucketName, testMountId2, 2*noOfFilesInMount2)
+		// Mix read-only and read-write
+		testMounts[2] = *putReadOnlyTestMountFiles(t, testFakeBucketName, testMountId3, 2*noOfFilesInMount3)
+
+		// Sleep for the download interval duration plus some more buffer time to allow for
+		// uploaded files to get downloaded
+		time.Sleep(time.Duration(2*downloadInterval) * time.Second)
+
+		// ---- Assertions ----
+		// Verify that the newly uploaded files are automatically downloaded after the download interval
+		assertFilesDownloaded(t, testMountId1, 2*noOfFilesInMount1)
+		assertFilesDownloaded(t, testMountId2, 2*noOfFilesInMount2)
+		assertFilesDownloaded(t, testMountId3, 2*noOfFilesInMount3)
+
+		// TEST FOR UPDATE -- UPLOAD TO EXISTING FILES IN S3 --> LOCAL FILE SYSTEM SYNC
+		// -----------------------------------------------------------------------------
+
+		// Update the files in S3
+		updateTestMountFiles(t, testFakeBucketName, testMountId1, noOfFilesInMount1)
+		updateTestMountFiles(t, testFakeBucketName, testMountId2, noOfFilesInMount2)
+		updateTestMountFiles(t, testFakeBucketName, testMountId3, noOfFilesInMount3)
+
+		// Sleep for the download interval duration plus some more buffer time to allow for
+		// uploaded files to get downloaded
+		time.Sleep(time.Duration(2*downloadInterval) * time.Second)
+
+		// ---- Assertions ----
+		// Verify that the updated files are automatically downloaded after the download interval
+		assertUpdatedFilesDownloaded(t, testMountId1, noOfFilesInMount1)
+		assertUpdatedFilesDownloaded(t, testMountId2, noOfFilesInMount2)
+		assertUpdatedFilesDownloaded(t, testMountId3, noOfFilesInMount3)
+
+		// TEST FOR DELETE -- DELETE FROM S3 --> LOCAL FILE SYSTEM SYNC
+		// ------------------------------------------------------------
+
+		fileIdxToDelete1 := noOfFilesInMount1 + 1
+		fileIdxToDelete2 := noOfFilesInMount2 + 1
+		fileIdxToDelete3 := noOfFilesInMount3 + 1
+		// Delete some files from S3 and make sure they automatically get deleted from local file system
+		deleteTestMountFile(t, testFakeBucketName, testMountId1, fileIdxToDelete1)
+		deleteTestMountFile(t, testFakeBucketName, testMountId2, fileIdxToDelete2)
+		deleteTestMountFile(t, testFakeBucketName, testMountId3, fileIdxToDelete3)
+
+		// Sleep for the download interval duration plus some more buffer time to allow sync to happen
+		time.Sleep(time.Duration(2*downloadInterval) * time.Second)
+
+		// ---- Assertions ----
+		// Verify that the file deleted from S3 are automatically deleted after the download interval
+		assertFileDeleted(t, testMountId1, fileIdxToDelete1)
+		assertFileDeleted(t, testMountId2, fileIdxToDelete2)
+		assertFileDeleted(t, testMountId3, fileIdxToDelete3)
+
+		// Decrement wait group counter to allow this test case to exit
+		wg.Done()
+	}()
+
+	// In a yet another thread add/update/delete few files to the local file system and verify that they get synced up to S3 correctly
+	wg.Add(1)
+	go func() {
+		// TEST FOR ADD -- NEW FILE TO LOCAL FILE SYSTEM --> S3 SYNC
+		// ------------------------------------------------------------
+
+		// Upload all files in the file system
+		createTestFilesLocally(t, testMountId1, noOfFilesInMount1)
+		createTestFilesLocally(t, testMountId2, noOfFilesInMount2)
+
+		// Sleep for some duration (e.g., download interval duration) to allow for
+		// file system creation event to trigger and upload to complete
+		time.Sleep(time.Duration(2*downloadInterval) * time.Second)
+
+		// ---- Assertions ----
+		// Verify that the newly created files are automatically uploaded
+		assertFilesUploaded(t, testFakeBucketName, testMountId1, noOfFilesInMount1)
+		assertFilesUploaded(t, testFakeBucketName, testMountId2, noOfFilesInMount2)
+
+		// TEST FOR UPDATE -- UPLOAD TO EXISTING FILES IN LOCAL FILE SYSTEM --> S3 SYNC
+		// -----------------------------------------------------------------------------
+
+		// Update the files in local file system
+		updateTestFilesLocally(t, testMountId1, noOfFilesInMount1)
+		updateTestFilesLocally(t, testMountId2, noOfFilesInMount2)
+
+		// Sleep for some duration (e.g., download interval duration) to allow for
+		// file system update event to trigger and upload to complete
+		time.Sleep(time.Duration(2*downloadInterval) * time.Second)
+
+		// ---- Assertions ----
+		// Verify that the updated files are automatically uploaded
+		assertUpdatedFilesUploaded(t, testFakeBucketName, testMountId1, noOfFilesInMount1)
+		assertUpdatedFilesUploaded(t, testFakeBucketName, testMountId2, noOfFilesInMount2)
+
+		// TEST FOR DELETE -- DELETE FROM LOCAL FILE SYSTEM --> S3 SYNC
+		// ------------------------------------------------------------
+		fileIdxToDelete1 := 1
+		fileIdxToDelete2 := 1
+		// Delete some files from local file system and make sure they automatically get uploaded to S3
+		deleteTestFilesLocally(t, testMountId1, fileIdxToDelete1)
+		deleteTestFilesLocally(t, testMountId2, fileIdxToDelete2)
+
+		// Sleep for some duration (e.g., download interval duration) to allow for
+		// file system update event to trigger and upload to complete
+		time.Sleep(time.Duration(2*downloadInterval) * time.Second)
+
+		// ---- Assertions ----
+		// Verify that the deleted files are automatically deleted from S3
+		assertFileDeletedFromS3(t, testFakeBucketName, testMountId1, fileIdxToDelete1)
+		assertFileDeletedFromS3(t, testFakeBucketName, testMountId2, fileIdxToDelete2)
+
+		// TEST FOR RENAME (MOVE) -- RENAME IN LOCAL FILE SYSTEM --> S3 SYNC
+		// --------------------------------------------------------------------
+		fileIdxToMove1 := 0
+		fileIdxToMove2 := 0
+		// Rename some files from local file system and make sure they automatically get renamed in S3
+		moveTestFilesLocally(t, testMountId1, fileIdxToMove1, "")
+		moveTestFilesLocally(t, testMountId2, fileIdxToMove2, "")
+
+		// Sleep for some duration (e.g., download interval duration) to allow for
+		// file system update event to trigger and upload to complete
+		time.Sleep(time.Duration(2*downloadInterval) * time.Second)
+
+		// ---- Assertions ----
+		// Verify that the renamed files are automatically renamed in S3
+		assertFileMovedInS3(t, testFakeBucketName, testMountId1, fileIdxToMove1, "", testFileUpdatedContentTemplate)
+		assertFileMovedInS3(t, testFakeBucketName, testMountId2, fileIdxToMove2, "", testFileUpdatedContentTemplate)
+
+		// TEST FOR MOVE to NESTED DIR -- MOVE IN LOCAL FILE SYSTEM TO NESTED DIRECTORY --> S3 SYNC
+		// --------------------------------------------------------------------------------------------
+		fileIdxToMove1 = 2
+		fileIdxToMove2 = 2
+		moveToSubDir1 := "nested-level1/nested-level2/nested-level3/"
+		moveToSubDir2 := "nested-level1/nested-level2/nested-level3/nested-level4/"
+		// Move some files in local file system to some nested directory that is part of the mount location
+		// and make sure they automatically get moved in S3
+		moveTestFilesLocally(t, testMountId1, fileIdxToMove1, moveToSubDir1)
+		moveTestFilesLocally(t, testMountId2, fileIdxToMove2, moveToSubDir2)
+
+		// Sleep for some duration (e.g., download interval duration) to allow for
+		// file system update event to trigger and upload to complete
+		time.Sleep(time.Duration(2*downloadInterval) * time.Second)
+
+		// ---- Assertions ----
+		// Verify that the moved files are automatically moved in S3
+		assertFileMovedInS3(t, testFakeBucketName, testMountId1, fileIdxToMove1, moveToSubDir1, testFileUpdatedContentTemplate)
+		assertFileMovedInS3(t, testFakeBucketName, testMountId2, fileIdxToMove2, moveToSubDir2, testFileUpdatedContentTemplate)
+
+		// TEST FOR MOVE OUT OF THE MOUNT DIRECTORY -- MOVE IN LOCAL FILE SYSTEM TO AN OUTSIDE DIRECTORY --> S3 SYNC
+		// ------------------------------------------------------------------------------------------------------------
+		fileIdxToMove1 = 3
+		fileIdxToMove2 = 3
+		moveToSubDir1 = buildDir + "/"
+		moveToSubDir2 = buildDir + "/"
+		// Move some files in local file system to an outside directory i.e., directory outside of the mount directory that is monitored
+		// and make sure they automatically get deleted from S3
+		moveTestFilesLocally(t, testMountId1, fileIdxToMove1, moveToSubDir1)
+		moveTestFilesLocally(t, testMountId2, fileIdxToMove2, moveToSubDir2)
+
+		// Sleep for some duration (e.g., download interval duration) to allow for
+		// file system update event to trigger and upload to complete
+		time.Sleep(time.Duration(2*downloadInterval) * time.Second)
+
+		// ---- Assertions ----
+		// Verify that the files are automatically deleted from S3
+		assertFileDeletedFromS3(t, testFakeBucketName, testMountId1, fileIdxToMove1)
+		assertFileDeletedFromS3(t, testFakeBucketName, testMountId2, fileIdxToMove2)
+
+		// Decrement wait group counter to allow this test case to exit
+		wg.Done()
+	}()
+
+	wg.Wait() // Wait until all spawned go routines complete before existing the test case
+}
+
 
 // ------------------------------- Setup code -------------------------------/
 

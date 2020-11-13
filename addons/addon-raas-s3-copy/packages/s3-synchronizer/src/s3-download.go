@@ -175,13 +175,13 @@ func deleteLocalFilesNotInS3(listObjectResponses []*s3.ListObjectsV2Output, conf
 			//			-- DO NOT delete the file from local file system in this case
 			//		2.2 The file mount is NOT "writeable"
 			//			-- Delete the file from local file system in this case
-			if !config.writeable || synchronizerState.isFileDownloadedFromS3(path, config) {
+			if !config.writeable || synchronizerState.IsFileDownloadedFromS3(path, config) {
 				if debug {
 					fmt.Printf("\n\nFile '%s' removed from S3 so deleting it from local file system\n\n", path)
 				}
 				error := os.Remove(path)
 				if error == nil {
-					synchronizerState.recordFileDeletionFromLocal(path, config)
+					synchronizerState.RecordFileDeletionFromLocal(path, config)
 				} else {
 					fmt.Printf("\nError deleting file: \"%s\". Error: %v\n", path, error)
 				}
@@ -277,7 +277,7 @@ func downloadAllObjects(
 		// The correct way to check if file exists is using !os.IsNotExist(fileError)
 		if _, fileError := os.Stat(destFilePath); !os.IsNotExist(fileError) {
 			// If the file has not changed in S3 since last download then skip downloading it
-			shouldDownload = synchronizerState.hasFileChangedInS3(item)
+			shouldDownload = synchronizerState.HasFileChangedInS3(item)
 			if !shouldDownload && debug {
 				log.Printf("'%v' already exists and is up-to-date. Skip downloading '%v'\n", destFilePath, *item.Key)
 			}
@@ -319,7 +319,7 @@ func downloadAllObjects(
 		stats.numberOfRetrievedFiles++
 		stats.totalRetrievedBytes = stats.totalRetrievedBytes + numBytes
 
-		synchronizerState.recordFileDownloadToLocal(item)
+		synchronizerState.RecordFileDownloadToLocal(item)
 	}
 	return stats
 }
