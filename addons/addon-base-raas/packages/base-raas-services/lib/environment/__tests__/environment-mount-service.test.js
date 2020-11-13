@@ -634,7 +634,13 @@ describe('EnvironmentMountService', () => {
           {
             Sid: 'S3StudyReadWriteAccess',
             Effect: 'Allow',
-            Action: ['s3:GetObject', 's3:PutObject', 's3:PutObjectAcl'],
+            Action: [
+              's3:GetObject',
+              's3:AbortMultipartUpload',
+              's3:ListMultipartUploadParts',
+              's3:PutObject',
+              's3:PutObjectAcl',
+            ],
             Resource: [`${studyBucket}/${studyPrefix}`],
           },
         ],
@@ -695,7 +701,13 @@ describe('EnvironmentMountService', () => {
           {
             Sid: 'S3StudyReadWriteAccess',
             Effect: 'Allow',
-            Action: ['s3:GetObject', 's3:PutObject', 's3:PutObjectAcl'],
+            Action: [
+              's3:GetObject',
+              's3:AbortMultipartUpload',
+              's3:ListMultipartUploadParts',
+              's3:PutObject',
+              's3:PutObjectAcl',
+            ],
             Resource: ['StudyBucketPath_XYZ'],
           },
         ],
@@ -736,7 +748,13 @@ describe('EnvironmentMountService', () => {
           {
             Sid: 'S3StudyReadWriteAccess',
             Effect: 'Allow',
-            Action: ['s3:GetObject', 's3:PutObject', 's3:PutObjectAcl'],
+            Action: [
+              's3:GetObject',
+              's3:AbortMultipartUpload',
+              's3:ListMultipartUploadParts',
+              's3:PutObject',
+              's3:PutObjectAcl',
+            ],
             Resource: ['StudyBucketPath_XYZ', `${studyBucket}/${studyPrefix}`],
           },
         ],
@@ -882,7 +900,13 @@ describe('EnvironmentMountService', () => {
         {
           Sid: 'S3StudyReadWriteAccess',
           Effect: 'Allow',
-          Action: ['s3:GetObject', 's3:PutObject', 's3:PutObjectAcl'],
+          Action: [
+            's3:GetObject',
+            's3:AbortMultipartUpload',
+            's3:ListMultipartUploadParts',
+            's3:PutObject',
+            's3:PutObjectAcl',
+          ],
           Resource: ['AnotherStudyBucketPath', `${studyBucket}/${studyPrefix}`],
         },
       ],
@@ -917,7 +941,13 @@ describe('EnvironmentMountService', () => {
         {
           Sid: 'S3StudyReadWriteAccess',
           Effect: 'Allow',
-          Action: ['s3:GetObject', 's3:PutObject', 's3:PutObjectAcl'],
+          Action: [
+            's3:GetObject',
+            's3:AbortMultipartUpload',
+            's3:ListMultipartUploadParts',
+            's3:PutObject',
+            's3:PutObjectAcl',
+          ],
           Resource: ['AnotherStudyBucketPath'],
         },
         {
@@ -1022,7 +1052,13 @@ describe('EnvironmentMountService', () => {
         {
           Sid: 'S3StudyReadWriteAccess',
           Effect: 'Allow',
-          Action: ['s3:GetObject', 's3:PutObject', 's3:PutObjectAcl'],
+          Action: [
+            's3:GetObject',
+            's3:AbortMultipartUpload',
+            's3:ListMultipartUploadParts',
+            's3:PutObject',
+            's3:PutObjectAcl',
+          ],
           Resource: [`${studyBucket}/${studyPrefix}`],
         },
       ],
@@ -1172,7 +1208,13 @@ describe('EnvironmentMountService', () => {
         {
           Sid: 'S3StudyReadWriteAccess',
           Effect: 'Allow',
-          Action: ['s3:GetObject', 's3:PutObject', 's3:PutObjectAcl'],
+          Action: [
+            's3:GetObject',
+            's3:AbortMultipartUpload',
+            's3:ListMultipartUploadParts',
+            's3:PutObject',
+            's3:PutObjectAcl',
+          ],
           Resource: [`${studyBucket}/${studyPrefix}`],
         },
         {

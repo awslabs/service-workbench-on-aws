@@ -70,7 +70,9 @@ class EnvironmentMountService extends Service {
     const iamPolicyDocument = await this._generateIamPolicyDoc(studyInfo);
 
     return {
-      s3Mounts: JSON.stringify(s3Mounts.map(({ id, bucket, prefix }) => ({ id, bucket, prefix }))),
+      s3Mounts: JSON.stringify(
+        s3Mounts.map(({ id, bucket, prefix, writeable }) => ({ id, bucket, prefix, writeable })),
+      ),
       iamPolicyDocument: JSON.stringify(iamPolicyDocument),
       environmentInstanceFiles: this.settings.get(settingKeys.environmentInstanceFiles),
       s3Prefixes: s3Mounts.filter(({ category }) => category !== 'Open Data').map(mount => mount.prefix),
@@ -166,11 +168,9 @@ class EnvironmentMountService extends Service {
             Sid: putSid,
             Effect: 'Allow',
             Principal: { AWS: [] },
-            Action: ['s3:PutObject'],
+            Action: ['s3:AbortMultipartUpload', 's3:ListMultipartUploadParts', 's3:PutObject', 's3:PutObjectAcl'],
             Resource: [`arn:aws:s3:::${s3BucketName}/${prefix}*`],
           };
-          // For writeable permission, PutObjectAcl is not required on the S3 bucket policy
-          // but is required on Workspace Role policy
 
           // Pull out existing statements if available
           statements.forEach(statement => {
@@ -309,8 +309,10 @@ class EnvironmentMountService extends Service {
     const errors = [];
     await Promise.all(
       _.map(allowedUsers, async user => {
+        const existingStudyAdmins = _.filter(updateRequest.usersToAdd, u => u.permissionLevel === 'admin');
+        const removedStudyAdmins = _.filter(updateRequest.usersToRemove, u => u.permissionLevel === 'admin');
         const isStudyAdmin = !_.isEmpty(
-          _.filter(updateRequest.usersToAdd, u => u.permissionLevel === 'admin' && u.uid === user.uid),
+          _.filter([...existingStudyAdmins, ...removedStudyAdmins], u => u.uid === user.uid),
         );
         const userOwnedEnvs = await environmentScService.getActiveEnvsForUser(user.uid);
         const envsWithStudy = _.filter(userOwnedEnvs, env => _.includes(env.studyIds, studyId));
@@ -533,7 +535,13 @@ class EnvironmentMountService extends Service {
       Effect: 'Allow',
       Action:
         statementSidToUse === readWriteStatementId
-          ? ['s3:GetObject', 's3:PutObject', 's3:PutObjectAcl']
+          ? [
+              's3:GetObject',
+              's3:AbortMultipartUpload',
+              's3:ListMultipartUploadParts',
+              's3:PutObject',
+              's3:PutObjectAcl',
+            ]
           : ['s3:GetObject'],
       Resource: [studyPathArn],
     };
@@ -771,11 +779,11 @@ class EnvironmentMountService extends Service {
     if (studyInfo.length) {
       // There might be multiple resources. In the future we may flatMap, for now...
       mounts = studyInfo.reduce(
-        (result, { id, resources, category }) =>
+        (result, { id, resources, category, writeable }) =>
           result.concat(
             resources.map(resource => {
               const { bucket, prefix } = parseS3Arn(resource.arn);
-              return { id, bucket, prefix, category };
+              return { id, bucket, prefix, category, writeable };
             }),
           ),
         [],
@@ -823,7 +831,13 @@ class EnvironmentMountService extends Service {
       const readonlyStudies = _.filter(studyInfo, study => !study.writeable);
 
       if (writeableStudies.length && writeableStudies.length > 0) {
-        const objectLevelWriteActions = ['s3:GetObject', 's3:PutObject', 's3:PutObjectAcl'];
+        const objectLevelWriteActions = [
+          's3:GetObject',
+          's3:AbortMultipartUpload',
+          's3:ListMultipartUploadParts',
+          's3:PutObject',
+          's3:PutObjectAcl',
+        ];
         statements.push({
           Sid: readWriteStatementId,
           Effect: 'Allow',
