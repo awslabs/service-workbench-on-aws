@@ -456,9 +456,9 @@ func TestMainImplForBiDirectionalSyncSingleMount(t *testing.T) {
 	// ---- Inputs ----
 	concurrency := 5
 	recurringDownloads := true
-	stopRecurringDownloadsAfter := 5
+	stopRecurringDownloadsAfter := 30
 	downloadInterval := 1
-	stopUploadWatchersAfter := 10
+	stopUploadWatchersAfter := 30
 
 	fmt.Printf("Input: \n\n%s\n\n", testMountsJson)
 
@@ -672,9 +672,9 @@ func TestMainImplForBiDirectionalSyncMultipleMounts(t *testing.T) {
 	// ---- Inputs ----
 	concurrency := 5
 	recurringDownloads := true
-	stopRecurringDownloadsAfter := 5
+	stopRecurringDownloadsAfter := 30
 	downloadInterval := 1
-	stopUploadWatchersAfter := 10
+	stopUploadWatchersAfter := 30
 
 	fmt.Printf("Input: \n\n%s\n\n", testMountsJson)
 
