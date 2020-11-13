@@ -634,7 +634,13 @@ describe('EnvironmentMountService', () => {
           {
             Sid: 'S3StudyReadWriteAccess',
             Effect: 'Allow',
-            Action: ['s3:GetObject', 's3:PutObject', 's3:PutObjectAcl'],
+            Action: [
+              's3:GetObject',
+              's3:AbortMultipartUpload',
+              's3:ListMultipartUploadParts',
+              's3:PutObject',
+              's3:PutObjectAcl',
+            ],
             Resource: [`${studyBucket}/${studyPrefix}`],
           },
         ],
@@ -695,7 +701,13 @@ describe('EnvironmentMountService', () => {
           {
             Sid: 'S3StudyReadWriteAccess',
             Effect: 'Allow',
-            Action: ['s3:GetObject', 's3:PutObject', 's3:PutObjectAcl'],
+            Action: [
+              's3:GetObject',
+              's3:AbortMultipartUpload',
+              's3:ListMultipartUploadParts',
+              's3:PutObject',
+              's3:PutObjectAcl',
+            ],
             Resource: ['StudyBucketPath_XYZ'],
           },
         ],
@@ -736,7 +748,13 @@ describe('EnvironmentMountService', () => {
           {
             Sid: 'S3StudyReadWriteAccess',
             Effect: 'Allow',
-            Action: ['s3:GetObject', 's3:PutObject', 's3:PutObjectAcl'],
+            Action: [
+              's3:GetObject',
+              's3:AbortMultipartUpload',
+              's3:ListMultipartUploadParts',
+              's3:PutObject',
+              's3:PutObjectAcl',
+            ],
             Resource: ['StudyBucketPath_XYZ', `${studyBucket}/${studyPrefix}`],
           },
         ],
@@ -882,7 +900,13 @@ describe('EnvironmentMountService', () => {
         {
           Sid: 'S3StudyReadWriteAccess',
           Effect: 'Allow',
-          Action: ['s3:GetObject', 's3:PutObject', 's3:PutObjectAcl'],
+          Action: [
+            's3:GetObject',
+            's3:AbortMultipartUpload',
+            's3:ListMultipartUploadParts',
+            's3:PutObject',
+            's3:PutObjectAcl',
+          ],
           Resource: ['AnotherStudyBucketPath', `${studyBucket}/${studyPrefix}`],
         },
       ],
@@ -917,7 +941,13 @@ describe('EnvironmentMountService', () => {
         {
           Sid: 'S3StudyReadWriteAccess',
           Effect: 'Allow',
-          Action: ['s3:GetObject', 's3:PutObject', 's3:PutObjectAcl'],
+          Action: [
+            's3:GetObject',
+            's3:AbortMultipartUpload',
+            's3:ListMultipartUploadParts',
+            's3:PutObject',
+            's3:PutObjectAcl',
+          ],
           Resource: ['AnotherStudyBucketPath'],
         },
         {
@@ -1022,7 +1052,13 @@ describe('EnvironmentMountService', () => {
         {
           Sid: 'S3StudyReadWriteAccess',
           Effect: 'Allow',
-          Action: ['s3:GetObject', 's3:PutObject', 's3:PutObjectAcl'],
+          Action: [
+            's3:GetObject',
+            's3:AbortMultipartUpload',
+            's3:ListMultipartUploadParts',
+            's3:PutObject',
+            's3:PutObjectAcl',
+          ],
           Resource: [`${studyBucket}/${studyPrefix}`],
         },
       ],
@@ -1172,7 +1208,13 @@ describe('EnvironmentMountService', () => {
         {
           Sid: 'S3StudyReadWriteAccess',
           Effect: 'Allow',
-          Action: ['s3:GetObject', 's3:PutObject', 's3:PutObjectAcl'],
+          Action: [
+            's3:GetObject',
+            's3:AbortMultipartUpload',
+            's3:ListMultipartUploadParts',
+            's3:PutObject',
+            's3:PutObjectAcl',
+          ],
           Resource: [`${studyBucket}/${studyPrefix}`],
         },
         {
@@ -1215,6 +1257,108 @@ describe('EnvironmentMountService', () => {
           Effect: 'Allow',
           Action: ['s3:GetObject'],
           Resource: ['AnotherStudyBucketPath', `${studyBucket}/${studyPrefix}`],
+        },
+      ],
+    };
+    service._getIamUpdateParams = jest.fn().mockResolvedValue(IamUpdateParams);
+
+    // OPERATE
+    await service.applyWorkspacePermissions(studyId, updateRequest);
+
+    // CHECK
+    expect(iamService.putRolePolicy).toHaveBeenCalledWith(
+      IamUpdateParams.roleName,
+      IamUpdateParams.studyDataPolicyName,
+      JSON.stringify(IamUpdateParams.policyDoc),
+      IamUpdateParams.iamClient,
+    );
+    expect(IamUpdateParams.policyDoc).toMatchObject(expectedPolicy);
+  });
+
+  it('should ensure permission updates when admins are removed are as expected', async () => {
+    // BUILD
+    const updateRequest = {
+      usersToAdd: [{ uid: 'User1-UID', permissionLevel: 'readwrite' }],
+      usersToRemove: [{ uid: 'User1-UID', permissionLevel: 'admin' }],
+    };
+    const studyId = 'StudyA';
+    const envsForUser = [{ studyIds: ['StudyA'] }];
+    environmentScService.getActiveEnvsForUser = jest.fn().mockResolvedValue(envsForUser);
+    iamService.putRolePolicy = jest.fn();
+    const studyBucket = 'arn:aws:s3:::xxxxxxxx-namespace-studydata';
+    const studyPrefix = 'studies/Organization/SampleStudy/*';
+    const inputPolicy = {
+      Version: '2012-10-17',
+      Statement: [
+        {
+          Sid: 'studyKMSAccess',
+          Action: ['Permission1', 'Permission2'],
+          Effect: 'Allow',
+          Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
+        },
+        {
+          Sid: 'studyListS3AccessN',
+          Effect: 'Allow',
+          Action: 's3:ListBucket',
+          Resource: studyBucket,
+          Condition: {
+            StringLike: {
+              's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
+            },
+          },
+        },
+        {
+          Sid: 'S3StudyReadAccess',
+          Effect: 'Allow',
+          Action: ['s3:GetObject'],
+          Resource: ['AnotherStudyBucketPath', `${studyBucket}/${studyPrefix}`],
+        },
+      ],
+    };
+    const IamUpdateParams = {
+      iamClient: 'sampleIamClient',
+      studyPathArn: `${studyBucket}/${studyPrefix}`,
+      policyDoc: inputPolicy,
+      roleName: 'sampleRoleName',
+      studyDataPolicyName: 'sampleStudyDataPolicy',
+    };
+    const expectedPolicy = {
+      Version: '2012-10-17',
+      Statement: [
+        {
+          Sid: 'studyKMSAccess',
+          Action: ['Permission1', 'Permission2'],
+          Effect: 'Allow',
+          Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
+        },
+        {
+          Sid: 'studyListS3AccessN',
+          Effect: 'Allow',
+          Action: 's3:ListBucket',
+          Resource: studyBucket,
+          Condition: {
+            StringLike: {
+              's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
+            },
+          },
+        },
+        {
+          Sid: 'S3StudyReadAccess',
+          Effect: 'Allow',
+          Action: ['s3:GetObject'],
+          Resource: ['AnotherStudyBucketPath'],
+        },
+        {
+          Sid: 'S3StudyReadWriteAccess',
+          Effect: 'Allow',
+          Action: [
+            's3:GetObject',
+            's3:AbortMultipartUpload',
+            's3:ListMultipartUploadParts',
+            's3:PutObject',
+            's3:PutObjectAcl',
+          ],
+          Resource: [`${studyBucket}/${studyPrefix}`],
         },
       ],
     };
