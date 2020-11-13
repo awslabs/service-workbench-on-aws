@@ -168,7 +168,13 @@ class EnvironmentMountService extends Service {
             Sid: putSid,
             Effect: 'Allow',
             Principal: { AWS: [] },
-            Action: ['s3:AbortMultipartUpload', 's3:ListMultipartUploadParts', 's3:PutObject', 's3:PutObjectAcl'],
+            Action: [
+              's3:AbortMultipartUpload',
+              's3:ListMultipartUploadParts',
+              's3:PutObject',
+              's3:PutObjectAcl',
+              's3:DeleteObject',
+            ],
             Resource: [`arn:aws:s3:::${s3BucketName}/${prefix}*`],
           };
 
@@ -281,7 +287,7 @@ class EnvironmentMountService extends Service {
       }
     };
 
-    await runAndCaptureErrors(allowedUsers, users => this.addPermissions(users, studyId, updateRequest));
+    await runAndCaptureErrors(allowedUsers, users => this.addPermissions(users, studyId));
     await runAndCaptureErrors(disAllowedUsers, users => this.removePermissions(users, studyId, updateRequest));
     await runAndCaptureErrors(permissionChangeUsers, users => this.updatePermissions(users, studyId, updateRequest));
 
@@ -304,16 +310,11 @@ class EnvironmentMountService extends Service {
    * @param {Object[]} allowedUsers - Users that newly/continue-to have access to given studyId
    * @param {String} studyId
    */
-  async addPermissions(allowedUsers, studyId, updateRequest) {
+  async addPermissions(allowedUsers, studyId) {
     const [iamService, environmentScService] = await this.service(['iamService', 'environmentScService']);
     const errors = [];
     await Promise.all(
       _.map(allowedUsers, async user => {
-        const existingStudyAdmins = _.filter(updateRequest.usersToAdd, u => u.permissionLevel === 'admin');
-        const removedStudyAdmins = _.filter(updateRequest.usersToRemove, u => u.permissionLevel === 'admin');
-        const isStudyAdmin = !_.isEmpty(
-          _.filter([...existingStudyAdmins, ...removedStudyAdmins], u => u.uid === user.uid),
-        );
         const userOwnedEnvs = await environmentScService.getActiveEnvsForUser(user.uid);
         const envsWithStudy = _.filter(userOwnedEnvs, env => _.includes(env.studyIds, studyId));
         await Promise.all(
@@ -328,11 +329,15 @@ class EnvironmentMountService extends Service {
               } = await this._getIamUpdateParams(env, studyId);
 
               const statementSidToUse = this._getStatementSidToUse(user.permissionLevel);
+              let ensureRemovedPermission;
+              if (statementSidToUse === readOnlyStatementId) {
+                ensureRemovedPermission = readWriteStatementId;
+              } else if (statementSidToUse === readWriteStatementId) {
+                ensureRemovedPermission = readOnlyStatementId;
+              }
               policyDoc.Statement = this._getStatementsAfterAddition(policyDoc, studyPathArn, statementSidToUse);
               policyDoc.Statement = this._ensureListAccess(policyDoc, studyPathArn);
-              if (isStudyAdmin && user.permissionLevel === readWritePermissionLevel) {
-                policyDoc.Statement = this._getStatementsAfterRemoval(policyDoc, studyPathArn, readOnlyStatementId);
-              }
+              policyDoc.Statement = this._getStatementsAfterRemoval(policyDoc, studyPathArn, ensureRemovedPermission);
               await iamService.putRolePolicy(roleName, studyDataPolicyName, JSON.stringify(policyDoc), iamClient);
             } catch (error) {
               const envId = env.id;
@@ -541,6 +546,7 @@ class EnvironmentMountService extends Service {
               's3:ListMultipartUploadParts',
               's3:PutObject',
               's3:PutObjectAcl',
+              's3:DeleteObject',
             ]
           : ['s3:GetObject'],
       Resource: [studyPathArn],
@@ -662,6 +668,9 @@ class EnvironmentMountService extends Service {
   }
 
   async _getWorkspacePolicy(iamClient, env) {
+    if (!env.outputs) {
+      throw new Error('Environment outputs are not ready yet. Please make sure environment is in Completed status');
+    }
     const iamService = await this.service('iamService');
     const workspaceRoleArn = _.find(env.outputs, { OutputKey: 'WorkspaceInstanceRoleArn' }).OutputValue;
     const roleName = workspaceRoleArn.split('role/')[1];
@@ -837,6 +846,7 @@ class EnvironmentMountService extends Service {
           's3:ListMultipartUploadParts',
           's3:PutObject',
           's3:PutObjectAcl',
+          's3:DeleteObject',
         ];
         statements.push({
           Sid: readWriteStatementId,
