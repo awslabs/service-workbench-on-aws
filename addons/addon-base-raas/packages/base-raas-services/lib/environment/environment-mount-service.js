@@ -25,6 +25,11 @@ const settingKeys = {
   studyDataKmsPolicyWorkspaceSid: 'studyDataKmsPolicyWorkspaceSid',
 };
 
+const readOnlyPermissionLevel = 'readonly';
+const readWritePermissionLevel = 'readwrite';
+const readWriteStatementId = 'S3StudyReadWriteAccess';
+const readOnlyStatementId = 'S3StudyReadAccess';
+
 const parseS3Arn = arn => {
   const path = arn.slice('arn:aws:s3:::'.length);
   const slashIndex = path.indexOf('/');
@@ -100,43 +105,6 @@ class EnvironmentMountService extends Service {
     };
 
     return this._updateResourcePolicies({ updateAwsPrincipals, workspaceRoleArn, s3Prefixes });
-  }
-
-  /**
-   * This method is triggered when EC2 Linux, Windows and RStudio Start / Stop
-   * And when any workspace is terminated
-   * @param requestContext
-   * @param existingEnvironment: environment that's being stopped / started or terminated
-   * @param ipAllowListAction: One required field action and one optional field ip
-   * @return {Promise<void>}
-   */
-  async updateStudyFileMountIPAllowList(requestContext, existingEnvironment, ipAllowListAction) {
-    const [storageGatewayService, studyService] = await this.service(['storageGatewayService', 'studyService']);
-    // Check if the mounted study is using StorageGateway
-    const studiesList = await studyService.listByIds(
-      requestContext,
-      existingEnvironment.studyIds.map(id => {
-        return { id };
-      }),
-    );
-
-    // If yes, get the file share ARNs and call to update IP allow list
-    const fileShareARNs = studiesList.map(study => study.resources[0].fileShareArn).filter(arn => !_.isUndefined(arn));
-    if (!_.isEmpty(fileShareARNs)) {
-      let ip;
-      // If IP is in ipAllowListAction, use that, if not, find it in existingEnvironment
-      if ('ip' in ipAllowListAction) {
-        ip = ipAllowListAction.ip;
-      } else {
-        ip = existingEnvironment.outputs.filter(output => output.OutputKey === 'Ec2WorkspacePublicIp');
-        // When terminating a product that's not EC2 based, do nothing
-        if (_.isEmpty(ip)) {
-          return;
-        }
-        ip = ip[0].OutputValue;
-      }
-      await storageGatewayService.updateFileSharesIPAllowedList(fileShareARNs, ip, ipAllowListAction.action);
-    }
   }
 
   async _updateResourcePolicies({ updateAwsPrincipals, workspaceRoleArn, s3Prefixes }) {
@@ -313,8 +281,8 @@ class EnvironmentMountService extends Service {
       }
     };
 
-    await runAndCaptureErrors(allowedUsers, users => this.addPermissions(users, studyId));
-    await runAndCaptureErrors(disAllowedUsers, users => this.removePermissions(users, studyId));
+    await runAndCaptureErrors(allowedUsers, users => this.addPermissions(users, studyId, updateRequest));
+    await runAndCaptureErrors(disAllowedUsers, users => this.removePermissions(users, studyId, updateRequest));
     await runAndCaptureErrors(permissionChangeUsers, users => this.updatePermissions(users, studyId, updateRequest));
 
     if (!_.isEmpty(errors)) {
@@ -336,11 +304,14 @@ class EnvironmentMountService extends Service {
    * @param {Object[]} allowedUsers - Users that newly/continue-to have access to given studyId
    * @param {String} studyId
    */
-  async addPermissions(allowedUsers, studyId) {
+  async addPermissions(allowedUsers, studyId, updateRequest) {
     const [iamService, environmentScService] = await this.service(['iamService', 'environmentScService']);
     const errors = [];
     await Promise.all(
       _.map(allowedUsers, async user => {
+        const isStudyAdmin = !_.isEmpty(
+          _.filter(updateRequest.usersToAdd, u => u.permissionLevel === 'admin' && u.uid === user.uid),
+        );
         const userOwnedEnvs = await environmentScService.getActiveEnvsForUser(user.uid);
         const envsWithStudy = _.filter(userOwnedEnvs, env => _.includes(env.studyIds, studyId));
         await Promise.all(
@@ -357,6 +328,9 @@ class EnvironmentMountService extends Service {
               const statementSidToUse = this._getStatementSidToUse(user.permissionLevel);
               policyDoc.Statement = this._getStatementsAfterAddition(policyDoc, studyPathArn, statementSidToUse);
               policyDoc.Statement = this._ensureListAccess(policyDoc, studyPathArn);
+              if (isStudyAdmin && user.permissionLevel === readWritePermissionLevel) {
+                policyDoc.Statement = this._getStatementsAfterRemoval(policyDoc, studyPathArn, readOnlyStatementId);
+              }
               await iamService.putRolePolicy(roleName, studyDataPolicyName, JSON.stringify(policyDoc), iamClient);
             } catch (error) {
               const envId = env.id;
@@ -379,11 +353,14 @@ class EnvironmentMountService extends Service {
    * @param {Object[]} disAllowedUsers - Users that lost access to given studyId
    * @param {String} studyId
    */
-  async removePermissions(disAllowedUsers, studyId) {
+  async removePermissions(disAllowedUsers, studyId, updateRequest) {
     const [iamService, environmentScService] = await this.service(['iamService', 'environmentScService']);
     const errors = [];
     await Promise.all(
       _.map(disAllowedUsers, async user => {
+        const isStudyAdmin = !_.isEmpty(
+          _.filter(updateRequest.usersToAdd, u => u.permissionLevel === 'admin' && u.uid === user.uid),
+        );
         const userOwnedEnvs = await environmentScService.getActiveEnvsForUser(user.uid);
         const envsWithStudy = _.filter(userOwnedEnvs, env => _.includes(env.studyIds, studyId));
         await Promise.all(
@@ -398,8 +375,12 @@ class EnvironmentMountService extends Service {
               } = await this._getIamUpdateParams(env, studyId);
 
               const statementSidToUse = this._getStatementSidToUse(user.permissionLevel);
+              // Study admin should always have R/O access (for backwards compatibility)
               policyDoc.Statement = this._getStatementsAfterRemoval(policyDoc, studyPathArn, statementSidToUse);
               policyDoc.Statement = this._removeListAccess(policyDoc, studyPathArn);
+              if (isStudyAdmin) {
+                policyDoc.Statement = this._ensureReadAccessForAdmin(policyDoc, studyPathArn);
+              }
               await iamService.putRolePolicy(roleName, studyDataPolicyName, JSON.stringify(policyDoc), iamClient);
             } catch (error) {
               const envId = env.id;
@@ -471,6 +452,19 @@ class EnvironmentMountService extends Service {
   }
 
   /**
+   * Function that returns updated policy document after making sure study admin at least continues to have R/O access
+   *
+   * @param {Object} policyDoc - S3 studydata policy document for workspace role
+   * @param {String} studyPathArn
+   * @returns {Object[]} - the statement to update in the policy
+   */
+  _ensureReadAccessForAdmin(policyDoc, studyPathArn) {
+    policyDoc.Statement = this._ensureListAccess(policyDoc, studyPathArn);
+    policyDoc.Statement = this._getStatementsAfterAddition(policyDoc, studyPathArn, readOnlyStatementId);
+    return policyDoc.Statement;
+  }
+
+  /**
    * Function that returns updated policy document with additions according to recent user-study permission change
    *
    * @param {Object} policyDoc - S3 studydata policy document for workspace role
@@ -538,7 +532,7 @@ class EnvironmentMountService extends Service {
       Sid: statementSidToUse,
       Effect: 'Allow',
       Action:
-        statementSidToUse === 'S3StudyReadWriteAccess'
+        statementSidToUse === readWriteStatementId
           ? ['s3:GetObject', 's3:PutObject', 's3:PutObjectAcl']
           : ['s3:GetObject'],
       Resource: [studyPathArn],
@@ -688,10 +682,10 @@ class EnvironmentMountService extends Service {
 
   _getStatementSidToUse(permissionLevel) {
     let statementSidToUse = '';
-    if (permissionLevel === 'readwrite') {
-      statementSidToUse = 'S3StudyReadWriteAccess';
-    } else if (permissionLevel === 'readonly') {
-      statementSidToUse = 'S3StudyReadAccess';
+    if (permissionLevel === readWritePermissionLevel) {
+      statementSidToUse = readWriteStatementId;
+    } else if (permissionLevel === readOnlyPermissionLevel) {
+      statementSidToUse = readOnlyStatementId;
     }
     if (statementSidToUse === '') {
       throw new Error(
@@ -828,20 +822,20 @@ class EnvironmentMountService extends Service {
       const writeableStudies = _.filter(studyInfo, study => study.writeable);
       const readonlyStudies = _.filter(studyInfo, study => !study.writeable);
 
-      if (writeableStudies.length) {
+      if (writeableStudies.length && writeableStudies.length > 0) {
         const objectLevelWriteActions = ['s3:GetObject', 's3:PutObject', 's3:PutObjectAcl'];
         statements.push({
-          Sid: 'S3StudyReadWriteAccess',
+          Sid: readWriteStatementId,
           Effect: 'Allow',
           Action: objectLevelWriteActions,
           Resource: this._getObjectPathArns(writeableStudies),
         });
       }
 
-      if (readonlyStudies.length) {
+      if (readonlyStudies.length && readonlyStudies.length > 0) {
         const objectLevelReadActions = ['s3:GetObject'];
         statements.push({
-          Sid: 'S3StudyReadAccess',
+          Sid: readOnlyStatementId,
           Effect: 'Allow',
           Action: objectLevelReadActions,
           Resource: this._getObjectPathArns(readonlyStudies),
