@@ -19,20 +19,11 @@ const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 
 const registerSchema = require('../schema/register-data-source-bucket');
-const compositeKey = require('../helpers/composite-key');
+const { bucketIdCompositeKey } = require('./helpers/composite-keys');
 
 const settingKeys = {
   tableName: 'dbDsAccounts',
 };
-
-// bucketId is an object that helps us encode/decode accountId/bucket name combination so that
-// it can be used as a composite key in the table.
-const bucketId = compositeKey(
-  'ACT#',
-  'BUK#',
-  obj => ({ pk: obj.accountId, sk: obj.name }),
-  (pk, sk) => ({ accountId: pk, name: sk }),
-);
 
 /**
  * This service is responsible for persisting the data source bucket information.
@@ -69,11 +60,11 @@ class DataSourceBucketService extends Service {
     );
 
     const result = await this._getter()
-      .key(bucketId.encode({ accountId, name }))
+      .key(bucketIdCompositeKey.encode({ accountId, name }))
       .projection(fields)
       .get();
 
-    return this._fromDbToDataObject(result);
+    return this.fromDbToDataObject(result);
   }
 
   async mustFind(requestContext, { accountId, name, fields = [] }) {
@@ -112,12 +103,12 @@ class DataSourceBucketService extends Service {
     });
 
     // Time to save the the db object
-    const result = this._fromDbToDataObject(
+    const result = this.fromDbToDataObject(
       await runAndCatch(
         async () => {
           return this._updater()
             .condition('attribute_not_exists(pk) and attribute_not_exists(sk)') // yes we need this
-            .key(bucketId.encode(rawData))
+            .key(bucketIdCompositeKey.encode(rawData))
             .item(dbObject)
             .update();
         },
@@ -142,12 +133,12 @@ class DataSourceBucketService extends Service {
   }
 
   // Do some properties renaming to restore the object that was saved in the database
-  _fromDbToDataObject(rawDb, overridingProps = {}) {
+  fromDbToDataObject(rawDb, overridingProps = {}) {
     if (_.isNil(rawDb)) return rawDb; // important, leave this if statement here, otherwise, your update methods won't work correctly
     if (!_.isObject(rawDb)) return rawDb;
 
     const dataObject = { ...rawDb, ...overridingProps };
-    const { accountId, name } = bucketId.decode(dataObject);
+    const { accountId, name } = bucketIdCompositeKey.decode(dataObject);
     dataObject.accountId = accountId;
     dataObject.name = name;
     delete dataObject.pk;

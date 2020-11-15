@@ -12,6 +12,9 @@ function compositeKey(pkPrefix, skPrefix, encodeFn, decodeFn) {
       const sk = chopLeft(obj.sk, skPrefix);
       return decodeFn(pk, sk);
     },
+
+    pkPrefix,
+    skPrefix,
   };
 }
 

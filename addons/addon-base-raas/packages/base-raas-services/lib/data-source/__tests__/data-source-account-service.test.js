@@ -22,7 +22,6 @@ jest.mock('@aws-ee/base-services/lib/logger/logger-service');
 jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
 jest.mock('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
 jest.mock('@aws-ee/base-services/lib/audit/audit-writer-service');
-jest.mock('../data-source-bucket-service');
 
 const Aws = require('@aws-ee/base-services/lib/aws/aws-service');
 const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
@@ -272,6 +271,46 @@ describe('DataSourceAccountService', () => {
       await expect(service.registerBucket(requestContext, rawData)).rejects.toThrow(
         expect.objectContaining({ boom: true, code: 'notFound', safe: true }),
       );
+    });
+  });
+
+  describe('list accounts', () => {
+    it('only admins are allowed to list data source accounts', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid } };
+
+      await expect(service.listAccounts(requestContext)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'forbidden', safe: true }),
+      );
+    });
+
+    it('list accounts with buckets as children', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
+      const bucket1 = { accountId: '123456789011', name: 'bucket-1', region: 'us-east-1', partition: 'aws' };
+      const bucket2 = { accountId: '123456789011', name: 'bucket-2', region: 'us-east-1', partition: 'aws' };
+      const bucket3 = { accountId: '123456789012', name: 'bucket-3', region: 'us-east-1', partition: 'aws' };
+      const acct1 = { id: '123456789011', name: 'account 1' };
+      const acct2 = { id: '123456789012', name: 'account 2' };
+      const acct3 = { id: '123456789013', name: 'account 3' };
+
+      dbService.table.scan = jest.fn(() => {
+        const result = [];
+        _.forEach([bucket1, bucket2, bucket3], item => {
+          result.push({ ..._.omit(item, ['accountId', 'name']), pk: `ACT#${item.accountId}`, sk: `BUK#${item.name}` });
+        });
+        _.forEach([acct1, acct2, acct3], item => {
+          result.push({ ..._.omit(item, ['id']), pk: `ACT#${item.id}`, sk: `ACT#${item.id}` });
+        });
+
+        return result;
+      });
+
+      await expect(service.listAccounts(requestContext)).resolves.toStrictEqual([
+        { ...acct1, buckets: [bucket1, bucket2] },
+        { ...acct2, buckets: [bucket3] },
+        { ...acct3, buckets: [] },
+      ]);
     });
   });
 });

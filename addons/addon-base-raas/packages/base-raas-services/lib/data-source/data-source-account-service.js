@@ -21,20 +21,11 @@ const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/autho
 const { generateId } = require('../helpers/utils');
 const registerSchema = require('../schema/register-data-source-account');
 const updateSchema = require('../schema/update-data-source-account');
-const compositeKey = require('../helpers/composite-key');
+const { accountIdCompositeKey, bucketIdCompositeKey } = require('./helpers/composite-keys');
 
 const settingKeys = {
   tableName: 'dbDsAccounts',
 };
-
-// accountIdCompositeKey is an object that helps us encode/decode the account id so that
-// it can be used as a composite key in the table.
-const accountIdCompositeKey = compositeKey(
-  'ACT#',
-  'ACT#',
-  obj => ({ pk: obj.id, sk: obj.id }),
-  pk => pk,
-);
 
 /**
  * This service is responsible for persisting the data source account information.
@@ -221,6 +212,44 @@ class DataSourceAccountService extends Service {
     const [bucketService] = await this.service(['dataSourceBucketService']);
 
     return bucketService.register(requestContext, accountEntity, _.omit(rawData, ['accountId']));
+  }
+
+  async listAccounts(requestContext, { fields = [] } = {}) {
+    await this.assertAuthorized(requestContext, { action: 'listAccounts', conditions: [allowIfActive, allowIfAdmin] });
+    const [bucketService] = await this.service(['dataSourceBucketService']);
+
+    // Remember doing a scan is not a good idea if millions of accounts
+    const output = await this._scanner()
+      .limit(1000)
+      .projection(fields)
+      .scan();
+
+    // The output array above has a mix entries of accounts and buckets, what we want is to build
+    // the result as an array of [ {...accountEntity, buckets = [ bucketEntities] ] }, ...]
+    const accountMap = {};
+    const isBucketItem = item => _.startsWith(item.sk, bucketIdCompositeKey.skPrefix);
+    const getAccountEntry = accountId => {
+      const entry = accountMap[`${accountId}`] || { id: accountId, buckets: [] };
+      accountMap[`${accountId}`] = entry;
+      return entry;
+    };
+
+    const result = [];
+    _.forEach(output, item => {
+      let entry;
+      if (isBucketItem(item)) {
+        entry = bucketService.fromDbToDataObject(item);
+        const accountEntry = getAccountEntry(entry.accountId);
+        accountEntry.buckets.push(entry);
+      } else {
+        entry = this._fromDbToDataObject(item);
+        const accountEntry = { ...getAccountEntry(entry.id), ...entry };
+        accountMap[`${entry.id}`] = accountEntry;
+        result.push(accountEntry);
+      }
+    });
+
+    return result;
   }
 
   // Do some properties renaming to prepare the object to be saved in the database

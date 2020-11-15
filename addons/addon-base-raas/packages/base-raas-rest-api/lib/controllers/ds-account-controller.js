@@ -25,9 +25,11 @@ async function configure(context) {
   router.get(
     '/accounts',
     wrap(async (req, res) => {
-      // const requestContext = res.locals.requestContext;
-      // TODO
-      res.status(200).json([]);
+      const requestContext = res.locals.requestContext;
+      const service = await context.service('dataSourceAccountService');
+      const result = await service.listAccounts(requestContext);
+
+      res.status(200).json(result);
     }),
   );
 
