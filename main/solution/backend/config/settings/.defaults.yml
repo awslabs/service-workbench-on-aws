@@ -177,6 +177,9 @@ dbKeyPairs: ${self:custom.settings.dbPrefix}-KeyPairs
 # DynamoDB table for managing StorageGateway
 dbStorageGateway: ${self:custom.settings.dbPrefix}-StorageGateway
 
+# DynamoDB table name for Data source accounts
+dbDsAccounts: ${self:custom.settings.dbPrefix}-DsAccounts
+
 # ================================ DB Settings - Depreciated ===========================================
 
 # DynamoDB table name for supported authentication provider types
