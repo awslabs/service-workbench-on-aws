@@ -22,8 +22,7 @@ jest.mock('@aws-ee/base-services/lib/logger/logger-service');
 jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
 jest.mock('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
 jest.mock('@aws-ee/base-services/lib/audit/audit-writer-service');
-jest.mock('../../study/study-service');
-jest.mock('../../study/study-permission-service');
+jest.mock('../data-source-bucket-service');
 
 const Aws = require('@aws-ee/base-services/lib/aws/aws-service');
 const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
@@ -33,8 +32,7 @@ const SettingsService = require('@aws-ee/base-services/lib/settings/env-settings
 const AuthService = require('@aws-ee/base-services/lib/authorization/authorization-service');
 const AuditService = require('@aws-ee/base-services/lib/audit/audit-writer-service');
 const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
-const StudyService = require('../../study/study-service');
-const StudyPermissionService = require('../../study/study-permission-service');
+const DataSourceBucketService = require('../data-source-bucket-service');
 const DataSourceAccountService = require('../data-source-account-service');
 
 describe('DataSourceAccountService', () => {
@@ -53,17 +51,15 @@ describe('DataSourceAccountService', () => {
     container.register('pluginRegistryService', new PluginRegistryService());
     container.register('authorizationService', new AuthService());
     container.register('auditWriterService', new AuditService());
-    container.register('studyService', new StudyService());
-    container.register('studyPermissionService', new StudyPermissionService());
     container.register('dataSourceAccountService', new DataSourceAccountService());
+    container.register('dataSourceBucketService', new DataSourceBucketService());
     await container.initServices();
 
     // Get instance of the service we are testing
     const aws = await container.find('aws');
     AwsMock.setSDKInstance(aws.sdk);
-    service = await container.find('dataSourceAccountService');
 
-    // Get the service we need to spy input on
+    service = await container.find('dataSourceAccountService');
     dbService = await container.find('dbService');
   });
 
@@ -71,14 +67,14 @@ describe('DataSourceAccountService', () => {
     AwsMock.restore();
   });
 
-  describe('create account', () => {
+  describe('register account', () => {
     it('should call DBService with correct input', async () => {
       const uid = 'u-currentUserId';
       const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
       const id = '123456789012';
       const rawData = { id, name: 'Computer Science Department Account', type: 'managed-nonmember' };
 
-      await service.createAccount(requestContext, rawData);
+      await service.registerAccount(requestContext, rawData);
 
       expect(dbService.table.key).toHaveBeenCalledWith({ pk: `ACT#${id}`, sk: `ACT#${id}` });
       expect(dbService.table.item).toHaveBeenCalledWith(
@@ -97,12 +93,12 @@ describe('DataSourceAccountService', () => {
       );
     });
 
-    it('only admins are allowed to create data source accounts', async () => {
+    it('only admins are allowed to register data source accounts', async () => {
       const uid = 'u-currentUserId';
       const requestContext = { principalIdentifier: { uid } };
       const rawData = { id: '123456789012', name: 'Computer Science Department Account', type: 'managed-nonmember' };
 
-      await expect(service.createAccount(requestContext, rawData)).rejects.toThrow(
+      await expect(service.registerAccount(requestContext, rawData)).rejects.toThrow(
         // It is better to check using boom.code instead of just the actual string, unless
         // there are a few errors with the exact same boom code but different messages.
         // Note: if you encounter a case where a service is throwing exceptions with the
@@ -112,7 +108,7 @@ describe('DataSourceAccountService', () => {
       );
     });
 
-    it('throws if account already exists', async () => {
+    it('throws if account already registered', async () => {
       const uid = 'u-currentUserId';
       const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
       const rawData = { id: '123456789012', name: 'Computer Science Department Account', type: 'managed-nonmember' };
@@ -134,7 +130,7 @@ describe('DataSourceAccountService', () => {
         }
       });
 
-      await expect(service.createAccount(requestContext, rawData)).rejects.toThrow(
+      await expect(service.registerAccount(requestContext, rawData)).rejects.toThrow(
         // It is better to check using boom.code instead of just the actual string, unless
         // there are a few errors with the exact same boom code but different messages.
         // Note: if you encounter a case where a service is throwing exceptions with the
@@ -150,7 +146,7 @@ describe('DataSourceAccountService', () => {
       const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
       const rawData = { id: '123456789012', name: 'Computer Science Department Account', type: 'unmanaged' };
 
-      await expect(service.createAccount(requestContext, rawData)).rejects.toThrow(
+      await expect(service.registerAccount(requestContext, rawData)).rejects.toThrow(
         expect.objectContaining({ boom: true, code: 'notSupported', safe: true }),
       );
     });
@@ -238,6 +234,43 @@ describe('DataSourceAccountService', () => {
 
       await expect(service.updateAccount(requestContext, rawData)).rejects.toThrow(
         expect.objectContaining({ boom: true, code: 'outdatedUpdateAttempt', safe: true }),
+      );
+    });
+  });
+
+  describe('register bucket', () => {
+    it('only admins are allowed to register data source buckets', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid } };
+      const rawData = { accountId: '123456789012', name: 'bucket-1', region: 'us-east-1', partition: 'aws' };
+
+      await expect(service.registerBucket(requestContext, rawData)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'forbidden', safe: true }),
+      );
+    });
+
+    it('throws if account does not exist', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
+      const rawData = { accountId: '123456789012', name: 'bucket-1', region: 'us-east-1', partition: 'aws' };
+      let pKey;
+      let sKey;
+      dbService.table.key = jest.fn(({ pk, sk }) => {
+        pKey = pk;
+        sKey = sk;
+        return dbService.table;
+      });
+
+      dbService.table.get = jest.fn(() => {
+        const id = rawData.accountId;
+        if (pKey === `ACT#${id}` && sKey === `ACT#${id}`) {
+          return undefined;
+        }
+        return { pk: `ACT#${id}`, sk: `ACT#${id}` };
+      });
+
+      await expect(service.registerBucket(requestContext, rawData)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'notFound', safe: true }),
       );
     });
   });

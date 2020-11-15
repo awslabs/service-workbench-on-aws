@@ -40,7 +40,7 @@ async function configure(context) {
       const requestContext = res.locals.requestContext;
       const possibleBody = req.body;
       const service = await context.service('dataSourceAccountService');
-      const result = await service.createAccount(requestContext, possibleBody);
+      const result = await service.registerAccount(requestContext, possibleBody);
 
       res.status(201).json(result);
     }),
@@ -59,6 +59,22 @@ async function configure(context) {
       const result = await service.updateAccount(requestContext, { ...possibleBody, id });
 
       res.status(200).json(result);
+    }),
+  );
+
+  // ===============================================================
+  //  POST /accounts/:id/buckets (mounted to /api/data-sources)
+  // ===============================================================
+  router.post(
+    '/accounts/:id/buckets',
+    wrap(async (req, res) => {
+      const id = req.params.id;
+      const requestContext = res.locals.requestContext;
+      const possibleBody = req.body;
+      const service = await context.service('dataSourceAccountService');
+      const result = await service.registerBucket(requestContext, { ...possibleBody, accountId: id });
+
+      res.status(201).json(result);
     }),
   );
 

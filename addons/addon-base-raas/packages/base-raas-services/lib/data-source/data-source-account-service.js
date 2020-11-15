@@ -19,7 +19,7 @@ const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 
 const { generateId } = require('../helpers/utils');
-const createSchema = require('../schema/create-data-source-account');
+const registerSchema = require('../schema/register-data-source-account');
 const updateSchema = require('../schema/update-data-source-account');
 const compositeKey = require('../helpers/composite-key');
 
@@ -27,9 +27,9 @@ const settingKeys = {
   tableName: 'dbDsAccounts',
 };
 
-// accountId is an object that helps us encode/decode the account id so that
+// accountIdCompositeKey is an object that helps us encode/decode the account id so that
 // it can be used as a composite key in the table.
-const accountId = compositeKey(
+const accountIdCompositeKey = compositeKey(
   'ACT#',
   'ACT#',
   obj => ({ pk: obj.id, sk: obj.id }),
@@ -48,8 +48,7 @@ class DataSourceAccountService extends Service {
       'jsonSchemaValidationService',
       'authorizationService',
       'dbService',
-      'studyService',
-      'studyPermissionService',
+      'dataSourceBucketService',
       'auditWriterService',
     ]);
   }
@@ -72,7 +71,7 @@ class DataSourceAccountService extends Service {
     await this.assertAuthorized(requestContext, { action: 'read', conditions: [allowIfActive, allowIfAdmin] }, { id });
 
     const result = await this._getter()
-      .key(accountId.encode({ id }))
+      .key(accountIdCompositeKey.encode({ id }))
       .projection(fields)
       .get();
 
@@ -85,18 +84,18 @@ class DataSourceAccountService extends Service {
     return result;
   }
 
-  async createAccount(requestContext, rawData) {
-    // Ensure that the caller has permissions to create the account
+  async registerAccount(requestContext, rawData) {
+    // Ensure that the caller has permissions to register the account
     // Perform default condition checks to make sure the user is active and is admin
     await this.assertAuthorized(
       requestContext,
-      { action: 'create', conditions: [allowIfActive, allowIfAdmin] },
+      { action: 'register', conditions: [allowIfActive, allowIfAdmin] },
       rawData,
     );
 
     // Validate input
     const [validationService] = await this.service(['jsonSchemaValidationService']);
-    await validationService.ensureValid(rawData, createSchema);
+    await validationService.ensureValid(rawData, registerSchema);
 
     // unmanaged accounts are not supported yet
     if (rawData.type === 'unmanaged')
@@ -137,18 +136,18 @@ class DataSourceAccountService extends Service {
         async () => {
           return this._updater()
             .condition('attribute_not_exists(pk)') // yes we need this
-            .key(accountId.encode(rawData))
+            .key(accountIdCompositeKey.encode(rawData))
             .item(dbObject)
             .update();
         },
         async () => {
-          throw this.boom.alreadyExists(`account with id "${id}" already exists`, true);
+          throw this.boom.alreadyExists(`account with id "${id}" already registered`, true);
         },
       ),
     );
 
     // Write audit event
-    await this.audit(requestContext, { action: 'create-data-source-account', body: result });
+    await this.audit(requestContext, { action: 'register-data-source-account', body: result });
 
     return result;
   }
@@ -179,7 +178,7 @@ class DataSourceAccountService extends Service {
         async () => {
           return this._updater()
             .condition('attribute_exists(pk) and attribute_exists(sk)') // yes we need this
-            .key(accountId.encode(rawData))
+            .key(accountIdCompositeKey.encode(rawData))
             .rev(rev)
             .item(dbObject)
             .update();
@@ -207,6 +206,23 @@ class DataSourceAccountService extends Service {
     return result;
   }
 
+  async registerBucket(requestContext, rawData) {
+    // We delegate most of the work to the DataSourceBuckService including input validation.
+    // However, we still want to ensure that the caller has permissions to register the bucket
+    // Perform default condition checks to make sure the user is active and is admin
+    await this.assertAuthorized(
+      requestContext,
+      { action: 'registerBucket', conditions: [allowIfActive, allowIfAdmin] },
+      rawData,
+    );
+
+    const { accountId } = rawData;
+    const accountEntity = await this.mustFindAccount(requestContext, { id: accountId });
+    const [bucketService] = await this.service(['dataSourceBucketService']);
+
+    return bucketService.register(requestContext, accountEntity, _.omit(rawData, ['accountId']));
+  }
+
   // Do some properties renaming to prepare the object to be saved in the database
   _fromRawToDbObject(rawObject, overridingProps = {}) {
     const dbObject = { ...rawObject, ...overridingProps };
@@ -220,7 +236,7 @@ class DataSourceAccountService extends Service {
     if (!_.isObject(rawDb)) return rawDb;
 
     const dataObject = { ...rawDb, ...overridingProps };
-    dataObject.id = accountId.decode(dataObject);
+    dataObject.id = accountIdCompositeKey.decode(dataObject);
     delete dataObject.pk;
     delete dataObject.sk;
 

@@ -46,6 +46,7 @@ const EnvironmentScService = require('@aws-ee/base-raas-services/lib/environment
 const EnvironmentConfigVarsService = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-config-vars-service');
 const EnvironmentScKeypairService = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-keypair-service');
 const DataSourceAccountService = require('@aws-ee/base-raas-services/lib/data-source/data-source-account-service');
+const DataSourceBucketService = require('@aws-ee/base-raas-services/lib/data-source/data-source-bucket-service');
 
 const settingKeys = {
   tablePrefix: 'dbPrefix',
@@ -94,6 +95,7 @@ async function registerServices(container, pluginRegistry) {
   container.register('pluginRegistryService', new PluginRegistryService(pluginRegistry), { lazy: false });
   container.register('jwtService', new JwtService());
   container.register('dataSourceAccountService', new DataSourceAccountService());
+  container.register('dataSourceBucketService', new DataSourceBucketService());
 
   // Authorization Services from raas addon
   container.register('raasUserAuthzService', new UserAuthzService());
