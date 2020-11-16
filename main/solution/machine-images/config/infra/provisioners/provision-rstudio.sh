@@ -9,6 +9,7 @@ sudo yum install -y "/tmp/rstudio/${rstudio_rpm}"
 sudo systemctl enable rstudio-server
 sudo systemctl restart rstudio-server
 
+sudo yum install -y git
 
 # Create a user for RStudio to use; its password is set at boot time
 sudo useradd -m rstudio-user
@@ -37,13 +38,12 @@ sudo crontab -l 2>/dev/null > "/tmp/crontab"
 echo '@reboot /usr/local/bin/set-password 2>&1 >> /var/log/set-password.log' >> "/tmp/crontab"
 sudo crontab "/tmp/crontab"
 
-
 # Install script that checks idle time and shuts down if max idle is reached
 sudo mv "/tmp/rstudio/check-idle" "/usr/local/bin/"
 sudo chown root: "/usr/local/bin/check-idle"
 sudo chmod 775 "/usr/local/bin/check-idle"
 sudo crontab -l 2>/dev/null > "/tmp/crontab"
-echo '*/5 * * * * /usr/local/bin/check-idle 2>&1 >> /var/log/check-idle.log' >> "/tmp/crontab"
+echo '*/2 * * * * /usr/local/bin/check-idle 2>&1 >> /var/log/check-idle.log' >> "/tmp/crontab"
 sudo crontab "/tmp/crontab"
 
 

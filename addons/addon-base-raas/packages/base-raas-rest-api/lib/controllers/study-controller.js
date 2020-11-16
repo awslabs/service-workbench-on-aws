@@ -17,7 +17,12 @@ async function configure(context) {
   const router = context.router();
   const wrap = context.wrap;
 
-  const [studyService, studyPermissionService] = await context.service(['studyService', 'studyPermissionService']);
+  const [studyService, studyPermissionService, environmentMountService, lockService] = await context.service([
+    'studyService',
+    'studyPermissionService',
+    'environmentMountService',
+    'lockService',
+  ]);
 
   // ===============================================================
   //  GET / (mounted to /api/studies)
@@ -120,9 +125,10 @@ async function configure(context) {
       const requestContext = res.locals.requestContext;
       const filenames = req.query.filenames.split(',');
 
-      // Check permissions against a PUT request since uploading files to the study
-      //   is a mutating action
-      await studyPermissionService.verifyRequestorAccess(requestContext, studyId, 'PUT');
+      // Check permissions against an UPLOAD request.
+      // Note that we are not checking against 'PUT' which is an admin only feature since a user with 'Write'
+      // access should also be able to upload files to the study
+      await studyPermissionService.verifyRequestorAccess(requestContext, studyId, 'UPLOAD');
 
       const result = await studyService.createPresignedPostRequests(requestContext, studyId, filenames);
       res.status(200).json(result);
@@ -156,13 +162,22 @@ async function configure(context) {
       const updateRequest = req.body;
 
       // Validate permissions and usage
+      // For future - Move authZ logic inside service (or new service) & move away from verifyRequestorAccess
       await studyPermissionService.verifyRequestorAccess(requestContext, studyId, req.method);
       const study = await studyService.mustFind(requestContext, studyId);
       if (study.category === 'My Studies') {
         throw context.boom.forbidden('Permissions cannot be set for studies in the "My Studies" category', true);
       }
+      if (study.category === 'Open Data') {
+        throw context.boom.forbidden('Permissions cannot be set for studies in the "Open Data" category', true);
+      }
 
-      const result = await studyPermissionService.update(requestContext, studyId, updateRequest);
+      const result = await lockService.tryWriteLockAndRun({ id: `${studyId}-workspaces` }, async () => {
+        const updateOutcome = await studyPermissionService.update(requestContext, studyId, updateRequest);
+        await environmentMountService.applyWorkspacePermissions(studyId, updateRequest);
+        // Nice-to-have: Add number of workspaces updated to result object
+        return updateOutcome;
+      });
       res.status(200).json(result);
     }),
   );

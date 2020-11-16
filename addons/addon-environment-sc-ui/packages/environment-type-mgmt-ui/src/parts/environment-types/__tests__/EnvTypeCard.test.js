@@ -17,9 +17,15 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import EnvTypeCard from '../EnvTypeCard';
 
+const mockPluginRegistry = {
+  visitPlugins: (extensionPoint, methodName, { payload = {} } = {}) => {
+    return payload;
+  },
+};
+
 describe('EnvTypeCard', () => {
   it('should be true', () => {
-    const wrapper = shallow(<EnvTypeCard.WrappedComponent envType="Workspace" />);
+    const wrapper = shallow(<EnvTypeCard.WrappedComponent envType="Workspace" pluginRegistry={mockPluginRegistry} />);
     expect(wrapper).toBeDefined();
   });
 });

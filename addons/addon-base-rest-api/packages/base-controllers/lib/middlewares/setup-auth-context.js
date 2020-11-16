@@ -26,9 +26,10 @@ module.exports = async function configure(context) {
       res.locals.authenticated = false; // start with false;
       const { context: { authorizer } = {} } = req;
       if (authorizer) {
-        const { token, isApiKey, username, identityProviderName, authenticationProviderId } = authorizer;
+        const { uid, token, isApiKey, username, identityProviderName, authenticationProviderId } = authorizer;
         res.locals.token = token;
         res.locals.isApiKey = isApiKey; // may be undefined if the token is not an api key
+        res.locals.uid = uid;
         res.locals.username = username;
         res.locals.identityProviderName = identityProviderName;
         res.locals.authenticationProviderId = authenticationProviderId;

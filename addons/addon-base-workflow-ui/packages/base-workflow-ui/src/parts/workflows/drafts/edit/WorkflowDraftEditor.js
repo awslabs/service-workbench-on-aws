@@ -63,7 +63,7 @@ class WorkflowDraftEditor extends React.Component {
     return this.stores;
   }
 
-  getUserDisplayNameService() {
+  getUserDisplayName() {
     return this.props.userDisplayName;
   }
 
@@ -152,8 +152,8 @@ class WorkflowDraftEditor extends React.Component {
     const version = this.getVersion();
     const { id, title } = version;
     const { createdAt, createdBy } = draft;
-    const displayNameService = this.getUserDisplayNameService();
-    const by = () => <span className="ml1">by {displayNameService.getDisplayName(createdBy)}</span>;
+    const userDisplayName = this.getUserDisplayName();
+    const by = () => <span className="ml1">by {userDisplayName.getDisplayName({ uid: createdBy })}</span>;
 
     if (!hasDraft) {
       return <ErrorBox error={`The workflow template draft "${draftId}" is not available`} className="p0" />;

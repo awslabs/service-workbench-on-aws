@@ -23,7 +23,7 @@ const createSchema = require('../schema/create-account');
 const updateSchema = require('../schema/update-account');
 
 const settingKeys = {
-  tableName: 'dbTableAccounts',
+  tableName: 'dbAccounts',
   apiHandlerArn: 'apiHandlerArn',
   workflowRoleArn: 'workflowRoleArn',
 };
@@ -102,6 +102,10 @@ class AccountService extends Service {
     }
     const workflowRoleArn = this.settings.get(settingKeys.workflowRoleArn);
     const apiHandlerArn = this.settings.get(settingKeys.apiHandlerArn);
+    const aws = await this.service('aws');
+    const { Account: callerAccountId } = await new aws.sdk.STS({ apiVersion: '2011-06-15' })
+      .getCallerIdentity()
+      .promise();
 
     // trigger the provision environment workflow
     // TODO: remove CIDR default once its in the gui and backend
@@ -114,6 +118,7 @@ class AccountService extends Service {
       description,
       workflowRoleArn,
       apiHandlerArn,
+      callerAccountId,
     };
     await workflowTriggerService.triggerWorkflow(requestContext, { workflowId: 'wf-provision-account' }, input);
 
@@ -123,7 +128,7 @@ class AccountService extends Service {
 
   async saveAccountToDb(requestContext, rawData, id, status = 'PENDING') {
     // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     // Prepare the db object
     const date = new Date().toISOString();
     const dbObject = this._fromRawToDbObject(rawData, {
@@ -168,7 +173,7 @@ class AccountService extends Service {
     const jsonSchemaValidationService = await this.service('jsonSchemaValidationService');
     await jsonSchemaValidationService.ensureValid(rawData, updateSchema);
 
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
 
     // Prepare the db object
     const existingAccount = await this.mustFind(requestContext, { id: rawData.id });

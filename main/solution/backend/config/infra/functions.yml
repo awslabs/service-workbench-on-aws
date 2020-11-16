@@ -13,12 +13,23 @@ openDataScrapeHandler:
   tags: ${self:custom.tags}
   description: Handles scraping the metadata from the AWS open data registry.
   environment:
-    APP_DB_TABLE_STUDIES_CATEGORY_INDEX: ${self:custom.settings.dbTableStudiesCategoryIndex}
+    APP_DB_STUDIES_CATEGORY_INDEX: ${self:custom.settings.dbStudiesCategoryIndex}
     APP_STUDY_DATA_BUCKET_NAME: ${self:custom.settings.studyDataBucketName}
   events:
     - schedule:
         rate: rate(1 day)
         description: 'Invokes the lambda function that scrapes the awslabs/open-data-registry to find new studies and insert them into DynamoDB.'
+
+envStatusPollHandler:
+  handler: src/lambdas/env-status-poll-handler/handler.handler
+  role: RoleApiHandler # This is a temporary patch for cross account assume role
+  tags: ${self:custom.tags}
+  timeout: 900 # in seconds, default is 6
+  description: Handles status polling for sc environments
+  events:
+    - schedule:
+        rate: rate(3 minutes)
+        description: 'Invokes the lambda function that polls and synchronize environment status.'
 
 apiHandler:
   handler: src/lambdas/api-handler/handler.handler
@@ -90,7 +101,7 @@ apiHandler:
     APP_EC2_LINUX_AMI_PREFIX: ${self:custom.settings.ec2LinuxAmiPrefix}
     APP_EC2_WINDOWS_AMI_PREFIX: ${self:custom.settings.ec2WindowsAmiPrefix}
     APP_EMR_AMI_PREFIX: ${self:custom.settings.emrAmiPrefix}
-    APP_DB_TABLE_STUDIES_CATEGORY_INDEX: ${self:custom.settings.dbTableStudiesCategoryIndex}
+    APP_DB_STUDIES_CATEGORY_INDEX: ${self:custom.settings.dbStudiesCategoryIndex}
     APP_STUDY_DATA_BUCKET_NAME: ${self:custom.settings.studyDataBucketName}
     APP_WORKFLOW_ROLE_ARN: ${self:custom.settings.workflowLoopRunnerRoleArn}
     APP_API_HANDLER_ARN: ${self:custom.settings.apiHandlerRoleArn}
@@ -116,7 +127,7 @@ workflowLoopRunner:
     APP_PARAM_STORE_ROOT: ${self:custom.settings.paramStoreRoot}
     APP_PARAM_STORE_JWT_SECRET: ${self:custom.settings.paramStoreJwtSecret}
     APP_JWT_OPTIONS: ${self:custom.settings.jwtOptions}
-    APP_DB_TABLE_STUDIES_CATEGORY_INDEX: ${self:custom.settings.dbTableStudiesCategoryIndex}
+    APP_DB_STUDIES_CATEGORY_INDEX: ${self:custom.settings.dbStudiesCategoryIndex}
     APP_STUDY_DATA_BUCKET_NAME: ${self:custom.settings.studyDataBucketName}
     APP_ARTIFACTS_BUCKET_NAME: ${self:custom.settings.deploymentBucketName}
     APP_ENVIRONMENT_INSTANCE_FILES: ${self:custom.settings.environmentInstanceFiles}

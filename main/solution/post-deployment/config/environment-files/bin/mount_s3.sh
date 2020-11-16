@@ -16,7 +16,7 @@ MOUNT_DIR="${HOME}/studies"
 # Exit if CONFIG doesn't exist or is 0 bytes
 [ ! -s "$CONFIG" ] && exit 0
 
-# Define a function to determine what type of environment this is (EMR, SageMaker, or EC2 Linux)
+# Define a function to determine what type of environment this is (EMR, SageMaker, RStudio, or EC2 Linux)
 env_type() {
     if [ -d "/usr/share/aws/emr" ]
     then
@@ -24,6 +24,9 @@ env_type() {
     elif [ -d "/home/ec2-user/SageMaker" ]
     then
         printf "sagemaker"
+    elif [ -d "/var/log/rstudio-server" ]
+    then
+        printf "rstudio"
     else
         printf "ec2-linux"
     fi
@@ -38,6 +41,7 @@ do
     study_id="$(printf "%s" "$mounts" | jq -r ".[$study_idx].id" -)"
     s3_bucket="$(printf "%s" "$mounts" | jq -r ".[$study_idx].bucket" -)"
     s3_prefix="$(printf "%s" "$mounts" | jq -r ".[$study_idx].prefix" -)"
+    region="$(curl http://169.254.169.254/latest/meta-data/placement/region)"
 
     # Mount S3 location if not already mounted
     study_dir="${MOUNT_DIR}/${study_id}"
@@ -46,7 +50,7 @@ do
     then
         printf 'Mounting study "%s" at "%s"\n' "$study_id" "$study_dir"
         mkdir -p "$study_dir"
-        goofys "${s3_bucket}:${s3_prefix}" "$study_dir"
+        goofys --region "${region}" --acl "bucket-owner-full-control" "${s3_bucket}:${s3_prefix}" "$study_dir"
     fi
 done
 

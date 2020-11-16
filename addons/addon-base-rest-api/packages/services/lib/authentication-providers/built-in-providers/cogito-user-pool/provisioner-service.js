@@ -15,6 +15,7 @@
 
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
+const { generateIdSync } = require('@aws-ee/base-services/lib/helpers/utils');
 const authProviderConstants = require('../../constants').authenticationProviders;
 
 const settingKeys = {
@@ -424,6 +425,13 @@ class ProvisionerService extends Service {
       if (err.code === 'InvalidParameterException' && err.message.indexOf('already exists') >= 0) {
         // The domain already exists so nothing to do. Just log and move on.
         this.log.info(`The Cognito User Pool Domain with Prefix "${userPoolDomain}" already exists. Nothing to do.`);
+      } else if (
+        err.code === 'InvalidParameterException' &&
+        err.message.indexOf('already associated with another user pool') >= 0 &&
+        // Cognito user pool domain prefix hard limit is 63, we keep it at less then 62 so the retry logic has a decent chance to succeed
+        userPoolDomain.length < 62
+      ) {
+        await this.retryCreateDomain(cognitoIdentityServiceProvider, params, userPoolDomain, 10);
       } else {
         // Re-throw any other error, so it doesn't fail silently
         throw err;
@@ -431,6 +439,30 @@ class ProvisionerService extends Service {
     }
     providerConfig.userPoolDomain = userPoolDomain;
     return providerConfig;
+  }
+
+  // Recursive function that retries padding different strings for cognito domain
+  // Recursion ends when a valid Cognito domain is found, an error other than domin already associated is thrown, or retryCount reached
+  async retryCreateDomain(cognitoIdentityServiceProvider, params, userPoolDomain, retryCount) {
+    // Cognito requires domain prefix to be 63 or shorter
+    params.Domain = generateIdSync(userPoolDomain)
+      .substr(0, 63)
+      .toLowerCase();
+    try {
+      await cognitoIdentityServiceProvider.createUserPoolDomain(params).promise();
+    } catch (err) {
+      retryCount -= 1;
+      if (retryCount < 0) {
+        throw err;
+      } else if (
+        err.code === 'InvalidParameterException' &&
+        err.message.indexOf('already associated with another user pool') >= 0
+      ) {
+        await this.retryCreateDomain(cognitoIdentityServiceProvider, params, userPoolDomain, retryCount);
+      } else {
+        throw err;
+      }
+    }
   }
 }
 

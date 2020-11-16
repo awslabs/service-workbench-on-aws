@@ -112,7 +112,7 @@ For EC2 Windows, the only two fields not available in drop down are instance typ
 
 ### Configuration for SageMaker
 
-For SageMaker, the only field not available in drop down is Instance Type.
+For SageMaker, the only field not available in drop down is Instance Type. To make sure you're using the right SageMaker type be sure that the configuration options includes "AccessFromCIDRBlock"
 <img src={useBaseUrl('img/deployment/post_deployment/sc_sagemaker_00.png')} />
 <img src={useBaseUrl('img/deployment/post_deployment/sc_sagemaker_01.png')} />
 
@@ -131,6 +131,13 @@ EMR requires a few more fields not available in drop down
 <img src={useBaseUrl('img/deployment/post_deployment/sc_emr_00.png')} />
 <img src={useBaseUrl('img/deployment/post_deployment/sc_emr_01.png')} />
 <img src={useBaseUrl('img/deployment/post_deployment/sc_emr_02.png')} />
+
+### Configuration for RStudio
+
+For RStudio, the only two fields not available in drop down are instance type and AMI id (same as EC2 Linux).
+
+<img src={useBaseUrl('img/deployment/post_deployment/sc_rstudio_00.png')} />
+<img src={useBaseUrl('img/deployment/post_deployment/sc_rstudio_01.png')} />
 
 ### Approve
 

@@ -23,7 +23,7 @@ const WorkflowInstanceService = require('@aws-ee/base-workflow-core/lib/workflow
 const WorkflowTriggerService = require('@aws-ee/base-workflow-core/lib/workflow/workflow-trigger-service');
 
 const settingKeys = {
-  tablePrefix: 'dbTablePrefix',
+  tablePrefix: 'dbPrefix',
 };
 
 /**
@@ -64,13 +64,13 @@ function getStaticSettings(existingStaticSettings, settings, pluginRegistry) {
   const table = (key, suffix) => {
     staticSettings[key] = `${tablePrefix}-${suffix}`;
   };
-  table('dbTableStepTemplates', 'DbStepTemplates');
-  table('dbTableWorkflowTemplates', 'DbWorkflowTemplates');
-  table('dbTableWorkflowTemplateDrafts', 'DbWorkflowTemplateDrafts');
-  table('dbTableWorkflowDrafts', 'DbWorkflowDrafts');
-  table('dbTableWorkflows', 'DbWorkflows');
-  table('dbTableWorkflowInstances', 'DbWorkflowInstances');
-  table('dbTableWfAssignments', 'DbWfAssignments');
+  table('dbStepTemplates', 'StepTemplates');
+  table('dbWorkflowTemplates', 'WorkflowTemplates');
+  table('dbWorkflowTemplateDrafts', 'WorkflowTemplateDrafts');
+  table('dbWorkflowDrafts', 'WorkflowDrafts');
+  table('dbWorkflows', 'Workflows');
+  table('dbWorkflowInstances', 'WorkflowInstances');
+  table('dbWfAssignments', 'WfAssignments');
 
   return staticSettings;
 }

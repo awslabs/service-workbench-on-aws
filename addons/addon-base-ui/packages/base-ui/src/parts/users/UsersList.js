@@ -131,7 +131,6 @@ class UsersList extends React.Component {
     // Due to this, MobX does not re-render the component when observable state changes.
     // To make this work correctly, we need to access "this.mapOfUsersBeingEdited" out side of ReactTable once
     const usersBeingEditedMap = this.mapOfUsersBeingEdited;
-    // console.log(_.keys(usersBeingEditedMap));
 
     const store = this.getStore();
     const nonRootUsers = store.nonRootUsers;

@@ -8,6 +8,8 @@ Once a User has found the Study or Studies that they are interested in performin
 
 A Workspace is an environment that contains a set of tools to access and integrate data. The following environments are currently provided:
 
+Note: There's currently a 10K limit on the number of workspaces that can be created in one SWB environment. 
+
 - **SageMaker Notebook** - A SageMaker Jupyter Notebook with TensorFlow, Apache MXNet and Scikit-learn2
 - **EMR** - An Amazon EMR research workspace with Hail 0.2, JupyterLab, Spark 2.4.4 and Hadoop 2.8.52
 - **EC2 - Linux** - An EC2 Linux instance.

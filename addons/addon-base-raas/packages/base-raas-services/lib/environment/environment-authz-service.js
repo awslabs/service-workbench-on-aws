@@ -75,7 +75,7 @@ class EnvironmentAuthzService extends Service {
     }
 
     // Allow if the caller is the environment creator (owner) or admin
-    let permissionSoFar = await allowIfCurrentUserOrAdmin(requestContext, { action }, envCreator);
+    let permissionSoFar = await allowIfCurrentUserOrAdmin(requestContext, { action }, { uid: envCreator });
     if (isDeny(permissionSoFar)) return permissionSoFar; // return if denying
 
     // Even if the user is owner (creator) of the env his/her role may have changed (e.g., to guest or internal-guest)
@@ -96,7 +96,7 @@ class EnvironmentAuthzService extends Service {
       return deny(`Cannot ${action} the workspace. Workspace creator information is not available`);
     }
     // Allow if the caller is the environment creator (owner) or admin
-    let permissionSoFar = await allowIfCurrentUserOrAdmin(requestContext, { action }, envCreator);
+    let permissionSoFar = await allowIfCurrentUserOrAdmin(requestContext, { action }, { uid: envCreator });
 
     if (isDeny(permissionSoFar)) {
       const isProjectAdmin = await this.isEnvironmentProjectAdmin(requestContext, environment);

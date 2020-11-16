@@ -38,13 +38,19 @@ async function authenticate(authenticationPluginPayload) {
 
   const logger = await container.find('log');
   try {
-    const { username, authenticationProviderId, identityProviderName } = authResult;
+    const { uid, username, authenticationProviderId, identityProviderName } = authResult;
+
     const userService = await container.find('userService');
-    const user = await userService.mustFindUser({
-      username,
-      authenticationProviderId,
-      identityProviderName,
-    });
+    let user;
+    if (uid) {
+      user = await userService.findUser({ uid });
+    } else {
+      user = await userService.findUserByPrincipal({
+        username,
+        authenticationProviderId,
+        identityProviderName,
+      });
+    }
     const userRoleId = _.get(user, 'userRole');
     if (!userRoleId) {
       // no user role, don't know what kind of user is this, return not authenticated

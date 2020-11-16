@@ -23,8 +23,8 @@ const createSchema = require('../schema/create-study');
 const updateSchema = require('../schema/update-study');
 
 const settingKeys = {
-  tableName: 'dbTableStudies',
-  categoryIndexName: 'dbTableStudiesCategoryIndex',
+  tableName: 'dbStudies',
+  categoryIndexName: 'dbStudiesCategoryIndex',
   studyDataBucketName: 'studyDataBucketName',
 };
 
@@ -76,6 +76,15 @@ class StudyService extends Service {
     return result;
   }
 
+  async listByIds(requestContext, ids, fields = []) {
+    const result = await this._getter()
+      .keys(ids)
+      .projection(fields)
+      .get();
+
+    return result.map(record => this.fromDbToDataObject(record));
+  }
+
   async create(requestContext, rawData) {
     if (!(isInternalResearcher(requestContext) || isAdmin(requestContext))) {
       throw this.boom.forbidden('Only admin and internal researcher are authorized to create studies. ');
@@ -86,7 +95,7 @@ class StudyService extends Service {
     await validationService.ensureValid(rawData, createSchema);
 
     // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
 
     // validate if study can be read/write
     this.validateStudyType(rawData.accessType, rawData.category);
@@ -159,7 +168,7 @@ class StudyService extends Service {
     await validationService.ensureValid(rawData, updateSchema);
 
     // For now, we assume that 'updatedBy' is always a user and not a group
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     const { id, rev } = rawData;
 
     const study = await this.mustFind(requestContext, id);
@@ -193,9 +202,7 @@ class StudyService extends Service {
         const existing = await this.find(requestContext, id, ['id', 'updatedBy']);
         if (existing) {
           throw this.boom.badRequest(
-            `study information changed by "${
-              (existing.updatedBy || {}).username
-            }" just before your request is processed, please try again`,
+            `study information changed just before your request is processed, please try again`,
             true,
           );
         }
@@ -257,11 +264,14 @@ class StudyService extends Service {
 
             // Filter by category and inject requestor's access level
             const studyAccessMap = {};
-            ['admin', 'readonly'].forEach(level =>
-              permissions[`${level}Access`].forEach(studyId => {
-                studyAccessMap[studyId] = level;
-              }),
-            );
+            ['admin', 'readwrite', 'readonly'].forEach(level => {
+              const studiesWithPermission = permissions[`${level}Access`];
+              if (studiesWithPermission && studiesWithPermission.length > 0)
+                studiesWithPermission.forEach(studyId => {
+                  studyAccessMap[studyId] = level;
+                });
+            });
+
             result = rawResult
               .filter(study => study.category === category)
               .map(study => ({
@@ -402,9 +412,9 @@ class StudyService extends Service {
     return auditWriterService.writeAndForget(requestContext, auditEvent);
   }
 
-  // ensure that study accessType is read/write for Open Data category
+  // ensure that study accessType isn't read/write for Open Data category
   validateStudyType(accessType, studyCategory) {
-    if (accessType === 'ReadWrite' && studyCategory === 'Open Data') {
+    if (accessType === 'readwrite' && studyCategory === 'Open Data') {
       throw this.boom.badRequest('Open Data study cannot be read/write', true);
     }
   }

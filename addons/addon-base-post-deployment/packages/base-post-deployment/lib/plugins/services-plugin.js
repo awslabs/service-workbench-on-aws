@@ -33,7 +33,7 @@ const registerBuiltInAuthProvisioners = require('@aws-ee/base-api-services/lib/a
 const DeploymentStoreService = require('../deployment-store-service');
 
 const settingKeys = {
-  tablePrefix: 'dbTablePrefix',
+  tablePrefix: 'dbPrefix',
 };
 
 /**
@@ -86,13 +86,13 @@ function getStaticSettings(existingStaticSettings, settings, pluginRegistry) {
   const table = (key, suffix) => {
     staticSettings[key] = `${tablePrefix}-${suffix}`;
   };
-  table('dbTableAuthenticationProviderTypes', 'DbAuthenticationProviderTypes');
-  table('dbTableAuthenticationProviderConfigs', 'DbAuthenticationProviderConfigs');
-  table('dbTablePasswords', 'DbPasswords');
-  table('dbTableUserApiKeys', 'DbUserApiKeys');
-  table('dbTableRevokedTokens', 'DbRevokedTokens');
-  table('dbTableUsers', 'DbUsers');
-  table('dbTableLocks', 'DbLocks');
+  table('dbAuthenticationProviderTypes', 'AuthenticationProviderTypes');
+  table('dbAuthenticationProviderConfigs', 'AuthenticationProviderConfigs');
+  table('dbPasswords', 'Passwords');
+  table('dbUserApiKeys', 'UserApiKeys');
+  table('dbRevokedTokens', 'RevokedTokens');
+  table('dbUsers', 'Users');
+  table('dbLocks', 'Locks');
 
   return staticSettings;
 }

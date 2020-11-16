@@ -18,12 +18,10 @@ import { getEnv, types } from 'mobx-state-tree';
 import { getApiKeys, createNewApiKey, revokeApiKey } from '../../helpers/api';
 import { BaseStore } from '../BaseStore';
 import ApiKey from './ApiKey';
-import UserIdentifier from '../users/UserIdentifier';
 
 const ApiKeysStore = BaseStore.named('ApiKeysStore')
   .props({
-    userIdentifierStr: types.identifier,
-    userIdentifier: UserIdentifier,
+    uid: types.identifier,
     apiKeys: types.optional(types.map(ApiKey), {}),
   })
   .actions(self => {
@@ -31,10 +29,8 @@ const ApiKeysStore = BaseStore.named('ApiKeysStore')
     const superCleanup = self.cleanup;
     return {
       async doLoad() {
-        const username = self.userIdentifier.username;
-        const ns = self.userIdentifier.ns;
-        // do not pass username or ns params when loading api keys for current user
-        const apiKeys = await getApiKeys(!self.isStoreForCurrentUser() && { username, ns });
+        // do not pass uid param when loading api keys for current user
+        const apiKeys = await getApiKeys(!self.isStoreForCurrentUser() && { uid: self.uid });
         self.runInAction(() => {
           const map = {};
           apiKeys.forEach(apiKey => {
@@ -45,9 +41,7 @@ const ApiKeysStore = BaseStore.named('ApiKeysStore')
         });
       },
       async createNewApiKey() {
-        const username = self.userIdentifier.username;
-        const ns = self.userIdentifier.ns;
-        const apiKey = await createNewApiKey(!self.isStoreForCurrentUser() && { username, ns });
+        const apiKey = await createNewApiKey(!self.isStoreForCurrentUser() && { uid: self.uid });
         self.runInAction(() => {
           // The put call below will automatically use the id from ApiKey
           // (as it is marked "types.identifier") and add that as a key in the map and
@@ -56,9 +50,7 @@ const ApiKeysStore = BaseStore.named('ApiKeysStore')
         });
       },
       async revokeApiKey(apiKeyId) {
-        const username = self.userIdentifier.username;
-        const ns = self.userIdentifier.ns;
-        const apiKey = await revokeApiKey(apiKeyId, !self.isStoreForCurrentUser() && { username, ns });
+        const apiKey = await revokeApiKey(apiKeyId, !self.isStoreForCurrentUser() && { uid: self.uid });
         self.runInAction(() => {
           self.apiKeys.put(ApiKey.create(apiKey));
         });
@@ -80,15 +72,12 @@ const ApiKeysStore = BaseStore.named('ApiKeysStore')
       return result;
     },
     isStoreForCurrentUser: () => {
-      const username = self.userIdentifier.username;
-      const ns = self.userIdentifier.ns;
-
       const userStore = getEnv(self).userStore;
       const currentUser = userStore.user;
-      return currentUser.username === username && currentUser.ns === ns;
+      return currentUser.uid === self.uid;
     },
   }));
 
 // Note: Do NOT register this in the global context, if you want to gain access to an instance
-//       use UserStore.apiKeysStore or UsersStore.getApiKeysStore(userIdentifier)
+//       use UserStore.apiKeysStore or UsersStore.getApiKeysStore(uid)
 export default ApiKeysStore;

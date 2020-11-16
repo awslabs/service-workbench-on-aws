@@ -15,8 +15,6 @@
 
 import { types, applySnapshot } from 'mobx-state-tree';
 
-import UserIdentifier from '@aws-ee/base-ui/dist/models/users/UserIdentifier';
-
 const CfnInfo = types.model({
   crossAccountExecutionRoleArn: '',
   crossAccountEnvMgmtRoleArn: '',
@@ -38,9 +36,9 @@ const Account = types
     rev: types.maybe(types.number),
     name: '',
     createdAt: '',
-    createdBy: types.optional(UserIdentifier, {}),
+    createdBy: '',
     updatedAt: '',
-    updatedBy: types.optional(UserIdentifier, {}),
+    updatedBy: '',
   })
   .actions(self => ({
     setAccount(rawAccount) {

@@ -162,7 +162,7 @@ class ScEnvironmentDetailPage extends React.Component {
       <Table definition>
         <Table.Body>
           {renderRow('Status', this.renderStatus(env))}
-          {renderRow('Owner', <By user={env.createdBy} skipPrefix />)}
+          {renderRow('Owner', <By uid={env.createdBy} skipPrefix />)}
           {renderRow('Studies', studyCount === 0 ? 'No studies linked to this workspace' : studyIds.join(', '))}
           {renderRow('Project', _.isEmpty(env.projectId) ? 'N/A' : env.projectId)}
           {renderRow('Restricted CIDR', _.isEmpty(env.cidr) ? 'N/A' : env.cidr)}
@@ -183,7 +183,7 @@ class ScEnvironmentDetailPage extends React.Component {
         <Header.Content className="left-align">{env.name}</Header.Content>
         <Header.Subheader>
           <span className="fs-8 color-grey">
-            Created <TimeAgo date={env.createdAt} className="mr2" /> <By user={env.createdBy} className="mr2" />
+            Created <TimeAgo date={env.createdAt} className="mr2" /> <By uid={env.createdBy} className="mr2" />
           </span>
           <span className="fs-8 color-grey mr2"> {env.id}</span>
         </Header.Subheader>

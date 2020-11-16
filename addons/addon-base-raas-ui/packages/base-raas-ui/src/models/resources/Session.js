@@ -41,7 +41,7 @@ const Token = types.model('Token', {
   id: '',
   expireAt: '',
   sessionId: '',
-  username: '',
+  username: types.maybeNull(types.optional(types.string, '')),
 });
 
 const Study = types.model('Study', {

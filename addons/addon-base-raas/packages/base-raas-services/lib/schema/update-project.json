@@ -23,18 +23,7 @@
       "type": "array",
       "items": [
         {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "username": {
-              "type": "string",
-              "minLength": 3
-            },
-            "ns": {
-              "type": "string",
-              "minLength": 3
-            }
-          }
+          "type": "string"
         }
       ],
       "default": []

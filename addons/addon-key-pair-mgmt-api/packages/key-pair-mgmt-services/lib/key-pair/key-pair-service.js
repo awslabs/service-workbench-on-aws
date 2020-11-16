@@ -14,9 +14,8 @@ const createKeyPairSchema = require('./schema/create-key-pair');
 const updateKeyPairSchema = require('./schema/update-key-pair');
 
 const settingKeys = {
-  tableName: 'dbTableKeyPairs',
+  tableName: 'dbKeyPairs',
 };
-const usernameIndexName = 'UsernameIndex';
 
 class KeyPairService extends Service {
   constructor() {
@@ -42,14 +41,11 @@ class KeyPairService extends Service {
     const filterPrincipalIdentifier = _.get(
       filter,
       'principal.principalIdentifier',
-      requestContext.principalIdentifier,
+      requestContext.principalIdentifier, // hash shape { uid }
     );
 
-    if (_.isEmpty(filterPrincipalIdentifier.username) || _.isEmpty(filterPrincipalIdentifier.ns)) {
-      throw this.boom.badRequest(
-        `Invalid principal filter specified. The principal filter must contain 'username' and 'ns'`,
-        true,
-      );
+    if (_.isEmpty(filterPrincipalIdentifier.uid)) {
+      throw this.boom.badRequest(`Invalid principal filter specified. The principal filter must contain 'uid'`, true);
     }
 
     // ensure that the caller has permissions to list key-pairs
@@ -64,10 +60,10 @@ class KeyPairService extends Service {
       filterPrincipalIdentifier,
     );
 
-    const username = encodePrincipalIdentifier(filterPrincipalIdentifier);
+    const uid = filterPrincipalIdentifier.uid;
     const result = await this._query()
-      .index(usernameIndexName)
-      .key('username', username) // return key-pairs associated with the specified principal
+      .index('ByUID')
+      .key('uid', uid) // return key-pairs associated with the specified principal
       .limit(2000)
       .projection(fields)
       .query();
@@ -77,10 +73,10 @@ class KeyPairService extends Service {
   }
 
   async find(requestContext, { id, fields = [] }) {
-    // Make sure 'username' is always returned as that's required for authorizing the 'get' action
-    // If empty "fields" is specified then it means the caller is asking for all fields. No need to append 'username'
+    // Make sure 'uid' is always returned as that's required for authorizing the 'get' action
+    // If empty "fields" is specified then it means the caller is asking for all fields. No need to append 'uid'
     // in that case.
-    const fieldsToGet = _.isEmpty(fields) ? fields : _.uniq([...fields, 'username']);
+    const fieldsToGet = _.isEmpty(fields) ? fields : _.uniq([...fields, 'uid']);
     const keyPair = await this._getter()
       .key({ id })
       .projection(fieldsToGet)
@@ -97,9 +93,9 @@ class KeyPairService extends Service {
           conditions: [allowIfActive, allowIfCurrentUserOrAdmin],
         },
 
-        // pass key-pair along with username and ns.
-        // The {username,ns} are required by the authorization logic in "allowIfCurrentUserOrAdmin"
-        // keyPairObj.principalIdentifier has shape { username, ns }
+        // pass key-pair along with uid.
+        // The {uid} is required by the authorization logic in "allowIfCurrentUserOrAdmin"
+        // keyPairObj.principalIdentifier has shape { uid }
         { ...keyPairObj, ...keyPairObj.principalIdentifier },
       );
 
@@ -123,9 +119,7 @@ class KeyPairService extends Service {
   }
 
   async create(requestContext, keyPair) {
-    const createKeyPairFor = keyPair.username
-      ? decodePrincipalIdentifier(keyPair.username) // keyPair.username includes ns
-      : requestContext.principalIdentifier;
+    const createKeyPairFor = keyPair && keyPair.uid ? { uid: keyPair.uid } : requestContext.principalIdentifier;
 
     const id = uuid();
 
@@ -141,14 +135,14 @@ class KeyPairService extends Service {
     const [validationService] = await this.service(['jsonSchemaValidationService']);
     await validationService.ensureValid(keyPair, createKeyPairSchema);
 
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
 
     // Prepare the db object
     const dbObject = this._fromRawToDbObject(keyPair, {
       rev: 0,
       createdBy: by,
       updatedBy: by,
-      username: encodePrincipalIdentifier(createKeyPairFor),
+      uid: createKeyPairFor.uid,
     });
 
     let privateKey = '';
@@ -196,7 +190,7 @@ class KeyPairService extends Service {
     const [validationService] = await this.service(['jsonSchemaValidationService']);
     await validationService.ensureValid(keyPair, updateKeyPairSchema);
 
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     const { id, rev } = keyPair;
 
     // Prepare the db object
@@ -220,9 +214,7 @@ class KeyPairService extends Service {
         const existing = await this.find(requestContext, { id, fields: ['id', 'updatedBy'] });
         if (existing) {
           throw this.boom.badRequest(
-            `key-pair information changed by "${
-              (existing.updatedBy || {}).username
-            }" just before your request is processed, please try again`,
+            `key-pair information changed just before your request is processed, please try again`,
             true,
           );
         }
@@ -284,15 +276,13 @@ class KeyPairService extends Service {
     if (!_.isObject(rawDb)) return rawDb;
 
     let keyPairPrincipalIdentifier = {};
-    // If keypair has 'username' then it's associated to some user
-    if (rawDb.username) {
-      // the keyPair.username includes ns
-      // decode it to get principal identifier object with { username, ns }
-      keyPairPrincipalIdentifier = decodePrincipalIdentifier(rawDb.username);
+    // If keypair has 'uid' then it's associated to some user
+    if (rawDb.uid) {
+      keyPairPrincipalIdentifier = { uid: rawDb.uid };
     }
     const dataObject = _.omit(
       { ...rawDb, principalIdentifier: keyPairPrincipalIdentifier, ...overridingProps },
-      'username', // remove username as we are sending principalIdentifier object instead
+      'uid', // remove uid as we are sending principalIdentifier object with shape { uid } instead
     );
     return dataObject;
   }
@@ -374,17 +364,4 @@ class KeyPairService extends Service {
   }
 }
 
-function encodePrincipalIdentifier(principalIdentifier = {}) {
-  return JSON.stringify(principalIdentifier);
-}
-function decodePrincipalIdentifier(
-  principalIdentifierStr = '{}',
-  errorMsg = 'Incorrect username specified. It must be a valid JSON string containing {username,ns}',
-) {
-  try {
-    return JSON.parse(principalIdentifierStr);
-  } catch (e) {
-    throw this.boom.badRequest(errorMsg, true);
-  }
-}
 module.exports = KeyPairService;

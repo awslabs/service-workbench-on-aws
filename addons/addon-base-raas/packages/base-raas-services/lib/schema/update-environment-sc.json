@@ -16,6 +16,11 @@
       "type": "string",
       "maxLength": 2048
     },
+    "inWorkflow": {
+      "type": "string",
+      "maxLength": 2048,
+      "description": "Mark true for environment in workflow to exclude it from status poll and sync"
+    },
     "error": {
       "type": "string",
       "maxLength": 2048

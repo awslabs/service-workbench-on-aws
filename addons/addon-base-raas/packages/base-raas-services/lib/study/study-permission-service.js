@@ -20,12 +20,17 @@ const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const updateSchema = require('../schema/update-study-permissions');
 
 const settingKeys = {
-  tableName: 'dbTableStudyPermissions',
+  tableName: 'dbStudyPermissions',
 };
+
+// The StudyPermissions table has study permissions records stored both ways to answer following questions easily
+// 1. Given a study, give me all users who have admin and/or readonly access. These records are stored with study id as partition key. In this case, the id attribute in DDB has format "Study:<study-id>".
+// 2. Given a user, give ma all studies it has admin and/or readonly access to. These records are stored with user id as partition key. In this case, the id attribute in DDB has format "User:<uid>".
 const keyPrefixes = {
   study: 'Study:',
   user: 'User:',
 };
+const permissionLevels = ['admin', 'readonly', 'writeonly', 'readwrite'];
 
 class StudyPermissionService extends Service {
   constructor() {
@@ -61,8 +66,8 @@ class StudyPermissionService extends Service {
     return StudyPermissionService.sanitizeStudyRecord(record);
   }
 
-  async findByUser(requestContext, username, fields = []) {
-    const id = StudyPermissionService.getQualifiedKey(username, 'user');
+  async findByUser(requestContext, uid, fields = []) {
+    const id = StudyPermissionService.getQualifiedKey(uid, 'user');
     return this._getter()
       .key({ id })
       .projection(fields)
@@ -73,13 +78,15 @@ class StudyPermissionService extends Service {
     let result;
 
     // Build study record
-    const creator = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     const studyRecord = {
       id: StudyPermissionService.getQualifiedKey(studyId, 'study'),
       recordType: 'study',
-      adminUsers: [creator],
+      adminUsers: [by],
       readonlyUsers: [],
-      createdBy: creator,
+      writeonlyUsers: [],
+      readwriteUsers: [],
+      createdBy: by,
     };
 
     // Create DB records
@@ -87,7 +94,7 @@ class StudyPermissionService extends Service {
       // Create/Update user record
       this.upsertUserRecord(requestContext, {
         studyId,
-        principalIdentifier: creator,
+        uid: by,
         addOrRemove: 'add',
         permissionLevel: 'admin',
       }),
@@ -125,28 +132,27 @@ class StudyPermissionService extends Service {
       const studyRecord = await this.findByStudy(requestContext, studyId);
 
       // Build updated study record
-      const updater = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
-      studyRecord.updatedBy = updater;
+      const by = _.get(requestContext, 'principalIdentifier.uid');
+      studyRecord.updatedBy = by;
 
       const filterByLevel = filterLevel => userEntry => userEntry.permissionLevel === filterLevel;
-      ['admin', 'readonly'].forEach(permissionLevel => {
+      permissionLevels.forEach(permissionLevel => {
         studyRecord[`${permissionLevel}Users`] = _.pullAllWith(
           // Existing/Added users
           _.unionWith(
             studyRecord[`${permissionLevel}Users`],
-            updateRequest.usersToAdd
-              .filter(filterByLevel(permissionLevel))
-              .map(userEntry => userEntry.principalIdentifier),
+            updateRequest.usersToAdd.filter(filterByLevel(permissionLevel)).map(userEntry => userEntry.uid),
             _.isEqual,
           ),
 
           // Removed users
-          updateRequest.usersToRemove
-            .filter(filterByLevel(permissionLevel))
-            .map(userEntry => userEntry.principalIdentifier),
+          updateRequest.usersToRemove.filter(filterByLevel(permissionLevel)).map(userEntry => userEntry.uid),
           _.isEqual,
         );
       });
+
+      // make sure that each user has either readonly, writeonly or readwrite permission
+      this.validateUpdateRequest(studyRecord);
 
       // Halt the update if all admins have been removed
       if (studyRecord.adminUsers.length < 1) {
@@ -162,25 +168,24 @@ class StudyPermissionService extends Service {
           .update(),
 
         // Update user records
-        ...updateRequest.usersToAdd.map(userEntry =>
-          this.upsertUserRecord(requestContext, {
-            studyId,
-            principalIdentifier: userEntry.principalIdentifier,
-            addOrRemove: 'add',
-            permissionLevel: userEntry.permissionLevel,
-          }),
-        ),
         ...updateRequest.usersToRemove.map(userEntry =>
           this.upsertUserRecord(requestContext, {
             studyId,
-            principalIdentifier: userEntry.principalIdentifier,
+            uid: userEntry.uid,
             addOrRemove: 'remove',
+            permissionLevel: userEntry.permissionLevel,
+          }),
+        ),
+        ...updateRequest.usersToAdd.map(userEntry =>
+          this.upsertUserRecord(requestContext, {
+            studyId,
+            uid: userEntry.uid,
+            addOrRemove: 'add',
             permissionLevel: userEntry.permissionLevel,
           }),
         ),
       ]);
     });
-
     // Return study record
     return StudyPermissionService.sanitizeStudyRecord(result[0]);
   }
@@ -202,23 +207,18 @@ class StudyPermissionService extends Service {
           .delete(),
 
         // Remove study from user records
-        studyRecord.adminUsers.map(async principalIdentifier =>
-          this.upsertUserRecord(requestContext, {
-            studyId,
-            principalIdentifier,
-            addOrRemove: 'remove',
-            permissionLevel: 'admin',
-          }),
-        ),
-
-        studyRecord.readonlyUsers.map(async principalIdentifier =>
-          this.upsertUserRecord(requestContext, {
-            studyId,
-            principalIdentifier,
-            addOrRemove: 'remove',
-            permissionLevel: 'readonly',
-          }),
-        ),
+        permissionLevels.forEach(permissionLevel => {
+          if (studyRecord[`${permissionLevel}Users`]) {
+            studyRecord[`${permissionLevel}Users`].map(async ({ uid }) =>
+              this.upsertUserRecord(requestContext, {
+                studyId,
+                uid,
+                addOrRemove: 'remove',
+                permissionLevel: `${permissionLevel}`,
+              }),
+            );
+          }
+        }),
       ]);
     });
 
@@ -227,20 +227,22 @@ class StudyPermissionService extends Service {
   }
 
   async getRequestorPermissions(requestContext) {
-    return this.findByUser(requestContext, requestContext.principalIdentifier.username, [
-      'adminAccess',
-      'readonlyAccess',
-    ]);
+    return this.findByUser(
+      requestContext,
+      requestContext.principalIdentifier.uid,
+      permissionLevels.map(level => level.concat('Access')),
+    );
   }
 
   async verifyRequestorAccess(requestContext, studyId, action) {
     const mutatingActions = ['POST', 'PUT', 'PATCH', 'DELETE'];
+    const writeUserActions = ['UPLOAD'];
     const nonMutatingActions = ['GET'];
     const notFoundError = this.boom.notFound(`Study with id "${studyId}" does not exist`, true);
     const forbiddenError = this.boom.forbidden();
 
     // Ensure a valid action was passed
-    if (!mutatingActions.concat(nonMutatingActions).includes(action)) {
+    if (!mutatingActions.concat(nonMutatingActions.concat(writeUserActions)).includes(action)) {
       throw this.boom.internalError(`Invalid action passed to verifyRequestorAccess(): ${action}`);
     }
 
@@ -253,7 +255,12 @@ class StudyPermissionService extends Service {
     // Check whether user has any access
     const hasAdminAccess = permissions.adminAccess.some(accessibleId => accessibleId === studyId);
     const hasReadonlyAccess = permissions.readonlyAccess.some(accessibleId => accessibleId === studyId);
-    if (!(hasAdminAccess || hasReadonlyAccess)) {
+    const hasWriteOnlyAccess =
+      permissions.writeonlyAccess && permissions.writeonlyAccess.some(accessibleId => accessibleId === studyId);
+    const hasReadWriteAccess =
+      permissions.readwriteAccess && permissions.readwriteAccess.some(accessibleId => accessibleId === studyId);
+
+    if (!(hasAdminAccess || hasReadonlyAccess || hasWriteOnlyAccess || hasReadWriteAccess)) {
       throw notFoundError;
     }
 
@@ -261,33 +268,38 @@ class StudyPermissionService extends Service {
     if (!hasAdminAccess && mutatingActions.includes(action)) {
       throw forbiddenError;
     }
+
+    // Deny writeUser actions like Upload to users unless they are admin or they have write access
+    if (!(hasReadWriteAccess || hasWriteOnlyAccess || hasAdminAccess) && writeUserActions.includes(action)) {
+      throw forbiddenError;
+    }
   }
 
   getEmptyUserPermissions() {
-    return { adminAccess: [], readonlyAccess: [] };
+    return { adminAccess: [], readonlyAccess: [], writeonlyAccess: [], readwriteAccess: [] };
   }
 
   /**
    * Private Methods
    */
-  async upsertUserRecord(requestContext, { studyId, principalIdentifier, addOrRemove, permissionLevel }) {
+  async upsertUserRecord(requestContext, { studyId, uid, addOrRemove, permissionLevel }) {
     // Create DB lock before pulling existing record
     let result;
-    const lockKey = this.getLockKey(principalIdentifier.username, 'user');
+    const lockKey = this.getLockKey(uid, 'user');
     await this.lockService.tryWriteLockAndRun({ id: lockKey }, async () => {
       // Check for existing record; build new record if necessary
-      let record = await this.findByUser(requestContext, principalIdentifier.username);
+      let record = await this.findByUser(requestContext, uid);
       if (!record) {
         record = {
-          id: StudyPermissionService.getQualifiedKey(principalIdentifier.username, 'user'),
+          id: StudyPermissionService.getQualifiedKey(uid, 'user'),
           recordType: 'user',
-          principalIdentifier,
+          uid,
           ...this.getEmptyUserPermissions(),
         };
       }
 
       // Deterrmine permission level
-      if (!['admin', 'readonly'].includes(permissionLevel)) {
+      if (!permissionLevels.includes(permissionLevel)) {
         throw this.boom.internalError('Bad permission level passed to _upsertUserRecord:', permissionLevel);
       }
       const permissionLevelKey = `${permissionLevel}Access`;
@@ -301,7 +313,7 @@ class StudyPermissionService extends Service {
           _.pull(record[permissionLevelKey], studyId);
           break;
         default:
-          throw this.boom.internalError('Badd addOrRemove value passed to _upsertUserRecord:', addOrRemove);
+          throw this.boom.internalError('Bad addOrRemove value passed to _upsertUserRecord:', addOrRemove);
       }
 
       // Update database
@@ -333,6 +345,32 @@ class StudyPermissionService extends Service {
 
   getLockKey(studyOrUserId, recordType) {
     return `${this.tableName}|${StudyPermissionService.getQualifiedKey(studyOrUserId, recordType)}`;
+  }
+
+  // validates if users to be added are valid by going through all the non-admin permission levels and
+  // ensuring that a single user isn't specified twice
+  validateUpdateRequest(studyRecord) {
+    const userIdToPermissionsMap = permissionLevels
+      .filter(permissionLevel => permissionLevel !== 'admin')
+      .filter(permissionLevel => studyRecord[`${permissionLevel}Users`] !== undefined)
+      .reduce(function(userIdToPermissionsMapLocal, permissionLevel) {
+        studyRecord[`${permissionLevel}Users`].forEach(uid => {
+          if (uid in userIdToPermissionsMapLocal) {
+            userIdToPermissionsMapLocal[uid].push(permissionLevel);
+          } else {
+            userIdToPermissionsMapLocal[uid] = [permissionLevel];
+          }
+        });
+        return userIdToPermissionsMapLocal;
+      }, {});
+
+    const errorString = Object.entries(userIdToPermissionsMap)
+      .filter(([, permissions]) => permissions.length > 1)
+      .map(([userId, permissions]) => `User ${userId} cannot have multiple permissions: ${permissions.join(',')}`)
+      .join('\n');
+    if (errorString.length > 0) {
+      throw this.boom.badRequest(errorString, true);
+    }
   }
 }
 

@@ -15,8 +15,6 @@
 
 import { types, applySnapshot } from 'mobx-state-tree';
 
-import UserIdentifier from '@aws-ee/base-ui/dist/models/users/UserIdentifier';
-
 // ==================================================================
 // Index
 // ==================================================================
@@ -27,9 +25,9 @@ const Index = types
     awsAccountId: '',
     description: '',
     createdAt: '',
-    createdBy: types.optional(UserIdentifier, {}),
+    createdBy: '',
     updatedAt: '',
-    updatedBy: types.optional(UserIdentifier, {}),
+    updatedBy: '',
   })
   .actions(self => ({
     setIndex(rawIndex) {

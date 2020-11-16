@@ -21,7 +21,7 @@ const obtainWriteLockSchema = require('../schema/obtain-write-lock');
 const releaseWriteLockSchema = require('../schema/release-write-lock');
 
 const settingKeys = {
-  tableName: 'dbTableLocks',
+  tableName: 'dbLocks',
 };
 
 class LockService extends Service {

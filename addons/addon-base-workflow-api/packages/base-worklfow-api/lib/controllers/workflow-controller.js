@@ -113,9 +113,8 @@ async function configure(context) {
     '/drafts',
     wrap(async (_req, res) => {
       const requestContext = res.locals.requestContext;
-      const principalIdentifier = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
 
-      const result = await workflowDraftService.list({ principalIdentifier });
+      const result = await workflowDraftService.list(requestContext);
       res.status(200).json(result);
     }),
   );

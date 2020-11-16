@@ -148,6 +148,17 @@ class IamService extends Service {
     return policy;
   }
 
+  async putRolePolicy(roleName, policyName, policyDoc, iamClient) {
+    const iamSdk = iamClient || this.api;
+    await iamSdk
+      .putRolePolicy({
+        RoleName: roleName,
+        PolicyName: policyName,
+        PolicyDocument: policyDoc,
+      })
+      .promise();
+  }
+
   async getPolicyVersion(policyArn, versionId, iamClient) {
     const iamSdk = iamClient || this.api;
     const { PolicyVersion: policyVersionInfo } = await iamSdk

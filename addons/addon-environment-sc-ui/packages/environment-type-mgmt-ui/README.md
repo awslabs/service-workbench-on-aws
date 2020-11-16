@@ -1,3 +1,3 @@
-# @aws-ee/base-raas-appstream-ui
+# Addon for Environment Types Management UI
 
-This package implements UI changes to RaaS to allow AppStream to secure the workspaces.
+This package adds UI for Workspace Type management (i.e., UI for importing workspace types based on AWS Service Catalog Products)

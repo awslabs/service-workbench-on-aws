@@ -61,7 +61,7 @@ class WorkflowCommonDraftCard extends React.Component {
     return draft.template || draft.workflow;
   }
 
-  getUserDisplayNameService() {
+  getUserDisplayName() {
     return this.props.userDisplayName;
   }
 
@@ -116,8 +116,8 @@ class WorkflowCommonDraftCard extends React.Component {
     const isTemplate = draft.template !== undefined;
     const { id, title } = version;
     const { createdAt, createdBy } = draft;
-    const displayNameService = this.getUserDisplayNameService();
-    const by = () => <span className="ml1">by {displayNameService.getDisplayName(createdBy)}</span>;
+    const userDisplayName = this.getUserDisplayName();
+    const by = () => <span className="ml1">by {userDisplayName.getDisplayName({ uid: createdBy })}</span>;
 
     return (
       <>

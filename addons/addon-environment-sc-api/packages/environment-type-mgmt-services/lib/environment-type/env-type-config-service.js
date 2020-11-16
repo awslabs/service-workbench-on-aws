@@ -149,7 +149,7 @@ class EnvTypeConfigService extends Service {
     }
 
     // Everything is good so far, time to save the given configuration to S3 now
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     const { bucket, key } = await this.getS3Coordinates(envType.id);
     const now = new Date().toISOString();
     const configToSave = this.fromRawToS3Object(config, {
@@ -215,7 +215,7 @@ class EnvTypeConfigService extends Service {
     await this.assertNoMissingParams(requestContext, envType, configToUpdate);
 
     // Everything is good so far, time to save the given configuration to S3 now
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     const { bucket, key } = await this.getS3Coordinates(envType.id);
     const now = new Date().toISOString();
     const configToSave = this.fromRawToS3Object(configToUpdate, { updatedBy: by, updatedAt: now });

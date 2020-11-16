@@ -121,13 +121,15 @@ describe('EnvironmentScConnectionService', () => {
 
     it('should get RStudio auth URL correctly', async () => {
       // BUILD
+      const requestContext = 'sampleContext';
       const id = 'exampleId';
       const connection = { instanceId: 'RStudioInstanceId' };
       envDnsService.getHostname = jest.fn(() => `rstudio-${id}.example.com`);
       service.mustFindConnection = jest.fn(() => connection);
+      service.getRstudioPublicKey = jest.fn(() => `0001:SAMPLEPUBLICKEY`);
 
       // OPERATE
-      const authUrl = await service.getRStudioUrl(id, connection);
+      const authUrl = await service.getRStudioUrl(requestContext, id, connection);
 
       // CHECK
       expect(authUrl).toEqual(`https://rstudio-${id}.example.com/auth-do-sign-in?SampleEncodedParams`);

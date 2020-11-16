@@ -28,11 +28,23 @@ function componentDeploy {
   popd > /dev/null
 }
 
+function goComponentDeploy() {
+  COMPONENT_DIR=$1
+  COMPONENT_NAME=$2
+
+  pushd "$SOLUTION_DIR/$COMPONENT_DIR" > /dev/null
+  printf "\nDeploying Go component: %s ...\n\n" "$COMPONENT_NAME"
+  $EXEC sls deploy-go -s "$STAGE"
+  printf "\nDeployed Go component: %s successfully \n\n" "$COMPONENT_NAME"
+  popd > /dev/null
+}
+
 disableStats "infrastructure"
 componentDeploy "infrastructure" "Infrastructure"
 componentDeploy "backend" "Backend"
 componentDeploy "edge-lambda" "Edge-Lambda"
 componentDeploy "post-deployment" "Post-Deployment"
+goComponentDeploy "environment-tools" "Environment-Tools"
 
 # We now need to invoke the post deployment lambda (we can do this locally)
 #$EXEC sls invoke local -f postDeployment -s $STAGE

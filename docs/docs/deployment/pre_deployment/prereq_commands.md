@@ -4,28 +4,26 @@ title: Prerequisite Software
 sidebar_label: Prerequisite Software
 ---
 ## Required Tools
-Before you can build this solution, you need the following tools installed:
+Before you can build this solution, you need the following tools installed on the machine from which you will be deploying:
 
-* Node.js (10.15.x or later) (<https://nodejs.org/>)
 * AWS Command Line Interface (<https://aws.amazon.com/cli/>)
+* Node.js (10.15.x or later) (<https://nodejs.org/>)
 * PNPM (<https://pnpm.js.org/>)
 * Serverless Framework (<http://www.serverless.com>)
 * Hygen CLI (<http://www.hygen.io>)
+* Go (<https://golang.org/doc/install>)
 
-Install the most commonly used prerequisites the following way:
+You can install NodeJS, and other prerequisites the following way:
 
 ``` {.sh}
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
-source .bashrc
+source ~/.bashrc
 nvm install 12
-npm install -g serverless pnpm hygen DELETEME
-```
+npm install -g serverless pnpm hygen
 
-## Installing PNPM, Serverless Framework & Hygen CLI
-
-Execute the following command to install PNPM, Serverless Framework and Hygen CLI on the machine you will be using to deploy the solution from:
-```bash
-$ npm install -g serverless pnpm hygen
+wget https://golang.org/dl/go1.15.3.linux-amd64.tar.gz
+tar -C /usr/local -xzf go1.15.3.linux-amd64.tar.gz
+export PATH=$PATH:/usr/local/go/bin 
 ```
 
 ## AWS Account & Access

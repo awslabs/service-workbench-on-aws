@@ -27,7 +27,7 @@ provider:
     APP_ENV_NAME: ${self:custom.settings.envName}
     APP_AWS_REGION: ${self:custom.settings.awsRegion}
     APP_SOLUTION_NAME: ${self:custom.settings.solutionName}
-    APP_DB_TABLE_PREFIX: ${self:custom.settings.dbTablePrefix}
+    APP_DB_PREFIX: ${self:custom.settings.dbPrefix}
 
 custom:
   settings: ${file(./config/settings/.settings.js):merged}
@@ -65,6 +65,9 @@ custom:
         openDataScrapeHandler:
           environment:
             APP_LOCAL_ROLE_ARN: ${cfnOutput('OpenDataScrapeHandlerRoleArn')} # When running locally, run under this role
+        envStatusPollHandler:
+          environment:
+            APP_LOCAL_ROLE_ARN: ${cfnOutput('EnvStatusPollHandlerRoleArn')} # When running locally, run under this role
 
   s3Sync:
     - bucketName: ${self:custom.settings.externalCfnTemplatesBucketName} # required

@@ -22,7 +22,7 @@ import localStorageKeys from '../../models/constants/local-storage-keys';
 class EnvironmentsList extends React.Component {
   constructor(props) {
     super(props);
-    const user = this.getUserStore.user;
+    const user = this.getUserStore().user;
 
     runInAction(() => {
       this.user = user;
@@ -32,21 +32,19 @@ class EnvironmentsList extends React.Component {
   }
 
   componentDidMount() {
-    const store = this.getStore();
-    swallowError(store.load());
-    store.startHeartbeat();
+    swallowError(this.getEnvironmentsStore().load());
+    this.getEnvironmentsStore().startHeartbeat();
   }
 
   componentWillUnmount() {
-    const store = this.getStore();
-    store.stopHeartbeat();
+    this.getEnvironmentsStore().stopHeartbeat();
   }
 
-  getStore() {
+  getEnvironmentsStore() {
     return this.props.environmentsStore;
   }
 
-  get getUserStore() {
+  getUserStore() {
     return this.props.userStore;
   }
 
@@ -85,7 +83,7 @@ class EnvironmentsList extends React.Component {
   needsAWSCredentials = () => this.user.isExternalResearcher && !this.user.hasCredentials;
 
   render() {
-    const store = this.getStore();
+    const store = this.getEnvironmentsStore();
     let content = null;
 
     if (this.needsAWSCredentials()) {
@@ -156,14 +154,14 @@ class EnvironmentsList extends React.Component {
   }
 
   renderTotal() {
-    const store = this.getStore();
+    const store = this.getEnvironmentsStore();
     if (isStoreError(store) || isStoreLoading(store)) return null;
 
     return <Label circular>{store.total}</Label>;
   }
 
   renderMain() {
-    const store = this.getStore();
+    const store = this.getEnvironmentsStore();
     const list = store.list;
 
     return (
@@ -182,7 +180,7 @@ class EnvironmentsList extends React.Component {
             data-instance={item.id}
             onClick={this.handleDetailClick}
           >
-            <EnvironmentCard environment={item} environmentsStore={this.getStore()} user={this.user} />
+            <EnvironmentCard environment={item} environmentsStore={this.getEnvironmentsStore()} user={this.user} />
           </Segment>
         ))}
       </div>

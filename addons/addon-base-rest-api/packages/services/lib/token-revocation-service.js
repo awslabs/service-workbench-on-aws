@@ -19,7 +19,7 @@ const jwtDecode = require('jwt-decode');
 const Service = require('@aws-ee/base-services-container/lib/service');
 
 const settingKeys = {
-  tableName: 'dbTableRevokedTokens',
+  tableName: 'dbRevokedTokens',
 };
 class TokenRevocationService extends Service {
   constructor() {

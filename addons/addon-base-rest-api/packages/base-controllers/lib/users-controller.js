@@ -70,21 +70,16 @@ async function configure(context) {
   );
 
   // ===============================================================
-  //  PUT /:username (mounted to /api/users)
+  //  PUT /:uid (mounted to /api/users)
   // ===============================================================
   router.put(
-    '/:username',
+    '/:uid',
     wrap(async (req, res) => {
       const requestContext = res.locals.requestContext;
-      const username = req.params.username;
-      const authenticationProviderId =
-        req.query.authenticationProviderId || authProviderConstants.internalAuthProviderId;
-      const identityProviderName = req.query.identityProviderName;
+      const uid = req.params.uid;
       const { firstName, lastName, email, isAdmin, status, rev } = req.body;
       const user = await userService.updateUser(requestContext, {
-        username,
-        authenticationProviderId,
-        identityProviderName,
+        uid,
         firstName,
         lastName,
         email,
@@ -98,6 +93,7 @@ async function configure(context) {
 
   // ===============================================================
   //  PUT /:username/password (mounted to /api/users)
+  //  In this case it is relevant to identify user by username/authProvider
   // ===============================================================
   router.put(
     '/:username/password',

@@ -17,7 +17,7 @@ import _ from 'lodash';
 import { applySnapshot, getSnapshot, types } from 'mobx-state-tree';
 
 import { addUser, getUsers, updateUser } from '../../helpers/api';
-import { User, getIdFromObj } from './User';
+import { User } from './User';
 import { BaseStore } from '../BaseStore';
 
 const UsersStore = BaseStore.named('UsersStore')
@@ -35,8 +35,8 @@ const UsersStore = BaseStore.named('UsersStore')
         self.runInAction(() => {
           const map = {};
           users.forEach(user => {
-            const userId = getIdFromObj(user);
-            map[userId] = user;
+            const uid = user.uid;
+            map[uid] = user;
           });
           self.users.replace(map);
         });
@@ -116,8 +116,9 @@ const UsersStore = BaseStore.named('UsersStore')
 
     asUserObject(userIdentifier) {
       if (userIdentifier) {
-        const user = self.users.get(userIdentifier.id);
-        return user || User.create({ username: userIdentifier.username, ns: userIdentifier.ns }); // this could happen in the employee is no longer active or with the company
+        const { uid, username, ns } = userIdentifier;
+        const user = self.users.get(uid);
+        return user || User.create({ username, ns });
       }
       return undefined;
     },
@@ -126,12 +127,12 @@ const UsersStore = BaseStore.named('UsersStore')
       const result = [];
       userIdentifiers.forEach(userIdentifier => {
         if (userIdentifier) {
-          const user = self.users.get(userIdentifier.id);
+          const user = self.users.get(userIdentifier.uid);
           if (user) {
             result.push(user);
           } else {
             result.push(User.create(getSnapshot(userIdentifier)));
-          } // this could happen in the employee is no longer active or with the company
+          }
         }
       });
 

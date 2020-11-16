@@ -5,7 +5,7 @@ module.exports = {
       "deployment/summary",
       {
         "Pre Deployment": [
-          "deployment/pre_deployment/prerequisites",
+          "deployment/pre_deployment/accounts",
           "deployment/pre_deployment/prereq_commands",
           "deployment/pre_deployment/deployment_instance",
           "deployment/pre_deployment/source_code",
@@ -17,7 +17,8 @@ module.exports = {
         "Post Deployment": [
           "deployment/post_deployment/index",
           // "deployment/post_deployment/cost_explorer",
-          "deployment/post_deployment/link_aws_account",
+          "deployment/post_deployment/aws_accounts",
+          "deployment/post_deployment/prepare_master_account",
           "deployment/post_deployment/create_index_project",
           "deployment/post_deployment/create_admin_user",
           "deployment/post_deployment/import_service_catalog_products",
@@ -27,6 +28,7 @@ module.exports = {
         Configuration: [
           {
             Authentication: [
+              "deployment/configuration/auth/enabling_ad",
               "deployment/configuration/auth/configuring_auth0",
               "deployment/configuration/auth/configuring_idp",
             ],
@@ -37,12 +39,12 @@ module.exports = {
       {
         Reference: [
           "deployment/reference/iam_role",
-          "deployment/reference/aws_services",
-          "deployment/reference/account_structure",
+          "deployment/reference/aws_services"
         ],
       },
     ],
     "User Guide": [
+      "user_guide/account_structure",
       "user_guide/introduction",
       {
         Sidebar: [
@@ -126,6 +128,8 @@ module.exports = {
       "best_practices/cicd",
       "best_practices/rotating_jwt_token",
     ],
-    "Development Guide": ["development/introduction"],
+    "Development Guide": [
+      "development/introduction"
+    ],
   },
 };

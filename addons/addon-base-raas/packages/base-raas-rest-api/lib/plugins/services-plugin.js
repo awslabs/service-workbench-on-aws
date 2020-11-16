@@ -18,6 +18,7 @@ const UserAuthzService = require('@aws-ee/base-raas-services/lib/user/user-authz
 const UserService = require('@aws-ee/base-raas-services/lib/user/user-service');
 const UserAttributesMapperService = require('@aws-ee/base-raas-services/lib/user/user-attributes-mapper-service');
 const StudyService = require('@aws-ee/base-raas-services/lib/study/study-service');
+const StorageGatewayService = require('@aws-ee/base-raas-services/lib/storage-gateway/storage-gateway-service');
 const StudyPermissionService = require('@aws-ee/base-raas-services/lib/study/study-permission-service');
 const EnvironmentService = require('@aws-ee/base-raas-services/lib/environment/built-in/environment-service');
 const EnvironmentKeypairService = require('@aws-ee/base-raas-services/lib/environment/built-in/environment-keypair-service');
@@ -46,7 +47,7 @@ const EnvironmentConfigVarsService = require('@aws-ee/base-raas-services/lib/env
 const EnvironmentScKeypairService = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-keypair-service');
 
 const settingKeys = {
-  tablePrefix: 'dbTablePrefix',
+  tablePrefix: 'dbPrefix',
 };
 
 /**
@@ -78,6 +79,7 @@ async function registerServices(container, pluginRegistry) {
   container.register('awsAccountsService', new AwsAccountsService());
   container.register('budgetsService', new BudgetsService());
   container.register('costsService', new CostsService());
+  container.register('storageGatewayService', new StorageGatewayService());
   container.register('costApiCacheService', new CostApiCacheService());
   container.register('indexesService', new IndexesService());
   container.register('projectService', new ProjectService());
@@ -115,16 +117,17 @@ function getStaticSettings(existingStaticSettings, settings, pluginRegistry) {
   const table = (key, suffix) => {
     staticSettings[key] = `${tablePrefix}-${suffix}`;
   };
-  table('dbTableStudies', 'DbStudies');
-  table('dbTableEnvironments', 'DbEnvironments');
-  table('dbTableEnvironmentsSc', 'DbEnvironmentsSc');
-  table('dbTableUserRoles', 'DbUserRoles');
-  table('dbTableAwsAccounts', 'DbAwsAccounts');
-  table('dbTableIndexes', 'DbIndexes');
-  table('dbTableCostApiCaches', 'DbCostApiCaches');
-  table('dbTableAccounts', 'DbAccounts');
-  table('dbTableProjects', 'DbProjects');
-  table('dbTableStudyPermissions', 'DbStudyPermissions');
+  table('dbStudies', 'Studies');
+  table('dbEnvironments', 'Environments');
+  table('dbEnvironmentsSc', 'EnvironmentsSc');
+  table('dbUserRoles', 'UserRoles');
+  table('dbAwsAccounts', 'AwsAccounts');
+  table('dbIndexes', 'Indexes');
+  table('dbCostApiCaches', 'CostApiCaches');
+  table('dbAccounts', 'Accounts');
+  table('dbProjects', 'Projects');
+  table('dbStudyPermissions', 'StudyPermissions');
+  table('StorageGateway', 'StorageGateway');
 
   return staticSettings;
 }

@@ -19,15 +19,12 @@ function isAdmin(requestContext) {
   return _.get(requestContext, 'principal.isAdmin', false);
 }
 
-function isCurrentUser(requestContext, { username, ns }) {
-  return (
-    _.get(requestContext, 'principalIdentifier.username') === username &&
-    _.get(requestContext, 'principalIdentifier.ns') === ns
-  );
+function isCurrentUser(requestContext, { uid }) {
+  return _.get(requestContext, 'principalIdentifier.uid') === uid;
 }
 
-function isCurrentUserOrAdmin(requestContext, { username, ns }) {
-  return isAdmin(requestContext) || isCurrentUser(requestContext, { username, ns });
+function isCurrentUserOrAdmin(requestContext, { uid }) {
+  return isAdmin(requestContext) || isCurrentUser(requestContext, { uid });
 }
 
 function isActive(requestContext) {
@@ -61,21 +58,21 @@ async function allowIfCreatorOrAdmin(requestContext, { action, resource }, item)
   }
 
   // Allow if the caller is the item creator (owner) or admin
-  const permissionSoFar = await allowIfCurrentUserOrAdmin(requestContext, { action, resource }, item);
+  const permissionSoFar = await allowIfCurrentUserOrAdmin(requestContext, { action, resource }, { uid: itemCreator });
   if (isDeny(permissionSoFar)) return permissionSoFar; // return if denying
 
   return allow();
 }
 
-async function allowIfCurrentUserOrAdmin(requestContext, { action }, { username, ns }) {
-  if (!isCurrentUserOrAdmin(requestContext, { username, ns })) {
+async function allowIfCurrentUserOrAdmin(requestContext, { action }, { uid }) {
+  if (!isCurrentUserOrAdmin(requestContext, { uid })) {
     return deny(`Cannot perform the specified action "${action}". Only admins or current user can.`);
   }
   return allow();
 }
 
-async function allowIfCurrentUser(requestContext, { action }, { username, ns }) {
-  if (!isCurrentUser(requestContext, { username, ns })) {
+async function allowIfCurrentUser(requestContext, { action }, { uid }) {
+  if (!isCurrentUser(requestContext, { uid })) {
     return deny(`Cannot perform the specified action "${action}" on other user's resources.`);
   }
   return allow();
