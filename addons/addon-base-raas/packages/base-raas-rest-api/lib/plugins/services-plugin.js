@@ -45,6 +45,7 @@ const JwtService = require('@aws-ee/base-api-services/lib/jwt-service');
 const EnvironmentScService = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-service');
 const EnvironmentConfigVarsService = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-config-vars-service');
 const EnvironmentScKeypairService = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-keypair-service');
+const EnvResourceUsageTrackerService = require('@aws-ee/base-raas-services/lib/environment/env-resource-usage-tracker-service');
 
 const settingKeys = {
   tablePrefix: 'dbPrefix',
@@ -88,6 +89,7 @@ async function registerServices(container, pluginRegistry) {
   container.register('computePlatformService', new ComputePlatformService());
   container.register('computePriceService', new ComputePriceService());
   container.register('environmentScService', new EnvironmentScService());
+  container.register('envResourceUsageTrackerService', new EnvResourceUsageTrackerService());
   container.register('environmentConfigVarsService', new EnvironmentConfigVarsService());
   container.register('environmentScKeypairService', new EnvironmentScKeypairService());
   container.register('pluginRegistryService', new PluginRegistryService(pluginRegistry), { lazy: false });
@@ -120,6 +122,7 @@ function getStaticSettings(existingStaticSettings, settings, pluginRegistry) {
   table('dbStudies', 'Studies');
   table('dbEnvironments', 'Environments');
   table('dbEnvironmentsSc', 'EnvironmentsSc');
+  table('dbEnvironmentResourceUsages', 'EnvironmentResourceUsages');
   table('dbUserRoles', 'UserRoles');
   table('dbAwsAccounts', 'AwsAccounts');
   table('dbIndexes', 'Indexes');

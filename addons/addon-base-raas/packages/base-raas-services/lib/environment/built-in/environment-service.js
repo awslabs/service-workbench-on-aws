@@ -434,6 +434,8 @@ class EnvironmentService extends Service {
         const environmentMountService = await this.service('environmentMountService');
 
         await environmentMountService.addRoleArnToLocalResourcePolicies(
+          requestContext,
+          environment.id,
           environment.instanceInfo.WorkspaceInstanceRoleArn,
           existingEnvironment.instanceInfo.s3Prefixes,
         );
@@ -500,6 +502,8 @@ class EnvironmentService extends Service {
         const environmentMountService = await this.service('environmentMountService');
 
         await environmentMountService.removeRoleArnFromLocalResourcePolicies(
+          requestContext,
+          id,
           existingEnvironment.instanceInfo.WorkspaceInstanceRoleArn,
           existingEnvironment.instanceInfo.s3Prefixes,
         );

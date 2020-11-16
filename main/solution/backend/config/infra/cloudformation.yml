@@ -1251,6 +1251,22 @@ Resources:
             ProjectionType: ALL
       BillingMode: PAY_PER_REQUEST
 
+  EnvironmentResourceUsagesDb:
+  Type: AWS::DynamoDB::Table
+  Properties:
+    TableName: ${self:custom.settings.dbEnvironmentResourceUsages}
+    AttributeDefinitions:
+      - AttributeName: 'id'
+        AttributeType: 'S'
+      - AttributeName: 'type'
+        AttributeType: 'S'
+    KeySchema:
+      - AttributeName: 'id'
+        KeyType: 'HASH'
+      - AttributeName: 'type'
+        KeyType: 'RANGE'
+    BillingMode: PAY_PER_REQUEST
+
   EnvironmentsTypesDb:
     Type: AWS::DynamoDB::Table
     DependsOn: UserRolesDb

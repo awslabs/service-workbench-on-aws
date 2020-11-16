@@ -55,6 +55,7 @@ class EnvironmentMountService extends Service {
       'environmentScService',
       'iamService',
       'storageGatewayService',
+      'envResourceUsageTrackerService',
     ]);
   }
 
@@ -79,34 +80,68 @@ class EnvironmentMountService extends Service {
     };
   }
 
-  async addRoleArnToLocalResourcePolicies(workspaceRoleArn, s3Prefixes) {
+  async addRoleArnToLocalResourcePolicies(requestContext, envId, workspaceRoleArn, s3Prefixes) {
+    const envResourceUsageTrackerService = await this.service('envResourceUsageTrackerService');
     // Define function to handle updating resource policy principals where the current principals
     // may be an array or a string
-    const updateAwsPrincipals = (awsPrincipals, newPrincipal) => {
-      if (Array.isArray(awsPrincipals)) {
-        awsPrincipals.push(newPrincipal);
-      } else {
-        awsPrincipals = [awsPrincipals, newPrincipal];
+    // This function uses addEnvironmentResourceUse to track use of this resource by this principal.
+    // If this is the first use by these principals add them to the principals array.
+    const maybeUpdateAwsPrincipals = async (awsPrincipals, newPrincipal, resource) => {
+      const result = await envResourceUsageTrackerService.addEnvironmentResourceUse(requestContext, {
+        resource,
+        principal: newPrincipal,
+        envId,
+      });
+
+      // If this is the first environment that requires sharing the resource with the principal
+      // then update
+      if (result.count === 1) {
+        if (Array.isArray(awsPrincipals)) {
+          awsPrincipals.push(newPrincipal);
+        } else {
+          awsPrincipals = [awsPrincipals, newPrincipal];
+        }
       }
       return awsPrincipals;
     };
 
-    return this._updateResourcePolicies({ updateAwsPrincipals, workspaceRoleArn, s3Prefixes });
+    return this._updateResourcePolicies({
+      updateAwsPrincipals: maybeUpdateAwsPrincipals,
+      workspaceRoleArn,
+      s3Prefixes,
+    });
   }
 
-  async removeRoleArnFromLocalResourcePolicies(workspaceRoleArn, s3Prefixes) {
+  async removeRoleArnFromLocalResourcePolicies(requestContext, envId, workspaceRoleArn, s3Prefixes) {
+    const envResourceUsageTrackerService = await this.service('envResourceUsageTrackerService');
     // Define function to handle updating resource policy principals where the current principals
     // may be an array or a string
-    const updateAwsPrincipals = (awsPrincipals, removedPrincipal) => {
-      if (Array.isArray(awsPrincipals)) {
-        awsPrincipals = awsPrincipals.filter(principal => principal !== removedPrincipal);
-      } else {
-        awsPrincipals = [];
+    // This function uses deleteEnvironmentResourceUse to decrement and
+    // track use of this resource by this principal.
+    // If this removal leaves no other environments requiring access to this resource by this principal, remove it from
+    // the principals array.
+    const maybeUpdateAwsPrincipals = async (awsPrincipals, removedPrincipal, resource) => {
+      const result = await envResourceUsageTrackerService.deleteEnvironmentResourceUse(requestContext, {
+        resource,
+        principal: removedPrincipal,
+        envId,
+      });
+
+      if (result.count === 0) {
+        if (Array.isArray(awsPrincipals)) {
+          awsPrincipals = awsPrincipals.filter(principal => principal !== removedPrincipal);
+        } else {
+          awsPrincipals = [];
+        }
       }
       return awsPrincipals;
     };
 
-    return this._updateResourcePolicies({ updateAwsPrincipals, workspaceRoleArn, s3Prefixes });
+    return this._updateResourcePolicies({
+      updateAwsPrincipals: maybeUpdateAwsPrincipals,
+      workspaceRoleArn,
+      s3Prefixes,
+    });
   }
 
   async _updateResourcePolicies({ updateAwsPrincipals, workspaceRoleArn, s3Prefixes }) {

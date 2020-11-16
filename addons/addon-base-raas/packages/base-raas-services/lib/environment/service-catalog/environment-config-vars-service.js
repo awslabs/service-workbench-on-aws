@@ -205,7 +205,12 @@ class EnvironmentConfigVarsService extends Service {
     // case we have to trust that the member account hasn't altered the role's assume role policy to allow other
     // principals assume it
     if (s3Prefixes.length > 0) {
-      await environmentMountService.addRoleArnToLocalResourcePolicies(`arn:aws:iam::${accountId}:root`, s3Prefixes);
+      await environmentMountService.addRoleArnToLocalResourcePolicies(
+        requestContext,
+        environment.id,
+        `arn:aws:iam::${accountId}:root`,
+        s3Prefixes,
+      );
     }
 
     // Check if the environment being launched needs an admin key-pair to be created in the target account

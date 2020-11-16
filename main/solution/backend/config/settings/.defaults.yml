@@ -144,6 +144,12 @@ dbEnvironments: ${self:custom.settings.dbPrefix}-Environments
 # DynamoDB table name for Environments created using AWS Service Catalog
 dbEnvironmentsSc: ${self:custom.settings.dbPrefix}-EnvironmentsSc
 
+# DynamoDB table name for tracking AWS resources used by the environment
+# The table is only used for tracking AWS resources that need cross account provisioning
+# (such as S3 bucket policy update or KMS resource policy updates etc).
+# The table is not used for tracking all AWS resource usages by environments (workspaces)
+dbEnvironmentResourceUsages: ${self:custom.settings.dbPrefix}-EnvironmentResourceUsages
+
 # DynamoDB table name for Environment Types
 dbEnvironmentTypes: ${self:custom.settings.dbPrefix}-EnvironmentTypes
 

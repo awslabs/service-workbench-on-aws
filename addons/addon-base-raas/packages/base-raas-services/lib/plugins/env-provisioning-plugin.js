@@ -232,6 +232,8 @@ async function updateEnvOnTerminationSuccess({ requestContext, container, status
 
   if (s3Prefixes.length > 0) {
     await environmentMountService.removeRoleArnFromLocalResourcePolicies(
+      requestContext,
+      updatedEnvironment.id,
       `arn:aws:iam::${awsAccountId}:root`,
       s3Prefixes,
       databases,

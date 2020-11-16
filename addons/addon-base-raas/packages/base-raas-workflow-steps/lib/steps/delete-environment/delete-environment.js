@@ -62,6 +62,8 @@ class DeleteEnvironment extends StepBase {
     // https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_elements_principal.html
     // under IAM Roles
     await environmentMountService.removeRoleArnFromLocalResourcePolicies(
+      requestContext,
+      environmentId,
       environment.instanceInfo.WorkspaceInstanceRoleArn,
       environment.instanceInfo.s3Prefixes,
     );
