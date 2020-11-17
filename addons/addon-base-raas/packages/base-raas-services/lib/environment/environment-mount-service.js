@@ -703,11 +703,14 @@ class EnvironmentMountService extends Service {
   }
 
   async _getWorkspacePolicy(iamClient, env) {
-    if (!env.outputs) {
-      throw new Error('Environment outputs are not ready yet. Please make sure environment is in Completed status');
+    const workspaceRoleObject = _.find(env.outputs, { OutputKey: 'WorkspaceInstanceRoleArn' });
+    if (!workspaceRoleObject) {
+      throw new Error(
+        'Workspace IAM Role is not ready yet. Please make sure environment is in Completed status and retry the operation',
+      );
     }
     const iamService = await this.service('iamService');
-    const workspaceRoleArn = _.find(env.outputs, { OutputKey: 'WorkspaceInstanceRoleArn' }).OutputValue;
+    const workspaceRoleArn = workspaceRoleObject.OutputValue;
     const roleName = workspaceRoleArn.split('role/')[1];
     const studyDataPolicyName = `analysis-${workspaceRoleArn.split('-')[1]}-s3-studydata-policy`;
     const { PolicyDocument: policyDocStr } = await iamService.getRolePolicy(roleName, studyDataPolicyName, iamClient);
