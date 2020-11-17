@@ -702,6 +702,31 @@ class EnvironmentMountService extends Service {
     return policyDoc.Statement;
   }
 
+  /**
+   * This method looks for inline policy based on the given array of "possibleInlinePolicyNames".
+   * The method returns as soon as it finds an inline policy in the given role (identified by the "roleName")
+   * with a matching name from the "possibleInlinePolicyNames".
+   * If no inline policy is found with any of the names from the "possibleInlinePolicyNames", the method returns undefined.
+   *
+   * @param {Object} possibleInlinePolicyNames - Known policy names we have used in out-of-the-box SC product templates
+   * * @param {Object} roleName - Name of the IAM role for the given workspace
+   * * @param {Object} iamClient
+   * @returns {Object} - Returns policy object
+   */
+  async _getPolicy(possibleInlinePolicyNames, roleName, iamClient) {
+    const iamService = await this.service('iamService');
+
+    // eslint-disable-next-line no-restricted-syntax
+    for (const possiblePolicyName of possibleInlinePolicyNames) {
+      // eslint-disable-next-line no-await-in-loop
+      const policy = await iamService.getRolePolicy(roleName, possiblePolicyName, iamClient);
+      if (policy && policy.PolicyDocumentObj) {
+        return policy;
+      }
+    }
+    return undefined;
+  }
+
   async _getWorkspacePolicy(iamClient, env) {
     const workspaceRoleObject = _.find(env.outputs, { OutputKey: 'WorkspaceInstanceRoleArn' });
     if (!workspaceRoleObject) {
@@ -709,13 +734,18 @@ class EnvironmentMountService extends Service {
         'Workspace IAM Role is not ready yet. Please make sure environment is in Completed status and retry the operation',
       );
     }
-    const iamService = await this.service('iamService');
     const workspaceRoleArn = workspaceRoleObject.OutputValue;
     const roleName = workspaceRoleArn.split('role/')[1];
-    const studyDataPolicyName = `analysis-${workspaceRoleArn.split('-')[1]}-s3-studydata-policy`;
-    const { PolicyDocument: policyDocStr } = await iamService.getRolePolicy(roleName, studyDataPolicyName, iamClient);
-    const policyDoc = JSON.parse(policyDocStr);
-    return { policyDoc, roleName, studyDataPolicyName };
+    const policyNamePrefix = `analysis-${workspaceRoleArn.split('-')[1]}`;
+    const possibleInlinePolicyNames = [
+      `${policyNamePrefix}-s3-studydata-policy`,
+      `${policyNamePrefix}-s3-data-access-policy`,
+      `${policyNamePrefix}-s3-policy`,
+    ];
+
+    const policy = await this._getPolicy(possibleInlinePolicyNames, roleName, iamClient);
+    const policyDoc = policy ? policy.PolicyDocumentObj : {};
+    return { policyDoc, roleName, studyDataPolicyName: policy.PolicyName };
   }
 
   async _getIamUpdateParams(env, studyId) {
