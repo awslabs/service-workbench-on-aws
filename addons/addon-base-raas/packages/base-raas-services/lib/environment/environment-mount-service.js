@@ -667,34 +667,29 @@ class EnvironmentMountService extends Service {
     return policyDoc.Statement;
   }
 
-  async _getPolicyDoc(possiblePolicyNames, roleName, workspaceRoleArn, iamClient) {
+  /**
+   * This method looks for inline policy based on the given array of "possibleInlinePolicyNames".
+   * The method returns as soon as it finds an inline policy in the given role (identified by the "roleName")
+   * with a matching name from the "possibleInlinePolicyNames".
+   * If no inline policy is found with any of the names from the "possibleInlinePolicyNames", the method returns undefined.
+   *
+   * @param {Object} possibleInlinePolicyNames - Known possible policy role names we have used for out of the box CfN templates
+   * * @param {Object} roleName - Name of the IAM role for the given workspace
+   * * @param {Object} iamClient
+   * @returns {Object} - Returns policyDocStr and studyDataPolicyName that was found on this role
+   */
+  async _getPolicy(possibleInlinePolicyNames, roleName, iamClient) {
     const iamService = await this.service('iamService');
-    const policyNamePrefix = `analysis-${workspaceRoleArn.split('-')[1]}`;
 
-    const policyDocsInfos = await Promise.all(
-      _.map(possiblePolicyNames, async possiblePolicyName => {
-        let policyDocStr = '';
-        let studyDataPolicyName = '';
-        try {
-          studyDataPolicyName = `${policyNamePrefix}-${possiblePolicyName}`;
-          policyDocStr = await iamService.getRolePolicy(roleName, studyDataPolicyName, iamClient).PolicyDocument;
-        } catch (err) {
-          // Do nothing.
-          // This is intentional, since we are just trying the possible known policy names that could exist in this IAM role
-        }
-        return { policyDocStr, studyDataPolicyName };
-      }),
-    );
-
-    if (_.isEmpty(policyDocsInfos)) {
-      return { policyDocStr: undefined, studyDataPolicyName: undefined };
+    // eslint-disable-next-line no-restricted-syntax
+    for (const possiblePolicyName of possibleInlinePolicyNames) {
+      // eslint-disable-next-line no-await-in-loop
+      const policy = await iamService.getRolePolicy(roleName, possiblePolicyName, iamClient);
+      if (policy && policy.PolicyDocumentObj) {
+        return policy;
+      }
     }
-
-    const policyDocFound = _.find(
-      policyDocsInfos,
-      policyDocInfo => policyDocInfo && policyDocInfo.policyDocStr && policyDocInfo.studyDataPolicyName,
-    );
-    return policyDocFound;
+    return undefined;
   }
 
   async _getWorkspacePolicy(iamClient, env) {
@@ -706,15 +701,16 @@ class EnvironmentMountService extends Service {
     }
     const workspaceRoleArn = workspaceRoleObject.OutputValue;
     const roleName = workspaceRoleArn.split('role/')[1];
-    const possiblePolicyNames = ['s3-studydata-policy', 's3-data-access-policy', 's3-policy'];
-    const { policyDocStr, studyDataPolicyName } = await this._getPolicyDoc(
-      possiblePolicyNames,
-      roleName,
-      workspaceRoleArn,
-      iamClient,
-    );
-    const policyDoc = policyDocStr ? JSON.parse(policyDocStr) : {};
-    return { policyDoc, roleName, studyDataPolicyName };
+    const policyNamePrefix = `analysis-${workspaceRoleArn.split('-')[1]}`;
+    const possibleInlinePolicyNames = [
+      `${policyNamePrefix}-s3-studydata-policy`,
+      `${policyNamePrefix}-s3-data-access-policy`,
+      `${policyNamePrefix}-s3-policy`,
+    ];
+
+    const policy = await this._getPolicy(possibleInlinePolicyNames, roleName, iamClient);
+    const policyDoc = policy ? policy.PolicyDocumentObj : {};
+    return { policyDoc, roleName, studyDataPolicyName: policy.PolicyName };
   }
 
   async _getIamUpdateParams(env, studyId) {
