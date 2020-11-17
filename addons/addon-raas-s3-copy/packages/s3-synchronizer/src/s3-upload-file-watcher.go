@@ -211,7 +211,10 @@ func uploadToS3(sess *session.Session, syncDir string, filename string, bucket s
 	// The upload in S3 will cause the file's ETag to change even though there is no change in file's content
 	// Due to this, the downloader thread will detect this as file update in S3 and download the file again
 	// This will cause file change event in file watcher and so on...
-	if areSizesDifferent(sess, bucket, fileKeyInS3, file) {
+
+	// Also, DO NOT upload file if the file is empty. The downloader thread on some platforms (e.g., on Windows) creates empty file on local file system first before writing stream of data from S3 to the file
+	// The creation of the empty file will cause the file CREATE event to trigger and we will end up uploading empty file to S3 if we don't check for non-empty here.
+	if areSizesDifferent(sess, bucket, fileKeyInS3, file) && !isEmptyFile(file) {
 		var uploadInput *s3manager.UploadInput
 		if strings.TrimSpace(kmsKeyId) == "" {
 			uploadInput = &s3manager.UploadInput{
@@ -219,6 +222,7 @@ func uploadToS3(sess *session.Session, syncDir string, filename string, bucket s
 				Key:                  aws.String(fileKeyInS3),
 				Body:                 file,
 				ServerSideEncryption: aws.String("aws:kms"),
+				ACL:                  aws.String(s3.ObjectCannedACLBucketOwnerFullControl),
 			}
 		} else {
 			uploadInput = &s3manager.UploadInput{
@@ -227,6 +231,7 @@ func uploadToS3(sess *session.Session, syncDir string, filename string, bucket s
 				Body:                 file,
 				ServerSideEncryption: aws.String("aws:kms"),
 				SSEKMSKeyId:          aws.String(kmsKeyId),
+				ACL:                  aws.String(s3.ObjectCannedACLBucketOwnerFullControl),
 			}
 		}
 
@@ -243,7 +248,7 @@ func uploadToS3(sess *session.Session, syncDir string, filename string, bucket s
 
 	} else {
 		if debug {
-			log.Println(filename, " size has not changed since last upload, skipping upload this time")
+			log.Println(filename, " size has not changed since last upload or the file is empty, skipping upload this time")
 		}
 	}
 
@@ -276,6 +281,15 @@ func areSizesDifferent(sess *session.Session, bucket string, fileKeyInS3 string,
 	}
 
 	return true
+}
+
+func isEmptyFile(file *os.File) bool {
+	fi, err := file.Stat()
+	if err != nil {
+		log.Printf("Failed to read file '%v' size, Error: %v\n", file.Name(), err)
+		return true
+	}
+	return !(fi.Size() > 0)
 }
 
 func watchDirFactory(watcher *fsnotify.Watcher, dirRequiringCrawlCh chan string, debug bool) func(path string, fi os.FileInfo, err error) error {

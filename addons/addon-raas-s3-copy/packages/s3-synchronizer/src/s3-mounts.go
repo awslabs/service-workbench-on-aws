@@ -29,16 +29,17 @@ func ToS3Key(filePath string, config *mountConfiguration) string {
 // Returns S3 object key based on file path, prefix and sync dir
 func ToS3KeyForFile(filePath string, prefix string, syncDir string) string {
 	// if prefix ends with trailing slash then remove extra slash
-	if strings.HasSuffix(prefix, "/") {
-		prefix = strings.TrimSuffix(prefix, "/")
+	s3Prefix := filepath.ToSlash(prefix)
+	if strings.HasSuffix(s3Prefix, "/") {
+		s3Prefix = strings.TrimSuffix(s3Prefix, "/")
 	}
 
-	s3FilePath := strings.TrimPrefix(filePath, syncDir)
+	s3FilePath := filepath.ToSlash(strings.TrimPrefix(filePath, syncDir))
 	// if s3 file path starts with a trailing slash then remove extra slash
 	if strings.HasPrefix(s3FilePath, "/") {
 		s3FilePath = strings.TrimPrefix(s3FilePath, "/")
 	}
 
-	s3Key := filepath.ToSlash(prefix + "/" + s3FilePath)
+	s3Key := filepath.ToSlash(s3Prefix + "/" + s3FilePath)
 	return s3Key
 }

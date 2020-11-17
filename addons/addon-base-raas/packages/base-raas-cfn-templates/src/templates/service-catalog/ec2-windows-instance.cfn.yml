@@ -81,7 +81,7 @@ Resources:
         - !If
           - IamPolicyEmpty
           - !Ref "AWS::NoValue"
-          - PolicyName: !Join ["-", [Ref: Namespace, "s3-data-access-policy"]]
+          - PolicyName: !Join ["-", [Ref: Namespace, "s3-studydata-policy"]]
             PolicyDocument: !Ref IamPolicyDocument
         - PolicyName:
             !Join ["-", [Ref: Namespace, "s3-bootstrap-script-policy"]]
