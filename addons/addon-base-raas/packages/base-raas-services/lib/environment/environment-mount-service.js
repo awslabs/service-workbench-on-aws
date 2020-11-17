@@ -667,16 +667,47 @@ class EnvironmentMountService extends Service {
     return policyDoc.Statement;
   }
 
-  async _getWorkspacePolicy(iamClient, env) {
-    if (!env.outputs) {
-      throw new Error('Environment outputs are not ready yet. Please make sure environment is in Completed status');
-    }
+  async _getPolicyDoc(possiblePolicyNames, roleName, workspaceRoleArn, iamClient) {
     const iamService = await this.service('iamService');
-    const workspaceRoleArn = _.find(env.outputs, { OutputKey: 'WorkspaceInstanceRoleArn' }).OutputValue;
+    const policyNamePrefix = `analysis-${workspaceRoleArn.split('-')[1]}`;
+
+    _.forEach(possiblePolicyNames, async possiblePolicyName => {
+      try {
+        const studyDataPolicyName = `${policyNamePrefix}-${possiblePolicyName}`;
+        const { PolicyDocument: policyDocStr } = await iamService.getRolePolicy(
+          roleName,
+          studyDataPolicyName,
+          iamClient,
+        );
+        if (!policyDocStr) {
+          return { policyDocStr, studyDataPolicyName };
+        }
+      } catch (err) {
+        // Do nothing.
+        // This is intentional, since we are just trying the possible known policy names that could exist in this IAM role
+      }
+    });
+
+    return { policyDocStr: undefined, studyDataPolicyName: undefined };
+  }
+
+  async _getWorkspacePolicy(iamClient, env) {
+    const workspaceRoleObject = _.find(env.outputs, { OutputKey: 'WorkspaceInstanceRoleArn' });
+    if (!workspaceRoleObject) {
+      throw new Error(
+        'Workspace IAM Role is not ready yet. Please make sure environment is in Completed status and retry the operation',
+      );
+    }
+    const workspaceRoleArn = workspaceRoleObject.OutputValue;
     const roleName = workspaceRoleArn.split('role/')[1];
-    const studyDataPolicyName = `analysis-${workspaceRoleArn.split('-')[1]}-s3-studydata-policy`;
-    const { PolicyDocument: policyDocStr } = await iamService.getRolePolicy(roleName, studyDataPolicyName, iamClient);
-    const policyDoc = JSON.parse(policyDocStr);
+    const possiblePolicyNames = ['s3-studydata-policy', 's3-data-access-policy', 's3-policy'];
+    const { policyDocStr, studyDataPolicyName } = await this._getPolicyDoc(
+      possiblePolicyNames,
+      roleName,
+      workspaceRoleArn,
+      iamClient,
+    );
+    const policyDoc = policyDocStr ? JSON.parse(policyDocStr) : {};
     return { policyDoc, roleName, studyDataPolicyName };
   }
 
