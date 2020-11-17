@@ -676,7 +676,7 @@ class EnvironmentMountService extends Service {
    * @param {Object} possibleInlinePolicyNames - Known policy names we have used in out-of-the-box SC product templates
    * * @param {Object} roleName - Name of the IAM role for the given workspace
    * * @param {Object} iamClient
-   * @returns {Object} - Returns policyDocStr and studyDataPolicyName that was found on this role
+   * @returns {Object} - Returns policy object
    */
   async _getPolicy(possibleInlinePolicyNames, roleName, iamClient) {
     const iamService = await this.service('iamService');
