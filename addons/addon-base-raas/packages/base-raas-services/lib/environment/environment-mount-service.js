@@ -673,7 +673,7 @@ class EnvironmentMountService extends Service {
    * with a matching name from the "possibleInlinePolicyNames".
    * If no inline policy is found with any of the names from the "possibleInlinePolicyNames", the method returns undefined.
    *
-   * @param {Object} possibleInlinePolicyNames - Known possible policy role names we have used for out of the box CfN templates
+   * @param {Object} possibleInlinePolicyNames - Known policy names we have used in out-of-the-box SC product templates
    * * @param {Object} roleName - Name of the IAM role for the given workspace
    * * @param {Object} iamClient
    * @returns {Object} - Returns policyDocStr and studyDataPolicyName that was found on this role
