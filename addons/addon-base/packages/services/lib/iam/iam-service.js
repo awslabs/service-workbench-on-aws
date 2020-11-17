@@ -138,7 +138,7 @@ class IamService extends Service {
       .promise()
       .catch(emptyObjectIfDoesNotExist);
 
-    const policy = {};
+    const policy = { PolicyName: policyName };
     if (policyDocument) {
       // The "PolicyDocument" is URL encoded JSON string
       const policyDocumentSrc = decodeURIComponent(policyDocument);
