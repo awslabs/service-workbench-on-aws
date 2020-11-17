@@ -671,24 +671,30 @@ class EnvironmentMountService extends Service {
     const iamService = await this.service('iamService');
     const policyNamePrefix = `analysis-${workspaceRoleArn.split('-')[1]}`;
 
-    _.forEach(possiblePolicyNames, async possiblePolicyName => {
-      try {
-        const studyDataPolicyName = `${policyNamePrefix}-${possiblePolicyName}`;
-        const { PolicyDocument: policyDocStr } = await iamService.getRolePolicy(
-          roleName,
-          studyDataPolicyName,
-          iamClient,
-        );
-        if (!policyDocStr) {
-          return { policyDocStr, studyDataPolicyName };
+    const policyDocsInfos = await Promise.all(
+      _.map(possiblePolicyNames, async possiblePolicyName => {
+        let policyDocStr = '';
+        let studyDataPolicyName = '';
+        try {
+          studyDataPolicyName = `${policyNamePrefix}-${possiblePolicyName}`;
+          policyDocStr = await iamService.getRolePolicy(roleName, studyDataPolicyName, iamClient).PolicyDocument;
+        } catch (err) {
+          // Do nothing.
+          // This is intentional, since we are just trying the possible known policy names that could exist in this IAM role
         }
-      } catch (err) {
-        // Do nothing.
-        // This is intentional, since we are just trying the possible known policy names that could exist in this IAM role
-      }
-    });
+        return { policyDocStr, studyDataPolicyName };
+      }),
+    );
 
-    return { policyDocStr: undefined, studyDataPolicyName: undefined };
+    if (_.isEmpty(policyDocsInfos)) {
+      return { policyDocStr: undefined, studyDataPolicyName: undefined };
+    }
+
+    const policyDocFound = _.find(
+      policyDocsInfos,
+      policyDocInfo => policyDocInfo && policyDocInfo.policyDocStr && policyDocInfo.studyDataPolicyName,
+    );
+    return policyDocFound;
   }
 
   async _getWorkspacePolicy(iamClient, env) {
