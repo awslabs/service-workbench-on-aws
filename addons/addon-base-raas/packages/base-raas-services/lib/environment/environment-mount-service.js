@@ -317,6 +317,7 @@ class EnvironmentMountService extends Service {
     if (total > limit) {
       this.boom.internalError(
         `This requires system to update ${total} workspace permissions at a time. Please reduce this to within ${limit} workspaces owned by selected users`,
+        true,
       );
     }
 
