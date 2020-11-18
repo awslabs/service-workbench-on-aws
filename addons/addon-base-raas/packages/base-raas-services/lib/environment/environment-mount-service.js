@@ -229,17 +229,17 @@ class EnvironmentMountService extends Service {
           listStatement.Principal.AWS = updateAwsPrincipals(
             listStatement.Principal.AWS,
             workspaceRoleArn,
-            `arn:aws:s3:::${s3BucketName}/${prefix}`,
+            `${s3BucketName}/${prefix}`,
           );
           getStatement.Principal.AWS = updateAwsPrincipals(
             getStatement.Principal.AWS,
             workspaceRoleArn,
-            `arn:aws:s3:::${s3BucketName}/${prefix}`,
+            `${s3BucketName}/${prefix}`,
           );
           putStatement.Principal.AWS = updateAwsPrincipals(
             putStatement.Principal.AWS,
             workspaceRoleArn,
-            `arn:aws:s3:::${s3BucketName}/${prefix}`,
+            `${s3BucketName}/${prefix}`,
           );
 
           s3Policy.Statement = s3Policy.Statement.filter(
