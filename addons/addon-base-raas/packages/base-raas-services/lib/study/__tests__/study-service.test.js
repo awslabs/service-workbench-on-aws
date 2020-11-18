@@ -149,7 +149,7 @@ describe('studyService', () => {
       });
       // OPERATE
       try {
-        await service.create({ principal: { userRole: 'admin' } }, dataIpt);
+        await service.create({ principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } }, dataIpt);
         expect.hasAssertions();
       } catch (err) {
         // CHECK
@@ -167,12 +167,12 @@ describe('studyService', () => {
       service.audit = jest.fn();
 
       // OPERATE
-      await service.create({ principal: { userRole: 'admin' } }, dataIpt);
+      await service.create({ principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } }, dataIpt);
 
       // CHECK
       expect(dbService.table.update).toHaveBeenCalled();
       expect(service.audit).toHaveBeenCalledWith(
-        { principal: { userRole: 'admin' } },
+        { principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } },
         { action: 'create-study', body: undefined },
       );
     });
@@ -188,12 +188,12 @@ describe('studyService', () => {
       service.audit = jest.fn();
 
       // OPERATE
-      await service.create({ principal: { userRole: 'admin' } }, dataIpt);
+      await service.create({ principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } }, dataIpt);
 
       // CHECK
       expect(dbService.table.update).toHaveBeenCalled();
       expect(service.audit).toHaveBeenCalledWith(
-        { principal: { userRole: 'admin' } },
+        { principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } },
         { action: 'create-study', body: undefined },
       );
     });
@@ -298,7 +298,7 @@ describe('studyService', () => {
 
       // OPERATE
       try {
-        await service.create({ principal: { userRole: 'admin' } }, ipt);
+        await service.create({ principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } }, ipt);
         expect.hasAssertions();
       } catch (err) {
         // CHECK

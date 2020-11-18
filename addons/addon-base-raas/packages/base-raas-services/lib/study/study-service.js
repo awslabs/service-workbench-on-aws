@@ -97,6 +97,10 @@ class StudyService extends Service {
     // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
     const by = _.get(requestContext, 'principalIdentifier.uid');
 
+    if (rawData.category === 'Open Data' && by !== '_system_') {
+      throw this.boom.badRequest('Only the system can create Open Data studies.');
+    }
+
     // validate if study can be read/write
     this.validateStudyType(rawData.accessType, rawData.category);
 
@@ -112,6 +116,10 @@ class StudyService extends Service {
         throw this.boom.forbidden(`Not authorized to add study related to project "${projectId}"`);
       }
       await projectService.mustFind(requestContext, { id: rawData.projectId });
+      // Verify user is not trying to create resources for non-Open data studies
+      if (rawData.resources && rawData.resources.length > 0) {
+        throw this.boom.badRequest('Resources can only be assigned to Open Data study category');
+      }
     }
 
     const id = rawData.id;
