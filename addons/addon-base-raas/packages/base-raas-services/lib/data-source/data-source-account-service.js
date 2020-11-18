@@ -75,21 +75,21 @@ class DataSourceAccountService extends Service {
     return result;
   }
 
-  async registerAccount(requestContext, rawData) {
+  async registerAccount(requestContext, rawAccountEntity) {
     // Ensure that the caller has permissions to register the account
     // Perform default condition checks to make sure the user is active and is admin
     await this.assertAuthorized(
       requestContext,
       { action: 'register', conditions: [allowIfActive, allowIfAdmin] },
-      rawData,
+      rawAccountEntity,
     );
 
     // Validate input
     const [validationService] = await this.service(['jsonSchemaValidationService']);
-    await validationService.ensureValid(rawData, registerSchema);
+    await validationService.ensureValid(rawAccountEntity, registerSchema);
 
     // unmanaged accounts are not supported yet
-    if (rawData.type === 'unmanaged')
+    if (rawAccountEntity.type === 'unmanaged')
       throw this.boom.notSupported('Unmanaged accounts are not supported at this time', true);
 
     // Future enhancement/feature
@@ -97,7 +97,7 @@ class DataSourceAccountService extends Service {
     // if it matches any of these we can determine how the CloudFormation stack can be executed
 
     const by = _.get(requestContext, 'principalIdentifier.uid');
-    const { id } = rawData;
+    const { id } = rawAccountEntity;
 
     // Create a prefix to use in a few places, such as the cfn stack name and all
     // of the roles created in the data source account. This is needed to avoid collisions
@@ -111,7 +111,7 @@ class DataSourceAccountService extends Service {
     const lastCheck = new Date().toISOString();
 
     // Prepare the db object
-    const dbObject = this._fromRawToDbObject(rawData, {
+    const dbObject = this._fromRawToDbObject(rawAccountEntity, {
       rev: 0,
       createdBy: by,
       updatedBy: by,
@@ -127,7 +127,7 @@ class DataSourceAccountService extends Service {
         async () => {
           return this._updater()
             .condition('attribute_not_exists(pk)') // yes we need this
-            .key(accountIdCompositeKey.encode(rawData))
+            .key(accountIdCompositeKey.encode(rawAccountEntity))
             .item(dbObject)
             .update();
         },
@@ -143,25 +143,25 @@ class DataSourceAccountService extends Service {
     return result;
   }
 
-  async updateAccount(requestContext, rawData) {
+  async updateAccount(requestContext, rawAccountEntity) {
     // Ensure that the caller has permissions to update the account
     // Perform default condition checks to make sure the user is active and is admin
     await this.assertAuthorized(
       requestContext,
       { action: 'update', conditions: [allowIfActive, allowIfAdmin] },
-      rawData,
+      rawAccountEntity,
     );
 
     // Validate input
     const [validationService] = await this.service(['jsonSchemaValidationService']);
-    await validationService.ensureValid(rawData, updateSchema);
+    await validationService.ensureValid(rawAccountEntity, updateSchema);
 
     // For now, we assume that 'updatedBy' is always a user and not a group
     const by = _.get(requestContext, 'principalIdentifier.uid');
-    const { id, rev } = rawData;
+    const { id, rev } = rawAccountEntity;
 
     // Prepare the db object
-    const dbObject = _.omit(this._fromRawToDbObject(rawData, { updatedBy: by }), ['rev']);
+    const dbObject = _.omit(this._fromRawToDbObject(rawAccountEntity, { updatedBy: by }), ['rev']);
 
     // Time to save the the db object
     const result = this._fromDbToDataObject(
@@ -169,7 +169,7 @@ class DataSourceAccountService extends Service {
         async () => {
           return this._updater()
             .condition('attribute_exists(pk) and attribute_exists(sk)') // yes we need this
-            .key(accountIdCompositeKey.encode(rawData))
+            .key(accountIdCompositeKey.encode(rawAccountEntity))
             .rev(rev)
             .item(dbObject)
             .update();
@@ -197,21 +197,21 @@ class DataSourceAccountService extends Service {
     return result;
   }
 
-  async registerBucket(requestContext, rawData) {
+  async registerBucket(requestContext, rawBucketEntity) {
     // We delegate most of the work to the DataSourceBuckService including input validation.
     // However, we still want to ensure that the caller has permissions to register the bucket
     // Perform default condition checks to make sure the user is active and is admin
     await this.assertAuthorized(
       requestContext,
       { action: 'registerBucket', conditions: [allowIfActive, allowIfAdmin] },
-      rawData,
+      rawBucketEntity,
     );
 
-    const { accountId } = rawData;
+    const { accountId } = rawBucketEntity;
     const accountEntity = await this.mustFindAccount(requestContext, { id: accountId });
     const [bucketService] = await this.service(['dataSourceBucketService']);
 
-    return bucketService.register(requestContext, accountEntity, _.omit(rawData, ['accountId']));
+    return bucketService.register(requestContext, accountEntity, _.omit(rawBucketEntity, ['accountId']));
   }
 
   async listAccounts(requestContext, { fields = [] } = {}) {

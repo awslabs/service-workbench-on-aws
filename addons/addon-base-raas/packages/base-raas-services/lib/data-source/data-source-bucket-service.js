@@ -75,8 +75,8 @@ class DataSourceBucketService extends Service {
 
   // This method is not expected to be called directly from a controller, if you need to call this from a controller
   // then use the DataSourceAccountService.registerBucket() instead
-  async register(requestContext, accountEntity, data) {
-    const rawData = { ...data, accountId: accountEntity.id };
+  async register(requestContext, accountEntity, rawBucketEntity) {
+    const rawData = { ...rawBucketEntity, accountId: accountEntity.id };
     // Ensure that the caller has permissions to register the bucket
     // Perform default condition checks to make sure the user is active and is admin
     await this.assertAuthorized(
