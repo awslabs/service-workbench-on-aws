@@ -157,6 +157,88 @@ describe('studyService', () => {
       }
     });
 
+    it('should fail if non-system user is trying to create Open Data study', async () => {
+      // BUILD
+      const dataIpt = {
+        id: 'newOpenStudy',
+        category: 'Open Data',
+      };
+
+      // OPERATE
+      try {
+        await service.create(
+          { principal: { userRole: 'admin' }, principalIdentifier: { uid: 'someRandomUserUid' } },
+          dataIpt,
+        );
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Only the system can create Open Data studies.');
+      }
+    });
+
+    it('should pass if system is trying to create Open Data study', async () => {
+      // BUILD
+      const dataIpt = {
+        id: 'newOpenStudy',
+        category: 'Open Data',
+      };
+      service.audit = jest.fn();
+
+      // OPERATE
+      await service.create({ principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } }, dataIpt);
+
+      // CHECK
+      expect(dbService.table.update).toHaveBeenCalled();
+      expect(service.audit).toHaveBeenCalledWith(
+        { principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } },
+        { action: 'create-study', body: undefined },
+      );
+    });
+
+    it('should fail if non-Open Data study type has non-empty resources list', async () => {
+      // BUILD
+      const dataIpt = {
+        id: 'newOpenStudy',
+        category: 'Organization',
+        projectId: 'existingProjId',
+        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
+      };
+      projectService.verifyUserProjectAssociation.mockImplementationOnce(() => true);
+
+      // OPERATE
+      try {
+        await service.create(
+          { principal: { userRole: 'admin' }, principalIdentifier: { uid: 'someRandomUserUid' } },
+          dataIpt,
+        );
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Resources can only be assigned to Open Data study category');
+      }
+    });
+
+    it('should pass if Open Data study type has non-empty resources list', async () => {
+      // BUILD
+      const dataIpt = {
+        id: 'newOpenStudy',
+        category: 'Open Data',
+        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
+      };
+      service.audit = jest.fn();
+
+      // OPERATE
+      await service.create({ principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } }, dataIpt);
+
+      // CHECK
+      expect(dbService.table.update).toHaveBeenCalled();
+      expect(service.audit).toHaveBeenCalledWith(
+        { principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } },
+        { action: 'create-study', body: undefined },
+      );
+    });
+
     it('should try to create the study successfully', async () => {
       // BUILD
       const dataIpt = {
