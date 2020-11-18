@@ -226,9 +226,21 @@ class EnvironmentMountService extends Service {
 
           // Update statement and policy
           // NOTE: The S3 API *should* remove duplicate principals, if any
-          listStatement.Principal.AWS = updateAwsPrincipals(listStatement.Principal.AWS, workspaceRoleArn);
-          getStatement.Principal.AWS = updateAwsPrincipals(getStatement.Principal.AWS, workspaceRoleArn);
-          putStatement.Principal.AWS = updateAwsPrincipals(putStatement.Principal.AWS, workspaceRoleArn);
+          listStatement.Principal.AWS = updateAwsPrincipals(
+            listStatement.Principal.AWS,
+            workspaceRoleArn,
+            `arn:aws:s3:::${s3BucketName}/${prefix}`,
+          );
+          getStatement.Principal.AWS = updateAwsPrincipals(
+            getStatement.Principal.AWS,
+            workspaceRoleArn,
+            `arn:aws:s3:::${s3BucketName}/${prefix}`,
+          );
+          putStatement.Principal.AWS = updateAwsPrincipals(
+            putStatement.Principal.AWS,
+            workspaceRoleArn,
+            `arn:aws:s3:::${s3BucketName}/${prefix}`,
+          );
 
           s3Policy.Statement = s3Policy.Statement.filter(
             statement => ![listSid, getSid, putSid].includes(statement.Sid),
