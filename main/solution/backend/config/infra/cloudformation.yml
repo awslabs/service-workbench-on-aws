@@ -558,6 +558,7 @@ Resources:
                 - !GetAtt [EnvironmentsScDb, Arn]
                 - !Join ['', [!GetAtt [EnvironmentsScDb, Arn], '/index/*']]
                 - !GetAtt [EnvironmentsTypesDb, Arn]
+                - !GetAtt [EnvironmentResourceUsagesDb, Arn]
                 - !GetAtt [StudiesDb, Arn]
                 - !GetAtt [ProjectsDb, Arn]
                 - !GetAtt [StudyPermissionsDb, Arn]
