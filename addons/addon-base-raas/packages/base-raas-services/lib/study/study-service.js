@@ -262,7 +262,9 @@ class StudyService extends Service {
         const permissions = await this.studyPermissionService.getRequestorPermissions(requestContext);
         if (permissions) {
           // We can't give duplicate keys to the batch get, so ensure that allowedStudies is unique
-          const allowedStudies = _.uniq(permissions.adminAccess.concat(permissions.readonlyAccess));
+          const allowedStudies = _.uniq(
+            permissions.adminAccess.concat(permissions.readonlyAccess).concat(permissions.readwriteAccess),
+          );
           if (allowedStudies.length) {
             const rawResult = await this._getter()
               .keys(allowedStudies.map(studyId => ({ id: studyId })))
