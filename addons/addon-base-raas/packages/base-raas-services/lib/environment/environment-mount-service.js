@@ -106,7 +106,7 @@ class EnvironmentMountService extends Service {
     };
 
     return this._updateResourcePolicies({
-      updateAwsPrincipals: maybeUpdateAwsPrincipals,
+      updateAwsPrincipals: await maybeUpdateAwsPrincipals,
       workspaceRoleArn,
       s3Prefixes,
     });
@@ -138,7 +138,7 @@ class EnvironmentMountService extends Service {
     };
 
     return this._updateResourcePolicies({
-      updateAwsPrincipals: maybeUpdateAwsPrincipals,
+      updateAwsPrincipals: await maybeUpdateAwsPrincipals,
       workspaceRoleArn,
       s3Prefixes,
     });
@@ -281,7 +281,11 @@ class EnvironmentMountService extends Service {
 
         // Update policy
         // NOTE: The S3 API *should* remove duplicate principals, if any
-        environmentStatement.Principal.AWS = updateAwsPrincipals(environmentStatement.Principal.AWS, workspaceRoleArn);
+        environmentStatement.Principal.AWS = updateAwsPrincipals(
+          environmentStatement.Principal.AWS,
+          workspaceRoleArn,
+          `kmsKeyAliasId/${keyId}`,
+        );
 
         kmsPolicy.Statement = kmsPolicy.Statement.filter(statement => statement.Sid !== sid);
         if (environmentStatement.Principal.AWS.length > 0) {

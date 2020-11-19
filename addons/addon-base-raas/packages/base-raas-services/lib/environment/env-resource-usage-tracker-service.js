@@ -36,7 +36,7 @@ class EnvResourceUsageTrackerService extends Service {
 
   async init() {
     await super.init();
-    const [dbService] = await this.service(['dbService']);
+    const dbService = await this.service('dbService');
     const table = this.settings.get(settingKeys.tableName);
 
     this._updater = () => dbService.helper.updater().table(table);
