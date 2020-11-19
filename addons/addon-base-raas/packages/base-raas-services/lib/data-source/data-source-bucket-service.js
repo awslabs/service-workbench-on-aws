@@ -20,15 +20,16 @@ const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/autho
 
 const registerSchema = require('../schema/register-data-source-bucket');
 const { bucketIdCompositeKey } = require('./helpers/composite-keys');
+const { bucketEntity: bucketEntityTransform } = require('./helpers/transformers');
 
 const settingKeys = {
   tableName: 'dbDsAccounts',
 };
 
 /**
- * This service is responsible for persisting the data source bucket information.
- * NOTE: registering a bucket should be done via DataSourceAccountService.registerBucket(),
- * this is because the account service ensures that the account is registered first before
+ * This service is responsible for persisting the data source bucket entity.
+ * NOTE: registering a bucket should be done via DataSourceRegistrationService.registerBucket(),
+ * this is because the registration service ensures that the account is registered first before
  * a bucket is created.
  */
 class DataSourceBucketService extends Service {
@@ -64,7 +65,7 @@ class DataSourceBucketService extends Service {
       .projection(fields)
       .get();
 
-    return this.fromDbToDataObject(result);
+    return bucketEntityTransform.fromDbToEntity(result);
   }
 
   async mustFind(requestContext, { accountId, name, fields = [] }) {
@@ -103,7 +104,7 @@ class DataSourceBucketService extends Service {
     });
 
     // Time to save the the db object
-    const result = this.fromDbToDataObject(
+    const result = bucketEntityTransform.fromDbToEntity(
       await runAndCatch(
         async () => {
           return this._updater()
@@ -130,21 +131,6 @@ class DataSourceBucketService extends Service {
     delete dbObject.accountId;
     delete dbObject.name;
     return dbObject;
-  }
-
-  // Do some properties renaming to restore the object that was saved in the database
-  fromDbToDataObject(rawDb, overridingProps = {}) {
-    if (_.isNil(rawDb)) return rawDb; // important, leave this if statement here, otherwise, your update methods won't work correctly
-    if (!_.isObject(rawDb)) return rawDb;
-
-    const dataObject = { ...rawDb, ...overridingProps };
-    const { accountId, name } = bucketIdCompositeKey.decode(dataObject);
-    dataObject.accountId = accountId;
-    dataObject.name = name;
-    delete dataObject.pk;
-    delete dataObject.sk;
-
-    return dataObject;
   }
 
   async assertAuthorized(requestContext, { action, conditions }, ...args) {

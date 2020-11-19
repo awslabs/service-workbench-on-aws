@@ -1,3 +1,4 @@
+const path = require('path');
 const _ = require('lodash');
 const nanoid = require('nanoid');
 
@@ -20,8 +21,17 @@ function chopLeft(str = '', start = '') {
   return str.substring(start.length);
 }
 
+function normalizeStudyFolder(str = '') {
+  // First we want to make sure that all '../' are resolved now.
+  // Note: path.resolve, will also remove any trailing forward slashes
+  const resolved = path.resolve('/', str);
+
+  return _.endsWith(resolved, '/') ? resolved : `${resolved}/`;
+}
+
 module.exports = {
   generateId,
   chopRight,
   chopLeft,
+  normalizeStudyFolder,
 };

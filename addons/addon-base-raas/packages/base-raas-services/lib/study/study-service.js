@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 /*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -19,6 +20,8 @@ const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const { buildTaggingXml } = require('../helpers/aws-tags');
 const { isInternalResearcher, isAdmin, isSystem } = require('../helpers/is-role');
+const { normalizeStudyFolder } = require('../helpers/utils');
+const registerSchema = require('../schema/register-study');
 const createSchema = require('../schema/create-study');
 const updateSchema = require('../schema/update-study');
 
@@ -37,6 +40,7 @@ class StudyService extends Service {
       'dbService',
       'studyPermissionService',
       'projectService',
+      'userService',
       'auditWriterService',
     ]);
   }
@@ -85,9 +89,112 @@ class StudyService extends Service {
     return result.map(record => this.fromDbToDataObject(record));
   }
 
+  // WARNING!! This method is not meant to be called directly from a controller,
+  // if you need to do that, use dataSourceRegistrationService.registerStudy() instead.
+  async register(requestContext, accountEntity, bucketEntity, rawStudyEntity) {
+    if (!isAdmin(requestContext)) {
+      throw this.boom.forbidden('Only admins are authorized to register studies.', true);
+    }
+
+    const [validationService, userService, projectService] = await this.service([
+      'jsonSchemaValidationService',
+      'userService',
+      'projectService',
+    ]);
+    // Validate input
+    await validationService.ensureValid(rawStudyEntity, registerSchema);
+
+    const admins = rawStudyEntity.admins;
+
+    if (_.isEmpty(admins)) {
+      throw this.boom.badRequest('You must provide at least on admin for the study', true);
+    }
+
+    if (_.size(admins) > 20) {
+      throw this.boom.badRequest('You can only specify up to 20 admins at the time of registering a study', true);
+    }
+
+    // We now check all the study admins to ensure they exist, active and either have the role of application admin or a researcher
+    const errors = [];
+    const chunks = _.chunk(admins, 10); // We want to chunk and lookup user info, 10 at a time
+    const validateUser = async uid => {
+      try {
+        const user = await userService.mustFindUser({ uid });
+        const isAdminUser = user.isAdmin;
+        const isActive = _.toLower(user.status) === 'active';
+        const isResearcher = user.userRole === 'researcher';
+        if (!(isActive && (isAdminUser || isResearcher))) {
+          throw this.boom.badRequest(
+            `User ${user.username} must be active and either has the role of admin or the role of researchers`,
+            true,
+          );
+        }
+      } catch (error) {
+        errors.push(error.message);
+      }
+    };
+
+    while (!_.isEmpty(chunks)) {
+      const chunk = chunks.shift();
+      await Promise.all(_.map(chunk, validateUser));
+    }
+
+    if (!_.isEmpty(errors)) {
+      throw this.boom.badRequest(errors.join('. '), true);
+    }
+
+    // Lets check to see if kmsArn is not provided if useBucketKms is true
+    if (!_.isEmpty(rawStudyEntity.kmsArn) && rawStudyEntity.useBucketKms) {
+      throw this.boom.badRequest('You can not provide a KMS ARN when useBucketKms is true', true);
+    }
+
+    // Lets also check if useBucketKms is true but the bucket does not have kmsArn
+    if (rawStudyEntity.useBucketKms && _.isEmpty(bucketEntity.kmsArn)) {
+      throw this.boom.badRequest(
+        'useBucketKms is true, but the bucket does not have a kms key associated with it',
+        true,
+      );
+    }
+
+    if (!_.isEmpty(rawStudyEntity.projectId)) {
+      await projectService.mustFind(requestContext, { id: rawStudyEntity.projectId });
+    }
+
+    const by = _.get(requestContext, 'principalIdentifier.uid');
+    const entity = {
+      ..._.omit(rawStudyEntity, ['admins']),
+      folder: normalizeStudyFolder(rawStudyEntity.folder),
+      prefix: accountEntity.prefix,
+      accountId: accountEntity.id,
+      bucket: bucketEntity.name,
+      bucketPartition: bucketEntity.partition,
+      bucketRegion: bucketEntity.region,
+      kmsArn: rawStudyEntity.kmsArn || bucketEntity.kmsArn,
+      status: 'initial',
+      rev: 0,
+      createdBy: by,
+      updatedBy: by,
+    };
+
+    const result = await runAndCatch(
+      async () => {
+        return this._updater()
+          .condition('attribute_not_exists(id)') // Error if already exists
+          .key({ id: entity.id })
+          .item(_.omit(entity, 'id'))
+          .update();
+      },
+      async () => {
+        throw this.boom.badRequest(`study with id "${entity.id}" already exists`, true);
+      },
+    );
+
+    return result;
+  }
+
   async create(requestContext, rawData) {
     if (!(isInternalResearcher(requestContext) || isAdmin(requestContext))) {
-      throw this.boom.forbidden('Only admin and internal researcher are authorized to create studies. ');
+      throw this.boom.forbidden('Only admin and internal researcher are authorized to create studies.', true);
     }
     if (rawData.category === 'Open Data' && !isSystem(requestContext)) {
       throw this.boom.badRequest('Only the system can create Open Data studies.', true);
@@ -136,7 +243,7 @@ class StudyService extends Service {
       dbObject.resources.push({ arn: `arn:aws:s3:::${this.studyDataBucket}/${studyFileLocation}` });
     }
 
-    // Time to save the the db object
+    // Time to save the db object
     const result = await runAndCatch(
       async () => {
         return this._updater()

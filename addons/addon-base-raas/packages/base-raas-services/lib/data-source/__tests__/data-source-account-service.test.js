@@ -73,7 +73,7 @@ describe('DataSourceAccountService', () => {
       const id = '123456789012';
       const rawData = { id, name: 'Computer Science Department Account', type: 'managed-nonmember' };
 
-      await service.registerAccount(requestContext, rawData);
+      await service.register(requestContext, rawData);
 
       expect(dbService.table.key).toHaveBeenCalledWith({ pk: `ACT#${id}`, sk: `ACT#${id}` });
       expect(dbService.table.item).toHaveBeenCalledWith(
@@ -97,7 +97,7 @@ describe('DataSourceAccountService', () => {
       const requestContext = { principalIdentifier: { uid } };
       const rawData = { id: '123456789012', name: 'Computer Science Department Account', type: 'managed-nonmember' };
 
-      await expect(service.registerAccount(requestContext, rawData)).rejects.toThrow(
+      await expect(service.register(requestContext, rawData)).rejects.toThrow(
         // It is better to check using boom.code instead of just the actual string, unless
         // there are a few errors with the exact same boom code but different messages.
         // Note: if you encounter a case where a service is throwing exceptions with the
@@ -129,7 +129,7 @@ describe('DataSourceAccountService', () => {
         }
       });
 
-      await expect(service.registerAccount(requestContext, rawData)).rejects.toThrow(
+      await expect(service.register(requestContext, rawData)).rejects.toThrow(
         // It is better to check using boom.code instead of just the actual string, unless
         // there are a few errors with the exact same boom code but different messages.
         // Note: if you encounter a case where a service is throwing exceptions with the
@@ -145,7 +145,7 @@ describe('DataSourceAccountService', () => {
       const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
       const rawData = { id: '123456789012', name: 'Computer Science Department Account', type: 'unmanaged' };
 
-      await expect(service.registerAccount(requestContext, rawData)).rejects.toThrow(
+      await expect(service.register(requestContext, rawData)).rejects.toThrow(
         expect.objectContaining({ boom: true, code: 'notSupported', safe: true }),
       );
     });
@@ -158,7 +158,7 @@ describe('DataSourceAccountService', () => {
       const id = '123456789012';
       const rawData = { id, name: 'Computer Science Department Account', rev: 2 };
 
-      await service.updateAccount(requestContext, rawData);
+      await service.update(requestContext, rawData);
 
       expect(dbService.table.key).toHaveBeenCalledWith({ pk: `ACT#${id}`, sk: `ACT#${id}` });
       expect(dbService.table.rev).toHaveBeenCalledWith(2);
@@ -174,7 +174,7 @@ describe('DataSourceAccountService', () => {
       const requestContext = { principalIdentifier: { uid } };
       const rawData = { id: '123456789012', name: 'Computer Science Department Account', rev: 2 };
 
-      await expect(service.updateAccount(requestContext, rawData)).rejects.toThrow(
+      await expect(service.update(requestContext, rawData)).rejects.toThrow(
         expect.objectContaining({ boom: true, code: 'forbidden', safe: true }),
       );
     });
@@ -201,7 +201,7 @@ describe('DataSourceAccountService', () => {
         }
       });
 
-      await expect(service.updateAccount(requestContext, rawData)).rejects.toThrow(
+      await expect(service.update(requestContext, rawData)).rejects.toThrow(
         expect.objectContaining({ boom: true, code: 'notFound', safe: true }),
       );
     });
@@ -212,7 +212,7 @@ describe('DataSourceAccountService', () => {
       const rawData = { id: '123456789012', name: 'Computer Science Department Account', rev: 0 };
       let rev;
 
-      service.findAccount = jest.fn((_request, { id }) => {
+      service.find = jest.fn((_request, { id }) => {
         if (id === rawData.id) return rawData;
         return undefined;
       });
@@ -231,45 +231,8 @@ describe('DataSourceAccountService', () => {
         }
       });
 
-      await expect(service.updateAccount(requestContext, rawData)).rejects.toThrow(
+      await expect(service.update(requestContext, rawData)).rejects.toThrow(
         expect.objectContaining({ boom: true, code: 'outdatedUpdateAttempt', safe: true }),
-      );
-    });
-  });
-
-  describe('register bucket', () => {
-    it('only admins are allowed to register data source buckets', async () => {
-      const uid = 'u-currentUserId';
-      const requestContext = { principalIdentifier: { uid } };
-      const rawData = { accountId: '123456789012', name: 'bucket-1', region: 'us-east-1', partition: 'aws' };
-
-      await expect(service.registerBucket(requestContext, rawData)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'forbidden', safe: true }),
-      );
-    });
-
-    it('throws if account does not exist', async () => {
-      const uid = 'u-currentUserId';
-      const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
-      const rawData = { accountId: '123456789012', name: 'bucket-1', region: 'us-east-1', partition: 'aws' };
-      let pKey;
-      let sKey;
-      dbService.table.key = jest.fn(({ pk, sk }) => {
-        pKey = pk;
-        sKey = sk;
-        return dbService.table;
-      });
-
-      dbService.table.get = jest.fn(() => {
-        const id = rawData.accountId;
-        if (pKey === `ACT#${id}` && sKey === `ACT#${id}`) {
-          return undefined;
-        }
-        return { pk: `ACT#${id}`, sk: `ACT#${id}` };
-      });
-
-      await expect(service.registerBucket(requestContext, rawData)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'notFound', safe: true }),
       );
     });
   });
@@ -279,7 +242,7 @@ describe('DataSourceAccountService', () => {
       const uid = 'u-currentUserId';
       const requestContext = { principalIdentifier: { uid } };
 
-      await expect(service.listAccounts(requestContext)).rejects.toThrow(
+      await expect(service.list(requestContext)).rejects.toThrow(
         expect.objectContaining({ boom: true, code: 'forbidden', safe: true }),
       );
     });
@@ -306,7 +269,7 @@ describe('DataSourceAccountService', () => {
         return result;
       });
 
-      await expect(service.listAccounts(requestContext)).resolves.toStrictEqual([
+      await expect(service.list(requestContext)).resolves.toStrictEqual([
         { ...acct1, buckets: [bucket1, bucket2] },
         { ...acct2, buckets: [bucket3] },
         { ...acct3, buckets: [] },

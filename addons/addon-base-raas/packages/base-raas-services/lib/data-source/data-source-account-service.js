@@ -21,6 +21,7 @@ const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/autho
 const { generateId } = require('../helpers/utils');
 const registerSchema = require('../schema/register-data-source-account');
 const updateSchema = require('../schema/update-data-source-account');
+const { bucketEntity: bucketEntityTransform } = require('./helpers/transformers');
 const { accountIdCompositeKey, bucketIdCompositeKey } = require('./helpers/composite-keys');
 
 const settingKeys = {
@@ -35,13 +36,7 @@ class DataSourceAccountService extends Service {
   constructor() {
     super();
     this.boom.extend(['notSupported', 400]);
-    this.dependency([
-      'jsonSchemaValidationService',
-      'authorizationService',
-      'dbService',
-      'dataSourceBucketService',
-      'auditWriterService',
-    ]);
+    this.dependency(['jsonSchemaValidationService', 'authorizationService', 'dbService', 'auditWriterService']);
   }
 
   async init() {
@@ -56,7 +51,7 @@ class DataSourceAccountService extends Service {
     this._scanner = () => dbService.helper.scanner().table(table);
   }
 
-  async findAccount(requestContext, { id, fields = [] }) {
+  async find(requestContext, { id, fields = [] }) {
     // ensure that the caller has permissions to read this account information
     // Perform default condition checks to make sure the user is active and is admin
     await this.assertAuthorized(requestContext, { action: 'read', conditions: [allowIfActive, allowIfAdmin] }, { id });
@@ -69,13 +64,13 @@ class DataSourceAccountService extends Service {
     return this._fromDbToDataObject(result);
   }
 
-  async mustFindAccount(requestContext, { id, fields = [] }) {
-    const result = await this.findAccount(requestContext, { id, fields });
+  async mustFind(requestContext, { id, fields = [] }) {
+    const result = await this.find(requestContext, { id, fields });
     if (!result) throw this.boom.notFound(`Data source account with id "${id}" does not exist`, true);
     return result;
   }
 
-  async registerAccount(requestContext, rawAccountEntity) {
+  async register(requestContext, rawAccountEntity) {
     // Ensure that the caller has permissions to register the account
     // Perform default condition checks to make sure the user is active and is admin
     await this.assertAuthorized(
@@ -143,7 +138,7 @@ class DataSourceAccountService extends Service {
     return result;
   }
 
-  async updateAccount(requestContext, rawAccountEntity) {
+  async update(requestContext, rawAccountEntity) {
     // Ensure that the caller has permissions to update the account
     // Perform default condition checks to make sure the user is active and is admin
     await this.assertAuthorized(
@@ -179,7 +174,7 @@ class DataSourceAccountService extends Service {
           // 1 - The ds account does not exist
           // 2 - The "rev" does not match
           // We will display the appropriate error message accordingly
-          const existing = await this.findAccount(requestContext, { id, fields: ['id', 'updatedBy'] });
+          const existing = await this.find(requestContext, { id, fields: ['id', 'updatedBy'] });
           if (existing) {
             throw this.boom.outdatedUpdateAttempt(
               `the account information changed just before your request is processed, please try again`,
@@ -197,26 +192,8 @@ class DataSourceAccountService extends Service {
     return result;
   }
 
-  async registerBucket(requestContext, rawBucketEntity) {
-    // We delegate most of the work to the DataSourceBuckService including input validation.
-    // However, we still want to ensure that the caller has permissions to register the bucket
-    // Perform default condition checks to make sure the user is active and is admin
-    await this.assertAuthorized(
-      requestContext,
-      { action: 'registerBucket', conditions: [allowIfActive, allowIfAdmin] },
-      rawBucketEntity,
-    );
-
-    const { accountId } = rawBucketEntity;
-    const accountEntity = await this.mustFindAccount(requestContext, { id: accountId });
-    const [bucketService] = await this.service(['dataSourceBucketService']);
-
-    return bucketService.register(requestContext, accountEntity, _.omit(rawBucketEntity, ['accountId']));
-  }
-
-  async listAccounts(requestContext, { fields = [] } = {}) {
-    await this.assertAuthorized(requestContext, { action: 'listAccounts', conditions: [allowIfActive, allowIfAdmin] });
-    const [bucketService] = await this.service(['dataSourceBucketService']);
+  async list(requestContext, { fields = [] } = {}) {
+    await this.assertAuthorized(requestContext, { action: 'list', conditions: [allowIfActive, allowIfAdmin] });
 
     // Remember doing a scan is not a good idea if millions of accounts
     const output = await this._scanner()
@@ -238,7 +215,7 @@ class DataSourceAccountService extends Service {
     _.forEach(output, item => {
       let entry;
       if (isBucketItem(item)) {
-        entry = bucketService.fromDbToDataObject(item);
+        entry = bucketEntityTransform.fromDbToEntity(item);
         const accountEntry = getAccountEntry(entry.accountId);
         accountEntry.buckets.push(entry);
       } else {

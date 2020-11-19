@@ -36,10 +36,20 @@
       "type": "string",
       "maxLength": 90
     },
+    "useBucketKms": {
+      "type": "boolean"
+    },
+    "admins": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "maxLength": 90
+      }
+    },
     "accessType": {
       "type": "string",
       "enum": ["readonly", "readwrite"]
     }
   },
-  "required": ["id", "category", "accessType"]
+  "required": ["id", "category", "folder", "accessType", "admins"]
 }

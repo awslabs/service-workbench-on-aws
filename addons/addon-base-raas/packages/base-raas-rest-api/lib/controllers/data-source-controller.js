@@ -27,7 +27,7 @@ async function configure(context) {
     wrap(async (req, res) => {
       const requestContext = res.locals.requestContext;
       const service = await context.service('dataSourceAccountService');
-      const result = await service.listAccounts(requestContext);
+      const result = await service.list(requestContext);
 
       res.status(200).json(result);
     }),
@@ -40,9 +40,9 @@ async function configure(context) {
     '/accounts',
     wrap(async (req, res) => {
       const requestContext = res.locals.requestContext;
-      const possibleBody = req.body;
-      const service = await context.service('dataSourceAccountService');
-      const result = await service.registerAccount(requestContext, possibleBody);
+      const unsafeBody = req.body;
+      const service = await context.service('dataSourceRegistrationService');
+      const result = await service.registerAccount(requestContext, unsafeBody);
 
       res.status(201).json(result);
     }),
@@ -56,9 +56,9 @@ async function configure(context) {
     wrap(async (req, res) => {
       const id = req.params.id;
       const requestContext = res.locals.requestContext;
-      const possibleBody = req.body;
+      const unsafeBody = req.body;
       const service = await context.service('dataSourceAccountService');
-      const result = await service.updateAccount(requestContext, { ...possibleBody, id });
+      const result = await service.update(requestContext, { ...unsafeBody, id });
 
       res.status(200).json(result);
     }),
@@ -70,11 +70,28 @@ async function configure(context) {
   router.post(
     '/accounts/:id/buckets',
     wrap(async (req, res) => {
-      const id = req.params.id;
+      const accountId = req.params.id;
       const requestContext = res.locals.requestContext;
-      const possibleBody = req.body;
-      const service = await context.service('dataSourceAccountService');
-      const result = await service.registerBucket(requestContext, { ...possibleBody, accountId: id });
+      const unsafeBody = req.body;
+      const service = await context.service('dataSourceRegistrationService');
+      const result = await service.registerBucket(requestContext, accountId, unsafeBody);
+
+      res.status(201).json(result);
+    }),
+  );
+
+  // ===============================================================
+  //  POST /accounts/:id/buckets/:name/studies (mounted to /api/data-sources)
+  // ===============================================================
+  router.post(
+    '/accounts/:id/buckets/:name/studies',
+    wrap(async (req, res) => {
+      const accountId = req.params.id;
+      const bucketName = req.params.name;
+      const requestContext = res.locals.requestContext;
+      const unsafeBody = req.body;
+      const service = await context.service('dataSourceRegistrationService');
+      const result = await service.registerStudy(requestContext, accountId, bucketName, unsafeBody);
 
       res.status(201).json(result);
     }),
