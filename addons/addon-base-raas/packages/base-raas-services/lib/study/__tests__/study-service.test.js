@@ -219,6 +219,18 @@ describe('studyService', () => {
       }
     });
 
+    it('should get the correct allowed studies ONLY (admin, R/O, R/W)', async () => {
+      // BUILD, OPERATE and CHECK
+      expect(
+        service._getAllowedStudies({
+          adminAccess: ['studyA'],
+          readonlyAccess: ['studyB'],
+          readwriteAccess: ['studyC'],
+          unknownAccess: ['studyD'],
+        }),
+      ).toEqual(['studyA', 'studyB', 'studyC']);
+    });
+
     it('should pass if Open Data study type has non-empty resources list', async () => {
       // BUILD
       const dataIpt = {
