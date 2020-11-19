@@ -243,7 +243,7 @@ class StudyService extends Service {
     return result;
   }
 
-  _getAllowedStudies(permissions) {
+  _getAllowedStudies(permissions = []) {
     const adminAccess = permissions.adminAccess || [];
     const readonlyAccess = permissions.readonlyAccess || [];
     const readwriteAccess = permissions.readwriteAccess || [];
