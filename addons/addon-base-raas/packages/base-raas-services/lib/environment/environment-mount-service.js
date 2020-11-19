@@ -92,7 +92,6 @@ class EnvironmentMountService extends Service {
         principal: newPrincipal,
         envId,
       });
-
       // If this is the first environment that requires sharing the resource with the principal
       // then update
       if (result.count === 1) {
@@ -126,7 +125,6 @@ class EnvironmentMountService extends Service {
         principal: removedPrincipal,
         envId,
       });
-
       if (result.count === 0) {
         if (Array.isArray(awsPrincipals)) {
           awsPrincipals = awsPrincipals.filter(principal => principal !== removedPrincipal);
@@ -172,86 +170,88 @@ class EnvironmentMountService extends Service {
 
         // Get statements for listing and reading study data, respectively
         const statements = s3Policy.Statement;
-        s3Prefixes.forEach(prefix => {
-          const listSid = `List:${prefix}`;
-          const getSid = `Get:${prefix}`;
-          const putSid = `Put:${prefix}`;
+        await Promise.all(
+          _.map(s3Prefixes, async prefix => {
+            const listSid = `List:${prefix}`;
+            const getSid = `Get:${prefix}`;
+            const putSid = `Put:${prefix}`;
 
-          // Define default statements to be used if we can't find existing ones
-          let listStatement = {
-            Sid: listSid,
-            Effect: 'Allow',
-            Principal: { AWS: [] },
-            Action: 's3:ListBucket',
-            Resource: `arn:aws:s3:::${s3BucketName}`,
-            Condition: {
-              StringLike: {
-                's3:prefix': [`${prefix}*`],
+            // Define default statements to be used if we can't find existing ones
+            let listStatement = {
+              Sid: listSid,
+              Effect: 'Allow',
+              Principal: { AWS: [] },
+              Action: 's3:ListBucket',
+              Resource: `arn:aws:s3:::${s3BucketName}`,
+              Condition: {
+                StringLike: {
+                  's3:prefix': [`${prefix}*`],
+                },
               },
-            },
-          };
-          // Read Permission
-          let getStatement = {
-            Sid: getSid,
-            Effect: 'Allow',
-            Principal: { AWS: [] },
-            Action: ['s3:GetObject'],
-            Resource: [`arn:aws:s3:::${s3BucketName}/${prefix}*`],
-          };
-          // Write Permission
-          let putStatement = {
-            Sid: putSid,
-            Effect: 'Allow',
-            Principal: { AWS: [] },
-            Action: [
-              's3:AbortMultipartUpload',
-              's3:ListMultipartUploadParts',
-              's3:PutObject',
-              's3:PutObjectAcl',
-              's3:DeleteObject',
-            ],
-            Resource: [`arn:aws:s3:::${s3BucketName}/${prefix}*`],
-          };
+            };
+            // Read Permission
+            let getStatement = {
+              Sid: getSid,
+              Effect: 'Allow',
+              Principal: { AWS: [] },
+              Action: ['s3:GetObject'],
+              Resource: [`arn:aws:s3:::${s3BucketName}/${prefix}*`],
+            };
+            // Write Permission
+            let putStatement = {
+              Sid: putSid,
+              Effect: 'Allow',
+              Principal: { AWS: [] },
+              Action: [
+                's3:AbortMultipartUpload',
+                's3:ListMultipartUploadParts',
+                's3:PutObject',
+                's3:PutObjectAcl',
+                's3:DeleteObject',
+              ],
+              Resource: [`arn:aws:s3:::${s3BucketName}/${prefix}*`],
+            };
 
-          // Pull out existing statements if available
-          statements.forEach(statement => {
-            if (statement.Sid === listSid) {
-              listStatement = statement;
-            } else if (statement.Sid === getSid) {
-              getStatement = statement;
-            } else if (statement.Sid === putSid) {
-              putStatement = statement;
-            }
-          });
+            // Pull out existing statements if available
+            statements.forEach(statement => {
+              if (statement.Sid === listSid) {
+                listStatement = statement;
+              } else if (statement.Sid === getSid) {
+                getStatement = statement;
+              } else if (statement.Sid === putSid) {
+                putStatement = statement;
+              }
+            });
 
-          // Update statement and policy
-          // NOTE: The S3 API *should* remove duplicate principals, if any
-          listStatement.Principal.AWS = updateAwsPrincipals(
-            listStatement.Principal.AWS,
-            workspaceRoleArn,
-            `${s3BucketName}/${prefix}`,
-          );
-          getStatement.Principal.AWS = updateAwsPrincipals(
-            getStatement.Principal.AWS,
-            workspaceRoleArn,
-            `${s3BucketName}/${prefix}`,
-          );
-          putStatement.Principal.AWS = updateAwsPrincipals(
-            putStatement.Principal.AWS,
-            workspaceRoleArn,
-            `${s3BucketName}/${prefix}`,
-          );
+            // Update statement and policy
+            // NOTE: The S3 API *should* remove duplicate principals, if any
+            listStatement.Principal.AWS = await updateAwsPrincipals(
+              listStatement.Principal.AWS,
+              workspaceRoleArn,
+              `${s3BucketName}/${prefix}`,
+            );
+            getStatement.Principal.AWS = await updateAwsPrincipals(
+              getStatement.Principal.AWS,
+              workspaceRoleArn,
+              `${s3BucketName}/${prefix}`,
+            );
+            putStatement.Principal.AWS = await updateAwsPrincipals(
+              putStatement.Principal.AWS,
+              workspaceRoleArn,
+              `${s3BucketName}/${prefix}`,
+            );
 
-          s3Policy.Statement = s3Policy.Statement.filter(
-            statement => ![listSid, getSid, putSid].includes(statement.Sid),
-          );
-          [listStatement, getStatement, putStatement].forEach(statement => {
-            // Only add updated statement if it contains principals (otherwise leave it out)
-            if (statement.Principal.AWS.length > 0) {
-              s3Policy.Statement.push(statement);
-            }
-          });
-        });
+            s3Policy.Statement = s3Policy.Statement.filter(
+              statement => ![listSid, getSid, putSid].includes(statement.Sid),
+            );
+            [listStatement, getStatement, putStatement].forEach(statement => {
+              // Only add updated statement if it contains principals (otherwise leave it out)
+              if (statement.Principal.AWS.length > 0) {
+                s3Policy.Statement.push(statement);
+              }
+            });
+          }),
+        );
 
         // Update policy
         await s3Client.putBucketPolicy({ Bucket: s3BucketName, Policy: JSON.stringify(s3Policy) }).promise();
@@ -282,7 +282,7 @@ class EnvironmentMountService extends Service {
         // Update policy
         // NOTE: The S3 API *should* remove duplicate principals, if any
         const studyDataKmsAliasArn = this.settings.get(settingKeys.studyDataKmsKeyArn);
-        environmentStatement.Principal.AWS = updateAwsPrincipals(
+        environmentStatement.Principal.AWS = await updateAwsPrincipals(
           environmentStatement.Principal.AWS,
           workspaceRoleArn,
           studyDataKmsAliasArn,
