@@ -73,10 +73,12 @@ func (state persistentSynchronizerState) RecordFileDeletionFromLocal(filePath st
 }
 
 func (state persistentSynchronizerState) HasFileChangedInS3(item *s3.Object) bool {
-	// Return true if the S3 object's ETag is different than the one we have
-	// in our map
+	// Return true is the file was never downloaded from S3 (could happen when the file originated from local machine)
+	// and was uploaded to S3 but was never downloaded from S3 OR
+	// Return true if the S3 object's ETag is different than the one we have in our map since the last download
 	existing, ok := state.s3FileETagsMap.Get(*item.Key)
-	return ok && existing.(string) != *item.ETag
+
+	return !ok || existing.(string) != *item.ETag
 }
 
 // State hold map of directory path vs flag indicating if it is being watched by file watchers
