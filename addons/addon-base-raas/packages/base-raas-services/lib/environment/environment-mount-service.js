@@ -142,6 +142,37 @@ class EnvironmentMountService extends Service {
     });
   }
 
+  async _getBucketPolicy(s3BucketName) {
+    const aws = await this.service('aws');
+    const s3Client = new aws.sdk.S3();
+    const bucketPolicy = await s3Client.getBucketPolicy({ Bucket: s3BucketName }).promise();
+    return bucketPolicy.Policy;
+  }
+
+  async _putBucketPolicy(s3BucketName, s3Policy) {
+    const aws = await this.service('aws');
+    const s3Client = new aws.sdk.S3();
+    await s3Client.putBucketPolicy({ Bucket: s3BucketName, Policy: JSON.stringify(s3Policy) }).promise();
+  }
+
+  async _describeKmsKey(kmsKeyAlias) {
+    const aws = await this.service('aws');
+    const kmsClient = new aws.sdk.KMS();
+    return (await kmsClient.describeKey({ KeyId: kmsKeyAlias }).promise()).KeyMetadata.KeyId;
+  }
+
+  async _getKmsKeyPolicy(keyId) {
+    const aws = await this.service('aws');
+    const kmsClient = new aws.sdk.KMS();
+    return (await kmsClient.getKeyPolicy({ KeyId: keyId, PolicyName: 'default' }).promise()).Policy;
+  }
+
+  async _putKmsKeyPolicy(keyId, kmsPolicy) {
+    const aws = await this.service('aws');
+    const kmsClient = new aws.sdk.KMS();
+    await kmsClient.putKeyPolicy({ KeyId: keyId, PolicyName: 'default', Policy: JSON.stringify(kmsPolicy) }).promise();
+  }
+
   async _updateResourcePolicies({ updateAwsPrincipals, workspaceRoleArn, s3Prefixes }) {
     if (s3Prefixes.length === 0) {
       return;
@@ -155,9 +186,7 @@ class EnvironmentMountService extends Service {
     }
 
     // Setup services and SDK clients
-    const [aws, lockService] = await this.service(['aws', 'lockService']);
-    const s3Client = new aws.sdk.S3();
-    const kmsClient = new aws.sdk.KMS();
+    const lockService = await this.service('lockService');
 
     // Perform locked updates to prevent inconsistencies from race conditions
     const s3LockKey = `s3|bucket-policy|${s3BucketName}`;
@@ -166,7 +195,7 @@ class EnvironmentMountService extends Service {
       // Update S3 bucket policy
       lockService.tryWriteLockAndRun({ id: s3LockKey }, async () => {
         // Get existing policy
-        const s3Policy = JSON.parse((await s3Client.getBucketPolicy({ Bucket: s3BucketName }).promise()).Policy);
+        const s3Policy = JSON.parse(await this._getBucketPolicy(s3BucketName));
 
         // Get statements for listing and reading study data, respectively
         const statements = s3Policy.Statement;
@@ -252,18 +281,15 @@ class EnvironmentMountService extends Service {
             });
           }),
         );
-
         // Update policy
-        await s3Client.putBucketPolicy({ Bucket: s3BucketName, Policy: JSON.stringify(s3Policy) }).promise();
+        await this._putBucketPolicy(s3BucketName, s3Policy);
       }),
 
       // Update KMS key policy
       lockService.tryWriteLockAndRun({ id: kmsLockKey }, async () => {
         // Get existing policy
-        const keyId = (await kmsClient.describeKey({ KeyId: kmsKeyAlias }).promise()).KeyMetadata.KeyId;
-        const kmsPolicy = JSON.parse(
-          (await kmsClient.getKeyPolicy({ KeyId: keyId, PolicyName: 'default' }).promise()).Policy,
-        );
+        const keyId = await this._describeKmsKey(kmsKeyAlias);
+        const kmsPolicy = JSON.parse(await this._getKmsKeyPolicy(keyId));
 
         // Get statement
         const sid = this.settings.get(settingKeys.studyDataKmsPolicyWorkspaceSid);
@@ -294,9 +320,7 @@ class EnvironmentMountService extends Service {
           kmsPolicy.Statement.push(environmentStatement);
         }
 
-        await kmsClient
-          .putKeyPolicy({ KeyId: keyId, PolicyName: 'default', Policy: JSON.stringify(kmsPolicy) })
-          .promise();
+        await this._putKmsKeyPolicy(keyId, kmsPolicy);
       }),
     ]);
   }

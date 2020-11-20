@@ -12,7 +12,7 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-
+/* eslint-disable max-classes-per-file */
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
 
 const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
@@ -51,6 +51,9 @@ describe('EnvironmentMountService', () => {
   let service = null;
   let environmentScService = null;
   let iamService = null;
+  let envResourceUsageTrackerService = null;
+  let settings = null;
+  let lockService = null;
 
   beforeEach(async () => {
     // Initialize services container and register dependencies
@@ -71,8 +74,11 @@ describe('EnvironmentMountService', () => {
 
     // Get instance of the service we are testing
     service = await container.find('environmentMountService');
+    settings = await container.find('settings');
     environmentScService = await container.find('environmentScService');
     iamService = await container.find('iamService');
+    lockService = await container.find('lockService');
+    envResourceUsageTrackerService = await container.find('envResourceUsageTrackerService');
   });
 
   describe('Update paths', () => {
@@ -776,714 +782,931 @@ describe('EnvironmentMountService', () => {
       );
       expect(IamUpdateParams.policyDoc).toMatchObject(expectedPolicy);
     });
+
+    it('should ensure study admins have at least R/O access after R/O permission removal', async () => {
+      // BUILD
+      const updateRequest = {
+        usersToRemove: [{ uid: 'User1-UID', permissionLevel: 'readonly' }],
+        usersToAdd: [{ uid: 'User1-UID', permissionLevel: 'admin' }],
+      };
+      const studyId = 'StudyA';
+      const envsForUser = [{ studyIds: ['StudyA'] }];
+      environmentScService.getActiveEnvsForUser = jest.fn().mockResolvedValue(envsForUser);
+      iamService.putRolePolicy = jest.fn();
+      const studyBucket = 'arn:aws:s3:::xxxxxxxx-namespace-studydata';
+      const studyPrefix = 'studies/Organization/SampleStudy/*';
+      const inputPolicy = {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Sid: 'studyKMSAccess',
+            Action: ['Permission1', 'Permission2'],
+            Effect: 'Allow',
+            Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
+          },
+          {
+            Sid: 'studyListS3AccessN',
+            Effect: 'Allow',
+            Action: 's3:ListBucket',
+            Resource: studyBucket,
+            Condition: {
+              StringLike: {
+                's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
+              },
+            },
+          },
+          {
+            Sid: 'S3StudyReadAccess',
+            Effect: 'Allow',
+            Action: ['s3:GetObject'],
+            Resource: ['AnotherStudyBucketPath', `${studyBucket}/${studyPrefix}`],
+          },
+        ],
+      };
+      const IamUpdateParams = {
+        iamClient: 'sampleIamClient',
+        studyPathArn: `${studyBucket}/${studyPrefix}`,
+        policyDoc: inputPolicy,
+        roleName: 'sampleRoleName',
+        studyDataPolicyName: 'sampleStudyDataPolicy',
+      };
+      const expectedPolicy = {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Sid: 'studyKMSAccess',
+            Action: ['Permission1', 'Permission2'],
+            Effect: 'Allow',
+            Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
+          },
+          {
+            Sid: 'studyListS3AccessN',
+            Effect: 'Allow',
+            Action: 's3:ListBucket',
+            Resource: studyBucket,
+            Condition: {
+              StringLike: {
+                's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
+              },
+            },
+          },
+          {
+            Sid: 'S3StudyReadAccess',
+            Effect: 'Allow',
+            Action: ['s3:GetObject'],
+            Resource: ['AnotherStudyBucketPath', `${studyBucket}/${studyPrefix}`],
+          },
+        ],
+      };
+      service._getIamUpdateParams = jest.fn().mockResolvedValue(IamUpdateParams);
+
+      // OPERATE
+      await service.applyWorkspacePermissions(studyId, updateRequest);
+
+      // CHECK
+      expect(iamService.putRolePolicy).toHaveBeenCalledWith(
+        IamUpdateParams.roleName,
+        IamUpdateParams.studyDataPolicyName,
+        JSON.stringify(IamUpdateParams.policyDoc),
+        IamUpdateParams.iamClient,
+      );
+      expect(IamUpdateParams.policyDoc).toMatchObject(expectedPolicy);
+    });
+
+    it('should ensure study admins have at least R/O access after R/W permission removal', async () => {
+      // BUILD
+      const updateRequest = {
+        usersToRemove: [{ uid: 'User1-UID', permissionLevel: 'readwrite' }],
+        usersToAdd: [{ uid: 'User1-UID', permissionLevel: 'admin' }],
+      };
+      const studyId = 'StudyA';
+      const envsForUser = [{ studyIds: ['StudyA'] }];
+      environmentScService.getActiveEnvsForUser = jest.fn().mockResolvedValue(envsForUser);
+      iamService.putRolePolicy = jest.fn();
+      const studyBucket = 'arn:aws:s3:::xxxxxxxx-namespace-studydata';
+      const studyPrefix = 'studies/Organization/SampleStudy/*';
+      const inputPolicy = {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Sid: 'studyKMSAccess',
+            Action: ['Permission1', 'Permission2'],
+            Effect: 'Allow',
+            Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
+          },
+          {
+            Sid: 'studyListS3AccessN',
+            Effect: 'Allow',
+            Action: 's3:ListBucket',
+            Resource: studyBucket,
+            Condition: {
+              StringLike: {
+                's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
+              },
+            },
+          },
+          {
+            Sid: 'S3StudyReadWriteAccess',
+            Effect: 'Allow',
+            Action: [
+              's3:GetObject',
+              's3:AbortMultipartUpload',
+              's3:ListMultipartUploadParts',
+              's3:PutObject',
+              's3:PutObjectAcl',
+              's3:DeleteObject',
+            ],
+            Resource: ['AnotherStudyBucketPath', `${studyBucket}/${studyPrefix}`],
+          },
+        ],
+      };
+      const IamUpdateParams = {
+        iamClient: 'sampleIamClient',
+        studyPathArn: `${studyBucket}/${studyPrefix}`,
+        policyDoc: inputPolicy,
+        roleName: 'sampleRoleName',
+        studyDataPolicyName: 'sampleStudyDataPolicy',
+      };
+      const expectedPolicy = {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Sid: 'studyKMSAccess',
+            Action: ['Permission1', 'Permission2'],
+            Effect: 'Allow',
+            Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
+          },
+          {
+            Sid: 'studyListS3AccessN',
+            Effect: 'Allow',
+            Action: 's3:ListBucket',
+            Resource: studyBucket,
+            Condition: {
+              StringLike: {
+                's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
+              },
+            },
+          },
+          {
+            Sid: 'S3StudyReadWriteAccess',
+            Effect: 'Allow',
+            Action: [
+              's3:GetObject',
+              's3:AbortMultipartUpload',
+              's3:ListMultipartUploadParts',
+              's3:PutObject',
+              's3:PutObjectAcl',
+              's3:DeleteObject',
+            ],
+            Resource: ['AnotherStudyBucketPath'],
+          },
+          {
+            Sid: 'S3StudyReadAccess',
+            Effect: 'Allow',
+            Action: ['s3:GetObject'],
+            Resource: [`${studyBucket}/${studyPrefix}`],
+          },
+        ],
+      };
+      service._getIamUpdateParams = jest.fn().mockResolvedValue(IamUpdateParams);
+
+      // OPERATE
+      await service.applyWorkspacePermissions(studyId, updateRequest);
+
+      // CHECK
+      expect(iamService.putRolePolicy).toHaveBeenCalledWith(
+        IamUpdateParams.roleName,
+        IamUpdateParams.studyDataPolicyName,
+        JSON.stringify(IamUpdateParams.policyDoc),
+        IamUpdateParams.iamClient,
+      );
+      expect(IamUpdateParams.policyDoc).toMatchObject(expectedPolicy);
+    });
+
+    it('should ensure study admins have only one access level after R/W permission addition', async () => {
+      // BUILD
+
+      const updateRequest = {
+        usersToAdd: [
+          { uid: 'User1-UID', permissionLevel: 'admin' },
+          { uid: 'User1-UID', permissionLevel: 'readwrite' },
+        ],
+      };
+      const studyId = 'StudyA';
+      const envsForUser = [{ studyIds: ['StudyA'] }];
+      environmentScService.getActiveEnvsForUser = jest.fn().mockResolvedValue(envsForUser);
+      iamService.putRolePolicy = jest.fn();
+      const studyBucket = 'arn:aws:s3:::xxxxxxxx-namespace-studydata';
+      const studyPrefix = 'studies/Organization/SampleStudy/*';
+      const inputPolicy = {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Sid: 'studyKMSAccess',
+            Action: ['Permission1', 'Permission2'],
+            Effect: 'Allow',
+            Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
+          },
+          {
+            Sid: 'studyListS3AccessN',
+            Effect: 'Allow',
+            Action: 's3:ListBucket',
+            Resource: studyBucket,
+            Condition: {
+              StringLike: {
+                's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
+              },
+            },
+          },
+          {
+            Sid: 'S3StudyReadAccess',
+            Effect: 'Allow',
+            Action: ['s3:GetObject'],
+            Resource: ['AnotherStudyBucketPath', `${studyBucket}/${studyPrefix}`],
+          },
+        ],
+      };
+      const IamUpdateParams = {
+        iamClient: 'sampleIamClient',
+        studyPathArn: `${studyBucket}/${studyPrefix}`,
+        policyDoc: inputPolicy,
+        roleName: 'sampleRoleName',
+        studyDataPolicyName: 'sampleStudyDataPolicy',
+      };
+      const expectedPolicy = {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Sid: 'studyKMSAccess',
+            Action: ['Permission1', 'Permission2'],
+            Effect: 'Allow',
+            Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
+          },
+          {
+            Sid: 'studyListS3AccessN',
+            Effect: 'Allow',
+            Action: 's3:ListBucket',
+            Resource: studyBucket,
+            Condition: {
+              StringLike: {
+                's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
+              },
+            },
+          },
+          {
+            Sid: 'S3StudyReadAccess',
+            Effect: 'Allow',
+            Action: ['s3:GetObject'],
+            Resource: ['AnotherStudyBucketPath'],
+          },
+          {
+            Sid: 'S3StudyReadWriteAccess',
+            Effect: 'Allow',
+            Action: [
+              's3:GetObject',
+              's3:AbortMultipartUpload',
+              's3:ListMultipartUploadParts',
+              's3:PutObject',
+              's3:PutObjectAcl',
+              's3:DeleteObject',
+            ],
+            Resource: [`${studyBucket}/${studyPrefix}`],
+          },
+        ],
+      };
+      service._getIamUpdateParams = jest.fn().mockResolvedValue(IamUpdateParams);
+
+      // OPERATE
+      await service.applyWorkspacePermissions(studyId, updateRequest);
+
+      // CHECK
+      expect(iamService.putRolePolicy).toHaveBeenCalledWith(
+        IamUpdateParams.roleName,
+        IamUpdateParams.studyDataPolicyName,
+        JSON.stringify(IamUpdateParams.policyDoc),
+        IamUpdateParams.iamClient,
+      );
+      expect(IamUpdateParams.policyDoc).toMatchObject(expectedPolicy);
+    });
+
+    it('should ensure duplicate resources are not created for admins after R/O permission addition', async () => {
+      // BUILD
+      const updateRequest = {
+        usersToAdd: [
+          { uid: 'User1-UID', permissionLevel: 'admin' },
+          { uid: 'User1-UID', permissionLevel: 'readonly' },
+        ],
+      };
+      const studyId = 'StudyA';
+      const envsForUser = [{ studyIds: ['StudyA'] }];
+      environmentScService.getActiveEnvsForUser = jest.fn().mockResolvedValue(envsForUser);
+      iamService.putRolePolicy = jest.fn();
+      const studyBucket = 'arn:aws:s3:::xxxxxxxx-namespace-studydata';
+      const studyPrefix = 'studies/Organization/SampleStudy/*';
+      const inputPolicy = {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Sid: 'studyKMSAccess',
+            Action: ['Permission1', 'Permission2'],
+            Effect: 'Allow',
+            Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
+          },
+          {
+            Sid: 'studyListS3AccessN',
+            Effect: 'Allow',
+            Action: 's3:ListBucket',
+            Resource: studyBucket,
+            Condition: {
+              StringLike: {
+                's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
+              },
+            },
+          },
+          {
+            Sid: 'S3StudyReadAccess',
+            Effect: 'Allow',
+            Action: ['s3:GetObject'],
+            Resource: ['AnotherStudyBucketPath', `${studyBucket}/${studyPrefix}`],
+          },
+        ],
+      };
+      const IamUpdateParams = {
+        iamClient: 'sampleIamClient',
+        studyPathArn: `${studyBucket}/${studyPrefix}`,
+        policyDoc: inputPolicy,
+        roleName: 'sampleRoleName',
+        studyDataPolicyName: 'sampleStudyDataPolicy',
+      };
+      const expectedPolicy = {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Sid: 'studyKMSAccess',
+            Action: ['Permission1', 'Permission2'],
+            Effect: 'Allow',
+            Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
+          },
+          {
+            Sid: 'studyListS3AccessN',
+            Effect: 'Allow',
+            Action: 's3:ListBucket',
+            Resource: studyBucket,
+            Condition: {
+              StringLike: {
+                's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
+              },
+            },
+          },
+          {
+            Sid: 'S3StudyReadAccess',
+            Effect: 'Allow',
+            Action: ['s3:GetObject'],
+            Resource: ['AnotherStudyBucketPath', `${studyBucket}/${studyPrefix}`],
+          },
+        ],
+      };
+      service._getIamUpdateParams = jest.fn().mockResolvedValue(IamUpdateParams);
+
+      // OPERATE
+      await service.applyWorkspacePermissions(studyId, updateRequest);
+
+      // CHECK
+      expect(iamService.putRolePolicy).toHaveBeenCalledWith(
+        IamUpdateParams.roleName,
+        IamUpdateParams.studyDataPolicyName,
+        JSON.stringify(IamUpdateParams.policyDoc),
+        IamUpdateParams.iamClient,
+      );
+      expect(IamUpdateParams.policyDoc).toMatchObject(expectedPolicy);
+    });
+
+    it('should ensure duplicate resources are not created for non-admins after permission addition from a bad state', async () => {
+      // BUILD
+      const updateRequest = {
+        usersToAdd: [{ uid: 'User1-UID', permissionLevel: 'readwrite' }],
+      };
+      const studyId = 'StudyA';
+      const envsForUser = [{ studyIds: ['StudyA'] }];
+      environmentScService.getActiveEnvsForUser = jest.fn().mockResolvedValue(envsForUser);
+      iamService.putRolePolicy = jest.fn();
+      const studyBucket = 'arn:aws:s3:::xxxxxxxx-namespace-studydata';
+      const studyPrefix = 'studies/Organization/SampleStudy/*';
+      const inputPolicy = {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Sid: 'studyKMSAccess',
+            Action: ['Permission1', 'Permission2'],
+            Effect: 'Allow',
+            Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
+          },
+          {
+            Sid: 'studyListS3AccessN',
+            Effect: 'Allow',
+            Action: 's3:ListBucket',
+            Resource: studyBucket,
+            Condition: {
+              StringLike: {
+                's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
+              },
+            },
+          },
+          {
+            Sid: 'S3StudyReadAccess',
+            Effect: 'Allow',
+            Action: ['s3:GetObject'],
+            Resource: ['AnotherStudyBucketPath', `${studyBucket}/${studyPrefix}`],
+          },
+        ],
+      };
+      const IamUpdateParams = {
+        iamClient: 'sampleIamClient',
+        studyPathArn: `${studyBucket}/${studyPrefix}`,
+        policyDoc: inputPolicy,
+        roleName: 'sampleRoleName',
+        studyDataPolicyName: 'sampleStudyDataPolicy',
+      };
+      const expectedPolicy = {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Sid: 'studyKMSAccess',
+            Action: ['Permission1', 'Permission2'],
+            Effect: 'Allow',
+            Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
+          },
+          {
+            Sid: 'studyListS3AccessN',
+            Effect: 'Allow',
+            Action: 's3:ListBucket',
+            Resource: studyBucket,
+            Condition: {
+              StringLike: {
+                's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
+              },
+            },
+          },
+          {
+            Sid: 'S3StudyReadAccess',
+            Effect: 'Allow',
+            Action: ['s3:GetObject'],
+            Resource: ['AnotherStudyBucketPath'],
+          },
+          {
+            Sid: 'S3StudyReadWriteAccess',
+            Effect: 'Allow',
+            Action: [
+              's3:GetObject',
+              's3:AbortMultipartUpload',
+              's3:ListMultipartUploadParts',
+              's3:PutObject',
+              's3:PutObjectAcl',
+              's3:DeleteObject',
+            ],
+            Resource: [`${studyBucket}/${studyPrefix}`],
+          },
+        ],
+      };
+      service._getIamUpdateParams = jest.fn().mockResolvedValue(IamUpdateParams);
+
+      // OPERATE
+      await service.applyWorkspacePermissions(studyId, updateRequest);
+
+      // CHECK
+      expect(iamService.putRolePolicy).toHaveBeenCalledWith(
+        IamUpdateParams.roleName,
+        IamUpdateParams.studyDataPolicyName,
+        JSON.stringify(IamUpdateParams.policyDoc),
+        IamUpdateParams.iamClient,
+      );
+      expect(IamUpdateParams.policyDoc).toMatchObject(expectedPolicy);
+    });
+
+    it('should ensure permission updates for admins are as expected', async () => {
+      // BUILD
+      const updateRequest = {
+        usersToAdd: [
+          { uid: 'User1-UID', permissionLevel: 'admin' },
+          { uid: 'User1-UID', permissionLevel: 'readonly' },
+        ],
+        usersToRemove: [{ uid: 'User1-UID', permissionLevel: 'readwrite' }],
+      };
+      const studyId = 'StudyA';
+      const envsForUser = [{ studyIds: ['StudyA'] }];
+      environmentScService.getActiveEnvsForUser = jest.fn().mockResolvedValue(envsForUser);
+      iamService.putRolePolicy = jest.fn();
+      const studyBucket = 'arn:aws:s3:::xxxxxxxx-namespace-studydata';
+      const studyPrefix = 'studies/Organization/SampleStudy/*';
+      const inputPolicy = {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Sid: 'studyKMSAccess',
+            Action: ['Permission1', 'Permission2'],
+            Effect: 'Allow',
+            Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
+          },
+          {
+            Sid: 'studyListS3AccessN',
+            Effect: 'Allow',
+            Action: 's3:ListBucket',
+            Resource: studyBucket,
+            Condition: {
+              StringLike: {
+                's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
+              },
+            },
+          },
+          {
+            Sid: 'S3StudyReadWriteAccess',
+            Effect: 'Allow',
+            Action: [
+              's3:GetObject',
+              's3:AbortMultipartUpload',
+              's3:ListMultipartUploadParts',
+              's3:PutObject',
+              's3:PutObjectAcl',
+              's3:DeleteObject',
+            ],
+            Resource: [`${studyBucket}/${studyPrefix}`],
+          },
+          {
+            Sid: 'S3StudyReadAccess',
+            Effect: 'Allow',
+            Action: ['s3:GetObject'],
+            Resource: ['AnotherStudyBucketPath'],
+          },
+        ],
+      };
+      const IamUpdateParams = {
+        iamClient: 'sampleIamClient',
+        studyPathArn: `${studyBucket}/${studyPrefix}`,
+        policyDoc: inputPolicy,
+        roleName: 'sampleRoleName',
+        studyDataPolicyName: 'sampleStudyDataPolicy',
+      };
+      const expectedPolicy = {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Sid: 'studyKMSAccess',
+            Action: ['Permission1', 'Permission2'],
+            Effect: 'Allow',
+            Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
+          },
+          {
+            Sid: 'studyListS3AccessN',
+            Effect: 'Allow',
+            Action: 's3:ListBucket',
+            Resource: studyBucket,
+            Condition: {
+              StringLike: {
+                's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
+              },
+            },
+          },
+          {
+            Sid: 'S3StudyReadAccess',
+            Effect: 'Allow',
+            Action: ['s3:GetObject'],
+            Resource: ['AnotherStudyBucketPath', `${studyBucket}/${studyPrefix}`],
+          },
+        ],
+      };
+      service._getIamUpdateParams = jest.fn().mockResolvedValue(IamUpdateParams);
+
+      // OPERATE
+      await service.applyWorkspacePermissions(studyId, updateRequest);
+
+      // CHECK
+      expect(iamService.putRolePolicy).toHaveBeenCalledWith(
+        IamUpdateParams.roleName,
+        IamUpdateParams.studyDataPolicyName,
+        JSON.stringify(IamUpdateParams.policyDoc),
+        IamUpdateParams.iamClient,
+      );
+      expect(IamUpdateParams.policyDoc).toMatchObject(expectedPolicy);
+    });
+
+    it('should ensure permission updates when admins are removed are as expected', async () => {
+      // BUILD
+      const updateRequest = {
+        usersToAdd: [{ uid: 'User1-UID', permissionLevel: 'readwrite' }],
+        usersToRemove: [{ uid: 'User1-UID', permissionLevel: 'admin' }],
+      };
+      const studyId = 'StudyA';
+      const envsForUser = [{ studyIds: ['StudyA'] }];
+      environmentScService.getActiveEnvsForUser = jest.fn().mockResolvedValue(envsForUser);
+      iamService.putRolePolicy = jest.fn();
+      const studyBucket = 'arn:aws:s3:::xxxxxxxx-namespace-studydata';
+      const studyPrefix = 'studies/Organization/SampleStudy/*';
+      const inputPolicy = {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Sid: 'studyKMSAccess',
+            Action: ['Permission1', 'Permission2'],
+            Effect: 'Allow',
+            Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
+          },
+          {
+            Sid: 'studyListS3AccessN',
+            Effect: 'Allow',
+            Action: 's3:ListBucket',
+            Resource: studyBucket,
+            Condition: {
+              StringLike: {
+                's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
+              },
+            },
+          },
+          {
+            Sid: 'S3StudyReadAccess',
+            Effect: 'Allow',
+            Action: ['s3:GetObject'],
+            Resource: ['AnotherStudyBucketPath', `${studyBucket}/${studyPrefix}`],
+          },
+        ],
+      };
+      const IamUpdateParams = {
+        iamClient: 'sampleIamClient',
+        studyPathArn: `${studyBucket}/${studyPrefix}`,
+        policyDoc: inputPolicy,
+        roleName: 'sampleRoleName',
+        studyDataPolicyName: 'sampleStudyDataPolicy',
+      };
+      const expectedPolicy = {
+        Version: '2012-10-17',
+        Statement: [
+          {
+            Sid: 'studyKMSAccess',
+            Action: ['Permission1', 'Permission2'],
+            Effect: 'Allow',
+            Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
+          },
+          {
+            Sid: 'studyListS3AccessN',
+            Effect: 'Allow',
+            Action: 's3:ListBucket',
+            Resource: studyBucket,
+            Condition: {
+              StringLike: {
+                's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
+              },
+            },
+          },
+          {
+            Sid: 'S3StudyReadAccess',
+            Effect: 'Allow',
+            Action: ['s3:GetObject'],
+            Resource: ['AnotherStudyBucketPath'],
+          },
+          {
+            Sid: 'S3StudyReadWriteAccess',
+            Effect: 'Allow',
+            Action: [
+              's3:GetObject',
+              's3:AbortMultipartUpload',
+              's3:ListMultipartUploadParts',
+              's3:PutObject',
+              's3:PutObjectAcl',
+              's3:DeleteObject',
+            ],
+            Resource: [`${studyBucket}/${studyPrefix}`],
+          },
+        ],
+      };
+      service._getIamUpdateParams = jest.fn().mockResolvedValue(IamUpdateParams);
+
+      // OPERATE
+      await service.applyWorkspacePermissions(studyId, updateRequest);
+
+      // CHECK
+      expect(iamService.putRolePolicy).toHaveBeenCalledWith(
+        IamUpdateParams.roleName,
+        IamUpdateParams.studyDataPolicyName,
+        JSON.stringify(IamUpdateParams.policyDoc),
+        IamUpdateParams.iamClient,
+      );
+      expect(IamUpdateParams.policyDoc).toMatchObject(expectedPolicy);
+    });
   });
 
-  it('should ensure study admins have at least R/O access after R/O permission removal', async () => {
-    // BUILD
-    const updateRequest = {
-      usersToRemove: [{ uid: 'User1-UID', permissionLevel: 'readonly' }],
-      usersToAdd: [{ uid: 'User1-UID', permissionLevel: 'admin' }],
-    };
-    const studyId = 'StudyA';
-    const envsForUser = [{ studyIds: ['StudyA'] }];
-    environmentScService.getActiveEnvsForUser = jest.fn().mockResolvedValue(envsForUser);
-    iamService.putRolePolicy = jest.fn();
-    const studyBucket = 'arn:aws:s3:::xxxxxxxx-namespace-studydata';
-    const studyPrefix = 'studies/Organization/SampleStudy/*';
-    const inputPolicy = {
-      Version: '2012-10-17',
-      Statement: [
-        {
-          Sid: 'studyKMSAccess',
-          Action: ['Permission1', 'Permission2'],
-          Effect: 'Allow',
-          Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
-        },
-        {
-          Sid: 'studyListS3AccessN',
-          Effect: 'Allow',
-          Action: 's3:ListBucket',
-          Resource: studyBucket,
-          Condition: {
-            StringLike: {
-              's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
+  describe('S3 bucket policy management paths', () => {
+    it('should add new member account root as new principal in S3 bucket policy when envResourceUsageTracker reports count as 1', async () => {
+      // BUILD
+      const requestContext = {};
+      const envId = 'sampleEnvId';
+      const memberAccountRoot = 'memberAccountID';
+      const s3Prefixes = ['studyA'];
+      const existingS3BucketPolicy = {
+        Version: '2012-10-17',
+        Id: 'RandomExistingPolicy',
+        Statement: [
+          {
+            Sid: 'Deny object uploads not using default encryption settings',
+            Effect: 'Deny',
+            Principal: '*',
+            Action: 's3:PutObject',
+            Resource: 'arn:aws:s3:::mainAccountId-namespace-studydata/*',
+            Condition: {
+              StringNotEqualsIfExists: {
+                's3:x-amz-server-side-encryption': 'aws:kms',
+              },
+              Null: {
+                's3:x-amz-server-side-encryption': 'false',
+              },
             },
           },
-        },
-        {
-          Sid: 'S3StudyReadAccess',
-          Effect: 'Allow',
-          Action: ['s3:GetObject'],
-          Resource: ['AnotherStudyBucketPath', `${studyBucket}/${studyPrefix}`],
-        },
-      ],
-    };
-    const IamUpdateParams = {
-      iamClient: 'sampleIamClient',
-      studyPathArn: `${studyBucket}/${studyPrefix}`,
-      policyDoc: inputPolicy,
-      roleName: 'sampleRoleName',
-      studyDataPolicyName: 'sampleStudyDataPolicy',
-    };
-    const expectedPolicy = {
-      Version: '2012-10-17',
-      Statement: [
-        {
-          Sid: 'studyKMSAccess',
-          Action: ['Permission1', 'Permission2'],
-          Effect: 'Allow',
-          Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
-        },
-        {
-          Sid: 'studyListS3AccessN',
-          Effect: 'Allow',
-          Action: 's3:ListBucket',
-          Resource: studyBucket,
-          Condition: {
-            StringLike: {
-              's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
+        ],
+      };
+      const existingKmsPolicy = {
+        Version: '2012-10-17',
+        Id: 'study-data-kms-policy',
+        Statement: [],
+      };
+      envResourceUsageTrackerService.addEnvironmentResourceUse = jest.fn().mockResolvedValue({ count: 1 });
+      const bucketNameOrKmsAlias = 'sampleBucketOrKmsString';
+      const studyId = 'studyA';
+      settings.get = jest.fn(() => bucketNameOrKmsAlias);
+      service._putBucketPolicy = jest.fn();
+      service._getKmsKeyPolicy = jest.fn().mockResolvedValue(JSON.stringify(existingKmsPolicy));
+      service._putKmsKeyPolicy = jest.fn();
+      service._describeKmsKey = jest.fn();
+      service._getBucketPolicy = jest.fn().mockResolvedValue(JSON.stringify(existingS3BucketPolicy));
+      jest.spyOn(service, '_updateResourcePolicies');
+      const expectedBucketPolicy = {
+        Version: '2012-10-17',
+        Id: 'RandomExistingPolicy',
+        Statement: [
+          {
+            Sid: 'Deny object uploads not using default encryption settings',
+            Effect: 'Deny',
+            Principal: '*',
+            Action: 's3:PutObject',
+            Resource: 'arn:aws:s3:::mainAccountId-namespace-studydata/*',
+            Condition: {
+              StringNotEqualsIfExists: {
+                's3:x-amz-server-side-encryption': 'aws:kms',
+              },
+              Null: {
+                's3:x-amz-server-side-encryption': 'false',
+              },
             },
           },
-        },
-        {
-          Sid: 'S3StudyReadAccess',
-          Effect: 'Allow',
-          Action: ['s3:GetObject'],
-          Resource: ['AnotherStudyBucketPath', `${studyBucket}/${studyPrefix}`],
-        },
-      ],
-    };
-    service._getIamUpdateParams = jest.fn().mockResolvedValue(IamUpdateParams);
-
-    // OPERATE
-    await service.applyWorkspacePermissions(studyId, updateRequest);
-
-    // CHECK
-    expect(iamService.putRolePolicy).toHaveBeenCalledWith(
-      IamUpdateParams.roleName,
-      IamUpdateParams.studyDataPolicyName,
-      JSON.stringify(IamUpdateParams.policyDoc),
-      IamUpdateParams.iamClient,
-    );
-    expect(IamUpdateParams.policyDoc).toMatchObject(expectedPolicy);
-  });
-
-  it('should ensure study admins have at least R/O access after R/W permission removal', async () => {
-    // BUILD
-    const updateRequest = {
-      usersToRemove: [{ uid: 'User1-UID', permissionLevel: 'readwrite' }],
-      usersToAdd: [{ uid: 'User1-UID', permissionLevel: 'admin' }],
-    };
-    const studyId = 'StudyA';
-    const envsForUser = [{ studyIds: ['StudyA'] }];
-    environmentScService.getActiveEnvsForUser = jest.fn().mockResolvedValue(envsForUser);
-    iamService.putRolePolicy = jest.fn();
-    const studyBucket = 'arn:aws:s3:::xxxxxxxx-namespace-studydata';
-    const studyPrefix = 'studies/Organization/SampleStudy/*';
-    const inputPolicy = {
-      Version: '2012-10-17',
-      Statement: [
-        {
-          Sid: 'studyKMSAccess',
-          Action: ['Permission1', 'Permission2'],
-          Effect: 'Allow',
-          Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
-        },
-        {
-          Sid: 'studyListS3AccessN',
-          Effect: 'Allow',
-          Action: 's3:ListBucket',
-          Resource: studyBucket,
-          Condition: {
-            StringLike: {
-              's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
+          {
+            Sid: `List:${studyId}`,
+            Effect: 'Allow',
+            Principal: { AWS: [memberAccountRoot] },
+            Action: 's3:ListBucket',
+            Resource: `arn:aws:s3:::${bucketNameOrKmsAlias}`,
+            Condition: {
+              StringLike: {
+                's3:prefix': [`${studyId}*`],
+              },
             },
           },
-        },
-        {
-          Sid: 'S3StudyReadWriteAccess',
-          Effect: 'Allow',
-          Action: [
-            's3:GetObject',
-            's3:AbortMultipartUpload',
-            's3:ListMultipartUploadParts',
-            's3:PutObject',
-            's3:PutObjectAcl',
-            's3:DeleteObject',
-          ],
-          Resource: ['AnotherStudyBucketPath', `${studyBucket}/${studyPrefix}`],
-        },
-      ],
-    };
-    const IamUpdateParams = {
-      iamClient: 'sampleIamClient',
-      studyPathArn: `${studyBucket}/${studyPrefix}`,
-      policyDoc: inputPolicy,
-      roleName: 'sampleRoleName',
-      studyDataPolicyName: 'sampleStudyDataPolicy',
-    };
-    const expectedPolicy = {
-      Version: '2012-10-17',
-      Statement: [
-        {
-          Sid: 'studyKMSAccess',
-          Action: ['Permission1', 'Permission2'],
-          Effect: 'Allow',
-          Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
-        },
-        {
-          Sid: 'studyListS3AccessN',
-          Effect: 'Allow',
-          Action: 's3:ListBucket',
-          Resource: studyBucket,
-          Condition: {
-            StringLike: {
-              's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
+          {
+            Sid: `Get:${studyId}`,
+            Effect: 'Allow',
+            Principal: { AWS: [memberAccountRoot] },
+            Action: ['s3:GetObject'],
+            Resource: [`arn:aws:s3:::${bucketNameOrKmsAlias}/${studyId}*`],
+          },
+          {
+            Sid: `Put:${studyId}`,
+            Effect: 'Allow',
+            Principal: { AWS: [memberAccountRoot] },
+            Action: [
+              's3:AbortMultipartUpload',
+              's3:ListMultipartUploadParts',
+              's3:PutObject',
+              's3:PutObjectAcl',
+              's3:DeleteObject',
+            ],
+            Resource: [`arn:aws:s3:::${bucketNameOrKmsAlias}/${studyId}*`],
+          },
+        ],
+      };
+
+      // Mock locking so that the putBucketPolicy actually gets called
+      lockService.tryWriteLockAndRun = jest.fn((params, callback) => callback());
+
+      // OPERATE
+      await service.addRoleArnToLocalResourcePolicies(requestContext, envId, memberAccountRoot, s3Prefixes);
+
+      // CHECK
+      expect(service._updateResourcePolicies).toHaveBeenCalled();
+      expect(service._putBucketPolicy).toHaveBeenCalledWith('sampleBucketOrKmsString', expectedBucketPolicy);
+    });
+
+    it('should delete member account root access from S3 bucket policy when envResourceUsageTracker reports count as 0', async () => {
+      // BUILD
+      const requestContext = {};
+      const envId = 'sampleEnvId';
+      const memberAccountRoot = 'memberAccountID';
+      const s3Prefixes = ['studyA'];
+
+      const existingKmsPolicy = {
+        Version: '2012-10-17',
+        Id: 'study-data-kms-policy',
+        Statement: [],
+      };
+      envResourceUsageTrackerService.deleteEnvironmentResourceUse = jest.fn().mockResolvedValue({ count: 0 });
+      const bucketNameOrKmsAlias = 'sampleBucketOrKmsString';
+      const studyId = 'studyA';
+      settings.get = jest.fn(() => bucketNameOrKmsAlias);
+      jest.spyOn(service, '_updateResourcePolicies');
+      const existingS3BucketPolicy = {
+        Version: '2012-10-17',
+        Id: 'RandomExistingPolicy',
+        Statement: [
+          {
+            Sid: 'Deny object uploads not using default encryption settings',
+            Effect: 'Deny',
+            Principal: '*',
+            Action: 's3:PutObject',
+            Resource: 'arn:aws:s3:::mainAccountId-namespace-studydata/*',
+            Condition: {
+              StringNotEqualsIfExists: {
+                's3:x-amz-server-side-encryption': 'aws:kms',
+              },
+              Null: {
+                's3:x-amz-server-side-encryption': 'false',
+              },
             },
           },
-        },
-        {
-          Sid: 'S3StudyReadWriteAccess',
-          Effect: 'Allow',
-          Action: [
-            's3:GetObject',
-            's3:AbortMultipartUpload',
-            's3:ListMultipartUploadParts',
-            's3:PutObject',
-            's3:PutObjectAcl',
-            's3:DeleteObject',
-          ],
-          Resource: ['AnotherStudyBucketPath'],
-        },
-        {
-          Sid: 'S3StudyReadAccess',
-          Effect: 'Allow',
-          Action: ['s3:GetObject'],
-          Resource: [`${studyBucket}/${studyPrefix}`],
-        },
-      ],
-    };
-    service._getIamUpdateParams = jest.fn().mockResolvedValue(IamUpdateParams);
-
-    // OPERATE
-    await service.applyWorkspacePermissions(studyId, updateRequest);
-
-    // CHECK
-    expect(iamService.putRolePolicy).toHaveBeenCalledWith(
-      IamUpdateParams.roleName,
-      IamUpdateParams.studyDataPolicyName,
-      JSON.stringify(IamUpdateParams.policyDoc),
-      IamUpdateParams.iamClient,
-    );
-    expect(IamUpdateParams.policyDoc).toMatchObject(expectedPolicy);
-  });
-
-  it('should ensure study admins have only one access level after R/W permission addition', async () => {
-    // BUILD
-
-    const updateRequest = {
-      usersToAdd: [
-        { uid: 'User1-UID', permissionLevel: 'admin' },
-        { uid: 'User1-UID', permissionLevel: 'readwrite' },
-      ],
-    };
-    const studyId = 'StudyA';
-    const envsForUser = [{ studyIds: ['StudyA'] }];
-    environmentScService.getActiveEnvsForUser = jest.fn().mockResolvedValue(envsForUser);
-    iamService.putRolePolicy = jest.fn();
-    const studyBucket = 'arn:aws:s3:::xxxxxxxx-namespace-studydata';
-    const studyPrefix = 'studies/Organization/SampleStudy/*';
-    const inputPolicy = {
-      Version: '2012-10-17',
-      Statement: [
-        {
-          Sid: 'studyKMSAccess',
-          Action: ['Permission1', 'Permission2'],
-          Effect: 'Allow',
-          Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
-        },
-        {
-          Sid: 'studyListS3AccessN',
-          Effect: 'Allow',
-          Action: 's3:ListBucket',
-          Resource: studyBucket,
-          Condition: {
-            StringLike: {
-              's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
+          {
+            Sid: `List:${studyId}`,
+            Effect: 'Allow',
+            Principal: { AWS: [memberAccountRoot] },
+            Action: 's3:ListBucket',
+            Resource: `arn:aws:s3:::${bucketNameOrKmsAlias}`,
+            Condition: {
+              StringLike: {
+                's3:prefix': [`${studyId}*`],
+              },
             },
           },
-        },
-        {
-          Sid: 'S3StudyReadAccess',
-          Effect: 'Allow',
-          Action: ['s3:GetObject'],
-          Resource: ['AnotherStudyBucketPath', `${studyBucket}/${studyPrefix}`],
-        },
-      ],
-    };
-    const IamUpdateParams = {
-      iamClient: 'sampleIamClient',
-      studyPathArn: `${studyBucket}/${studyPrefix}`,
-      policyDoc: inputPolicy,
-      roleName: 'sampleRoleName',
-      studyDataPolicyName: 'sampleStudyDataPolicy',
-    };
-    const expectedPolicy = {
-      Version: '2012-10-17',
-      Statement: [
-        {
-          Sid: 'studyKMSAccess',
-          Action: ['Permission1', 'Permission2'],
-          Effect: 'Allow',
-          Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
-        },
-        {
-          Sid: 'studyListS3AccessN',
-          Effect: 'Allow',
-          Action: 's3:ListBucket',
-          Resource: studyBucket,
-          Condition: {
-            StringLike: {
-              's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
+          {
+            Sid: `Get:${studyId}`,
+            Effect: 'Allow',
+            Principal: { AWS: [memberAccountRoot] },
+            Action: ['s3:GetObject'],
+            Resource: [`arn:aws:s3:::${bucketNameOrKmsAlias}/${studyId}*`],
+          },
+          {
+            Sid: `Put:${studyId}`,
+            Effect: 'Allow',
+            Principal: { AWS: [memberAccountRoot] },
+            Action: [
+              's3:AbortMultipartUpload',
+              's3:ListMultipartUploadParts',
+              's3:PutObject',
+              's3:PutObjectAcl',
+              's3:DeleteObject',
+            ],
+            Resource: [`arn:aws:s3:::${bucketNameOrKmsAlias}/${studyId}*`],
+          },
+        ],
+      };
+      const expectedBucketPolicy = {
+        Version: '2012-10-17',
+        Id: 'RandomExistingPolicy',
+        Statement: [
+          {
+            Sid: 'Deny object uploads not using default encryption settings',
+            Effect: 'Deny',
+            Principal: '*',
+            Action: 's3:PutObject',
+            Resource: 'arn:aws:s3:::mainAccountId-namespace-studydata/*',
+            Condition: {
+              StringNotEqualsIfExists: {
+                's3:x-amz-server-side-encryption': 'aws:kms',
+              },
+              Null: {
+                's3:x-amz-server-side-encryption': 'false',
+              },
             },
           },
-        },
-        {
-          Sid: 'S3StudyReadAccess',
-          Effect: 'Allow',
-          Action: ['s3:GetObject'],
-          Resource: ['AnotherStudyBucketPath'],
-        },
-        {
-          Sid: 'S3StudyReadWriteAccess',
-          Effect: 'Allow',
-          Action: [
-            's3:GetObject',
-            's3:AbortMultipartUpload',
-            's3:ListMultipartUploadParts',
-            's3:PutObject',
-            's3:PutObjectAcl',
-            's3:DeleteObject',
-          ],
-          Resource: [`${studyBucket}/${studyPrefix}`],
-        },
-      ],
-    };
-    service._getIamUpdateParams = jest.fn().mockResolvedValue(IamUpdateParams);
+        ],
+      };
+      service._putBucketPolicy = jest.fn();
+      service._getKmsKeyPolicy = jest.fn().mockResolvedValue(JSON.stringify(existingKmsPolicy));
+      service._putKmsKeyPolicy = jest.fn();
+      service._describeKmsKey = jest.fn();
+      service._getBucketPolicy = jest.fn().mockResolvedValue(JSON.stringify(existingS3BucketPolicy));
 
-    // OPERATE
-    await service.applyWorkspacePermissions(studyId, updateRequest);
+      // Mock locking so that the putBucketPolicy actually gets called
+      lockService.tryWriteLockAndRun = jest.fn((params, callback) => callback());
 
-    // CHECK
-    expect(iamService.putRolePolicy).toHaveBeenCalledWith(
-      IamUpdateParams.roleName,
-      IamUpdateParams.studyDataPolicyName,
-      JSON.stringify(IamUpdateParams.policyDoc),
-      IamUpdateParams.iamClient,
-    );
-    expect(IamUpdateParams.policyDoc).toMatchObject(expectedPolicy);
-  });
+      // OPERATE
+      await service.removeRoleArnFromLocalResourcePolicies(requestContext, envId, memberAccountRoot, s3Prefixes);
 
-  it('should ensure duplicate resources are not created for admins after R/O permission addition', async () => {
-    // BUILD
-    const updateRequest = {
-      usersToAdd: [
-        { uid: 'User1-UID', permissionLevel: 'admin' },
-        { uid: 'User1-UID', permissionLevel: 'readonly' },
-      ],
-    };
-    const studyId = 'StudyA';
-    const envsForUser = [{ studyIds: ['StudyA'] }];
-    environmentScService.getActiveEnvsForUser = jest.fn().mockResolvedValue(envsForUser);
-    iamService.putRolePolicy = jest.fn();
-    const studyBucket = 'arn:aws:s3:::xxxxxxxx-namespace-studydata';
-    const studyPrefix = 'studies/Organization/SampleStudy/*';
-    const inputPolicy = {
-      Version: '2012-10-17',
-      Statement: [
-        {
-          Sid: 'studyKMSAccess',
-          Action: ['Permission1', 'Permission2'],
-          Effect: 'Allow',
-          Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
-        },
-        {
-          Sid: 'studyListS3AccessN',
-          Effect: 'Allow',
-          Action: 's3:ListBucket',
-          Resource: studyBucket,
-          Condition: {
-            StringLike: {
-              's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
-            },
-          },
-        },
-        {
-          Sid: 'S3StudyReadAccess',
-          Effect: 'Allow',
-          Action: ['s3:GetObject'],
-          Resource: ['AnotherStudyBucketPath', `${studyBucket}/${studyPrefix}`],
-        },
-      ],
-    };
-    const IamUpdateParams = {
-      iamClient: 'sampleIamClient',
-      studyPathArn: `${studyBucket}/${studyPrefix}`,
-      policyDoc: inputPolicy,
-      roleName: 'sampleRoleName',
-      studyDataPolicyName: 'sampleStudyDataPolicy',
-    };
-    const expectedPolicy = {
-      Version: '2012-10-17',
-      Statement: [
-        {
-          Sid: 'studyKMSAccess',
-          Action: ['Permission1', 'Permission2'],
-          Effect: 'Allow',
-          Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
-        },
-        {
-          Sid: 'studyListS3AccessN',
-          Effect: 'Allow',
-          Action: 's3:ListBucket',
-          Resource: studyBucket,
-          Condition: {
-            StringLike: {
-              's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
-            },
-          },
-        },
-        {
-          Sid: 'S3StudyReadAccess',
-          Effect: 'Allow',
-          Action: ['s3:GetObject'],
-          Resource: ['AnotherStudyBucketPath', `${studyBucket}/${studyPrefix}`],
-        },
-      ],
-    };
-    service._getIamUpdateParams = jest.fn().mockResolvedValue(IamUpdateParams);
-
-    // OPERATE
-    await service.applyWorkspacePermissions(studyId, updateRequest);
-
-    // CHECK
-    expect(iamService.putRolePolicy).toHaveBeenCalledWith(
-      IamUpdateParams.roleName,
-      IamUpdateParams.studyDataPolicyName,
-      JSON.stringify(IamUpdateParams.policyDoc),
-      IamUpdateParams.iamClient,
-    );
-    expect(IamUpdateParams.policyDoc).toMatchObject(expectedPolicy);
-  });
-
-  it('should ensure duplicate resources are not created for non-admins after permission addition from a bad state', async () => {
-    // BUILD
-    const updateRequest = {
-      usersToAdd: [{ uid: 'User1-UID', permissionLevel: 'readwrite' }],
-    };
-    const studyId = 'StudyA';
-    const envsForUser = [{ studyIds: ['StudyA'] }];
-    environmentScService.getActiveEnvsForUser = jest.fn().mockResolvedValue(envsForUser);
-    iamService.putRolePolicy = jest.fn();
-    const studyBucket = 'arn:aws:s3:::xxxxxxxx-namespace-studydata';
-    const studyPrefix = 'studies/Organization/SampleStudy/*';
-    const inputPolicy = {
-      Version: '2012-10-17',
-      Statement: [
-        {
-          Sid: 'studyKMSAccess',
-          Action: ['Permission1', 'Permission2'],
-          Effect: 'Allow',
-          Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
-        },
-        {
-          Sid: 'studyListS3AccessN',
-          Effect: 'Allow',
-          Action: 's3:ListBucket',
-          Resource: studyBucket,
-          Condition: {
-            StringLike: {
-              's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
-            },
-          },
-        },
-        {
-          Sid: 'S3StudyReadAccess',
-          Effect: 'Allow',
-          Action: ['s3:GetObject'],
-          Resource: ['AnotherStudyBucketPath', `${studyBucket}/${studyPrefix}`],
-        },
-      ],
-    };
-    const IamUpdateParams = {
-      iamClient: 'sampleIamClient',
-      studyPathArn: `${studyBucket}/${studyPrefix}`,
-      policyDoc: inputPolicy,
-      roleName: 'sampleRoleName',
-      studyDataPolicyName: 'sampleStudyDataPolicy',
-    };
-    const expectedPolicy = {
-      Version: '2012-10-17',
-      Statement: [
-        {
-          Sid: 'studyKMSAccess',
-          Action: ['Permission1', 'Permission2'],
-          Effect: 'Allow',
-          Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
-        },
-        {
-          Sid: 'studyListS3AccessN',
-          Effect: 'Allow',
-          Action: 's3:ListBucket',
-          Resource: studyBucket,
-          Condition: {
-            StringLike: {
-              's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
-            },
-          },
-        },
-        {
-          Sid: 'S3StudyReadAccess',
-          Effect: 'Allow',
-          Action: ['s3:GetObject'],
-          Resource: ['AnotherStudyBucketPath'],
-        },
-        {
-          Sid: 'S3StudyReadWriteAccess',
-          Effect: 'Allow',
-          Action: [
-            's3:GetObject',
-            's3:AbortMultipartUpload',
-            's3:ListMultipartUploadParts',
-            's3:PutObject',
-            's3:PutObjectAcl',
-            's3:DeleteObject',
-          ],
-          Resource: [`${studyBucket}/${studyPrefix}`],
-        },
-      ],
-    };
-    service._getIamUpdateParams = jest.fn().mockResolvedValue(IamUpdateParams);
-
-    // OPERATE
-    await service.applyWorkspacePermissions(studyId, updateRequest);
-
-    // CHECK
-    expect(iamService.putRolePolicy).toHaveBeenCalledWith(
-      IamUpdateParams.roleName,
-      IamUpdateParams.studyDataPolicyName,
-      JSON.stringify(IamUpdateParams.policyDoc),
-      IamUpdateParams.iamClient,
-    );
-    expect(IamUpdateParams.policyDoc).toMatchObject(expectedPolicy);
-  });
-
-  it('should ensure permission updates for admins are as expected', async () => {
-    // BUILD
-    const updateRequest = {
-      usersToAdd: [
-        { uid: 'User1-UID', permissionLevel: 'admin' },
-        { uid: 'User1-UID', permissionLevel: 'readonly' },
-      ],
-      usersToRemove: [{ uid: 'User1-UID', permissionLevel: 'readwrite' }],
-    };
-    const studyId = 'StudyA';
-    const envsForUser = [{ studyIds: ['StudyA'] }];
-    environmentScService.getActiveEnvsForUser = jest.fn().mockResolvedValue(envsForUser);
-    iamService.putRolePolicy = jest.fn();
-    const studyBucket = 'arn:aws:s3:::xxxxxxxx-namespace-studydata';
-    const studyPrefix = 'studies/Organization/SampleStudy/*';
-    const inputPolicy = {
-      Version: '2012-10-17',
-      Statement: [
-        {
-          Sid: 'studyKMSAccess',
-          Action: ['Permission1', 'Permission2'],
-          Effect: 'Allow',
-          Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
-        },
-        {
-          Sid: 'studyListS3AccessN',
-          Effect: 'Allow',
-          Action: 's3:ListBucket',
-          Resource: studyBucket,
-          Condition: {
-            StringLike: {
-              's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
-            },
-          },
-        },
-        {
-          Sid: 'S3StudyReadWriteAccess',
-          Effect: 'Allow',
-          Action: [
-            's3:GetObject',
-            's3:AbortMultipartUpload',
-            's3:ListMultipartUploadParts',
-            's3:PutObject',
-            's3:PutObjectAcl',
-            's3:DeleteObject',
-          ],
-          Resource: [`${studyBucket}/${studyPrefix}`],
-        },
-        {
-          Sid: 'S3StudyReadAccess',
-          Effect: 'Allow',
-          Action: ['s3:GetObject'],
-          Resource: ['AnotherStudyBucketPath'],
-        },
-      ],
-    };
-    const IamUpdateParams = {
-      iamClient: 'sampleIamClient',
-      studyPathArn: `${studyBucket}/${studyPrefix}`,
-      policyDoc: inputPolicy,
-      roleName: 'sampleRoleName',
-      studyDataPolicyName: 'sampleStudyDataPolicy',
-    };
-    const expectedPolicy = {
-      Version: '2012-10-17',
-      Statement: [
-        {
-          Sid: 'studyKMSAccess',
-          Action: ['Permission1', 'Permission2'],
-          Effect: 'Allow',
-          Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
-        },
-        {
-          Sid: 'studyListS3AccessN',
-          Effect: 'Allow',
-          Action: 's3:ListBucket',
-          Resource: studyBucket,
-          Condition: {
-            StringLike: {
-              's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
-            },
-          },
-        },
-        {
-          Sid: 'S3StudyReadAccess',
-          Effect: 'Allow',
-          Action: ['s3:GetObject'],
-          Resource: ['AnotherStudyBucketPath', `${studyBucket}/${studyPrefix}`],
-        },
-      ],
-    };
-    service._getIamUpdateParams = jest.fn().mockResolvedValue(IamUpdateParams);
-
-    // OPERATE
-    await service.applyWorkspacePermissions(studyId, updateRequest);
-
-    // CHECK
-    expect(iamService.putRolePolicy).toHaveBeenCalledWith(
-      IamUpdateParams.roleName,
-      IamUpdateParams.studyDataPolicyName,
-      JSON.stringify(IamUpdateParams.policyDoc),
-      IamUpdateParams.iamClient,
-    );
-    expect(IamUpdateParams.policyDoc).toMatchObject(expectedPolicy);
-  });
-
-  it('should ensure permission updates when admins are removed are as expected', async () => {
-    // BUILD
-    const updateRequest = {
-      usersToAdd: [{ uid: 'User1-UID', permissionLevel: 'readwrite' }],
-      usersToRemove: [{ uid: 'User1-UID', permissionLevel: 'admin' }],
-    };
-    const studyId = 'StudyA';
-    const envsForUser = [{ studyIds: ['StudyA'] }];
-    environmentScService.getActiveEnvsForUser = jest.fn().mockResolvedValue(envsForUser);
-    iamService.putRolePolicy = jest.fn();
-    const studyBucket = 'arn:aws:s3:::xxxxxxxx-namespace-studydata';
-    const studyPrefix = 'studies/Organization/SampleStudy/*';
-    const inputPolicy = {
-      Version: '2012-10-17',
-      Statement: [
-        {
-          Sid: 'studyKMSAccess',
-          Action: ['Permission1', 'Permission2'],
-          Effect: 'Allow',
-          Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
-        },
-        {
-          Sid: 'studyListS3AccessN',
-          Effect: 'Allow',
-          Action: 's3:ListBucket',
-          Resource: studyBucket,
-          Condition: {
-            StringLike: {
-              's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
-            },
-          },
-        },
-        {
-          Sid: 'S3StudyReadAccess',
-          Effect: 'Allow',
-          Action: ['s3:GetObject'],
-          Resource: ['AnotherStudyBucketPath', `${studyBucket}/${studyPrefix}`],
-        },
-      ],
-    };
-    const IamUpdateParams = {
-      iamClient: 'sampleIamClient',
-      studyPathArn: `${studyBucket}/${studyPrefix}`,
-      policyDoc: inputPolicy,
-      roleName: 'sampleRoleName',
-      studyDataPolicyName: 'sampleStudyDataPolicy',
-    };
-    const expectedPolicy = {
-      Version: '2012-10-17',
-      Statement: [
-        {
-          Sid: 'studyKMSAccess',
-          Action: ['Permission1', 'Permission2'],
-          Effect: 'Allow',
-          Resource: 'arn:aws:kms:region:xxxxxxxx:key/someRandomString',
-        },
-        {
-          Sid: 'studyListS3AccessN',
-          Effect: 'Allow',
-          Action: 's3:ListBucket',
-          Resource: studyBucket,
-          Condition: {
-            StringLike: {
-              's3:prefix': ['AnotherStudyPrefixForThisBucket', studyPrefix],
-            },
-          },
-        },
-        {
-          Sid: 'S3StudyReadAccess',
-          Effect: 'Allow',
-          Action: ['s3:GetObject'],
-          Resource: ['AnotherStudyBucketPath'],
-        },
-        {
-          Sid: 'S3StudyReadWriteAccess',
-          Effect: 'Allow',
-          Action: [
-            's3:GetObject',
-            's3:AbortMultipartUpload',
-            's3:ListMultipartUploadParts',
-            's3:PutObject',
-            's3:PutObjectAcl',
-            's3:DeleteObject',
-          ],
-          Resource: [`${studyBucket}/${studyPrefix}`],
-        },
-      ],
-    };
-    service._getIamUpdateParams = jest.fn().mockResolvedValue(IamUpdateParams);
-
-    // OPERATE
-    await service.applyWorkspacePermissions(studyId, updateRequest);
-
-    // CHECK
-    expect(iamService.putRolePolicy).toHaveBeenCalledWith(
-      IamUpdateParams.roleName,
-      IamUpdateParams.studyDataPolicyName,
-      JSON.stringify(IamUpdateParams.policyDoc),
-      IamUpdateParams.iamClient,
-    );
-    expect(IamUpdateParams.policyDoc).toMatchObject(expectedPolicy);
+      // CHECK
+      expect(service._updateResourcePolicies).toHaveBeenCalled();
+      expect(service._putBucketPolicy).toHaveBeenCalledWith('sampleBucketOrKmsString', expectedBucketPolicy);
+    });
   });
 });
