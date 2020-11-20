@@ -66,12 +66,18 @@ class EnvironmentMountService extends Service {
   async getStudyAccessInfo(requestContext, studyIds) {
     const studyInfo = await this._getStudyInfo(requestContext, studyIds);
     await this._validateStudyPermissions(requestContext, studyInfo);
-    const s3Mounts = this._prepareS3Mounts(studyInfo);
+    const s3Mounts = await this._prepareS3Mounts(studyInfo);
     const iamPolicyDocument = await this._generateIamPolicyDoc(studyInfo);
 
     return {
       s3Mounts: JSON.stringify(
-        s3Mounts.map(({ id, bucket, prefix, writeable }) => ({ id, bucket, prefix, writeable })),
+        s3Mounts.map(({ id, bucket, prefix, writeable, kmsKeyId }) => ({
+          id,
+          bucket,
+          prefix,
+          writeable,
+          kmsKeyId,
+        })),
       ),
       iamPolicyDocument: JSON.stringify(iamPolicyDocument),
       environmentInstanceFiles: this.settings.get(settingKeys.environmentInstanceFiles),
@@ -783,16 +789,22 @@ class EnvironmentMountService extends Service {
     return permissions;
   }
 
-  _prepareS3Mounts(studyInfo) {
+  async _prepareS3Mounts(studyInfo) {
     let mounts = [];
     if (studyInfo.length) {
+      const studyDataKmsKeyArn = this.settings.get(settingKeys.studyDataKmsKeyArn);
+
       // There might be multiple resources. In the future we may flatMap, for now...
       mounts = studyInfo.reduce(
         (result, { id, resources, category, writeable }) =>
           result.concat(
             resources.map(resource => {
               const { bucket, prefix } = parseS3Arn(resource.arn);
-              return { id, bucket, prefix, category, writeable };
+              const mount = { id, bucket, prefix, category, writeable };
+              if (category !== 'Open Data') {
+                mount.kmsKeyId = studyDataKmsKeyArn;
+              }
+              return mount;
             }),
           ),
         [],
