@@ -47,6 +47,15 @@ func setupUploadWatcher(wg *sync.WaitGroup, sess *session.Session, config *mount
 	//	before the watching began.
 	dirRequiringCrawlCh := make(chan string, 1000)
 
+
+	// There are two primary loops (running in go routines - similar to threads)
+	// 1. THE MAIN LOOP: It takes care of starting new file watcher go routine everytime it receives a signal from "startNewWatcherLoopCh" channel below.
+	//					 The main loop stops when it times out i.e., when stopUploadWatchersAfter time elapses (if applicable)
+	//
+	// 2. THE FILE WATCHER LOOP: It receives events from the directory watcher and reacts to those events.
+	//							 The file watcher loop receives STOP signal from "stopWatcherLoopCh" channel below to stop.
+	//							 A stop signal is pushed to "stopWatcherLoopCh" either due to timeout or
+	//							 when the file watcher loop needs to be restarted with new directory watcher instance.
 	startNewWatcherLoopCh := make(chan bool, 1)
 	stopWatcherLoopCh := make(chan bool, 1000)
 
@@ -105,7 +114,7 @@ func setupUploadWatcher(wg *sync.WaitGroup, sess *session.Session, config *mount
 				// CREATE event for file "New directory\f1" instead of "d1\f1"
 
 				if debug {
-					log.Println("Received CREATE or WRITE event for ", event.Name, " but the file or directory dies not exist. This can happen when directory is renamed on Windows. Stopping existing file watcher loop and starting a new one.")
+					log.Println("Received CREATE or WRITE event for ", event.Name, " but the file or directory does not exist. This can happen when directory is renamed on Windows. Stopping existing file watcher loop and starting a new one.")
 				}
 
 				// In this case restart the watcher and let it re-watch all the way from the root of the mount i.e., syncDir
