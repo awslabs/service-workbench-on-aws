@@ -221,10 +221,12 @@ async function updateEnvOnTerminationSuccess({ requestContext, container, status
   await rstudioCleanup(requestContext, updatedEnvironment, container);
 
   const indexesService = await container.find('indexesService');
+  const awsAccountsService = await container.find('awsAccountsService');
   const { awsAccountId } = await indexesService.mustFind(requestContext, { id: updatedEnvironment.indexId });
+  const { accountId } = await awsAccountsService.mustFind(requestContext, { id: awsAccountId });
   const environmentMountService = await container.find('environmentMountService');
 
-  const { s3Prefixes, databases } = await environmentMountService.getStudyAccessInfo(
+  const { s3Prefixes } = await environmentMountService.getStudyAccessInfo(
     requestContext,
     updatedEnvironment.studyIds,
     updatedEnvironment.createdAt,
@@ -234,9 +236,8 @@ async function updateEnvOnTerminationSuccess({ requestContext, container, status
     await environmentMountService.removeRoleArnFromLocalResourcePolicies(
       requestContext,
       updatedEnvironment.id,
-      `arn:aws:iam::${awsAccountId}:root`,
+      `arn:aws:iam::${accountId}:root`,
       s3Prefixes,
-      databases,
     );
   }
 
