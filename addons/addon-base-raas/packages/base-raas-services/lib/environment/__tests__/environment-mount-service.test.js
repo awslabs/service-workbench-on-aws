@@ -42,6 +42,9 @@ const StudyPermissionServiceMock = require('../../study/study-permission-service
 jest.mock('../service-catalog/environment-sc-service');
 const EnvironmentScServiceMock = require('../service-catalog/environment-sc-service');
 
+jest.mock('../env-resource-usage-tracker-service');
+const EnvResourceUsageTrackerServiceMock = require('../env-resource-usage-tracker-service');
+
 const EnvironmentMountService = require('../environment-mount-service');
 
 describe('EnvironmentMountService', () => {
@@ -53,6 +56,7 @@ describe('EnvironmentMountService', () => {
     // Initialize services container and register dependencies
     const container = new ServicesContainer();
     container.register('jsonSchemaValidationService', new JsonSchemaValidationService());
+    container.register('envResourceUsageTrackerService', new EnvResourceUsageTrackerServiceMock());
     container.register('environmentScService', new EnvironmentScServiceMock());
     container.register('environmentMountService', new EnvironmentMountService());
     container.register('studyService', new StudyServiceMock());
