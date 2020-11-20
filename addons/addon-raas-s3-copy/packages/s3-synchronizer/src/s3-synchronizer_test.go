@@ -583,7 +583,7 @@ func TestMainImplForBiDirectionalSyncSingleMount(t *testing.T) {
 		// --------------------------------------------------------------------
 		fileIdxToMove := 0
 		// Rename some files from local file system and make sure they automatically get renamed in S3
-		moveTestFilesLocally(t, testMountId, fileIdxToMove, "")
+		moveTestFileLocally(t, testMountId, fileIdxToMove, "")
 
 		// Sleep for some duration (e.g., download interval duration) to allow for
 		// file system update event to trigger and upload to complete
@@ -599,7 +599,7 @@ func TestMainImplForBiDirectionalSyncSingleMount(t *testing.T) {
 		moveToSubDir := "nested-level1/nested-level2/nested-level3/"
 		// Move some files in local file system to some nested directory that is part of the mount location
 		// and make sure they automatically get moved in S3
-		moveTestFilesLocally(t, testMountId, fileIdxToMove, moveToSubDir)
+		moveTestFileLocally(t, testMountId, fileIdxToMove, moveToSubDir)
 
 		// Sleep for some duration (e.g., download interval duration) to allow for
 		// file system update event to trigger and upload to complete
@@ -609,13 +609,30 @@ func TestMainImplForBiDirectionalSyncSingleMount(t *testing.T) {
 		// Verify that the moved files are automatically moved in S3
 		assertFileMovedInS3(t, testFakeBucketName, testMountId, fileIdxToMove, moveToSubDir, testFileUpdatedContentTemplate)
 
+		// TEST FOR RENAMING A NESTED DIR -- MOVE DIR IN LOCAL FILE SYSTEM --> S3 SYNC
+		// --------------------------------------------------------------------------------------------
+		oldDirPath := "nested-level1/nested-level2/nested-level3"
+		newDirPath := "nested-level1/nested-level2/nested-level3-renamed"
+
+		// Move a nested directory local file system to some nested directory that is part of the mount location
+		// and make sure they automatically get moved in S3
+		moveDirLocally(t, testMountId, oldDirPath, newDirPath)
+
+		// Sleep for some duration (e.g., download interval duration) to allow for
+		// file system update event to trigger and upload to complete
+		time.Sleep(time.Duration(2*downloadInterval) * time.Second)
+
+		// ---- Assertions ----
+		// Verify that the moved dir and its files are automatically moved in S3
+		assertDirMovedInS3(t, testFakeBucketName, testMountId, oldDirPath, newDirPath, fileIdxToMove, testFileUpdatedContentTemplate)
+
 		// TEST FOR MOVE OUT OF THE MOUNT DIRECTORY -- MOVE IN LOCAL FILE SYSTEM TO AN OUTSIDE DIRECTORY --> S3 SYNC
 		// ------------------------------------------------------------------------------------------------------------
 		fileIdxToMove = 3
-		moveToSubDir = buildDir+"/"
+		moveToSubDir = buildDir + "/"
 		// Move some files in local file system to an outside directory i.e., directory outside of the mount directory that is monitored
 		// and make sure they automatically get deleted from S3
-		moveTestFilesLocally(t, testMountId, fileIdxToMove, moveToSubDir)
+		moveTestFileLocally(t, testMountId, fileIdxToMove, moveToSubDir)
 
 		// Sleep for some duration (e.g., download interval duration) to allow for
 		// file system update event to trigger and upload to complete
@@ -822,8 +839,8 @@ func TestMainImplForBiDirectionalSyncMultipleMounts(t *testing.T) {
 		fileIdxToMove1 := 0
 		fileIdxToMove2 := 0
 		// Rename some files from local file system and make sure they automatically get renamed in S3
-		moveTestFilesLocally(t, testMountId1, fileIdxToMove1, "")
-		moveTestFilesLocally(t, testMountId2, fileIdxToMove2, "")
+		moveTestFileLocally(t, testMountId1, fileIdxToMove1, "")
+		moveTestFileLocally(t, testMountId2, fileIdxToMove2, "")
 
 		// Sleep for some duration (e.g., download interval duration) to allow for
 		// file system update event to trigger and upload to complete
@@ -842,8 +859,8 @@ func TestMainImplForBiDirectionalSyncMultipleMounts(t *testing.T) {
 		moveToSubDir2 := "nested-level1/nested-level2/nested-level3/nested-level4/"
 		// Move some files in local file system to some nested directory that is part of the mount location
 		// and make sure they automatically get moved in S3
-		moveTestFilesLocally(t, testMountId1, fileIdxToMove1, moveToSubDir1)
-		moveTestFilesLocally(t, testMountId2, fileIdxToMove2, moveToSubDir2)
+		moveTestFileLocally(t, testMountId1, fileIdxToMove1, moveToSubDir1)
+		moveTestFileLocally(t, testMountId2, fileIdxToMove2, moveToSubDir2)
 
 		// Sleep for some duration (e.g., download interval duration) to allow for
 		// file system update event to trigger and upload to complete
@@ -854,6 +871,23 @@ func TestMainImplForBiDirectionalSyncMultipleMounts(t *testing.T) {
 		assertFileMovedInS3(t, testFakeBucketName, testMountId1, fileIdxToMove1, moveToSubDir1, testFileUpdatedContentTemplate)
 		assertFileMovedInS3(t, testFakeBucketName, testMountId2, fileIdxToMove2, moveToSubDir2, testFileUpdatedContentTemplate)
 
+		// TEST FOR RENAMING A NESTED DIR -- MOVE DIR IN LOCAL FILE SYSTEM --> S3 SYNC
+		// --------------------------------------------------------------------------------------------
+		oldDirPath1 := "nested-level1/nested-level2/nested-level3"
+		newDirPath1 := "nested-level1/nested-level2/nested-level3-renamed"
+
+		// Move a nested directory local file system to some nested directory that is part of the mount location
+		// and make sure they automatically get moved in S3
+		moveDirLocally(t, testMountId1, oldDirPath1, newDirPath1)
+
+		// Sleep for some duration (e.g., download interval duration) to allow for
+		// file system update event to trigger and upload to complete
+		time.Sleep(time.Duration(2*downloadInterval) * time.Second)
+
+		// ---- Assertions ----
+		// Verify that the moved dir and its files are automatically moved in S3
+		assertDirMovedInS3(t, testFakeBucketName, testMountId1, oldDirPath1, newDirPath1, fileIdxToMove1, testFileUpdatedContentTemplate)
+
 		// TEST FOR MOVE OUT OF THE MOUNT DIRECTORY -- MOVE IN LOCAL FILE SYSTEM TO AN OUTSIDE DIRECTORY --> S3 SYNC
 		// ------------------------------------------------------------------------------------------------------------
 		fileIdxToMove1 = 3
@@ -862,8 +896,8 @@ func TestMainImplForBiDirectionalSyncMultipleMounts(t *testing.T) {
 		moveToSubDir2 = buildDir + "/"
 		// Move some files in local file system to an outside directory i.e., directory outside of the mount directory that is monitored
 		// and make sure they automatically get deleted from S3
-		moveTestFilesLocally(t, testMountId1, fileIdxToMove1, moveToSubDir1)
-		moveTestFilesLocally(t, testMountId2, fileIdxToMove2, moveToSubDir2)
+		moveTestFileLocally(t, testMountId1, fileIdxToMove1, moveToSubDir1)
+		moveTestFileLocally(t, testMountId2, fileIdxToMove2, moveToSubDir2)
 
 		// Sleep for some duration (e.g., download interval duration) to allow for
 		// file system update event to trigger and upload to complete
@@ -880,7 +914,6 @@ func TestMainImplForBiDirectionalSyncMultipleMounts(t *testing.T) {
 
 	wg.Wait() // Wait until all spawned go routines complete before existing the test case
 }
-
 
 // ------------------------------- Setup code -------------------------------/
 
@@ -990,7 +1023,7 @@ func deleteTestFilesLocally(t *testing.T, testMountId string, fileIdx int) {
 	}
 }
 
-func moveTestFilesLocally(t *testing.T, testMountId string, fileIdx int, moveToSubDir string) {
+func moveTestFileLocally(t *testing.T, testMountId string, fileIdx int, moveToSubDir string) {
 	fileName := fmt.Sprintf("%s/%s/test-local%d.txt", destinationBase, testMountId, fileIdx)
 	renamedFileName := fmt.Sprintf("%s/%s/%stest-local-renamed%d.txt", destinationBase, testMountId, moveToSubDir, fileIdx)
 
@@ -1005,6 +1038,25 @@ func moveTestFilesLocally(t *testing.T, testMountId string, fileIdx int, moveToS
 	if err != nil {
 		// Fail test in case of any errors
 		t.Errorf("Could not move test file from '%v' to '%v' in local file system for testing: %v", fileName, renamedFileName, err)
+	}
+}
+
+func moveDirLocally(t *testing.T, testMountId string, dirPath string, newDirPath string) {
+	originalDirPath := fmt.Sprintf("%s/%s/%s", destinationBase, testMountId, dirPath)
+	movedDirPath := fmt.Sprintf("%s/%s/%s", destinationBase, testMountId, newDirPath)
+
+	// Ensure the parent directory where the dir is being moved to exists
+	destDirPath := filepath.Dir(movedDirPath)
+
+	if _, err := os.Stat(destDirPath); os.IsNotExist(err) {
+		os.MkdirAll(destDirPath, os.ModePerm)
+	}
+
+	fmt.Printf("Moving dir from: '%s' to '%s'\n", originalDirPath, movedDirPath)
+	err := os.Rename(originalDirPath, movedDirPath)
+	if err != nil {
+		// Fail test in case of any errors
+		t.Errorf("Could not move dir from '%v' to '%v' in local file system for testing: %v", originalDirPath, movedDirPath, err)
 	}
 }
 
@@ -1102,7 +1154,7 @@ func assertObjectDeletedFromS3(t *testing.T, bucketName string, key string) {
 		t.Errorf("Could not list files from fake S3 server for testing: %v", err)
 	}
 	if len(resp.Contents) > 0 {
-		t.Errorf(`ASSERT_FAILURE: Expected: File "%v" to NOT exist in S3 after sync | Actual: The file exists`, key)
+		t.Errorf(`ASSERT_FAILURE: Expected: Prefix "%v" to NOT exist in S3 after sync | Actual: The prefix exists`, key)
 	}
 }
 
@@ -1118,6 +1170,18 @@ func assertFileMovedInS3(t *testing.T, bucketName string, testMountId string, fi
 	assertObjectInS3WithContent(t, bucketName, newKey, expectedContentTemplate, fileIdx)
 }
 
+func assertDirMovedInS3(t *testing.T, bucketName string, testMountId string, oldDirPath string, newDirPath string, expectedFileIdxInNewDir int, expectedContentTemplate string) {
+	mountPrefix := fmt.Sprintf("studies/Organization/%s", testMountId)
+	oldKey := fmt.Sprintf("%s/%s/", mountPrefix, oldDirPath)
+	newKey := fmt.Sprintf("%s/%s/test-local-renamed%d.txt", mountPrefix, newDirPath, expectedFileIdxInNewDir)
+
+	// The object from old key should have been removed in S3
+	assertObjectDeletedFromS3(t, bucketName, oldKey)
+
+	// The object with new name should have been created in S3
+	assertObjectInS3WithContent(t, bucketName, newKey, expectedContentTemplate, expectedFileIdxInNewDir)
+}
+
 func setup() *httptest.Server {
 	// fake s3
 	backend := s3mem.New()
@@ -1128,8 +1192,12 @@ func setup() *httptest.Server {
 	createFakeS3BucketForTesting()
 
 	var synchronizerState = NewPersistentSynchronizerState()
+
 	// Clean synchronizer state from any previous test runs
 	synchronizerState.Clean()
+
+	// Clean test output files from previous runs if any
+	cleanTestOutputFiles()
 
 	return fakeS3Server
 }
@@ -1153,6 +1221,10 @@ func createFakeS3BucketForTesting() {
 func shutdown(fakeS3Server *httptest.Server) {
 	fakeS3Server.Close()
 
+	cleanTestOutputFiles()
+}
+
+func cleanTestOutputFiles() {
 	// delete all temporary output files created under destinationBase
 	err := os.RemoveAll(destinationBase)
 	if err != nil {

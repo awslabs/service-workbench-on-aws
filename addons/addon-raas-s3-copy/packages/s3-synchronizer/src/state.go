@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/fsnotify/fsnotify"
 	"github.com/orcaman/concurrent-map"
 )
 
@@ -76,4 +77,58 @@ func (state persistentSynchronizerState) HasFileChangedInS3(item *s3.Object) boo
 	// in our map
 	existing, ok := state.s3FileETagsMap.Get(*item.Key)
 	return ok && existing.(string) != *item.ETag
+}
+
+// State hold map of directory path vs flag indicating if it is being watched by file watchers
+type dirWatcher struct {
+	dirWatchersMap cmap.ConcurrentMap
+	fsWatcher      *fsnotify.Watcher
+	initError      error
+	debug          bool
+}
+
+func (dw dirWatcher) WatchDir(dirPath string) error {
+	if !dw.IsBeingWatched(dirPath) {
+		dw.dirWatchersMap.Set(dirPath, true)
+		return dw.fsWatcher.Add(dirPath)
+	}
+	return nil
+}
+
+func (dw dirWatcher) FsEvents() chan fsnotify.Event {
+	return dw.fsWatcher.Events
+}
+func (dw dirWatcher) FsErrors() chan error {
+	return dw.fsWatcher.Errors
+}
+func (dw dirWatcher) UnwatchDir(dirPath string) error {
+	if dw.IsBeingWatched(dirPath) {
+		dw.dirWatchersMap.Remove(dirPath)
+		return dw.fsWatcher.Remove(dirPath)
+	}
+	return nil
+}
+
+func (dw dirWatcher) IsBeingWatched(dirPath string) bool {
+	return dw.dirWatchersMap.Has(dirPath)
+}
+
+func (dw dirWatcher) Stop() error {
+	return dw.fsWatcher.Close()
+}
+
+func (dw dirWatcher) InitializedSuccessfully() bool {
+	return dw.initError == nil
+}
+
+func (dw dirWatcher) InitError() error {
+	return dw.initError
+}
+
+func NewDirWatcher(debug bool) *dirWatcher {
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		return &dirWatcher{initError: err}
+	}
+	return &dirWatcher{dirWatchersMap: cmap.New(), fsWatcher: watcher, initError: nil, debug: debug}
 }

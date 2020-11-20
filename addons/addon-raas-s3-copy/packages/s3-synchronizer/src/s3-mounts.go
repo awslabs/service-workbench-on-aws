@@ -34,7 +34,9 @@ func ToS3KeyForFile(filePath string, prefix string, syncDir string) string {
 		s3Prefix = strings.TrimSuffix(s3Prefix, "/")
 	}
 
-	s3FilePath := filepath.ToSlash(strings.TrimPrefix(filePath, syncDir))
+	normalizedSyncDir := filepath.ToSlash(syncDir)
+	normalizedFilePath := filepath.ToSlash(filePath)
+	s3FilePath := strings.TrimPrefix(normalizedFilePath, normalizedSyncDir)
 	// if s3 file path starts with a trailing slash then remove extra slash
 	if strings.HasPrefix(s3FilePath, "/") {
 		s3FilePath = strings.TrimPrefix(s3FilePath, "/")
