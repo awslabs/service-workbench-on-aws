@@ -2,7 +2,7 @@
 package main
 
 import (
-	"fmt"
+	"context"
 	"log"
 	"math"
 	"os"
@@ -91,10 +91,14 @@ func reportDownloadStats(stats *downloadStats, debug bool) {
 }
 
 func syncS3ToLocal(sess *session.Session, config *mountConfiguration, concurrency int, debug bool) *downloadStats {
+	destination := config.destination
+	// Ensure the destination directory exists
+	if _, err := os.Stat(destination); os.IsNotExist(err) {
+		os.MkdirAll(destination, os.ModePerm)
+	}
 
 	stats := newDownloadStats()
 	stats.start = time.Now()
-	svc := s3.New(sess)
 
 	truncatedListing := true
 
@@ -104,20 +108,44 @@ func syncS3ToLocal(sess *session.Session, config *mountConfiguration, concurrenc
 
 	bucket := config.bucket
 	prefix := config.prefix
-	query := &s3.ListObjectsV2Input{
-		Bucket: aws.String(bucket),
-		Prefix: aws.String(prefix),
+	awsRegion, err := s3manager.GetBucketRegion(context.Background(), sess, bucket, *sess.Config.Region)
+	if debug {
+		log.Println("Bucket", bucket, "region is", awsRegion)
 	}
+
+	sessForTheMount := session.Must(session.NewSession(sess.Config))
+	sessForTheMount.Config.WithRegion(awsRegion)
+	svc := s3.New(sessForTheMount)
+	if err != nil {
+		log.Println("Error getting region of the bucket", bucket, err)
+	}
+
+	if debug {
+		log.Println("Listing", bucket, "for prefix", prefix)
+	}
+
+	var query *s3.ListObjectsV2Input
+	if prefix == "/" {
+		query = &s3.ListObjectsV2Input{
+			Bucket: aws.String(bucket),
+			Prefix: aws.String(""),
+		}
+	} else {
+		query = &s3.ListObjectsV2Input{
+			Bucket: aws.String(bucket),
+			Prefix: aws.String(prefix),
+		}
+	}
+
 	for truncatedListing {
 		resp, err := svc.ListObjectsV2(query)
 
 		if err != nil {
-			log.Println("Failed to list objects: ", err)
+			log.Println("Failed to list objects for bucket", bucket, "and prefix", prefix, ":", err)
 			// 10 seconds backoff
 			time.Sleep(time.Duration(10) * time.Second)
 			continue
 		}
-
 		listObjectResponses = append(listObjectResponses, resp)
 		downloadAllObjects(resp, sess, config, concurrency, stats, debug)
 
@@ -125,9 +153,9 @@ func syncS3ToLocal(sess *session.Session, config *mountConfiguration, concurrenc
 		truncatedListing = *resp.IsTruncated
 	}
 
-	err := deleteLocalFilesNotInS3(listObjectResponses, config, debug)
+	err = deleteLocalFilesNotInS3(listObjectResponses, config, debug)
 	if err != nil {
-		fmt.Println("Error: ", err)
+		log.Println("Error: ", err)
 	}
 
 	stats.end = time.Now()
@@ -155,7 +183,7 @@ func deleteLocalFilesNotInS3(listObjectResponses []*s3.ListObjectsV2Output, conf
 	walkerFn := func(path string, info os.FileInfo, err error) error {
 		// Don't do anything if there was any error during walking the file tree
 		if err != nil {
-			fmt.Printf("\nError walking the file tree: \"%s\". Error: %v\n", path, err)
+			log.Printf("\nError walking the file tree: \"%s\". Error: %v\n", path, err)
 			return nil
 		}
 		if info.Mode().IsDir() {
@@ -177,13 +205,13 @@ func deleteLocalFilesNotInS3(listObjectResponses []*s3.ListObjectsV2Output, conf
 			//			-- Delete the file from local file system in this case
 			if !config.writeable || synchronizerState.IsFileDownloadedFromS3(path, config) {
 				if debug {
-					fmt.Printf("\n\nFile '%s' removed from S3 so deleting it from local file system\n\n", path)
+					log.Printf("\n\nFile '%s' removed from S3 so deleting it from local file system\n\n", path)
 				}
 				error := os.Remove(path)
 				if error == nil {
 					synchronizerState.RecordFileDeletionFromLocal(path, config)
 				} else {
-					fmt.Printf("\nError deleting file: \"%s\". Error: %v\n", path, error)
+					log.Printf("\nError deleting file: \"%s\". Error: %v\n", path, error)
 				}
 			}
 		}
