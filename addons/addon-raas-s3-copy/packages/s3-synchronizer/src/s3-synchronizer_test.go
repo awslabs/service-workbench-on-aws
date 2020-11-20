@@ -456,9 +456,9 @@ func TestMainImplForBiDirectionalSyncSingleMount(t *testing.T) {
 	// ---- Inputs ----
 	concurrency := 5
 	recurringDownloads := true
-	stopRecurringDownloadsAfter := 45
+	stopRecurringDownloadsAfter := 50
 	downloadInterval := 1
-	stopUploadWatchersAfter := 45
+	stopUploadWatchersAfter := 50
 
 	fmt.Printf("Input: \n\n%s\n\n", testMountsJson)
 
@@ -467,6 +467,7 @@ func TestMainImplForBiDirectionalSyncSingleMount(t *testing.T) {
 	// Trigger recurring download in a separate thread and increment the wait group counter
 	wg.Add(1)
 	go func() {
+
 		// ---- Run code under test ----
 		err = mainImpl(testAwsSession, debug, recurringDownloads, stopRecurringDownloadsAfter, downloadInterval, stopUploadWatchersAfter, concurrency, testMountsJson, destinationBase)
 		if err != nil {
