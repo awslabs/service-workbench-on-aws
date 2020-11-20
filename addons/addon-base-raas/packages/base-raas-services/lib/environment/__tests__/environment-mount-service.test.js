@@ -12,7 +12,6 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-/* eslint-disable max-classes-per-file */
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
 
 const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
