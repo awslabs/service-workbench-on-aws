@@ -405,11 +405,10 @@ func uploadToS3(sess *session.Session, syncDir string, filename string, bucket s
 		var uploadInput *s3manager.UploadInput
 		if strings.TrimSpace(kmsKeyId) == "" {
 			uploadInput = &s3manager.UploadInput{
-				Bucket:               aws.String(bucket),
-				Key:                  aws.String(fileKeyInS3),
-				Body:                 file,
-				ServerSideEncryption: aws.String("aws:kms"),
-				ACL:                  aws.String(s3.ObjectCannedACLBucketOwnerFullControl),
+				Bucket: aws.String(bucket),
+				Key:    aws.String(fileKeyInS3),
+				Body:   file,
+				ACL:    aws.String(s3.ObjectCannedACLBucketOwnerFullControl),
 			}
 		} else {
 			uploadInput = &s3manager.UploadInput{
