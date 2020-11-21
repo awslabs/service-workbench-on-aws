@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 /*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -16,361 +17,128 @@
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
-
-const updateSchema = require('../schema/update-study-permissions');
+const { allowIfActive } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 
 const settingKeys = {
   tableName: 'dbStudyPermissions',
 };
 
-// The StudyPermissions table has study permissions records stored both ways to answer following questions easily
-// 1. Given a study, give me all users who have admin and/or readonly access. These records are stored with study id as partition key. In this case, the id attribute in DDB has format "Study:<study-id>".
-// 2. Given a user, give ma all studies it has admin and/or readonly access to. These records are stored with user id as partition key. In this case, the id attribute in DDB has format "User:<uid>".
-const keyPrefixes = {
-  study: 'Study:',
-  user: 'User:',
+const toStudyPermissionsEntity = (studyEntity, dbEntity) => {
+  const entity = _.omit(dbEntity, ['recordType', 'id']);
+  // We now need to narrow the permissions based on the studyEntity.accessType.
+  // We default to 'readwrite' if no value is specified, this is needed to be backward
+  // compatible with existing internal studies.
+  const accessType = _.get(studyEntity, 'accessType', 'readwrite');
+  if (accessType === 'readonly') {
+    entity.readwriteUsers = [];
+    entity.writeonlyUsers = [];
+  }
+
+  return entity;
 };
-const permissionLevels = ['admin', 'readonly', 'writeonly', 'readwrite'];
+
+const composeStudyPermissionsKey = studyId => `Study:${studyId}`;
+const composeUserPermissionsKey = uid => `User:${uid}`;
+const isOpenData = studyEntity => _.get(studyEntity, 'category') === 'Open Data';
 
 class StudyPermissionService extends Service {
   constructor() {
     super();
-    this.dependency(['dbService', 'jsonSchemaValidationService', 'lockService']);
+    this.dependency([
+      'dbService',
+      'jsonSchemaValidationService',
+      'authorizationService',
+      'auditWriterService',
+      'studyAuthzService',
+      'lockService',
+      'userService',
+    ]);
   }
 
   async init() {
-    // Get services
-    this.jsonSchemaValidationService = await this.service('jsonSchemaValidationService');
-    this.lockService = await this.service('lockService');
-
     // Setup DB helpers
-    const dbService = await this.service('dbService');
-    this.tableName = this.settings.get(settingKeys.tableName);
-    this._getter = () => dbService.helper.getter().table(this.tableName);
-    this._updater = () => dbService.helper.updater().table(this.tableName);
-    this._query = () => dbService.helper.query().table(this.tableName);
-    this._deleter = () => dbService.helper.deleter().table(this.tableName);
-    this._scanner = () => dbService.helper.scanner().table(this.tableName);
+    const [dbService, studyAuthzService] = await this.service(['dbService', 'studyAuthzService']);
+    const table = this.settings.get(settingKeys.tableName);
+
+    this._getter = () => dbService.helper.getter().table(table);
+    this._updater = () => dbService.helper.updater().table(table);
+    this._query = () => dbService.helper.query().table(table);
+    this._deleter = () => dbService.helper.deleter().table(table);
+    this._scanner = () => dbService.helper.scanner().table(table);
+
+    // A private authorization condition function that just delegates to the studyAuthzService
+    this.allowAuthorized = (requestContext, { resource, action, effect, reason }, ...args) =>
+      studyAuthzService.authorize(requestContext, { resource, action, effect, reason }, ...args);
   }
 
   /**
-   * Public Methods
+   * This method returns the study permissions entity. If the study is an open data study,
+   * undefined is returned. If the requestContext.principal is not an admin and does not have
+   * any permissions for the study then this method throws an exception.
+   *
+   * The studyPermissionsEntity has the following shape:
+   * {
+   *  adminUsers: [<uid>, ...]
+   *  readonlyUsers: [<uid>, ...]
+   *  readwriteUsers: [<uid>, ...]
+   *  writeonlyUsers: [<uid>, ...]
+   *  updateBy, updateAt, createdBy, createdAt
+   * }
+   *
+   * @param requestContext The standard requestContext
+   * @param studyEntity The study entity object
    */
-  async findByStudy(requestContext, studyId, fields = []) {
-    const id = StudyPermissionService.getQualifiedKey(studyId, 'study');
-    const record = await this._getter()
-      .key({ id })
+  async findStudyPermissions(requestContext, studyEntity, fields = []) {
+    // Authorization logic step 1:
+    // - We do a quick check if the user is active, otherwise there is no need to waste a db call if
+    //   the user is not active.
+    await this.assertAuthorized(requestContext, { action: 'get-study-permissions', conditions: [allowIfActive] });
+
+    if (isOpenData(studyEntity)) return undefined;
+
+    const dbEntity = await this._getter()
+      .key({ id: composeStudyPermissionsKey(studyEntity.id) })
       .projection(fields)
       .get();
 
-    return StudyPermissionService.sanitizeStudyRecord(record);
-  }
+    const studyPermissionsEntity = toStudyPermissionsEntity(studyEntity, dbEntity);
 
-  async findByUser(requestContext, uid, fields = []) {
-    const id = StudyPermissionService.getQualifiedKey(uid, 'user');
-    return this._getter()
-      .key({ id })
-      .projection(fields)
-      .get();
-  }
-
-  async create(requestContext, studyId) {
-    let result;
-
-    // Build study record
-    const by = _.get(requestContext, 'principalIdentifier.uid');
-    const studyRecord = {
-      id: StudyPermissionService.getQualifiedKey(studyId, 'study'),
-      recordType: 'study',
-      adminUsers: [by],
-      readonlyUsers: [],
-      writeonlyUsers: [],
-      readwriteUsers: [],
-      createdBy: by,
-    };
-
-    // Create DB records
-    await Promise.all([
-      // Create/Update user record
-      this.upsertUserRecord(requestContext, {
-        studyId,
-        uid: by,
-        addOrRemove: 'add',
-        permissionLevel: 'admin',
-      }),
-
-      // Create study record
-      runAndCatch(
-        async () => {
-          result = await this._updater()
-            .condition('attribute_not_exists(id)') // Error if already exists
-            .key({ id: studyRecord.id })
-            .item(studyRecord)
-            .update();
-        },
-        async () => {
-          throw this.boom.badRequest(`Permission record for study with id "${studyRecord.id}" already exists`, true);
-        },
-      ),
-    ]);
-
-    // Return study record
-    return StudyPermissionService.sanitizeStudyRecord(result);
-  }
-
-  async update(requestContext, studyId, updateRequest) {
-    let result;
-
-    // Validate input
-    await this.jsonSchemaValidationService.ensureValid(updateRequest, updateSchema);
-
-    // Create DB lock before pulling existing record
-    const lockKey = this.getLockKey(studyId, 'study');
-
-    await this.lockService.tryWriteLockAndRun({ id: lockKey }, async () => {
-      // Get existing record
-      const studyRecord = await this.findByStudy(requestContext, studyId);
-
-      // Build updated study record
-      const by = _.get(requestContext, 'principalIdentifier.uid');
-      studyRecord.updatedBy = by;
-
-      const filterByLevel = filterLevel => userEntry => userEntry.permissionLevel === filterLevel;
-      permissionLevels.forEach(permissionLevel => {
-        studyRecord[`${permissionLevel}Users`] = _.pullAllWith(
-          // Existing/Added users
-          _.unionWith(
-            studyRecord[`${permissionLevel}Users`],
-            updateRequest.usersToAdd.filter(filterByLevel(permissionLevel)).map(userEntry => userEntry.uid),
-            _.isEqual,
-          ),
-
-          // Removed users
-          updateRequest.usersToRemove.filter(filterByLevel(permissionLevel)).map(userEntry => userEntry.uid),
-          _.isEqual,
-        );
-      });
-
-      // make sure that each user has either readonly, writeonly or readwrite permission
-      this.validateUpdateRequest(studyRecord);
-
-      // Halt the update if all admins have been removed
-      if (studyRecord.adminUsers.length < 1) {
-        throw this.boom.badRequest('At least one Admin must be assigned to the study', true);
-      }
-
-      // Update DB records
-      result = await Promise.all([
-        // Update study record
-        this._updater()
-          .key({ id: StudyPermissionService.getQualifiedKey(studyRecord.id, 'study') })
-          .item(studyRecord)
-          .update(),
-
-        // Update user records
-        ...updateRequest.usersToRemove.map(userEntry =>
-          this.upsertUserRecord(requestContext, {
-            studyId,
-            uid: userEntry.uid,
-            addOrRemove: 'remove',
-            permissionLevel: userEntry.permissionLevel,
-          }),
-        ),
-        ...updateRequest.usersToAdd.map(userEntry =>
-          this.upsertUserRecord(requestContext, {
-            studyId,
-            uid: userEntry.uid,
-            addOrRemove: 'add',
-            permissionLevel: userEntry.permissionLevel,
-          }),
-        ),
-      ]);
-    });
-    // Return study record
-    return StudyPermissionService.sanitizeStudyRecord(result[0]);
-  }
-
-  async delete(requestContext, studyId) {
-    let result;
-
-    // Create DB lock before pulling existing record
-    const lockKey = this.getLockKey(studyId, 'study');
-    await this.lockService.tryWriteLockAndRun({ id: lockKey }, async () => {
-      // Get record
-      const studyRecord = await this.findByStudy(requestContext, studyId);
-
-      // Delete
-      result = await Promise.all([
-        // Delete study record
-        this._deleter()
-          .key({ id: StudyPermissionService.getQualifiedKey(studyId, 'study') })
-          .delete(),
-
-        // Remove study from user records
-        permissionLevels.forEach(permissionLevel => {
-          if (studyRecord[`${permissionLevel}Users`]) {
-            studyRecord[`${permissionLevel}Users`].map(async ({ uid }) =>
-              this.upsertUserRecord(requestContext, {
-                studyId,
-                uid,
-                addOrRemove: 'remove',
-                permissionLevel: `${permissionLevel}`,
-              }),
-            );
-          }
-        }),
-      ]);
-    });
-
-    // Return study record
-    return StudyPermissionService.sanitizeStudyRecord(result[0]);
-  }
-
-  async getRequestorPermissions(requestContext) {
-    return this.findByUser(
+    // Authorization logic step 2:
+    // - We load the study permissions entity from the database and then enforce the necessary authorization
+    //   checks before returning the study permission entity
+    await this.assertAuthorized(
       requestContext,
-      requestContext.principalIdentifier.uid,
-      permissionLevels.map(level => level.concat('Access')),
+      {
+        action: 'get-study-permissions',
+        conditions: [this.allowAuthorized],
+      },
+      { studyEntity, studyPermissionsEntity },
+    );
+
+    return studyPermissionsEntity;
+  }
+
+  async assertAuthorized(requestContext, { action, conditions }, ...args) {
+    const authorizationService = await this.service('authorizationService');
+
+    // The "authorizationService.assertAuthorized" below will evaluate permissions by calling the "conditions" functions first
+    // It will then give a chance to all registered plugins (if any) to perform their authorization.
+    // The plugins can even override the authorization decision returned by the conditions
+    // See "authorizationService.authorize" method for more details
+    await authorizationService.assertAuthorized(
+      requestContext,
+      { extensionPoint: 'study-authz', action, conditions },
+      ...args,
     );
   }
 
-  async verifyRequestorAccess(requestContext, studyId, action) {
-    const mutatingActions = ['POST', 'PUT', 'PATCH', 'DELETE'];
-    const writeUserActions = ['UPLOAD'];
-    const nonMutatingActions = ['GET'];
-    const notFoundError = this.boom.notFound(`Study with id "${studyId}" does not exist`, true);
-    const forbiddenError = this.boom.forbidden();
-
-    // Ensure a valid action was passed
-    if (!mutatingActions.concat(nonMutatingActions.concat(writeUserActions)).includes(action)) {
-      throw this.boom.internalError(`Invalid action passed to verifyRequestorAccess(): ${action}`);
-    }
-
-    // Get user permissions
-    const permissions = await this.getRequestorPermissions(requestContext);
-    if (!permissions) {
-      throw notFoundError;
-    }
-
-    // Check whether user has any access
-    const hasAdminAccess = permissions.adminAccess.some(accessibleId => accessibleId === studyId);
-    const hasReadonlyAccess = permissions.readonlyAccess.some(accessibleId => accessibleId === studyId);
-    const hasWriteOnlyAccess =
-      permissions.writeonlyAccess && permissions.writeonlyAccess.some(accessibleId => accessibleId === studyId);
-    const hasReadWriteAccess =
-      permissions.readwriteAccess && permissions.readwriteAccess.some(accessibleId => accessibleId === studyId);
-
-    if (!(hasAdminAccess || hasReadonlyAccess || hasWriteOnlyAccess || hasReadWriteAccess)) {
-      throw notFoundError;
-    }
-
-    // Deny mutating actions to non-admin users
-    if (!hasAdminAccess && mutatingActions.includes(action)) {
-      throw forbiddenError;
-    }
-
-    // Deny writeUser actions like Upload to users unless they are admin or they have write access
-    if (!(hasReadWriteAccess || hasWriteOnlyAccess || hasAdminAccess) && writeUserActions.includes(action)) {
-      throw forbiddenError;
-    }
-  }
-
-  getEmptyUserPermissions() {
-    return { adminAccess: [], readonlyAccess: [], writeonlyAccess: [], readwriteAccess: [] };
-  }
-
-  /**
-   * Private Methods
-   */
-  async upsertUserRecord(requestContext, { studyId, uid, addOrRemove, permissionLevel }) {
-    // Create DB lock before pulling existing record
-    let result;
-    const lockKey = this.getLockKey(uid, 'user');
-    await this.lockService.tryWriteLockAndRun({ id: lockKey }, async () => {
-      // Check for existing record; build new record if necessary
-      let record = await this.findByUser(requestContext, uid);
-      if (!record) {
-        record = {
-          id: StudyPermissionService.getQualifiedKey(uid, 'user'),
-          recordType: 'user',
-          uid,
-          ...this.getEmptyUserPermissions(),
-        };
-      }
-
-      // Deterrmine permission level
-      if (!permissionLevels.includes(permissionLevel)) {
-        throw this.boom.internalError('Bad permission level passed to _upsertUserRecord:', permissionLevel);
-      }
-      const permissionLevelKey = `${permissionLevel}Access`;
-
-      // Add or remove permissions from user record
-      switch (addOrRemove) {
-        case 'add':
-          record[permissionLevelKey] = _.union(record[permissionLevelKey], [studyId]);
-          break;
-        case 'remove':
-          _.pull(record[permissionLevelKey], studyId);
-          break;
-        default:
-          throw this.boom.internalError('Bad addOrRemove value passed to _upsertUserRecord:', addOrRemove);
-      }
-
-      // Update database
-      result = await this._updater()
-        .key({ id: record.id })
-        .item(record)
-        .update();
-    });
-
-    return result;
-  }
-
-  static getQualifiedKey(studyOrUserId, recordType) {
-    // recordType must be 'study' or 'user'
-    if (!(recordType in keyPrefixes)) {
-      throw this.boom.internalError('Bad record type passed to getQualifiedKey:', recordType);
-    }
-
-    return `${keyPrefixes[recordType]}${studyOrUserId}`;
-  }
-
-  static sanitizeStudyRecord(record) {
-    // Delete recordType and remove key prefix since they're just used for
-    //   internal indexing
-    delete record.recordType;
-    record.id = record.id.slice(keyPrefixes.study.length);
-    return record;
-  }
-
-  getLockKey(studyOrUserId, recordType) {
-    return `${this.tableName}|${StudyPermissionService.getQualifiedKey(studyOrUserId, recordType)}`;
-  }
-
-  // validates if users to be added are valid by going through all the non-admin permission levels and
-  // ensuring that a single user isn't specified twice
-  validateUpdateRequest(studyRecord) {
-    const userIdToPermissionsMap = permissionLevels
-      .filter(permissionLevel => permissionLevel !== 'admin')
-      .filter(permissionLevel => studyRecord[`${permissionLevel}Users`] !== undefined)
-      .reduce(function(userIdToPermissionsMapLocal, permissionLevel) {
-        studyRecord[`${permissionLevel}Users`].forEach(uid => {
-          if (uid in userIdToPermissionsMapLocal) {
-            userIdToPermissionsMapLocal[uid].push(permissionLevel);
-          } else {
-            userIdToPermissionsMapLocal[uid] = [permissionLevel];
-          }
-        });
-        return userIdToPermissionsMapLocal;
-      }, {});
-
-    const errorString = Object.entries(userIdToPermissionsMap)
-      .filter(([, permissions]) => permissions.length > 1)
-      .map(([userId, permissions]) => `User ${userId} cannot have multiple permissions: ${permissions.join(',')}`)
-      .join('\n');
-    if (errorString.length > 0) {
-      throw this.boom.badRequest(errorString, true);
-    }
+  async audit(requestContext, auditEvent) {
+    const auditWriterService = await this.service('auditWriterService');
+    // Calling "writeAndForget" instead of "write" to allow main call to continue without waiting for audit logging
+    // and not fail main call if audit writing fails for some reason
+    // If the main call also needs to fail in case writing to any audit destination fails then switch to "write" method as follows
+    // return auditWriterService.write(requestContext, auditEvent);
+    return auditWriterService.writeAndForget(requestContext, auditEvent);
   }
 }
 

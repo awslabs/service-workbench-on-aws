@@ -17,25 +17,20 @@ const ServicesContainer = require('@aws-ee/base-services-container/lib/services-
 const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
 const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
 
-// Mocked dependencies
 jest.mock('@aws-ee/base-services/lib/db-service');
-const DbServiceMock = require('@aws-ee/base-services/lib/db-service');
-
 jest.mock('@aws-ee/base-services/lib/audit/audit-writer-service');
-const AuditServiceMock = require('@aws-ee/base-services/lib/audit/audit-writer-service');
-
 jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
-const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
-
 jest.mock('@aws-ee/base-services/lib/s3-service');
-const S3ServiceMock = require('@aws-ee/base-services/lib/s3-service');
-
 jest.mock('../study-permission-service');
-const StudyPermissionServiceMock = require('../study-permission-service');
-
 jest.mock('../../project/project-service');
-const ProjectServiceMock = require('../../project/project-service');
 
+const DbServiceMock = require('@aws-ee/base-services/lib/db-service');
+const AuditServiceMock = require('@aws-ee/base-services/lib/audit/audit-writer-service');
+const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
+const S3ServiceMock = require('@aws-ee/base-services/lib/s3-service');
+const StudyPermissionServiceMock = require('../study-permission-service');
+const ProjectServiceMock = require('../../project/project-service');
+const StudyAuthzService = require('../study-authz-service');
 const StudyService = require('../study-service');
 
 // Tested functions: create, update, delete
@@ -55,7 +50,7 @@ describe('studyService', () => {
     container.register('settings', new SettingsServiceMock());
     container.register('studyPermissionService', new StudyPermissionServiceMock());
     container.register('projectService', new ProjectServiceMock());
-
+    container.register('studyAuthzService', new StudyAuthzService());
     container.register('studyService', new StudyService());
 
     container.initServices();
@@ -100,21 +95,15 @@ describe('studyService', () => {
     });
 
     it('should fail for users other than admin or internal-researcher ', async () => {
-      // BUILD
       const dataIpt = {
         id: '4 score and 7 years ago',
         projectId: 'some_project_id',
         category: 'Organization',
       };
 
-      // OPERATE
-      try {
-        await service.create({ principal: { userRole: 'internal-guest' } }, dataIpt);
-        expect.hasAssertions();
-      } catch (err) {
-        // CHECK
-        expect(err.message).toEqual('Only admin and internal researcher are authorized to create studies. ');
-      }
+      await expect(service.create({ principal: { userRole: 'internal-guest' } }, dataIpt)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'forbidden', safe: true }),
+      );
     });
 
     it('should fail if user project association is missing', async () => {

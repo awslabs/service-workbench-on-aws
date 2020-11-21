@@ -39,8 +39,8 @@ class StudyService extends Service {
       'jsonSchemaValidationService',
       'dbService',
       'studyPermissionService',
+      'studyAuthzService',
       'projectService',
-      'userService',
       'auditWriterService',
     ]);
   }
@@ -96,11 +96,12 @@ class StudyService extends Service {
       throw this.boom.forbidden('Only admins are authorized to register studies.', true);
     }
 
-    const [validationService, userService, projectService] = await this.service([
+    const [validationService, studyPermissionService, projectService] = await this.service([
       'jsonSchemaValidationService',
-      'userService',
+      'studyPermissionService',
       'projectService',
     ]);
+
     // Validate input
     await validationService.ensureValid(rawStudyEntity, registerSchema);
 
@@ -110,38 +111,14 @@ class StudyService extends Service {
       throw this.boom.badRequest('You must provide at least on admin for the study', true);
     }
 
-    if (_.size(admins) > 20) {
-      throw this.boom.badRequest('You can only specify up to 20 admins at the time of registering a study', true);
+    if (_.size(admins) > 100) {
+      // To protect against a large number
+      throw this.boom.badRequest('You can only specify up to 100 admins at the time of registering a study', true);
     }
 
-    // We now check all the study admins to ensure they exist, active and either have the role of application admin or a researcher
-    const errors = [];
-    const chunks = _.chunk(admins, 10); // We want to chunk and lookup user info, 10 at a time
-    const validateUser = async uid => {
-      try {
-        const user = await userService.mustFindUser({ uid });
-        const isAdminUser = user.isAdmin;
-        const isActive = _.toLower(user.status) === 'active';
-        const isResearcher = user.userRole === 'researcher';
-        if (!(isActive && (isAdminUser || isResearcher))) {
-          throw this.boom.badRequest(
-            `User ${user.username} must be active and either has the role of admin or the role of researchers`,
-            true,
-          );
-        }
-      } catch (error) {
-        errors.push(error.message);
-      }
-    };
-
-    while (!_.isEmpty(chunks)) {
-      const chunk = chunks.shift();
-      await Promise.all(_.map(chunk, validateUser));
-    }
-
-    if (!_.isEmpty(errors)) {
-      throw this.boom.badRequest(errors.join('. '), true);
-    }
+    // We now check all the study admins to ensure they exist, active and either have the role of application
+    // admin or a researcher
+    await studyPermissionService.assertValidUsers(admins);
 
     // Lets check to see if kmsArn is not provided if useBucketKms is true
     if (!_.isEmpty(rawStudyEntity.kmsArn) && rawStudyEntity.useBucketKms) {
@@ -269,6 +246,7 @@ class StudyService extends Service {
         .promise();
     }
 
+    // TODO - call study permissions service to create the necessary entities
     // Write audit event
     await this.audit(requestContext, { action: 'create-study', body: result });
 

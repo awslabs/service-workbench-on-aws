@@ -23,8 +23,6 @@ jest.mock('@aws-ee/base-services/lib/audit/audit-writer-service');
 jest.mock('../../user/user-service');
 jest.mock('../../study/study-service');
 jest.mock('../../study/study-permission-service');
-// jest.mock('../data-source-bucket-service');
-// jest.mock('../data-source-account-service');
 
 const Aws = require('@aws-ee/base-services/lib/aws/aws-service');
 const Logger = require('@aws-ee/base-services/lib/logger/logger-service');

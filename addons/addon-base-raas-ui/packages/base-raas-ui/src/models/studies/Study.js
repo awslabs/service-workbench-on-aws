@@ -29,7 +29,6 @@ const Study = types
     name: '',
     category: '',
     projectId: '',
-    access: types.maybe(types.string),
     resources: types.optional(types.array(types.model({ arn: types.string })), []),
     description: types.maybeNull(types.string),
     uploadLocationEnabled: false,
