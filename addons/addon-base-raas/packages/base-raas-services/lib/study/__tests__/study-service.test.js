@@ -222,7 +222,7 @@ describe('studyService', () => {
     it('should get the correct allowed studies ONLY (admin, R/O, R/W)', async () => {
       // BUILD, OPERATE and CHECK
       expect(
-        service._getAllowedStudies({
+        service.getAllowedStudies({
           adminAccess: ['studyA'],
           readonlyAccess: ['studyB'],
           readwriteAccess: ['studyC'],
@@ -249,6 +249,50 @@ describe('studyService', () => {
         { principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } },
         { action: 'create-study', body: undefined },
       );
+    });
+
+    it('should fail to update resource list of non-Open Data study', async () => {
+      // BUILD
+      const dataIpt = {
+        id: 'newOpenStudy',
+        category: 'Organization',
+        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
+      };
+      service.audit = jest.fn();
+
+      // OPERATE
+      try {
+        await service.update(
+          { principal: { userRole: 'researcher' }, principalIdentifier: { uid: 'someRandomUserUid' } },
+          dataIpt,
+        );
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Resources can only be updated for Open Data study category');
+      }
+    });
+
+    it('should fail to update Open Data study by non-system user', async () => {
+      // BUILD
+      const dataIpt = {
+        id: 'newOpenStudy',
+        category: 'Open Data',
+        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
+      };
+      service.audit = jest.fn();
+
+      // OPERATE
+      try {
+        await service.update(
+          { principal: { userRole: 'admin' }, principalIdentifier: { uid: 'someRandomUserUid' } },
+          dataIpt,
+        );
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Only the system can update Open Data studies.');
+      }
     });
 
     it('should try to create the study successfully', async () => {

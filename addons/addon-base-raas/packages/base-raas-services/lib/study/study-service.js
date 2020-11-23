@@ -171,6 +171,14 @@ class StudyService extends Service {
   async update(requestContext, rawData) {
     const [validationService] = await this.service(['jsonSchemaValidationService']);
 
+    if (rawData.category === 'Open Data' && !isSystem(requestContext)) {
+      throw this.boom.badRequest('Only the system can update Open Data studies.', true);
+    }
+
+    if (rawData.category !== 'Open Data' && !_.isEmpty(rawData.resources)) {
+      throw this.boom.badRequest('Resources can only be updated for Open Data study category', true);
+    }
+
     // Validate input
     await validationService.ensureValid(rawData, updateSchema);
 
@@ -243,7 +251,7 @@ class StudyService extends Service {
     return result;
   }
 
-  _getAllowedStudies(permissions = []) {
+  getAllowedStudies(permissions = []) {
     const adminAccess = permissions.adminAccess || [];
     const readonlyAccess = permissions.readonlyAccess || [];
     const readwriteAccess = permissions.readwriteAccess || [];
@@ -269,7 +277,7 @@ class StudyService extends Service {
         const permissions = await this.studyPermissionService.getRequestorPermissions(requestContext);
         if (permissions) {
           // We can't give duplicate keys to the batch get, so ensure that allowedStudies is unique
-          const allowedStudies = this._getAllowedStudies(permissions);
+          const allowedStudies = this.getAllowedStudies(permissions);
           if (allowedStudies.length) {
             const rawResult = await this._getter()
               .keys(allowedStudies.map(studyId => ({ id: studyId })))
