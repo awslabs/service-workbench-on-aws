@@ -794,7 +794,7 @@ class EnvironmentMountService extends Service {
       const requestedStudyIds = studyInfo.map(study => study.id);
 
       // Retrieve and verify user's study permissions
-      const studyPermissionService = await this.service('studyPermissionService');
+      const [studyPermissionService, studyService] = await this.service(['studyPermissionService', 'studyService']);
       const storedPermissions = await studyPermissionService.getRequestorPermissions(requestContext);
 
       // If there are no stored permissions, use an empty permissions object
@@ -806,10 +806,10 @@ class EnvironmentMountService extends Service {
       );
 
       // Determine whether any forbidden studies were requested
-      const allowedStudies = permissions.adminAccess.concat(permissions.readonlyAccess);
+      const allowedStudies = studyService.getAllowedStudies(permissions);
       const forbiddenStudies = _.difference(requestedStudyIds, allowedStudies);
 
-      if (forbiddenStudies.length) {
+      if (!_.isEmpty(forbiddenStudies)) {
         throw new Error(`Studies not found: ${forbiddenStudies.join(',')}`);
       }
     }
