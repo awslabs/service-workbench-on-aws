@@ -261,16 +261,14 @@ describe('studyService', () => {
       service.audit = jest.fn();
 
       // OPERATE
-      try {
-        await service.update(
+      await expect(
+        service.update(
           { principal: { userRole: 'researcher' }, principalIdentifier: { uid: 'someRandomUserUid' } },
           dataIpt,
-        );
-        expect.hasAssertions();
-      } catch (err) {
-        // CHECK
-        expect(err.message).toEqual('Resources can only be updated for Open Data study category');
-      }
+        ),
+      ).rejects.toThrow({
+        message: 'Resources can only be updated for Open Data study category',
+      });
     });
 
     it('should fail to update Open Data study by non-system user', async () => {
@@ -283,16 +281,14 @@ describe('studyService', () => {
       service.audit = jest.fn();
 
       // OPERATE
-      try {
-        await service.update(
+      await expect(
+        service.update(
           { principal: { userRole: 'admin' }, principalIdentifier: { uid: 'someRandomUserUid' } },
           dataIpt,
-        );
-        expect.hasAssertions();
-      } catch (err) {
-        // CHECK
-        expect(err.message).toEqual('Only the system can update Open Data studies.');
-      }
+        ),
+      ).rejects.toThrow({
+        message: 'Only the system can update Open Data studies.',
+      });
     });
 
     it('should try to create the study successfully', async () => {
