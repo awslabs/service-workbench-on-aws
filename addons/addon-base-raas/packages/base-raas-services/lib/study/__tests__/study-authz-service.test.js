@@ -124,10 +124,23 @@ describe('StudyAuthzService', () => {
       const requestContext = { principalIdentifier: { uid }, principal: { userRole: 'researcher', status: 'active' } };
       const action = 'get-study-permissions';
       const studyPermissionsEntity = {};
+      const studyEntity = {};
 
-      await expect(service.authorize(requestContext, { action }, { studyPermissionsEntity })).resolves.toEqual(
-        expect.objectContaining({ effect: 'deny' }),
-      );
+      await expect(
+        service.authorize(requestContext, { action }, { studyEntity, studyPermissionsEntity }),
+      ).resolves.toEqual(expect.objectContaining({ effect: 'deny' }));
+    });
+
+    it('users who do not have access to the study are allowed if open data', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid }, principal: { userRole: 'researcher', status: 'active' } };
+      const action = 'get-study-permissions';
+      const studyPermissionsEntity = {};
+      const studyEntity = { category: 'Open Data' };
+
+      await expect(
+        service.authorize(requestContext, { action }, { studyEntity, studyPermissionsEntity }),
+      ).resolves.toEqual(expect.objectContaining({ effect: 'allow' }));
     });
   });
 });

@@ -13,27 +13,37 @@
  *  permissions and limitations under the License.
  */
 
+const _ = require('lodash');
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
 const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
 const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
 
 jest.mock('@aws-ee/base-services/lib/db-service');
+jest.mock('@aws-ee/base-services/lib/logger/logger-service');
 jest.mock('@aws-ee/base-services/lib/audit/audit-writer-service');
 jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
+jest.mock('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
 jest.mock('@aws-ee/base-services/lib/s3-service');
-jest.mock('../study-permission-service');
+jest.mock('@aws-ee/base-services/lib/lock/lock-service');
+jest.mock('../../user/user-service');
 jest.mock('../../project/project-service');
 
+const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
+const LockService = require('@aws-ee/base-services/lib/lock/lock-service');
 const DbServiceMock = require('@aws-ee/base-services/lib/db-service');
+const AuthService = require('@aws-ee/base-services/lib/authorization/authorization-service');
 const AuditServiceMock = require('@aws-ee/base-services/lib/audit/audit-writer-service');
 const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
+const PluginRegistryService = require('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
 const S3ServiceMock = require('@aws-ee/base-services/lib/s3-service');
-const StudyPermissionServiceMock = require('../study-permission-service');
 const ProjectServiceMock = require('../../project/project-service');
+const UserService = require('../../user/user-service');
 const StudyAuthzService = require('../study-authz-service');
+const StudyPermissionService = require('../study-permission-service');
 const StudyService = require('../study-service');
 
-// Tested functions: create, update, delete
+const { getEmptyUserPermissions } = require('../helpers/user-permissions');
+
 describe('studyService', () => {
   let service = null;
   let dbService = null;
@@ -45,10 +55,15 @@ describe('studyService', () => {
     container.register('S3', new S3ServiceMock());
     container.register('aws', new AwsService());
     container.register('jsonSchemaValidationService', new JsonSchemaValidationService());
+    container.register('log', new Logger());
+    container.register('lockService', new LockService());
     container.register('dbService', new DbServiceMock());
     container.register('auditWriterService', new AuditServiceMock());
     container.register('settings', new SettingsServiceMock());
-    container.register('studyPermissionService', new StudyPermissionServiceMock());
+    container.register('userService', new UserService());
+    container.register('pluginRegistryService', new PluginRegistryService());
+    container.register('authorizationService', new AuthService());
+    container.register('studyPermissionService', new StudyPermissionService());
     container.register('projectService', new ProjectServiceMock());
     container.register('studyAuthzService', new StudyAuthzService());
     container.register('studyService', new StudyService());
@@ -57,6 +72,75 @@ describe('studyService', () => {
     service = await container.find('studyService');
     dbService = await container.find('dbService');
     projectService = await container.find('projectService');
+  });
+
+  describe('getStudyPermissions', () => {
+    it('should return a study entity with the permissions attribute populated', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid }, principal: { userRole: 'researcher', status: 'active' } };
+      const studyEntity = { id: 'study-1', accessType: 'readonly' };
+      const dbPermissionsEntity = {
+        id: `Study:${studyEntity.id}`,
+        recordType: 'study',
+        adminUsers: [],
+        readonlyUsers: [uid],
+        readwriteUsers: [uid],
+      };
+
+      let pKey1;
+      let pKey2;
+      dbService.table.key = jest
+        .fn()
+        .mockImplementationOnce(({ id }) => {
+          pKey1 = id;
+          return dbService.table;
+        })
+        .mockImplementationOnce(({ id }) => {
+          pKey2 = id;
+          return dbService.table;
+        });
+
+      dbService.table.get = jest
+        .fn()
+        .mockImplementationOnce(() => {
+          if (pKey1 !== studyEntity.id) return undefined;
+          return studyEntity;
+        })
+        .mockImplementationOnce(() => {
+          if (pKey2 !== dbPermissionsEntity.id) return undefined;
+          return dbPermissionsEntity;
+        });
+
+      await expect(service.getStudyPermissions(requestContext, studyEntity.id)).resolves.toStrictEqual({
+        ...studyEntity,
+        permissions: { adminUsers: [], readonlyUsers: [uid], readwriteUsers: [], writeonlyUsers: [] },
+      });
+    });
+  });
+
+  describe('getUserPermissions', () => {
+    it('should return a user permissions entity', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid }, principal: { userRole: 'researcher', status: 'active' } };
+      const dbPermissionsEntity = { id: `User:${uid}`, uid, recordType: 'user', adminAccess: ['study-1'] };
+
+      let pKey;
+      dbService.table.key = jest.fn(({ id }) => {
+        pKey = id;
+        return dbService.table;
+      });
+
+      dbService.table.get = jest.fn(() => {
+        if (pKey !== dbPermissionsEntity.id) return undefined;
+        return dbPermissionsEntity;
+      });
+
+      await expect(service.getUserPermissions(requestContext, uid)).resolves.toStrictEqual({
+        ...getEmptyUserPermissions(),
+        ..._.omit(dbPermissionsEntity, ['recordType', 'id', 'uid']),
+        uid,
+      });
+    });
   });
 
   describe('create', () => {

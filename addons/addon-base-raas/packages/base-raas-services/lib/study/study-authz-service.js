@@ -20,6 +20,7 @@ const { allow, deny, isDeny, allowIfActive } = require('@aws-ee/base-services/li
 
 const { isAdmin } = require('../helpers/is-role');
 const { hasAccess } = require('./helpers/study-permissions');
+const { isOpenData } = require('./helpers/study');
 
 class StudyAuthzService extends Service {
   async authorize(requestContext, { resource, action, effect, reason }, ...args) {
@@ -43,13 +44,14 @@ class StudyAuthzService extends Service {
     }
   }
 
-  async allowIfAdminOrHasAccess(requestContext, _ignore, { studyPermissionsEntity = {} } = {}) {
+  async allowIfAdminOrHasAccess(requestContext, _ignore, { studyEntity, studyPermissionsEntity = {} } = {}) {
     if (isAdmin(requestContext)) return allow();
     const uid = _.get(requestContext, 'principalIdentifier.uid');
 
+    if (isOpenData(studyEntity)) return allow();
     if (hasAccess(uid, studyPermissionsEntity)) return allow();
 
-    return deny('You do not have permission to view the study access information');
+    return deny('You do not have permission to view the study access information', true);
   }
 }
 

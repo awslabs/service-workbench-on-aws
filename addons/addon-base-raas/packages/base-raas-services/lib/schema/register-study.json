@@ -42,8 +42,7 @@
     "admins": {
       "type": "array",
       "items": {
-        "type": "string",
-        "maxLength": 90
+        "type": "string"
       }
     },
     "accessType": {

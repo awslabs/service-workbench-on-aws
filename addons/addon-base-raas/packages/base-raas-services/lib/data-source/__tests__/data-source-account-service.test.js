@@ -79,7 +79,7 @@ describe('DataSourceAccountService', () => {
       expect(dbService.table.item).toHaveBeenCalledWith(
         expect.objectContaining({
           ..._.omit(rawData, ['id']),
-          prefix: expect.stringContaining('swb-'),
+          qualifier: expect.stringContaining('swb-'),
           stackStatus: {
             checkStatus: 'pending',
             creationStatus: 'pending',

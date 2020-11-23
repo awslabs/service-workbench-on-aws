@@ -36,7 +36,17 @@ function hasAccess(uid, studyPermissionsEntity = {}) {
   return _.includes(userIds, uid);
 }
 
+function getEmptyStudyPermissions() {
+  return {
+    adminUsers: [],
+    readonlyUsers: [],
+    readwriteUsers: [],
+    writeonlyUsers: [],
+  };
+}
+
 module.exports = {
   hasAccess,
   getUserIds,
+  getEmptyStudyPermissions,
 };

@@ -94,11 +94,11 @@ class DataSourceAccountService extends Service {
     const by = _.get(requestContext, 'principalIdentifier.uid');
     const { id } = rawAccountEntity;
 
-    // Create a prefix to use in a few places, such as the cfn stack name and all
+    // Create a qualifier to use in a few places, such as the cfn stack name and all
     // of the roles created in the data source account. This is needed to avoid collisions
     // with other installations of SWB that also use this data source account.
-    const prefix = `swb-${generateId()}`;
-    const stack = `${prefix}-stack`;
+    const qualifier = `swb-${generateId()}`;
+    const stack = `${qualifier}-stack`;
     const stackStatus = {
       checkStatus: 'pending',
       creationStatus: 'pending',
@@ -110,7 +110,7 @@ class DataSourceAccountService extends Service {
       rev: 0,
       createdBy: by,
       updatedBy: by,
-      prefix,
+      qualifier,
       stack,
       stackStatus,
       lastCheck,

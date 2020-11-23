@@ -89,6 +89,65 @@ class StudyService extends Service {
     return result.map(record => this.fromDbToDataObject(record));
   }
 
+  /**
+   * Returns a StudyEntity with the permissions attribute populated.
+   * If the study is not found an exception is thrown. If the requestContext.principal
+   * is not an admin and does not have any permissions for the study then an exception
+   * is thrown (unless it is open data).
+   *
+   * The StudyEntity has this shape:
+   * {
+   *  id, rev, category, name, description, resources: [{arn, fileShareArn}, ...],
+   *  uploadLocationEnabled, sha, qualifier, folder, accountId, bucket, bucketPartition,
+   *  bucketRegion, kmsArn, status, problem, accessType
+   *  permissions: <StudyPermissionEntity>
+   * }
+   *
+   * Not all of the attributes are available for a study. For example, if a study is using
+   * the default bucket, it won't have the accountId, bucket, bucketPartition, bucketRegion,
+   * kmsArn populated.
+   *
+   * @param requestContext The standard requestContext
+   * @param id The study id
+   * @param fields An array of the attribute names to return, default to all the attributes
+   * of the study entity.
+   */
+  async getStudyPermissions(requestContext, id, fields = []) {
+    const studyEntity = await this.mustFind(requestContext, id, fields);
+    const [studyPermissionService] = await this.service(['studyPermissionService']);
+
+    const studyPermissionEntity = await studyPermissionService.findStudyPermissions(requestContext, studyEntity);
+
+    return { ...studyEntity, permissions: studyPermissionEntity };
+  }
+
+  /**
+   * Returns the user permissions entity. Admins can call this method for
+   * any user, however, if the requestContext.principal is not an admin and is not
+   * the same as the given uid, an exception is thrown. If no user entry is found,
+   * a userPermissionsEntity is returned but with no values in arrays such as adminAccess:[], etc.
+   *
+   * The userPermissionsEntity has the following shape:
+   * {
+   *  uid: <userId>,
+   *  adminAccess: [<studyId>, ...]
+   *  readonlyAccess: [<studyId>, ...]
+   *  readwriteAccess: [<studyId>, ...]
+   *  writeonlyAccess: [<studyId>, ...]
+   *  updateBy, updateAt, createdBy, createdAt
+   * }
+   *
+   * @param requestContext The standard requestContext
+   * @param uid The user id
+   * @param fields An array of the attribute names to return, default to all the attributes
+   * of the user permissions entity.
+   */
+  async getUserPermissions(requestContext, uid, fields = []) {
+    const [studyPermissionService] = await this.service(['studyPermissionService']);
+
+    return studyPermissionService.findUserPermissions(requestContext, uid, fields);
+  }
+
   // WARNING!! This method is not meant to be called directly from a controller,
   // if you need to do that, use dataSourceRegistrationService.registerStudy() instead.
   async register(requestContext, accountEntity, bucketEntity, rawStudyEntity) {
@@ -105,20 +164,15 @@ class StudyService extends Service {
     // Validate input
     await validationService.ensureValid(rawStudyEntity, registerSchema);
 
-    const admins = rawStudyEntity.admins;
+    let studyPermissionEntity = {
+      adminUsers: rawStudyEntity.admins,
+    };
 
-    if (_.isEmpty(admins)) {
-      throw this.boom.badRequest('You must provide at least on admin for the study', true);
-    }
-
-    if (_.size(admins) > 100) {
-      // To protect against a large number
-      throw this.boom.badRequest('You can only specify up to 100 admins at the time of registering a study', true);
-    }
-
-    // We now check all the study admins to ensure they exist, active and either have the role of application
-    // admin or a researcher
-    await studyPermissionService.assertValidUsers(admins);
+    // We need to call this in case there are problems with the study permissions entity. We need
+    // to find this out before we create the study, otherwise, it will be too late if we create the
+    // study entity and then try to create the study permissions entity only to find out that it has
+    // validation issues.
+    await studyPermissionService.preCreateValidation(requestContext, rawStudyEntity, studyPermissionEntity);
 
     // Lets check to see if kmsArn is not provided if useBucketKms is true
     if (!_.isEmpty(rawStudyEntity.kmsArn) && rawStudyEntity.useBucketKms) {
@@ -141,7 +195,7 @@ class StudyService extends Service {
     const entity = {
       ..._.omit(rawStudyEntity, ['admins']),
       folder: normalizeStudyFolder(rawStudyEntity.folder),
-      prefix: accountEntity.prefix,
+      qualifier: accountEntity.qualifier,
       accountId: accountEntity.id,
       bucket: bucketEntity.name,
       bucketPartition: bucketEntity.partition,
@@ -166,7 +220,9 @@ class StudyService extends Service {
       },
     );
 
-    return result;
+    // Time to create the study permissions entity and all the needed user permissions entities.
+    studyPermissionEntity = await studyPermissionService.create(requestContext, result, studyPermissionEntity);
+    return { ...result, permissions: studyPermissionEntity };
   }
 
   async create(requestContext, rawData) {

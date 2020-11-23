@@ -37,6 +37,9 @@ const UserService = require('../../user/user-service');
 const StudyAuthzService = require('../study-authz-service');
 const StudyPermissionService = require('../study-permission-service');
 
+const { getEmptyStudyPermissions } = require('../helpers/study-permissions');
+const { getEmptyUserPermissions } = require('../helpers/user-permissions');
+
 describe('StudyPermissionService', () => {
   let service;
   let dbService;
@@ -91,9 +94,10 @@ describe('StudyPermissionService', () => {
         return dbPermissionsEntity;
       });
 
-      await expect(service.findStudyPermissions(requestContext, studyEntity)).resolves.toStrictEqual(
-        _.omit(dbPermissionsEntity, ['recordType', 'id']),
-      );
+      await expect(service.findStudyPermissions(requestContext, studyEntity)).resolves.toStrictEqual({
+        ...getEmptyStudyPermissions(),
+        ..._.omit(dbPermissionsEntity, ['recordType', 'id']),
+      });
     });
 
     it('users who have admin access to the study are allowed', async () => {
@@ -118,9 +122,10 @@ describe('StudyPermissionService', () => {
         return dbPermissionsEntity;
       });
 
-      await expect(service.findStudyPermissions(requestContext, studyEntity)).resolves.toStrictEqual(
-        _.omit(dbPermissionsEntity, ['recordType', 'id']),
-      );
+      await expect(service.findStudyPermissions(requestContext, studyEntity)).resolves.toStrictEqual({
+        ...getEmptyStudyPermissions(),
+        ..._.omit(dbPermissionsEntity, ['recordType', 'id']),
+      });
     });
 
     it('users who have read only access to the study are allowed', async () => {
@@ -145,9 +150,10 @@ describe('StudyPermissionService', () => {
         return dbPermissionsEntity;
       });
 
-      await expect(service.findStudyPermissions(requestContext, studyEntity)).resolves.toStrictEqual(
-        _.omit(dbPermissionsEntity, ['recordType', 'id']),
-      );
+      await expect(service.findStudyPermissions(requestContext, studyEntity)).resolves.toStrictEqual({
+        ...getEmptyStudyPermissions(),
+        ..._.omit(dbPermissionsEntity, ['recordType', 'id']),
+      });
     });
 
     it('users who have read write access to the study are allowed', async () => {
@@ -173,9 +179,10 @@ describe('StudyPermissionService', () => {
         return dbPermissionsEntity;
       });
 
-      await expect(service.findStudyPermissions(requestContext, studyEntity)).resolves.toStrictEqual(
-        _.omit(dbPermissionsEntity, ['recordType', 'id']),
-      );
+      await expect(service.findStudyPermissions(requestContext, studyEntity)).resolves.toStrictEqual({
+        ...getEmptyStudyPermissions(),
+        ..._.omit(dbPermissionsEntity, ['recordType', 'id']),
+      });
     });
 
     it('users who have write only access to the study are allowed', async () => {
@@ -205,6 +212,37 @@ describe('StudyPermissionService', () => {
       await expect(service.findStudyPermissions(requestContext, studyEntity)).resolves.toStrictEqual(
         _.omit(dbPermissionsEntity, ['recordType', 'id']),
       );
+    });
+
+    it('users who do not have access to the study are allowed if open data', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid }, principal: { userRole: 'researcher', status: 'active' } };
+      const studyEntity = { id: 'study-1', category: 'Open Data' };
+      const dbPermissionsEntity = {
+        id: `Study:${studyEntity.id}`,
+        recordType: 'study',
+        adminUsers: [],
+        readonlyUsers: [],
+        readwriteUsers: ['u-testing-1'],
+        writeonlyUsers: ['u-testing-2'],
+      };
+
+      let pKey;
+      dbService.table.key = jest.fn(({ id }) => {
+        pKey = id;
+        return dbService.table;
+      });
+
+      dbService.table.get = jest.fn(() => {
+        if (pKey !== dbPermissionsEntity.id) return undefined;
+        return dbPermissionsEntity;
+      });
+
+      await expect(service.findStudyPermissions(requestContext, studyEntity)).resolves.toStrictEqual({
+        ..._.omit(dbPermissionsEntity, ['recordType', 'id']),
+        readwriteUsers: [],
+        writeonlyUsers: [],
+      });
     });
 
     it('users who do not have access to the study are not allowed', async () => {
@@ -351,6 +389,142 @@ describe('StudyPermissionService', () => {
 
       await expect(service.findStudyPermissions(requestContext, studyEntity)).rejects.toThrow(
         expect.objectContaining({ boom: true, code: 'forbidden', safe: true }),
+      );
+    });
+  });
+
+  describe('findUserPermissions', () => {
+    it('inactive users are not allowed', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid }, principal: { userRole: 'admin', status: 'inactive' } };
+
+      await expect(service.findUserPermissions(requestContext, uid)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'forbidden', safe: true }),
+      );
+    });
+
+    it('admins are allowed', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = {
+        principalIdentifier: { uid: 'u-3333' },
+        principal: { userRole: 'admin', status: 'active', isAdmin: true },
+      };
+      const dbPermissionsEntity = { id: `User:${uid}`, uid, recordType: 'user', adminAccess: ['study-1'] };
+
+      let pKey;
+      dbService.table.key = jest.fn(({ id }) => {
+        pKey = id;
+        return dbService.table;
+      });
+
+      dbService.table.get = jest.fn(() => {
+        if (pKey !== dbPermissionsEntity.id) return undefined;
+        return dbPermissionsEntity;
+      });
+
+      await expect(service.findUserPermissions(requestContext, uid)).resolves.toStrictEqual({
+        ...getEmptyUserPermissions(),
+        ..._.omit(dbPermissionsEntity, ['recordType', 'id', 'uid']),
+        uid,
+      });
+    });
+
+    it('same user is allowed', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = {
+        principalIdentifier: { uid },
+        principal: { userRole: 'researcher', status: 'active', isAdmin: false },
+      };
+      const dbPermissionsEntity = { id: `User:${uid}`, uid, recordType: 'user', adminAccess: ['study-1'] };
+
+      let pKey;
+      dbService.table.key = jest.fn(({ id }) => {
+        pKey = id;
+        return dbService.table;
+      });
+
+      dbService.table.get = jest.fn(() => {
+        if (pKey !== dbPermissionsEntity.id) return undefined;
+        return dbPermissionsEntity;
+      });
+
+      await expect(service.findUserPermissions(requestContext, uid)).resolves.toStrictEqual({
+        ...getEmptyUserPermissions(),
+        ..._.omit(dbPermissionsEntity, ['recordType', 'id', 'uid']),
+        uid,
+      });
+    });
+
+    it('throws if not admin and not the same user', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = {
+        principalIdentifier: { uid: 'u-nice' },
+        principal: { userRole: 'researcher', status: 'active', isAdmin: false },
+      };
+      const dbPermissionsEntity = { id: `User:${uid}`, uid, recordType: 'user', adminAccess: ['study-1'] };
+
+      let pKey;
+      dbService.table.key = jest.fn(({ id }) => {
+        pKey = id;
+        return dbService.table;
+      });
+
+      dbService.table.get = jest.fn(() => {
+        if (pKey !== dbPermissionsEntity.id) return undefined;
+        return dbPermissionsEntity;
+      });
+
+      await expect(service.findUserPermissions(requestContext, uid)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'forbidden' }),
+      );
+    });
+
+    it('returns an empty entity if no entry is found for the user', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = {
+        principalIdentifier: { uid },
+        principal: { userRole: 'researcher', status: 'active', isAdmin: false },
+      };
+      const dbPermissionsEntity = { id: `User:${uid}`, uid, recordType: 'user' };
+
+      let pKey;
+      dbService.table.key = jest.fn(({ id }) => {
+        pKey = id;
+        return dbService.table;
+      });
+
+      dbService.table.get = jest.fn(() => {
+        if (pKey === dbPermissionsEntity.id) return undefined;
+        return dbPermissionsEntity;
+      });
+
+      await expect(service.findUserPermissions(requestContext, uid)).resolves.toStrictEqual({
+        ...getEmptyUserPermissions(),
+        ..._.omit(dbPermissionsEntity, ['recordType', 'id', 'uid']),
+        uid,
+      });
+    });
+  });
+
+  describe('create', () => {
+    it('inactive users are not allowed', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid }, principal: { userRole: 'admin', status: 'inactive' } };
+      const studyEntity = { id: 'study-1' };
+
+      await expect(service.create(requestContext, studyEntity)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'forbidden', safe: true }),
+      );
+    });
+
+    it('throws if study is open data', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid }, principal: { userRole: 'admin', status: 'active' } };
+      const studyEntity = { id: 'study-1', category: 'Open Data' };
+      const permissions = { adminUsers: [uid] };
+
+      await expect(service.create(requestContext, studyEntity, permissions)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
       );
     });
   });

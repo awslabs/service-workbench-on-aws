@@ -12,6 +12,7 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
+const _ = require('lodash');
 
 async function configure(context) {
   const router = context.router();
@@ -137,13 +138,13 @@ async function configure(context) {
   router.get(
     '/:id/permissions',
     wrap(async (req, res) => {
+      // eslint-disable-next-line no-shadow
+      const studyService = await context.service('studyService');
       const studyId = req.params.id;
       const requestContext = res.locals.requestContext;
 
-      await studyPermissionService.verifyRequestorAccess(requestContext, studyId, req.method);
-
-      const result = await studyPermissionService.findByStudy(requestContext, studyId);
-      res.status(200).json(result);
+      const result = await studyService.getStudyPermissions(requestContext, studyId);
+      res.status(200).json(_.get(result, 'permissions'));
     }),
   );
 
