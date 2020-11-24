@@ -743,13 +743,14 @@ class EnvironmentMountService extends Service {
         _.map(studyIds, async studyId => {
           try {
             const { id, name, category, resources } = await studyService.mustFind(requestContext, studyId);
-
+            console.log('{ id, name, category, resources }', { id, name, category, resources });
             // Find out if the current user has Read/Write access
             const uid = _.get(requestContext, 'principalIdentifier.uid');
             const studyPermission = await studyPermissionService.findByUser(requestContext, uid);
             const writeable = _.includes(studyPermission.readwriteAccess, studyId) || category === 'My Studies';
             return { id, name, category, resources, writeable };
           } catch (error) {
+            console.error('error', error);
             // Because the studies update periodically we cannot
             // guarantee consistency so filter anything invalid here
             return { name: '', resources: [] };
