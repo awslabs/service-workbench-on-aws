@@ -123,10 +123,10 @@ describe('EnvironmentMountService', () => {
         Promise.resolve({
           adminAccess: studyIds,
           createdAt: new Date().toISOString(),
-          id: 'User:u-6Bltzxp_xFUAQ4DYvX_VQ',
+          id: `User:${uid}`,
           readonlyAccess: studyIds,
           recordType: 'user',
-          uid: 'u-6Bltzxp_xFUAQ4DYvX_VQ',
+          uid,
           updatedAt: new Date().toISOString(),
         });
 

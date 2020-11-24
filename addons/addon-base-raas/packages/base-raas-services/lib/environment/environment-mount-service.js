@@ -743,11 +743,13 @@ class EnvironmentMountService extends Service {
         _.map(studyIds, async studyId => {
           try {
             const { id, name, category, resources } = await studyService.mustFind(requestContext, studyId);
-            console.log('{ id, name, category, resources }', { id, name, category, resources });
+            console.log('TEMP: { id, name, category, resources }', { id, name, category, resources });
             // Find out if the current user has Read/Write access
             const uid = _.get(requestContext, 'principalIdentifier.uid');
             const studyPermission = await studyPermissionService.findByUser(requestContext, uid);
+            console.log('TEMP: studyPermission', studyPermission);
             const writeable = _.includes(studyPermission.readwriteAccess, studyId) || category === 'My Studies';
+            console.log('TEMP: writeable', writeable);
             return { id, name, category, resources, writeable };
           } catch (error) {
             console.error('error', error);
@@ -782,8 +784,9 @@ class EnvironmentMountService extends Service {
       // Determine whether any forbidden studies were requested
       const allowedStudies = permissions.adminAccess.concat(permissions.readonlyAccess);
       const forbiddenStudies = _.difference(requestedStudyIds, allowedStudies);
-
-      if (forbiddenStudies.length) {
+      console.log('TEMP: allowedStudies', allowedStudies);
+      console.log('TEMP: forbiddenStudies', forbiddenStudies);
+      if (!_.isEmpty(forbiddenStudies)) {
         throw new Error(`Studies not found: ${forbiddenStudies.join(',')}`);
       }
     }
