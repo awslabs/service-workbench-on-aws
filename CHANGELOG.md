@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.2] - 2020-11-23
+
+### Added 
+- fix: Fix a bug on the update study API
+
+We recommend to apply this patch as soon as possible
+
+## [1.4.1] - 2020-11-18
+
+### Added 
+- fix: Handling policy names for windows envs
+- fix: Fix a bug on the create study API
+
+We recommend to apply this patch as soon as possible
+
+## [1.4.0] - 2020-11-13
+
+### Added 
+- feat: Study Read/Write and Permission propagation (Goofys)
+- feat: Read/Only study mounts on AWS Service Catalog based EC2 Windows workspaces
+
 ## [1.3.2] - 2020-10-23
 
 ### Added 

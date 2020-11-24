@@ -24,10 +24,15 @@ function isAdmin(requestContext) {
   return isRole(requestContext, 'admin');
 }
 
+function isSystem(requestContext) {
+  return _.get(requestContext, 'principalIdentifier.uid') === '_system_';
+}
+
 module.exports = {
   isInternalResearcher,
   isExternalResearcher,
   isInternalGuest,
   isExternalGuest,
   isAdmin,
+  isSystem,
 };
