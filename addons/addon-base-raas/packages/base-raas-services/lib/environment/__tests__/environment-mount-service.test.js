@@ -99,27 +99,28 @@ describe('EnvironmentMountService', () => {
         },
       };
 
-      studyService.mustFind = jest.fn((rc, studyId) => {
+      studyService.mustFind = (rc, studyId) => {
         const category = {
           open_data: 'Open Data',
           org: 'Organization',
           my_study: 'My Studies',
         }[_.split(studyId, '-')[1]];
-        return {
+        return Promise.resolve({
           id: studyId,
           name: `${studyId}-name`,
           category,
           resources: [{ arn: `arn:aws:s3:::${bucket}/${prefix}/${studyId}/` }],
-        };
-      });
-      studyPermissionService.getRequestorPermissions = jest.fn(() => ({
-        adminAccess: studyIds,
-        readonlyAccess: studyIds,
-        writeonlyAccess: [],
-        readwriteAccess: studyIds,
-      }));
-      studyPermissionService.findByUser = jest.fn(() => {
-        return {
+        });
+      };
+      studyPermissionService.getRequestorPermissions = () =>
+        Promise.resolve({
+          adminAccess: studyIds,
+          readonlyAccess: studyIds,
+          writeonlyAccess: [],
+          readwriteAccess: studyIds,
+        });
+      studyPermissionService.findByUser = () =>
+        Promise.resolve({
           adminAccess: studyIds,
           createdAt: new Date().toISOString(),
           id: 'User:u-6Bltzxp_xFUAQ4DYvX_VQ',
@@ -127,14 +128,14 @@ describe('EnvironmentMountService', () => {
           recordType: 'user',
           uid: 'u-6Bltzxp_xFUAQ4DYvX_VQ',
           updatedAt: new Date().toISOString(),
-        };
-      });
+        });
+
       aws.sdk = {
         KMS: jest.fn().mockImplementation(() => {
           return {
-            describeKey: jest.fn(() => ({
-              promise: jest.fn(() => ({ KeyMetadata: { Arn: kmsKeyArn } })),
-            })),
+            describeKey: () => ({
+              promise: () => Promise.resolve({ KeyMetadata: { Arn: kmsKeyArn } }),
+            }),
           };
         }),
       };
