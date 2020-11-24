@@ -129,6 +129,12 @@ describe('EnvironmentMountService', () => {
           uid,
           updatedAt: new Date().toISOString(),
         });
+      studyService.getAllowedStudies = permissions => {
+        const adminAccess = permissions.adminAccess || [];
+        const readonlyAccess = permissions.readonlyAccess || [];
+        const readwriteAccess = permissions.readwriteAccess || [];
+        return _.uniq([...adminAccess, ...readonlyAccess, ...readwriteAccess]);
+      };
 
       aws.sdk = {
         KMS: jest.fn().mockImplementation(() => {
