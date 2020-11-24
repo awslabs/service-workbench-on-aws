@@ -66,12 +66,18 @@ class EnvironmentMountService extends Service {
   async getStudyAccessInfo(requestContext, studyIds) {
     const studyInfo = await this._getStudyInfo(requestContext, studyIds);
     await this._validateStudyPermissions(requestContext, studyInfo);
-    const s3Mounts = this._prepareS3Mounts(studyInfo);
+    const s3Mounts = await this._prepareS3Mounts(studyInfo);
     const iamPolicyDocument = await this._generateIamPolicyDoc(studyInfo);
 
     return {
       s3Mounts: JSON.stringify(
-        s3Mounts.map(({ id, bucket, prefix, writeable }) => ({ id, bucket, prefix, writeable })),
+        s3Mounts.map(({ id, bucket, prefix, writeable, kmsKeyId }) => ({
+          id,
+          bucket,
+          prefix,
+          writeable,
+          kmsKeyId,
+        })),
       ),
       iamPolicyDocument: JSON.stringify(iamPolicyDocument),
       environmentInstanceFiles: this.settings.get(settingKeys.environmentInstanceFiles),
@@ -770,7 +776,6 @@ class EnvironmentMountService extends Service {
         _.map(studyIds, async studyId => {
           try {
             const { id, name, category, resources } = await studyService.mustFind(requestContext, studyId);
-
             // Find out if the current user has Read/Write access
             const uid = _.get(requestContext, 'principalIdentifier.uid');
             const studyPermission = await studyPermissionService.findByUser(requestContext, uid);
@@ -808,7 +813,6 @@ class EnvironmentMountService extends Service {
       // Determine whether any forbidden studies were requested
       const allowedStudies = studyService.getAllowedStudies(permissions);
       const forbiddenStudies = _.difference(requestedStudyIds, allowedStudies);
-
       if (!_.isEmpty(forbiddenStudies)) {
         throw new Error(`Studies not found: ${forbiddenStudies.join(',')}`);
       }
@@ -816,16 +820,22 @@ class EnvironmentMountService extends Service {
     return permissions;
   }
 
-  _prepareS3Mounts(studyInfo) {
+  async _prepareS3Mounts(studyInfo) {
     let mounts = [];
     if (studyInfo.length) {
+      const studyDataKmsKeyArn = this.settings.get(settingKeys.studyDataKmsKeyArn);
+
       // There might be multiple resources. In the future we may flatMap, for now...
       mounts = studyInfo.reduce(
         (result, { id, resources, category, writeable }) =>
           result.concat(
             resources.map(resource => {
               const { bucket, prefix } = parseS3Arn(resource.arn);
-              return { id, bucket, prefix, category, writeable };
+              const mount = { id, bucket, prefix, category, writeable };
+              if (category !== 'Open Data') {
+                mount.kmsKeyId = studyDataKmsKeyArn;
+              }
+              return mount;
             }),
           ),
         [],

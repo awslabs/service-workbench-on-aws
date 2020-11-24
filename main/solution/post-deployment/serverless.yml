@@ -60,6 +60,7 @@ custom:
     - bucketName: ${self:custom.settings.environmentsBootstrapBucketName}
       bucketPrefix: ${self:custom.settings.environmentsBootstrapBucketPrefix}/
       localDir: config/environment-files
+      deleteRemoved: false # Do not remove any additional files directly placed in the environment-files S3 prefix in the environments bootstrap bucket
     - bucketName: ${self:custom.settings.deploymentBucketName}
       bucketPrefix: service-catalog-products/
       localDir: ../../../addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/service-catalog
