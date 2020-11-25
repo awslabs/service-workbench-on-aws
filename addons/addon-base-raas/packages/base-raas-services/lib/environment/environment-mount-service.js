@@ -17,7 +17,7 @@ const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
 
-const { hasAccess, accessLevels, isOpenData } = require('../study/helpers/study');
+const { hasAccess, accessLevels, isOpenData } = require('../study/helpers/entities/study-methods');
 
 const settingKeys = {
   environmentInstanceFiles: 'environmentInstanceFiles',
@@ -810,8 +810,8 @@ class EnvironmentMountService extends Service {
     const uid = _.get(requestContext, 'principalIdentifier.uid');
     const getInfo = async studyId => {
       const studyEntity = await studyService.getStudyPermissions(requestContext, studyId);
-      if (!hasAccess(uid, studyEntity)) throw this.boom.forbidden(`You don't have access to study "${studyId}"`, true);
-      const { readable, writable } = accessLevels(uid, studyEntity);
+      if (!hasAccess(studyEntity, uid)) throw this.boom.forbidden(`You don't have access to study "${studyId}"`, true);
+      const { readable, writable } = accessLevels(studyEntity, uid);
       const {
         id,
         category,

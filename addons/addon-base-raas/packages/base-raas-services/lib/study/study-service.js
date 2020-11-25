@@ -117,7 +117,6 @@ class StudyService extends Service {
     const [studyPermissionService] = await this.service(['studyPermissionService']);
 
     const studyPermissionEntity = await studyPermissionService.findStudyPermissions(requestContext, studyEntity);
-
     return { ...studyEntity, permissions: studyPermissionEntity };
   }
 
@@ -165,7 +164,7 @@ class StudyService extends Service {
     await validationService.ensureValid(rawStudyEntity, registerSchema);
 
     let studyPermissionEntity = {
-      adminUsers: rawStudyEntity.admins,
+      adminUsers: rawStudyEntity.adminUsers,
     };
 
     // We need to call this in case there are problems with the study permissions entity. We need
@@ -193,7 +192,7 @@ class StudyService extends Service {
 
     const by = _.get(requestContext, 'principalIdentifier.uid');
     const entity = {
-      ..._.omit(rawStudyEntity, ['admins']),
+      ..._.omit(rawStudyEntity, ['adminUsers']),
       folder: normalizeStudyFolder(rawStudyEntity.folder),
       qualifier: accountEntity.qualifier,
       accountId: accountEntity.id,
@@ -207,7 +206,7 @@ class StudyService extends Service {
       updatedBy: by,
     };
 
-    const result = await runAndCatch(
+    const studyEntity = await runAndCatch(
       async () => {
         return this._updater()
           .condition('attribute_not_exists(id)') // Error if already exists
@@ -221,8 +220,8 @@ class StudyService extends Service {
     );
 
     // Time to create the study permissions entity and all the needed user permissions entities.
-    studyPermissionEntity = await studyPermissionService.create(requestContext, result, studyPermissionEntity);
-    return { ...result, permissions: studyPermissionEntity };
+    studyPermissionEntity = await studyPermissionService.create(requestContext, studyEntity, studyPermissionEntity);
+    return { ...studyEntity, permissions: studyPermissionEntity };
   }
 
   async create(requestContext, rawData) {

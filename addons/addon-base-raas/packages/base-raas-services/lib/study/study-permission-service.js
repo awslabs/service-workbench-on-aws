@@ -23,15 +23,20 @@ const {
 } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 
 const createSchema = require('../schema/create-study-permissions');
-const { getEmptyStudyPermissions, getUserIds } = require('./helpers/study-permissions');
-const { getEmptyUserPermissions } = require('./helpers/user-permissions');
+const { getEmptyStudyPermissions, getUserIds } = require('./helpers/entities/study-permissions-methods');
+const { getEmptyUserPermissions } = require('./helpers/entities/user-permissions-methods');
 const {
   isOpenData,
   isReadonly,
   isWriteonly,
   isPermissionLevelSupported,
   permissionLevels,
-} = require('./helpers/study');
+} = require('./helpers/entities/study-methods');
+const {
+  getImpactedUsers,
+  applyToUserPermissions,
+  createUpdateRequest,
+} = require('./helpers/update-permissions-request');
 
 const settingKeys = {
   tableName: 'dbStudyPermissions',
@@ -202,7 +207,7 @@ class StudyPermissionService extends Service {
     const adminUsers = studyPermissionsEntity.adminUsers;
 
     if (_.isEmpty(adminUsers)) {
-      throw this.boom.badRequest('You must provide at least on admin for the study', true);
+      throw this.boom.badRequest('You must provide at least one admin for the study', true);
     }
 
     const userIds = getUserIds(studyPermissionsEntity);
@@ -217,7 +222,7 @@ class StudyPermissionService extends Service {
     // Depending on the study.accessType, we want to detect if we are trying to give
     // users permissions that are not supported by the study.
     _.forEach(permissionLevels, level => {
-      if (!isPermissionLevelSupported(level, studyEntity)) {
+      if (!isPermissionLevelSupported(studyEntity, level)) {
         if (!_.isEmpty(studyPermissionsEntity[`${level}Users`])) {
           throw this.boom.badRequest(`The study does not support ${level}`, true);
         }
@@ -227,6 +232,21 @@ class StudyPermissionService extends Service {
     this.assertNoMultipleLevels(studyPermissionsEntity);
   }
 
+  /**
+   * This method creates the study permission entity. However, this method assumes that the
+   * 'preCreateValidation' has already been called on the raw entity provided.
+   *
+   * @param requestContext The standard requestContext
+   * @param studyEntity The study entity object
+   * @param rawEntity The proposed study permission entity to create. The proposed study permission
+   * entity should have the following shape:
+   * {
+   *  adminUsers: [<uid>, ...]
+   *  readonlyUsers: [<uid>, ...]
+   *  readwriteUsers: [<uid>, ...]
+   *  writeonlyUsers: [<uid>, ...]
+   * }
+   */
   async create(requestContext, studyEntity, rawEntity) {
     // If not an active user, throw an exception.
     await this.assertAuthorized(requestContext, { action: 'create-study-permissions', conditions: [allowIfActive] });
@@ -262,12 +282,86 @@ class StudyPermissionService extends Service {
           .update();
       },
       async () => {
-        throw this.boom.badRequest(`Permission record for study with id "${studyEntity.id}" already exists`, true);
+        throw this.boom.alreadyExists(`Permission record for study with id "${studyEntity.id}" already exists`, true);
       },
     );
     const studyPermissionsEntity = toStudyPermissionsEntity(studyEntity, dbEntity);
 
+    const updateRequest = createUpdateRequest(studyPermissionsEntity);
+    const ops = await this.getUserPermissionsUpdateOps(requestContext, studyEntity, updateRequest);
+    await this.runUpdateOps(ops);
+
     return studyPermissionsEntity;
+  }
+
+  // @private
+  // This method assumes that the updateRequest shape has been validated already
+  // via the json schema validation service.  It returns an array of functions (a.k.a operations).
+  // Later when these functions are called, they update the UserPermissionsEntity in the database.
+  getUserPermissionsUpdateOps(requestContext, studyEntity, updateRequest) {
+    const by = _.get(requestContext, 'principalIdentifier.uid');
+    const userIds = getImpactedUsers(updateRequest);
+    const getOperation = uid => {
+      // getOperation returns a function that can be called later to run the actual update logic.
+      return async () => {
+        // Summary of the logic:
+        // - load user permissions entity
+        // - apply update request
+        // - store in database
+
+        // Load the user permission entity
+        const id = composeUserPermissionsKey(uid);
+        let dbEntity = await this._getter()
+          .key({ id })
+          .projection([])
+          .get();
+        const userPermissionsEntity = toUserPermissionsEntity(dbEntity || { id });
+
+        // Apply the update to the user permission entity
+        applyToUserPermissions(updateRequest, userPermissionsEntity, studyEntity.id);
+
+        // Store it in the database
+        const entity = {
+          ...userPermissionsEntity,
+          recordType: 'user',
+          createdBy: by,
+          updatedBy: by,
+        };
+
+        // Time to save the the db object
+        dbEntity = await this._updater()
+          .key({ id: composeUserPermissionsKey(uid) })
+          .item(entity)
+          .update();
+
+        return toUserPermissionsEntity(dbEntity || { id });
+      };
+    };
+
+    return _.map(userIds, getOperation);
+  }
+
+  // @private
+  // Given an array of the operations (functions), run them in chunks and keep track of errors.
+  async runUpdateOps(ops) {
+    const chunks = _.chunk(ops, 10); // Run 10 operations at a time
+    const errors = [];
+    const run = async op => {
+      try {
+        await op();
+      } catch (error) {
+        errors.push(error.message);
+      }
+    };
+
+    while (!_.isEmpty(chunks)) {
+      const chunk = chunks.shift();
+      await Promise.all(_.map(chunk, run));
+    }
+
+    if (!_.isEmpty(errors)) {
+      throw this.boom.badRequest(errors.join('. '), true);
+    }
   }
 
   // @private

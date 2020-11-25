@@ -37,8 +37,8 @@ const UserService = require('../../user/user-service');
 const StudyAuthzService = require('../study-authz-service');
 const StudyPermissionService = require('../study-permission-service');
 
-const { getEmptyStudyPermissions } = require('../helpers/study-permissions');
-const { getEmptyUserPermissions } = require('../helpers/user-permissions');
+const { getEmptyStudyPermissions } = require('../helpers/entities/study-permissions-methods');
+const { getEmptyUserPermissions } = require('../helpers/entities/user-permissions-methods');
 
 describe('StudyPermissionService', () => {
   let service;
@@ -526,6 +526,60 @@ describe('StudyPermissionService', () => {
       await expect(service.create(requestContext, studyEntity, permissions)).rejects.toThrow(
         expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
       );
+    });
+
+    it('throws if study permissions already exists', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid }, principal: { userRole: 'researcher', status: 'active' } };
+      const studyEntity = { id: 'study-1' };
+      const permissions = { adminUsers: [uid] };
+
+      let key;
+      dbService.table.key = jest.fn(({ id }) => {
+        key = id;
+        return dbService.table;
+      });
+
+      dbService.table.update = jest.fn(() => {
+        const id = studyEntity.id;
+        if (key === `Study:${id}`) {
+          const error = new Error();
+          // This the error that DynamoDB will throw
+          error.code = 'ConditionalCheckFailedException';
+          throw error;
+        }
+      });
+
+      await expect(service.create(requestContext, studyEntity, permissions)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'alreadyExists', safe: true }),
+      );
+    });
+
+    it('returns study permissions entity', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid }, principal: { userRole: 'researcher', status: 'active' } };
+      const studyEntity = { id: 'study-1' };
+      const permissions = { adminUsers: [uid] };
+
+      let key;
+      dbService.table.key = jest.fn(({ id }) => {
+        key = id;
+        return dbService.table;
+      });
+
+      dbService.table.update = jest.fn(() => {
+        const id = `Study:${studyEntity.id}`;
+        if (key === id) {
+          return { ...permissions, id, recordType: 'study' };
+        }
+
+        return undefined;
+      });
+
+      await expect(service.create(requestContext, studyEntity, permissions)).resolves.toStrictEqual({
+        ...getEmptyStudyPermissions(),
+        ...permissions,
+      });
     });
   });
 });

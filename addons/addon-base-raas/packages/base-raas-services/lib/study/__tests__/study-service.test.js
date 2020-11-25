@@ -42,7 +42,7 @@ const StudyAuthzService = require('../study-authz-service');
 const StudyPermissionService = require('../study-permission-service');
 const StudyService = require('../study-service');
 
-const { getEmptyUserPermissions } = require('../helpers/user-permissions');
+const { getEmptyUserPermissions } = require('../helpers/entities/user-permissions-methods');
 
 describe('studyService', () => {
   let service = null;

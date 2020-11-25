@@ -19,8 +19,8 @@ const Service = require('@aws-ee/base-services-container/lib/service');
 const { allow, deny, isDeny, allowIfActive } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 
 const { isAdmin } = require('../helpers/is-role');
-const { hasAccess } = require('./helpers/study-permissions');
-const { isOpenData } = require('./helpers/study');
+const { hasAccess } = require('./helpers/entities/study-permissions-methods');
+const { isOpenData } = require('./helpers/entities/study-methods');
 
 class StudyAuthzService extends Service {
   async authorize(requestContext, { resource, action, effect, reason }, ...args) {
@@ -49,7 +49,7 @@ class StudyAuthzService extends Service {
     const uid = _.get(requestContext, 'principalIdentifier.uid');
 
     if (isOpenData(studyEntity)) return allow();
-    if (hasAccess(uid, studyPermissionsEntity)) return allow();
+    if (hasAccess(studyPermissionsEntity, uid)) return allow();
 
     return deny('You do not have permission to view the study access information', true);
   }

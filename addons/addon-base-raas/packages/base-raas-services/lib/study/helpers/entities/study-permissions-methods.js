@@ -31,7 +31,7 @@ function getUserIds(studyPermissionsEntity = {}) {
   return _.uniq([...adminUsers, ...readonlyUsers, ...readwriteUsers, ...writeonlyUsers]);
 }
 
-function hasAccess(uid, studyPermissionsEntity = {}) {
+function hasAccess(studyPermissionsEntity, uid) {
   const userIds = getUserIds(studyPermissionsEntity);
   return _.includes(userIds, uid);
 }

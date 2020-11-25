@@ -24,12 +24,12 @@ const _ = require('lodash');
 
 const permissionLevels = ['admin', 'readonly', 'writeonly', 'readwrite'];
 
-function hasAccess(uid, studyEntity = {}) {
+function hasAccess(studyEntity, uid) {
   // TODO consider the accessType of the study
   // and the My Studies
 }
 
-function accessLevels(uid, studyEntity = {}) {
+function accessLevels(studyEntity, uid) {
   // TODO consider the accessType of the study
   // TODO consider the My Studies => writable: true
   // should return something like  { admin: true/false, readable: true/false, writable: true/false }
@@ -55,7 +55,7 @@ function isWriteonly(studyEntity = {}) {
   return accessType === 'writeonly';
 }
 
-function isPermissionLevelSupported(permissionLevel, studyEntity) {
+function isPermissionLevelSupported(studyEntity, permissionLevel) {
   const readonly = isReadonly(studyEntity);
   const writeonly = isWriteonly(studyEntity);
 

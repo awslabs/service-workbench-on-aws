@@ -39,7 +39,7 @@
     "useBucketKms": {
       "type": "boolean"
     },
-    "admins": {
+    "adminUsers": {
       "type": "array",
       "items": {
         "type": "string"
@@ -50,5 +50,5 @@
       "enum": ["readonly", "readwrite"]
     }
   },
-  "required": ["id", "category", "folder", "accessType", "admins"]
+  "required": ["id", "category", "folder", "accessType", "adminUsers"]
 }
