@@ -16,6 +16,8 @@
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
 const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
 const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
+
+jest.mock('@aws-ee/base-services/lib/logger/logger-service');
 const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
 const AWSMock = require('aws-sdk-mock');
 
@@ -772,7 +774,6 @@ describe('storageGatewayService', () => {
     it('should ADD ip address succesfully', async () => {
       // BUILD
       lockService.tryWriteLockAndRun.mockImplementation(async ({ id } = {}, fn) => {
-        console.log(`lock id is ${id}`);
         await fn();
       });
       let count = 0;
@@ -822,7 +823,6 @@ describe('storageGatewayService', () => {
             NFSFileShareInfoList: [{ ClientList: ['12.45.78.90/32', '09.98.87.76/32', '12.23.34.45/32'] }],
           });
         } else {
-          console.log(params);
           throw Error(`Invalid parameter ${params} when calling listFileShares`);
         }
       });
