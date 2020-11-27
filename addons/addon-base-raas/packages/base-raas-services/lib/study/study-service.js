@@ -21,7 +21,7 @@ const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const { buildTaggingXml } = require('../helpers/aws-tags');
 const { isInternalResearcher, isAdmin, isSystem } = require('../helpers/is-role');
 const { normalizeStudyFolder } = require('../helpers/utils');
-const { isOpenData, permissionLevels, isReadonly } = require('./helpers/entities/study-methods');
+const { isOpenData, isMyStudies, accessLevels, permissionLevels } = require('./helpers/entities/study-methods');
 const { isAdmin: isStudyAdmin } = require('./helpers/entities/study-permissions-methods');
 const { getStudyIds } = require('./helpers/entities/user-permissions-methods');
 const registerSchema = require('../schema/register-study');
@@ -336,6 +336,23 @@ class StudyService extends Service {
     return studyEntity;
   }
 
+  async updatePermissions(requestContext, studyId, updateRequest) {
+    // Ensure the principal has update permission. This is done by getting the study permissions entity
+    // and checking if the principal has a study admin permissions
+    const studyEntity = await this.find(requestContext, studyId);
+    if (isOpenData(studyEntity)) {
+      throw this.boom.forbidden('Permissions cannot be set for studies in the "Open Data" category', true);
+    }
+
+    if (isMyStudies(studyEntity)) {
+      throw this.boom.forbidden('Permissions cannot be set for studies in the "My Studies" category', true);
+    }
+
+    const [studyPermissionService] = await this.service(['studyPermissionService']);
+
+    return studyPermissionService.update(requestContext, studyEntity, updateRequest);
+  }
+
   async update(requestContext, rawData) {
     const [validationService] = await this.service(['jsonSchemaValidationService']);
 
@@ -351,7 +368,7 @@ class StudyService extends Service {
     await validationService.ensureValid(rawData, updateSchema);
     const { id, rev } = rawData;
 
-    // Ensure the principal has update permission. This is done by get the study permissions entity
+    // Ensure the principal has update permission. This is done by getting the study permissions entity
     // and checking if the principal has a study admin permissions
     const studyEntity = await this.getStudyPermissions(requestContext, id);
     if (!isStudyAdmin(studyEntity.permissions) && !isAdmin(requestContext)) {
@@ -456,10 +473,14 @@ class StudyService extends Service {
    */
   async createPresignedPostRequests(requestContext, studyId, filenames, encrypt = true, multiPart = true) {
     // Get study details and check permissions
-    const study = await this.mustFind(requestContext, studyId);
+    const uid = _.get(requestContext, 'principalIdentifier.uid');
+    const studyEntity = await this.getStudyPermissions(requestContext, studyId);
+    const { admin, write } = accessLevels(studyEntity, uid);
+
+    if (!write && !admin) throw this.boom.forbidden("You don't have permission to perform this operation", true);
 
     // Loop through requested files and generate presigned POST requests
-    const prefix = this.getFilesPrefix(requestContext, study.id, study.category);
+    const prefix = this.getFilesPrefix(requestContext, studyEntity.id, studyEntity.category);
     return Promise.all(
       filenames.map(filename => {
         // Prep request
@@ -481,7 +502,7 @@ class StudyService extends Service {
         }
         params.Fields.tagging = buildTaggingXml({
           uploadedBy: requestContext.principal.username,
-          projectId: study.projectId,
+          projectId: studyEntity.projectId,
         });
 
         // s3.createPresignedPost does not expose a `.promise()` method like other AWS SDK APIs.
@@ -509,8 +530,8 @@ class StudyService extends Service {
 
   async listFiles(requestContext, studyId) {
     // TODO: Add pagination
-    const study = await this.mustFind(requestContext, studyId, ['category']);
-    const prefix = await this.getFilesPrefix(requestContext, studyId, study.category);
+    const studyEntity = await this.getStudyPermissions(requestContext, studyId);
+    const prefix = await this.getFilesPrefix(requestContext, studyId, studyEntity.category);
     const params = {
       Bucket: this.studyDataBucket,
       Prefix: prefix,

@@ -240,7 +240,7 @@ describe('StudyPermissionService', () => {
 
       await expect(service.findStudyPermissions(requestContext, studyEntity)).resolves.toStrictEqual({
         ..._.omit(dbPermissionsEntity, ['recordType', 'id']),
-        readonlyUsers: ['u-testing-1'],
+        readonlyUsers: [],
         readwriteUsers: [],
         writeonlyUsers: [],
       });

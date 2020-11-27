@@ -154,6 +154,7 @@ function isPermissionLevelSupported(studyEntity, permissionLevel) {
 module.exports = {
   hasAccess,
   isOpenData,
+  isMyStudies,
   accessLevels,
   isReadonly,
   isWriteonly,

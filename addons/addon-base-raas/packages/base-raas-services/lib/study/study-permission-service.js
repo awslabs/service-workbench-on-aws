@@ -55,6 +55,10 @@ const composeStudyPermissionsKey = studyId => `Study:${studyId}`;
 const composeUserPermissionsKey = uid => `User:${uid}`;
 
 const toStudyPermissionsEntity = (studyEntity, dbEntity = {}) => {
+  if (isOpenData(studyEntity)) {
+    return { ...getEmptyStudyPermissions() };
+  }
+
   const entity = { ...getEmptyStudyPermissions(), ..._.omit(dbEntity, ['recordType', 'id']) };
   // We now need to narrow the permissions based on the studyEntity.accessType.
   // We default to 'readwrite' if no value is specified, this is needed to be backward
@@ -63,7 +67,7 @@ const toStudyPermissionsEntity = (studyEntity, dbEntity = {}) => {
   // Notice that when we have accessType = readwrite, we don't clear the readonly users
   // nor the writeonly users, this is because (as mentioned above) accessType presents
   // the maximum permissions allowed.
-  if (isReadonly(studyEntity) || isOpenData(studyEntity)) {
+  if (isReadonly(studyEntity)) {
     // all users who had readwrite access need to be demoted to readonlyUsers
     if (!_.isEmpty(entity.readwriteUsers)) {
       entity.readonlyUsers = _.uniq([...entity.readonlyUsers, ...entity.readwriteUsers]);

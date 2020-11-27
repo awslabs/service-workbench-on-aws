@@ -18,19 +18,13 @@ async function configure(context) {
   const router = context.router();
   const wrap = context.wrap;
 
-  const [studyService, studyPermissionService, environmentMountService, lockService] = await context.service([
-    'studyService',
-    'studyPermissionService',
-    'environmentMountService',
-    'lockService',
-  ]);
-
   // ===============================================================
   //  GET / (mounted to /api/studies)
   // ===============================================================
   router.get(
     '/',
     wrap(async (req, res) => {
+      const studyService = await context.service('studyService');
       const requestContext = res.locals.requestContext;
       const { category } = req.query;
 
@@ -45,12 +39,11 @@ async function configure(context) {
   router.get(
     '/:id',
     wrap(async (req, res) => {
+      const studyService = await context.service('studyService');
       const id = req.params.id;
       const requestContext = res.locals.requestContext;
 
-      await studyPermissionService.verifyRequestorAccess(requestContext, id, req.method);
-
-      const result = await studyService.mustFind(requestContext, id);
+      const result = await studyService.getStudyPermissions(requestContext, id);
       res.status(200).json(result);
     }),
   );
@@ -61,6 +54,7 @@ async function configure(context) {
   router.put(
     '/:id',
     wrap(async (req, res) => {
+      const studyService = await context.service('studyService');
       const studyId = req.params.id;
       const requestContext = res.locals.requestContext;
       const updateRequest = req.body;
@@ -74,9 +68,6 @@ async function configure(context) {
         );
       }
 
-      // Validate permissions and usage
-      await studyPermissionService.verifyRequestorAccess(requestContext, studyId, req.method);
-
       const result = await studyService.update(requestContext, updateRequest);
       res.status(200).json(result);
     }),
@@ -88,11 +79,12 @@ async function configure(context) {
   router.post(
     '/',
     wrap(async (req, res) => {
+      const studyService = await context.service('studyService');
       const requestContext = res.locals.requestContext;
       const possibleBody = req.body;
       const result = await studyService.create(requestContext, possibleBody);
 
-      res.status(200).json(result);
+      res.status(200).json({ ...result, access: 'admin' });
     }),
   );
 
@@ -102,10 +94,9 @@ async function configure(context) {
   router.get(
     '/:id/files',
     wrap(async (req, res) => {
+      const studyService = await context.service('studyService');
       const studyId = req.params.id;
       const requestContext = res.locals.requestContext;
-
-      await studyPermissionService.verifyRequestorAccess(requestContext, studyId, req.method);
 
       const result = await studyService.listFiles(requestContext, studyId);
       res.status(200).json(result);
@@ -118,14 +109,10 @@ async function configure(context) {
   router.get(
     '/:id/upload-requests',
     wrap(async (req, res) => {
+      const studyService = await context.service('studyService');
       const studyId = req.params.id;
       const requestContext = res.locals.requestContext;
       const filenames = req.query.filenames.split(',');
-
-      // Check permissions against an UPLOAD request.
-      // Note that we are not checking against 'PUT' which is an admin only feature since a user with 'Write'
-      // access should also be able to upload files to the study
-      await studyPermissionService.verifyRequestorAccess(requestContext, studyId, 'UPLOAD');
 
       const result = await studyService.createPresignedPostRequests(requestContext, studyId, filenames);
       res.status(200).json(result);
@@ -138,7 +125,6 @@ async function configure(context) {
   router.get(
     '/:id/permissions',
     wrap(async (req, res) => {
-      // eslint-disable-next-line no-shadow
       const studyService = await context.service('studyService');
       const studyId = req.params.id;
       const requestContext = res.locals.requestContext;
@@ -154,23 +140,17 @@ async function configure(context) {
   router.put(
     '/:id/permissions',
     wrap(async (req, res) => {
+      const [studyService, lockService, environmentMountService] = await context.service([
+        'studyService',
+        'lockService',
+        'environmentMountService',
+      ]);
       const studyId = req.params.id;
       const requestContext = res.locals.requestContext;
       const updateRequest = req.body;
 
-      // Validate permissions and usage
-      // For future - Move authZ logic inside service (or new service) & move away from verifyRequestorAccess
-      await studyPermissionService.verifyRequestorAccess(requestContext, studyId, req.method);
-      const study = await studyService.mustFind(requestContext, studyId);
-      if (study.category === 'My Studies') {
-        throw context.boom.forbidden('Permissions cannot be set for studies in the "My Studies" category', true);
-      }
-      if (study.category === 'Open Data') {
-        throw context.boom.forbidden('Permissions cannot be set for studies in the "Open Data" category', true);
-      }
-
       const result = await lockService.tryWriteLockAndRun({ id: `${studyId}-workspaces` }, async () => {
-        const updateOutcome = await studyPermissionService.update(requestContext, studyId, updateRequest);
+        const updateOutcome = await studyService.updatePermissions(requestContext, studyId, updateRequest);
         await environmentMountService.applyWorkspacePermissions(studyId, updateRequest);
         // Nice-to-have: Add number of workspaces updated to result object
         return updateOutcome;
