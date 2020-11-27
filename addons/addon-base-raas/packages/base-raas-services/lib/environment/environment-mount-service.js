@@ -811,13 +811,13 @@ class EnvironmentMountService extends Service {
     const getInfo = async studyId => {
       const studyEntity = await studyService.getStudyPermissions(requestContext, studyId);
       if (!hasAccess(studyEntity, uid)) throw this.boom.forbidden(`You don't have access to study "${studyId}"`, true);
-      const { readable, writable } = accessLevels(studyEntity, uid);
+      const { read, write } = accessLevels(studyEntity, uid);
       const {
         id,
         category,
         bucket,
-        bucketRegion,
-        bucketPartition,
+        region,
+        awsPartition,
         folder,
         resources = [],
         // roleArn, this not available from the study entity, it needs to be checked out
@@ -828,14 +828,14 @@ class EnvironmentMountService extends Service {
         id,
         category,
         bucket,
-        region: bucketRegion,
-        awsPartition: bucketPartition,
+        region,
+        awsPartition,
         prefix: folder,
         resources,
         // roleArn, this not available from the study entity, it needs to be checked out
         kmsArn,
-        readable,
-        writable,
+        readable: read,
+        writable: write,
       };
     };
 

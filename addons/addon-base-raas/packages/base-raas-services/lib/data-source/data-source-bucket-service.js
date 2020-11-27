@@ -93,6 +93,13 @@ class DataSourceBucketService extends Service {
     const [validationService] = await this.service(['jsonSchemaValidationService']);
     await validationService.ensureValid(rawData, registerSchema);
 
+    // The only access strategy supported so far is 'roles'
+    if (rawBucketEntity.access !== 'roles')
+      throw this.boom.notSupported(
+        `Bucket access of type "${rawBucketEntity.access}" is not supported at this time`,
+        true,
+      );
+
     const by = _.get(requestContext, 'principalIdentifier.uid');
     const { name } = rawData;
 

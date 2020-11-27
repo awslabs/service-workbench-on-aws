@@ -63,8 +63,9 @@ describe('DataSourceBucketService', () => {
       const rawData = {
         name: 'bucket-1',
         region: 'us-east-1',
-        partition: 'aws',
+        awsPartition: 'aws',
         kmsArn: 'kmsArn-1234',
+        access: 'roles',
       };
 
       await service.register(requestContext, { id }, rawData);
@@ -108,8 +109,9 @@ describe('DataSourceBucketService', () => {
       const rawData = {
         name: 'bucket-1',
         region: 'us-east-1',
-        partition: 'aws',
+        awsPartition: 'aws',
         kmsArn: 'kmsArn-1234',
+        access: 'roles',
       };
 
       let pKey;

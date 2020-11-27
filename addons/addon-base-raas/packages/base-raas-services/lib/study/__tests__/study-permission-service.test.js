@@ -240,6 +240,7 @@ describe('StudyPermissionService', () => {
 
       await expect(service.findStudyPermissions(requestContext, studyEntity)).resolves.toStrictEqual({
         ..._.omit(dbPermissionsEntity, ['recordType', 'id']),
+        readonlyUsers: ['u-testing-1'],
         readwriteUsers: [],
         writeonlyUsers: [],
       });
@@ -334,7 +335,7 @@ describe('StudyPermissionService', () => {
       });
     });
 
-    it('throws if user has readwrite access but accessType = readonly', async () => {
+    it('demote permission if user has readwrite access but accessType = readonly', async () => {
       const uid = 'u-currentUserId';
       const requestContext = { principalIdentifier: { uid }, principal: { userRole: 'researcher', status: 'active' } };
       const studyEntity = { id: 'study-1', accessType: 'readonly' };
@@ -358,9 +359,11 @@ describe('StudyPermissionService', () => {
         return dbPermissionsEntity;
       });
 
-      await expect(service.findStudyPermissions(requestContext, studyEntity)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'forbidden', safe: true }),
-      );
+      await expect(service.findStudyPermissions(requestContext, studyEntity)).resolves.toStrictEqual({
+        ..._.omit(dbPermissionsEntity, ['recordType', 'id', 'readwriteUsers']),
+        readonlyUsers: [uid],
+        readwriteUsers: [],
+      });
     });
 
     it('throws if user has writeonly access but accessType = readonly', async () => {
@@ -506,7 +509,7 @@ describe('StudyPermissionService', () => {
     });
   });
 
-  describe('create', () => {
+  describe('create permissions', () => {
     it('inactive users are not allowed', async () => {
       const uid = 'u-currentUserId';
       const requestContext = { principalIdentifier: { uid }, principal: { userRole: 'admin', status: 'inactive' } };

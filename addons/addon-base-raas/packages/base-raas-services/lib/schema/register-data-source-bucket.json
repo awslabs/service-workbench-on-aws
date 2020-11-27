@@ -16,14 +16,18 @@
       "type": "string",
       "maxLength": 100
     },
-    "partition": {
+    "awsPartition": {
       "type": "string",
       "enum": ["aws", "aws-cn", "aws-us-gov"]
     },
     "kmsArn": {
       "type": "string",
       "maxLength": 90
+    },
+    "access": {
+      "type": "string",
+      "enum": ["roles", "accessPoint", "bucketPolicy"]
     }
   },
-  "required": ["accountId", "name", "region", "partition"]
+  "required": ["accountId", "name", "region", "awsPartition", "access"]
 }

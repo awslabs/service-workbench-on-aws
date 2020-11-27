@@ -31,7 +31,7 @@ function getStudyIds(userPermissionsEntity = {}) {
   return _.uniq([...adminAccess, ...readonlyAccess, ...readwriteAccess, ...writeonlyAccess]);
 }
 
-function hasAccess(userPermissionsEntity = {}, studyId) {
+function hasPermissions(userPermissionsEntity = {}, studyId) {
   const studyIds = getStudyIds(userPermissionsEntity);
   return _.includes(studyIds, studyId);
 }
@@ -46,7 +46,7 @@ function getEmptyUserPermissions() {
 }
 
 module.exports = {
-  hasAccess,
+  hasPermissions,
   getStudyIds,
   getEmptyUserPermissions,
 };

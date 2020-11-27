@@ -31,9 +31,36 @@ function getUserIds(studyPermissionsEntity = {}) {
   return _.uniq([...adminUsers, ...readonlyUsers, ...readwriteUsers, ...writeonlyUsers]);
 }
 
-function hasAccess(studyPermissionsEntity, uid) {
+function hasPermissions(studyPermissionsEntity, uid) {
   const userIds = getUserIds(studyPermissionsEntity);
   return _.includes(userIds, uid);
+}
+
+function isAdmin(studyPermissionsEntity, uid) {
+  const adminUsers = studyPermissionsEntity.adminUsers || [];
+  return _.includes(adminUsers, uid);
+}
+
+/**
+ * Mutates the studyPermissionsEntity based on the information given in the
+ * updateRequest object.
+ *
+ * @param studyPermissionsEntity The study permissions entity
+ * @param updateRequest The update request that follows the shape as described here
+ * schema/update-study-permissions.json
+ */
+function applyUpdateRequest(studyPermissionsEntity, updateRequest) {
+  const entity = studyPermissionsEntity;
+
+  _.forEach(updateRequest.usersToAdd, item => {
+    const level = `${item.permissionLevel}Users`;
+    entity[level] = _.uniq([...(entity[level] || []), item.uid]);
+  });
+
+  _.forEach(updateRequest.usersToRemove, item => {
+    const level = `${item.permissionLevel}Users`;
+    _.pull(entity[level], item.uid);
+  });
 }
 
 function getEmptyStudyPermissions() {
@@ -46,7 +73,9 @@ function getEmptyStudyPermissions() {
 }
 
 module.exports = {
-  hasAccess,
+  hasPermissions,
+  isAdmin,
   getUserIds,
+  applyUpdateRequest,
   getEmptyStudyPermissions,
 };

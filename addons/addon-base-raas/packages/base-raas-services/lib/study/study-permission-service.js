@@ -20,10 +20,19 @@ const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const {
   allowIfActive,
   allowIfCurrentUserOrAdmin,
+  allow,
+  deny,
 } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 
 const createSchema = require('../schema/create-study-permissions');
-const { getEmptyStudyPermissions, getUserIds } = require('./helpers/entities/study-permissions-methods');
+const updateSchema = require('../schema/update-study-permissions');
+const { isAdmin } = require('../helpers/is-role');
+const { hasPermissions, isAdmin: isStudyAdmin } = require('./helpers/entities/study-permissions-methods');
+const {
+  getEmptyStudyPermissions,
+  getUserIds,
+  applyUpdateRequest,
+} = require('./helpers/entities/study-permissions-methods');
 const { getEmptyUserPermissions } = require('./helpers/entities/user-permissions-methods');
 const {
   isOpenData,
@@ -46,20 +55,31 @@ const composeStudyPermissionsKey = studyId => `Study:${studyId}`;
 const composeUserPermissionsKey = uid => `User:${uid}`;
 
 const toStudyPermissionsEntity = (studyEntity, dbEntity = {}) => {
-  const entity = _.omit(dbEntity, ['recordType', 'id']);
+  const entity = { ...getEmptyStudyPermissions(), ..._.omit(dbEntity, ['recordType', 'id']) };
   // We now need to narrow the permissions based on the studyEntity.accessType.
   // We default to 'readwrite' if no value is specified, this is needed to be backward
   // compatible with existing internal studies. Remember the accessType represents the
-  // the max permissions allowed on the study.
+  // the maximum permissions allowed on the study.
+  // Notice that when we have accessType = readwrite, we don't clear the readonly users
+  // nor the writeonly users, this is because (as mentioned above) accessType presents
+  // the maximum permissions allowed.
   if (isReadonly(studyEntity) || isOpenData(studyEntity)) {
-    entity.readwriteUsers = [];
+    // all users who had readwrite access need to be demoted to readonlyUsers
+    if (!_.isEmpty(entity.readwriteUsers)) {
+      entity.readonlyUsers = _.uniq([...entity.readonlyUsers, ...entity.readwriteUsers]);
+      entity.readwriteUsers = [];
+    }
     entity.writeonlyUsers = [];
   } else if (isWriteonly(studyEntity)) {
+    // all users who had readwrite access need to be demoted to writeonlyUsers
+    if (!_.isEmpty(entity.readwriteUsers)) {
+      entity.writeonlyUsers = _.uniq([...entity.writeonlyUsers, ...entity.readwriteUsers]);
+      entity.readwriteUsers = [];
+    }
     entity.readonlyUsers = [];
-    entity.readwriteUsers = [];
   }
 
-  return { ...getEmptyStudyPermissions(), ...entity };
+  return entity;
 };
 
 const toUserPermissionsEntity = (dbEntity = {}) => {
@@ -85,14 +105,13 @@ class StudyPermissionService extends Service {
       'jsonSchemaValidationService',
       'authorizationService',
       'auditWriterService',
-      'studyAuthzService',
       'userService',
     ]);
   }
 
   async init() {
     // Setup DB helpers
-    const [dbService, studyAuthzService] = await this.service(['dbService', 'studyAuthzService']);
+    const [dbService] = await this.service(['dbService']);
     const table = this.settings.get(settingKeys.tableName);
 
     this._getter = () => dbService.helper.getter().table(table);
@@ -100,10 +119,6 @@ class StudyPermissionService extends Service {
     this._query = () => dbService.helper.query().table(table);
     this._deleter = () => dbService.helper.deleter().table(table);
     this._scanner = () => dbService.helper.scanner().table(table);
-
-    // A private authorization condition function that just delegates to the studyAuthzService
-    this.allowAuthorized = (requestContext, { resource, action, effect, reason }, ...args) =>
-      studyAuthzService.authorize(requestContext, { resource, action, effect, reason }, ...args);
   }
 
   /**
@@ -127,14 +142,6 @@ class StudyPermissionService extends Service {
    * of the study permissions entity.
    */
   async findStudyPermissions(requestContext, studyEntity, fields = []) {
-    // Authorization logic step 1:
-    // - We do a quick check if the user is active, otherwise there is no need to waste a db call if
-    //   the user is not active.
-    await this.assertAuthorized(requestContext, {
-      action: 'get-study-permissions',
-      conditions: [allowIfActive],
-    });
-
     const dbEntity = await this._getter()
       .key({ id: composeStudyPermissionsKey(studyEntity.id) })
       .projection(fields)
@@ -142,14 +149,12 @@ class StudyPermissionService extends Service {
 
     const studyPermissionsEntity = toStudyPermissionsEntity(studyEntity, dbEntity);
 
-    // Authorization logic step 2:
-    // - We load the study permissions entity from the database and then enforce the necessary authorization
-    //   checks before returning the study permission entity
+    // Perform authorization logic
     await this.assertAuthorized(
       requestContext,
       {
         action: 'get-study-permissions',
-        conditions: [this.allowAuthorized],
+        conditions: [allowIfActive, this.allowFindStudyPermissions],
       },
       { studyEntity, studyPermissionsEntity },
     );
@@ -251,9 +256,9 @@ class StudyPermissionService extends Service {
     // If not an active user, throw an exception.
     await this.assertAuthorized(requestContext, { action: 'create-study-permissions', conditions: [allowIfActive] });
 
-    // Open data studies can't have users
+    // Open data studies can't have user permissions
     if (isOpenData(studyEntity)) {
-      throw this.boom.badRequest(`Open Data studies can not have users`, true);
+      throw this.boom.badRequest(`Open Data studies can not have user permissions`, true);
     }
 
     const [validationService] = await this.service(['jsonSchemaValidationService']);
@@ -272,11 +277,11 @@ class StudyPermissionService extends Service {
       updatedBy: by,
     };
 
-    // Time to save the the db object
+    // Time to save the db object
     const dbEntity = await runAndCatch(
       async () => {
         return this._updater()
-          .condition('attribute_not_exists(id)') // yes we need this
+          .condition('attribute_not_exists(id)') // allows us to detect if an entry was already there
           .key({ id: composeStudyPermissionsKey(studyEntity.id) })
           .item(entity)
           .update();
@@ -292,6 +297,72 @@ class StudyPermissionService extends Service {
     await this.runUpdateOps(ops);
 
     return studyPermissionsEntity;
+  }
+
+  /**
+   * This method updates the study permission entity.
+   *
+   * @param requestContext The standard requestContext
+   * @param studyEntity The study entity object
+   * @param updateRequest The updateRequest object containing the information about which users to add/remove
+   * including permission levels for the given study entity.
+   *
+   * The updateRequest should have the following shape:
+   * {
+   *  usersToAdd: [ {uid, permissionLevel}, ...]
+   *  usersToRemove: [ {uid, permissionLevel}, ...]
+   * }
+   */
+  async update(requestContext, studyEntity, updateRequest) {
+    // Validate input
+    const [validationService] = await this.service(['jsonSchemaValidationService']);
+    await validationService.ensureValid(updateRequest, updateSchema);
+
+    const studyPermissionsEntity = await this.findStudyPermissions(requestContext, studyEntity);
+    await this.assertAuthorized(requestContext, {
+      action: 'update-study-permissions',
+      conditions: [allowIfActive, this.allowUpdate],
+    });
+
+    applyUpdateRequest(studyPermissionsEntity, updateRequest);
+
+    const userIds = getImpactedUsers(updateRequest);
+    if (_.size(userIds) > 100) {
+      // To protect against a large number
+      throw this.boom.badRequest('You can only change permissions for up to 100 users', true);
+    }
+
+    // All users should be active and either have an admin or a researcher role
+    await this.assertValidUsers(userIds);
+
+    // Depending on the study.accessType, we want to detect if we are trying to give
+    // users permissions that are not supported by the study.
+    _.forEach(permissionLevels, level => {
+      if (!isPermissionLevelSupported(studyEntity, level)) {
+        if (!_.isEmpty(studyPermissionsEntity[`${level}Users`])) {
+          throw this.boom.badRequest(`The study does not support ${level}`, true);
+        }
+      }
+    });
+
+    this.assertNoMultipleLevels(studyPermissionsEntity);
+
+    const by = _.get(requestContext, 'principalIdentifier.uid');
+
+    // Time to save the db object
+    const dbEntity = await this._updater()
+      .key({ id: composeStudyPermissionsKey(studyEntity.id) })
+      .item({
+        ..._.omit(studyPermissionsEntity, ['updatedBy', 'updatedAt', 'createdAt', 'createdBy']),
+        updatedBy: by,
+      })
+      .update();
+    const updatedEntity = toStudyPermissionsEntity(studyEntity, dbEntity);
+
+    const ops = await this.getUserPermissionsUpdateOps(requestContext, studyEntity, updateRequest);
+    await this.runUpdateOps(ops);
+
+    return updatedEntity;
   }
 
   // @private
@@ -313,7 +384,7 @@ class StudyPermissionService extends Service {
         const id = composeUserPermissionsKey(uid);
         let dbEntity = await this._getter()
           .key({ id })
-          .projection([])
+          .projection()
           .get();
         const userPermissionsEntity = toUserPermissionsEntity(dbEntity || { id });
 
@@ -440,6 +511,26 @@ class StudyPermissionService extends Service {
       { extensionPoint: 'study-authz', action, conditions },
       ...args,
     );
+  }
+
+  async allowFindStudyPermissions(requestContext, context, { studyEntity, studyPermissionsEntity = {} } = {}) {
+    if (isOpenData(studyEntity)) return allow();
+    if (isAdmin(requestContext)) return allow();
+    const uid = _.get(requestContext, 'principalIdentifier.uid');
+
+    if (hasPermissions(studyPermissionsEntity, uid)) return allow();
+
+    return deny('You do not have permission to view the study access information', true);
+  }
+
+  async allowUpdate(requestContext, context, { studyEntity, studyPermissionsEntity = {} } = {}) {
+    if (isOpenData(studyEntity)) return deny('You can not change study permissions for an open data study', true);
+    if (isAdmin(requestContext)) return allow(); // Application admins can do the update
+    const uid = _.get(requestContext, 'principalIdentifier.uid');
+
+    if (isStudyAdmin(studyPermissionsEntity, uid)) return allow();
+
+    return deny('You do not have permission to update the study permission', true);
   }
 
   // @private

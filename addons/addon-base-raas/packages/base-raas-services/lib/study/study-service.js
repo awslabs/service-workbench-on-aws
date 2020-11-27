@@ -21,6 +21,9 @@ const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const { buildTaggingXml } = require('../helpers/aws-tags');
 const { isInternalResearcher, isAdmin, isSystem } = require('../helpers/is-role');
 const { normalizeStudyFolder } = require('../helpers/utils');
+const { isOpenData, permissionLevels, isReadonly } = require('./helpers/entities/study-methods');
+const { isAdmin: isStudyAdmin } = require('./helpers/entities/study-permissions-methods');
+const { getStudyIds } = require('./helpers/entities/user-permissions-methods');
 const registerSchema = require('../schema/register-study');
 const createSchema = require('../schema/create-study');
 const updateSchema = require('../schema/update-study');
@@ -63,7 +66,9 @@ class StudyService extends Service {
   }
 
   /**
-   * Public Methods
+   * IMPORTANT: Do NOT call this method directly from a controller, this is because
+   * this method does not do any authorization check.  It will return the study given
+   * a study id no matter who the requestContext principal is.
    */
   async find(requestContext, id, fields = []) {
     const result = await this._getter()
@@ -74,6 +79,11 @@ class StudyService extends Service {
     return this.fromDbToDataObject(result);
   }
 
+  /**
+   * IMPORTANT: Do NOT call this method directly from a controller, this is because
+   * this method does not do any authorization check.  It will return the study given
+   * a study id no matter who the requestContext principal is.
+   */
   async mustFind(requestContext, id, fields = []) {
     const result = await this.find(requestContext, id, fields);
     if (!result) throw this.notFoundError(id);
@@ -81,6 +91,10 @@ class StudyService extends Service {
   }
 
   async listByIds(requestContext, ids, fields = []) {
+    if (!isAdmin(requestContext)) {
+      throw this.boom.forbidden('Only admins are authorized to list by ids.', true);
+    }
+
     const result = await this._getter()
       .keys(ids)
       .projection(fields)
@@ -98,8 +112,8 @@ class StudyService extends Service {
    * The StudyEntity has this shape:
    * {
    *  id, rev, category, name, description, resources: [{arn, fileShareArn}, ...],
-   *  uploadLocationEnabled, sha, qualifier, folder, accountId, bucket, bucketPartition,
-   *  bucketRegion, kmsArn, status, problem, accessType
+   *  uploadLocationEnabled, sha, qualifier, folder, accountId, bucket, awsPartition,
+   *  region, kmsArn, status, problem, accessType, projectId, bucketAccess, useBucketKms
    *  permissions: <StudyPermissionEntity>
    * }
    *
@@ -170,7 +184,8 @@ class StudyService extends Service {
     // We need to call this in case there are problems with the study permissions entity. We need
     // to find this out before we create the study, otherwise, it will be too late if we create the
     // study entity and then try to create the study permissions entity only to find out that it has
-    // validation issues.
+    // validation issues. In addition, we want to make sure that we can store the studyEntity in the
+    // database first before we store the study permissions entity.
     await studyPermissionService.preCreateValidation(requestContext, rawStudyEntity, studyPermissionEntity);
 
     // Lets check to see if kmsArn is not provided if useBucketKms is true
@@ -197,9 +212,9 @@ class StudyService extends Service {
       qualifier: accountEntity.qualifier,
       accountId: accountEntity.id,
       bucket: bucketEntity.name,
-      bucketPartition: bucketEntity.partition,
-      bucketRegion: bucketEntity.region,
-      kmsArn: rawStudyEntity.kmsArn || bucketEntity.kmsArn,
+      bucketAccess: bucketEntity.bucketAccess,
+      awsPartition: bucketEntity.awsPartition,
+      region: bucketEntity.region,
       status: 'initial',
       rev: 0,
       createdBy: by,
@@ -224,28 +239,33 @@ class StudyService extends Service {
     return { ...studyEntity, permissions: studyPermissionEntity };
   }
 
-  async create(requestContext, rawData) {
+  async create(requestContext, rawStudyEntity) {
     if (!(isInternalResearcher(requestContext) || isAdmin(requestContext))) {
       throw this.boom.forbidden('Only admin and internal researcher are authorized to create studies.', true);
     }
-    if (rawData.category === 'Open Data' && !isSystem(requestContext)) {
-      throw this.boom.badRequest('Only the system can create Open Data studies.', true);
+    if (isOpenData(rawStudyEntity) && !isSystem(requestContext)) {
+      throw this.boom.forbidden('Only the system can create Open Data studies.', true);
     }
-    const [validationService, projectService] = await this.service(['jsonSchemaValidationService', 'projectService']);
+    if (isOpenData(rawStudyEntity) && _.get(rawStudyEntity, 'accessType') === 'readwrite') {
+      throw this.boom.badRequest('Open Data study cannot be read/write', true);
+    }
+
+    const [validationService, studyPermissionService, projectService] = await this.service([
+      'jsonSchemaValidationService',
+      'studyPermissionService',
+      'projectService',
+    ]);
 
     // Validate input
-    await validationService.ensureValid(rawData, createSchema);
+    await validationService.ensureValid(rawStudyEntity, createSchema);
 
     // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
     const by = _.get(requestContext, 'principalIdentifier.uid');
 
-    // validate if study can be read/write
-    this.validateStudyType(rawData.accessType, rawData.category);
-
     // The open data studies do not need to be associated to any project
     // for everything else make sure projectId is specified
-    if (rawData.category !== 'Open Data') {
-      const projectId = rawData.projectId;
+    if (!isOpenData(rawStudyEntity)) {
+      const projectId = rawStudyEntity.projectId;
       if (!projectId) {
         throw this.boom.badRequest('Missing required projectId', true);
       }
@@ -253,25 +273,25 @@ class StudyService extends Service {
       if (!(await projectService.verifyUserProjectAssociation(by, projectId))) {
         throw this.boom.forbidden(`Not authorized to add study related to project "${projectId}"`, true);
       }
-      await projectService.mustFind(requestContext, { id: rawData.projectId });
+      await projectService.mustFind(requestContext, { id: rawStudyEntity.projectId });
       // Verify user is not trying to create resources for non-Open data studies
-      if (!_.isEmpty(rawData.resources)) {
-        throw this.boom.badRequest('Resources can only be assigned to Open Data study category', true);
+      if (!_.isEmpty(rawStudyEntity.resources)) {
+        throw this.boom.forbidden('Resources can only be assigned to Open Data study category', true);
       }
     }
 
-    const id = rawData.id;
+    const id = rawStudyEntity.id;
 
     // Prepare the db object
-    const dbObject = this.fromRawToDbObject(rawData, { rev: 0, createdBy: by, updatedBy: by });
+    const dbObject = this.fromRawToDbObject(rawStudyEntity, { rev: 0, createdBy: by, updatedBy: by });
 
     // Create file upload location if necessary
     let studyFileLocation;
-    if (rawData.uploadLocationEnabled) {
+    if (rawStudyEntity.uploadLocationEnabled) {
       if (!dbObject.resources) {
         dbObject.resources = [];
       }
-      studyFileLocation = this.getFilesPrefix(requestContext, id, rawData.category);
+      studyFileLocation = this.getFilesPrefix(requestContext, id, rawStudyEntity.category);
       dbObject.resources.push({ arn: `arn:aws:s3:::${this.studyDataBucket}/${studyFileLocation}` });
     }
 
@@ -289,52 +309,56 @@ class StudyService extends Service {
       },
     );
 
+    // Call study permissions service to create the necessary entities
+    const studyEntity = this.fromDbToDataObject(result);
+    if (!isOpenData(studyEntity)) {
+      const studyPermissionEntity = await studyPermissionService.create(requestContext, studyEntity, {
+        adminUsers: [by],
+      });
+      studyEntity.permissions = studyPermissionEntity;
+    }
+
     // Create a zero-byte object for the study in the study bucket if requested
-    if (rawData.uploadLocationEnabled) {
+    if (rawStudyEntity.uploadLocationEnabled) {
       await this.s3Client
         .putObject({
           Bucket: this.studyDataBucket,
           Key: studyFileLocation,
           // ServerSideEncryption: 'aws:kms', // Not required as S3 bucket has default encryption specified
-          Tagging: `projectId=${rawData.projectId}`,
+          Tagging: `projectId=${rawStudyEntity.projectId}`,
         })
         .promise();
     }
 
-    // TODO - call study permissions service to create the necessary entities
     // Write audit event
-    await this.audit(requestContext, { action: 'create-study', body: result });
+    await this.audit(requestContext, { action: 'create-study', body: studyEntity });
 
-    return result;
+    return studyEntity;
   }
 
   async update(requestContext, rawData) {
     const [validationService] = await this.service(['jsonSchemaValidationService']);
 
-    if (rawData.category === 'Open Data' && !isSystem(requestContext)) {
+    if (isOpenData(rawData) && !isSystem(requestContext)) {
       throw this.boom.badRequest('Only the system can update Open Data studies.', true);
     }
 
-    if (rawData.category !== 'Open Data' && !_.isEmpty(rawData.resources)) {
+    if (!isOpenData(rawData) && !_.isEmpty(rawData.resources)) {
       throw this.boom.badRequest('Resources can only be updated for Open Data study category', true);
     }
 
     // Validate input
     await validationService.ensureValid(rawData, updateSchema);
-
-    // For now, we assume that 'updatedBy' is always a user and not a group
-    const by = _.get(requestContext, 'principalIdentifier.uid');
     const { id, rev } = rawData;
 
-    const study = await this.mustFind(requestContext, id);
+    // Ensure the principal has update permission. This is done by get the study permissions entity
+    // and checking if the principal has a study admin permissions
+    const studyEntity = await this.getStudyPermissions(requestContext, id);
+    if (!isStudyAdmin(studyEntity.permissions) && !isAdmin(requestContext)) {
+      throw this.boom.forbidden("You don't have permissions to update this study", true);
+    }
 
-    // validate if study can be read/write
-    this.validateStudyType(rawData.accessType, study.category);
-
-    // TODO: Add logic for the following when full write functionality is implemented:
-    // 1. Permissions removal for Read/Write and Write if ReadWrite accessType switches to ReadOnly
-    // 2. Workspace mounts to be corrected
-    // 3. Deleting any additional resources created as part of the ReadWrite functionality
+    const by = _.get(requestContext, 'principalIdentifier.uid');
 
     // Prepare the db object
     const dbObject = _.omit(this.fromRawToDbObject(rawData, { updatedBy: by }), ['rev']);
@@ -350,18 +374,14 @@ class StudyService extends Service {
           .update();
       },
       async () => {
-        // There are two scenarios here:
-        // 1 - The study does not exist
-        // 2 - The "rev" does not match
-        // We will display the appropriate error message accordingly
-        const existing = await this.find(requestContext, id, ['id', 'updatedBy']);
-        if (existing) {
-          throw this.boom.badRequest(
-            `study information changed just before your request is processed, please try again`,
-            true,
-          );
-        }
-        throw this.boom.notFound(`study with id "${id}" does not exist`, true);
+        // We are in this section because the call to DynamoDB threw the
+        // an exception with code ConditionalCheckFailedException. In this specific
+        // case, because the rev condition failed, indicated that we were trying to update
+        // a stale record.
+        throw this.boom.outdatedUpdateAttempt(
+          `study information changed just before your request is processed, please try again`,
+          true,
+        );
       },
     );
 
@@ -369,33 +389,6 @@ class StudyService extends Service {
     await this.audit(requestContext, { action: 'update-study', body: result });
 
     return result;
-  }
-
-  async delete(requestContext, id) {
-    // Lets now remove the item from the database
-    const result = await runAndCatch(
-      async () => {
-        return this._deleter()
-          .condition('attribute_exists(id)') // yes we need this
-          .key({ id })
-          .delete();
-      },
-      async () => {
-        throw this.boom.notFound(`study with id "${id}" does not exist`, true);
-      },
-    );
-
-    // Write audit event
-    await this.audit(requestContext, { action: 'delete-study', body: { id } });
-
-    return result;
-  }
-
-  getAllowedStudies(permissions = []) {
-    const adminAccess = permissions.adminAccess || [];
-    const readonlyAccess = permissions.readonlyAccess || [];
-    const readwriteAccess = permissions.readwriteAccess || [];
-    return _.uniq([...adminAccess, ...readonlyAccess, ...readwriteAccess]);
   }
 
   async list(requestContext, category, fields = []) {
@@ -414,33 +407,30 @@ class StudyService extends Service {
 
       default: {
         // Generate results based on access
-        const permissions = await this.studyPermissionService.getRequestorPermissions(requestContext);
-        if (permissions) {
-          // We can't give duplicate keys to the batch get, so ensure that allowedStudies is unique
-          const allowedStudies = this.getAllowedStudies(permissions);
-          if (allowedStudies.length) {
-            const rawResult = await this._getter()
-              .keys(allowedStudies.map(studyId => ({ id: studyId })))
-              .projection(fields)
-              .get();
+        const uid = _.get(requestContext, 'principalIdentifier.uid');
+        const userPermissions = await this.getUserPermissions(requestContext, uid);
+        const studyIds = getStudyIds(userPermissions);
+        if (!_.isEmpty(studyIds)) {
+          const rawResult = await this._getter()
+            .keys(studyIds.map(studyId => ({ id: studyId })))
+            .projection(fields)
+            .get();
 
-            // Filter by category and inject requestor's access level
-            const studyAccessMap = {};
-            ['admin', 'readwrite', 'readonly'].forEach(level => {
-              const studiesWithPermission = permissions[`${level}Access`];
-              if (studiesWithPermission && studiesWithPermission.length > 0)
-                studiesWithPermission.forEach(studyId => {
-                  studyAccessMap[studyId] = level;
-                });
+          // Filter by category and inject requestor's access level
+          const studyAccessMap = {};
+          _.forEach(permissionLevels, level => {
+            const studies = userPermissions[`${level}Access`];
+            _.forEach(studies, studyId => {
+              studyAccessMap[studyId] = level;
             });
+          });
 
-            result = rawResult
-              .filter(study => study.category === category)
-              .map(study => ({
-                ...study,
-                access: studyAccessMap[study.id],
-              }));
-          }
+          result = rawResult
+            .filter(study => study.category === category)
+            .map(study => ({
+              ...study,
+              access: studyAccessMap[study.id],
+            }));
         }
       }
     }
@@ -465,7 +455,7 @@ class StudyService extends Service {
    * @returns {Promise<AWS.S3.PresignedPost>} the url and fields to use when performing the upload
    */
   async createPresignedPostRequests(requestContext, studyId, filenames, encrypt = true, multiPart = true) {
-    // Get study details and check permissinos
+    // Get study details and check permissions
     const study = await this.mustFind(requestContext, studyId);
 
     // Loop through requested files and generate presigned POST requests
@@ -572,13 +562,6 @@ class StudyService extends Service {
     // If the main call also needs to fail in case writing to any audit destination fails then switch to "write" method as follows
     // return auditWriterService.write(requestContext, auditEvent);
     return auditWriterService.writeAndForget(requestContext, auditEvent);
-  }
-
-  // ensure that study accessType isn't read/write for Open Data category
-  validateStudyType(accessType, studyCategory) {
-    if (accessType === 'readwrite' && studyCategory === 'Open Data') {
-      throw this.boom.badRequest('Open Data study cannot be read/write', true);
-    }
   }
 }
 

@@ -22,21 +22,107 @@
 
 const _ = require('lodash');
 
+const { getEmptyStudyPermissions, hasPermissions } = require('./study-permissions-methods');
+
 const permissionLevels = ['admin', 'readonly', 'writeonly', 'readwrite'];
 
-function hasAccess(studyEntity, uid) {
-  // TODO consider the accessType of the study
-  // and the My Studies
+/**
+ * Returns true if the user id has access to the study otherwise it returns false.
+ * This function considers many scenarios such as 'Open Data' studies and the
+ * accessType value specified in the study.  For example, if the accessType is
+ * readonly and yet the study permissions has this user listed in readwriteUsers,
+ * the function still returns false since the accessType determines the maximum permission
+ * level for the study.
+ *
+ * @param studyEntity The study entity with the permissions property populated
+ * @param uid The user id
+ */
+function hasAccess(studyEntity = {}, uid) {
+  if (isOpenData(studyEntity)) return true;
+  const permissions = { ...getEmptyStudyPermissions(), ..._.cloneDeep(studyEntity.permissions) };
+  const adminUsers = permissions.adminUsers;
+
+  if (_.includes(adminUsers, uid)) return true; // study admins have access
+
+  // To make the logic easier to implement, we first clear all permissions levels
+  // that are above the maximum level (accessType).
+  // Notice that when we have accessType = readwrite, we don't clear the readonly users
+  // nor the writeonly users, this is because (as mentioned above) accessType presents
+  // the maximum permissions allowed.
+  if (isReadonly(studyEntity)) {
+    permissions.writeonlyUsers = [];
+    // We keep readwrite permissions because a user who has readwrite permissions
+    // should be able to read
+  } else if (isWriteonly(studyEntity)) {
+    permissions.readonlyUsers = [];
+    // We keep readwrite permissions because a user who has readwrite permissions
+    // should be able to write
+  }
+
+  return hasPermissions(permissions, uid);
 }
 
+/**
+ * Returns { admin, read, write } flags that reflect the permissions of the given user
+ * for the given study entity. This function addresses all the scenarios such as 'Open Data'
+ * studies and implicit permissions for study admins. For example, if study category
+ * is 'My Studies' and the user is the study admin then the returned flags are:
+ * { admin: true, read: true, write: true } given the fact that accessType is readwrite.
+ * Study admins get implicit 'read = true' for Organization studies (if accessType is readwrite),
+ * and get implicit 'read = true and write = true' for My Studies (if accessType is readwrite).
+ *
+ * @param studyEntity The study entity with the permissions property populated
+ * @param uid The use id
+ */
 function accessLevels(studyEntity, uid) {
-  // TODO consider the accessType of the study
-  // TODO consider the My Studies => writable: true
-  // should return something like  { admin: true/false, readable: true/false, writable: true/false }
+  if (isOpenData(studyEntity)) return { admin: false, read: true, write: false };
+  const permissions = { ...getEmptyStudyPermissions(), ..._.cloneDeep(studyEntity.permissions) };
+  const isAdmin = _.includes(permissions.adminUsers, uid);
+
+  if (isAdmin) {
+    // A study admin will implicitly have read access to the study unless the study accessType
+    // is writeonly, in that case, the study admin will implicitly have write access (unless
+    // it is open data). If the study is 'My Studies' then the admin will also implicitly have
+    // write access (unless it is open data or readonly accessType).
+    permissions.readonlyUsers.push(uid);
+    if (isWriteonly(studyEntity)) permissions.writeonlyUsers.push(uid);
+    if (isMyStudies(studyEntity)) permissions.readwriteUsers.push(uid);
+  }
+
+  // To make the logic easier to implement, we first clear all permissions levels
+  // that are above the maximum level (accessType).
+  // Notice that when we have accessType = readwrite, we don't clear the readonly users
+  // nor the writeonly users, this is because (as mentioned above) accessType presents
+  // the maximum permissions allowed.
+  if (isReadonly(studyEntity)) {
+    // all users who had readwrite access need to be demoted to readonlyUsers
+    if (!_.isEmpty(permissions.readwriteUsers)) {
+      permissions.readonlyUsers = _.uniq([...permissions.readonlyUsers, ...permissions.readwriteUsers]);
+      permissions.readwriteUsers = [];
+    }
+    permissions.writeonlyUsers = [];
+  } else if (isWriteonly(studyEntity)) {
+    // all users who had readwrite access need to be demoted to writeonlyUsers
+    if (!_.isEmpty(permissions.readwriteUsers)) {
+      permissions.writeonlyUsers = _.uniq([...permissions.writeonlyUsers, ...permissions.readwriteUsers]);
+      permissions.readwriteUsers = [];
+    }
+    permissions.readonlyUsers = [];
+  }
+
+  return {
+    admin: isAdmin,
+    read: _.includes(permissions.readonlyUsers, uid) || _.includes(permissions.readwriteUsers, uid),
+    write: _.includes(permissions.writeonlyUsers, uid) || _.includes(permissions.readwriteUsers, uid),
+  };
 }
 
 function isOpenData(studyEntity = {}) {
   return studyEntity.category === 'Open Data';
+}
+
+function isMyStudies(studyEntity = {}) {
+  return studyEntity.category === 'My Studies';
 }
 
 function isReadonly(studyEntity = {}) {
