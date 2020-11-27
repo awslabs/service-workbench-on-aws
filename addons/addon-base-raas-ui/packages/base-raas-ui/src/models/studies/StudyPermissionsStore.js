@@ -38,14 +38,17 @@ const StudyPermissionsStore = BaseStore.named('StudyPermissionsStore')
     return {
       doLoad: async () => {
         const newPermissions = await getStudyPermissions(self.studyId);
-        if (!self.studyPermissions || !_.isEqual(self.studyPermissions, newPermissions)) {
-          self.runInAction(() => {
-            self.studyPermissions = newPermissions;
-          });
-        }
+        self.runInAction(() => {
+          if (!self.studyPermissions) {
+            self.studyPermissions = StudyPermissions.create({ id: self.studyId, ...newPermissions });
+          } else {
+            self.studyPermissions.setStudyPermissions(newPermissions);
+          }
+        });
       },
 
       cleanup: () => {
+        self.studyPermissions = undefined;
         superCleanup();
       },
 
