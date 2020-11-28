@@ -34,7 +34,6 @@ const AuthService = require('@aws-ee/base-services/lib/authorization/authorizati
 const AuditService = require('@aws-ee/base-services/lib/audit/audit-writer-service');
 const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
 const UserService = require('../../user/user-service');
-const StudyAuthzService = require('../study-authz-service');
 const StudyPermissionService = require('../study-permission-service');
 
 const { getEmptyStudyPermissions } = require('../helpers/entities/study-permissions-methods');
@@ -58,7 +57,6 @@ describe('StudyPermissionService', () => {
     container.register('pluginRegistryService', new PluginRegistryService());
     container.register('authorizationService', new AuthService());
     container.register('auditWriterService', new AuditService());
-    container.register('studyAuthzService', new StudyAuthzService());
     container.register('studyPermissionService', new StudyPermissionService());
     await container.initServices();
 

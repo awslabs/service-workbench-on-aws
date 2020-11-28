@@ -42,7 +42,6 @@ class StudyService extends Service {
       'jsonSchemaValidationService',
       'dbService',
       'studyPermissionService',
-      'studyAuthzService',
       'projectService',
       'auditWriterService',
     ]);
@@ -188,17 +187,25 @@ class StudyService extends Service {
     // database first before we store the study permissions entity.
     await studyPermissionService.preCreateValidation(requestContext, rawStudyEntity, studyPermissionEntity);
 
-    // Lets check to see if kmsArn is not provided if useBucketKms is true
-    if (!_.isEmpty(rawStudyEntity.kmsArn) && rawStudyEntity.useBucketKms) {
-      throw this.boom.badRequest('You can not provide a KMS ARN when useBucketKms is true', true);
+    // Lets check to see if kmsArn is not provided if scope is bucket
+    if (
+      !_.isEmpty(rawStudyEntity.kmsArn) &&
+      (rawStudyEntity.kmsScope === 'bucket' || rawStudyEntity.kmsScope === 'none')
+    ) {
+      throw this.boom.badRequest('You can not provide a KMS ARN when KMS scope is the bucket or none', true);
     }
 
-    // Lets also check if useBucketKms is true but the bucket does not have kmsArn
-    if (rawStudyEntity.useBucketKms && _.isEmpty(bucketEntity.kmsArn)) {
+    // Lets also check if kmsScope is bucket but the bucket does not have kmsArn
+    if (rawStudyEntity.kmsScope === 'bucket' && _.isEmpty(bucketEntity.kmsArn)) {
       throw this.boom.badRequest(
-        'useBucketKms is true, but the bucket does not have a kms key associated with it',
+        'KMS scope is bucket, but the bucket does not have a kms key associated with it',
         true,
       );
+    }
+
+    // Lets also check that we have kmsArn if kmsScope is "study"
+    if (rawStudyEntity.kmsScope === 'study' && _.isEmpty(rawStudyEntity.kmsArn)) {
+      throw this.boom.badRequest('KMS scope is study, but no kmsArn is provided', true);
     }
 
     if (!_.isEmpty(rawStudyEntity.projectId)) {
@@ -212,7 +219,7 @@ class StudyService extends Service {
       qualifier: accountEntity.qualifier,
       accountId: accountEntity.id,
       bucket: bucketEntity.name,
-      bucketAccess: bucketEntity.bucketAccess,
+      bucketAccess: bucketEntity.access,
       awsPartition: bucketEntity.awsPartition,
       region: bucketEntity.region,
       status: 'initial',

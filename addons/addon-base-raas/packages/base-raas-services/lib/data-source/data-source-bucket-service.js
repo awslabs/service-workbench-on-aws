@@ -100,6 +100,16 @@ class DataSourceBucketService extends Service {
         true,
       );
 
+    // SSE (server side encryption) using S3 and not KMS is not supported
+    if (rawBucketEntity.sse === 's3') {
+      throw this.boom.notSupported('SSE S3 is not supported', true);
+    }
+
+    // kmsArn can only be provide if sse = kms
+    if (!_.isEmpty(rawBucketEntity.kmsArn) && rawBucketEntity.sse !== 'kms') {
+      throw this.boom.badRequest('KMS arn can only be provided if sse = kms', true);
+    }
+
     const by = _.get(requestContext, 'principalIdentifier.uid');
     const { name } = rawData;
 

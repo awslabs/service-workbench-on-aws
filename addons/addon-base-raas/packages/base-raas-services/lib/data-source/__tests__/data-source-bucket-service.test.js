@@ -66,6 +66,7 @@ describe('DataSourceBucketService', () => {
         awsPartition: 'aws',
         kmsArn: 'kmsArn-1234',
         access: 'roles',
+        sse: 'kms',
       };
 
       await service.register(requestContext, { id }, rawData);
@@ -112,6 +113,7 @@ describe('DataSourceBucketService', () => {
         awsPartition: 'aws',
         kmsArn: 'kmsArn-1234',
         access: 'roles',
+        sse: 'kms',
       };
 
       let pKey;

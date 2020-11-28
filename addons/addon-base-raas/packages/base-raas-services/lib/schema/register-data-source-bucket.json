@@ -27,7 +27,11 @@
     "access": {
       "type": "string",
       "enum": ["roles", "accessPoint", "bucketPolicy"]
+    },
+    "sse": {
+      "type": "string",
+      "enum": ["kms", "s3", "none"]
     }
   },
-  "required": ["accountId", "name", "region", "awsPartition", "access"]
+  "required": ["accountId", "name", "region", "awsPartition", "access", "sse"]
 }

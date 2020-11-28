@@ -38,7 +38,6 @@ const PluginRegistryService = require('@aws-ee/base-services/lib/plugin-registry
 const S3ServiceMock = require('@aws-ee/base-services/lib/s3-service');
 const ProjectServiceMock = require('../../project/project-service');
 const UserService = require('../../user/user-service');
-const StudyAuthzService = require('../study-authz-service');
 const StudyPermissionService = require('../study-permission-service');
 const StudyService = require('../study-service');
 
@@ -79,7 +78,6 @@ describe('studyService', () => {
     container.register('authorizationService', new AuthService());
     container.register('studyPermissionService', new StudyPermissionService());
     container.register('projectService', new ProjectServiceMock());
-    container.register('studyAuthzService', new StudyAuthzService());
     container.register('studyService', new StudyService());
 
     container.initServices();

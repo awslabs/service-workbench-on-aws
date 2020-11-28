@@ -36,8 +36,8 @@
       "type": "string",
       "maxLength": 90
     },
-    "useBucketKms": {
-      "type": "boolean"
+    "kmsScope": {
+      "enum": ["bucket", "study", "none"]
     },
     "adminUsers": {
       "type": "array",
