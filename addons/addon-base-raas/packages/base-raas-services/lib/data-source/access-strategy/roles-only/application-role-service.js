@@ -159,19 +159,37 @@ class ApplicationRoleService extends Service {
     return toAppRoleEntity(dbEntity);
   }
 
-  async updateStatus(requestContext, appRoleEntity, { status, statusMsg }) {
+  /**
+   * Call this method to update the status of the application role entity.
+   *
+   * @param requestContext The standard requestContext
+   * @param appRoleEntity The application role entity
+   * @param status The status to change to. Can be 'pending', 'error' or 'reachable'
+   * @param statusMsg The status message to use. Do not provide it if you don't want to
+   * change the existing message. Provide an empty string value if you want to clear
+   * the existing message. Otherwise, the message you provide will replace the existing
+   * message.
+   */
+  async updateStatus(requestContext, appRoleEntity, { status, statusMsg } = {}) {
     await this.assertAuthorized(
       requestContext,
       { action: 'update-status', conditions: [allowIfActive, allowIfAdmin] },
       { appRoleEntity, status, statusMsg },
     );
 
+    if (!_.includes(['pending', 'error', 'reachable'], status)) {
+      throw this.boom.badRequest(`A status of '${status}' is not allowed`, true);
+    }
+
     const { arn } = appRoleEntity;
     const by = _.get(requestContext, 'principalIdentifier.uid');
-    const removeStatus = status === 'success' || _.isEmpty(status);
-    const removeMsg = !_.isUndefined(statusMsg) && _.isEmpty(statusMsg);
+    const removeStatus = status === 'reachable' || _.isEmpty(status);
+    const removeMsg = _.isString(statusMsg) && _.isEmpty(statusMsg);
 
     const item = { updatedBy: by };
+
+    // Remember that we use the 'status' attribute in the index and we need to ensure
+    // that when status == reachable that we remove the status attribute from the database
     if (!_.isEmpty(statusMsg)) item.statusMsg = statusMsg;
     if (!removeStatus) item.status = status;
 

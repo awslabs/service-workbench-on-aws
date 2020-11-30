@@ -21,7 +21,8 @@ const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/autho
 const { generateId } = require('../helpers/utils');
 const registerSchema = require('../schema/register-data-source-account');
 const updateSchema = require('../schema/update-data-source-account');
-const { bucketEntity: bucketEntityTransform } = require('./helpers/transformers');
+const { toDsAccountEntity, toDbEntity } = require('./helpers/entities/data-source-account-methods');
+const { toBucketEntity } = require('./helpers/entities/data-source-bucket-methods');
 const { accountIdCompositeKey, bucketIdCompositeKey } = require('./helpers/composite-keys');
 
 const settingKeys = {
@@ -61,7 +62,7 @@ class DataSourceAccountService extends Service {
       .projection(fields)
       .get();
 
-    return this._fromDbToDataObject(result);
+    return toDsAccountEntity(result);
   }
 
   async mustFind(requestContext, { id, fields = [] }) {
@@ -101,7 +102,7 @@ class DataSourceAccountService extends Service {
     const stack = `${qualifier}-stack`;
 
     // Prepare the db object
-    const dbObject = this._fromRawToDbObject(rawAccountEntity, {
+    const dbObject = toDbEntity(rawAccountEntity, {
       rev: 0,
       createdBy: by,
       updatedBy: by,
@@ -113,7 +114,7 @@ class DataSourceAccountService extends Service {
     });
 
     // Time to save the the db object
-    const result = this._fromDbToDataObject(
+    const result = toDsAccountEntity(
       await runAndCatch(
         async () => {
           return this._updater()
@@ -152,10 +153,10 @@ class DataSourceAccountService extends Service {
     const { id, rev } = rawAccountEntity;
 
     // Prepare the db object
-    const dbObject = _.omit(this._fromRawToDbObject(rawAccountEntity, { updatedBy: by }), ['rev']);
+    const dbObject = _.omit(toDbEntity(rawAccountEntity, { updatedBy: by }), ['rev']);
 
     // Time to save the the db object
-    const result = this._fromDbToDataObject(
+    const result = toDsAccountEntity(
       await runAndCatch(
         async () => {
           return this._updater()
@@ -188,6 +189,59 @@ class DataSourceAccountService extends Service {
     return result;
   }
 
+  /**
+   * Call this method to update the status of the data source account entity.
+   *
+   * @param requestContext The standard requestContext
+   * @param dsAccountEntity The data source account entity
+   * @param status The status to change to. Can be 'pending', 'error' or 'reachable'
+   * @param statusMsg The status message to use. Do not provide it if you don't want to
+   * change the existing message. Provide an empty string value if you want to clear
+   * the existing message. Otherwise, the message you provide will replace the existing
+   * message.
+   */
+  async updateStatus(requestContext, dsAccountEntity, { status, statusMsg } = {}) {
+    await this.assertAuthorized(
+      requestContext,
+      { action: 'update-account', conditions: [allowIfActive, allowIfAdmin] },
+      { dsAccountEntity, status, statusMsg },
+    );
+
+    if (!_.includes(['pending', 'error', 'reachable'], status)) {
+      throw this.boom.badRequest(`A status of '${status}' is not allowed`, true);
+    }
+
+    const { arn } = dsAccountEntity;
+    const by = _.get(requestContext, 'principalIdentifier.uid');
+    const removeStatus = status === 'reachable' || _.isEmpty(status);
+    const removeMsg = _.isString(statusMsg) && _.isEmpty(statusMsg);
+
+    const item = { updatedBy: by };
+
+    // Remember that we use the 'status' attribute in the index and we need to ensure
+    // that when status == reachable that we remove the status attribute from the database
+    if (!_.isEmpty(statusMsg)) item.statusMsg = statusMsg;
+    if (!removeStatus) item.status = status;
+
+    const dbEntity = await runAndCatch(
+      async () => {
+        let op = this._updater()
+          .condition('attribute_exists(pk) and attribute_exists(sk)')
+          .key(accountIdCompositeKey.encode(dsAccountEntity));
+
+        if (removeMsg) op = op.remove('statusMsg');
+        if (removeStatus) op = op.names({ '#status': 'status' }).remove('#status');
+
+        return op.item(item).update();
+      },
+      async () => {
+        throw this.boom.notFound(`The data source account entity "${arn}" does not exist`, true);
+      },
+    );
+
+    return toDsAccountEntity(dbEntity);
+  }
+
   async list(requestContext, { fields = [] } = {}) {
     await this.assertAuthorized(requestContext, { action: 'list', conditions: [allowIfActive, allowIfAdmin] });
 
@@ -211,11 +265,11 @@ class DataSourceAccountService extends Service {
     _.forEach(output, item => {
       let entry;
       if (isBucketItem(item)) {
-        entry = bucketEntityTransform.fromDbToEntity(item);
+        entry = toBucketEntity(item);
         const accountEntry = getAccountEntry(entry.accountId);
         accountEntry.buckets.push(entry);
       } else {
-        entry = this._fromDbToDataObject(item);
+        entry = toDsAccountEntity(item);
         const accountEntry = { ...getAccountEntry(entry.id), ...entry };
         accountMap[`${entry.id}`] = accountEntry;
         result.push(accountEntry);
@@ -223,26 +277,6 @@ class DataSourceAccountService extends Service {
     });
 
     return result;
-  }
-
-  // Do some properties renaming to prepare the object to be saved in the database
-  _fromRawToDbObject(rawObject, overridingProps = {}) {
-    const dbObject = { ...rawObject, ...overridingProps };
-    delete dbObject.id;
-    return dbObject;
-  }
-
-  // Do some properties renaming to restore the object that was saved in the database
-  _fromDbToDataObject(rawDb, overridingProps = {}) {
-    if (_.isNil(rawDb)) return rawDb; // important, leave this if statement here, otherwise, your update methods won't work correctly
-    if (!_.isObject(rawDb)) return rawDb;
-
-    const dataObject = { ...rawDb, ...overridingProps };
-    dataObject.id = accountIdCompositeKey.decode(dataObject);
-    delete dataObject.pk;
-    delete dataObject.sk;
-
-    return dataObject;
   }
 
   async assertAuthorized(requestContext, { action, conditions }, ...args) {

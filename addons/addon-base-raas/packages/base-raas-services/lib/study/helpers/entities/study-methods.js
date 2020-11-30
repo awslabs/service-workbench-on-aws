@@ -151,6 +151,36 @@ function isPermissionLevelSupported(studyEntity, permissionLevel) {
   return true;
 }
 
+function toStudyEntity(dbEntity) {
+  if (!_.isObject(dbEntity)) return dbEntity;
+
+  const entity = { ...dbEntity };
+  if (_.isEmpty(entity.status)) {
+    // We always default to reachable in the status.
+    // Remember that we use the 'status' attribute in the index and we need to ensure
+    // that when status == reachable that we remove the status attribute from the database
+    entity.status = 'reachable';
+  }
+
+  return entity;
+}
+
+function toDbEntity(studyEntity, overridingProps = {}) {
+  const dbEntity = { ...studyEntity, ...overridingProps };
+  // Remember that we use the 'status' attribute in the index and we need to ensure
+  // that when status == reachable that we remove the status attribute from the database
+  if (dbEntity.status === 'reachable') {
+    delete dbEntity.status;
+  }
+
+  const statusMsg = dbEntity.statusMsg;
+  if (_.isString(statusMsg) && _.isEmpty(statusMsg)) {
+    delete dbEntity.statusMsg;
+  }
+
+  return dbEntity;
+}
+
 module.exports = {
   hasAccess,
   isOpenData,
@@ -160,4 +190,6 @@ module.exports = {
   isWriteonly,
   isPermissionLevelSupported,
   permissionLevels,
+  toStudyEntity,
+  toDbEntity,
 };

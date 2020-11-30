@@ -61,12 +61,30 @@ function toAppRoleEntity(dbEntity) {
   delete entity.pk;
   delete entity.sk;
 
+  if (_.isEmpty(entity.status)) {
+    // We always default to reachable in the status.
+    // Remember that we use the 'status' attribute in the index and we need to ensure
+    // that when status == reachable that we remove the status attribute from the database
+    entity.status = 'reachable';
+  }
+
   return entity;
 }
 
 function toDbEntity(appRoleEntity, by) {
   const dbEntity = { ...appRoleEntity };
   delete dbEntity.accountId;
+
+  // Remember that we use the 'status' attribute in the index and we need to ensure
+  // that when status == reachable that we remove the status attribute from the database
+  if (dbEntity.status === 'reachable') {
+    delete dbEntity.status;
+  }
+
+  const statusMsg = dbEntity.statusMsg;
+  if (_.isString(statusMsg) && _.isEmpty(statusMsg)) {
+    delete dbEntity.statusMsg;
+  }
 
   if (_.isEmpty(by)) return dbEntity;
 

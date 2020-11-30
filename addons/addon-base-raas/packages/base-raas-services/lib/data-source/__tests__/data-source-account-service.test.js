@@ -267,9 +267,9 @@ describe('DataSourceAccountService', () => {
       });
 
       await expect(service.list(requestContext)).resolves.toStrictEqual([
-        { ...acct1, buckets: [bucket1, bucket2] },
-        { ...acct2, buckets: [bucket3] },
-        { ...acct3, buckets: [] },
+        { ...acct1, status: 'reachable', buckets: [bucket1, bucket2] },
+        { ...acct2, status: 'reachable', buckets: [bucket3] },
+        { ...acct3, status: 'reachable', buckets: [] },
       ]);
     });
   });

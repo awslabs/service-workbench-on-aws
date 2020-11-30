@@ -109,6 +109,7 @@ class StudyPermissionService extends Service {
       'jsonSchemaValidationService',
       'authorizationService',
       'auditWriterService',
+      'lockService',
       'userService',
     ]);
   }
@@ -319,61 +320,67 @@ class StudyPermissionService extends Service {
    */
   async update(requestContext, studyEntity, updateRequest) {
     // Validate input
-    const [validationService] = await this.service(['jsonSchemaValidationService']);
+    const [validationService, lockService] = await this.service(['jsonSchemaValidationService', 'lockService']);
     await validationService.ensureValid(updateRequest, updateSchema);
 
-    const studyPermissionsEntity = await this.findStudyPermissions(requestContext, studyEntity);
-    await this.assertAuthorized(requestContext, {
-      action: 'update-study-permissions',
-      conditions: [allowIfActive, this.allowUpdate],
-    });
+    const lockId = `study-${studyEntity.id}`;
+    const entity = await lockService.tryWriteLockAndRun({ id: lockId }, async () => {
+      const studyPermissionsEntity = await this.findStudyPermissions(requestContext, studyEntity);
+      await this.assertAuthorized(requestContext, {
+        action: 'update-study-permissions',
+        conditions: [allowIfActive, this.allowUpdate],
+      });
 
-    applyUpdateRequest(studyPermissionsEntity, updateRequest);
+      applyUpdateRequest(studyPermissionsEntity, updateRequest);
 
-    const userIds = getImpactedUsers(updateRequest);
-    if (_.size(userIds) > 100) {
-      // To protect against a large number
-      throw this.boom.badRequest('You can only change permissions for up to 100 users', true);
-    }
-
-    // All users should be active and either have an admin or a researcher role
-    await this.assertValidUsers(userIds);
-
-    // Depending on the study.accessType, we want to detect if we are trying to give
-    // users permissions that are not supported by the study.
-    _.forEach(permissionLevels, level => {
-      if (!isPermissionLevelSupported(studyEntity, level)) {
-        if (!_.isEmpty(studyPermissionsEntity[`${level}Users`])) {
-          throw this.boom.badRequest(`The study does not support ${level}`, true);
-        }
+      const userIds = getImpactedUsers(updateRequest);
+      if (_.size(userIds) > 100) {
+        // To protect against a large number
+        throw this.boom.badRequest('You can only change permissions for up to 100 users', true);
       }
+
+      // All users should be active and either have an admin or a researcher role
+      await this.assertValidUsers(userIds);
+
+      // Depending on the study.accessType, we want to detect if we are trying to give
+      // users permissions that are not supported by the study.
+      _.forEach(permissionLevels, level => {
+        if (!isPermissionLevelSupported(studyEntity, level)) {
+          if (!_.isEmpty(studyPermissionsEntity[`${level}Users`])) {
+            throw this.boom.badRequest(`The study does not support ${level}`, true);
+          }
+        }
+      });
+
+      this.assertNoMultipleLevels(studyPermissionsEntity);
+
+      const by = _.get(requestContext, 'principalIdentifier.uid');
+
+      // Time to save the db object
+      const dbEntity = await this._updater()
+        .key({ id: composeStudyPermissionsKey(studyEntity.id) })
+        .item({
+          ..._.omit(studyPermissionsEntity, ['updatedBy', 'updatedAt', 'createdAt', 'createdBy']),
+          updatedBy: by,
+        })
+        .update();
+      const updatedEntity = toStudyPermissionsEntity(studyEntity, dbEntity);
+
+      const ops = await this.getUserPermissionsUpdateOps(requestContext, studyEntity, updateRequest);
+      await this.runUpdateOps(ops);
+
+      return updatedEntity;
     });
 
-    this.assertNoMultipleLevels(studyPermissionsEntity);
-
-    const by = _.get(requestContext, 'principalIdentifier.uid');
-
-    // Time to save the db object
-    const dbEntity = await this._updater()
-      .key({ id: composeStudyPermissionsKey(studyEntity.id) })
-      .item({
-        ..._.omit(studyPermissionsEntity, ['updatedBy', 'updatedAt', 'createdAt', 'createdBy']),
-        updatedBy: by,
-      })
-      .update();
-    const updatedEntity = toStudyPermissionsEntity(studyEntity, dbEntity);
-
-    const ops = await this.getUserPermissionsUpdateOps(requestContext, studyEntity, updateRequest);
-    await this.runUpdateOps(ops);
-
-    return updatedEntity;
+    return entity;
   }
 
   // @private
   // This method assumes that the updateRequest shape has been validated already
   // via the json schema validation service.  It returns an array of functions (a.k.a operations).
   // Later when these functions are called, they update the UserPermissionsEntity in the database.
-  getUserPermissionsUpdateOps(requestContext, studyEntity, updateRequest) {
+  async getUserPermissionsUpdateOps(requestContext, studyEntity, updateRequest) {
+    const [lockService] = await this.service(['lockService']);
     const by = _.get(requestContext, 'principalIdentifier.uid');
     const userIds = getImpactedUsers(updateRequest);
     const getOperation = uid => {
@@ -383,33 +390,35 @@ class StudyPermissionService extends Service {
         // - load user permissions entity
         // - apply update request
         // - store in database
-
         // Load the user permission entity
-        const id = composeUserPermissionsKey(uid);
-        let dbEntity = await this._getter()
-          .key({ id })
-          .projection()
-          .get();
-        const userPermissionsEntity = toUserPermissionsEntity(dbEntity || { id });
+        const lockId = `study-user-permission-${uid}`;
+        return lockService.tryWriteLockAndRun({ id: lockId }, async () => {
+          const id = composeUserPermissionsKey(uid);
+          let dbEntity = await this._getter()
+            .key({ id })
+            .projection()
+            .get();
+          const userPermissionsEntity = toUserPermissionsEntity(dbEntity || { id });
 
-        // Apply the update to the user permission entity
-        applyToUserPermissions(updateRequest, userPermissionsEntity, studyEntity.id);
+          // Apply the update to the user permission entity
+          applyToUserPermissions(updateRequest, userPermissionsEntity, studyEntity.id);
 
-        // Store it in the database
-        const entity = {
-          ...userPermissionsEntity,
-          recordType: 'user',
-          createdBy: by,
-          updatedBy: by,
-        };
+          // Store it in the database
+          const entity = {
+            ...userPermissionsEntity,
+            recordType: 'user',
+            createdBy: by,
+            updatedBy: by,
+          };
 
-        // Time to save the the db object
-        dbEntity = await this._updater()
-          .key({ id: composeUserPermissionsKey(uid) })
-          .item(entity)
-          .update();
+          // Time to save the the db object
+          dbEntity = await this._updater()
+            .key({ id: composeUserPermissionsKey(uid) })
+            .item(entity)
+            .update();
 
-        return toUserPermissionsEntity(dbEntity || { id });
+          return toUserPermissionsEntity(dbEntity || { id });
+        });
       };
     };
 

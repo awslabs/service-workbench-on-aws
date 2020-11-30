@@ -20,7 +20,7 @@ const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/autho
 
 const registerSchema = require('../schema/register-data-source-bucket');
 const { bucketIdCompositeKey } = require('./helpers/composite-keys');
-const { bucketEntity: bucketEntityTransform } = require('./helpers/transformers');
+const { toBucketEntity, toDbEntity } = require('./helpers/entities/data-source-bucket-methods');
 
 const settingKeys = {
   tableName: 'dbDsAccounts',
@@ -65,7 +65,7 @@ class DataSourceBucketService extends Service {
       .projection(fields)
       .get();
 
-    return bucketEntityTransform.fromDbToEntity(result);
+    return toBucketEntity(result);
   }
 
   async mustFind(requestContext, { accountId, name, fields = [] }) {
@@ -114,14 +114,14 @@ class DataSourceBucketService extends Service {
     const { name } = rawData;
 
     // Prepare the db object
-    const dbObject = this._fromRawToDbObject(rawData, {
+    const dbObject = toDbEntity(rawData, {
       rev: 0,
       createdBy: by,
       updatedBy: by,
     });
 
     // Time to save the the db object
-    const result = bucketEntityTransform.fromDbToEntity(
+    const result = toBucketEntity(
       await runAndCatch(
         async () => {
           return this._updater()
@@ -140,14 +140,6 @@ class DataSourceBucketService extends Service {
     await this.audit(requestContext, { action: 'register-data-source-bucket', body: result });
 
     return result;
-  }
-
-  // Do some properties renaming to prepare the object to be saved in the database
-  _fromRawToDbObject(rawObject, overridingProps = {}) {
-    const dbObject = { ...rawObject, ...overridingProps };
-    delete dbObject.accountId;
-    delete dbObject.name;
-    return dbObject;
   }
 
   async assertAuthorized(requestContext, { action, conditions }, ...args) {

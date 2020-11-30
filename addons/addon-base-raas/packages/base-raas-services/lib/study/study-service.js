@@ -21,7 +21,14 @@ const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const { buildTaggingXml } = require('../helpers/aws-tags');
 const { isInternalResearcher, isAdmin, isSystem } = require('../helpers/is-role');
 const { normalizeStudyFolder } = require('../helpers/utils');
-const { isOpenData, isMyStudies, accessLevels, permissionLevels } = require('./helpers/entities/study-methods');
+const {
+  isOpenData,
+  isMyStudies,
+  accessLevels,
+  permissionLevels,
+  toStudyEntity,
+  toDbEntity,
+} = require('./helpers/entities/study-methods');
 const { isAdmin: isStudyAdmin } = require('./helpers/entities/study-permissions-methods');
 const { getStudyIds } = require('./helpers/entities/user-permissions-methods');
 const registerSchema = require('../schema/register-study');
@@ -49,9 +56,8 @@ class StudyService extends Service {
 
   async init() {
     await super.init();
-    const [aws, dbService, studyPermissionService] = await this.service(['aws', 'dbService', 'studyPermissionService']);
+    const [aws, dbService] = await this.service(['aws', 'dbService']);
     this.s3Client = new aws.sdk.S3();
-    this.studyPermissionService = studyPermissionService;
 
     const table = this.settings.get(settingKeys.tableName);
     this._getter = () => dbService.helper.getter().table(table);
@@ -75,7 +81,7 @@ class StudyService extends Service {
       .projection(fields)
       .get();
 
-    return this.fromDbToDataObject(result);
+    return toStudyEntity(result);
   }
 
   /**
@@ -99,7 +105,7 @@ class StudyService extends Service {
       .projection(fields)
       .get();
 
-    return result.map(record => this.fromDbToDataObject(record));
+    return result.map(toStudyEntity);
   }
 
   /**
@@ -291,7 +297,7 @@ class StudyService extends Service {
     const id = rawStudyEntity.id;
 
     // Prepare the db object
-    const dbObject = this.fromRawToDbObject(rawStudyEntity, { rev: 0, createdBy: by, updatedBy: by });
+    const dbObject = toDbEntity(rawStudyEntity, { rev: 0, createdBy: by, updatedBy: by });
 
     // Create file upload location if necessary
     let studyFileLocation;
@@ -318,7 +324,7 @@ class StudyService extends Service {
     );
 
     // Call study permissions service to create the necessary entities
-    const studyEntity = this.fromDbToDataObject(result);
+    const studyEntity = toStudyEntity(result);
     if (!isOpenData(studyEntity)) {
       const studyPermissionEntity = await studyPermissionService.create(requestContext, studyEntity, {
         adminUsers: [by],
@@ -390,7 +396,7 @@ class StudyService extends Service {
     const by = _.get(requestContext, 'principalIdentifier.uid');
 
     // Prepare the db object
-    const dbObject = _.omit(this.fromRawToDbObject(rawData, { updatedBy: by }), ['rev']);
+    const dbObject = _.omit(toDbEntity(rawData, { updatedBy: by }), ['rev']);
 
     // Time to save the the db object
     const result = await runAndCatch(
@@ -419,6 +425,57 @@ class StudyService extends Service {
     return result;
   }
 
+  /**
+   * Call this method to update the status of the study entity.
+   *
+   * @param requestContext The standard requestContext
+   * @param studyEntity The study entity
+   * @param status The status to change to. Can be 'pending', 'error' or 'reachable'
+   * @param statusMsg The status message to use. Do not provide it if you don't want to
+   * change the existing message. Provide an empty string value if you want to clear
+   * the existing message. Otherwise, the message you provide will replace the existing
+   * message.
+   */
+  async updateStatus(requestContext, studyEntity, { status, statusMsg } = {}) {
+    if (!isAdmin(requestContext)) {
+      throw this.boom.forbidden("You don't have permissions to update the status", true);
+    }
+
+    if (!_.includes(['pending', 'error', 'reachable'], status)) {
+      throw this.boom.badRequest(`A status of '${status}' is not allowed`, true);
+    }
+
+    const { id } = studyEntity;
+    const by = _.get(requestContext, 'principalIdentifier.uid');
+    const removeStatus = status === 'reachable' || _.isEmpty(status);
+    const removeMsg = _.isString(statusMsg) && _.isEmpty(statusMsg);
+
+    const item = { updatedBy: by };
+
+    // Remember that we use the 'status' attribute in the index and we need to ensure
+    // that when status == reachable that we remove the status attribute from the database
+    if (!_.isEmpty(statusMsg)) item.statusMsg = statusMsg;
+    if (!removeStatus) item.status = status;
+
+    const dbEntity = await runAndCatch(
+      async () => {
+        let op = this._updater()
+          .condition('attribute_exists(id)')
+          .key({ id: studyEntity.id });
+
+        if (removeMsg) op = op.remove('statusMsg');
+        if (removeStatus) op = op.names({ '#status': 'status' }).remove('#status');
+
+        return op.item(item).update();
+      },
+      async () => {
+        throw this.boom.notFound(`The study entity "${id}" does not exist`, true);
+      },
+    );
+
+    return toStudyEntity(dbEntity);
+  }
+
   async list(requestContext, category, fields = []) {
     // Get studies allowed for user
     let result = [];
@@ -439,6 +496,8 @@ class StudyService extends Service {
         const userPermissions = await this.getUserPermissions(requestContext, uid);
         const studyIds = getStudyIds(userPermissions);
         if (!_.isEmpty(studyIds)) {
+          // TODO - currently, DynamoDB will throw an exception if the number of
+          // items in the batch get > 100
           const rawResult = await this._getter()
             .keys(studyIds.map(studyId => ({ id: studyId })))
             .projection(fields)
@@ -570,21 +629,6 @@ class StudyService extends Service {
 
   notFoundError(studyId) {
     return this.boom.notFound(`Study with id "${studyId}" does not exist`, true);
-  }
-
-  // Do some properties renaming to prepare the object to be saved in the database
-  fromRawToDbObject(rawObject, overridingProps = {}) {
-    const dbObject = { ...rawObject, ...overridingProps };
-    return dbObject;
-  }
-
-  // Do some properties renaming to restore the object that was saved in the database
-  fromDbToDataObject(rawDb, overridingProps = {}) {
-    if (_.isNil(rawDb)) return rawDb; // important, leave this if statement here, otherwise, your update methods won't work correctly
-    if (!_.isObject(rawDb)) return rawDb;
-
-    const dataObject = { ...rawDb, ...overridingProps };
-    return dataObject;
   }
 
   async audit(requestContext, auditEvent) {

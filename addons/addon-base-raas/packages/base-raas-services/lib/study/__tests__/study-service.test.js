@@ -125,6 +125,7 @@ describe('studyService', () => {
 
       await expect(service.getStudyPermissions(requestContext, studyEntity.id)).resolves.toStrictEqual({
         ...studyEntity,
+        status: 'reachable',
         permissions: { adminUsers: [], readonlyUsers: [uid], readwriteUsers: [], writeonlyUsers: [] },
       });
     });
@@ -270,7 +271,10 @@ describe('studyService', () => {
       const studyEntity = { id: 'newOpenStudy', category: 'Open Data' };
       setupDbUpdate(dbService, studyEntity);
 
-      await expect(service.create(requestContext, studyEntity)).resolves.toStrictEqual(studyEntity);
+      await expect(service.create(requestContext, studyEntity)).resolves.toStrictEqual({
+        ...studyEntity,
+        status: 'reachable',
+      });
     });
 
     it('should fail if non-Open Data study type has non-empty resources list', async () => {
@@ -305,7 +309,10 @@ describe('studyService', () => {
       };
       setupDbUpdate(dbService, studyEntity);
 
-      await expect(service.create(requestContext, studyEntity)).resolves.toStrictEqual(studyEntity);
+      await expect(service.create(requestContext, studyEntity)).resolves.toStrictEqual({
+        ...studyEntity,
+        status: 'reachable',
+      });
     });
 
     it('should fail to update resource list of non-Open Data study', async () => {
@@ -359,7 +366,10 @@ describe('studyService', () => {
       };
       setupDbUpdate(dbService, studyEntity);
 
-      await expect(service.create(requestContext, studyEntity)).resolves.toStrictEqual(studyEntity);
+      await expect(service.create(requestContext, studyEntity)).resolves.toStrictEqual({
+        ...studyEntity,
+        status: 'reachable',
+      });
     });
 
     it('should try to create the study successfully when accessType is readonly', async () => {
@@ -379,6 +389,7 @@ describe('studyService', () => {
 
       await expect(service.create(requestContext, studyEntity)).resolves.toStrictEqual({
         ...studyEntity,
+        status: 'reachable',
         permissions: getEmptyStudyPermissions(),
       });
     });
@@ -432,6 +443,7 @@ describe('studyService', () => {
 
       await expect(service.create(requestContext, studyEntity)).resolves.toStrictEqual({
         ...studyEntity,
+        status: 'reachable',
         permissions: { ...getEmptyStudyPermissions(), adminUsers: [uid] },
       });
     });
@@ -485,6 +497,7 @@ describe('studyService', () => {
 
       await expect(service.create(requestContext, studyEntity)).resolves.toStrictEqual({
         ...studyEntity,
+        status: 'reachable',
         permissions: { ...getEmptyStudyPermissions(), adminUsers: [uid] },
       });
     });
