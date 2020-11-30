@@ -222,7 +222,8 @@ class StudyService extends Service {
       bucketAccess: bucketEntity.access,
       awsPartition: bucketEntity.awsPartition,
       region: bucketEntity.region,
-      status: 'initial',
+      status: 'pending',
+      statusAt: new Date().toISOString(),
       rev: 0,
       createdBy: by,
       updatedBy: by,
@@ -364,16 +365,20 @@ class StudyService extends Service {
     const [validationService] = await this.service(['jsonSchemaValidationService']);
 
     if (isOpenData(rawData) && !isSystem(requestContext)) {
-      throw this.boom.badRequest('Only the system can update Open Data studies.', true);
+      throw this.boom.forbidden('Only the system can update Open Data studies.', true);
     }
 
     if (!isOpenData(rawData) && !_.isEmpty(rawData.resources)) {
       throw this.boom.badRequest('Resources can only be updated for Open Data study category', true);
     }
 
+    if (!_.isEmpty(rawData.appRoleArn) && !isAdmin(requestContext)) {
+      throw this.boom.forbidden("You don't have permissions to update the application role arn", true);
+    }
+
     // Validate input
     await validationService.ensureValid(rawData, updateSchema);
-    const { id, rev } = rawData;
+    const { id } = rawData;
 
     // Ensure the principal has update permission. This is done by getting the study permissions entity
     // and checking if the principal has a study admin permissions
@@ -393,7 +398,6 @@ class StudyService extends Service {
         return this._updater()
           .condition('attribute_exists(id)') // yes we need this
           .key({ id })
-          .rev(rev)
           .item(dbObject)
           .update();
       },

@@ -80,11 +80,8 @@ describe('DataSourceAccountService', () => {
         expect.objectContaining({
           ..._.omit(rawData, ['id']),
           qualifier: expect.stringContaining('swb-'),
-          stackStatus: {
-            checkStatus: 'pending',
-            creationStatus: 'pending',
-          },
           stack: expect.stringContaining('swb-'),
+          status: 'pending',
           updatedBy: uid,
           createdBy: uid,
           rev: 0,

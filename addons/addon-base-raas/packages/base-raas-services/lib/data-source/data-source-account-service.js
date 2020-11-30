@@ -99,11 +99,6 @@ class DataSourceAccountService extends Service {
     // with other installations of SWB that also use this data source account.
     const qualifier = `swb-${generateId()}`;
     const stack = `${qualifier}-stack`;
-    const stackStatus = {
-      checkStatus: 'pending',
-      creationStatus: 'pending',
-    };
-    const lastCheck = new Date().toISOString();
 
     // Prepare the db object
     const dbObject = this._fromRawToDbObject(rawAccountEntity, {
@@ -112,8 +107,9 @@ class DataSourceAccountService extends Service {
       updatedBy: by,
       qualifier,
       stack,
-      stackStatus,
-      lastCheck,
+      stackCreated: false,
+      status: 'pending',
+      statusAt: new Date().toISOString(),
     });
 
     // Time to save the the db object

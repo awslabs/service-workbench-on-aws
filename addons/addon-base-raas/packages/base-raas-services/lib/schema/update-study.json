@@ -24,6 +24,10 @@
       "type": "string",
       "maxLength": 64
     },
+    "appRoleArn": {
+      "type": "string",
+      "maxLength": 2048
+    },
     "resources": {
       "type": "array",
       "items": [
@@ -42,5 +46,5 @@
       ]
     }
   },
-  "required": ["id", "rev"]
+  "required": ["id"]
 }

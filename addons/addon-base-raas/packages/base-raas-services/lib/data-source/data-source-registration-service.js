@@ -16,6 +16,8 @@
 // const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 
+const extensionPoint = 'study-access-strategy';
+
 class DataSourceRegistrationService extends Service {
   constructor() {
     super();
@@ -25,6 +27,7 @@ class DataSourceRegistrationService extends Service {
       'dataSourceBucketService',
       'studyService',
       'studyPermissionService',
+      'pluginRegistryService',
     ]);
   }
 
@@ -52,13 +55,28 @@ class DataSourceRegistrationService extends Service {
 
     const accountEntity = await accountService.mustFind(requestContext, { id: accountId });
     const bucketEntity = await bucketService.mustFind(requestContext, { accountId, name: bucketName });
-
     const studyEntity = await studyService.register(requestContext, accountEntity, bucketEntity, rawStudyEntity);
 
-    // Write audit event
-    await this.audit(requestContext, { action: 'register-study', body: studyEntity });
+    // We give a chance to the plugins to participate in the logic of registration. This helps us have different
+    // study access strategies
+    const pluginRegistryService = await this.service('pluginRegistryService');
+    const result = await pluginRegistryService.visitPlugins(extensionPoint, 'onStudyRegistration', {
+      payload: {
+        requestContext,
+        container: this.container,
+        accountEntity,
+        bucketEntity,
+        studyEntity,
+      },
+    });
 
-    return studyEntity;
+    // Write audit event
+    await this.audit(requestContext, {
+      action: 'register-study',
+      body: { accountEntity: result.accountEntity, bucketEntity: result.bucketEntity, studyEntity: result.studyEntity },
+    });
+
+    return result.studyEntity;
   }
 
   async audit(requestContext, auditEvent) {

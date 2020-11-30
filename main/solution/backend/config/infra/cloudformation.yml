@@ -377,6 +377,7 @@ Resources:
                 - !Join ['', [!GetAtt [KeyPairsDb, Arn], '/index/*']]
                 - !GetAtt [StorageGatewayDb, Arn]
                 - !GetAtt [DsAccountsDb, Arn]
+                - !GetAtt [RoleAllocationsDb, Arn]
 
         - PolicyName: param-store-access
           PolicyDocument:
@@ -578,6 +579,7 @@ Resources:
                 - !GetAtt [UserRolesDb, Arn]
                 - !GetAtt [StorageGatewayDb, Arn]
                 - !GetAtt [DsAccountsDb, Arn]
+                - !GetAtt [RoleAllocationsDb, Arn]
 
         - PolicyName: param-store-access
           PolicyDocument:
@@ -1396,6 +1398,23 @@ Resources:
     DependsOn: StudiesDb
     Properties:
       TableName: ${self:custom.settings.dbDsAccounts}
+      AttributeDefinitions:
+        - AttributeName: 'pk'
+          AttributeType: 'S'
+        - AttributeName: 'sk'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'pk'
+          KeyType: 'HASH'
+        - AttributeName: 'sk'
+          KeyType: 'RANGE'
+      BillingMode: PAY_PER_REQUEST
+
+  RoleAllocationsDb:
+    Type: AWS::DynamoDB::Table
+    DependsOn: DsAccountsDb
+    Properties:
+      TableName: ${self:custom.settings.dbRoleAllocations}
       AttributeDefinitions:
         - AttributeName: 'pk'
           AttributeType: 'S'
