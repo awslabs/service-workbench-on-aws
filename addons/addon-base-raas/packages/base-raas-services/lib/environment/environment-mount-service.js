@@ -835,7 +835,7 @@ class EnvironmentMountService extends Service {
         // roleArn, this not available from the study entity, it needs to be checked out
         kmsArn,
         readable: read,
-        writeable: write, // TODO - fix the spelling mistake in Go too.  It should be 'writable'.
+        writeable: write,
       };
     };
 

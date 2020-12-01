@@ -116,7 +116,7 @@ class StudyPermissionService extends Service {
 
   async init() {
     // Setup DB helpers
-    const [dbService] = await this.service(['dbService']);
+    const dbService = await this.service('dbService');
     const table = this.settings.get(settingKeys.tableName);
 
     this._getter = () => dbService.helper.getter().table(table);
