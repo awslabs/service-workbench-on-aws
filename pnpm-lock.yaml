@@ -304,6 +304,7 @@ importers:
       '@aws-ee/key-pair-mgmt-services': 'link:../../../addon-key-pair-mgmt-api/packages/key-pair-mgmt-services'
       lodash: 4.17.15
       moment: 2.27.0
+      nanoid: 3.1.16
       node-cache: 4.2.1
       node-fetch: 2.6.0
       request: 2.88.2
@@ -344,6 +345,7 @@ importers:
       jest-junit: ^10.0.0
       lodash: ^4.17.15
       moment: ^2.27.0
+      nanoid: ^3.1.16
       node-cache: ^4.2.1
       node-fetch: ^2.6.0
       prettier: ^1.19.1
@@ -14494,6 +14496,13 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-1qstj9z5+x491jfiC4Nelk+f8XBad7LN20PmyWINJEMRSf3wcAjAWysw1qaA8z6NSKe2sjq1hRSDpBH5paCb6A==
+  /nanoid/3.1.16:
+    dev: false
+    engines:
+      node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1
+    hasBin: true
+    resolution:
+      integrity: sha512-+AK8MN0WHji40lj8AEuwLOvLSbWYApQpre/aFJZD71r43wVRLrOYS4FmJOPQYon1TqB462RzrrxlfA74XRES8w==
   /nanomatch/1.2.13:
     dependencies:
       arr-diff: 4.0.0

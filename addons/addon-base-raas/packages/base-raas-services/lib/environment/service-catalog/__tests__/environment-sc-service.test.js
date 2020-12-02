@@ -15,6 +15,8 @@
 
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
 const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
+
+jest.mock('@aws-ee/base-services/lib/logger/logger-service');
 const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
 const AWSMock = require('aws-sdk-mock');
 const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');

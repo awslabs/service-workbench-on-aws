@@ -24,6 +24,10 @@
       "type": "string",
       "maxLength": 64
     },
+    "appRoleArn": {
+      "type": "string",
+      "maxLength": 2048
+    },
     "resources": {
       "type": "array",
       "items": [
@@ -38,13 +42,9 @@
               "type": "string"
             }
           }
-        }    
+        }
       ]
-    },
-    "accessType": {
-      "type": "string",
-      "enum": ["readonly", "readwrite"]
     }
   },
-  "required": ["id", "rev"]
+  "required": ["id"]
 }
