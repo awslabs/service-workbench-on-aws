@@ -40,10 +40,11 @@ class Boom {
 
   extend(...arr) {
     _.forEach(arr, item => {
-      if (!_.isArray(item))
+      if (!_.isArray(item)) {
         throw new Error(
           `You tried to extend boom, but one of the elements you provided is not an array "${item}". You need to pass an array of arrays.`,
         );
+      }
       this[item[0]] = (msg, safe) => new BoomError(msg, safe, item[0], item[1]);
     });
   }

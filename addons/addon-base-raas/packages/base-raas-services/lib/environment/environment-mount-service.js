@@ -15,6 +15,7 @@
 
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
+const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
 
 const settingKeys = {
   environmentInstanceFiles: 'environmentInstanceFiles',
@@ -23,6 +24,11 @@ const settingKeys = {
   studyDataKmsKeyArn: 'studyDataKmsKeyArn',
   studyDataKmsPolicyWorkspaceSid: 'studyDataKmsPolicyWorkspaceSid',
 };
+
+const readOnlyPermissionLevel = 'readonly';
+const readWritePermissionLevel = 'readwrite';
+const readWriteStatementId = 'S3StudyReadWriteAccess';
+const readOnlyStatementId = 'S3StudyReadAccess';
 
 const parseS3Arn = arn => {
   const path = arn.slice('arn:aws:s3:::'.length);
@@ -41,7 +47,15 @@ const parseS3Arn = arn => {
 class EnvironmentMountService extends Service {
   constructor() {
     super();
-    this.dependency(['aws', 'lockService', 'studyService', 'studyPermissionService']);
+    this.dependency([
+      'aws',
+      'lockService',
+      'studyService',
+      'studyPermissionService',
+      'environmentScService',
+      'iamService',
+      'storageGatewayService',
+    ]);
   }
 
   async getCfnStudyAccessParameters(requestContext, rawDataV1) {
@@ -52,11 +66,19 @@ class EnvironmentMountService extends Service {
   async getStudyAccessInfo(requestContext, studyIds) {
     const studyInfo = await this._getStudyInfo(requestContext, studyIds);
     await this._validateStudyPermissions(requestContext, studyInfo);
-    const s3Mounts = this._prepareS3Mounts(studyInfo);
+    const s3Mounts = await this._prepareS3Mounts(studyInfo);
     const iamPolicyDocument = await this._generateIamPolicyDoc(studyInfo);
 
     return {
-      s3Mounts: JSON.stringify(s3Mounts.map(({ id, bucket, prefix }) => ({ id, bucket, prefix }))),
+      s3Mounts: JSON.stringify(
+        s3Mounts.map(({ id, bucket, prefix, writeable, kmsKeyId }) => ({
+          id,
+          bucket,
+          prefix,
+          writeable,
+          kmsKeyId,
+        })),
+      ),
       iamPolicyDocument: JSON.stringify(iamPolicyDocument),
       environmentInstanceFiles: this.settings.get(settingKeys.environmentInstanceFiles),
       s3Prefixes: s3Mounts.filter(({ category }) => category !== 'Open Data').map(mount => mount.prefix),
@@ -124,6 +146,7 @@ class EnvironmentMountService extends Service {
         s3Prefixes.forEach(prefix => {
           const listSid = `List:${prefix}`;
           const getSid = `Get:${prefix}`;
+          const putSid = `Put:${prefix}`;
 
           // Define default statements to be used if we can't find existing ones
           let listStatement = {
@@ -138,11 +161,26 @@ class EnvironmentMountService extends Service {
               },
             },
           };
+          // Read Permission
           let getStatement = {
             Sid: getSid,
             Effect: 'Allow',
             Principal: { AWS: [] },
             Action: ['s3:GetObject'],
+            Resource: [`arn:aws:s3:::${s3BucketName}/${prefix}*`],
+          };
+          // Write Permission
+          let putStatement = {
+            Sid: putSid,
+            Effect: 'Allow',
+            Principal: { AWS: [] },
+            Action: [
+              's3:AbortMultipartUpload',
+              's3:ListMultipartUploadParts',
+              's3:PutObject',
+              's3:PutObjectAcl',
+              's3:DeleteObject',
+            ],
             Resource: [`arn:aws:s3:::${s3BucketName}/${prefix}*`],
           };
 
@@ -152,6 +190,8 @@ class EnvironmentMountService extends Service {
               listStatement = statement;
             } else if (statement.Sid === getSid) {
               getStatement = statement;
+            } else if (statement.Sid === putSid) {
+              putStatement = statement;
             }
           });
 
@@ -159,9 +199,12 @@ class EnvironmentMountService extends Service {
           // NOTE: The S3 API *should* remove duplicate principals, if any
           listStatement.Principal.AWS = updateAwsPrincipals(listStatement.Principal.AWS, workspaceRoleArn);
           getStatement.Principal.AWS = updateAwsPrincipals(getStatement.Principal.AWS, workspaceRoleArn);
+          putStatement.Principal.AWS = updateAwsPrincipals(putStatement.Principal.AWS, workspaceRoleArn);
 
-          s3Policy.Statement = s3Policy.Statement.filter(statement => ![listSid, getSid].includes(statement.Sid));
-          [listStatement, getStatement].forEach(statement => {
+          s3Policy.Statement = s3Policy.Statement.filter(
+            statement => ![listSid, getSid, putSid].includes(statement.Sid),
+          );
+          [listStatement, getStatement, putStatement].forEach(statement => {
             // Only add updated statement if it contains principals (otherwise leave it out)
             if (statement.Principal.AWS.length > 0) {
               s3Policy.Statement.push(statement);
@@ -212,15 +255,532 @@ class EnvironmentMountService extends Service {
     ]);
   }
 
+  /**
+   * Function that calculates which users need should and should not have access permissions for the given studyId
+   * Accordingly calls methods that ensure/remove/update permissions for said users
+   *
+   * @param {String} studyId
+   * @param {Object} updateRequest - permission add/remove/update requests coming from SWB UI
+   */
+  async applyWorkspacePermissions(studyId, updateRequest) {
+    const allowedUsers = this._getAllowedUsers(updateRequest);
+    const disAllowedUsers = this._getDisAllowedUsers(updateRequest);
+    const permissionChangeUsers = this._getPermissionChangeUsers(updateRequest);
+
+    if (_.isEmpty(allowedUsers) && _.isEmpty(disAllowedUsers) && _.isEmpty(permissionChangeUsers)) {
+      return;
+    }
+
+    const total = _.size(allowedUsers) + _.size(disAllowedUsers) + _.size(permissionChangeUsers);
+    const limit = 200;
+    if (total > limit) {
+      this.boom.internalError(
+        `This requires system to update ${total} workspace permissions at a time. Please reduce this to within ${limit} workspaces owned by selected users`,
+      );
+    }
+
+    const errors = [];
+    const runAndCaptureErrors = async (users, fn) => {
+      if (_.isEmpty(users)) return;
+      try {
+        await fn(users);
+      } catch (error) {
+        if (_.isArray(error)) {
+          errors.push(...error);
+        } else {
+          errors.push(error);
+        }
+      }
+    };
+
+    await runAndCaptureErrors(allowedUsers, users => this.addPermissions(users, studyId));
+    await runAndCaptureErrors(disAllowedUsers, users => this.removePermissions(users, studyId, updateRequest));
+    await runAndCaptureErrors(permissionChangeUsers, users => this.updatePermissions(users, studyId, updateRequest));
+
+    if (!_.isEmpty(errors)) {
+      const count = _.size(errors);
+      throw this.boom.internalError(`Could not update permissions for ${count} workspaces`, true).withPayload(
+        {
+          errors,
+        },
+        true,
+      );
+    }
+  }
+
+  /**
+   * This method will add/ensure ReadOnly or Read/Write access for workspaces owned by users in the given list
+   * only if these workspaces have this study mounted on it during provision time.
+   * This will not mount studies on user-owned workspaces which did not have them
+   *
+   * @param {Object[]} allowedUsers - Users that newly/continue-to have access to given studyId
+   * @param {String} studyId
+   */
+  async addPermissions(allowedUsers, studyId) {
+    const [iamService, environmentScService] = await this.service(['iamService', 'environmentScService']);
+    const errors = [];
+    await Promise.all(
+      _.map(allowedUsers, async user => {
+        const userOwnedEnvs = await environmentScService.getActiveEnvsForUser(user.uid);
+        const envsWithStudy = _.filter(userOwnedEnvs, env => _.includes(env.studyIds, studyId));
+        await Promise.all(
+          _.map(envsWithStudy, async env => {
+            try {
+              const {
+                iamClient,
+                studyPathArn,
+                policyDoc,
+                roleName,
+                studyDataPolicyName,
+              } = await this._getIamUpdateParams(env, studyId);
+
+              const statementSidToUse = this._getStatementSidToUse(user.permissionLevel);
+              let ensureRemovedPermission;
+              if (statementSidToUse === readOnlyStatementId) {
+                ensureRemovedPermission = readWriteStatementId;
+              } else if (statementSidToUse === readWriteStatementId) {
+                ensureRemovedPermission = readOnlyStatementId;
+              }
+              policyDoc.Statement = this._getStatementsAfterAddition(policyDoc, studyPathArn, statementSidToUse);
+              policyDoc.Statement = this._ensureListAccess(policyDoc, studyPathArn);
+              policyDoc.Statement = this._getStatementsAfterRemoval(policyDoc, studyPathArn, ensureRemovedPermission);
+              await iamService.putRolePolicy(roleName, studyDataPolicyName, JSON.stringify(policyDoc), iamClient);
+            } catch (error) {
+              const envId = env.id;
+              errors.push({ envId, reason: error.message || 'Unknown error' });
+            }
+          }),
+        );
+      }),
+    );
+    if (!_.isEmpty(errors)) {
+      throw errors;
+    }
+  }
+
+  /**
+   * This method will remove the ReadOnly or Read/Write access for workspaces owned by users in the given list
+   * only if these workspaces have this study mounted on it during provision time.
+   * This will not unmount studies from user-owned workspaces, and therefore could be re-assigned access later
+   *
+   * @param {Object[]} disAllowedUsers - Users that lost access to given studyId
+   * @param {String} studyId
+   */
+  async removePermissions(disAllowedUsers, studyId, updateRequest) {
+    const [iamService, environmentScService] = await this.service(['iamService', 'environmentScService']);
+    const errors = [];
+    await Promise.all(
+      _.map(disAllowedUsers, async user => {
+        const isStudyAdmin = !_.isEmpty(
+          _.filter(updateRequest.usersToAdd, u => u.permissionLevel === 'admin' && u.uid === user.uid),
+        );
+        const userOwnedEnvs = await environmentScService.getActiveEnvsForUser(user.uid);
+        const envsWithStudy = _.filter(userOwnedEnvs, env => _.includes(env.studyIds, studyId));
+        await Promise.all(
+          _.map(envsWithStudy, async env => {
+            try {
+              const {
+                iamClient,
+                studyPathArn,
+                policyDoc,
+                roleName,
+                studyDataPolicyName,
+              } = await this._getIamUpdateParams(env, studyId);
+
+              const statementSidToUse = this._getStatementSidToUse(user.permissionLevel);
+              // Study admin should always have R/O access (for backwards compatibility)
+              policyDoc.Statement = this._getStatementsAfterRemoval(policyDoc, studyPathArn, statementSidToUse);
+              policyDoc.Statement = this._removeListAccess(policyDoc, studyPathArn);
+              if (isStudyAdmin) {
+                policyDoc.Statement = this._ensureReadAccessForAdmin(policyDoc, studyPathArn);
+              }
+              await iamService.putRolePolicy(roleName, studyDataPolicyName, JSON.stringify(policyDoc), iamClient);
+            } catch (error) {
+              const envId = env.id;
+              errors.push({ envId, reason: error.message || 'Unknown error' });
+            }
+          }),
+        );
+      }),
+    );
+    if (!_.isEmpty(errors)) {
+      throw errors;
+    }
+  }
+
+  /**
+   * This method will assign a different permission level than earlier for workspaces owned by users in the given list
+   * only if these workspaces have this study mounted on it during provision time.
+   *
+   * @param {Object[]} permissionChangeUsers - Users reassigned with different access level for the given studyId
+   * @param {String} studyId
+   * @param {Object} updateRequest - permission add/remove/update requests coming from SWB UI
+   */
+  async updatePermissions(permissionChangeUsers, studyId, updateRequest) {
+    const [iamService, environmentScService] = await this.service(['iamService', 'environmentScService']);
+    const errors = [];
+    const userUids = _.uniq(_.map(permissionChangeUsers, user => user.uid));
+    await Promise.all(
+      _.map(userUids, async userUid => {
+        const removeUserPermission = _.find(
+          updateRequest.usersToRemove,
+          user => user.uid === userUid && user.permissionLevel !== 'admin',
+        ).permissionLevel;
+        const addUserPermission = _.find(
+          updateRequest.usersToAdd,
+          user => user.uid === userUid && user.permissionLevel !== 'admin',
+        ).permissionLevel;
+
+        const userOwnedEnvs = await environmentScService.getActiveEnvsForUser(userUid);
+        const envsWithStudy = _.filter(userOwnedEnvs, env => _.includes(env.studyIds, studyId));
+
+        await Promise.all(
+          _.map(envsWithStudy, async env => {
+            try {
+              const {
+                iamClient,
+                studyPathArn,
+                policyDoc,
+                roleName,
+                studyDataPolicyName,
+              } = await this._getIamUpdateParams(env, studyId);
+
+              const removePermissionsSid = this._getStatementSidToUse(removeUserPermission);
+              const addPermissionsSid = this._getStatementSidToUse(addUserPermission);
+              policyDoc.Statement = this._getStatementsAfterRemoval(policyDoc, studyPathArn, removePermissionsSid);
+              policyDoc.Statement = this._getStatementsAfterAddition(policyDoc, studyPathArn, addPermissionsSid);
+              await iamService.putRolePolicy(roleName, studyDataPolicyName, JSON.stringify(policyDoc), iamClient);
+              // No need to manage list access for updates, that is only for add/update permissions
+            } catch (error) {
+              const envId = env.id;
+              errors.push({ envId, reason: error.message || 'Unknown error' });
+            }
+          }),
+        );
+      }),
+    );
+    if (!_.isEmpty(errors)) {
+      throw errors;
+    }
+  }
+
+  /**
+   * Function that returns updated policy document after making sure study admin at least continues to have R/O access
+   *
+   * @param {Object} policyDoc - S3 studydata policy document for workspace role
+   * @param {String} studyPathArn
+   * @returns {Object[]} - the statement to update in the policy
+   */
+  _ensureReadAccessForAdmin(policyDoc, studyPathArn) {
+    policyDoc.Statement = this._ensureListAccess(policyDoc, studyPathArn);
+    policyDoc.Statement = this._getStatementsAfterAddition(policyDoc, studyPathArn, readOnlyStatementId);
+    return policyDoc.Statement;
+  }
+
+  /**
+   * Function that returns updated policy document with additions according to recent user-study permission change
+   *
+   * @param {Object} policyDoc - S3 studydata policy document for workspace role
+   * @param {String} studyPathArn
+   * @returns {Object[]} - the statement to update in the policy
+   */
+  _getStatementsAfterAddition(policyDoc, studyPathArn, statementSidToUse) {
+    if (
+      !_.includes(
+        _.map(policyDoc.Statement, s => s.Sid),
+        statementSidToUse,
+      )
+    ) {
+      // If the statement didn't exist for this policy, add it now
+      policyDoc.Statement.push(this._getStatementObject(statementSidToUse, studyPathArn));
+    } else {
+      // Change permission statements for this study in policy doc
+      _.forEach(policyDoc.Statement, statement => {
+        // Check if study ARN already exists in the specific statement's resources
+        if (statement.Sid === statementSidToUse && !_.includes(statement.Resource, studyPathArn)) {
+          statement.Resource.push(studyPathArn);
+        }
+      });
+    }
+    return policyDoc.Statement;
+  }
+
+  /**
+   * Function that returns updated policy document with removals according to recent user-study permission change
+   *
+   * @param {Object} policyDoc - S3 studydata policy document for workspace role
+   * @param {String} studyPathArn
+   * @returns {Object[]} - the statement to update in the policy
+   */
+  _getStatementsAfterRemoval(policyDoc, studyPathArn, statementSidToUse) {
+    const selectedStatement = _.find(policyDoc.Statement, statement => statement.Sid === statementSidToUse);
+
+    if (selectedStatement) {
+      if (_.includes(selectedStatement.Resource, studyPathArn) && selectedStatement.Resource.length === 1) {
+        // Handle scenarios where there is only one Resource in the list
+        policyDoc.Statement = _.filter(policyDoc.Statement, statement => statement.Sid !== statementSidToUse);
+      } else {
+        // Change permission statements for this study in policy doc
+        _.forEach(policyDoc.Statement, statement => {
+          if (statement.Sid === statementSidToUse && _.includes(statement.Resource, studyPathArn)) {
+            const index = statement.Resource.indexOf(studyPathArn);
+            statement.Resource.splice(index, 1);
+          }
+        });
+      }
+    }
+    return policyDoc.Statement;
+  }
+
+  /**
+   * Function that returns a policy statement for the specific permission level
+   * for scenarios where the policy does not have one already
+   *
+   * @param {String} statementSidToUse - the statement to update in the policy
+   * @param {String} studyPathArn
+   * @returns {Object} - Statement with correct permissions
+   */
+  _getStatementObject(statementSidToUse, studyPathArn) {
+    return {
+      Sid: statementSidToUse,
+      Effect: 'Allow',
+      Action:
+        statementSidToUse === readWriteStatementId
+          ? [
+              's3:GetObject',
+              's3:AbortMultipartUpload',
+              's3:ListMultipartUploadParts',
+              's3:PutObject',
+              's3:PutObjectAcl',
+              's3:DeleteObject',
+            ]
+          : ['s3:GetObject'],
+      Resource: [studyPathArn],
+    };
+  }
+
+  /**
+   * This method will filter out existing/added users from the original updateRequest
+   * for access to the study
+   *
+   * @param {Object} updateRequest - permission add/remove/update requests coming from SWB UI
+   * @returns {Object[]} - List of users which newly/continue-to have access to the study
+   */
+  _getAllowedUsers(updateRequest) {
+    return _.filter(
+      updateRequest.usersToAdd,
+      userToAdd =>
+        !_.includes(
+          _.map(
+            _.filter(updateRequest.usersToRemove, u => u.permissionLevel !== 'admin'),
+            userToRemove => userToRemove.uid,
+          ),
+          userToAdd.uid,
+        ) && userToAdd.permissionLevel !== 'admin',
+    );
+  }
+
+  /**
+   * This method will filter out users from the original updateRequest
+   * who lost access to the study
+   *
+   * @param {Object} updateRequest - permission add/remove/update requests coming from SWB UI
+   * @returns {Object[]} - List of users which lost access to the study
+   */
+  _getDisAllowedUsers(updateRequest) {
+    return _.filter(
+      updateRequest.usersToRemove,
+      userToRemove =>
+        !_.includes(
+          _.map(
+            _.filter(updateRequest.usersToAdd, u => u.permissionLevel !== 'admin'),
+            userToAdd => userToAdd.uid,
+          ),
+          userToRemove.uid,
+        ) && userToRemove.permissionLevel !== 'admin',
+    );
+  }
+
+  /**
+   * This method will filter out users from the original updateRequest
+   * who have switched permission levels for the study
+   *
+   * @param {Object} updateRequest - permission add/remove/update requests coming from SWB UI
+   * @returns {Object[]} - List of users which have switched permission levels for the study
+   */
+  _getPermissionChangeUsers(updateRequest) {
+    return _.filter(
+      updateRequest.usersToRemove,
+      userToRemove =>
+        _.includes(
+          _.map(
+            _.filter(updateRequest.usersToAdd, u => u.permissionLevel !== 'admin'),
+            userToAdd => userToAdd.uid,
+          ),
+          userToRemove.uid,
+        ) && userToRemove.permissionLevel !== 'admin',
+    );
+  }
+
+  /**
+   * Function that returns updated policy document after ensuring workspace has list permissions for studies it has some access to
+   *
+   * @param {Object} policyDoc - S3 studydata policy document for workspace role
+   * @param {String} studyPathArn
+   * @returns {Object[]} - the statement to update in the policy
+   */
+  _ensureListAccess(policyDoc, studyPathArn) {
+    const s3BucketName = studyPathArn.substring(0, studyPathArn.indexOf('/'));
+    const studyPrefix = studyPathArn.substring(studyPathArn.indexOf('/') + 1);
+
+    _.forEach(policyDoc.Statement, statement => {
+      if (
+        statement.Sid.startsWith('studyListS3Access') &&
+        statement.Effect === 'Allow' &&
+        statement.Resource === s3BucketName &&
+        !_.includes(statement.Condition.StringLike['s3:prefix'], studyPrefix)
+      ) {
+        statement.Condition.StringLike['s3:prefix'].push(studyPrefix);
+      }
+    });
+
+    return policyDoc.Statement;
+  }
+
+  /**
+   * Function that returns updated policy document after removing workspace's list permissions for studies it has no access to
+   *
+   * @param {Object} policyDoc - S3 studydata policy document for workspace role
+   * @param {String} studyPathArn
+   * @returns {Object[]} - the statement to update in the policy
+   */
+  _removeListAccess(policyDoc, studyPathArn) {
+    const s3BucketName = studyPathArn.substring(0, studyPathArn.indexOf('/'));
+    const studyPrefix = studyPathArn.substring(studyPathArn.indexOf('/') + 1);
+
+    _.forEach(policyDoc.Statement, statement => {
+      if (
+        statement.Sid.startsWith('studyListS3Access') &&
+        statement.Effect === 'Allow' &&
+        statement.Resource === s3BucketName &&
+        _.includes(statement.Condition.StringLike['s3:prefix'], studyPrefix)
+      ) {
+        const index = statement.Condition.StringLike['s3:prefix'].indexOf(studyPrefix);
+        statement.Condition.StringLike['s3:prefix'].splice(index, 1);
+      }
+    });
+
+    return policyDoc.Statement;
+  }
+
+  /**
+   * This method looks for inline policy based on the given array of "possibleInlinePolicyNames".
+   * The method returns as soon as it finds an inline policy in the given role (identified by the "roleName")
+   * with a matching name from the "possibleInlinePolicyNames".
+   * If no inline policy is found with any of the names from the "possibleInlinePolicyNames", the method returns undefined.
+   *
+   * @param {Object} possibleInlinePolicyNames - Known policy names we have used in out-of-the-box SC product templates
+   * * @param {Object} roleName - Name of the IAM role for the given workspace
+   * * @param {Object} iamClient
+   * @returns {Object} - Returns policy object
+   */
+  async _getPolicy(possibleInlinePolicyNames, roleName, iamClient) {
+    const iamService = await this.service('iamService');
+
+    // eslint-disable-next-line no-restricted-syntax
+    for (const possiblePolicyName of possibleInlinePolicyNames) {
+      // eslint-disable-next-line no-await-in-loop
+      const policy = await iamService.getRolePolicy(roleName, possiblePolicyName, iamClient);
+      if (policy && policy.PolicyDocumentObj) {
+        return policy;
+      }
+    }
+    return undefined;
+  }
+
+  async _getWorkspacePolicy(iamClient, env) {
+    const workspaceRoleObject = _.find(env.outputs, { OutputKey: 'WorkspaceInstanceRoleArn' });
+    if (!workspaceRoleObject) {
+      throw new Error(
+        'Workspace IAM Role is not ready yet. Please make sure environment is in Completed status and retry the operation',
+      );
+    }
+    const workspaceRoleArn = workspaceRoleObject.OutputValue;
+    const roleName = workspaceRoleArn.split('role/')[1];
+    const policyNamePrefix = `analysis-${workspaceRoleArn.split('-')[1]}`;
+    const possibleInlinePolicyNames = [
+      `${policyNamePrefix}-s3-studydata-policy`,
+      `${policyNamePrefix}-s3-data-access-policy`,
+      `${policyNamePrefix}-s3-policy`,
+    ];
+
+    const policy = await this._getPolicy(possibleInlinePolicyNames, roleName, iamClient);
+    const policyDoc = policy ? policy.PolicyDocumentObj : {};
+    return { policyDoc, roleName, studyDataPolicyName: policy.PolicyName };
+  }
+
+  async _getIamUpdateParams(env, studyId) {
+    const sysRequestContext = getSystemRequestContext();
+    const iamClient = await this._getEnvIamClient(sysRequestContext, env);
+    const { policyDoc, roleName, studyDataPolicyName } = await this._getWorkspacePolicy(iamClient, env);
+    const studyPathArn = await this._getStudyArn(sysRequestContext, studyId);
+    return { iamClient, studyPathArn, policyDoc, roleName, studyDataPolicyName };
+  }
+
+  async _getStudyArn(requestContext, studyId) {
+    const studyService = await this.service('studyService');
+    const studyInfo = [];
+    const { id, name, category, resources } = await studyService.mustFind(requestContext, studyId);
+    studyInfo.push({ id, name, category, resources });
+    const studyPathArn = await this._getObjectPathArns(studyInfo);
+    return studyPathArn[0];
+  }
+
+  _getStatementSidToUse(permissionLevel) {
+    let statementSidToUse = '';
+    if (permissionLevel === readWritePermissionLevel) {
+      statementSidToUse = readWriteStatementId;
+    } else if (permissionLevel === readOnlyPermissionLevel) {
+      statementSidToUse = readOnlyStatementId;
+    }
+    if (statementSidToUse === '') {
+      throw new Error(
+        `Currently only readonly and readwrite permissions can be updated. Permission changed: ${permissionLevel}`,
+      );
+    }
+    return statementSidToUse;
+  }
+
+  async _getEnvIamClient(requestContext, env) {
+    const [environmentScService, aws] = await this.service(['environmentScService', 'aws']);
+    const { cfnExecutionRoleArn, roleExternalId } = await environmentScService.getCfnExecutionRoleArn(
+      requestContext,
+      env,
+    );
+
+    const iamClient = await aws.getClientSdkForRole({
+      roleArn: cfnExecutionRoleArn,
+      externalId: roleExternalId,
+      clientName: 'IAM',
+    });
+
+    return iamClient;
+  }
+
   async _getStudyInfo(requestContext, studyIds) {
     let studyInfo = [];
     if (studyIds && studyIds.length) {
-      const studyService = await this.service('studyService');
+      const [studyService, studyPermissionService] = await this.service(['studyService', 'studyPermissionService']);
+
       studyInfo = await Promise.all(
-        studyIds.map(async studyId => {
+        _.map(studyIds, async studyId => {
           try {
             const { id, name, category, resources } = await studyService.mustFind(requestContext, studyId);
-            return { id, name, category, resources };
+            // Find out if the current user has Read/Write access
+            const uid = _.get(requestContext, 'principalIdentifier.uid');
+            const studyPermission = await studyPermissionService.findByUser(requestContext, uid);
+            const writeable = _.includes(studyPermission.readwriteAccess, studyId) || category === 'My Studies';
+            return { id, name, category, resources, writeable };
           } catch (error) {
             // Because the studies update periodically we cannot
             // guarantee consistency so filter anything invalid here
@@ -229,7 +789,6 @@ class EnvironmentMountService extends Service {
         }),
       );
     }
-
     return studyInfo;
   }
 
@@ -240,10 +799,10 @@ class EnvironmentMountService extends Service {
       const requestedStudyIds = studyInfo.map(study => study.id);
 
       // Retrieve and verify user's study permissions
-      const studyPermissionService = await this.service('studyPermissionService');
+      const [studyPermissionService, studyService] = await this.service(['studyPermissionService', 'studyService']);
       const storedPermissions = await studyPermissionService.getRequestorPermissions(requestContext);
 
-      // If there are no stored permissions, use a empty permissions object
+      // If there are no stored permissions, use an empty permissions object
       permissions = storedPermissions || studyPermissionService.getEmptyUserPermissions();
 
       // Add Open Data read access for everyone
@@ -252,26 +811,31 @@ class EnvironmentMountService extends Service {
       );
 
       // Determine whether any forbidden studies were requested
-      const allowedStudies = permissions.adminAccess.concat(permissions.readonlyAccess);
+      const allowedStudies = studyService.getAllowedStudies(permissions);
       const forbiddenStudies = _.difference(requestedStudyIds, allowedStudies);
-
-      if (forbiddenStudies.length) {
+      if (!_.isEmpty(forbiddenStudies)) {
         throw new Error(`Studies not found: ${forbiddenStudies.join(',')}`);
       }
     }
     return permissions;
   }
 
-  _prepareS3Mounts(studyInfo) {
+  async _prepareS3Mounts(studyInfo) {
     let mounts = [];
     if (studyInfo.length) {
+      const studyDataKmsKeyArn = this.settings.get(settingKeys.studyDataKmsKeyArn);
+
       // There might be multiple resources. In the future we may flatMap, for now...
       mounts = studyInfo.reduce(
-        (result, { id, resources, category }) =>
+        (result, { id, resources, category, writeable }) =>
           result.concat(
             resources.map(resource => {
               const { bucket, prefix } = parseS3Arn(resource.arn);
-              return { id, bucket, prefix, category };
+              const mount = { id, bucket, prefix, category, writeable };
+              if (category !== 'Open Data') {
+                mount.kmsKeyId = studyDataKmsKeyArn;
+              }
+              return mount;
             }),
           ),
         [],
@@ -281,48 +845,73 @@ class EnvironmentMountService extends Service {
     return mounts;
   }
 
+  _getObjectPathArns(studyInfo) {
+    // Collect study resources
+    const objectPathArns = _.flatten(
+      _.map(studyInfo, info =>
+        info.resources
+          // Pull out resource ARNs
+          .map(resource => resource.arn)
+          // Only grab S3 ARNs
+          .filter(arn => arn.startsWith('arn:aws:s3:'))
+          // Normalize the ARNs by ensuring they end with "/*"
+          .map(arn => {
+            switch (arn.slice(-1)) {
+              case '*':
+                break;
+              case '/':
+                arn += '*';
+                break;
+              default:
+                arn += '/*';
+            }
+
+            return arn;
+          }),
+      ),
+    );
+    return objectPathArns;
+  }
+
   async _generateIamPolicyDoc(studyInfo) {
     let policyDoc = {};
+    // Build policy statements for object-level permissions
+    const statements = [];
+
     if (studyInfo.length) {
-      const objectLevelActions = ['s3:GetObject'];
+      const writeableStudies = _.filter(studyInfo, study => study.writeable);
+      const readonlyStudies = _.filter(studyInfo, study => !study.writeable);
 
-      // Collect study resources
-      const objectPathArns = _.flatten(
-        studyInfo.map(info =>
-          info.resources
-            // Pull out resource ARNs
-            .map(resource => resource.arn)
-            // Only grab S3 ARNs
-            .filter(arn => arn.startsWith('arn:aws:s3:'))
-            // Normalize the ARNs by ensuring they end with "/*"
-            .map(arn => {
-              switch (arn.slice(-1)) {
-                case '*':
-                  break;
-                case '/':
-                  arn += '*';
-                  break;
-                default:
-                  arn += '/*';
-              }
+      if (writeableStudies.length && writeableStudies.length > 0) {
+        const objectLevelWriteActions = [
+          's3:GetObject',
+          's3:AbortMultipartUpload',
+          's3:ListMultipartUploadParts',
+          's3:PutObject',
+          's3:PutObjectAcl',
+          's3:DeleteObject',
+        ];
+        statements.push({
+          Sid: readWriteStatementId,
+          Effect: 'Allow',
+          Action: objectLevelWriteActions,
+          Resource: this._getObjectPathArns(writeableStudies),
+        });
+      }
 
-              return arn;
-            }),
-        ),
-      );
-
-      // Build policy statements for object-level permissions
-      const statements = [];
-      statements.push({
-        Sid: 'S3StudyReadAccess',
-        Effect: 'Allow',
-        Action: objectLevelActions,
-        Resource: objectPathArns,
-      });
+      if (readonlyStudies.length && readonlyStudies.length > 0) {
+        const objectLevelReadActions = ['s3:GetObject'];
+        statements.push({
+          Sid: readOnlyStatementId,
+          Effect: 'Allow',
+          Action: objectLevelReadActions,
+          Resource: this._getObjectPathArns(readonlyStudies),
+        });
+      }
 
       // Create map of buckets whose paths need list access
       const bucketPaths = {};
-      objectPathArns.forEach(arn => {
+      this._getObjectPathArns(studyInfo).forEach(arn => {
         const { bucket, prefix } = parseS3Arn(arn);
         if (!(bucket in bucketPaths)) {
           bucketPaths[bucket] = [];

@@ -33,6 +33,9 @@
           "properties": {
             "arn": {
               "type": "string"
+            },
+            "fileShareArn": {
+              "type": "string"
             }
           }
         }    

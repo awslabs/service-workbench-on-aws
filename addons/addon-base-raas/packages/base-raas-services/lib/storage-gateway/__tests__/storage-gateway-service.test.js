@@ -27,8 +27,14 @@ const DbServiceMock = require('@aws-ee/base-services/lib/db-service');
 jest.mock('@aws-ee/base-services/lib/user/user-service');
 const UserServiceMock = require('@aws-ee/base-services/lib/user/user-service');
 
+jest.mock('@aws-ee/base-services/lib/lock/lock-service');
+const LockServiceMock = require('@aws-ee/base-services/lib/lock/lock-service');
+
 jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
 const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
+
+jest.mock('../../study/study-service');
+const StudyServiceMock = require('../../study/study-service');
 
 const StorageGateway = require('../storage-gateway-service');
 
@@ -37,6 +43,8 @@ describe('storageGatewayService', () => {
   let userService;
   let log;
   let dbService;
+  let studyService;
+  let lockService;
   const context = { principalIdentifier: { uid: 'u-daffyduck' } };
 
   beforeAll(async () => {
@@ -49,6 +57,8 @@ describe('storageGatewayService', () => {
     container.register('userService', new UserServiceMock());
     container.register('settings', new SettingsServiceMock());
     container.register('jsonSchemaValidationService', new JsonSchemaValidationService());
+    container.register('studyService', new StudyServiceMock());
+    container.register('lockService', new LockServiceMock());
 
     await container.initServices();
 
@@ -57,6 +67,8 @@ describe('storageGatewayService', () => {
     userService = await container.find('userService');
     log = await container.find('log');
     dbService = await container.find('dbService');
+    studyService = await container.find('studyService');
+    lockService = await container.find('lockService');
   });
 
   beforeEach(async () => {
@@ -507,16 +519,41 @@ describe('storageGatewayService', () => {
   describe('createFileShare', () => {
     it('should return existing file share', async () => {
       // BUILD
-      dbService.table.get.mockImplementationOnce(() => {
-        return { file_share_s3_locations: { s3LocationArn: 'fileShareArn' } };
+      studyService.mustFind.mockResolvedValue({
+        resources: [{ arn: 'some-s3-path', fileShareArn: 'fileShareArn' }],
       });
       // OPERATE
-      const result = await storageGateway.createFileShare(context, 'gatewayArn', 's3LocationArn', 'roleArn');
+      const result = await storageGateway.createFileShare(context, 'gatewayArn', 'studyId', 'roleArn');
       // CHECK
       expect(result).toEqual('fileShareArn');
     });
 
+    it('should throw error if there are multiple s3 path', async () => {
+      // BUILD
+      studyService.mustFind.mockResolvedValue({
+        resources: [
+          { arn: 'some-s3-path', fileShareArn: 'fileShareArn' },
+          { arn: 'some-other-s3-path', fileShareArn: 'anotherFileShareArn' },
+        ],
+      });
+      // OPERATE and CHECK
+      try {
+        await storageGateway.createFileShare(context, 'gatewayArn', 'studyId', 'roleArn');
+        expect.hasAssertions();
+      } catch (err) {
+        expect(storageGateway.boom.is(err, 'badRequest')).toBe(true);
+        expect(err.message).toContain(
+          `Study studyId has 2 S3 paths associated with it, only study with 1 s3 path is supported.`,
+        );
+      }
+    });
+
     it('should throw error if SG record can not be found', async () => {
+      // BUILD
+      studyService.mustFind.mockResolvedValue({
+        resources: [{ arn: 'some-s3-path' }],
+      });
+      dbService.table.get.mockResolvedValueOnce(null);
       // OPERATE and CHECK
       try {
         await storageGateway.createFileShare(context, 'gatewayArn', 's3LocationArn', 'roleArn');
@@ -529,11 +566,11 @@ describe('storageGatewayService', () => {
 
     it('should create new file share and save to DDB', async () => {
       // BUILD
+      studyService.mustFind.mockResolvedValue({
+        resources: [{ arn: 's3LocationArn' }],
+      });
       dbService.table.item.mockClear();
       dbService.table.get
-        .mockReturnValueOnce({
-          file_share_s3_locations: { anotherS3LocationArn: 'anotherFileShareArn' },
-        })
         .mockReturnValueOnce({
           elasticIP: '10.52.4.93',
           fileShares: { anotherS3LocationArn: 'anotherFileShareArn' },
@@ -557,11 +594,15 @@ describe('storageGatewayService', () => {
         expect(params).toEqual(expectedRequest);
         callback(null, sgResponse);
       });
+      AWSMock.mock('StorageGateway', 'listFileShares', (params, callback) => {
+        expect(params).toEqual({ GatewayARN: 'gatewayArn' });
+        callback(null, { FileShareInfoList: [] });
+      });
       // OPERATE
       const result = await storageGateway.createFileShare(context, 'gatewayArn', 's3LocationArn', 'roleArn');
       // CHECK
       expect(result).toEqual('newFileShareArn');
-      expect(dbService.table.item).toHaveBeenNthCalledWith(1, {
+      expect(dbService.table.item).toHaveBeenCalledWith({
         fileShares: {
           anotherS3LocationArn: 'anotherFileShareArn',
           s3LocationArn: 'newFileShareArn',
@@ -569,18 +610,23 @@ describe('storageGatewayService', () => {
         rev: 3,
         updatedBy: 'u-daffyduck',
       });
-      expect(dbService.table.item).toHaveBeenNthCalledWith(2, {
-        file_share_s3_locations: { anotherS3LocationArn: 'anotherFileShareArn', s3LocationArn: 'newFileShareArn' },
+      expect(studyService.update).toHaveBeenCalledWith(context, {
+        resources: [
+          {
+            arn: 's3LocationArn',
+            fileShareArn: 'newFileShareArn',
+          },
+        ],
       });
     });
 
     it('should create new file share with KMS key when override is provided', async () => {
       // BUILD
+      studyService.mustFind.mockResolvedValue({
+        resources: [{ arn: 's3LocationArn' }],
+      });
       dbService.table.item.mockClear();
       dbService.table.get
-        .mockReturnValueOnce({
-          file_share_s3_locations: { anotherS3LocationArn: 'anotherFileShareArn' },
-        })
         .mockReturnValueOnce({
           elasticIP: '10.52.4.93',
           fileShares: { anotherS3LocationArn: 'anotherFileShareArn' },
@@ -605,6 +651,10 @@ describe('storageGatewayService', () => {
       AWSMock.mock('StorageGateway', 'createNFSFileShare', (params, callback) => {
         expect(params).toEqual(expectedRequest);
         callback(null, sgResponse);
+      });
+      AWSMock.mock('StorageGateway', 'listFileShares', (params, callback) => {
+        expect(params).toEqual({ GatewayARN: 'gatewayArn' });
+        callback(null, { FileShareInfoList: [] });
       });
       // OPERATE
       const result = await storageGateway.createFileShare(context, 'gatewayArn', 's3LocationArn', 'roleArn', {
@@ -613,7 +663,7 @@ describe('storageGatewayService', () => {
       });
       // CHECK
       expect(result).toEqual('newFileShareArn');
-      expect(dbService.table.item).toHaveBeenNthCalledWith(1, {
+      expect(dbService.table.item).toHaveBeenCalledWith({
         fileShares: {
           anotherS3LocationArn: 'anotherFileShareArn',
           s3LocationArn: 'newFileShareArn',
@@ -621,9 +671,260 @@ describe('storageGatewayService', () => {
         rev: 3,
         updatedBy: 'u-daffyduck',
       });
-      expect(dbService.table.item).toHaveBeenNthCalledWith(2, {
-        file_share_s3_locations: { anotherS3LocationArn: 'anotherFileShareArn', s3LocationArn: 'newFileShareArn' },
+      expect(studyService.update).toHaveBeenCalledWith(context, {
+        resources: [
+          {
+            arn: 's3LocationArn',
+            fileShareArn: 'newFileShareArn',
+          },
+        ],
       });
+    });
+
+    it('should continue with DB update if file share already exist', async () => {
+      // BUILD
+      studyService.mustFind.mockResolvedValue({
+        resources: [{ arn: 's3LocationArn' }],
+      });
+      dbService.table.item.mockClear();
+      dbService.table.get
+        .mockReturnValueOnce({
+          elasticIP: '10.52.4.93',
+          fileShares: { anotherS3LocationArn: 'anotherFileShareArn' },
+          rev: 3,
+        })
+        .mockReturnValueOnce({
+          elasticIP: '10.52.4.93',
+          fileShares: { anotherS3LocationArn: 'anotherFileShareArn' },
+          rev: 3,
+        });
+
+      AWSMock.mock('StorageGateway', 'listFileShares', (params, callback) => {
+        expect(params).toEqual({ GatewayARN: 'gatewayArn' });
+        callback(null, { FileShareInfoList: [{ FileShareType: 'NFS', FileShareARN: 'an-existing-file-share-arn' }] });
+      });
+      AWSMock.mock('StorageGateway', 'describeNFSFileShares', (params, callback) => {
+        expect(params).toEqual({ FileShareARNList: ['an-existing-file-share-arn'] });
+        callback(null, {
+          NFSFileShareInfoList: [{ FileShareARN: 'an-existing-file-share-arn', LocationARN: 's3LocationArn' }],
+        });
+      });
+      // OPERATE
+      const result = await storageGateway.createFileShare(context, 'gatewayArn', 's3LocationArn', 'roleArn', {
+        KMSEncrypted: true,
+        KMSKey: 'arn:aws:kms:us-east-1:1234567890:key/some-kms-key-name',
+      });
+      // CHECK
+      expect(result).toEqual('an-existing-file-share-arn');
+      expect(dbService.table.item).toHaveBeenCalledWith({
+        fileShares: {
+          anotherS3LocationArn: 'anotherFileShareArn',
+          s3LocationArn: 'an-existing-file-share-arn',
+        },
+        rev: 3,
+        updatedBy: 'u-daffyduck',
+      });
+      expect(studyService.update).toHaveBeenCalledWith(context, {
+        resources: [
+          {
+            arn: 's3LocationArn',
+            fileShareArn: 'an-existing-file-share-arn',
+          },
+        ],
+      });
+    });
+  });
+
+  describe('updateFileShareIPAllowedList', () => {
+    it('should throw bad request error if an invalid action is passed in', async () => {
+      // OPERATE n CHECK
+      try {
+        await storageGateway.updateFileSharesIPAllowedList(
+          ['file-share-arn-1', 'file-share-arn-2'],
+          '12.23.34.45',
+          'UPDATE',
+        );
+        expect.hasAssertions();
+      } catch (err) {
+        expect(storageGateway.boom.is(err, 'badRequest')).toBe(true);
+        expect(err.message).toContain('Action UPDATE is not valid, only ADD and REMOVE are supported.');
+      }
+    });
+    it('should throw can not retain lock error when tryWriteLockAndRun fails', async () => {
+      // BUILD
+      lockService.tryWriteLockAndRun.mockImplementationOnce(async () => {
+        throw storageGateway.boom.internalError('Could not obtain a lock', true);
+      });
+
+      // OPERATE n CHECK
+      try {
+        await storageGateway.updateFileSharesIPAllowedList(
+          ['file-share-arn-1', 'file-share-arn-2'],
+          '12.23.34.45',
+          'ADD',
+        );
+        expect.hasAssertions();
+      } catch (err) {
+        expect(storageGateway.boom.is(err, 'internalError')).toBe(true);
+        expect(err.message).toContain('Could not obtain a lock');
+      }
+    });
+    it('should ADD ip address succesfully', async () => {
+      // BUILD
+      lockService.tryWriteLockAndRun.mockImplementation(async ({ id } = {}, fn) => {
+        console.log(`lock id is ${id}`);
+        await fn();
+      });
+      let count = 0;
+      AWSMock.mock('StorageGateway', 'describeNFSFileShares', (params, callback) => {
+        count += 1;
+        if (params.FileShareARNList[0] === 'file-share-arn-1') {
+          callback(null, { NFSFileShareInfoList: [{ ClientList: ['12.45.78.90/32'] }] });
+        } else if (params.FileShareARNList[0] === 'file-share-arn-2') {
+          callback(null, { NFSFileShareInfoList: [{ ClientList: ['12.23.34.45/32'] }] });
+        } else {
+          throw Error(`Invalid parameter ${params} when calling listFileShares`);
+        }
+      });
+      AWSMock.mock('StorageGateway', 'updateNFSFileShare', (params, callback) => {
+        count += 1;
+        if (params.FileShareARN === 'file-share-arn-1') {
+          expect(params.ClientList).toEqual(['12.45.78.90/32', '12.23.34.45/32']);
+        } else if (params.FileShareARN === 'file-share-arn-2') {
+          expect(params.ClientList).toEqual(['12.23.34.45/32']);
+        } else {
+          throw Error(`Invalid parameter ${params} when calling listFileShares`);
+        }
+        callback(null, {});
+      });
+      // OPERATE n CHECK
+      await storageGateway.updateFileSharesIPAllowedList(
+        ['file-share-arn-1', 'file-share-arn-2'],
+        '12.23.34.45',
+        'ADD',
+      );
+      if (count !== 3) {
+        throw Error(`StorageGateway was called ${count} times. It should have been called 3 times.`);
+      }
+    });
+    it('should REMOVE ip address successfully', async () => {
+      // BUILD
+      lockService.tryWriteLockAndRun.mockImplementation(async (lockId, fn) => {
+        await fn();
+      });
+      let count = 0;
+      AWSMock.mock('StorageGateway', 'describeNFSFileShares', (params, callback) => {
+        count += 1;
+        if (params.FileShareARNList[0] === 'file-share-arn-1') {
+          callback(null, { NFSFileShareInfoList: [{ ClientList: ['12.45.78.90/32', '12.23.34.45/32'] }] });
+        } else if (params.FileShareARNList[0] === 'file-share-arn-2') {
+          callback(null, {
+            NFSFileShareInfoList: [{ ClientList: ['12.45.78.90/32', '09.98.87.76/32', '12.23.34.45/32'] }],
+          });
+        } else {
+          console.log(params);
+          throw Error(`Invalid parameter ${params} when calling listFileShares`);
+        }
+      });
+      AWSMock.mock('StorageGateway', 'updateNFSFileShare', (params, callback) => {
+        count += 1;
+        if (params.FileShareARN === 'file-share-arn-1') {
+          expect(params.ClientList).toEqual(['12.45.78.90/32']);
+        } else if (params.FileShareARN === 'file-share-arn-2') {
+          expect(params.ClientList).toEqual(['12.45.78.90/32', '09.98.87.76/32']);
+        } else {
+          throw Error(`Invalid parameter ${params} when calling listFileShares`);
+        }
+        callback(null, {});
+      });
+      // OPERATE n CHECK
+      await storageGateway.updateFileSharesIPAllowedList(
+        ['file-share-arn-1', 'file-share-arn-2'],
+        '12.23.34.45',
+        'REMOVE',
+      );
+      if (count !== 4) {
+        throw Error(`StorageGateway was called ${count} times. It should have been called 4 times.`);
+      }
+    });
+  });
+
+  describe('updateStudyFileMountIPAllowList', () => {
+    it('should not call storageGatewayService if mounted studies do not have file share', async () => {
+      // BUILD
+      storageGateway.updateFileSharesIPAllowedList = jest.fn();
+      const studiesList = [
+        { id: 'study1', resources: [{ arn: 'study1-s3-path-arn' }] },
+        { id: 'study2', resources: [{ arn: 'study2-s3-path-arn' }] },
+      ];
+      studyService.listByIds = jest.fn().mockResolvedValueOnce(studiesList);
+      const environment = { studyIds: ['study1', 'study2'] };
+      // OPERATE
+      await storageGateway.updateStudyFileMountIPAllowList(context, environment, {});
+      // CHECK
+      expect(storageGateway.updateFileSharesIPAllowedList).not.toHaveBeenCalled();
+    });
+
+    it('should call storageGatewayService with correct parameter for Add IP to allow list', async () => {
+      // BUILD
+      storageGateway.updateFileSharesIPAllowedList = jest.fn();
+      const studiesList = [
+        { id: 'study1', resources: [{ arn: 'study1-s3-path-arn', fileShareArn: 'study1-file-share-arn' }] },
+        { id: 'study2', resources: [{ arn: 'study2-s3-path-arn', fileShareArn: 'study2-file-share-arn' }] },
+      ];
+      studyService.listByIds = jest.fn().mockResolvedValueOnce(studiesList);
+      const environment = { studyIds: ['study1', 'study2'] };
+      const ipAllowListAction = { ip: '12.23.34.45', action: 'ADD' };
+      // OPERATE
+      await storageGateway.updateStudyFileMountIPAllowList(context, environment, ipAllowListAction);
+      // CHECK
+      expect(storageGateway.updateFileSharesIPAllowedList).toHaveBeenCalledWith(
+        ['study1-file-share-arn', 'study2-file-share-arn'],
+        '12.23.34.45',
+        'ADD',
+      );
+    });
+
+    it('should not call storageGatewayService when ip it not in environment or ipAllowListAction', async () => {
+      // BUILD
+      storageGateway.updateFileSharesIPAllowedList = jest.fn();
+      const studiesList = [
+        { id: 'study1', resources: [{ arn: 'study1-s3-path-arn', fileShareArn: 'study1-file-share-arn' }] },
+        { id: 'study2', resources: [{ arn: 'study2-s3-path-arn', fileShareArn: 'study2-file-share-arn' }] },
+      ];
+      studyService.listByIds = jest.fn().mockResolvedValueOnce(studiesList);
+      const environment = {
+        studyIds: ['study1', 'study2'],
+        outputs: [{ OutputKey: 'Ec2WorkspaceInstanceId', OutputValue: 'some-ec2-instance-id' }],
+      };
+      const ipAllowListAction = { action: 'REMOVE' };
+      // OPERATE
+      await storageGateway.updateStudyFileMountIPAllowList(context, environment, ipAllowListAction);
+      // CHECK
+      expect(storageGateway.updateFileSharesIPAllowedList).not.toHaveBeenCalled();
+    });
+
+    it('should call storageGatewayService with correct parameter for REMOVE IP to allow list', async () => {
+      // BUILD
+      storageGateway.updateFileSharesIPAllowedList = jest.fn();
+      const studiesList = [
+        { id: 'study1', resources: [{ arn: 'study1-s3-path-arn', fileShareArn: 'study1-file-share-arn' }] },
+        { id: 'study2', resources: [{ arn: 'study2-s3-path-arn', fileShareArn: 'study2-file-share-arn' }] },
+      ];
+      studyService.listByIds = jest.fn().mockResolvedValueOnce(studiesList);
+      const environment = {
+        studyIds: ['study1', 'study2'],
+        outputs: [{ OutputKey: 'Ec2WorkspacePublicIp', OutputValue: '34.45.56.67' }],
+      };
+      const ipAllowListAction = { action: 'REMOVE' };
+      // OPERATE
+      await storageGateway.updateStudyFileMountIPAllowList(context, environment, ipAllowListAction);
+      // CHECK
+      expect(storageGateway.updateFileSharesIPAllowedList).toHaveBeenCalledWith(
+        ['study1-file-share-arn', 'study2-file-share-arn'],
+        '34.45.56.67',
+        'REMOVE',
+      );
     });
   });
 });

@@ -168,14 +168,6 @@ class StudyPermissionService extends Service {
           .update(),
 
         // Update user records
-        ...updateRequest.usersToAdd.map(userEntry =>
-          this.upsertUserRecord(requestContext, {
-            studyId,
-            uid: userEntry.uid,
-            addOrRemove: 'add',
-            permissionLevel: userEntry.permissionLevel,
-          }),
-        ),
         ...updateRequest.usersToRemove.map(userEntry =>
           this.upsertUserRecord(requestContext, {
             studyId,
@@ -184,9 +176,16 @@ class StudyPermissionService extends Service {
             permissionLevel: userEntry.permissionLevel,
           }),
         ),
+        ...updateRequest.usersToAdd.map(userEntry =>
+          this.upsertUserRecord(requestContext, {
+            studyId,
+            uid: userEntry.uid,
+            addOrRemove: 'add',
+            permissionLevel: userEntry.permissionLevel,
+          }),
+        ),
       ]);
     });
-
     // Return study record
     return StudyPermissionService.sanitizeStudyRecord(result[0]);
   }

@@ -50,6 +50,7 @@ class EnvironmentScService extends Service {
       'dbService',
       'authorizationService',
       'environmentAuthzService',
+      'storageGatewayService',
       'auditWriterService',
       'workflowTriggerService',
       'projectService',
@@ -64,6 +65,7 @@ class EnvironmentScService extends Service {
     const table = this.settings.get(settingKeys.tableName);
 
     this._getter = () => dbService.helper.getter().table(table);
+    this._query = () => dbService.helper.query().table(table);
     this._updater = () => dbService.helper.updater().table(table);
     this._deleter = () => dbService.helper.deleter().table(table);
     this._scanner = () => dbService.helper.scanner().table(table);
@@ -280,6 +282,17 @@ class EnvironmentScService extends Service {
     return envs;
   }
 
+  async getActiveEnvsForUser(userUid) {
+    const filterStatus = ['TERMINATING', 'TERMINATED'];
+    const envs = await this._query()
+      .index('ByOwnerUID')
+      .key('createdBy', userUid)
+      .query();
+
+    // Filter out terminated and bad state environments
+    return _.filter(envs, env => !_.includes(filterStatus, env.status) && !env.status.includes('FAILED'));
+  }
+
   async find(requestContext, { id, fields = [] }) {
     // Make sure 'createdBy' is always returned as that's required for authorizing the 'get' action
     // If empty "fields" is specified then it means the caller is asking for all fields. No need to append 'createdBy'
@@ -394,9 +407,12 @@ class EnvironmentScService extends Service {
     return dbResult;
   }
 
-  async update(requestContext, environment) {
+  async update(requestContext, environment, ipAllowListAction = {}) {
     // Validate input
-    const [validationService] = await this.service(['jsonSchemaValidationService']);
+    const [validationService, storageGatewayService] = await this.service([
+      'jsonSchemaValidationService',
+      'storageGatewayService',
+    ]);
     await validationService.ensureValid(environment, updateSchema);
 
     // Retrieve the existing environment, this is required for authorization below
@@ -441,6 +457,15 @@ class EnvironmentScService extends Service {
         throw this.boom.notFound(`environment with id "${id}" does not exist`, true);
       },
     );
+
+    // Handle IP allow list update if needed
+    if (!_.isEmpty(existingEnvironment.studyIds) && !_.isEmpty(ipAllowListAction)) {
+      await storageGatewayService.updateStudyFileMountIPAllowList(
+        requestContext,
+        existingEnvironment,
+        ipAllowListAction,
+      );
+    }
 
     // Write audit event
     await this.audit(requestContext, { action: 'update-environment-sc', body: environment });
@@ -530,6 +555,27 @@ class EnvironmentScService extends Service {
     // 'addons/addon-environment-sc-api/packages/environment-sc-workflows/lib/workflows'
     await workflowTriggerService.triggerWorkflow(requestContext, meta, input);
     return existingEnvironment;
+  }
+
+  async getCfnExecutionRoleArn(requestContext, env) {
+    const [awsAccountsService, indexesServices, projectService] = await this.service([
+      'awsAccountsService',
+      'indexesService',
+      'projectService',
+    ]);
+    const { roleArn: cfnExecutionRoleArn, externalId: roleExternalId } = await runAndCatch(
+      async () => {
+        const { indexId } = await projectService.mustFind(requestContext, { id: env.projectId });
+        const { awsAccountId } = await indexesServices.mustFind(requestContext, { id: indexId });
+
+        return awsAccountsService.mustFind(requestContext, { id: awsAccountId });
+      },
+      async () => {
+        throw this.boom.badRequest(`account with id "${env.projectId} is not available`);
+      },
+    );
+
+    return { cfnExecutionRoleArn, roleExternalId };
   }
 
   // Do some properties renaming to prepare the object to be saved in the database

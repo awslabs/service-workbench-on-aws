@@ -138,7 +138,7 @@ class IamService extends Service {
       .promise()
       .catch(emptyObjectIfDoesNotExist);
 
-    const policy = {};
+    const policy = { PolicyName: policyName };
     if (policyDocument) {
       // The "PolicyDocument" is URL encoded JSON string
       const policyDocumentSrc = decodeURIComponent(policyDocument);
@@ -146,6 +146,17 @@ class IamService extends Service {
       policy.PolicyDocumentObj = JSON.parse(policyDocumentSrc);
     }
     return policy;
+  }
+
+  async putRolePolicy(roleName, policyName, policyDoc, iamClient) {
+    const iamSdk = iamClient || this.api;
+    await iamSdk
+      .putRolePolicy({
+        RoleName: roleName,
+        PolicyName: policyName,
+        PolicyDocument: policyDoc,
+      })
+      .promise();
   }
 
   async getPolicyVersion(policyArn, versionId, iamClient) {
