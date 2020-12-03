@@ -28,6 +28,7 @@ provider:
     APP_AWS_REGION: ${self:custom.settings.awsRegion}
     APP_SOLUTION_NAME: ${self:custom.settings.solutionName}
     APP_DB_PREFIX: ${self:custom.settings.dbPrefix}
+    APP_MAIN_ACCT: ${self:custom.settings.awsAccountInfo.awsAccountId}
 
 custom:
   settings: ${file(./config/settings/.settings.js):merged}

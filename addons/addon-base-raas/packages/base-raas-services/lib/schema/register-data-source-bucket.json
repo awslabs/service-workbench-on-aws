@@ -1,0 +1,37 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "accountId": {
+      "type": "string",
+      "pattern": "^[0-9]{12}$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 255
+    },
+    "region": {
+      "type": "string",
+      "maxLength": 100
+    },
+    "awsPartition": {
+      "type": "string",
+      "enum": ["aws", "aws-cn", "aws-us-gov"]
+    },
+    "kmsArn": {
+      "type": "string",
+      "maxLength": 90
+    },
+    "access": {
+      "type": "string",
+      "enum": ["roles", "accessPoint", "bucketPolicy"]
+    },
+    "sse": {
+      "type": "string",
+      "enum": ["kms", "s3", "none"]
+    }
+  },
+  "required": ["accountId", "name", "region", "awsPartition", "access", "sse"]
+}

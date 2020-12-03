@@ -16,6 +16,7 @@
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
+const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
 
 const uuid = require('uuid/v1');
 let fetch = require('node-fetch');
@@ -191,8 +192,11 @@ class StorageGatewayService extends Service {
   async updateStudyFileMountIPAllowList(requestContext, existingEnvironment, ipAllowListAction) {
     const studyService = await this.service('studyService');
     // Check if the mounted study is using StorageGateway
+    // We want to use the system context when calling listByIds, because this method
+    // must be called by admins
+    const systemContext = getSystemRequestContext();
     const studiesList = await studyService.listByIds(
-      requestContext,
+      systemContext,
       existingEnvironment.studyIds.map(id => {
         return { id };
       }),
