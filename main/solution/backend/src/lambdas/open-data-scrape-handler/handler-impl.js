@@ -60,7 +60,7 @@ module.exports = function newHandler({ studyService, log = consoleLogger } = {})
       'neuroscience',
       'cell biology',
       'cell imaging',
-      'bioinformatics'
+      'bioinformatics',
     ],
   };
 
