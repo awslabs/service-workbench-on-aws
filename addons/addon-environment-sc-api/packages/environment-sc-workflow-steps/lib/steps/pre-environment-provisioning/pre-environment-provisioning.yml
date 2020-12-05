@@ -1,0 +1,28 @@
+id: st-pre-environment-provisioning
+v: 1
+title: Pre Environment Provisioning
+desc: |
+  Enables plugins to perform pre environment provisioning tasks
+
+skippable: true # this means that if there is an error in a previous step, then this step will be skipped
+hidden: true
+
+inputManifest:
+  sections:
+    - title: Configuration
+      children:
+        - name: envId
+          type: stringInput
+          title: Environment Id
+          desc: |
+            Id of the environment. The step will read this from the workflow payload if not configured here.
+        - name: envTypeId
+          type: stringInput
+          title: Environment Type Id
+          desc: |
+            Id of the environment type created based on a specific AWS Service Catalog Product and Version. The step will read this from the workflow payload if not configured here.
+        - name: envTypeConfigId
+          type: stringInput
+          title: Environment Type Configuration Id
+          desc: |
+            Id of the environment type configuration containing mapping between AWS CloudFormation input parameters and values. The step will read this from the workflow payload if not configured here.

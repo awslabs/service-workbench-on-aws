@@ -26,14 +26,13 @@ const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/s
  * @param bucketEntity the data source bucket entity
  * @param studyEntity the study entity (the permissions attribute is not expected to be populated)
  */
-// eslint-disable-next-line no-unused-vars
 async function onStudyRegistration(payload) {
   const { container, accountEntity, bucketEntity = {}, studyEntity = {} } = payload;
   // Allocating an application role is only applicable for bucket with access = 'roles'
-  if (studyEntity.bucketAccess !== 'roles') return undefined;
+  if (studyEntity.bucketAccess !== 'roles') return payload;
   const systemContext = getSystemRequestContext();
 
-  const applicationRoleService = await container.find('/roles-only/applicationRoleService');
+  const applicationRoleService = await container.find('roles-only/applicationRoleService');
   const appRole = await applicationRoleService.allocateRole(systemContext, accountEntity, bucketEntity, studyEntity);
 
   const studyService = await container.find('studyService');
