@@ -50,7 +50,7 @@ Cypress.Commands.add('login', () => {
     researcherPassword: Cypress.env('researcherPassword'),
   };
 
-  cy.visit('/');
+  cy.visit('/?internal');
   cy.get("div[data-testid='username'] input").type(loginInfo.researcherEmail);
   cy.get("div[data-testid='password'] input").type(loginInfo.researcherPassword);
   cy.get("button[data-testid='login']").click();
