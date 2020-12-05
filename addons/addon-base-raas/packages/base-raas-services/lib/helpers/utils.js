@@ -21,11 +21,21 @@ function chopLeft(str = '', start = '') {
   return str.substring(start.length);
 }
 
+/**
+ * A normalized study folder (a.k.a prefix) should have no leading forward slash but should have a trailing
+ * forward slash. If the study is the whole bucket, then the a normalized study folder should be '/'.
+ */
 function normalizeStudyFolder(str = '') {
   // First we want to make sure that all '../' are resolved now.
   // Note: path.resolve, will also remove any trailing forward slashes
-  const resolved = path.resolve('/', str);
+  let resolved = path.resolve('/', str);
 
+  // If the whole path is just '/' then return it as is. This is the case when the whole bucket might be the study
+  if (resolved === '/') return '/';
+
+  // Remove the leading forward slash if present
+  resolved = chopLeft(resolved, '/');
+  // Add a trailing forward slash if missing
   return _.endsWith(resolved, '/') ? resolved : `${resolved}/`;
 }
 

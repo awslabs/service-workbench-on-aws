@@ -14,6 +14,9 @@
  */
 
 const _ = require('lodash');
+const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
+
+const { hasAccess, accessLevels } = require('../study/helpers/entities/study-methods');
 
 /**
  * A plugin method to contribute to the list of available variables for usage in variable expressions in
@@ -34,6 +37,111 @@ async function list({ requestContext, container, vars }) {
   const raasVars = await environmentConfigVarsService.list(requestContext);
   // add raas specific variables to the list
   return { requestContext, container, vars: [...vars, ...raasVars] };
+}
+
+async function getStudies({ requestContext, container, envId }) {
+  // Logic
+  // - Load the environmentSc entity
+  // - Load all the study entities associated with the environment
+  // - Determine the study permissions for the workspace
+
+  const environmentScService = await container.find('environmentScService');
+  const studyService = await container.find('studyService');
+
+  const environmentScEntity = await environmentScService.mustFind(requestContext, { id: envId });
+  const studyIds = environmentScEntity.studyIds;
+  const createdBy = environmentScEntity.createdBy;
+
+  if (_.isEmpty(studyIds)) return { environmentScEntity, studies: [] };
+
+  const systemContext = getSystemRequestContext();
+  const studies = await studyService.listByIds(
+    systemContext,
+    _.map(studyIds, id => ({ id })),
+  );
+
+  // Time to populate the envPermission: { write: read: } before sending it to the plugins
+  const permissionLookup = async study => {
+    const entity = await studyService.getStudyPermissions(systemContext, study.id);
+    if (!hasAccess(entity, createdBy))
+      throw studyService.boom.forbidden(
+        `The creator of the workspace does not have access to study "${study.id}"`,
+        true,
+      );
+    const { read, write } = accessLevels(entity, createdBy);
+    study.envPermission = { read, write };
+  };
+
+  await Promise.all(_.map(studies, permissionLookup));
+
+  return { environmentScEntity, studies };
+}
+
+/**
+ * This plugin method is expected to be called when the environment is about to be provisioned. This method then
+ * allocates any study resources needed by calling the extension point 'study-access-strategy' with method
+ * allocateEnvStudyResources(). This way other plugins that implement their own study resource allocations. Example
+ * of such study resource allocation is the creation of filesystem roles or updating the bucket policy.
+ *
+ * @param requestContext The request context object containing principal (caller) information.
+ * @param container Services container instance
+ * @param envId The environment sc entity id
+ */
+async function preProvisioning({ requestContext, container, envId }) {
+  const { environmentScEntity, studies } = await getStudies({ requestContext, container, envId });
+
+  if (_.isEmpty(studies)) return { requestContext, container, envId };
+
+  const pluginRegistryService = await container.find('pluginRegistryService');
+
+  await pluginRegistryService.visitPlugins('study-access-strategy', 'allocateEnvStudyResources', {
+    payload: {
+      requestContext,
+      container,
+      environmentScEntity,
+      studies,
+    },
+  });
+
+  return { requestContext, container, envId };
+}
+
+async function preProvisioningFailure({ requestContext, container, envId, status, error }) {
+  const environmentScService = await container.find('environmentScService');
+  const envEntity = await environmentScService.mustFind(requestContext, { id: envId, fields: ['rev'] });
+
+  const environment = {
+    id: envId,
+    rev: envEntity.rev || 0,
+    status,
+  };
+
+  if (error) {
+    environment.error = error.message;
+  }
+  await environmentScService.update(requestContext, environment);
+
+  const { environmentScEntity, studies } = getStudies({ requestContext, container, envId });
+  if (_.isEmpty(studies)) return { requestContext, container, envId };
+
+  const pluginRegistryService = await container.find('pluginRegistryService');
+
+  const result = await pluginRegistryService.visitPlugins('study-access-strategy', 'deallocateEnvStudyResources', {
+    payload: {
+      requestContext,
+      container,
+      environmentScEntity,
+      studies,
+    },
+    continueOnError: true,
+  });
+
+  if (!_.isEmpty(result.pluginErrors)) {
+    const messages = _.map(result.pluginErrors, err => err.message);
+    throw pluginRegistryService.boom.badRequest(messages.join(', '), true);
+  }
+
+  return { requestContext, container, envId };
 }
 
 /**
@@ -141,6 +249,7 @@ async function updateEnvOnProvisioningSuccess({
 
   return { requestContext, container, resolvedVars, status, outputs, provisionedProductId };
 }
+
 // This step calls "onEnvOnProvisioningFailure" in case of any errors.
 async function updateEnvOnProvisioningFailure({
   requestContext,
@@ -305,6 +414,9 @@ const plugin = {
   onEnvProvisioningFailure: updateEnvOnProvisioningFailure,
   onEnvTerminationSuccess: updateEnvOnTerminationSuccess,
   onEnvTerminationFailure: updateEnvOnTerminationFailure,
+
+  onEnvPreProvisioning: preProvisioning,
+  onEnvPreProvisioningFailure: preProvisioningFailure,
 };
 
 module.exports = plugin;

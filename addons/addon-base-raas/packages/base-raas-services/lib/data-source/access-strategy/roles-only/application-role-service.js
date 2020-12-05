@@ -236,6 +236,22 @@ class ApplicationRoleService extends Service {
     return entities;
   }
 
+  /**
+   * Using the given cfnTemplate, this method adds cfn resources that represents all the application
+   * roles and managed policies (used for boundary permissions) that are to be provisioned or updated in
+   * the given account.
+   *
+   * @param requestContext The standard requestContext
+   * @param cfnTemplate An instance of The CfnTemplate class
+   * @param accountId The data source account id where the application roles will be provisioned
+   */
+  async provideCfnResources(requestContext, cfnTemplate, accountId) {
+    await this.assertAuthorized(requestContext, { action: 'list', conditions: [allowIfActive, allowIfAdmin] });
+
+    // Logic
+    // - Get a list of
+  }
+
   async assertAuthorized(requestContext, { action, conditions }, ...args) {
     const authorizationService = await this.service('authorizationService');
 

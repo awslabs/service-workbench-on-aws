@@ -118,7 +118,7 @@ class StudyService extends Service {
    * {
    *  id, rev, category, name, description, resources: [{arn, fileShareArn}, ...],
    *  uploadLocationEnabled, sha, qualifier, folder, accountId, bucket, awsPartition,
-   *  region, kmsArn, status, problem, accessType, projectId, bucketAccess, useBucketKms
+   *  region, kmsArn, status, statusMsg, accessType, projectId, bucketAccess, kmsScope
    *  permissions: <StudyPermissionEntity>
    * }
    *
