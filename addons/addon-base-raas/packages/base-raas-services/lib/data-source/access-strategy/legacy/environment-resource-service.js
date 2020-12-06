@@ -15,6 +15,7 @@
 
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
+const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const { parseS3Arn } = require('../../../helpers/s3-arn');
 const { isOpenData } = require('../../../study/helpers/entities/study-methods');
@@ -31,7 +32,13 @@ const settingKeys = {
 class EnvironmentResourceService extends Service {
   constructor() {
     super();
-    this.dependency(['jsonSchemaValidationService', 'indexesService', 'auditWriterService', 'aws']);
+    this.dependency([
+      'aws',
+      'jsonSchemaValidationService',
+      'lockService',
+      'auditWriterService',
+      'envResourceUsageService',
+    ]);
   }
 
   /**
@@ -45,26 +52,111 @@ class EnvironmentResourceService extends Service {
    * of the StudyEntity. This additional attribute is called 'envPermission', it is an object with the
    * following shape: { read: true/false, write: true/false }
    */
-  async allocateStudyResources(requestContext, { environmentScEntity, studies: allStudies }) {
+  async allocateStudyResources(requestContext, { environmentScEntity, studies: allStudies, memberAccountId }) {
     // Legacy access strategy is only applicable for studies that have resources attributes
     const studies = _.filter(allStudies, study => !_.isEmpty(study.resources));
 
     if (_.isEmpty(studies)) return; // No legacy access to deal with
 
-    // TODO - legacy work
-    //  - add a lock (id should be 'env-resources-<main account id>')
-    //  - Then once you get the lock, call the following two methods:
-    //  IMPORTANT: this method should be idempotent
+    const bucketName = this.settings.get(settingKeys.studyDataBucketName);
+    const lockService = await this.service('lockService');
+    const lockId = `bucket-policy-access-${bucketName}`;
 
-    // Add permissions in the bucket policy for the environment member account to access
-    // the studies. Keep in mind that the existing code will allow the member account r/w access
-    // to the study. Then, we further restrict access for the workspace when we create the
-    // instance profile role policy.
-    await this.addToBucketPolicy(requestContext, environmentScEntity, studies);
+    await lockService.tryWriteLockAndRun({ id: lockId }, async () => {
+      // We need to use the envResourceUsageService to figure out if we already allocated
+      // resources for this member account. We need to do that per study. Therefore, we are
+      // tracking the environments that are accessing studies for the given remember accounts.
+      const usageService = await this.service('envResourceUsageService');
+      const studiesToAdd = [];
+      const processor = async study => {
+        const usage = await usageService.addEnvironment(requestContext, {
+          resource: `legacy-access-study-${study.id}`,
+          setName: memberAccountId,
+          envId: environmentScEntity.id,
+        });
 
-    // Add permissions in the main account kms key policy for the environment member account
-    // to be able to use this key
-    await this.addToKmsKeyPolicy(requestContext, environmentScEntity, studies);
+        if (usage.added && _.size(usage.envIds) === 1) studiesToAdd.push(study);
+      };
+
+      // We do the usage tracking calls, 20 at a time
+      await processInBatches(studies, 20, processor);
+
+      if (_.isEmpty(studiesToAdd)) return; // No studies to add at the member account level
+
+      // Add permissions in the bucket policy for the environment member account to access
+      // the studies. Keep in mind that the existing code will allow the member account r/w access
+      // to the study. Then, we further restrict access for the workspace when we create the
+      // instance profile role policy.
+      await this.addToBucketPolicy(requestContext, studiesToAdd, memberAccountId);
+
+      // We want to track all the environments that are accessing the studies at the member account level
+      const usage = await usageService.addEnvironment(requestContext, {
+        resource: `legacy-access-member-account-${memberAccountId}`,
+        setName: memberAccountId,
+        envId: environmentScEntity.id,
+      });
+
+      if (usage.added && _.size(usage.envIds) === 1) {
+        // Add permissions in the main account kms key policy for the environment member account to be able to use this key
+        await this.addToKmsKeyPolicy(requestContext, memberAccountId);
+      }
+    });
+  }
+
+  /**
+   * Deallocate all the necessary AWS resources to remove access to the studies. This includes updating
+   * the bucket policy and the kms key policy.
+   *
+   * @param requestContext The request context object containing principal (caller) information
+   * @param environmentScEntity the EnvironmentSc entity
+   * @param studies an array of StudyEntity that are associated with this env. IMPORTANT: each element
+   * in the array is the standard StudyEntity, however, there is one additional attributes added to each
+   * of the StudyEntity. This additional attribute is called 'envPermission', it is an object with the
+   * following shape: { read: true/false, write: true/false }
+   */
+  async deallocateStudyResources(requestContext, { environmentScEntity, studies: allStudies, memberAccountId }) {
+    // Legacy access strategy is only applicable for studies that have resources attributes
+    const studies = _.filter(allStudies, study => !_.isEmpty(study.resources));
+
+    if (_.isEmpty(studies)) return; // No legacy access to deal with
+
+    const bucketName = this.settings.get(settingKeys.studyDataBucketName);
+    const lockService = await this.service('lockService');
+    const lockId = `bucket-policy-access-${bucketName}`;
+
+    await lockService.tryWriteLockAndRun({ id: lockId }, async () => {
+      // We need to use the envResourceUsageService to figure out if we already removed
+      // resources for this member account. We need to do that per study.
+      const usageService = await this.service('envResourceUsageService');
+      const studiesToRemove = [];
+      const processor = async study => {
+        const usage = await usageService.removeEnvironment(requestContext, {
+          resource: `legacy-access-study-${study.id}`,
+          setName: memberAccountId,
+          envId: environmentScEntity.id,
+        });
+
+        if (usage.removed && _.isEmpty(usage.envIds)) studiesToRemove.push(study);
+      };
+
+      // We do the usage tracking calls, 20 at a time
+      await processInBatches(studies, 20, processor);
+
+      if (_.isEmpty(studiesToRemove)) return; // No studies to remove at the member account level
+
+      await this.removeFromBucketPolicy(requestContext, studiesToRemove, memberAccountId);
+
+      // We want to track all the environments that are accessing the studies at the member account level
+      const usage = await usageService.removeEnvironment(requestContext, {
+        resource: `legacy-access-member-account-${memberAccountId}`,
+        setName: memberAccountId,
+        envId: environmentScEntity.id,
+      });
+
+      if (usage.removed && _.isEmpty(usage.envIds)) {
+        await this.removeFromKmsKeyPolicy(requestContext, memberAccountId);
+      }
+    });
   }
 
   async provideEnvRolePolicy(requestContext, { policyDoc, studies: allStudies }) {
@@ -126,50 +218,63 @@ class EnvironmentResourceService extends Service {
   }
 
   // @private
-  async addToBucketPolicy(requestContext, environmentScEntity, studies) {
+  async addToBucketPolicy(requestContext, studies, memberAccountId) {
+    // studies is an array of StudyEntity. IMPORTANT: each element in the array is the standard StudyEntity, however,
+    // there is one additional attributes added to each of the StudyEntity. This additional attribute is called
+    // 'envPermission', it is an object with the following shape: { read: true/false, write: true/false }
+
+    const bucketName = this.settings.get(settingKeys.studyDataBucketName);
+
     // TODO - legacy work
-    // IMPORTANT:
-    // When this method is called a second time with the exact same environment and studies, nothing should happen.
-    // In other words, this method should be idempotent.
-
-    const { id: envId } = environmentScEntity.id;
-    // // Get the member account id where the workspace is being provisioned
-    const indexesService = await this.service('indexesService');
-    const { indexId } = environmentScEntity;
-    const { awsAccountId: memberAccountId } = await indexesService.mustFind(requestContext, { id: indexId });
-
-    // Get the default bucket name
-    const s3BucketName = this.settings.get(settingKeys.studyDataBucketName);
-
+    // Ensure that you only add the studies to the bucket policy if they are not already there.
+    // Same goes for the memberAccountId.
+    //
     // The logic
     // Most of this logic is similar to the one in EnvironmentMountService._updateResourcePolicies() method
-    // Here are steps:
+    // Here are the steps:
     // - Take a look at EnvironmentMountService._updateResourcePolicies()
     // - Load the bucket policy
     // - Update the statements using a similar logic to the one done the EnvironmentMountService._updateResourcePolicies()
     // - Keep in mind that you have memberAccountId handy, so there is no need for workspaceRoleArn
     // - Do not add the exact same principal to the exact same statement if it is already there
-    // - Add tracking information to the env resource usage tracking table, we need to keep track of a few things:
-    //   - TODO
-
+    // - No need to create any lock here, it is already taken care of in the allocateStudyResources() method
+    //
     // NOTE: unlike EnvironmentMountService._updateResourcePolicies(), we don't update the kms key policy in this
-    // method, instead, the update of the kms key policy is done in a addToKmsKeyPolicy
+    // method, instead, the update of the kms key policy is done in a addToKmsKeyPolicy.  Don't call addToKmsKeyPolicy
+    // from this method.
   }
 
   // @private
-  async addToKmsKeyPolicy(requestContext, environmentScEntity, studies) {
-    // TODO - legacy work
-    // IMPORTANT:
-    // When this method is called a second time with the exact same environment, nothing should happen.
-    // In other words, this method should be idempotent.
+  async removeFromBucketPolicy(requestContext, studies, memberAccountId) {
+    // studies is an array of StudyEntity. IMPORTANT: each element in the array is the standard StudyEntity, however,
+    // there is one additional attributes added to each of the StudyEntity. This additional attribute is called
+    // 'envPermission', it is an object with the following shape: { read: true/false, write: true/false }
 
-    const { id: envId } = environmentScEntity.id;
-    // // Get the member account id where the workspace is being provisioned
-    const indexesService = await this.service('indexesService');
-    const { indexId } = environmentScEntity;
-    const { awsAccountId: memberAccountId } = await indexesService.mustFind(requestContext, { id: indexId });
+    const bucketName = this.settings.get(settingKeys.studyDataBucketName);
+
+    // TODO - legacy work
+    // The logic
+    //
+    // Most of this logic is similar to the one in EnvironmentMountService._updateResourcePolicies() method
+    // Here are the steps:
+    // - Take a look at EnvironmentMountService._updateResourcePolicies()
+    // - Load the bucket policy
+    // - Remove the studies but only if the only principal left is the memberAccountId provided,
+    //   otherwise just remove the memberAccountId from the statements that include the studies provided.
+    // - No need to create any lock here, it is already taken care of in the deallocateStudyResources() method
+    //
+    // NOTE: unlike EnvironmentMountService._updateResourcePolicies(), we don't update the kms key policy in this
+    // method, instead, the update of the kms key policy is done in a addToKmsKeyPolicy.  Don't call addToKmsKeyPolicy
+    // from this method.
+  }
+
+  // @private
+  async addToKmsKeyPolicy(requestContext, memberAccountId) {
     const studyDataKmsKeyArn = await this.getKmsKeyIdArn();
 
+    // TODO - legacy work
+    // Ensure that you only add the memberAccountId to kms key policy, if it is not already here.
+    //
     // The logic
     // Most of this logic is similar to the last part of EnvironmentMountService._updateResourcePolicies() method
     // Here are the steps:
@@ -178,30 +283,22 @@ class EnvironmentResourceService extends Service {
     // - Update the statements using a similar logic to the one done the EnvironmentMountService._updateResourcePolicies()
     // - Keep in mind that you have memberAccountId handy
     // - Do not add the exact same principal to the exact same statement if it is already there
-    // - Add tracking information to the env resource usage tracking table, we need to keep track of a few things:
-    //   - TODO
+    // - No need to create any lock here, it is already taken care of in the allocateStudyResources() method
   }
 
   // @private
-  async removeFromKmsKeyPolicy(requestContext, environmentScEntity, studies) {
-    // TODO - legacy work
-    // IMPORTANT:
-    // When this method is called a second time with the exact same environment and studies, nothing should happen.
-    // In other words, this method should be idempotent.
-
-    const { id: envId } = environmentScEntity.id;
-    // // Get the member account id where the workspace is being provisioned
-    const indexesService = await this.service('indexesService');
-    const { indexId } = environmentScEntity;
-    const { awsAccountId: memberAccountId } = await indexesService.mustFind(requestContext, { id: indexId });
-
+  async removeFromKmsKeyPolicy(requestContext, memberAccountId) {
     const studyDataKmsKeyArn = await this.getKmsKeyIdArn();
+
+    // TODO - legacy work
+    //
     // The logic
     // - Take a look at the last part for EnvironmentMountService.removeRoleArnFromLocalResourcePolicies()
     // - Load the kms key policy
-    // - Decrement the count using the tracking service
-    // - If and only if the count is zero do we remove the member account id from the aws principals
-    //   in the statement
+    // - Remove the memberAccountId if it is in the policy. Don't worry about if other workspaces in the same
+    //   member account are still using the kms key. This is because this method is only called if we are sure
+    //   that there are no more workspaces in the member account (this was done using the usage service).
+    // - No need to create any lock here, it is already taken care of in the deallocateStudyResources() method
   }
 
   // @private

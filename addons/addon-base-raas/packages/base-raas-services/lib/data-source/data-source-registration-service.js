@@ -79,6 +79,31 @@ class DataSourceRegistrationService extends Service {
     return result.studyEntity;
   }
 
+  async createAccountCfn(requestContext, accountId) {
+    const accountService = await this.service('dataSourceAccountService');
+
+    const accountEntity = await accountService.mustFind(requestContext, { id: accountId });
+
+    // We give a chance to the plugins to participate in the logic of create the account cfn. This helps us have different
+    // study access strategies
+    const pluginRegistryService = await this.service('pluginRegistryService');
+    const result = await pluginRegistryService.visitPlugins(extensionPoint, 'provideAccountCfnTemplate', {
+      payload: {
+        requestContext,
+        container: this.container,
+        accountEntity,
+      },
+    });
+
+    // Write audit event
+    await this.audit(requestContext, {
+      action: 'create-account-cfn',
+      body: { accountEntity: result.accountEntity, accountTemplateInfo: result.accountTemplateInfo },
+    });
+
+    return result.accountTemplateInfo;
+  }
+
   async audit(requestContext, auditEvent) {
     const auditWriterService = await this.service('auditWriterService');
     // Calling "writeAndForget" instead of "write" to allow main call to continue without waiting for audit logging

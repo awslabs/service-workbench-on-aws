@@ -27,10 +27,12 @@ const {
   newAppRoleEntity,
   addStudy,
   maxReached,
+  toCfnResources,
 } = require('./helpers/entities/application-role-methods');
 
 const settingKeys = {
   tableName: 'dbRoleAllocations',
+  swbMainAccount: 'mainAcct',
 };
 
 /**
@@ -108,7 +110,7 @@ class ApplicationRoleService extends Service {
    * @param bucketEntity The data source bucket entity
    * @param studyEntity The study entity
    */
-  async allocateRole(requestContext, _accountEntity = {}, bucketEntity = {}, studyEntity = {}) {
+  async allocateRole(requestContext, accountEntity = {}, bucketEntity = {}, studyEntity = {}) {
     // Allocating an application role is only applicable for bucket with access = 'roles'
     if (studyEntity.bucketAccess !== 'roles') return undefined;
 
@@ -147,7 +149,7 @@ class ApplicationRoleService extends Service {
     });
 
     if (_.isUndefined(appRoleEntity)) {
-      appRoleEntity = newAppRoleEntity(bucketEntity, studyEntity);
+      appRoleEntity = newAppRoleEntity(accountEntity, bucketEntity, studyEntity);
     }
 
     const by = _.get(requestContext, 'principalIdentifier.uid');
@@ -239,7 +241,7 @@ class ApplicationRoleService extends Service {
   /**
    * Using the given cfnTemplate, this method adds cfn resources that represents all the application
    * roles and managed policies (used for boundary permissions) that are to be provisioned or updated in
-   * the given account.
+   * the given account using the mainRegion. Therefore, there are no resources returned for other regions
    *
    * @param requestContext The standard requestContext
    * @param cfnTemplate An instance of The CfnTemplate class
@@ -249,7 +251,15 @@ class ApplicationRoleService extends Service {
     await this.assertAuthorized(requestContext, { action: 'list', conditions: [allowIfActive, allowIfAdmin] });
 
     // Logic
-    // - Get a list of
+    // - Get a list of all applications roles for the account
+    // - Ask each application role to return its role cfn resource and its managed policy cfn resource
+
+    const swbMainAccountId = this.settings.get(settingKeys.swbMainAccount);
+    const list = await this.list(requestContext, accountId);
+    _.forEach(list, appRoleEntity => {
+      const resources = toCfnResources(appRoleEntity, swbMainAccountId);
+      cfnTemplate.addResources(resources);
+    });
   }
 
   async assertAuthorized(requestContext, { action, conditions }, ...args) {

@@ -84,6 +84,9 @@ class DataSourceAccountService extends Service {
     const [validationService] = await this.service(['jsonSchemaValidationService']);
     await validationService.ensureValid(rawAccountEntity, registerSchema);
 
+    // TODO - we accept 'mainRegion' but all the acceptable regions are hardcoded in the json schema
+    //        so when new regions are introduced, we need to update the json schema
+
     // unmanaged accounts are not supported yet
     if (rawAccountEntity.type === 'unmanaged')
       throw this.boom.notSupported('Unmanaged accounts are not supported at this time', true);

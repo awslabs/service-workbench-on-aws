@@ -18,7 +18,6 @@
  * is about to be provisioned. This method simply delegates to the legacy/EnvironmentResourceService
  *
  * @param requestContext The request context object containing principal (caller) information.
- * The principal's identifier object is expected to be available as "requestContext.principalIdentifier"
  * @param container Services container instance
  * @param studies an array of StudyEntity that are associated with this env. IMPORTANT: each element
  * in the array is the standard StudyEntity, however, there is one additional attributes added to each
@@ -26,10 +25,30 @@
  * following shape: { read: true/false, write: true/false }
  */
 async function allocateEnvStudyResources(payload) {
-  const { requestContext, container, environmentScEntity, studies } = payload;
+  const { requestContext, container, environmentScEntity, studies, memberAccountId } = payload;
 
   const resourceService = await container.find('legacy/environmentResourceService');
-  await resourceService.allocateStudyResources(requestContext, { environmentScEntity, studies });
+  await resourceService.allocateStudyResources(requestContext, { environmentScEntity, studies, memberAccountId });
+
+  return payload;
+}
+
+/**
+ * A plugin method to implement any specific logic for the 'legacy' access logic when a environment
+ * is terminated or failed provisioning. This method simply delegates to the legacy/EnvironmentResourceService
+ *
+ * @param requestContext The request context object containing principal (caller) information.
+ * @param container Services container instance
+ * @param studies an array of StudyEntity that are associated with this env. IMPORTANT: each element
+ * in the array is the standard StudyEntity, however, there is one additional attributes added to each
+ * of the StudyEntity. This additional attribute is called 'envPermission', it is an object with the
+ * following shape: { read: true/false, write: true/false }
+ */
+async function deallocateEnvStudyResources(payload) {
+  const { requestContext, container, environmentScEntity, studies, memberAccountId } = payload;
+
+  const resourceService = await container.find('legacy/environmentResourceService');
+  await resourceService.deallocateStudyResources(requestContext, { environmentScEntity, studies, memberAccountId });
 
   return payload;
 }
@@ -64,6 +83,7 @@ async function provideStudyMount(payload) {
 
 const plugin = {
   allocateEnvStudyResources,
+  deallocateEnvStudyResources,
   provideEnvRolePolicy,
   provideStudyMount,
 };
