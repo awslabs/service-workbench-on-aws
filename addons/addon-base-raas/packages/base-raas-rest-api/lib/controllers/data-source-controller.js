@@ -97,6 +97,21 @@ async function configure(context) {
     }),
   );
 
+  // ===============================================================
+  //  POST /accounts/:id/cfn (mounted to /api/data-sources)
+  // ===============================================================
+  router.post(
+    '/accounts/:id/cfn',
+    wrap(async (req, res) => {
+      const accountId = req.params.id;
+      const requestContext = res.locals.requestContext;
+      const service = await context.service('dataSourceRegistrationService');
+      const result = await service.createAccountCfn(requestContext, accountId);
+
+      res.status(201).json(result);
+    }),
+  );
+
   return router;
 }
 

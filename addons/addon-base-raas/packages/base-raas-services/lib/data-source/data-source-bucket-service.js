@@ -93,6 +93,9 @@ class DataSourceBucketService extends Service {
     const [validationService] = await this.service(['jsonSchemaValidationService']);
     await validationService.ensureValid(rawData, registerSchema);
 
+    // TODO - we accept 'region' but all the acceptable regions are hardcoded in the json schema
+    //        so when new regions are introduced, we need to update the json schema
+
     // The only access strategy supported so far is 'roles'
     if (rawBucketEntity.access !== 'roles')
       throw this.boom.notSupported(

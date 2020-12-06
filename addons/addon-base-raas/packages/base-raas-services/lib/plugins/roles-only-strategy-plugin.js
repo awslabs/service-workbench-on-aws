@@ -16,6 +16,8 @@
 const _ = require('lodash');
 const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
 
+const { CfnTemplate } = require('../helpers/cfn-template');
+
 /**
  * A plugin method to implement any specific logic for the 'roles only' access logic when a study is registered
  *
@@ -41,8 +43,36 @@ async function onStudyRegistration(payload) {
   return { ...payload, studyEntity: studyEntityUpdated, applicationRoleEntity: appRole };
 }
 
+/**
+ * A plugin method to implement any specific logic for the 'roles only' access logic when the account cfn template
+ * is requested.
+ *
+ * @param requestContext The request context object containing principal (caller) information.
+ * @param container Services container instance
+ * @param accountEntity the data source account entity
+ */
+async function provideAccountCfnTemplate(payload) {
+  const { requestContext, container, accountEntity } = payload;
+  const { id, mainRegion, stack, stackCreated } = accountEntity;
+  const applicationRoleService = await container.find('roles-only/applicationRoleService');
+  const cfnTemplate = new CfnTemplate();
+  await applicationRoleService.provideCfnResources(requestContext, cfnTemplate, accountEntity.id);
+
+  const accountTemplateInfo = {
+    // id: '',  TODO
+    name: stack,
+    region: mainRegion,
+    accountId: id,
+    created: stackCreated,
+    template: cfnTemplate.toJson(),
+  };
+
+  return { ...payload, accountTemplateInfo };
+}
+
 const plugin = {
   onStudyRegistration,
+  provideAccountCfnTemplate,
 };
 
 module.exports = plugin;

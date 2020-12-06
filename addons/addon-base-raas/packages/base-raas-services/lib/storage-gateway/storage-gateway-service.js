@@ -207,7 +207,7 @@ class StorageGatewayService extends Service {
     const fileShareARNs = _.filter(studiesList, study => {
       const fileShareArn = _.get(study, 'resources[0].fileShareArn');
       return !_.isUndefined(fileShareArn);
-    });
+    }).map(study => _.get(study, 'resources[0].fileShareArn'));
 
     if (!_.isEmpty(fileShareARNs)) {
       let ip;
