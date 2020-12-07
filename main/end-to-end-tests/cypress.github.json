@@ -4,7 +4,6 @@
   "viewportHeight": 1000,
   "video": true,
   "env": {
-    "researcherEmail": "researcher@example.com",
     "workspaces": {
       "sagemaker": {
         "workspaceTypeName": "SageMaker Notebook-v1",

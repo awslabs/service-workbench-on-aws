@@ -41,7 +41,7 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: 12
-      - name: Install pnpm
+      - name: Install pnpm and system libraries
         run: |
           npm install -g pnpm
           apt-get install libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth xvfb
@@ -52,5 +52,8 @@ jobs:
         run: pnpm run cypress:run-tests:github
         working-directory: main/end-to-end-tests
         env:
+          # Env parameters for cypress tests need header 'CYPRESS_' or 'cypress_'
+          # Cypress will strip the header and pss it to the tests
           CYPRESS_BASE_URL: ${{ secrets.CYPRESS_BASE_URL}}
-          cypress_researcherPassword: ${{ secrets.CYPRESS_RESEARCHERPASSWORD}}
+          cypress_researcherEmail: ${{ secrets.CYPRESS_RESEARCHER_EMAIL}}
+          cypress_researcherPassword: ${{ secrets.CYPRESS_RESEARCHER_PASSWORD}}
