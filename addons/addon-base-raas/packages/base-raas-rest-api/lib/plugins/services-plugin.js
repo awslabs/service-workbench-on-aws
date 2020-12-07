@@ -50,7 +50,7 @@ const DataSourceAccountService = require('@aws-ee/base-raas-services/lib/data-so
 const DataSourceBucketService = require('@aws-ee/base-raas-services/lib/data-source/data-source-bucket-service');
 const ApplicationRoleService = require('@aws-ee/base-raas-services/lib/data-source/access-strategy/roles-only/application-role-service');
 const LegacyEnvironmentResourceService = require('@aws-ee/base-raas-services/lib/data-source/access-strategy/legacy/environment-resource-service');
-const EnvResourceUsageService = require('@aws-ee/base-raas-services/lib/usage/env-resource-usage-service');
+const ResourceUsageService = require('@aws-ee/base-raas-services/lib/usage/resource-usage-service');
 
 const settingKeys = {
   tablePrefix: 'dbPrefix',
@@ -103,7 +103,7 @@ async function registerServices(container, pluginRegistry) {
   container.register('dataSourceBucketService', new DataSourceBucketService());
   container.register('roles-only/applicationRoleService', new ApplicationRoleService());
   container.register('legacy/environmentResourceService', new LegacyEnvironmentResourceService());
-  container.register('envResourceUsageService', new EnvResourceUsageService());
+  container.register('resourceUsageService', new ResourceUsageService());
 
   // Authorization Services from raas addon
   container.register('raasUserAuthzService', new UserAuthzService());
@@ -141,7 +141,7 @@ function getStaticSettings(existingStaticSettings, settings, pluginRegistry) {
   table('dbStudyPermissions', 'StudyPermissions');
   table('dbDsAccounts', 'DsAccounts');
   table('dbRoleAllocations', 'RoleAllocations');
-  table('dbEnvResourceUsages', 'EnvResourceUsages');
+  table('dbResourceUsages', 'ResourceUsages');
   table('StorageGateway', 'StorageGateway');
 
   return staticSettings;

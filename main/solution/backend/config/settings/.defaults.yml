@@ -184,7 +184,7 @@ dbDsAccounts: ${self:custom.settings.dbPrefix}-DsAccounts
 dbRoleAllocations: ${self:custom.settings.dbPrefix}-RoleAllocations
 
 # DynamoDB table name for Resource usages
-dbEnvResourceUsages: ${self:custom.settings.dbPrefix}-EnvResourceUsages
+dbResourceUsages: ${self:custom.settings.dbPrefix}-ResourceUsages
 
 # ================================ DB Settings - Depreciated ===========================================
 

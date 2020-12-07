@@ -37,7 +37,7 @@ class EnvironmentResourceService extends Service {
       'jsonSchemaValidationService',
       'lockService',
       'auditWriterService',
-      'envResourceUsageService',
+      'resourceUsageService',
     ]);
   }
 
@@ -63,19 +63,19 @@ class EnvironmentResourceService extends Service {
     const lockId = `bucket-policy-access-${bucketName}`;
 
     await lockService.tryWriteLockAndRun({ id: lockId }, async () => {
-      // We need to use the envResourceUsageService to figure out if we already allocated
+      // We need to use the resourceUsageService to figure out if we already allocated
       // resources for this member account. We need to do that per study. Therefore, we are
       // tracking the environments that are accessing studies for the given remember accounts.
-      const usageService = await this.service('envResourceUsageService');
+      const usageService = await this.service('resourceUsageService');
       const studiesToAdd = [];
       const processor = async study => {
-        const usage = await usageService.addEnvironment(requestContext, {
+        const usage = await usageService.addUsage(requestContext, {
           resource: `legacy-access-study-${study.id}`,
           setName: memberAccountId,
-          envId: environmentScEntity.id,
+          item: environmentScEntity.id,
         });
 
-        if (usage.added && _.size(usage.envIds) === 1) studiesToAdd.push(study);
+        if (usage.added && _.size(usage.items) === 1) studiesToAdd.push(study);
       };
 
       // We do the usage tracking calls, 20 at a time
@@ -90,13 +90,13 @@ class EnvironmentResourceService extends Service {
       await this.addToBucketPolicy(requestContext, studiesToAdd, memberAccountId);
 
       // We want to track all the environments that are accessing the studies at the member account level
-      const usage = await usageService.addEnvironment(requestContext, {
+      const usage = await usageService.addUsage(requestContext, {
         resource: `legacy-access-member-account-${memberAccountId}`,
         setName: memberAccountId,
-        envId: environmentScEntity.id,
+        item: environmentScEntity.id,
       });
 
-      if (usage.added && _.size(usage.envIds) === 1) {
+      if (usage.added && _.size(usage.items) === 1) {
         // Add permissions in the main account kms key policy for the environment member account to be able to use this key
         await this.addToKmsKeyPolicy(requestContext, memberAccountId);
       }
@@ -125,18 +125,18 @@ class EnvironmentResourceService extends Service {
     const lockId = `bucket-policy-access-${bucketName}`;
 
     await lockService.tryWriteLockAndRun({ id: lockId }, async () => {
-      // We need to use the envResourceUsageService to figure out if we already removed
+      // We need to use the resourceUsageService to figure out if we already removed
       // resources for this member account. We need to do that per study.
-      const usageService = await this.service('envResourceUsageService');
+      const usageService = await this.service('resourceUsageService');
       const studiesToRemove = [];
       const processor = async study => {
-        const usage = await usageService.removeEnvironment(requestContext, {
+        const usage = await usageService.removeUsage(requestContext, {
           resource: `legacy-access-study-${study.id}`,
           setName: memberAccountId,
-          envId: environmentScEntity.id,
+          item: environmentScEntity.id,
         });
 
-        if (usage.removed && _.isEmpty(usage.envIds)) studiesToRemove.push(study);
+        if (usage.removed && _.isEmpty(usage.items)) studiesToRemove.push(study);
       };
 
       // We do the usage tracking calls, 20 at a time
@@ -147,13 +147,13 @@ class EnvironmentResourceService extends Service {
       await this.removeFromBucketPolicy(requestContext, studiesToRemove, memberAccountId);
 
       // We want to track all the environments that are accessing the studies at the member account level
-      const usage = await usageService.removeEnvironment(requestContext, {
+      const usage = await usageService.removeUsage(requestContext, {
         resource: `legacy-access-member-account-${memberAccountId}`,
         setName: memberAccountId,
-        envId: environmentScEntity.id,
+        item: environmentScEntity.id,
       });
 
-      if (usage.removed && _.isEmpty(usage.envIds)) {
+      if (usage.removed && _.isEmpty(usage.items)) {
         await this.removeFromKmsKeyPolicy(requestContext, memberAccountId);
       }
     });

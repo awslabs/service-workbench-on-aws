@@ -19,18 +19,16 @@ const Service = require('@aws-ee/base-services-container/lib/service');
 const { resourceIdCompositeKey } = require('./helpers/composite-keys');
 
 const settingKeys = {
-  tableName: 'dbEnvResourceUsages',
+  tableName: 'dbResourceUsages',
 };
 
 /**
- * A service to track usage of a resource/entity given an environment, grouped by a set name.
+ * A service to track usage of a resource/entity consumed by items, grouped by a set name.
  * A set name can be the principal, for example, the member account id. The usage tracking is done using sets.
- * This means that if you add the same resource/entity for the same environment using the same set name,
+ * This means that if you add usage of the same resource/entity by the same item using the same set name,
  * more than once, it won't be counted as an additional usage.
- *
- * The service is not meant to be used for general tracking of all AWS resource usages by environments (workspaces)
  */
-class EnvResourceUsageService extends Service {
+class ResourceUsageService extends Service {
   constructor() {
     super();
     this.dependency(['dbService', 'auditWriterService']);
@@ -46,55 +44,61 @@ class EnvResourceUsageService extends Service {
   }
 
   /**
-   * IMPORTANT: If you call this method with the same resource/entity id, setName and envId, multiple times, the envId
-   * is only added once.
+   * IMPORTANT: If you call this method with the same resource/entity id, setName and item, multiple times, the item
+   * is only considered once.
    *
-   * The output shape is { resource, setName, envIds: [<envId>, ...], added: true/false }
-   * The property 'added' is true if the envId was actually added to the set, otherwise, added is false.
+   * The output shape is { resource, setName, items: [<item>, ...], added: true/false }
+   * The property 'added' is true if the item was actually added to the set, otherwise, added is false.
+   *
+   * @param item An item is not an object, it is just a string
    */
-  async addEnvironment(requestContext, { resource, setName, envId }) {
+  async addUsage(requestContext, { resource, setName, item }) {
     const updater = this._updater();
     const result = await updater
       .key(resourceIdCompositeKey.encode({ resource, setName }))
-      .add('envIds :envId')
-      .values({ ':envId': updater.client.createSet([envId], { validate: true }) })
+      .add('#items :item')
+      .names({ '#items': 'items' })
+      .values({ ':item': updater.client.createSet([item], { validate: true }) })
       .return('ALL_OLD') // We want to get the old set before it was updated, this will help us determine if addition had occurred
       .update();
 
     // It is possible that there was no entry before the update, in this case, the 'result' variable will be undefined
-    const envIds = _.get(result, 'envIds', []); // We are getting the old set not the updated set
-    const found = _.includes(envIds, envId);
-    if (!found) envIds.push(envId);
+    const items = _.get(result, 'items', []); // We are getting the old set not the updated set
+    const found = _.includes(items, item);
+    if (!found) items.push(item);
 
-    const output = { resource, setName, envIds, added: !found };
+    const output = { resource, setName, items, added: !found };
 
     // Write audit event
-    await this.audit(requestContext, { action: 'increment-resource-count', body: output });
+    await this.audit(requestContext, { action: 'increment-resource-usage', body: output });
 
     return output;
   }
 
   /**
-   * The output shape is { resource, setName, envIds: [<envId>, ...], removed: true/false }
-   * The property 'removed' is true if the envId was actually removed from the set, otherwise, removed is false, because
-   * the envId was previous removed and there is no need to remove it again or the envId didn't exist to start with (this
+   * The output shape is { resource, setName, items: [<item>, ...], removed: true/false }
+   * The property 'removed' is true if the item was actually removed from the set, otherwise, removed is false, because
+   * the item was previous removed and there is no need to remove it again or the item didn't exist to start with (this
    * could be the case when the new code is deployed while previous workspaces were active).
+   *
+   * @param item An item is not an object, it is just a string
    */
-  async removeEnvironment(requestContext, { resource, setName, envId }) {
+  async removeUsage(requestContext, { resource, setName, item }) {
     const updater = this._updater();
     const result = await updater
       .key(resourceIdCompositeKey.encode({ resource, setName }))
-      .delete('envIds :envId')
-      .values({ ':envId': updater.client.createSet([envId], { validate: true }) })
+      .delete('#items :item')
+      .names({ '#items': 'items' })
+      .values({ ':item': updater.client.createSet([item], { validate: true }) })
       .return('ALL_OLD') // We want to get the old set before it was updated, this will help us determine if removal had occurred
       .update();
 
     // It is possible that there was no entry before the update, in this case, the 'result' variable will be undefined
-    const envIds = _.get(result, 'envIds', []); // We are getting the old set not the updated set
-    const found = _.includes(envIds, envId);
-    if (found) _.remove(envIds, id => id === envId);
+    const items = _.get(result, 'items', []); // We are getting the old set not the updated set
+    const found = _.includes(items, item);
+    if (found) _.remove(items, id => id === item);
 
-    const output = { resource, setName, envIds, removed: found };
+    const output = { resource, setName, items, removed: found };
 
     // Write audit event
     await this.audit(requestContext, { action: 'decrement-resource-count', body: output });
@@ -106,7 +110,7 @@ class EnvResourceUsageService extends Service {
    * Returns all the sets associated with the given resource. If 'setName' is provided (optional), then only
    * this set for the resource is returned.
    *
-   * The output shape is { <setName1>: [ <envId>, ... ], <setName2>: [ <envId>, ... ] }
+   * The output shape is { <setName1>: [ <item>, ... ], <setName2>: [ <item>, ... ] }
    */
   async getResourceUsage(requestContext, { resource, setName }) {
     let op = this._query().key('pk', resourceIdCompositeKey.pk(resource));
@@ -120,7 +124,7 @@ class EnvResourceUsageService extends Service {
 
     _.forEach(dbEntities, dbEntity => {
       const { setName: name } = resourceIdCompositeKey.decode(dbEntity);
-      result[name] = dbEntity.envIds || [];
+      result[name] = dbEntity.items || [];
     });
 
     return result;
@@ -136,4 +140,4 @@ class EnvResourceUsageService extends Service {
   }
 }
 
-module.exports = EnvResourceUsageService;
+module.exports = ResourceUsageService;
