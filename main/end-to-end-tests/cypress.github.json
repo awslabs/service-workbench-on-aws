@@ -2,7 +2,7 @@
   "chromeWebSecurity": true,
   "viewportWidth": 1400,
   "viewportHeight": 1000,
-  "video": true,
+  "video": false,
   "env": {
     "isCognitoEnabled": false,
     "workspaces": {
