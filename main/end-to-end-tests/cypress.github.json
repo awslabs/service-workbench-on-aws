@@ -4,6 +4,7 @@
   "viewportHeight": 1000,
   "video": true,
   "env": {
+    "isCognitoEnabled": false,
     "workspaces": {
       "sagemaker": {
         "workspaceTypeName": "SageMaker Notebook-v1",
