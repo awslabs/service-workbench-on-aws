@@ -378,7 +378,7 @@ Resources:
                 - !GetAtt [StorageGatewayDb, Arn]
                 - !GetAtt [DsAccountsDb, Arn]
                 - !GetAtt [RoleAllocationsDb, Arn]
-                - !GetAtt [EnvResourceUsagesDb, Arn]
+                - !GetAtt [ResourceUsagesDb, Arn]
 
         - PolicyName: param-store-access
           PolicyDocument:
@@ -581,7 +581,7 @@ Resources:
                 - !GetAtt [StorageGatewayDb, Arn]
                 - !GetAtt [DsAccountsDb, Arn]
                 - !GetAtt [RoleAllocationsDb, Arn]
-                - !GetAtt [EnvResourceUsagesDb, Arn]
+                - !GetAtt [ResourceUsagesDb, Arn]
 
         - PolicyName: param-store-access
           PolicyDocument:
@@ -1429,11 +1429,11 @@ Resources:
           KeyType: 'RANGE'
       BillingMode: PAY_PER_REQUEST
 
-  EnvResourceUsagesDb:
+  ResourceUsagesDb:
     Type: AWS::DynamoDB::Table
     DependsOn: DsAccountsDb
     Properties:
-      TableName: ${self:custom.settings.dbEnvResourceUsages}
+      TableName: ${self:custom.settings.dbResourceUsages}
       AttributeDefinitions:
         - AttributeName: 'pk'
           AttributeType: 'S'
