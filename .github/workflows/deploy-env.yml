@@ -53,7 +53,7 @@ jobs:
         working-directory: main/end-to-end-tests
         env:
           # Env parameters for cypress tests need header 'CYPRESS_' or 'cypress_'
-          # Cypress will strip the header and pss it to the tests
+          # Cypress will strip the header and pass it to the tests
           CYPRESS_BASE_URL: ${{ secrets.CYPRESS_BASE_URL}}
-          cypress_researcherEmail: ${{ secrets.CYPRESS_RESEARCHER_EMAIL}}
-          cypress_researcherPassword: ${{ secrets.CYPRESS_RESEARCHER_PASSWORD}}
+          CYPRESS_researcherEmail: ${{ secrets.CYPRESS_RESEARCHER_EMAIL}}
+          CYPRESS_researcherPassword: ${{ secrets.CYPRESS_RESEARCHER_PASSWORD}}
