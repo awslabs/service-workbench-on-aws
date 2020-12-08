@@ -15,6 +15,7 @@
 
 // const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
+const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 
 const extensionPoint = 'study-access-strategy';
 
@@ -116,11 +117,9 @@ class DataSourceRegistrationService extends Service {
     // For now, assume CfN stack is ready
     const reachable = true;
 
-    // TODO: Use updateStatus method in DataSourceAccountService
     if (reachable) {
       const newStatus = 'reachable';
-      dataSourceAccount.status = newStatus;
-      dataSourceAccount.statusMsg = '';
+      await accountService.updateStatus(requestContext, dataSourceAccount, { status: newStatus, statusMsg: '' });
       outputVal = newStatus;
       if (prevStatus !== newStatus) {
         const workflowTriggerService = await this.service('workflowTriggerService');
@@ -134,13 +133,14 @@ class DataSourceRegistrationService extends Service {
         );
       }
     } else if (prevStatus === 'pending') {
-      dataSourceAccount.statusMsg = `WARN|||Data source account ${id} is not reachable yet`;
+      const statusMsg = `WARN|||Data source account ${id} is not reachable yet`;
+      await accountService.updateStatus(requestContext, dataSourceAccount, { status: prevStatus, statusMsg });
       outputVal = prevStatus;
     } else {
-      dataSourceAccount.statusMsg = `ERR|||Error getting information from data source account ${id}`;
+      const statusMsg = `ERR|||Error getting information from data source account ${id}`;
+      await accountService.updateStatus(requestContext, dataSourceAccount, { status: prevStatus, statusMsg });
       outputVal = prevStatus;
     }
-    dataSourceAccount.update(requestContext, dataSourceAccount);
     // Write audit event
     await this.audit(requestContext, {
       action: 'check-dsAccount-reachability',
@@ -162,20 +162,19 @@ class DataSourceRegistrationService extends Service {
     // For now, assume study is reachable
     const reachable = true;
 
-    // TODO: Use updateStatus method in StudyService
     if (reachable) {
       const newStatus = 'reachable';
-      studyEntity.status = newStatus;
-      studyEntity.statusMsg = '';
+      await studyService.updateStatus(requestContext, studyEntity, { status: newStatus, statusMsg: '' });
       outputVal = newStatus;
     } else if (prevStatus === 'pending') {
-      studyEntity.statusMsg = `WARN|||Study ${id} is not reachable yet`;
+      const statusMsg = `WARN|||Study ${id} is not reachable yet`;
+      await studyService.updateStatus(requestContext, studyEntity, { status: prevStatus, statusMsg });
       outputVal = prevStatus;
     } else {
-      studyEntity.statusMsg = `ERR|||Error getting information from study ${id}`;
+      const statusMsg = `ERR|||Error getting information from study ${id}`;
+      await studyService.updateStatus(requestContext, studyEntity, { status: prevStatus, statusMsg });
       outputVal = prevStatus;
     }
-    studyEntity.update(requestContext, studyEntity);
     // Write audit event
     await this.audit(requestContext, {
       action: 'check-study-reachability',
@@ -185,7 +184,12 @@ class DataSourceRegistrationService extends Service {
   }
 
   async attemptReach(requestContext, { id, status, type }) {
-    // TODO: Add authentication to check if admin or system triggered this
+    const accountService = await this.service('dataSourceAccountService');
+    await accountService.assertAuthorized(
+      requestContext,
+      { action: 'update', conditions: [allowIfActive, allowIfAdmin] },
+      { id, status, type },
+    );
 
     if (!id) {
       throw this.boom.badRequest(`ID is undefined. Please enter a valid dsAccountId, studyId, or '*'`, true);
