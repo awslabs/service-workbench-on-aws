@@ -43,15 +43,17 @@ type mountConfiguration struct {
 	destination string
 	writeable   bool
 	kmsKeyId    string
+	roleArn     string
 }
 
-func newMountConfiguration(bucket string, prefix string, destination string, writeable bool, kmsKeyId string) *mountConfiguration {
+func newMountConfiguration(bucket string, prefix string, destination string, writeable bool, kmsKeyId string, roleArn string) *mountConfiguration {
 	config := mountConfiguration{
 		bucket:      bucket,
 		prefix:      prefix,
 		destination: destination,
 		writeable:   writeable,
 		kmsKeyId:    kmsKeyId,
+		roleArn:     roleArn,
 	}
 	return &config
 }

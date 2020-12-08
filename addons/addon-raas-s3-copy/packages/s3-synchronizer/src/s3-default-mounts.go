@@ -18,9 +18,13 @@ func getDefaultMounts(defaultS3Mounts string) (*[]s3Mount, error) {
 		if mount.Writeable == nil {
 			mounts[i].Writeable = Bool(false)
 		}
-		if mount.KmsKeyId == nil {
+		if mount.KmsArn == nil {
 			emptyString := ""
-			mounts[i].KmsKeyId = &emptyString
+			mounts[i].KmsArn = &emptyString
+		}
+		if mount.RoleArn == nil {
+		    emptyString := ""
+		    mounts[i].RoleArn = &emptyString
 		}
 	}
 	return &mounts, err
