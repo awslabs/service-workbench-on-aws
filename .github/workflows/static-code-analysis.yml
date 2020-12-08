@@ -3,9 +3,11 @@ on:
   push:
     branches:
       - master
+      - 'feat-*'
   pull_request:
     branches:
       - master
+      - 'feat-*'
 jobs:
   static-code-analysis:
     name: Static Code Analysis
