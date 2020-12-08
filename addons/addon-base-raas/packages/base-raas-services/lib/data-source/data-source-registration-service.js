@@ -35,6 +35,7 @@ class DataSourceRegistrationService extends Service {
       'studyPermissionService',
       'pluginRegistryService',
       'workflowTriggerService',
+      'aws',
     ]);
   }
 
@@ -106,21 +107,20 @@ class DataSourceRegistrationService extends Service {
   async reachDsAccount(requestContext, { id, type }) {
     const accountService = await this.service('dataSourceAccountService');
     const dataSourceAccount = await accountService.mustFind(requestContext, { id });
-    let outputVal;
+
     if (!dataSourceAccount.status) {
       throw this.boom.badRequest('Can only check reachability for data source account', true);
     }
     const prevStatus = dataSourceAccount.status;
+    let newStatus = prevStatus;
+    let statusMsg = '';
 
     // TODO: Use the cloudformation stack name to access its status in the data source account
     // TODO: Determine if the stack is compliant
-    // For now, assume CfN stack is ready
-    const reachable = true;
+    const reachable = false;
 
     if (reachable) {
-      const newStatus = 'reachable';
-      await accountService.updateStatus(requestContext, dataSourceAccount, { status: newStatus, statusMsg: '' });
-      outputVal = newStatus;
+      newStatus = 'reachable';
       if (prevStatus !== newStatus) {
         const workflowTriggerService = await this.service('workflowTriggerService');
         await workflowTriggerService.triggerWorkflow(
@@ -133,54 +133,72 @@ class DataSourceRegistrationService extends Service {
         );
       }
     } else if (prevStatus === 'pending') {
-      const statusMsg = `WARN|||Data source account ${id} is not reachable yet`;
-      await accountService.updateStatus(requestContext, dataSourceAccount, { status: prevStatus, statusMsg });
-      outputVal = prevStatus;
+      statusMsg = `WARN|||Data source account ${id} is not reachable yet`;
     } else {
-      const statusMsg = `ERR|||Error getting information from data source account ${id}`;
-      await accountService.updateStatus(requestContext, dataSourceAccount, { status: prevStatus, statusMsg });
-      outputVal = prevStatus;
+      statusMsg = `ERR|||Error getting information from data source account ${id}`;
     }
+    await accountService.updateStatus(requestContext, dataSourceAccount, { status: newStatus, statusMsg });
+    const outputVal = newStatus;
+
     // Write audit event
     await this.audit(requestContext, {
       action: 'check-dsAccount-reachability',
       body: { id, type },
     });
+
     return outputVal;
   }
 
   async reachStudy(requestContext, { id, type }) {
     const studyService = await this.service('studyService');
     const studyEntity = await studyService.mustFind(requestContext, id);
-    let outputVal;
+
     if (!studyEntity.status) {
       throw this.boom.badRequest('Can only check reachability for data source account studies', true);
     }
-    const prevStatus = studyEntity.status;
 
-    // TODO: Assume the application role, it is now able to access the study
-    // For now, assume study is reachable
-    const reachable = true;
+    const prevStatus = studyEntity.status;
+    let newStatus = prevStatus;
+    let statusMsg = '';
+    const reachable = await this._assumeAppRole(requestContext, studyEntity.appRoleArn);
 
     if (reachable) {
-      const newStatus = 'reachable';
-      await studyService.updateStatus(requestContext, studyEntity, { status: newStatus, statusMsg: '' });
-      outputVal = newStatus;
+      newStatus = 'reachable';
     } else if (prevStatus === 'pending') {
-      const statusMsg = `WARN|||Study ${id} is not reachable yet`;
-      await studyService.updateStatus(requestContext, studyEntity, { status: prevStatus, statusMsg });
-      outputVal = prevStatus;
+      statusMsg = `WARN|||Study ${id} is not reachable yet`;
     } else {
-      const statusMsg = `ERR|||Error getting information from study ${id}`;
-      await studyService.updateStatus(requestContext, studyEntity, { status: prevStatus, statusMsg });
-      outputVal = prevStatus;
+      statusMsg = `ERR|||Error getting information from study ${id}`;
     }
+    await studyService.updateStatus(requestContext, studyEntity, { status: newStatus, statusMsg });
+    const outputVal = newStatus;
+
     // Write audit event
     await this.audit(requestContext, {
       action: 'check-study-reachability',
       body: { id, type },
     });
+
     return outputVal;
+  }
+
+  async _assumeAppRole(requestContext, appRoleArn) {
+    const aws = await this.service('aws');
+    let reachable = false;
+    try {
+      const sts = new aws.sdk.STS();
+      await sts
+        .assumeRole({
+          RoleArn: appRoleArn,
+          RoleSessionName: `SWB-${requestContext.principalIdentifier.uid}`,
+        })
+        .promise();
+      // If we were able to assume the application role, we are now able to access the study
+      reachable = true;
+    } catch (err) {
+      // Error is expected if assuming role is not successful yet
+      reachable = false;
+    }
+    return reachable;
   }
 
   async attemptReach(requestContext, { id, status, type }) {
