@@ -32,7 +32,15 @@ class BulkReachabilityCheck extends StepBase {
     const status = await this.payload.object('status'); // This could also be '*'
 
     // Search for all dsAccounts with this status
-    const dsAccountIds = await dataSourceAccountService.queryDsAccountIds(requestContext, { status });
+    const dsAccountEntries = await dataSourceAccountService.list(requestContext);
+    let dsAccountIds = [];
+    if (status === '*') {
+      dsAccountIds = _.map(dsAccountEntries, accountEntry => accountEntry.id);
+    } else {
+      const filteredDsAccounts = _.filter(dsAccountEntries, accountEntry => accountEntry.status === status);
+      dsAccountIds = _.map(filteredDsAccounts, accountEntry => accountEntry.id);
+    }
+
     await Promise.all(
       _.map(dsAccountIds, async dsAccountId => {
         await dataSourceRegistrationService.attemptReach(requestContext, { dsAccountId, type: 'dsAccount' });
