@@ -34,6 +34,25 @@ async function configure(context) {
   );
 
   // ===============================================================
+  //  GET /accounts (mounted to /api/data-sources)
+  // ===============================================================
+  router.get(
+    '/reachability',
+    wrap(async (req, res) => {
+      const requestContext = res.locals.requestContext;
+      const service = await context.service('dataSourceRegistrationService');
+      const id = req.query.id;
+      const status = req.query.status;
+      const type = req.query.type;
+      const params = { id, status, type };
+
+      const result = await service.attemptReach(requestContext, params);
+
+      res.status(200).json(result);
+    }),
+  );
+
+  // ===============================================================
   //  POST /accounts (mounted to /api/data-sources)
   // ===============================================================
   router.post(

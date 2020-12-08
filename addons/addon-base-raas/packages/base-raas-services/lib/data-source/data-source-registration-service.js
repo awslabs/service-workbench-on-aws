@@ -18,6 +18,11 @@ const Service = require('@aws-ee/base-services-container/lib/service');
 
 const extensionPoint = 'study-access-strategy';
 
+const workflowIds = {
+  bulkCheck: 'wf-bulk-reachability-check',
+  accountStatusChange: 'wf-ds-account-status-change',
+};
+
 class DataSourceRegistrationService extends Service {
   constructor() {
     super();
@@ -28,6 +33,7 @@ class DataSourceRegistrationService extends Service {
       'studyService',
       'studyPermissionService',
       'pluginRegistryService',
+      'workflowTriggerService',
     ]);
   }
 
@@ -77,6 +83,130 @@ class DataSourceRegistrationService extends Service {
     });
 
     return result.studyEntity;
+  }
+
+  async bulkReach(requestContext, { status }) {
+    status = status || '*';
+    const workflowTriggerService = await this.service('workflowTriggerService');
+    await workflowTriggerService.triggerWorkflow(
+      requestContext,
+      { workflowId: workflowIds.bulkCheck },
+      {
+        status,
+      },
+    );
+    // Write audit event
+    await this.audit(requestContext, {
+      action: 'bulk-check-reachability',
+      body: { status },
+    });
+  }
+
+  async reachDsAccount(requestContext, { id, type }) {
+    const accountService = await this.service('dataSourceAccountService');
+    const dataSourceAccount = await accountService.mustFind(requestContext, { id });
+    let outputVal;
+    if (!dataSourceAccount.status) {
+      throw this.boom.badRequest('Can only check reachability for data source account', true);
+    }
+    const prevStatus = dataSourceAccount.status;
+
+    // TODO: Use the cloudformation stack name to access its status in the data source account
+    // TODO: Determine if the stack is compliant
+    // For now, assume CfN stack is ready
+    const reachable = true;
+
+    // TODO: Use updateStatus method in DataSourceAccountService
+    if (reachable) {
+      const newStatus = 'reachable';
+      dataSourceAccount.status = newStatus;
+      dataSourceAccount.statusMsg = '';
+      outputVal = newStatus;
+      if (prevStatus !== newStatus) {
+        const workflowTriggerService = await this.service('workflowTriggerService');
+        await workflowTriggerService.triggerWorkflow(
+          requestContext,
+          { workflowId: workflowIds.accountStatusChange },
+          {
+            id,
+            type,
+          },
+        );
+      }
+    } else if (prevStatus === 'pending') {
+      dataSourceAccount.statusMsg = `WARN|||Data source account ${id} is not reachable yet`;
+      outputVal = prevStatus;
+    } else {
+      dataSourceAccount.statusMsg = `ERR|||Error getting information from data source account ${id}`;
+      outputVal = prevStatus;
+    }
+    dataSourceAccount.update(requestContext, dataSourceAccount);
+    // Write audit event
+    await this.audit(requestContext, {
+      action: 'check-dsAccount-reachability',
+      body: { id, type },
+    });
+    return outputVal;
+  }
+
+  async reachStudy(requestContext, { id, type }) {
+    const studyService = await this.service('studyService');
+    const studyEntity = await studyService.mustFind(requestContext, id);
+    let outputVal;
+    if (!studyEntity.status) {
+      throw this.boom.badRequest('Can only check reachability for data source account studies', true);
+    }
+    const prevStatus = studyEntity.status;
+
+    // TODO: Assume the application role, it is now able to access the study
+    // For now, assume study is reachable
+    const reachable = true;
+
+    // TODO: Use updateStatus method in StudyService
+    if (reachable) {
+      const newStatus = 'reachable';
+      studyEntity.status = newStatus;
+      studyEntity.statusMsg = '';
+      outputVal = newStatus;
+    } else if (prevStatus === 'pending') {
+      studyEntity.statusMsg = `WARN|||Study ${id} is not reachable yet`;
+      outputVal = prevStatus;
+    } else {
+      studyEntity.statusMsg = `ERR|||Error getting information from study ${id}`;
+      outputVal = prevStatus;
+    }
+    studyEntity.update(requestContext, studyEntity);
+    // Write audit event
+    await this.audit(requestContext, {
+      action: 'check-study-reachability',
+      body: { id, type },
+    });
+    return outputVal;
+  }
+
+  async attemptReach(requestContext, { id, status, type }) {
+    // TODO: Add authentication to check if admin or system triggered this
+
+    if (!id) {
+      throw this.boom.badRequest(`ID is undefined. Please enter a valid dsAccountId, studyId, or '*'`, true);
+    }
+    if (id === '*' && type) {
+      throw this.boom.badRequest(`Cannot process type with wildcard id`, true);
+    }
+    if (id !== '*' && status) {
+      throw this.boom.badRequest(`Can only process status with wildcard id`, true);
+    }
+    let outputVal;
+
+    if (id === '*') {
+      await this.bulkReach(requestContext, { status });
+    } else if (type === 'dsAccount') {
+      outputVal = await this.reachDsAccount(requestContext, { id, type });
+    } else if (type === 'study') {
+      outputVal = await this.reachstudy(requestContext, { id, type });
+    }
+
+    return outputVal;
   }
 
   async audit(requestContext, auditEvent) {
