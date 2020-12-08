@@ -186,6 +186,9 @@ dbDsAccounts: ${self:custom.settings.dbPrefix}-DsAccounts
 # DynamoDB table name for Role allocations
 dbRoleAllocations: ${self:custom.settings.dbPrefix}-RoleAllocations
 
+# DynamoDB table name for Resource usages
+dbResourceUsages: ${self:custom.settings.dbPrefix}-ResourceUsages
+
 # ================================ DB Settings - Depreciated ===========================================
 
 # DynamoDB table name for supported authentication provider types

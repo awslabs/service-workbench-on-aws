@@ -141,6 +141,14 @@ function isWriteonly(studyEntity = {}) {
   return accessType === 'writeonly';
 }
 
+function isReadwrite(studyEntity = {}) {
+  // Due to backward compatibility, not all studyEntity have the property 'accessType', therefore,
+  // by default the accessType if not found is readwrite. Remember the accessType represents the
+  // the max permissions allowed on the study.
+  const accessType = _.get(studyEntity, 'accessType', 'readwrite');
+  return accessType === 'readwrite';
+}
+
 function isPermissionLevelSupported(studyEntity, permissionLevel) {
   const readonly = isReadonly(studyEntity);
   const writeonly = isWriteonly(studyEntity);
@@ -188,6 +196,7 @@ module.exports = {
   accessLevels,
   isReadonly,
   isWriteonly,
+  isReadwrite,
   isPermissionLevelSupported,
   permissionLevels,
   toStudyEntity,

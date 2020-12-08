@@ -14,6 +14,9 @@
  */
 
 const _ = require('lodash');
+const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
+
+const { hasAccess, accessLevels } = require('../study/helpers/entities/study-methods');
 
 /**
  * A plugin method to contribute to the list of available variables for usage in variable expressions in
@@ -34,6 +37,117 @@ async function list({ requestContext, container, vars }) {
   const raasVars = await environmentConfigVarsService.list(requestContext);
   // add raas specific variables to the list
   return { requestContext, container, vars: [...vars, ...raasVars] };
+}
+
+async function getStudies({ requestContext, container, envId }) {
+  // Logic
+  // - Load the environmentSc entity
+  // - Load all the study entities associated with the environment
+  // - Determine the study permissions for the workspace
+
+  const environmentScService = await container.find('environmentScService');
+  const studyService = await container.find('studyService');
+
+  const environmentScEntity = await environmentScService.mustFind(requestContext, { id: envId });
+  const studyIds = environmentScEntity.studyIds;
+  const createdBy = environmentScEntity.createdBy;
+
+  if (_.isEmpty(studyIds)) return { environmentScEntity, studies: [] };
+
+  const systemContext = getSystemRequestContext();
+  const studies = await studyService.listByIds(
+    systemContext,
+    _.map(studyIds, id => ({ id })),
+  );
+
+  // Time to populate the envPermission: { write: read: } before sending it to the plugins
+  const permissionLookup = async study => {
+    const entity = await studyService.getStudyPermissions(systemContext, study.id);
+    if (!hasAccess(entity, createdBy))
+      throw studyService.boom.forbidden(
+        `The creator of the workspace does not have access to study "${study.id}"`,
+        true,
+      );
+    const { read, write } = accessLevels(entity, createdBy);
+    study.envPermission = { read, write };
+  };
+
+  await Promise.all(_.map(studies, permissionLookup));
+
+  return { environmentScEntity, studies };
+}
+
+/**
+ * This plugin method is expected to be called when the environment is about to be provisioned. This method then
+ * allocates any study resources needed by calling the extension point 'study-access-strategy' with method
+ * allocateEnvStudyResources(). This way other plugins that implement their own study resource allocations. Example
+ * of such study resource allocation is the creation of filesystem roles or updating the bucket policy.
+ *
+ * @param requestContext The request context object containing principal (caller) information.
+ * @param container Services container instance
+ * @param envId The environment sc entity id
+ */
+async function preProvisioning({ requestContext, container, envId }) {
+  const { environmentScEntity, studies } = await getStudies({ requestContext, container, envId });
+
+  if (_.isEmpty(studies)) return { requestContext, container, envId };
+
+  const environmentScService = await container.find('environmentScService');
+  const memberAccount = await environmentScService.getMemberAccount(requestContext, environmentScEntity);
+  const pluginRegistryService = await container.find('pluginRegistryService');
+
+  await pluginRegistryService.visitPlugins('study-access-strategy', 'allocateEnvStudyResources', {
+    payload: {
+      requestContext,
+      container,
+      environmentScEntity,
+      studies,
+      memberAccountId: memberAccount.accountId,
+    },
+  });
+
+  return { requestContext, container, envId };
+}
+
+async function preProvisioningFailure({ requestContext, container, envId, status, error }) {
+  const environmentScService = await container.find('environmentScService');
+  const envEntity = await environmentScService.mustFind(requestContext, { id: envId, fields: ['rev'] });
+
+  const environment = {
+    id: envId,
+    rev: envEntity.rev || 0,
+    status,
+  };
+
+  if (error) {
+    environment.error = error.message;
+  }
+  await environmentScService.update(requestContext, environment);
+
+  // Call study access strategy plugins to deallocate any resources
+  const { environmentScEntity, studies } = await getStudies({ requestContext, container, envId });
+  if (_.isEmpty(studies)) return { requestContext, container, envId, status, error };
+
+  const memberAccount = await environmentScService.getMemberAccount(requestContext, environmentScEntity);
+  const pluginRegistryService = await container.find('pluginRegistryService');
+
+  const result = await pluginRegistryService.visitPlugins('study-access-strategy', 'deallocateEnvStudyResources', {
+    payload: {
+      requestContext,
+      container,
+      environmentScEntity,
+      studies,
+      memberAccountId: memberAccount.accountId,
+    },
+    continueOnError: true,
+  });
+
+  if (!_.isEmpty(result.pluginErrors)) {
+    const messages = _.map(result.pluginErrors, err => err.message);
+    throw pluginRegistryService.boom.badRequest(messages.join(', '), true);
+  }
+
+  return { requestContext, container, envId, status, error };
 }
 
 /**
@@ -141,6 +255,7 @@ async function updateEnvOnProvisioningSuccess({
 
   return { requestContext, container, resolvedVars, status, outputs, provisionedProductId };
 }
+
 // This step calls "onEnvOnProvisioningFailure" in case of any errors.
 async function updateEnvOnProvisioningFailure({
   requestContext,
@@ -151,6 +266,7 @@ async function updateEnvOnProvisioningFailure({
   outputs,
   provisionedProductId,
 }) {
+  const payload = { requestContext, container, resolvedVars, status, error, outputs, provisionedProductId };
   const environmentScService = await container.find('environmentScService');
   const envId = resolvedVars.envId;
 
@@ -168,7 +284,30 @@ async function updateEnvOnProvisioningFailure({
   }
   await environmentScService.update(requestContext, environment);
 
-  return { requestContext, container, resolvedVars, status, error, outputs, provisionedProductId };
+  // Call study access strategy plugins to deallocate any resources
+  const { environmentScEntity, studies } = await getStudies({ requestContext, container, envId });
+  if (_.isEmpty(studies)) return payload;
+
+  const memberAccount = await environmentScService.getMemberAccount(requestContext, environmentScEntity);
+  const pluginRegistryService = await container.find('pluginRegistryService');
+
+  const result = await pluginRegistryService.visitPlugins('study-access-strategy', 'deallocateEnvStudyResources', {
+    payload: {
+      requestContext,
+      container,
+      environmentScEntity,
+      studies,
+      memberAccountId: memberAccount.accountId,
+    },
+    continueOnError: true,
+  });
+
+  if (!_.isEmpty(result.pluginErrors)) {
+    const messages = _.map(result.pluginErrors, err => err.message);
+    throw pluginRegistryService.boom.badRequest(messages.join(', '), true);
+  }
+
+  return payload;
 }
 
 /**
@@ -195,6 +334,7 @@ async function updateEnvOnProvisioningFailure({
 // The "terminate-product" calls "onEnvTerminationSuccess" method on the plugin upon successful termination
 // See "addons/addon-environment-sc-api/packages/environment-sc-workflow-steps/lib/steps/terminate-product/terminate-product.js"
 async function updateEnvOnTerminationSuccess({ requestContext, container, status, envId, record }) {
+  const payload = { requestContext, container, status, envId, record };
   const log = await container.find('log');
   const environmentScService = await container.find('environmentScService');
 
@@ -204,7 +344,8 @@ async function updateEnvOnTerminationSuccess({ requestContext, container, status
   });
 
   log.debug({ msg: `Updating environment record after successful termination`, envId });
-  // -- Update environment record status in the DB
+
+  // Update environment record status in the DB
   const environment = {
     id: envId,
     rev: existingEnvRecord.rev || 0,
@@ -213,37 +354,47 @@ async function updateEnvOnTerminationSuccess({ requestContext, container, status
   };
   const updatedEnvironment = await environmentScService.update(requestContext, environment, { action: 'REMOVE' });
 
-  // -- Perform all required clean up
-  // --- Cleanup - Resource policies (such as S3 bucket policy, KMS key policy etc) in central account
-  log.debug({ msg: `Cleaning up local resource policies`, envId });
+  // Perform all required clean up
+
+  // Call study access strategy plugins to deallocate any resources
+  const { environmentScEntity, studies } = await getStudies({ requestContext, container, envId });
+
+  let deallocationResult = {};
+  if (!_.isEmpty(studies)) {
+    const memberAccount = await environmentScService.getMemberAccount(requestContext, environmentScEntity);
+    const pluginRegistryService = await container.find('pluginRegistryService');
+
+    deallocationResult = await pluginRegistryService.visitPlugins(
+      'study-access-strategy',
+      'deallocateEnvStudyResources',
+      {
+        payload: {
+          requestContext,
+          container,
+          environmentScEntity,
+          studies,
+          memberAccountId: memberAccount.accountId,
+        },
+        continueOnError: true,
+      },
+    );
+  }
 
   // Delete DNS record for RStudio workspaces
   await rstudioCleanup(requestContext, updatedEnvironment, container);
-
-  const indexesService = await container.find('indexesService');
-  const { awsAccountId } = await indexesService.mustFind(requestContext, { id: updatedEnvironment.indexId });
-  const environmentMountService = await container.find('environmentMountService');
-
-  const { s3Prefixes, databases } = await environmentMountService.getStudyAccessInfo(
-    requestContext,
-    updatedEnvironment.studyIds,
-    updatedEnvironment.createdAt,
-  );
-
-  if (s3Prefixes.length > 0) {
-    await environmentMountService.removeRoleArnFromLocalResourcePolicies(
-      `arn:aws:iam::${awsAccountId}:root`,
-      s3Prefixes,
-      databases,
-    );
-  }
 
   // --- Cleanup - EC2 KeyPairs (the main admin key created specifically for this environment for SSH or RDP) from other account
   log.debug({ msg: `Cleaning up admin key pairs`, envId });
   const environmentScKeypairService = await container.find('environmentScKeypairService');
   await environmentScKeypairService.delete(requestContext, envId);
 
-  return { requestContext, container, status, envId, record };
+  // If we encountered an error earlier while calling the study access strategy plugins, then throw an exception
+  if (!_.isEmpty(deallocationResult.pluginErrors)) {
+    const messages = _.map(deallocationResult.pluginErrors, err => err.message);
+    throw deallocationResult.boom.badRequest(messages.join(', '), true);
+  }
+
+  return payload;
 }
 
 // This method checks if the environment being terminated is an RStudio.
@@ -281,6 +432,7 @@ async function rstudioCleanup(requestContext, updatedEnvironment, container) {
 
 // The "terminate-product' workflow call "onEnvTerminationFailure" in case of any errors
 async function updateEnvOnTerminationFailure({ requestContext, container, status, error, envId, record }) {
+  const payload = { requestContext, container, status, error, envId, record };
   const environmentScService = await container.find('environmentScService');
 
   const existingEnvRecord = await environmentScService.mustFind(requestContext, { id: envId, fields: ['rev'] });
@@ -294,7 +446,30 @@ async function updateEnvOnTerminationFailure({ requestContext, container, status
   }
   await environmentScService.update(requestContext, environment);
 
-  return { requestContext, container, status, error, envId, record };
+  // Call study access strategy plugins to deallocate any resources
+  const { environmentScEntity, studies } = await getStudies({ requestContext, container, envId });
+  if (_.isEmpty(studies)) return payload;
+
+  const memberAccount = await environmentScService.getMemberAccount(requestContext, environmentScEntity);
+  const pluginRegistryService = await container.find('pluginRegistryService');
+
+  const result = await pluginRegistryService.visitPlugins('study-access-strategy', 'deallocateEnvStudyResources', {
+    payload: {
+      requestContext,
+      container,
+      environmentScEntity,
+      studies,
+      memberAccountId: memberAccount.accountId,
+    },
+    continueOnError: true,
+  });
+
+  if (!_.isEmpty(result.pluginErrors)) {
+    const messages = _.map(result.pluginErrors, err => err.message);
+    throw pluginRegistryService.boom.badRequest(messages.join(', '), true);
+  }
+
+  return payload;
 }
 
 const plugin = {
@@ -305,6 +480,9 @@ const plugin = {
   onEnvProvisioningFailure: updateEnvOnProvisioningFailure,
   onEnvTerminationSuccess: updateEnvOnTerminationSuccess,
   onEnvTerminationFailure: updateEnvOnTerminationFailure,
+
+  onEnvPreProvisioning: preProvisioning,
+  onEnvPreProvisioningFailure: preProvisioningFailure,
 };
 
 module.exports = plugin;

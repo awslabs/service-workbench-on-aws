@@ -22,6 +22,9 @@
 
 const _ = require('lodash');
 
+const { StudyPolicy } = require('../../../../../helpers/iam/study-policy');
+const { isReadonly, isWriteonly, isReadwrite } = require('../../../../../study/helpers/entities/study-methods');
+
 const { appRoleIdCompositeKey } = require('../composite-keys');
 
 function addStudy(appRoleEntity = {}, studyEntity = {}) {
@@ -36,13 +39,14 @@ function addStudy(appRoleEntity = {}, studyEntity = {}) {
   return appRoleEntity;
 }
 
-function maxReached(appRoleEntity = {}) {
-  // TODO - generate the json boundary policy doc and count its characters
-  // Notice that we could the permission boundary policy doc characters and not role doc characters
+function maxReached(appRoleEntity = {}, maxSize = 6 * 1024 - 255) {
+  // The max characters count for a managed policy is 6k, we add some buffer here (255 character).
+
+  // Generate the json boundary policy doc and count its characters
+  // Notice that we count the permission boundary policy doc characters and not role doc characters
   // because the boundary policy is always going to run out of space before the role doc.
 
-  const policyDoc = ''; // TODO
-  const maxSize = 6 * 1024 - 300; // TODO - the max size (also add some buffer here (300 character))
+  const policyDoc = JSON.stringify(toManagedPolicyCfnResource(appRoleEntity));
   return _.size(policyDoc) >= maxSize;
 }
 
@@ -97,7 +101,7 @@ function toDbEntity(appRoleEntity, by) {
   return dbEntity;
 }
 
-function newAppRoleEntity(bucketEntity = {}, studyEntity = {}) {
+function newAppRoleEntity(accountEntity = {}, bucketEntity = {}, studyEntity = {}) {
   const { accountId, awsPartition, qualifier, bucket, region, folder, kmsArn, kmsScope, accessType } = studyEntity;
   const now = Date.now();
   const name = `${qualifier}-app-${now}`;
@@ -119,11 +123,195 @@ function newAppRoleEntity(bucketEntity = {}, studyEntity = {}) {
     boundaryPolicyArn,
     bucket,
     bucketKmsArn: bucketEntity.kmsArn,
-    region,
+    bucketRegion: region,
+    mainRegion: accountEntity.mainRegion,
     awsPartition,
     status: 'pending',
     statusAt: new Date().toISOString(),
   };
+}
+
+/**
+ * Returns a json object that represents the cfn role resource as described in
+ * https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-role.html
+ *
+ * The output shape is
+ * {
+ *   'logicalId': <logical id>,
+ *   'resource': {
+ *    {
+ *      "Type" : "AWS::IAM::Role",
+ *      "Properties" : {
+ *        "RoleName" : String,
+ *        "AssumeRolePolicyDocument" : Json,
+ *        "Description" : String,
+ *        "ManagedPolicyArns" : [ String, ... ],
+ *        "MaxSessionDuration" : Integer,
+ *        "Policies" : [ Policy, ... ],
+ *      }
+ *    }
+ *   'comment': 'Future enhancement'
+ * }
+ *
+ * @param appRoleEntity The application role entity
+ */
+function toRoleCfnResource(appRoleEntity, swbMainAccountId) {
+  const { name, accountId, qualifier, boundaryPolicyArn } = appRoleEntity;
+
+  // cfn logical id can not have '-'
+  const logicalId = `AppRole${_.replace(name, /-/g, '')}`;
+  return {
+    logicalId,
+    resource: {
+      Type: 'AWS::IAM::Role',
+      Properties: {
+        RoleName: name,
+        AssumeRolePolicyDocument: toTrustPolicyDoc(swbMainAccountId),
+        Description: 'An application role that allows the SWB application to create roles to access studies',
+        ManagedPolicyArns: [{ Ref: getManagedPolicyLogicalId(appRoleEntity) }],
+        MaxSessionDuration: 43200,
+        Policies: [
+          {
+            PolicyName: 'AppRoleEssentials',
+            PolicyDocument: {
+              Version: '2012-10-17',
+              Statement: [
+                // We can't simply ask for open ended storagegateway access, this is something we need to rethink it
+                // {
+                //   Sid: 'StorageGatewayAccess',
+                //   Action: 'storagegateway:*',
+                //   Effect: 'Allow',
+                //   Resource: '*',
+                // },
+                {
+                  Sid: 'RoleAndPolicyManagement',
+                  Effect: 'Allow',
+                  Action: [
+                    'iam:CreatePolicy',
+                    'iam:UpdateAssumeRolePolicy',
+                    'iam:AttachRolePolicy',
+                    'iam:PutRolePolicy',
+                    'iam:DeletePolicy',
+                    'iam:DeleteRole',
+                    'iam:GetPolicy',
+                    'iam:GetRole',
+                    'iam:GetRolePolicy',
+                  ],
+                  Resource: [
+                    `arn:aws:iam::${accountId}:role/${qualifier}-*`,
+                    `arn:aws:iam::${accountId}:policy/${qualifier}-*`,
+                  ],
+                },
+                {
+                  Sid: 'RoleCreation',
+                  Effect: 'Allow',
+                  Action: 'iam:CreateRole',
+                  Resource: `arn:aws:iam::${accountId}:role/${qualifier}-*`,
+                  Condition: {
+                    StringEquals: {
+                      'iam:PermissionsBoundary': boundaryPolicyArn,
+                    },
+                  },
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  };
+}
+
+/**
+ * Returns a json object that represents the cfn managed policy resource as described in
+ * https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-managedpolicy.html#cfn-iam-managedpolicy-roles
+ *
+ * The output shape is
+ * {
+ *   'logicalId': <logical id>,
+ *   'resource': {
+ *     "Type" : "AWS::IAM::ManagedPolicy",
+ *     "Properties" : {
+ *       "Description" : String,
+ *       "ManagedPolicyName" : String,
+ *       "Path" : String,
+ *       "PolicyDocument" : Json,
+ *     }
+ *   }
+ *   'comment': 'Future enhancement'
+ * }
+ *
+ * @param appRoleEntity The application role entity
+ */
+function toManagedPolicyCfnResource(appRoleEntity) {
+  const { name, studies, bucket, bucketKmsArn, awsPartition } = appRoleEntity;
+
+  const studyPolicy = new StudyPolicy();
+
+  _.forEach(studies, study => {
+    const { folder, kmsArn, kmsScope } = study;
+    const item = {
+      bucket,
+      awsPartition,
+      folder,
+      permission: {
+        read: isReadonly(study) || isReadwrite(study),
+        write: isReadwrite(study) || isWriteonly(study),
+      },
+    };
+
+    if (kmsScope === 'bucket') {
+      item.kmsArn = bucketKmsArn;
+    } else if (kmsScope === 'study') {
+      item.kmsArn = kmsArn;
+    }
+
+    studyPolicy.addStudy(item);
+  });
+
+  return {
+    logicalId: getManagedPolicyLogicalId(appRoleEntity),
+    resource: {
+      Type: 'AWS::IAM::ManagedPolicy',
+      Properties: {
+        Description: 'A managed policy that is used as the permission boundary for all roles that are created by SWB',
+        ManagedPolicyName: name,
+        PolicyDocument: studyPolicy.toPolicyDoc(),
+      },
+    },
+  };
+}
+
+function toTrustPolicyDoc(swbMainAccountId) {
+  return {
+    Version: '2012-10-17',
+    Statement: [
+      {
+        Effect: 'Allow',
+        Principal: { AWS: swbMainAccountId },
+        Action: ['sts:AssumeRole'],
+      },
+    ],
+  };
+}
+
+function getManagedPolicyLogicalId(appRoleEntity) {
+  const { name } = appRoleEntity;
+
+  // cfn logical id can not have '-'
+  const logicalId = _.replace(name, /-/g, '');
+  return `ManagedPolicy${logicalId}`;
+}
+
+/**
+ * Returns an array of the following shape:
+ * [ { logicalId: <logicalId>, resource }, ... ]
+ */
+function toCfnResources(appRoleEntity, swbMainAccountId) {
+  const managedPolicy = toManagedPolicyCfnResource(appRoleEntity);
+  const role = toRoleCfnResource(appRoleEntity, swbMainAccountId);
+
+  return [managedPolicy, role];
 }
 
 module.exports = {
@@ -132,4 +320,5 @@ module.exports = {
   newAppRoleEntity,
   addStudy,
   maxReached,
+  toCfnResources,
 };

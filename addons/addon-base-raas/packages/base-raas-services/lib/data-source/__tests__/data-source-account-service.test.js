@@ -71,7 +71,12 @@ describe('DataSourceAccountService', () => {
       const uid = 'u-currentUserId';
       const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
       const id = '123456789012';
-      const rawData = { id, name: 'Computer Science Department Account', type: 'managed-nonmember' };
+      const rawData = {
+        id,
+        name: 'Computer Science Department Account',
+        type: 'managed-nonmember',
+        mainRegion: 'us-east-1',
+      };
 
       await service.register(requestContext, rawData);
 
@@ -92,7 +97,12 @@ describe('DataSourceAccountService', () => {
     it('only admins are allowed to register data source accounts', async () => {
       const uid = 'u-currentUserId';
       const requestContext = { principalIdentifier: { uid } };
-      const rawData = { id: '123456789012', name: 'Computer Science Department Account', type: 'managed-nonmember' };
+      const rawData = {
+        id: '123456789012',
+        name: 'Computer Science Department Account',
+        type: 'managed-nonmember',
+        mainRegion: 'us-east-1',
+      };
 
       await expect(service.register(requestContext, rawData)).rejects.toThrow(
         // It is better to check using boom.code instead of just the actual string, unless
@@ -107,7 +117,12 @@ describe('DataSourceAccountService', () => {
     it('throws if account already registered', async () => {
       const uid = 'u-currentUserId';
       const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
-      const rawData = { id: '123456789012', name: 'Computer Science Department Account', type: 'managed-nonmember' };
+      const rawData = {
+        id: '123456789012',
+        name: 'Computer Science Department Account',
+        type: 'managed-nonmember',
+        mainRegion: 'us-east-1',
+      };
       let pKey;
       let sKey;
       dbService.table.key = jest.fn(({ pk, sk }) => {
@@ -140,7 +155,12 @@ describe('DataSourceAccountService', () => {
       // unmanaged accounts are not supported in this release
       const uid = 'u-currentUserId';
       const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
-      const rawData = { id: '123456789012', name: 'Computer Science Department Account', type: 'unmanaged' };
+      const rawData = {
+        id: '123456789012',
+        name: 'Computer Science Department Account',
+        type: 'unmanaged',
+        mainRegion: 'us-east-1',
+      };
 
       await expect(service.register(requestContext, rawData)).rejects.toThrow(
         expect.objectContaining({ boom: true, code: 'notSupported', safe: true }),
@@ -250,9 +270,9 @@ describe('DataSourceAccountService', () => {
       const bucket1 = { accountId: '123456789011', name: 'bucket-1', region: 'us-east-1', partition: 'aws' };
       const bucket2 = { accountId: '123456789011', name: 'bucket-2', region: 'us-east-1', partition: 'aws' };
       const bucket3 = { accountId: '123456789012', name: 'bucket-3', region: 'us-east-1', partition: 'aws' };
-      const acct1 = { id: '123456789011', name: 'account 1' };
-      const acct2 = { id: '123456789012', name: 'account 2' };
-      const acct3 = { id: '123456789013', name: 'account 3' };
+      const acct1 = { id: '123456789011', name: 'account 1', mainRegion: 'us-east-1' };
+      const acct2 = { id: '123456789012', name: 'account 2', mainRegion: 'us-east-2' };
+      const acct3 = { id: '123456789013', name: 'account 3', mainRegion: 'us-east-1' };
 
       dbService.table.scan = jest.fn(() => {
         const result = [];

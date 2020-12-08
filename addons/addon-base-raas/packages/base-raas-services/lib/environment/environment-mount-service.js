@@ -97,12 +97,12 @@ class EnvironmentMountService extends Service {
       // study entity
       const item = _.omit(study, ['category']);
       if (_.isEmpty(study.resources)) {
-        s3Mounts.push(item);
+        s3Mounts.push(_.omit(item, ['resources']));
         return;
       }
       _.forEach(study.resources, resource => {
         const { bucket, prefix } = parseS3Arn(resource.arn);
-        const entry = { ...item, bucket, prefix };
+        const entry = { ..._.omit(item, ['resources']), bucket, prefix };
         if (!isOpenData(study)) {
           entry.kmsKeyId = studyDataKmsKeyArn;
           s3Prefixes.push(prefix);
@@ -802,7 +802,6 @@ class EnvironmentMountService extends Service {
   }
 
   // @private
-  // TODO - this is a temp solution, see my comments in the getStudyAccessInfo() method
   async getStudies(requestContext, studyIds) {
     if (_.isEmpty(studyIds)) return [];
 
@@ -844,86 +843,6 @@ class EnvironmentMountService extends Service {
     return result;
   }
 
-  // async _getStudyInfo(requestContext, studyIds) {
-  //   let studyInfo = [];
-  //   if (studyIds && studyIds.length) {
-  //     const [studyService, studyPermissionService] = await this.service(['studyService', 'studyPermissionService']);
-
-  //     studyInfo = await Promise.all(
-  //       _.map(studyIds, async studyId => {
-  //         try {
-  //           const { id, name, category, resources } = await studyService.mustFind(requestContext, studyId);
-
-  //           // Find out if the current user has Read/Write access
-  //           const uid = _.get(requestContext, 'principalIdentifier.uid');
-  //           const studyPermission = await studyPermissionService.findByUser(requestContext, uid);
-  //           const writeable = _.includes(studyPermission.readwriteAccess, studyId) || category === 'My Studies';
-  //           return { id, name, category, resources, writeable };
-  //         } catch (error) {
-  //           // Because the studies update periodically we cannot
-  //           // guarantee consistency so filter anything invalid here
-  //           return { name: '', resources: [] };
-  //         }
-  //       }),
-  //     );
-  //   }
-  //   return studyInfo;
-  // }
-
-  // async _validateStudyPermissions(requestContext, studyInfo) {
-  //   let permissions = {};
-  //   if (studyInfo.length) {
-  //     // Get requested study IDs
-  //     const requestedStudyIds = studyInfo.map(study => study.id);
-
-  //     // Retrieve and verify user's study permissions
-  //     const studyPermissionService = await this.service('studyPermissionService');
-  //     const storedPermissions = await studyPermissionService.getRequestorPermissions(requestContext);
-
-  //     // If there are no stored permissions, use an empty permissions object
-  //     permissions = storedPermissions || studyPermissionService.getEmptyUserPermissions();
-
-  //     // Add Open Data read access for everyone
-  //     permissions.readonlyAccess = permissions.readonlyAccess.concat(
-  //       studyInfo.filter(study => study.category === 'Open Data').map(study => study.id),
-  //     );
-
-  //     // Determine whether any forbidden studies were requested
-  //     const allowedStudies = permissions.adminAccess.concat(permissions.readonlyAccess);
-  //     const forbiddenStudies = _.difference(requestedStudyIds, allowedStudies);
-
-  //     if (forbiddenStudies.length) {
-  //       throw new Error(`Studies not found: ${forbiddenStudies.join(',')}`);
-  //     }
-  //   }
-  //   return permissions;
-  // }
-
-  // async _prepareS3Mounts(studyInfo) {
-  //   let mounts = [];
-  //   if (studyInfo.length) {
-  //     const studyDataKmsKeyArn = this.settings.get(settingKeys.studyDataKmsKeyArn);
-
-  //     // There might be multiple resources. In the future we may flatMap, for now...
-  //     mounts = studyInfo.reduce(
-  //       (result, { id, resources, category, writeable }) =>
-  //         result.concat(
-  //           resources.map(resource => {
-  //             const { bucket, prefix } = parseS3Arn(resource.arn);
-  //             const mount = { id, bucket, prefix, category, writeable };
-  //             if (category !== 'Open Data') {
-  //               mount.kmsKeyId = studyDataKmsKeyArn;
-  //             }
-  //             return mount;
-  //           }),
-  //         ),
-  //       [],
-  //     );
-  //   }
-
-  //   return mounts;
-  // }
-
   _getObjectPathArns(studyInfo) {
     // Collect study resources
     const objectPathArns = _.flatten(
@@ -952,6 +871,9 @@ class EnvironmentMountService extends Service {
     return objectPathArns;
   }
 
+  // IMPORTANT: this method should no longer be used, it has been replaces with the
+  // extension point 'study-access-strategy'. It is being left here because it is
+  // still needed for the built-in workspaces
   async _generateIamPolicyDoc(studyInfo) {
     let policyDoc = {};
     // Build policy statements for object-level permissions

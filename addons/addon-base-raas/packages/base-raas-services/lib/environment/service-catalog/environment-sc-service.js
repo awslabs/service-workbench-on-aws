@@ -282,6 +282,20 @@ class EnvironmentScService extends Service {
     return envs;
   }
 
+  /**
+   * Returns the member account entity in which given an environment is running.
+   *
+   * @param environmentScEntity The environmentScEntity object with the 'indexId' property populated
+   */
+  async getMemberAccount(requestContext, environmentScEntity) {
+    const [indexesService, awsAccountsService] = await this.service(['indexesService', 'awsAccountsService']);
+    const { indexId } = environmentScEntity;
+    const { awsAccountId } = await indexesService.mustFind(requestContext, { id: indexId });
+    const accountEntity = awsAccountsService.mustFind(requestContext, { id: awsAccountId });
+
+    return accountEntity;
+  }
+
   async getActiveEnvsForUser(userUid) {
     const filterStatus = ['TERMINATING', 'TERMINATED'];
     const envs = await this._query()
