@@ -34,7 +34,7 @@ class DataSourceReachabilityService extends Service {
     ]);
   }
 
-  async bulkReach(requestContext, { status }) {
+  async bulkReach(requestContext, { status }, forceCheckAll = false) {
     status = status || '*';
     const workflowTriggerService = await this.service('workflowTriggerService');
     await workflowTriggerService.triggerWorkflow(
@@ -42,6 +42,7 @@ class DataSourceReachabilityService extends Service {
       { workflowId: workflowIds.bulkCheck },
       {
         status,
+        forceCheckAll,
       },
     );
     // Write audit event
@@ -51,7 +52,7 @@ class DataSourceReachabilityService extends Service {
     });
   }
 
-  async reachDsAccount(requestContext, { id, type }) {
+  async reachDsAccount(requestContext, { id, type }, forceCheck = false) {
     const accountService = await this.service('dataSourceAccountService');
     const dataSourceAccount = await accountService.mustFind(requestContext, { id });
 
@@ -59,8 +60,8 @@ class DataSourceReachabilityService extends Service {
       throw this.boom.badRequest('Can only check reachability for data source account', true);
     }
     const prevStatus = dataSourceAccount.status;
-    let newStatus = prevStatus;
-    let statusMsg = '';
+    let newStatus;
+    let statusMsg;
 
     // TODO: Use the cloudformation stack name to access its status in the data source account
     // TODO: Determine if the stack is compliant
@@ -68,22 +69,24 @@ class DataSourceReachabilityService extends Service {
 
     if (reachable) {
       newStatus = 'reachable';
-      if (prevStatus !== newStatus) {
-        const workflowTriggerService = await this.service('workflowTriggerService');
-        await workflowTriggerService.triggerWorkflow(
-          requestContext,
-          { workflowId: workflowIds.accountStatusChange },
-          {
-            id,
-            type,
-          },
-        );
-      }
+      statusMsg = '';
     } else if (prevStatus === 'pending') {
+      newStatus = prevStatus;
       statusMsg = `WARN|||Data source account ${id} is not reachable yet`;
     } else {
       newStatus = 'error';
       statusMsg = `ERR|||Error getting information from data source account ${id}`;
+    }
+    if (prevStatus !== newStatus || forceCheck) {
+      const workflowTriggerService = await this.service('workflowTriggerService');
+      await workflowTriggerService.triggerWorkflow(
+        requestContext,
+        { workflowId: workflowIds.accountStatusChange },
+        {
+          id,
+          type,
+        },
+      );
     }
     await accountService.updateStatus(requestContext, dataSourceAccount, { status: newStatus, statusMsg });
     const outputVal = newStatus;
@@ -105,18 +108,20 @@ class DataSourceReachabilityService extends Service {
       throw this.boom.badRequest('Can only check reachability for data source account studies', true);
     }
 
+    let newStatus;
+    let statusMsg;
     const prevStatus = studyEntity.status;
-    let newStatus = prevStatus;
-    let statusMsg = '';
     const reachable = await this._assumeAppRole(studyEntity);
 
     if (reachable) {
       newStatus = 'reachable';
+      statusMsg = '';
     } else if (prevStatus === 'pending') {
+      newStatus = prevStatus;
       statusMsg = `WARN|||Study ${id} is not reachable yet`;
     } else {
-      statusMsg = `ERR|||Error getting information from study ${id}`;
       newStatus = 'error';
+      statusMsg = `ERR|||Error getting information from study ${id}`;
     }
     await studyService.updateStatus(requestContext, studyEntity, { status: newStatus, statusMsg });
     const outputVal = newStatus;
@@ -149,7 +154,7 @@ class DataSourceReachabilityService extends Service {
     return reachable;
   }
 
-  async attemptReach(requestContext, { id, status, type }) {
+  async attemptReach(requestContext, { id, status, type }, forceCheckAll = false) {
     const accountService = await this.service('dataSourceAccountService');
     await accountService.assertAuthorized(
       requestContext,
@@ -169,9 +174,9 @@ class DataSourceReachabilityService extends Service {
     let outputVal;
 
     if (id === '*') {
-      await this.bulkReach(requestContext, { status });
+      await this.bulkReach(requestContext, { status }, forceCheckAll);
     } else if (type === 'dsAccount') {
-      outputVal = await this.reachDsAccount(requestContext, { id, type });
+      outputVal = await this.reachDsAccount(requestContext, { id, type }, forceCheckAll);
     } else if (type === 'study') {
       outputVal = await this.reachstudy(requestContext, { id, type });
     }

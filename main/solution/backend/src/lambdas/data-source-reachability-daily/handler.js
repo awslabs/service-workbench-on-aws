@@ -26,8 +26,7 @@ const handler = async () => {
   await container.initServices();
   const dataSourceReachabilityService = await container.find('dataSourceReachabilityService');
   const userContext = getSystemRequestContext();
-  await dataSourceReachabilityService.attemptReach(userContext, { id: '*', status: 'pending' });
-  await dataSourceReachabilityService.attemptReach(userContext, { id: '*', status: 'error' });
+  await dataSourceReachabilityService.attemptReach(userContext, { id: '*' }, true);
 };
 
 // eslint-disable-next-line import/prefer-default-export

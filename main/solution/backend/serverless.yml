@@ -72,6 +72,9 @@ custom:
         dataSourceReachabilityHandler:
           environment:
             APP_LOCAL_ROLE_ARN: ${cfnOutput('DataSourceReachabilityHandlerRoleArn')} # When running locally, run under this role
+        dataSourceReachabilityDailyHandler:
+          environment:
+            APP_LOCAL_ROLE_ARN: ${cfnOutput('DataSourceReachabilityHandlerRoleArn')} # Use same role arn as the one above (used for more frequent cron lambda)
 
   s3Sync:
     - bucketName: ${self:custom.settings.externalCfnTemplatesBucketName} # required

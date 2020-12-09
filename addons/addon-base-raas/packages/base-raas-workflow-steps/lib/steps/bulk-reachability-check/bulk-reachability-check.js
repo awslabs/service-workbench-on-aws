@@ -31,6 +31,7 @@ class BulkReachabilityCheck extends StepBase {
     const requestContext = await this.payload.object('requestContext');
     // If you specify an id, you can’t specify a status filter
     const status = await this.payload.object('status'); // This could also be '*'
+    const forceCheck = await this.payload.object('forceCheckAll');
 
     // Search for all dsAccounts with this status
     const dsAccountEntries = await dataSourceAccountService.list(requestContext);
@@ -43,7 +44,7 @@ class BulkReachabilityCheck extends StepBase {
     }
 
     const processor = async dsAccountId => {
-      await dataSourceReachabilityService.attemptReach(requestContext, { dsAccountId, type: 'dsAccount' });
+      await dataSourceReachabilityService.attemptReach(requestContext, { dsAccountId, type: 'dsAccount' }, forceCheck);
     };
 
     // For each dsAccount, reach out 10 at a time
