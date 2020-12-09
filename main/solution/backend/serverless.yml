@@ -69,6 +69,9 @@ custom:
         envStatusPollHandler:
           environment:
             APP_LOCAL_ROLE_ARN: ${cfnOutput('EnvStatusPollHandlerRoleArn')} # When running locally, run under this role
+        dataSourceReachabilityHandler:
+          environment:
+            APP_LOCAL_ROLE_ARN: ${cfnOutput('DataSourceReachabilityHandlerRoleArn')} # When running locally, run under this role
 
   s3Sync:
     - bucketName: ${self:custom.settings.externalCfnTemplatesBucketName} # required

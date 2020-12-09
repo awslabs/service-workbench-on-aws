@@ -32,6 +32,17 @@ envStatusPollHandler:
         rate: rate(3 minutes)
         description: 'Invokes the lambda function that polls and synchronize environment status.'
 
+dataSourceReachabilityHandler:
+  handler: src/lambdas/data-source-reachability/handler.handler
+  role: RoleApiHandler # This is a temporary patch for cross account assume role
+  tags: ${self:custom.tags}
+  timeout: 900 # in seconds, default is 6
+  description: Handles status polling for sc environments
+  events:
+    - schedule:
+        rate: rate(5 minutes)
+        description: 'Invokes the lambda function that polls and synchronize data source account and study status.'
+
 apiHandler:
   handler: src/lambdas/api-handler/handler.handler
   role: RoleApiHandler

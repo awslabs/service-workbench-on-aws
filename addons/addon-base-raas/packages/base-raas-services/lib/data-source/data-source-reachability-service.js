@@ -116,6 +116,7 @@ class DataSourceReachabilityService extends Service {
       statusMsg = `WARN|||Study ${id} is not reachable yet`;
     } else {
       statusMsg = `ERR|||Error getting information from study ${id}`;
+      newStatus = 'error';
     }
     await studyService.updateStatus(requestContext, studyEntity, { status: newStatus, statusMsg });
     const outputVal = newStatus;

@@ -24,10 +24,11 @@ const handler = async () => {
   // registerServices - Registers services by calling each service registration plugin in order.
   await registerServices(container, pluginRegistry);
   await container.initServices();
-  const environmentScService = await container.find('environmentScService');
+  const dataSourceReachabilityService = await container.find('dataSourceReachabilityService');
   const userContext = getSystemRequestContext();
-  const updatedEnvData = await environmentScService.pollAndSyncWsStatus(userContext);
-  return { statusCode: 200, body: updatedEnvData };
+  await dataSourceReachabilityService.attemptReach(userContext, { id: '*', status: 'pending' });
+  await dataSourceReachabilityService.attemptReach(userContext, { id: '*', status: 'error' });
+  return { statusCode: 200 };
 };
 
 // eslint-disable-next-line import/prefer-default-export
