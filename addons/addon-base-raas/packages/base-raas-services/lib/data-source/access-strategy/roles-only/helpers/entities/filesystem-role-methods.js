@@ -38,6 +38,22 @@ function addStudy(fsRoleEntity = {}, studyEntity = {}) {
   return fsRoleEntity;
 }
 
+function hasStudy(fsRoleEntity = {}, studyEntity = {}) {
+  const foundStudy = _.find(fsRoleEntity.studies, (study, id) => {
+    const sameId = id === studyEntity.id;
+    const sameRead = study.envPermission.read === studyEntity.envPermission.read;
+    const sameWrite = study.envPermission.write === studyEntity.envPermission.write;
+
+    return sameId && sameRead && sameWrite;
+  });
+
+  return !_.isUndefined(foundStudy);
+}
+
+function removeStudy(fsRoleEntity = {}, studyEntity = {}) {
+  delete fsRoleEntity.studies[studyEntity.id];
+}
+
 function addMemberAccount(fsRoleEntity = {}, memberAccountId) {
   if (_.includes(fsRoleEntity.trust, memberAccountId)) return fsRoleEntity;
   fsRoleEntity.trust.push(memberAccountId);
@@ -46,7 +62,11 @@ function addMemberAccount(fsRoleEntity = {}, memberAccountId) {
 }
 
 function hasMemberAccount(fsRoleEntity = {}, memberAccountId) {
-  return _.includes(fsRoleEntity.trues, memberAccountId);
+  return _.includes(fsRoleEntity.trust, memberAccountId);
+}
+
+function removeMemberAccount(fsRoleEntity = {}, memberAccountId) {
+  _.remove(fsRoleEntity.trust, accountId => memberAccountId === accountId);
 }
 
 /**
@@ -169,7 +189,10 @@ module.exports = {
   toDbEntity,
   newFsRoleEntity,
   addStudy,
+  removeStudy,
+  hasStudy,
   addMemberAccount,
+  removeMemberAccount,
   hasMemberAccount,
   maxReached,
   toTrustPolicyDoc,
