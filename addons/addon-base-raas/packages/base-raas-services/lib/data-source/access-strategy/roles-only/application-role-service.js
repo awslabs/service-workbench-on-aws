@@ -18,8 +18,6 @@ const Service = require('@aws-ee/base-services-container/lib/service');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 
-// const registerSchema = require('../schema/register-data-source-account');
-// const updateSchema = require('../schema/update-data-source-account');
 const { appRoleIdCompositeKey } = require('./helpers/composite-keys');
 const {
   toDbEntity,
