@@ -194,6 +194,7 @@ function toRoleCfnResource(appRoleEntity, swbMainAccountId) {
                     'iam:AttachRolePolicy',
                     'iam:PutRolePolicy',
                     'iam:DeletePolicy',
+                    'iam:DeleteRolePolicy',
                     'iam:DeleteRole',
                     'iam:GetPolicy',
                     'iam:GetRole',

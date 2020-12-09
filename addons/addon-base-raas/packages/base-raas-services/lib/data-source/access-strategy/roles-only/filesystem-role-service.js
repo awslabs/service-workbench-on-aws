@@ -25,16 +25,26 @@ const {
   toFsRoleEntity,
   newFsRoleEntity,
   addMemberAccount,
+  removeMemberAccount,
   hasMemberAccount,
   maxReached,
   toTrustPolicyDoc,
   toInlinePolicyDoc,
   addStudy,
+  removeStudy,
+  hasStudy,
 } = require('./helpers/entities/filesystem-role-methods');
 
 const settingKeys = {
   tableName: 'dbRoleAllocations',
   swbMainAccount: 'mainAcct',
+};
+
+const studyResourceUsageId = studyEntity => {
+  const { id, envPermission } = studyEntity;
+  const { read = false, write = false } = envPermission || {};
+
+  return `roles-only-access-study-${id}||read-${read ? 'true' : 'false'}||write-${write ? 'true' : 'false'}`;
 };
 
 /**
@@ -126,14 +136,18 @@ class FilesystemRoleService extends Service {
     // Perform default condition checks to make sure the user is active
     await this.assertAuthorized(
       requestContext,
-      { action: 'allocate', conditions: [allowIfActive, allowIfAdmin] },
+      { action: 'allocate-fs-role', conditions: [allowIfActive, allowIfAdmin] },
       studyEntity,
     );
 
     const { id: envId } = environmentEntity;
     const { accountId, id: studyId, bucket, appRoleArn } = studyEntity;
-    const studyResource = `roles-only-access-study-${studyId}`;
+    const studyResourceId = studyResourceUsageId(studyEntity);
     const fsUsageSetName = `fs-roles-study-${studyId}`;
+    const [appRoleService, resourceUsageService] = await this.service([
+      'roles-only/applicationRoleService',
+      'resourceUsageService',
+    ]);
 
     // Primer
     // We capture the relations between four items: fs role, study, member account and environment.
@@ -149,9 +163,10 @@ class FilesystemRoleService extends Service {
 
     // The logic
     // - Get the application role entity from the study.appRoleArn
-    // - Using the resource usage service, get all existing usages of fs roles with the study, see item #1 above.
+    // - Using the resource usage service, get all existing usages of fs roles for the study, see item #1 above.
     // - For each found fs role arn, load its fs role entity,
-    //   - Does the entity include the member account in its trust, if so, then we don't need to create an fs role
+    //   - Does the entity include the member account in its trust and include the study with the same envPermission,
+    //     if so, then we don't need to create an fs role
     //   - If not, can we fit the member account in the trust policy, if so then update the actual trust document
     //     in the data source account for the fs role, then update the database, see item #3 above.
     // - If no fs role entity is found, or the existing on has its trust property full, we need to create a new
@@ -163,17 +178,12 @@ class FilesystemRoleService extends Service {
     //   - Store the entity in the database
     //   - Add usage of the study by this role, see item #1 above.
 
-    const [appRoleService, resourceUsageService] = await this.service([
-      'roles-only/applicationRoleService',
-      'resourceUsageService',
-    ]);
-
     // Get app role entity
     const appRoleEntity = await appRoleService.mustFind(requestContext, { accountId, bucket, arn: appRoleArn });
 
-    // Get all existing usages by fs roles for this study
+    // Get all existing usages by fs roles for this study (keeping env permission in mind)
     const fsRoleUsages = await resourceUsageService.getResourceUsage(requestContext, {
-      resource: studyResource,
+      resource: studyResourceId,
       setName: fsUsageSetName,
     });
     const fsRoleEntities = _.get(fsRoleUsages, fsUsageSetName, []);
@@ -188,13 +198,17 @@ class FilesystemRoleService extends Service {
       // eslint-disable-next-line no-continue
       if (!entity) continue;
 
+      // Check if the provided study matches any of the studies in the fs role entity, including the env permissions
+      // eslint-disable-next-line no-continue
+      if (!hasStudy(entity, studyEntity)) continue;
+
       if (hasMemberAccount(entity, memberAccountId)) {
         // We found an existing fs role entity that already has the member account
         fsRoleEntity = entity;
 
         // Add environment usage
         await resourceUsageService.addUsage(requestContext, {
-          resource: studyResource,
+          resource: studyResourceId,
           setName: memberAccountId,
           item: envId,
         });
@@ -210,7 +224,7 @@ class FilesystemRoleService extends Service {
 
         // Add environment usage
         await resourceUsageService.addUsage(requestContext, {
-          resource: studyResource,
+          resource: studyResourceId,
           setName: memberAccountId,
           item: envId,
         });
@@ -235,7 +249,7 @@ class FilesystemRoleService extends Service {
 
     // Add environment usage
     await resourceUsageService.addUsage(requestContext, {
-      resource: studyResource,
+      resource: studyResourceId,
       setName: memberAccountId,
       item: envId,
     });
@@ -245,12 +259,134 @@ class FilesystemRoleService extends Service {
 
     // Add fs role usage
     await resourceUsageService.addUsage(requestContext, {
-      resource: studyResource,
+      resource: studyResourceId,
       setName: fsUsageSetName,
       item: fsRoleEntity.arn,
     });
 
     return fsRoleEntity;
+  }
+
+  /**
+   * Call this method to deallocate a filesystem role entity for the given study. This method is smart
+   * enough to keep an existing filesystem role entity if it is still being used by other member accounts
+   * and environments.
+   *
+   * Note: this method might delete the IAM role resource in the data source AWS account, if needed.
+   *
+   * @param requestContext The standard requestContext
+   * @param studyEntity The study entity. IMPORTANT, it is expected that this study entity will have
+   * an additional property named 'envPermission', it is an object with the following shape:
+   * { read: true/false, write: true/false }
+   * @param environmentEntity The environment entity that was using the filesystem role
+   */
+  async deallocateRole(requestContext, fsRoleArn, studyEntity = {}, environmentEntity = {}, memberAccountId) {
+    // Allocating a filesystem role is only applicable for bucket with access = 'roles'
+    if (studyEntity.bucketAccess !== 'roles') return;
+
+    if (_.isUndefined(memberAccountId))
+      throw this.boom.badRequest('A member account id is required before de-allocating a filesystem role', true);
+
+    // Perform default condition checks to make sure the user is active
+    await this.assertAuthorized(
+      requestContext,
+      { action: 'deallocate-fs-role', conditions: [allowIfActive, allowIfAdmin] },
+      studyEntity,
+    );
+
+    const { id: envId } = environmentEntity;
+    const { accountId, id: studyId, bucket } = studyEntity;
+    const studyResourceId = studyResourceUsageId(studyEntity);
+    const fsUsageSetName = `fs-roles-study-${studyId}`;
+    const usageService = await this.service('resourceUsageService');
+
+    // Primer
+    // Review the 'Primer' comment section of the 'allocateRole' method as they are the same.
+
+    // The logic
+    // - Get the fs role entity given the fsRoleArn
+    // - Using the resource usage service, remove the environment usage of this study
+    // - If this was the only usage left then this means that the member account has no environments that are actively
+    //   accessing the study (with the same envPermission), therefore, we need to remove this member account from the
+    //   trust document of the fs role entity, in addition, if this was the last member account in the trust document
+    //   then we also need to delete the fs role. To accomplish the above, the logic continues as follows:
+    //   - Does the entity include the member account in its trust and include the study with the same envPermission,
+    //     if so, then remove the member account from the trust document and update the role policy in the data source
+    //     account and then save the change to the database.
+    //   - Was this the last member account in the trust policy? if so, then using the resource usage service, remove
+    //     this fs role from the study usage and if was removed, then delete the role from the the data source account
+    //     and from the database.
+
+    // Get the fs role entity
+    let fsRoleEntity = await this.find(requestContext, { accountId, bucket, arn: fsRoleArn });
+
+    // If it is not found then we have done the deallocation logic already
+    if (_.isUndefined(fsRoleEntity)) return;
+
+    // If we don't have the study in the fs role entity then we have done the deallocation logic already
+    if (!hasStudy(fsRoleEntity, studyEntity)) return;
+
+    // Do we have the member account listed in the trust document?
+    if (!hasMemberAccount(fsRoleEntity, memberAccountId)) return;
+
+    // Remove the environment usage for the study
+    let usage = await usageService.removeUsage(requestContext, {
+      resource: studyResourceId,
+      setName: memberAccountId,
+      item: envId,
+    });
+
+    if (!usage.removed || !_.isEmpty(usage.items)) {
+      // This means that there are still other environments in the same member account that are actively using the
+      // study, so there is nothing to do at this time
+      return;
+    }
+
+    // Remove the member account from the trust property in the fs role entity
+    removeMemberAccount(fsRoleEntity, memberAccountId);
+
+    // Update the fs role trust policy in the data source account
+    if (!_.isEmpty(fsRoleEntity.trust)) {
+      // We can only update the trust policy if it still has principals (accounts)
+      await this.updateAssumeRolePolicy(fsRoleEntity);
+    }
+
+    // Update the database
+    fsRoleEntity = await this.saveEntity(requestContext, fsRoleEntity);
+
+    if (!_.isEmpty(fsRoleEntity.trust)) {
+      // This means that we still have other member accounts that are actively using this role so we don't
+      // want to delete the role
+      return;
+    }
+
+    // Remove the fs role usage for the study
+    usage = await usageService.removeUsage(requestContext, {
+      resource: studyResourceId,
+      setName: fsUsageSetName,
+      item: fsRoleEntity.arn,
+    });
+
+    // This removes the study from the entity (does not do anything to the data source account or the database)
+    removeStudy(fsRoleEntity, studyEntity);
+
+    // Update the database
+    fsRoleEntity = await this.saveEntity(requestContext, fsRoleEntity);
+
+    if (!_.isEmpty(fsRoleEntity.studies)) {
+      // The fs role entity has other studies, so we don't want to remove it, this means that we are done for now
+      return;
+    }
+
+    if (usage.removed) {
+      // Delete the role from the data source account
+      await this.deprovisionRole(fsRoleEntity);
+    }
+
+    // Delete the entity from the database
+    await this._deleter()
+      .key(fsRoleIdCompositeKey.encode(fsRoleEntity))
+      .delete();
   }
 
   /**
@@ -344,6 +480,37 @@ class FilesystemRoleService extends Service {
 
     // Create the fs role trust document
     await iamClient.updateAssumeRolePolicy(params).promise();
+  }
+
+  // @private
+  async deprovisionRole(fsRoleEntity) {
+    const { name } = fsRoleEntity;
+    const iamClient = await this.getIamClient(fsRoleEntity.appRoleArn, '');
+
+    // We need to delete the inline policy before we can delete the role
+    let params = {
+      PolicyName: 'StudyS3AccessPolicy',
+      RoleName: name,
+    };
+    await iamClient.deleteRolePolicy(params).promise();
+
+    // We need to account for eventual consistency constraints, we can't assume that inline policy was immediately
+    // deleted. If we try to delete the role right away, we might get an exception that the role still has an
+    // inline policy. Therefore, we attempt to delete the role using a retry logic.
+
+    // Lets wait for 0.5 second
+    await sleep(500);
+
+    params = {
+      RoleName: name,
+    };
+
+    const deleteRole = () => {
+      return iamClient.deleteRole(params).promise();
+    };
+
+    // Retry 5 times using an exponential interval
+    await retry(deleteRole, 5);
   }
 
   // @private
