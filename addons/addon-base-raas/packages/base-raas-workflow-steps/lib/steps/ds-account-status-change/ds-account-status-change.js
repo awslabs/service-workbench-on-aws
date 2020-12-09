@@ -21,9 +21,9 @@ class DsAccountStatusChange extends StepBase {
     this.print('start pinging studies for newly reachable data source account');
 
     // Get services
-    const [studyService, dataSourceRegistrationService] = await this.service([
+    const [studyService, dataSourceReachabilityService] = await this.service([
       'studyService',
-      'dataSourceRegistrationService',
+      'dataSourceReachabilityService',
     ]);
 
     // Get common payload params and pull environment info
@@ -36,7 +36,7 @@ class DsAccountStatusChange extends StepBase {
     // For each study, reach out
     await Promise.all(
       _.map(studies, async study => {
-        await dataSourceRegistrationService.attemptReach(requestContext, { id: study.id, type: 'study' });
+        await dataSourceReachabilityService.attemptReach(requestContext, { id: study.id, type: 'study' });
       }),
     );
   }

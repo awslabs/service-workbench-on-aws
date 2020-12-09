@@ -21,9 +21,9 @@ class BulkReachabilityCheck extends StepBase {
     this.print('start pinging data source accounts and/or studies contained with status pending');
 
     // Get services
-    const [dataSourceAccountService, dataSourceRegistrationService] = await this.mustFindServices([
+    const [dataSourceAccountService, dataSourceReachabilityService] = await this.mustFindServices([
       'dataSourceAccountService',
-      'dataSourceRegistrationService',
+      'dataSourceReachabilityService',
     ]);
 
     // Get common payload params and pull environment info
@@ -43,7 +43,7 @@ class BulkReachabilityCheck extends StepBase {
 
     await Promise.all(
       _.map(dsAccountIds, async dsAccountId => {
-        await dataSourceRegistrationService.attemptReach(requestContext, { dsAccountId, type: 'dsAccount' });
+        await dataSourceReachabilityService.attemptReach(requestContext, { dsAccountId, type: 'dsAccount' });
       }),
     );
   }

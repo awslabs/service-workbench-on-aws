@@ -28,10 +28,7 @@ class DataSourceReachabilityService extends Service {
     this.dependency([
       'auditWriterService',
       'dataSourceAccountService',
-      'dataSourceBucketService',
       'studyService',
-      'studyPermissionService',
-      'pluginRegistryService',
       'workflowTriggerService',
       'aws',
     ]);
