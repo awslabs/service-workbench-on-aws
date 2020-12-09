@@ -108,7 +108,7 @@ class DataSourceReachabilityService extends Service {
     const prevStatus = studyEntity.status;
     let newStatus = prevStatus;
     let statusMsg = '';
-    const reachable = await this._assumeAppRole(requestContext, studyEntity.appRoleArn);
+    const reachable = await this._assumeAppRole(studyEntity);
 
     if (reachable) {
       newStatus = 'reachable';
@@ -129,18 +129,17 @@ class DataSourceReachabilityService extends Service {
     return outputVal;
   }
 
-  async _assumeAppRole(requestContext, appRoleArn) {
+  async _assumeAppRole(studyEntity) {
     const aws = await this.service('aws');
     let reachable = false;
     try {
-      const sts = new aws.sdk.STS();
-      await sts
-        .assumeRole({
-          RoleArn: appRoleArn,
-          RoleSessionName: `SWB-${requestContext.principalIdentifier.uid}`,
-        })
-        .promise();
-      // If we were able to assume the application role, we are now able to access the study
+      const s3Client = await aws.getClientSdkForRole({
+        roleArn: studyEntity.appRoleArn,
+        clientName: 'S3',
+        options: { region: studyEntity.region },
+      });
+      // use s3Client to read the head of an object
+      await s3Client.headObject({ Bucket: studyEntity.bucket, Key: studyEntity.folder });
       reachable = true;
     } catch (err) {
       // Error is expected if assuming role is not successful yet

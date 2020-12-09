@@ -28,8 +28,6 @@ class DataSourceRegistrationService extends Service {
       'studyService',
       'studyPermissionService',
       'pluginRegistryService',
-      'workflowTriggerService',
-      'aws',
     ]);
   }
 

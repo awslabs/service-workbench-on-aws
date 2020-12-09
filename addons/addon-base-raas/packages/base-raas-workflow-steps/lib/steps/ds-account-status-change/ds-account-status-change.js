@@ -13,8 +13,9 @@
  *  permissions and limitations under the License.
  */
 
-const _ = require('lodash');
+// const _ = require('lodash');
 const StepBase = require('@aws-ee/base-workflow-core/lib/workflow/helpers/step-base');
+const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
 
 class DsAccountStatusChange extends StepBase {
   async start() {
@@ -33,12 +34,12 @@ class DsAccountStatusChange extends StepBase {
     // For dsAccount, find all (not just unreachable) studies
     const studies = await studyService.listStudiesForAccount(requestContext, accountId);
 
-    // For each study, reach out
-    await Promise.all(
-      _.map(studies, async study => {
-        await dataSourceReachabilityService.attemptReach(requestContext, { id: study.id, type: 'study' });
-      }),
-    );
+    const processor = async study => {
+      await dataSourceReachabilityService.attemptReach(requestContext, { id: study.id, type: 'study' });
+    };
+
+    // For each study, reach out 10 at a time
+    await processInBatches(studies, 10, processor);
   }
 }
 

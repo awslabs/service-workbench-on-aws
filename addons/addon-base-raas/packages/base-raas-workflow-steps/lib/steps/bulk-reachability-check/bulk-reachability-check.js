@@ -15,6 +15,7 @@
 
 const _ = require('lodash');
 const StepBase = require('@aws-ee/base-workflow-core/lib/workflow/helpers/step-base');
+const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
 
 class BulkReachabilityCheck extends StepBase {
   async start() {
@@ -41,11 +42,12 @@ class BulkReachabilityCheck extends StepBase {
       dsAccountIds = _.map(filteredDsAccounts, accountEntry => accountEntry.id);
     }
 
-    await Promise.all(
-      _.map(dsAccountIds, async dsAccountId => {
-        await dataSourceReachabilityService.attemptReach(requestContext, { dsAccountId, type: 'dsAccount' });
-      }),
-    );
+    const processor = async dsAccountId => {
+      await dataSourceReachabilityService.attemptReach(requestContext, { dsAccountId, type: 'dsAccount' });
+    };
+
+    // For each dsAccount, reach out 10 at a time
+    await processInBatches(dsAccountIds, 10, processor);
   }
 }
 
