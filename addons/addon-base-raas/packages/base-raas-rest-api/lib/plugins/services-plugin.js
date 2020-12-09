@@ -46,6 +46,7 @@ const EnvironmentScService = require('@aws-ee/base-raas-services/lib/environment
 const EnvironmentConfigVarsService = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-config-vars-service');
 const EnvironmentScKeypairService = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-keypair-service');
 const DataSourceRegistrationService = require('@aws-ee/base-raas-services/lib/data-source/data-source-registration-service');
+const DataSourceReachabilityService = require('@aws-ee/base-raas-services/lib/data-source/data-source-reachability-service');
 const DataSourceAccountService = require('@aws-ee/base-raas-services/lib/data-source/data-source-account-service');
 const DataSourceBucketService = require('@aws-ee/base-raas-services/lib/data-source/data-source-bucket-service');
 const ApplicationRoleService = require('@aws-ee/base-raas-services/lib/data-source/access-strategy/roles-only/application-role-service');
@@ -99,6 +100,7 @@ async function registerServices(container, pluginRegistry) {
   container.register('pluginRegistryService', new PluginRegistryService(pluginRegistry), { lazy: false });
   container.register('jwtService', new JwtService());
   container.register('dataSourceRegistrationService', new DataSourceRegistrationService());
+  container.register('dataSourceReachabilityService', new DataSourceReachabilityService());
   container.register('dataSourceAccountService', new DataSourceAccountService());
   container.register('dataSourceBucketService', new DataSourceBucketService());
   container.register('roles-only/applicationRoleService', new ApplicationRoleService());

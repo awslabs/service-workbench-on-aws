@@ -40,7 +40,7 @@ async function configure(context) {
     '/reachability',
     wrap(async (req, res) => {
       const requestContext = res.locals.requestContext;
-      const service = await context.service('dataSourceRegistrationService');
+      const service = await context.service('dataSourceReachabilityService');
       const id = req.query.id;
       const status = req.query.status;
       const type = req.query.type;
