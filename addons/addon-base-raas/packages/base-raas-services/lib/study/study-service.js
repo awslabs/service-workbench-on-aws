@@ -532,7 +532,7 @@ class StudyService extends Service {
    * this method does not do any authorization check.  It will return the study given
    * a study id no matter who the requestContext principal is.
    */
-  async listBucketsForAccount(requestContext, { accountId }) {
+  async listStudiesForAccount(requestContext, { accountId }) {
     const result = await this._query()
       .index(this.accountIdIndex)
       .key('accountId', accountId)
