@@ -44,7 +44,11 @@ class BulkReachabilityCheck extends StepBase {
     }
 
     const processor = async dsAccountId => {
-      await dataSourceReachabilityService.attemptReach(requestContext, { dsAccountId, type: 'dsAccount' }, forceCheck);
+      await dataSourceReachabilityService.attemptReach(
+        requestContext,
+        { dsAccountId, type: 'dsAccount' },
+        { forceCheck },
+      );
     };
 
     // For each dsAccount, reach out 10 at a time

@@ -539,7 +539,7 @@ class StudyService extends Service {
       .limit(1000)
       .query();
 
-    return result;
+    return _.map(result, toStudyEntity);
   }
 
   /**

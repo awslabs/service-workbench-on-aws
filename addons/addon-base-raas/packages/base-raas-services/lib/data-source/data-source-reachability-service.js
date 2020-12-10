@@ -34,7 +34,7 @@ class DataSourceReachabilityService extends Service {
     ]);
   }
 
-  async bulkReach(requestContext, { status }, forceCheckAll = false) {
+  async bulkReach(requestContext, { status }, { forceCheckAll = false } = {}) {
     status = status || '*';
     const workflowTriggerService = await this.service('workflowTriggerService');
     await workflowTriggerService.triggerWorkflow(
@@ -56,9 +56,6 @@ class DataSourceReachabilityService extends Service {
     const accountService = await this.service('dataSourceAccountService');
     const dataSourceAccount = await accountService.mustFind(requestContext, { id });
 
-    if (!dataSourceAccount.status) {
-      throw this.boom.badRequest('Can only check reachability for data source account', true);
-    }
     const prevStatus = dataSourceAccount.status;
     let newStatus;
     let statusMsg;
@@ -89,7 +86,7 @@ class DataSourceReachabilityService extends Service {
       );
     }
     await accountService.updateStatus(requestContext, dataSourceAccount, { status: newStatus, statusMsg });
-    const outputVal = newStatus;
+    const outputVal = { status: newStatus, statusMsg };
 
     // Write audit event
     await this.audit(requestContext, {
@@ -124,7 +121,7 @@ class DataSourceReachabilityService extends Service {
       statusMsg = `ERR|||Error getting information from study ${id}`;
     }
     await studyService.updateStatus(requestContext, studyEntity, { status: newStatus, statusMsg });
-    const outputVal = newStatus;
+    const outputVal = { status: newStatus, statusMsg };
 
     // Write audit event
     await this.audit(requestContext, {
@@ -154,7 +151,7 @@ class DataSourceReachabilityService extends Service {
     return reachable;
   }
 
-  async attemptReach(requestContext, { id, status, type }, forceCheckAll = false) {
+  async attemptReach(requestContext, { id, status, type }, { forceCheckAll = false } = {}) {
     const accountService = await this.service('dataSourceAccountService');
     await accountService.assertAuthorized(
       requestContext,
@@ -174,7 +171,7 @@ class DataSourceReachabilityService extends Service {
     let outputVal;
 
     if (id === '*') {
-      await this.bulkReach(requestContext, { status }, forceCheckAll);
+      await this.bulkReach(requestContext, { status }, { forceCheckAll });
     } else if (type === 'dsAccount') {
       outputVal = await this.reachDsAccount(requestContext, { id, type }, forceCheckAll);
     } else if (type === 'study') {
