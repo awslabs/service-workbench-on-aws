@@ -135,9 +135,6 @@ describe('DataSourceBucketService', () => {
       const env = {};
       const accountId = '1234456789012';
 
-      usageService.getResourceUsage = jest.fn(() => {
-        throw new Error('I got here');
-      });
       await expect(service.allocateRole(requestContext, study, env, accountId)).resolves.toBeUndefined();
     });
 

@@ -54,7 +54,7 @@ function removeStudy(fsRoleEntity = {}, studyEntity = {}) {
   delete fsRoleEntity.studies[studyEntity.id];
 }
 
-function addMemberAccount(fsRoleEntity = {}, memberAccountId) {
+function addMemberAccount(fsRoleEntity = {}, memberAccountId = '') {
   if (_.includes(fsRoleEntity.trust, memberAccountId)) return fsRoleEntity;
   fsRoleEntity.trust.push(memberAccountId);
 
@@ -65,7 +65,7 @@ function hasMemberAccount(fsRoleEntity = {}, memberAccountId) {
   return _.includes(fsRoleEntity.trust, memberAccountId);
 }
 
-function removeMemberAccount(fsRoleEntity = {}, memberAccountId) {
+function removeMemberAccount(fsRoleEntity = {}, memberAccountId = '') {
   _.remove(fsRoleEntity.trust, accountId => memberAccountId === accountId);
 }
 
