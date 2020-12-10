@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.3] - 2020-11-24
+
+### Added
+- feat: Support Read/Write Study mounts for EC2 Windows
+
 ## [1.4.2] - 2020-11-23
 
 ### Added 

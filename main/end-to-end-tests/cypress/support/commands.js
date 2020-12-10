@@ -49,8 +49,13 @@ Cypress.Commands.add('login', () => {
     researcherEmail: Cypress.env('researcherEmail'),
     researcherPassword: Cypress.env('researcherPassword'),
   };
+  const isCognitoEnabled = Cypress.env('isCognitoEnabled');
 
-  cy.visit('/');
+  if (isCognitoEnabled) {
+    cy.visit('/?internal');
+  } else {
+    cy.visit('/');
+  }
   cy.get("div[data-testid='username'] input").type(loginInfo.researcherEmail);
   cy.get("div[data-testid='password'] input").type(loginInfo.researcherPassword);
   cy.get("button[data-testid='login']").click();
