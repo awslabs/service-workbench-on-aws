@@ -52,7 +52,7 @@ class DataSourceReachabilityService extends Service {
     });
   }
 
-  async reachDsAccount(requestContext, { id, type }, forceCheck = false) {
+  async reachDsAccount(requestContext, { id, type }, { forceCheck = false } = {}) {
     const accountService = await this.service('dataSourceAccountService');
     const dataSourceAccount = await accountService.mustFind(requestContext, { id });
 
@@ -173,7 +173,7 @@ class DataSourceReachabilityService extends Service {
     if (id === '*') {
       await this.bulkReach(requestContext, { status }, { forceCheckAll });
     } else if (type === 'dsAccount') {
-      outputVal = await this.reachDsAccount(requestContext, { id, type }, forceCheckAll);
+      outputVal = await this.reachDsAccount(requestContext, { id, type }, { forceCheckAll });
     } else if (type === 'study') {
       outputVal = await this.reachstudy(requestContext, { id, type });
     }
