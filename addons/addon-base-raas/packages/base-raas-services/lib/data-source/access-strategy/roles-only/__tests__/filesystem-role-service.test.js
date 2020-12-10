@@ -32,7 +32,7 @@ const AuditService = require('@aws-ee/base-services/lib/audit/audit-writer-servi
 const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
 const ApplicationRoleService = require('../application-role-service');
 const ResourceUsageService = require('../../../../usage/resource-usage-service');
-const FileSystemRoleService = require('../filesystem-role-service');
+const FilesystemRoleService = require('../filesystem-role-service');
 
 const createStudy = ({
   id = 'study-1',
@@ -119,10 +119,10 @@ describe('DataSourceBucketService', () => {
     container.register('auditWriterService', new AuditService());
     container.register('roles-only/applicationRoleService', new ApplicationRoleService());
     container.register('resourceUsageService', new ResourceUsageService());
-    container.register('roles-only/fileSystemRoleService', new FileSystemRoleService());
+    container.register('roles-only/filesystemRoleService', new FilesystemRoleService());
     await container.initServices();
 
-    service = await container.find('roles-only/fileSystemRoleService');
+    service = await container.find('roles-only/filesystemRoleService');
     appRoleService = await container.find('roles-only/applicationRoleService');
     usageService = await container.find('resourceUsageService');
   });
