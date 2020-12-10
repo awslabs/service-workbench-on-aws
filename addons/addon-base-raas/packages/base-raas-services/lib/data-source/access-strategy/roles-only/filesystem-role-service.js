@@ -129,7 +129,7 @@ class FilesystemRoleService extends Service {
    * { read: true/false, write: true/false }
    * @param environmentEntity The environment entity that will use the filesystem role
    */
-  async allocateRole(requestContext, studyEntity = {}, environmentEntity = {}, memberAccountId) {
+  async allocateRole(requestContext, studyEntity = {}, environmentEntity = {}, memberAccountId = '') {
     // Allocating a filesystem role is only applicable for bucket with access = 'roles'
     if (studyEntity.bucketAccess !== 'roles') return undefined;
 
@@ -280,7 +280,7 @@ class FilesystemRoleService extends Service {
    * { read: true/false, write: true/false }
    * @param environmentEntity The environment entity that was using the filesystem role
    */
-  async deallocateRole(requestContext, fsRoleArn, studyEntity = {}, environmentEntity = {}, memberAccountId) {
+  async deallocateRole(requestContext, fsRoleArn, studyEntity = {}, environmentEntity = {}, memberAccountId = '') {
     // Allocating a filesystem role is only applicable for bucket with access = 'roles'
     if (studyEntity.bucketAccess !== 'roles') return;
 
