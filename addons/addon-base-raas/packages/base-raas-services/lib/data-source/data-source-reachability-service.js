@@ -42,6 +42,10 @@ class DataSourceReachabilityService extends Service {
     const dsAccountIds = await this._getDsAccountsWithStatus(requestContext, status);
 
     if (!_.isEmpty(dsAccountIds)) {
+      // TODO: Remove this condition to make it more scalable in the future.
+      // This is due to workflow payload having a size limit of 32k. Possible solutions:
+      // 1. Could chunk the total list and process ~100 IDs at a time
+      // 2. Could also store the IDs in an S3 object and then have the workflow use that object
       if (dsAccountIds.length > 1000) {
         throw this.boom.badRequest(
           'Currently we can only check reachability for a maximum of 1000 data source accounts at a time',
