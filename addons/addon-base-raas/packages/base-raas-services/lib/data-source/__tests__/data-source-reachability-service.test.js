@@ -136,9 +136,11 @@ describe('DataSourceBucketService', () => {
       const requestContext = { principalIdentifier: { uid } };
       const params = { id: '*' };
       const forceCheckAll = true;
+      const dsAccountIds = [{ id: 'sampleDsAccountsId' }];
 
       workflowTriggerService.triggerWorkflow = jest.fn();
       jest.spyOn(service, 'bulkReach');
+      service._getDsAccountsWithStatus = jest.fn().mockResolvedValue(dsAccountIds);
 
       await service.attemptReach(requestContext, params, { forceCheckAll });
 
@@ -150,6 +152,8 @@ describe('DataSourceBucketService', () => {
         {
           status: '*',
           forceCheckAll,
+          requestContext,
+          dsAccountIds,
         },
       );
     });
@@ -177,6 +181,7 @@ describe('DataSourceBucketService', () => {
         {
           id: params.id,
           type: params.type,
+          requestContext,
         },
       );
     });
@@ -221,7 +226,7 @@ describe('DataSourceBucketService', () => {
       const uid = 'u-currentUserId';
       const requestContext = { principalIdentifier: { uid } };
       const params = { id: 'sampleStudyId', type: 'study' };
-      const dataSourceStudy = { id: 'sampleStudyId', status: 'pending' };
+      const dataSourceStudy = { id: 'sampleStudyId', status: 'pending', appRoleArn: 'sampleAppRoleArn' };
 
       service._assumeAppRole = jest.fn().mockResolvedValue(true);
       studyService.mustFind = jest.fn().mockResolvedValue(dataSourceStudy);
@@ -239,7 +244,7 @@ describe('DataSourceBucketService', () => {
       const uid = 'u-currentUserId';
       const requestContext = { principalIdentifier: { uid } };
       const params = { id: 'sampleStudyId', type: 'study' };
-      const dataSourceStudy = { id: 'sampleStudyId', status: 'pending' };
+      const dataSourceStudy = { id: 'sampleStudyId', status: 'pending', appRoleArn: 'sampleAppRoleArn' };
 
       service._assumeAppRole = jest.fn().mockResolvedValue(false);
       studyService.mustFind = jest.fn().mockResolvedValue(dataSourceStudy);
@@ -257,7 +262,7 @@ describe('DataSourceBucketService', () => {
       const uid = 'u-currentUserId';
       const requestContext = { principalIdentifier: { uid } };
       const params = { id: 'sampleStudyId', type: 'study' };
-      const dataSourceStudy = { id: 'sampleStudyId', status: 'error' };
+      const dataSourceStudy = { id: 'sampleStudyId', status: 'error', appRoleArn: 'sampleAppRoleArn' };
 
       service._assumeAppRole = jest.fn().mockResolvedValue(false);
       studyService.mustFind = jest.fn().mockResolvedValue(dataSourceStudy);

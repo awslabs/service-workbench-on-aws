@@ -30,9 +30,9 @@ const stopEC2Environment = require('../steps/stop-ec2-environment/stop-ec2-envir
 const stopEC2EnvironmentYaml = require('../steps/stop-ec2-environment/stop-ec2-environment.yml');
 const networkInfra = require('../steps/storage-gateway/create-network-infrastructure');
 const networkInfraYaml = require('../steps/storage-gateway/create-network-infrastructure.yml');
-const bulkReachabilityInfra = require('../steps/bulk-reachability-check/bulk-reachability-check');
+const bulkReachability = require('../steps/bulk-reachability-check/bulk-reachability-check');
 const bulkReachabilityYaml = require('../steps/bulk-reachability-check/bulk-reachability-check.yml');
-const dsAccountStatusChangeInfra = require('../steps/ds-account-status-change/ds-account-status-change');
+const dsAccountStatusChange = require('../steps/ds-account-status-change/ds-account-status-change');
 const dsAccountStatusChangeYaml = require('../steps/ds-account-status-change/ds-account-status-change.yml');
 
 const add = (implClass, yaml) => ({ implClass, yaml });
@@ -47,8 +47,8 @@ const steps = [
   add(startEC2Environment, startEC2EnvironmentYaml),
   add(stopEC2Environment, stopEC2EnvironmentYaml),
   add(networkInfra, networkInfraYaml),
-  add(bulkReachabilityInfra, bulkReachabilityYaml),
-  add(dsAccountStatusChangeInfra, dsAccountStatusChangeYaml),
+  add(bulkReachability, bulkReachabilityYaml),
+  add(dsAccountStatusChange, dsAccountStatusChangeYaml),
 ];
 
 async function registerWorkflowSteps(registry) {
