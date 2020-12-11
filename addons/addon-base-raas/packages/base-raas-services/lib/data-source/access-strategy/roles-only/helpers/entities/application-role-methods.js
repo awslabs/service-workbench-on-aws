@@ -169,6 +169,8 @@ function toRoleCfnResource(appRoleEntity, swbMainAccountId) {
         AssumeRolePolicyDocument: toTrustPolicyDoc(swbMainAccountId),
         Description: 'An application role that allows the SWB application to create roles to access studies',
         ManagedPolicyArns: [{ Ref: getManagedPolicyLogicalId(appRoleEntity) }],
+        // 12 hours see
+        // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-role.html#cfn-iam-role-maxsessionduration
         MaxSessionDuration: 43200,
         Policies: [
           {
@@ -192,6 +194,7 @@ function toRoleCfnResource(appRoleEntity, swbMainAccountId) {
                     'iam:AttachRolePolicy',
                     'iam:PutRolePolicy',
                     'iam:DeletePolicy',
+                    'iam:DeleteRolePolicy',
                     'iam:DeleteRole',
                     'iam:GetPolicy',
                     'iam:GetRole',

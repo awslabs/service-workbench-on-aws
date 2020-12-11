@@ -50,6 +50,7 @@ const DataSourceReachabilityService = require('@aws-ee/base-raas-services/lib/da
 const DataSourceAccountService = require('@aws-ee/base-raas-services/lib/data-source/data-source-account-service');
 const DataSourceBucketService = require('@aws-ee/base-raas-services/lib/data-source/data-source-bucket-service');
 const ApplicationRoleService = require('@aws-ee/base-raas-services/lib/data-source/access-strategy/roles-only/application-role-service');
+const FilesystemRoleService = require('@aws-ee/base-raas-services/lib/data-source/access-strategy/roles-only/filesystem-role-service');
 const LegacyEnvironmentResourceService = require('@aws-ee/base-raas-services/lib/data-source/access-strategy/legacy/environment-resource-service');
 const ResourceUsageService = require('@aws-ee/base-raas-services/lib/usage/resource-usage-service');
 
@@ -104,6 +105,7 @@ async function registerServices(container, pluginRegistry) {
   container.register('dataSourceAccountService', new DataSourceAccountService());
   container.register('dataSourceBucketService', new DataSourceBucketService());
   container.register('roles-only/applicationRoleService', new ApplicationRoleService());
+  container.register('roles-only/filesystemRoleService', new FilesystemRoleService());
   container.register('legacy/environmentResourceService', new LegacyEnvironmentResourceService());
   container.register('resourceUsageService', new ResourceUsageService());
 
