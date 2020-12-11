@@ -42,6 +42,12 @@ class DataSourceReachabilityService extends Service {
     const dsAccountIds = await this._getDsAccountsWithStatus(requestContext, status);
 
     if (!_.isEmpty(dsAccountIds)) {
+      if (dsAccountIds.length > 1000) {
+        throw this.boom.badRequest(
+          'Currently we can only check reachability for a maximum of 1000 data source accounts at a time',
+          true,
+        );
+      }
       await workflowTriggerService.triggerWorkflow(
         requestContext,
         { workflowId: workflowIds.bulkCheck },
