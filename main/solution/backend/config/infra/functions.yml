@@ -37,7 +37,7 @@ dataSourceReachabilityHandler:
   role: RoleApiHandler # This is a temporary patch for cross account assume role
   tags: ${self:custom.tags}
   timeout: 900 # in seconds, default is 6
-  description: Handles status polling for sc environments
+  description: Handles data source reachability polling (5 min)
   events:
     - schedule:
         rate: rate(5 minutes)
@@ -48,7 +48,7 @@ dataSourceReachabilityDailyHandler:
   role: RoleApiHandler # This is a temporary patch for cross account assume role
   tags: ${self:custom.tags}
   timeout: 900 # in seconds, default is 6
-  description: Handles status polling for sc environments
+  description: Handles data source reachability polling (1 day)
   events:
     - schedule:
         rate: rate(1 day)
