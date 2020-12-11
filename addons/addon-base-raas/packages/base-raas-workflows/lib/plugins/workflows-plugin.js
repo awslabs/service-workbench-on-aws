@@ -21,6 +21,8 @@ const stopSageMakerYaml = require('../workflows/stop-sagemaker-environment.yml')
 const startEC2Yaml = require('../workflows/start-ec2-environment.yml');
 const stopEC2Yaml = require('../workflows/stop-ec2-environment.yml');
 const networkInfraYaml = require('../workflows/create-network-infra.yml');
+const bulkReachabilityCheck = require('../workflows/bulk-reachability-check.yml');
+const dsAccountStatusChange = require('../workflows/ds-account-status-change.yml');
 
 const add = yaml => ({ yaml });
 
@@ -34,6 +36,8 @@ const workflows = [
   add(startEC2Yaml),
   add(stopEC2Yaml),
   add(networkInfraYaml),
+  add(bulkReachabilityCheck),
+  add(dsAccountStatusChange),
 ];
 
 async function registerWorkflows(registry) {
