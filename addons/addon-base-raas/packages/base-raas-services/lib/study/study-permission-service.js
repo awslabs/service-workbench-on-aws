@@ -235,7 +235,7 @@ class StudyPermissionService extends Service {
   }
 
   async verifyRequestorAccess(requestContext, studyId, action) {
-    const mutatingActions = ['POST', 'PUT', 'PATCH', 'DELETE'];
+    const mutatingActions = ['POST', 'PUT'];
     const writeUserActions = ['UPLOAD'];
     const nonMutatingActions = ['GET'];
     const notFoundError = this.boom.notFound(`Study with id "${studyId}" does not exist`, true);

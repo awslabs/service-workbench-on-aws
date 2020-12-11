@@ -18,7 +18,8 @@
     },
     "description": {
       "type": "string",
-      "maxLength": 8192
+      "maxLength": 8192,
+      "description": "sha is a unique identifier for open data, see open-data-scrape-handler/handler-impl.js for more detail"
     },
     "sha": {
       "type": "string",

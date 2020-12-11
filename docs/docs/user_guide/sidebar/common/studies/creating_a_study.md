@@ -14,7 +14,7 @@ To create a new Study, follow these steps:
 4. Choose either **My Study** or **Organizational Study** as the type of Study you are creating.
 5. Enter a name for the Study in the **Name** field.
 6. Enter a description for the Study in the **Description** field.
-7. Select the [**Project**](../accounts/projects/introduction) that this Study relates to in the **Project ID** drop down field.
+7. Select the [**Project**](../accounts/projects/introduction) that this Study relates to in the **Project ID** drop down field. (Note: Project ID here is used for billing purposes ONLY, it does NOT relate to the permission to access the study data in any way.)
 8. Click the **Create Study** button.
 
 Once you have created a Study you can start to upload files to it.

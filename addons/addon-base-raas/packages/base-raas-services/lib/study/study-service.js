@@ -100,12 +100,14 @@ class StudyService extends Service {
     // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
     const by = _.get(requestContext, 'principalIdentifier.uid');
 
-    // validate if study can be read/write
+    // Ensure open data does not have read/write accessType
     this.validateStudyType(rawData.accessType, rawData.category);
 
     // The open data studies do not need to be associated to any project
     // for everything else make sure projectId is specified
     if (rawData.category !== 'Open Data') {
+      // Note: projectId is associated with study for billing aggregation ONLY
+      // projectId associated with study does NOT relate to permission
       const projectId = rawData.projectId;
       if (!projectId) {
         throw this.boom.badRequest('Missing required projectId', true);
@@ -188,7 +190,7 @@ class StudyService extends Service {
 
     const study = await this.mustFind(requestContext, id);
 
-    // validate if study can be read/write
+    // Ensure open data does not have read/write permission
     this.validateStudyType(rawData.accessType, study.category);
 
     // TODO: Add logic for the following when full write functionality is implemented:
@@ -227,26 +229,6 @@ class StudyService extends Service {
 
     // Write audit event
     await this.audit(requestContext, { action: 'update-study', body: result });
-
-    return result;
-  }
-
-  async delete(requestContext, id) {
-    // Lets now remove the item from the database
-    const result = await runAndCatch(
-      async () => {
-        return this._deleter()
-          .condition('attribute_exists(id)') // yes we need this
-          .key({ id })
-          .delete();
-      },
-      async () => {
-        throw this.boom.notFound(`study with id "${id}" does not exist`, true);
-      },
-    );
-
-    // Write audit event
-    await this.audit(requestContext, { action: 'delete-study', body: { id } });
 
     return result;
   }
