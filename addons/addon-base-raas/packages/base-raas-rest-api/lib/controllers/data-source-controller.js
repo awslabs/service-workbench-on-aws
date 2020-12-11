@@ -40,13 +40,9 @@ async function configure(context) {
     '/accounts/ops/reachability',
     wrap(async (req, res) => {
       const requestContext = res.locals.requestContext;
+      const unsafeBody = req.body;
       const service = await context.service('dataSourceReachabilityService');
-      const id = req.query.id;
-      const status = req.query.status;
-      const type = req.query.type;
-      const params = { id, status, type };
-
-      const result = await service.attemptReach(requestContext, params);
+      const result = await service.attemptReach(requestContext, unsafeBody);
 
       res.status(200).json(result);
     }),
