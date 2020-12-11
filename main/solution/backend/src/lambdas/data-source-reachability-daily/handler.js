@@ -27,6 +27,7 @@ const handler = async () => {
   const dataSourceReachabilityService = await container.find('dataSourceReachabilityService');
   const userContext = getSystemRequestContext();
   await dataSourceReachabilityService.attemptReach(userContext, { id: '*' }, { forceCheckAll: true });
+  return { statusCode: 200 };
 };
 
 // eslint-disable-next-line import/prefer-default-export

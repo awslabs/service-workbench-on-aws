@@ -42,6 +42,8 @@ dataSourceReachabilityHandler:
     - schedule:
         rate: rate(5 minutes)
         description: 'Invokes the lambda function that polls and synchronize data source account and study status.'
+  environment:
+    APP_SM_WORKFLOW: ${self:custom.settings.workflowStateMachineArn}
 
 dataSourceReachabilityDailyHandler:
   handler: src/lambdas/data-source-reachability-daily/handler.handler
@@ -53,6 +55,8 @@ dataSourceReachabilityDailyHandler:
     - schedule:
         rate: rate(1 day)
         description: 'Invokes the lambda function that polls and synchronize data source account and study status.'
+  environment:
+    APP_SM_WORKFLOW: ${self:custom.settings.workflowStateMachineArn}
 
 apiHandler:
   handler: src/lambdas/api-handler/handler.handler
