@@ -22,17 +22,19 @@ class DsAccountStatusChange extends StepBase {
     this.print('start pinging studies for newly reachable data source account');
 
     // Get services
-    const [studyService, dataSourceReachabilityService] = await this.service([
+    const [studyService, dataSourceReachabilityService] = await this.mustFindServices([
       'studyService',
       'dataSourceReachabilityService',
     ]);
 
     // Get common payload params and pull environment info
     const requestContext = await this.payload.object('requestContext');
-    const accountId = await this.payload.object('id');
+    const accountId = await this.payload.string('id');
 
     // For dsAccount, find all (not just unreachable) studies
-    const studies = await studyService.listStudiesForAccount(requestContext, accountId);
+    const studies = await studyService.listStudiesForAccount(requestContext, { accountId });
+
+    this.print(`studies: ${studies}`);
 
     const processor = async study => {
       await dataSourceReachabilityService.attemptReach(requestContext, { id: study.id, type: 'study' });

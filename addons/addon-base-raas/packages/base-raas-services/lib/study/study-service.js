@@ -68,6 +68,7 @@ class StudyService extends Service {
     this._scanner = () => dbService.helper.scanner().table(table);
 
     this.categoryIndex = this.settings.get(settingKeys.categoryIndexName);
+    this.accountIdIndex = this.settings.get(settingKeys.accountIdIndexName);
     this.studyDataBucket = this.settings.get(settingKeys.studyDataBucketName);
   }
 
@@ -532,11 +533,12 @@ class StudyService extends Service {
    * this method does not do any authorization check.  It will return the study given
    * a study id no matter who the requestContext principal is.
    */
-  async listStudiesForAccount(requestContext, { accountId }) {
+  async listStudiesForAccount(requestContext, { accountId }, fields = []) {
     const result = await this._query()
       .index(this.accountIdIndex)
       .key('accountId', accountId)
       .limit(1000)
+      .projection(fields)
       .query();
 
     return _.map(result, toStudyEntity);

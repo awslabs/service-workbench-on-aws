@@ -39,18 +39,24 @@ class DataSourceReachabilityService extends Service {
   async bulkReach(requestContext, { status }, { forceCheckAll = false } = {}) {
     status = status || '*';
     const workflowTriggerService = await this.service('workflowTriggerService');
-    await workflowTriggerService.triggerWorkflow(
-      requestContext,
-      { workflowId: workflowIds.bulkCheck },
-      {
-        status,
-        forceCheckAll,
-      },
-    );
+    const dsAccountIds = await this._getDsAccountsWithStatus(requestContext, status);
+
+    if (_.isArray(dsAccountIds) && dsAccountIds.length > 0) {
+      await workflowTriggerService.triggerWorkflow(
+        requestContext,
+        { workflowId: workflowIds.bulkCheck },
+        {
+          requestContext,
+          status,
+          dsAccountIds,
+          forceCheckAll,
+        },
+      );
+    }
     // Write audit event
     await this.audit(requestContext, {
       action: 'bulk-check-reachability',
-      body: { status },
+      body: { status, dsAccountIds },
     });
   }
 
@@ -62,7 +68,10 @@ class DataSourceReachabilityService extends Service {
     let newStatus;
     let statusMsg;
 
-    const { reachable, unreachableAppRoles } = await this._checkDsAccountAvailability(dataSourceAccount);
+    const { reachable, unreachableAppRoles } = await this._checkDsAccountAvailability(
+      requestContext,
+      dataSourceAccount,
+    );
 
     if (reachable) {
       newStatus = 'reachable';
@@ -80,6 +89,7 @@ class DataSourceReachabilityService extends Service {
         requestContext,
         { workflowId: workflowIds.accountStatusChange },
         {
+          requestContext,
           id,
           type,
         },
@@ -105,7 +115,7 @@ class DataSourceReachabilityService extends Service {
     const studyService = await this.service('studyService');
     const studyEntity = await studyService.mustFind(requestContext, id);
 
-    if (!studyEntity.status) {
+    if (!studyEntity.appRoleArn) {
       throw this.boom.badRequest('Can only check reachability for data source account studies', true);
     }
 
@@ -134,6 +144,22 @@ class DataSourceReachabilityService extends Service {
     });
 
     return outputVal;
+  }
+
+  async _getDsAccountsWithStatus(requestContext, status) {
+    const dataSourceAccountService = await this.service('dataSourceAccountService');
+    const dsAccountEntries = await dataSourceAccountService.list(requestContext);
+    let dsAccountIds = [];
+    if (status === '*') {
+      dsAccountIds = _.map(dsAccountEntries, accountEntry => accountEntry.id);
+    } else {
+      const filteredDsAccounts = _.filter(
+        dsAccountEntries,
+        accountEntry => accountEntry.status && accountEntry.status === status,
+      );
+      dsAccountIds = _.map(filteredDsAccounts, accountEntry => accountEntry.id);
+    }
+    return dsAccountIds;
   }
 
   async _checkDsAccountAvailability(requestContext, dataSourceAccount) {
@@ -190,8 +216,11 @@ class DataSourceReachabilityService extends Service {
     return reachable;
   }
 
-  async attemptReach(requestContext, { id, status, type }, { forceCheckAll = false } = {}) {
+  async attemptReach(requestContext, requestBody, { forceCheckAll = false } = {}) {
     const accountService = await this.service('dataSourceAccountService');
+    const id = requestBody.id;
+    const type = requestBody.type;
+    const status = requestBody.status;
     await accountService.assertAuthorized(
       requestContext,
       { action: 'update', conditions: [allowIfActive, allowIfAdmin] },

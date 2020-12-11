@@ -2,7 +2,7 @@ id: wf-ds-account-status-change
 v: 1
 workflowTemplateId: wt-empty
 workflowTemplateVer: 1
-title: Check all study reachability for status changed DS Account
+title: Data Source Account Status Change
 desc: |
   Check all study reachability for status changed DS Account
 hidden: false

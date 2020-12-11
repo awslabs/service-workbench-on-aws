@@ -13,40 +13,26 @@
  *  permissions and limitations under the License.
  */
 
-const _ = require('lodash');
 const StepBase = require('@aws-ee/base-workflow-core/lib/workflow/helpers/step-base');
 const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
 
 class BulkReachabilityCheck extends StepBase {
   async start() {
-    this.print('start pinging data source accounts and/or studies contained with status pending');
+    this.print('start pinging data source accounts');
 
     // Get services
-    const [dataSourceAccountService, dataSourceReachabilityService] = await this.mustFindServices([
-      'dataSourceAccountService',
-      'dataSourceReachabilityService',
-    ]);
+    const dataSourceReachabilityService = await this.mustFindServices('dataSourceReachabilityService');
 
     // Get common payload params and pull environment info
     const requestContext = await this.payload.object('requestContext');
     // If you specify an id, you can’t specify a status filter
-    const status = await this.payload.object('status'); // This could also be '*'
-    const forceCheck = await this.payload.object('forceCheckAll');
-
-    // Search for all dsAccounts with this status
-    const dsAccountEntries = await dataSourceAccountService.list(requestContext);
-    let dsAccountIds = [];
-    if (status === '*') {
-      dsAccountIds = _.map(dsAccountEntries, accountEntry => accountEntry.id);
-    } else {
-      const filteredDsAccounts = _.filter(dsAccountEntries, accountEntry => accountEntry.status === status);
-      dsAccountIds = _.map(filteredDsAccounts, accountEntry => accountEntry.id);
-    }
+    const forceCheck = await this.payload.boolean('forceCheckAll');
+    const dsAccountIds = await this.payload.object('dsAccountIds');
 
     const processor = async dsAccountId => {
       await dataSourceReachabilityService.attemptReach(
         requestContext,
-        { dsAccountId, type: 'dsAccount' },
+        { id: dsAccountId, type: 'dsAccount' },
         { forceCheck },
       );
     };

@@ -415,8 +415,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - states:StartExecution
-                Resource:
-                  - !Ref SMWorkflow
+                Resource: '*'
 
         - PolicyName: s3-access
           PolicyDocument:
@@ -606,6 +605,14 @@ Resources:
                 Action:
                   - route53:ChangeResourceRecordSets
                 Resource: 'arn:aws:route53:::hostedzone/${self:custom.settings.hostedZoneId}'
+
+        - PolicyName: step-functions-invocation
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - states:StartExecution
+                Resource: '*'
 
         - PolicyName: ec2-access
           PolicyDocument:
