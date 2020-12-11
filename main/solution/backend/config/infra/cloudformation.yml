@@ -415,7 +415,8 @@ Resources:
               - Effect: Allow
                 Action:
                   - states:StartExecution
-                Resource: '*'
+                Resource:
+                  - !Ref SMWorkflow
 
         - PolicyName: s3-access
           PolicyDocument:
