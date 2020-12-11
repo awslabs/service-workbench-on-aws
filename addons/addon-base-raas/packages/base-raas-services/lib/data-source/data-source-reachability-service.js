@@ -13,9 +13,10 @@
  *  permissions and limitations under the License.
  */
 
-// const _ = require('lodash');
+const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
+const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const workflowIds = {
   bulkCheck: 'wf-bulk-reachability-check',
@@ -31,6 +32,7 @@ class DataSourceReachabilityService extends Service {
       'studyService',
       'workflowTriggerService',
       'aws',
+      'roles-only/applicationRoleService',
     ]);
   }
 
@@ -60,9 +62,7 @@ class DataSourceReachabilityService extends Service {
     let newStatus;
     let statusMsg;
 
-    // TODO: Use the cloudformation stack name to access its status in the data source account
-    // TODO: Determine if the stack is compliant
-    const reachable = false;
+    const { reachable, unreachableAppRoles } = await this._checkDsAccountAvailability(dataSourceAccount);
 
     if (reachable) {
       newStatus = 'reachable';
@@ -84,6 +84,10 @@ class DataSourceReachabilityService extends Service {
           type,
         },
       );
+    }
+    if (_.isArray(unreachableAppRoles) && unreachableAppRoles.length > 0) {
+      statusMsg = `ERR|||Error getting information from ${unreachableAppRoles.length} application roles. 
+      Please update the cloudformation template on data source account ${id}`;
     }
     await accountService.updateStatus(requestContext, dataSourceAccount, { status: newStatus, statusMsg });
     const outputVal = { status: newStatus, statusMsg };
@@ -132,6 +136,41 @@ class DataSourceReachabilityService extends Service {
     return outputVal;
   }
 
+  async _checkDsAccountAvailability(requestContext, dataSourceAccount) {
+    const appRoleService = await this.service('roles-only/applicationRoleService');
+    const appRoles = await appRoleService.list(requestContext, dataSourceAccount.id);
+    const unreachableAppRoles = [];
+    let reachable;
+    let status;
+    let statusMsg;
+
+    const processor = async appRole => {
+      try {
+        const aws = await this.service('aws');
+        await aws.getCredentialsForRole({
+          roleArn: appRole.arn,
+        });
+        status = 'reachable';
+        statusMsg = '';
+      } catch (err) {
+        unreachableAppRoles.push(appRole);
+        status = 'error';
+        statusMsg = `ERR|||Error getting information from appRole ${appRole.arn}`;
+      } finally {
+        appRoleService.updateStatus(requestContext, appRole, { status, statusMsg });
+      }
+    };
+
+    // Reach out 10 at a time
+    await processInBatches(appRoles, 10, processor);
+
+    if (appRoles.length === unreachableAppRoles.length) {
+      reachable = false;
+    }
+    reachable = true;
+    return { reachable, unreachableAppRoles };
+  }
+
   async _assumeAppRole(studyEntity) {
     const aws = await this.service('aws');
     let reachable = false;
@@ -175,7 +214,7 @@ class DataSourceReachabilityService extends Service {
     } else if (type === 'dsAccount') {
       outputVal = await this.reachDsAccount(requestContext, { id, type }, { forceCheckAll });
     } else if (type === 'study') {
-      outputVal = await this.reachstudy(requestContext, { id, type });
+      outputVal = await this.reachStudy(requestContext, { id, type });
     }
 
     return outputVal;

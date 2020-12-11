@@ -34,10 +34,10 @@ async function configure(context) {
   );
 
   // ===============================================================
-  //  GET /accounts (mounted to /api/data-sources)
+  //  POST /accounts/ops (mounted to /api/data-sources)
   // ===============================================================
-  router.get(
-    '/reachability',
+  router.post(
+    '/accounts/ops/reachability',
     wrap(async (req, res) => {
       const requestContext = res.locals.requestContext;
       const service = await context.service('dataSourceReachabilityService');

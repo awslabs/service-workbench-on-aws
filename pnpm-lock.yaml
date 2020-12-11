@@ -301,6 +301,7 @@ importers:
       '@aws-ee/base-api-services': 'link:../../../addon-base-rest-api/packages/services'
       '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
       '@aws-ee/base-services-container': 'link:../../../addon-base/packages/services-container'
+      '@aws-ee/base-workflow-core': 'link:../../../addon-base-workflow/packages/base-workflow-core'
       '@aws-ee/key-pair-mgmt-services': 'link:../../../addon-key-pair-mgmt-api/packages/key-pair-mgmt-services'
       lodash: 4.17.15
       moment: 2.27.0
@@ -331,6 +332,7 @@ importers:
       '@aws-ee/base-api-services': 'workspace:*'
       '@aws-ee/base-services': 'workspace:*'
       '@aws-ee/base-services-container': 'workspace:*'
+      '@aws-ee/base-workflow-core': 'workspace:*'
       '@aws-ee/key-pair-mgmt-services': 'workspace:*'
       aws-sdk-mock: ^5.1.0
       eslint: ^6.8.0

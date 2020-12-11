@@ -9,6 +9,7 @@
     "@aws-ee/base-api-services": "workspace:*",
     "@aws-ee/base-services": "workspace:*",
     "@aws-ee/base-services-container": "workspace:*",
+    "@aws-ee/base-workflow-core": "workspace:*",
     "@aws-ee/key-pair-mgmt-services": "workspace:*",
     "lodash": "^4.17.15",
     "moment": "^2.27.0",
