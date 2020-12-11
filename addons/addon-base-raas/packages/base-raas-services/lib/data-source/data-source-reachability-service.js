@@ -41,7 +41,7 @@ class DataSourceReachabilityService extends Service {
     const workflowTriggerService = await this.service('workflowTriggerService');
     const dsAccountIds = await this._getDsAccountsWithStatus(requestContext, status);
 
-    if (_.isArray(dsAccountIds) && dsAccountIds.length > 0) {
+    if (!_.isEmpty(dsAccountIds)) {
       await workflowTriggerService.triggerWorkflow(
         requestContext,
         { workflowId: workflowIds.bulkCheck },
@@ -95,7 +95,7 @@ class DataSourceReachabilityService extends Service {
         },
       );
     }
-    if (_.isArray(unreachableAppRoles) && unreachableAppRoles.length > 0) {
+    if (!_.isEmpty(unreachableAppRoles)) {
       statusMsg = `ERR|||Error getting information from ${unreachableAppRoles.length} application roles. 
       Please update the cloudformation template on data source account ${id}`;
     }
