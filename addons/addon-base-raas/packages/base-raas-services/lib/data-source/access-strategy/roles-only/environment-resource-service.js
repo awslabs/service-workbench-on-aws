@@ -180,33 +180,23 @@ class EnvironmentResourceService extends Service {
    *
    * @param requestContext The standard request context object
    * @param policyDoc An instance of the StudyPolicy class
-   * @param studies an array of StudyEntity that are associated with this env. IMPORTANT: each element
-   * in the array is the standard StudyEntity, however, there is one additional attributes added to each
-   * of the StudyEntity. This additional attribute is called 'envPermission', it is an object with the
-   * following shape: { read: true/false, write: true/false }
+   * @param studies an array of StudyEntity that are associated with this env. IMPORTANT: each element in the array is
+   * the standard StudyEntity, however, there is one additional attributes added to each of the StudyEntity. This
+   * additional attribute is called 'envPermission', it is an object with the following shape:
+   * { read: true/false, write: true/false }
+   * @param environmentScEntity the EnvironmentSc entity. The entity is expected to have an attributed named 'studyRoles'.
+   * The studyRoles is a map where the key is the study id and the value is the fs role arn
+   *
    */
-  async provideEnvRolePolicy(requestContext, { policyDoc, studies: allStudies }) {
+  async provideEnvRolePolicy(requestContext, { policyDoc, studies: allStudies, environmentScEntity }) {
     // We are only interested in studies with bucket access = 'roles'
     const studies = _.filter(allStudies, study => study.bucketAccess === 'roles');
 
     if (_.isEmpty(studies)) return policyDoc; // No relevant studies for this access strategy, so we are done
 
-    // The logic
-    // - We first need to load all the bucket entities that these studies belong to. We need to do that because
-    //   we need to know the bucket kms arn which we need to include in the policy doc
-    //   (only if study kmsScope = bucket)
-    // - We then loop through all the studies and figure out the kms arn value to use. The logic to determine this
-    //   is simple. If study.kmsScope is bucket, then we use the bucket kms, if the kmsScope is study, then we
-    //   use the study kms arn, otherwise kmsArn is empty.
-
-    // buckets is a map. The keys are the bucket names, the values are the bucket kmsArns
-    const buckets = await this.getBuckets(studies);
-
-    // Now that we have all the bucket kms arns that we might need, it is time to populate the policy doc
     _.forEach(studies, study => {
-      const { bucket, awsPartition, folder, envPermission, kmsScope } = study;
-      const kmsArn = kmsScope === 'bucket' ? buckets[bucket] : study.kmsArn;
-      policyDoc.addStudy({ bucket, awsPartition, kmsArn, folder, permission: envPermission });
+      const roleArn = _.get(environmentScEntity, 'studyRoles', {})[study.id];
+      policyDoc.addStudyRole(roleArn);
     });
 
     return policyDoc;
@@ -233,20 +223,15 @@ class EnvironmentResourceService extends Service {
 
     if (_.isEmpty(studies)) return s3Mounts; // No relevant studies for this access strategy, so we are done
 
-    // The logic
-    // - We first need to load all the bucket entities that these studies belong to. We need to do that because
-    //   we need to know the bucket kms arn which we need to include in the policy doc
-    //   (only if study kmsScope = bucket)
-    // - We then loop through all the studies and add items to the s3 mount information array
-
-    // buckets is a map. The keys are the bucket names, the values are the bucket kmsArns
-    const buckets = await this.getBuckets(studies);
-
-    // Now that we have all the bucket kms arns that we might need, it is time to populate the s3 mount information
+    // We loop through all the studies and add items to the s3 mount information array
     _.forEach(studies, study => {
       const { id, bucket, kmsScope, folder, region, awsPartition, envPermission = {} } = study;
       const { read, write } = envPermission;
-      const kmsArn = kmsScope === 'bucket' ? buckets[id] : study.kmsArn;
+      // The logic to determining the kmsArn logic is:
+      // - If the study kms scope is 'bucket', then we don't include the kmsArn in the mount information, this way
+      //   the default bucket kms will be used by S3 without needing to pass the exact kms arn
+      // - If the study kms scope is 'study', then we need to include the kmsArn in the mount information
+      const kmsArn = kmsScope === 'study' ? study.kmsArn : undefined;
       const roleArn = _.get(environmentScEntity, 'studyRoles', {})[id];
       const item = { id, bucket, region, kmsArn, roleArn, prefix: folder, readable: read, writeable: write };
       if (awsPartition !== 'aws') item.awsPartition = awsPartition;
