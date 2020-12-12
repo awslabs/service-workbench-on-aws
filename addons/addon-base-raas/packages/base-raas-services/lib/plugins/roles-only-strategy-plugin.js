@@ -70,9 +70,81 @@ async function provideAccountCfnTemplate(payload) {
   return { ...payload, accountTemplateInfo };
 }
 
+/**
+ * A plugin method to implement any specific logic for the 'roles-only' access logic when a environment
+ * is about to be provisioned. This method simply delegates to the roles-only/EnvironmentResourceService
+ *
+ * @param requestContext The request context object containing principal (caller) information.
+ * @param container Services container instance
+ * @param studies an array of StudyEntity that are associated with this env. IMPORTANT: each element
+ * in the array is the standard StudyEntity, however, there is one additional attributes added to each
+ * of the StudyEntity. This additional attribute is called 'envPermission', it is an object with the
+ * following shape: { read: true/false, write: true/false }
+ */
+async function allocateEnvStudyResources(payload) {
+  const { requestContext, container, environmentScEntity, studies, memberAccountId } = payload;
+
+  const resourceService = await container.find('roles-only/environmentResourceService');
+  await resourceService.allocateStudyResources(requestContext, { environmentScEntity, studies, memberAccountId });
+
+  return payload;
+}
+
+/**
+ * A plugin method to implement any specific logic for the 'roles-only' access logic when a environment
+ * is terminated or failed provisioning. This method simply delegates to the roles-only/EnvironmentResourceService
+ *
+ * @param requestContext The request context object containing principal (caller) information.
+ * @param container Services container instance
+ * @param studies an array of StudyEntity that are associated with this env. IMPORTANT: each element
+ * in the array is the standard StudyEntity, however, there is one additional attributes added to each
+ * of the StudyEntity. This additional attribute is called 'envPermission', it is an object with the
+ * following shape: { read: true/false, write: true/false }
+ */
+async function deallocateEnvStudyResources(payload) {
+  const { requestContext, container, environmentScEntity, studies, memberAccountId } = payload;
+
+  const resourceService = await container.find('roles-only/environmentResourceService');
+  await resourceService.deallocateStudyResources(requestContext, { environmentScEntity, studies, memberAccountId });
+
+  return payload;
+}
+
+async function provideEnvRolePolicy(payload) {
+  const { requestContext, container, environmentScEntity, studies, policyDoc, memberAccountId } = payload;
+
+  const resourceService = await container.find('roles-only/environmentResourceService');
+  const updatedPolicyDoc = await resourceService.provideEnvRolePolicy(requestContext, {
+    environmentScEntity,
+    studies,
+    policyDoc,
+    memberAccountId,
+  });
+
+  return { ...payload, policyDoc: updatedPolicyDoc };
+}
+
+async function provideStudyMount(payload) {
+  const { requestContext, container, environmentScEntity, studies, s3Mounts, memberAccountId } = payload;
+
+  const resourceService = await container.find('roles-only/environmentResourceService');
+  const updatedS3Mounts = await resourceService.provideStudyMount(requestContext, {
+    environmentScEntity,
+    studies,
+    s3Mounts,
+    memberAccountId,
+  });
+
+  return { ...payload, s3Mounts: updatedS3Mounts };
+}
+
 const plugin = {
   onStudyRegistration,
   provideAccountCfnTemplate,
+  allocateEnvStudyResources,
+  deallocateEnvStudyResources,
+  provideEnvRolePolicy,
+  provideStudyMount,
 };
 
 module.exports = plugin;

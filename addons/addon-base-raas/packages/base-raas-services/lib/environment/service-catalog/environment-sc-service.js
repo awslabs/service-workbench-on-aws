@@ -427,7 +427,7 @@ class EnvironmentScService extends Service {
       'jsonSchemaValidationService',
       'storageGatewayService',
     ]);
-    await validationService.ensureValid(environment, updateSchema);
+    await validationService.ensureValid(_.omit(environment, ['studyRoles']), updateSchema);
 
     // Retrieve the existing environment, this is required for authorization below
     const existingEnvironment = await this.mustFind(requestContext, { id: environment.id });
@@ -444,7 +444,7 @@ class EnvironmentScService extends Service {
     const { id, rev } = environment;
 
     // Prepare the db object
-    const dbObject = _.omit(this._fromRawToDbObject(environment, { updatedBy: by }), ['rev']);
+    const dbObject = _.omit(this._fromRawToDbObject(environment, { updatedBy: by }), ['rev', 'studyRoles']);
 
     // Time to save the the db object
     const result = await runAndCatch(
@@ -483,6 +483,55 @@ class EnvironmentScService extends Service {
 
     // Write audit event
     await this.audit(requestContext, { action: 'update-environment-sc', body: environment });
+
+    return result;
+  }
+
+  /**
+   * Updates the study role map for the environment sc entity.
+   *
+   * @param requestContext The standard request context
+   * @param rawData The study role map. Keys are the study ids and values are the role arns
+   */
+  async updateStudyRoles(requestContext, id, rawData) {
+    const envEntity = await this.mustFind(requestContext, { id });
+    await this.assertAuthorized(
+      requestContext,
+      { action: 'update-study-role-map', conditions: [this._allowAuthorized] },
+      envEntity,
+    );
+
+    // lets ensure that rawData only contains values that are strings
+    _.forEach(rawData, (value, key) => {
+      if (!_.isString(value) || _.isEmpty(value)) {
+        throw this.boom.badRequest(
+          `The study role map can only contain values of type string and can not be empty. Received incorrect value for the key '${key}'`,
+          true,
+        );
+      }
+    });
+
+    if (_.isUndefined(rawData)) throw this.boom.badRequest('No study role map is provided', true);
+    if (_.isEmpty(id)) throw this.boom.badRequest('No environment id was provided', true);
+
+    const by = _.get(requestContext, 'principalIdentifier.uid');
+
+    // Prepare the db object
+    const dbObject = { studyRoles: rawData, updatedBy: by };
+
+    // Time to save the the db object
+    const result = await runAndCatch(
+      async () => {
+        return this._updater()
+          .condition('attribute_exists(id)') // make sure the record being updated exists
+          .key({ id })
+          .item(dbObject)
+          .update();
+      },
+      async () => {
+        throw this.boom.notFound(`environment with id "${id}" does not exist`, true);
+      },
+    );
 
     return result;
   }
