@@ -301,7 +301,6 @@ importers:
       '@aws-ee/base-api-services': 'link:../../../addon-base-rest-api/packages/services'
       '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
       '@aws-ee/base-services-container': 'link:../../../addon-base/packages/services-container'
-      '@aws-ee/base-workflow-core': 'link:../../../addon-base-workflow/packages/base-workflow-core'
       '@aws-ee/key-pair-mgmt-services': 'link:../../../addon-key-pair-mgmt-api/packages/key-pair-mgmt-services'
       lodash: 4.17.15
       moment: 2.27.0
@@ -313,6 +312,7 @@ importers:
       uuid: 3.4.0
       xml: 1.0.1
     devDependencies:
+      '@aws-ee/base-workflow-core': 'link:../../../addon-base-workflow/packages/base-workflow-core'
       aws-sdk-mock: 5.1.0
       eslint: 6.8.0
       eslint-config-airbnb-base: 14.1.0_8cdb6d8c18c3319a1365bd5afa0063a3
