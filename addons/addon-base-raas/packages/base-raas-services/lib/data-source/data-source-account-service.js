@@ -245,7 +245,7 @@ class DataSourceAccountService extends Service {
     return toDsAccountEntity(dbEntity);
   }
 
-  async updateStackCreated(requestContext, { stackCreated, dataSourceAccount } = {}) {
+  async updateStackCreated(requestContext, { stackCreated, dsAccountEntity } = {}) {
     await this.assertAuthorized(
       requestContext,
       { action: 'update-account', conditions: [allowIfActive, allowIfAdmin] },
@@ -254,13 +254,13 @@ class DataSourceAccountService extends Service {
 
     const by = _.get(requestContext, 'principalIdentifier.uid');
     const item = { updatedBy: by, stackCreated };
-    const { id } = dataSourceAccount;
+    const { id } = dsAccountEntity;
 
     const dbEntity = await runAndCatch(
       async () => {
         const op = this._updater()
           .condition('attribute_exists(pk) and attribute_exists(sk)')
-          .key(accountIdCompositeKey.encode(dataSourceAccount));
+          .key(accountIdCompositeKey.encode(dsAccountEntity));
 
         return op.item(item).update();
       },

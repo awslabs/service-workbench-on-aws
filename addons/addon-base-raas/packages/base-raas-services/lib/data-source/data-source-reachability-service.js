@@ -87,7 +87,10 @@ class DataSourceReachabilityService extends Service {
       newStatus = 'reachable';
       statusMsg = '';
       if (prevStatus === 'pending')
-        await accountService.updateStackCreated(requestContext, { stackCreated: true, dataSourceAccount });
+        await accountService.updateStackCreated(requestContext, {
+          stackCreated: true,
+          dsAccountEntity: dataSourceAccount,
+        });
     } else if (prevStatus === 'pending') {
       newStatus = prevStatus;
       statusMsg = `WARN|||Data source account ${id} is not reachable yet`;
