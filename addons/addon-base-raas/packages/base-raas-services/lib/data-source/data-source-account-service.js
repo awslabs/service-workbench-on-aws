@@ -214,7 +214,7 @@ class DataSourceAccountService extends Service {
       throw this.boom.badRequest(`A status of '${status}' is not allowed`, true);
     }
 
-    const { arn } = dsAccountEntity;
+    const { id } = dsAccountEntity;
     const by = _.get(requestContext, 'principalIdentifier.uid');
     const removeStatus = status === 'reachable' || _.isEmpty(status);
     const removeMsg = _.isString(statusMsg) && _.isEmpty(statusMsg);
@@ -238,10 +238,36 @@ class DataSourceAccountService extends Service {
         return op.item(item).update();
       },
       async () => {
-        throw this.boom.notFound(`The data source account entity "${arn}" does not exist`, true);
+        throw this.boom.notFound(`The data source account entity "${id}" does not exist`, true);
       },
     );
 
+    return toDsAccountEntity(dbEntity);
+  }
+
+  async updateStackCreated(requestContext, { stackCreated, dataSourceAccount } = {}) {
+    await this.assertAuthorized(
+      requestContext,
+      { action: 'update-account', conditions: [allowIfActive, allowIfAdmin] },
+      { stackCreated },
+    );
+
+    const by = _.get(requestContext, 'principalIdentifier.uid');
+    const item = { updatedBy: by, stackCreated };
+    const { id } = dataSourceAccount;
+
+    const dbEntity = await runAndCatch(
+      async () => {
+        const op = this._updater()
+          .condition('attribute_exists(pk) and attribute_exists(sk)')
+          .key(accountIdCompositeKey.encode(dataSourceAccount));
+
+        return op.item(item).update();
+      },
+      async () => {
+        throw this.boom.notFound(`The data source account entity "${id}" does not exist`, true);
+      },
+    );
     return toDsAccountEntity(dbEntity);
   }
 
