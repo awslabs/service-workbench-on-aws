@@ -32,6 +32,12 @@ const getImpactedUsers = (updateRequest = {}) => {
   return _.uniq([...addedUsers, ...removedUsers]);
 };
 
+/**
+ * This service is a higher level service than the study service. It understands that studies are mounted on
+ * workspaces, and it orchestrates all the necessary logic when an operation is needed to be performed on studies.
+ * For example, it orchestrates all the necessary logic when study permission changes and propagates all the way to
+ * the relevant workspaces.
+ */
 class StudyOperationService extends Service {
   constructor() {
     super();

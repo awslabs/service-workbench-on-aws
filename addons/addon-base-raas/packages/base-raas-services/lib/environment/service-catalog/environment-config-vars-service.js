@@ -16,9 +16,7 @@
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
-const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
 
-const { hasAccess, accessLevels } = require('../../study/helpers/entities/study-methods');
 const { StudyPolicy } = require('../../helpers/iam/study-policy');
 
 const settingKeys = {
