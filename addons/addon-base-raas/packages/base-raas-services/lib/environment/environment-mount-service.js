@@ -46,6 +46,13 @@ const parseS3Arn = arn => {
       };
 };
 
+/**
+ * DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED
+ * DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED
+ *
+ * This service is deprecated and should no longer used. It is only here because built-in workspaces services
+ * reference it. Once we remove the code for the built-in workspaces, we can remove this service.
+ */
 class EnvironmentMountService extends Service {
   constructor() {
     super();
