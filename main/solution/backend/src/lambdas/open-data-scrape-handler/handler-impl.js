@@ -46,7 +46,22 @@ module.exports = function newHandler({ studyService, log = consoleLogger } = {})
     repository: 'open-data-registry',
     ref: 'master',
     subtree: 'datasets',
-    filterTags: ['genetic', 'genomic'],
+    filterTags: [
+      'genetic',
+      'genomic',
+      'life sciences',
+      'whole genome sequencing',
+      'STRIDES',
+      'cancer',
+      'population genetics',
+      'COVID-19',
+      'health',
+      'neuroimaging',
+      'neuroscience',
+      'cell biology',
+      'cell imaging',
+      'bioinformatics',
+    ],
   };
 
   function normalizeValue(value) {
