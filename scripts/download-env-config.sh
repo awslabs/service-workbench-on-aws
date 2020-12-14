@@ -9,7 +9,7 @@ deployment_bucket="${1}"
 env_name="${2}"
 
 config_s3_path="s3://${deployment_bucket}/settings/${env_name}.yml"
-+config_target_path="main/config/settings/${env_name}.yml"
+config_target_path="main/config/settings/${env_name}.yml"
 
 
 echo "Checking config file ${config_target_path}"
