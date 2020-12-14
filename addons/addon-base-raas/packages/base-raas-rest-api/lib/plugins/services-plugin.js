@@ -53,6 +53,7 @@ const FilesystemRoleService = require('@aws-ee/base-raas-services/lib/data-sourc
 const RolesOnlyEnvironmentResourceService = require('@aws-ee/base-raas-services/lib/data-source/access-strategy/roles-only/environment-resource-service');
 const LegacyEnvironmentResourceService = require('@aws-ee/base-raas-services/lib/data-source/access-strategy/legacy/environment-resource-service');
 const ResourceUsageService = require('@aws-ee/base-raas-services/lib/usage/resource-usage-service');
+const StudyOperationService = require('@aws-ee/base-raas-services/lib/study/study-operation-service');
 
 const settingKeys = {
   tablePrefix: 'dbPrefix',
@@ -108,6 +109,7 @@ async function registerServices(container, pluginRegistry) {
   container.register('roles-only/environmentResourceService', new RolesOnlyEnvironmentResourceService());
   container.register('legacy/environmentResourceService', new LegacyEnvironmentResourceService());
   container.register('resourceUsageService', new ResourceUsageService());
+  container.register('studyOperationService', new StudyOperationService());
 
   // Authorization Services from raas addon
   container.register('raasUserAuthzService', new UserAuthzService());

@@ -161,6 +161,8 @@ class StudyPolicy {
       });
     }
 
+    if (_.isEmpty(statements)) return {};
+
     return {
       Version: '2012-10-17',
       Statement: statements,

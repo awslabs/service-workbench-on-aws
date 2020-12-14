@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-// const _ = require('lodash');
+const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 
 const extensionPoint = 'study-access-strategy';
@@ -26,8 +26,8 @@ class DataSourceRegistrationService extends Service {
       'dataSourceAccountService',
       'dataSourceBucketService',
       'studyService',
-      'studyPermissionService',
       'pluginRegistryService',
+      'lockService',
     ]);
   }
 
@@ -47,27 +47,35 @@ class DataSourceRegistrationService extends Service {
   }
 
   async registerStudy(requestContext, accountId, bucketName, rawStudyEntity) {
-    const [accountService, bucketService, studyService] = await this.service([
+    const [accountService, bucketService, studyService, lockService] = await this.service([
       'dataSourceAccountService',
       'dataSourceBucketService',
       'studyService',
+      'lockService',
     ]);
 
     const accountEntity = await accountService.mustFind(requestContext, { id: accountId });
     const bucketEntity = await bucketService.mustFind(requestContext, { accountId, name: bucketName });
-    const studyEntity = await studyService.register(requestContext, accountEntity, bucketEntity, rawStudyEntity);
 
-    // We give a chance to the plugins to participate in the logic of registration. This helps us have different
-    // study access strategies
-    const pluginRegistryService = await this.service('pluginRegistryService');
-    const result = await pluginRegistryService.visitPlugins(extensionPoint, 'onStudyRegistration', {
-      payload: {
-        requestContext,
-        container: this.container,
-        accountEntity,
-        bucketEntity,
-        studyEntity,
-      },
+    // We do locking here because there could be other lambdas that are trying to register studies for the
+    // same account and they might be updating the same application roles, etc.
+    const result = await lockService.tryWriteLockAndRun({ id: `account-${accountId}-operation` }, async () => {
+      const studyEntity = await studyService.register(requestContext, accountEntity, bucketEntity, rawStudyEntity);
+
+      // We give a chance to the plugins to participate in the logic of registration. This helps us have different
+      // study access strategies
+      const pluginRegistryService = await this.service('pluginRegistryService');
+      const outcome = await pluginRegistryService.visitPlugins(extensionPoint, 'onStudyRegistration', {
+        payload: {
+          requestContext,
+          container: this.container,
+          accountEntity,
+          bucketEntity,
+          studyEntity,
+        },
+      });
+
+      return outcome;
     });
 
     // Write audit event
@@ -76,7 +84,7 @@ class DataSourceRegistrationService extends Service {
       body: { accountEntity: result.accountEntity, bucketEntity: result.bucketEntity, studyEntity: result.studyEntity },
     });
 
-    return result.studyEntity;
+    return _.get(result, 'studyEntity');
   }
 
   async createAccountCfn(requestContext, accountId) {

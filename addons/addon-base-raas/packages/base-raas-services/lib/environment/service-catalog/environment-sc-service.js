@@ -17,12 +17,14 @@ const _ = require('lodash');
 const { v4: uuid } = require('uuid');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
+const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
 const { isAdmin, isCurrentUser } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 
 const createSchema = require('../../schema/create-environment-sc');
 const updateSchema = require('../../schema/update-environment-sc');
 const environmentScStatus = require('./environent-sc-status-enum');
 const { hasConnections, cfnOutputsArrayToObject } = require('./helpers/connections-util');
+const { hasAccess, accessLevels } = require('../../study/helpers/entities/study-methods');
 
 const settingKeys = {
   tableName: 'dbEnvironmentsSc',
@@ -46,6 +48,7 @@ class EnvironmentScService extends Service {
     super();
     this.dependency([
       'aws',
+      'iamService',
       'jsonSchemaValidationService',
       'dbService',
       'authorizationService',
@@ -56,6 +59,7 @@ class EnvironmentScService extends Service {
       'projectService',
       'awsAccountsService',
       'indexesService',
+      'studyService',
     ]);
   }
 
@@ -488,6 +492,92 @@ class EnvironmentScService extends Service {
   }
 
   /**
+   * Updates the study ids for the environment sc entity. IMPORTANT: do NOT use this from an api handler, this method
+   * does NOT validate permissions to the study ids provided. If you need to update the study for an environment with
+   * permissions enforced, then use the studyOperationService.updatePermissions() method.
+   *
+   * @param requestContext The standard request context
+   * @param studyIds An array of study ids
+   */
+  async updateStudyIds(requestContext, id, studyIds = []) {
+    // IMPORTANT: do NOT use this from an api handler, this method does NOT validate permissions to the study ids
+    // provided. If you need to update the study for an environment with permissions enforced, then use the
+    // studyOperationService.updatePermissions() method.
+
+    if (!_.isArray(studyIds)) {
+      throw this.boom.badRequest(`Updating study ids require an array of study ids, but an array not provided`, true);
+    }
+
+    if (_.isEmpty(id)) throw this.boom.badRequest('No environment id was provided', true);
+
+    const by = _.get(requestContext, 'principalIdentifier.uid');
+
+    // Prepare the db object
+    const dbObject = { studyIds, updatedBy: by };
+
+    // Time to save the the db object
+    const result = await runAndCatch(
+      async () => {
+        return this._updater()
+          .condition('attribute_exists(id)') // make sure the record being updated exists
+          .key({ id })
+          .item(dbObject)
+          .update();
+      },
+      async () => {
+        throw this.boom.notFound(`environment with id "${id}" does not exist`, true);
+      },
+    );
+
+    return result;
+  }
+
+  /**
+   * Returns an array of StudyEntity that are associated with the environment. If a study is listed as part of the
+   * environment studyIds but the creator of the environment no longer has access to the study, then the study
+   * will not be part of the study entities returned by this method.
+   *
+   * IMPORTANT: each element in the array is the standard StudyEntity, however, there is one additional attributes
+   * added to each of the StudyEntity. This additional attribute is called 'envPermission', it is an object with the
+   * following shape: { read: true/false, write: true/false }
+   *
+   * @param requestContext The standard request context
+   * @param environmentScEntity The environmentScEntity
+   */
+  async getStudies(requestContext, environmentScEntity) {
+    const studyService = await this.service('studyService');
+
+    const studyIds = environmentScEntity.studyIds;
+    const createdBy = environmentScEntity.createdBy;
+
+    if (_.isEmpty(studyIds)) return [];
+
+    const acceptedStudies = [];
+    const systemContext = getSystemRequestContext();
+    const studies = await studyService.listByIds(
+      systemContext,
+      _.map(studyIds, id => ({ id })),
+    );
+
+    // Time to populate the envPermission: { write: read: }
+    const permissionLookup = async study => {
+      const entity = await studyService.getStudyPermissions(systemContext, study.id);
+      if (hasAccess(entity, createdBy)) {
+        const { read, write } = accessLevels(entity, createdBy);
+        study.envPermission = { read, write };
+        acceptedStudies.push(study);
+      }
+      // Note: if the createdBy does not have access to the study, we simply don't return include this study at all.
+      // We don't want to throw an exception here. This is because this method can be used during a workspace
+      // termination and it is possible that the workspace lost its access to the study while it was active.
+    };
+
+    await Promise.all(_.map(studies, permissionLookup));
+
+    return acceptedStudies;
+  }
+
+  /**
    * Updates the study role map for the environment sc entity.
    *
    * @param requestContext The standard request context
@@ -639,6 +729,115 @@ class EnvironmentScService extends Service {
     );
 
     return { cfnExecutionRoleArn, roleExternalId };
+  }
+
+  /**
+   * Returns an aws sdk instance configured with the correct role so that the sdk can be used to update
+   * the environment resources in the hosting account (a.k.a member account).
+   *
+   * @param requestContext The standard request context
+   * @param environmentScEntity The environmentScEntity
+   */
+  async getIamClient(requestContext, environmentScEntity) {
+    const aws = await this.service('aws');
+    const { cfnExecutionRoleArn, roleExternalId } = await this.getCfnExecutionRoleArn(
+      requestContext,
+      environmentScEntity,
+    );
+
+    const iamClient = await aws.getClientSdkForRole({
+      roleArn: cfnExecutionRoleArn,
+      externalId: roleExternalId,
+      clientName: 'IAM',
+    });
+
+    return iamClient;
+  }
+
+  /**
+   * Updates the role policy document in the environment instance profile role.  If the provided policy document is empty,
+   * then this method removes the policy doc from the role (if it existed).
+   *
+   * @param requestContext The standard request context
+   * @param environmentScEntity The environmentScEntity
+   * @param policyDoc The policy document
+   */
+  async updateRolePolicy(requestContext, environmentScEntity, policyDoc) {
+    const iamService = await this.service('iamService');
+    const { roleName, policyName, exists } = await this.getRolePolicy(requestContext, environmentScEntity);
+    const iamClient = await this.getIamClient(requestContext, environmentScEntity);
+
+    const empty = _.isEmpty(policyDoc);
+
+    if (exists && empty) {
+      // Remove the policy
+      await iamService.deleteRolePolicy(roleName, policyName, iamClient);
+    } else {
+      // Update/create the policy
+      await iamService.putRolePolicy(roleName, policyName, JSON.stringify(policyDoc), iamClient);
+    }
+  }
+
+  /**
+   * Returns information about the role policy document in the environment instance profile role. The returned object
+   * has this shape: { policyName, policyDoc, roleName, exists }
+   *
+   * @param requestContext The standard request context
+   * @param environmentScEntity The environmentScEntity
+   */
+  async getRolePolicy(requestContext, environmentScEntity) {
+    const workspaceRoleObject = _.find(environmentScEntity.outputs, { OutputKey: 'WorkspaceInstanceRoleArn' });
+    if (!workspaceRoleObject) {
+      throw new Error(
+        'Workspace IAM Role is not ready yet. It is possible that the environment is still in pending state',
+      );
+    }
+
+    // We need to figure out the policy name inside the workspace role. This policy was originally created in the
+    // service catalog product template. Because we named this policy differently in different releases, we need
+    // to account for that when we try to find the policy.
+    const workspaceRoleArn = workspaceRoleObject.OutputValue;
+    const roleName = workspaceRoleArn.split('role/')[1];
+    const policyNamePrefix = `analysis-${workspaceRoleArn.split('-')[1]}`;
+    const possibleInlinePolicyNames = [
+      `${policyNamePrefix}-s3-studydata-policy`,
+      `${policyNamePrefix}-s3-data-access-policy`,
+      `${policyNamePrefix}-s3-policy`,
+    ];
+
+    const iamClient = await this.getIamClient(requestContext, environmentScEntity);
+    const policy = await this.getPolicy(possibleInlinePolicyNames, roleName, iamClient);
+    const policyDoc = _.get(policy, 'PolicyDocumentObj', {});
+    const policyName = _.get(policy, 'PolicyName', possibleInlinePolicyNames[0]);
+
+    return { policyDoc, roleName, policyName, exists: !_.isUndefined(policy) };
+  }
+
+  /**
+   * @private
+   *
+   * This method looks for inline policy based on the given array of "possibleInlinePolicyNames".
+   * The method returns as soon as it finds an inline policy in the given role (identified by the "roleName")
+   * with a matching name from the "possibleInlinePolicyNames". If no inline policy is found with any of the names from
+   * the "possibleInlinePolicyNames", the method returns undefined.
+   *
+   * @param {Object} possibleInlinePolicyNames - Known policy names we have used in out-of-the-box SC product templates
+   * @param {Object} roleName - Name of the IAM role for the given workspace
+   * @param {Object} iamClient
+   * @returns {Object} - Returns policy object
+   */
+  async getPolicy(possibleInlinePolicyNames, roleName, iamClient) {
+    const iamService = await this.service('iamService');
+
+    // eslint-disable-next-line no-restricted-syntax
+    for (const possiblePolicyName of possibleInlinePolicyNames) {
+      // eslint-disable-next-line no-await-in-loop
+      const policy = await iamService.getRolePolicy(roleName, possiblePolicyName, iamClient);
+      if (policy && policy.PolicyDocumentObj) {
+        return policy;
+      }
+    }
+    return undefined;
   }
 
   // Do some properties renaming to prepare the object to be saved in the database

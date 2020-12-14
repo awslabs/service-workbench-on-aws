@@ -14,9 +14,6 @@
  */
 
 const _ = require('lodash');
-const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
-
-const { hasAccess, accessLevels } = require('../study/helpers/entities/study-methods');
 
 /**
  * A plugin method to contribute to the list of available variables for usage in variable expressions in
@@ -39,40 +36,22 @@ async function list({ requestContext, container, vars }) {
   return { requestContext, container, vars: [...vars, ...raasVars] };
 }
 
+/**
+ * Returns an array of StudyEntity that are associated with the environment. If a study is listed as part of the
+ * environment studyIds but the creator of the environment no longer has access to the study, then the study
+ * will not be part of the study entities returned by this method.
+ *
+ * IMPORTANT: each element in the array is the standard StudyEntity, however, there is one additional attributes
+ * added to each of the StudyEntity. This additional attribute is called 'envPermission', it is an object with the
+ * following shape: { read: true/false, write: true/false }
+ *
+ * @param requestContext The standard request context
+ * @param environmentScEntity The environmentScEntity
+ */
 async function getStudies({ requestContext, container, envId }) {
-  // Logic
-  // - Load the environmentSc entity
-  // - Load all the study entities associated with the environment
-  // - Determine the study permissions for the workspace
-
   const environmentScService = await container.find('environmentScService');
-  const studyService = await container.find('studyService');
-
   const environmentScEntity = await environmentScService.mustFind(requestContext, { id: envId });
-  const studyIds = environmentScEntity.studyIds;
-  const createdBy = environmentScEntity.createdBy;
-
-  if (_.isEmpty(studyIds)) return { environmentScEntity, studies: [] };
-
-  const systemContext = getSystemRequestContext();
-  const studies = await studyService.listByIds(
-    systemContext,
-    _.map(studyIds, id => ({ id })),
-  );
-
-  // Time to populate the envPermission: { write: read: } before sending it to the plugins
-  const permissionLookup = async study => {
-    const entity = await studyService.getStudyPermissions(systemContext, study.id);
-    if (!hasAccess(entity, createdBy))
-      throw studyService.boom.forbidden(
-        `The creator of the workspace does not have access to study "${study.id}"`,
-        true,
-      );
-    const { read, write } = accessLevels(entity, createdBy);
-    study.envPermission = { read, write };
-  };
-
-  await Promise.all(_.map(studies, permissionLookup));
+  const studies = await environmentScService.getStudies(requestContext, environmentScEntity);
 
   return { environmentScEntity, studies };
 }
