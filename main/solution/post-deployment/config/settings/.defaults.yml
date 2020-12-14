@@ -152,6 +152,9 @@ dbStudies: ${self:custom.settings.dbPrefix}-Studies
 # DynamoDB table global secondary index name for the "category" field
 dbStudiesCategoryIndex: CategoryIndex
 
+# DynamoDB table global secondary index name for the "accountId" field
+dbStudiesAccountIdIndex: AccountIdIndex
+
 # DynamoDB table name for Environments
 dbEnvironments: ${self:custom.settings.dbPrefix}-Environments
 

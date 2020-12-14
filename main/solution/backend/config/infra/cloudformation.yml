@@ -607,6 +607,14 @@ Resources:
                   - route53:ChangeResourceRecordSets
                 Resource: 'arn:aws:route53:::hostedzone/${self:custom.settings.hostedZoneId}'
 
+        - PolicyName: step-functions-invocation
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - states:StartExecution
+                Resource: '*'
+
         - PolicyName: ec2-access
           PolicyDocument:
             Statement:
@@ -774,6 +782,40 @@ Resources:
                 - !GetAtt [IndexesDb, Arn]
                 - !GetAtt [ProjectsDb, Arn]
                 - !GetAtt [AwsAccountsDb, Arn]
+        - PolicyName: assume-role
+          PolicyDocument:
+            Statement:
+              Action: 'sts:AssumeRole'
+              Effect: Allow
+              Resource: '*' # TODO: LOCK THIS DOWN!
+
+    # IAM Role for the dataSourceReachabilityHandler Function
+  RoleDataSourceReachabilityHandler:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: db-data-source-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:Query
+                - dynamodb:Scan
+                - dynamodb:UpdateItem
+              Resource:
+                - !GetAtt [StudiesDb, Arn]
+                - !Join ['', [!GetAtt [StudiesDb, Arn], '/index/*']]
+                - !GetAtt [DsAccountsDb, Arn]
         - PolicyName: assume-role
           PolicyDocument:
             Statement:
@@ -1058,6 +1100,8 @@ Resources:
           AttributeType: 'S'
         - AttributeName: 'category'
           AttributeType: 'S'
+        - AttributeName: 'accountId'
+          AttributeType: 'S'
       KeySchema:
         - AttributeName: 'id'
           KeyType: 'HASH'
@@ -1066,6 +1110,12 @@ Resources:
         - IndexName: ${self:custom.settings.dbStudiesCategoryIndex}
           KeySchema:
             - AttributeName: 'category'
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: 'ALL'
+        - IndexName: ${self:custom.settings.dbStudiesAccountIdIndex}
+          KeySchema:
+            - AttributeName: 'accountId'
               KeyType: 'HASH'
           Projection:
             ProjectionType: 'ALL'
@@ -1892,5 +1942,7 @@ Outputs:
     Value: !GetAtt RoleOpenDataScrapeHandler.Arn
   EnvStatusPollHandlerRoleArn:
     Value: !GetAtt RoleEnvStatusPollHandler.Arn
+  DataSourceReachabilityHandlerRoleArn:
+    Value: !GetAtt RoleDataSourceReachabilityHandler.Arn
   EnvMgmtRoleArn:
     Value: !GetAtt RoleEnvMgmt.Arn

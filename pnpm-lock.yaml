@@ -312,6 +312,7 @@ importers:
       uuid: 3.4.0
       xml: 1.0.1
     devDependencies:
+      '@aws-ee/base-workflow-core': 'link:../../../addon-base-workflow/packages/base-workflow-core'
       aws-sdk-mock: 5.1.0
       eslint: 6.8.0
       eslint-config-airbnb-base: 14.1.0_8cdb6d8c18c3319a1365bd5afa0063a3
@@ -331,6 +332,7 @@ importers:
       '@aws-ee/base-api-services': 'workspace:*'
       '@aws-ee/base-services': 'workspace:*'
       '@aws-ee/base-services-container': 'workspace:*'
+      '@aws-ee/base-workflow-core': 'workspace:*'
       '@aws-ee/key-pair-mgmt-services': 'workspace:*'
       aws-sdk-mock: ^5.1.0
       eslint: ^6.8.0
