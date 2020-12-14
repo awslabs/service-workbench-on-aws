@@ -12,7 +12,7 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-const _ = require('lodash');
+
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
 
 const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
@@ -45,9 +45,9 @@ describe('EnvironmentMountService', () => {
   let service = null;
   let environmentScService = null;
   let iamService = null;
-  let studyService = null;
-  let studyPermissionService = null;
-  let aws = null;
+  // let studyService = null;
+  // let studyPermissionService = null;
+  // let aws = null;
 
   beforeEach(async () => {
     // Initialize services container and register dependencies
@@ -68,9 +68,9 @@ describe('EnvironmentMountService', () => {
     service = await container.find('environmentMountService');
     environmentScService = await container.find('environmentScService');
     iamService = await container.find('iamService');
-    studyService = await container.find('studyService');
-    studyPermissionService = await container.find('studyPermissionService');
-    aws = await container.find('aws');
+    // studyService = await container.find('studyService');
+    // studyPermissionService = await container.find('studyPermissionService');
+    // aws = await container.find('aws');
   });
 
   // TODO - redo it so that it works with BYOB cases
