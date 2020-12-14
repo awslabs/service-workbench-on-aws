@@ -32,6 +32,21 @@ async function configure(context) {
   );
 
   // ===============================================================
+  //  POST /accounts/ops (mounted to /api/data-sources)
+  // ===============================================================
+  router.post(
+    '/accounts/ops/reachability',
+    wrap(async (req, res) => {
+      const requestContext = res.locals.requestContext;
+      const unsafeBody = req.body;
+      const service = await context.service('dataSourceReachabilityService');
+      const result = await service.attemptReach(requestContext, unsafeBody);
+
+      res.status(200).json(result);
+    }),
+  );
+
+  // ===============================================================
   //  POST /accounts (mounted to /api/data-sources)
   // ===============================================================
   router.post(

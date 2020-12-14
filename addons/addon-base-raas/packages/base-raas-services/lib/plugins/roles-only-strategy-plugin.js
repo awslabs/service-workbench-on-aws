@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-const _ = require('lodash');
+// const _ = require('lodash');
 const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
 
 const { CfnTemplate } = require('../helpers/cfn-template');

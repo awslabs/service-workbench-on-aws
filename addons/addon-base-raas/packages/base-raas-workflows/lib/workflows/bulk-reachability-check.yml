@@ -1,0 +1,17 @@
+id: wf-bulk-reachability-check
+v: 1
+workflowTemplateId: wt-empty
+workflowTemplateVer: 1
+title: Bulk Reachability Check
+desc: |
+  Check bulk Data Source Account and/or Study reachability
+hidden: false
+builtin: true
+instanceTtl: 30 # In days, however, empty value means that it is indefinite
+selectedSteps:
+  - stepTemplateId: st-bulk-reachability-check
+    stepTemplateVer: 1
+    id: wf-step_1_1574277702254_97 # Randomly generated id, no need to change it
+    # configs: # add configuration key/value pairs (if needed)
+    # key1: value1
+    # key2: value2
