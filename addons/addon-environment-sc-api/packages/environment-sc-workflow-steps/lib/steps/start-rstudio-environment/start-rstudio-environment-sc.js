@@ -155,7 +155,10 @@ class StartRStudioEnvironmentSc extends StepBase {
     const envId = await this.state.string('STATE_ENVIRONMENT_ID');
     await this.updateCnameRecords(envId, oldDnsName, newDnsName);
 
-    return this.updateEnvironment({ status: 'COMPLETED', outputs, inWorkflow: 'false' });
+    return this.updateEnvironment(
+      { status: 'COMPLETED', outputs, inWorkflow: 'false' },
+      { action: 'ADD', ip: publicIpAddress },
+    );
   }
 
   async updateCnameRecords(envId, oldDnsName, newDnsName) {
@@ -164,7 +167,7 @@ class StartRStudioEnvironmentSc extends StepBase {
     await environmentDnsService.createRecord('rstudio', envId, newDnsName);
   }
 
-  async updateEnvironment(updatedAttributes) {
+  async updateEnvironment(updatedAttributes, ipAllowListAction = {}) {
     const environmentScService = await this.mustFindServices('environmentScService');
     const requestContext = await this.state.optionalObject('STATE_REQUEST_CONTEXT');
     const existingEnvRecord = await this.getExistingEnvironmentRecord();
@@ -179,7 +182,7 @@ class StartRStudioEnvironmentSc extends StepBase {
       rev: existingEnvRecord.rev || 0,
       ...updatedAttributes,
     };
-    await environmentScService.update(requestContext, newEnvironment);
+    await environmentScService.update(requestContext, newEnvironment, ipAllowListAction);
   }
 
   async onFail() {

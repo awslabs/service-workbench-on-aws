@@ -47,6 +47,9 @@ const AwsAccountsServiceMock = require('../../../aws-accounts/aws-accounts-servi
 jest.mock('../../../indexes/indexes-service');
 const IndexesServiceMock = require('../../../indexes/indexes-service');
 
+jest.mock('../../../storage-gateway/storage-gateway-service');
+const StorageGatewayService = require('../../../storage-gateway/storage-gateway-service');
+
 const EnvironmentSCService = require('../environment-sc-service');
 
 const workflowIds = {
@@ -62,6 +65,7 @@ describe('EnvironmentSCService', () => {
   let wfService = null;
   let awsAccountsService = null;
   let aws = null;
+  let storageGatewayService = null;
   const error = { code: 'ConditionalCheckFailedException' };
   beforeEach(async () => {
     const container = new ServicesContainer();
@@ -78,6 +82,7 @@ describe('EnvironmentSCService', () => {
     container.register('awsAccountsService', new AwsAccountsServiceMock());
     container.register('indexesService', new IndexesServiceMock());
     container.register('environmentSCService', new EnvironmentSCService());
+    container.register('storageGatewayService', new StorageGatewayService());
     await container.initServices();
 
     // suppress expected console errors
@@ -91,6 +96,7 @@ describe('EnvironmentSCService', () => {
     awsAccountsService = await container.find('awsAccountsService');
     wfService = await container.find('workflowTriggerService');
     aws = await container.find('aws');
+    storageGatewayService = await container.find('storageGatewayService');
 
     // Skip authorization by default
     service.assertAuthorized = jest.fn();
@@ -355,6 +361,7 @@ describe('EnvironmentSCService', () => {
         updatedBy: {
           username: 'user',
         },
+        studyIds: ['study-id-1', 'study-id-2'],
       };
 
       const newEnv = {
@@ -374,6 +381,50 @@ describe('EnvironmentSCService', () => {
         requestContext,
         expect.objectContaining({ action: 'update-environment-sc' }),
       );
+      expect(storageGatewayService.updateStudyFileMountIPAllowList).not.toHaveBeenCalled();
+    });
+
+    it('should call updateStudyFileMountIPAllowList to update IP when needed', async () => {
+      // BUILD
+      const requestContext = {
+        principalIdentifier: {
+          username: 'uname',
+          ns: 'user.ns',
+        },
+      };
+
+      const oldEnv = {
+        id: 'oldId',
+        name: 'exampleName',
+        envTypeId: 'exampleETI',
+        envTypeConfigId: 'exampleETCI',
+        updatedBy: {
+          username: 'user',
+        },
+        studyIds: ['study-id-1', 'study-id-2'],
+      };
+
+      const newEnv = {
+        id: oldEnv.id,
+        rev: 2,
+      };
+      service.audit = jest.fn();
+      service.mustFind = jest.fn().mockResolvedValueOnce(oldEnv);
+
+      // OPERATE
+      await service.update(requestContext, newEnv, { action: 'ADD', ip: '1.2.3.4' });
+
+      // CHECK
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: newEnv.id });
+      expect(dbService.table.update).toHaveBeenCalled();
+      expect(service.audit).toHaveBeenCalledWith(
+        requestContext,
+        expect.objectContaining({ action: 'update-environment-sc' }),
+      );
+      expect(storageGatewayService.updateStudyFileMountIPAllowList).toHaveBeenCalledWith(requestContext, oldEnv, {
+        action: 'ADD',
+        ip: '1.2.3.4',
+      });
     });
   });
 

@@ -17,7 +17,12 @@ async function configure(context) {
   const router = context.router();
   const wrap = context.wrap;
 
-  const [studyService, studyPermissionService] = await context.service(['studyService', 'studyPermissionService']);
+  const [studyService, studyPermissionService, environmentMountService, lockService] = await context.service([
+    'studyService',
+    'studyPermissionService',
+    'environmentMountService',
+    'lockService',
+  ]);
 
   // ===============================================================
   //  GET / (mounted to /api/studies)
@@ -157,6 +162,7 @@ async function configure(context) {
       const updateRequest = req.body;
 
       // Validate permissions and usage
+      // For future - Move authZ logic inside service (or new service) & move away from verifyRequestorAccess
       await studyPermissionService.verifyRequestorAccess(requestContext, studyId, req.method);
       const study = await studyService.mustFind(requestContext, studyId);
       if (study.category === 'My Studies') {
@@ -166,7 +172,12 @@ async function configure(context) {
         throw context.boom.forbidden('Permissions cannot be set for studies in the "Open Data" category', true);
       }
 
-      const result = await studyPermissionService.update(requestContext, studyId, updateRequest);
+      const result = await lockService.tryWriteLockAndRun({ id: `${studyId}-workspaces` }, async () => {
+        const updateOutcome = await studyPermissionService.update(requestContext, studyId, updateRequest);
+        await environmentMountService.applyWorkspacePermissions(studyId, updateRequest);
+        // Nice-to-have: Add number of workspaces updated to result object
+        return updateOutcome;
+      });
       res.status(200).json(result);
     }),
   );

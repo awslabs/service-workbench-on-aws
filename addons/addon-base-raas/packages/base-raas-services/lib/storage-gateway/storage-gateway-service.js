@@ -34,7 +34,7 @@ const settingKeys = {
 class StorageGatewayService extends Service {
   constructor() {
     super();
-    this.dependency(['aws', 'dbService', 'userService', 'jsonSchemaValidationService']);
+    this.dependency(['aws', 'dbService', 'userService', 'jsonSchemaValidationService', 'studyService', 'lockService']);
   }
 
   async init() {
@@ -104,46 +104,69 @@ class StorageGatewayService extends Service {
    * Create NFS file share in an existing Storage Gateway
    * @param requestContext
    * @param gatewayArn: Arn of the Storage Gateway for file share creation(The method assumes there's still capacity for another file share in this gateway)
-   * @param s3LocationArn: Arn and path for S3 location. (Path under S3 bucket must end with '/')
+   * @param studyId: ID of the study that the NFS file share to be created upon
    * @param roleArn: Arn of the role that has access to the S3 location and list Storage Gateway as a trusted entity
    * @param overrideParameters: Other parameters that you wish to override
    * @return Arn of existing file share if one is already created for the S3 path; Arn of newly created file share if there isn't one for the S3 path
    * See https://docs.aws.amazon.com/AWSJavaScriptSDK/latest/AWS/StorageGateway.html#createNFSFileShare-property for complete list of parameters for override
    */
-  async createFileShare(requestContext, gatewayArn, s3LocationArn, roleArn, overrideParameters = {}) {
+  async createFileShare(requestContext, gatewayArn, studyId, roleArn, overrideParameters = {}) {
     // Check if there's an existing file share
     // The record 'file_shares' is used to keep track of all file shares so we don't need to scan the table for all file shares
     // The size limit of one DDB item 400KB, the record 'file_shares' can store up to 3,000 file shares
-    let existingFileShare;
-    try {
-      existingFileShare = await this._getter()
-        .key({
-          id: 'file_shares',
-        })
-        .projection('file_share_s3_locations')
-        .get();
-      existingFileShare = existingFileShare.file_share_s3_locations;
-      if (s3LocationArn in existingFileShare) {
-        return existingFileShare[s3LocationArn];
-      }
-      this.log.info(`File share for ${s3LocationArn} does not exist, continue to create file share.`);
-    } catch (e) {
-      existingFileShare = {};
-      this.log.info(`File share does not exist, continue to create file share.`);
+    const studyService = await this.service('studyService');
+    const study = await studyService.mustFind(requestContext, studyId, ['resources', 'id', 'rev']);
+    if (study.resources.length !== 1) {
+      throw this.boom.badRequest(
+        `Study ${studyId} has ${study.resources.length} S3 paths associated with it, only study with 1 s3 path is supported.`,
+      );
     }
+    const resource = study.resources[0];
+    if ('fileShareArn' in resource) {
+      return resource.fileShareArn;
+    }
+    this.log.info(`File share does not exist, continue to create file share.`);
 
+    const s3LocationArn = resource.arn;
     const existingSG = await this.mustFind(requestContext, { id: gatewayArn });
     const storageGateway = await this.getStorageGateway();
-    const clientToken = uuid();
-    const params = {
-      ClientToken: clientToken,
-      GatewayARN: gatewayArn,
-      LocationARN: s3LocationArn,
-      Role: roleArn,
-      ClientList: [`${existingSG.elasticIP}/32`],
-    };
-    const result = await storageGateway.createNFSFileShare({ ...params, ...overrideParameters }).promise();
-    const fileShareArn = result.FileShareARN;
+
+    // Check if the file share already exist in storage gateway
+    const listFileSharesResult = await storageGateway.listFileShares({ GatewayARN: gatewayArn }).promise();
+    const fileSharesArnList = listFileSharesResult.FileShareInfoList.filter(
+      fileShare => fileShare.FileShareType === 'NFS',
+    ).map(fileShare => fileShare.FileShareARN);
+
+    const fileShareS3ToArnList = {};
+    if (!_.isEmpty(fileSharesArnList)) {
+      const describeFileSharesResult = await storageGateway
+        .describeNFSFileShares({
+          FileShareARNList: fileSharesArnList,
+        })
+        .promise();
+      describeFileSharesResult.NFSFileShareInfoList.forEach(fileShare => {
+        fileShareS3ToArnList[fileShare.LocationARN] = fileShare.FileShareARN;
+      });
+    }
+
+    // Move forward with DB update if file share already exist
+    // Create file share if it does not exist
+    let fileShareArn;
+    if (s3LocationArn in fileShareS3ToArnList) {
+      fileShareArn = fileShareS3ToArnList[s3LocationArn];
+    } else {
+      const clientToken = uuid();
+      const params = {
+        ClientToken: clientToken,
+        GatewayARN: gatewayArn,
+        LocationARN: s3LocationArn,
+        Role: roleArn,
+        ClientList: [`${existingSG.elasticIP}/32`],
+      };
+      const result = await storageGateway.createNFSFileShare({ ...params, ...overrideParameters }).promise();
+      fileShareArn = result.FileShareARN;
+    }
+
     // Update storage gateway record
     let newFileShares = {};
     if ('fileShares' in existingSG) {
@@ -151,15 +174,81 @@ class StorageGatewayService extends Service {
     }
     newFileShares[s3LocationArn] = fileShareArn;
     await this.update(requestContext, { fileShares: newFileShares }, gatewayArn);
-    // Create or update file_shares record
-    existingFileShare[s3LocationArn] = fileShareArn;
-    await this._updater()
-      .key({
-        id: 'file_shares',
-      })
-      .item({ file_share_s3_locations: existingFileShare })
-      .update();
+    // Update study record
+    resource.fileShareArn = fileShareArn;
+    await studyService.update(requestContext, study);
     return fileShareArn;
+  }
+
+  /**
+   * This method is triggered when EC2 Linux, Windows and RStudio Start / Stop
+   * And when any workspace is terminated
+   * @param requestContext
+   * @param existingEnvironment: environment that's being stopped / started or terminated
+   * @param ipAllowListAction: One required field action and one optional field ip
+   * @return {Promise<void>}
+   */
+  async updateStudyFileMountIPAllowList(requestContext, existingEnvironment, ipAllowListAction) {
+    const studyService = await this.service('studyService');
+    // Check if the mounted study is using StorageGateway
+    const studiesList = await studyService.listByIds(
+      requestContext,
+      existingEnvironment.studyIds.map(id => {
+        return { id };
+      }),
+    );
+
+    // If yes, get the file share ARNs and call to update IP allow list
+    const fileShareARNs = studiesList.map(study => study.resources[0].fileShareArn).filter(arn => !_.isUndefined(arn));
+    if (!_.isEmpty(fileShareARNs)) {
+      let ip;
+      // If IP is in ipAllowListAction, use that, if not, find it in existingEnvironment
+      if ('ip' in ipAllowListAction) {
+        ip = ipAllowListAction.ip;
+      } else {
+        ip = existingEnvironment.outputs.filter(output => output.OutputKey === 'Ec2WorkspacePublicIp');
+        // When terminating a product that's not EC2 based, do nothing
+        if (_.isEmpty(ip)) {
+          return;
+        }
+        ip = ip[0].OutputValue;
+      }
+      await this.updateFileSharesIPAllowedList(fileShareARNs, ip, ipAllowListAction.action);
+    }
+  }
+
+  async updateFileSharesIPAllowedList(fileShareARNs, ip, action) {
+    if (!['ADD', 'REMOVE'].includes(action)) {
+      throw this.boom.badRequest(`Action ${action} is not valid, only ADD and REMOVE are supported.`);
+    }
+    // Get existing file share
+    const updatePromises = fileShareARNs.map(fileShareARN =>
+      this.updateFileShareIPAllowedList(fileShareARN, ip, action),
+    );
+    await Promise.all(updatePromises);
+  }
+
+  async updateFileShareIPAllowedList(fileShareARN, ip, action) {
+    const storageGateway = await this.getStorageGateway();
+    const [lockService] = await this.service(['lockService']);
+    await lockService.tryWriteLockAndRun({ id: fileShareARN }, async () => {
+      const existingFileShare = await storageGateway
+        .describeNFSFileShares({
+          FileShareARNList: [fileShareARN],
+        })
+        .promise();
+      let clientList = existingFileShare.NFSFileShareInfoList[0].ClientList;
+      const cidr = `${ip}/32`;
+      if (action === 'ADD' && !clientList.includes(cidr)) {
+        clientList.push(cidr);
+      } else if (action === 'REMOVE') {
+        clientList = clientList.filter(includedIP => includedIP !== cidr);
+      } else {
+        // Update not needed
+        return;
+      }
+      await storageGateway.updateNFSFileShare({ FileShareARN: fileShareARN, ClientList: clientList }).promise();
+    });
   }
 
   async fetchIP() {
