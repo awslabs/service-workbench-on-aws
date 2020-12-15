@@ -99,9 +99,7 @@ class StudyRow extends React.Component {
 
     return (
       <>
-        {study.uploadLocationEnabled && (study.access === 'admin' || study.access === 'readwrite') && (
-          <UploadStudyFiles studyId={study.id} />
-        )}
+        {study.uploadLocationEnabled && study.canUpload && <UploadStudyFiles studyId={study.id} />}
         <Header as="h3" color="blue" className={c('mt0', isSelectable ? 'cursor-pointer' : '')} {...onClickAttr}>
           {study.name}
           <Header.Subheader>
