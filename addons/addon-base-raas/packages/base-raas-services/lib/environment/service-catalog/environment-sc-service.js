@@ -492,47 +492,6 @@ class EnvironmentScService extends Service {
   }
 
   /**
-   * Updates the study ids for the environment sc entity. IMPORTANT: do NOT use this from an api handler, this method
-   * does NOT validate permissions to the study ids provided. If you need to update the study for an environment with
-   * permissions enforced, then use the studyOperationService.updatePermissions() method.
-   *
-   * @param requestContext The standard request context
-   * @param studyIds An array of study ids
-   */
-  async updateStudyIds(requestContext, id, studyIds = []) {
-    // IMPORTANT: do NOT use this from an api handler, this method does NOT validate permissions to the study ids
-    // provided. If you need to update the study for an environment with permissions enforced, then use the
-    // studyOperationService.updatePermissions() method.
-
-    if (!_.isArray(studyIds)) {
-      throw this.boom.badRequest(`Updating study ids require an array of study ids, but an array not provided`, true);
-    }
-
-    if (_.isEmpty(id)) throw this.boom.badRequest('No environment id was provided', true);
-
-    const by = _.get(requestContext, 'principalIdentifier.uid');
-
-    // Prepare the db object
-    const dbObject = { studyIds, updatedBy: by };
-
-    // Time to save the the db object
-    const result = await runAndCatch(
-      async () => {
-        return this._updater()
-          .condition('attribute_exists(id)') // make sure the record being updated exists
-          .key({ id })
-          .item(dbObject)
-          .update();
-      },
-      async () => {
-        throw this.boom.notFound(`environment with id "${id}" does not exist`, true);
-      },
-    );
-
-    return result;
-  }
-
-  /**
    * Returns an array of StudyEntity that are associated with the environment. If a study is listed as part of the
    * environment studyIds but the creator of the environment no longer has access to the study, then the study
    * will not be part of the study entities returned by this method.
