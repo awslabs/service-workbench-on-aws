@@ -66,12 +66,18 @@ class EnvironmentMountService extends Service {
   async getStudyAccessInfo(requestContext, studyIds) {
     const studyInfo = await this._getStudyInfo(requestContext, studyIds);
     await this._validateStudyPermissions(requestContext, studyInfo);
-    const s3Mounts = this._prepareS3Mounts(studyInfo);
+    const s3Mounts = await this._prepareS3Mounts(studyInfo);
     const iamPolicyDocument = await this._generateIamPolicyDoc(studyInfo);
 
     return {
       s3Mounts: JSON.stringify(
-        s3Mounts.map(({ id, bucket, prefix, writeable }) => ({ id, bucket, prefix, writeable })),
+        s3Mounts.map(({ id, bucket, prefix, writeable, kmsKeyId }) => ({
+          id,
+          bucket,
+          prefix,
+          writeable,
+          kmsKeyId,
+        })),
       ),
       iamPolicyDocument: JSON.stringify(iamPolicyDocument),
       environmentInstanceFiles: this.settings.get(settingKeys.environmentInstanceFiles),
@@ -667,17 +673,50 @@ class EnvironmentMountService extends Service {
     return policyDoc.Statement;
   }
 
-  async _getWorkspacePolicy(iamClient, env) {
-    if (!env.outputs) {
-      throw new Error('Environment outputs are not ready yet. Please make sure environment is in Completed status');
-    }
+  /**
+   * This method looks for inline policy based on the given array of "possibleInlinePolicyNames".
+   * The method returns as soon as it finds an inline policy in the given role (identified by the "roleName")
+   * with a matching name from the "possibleInlinePolicyNames".
+   * If no inline policy is found with any of the names from the "possibleInlinePolicyNames", the method returns undefined.
+   *
+   * @param {Object} possibleInlinePolicyNames - Known policy names we have used in out-of-the-box SC product templates
+   * * @param {Object} roleName - Name of the IAM role for the given workspace
+   * * @param {Object} iamClient
+   * @returns {Object} - Returns policy object
+   */
+  async _getPolicy(possibleInlinePolicyNames, roleName, iamClient) {
     const iamService = await this.service('iamService');
-    const workspaceRoleArn = _.find(env.outputs, { OutputKey: 'WorkspaceInstanceRoleArn' }).OutputValue;
+
+    // eslint-disable-next-line no-restricted-syntax
+    for (const possiblePolicyName of possibleInlinePolicyNames) {
+      // eslint-disable-next-line no-await-in-loop
+      const policy = await iamService.getRolePolicy(roleName, possiblePolicyName, iamClient);
+      if (policy && policy.PolicyDocumentObj) {
+        return policy;
+      }
+    }
+    return undefined;
+  }
+
+  async _getWorkspacePolicy(iamClient, env) {
+    const workspaceRoleObject = _.find(env.outputs, { OutputKey: 'WorkspaceInstanceRoleArn' });
+    if (!workspaceRoleObject) {
+      throw new Error(
+        'Workspace IAM Role is not ready yet. Please make sure environment is in Completed status and retry the operation',
+      );
+    }
+    const workspaceRoleArn = workspaceRoleObject.OutputValue;
     const roleName = workspaceRoleArn.split('role/')[1];
-    const studyDataPolicyName = `analysis-${workspaceRoleArn.split('-')[1]}-s3-studydata-policy`;
-    const { PolicyDocument: policyDocStr } = await iamService.getRolePolicy(roleName, studyDataPolicyName, iamClient);
-    const policyDoc = JSON.parse(policyDocStr);
-    return { policyDoc, roleName, studyDataPolicyName };
+    const policyNamePrefix = `analysis-${workspaceRoleArn.split('-')[1]}`;
+    const possibleInlinePolicyNames = [
+      `${policyNamePrefix}-s3-studydata-policy`,
+      `${policyNamePrefix}-s3-data-access-policy`,
+      `${policyNamePrefix}-s3-policy`,
+    ];
+
+    const policy = await this._getPolicy(possibleInlinePolicyNames, roleName, iamClient);
+    const policyDoc = policy ? policy.PolicyDocumentObj : {};
+    return { policyDoc, roleName, studyDataPolicyName: policy.PolicyName };
   }
 
   async _getIamUpdateParams(env, studyId) {
@@ -737,7 +776,6 @@ class EnvironmentMountService extends Service {
         _.map(studyIds, async studyId => {
           try {
             const { id, name, category, resources } = await studyService.mustFind(requestContext, studyId);
-
             // Find out if the current user has Read/Write access
             const uid = _.get(requestContext, 'principalIdentifier.uid');
             const studyPermission = await studyPermissionService.findByUser(requestContext, uid);
@@ -761,7 +799,7 @@ class EnvironmentMountService extends Service {
       const requestedStudyIds = studyInfo.map(study => study.id);
 
       // Retrieve and verify user's study permissions
-      const studyPermissionService = await this.service('studyPermissionService');
+      const [studyPermissionService, studyService] = await this.service(['studyPermissionService', 'studyService']);
       const storedPermissions = await studyPermissionService.getRequestorPermissions(requestContext);
 
       // If there are no stored permissions, use an empty permissions object
@@ -773,26 +811,31 @@ class EnvironmentMountService extends Service {
       );
 
       // Determine whether any forbidden studies were requested
-      const allowedStudies = permissions.adminAccess.concat(permissions.readonlyAccess);
+      const allowedStudies = studyService.getAllowedStudies(permissions);
       const forbiddenStudies = _.difference(requestedStudyIds, allowedStudies);
-
-      if (forbiddenStudies.length) {
+      if (!_.isEmpty(forbiddenStudies)) {
         throw new Error(`Studies not found: ${forbiddenStudies.join(',')}`);
       }
     }
     return permissions;
   }
 
-  _prepareS3Mounts(studyInfo) {
+  async _prepareS3Mounts(studyInfo) {
     let mounts = [];
     if (studyInfo.length) {
+      const studyDataKmsKeyArn = this.settings.get(settingKeys.studyDataKmsKeyArn);
+
       // There might be multiple resources. In the future we may flatMap, for now...
       mounts = studyInfo.reduce(
         (result, { id, resources, category, writeable }) =>
           result.concat(
             resources.map(resource => {
               const { bucket, prefix } = parseS3Arn(resource.arn);
-              return { id, bucket, prefix, category, writeable };
+              const mount = { id, bucket, prefix, category, writeable };
+              if (category !== 'Open Data') {
+                mount.kmsKeyId = studyDataKmsKeyArn;
+              }
+              return mount;
             }),
           ),
         [],

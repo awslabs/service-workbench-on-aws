@@ -2,7 +2,7 @@
 package main
 
 import (
-	"fmt"
+	"context"
 	"log"
 	"math"
 	"os"
@@ -19,38 +19,9 @@ import (
 
 // Global Variable to hold map of S3 object path vs their ETags
 // This map is to avoid unnecessary re-downloads
-// If the program is restarted this map will be re-initialized
-// and that's fine. This will just cause extra re-downloads but will not break
-// anything functionally
-var s3FileETagsMap = make(map[string]string)
-
-func recordFileDownloadToLocal(item *s3.Object) {
-	s3FileETagsMap[*item.Key] = *item.ETag
-}
-func recordFileDeletionFromLocal(filePath string, config *mountConfiguration) {
-	prefix := config.prefix
-	// if prefix ends with trailing slash then remove extra slash
-	if strings.HasSuffix(prefix, "/") {
-		prefix = strings.TrimSuffix(prefix, "/")
-	}
-
-	s3FilePath := strings.TrimPrefix(filePath, config.destination)
-	// if s3 file path starts with a trailing slash then remove extra slash
-	if strings.HasPrefix(s3FilePath, "/") {
-		s3FilePath = strings.TrimPrefix(s3FilePath, "/")
-	}
-
-	s3Key := filepath.ToSlash(prefix + "/" + s3FilePath)
-
-	// Delete ETag from cache map when file is deleted from local machine
-	delete(s3FileETagsMap, s3Key)
-}
-
-func hasFileChangedInS3(item *s3.Object) bool {
-	// Return true if the S3 object's ETag is different than the one we have
-	// in our cached map
-	return s3FileETagsMap[*item.Key] != *item.ETag
-}
+// If the program is restarted this map will be re-initialized from the persistent state
+// (currently implemented as a state file under user home directory)
+var synchronizerState = NewPersistentSynchronizerState()
 
 // To hold the number retrieved files and other download related statistics
 type downloadStats struct {
@@ -89,6 +60,7 @@ func newMountConfiguration(bucket string, prefix string, destination string, wri
 // s3Manager https://docs.aws.amazon.com/sdk-for-go/api/service/s3/s3manager/#NewDownloader.
 // It downloads each file as multipart download (i.e., downloads in chunks).
 func downloadFiles(sess *session.Session, config *mountConfiguration, concurrency int, debug bool) {
+
 	destination := config.destination
 	bucket := config.bucket
 	prefix := config.prefix
@@ -119,17 +91,14 @@ func reportDownloadStats(stats *downloadStats, debug bool) {
 }
 
 func syncS3ToLocal(sess *session.Session, config *mountConfiguration, concurrency int, debug bool) *downloadStats {
+	destination := config.destination
+	// Ensure the destination directory exists
+	if _, err := os.Stat(destination); os.IsNotExist(err) {
+		os.MkdirAll(destination, os.ModePerm)
+	}
 
 	stats := newDownloadStats()
 	stats.start = time.Now()
-
-	bucket := config.bucket
-	prefix := config.prefix
-	query := &s3.ListObjectsV2Input{
-		Bucket: aws.String(bucket),
-		Prefix: aws.String(prefix),
-	}
-	svc := s3.New(sess)
 
 	truncatedListing := true
 
@@ -137,16 +106,46 @@ func syncS3ToLocal(sess *session.Session, config *mountConfiguration, concurrenc
 	// the accumulated listObjectResponses will then be used to find file on local filesystem that are not there in S3
 	var listObjectResponses []*s3.ListObjectsV2Output
 
+	bucket := config.bucket
+	prefix := config.prefix
+	awsRegion, err := s3manager.GetBucketRegion(context.Background(), sess, bucket, *sess.Config.Region)
+	if debug {
+		log.Println("Bucket", bucket, "region is", awsRegion)
+	}
+
+	sessForTheMount := session.Must(session.NewSession(sess.Config))
+	sessForTheMount.Config.WithRegion(awsRegion)
+	svc := s3.New(sessForTheMount)
+	if err != nil {
+		log.Println("Error getting region of the bucket", bucket, err)
+	}
+
+	if debug {
+		log.Println("Listing", bucket, "for prefix", prefix)
+	}
+
+	var query *s3.ListObjectsV2Input
+	if prefix == "/" {
+		query = &s3.ListObjectsV2Input{
+			Bucket: aws.String(bucket),
+			Prefix: aws.String(""),
+		}
+	} else {
+		query = &s3.ListObjectsV2Input{
+			Bucket: aws.String(bucket),
+			Prefix: aws.String(prefix),
+		}
+	}
+
 	for truncatedListing {
 		resp, err := svc.ListObjectsV2(query)
 
 		if err != nil {
-			log.Println("Failed to list objects: ", err)
-			// 30 seconds backoff
-			time.Sleep(time.Duration(30) * time.Second)
+			log.Println("Failed to list objects for bucket", bucket, "and prefix", prefix, ":", err)
+			// 10 seconds backoff
+			time.Sleep(time.Duration(10) * time.Second)
 			continue
 		}
-
 		listObjectResponses = append(listObjectResponses, resp)
 		downloadAllObjects(resp, sess, config, concurrency, stats, debug)
 
@@ -154,9 +153,9 @@ func syncS3ToLocal(sess *session.Session, config *mountConfiguration, concurrenc
 		truncatedListing = *resp.IsTruncated
 	}
 
-	err := deleteLocalFilesNotInS3(listObjectResponses, config, debug)
+	err = deleteLocalFilesNotInS3(listObjectResponses, config, debug)
 	if err != nil {
-		fmt.Println("Error: ", err)
+		log.Println("Error: ", err)
 	}
 
 	stats.end = time.Now()
@@ -184,7 +183,7 @@ func deleteLocalFilesNotInS3(listObjectResponses []*s3.ListObjectsV2Output, conf
 	walkerFn := func(path string, info os.FileInfo, err error) error {
 		// Don't do anything if there was any error during walking the file tree
 		if err != nil {
-			fmt.Printf("\nError walking the file tree: \"%s\". Error: %v\n", path, err)
+			log.Printf("\nError walking the file tree: \"%s\". Error: %v\n", path, err)
 			return nil
 		}
 		if info.Mode().IsDir() {
@@ -194,15 +193,26 @@ func deleteLocalFilesNotInS3(listObjectResponses []*s3.ListObjectsV2Output, conf
 
 		fileInS3 := findInS3(path)
 		if fileInS3 == nil {
-			// file NOT in S3 but is in local file system -- DELETE from local file system
-			if debug {
-				fmt.Printf("\n\nFile '%s' removed from S3 so deleting it from local file system\n\n", path)
-			}
-			error := os.Remove(path)
-			if error == nil {
-				recordFileDeletionFromLocal(path, config)
-			} else {
-				fmt.Printf("\nError deleting file: \"%s\". Error: %v\n", path, error)
+			// file NOT in S3 but is in local file system
+
+			// This may be due to following situations:
+			// 1. File was deleted from S3 (i.e., the file was originally downloaded from S3 and now it does not exist in S3)
+			//		-- Delete the file from local file system in this case
+			// 2. The file was created locally and
+			//		2.1 The file mount is "writeable"
+			//			-- DO NOT delete the file from local file system in this case
+			//		2.2 The file mount is NOT "writeable"
+			//			-- Delete the file from local file system in this case
+			if !config.writeable || synchronizerState.IsFileDownloadedFromS3(path, config) {
+				if debug {
+					log.Printf("\n\nFile '%s' removed from S3 so deleting it from local file system\n\n", path)
+				}
+				error := os.Remove(path)
+				if error == nil {
+					synchronizerState.RecordFileDeletionFromLocal(path, config)
+				} else {
+					log.Printf("\nError deleting file: \"%s\". Error: %v\n", path, error)
+				}
 			}
 		}
 		return nil
@@ -283,7 +293,10 @@ func downloadAllObjects(
 		}
 
 		// Ensure the directory exists
-		os.MkdirAll(filepath.Dir(destFilePath), 0775)
+		destDirPath := filepath.Dir(destFilePath)
+		if _, err := os.Stat(destDirPath); os.IsNotExist(err) {
+			os.MkdirAll(destDirPath, os.ModePerm)
+		}
 
 		shouldDownload := true
 
@@ -292,7 +305,7 @@ func downloadAllObjects(
 		// The correct way to check if file exists is using !os.IsNotExist(fileError)
 		if _, fileError := os.Stat(destFilePath); !os.IsNotExist(fileError) {
 			// If the file has not changed in S3 since last download then skip downloading it
-			shouldDownload = hasFileChangedInS3(item)
+			shouldDownload = synchronizerState.HasFileChangedInS3(item)
 			if !shouldDownload && debug {
 				log.Printf("'%v' already exists and is up-to-date. Skip downloading '%v'\n", destFilePath, *item.Key)
 			}
@@ -334,7 +347,7 @@ func downloadAllObjects(
 		stats.numberOfRetrievedFiles++
 		stats.totalRetrievedBytes = stats.totalRetrievedBytes + numBytes
 
-		recordFileDownloadToLocal(item)
+		synchronizerState.RecordFileDownloadToLocal(item)
 	}
 	return stats
 }

@@ -18,7 +18,7 @@ const Service = require('@aws-ee/base-services-container/lib/service');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const { buildTaggingXml } = require('../helpers/aws-tags');
-const { isInternalResearcher, isAdmin } = require('../helpers/is-role');
+const { isInternalResearcher, isAdmin, isSystem } = require('../helpers/is-role');
 const createSchema = require('../schema/create-study');
 const updateSchema = require('../schema/update-study');
 
@@ -89,6 +89,9 @@ class StudyService extends Service {
     if (!(isInternalResearcher(requestContext) || isAdmin(requestContext))) {
       throw this.boom.forbidden('Only admin and internal researcher are authorized to create studies. ');
     }
+    if (rawData.category === 'Open Data' && !isSystem(requestContext)) {
+      throw this.boom.badRequest('Only the system can create Open Data studies.', true);
+    }
     const [validationService, projectService] = await this.service(['jsonSchemaValidationService', 'projectService']);
 
     // Validate input
@@ -105,13 +108,17 @@ class StudyService extends Service {
     if (rawData.category !== 'Open Data') {
       const projectId = rawData.projectId;
       if (!projectId) {
-        throw this.boom.badRequest('Missing required projectId');
+        throw this.boom.badRequest('Missing required projectId', true);
       }
       // Verify user has access to the project the new study will be associated with
       if (!(await projectService.verifyUserProjectAssociation(by, projectId))) {
-        throw this.boom.forbidden(`Not authorized to add study related to project "${projectId}"`);
+        throw this.boom.forbidden(`Not authorized to add study related to project "${projectId}"`, true);
       }
       await projectService.mustFind(requestContext, { id: rawData.projectId });
+      // Verify user is not trying to create resources for non-Open data studies
+      if (!_.isEmpty(rawData.resources)) {
+        throw this.boom.badRequest('Resources can only be assigned to Open Data study category', true);
+      }
     }
 
     const id = rawData.id;
@@ -163,6 +170,14 @@ class StudyService extends Service {
 
   async update(requestContext, rawData) {
     const [validationService] = await this.service(['jsonSchemaValidationService']);
+
+    if (rawData.category === 'Open Data' && !isSystem(requestContext)) {
+      throw this.boom.badRequest('Only the system can update Open Data studies.', true);
+    }
+
+    if (rawData.category !== 'Open Data' && !_.isEmpty(rawData.resources)) {
+      throw this.boom.badRequest('Resources can only be updated for Open Data study category', true);
+    }
 
     // Validate input
     await validationService.ensureValid(rawData, updateSchema);
@@ -236,6 +251,13 @@ class StudyService extends Service {
     return result;
   }
 
+  getAllowedStudies(permissions = []) {
+    const adminAccess = permissions.adminAccess || [];
+    const readonlyAccess = permissions.readonlyAccess || [];
+    const readwriteAccess = permissions.readwriteAccess || [];
+    return _.uniq([...adminAccess, ...readonlyAccess, ...readwriteAccess]);
+  }
+
   async list(requestContext, category, fields = []) {
     // Get studies allowed for user
     let result = [];
@@ -255,7 +277,7 @@ class StudyService extends Service {
         const permissions = await this.studyPermissionService.getRequestorPermissions(requestContext);
         if (permissions) {
           // We can't give duplicate keys to the batch get, so ensure that allowedStudies is unique
-          const allowedStudies = _.uniq(permissions.adminAccess.concat(permissions.readonlyAccess));
+          const allowedStudies = this.getAllowedStudies(permissions);
           if (allowedStudies.length) {
             const rawResult = await this._getter()
               .keys(allowedStudies.map(studyId => ({ id: studyId })))

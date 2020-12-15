@@ -4,8 +4,6 @@ A platform that provides researchers with one-click access to collaborative work
 
 Platform provides one-click option to admins for easier creation (vending) of new AWS accounts specific to researchers' teams for easier governance.
 
-For more information about various AWS accounts see [aws-accounts-readme.md](main/documentation/aws-accounts-readme.md).
-
 The solution contains the following components:
 
 - solution/infrastructure/
@@ -27,11 +25,13 @@ The solution also includes a Continuous Integration/Continuous Delivery feature:
 
 Before you can build this project, please install the following prerequisites.
 
-- **Node.Js:** [Node.js v12.x](https://nodejs.org/en/) or later is required. 
-- **PNPM:** Install [pnpm](https://pnpm.js.org/en/) as follows 
+- **Node.Js:** [Node.js v12.x](https://nodejs.org/en/) or later is required.
+- **PNPM:** Install [pnpm](https://pnpm.js.org/en/) as follows
+
 ```bash
 $ npm install -g pnpm
 ```
+
 - **Go:** You also need to install [Go](https://golang.org/doc/install). `Go` is used for creating a multipart S3 downloader tool that is used in AWS Service Catalog EC2 Windows based research environments.
 
 To create the initial settings files, take a look at the example.yml settings file in main/config/settings/example.yml and create your own copy.
