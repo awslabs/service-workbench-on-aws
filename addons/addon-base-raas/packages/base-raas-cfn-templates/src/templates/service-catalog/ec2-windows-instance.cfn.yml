@@ -81,7 +81,7 @@ Resources:
         - !If
           - IamPolicyEmpty
           - !Ref "AWS::NoValue"
-          - PolicyName: !Join ["-", [Ref: Namespace, "s3-data-access-policy"]]
+          - PolicyName: !Join ["-", [Ref: Namespace, "s3-studydata-policy"]]
             PolicyDocument: !Ref IamPolicyDocument
         - PolicyName:
             !Join ["-", [Ref: Namespace, "s3-bootstrap-script-policy"]]
@@ -264,15 +264,29 @@ Resources:
 
           diskpart /s diskpart.txt
 
+          # Create script to download the s3 synchronizer
+          $downloadS3Synchronizer = @'
           # Download s3-synchronizer Windows executable
           $uri = [System.Uri]"${EnvironmentInstanceFiles}"
           $key = "$($uri.AbsolutePath.Substring(1))/bin/s3-synchronizer-windows-amd64.exe"
           Read-S3Object -BucketName $uri.Host -Key $key -File s3-synchronizer.exe
+          '@
+          Set-Content -Path C:\workdir\download-s3-synchronizer.ps1 -Value $downloadS3Synchronizer
 
+          # Source the script to download the s3 synchronizer
+          ."C:\workdir\download-s3-synchronizer.ps1"
+
+          # Create script to start the s3 synchronizer process
+          $startS3SyncScriptContent = @'
           $defaultS3Mounts = '${S3Mounts}' | ConvertTo-Json
 
           $arguments = "-defaultS3Mounts=$defaultS3Mounts -destination=d:\ -region=${AWS::Region} -recurringDownloads=${RecurringDownloads} -downloadInterval=${DownloadInterval} -stopRecurringDownloadsAfter=${StopRecurringDownloadsAfter}"
           Start-Process -NoNewWindow -RedirectStandardOutput s3-synchronizer-stdout.txt -RedirectStandardError s3-synchronizer-stderr.txt -FilePath "c:\workdir\s3-synchronizer.exe" -ArgumentList $arguments  -WorkingDirectory "d:\"
+          '@
+          Set-Content -Path c:\workdir\start-s3-synchronizer.ps1 -Value $startS3SyncScriptContent
+
+          # Source the script to start the s3 synchronizer process
+          ."c:\workdir\start-s3-synchronizer.ps1"
 
           cfn-signal.exe -e $lastexitcode --stack ${AWS::StackId} --resource EC2Instance --region ${AWS::Region}
           </powershell>

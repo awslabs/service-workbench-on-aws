@@ -40,14 +40,30 @@ Once you RDP, the selected studies will show up as directories on the EC2 Window
 These study directories will contain files uploaded to the corresponding study.
 
 For EC2 Windows, the selected study data is copied to the attached EBS volumes as opposed to being FUSE mounted in case of other workspace types.
-Due to this, please be aware of the following limitations
+If the selected study is writeable, the local changes are synchronized back to S3 as soon as possible.
 
-LIMITATIONs:
-- Currently, the EC2 Windows only supports Read-Only studies. For EC2 Windows, the study data is periodically synchronized from S3 back to local EBS volumes.
-- Any changes made under the locally mapped study directory and it's subdirectories will be **LOST** after the periodic sync. No local changes will persist.
+It uses a custom S3 Synchronizer tool (i.e., `c:\workdir\s3-synchronizer.exe`) tool to sync changes from S3 to local EBS volumes and vice versa.
+   
+Please be aware of the following limitations specific to EC2 Windows Workspace Types:
+
+**LIMITATIONS:**
+
+**S3 to Local Sync Limitations:**
+- If the selected study is Read-Only, any changes made under the locally mapped study directory and it's subdirectories will be **LOST** after the periodic sync. No local changes will persist.
 - There will be delay of at least the duration equal to the periodic download interval plus the download time for the S3 changes to reflect on local EBS volumes.
 - Deleting a subdirectory in studies S3 location will leave the corresponding subdirectory as empty directory on local EBS volume. 
 
+**Local to S3 Sync Limitations:**
+- Will not upload changes from local to S3 if there is no change in file size (bytes)
+- Will not upload changes from local to S3 if the file is empty (i.e., zero bytes)
+- **Conflict resolution is undefined:** i.e., if a file is modified in S3 and locally at the same time, the behavior is undefined. Whichever change gets synchronized first may win.
+
+**S3 Synchronizer tool:**
+- The synchronizer is automatically started when the EC2 Windows instance is launched
+- You can check if S3 Synchronizer tool is running or not by looking for `s3-synchronizer.exe` in Windows Task Manager
+- **Stopping:** To stop the synchronizer, right click on the `s3-synchronizer.exe` in Windows Task Manager and select `End task`
+- **Starting:** To start the synchronizer, run the powershell script `c:\workdir\start-s3-synchronizer.ps1` (right click, select `Run with Powershell`).
+- **Troubleshooting:** View log files `c:\workdir\s3-synchronizer-stderr.txt` and `c:\workdir\s3-synchronizer-stdout.txt` 
 
 ### Connect to RStudio
 
