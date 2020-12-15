@@ -7,7 +7,7 @@ module.exports = {
       "deployment/deployment_stages",      
       {
         "Pre Deployment": [
-          "deployment/pre_deployment/predeployment",
+          "deployment/pre_deployment/pre_deployment",
 	  "deployment/pre_deployment/accounts",
           "deployment/pre_deployment/prereq_commands",
           "deployment/pre_deployment/deployment_instance",
