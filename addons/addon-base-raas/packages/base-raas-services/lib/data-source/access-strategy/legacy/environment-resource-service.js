@@ -23,6 +23,42 @@ const { isOpenData } = require('../../../study/helpers/entities/study-methods');
 const settingKeys = {
   studyDataBucketName: 'studyDataBucketName',
   studyDataKmsKeyArn: 'studyDataKmsKeyArn',
+  studyDataKmsPolicyWorkspaceSid: 'studyDataKmsPolicyWorkspaceSid',
+};
+
+const listStatementParamsFn = (bucket, prefix) => {
+  return {
+    statementId: `List:${prefix}`,
+    resource: `arn:aws:s3:::${bucket}`,
+    actions: ['s3:ListBucket'],
+    condition: {
+      StringLike: {
+        's3:prefix': [`${prefix}*`],
+      },
+    },
+  };
+};
+
+const getStatementParamsFn = (bucket, prefix) => {
+  return {
+    statementId: `Get:${prefix}`,
+    resource: [`arn:aws:s3:::${bucket}/${prefix}*`],
+    actions: ['s3:GetObject'],
+  };
+};
+
+const putStatementParamsFn = (bucket, prefix) => {
+  return {
+    statementId: `Put:${prefix}`,
+    resource: [`arn:aws:s3:::${bucket}/${prefix}*`],
+    actions: [
+      's3:AbortMultipartUpload',
+      's3:ListMultipartUploadParts',
+      's3:PutObject',
+      's3:PutObjectAcl',
+      's3:DeleteObject',
+    ],
+  };
 };
 
 /**
@@ -222,26 +258,36 @@ class EnvironmentResourceService extends Service {
     // studies is an array of StudyEntity. IMPORTANT: each element in the array is the standard StudyEntity, however,
     // there is one additional attributes added to each of the StudyEntity. This additional attribute is called
     // 'envPermission', it is an object with the following shape: { read: true/false, write: true/false }
+    const { s3BucketName, s3Policy } = await this.getS3BucketAndPolicy();
+    const internalStudies = await this.getInternalStudies(studies, s3BucketName);
+    const filteredStudies = internalStudies.filter(
+      study => study.envPermission && (study.envPermission.read || study.envPermission.write),
+    );
 
-    const bucketName = this.settings.get(settingKeys.studyDataBucketName);
-
-    // TODO - legacy work
-    // Ensure that you only add the studies to the bucket policy if they are not already there.
-    // Same goes for the memberAccountId.
-    //
-    // The logic
-    // Most of this logic is similar to the one in EnvironmentMountService._updateResourcePolicies() method
-    // Here are the steps:
-    // - Take a look at EnvironmentMountService._updateResourcePolicies()
-    // - Load the bucket policy
-    // - Update the statements using a similar logic to the one done the EnvironmentMountService._updateResourcePolicies()
-    // - Keep in mind that you have memberAccountId handy, so there is no need for workspaceRoleArn
-    // - Do not add the exact same principal to the exact same statement if it is already there
-    // - No need to create any lock here, it is already taken care of in the allocateStudyResources() method
-    //
-    // NOTE: unlike EnvironmentMountService._updateResourcePolicies(), we don't update the kms key policy in this
-    // method, instead, the update of the kms key policy is done in a addToKmsKeyPolicy.  Don't call addToKmsKeyPolicy
-    // from this method.
+    // construct the revised statements depending on the type of permissions
+    const revisedStatements = await Promise.all(
+      filteredStudies.map(async study => {
+        const statementParamFunctions = [];
+        if (study.envPermission.read) {
+          statementParamFunctions.push(getStatementParamsFn);
+        }
+        if (study.envPermission.write) {
+          statementParamFunctions.push(putStatementParamsFn);
+        }
+        if (study.envPermission.read || study.envPermission.write) {
+          statementParamFunctions.push(listStatementParamsFn);
+        }
+        const revisedStatementsPerStudy = await this.getRevisedS3Statements(
+          s3Policy,
+          study,
+          s3BucketName,
+          statementParamFunctions,
+          oldStatement => this.addAccountToStatement(oldStatement, memberAccountId),
+        );
+        return revisedStatementsPerStudy;
+      }),
+    );
+    await this.updateS3BucketPolicy(s3BucketName, s3Policy, revisedStatements);
   }
 
   // @private
@@ -249,56 +295,38 @@ class EnvironmentResourceService extends Service {
     // studies is an array of StudyEntity. IMPORTANT: each element in the array is the standard StudyEntity, however,
     // there is one additional attributes added to each of the StudyEntity. This additional attribute is called
     // 'envPermission', it is an object with the following shape: { read: true/false, write: true/false }
+    const { s3BucketName, s3Policy } = await this.getS3BucketAndPolicy();
+    const filteredStudies = await this.getInternalStudies(studies, s3BucketName);
 
-    const bucketName = this.settings.get(settingKeys.studyDataBucketName);
-
-    // TODO - legacy work
-    // The logic
-    //
-    // Most of this logic is similar to the one in EnvironmentMountService._updateResourcePolicies() method
-    // Here are the steps:
-    // - Take a look at EnvironmentMountService._updateResourcePolicies()
-    // - Load the bucket policy
-    // - Remove the studies but only if the only principal left is the memberAccountId provided,
-    //   otherwise just remove the memberAccountId from the statements that include the studies provided.
-    // - No need to create any lock here, it is already taken care of in the deallocateStudyResources() method
-    //
-    // NOTE: unlike EnvironmentMountService._updateResourcePolicies(), we don't update the kms key policy in this
-    // method, instead, the update of the kms key policy is done in a addToKmsKeyPolicy.  Don't call addToKmsKeyPolicy
-    // from this method.
+    // construct the revised statements for all types of statements and remove the memberAccountId
+    const revisedStatements = await Promise.all(
+      filteredStudies.map(async study => {
+        const statementParamFunctions = [getStatementParamsFn, putStatementParamsFn, listStatementParamsFn];
+        const revisedStatementsPerStudy = await this.getRevisedS3Statements(
+          s3Policy,
+          study,
+          s3BucketName,
+          statementParamFunctions,
+          oldStatement => this.removeAccountFromStatement(oldStatement, memberAccountId),
+        );
+        return revisedStatementsPerStudy;
+      }),
+    );
+    await this.updateS3BucketPolicy(s3BucketName, s3Policy, revisedStatements);
   }
 
   // @private
   async addToKmsKeyPolicy(requestContext, memberAccountId) {
-    const studyDataKmsKeyArn = await this.getKmsKeyIdArn();
-
-    // TODO - legacy work
-    // Ensure that you only add the memberAccountId to kms key policy, if it is not already here.
-    //
-    // The logic
-    // Most of this logic is similar to the last part of EnvironmentMountService._updateResourcePolicies() method
-    // Here are the steps:
-    // - Take a look at the last part for EnvironmentMountService._updateResourcePolicies()
-    // - Load the kms key policy
-    // - Update the statements using a similar logic to the one done the EnvironmentMountService._updateResourcePolicies()
-    // - Keep in mind that you have memberAccountId handy
-    // - Do not add the exact same principal to the exact same statement if it is already there
-    // - No need to create any lock here, it is already taken care of in the allocateStudyResources() method
+    await this.updateKMSPolicy(environmentStatement =>
+      this.addAccountToStatement(environmentStatement, memberAccountId),
+    );
   }
 
   // @private
   async removeFromKmsKeyPolicy(requestContext, memberAccountId) {
-    const studyDataKmsKeyArn = await this.getKmsKeyIdArn();
-
-    // TODO - legacy work
-    //
-    // The logic
-    // - Take a look at the last part for EnvironmentMountService.removeRoleArnFromLocalResourcePolicies()
-    // - Load the kms key policy
-    // - Remove the memberAccountId if it is in the policy. Don't worry about if other workspaces in the same
-    //   member account are still using the kms key. This is because this method is only called if we are sure
-    //   that there are no more workspaces in the member account (this was done using the usage service).
-    // - No need to create any lock here, it is already taken care of in the deallocateStudyResources() method
+    await this.updateKMSPolicy(environmentStatement =>
+      this.removeAccountFromStatement(environmentStatement, memberAccountId),
+    );
   }
 
   // @private
@@ -308,8 +336,7 @@ class EnvironmentResourceService extends Service {
 
     // Get KMS Key ARN from KMS Alias ARN
     // The "Decrypt","DescribeKey","GenerateDataKey" etc require KMS KEY ARN and not ALIAS ARN
-    const aws = await this.service('aws');
-    const kmsClient = new aws.sdk.KMS();
+    const kmsClient = await this.getKMS();
     const data = await kmsClient
       .describeKey({
         KeyId: kmsAliasArn,
@@ -325,6 +352,190 @@ class EnvironmentResourceService extends Service {
     // If the main call also needs to fail in case writing to any audit destination fails then switch to "write" method as follows
     // return auditWriterService.write(requestContext, auditEvent);
     return auditWriterService.writeAndForget(requestContext, auditEvent);
+  }
+
+  // @private
+  async getS3BucketAndPolicy() {
+    const s3BucketName = this.settings.get(settingKeys.studyDataBucketName);
+    const s3Client = await this.getS3();
+    const s3Policy = JSON.parse((await s3Client.getBucketPolicy({ Bucket: s3BucketName }).promise()).Policy);
+    if (!s3Policy.Statement) {
+      s3Policy.Statement = [];
+    }
+    return { s3BucketName, s3Policy };
+  }
+
+  // @private
+  async getInternalStudies(studies, s3BucketName) {
+    // Work on studies that satisfy the following filter:
+    // 1. Studies should not be open data since we don't control the bucket policy of those buckets
+    // 2. Studies belong to the bucket specified by settings studyDataBucketName
+    // 3. Studies are assumed to have only single S3 arn. If multiple are provided then only the first arn is used
+    const filteredStudies = studies
+      .filter(study => !isOpenData(study) && study.resources)
+      .map(study => {
+        const { bucket, prefix } = parseS3Arn(study.resources[0].arn) || {};
+        study.prefix = prefix;
+        study.bucket = bucket;
+        return study;
+      })
+      .filter(study => study.prefix && study.bucket === s3BucketName);
+    return filteredStudies;
+  }
+
+  // @private
+  async addAccountToStatement(oldStatement, memberAccountId) {
+    const principal = await this.getRootArnForAccount(memberAccountId);
+    const statement = await this.addEmptyPrincipalIfNotPresent(oldStatement);
+    if (Array.isArray(statement.Principal.AWS)) {
+      // add the principal if it doesn't exist already
+      if (!statement.Principal.AWS.includes(principal)) {
+        statement.Principal.AWS.push(principal);
+      }
+    } else if (statement.Principal.AWS !== principal) {
+      statement.Principal.AWS = [statement.Principal.AWS, principal];
+    }
+    return statement;
+  }
+
+  // @private
+  async removeAccountFromStatement(oldStatement, memberAccountId) {
+    const principal = await this.getRootArnForAccount(memberAccountId);
+    const statement = await this.addEmptyPrincipalIfNotPresent(oldStatement);
+    if (Array.isArray(statement.Principal.AWS)) {
+      statement.Principal.AWS = statement.Principal.AWS.filter(oldPrincipal => oldPrincipal !== principal);
+    } else if (statement.Principal.AWS === principal) {
+      statement.Principal.AWS = [];
+    }
+    return statement;
+  }
+
+  // @private
+  async getRootArnForAccount(memberAccountId) {
+    return `arn:aws:iam::${memberAccountId}:root`;
+  }
+
+  // @private
+  async addEmptyPrincipalIfNotPresent(statement) {
+    if (!statement.Principal) {
+      statement.Principal = {};
+    }
+    if (!statement.Principal.AWS) {
+      statement.Principal.AWS = [];
+    }
+    return statement;
+  }
+
+  // @private
+  async getRevisedS3Statements(s3Policy, study, bucket, statementParamFunctions, updateStatementFn) {
+    const revisedStatementsPerStudy = await Promise.all(
+      statementParamFunctions.map(async statementParameterFn => {
+        const statementParams = statementParameterFn(bucket, study.prefix);
+        let oldStatement = s3Policy.Statement.find(statement => statement.Sid === statementParams.statementId);
+        if (!oldStatement) {
+          oldStatement = await this.createAllowStatement(
+            statementParams.statementId,
+            statementParams.actions,
+            statementParams.resource,
+            statementParams.condition,
+          );
+        }
+        const newStatement = await updateStatementFn(oldStatement);
+        return newStatement;
+      }),
+    );
+    return revisedStatementsPerStudy;
+  }
+
+  // @private
+  async createAllowStatement(statementId, actions, resource, condition) {
+    const baseAllowStatement = {
+      Sid: statementId,
+      Effect: 'Allow',
+      Principal: { AWS: [] },
+      Action: actions,
+      Resource: resource,
+    };
+    if (condition) {
+      baseAllowStatement.Condition = condition;
+    }
+    return baseAllowStatement;
+  }
+
+  // @private
+  async updateS3BucketPolicy(s3BucketName, s3Policy, revisedStatements) {
+    const s3Client = await this.getS3();
+
+    // remove all the old statements from s3Policy that have changed
+    const revisedStatementIds = revisedStatements.flat().map(statement => statement.Sid);
+    s3Policy.Statement = s3Policy.Statement.filter(statement => !revisedStatementIds.includes(statement.Sid));
+
+    // add all the revised statements to the s3Policy
+    revisedStatements.flat().forEach(statement => {
+      // Only add updated statement if it contains principals (otherwise leave it out)
+      if (statement.Principal.AWS.length > 0) {
+        s3Policy.Statement.push(statement);
+      }
+    });
+
+    // Update S3 bucket policy
+    s3Client.putBucketPolicy({ Bucket: s3BucketName, Policy: JSON.stringify(s3Policy) }).promise();
+  }
+
+  // @private
+  async updateKMSPolicy(updateStatementFn) {
+    const kmsClient = await this.getKMS();
+    const kmsKeyAlias = this.settings.get(settingKeys.studyDataKmsKeyArn);
+    const keyId = (await kmsClient.describeKey({ KeyId: kmsKeyAlias }).promise()).KeyMetadata.KeyId;
+
+    // Get existing policy
+    const kmsPolicy = JSON.parse(
+      (await kmsClient.getKeyPolicy({ KeyId: keyId, PolicyName: 'default' }).promise()).Policy,
+    );
+
+    // Get statement
+    const sid = this.settings.get(settingKeys.studyDataKmsPolicyWorkspaceSid);
+    if (!kmsPolicy.Statement) {
+      kmsPolicy.Statement = [];
+    }
+    let environmentStatement = kmsPolicy.Statement.find(statement => statement.Sid === sid);
+    if (!environmentStatement) {
+      // Create new statement if it doesn't already exist
+      environmentStatement = {
+        Sid: sid,
+        Effect: 'Allow',
+        Principal: { AWS: [] },
+        Action: ['kms:Encrypt', 'kms:Decrypt', 'kms:ReEncrypt*', 'kms:GenerateDataKey*', 'kms:DescribeKey'],
+        Resource: '*', // Only refers to this key since it's a resource policy
+      };
+    }
+
+    // Update policy
+    environmentStatement = await updateStatementFn(environmentStatement);
+
+    // remove the old statement from KMS policy
+    kmsPolicy.Statement = kmsPolicy.Statement.filter(statement => statement.Sid !== sid);
+
+    // add the revised statement if it contains principals (otherwise leave it out)
+    if (environmentStatement.Principal.AWS.length > 0) {
+      kmsPolicy.Statement.push(environmentStatement);
+    }
+    await kmsClient.putKeyPolicy({ KeyId: keyId, PolicyName: 'default', Policy: JSON.stringify(kmsPolicy) }).promise();
+  }
+
+  async getS3() {
+    const aws = await this.getAWS();
+    return new aws.sdk.S3();
+  }
+
+  async getKMS() {
+    const aws = await this.getAWS();
+    return new aws.sdk.KMS();
+  }
+
+  async getAWS() {
+    const aws = await this.service('aws');
+    return aws;
   }
 }
 
