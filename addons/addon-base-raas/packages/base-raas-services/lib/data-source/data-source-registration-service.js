@@ -14,9 +14,28 @@
  */
 
 const _ = require('lodash');
+const crypto = require('crypto');
 const Service = require('@aws-ee/base-services-container/lib/service');
 
+const { CfnTemplate } = require('../helpers/cfn-template');
+
 const extensionPoint = 'study-access-strategy';
+
+const settingKeys = {
+  envBootstrapBucket: 'envBootstrapBucketName',
+};
+
+const getCfnConsoleUrl = accountTemplateInfo => {
+  // see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-create-stacks-quick-create-links.html
+  const { name, region, signedUrl } = accountTemplateInfo;
+  const url = [
+    `https://console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/create/review/`,
+    `?templateURL=${encodeURIComponent(signedUrl)}`,
+    `&stackName=${name}`,
+  ].join('');
+
+  return url;
+};
 
 class DataSourceRegistrationService extends Service {
   constructor() {
@@ -28,6 +47,7 @@ class DataSourceRegistrationService extends Service {
       'studyService',
       'pluginRegistryService',
       'lockService',
+      's3Service',
     ]);
   }
 
@@ -88,9 +108,10 @@ class DataSourceRegistrationService extends Service {
   }
 
   async createAccountCfn(requestContext, accountId) {
-    const accountService = await this.service('dataSourceAccountService');
-
+    const [accountService, s3Service] = await this.service(['dataSourceAccountService', 's3Service']);
     const accountEntity = await accountService.mustFind(requestContext, { id: accountId });
+    const { id, mainRegion, stack, stackCreated } = accountEntity;
+    const cfnTemplate = new CfnTemplate({ accountId: id, region: mainRegion });
 
     // We give a chance to the plugins to participate in the logic of create the account cfn. This helps us have different
     // study access strategies
@@ -100,16 +121,52 @@ class DataSourceRegistrationService extends Service {
         requestContext,
         container: this.container,
         accountEntity,
+        cfnTemplate,
       },
     });
+
+    // Prepare the account template information. The id of the template is actually the hash of the content
+    // of the template
+    const accountTemplateInfo = {
+      name: stack,
+      region: mainRegion,
+      accountId: id,
+      created: stackCreated,
+      template: result.cfnTemplate.toJson(),
+    };
+    const templateStr = JSON.stringify(accountTemplateInfo.template);
+
+    // The id of the template is actually the hash of the of the content of the template
+    const hash = crypto.createHash('sha256');
+    hash.update(templateStr);
+    accountTemplateInfo.id = hash.digest('hex');
+
+    // Upload to S3
+    const bucket = this.settings.get(settingKeys.envBootstrapBucket);
+    const key = `data-sources/acct-${id}/cfn/region/${mainRegion}/${accountTemplateInfo.id}.json`;
+    await s3Service.api
+      .putObject({
+        Body: templateStr,
+        Bucket: bucket,
+        Key: key,
+      })
+      .promise();
+
+    // Sign the url
+    const request = { files: [{ key, bucket }], expireSeconds: 604800 /* seven days */ };
+    const urls = await s3Service.sign(request);
+    const signedUrl = urls[0].signedUrl;
+
+    accountTemplateInfo.signedUrl = signedUrl;
+    accountTemplateInfo.cfnConsoleUrl = getCfnConsoleUrl(accountTemplateInfo);
 
     // Write audit event
     await this.audit(requestContext, {
       action: 'create-account-cfn',
-      body: { accountEntity: result.accountEntity, accountTemplateInfo: result.accountTemplateInfo },
+      body: { accountEntity: result.accountEntity, accountTemplateInfo },
     });
 
-    return result.accountTemplateInfo;
+    return accountTemplateInfo;
   }
 
   async audit(requestContext, auditEvent) {
