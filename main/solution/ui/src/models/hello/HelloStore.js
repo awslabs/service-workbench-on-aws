@@ -25,7 +25,7 @@ import { Hello } from './Hello';
 // ==================================================================
 const HelloStore = BaseStore.named('HelloStore')
   .props({
-    hellos: types.array(Hello),
+    hellos: types.optional(types.array(Hello), []),
   })
   .actions(self => {
     // save the base implementation of cleanup

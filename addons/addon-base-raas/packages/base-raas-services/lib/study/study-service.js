@@ -285,14 +285,7 @@ class StudyService extends Service {
               .get();
 
             // Filter by category and inject requestor's access level
-            const studyAccessMap = {};
-            ['admin', 'readwrite', 'readonly'].forEach(level => {
-              const studiesWithPermission = permissions[`${level}Access`];
-              if (studiesWithPermission && studiesWithPermission.length > 0)
-                studiesWithPermission.forEach(studyId => {
-                  studyAccessMap[studyId] = level;
-                });
-            });
+            const studyAccessMap = this._getStudyAccessMap(permissions);
 
             result = rawResult
               .filter(study => study.category === category)
@@ -307,6 +300,22 @@ class StudyService extends Service {
 
     // Return result
     return result;
+  }
+
+  _getStudyAccessMap(permissions) {
+    const studyAccessMap = {};
+    _.forEach(['admin', 'readwrite', 'readonly'], level => {
+      const studiesWithPermission = permissions[`${level}Access`];
+      if (studiesWithPermission && studiesWithPermission.length > 0)
+        studiesWithPermission.forEach(studyId => {
+          if (studyAccessMap[studyId]) {
+            studyAccessMap[studyId].push(level);
+          } else {
+            studyAccessMap[studyId] = [level];
+          }
+        });
+    });
+    return studyAccessMap;
   }
 
   /**
