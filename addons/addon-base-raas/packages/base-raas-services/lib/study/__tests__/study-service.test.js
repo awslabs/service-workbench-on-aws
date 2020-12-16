@@ -644,4 +644,78 @@ describe('studyService', () => {
       expect(service.audit).toHaveBeenCalledWith({}, { action: 'delete-study', body: { id: 'projectId' } });
     });
   });
+
+  describe('list', () => {
+    it('should create Study Access Map according to user-study permissions: Admins and R/W', async () => {
+      // BUILD
+      const permissions = {
+        adminAccess: ['studyA'],
+        readwriteAccess: ['studyA'],
+      };
+      const expectedVal = { studyA: ['admin', 'readwrite'] };
+      jest.spyOn(service, '_getStudyAccessMap');
+
+      // OPERATE
+      const retVal = service._getStudyAccessMap(permissions);
+      // CHECK
+      expect(retVal).toEqual(expectedVal);
+    });
+
+    it('should create Study Access Map according to user-study permissions: Admins and R/O', async () => {
+      // BUILD
+      const permissions = {
+        adminAccess: ['studyA'],
+        readonlyAccess: ['studyA'],
+      };
+      const expectedVal = { studyA: ['admin', 'readonly'] };
+      jest.spyOn(service, '_getStudyAccessMap');
+
+      // OPERATE
+      const retVal = service._getStudyAccessMap(permissions);
+      // CHECK
+      expect(retVal).toEqual(expectedVal);
+    });
+
+    it('should create Study Access Map according to user-study permissions: Admins only', async () => {
+      // BUILD
+      const permissions = {
+        adminAccess: ['studyA', 'studyB'],
+      };
+      const expectedVal = { studyA: ['admin'], studyB: ['admin'] };
+      jest.spyOn(service, '_getStudyAccessMap');
+
+      // OPERATE
+      const retVal = service._getStudyAccessMap(permissions);
+      // CHECK
+      expect(retVal).toEqual(expectedVal);
+    });
+
+    it('should create Study Access Map according to user-study permissions: R/W only', async () => {
+      // BUILD
+      const permissions = {
+        readwriteAccess: ['studyA', 'studyB'],
+      };
+      const expectedVal = { studyA: ['readwrite'], studyB: ['readwrite'] };
+      jest.spyOn(service, '_getStudyAccessMap');
+
+      // OPERATE
+      const retVal = service._getStudyAccessMap(permissions);
+      // CHECK
+      expect(retVal).toEqual(expectedVal);
+    });
+
+    it('should create Study Access Map according to user-study permissions: R/O only', async () => {
+      // BUILD
+      const permissions = {
+        readonlyAccess: ['studyA', 'studyB'],
+      };
+      const expectedVal = { studyA: ['readonly'], studyB: ['readonly'] };
+      jest.spyOn(service, '_getStudyAccessMap');
+
+      // OPERATE
+      const retVal = service._getStudyAccessMap(permissions);
+      // CHECK
+      expect(retVal).toEqual(expectedVal);
+    });
+  });
 });
