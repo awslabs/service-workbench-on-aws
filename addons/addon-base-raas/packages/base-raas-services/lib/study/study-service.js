@@ -366,7 +366,8 @@ class StudyService extends Service {
 
     const [studyPermissionService] = await this.service(['studyPermissionService']);
 
-    return studyPermissionService.update(requestContext, studyEntity, updateRequest);
+    const studyPermissionsEntity = await studyPermissionService.update(requestContext, studyEntity, updateRequest);
+    return { ...studyEntity, permissions: studyPermissionsEntity };
   }
 
   async update(requestContext, rawData) {

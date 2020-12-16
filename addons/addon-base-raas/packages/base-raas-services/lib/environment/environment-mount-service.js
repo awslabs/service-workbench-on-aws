@@ -46,6 +46,13 @@ const parseS3Arn = arn => {
       };
 };
 
+/**
+ * DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED
+ * DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED
+ *
+ * This service is deprecated and should no longer used. It is only here because built-in workspaces services
+ * reference it. Once we remove the code for the built-in workspaces, we can remove this service.
+ */
 class EnvironmentMountService extends Service {
   constructor() {
     super();
@@ -64,25 +71,10 @@ class EnvironmentMountService extends Service {
     return this.getStudyAccessInfo(requestContext, studyIds);
   }
 
-  // async getStudyAccessInfo(requestContext, studyIds) {
-  //   const studyInfo = await this._getStudyInfo(requestContext, studyIds);
-  //   await this._validateStudyPermissions(requestContext, studyInfo);
-  //   const s3Mounts = this._prepareS3Mounts(studyInfo);
-  //   const iamPolicyDocument = await this._generateIamPolicyDoc(studyInfo);
-
-  //   return {
-  //     s3Mounts: JSON.stringify(
-  //       s3Mounts.map(({ id, bucket, prefix, writeable }) => ({ id, bucket, prefix, writeable })),
-  //     ),
-  //     iamPolicyDocument: JSON.stringify(iamPolicyDocument),
-  //     environmentInstanceFiles: this.settings.get(settingKeys.environmentInstanceFiles),
-  //     s3Prefixes: s3Mounts.filter(({ category }) => category !== 'Open Data').map(mount => mount.prefix),
-  //   };
-  // }
-
-  // TODO - this method needs to be completely redesigned. We shouldn't be calculating this information on the
+  // This method is only here to keep built-in workspace logic. We shouldn't be calculating this information on the
   // fly every time we need it, instead we should compute this information upfront when the env is being
-  // provisioned and store the information in the environmentSc entity
+  // provisioned and store the information in the environmentSc entity. In general, the whole environment mount service
+  // is no longer being used any where in the code, except for built-in workspaces.
   async getStudyAccessInfo(requestContext, studyIds) {
     const studyDataKmsKeyArn = this.settings.get(settingKeys.studyDataKmsKeyArn);
     const studies = await this.getStudies(requestContext, studyIds);

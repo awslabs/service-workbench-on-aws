@@ -258,6 +258,8 @@ class ApplicationRoleService extends Service {
       const resources = toCfnResources(appRoleEntity, swbMainAccountId);
       cfnTemplate.addResources(resources);
     });
+
+    return cfnTemplate;
   }
 
   async assertAuthorized(requestContext, { action, conditions }, ...args) {

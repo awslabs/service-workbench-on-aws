@@ -199,7 +199,7 @@ class EnvironmentResourceService extends Service {
     // Legacy access strategy is only applicable for studies that have resources attributes
     const studies = _.filter(allStudies, study => !_.isEmpty(study.resources));
 
-    if (_.isEmpty(studies)) return; // No legacy access to deal with
+    if (_.isEmpty(studies)) return policyDoc; // No legacy access to deal with
 
     // Since these studies are using the default bucket, we know that they are using the default bucket kms arn.
     const kmsArn = await this.getKmsKeyIdArn();
@@ -210,13 +210,15 @@ class EnvironmentResourceService extends Service {
       const { resources, envPermission } = study;
       policyDoc.addStudy({ bucket: bucketName, kmsArn, resources, permission: envPermission });
     });
+
+    return policyDoc;
   }
 
   async provideStudyMount(requestContext, { studies: allStudies, s3Mounts }) {
     // Legacy access strategy is only applicable for studies that have resources attributes
     const studies = _.filter(allStudies, study => !_.isEmpty(study.resources));
 
-    if (_.isEmpty(studies)) return; // No legacy access to deal with
+    if (_.isEmpty(studies)) return s3Mounts; // No legacy access to deal with
 
     // Since these studies are using the default bucket, we know that they are using the default bucket
     // kms arn.
@@ -251,6 +253,8 @@ class EnvironmentResourceService extends Service {
         addToMounts({ ...item, ...getBucketAndPrefix(resource), id: `${id}-${counter}` });
       });
     });
+
+    return s3Mounts;
   }
 
   // @private
