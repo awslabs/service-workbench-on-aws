@@ -242,38 +242,6 @@ class EnvironmentResourceService extends Service {
     return s3Mounts;
   }
 
-  // @private
-  // Returns a map. The key is the bucket name and the value is the bucket kmsArn. IMPORTANT: not all studies buckets
-  // will be included in the map. Only Buckets for studies with kmsScope = bucket are included.
-  async getBuckets(studies) {
-    const bucketService = await this.service('dataSourceBucketService');
-
-    // For certain calls, the system context is used instead of the request context
-    const systemContext = getSystemRequestContext();
-
-    // Lets determine the buckets that we need to load. 'bucketsToLoad' is a map, where the key is the bucket name
-    // and the value is am object of this shape { name: <bucket name>, accountId: <account id> }
-    const bucketsToLoad = {};
-    _.forEach(studies, study => {
-      if (study.kmsScope !== 'bucket') return;
-      bucketsToLoad[study.bucket] = { name: study.bucket, accountId: study.accountId };
-    });
-
-    // buckets is a map. The keys are the bucket names, the values are the bucket kmsArns
-    const buckets = {};
-
-    // We now need to load all the relevant buckets (in batches)
-    const bucketProcessor = async ({ name, accountId }) => {
-      const bucket = await bucketService.find(systemContext, { accountId, name });
-      buckets[name] = bucket.kmsArn;
-    };
-
-    // We want to process the loading of the buckets 10 at a time
-    await processInBatches(_.values(bucketsToLoad), 10, bucketProcessor);
-
-    return buckets;
-  }
-
   async audit(requestContext, auditEvent) {
     const auditWriterService = await this.service('auditWriterService');
     // Calling "writeAndForget" instead of "write" to allow main call to continue without waiting for audit logging
