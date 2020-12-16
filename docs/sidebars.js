@@ -1,11 +1,14 @@
 module.exports = {
   serviceWorkbenchSidebar: {
-    ServiceWorkBench: ["introduction"],
+    ServiceWorkBench: ["introduction"],    
     "Deployment Guide": [
+      "deployment/about_this_guide",
       "deployment/summary",
+      "deployment/deployment_stages",      
       {
         "Pre Deployment": [
-          "deployment/pre_deployment/accounts",
+          "deployment/pre_deployment/pre_deployment",
+	  "deployment/pre_deployment/accounts",
           "deployment/pre_deployment/prereq_commands",
           "deployment/pre_deployment/deployment_instance",
           "deployment/pre_deployment/source_code",
@@ -16,9 +19,9 @@ module.exports = {
       {
         "Post Deployment": [
           "deployment/post_deployment/index",
+          "deployment/post_deployment/account_structure",
           // "deployment/post_deployment/cost_explorer",
           "deployment/post_deployment/aws_accounts",
-          "deployment/post_deployment/prepare_master_account",
           "deployment/post_deployment/create_index_project",
           "deployment/post_deployment/create_admin_user",
           "deployment/post_deployment/import_service_catalog_products",
@@ -39,7 +42,8 @@ module.exports = {
       {
         Reference: [
           "deployment/reference/iam_role",
-          "deployment/reference/aws_services"
+          "deployment/reference/aws_services",
+          "deployment/reference/prepare_master_account"
         ],
       },
     ],
