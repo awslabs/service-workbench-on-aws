@@ -83,6 +83,9 @@ const createAdminContext = ({ uid = 'uid-admin' } = {}) => ({
 describe('EnvironmentResourceService', () => {
   let container;
   let service;
+  let lockService;
+  let fsRoleService;
+  let envService;
 
   beforeEach(async () => {
     // Initialize services container and register dependencies
@@ -106,6 +109,9 @@ describe('EnvironmentResourceService', () => {
     await container.initServices();
 
     service = await container.find('roles-only/environmentResourceService');
+    lockService = await container.find('lockService');
+    fsRoleService = await container.find('roles-only/filesystemRoleService');
+    envService = await container.find('environmentScService');
   });
 
   it('provides env role policy', async () => {
@@ -155,5 +161,52 @@ describe('EnvironmentResourceService', () => {
     await expect(
       service.provideStudyMount(requestContext, { studies, s3Mounts, environmentScEntity: env }),
     ).resolves.toStrictEqual(mount);
+  });
+
+  it('allocates study resources', async () => {
+    const requestContext = createAdminContext();
+    const study = createStudy();
+    const studies = [study];
+    const env = { studyRoles: { [study.id]: 'role-arn-1' } };
+    const memberAccountId = '1234';
+
+    lockService.tryWriteLockAndRun = jest.fn((_id, fn) => {
+      return fn();
+    });
+
+    fsRoleService.allocateRole = jest.fn(() => ({
+      arn: 'fs-arn-1',
+    }));
+
+    envService.updateStudyRoles = jest.fn();
+
+    await expect(
+      service.allocateStudyResources(requestContext, { studies, environmentScEntity: env, memberAccountId }),
+    ).resolves.toBeUndefined();
+
+    expect(fsRoleService.allocateRole).toHaveBeenCalledTimes(1);
+    expect(envService.updateStudyRoles).toHaveBeenCalledTimes(1);
+  });
+
+  it('de-allocates study resources', async () => {
+    const requestContext = createAdminContext();
+    const study = createStudy();
+    const studies = [study];
+    const env = { studyRoles: { [study.id]: 'role-arn-1' } };
+    const memberAccountId = '1234';
+
+    lockService.tryWriteLockAndRun = jest.fn((_id, fn) => {
+      return fn();
+    });
+
+    fsRoleService.deallocateRole = jest.fn();
+    envService.updateStudyRoles = jest.fn();
+
+    await expect(
+      service.deallocateStudyResources(requestContext, { studies, environmentScEntity: env, memberAccountId }),
+    ).resolves.toBeUndefined();
+
+    expect(fsRoleService.deallocateRole).toHaveBeenCalledTimes(1);
+    expect(envService.updateStudyRoles).toHaveBeenCalledTimes(1);
   });
 });
