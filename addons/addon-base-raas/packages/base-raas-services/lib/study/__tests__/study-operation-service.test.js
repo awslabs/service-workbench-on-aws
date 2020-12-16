@@ -258,5 +258,97 @@ describe('StudyOperationService', () => {
       expect(service.allocateResources).toHaveBeenCalledTimes(1);
       expect(envService.updateRolePolicy).toHaveBeenCalledWith(requestContext, { id: 'env-1', studyIds }, policy);
     });
+
+    it('calls allocateResources even if one env failed', async () => {
+      const requestContext = createResearcherContext();
+      const systemContext = getSystemRequestContext();
+      const studyId = '123';
+      const studyIds = [studyId];
+      const updateRequest = {
+        usersToAdd: [{ uid: 'uid-1', permissionLevel: 'readonly' }],
+        usersToRemove: [{ uid: 'uid-2', permissionLevel: 'readwrite' }],
+      };
+      const study = {
+        id: studyId,
+        permissions: {
+          readwriteUsers: ['uid-2'],
+        },
+      };
+
+      lockService.tryWriteLockAndRun = jest.fn((_id, fn) => {
+        return fn();
+      });
+
+      envService.getMemberAccount = jest.fn(() => {
+        return { accountId: '00001' };
+      });
+
+      envService.find = jest.fn((_rq, { id }) => {
+        if (id === 'env-1') throw new Error(`Can not connect to the database to get ${id}`);
+        return { id, studyIds };
+      });
+
+      envService.getActiveEnvsForUser = jest.fn(uid => {
+        if (uid !== 'uid-2') return [];
+        return [
+          { id: 'env-1', studyIds, createdBy: 'uid-2' },
+          { id: 'env-2', studyIds, createdBy: 'uid-2' },
+        ];
+      });
+
+      service.allocateResources = jest.fn();
+      studyService.updatePermissions = jest.fn(() => study);
+
+      await expect(service.updatePermissions(requestContext, studyId, updateRequest)).rejects.toThrow(
+        expect.objectContaining({ boom: true, safe: true, code: 'internalError' }),
+      );
+      expect(envService.find).toHaveBeenNthCalledWith(1, expect.objectContaining(systemContext), { id: 'env-1' });
+      expect(envService.find).toHaveBeenNthCalledWith(2, expect.objectContaining(systemContext), { id: 'env-2' });
+      // We only have 1 user in the usersToAdd with 2 envs, one of them failed, so the number of allocation should 1
+      expect(service.allocateResources).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls deallocateResources even if one env failed ', async () => {
+      const requestContext = createResearcherContext();
+      const systemContext = getSystemRequestContext();
+      const studyId = '123';
+      const studyIds = [studyId];
+      const updateRequest = {
+        usersToAdd: [{ uid: '1', permissionLevel: 'readonly' }],
+        usersToRemove: [{ uid: '2', permissionLevel: 'readwrite' }],
+      };
+
+      lockService.tryWriteLockAndRun = jest.fn((_id, fn) => {
+        return fn();
+      });
+
+      envService.getMemberAccount = jest.fn(() => {
+        return { accountId: '00001' };
+      });
+
+      envService.find = jest.fn((_rq, { id }) => {
+        if (id === 'env-1') throw new Error(`Can not connect to the database to get ${id}`);
+        return { id, studyIds };
+      });
+
+      envService.getActiveEnvsForUser = jest.fn(() => {
+        // We return 2 environments
+        return [
+          { id: 'env-1', studyIds },
+          { id: 'env-2', studyIds },
+        ];
+      });
+
+      service.deallocateResources = jest.fn();
+
+      await expect(service.updatePermissions(requestContext, studyId, updateRequest)).rejects.toThrow(
+        expect.objectContaining({ boom: true, safe: true, code: 'internalError' }),
+      );
+      expect(envService.find).toHaveBeenNthCalledWith(1, expect.objectContaining(systemContext), { id: 'env-1' });
+      expect(envService.find).toHaveBeenNthCalledWith(2, expect.objectContaining(systemContext), { id: 'env-2' });
+      // without errors, there should be 4 deallocation because we have 2 user with 2 env each. But because we always
+      // fail 'env-1' for both users, then the number of deallocation should be 2
+      expect(service.deallocateResources).toHaveBeenCalledTimes(2);
+    });
   });
 });
