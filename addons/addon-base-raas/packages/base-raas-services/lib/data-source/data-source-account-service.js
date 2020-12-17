@@ -219,7 +219,7 @@ class DataSourceAccountService extends Service {
     const removeStatus = status === 'reachable' || _.isEmpty(status);
     const removeMsg = _.isString(statusMsg) && _.isEmpty(statusMsg);
 
-    const item = { updatedBy: by };
+    const item = { updatedBy: by, statusAt: new Date().toISOString() };
 
     // Remember that we use the 'status' attribute in the index and we need to ensure
     // that when status == reachable that we remove the status attribute from the database

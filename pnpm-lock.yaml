@@ -2236,7 +2236,7 @@ importers:
       mobx: 5.15.4
       mobx-react: 6.2.2_mobx@5.15.4+react@16.13.1
       mobx-react-form: 2.0.8_mobx@5.15.4
-      mobx-state-tree: 3.15.0_mobx@5.15.4
+      mobx-state-tree: 3.17.3_mobx@5.15.4
       prop-types: 15.7.2
       react: 16.13.1
       react-avatar: 3.9.2_prop-types@15.7.2+react@16.13.1
@@ -2298,7 +2298,7 @@ importers:
       mobx: ^5.15.4
       mobx-react: ^6.1.7
       mobx-react-form: ^2.0.8
-      mobx-state-tree: ^3.15.0
+      mobx-state-tree: 3.17.3
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
       prop-types: ^15.7.2
@@ -10500,7 +10500,6 @@ packages:
     resolution:
       integrity: sha512-Ggd/Ktt7E7I8pxZRbGIs7vwqAPscSESMrCSkx2FtWeqmheJgCo2R74fTsZFCifr0VTPwqRpPv17+6b8Zp7th0Q==
   /fsevents/2.1.2:
-    dev: true
     engines:
       node: ^8.16.0 || ^10.6.0 || >=11.0.0
     optional: true
@@ -14372,6 +14371,14 @@ packages:
       mobx: '>=4.8.0 <5.0.0 || >=5.8.0 <6.0.0'
     resolution:
       integrity: sha512-65vvHPBWlz1gmZggbMAdg9ZSEVMGtyLj0drPDTYo/yMv8NVel52mNgBUKxDYWsNU9XMX4GM71wABhx7fD8s0Uw==
+  /mobx-state-tree/3.17.3_mobx@5.15.4:
+    dependencies:
+      mobx: 5.15.4
+    dev: false
+    peerDependencies:
+      mobx: '>=4.8.0 <5.0.0 || >=5.8.0 <6.0.0'
+    resolution:
+      integrity: sha512-ph4ee/Lh1qUJqHEGkfdWdBAUGdG+VAu7xZbYX/+4qem5hSSpdeZYAJOcN3bhtgEH8Wh/ZxRpQVOLM0aMFXfBSw==
   /mobx/5.15.4:
     dev: false
     resolution:
@@ -16853,6 +16860,7 @@ packages:
       prop-types: 15.7.2
       react: 16.13.1
       scheduler: 0.19.1
+    dev: false
     peerDependencies:
       react: ^16.13.1
     resolution:
@@ -17187,6 +17195,7 @@ packages:
       loose-envify: 1.4.0
       object-assign: 4.1.1
       prop-types: 15.7.2
+    dev: false
     engines:
       node: '>=0.10.0'
     resolution:
