@@ -42,6 +42,10 @@ class StudyPermissionsTable extends React.Component {
     });
   }
 
+  get study() {
+    return this.props.study;
+  }
+
   componentDidMount() {
     swallowError(this.permissionsStore.load());
     this.permissionsStore.startHeartbeat();
@@ -103,7 +107,8 @@ class StudyPermissionsTable extends React.Component {
 
   renderTable() {
     const studyPermissions = this.permissionsStore.studyPermissions;
-    const isEditable = studyPermissions.adminUsers.some(uid => uid === this.currUser.uid);
+    const isEditable =
+      studyPermissions.adminUsers.some(uid => uid === this.currUser.uid) && this.study.state.canChangePermission;
 
     return (
       <>

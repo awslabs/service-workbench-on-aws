@@ -15,9 +15,43 @@
 
 import { types, applySnapshot } from 'mobx-state-tree';
 
+import _ from 'lodash';
 import { StudyFilesStore } from './StudyFilesStore';
 import { StudyPermissionsStore } from './StudyPermissionsStore';
 import { categories } from './categories';
+
+// 'pending', 'error', 'default'
+// Note: When study is available, the status column is empty
+const states = {
+  pending: {
+    key: 'pending',
+    display: 'PENDING',
+    color: 'orange',
+    tip:
+      'This study is in the process of being configured. Once the configuration is completed by the Service Workbench admins, the study status will become ready.',
+    canChangePermission: false,
+    canSelect: false,
+    spinner: true,
+  },
+  error: {
+    key: 'error',
+    display: 'UNAVAILABLE',
+    color: 'red',
+    tip: 'There seems to be an issue accessing the study files. Please contact Service Workbench admins.',
+    canChangePermission: false,
+    canSelect: false,
+    spinner: false,
+  },
+  default: {
+    key: 'default',
+    display: 'AVAILABLE',
+    color: 'green',
+    tip: 'The study is available and ready for use.',
+    canChangePermission: true,
+    canSelect: true,
+    spinner: false,
+  },
+};
 
 // ==================================================================
 // Study
@@ -27,9 +61,11 @@ const Study = types
     id: types.identifier,
     rev: types.maybe(types.number),
     name: '',
+    status: types.maybe(types.string),
     category: '',
     projectId: '',
     accessType: types.maybe(types.string),
+    access: types.maybe(types.string),
     resources: types.optional(types.array(types.model({ arn: types.string })), []),
     description: types.maybeNull(types.string),
     uploadLocationEnabled: false,
@@ -71,6 +107,13 @@ const Study = types
 
     get isOrganizationStudy() {
       return self.category === categories.organization.name; // TODO the backend should really send an id and not a name
+    },
+
+    get state() {
+      if (self.status) {
+        return _.cloneDeep(states[self.status]);
+      }
+      return _.cloneDeep(states.default);
     },
   }));
 
