@@ -28,7 +28,7 @@ const states = {
     display: 'PENDING',
     color: 'orange',
     tip:
-      'This study is in the process of being configured. Once the configuration is completed by the Service Workbench admins, the study status will become ready.',
+      'This study is in the process of being configured. Once the configuration is completed by the Service Workbench admins, the study status will become available.',
     canChangePermission: false,
     canSelect: false,
     spinner: true,

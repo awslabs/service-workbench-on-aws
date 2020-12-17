@@ -78,7 +78,7 @@ class StudyRow extends React.Component {
       <Segment clearing padded raised className="mb3" {...attrs}>
         <div className="flex">
           <div className="mr2" {...onClickAttr}>
-            {isSelectable && <Checkbox checked={isSelected} style={{ marginTop: '9px' }} />}
+            {isSelectable && <Checkbox checked={isSelected} style={{ marginTop: '17px' }} />}
           </div>
           <div className="flex-auto mb1">
             {this.renderStatus(study.state)}
@@ -100,7 +100,7 @@ class StudyRow extends React.Component {
 
     return (
       <div>
-        <Header as="h3" color="blue" className={c('mt1', isSelectable ? 'cursor-pointer' : '')} {...onClickAttr}>
+        <Header as="h3" color="blue" className={c('mt2', isSelectable ? 'cursor-pointer' : '')} {...onClickAttr}>
           {study.uploadLocationEnabled && study.access === 'admin' && <UploadStudyFiles studyId={study.id} />}
           {study.name}
           <Header.Subheader>
