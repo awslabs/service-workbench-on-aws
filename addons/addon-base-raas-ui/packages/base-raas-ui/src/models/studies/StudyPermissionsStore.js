@@ -27,6 +27,7 @@ import { StudyPermissions } from './StudyPermissions';
 const StudyPermissionsStore = BaseStore.named('StudyPermissionsStore')
   .props({
     studyId: types.identifier,
+    studyAccessType: types.maybe(types.string),
     studyPermissions: types.maybe(StudyPermissions),
     tickPeriod: 300 * 1000, // 5 minutes
   })
@@ -40,7 +41,11 @@ const StudyPermissionsStore = BaseStore.named('StudyPermissionsStore')
         const newPermissions = await getStudyPermissions(self.studyId);
         self.runInAction(() => {
           if (!self.studyPermissions) {
-            self.studyPermissions = StudyPermissions.create({ id: self.studyId, ...newPermissions });
+            self.studyPermissions = StudyPermissions.create({
+              id: self.studyId,
+              ...newPermissions,
+              studyAccessType: self.studyAccessType,
+            });
           } else {
             self.studyPermissions.setStudyPermissions(newPermissions);
           }

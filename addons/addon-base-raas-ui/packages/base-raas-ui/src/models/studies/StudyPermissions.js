@@ -26,6 +26,7 @@ const StudyPermissions = types
     readonlyUsers: types.array(types.string),
     readwriteUsers: types.array(types.string),
     writeonlyUsers: types.array(types.string),
+    studyAccessType: types.maybe(types.string),
     createdAt: '',
     createdBy: '',
     updatedAt: '',
@@ -45,6 +46,9 @@ const StudyPermissions = types
   }))
   .views(_self => ({
     get userTypes() {
+      if (_self.studyAccessType === 'readonly') {
+        return ['admin', 'readonly'];
+      }
       return ['admin', 'readwrite', 'readonly'];
     },
   }));

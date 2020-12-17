@@ -29,7 +29,7 @@ const Study = types
     name: '',
     category: '',
     projectId: '',
-    access: types.maybe(types.string),
+    accessType: types.maybe(types.string),
     resources: types.optional(types.array(types.model({ arn: types.string })), []),
     description: types.maybeNull(types.string),
     uploadLocationEnabled: false,
@@ -56,7 +56,7 @@ const Study = types
 
     getPermissionsStore() {
       if (!self.permissionsStore) {
-        self.permissionsStore = StudyPermissionsStore.create({ studyId: self.id });
+        self.permissionsStore = StudyPermissionsStore.create({ studyId: self.id, studyAccessType: self.accessType });
       }
       return self.permissionsStore;
     },
