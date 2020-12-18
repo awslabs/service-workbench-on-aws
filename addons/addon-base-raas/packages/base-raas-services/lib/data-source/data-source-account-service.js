@@ -282,6 +282,7 @@ class DataSourceAccountService extends Service {
    * @param {*} requestContext
    * @param {*} accountEntity
    */
+  // eslint-disable-next-line no-unused-vars
   async queryStack(requestContext, accountEntity) {
     // TODO
   }
