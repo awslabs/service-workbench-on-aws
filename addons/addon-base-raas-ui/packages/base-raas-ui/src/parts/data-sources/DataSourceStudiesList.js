@@ -74,7 +74,7 @@ class DataSourceStudiesList extends React.Component {
     const list = account.studiesList;
 
     return (
-      <>
+      <div className="animated fadeIn">
         <Table className="mt0">
           <Table.Header>
             <Table.Row>
@@ -92,7 +92,7 @@ class DataSourceStudiesList extends React.Component {
             ))}
           </Table.Body>
         </Table>
-      </>
+      </div>
     );
   }
 

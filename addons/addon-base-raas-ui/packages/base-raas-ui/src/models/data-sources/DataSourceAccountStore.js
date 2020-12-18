@@ -13,7 +13,6 @@
  *  permissions and limitations under the License.
  */
 
-import _ from 'lodash';
 import { getParent, types } from 'mobx-state-tree';
 import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
 

@@ -11,7 +11,9 @@ import { isStoreReady, isStoreLoading, isStoreError, stopHeartbeat } from '@aws-
 import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
 import ProgressPlaceHolder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 
+import { Operation } from '../../models/helpers/Operation';
 import StudyConnectionPanel from './parts/StudyConnectionPanel';
+import StudyStatusMessage from './parts/StudyStatusMessage';
 
 // expected props
 // - study (via prop)
@@ -24,7 +26,7 @@ class DataSourceStudyRow extends React.Component {
       this.expanded = false;
       this.connectionPanel = {
         show: false,
-        // operation: create an mst model
+        operation: Operation.create({}),
       };
     });
   }
@@ -70,6 +72,19 @@ class DataSourceStudyRow extends React.Component {
 
   handleCheckConnection = () => {
     this.connectionPanel.show = true;
+
+    const study = this.study;
+    const accountsStore = this.accountsStore;
+    const operation = this.connectionPanel.operation;
+    const doWork = async () => {
+      await accountsStore.checkStudyReachability(study.id);
+    };
+
+    swallowError(operation.run(doWork));
+  };
+
+  handleDismissPanel = () => {
+    this.connectionPanel.show = false;
   };
 
   render() {
@@ -128,15 +143,17 @@ class DataSourceStudyRow extends React.Component {
   renderExpandedContent() {
     const study = this.study;
     const operation = this.connectionPanel.operation;
-    if (this.connectionPanel.show) return <StudyConnectionPanel study={study} operation={operation} />;
+    const showPanel = this.connectionPanel.show;
 
     return (
-      <div className="mb2">
+      <div className="mb2 animated fadeIn">
         <div className="clearfix">
           <Button size="mini" floated="right" basic color="brown" onClick={this.handleCheckConnection}>
             Check Connection
           </Button>
         </div>
+        {!study.reachableState && !showPanel && <StudyStatusMessage study={study} />}
+        {showPanel && <StudyConnectionPanel study={study} operation={operation} onCancel={this.handleDismissPanel} />}
         <div className="p1" style={{ height: '1px' }} />
         <Grid stackable columns={2} className="block">
           <Grid.Column>{this.renderDetailTablePart1()}</Grid.Column>
@@ -244,7 +261,7 @@ class DataSourceStudyRow extends React.Component {
     return (
       <Table definition>
         <Table.Body>
-          {renderRow('KMS ARN', naIfEmpty(kms))}
+          {renderRow('KMS Arn', naIfEmpty(kms))}
           {renderRow('Description', naIfEmpty(description))}
         </Table.Body>
       </Table>
@@ -295,6 +312,7 @@ decorate(DataSourceStudyRow, {
   usersStore: computed,
   handleExpandClick: action,
   handleCheckConnection: action,
+  handleDismissPanel: action,
   expanded: observable,
   connectionPanel: observable,
 });

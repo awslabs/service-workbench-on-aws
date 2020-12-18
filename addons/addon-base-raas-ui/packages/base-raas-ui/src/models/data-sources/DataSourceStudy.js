@@ -24,7 +24,7 @@ const states = {
   },
   error: {
     id: 'error',
-    display: 'Unreachable',
+    display: 'Unavailable',
     color: 'red',
   },
   reachable: {
@@ -90,6 +90,41 @@ const DataSourceStudy = types
 
     get state() {
       return states[self.status] || states.reachable;
+    },
+
+    get pendingState() {
+      return self.status === 'pending';
+    },
+
+    get errorState() {
+      return self.status === 'error';
+    },
+
+    get reachableState() {
+      return self.status === 'reachable';
+    },
+
+    get statusMessageInfo() {
+      const msg = self.statusMsg;
+      const info = {
+        prefix: '',
+        color: 'grey',
+        message: msg,
+      };
+
+      if (_.isEmpty(msg)) return info;
+
+      if (_.startsWith(msg, 'WARN|||')) {
+        info.prefix = 'WARN';
+        info.message = _.nth(_.split(msg, '|||'), 1);
+        info.color = 'orange';
+      } else if (_.startsWith(msg, 'ERR|||')) {
+        info.prefix = 'ERR';
+        info.message = _.nth(_.split(msg, '|||'), 1);
+        info.color = 'red';
+      }
+
+      return info;
     },
   }));
 

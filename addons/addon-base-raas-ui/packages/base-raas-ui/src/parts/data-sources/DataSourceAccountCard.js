@@ -58,10 +58,10 @@ class DataSourceAccountCard extends React.Component {
     const account = this.account;
 
     return (
-      <>
+      <div className="animated fadeIn">
         {this.renderTitle(account)}
         {this.renderTabs()}
-      </>
+      </div>
     );
   }
 

@@ -292,6 +292,12 @@ function getDataSourceStudies(accountId) {
   return httpApiGet(`api/data-sources/accounts/${accountId}/studies`);
 }
 
+function checkStudyReachability(studyId) {
+  return httpApiPost('api/data-sources/accounts/ops/reachability', {
+    data: { id: studyId, type: 'study' },
+  });
+}
+
 export {
   addIndex,
   addUsers,
@@ -354,4 +360,5 @@ export {
   getWindowsRpInfo,
   getDataSourceAccounts,
   getDataSourceStudies,
+  checkStudyReachability,
 };
