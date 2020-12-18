@@ -97,7 +97,7 @@ class DataSourceAccountCard extends React.Component {
     return (
       <div className="animated fadeIn">
         <Button size="mini" floated="right" color="brown" basic onClick={this.handleCheckConnection}>
-          Check Connection
+          Test Connection
         </Button>
         {this.renderTitle(account)}
         {this.renderStatus(account)}

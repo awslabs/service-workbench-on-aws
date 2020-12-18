@@ -149,7 +149,7 @@ class DataSourceStudyRow extends React.Component {
       <div className="mb2 animated fadeIn">
         <div className="clearfix">
           <Button size="mini" floated="right" basic color="brown" onClick={this.handleCheckConnection}>
-            Check Connection
+            Test Connection
           </Button>
         </div>
         {!study.reachableState && !showPanel && <StudyStatusMessage study={study} />}
