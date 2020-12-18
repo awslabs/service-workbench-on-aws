@@ -69,11 +69,6 @@ const DataSourceAccountsStore = BaseStore.named('DataSourceAccountsStore')
         return entry;
       },
 
-      getStudyStore({ accountId, studyId }) {
-        const accountStore = self.getAccountStore(accountId);
-        return accountStore.getStudyStore(studyId);
-      },
-
       async checkAccountReachability(accountId) {
         const accountEntity = await checkAccountReachability(accountId);
         const account = self.getAccount(accountId);

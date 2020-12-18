@@ -17,6 +17,7 @@ import StudyStatusMessage from './parts/StudyStatusMessage';
 
 // expected props
 // - study (via prop)
+// - store (via prop) (this the study store)
 // - dataSourceAccountsStore (via injection)
 // - usersStore (via injection)
 class DataSourceStudyRow extends React.Component {
@@ -32,7 +33,7 @@ class DataSourceStudyRow extends React.Component {
   }
 
   componentWillUnmount() {
-    const store = this.getStudyStore();
+    const store = this.studyStore;
     stopHeartbeat(store);
   }
 
@@ -48,17 +49,15 @@ class DataSourceStudyRow extends React.Component {
     return this.props.usersStore;
   }
 
-  getStudyStore() {
-    const accountsStore = this.accountsStore;
-    const study = this.study || {};
-    return accountsStore.getStudyStore({ accountId: study.accountId, studyId: study.id });
+  get studyStore() {
+    return this.props.store;
   }
 
   handleExpandClick = event => {
     event.preventDefault();
     event.stopPropagation();
     this.expanded = !this.expanded;
-    const store = this.getStudyStore();
+    const store = this.studyStore;
 
     if (!isStoreReady(store) && this.expanded) {
       swallowError(store.load());
@@ -126,7 +125,7 @@ class DataSourceStudyRow extends React.Component {
   }
 
   renderExpanded() {
-    const store = this.getStudyStore();
+    const store = this.studyStore;
     let content = null;
 
     if (isStoreError(store)) {
@@ -166,7 +165,7 @@ class DataSourceStudyRow extends React.Component {
   }
 
   renderDetailTablePart1() {
-    const store = this.getStudyStore();
+    const store = this.studyStore;
     const study = store.study;
     const { id, name, state, statusAt, folder } = study;
     const naIfEmpty = value => (_.isEmpty(value) ? 'N/A' : value);
@@ -203,7 +202,7 @@ class DataSourceStudyRow extends React.Component {
   }
 
   renderDetailTablePart2() {
-    const store = this.getStudyStore();
+    const store = this.studyStore;
     const study = store.study;
     const { category, friendlyAccessType, bucket, projectId, region } = study;
     const naIfEmpty = value => (_.isEmpty(value) ? 'N/A' : value);
@@ -242,7 +241,7 @@ class DataSourceStudyRow extends React.Component {
   }
 
   renderDetailTablePart3() {
-    const store = this.getStudyStore();
+    const store = this.studyStore;
     const study = store.study;
     const { description, kmsScope, kmsArn } = study;
     const naIfEmpty = value => (_.isEmpty(value) ? 'None' : value);
@@ -269,7 +268,7 @@ class DataSourceStudyRow extends React.Component {
   }
 
   renderPermissionsTable() {
-    const store = this.getStudyStore();
+    const store = this.studyStore;
     const study = store.study;
     const { accessType, myStudies } = study;
     const { adminUsers = [], readonlyUsers = [], readwriteUsers = [] } = study.permissions || {};
@@ -309,6 +308,7 @@ class DataSourceStudyRow extends React.Component {
 decorate(DataSourceStudyRow, {
   accountsStore: computed,
   study: computed,
+  studyStore: computed,
   usersStore: computed,
   handleExpandClick: action,
   handleCheckConnection: action,

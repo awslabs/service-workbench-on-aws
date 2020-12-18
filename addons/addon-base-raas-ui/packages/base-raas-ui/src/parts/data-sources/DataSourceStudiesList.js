@@ -71,7 +71,9 @@ class DataSourceStudiesList extends React.Component {
 
   renderMain() {
     const account = this.account;
+    const accountStore = this.getAccountStore();
     const list = account.studiesList;
+    const getStudyStore = study => accountStore.getStudyStore(study.id);
 
     return (
       <div className="animated fadeIn">
@@ -88,7 +90,7 @@ class DataSourceStudiesList extends React.Component {
           </Table.Header>
           <Table.Body>
             {_.map(list, item => (
-              <DataSourceStudyRow key={item.id} study={item} />
+              <DataSourceStudyRow key={item.id} study={item} store={getStudyStore(item)} />
             ))}
           </Table.Body>
         </Table>
