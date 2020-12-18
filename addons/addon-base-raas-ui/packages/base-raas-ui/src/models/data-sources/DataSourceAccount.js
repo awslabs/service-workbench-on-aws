@@ -76,8 +76,8 @@ const DataSourceAccount = types
     },
 
     setStudies(studies) {
-      consolidateToMap(self.studies, studies, (exiting, newItem) => {
-        exiting.setStudy(newItem);
+      consolidateToMap(self.studies, studies, (existing, newItem) => {
+        existing.setStudy(newItem);
       });
     },
   }))
