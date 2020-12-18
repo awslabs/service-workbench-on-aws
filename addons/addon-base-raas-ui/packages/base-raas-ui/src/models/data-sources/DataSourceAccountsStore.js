@@ -41,8 +41,8 @@ const DataSourceAccountsStore = BaseStore.named('DataSourceAccountsStore')
       async doLoad() {
         const accounts = await getDataSourceAccounts();
         self.runInAction(() => {
-          consolidateToMap(self.accounts, accounts, (exiting, newItem) => {
-            exiting.setDataSourceAccount(newItem);
+          consolidateToMap(self.accounts, accounts, (existing, newItem) => {
+            existing.setDataSourceAccount(newItem);
           });
         });
       },
