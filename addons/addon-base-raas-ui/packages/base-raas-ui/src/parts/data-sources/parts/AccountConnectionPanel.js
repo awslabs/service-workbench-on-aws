@@ -22,15 +22,15 @@ import { Progress } from 'semantic-ui-react';
 
 import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
 
-import StudyStatusMessage from './StudyStatusMessage';
+import AccountStatusMessage from './AccountStatusMessage';
 
 // expected props
 // - onCancel (via props) a call back function when the user clicks on Done
-// - study (via props)
+// - account (via props)
 // - operation (via props)
-class StudyConnectionPanel extends React.Component {
-  get study() {
-    return this.props.study;
+class AccountConnectionPanel extends React.Component {
+  get account() {
+    return this.props.account;
   }
 
   get operation() {
@@ -80,22 +80,22 @@ class StudyConnectionPanel extends React.Component {
 
   renderMessage() {
     const operation = this.operation;
-    const study = this.study;
+    const account = this.account;
     const processing = operation.processing;
 
     if (processing) return null;
     if (operation.hasError) return null;
 
-    return <StudyStatusMessage study={study} onCancel={this.handleCancel} />;
+    return <AccountStatusMessage account={account} onCancel={this.handleCancel} />;
   }
 }
 
 // see https://medium.com/@mweststrate/mobx-4-better-simpler-faster-smaller-c1fbc08008da
-decorate(StudyConnectionPanel, {
-  study: computed,
+decorate(AccountConnectionPanel, {
+  account: computed,
   operation: computed,
   progress: computed,
   handleCancel: action,
 });
 
-export default inject()(withRouter(observer(StudyConnectionPanel)));
+export default inject()(withRouter(observer(AccountConnectionPanel)));

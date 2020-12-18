@@ -73,6 +73,8 @@ const DataSourceStudy = types
           self[key] = value;
         }
       });
+      // We want to take care of thee statusMsg because it might come as undefined
+      if (_.isUndefined(raw.statusMsg)) self.statusMsg = '';
     },
 
     setPermissions(permissions = {}) {

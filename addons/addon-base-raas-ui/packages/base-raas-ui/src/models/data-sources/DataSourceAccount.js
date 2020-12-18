@@ -20,6 +20,25 @@ import { types } from 'mobx-state-tree';
 import { consolidateToMap } from '@aws-ee/base-ui/dist/helpers/utils';
 
 import { DataSourceStudy } from './DataSourceStudy';
+
+const states = {
+  pending: {
+    id: 'pending',
+    display: 'Pending',
+    color: 'orange',
+  },
+  error: {
+    id: 'error',
+    display: 'Unavailable',
+    color: 'red',
+  },
+  reachable: {
+    id: 'reachable',
+    display: 'Available',
+    color: 'green',
+  },
+};
+
 // ==================================================================
 // DataSourceAccount
 // ==================================================================
@@ -33,6 +52,7 @@ const DataSourceAccount = types
     updatedAt: '',
     updatedBy: '',
     stackCreated: false,
+    mainRegion: '',
     qualifier: '',
     contactInfo: '',
     stack: '',
@@ -50,6 +70,9 @@ const DataSourceAccount = types
         if (value === 'studies') return; // we don't want to update the studies
         self[key] = value;
       });
+
+      // We want to take care of thee statusMsg because it might come as undefined
+      if (_.isUndefined(raw.statusMsg)) self.statusMsg = '';
     },
 
     setStudies(studies) {
@@ -67,6 +90,45 @@ const DataSourceAccount = types
 
     getStudy(studyId) {
       return self.studies.get(studyId);
+    },
+
+    get state() {
+      return states[self.status] || states.reachable;
+    },
+
+    get pendingState() {
+      return self.status === 'pending';
+    },
+
+    get errorState() {
+      return self.status === 'error';
+    },
+
+    get reachableState() {
+      return self.status === 'reachable';
+    },
+
+    get statusMessageInfo() {
+      const msg = self.statusMsg;
+      const info = {
+        prefix: '',
+        color: 'grey',
+        message: msg,
+      };
+
+      if (_.isEmpty(msg)) return info;
+
+      if (_.startsWith(msg, 'WARN|||')) {
+        info.prefix = 'WARN';
+        info.message = _.nth(_.split(msg, '|||'), 1);
+        info.color = 'orange';
+      } else if (_.startsWith(msg, 'ERR|||')) {
+        info.prefix = 'ERR';
+        info.message = _.nth(_.split(msg, '|||'), 1);
+        info.color = 'red';
+      }
+
+      return info;
     },
   }));
 

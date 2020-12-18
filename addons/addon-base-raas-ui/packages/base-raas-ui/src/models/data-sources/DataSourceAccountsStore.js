@@ -19,7 +19,7 @@ import { types } from 'mobx-state-tree';
 import { consolidateToMap } from '@aws-ee/base-ui/dist/helpers/utils';
 import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
 
-import { getDataSourceAccounts, checkStudyReachability } from '../../helpers/api';
+import { getDataSourceAccounts, checkStudyReachability, checkAccountReachability } from '../../helpers/api';
 import { DataSourceAccount } from './DataSourceAccount';
 import { DataSourceAccountStore } from './DataSourceAccountStore';
 
@@ -72,6 +72,12 @@ const DataSourceAccountsStore = BaseStore.named('DataSourceAccountsStore')
       getStudyStore({ accountId, studyId }) {
         const accountStore = self.getAccountStore(accountId);
         return accountStore.getStudyStore(studyId);
+      },
+
+      async checkAccountReachability(accountId) {
+        const accountEntity = await checkAccountReachability(accountId);
+        const account = self.getAccount(accountId);
+        if (account) account.setDataSourceAccount(accountEntity);
       },
 
       async checkStudyReachability(studyId) {
