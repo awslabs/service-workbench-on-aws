@@ -57,7 +57,7 @@ class StudyPermissionsTable extends React.Component {
 
   enableEditMode = () => {
     // Set users who currently have permission to the study as the selected users
-    this.permissionsStore.studyPermissions.userTypes.forEach(userType => {
+    this.study.userTypes.forEach(userType => {
       this.selectedUserIds[userType] = this.permissionsStore.studyPermissions[`${userType}Users`];
     });
 
@@ -107,8 +107,7 @@ class StudyPermissionsTable extends React.Component {
 
   renderTable() {
     const studyPermissions = this.permissionsStore.studyPermissions;
-    const isEditable =
-      studyPermissions.adminUsers.some(uid => uid === this.currUser.uid) && this.study.state.canChangePermission;
+    const isEditable = studyPermissions.isStudyAdmin(this.currUser.uid) && this.study.state.canChangePermission;
 
     return (
       <>

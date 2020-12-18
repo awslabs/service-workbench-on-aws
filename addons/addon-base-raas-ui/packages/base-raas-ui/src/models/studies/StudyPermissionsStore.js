@@ -15,7 +15,7 @@
 
 /* eslint-disable import/prefer-default-export */
 import _ from 'lodash';
-import { types } from 'mobx-state-tree';
+import { getParent, types } from 'mobx-state-tree';
 import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
 
 import { getStudyPermissions, updateStudyPermissions } from '../../helpers/api';
@@ -27,7 +27,6 @@ import { StudyPermissions } from './StudyPermissions';
 const StudyPermissionsStore = BaseStore.named('StudyPermissionsStore')
   .props({
     studyId: types.identifier,
-    studyAccessType: types.maybe(types.string),
     studyPermissions: types.maybe(StudyPermissions),
     tickPeriod: 300 * 1000, // 5 minutes
   })
@@ -44,7 +43,6 @@ const StudyPermissionsStore = BaseStore.named('StudyPermissionsStore')
             self.studyPermissions = StudyPermissions.create({
               id: self.studyId,
               ...newPermissions,
-              studyAccessType: self.studyAccessType,
             });
           } else {
             self.studyPermissions.setStudyPermissions(newPermissions);
@@ -60,7 +58,8 @@ const StudyPermissionsStore = BaseStore.named('StudyPermissionsStore')
       update: async selectedUserIds => {
         const updateRequest = { usersToAdd: [], usersToRemove: [] };
 
-        self.studyPermissions.userTypes.forEach(type => {
+        const parent = getParent(self, 1);
+        parent.userTypes.forEach(type => {
           const userToRequestFormat = uid => ({ uid, permissionLevel: type });
 
           // Set selected users as "usersToAdd" (API is idempotent)

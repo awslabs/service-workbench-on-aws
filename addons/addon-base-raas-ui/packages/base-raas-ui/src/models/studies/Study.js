@@ -115,6 +115,13 @@ const Study = types
       }
       return _.cloneDeep(states.default);
     },
+
+    get userTypes() {
+      if (self.studyAccessType === 'readonly') {
+        return ['admin', 'readonly'];
+      }
+      return ['admin', 'readwrite', 'readonly'];
+    },
   }));
 
 export { Study }; // eslint-disable-line import/prefer-default-export
