@@ -271,7 +271,7 @@ class DataSourceStudyRow extends React.Component {
   renderPermissionsTable() {
     const store = this.getStudyStore();
     const study = store.study;
-    const { accessType } = study;
+    const { accessType, myStudies } = study;
     const { adminUsers = [], readonlyUsers = [], readwriteUsers = [] } = study.permissions || {};
     const showReadonly = accessType === 'readonly' || accessType === 'readwrite';
     const showReadwrite = accessType === 'readwrite';
@@ -280,8 +280,8 @@ class DataSourceStudyRow extends React.Component {
       <Table definition>
         <Table.Body>
           {this.renderUsersRow('Admin', adminUsers)}
-          {showReadonly && this.renderUsersRow('Read Only', readonlyUsers)}
-          {showReadwrite && this.renderUsersRow('Read & Write', readwriteUsers)}
+          {showReadonly && !myStudies && this.renderUsersRow('Read Only', readonlyUsers)}
+          {showReadwrite && !myStudies && this.renderUsersRow('Read & Write', readwriteUsers)}
         </Table.Body>
       </Table>
     );

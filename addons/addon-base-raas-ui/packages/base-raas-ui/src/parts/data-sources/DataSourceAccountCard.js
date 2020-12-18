@@ -142,13 +142,15 @@ class DataSourceAccountCard extends React.Component {
       <Header as="h3" className="mt3 breakout">
         {account.name}
         <Header.Subheader>
-          <span className="fs-8 color-grey">
+          <span className="fs-8 color-grey mr1">
             Registered <TimeAgo date={account.createdAt} /> <By uid={account.createdBy} className="mr1" />
+            &mdash;
           </span>
-          <span className="fs-8 color-grey mr2">
-            status checked <TimeAgo date={account.statusAt} />
+          <span className="fs-8 color-grey mr1">
+            status check <TimeAgo date={account.statusAt} className="mr1" />
+            &mdash;
           </span>
-          <span className="fs-8 color-grey mr2">(AWS Account # {account.id})</span>
+          <span className="fs-8 color-grey">AWS Account # {account.id}</span>
         </Header.Subheader>
       </Header>
     );

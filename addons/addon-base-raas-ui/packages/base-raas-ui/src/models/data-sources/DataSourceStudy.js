@@ -90,6 +90,10 @@ const DataSourceStudy = types
       return 'Read & Write';
     },
 
+    get myStudies() {
+      return self.category === 'My Studies';
+    },
+
     get state() {
       return states[self.status] || states.reachable;
     },
