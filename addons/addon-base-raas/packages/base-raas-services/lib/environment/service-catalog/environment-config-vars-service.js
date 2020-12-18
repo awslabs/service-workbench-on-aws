@@ -16,9 +16,7 @@
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
-const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
 
-const { hasAccess, accessLevels } = require('../../study/helpers/entities/study-methods');
 const { StudyPolicy } = require('../../helpers/iam/study-policy');
 
 const settingKeys = {
@@ -199,7 +197,7 @@ class EnvironmentConfigVarsService extends Service {
       });
     }
 
-    const studies = await this.getStudies(requestContext, environment);
+    const studies = await environmentScService.getStudies(requestContext, environment);
 
     const iamPolicyDocument = await this.getEnvRolePolicy(requestContext, {
       environment,
@@ -303,37 +301,6 @@ class EnvironmentConfigVarsService extends Service {
     });
 
     return _.get(result, 's3Mounts', []);
-  }
-
-  async getStudies(requestContext, environmentScEntity) {
-    const studyService = await this.service('studyService');
-
-    const { studyIds, createdBy } = environmentScEntity;
-
-    if (_.isEmpty(studyIds)) return [];
-
-    const systemContext = getSystemRequestContext();
-    const studies = await studyService.listByIds(
-      systemContext,
-      _.map(studyIds, id => ({ id })),
-    );
-
-    // Time to populate the envPermission: { write: read: } before sending it to the plugins
-    const permissionLookup = async study => {
-      const entity = await studyService.getStudyPermissions(systemContext, study.id);
-      if (!hasAccess(entity, createdBy))
-        throw studyService.boom.forbidden(
-          `The creator of the workspace does not have access to study "${study.id}"`,
-          true,
-        );
-
-      const { read, write } = accessLevels(entity, createdBy);
-      study.envPermission = { read, write };
-    };
-
-    await Promise.all(_.map(studies, permissionLookup));
-
-    return studies;
   }
 
   async getDefaultTags(requestContext, resolvedVars) {

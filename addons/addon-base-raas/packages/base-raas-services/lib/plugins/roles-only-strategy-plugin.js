@@ -13,10 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-// const _ = require('lodash');
 const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
-
-const { CfnTemplate } = require('../helpers/cfn-template');
 
 /**
  * A plugin method to implement any specific logic for the 'roles only' access logic when a study is registered
@@ -50,29 +47,95 @@ async function onStudyRegistration(payload) {
  * @param requestContext The request context object containing principal (caller) information.
  * @param container Services container instance
  * @param accountEntity the data source account entity
+ * @param cfnTemplate An instance of The CfnTemplate class
  */
 async function provideAccountCfnTemplate(payload) {
-  const { requestContext, container, accountEntity } = payload;
-  const { id, mainRegion, stack, stackCreated } = accountEntity;
+  const { requestContext, container, accountEntity, cfnTemplate } = payload;
   const applicationRoleService = await container.find('roles-only/applicationRoleService');
-  const cfnTemplate = new CfnTemplate();
-  await applicationRoleService.provideCfnResources(requestContext, cfnTemplate, accountEntity.id);
+  const updatedCfnTemplate = await applicationRoleService.provideCfnResources(
+    requestContext,
+    cfnTemplate,
+    accountEntity.id,
+  );
 
-  const accountTemplateInfo = {
-    // id: '',  TODO
-    name: stack,
-    region: mainRegion,
-    accountId: id,
-    created: stackCreated,
-    template: cfnTemplate.toJson(),
-  };
+  return { ...payload, cfnTemplate: updatedCfnTemplate };
+}
 
-  return { ...payload, accountTemplateInfo };
+/**
+ * A plugin method to implement any specific logic for the 'roles-only' access logic when a environment
+ * is about to be provisioned. This method simply delegates to the roles-only/EnvironmentResourceService
+ *
+ * @param requestContext The request context object containing principal (caller) information.
+ * @param container Services container instance
+ * @param studies an array of StudyEntity that are associated with this env. IMPORTANT: each element
+ * in the array is the standard StudyEntity, however, there is one additional attributes added to each
+ * of the StudyEntity. This additional attribute is called 'envPermission', it is an object with the
+ * following shape: { read: true/false, write: true/false }
+ */
+async function allocateEnvStudyResources(payload) {
+  const { requestContext, container, environmentScEntity, studies, memberAccountId } = payload;
+
+  const resourceService = await container.find('roles-only/environmentResourceService');
+  await resourceService.allocateStudyResources(requestContext, { environmentScEntity, studies, memberAccountId });
+
+  return payload;
+}
+
+/**
+ * A plugin method to implement any specific logic for the 'roles-only' access logic when a environment
+ * is terminated or failed provisioning. This method simply delegates to the roles-only/EnvironmentResourceService
+ *
+ * @param requestContext The request context object containing principal (caller) information.
+ * @param container Services container instance
+ * @param studies an array of StudyEntity that are associated with this env. IMPORTANT: each element
+ * in the array is the standard StudyEntity, however, there is one additional attributes added to each
+ * of the StudyEntity. This additional attribute is called 'envPermission', it is an object with the
+ * following shape: { read: true/false, write: true/false }
+ */
+async function deallocateEnvStudyResources(payload) {
+  const { requestContext, container, environmentScEntity, studies, memberAccountId } = payload;
+
+  const resourceService = await container.find('roles-only/environmentResourceService');
+  await resourceService.deallocateStudyResources(requestContext, { environmentScEntity, studies, memberAccountId });
+
+  return payload;
+}
+
+async function provideEnvRolePolicy(payload) {
+  const { requestContext, container, environmentScEntity, studies, policyDoc, memberAccountId } = payload;
+
+  const resourceService = await container.find('roles-only/environmentResourceService');
+  const updatedPolicyDoc = await resourceService.provideEnvRolePolicy(requestContext, {
+    environmentScEntity,
+    studies,
+    policyDoc,
+    memberAccountId,
+  });
+
+  return { ...payload, policyDoc: updatedPolicyDoc };
+}
+
+async function provideStudyMount(payload) {
+  const { requestContext, container, environmentScEntity, studies, s3Mounts, memberAccountId } = payload;
+
+  const resourceService = await container.find('roles-only/environmentResourceService');
+  const updatedS3Mounts = await resourceService.provideStudyMount(requestContext, {
+    environmentScEntity,
+    studies,
+    s3Mounts,
+    memberAccountId,
+  });
+
+  return { ...payload, s3Mounts: updatedS3Mounts };
 }
 
 const plugin = {
   onStudyRegistration,
   provideAccountCfnTemplate,
+  allocateEnvStudyResources,
+  deallocateEnvStudyResources,
+  provideEnvRolePolicy,
+  provideStudyMount,
 };
 
 module.exports = plugin;

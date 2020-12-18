@@ -174,7 +174,7 @@ function toRoleCfnResource(appRoleEntity, swbMainAccountId) {
         MaxSessionDuration: 43200,
         Policies: [
           {
-            PolicyName: 'AppRoleEssentials',
+            PolicyName: 'swb-app-role-essentials',
             PolicyDocument: {
               Version: '2012-10-17',
               Statement: [

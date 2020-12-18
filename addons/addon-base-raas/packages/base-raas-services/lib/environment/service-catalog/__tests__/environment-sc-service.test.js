@@ -16,10 +16,12 @@
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
 const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
 
+jest.mock('@aws-ee/base-services/lib/iam/iam-service.js');
 jest.mock('@aws-ee/base-services/lib/logger/logger-service');
 const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
 const AWSMock = require('aws-sdk-mock');
 const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
+const IamService = require('@aws-ee/base-services/lib/iam/iam-service.js');
 
 // Mocked dependencies
 jest.mock('@aws-ee/base-services/lib/db-service');
@@ -51,6 +53,9 @@ const IndexesServiceMock = require('../../../indexes/indexes-service');
 
 jest.mock('../../../storage-gateway/storage-gateway-service');
 const StorageGatewayService = require('../../../storage-gateway/storage-gateway-service');
+
+jest.mock('../../../study/study-service');
+const StudyService = require('../../../study/study-service');
 
 const EnvironmentSCService = require('../environment-sc-service');
 
@@ -85,6 +90,8 @@ describe('EnvironmentSCService', () => {
     container.register('indexesService', new IndexesServiceMock());
     container.register('environmentSCService', new EnvironmentSCService());
     container.register('storageGatewayService', new StorageGatewayService());
+    container.register('iamService', new IamService());
+    container.register('studyService', new StudyService());
     await container.initServices();
 
     // suppress expected console errors
