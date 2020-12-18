@@ -129,7 +129,7 @@ class StudyPermissionsTable extends React.Component {
             </Table.Header>
 
             <Table.Body>
-              {this.permissionsStore.studyPermissions.userTypes.map(userType => {
+              {this.study.userTypes.map(userType => {
                 const uids = studyPermissions[`${userType}Users`];
                 const userIdentifiers = _.map(uids, uid => ({ uid }));
                 const users = this.usersStore.asUserObjects(userIdentifiers);

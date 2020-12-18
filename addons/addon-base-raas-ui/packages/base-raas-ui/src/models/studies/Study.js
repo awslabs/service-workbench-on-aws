@@ -117,7 +117,7 @@ const Study = types
     },
 
     get userTypes() {
-      if (self.studyAccessType === 'readonly') {
+      if (self.accessType === 'readonly') {
         return ['admin', 'readonly'];
       }
       return ['admin', 'readwrite', 'readonly'];
