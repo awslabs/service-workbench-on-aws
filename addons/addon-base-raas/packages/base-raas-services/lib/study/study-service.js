@@ -453,7 +453,7 @@ class StudyService extends Service {
     const removeStatus = status === 'reachable' || _.isEmpty(status);
     const removeMsg = _.isString(statusMsg) && _.isEmpty(statusMsg);
 
-    const item = { updatedBy: by };
+    const item = { updatedBy: by, statusAt: new Date().toISOString() };
 
     // Remember that we use the 'status' attribute in the index and we need to ensure
     // that when status == reachable that we remove the status attribute from the database
@@ -529,16 +529,15 @@ class StudyService extends Service {
     return result;
   }
 
-  /**
-   * IMPORTANT: Do NOT call this method directly from a controller, this is because
-   * this method does not do any authorization check.  It will return the study given
-   * a study id no matter who the requestContext principal is.
-   */
   async listStudiesForAccount(requestContext, { accountId }, fields = []) {
+    if (!isAdmin(requestContext)) {
+      throw this.boom.forbidden("You don't have permissions to call this method", true);
+    }
+
     const result = await this._query()
       .index(this.accountIdIndex)
       .key('accountId', accountId)
-      .limit(1000)
+      .limit(4000)
       .projection(fields)
       .query();
 

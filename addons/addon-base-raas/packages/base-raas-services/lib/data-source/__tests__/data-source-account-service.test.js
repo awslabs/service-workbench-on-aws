@@ -74,7 +74,7 @@ describe('DataSourceAccountService', () => {
       const rawData = {
         id,
         name: 'Computer Science Department Account',
-        type: 'managed-nonmember',
+        type: 'managed',
         mainRegion: 'us-east-1',
       };
 
@@ -100,7 +100,7 @@ describe('DataSourceAccountService', () => {
       const rawData = {
         id: '123456789012',
         name: 'Computer Science Department Account',
-        type: 'managed-nonmember',
+        type: 'managed',
         mainRegion: 'us-east-1',
       };
 
@@ -120,7 +120,7 @@ describe('DataSourceAccountService', () => {
       const rawData = {
         id: '123456789012',
         name: 'Computer Science Department Account',
-        type: 'managed-nonmember',
+        type: 'managed',
         mainRegion: 'us-east-1',
       };
       let pKey;

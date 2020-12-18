@@ -18,11 +18,13 @@ const crypto = require('crypto');
 const Service = require('@aws-ee/base-services-container/lib/service');
 
 const { CfnTemplate } = require('../helpers/cfn-template');
+const { toAppStackCfnResource } = require('./helpers/app-stack-cfn-resource');
 
 const extensionPoint = 'study-access-strategy';
 
 const settingKeys = {
   envBootstrapBucket: 'envBootstrapBucketName',
+  swbMainAccount: 'mainAcct',
 };
 
 const getCfnConsoleUrl = accountTemplateInfo => {
@@ -109,9 +111,13 @@ class DataSourceRegistrationService extends Service {
 
   async createAccountCfn(requestContext, accountId) {
     const [accountService, s3Service] = await this.service(['dataSourceAccountService', 's3Service']);
+    const swbMainAccountId = this.settings.get(settingKeys.swbMainAccount);
     const accountEntity = await accountService.mustFind(requestContext, { id: accountId });
     const { id, mainRegion, stack, stackCreated } = accountEntity;
     const cfnTemplate = new CfnTemplate({ accountId: id, region: mainRegion });
+
+    // Include the app role stack that allows us to query the status of the stack
+    cfnTemplate.addResource(toAppStackCfnResource(accountEntity, swbMainAccountId));
 
     // We give a chance to the plugins to participate in the logic of create the account cfn. This helps us have different
     // study access strategies
