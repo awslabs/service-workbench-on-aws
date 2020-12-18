@@ -21,7 +21,6 @@ import { StudyPermissionsStore } from './StudyPermissionsStore';
 import { categories } from './categories';
 
 // 'pending', 'error', 'default'
-// Note: When study is available, the status column is empty
 const states = {
   pending: {
     key: 'pending',
@@ -42,7 +41,7 @@ const states = {
     canSelect: false,
     spinner: false,
   },
-  default: {
+  reachable: {
     key: 'default',
     display: 'AVAILABLE',
     color: 'green',
@@ -92,7 +91,7 @@ const Study = types
 
     getPermissionsStore() {
       if (!self.permissionsStore) {
-        self.permissionsStore = StudyPermissionsStore.create({ studyId: self.id, studyAccessType: self.accessType });
+        self.permissionsStore = StudyPermissionsStore.create({ studyId: self.id });
       }
       return self.permissionsStore;
     },
@@ -113,7 +112,7 @@ const Study = types
       if (self.status) {
         return _.cloneDeep(states[self.status]);
       }
-      return _.cloneDeep(states.default);
+      return _.cloneDeep(states.reachable);
     },
 
     get userTypes() {
