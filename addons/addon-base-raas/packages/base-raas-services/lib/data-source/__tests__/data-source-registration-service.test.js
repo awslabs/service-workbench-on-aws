@@ -16,7 +16,9 @@ const ServicesContainer = require('@aws-ee/base-services-container/lib/services-
 
 // Mocked services
 jest.mock('@aws-ee/base-services/lib/db-service');
+jest.mock('@aws-ee/base-services/lib/lock/lock-service');
 jest.mock('@aws-ee/base-services/lib/logger/logger-service');
+jest.mock('@aws-ee/base-services/lib/s3-service');
 jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
 jest.mock('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
 jest.mock('@aws-ee/base-services/lib/audit/audit-writer-service');
@@ -27,6 +29,8 @@ jest.mock('../../study/study-permission-service');
 const Aws = require('@aws-ee/base-services/lib/aws/aws-service');
 const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
 const DbService = require('@aws-ee/base-services/lib/db-service');
+const LockService = require('@aws-ee/base-services/lib/lock/lock-service');
+const S3Service = require('@aws-ee/base-services/lib/s3-service');
 const PluginRegistryService = require('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
 const SettingsService = require('@aws-ee/base-services/lib/settings/env-settings-service');
 const AuthService = require('@aws-ee/base-services/lib/authorization/authorization-service');
@@ -50,9 +54,11 @@ describe('DataSourceBucketService', () => {
     const container = new ServicesContainer();
 
     container.register('dbService', new DbService());
+    container.register('lockService', new LockService());
     container.register('jsonSchemaValidationService', new JsonSchemaValidationService());
     container.register('settings', new SettingsService());
     container.register('aws', new Aws());
+    container.register('s3Service', new S3Service());
     container.register('log', new Logger());
     container.register('pluginRegistryService', new PluginRegistryService());
     container.register('authorizationService', new AuthService());

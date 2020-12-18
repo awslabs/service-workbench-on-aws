@@ -140,22 +140,13 @@ async function configure(context) {
   router.put(
     '/:id/permissions',
     wrap(async (req, res) => {
-      const [studyService, lockService, environmentMountService] = await context.service([
-        'studyService',
-        'lockService',
-        'environmentMountService',
-      ]);
+      const studyOperationService = await context.service('studyOperationService');
       const studyId = req.params.id;
       const requestContext = res.locals.requestContext;
       const updateRequest = req.body;
 
-      const result = await lockService.tryWriteLockAndRun({ id: `${studyId}-workspaces` }, async () => {
-        const updateOutcome = await studyService.updatePermissions(requestContext, studyId, updateRequest);
-        await environmentMountService.applyWorkspacePermissions(studyId, updateRequest);
-        // Nice-to-have: Add number of workspaces updated to result object
-        return updateOutcome;
-      });
-      res.status(200).json(result);
+      const result = await studyOperationService.updatePermissions(requestContext, studyId, updateRequest);
+      res.status(200).json(_.get(result, 'permissions'));
     }),
   );
 

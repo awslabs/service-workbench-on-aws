@@ -427,11 +427,13 @@ Resources:
                   - s3:*
                 Resource:
                   - 'arn:aws:s3:::${self:custom.settings.studyDataBucketName}/*'
+                  - 'arn:aws:s3:::${self:custom.settings.environmentsBootstrapBucketName}/*'
               - Effect: Allow
                 Action:
                   - s3:ListBucket
                 Resource:
                   - 'arn:aws:s3:::${self:custom.settings.studyDataBucketName}'
+                  - 'arn:aws:s3:::${self:custom.settings.environmentsBootstrapBucketName}'
               - Effect: Allow
                 Action:
                   - kms:GenerateDataKey
@@ -461,6 +463,7 @@ Resources:
                   - s3:DeleteObject
                 Resource:
                   - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}/*'
+
               - Effect: 'Allow'
                 Action:
                   - s3:ListBucket

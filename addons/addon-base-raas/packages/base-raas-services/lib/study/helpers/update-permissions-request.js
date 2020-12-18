@@ -41,16 +41,6 @@ function getImpactedUsers(updateRequest = {}) {
 }
 
 /**
- * Mutates the studyPermissionsEntity based on the information given in the
- * updateRequest object.
- *
- * @param updateRequest The update request that follows the shape as described here
- * schema/update-study-permissions.json
- * @param studyPermissionsEntity The study permissions entity
- */
-function applyToStudyPermissions(updateRequest, studyPermissionsEntity) {}
-
-/**
  * Mutates the userPermissionsEntity based on the information given in the
  * updateRequest object.
  *
@@ -94,7 +84,6 @@ function createUpdateRequest(studyPermissionsEntity = {}) {
 
 module.exports = {
   getImpactedUsers,
-  applyToStudyPermissions,
   applyToUserPermissions,
   createUpdateRequest,
 };
