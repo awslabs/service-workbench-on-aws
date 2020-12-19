@@ -83,14 +83,12 @@ class DataSourceReachabilityService extends Service {
       dataSourceAccount,
     );
 
+    const stackInfo = await this.getAccountStackInfo(requestContext, dataSourceAccount);
+
     if (reachable) {
       newStatus = 'reachable';
       statusMsg = '';
-      if (prevStatus === 'pending')
-        await accountService.updateStackCreated(requestContext, {
-          stackCreated: true,
-          dsAccountEntity: dataSourceAccount,
-        });
+      if (prevStatus === 'pending') stackInfo.stackCreated = true;
     } else if (prevStatus === 'pending') {
       newStatus = prevStatus;
       statusMsg = `WARN|||Data source account ${id} is not reachable yet`;
@@ -98,6 +96,8 @@ class DataSourceReachabilityService extends Service {
       newStatus = 'error';
       statusMsg = `ERR|||Error getting information from data source account ${id}`;
     }
+
+    await accountService.updateStackInfo(requestContext, id, stackInfo);
 
     if (prevStatus !== newStatus || forceCheck) {
       const workflowTriggerService = await this.service('workflowTriggerService');
@@ -114,7 +114,7 @@ class DataSourceReachabilityService extends Service {
 
     if (!_.isEmpty(unreachableAppRoles)) {
       statusMsg = `ERR|||Error getting information from ${unreachableAppRoles.length} application roles. 
-      Please update the cloudformation template on data source account ${id}`;
+      It is possible that the cloudformation stack deployed in the data source account ${id} is outdated`;
     }
 
     const entity = await accountService.updateStatus(requestContext, dataSourceAccount, {
@@ -270,6 +270,20 @@ class DataSourceReachabilityService extends Service {
     }
 
     return outputVal;
+  }
+
+  // @private
+  async getAccountStackInfo(requestContext, accountEntity) {
+    const accountService = await this.service('dataSourceAccountService');
+    try {
+      const result = await accountService.queryStack(requestContext, accountEntity);
+      return {
+        stackId: result.stackId,
+        templateIdFound: result.templateId,
+      };
+    } catch (_err) {
+      return {};
+    }
   }
 
   async audit(requestContext, auditEvent) {

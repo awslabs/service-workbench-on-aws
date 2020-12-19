@@ -61,6 +61,9 @@ const DataSourceAccount = types
     statusAt: '',
     description: '',
     type: '', // managed vs unmanaged
+    templateIdExpected: '',
+    templateIdFound: '',
+    stackId: '',
     buckets: types.array(types.frozen()),
     studies: types.map(DataSourceStudy),
   })

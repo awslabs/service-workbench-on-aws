@@ -113,14 +113,14 @@ class DataSourceRegistrationService extends Service {
     const [accountService, s3Service] = await this.service(['dataSourceAccountService', 's3Service']);
     const swbMainAccountId = this.settings.get(settingKeys.swbMainAccount);
     const accountEntity = await accountService.mustFind(requestContext, { id: accountId });
-    const { id, mainRegion, stack, stackCreated } = accountEntity;
-    const cfnTemplate = new CfnTemplate({ accountId: id, region: mainRegion });
+    const { id, mainRegion, stack, stackCreated, stackId } = accountEntity;
+    let cfnTemplate = new CfnTemplate({ accountId: id, region: mainRegion });
 
-    // Include the app role stack that allows us to query the status of the stack
+    // Include the app role stack that allows us to query the stack information
     cfnTemplate.addResource(toAppStackCfnResource(accountEntity, swbMainAccountId));
 
-    // We give a chance to the plugins to participate in the logic of create the account cfn. This helps us have different
-    // study access strategies
+    // We give a chance to the plugins to participate in the logic of creating the account cfn. This helps us
+    // have different study access strategies
     const pluginRegistryService = await this.service('pluginRegistryService');
     const result = await pluginRegistryService.visitPlugins(extensionPoint, 'provideAccountCfnTemplate', {
       payload: {
@@ -131,6 +131,9 @@ class DataSourceRegistrationService extends Service {
       },
     });
 
+    cfnTemplate = result.cfnTemplate;
+    let templateStr = JSON.stringify(cfnTemplate.toJson()); // This one does not yet have the Outputs section
+
     // Prepare the account template information. The id of the template is actually the hash of the content
     // of the template
     const accountTemplateInfo = {
@@ -138,14 +141,22 @@ class DataSourceRegistrationService extends Service {
       region: mainRegion,
       accountId: id,
       created: stackCreated,
-      template: result.cfnTemplate.toJson(),
+      stackId,
     };
-    const templateStr = JSON.stringify(accountTemplateInfo.template);
 
     // The id of the template is actually the hash of the of the content of the template
     const hash = crypto.createHash('sha256');
     hash.update(templateStr);
-    accountTemplateInfo.id = hash.digest('hex');
+    const templateId = hash.digest('hex');
+    accountTemplateInfo.id = templateId;
+
+    // Now that we have a template id, we can declare the Outputs section in the template
+    cfnTemplate.addOutput(
+      'swbTemplateInfo',
+      JSON.stringify({ templateId, templateVer: '1.0', at: new Date().toISOString() }),
+    );
+    accountTemplateInfo.template = cfnTemplate.toJson();
+    templateStr = JSON.stringify(accountTemplateInfo.accountId.template);
 
     // Upload to S3
     const bucket = this.settings.get(settingKeys.envBootstrapBucket);
@@ -159,12 +170,16 @@ class DataSourceRegistrationService extends Service {
       .promise();
 
     // Sign the url
-    const request = { files: [{ key, bucket }], expireSeconds: 604800 /* seven days */ };
+    // expireSeconds: 604800 /* seven days */, if we need 7 days, we need to use a real IAM user credentials.
+    const request = { files: [{ key, bucket }] };
     const urls = await s3Service.sign(request);
     const signedUrl = urls[0].signedUrl;
 
     accountTemplateInfo.signedUrl = signedUrl;
     accountTemplateInfo.cfnConsoleUrl = getCfnConsoleUrl(accountTemplateInfo);
+
+    // Store the template id in the data source account entity
+    await accountService.updateStackInfo(requestContext, id, { templateIdExpected: templateId });
 
     // Write audit event
     await this.audit(requestContext, {
