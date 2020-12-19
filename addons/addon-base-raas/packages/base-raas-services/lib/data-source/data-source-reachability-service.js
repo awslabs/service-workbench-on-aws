@@ -66,11 +66,11 @@ class DataSourceReachabilityService extends Service {
     // Write audit event
     await this.audit(requestContext, {
       action: 'bulk-check-reachability',
-      body: { status, dsAccountIds },
+      body: { status, dsAccountIds, forceCheckAll },
     });
   }
 
-  async reachDsAccount(requestContext, { id, type }, { forceCheck = false } = {}) {
+  async reachDsAccount(requestContext, { id, type }, { forceCheckAll = false } = {}) {
     const accountService = await this.service('dataSourceAccountService');
     const dataSourceAccount = await accountService.mustFind(requestContext, { id });
 
@@ -99,7 +99,7 @@ class DataSourceReachabilityService extends Service {
 
     await accountService.updateStackInfo(requestContext, id, stackInfo);
 
-    if (prevStatus !== newStatus || forceCheck) {
+    if (prevStatus !== newStatus || forceCheckAll) {
       const workflowTriggerService = await this.service('workflowTriggerService');
       await workflowTriggerService.triggerWorkflow(
         requestContext,
