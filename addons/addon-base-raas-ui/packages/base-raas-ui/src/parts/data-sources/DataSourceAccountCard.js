@@ -19,7 +19,7 @@ import React from 'react';
 import { decorate, computed, observable, action, runInAction } from 'mobx';
 import { observer, inject, Observer } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
-import { Header, Tab, Label, Menu, Button } from 'semantic-ui-react';
+import { Header, Tab, Label, Menu, Button, Message } from 'semantic-ui-react';
 import TimeAgo from 'react-timeago';
 
 import { niceNumber, swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
@@ -105,7 +105,7 @@ class DataSourceAccountCard extends React.Component {
         {showPanel && (
           <AccountConnectionPanel account={account} operation={operation} onCancel={this.handleDismissPanel} />
         )}
-
+        {this.renderStackMismatch(account)}
         {this.renderTabs()}
       </div>
     );
@@ -162,6 +162,37 @@ class DataSourceAccountCard extends React.Component {
       <Label attached="top left" size="mini" color={state.color}>
         {state.display}
       </Label>
+    );
+  }
+
+  renderStackMismatch(account) {
+    const stackOutDated = account.stackOutDated;
+    const incorrectStackNameProvisioned = account.incorrectStackNameProvisioned;
+
+    if (!stackOutDated && !incorrectStackNameProvisioned) return null;
+
+    if (incorrectStackNameProvisioned) {
+      return (
+        <Message warning>
+          <Message.Header>Incorrect stack name</Message.Header>
+          <p>
+            It seems that the correct CloudFormation stack was deployed to AWS account <b>{account.id}</b> but with an
+            incorrect stack name. Please ensure that you have a CloudFormation stack named {account.stack} in the
+            account.
+          </p>
+        </Message>
+      );
+    }
+
+    return (
+      <Message warning>
+        <Message.Header>Stack is outdated</Message.Header>
+        <p>
+          It seems that the CloudFormation stack {account.stack} deployed to AWS account <b>{account.id}</b> is outdated
+          and does not contain the latest changes made. Please use the latest CloudFormation template to update the
+          stack.
+        </p>
+      </Message>
     );
   }
 }

@@ -27,7 +27,7 @@ const settingKeys = {
   swbMainAccount: 'mainAcct',
 };
 
-const getCfnConsoleUrl = accountTemplateInfo => {
+const getCreateStackUrl = accountTemplateInfo => {
   // see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-create-stacks-quick-create-links.html
   const { name, region, signedUrl } = accountTemplateInfo;
   const url = [
@@ -37,6 +37,26 @@ const getCfnConsoleUrl = accountTemplateInfo => {
   ].join('');
 
   return url;
+};
+
+const getUpdateStackUrl = accountTemplateInfo => {
+  const { stackId, region, signedUrl } = accountTemplateInfo;
+
+  if (_.isEmpty(stackId)) return undefined;
+
+  const url = [
+    `https://console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/update/template`,
+    `?stackId=${encodeURIComponent(stackId)}`,
+    `&templateURL=${encodeURIComponent(signedUrl)}`,
+  ].join('');
+
+  return url;
+};
+
+const getCfnHomeUrl = accountTemplateInfo => {
+  const { region } = accountTemplateInfo;
+
+  return `https://console.aws.amazon.com/cloudformation/home?region=${region}`;
 };
 
 class DataSourceRegistrationService extends Service {
@@ -156,7 +176,7 @@ class DataSourceRegistrationService extends Service {
       JSON.stringify({ templateId, templateVer: '1.0', at: new Date().toISOString() }),
     );
     accountTemplateInfo.template = cfnTemplate.toJson();
-    templateStr = JSON.stringify(accountTemplateInfo.accountId.template);
+    templateStr = JSON.stringify(accountTemplateInfo.template);
 
     // Upload to S3
     const bucket = this.settings.get(settingKeys.envBootstrapBucket);
@@ -171,12 +191,16 @@ class DataSourceRegistrationService extends Service {
 
     // Sign the url
     // expireSeconds: 604800 /* seven days */, if we need 7 days, we need to use a real IAM user credentials.
-    const request = { files: [{ key, bucket }] };
+    const expireSeconds = 12 * 60 * 60; // 12 hours
+    const request = { files: [{ key, bucket }], expireSeconds };
     const urls = await s3Service.sign(request);
     const signedUrl = urls[0].signedUrl;
 
     accountTemplateInfo.signedUrl = signedUrl;
-    accountTemplateInfo.cfnConsoleUrl = getCfnConsoleUrl(accountTemplateInfo);
+    accountTemplateInfo.createStackUrl = getCreateStackUrl(accountTemplateInfo);
+    accountTemplateInfo.updateStackUrl = getUpdateStackUrl(accountTemplateInfo);
+    accountTemplateInfo.cfnConsoleUrl = getCfnHomeUrl(accountTemplateInfo);
+    accountTemplateInfo.urlExpiry = Date.now() + expireSeconds * 1000;
 
     // Store the template id in the data source account entity
     await accountService.updateStackInfo(requestContext, id, { templateIdExpected: templateId });

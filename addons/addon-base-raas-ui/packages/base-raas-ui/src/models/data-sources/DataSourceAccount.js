@@ -133,6 +133,14 @@ const DataSourceAccount = types
 
       return info;
     },
+
+    get stackOutDated() {
+      return !_.isEmpty(self.stackId) && self.stackCreated && self.templateIdExpected !== self.templateIdFound;
+    },
+
+    get incorrectStackNameProvisioned() {
+      return _.isEmpty(self.stackId) && self.stackCreated;
+    },
   }));
 
 export { DataSourceAccount }; // eslint-disable-line import/prefer-default-export
