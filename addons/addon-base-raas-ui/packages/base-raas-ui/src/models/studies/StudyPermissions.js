@@ -43,9 +43,9 @@ const StudyPermissions = types
       self.updatedBy = raw.updatedBy;
     },
   }))
-  .views(_self => ({
-    get userTypes() {
-      return ['admin', 'readwrite', 'readonly'];
+  .views(self => ({
+    isStudyAdmin(uid) {
+      return self.adminUsers.some(adminUid => adminUid === uid);
     },
   }));
 

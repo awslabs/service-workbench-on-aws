@@ -526,7 +526,7 @@ class StudyService extends Service {
     }
 
     // Return result
-    return result;
+    return _.map(result, toStudyEntity);
   }
 
   async listStudiesForAccount(requestContext, { accountId }, fields = []) {
