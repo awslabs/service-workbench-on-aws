@@ -177,8 +177,8 @@ class DataSourceAccountCard extends React.Component {
           <Message.Header>Incorrect stack name</Message.Header>
           <p>
             It seems that the correct CloudFormation stack was deployed to AWS account <b>{account.id}</b> but with an
-            incorrect stack name. Please ensure that you have a CloudFormation stack named {account.stack} in the
-            account.
+            incorrect stack name. Please ensure that you have the latest CloudFormation template deployed with the stack
+            name {account.stack} in the account.
           </p>
         </Message>
       );
