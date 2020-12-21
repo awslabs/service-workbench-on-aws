@@ -98,6 +98,7 @@ class DataSourceReachabilityService extends Service {
       newStatus = 'error';
       statusMsg = `ERR|||Error getting information from data source account ${id}`;
     }
+
     if (prevStatus !== newStatus || forceCheck) {
       const workflowTriggerService = await this.service('workflowTriggerService');
       await workflowTriggerService.triggerWorkflow(
@@ -110,12 +111,16 @@ class DataSourceReachabilityService extends Service {
         },
       );
     }
+
     if (!_.isEmpty(unreachableAppRoles)) {
       statusMsg = `ERR|||Error getting information from ${unreachableAppRoles.length} application roles. 
       Please update the cloudformation template on data source account ${id}`;
     }
-    await accountService.updateStatus(requestContext, dataSourceAccount, { status: newStatus, statusMsg });
-    const outputVal = { status: newStatus, statusMsg };
+
+    const entity = await accountService.updateStatus(requestContext, dataSourceAccount, {
+      status: newStatus,
+      statusMsg,
+    });
 
     // Write audit event
     await this.audit(requestContext, {
@@ -123,7 +128,7 @@ class DataSourceReachabilityService extends Service {
       body: { id, type },
     });
 
-    return outputVal;
+    return entity;
   }
 
   async reachStudy(requestContext, { id, type }) {
@@ -149,8 +154,7 @@ class DataSourceReachabilityService extends Service {
       newStatus = 'error';
       statusMsg = `ERR|||Error getting information from study ${id}`;
     }
-    await studyService.updateStatus(requestContext, studyEntity, { status: newStatus, statusMsg });
-    const outputVal = { status: newStatus, statusMsg };
+    const entity = await studyService.updateStatus(requestContext, studyEntity, { status: newStatus, statusMsg });
 
     // Write audit event
     await this.audit(requestContext, {
@@ -158,7 +162,7 @@ class DataSourceReachabilityService extends Service {
       body: { id, type },
     });
 
-    return outputVal;
+    return entity;
   }
 
   async _getDsAccountsWithStatus(requestContext, status) {
@@ -236,6 +240,7 @@ class DataSourceReachabilityService extends Service {
     const id = requestBody.id;
     const type = requestBody.type;
     const status = requestBody.status;
+
     await accountService.assertAuthorized(
       requestContext,
       { action: 'update', conditions: [allowIfActive, allowIfAdmin] },
@@ -245,12 +250,15 @@ class DataSourceReachabilityService extends Service {
     if (!id) {
       throw this.boom.badRequest(`ID is undefined. Please enter a valid dsAccountId, studyId, or '*'`, true);
     }
+
     if (id === '*' && type) {
       throw this.boom.badRequest(`Cannot process type with wildcard id`, true);
     }
+
     if (id !== '*' && status) {
       throw this.boom.badRequest(`Can only process status with wildcard id`, true);
     }
+
     let outputVal;
 
     if (id === '*') {

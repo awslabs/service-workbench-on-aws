@@ -56,10 +56,6 @@ const BaseStore = types
         // Lets stop the heartbeat
         self.stopHeartbeat();
       },
-      beforeDetach: () => {
-        // Lets stop the heartbeat
-        console.log('===== calling stop stopheartbeat');
-      },
       load: (...args) => {
         if (loadingPromise) return loadingPromise;
 

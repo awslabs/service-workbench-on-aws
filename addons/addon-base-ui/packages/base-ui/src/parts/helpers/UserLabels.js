@@ -25,7 +25,7 @@ const UserLabels = props => {
     <div className={className}>
       {_.map(users, user => (
         <Label key={user.username} color={color} image className="mt1">
-          {user.firstName}
+          {user.firstName}&nbsp;
           {user.lastName}
           <Label.Detail>
             {user.unknown && `${user.username}??`}
