@@ -24,8 +24,8 @@ import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
 import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
 import ProgressPlaceHolder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 
-import InputSection from './InputSection';
-import SubmitSection from './SubmitSection';
+import InputStep from './InputStep';
+import SubmitStep from './SubmitStep';
 
 // expected props
 // - dataSourceAccountsStore (via injection)
@@ -77,8 +77,8 @@ class RegisterStudy extends React.Component {
 
   renderMain() {
     const wizard = this.wizard;
-    if (wizard.isInputPhase) return <InputSection inputPhase={wizard.inputPhase} />;
-    if (wizard.isSubmitPhase) return <SubmitSection submitPhase={wizard.submitPhase} />;
+    if (wizard.isInputStep) return <InputStep wizard={wizard} />;
+    if (wizard.isSubmitStep) return <SubmitStep wizard={wizard} />;
     return null;
   }
 

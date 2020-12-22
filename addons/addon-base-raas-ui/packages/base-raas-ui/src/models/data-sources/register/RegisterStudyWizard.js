@@ -13,45 +13,91 @@
  *  permissions and limitations under the License.
  */
 
-import { types } from 'mobx-state-tree';
+import _ from 'lodash';
+import { types, getEnv } from 'mobx-state-tree';
 
-import { InputPhase } from './InputPhase';
-import { SubmitPhase } from './SubmitPhase';
+import Operations from '../../operations/Operations';
+import RegisterAccountOperation from './operations/RegisterAccount';
 
 // ==================================================================
 // RegisterStudyWizard
 // ==================================================================
 const RegisterStudyWizard = types
   .model('RegisterStudyWizard', {
-    phase: types.maybe(types.reference(types.union(InputPhase, SubmitPhase))),
-    inputPhase: types.optional(InputPhase, {}),
-    submitPhase: types.optional(SubmitPhase, {}),
+    step: '',
   })
+
+  .volatile(_self => ({
+    operations: undefined,
+  }))
+
+  .actions(() => ({
+    // I had issues using runInAction from mobx
+    // the issue is discussed here https://github.com/mobxjs/mobx-state-tree/issues/915
+    runInAction(fn) {
+      return fn();
+    },
+  }))
+
   .actions(self => ({
     afterCreate: () => {
-      self.phase = self.inputPhase;
+      self.step = 'input';
+      self.operations = new Operations();
+    },
+
+    submit: async (formData = {}) => {
+      const providedAccount = formData.account || {};
+      const ops = self.operations;
+      const accountsStore = self.accountsStore;
+      const existingAccount = self.getAccount(providedAccount.id);
+
+      ops.clear();
+
+      if (!_.isEmpty(existingAccount)) {
+        ops.add(new RegisterAccountOperation({ account: providedAccount, accountsStore }));
+      }
+
+      self.step = 'submit';
+      await ops.run();
+    },
+
+    retry: async () => {
+      self.step = 'submit';
+      await self.operations.rerun();
     },
 
     reset: () => {
       self.cleanup();
-      self.phase = self.inputPhase;
     },
 
     cleanup: () => {
-      self.phase = undefined;
-      self.inputPhase.cleanup();
-      self.submitPhase.cleanup();
+      self.step = 'input';
+      if (self.operations) self.operations.clear();
     },
   }))
 
   // eslint-disable-next-line no-unused-vars
   .views(self => ({
-    get isInputPhase() {
-      return self.phase.id === self.inputPhase.id;
+    get isInputStep() {
+      return self.step === 'input';
     },
 
-    get isSubmitPhase() {
-      return self.phase.id === self.submitPhase.id;
+    get isSubmitStep() {
+      return self.step === 'submit';
+    },
+
+    get dropdownAccountOptions() {
+      const accountsStore = getEnv(self).dataSourceAccountsStore;
+
+      return accountsStore.dropdownOptions;
+    },
+
+    get accountsStore() {
+      return getEnv(self).dataSourceAccountsStore;
+    },
+
+    getAccount(id) {
+      return self.accountsStore.getAccount(id);
     },
   }));
 

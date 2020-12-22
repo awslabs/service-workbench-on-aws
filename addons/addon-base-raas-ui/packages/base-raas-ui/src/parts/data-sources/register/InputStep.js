@@ -20,17 +20,21 @@ import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Button, Segment, Header, Divider } from 'semantic-ui-react';
 
+import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
 import Form from '@aws-ee/base-ui/dist/parts/helpers/fields/Form';
 import DropDown from '@aws-ee/base-ui/dist/parts/helpers/fields/DropDown';
 import Input from '@aws-ee/base-ui/dist/parts/helpers/fields/Input';
 import TextArea from '@aws-ee/base-ui/dist/parts/helpers/fields/TextArea';
+import SelectionButtons from '@aws-ee/base-ui/dist/parts/helpers/fields/SelectionButtons';
 import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
 
+import { regionOptions } from '../../../models/constants/aws-regions';
+import { encryptionOptions } from '../../../models/constants/bucket';
 import { getRegisterStudyForm } from '../../../models/forms/RegisterStudyForm';
 
 // expected props
-// - inputPhase (via prop)
-class InputSection extends React.Component {
+// - wizard (via prop)
+class InputStep extends React.Component {
   constructor(props) {
     super(props);
     runInAction(() => {
@@ -38,17 +42,13 @@ class InputSection extends React.Component {
     });
   }
 
-  get inputPhase() {
-    return this.props.inputPhase;
-  }
-
   get wizard() {
-    return this.inputPhase.wizard;
+    return this.props.wizard;
   }
 
   handleSave = async form => {
     const data = form.values();
-    console.log(data);
+    swallowError(this.wizard.submit(data));
   };
 
   handleCancel = () => {
@@ -78,27 +78,42 @@ class InputSection extends React.Component {
 
   renderForm() {
     const form = this.form;
-    const [account, studies] = this.getFields(['account', 'studies']);
-    // const showBucketSection =
-    console.log(account.$('id').isValid);
-    console.log(account.$('id').value);
+    const accountOptions = this.wizard.dropdownAccountOptions;
+    const [account, bucket, studies] = this.getFields(['account', 'bucket', 'studies']);
+    const accountIdValid = account.$('id').isValid;
 
     return (
       <Form form={form} onCancel={this.handleCancel} onSuccess={this.handleSave}>
         {({ processing, /* onSubmit, */ onCancel }) => (
           <>
-            <DropDown
-              field={account.$('id')}
-              disabled={processing}
-              search
-              selection
-              fluid
-              allowAdditions
-              clearable
-              className="mb3 mt3"
-            />
+            <div className="clearfix">
+              <DropDown
+                field={account.$('id')}
+                disabled={processing}
+                options={accountOptions}
+                search
+                selection
+                fluid
+                allowAdditions
+                clearable
+                additionLabel=""
+                className="mb3 mt3 col col-6 pr2"
+              />
+              <DropDown
+                field={account.$('mainRegion')}
+                disabled={processing}
+                options={regionOptions}
+                search
+                selection
+                fluid
+                className="mb3 mt3 col col-6 pl2"
+              />
+            </div>
             <Input field={account.$('name')} className="mb3" />
             <TextArea field={account.$('contactInfo')} />
+
+            <SelectionButtons field={bucket.$('sse')} show="headerOnly" className="mb0" />
+            <SelectionButtons field={bucket.$('sse')} options={encryptionOptions} show="buttonsOnly" className="mb3" />
 
             {/* {studies.map(field => (
               <React.Fragment key={field.key}>
@@ -123,8 +138,10 @@ class InputSection extends React.Component {
               floated="right"
               className="ml2"
               primary
+              icon="right arrow"
+              labelPosition="right"
               content="Save &amp; Continue"
-              disabled={processing}
+              disabled={processing || !accountIdValid}
               type="submit"
             />
             <Button floated="right" className="ml2" content="Cancel" disabled={processing} onClick={onCancel} />
@@ -136,12 +153,11 @@ class InputSection extends React.Component {
 }
 
 // see https://medium.com/@mweststrate/mobx-4-better-simpler-faster-smaller-c1fbc08008da
-decorate(InputSection, {
+decorate(InputStep, {
   handleCancel: action,
   handleSave: action,
-  inputPhase: computed,
   wizard: computed,
   form: observable,
 });
 
-export default inject()(withRouter(observer(InputSection)));
+export default inject()(withRouter(observer(InputStep)));

@@ -14,12 +14,19 @@
  */
 
 import _ from 'lodash';
+import React from 'react';
+import { Header } from 'semantic-ui-react';
 import { values } from 'mobx';
 import { types } from 'mobx-state-tree';
 import { consolidateToMap } from '@aws-ee/base-ui/dist/helpers/utils';
 import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
 
-import { getDataSourceAccounts, checkStudyReachability, checkAccountReachability } from '../../helpers/api';
+import {
+  getDataSourceAccounts,
+  checkStudyReachability,
+  checkAccountReachability,
+  registerAccount,
+} from '../../helpers/api';
 import { DataSourceAccount } from './DataSourceAccount';
 import { DataSourceAccountStore } from './DataSourceAccountStore';
 
@@ -69,6 +76,13 @@ const DataSourceAccountsStore = BaseStore.named('DataSourceAccountsStore')
         return entry;
       },
 
+      async registerAccount(account) {
+        const newAccount = await registerAccount(account);
+        self.addAccount(newAccount);
+
+        return self.getAccount(account.id);
+      },
+
       async checkAccountReachability(accountId) {
         const accountEntity = await checkAccountReachability(accountId);
         const account = self.getAccount(accountId);
@@ -105,6 +119,23 @@ const DataSourceAccountsStore = BaseStore.named('DataSourceAccountsStore')
 
     getAccount(id) {
       return self.accounts.get(id);
+    },
+
+    get dropdownOptions() {
+      const result = _.map(values(self.accounts), account => ({
+        key: account.id,
+        value: account.id,
+        text: account.id,
+        content: (
+          <Header
+            as="h5"
+            content={account.id}
+            subheader={`${account.name}${account.hosting ? ' (Hosting Account)' : ''}`}
+          />
+        ),
+      }));
+
+      return result;
     },
   }));
 

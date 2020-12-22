@@ -64,7 +64,7 @@ const Operation = types
       return self.state === 'processing';
     },
     get completed() {
-      return self.state === 'loading';
+      return self.state === 'completed';
     },
     get hasError() {
       return !!self.error;

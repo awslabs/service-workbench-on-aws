@@ -304,6 +304,12 @@ function checkStudyReachability(studyId) {
   });
 }
 
+function registerAccount(account) {
+  return httpApiPost('api/data-sources/accounts', {
+    data: account,
+  });
+}
+
 export {
   addIndex,
   addUsers,
@@ -368,4 +374,5 @@ export {
   getDataSourceStudies,
   checkStudyReachability,
   checkAccountReachability,
+  registerAccount,
 };

@@ -13,26 +13,21 @@
  *  permissions and limitations under the License.
  */
 
-import { types, getParent } from 'mobx-state-tree';
+/* eslint-disable import/prefer-default-export */
 
-// ==================================================================
-// SubmitPhase
-// ==================================================================
-const SubmitPhase = types
-  .model('SubmitPhase', {
-    id: types.optional(types.identifier, 'submittingRequest'),
-  })
-  .actions(self => ({
-    cleanup: () => {
-      // TODO
-    },
-  }))
+const encryptionOptions = [
+  {
+    text: 'AWS Key Management Service key (SSE-KMS)',
+    value: 'kms',
+  },
+  {
+    text: 'Amazon S3 key (SSE-S3)',
+    value: 's3',
+  },
+  {
+    text: 'Disabled',
+    value: 'none',
+  },
+];
 
-  .views(self => ({
-    get wizard() {
-      return getParent(self);
-    },
-  }));
-
-// eslint-disable-next-line import/prefer-default-export
-export { SubmitPhase };
+export { encryptionOptions };

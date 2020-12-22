@@ -21,6 +21,10 @@ function getRegisterStudyForm() {
     'account.name',
     'account.description',
     'account.contactInfo',
+    'account.mainRegion',
+    'bucket.name',
+    'bucket.region',
+    'bucket.sse',
     'studies',
     'studies[].id',
     'studies[].name',
@@ -31,6 +35,10 @@ function getRegisterStudyForm() {
     'account.id': 'AWS Account ID',
     'account.name': 'Account Name',
     'account.contactInfo': 'Contact Information',
+    'account.mainRegion': 'Region',
+    'bucket.name': 'Bucket Name',
+    'bucket.region': 'Bucket Region',
+    'bucket.sse': 'Bucket Default Encryption',
     'studies': 'Studies',
     'studies[].id': 'Study Id',
     'studies[].name': 'Study Name',
@@ -42,6 +50,10 @@ function getRegisterStudyForm() {
     'account.name': 'Give a name to this account. This is for UI display purposes only',
     'account.contactInfo':
       '(Optional) Type the contact information for the admins of this account. This information is purely for your convenience and it does not have any impact on the registration process.',
+    'account.mainRegion': 'Pick a region that you intend to deploy the CloudFormation stack in',
+    'bucket.name': 'The name of the bucket',
+    'bucket.region': 'Pick the bucket region',
+    'bucket.sse': 'Bucket encryption',
   };
 
   const extra = {
@@ -52,7 +64,11 @@ function getRegisterStudyForm() {
 
   const rules = {
     'account.id': 'required|min:12|max:12|regex:/^[0-9]+$/',
-    'account.name': 'max:300',
+    'account.name': 'required|max:300',
+    'account.mainRegion': 'required',
+    'bucket.name': 'required',
+    'bucket.region': 'required',
+    'bucket.sse': 'required',
     'studies[].name': 'required',
   };
 
