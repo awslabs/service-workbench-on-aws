@@ -323,12 +323,6 @@ class FilesystemRoleService extends Service {
     // If it is not found then we have done the deallocation logic already
     if (_.isUndefined(fsRoleEntity)) return;
 
-    // If we don't have the study in the fs role entity then we have done the deallocation logic already
-    if (!hasStudy(fsRoleEntity, studyEntity)) return;
-
-    // Do we have the member account listed in the trust document?
-    if (!hasMemberAccount(fsRoleEntity, memberAccountId)) return;
-
     // Remove the environment usage for the study
     let usage = await usageService.removeUsage(requestContext, {
       resource: studyResourceId,
@@ -336,7 +330,7 @@ class FilesystemRoleService extends Service {
       item: envId,
     });
 
-    if (!usage.removed || !_.isEmpty(usage.items)) {
+    if (!_.isEmpty(usage.items)) {
       // This means that there are still other environments in the same member account that are actively using the
       // study, so there is nothing to do at this time
       return;
@@ -350,7 +344,6 @@ class FilesystemRoleService extends Service {
       // We can only update the trust policy if it still has principals (accounts)
       await this.updateAssumeRolePolicy(fsRoleEntity);
     }
-
     // Update the database
     fsRoleEntity = await this.saveEntity(requestContext, fsRoleEntity);
 
@@ -378,10 +371,8 @@ class FilesystemRoleService extends Service {
       return;
     }
 
-    if (usage.removed) {
-      // Delete the role from the data source account
-      await this.deprovisionRole(fsRoleEntity);
-    }
+    // Delete the role from the data source account
+    await this.deprovisionRole(fsRoleEntity);
 
     // Delete the entity from the database
     await this._deleter()

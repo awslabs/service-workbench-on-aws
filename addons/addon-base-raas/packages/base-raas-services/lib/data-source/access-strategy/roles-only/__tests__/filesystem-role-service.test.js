@@ -359,5 +359,124 @@ describe('DataSourceBucketService', () => {
       expect(service.deprovisionRole).not.toHaveBeenCalled();
       expect(deleteObj.delete).not.toHaveBeenCalled();
     });
+
+    it('Role delete retry after unsuccessful delete attempt - deprovisionRole idempotency', async () => {
+      // BUILD
+      const requestContext = createAdminContext();
+      const study = createStudy();
+      const env = { id: 'env-1' };
+      const memberAcct = '1234456789012';
+      const arn = 'fs-role-arn';
+      const fsRoleEntity = {
+        arn,
+        studies: {
+          'study-1': {
+            accessType: 'readwrite',
+            envPermission: { read: true, write: true },
+            folder: '/',
+            kmsArn: undefined,
+            kmsScope: 'none',
+          },
+        },
+        trust: [memberAcct],
+      };
+      usageService.removeUsage = jest.fn(_rq => {
+        return Promise.resolve({ items: [], removed: true });
+      });
+
+      service.saveEntity = jest.fn((_rq, entity) => {
+        return Promise.resolve(entity);
+      });
+      service.find = jest.fn().mockResolvedValue(fsRoleEntity);
+      const deleteObj = {
+        key: () => {
+          return deleteObj;
+        },
+        delete: jest.fn(),
+      };
+      service._deleter = jest.fn().mockReturnValue(deleteObj);
+
+      // EXECUTE
+
+      // Attempt #1 (Unsuccessful)
+      const error = new Error('Some error during deleting IAM role');
+      error.boom = true;
+      error.safe = true;
+      service.deprovisionRole = jest.fn(async () => {
+        return Promise.reject(error);
+      });
+      await expect(service.deallocateRole(requestContext, arn, study, env, memberAcct)).rejects.toThrow(error);
+
+      // Attempt #2 (Successful)
+      service.deprovisionRole = jest.fn();
+      await expect(service.find()).resolves.toStrictEqual({ arn: 'fs-role-arn', studies: {}, trust: [] }); // DB has updated entity during previous attempt
+      await service.deallocateRole(requestContext, arn, study, env, memberAcct);
+
+      // CHECK
+      expect(usageService.removeUsage).toHaveBeenCalledTimes(4);
+      expect(service.saveEntity).toHaveBeenCalledTimes(4);
+      expect(deleteObj.delete).toHaveBeenCalledTimes(1); // Only called during the successful attempt
+    });
+
+    it('Role policy retry after unsuccessful update attempt - updateAssumeRolePolicy idempotency', async () => {
+      // BUILD
+      const requestContext = createAdminContext();
+      const study = createStudy();
+      const env = { id: 'env-1' };
+      const memberAcct = '1234456789012';
+      const arn = 'fs-role-arn';
+      const fsRoleEntity = {
+        arn,
+        studies: {
+          'study-1': {
+            accessType: 'readwrite',
+            envPermission: { read: true, write: true },
+            folder: '/',
+            kmsArn: undefined,
+            kmsScope: 'none',
+          },
+        },
+        trust: [memberAcct, '3333333'],
+      };
+      const fsRoleEntityTrustRemoved = fsRoleEntity;
+      fsRoleEntityTrustRemoved.trust = ['3333333'];
+      service.deprovisionRole = jest.fn();
+      usageService.removeUsage = jest.fn(_rq => {
+        return Promise.resolve({ items: [], removed: true });
+      });
+
+      service.saveEntity = jest.fn((_rq, entity) => {
+        return Promise.resolve(entity);
+      });
+      service.find = jest.fn().mockResolvedValue(fsRoleEntity);
+      const deleteObj = {
+        key: () => {
+          return deleteObj;
+        },
+        delete: jest.fn(),
+      };
+      service._deleter = jest.fn().mockReturnValue(deleteObj);
+
+      // EXECUTE
+
+      // Attempt #1 (Unsuccessful)
+      const error = new Error('Some error during updating IAM role policy');
+      error.boom = true;
+      error.safe = true;
+      service.updateAssumeRolePolicy = jest.fn(async () => {
+        return Promise.reject(error);
+      });
+      await expect(service.deallocateRole(requestContext, arn, study, env, memberAcct)).rejects.toThrow(error);
+
+      // Attempt #2 (Successful)
+      service.updateAssumeRolePolicy = jest.fn();
+      await expect(service.find()).resolves.toStrictEqual(fsRoleEntityTrustRemoved); // DB has updated entity during previous attempt
+      await service.deallocateRole(requestContext, arn, study, env, memberAcct);
+
+      // CHECK
+      expect(usageService.removeUsage).toHaveBeenCalledTimes(2);
+      expect(deleteObj.delete).not.toHaveBeenCalled();
+      expect(service.saveEntity).toHaveBeenCalledTimes(1); // Only called during the successful attempt
+    });
   });
 });
