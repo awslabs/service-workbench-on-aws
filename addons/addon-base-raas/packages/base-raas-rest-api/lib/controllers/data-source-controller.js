@@ -13,8 +13,6 @@
  *  permissions and limitations under the License.
  */
 
-// const _ = require('lodash');
-
 async function configure(context) {
   const router = context.router();
   const wrap = context.wrap;
@@ -34,7 +32,7 @@ async function configure(context) {
   );
 
   // ===============================================================
-  //  POST /accounts/ops (mounted to /api/data-sources)
+  //  POST /accounts/ops/reachability (mounted to /api/data-sources)
   // ===============================================================
   router.post(
     '/accounts/ops/reachability',
@@ -124,6 +122,21 @@ async function configure(context) {
       const result = await service.createAccountCfn(requestContext, accountId);
 
       res.status(201).json(result);
+    }),
+  );
+
+  // ===============================================================
+  //  GET /accounts/:id/studies (mounted to /api/data-sources)
+  // ===============================================================
+  router.get(
+    '/accounts/:id/studies',
+    wrap(async (req, res) => {
+      const accountId = req.params.id;
+      const requestContext = res.locals.requestContext;
+      const service = await context.service('studyService');
+      const result = await service.listStudiesForAccount(requestContext, { accountId });
+
+      res.status(200).json(result);
     }),
   );
 

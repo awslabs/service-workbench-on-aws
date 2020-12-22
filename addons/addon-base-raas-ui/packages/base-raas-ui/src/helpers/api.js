@@ -284,7 +284,25 @@ function getWindowsRpInfo(envId, connectionId) {
   return httpApiGet(`api/workspaces/service-catalog/${envId}/connections/${connectionId}/windows-rdp-info`);
 }
 
-// API Functions Insertion Point (do not change this text, it is being used by hygen cli)
+function getDataSourceAccounts() {
+  return httpApiGet(`api/data-sources/accounts/`);
+}
+
+function getDataSourceStudies(accountId) {
+  return httpApiGet(`api/data-sources/accounts/${accountId}/studies`);
+}
+
+function checkAccountReachability(accountId) {
+  return httpApiPost('api/data-sources/accounts/ops/reachability', {
+    data: { id: accountId, type: 'dsAccount' },
+  });
+}
+
+function checkStudyReachability(studyId) {
+  return httpApiPost('api/data-sources/accounts/ops/reachability', {
+    data: { id: studyId, type: 'study' },
+  });
+}
 
 export {
   addIndex,
@@ -346,4 +364,8 @@ export {
   getScEnvironmentConnections,
   sendSshKey,
   getWindowsRpInfo,
+  getDataSourceAccounts,
+  getDataSourceStudies,
+  checkStudyReachability,
+  checkAccountReachability,
 };

@@ -57,28 +57,28 @@ async function provideEnvRolePolicy(payload) {
   const { requestContext, container, environmentScEntity, studies, policyDoc, memberAccountId } = payload;
 
   const resourceService = await container.find('legacy/environmentResourceService');
-  await resourceService.provideEnvRolePolicy(requestContext, {
+  const updatedPolicyDoc = await resourceService.provideEnvRolePolicy(requestContext, {
     environmentScEntity,
     studies,
     policyDoc,
     memberAccountId,
   });
 
-  return payload;
+  return { ...payload, policyDoc: updatedPolicyDoc };
 }
 
 async function provideStudyMount(payload) {
   const { requestContext, container, environmentScEntity, studies, s3Mounts, memberAccountId } = payload;
 
   const resourceService = await container.find('legacy/environmentResourceService');
-  await resourceService.provideStudyMount(requestContext, {
+  const updatedS3Mounts = await resourceService.provideStudyMount(requestContext, {
     environmentScEntity,
     studies,
     s3Mounts,
     memberAccountId,
   });
 
-  return payload;
+  return { ...payload, s3Mounts: updatedS3Mounts };
 }
 
 const plugin = {

@@ -428,9 +428,9 @@ class FilesystemRoleService extends Service {
       AssumeRolePolicyDocument: JSON.stringify(trustPolicyDoc),
       RoleName: name,
       Description: 'A filesystem role that allows access to studies',
-      // 12 hours see
+      // 1 hour see
       // https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-iam-role.html#cfn-iam-role-maxsessionduration
-      MaxSessionDuration: 43200,
+      MaxSessionDuration: 3600,
       PermissionsBoundary: boundaryPolicyArn,
     };
 

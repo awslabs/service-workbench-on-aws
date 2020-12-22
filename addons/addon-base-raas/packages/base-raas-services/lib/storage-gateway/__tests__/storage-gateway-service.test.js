@@ -771,9 +771,9 @@ describe('storageGatewayService', () => {
         expect(err.message).toContain('Could not obtain a lock');
       }
     });
-    it('should ADD ip address succesfully', async () => {
+    it('should ADD ip address successfully', async () => {
       // BUILD
-      lockService.tryWriteLockAndRun.mockImplementation(async ({ id } = {}, fn) => {
+      lockService.tryWriteLockAndRun.mockImplementation(async (_ignore, fn) => {
         await fn();
       });
       let count = 0;

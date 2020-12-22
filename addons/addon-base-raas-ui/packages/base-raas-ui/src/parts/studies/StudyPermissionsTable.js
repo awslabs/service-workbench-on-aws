@@ -42,6 +42,10 @@ class StudyPermissionsTable extends React.Component {
     });
   }
 
+  get study() {
+    return this.props.study;
+  }
+
   componentDidMount() {
     swallowError(this.permissionsStore.load());
     this.permissionsStore.startHeartbeat();
@@ -53,7 +57,7 @@ class StudyPermissionsTable extends React.Component {
 
   enableEditMode = () => {
     // Set users who currently have permission to the study as the selected users
-    this.permissionsStore.studyPermissions.userTypes.forEach(userType => {
+    this.study.userTypes.forEach(userType => {
       this.selectedUserIds[userType] = this.permissionsStore.studyPermissions[`${userType}Users`];
     });
 
@@ -103,7 +107,7 @@ class StudyPermissionsTable extends React.Component {
 
   renderTable() {
     const studyPermissions = this.permissionsStore.studyPermissions;
-    const isEditable = studyPermissions.adminUsers.some(uid => uid === this.currUser.uid);
+    const isEditable = studyPermissions.isStudyAdmin(this.currUser.uid) && this.study.state.canChangePermission;
 
     return (
       <>
@@ -125,7 +129,7 @@ class StudyPermissionsTable extends React.Component {
             </Table.Header>
 
             <Table.Body>
-              {this.permissionsStore.studyPermissions.userTypes.map(userType => {
+              {this.study.userTypes.map(userType => {
                 const uids = studyPermissions[`${userType}Users`];
                 const userIdentifiers = _.map(uids, uid => ({ uid }));
                 const users = this.usersStore.asUserObjects(userIdentifiers);
