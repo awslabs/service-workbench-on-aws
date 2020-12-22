@@ -281,7 +281,7 @@ class FilesystemRoleService extends Service {
    * @param environmentEntity The environment entity that was using the filesystem role
    */
   async deallocateRole(requestContext, fsRoleArn, studyEntity = {}, environmentEntity = {}, memberAccountId = '') {
-    // Allocating a filesystem role is only applicable for bucket with access = 'roles'
+    // Deallocating a filesystem role is only applicable for bucket with access = 'roles'
     if (studyEntity.bucketAccess !== 'roles') return;
 
     if (_.isUndefined(memberAccountId))

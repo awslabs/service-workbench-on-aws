@@ -235,6 +235,106 @@ describe('DataSourceBucketService', () => {
       );
       expect(service.provisionRole).not.toHaveBeenCalled();
     });
+
+    it('when allocating role check updateAssumeRolePolicy idempotency', async () => {
+      // BUILD
+      const requestContext = createAdminContext();
+      const study = createStudy();
+      const appRole = createAppRole();
+      const env = {};
+      const memberAcct = '1234456789012';
+      const fsRoleEntity = {
+        arn: 'fs-role-arn',
+        studies: {
+          'study-1': {
+            accessType: 'readwrite',
+            envPermission: { read: true, write: true },
+            folder: '/',
+            kmsArn: undefined,
+            kmsScope: 'none',
+          },
+        },
+        trust: ['3333333'],
+      };
+      const initialValue = JSON.parse(JSON.stringify(fsRoleEntity)); // Deep copy
+      appRoleService.mustFind = jest.fn((_rq, { arn }) => {
+        if (arn === appRole.arn) return Promise.resolve(appRole);
+        return Promise.resolve();
+      });
+      usageService.getResourceUsage = jest.fn((_rq, { setName }) => {
+        return Promise.resolve({ [setName]: [fsRoleEntity.arn] });
+      });
+      usageService.addUsage = jest.fn();
+      service.provisionRole = jest.fn();
+      service.saveEntity = jest.fn((_rq, entity) => {
+        return Promise.resolve(entity);
+      });
+      service.find = jest.fn().mockResolvedValue(fsRoleEntity);
+
+      // EXECUTE
+
+      // Attempt #1 (Unsuccessful)
+      const error = new Error('Some error during updating IAM role policy');
+      error.boom = true;
+      error.safe = true;
+      service.updateAssumeRolePolicy = jest.fn(async () => {
+        return Promise.reject(error);
+      });
+      await expect(service.allocateRole(requestContext, study, env, memberAcct)).rejects.toThrow(error);
+
+      // Attempt #2 (Successful)
+      service.updateAssumeRolePolicy = jest.fn();
+      service.find = jest.fn().mockResolvedValue(initialValue);
+      await service.allocateRole(requestContext, study, env, memberAcct);
+
+      // CHECK
+      expect(service.provisionRole).not.toHaveBeenCalled();
+      // Called only during successful attempt
+      expect(usageService.addUsage).toHaveBeenCalledTimes(1);
+      expect(service.saveEntity).toHaveBeenCalledTimes(1);
+    });
+
+    it('when allocating role check provisionRole idempotency', async () => {
+      // BUILD
+      const requestContext = createAdminContext();
+      const study = createStudy();
+      const appRole = createAppRole();
+      const env = {};
+      const memberAcct = '1234456789012';
+
+      appRoleService.mustFind = jest.fn((_rq, { arn }) => {
+        if (arn === appRole.arn) return Promise.resolve(appRole);
+        return Promise.resolve();
+      });
+      usageService.getResourceUsage = jest.fn((_rq, { setName }) => {
+        return Promise.resolve({ [setName]: [] });
+      });
+      usageService.addUsage = jest.fn();
+      service.updateAssumeRolePolicy = jest.fn();
+      service.saveEntity = jest.fn((_rq, entity) => {
+        return Promise.resolve(entity);
+      });
+
+      // EXECUTE
+
+      // Attempt #1 (Unsuccessful)
+      const error = new Error('Some error during provisioning IAM role');
+      error.boom = true;
+      error.safe = true;
+      service.provisionRole = jest.fn(async () => {
+        return Promise.reject(error);
+      });
+      await expect(service.allocateRole(requestContext, study, env, memberAcct)).rejects.toThrow(error);
+
+      // Attempt #2 (Successful)
+      service.provisionRole = jest.fn();
+      await service.allocateRole(requestContext, study, env, memberAcct);
+
+      // CHECK
+      // Called only during successful attempt
+      expect(usageService.addUsage).toHaveBeenCalledTimes(2);
+      expect(service.saveEntity).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('when de-allocating a role', () => {
