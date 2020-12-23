@@ -550,8 +550,6 @@ describe('DataSourceBucketService', () => {
         },
         trust: [memberAcct, '3333333'],
       };
-      const fsRoleEntityTrustRemoved = fsRoleEntity;
-      fsRoleEntityTrustRemoved.trust = ['3333333'];
       service.deprovisionRole = jest.fn();
       usageService.removeUsage = jest.fn(_rq => {
         return Promise.resolve({ items: [], removed: true });
@@ -587,13 +585,51 @@ describe('DataSourceBucketService', () => {
 
       // Attempt #2 (Successful)
       service.updateAssumeRolePolicy = jest.fn();
-      await expect(service.find()).resolves.toStrictEqual(fsRoleEntityTrustRemoved); // DB has updated entity during previous attempt
       await service.deallocateRole(requestContext, arn, study, env, memberAcct);
 
       // CHECK (Attempt #2)
       expect(usageService.removeUsage).toHaveBeenCalledTimes(2);
-      expect(deleteObj.delete).not.toHaveBeenCalled();
+      expect(deleteObj.delete).not.toHaveBeenCalled(); // There are still other accounts linked
       expect(service.saveEntity).toHaveBeenCalledTimes(1);
+    });
+
+    it('Delete role policy with missing study and account trust', async () => {
+      // BUILD
+      const requestContext = createAdminContext();
+      const study = createStudy();
+      const env = { id: 'env-1' };
+      const memberAcct = '1234456789012';
+      const arn = 'fs-role-arn';
+      const fsRoleEntity = {
+        arn,
+        studies: {},
+        trust: [],
+      };
+      service.updateAssumeRolePolicy = jest.fn();
+      service.deprovisionRole = jest.fn();
+      usageService.removeUsage = jest.fn(_rq => {
+        return Promise.resolve({ items: [], removed: true });
+      });
+
+      service.saveEntity = jest.fn((_rq, entity) => {
+        return Promise.resolve(entity);
+      });
+      service.find = jest.fn().mockResolvedValue(fsRoleEntity);
+      const deleteObj = {
+        key: () => {
+          return deleteObj;
+        },
+        delete: jest.fn(),
+      };
+      service._deleter = jest.fn().mockReturnValue(deleteObj);
+
+      // EXECUTE
+      // Attempt
+      await service.deallocateRole(requestContext, arn, study, env, memberAcct);
+
+      // CHECK
+      expect(deleteObj.delete).toHaveBeenCalledTimes(1);
+      expect(service.deprovisionRole).toHaveBeenCalledTimes(1);
     });
   });
 });

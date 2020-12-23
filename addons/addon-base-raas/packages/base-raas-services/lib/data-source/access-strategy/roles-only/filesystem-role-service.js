@@ -282,7 +282,7 @@ class FilesystemRoleService extends Service {
    */
   async deallocateRole(requestContext, fsRoleArn, studyEntity = {}, environmentEntity = {}, memberAccountId = '') {
     // Deallocating a filesystem role is only applicable for bucket with access = 'roles'
-    if (studyEntity.bucketAccess !== 'roles') return;
+    if (!_.isUndefined(studyEntity) && studyEntity.bucketAccess !== 'roles') return;
 
     if (_.isUndefined(memberAccountId))
       throw this.boom.badRequest('A member account id is required before de-allocating a filesystem role', true);
@@ -477,31 +477,37 @@ class FilesystemRoleService extends Service {
   async deprovisionRole(fsRoleEntity) {
     const { name } = fsRoleEntity;
     const iamClient = await this.getIamClient(fsRoleEntity.appRoleArn, '');
+    try {
+      // We need to delete the inline policy before we can delete the role
+      let params = {
+        PolicyName: 'StudyS3AccessPolicy',
+        RoleName: name,
+      };
+      await iamClient.deleteRolePolicy(params).promise();
 
-    // We need to delete the inline policy before we can delete the role
-    let params = {
-      PolicyName: 'StudyS3AccessPolicy',
-      RoleName: name,
-    };
-    await iamClient.deleteRolePolicy(params).promise();
+      // We need to account for eventual consistency constraints, we can't assume that inline policy was immediately
+      // deleted. If we try to delete the role right away, we might get an exception that the role still has an
+      // inline policy. Therefore, we attempt to delete the role using a retry logic.
 
-    // We need to account for eventual consistency constraints, we can't assume that inline policy was immediately
-    // deleted. If we try to delete the role right away, we might get an exception that the role still has an
-    // inline policy. Therefore, we attempt to delete the role using a retry logic.
+      // Lets wait for 0.5 second
+      await sleep(500);
 
-    // Lets wait for 0.5 second
-    await sleep(500);
+      params = {
+        RoleName: name,
+      };
 
-    params = {
-      RoleName: name,
-    };
+      const deleteRole = () => {
+        return iamClient.deleteRole(params).promise();
+      };
 
-    const deleteRole = () => {
-      return iamClient.deleteRole(params).promise();
-    };
-
-    // Retry 5 times using an exponential interval
-    await retry(deleteRole, 5);
+      // Retry 5 times using an exponential interval
+      await retry(deleteRole, 5);
+    } catch (err) {
+      // If role doesn't exist, then it must have already deleted.
+      if (err.code !== 'NoSuchEntity') {
+        throw this.boom.internalError(`There was a problem deprovisioning the role. Error: ${err}`);
+      }
+    }
   }
 
   // @private
