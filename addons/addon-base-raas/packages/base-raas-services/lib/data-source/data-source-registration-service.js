@@ -13,10 +13,31 @@
  *  permissions and limitations under the License.
  */
 
-// const _ = require('lodash');
+const _ = require('lodash');
+const crypto = require('crypto');
 const Service = require('@aws-ee/base-services-container/lib/service');
 
+const { CfnTemplate } = require('../helpers/cfn-template');
+const { toAppStackCfnResource } = require('./helpers/app-stack-cfn-resource');
+
 const extensionPoint = 'study-access-strategy';
+
+const settingKeys = {
+  envBootstrapBucket: 'envBootstrapBucketName',
+  swbMainAccount: 'mainAcct',
+};
+
+const getCfnConsoleUrl = accountTemplateInfo => {
+  // see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-create-stacks-quick-create-links.html
+  const { name, region, signedUrl } = accountTemplateInfo;
+  const url = [
+    `https://console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/create/review/`,
+    `?templateURL=${encodeURIComponent(signedUrl)}`,
+    `&stackName=${name}`,
+  ].join('');
+
+  return url;
+};
 
 class DataSourceRegistrationService extends Service {
   constructor() {
@@ -26,8 +47,9 @@ class DataSourceRegistrationService extends Service {
       'dataSourceAccountService',
       'dataSourceBucketService',
       'studyService',
-      'studyPermissionService',
       'pluginRegistryService',
+      'lockService',
+      's3Service',
     ]);
   }
 
@@ -47,27 +69,35 @@ class DataSourceRegistrationService extends Service {
   }
 
   async registerStudy(requestContext, accountId, bucketName, rawStudyEntity) {
-    const [accountService, bucketService, studyService] = await this.service([
+    const [accountService, bucketService, studyService, lockService] = await this.service([
       'dataSourceAccountService',
       'dataSourceBucketService',
       'studyService',
+      'lockService',
     ]);
 
     const accountEntity = await accountService.mustFind(requestContext, { id: accountId });
     const bucketEntity = await bucketService.mustFind(requestContext, { accountId, name: bucketName });
-    const studyEntity = await studyService.register(requestContext, accountEntity, bucketEntity, rawStudyEntity);
 
-    // We give a chance to the plugins to participate in the logic of registration. This helps us have different
-    // study access strategies
-    const pluginRegistryService = await this.service('pluginRegistryService');
-    const result = await pluginRegistryService.visitPlugins(extensionPoint, 'onStudyRegistration', {
-      payload: {
-        requestContext,
-        container: this.container,
-        accountEntity,
-        bucketEntity,
-        studyEntity,
-      },
+    // We do locking here because there could be other lambdas that are trying to register studies for the
+    // same account and they might be updating the same application roles, etc.
+    const result = await lockService.tryWriteLockAndRun({ id: `account-${accountId}-operation` }, async () => {
+      const studyEntity = await studyService.register(requestContext, accountEntity, bucketEntity, rawStudyEntity);
+
+      // We give a chance to the plugins to participate in the logic of registration. This helps us have different
+      // study access strategies
+      const pluginRegistryService = await this.service('pluginRegistryService');
+      const outcome = await pluginRegistryService.visitPlugins(extensionPoint, 'onStudyRegistration', {
+        payload: {
+          requestContext,
+          container: this.container,
+          accountEntity,
+          bucketEntity,
+          studyEntity,
+        },
+      });
+
+      return outcome;
     });
 
     // Write audit event
@@ -76,13 +106,18 @@ class DataSourceRegistrationService extends Service {
       body: { accountEntity: result.accountEntity, bucketEntity: result.bucketEntity, studyEntity: result.studyEntity },
     });
 
-    return result.studyEntity;
+    return _.get(result, 'studyEntity');
   }
 
   async createAccountCfn(requestContext, accountId) {
-    const accountService = await this.service('dataSourceAccountService');
-
+    const [accountService, s3Service] = await this.service(['dataSourceAccountService', 's3Service']);
+    const swbMainAccountId = this.settings.get(settingKeys.swbMainAccount);
     const accountEntity = await accountService.mustFind(requestContext, { id: accountId });
+    const { id, mainRegion, stack, stackCreated } = accountEntity;
+    const cfnTemplate = new CfnTemplate({ accountId: id, region: mainRegion });
+
+    // Include the app role stack that allows us to query the status of the stack
+    cfnTemplate.addResource(toAppStackCfnResource(accountEntity, swbMainAccountId));
 
     // We give a chance to the plugins to participate in the logic of create the account cfn. This helps us have different
     // study access strategies
@@ -92,16 +127,52 @@ class DataSourceRegistrationService extends Service {
         requestContext,
         container: this.container,
         accountEntity,
+        cfnTemplate,
       },
     });
+
+    // Prepare the account template information. The id of the template is actually the hash of the content
+    // of the template
+    const accountTemplateInfo = {
+      name: stack,
+      region: mainRegion,
+      accountId: id,
+      created: stackCreated,
+      template: result.cfnTemplate.toJson(),
+    };
+    const templateStr = JSON.stringify(accountTemplateInfo.template);
+
+    // The id of the template is actually the hash of the of the content of the template
+    const hash = crypto.createHash('sha256');
+    hash.update(templateStr);
+    accountTemplateInfo.id = hash.digest('hex');
+
+    // Upload to S3
+    const bucket = this.settings.get(settingKeys.envBootstrapBucket);
+    const key = `data-sources/acct-${id}/cfn/region/${mainRegion}/${accountTemplateInfo.id}.json`;
+    await s3Service.api
+      .putObject({
+        Body: templateStr,
+        Bucket: bucket,
+        Key: key,
+      })
+      .promise();
+
+    // Sign the url
+    const request = { files: [{ key, bucket }], expireSeconds: 604800 /* seven days */ };
+    const urls = await s3Service.sign(request);
+    const signedUrl = urls[0].signedUrl;
+
+    accountTemplateInfo.signedUrl = signedUrl;
+    accountTemplateInfo.cfnConsoleUrl = getCfnConsoleUrl(accountTemplateInfo);
 
     // Write audit event
     await this.audit(requestContext, {
       action: 'create-account-cfn',
-      body: { accountEntity: result.accountEntity, accountTemplateInfo: result.accountTemplateInfo },
+      body: { accountEntity: result.accountEntity, accountTemplateInfo },
     });
 
-    return result.accountTemplateInfo;
+    return accountTemplateInfo;
   }
 
   async audit(requestContext, auditEvent) {

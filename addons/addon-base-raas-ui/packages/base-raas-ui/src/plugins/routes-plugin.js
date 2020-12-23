@@ -31,6 +31,7 @@ import UpdateBudget from '../parts/accounts/UpdateBudget';
 import EnvironmentSetup from '../parts/environments/EnvironmentSetup';
 import AddProject from '../parts/projects/AddProject';
 import AddSingleLocalUser from '../parts/users/AddSingleLocalUser';
+import DataSourceAccountsList from '../parts/data-sources/DataSourceAccountsList';
 
 /**
  * Adds routes to the given routesMap.
@@ -65,6 +66,7 @@ function registerRoutes(routesMap, { location, appContext }) {
     ['/workspaces/id/:instanceId', withAuth(EnvironmentDetailPage)],
     ['/workspaces', withAuth(EnvironmentsList)],
     ['/projects/add', withAuth(AddProject)],
+    ['/data-sources', withAuth(DataSourceAccountsList)],
   ]);
 
   return routes;

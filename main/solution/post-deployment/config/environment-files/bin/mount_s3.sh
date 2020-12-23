@@ -38,7 +38,7 @@ append_role_to_credentials() {
     study_id=$1
     role_arn=$2
     credentials_file=$AWS_CONFIG_DIR/credentials
-    if ! grep -q "\[$study_id\]" $AWS_CONFIG_DIR/credentials
+    if ! grep -q "\[$study_id\]" $AWS_CONFIG_DIR/credentials &>/dev/null
     then
       # append role for this study since it doesn't already exist in the file
       echo "[$study_id]" >> $credentials_file
@@ -58,7 +58,7 @@ do
     s3_bucket="$(printf "%s" "$mounts" | jq -r ".[$study_idx].bucket" -)"
     s3_prefix="$(printf "%s" "$mounts" | jq -r ".[$study_idx].prefix" -)"
     s3_role_arn="$(printf "%s" "$mounts" | jq -r ".[$study_idx].roleArn" -)"
-    kms_arn = "$(printf "%s" "$mounts" | jq -r ".[$study_idx].kmsArn" -)"
+    kms_arn="$(printf "%s" "$mounts" | jq -r ".[$study_idx].kmsArn" -)"
 
     # Mount S3 location if not already mounted
     study_dir="${MOUNT_DIR}/${study_id}"
@@ -74,10 +74,18 @@ do
             # make .aws dir if it doesn't already exist and add credentials
             mkdir -p $AWS_CONFIG_DIR
             append_role_to_credentials $study_id $s3_role_arn
-            printf 'Mounting external study "%s" at "%s" using role "%s" and kms arn "%s" \n' "$study_id" "$study_dir" \
-            "$s3_role_arn" "$kms_arn"
-            goofys --profile $study_id --sse-kms $kms_arn --acl "bucket-owner-full-control" \
-            "${s3_bucket}:${s3_prefix}" "$study_dir"
+            if [ "$kms_arn" == "null" ]
+            then
+                printf 'Mounting external study "%s" at "%s" using role "%s" \n' "$study_id" "$study_dir" \
+                "$s3_role_arn"
+                goofys --profile $study_id --acl "bucket-owner-full-control" \
+                "${s3_bucket}:${s3_prefix}" "$study_dir"
+            else
+                printf 'Mounting external study "%s" at "%s" using role "%s" and kms arn "%s" \n' "$study_id" "$study_dir" \
+                "$s3_role_arn" "$kms_arn"
+                goofys --profile $study_id --sse-kms $kms_arn --acl "bucket-owner-full-control" \
+                "${s3_bucket}:${s3_prefix}" "$study_dir"
+            fi
         fi
     fi
 done

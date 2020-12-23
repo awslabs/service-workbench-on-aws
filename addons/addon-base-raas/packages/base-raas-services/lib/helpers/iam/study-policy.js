@@ -26,6 +26,13 @@ class StudyPolicy {
     // is { read, write }. For the case of open data, it is possible that we can have multiple
     // keys (normalized s3 arn>) containing the same study item information.
     this.studies = {};
+
+    this.roleArns = []; // A list of study role arns
+  }
+
+  addStudyRole(roleArn) {
+    if (_.isEmpty(roleArn)) return;
+    this.roleArns = _.uniq([...this.roleArns, roleArn]);
   }
 
   addStudy({ bucket, awsPartition = 'aws', kmsArn, folder, resources, permission }) {
@@ -132,7 +139,7 @@ class StudyPolicy {
       });
     });
 
-    // add kms key permissions
+    // Add kms key permissions
     const kmsArns = this.getKmsArns();
     if (!_.isEmpty(kmsArns)) {
       statements.push({
@@ -142,6 +149,19 @@ class StudyPolicy {
         Resource: kmsArns,
       });
     }
+
+    // Add any assume role for any study role arns
+    const roleArns = this.roleArns;
+    if (!_.isEmpty(roleArns)) {
+      statements.push({
+        Sid: 'studyAssumeRoles',
+        Action: ['sts:AssumeRole'],
+        Effect: 'Allow',
+        Resource: roleArns,
+      });
+    }
+
+    if (_.isEmpty(statements)) return {};
 
     return {
       Version: '2012-10-17',

@@ -219,7 +219,7 @@ class DataSourceAccountService extends Service {
     const removeStatus = status === 'reachable' || _.isEmpty(status);
     const removeMsg = _.isString(statusMsg) && _.isEmpty(statusMsg);
 
-    const item = { updatedBy: by };
+    const item = { updatedBy: by, statusAt: new Date().toISOString() };
 
     // Remember that we use the 'status' attribute in the index and we need to ensure
     // that when status == reachable that we remove the status attribute from the database
@@ -269,6 +269,22 @@ class DataSourceAccountService extends Service {
       },
     );
     return toDsAccountEntity(dbEntity);
+  }
+
+  /**
+   * Queries the stack at the data source AWS account and returns the following object:
+   * { stackId, templateId, templateVer}
+   *
+   * An exception is thrown if an error occurs while trying to describe the stack. This could happen if the stack
+   * is not created yet or is not provisioned in the correct account and region or was provisioned but did not
+   * use the correct stack name.
+   *
+   * @param {*} requestContext
+   * @param {*} accountEntity
+   */
+  // eslint-disable-next-line no-unused-vars
+  async queryStack(requestContext, accountEntity) {
+    // TODO
   }
 
   async list(requestContext, { fields = [] } = {}) {
