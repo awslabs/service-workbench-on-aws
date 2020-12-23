@@ -1,0 +1,60 @@
+name: Deploy
+on:
+  push:
+    branches:
+      - master
+jobs:
+  deploy:
+    name: Deploy to Dev
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - uses: actions/setup-go@v2
+        with:
+          go-version: 1.13
+      - name: Install pnpm
+        run: npm install -g pnpm
+      - name: Install dependencies
+        run: ./scripts/install.sh
+      - name: Build all packages
+        run: ./scripts/build-all-packages.sh
+      - name: Deploy
+        env:
+          STAGE_NAME: e2etest
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID}}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          cp ./main/end-to-end-tests/e2eGitHubConfig.yml ./main/config/settings/${STAGE_NAME}.yml
+          ./scripts/environment-deploy.sh ${STAGE_NAME}
+  cypress-test:
+    name: Cypress test
+    runs-on: ubuntu-18.04
+    needs: deploy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Install pnpm and system libraries
+        run: |
+          npm install -g pnpm
+          sudo apt-get install libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth xvfb
+      - name: Install dependencies
+        run: pnpm install
+        working-directory: main/end-to-end-tests
+      - name: Run cypress test
+        run: pnpm run cypress:run-tests:github
+        working-directory: main/end-to-end-tests
+        env:
+          # Env parameters for cypress tests need header 'CYPRESS_' or 'cypress_'
+          # Cypress will strip the header and pass it to the tests
+          CYPRESS_BASE_URL: ${{ secrets.CYPRESS_BASE_URL}}
+          CYPRESS_researcherEmail: ${{ secrets.CYPRESS_RESEARCHER_EMAIL}}
+          CYPRESS_researcherPassword: ${{ secrets.CYPRESS_RESEARCHER_PASSWORD}}

@@ -101,7 +101,7 @@ class StudyRow extends React.Component {
     return (
       <div>
         <Header as="h3" color="blue" className={c('mt2', isSelectable ? 'cursor-pointer' : '')} {...onClickAttr}>
-          {study.uploadLocationEnabled && study.access === 'admin' && <UploadStudyFiles studyId={study.id} />}
+          {study.uploadLocationEnabled && study.canUpload && <UploadStudyFiles studyId={study.id} />}
           {study.name}
           <Header.Subheader>
             <span className="pt1 fs-8 color-grey">{study.id}</span>
