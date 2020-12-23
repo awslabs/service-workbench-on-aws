@@ -9,7 +9,8 @@
     "cypress:open:local": "cypress open -C cypress.local.json",
     "cypress:open:dev": "cypress open -C cypress.dev.json",
     "cypress:run-tests:local": "cypress run -C cypress.local.json",
-    "cypress:run-tests:dev": "cypress run -C cypress.dev.json"
+    "cypress:run-tests:dev": "cypress run -C cypress.dev.json",
+    "cypress:run-tests:github": "cypress run -C cypress.github.json"
   },
   "husky": {
     "hooks": {

@@ -1,67 +1,88 @@
 ---
 id: aws_accounts
-title: AWS Accounts
-sidebar_label: AWS Accounts
+title: Create or Add Accounts
+sidebar_label: Create or Add Accounts
 ---
 
 import useBaseUrl from '@docusaurus/useBaseUrl';
 
-After logging in as root for the first time, from the Accounts page in the [SideBar](/user_guide/introduction), create or add one or more AWS Accounts from the Accounts tab.  Accounts are responsible for the charges incurred by the resources deployed within Service Workbench.  These billing accounts are a separate concept from the Master, Member, or Main accounts, however the accounts used to host Service Workbench may be added as a billing account.
+After logging in as **root** user for the first time, go to the '**Accounts**' page in the [SideBar](/user_guide/introduction). Service Workbench uses AWS accounts on this page for launching research workspaces. You can add existing AWS accounts or create new ones on the '**Accounts**' tab.  Accounts are responsible for the charges incurred by the resources that are deployed within the Service Workbench.
 
-**Create AWS Account** creates a new AWS account within the Organization hosted by the Master account.  This account will not belong to any OU within the Organization.  If Service Workbench was deployed from a Member account of the Organization, the newly created account will be at the same level as the account hosting Service Workbench (the Main account).
+* **Create AWS Account**: Creates a new AWS account using AWS Organizations.
 
-**Add AWS Account** imports an existing account into Service Workbench.  This account is independent of the Master or Main accounts, or the Organization.
+* **Add AWS Account**: Imports an existing AWS account, which will be responsible for its own billing.
 
-Every user is linked to an Account through a Project and an Index, so at least one billing account must be created or added before creating the first user.  Note that to Service Workbench, there is no difference between an account created through Create AWS Account, and one added through Add AWS Account.  They are both used for billing only.
+Every user is linked to an **Account** through a **Project** and an **Index**, so at least one account must be created or added before creating the first user.
 
+_**Important:** If you do not need to create new AWS accounts from within Service Workbench, then skip to the next section, 'Add AWS Account' section below._
 
 ## Create  AWS  Account
 
-Using this option, you will create a Member account within the Organization, and an IAM Role allowing the Master account to assume role into the Member account.  The ARN of this role is used during the Create Account process in Service Workbench.
+### Prerequisites
+Before creating an AWS account from Service Workbench, some prequisites must be met:
+* Configure an existing AWS account to be the **Master** account for Service Workbench. When Service Workbench creates new AWS accounts, billing for those accounts will go to the **Master** account.
+* Ensure the **Master** account has AWS Organizations enabled.
 
-### AWS Organization
 
-The new account will be created within an AWS Organization in the Master account.  If Service Workbench was deployed in the Master account, ensure that the Master account contains an AWS Organization.  If there is no Organization, in the AWS console, create an AWS Organization in the Master account.  There is no configuration necessary.  If you already have an Organization created there is no further action required.
+### Configure Master Account
+To configure the **Master** account: 
 
-If Service Workbench was deployed in a Member account, that account already exists in a Member account in the Organization. 
+1. Read the file: `main/solution/prepare-master-acc/README.md`. 
+2. Change directory to the **root folder** and run the command below. This command will take about 8 minutes to execute.
+```scripts/master-account-deploy.sh <stage>```
+The output of this command includes a **Master Role ARN** for the the next step.
 
-### Creating an Account
+For additional details on configuring an account to be the Master Account, see [Prepare the Master Account](/deployment/reference/prepare_master_account) in the 'Reference' section.
 
-This will create a Member account in the Organization, whose billing will go to the Master account of the Organization.
+
+### AWS Organizations
+In the [AWS Management Console](https://aws.amazon.com/console/?nc2=type_a), navigate to '**AWS Organizations**' to ensure that an Organization exists for the **Master** account. If it does not, then you will need to create a new one. There is no configuration to set; Service Workbench will create a new account in the AWS Organization for this deployment, named after the **Stage Name** used at deployment.
+
+
+### Creating a new Account
+
+This will create a new **Member** AWS account in the Organization, whose billing will go to the **Master** account of the Organization. See **Figure 1**.
 
 <img src={useBaseUrl('img/deployment/post_deployment/create_account_00.jpg')} />
 
-* In the Service Workbench console, go to Accounts → AWS Accounts and click **Create AWS Account**
-    * Fill in Master Role ARN copied from [Prepare the Master Account](/deployment/post_deployment/prepare_master_account).
-    * The email address must be unique within the Organization
-    * The External ID by default is the string **workbench**.  See  [IAM](/development/aws_services#IAM) for how to configure this to another value.
-* Click **Create AWS Account** and after a minute you should see:
-    * ‘Trying to create accountID: xxx’ in the AWS Accounts tab
-    * A workflow in progress in Workflows → Provision Account (see [Workflows](/user_guide/introduction))
-        * If instead you see an error message ‘Stop Internal State Account ID not found’, check that there is an AWS Organization in the console of your Master account, if deploying Service Workbench in the Master account.  If deploying in a Member account, check that you have followed the steps in [Prepare the Master Account](/deployment/post_deployment/prepare_master_account).
-    * In the AWS console you can optionally inspect the resources deployed by this script:
-        * In CloudFormation, a stack **prep-master** will be running.  It creates the master role and its output is the master role ARN.
-        * In the AWS Organization in the Master account (see [IAM](/development/aws_services#Organizations)), the new account will appear 
-        * In IAM, the new master role will be created
-* Once the account has been added it will be listed in **AWS Accounts**
+_**Figure 1: Create AWS Account**_
 
+To create the account, perform the following actions:
+
+1. In the Service Workbench console, navigate to '**Accounts → AWS Accounts**' and click **Create AWS Account**.
+    *  In **Role ARN**, fill in the **Master Role ARN** copied from the ‘Configure Master Account’ step described above.
+    * The email address that you specify here must be unique within the Organization.
+    * The **External ID** by default is the string **workbench**.  See  [IAM](/development/aws_services#IAM) for information on how to configure this to another value.
+2. After a minute, the following information displays in the **AWS Accounts** tab:
+    *  *‘Trying to create accountID: xxx’*
+    * A workflow in progress in **Workflows → Provision Account** (see [Workflows](http://swb-documentation.s3-website-us-east-1.amazonaws.com/user_guide/sidebar/admin/workflows/introduction) 
+     _**Note**: If instead you see an error message such as, ‘Stop Internal State Account ID not found’, check that there is an AWS Organization in the console of your **Master** account, if deploying Service Workbench in the **Master** account.  If you are deploying in a **Member** account, check and ensure that you  followed the steps described in [Prepare the Master Account](/deployment/post_deployment/prepare_master_account)._
+    * Optionally, in the AWS console, you can inspect the following resources deployed by this script:
+        * In AWS CloudFormation, a stack **prep-master** will be running.  It creates the **Master** role and its output is the **Master Role ARN**.
+        * In the AWS Organization, in the **Master** account (see [IAM](/development/aws_services#Organizations)), the new account will display. 
+        * In IAM, the new **Master** role will be created
+3. Once the account is created it will be listed in **AWS Accounts**, see **Figure 2**.
+ 
 <img src={useBaseUrl('img/deployment/post_deployment/create_account_02.jpg')} />
+
+_**Figure 2: AWS Accounts with New Account**_
+
 
 ## Add  AWS  Account
 
-This option will make an already-existing AWS account available as a billing account in AWS.  No new account will be created in this process.
+Adding an existing AWS account enables Service Workbench to launch research Workspaces into it. The existing account is reponsible for billing.
 
 ### Gather Role ARNs
 
-This step is run in the Main account, the account where you have deployed Service Workbench.  See [Prepare SDC Configuration Files](/deployment/pre_deployment/configuration#Prepare_SDC_Configuration_Files) for how to specify the correct profile.
+This step is run in the **Main** account, the account where you have deployed Service Workbench.  See [Prepare SDC Configuration Files](/deployment/pre_deployment/configuration#Prepare_SDC_Configuration_Files) for information on how to specify the correct profile.
 
-Run the following command in the `main/solution/backend` folder:
+1. Run the following command in the `main/solution/backend` folder:
 
 ```{.sh}
     pnpx sls info --verbose --stage <stagename>
 ```
 
-The output will contain similar lines to:
+The output will contain similar lines to the following:
 
 ```{.sh}
     Stack Outputs
@@ -74,14 +95,15 @@ The output will contain similar lines to:
     ServerlessDeploymentBucketName: 0000-stage-va-sw-artifacts
 ```
 
-Copy the values for **ApiHandlerRoleArn** and **WorkflowLoopRunnerRoleArn**.
+2. Copy the values for **ApiHandlerRoleArn** and **WorkflowLoopRunnerRoleArn**.
 
-### Run the Onboard Account template
+### Prepare the Existing AWS Account
 
-This step is run in the account you wish to onboard (ie make available for billing within Service Workbench)
+This step prepares the existing AWS account that you wish to add to Service Workench by running an onboarding template.
 
-* Create a new stack in CloudFormation.  Select *Upload a template file* and locate the template file `addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/onboard-account.cfn.yml` from the source code.
-* On the next screen 'Specify stack details' enter the following:
+1. In the [AWS Management Console](https://aws.amazon.com/console/?nc2=type_a), navigate to '**Amazon CloudFormation**'.
+2. Create a new stack in CloudFormation.  Select *Upload a template file* and locate the template file `addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/onboard-account.cfn.yml` from the source code.
+3. On the next screen 'Specify stack details' enter the following values from **Table 3**:
 
 
 Field                        | Value                      
@@ -96,8 +118,10 @@ LaunchConstraintPolicyPrefix | Retain default (*)
 LaunchConstraintRolePrefix   | Retain default (*)                            
 WorkflowRoleArn              | **WorkflowLoopRunnerRoleArn** value from above
 
-Deploy the stack.  The Outputs of the stack will contain values similar to:
+_**Table 3: Stack Details**_
 
+4. Deploy the stack.
+5. After the stack has deployed, view the output, which will contain values similar to the following in **Table 4**:
 
 |             Key              |                          Value                          |
 -------------------------------|---------------------------------------------------------
@@ -107,22 +131,38 @@ Deploy the stack.  The Outputs of the stack will contain values similar to:
 | VPC                          | vpc-f00f00                                              |
 | VpcPublicSubnet1             | subnet-f00f00                                           |
 
+_**Table 4: Stack Output**_
+
+6. Copy the values down for the next step.
+
 ### Adding the Account in Service Workbench
 
-This step is run in the Service Workbench administrator interface and uses values from the output of the Onboard Account template in the previous step.
+This step is run in the Service Workbench administrator interface and uses values from the previous step.
+
+1. In the Service Workbench administrative interface, click the **AWS Accounts** tab. See **Figure 3**.
 
 <img src={useBaseUrl('img/deployment/post_deployment/create_account_01.jpg')} />
 
-Open the Accounts tab of an Administrator login in Service Workbench, select **Add AWS Account**, and enter this information.
+_**Figure 3: Add AWS Account**_
 
-|            Field             |                 Value                  |
+2.  Click **Add AWS Account**. Enter the account information from the following **Table 5**:
+
+|             Field            |                 Value                  |
 |------------------------------|----------------------------------------|
 | Account Name                 | As desired                             |
 | AWS Account ID               | 12-digit ID of imported account        |
 | Role ARN                     | **CrossAccountExecutionRoleArn** value |
 | AWS Service Catalog Role Arn | **CrossAccountEnvMgmtRoleArn** value   |
-| External ID                  | As specified (default: **workbench**)    |
+| External ID                  | As specified (default: **workbench**)  |
 | Description                  | As desired                             |
 | VPC ID                       | **VPC** value                          |
 | Subnet ID                    | **VpcPublicSubnet1** value             |
 | KMS Encryption Key ARN       | **EncryptionKeyArn** value             |
+
+_**Table 5: AWS Account Information**_
+
+3. Once the account is added it will be listed in **AWS Accounts**, see **Figure 4**.
+
+<img src={useBaseUrl('img/deployment/post_deployment/create_account_02.jpg')} />
+
+_**Figure 4: AWS Accounts with New Account**_

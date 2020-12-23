@@ -1,33 +1,43 @@
 ---
 id: index
-title: Deployment Procedure
-sidebar_label: Deployment Procedure
+title: Deploying Service Workbench
+sidebar_label: Deploying Service Workbench
 ---
 
-## Run main deployment script
+import useBaseUrl from '@docusaurus/useBaseUrl';
 
-- Run `scripts/environment-deploy.sh <stage>`, which will deploy the full solution based upon the configuration files previously created, if any.  This step takes 15--20 minutes
-- After the deployment has successfully finished, take a note of its CloudFront URL, and the root password.  This information can be retrieved later by running `scripts/get-info.sh <stage>`
-- You can now log in to your Service Workbench deployment using the link above, and user **root**. The root user will be used only to create administrative users, which is covered in [Post Deployment](/deployment/post_deployment/index)
+This section describes the process for deploying the Service Workbench.
 
-## Deploy the machine-images SDC
+## Run the Main Deployment Script
 
-The machine-images SDC provides the ability to launch EC2 images from within Service Workbench. The default Service Workbench installation currently provides Sagemaker, EMR, and Linux and Windows EC2 as workspace options. The EC2 and EMR options will not be available unless you have the corresponding machine images created.
-
-Note that his step takes 15 minutes, and may be run concurrently with the main deployment script, above.  You can choose to create your own machine image if you do not wish to use the ones included in this SDC
-
-Follow the steps outlined in `main/solution/machine-images/README.md`:
-  - Install Packer (<https://www.packer.io/>). Packer is used to create a custom AMI which is then pushed to the Service Workbench deployment.
-    - Fetch the package with curl or wget, unzip it and copy the **packer** executable to `/usr/local/bin`
-```{.sh}
-wget https://releases.hashicorp.com/packer/<ver>/packer_<ver>_linux_amd64.zip
-unzip packer_<ver>_linux_amd64.zip
-sudo cp packer /usr/local/bin/
+1.	Run the main deployment script using the command below. It takes 15-20 minutes to execute the command:
 ```
-  - Change directory to `/main/solution/machine-images`
-  - Run `pnpx sls build-image -s <mystage>`.
+scripts/environment-deploy.sh <stage>
+```
+2.	After the deployment completes successfully, make a note of its [Amazon CloudFront](https://aws.amazon.com/cloudfront/?nc2=type_a) URL and the **root** password. You can also retrieve this information later by running the following command: 
+```
+scripts/get-info.sh <stage>
+```
+3.	Log in to your Service Workbench deployment using the [Amazon CloudFront](https://aws.amazon.com/cloudfront/?nc2=type_a) URL and root user credentials. The **root** user must be used only to create administrators. For more information, see [Post Deployment](/deployment/post_deployment/index).
 
-- For examples of how to build a custom AMI, see:
-  - `config/infra/packer-ec2-<platform>-workspace.json`
-  - `config/infra/provisioners/provision-hail.sh`
+## Deploy the Machine Images SDC
+
+The machine images SDC provides the ability to launch Amazon EC2 images from within Service Workbench. The default Service Workbench installation currently provides [Amazon Sagemaker](https://aws.amazon.com/sagemaker/?nc2=type_a), [Amazon EMR](https://aws.amazon.com/emr/?nc2=type_a&whats-new-cards.sort-by=item.additionalFields.postDateTime&whats-new-cards.sort-order=desc), and Linux-based and Windows-based Amazon EC2 as workspace options. The Amazon EC2 and Amazon EMR options will not be available unless you create the corresponding machine images.
+
+_**Note**: You can create your own machine image if you do not wish to use the ones included in this SDC._
+
+To deploy the machine images SDC, follow the steps outlined in the readme file located in `main/solution/machine-images/README.md`. Additionally, perform the following actions: 
+
+1.	Install the open source tool, Packer from this [website](https://www.packer.io/). Packer is used to create a custom AMI which is then pushed to the Service Workbench deployment.
+2.	Fetch the package with `curl` or `wget`, unzip the package, and copy it to the `directory /usr/local/bin`. 
+3.	Change directory to `/main/solution/machine-images`. 
+4.	Run the command below. The command takes approximately 15 minutes to complete: 
+```
+`pnpx sls build-image -s <mystage>`
+```
+For examples of how to build a custom AMI, refer to the following scripts:
+
+–	`config/infra/packer-ec2-<platform>-workspace.json`
+
+–	`config/infra/provisioners/provision-hail.sh`
 
