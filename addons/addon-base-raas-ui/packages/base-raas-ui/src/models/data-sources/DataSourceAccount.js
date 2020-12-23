@@ -167,6 +167,72 @@ const DataSourceAccount = types
     getBucket(name) {
       return _.find(self.buckets, bucket => bucket.name === name);
     },
+
+    get bucketNames() {
+      return _.map(self.buckets, bucket => bucket.name);
+    },
+
+    getStudiesForBucket(name) {
+      return _.filter(values(self.studies), study => study.bucket === name);
+    },
+
+    get emailCommonSection() {
+      const names = self.bucketNames;
+      const lines = ['Dear Admin,', '', 'We are requesting access to the following bucket(s) and studies:'];
+      _.forEach(names, name => {
+        lines.push(`\nBucket name: ${name}`);
+        const studies = self.getStudiesForBucket(name);
+        _.forEach(studies, study => {
+          lines.push(` - folder: ${study.folder}`);
+          lines.push(`   access: ${study.friendlyAccessType}`);
+        });
+      });
+
+      lines.push('');
+      lines.push(
+        'For your convenience, you can follow these steps to configure the account for the requested access:\n',
+      );
+
+      return lines;
+    },
+
+    get updateStackEmailTemplate() {
+      const { id, mainRegion, stackInfo = {} } = self;
+      const { cfnConsoleUrl, updateStackUrl, urlExpiry } = stackInfo;
+      const lines = _.slice(self.emailCommonSection);
+
+      lines.push(
+        `1 - Log in to the aws console using the correct account. Please ensure that you are using the correct account # ${id} and region ${mainRegion}\n`,
+      );
+      lines.push(`2 - Go to the AWS CloudFormation console ${cfnConsoleUrl}\n`);
+      lines.push(`    You need to visit the AWS CloudFormation console page before you can follow the next link\n`);
+      lines.push(`3 - Click on the following link\n`);
+      lines.push(`    ${updateStackUrl}\n`);
+      lines.push(
+        '    The link takes you to the CloudFormation console where you can review the stack information and provision it.\n',
+      );
+      lines.push(`    Note: the link expires at ${new Date(urlExpiry).toISOString()}`);
+      lines.push(`\n\nRegards,\nService Workbench admin`);
+      return lines.join('\n');
+    },
+
+    get createStackEmailTemplate() {
+      const { id, mainRegion, stackInfo = {} } = self;
+      const { createStackUrl, urlExpiry } = stackInfo;
+      const lines = _.slice(self.emailCommonSection);
+
+      lines.push(
+        `1 - Log in to the aws console using the correct account. Please ensure that you are using the correct account # ${id} and region ${mainRegion}\n`,
+      );
+      lines.push(`2 - Click on the following link\n`);
+      lines.push(`    ${createStackUrl}\n`);
+      lines.push(
+        '    The link takes you to the CloudFormation console where you can review the stack information and provision it.\n',
+      );
+      lines.push(`    Note: the link expires at ${new Date(urlExpiry).toISOString()}`);
+      lines.push(`\n\nRegards,\nService Workbench admin`);
+      return lines.join('\n');
+    },
   }));
 
 export { DataSourceAccount }; // eslint-disable-line import/prefer-default-export

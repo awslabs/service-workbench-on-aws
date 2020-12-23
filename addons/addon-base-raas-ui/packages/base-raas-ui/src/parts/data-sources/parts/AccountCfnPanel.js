@@ -67,11 +67,19 @@ class AccountCfnPanel extends React.Component {
   }
 
   get account() {
-    return this.props.account;
+    return this.props.account || {};
+  }
+
+  get stackInfo() {
+    return this.account.stackInfo || {};
   }
 
   get largeText() {
     return this.props.largeText;
+  }
+
+  get textSize() {
+    return this.largeText ? 'large' : 'medium';
   }
 
   render() {
@@ -98,8 +106,7 @@ class AccountCfnPanel extends React.Component {
   }
 
   renderCfnTemplate() {
-    const account = this.account;
-    const stackInfo = account.stackInfo || {};
+    const stackInfo = this.stackInfo;
     const { name, formattedTemplate } = stackInfo;
 
     return (
@@ -130,10 +137,11 @@ class AccountCfnPanel extends React.Component {
   renderSteps() {
     // We need to determine if this is for creating the stack or updating the stack
     const form = this.form;
-    const account = this.account || {};
-    const { hasUpdateStackUrl } = account.stackInfo || {};
+    const stackInfo = this.stackInfo;
+    const { hasUpdateStackUrl } = stackInfo;
     const field = form.$('createOrUpdate');
     const update = field.value === 'update';
+    const hasAdminAccess = form.$('managed').value === 'admin';
 
     return (
       <>
@@ -143,18 +151,19 @@ class AccountCfnPanel extends React.Component {
           </Header>
           {hasUpdateStackUrl && <YesNo field={field} className="mb0 mt0" />}
         </div>
-        {!update && this.renderCreateSteps()}
-        {update && this.renderUpdateSteps()}
+        {!update && hasAdminAccess && this.renderCreateSteps()}
+        {update && hasAdminAccess && this.renderUpdateSteps()}
+        {!hasAdminAccess && this.renderEmailTemplate(update)}
       </>
     );
   }
 
   renderCreateSteps() {
     const account = this.account;
+    const textSize = this.textSize;
+    const stackInfo = this.stackInfo;
     const { id, mainRegion } = account;
-    const textSize = this.largeText ? 'large' : 'medium';
-    const stackInfo = account.stackInfo || {};
-    const { urlExpiry, createStackUrl, expired } = stackInfo;
+    const { createStackUrl } = stackInfo;
 
     return (
       <div className="animated fadeIn">
@@ -176,16 +185,7 @@ class AccountCfnPanel extends React.Component {
                 <Button fluid as="a" target="_blank" href={createStackUrl} rel="noopener noreferrer">
                   Create Stack
                 </Button>
-                {expired && (
-                  <div className="fs-9 center color-red mt1">
-                    Expired <TimeAgo date={urlExpiry} />
-                  </div>
-                )}
-                {!expired && (
-                  <div className="fs-9 center mt1">
-                    Expires <TimeAgo date={urlExpiry} />
-                  </div>
-                )}
+                {this.renderExpires(stackInfo)}
               </div>
               <div className="mt1 p0">
                 <CopyToClipboard text={createStackUrl} />
@@ -203,10 +203,10 @@ class AccountCfnPanel extends React.Component {
 
   renderUpdateSteps() {
     const account = this.account;
+    const stackInfo = this.stackInfo;
+    const textSize = this.textSize;
     const { id, mainRegion } = account;
-    const textSize = this.largeText ? 'large' : 'medium';
-    const stackInfo = account.stackInfo || {};
-    const { urlExpiry, updateStackUrl, expired, cfnConsoleUrl } = stackInfo;
+    const { updateStackUrl, cfnConsoleUrl } = stackInfo;
 
     return (
       <div className="animated fadeIn">
@@ -239,16 +239,7 @@ class AccountCfnPanel extends React.Component {
                 <Button fluid as="a" target="_blank" href={updateStackUrl} rel="noopener noreferrer">
                   Update Stack
                 </Button>
-                {expired && (
-                  <div className="fs-9 center color-red mt1">
-                    Expired <TimeAgo date={urlExpiry} />
-                  </div>
-                )}
-                {!expired && (
-                  <div className="fs-9 center mt1">
-                    Expires <TimeAgo date={urlExpiry} />
-                  </div>
-                )}
+                {this.renderExpires(stackInfo)}
               </div>
               <div className="mt1 p0">
                 <CopyToClipboard text={updateStackUrl} />
@@ -263,12 +254,63 @@ class AccountCfnPanel extends React.Component {
       </div>
     );
   }
+
+  renderEmailTemplate(update = false) {
+    const account = this.account;
+    const stackInfo = this.stackInfo;
+    const textSize = this.textSize;
+    const emailTemplate = update ? account.updateStackEmailTemplate : account.createStackEmailTemplate;
+
+    return (
+      <div className="animated fadeIn">
+        <List ordered size={textSize}>
+          <List.Item>You can use the following email template to send an email to the admin of the account</List.Item>
+          <Form className="mb3">
+            <div className="flex justify-between">
+              <Header as="h4" className="mb2 mt2">
+                Email Template
+              </Header>
+              <div className="mt2 mr4">{this.renderExpires(stackInfo)}</div>
+            </div>
+            <div className="mb2 flex">
+              <div className="flex-auto">
+                <TextArea value={emailTemplate} rows={20} />
+              </div>
+              <div className="mt1 p0">
+                <CopyToClipboard text={emailTemplate} />
+              </div>
+            </div>
+          </Form>
+        </List>
+      </div>
+    );
+  }
+
+  renderExpires(stackInfo) {
+    const { urlExpiry, expired } = stackInfo;
+
+    if (expired) {
+      return (
+        <div className="fs-9 center color-red mt1">
+          Expired <TimeAgo date={urlExpiry} />
+        </div>
+      );
+    }
+
+    return (
+      <div className="fs-9 center mt1">
+        Expires <TimeAgo date={urlExpiry} />
+      </div>
+    );
+  }
 }
 
 // see https://medium.com/@mweststrate/mobx-4-better-simpler-faster-smaller-c1fbc08008da
 decorate(AccountCfnPanel, {
   account: computed,
+  stackInfo: computed,
   largeText: computed,
+  textSize: computed,
   form: observable,
 });
 
