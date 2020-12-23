@@ -328,6 +328,12 @@ function generateAccountCfnTemplate(accountId) {
   });
 }
 
+function updateRegisteredAccount(accountId, data) {
+  return httpApiPut(`api/data-sources/accounts/${accountId}`, {
+    data,
+  });
+}
+
 export {
   addIndex,
   addUsers,
@@ -396,4 +402,5 @@ export {
   registerBucket,
   registerStudy,
   generateAccountCfnTemplate,
+  updateRegisteredAccount,
 };

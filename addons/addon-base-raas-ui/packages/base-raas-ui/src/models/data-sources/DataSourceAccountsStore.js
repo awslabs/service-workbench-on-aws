@@ -28,6 +28,7 @@ import {
   registerAccount,
   registerBucket,
   registerStudy,
+  updateRegisteredAccount,
 } from '../../helpers/api';
 import { DataSourceAccount } from './DataSourceAccount';
 import { DataSourceAccountStore } from './DataSourceAccountStore';
@@ -76,6 +77,26 @@ const DataSourceAccountsStore = BaseStore.named('DataSourceAccountsStore')
         }
 
         return entry;
+      },
+
+      async updateAccount(account) {
+        const updatedAccount = await updateRegisteredAccount(account.id, _.omit(account, ['id']));
+        const existingAccount = self.getAccount(account.id);
+
+        // If we get null values for the props, we need to change them to empty string
+        if (_.isEmpty(updatedAccount.contactInfo)) {
+          updatedAccount.contactInfo = '';
+        }
+
+        if (_.isEmpty(updatedAccount.description)) {
+          updatedAccount.description = '';
+        }
+
+        if (_.isEmpty(updatedAccount.name)) {
+          updatedAccount.name = '';
+        }
+
+        existingAccount.setDataSourceAccount(updatedAccount);
       },
 
       async registerAccount(account) {
