@@ -4,9 +4,7 @@ title: Source Code
 sidebar_label: Source Code
 ---
 
-Service Workbench can be downloaded from GitHub:
+Download the latest source code using the URL, https://github.com/awslabs/service-workbench-on-aws/tags and run the following command:
 
-```{.sh}
-git clone https://github.com/awslabs/service-workbench-on-aws.git
-```
-Alternatively, the source code may be downloaded as a Zip file from [GitHub](https://github.com/awslabs/service-workbench-on-aws)
+`curl -o serviceworkbench.zip <provided_url>`
+

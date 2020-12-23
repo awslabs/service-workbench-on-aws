@@ -507,13 +507,7 @@ class StudyService extends Service {
             .get();
 
           // Filter by category and inject requestor's access level
-          const studyAccessMap = {};
-          _.forEach(permissionLevels, level => {
-            const studies = userPermissions[`${level}Access`];
-            _.forEach(studies, studyId => {
-              studyAccessMap[studyId] = level;
-            });
-          });
+          const studyAccessMap = this._getStudyAccessMap(userPermissions);
 
           result = rawResult
             .filter(study => study.category === category)
@@ -526,7 +520,7 @@ class StudyService extends Service {
     }
 
     // Return result
-    return result;
+    return _.map(result, toStudyEntity);
   }
 
   async listStudiesForAccount(requestContext, { accountId }, fields = []) {
@@ -542,6 +536,21 @@ class StudyService extends Service {
       .query();
 
     return _.map(result, toStudyEntity);
+  }
+
+  _getStudyAccessMap(userPermissions) {
+    const studyAccessMap = {};
+    _.forEach(permissionLevels, level => {
+      const studies = userPermissions[`${level}Access`];
+      _.forEach(studies, studyId => {
+        if (studyAccessMap[studyId]) {
+          studyAccessMap[studyId].push(level);
+        } else {
+          studyAccessMap[studyId] = [level];
+        }
+      });
+    });
+    return studyAccessMap;
   }
 
   /**
