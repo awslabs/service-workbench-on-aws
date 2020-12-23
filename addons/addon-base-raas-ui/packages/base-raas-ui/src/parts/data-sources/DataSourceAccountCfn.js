@@ -51,8 +51,10 @@ class DataSourceAccountCfn extends React.Component {
       content = <ErrorBox error={store.error} className="p0" />;
     } else if (isStoreLoading(store)) {
       content = <ProgressPlaceHolder segmentCount={1} />;
-    } else {
+    } else if (isStoreReady(store)) {
       content = this.renderMain();
+    } else {
+      content = null;
     }
 
     return content;
