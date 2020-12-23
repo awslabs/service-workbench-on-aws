@@ -74,7 +74,6 @@ describe('DataSourceAccountService', () => {
       const rawData = {
         id,
         name: 'Computer Science Department Account',
-        type: 'managed',
         mainRegion: 'us-east-1',
       };
 
@@ -100,7 +99,6 @@ describe('DataSourceAccountService', () => {
       const rawData = {
         id: '123456789012',
         name: 'Computer Science Department Account',
-        type: 'managed',
         mainRegion: 'us-east-1',
       };
 
@@ -120,7 +118,6 @@ describe('DataSourceAccountService', () => {
       const rawData = {
         id: '123456789012',
         name: 'Computer Science Department Account',
-        type: 'managed',
         mainRegion: 'us-east-1',
       };
       let pKey;
@@ -148,22 +145,6 @@ describe('DataSourceAccountService', () => {
         // same code but different messages (to address different scenarios), you might
         // want to suggest to the service author to use different codes.
         expect.objectContaining({ boom: true, code: 'alreadyExists', safe: true }),
-      );
-    });
-
-    it('throws if account type is unmanaged', async () => {
-      // unmanaged accounts are not supported in this release
-      const uid = 'u-currentUserId';
-      const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
-      const rawData = {
-        id: '123456789012',
-        name: 'Computer Science Department Account',
-        type: 'unmanaged',
-        mainRegion: 'us-east-1',
-      };
-
-      await expect(service.register(requestContext, rawData)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'notSupported', safe: true }),
       );
     });
   });
