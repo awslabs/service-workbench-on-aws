@@ -26,6 +26,8 @@ import {
   checkStudyReachability,
   checkAccountReachability,
   registerAccount,
+  registerBucket,
+  registerStudy,
 } from '../../helpers/api';
 import { DataSourceAccount } from './DataSourceAccount';
 import { DataSourceAccountStore } from './DataSourceAccountStore';
@@ -81,6 +83,25 @@ const DataSourceAccountsStore = BaseStore.named('DataSourceAccountsStore')
         self.addAccount(newAccount);
 
         return self.getAccount(account.id);
+      },
+
+      async registerBucket(accountId, bucket = {}) {
+        const normalizedBucket = { ...bucket, awsPartition: 'aws', access: 'roles' };
+        const account = self.getAccount(accountId);
+        if (_.isEmpty(account)) throw new Error(`Account #${accountId} is not loaded yet`);
+
+        const newBucket = await registerBucket(accountId, normalizedBucket);
+
+        return account.setBucket(newBucket);
+      },
+
+      async registerStudy(accountId, bucketName, study = {}) {
+        const account = self.getAccount(accountId);
+        if (_.isEmpty(account)) throw new Error(`Account #${accountId} is not loaded yet`);
+
+        const newStudy = await registerStudy(accountId, bucketName, study);
+
+        return account.setStudy(newStudy);
       },
 
       async checkAccountReachability(accountId) {

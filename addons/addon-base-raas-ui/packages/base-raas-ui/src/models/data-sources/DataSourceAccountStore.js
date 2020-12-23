@@ -16,7 +16,7 @@
 import { getParent, types } from 'mobx-state-tree';
 import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
 
-import { getDataSourceStudies } from '../../helpers/api';
+import { getDataSourceStudies, generateAccountCfnTemplate } from '../../helpers/api';
 import { DataSourceStudyStore } from './DataSourceStudyStore';
 
 // ==================================================================
@@ -39,7 +39,8 @@ const DataSourceAccountStore = BaseStore.named('DataSourceAccountStore')
         const account = self.account;
         account.setStudies(studies);
 
-        // TODO - call generate cloudformation for the account
+        const stackInfo = await generateAccountCfnTemplate(self.accountId);
+        account.setStackInfo(stackInfo);
       },
 
       getStudyStore(studyId) {

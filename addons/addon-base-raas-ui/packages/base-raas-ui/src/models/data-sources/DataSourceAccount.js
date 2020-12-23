@@ -20,6 +20,7 @@ import { types } from 'mobx-state-tree';
 import { consolidateToMap } from '@aws-ee/base-ui/dist/helpers/utils';
 
 import { DataSourceStudy } from './DataSourceStudy';
+import { StackInfo } from './StackInfo';
 
 const states = {
   pending: {
@@ -66,11 +67,13 @@ const DataSourceAccount = types
     stackId: '',
     buckets: types.array(types.frozen()),
     studies: types.map(DataSourceStudy),
+    stackInfo: types.optional(StackInfo, {}),
   })
   .actions(self => ({
     setDataSourceAccount(raw = {}) {
       _.forEach(raw, (value, key) => {
         if (value === 'studies') return; // we don't want to update the studies
+        if (value === 'stackInfo') return; // we don't want to update the stack info
         self[key] = value;
       });
 
@@ -82,6 +85,25 @@ const DataSourceAccount = types
       consolidateToMap(self.studies, studies, (existing, newItem) => {
         existing.setStudy(newItem);
       });
+    },
+
+    setStudy(study) {
+      self.studies.set(study.id, study);
+
+      return self.studies.get(study.id);
+    },
+
+    setBucket(bucket) {
+      // Because buckets are frozen, we need to deep clone first
+      const buckets = _.cloneDeep(self.buckets);
+      buckets.push(bucket);
+      self.buckets = buckets;
+
+      return bucket;
+    },
+
+    setStackInfo(stackInfo) {
+      self.stackInfo.setStackInfo(stackInfo);
     },
   }))
 
@@ -140,6 +162,10 @@ const DataSourceAccount = types
 
     get incorrectStackNameProvisioned() {
       return _.isEmpty(self.stackId) && self.stackCreated;
+    },
+
+    getBucket(name) {
+      return _.find(self.buckets, bucket => bucket.name === name);
     },
   }));
 

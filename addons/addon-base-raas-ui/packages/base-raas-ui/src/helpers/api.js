@@ -310,6 +310,24 @@ function registerAccount(account) {
   });
 }
 
+function registerBucket(accountId, bucket) {
+  return httpApiPost(`api/data-sources/accounts/${accountId}/buckets`, {
+    data: bucket,
+  });
+}
+
+function registerStudy(accountId, bucketName, study) {
+  return httpApiPost(`api/data-sources/accounts/${accountId}/buckets/${bucketName}/studies`, {
+    data: study,
+  });
+}
+
+function generateAccountCfnTemplate(accountId) {
+  return httpApiPost(`api/data-sources/accounts/${accountId}/cfn`, {
+    data: {},
+  });
+}
+
 export {
   addIndex,
   addUsers,
@@ -375,4 +393,7 @@ export {
   checkStudyReachability,
   checkAccountReachability,
   registerAccount,
+  registerBucket,
+  registerStudy,
+  generateAccountCfnTemplate,
 };

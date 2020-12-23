@@ -28,12 +28,13 @@ import ErrorPointer from './ErrorPointer';
 // - options (via props), an array of [ {text, value}, {text, value}, ...]
 // - show (via props), can be 'headerOnly', 'buttonsOnly', 'both' (default to 'both')
 // - className (via props)
+// - onChange (via props), a call back function that receives (value, field)
 //
 // The following props are to support existing React Semantic UI props:
 // - disabled (via props), default to false
 // - size (via props), default to tiny
 const Component = observer(
-  ({ field, disabled = false, show = 'both', className = 'mb4', size = 'tiny', options = [] }) => {
+  ({ field, disabled = false, show = 'both', className = 'mb4', size = 'tiny', options = [], onChange }) => {
     const { id, value, sync, error = '', extra = {} } = field;
     const mergedOptions = [...((extra && extra.options) || []), ...options];
 
@@ -47,6 +48,7 @@ const Component = observer(
       if (isDisabled) return;
       sync(toAssign);
       field.validate({ showErrors: true });
+      if (onChange) onChange(toAssign, field);
     };
 
     const headerOrHeaderAndButtons = show === 'both' || show === 'headerOnly';
