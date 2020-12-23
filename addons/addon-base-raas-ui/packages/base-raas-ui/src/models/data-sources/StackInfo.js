@@ -42,6 +42,20 @@ const StackInfo = types
   }))
 
   // eslint-disable-next-line no-unused-vars
-  .views(self => ({}));
+  .views(self => ({
+    get formattedTemplate() {
+      return JSON.stringify(self.template, null, 2);
+    },
+
+    get hasUpdateStackUrl() {
+      return !_.isEmpty(self.updateStackUrl);
+    },
+
+    get expired() {
+      const now = Date.now();
+
+      return self.urlExpiry < now + 1000 * 60; // lets buffer 1 minute
+    },
+  }));
 
 export { StackInfo }; // eslint-disable-line import/prefer-default-export

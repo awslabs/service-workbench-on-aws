@@ -46,7 +46,7 @@ class DataSourceAccountsList extends React.Component {
     event.stopPropagation();
 
     const goto = gotoFn(this);
-    goto(`/data-sources/register/1`);
+    goto(`/data-sources/register`);
   };
 
   render() {

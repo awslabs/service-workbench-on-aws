@@ -67,7 +67,7 @@ function registerRoutes(routesMap, { location, appContext }) {
     ['/workspaces/id/:instanceId', withAuth(EnvironmentDetailPage)],
     ['/workspaces', withAuth(EnvironmentsList)],
     ['/projects/add', withAuth(AddProject)],
-    ['/data-sources/register/1', withAuth(RegisterStudy)],
+    ['/data-sources/register', withAuth(RegisterStudy)],
     ['/data-sources', withAuth(DataSourceAccountsList)],
   ]);
 

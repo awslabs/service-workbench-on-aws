@@ -27,6 +27,7 @@ import { isStoreError, isStoreNew, isStoreLoading } from '@aws-ee/base-ui/dist/m
 
 import By from '../helpers/By';
 import DataSourceStudiesList from './DataSourceStudiesList';
+import DataSourceAccountCfn from './DataSourceAccountCfn';
 import { Operation } from '../../models/helpers/Operation';
 import AccountConnectionPanel from './parts/AccountConnectionPanel';
 import AccountStatusMessage from './parts/AccountStatusMessage';
@@ -129,6 +130,14 @@ class DataSourceAccountCard extends React.Component {
         render: () => (
           <Tab.Pane attached={false} key="studies" as={TabPaneWrapper}>
             <Observer>{() => <DataSourceStudiesList account={account} />}</Observer>
+          </Tab.Pane>
+        ),
+      },
+      {
+        menuItem: 'CloudFormation',
+        render: () => (
+          <Tab.Pane attached={false} key="cloudformation" as={TabPaneWrapper}>
+            <Observer>{() => <DataSourceAccountCfn account={account} />}</Observer>
           </Tab.Pane>
         ),
       },

@@ -66,10 +66,7 @@ class SubmitStep extends React.Component {
   };
 
   handleNext = () => {
-    const goto = gotoFn(this);
-    this.wizard.reset();
-
-    goto('/data-sources');
+    this.wizard.advanceToNextStep();
   };
 
   render() {

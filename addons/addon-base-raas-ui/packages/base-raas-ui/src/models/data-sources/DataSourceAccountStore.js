@@ -16,8 +16,9 @@
 import { getParent, types } from 'mobx-state-tree';
 import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
 
-import { getDataSourceStudies, generateAccountCfnTemplate } from '../../helpers/api';
+import { getDataSourceStudies } from '../../helpers/api';
 import { DataSourceStudyStore } from './DataSourceStudyStore';
+import { DataSourceStackInfoStore } from './DataSourceStackInfoStore';
 
 // ==================================================================
 // DataSourceAccountStore
@@ -26,6 +27,7 @@ const DataSourceAccountStore = BaseStore.named('DataSourceAccountStore')
   .props({
     accountId: '',
     studyStores: types.map(DataSourceStudyStore),
+    stackInfoStore: types.maybe(DataSourceStackInfoStore),
     tickPeriod: 9 * 60 * 1000, // 9 minutes
   })
 
@@ -38,9 +40,6 @@ const DataSourceAccountStore = BaseStore.named('DataSourceAccountStore')
         const studies = await getDataSourceStudies(self.accountId);
         const account = self.account;
         account.setStudies(studies);
-
-        const stackInfo = await generateAccountCfnTemplate(self.accountId);
-        account.setStackInfo(stackInfo);
       },
 
       getStudyStore(studyId) {
@@ -54,9 +53,21 @@ const DataSourceAccountStore = BaseStore.named('DataSourceAccountStore')
         return entry;
       },
 
+      getStackInfoStore() {
+        let entry = self.stackInfoStore;
+        if (!entry) {
+          // Lazily create the store
+          self.stackInfoStore = DataSourceStackInfoStore.create({ accountId: self.accountId });
+          entry = self.stackInfoStore;
+        }
+
+        return entry;
+      },
+
       cleanup: () => {
         self.accountId = '';
         self.studyStores.clear();
+        self.stackInfoStore.clear();
         superCleanup();
       },
     };

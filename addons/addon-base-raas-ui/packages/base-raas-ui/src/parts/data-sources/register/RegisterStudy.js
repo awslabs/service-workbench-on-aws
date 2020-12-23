@@ -26,6 +26,8 @@ import ProgressPlaceHolder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgres
 
 import InputStep from './InputStep';
 import SubmitStep from './SubmitStep';
+import CfnStep from './CfnStep';
+import StartStep from './StartStep';
 
 // expected props
 // - dataSourceAccountsStore (via injection)
@@ -56,6 +58,7 @@ class RegisterStudy extends React.Component {
 
   render() {
     const stores = this.stores;
+
     let content = null;
     if (stores.hasError) {
       content = <ErrorBox error={stores.error} className="p0" />;
@@ -77,8 +80,11 @@ class RegisterStudy extends React.Component {
 
   renderMain() {
     const wizard = this.wizard;
+    if (wizard.isStartStep) return <StartStep wizard={wizard} />;
     if (wizard.isInputStep) return <InputStep wizard={wizard} />;
     if (wizard.isSubmitStep) return <SubmitStep wizard={wizard} />;
+    if (wizard.isCfnStep) return <CfnStep wizard={wizard} />;
+
     return null;
   }
 

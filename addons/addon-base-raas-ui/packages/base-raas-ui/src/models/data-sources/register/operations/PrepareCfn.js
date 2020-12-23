@@ -15,6 +15,8 @@
 
 import { decorate, action } from 'mobx';
 
+import { delay } from '@aws-ee/base-ui/dist/helpers/utils';
+
 import { generateAccountCfnTemplate } from '../../../../helpers/api';
 import Operation from '../../../operations/Operation';
 
@@ -27,9 +29,15 @@ class PrepareCfnOperation extends Operation {
   }
 
   async doRun() {
+    const accountsStore = this.accountsStore;
     const stackInfo = await generateAccountCfnTemplate(this.account.id);
-    const account = this.accountsStore.getAccount(this.account.id);
+
+    await delay(0.5); // We don't have strong read when we load the accounts, therefore we have this delay in place
+    await accountsStore.load();
+
+    const account = accountsStore.getAccount(this.account.id);
     account.setStackInfo(stackInfo);
+
     this.setMessage(`Successfully prepared CloudFormation for account #${this.account.id}`);
   }
 }

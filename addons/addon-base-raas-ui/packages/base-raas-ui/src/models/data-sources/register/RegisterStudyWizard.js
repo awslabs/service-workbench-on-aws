@@ -28,6 +28,7 @@ import PrepareCfnOperation from './operations/PrepareCfn';
 const RegisterStudyWizard = types
   .model('RegisterStudyWizard', {
     step: '',
+    accountId: '',
   })
 
   .volatile(_self => ({
@@ -44,7 +45,7 @@ const RegisterStudyWizard = types
 
   .actions(self => ({
     afterCreate: () => {
-      self.step = 'input';
+      self.step = 'start';
       self.operations = new Operations();
     },
 
@@ -57,6 +58,7 @@ const RegisterStudyWizard = types
       const existingAccount = self.getAccount(providedAccount.id);
       const existingBucket = existingAccount ? existingAccount.getBucket(providedBucket.name) : undefined;
 
+      self.accountId = providedAccount.id;
       ops.clear();
 
       if (_.isEmpty(existingAccount)) {
@@ -107,14 +109,27 @@ const RegisterStudyWizard = types
       self.cleanup();
     },
 
+    advanceToNextStep: () => {
+      if (self.step === 'start') {
+        self.step = 'input';
+      } else if (self.step === 'submit') {
+        self.step = 'cfn';
+      }
+    },
+
     cleanup: () => {
-      self.step = 'input';
+      self.step = 'start';
       if (self.operations) self.operations.clear();
+      self.accountId = '';
     },
   }))
 
   // eslint-disable-next-line no-unused-vars
   .views(self => ({
+    get isStartStep() {
+      return self.step === 'start';
+    },
+
     get isInputStep() {
       return self.step === 'input';
     },
@@ -123,10 +138,20 @@ const RegisterStudyWizard = types
       return self.step === 'submit';
     },
 
+    get isCfnStep() {
+      return self.step === 'cfn';
+    },
+
     get dropdownAccountOptions() {
       const accountsStore = getEnv(self).dataSourceAccountsStore;
 
       return accountsStore.dropdownOptions;
+    },
+
+    get processedAccount() {
+      if (_.isEmpty(self.accountId)) return {};
+
+      return self.getAccount(self.accountId);
     },
 
     get accountsStore() {

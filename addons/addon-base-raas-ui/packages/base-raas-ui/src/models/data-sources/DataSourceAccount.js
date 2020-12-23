@@ -110,7 +110,7 @@ const DataSourceAccount = types
   // eslint-disable-next-line no-unused-vars
   .views(self => ({
     get studiesList() {
-      return _.orderBy(values(self.studies), ['name', 'createdAt'], ['desc', 'asc']);
+      return _.orderBy(values(self.studies), ['id'], ['asc']);
     },
 
     getStudy(studyId) {
