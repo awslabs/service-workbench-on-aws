@@ -131,6 +131,8 @@ describe('DataSourceBucketService', () => {
     iamClient = {
       deleteRole: jest.fn(),
       deleteRolePolicy: jest.fn(),
+      createRole: jest.fn(),
+      putRolePolicy: jest.fn(),
     };
   });
 
@@ -348,6 +350,115 @@ describe('DataSourceBucketService', () => {
       // CHECK (Attempt #2)
       expect(usageService.addUsage).toHaveBeenCalledTimes(2);
       expect(service.saveEntity).toHaveBeenCalledTimes(1);
+    });
+
+    it('ensures no errors are thrown when role and policy are created', async () => {
+      // BUILD
+      const fsRoleEntity = { name: 'sampleRoleName', appRoleArn: 'sampleRoleArn' };
+      iamClient.createRole = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return Promise.resolve();
+          },
+        };
+      });
+      iamClient.putRolePolicy = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return Promise.resolve();
+          },
+        };
+      });
+      service.getIamClient = jest.fn().mockResolvedValue(iamClient);
+      const retryMock = jest.spyOn(Utils, 'retry');
+      retryMock.mockImplementation(async fn => {
+        const result = await fn();
+        return result;
+      });
+
+      // EXECUTE & CHECK no exceptions thrown
+      await service.provisionRole(fsRoleEntity);
+      expect(iamClient.createRole).toHaveBeenCalledTimes(1);
+      expect(iamClient.putRolePolicy).toHaveBeenCalledTimes(1);
+    });
+
+    it('ensures no errors are thrown when policy entity already exists', async () => {
+      // BUILD
+      const fsRoleEntity = { name: 'sampleRoleName', appRoleArn: 'sampleRoleArn' };
+      const error = new Error('EntityAlreadyExists');
+      error.code = 'EntityAlreadyExists';
+      iamClient.createRole = jest.fn().mockImplementation(() => {
+        throw error;
+      });
+      iamClient.putRolePolicy = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return Promise.resolve();
+          },
+        };
+      });
+      service.getIamClient = jest.fn().mockResolvedValue(iamClient);
+
+      // EXECUTE & CHECK no exceptions thrown
+      await service.provisionRole(fsRoleEntity);
+      expect(iamClient.createRole).toHaveBeenCalledTimes(1);
+      expect(iamClient.putRolePolicy).not.toHaveBeenCalled();
+    });
+
+    it('ensures no errors are thrown when role entity already exists', async () => {
+      // BUILD
+      const fsRoleEntity = { name: 'sampleRoleName', appRoleArn: 'sampleRoleArn' };
+      const error = new Error('EntityAlreadyExists');
+      error.code = 'EntityAlreadyExists';
+      iamClient.createRole = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return Promise.resolve();
+          },
+        };
+      });
+      iamClient.putRolePolicy = jest.fn().mockImplementation(() => {
+        throw error;
+      });
+      service.getIamClient = jest.fn().mockResolvedValue(iamClient);
+      const retryMock = jest.spyOn(Utils, 'retry');
+      retryMock.mockImplementation(async fn => {
+        const result = await fn();
+        return result;
+      });
+
+      // EXECUTE & CHECK no exceptions thrown
+      await service.provisionRole(fsRoleEntity);
+      expect(iamClient.putRolePolicy).toHaveBeenCalledTimes(1);
+      expect(iamClient.createRole).toHaveBeenCalledTimes(1);
+    });
+
+    it('ensures errors are thrown when unknown exception encountered', async () => {
+      // BUILD
+      const fsRoleEntity = { name: 'sampleRoleName', appRoleArn: 'sampleRoleArn' };
+      const error = new Error('UnknownException');
+      error.code = 'UnknownException';
+      iamClient.createRole = jest.fn().mockImplementation(() => {
+        throw error;
+      });
+      iamClient.putRolePolicy = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return Promise.resolve();
+          },
+        };
+      });
+      service.getIamClient = jest.fn().mockResolvedValue(iamClient);
+      const retryMock = jest.spyOn(Utils, 'retry');
+      retryMock.mockImplementation(async fn => {
+        const result = await fn();
+        return result;
+      });
+
+      // EXECUTE & CHECK no exceptions thrown
+      await expect(service.provisionRole(fsRoleEntity)).rejects.toThrow(
+        `There was a problem provisioning the role. Error: Error: ${error.code}`,
+      );
     });
   });
 

@@ -434,28 +434,35 @@ class FilesystemRoleService extends Service {
       PermissionsBoundary: boundaryPolicyArn,
     };
 
-    // Create the fs role
-    await iamClient.createRole(params).promise();
+    try {
+      // Create the fs role
+      await iamClient.createRole(params).promise();
 
-    // Next, we need to add an inline policy that will allow the role to access the appropriate study. However, due to
-    // eventual consistency constraints, we can't assume that the role is immediately available. Therefore, we attempt to
-    // create the role policy using a retry logic.
+      // Next, we need to add an inline policy that will allow the role to access the appropriate study. However, due to
+      // eventual consistency constraints, we can't assume that the role is immediately available. Therefore, we attempt to
+      // create the role policy using a retry logic.
 
-    // Lets wait for 0.5 second
-    await sleep(500);
+      // Lets wait for 0.5 second
+      await sleep(500);
 
-    params = {
-      PolicyDocument: JSON.stringify(toInlinePolicyDoc(fsRoleEntity)),
-      PolicyName: 'StudyS3AccessPolicy',
-      RoleName: name,
-    };
+      params = {
+        PolicyDocument: JSON.stringify(toInlinePolicyDoc(fsRoleEntity)),
+        PolicyName: 'StudyS3AccessPolicy',
+        RoleName: name,
+      };
 
-    const putPolicy = () => {
-      return iamClient.putRolePolicy(params).promise();
-    };
+      const putPolicy = async () => {
+        return iamClient.putRolePolicy(params).promise();
+      };
 
-    // Retry 5 times using an exponential interval
-    await retry(putPolicy, 5);
+      // Retry 5 times using an exponential interval
+      await retry(putPolicy, 5);
+    } catch (err) {
+      // If role/policy already exists, then ignore the error message.
+      if (err.code !== 'EntityAlreadyExists') {
+        throw this.boom.internalError(`There was a problem provisioning the role. Error: ${err}`);
+      }
+    }
   }
 
   // @private
