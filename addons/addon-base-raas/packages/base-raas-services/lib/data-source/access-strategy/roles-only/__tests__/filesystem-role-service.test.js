@@ -20,8 +20,10 @@ jest.mock('@aws-ee/base-services/lib/logger/logger-service');
 jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
 jest.mock('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
 jest.mock('@aws-ee/base-services/lib/audit/audit-writer-service');
+jest.mock('@aws-ee/base-services/lib/helpers/utils');
 jest.mock('../application-role-service');
 
+const Utils = require('@aws-ee/base-services/lib/helpers/utils');
 const Aws = require('@aws-ee/base-services/lib/aws/aws-service');
 const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
 const DbService = require('@aws-ee/base-services/lib/db-service');
@@ -104,6 +106,7 @@ describe('DataSourceBucketService', () => {
   let service;
   let appRoleService;
   let usageService;
+  let iamClient;
 
   beforeEach(async () => {
     // Initialize services container and register dependencies
@@ -125,6 +128,10 @@ describe('DataSourceBucketService', () => {
     service = await container.find('roles-only/filesystemRoleService');
     appRoleService = await container.find('roles-only/applicationRoleService');
     usageService = await container.find('resourceUsageService');
+    iamClient = {
+      deleteRole: jest.fn(),
+      deleteRolePolicy: jest.fn(),
+    };
   });
 
   describe('when allocating a role', () => {
@@ -630,6 +637,108 @@ describe('DataSourceBucketService', () => {
       // CHECK
       expect(deleteObj.delete).toHaveBeenCalledTimes(1);
       expect(service.deprovisionRole).toHaveBeenCalledTimes(1);
+    });
+
+    it('ensures successful deprovisionRole response when no errors are thrown', async () => {
+      // BUILD
+      const fsRoleEntity = { name: 'sampleRoleName', appRoleArn: 'sampleRoleArn' };
+      iamClient.deleteRole = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return Promise.resolve();
+          },
+        };
+      });
+      iamClient.deleteRolePolicy = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return Promise.resolve();
+          },
+        };
+      });
+      service.getIamClient = jest.fn().mockResolvedValue(iamClient);
+
+      // EXECUTE & CHECK no exceptions thrown
+      await service.deprovisionRole(fsRoleEntity);
+    });
+
+    it('ensures no errors are thrown when no policy entity found', async () => {
+      // BUILD
+      const fsRoleEntity = { name: 'sampleRoleName', appRoleArn: 'sampleRoleArn' };
+      const error = new Error('NoSuchEntity');
+      error.code = 'NoSuchEntity';
+      iamClient.deleteRolePolicy = jest.fn().mockImplementation(() => {
+        throw error;
+      });
+      iamClient.deleteRole = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return Promise.resolve();
+          },
+        };
+      });
+      service.getIamClient = jest.fn().mockResolvedValue(iamClient);
+
+      // EXECUTE & CHECK no exceptions thrown
+      await service.deprovisionRole(fsRoleEntity);
+      expect(iamClient.deleteRolePolicy).toHaveBeenCalledTimes(1);
+      expect(iamClient.deleteRole).not.toHaveBeenCalled();
+    });
+
+    it('ensures no errors are thrown when no role entity found', async () => {
+      // BUILD
+      const fsRoleEntity = { name: 'sampleRoleName', appRoleArn: 'sampleRoleArn' };
+      const error = new Error('NoSuchEntity');
+      error.code = 'NoSuchEntity';
+      iamClient.deleteRole = jest.fn().mockImplementation(() => {
+        throw error;
+      });
+      iamClient.deleteRolePolicy = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return Promise.resolve();
+          },
+        };
+      });
+      service.getIamClient = jest.fn().mockResolvedValue(iamClient);
+      const retryMock = jest.spyOn(Utils, 'retry');
+      retryMock.mockImplementation(async fn => {
+        const result = await fn();
+        return result;
+      });
+
+      // EXECUTE & CHECK no exceptions thrown
+      await service.deprovisionRole(fsRoleEntity);
+      expect(iamClient.deleteRolePolicy).toHaveBeenCalledTimes(1);
+      expect(iamClient.deleteRole).toHaveBeenCalledTimes(1);
+    });
+
+    it('ensures errors are thrown when unknown exception encountered', async () => {
+      // BUILD
+      const fsRoleEntity = { name: 'sampleRoleName', appRoleArn: 'sampleRoleArn' };
+      const error = new Error('UnknownException');
+      error.code = 'UnknownException';
+      iamClient.deleteRole = jest.fn().mockImplementation(() => {
+        throw error;
+      });
+      iamClient.deleteRolePolicy = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return Promise.resolve();
+          },
+        };
+      });
+      service.getIamClient = jest.fn().mockResolvedValue(iamClient);
+      const retryMock = jest.spyOn(Utils, 'retry');
+      retryMock.mockImplementation(async fn => {
+        const result = await fn();
+        return result;
+      });
+
+      // EXECUTE & CHECK no exceptions thrown
+      await expect(service.deprovisionRole(fsRoleEntity)).rejects.toThrow(
+        `There was a problem deprovisioning the role. Error: Error: ${error.code}`,
+      );
     });
   });
 });

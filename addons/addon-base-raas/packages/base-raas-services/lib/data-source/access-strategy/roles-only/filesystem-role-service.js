@@ -496,14 +496,14 @@ class FilesystemRoleService extends Service {
         RoleName: name,
       };
 
-      const deleteRole = () => {
+      const deleteRole = async () => {
         return iamClient.deleteRole(params).promise();
       };
 
       // Retry 5 times using an exponential interval
       await retry(deleteRole, 5);
     } catch (err) {
-      // If role doesn't exist, then it must have already deleted.
+      // If role/policy doesn't exist, then it must have already deleted.
       if (err.code !== 'NoSuchEntity') {
         throw this.boom.internalError(`There was a problem deprovisioning the role. Error: ${err}`);
       }
