@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
-
+const _ = require('lodash');
 // Mocked services
 jest.mock('@aws-ee/base-services/lib/db-service');
 jest.mock('@aws-ee/base-services/lib/logger/logger-service');
@@ -256,7 +256,7 @@ describe('DataSourceBucketService', () => {
         },
         trust: ['3333333'],
       };
-      const initialValue = JSON.parse(JSON.stringify(fsRoleEntity)); // Deep copy
+      const initialValue = _.cloneDeep(fsRoleEntity);
       appRoleService.mustFind = jest.fn((_rq, { arn }) => {
         if (arn === appRole.arn) return Promise.resolve(appRole);
         return Promise.resolve();
@@ -282,14 +282,18 @@ describe('DataSourceBucketService', () => {
       });
       await expect(service.allocateRole(requestContext, study, env, memberAcct)).rejects.toThrow(error);
 
+      // CHECK (Attempt #1)
+      expect(service.provisionRole).not.toHaveBeenCalled();
+      expect(usageService.addUsage).not.toHaveBeenCalled();
+      expect(service.saveEntity).not.toHaveBeenCalled();
+
       // Attempt #2 (Successful)
       service.updateAssumeRolePolicy = jest.fn();
       service.find = jest.fn().mockResolvedValue(initialValue);
       await service.allocateRole(requestContext, study, env, memberAcct);
 
-      // CHECK
+      // CHECK (Attempt #2)
       expect(service.provisionRole).not.toHaveBeenCalled();
-      // Called only during successful attempt
       expect(usageService.addUsage).toHaveBeenCalledTimes(1);
       expect(service.saveEntity).toHaveBeenCalledTimes(1);
     });
@@ -326,12 +330,15 @@ describe('DataSourceBucketService', () => {
       });
       await expect(service.allocateRole(requestContext, study, env, memberAcct)).rejects.toThrow(error);
 
+      // CHECK (Attempt #1)
+      expect(usageService.addUsage).not.toHaveBeenCalled();
+      expect(service.saveEntity).not.toHaveBeenCalled();
+
       // Attempt #2 (Successful)
       service.provisionRole = jest.fn();
       await service.allocateRole(requestContext, study, env, memberAcct);
 
-      // CHECK
-      // Called only during successful attempt
+      // CHECK (Attempt #2)
       expect(usageService.addUsage).toHaveBeenCalledTimes(2);
       expect(service.saveEntity).toHaveBeenCalledTimes(1);
     });
@@ -507,15 +514,20 @@ describe('DataSourceBucketService', () => {
       });
       await expect(service.deallocateRole(requestContext, arn, study, env, memberAcct)).rejects.toThrow(error);
 
+      // CHECK (Attempt #1)
+      expect(usageService.removeUsage).toHaveBeenCalledTimes(2);
+      expect(deleteObj.delete).not.toHaveBeenCalled();
+      expect(service.saveEntity).toHaveBeenCalledTimes(2);
+
       // Attempt #2 (Successful)
       service.deprovisionRole = jest.fn();
       await expect(service.find()).resolves.toStrictEqual({ arn: 'fs-role-arn', studies: {}, trust: [] }); // DB has updated entity during previous attempt
       await service.deallocateRole(requestContext, arn, study, env, memberAcct);
 
-      // CHECK
+      // CHECK (Attempt #2)
       expect(usageService.removeUsage).toHaveBeenCalledTimes(4);
       expect(service.saveEntity).toHaveBeenCalledTimes(4);
-      expect(deleteObj.delete).toHaveBeenCalledTimes(1); // Only called during the successful attempt
+      expect(deleteObj.delete).toHaveBeenCalledTimes(1);
     });
 
     it('Role policy retry after unsuccessful update attempt - updateAssumeRolePolicy idempotency', async () => {
@@ -568,15 +580,20 @@ describe('DataSourceBucketService', () => {
       });
       await expect(service.deallocateRole(requestContext, arn, study, env, memberAcct)).rejects.toThrow(error);
 
+      // CHECK (Attempt #1)
+      expect(usageService.removeUsage).toHaveBeenCalledTimes(1);
+      expect(deleteObj.delete).not.toHaveBeenCalled();
+      expect(service.saveEntity).not.toHaveBeenCalled();
+
       // Attempt #2 (Successful)
       service.updateAssumeRolePolicy = jest.fn();
       await expect(service.find()).resolves.toStrictEqual(fsRoleEntityTrustRemoved); // DB has updated entity during previous attempt
       await service.deallocateRole(requestContext, arn, study, env, memberAcct);
 
-      // CHECK
+      // CHECK (Attempt #2)
       expect(usageService.removeUsage).toHaveBeenCalledTimes(2);
       expect(deleteObj.delete).not.toHaveBeenCalled();
-      expect(service.saveEntity).toHaveBeenCalledTimes(1); // Only called during the successful attempt
+      expect(service.saveEntity).toHaveBeenCalledTimes(1);
     });
   });
 });
