@@ -226,7 +226,7 @@ class DataSourceReachabilityService extends Service {
         options: { region: studyEntity.region },
       });
       // use s3Client to read the head of an object
-      await s3Client.headObject({ Bucket: studyEntity.bucket, Key: studyEntity.folder });
+      await s3Client.headObject({ Bucket: studyEntity.bucket, Key: studyEntity.folder }).promise();
       reachable = true;
     } catch (err) {
       // Error is expected if assuming role is not successful yet
