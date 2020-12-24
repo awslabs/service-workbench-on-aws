@@ -169,7 +169,7 @@ class InputStep extends React.Component {
 
     accountField.$('mainRegion').set(account.mainRegion);
     accountField.$('name').set(account.name);
-    accountField.$('contactInfo').set(account.contactInfo);
+    accountField.$('contactInfo').set(account.contactInfo || '');
     this.disableFields(accountField, ['name', 'mainRegion', 'contactInfo']);
   };
 
