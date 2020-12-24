@@ -196,7 +196,7 @@ class DataSourceAccountCard extends React.Component {
           <p>
             It seems that the correct CloudFormation stack was deployed to AWS account <b>{account.id}</b> but with an
             incorrect stack name. Please ensure that you have the latest CloudFormation template deployed with the stack
-            name {account.stack} in the account.
+            name {account.stack} in the account. If you just updated the stack you can run the connection test again.
           </p>
         </Message>
       );
@@ -208,7 +208,7 @@ class DataSourceAccountCard extends React.Component {
         <p>
           It seems that the CloudFormation stack {account.stack} deployed to AWS account <b>{account.id}</b> is outdated
           and does not contain the latest changes made. Please use the latest CloudFormation template to update the
-          stack.
+          stack. If you just updated the stack you can run the connection test again.
         </p>
       </Message>
     );
