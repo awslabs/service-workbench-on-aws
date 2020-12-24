@@ -21,6 +21,7 @@ const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/autho
 const { generateId } = require('../helpers/utils');
 const registerSchema = require('../schema/register-data-source-account');
 const updateSchema = require('../schema/update-data-source-account');
+const updateStackInfoSchema = require('../schema/update-ds-account-stack-info');
 const { toDsAccountEntity, toDbEntity } = require('./helpers/entities/data-source-account-methods');
 const { toBucketEntity } = require('./helpers/entities/data-source-bucket-methods');
 const { accountIdCompositeKey, bucketIdCompositeKey } = require('./helpers/composite-keys');
@@ -37,7 +38,7 @@ class DataSourceAccountService extends Service {
   constructor() {
     super();
     this.boom.extend(['notSupported', 400]);
-    this.dependency(['jsonSchemaValidationService', 'authorizationService', 'dbService', 'auditWriterService']);
+    this.dependency(['aws', 'jsonSchemaValidationService', 'authorizationService', 'dbService', 'auditWriterService']);
   }
 
   async init() {
@@ -245,27 +246,30 @@ class DataSourceAccountService extends Service {
     return toDsAccountEntity(dbEntity);
   }
 
-  async updateStackCreated(requestContext, { stackCreated, dsAccountEntity } = {}) {
+  async updateStackInfo(requestContext, accountId, stackInfo = {}) {
     await this.assertAuthorized(
       requestContext,
-      { action: 'update-account', conditions: [allowIfActive, allowIfAdmin] },
-      { stackCreated },
+      { action: 'update-account-stack-info', conditions: [allowIfActive, allowIfAdmin] },
+      { stackInfo },
     );
 
+    // Validate input
+    const [validationService] = await this.service(['jsonSchemaValidationService']);
+    await validationService.ensureValid(stackInfo, updateStackInfoSchema);
+
     const by = _.get(requestContext, 'principalIdentifier.uid');
-    const item = { updatedBy: by, stackCreated };
-    const { id } = dsAccountEntity;
+    const item = { ...stackInfo, updatedBy: by };
 
     const dbEntity = await runAndCatch(
       async () => {
         const op = this._updater()
           .condition('attribute_exists(pk) and attribute_exists(sk)')
-          .key(accountIdCompositeKey.encode(dsAccountEntity));
+          .key(accountIdCompositeKey.encode({ id: accountId }));
 
         return op.item(item).update();
       },
       async () => {
-        throw this.boom.notFound(`The data source account entity "${id}" does not exist`, true);
+        throw this.boom.notFound(`The data source account entity "${accountId}" does not exist`, true);
       },
     );
     return toDsAccountEntity(dbEntity);
@@ -273,18 +277,47 @@ class DataSourceAccountService extends Service {
 
   /**
    * Queries the stack at the data source AWS account and returns the following object:
-   * { stackId, templateId, templateVer}
+   * { stackId, templateId, templateVer, at }
    *
    * An exception is thrown if an error occurs while trying to describe the stack. This could happen if the stack
    * is not created yet or is not provisioned in the correct account and region or was provisioned but did not
    * use the correct stack name.
    *
-   * @param {*} requestContext
-   * @param {*} accountEntity
+   * @param requestContext
+   * @param accountEntity
    */
-  // eslint-disable-next-line no-unused-vars
   async queryStack(requestContext, accountEntity) {
-    // TODO
+    await this.assertAuthorized(
+      requestContext,
+      { action: 'query-stack', conditions: [allowIfActive, allowIfAdmin] },
+      { accountEntity },
+    );
+
+    const { id, qualifier, stack: stackName, mainRegion } = accountEntity;
+    const roleName = `${qualifier}-app-role-stack`;
+    const roleArn = `arn:aws:iam::${id}:role/${roleName}`;
+    const cfnApi = await this.getCfnSdk(roleArn, mainRegion);
+    const params = { StackName: stackName };
+    const stacks = await cfnApi.describeStacks(params).promise();
+    const stack = _.find(_.get(stacks, 'Stacks', []), item => item.StackName === stackName);
+
+    if (_.isEmpty(stack)) {
+      throw this.boom.notFound(`Stack '${stackName}' not found`, true);
+    }
+
+    const stackId = stack.StackId;
+    const templateInfoStr = _.get(
+      _.find(stack.Outputs, entry => entry.OutputKey === 'swbTemplateInfo'),
+      'OutputValue',
+    );
+
+    const templateInfo = _.isEmpty(templateInfoStr) ? {} : JSON.parse(templateInfoStr);
+    return {
+      stackId,
+      templateId: templateInfo.templateId,
+      templateVer: templateInfo.templateVer,
+      at: templateInfo.at,
+    };
   }
 
   async list(requestContext, { fields = [] } = {}) {
@@ -322,6 +355,17 @@ class DataSourceAccountService extends Service {
     });
 
     return result;
+  }
+
+  // @private
+  async getCfnSdk(roleArn, region) {
+    const aws = await this.service('aws');
+    try {
+      const cfnClient = await aws.getClientSdkForRole({ roleArn, clientName: 'CloudFormation', options: { region } });
+      return cfnClient;
+    } catch (error) {
+      throw this.boom.forbidden(`Could not assume a role to check the stack status`, true).cause(error);
+    }
   }
 
   async assertAuthorized(requestContext, { action, conditions }, ...args) {

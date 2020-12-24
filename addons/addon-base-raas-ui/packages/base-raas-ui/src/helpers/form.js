@@ -48,6 +48,11 @@ function createForm(fields, pluginsParam, optionsParam) {
   return new MobxReactForm({ fields }, { plugins, options });
 }
 
+function createFormSeparatedFormat(definitions, pluginsParam, optionsParam) {
+  const plugins = pluginsParam || formPlugins;
+  const options = optionsParam || formOptions;
+  return new MobxReactForm(definitions, { plugins, options });
+}
 const createSingleFieldForm = baseFormHelper.createSingleFieldForm;
 
-export { formPlugins, formOptions, createForm, createSingleFieldForm };
+export { formPlugins, formOptions, createForm, createSingleFieldForm, createFormSeparatedFormat };

@@ -220,6 +220,18 @@ class StudyService extends Service {
       await projectService.mustFind(requestContext, { id: rawStudyEntity.projectId });
     }
 
+    // Does the folder overlap with existing ones?
+    const overlap = await this.isOverlapping(
+      requestContext,
+      accountEntity.id,
+      bucketEntity.name,
+      rawStudyEntity.folder,
+    );
+
+    if (overlap) {
+      throw this.boom.badRequest('The study folder overlaps with an existing study folder', true);
+    }
+
     const by = _.get(requestContext, 'principalIdentifier.uid');
     const entity = {
       ..._.omit(rawStudyEntity, ['adminUsers']),
@@ -485,7 +497,7 @@ class StudyService extends Service {
     switch (category) {
       case 'Open Data':
         // Readable by all
-        result = this._query()
+        result = await this._query()
           .index(this.categoryIndex)
           .key('category', category)
           .limit(1000)
@@ -507,13 +519,7 @@ class StudyService extends Service {
             .get();
 
           // Filter by category and inject requestor's access level
-          const studyAccessMap = {};
-          _.forEach(permissionLevels, level => {
-            const studies = userPermissions[`${level}Access`];
-            _.forEach(studies, studyId => {
-              studyAccessMap[studyId] = level;
-            });
-          });
+          const studyAccessMap = this._getStudyAccessMap(userPermissions);
 
           result = rawResult
             .filter(study => study.category === category)
@@ -542,6 +548,56 @@ class StudyService extends Service {
       .query();
 
     return _.map(result, toStudyEntity);
+  }
+
+  /**
+   * Given a folder, search all existing studies in the given account and bucket and determine if this new folder
+   * is overlapping with existing ones. Overlapping means that the new folder is the direct parent or the ancestor parent
+   * of any of the existing studies folders in the same account and bucket. In addition, this applies the other way around.
+   * If an existing study folder is the parent or an ancestor parent of the new folder then there is an overlap.
+   *
+   * @param requestContext The standard request context
+   * @param accountId The account id
+   * @param bucketName The bucket name
+   * @param folder The folder
+   */
+  async isOverlapping(requestContext, accountId, bucketName, folder) {
+    // All studies for the account
+    const allStudies = await this.listStudiesForAccount(requestContext, { accountId });
+
+    // Studies that are part of the given bucket
+    const studies = _.filter(allStudies, study => study.bucket === bucketName);
+
+    const normalizedFolder = normalizeStudyFolder(folder);
+
+    // Lets test for the case of the root folder. If the normalized folder is the root folder and we already have
+    // existing studies, then this is an overlap already
+    if (normalizedFolder === '/' && !_.isEmpty(studies)) return true;
+
+    const overlap = _.some(studies, study => {
+      // Do we have a root folder? if so, then any other attempt in registering studies for this bucket should
+      // result in an overlap
+      if (study.folder === '/') return true;
+
+      return _.startsWith(normalizedFolder, study.folder) || _.startsWith(study.folder, normalizedFolder);
+    });
+
+    return overlap;
+  }
+
+  _getStudyAccessMap(userPermissions) {
+    const studyAccessMap = {};
+    _.forEach(permissionLevels, level => {
+      const studies = userPermissions[`${level}Access`];
+      _.forEach(studies, studyId => {
+        if (studyAccessMap[studyId]) {
+          studyAccessMap[studyId].push(level);
+        } else {
+          studyAccessMap[studyId] = [level];
+        }
+      });
+    });
+    return studyAccessMap;
   }
 
   /**

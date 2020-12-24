@@ -20,6 +20,7 @@ import { types } from 'mobx-state-tree';
 import { consolidateToMap } from '@aws-ee/base-ui/dist/helpers/utils';
 
 import { DataSourceStudy } from './DataSourceStudy';
+import { StackInfo } from './StackInfo';
 
 const states = {
   pending: {
@@ -54,20 +55,25 @@ const DataSourceAccount = types
     stackCreated: false,
     mainRegion: '',
     qualifier: '',
-    contactInfo: '',
+    contactInfo: types.optional(types.maybeNull(types.string), ''),
     stack: '',
     status: '',
     statusMsg: '',
     statusAt: '',
-    description: '',
+    description: types.optional(types.maybeNull(types.string), ''),
     type: '', // managed vs unmanaged
+    templateIdExpected: '',
+    templateIdFound: '',
+    stackId: '',
     buckets: types.array(types.frozen()),
     studies: types.map(DataSourceStudy),
+    stackInfo: types.optional(StackInfo, {}),
   })
   .actions(self => ({
     setDataSourceAccount(raw = {}) {
       _.forEach(raw, (value, key) => {
         if (value === 'studies') return; // we don't want to update the studies
+        if (value === 'stackInfo') return; // we don't want to update the stack info
         self[key] = value;
       });
 
@@ -80,12 +86,31 @@ const DataSourceAccount = types
         existing.setStudy(newItem);
       });
     },
+
+    setStudy(study) {
+      self.studies.set(study.id, study);
+
+      return self.studies.get(study.id);
+    },
+
+    setBucket(bucket) {
+      // Because buckets are frozen, we need to deep clone first
+      const buckets = _.cloneDeep(self.buckets);
+      buckets.push(bucket);
+      self.buckets = buckets;
+
+      return bucket;
+    },
+
+    setStackInfo(stackInfo) {
+      self.stackInfo.setStackInfo(stackInfo);
+    },
   }))
 
   // eslint-disable-next-line no-unused-vars
   .views(self => ({
     get studiesList() {
-      return _.orderBy(values(self.studies), ['name', 'createdAt'], ['desc', 'asc']);
+      return _.orderBy(values(self.studies), ['id'], ['asc']);
     },
 
     getStudy(studyId) {
@@ -129,6 +154,84 @@ const DataSourceAccount = types
       }
 
       return info;
+    },
+
+    get stackOutDated() {
+      return !_.isEmpty(self.stackId) && self.stackCreated && self.templateIdExpected !== self.templateIdFound;
+    },
+
+    get incorrectStackNameProvisioned() {
+      return _.isEmpty(self.stackId) && self.stackCreated;
+    },
+
+    getBucket(name) {
+      return _.find(self.buckets, bucket => bucket.name === name);
+    },
+
+    get bucketNames() {
+      return _.map(self.buckets, bucket => bucket.name);
+    },
+
+    getStudiesForBucket(name) {
+      return _.filter(values(self.studies), study => study.bucket === name);
+    },
+
+    get emailCommonSection() {
+      const names = self.bucketNames;
+      const lines = ['Dear Admin,', '', 'We are requesting access to the following bucket(s) and studies:'];
+      _.forEach(names, name => {
+        lines.push(`\nBucket name: ${name}`);
+        const studies = self.getStudiesForBucket(name);
+        _.forEach(studies, study => {
+          lines.push(` - folder: ${study.folder}`);
+          lines.push(`   access: ${study.friendlyAccessType}`);
+        });
+      });
+
+      lines.push('');
+      lines.push(
+        'For your convenience, you can follow these steps to configure the account for the requested access:\n',
+      );
+
+      return lines;
+    },
+
+    get updateStackEmailTemplate() {
+      const { id, mainRegion, stackInfo = {} } = self;
+      const { cfnConsoleUrl, updateStackUrl, urlExpiry } = stackInfo;
+      const lines = _.slice(self.emailCommonSection);
+
+      lines.push(
+        `1 - Log in to the aws console using the correct account. Please ensure that you are using the correct account # ${id} and region ${mainRegion}\n`,
+      );
+      lines.push(`2 - Go to the AWS CloudFormation console ${cfnConsoleUrl}\n`);
+      lines.push(`    You need to visit the AWS CloudFormation console page before you can follow the next link\n`);
+      lines.push(`3 - Click on the following link\n`);
+      lines.push(`    ${updateStackUrl}\n`);
+      lines.push(
+        '    The link takes you to the CloudFormation console where you can review the stack information and provision it.\n',
+      );
+      lines.push(`    Note: the link expires at ${new Date(urlExpiry).toISOString()}`);
+      lines.push(`\n\nRegards,\nService Workbench admin`);
+      return lines.join('\n');
+    },
+
+    get createStackEmailTemplate() {
+      const { id, mainRegion, stackInfo = {} } = self;
+      const { createStackUrl, urlExpiry } = stackInfo;
+      const lines = _.slice(self.emailCommonSection);
+
+      lines.push(
+        `1 - Log in to the aws console using the correct account. Please ensure that you are using the correct account # ${id} and region ${mainRegion}\n`,
+      );
+      lines.push(`2 - Click on the following link\n`);
+      lines.push(`    ${createStackUrl}\n`);
+      lines.push(
+        '    The link takes you to the CloudFormation console where you can review the stack information and provision it.\n',
+      );
+      lines.push(`    Note: the link expires at ${new Date(urlExpiry).toISOString()}`);
+      lines.push(`\n\nRegards,\nService Workbench admin`);
+      return lines.join('\n');
     },
   }));
 

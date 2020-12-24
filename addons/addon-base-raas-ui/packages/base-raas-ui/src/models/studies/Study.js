@@ -64,7 +64,7 @@ const Study = types
     category: '',
     projectId: '',
     accessType: types.maybe(types.string),
-    access: types.maybe(types.string),
+    access: types.optional(types.array(types.string), []),
     resources: types.optional(types.array(types.model({ arn: types.string })), []),
     description: types.maybeNull(types.string),
     uploadLocationEnabled: false,
@@ -120,6 +120,10 @@ const Study = types
         return ['admin', 'readonly'];
       }
       return ['admin', 'readwrite', 'readonly'];
+    },
+
+    get canUpload() {
+      return self.access.includes('admin') || self.access.includes('readwrite');
     },
   }));
 

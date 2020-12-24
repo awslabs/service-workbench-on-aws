@@ -281,8 +281,8 @@ class FilesystemRoleService extends Service {
    * @param environmentEntity The environment entity that was using the filesystem role
    */
   async deallocateRole(requestContext, fsRoleArn, studyEntity = {}, environmentEntity = {}, memberAccountId = '') {
-    // Allocating a filesystem role is only applicable for bucket with access = 'roles'
-    if (studyEntity.bucketAccess !== 'roles') return;
+    // Deallocating a filesystem role is only applicable for bucket with access = 'roles'
+    if (!_.isUndefined(studyEntity) && studyEntity.bucketAccess !== 'roles') return;
 
     if (_.isUndefined(memberAccountId))
       throw this.boom.badRequest('A member account id is required before de-allocating a filesystem role', true);
@@ -323,12 +323,6 @@ class FilesystemRoleService extends Service {
     // If it is not found then we have done the deallocation logic already
     if (_.isUndefined(fsRoleEntity)) return;
 
-    // If we don't have the study in the fs role entity then we have done the deallocation logic already
-    if (!hasStudy(fsRoleEntity, studyEntity)) return;
-
-    // Do we have the member account listed in the trust document?
-    if (!hasMemberAccount(fsRoleEntity, memberAccountId)) return;
-
     // Remove the environment usage for the study
     let usage = await usageService.removeUsage(requestContext, {
       resource: studyResourceId,
@@ -336,7 +330,7 @@ class FilesystemRoleService extends Service {
       item: envId,
     });
 
-    if (!usage.removed || !_.isEmpty(usage.items)) {
+    if (!_.isEmpty(usage.items)) {
       // This means that there are still other environments in the same member account that are actively using the
       // study, so there is nothing to do at this time
       return;
@@ -350,7 +344,6 @@ class FilesystemRoleService extends Service {
       // We can only update the trust policy if it still has principals (accounts)
       await this.updateAssumeRolePolicy(fsRoleEntity);
     }
-
     // Update the database
     fsRoleEntity = await this.saveEntity(requestContext, fsRoleEntity);
 
@@ -378,10 +371,8 @@ class FilesystemRoleService extends Service {
       return;
     }
 
-    if (usage.removed) {
-      // Delete the role from the data source account
-      await this.deprovisionRole(fsRoleEntity);
-    }
+    // Delete the role from the data source account
+    await this.deprovisionRole(fsRoleEntity);
 
     // Delete the entity from the database
     await this._deleter()
@@ -443,28 +434,35 @@ class FilesystemRoleService extends Service {
       PermissionsBoundary: boundaryPolicyArn,
     };
 
-    // Create the fs role
-    await iamClient.createRole(params).promise();
+    try {
+      // Create the fs role
+      await iamClient.createRole(params).promise();
 
-    // Next, we need to add an inline policy that will allow the role to access the appropriate study. However, due to
-    // eventual consistency constraints, we can't assume that the role is immediately available. Therefore, we attempt to
-    // create the role policy using a retry logic.
+      // Next, we need to add an inline policy that will allow the role to access the appropriate study. However, due to
+      // eventual consistency constraints, we can't assume that the role is immediately available. Therefore, we attempt to
+      // create the role policy using a retry logic.
 
-    // Lets wait for 0.5 second
-    await sleep(500);
+      // Lets wait for 0.5 second
+      await sleep(500);
 
-    params = {
-      PolicyDocument: JSON.stringify(toInlinePolicyDoc(fsRoleEntity)),
-      PolicyName: 'StudyS3AccessPolicy',
-      RoleName: name,
-    };
+      params = {
+        PolicyDocument: JSON.stringify(toInlinePolicyDoc(fsRoleEntity)),
+        PolicyName: 'StudyS3AccessPolicy',
+        RoleName: name,
+      };
 
-    const putPolicy = () => {
-      return iamClient.putRolePolicy(params).promise();
-    };
+      const putPolicy = async () => {
+        return iamClient.putRolePolicy(params).promise();
+      };
 
-    // Retry 5 times using an exponential interval
-    await retry(putPolicy, 5);
+      // Retry 5 times using an exponential interval
+      await retry(putPolicy, 5);
+    } catch (err) {
+      // If role/policy already exists, then ignore the error message.
+      if (err.code !== 'EntityAlreadyExists') {
+        throw this.boom.internalError(`There was a problem provisioning the role. Error: ${err}`);
+      }
+    }
   }
 
   // @private
@@ -486,31 +484,37 @@ class FilesystemRoleService extends Service {
   async deprovisionRole(fsRoleEntity) {
     const { name } = fsRoleEntity;
     const iamClient = await this.getIamClient(fsRoleEntity.appRoleArn, '');
+    try {
+      // We need to delete the inline policy before we can delete the role
+      let params = {
+        PolicyName: 'StudyS3AccessPolicy',
+        RoleName: name,
+      };
+      await iamClient.deleteRolePolicy(params).promise();
 
-    // We need to delete the inline policy before we can delete the role
-    let params = {
-      PolicyName: 'StudyS3AccessPolicy',
-      RoleName: name,
-    };
-    await iamClient.deleteRolePolicy(params).promise();
+      // We need to account for eventual consistency constraints, we can't assume that inline policy was immediately
+      // deleted. If we try to delete the role right away, we might get an exception that the role still has an
+      // inline policy. Therefore, we attempt to delete the role using a retry logic.
 
-    // We need to account for eventual consistency constraints, we can't assume that inline policy was immediately
-    // deleted. If we try to delete the role right away, we might get an exception that the role still has an
-    // inline policy. Therefore, we attempt to delete the role using a retry logic.
+      // Lets wait for 0.5 second
+      await sleep(500);
 
-    // Lets wait for 0.5 second
-    await sleep(500);
+      params = {
+        RoleName: name,
+      };
 
-    params = {
-      RoleName: name,
-    };
+      const deleteRole = async () => {
+        return iamClient.deleteRole(params).promise();
+      };
 
-    const deleteRole = () => {
-      return iamClient.deleteRole(params).promise();
-    };
-
-    // Retry 5 times using an exponential interval
-    await retry(deleteRole, 5);
+      // Retry 5 times using an exponential interval
+      await retry(deleteRole, 5);
+    } catch (err) {
+      // If role/policy doesn't exist, then it must have already deleted.
+      if (err.code !== 'NoSuchEntity') {
+        throw this.boom.internalError(`There was a problem deprovisioning the role. Error: ${err}`);
+      }
+    }
   }
 
   // @private

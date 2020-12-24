@@ -46,7 +46,7 @@ class DataSourceAccountsList extends React.Component {
     event.stopPropagation();
 
     const goto = gotoFn(this);
-    goto(`/data-sources/register/1`);
+    goto(`/data-sources/register`);
   };
 
   render() {
@@ -56,7 +56,7 @@ class DataSourceAccountsList extends React.Component {
     if (isStoreError(store)) {
       content = <ErrorBox error={store.error} className="p0" />;
     } else if (isStoreLoading(store)) {
-      content = <ProgressPlaceHolder segmentCount={3} />;
+      content = <ProgressPlaceHolder segmentCount={2} />;
     } else if (isStoreEmpty(store)) {
       content = this.renderEmpty();
     } else if (isStoreNotEmpty(store)) {

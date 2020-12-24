@@ -101,7 +101,7 @@ class StudyRow extends React.Component {
     return (
       <div>
         <Header as="h3" color="blue" className={c('mt2', isSelectable ? 'cursor-pointer' : '')} {...onClickAttr}>
-          {study.uploadLocationEnabled && study.access === 'admin' && <UploadStudyFiles studyId={study.id} />}
+          {study.uploadLocationEnabled && study.canUpload && <UploadStudyFiles studyId={study.id} />}
           {study.name}
           <Header.Subheader>
             <span className="pt1 fs-8 color-grey">{study.id}</span>
@@ -117,6 +117,9 @@ class StudyRow extends React.Component {
   }
 
   renderStatus(state) {
+    // Do not show a label if it is default/reachable
+    if (state && (state.key === 'default' || state.key === 'reachable')) return null;
+
     return (
       <div style={{ cursor: 'default' }}>
         <Popup

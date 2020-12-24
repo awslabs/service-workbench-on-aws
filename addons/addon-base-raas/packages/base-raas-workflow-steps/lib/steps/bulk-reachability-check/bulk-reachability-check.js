@@ -26,14 +26,14 @@ class BulkReachabilityCheck extends StepBase {
     // Get common payload params and pull environment info
     const requestContext = await this.payload.object('requestContext');
     // If you specify an id, you can’t specify a status filter
-    const forceCheck = await this.payload.boolean('forceCheckAll');
+    const forceCheckAll = await this.payload.boolean('forceCheckAll');
     const dsAccountIds = await this.payload.object('dsAccountIds');
 
     const processor = async dsAccountId => {
       await dataSourceReachabilityService.attemptReach(
         requestContext,
         { id: dsAccountId, type: 'dsAccount' },
-        { forceCheck },
+        { forceCheckAll },
       );
     };
 

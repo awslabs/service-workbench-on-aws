@@ -19,7 +19,7 @@ import React from 'react';
 import { decorate, computed, observable, action, runInAction } from 'mobx';
 import { observer, inject, Observer } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
-import { Header, Tab, Label, Menu, Button } from 'semantic-ui-react';
+import { Header, Tab, Label, Menu, Button, Message } from 'semantic-ui-react';
 import TimeAgo from 'react-timeago';
 
 import { niceNumber, swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
@@ -27,6 +27,8 @@ import { isStoreError, isStoreNew, isStoreLoading } from '@aws-ee/base-ui/dist/m
 
 import By from '../helpers/By';
 import DataSourceStudiesList from './DataSourceStudiesList';
+import DataSourceAccountCfn from './DataSourceAccountCfn';
+import DataSourceAccountInfo from './DataSourceAccountInfo';
 import { Operation } from '../../models/helpers/Operation';
 import AccountConnectionPanel from './parts/AccountConnectionPanel';
 import AccountStatusMessage from './parts/AccountStatusMessage';
@@ -105,7 +107,7 @@ class DataSourceAccountCard extends React.Component {
         {showPanel && (
           <AccountConnectionPanel account={account} operation={operation} onCancel={this.handleDismissPanel} />
         )}
-
+        {this.renderStackMismatch(account)}
         {this.renderTabs()}
       </div>
     );
@@ -129,6 +131,22 @@ class DataSourceAccountCard extends React.Component {
         render: () => (
           <Tab.Pane attached={false} key="studies" as={TabPaneWrapper}>
             <Observer>{() => <DataSourceStudiesList account={account} />}</Observer>
+          </Tab.Pane>
+        ),
+      },
+      {
+        menuItem: 'CloudFormation',
+        render: () => (
+          <Tab.Pane attached={false} key="cloudformation" as={TabPaneWrapper}>
+            <Observer>{() => <DataSourceAccountCfn account={account} />}</Observer>
+          </Tab.Pane>
+        ),
+      },
+      {
+        menuItem: 'Account Information',
+        render: () => (
+          <Tab.Pane attached={false} key="accountInfo" as={TabPaneWrapper}>
+            <Observer>{() => <DataSourceAccountInfo account={account} />}</Observer>
           </Tab.Pane>
         ),
       },
@@ -162,6 +180,37 @@ class DataSourceAccountCard extends React.Component {
       <Label attached="top left" size="mini" color={state.color}>
         {state.display}
       </Label>
+    );
+  }
+
+  renderStackMismatch(account) {
+    const stackOutDated = account.stackOutDated;
+    const incorrectStackNameProvisioned = account.incorrectStackNameProvisioned;
+
+    if (!stackOutDated && !incorrectStackNameProvisioned) return null;
+
+    if (incorrectStackNameProvisioned) {
+      return (
+        <Message warning>
+          <Message.Header>Incorrect stack name</Message.Header>
+          <p>
+            It seems that the correct CloudFormation stack was deployed to AWS account <b>{account.id}</b> but with an
+            incorrect stack name. Please ensure that you have the latest CloudFormation template deployed with the stack
+            name {account.stack} in the account. If you just updated the stack you can run the connection test again.
+          </p>
+        </Message>
+      );
+    }
+
+    return (
+      <Message warning>
+        <Message.Header>Stack is outdated</Message.Header>
+        <p>
+          It seems that the CloudFormation stack {account.stack} deployed to AWS account <b>{account.id}</b> is outdated
+          and does not contain the latest changes made. Please use the latest CloudFormation template to update the
+          stack. If you just updated the stack you can run the connection test again.
+        </p>
+      </Message>
     );
   }
 }

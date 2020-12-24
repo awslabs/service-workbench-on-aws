@@ -4,73 +4,96 @@ title: Configuring an Identity Provider
 sidebar_label: Configuring an Identity Provider
 ---
 
-The solution uses Amazon Cognito User Pools to federate identities from Microsoft Active Directory using ADFS and SAML2.0.
+Service Workbench on AWS uses Amazon Cognito User Pools to federate identities from Microsoft Active Directory using ADFS and SAML2.0.
 
-From SAML federation point of view, the Cognito User Pool is the Service Provider (SP) and takes care of processing SAML assertions and the ADFS is the Identity Provider (IdP). We need to establish mutual trust between the SP and the IdP.
+For SAML federation, the Amazon Cognito User Pool is the Service Provider (SP). The SP processes SAML assertions and the ADFS is the Identity Provider (IdP). Mutual trust between the SP and the IdP must be established.
 
 ## Create a Relying Party (RP) in ADFS
 
-These steps may vary based on your AD/ADFS version. Please contact your system administrator for configuring a relying party and setting up trust in Active Directory.
+These steps may vary based on your AD/ADFS version. Please contact your system administrator to configure a relying party and establish trust with Microsoft Active Directory.
 
-At high level the steps are as follows:
+To create a relying party, complete these steps:
 
-1. Login to your Active Directory Domain Controller Machine and type “AD FS” in the Run window and open “AD FS 2.0 Management”.
-2. Click “Add Relying Party Trust”.
-3. In “Welcome” screen: Click Start.
-4. In “Select Data Source”: Select “Enter data about the relying party manually”.
-5. In “Specify Display Name”: Enter some display name and notes about the relying party (For example, “Cognito User Pool Relying Party”).
-6. In “Choose Profile”: Select “AD FS 2.0 Profile”.
-7. In “Configure Certificate”: Do NOT configure any cert. This is for encrypting SAML claims. The SP (i.e., the Cognito User Pool in this case) need private key to decrypt the claims if you configure this. Amazon Cognito User Pools currently do not support encrypted SAML assertions.
-8. In “Configure URL”: Do NOT select any box. Click Next.
-9. In “Configure Identifiers”: Do not configure anything yet.
-10. In “Choose Issuance Authorization Rules”: Select “Permit all users to access this relying party”.
-11. In “Ready to Add Trust”: Click Next.
-12. In “Finish”: Click Close.
-13. Next we need to configure claim attributes we want to be part of the SAML assertion. These attributes will be read by Cognito User Pool and mapped into standard Cognito Attributes as per the mapping configuration on the Cognito side.
-14. To configure claims, the “Edit Claims” window may already be open at this point from last wizard. If not, you can open it by clicking the “Edit Claim Rules” link.
-15. To configure claims, the “Edit Claims” window may already be open at this point from last wizard. If not, you can open it by clicking the “Edit Claim Rules” link.
-    1. Add the following claims:
-       1. Name ID
-       2. Name
-       3. Mail
-       4. Surname
-       5. Given Name
-16. To add Name ID claim:
-    1. Click “Add Rule”.
-    2. Select “Transform an Incoming Claim”, Click Next and then configure the Claim.
-17. Similarly add Name claim.
-18. To add E-Mail claim:
-    1. Click “Add Rule”.
-    2. Select “Send LDAP Attributes as Claims”, Click Next and then configure the Claim.
-19. Similarly add the Surname and Given Name claims.
+1.  Login to your Active Directory Domain Controller Machine. Type `AD FS` in the ‘**Run**’ window and open ‘**AD FS 2.0 Management**’.
+2.  Select ‘**Add Relying Party Trust**’.
+3.  In the ‘**Welcome**’ screen, click ‘**Start**’.
+4.  In the ‘**Select Data Source**’ pane, select ‘**Enter Data About the Relying Party Manually**’.
+5.  In the ‘**Specify Display Name**’ pane, enter a display name and relevant notes about the relying party. For example, a user could enter in, ‘**Cognito User Pool Relying Party**’.
+6.  In the ‘**Choose Profile**’ pane, select ‘**AD FS 2.0 Profile**’.
+7.  ***DO NOT*** configure any certificate in the ‘**Configure Certificate**’ pane. Configuring certificates is for encrypting SAML claims. The SP (i.e., the Amazon Cognito User Pool) will need a private key to decrypt the claims if you configure a certificate, and Amazon Cognito User Pools do not currently support encrypted SAML assertions.
+8.  ***DO NOT*** select any box in the ‘**Configure URL**’ pane. Click ‘**Next**’.
+9.  At this point, there is no need to configure anything in the ‘**Configure Identifiers**’ pane.
+10. In the ‘**Choose Issuance Authorization Rules**’ pane, select ‘**Permit All Users to Access this Relying Party**'.
+11. In the ‘**Ready to Add Trust**’, click ‘**Next**’.
+12. In the ‘**Finish**’ pane, select ‘**Close**’.
+13. Next, configure the attributes that you want for the SAML assertion. The attributes will be read by the Amazon Cognito User Pool and aligned to the standard Amazon Cognito Attributes from the mapping configuration in Amazon Cognito.
+14. The ‘**Edit Claims**’ window may already be open from the last wizard. If not, you can open it by clicking the ‘**Edit Claim Rules**’ link and configure the claims. 
+ - Add the following claims:
+  - **Name ID**
+  - **Name**
+  - **Mail**
+  - **Surname**
+  - **Given Name**
+15. To add a **Name ID** claim:
+ – Click ‘**Add Rul**e’.
+ – Select ‘**Transform an Incoming Claim**’, then select ‘**Next**’ and then configure the claim.
+16. Follow the same actions from **Step 15** to add the ‘**Name**’ claim.
+17. To add the ‘**E-Mail**’ claim:
+ – Select ‘**Add Rule**’.
+ – Select ‘**Send LDAP Attributes as Claims**’, click ‘**Next**’ and then configure the claim.
+18. Similarly, add the **Surname** and **Given Name** claims.
 
 ## Configure Relying Party information on the Service Workbench side
 
-Once you have created a Relying Party in ADFS you can then configure it within the Research as a Service solution.
+Once you have created a **Relying Party in ADFS**, you can then configure it within the Service Workbench solution. Complete the following steps to configure the relying party. 
 
-1. Extract the SAML metadata file from ADFS. The location of the metadata file may be different depending upon your version of AD/ADFS. Usually it is available at the following location: `https://<DomainControllerDNSName>/FederationMetadata/2007-06/FederationMetadata.xml.`
-2. Copy the above metadata file and place it at `/solution/post-deployment/config/saml-metadata/metadata.xml`.
-3. Adjust your component specific settings file for the post-deployment component at `/solution/post-deployment/config/settings/<your-environment-name>.yml` and specify the `fedIdpMetadatas` setting as follows:
+1. Extract the SAML metadata file from ADFS. The location of the metadata file may be different depending upon your version of AD/ADFS. It is usually available at the following location:
 
-```bash
+```
+https://<DomainControllerDNSName>/FederationMetadata/2007-06/FederationMetadata.xml
+```
+
+2. Copy the above metadata file and place it at the following location: 
+
+```
+/solution/post-deployment/config/saml-metadata/metadata.xml
+```
+
+3. Adjust your component specific settings file for the post-deployment component at the following location:
+
+```
+/solution/post-deployment/config/settings/<your-environment-name>.yml
+```
+
+4. Specify the `fedIdpMetadatas` setting as follows:
+
+```
 fedIdpMetadatas: '["s3://${self:custom.settings.namespace}-artifacts/saml-metadata/metadata.xml"]'
 ```
 
 ## Add Relying Party trust for the Cognito User Pool on the ADFS side
 
-When you deploy the solution following the [**Initial Deployment**](deployment) instructions, a Cognito User Pool is created. Follow these steps to add a Relying Party trust for the Cognito User Pool:
+Once you have deployed the solution, an Amazon Cognito User Pool will be created. Follow the steps below to add a **Relying Party** trust for the Amazon Cognito User Pool:
 
-1. Log in to the AWS console and navigate to Amazon Cognito.
-2. Select User Pools, you should see a user pool for your environment. The name of the Cognito User Pool will be in the following format `<envName>-<solutionName>-userpool`. The `<envName>` and the `<solutionName>` values here would be the values you specified for the corresponding settings in your settings file.
-3. Select the user pool for your environment and take note of the following values:
-   1. User pool ID: Copy the value for field “Pool Id”.
-   2. Domain prefix: Navigate to “App integration  Domain name” for your user pool and copy the value of the domain prefix.
-4. Login to your ADFS domain controller to add Cognito User Pool related information to configure trust.
-   1. Open AD FS Management application.
-   2. Navigate to “Relying Party Trusts”.
-   3. Select the relying party you want to add trust to.
-   4. Open the “Identifiers” tab.
-   5. Enter the URN of the Cognito User Pool and click “Add”. The URN would be in the following format: `urn:amazon:cognito:sp:<userPoolId>`. Replace the `<userPoolId>` with the value of the User pool ID you obtained earlier.
-   6. Open the “Endpoints” tab and add the Service Provider (Cognito SAML assertion consumer) URL that will receive the SAML assertion from IdP. The url has the following format: `https://<userPoolDomain>.auth.<region>.amazoncognito.com/saml2/idpresponse`. Replace `<userPoolDomain>` with the value of the “Domain prefix” you obtained earlier. Replace the value of `<region>` with the region where you deployed the solution to.
+1.  Log in to the AWS Management Console and navigate to Amazon Cognito.
+2.  Select ‘**User Pool**’ to see a **User Pool** for your environment. The name of the Amazon Cognito User Pool will be in the format below—the `<envName>` and the `<solutionName>` values here would be the values you specified for the corresponding settings in your ‘**Settings**’ file.
 
-You should now be able to log in to the Research as a Service solution using your AD credentials.
+```
+  <envName>-<solutionName>-userpool
+```
+
+3.  Select the **User Pool** for your environment and take note of the following values:
+ – **User Pool ID**: Copy the value for field **Pool ID**.
+ – **Domain Prefix**: Navigate to ‘**App Integration Domain Name**’ for your **User Pool** and copy the value of the **Domain Prefix**.
+4.  Login to your ADFS domain controller to add the Amazon Cognito User Pool-related information to configure trust.
+ – Open the ADFS Management application.
+ – Navigate to ‘**Relying Party Trusts**’.
+ – To add trust, select the appropriate **Relying Party**.
+ – Open the ‘**Identifiers**’ tab.
+ – Enter the URN of the Amazon Cognito User Pool and click ‘**Add**’. Replace the `<userPoolId>` with the value of the **User Pool ID** you obtained earlier. The URN is in the following format: 
+  - `urn:amazon:cognito:sp:<userPoolId>`
+ – Open the ‘**Endpoints**’ tab and add the SP URL that will receive the SAML assertion from the IdP. The SP is the consumer of the Amazon Cognito SAML assertion. Replace `<userPoolDomain>` with the value of the **Domain Prefix** you obtained earlier. Replace the value of `<region>` with the region you deployed the solution. The URL is in the following format: 
+    - `https://<userPoolDomain>.auth.<region>.amazoncognito.com/saml2/idpresponse`
+
+You should now be able to log in to the Service Workbench solution using your Active Directory credentials.
+
