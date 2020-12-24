@@ -62,4 +62,8 @@ const isForbidden = error => {
   return _.get(error, 'code') === 'forbidden';
 };
 
-export { boom, isNotFound, isTokenExpired, isForbidden };
+const isAlreadyExists = error => {
+  return _.get(error, 'code') === 'alreadyExists';
+};
+
+export { boom, isNotFound, isTokenExpired, isForbidden, isAlreadyExists };

@@ -117,6 +117,9 @@ class StudyRow extends React.Component {
   }
 
   renderStatus(state) {
+    // Do not show a label if it is default/reachable
+    if (state && (state.key === 'default' || state.key === 'reachable')) return null;
+
     return (
       <div style={{ cursor: 'default' }}>
         <Popup

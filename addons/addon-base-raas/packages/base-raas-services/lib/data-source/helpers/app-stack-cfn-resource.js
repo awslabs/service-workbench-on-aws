@@ -62,7 +62,7 @@ function toAppStackCfnResource(dsAccountEntity, swbMainAccountId) {
                 {
                   Sid: 'CfnRelated',
                   Effect: 'Allow',
-                  Action: ['iam:DescribeStacks'],
+                  Action: ['cloudformation:DescribeStacks', 'cloudformation:ListStackResources'],
                   Resource: [`arn:aws:cloudformation:${mainRegion}:${id}:stack/${stack}/*`],
                 },
               ],
