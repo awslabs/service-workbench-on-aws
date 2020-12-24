@@ -62,7 +62,7 @@ const DataSourceAccountsStore = BaseStore.named('DataSourceAccountsStore')
         const previous = self.accounts.get(id);
 
         if (!previous) {
-          self.accounts.put(raw);
+          self.accounts.set(raw.id, raw);
         } else {
           previous.setDataSourceAccount(raw);
         }

@@ -18,9 +18,9 @@ import { decorate, action } from 'mobx';
 import Operation from '../../../operations/Operation';
 
 class RegisterStudyOperation extends Operation {
-  constructor({ account = {}, bucket = {}, study = {}, accountsStore }) {
+  constructor({ accountId, bucket = {}, study = {}, accountsStore }) {
     super();
-    this.account = account;
+    this.accountId = accountId;
     this.bucket = bucket;
     this.study = study;
     this.name = `Registering study ${study.name || study.id}`;
@@ -30,7 +30,7 @@ class RegisterStudyOperation extends Operation {
   async doRun() {
     const study = this.study;
     this.setMessage(`Registering study ${study.name || study.id}`);
-    await this.accountsStore.registerStudy(this.account.id, this.bucket.name, this.study);
+    await this.accountsStore.registerStudy(this.accountId, this.bucket.name, this.study);
     this.setMessage(`Successfully registered study ${study.name || study.id}`);
   }
 }

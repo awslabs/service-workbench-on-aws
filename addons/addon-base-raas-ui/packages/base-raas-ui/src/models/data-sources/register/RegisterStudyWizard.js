@@ -66,13 +66,13 @@ const RegisterStudyWizard = types
       }
 
       if (_.isEmpty(existingBucket)) {
-        ops.add(new RegisterBucketOperation({ account: providedAccount, bucket: providedBucket, accountsStore }));
+        ops.add(new RegisterBucketOperation({ accountId: providedAccount.id, bucket: providedBucket, accountsStore }));
       }
 
       _.forEach(studies, providedStudy => {
         const study = { ...providedStudy };
         // lets determine the kmsScope
-        const sse = existingBucket.sse;
+        const sse = providedBucket.sse;
         const kmsArn = study.kmsArn;
         if (!_.isEmpty(kmsArn)) study.kmsScope = 'study';
         else if (sse === 'kms') study.kmsScope = 'bucket';
@@ -86,7 +86,7 @@ const RegisterStudyWizard = types
 
         ops.add(
           new RegisterStudyOperation({
-            account: providedAccount,
+            accountId: providedAccount.id,
             bucket: providedBucket,
             study: removeEmpty(study),
             accountsStore,
@@ -94,7 +94,7 @@ const RegisterStudyWizard = types
         );
       });
 
-      ops.add(new PrepareCfnOperation({ account: providedAccount, accountsStore }));
+      ops.add(new PrepareCfnOperation({ accountId: providedAccount.id, accountsStore }));
 
       self.step = 'submit';
       await ops.run();

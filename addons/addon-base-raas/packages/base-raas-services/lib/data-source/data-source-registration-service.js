@@ -31,10 +31,17 @@ const getCreateStackUrl = accountTemplateInfo => {
   // see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-create-stacks-quick-create-links.html
   const { name, region, signedUrl } = accountTemplateInfo;
   const url = [
-    `https://console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/create/review/`,
+    `https://console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/new`,
     `?templateURL=${encodeURIComponent(signedUrl)}`,
     `&stackName=${name}`,
   ].join('');
+
+  // This one takes us directly to the review stage but will require that we access the cloudformation console first
+  // const url = [
+  //   `https://console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/create/review/`,
+  //   `?templateURL=${encodeURIComponent(signedUrl)}`,
+  //   `&stackName=${name}`,
+  // ].join('');
 
   return url;
 };

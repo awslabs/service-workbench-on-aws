@@ -19,9 +19,9 @@ import { isAlreadyExists } from '../../../../helpers/errors';
 import Operation from '../../../operations/Operation';
 
 class RegisterBucketOperation extends Operation {
-  constructor({ account = {}, bucket = {}, accountsStore }) {
+  constructor({ accountId, bucket = {}, accountsStore }) {
     super();
-    this.account = account;
+    this.accountId = accountId;
     this.bucket = bucket;
     this.name = `Registering bucket ${bucket.name}`;
     this.accountsStore = accountsStore;
@@ -31,7 +31,7 @@ class RegisterBucketOperation extends Operation {
     const { name } = this.bucket;
     this.setMessage(`Registering bucket${name}`);
     try {
-      await this.accountsStore.registerBucket(this.account.id, this.bucket);
+      await this.accountsStore.registerBucket(this.accountId, this.bucket);
       this.setMessage(`Successfully registered bucket ${name}`);
     } catch (error) {
       // Check if the error is about existing bucket, if so, then skip it

@@ -21,24 +21,24 @@ import { generateAccountCfnTemplate } from '../../../../helpers/api';
 import Operation from '../../../operations/Operation';
 
 class PrepareCfnOperation extends Operation {
-  constructor({ account = {}, accountsStore }) {
+  constructor({ accountId, accountsStore }) {
     super();
-    this.account = account;
-    this.name = `Preparing the latest CloudFormation for account #${account.id}`;
+    this.accountId = accountId;
+    this.name = `Preparing the latest CloudFormation for account #${accountId}`;
     this.accountsStore = accountsStore;
   }
 
   async doRun() {
     const accountsStore = this.accountsStore;
-    const stackInfo = await generateAccountCfnTemplate(this.account.id);
+    const stackInfo = await generateAccountCfnTemplate(this.accountId);
 
     await delay(0.5); // We don't have strong read when we load the accounts, therefore we have this delay in place
     await accountsStore.load();
 
-    const account = accountsStore.getAccount(this.account.id);
+    const account = accountsStore.getAccount(this.accountId);
     account.setStackInfo(stackInfo);
 
-    this.setMessage(`Successfully prepared CloudFormation for account #${this.account.id}`);
+    this.setMessage(`Successfully prepared CloudFormation for account #${this.accountId}`);
   }
 }
 
