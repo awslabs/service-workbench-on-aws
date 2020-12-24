@@ -220,7 +220,7 @@ class DataSourceReachabilityService extends Service {
 
   async _assumeAppRole(studyEntity) {
     const aws = await this.service('aws');
-    let reachable = false;
+
     try {
       const s3Client = await aws.getClientSdkForRole({
         roleArn: studyEntity.appRoleArn,
@@ -228,16 +228,32 @@ class DataSourceReachabilityService extends Service {
         options: { region: studyEntity.region },
       });
 
-      // use s3Client to list the objects in a folder, if we can't access the folder, then we don't
-      // have the right permissions. Otherwise, if we don't get an exception it means that we are
-      // have permissions to access the prefix even if the prefix does not exist
-      await s3Client.listObjectsV2({ Bucket: studyEntity.bucket, Prefix: studyEntity.folder, MaxKeys: 2 }).promise();
-      reachable = true;
+      // The logic:
+      // - We first check if we are trying to reach the root folder, if so, then we can't use headObject because
+      //   the root folder is actually not an object at all
+      // - For non-root folder:
+      //   - We first attempt to list the content of the prefix, if we are able to do so then we need to check if
+      //     there are any items. Note: this attempt will not throw an exception if the folder does not exist
+      //     but it will fail if we don't have read or read/write access to the folder
+      //   - If we can't find any item then we need to issue a headObject call this will cover the case that there
+      //     is a folder (a 0-byte object) but no content inside the folder.
+
+      const result = await s3Client
+        .listObjectsV2({ Bucket: studyEntity.bucket, Prefix: studyEntity.folder, MaxKeys: 2 })
+        .promise();
+
+      const hasContent = !_.isEmpty(result.Contents);
+      if (hasContent || studyEntity.folder === '/') return true; // We found data, the study is reachable
+
+      // Since we are able to list the prefix but we don't have any content, there is a chance that the study folder
+      // does not exist, we will try to see if there is an actual (0-byte object) with the exact name as the folder
+      await s3Client.headObject({ Bucket: studyEntity.bucket, Key: studyEntity.folder }).promise();
+
+      return true; // We are able to reach the study
     } catch (err) {
       // Error is expected if assuming role is not successful yet
-      reachable = false;
+      return false; // We can't reach the study
     }
-    return reachable;
   }
 
   async attemptReach(requestContext, requestBody, { forceCheckAll = false } = {}) {
