@@ -485,7 +485,7 @@ class StudyService extends Service {
     switch (category) {
       case 'Open Data':
         // Readable by all
-        result = this._query()
+        result = await this._query()
           .index(this.categoryIndex)
           .key('category', category)
           .limit(1000)
