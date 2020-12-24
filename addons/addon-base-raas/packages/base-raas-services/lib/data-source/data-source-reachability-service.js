@@ -211,8 +211,10 @@ class DataSourceReachabilityService extends Service {
 
     if (appRoles.length === unreachableAppRoles.length) {
       reachable = false;
+    } else {
+      reachable = true;
     }
-    reachable = true;
+
     return { reachable, unreachableAppRoles };
   }
 
@@ -225,8 +227,11 @@ class DataSourceReachabilityService extends Service {
         clientName: 'S3',
         options: { region: studyEntity.region },
       });
-      // use s3Client to read the head of an object
-      await s3Client.headObject({ Bucket: studyEntity.bucket, Key: studyEntity.folder }).promise();
+
+      // use s3Client to list the objects in a folder, if we can't access the folder, then we don't
+      // have the right permissions. Otherwise, if we don't get an exception it means that we are
+      // have permissions to access the prefix even if the prefix does not exist
+      await s3Client.listObjectsV2({ Bucket: studyEntity.bucket, Prefix: studyEntity.folder, MaxKeys: 2 }).promise();
       reachable = true;
     } catch (err) {
       // Error is expected if assuming role is not successful yet
