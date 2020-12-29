@@ -14,12 +14,22 @@
  */
 
 import _ from 'lodash';
+import React from 'react';
+import { Header } from 'semantic-ui-react';
 import { values } from 'mobx';
 import { types } from 'mobx-state-tree';
 import { consolidateToMap } from '@aws-ee/base-ui/dist/helpers/utils';
 import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
 
-import { getDataSourceAccounts, checkStudyReachability, checkAccountReachability } from '../../helpers/api';
+import {
+  getDataSourceAccounts,
+  checkStudyReachability,
+  checkAccountReachability,
+  registerAccount,
+  registerBucket,
+  registerStudy,
+  updateRegisteredAccount,
+} from '../../helpers/api';
 import { DataSourceAccount } from './DataSourceAccount';
 import { DataSourceAccountStore } from './DataSourceAccountStore';
 
@@ -52,7 +62,7 @@ const DataSourceAccountsStore = BaseStore.named('DataSourceAccountsStore')
         const previous = self.accounts.get(id);
 
         if (!previous) {
-          self.accounts.put(raw);
+          self.accounts.set(raw.id, raw);
         } else {
           previous.setDataSourceAccount(raw);
         }
@@ -67,6 +77,52 @@ const DataSourceAccountsStore = BaseStore.named('DataSourceAccountsStore')
         }
 
         return entry;
+      },
+
+      async updateAccount(account) {
+        const updatedAccount = await updateRegisteredAccount(account.id, _.omit(account, ['id']));
+        const existingAccount = self.getAccount(account.id);
+
+        // If we get null values for the props, we need to change them to empty string
+        if (_.isEmpty(updatedAccount.contactInfo)) {
+          updatedAccount.contactInfo = '';
+        }
+
+        if (_.isEmpty(updatedAccount.description)) {
+          updatedAccount.description = '';
+        }
+
+        if (_.isEmpty(updatedAccount.name)) {
+          updatedAccount.name = '';
+        }
+
+        existingAccount.setDataSourceAccount(updatedAccount);
+      },
+
+      async registerAccount(account) {
+        const newAccount = await registerAccount(account);
+        self.addAccount(newAccount);
+
+        return self.getAccount(account.id);
+      },
+
+      async registerBucket(accountId, bucket = {}) {
+        const normalizedBucket = { ...bucket, awsPartition: 'aws', access: 'roles' };
+        const account = self.getAccount(accountId);
+        if (_.isEmpty(account)) throw new Error(`Account #${accountId} is not loaded yet`);
+
+        const newBucket = await registerBucket(accountId, normalizedBucket);
+
+        return account.setBucket(newBucket);
+      },
+
+      async registerStudy(accountId, bucketName, study = {}) {
+        const account = self.getAccount(accountId);
+        if (_.isEmpty(account)) throw new Error(`Account #${accountId} is not loaded yet`);
+
+        const newStudy = await registerStudy(accountId, bucketName, study);
+
+        return account.setStudy(newStudy);
       },
 
       async checkAccountReachability(accountId) {
@@ -105,6 +161,23 @@ const DataSourceAccountsStore = BaseStore.named('DataSourceAccountsStore')
 
     getAccount(id) {
       return self.accounts.get(id);
+    },
+
+    get dropdownOptions() {
+      const result = _.map(values(self.accounts), account => ({
+        key: account.id,
+        value: account.id,
+        text: account.id,
+        content: (
+          <Header
+            as="h5"
+            content={account.id}
+            subheader={`${account.name}${account.hosting ? ' (Hosting Account)' : ''}`}
+          />
+        ),
+      }));
+
+      return result;
     },
   }));
 

@@ -66,11 +66,11 @@ class DataSourceReachabilityService extends Service {
     // Write audit event
     await this.audit(requestContext, {
       action: 'bulk-check-reachability',
-      body: { status, dsAccountIds },
+      body: { status, dsAccountIds, forceCheckAll },
     });
   }
 
-  async reachDsAccount(requestContext, { id, type }, { forceCheck = false } = {}) {
+  async reachDsAccount(requestContext, { id, type }, { forceCheckAll = false } = {}) {
     const accountService = await this.service('dataSourceAccountService');
     const dataSourceAccount = await accountService.mustFind(requestContext, { id });
 
@@ -83,14 +83,12 @@ class DataSourceReachabilityService extends Service {
       dataSourceAccount,
     );
 
+    const stackInfo = await this.getAccountStackInfo(requestContext, dataSourceAccount);
+
     if (reachable) {
       newStatus = 'reachable';
       statusMsg = '';
-      if (prevStatus === 'pending')
-        await accountService.updateStackCreated(requestContext, {
-          stackCreated: true,
-          dsAccountEntity: dataSourceAccount,
-        });
+      if (prevStatus === 'pending') stackInfo.stackCreated = true;
     } else if (prevStatus === 'pending') {
       newStatus = prevStatus;
       statusMsg = `WARN|||Data source account ${id} is not reachable yet`;
@@ -99,7 +97,9 @@ class DataSourceReachabilityService extends Service {
       statusMsg = `ERR|||Error getting information from data source account ${id}`;
     }
 
-    if (prevStatus !== newStatus || forceCheck) {
+    await accountService.updateStackInfo(requestContext, id, stackInfo);
+
+    if (prevStatus !== newStatus || forceCheckAll) {
       const workflowTriggerService = await this.service('workflowTriggerService');
       await workflowTriggerService.triggerWorkflow(
         requestContext,
@@ -114,7 +114,7 @@ class DataSourceReachabilityService extends Service {
 
     if (!_.isEmpty(unreachableAppRoles)) {
       statusMsg = `ERR|||Error getting information from ${unreachableAppRoles.length} application roles. 
-      Please update the cloudformation template on data source account ${id}`;
+      It is possible that the cloudformation stack deployed in the data source account ${id} is outdated`;
     }
 
     const entity = await accountService.updateStatus(requestContext, dataSourceAccount, {
@@ -211,28 +211,49 @@ class DataSourceReachabilityService extends Service {
 
     if (appRoles.length === unreachableAppRoles.length) {
       reachable = false;
+    } else {
+      reachable = true;
     }
-    reachable = true;
+
     return { reachable, unreachableAppRoles };
   }
 
   async _assumeAppRole(studyEntity) {
     const aws = await this.service('aws');
-    let reachable = false;
+
     try {
       const s3Client = await aws.getClientSdkForRole({
         roleArn: studyEntity.appRoleArn,
         clientName: 'S3',
         options: { region: studyEntity.region },
       });
-      // use s3Client to read the head of an object
-      await s3Client.headObject({ Bucket: studyEntity.bucket, Key: studyEntity.folder });
-      reachable = true;
+
+      // The logic:
+      // - We first check if we are trying to reach the root folder, if so, then we can't use headObject because
+      //   the root folder is actually not an object at all
+      // - For non-root folder:
+      //   - We first attempt to list the content of the prefix, if we are able to do so then we need to check if
+      //     there are any items. Note: this attempt will not throw an exception if the folder does not exist
+      //     but it will fail if we don't have read or read/write access to the folder
+      //   - If we can't find any item then we need to issue a headObject call this will cover the case that there
+      //     is a folder (a 0-byte object) but no content inside the folder.
+
+      const result = await s3Client
+        .listObjectsV2({ Bucket: studyEntity.bucket, Prefix: studyEntity.folder, MaxKeys: 2 })
+        .promise();
+
+      const hasContent = !_.isEmpty(result.Contents);
+      if (hasContent || studyEntity.folder === '/') return true; // We found data, the study is reachable
+
+      // Since we are able to list the prefix but we don't have any content, there is a chance that the study folder
+      // does not exist, we will try to see if there is an actual (0-byte object) with the exact name as the folder
+      await s3Client.headObject({ Bucket: studyEntity.bucket, Key: studyEntity.folder }).promise();
+
+      return true; // We are able to reach the study
     } catch (err) {
       // Error is expected if assuming role is not successful yet
-      reachable = false;
+      return false; // We can't reach the study
     }
-    return reachable;
   }
 
   async attemptReach(requestContext, requestBody, { forceCheckAll = false } = {}) {
@@ -270,6 +291,20 @@ class DataSourceReachabilityService extends Service {
     }
 
     return outputVal;
+  }
+
+  // @private
+  async getAccountStackInfo(requestContext, accountEntity) {
+    const accountService = await this.service('dataSourceAccountService');
+    try {
+      const result = await accountService.queryStack(requestContext, accountEntity);
+      return {
+        stackId: result.stackId,
+        templateIdFound: result.templateId,
+      };
+    } catch (_err) {
+      return {};
+    }
   }
 
   async audit(requestContext, auditEvent) {

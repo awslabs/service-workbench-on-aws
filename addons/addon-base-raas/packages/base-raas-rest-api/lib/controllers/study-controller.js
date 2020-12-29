@@ -84,7 +84,7 @@ async function configure(context) {
       const possibleBody = req.body;
       const result = await studyService.create(requestContext, possibleBody);
 
-      res.status(200).json({ ...result, access: 'admin' });
+      res.status(200).json({ ...result, access: ['admin'] });
     }),
   );
 

@@ -56,6 +56,9 @@ class DbService extends Service {
       remove: jest.fn().mockReturnThis(),
       names: jest.fn().mockReturnThis(),
       begins: jest.fn().mockReturnThis(),
+      add: jest.fn().mockReturnThis(),
+      values: jest.fn().mockReturnThis(),
+      return: jest.fn().mockReturnThis(),
 
       // Following functions are actual calls to dynamo
       scan: jest.fn(),
@@ -63,6 +66,8 @@ class DbService extends Service {
       update: jest.fn(),
       delete: jest.fn(),
       query: jest.fn(),
+
+      client: { createSet: jest.fn() },
     };
 
     const tableFn = jest.fn().mockReturnValue(this.table);
