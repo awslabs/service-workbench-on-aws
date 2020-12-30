@@ -677,4 +677,57 @@ describe('studyService', () => {
       expect(retVal).toEqual(expectedVal);
     });
   });
+
+  describe('isOverlapping', () => {
+    it('should return true if new study has overlapping root path with existing ones', async () => {
+      // BUILD
+      const requestContext = 'dummyRequestContext';
+      const bucketName = 'testBucket';
+      const accountId = '123456789012';
+      const folder = '/';
+
+      service.listStudiesForAccount = jest.fn(() => {
+        return [{ bucket: 'testBucket', folder: 'study-1/' }];
+      });
+
+      // OPERATE
+      const retVal = await service.isOverlapping(requestContext, accountId, bucketName, folder);
+      // CHECK
+      expect(retVal).toEqual(true);
+    });
+
+    it('should return true if new study has overlapping path with existing ones', async () => {
+      // BUILD
+      const requestContext = 'dummyRequestContext';
+      const bucketName = 'testBucket';
+      const accountId = '123456789012';
+      const folder = '/testFolder';
+
+      service.listStudiesForAccount = jest.fn(() => {
+        return [{ bucket: 'testBucket', folder: 'testFolder/study-2/' }];
+      });
+
+      // OPERATE
+      const retVal = await service.isOverlapping(requestContext, accountId, bucketName, folder);
+      // CHECK
+      expect(retVal).toEqual(true);
+    });
+
+    it('should return false if new study has non-overlapping path with existing ones', async () => {
+      // BUILD
+      const requestContext = 'dummyRequestContext';
+      const bucketName = 'testBucket';
+      const accountId = '123456789012';
+      const folder = '/testFolder/study-2';
+
+      service.listStudiesForAccount = jest.fn(() => {
+        return [{ bucket: 'testBucket', folder: 'testFolder/study-1/' }];
+      });
+
+      // OPERATE
+      const retVal = await service.isOverlapping(requestContext, accountId, bucketName, folder);
+      // CHECK
+      expect(retVal).toEqual(false);
+    });
+  });
 });
