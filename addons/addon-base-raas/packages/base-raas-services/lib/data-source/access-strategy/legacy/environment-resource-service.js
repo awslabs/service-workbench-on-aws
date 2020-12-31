@@ -111,7 +111,7 @@ class EnvironmentResourceService extends Service {
           item: environmentScEntity.id,
         });
 
-        if (usage.added && _.size(usage.items) === 1) studiesToAdd.push(study);
+        if (_.size(usage.items) >= 1) studiesToAdd.push(study);
       };
 
       // We do the usage tracking calls, 20 at a time
@@ -132,7 +132,7 @@ class EnvironmentResourceService extends Service {
         item: environmentScEntity.id,
       });
 
-      if (usage.added && _.size(usage.items) === 1) {
+      if (_.size(usage.items) >= 1) {
         // Add permissions in the main account kms key policy for the environment member account to be able to use this key
         await this.addToKmsKeyPolicy(requestContext, memberAccountId);
       }
@@ -172,13 +172,11 @@ class EnvironmentResourceService extends Service {
           item: environmentScEntity.id,
         });
 
-        if (usage.removed && _.isEmpty(usage.items)) studiesToRemove.push(study);
+        if (_.isEmpty(usage.items)) studiesToRemove.push(study);
       };
 
       // We do the usage tracking calls, 20 at a time
       await processInBatches(studies, 20, processor);
-
-      if (_.isEmpty(studiesToRemove)) return; // No studies to remove at the member account level
 
       await this.removeFromBucketPolicy(requestContext, studiesToRemove, memberAccountId);
 
@@ -189,7 +187,7 @@ class EnvironmentResourceService extends Service {
         item: environmentScEntity.id,
       });
 
-      if (usage.removed && _.isEmpty(usage.items)) {
+      if (_.isEmpty(usage.items)) {
         await this.removeFromKmsKeyPolicy(requestContext, memberAccountId);
       }
     });
@@ -264,13 +262,14 @@ class EnvironmentResourceService extends Service {
     // 'envPermission', it is an object with the following shape: { read: true/false, write: true/false }
     const { s3BucketName, s3Policy } = await this.getS3BucketAndPolicy();
     const internalStudies = await this.getInternalStudies(studies, s3BucketName);
-    const filteredStudies = internalStudies.filter(
+    const filteredStudies = _.filter(
+      internalStudies,
       study => study.envPermission && (study.envPermission.read || study.envPermission.write),
     );
 
     // construct the revised statements depending on the type of permissions
     const revisedStatements = await Promise.all(
-      filteredStudies.map(async study => {
+      _.map(filteredStudies, async study => {
         const statementParamFunctions = [];
         if (study.envPermission.read) {
           statementParamFunctions.push(getStatementParamsFn);
@@ -292,6 +291,9 @@ class EnvironmentResourceService extends Service {
       }),
     );
     await this.updateS3BucketPolicy(s3BucketName, s3Policy, revisedStatements);
+
+    // Write audit event
+    await this.audit(requestContext, { action: 'add-to-bucket-policy', body: s3Policy });
   }
 
   // @private
@@ -304,7 +306,7 @@ class EnvironmentResourceService extends Service {
 
     // construct the revised statements for all types of statements and remove the memberAccountId
     const revisedStatements = await Promise.all(
-      filteredStudies.map(async study => {
+      _.map(filteredStudies, async study => {
         const statementParamFunctions = [getStatementParamsFn, putStatementParamsFn, listStatementParamsFn];
         const revisedStatementsPerStudy = await this.getRevisedS3Statements(
           s3Policy,
@@ -317,6 +319,9 @@ class EnvironmentResourceService extends Service {
       }),
     );
     await this.updateS3BucketPolicy(s3BucketName, s3Policy, revisedStatements);
+
+    // Write audit event
+    await this.audit(requestContext, { action: 'remove-from-bucket-policy', body: s3Policy });
   }
 
   // @private
@@ -324,6 +329,9 @@ class EnvironmentResourceService extends Service {
     await this.updateKMSPolicy(environmentStatement =>
       this.addAccountToStatement(environmentStatement, memberAccountId),
     );
+
+    // Write audit event
+    await this.audit(requestContext, { action: 'add-to-KmsKey-policy', body: memberAccountId });
   }
 
   // @private
@@ -331,6 +339,9 @@ class EnvironmentResourceService extends Service {
     await this.updateKMSPolicy(environmentStatement =>
       this.removeAccountFromStatement(environmentStatement, memberAccountId),
     );
+
+    // Write audit event
+    await this.audit(requestContext, { action: 'add-to-KmsKey-policy', body: memberAccountId });
   }
 
   // @private
@@ -375,8 +386,7 @@ class EnvironmentResourceService extends Service {
     // 1. Studies should not be open data since we don't control the bucket policy of those buckets
     // 2. Studies belong to the bucket specified by settings studyDataBucketName
     // 3. Studies are assumed to have only single S3 arn. If multiple are provided then only the first arn is used
-    const filteredStudies = studies
-      .filter(study => !isOpenData(study) && study.resources)
+    const filteredStudies = _.filter(studies, study => !isOpenData(study) && study.resources)
       .map(study => {
         const { bucket, prefix } = parseS3Arn(study.resources[0].arn) || {};
         study.prefix = prefix;
@@ -388,9 +398,9 @@ class EnvironmentResourceService extends Service {
   }
 
   // @private
-  async addAccountToStatement(oldStatement, memberAccountId) {
-    const principal = await this.getRootArnForAccount(memberAccountId);
-    const statement = await this.addEmptyPrincipalIfNotPresent(oldStatement);
+  addAccountToStatement(oldStatement, memberAccountId) {
+    const principal = this.getRootArnForAccount(memberAccountId);
+    const statement = this.addEmptyPrincipalIfNotPresent(oldStatement);
     if (Array.isArray(statement.Principal.AWS)) {
       // add the principal if it doesn't exist already
       if (!statement.Principal.AWS.includes(principal)) {
@@ -403,9 +413,9 @@ class EnvironmentResourceService extends Service {
   }
 
   // @private
-  async removeAccountFromStatement(oldStatement, memberAccountId) {
-    const principal = await this.getRootArnForAccount(memberAccountId);
-    const statement = await this.addEmptyPrincipalIfNotPresent(oldStatement);
+  removeAccountFromStatement(oldStatement, memberAccountId) {
+    const principal = this.getRootArnForAccount(memberAccountId);
+    const statement = this.addEmptyPrincipalIfNotPresent(oldStatement);
     if (Array.isArray(statement.Principal.AWS)) {
       statement.Principal.AWS = statement.Principal.AWS.filter(oldPrincipal => oldPrincipal !== principal);
     } else if (statement.Principal.AWS === principal) {
@@ -415,12 +425,12 @@ class EnvironmentResourceService extends Service {
   }
 
   // @private
-  async getRootArnForAccount(memberAccountId) {
+  getRootArnForAccount(memberAccountId) {
     return `arn:aws:iam::${memberAccountId}:root`;
   }
 
   // @private
-  async addEmptyPrincipalIfNotPresent(statement) {
+  addEmptyPrincipalIfNotPresent(statement) {
     if (!statement.Principal) {
       statement.Principal = {};
     }
@@ -432,27 +442,25 @@ class EnvironmentResourceService extends Service {
 
   // @private
   async getRevisedS3Statements(s3Policy, study, bucket, statementParamFunctions, updateStatementFn) {
-    const revisedStatementsPerStudy = await Promise.all(
-      statementParamFunctions.map(async statementParameterFn => {
-        const statementParams = statementParameterFn(bucket, study.prefix);
-        let oldStatement = s3Policy.Statement.find(statement => statement.Sid === statementParams.statementId);
-        if (!oldStatement) {
-          oldStatement = await this.createAllowStatement(
-            statementParams.statementId,
-            statementParams.actions,
-            statementParams.resource,
-            statementParams.condition,
-          );
-        }
-        const newStatement = await updateStatementFn(oldStatement);
-        return newStatement;
-      }),
-    );
+    const revisedStatementsPerStudy = _.map(statementParamFunctions, statementParameterFn => {
+      const statementParams = statementParameterFn(bucket, study.prefix);
+      let oldStatement = s3Policy.Statement.find(statement => statement.Sid === statementParams.statementId);
+      if (!oldStatement) {
+        oldStatement = this.createAllowStatement(
+          statementParams.statementId,
+          statementParams.actions,
+          statementParams.resource,
+          statementParams.condition,
+        );
+      }
+      const newStatement = updateStatementFn(oldStatement);
+      return newStatement;
+    });
     return revisedStatementsPerStudy;
   }
 
   // @private
-  async createAllowStatement(statementId, actions, resource, condition) {
+  createAllowStatement(statementId, actions, resource, condition) {
     const baseAllowStatement = {
       Sid: statementId,
       Effect: 'Allow',
@@ -481,9 +489,8 @@ class EnvironmentResourceService extends Service {
         s3Policy.Statement.push(statement);
       }
     });
-
     // Update S3 bucket policy
-    s3Client.putBucketPolicy({ Bucket: s3BucketName, Policy: JSON.stringify(s3Policy) }).promise();
+    await s3Client.putBucketPolicy({ Bucket: s3BucketName, Policy: JSON.stringify(s3Policy) }).promise();
   }
 
   // @private

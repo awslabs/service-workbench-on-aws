@@ -35,6 +35,8 @@ const EnvironmentResourceService = require('../access-strategy/legacy/environmen
 describe('EnvironmentResourceService', () => {
   let environmentResourceService;
   let aws;
+  let lockService;
+  let usageService;
 
   const testStudiesFn = () => [
     {
@@ -165,6 +167,8 @@ describe('EnvironmentResourceService', () => {
     await container.initServices();
 
     environmentResourceService = await container.find('environmentResourceService');
+    lockService = await container.find('lockService');
+    usageService = await container.find('resourceUsageService');
     aws = await environmentResourceService.service('aws');
     AWSMock.setSDKInstance(aws.sdk);
     environmentResourceService._settings = {
@@ -197,7 +201,7 @@ describe('EnvironmentResourceService', () => {
         });
         callback(null, { Policy: '{}' });
       });
-      const putBucketPolicyMock = jest.fn(function(params, callback) {
+      const putBucketPolicyMock = jest.fn((params, callback) => {
         expect(params).toMatchObject({
           Bucket: 'study-bucket',
           Policy: JSON.stringify(s3Policy),
@@ -227,7 +231,7 @@ describe('EnvironmentResourceService', () => {
         });
         callback(null, { Policy: JSON.stringify(s3Policy) });
       });
-      const putBucketPolicyMock = jest.fn(function(params, callback) {
+      const putBucketPolicyMock = jest.fn((params, callback) => {
         expect(params.Bucket).toEqual('study-bucket');
         newPolicy.Statement.sort(statementSortFn);
         const receivedPolicy = JSON.parse(params.Policy);
@@ -266,7 +270,7 @@ describe('EnvironmentResourceService', () => {
         });
         callback(null, { Policy: JSON.stringify(s3Policy) });
       });
-      const putBucketPolicyMock = jest.fn(function(params, callback) {
+      const putBucketPolicyMock = jest.fn((params, callback) => {
         expect(params).toMatchObject({
           Bucket: 'study-bucket',
           Policy: JSON.stringify(s3Policy),
@@ -304,7 +308,7 @@ describe('EnvironmentResourceService', () => {
         });
         callback(null, { Policy: JSON.stringify(s3Policy) });
       });
-      const putBucketPolicyMock = jest.fn(function(params, callback) {
+      const putBucketPolicyMock = jest.fn((params, callback) => {
         expect(params).toMatchObject({
           Bucket: 'study-bucket',
           Policy: JSON.stringify(s3Policy),
@@ -384,7 +388,7 @@ describe('EnvironmentResourceService', () => {
         });
         callback(null, { Policy: JSON.stringify(s3Policy) });
       });
-      const putBucketPolicyMock = jest.fn(function(params, callback) {
+      const putBucketPolicyMock = jest.fn((params, callback) => {
         expect(params).toMatchObject({
           Bucket: 'study-bucket',
           Policy: JSON.stringify(s3Policy),
@@ -408,7 +412,7 @@ describe('EnvironmentResourceService', () => {
         });
         callback(null, { Policy: JSON.stringify(s3Policy) });
       });
-      const putBucketPolicyMock = jest.fn(function(params, callback) {
+      const putBucketPolicyMock = jest.fn((params, callback) => {
         expect(params).toMatchObject({
           Bucket: 'study-bucket',
           Policy: JSON.stringify({
@@ -434,7 +438,7 @@ describe('EnvironmentResourceService', () => {
         });
         callback(null, { Policy: JSON.stringify(s3Policy) });
       });
-      const putBucketPolicyMock = jest.fn(function(params, callback) {
+      const putBucketPolicyMock = jest.fn((params, callback) => {
         expect(params).toMatchObject({
           Bucket: 'study-bucket',
           Policy: JSON.stringify(newPolicy),
@@ -469,7 +473,7 @@ describe('EnvironmentResourceService', () => {
         }
         return statement;
       });
-      const putBucketPolicyMock = jest.fn(function(params, callback) {
+      const putBucketPolicyMock = jest.fn((params, callback) => {
         expect(params.Bucket).toEqual('study-bucket');
         const receivedPolicy = JSON.parse(params.Policy);
         receivedPolicy.Statement.sort(statementSortFn);
@@ -511,7 +515,7 @@ describe('EnvironmentResourceService', () => {
           },
         ],
       };
-      const putKeyPolicyMock = jest.fn(function(params, callback) {
+      const putKeyPolicyMock = jest.fn((params, callback) => {
         expect(params).toMatchObject({
           KeyId: 'kmsStudyKeyId',
           PolicyName: 'default',
@@ -564,7 +568,7 @@ describe('EnvironmentResourceService', () => {
           },
         ],
       };
-      const putKeyPolicyMock = jest.fn(function(params, callback) {
+      const putKeyPolicyMock = jest.fn((params, callback) => {
         expect(params).toMatchObject({
           KeyId: 'kmsStudyKeyId',
           PolicyName: 'default',
@@ -606,7 +610,7 @@ describe('EnvironmentResourceService', () => {
         });
         callback(null, { Policy: JSON.stringify(oldKMSPolicy) });
       });
-      const putKeyPolicyMock = jest.fn(function(params, callback) {
+      const putKeyPolicyMock = jest.fn((params, callback) => {
         expect(params).toMatchObject({
           KeyId: 'kmsStudyKeyId',
           PolicyName: 'default',
@@ -650,7 +654,7 @@ describe('EnvironmentResourceService', () => {
         });
         callback(null, { Policy: JSON.stringify(oldKMSPolicy) });
       });
-      const putKeyPolicyMock = jest.fn(function(params, callback) {
+      const putKeyPolicyMock = jest.fn((params, callback) => {
         expect(params).toMatchObject({
           KeyId: 'kmsStudyKeyId',
           PolicyName: 'default',
@@ -661,6 +665,142 @@ describe('EnvironmentResourceService', () => {
       AWSMock.mock('KMS', 'putKeyPolicy', putKeyPolicyMock);
       await environmentResourceService.removeFromKmsKeyPolicy({}, 'accountId2');
       expect(putKeyPolicyMock).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('allocate/deallocate idempotency', () => {
+    it('ensures deallocateStudyResources can be rerun even when DB shows no usage', async () => {
+      // BUILD
+      const environmentScEntity = { id: 'sampleEnvId' };
+      const studies = testStudiesFn();
+      const memberAccountId = 'sampleAccountId';
+      lockService.tryWriteLockAndRun = jest.fn((_params, callback) => callback());
+
+      // This indicates already zero usage in DB for objects in 'studies'
+      usageService.removeUsage = jest.fn(() => {
+        return { items: [] };
+      });
+
+      // Tests for these are already covered earlier
+      environmentResourceService.removeFromBucketPolicy = jest.fn();
+      environmentResourceService.removeFromKmsKeyPolicy = jest.fn();
+
+      // EXECUTE
+      await environmentResourceService.deallocateStudyResources(
+        {},
+        {
+          environmentScEntity,
+          studies,
+          memberAccountId,
+        },
+      );
+
+      // CHECK
+      expect(environmentResourceService.removeFromBucketPolicy).toHaveBeenCalledTimes(1);
+      expect(environmentResourceService.removeFromBucketPolicy).toHaveBeenCalledWith({}, studies, memberAccountId);
+      expect(environmentResourceService.removeFromKmsKeyPolicy).toHaveBeenCalledTimes(1);
+      expect(environmentResourceService.removeFromKmsKeyPolicy).toHaveBeenCalledWith({}, memberAccountId);
+    });
+
+    it('ensures deallocateStudyResources can be rerun even when DB shows usage', async () => {
+      // BUILD
+      const environmentScEntity = { id: 'sampleEnvId' };
+      const studies = testStudiesFn();
+      const memberAccountId = 'sampleAccountId';
+      lockService.tryWriteLockAndRun = jest.fn((_params, callback) => callback());
+
+      // This indicates non-zero current usage in DB for objects in 'studies'
+      usageService.removeUsage = jest.fn(() => {
+        return { items: ['dummyUserResource1'] };
+      });
+
+      // Nothing to remove since this is currently in use
+      const removeList = [];
+
+      // Tests for these have been covered earlier
+      environmentResourceService.removeFromBucketPolicy = jest.fn();
+      environmentResourceService.removeFromKmsKeyPolicy = jest.fn();
+
+      // EXECUTE
+      await environmentResourceService.deallocateStudyResources(
+        {},
+        {
+          environmentScEntity,
+          studies,
+          memberAccountId,
+        },
+      );
+
+      // CHECK
+      expect(environmentResourceService.removeFromBucketPolicy).toHaveBeenCalledTimes(1);
+      expect(environmentResourceService.removeFromBucketPolicy).toHaveBeenCalledWith({}, removeList, memberAccountId);
+      expect(environmentResourceService.removeFromKmsKeyPolicy).not.toHaveBeenCalled();
+    });
+
+    it('ensures allocateStudyResources can be rerun when DB shows usage', async () => {
+      // BUILD
+      const environmentScEntity = { id: 'sampleEnvId' };
+      const studies = testStudiesFn();
+      const memberAccountId = 'sampleAccountId';
+      lockService.tryWriteLockAndRun = jest.fn((_params, callback) => callback());
+
+      // This indicates first usage added in DB for objects in 'studies'
+      usageService.addUsage = jest.fn(() => {
+        return { items: ['dummyResourceUser1'] };
+      });
+
+      // Tests for these are already covered earlier
+      environmentResourceService.addToBucketPolicy = jest.fn();
+      environmentResourceService.addToKmsKeyPolicy = jest.fn();
+
+      // EXECUTE
+      await environmentResourceService.allocateStudyResources(
+        {},
+        {
+          environmentScEntity,
+          studies,
+          memberAccountId,
+        },
+      );
+
+      // CHECK
+      expect(environmentResourceService.addToBucketPolicy).toHaveBeenCalledTimes(1);
+      expect(environmentResourceService.addToBucketPolicy).toHaveBeenCalledWith({}, studies, memberAccountId);
+      expect(environmentResourceService.addToKmsKeyPolicy).toHaveBeenCalledTimes(1);
+      expect(environmentResourceService.addToKmsKeyPolicy).toHaveBeenCalledWith({}, memberAccountId);
+    });
+
+    it('ensures allocateStudyResources can be rerun even when DB shows no usage', async () => {
+      // BUILD
+      const environmentScEntity = { id: 'sampleEnvId' };
+      const studies = testStudiesFn();
+      const memberAccountId = 'sampleAccountId';
+      lockService.tryWriteLockAndRun = jest.fn((params, callback) => callback());
+
+      // This indicates subsequent usage in DB for objects in 'studies'
+      usageService.addUsage = jest.fn(() => {
+        return { items: ['dummyResourceUser1', 'dummyResourceUser2'] };
+      });
+
+      // Tests for these are already covered earlier
+      environmentResourceService.addToBucketPolicy = jest.fn();
+      environmentResourceService.addToKmsKeyPolicy = jest.fn();
+
+      // EXECUTE
+      await environmentResourceService.allocateStudyResources(
+        {},
+        {
+          environmentScEntity,
+          studies,
+          memberAccountId,
+        },
+      );
+
+      // CHECK
+      expect(environmentResourceService.addToBucketPolicy).toHaveBeenCalledTimes(1);
+      expect(environmentResourceService.addToBucketPolicy).toHaveBeenCalledWith({}, studies, memberAccountId);
+      expect(environmentResourceService.addToKmsKeyPolicy).toHaveBeenCalledTimes(1);
+      expect(environmentResourceService.addToKmsKeyPolicy).toHaveBeenCalledWith({}, memberAccountId);
     });
   });
 });
