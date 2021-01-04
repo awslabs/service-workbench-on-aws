@@ -44,7 +44,7 @@ const createStudy = ({
   bucketAccess = 'roles',
   bucket = 'bucket-1',
   qualifier = 'swb-IhsKhN8GsLneiis11ujlb8',
-  appRoleArn = 'arn:aws:iam::684277579687:role/swb-IhsKhN8GsLneiis11ujlb8-app-1607537845811',
+  appRoleArn = 'arn:aws:iam::123456789012:role/swb-IhsKhN8GsLneiis11ujlb8-app-1234567890xxx',
   accessType = 'readwrite',
   envPermission = { read: true, write: true },
   folder = '/',
@@ -65,16 +65,16 @@ const createStudy = ({
 });
 
 const createAppRole = ({
-  arn = 'arn:aws:iam::684277579687:role/swb-IhsKhN8GsLneiis11ujlb8-app-1607537845811',
+  arn = 'arn:aws:iam::123456789012:role/swb-IhsKhN8GsLneiis11ujlb8-app-1234567890xxx',
   accountId = '1122334455',
   mainRegion = 'us-east-1',
   awsPartition = 'aws',
   bucket = 'bucket-1',
   bucketRegion = 'us-east-1',
   status = 'pending',
-  name = 'swb-IhsKhN8GsLneiis11ujlb8-app-1607537845811',
+  name = 'swb-IhsKhN8GsLneiis11ujlb8-app-1234567890xxx',
   qualifier = 'swb-IhsKhN8GsLneiis11ujlb8',
-  boundaryPolicyArn = 'arn:aws:iam::684277579687:policy/swb-IhsKhN8GsLneiis11ujlb8-app-1607537845811',
+  boundaryPolicyArn = 'arn:aws:iam::123456789012:policy/swb-IhsKhN8GsLneiis11ujlb8-app-1234567890xxx',
   studies = {
     'study-1': {
       accessType: 'readonly',
