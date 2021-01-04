@@ -87,9 +87,7 @@ const createAppRole = ({
   studies,
 });
 
-describe('ApplicationRoleMethods', () => {
-  beforeEach(async () => {});
-
+describe('toAppRoleEntity', () => {
   it('ensures toAppRoleEntity does not fail with undefined dbEntity', async () => {
     // EXECUTE & CHECK
     expect(toAppRoleEntity()).toStrictEqual(undefined);
@@ -115,7 +113,9 @@ describe('ApplicationRoleMethods', () => {
     // EXECUTE & CHECK
     expect(toAppRoleEntity(dbEntity)).toStrictEqual(expectedAppRoleEntity);
   });
+});
 
+describe('toDbEntity', () => {
   it('ensures toDbEntity does not fail with valid appRoleEntity', async () => {
     // BUILD
     const appRole = createAppRole();
@@ -139,7 +139,9 @@ describe('ApplicationRoleMethods', () => {
     // EXECUTE & CHECK
     expect(toDbEntity(appRole, by)).toStrictEqual(expectedDbEntity);
   });
+});
 
+describe('newAppRoleEntity', () => {
   it('ensures newAppRoleEntity creates a new valid appRoleEntity', async () => {
     // BUILD
     const studyEntity = createStudy();
@@ -159,29 +161,11 @@ describe('ApplicationRoleMethods', () => {
 
     // EXECUTE & CHECK
     const returnVal = newAppRoleEntity(accountEntity, bucketEntity, studyEntity);
-    expect(returnVal).toHaveProperty('accountId');
-    expect(returnVal).toHaveProperty('arn');
-    expect(returnVal).toHaveProperty('awsPartition');
-    expect(returnVal).toHaveProperty('boundaryPolicyArn');
-    expect(returnVal).toHaveProperty('bucket');
-    expect(returnVal).toHaveProperty('bucketKmsArn');
-    expect(returnVal).toHaveProperty('bucketRegion');
-    expect(returnVal).toHaveProperty('mainRegion');
-    expect(returnVal).toHaveProperty('qualifier');
-    expect(returnVal).toHaveProperty('name');
-    expect(returnVal).toHaveProperty('status');
-    expect(returnVal).toHaveProperty('studies');
-
-    // Remove time-sensitive fields
-    delete returnVal.arn;
-    delete returnVal.boundaryPolicyArn;
-    delete returnVal.name;
-    delete returnVal.statusAt;
-
-    // FINAL CHECK
-    expect(returnVal).toStrictEqual(expectedAppRole);
+    expect(returnVal).toEqual(expect.objectContaining(expectedAppRole));
   });
+});
 
+describe('addStudy', () => {
   it('ensures addStudy adds a study correctly to appRoleEntity', async () => {
     // BUILD
     const studyEntity = {
@@ -214,7 +198,9 @@ describe('ApplicationRoleMethods', () => {
     const returnVal = addStudy(appRoleEntity, studyEntity);
     expect(returnVal).toStrictEqual(expectedAppRoleEntity);
   });
+});
 
+describe('maxReached', () => {
   it('ensures maxReached returns false when there is space left for characters in object', async () => {
     // BUILD
     const appRoleEntity = createAppRole();
@@ -230,7 +216,9 @@ describe('ApplicationRoleMethods', () => {
     // EXECUTE & CHECK
     expect(maxReached(appRoleEntity, 200)).toStrictEqual(true);
   });
+});
 
+describe('toCfnResources', () => {
   it('ensures toCfnResources returns managedPolicy and role as expected', async () => {
     // BUILD
     const appRoleEntity = createAppRole();
