@@ -30,6 +30,7 @@
     "eslint-plugin-jest": "^22.21.0",
     "eslint-plugin-prettier": "^3.1.2",
     "@aws-ee/base-workflow-core": "workspace:*",
+    "@aws-ee/environment-type-mgmt-services": "workspace:*",
     "husky": "^3.1.0",
     "jest": "^24.9.0",
     "jest-junit": "^10.0.0",

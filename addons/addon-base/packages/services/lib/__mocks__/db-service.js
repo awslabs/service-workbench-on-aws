@@ -53,8 +53,10 @@ class DbService extends Service {
       condition: jest.fn().mockReturnThis(),
       limit: jest.fn().mockReturnThis(),
       index: jest.fn().mockReturnThis(),
-      add: jest.fn().mockReturnThis(),
+      remove: jest.fn().mockReturnThis(),
       names: jest.fn().mockReturnThis(),
+      begins: jest.fn().mockReturnThis(),
+      add: jest.fn().mockReturnThis(),
       values: jest.fn().mockReturnThis(),
       return: jest.fn().mockReturnThis(),
 
