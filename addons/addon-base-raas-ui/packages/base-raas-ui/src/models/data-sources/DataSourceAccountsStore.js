@@ -40,7 +40,7 @@ const DataSourceAccountsStore = BaseStore.named('DataSourceAccountsStore')
   .props({
     accounts: types.map(DataSourceAccount),
     accountStores: types.map(DataSourceAccountStore),
-    tickPeriod: 10 * 60 * 1000, // 10 minutes
+    tickPeriod: 3 * 60 * 1000, // 3 minutes
   })
 
   .actions(self => {

@@ -24,7 +24,7 @@ import { generateAccountCfnTemplate } from '../../helpers/api';
 const DataSourceStackInfoStore = BaseStore.named('DataSourceStackInfoStore')
   .props({
     accountId: '',
-    tickPeriod: 9 * 60 * 1000, // 9 minutes
+    tickPeriod: 2 * 60 * 1000, // 2 minutes
   })
 
   .actions(self => {
