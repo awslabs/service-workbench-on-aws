@@ -28,7 +28,7 @@ const DataSourceAccountStore = BaseStore.named('DataSourceAccountStore')
     accountId: '',
     studyStores: types.map(DataSourceStudyStore),
     stackInfoStore: types.maybe(DataSourceStackInfoStore),
-    tickPeriod: 9 * 60 * 1000, // 9 minutes
+    tickPeriod: 60 * 1000, // 1 minute
   })
 
   .actions(self => {
