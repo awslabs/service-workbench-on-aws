@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
@@ -10,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
 func main() {
@@ -48,6 +50,17 @@ func mainImpl(sess *session.Session, debug bool, recurringDownloads bool, stopRe
 			var studyId string = filepath.Base(mountConfig.destination)
 			if !(strings.TrimSpace(mountConfig.roleArn) == "") {
 				sessionToUse = makeSession(studyId, region)
+			}
+			bucket := mountConfig.bucket
+			awsRegion, err := s3manager.GetBucketRegion(context.Background(), sessionToUse, bucket, *sess.Config.Region)
+			if debug {
+				log.Println("Bucket", bucket, "region is", awsRegion)
+			}
+			if err != nil {
+				log.Println("Error getting region of the bucket", bucket, err)
+			} else {
+				sessionToUse = session.Must(session.NewSession(sessionToUse.Config))
+				sessionToUse.Config.WithRegion(awsRegion)
 			}
 			if recurringDownloads {
 				// Trigger recurring download
