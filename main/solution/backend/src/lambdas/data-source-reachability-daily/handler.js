@@ -26,6 +26,9 @@ const handler = async () => {
   await container.initServices();
   const dataSourceReachabilityService = await container.find('dataSourceReachabilityService');
   const userContext = getSystemRequestContext();
+
+  // This force-checks reachability for ALL Data Source Accounts,
+  // and subsequently kicks off reachability checks for ALL Data Source Studies (irrespective of their current status)
   await dataSourceReachabilityService.attemptReach(userContext, { id: '*' }, { forceCheckAll: true });
 };
 

@@ -160,9 +160,9 @@ class SubmitStep extends React.Component {
     const success = this.success;
     const failure = this.failure;
     const allFailed = this.allFailed;
-    const showNext = !allFailed && (failure || success);
+    const showNext = !allFailed && success;
     const showRetry = allFailed || failure;
-    const showCancel = allFailed;
+    const showCancel = showRetry;
 
     return (
       <div className="mt3">
