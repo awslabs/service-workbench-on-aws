@@ -171,14 +171,6 @@ class StudyService extends Service {
   async update(requestContext, rawData) {
     const [validationService] = await this.service(['jsonSchemaValidationService']);
 
-    if (rawData.category === 'Open Data' && !isSystem(requestContext)) {
-      throw this.boom.badRequest('Only the system can update Open Data studies.', true);
-    }
-
-    if (rawData.category !== 'Open Data' && !_.isEmpty(rawData.resources)) {
-      throw this.boom.badRequest('Resources can only be updated for Open Data study category', true);
-    }
-
     // Validate input
     await validationService.ensureValid(rawData, updateSchema);
 
@@ -187,6 +179,14 @@ class StudyService extends Service {
     const { id, rev } = rawData;
 
     const study = await this.mustFind(requestContext, id);
+
+    if (study.category === 'Open Data' && !isSystem(requestContext)) {
+      throw this.boom.badRequest('Only the system can update Open Data studies.', true);
+    }
+
+    if (study.category !== 'Open Data' && !_.isEmpty(rawData.resources)) {
+      throw this.boom.badRequest('Resources can only be updated for Open Data study category', true);
+    }
 
     // validate if study can be read/write
     this.validateStudyType(rawData.accessType, study.category);

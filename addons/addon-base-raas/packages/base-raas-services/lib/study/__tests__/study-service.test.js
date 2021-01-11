@@ -251,46 +251,6 @@ describe('studyService', () => {
       );
     });
 
-    it('should fail to update resource list of non-Open Data study', async () => {
-      // BUILD
-      const dataIpt = {
-        id: 'newOpenStudy',
-        category: 'Organization',
-        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
-      };
-      service.audit = jest.fn();
-
-      // OPERATE
-      await expect(
-        service.update(
-          { principal: { userRole: 'researcher' }, principalIdentifier: { uid: 'someRandomUserUid' } },
-          dataIpt,
-        ),
-      ).rejects.toThrow({
-        message: 'Resources can only be updated for Open Data study category',
-      });
-    });
-
-    it('should fail to update Open Data study by non-system user', async () => {
-      // BUILD
-      const dataIpt = {
-        id: 'newOpenStudy',
-        category: 'Open Data',
-        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
-      };
-      service.audit = jest.fn();
-
-      // OPERATE
-      await expect(
-        service.update(
-          { principal: { userRole: 'admin' }, principalIdentifier: { uid: 'someRandomUserUid' } },
-          dataIpt,
-        ),
-      ).rejects.toThrow({
-        message: 'Only the system can update Open Data studies.',
-      });
-    });
-
     it('should try to create the study successfully', async () => {
       // BUILD
       const dataIpt = {
@@ -490,7 +450,7 @@ describe('studyService', () => {
 
       // OPERATE
       try {
-        await service.update({}, dataIpt);
+        await service.update({ principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } }, dataIpt);
         expect.hasAssertions();
       } catch (err) {
         // CATCH
@@ -553,6 +513,81 @@ describe('studyService', () => {
         expect(err.message).toEqual(
           'study information changed just before your request is processed, please try again',
         );
+      }
+    });
+
+    it('should fail if non-system user is trying to update Open Data study', async () => {
+      // BUILD
+      const dataIpt = {
+        id: 'existingOpenStudy',
+        rev: 1,
+      };
+
+      service.find = jest.fn().mockImplementationOnce(() => {
+        return { id: 'existingOpenStudy', updatedBy: { username: 'another doppelganger' }, category: 'Open Data' };
+      });
+
+      // OPERATE
+      try {
+        await service.update(
+          { principal: { userRole: 'admin' }, principalIdentifier: { uid: 'someRandomUserUid' } },
+          dataIpt,
+        );
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Only the system can update Open Data studies.');
+      }
+    });
+
+    it('should pass if system is trying to update Open Data study', async () => {
+      // BUILD
+      const dataIpt = {
+        id: 'existingOpenStudy',
+        rev: 1,
+      };
+
+      service.find = jest.fn().mockImplementationOnce(() => {
+        return { id: 'existingOpenStudy', updatedBy: { username: 'another doppelganger' }, category: 'Open Data' };
+      });
+
+      service.audit = jest.fn();
+
+      // OPERATE
+      await service.update({ principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } }, dataIpt);
+
+      // CHECK
+      expect(dbService.table.update).toHaveBeenCalled();
+      expect(service.audit).toHaveBeenCalledWith(
+        { principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } },
+        { action: 'update-study', body: undefined },
+      );
+    });
+
+    it('should fail if non Open Data study type has non-empty resources list', async () => {
+      // BUILD
+      const dataIpt = {
+        id: 'existingOrgStudy',
+        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
+        rev: 1,
+      };
+
+      service.find = jest.fn().mockImplementationOnce(() => {
+        return { id: 'existingOrgStudy', updatedBy: { username: 'another doppelganger' }, category: 'Organization' };
+      });
+
+      projectService.verifyUserProjectAssociation.mockImplementationOnce(() => true);
+
+      // OPERATE
+      try {
+        await service.update(
+          { principal: { userRole: 'admin' }, principalIdentifier: { uid: 'someRandomUserUid' } },
+          dataIpt,
+        );
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Resources can only be updated for Open Data study category');
       }
     });
 
