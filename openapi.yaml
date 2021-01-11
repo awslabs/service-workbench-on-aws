@@ -270,7 +270,7 @@ paths:
       operationId: updateEnvType
       responses:
         '200':
-          description: 'Return the updated envirnment type'
+          description: 'Return the updated environment type'
       requestBody:
         required: true
         content:
