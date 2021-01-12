@@ -21,11 +21,16 @@ const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const pluginRegistry = require('./plugins/plugin-registry');
 
-const handler = async () => {
-  const container = new ServicesContainer(['settings', 'log']);
-  // registerServices - Registers services by calling each service registration plugin in order.
-  await registerServices(container, pluginRegistry);
-  await container.initServices();
+const handler = async existingContainer => {
+  let container = existingContainer;
+
+  if (!container) {
+    container = new ServicesContainer(['settings', 'log']);
+    // registerServices - Registers services by calling each service registration plugin in order.
+    await registerServices(container, pluginRegistry);
+    await container.initServices();
+  }
+
   const dataSourceReachabilityService = await container.find('dataSourceReachabilityService');
   const studyService = await container.find('studyService');
   const dataSourceAccountService = await container.find('dataSourceAccountService');
@@ -40,6 +45,7 @@ const handler = async () => {
   // This checks reachability for newly added DS studies to an already available DS account
   const dsAccounts = await dataSourceAccountService.list(userContext);
   const reachableDsAccounts = _.filter(dsAccounts, dsAccount => dsAccount.status === 'reachable');
+
   await Promise.all(
     _.map(reachableDsAccounts, async dsAccount => {
       const studies = await studyService.listStudiesForAccount(userContext, { accountId: dsAccount.id });
