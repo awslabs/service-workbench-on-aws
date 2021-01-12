@@ -44,6 +44,9 @@ dataSourceReachabilityHandler:
         description: 'Invokes the lambda function that polls and synchronize data source account and study status.'
   environment:
     APP_SM_WORKFLOW: ${self:custom.settings.workflowStateMachineArn}
+    APP_DB_STUDIES_CATEGORY_INDEX: ${self:custom.settings.dbStudiesCategoryIndex}
+    APP_DB_STUDIES_ACCOUNTID_INDEX: ${self:custom.settings.dbStudiesAccountIdIndex}
+    APP_STUDY_DATA_BUCKET_NAME: ${self:custom.settings.studyDataBucketName}
 
 dataSourceReachabilityDailyHandler:
   handler: src/lambdas/data-source-reachability-daily/handler.handler
