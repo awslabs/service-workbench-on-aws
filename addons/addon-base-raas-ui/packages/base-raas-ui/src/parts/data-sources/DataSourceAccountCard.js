@@ -165,7 +165,7 @@ class DataSourceAccountCard extends React.Component {
             &mdash;
           </span>
           <span className="fs-8 color-grey mr1">
-            status check <TimeAgo date={account.statusAt} className="mr1" />
+            Status checked <TimeAgo date={account.statusAt} className="mr1" />
             &mdash;
           </span>
           <span className="fs-8 color-grey">AWS Account # {account.id}</span>

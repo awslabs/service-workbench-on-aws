@@ -18,7 +18,7 @@ import React from 'react';
 import { decorate, computed, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
-import { Segment, Button, Icon, Header, Progress } from 'semantic-ui-react';
+import { Segment, Button, Icon, Header, Progress, Message } from 'semantic-ui-react';
 
 import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
 import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
@@ -107,11 +107,25 @@ class SubmitStep extends React.Component {
             </Header>
           )}
         </div>
+
         <div>
           {_.map(operations.ops, op => this.renderOperation(op))}
           {this.renderButtons()}
         </div>
       </div>
+    );
+  }
+
+  renderFailedStepsWarning() {
+    return (
+      <Message warning>
+        <Message.Header>Failures have occurred</Message.Header>
+        <p>It seems that one or more steps have failed while registration. Please fix the errors and retry.</p>
+        <p>
+          If you wish to proceed anyway with creating/updating the CloudFormation stack, resources corresponding to the
+          failed steps might not be reflected in the CloudFormation template.
+        </p>
+      </Message>
     );
   }
 
@@ -160,12 +174,13 @@ class SubmitStep extends React.Component {
     const success = this.success;
     const failure = this.failure;
     const allFailed = this.allFailed;
-    const showNext = !allFailed && success;
+    const showNext = !allFailed && (failure || success);
     const showRetry = allFailed || failure;
     const showCancel = showRetry;
 
     return (
       <div className="mt3">
+        {this.failure && this.renderFailedStepsWarning()}
         {showNext && (
           <Button
             floated="right"
