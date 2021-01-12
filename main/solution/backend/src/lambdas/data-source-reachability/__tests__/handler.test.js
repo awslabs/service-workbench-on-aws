@@ -73,8 +73,117 @@ describe('handler', () => {
 
     // CHECK
     // Called 2 times to bulk check DS Account reachability of those in pending/error states
-    // Called 3 times for each unreachable DS Studies of existing reachable DS Accounts
     expect(dataSourceReachabilityService.attemptReach).toHaveBeenCalledTimes(5);
+    expect(dataSourceReachabilityService.attemptReach).toHaveBeenCalledWith(
+      {
+        actions: [],
+        attr: {},
+        authenticated: true,
+        principal: {
+          isAdmin: true,
+          ns: 'internal',
+          status: 'active',
+          uid: '_system_',
+          userRole: 'admin',
+          username: '_system_',
+        },
+        principalIdentifier: { uid: '_system_' },
+        resources: [],
+      },
+      { id: '*', status: 'pending' },
+    );
+    expect(dataSourceReachabilityService.attemptReach).toHaveBeenCalledWith(
+      {
+        actions: [],
+        attr: {},
+        authenticated: true,
+        principal: {
+          isAdmin: true,
+          ns: 'internal',
+          status: 'active',
+          uid: '_system_',
+          userRole: 'admin',
+          username: '_system_',
+        },
+        principalIdentifier: { uid: '_system_' },
+        resources: [],
+      },
+      { id: '*', status: 'error' },
+    );
+
+    // Called 3 times for each unreachable DS Studies of existing reachable DS Accounts
+    expect(dataSourceReachabilityService.attemptReach).toHaveBeenCalledWith(
+      {
+        actions: [],
+        attr: {},
+        authenticated: true,
+        principal: {
+          isAdmin: true,
+          ns: 'internal',
+          status: 'active',
+          uid: '_system_',
+          userRole: 'admin',
+          username: '_system_',
+        },
+        principalIdentifier: { uid: '_system_' },
+        resources: [],
+      },
+      { id: 'study1', type: 'study' },
+    );
+    expect(dataSourceReachabilityService.attemptReach).toHaveBeenCalledWith(
+      {
+        actions: [],
+        attr: {},
+        authenticated: true,
+        principal: {
+          isAdmin: true,
+          ns: 'internal',
+          status: 'active',
+          uid: '_system_',
+          userRole: 'admin',
+          username: '_system_',
+        },
+        principalIdentifier: { uid: '_system_' },
+        resources: [],
+      },
+      { id: 'study2', type: 'study' },
+    );
+    expect(dataSourceReachabilityService.attemptReach).toHaveBeenCalledWith(
+      {
+        actions: [],
+        attr: {},
+        authenticated: true,
+        principal: {
+          isAdmin: true,
+          ns: 'internal',
+          status: 'active',
+          uid: '_system_',
+          userRole: 'admin',
+          username: '_system_',
+        },
+        principalIdentifier: { uid: '_system_' },
+        resources: [],
+      },
+      { id: 'study3', type: 'study' },
+    );
+    expect(dataSourceReachabilityService.attemptReach).not.toHaveBeenCalledWith(
+      {
+        actions: [],
+        attr: {},
+        authenticated: true,
+        principal: {
+          isAdmin: true,
+          ns: 'internal',
+          status: 'active',
+          uid: '_system_',
+          userRole: 'admin',
+          username: '_system_',
+        },
+        principalIdentifier: { uid: '_system_' },
+        resources: [],
+      },
+      { id: 'study4', type: 'study' },
+    );
   });
 
   it('only calls for reachability check in bulk for unreachable DS Accounts', async () => {
@@ -94,5 +203,41 @@ describe('handler', () => {
     // CHECK
     // Called 2 times to bulk check DS Account reachability of those in pending/error states
     expect(dataSourceReachabilityService.attemptReach).toHaveBeenCalledTimes(2);
+    expect(dataSourceReachabilityService.attemptReach).toHaveBeenCalledWith(
+      {
+        actions: [],
+        attr: {},
+        authenticated: true,
+        principal: {
+          isAdmin: true,
+          ns: 'internal',
+          status: 'active',
+          uid: '_system_',
+          userRole: 'admin',
+          username: '_system_',
+        },
+        principalIdentifier: { uid: '_system_' },
+        resources: [],
+      },
+      { id: '*', status: 'pending' },
+    );
+    expect(dataSourceReachabilityService.attemptReach).toHaveBeenCalledWith(
+      {
+        actions: [],
+        attr: {},
+        authenticated: true,
+        principal: {
+          isAdmin: true,
+          ns: 'internal',
+          status: 'active',
+          uid: '_system_',
+          userRole: 'admin',
+          username: '_system_',
+        },
+        principalIdentifier: { uid: '_system_' },
+        resources: [],
+      },
+      { id: '*', status: 'error' },
+    );
   });
 });
