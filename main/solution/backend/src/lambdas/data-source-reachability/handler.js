@@ -23,8 +23,7 @@ const pluginRegistry = require('./plugins/plugin-registry');
 
 const handler = async existingContainer => {
   let container = existingContainer;
-
-  if (!container && !_.isEmpty(container)) {
+  if (!container || _.isEmpty(container)) {
     container = new ServicesContainer(['settings', 'log']);
     // registerServices - Registers services by calling each service registration plugin in order.
     await registerServices(container, pluginRegistry);
