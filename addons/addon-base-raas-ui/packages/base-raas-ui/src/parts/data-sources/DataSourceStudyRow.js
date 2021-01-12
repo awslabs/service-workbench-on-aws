@@ -189,7 +189,9 @@ class DataSourceStudyRow extends React.Component {
             </Table.Cell>
             <Table.Cell width={16} className="flex">
               {this.renderStatus(state, 'flex-auto mr1')}
-              <TimeAgo date={statusAt} className="color-grey fs-8" />
+              <span className="fs-8 color-grey mr1">
+                Status checked <TimeAgo date={statusAt} className="color-grey fs-8" />
+              </span>
             </Table.Cell>
           </Table.Row>
 
