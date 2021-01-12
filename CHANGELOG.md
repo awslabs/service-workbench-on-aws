@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.4] - 2021-01-13
+
+### Added
+- fix: open data scraper bugfix (#258)
+- docs: improvements to deployment documentation (#219)
+- fix: Upload Files button disappears for R/W users (#242)
+- feat: install R3.6 and system packages required for dev (#238)
+- fix: file not found error in download-env-config script (#217)
+- test: Add github workflow for e2etest run (#228)
+- feat: modify filter criteria for Open Data (#227)
+- docs: delete dead links (#226)
+- fix: changed RStudio server CSP headers to allow uploads from same-origin (#216)
+
 ## [1.4.3] - 2020-11-24
 
 ### Added
