@@ -1,0 +1,1403 @@
+---
+openapi: 3.0.0
+info:
+  title: service-workbench-on-aws
+  description: API collection of service-workbench-on-aws
+  contact:
+    email: aws-chamonix-dev@amazon.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: v1.4.3
+tags:
+  - name: admins
+    description: Secured Admin-only calls
+  - name: researchers
+    description: Operations available to regular researchers
+  - name: BYOB
+    description: Operations for bring your own bucket configuration
+  - name: SC-EnvType
+    description: Operations for service catalog environment types
+  - name: SC-EnvTypeConfig
+    description: Operations for service catalog environment type configurations
+  - name: SC-EnvWorkspace
+    description: Operations for create and manage workspaces with service catalog environment types
+  - name: Studies
+    description: Operations for create and manage studies (Data folders)
+  - name: Budgets
+    description: Operations for create and manage budgets
+paths:
+  /api/data-sources/accounts:
+    get:
+      tags:
+        - admins
+        - BYOB
+      summary: List DS Acccounts
+      operationId: ListDSAcccounts
+      description: |
+        List all external DataSource accounts
+      responses:
+        '200':
+          description: Array of data source accounts
+    post:
+      tags:
+        - admins
+        - BYOB
+      summary: Register DS account
+      description: Add a data source account
+      operationId: RegisterDSaccount
+      requestBody:
+        description: Data source AWS account to add
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDataSourceAccount'
+      responses:
+        "201":
+          description: item created
+  /api/data-sources/accounts/{awsAccountId}:
+    put:
+      tags:
+        - admins
+        - BYOB
+      summary: Update DS account
+      operationId: UpdateDSaccount
+      parameters:
+        - name: awsAccountId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/AwsAccountId'
+      responses:
+        '200':
+          description: 'Update existing data source account'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDataSourceAccount'
+  /api/data-sources/accounts/{awsAccountId}/buckets:
+    post:
+      tags:
+        - admins
+        - BYOB
+      summary: Register DS bucket
+      operationId: RegisterDSbucket
+      parameters:
+        - name: awsAccountId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/AwsAccountId'
+      responses:
+        '201':
+          description: 'bucket registered'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterDataSourceBucket'
+  /api/data-sources/accounts/ops/reachability:
+    post:
+      tags:
+        - admins
+        - BYOB
+      summary: Attempt to reach
+      description: Attempt to test reachability/availability of registered accounts and their studies.
+      operationId: AttemptReach
+      responses:
+        '200':
+          description: reachability/availability of registered accounts and their studies requested
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataSourceReachability'
+  /api/data-sources/accounts/{awsAccountId}/cfn:
+    post:
+      tags:
+        - admins
+        - BYOB
+      summary: Generate Account CFN template
+      operationId: GenerateAccountCFNtemplate
+      description: Creates a CloudFormation template which will create an IAM role in Data Source Account which allows Service Workbench to create roles which will have access to S3 Study paths and KMS keys
+      parameters:
+        - name: awsAccountId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/AwsAccountId'
+      responses:
+        '200':
+          description: cfn template for data source account onboard
+  /api/data-sources/accounts/{awsAccountId}/studies:
+    get:
+      tags:
+        - admins
+        - BYOB
+      summary: List studies for account
+      description: List all the studies under a data source account
+      operationId: ListStudiesForAccount
+      parameters:
+        - name: awsAccountId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/AwsAccountId'
+      responses:
+        '200':
+          description: array of studies under the data source account specified
+  /api/data-sources/accounts/{awsAccountId}/buckets/{bucketName}/studies:
+    post:
+      tags:
+        - admins
+        - BYOB
+      summary: Register Study
+      operationId: RegisterStudy
+      parameters:
+        - name: awsAccountId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/AwsAccountId'
+        - name: bucketName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: array of studies under the bucket specified
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterStudy'
+
+  /api/workspace-type-candidates:
+    get:
+      tags:
+        - SC-EnvType
+        - admins
+      summary: list workspace type candidates
+      operationId: listWSTypeCandidates
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum:
+              - '*'
+              - 'not-imported'
+        - name: version
+          in: query
+          schema:
+            type: string
+            enum:
+              - '*'
+              - 'latest'
+      responses:
+        '200':
+          description: Array of workspace type candidates that fits the query filters. Default return latest not imported workspace type candidates.
+  /api/workspace-types:
+    get:
+      tags:
+        - SC-EnvType
+        - admins
+      summary: list workspace types
+      operationId: listWSTypes
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum:
+              - '*'
+              - 'not-approved'
+              - 'approved'
+      responses:
+        '200':
+          description: Array of workspace types in the status queried. Default return approved.
+    post:
+      tags:
+        - SC-EnvType
+        - admins
+      summary: create (import) workspace type
+      operationId: createWSType
+      responses:
+        '200':
+          description: 'Return the workspace type imported.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEnvType'
+  /api/workspace-types/{envTypeId}:
+    parameters:
+      - name: envTypeId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/EnvTypeId'
+    get:
+      tags:
+        - admins
+        - SC-EnvType
+      summary: get environment type
+      operationId: getEnvType
+      responses:
+        '200':
+          description: 'return the environment type requested'
+    delete:
+      tags:
+        - admins
+        - SC-EnvType
+      summary: delete (unimport) environment type
+      operationId: deleteEnvType
+      responses:
+        '200':
+          description: 'Return empty json object'
+    put:
+      tags:
+        - admins
+        - SC-EnvType
+      summary: update environment type
+      operationId: updateEnvType
+      responses:
+        '200':
+          description: 'Return the updated environment type'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEnvType'
+  /api/workspace-types/{envTypeId}/approve:
+    put:
+      tags:
+        - admins
+        - SC-EnvType
+      summary: approve imported environment type
+      operationId: approveEnvType
+      responses:
+        '200':
+          description: 'Return the approved workspace type'
+      parameters:
+        - name: envTypeId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/EnvTypeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rev:
+                  type: integer
+                  description: revision number of the workspace type
+  /api/workspace-types/{envTypeId}/revoke:
+    put:
+      summary: revoke
+      operationId: revoke
+      tags:
+        - admins
+        - SC-EnvType
+      parameters:
+        - name: envTypeId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/EnvTypeId'
+      responses:
+        '200':
+          description: 'Return the revoked workspace type'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rev:
+                  type: integer
+                  description: revision number of the workspace type
+  /api/workspace-types/{envTypeId}/configurations/:
+    parameters:
+      - name: envTypeId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/EnvTypeId'
+    get:
+      summary: list environment configurations
+      operationId: listEnvConfigs
+      tags:
+        - admins
+        - SC-EnvTypeConfig
+      parameters:
+        - name: include
+          in: query
+          schema:
+            type: string
+            enum:
+              - all
+      responses:
+        '200':
+          description: 'Return array of environment type configurations. Default return allowed to use only.'
+    post:
+      summary: create environment type configuration
+      operationId: createEnvTypeConfig
+      tags:
+        - admins
+        - SC-EnvTypeConfig
+      responses:
+        '200':
+          description: 'Return the env type config created'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnvTypeConfig'
+  /api/workspace-types/{envTypeId}/configurations/{envTypeConfigId}:
+    parameters:
+      - name: envTypeId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/EnvTypeId'
+      - name: envTypeConfigId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      summary: get a environment type configuration
+      operationId: getEnvTypeConfig
+      tags:
+        - admins
+        - SC-EnvTypeConfig
+      responses:
+        '200':
+          description: 'Return the env type config requested'
+    put:
+      summary: update env type config
+      operationId: updateEnvTypeConfig
+      tags:
+        - admins
+        - SC-EnvTypeConfig
+      responses:
+        '200':
+          description: 'Return the updated env type config'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnvTypeConfig'
+    delete:
+      tags:
+        - admins
+        - SC-EnvTypeConfig
+      summary: delete
+      operationId: delete
+      responses:
+        '200':
+          description: 'Return the config that was deleted'
+  /api/workspace-types/{envTypeId}/config-vars/:
+    get:
+      summary: list config vars for env type config
+      operationId: listConfigVars
+      parameters:
+        - name: envTypeId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/EnvTypeId'
+      tags:
+        - admins
+        - SC-EnvTypeConfig
+      responses:
+        '200':
+          description: 'Array of env type config variables'
+  /api/workspaces/service-catalog:
+    post:
+      tags:
+        - researchers
+        - SC-EnvWorkspace
+      summary: create environment using a configured SC product
+      operationId: createSCEnv
+      responses:
+        '200':
+          description: 'Return the workspace created'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSCWorkspace'
+    get:
+      tags:
+        - researchers
+        - SC-EnvWorkspace
+      summary: list SC Workspaces
+      operationId: listScWorkspaces
+      responses:
+        '200':
+          description: 'Return list of Service Catalog workspaces'
+  /api/workspaces/service-catalog/{workspaceId}:
+    get:
+      summary: get SC workspace
+      operationId: getSCWorkspace
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkspaceId'
+      responses:
+        '200':
+          description: 'Return the service catalog workspace requested'
+      tags:
+        - researchers
+        - SC-EnvWorkspace
+    delete:
+      summary: delete(terminate) SC workspace
+      operationId: deleteSCWorkspace
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkspaceId'
+      responses:
+        '200':
+          description: 'Return empty object'
+      tags:
+        - researchers
+        - SC-EnvWorkspace
+  /api/workspaces/service-catalog/{workspaceId}/stop:
+    put:
+      tags:
+        - researchers
+        - SC-EnvWorkspace
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkspaceId'
+      summary: Stop a SC workspace
+      operationId: stopScWs
+      responses:
+        '200':
+          description: 'Return the workspace stopped'
+  /api/workspaces/service-catalog/{workspaceId}/start:
+    put:
+      tags:
+        - researchers
+        - SC-EnvWorkspace
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkspaceId'
+      summary: start SC workspace
+      operationId: startScWs
+      responses:
+        '200':
+          description: 'Return the workspace started'
+  /api/workspaces/service-catalog/{workspaceId}/connections:
+    get:
+      tags:
+        - researchers
+        - SC-EnvWorkspace
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkspaceId'
+      summary: list connections of a SC workspace
+      operationId: listConnections
+      responses:
+        '200':
+          description: 'Array of connections of the workspace'
+  /api/workspaces/service-catalog/{workspaceId}/connections/{connectionId}/url:
+    post:
+      tags:
+        - researchers
+        - SC-EnvWorkspace
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkspaceId'
+        - name: connectionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/ConnectionId'
+      summary: Create connection URL
+      operationId: createConnectionURL
+      responses:
+        '200':
+          description: 'Return connection information with URL'
+  /api/workspaces/service-catalog/{workspaceId}/connections/{connectionId}/windows-rdp-info:
+    get:
+      tags:
+        - researchers
+        - SC-EnvWorkspace
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkspaceId'
+        - name: connectionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/ConnectionId'
+      summary: get Windows password data for rdp
+      operationId: getRdpInfo
+      responses:
+        '200':
+          description: 'Return windows rdp info'
+  /api/workspaces/service-catalog/{workspaceId}/connections/{connectionId}/send-ssh-public-key:
+    post:
+      tags:
+        - researchers
+        - SC-EnvWorkspace
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkspaceId'
+        - name: connectionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/ConnectionId'
+      summary: Send SSH public key
+      operationId: sendPublicKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [keyPairId]
+              properties:
+                keyPairId:
+                  type: string
+                  description: uuid of the SSH key
+      responses:
+        '200':
+          description: 'Array of network interfaces'
+  /api/studies:
+    get:
+      tags:
+        - researchers
+        - Studies
+      summary: list studies
+      operationId: listStudies
+      responses:
+        '200':
+          description: 'Return array of studies'
+    post:
+      tags:
+        - researchers
+        - Studies
+      summary: create study
+      operationId: createStudy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStudy'
+      responses:
+        '200':
+          description: 'Return the study created'
+  /api/studies/{studyId}:
+    parameters:
+      - name: studyId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StudyId'
+    get:
+      tags:
+        - researchers
+        - Studies
+      summary: get study
+      operationId: getStudy
+      responses:
+        '200':
+          description: 'Return the study'
+    put:
+      tags:
+        - researchers
+        - Studies
+      summary: update study
+      operationId: updateStudy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStudy'
+      responses:
+        '200':
+          description: ''
+  /api/studies/{studyId}/permissions:
+    parameters:
+      - name: studyId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StudyId'
+    get:
+      tags:
+        - researchers
+        - Studies
+      summary: get study permissions
+      operationId: getStudyPermissions
+      responses:
+        '200':
+          description: 'Return study permissions'
+    put:
+      tags:
+        - researchers
+        - Studies
+      summary: update study permissions
+      operationId: updateStudyPermissions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStudyPermission'
+      responses:
+        '200':
+          description: 'Return updated study permissions'
+  /api/studies/{studyId}/files:
+    get:
+      tags:
+        - researchers
+        - Studies
+      summary: list study files
+      operationId: listStudyFiles
+      parameters:
+        - name: studyId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/StudyId'
+      responses:
+        '200':
+          description: 'Return study files'
+  /api/studies/{studyId}/upload-requests:
+    get:
+      tags:
+        - researchers
+        - Studies
+      summary: create presigned upload requests
+      operationId: createPresignedUploadRequests
+      parameters:
+        - name: studyId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/StudyId'
+      responses:
+        '200':
+          description: 'Return presigned url for file upload'
+  /api/budgets/aws-account/{awsAccountUUID}:
+    parameters:
+      - name: awsAccountUUID
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/AwsAccountUUID'
+    get:
+      tags:
+        - admins
+        - Budgets
+      summary: get budget
+      operationId: getBudget
+      responses:
+        '200':
+          description: 'Return budget of the AWS account'
+    put:
+      tags:
+        - admins
+        - Budgets
+      summary: update budget
+      operationId: updateBudget
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBudget'
+      responses:
+        '200':
+          description: 'Return success update message'
+  /api/budgets/aws-account:
+    post:
+      tags:
+        - admins
+        - Budgets
+      summary: create budget
+      operationId: createBudget
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBudget'
+      responses:
+        '200':
+          description: 'Return success create message'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    AwsAccountId:
+      type: string
+      example: '123456789101'
+      pattern: ^[0-9]{12}$
+    AwsAccountUUID:
+      type: string
+      example: '1234a5b6-c7d8-11ea-b397-791ba40a5d32'
+      minLength: 1
+      maxLength: 100
+      pattern: '^[A-Za-z0-9-_ ]+$'
+    WorkspaceId:
+      type: string
+      example: '1234a5b6-c7d8-11ea-b397-791ba40a5d32'
+      minLength: 1
+      maxLength: 100
+      pattern: '^[A-Za-z0-9-_ ]+$'
+    StudyId:
+      type: string
+      example: 'test_study_id'
+      minLength: 1
+      maxLength: 100
+      pattern: '^[A-Za-z0-9-_ ]+$'
+    uid:
+      type: string
+      example: 'u-C-l14OuIfNk7vL7AqmjvC'
+      description: id used to uniquely identify a user
+    ConnectionId:
+      type: string
+      example: 'id-0'
+    AwsPartition:
+      type: string
+      enum:
+        - aws
+        - aws-cn
+        - aws-us-gov
+      example: 'aws'
+    AwsRegion:
+      type: string
+      example: 'us-east-1'
+      enum:
+        - us-west-1
+        - us-west-2
+        - us-east-1
+        - us-east-2
+        - af-south-1
+        - ap-east-1
+        - ap-south-1
+        - ap-northeast-1
+        - ap-northeast-2
+        - ap-northeast-3
+        - ap-southeast-1
+        - ap-southeast-2
+        - ca-central-1
+        - cn-north-1
+        - cn-northwest-1
+        - eu-central-1
+        - eu-north-1
+        - eu-south-1
+        - eu-west-1
+        - eu-west-2
+        - eu-west-3
+        - me-south-1
+        - sa-east-1
+        - us-gov-east-1
+        - us-gov-west-1
+    CreateDataSourceAccount:
+      required:
+        - id
+        - mainRegion
+        - name
+      type: object
+      properties:
+        name:
+          maxLength: 300
+          minLength: 1
+          type: string
+          example: 'test data source account name'
+        description:
+          maxLength: 2048
+          type: string
+          example: 'this is a data source account for testing'
+        contactInfo:
+          maxLength: 2048
+          type: string
+          example: 'nobody@example.com'
+        id:
+          $ref: '#/components/schemas/AwsAccountId'
+        mainRegion:
+          $ref: '#/components/schemas/AwsRegion'
+    UpdateDataSourceAccount:
+      type: object
+      required:
+        - id
+        - rev
+      properties:
+        id:
+          $ref: '#/components/schemas/AwsAccountId'
+        rev:
+          type: number
+          example: 1
+        name:
+          maxLength: 300
+          minLength: 1
+          type: string
+          example: 'test data source account name'
+        description:
+          maxLength: 2048
+          type: string
+          example: 'this is a data source account for testing'
+        contactInfo:
+          maxLength: 2048
+          type: string
+          example: 'nobody@example.com'
+    RegisterDataSourceBucket:
+      type: object
+      additionalProperties: false
+      properties:
+        accountId:
+          $ref: '#/components/schemas/AwsAccountId'
+        name:
+          type: string
+          minLength: 3
+          maxLength: 255
+          example: 'test bucket name'
+        region:
+          $ref: '#/components/schemas/AwsRegion'
+        awsPartition:
+          $ref: '#/components/schemas/AwsPartition'
+        kmsArn:
+          type: string
+          example: 'arn:aws:kms:us-east-1:123456789101:key/2e3c97b6-8bb3-4cf8-bc77-d56ebf847d23'
+          maxLength: 90
+        access:
+          type: string
+          example: 'roles'
+          enum:
+            - roles
+            - accessPoint
+            - bucketPolicy
+        sse:
+          type: string
+          example: 'kms'
+          enum:
+            - kms
+            - s3
+            - none
+      required:
+        - accountId
+        - name
+        - region
+        - awsPartition
+        - access
+        - sse
+    DataSourceReachability:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          description: Use * for bulk reach data source account, or dsAccountId, studyId with type
+          example: 'test_study_id'
+        type:
+          type: string
+          enum:
+            - dsAccount
+            - study
+          description: id must NOT be * when type is specified
+          example: 'study'
+        status:
+          type: string
+          description: id must be * when status is specified
+    RegisterStudy:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: '^[A-Za-z0-9-_ ]+$'
+          example: 'org-study-byob-test-3'
+        name:
+          type: string
+          maxLength: 2048
+          example: 'Org Study test 3'
+        category:
+          type: string
+          example: 'Organization'
+          enum:
+            - My Studies
+            - Organization
+        description:
+          type: string
+          maxLength: 8192
+          example: 'This is a test study'
+        projectId:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: '^[A-Za-z0-9-_]+$'
+          example: 'test-project-id'
+        folder:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          example: 'study-folder-test-3'
+        kmsArn:
+          type: string
+          maxLength: 90
+        kmsScope:
+          enum:
+            - bucket
+            - study
+            - none
+          example: bucket
+        adminUsers:
+          type: array
+          items:
+            type: string
+          example: 'u-C-l14OuIfNk7vL7AqmjvC'
+        accessType:
+          type: string
+          enum:
+            - readonly
+            - readwrite
+          example: 'readwrite'
+      required:
+        - id
+        - category
+        - folder
+        - accessType
+        - adminUsers
+    EnvTypeId:
+      type: string
+      example: 'prod-hpr4lsrmztito-pa-vg2oae2qdhmfq'
+      maxLength: 100
+      minLength: 2
+      pattern: '^[a-zA-Z0-9_\\-]*'
+    CreateEnvType:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          $ref: '#/components/schemas/EnvTypeId'
+        name:
+          type: string
+          maxLength: 16383
+          minLength: 2
+          pattern: '^[a-zA-Z0-9_\\-]*'
+          example: 'EC2 Windows-v6'
+        desc:
+          type: string
+          maxLength: 8191
+          example: 'An EC2 Windows instance with RDP access'
+        status:
+          type: string
+          enum:
+            - not-approved
+            - approved
+          example: 'not-approved'
+        product:
+          type: object
+          additionalProperties: false
+          properties:
+            productId:
+              type: string
+              maxLength: 100
+              pattern: '^[a-zA-Z0-9_\\-]*'
+              example: 'prod-w7buwy2wj3blo'
+          required:
+            - productId
+        provisioningArtifact:
+          type: object
+          additionalProperties: false
+          properties:
+            id:
+              type: string
+              maxLength: 100
+              pattern: '^[a-zA-Z0-9_\\-]*'
+              example: 'pa-k5flbawwg5b6q'
+          required:
+            - id
+      required:
+        - id
+        - name
+        - product
+        - provisioningArtifact
+    UpdateEnvType:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          $ref: '#/components/schemas/EnvTypeId'
+        rev:
+          type: number
+          example: 1
+        name:
+          type: string
+          maxLength: 16383
+          minLength: 2
+          pattern: '^[a-zA-Z0-9_\\-]*'
+          example: 'EC2 Windows-v6'
+        desc:
+          type: string
+          maxLength: 8191
+          example: 'An EC2 Windows instance with RDP access'
+        status:
+          type: string
+          enum:
+            - not-approved
+            - approved
+          example: 'approved'
+      required:
+        - id
+        - rev
+    EnvTypeConfig:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          maxLength: 128
+          minLength: 2
+          pattern: '^[A-Za-z0-9-_]+$'
+          example: 'small'
+        name:
+          type: string
+          maxLength: 128
+          minLength: 2
+          pattern: '^[A-Za-z0-9-_ ]+$'
+          example: 'small'
+        desc:
+          type: string
+          maxLength: 8191
+          example: 'A small research workspace meant for prototyping and proving out scripts before scaling up to a larger. It costs the least amount per hour.'
+        estimatedCostInfo:
+          type: string
+          maxLength: 1024
+        allowRoleIds:
+          type: array
+          example: ['admin','researcher']
+          items:
+            type: string
+            maxLength: 100
+            pattern: '^[A-Za-z0-9-_ ]+$'
+        denyRoleIds:
+          type: array
+          example: ['guest']
+          items:
+            type: string
+            maxLength: 100
+            pattern: '^[A-Za-z0-9-_ ]+$'
+        params:
+          type: array
+          example: [
+          {
+            "key":"InstanceType",
+            "value":"ml.t3.xlarge"
+          },
+          {
+            "key": "EncryptionKeyArn",
+            "value": "${encryptionKeyArn}"
+          },
+          {
+            "key": "IamPolicyDocument",
+            "value": "${iamPolicyDocument}"
+          },
+          {
+            "key": "VPC",
+            "value": "${vpcId}"
+          },
+          {
+            "key": "EnvironmentInstanceFiles",
+            "value": "${environmentInstanceFiles}"
+          },
+          {
+            "key": "Subnet",
+            "value": "${subnetId}"
+          },
+          {
+            "key": "S3Mounts",
+            "value": "${s3Mounts}"
+          },
+          {
+            "key": "Namespace",
+            "value": "${namespace}"
+          }
+          ]
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              value:
+                type: string
+        tags:
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              value:
+                type: string
+      required:
+        - id
+        - name
+    CreateSCWorkspace:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          maxLength: 128
+          minLength: 3
+          pattern: '^[A-Za-z][A-Za-z0-9-]+$'
+          example: 'test-sagemaker-env'
+        description:
+          type: string
+          maxLength: 2048
+          example: 'test-sagemaker-env'
+        envTypeId:
+          $ref: '#/components/schemas/EnvTypeId'
+        envTypeConfigId:
+          type: string
+          minLength: 1
+          maxLength: 300
+          example: 'small'
+        projectId:
+          type: string
+          example: 'test-project-id'
+        cidr:
+          type: string
+          pattern: '^(?:([0-9]{1,3}\.){3}[0-9]{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))?)?$'
+          example: '192.255.255.255/32'
+        studyIds:
+          type: array
+          example: ['test_study1']
+          items:
+            type: string
+            minLength: 1
+      required:
+        - name
+        - envTypeId
+        - envTypeConfigId
+    CreateStudy:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: '^[A-Za-z0-9-_ ]+$'
+          example: 'org-study-test-2'
+        name:
+          type: string
+          maxLength: 2048
+          example: 'Org Study 2'
+        category:
+          type: string
+          enum:
+            - My Studies
+            - Organization
+            - Open Data
+          example: 'Organization'
+        description:
+          type: string
+          maxLength: 8192
+          example: 'An org study to test a few things'
+        projectId:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: '^[A-Za-z0-9-_]+$'
+          example: 'test-project-id'
+        uploadLocationEnabled:
+          type: boolean
+          example: false
+        sha:
+          type: string
+          maxLength: 64
+          description: sha is only used for open data study in system originated update, external request should leave this field empty
+        resources:
+          type: array
+          example: [
+          {"arn": "arn:aws:s3:::123456789101-studydata/studies/Organization/org-study-2/"}
+          ]
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              arn:
+                type: string
+        accessType:
+          type: string
+          enum:
+            - readonly
+            - readwrite
+          example: 'readonly'
+      required:
+        - id
+        - category
+    UpdateStudy:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: '^[A-Za-z0-9-_ ]+$'
+          example: 'org-study-test-2'
+        rev:
+          type: number
+          example: 2
+        name:
+          type: string
+          maxLength: 2048
+          example: 'Org Study Test'
+        description:
+          type: string
+          maxLength: 8192
+          example: 'An org study to test a few things'
+        sha:
+          type: string
+          maxLength: 64
+          description: sha is only used for open data study in system originated update, external request should leave this field empty
+        appRoleArn:
+          type: string
+          maxLength: 2048
+          example: 'arn:aws:iam::123456789101:role/swb-data-access-role'
+        resources:
+          type: array
+          example: [
+          {"arn": "arn:aws:s3:::123456789101-studydata/studies/Organization/org-study-2/"}
+          ]
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              arn:
+                type: string
+              fileShareArn:
+                type: string
+      required:
+        - id
+    permissionLevel:
+      type: string
+      enum:
+        - admin
+        - readonly
+        - writeonly
+        - readwrite
+      example: readonly
+    userEntry:
+      type: object
+      properties:
+        uid:
+          $ref: '#/components/schemas/uid'
+        permissionLevel:
+          $ref: '#/components/schemas/permissionLevel'
+      required:
+        - uid
+    UpdateStudyPermission:
+      type: object
+      additionalProperties: false
+      properties:
+        usersToAdd:
+          type: array
+          items:
+            $ref: '#/components/schemas/userEntry'
+        usersToRemove:
+          type: array
+          items:
+            $ref: '#/components/schemas/userEntry'
+    CreateBudget:
+      type: object
+      required:
+        - id
+        - budgetConfiguration
+      properties:
+        id:
+          $ref: '#/components/schemas/AwsAccountUUID'
+        budgetConfiguration:
+          type: object
+          required:
+            - budgetLimit
+            - startDate
+            - endDate
+          properties:
+            budgetLimit:
+              type: string
+              example: '1000'
+            startDate:
+              type: integer
+              example: 1611964800
+            endDate:
+              type: integer
+              example: 1611964800
+            thresholds:
+              type: array
+              example: [50,90]
+              items:
+                type: number
+                enum:
+                  - 50
+                  - 70
+                  - 80
+                  - 90
+                  - 100
+              description: thresholds and notification depend on each other
+            notificationEmail:
+              type: string
+              example: 'test@example.com'
+              format: email
+              description: thresholds and notification depend on each other
+          additionalProperties: false
+      additionalProperties: false
+security:
+  - bearerAuth: []
