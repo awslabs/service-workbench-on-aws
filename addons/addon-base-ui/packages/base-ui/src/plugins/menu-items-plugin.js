@@ -39,7 +39,6 @@ function registerMenuItems(itemsMap, { location, appContext }) {
     ['/dashboard', { title: 'Dashboard', icon: 'dashboard', shouldShow: true }],
     ['/authentication-providers', { title: 'Auth', icon: 'user secret', shouldShow: isAdmin }],
     ['/users', { title: 'Users', icon: 'users', shouldShow: isAdmin }],
-    ['/api-keys', { title: 'API Keys', icon: 'key', shouldShow: true }],
   ]);
 
   return items;
