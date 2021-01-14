@@ -293,8 +293,6 @@ Resources:
                 - dynamodb:UpdateItem
               Resource:
                 - !GetAtt [PasswordsDb, Arn]
-                - !GetAtt [UserApiKeysDb, Arn]
-                - !Sub '${UserApiKeysDb.Arn}/index/*'
                 - !GetAtt [UsersDb, Arn]
                 - !Sub '${UsersDb.Arn}/index/*'
                 - !GetAtt [AuthenticationProviderTypesDb, Arn]
@@ -343,8 +341,6 @@ Resources:
                 - !GetAtt [UsersDb, Arn]
                 - !Sub '${UsersDb.Arn}/index/*'
                 - !GetAtt [PasswordsDb, Arn]
-                - !GetAtt [UserApiKeysDb, Arn]
-                - !Sub '${UserApiKeysDb.Arn}/index/*'
                 - !GetAtt [LocksDb, Arn]
                 - !GetAtt [StudiesDb, Arn]
                 - !GetAtt [StudyPermissionsDb, Arn]
@@ -544,7 +540,6 @@ Resources:
               Resource:
                 - !GetAtt [PasswordsDb, Arn]
                 - !GetAtt [UsersDb, Arn]
-                - !GetAtt [UserApiKeysDb, Arn]
                 - !GetAtt [LocksDb, Arn]
                 - !GetAtt [StepTemplatesDb, Arn]
                 - !GetAtt [WorkflowTemplatesDb, Arn]
@@ -941,27 +936,6 @@ Resources:
         - AttributeName: 'username'
           KeyType: 'HASH'
       BillingMode: PAY_PER_REQUEST
-
-  UserApiKeysDb:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: ${self:custom.settings.dbUserApiKeys}
-      AttributeDefinitions:
-        - AttributeName: 'id'
-          AttributeType: 'S'
-        - AttributeName: 'uid'
-          AttributeType: 'S'
-      KeySchema:
-        - AttributeName: 'id'
-          KeyType: 'HASH'
-      BillingMode: PAY_PER_REQUEST
-      GlobalSecondaryIndexes:
-        - IndexName: ByUID
-          KeySchema:
-            - AttributeName: 'uid'
-              KeyType: 'HASH'
-          Projection:
-            ProjectionType: ALL
 
   UsersDb:
     Type: AWS::DynamoDB::Table
@@ -1403,22 +1377,6 @@ Resources:
       KeySchema:
         - AttributeName: 'username'
           KeyType: 'HASH'
-      BillingMode: PAY_PER_REQUEST
-
-  DbUserApiKeys:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: ${self:custom.settings.dbTableUserApiKeys}
-      AttributeDefinitions:
-        - AttributeName: 'unameWithNs' # Username with Namespace (ns)
-          AttributeType: 'S'
-        - AttributeName: 'id'
-          AttributeType: 'S'
-      KeySchema:
-        - AttributeName: 'unameWithNs'
-          KeyType: 'HASH'
-        - AttributeName: 'id'
-          KeyType: 'RANGE'
       BillingMode: PAY_PER_REQUEST
 
   DbUsers:
