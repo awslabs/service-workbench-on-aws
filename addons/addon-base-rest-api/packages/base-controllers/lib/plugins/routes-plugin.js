@@ -62,7 +62,6 @@ async function getBaseRoutes(routesMap, pluginRegistry) {
     ['/api/authentication/logout', [newSetupAuthContextMiddleware, prepareContextFn, signOutController]],
 
     // Other PROTECTED APIS accessible only to logged in active users
-    ['/api/api-keys', [newSetupAuthContextMiddleware, prepareContextFn, ensureActiveFn]],
     ['/api/users', [newSetupAuthContextMiddleware, prepareContextFn, ensureActiveFn, usersController]],
     ['/api/user', [newSetupAuthContextMiddleware, prepareContextFn, ensureActiveFn, userController]],
   ]);
