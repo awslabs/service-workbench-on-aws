@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.6] - 2021-01-15
+
+### Added 
+- fix: Add tables back to cloudformation and don't authorize API Keys
+
+We recommend to apply this patch as soon as possible
+
+## [1.4.5] - 2021-01-14
+
+### Added 
+- fix: remove API Keys functionality
+
+We recommend to apply this patch as soon as possible
+
 ## [1.4.5] - 2021-01-14
 
 ### Added 
