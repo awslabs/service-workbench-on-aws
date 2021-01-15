@@ -183,7 +183,10 @@ class ApiKeyService extends Service {
     if (_.isEmpty(signedApiKey)) {
       throw this.boom.forbidden('no api key was provided', true);
     }
-    throw this.boom.invalidToken('The given key is not valid for API access', true);
+    throw this.boom.invalidToken(
+      'Existing internally generated APIs keys cannot be used for access. Contact your system admin about it.',
+      true,
+    );
   }
 
   async getApiKeys(requestContext, { uid }) {
