@@ -174,43 +174,19 @@ class ApiKeyService extends Service {
     return redactIfNotForCurrentUser(requestContext, apiKey, uid);
   }
 
+  /**
+   * Api Key feature is DEPRECATED
+   * All existing Api Keys should be denined
+   * @param signedApiKey
+   */
   async validateApiKey(signedApiKey) {
-    // Make sure the key is specified
     if (_.isEmpty(signedApiKey)) {
       throw this.boom.forbidden('no api key was provided', true);
     }
-
-    // Make sure the key is a valid non-expired JWT token and has correct signature
-    const jwtService = await this.service('jwtService');
-    const verifiedApiKeyJwtToken = await jwtService.verify(signedApiKey);
-    const { sub: uid } = verifiedApiKeyJwtToken;
-    if (_.isEmpty(uid)) {
-      throw this.boom.invalidToken('No "sub" is provided in the api key', true);
-    }
-
-    // Make sure the key is an API key (and not the regular JWT token)
-    if (!this.isApiKeyToken(verifiedApiKeyJwtToken)) {
-      throw this.boom.invalidToken('The given key is not valid for API access', true);
-    }
-
-    // Make sure the key is an active key (by checking it against the DB)
-    const apiKeyId = _.get(verifiedApiKeyJwtToken, 'custom:apiKeyId');
-    const dbService = await this.service('dbService');
-    const table = this.settings.get(settingKeys.tableName);
-    const apiKey = await dbService.helper
-      .getter()
-      .table(table)
-      .key({ id: apiKeyId })
-      .get();
-
-    if (!apiKey) {
-      throw this.boom.invalidToken('The given key is not valid for API access', true);
-    }
-    if (apiKey.status !== 'active') {
-      throw this.boom.invalidToken('The given API key is not active', true);
-    }
-    // If code reached here then this is a valid key
-    return { verifiedToken: verifiedApiKeyJwtToken, uid };
+    throw this.boom.invalidToken(
+      'Existing internally generated API keys cannot be used for access. Contact your system admin about it.',
+      true,
+    );
   }
 
   async getApiKeys(requestContext, { uid }) {
