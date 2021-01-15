@@ -184,7 +184,7 @@ class ApiKeyService extends Service {
       throw this.boom.forbidden('no api key was provided', true);
     }
     throw this.boom.invalidToken(
-      'Existing internally generated APIs keys cannot be used for access. Contact your system admin about it.',
+      'Existing internally generated API keys cannot be used for access. Contact your system admin about it.',
       true,
     );
   }
