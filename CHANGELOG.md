@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.5] - 2021-01-14
+
+### Added
+- fix: remove API Keys functionality
+
 ## [1.4.4] - 2021-01-13
 
 ### Added
