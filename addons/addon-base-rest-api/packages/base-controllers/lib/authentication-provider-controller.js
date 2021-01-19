@@ -106,16 +106,6 @@ async function configure(context) {
   );
 
   // ===============================================================
-  //  POST /configs (mounted to /api/authentication/provider)
-  // ===============================================================
-  router.post(
-    '/configs',
-    wrap(async (req, res) => {
-      await saveAuthenticationProvider(res, req, authProviderConstants.provisioningAction.create);
-    }),
-  );
-
-  // ===============================================================
   //  PUT /configs (mounted to /api/authentication/provider)
   // ===============================================================
   router.put(
