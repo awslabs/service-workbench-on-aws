@@ -28,3 +28,7 @@ To upload files:
 
 4.	Click **Upload Files**.
 5.	Either drag and drop the files you want to upload, or click the Browse Files button to select the files to upload.
+
+:::note
+The **Upload Files** button will not be visible if you lack Write permissions to the Study, or if the Study is an External Study.
+:::
