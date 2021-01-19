@@ -59,7 +59,7 @@ module.exports = {
                 Studies: [
                   "user_guide/sidebar/common/studies/introduction",
                   "user_guide/sidebar/common/studies/creating_a_study",
-                  "user_guide/sidebar/common/studies/uploading_files",
+                  "user_guide/sidebar/common/studies/studies_page",
                   "user_guide/sidebar/common/studies/sharing_a_study",
                 ],
                 Workspaces: [
@@ -109,8 +109,9 @@ module.exports = {
                 Studies: [
                   "user_guide/sidebar/common/studies/introduction",
                   "user_guide/sidebar/common/studies/creating_a_study",
-                  "user_guide/sidebar/common/studies/uploading_files",
+                  "user_guide/sidebar/common/studies/studies_page",
                   "user_guide/sidebar/common/studies/sharing_a_study",
+                  "user_guide/sidebar/common/studies/data_sources",
                 ],
                 Workspaces: [
                   "user_guide/sidebar/common/workspaces/introduction",
