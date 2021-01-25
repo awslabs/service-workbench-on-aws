@@ -34,10 +34,6 @@ providers.
 
 Create and manage local and federated users and roles.
 
-<b>API Keys</b>
-
-Create and revoke API keys
-
 <b>Workflows</b>
 
 Monitor and see the history of operations initiated by the
