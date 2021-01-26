@@ -8,7 +8,6 @@ import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
 import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
 
 import ScEnvironmentConnections from './ScEnvironmentConnections';
-import ScEnvironmentEditCidrs from './ScEnvironmentEditCidrs';
 import ScEnvironmentUpdateCidrs from './ScEnvironmentUpdateCidrs';
 
 // expected props
