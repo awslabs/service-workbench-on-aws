@@ -251,6 +251,10 @@ class ScEnvironmentUpdateCidrs extends React.Component {
       return _.some(this.ingressRules[index].cidrBlocks, cidr => IsCidr(cidr) !== 4);
     };
 
+    // If you're using this component for reference:
+    // The dropdown cell in this table is using the semantic-ui-react properties to display warnings and errors
+    // These validation mechanisms have already been implemented in the built-in Form component which are better suited for such scenarios
+
     return (
       <Table.Row key={index}>
         <Table.Cell>
