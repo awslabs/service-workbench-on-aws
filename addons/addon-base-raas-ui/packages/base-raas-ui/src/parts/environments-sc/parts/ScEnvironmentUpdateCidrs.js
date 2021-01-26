@@ -21,9 +21,9 @@ import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Container, Segment, Button, Message, Table } from 'semantic-ui-react';
 
+import Stores from '@aws-ee/base-ui/dist/models/Stores';
 import { displayError, displaySuccess } from '@aws-ee/base-ui/dist/helpers/notification';
 import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import { isStoreReady, isStoreError, isStoreLoading } from '@aws-ee/base-ui/dist/models/BaseStore';
 import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
 import ProgressPlaceHolder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 import Dropdown from '@aws-ee/base-ui/dist/parts/helpers/fields/DropDown';
@@ -39,7 +39,9 @@ import { createCidrFormModel } from '../../../models/forms/CreateCidrFormModel';
 class ScEnvironmentUpdateCidrs extends React.Component {
   constructor(props) {
     super(props);
-    const store = this.getEnvStore();
+    runInAction(() => {
+      this.stores = new Stores([this.getEnvStore(), this.clientInformationStore, this.envsStore]);
+    });
     const sideEffect = storeReady => {
       runInAction(() => {
         if (storeReady) {
@@ -65,16 +67,14 @@ class ScEnvironmentUpdateCidrs extends React.Component {
         }
       });
     };
-    this.disposer = reaction(() => /* stores.ready */ isStoreReady(store), sideEffect);
-    sideEffect(isStoreReady(store));
+    this.disposer = reaction(() => {
+      return this.stores.ready;
+    }, sideEffect);
+    sideEffect(this.stores.ready);
   }
 
   componentDidMount() {
-    const store = this.getEnvStore();
-    if (store) {
-      swallowError(store.load());
-      store.startHeartbeat();
-    }
+    swallowError(this.getStores().load());
   }
 
   componentWillUnmount() {
@@ -111,6 +111,10 @@ class ScEnvironmentUpdateCidrs extends React.Component {
     this.props.onCancel();
   };
 
+  getStores() {
+    return this.stores;
+  }
+
   handleSubmit = async form => {
     const store = this.envsStore;
     try {
@@ -123,16 +127,14 @@ class ScEnvironmentUpdateCidrs extends React.Component {
     }
   };
 
-  renderWarning() {}
-
   render() {
-    const store = this.getEnvStore();
+    const stores = this.getStores();
     let content = null;
-    if (isStoreError(store)) {
-      content = <ErrorBox error={store.error} className="pt2 mb2" />;
-    } else if (isStoreLoading(store)) {
+    if (stores.hasError) {
+      content = <ErrorBox error={stores.error} className="pt2 mb2" />;
+    } else if (stores.loading) {
       content = <ProgressPlaceHolder segmentCount={1} className="mt2 mb2" />;
-    } else if (isStoreReady(store)) {
+    } else if (stores.ready) {
       content = this.renderForm();
     } else {
       content = null;
@@ -144,15 +146,11 @@ class ScEnvironmentUpdateCidrs extends React.Component {
   handleAddMyIp = ruleIndex => async event => {
     event.preventDefault();
     const clientInformationStore = this.clientInformationStore;
-    try {
-      await clientInformationStore.load();
-    } catch (error) {
-      // ignore intentionally
-    }
     const currentIp = clientInformationStore.ipAddress;
     runInAction(() => {
       if (!_.includes(this.ingressRules[ruleIndex].cidrBlocks, `${currentIp}/32`)) {
         this.ingressRules[ruleIndex].cidrBlocks.push(`${currentIp}/32`);
+        this.form.$(`cidr[${ruleIndex}].cidrBlocks`).set(this.ingressRules[ruleIndex].cidrBlocks);
       }
     });
   };
@@ -168,10 +166,11 @@ class ScEnvironmentUpdateCidrs extends React.Component {
       let wideCidrFound = false;
       _.forEach(this.ingressRules, rule => {
         if (!wideCidrFound)
-          wideCidrFound = _.some(
-            rule.cidrBlocks,
-            cidr => _.endsWith(cidr, '/0') || _.endsWith(cidr, '/8') || _.endsWith(cidr, '/16'),
-          );
+          wideCidrFound = _.some(rule.cidrBlocks, cidr => {
+            const parts = cidr.split('/');
+            const n = parts[parts.length - 1];
+            return n <= 16;
+          });
       });
       return wideCidrFound;
     };
@@ -197,7 +196,7 @@ class ScEnvironmentUpdateCidrs extends React.Component {
                   className="mb4"
                   icon="warning"
                   header="Wide CIDR block detected"
-                  content="One or more CIDR blocks entered end with '/0', '/8', or '/16' and could be unnecessarily wide. This might allow workspace access to more IP ranges than intended"
+                  content="One or more CIDR blocks entered might be too wide and could allow workspace access to a vast number of IP ranges. Please proceed only after you ensure this is intended"
                 />
               )}
               {anyInvalidCidr() && (
@@ -240,6 +239,18 @@ class ScEnvironmentUpdateCidrs extends React.Component {
       this.ingressRules[index].cidrBlocks = data.value;
     });
 
+    const anyWideCidr = () => {
+      return _.some(this.ingressRules[index].cidrBlocks, cidr => {
+        const parts = cidr.split('/');
+        const n = parts[parts.length - 1];
+        return n <= 16;
+      });
+    };
+
+    const anyInvalidCidr = () => {
+      return _.some(this.ingressRules[index].cidrBlocks, cidr => IsCidr(cidr) !== 4);
+    };
+
     return (
       <Table.Row key={index}>
         <Table.Cell>
@@ -251,7 +262,7 @@ class ScEnvironmentUpdateCidrs extends React.Component {
         <Table.Cell>
           <Input disabled field={field.$('toPort')} />
         </Table.Cell>
-        <Table.Cell>
+        <Table.Cell warning={anyWideCidr()} error={anyInvalidCidr()}>
           <Dropdown
             field={field.$('cidrBlocks')}
             allowAdditions
