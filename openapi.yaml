@@ -14,6 +14,8 @@ tags:
     description: Secured Admin-only calls
   - name: researchers
     description: Operations available to regular researchers
+  - name: guests
+    description: Operations available to guest users
   - name: BYOB
     description: Operations for bring your own bucket configuration
   - name: SC-EnvType
@@ -26,7 +28,552 @@ tags:
     description: Operations for create and manage studies (Data folders)
   - name: Budgets
     description: Operations for create and manage budgets
+  - name: Accounts
+    description: Operations available for managing internal accounts
+  - name: AwsAccounts
+    description: Operations available for managing AWS accounts which back internal accounts
+  - name: Compute
+    description: Operations for compute platforms available for provisioning
+  - name: Index
+    description: Operations for managing Indexes
+  - name: IP
+    description: Operation for getting IP address
+  - name: Project
+    description: Operations for managing Projects
+  - name: CfnTemplate
+    description: Operation to fetch CloudFormation templates
+  - name: UserRoles
+    description: Operation to fetch all types of user roles
+  - name: User
+    description: Operations to manage users in Service Workbench
+  - name: Cost
+    description: Operation to view cost breakdown
 paths:
+  /api/costs:
+    get:
+      tags:
+        - researchers
+        - admins
+      summary: Get cost breakdown
+      operationId: GetCosts
+      description: |
+        Get cost breakdown based on query parameters
+      parameters:
+        - in: query
+          name: env
+          schema:
+            type: string
+            description: 'EnvironmentId for fetching costs'
+        - in: query
+          name: scEnv
+          schema:
+            type: string
+            description: 'Service Catalog EnvironmentId for fetching costs'
+        - in: query
+          name: proj
+          schema:
+            type: string
+            description: 'Index to use for fetching costs'
+        - in: query
+          name: groupByUser
+          schema:
+            type: boolean
+            description: 'true if grouping costs by user'
+        - in: query
+          name: groupByEnv
+          schema:
+            type: boolean
+            description: 'true if grouping costs by environment'
+        - in: query
+          name: groupByService
+          schema:
+            type: boolean
+            description: 'true if grouping costs by service'
+        - in: query
+          name: numberOfDaysInPast
+          schema:
+            type: string
+            description: 'How far back to look for fetching costs'
+      responses:
+        '200':
+          description: Array of workspace type candidates that fits the query filters. Default return latest not imported workspace type candidates.
+  /api/users:
+    get:
+      tags:
+        - admins
+        - researchers
+        - guests
+        - User
+      summary: List all users
+      operationId: ListUsers
+      description: |
+        List all users
+      responses:
+        '200':
+          description: Array of registered users
+    post:
+      tags:
+        - admins
+        - User
+      summary: Create a new User
+      operationId: CreateUser
+      description: |
+        Create a new User
+      requestBody:
+        description: User information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '200':
+          description: User added
+  /api/users/bulk:
+    post:
+      tags:
+        - admins
+        - User
+      summary: Create users in bulk
+      operationId: CreateUsers
+      description: |
+        Create a new User
+      requestBody:
+        description: Bulk User information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUsersRequest'
+      responses:
+        '200':
+          description: Users added
+  /api/users/{userId}:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/UserId'
+    put:
+      tags:
+        - admins
+        - User
+      summary: Update user
+      operationId: UpdateUser
+      requestBody:
+        description: User information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      description: |
+        Update a user
+      responses:
+        '200':
+          description: User updated
+    delete:
+      tags:
+        - admins
+        - User
+      summary: Delete a User
+      operationId: DeleteUser
+      description: |
+        Delete a User
+      responses:
+        '200':
+          description: User deleted
+  /api/users/{userId}/password:
+    put:
+      tags:
+        - admins
+        - User
+      summary: Update user password
+      operationId: UpdateUserPassword
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UserId'
+      requestBody:
+        description: password of the user
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserPasswordRequest'
+      description: |
+        Update a user
+      responses:
+        '200':
+          description: User password updated
+  /api/user-roles:
+    get:
+      tags:
+        - admins
+        - guests
+        - researchers
+        - UserRoles
+      summary: Fetch all user roles present in Service Workbench
+      operationId: ListUserRoles
+      description: |
+        Fetch all user roles present in Service Workbench
+      responses:
+        '200':
+          description: Array of all the registered user roles
+  /api/template/{templateId}:
+    get:
+      tags:
+        - admins
+        - guests
+        - researchers
+        - CfnTemplate
+      summary: Fetch S3 pre-signed URL which points to the requested CloudFormation template
+      operationId: GetCfnTemplateById
+      parameters:
+        - name: templateId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/TemplateId'
+      description: |
+        Fetch S3 pre-signed URL which points to the requested CloudFormation template
+      responses:
+        '200':
+          description: Pre-signed URL pointing to requested CloudFormation template
+  /api/ip:
+    get:
+      tags:
+        - admins
+        - guests
+        - researchers
+        - IP
+      summary: Fetch IP address of the requester
+      operationId: GetIPAddress
+      description: |
+        Fetch IP address of the requester
+      responses:
+        '200':
+          description: IP address of the requester
+  /api/projects:
+    get:
+      tags:
+        - admins
+        - Project
+      summary: List all projects
+      operationId: ListProjects
+      description: |
+        List all projects
+      responses:
+        '200':
+          description: Array of registered projects
+    post:
+      tags:
+        - admins
+        - Index
+      summary: Create a new Project
+      operationId: CreateProject
+      description: |
+        Create new Project
+      requestBody:
+        description: Project information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProjectRequest'
+      responses:
+        '200':
+          description: Project added
+  /api/projects/{projectId}:
+    parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectId'
+    get:
+      tags:
+        - admins
+        - Project
+      summary: Get Project by projectId
+      operationId: GetProjectById
+      description: |
+        List Index by projectId
+      responses:
+        '200':
+          description: Array of registered projects
+    put:
+      tags:
+        - admins
+        - Project
+      summary: Update a Project
+      operationId: UpdateProject
+      requestBody:
+        description: Project information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectRequest'
+      description: |
+        Update a Project
+      responses:
+        '200':
+          description: Project updated
+    delete:
+      tags:
+        - admins
+        - Project
+      summary: Delete a Project
+      operationId: DeleteProject
+      description: |
+        Delete a Project
+      responses:
+        '200':
+          description: Project deleted
+  /api/indexes:
+    get:
+      tags:
+        - admins
+        - Index
+      summary: List all indexes
+      operationId: ListIndex
+      description: |
+        List all indexes
+      responses:
+        '200':
+          description: Array of registered indexes
+    post:
+      tags:
+        - admins
+        - Index
+      summary: Create a new Index
+      operationId: CreateIndex
+      description: |
+        Create new Index
+      requestBody:
+        description: Index information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateIndexRequest'
+      responses:
+        '200':
+          description: Index added
+  /api/indexes/{indexId}:
+    parameters:
+      - name: indexId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/IndexId'
+    get:
+      tags:
+        - admins
+        - Index
+      summary: Get Index by indexId
+      operationId: GetIndexById
+      description: |
+        List Index by indexId
+      responses:
+        '200':
+          description: Array of registered indexes
+    put:
+      tags:
+        - admins
+        - Index
+      summary: Update an Index
+      operationId: UpdateIndex
+      requestBody:
+        description: Index information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateIndexRequest'
+      description: |
+        Update an Index
+      responses:
+        '200':
+          description: Index updated
+    delete:
+      tags:
+        - admins
+        - Index
+      summary: Delete an Index
+      operationId: DeleteIndex
+      description: |
+        Delete an Index
+      responses:
+        '200':
+          description: Index deleted
+  /api/compute/platforms:
+    get:
+      tags:
+        - admins
+        - Compute
+      summary: List all platforms that are available for provisioning. Example can be EC2 Linux, Windows
+      operationId: ListComputePlatforms
+      description: |
+        List all platforms that are available for provisioning
+      responses:
+        '200':
+          description: Array of registered platforms
+  /api/compute/platforms/{platformId}/configurations:
+    get:
+      tags:
+        - admins
+        - researchers
+        - Compute
+      summary: Get configuration available for a specific platform. As an example this can be EC2 instance types available for EC2 Linux
+      operationId: GetConfigForPlatform
+      parameters:
+        - name: platformId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/PlatformId'
+      description: |
+        Get configuration available for a specific platform
+      responses:
+        '200':
+          description: Platform Configuration JSON
+  /api/aws-accounts:
+    get:
+      tags:
+        - admins
+        - AwsAccounts
+      summary: List all registered AWS accounts
+      operationId: ListAwsAccounts
+      description: |
+        List all registered AWS accounts
+      responses:
+        '200':
+          description: Array of registered AWS accounts
+    post:
+      tags:
+        - admins
+        - AwsAccounts
+      summary: Create a new AWS Account
+      operationId: CreateAwsAccount
+      description: |
+        Create the AWS Account. Note that this doesn't provision a new account, just adds an entry in backend
+      requestBody:
+        description: AWS Account information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAwsAccountRequest'
+      responses:
+        '200':
+          description: AWS Account information added
+  /api/aws-accounts/{awsAccountUUID}:
+    get:
+      tags:
+        - admins
+        - AwsAccounts
+      summary: Get AWS account information
+      operationId: GetAwsAccount
+      parameters:
+        - name: awsAccountUUID
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/AwsAccountUUID'
+      description: |
+        Get AWS Account information
+      responses:
+        '200':
+          description: AWS Account information
+  /api/aws-accounts/provision:
+    post:
+      tags:
+        - admins
+        - AwsAccounts
+      summary: Provision a new AWS Account
+      operationId: ProvisionAwsAccounts
+      description: |
+        Provision a new AWS Account
+      requestBody:
+        description: AWS Account information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProvisionAccountRequest'
+      responses:
+        '200':
+          description: AWS Account provisioning started
+  /api/accounts:
+    get:
+      tags:
+        - admins
+        - Accounts
+      summary: List all registered accounts
+      operationId: ListAccounts
+      description: |
+        List all registered accounts
+      responses:
+        '200':
+          description: Array of registered accounts
+    post:
+      tags:
+        - admins
+        - Accounts
+      summary: Provision a new AWS Account
+      operationId: ProvisionAccount
+      description: |
+        Provision the requested AWS Account
+      requestBody:
+        description: AWS account info for provisioning
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProvisionAccountRequest'
+      responses:
+        '200':
+          description: AWS Account provisioning started
+  /api/accounts/{awsAccountId}:
+    parameters:
+      - name: awsAccountId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/AwsAccountId'
+    get:
+      tags:
+        - admins
+        - Accounts
+      summary: Get account information
+      operationId: GetAccount
+      description: |
+        Get account information
+      responses:
+        '200':
+          description: Account information
+    put:
+      tags:
+        - admins
+        - Accounts
+      summary: Update account information
+      operationId: UpdateAccount
+      description: |
+        Update the requested Account
+      requestBody:
+        description: Account information to update
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAccountRequest'
+      responses:
+        '200':
+          description: Account information updated
+    delete:
+      tags:
+        - admins
+        - Accounts
+      summary: Delete account
+      operationId: DeleteAccount
+      description: |
+        Delete account
+      responses:
+        '200':
+          description: Account deleted
   /api/data-sources/accounts:
     get:
       tags:
@@ -613,6 +1160,12 @@ paths:
         - Studies
       summary: list studies
       operationId: listStudies
+      parameters:
+        - in: query
+          name: category
+          required: true
+          schema:
+            $ref: '#/components/schemas/StudyCategory'
       responses:
         '200':
           description: 'Return array of studies'
@@ -779,10 +1332,46 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
+    UserId:
+      $ref: '#/components/schemas/uid'
+    RoleArn:
+      type: string
+      pattern: '^arn:aws:iam::.*$'
+      example: 'arn:aws:iam::000000000000:role/role-arn'
+    VpcId:
+      type: string
+      pattern: '^vpc-[a-f0-9]{8,17}$'
+      example: 'vpc-00000000000000000'
+    SubnetId:
+      type: string
+      pattern: '^subnet-[a-f0-9]{8,17}$'
+      example: 'subnet-00000000000000000'
+    EncryptionKeyArn:
+      type: string
+      pattern: '^arn:aws:kms:.*$'
+      example: 'arn:aws:kms:us-west-2:000000000000:key/1234a5b6-c7d8-11ea-b397-791ba40a5d32'
     AwsAccountId:
       type: string
       example: '123456789101'
       pattern: ^[0-9]{12}$
+    PlatformId:
+      type: string
+      example: 'ec2-linux-1'
+    TemplateId:
+      type: string
+      example: 'sagemaker.cfn.yml'
+    ProjectId:
+      type: string
+      minLength: 1
+      maxLength: 100
+      pattern: "^[A-Za-z0-9-_]+$"
+      example: 'ServiceWorkbenchProject'
+    IndexId:
+      type: string
+      minLength: 1
+      maxLength: 100
+      pattern: "^[A-Za-z0-9-_]+$"
+      example: 'ServiceWorkbenchIndex'
     AwsAccountUUID:
       type: string
       example: '1234a5b6-c7d8-11ea-b397-791ba40a5d32'
@@ -801,6 +1390,13 @@ components:
       minLength: 1
       maxLength: 100
       pattern: '^[A-Za-z0-9-_ ]+$'
+    StudyCategory:
+      type: string
+      enum:
+        - My Studies
+        - Organization
+        - Open Data
+      example: 'Organization'
     uid:
       type: string
       example: 'u-C-l14OuIfNk7vL7AqmjvC'
@@ -844,6 +1440,348 @@ components:
         - sa-east-1
         - us-gov-east-1
         - us-gov-west-1
+    CreateUsersRequest:
+      type: array
+      items:
+        $ref: '#/components/schemas/CreateUserRequest'
+    CreateUserRequest:
+      required:
+        - username
+        - password
+        - userRole
+        - status
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 300
+          pattern: '^[A-Za-z0-9-_.]+$|^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$'
+          example: 'testuser'
+        usernameInIdp:
+          type: string
+          minLength: 3
+          maxLength: 300
+          pattern: '^[A-Za-z0-9-_.]+$|^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$'
+          example: 'testidpuser'
+        password:
+          type: string
+          example: 'randompassword'
+        authenticationProviderId:
+          type: string
+          example: 'https://cognito-idp.us-west-2.amazonaws.com/us-west-2_123456789'
+        identityProviderName:
+          type: string
+          example: 'AWS-SSO'
+        email:
+          type: string
+          pattern: '^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$'
+          example: 'nobody@example.com'
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 500
+          pattern: '^[A-Za-z0-9 .-]+$'
+          example: 'Test'
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 500
+          pattern: '^[A-Za-z0-9 .-]+$'
+          example: 'User'
+        userType:
+          type: string
+          enum:
+            - root
+          example: 'root'
+        isSamlAuthenticatedUser:
+          type: boolean
+          example: true
+        isAdmin:
+          type: boolean
+          example: true
+        status:
+          type: string
+          enum:
+            - active
+            - inactive
+            - pending
+          example: 'active'
+        rev:
+          type: number
+          example: 0
+        userRole:
+          type: string
+          example: 'researcher'
+        projectId:
+          type: string
+          example: 'TestProject'
+        isExternalUser:
+          type: boolean
+          example: true
+        encryptedCreds:
+          type: string
+          example: 'EncryptedCreds123'
+        applyReason:
+          type: string
+          example: 'Research'
+    UpdateUserRequest:
+      required:
+        - uid
+        - rev
+      type: object
+      properties:
+        uid:
+          $ref: '#/components/schemas/UserId'
+        email:
+          type: string
+          pattern: '^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$'
+          example: 'nobody@example.com'
+          description: 'Email address of the user'
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 500
+          pattern: '^[A-Za-z0-9 .-]+$'
+          example: 'Test'
+          description: 'First name of the user'
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 500
+          pattern: '^[A-Za-z0-9 .-]+$'
+          example: 'User'
+          description: 'Last name of the user'
+        userType:
+          type: string
+          enum:
+            - root
+          example: 'root'
+          description: 'Specify if user is root'
+        isSamlAuthenticatedUser:
+          type: boolean
+          example: true
+          description: 'If using Cognito, is the user authenticated using SAML'
+        isAdmin:
+          type: boolean
+          example: true
+          description: 'True if user is admin'
+        status:
+          type: string
+          enum:
+            - active
+            - inactive
+            - pending
+          example: 'active'
+          description: 'Status of the user. Only active users are allowed access'
+        rev:
+          type: number
+          example: 1
+          description: 'Revision specifying the updates the record has gone through'
+    UpdateUserPasswordRequest:
+      required:
+        - password
+      type: object
+      properties:
+        password:
+          type: string
+          example: 'TeStPa$$word6235'
+          description: 'Password of the user which should be a string of atleast 4 characters'
+    CfnInfo:
+      required:
+        - vpcId
+        - subnetId
+        - crossAccountExecutionRoleArn
+        - crossAccountEnvMgmtRoleArn
+        - stackId
+        - encryptionKeyArn
+      type: object
+      properties:
+        vpcId:
+          $ref: '#/components/schemas/VpcId'
+        subnetId:
+          $ref: '#/components/schemas/SubnetId'
+        crossAccountExecutionRoleArn:
+          $ref: '#/components/schemas/RoleArn'
+        crossAccountEnvMgmtRoleArn:
+          $ref: '#/components/schemas/RoleArn'
+        stackId:
+          type: string
+        encryptionKeyArn:
+          $ref: '#/components/schemas/EncryptionKeyArn'
+    CreateProjectRequest:
+      required:
+        - id
+        - indexId
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/ProjectId'
+        indexId:
+          type: string
+          minLength: 1
+          example: 'TestIndex'
+        projectAdmins:
+          type: array
+          items:
+            type: string
+          default: []
+          example: ['user1','user2']
+        description:
+          type: string
+          example: 'Test Project'
+    UpdateProjectRequest:
+      required:
+        - id
+        - rev
+        - indexId
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/ProjectId'
+        indexId:
+          type: string
+          example: 'TestIndex'
+        description:
+          type: string
+          maxLength: 3000
+          example: 'Test Project'
+        projectAdmins:
+          type: array
+          items:
+            type: string
+          default: []
+          example: ['user1','user2']
+        rev:
+          type: number
+          example: 0
+    CreateIndexRequest:
+      required:
+        - id
+        - awsAccountId
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/IndexId'
+        awsAccountId:
+          type: string
+          minLength: 1
+          example: '11111111-5541-11eb-8eed-65cc7fae9077'
+        description:
+          type: string
+          example: 'Test Index'
+    UpdateIndexRequest:
+      required:
+        - id
+        - rev
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/IndexId'
+        awsAccountId:
+          type: string
+          minLength: 1
+          example: '11111111-5541-11eb-8eed-65cc7fae9077'
+        description:
+          type: string
+          example: 'Test Index'
+        rev:
+          type: number
+          example: 0
+    CreateAwsAccountRequest:
+      required:
+        - name
+        - description
+        - accountId
+        - roleArn
+        - xAccEnvMgmtRoleArn
+        - externalId
+        - vpcId
+        - subnetId
+        - encryptionKeyArn
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: 'TestAccount'
+        description:
+          type: string
+          maxLength: 2048
+          example: 'Test Account Description'
+        accountId:
+          $ref: '#/components/schemas/AwsAccountId'
+        roleArn:
+          type: string
+          minLength: 10
+          example: 'arn:aws:iam::000000000000:role/role-arn'
+        xAccEnvMgmtRoleArn:
+          type: string
+          minLength: 10
+          example: 'arn:aws:iam::000000000000:role/role-arn'
+        externalId:
+          type: string
+          minLength: 1
+          example: 'ExternalId'
+        vpcId:
+          $ref: '#/components/schemas/VpcId'
+        subnetId:
+          $ref: '#/components/schemas/SubnetId'
+        encryptionKeyArn:
+          $ref: '#/components/schemas/EncryptionKeyArn'
+    ProvisionAccountRequest:
+      required:
+        - accountName
+        - accountEmail
+        - masterRoleArn
+        - externalId
+        - description
+      type: object
+      properties:
+        accountName:
+          type: string
+          example: 'TestAccount'
+        accountEmail:
+          type: string
+          example: 'test-account-email@testing-domain.com'
+        masterRoleArn:
+          type: string
+          example: 'arn:aws:iam::000000000000:role/master-role-arn'
+        externalId:
+          type: string
+          example: 'ExternalId'
+        description:
+          type: string
+          example: 'My test account'
+    UpdateAccountRequest:
+      required:
+        - id
+        - stackId
+        - cfnInfo
+        - status
+        - name
+      type: object
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: '^[A-Za-z0-9-_]+$'
+          example: '000000000000'
+        stackId:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: 'arn:aws:cloudformation:us-west-2:000000000000:stack/initial-stack-0000000000000/00000000-0000-0000-0000-000000000000'
+        cfnInfo:
+          $ref: '#/components/schemas/CfnInfo'
+        status:
+          type: string
+          example: 'COMPLETED'
+        name:
+          type: string
+          example: 'TestAccount'
     CreateDataSourceAccount:
       required:
         - id
@@ -966,11 +1904,7 @@ components:
           maxLength: 2048
           example: 'Org Study test 3'
         category:
-          type: string
-          example: 'Organization'
-          enum:
-            - My Studies
-            - Organization
+          $ref: '#/components/schemas/StudyCategory'
         description:
           type: string
           maxLength: 8192
