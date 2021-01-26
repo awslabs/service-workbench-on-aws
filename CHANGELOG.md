@@ -2,6 +2,40 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.6] - 2021-01-15
+
+### Added 
+- fix: Add tables back to cloudformation and don't authorize API Keys
+
+We recommend to apply this patch as soon as possible
+
+## [1.4.5] - 2021-01-14
+
+### Added 
+- fix: remove API Keys functionality
+
+We recommend to apply this patch as soon as possible
+
+## [1.4.5] - 2021-01-14
+
+### Added 
+- fix: remove API Keys functionality
+
+We recommend to apply this patch as soon as possible
+
+## [1.4.4] - 2021-01-13
+
+### Added
+- fix: open data scraper bugfix
+- docs: improvements to deployment documentation
+- fix: Upload Files button disappears for R/W users
+- feat: install R3.6 and system packages required for dev
+- fix: file not found error in download-env-config script
+- test: Add github workflow for e2etest run
+- feat: modify filter criteria for Open Data
+- docs: delete dead links
+- fix: changed RStudio server CSP headers to allow uploads from same-origin
+
 ## [1.4.3] - 2020-11-24
 
 ### Added

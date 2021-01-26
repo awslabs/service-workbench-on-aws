@@ -293,8 +293,6 @@ Resources:
                 - dynamodb:UpdateItem
               Resource:
                 - !GetAtt [PasswordsDb, Arn]
-                - !GetAtt [UserApiKeysDb, Arn]
-                - !Sub '${UserApiKeysDb.Arn}/index/*'
                 - !GetAtt [UsersDb, Arn]
                 - !Sub '${UsersDb.Arn}/index/*'
                 - !GetAtt [AuthenticationProviderTypesDb, Arn]
@@ -343,8 +341,6 @@ Resources:
                 - !GetAtt [UsersDb, Arn]
                 - !Sub '${UsersDb.Arn}/index/*'
                 - !GetAtt [PasswordsDb, Arn]
-                - !GetAtt [UserApiKeysDb, Arn]
-                - !Sub '${UserApiKeysDb.Arn}/index/*'
                 - !GetAtt [LocksDb, Arn]
                 - !GetAtt [StudiesDb, Arn]
                 - !GetAtt [StudyPermissionsDb, Arn]
@@ -544,7 +540,6 @@ Resources:
               Resource:
                 - !GetAtt [PasswordsDb, Arn]
                 - !GetAtt [UsersDb, Arn]
-                - !GetAtt [UserApiKeysDb, Arn]
                 - !GetAtt [LocksDb, Arn]
                 - !GetAtt [StepTemplatesDb, Arn]
                 - !GetAtt [WorkflowTemplatesDb, Arn]
