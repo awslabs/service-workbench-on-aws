@@ -27,7 +27,7 @@ const createCidrFormModel = ({ existingValues }) => {
   };
 
   const placeholders = {
-    'cidr[].cidrBlocks': 'CIDR ranges to restrict workspace access to',
+    'cidr[].cidrBlocks': 'Enter CIDR ranges here',
   };
 
   const extra = {};
