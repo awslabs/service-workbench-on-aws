@@ -150,7 +150,7 @@ const ScEnvironment = types
     connections: types.frozen([]),
     hasConnections: false,
     studyIds: types.frozen([]),
-    cidr: '',
+    cidr: types.frozen([]),
     outputs: types.frozen([]),
   })
   .actions(self => ({
@@ -158,6 +158,7 @@ const ScEnvironment = types
       // Note: if you have partial data vs full data, you need to replace the applySnapshot() with
       // the appropriate logic
       const raw = { ...rawEnvironment, connections: self.connections || [] };
+      if (_.isString(raw.cidr) && _.isArray(self.cidr)) raw.cidr = self.cidr;
       applySnapshot(self, raw);
     },
     setStatus(status) {

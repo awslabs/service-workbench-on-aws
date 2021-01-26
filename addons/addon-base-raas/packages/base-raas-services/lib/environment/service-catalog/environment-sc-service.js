@@ -14,6 +14,7 @@
  */
 
 const _ = require('lodash');
+const YAML = require('js-yaml');
 const { v4: uuid } = require('uuid');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
@@ -80,7 +81,6 @@ class EnvironmentScService extends Service {
     // The following will result in checking permissions by calling the condition function "this._allowAuthorized" first
     await this.assertAuthorized(requestContext, { action: 'list-sc', conditions: [this._allowAuthorized] });
 
-    // TODO: Handle pagination and search for user's own environments directly instead of filtering here
     const envs = await this._scanner()
       .limit(limit)
       .scan()
@@ -310,6 +310,11 @@ class EnvironmentScService extends Service {
     }
 
     const env = this._fromDbToDataObject(result);
+    env.cidr = [];
+    if (_.includes(['COMPLETED', 'STOPPED', 'STOPPING', 'STARTING'], env.status)) {
+      const { currentIngressRules } = await this.getSecurityGroupDetails(requestContext, env);
+      env.cidr = currentIngressRules;
+    }
     const [toReturn] = await this.augmentWithConnectionInfo(requestContext, [env]);
     return toReturn;
   }
@@ -653,6 +658,83 @@ class EnvironmentScService extends Service {
 
       throw error;
     }
+  }
+
+  async getCfnDetails(requestContext, environment, cfnStackLogicalId) {
+    const cfnClient = await this.getClientSdkWithEnvMgmtRole(
+      requestContext,
+      { id: environment.id },
+      { clientName: 'CloudFormation', options: { apiVersion: '2016-11-15' } },
+    );
+    const stackResources = await cfnClient.listStackResources({ StackName: cfnStackLogicalId }).promise();
+    const templateDetails = await cfnClient
+      .getTemplate({ StackName: cfnStackLogicalId, TemplateStage: 'Original' })
+      .promise();
+
+    return { stackResources, templateDetails };
+  }
+
+  async getWorkspaceSecurityGroup(requestContext, environment, securityGroupId) {
+    const ec2Client = await this.getClientSdkWithEnvMgmtRole(
+      requestContext,
+      { id: environment.id },
+      { clientName: 'EC2', options: { apiVersion: '2016-11-15' } },
+    );
+    const securityGroupResponse = await ec2Client.describeSecurityGroups({ GroupIds: [securityGroupId] }).promise();
+    return { securityGroupResponse };
+  }
+
+  async getSecurityGroupDetails(requestContext, environment) {
+    const outputsObject = cfnOutputsArrayToObject(environment.outputs);
+    const cfnStackLogicalId = outputsObject.CloudformationStackARN.split('/')[1];
+    const { stackResources, templateDetails } = await this.getCfnDetails(
+      requestContext,
+      environment,
+      cfnStackLogicalId,
+    );
+    const templateBody = YAML.load(templateDetails.TemplateBody);
+    const cfnTemplateIngressRules = templateBody.Resources.SecurityGroup.Properties.SecurityGroupIngress;
+
+    const securityGroup = _.find(
+      stackResources.StackResourceSummaries,
+      resource => resource.LogicalResourceId === 'SecurityGroup',
+    );
+    const securityGroupId = securityGroup.PhysicalResourceId;
+    const { securityGroupResponse } = await this.getWorkspaceSecurityGroup(
+      requestContext,
+      environment,
+      securityGroupId,
+    );
+
+    // Get protocol-port combinations from the SC CFN stack
+    const securityGroupDetails = securityGroupResponse.SecurityGroups[0];
+    const workspaceIngressRules = securityGroupDetails.IpPermissions;
+
+    // Only send back details of groups configured by the SC CFN stack
+    const returnVal = _.map(cfnTemplateIngressRules, cfnRule => {
+      const matchingRule = _.find(
+        workspaceIngressRules,
+        workspaceRule =>
+          cfnRule.FromPort === workspaceRule.FromPort &&
+          cfnRule.ToPort === workspaceRule.ToPort &&
+          cfnRule.IpProtocol === workspaceRule.IpProtocol,
+      );
+      const currentCidrRanges = matchingRule
+        ? _.concat(
+            _.map(matchingRule.IpRanges, ipRange => ipRange.CidrIp),
+            _.map(matchingRule.Ipv6Ranges, ipRange => ipRange.CidrIp),
+          )
+        : [];
+
+      return {
+        fromPort: cfnRule.FromPort,
+        toPort: cfnRule.ToPort,
+        protocol: cfnRule.IpProtocol,
+        cidrBlocks: currentCidrRanges,
+      };
+    });
+
+    return { currentIngressRules: returnVal, securityGroupId };
   }
 
   /**
