@@ -50,6 +50,8 @@ tags:
     description: Operations to manage users in Service Workbench
   - name: Cost
     description: Operation to view cost breakdown
+  - name: StepTemplates
+    description: Operations for viewing step templates. Step templates can be added to new Workflows.
 paths:
   /api/costs:
     get:
@@ -950,6 +952,109 @@ paths:
       responses:
         '200':
           description: 'Array of env type config variables'
+  /api/step-templates:
+    get:
+      tags:
+        - admins
+        - StepTemplates
+      summary: list step templates
+      operationId: listStepTemplates
+      responses:
+        '200':
+          description: 'Return list of step templates'
+  /api/step-templates/latest:
+    get:
+      tags:
+        - admins
+        - StepTemplates
+      summary: list latest step templates
+      operationId: listLatestStepTemplates
+      responses:
+        '200':
+          description: 'Return list of the latest version of each step template'
+  /api/step-templates/{stepTemplateId}:
+    get:
+      tags:
+        - admins
+        - StepTemplates
+      summary: get Step Template
+      operationId: getStepTemplate
+      parameters:
+        - name: stepTemplateId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/StepTemplateId'
+      responses:
+        '200':
+          description: 'Return list of all versions of the requested step template'
+  /api/step-templates/{stepTemplateId}/latest:
+    get:
+      tags:
+        - admins
+        - StepTemplates
+      summary: get latest Step Template
+      operationId: getStepTemplateLatest
+      parameters:
+        - name: stepTemplateId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/StepTemplateId'
+      responses:
+        '200':
+          description: 'Return the latest step template requested'
+  /api/step-templates/{stepTemplateId}/v/{versionId}:
+    get:
+      tags:
+        - admins
+        - StepTemplates
+      summary: get Step Template by id and version
+      operationId: getStepTemplateByVersion
+      parameters:
+        - name: stepTemplateId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/StepTemplateId'
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/VersionId'
+      responses:
+        '200':
+          description: 'Return list of all versions of the requested step template'
+  /api/step-templates/{stepTemplateId}/v/{versionId}/validate:
+    post:
+      tags:
+        - admins
+        - StepTemplates
+      summary: validate Step Template by id and version
+      operationId: validateStepTemplateByVersion
+      parameters:
+        - name: stepTemplateId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/StepTemplateId'
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/VersionId'
+      requestBody:
+        required: false
+        description: 'Validation rules to check for'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValidateConfig'
+      responses:
+        '200':
+          description: 'Any validation errors for the requested step template and version'
+        '404':
+          description: 'Requested step template was not found'
   /api/workspaces/service-catalog:
     post:
       tags:
@@ -1353,6 +1458,18 @@ components:
       minLength: 1
       maxLength: 100
       pattern: '^[A-Za-z0-9-_ ]+$'
+    StepTemplateId:
+      type: string
+      minLength: 1
+      maxLength: 100
+      pattern: "^[A-Za-z0-9-_]+$"
+      example: 'create-network-interface'
+    VersionId:
+      type: number
+      example: 2
+    ValidateConfig:
+      type: object
+      example: { "fieldA": "A string value", "fieldB": 1}
     WorkspaceId:
       type: string
       example: '1234a5b6-c7d8-11ea-b397-791ba40a5d32'
