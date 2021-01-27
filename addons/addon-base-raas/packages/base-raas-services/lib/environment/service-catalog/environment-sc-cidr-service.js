@@ -44,11 +44,18 @@ class EnvironmentScCidrService extends Service {
 
     const erroneousInputs = [];
     const ipv6Format = [];
+    const protPortCombos = {};
     _.map(updateRequest, rule => {
       _.forEach(rule.cidrBlocks, cidrBlock => {
         if (IsCidr(cidrBlock) === 0) erroneousInputs.push(cidrBlock);
         if (IsCidr.v6(cidrBlock)) ipv6Format.push(cidrBlock);
       });
+      const protPort = `${rule.protocol}-${rule.fromPort}-${rule.toPort}`;
+      if (_.get(protPortCombos, protPort))
+        throw this.boom.badRequest(
+          'The update request contains duplicate protocol-port combinations. Please make sure all ingress rule objects have unique protocol-fromPort-toPort combinations',
+        );
+      protPortCombos[protPort] = true;
     });
 
     if (!_.isEmpty(erroneousInputs))
@@ -85,7 +92,7 @@ class EnvironmentScCidrService extends Service {
       );
 
       // Perform the actual security group ingress rule updates
-      const newCidrList = await this.manageIngressRules(requestContext, {
+      const newCidrList = await this.getUpdatedIngressRules(requestContext, {
         existingEnvironment,
         securityGroupId,
         currentIngressRules,
@@ -105,7 +112,6 @@ class EnvironmentScCidrService extends Service {
 
   getIpPermission(updateRule, cidrList) {
     const ipv4List = _.filter(cidrList, cidr => IsCidr.v4(cidr));
-    // const ipv6List = _.filter(cidrList, cidr => IsCidr.v6(cidr));
 
     const IpPermission = {
       FromPort: updateRule.fromPort,
@@ -113,10 +119,10 @@ class EnvironmentScCidrService extends Service {
       IpRanges: _.map(ipv4List, cidr => ({
         CidrIp: cidr,
         // For future: Custom description doesn't work, since that has to match exactly what's there in the SG.
-        // This would require storing cidr field in DB
+        // This would require sending one CIDR block per IpPermission object
         // Description: `Updated via SWB`,
       })),
-      // TODO: Ipv6 calls have to be done separately and cannot habe
+      // Future: Ipv6 calls have to be done separately and cannot be part of IpPermission object that contains IpRanges (Ipv4)
       // Ipv6Ranges: _.map(ipv6List, cidr => ({
       //   CidrIp: cidr,
       //   Description: `Updated via SWB`,
@@ -128,7 +134,7 @@ class EnvironmentScCidrService extends Service {
 
   // This method is smart enough to determine which IPs to revoke/grant access
   // by peeking into the ingress rules of the workspace's security group
-  async manageIngressRules(
+  async getUpdatedIngressRules(
     requestContext,
     { existingEnvironment, securityGroupId, currentIngressRules, updateRequest } = {},
   ) {

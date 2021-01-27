@@ -124,6 +124,7 @@ class ScEnvironmentUpdateCidrs extends React.Component {
       this.props.onCancel();
     } catch (error) {
       displayError(error);
+      this.props.onCancel();
     }
   };
 
@@ -168,8 +169,8 @@ class ScEnvironmentUpdateCidrs extends React.Component {
         if (!wideCidrFound)
           wideCidrFound = _.some(rule.cidrBlocks, cidr => {
             const parts = cidr.split('/');
-            const n = parts[parts.length - 1];
-            return n <= 16;
+            const suffixBits = parts[parts.length - 1];
+            return suffixBits <= 16;
           });
       });
       return wideCidrFound;

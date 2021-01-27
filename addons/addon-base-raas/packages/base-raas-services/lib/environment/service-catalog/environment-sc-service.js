@@ -730,12 +730,7 @@ class EnvironmentScService extends Service {
           cfnRule.ToPort === workspaceRule.ToPort &&
           cfnRule.IpProtocol === workspaceRule.IpProtocol,
       );
-      const currentCidrRanges = matchingRule
-        ? _.concat(
-            _.map(matchingRule.IpRanges, ipRange => ipRange.CidrIp),
-            _.map(matchingRule.Ipv6Ranges, ipRange => ipRange.CidrIp),
-          )
-        : [];
+      const currentCidrRanges = matchingRule ? _.map(matchingRule.IpRanges, ipRange => ipRange.CidrIp) : [];
 
       return {
         fromPort: cfnRule.FromPort,
