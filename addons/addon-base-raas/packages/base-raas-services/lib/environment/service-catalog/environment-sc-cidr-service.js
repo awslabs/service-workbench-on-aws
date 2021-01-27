@@ -63,13 +63,23 @@ class EnvironmentScCidrService extends Service {
 
     if (!_.isEmpty(ipv6Format))
       throw this.boom.badRequest(
-        `Currently only IPv4 formatted CIDR inputs are allowed. Please remove : ${ipv6Format.join(
+        `Currently only IPv4 formatted CIDR inputs are allowed. Please remove: ${ipv6Format.join(
           ', ',
         )} CIDR ranges from your list`,
         true,
       );
   }
 
+  /**
+   * Method checks the existing Ingress Rules are on the workspace's security group
+   * and accordingly calls another methods that take care of calculating CIDR blocks for revoking and authorizing
+   * and finally sends the updated environmentSc object with the cidr field to the UI store
+   *
+   * @param requestContext
+   * @param id Id of the AWS Service Catalog based environment
+   * @param updateRequest List of protocol-port combinations along with the CIDR blocks for each of them
+   * @returns {Promise<*>} ScEnvironment entity object with updated cidr
+   */
   async update(requestContext, { id, updateRequest }) {
     // Before anything, check if the payload is valid
     this.checkRequest(updateRequest);
@@ -110,9 +120,10 @@ class EnvironmentScCidrService extends Service {
     return existingEnvironment;
   }
 
+  // This method is responsible for generating the IpPermissions object
+  // that is included in the revoke/authorize call params
   getIpPermission(updateRule, cidrList) {
     const ipv4List = _.filter(cidrList, cidr => IsCidr.v4(cidr));
-
     const IpPermission = {
       FromPort: updateRule.fromPort,
       IpProtocol: updateRule.protocol,

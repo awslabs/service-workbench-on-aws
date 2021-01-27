@@ -695,6 +695,14 @@ class EnvironmentScService extends Service {
     return { securityGroupResponse };
   }
 
+  /**
+   * Method assumes the environment management role in the AWS account where the specified environment is running and
+   * fetches the SC CFN template and the current ingress rules of its security group
+   *
+   * @param requestContext
+   * @param environment AWS Service Catalog based environment
+   * @returns {Promise<*>} SecurityGroupId for the workspace and its current Ingress Rules
+   */
   async getSecurityGroupDetails(requestContext, environment) {
     const outputsObject = cfnOutputsArrayToObject(environment.outputs);
     const cfnStackLogicalId = outputsObject.CloudformationStackARN.split('/')[1];
@@ -704,12 +712,13 @@ class EnvironmentScService extends Service {
       cfnStackLogicalId,
     );
     const templateBody = YAML.load(templateDetails.TemplateBody);
-    const cfnTemplateIngressRules = templateBody.Resources.SecurityGroup.Properties.SecurityGroupIngress;
+    const cfnTemplateIngressRules = templateBody.Resources.SecurityGroup
+      ? templateBody.Resources.SecurityGroup.Properties.SecurityGroupIngress
+      : templateBody.Resources.MasterSecurityGroup.Properties.SecurityGroupIngress; // For EMR use-cases
 
-    const securityGroup = _.find(
-      stackResources.StackResourceSummaries,
-      resource => resource.LogicalResourceId === 'SecurityGroup',
-    );
+    const securityGroup =
+      _.find(stackResources.StackResourceSummaries, resource => resource.LogicalResourceId === 'SecurityGroup') ||
+      _.find(stackResources.StackResourceSummaries, resource => resource.LogicalResourceId === 'MasterSecurityGroup'); // For EMR use-cases
     const securityGroupId = securityGroup.PhysicalResourceId;
     const { securityGroupResponse } = await this.getWorkspaceSecurityGroup(
       requestContext,

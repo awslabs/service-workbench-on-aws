@@ -171,7 +171,7 @@ class ScEnvironmentButtons extends React.Component {
               View Detail
             </Button>
           )}
-          {state.canTerminate && (
+          {state.canTerminate && !state.key.includes('FAILED') && (
             <Button
               floated="left"
               basic
