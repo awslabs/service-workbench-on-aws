@@ -185,7 +185,6 @@ class EnvironmentScCidrService extends Service {
     try {
       await ec2Client.revokeSecurityGroupIngress(revokeParams).promise();
     } catch (err) {
-      // Skip errors that pertain to rule not found
       if (err.code !== 'EntityNotFound')
         throw this.boom.internalError(`There was a problem revoking access in security group. Error: ${err}`, true);
     }
@@ -195,7 +194,6 @@ class EnvironmentScCidrService extends Service {
     try {
       await ec2Client.authorizeSecurityGroupIngress(authorizeParams).promise();
     } catch (err) {
-      // Skip errors that pertain to rule already exists
       if (err.code !== 'AlreadyExists')
         throw this.boom.internalError(`There was a problem granting access in security group. Error: ${err}`, true);
     }
