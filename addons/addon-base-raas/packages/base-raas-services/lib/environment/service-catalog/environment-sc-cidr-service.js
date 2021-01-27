@@ -182,21 +182,11 @@ class EnvironmentScCidrService extends Service {
   }
 
   async revokeSecurityGroupIngress(ec2Client, revokeParams) {
-    try {
-      await ec2Client.revokeSecurityGroupIngress(revokeParams).promise();
-    } catch (err) {
-      if (err.code !== 'EntityNotFound')
-        throw this.boom.internalError(`There was a problem revoking access in security group. Error: ${err}`, true);
-    }
+    await ec2Client.revokeSecurityGroupIngress(revokeParams).promise();
   }
 
   async authorizeSecurityGroupIngress(ec2Client, authorizeParams) {
-    try {
-      await ec2Client.authorizeSecurityGroupIngress(authorizeParams).promise();
-    } catch (err) {
-      if (err.code !== 'AlreadyExists')
-        throw this.boom.internalError(`There was a problem granting access in security group. Error: ${err}`, true);
-    }
+    await ec2Client.authorizeSecurityGroupIngress(authorizeParams).promise();
   }
 
   async getEc2Client(requestContext, envId) {
