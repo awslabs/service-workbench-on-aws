@@ -14,6 +14,8 @@ tags:
     description: Secured Admin-only calls
   - name: researchers
     description: Operations available to regular researchers
+  - name: internal-guests
+    description: Operations available to guest users
   - name: guests
     description: Operations available to guest users
   - name: BYOB
@@ -96,13 +98,14 @@ paths:
             description: 'How far back to look for fetching costs'
       responses:
         '200':
-          description: Array of workspace type candidates that fits the query filters. Default return latest not imported workspace type candidates.
+          description: Cost breakdown
   /api/users:
     get:
       tags:
         - admins
         - researchers
         - guests
+        - internal-guests
         - User
       summary: List all users
       operationId: ListUsers
@@ -210,6 +213,7 @@ paths:
       tags:
         - admins
         - guests
+        - internal-guests
         - researchers
         - UserRoles
       summary: Fetch all user roles present in Service Workbench
@@ -224,6 +228,7 @@ paths:
       tags:
         - admins
         - guests
+        - internal-guests
         - researchers
         - CfnTemplate
       summary: Fetch S3 pre-signed URL which points to the requested CloudFormation template
@@ -244,6 +249,7 @@ paths:
       tags:
         - admins
         - guests
+        - internal-guests
         - researchers
         - IP
       summary: Fetch IP address of the requester
@@ -268,7 +274,7 @@ paths:
     post:
       tags:
         - admins
-        - Index
+        - Project
       summary: Create a new Project
       operationId: CreateProject
       description: |
@@ -296,10 +302,10 @@ paths:
       summary: Get Project by projectId
       operationId: GetProjectById
       description: |
-        List Index by projectId
+        List Project by projectId
       responses:
         '200':
-          description: Array of registered projects
+          description: The requested project
     put:
       tags:
         - admins
@@ -403,37 +409,6 @@ paths:
       responses:
         '200':
           description: Index deleted
-  /api/compute/platforms:
-    get:
-      tags:
-        - admins
-        - Compute
-      summary: List all platforms that are available for provisioning. Example can be EC2 Linux, Windows
-      operationId: ListComputePlatforms
-      description: |
-        List all platforms that are available for provisioning
-      responses:
-        '200':
-          description: Array of registered platforms
-  /api/compute/platforms/{platformId}/configurations:
-    get:
-      tags:
-        - admins
-        - researchers
-        - Compute
-      summary: Get configuration available for a specific platform. As an example this can be EC2 instance types available for EC2 Linux
-      operationId: GetConfigForPlatform
-      parameters:
-        - name: platformId
-          in: path
-          required: true
-          schema:
-            $ref: '#/components/schemas/PlatformId'
-      description: |
-        Get configuration available for a specific platform
-      responses:
-        '200':
-          description: Platform Configuration JSON
   /api/aws-accounts:
     get:
       tags:
@@ -1275,6 +1250,11 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/StudyId'
+        - in: query
+          name: filenames
+          schema:
+            type: string
+            description: 'Comma separated filenames to upload'
       responses:
         '200':
           description: 'Return presigned url for file upload'
@@ -1294,23 +1274,8 @@ paths:
       responses:
         '200':
           description: 'Return budget of the AWS account'
-    put:
-      tags:
-        - admins
-        - Budgets
-      summary: update budget
-      operationId: updateBudget
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/CreateBudget'
-      responses:
-        '200':
-          description: 'Return success update message'
   /api/budgets/aws-account:
-    post:
+    put:
       tags:
         - admins
         - Budgets
@@ -1325,6 +1290,21 @@ paths:
       responses:
         '200':
           description: 'Return success create message'
+    post:
+      tags:
+        - admins
+        - Budgets
+      summary: update budget
+      operationId: updateBudget
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBudget'
+      responses:
+        '200':
+          description: 'Return success update message'
 components:
   securitySchemes:
     bearerAuth:
@@ -1332,8 +1312,6 @@ components:
       scheme: bearer
       bearerFormat: JWT
   schemas:
-    UserId:
-      $ref: '#/components/schemas/uid'
     RoleArn:
       type: string
       pattern: '^arn:aws:iam::.*$'
@@ -1354,9 +1332,6 @@ components:
       type: string
       example: '123456789101'
       pattern: ^[0-9]{12}$
-    PlatformId:
-      type: string
-      example: 'ec2-linux-1'
     TemplateId:
       type: string
       example: 'sagemaker.cfn.yml'
@@ -1397,7 +1372,7 @@ components:
         - Organization
         - Open Data
       example: 'Organization'
-    uid:
+    UserId:
       type: string
       example: 'u-C-l14OuIfNk7vL7AqmjvC'
       description: id used to uniquely identify a user
@@ -2273,7 +2248,7 @@ components:
       type: object
       properties:
         uid:
-          $ref: '#/components/schemas/uid'
+          $ref: '#/components/schemas/UserId'
         permissionLevel:
           $ref: '#/components/schemas/permissionLevel'
       required:
