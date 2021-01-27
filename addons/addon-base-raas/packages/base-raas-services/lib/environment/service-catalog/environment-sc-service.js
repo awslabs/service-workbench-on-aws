@@ -310,8 +310,19 @@ class EnvironmentScService extends Service {
     }
 
     const env = this._fromDbToDataObject(result);
-    env.cidr = [];
-    if (_.includes(['COMPLETED', 'STOPPED', 'STOPPING', 'STARTING'], env.status)) {
+
+    // We only check for the ingress rules of a successfully provisioned environment not in failure state
+    if (
+      _.includes(
+        [
+          environmentScStatus.COMPLETED,
+          environmentScStatus.STOPPED,
+          environmentScStatus.STOPPING,
+          environmentScStatus.STARTING,
+        ],
+        env.status,
+      )
+    ) {
       const { currentIngressRules } = await this.getSecurityGroupDetails(requestContext, env);
       env.cidr = currentIngressRules;
     }
