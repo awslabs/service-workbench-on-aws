@@ -19,8 +19,7 @@ describe('LogTransformer', () => {
   it('formats log message and masks sensitive fields', () => {
     const logTransformer = new LogTransformer({}, ['secret']);
     expect(logTransformer.transformForLog({ a: '1', secret: 'should not be seen' })).toEqual(
-      // eslint-disable-next-line prettier/prettier
-`{
+      `{
   "logLevel": "log",
   "a": "1",
   "secret": "****"
