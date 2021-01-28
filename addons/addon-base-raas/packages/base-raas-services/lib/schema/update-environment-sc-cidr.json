@@ -30,5 +30,6 @@
         "cidrBlocks"
       ]
     }
-  ]
+  ],
+  "minItems": 1
 }

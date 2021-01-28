@@ -92,7 +92,7 @@ describe('EnvironmentScCidrService', () => {
         expect.hasAssertions();
       } catch (err) {
         expect(service.boom.is(err, 'badRequest')).toBe(true);
-        expect(err.message).toContain('The request made had an empty body. Please check your payload');
+        expect(err.message).toContain('Input has validation errors');
       }
     });
 
@@ -109,7 +109,7 @@ describe('EnvironmentScCidrService', () => {
         expect.hasAssertions();
       } catch (err) {
         expect(service.boom.is(err, 'badRequest')).toBe(true);
-        expect(err.message).toContain('The request made had an empty body. Please check your payload');
+        expect(err.message).toContain('Input has validation errors');
       }
     });
 

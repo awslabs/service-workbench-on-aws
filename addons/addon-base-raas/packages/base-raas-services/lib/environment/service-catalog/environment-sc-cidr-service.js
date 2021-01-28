@@ -42,9 +42,6 @@ class EnvironmentScCidrService extends Service {
   }
 
   checkRequest(updateRequest) {
-    if (_.isUndefined(updateRequest) || _.isEmpty(updateRequest))
-      throw this.boom.badRequest('The request made had an empty body. Please check your payload', true);
-
     const erroneousInputs = [];
     const ipv6Format = [];
     const protPortCombos = {};
@@ -85,9 +82,6 @@ class EnvironmentScCidrService extends Service {
    * @returns {Promise<*>} ScEnvironment entity object with updated cidr
    */
   async update(requestContext, { id, updateRequest }) {
-    // Before anything, check if the payload is valid
-    this.checkRequest(updateRequest);
-
     const [environmentScService, lockService, validationService] = await this.service([
       'environmentScService',
       'lockService',
@@ -96,6 +90,7 @@ class EnvironmentScCidrService extends Service {
 
     // Validate input
     await validationService.ensureValid(updateRequest, cidrUpdateSchema);
+    this.checkRequest(updateRequest);
 
     const existingEnvironment = await environmentScService.mustFind(requestContext, { id });
 
