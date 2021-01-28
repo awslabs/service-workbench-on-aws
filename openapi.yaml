@@ -2676,6 +2676,21 @@ components:
           type: number
           example: 1
           description: 'Revision specifying the updates the record has gone through'
+        userRole:
+          type: string
+          example: 'researcher'
+        projectId:
+          type: string
+          example: 'TestProject'
+        isExternalUser:
+          type: boolean
+          example: true
+        encryptedCreds:
+          type: string
+          example: 'EncryptedCreds123'
+        applyReason:
+          type: string
+          example: 'Research'
     UpdateUserPasswordRequest:
       required:
         - password
