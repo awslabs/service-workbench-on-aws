@@ -17,6 +17,8 @@ const _ = require('lodash');
 const IsCidr = require('is-cidr');
 const Service = require('@aws-ee/base-services-container/lib/service');
 
+const cidrUpdateSchema = require('../../schema/update-environment-sc-cidr');
+
 class EnvironmentScCidrService extends Service {
   constructor() {
     super();
@@ -26,6 +28,7 @@ class EnvironmentScCidrService extends Service {
       'environmentAuthzService',
       'auditWriterService',
       'authorizationService',
+      'jsonSchemaValidationService',
       'lockService',
     ]);
   }
@@ -50,8 +53,6 @@ class EnvironmentScCidrService extends Service {
         if (IsCidr(cidrBlock) === 0) erroneousInputs.push(cidrBlock);
         if (IsCidr.v6(cidrBlock)) ipv6Format.push(cidrBlock);
       });
-      if (!_.isInteger(rule.toPort) || !_.isInteger(rule.fromPort))
-        throw this.boom.badRequest('Please make sure all "fromPort" and "toPort" values are integers', true);
       const protPort = `${rule.protocol}-${rule.fromPort}-${rule.toPort}`;
       if (_.get(protPortCombos, protPort))
         throw this.boom.badRequest(
@@ -87,7 +88,15 @@ class EnvironmentScCidrService extends Service {
     // Before anything, check if the payload is valid
     this.checkRequest(updateRequest);
 
-    const [environmentScService, lockService] = await this.service(['environmentScService', 'lockService']);
+    const [environmentScService, lockService, validationService] = await this.service([
+      'environmentScService',
+      'lockService',
+      'jsonSchemaValidationService',
+    ]);
+
+    // Validate input
+    await validationService.ensureValid(updateRequest, cidrUpdateSchema);
+
     const existingEnvironment = await environmentScService.mustFind(requestContext, { id });
 
     // Check if user is allowed to update cidrs
@@ -160,6 +169,9 @@ class EnvironmentScCidrService extends Service {
   ) {
     const addIpPermissions = [];
     const revokeIpPermissions = [];
+
+    // This helps us keep track of how many protocol-port combinations
+    // matched between the SG and the update request
     const newCidrList = [];
 
     _.forEach(currentIngressRules, existingRule => {
@@ -177,6 +189,12 @@ class EnvironmentScCidrService extends Service {
         newCidrList.push(matchingRule);
       }
     });
+
+    if (_.isEmpty(newCidrList))
+      throw this.boom.badRequest(
+        'Please use only the protocol-port combinations configured via Service Catalog for CIDR updates',
+        true,
+      );
 
     // Get params ready
     const revokeParams = { GroupId: securityGroupId, IpPermissions: revokeIpPermissions };

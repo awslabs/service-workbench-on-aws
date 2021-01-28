@@ -16,7 +16,6 @@
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
 const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
 const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
-// const AWSMock = require('aws-sdk-mock');
 const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
 
 // Mocked dependencies
@@ -79,7 +78,7 @@ describe('EnvironmentScCidrService', () => {
     service._fromRawToDbObject = jest.fn(x => x);
   });
 
-  describe('checkRequest', () => {
+  describe('Validation checks', () => {
     it('should fail because the updateRequest is undefined', async () => {
       // BUILD
       const params = {
@@ -111,6 +110,30 @@ describe('EnvironmentScCidrService', () => {
       } catch (err) {
         expect(service.boom.is(err, 'badRequest')).toBe(true);
         expect(err.message).toContain('The request made had an empty body. Please check your payload');
+      }
+    });
+
+    it('should fail because the updateRequest does not contain required properties', async () => {
+      // BUILD
+      const params = {
+        id: 'testId',
+        updateRequest: [
+          {
+            protocol: 'tcp',
+            fromPort: 123,
+            // toPort: 123,
+            cidrBlocks: ['123.123.123.123/32'],
+          },
+        ],
+      };
+
+      // OPERATE
+      try {
+        await service.update({}, params);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(service.boom.is(err, 'badRequest')).toBe(true);
+        expect(err.message).toContain('Input has validation errors');
       }
     });
 
@@ -158,7 +181,7 @@ describe('EnvironmentScCidrService', () => {
         expect.hasAssertions();
       } catch (err) {
         expect(service.boom.is(err, 'badRequest')).toBe(true);
-        expect(err.message).toContain('Please make sure all "fromPort" and "toPort" values are integers');
+        expect(err.message).toContain('Input has validation errors');
       }
     });
 
@@ -182,7 +205,7 @@ describe('EnvironmentScCidrService', () => {
         expect.hasAssertions();
       } catch (err) {
         expect(service.boom.is(err, 'badRequest')).toBe(true);
-        expect(err.message).toContain('Please make sure all "fromPort" and "toPort" values are integers');
+        expect(err.message).toContain('Input has validation errors');
       }
     });
 
@@ -367,11 +390,14 @@ describe('EnvironmentScCidrService', () => {
       service.authorizeSecurityGroupIngress = jest.fn();
 
       // OPERATE
-      await service.update(requestContext, params);
-
-      // CHECK
-      expect(service.authorizeSecurityGroupIngress).not.toHaveBeenCalled();
-      expect(service.revokeSecurityGroupIngress).not.toHaveBeenCalled();
+      try {
+        await service.update(requestContext, params);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(err.message).toEqual(
+          'Please use only the protocol-port combinations configured via Service Catalog for CIDR updates',
+        );
+      }
     });
 
     it('should fail because no ingress rules were configured originally', async () => {
@@ -407,6 +433,101 @@ describe('EnvironmentScCidrService', () => {
         expect(err.message).toEqual(
           'The Security Group for this workspace does not contain any ingress rules configured in the Service Catalog product template',
         );
+      }
+    });
+
+    it('should throw the exception as expected during internal errors for revoke', async () => {
+      // BUILD
+      const requestContext = {};
+      const params = {
+        id: 'testId',
+        updateRequest: [
+          {
+            protocol: 'tcp',
+            fromPort: 123,
+            toPort: 123,
+            cidrBlocks: ['1.1.1.1/32'],
+          },
+        ],
+      };
+
+      environmentScService.mustFind = jest.fn(() => ({
+        id: 'testId',
+        createdBy: 'someUser',
+      }));
+      const currentIngressRules = [
+        {
+          protocol: 'tcp',
+          fromPort: 123,
+          toPort: 123,
+          cidrBlocks: ['1.1.1.1/32', '4.4.4.4/32'],
+        },
+      ];
+      const securityGroupId = 'samplesecurityGroupId';
+
+      environmentScService.getSecurityGroupDetails = jest.fn(() => ({
+        currentIngressRules,
+        securityGroupId,
+      }));
+      service.revokeSecurityGroupIngress = jest.fn();
+      service.revokeSecurityGroupIngress.mockImplementationOnce(() => {
+        throw new Error('An unknown error occurred while revoking ingress rules');
+      });
+
+      // OPERATE
+      try {
+        await service.update(requestContext, params);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(err.message).toEqual('An unknown error occurred while revoking ingress rules');
+      }
+    });
+
+    it('should throw the exception as expected during internal errors for authorize', async () => {
+      // BUILD
+      const requestContext = {};
+      const params = {
+        id: 'testId',
+        updateRequest: [
+          {
+            protocol: 'tcp',
+            fromPort: 123,
+            toPort: 123,
+            cidrBlocks: ['1.1.1.1/32', '4.4.4.4/32'],
+          },
+        ],
+      };
+
+      environmentScService.mustFind = jest.fn(() => ({
+        id: 'testId',
+        createdBy: 'someUser',
+      }));
+      const currentIngressRules = [
+        {
+          protocol: 'tcp',
+          fromPort: 123,
+          toPort: 123,
+          cidrBlocks: ['1.1.1.1/32'],
+        },
+      ];
+      const securityGroupId = 'samplesecurityGroupId';
+
+      environmentScService.getSecurityGroupDetails = jest.fn(() => ({
+        currentIngressRules,
+        securityGroupId,
+      }));
+      service.revokeSecurityGroupIngress = jest.fn();
+      service.authorizeSecurityGroupIngress = jest.fn();
+      service.authorizeSecurityGroupIngress.mockImplementationOnce(() => {
+        throw new Error('An unknown error occurred while authorizing ingress rules');
+      });
+
+      // OPERATE
+      try {
+        await service.update(requestContext, params);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(err.message).toEqual('An unknown error occurred while authorizing ingress rules');
       }
     });
 
@@ -607,7 +728,14 @@ describe('EnvironmentScCidrService', () => {
         id: 'testId',
         createdBy: 'someUser',
       }));
-      const currentIngressRules = [params.updateRequest];
+      const currentIngressRules = [
+        {
+          protocol: 'tcp',
+          fromPort: 123,
+          toPort: 123,
+          cidrBlocks: ['123.123.123.123/32'],
+        },
+      ];
       const securityGroupId = 'samplesecurityGroupId';
 
       environmentScService.getSecurityGroupDetails = jest.fn(() => ({
