@@ -18,6 +18,8 @@ tags:
     description: Operations available to guest users
   - name: guests
     description: Operations available to guest users
+  - name: public
+    description: Operations available to public
   - name: BYOB
     description: Operations for bring your own bucket configuration
   - name: SC-EnvType
@@ -50,7 +52,81 @@ tags:
     description: Operations to manage users in Service Workbench
   - name: Cost
     description: Operation to view cost breakdown
+  - name: authN
+    description: Operation for login, logout, authN provider
 paths:
+  /api/authentication/provider/configs:
+    get:
+      tags:
+        - admin
+        - authN
+      summary: Get authentication provider configs detail
+      operationId: GetAuthNConfigsDetail
+      description: |
+        Get authentication provider configs detail
+      responses:
+        '200':
+          description: Array of authN provider configs detail
+  /api/authentication/provider/types:
+    get:
+      tags:
+        - admin
+        - authN
+      summary: Get authentication provider types
+      operationId: GetAuthNTypes
+      description: |
+        Get authentication provider types
+      responses:
+        '200':
+          description: Array of authN provider types
+  /api/authentication/public/provider/configs/:
+    get:
+      tags:
+        - public
+        - authN
+      summary: Get authentication provider configs
+      operationId: GetAuthNConfigs
+      description: |
+        Get authentication provider configs
+      responses:
+        '200':
+          description: Array of authN provider configs
+  /api/authentication/id-tokens/:
+    post:
+      tags:
+        - public
+        - authN
+      summary: Log in
+      operationId: LogIn
+      description: |
+        Log In
+      parameters:
+        - in: query
+          name: redirect_uri
+          schema:
+            type: string
+            description: 'uri to redirect to after success login'
+          required: true
+      requestBody:
+        description: Log in information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogInRequest'
+      responses:
+        '200':
+          description: Success log in message
+  /api/authentication/logout:
+    post:
+      tags:
+        - authN
+      summary: Log out
+      operationId: LogOut
+      description: |
+        Log out
+      responses:
+        '200':
+          description: Revoked message
   /api/costs:
     get:
       tags:
@@ -1419,6 +1495,21 @@ components:
       type: array
       items:
         $ref: '#/components/schemas/CreateUserRequest'
+    LogInRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 300
+          pattern: '^[A-Za-z0-9-_.]+$|^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$'
+          example: 'testuser'
+        password:
+          type: string
+          example: 'randompassword'
+        authenticationProviderId:
+          type: string
+          example: 'internal'
     CreateUserRequest:
       required:
         - username
