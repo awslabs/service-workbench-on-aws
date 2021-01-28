@@ -162,9 +162,7 @@ async function getFieldsToMask(existingFieldsToMask, pluginRegistry) {
   //
 
   // TODO: Register additional fieldsToMask as per your solution requirements here
-  const fieldsToMask = {
-    ...existingFieldsToMask,
-  };
+  const fieldsToMask = [...existingFieldsToMask];
   // DO NOT forget to return fieldsToMask here. If you do not return here no fields will be masked
   return fieldsToMask;
 }
