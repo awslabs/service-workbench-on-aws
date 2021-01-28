@@ -1245,7 +1245,7 @@ paths:
         '200':
           description: 'Return empty object'
   /api/workflows/drafts/publish:
-    put:
+    post:
       tags:
         - admins
         - Workflows
@@ -2107,218 +2107,114 @@ components:
     CreateWorkflow:
       type: Object
       example: {
-        "runSpec": {
-          "size": "small",
-          "target": "stepFunctions"
-        },
-        "builtin": true,
         "workflowTemplateId": "wt-empty",
-        "selectedSteps": [
-          {
-            "stepTemplateId": "st-start-sagemaker-environment-sc",
-            "configs": { },
-            "stepTemplateVer": 1,
-            "skippable": true,
-            "id": "wf-step_1_1517380435823_28",
-            "title": "Start SageMaker Environment",
-            "desc": "Start a SageMaker Jupyter Notebook.\n"
-          }
-        ],
+        "selectedSteps": [ ],
         "desc": "Start a Service Catalog SageMaker Jupyter Notebook.\n",
-        "instanceTtl": 30,
         "workflowTemplateVer": 1,
         "v": 1,
-        "id": "foo-workflow",
+        "id": "foo-5-workflow",
         "title": "Start a Service Catalog SageMaker Notebook"
       }
     CreateDraftWorkflow:
       type: Object
       example: {
-        "runSpec": {
-          "size": "small",
-          "target": "stepFunctions"
-        },
-        "builtin": true,
-        "selectedSteps": [
-          {
-            "stepTemplateId": "st-start-sagemaker-environment-sc",
-            "configs": { },
-            "stepTemplateVer": 1,
-            "skippable": true,
-            "id": "wf-step_1_1517380435823_28",
-            "title": "Start SageMaker Environment",
-            "desc": "Start a SageMaker Jupyter Notebook.\n"
-          }
-        ],
+        "selectedSteps": [ ],
         "desc": "Start a Service Catalog SageMaker Jupyter Notebook.\n",
-        "instanceTtl": 30,
         "workflowTemplateVer": 1,
         "v": 1,
         "title": "Start a Service Catalog SageMaker Notebook",
         "templateId": "wt-empty",
-        "workflowId": "foo-draft-workflow"
+        "workflowId": "foo-1-draft-workflow"
       }
     EditDraftWorkflow:
       type: Object
       example: {
-        "createdAt": "2021-01-27T23:58:07.403Z",
-        "createdBy": "u-uodoD9RlS9IAOfwpFyqwQ",
-        "id": "u-uodoD9RlS9IAOfwpFyqwQ_wf-foo-draft-workflow_0",
-        "rev": 0,
-        "templateId": "wt-empty",
-        "templateVer": 1,
-        "uid": "u-uodoD9RlS9IAOfwpFyqwQ",
-        "updatedAt": "2021-01-27T23:58:07.403Z",
-        "updatedBy": "u-uodoD9RlS9IAOfwpFyqwQ",
+        "rev": 6,
         "workflow": {
-          "builtin": false,
-          "createdAt": "2021-01-27T23:58:07.364Z",
-          "createdBy": "u-uodoD9RlS9IAOfwpFyqwQ",
-          "desc": "An empty workflow so that you have full control of the workflow.\n",
-          "hidden": false,
-          "id": "wf-foo-draft-workflow",
-          "instanceTtl": null,
-          "rev": 0,
-          "runSpec": {
-            "size": "small",
-            "target": "stepFunctions"
-          },
-          "selectedSteps": [
-
-          ],
+          "selectedSteps": [ ],
           "title": "Empty Workflow",
-          "updatedAt": "2021-01-27T23:58:07.364Z",
-          "updatedBy": "u-uodoD9RlS9IAOfwpFyqwQ",
-          "v": 1,
           "workflowTemplateId": "wt-empty",
-          "workflowTemplateVer": 1
+          "v": 1,
+          "id": "wf-foo-1-draft-workflow",
+          "workflowTemplateVer": 1,
+          "desc": "An empty workflow so that you have full control of the workflow.\n",
+          "updatedAt": "2021-01-28T22:04:16.341Z"
         },
-        "workflowId": "wf-foo-draft-workflow",
-        "workflowVer": 0
+        "workflowId": "wf-foo-1-draft-workflow",
+        "templateId": "wt-empty",
+        "updatedBy": "u-uodoD9RlS9IAOfwpFyqwQ",
+        "id": "u-uodoD9RlS9IAOfwpFyqwQ_wf-foo-1-draft-workflow_0"
       }
     PublishDraftWorkflow:
       type: Object
       example: {
-        "createdAt": "2021-01-27T23:58:07.403Z",
-        "createdBy": "u-uodoD9RlS9IAOfwpFyqwQ",
-        "id": "u-uodoD9RlS9IAOfwpFyqwQ_wf-foo-draft-workflow_0",
-        "rev": 1,
-        "templateId": "wt-empty",
-        "templateVer": 1,
-        "uid": "u-uodoD9RlS9IAOfwpFyqwQ",
-        "updatedAt": "2021-01-28T00:15:43.217Z",
-        "updatedBy": "u-uodoD9RlS9IAOfwpFyqwQ",
+        "rev": 0,
         "workflow": {
-          "builtin": false,
-          "createdAt": "2021-01-27T23:58:07.364Z",
-          "createdBy": "u-uodoD9RlS9IAOfwpFyqwQ",
-          "desc": "An empty workflow so that you have full control of the workflow.\n",
-          "hidden": false,
-          "id": "wf-foo-draft-workflow",
-          "instanceTtl": null,
           "rev": 0,
-          "runSpec": {
-            "size": "small",
-            "target": "stepFunctions"
-          },
-          "selectedSteps": [
-
-          ],
-          "title": "Empty Workflow",
-          "updatedAt": "2021-01-27T23:58:07.364Z",
           "updatedBy": "u-uodoD9RlS9IAOfwpFyqwQ",
-          "v": 1,
+          "selectedSteps": [ ],
+          "builtin": false,
+          "title": "Empty Workflow",
+          "createdAt": "2021-01-28T22:31:03.542Z",
           "workflowTemplateId": "wt-empty",
-          "workflowTemplateVer": 1
+          "createdBy": "u-uodoD9RlS9IAOfwpFyqwQ",
+          "v": 1,
+          "id": "wf-foo-5-draft-workflow",
+          "workflowTemplateVer": 1,
+          "desc": "An empty workflow so that you have full control of the workflow.\n",
+          "updatedAt": "2021-01-28T22:31:03.542Z"
         },
-        "workflowId": "wf-foo-draft-workflow",
-        "workflowVer": 0
+        "workflowId": "wf-foo-5-draft-workflow",
+        "templateVer": 1,
+        "templateId": "wt-empty",
+        "workflowVer": 0,
+        "updatedBy": "u-uodoD9RlS9IAOfwpFyqwQ",
+        "id": "u-uodoD9RlS9IAOfwpFyqwQ_wf-foo-5-draft-workflow_0",
+        "createdBy": "u-uodoD9RlS9IAOfwpFyqwQ"
       }
     CreateWorkflowTemplate:
       type: Object
       example: {
-        "propsOverrideOption": {
-          "allowed": [
-              "title",
-              "desc",
-              "instanceTtl",
-              "steps",
-              "runSpecSize",
-              "runSpecTarget"
-          ]
-        },
-        "runSpec": {
-          "size": "small",
-          "target": "stepFunctions"
-        },
-        "builtin": true,
-        "selectedSteps": [ ],
-        "desc": "An empty workflow so that you have full control of the workflow.\n",
-        "instanceTtl": null,
+        "desc": "Start a Service Catalog SageMaker Jupyter Notebook.\n",
+        "id": "foo-1-workflow",
         "v": 1,
-        "id": "wt-foo1",
-        "hidden": false,
-        "title": "Empty Workflow"
+        "selectedSteps": [ ],
+        "title": "Start a Service Catalog SageMaker Notebook",
+        "propsOverrideOption": { }
       }
     CreateDraftWorkflowTemplate:
       type: Object
       example: {
-        "propsOverrideOption": {
-          "allowed": [
-              "title",
-              "desc",
-              "instanceTtl",
-              "steps",
-              "runSpecSize",
-              "runSpecTarget"
-          ]
-        },
-        "runSpec": {
-          "size": "small",
-          "target": "stepFunctions"
-        },
-        "builtin": true,
-        "selectedSteps": [ ],
         "desc": "An empty workflow so that you have full control of the workflow.\n",
-        "instanceTtl": null,
-        "v": 1,
-        "templateId": "wt-draft-foo1",
-        "hidden": false,
+        "templateId": "wt-draft-foo5",
         "title": "Empty Workflow"
       }
     PublishDraftWorkflowTemplate:
       type: Object
       example: {
-        "createdAt": "2021-01-28T18:22:29.533Z",
-        "createdBy": "u-uodoD9RlS9IAOfwpFyqwQ",
-        "id": "u-uodoD9RlS9IAOfwpFyqwQ_wt-draft-foo-1_0",
-        "rev": 0,
+        "id": "u-uodoD9RlS9IAOfwpFyqwQ_wt-draft-foo-7_0",
         "template": {
-          "builtin": false,
-          "createdAt": "2021-01-28T18:22:29.515Z",
-          "createdBy": "u-uodoD9RlS9IAOfwpFyqwQ",
-          "hidden": false,
-          "id": "wt-draft-foo-1",
-          "propsOverrideOption": {
-            "allowed": [ ]
-          },
-          "rev": 0,
-          "runSpec": {
-            "size": "small",
-            "target": "stepFunctions"
-          },
+          "id": "wt-draft-foo-7",
+          "propsOverrideOption": { },
           "selectedSteps": [ ],
           "title": "Untitled",
-          "updatedAt": "2021-01-28T18:22:29.515Z",
-          "updatedBy": "u-uodoD9RlS9IAOfwpFyqwQ",
           "v": 1
         },
-        "templateId": "wt-draft-foo-1",
-        "templateVer": 0,
-        "uid": "u-uodoD9RlS9IAOfwpFyqwQ",
-        "updatedAt": "2021-01-28T18:22:29.533Z",
-        "updatedBy": "u-uodoD9RlS9IAOfwpFyqwQ"
+        "templateId": "wt-draft-foo7"
       }
+#    WorkFlowTemplate:
+#      type: Object
+#      properties:
+#        builtin:
+#          type: boolean
+#        createdAt:
+#          $ref: '#/components/schemas/DateTime'
+#        createdBy:
+#          $ref: '#/components/schemas/DateTime'
+
+    DateTime:
+      type: string
+      pattern: '^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?(([+-]\d\d:\d\d)|Z)?$'
     CreateKeyPair:
       type: Object
       example: {"name": "foo2-key", "desc": "Example key being created"}
