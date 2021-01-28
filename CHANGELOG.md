@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.7] - 2021-01-28
+
+### Added 
+- fix: Fix a bug on the update user API
+
+We recommend to apply this patch as soon as possible
+
 ## [1.4.6] - 2021-01-15
 
 ### Added 
