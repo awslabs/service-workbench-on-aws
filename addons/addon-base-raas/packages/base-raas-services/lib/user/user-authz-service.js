@@ -104,11 +104,15 @@ class UserAuthzService extends Service {
       isBeingUpdated('projectId') ||
       isBeingUpdated('identityProviderName') ||
       isBeingUpdated('authenticationProviderId') ||
-      isBeingUpdated('userType')
+      isBeingUpdated('isSamlAuthenticatedUser')
     ) {
       // The "isExternalUser" and "userRole" properties should be updated only by admins
       permissionSoFar = await allowIfAdmin(requestContext, { action });
       if (isDeny(permissionSoFar)) return permissionSoFar; // return if denying
+    }
+
+    if (isBeingUpdated('userType') && existingUser.userType !== 'root') {
+      return deny(`Cannot update userType`);
     }
 
     // Similarly, in addition to the permissions ascertained by the base,
