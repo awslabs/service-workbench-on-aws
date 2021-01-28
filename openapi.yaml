@@ -51,7 +51,9 @@ tags:
   - name: Cost
     description: Operation to view cost breakdown
   - name: StepTemplates
-    description: Operations for viewing step templates. Step templates can be added to new Workflows.
+    description: Operations for viewing step templates. Step templates can be added to new Workflows
+  - name: Workflows
+    description: Operations for viewing, editing, and adding Workflows
 paths:
   /api/costs:
     get:
@@ -977,7 +979,7 @@ paths:
       tags:
         - admins
         - StepTemplates
-      summary: get Step Template
+      summary: get step template
       operationId: getStepTemplate
       parameters:
         - name: stepTemplateId
@@ -993,7 +995,7 @@ paths:
       tags:
         - admins
         - StepTemplates
-      summary: get latest Step Template
+      summary: get latest step template
       operationId: getStepTemplateLatest
       parameters:
         - name: stepTemplateId
@@ -1009,7 +1011,7 @@ paths:
       tags:
         - admins
         - StepTemplates
-      summary: get Step Template by id and version
+      summary: get step template by id and version
       operationId: getStepTemplateByVersion
       parameters:
         - name: stepTemplateId
@@ -1030,7 +1032,7 @@ paths:
       tags:
         - admins
         - StepTemplates
-      summary: validate Step Template by id and version
+      summary: validate step template by id and version
       operationId: validateStepTemplateByVersion
       parameters:
         - name: stepTemplateId
@@ -1055,6 +1057,303 @@ paths:
           description: 'Any validation errors for the requested step template and version'
         '404':
           description: 'Requested step template was not found'
+  /api/workflows/{workflowId}/v/{versionId}/trigger:
+    post:
+      tags:
+        - admins
+        - Workflows
+      summary: trigger a workflow to start
+      operationId: triggerWorkflow
+      parameters:
+        - name: workflowId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowId'
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/VersionId'
+      requestBody:
+        required: true
+        description: 'Metadata and input of workflow. This config is provided to send to Step Functions'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkflowTriggerRequest'
+      responses:
+        '200':
+          description: 'Response from triggering step function'
+  /api/workflows/{workflowId}/v/{versionId}/instances:
+    get:
+      tags:
+        - admins
+        - Workflows
+      summary: get instances of the requested workflow
+      operationId: getWorkflowInstances
+      parameters:
+        - name: workflowId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowId'
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/VersionId'
+      responses:
+        '200':
+          description: 'List of instances of the requested workflow'
+  /api/workflows/{workflowId}/v/{versionId}/instances/{workflowInstanceId}:
+    get:
+      tags:
+        - admins
+        - Workflows
+      summary: get requested instance of the workflow
+      operationId: getWorkflowInstance
+      parameters:
+        - name: workflowId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowId'
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/VersionId'
+        - name: workflowInstanceId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowInstanceId'
+      responses:
+        '200':
+          description: 'Requested instance of the workflow'
+  /api/workflows/instances/{status}:
+    post:
+      tags:
+        - admins
+        - Workflows
+      summary: List the all workflow instances by status and created within specified time period
+      operationId: workflowInstanceStatuses
+      parameters:
+        - name: status
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowInstanceStatus'
+      requestBody:
+        required: true
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InstanceStatusTimePeriod'
+      responses:
+        '200':
+          description: 'List of workflow instances within time period'
+  /api/workflows/{workflowId}/assignments:
+    post:
+      tags:
+        - admins
+        - Workflows
+      summary: List the requested workflow's assignments
+      operationId: workflowAssignments
+      parameters:
+        - name: workflowId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowId'
+      responses:
+        '200':
+          description: 'List of assignments for the requested workflow'
+  /api/workflows/drafts:
+    get:
+      tags:
+        - admins
+        - Workflows
+      summary: List all workflow drafts
+      operationId: getWorkflowDrafts
+      responses:
+        '200':
+          description: 'List of workflow drafts'
+    post:
+      tags:
+        - admins
+        - Workflows
+      summary: Create a draft workflow
+      operationId: createDraftWorkflow
+      parameters:
+        - name: workflowId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowId'
+      requestBody:
+        required: true
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDraftWorkflow'
+      responses:
+        '200':
+          description: 'Created draft workflow response'
+  /api/workflows/drafts/{workflowId}:
+    put:
+      tags:
+        - admins
+        - Workflows
+      summary: Edit draft workflow
+      operationId: editDraftWorkflow
+      parameters:
+        - name: workflowId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowId'
+      requestBody:
+        required: true
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditDraftWorkflow'
+      responses:
+        '200':
+          description: 'Edited draft workflow'
+    delete:
+      tags:
+        - admins
+        - Workflows
+      summary: Delete draft workflow
+      parameters:
+        - name: workflowId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowId'
+      responses:
+        '200':
+          description: 'Empty response'
+  /api/workflows/drafts/publish:
+    put:
+      tags:
+        - admins
+        - Workflows
+      summary: Publish draft workflow
+      operationId: publishDraftWorkflow
+      requestBody:
+        required: true
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublishDraftWorkflow'
+      responses:
+        '200':
+          description: 'Publish draft workflow'
+
+  /api/workflows:
+    get:
+      tags:
+        - admins
+        - Workflows
+      summary: List all workflows
+      operationId: getWorkflows
+      responses:
+        '200':
+          description: 'List of workflows'
+  /api/workflows/latest:
+    get:
+      tags:
+        - admins
+        - Workflows
+      summary: List the latest version of each workflow
+      operationId: getLatestWorkflows
+      responses:
+        '200':
+          description: 'List of latest version of each workflow'
+  /api/workflows/{workflowId}:
+    get:
+      tags:
+        - admins
+        - Workflows
+      summary: Get requested workflow
+      operationId: getWorkflowById
+      parameters:
+        - name: workflowId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowId'
+      responses:
+        '200':
+          description: 'Requested workflow'
+  /api/workflows/{workflowId}/latest:
+    get:
+      tags:
+        - admins
+        - Workflows
+      summary: Get latest version of requested workflow
+      operationId: getWorkflowById
+      parameters:
+        - name: workflowId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowId'
+      responses:
+        '200':
+          description: 'Latest version of requested workflow'
+  /api/workflows/{workflowId}/v/{versionId}:
+    get:
+      tags:
+        - admins
+        - Workflows
+      summary: Get requested workflow by version ID
+      operationId: getWorkflowByVersionId
+      parameters:
+        - name: workflowId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowId'
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/VersionId'
+      responses:
+        '200':
+          description: 'Requested workflow'
+  /api/workflows/{workflowId}/v:
+    post:
+      tags:
+        - admins
+        - Workflows
+      summary: Create a workflow with given workflowId
+      operationId: createWorkflow
+      parameters:
+        - name: workflowId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowId'
+      requestBody:
+        required: true
+        description: ''
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorkflow'
+      responses:
+        '200':
+          description: 'Created workflow'
   /api/workspaces/service-catalog:
     post:
       tags:
@@ -1470,6 +1769,170 @@ components:
     ValidateConfig:
       type: object
       example: { "fieldA": "A string value", "fieldB": 1}
+    WorkflowTriggerRequest:
+      type: object
+      properties:
+        meta:
+          type: Object
+        input:
+          type: Object
+    WorkflowId:
+      type: string
+      minLength: 1
+      maxLength: 100
+      pattern: "^[A-Za-z0-9-_]+$"
+      example: 'wf-create-environment'
+    WorkflowInstanceId:
+      type: string
+      minLength: 1
+      maxLength: 100
+      pattern: "^[A-Za-z0-9-_]+$"
+      example: '9FEAamTBlj464aqCDKql5'
+    InstanceStatusTimePeriod:
+      type: Object
+      properties:
+        startTime:
+          type: string
+        endTime:
+          type: string
+      example: {startTime: '2020-10-05T14:48:00.000Z', endTime: '2020-11-05T14:48:00.000Z'}
+    CreateWorkflow:
+      type: Object
+      example: {
+        "runSpec": {
+          "size": "small",
+          "target": "stepFunctions"
+        },
+        "builtin": true,
+        "workflowTemplateId": "wt-empty",
+        "selectedSteps": [
+          {
+            "stepTemplateId": "st-start-sagemaker-environment-sc",
+            "configs": { },
+            "stepTemplateVer": 1,
+            "skippable": true,
+            "id": "wf-step_1_1517380435823_28",
+            "title": "Start SageMaker Environment",
+            "desc": "Start a SageMaker Jupyter Notebook.\n"
+          }
+        ],
+        "desc": "Start a Service Catalog SageMaker Jupyter Notebook.\n",
+        "instanceTtl": 30,
+        "workflowTemplateVer": 1,
+        "v": 1,
+        "id": "foo-workflow",
+        "title": "Start a Service Catalog SageMaker Notebook"
+      }
+    CreateDraftWorkflow:
+      type: Object
+      example: {
+        "runSpec": {
+          "size": "small",
+          "target": "stepFunctions"
+        },
+        "builtin": true,
+        "selectedSteps": [
+          {
+            "stepTemplateId": "st-start-sagemaker-environment-sc",
+            "configs": { },
+            "stepTemplateVer": 1,
+            "skippable": true,
+            "id": "wf-step_1_1517380435823_28",
+            "title": "Start SageMaker Environment",
+            "desc": "Start a SageMaker Jupyter Notebook.\n"
+          }
+        ],
+        "desc": "Start a Service Catalog SageMaker Jupyter Notebook.\n",
+        "instanceTtl": 30,
+        "workflowTemplateVer": 1,
+        "v": 1,
+        "title": "Start a Service Catalog SageMaker Notebook",
+        "templateId": "wt-empty",
+        "workflowId": "foo-draft-workflow"
+      }
+    EditDraftWorkflow:
+      type: Object
+      example: {
+        "createdAt": "2021-01-27T23:58:07.403Z",
+        "createdBy": "u-uodoD9RlS9IAOfwpFyqwQ",
+        "id": "u-uodoD9RlS9IAOfwpFyqwQ_wf-foo-draft-workflow_0",
+        "rev": 0,
+        "templateId": "wt-empty",
+        "templateVer": 1,
+        "uid": "u-uodoD9RlS9IAOfwpFyqwQ",
+        "updatedAt": "2021-01-27T23:58:07.403Z",
+        "updatedBy": "u-uodoD9RlS9IAOfwpFyqwQ",
+        "workflow": {
+          "builtin": false,
+          "createdAt": "2021-01-27T23:58:07.364Z",
+          "createdBy": "u-uodoD9RlS9IAOfwpFyqwQ",
+          "desc": "An empty workflow so that you have full control of the workflow.\n",
+          "hidden": false,
+          "id": "wf-foo-draft-workflow",
+          "instanceTtl": null,
+          "rev": 0,
+          "runSpec": {
+            "size": "small",
+            "target": "stepFunctions"
+          },
+          "selectedSteps": [
+
+          ],
+          "title": "Empty Workflow",
+          "updatedAt": "2021-01-27T23:58:07.364Z",
+          "updatedBy": "u-uodoD9RlS9IAOfwpFyqwQ",
+          "v": 1,
+          "workflowTemplateId": "wt-empty",
+          "workflowTemplateVer": 1
+        },
+        "workflowId": "wf-foo-draft-workflow",
+        "workflowVer": 0
+      }
+    PublishDraftWorkflow:
+      type: Object
+      example: {
+        "createdAt": "2021-01-27T23:58:07.403Z",
+        "createdBy": "u-uodoD9RlS9IAOfwpFyqwQ",
+        "id": "u-uodoD9RlS9IAOfwpFyqwQ_wf-foo-draft-workflow_0",
+        "rev": 1,
+        "templateId": "wt-empty",
+        "templateVer": 1,
+        "uid": "u-uodoD9RlS9IAOfwpFyqwQ",
+        "updatedAt": "2021-01-28T00:15:43.217Z",
+        "updatedBy": "u-uodoD9RlS9IAOfwpFyqwQ",
+        "workflow": {
+          "builtin": false,
+          "createdAt": "2021-01-27T23:58:07.364Z",
+          "createdBy": "u-uodoD9RlS9IAOfwpFyqwQ",
+          "desc": "An empty workflow so that you have full control of the workflow.\n",
+          "hidden": false,
+          "id": "wf-foo-draft-workflow",
+          "instanceTtl": null,
+          "rev": 0,
+          "runSpec": {
+            "size": "small",
+            "target": "stepFunctions"
+          },
+          "selectedSteps": [
+
+          ],
+          "title": "Empty Workflow",
+          "updatedAt": "2021-01-27T23:58:07.364Z",
+          "updatedBy": "u-uodoD9RlS9IAOfwpFyqwQ",
+          "v": 1,
+          "workflowTemplateId": "wt-empty",
+          "workflowTemplateVer": 1
+        },
+        "workflowId": "wf-foo-draft-workflow",
+        "workflowVer": 0
+      }
+    WorkflowInstanceStatus:
+      type: string
+      enum:
+        - not_started
+        - in_progress
+        - done
+      example: 'done'
     WorkspaceId:
       type: string
       example: '1234a5b6-c7d8-11ea-b397-791ba40a5d32'
