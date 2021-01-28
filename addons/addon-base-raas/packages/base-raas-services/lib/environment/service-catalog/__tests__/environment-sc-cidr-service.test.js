@@ -138,6 +138,54 @@ describe('EnvironmentScCidrService', () => {
       }
     });
 
+    it('should fail because the fromPort contains non-integer value', async () => {
+      // BUILD
+      const params = {
+        id: 'testId',
+        updateRequest: [
+          {
+            protocol: 'tcp',
+            fromPort: '123',
+            toPort: 123,
+            cidrBlocks: ['123.123.123.123/32'],
+          },
+        ],
+      };
+
+      // OPERATE
+      try {
+        await service.update({}, params);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(service.boom.is(err, 'badRequest')).toBe(true);
+        expect(err.message).toContain('Please make sure all "fromPort" and "toPort" values are integers');
+      }
+    });
+
+    it('should fail because the toPort contains non-integer value', async () => {
+      // BUILD
+      const params = {
+        id: 'testId',
+        updateRequest: [
+          {
+            protocol: 'tcp',
+            fromPort: 123,
+            toPort: '123',
+            cidrBlocks: ['123.123.123.123/32'],
+          },
+        ],
+      };
+
+      // OPERATE
+      try {
+        await service.update({}, params);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(service.boom.is(err, 'badRequest')).toBe(true);
+        expect(err.message).toContain('Please make sure all "fromPort" and "toPort" values are integers');
+      }
+    });
+
     it('should fail because the updateRequest contains Ipv6 CIDR ranges', async () => {
       // BUILD
       const params = {
@@ -259,6 +307,264 @@ describe('EnvironmentScCidrService', () => {
         GroupId: 'samplesecurityGroupId',
         IpPermissions: [
           { FromPort: 123, IpProtocol: 'tcp', IpRanges: [{ CidrIp: '123.123.123.123/32' }], ToPort: 123 },
+        ],
+      };
+      const securityGroupId = 'samplesecurityGroupId';
+
+      environmentScService.getSecurityGroupDetails = jest.fn(() => ({
+        currentIngressRules,
+        securityGroupId,
+      }));
+      service.revokeSecurityGroupIngress = jest.fn();
+      service.authorizeSecurityGroupIngress = jest.fn();
+      service.getEc2Client = jest.fn(() => {
+        return {};
+      });
+
+      // OPERATE
+      await service.update(requestContext, params);
+
+      // CHECK
+      expect(service.revokeSecurityGroupIngress).toHaveBeenCalledTimes(1);
+      expect(service.authorizeSecurityGroupIngress).toHaveBeenCalledTimes(1);
+      expect(service.revokeSecurityGroupIngress).toHaveBeenCalledWith({}, revokeParams);
+      expect(service.authorizeSecurityGroupIngress).toHaveBeenCalledWith({}, authorizeParams);
+    });
+
+    it('should not call anything since request has different protocol-port combinations', async () => {
+      // BUILD
+      const requestContext = {};
+      const params = {
+        id: 'testId',
+        updateRequest: [
+          {
+            protocol: 'tcp',
+            fromPort: 123,
+            toPort: 123,
+            cidrBlocks: ['123.123.123.123/32'],
+          },
+        ],
+      };
+      environmentScService.mustFind = jest.fn(() => ({
+        id: 'testId',
+        createdBy: 'someUser',
+      }));
+      const currentIngressRules = [
+        {
+          protocol: 'tcp',
+          fromPort: 456,
+          toPort: 456,
+          cidrBlocks: ['1.1.1.1/32'],
+        },
+      ];
+      const securityGroupId = 'samplesecurityGroupId';
+
+      environmentScService.getSecurityGroupDetails = jest.fn(() => ({
+        currentIngressRules,
+        securityGroupId,
+      }));
+      service.revokeSecurityGroupIngress = jest.fn();
+      service.authorizeSecurityGroupIngress = jest.fn();
+
+      // OPERATE
+      await service.update(requestContext, params);
+
+      // CHECK
+      expect(service.authorizeSecurityGroupIngress).not.toHaveBeenCalled();
+      expect(service.revokeSecurityGroupIngress).not.toHaveBeenCalled();
+    });
+
+    it('should fail because no ingress rules were configured originally', async () => {
+      // BUILD
+      const requestContext = {};
+      const params = {
+        id: 'testId',
+        updateRequest: [
+          {
+            protocol: 'tcp',
+            fromPort: 123,
+            toPort: 123,
+            cidrBlocks: ['123.123.123.123/32'],
+          },
+        ],
+      };
+      environmentScService.mustFind = jest.fn(() => ({
+        id: 'testId',
+        createdBy: 'someUser',
+      }));
+      const currentIngressRules = [];
+      const securityGroupId = 'samplesecurityGroupId';
+
+      environmentScService.getSecurityGroupDetails = jest.fn(() => ({
+        currentIngressRules,
+        securityGroupId,
+      }));
+
+      try {
+        await service.update(requestContext, params);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(err.message).toEqual(
+          'The Security Group for this workspace does not contain any ingress rules configured in the Service Catalog product template',
+        );
+      }
+    });
+
+    it('should use the correct CIDR blocks to make revoke calls only since there is nothing to newly authorize', async () => {
+      // BUILD
+      const requestContext = {};
+      const params = {
+        id: 'testId',
+        updateRequest: [
+          {
+            protocol: 'tcp',
+            fromPort: 123,
+            toPort: 123,
+            cidrBlocks: [],
+          },
+        ],
+      };
+      environmentScService.mustFind = jest.fn(() => ({
+        id: 'testId',
+        createdBy: 'someUser',
+      }));
+      const currentIngressRules = [
+        {
+          protocol: 'tcp',
+          fromPort: 123,
+          toPort: 123,
+          cidrBlocks: ['1.1.1.1/32', '4.4.4.4/32'],
+        },
+      ];
+      const revokeParams = {
+        GroupId: 'samplesecurityGroupId',
+        IpPermissions: [
+          {
+            FromPort: 123,
+            IpProtocol: 'tcp',
+            IpRanges: [{ CidrIp: '1.1.1.1/32' }, { CidrIp: '4.4.4.4/32' }],
+            ToPort: 123,
+          },
+        ],
+      };
+      const securityGroupId = 'samplesecurityGroupId';
+
+      environmentScService.getSecurityGroupDetails = jest.fn(() => ({
+        currentIngressRules,
+        securityGroupId,
+      }));
+      service.revokeSecurityGroupIngress = jest.fn();
+      service.authorizeSecurityGroupIngress = jest.fn();
+      service.getEc2Client = jest.fn(() => {
+        return {};
+      });
+
+      // OPERATE
+      await service.update(requestContext, params);
+
+      // CHECK
+      expect(service.revokeSecurityGroupIngress).toHaveBeenCalledTimes(1);
+      expect(service.revokeSecurityGroupIngress).toHaveBeenCalledWith({}, revokeParams);
+      expect(service.authorizeSecurityGroupIngress).not.toHaveBeenCalled();
+    });
+
+    it('should use the correct CIDR blocks to make authorize calls only since there is nothing to revoke', async () => {
+      // BUILD
+      const requestContext = {};
+      const params = {
+        id: 'testId',
+        updateRequest: [
+          {
+            protocol: 'tcp',
+            fromPort: 123,
+            toPort: 123,
+            cidrBlocks: ['1.1.1.1/32', '4.4.4.4/32'],
+          },
+        ],
+      };
+      environmentScService.mustFind = jest.fn(() => ({
+        id: 'testId',
+        createdBy: 'someUser',
+      }));
+      const currentIngressRules = [
+        {
+          protocol: 'tcp',
+          fromPort: 123,
+          toPort: 123,
+          cidrBlocks: [],
+        },
+      ];
+      const authorizeParams = {
+        GroupId: 'samplesecurityGroupId',
+        IpPermissions: [
+          {
+            FromPort: 123,
+            IpProtocol: 'tcp',
+            IpRanges: [{ CidrIp: '1.1.1.1/32' }, { CidrIp: '4.4.4.4/32' }],
+            ToPort: 123,
+          },
+        ],
+      };
+      const securityGroupId = 'samplesecurityGroupId';
+
+      environmentScService.getSecurityGroupDetails = jest.fn(() => ({
+        currentIngressRules,
+        securityGroupId,
+      }));
+      service.revokeSecurityGroupIngress = jest.fn();
+      service.authorizeSecurityGroupIngress = jest.fn();
+      service.getEc2Client = jest.fn(() => {
+        return {};
+      });
+
+      // OPERATE
+      await service.update(requestContext, params);
+
+      // CHECK
+      expect(service.authorizeSecurityGroupIngress).toHaveBeenCalledTimes(1);
+      expect(service.authorizeSecurityGroupIngress).toHaveBeenCalledWith({}, authorizeParams);
+      expect(service.revokeSecurityGroupIngress).not.toHaveBeenCalled();
+    });
+
+    it('should use the correct CIDR blocks to make revoke and authorize calls with overlapping CIDR block requests', async () => {
+      // BUILD
+      const requestContext = {};
+      const params = {
+        id: 'testId',
+        updateRequest: [
+          {
+            protocol: 'tcp',
+            fromPort: 123,
+            toPort: 123,
+            cidrBlocks: ['1.1.1.1/32', '2.2.2.2/32', '3.3.3.3/32'],
+          },
+        ],
+      };
+      environmentScService.mustFind = jest.fn(() => ({
+        id: 'testId',
+        createdBy: 'someUser',
+      }));
+      const currentIngressRules = [
+        {
+          protocol: 'tcp',
+          fromPort: 123,
+          toPort: 123,
+          cidrBlocks: ['1.1.1.1/32', '4.4.4.4/32'],
+        },
+      ];
+      const revokeParams = {
+        GroupId: 'samplesecurityGroupId',
+        IpPermissions: [{ FromPort: 123, IpProtocol: 'tcp', IpRanges: [{ CidrIp: '4.4.4.4/32' }], ToPort: 123 }],
+      };
+      const authorizeParams = {
+        GroupId: 'samplesecurityGroupId',
+        IpPermissions: [
+          {
+            FromPort: 123,
+            IpProtocol: 'tcp',
+            IpRanges: [{ CidrIp: '2.2.2.2/32' }, { CidrIp: '3.3.3.3/32' }],
+            ToPort: 123,
+          },
         ],
       };
       const securityGroupId = 'samplesecurityGroupId';

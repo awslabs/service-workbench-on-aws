@@ -50,10 +50,13 @@ class EnvironmentScCidrService extends Service {
         if (IsCidr(cidrBlock) === 0) erroneousInputs.push(cidrBlock);
         if (IsCidr.v6(cidrBlock)) ipv6Format.push(cidrBlock);
       });
+      if (!_.isInteger(rule.toPort) || !_.isInteger(rule.fromPort))
+        throw this.boom.badRequest('Please make sure all "fromPort" and "toPort" values are integers', true);
       const protPort = `${rule.protocol}-${rule.fromPort}-${rule.toPort}`;
       if (_.get(protPortCombos, protPort))
         throw this.boom.badRequest(
           'The update request contains duplicate protocol-port combinations. Please make sure all ingress rule objects have unique protocol-fromPort-toPort combinations',
+          true,
         );
       protPortCombos[protPort] = true;
     });
@@ -100,6 +103,12 @@ class EnvironmentScCidrService extends Service {
         requestContext,
         existingEnvironment,
       );
+
+      if (_.isEmpty(currentIngressRules))
+        throw this.boom.badRequest(
+          'The Security Group for this workspace does not contain any ingress rules configured in the Service Catalog product template',
+          true,
+        );
 
       // Perform the actual security group ingress rule updates
       const newCidrList = await this.getUpdatedIngressRules(requestContext, {

@@ -186,6 +186,14 @@ class ScEnvironmentUpdateCidrs extends React.Component {
 
     return (
       <Segment clearing className="p3 mb3">
+        {_.isEmpty(fields) && (
+          <Message
+            className="mb4"
+            icon="warning"
+            header="No Ingress Rules configured"
+            content="The Security Group for this workspace does not contain any ingress rules configured in the Service Catalog product template"
+          />
+        )}
         <Form form={form} onCancel={this.handleCancel} onSuccess={this.handleSubmit}>
           {({ processing, onCancel }) => (
             <>
