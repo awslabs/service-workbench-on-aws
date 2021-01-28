@@ -1191,12 +1191,6 @@ paths:
         - Workflows
       summary: Create a draft workflow
       operationId: createDraftWorkflow
-      parameters:
-        - name: workflowId
-          in: path
-          required: true
-          schema:
-            $ref: '#/components/schemas/WorkflowId'
       requestBody:
         required: true
         description: ''
@@ -1304,7 +1298,7 @@ paths:
         - admins
         - Workflows
       summary: Get latest version of requested workflow
-      operationId: getWorkflowById
+      operationId: getLatestWorkflowById
       parameters:
         - name: workflowId
           in: path
@@ -1485,7 +1479,7 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/WorkflowTemplateId'
-      operationId: getLatestWorkflowTemplate
+      operationId: getLatestWorkflowTemplateById
       responses:
         '200':
           description: 'Return latest version of requested workflow template'
@@ -1506,7 +1500,7 @@ paths:
           required: true
           schema:
             $ref: '#/components/schemas/VersionId'
-      operationId: getLatestWorkflowTemplate
+      operationId: getWorkflowTemplateByIdAndVersion
       responses:
         '200':
           description: 'Return requested workflow template'
@@ -2066,9 +2060,9 @@ components:
       type: object
       properties:
         meta:
-          type: Object
+          type: object
         input:
-          type: Object
+          type: object
     WorkflowId:
       type: string
       minLength: 1
@@ -2091,7 +2085,7 @@ components:
       pattern: "^[A-Za-z0-9-_]+$"
       example: '9FEAamTBlj464aqCDKql5'
     InstanceStatusTimePeriod:
-      type: Object
+      type: object
       properties:
         startTime:
           type: string
@@ -2105,12 +2099,12 @@ components:
       pattern: "^[A-Za-z0-9-_]+$"
       example: 'wt-empty'
     CreateWorkflow:
-      type: Object
+      type: object
       properties:
         workflowTemplateId:
           $ref: '#/components/schemas/WorkflowTemplateId'
         selectedSteps:
-          type: array
+          $ref: '#/components/schemas/SelectedStep'
         desc:
           type: string
         workflowTemplateVer:
@@ -2134,10 +2128,10 @@ components:
         "id": "foo-5-workflow",
       }
     CreateDraftWorkflow:
-      type: Object
+      type: object
       properties:
         selectedSteps:
-          type: array
+          $ref: '#/components/schemas/SelectedSteps'
         desc:
           type: string
         workflowTemplateVer:
@@ -2166,7 +2160,7 @@ components:
         "templateId": "wt-empty",
       }
     EditDraftWorkflow:
-      type: Object
+      type: object
       properties:
         rev:
           type: number
@@ -2177,7 +2171,7 @@ components:
         id:
           type: string
         workflow:
-          type: Object
+          type: object
       example: {
         "rev": 6,
         "workflowId": "wf-foo-1-draft-workflow",
@@ -2196,12 +2190,12 @@ components:
         },
       }
     PublishDraftWorkflow:
-      type: Object
+      type: object
       properties:
         rev:
           type: number
         workflow:
-          type: Object
+          type: object
         workflowId:
           type: string
         templateVer:
@@ -2242,7 +2236,7 @@ components:
         "createdBy": "u-uodoD9RlS9IAOfwpFyqwQ"
       }
     CreateWorkflowTemplate:
-      type: Object
+      type: object
       properties:
         desc:
           type: string
@@ -2251,11 +2245,11 @@ components:
         v:
           type: number
         selectedSteps:
-          type: array
+          $ref: '#/components/schemas/SelectedSteps'
         title:
           type: string
         propsOverrideOption:
-          type: Object
+          type: object
       example: {
         "desc": "Start a Service Catalog SageMaker Jupyter Notebook.\n",
         "id": "foo-1-workflow",
@@ -2265,7 +2259,7 @@ components:
         "propsOverrideOption": { }
       }
     CreateDraftWorkflowTemplate:
-      type: Object
+      type: object
       properties:
         desc:
           type: string
@@ -2279,12 +2273,12 @@ components:
         "title": "Empty Workflow"
       }
     PublishDraftWorkflowTemplate:
-      type: Object
+      type: object
       properties:
         id:
           type: string
         template:
-          type: Object
+          type: object
         templateId:
           type: string
       example: {
@@ -2298,8 +2292,49 @@ components:
         },
         "templateId": "wt-draft-foo7"
       }
+    SelectedStep:
+      type: object
+      properties:
+        stepTemplateId:
+          type: string
+        configs:
+          type: object
+        stepTemplateVer:
+          type: number
+        skippable:
+          type: boolean
+        id:
+          type: string
+        title:
+          type: string
+        desc:
+          type: string
+      example: {
+        "stepTemplateId": "st-start-sagemaker-environment-sc",
+        "configs": { },
+        "stepTemplateVer": 1,
+        "skippable": true,
+        "id": "wf-step_1_1517380435823_28",
+        "title": "Start SageMaker Environment",
+        "desc": "Start a SageMaker Jupyter Notebook.\n"
+      }
+    SelectedSteps:
+      type: array
+      items:
+        $ref: '#/components/schemas/SelectedStep'
+      example: [
+        {
+          "stepTemplateId": "st-start-sagemaker-environment-sc",
+          "configs": { },
+          "stepTemplateVer": 1,
+          "skippable": true,
+          "id": "wf-step_1_1517380435823_28",
+          "title": "Start SageMaker Environment",
+          "desc": "Start a SageMaker Jupyter Notebook.\n"
+        }
+      ]
     CreateKeyPair:
-      type: Object
+      type: object
       properties:
         name:
           type: string
@@ -2307,7 +2342,7 @@ components:
           type: string
       example: {"name": "foo2-key", "desc": "Example key being created"}
     EditKeyPair:
-      type: Object
+      type: object
       properties:
         rev:
           type: number
