@@ -235,6 +235,9 @@ describe('UserAuthzService', () => {
       const userType = {
         userType: 'root',
       };
+      const isSamlAuthenticatedUser = {
+        isSamlAuthenticatedUser: true,
+      };
 
       // OPERATE
       const userUserUnprot = await service.authorizeUpdateAttributes({}, {}, unprotAttr, existingUser);
@@ -246,11 +249,23 @@ describe('UserAuthzService', () => {
       const userUpdateIdpName = await service.authorizeUpdateAttributes({}, {}, identityProviderName, existingUser);
       const userUpdateIdpId = await service.authorizeUpdateAttributes({}, {}, authenticationProviderId, existingUser);
       const userUpdateType = await service.authorizeUpdateAttributes({}, {}, userType, existingUser);
+      const userUpdateIsSamlAuthenticatedUser = await service.authorizeUpdateAttributes(
+        {},
+        {},
+        isSamlAuthenticatedUser,
+        existingUser,
+      );
       const adminUpdateType = await service.authorizeUpdateAttributes(
         { principal: { isAdmin: true } },
         {},
         userType,
         existingAdminUser,
+      );
+      const adminUpdateIsAdmin = await service.authorizeUpdateAttributes(
+        { principal: { isAdmin: true } },
+        {},
+        isAdmin,
+        existingUser,
       );
 
       // CHECK
@@ -264,6 +279,8 @@ describe('UserAuthzService', () => {
       expect(userUpdateIdpId).toMatchObject({ effect: 'deny' });
       expect(userUpdateType).toMatchObject({ effect: 'deny' });
       expect(adminUpdateType).toMatchObject({ effect: 'deny' });
+      expect(userUpdateIsSamlAuthenticatedUser).toMatchObject({ effect: 'deny' });
+      expect(adminUpdateIsAdmin).toMatchObject({ effect: 'allow' });
     });
 
     it('should allow admins to change any attribute of other non-root users', async () => {
