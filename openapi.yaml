@@ -54,6 +54,10 @@ tags:
     description: Operations for viewing step templates. Step templates can be added to new Workflows
   - name: Workflows
     description: Operations for viewing, editing, and adding Workflows
+  - name: WorkflowTemplates
+    description: Operations for viewing, editing, and adding Workflow Templates
+  - name: KeyPairs
+    description: Operations for viewing, editing, and adding KeyPairs
 paths:
   /api/costs:
     get:
@@ -1026,7 +1030,7 @@ paths:
             $ref: '#/components/schemas/VersionId'
       responses:
         '200':
-          description: 'Return list of all versions of the requested step template'
+          description: 'Return array of all versions of the requested step template'
   /api/step-templates/{stepTemplateId}/v/{versionId}/validate:
     post:
       tags:
@@ -1054,7 +1058,7 @@ paths:
               $ref: '#/components/schemas/ValidateConfig'
       responses:
         '200':
-          description: 'Any validation errors for the requested step template and version'
+          description: 'Return any validation errors for the requested step template and version'
         '404':
           description: 'Requested step template was not found'
   /api/workflows/{workflowId}/v/{versionId}/trigger:
@@ -1077,14 +1081,14 @@ paths:
             $ref: '#/components/schemas/VersionId'
       requestBody:
         required: true
-        description: 'Metadata and input of workflow. This config is provided to send to Step Functions'
+        description: 'Metadata and input of workflow.'
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/WorkflowTriggerRequest'
       responses:
         '200':
-          description: 'Response from triggering step function'
+          description: 'Return executionArn and status of StepFunction'
   /api/workflows/{workflowId}/v/{versionId}/instances:
     get:
       tags:
@@ -1105,7 +1109,7 @@ paths:
             $ref: '#/components/schemas/VersionId'
       responses:
         '200':
-          description: 'List of instances of the requested workflow'
+          description: 'Return array of instances of the requested workflow'
   /api/workflows/{workflowId}/v/{versionId}/instances/{workflowInstanceId}:
     get:
       tags:
@@ -1131,7 +1135,7 @@ paths:
             $ref: '#/components/schemas/WorkflowInstanceId'
       responses:
         '200':
-          description: 'Requested instance of the workflow'
+          description: 'Return requested instance of the workflow'
   /api/workflows/instances/{status}:
     post:
       tags:
@@ -1154,7 +1158,7 @@ paths:
               $ref: '#/components/schemas/InstanceStatusTimePeriod'
       responses:
         '200':
-          description: 'List of workflow instances within time period'
+          description: 'Return array of workflow instances within time period'
   /api/workflows/{workflowId}/assignments:
     post:
       tags:
@@ -1170,7 +1174,7 @@ paths:
             $ref: '#/components/schemas/WorkflowId'
       responses:
         '200':
-          description: 'List of assignments for the requested workflow'
+          description: 'Return array of assignments for the requested workflow'
   /api/workflows/drafts:
     get:
       tags:
@@ -1180,7 +1184,7 @@ paths:
       operationId: getWorkflowDrafts
       responses:
         '200':
-          description: 'List of workflow drafts'
+          description: 'Return array of workflow drafts'
     post:
       tags:
         - admins
@@ -1202,7 +1206,7 @@ paths:
               $ref: '#/components/schemas/CreateDraftWorkflow'
       responses:
         '200':
-          description: 'Created draft workflow response'
+          description: 'Return created draft workflow'
   /api/workflows/drafts/{workflowId}:
     put:
       tags:
@@ -1225,7 +1229,7 @@ paths:
               $ref: '#/components/schemas/EditDraftWorkflow'
       responses:
         '200':
-          description: 'Edited draft workflow'
+          description: 'Return edited draft workflow'
     delete:
       tags:
         - admins
@@ -1239,7 +1243,7 @@ paths:
             $ref: '#/components/schemas/WorkflowId'
       responses:
         '200':
-          description: 'Empty response'
+          description: 'Return empty object'
   /api/workflows/drafts/publish:
     put:
       tags:
@@ -1256,7 +1260,7 @@ paths:
               $ref: '#/components/schemas/PublishDraftWorkflow'
       responses:
         '200':
-          description: 'Publish draft workflow'
+          description: 'Return published draft workflow'
 
   /api/workflows:
     get:
@@ -1267,7 +1271,7 @@ paths:
       operationId: getWorkflows
       responses:
         '200':
-          description: 'List of workflows'
+          description: 'Return array of workflows'
   /api/workflows/latest:
     get:
       tags:
@@ -1277,7 +1281,7 @@ paths:
       operationId: getLatestWorkflows
       responses:
         '200':
-          description: 'List of latest version of each workflow'
+          description: 'Reurn array of latest version of each workflow'
   /api/workflows/{workflowId}:
     get:
       tags:
@@ -1293,7 +1297,7 @@ paths:
             $ref: '#/components/schemas/WorkflowId'
       responses:
         '200':
-          description: 'Requested workflow'
+          description: 'Return requested workflow'
   /api/workflows/{workflowId}/latest:
     get:
       tags:
@@ -1309,7 +1313,7 @@ paths:
             $ref: '#/components/schemas/WorkflowId'
       responses:
         '200':
-          description: 'Latest version of requested workflow'
+          description: 'Return latest version of requested workflow'
   /api/workflows/{workflowId}/v/{versionId}:
     get:
       tags:
@@ -1330,7 +1334,7 @@ paths:
             $ref: '#/components/schemas/VersionId'
       responses:
         '200':
-          description: 'Requested workflow'
+          description: 'Return requested workflow'
   /api/workflows/{workflowId}/v:
     post:
       tags:
@@ -1353,7 +1357,296 @@ paths:
               $ref: '#/components/schemas/CreateWorkflow'
       responses:
         '200':
-          description: 'Created workflow'
+          description: 'Return created workflow'
+  /api/workflow-templates/drafts:
+    get:
+      tags:
+        - admins
+        - WorkflowTemplates
+      summary: Get draft workflow templates
+      operationId: getDraftWorkflowTemplates
+      responses:
+        '200':
+          description: 'Return array of draft workflow templates'
+    post:
+      tags:
+        - admins
+        - WorkflowTemplates
+      summary: Created draft workflow template
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDraftWorkflowTemplate'
+      operationId: createDraftWorkflowTemplate
+      responses:
+        '200':
+          description: 'Return created draft workflow template'
+  /api/workflow-templates/drafts/{workflowTemplateId}:
+    put:
+      tags:
+        - admins
+        - WorkflowTemplates
+      summary: Edit draft workflow template
+      parameters:
+        - name: workflowTemplateId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowTemplateId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublishDraftWorkflowTemplate'
+      operationId: editDraftWorkflowTemplate
+      responses:
+        '200':
+          description: 'Return edited draft workflow template'
+    delete:
+      tags:
+        - admins
+        - WorkflowTemplates
+      summary: Delete draft workflow template
+      parameters:
+        - name: workflowTemplateId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowTemplateId'
+      operationId: deleteDraftWorkflowTemplate
+      responses:
+        '200':
+          description: 'Return empty object'
+
+  /api/workflow-templates/drafts/publish:
+    post:
+      tags:
+        - admins
+        - WorkflowTemplates
+      summary: Publish draft workflow template
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublishDraftWorkflowTemplate'
+      operationId: publishDraftWorkflowTemplate
+      responses:
+        '200':
+          description: 'Return created workflow template'
+  /api/workflow-templates:
+    get:
+      tags:
+        - admins
+        - WorkflowTemplates
+      summary: Get workflow templates
+      operationId: getWorkflowTemplates
+      responses:
+        '200':
+          description: 'Return array of workflow templates'
+  /api/workflow-templates/latest:
+    get:
+      tags:
+        - admins
+        - WorkflowTemplates
+      summary: Get latest workflow templates
+      operationId: getLatestWorkflowTemplates
+      responses:
+        '200':
+          description: 'Return array of latest workflow templates'
+  /api/workflow-templates/{workflowTemplateId}:
+    get:
+      tags:
+        - admins
+        - WorkflowTemplates
+      summary: Get all versions of requested workflow template
+      parameters:
+        - name: workflowTemplateId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowTemplateId'
+      operationId: getWorkflowTemplate
+      responses:
+        '200':
+          description: 'Return array of all versions of requested workflow template'
+  /api/workflow-templates/{workflowTemplateId}/latest:
+    get:
+      tags:
+        - admins
+        - WorkflowTemplates
+      summary: Get latest version of requested workflow template
+      parameters:
+        - name: workflowTemplateId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowTemplateId'
+      operationId: getLatestWorkflowTemplate
+      responses:
+        '200':
+          description: 'Return latest version of requested workflow template'
+  /api/workflow-templates/{workflowTemplateId}/v/{versionId}:
+    get:
+      tags:
+        - admins
+        - WorkflowTemplates
+      summary: Get requested workflow template by id and versionId
+      parameters:
+        - name: workflowTemplateId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowTemplateId'
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/VersionId'
+      operationId: getLatestWorkflowTemplate
+      responses:
+        '200':
+          description: 'Return requested workflow template'
+  /api/workflow-templates/{workflowTemplateId}/v:
+    post:
+      tags:
+        - admins
+        - WorkflowTemplates
+      summary: Created new workflow template
+      parameters:
+        - name: workflowTemplateId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowTemplateId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorkflowTemplate'
+      operationId: createWorkflowTemplate
+      responses:
+        '200':
+          description: 'Return created workflow template'
+  /api/key-pairs:
+    get:
+      tags:
+        - KeyPairs
+      summary: Get all key pairs
+      operationId: getKeyPairs
+      responses:
+        '200':
+          description: 'Return all key pairs user has access to, including public key but not private key'
+    post:
+      tags:
+        - KeyPairs
+      summary: Create a key pair
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateKeyPair'
+      operationId: createKeyPair
+      responses:
+        '200':
+          description: 'Return created key pair, including private key'
+  /api/key-pairs/{keyPairId}:
+    get:
+      tags:
+        - KeyPairs
+      summary: Get all key pairs
+      parameters:
+        - name: keyPairId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/KeyPairId'
+      operationId: getKeyPair
+      responses:
+        '200':
+          description: 'Return requested keypair including public key but not private key'
+    put:
+      tags:
+        - KeyPairs
+      summary: Edit key pair
+      parameters:
+        - name: keyPairId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/KeyPairId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditKeyPair'
+      operationId: editKeyPair
+      responses:
+        '200':
+          description: 'Return requested keypair including public key but not private key'
+    delete:
+      tags:
+        - KeyPairs
+      summary: Delete keypair
+      parameters:
+        - name: keyPairId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/KeyPairId'
+      operationId: deleteKeyPair
+      responses:
+        '200':
+          description: 'Return empty object'
+  /api/key-pairs/{keyPairId}/deactivate:
+    put:
+      tags:
+        - KeyPairs
+      summary: Deactivate key pair
+      parameters:
+        - name: keyPairId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/KeyPairId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KeyPairRev'
+      operationId: deactivateKeyPair
+      responses:
+        '200':
+          description: 'Return deactivated keypair including public key but not private key'
+  /api/key-pairs/{keyPairId}/activate:
+    put:
+      tags:
+        - KeyPairs
+      summary: Activate key pair
+      parameters:
+        - name: keyPairId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/KeyPairId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KeyPairRev'
+      operationId: ActivateKeyPair
+      responses:
+        '200':
+          description: 'Return activated keypair including public key but not private key'
+
   /api/workspaces/service-catalog:
     post:
       tags:
@@ -1782,6 +2075,15 @@ components:
       maxLength: 100
       pattern: "^[A-Za-z0-9-_]+$"
       example: 'wf-create-environment'
+    KeyPairId:
+      type: string
+      minLength: 1
+      maxLength: 100
+      pattern: "^[A-Za-z0-9-_]+$"
+      example: 'bdf175e3-2966-456b-bd6a-a6125fa33b8c'
+    KeyPairRev:
+      type: object
+      example: { "rev": 0}
     WorkflowInstanceId:
       type: string
       minLength: 1
@@ -1796,6 +2098,12 @@ components:
         endTime:
           type: string
       example: {startTime: '2020-10-05T14:48:00.000Z', endTime: '2020-11-05T14:48:00.000Z'}
+    WorkflowTemplateId:
+      type: string
+      minLength: 1
+      maxLength: 100
+      pattern: "^[A-Za-z0-9-_]+$"
+      example: 'wt-empty'
     CreateWorkflow:
       type: Object
       example: {
@@ -1926,6 +2234,97 @@ components:
         "workflowId": "wf-foo-draft-workflow",
         "workflowVer": 0
       }
+    CreateWorkflowTemplate:
+      type: Object
+      example: {
+        "propsOverrideOption": {
+          "allowed": [
+              "title",
+              "desc",
+              "instanceTtl",
+              "steps",
+              "runSpecSize",
+              "runSpecTarget"
+          ]
+        },
+        "runSpec": {
+          "size": "small",
+          "target": "stepFunctions"
+        },
+        "builtin": true,
+        "selectedSteps": [ ],
+        "desc": "An empty workflow so that you have full control of the workflow.\n",
+        "instanceTtl": null,
+        "v": 1,
+        "id": "wt-foo1",
+        "hidden": false,
+        "title": "Empty Workflow"
+      }
+    CreateDraftWorkflowTemplate:
+      type: Object
+      example: {
+        "propsOverrideOption": {
+          "allowed": [
+              "title",
+              "desc",
+              "instanceTtl",
+              "steps",
+              "runSpecSize",
+              "runSpecTarget"
+          ]
+        },
+        "runSpec": {
+          "size": "small",
+          "target": "stepFunctions"
+        },
+        "builtin": true,
+        "selectedSteps": [ ],
+        "desc": "An empty workflow so that you have full control of the workflow.\n",
+        "instanceTtl": null,
+        "v": 1,
+        "templateId": "wt-draft-foo1",
+        "hidden": false,
+        "title": "Empty Workflow"
+      }
+    PublishDraftWorkflowTemplate:
+      type: Object
+      example: {
+        "createdAt": "2021-01-28T18:22:29.533Z",
+        "createdBy": "u-uodoD9RlS9IAOfwpFyqwQ",
+        "id": "u-uodoD9RlS9IAOfwpFyqwQ_wt-draft-foo-1_0",
+        "rev": 0,
+        "template": {
+          "builtin": false,
+          "createdAt": "2021-01-28T18:22:29.515Z",
+          "createdBy": "u-uodoD9RlS9IAOfwpFyqwQ",
+          "hidden": false,
+          "id": "wt-draft-foo-1",
+          "propsOverrideOption": {
+            "allowed": [ ]
+          },
+          "rev": 0,
+          "runSpec": {
+            "size": "small",
+            "target": "stepFunctions"
+          },
+          "selectedSteps": [ ],
+          "title": "Untitled",
+          "updatedAt": "2021-01-28T18:22:29.515Z",
+          "updatedBy": "u-uodoD9RlS9IAOfwpFyqwQ",
+          "v": 1
+        },
+        "templateId": "wt-draft-foo-1",
+        "templateVer": 0,
+        "uid": "u-uodoD9RlS9IAOfwpFyqwQ",
+        "updatedAt": "2021-01-28T18:22:29.533Z",
+        "updatedBy": "u-uodoD9RlS9IAOfwpFyqwQ"
+      }
+    CreateKeyPair:
+      type: Object
+      example: {"name": "foo2-key", "desc": "Example key being created"}
+    EditKeyPair:
+      type: Object
+      example: { "rev": 0, "name": "foo2-key", "desc": "Example key being created" }
     WorkflowInstanceStatus:
       type: string
       enum:
