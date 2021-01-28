@@ -19,8 +19,7 @@ import _ from 'lodash';
 const ApiKey = types
   .model('ApiKey', {
     id: types.identifier,
-    ns: '',
-    username: '',
+    uid: '',
     updatedAt: '',
     status: '',
     createdAt: '',
@@ -38,6 +37,12 @@ const ApiKey = types
         return 'expired';
       }
       return self.status;
+    },
+    get isActive() {
+      return self.effectiveStatus === 'active';
+    },
+    get isRevoked() {
+      return self.effectiveStatus === 'revoked';
     },
   }));
 

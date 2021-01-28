@@ -105,7 +105,12 @@ class ProjectConfigure extends React.Component {
     const getFieldLabel = fieldName => this.form.$(fieldName).label;
     const toRow = fieldName => {
       const value = _.get(this.currentProject, fieldName);
-      const displayValue = _.isArray(value) ? _.map(value, (v, k) => <Label key={k} content={v.username} />) : value;
+      const displayValue = _.isArray(value)
+        ? _.map(value, (v, k) => {
+            const user = this.usersStore.asUserObject({ uid: v });
+            return <Label key={k} content={user.username} />;
+          })
+        : value;
       return (
         <>
           <Table.Cell collapsing active>
@@ -333,11 +338,13 @@ class ProjectConfigure extends React.Component {
   }
 
   renderProjectAdminsSelection() {
-    const projectAdminsOption = this.props.usersStore.asDropDownOptions();
+    const usersStore = this.props.usersStore;
+    const projectAdminsOption = usersStore.asDropDownOptions();
+    const currentProjectAdminUsers = _.map(this.currentProject.projectAdmins, uid => usersStore.asUserObject({ uid }));
     return (
       <Dropdown
         options={projectAdminsOption}
-        defaultValue={_.map(this.currentProject.projectAdmins, x => x.id)}
+        defaultValue={_.map(currentProjectAdminUsers, x => x.uid)}
         fluid
         multiple
         selection
@@ -348,7 +355,7 @@ class ProjectConfigure extends React.Component {
 
   handleProjectAdminsSelection = (e, { value }) => {
     runInAction(() => {
-      this.updateProject.projectAdmins = value.map(item => JSON.parse(item));
+      this.updateProject.projectAdmins = value;
     });
   };
 

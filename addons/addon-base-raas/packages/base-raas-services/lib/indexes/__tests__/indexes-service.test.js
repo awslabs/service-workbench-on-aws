@@ -174,7 +174,7 @@ describe('IndexesService', () => {
       } catch (err) {
         // CHECK
         expect(err.message).toEqual(
-          'indexes information changed by "alreadyChanged" just before your request is processed, please try again',
+          'indexes information changed just before your request is processed, please try again',
         );
       }
     });

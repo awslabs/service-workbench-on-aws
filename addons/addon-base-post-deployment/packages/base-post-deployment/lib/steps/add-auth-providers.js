@@ -30,6 +30,7 @@ const settingKeys = {
   fedIdpMetadatas: 'fedIdpMetadatas',
   defaultAuthNProviderTitle: 'defaultAuthNProviderTitle',
   cognitoAuthNProviderTitle: 'cognitoAuthNProviderTitle',
+  cognitoUserPoolDomainPrefix: 'cognitoUserPoolDomainPrefix',
 };
 
 class AddAuthProviders extends Service {
@@ -81,6 +82,7 @@ class AddAuthProviders extends Service {
     // Get settings
     const envName = this.settings.get(settingKeys.envName);
     const solutionName = this.settings.get(settingKeys.solutionName);
+    const cognitoUserPoolDomainPrefix = this.settings.get(settingKeys.cognitoUserPoolDomainPrefix);
 
     const enableNativeUserPoolUsers = this.settings.getBoolean(settingKeys.enableNativeUserPoolUsers);
 
@@ -115,7 +117,7 @@ class AddAuthProviders extends Service {
       title: this.settings.get(settingKeys.cognitoAuthNProviderTitle),
       userPoolName,
       clientName: `${envName}-${solutionName}-client`,
-      userPoolDomain: `${envName}-${solutionName}`,
+      userPoolDomain: cognitoUserPoolDomainPrefix,
       enableNativeUserPoolUsers,
       federatedIdentityProviders,
     };
@@ -141,6 +143,12 @@ class AddAuthProviders extends Service {
     if (userPool) {
       // If pool exists, set its ID in the config so it can be updated
       cognitoAuthProviderConfig.userPoolId = userPool.Id;
+
+      // If pool exists, set userPoolDomain to existing value
+      const userPoolDetailResult = await cognitoIdentityServiceProvider
+        .describeUserPool({ UserPoolId: userPool.Id })
+        .promise();
+      cognitoAuthProviderConfig.userPoolDomain = userPoolDetailResult.UserPool.Domain;
 
       // Verify that the stored auth provider config also exists
       const awsRegion = this.settings.get(settingKeys.awsRegion);

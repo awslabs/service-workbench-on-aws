@@ -1,0 +1,8 @@
+id: st-stop-rstudio-environment-sc
+v: 1
+title: Stop RStudio Environment
+desc: |
+  Stop an RStudio Instance.
+
+skippable: true # this means that if there is an error in a previous step, then this step will be skipped
+hidden: true

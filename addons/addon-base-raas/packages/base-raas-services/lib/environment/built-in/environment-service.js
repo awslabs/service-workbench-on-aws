@@ -22,8 +22,8 @@ const createSchema = require('../../schema/create-environment');
 const updateSchema = require('../../schema/update-environment');
 
 const settingKeys = {
-  tableName: 'dbTableEnvironments',
-  awsAccountsTableName: 'dbTableAwsAccounts',
+  tableName: 'dbEnvironments',
+  awsAccountsTableName: 'dbAwsAccounts',
   ec2RStudioAmiPrefix: 'ec2RStudioAmiPrefix',
   ec2LinuxAmiPrefix: 'ec2LinuxAmiPrefix',
   ec2WindowsAmiPrefix: 'ec2WindowsAmiPrefix',
@@ -142,7 +142,7 @@ class EnvironmentService extends Service {
 
   async saveEnvironmentToDb(requestContext, rawData, id, status = 'PENDING') {
     // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     // Prepare the db object
     const date = new Date().toISOString();
     const dbObject = this._fromRawToDbObject(rawData, {
@@ -410,7 +410,7 @@ class EnvironmentService extends Service {
     const jsonSchemaValidationService = await this.service('jsonSchemaValidationService');
     await jsonSchemaValidationService.ensureValid(environment, updateSchema);
 
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
 
     // Prepare the db object
     // const dbObject = _.omit(this._fromRawToDbObject(dataObject, { updatedBy: by }), ['rev']);
@@ -632,7 +632,7 @@ class EnvironmentService extends Service {
     } = await sts
       .assumeRole({
         RoleArn,
-        RoleSessionName: `RaaS-${requestContext.principalIdentifier.username}`,
+        RoleSessionName: `RaaS-${requestContext.principalIdentifier.uid}`,
         ExternalId,
       })
       .promise();

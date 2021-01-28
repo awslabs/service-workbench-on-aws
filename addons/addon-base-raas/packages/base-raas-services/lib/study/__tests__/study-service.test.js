@@ -149,7 +149,7 @@ describe('studyService', () => {
       });
       // OPERATE
       try {
-        await service.create({ principal: { userRole: 'admin' } }, dataIpt);
+        await service.create({ principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } }, dataIpt);
         expect.hasAssertions();
       } catch (err) {
         // CHECK
@@ -157,11 +157,151 @@ describe('studyService', () => {
       }
     });
 
+    it('should fail if non-system user is trying to create Open Data study', async () => {
+      // BUILD
+      const dataIpt = {
+        id: 'newOpenStudy',
+        category: 'Open Data',
+      };
+
+      // OPERATE
+      try {
+        await service.create(
+          { principal: { userRole: 'admin' }, principalIdentifier: { uid: 'someRandomUserUid' } },
+          dataIpt,
+        );
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Only the system can create Open Data studies.');
+      }
+    });
+
+    it('should pass if system is trying to create Open Data study', async () => {
+      // BUILD
+      const dataIpt = {
+        id: 'newOpenStudy',
+        category: 'Open Data',
+      };
+      service.audit = jest.fn();
+
+      // OPERATE
+      await service.create({ principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } }, dataIpt);
+
+      // CHECK
+      expect(dbService.table.update).toHaveBeenCalled();
+      expect(service.audit).toHaveBeenCalledWith(
+        { principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } },
+        { action: 'create-study', body: undefined },
+      );
+    });
+
+    it('should fail if non-Open Data study type has non-empty resources list', async () => {
+      // BUILD
+      const dataIpt = {
+        id: 'newOpenStudy',
+        category: 'Organization',
+        projectId: 'existingProjId',
+        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
+      };
+      projectService.verifyUserProjectAssociation.mockImplementationOnce(() => true);
+
+      // OPERATE
+      try {
+        await service.create(
+          { principal: { userRole: 'admin' }, principalIdentifier: { uid: 'someRandomUserUid' } },
+          dataIpt,
+        );
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Resources can only be assigned to Open Data study category');
+      }
+    });
+
+    it('should get the correct allowed studies ONLY (admin, R/O, R/W)', async () => {
+      // BUILD, OPERATE and CHECK
+      expect(
+        service.getAllowedStudies({
+          adminAccess: ['studyA'],
+          readonlyAccess: ['studyB'],
+          readwriteAccess: ['studyC'],
+          unknownAccess: ['studyD'],
+        }),
+      ).toEqual(['studyA', 'studyB', 'studyC']);
+    });
+
+    it('should pass if Open Data study type has non-empty resources list', async () => {
+      // BUILD
+      const dataIpt = {
+        id: 'newOpenStudy',
+        category: 'Open Data',
+        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
+      };
+      service.audit = jest.fn();
+
+      // OPERATE
+      await service.create({ principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } }, dataIpt);
+
+      // CHECK
+      expect(dbService.table.update).toHaveBeenCalled();
+      expect(service.audit).toHaveBeenCalledWith(
+        { principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } },
+        { action: 'create-study', body: undefined },
+      );
+    });
+
     it('should try to create the study successfully', async () => {
       // BUILD
       const dataIpt = {
         id: 'doppelganger',
         category: 'Open Data',
+      };
+
+      service.audit = jest.fn();
+
+      // OPERATE
+      await service.create({ principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } }, dataIpt);
+
+      // CHECK
+      expect(dbService.table.update).toHaveBeenCalled();
+      expect(service.audit).toHaveBeenCalledWith(
+        { principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } },
+        { action: 'create-study', body: undefined },
+      );
+    });
+
+    it('should try to create the study successfully when accessType is readonly', async () => {
+      // BUILD
+      const dataIpt = {
+        id: 'doppelganger',
+        category: 'Open Data',
+        accessType: 'readonly',
+      };
+
+      service.audit = jest.fn();
+
+      // OPERATE
+      await service.create({ principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } }, dataIpt);
+
+      // CHECK
+      expect(dbService.table.update).toHaveBeenCalled();
+      expect(service.audit).toHaveBeenCalledWith(
+        { principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } },
+        { action: 'create-study', body: undefined },
+      );
+    });
+
+    it('should try to create the study successfully when accessType is readwrite for My Studies', async () => {
+      // BUILD
+      projectService.verifyUserProjectAssociation = jest.fn().mockImplementationOnce(() => {
+        return true;
+      });
+      const dataIpt = {
+        id: 'doppelganger',
+        category: 'My Studies',
+        accessType: 'readwrite',
+        projectId: 'some_project_id',
       };
 
       service.audit = jest.fn();
@@ -175,6 +315,89 @@ describe('studyService', () => {
         { principal: { userRole: 'admin' } },
         { action: 'create-study', body: undefined },
       );
+    });
+
+    it('should try to create the study successfully when accessType is readwrite for Organization', async () => {
+      // BUILD
+      projectService.verifyUserProjectAssociation = jest.fn().mockImplementationOnce(() => {
+        return true;
+      });
+      const dataIpt = {
+        id: 'doppelganger',
+        category: 'Organization',
+        accessType: 'readwrite',
+        projectId: 'some_project_id',
+      };
+
+      service.audit = jest.fn();
+
+      // OPERATE
+      await service.create({ principal: { userRole: 'admin' } }, dataIpt);
+
+      // CHECK
+      expect(dbService.table.update).toHaveBeenCalled();
+      expect(service.audit).toHaveBeenCalledWith(
+        { principal: { userRole: 'admin' } },
+        { action: 'create-study', body: undefined },
+      );
+    });
+
+    it('should fail because accessType specified is ReadOnly in camelcase', async () => {
+      // BUILD
+      const ipt = {
+        name: 'doppelganger',
+        category: 'My Studies',
+        accessType: 'ReadOnly',
+      };
+
+      // OPERATE
+      try {
+        await service.create({ principal: { userRole: 'admin' } }, ipt);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Input has validation errors');
+      }
+    });
+
+    it('should fail because accessType specified is random', async () => {
+      // BUILD
+      const ipt = {
+        name: 'doppelganger',
+        category: 'My Studies',
+        accessType: 'random',
+      };
+
+      // OPERATE
+      try {
+        await service.create({ principal: { userRole: 'admin' } }, ipt);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Input has validation errors');
+      }
+    });
+
+    it('should fail because accessType is readwrite for Open Data', async () => {
+      // BUILD
+      projectService.verifyUserProjectAssociation = jest.fn().mockImplementationOnce(() => {
+        return true;
+      });
+      const ipt = {
+        id: 'doppelganger',
+        category: 'Open Data',
+        accessType: 'readwrite',
+        projectId: 'some_project_id',
+      };
+
+      // OPERATE
+      try {
+        await service.create({ principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } }, ipt);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Open Data study cannot be read/write');
+      }
     });
   });
 
@@ -192,6 +415,46 @@ describe('studyService', () => {
       } catch (err) {
         // CATCH
         expect(err.message).toEqual('Input has validation errors');
+      }
+    });
+
+    it('should fail due to invalid accessType', async () => {
+      // BUILD
+      const ipt = {
+        name: 'tasDevil',
+        rev: 1,
+        accessType: 'random',
+      };
+
+      // OPERATE
+      try {
+        await service.update({}, ipt);
+        expect.hasAssertions();
+      } catch (err) {
+        // CATCH
+        expect(err.message).toEqual('Input has validation errors');
+      }
+    });
+
+    it('should fail due to readwrite accessType on Open Data study', async () => {
+      // BUILD
+      const dataIpt = {
+        id: 'doppelganger',
+        accessType: 'readwrite',
+        rev: 1,
+      };
+      service.find = jest.fn().mockImplementationOnce(() => {
+        return { id: 'doppelganger', category: 'Open Data' };
+      });
+      service.audit = jest.fn();
+
+      // OPERATE
+      try {
+        await service.update({ principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } }, dataIpt);
+        expect.hasAssertions();
+      } catch (err) {
+        // CATCH
+        expect(err.message).toEqual('Open Data study cannot be read/write');
       }
     });
 
@@ -216,7 +479,7 @@ describe('studyService', () => {
         expect.hasAssertions();
       } catch (err) {
         // CHECK
-        expect(err.message).toEqual('study with id "doppelganger" does not exist');
+        expect(err.message).toEqual('Study with id "doppelganger" does not exist');
       }
     });
 
@@ -225,15 +488,21 @@ describe('studyService', () => {
       const dataIpt = {
         id: 'doppelganger',
         rev: 1,
+        accessType: 'readonly',
       };
 
       dbService.table.update.mockImplementationOnce(() => {
         throw error;
       });
 
-      service.find = jest.fn().mockImplementationOnce(() => {
-        return { updatedBy: { username: 'another doppelganger' } };
-      });
+      service.find = jest
+        .fn()
+        .mockImplementationOnce(() => {
+          return { id: 'doppelganger', updatedBy: { username: 'another doppelganger' }, category: 'Organization' };
+        })
+        .mockImplementationOnce(() => {
+          return { id: 'doppelganger', updatedBy: { username: 'another doppelganger' }, category: 'Organization' };
+        });
 
       // OPERATE
       try {
@@ -242,8 +511,83 @@ describe('studyService', () => {
       } catch (err) {
         // CHECK
         expect(err.message).toEqual(
-          'study information changed by "another doppelganger" just before your request is processed, please try again',
+          'study information changed just before your request is processed, please try again',
         );
+      }
+    });
+
+    it('should fail if non-system user is trying to update Open Data study', async () => {
+      // BUILD
+      const dataIpt = {
+        id: 'existingOpenStudy',
+        rev: 1,
+      };
+
+      service.find = jest.fn().mockImplementationOnce(() => {
+        return { id: 'existingOpenStudy', updatedBy: { username: 'another doppelganger' }, category: 'Open Data' };
+      });
+
+      // OPERATE
+      try {
+        await service.update(
+          { principal: { userRole: 'admin' }, principalIdentifier: { uid: 'someRandomUserUid' } },
+          dataIpt,
+        );
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Only the system can update Open Data studies.');
+      }
+    });
+
+    it('should pass if system is trying to update Open Data study', async () => {
+      // BUILD
+      const dataIpt = {
+        id: 'existingOpenStudy',
+        rev: 1,
+      };
+
+      service.find = jest.fn().mockImplementationOnce(() => {
+        return { id: 'existingOpenStudy', updatedBy: { username: 'another doppelganger' }, category: 'Open Data' };
+      });
+
+      service.audit = jest.fn();
+
+      // OPERATE
+      await service.update({ principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } }, dataIpt);
+
+      // CHECK
+      expect(dbService.table.update).toHaveBeenCalled();
+      expect(service.audit).toHaveBeenCalledWith(
+        { principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } },
+        { action: 'update-study', body: undefined },
+      );
+    });
+
+    it('should fail if non Open Data study type has non-empty resources list', async () => {
+      // BUILD
+      const dataIpt = {
+        id: 'existingOrgStudy',
+        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
+        rev: 1,
+      };
+
+      service.find = jest.fn().mockImplementationOnce(() => {
+        return { id: 'existingOrgStudy', updatedBy: { username: 'another doppelganger' }, category: 'Organization' };
+      });
+
+      projectService.verifyUserProjectAssociation.mockImplementationOnce(() => true);
+
+      // OPERATE
+      try {
+        await service.update(
+          { principal: { userRole: 'admin' }, principalIdentifier: { uid: 'someRandomUserUid' } },
+          dataIpt,
+        );
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Resources can only be updated for Open Data study category');
       }
     });
 
@@ -253,6 +597,49 @@ describe('studyService', () => {
         id: 'doppelganger',
         rev: 1,
       };
+      service.find = jest.fn().mockImplementationOnce(() => {
+        return { id: 'doppelganger', category: 'Organization' };
+      });
+      service.audit = jest.fn();
+
+      // OPERATE
+      await service.update({}, dataIpt);
+
+      // CHECK
+      expect(dbService.table.update).toHaveBeenCalled();
+      expect(service.audit).toHaveBeenCalledWith({}, { action: 'update-study', body: undefined });
+    });
+
+    it('should succeed with readwrite accessType', async () => {
+      // BUILD
+      const dataIpt = {
+        id: 'doppelganger',
+        accessType: 'readwrite',
+        rev: 1,
+      };
+      service.find = jest.fn().mockImplementationOnce(() => {
+        return { id: 'doppelganger', category: 'Organization' };
+      });
+      service.audit = jest.fn();
+
+      // OPERATE
+      await service.update({}, dataIpt);
+
+      // CHECK
+      expect(dbService.table.update).toHaveBeenCalled();
+      expect(service.audit).toHaveBeenCalledWith({}, { action: 'update-study', body: undefined });
+    });
+
+    it('should succeed with readonly accessType', async () => {
+      // BUILD
+      const dataIpt = {
+        id: 'doppelganger',
+        accessType: 'readonly',
+        rev: 1,
+      };
+      service.find = jest.fn().mockImplementationOnce(() => {
+        return { id: 'doppelganger', category: 'My Studies' };
+      });
       service.audit = jest.fn();
 
       // OPERATE
@@ -290,6 +677,80 @@ describe('studyService', () => {
       // CHECK
       expect(dbService.table.delete).toHaveBeenCalled();
       expect(service.audit).toHaveBeenCalledWith({}, { action: 'delete-study', body: { id: 'projectId' } });
+    });
+  });
+
+  describe('list', () => {
+    it('should create Study Access Map according to user-study permissions: Admins and R/W', async () => {
+      // BUILD
+      const permissions = {
+        adminAccess: ['studyA'],
+        readwriteAccess: ['studyA'],
+      };
+      const expectedVal = { studyA: ['admin', 'readwrite'] };
+      jest.spyOn(service, '_getStudyAccessMap');
+
+      // OPERATE
+      const retVal = service._getStudyAccessMap(permissions);
+      // CHECK
+      expect(retVal).toEqual(expectedVal);
+    });
+
+    it('should create Study Access Map according to user-study permissions: Admins and R/O', async () => {
+      // BUILD
+      const permissions = {
+        adminAccess: ['studyA'],
+        readonlyAccess: ['studyA'],
+      };
+      const expectedVal = { studyA: ['admin', 'readonly'] };
+      jest.spyOn(service, '_getStudyAccessMap');
+
+      // OPERATE
+      const retVal = service._getStudyAccessMap(permissions);
+      // CHECK
+      expect(retVal).toEqual(expectedVal);
+    });
+
+    it('should create Study Access Map according to user-study permissions: Admins only', async () => {
+      // BUILD
+      const permissions = {
+        adminAccess: ['studyA', 'studyB'],
+      };
+      const expectedVal = { studyA: ['admin'], studyB: ['admin'] };
+      jest.spyOn(service, '_getStudyAccessMap');
+
+      // OPERATE
+      const retVal = service._getStudyAccessMap(permissions);
+      // CHECK
+      expect(retVal).toEqual(expectedVal);
+    });
+
+    it('should create Study Access Map according to user-study permissions: R/W only', async () => {
+      // BUILD
+      const permissions = {
+        readwriteAccess: ['studyA', 'studyB'],
+      };
+      const expectedVal = { studyA: ['readwrite'], studyB: ['readwrite'] };
+      jest.spyOn(service, '_getStudyAccessMap');
+
+      // OPERATE
+      const retVal = service._getStudyAccessMap(permissions);
+      // CHECK
+      expect(retVal).toEqual(expectedVal);
+    });
+
+    it('should create Study Access Map according to user-study permissions: R/O only', async () => {
+      // BUILD
+      const permissions = {
+        readonlyAccess: ['studyA', 'studyB'],
+      };
+      const expectedVal = { studyA: ['readonly'], studyB: ['readonly'] };
+      jest.spyOn(service, '_getStudyAccessMap');
+
+      // OPERATE
+      const retVal = service._getStudyAccessMap(permissions);
+      // CHECK
+      expect(retVal).toEqual(expectedVal);
     });
   });
 });

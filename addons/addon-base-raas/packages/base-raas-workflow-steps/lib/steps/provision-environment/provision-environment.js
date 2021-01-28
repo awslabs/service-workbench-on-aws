@@ -33,11 +33,13 @@ class ProvisionEnvironment extends StepBase {
 
     // Get services
     const [
+      userService,
       environmentService,
       cfnTemplateService,
       environmentKeypairService,
       environmentMountService,
     ] = await this.mustFindServices([
+      'userService',
       'environmentService',
       'cfnTemplateService',
       'environmentKeypairService',
@@ -54,7 +56,8 @@ class ProvisionEnvironment extends StepBase {
       this.payload.string('encryptionKeyArn'),
     ]);
     const environment = await environmentService.mustFind(requestContext, { id: environmentId });
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
+    const user = await userService.mustFindUser({ uid: by });
     // Stack naming combines datetime & randomString to avoid collisions when two workspaces are created at the same time
     const stackName = `analysis-${new Date().getTime()}-${randomString(10)}`;
 
@@ -130,16 +133,16 @@ class ProvisionEnvironment extends StepBase {
 
     if (type !== 'sagemaker') {
       const credential = await this.getCredentials();
-      const [amiImage, cidr, keyName] = await Promise.all([
+      const [amiImage, keyName] = await Promise.all([
         this.payload.string('amiImage'),
-        this.payload.string('cidr'),
         environmentKeypairService.create(requestContext, environmentId, credential),
       ]);
 
       addParam('AmiId', amiImage);
-      addParam('AccessFromCIDRBlock', cidr);
       addParam('KeyName', keyName);
     }
+    const cidr = await this.payload.string('cidr');
+    addParam('AccessFromCIDRBlock', cidr);
 
     if (type !== 'emr') {
       addParam('InstanceType', environment.instanceInfo.size);
@@ -159,7 +162,7 @@ class ProvisionEnvironment extends StepBase {
       Tags: [
         {
           Key: 'Description',
-          Value: `Created by ${by.username}`,
+          Value: `Created by ${user.username}`,
         },
         {
           Key: 'Env',
@@ -171,7 +174,7 @@ class ProvisionEnvironment extends StepBase {
         },
         {
           Key: 'CreatedBy',
-          Value: by.username,
+          Value: user.username,
         },
       ],
     };
@@ -202,7 +205,7 @@ class ProvisionEnvironment extends StepBase {
     } = await sts
       .assumeRole({
         RoleArn,
-        RoleSessionName: `RaaS-${requestContext.principalIdentifier.username}`,
+        RoleSessionName: `RaaS-${requestContext.principalIdentifier.uid}`,
         ExternalId,
       })
       .promise();
@@ -224,7 +227,7 @@ class ProvisionEnvironment extends StepBase {
     } = await sts
       .assumeRole({
         RoleArn,
-        RoleSessionName: `RaaS-${requestContext.principalIdentifier.username}-OrgRole`,
+        RoleSessionName: `RaaS-${requestContext.principalIdentifier.uid}-OrgRole`,
         ExternalId,
       })
       .promise();

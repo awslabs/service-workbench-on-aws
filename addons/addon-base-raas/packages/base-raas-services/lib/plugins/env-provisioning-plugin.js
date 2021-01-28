@@ -13,6 +13,8 @@
  *  permissions and limitations under the License.
  */
 
+const _ = require('lodash');
+
 /**
  * A plugin method to contribute to the list of available variables for usage in variable expressions in
  * Environment Type Configurations. This plugin method just provides metadata about the variables such as list of
@@ -115,12 +117,25 @@ async function updateEnvOnProvisioningSuccess({
 
   const existingEnvRecord = await environmentScService.mustFind(requestContext, { id: envId, fields: ['rev'] });
 
+  // Create DNS record for RStudio workspaces
+  const connectionType = _.find(outputs, o => o.OutputKey === 'MetaConnection1Type');
+  let connectionTypeValue;
+  if (connectionType) {
+    connectionTypeValue = connectionType.OutputValue;
+    if (connectionTypeValue.toLowerCase() === 'rstudio') {
+      const dnsName = _.find(outputs, o => o.OutputKey === 'Ec2WorkspaceDnsName').OutputValue;
+      const environmentDnsService = await container.find('environmentDnsService');
+      await environmentDnsService.createRecord('rstudio', envId, dnsName);
+    }
+  }
+
   const environment = {
     id: envId,
     rev: existingEnvRecord.rev || 0,
     status,
     outputs,
     provisionedProductId,
+    inWorkflow: 'false',
   };
   await environmentScService.update(requestContext, environment);
 
@@ -183,7 +198,10 @@ async function updateEnvOnTerminationSuccess({ requestContext, container, status
   const log = await container.find('log');
   const environmentScService = await container.find('environmentScService');
 
-  const existingEnvRecord = await environmentScService.mustFind(requestContext, { id: envId, fields: ['rev'] });
+  const existingEnvRecord = await environmentScService.mustFind(requestContext, {
+    id: envId,
+    fields: ['rev', 'outputs'],
+  });
 
   log.debug({ msg: `Updating environment record after successful termination`, envId });
   // -- Update environment record status in the DB
@@ -191,12 +209,17 @@ async function updateEnvOnTerminationSuccess({ requestContext, container, status
     id: envId,
     rev: existingEnvRecord.rev || 0,
     status,
+    inWorkflow: 'false',
   };
-  const updatedEnvironment = await environmentScService.update(requestContext, environment);
+  const updatedEnvironment = await environmentScService.update(requestContext, environment, { action: 'REMOVE' });
 
   // -- Perform all required clean up
   // --- Cleanup - Resource policies (such as S3 bucket policy, KMS key policy etc) in central account
   log.debug({ msg: `Cleaning up local resource policies`, envId });
+
+  // Delete DNS record for RStudio workspaces
+  await rstudioCleanup(requestContext, updatedEnvironment, container);
+
   const indexesService = await container.find('indexesService');
   const { awsAccountId } = await indexesService.mustFind(requestContext, { id: updatedEnvironment.indexId });
   const environmentMountService = await container.find('environmentMountService');
@@ -221,6 +244,39 @@ async function updateEnvOnTerminationSuccess({ requestContext, container, status
   await environmentScKeypairService.delete(requestContext, envId);
 
   return { requestContext, container, status, envId, record };
+}
+
+// This method checks if the environment being terminated is an RStudio.
+// If yes, this will delete the CNAME record in Route 53 service and the
+// SSM public kay parameter created during environment's provisioning
+async function rstudioCleanup(requestContext, updatedEnvironment, container) {
+  const connectionType = _.find(updatedEnvironment.outputs, o => o.OutputKey === 'MetaConnection1Type');
+  let connectionTypeValue;
+  if (connectionType) {
+    connectionTypeValue = connectionType.OutputValue;
+    if (connectionTypeValue.toLowerCase() === 'rstudio') {
+      const dnsName = _.find(updatedEnvironment.outputs, x => x.OutputKey === 'Ec2WorkspaceDnsName').OutputValue;
+      const instanceId = _.find(updatedEnvironment.outputs, x => x.OutputKey === 'Ec2WorkspaceInstanceId').OutputValue;
+      const environmentDnsService = await container.find('environmentDnsService');
+      const environmentScService = await container.find('environmentScService');
+      await environmentDnsService.deleteRecord('rstudio', updatedEnvironment.id, dnsName);
+
+      const ssm = await environmentScService.getClientSdkWithEnvMgmtRole(
+        requestContext,
+        { id: updatedEnvironment.id },
+        { clientName: 'SSM', options: { apiVersion: '2014-11-06' } },
+      );
+      await ssm
+        .deleteParameter({ Name: `/rstudio/publickey/sc-environments/ec2-instance/${instanceId}` })
+        .promise()
+        .catch(e => {
+          // Nothing to do if ParameterNotFound, rethrow any other errors
+          if (e.code !== 'ParameterNotFound') {
+            throw e;
+          }
+        });
+    }
+  }
 }
 
 // The "terminate-product' workflow call "onEnvTerminationFailure" in case of any errors

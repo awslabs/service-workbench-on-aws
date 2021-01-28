@@ -23,9 +23,8 @@ const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const inputSchema = require('../schema/workflow');
 
 const settingKeys = {
-  tableName: 'dbTableWorkflowDrafts',
+  tableName: 'dbWorkflowDrafts',
 };
-const usernameIndexName = 'UsernameIndex';
 
 class WorkflowDraftService extends Service {
   constructor() {
@@ -56,17 +55,16 @@ class WorkflowDraftService extends Service {
 
     // await ensureAdmin(requestContext);
     // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
-    const username = encodePrincipalIdentifier(by);
+    const by = _.get(requestContext, 'principalIdentifier.uid');
 
     const now = new Date().toISOString();
     const workflowId = slugify(_.kebabCase(_.startsWith(workflowIdRaw, 'wf-') ? workflowIdRaw : `wf-${workflowIdRaw}`));
-    const draftId = `${username}_${workflowId}_${workflowVer}`;
+    const draftId = `${by}_${workflowId}_${workflowVer}`;
     const draft = {
       id: draftId,
       workflowId,
       workflowVer,
-      username,
+      uid: by,
     };
 
     if (isNewWorkflow) {
@@ -157,8 +155,7 @@ class WorkflowDraftService extends Service {
 
     // await ensureAdmin(requestContext);
     // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
-    const username = encodePrincipalIdentifier(by);
+    const by = _.get(requestContext, 'principalIdentifier.uid');
 
     const workflow = draft.workflow;
     // Validate the workflow
@@ -170,8 +167,7 @@ class WorkflowDraftService extends Service {
     const originalDraft = await this.mustFindDraft({ id: draft.id });
 
     // Check if the owner of this draft is the same entity that is trying to update the draft
-    if (originalDraft.username !== username)
-      throw this.boom.forbidden('You are not authorized to perform this operation', true);
+    if (originalDraft.uid !== by) throw this.boom.forbidden('You are not authorized to perform this operation', true);
 
     const originalWorkflow = originalDraft.workflow;
     if (workflow.id !== originalWorkflow.id || workflow.v !== originalWorkflow.v) {
@@ -269,13 +265,11 @@ class WorkflowDraftService extends Service {
   async deleteDraft(requestContext, { id }) {
     // await ensureAdmin(requestContext);
     // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
-    const username = encodePrincipalIdentifier(by);
+    const uid = _.get(requestContext, 'principalIdentifier.uid');
     const originalDraft = await this.mustFindDraft({ id });
 
     // Check if the owner of this draft is the same entity that is trying to delete the draft
-    if (originalDraft.username !== username)
-      throw this.boom.forbidden('You are not authorized to perform this operation', true);
+    if (originalDraft.uid !== uid) throw this.boom.forbidden('You are not authorized to perform this operation', true);
 
     // Lets now remove the draft from the database
     const dbService = await this.service('dbService');
@@ -291,18 +285,19 @@ class WorkflowDraftService extends Service {
     await this.audit(requestContext, { action: 'delete-workflow-draft', body: { id } });
   }
 
-  // List all drafts for a username
-  async list({ principalIdentifier, fields = [] } = {}) {
+  // List all drafts for a uid
+  async list(requestContext, { fields = [] } = {}) {
     const dbService = await this.service('dbService');
     const table = this.tableName;
-    const username = encodePrincipalIdentifier(principalIdentifier);
+
+    const uid = _.get(requestContext, 'principalIdentifier.uid');
 
     // The query route
     const result = await dbService.helper
       .query()
       .table(table)
-      .index(usernameIndexName)
-      .key('username', username)
+      .index('ByUID')
+      .key('uid', uid)
       .limit(2000)
       .projection(fields)
       .query();
@@ -338,11 +333,6 @@ class WorkflowDraftService extends Service {
     // return auditWriterService.write(requestContext, auditEvent);
     return auditWriterService.writeAndForget(requestContext, auditEvent);
   }
-}
-
-function encodePrincipalIdentifier(principalIdentifier = {}) {
-  const { username = 'unknown', ns = 'unknown' } = principalIdentifier;
-  return `ns=${ns},us=${username}`;
 }
 
 module.exports = WorkflowDraftService;

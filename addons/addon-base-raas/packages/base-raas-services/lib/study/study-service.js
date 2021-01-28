@@ -18,13 +18,13 @@ const Service = require('@aws-ee/base-services-container/lib/service');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const { buildTaggingXml } = require('../helpers/aws-tags');
-const { isInternalResearcher, isAdmin } = require('../helpers/is-role');
+const { isInternalResearcher, isAdmin, isSystem } = require('../helpers/is-role');
 const createSchema = require('../schema/create-study');
 const updateSchema = require('../schema/update-study');
 
 const settingKeys = {
-  tableName: 'dbTableStudies',
-  categoryIndexName: 'dbTableStudiesCategoryIndex',
+  tableName: 'dbStudies',
+  categoryIndexName: 'dbStudiesCategoryIndex',
   studyDataBucketName: 'studyDataBucketName',
 };
 
@@ -76,9 +76,21 @@ class StudyService extends Service {
     return result;
   }
 
+  async listByIds(requestContext, ids, fields = []) {
+    const result = await this._getter()
+      .keys(ids)
+      .projection(fields)
+      .get();
+
+    return result.map(record => this.fromDbToDataObject(record));
+  }
+
   async create(requestContext, rawData) {
     if (!(isInternalResearcher(requestContext) || isAdmin(requestContext))) {
       throw this.boom.forbidden('Only admin and internal researcher are authorized to create studies. ');
+    }
+    if (rawData.category === 'Open Data' && !isSystem(requestContext)) {
+      throw this.boom.badRequest('Only the system can create Open Data studies.', true);
     }
     const [validationService, projectService] = await this.service(['jsonSchemaValidationService', 'projectService']);
 
@@ -86,20 +98,27 @@ class StudyService extends Service {
     await validationService.ensureValid(rawData, createSchema);
 
     // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
+
+    // validate if study can be read/write
+    this.validateStudyType(rawData.accessType, rawData.category);
 
     // The open data studies do not need to be associated to any project
     // for everything else make sure projectId is specified
     if (rawData.category !== 'Open Data') {
       const projectId = rawData.projectId;
       if (!projectId) {
-        throw this.boom.badRequest('Missing required projectId');
+        throw this.boom.badRequest('Missing required projectId', true);
       }
       // Verify user has access to the project the new study will be associated with
       if (!(await projectService.verifyUserProjectAssociation(by, projectId))) {
-        throw this.boom.forbidden(`Not authorized to add study related to project "${projectId}"`);
+        throw this.boom.forbidden(`Not authorized to add study related to project "${projectId}"`, true);
       }
       await projectService.mustFind(requestContext, { id: rawData.projectId });
+      // Verify user is not trying to create resources for non-Open data studies
+      if (!_.isEmpty(rawData.resources)) {
+        throw this.boom.badRequest('Resources can only be assigned to Open Data study category', true);
+      }
     }
 
     const id = rawData.id;
@@ -156,8 +175,26 @@ class StudyService extends Service {
     await validationService.ensureValid(rawData, updateSchema);
 
     // For now, we assume that 'updatedBy' is always a user and not a group
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     const { id, rev } = rawData;
+
+    const study = await this.mustFind(requestContext, id);
+
+    if (study.category === 'Open Data' && !isSystem(requestContext)) {
+      throw this.boom.badRequest('Only the system can update Open Data studies.', true);
+    }
+
+    if (study.category !== 'Open Data' && !_.isEmpty(rawData.resources)) {
+      throw this.boom.badRequest('Resources can only be updated for Open Data study category', true);
+    }
+
+    // validate if study can be read/write
+    this.validateStudyType(rawData.accessType, study.category);
+
+    // TODO: Add logic for the following when full write functionality is implemented:
+    // 1. Permissions removal for Read/Write and Write if ReadWrite accessType switches to ReadOnly
+    // 2. Workspace mounts to be corrected
+    // 3. Deleting any additional resources created as part of the ReadWrite functionality
 
     // Prepare the db object
     const dbObject = _.omit(this.fromRawToDbObject(rawData, { updatedBy: by }), ['rev']);
@@ -180,9 +217,7 @@ class StudyService extends Service {
         const existing = await this.find(requestContext, id, ['id', 'updatedBy']);
         if (existing) {
           throw this.boom.badRequest(
-            `study information changed by "${
-              (existing.updatedBy || {}).username
-            }" just before your request is processed, please try again`,
+            `study information changed just before your request is processed, please try again`,
             true,
           );
         }
@@ -216,6 +251,13 @@ class StudyService extends Service {
     return result;
   }
 
+  getAllowedStudies(permissions = []) {
+    const adminAccess = permissions.adminAccess || [];
+    const readonlyAccess = permissions.readonlyAccess || [];
+    const readwriteAccess = permissions.readwriteAccess || [];
+    return _.uniq([...adminAccess, ...readonlyAccess, ...readwriteAccess]);
+  }
+
   async list(requestContext, category, fields = []) {
     // Get studies allowed for user
     let result = [];
@@ -235,7 +277,7 @@ class StudyService extends Service {
         const permissions = await this.studyPermissionService.getRequestorPermissions(requestContext);
         if (permissions) {
           // We can't give duplicate keys to the batch get, so ensure that allowedStudies is unique
-          const allowedStudies = _.uniq(permissions.adminAccess.concat(permissions.readonlyAccess));
+          const allowedStudies = this.getAllowedStudies(permissions);
           if (allowedStudies.length) {
             const rawResult = await this._getter()
               .keys(allowedStudies.map(studyId => ({ id: studyId })))
@@ -243,12 +285,8 @@ class StudyService extends Service {
               .get();
 
             // Filter by category and inject requestor's access level
-            const studyAccessMap = {};
-            ['admin', 'readonly'].forEach(level =>
-              permissions[`${level}Access`].forEach(studyId => {
-                studyAccessMap[studyId] = level;
-              }),
-            );
+            const studyAccessMap = this._getStudyAccessMap(permissions);
+
             result = rawResult
               .filter(study => study.category === category)
               .map(study => ({
@@ -262,6 +300,22 @@ class StudyService extends Service {
 
     // Return result
     return result;
+  }
+
+  _getStudyAccessMap(permissions) {
+    const studyAccessMap = {};
+    _.forEach(['admin', 'readwrite', 'readonly'], level => {
+      const studiesWithPermission = permissions[`${level}Access`];
+      if (studiesWithPermission && studiesWithPermission.length > 0)
+        studiesWithPermission.forEach(studyId => {
+          if (studyAccessMap[studyId]) {
+            studyAccessMap[studyId].push(level);
+          } else {
+            studyAccessMap[studyId] = [level];
+          }
+        });
+    });
+    return studyAccessMap;
   }
 
   /**
@@ -387,6 +441,13 @@ class StudyService extends Service {
     // If the main call also needs to fail in case writing to any audit destination fails then switch to "write" method as follows
     // return auditWriterService.write(requestContext, auditEvent);
     return auditWriterService.writeAndForget(requestContext, auditEvent);
+  }
+
+  // ensure that study accessType isn't read/write for Open Data category
+  validateStudyType(accessType, studyCategory) {
+    if (accessType === 'readwrite' && studyCategory === 'Open Data') {
+      throw this.boom.badRequest('Open Data study cannot be read/write', true);
+    }
   }
 }
 

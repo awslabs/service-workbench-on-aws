@@ -14,6 +14,8 @@
  */
 
 const _ = require('lodash');
+const { nanoid: nanoIdSync } = require('nanoid');
+const { nanoid } = require('nanoid/async');
 const crypto = require('crypto');
 
 function toVersionString(num) {
@@ -231,6 +233,16 @@ function randomString(strLength = 10) {
   return [...Array(strLength)].map(() => Math.round(Math.random() * 36).toString(36)).join('');
 }
 
+async function generateId(prefix = '') {
+  const id = await nanoid();
+  return `${prefix}${id}`;
+}
+
+function generateIdSync(prefix = '') {
+  const id = nanoIdSync();
+  return `${prefix}${id}`;
+}
+
 module.exports = {
   toVersionString,
   parseVersionString,
@@ -245,5 +257,7 @@ module.exports = {
   randomString,
   paginatedList,
   paginatedFind,
+  generateId,
+  generateIdSync,
   createHash,
 };

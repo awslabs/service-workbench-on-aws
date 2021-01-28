@@ -21,7 +21,7 @@ const createSchema = require('../schema/create-cost-api-cache');
 const updateSchema = require('../schema/update-cost-api-cache');
 
 const settingKeys = {
-  tableName: 'dbTableCostApiCaches',
+  tableName: 'dbCostApiCaches',
 };
 
 class CostApiCacheService extends Service {
@@ -64,7 +64,7 @@ class CostApiCacheService extends Service {
     await validationService.ensureValid(rawData, createSchema);
 
     // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     const { indexId, query } = rawData;
 
     // Prepare the db object
@@ -88,7 +88,7 @@ class CostApiCacheService extends Service {
     await validationService.ensureValid(rawData, updateSchema);
 
     // For now, we assume that 'updatedBy' is always a user and not a group
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     const { indexId, rev } = rawData;
 
     // Prepare the db object
@@ -111,9 +111,7 @@ class CostApiCacheService extends Service {
         const existing = await this.find(requestContext, { indexId, fields: ['indexId', 'updatedBy'] });
         if (existing) {
           throw this.boom.badRequest(
-            `costApiCache information changed by "${
-              (existing.updatedBy || {}).username
-            }" just before your request is processed, please try again`,
+            `costApiCache information changed just before your request is processed, please try again`,
             true,
           );
         }

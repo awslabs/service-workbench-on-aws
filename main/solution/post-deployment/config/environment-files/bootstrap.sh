@@ -15,7 +15,7 @@ S3_MOUNTS="$1"
 FILES_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 GOOFYS_URL="https://github.com/kahing/goofys/releases/download/v0.21.0/goofys"
 
-# Define a function to determine what type of environment this is (EMR, SageMaker, or EC2 Linux)
+# Define a function to determine what type of environment this is (EMR, SageMaker, RStudio, or EC2 Linux)
 env_type() {
     if [ -d "/usr/share/aws/emr" ]
     then
@@ -23,6 +23,9 @@ env_type() {
     elif [ -d "/home/ec2-user/SageMaker" ]
     then
         printf "sagemaker"
+    elif [ -d "/var/log/rstudio-server" ]
+    then
+        printf "rstudio"
     else
         printf "ec2-linux"
     fi
@@ -91,6 +94,9 @@ case "$(env_type)" in
         ;;
     "ec2-linux") # Add mount script to bash profile
         printf "\n# Mount S3 study data\nmount_s3.sh\n\n" >> "/home/ec2-user/.bash_profile"
+        ;;
+    "rstudio") # Add mount script to bash profile
+        printf "\n# Mount S3 study data\nmount_s3.sh\n\n" >> "/home/rstudio-user/.bash_profile"
         ;;
 esac
 

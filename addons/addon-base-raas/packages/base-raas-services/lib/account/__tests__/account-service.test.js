@@ -26,8 +26,8 @@ const AuthServiceMock = require('@aws-ee/base-services/lib/authorization/authori
 jest.mock('@aws-ee/base-services/lib/audit/audit-writer-service');
 const AuditServiceMock = require('@aws-ee/base-services/lib/audit/audit-writer-service');
 
-jest.mock('@aws-ee/base-services/lib/aws/aws-service');
-const AWSMock = require('@aws-ee/base-services/lib/aws/aws-service');
+const Aws = require('@aws-ee/base-services/lib/aws/aws-service');
+const AWSMock = require('aws-sdk-mock');
 
 jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
 const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
@@ -49,7 +49,7 @@ describe('accountService', () => {
     container.register('dbService', new DbServiceMock());
     container.register('authorizationService', new AuthServiceMock());
     container.register('auditWriterService', new AuditServiceMock());
-    container.register('aws', new AWSMock());
+    container.register('aws', new Aws());
     container.register('workflowTriggerService', new WorkflowTriggerServiceMock());
     container.register('settings', new SettingsServiceMock());
     container.register('accountService', new AccountService());
@@ -59,6 +59,15 @@ describe('accountService', () => {
     dbService = await container.find('dbService');
     wfService = await container.find('workflowTriggerService');
     service.assertAuthorized = jest.fn();
+  });
+
+  beforeEach(async () => {
+    const aws = await service.service('aws');
+    AWSMock.setSDKInstance(aws.sdk);
+  });
+
+  afterEach(() => {
+    AWSMock.restore();
   });
 
   describe('provisionAccount tests', () => {
@@ -105,8 +114,21 @@ describe('accountService', () => {
         externalId: '837 Traction Ave',
         description: 'A classic nodejs-lodash mess-around',
       };
+      const outputData = {
+        accountName: "Who's that girl?",
+        accountEmail: 'itsjest@example.com',
+        masterRoleArn: 'reagan :/',
+        externalId: '837 Traction Ave',
+        description: 'A classic nodejs-lodash mess-around',
+        callerAccountId: '111111111111',
+      };
       service.audit = jest.fn();
       wfService.triggerWorkflow = jest.fn();
+      AWSMock.mock('STS', 'getCallerIdentity', {
+        UserId: 'Jeet',
+        Account: '111111111111',
+        Arn: 'arn:aws:sts::111111111111:assumed-role/Jeet/Jeet',
+      });
 
       // OPERATE
       await service.provisionAccount({}, iptData);
@@ -117,7 +139,7 @@ describe('accountService', () => {
         {
           workflowId: 'wf-provision-account',
         },
-        expect.objectContaining(iptData),
+        expect.objectContaining(outputData),
       );
       expect(service.audit).toHaveBeenCalledWith(
         {},

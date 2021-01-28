@@ -27,7 +27,7 @@ import raasInitializationPlugin from '@aws-ee/base-raas-ui/dist/plugins/initiali
 import raasAppComponentPlugin from '@aws-ee/base-raas-ui/dist/plugins/app-component-plugin';
 import raasMenuItemsPlugin from '@aws-ee/base-raas-ui/dist/plugins/menu-items-plugin';
 import raasRoutesPlugin from '@aws-ee/base-raas-ui/dist/plugins/routes-plugin';
-// import raasAppStreamRoutesPlugin from '@aws-ee/base-raas-appstream-ui/dist/plugins/routes-plugin';
+import raasEnvTypeMgmtPlugin from '@aws-ee/base-raas-ui/dist/plugins/env-type-mgmt-plugin';
 
 import envMgmtMenuItemsPlugin from '@aws-ee/environment-type-mgmt-ui/dist/plugins/menu-items-plugin';
 import envMgmtRoutesPlugin from '@aws-ee/environment-type-mgmt-ui/dist/plugins/routes-plugin';
@@ -53,8 +53,6 @@ const extensionPoints = {
     envMgmtAppContextItemsPlugin,
     keyPairAppContextItemsPlugin,
     raasAppContextItemsPlugin,
-    // raasAppStreamAppContextItemsPlugin,
-    // notificationsAppContextItemsPlugin,
     appContextItemsPlugin,
   ],
   'initialization': [baseInitializationPlugin, raasInitializationPlugin, initializationPlugin],
@@ -66,7 +64,6 @@ const extensionPoints = {
     envMgmtMenuItemsPlugin,
     keyPairMenuItemsPlugin,
     raasMenuItemsPlugin,
-    // notificationsMenuItemsPlugin,
     menuItemsPlugin,
   ],
   'routes': [
@@ -75,12 +72,9 @@ const extensionPoints = {
     envMgmtRoutesPlugin,
     keyPairRoutesPlugin,
     raasRoutesPlugin,
-    // notificationsRoutesPlugin,
-
-    // TODO: Enable app stream plugin again. Temporarily disabled app stream plugin until appropriate extension points are added to provision-account workflow
-    // raasAppStreamRoutesPlugin,
     routesPlugin,
   ],
+  'env-type-management': [raasEnvTypeMgmtPlugin],
 };
 
 function getPlugins(extensionPoint) {

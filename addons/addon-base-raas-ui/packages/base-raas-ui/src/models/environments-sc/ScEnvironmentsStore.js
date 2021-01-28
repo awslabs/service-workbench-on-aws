@@ -4,7 +4,13 @@ import { getEnv, types } from 'mobx-state-tree';
 import { consolidateToMap } from '@aws-ee/base-ui/dist/helpers/utils';
 import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
 
-import { getScEnvironments, createScEnvironment, deleteScEnvironment } from '../../helpers/api';
+import {
+  getScEnvironments,
+  createScEnvironment,
+  deleteScEnvironment,
+  startScEnvironment,
+  stopScEnvironment,
+} from '../../helpers/api';
 import { ScEnvironment } from './ScEnvironment';
 import { ScEnvironmentStore } from './ScEnvironmentStore';
 import { ScEnvConnectionStore } from './ScEnvConnectionStore';
@@ -12,6 +18,7 @@ import { ScEnvConnectionStore } from './ScEnvConnectionStore';
 const filterNames = {
   ALL: 'all',
   AVAILABLE: 'available',
+  STOPPED: 'stopped',
   PENDING: 'pending',
   ERRORED: 'errored',
   TERMINATED: 'terminated',
@@ -21,8 +28,14 @@ const filterNames = {
 const filters = {
   [filterNames.ALL]: () => true,
   [filterNames.AVAILABLE]: env => env.status === 'COMPLETED' || env.status === 'TAINTED',
-  [filterNames.PENDING]: env => env.status === 'PENDING' || env.status === 'TERMINATING',
-  [filterNames.ERRORED]: env => env.status === 'FAILED' || env.status === 'TERMINATING_FAILED',
+  [filterNames.STOPPED]: env => env.status === 'STOPPED',
+  [filterNames.PENDING]: env =>
+    env.status === 'PENDING' || env.status === 'TERMINATING' || env.status === 'STARTING' || env.status === 'STOPPING',
+  [filterNames.ERRORED]: env =>
+    env.status === 'FAILED' ||
+    env.status === 'TERMINATING_FAILED' ||
+    env.status === 'STARTING_FAILED' ||
+    env.status === 'STOPPING_FAILED',
   [filterNames.TERMINATED]: env => env.status === 'TERMINATED',
 };
 
@@ -74,6 +87,20 @@ const ScEnvironmentsStore = BaseStore.named('ScEnvironmentsStore')
         const env = self.getScEnvironment(id);
         if (!env) return;
         env.setStatus('TERMINATING');
+      },
+
+      async startScEnvironment(id) {
+        await startScEnvironment(id);
+        const env = self.getScEnvironment(id);
+        if (!env) return;
+        env.setStatus('STARTING');
+      },
+
+      async stopScEnvironment(id) {
+        await stopScEnvironment(id);
+        const env = self.getScEnvironment(id);
+        if (!env) return;
+        env.setStatus('STOPPING');
       },
 
       getScEnvironmentStore(envId) {
@@ -128,6 +155,17 @@ const ScEnvironmentsStore = BaseStore.named('ScEnvironmentsStore')
 
     getScEnvironment(id) {
       return self.environments.get(id);
+    },
+
+    canChangeState(id) {
+      const outputs = self.environments.get(id).outputs;
+      let result = false;
+      outputs.forEach(output => {
+        if (output.OutputKey === 'Ec2WorkspaceInstanceId' || output.OutputKey === 'NotebookInstanceName') {
+          result = true;
+        }
+      });
+      return result;
     },
 
     get user() {

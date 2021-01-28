@@ -1,0 +1,14 @@
+id: wf-stop-rstudio-environment-sc
+v: 1
+workflowTemplateId: wt-empty
+workflowTemplateVer: 1
+title: Stop an Service Catalog RStudio instance
+desc: |
+  Stop an Service Catalog RStudio instance.
+hidden: false
+builtin: true
+instanceTtl: 30 # In days, however, empty value means that it is indefinite
+selectedSteps:
+  - stepTemplateId: st-stop-rstudio-environment-sc
+    stepTemplateVer: 1
+    id: wf-step_1_1314164454949_03 # Randomly generated id, no need to change it

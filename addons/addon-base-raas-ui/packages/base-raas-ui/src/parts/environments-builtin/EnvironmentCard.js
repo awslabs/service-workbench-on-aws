@@ -38,6 +38,8 @@ const UPDATE_INTERVAL_MS = 20000;
 
 // expected props
 // - environment - a Environment model instance (via props)
+// - environmentsStore - MobX environmentsStore model
+// - user - Current user
 // - userDisplayName (via injection)
 // - location (from react router)
 class EnvironmentCard extends React.Component {
@@ -174,7 +176,7 @@ class EnvironmentCard extends React.Component {
     return this.props.environmentsStore;
   }
 
-  getUserDisplayNameService() {
+  getUserDisplayName() {
     return this.props.userDisplayName;
   }
 
@@ -248,7 +250,7 @@ class EnvironmentCard extends React.Component {
           </div>
         </div>
         <div className="ml3 mb2 mt2 breakout">
-          created <TimeAgo date={createdAt} /> <By user={createdBy} />
+          created <TimeAgo date={createdAt} /> <By uid={createdBy} />
         </div>
         <div className="ml3 mb2 mt2 breakout">
           <Dotdotdot clamp={3}>{description}</Dotdotdot>
@@ -273,9 +275,9 @@ class EnvironmentCard extends React.Component {
   }
 
   renderRightCard(environment) {
-    const displayNameService = this.getUserDisplayNameService();
-    const sharedWithUsernames = _.map(environment.sharedWithUsers, 'username');
-
+    const userDisplayName = this.getUserDisplayName();
+    const sharedWithUsers = environment.sharedWithUsers; // array of uid
+    const sharedWithUsernames = _.map(sharedWithUsers, uid => userDisplayName.getDisplayName({ uid }));
     return (
       <div className="border-left border-grey pl2 ml2">
         <div className="mt1 fs-9">
@@ -285,7 +287,7 @@ class EnvironmentCard extends React.Component {
           </Label>
         </div>
         <div className="fs-9">
-          <Dotdotdot clamp={1}>{displayNameService.getLongDisplayName(environment.createdBy)}</Dotdotdot>
+          <Dotdotdot clamp={1}>{userDisplayName.getLongDisplayName({ uid: environment.createdBy })}</Dotdotdot>
         </div>
         <div className="mt3 fs-9">
           <span className="bold  inline-block">Research Workspace Shared Users</span>{' '}

@@ -25,6 +25,25 @@ const sharePortfolioWithTargetAccYaml = require('../steps/share-portfolio-with-t
 const launchProduct = require('../steps/launch-product/launch-product');
 const launchProductYaml = require('../steps/launch-product/launch-product.yml');
 
+const startEC2 = require('../steps/start-ec2-environment/start-ec2-environment-sc.js');
+const startEC2Yaml = require('../steps/start-ec2-environment/start-ec2-environment-sc.yml');
+
+const stopEC2 = require('../steps/stop-ec2-environment/stop-ec2-environment-sc.js');
+const stopEC2Yaml = require('../steps/stop-ec2-environment/stop-ec2-environment-sc.yml');
+
+const startRStudio = require('../steps/start-rstudio-environment/start-rstudio-environment-sc.js');
+const startRStudioYaml = require('../steps/start-rstudio-environment/start-rstudio-environment-sc.yml');
+
+// Stop RStudio is the same as Stop EC2
+const stopRStudio = require('../steps/stop-ec2-environment/stop-ec2-environment-sc.js');
+const stopRStudioYaml = require('../steps/stop-rstudio-environment/stop-rstudio-environment-sc.yml');
+
+const startSageMaker = require('../steps/start-sagemaker-environment/start-sagemaker-environment-sc.js');
+const startSageMakerYaml = require('../steps/start-sagemaker-environment/start-sagemaker-environment-sc.yml');
+
+const stopSageMaker = require('../steps/stop-sagemaker-environment/stop-sagemaker-environment-sc.js');
+const stopSageMakerYaml = require('../steps/stop-sagemaker-environment/stop-sagemaker-environment-sc.yml');
+
 const terminateProduct = require('../steps/terminate-product/terminate-product');
 const terminateProductYaml = require('../steps/terminate-product/terminate-product.yml');
 
@@ -36,6 +55,12 @@ const steps = [
   add(replicateLaunchConstraintInTargetAcc, replicateLaunchConstraintInTargetAccYaml),
   add(sharePortfolioWithTargetAcc, sharePortfolioWithTargetAccYaml),
   add(launchProduct, launchProductYaml),
+  add(startEC2, startEC2Yaml),
+  add(stopEC2, stopEC2Yaml),
+  add(startRStudio, startRStudioYaml),
+  add(stopRStudio, stopRStudioYaml),
+  add(startSageMaker, startSageMakerYaml),
+  add(stopSageMaker, stopSageMakerYaml),
   add(terminateProduct, terminateProductYaml),
 ];
 

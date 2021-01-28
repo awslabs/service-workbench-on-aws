@@ -34,7 +34,11 @@ class StudyEnvironmentSetup extends React.Component {
   constructor(props) {
     super(props);
     runInAction(() => {
-      const step = enableBuiltInWorkspaces ? 'selectComputePlatform' : 'selectEnvType';
+      const step = enableBuiltInWorkspaces
+        ? 'selectComputePlatform'
+        : this.envTypeId
+        ? 'selectEnvConfig' // If envTypeId id is passed then jump to env config step
+        : 'selectEnvType';
       this.currentStep = CurrentStep.create({ step });
     });
   }
@@ -49,7 +53,11 @@ class StudyEnvironmentSetup extends React.Component {
   }
 
   handlePrevious = () => {
-    this.goto('/studies');
+    if (this.envTypeId) {
+      this.goto(`/studies/workspace-type/${encodeURIComponent(this.envTypeId)}`);
+    } else {
+      this.goto('/studies');
+    }
   };
 
   // eslint-disable-next-line no-unused-vars
@@ -85,7 +93,7 @@ class StudyEnvironmentSetup extends React.Component {
   }
 
   renderStepsProgress() {
-    return <StudyStepsProgress currentStep={this.currentStep} />;
+    return <StudyStepsProgress currentStep={this.currentStep} envTypeImmutable={!!this.envTypeId} />;
   }
 
   renderContent() {
@@ -112,6 +120,8 @@ class StudyEnvironmentSetup extends React.Component {
           studyIds={this.studyIds}
           onPrevious={this.handlePrevious}
           onCompleted={this.handleCompleted}
+          envTypeId={this.envTypeId}
+          envTypeImmutable={!!this.envTypeId} // If envTypeId is passed already then do not allow selecting it
         />
       );
     }
@@ -158,6 +168,10 @@ class StudyEnvironmentSetup extends React.Component {
         />
       </div>
     );
+  }
+
+  get envTypeId() {
+    return (this.props.match.params || {}).envTypeId;
   }
 }
 

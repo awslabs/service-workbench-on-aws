@@ -16,6 +16,9 @@ Parameters:
   Subnet:
     Description: Subnet for EMR nodes, from the VPC selected above
     Type: AWS::EC2::Subnet::Id
+  AccessFromCIDRBlock:
+    Type: String
+    Description: The CIDR used to access sagemaker.
   S3Mounts:
     Type: String
     Description: A JSON array of objects with name, bucket and prefix properties used to mount data
@@ -30,6 +33,9 @@ Parameters:
   EncryptionKeyArn:
     Type: String
     Description: The ARN of the KMS encryption Key used to encrypt data in the notebook
+  AutoStopIdleTimeInMinutes:
+    Type: Number
+    Description: Number of idle minutes for auto stop to shutdown the instance (0 to disable auto-stop)
 
 Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
@@ -41,6 +47,11 @@ Resources:
       GroupDescription: SageMaker Notebook Instance
       VpcId:
         Ref: VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: !Ref AccessFromCIDRBlock
 
   IAMRole:
     Type: 'AWS::IAM::Role'
@@ -94,6 +105,25 @@ Resources:
                 - logs:CreateLogGroup
               Resource:
                 - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/sagemaker/*
+
+  # This policy is attached to the role after the instance is created
+  # so that the instance can be referenced in the resource section
+  NotebookStopPolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: NotebookStop
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - sagemaker:DescribeNotebookInstance
+              - sagemaker:StopNotebookInstance
+            Resource:
+              - !Ref BasicNotebookInstance
+      Roles:
+        - !Ref IAMRole
+
   # TODO: Consider also passing DefaultCodeRepository to allow persisting notebook data
   BasicNotebookInstance:
     Type: 'AWS::SageMaker::NotebookInstance'
@@ -117,6 +147,16 @@ Resources:
               aws s3 cp "${EnvironmentInstanceFiles}/get_bootstrap.sh" "/tmp"
               chmod 500 "/tmp/get_bootstrap.sh"
               /tmp/get_bootstrap.sh "${EnvironmentInstanceFiles}" '${S3Mounts}'
+
+              # Stop Idle Script
+              if [ "${AutoStopIdleTimeInMinutes}" != "0" ]; then
+                echo "Fetching the autostop script"
+                curl -L -o /usr/local/bin/autostop.py https://raw.githubusercontent.com/aws-samples/amazon-sagemaker-notebook-instance-lifecycle-config-samples/master/scripts/auto-stop-idle/autostop.py
+                chmod a+x /usr/local/bin/autostop.py
+                IDLE_TIME=`expr ${AutoStopIdleTimeInMinutes} \* 60`
+                echo "Starting the SageMaker autostop script in cron"
+                (crontab -l 2>/dev/null; echo "5 * * * * /usr/bin/python /usr/local/bin/autostop.py --time $IDLE_TIME --ignore-connections") | crontab -
+              fi
 
 Outputs:
   NotebookInstanceName:

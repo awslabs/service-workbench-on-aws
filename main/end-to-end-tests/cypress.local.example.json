@@ -6,6 +6,7 @@
   "env": {
     "researcherEmail": "thingut+researcher@amazon.com",
     "researcherPassword": "abcd1234",
+    "isCognitoEnabled": false,
     "workspaces": {
       "sagemaker": {
         "workspaceTypeName": "sagemaker-notebook-instances",

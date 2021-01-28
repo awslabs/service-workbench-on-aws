@@ -1,0 +1,23 @@
+{
+  "chromeWebSecurity": true,
+  "viewportWidth": 1400,
+  "viewportHeight": 1000,
+  "video": false,
+  "env": {
+    "isCognitoEnabled": false,
+    "workspaces": {
+      "sagemaker": {
+        "workspaceTypeName": "SageMaker Notebook-v1",
+        "configuration": "sagemaker-e2e",
+        "projectId": "e2eTestProject"
+      },
+      "ec2": {
+        "workspaceTypeName": "EC2 Linux-v1",
+        "configuration": "ec2-linux-e2e",
+        "projectId": "e2eTestProject"
+      }
+    }
+  },
+  "defaultCommandTimeout": 90000,
+  "watchForFileChanges": false
+}

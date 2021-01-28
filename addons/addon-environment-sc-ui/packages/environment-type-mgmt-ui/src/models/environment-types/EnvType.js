@@ -15,7 +15,6 @@
 
 import { types, applySnapshot } from 'mobx-state-tree';
 
-import UserIdentifier from '@aws-ee/base-ui/dist/models/users/UserIdentifier';
 import { EnvTypeCandidate } from './EnvTypeCandidate';
 import { getValidStatuses, isApproved, isNotApproved } from './EnvTypeStatusEnum';
 
@@ -27,9 +26,9 @@ const EnvType = EnvTypeCandidate.named('EnvType')
     rev: 0,
     status: types.enumeration('EnvTypeStatus', getValidStatuses()),
     createdAt: '',
-    createdBy: types.optional(UserIdentifier, {}),
+    createdBy: '',
     updatedAt: '',
-    updatedBy: types.optional(UserIdentifier, {}),
+    updatedBy: '',
   })
   .actions(self => ({
     setEnvType(envType) {

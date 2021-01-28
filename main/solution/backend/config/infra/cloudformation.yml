@@ -15,7 +15,10 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: aws:kms
-              KMSMasterKeyID: !Ref StudyDataEncryptionKey
+              KMSMasterKeyID: !GetAtt StudyDataEncryptionKey.Arn
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
       LoggingConfiguration:
         DestinationBucketName: ${self:custom.settings.loggingBucketName}
         LogFilePrefix: studydata/
@@ -289,13 +292,13 @@ Resources:
                 - dynamodb:Scan
                 - dynamodb:UpdateItem
               Resource:
-                - !GetAtt [DbPasswords, Arn]
-                - !GetAtt [DbUserApiKeys, Arn]
-                - !GetAtt [DbUsers, Arn]
-                - !GetAtt [DbAuthenticationProviderTypes, Arn]
-                - !GetAtt [DbAuthenticationProviderConfigs, Arn]
-                - !GetAtt [DbRevokedTokens, Arn]
-                - !GetAtt [DbUserRoles, Arn]
+                - !GetAtt [PasswordsDb, Arn]
+                - !GetAtt [UsersDb, Arn]
+                - !Sub '${UsersDb.Arn}/index/*'
+                - !GetAtt [AuthenticationProviderTypesDb, Arn]
+                - !GetAtt [AuthenticationProviderConfigsDb, Arn]
+                - !GetAtt [RevokedTokensDb, Arn]
+                - !GetAtt [UserRolesDb, Arn]
         - PolicyName: param-store-access
           PolicyDocument:
             Statement:
@@ -332,41 +335,43 @@ Resources:
                 - dynamodb:Scan
                 - dynamodb:UpdateItem
               Resource:
-                - !GetAtt [DbAuthenticationProviderTypes, Arn]
-                - !GetAtt [DbAuthenticationProviderConfigs, Arn]
-                - !GetAtt [DbRevokedTokens, Arn]
-                - !GetAtt [DbUsers, Arn]
-                - !GetAtt [DbPasswords, Arn]
-                - !GetAtt [DbUserApiKeys, Arn]
-                - !GetAtt [DbLocks, Arn]
-                - !GetAtt [DbStudies, Arn]
-                - !GetAtt [DbStudyPermissions, Arn]
-                - !Join ['', [!GetAtt [DbStudies, Arn], '/index/*']]
-                - !GetAtt [DbStepTemplates, Arn]
-                - !GetAtt [DbWorkflowTemplates, Arn]
-                - !GetAtt [DbWorkflowTemplateDrafts, Arn]
-                - !Join ['', [!GetAtt [DbWorkflowTemplateDrafts, Arn], '/index/*']]
-                - !GetAtt [DbWorkflows, Arn]
-                - !GetAtt [DbWorkflowDrafts, Arn]
-                - !Join ['', [!GetAtt [DbWorkflowDrafts, Arn], '/index/*']]
-                - !GetAtt [DbWorkflowInstances, Arn]
-                - !Join ['', [!GetAtt [DbWorkflowInstances, Arn], '/index/*']]
-                - !GetAtt [DbWfAssignments, Arn]
-                - !Join ['', [!GetAtt [DbWfAssignments, Arn], '/index/*']]
-                - !GetAtt [DbStudies, Arn]
-                - !GetAtt [DbStudyPermissions, Arn]
-                - !Join ['', [!GetAtt [DbStudies, Arn], '/index/*']]
-                - !GetAtt [DbEnvironments, Arn]
-                - !GetAtt [DbEnvironmentsSc, Arn]
-                - !GetAtt [DbEnvironmentsTypes, Arn]
-                - !GetAtt [DbUserRoles, Arn]
-                - !GetAtt [DbAwsAccounts, Arn]
-                - !GetAtt [DbIndexes, Arn]
-                - !GetAtt [DbCostApiCaches, Arn]
-                - !GetAtt [DbProjects, Arn]
-                - !GetAtt [DbAccounts, Arn]
-                - !GetAtt [DbKeyPairs, Arn]
-                - !Join ['', [!GetAtt [DbKeyPairs, Arn], '/index/*']]
+                - !GetAtt [AuthenticationProviderTypesDb, Arn]
+                - !GetAtt [AuthenticationProviderConfigsDb, Arn]
+                - !GetAtt [RevokedTokensDb, Arn]
+                - !GetAtt [UsersDb, Arn]
+                - !Sub '${UsersDb.Arn}/index/*'
+                - !GetAtt [PasswordsDb, Arn]
+                - !GetAtt [LocksDb, Arn]
+                - !GetAtt [StudiesDb, Arn]
+                - !GetAtt [StudyPermissionsDb, Arn]
+                - !Join ['', [!GetAtt [StudiesDb, Arn], '/index/*']]
+                - !GetAtt [StepTemplatesDb, Arn]
+                - !GetAtt [WorkflowTemplatesDb, Arn]
+                - !GetAtt [WorkflowTemplateDraftsDb, Arn]
+                - !Join ['', [!GetAtt [WorkflowTemplateDraftsDb, Arn], '/index/*']]
+                - !GetAtt [WorkflowsDb, Arn]
+                - !GetAtt [WorkflowDraftsDb, Arn]
+                - !Join ['', [!GetAtt [WorkflowDraftsDb, Arn], '/index/*']]
+                - !GetAtt [WorkflowInstancesDb, Arn]
+                - !Join ['', [!GetAtt [WorkflowInstancesDb, Arn], '/index/*']]
+                - !GetAtt [WfAssignmentsDb, Arn]
+                - !Join ['', [!GetAtt [WfAssignmentsDb, Arn], '/index/*']]
+                - !GetAtt [StudiesDb, Arn]
+                - !GetAtt [StudyPermissionsDb, Arn]
+                - !Join ['', [!GetAtt [StudiesDb, Arn], '/index/*']]
+                - !GetAtt [EnvironmentsDb, Arn]
+                - !GetAtt [EnvironmentsScDb, Arn]
+                - !Join ['', [!GetAtt [EnvironmentsScDb, Arn], '/index/*']]
+                - !GetAtt [EnvironmentsTypesDb, Arn]
+                - !GetAtt [UserRolesDb, Arn]
+                - !GetAtt [AwsAccountsDb, Arn]
+                - !GetAtt [IndexesDb, Arn]
+                - !GetAtt [CostApiCachesDb, Arn]
+                - !GetAtt [ProjectsDb, Arn]
+                - !GetAtt [AccountsDb, Arn]
+                - !GetAtt [KeyPairsDb, Arn]
+                - !Join ['', [!GetAtt [KeyPairsDb, Arn], '/index/*']]
+                - !GetAtt [StorageGatewayDb, Arn]
 
         - PolicyName: param-store-access
           PolicyDocument:
@@ -374,7 +379,28 @@ Resources:
               Effect: Allow
               Action:
                 - ssm:GetParameter
-              Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
+              Resource:
+                - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
+                - !Sub 'arn:aws:ssm:${AWS::Region}:*:parameter/aws/service/storagegateway/ami/FILE_S3/latest'
+
+        - PolicyName: storage-gateway-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - storagegateway:CreateNFSFileShare
+                - storagegateway:ListFileShares
+                - storagegateway:DescribeNFSFileShares
+                - storagegateway:UpdateNFSFileShare
+              Resource: '*'
+
+        - PolicyName: iam-pass-role
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - iam:PassRole
+              Resource: '*'
 
         - PolicyName: step-functions-invocation
           PolicyDocument:
@@ -465,7 +491,9 @@ Resources:
         - PolicyName: assume-role
           PolicyDocument:
             Statement:
-              Action: 'sts:AssumeRole'
+              Action:
+                - sts:AssumeRole
+                - sts:GetCallerIdentity
               Effect: Allow
               Resource: '*' # TODO: LOCK THIS DOWN!
 
@@ -510,48 +538,55 @@ Resources:
                 - dynamodb:Scan
                 - dynamodb:UpdateItem
               Resource:
-                - !GetAtt [DbPasswords, Arn]
-                - !GetAtt [DbUsers, Arn]
-                - !GetAtt [DbUserApiKeys, Arn]
-                - !GetAtt [DbLocks, Arn]
-                - !GetAtt [DbStepTemplates, Arn]
-                - !GetAtt [DbWorkflowTemplates, Arn]
-                - !GetAtt [DbWorkflowTemplateDrafts, Arn]
-                - !Join ['', [!GetAtt [DbWorkflowTemplateDrafts, Arn], '/index/*']]
-                - !GetAtt [DbWorkflows, Arn]
-                - !GetAtt [DbWorkflowDrafts, Arn]
-                - !Join ['', [!GetAtt [DbWorkflowDrafts, Arn], '/index/*']]
-                - !GetAtt [DbWorkflowInstances, Arn]
-                - !Join ['', [!GetAtt [DbWorkflowInstances, Arn], '/index/*']]
-                - !GetAtt [DbWfAssignments, Arn]
-                - !Join ['', [!GetAtt [DbWfAssignments, Arn], '/index/*']]
-                - !GetAtt [DbEnvironments, Arn]
-                - !GetAtt [DbEnvironmentsSc, Arn]
-                - !GetAtt [DbEnvironmentsTypes, Arn]
-                - !GetAtt [DbStudies, Arn]
-                - !GetAtt [DbProjects, Arn]
-                - !GetAtt [DbStudyPermissions, Arn]
-                - !GetAtt [DbIndexes, Arn]
-                - !GetAtt [DbProjects, Arn]
-                - !GetAtt [DbAccounts, Arn]
-                - !GetAtt [DbAwsAccounts, Arn]
-                - !GetAtt [DbAuthenticationProviderTypes, Arn]
-                - !GetAtt [DbAuthenticationProviderConfigs, Arn]
-                - !GetAtt [DbRevokedTokens, Arn]
-                - !Join ['', [!GetAtt [DbStudies, Arn], '/index/*']]
-                - !GetAtt [DbIndexes, Arn]
-                - !GetAtt [DbCostApiCaches, Arn]
-                - !GetAtt [DbUserRoles, Arn]
+                - !GetAtt [PasswordsDb, Arn]
+                - !GetAtt [UsersDb, Arn]
+                - !GetAtt [LocksDb, Arn]
+                - !GetAtt [StepTemplatesDb, Arn]
+                - !GetAtt [WorkflowTemplatesDb, Arn]
+                - !GetAtt [WorkflowTemplateDraftsDb, Arn]
+                - !Join ['', [!GetAtt [WorkflowTemplateDraftsDb, Arn], '/index/*']]
+                - !GetAtt [WorkflowsDb, Arn]
+                - !GetAtt [WorkflowDraftsDb, Arn]
+                - !Join ['', [!GetAtt [WorkflowDraftsDb, Arn], '/index/*']]
+                - !GetAtt [WorkflowInstancesDb, Arn]
+                - !Join ['', [!GetAtt [WorkflowInstancesDb, Arn], '/index/*']]
+                - !GetAtt [WfAssignmentsDb, Arn]
+                - !Join ['', [!GetAtt [WfAssignmentsDb, Arn], '/index/*']]
+                - !GetAtt [EnvironmentsDb, Arn]
+                - !GetAtt [EnvironmentsScDb, Arn]
+                - !Join ['', [!GetAtt [EnvironmentsScDb, Arn], '/index/*']]
+                - !GetAtt [EnvironmentsTypesDb, Arn]
+                - !GetAtt [StudiesDb, Arn]
+                - !GetAtt [ProjectsDb, Arn]
+                - !GetAtt [StudyPermissionsDb, Arn]
+                - !GetAtt [IndexesDb, Arn]
+                - !GetAtt [ProjectsDb, Arn]
+                - !GetAtt [AccountsDb, Arn]
+                - !GetAtt [AwsAccountsDb, Arn]
+                - !GetAtt [AuthenticationProviderTypesDb, Arn]
+                - !GetAtt [AuthenticationProviderConfigsDb, Arn]
+                - !GetAtt [RevokedTokensDb, Arn]
+                - !Join ['', [!GetAtt [StudiesDb, Arn], '/index/*']]
+                - !GetAtt [IndexesDb, Arn]
+                - !GetAtt [CostApiCachesDb, Arn]
+                - !GetAtt [UserRolesDb, Arn]
+                - !GetAtt [StorageGatewayDb, Arn]
 
         - PolicyName: param-store-access
           PolicyDocument:
             Statement:
-              Effect: Allow
-              Action:
-                - ssm:GetParameter
-                - ssm:PutParameter
-                - ssm:DeleteParameter
-              Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
+              - Effect: Allow
+                Action:
+                  - ssm:GetParameter
+                Resource:
+                  - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
+                  - !Sub 'arn:aws:ssm:${AWS::Region}:*:parameter/aws/service/storagegateway/ami/FILE_S3/latest'
+              - Effect: Allow
+                Action:
+                  - ssm:PutParameter
+                  - ssm:DeleteParameter
+                Resource:
+                  - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
 
         - PolicyName: dns-record-access
           PolicyDocument:
@@ -566,10 +601,22 @@ Resources:
             Statement:
               - Effect: 'Allow'
                 Action:
-                  - ec2:CreateKeyPair
-                  - ec2:DeleteKeyPair
-                  - ec2:ModifyImageAttribute
-                  - ec2:DescribeImages
+                  - ec2:*
+                Resource: '*'
+
+        - PolicyName: storage-gateway
+          PolicyDocument:
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - storagegateway:ActivateGateway
+                  - storagegateway:ListLocalDisks
+                  - storagegateway:AddCache
+                  - storagegateway:DeleteGateway
+                  - storagegateway:CreateNFSFileShare
+                  - storagegateway:ListFileShares
+                  - storagegateway:DescribeNFSFileShares
+                  - storagegateway:UpdateNFSFileShare
                 Resource: '*'
 
         - PolicyName: study-s3-policy-update
@@ -678,7 +725,50 @@ Resources:
                 - dynamodb:Scan
                 - dynamodb:UpdateItem
               Resource:
-                - !GetAtt [DbStudies, Arn]
+                - !GetAtt [StudiesDb, Arn]
+
+    # IAM Role for the envStatusPollHandler Function
+  RoleEnvStatusPollHandler:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: db-environment-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:Query
+                - dynamodb:Scan
+                - dynamodb:UpdateItem
+              Resource:
+                - !GetAtt [EnvironmentsScDb, Arn]
+                - !Join ['', [!GetAtt [EnvironmentsScDb, Arn], '/index/*']]
+        - PolicyName: db-scan
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - dynamodb:Scan
+              Resource:
+                - !GetAtt [IndexesDb, Arn]
+                - !GetAtt [ProjectsDb, Arn]
+                - !GetAtt [AwsAccountsDb, Arn]
+        - PolicyName: assume-role
+          PolicyDocument:
+            Statement:
+              Action: 'sts:AssumeRole'
+              Effect: Allow
+              Resource: '*' # TODO: LOCK THIS DOWN!
 
   # An environment management role giving AWS Service Catalog Permissions
   # This is the role that the Admin users share their AWS Service Catalog products/portfolios with.
@@ -724,12 +814,6 @@ Resources:
                 - ssm:GetParameters
                 - ssm:DeleteParameter
               Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
-        - PolicyName: appstream-share-image
-          PolicyDocument:
-            Statement:
-              Action: 'appstream:UpdateImagePermissions'
-              Effect: Allow
-              Resource: !Sub arn:${AWS::Partition}:appstream:${AWS::Region}:${AWS::AccountId}:image/Secure-Workspace-Access-Image
         - PolicyName: cfn-read-access
           PolicyDocument:
             Statement:
@@ -841,6 +925,469 @@ Resources:
   # Dynamo DB
   # =============================================================================================
 
+  PasswordsDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbPasswords}
+      AttributeDefinitions:
+        - AttributeName: 'username'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'username'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  UserApiKeysDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbUserApiKeys}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'uid'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: ByUID
+          KeySchema:
+            - AttributeName: 'uid'
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: ALL
+
+  UsersDb:
+    Type: AWS::DynamoDB::Table
+    DependsOn: PasswordsDb
+    Properties:
+      TableName: ${self:custom.settings.dbUsers}
+      AttributeDefinitions:
+        - AttributeName: 'uid'
+          AttributeType: 'S'
+        - AttributeName: 'username'
+          AttributeType: 'S'
+        - AttributeName: 'ns'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'uid'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: Principal
+          KeySchema:
+            - AttributeName: 'username'
+              KeyType: 'HASH'
+            - AttributeName: 'ns'
+              KeyType: 'RANGE'
+          Projection:
+            ProjectionType: ALL
+
+  AuthenticationProviderTypesDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbAuthenticationProviderTypes}
+      AttributeDefinitions:
+        - AttributeName: 'type'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'type'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  AuthenticationProviderConfigsDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbAuthenticationProviderConfigs}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  RevokedTokensDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbRevokedTokens}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      TimeToLiveSpecification:
+        AttributeName: 'ttl'
+        Enabled: true
+      BillingMode: PAY_PER_REQUEST
+
+  LocksDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbLocks}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      TimeToLiveSpecification:
+        AttributeName: 'ttl'
+        Enabled: true
+      BillingMode: PAY_PER_REQUEST
+
+  StudiesDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbStudies}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'category'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: ${self:custom.settings.dbStudiesCategoryIndex}
+          KeySchema:
+            - AttributeName: 'category'
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: 'ALL'
+
+  StepTemplatesDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbStepTemplates}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'ver'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+        - AttributeName: 'ver'
+          KeyType: 'RANGE'
+      BillingMode: PAY_PER_REQUEST
+
+  WorkflowTemplatesDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbWorkflowTemplates}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'ver'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+        - AttributeName: 'ver'
+          KeyType: 'RANGE'
+      BillingMode: PAY_PER_REQUEST
+
+  WorkflowsDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbWorkflows}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'ver'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+        - AttributeName: 'ver'
+          KeyType: 'RANGE'
+      BillingMode: PAY_PER_REQUEST
+
+  WorkflowTemplateDraftsDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbWorkflowTemplateDrafts}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'uid'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: ByUID
+          KeySchema:
+            - AttributeName: 'uid'
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: 'ALL'
+
+  WorkflowDraftsDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbWorkflowDrafts}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'uid'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: ByUID
+          KeySchema:
+            - AttributeName: 'uid'
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: 'ALL'
+
+  WorkflowInstancesDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbWorkflowInstances}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'createdAt'
+          AttributeType: 'S'
+        - AttributeName: 'wf'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      TimeToLiveSpecification:
+        AttributeName: 'ttl'
+        Enabled: true
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: 'WorkflowIndex'
+          KeySchema:
+            - AttributeName: 'wf'
+              KeyType: 'HASH'
+            - AttributeName: 'createdAt'
+              KeyType: 'RANGE'
+          Projection:
+            ProjectionType: 'ALL'
+
+  WfAssignmentsDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbWfAssignments}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'triggerType' # trigger type
+          AttributeType: 'S'
+        - AttributeName: 'triggerTypeData' # trigger type data (qualifier)
+          AttributeType: 'S'
+        - AttributeName: 'wf' # workflow id
+          AttributeType: 'S'
+        - AttributeName: 'createdAt'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: 'WorkflowIndex'
+          KeySchema:
+            - AttributeName: 'wf'
+              KeyType: 'HASH'
+            - AttributeName: 'createdAt'
+              KeyType: 'RANGE'
+          Projection:
+            ProjectionType: 'ALL'
+        - IndexName: 'TypeIndex'
+          KeySchema:
+            - AttributeName: 'triggerType'
+              KeyType: 'HASH'
+            - AttributeName: 'triggerTypeData'
+              KeyType: 'RANGE'
+          Projection:
+            ProjectionType: 'ALL'
+
+  EnvironmentsDb:
+    Type: AWS::DynamoDB::Table
+    DependsOn: AccountsDb
+    Properties:
+      TableName: ${self:custom.settings.dbEnvironments}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  # Table for environments created using AWS Service Catalog
+  EnvironmentsScDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbEnvironmentsSc}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'createdBy'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      GlobalSecondaryIndexes:
+        - IndexName: ByOwnerUID
+          KeySchema:
+            - AttributeName: 'createdBy'
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: ALL
+      BillingMode: PAY_PER_REQUEST
+
+  EnvironmentsTypesDb:
+    Type: AWS::DynamoDB::Table
+    DependsOn: UserRolesDb
+    Properties:
+      TableName: ${self:custom.settings.dbEnvironmentTypes}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  UserRolesDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbUserRoles}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  AwsAccountsDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbAwsAccounts}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  IndexesDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbIndexes}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  CostApiCachesDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbCostApiCaches}
+      AttributeDefinitions:
+        - AttributeName: 'indexId'
+          AttributeType: 'S'
+        - AttributeName: 'query'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'indexId'
+          KeyType: 'HASH'
+        - AttributeName: 'query'
+          KeyType: 'RANGE'
+      BillingMode: PAY_PER_REQUEST
+
+  AccountsDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbAccounts}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  ProjectsDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbProjects}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  StudyPermissionsDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbStudyPermissions}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  KeyPairsDb:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbKeyPairs}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'uid' # This is username with namespace
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      GlobalSecondaryIndexes:
+        - IndexName: ByUID
+          KeySchema:
+            - AttributeName: 'uid' # This is username with namespace
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: 'ALL'
+      BillingMode: PAY_PER_REQUEST
+
+  StorageGatewayDb:
+    Type: AWS::DynamoDB::Table
+    DependsOn: StudiesDb
+    Properties:
+      TableName: ${self:custom.settings.dbStorageGateway}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  # =============================================================================================
+  # DEPRECATED -- Dynamo DB
+  # =============================================================================================
+
   DbPasswords:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -942,6 +1489,7 @@ Resources:
 
   DbStudies:
     Type: AWS::DynamoDB::Table
+    DependsOn: DbLocks
     Properties:
       TableName: ${self:custom.settings.dbTableStudies}
       AttributeDefinitions:
@@ -995,6 +1543,7 @@ Resources:
 
   DbWorkflows:
     Type: AWS::DynamoDB::Table
+    DependsOn: DbWorkflowInstances
     Properties:
       TableName: ${self:custom.settings.dbTableWorkflows}
       AttributeDefinitions:
@@ -1032,6 +1581,7 @@ Resources:
 
   DbWorkflowDrafts:
     Type: AWS::DynamoDB::Table
+    DependsOn: DbWorkflowTemplates
     Properties:
       TableName: ${self:custom.settings.dbTableWorkflowDrafts}
       AttributeDefinitions:
@@ -1265,6 +1815,7 @@ Resources:
           Projection:
             ProjectionType: 'ALL'
       BillingMode: PAY_PER_REQUEST
+
 # =============================================================================================
 # Outputs
 # =============================================================================================
@@ -1277,5 +1828,7 @@ Outputs:
     Value: !GetAtt RoleWorkflowLoopRunner.Arn
   OpenDataScrapeHandlerRoleArn:
     Value: !GetAtt RoleOpenDataScrapeHandler.Arn
+  EnvStatusPollHandlerRoleArn:
+    Value: !GetAtt RoleEnvStatusPollHandler.Arn
   EnvMgmtRoleArn:
     Value: !GetAtt RoleEnvMgmt.Arn

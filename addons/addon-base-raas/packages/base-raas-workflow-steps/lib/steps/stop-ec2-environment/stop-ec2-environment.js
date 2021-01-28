@@ -111,7 +111,7 @@ class StopEC2Environment extends StepBase {
     } = await sts
       .assumeRole({
         RoleArn,
-        RoleSessionName: `RaaS-${requestContext.principalIdentifier.username}`,
+        RoleSessionName: `RaaS-${requestContext.principalIdentifier.uid}`,
         ExternalId,
       })
       .promise();

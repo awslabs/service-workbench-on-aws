@@ -180,7 +180,7 @@ class EnvironmentDetailPage extends React.Component {
             </span>
             <Header.Subheader className="fs-9 color-grey mt1">
               <div>
-                updated <TimeAgo date={updatedAt} /> <By user={updatedBy} />
+                updated <TimeAgo date={updatedAt} /> <By uid={updatedBy} />
               </div>
             </Header.Subheader>
           </Header>
@@ -276,10 +276,9 @@ class EnvironmentDetailPage extends React.Component {
 
   renderUserShareTabPane() {
     const environment = this.getEnvironment();
-    const { username: envUsername, ns: envNs } = environment.createdBy;
+    const uid = environment.createdBy;
     const sharedWithUsersDropDownOptions = this.props.usersStore.asDropDownOptions().filter(item => {
-      const value = JSON.parse(item.value);
-      return !(value.username === envUsername && value.ns === envNs);
+      return !(item.value === uid);
     });
 
     return {
@@ -411,7 +410,7 @@ class EnvironmentDetailPage extends React.Component {
       <>
         <Segment>
           This research workspace was terminated <TimeAgo date={environment.updatedAt} />{' '}
-          <By user={environment.updatedBy} />.
+          <By uid={environment.updatedBy} />.
         </Segment>
         {this.renderCostInfo()}
       </>
@@ -424,7 +423,7 @@ class EnvironmentDetailPage extends React.Component {
       <>
         <Segment>
           This research workspace was started <TimeAgo date={environment.createdAt} />{' '}
-          <By user={environment.createdBy} />.
+          <By uid={environment.createdBy} />.
         </Segment>
       </>
     );

@@ -4,63 +4,40 @@ title: Deploying Service Workbench
 sidebar_label: Deploying Service Workbench
 ---
 
-## Run main deployment script
+import useBaseUrl from '@docusaurus/useBaseUrl';
 
-- Run `scripts/environment-deploy.sh <stage>`
+This section describes the process for deploying the Service Workbench.
 
-- It takes 15-20 minutes
+## Run the Main Deployment Script
 
-- After the deployment has successfully finished, take a note of its
-  CloudFront URL, and the root password.
+1.	Run the main deployment script using the command below. It takes 15-20 minutes to execute the command:
+```
+scripts/environment-deploy.sh <stage>
+```
+2.	After the deployment completes successfully, make a note of its [Amazon CloudFront](https://aws.amazon.com/cloudfront/?nc2=type_a) URL and the **root** password. You can also retrieve this information later by running the following command: 
+```
+scripts/get-info.sh <stage>
+```
+3.	Log in to your Service Workbench deployment using the [Amazon CloudFront](https://aws.amazon.com/cloudfront/?nc2=type_a) URL and root user credentials. The **root** user must be used only to create administrators. For more information, see [Post Deployment](/deployment/post_deployment/index).
 
-  > - This information can be retrieved later by running
-  >   `scripts/get-info.sh <stage>`
+## Deploy the Machine Images SDC
 
-- You can now log in to your Service Workbench deployment using the link above
-  and user **root**. The root user will be used only to create
-  administrative users which is covered in [Post Deployment](/deployment/post_deployment/index)
+The machine images SDC provides the ability to launch Amazon EC2 images from within Service Workbench. The default Service Workbench installation currently provides [Amazon Sagemaker](https://aws.amazon.com/sagemaker/?nc2=type_a), [Amazon EMR](https://aws.amazon.com/emr/?nc2=type_a&whats-new-cards.sort-by=item.additionalFields.postDateTime&whats-new-cards.sort-order=desc), and Linux-based and Windows-based Amazon EC2 as workspace options. The Amazon EC2 and Amazon EMR options will not be available unless you create the corresponding machine images.
 
-## Deploy the machine-images SDC
+_**Note**: You can create your own machine image if you do not wish to use the ones included in this SDC._
 
-The machine-images SDC provides the ability to launch EC2 images from
-within Service Workbench. The default Service Workbench installation currently provides
-Sagemaker, EMR, and Linux and Windows EC2 as workspace options. The EC2 and EMR
-options will not be available unless you have the corresponding machine images created.
+To deploy the machine images SDC, follow the steps outlined in the readme file located in `main/solution/machine-images/README.md`. Additionally, perform the following actions: 
 
-> Note: You can choose to create your own machine image if you do not wish to use the ones included in this SDC.
+1.	Install the open source tool, Packer from this [website](https://www.packer.io/). Packer is used to create a custom AMI which is then pushed to the Service Workbench deployment.
+2.	Fetch the package with `curl` or `wget`, unzip the package, and copy it to the `directory /usr/local/bin`. 
+3.	Change directory to `/main/solution/machine-images`. 
+4.	Run the command below. The command takes approximately 15 minutes to complete: 
+```
+`pnpx sls build-image -s <mystage>`
+```
+For examples of how to build a custom AMI, refer to the following scripts:
 
-- Follow the steps outlined in
-  `main/solution/machine-images/README.md`
+–	`config/infra/packer-ec2-<platform>-workspace.json`
 
-  > - Install Packer (<https://www.packer.io/>). Packer is used to
-  >   create a custom AMI which is then pushed to the Service Workbench
-  >   deployment.
-  >
-  >   > - Fetch the package with curl or wget, unzip it and copy
-  >   >   it to `/usr/local/bin`
-  >
-  > - Change directory to `/main/solution/machine-images`
-  >
-  > - run `pnpx sls build-image -s <mystage>`
-  >
-  > - This will take 15 minutes
+–	`config/infra/provisioners/provision-hail.sh`
 
-- For examples of how to build a custom AMI, see:
-
-  > - `config/infra/packer-ec2-<platform>-workspace.json`
-  > - `config/infra/provisioners/provision-hail.sh`
-
-## Enable Active Directory Authentication (optional)
-
-- Get the relying party information for AD integration (User Pool ID,
-  Relying Party ID, User Pool Signing Cert etc)
-
-- Run the script `scripts/get-relying-party.sh`
-
-  > - Supply the output of this script to your Active Directory
-  >   administrator
-
-  See more on adding
-
-  - [an IDentityProvider](/deployment/configuration/auth/configuring_idp)
-  - [Auth0](/deployment/configuration/auth/configuring_auth0)

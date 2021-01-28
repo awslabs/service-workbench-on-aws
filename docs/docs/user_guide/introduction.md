@@ -34,10 +34,6 @@ providers.
 
 Create and manage local and federated users and roles.
 
-<b>API Keys</b>
-
-Create and revoke API keys
-
 <b>Workflows</b>
 
 Monitor and see the history of operations initiated by the
@@ -45,7 +41,7 @@ administrative interface. This includes provisioning an [Account](/deployment/po
 
 <b>Accounts</b>
 
-Create and manage accounts. See: [Account Structure](/deployment/reference/account_structure) for the
+Create and manage accounts. See: [Account Structure](/user_guide/account_structure) for the
 relationship between AWS accounts and Service Workbench accounts, and [Account](/deployment/post_deployment/link_aws_account) for administrative
 actions.
 

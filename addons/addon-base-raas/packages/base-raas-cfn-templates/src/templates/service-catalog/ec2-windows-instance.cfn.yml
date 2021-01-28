@@ -19,52 +19,111 @@ Parameters:
   AccessFromCIDRBlock:
     Type: String
     Description: The CIDR used to access the ec2 instances.
+  S3Mounts:
+    Type: String
+    Description: A JSON array of objects with name, bucket, and prefix properties used to mount data
+  IamPolicyDocument:
+    Type: String
+    Description: The IAM policy to be associated with the launched workstation
   VPC:
     Description: The VPC in which the EC2 instance will reside
     Type: AWS::EC2::VPC::Id
   Subnet:
     Description: The VPC subnet in which the EC2 instance will reside
     Type: AWS::EC2::Subnet::Id
+  EnvironmentInstanceFiles:
+    Type: String
+    Description: >-
+      An S3 URI (starting with "s3://") that specifies the location of files to be copied to
+      the environment instance, including any bootstrap scripts
   EncryptionKeyArn:
     Type: String
     Description: The ARN of the KMS encryption Key used to encrypt data in the instance
+  RaidDataVolumeSize:
+    Type: Number
+    Description: The size of each volume in the RAID array used to hold studies data, in GiB. The template creates a striped volume (RAID 0) by joining 8 volumes. The total size of the data volume would be roughly 8 times the size specified here.
+    Default: 4
+  RecurringDownloads:
+    Type: String
+    Description: A flag indicating whether to keep syncing studies data to local EBS volumes on recurring basis. Setting this to false will download studies data only once at the instance bootstrap time. When this flag is set to true the instance will periodically sync changes from S3 to local EBS i.e., it will download any new files added to S3, re-download any files changed in S3 (will use object ETag value to determine if file changed in S3), delete files from local EBS if they are deleted from S3.
+    Default: "true"
+    AllowedValues:
+      - "true"
+      - "false"
+  DownloadInterval:
+    Type: Number
+    Description: An interval in seconds to wait between two downloads in case of recurring downloads. This is only applicable when RecurringDownloads is set to "true". Note that this does not include the download time. This specifies the duration in seconds to wait before initiating the next download after the previous one completes.
+    Default: 30
+  StopRecurringDownloadsAfter:
+    Type: Number
+    Description: Duration in seconds after which to stop the recurring downloads. Value of -1 means keep doing the recurring downloads (sync) indefinitely.
+    Default: 30
+
+Conditions:
+  IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, "{}"]
 
 Resources:
   IAMRole:
-    Type: 'AWS::IAM::Role'
+    Type: "AWS::IAM::Role"
     Properties:
-      RoleName: !Join ['-', [Ref: Namespace, 'ec2-role']]
-      Path: '/'
+      RoleName: !Join ["-", [Ref: Namespace, "ec2-role"]]
+      Path: "/"
       AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+        Version: "2012-10-17"
         Statement:
-          - Effect: 'Allow'
+          - Effect: "Allow"
             Principal:
               Service:
-                - 'ec2.amazonaws.com'
+                - "ec2.amazonaws.com"
             Action:
-              - 'sts:AssumeRole'
+              - "sts:AssumeRole"
       Policies:
-        - PolicyName: !Join ['-', [Ref: Namespace, 's3-policy']]
+        - !If
+          - IamPolicyEmpty
+          - !Ref "AWS::NoValue"
+          - PolicyName: !Join ["-", [Ref: Namespace, "s3-studydata-policy"]]
+            PolicyDocument: !Ref IamPolicyDocument
+        - PolicyName:
+            !Join ["-", [Ref: Namespace, "s3-bootstrap-script-policy"]]
           PolicyDocument:
-            Version: '2012-10-17'
+            Version: "2012-10-17"
             Statement:
-              - Effect: 'Allow'
-                Action:
-                  - 's3:*'
-                Resource:
-                  - '*'
+              - Effect: "Allow"
+                Action: "s3:GetObject"
+                Resource: !Sub
+                  - "arn:aws:s3:::${S3Location}/*"
+                  # Remove "s3://" prefix from EnvironmentInstanceFiles
+                  - S3Location:
+                      !Select [
+                          1,
+                          !Split ["s3://", !Ref EnvironmentInstanceFiles],
+                      ]
+              - Effect: "Allow"
+                Action: "s3:ListBucket"
+                Resource: !Sub
+                  - "arn:aws:s3:::${S3Bucket}"
+                  - S3Bucket:
+                      !Select [2, !Split ["/", !Ref EnvironmentInstanceFiles]]
+                Condition:
+                  StringLike:
+                    s3:prefix: !Sub
+                      - "${S3Prefix}/*"
+                      - S3Prefix:
+                          !Select [
+                              3,
+                              !Split ["/", !Ref EnvironmentInstanceFiles],
+                          ]
 
   InstanceProfile:
-    Type: 'AWS::IAM::InstanceProfile'
+    Type: "AWS::IAM::InstanceProfile"
     Properties:
-      InstanceProfileName: !Join ['-', [Ref: Namespace, 'ec2-profile']]
-      Path: '/'
+      InstanceProfileName: !Join ["-", [Ref: Namespace, "ec2-profile"]]
+      Path: "/"
       Roles:
         - Ref: IAMRole
 
   SecurityGroup:
-    Type: 'AWS::EC2::SecurityGroup'
+    Type: "AWS::EC2::SecurityGroup"
     Properties:
       GroupDescription: EC2 workspace security group
       SecurityGroupEgress:
@@ -81,26 +140,18 @@ Resources:
           FromPort: 3389
           ToPort: 3389
           CidrIp: !Ref AccessFromCIDRBlock
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: !Ref AccessFromCIDRBlock
-        - IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
-          CidrIp: !Ref AccessFromCIDRBlock
       Tags:
         - Key: Name
-          Value: !Join ['-', [Ref: Namespace, 'ec2-sg']]
+          Value: !Join ["-", [Ref: Namespace, "ec2-sg"]]
         - Key: Description
-          Value: EC2 workspace security group
+          Value: EC2 environment security group
       VpcId: !Ref VPC
 
   EC2Instance:
-    Type: 'AWS::EC2::Instance'
+    Type: "AWS::EC2::Instance"
     CreationPolicy:
       ResourceSignal:
-        Timeout: 'PT20M'
+        Timeout: "PT20M"
     Properties:
       ImageId: !Ref AmiId
       InstanceType: !Ref InstanceType
@@ -110,23 +161,133 @@ Resources:
         - DeviceName: /dev/sda1
           Ebs:
             VolumeSize: 30
+            VolumeType: gp2
             Encrypted: true
             KmsKeyId: !Ref EncryptionKeyArn
+            DeleteOnTermination: true
+        - DeviceName: /dev/xvdb
+          Ebs:
+            VolumeSize: !Ref RaidDataVolumeSize
+            VolumeType: gp2
+            Encrypted: true
+            KmsKeyId: !Ref EncryptionKeyArn
+            DeleteOnTermination: true
+        - DeviceName: /dev/xvdc
+          Ebs:
+            VolumeSize: !Ref RaidDataVolumeSize
+            VolumeType: gp2
+            Encrypted: true
+            KmsKeyId: !Ref EncryptionKeyArn
+            DeleteOnTermination: true
+        - DeviceName: /dev/xvdd
+          Ebs:
+            VolumeSize: !Ref RaidDataVolumeSize
+            VolumeType: gp2
+            Encrypted: true
+            KmsKeyId: !Ref EncryptionKeyArn
+            DeleteOnTermination: true
+        - DeviceName: /dev/xvde
+          Ebs:
+            VolumeSize: !Ref RaidDataVolumeSize
+            VolumeType: gp2
+            Encrypted: true
+            KmsKeyId: !Ref EncryptionKeyArn
+            DeleteOnTermination: true
+        - DeviceName: /dev/xvdf
+          Ebs:
+            VolumeSize: !Ref RaidDataVolumeSize
+            VolumeType: gp2
+            Encrypted: true
+            KmsKeyId: !Ref EncryptionKeyArn
+            DeleteOnTermination: true
+        - DeviceName: /dev/xvdg
+          Ebs:
+            VolumeSize: !Ref RaidDataVolumeSize
+            VolumeType: gp2
+            Encrypted: true
+            KmsKeyId: !Ref EncryptionKeyArn
+            DeleteOnTermination: true
+        - DeviceName: /dev/xvdh
+          Ebs:
+            VolumeSize: !Ref RaidDataVolumeSize
+            VolumeType: gp2
+            Encrypted: true
+            KmsKeyId: !Ref EncryptionKeyArn
+            DeleteOnTermination: true
+        - DeviceName: /dev/xvdi
+          Ebs:
+            VolumeSize: !Ref RaidDataVolumeSize
+            VolumeType: gp2
+            Encrypted: true
+            KmsKeyId: !Ref EncryptionKeyArn
+            DeleteOnTermination: true
       NetworkInterfaces:
-        - AssociatePublicIpAddress: 'true'
-          DeviceIndex: '0'
+        - AssociatePublicIpAddress: true
+          DeviceIndex: "0"
           GroupSet:
             - !Ref SecurityGroup
           SubnetId: !Ref Subnet
       Tags:
         - Key: Name
-          Value: !Join ['-', [Ref: Namespace, 'ec2-windows']]
+          Value: !Join ["-", [Ref: Namespace, "ec2-windows"]]
         - Key: Description
           Value: EC2 workspace instance
       UserData:
         Fn::Base64: !Sub |
           <powershell>
-          cmd /c "exit 0" # Automatically return success; remove this line if actual bootstrapping logic is added
+          # Create working directory if doesn't already exist
+          New-Item -ItemType Directory -Force -Path C:\workdir
+          cd C:\workdir
+
+          # Initialise the raid array
+          Add-Content diskpart.txt "select disk 1"
+          Add-Content diskpart.txt "convert dynamic"
+          Add-Content diskpart.txt "select disk 2"
+          Add-Content diskpart.txt "convert dynamic"
+          Add-Content diskpart.txt "select disk 3"
+          Add-Content diskpart.txt "convert dynamic"
+          Add-Content diskpart.txt "select disk 4"
+          Add-Content diskpart.txt "convert dynamic"
+          Add-Content diskpart.txt "select disk 5"
+          Add-Content diskpart.txt "convert dynamic"
+          Add-Content diskpart.txt "select disk 6"
+          Add-Content diskpart.txt "convert dynamic"
+          Add-Content diskpart.txt "select disk 7"
+          Add-Content diskpart.txt "convert dynamic"
+          Add-Content diskpart.txt "select disk 8"
+          Add-Content diskpart.txt "convert dynamic"
+
+          Add-Content diskpart.txt "create volume stripe disk=1,2,3,4,5,6,7,8"
+          Add-Content diskpart.txt "select volume 1"
+          Add-Content diskpart.txt "format fs=ntfs label=`"Data`" quick"
+          Add-Content diskpart.txt "assign letter=d"
+
+          diskpart /s diskpart.txt
+
+          # Create script to download the s3 synchronizer
+          $downloadS3Synchronizer = @'
+          # Download s3-synchronizer Windows executable
+          $uri = [System.Uri]"${EnvironmentInstanceFiles}"
+          $key = "$($uri.AbsolutePath.Substring(1))/bin/s3-synchronizer-windows-amd64.exe"
+          Read-S3Object -BucketName $uri.Host -Key $key -File s3-synchronizer.exe
+          '@
+          Set-Content -Path C:\workdir\download-s3-synchronizer.ps1 -Value $downloadS3Synchronizer
+
+          # Source the script to download the s3 synchronizer
+          ."C:\workdir\download-s3-synchronizer.ps1"
+
+          # Create script to start the s3 synchronizer process
+          $startS3SyncScriptContent = @'
+          $defaultS3Mounts = '${S3Mounts}' | ConvertTo-Json
+
+          $arguments = "-defaultS3Mounts=$defaultS3Mounts -destination=d:\ -region=${AWS::Region} -recurringDownloads=${RecurringDownloads} -downloadInterval=${DownloadInterval} -stopRecurringDownloadsAfter=${StopRecurringDownloadsAfter}"
+          Start-Process -NoNewWindow -RedirectStandardOutput s3-synchronizer-stdout.txt -RedirectStandardError s3-synchronizer-stderr.txt -FilePath "c:\workdir\s3-synchronizer.exe" -ArgumentList $arguments  -WorkingDirectory "d:\"
+          '@
+          Set-Content -Path c:\workdir\start-s3-synchronizer.ps1 -Value $startS3SyncScriptContent
+
+          # Source the script to start the s3 synchronizer process
+          ."c:\workdir\start-s3-synchronizer.ps1"
+
           cfn-signal.exe -e $lastexitcode --stack ${AWS::StackId} --resource EC2Instance --region ${AWS::Region}
           </powershell>
 

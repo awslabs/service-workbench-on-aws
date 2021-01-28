@@ -18,6 +18,8 @@ import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
 
 import { getAwsAccounts, addAwsAccount, createAwsAccount } from '../../helpers/api';
 import { AwsAccount } from './AwsAccount';
+import { BudgetStore } from './BudgetStore';
+import Budget from './Budget';
 
 // ==================================================================
 // AwsAccountsStore
@@ -25,6 +27,7 @@ import { AwsAccount } from './AwsAccount';
 const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
   .props({
     awsAccounts: types.optional(types.map(AwsAccount), {}),
+    budgetStores: types.optional(types.map(BudgetStore), {}),
     tickPeriod: 10 * 1000, // 10 sec
   })
 
@@ -66,6 +69,21 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
       createAwsAccount: async awsAccount => {
         await createAwsAccount(awsAccount);
       },
+
+      getBudgetStore: awsAccountUUID => {
+        let entry = self.budgetStores.get(awsAccountUUID);
+        if (!entry) {
+          // Lazily create the store
+          self.budgetStores.set(awsAccountUUID, BudgetStore.create({ awsAccountUUID }));
+          entry = self.budgetStores.get(awsAccountUUID);
+        }
+        return entry;
+      },
+
+      addBudget: (awsAccountUUID, rawBudget) => {
+        const account = self.awsAccounts.get(awsAccountUUID);
+        account.budget = Budget.create(rawBudget);
+      },
     };
   })
 
@@ -76,6 +94,7 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
       self.awsAccounts.forEach(awsAccount => {
         const res = {};
         res.name = awsAccount.name;
+        res.id = awsAccount.id;
         res.accountId = awsAccount.accountId;
         res.roleArn = awsAccount.roleArn;
         res.description = awsAccount.description;
@@ -111,6 +130,10 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
       }
 
       return `${account.name} (${account.accountId})`;
+    },
+
+    getAwsAccount(id) {
+      return self.awsAccounts.get(id);
     },
   }));
 

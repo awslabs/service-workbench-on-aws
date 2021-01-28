@@ -21,6 +21,10 @@ global.window = {
   scrollTo: jest.fn(),
 };
 
+const match = {
+  params: {},
+};
+
 const studiesStoresMap = {};
 
 const filesSelectionEmpty = {
@@ -50,6 +54,7 @@ describe('StudiesPage', () => {
         userStore={userStore}
         studiesStoresMap={studiesStoresMap}
         filesSelection={filesSelectionEmpty}
+        match={match}
       />,
     );
 
@@ -84,6 +89,7 @@ describe('StudiesPage', () => {
         userStore={userStore}
         studiesStoresMap={studiesStoresMap}
         filesSelection={filesSelectionEmpty}
+        match={match}
       />,
     );
 
@@ -118,6 +124,7 @@ describe('StudiesPage', () => {
         userStore={userStore}
         studiesStoresMap={studiesStoresMap}
         filesSelection={filesSelectionFull}
+        match={match}
       />,
     );
 

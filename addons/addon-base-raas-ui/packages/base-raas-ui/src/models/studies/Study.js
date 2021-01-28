@@ -15,8 +15,6 @@
 
 import { types, applySnapshot } from 'mobx-state-tree';
 
-import UserIdentifier from '@aws-ee/base-ui/dist/models/users/UserIdentifier';
-
 import { StudyFilesStore } from './StudyFilesStore';
 import { StudyPermissionsStore } from './StudyPermissionsStore';
 import { categories } from './categories';
@@ -31,14 +29,14 @@ const Study = types
     name: '',
     category: '',
     projectId: '',
-    access: types.maybe(types.string),
+    access: types.optional(types.array(types.string), []),
     resources: types.optional(types.array(types.model({ arn: types.string })), []),
     description: types.maybeNull(types.string),
     uploadLocationEnabled: false,
     createdAt: '',
-    createdBy: types.optional(UserIdentifier, {}),
+    createdBy: '',
     updatedAt: '',
-    updatedBy: types.optional(UserIdentifier, {}),
+    updatedBy: '',
     filesStore: types.maybe(StudyFilesStore),
     permissionsStore: types.maybe(StudyPermissionsStore),
   })
@@ -73,6 +71,10 @@ const Study = types
 
     get isOrganizationStudy() {
       return self.category === categories.organization.name; // TODO the backend should really send an id and not a name
+    },
+
+    get canUpload() {
+      return self.access.includes('admin') || self.access.includes('readwrite');
     },
   }));
 

@@ -32,10 +32,9 @@ class AwsAccountsList extends React.Component {
     this.state = {};
     runInAction(() => {
       // An object that keeps track of which user is being edited
-      // Each key in the object below has key as user's unique id (<ns>/<username>)
+      // Each key in the object below has key as user's unique id (i.e., uid)
       // and value as flag indicating whether to show the editor for the user
       this.mapOfUsersBeingEdited = {};
-      this.formProcessing = false;
     });
   }
 
@@ -115,6 +114,15 @@ class AwsAccountsList extends React.Component {
               Header: 'Encryption Key Arn',
               accessor: 'encryptionKeyArn',
             },
+            {
+              Header: 'Budget Configuration',
+              filterable: false,
+              Cell: observer(cell => (
+                <Button primary compact size="mini" onClick={() => this.handleBudgetConfiguration(cell.original.id)}>
+                  Budget Detail
+                </Button>
+              )),
+            },
           ]}
         />
       </div>
@@ -134,6 +142,10 @@ class AwsAccountsList extends React.Component {
   handleCreateAwsAccount = () => {
     this.goto('/aws-accounts/create');
   };
+
+  handleBudgetConfiguration(awsAccountId) {
+    this.goto(`/aws-accounts/budget/${awsAccountId}`);
+  }
 
   renderHeader() {
     return (
@@ -218,7 +230,6 @@ class AwsAccountsList extends React.Component {
 // see https://medium.com/@mweststrate/mobx-4-better-simpler-faster-smaller-c1fbc08008da
 decorate(AwsAccountsList, {
   mapOfUsersBeingEdited: observable,
-  formProcessing: observable,
 });
 
 export default inject('awsAccountsStore', 'accountsStore')(withRouter(observer(AwsAccountsList)));

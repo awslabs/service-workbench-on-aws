@@ -21,6 +21,7 @@ import ec2WindowsInstance from '../templates/ec2-windows-instance.cfn.yml';
 import sagemakerInstance from '../templates/sagemaker-notebook-instance.cfn.yml';
 import emrCluster from '../templates/emr-cluster.cfn.yml';
 import onboardAccount from '../templates/onboard-account.cfn.yml';
+import storageGatewayNetworkInfra from '../templates/storage-gateway/network-infrastructure.cfn.yml';
 
 const add = (name, yaml) => ({ name, yaml });
 
@@ -32,6 +33,7 @@ const templates = [
   add('sagemaker-notebook-instance', sagemakerInstance),
   add('emr-cluster', emrCluster),
   add('onboard-account', onboardAccount),
+  add('storage-gateway-network-infra', storageGatewayNetworkInfra),
 ];
 
 async function registerCfnTemplates(registry) {

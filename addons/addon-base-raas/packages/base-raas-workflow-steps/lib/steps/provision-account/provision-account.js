@@ -104,13 +104,15 @@ class ProvisionAccount extends StepBase {
     this.print('start to deploy initial stacks in newly created AWS account');
 
     const requestContext = await this.payload.object('requestContext');
-    const by = _.get(requestContext, 'principalIdentifier');
-    const ExternalId = await this.payload.string('externalId');
-    const [workflowRoleArn, apiHandlerArn] = await Promise.all([
+    const by = _.get(requestContext, 'principalIdentifier.uid');
+    const [userService] = await this.mustFindServices(['userService']);
+    const user = await userService.mustFindUser({ uid: by });
+    const externalId = await this.payload.string('externalId');
+    const [workflowRoleArn, apiHandlerArn, callerAccountId] = await Promise.all([
       this.payload.string('workflowRoleArn'),
       this.payload.string('apiHandlerArn'),
+      this.payload.string('callerAccountId'),
     ]);
-    const centralAccountId = await this.state.string('ACCOUNT_ID');
     // deploy basic stacks to the account just created
     const [cfnTemplateService] = await this.mustFindServices(['cfnTemplateService']);
     const cfn = await this.getCloudFormationService();
@@ -121,8 +123,8 @@ class ProvisionAccount extends StepBase {
     const addParam = (key, v) => cfnParams.push({ ParameterKey: key, ParameterValue: v });
 
     addParam('Namespace', stackName);
-    addParam('CentralAccountId', centralAccountId);
-    addParam('ExternalId', ExternalId);
+    addParam('CentralAccountId', callerAccountId);
+    addParam('ExternalId', externalId);
     // TODO: consider if following params are needed
     // addParam('TrustUserArn', userArn);
     addParam('WorkflowRoleArn', workflowRoleArn);
@@ -139,11 +141,11 @@ class ProvisionAccount extends StepBase {
       Tags: [
         {
           Key: 'Description',
-          Value: `Created by ${by.username} for newly created AWS account`,
+          Value: `Created by ${user.username} for newly created AWS account`,
         },
         {
           Key: 'CreatedBy',
-          Value: by.username,
+          Value: user.username,
         },
       ],
     };
@@ -311,7 +313,7 @@ class ProvisionAccount extends StepBase {
     } = await sts
       .assumeRole({
         RoleArn,
-        RoleSessionName: `RaaS-${requestContext.principalIdentifier.username}-CfnRole`,
+        RoleSessionName: `RaaS-${requestContext.principalIdentifier.uid}-CfnRole`,
         ExternalId,
       })
       .promise();
@@ -332,7 +334,7 @@ class ProvisionAccount extends StepBase {
     } = await sts
       .assumeRole({
         RoleArn,
-        RoleSessionName: `RaaS-${requestContext.principalIdentifier.username}-OrgRole`,
+        RoleSessionName: `RaaS-${requestContext.principalIdentifier.uid}-OrgRole`,
         ExternalId,
       })
       .promise();
@@ -355,7 +357,7 @@ class ProvisionAccount extends StepBase {
     } = await sts
       .assumeRole({
         RoleArn,
-        RoleSessionName: `RaaS-${requestContext.principalIdentifier.username}-OrgRole`,
+        RoleSessionName: `RaaS-${requestContext.principalIdentifier.uid}-OrgRole`,
         ExternalId,
       })
       .promise();

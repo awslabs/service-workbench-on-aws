@@ -27,6 +27,7 @@ import EnvironmentsList from '../parts/environments/EnvironmentsList';
 import EnvironmentDetailPage from '../parts/environments/EnvironmentDetailPage';
 import AddAwsAccount from '../parts/accounts/AddAwsAccount';
 import CreateAwsAccount from '../parts/accounts/CreateAwsAccount';
+import UpdateBudget from '../parts/accounts/UpdateBudget';
 import EnvironmentSetup from '../parts/environments/EnvironmentSetup';
 import AddProject from '../parts/projects/AddProject';
 import AddSingleLocalUser from '../parts/users/AddSingleLocalUser';
@@ -52,10 +53,14 @@ function registerRoutes(routesMap, { location, appContext }) {
     ['/indexes/add', withAuth(AddIndex)],
     ['/aws-accounts/add', withAuth(AddAwsAccount)],
     ['/aws-accounts/create', withAuth(CreateAwsAccount)],
+    ['/aws-accounts/budget/:id', withAuth(UpdateBudget)],
     ['/accounts', withAuth(Accounts)],
     ['/dashboard', withAuth(Dashboard)],
+    ['/studies/setup-workspace/type/:envTypeId', withAuth(StudyEnvironmentSetup)],
     ['/studies/setup-workspace', withAuth(StudyEnvironmentSetup)],
+    ['/studies/workspace-type/:envTypeId', withAuth(StudiesPage)],
     ['/studies', withAuth(StudiesPage)],
+    ['/workspaces/create/type/:envTypeId', withAuth(EnvironmentSetup)],
     ['/workspaces/create', withAuth(EnvironmentSetup)],
     ['/workspaces/id/:instanceId', withAuth(EnvironmentDetailPage)],
     ['/workspaces', withAuth(EnvironmentsList)],

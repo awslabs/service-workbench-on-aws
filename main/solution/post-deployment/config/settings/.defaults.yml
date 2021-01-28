@@ -20,6 +20,9 @@ websiteUrl: ${cf:${self:custom.settings.infrastructureStackName}.WebsiteUrl}
 # other identity providers
 enableNativeUserPoolUsers: false
 
+# Cognito domain prefix. Note random string will be padded at the end if specified domain is not available
+cognitoUserPoolDomainPrefix: ${self:custom.settings.envName}-${self:custom.settings.solutionName}
+
 # Title of the default (internal) authentication provider. This shows up in the login dropdown.
 defaultAuthNProviderTitle: 'Default Login'
 
@@ -97,41 +100,181 @@ fedIdpMetadatas: '[]'
 # ================================ DB Settings ===========================================
 
 # DynamoDB table name for the deployment store
-dbTableDeploymentStore: ${self:custom.settings.dbTablePrefix}-DbDeploymentStore
+dbDeploymentStore: ${self:custom.settings.dbPrefix}-DeploymentStore
 
 # DynamoDB table name for supported authentication provider types
-dbTableAuthenticationProviderTypes: ${self:custom.settings.dbTablePrefix}-DbAuthenticationProviderTypes
+dbAuthenticationProviderTypes: ${self:custom.settings.dbPrefix}-AuthenticationProviderTypes
 
 # DynamoDB table name for authentication provider configurations
-dbTableAuthenticationProviderConfigs: ${self:custom.settings.dbTablePrefix}-DbAuthenticationProviderConfigs
+dbAuthenticationProviderConfigs: ${self:custom.settings.dbPrefix}-AuthenticationProviderConfigs
 
-# DynamoDB table name for users
-dbTableUsers: ${self:custom.settings.dbTablePrefix}-DbUsers
+# DynamoDB table name for data lake users
+dbUsers: ${self:custom.settings.dbPrefix}-Users
 
-# DynamoDB table name for passwords for the internal users
+# DynamoDB table name for passwords for the internal data lake users
 # (applicable only to the users authenticated by internal authentication provider)
-dbTablePasswords: ${self:custom.settings.dbTablePrefix}-DbPasswords
+dbPasswords: ${self:custom.settings.dbPrefix}-Passwords
+
+# DynamoDB table name for User's API Keys. These keys are different from the user's passwords.
+# These keys allow the user invoke Data Lake APIs directly outside of the UI.
+dbUserApiKeys: ${self:custom.settings.dbPrefix}-UserApiKeys
+
+# DynamoDB table name for Token Revocation Table
+dbRevokedTokens: ${self:custom.settings.dbPrefix}-RevokedTokens
+
+# DynamoDB table name for Locks
+dbLocks: ${self:custom.settings.dbPrefix}-Locks
 
 # DynamoDB table name for Step Templates
-dbTableStepTemplates: ${self:custom.settings.dbTablePrefix}-DbStepTemplates
+dbStepTemplates: ${self:custom.settings.dbPrefix}-StepTemplates
 
 # DynamoDB table name for Workflow Templates
-dbTableWorkflowTemplates: ${self:custom.settings.dbTablePrefix}-DbWorkflowTemplates
-
-# DynamoDB table name for Workflows
-dbTableWorkflows: ${self:custom.settings.dbTablePrefix}-DbWorkflows
-
-# DynamoDB table name for WfAssignments
-dbTableWfAssignments: ${self:custom.settings.dbTablePrefix}-DbWfAssignments
+dbWorkflowTemplates: ${self:custom.settings.dbPrefix}-WorkflowTemplates
 
 # DynamoDB table name for Workflow Templates Drafts
-dbTableWorkflowTemplateDrafts: ${self:custom.settings.dbTablePrefix}-DbWorkflowTemplateDrafts
+dbWorkflowTemplateDrafts: ${self:custom.settings.dbPrefix}-WorkflowTemplateDrafts
+
+# DynamoDB table name for Workflows
+dbWorkflows: ${self:custom.settings.dbPrefix}-Workflows
 
 # DynamoDB table name for Workflow Drafts
-dbTableWorkflowDrafts: ${self:custom.settings.dbTablePrefix}-DbWorkflowDrafts
+dbWorkflowDrafts: ${self:custom.settings.dbPrefix}-WorkflowDrafts
+
+# DynamoDB table name for Workflow Instances
+dbWorkflowInstances: ${self:custom.settings.dbPrefix}-WorkflowInstances
+
+# DynamoDB table name for WfAssignments
+dbWfAssignments: ${self:custom.settings.dbPrefix}-WfAssignments
+
+# DynamoDB table name for Studies
+dbStudies: ${self:custom.settings.dbPrefix}-Studies
+
+# DynamoDB table global secondary index name for the "category" field
+dbStudiesCategoryIndex: CategoryIndex
+
+# DynamoDB table name for Environments
+dbEnvironments: ${self:custom.settings.dbPrefix}-Environments
+
+# DynamoDB table name for Environments created using AWS Service Catalog
+dbEnvironmentsSc: ${self:custom.settings.dbPrefix}-EnvironmentsSc
+
+# DynamoDB table name for Environment Types
+dbEnvironmentTypes: ${self:custom.settings.dbPrefix}-EnvironmentTypes
 
 # DynamoDB table name for UserRoles
-dbTableUserRoles: ${self:custom.settings.dbTablePrefix}-DbUserRoles
+dbUserRoles: ${self:custom.settings.dbPrefix}-UserRoles
+
+# DynamoDB table name for AwsAccounts
+dbAwsAccounts: ${self:custom.settings.dbPrefix}-AwsAccounts
+
+# DynamoDB table name for Indexes
+dbIndexes: ${self:custom.settings.dbPrefix}-Indexes
+
+# DynamoDB table name for CostApiCaches
+dbCostApiCaches: ${self:custom.settings.dbPrefix}-CostApiCaches
+
+# DynamoDB table name for Accounts
+dbAccounts: ${self:custom.settings.dbPrefix}-Accounts
+
+# DynamoDB table name for Projects
+dbProjects: ${self:custom.settings.dbPrefix}-Projects
+
+# DynamoDB table name for EnvironmentTokens
+dbEnvironmentTokens: ${self:custom.settings.dbPrefix}-EnvironmentTokens
+
+# DynamoDB table name for StudyPermissions
+dbStudyPermissions: ${self:custom.settings.dbPrefix}-StudyPermissions
+
+# DynamoDB table name for KeyPairs
+dbKeyPairs: ${self:custom.settings.dbPrefix}-KeyPairs
+
+# ================================ DB Settings - Depreciated ===========================================
+
+# DynamoDB table name for the deployment store
+dbTableDeploymentStore: ${self:custom.settings.dbPrefix}-DbDeploymentStore
+
+# DynamoDB table name for supported authentication provider types
+dbTableAuthenticationProviderTypes: ${self:custom.settings.dbPrefix}-DbAuthenticationProviderTypes
+
+# DynamoDB table name for authentication provider configurations
+dbTableAuthenticationProviderConfigs: ${self:custom.settings.dbPrefix}-DbAuthenticationProviderConfigs
+
+# DynamoDB table name for data lake users
+dbTableUsers: ${self:custom.settings.dbPrefix}-DbUsers
+
+# DynamoDB table name for passwords for the internal data lake users
+# (applicable only to the users authenticated by internal authentication provider)
+dbTablePasswords: ${self:custom.settings.dbPrefix}-DbPasswords
+
+# DynamoDB table name for User's API Keys. These keys are different from the user's passwords.
+# These keys allow the user invoke Data Lake APIs directly outside of the UI.
+dbTableUserApiKeys: ${self:custom.settings.dbPrefix}-DbUserApiKeys
+
+# DynamoDB table name for Token Revocation Table
+dbTableRevokedTokens: ${self:custom.settings.dbPrefix}-DbRevokedTokens
+
+# DynamoDB table name for Locks
+dbTableLocks: ${self:custom.settings.dbPrefix}-DbLocks
+
+# DynamoDB table name for Step Templates
+dbTableStepTemplates: ${self:custom.settings.dbPrefix}-DbStepTemplates
+
+# DynamoDB table name for Workflow Templates
+dbTableWorkflowTemplates: ${self:custom.settings.dbPrefix}-DbWorkflowTemplates
+
+# DynamoDB table name for Workflow Templates Drafts
+dbTableWorkflowTemplateDrafts: ${self:custom.settings.dbPrefix}-DbWorkflowTemplateDrafts
+
+# DynamoDB table name for Workflows
+dbTableWorkflows: ${self:custom.settings.dbPrefix}-DbWorkflows
+
+# DynamoDB table name for Workflow Drafts
+dbTableWorkflowDrafts: ${self:custom.settings.dbPrefix}-DbWorkflowDrafts
+
+# DynamoDB table name for Workflow Instances
+dbTableWorkflowInstances: ${self:custom.settings.dbPrefix}-DbWorkflowInstances
+
+# DynamoDB table name for WfAssignments
+dbTableWfAssignments: ${self:custom.settings.dbPrefix}-DbWfAssignments
+
+# DynamoDB table name for Studies
+dbTableStudies: ${self:custom.settings.dbPrefix}-DbStudies
+
+# DynamoDB table name for Environments
+dbTableEnvironments: ${self:custom.settings.dbPrefix}-DbEnvironments
+
+# DynamoDB table name for Environments created using AWS Service Catalog
+dbTableEnvironmentsSc: ${self:custom.settings.dbPrefix}-DbEnvironmentsSc
+
+# DynamoDB table name for Environment Types
+dbTableEnvironmentTypes: ${self:custom.settings.dbPrefix}-DbEnvironmentTypes
+
+# DynamoDB table name for UserRoles
+dbTableUserRoles: ${self:custom.settings.dbPrefix}-DbUserRoles
+
+# DynamoDB table name for AwsAccounts
+dbTableAwsAccounts: ${self:custom.settings.dbPrefix}-DbAwsAccounts
+
+# DynamoDB table name for Indexes
+dbTableIndexes: ${self:custom.settings.dbPrefix}-DbIndexes
+
+# DynamoDB table name for CostApiCaches
+dbTableCostApiCaches: ${self:custom.settings.dbPrefix}-DbCostApiCaches
+
+# DynamoDB table name for Accounts
+dbTableAccounts: ${self:custom.settings.dbPrefix}-DbAccounts
+
+# DynamoDB table name for Projects
+dbTableProjects: ${self:custom.settings.dbPrefix}-DbProjects
+
+# DynamoDB table name for EnvironmentTokens
+dbTableEnvironmentTokens: ${self:custom.settings.dbPrefix}-DbEnvironmentTokens
+
+# DynamoDB table name for StudyPermissions
+dbTableStudyPermissions: ${self:custom.settings.dbPrefix}-DbStudyPermissions
+
+# DynamoDB table name for KeyPairs
+dbTableKeyPairs: ${self:custom.settings.dbPrefix}-DbKeyPairs
 
 # ================================ Env Settings ===========================================
 

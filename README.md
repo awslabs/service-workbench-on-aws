@@ -4,8 +4,6 @@ A platform that provides researchers with one-click access to collaborative work
 
 Platform provides one-click option to admins for easier creation (vending) of new AWS accounts specific to researchers' teams for easier governance.
 
-For more information about various AWS accounts see [aws-accounts-readme.md](main/documentation/aws-accounts-readme.md).
-
 The solution contains the following components:
 
 - solution/infrastructure/
@@ -25,13 +23,16 @@ The solution also includes a Continuous Integration/Continuous Delivery feature:
 
 ## Getting Started
 
-Node.js v12.x or later is required.
+Before you can build this project, please install the following prerequisites.
 
-Before you can build this project, you need to install [pnpm](https://pnpm.js.org/en/). Run the following command:
+- **Node.Js:** [Node.js v12.x](https://nodejs.org/en/) or later is required.
+- **PNPM:** Install [pnpm](https://pnpm.js.org/en/) as follows
 
 ```bash
 $ npm install -g pnpm
 ```
+
+- **Go:** You also need to install [Go](https://golang.org/doc/install). `Go` is used for creating a multipart S3 downloader tool that is used in AWS Service Catalog EC2 Windows based research environments.
 
 To create the initial settings files, take a look at the example.yml settings file in main/config/settings/example.yml and create your own copy.
 The stage is either 'example' or your username. This method should be used only for the very first time you install this solution.
@@ -78,7 +79,7 @@ To view information about the deployed components (e.g. CloudFront URL, root pas
 following, where `[stage]` is the name of the environment (defaults to `$STAGE` if not provided):
 
 ```bash
-scripts/get-info.sh [stage]
+$ scripts/get-info.sh [stage]
 ```
 
 Once you have deployed the app and the UI, you can start developing locally on your computer.
@@ -188,3 +189,7 @@ You can now also launch the Service Workbench docusaurus website. Please follow 
 
 This project is licensed under the terms of the Apache 2.0 license. See [LICENSE](LICENSE).
 Included AWS Lambda functions are licensed under the MIT-0 license. See [LICENSE-LAMBDA](LICENSE-LAMBDA).
+
+## Feedback
+
+We'd love to hear from you! Please reach out to our team: [service-workbench-dev](mailto:service-workbench-dev@amazon.com) for any feedback.

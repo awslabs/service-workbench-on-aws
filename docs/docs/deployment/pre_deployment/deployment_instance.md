@@ -4,34 +4,7 @@ title: Deployment Instance
 sidebar_label: Deployment Instance
 ---
 
--   
-
-    Use a T2.medium (4 GB) EC2 instance or larger
-
-    :   -   Larger machines will have faster networking; larger disks
-            will have higher performance
-        -   Default VPC & subnet are sufficient
-
--   
-
-    Attach to your instance a IAM role with sufficient permission (such as AdministratorAccess)
-
-    :   -   See: [Add an IAM role to an instance](/deployment/reference/iam_role)
-
-Prerequisite Software
----------------------
-
--   
-
-    Install **node**, **serverless**, **pnpm**, and **hygen** by submitting the commands below
-
-    :   -   If running Amazon Linux, **node** is not available through
-            **yum**, so it is installed using **nvm**
-            (<https://github.com/nvm-sh/nvm>)
-
-```{=html}
-<!-- -->
-```
--   **node** and all packages are installed in eg:
-    `~/.nvm/versions/node/v12.18.1/bin/node`
--   Verify with eg: `hygen --version`
+You can create a deployment instance with the following specifications:
+* **Amazon EC2 Instance Type**: Use a T2.medium (4 GB) Amazon EC2 instance or larger. Larger machines will have faster networking and larger disks will have higher performance.
+* **VPC and Subnets**: Use the default VPC and subnet.
+* **AWS IAM Role**: Attach to your instance an AWS IAM role with sufficient permission, such as the administrator access. For more information, see [Add an IAM role to an instance](/deployment/reference/iam_role).

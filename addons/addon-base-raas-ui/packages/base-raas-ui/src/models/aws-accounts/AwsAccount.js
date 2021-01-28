@@ -14,8 +14,7 @@
  */
 
 import { types } from 'mobx-state-tree';
-
-import UserIdentifier from '@aws-ee/base-ui/dist/models/users/UserIdentifier';
+import Budget from './Budget';
 
 // ==================================================================
 // AwsAccounts
@@ -33,9 +32,10 @@ const AwsAccount = types
     subnetId: '',
     encryptionKeyArn: '',
     createdAt: '',
-    createdBy: types.optional(UserIdentifier, {}),
+    createdBy: '',
     updatedAt: '',
-    updatedBy: types.optional(UserIdentifier, {}),
+    updatedBy: '',
+    budget: types.optional(Budget, {}),
   })
   .actions(self => ({
     setAwsAccounts(rawAwsAccounts) {

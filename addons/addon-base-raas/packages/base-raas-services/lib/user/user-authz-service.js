@@ -25,7 +25,6 @@ const {
   allow,
   deny,
 } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
-const { toUserNamespace } = require('@aws-ee/base-services/lib/user/helpers/user-namespace');
 
 class UserAuthzService extends Service {
   async authorize(requestContext, { resource, action, effect, reason }, ...args) {
@@ -64,9 +63,8 @@ class UserAuthzService extends Service {
     }
 
     // User can update only their own attributes unless the user is an admin
-    const { username, authenticationProviderId, identityProviderName } = user;
-    const ns = toUserNamespace(authenticationProviderId, identityProviderName);
-    permissionSoFar = await allowIfCurrentUserOrAdmin(requestContext, { action }, { username, ns });
+    const { uid } = user;
+    permissionSoFar = await allowIfCurrentUserOrAdmin(requestContext, { action }, { uid });
     if (isDeny(permissionSoFar)) return permissionSoFar; // return if denying
 
     return allow();

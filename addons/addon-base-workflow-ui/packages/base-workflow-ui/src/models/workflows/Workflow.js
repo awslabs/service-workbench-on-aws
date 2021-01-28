@@ -15,7 +15,6 @@
 
 import _ from 'lodash';
 import { types, getEnv, applySnapshot, detach } from 'mobx-state-tree';
-import UserIdentifier from '@aws-ee/base-ui/dist/models/users/UserIdentifier';
 import { generateId, consolidateToMap } from '@aws-ee/base-ui/dist/helpers/utils';
 
 import { RunSpec } from '../workflow-templates/WorkflowTemplate';
@@ -46,9 +45,9 @@ const WorkflowAssignment = types
     wf: '',
     rev: types.number,
     createdAt: '',
-    createdBy: types.optional(UserIdentifier, {}),
+    createdBy: '',
     updatedAt: '',
-    updatedBy: types.optional(UserIdentifier, {}),
+    updatedBy: '',
     triggerType: '',
     triggerTypeData: '',
   })
@@ -74,9 +73,9 @@ const WorkflowInstance = types
     wfVer: types.number,
     ttl: types.maybeNull(types.number),
     createdAt: '',
-    createdBy: types.optional(UserIdentifier, {}),
+    createdBy: '',
     updatedAt: '',
-    updatedBy: types.optional(UserIdentifier, {}),
+    updatedBy: '',
     msg: '',
     wfStatus: '',
     stStatuses: types.optional(types.frozen(), []),
@@ -196,9 +195,9 @@ const WorkflowVersion = types
     v: types.number,
     rev: types.maybe(types.number),
     createdAt: '',
-    createdBy: types.optional(UserIdentifier, {}),
+    createdBy: '',
     updatedAt: '',
-    updatedBy: types.optional(UserIdentifier, {}),
+    updatedBy: '',
     title: '',
     desc: '',
     instanceTtl: types.maybeNull(types.number),

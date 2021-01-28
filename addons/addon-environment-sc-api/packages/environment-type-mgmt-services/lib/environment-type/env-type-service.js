@@ -24,7 +24,7 @@ const createEnvTypeSchema = require('./schema/create-env-type');
 const updateEnvTypeSchema = require('./schema/update-env-type');
 
 const settingKeys = {
-  tableName: 'dbTableEnvironmentTypes',
+  tableName: 'dbEnvironmentTypes',
   envMgmtRoleArn: 'envMgmtRoleArn',
   launchConstraintRolePrefix: 'launchConstraintRolePrefix',
 };
@@ -264,7 +264,7 @@ class EnvTypeService extends Service {
     const [validationService] = await this.service(['jsonSchemaValidationService']);
     await validationService.ensureValid(environmentType, createEnvTypeSchema);
 
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns: user.ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     const { id } = environmentType;
 
     environmentType.params = await this.getProvisioningArtifactParams(
@@ -309,7 +309,7 @@ class EnvTypeService extends Service {
     const [validationService] = await this.service(['jsonSchemaValidationService']);
     await validationService.ensureValid(environmentType, updateEnvTypeSchema);
 
-    const by = _.get(requestContext, 'principalIdentifier'); // principalIdentifier shape is { username, ns }
+    const by = _.get(requestContext, 'principalIdentifier.uid');
     const { id, rev } = environmentType;
 
     // Prepare the db object
@@ -333,9 +333,7 @@ class EnvTypeService extends Service {
         const existing = await this.find(requestContext, { id, fields: ['id', 'updatedBy'] });
         if (existing) {
           throw this.boom.badRequest(
-            `environmentType information changed by "${
-              (existing.updatedBy || {}).username
-            }" just before your request is processed, please try again`,
+            `environmentType information changed just before your request is processed, please try again`,
             true,
           );
         }

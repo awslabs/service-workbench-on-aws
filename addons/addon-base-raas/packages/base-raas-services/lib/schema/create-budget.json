@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["id", "budgetConfiguration"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "budgetConfiguration": {
+      "type": "object",
+      "required": ["budgetLimit", "startDate", "endDate"],
+      "properties": {
+        "budgetLimit": {
+          "type": "string"
+        },
+        "startDate": {
+          "type": "integer"
+        },
+        "endDate": {
+          "type": "integer"
+        },
+        "thresholds": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "enum": [50, 70, 80, 90, 100]
+          }
+        },
+        "notificationEmail": {
+          "type": "string",
+          "format": "email"
+        }
+      },
+      "dependencies": {
+        "thresholds": ["notificationEmail"],
+        "notificationEmail": ["thresholds"]
+      },
+      "additionalProperties": false
+    },
+    "description": {
+      "type": "string"
+    }
+  },
+  "additionalProperties": false
+}

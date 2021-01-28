@@ -40,6 +40,7 @@ class AuthenticationService extends Service {
    * type AuthenticationSuccess = {
    *   authenticated: true
    *   verifiedToken: Object
+   *   uid: string
    *   username: string
    *   authenticationProviderId: string
    *   identityProviderName?: string
@@ -47,6 +48,7 @@ class AuthenticationService extends Service {
    * type AuthenticationError = {
    *   authenticated: false
    *   error: Error | string
+   *   uid?: string
    *   username?: string
    *   authenticationProviderId?: string
    *   identityProviderName?: string
@@ -74,18 +76,20 @@ class AuthenticationService extends Service {
     const isApiKey = await apiKeyService.isApiKeyToken(claims);
     if (isApiKey) {
       try {
-        const { verifiedToken, username } = await apiKeyService.validateApiKey(token);
+        const { verifiedToken, uid } = await apiKeyService.validateApiKey(token);
+
         return authenticated({
           token,
           isApiKey,
           verifiedToken,
-          username,
+          uid,
           authenticationProviderId: _.get(claims, 'custom:authenticationProviderId', internalAuthProviderId),
           identityProviderName: _.get(claims, 'custom:identityProviderName', ''),
         });
       } catch (error) {
         return notAuthenticated({
-          username: claims.sub,
+          uid: claims.sub,
+          username: claims.username,
           authenticationProviderId: _.get(claims, 'custom:authenticationProviderId', internalAuthProviderId),
           identityProviderName: _.get(claims, 'custom:identityProviderName', ''),
           error,
@@ -96,7 +100,8 @@ class AuthenticationService extends Service {
     const providerConfig = await authenticationProviderConfigService.getAuthenticationProviderConfig(providerId);
     if (!providerConfig) {
       return notAuthenticated({
-        username: claims.sub,
+        uid: claims.sub,
+        username: claims.username,
         authenticationProviderId: claims.iss,
         error: `unknown provider id: '${providerId}'`,
       });
@@ -109,7 +114,7 @@ class AuthenticationService extends Service {
       throw new Error(`malformed provider config for provider id '${providerId}'`);
     }
     try {
-      const { verifiedToken, username, identityProviderName } = await this.invoke(
+      const { verifiedToken, uid, username, identityProviderName } = await this.invoke(
         tokenValidatorLocator,
         { token, issuer: claims.iss },
         providerConfig,
@@ -117,13 +122,15 @@ class AuthenticationService extends Service {
       return authenticated({
         token,
         verifiedToken,
+        uid,
         username,
         identityProviderName,
         authenticationProviderId: providerId,
       });
     } catch (error) {
       return notAuthenticated({
-        username: claims.sub,
+        uid: claims.sub,
+        username: claims.username,
         authenticationProviderId: claims.iss,
         error,
       });

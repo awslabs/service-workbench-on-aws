@@ -15,6 +15,8 @@
 
 const _ = require('lodash');
 const crypto = require('crypto');
+const querystring = require('querystring');
+const rstudioEncryptor = require('@aws-ee/base-services/lib/helpers/rstudio-encryptor');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const sshConnectionInfoSchema = require('../../schema/ssh-connection-info-sc');
 const { connectionScheme } = require('./environment-sc-connection-enum');
@@ -26,7 +28,9 @@ class EnvironmentScConnectionService extends Service {
     this.dependency([
       'environmentScService',
       'environmentScKeypairService',
+      'environmentDnsService',
       'jsonSchemaValidationService',
+      'jwtService',
       'keyPairService',
       'auditWriterService',
       'pluginRegistryService',
@@ -153,6 +157,10 @@ class EnvironmentScConnectionService extends Service {
       connection.url = _.get(sageMakerResponse, 'AuthorizedUrl');
     }
 
+    if (_.toLower(_.get(connection, 'type', '')) === 'rstudio') {
+      connection.url = await this.getRStudioUrl(requestContext, envId, connection);
+    }
+
     // Give plugins chance to adjust the connection (such as connection url etc)
     const result = await pluginRegistryService.visitPlugins(
       'env-sc-connection-url',
@@ -167,6 +175,42 @@ class EnvironmentScConnectionService extends Service {
     );
 
     return _.get(result, 'connection') || connection;
+  }
+
+  async getRStudioUrl(requestContext, id, connection) {
+    const environmentDnsService = await this.service('environmentDnsService');
+    const rstudioDomainName = environmentDnsService.getHostname('rstudio', id);
+    const rstudioSignInUrl = `https://${rstudioDomainName}/auth-do-sign-in`;
+    const instanceId = connection.instanceId;
+    const jwtService = await this.service('jwtService');
+    const jwtSecret = await jwtService.getSecret();
+    const hash = crypto.createHash('sha256');
+    const username = 'rstudio-user';
+    const password = hash.update(`${instanceId}${jwtSecret}`).digest('hex');
+    const credentials = `${username}\n${password}`;
+    const publicKey = await this.getRstudioPublicKey(requestContext, instanceId, id);
+    const [exponent, modulus] = publicKey.split(':', 2);
+    const params = { v: rstudioEncryptor.encrypt(credentials, exponent, modulus) };
+    const authorizedUrl = `${rstudioSignInUrl}?${querystring.encode(params)}`;
+    return authorizedUrl;
+  }
+
+  async getRstudioPublicKey(requestContext, instanceId, id) {
+    const environmentScService = await this.service('environmentScService');
+
+    const ssm = await environmentScService.getClientSdkWithEnvMgmtRole(
+      requestContext,
+      { id },
+      { clientName: 'SSM', options: { apiVersion: '2014-11-06' } },
+    );
+    const rstudioPublicKey = await ssm
+      .getParameter({
+        Name: `/rstudio/publickey/sc-environments/ec2-instance/${instanceId}`,
+        WithDecryption: true,
+      })
+      .promise();
+
+    return rstudioPublicKey.Parameter.Value;
   }
 
   async sendSshPublicKey(requestContext, envId, connectionId, sshConnectionInfo) {

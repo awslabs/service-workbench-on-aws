@@ -49,8 +49,8 @@ class ProviderService extends Service {
     }
     // User the cognitoTokenVerifier to validate cognito token
     const verifiedToken = await cognitoTokenVerifier.verify(token);
-    const { username, identityProviderName } = await this.saveUser(verifiedToken, providerConfig.config.id);
-    return { verifiedToken, username, identityProviderName };
+    const { uid, username, identityProviderName } = await this.saveUser(verifiedToken, providerConfig.config.id);
+    return { verifiedToken, username, uid, identityProviderName };
   }
 
   async saveUser(decodedToken, authenticationProviderId) {
@@ -61,15 +61,17 @@ class ProviderService extends Service {
       // If this user is authenticated via SAML then we need to add it to our user table if it doesn't exist already
       const userService = await this.service('userService');
 
-      const user = await userService.findUser({
+      const user = await userService.findUserByPrincipal({
         username: userAttributes.username,
         authenticationProviderId,
         identityProviderName: userAttributes.identityProviderName,
       });
       if (user) {
         await this.updateUser(authenticationProviderId, userAttributes, user);
+        userAttributes.uid = user.uid;
       } else {
-        await this.createUser(authenticationProviderId, userAttributes);
+        const createdUser = await this.createUser(authenticationProviderId, userAttributes);
+        userAttributes.uid = createdUser.uid;
       }
     }
     return userAttributes;
@@ -84,7 +86,7 @@ class ProviderService extends Service {
   async createUser(authenticationProviderId, userAttributes) {
     const userService = await this.service('userService');
     try {
-      await userService.createUser(getSystemRequestContext(), {
+      return userService.createUser(getSystemRequestContext(), {
         authenticationProviderId,
         ...userAttributes,
       });
@@ -127,12 +129,10 @@ class ProviderService extends Service {
     // then update the user in the system to set the missing attributes
     if (!_.isEmpty(missingAttribs)) {
       const userService = await this.service('userService');
-      const { username, identityProviderName, rev } = existingUser;
+      const { uid, rev } = existingUser;
       try {
         await userService.updateUser(getSystemRequestContext(), {
-          username,
-          authenticationProviderId,
-          identityProviderName,
+          uid,
           rev,
           ...missingAttribs,
         });

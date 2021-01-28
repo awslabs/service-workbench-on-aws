@@ -203,7 +203,7 @@ describe('EnvTypeService', () => {
         // CHECK
         expect(service.boom.is(err, 'badRequest')).toBe(true);
         expect(err.message).toBe(
-          `environmentType information changed by "${requestContext.updatedBy.username}" just before your request is processed, please try again`,
+          `environmentType information changed just before your request is processed, please try again`,
         );
       }
     });

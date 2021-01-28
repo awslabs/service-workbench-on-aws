@@ -1,11 +1,14 @@
 module.exports = {
   serviceWorkbenchSidebar: {
-    ServiceWorkBench: ["introduction"],
+    ServiceWorkBench: ["introduction"],    
     "Deployment Guide": [
+      "deployment/about_this_guide",
       "deployment/summary",
+      "deployment/deployment_stages",      
       {
         "Pre Deployment": [
-          "deployment/pre_deployment/prerequisites",
+          "deployment/pre_deployment/pre_deployment",
+	  "deployment/pre_deployment/accounts",
           "deployment/pre_deployment/prereq_commands",
           "deployment/pre_deployment/deployment_instance",
           "deployment/pre_deployment/source_code",
@@ -16,8 +19,9 @@ module.exports = {
       {
         "Post Deployment": [
           "deployment/post_deployment/index",
+          "deployment/post_deployment/account_structure",
           // "deployment/post_deployment/cost_explorer",
-          "deployment/post_deployment/link_aws_account",
+          "deployment/post_deployment/aws_accounts",
           "deployment/post_deployment/create_index_project",
           "deployment/post_deployment/create_admin_user",
           "deployment/post_deployment/import_service_catalog_products",
@@ -27,6 +31,7 @@ module.exports = {
         Configuration: [
           {
             Authentication: [
+              "deployment/configuration/auth/enabling_ad",
               "deployment/configuration/auth/configuring_auth0",
               "deployment/configuration/auth/configuring_idp",
             ],
@@ -38,11 +43,12 @@ module.exports = {
         Reference: [
           "deployment/reference/iam_role",
           "deployment/reference/aws_services",
-          "deployment/reference/account_structure",
+          "deployment/reference/prepare_master_account"
         ],
       },
     ],
     "User Guide": [
+      "user_guide/account_structure",
       "user_guide/introduction",
       {
         Sidebar: [
@@ -88,6 +94,7 @@ module.exports = {
                       "user_guide/sidebar/admin/accounts/aws_accounts/introduction",
                       "user_guide/sidebar/admin/accounts/aws_accounts/create_member_account",
                       "user_guide/sidebar/admin/accounts/aws_accounts/invite_member_account",
+                      "user_guide/sidebar/admin/accounts/aws_accounts/set_account_budget",
                       {
                         "Roles and Permissions": [
                           "user_guide/sidebar/admin/accounts/aws_accounts/master_role",
@@ -97,7 +104,6 @@ module.exports = {
                     ],
                   },
                 ],
-                "API Keys": ["user_guide/sidebar/admin/api_keys/introduction"],
                 Workflows: ["user_guide/sidebar/admin/workflows/introduction"],
                 Studies: [
                   "user_guide/sidebar/common/studies/introduction",
@@ -125,6 +131,8 @@ module.exports = {
       "best_practices/cicd",
       "best_practices/rotating_jwt_token",
     ],
-    "Development Guide": ["development/introduction"],
+    "Development Guide": [
+      "development/introduction"
+    ],
   },
 };
