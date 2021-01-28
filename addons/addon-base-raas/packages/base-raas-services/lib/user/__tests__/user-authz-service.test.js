@@ -259,7 +259,7 @@ describe('UserAuthzService', () => {
         { principal: { isAdmin: true } },
         {},
         userType,
-        existingUser,
+        existingAdminUser,
       );
 
       // CHECK
