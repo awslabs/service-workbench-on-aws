@@ -958,4 +958,50 @@ describe('EnvironmentSCService', () => {
     expect(currentIngressRules).toMatchObject(expectedOutcome);
     expect(securityGroupId).toEqual(origSecurityGroupId);
   });
+
+  it('should send empty array for ingress rules if no security group was found', async () => {
+    // BUILD
+    const requestContext = {};
+    const stackArn = 'sampleCloudFormationStackArn';
+    const environment = {
+      outputs: [{ OutputKey: 'CloudformationStackARN', OutputValue: `<AwsAccountRoot>/${stackArn}` }],
+      status: 'COMPLETED',
+    };
+    const stackResources = {
+      StackResourceSummaries: [],
+    };
+    const templateDetails = {
+      TemplateBody: YAML.dump({
+        Resources: {}, // Resources does not contain SecurityGroup or MasterSecurityGroup
+      }),
+    };
+    const workspaceIngressRules = [
+      {
+        IpProtocol: 'tcp',
+        FromPort: 123,
+        ToPort: 123,
+        IpRanges: [{ CidrIp: '123.123.123.123/32' }],
+      },
+      {
+        IpProtocol: 'tcp',
+        FromPort: 1,
+        ToPort: 1,
+        IpRanges: [{ CidrIp: '123.123.123.123/32' }],
+      },
+    ];
+    service.getCfnDetails = jest.fn(() => {
+      return { stackResources, templateDetails };
+    });
+    service.getWorkspaceSecurityGroup = jest.fn(() => {
+      return { securityGroupResponse: { SecurityGroups: [{ IpPermissions: workspaceIngressRules }] } };
+    });
+    const expectedOutcome = [];
+
+    // OPERATE
+    const { currentIngressRules, securityGroupId } = await service.getSecurityGroupDetails(requestContext, environment);
+
+    // CHECK
+    expect(currentIngressRules).toMatchObject(expectedOutcome);
+    expect(securityGroupId).toBeUndefined();
+  });
 });
