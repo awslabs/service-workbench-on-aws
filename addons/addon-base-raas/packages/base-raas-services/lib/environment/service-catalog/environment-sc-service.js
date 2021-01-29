@@ -712,6 +712,16 @@ class EnvironmentScService extends Service {
       cfnStackLogicalId,
     );
     const templateBody = YAML.load(templateDetails.TemplateBody);
+
+    if (
+      _.isUndefined(templateBody.Resources.SecurityGroup) &&
+      _.isUndefined(templateBody.Resources.MasterSecurityGroup)
+    ) {
+      // Do NOT throw an error here because this is being used by the GET ScEnv API (which is also used to build the View Details page)
+      // Rather send back an empty array of ingress rules, to show none were configured in SC template
+      return { currentIngressRules: [] };
+    }
+
     const cfnTemplateIngressRules = templateBody.Resources.SecurityGroup
       ? templateBody.Resources.SecurityGroup.Properties.SecurityGroupIngress
       : templateBody.Resources.MasterSecurityGroup.Properties.SecurityGroupIngress; // For EMR use-cases
