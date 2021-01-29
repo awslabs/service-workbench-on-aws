@@ -1036,8 +1036,8 @@ paths:
       tags:
         - admins
         - StepTemplates
-      summary: validate step template by id and version
-      operationId: validateStepTemplateByVersion
+      summary: validate step template
+      operationId: validateStepTemplate
       parameters:
         - name: stepTemplateId
           in: path
@@ -1141,7 +1141,7 @@ paths:
       tags:
         - admins
         - Workflows
-      summary: List the all workflow instances by status and created within specified time period
+      summary: List workflow instances, filtered by status and created time
       operationId: workflowInstanceStatuses
       parameters:
         - name: status
@@ -1151,14 +1151,13 @@ paths:
             $ref: '#/components/schemas/WorkflowInstanceStatus'
       requestBody:
         required: true
-        description: ''
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/InstanceStatusTimePeriod'
       responses:
         '200':
-          description: 'Return array of workflow instances within time period'
+          description: 'Return array of workflow instances filtered by status and created time'
   /api/workflows/{workflowId}/assignments:
     post:
       tags:
@@ -1275,7 +1274,7 @@ paths:
       operationId: getLatestWorkflows
       responses:
         '200':
-          description: 'Reurn array of latest version of each workflow'
+          description: 'Return array of latest version of each workflow'
   /api/workflows/{workflowId}:
     get:
       tags:
