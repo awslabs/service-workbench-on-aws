@@ -1030,7 +1030,7 @@ paths:
             $ref: '#/components/schemas/VersionId'
       responses:
         '200':
-          description: 'Return array of all versions of the requested step template'
+          description: 'Return requested step template'
   /api/step-templates/{stepTemplateId}/v/{versionId}/validate:
     post:
       tags:
@@ -1192,7 +1192,6 @@ paths:
       operationId: createDraftWorkflow
       requestBody:
         required: true
-        description: ''
         content:
           application/json:
             schema:
@@ -1215,7 +1214,6 @@ paths:
             $ref: '#/components/schemas/WorkflowId'
       requestBody:
         required: true
-        description: ''
         content:
           application/json:
             schema:
@@ -1246,7 +1244,6 @@ paths:
       operationId: publishDraftWorkflow
       requestBody:
         required: true
-        description: ''
         content:
           application/json:
             schema:
@@ -1343,7 +1340,6 @@ paths:
             $ref: '#/components/schemas/WorkflowId'
       requestBody:
         required: true
-        description: ''
         content:
           application/json:
             schema:
