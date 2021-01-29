@@ -12,7 +12,7 @@ Note:
 2. For RStudio instances, please allow 2-5 minutes for CIDR changes to take effect.
 3. For SageMaker instances, currently application admins and workspace owners have ability to access the SageMaker platform directly, irrespective of CIDR inclusion.
 
--feat: Remove APIs for built-in workspaces
+- feat: Remove APIs for built-in workspaces
 
 ## [1.4.7] - 2021-01-28
 
