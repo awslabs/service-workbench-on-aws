@@ -79,6 +79,33 @@ describe('EnvironmentScCidrService', () => {
   });
 
   describe('Validation checks', () => {
+    it('should fail because the updateRequest contains additional properties', async () => {
+      // BUILD
+      const params = {
+        id: 'testId',
+        updateRequest: [
+          {
+            __proto__: {
+              toString: 'test',
+            },
+            protocol: 'tcp',
+            fromPort: 3389,
+            toPort: 3389,
+            cidrBlocks: ['205.251.233.179/32'],
+          },
+        ],
+      };
+
+      // OPERATE
+      try {
+        await service.update({}, params);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(service.boom.is(err, 'badRequest')).toBe(true);
+        expect(err.message).toContain('Input has validation errors');
+      }
+    });
+
     it('should fail because the updateRequest is undefined', async () => {
       // BUILD
       const params = {

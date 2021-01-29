@@ -28,7 +28,8 @@
         "toPort",
         "protocol",
         "cidrBlocks"
-      ]
+      ],
+      "additionalProperties": false
     }
   ],
   "minItems": 1
