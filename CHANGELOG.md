@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.0.0] - TBD
+## [1.4.8] - 2021-01-28
 
 ### Added 
 - feat: Adding ability to manage CIDR blocks of workspace's configured security group
@@ -11,6 +11,8 @@ Note:
 1. This feature has added permissions to the onboard-account template and requires re-onboarding existing member accounts. Please contact your system administrator for the same.
 2. For RStudio instances, please allow 2-5 minutes for CIDR changes to take effect.
 3. For SageMaker instances, currently application admins and workspace owners have ability to access the SageMaker platform directly, irrespective of CIDR inclusion.
+
+- feat: Remove APIs for built-in workspaces
 
 ## [1.4.7] - 2021-01-28
 
