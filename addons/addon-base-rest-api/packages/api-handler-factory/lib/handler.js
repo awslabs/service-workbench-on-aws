@@ -68,11 +68,24 @@ function handlerFactory({ registerServices, registerRoutes }) {
       },
       optionsSuccessStatus: 200, // some legacy browsers (IE11, various SmartTVs) choke on 204
     };
-
     app.use(compression());
     app.use(cors(corsOptions));
     app.use(bodyParser.json({ limit: '50mb' })); // see https://stackoverflow.com/questions/19917401/error-request-entity-too-large
     app.use(bodyParser.urlencoded({ limit: '50mb', extended: true })); // for parsing application/x-www-form-urlencoded
+
+    // log all incoming requests
+    app.use((req, res, next) => {
+      logger.info({
+        logEventType: 'incomingRequest', // static field useful for filtering logs
+        uid: _.get(req, 'context.authorizer.uid'),
+        authenticationProviderId: _.get(req, 'context.authorizer.authenticationProviderId'),
+        method: req.method,
+        url: req.url,
+        query: req.query,
+        body: req.body,
+      });
+      next();
+    });
 
     // mount all routes under /
     app.use('/', apiRouter);

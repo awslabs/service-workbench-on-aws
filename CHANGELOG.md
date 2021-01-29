@@ -9,6 +9,20 @@ All notable changes to this project will be documented in this file.
 
 This feature has added permissions to the onboard-account template. This means for existing member accounts should re-onboard their accounts.
 
+## [1.4.7] - 2021-01-28
+
+### Added 
+- fix: Fix a bug on the update user API
+
+We recommend to apply this patch as soon as possible
+
+## [1.4.6] - 2021-01-15
+
+### Added 
+- feat: Adding ability to manage configured CIDR blocks of workspace's configured security group
+
+This feature has added permissions to the onboard-account template. This means for existing member accounts should re-onboard their accounts.
+
 ## [1.4.6] - 2021-01-15
 
 ### Added 
