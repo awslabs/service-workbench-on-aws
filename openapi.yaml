@@ -284,6 +284,41 @@ paths:
       responses:
         '200':
           description: User password updated
+  /api/user:
+    get:
+      tags:
+        - admins
+        - researchers
+        - guests
+        - internal guests
+        - User
+      summary: Get user information of current user
+      operationId: getCurrentUser
+      description: |
+        Get current user information
+      responses:
+        '200':
+          description: user information
+    put:
+      tags:
+        - admins
+        - researchers
+        - guests
+        - internal guests
+        - User
+      summary: Update user information of current user
+      operationId: updateCurrentUser
+      description: |
+        Update current user information
+      responses:
+        '200':
+          description: updated user information
+      requestBody:
+        description: fields to update in user information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCurrentUserInfo'
   /api/user-roles:
     get:
       tags:
@@ -1513,6 +1548,9 @@ components:
     CreateUserRequest:
       required:
         - username
+        - password
+        - userRole
+        - status
       type: object
       properties:
         username:
@@ -1641,21 +1679,6 @@ components:
           type: number
           example: 1
           description: 'Revision specifying the updates the record has gone through'
-        userRole:
-          type: string
-          example: 'researcher'
-        projectId:
-          type: string
-          example: 'TestProject'
-        isExternalUser:
-          type: boolean
-          example: true
-        encryptedCreds:
-          type: string
-          example: 'EncryptedCreds123'
-        applyReason:
-          type: string
-          example: 'Research'
     UpdateUserPasswordRequest:
       required:
         - password
@@ -1665,6 +1688,75 @@ components:
           type: string
           example: 'TeStPa$$word6235'
           description: 'Password of the user which should be a string of atleast 4 characters'
+    UpdateCurrentUserInfo:
+      type: object
+      additionalProperties: false
+      properties:
+        uid:
+          $ref: '#/components/schemas/UserId'
+        email:
+          type: string
+          pattern: '^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$'
+          example: 'nobody@example.com'
+          description: 'Email address of the user'
+        firstName:
+          type: string
+          maxLength: 500
+          pattern: '^[A-Za-z0-9 .-]+$'
+          example: 'Test'
+          description: 'First name of the user'
+        lastName:
+          type: string
+          maxLength: 500
+          pattern: '^[A-Za-z0-9 .-]+$'
+          example: 'Test'
+          description: 'First name of the user'
+        userType:
+          type: string
+          enum:
+            - root
+          example: 'root'
+          description: 'Specify if user is root'
+        isSamlAuthenticatedUser:
+          type: boolean
+          example: true
+          description: 'If using Cognito, is the user authenticated using SAML'
+        isAdmin:
+          type: boolean
+          example: true
+          description: 'True if user is admin'
+        status:
+          type: string
+          enum:
+            - active
+            - inactive
+            - pending
+          example: 'active'
+          description: 'Status of the user. Only active users are allowed access'
+        rev:
+          type: number
+          example: 1
+          description: 'Revision specifying the updates the record has gone through'
+        userRole:
+          type: string
+          example: 'researcher'
+        projectId:
+          type: array
+          items:
+            type: string
+          example: ['project1','project2']
+        isExternalUser:
+          type: boolean
+          example: true
+        encryptedCreds:
+          type: string
+          example: 'some-encrypted-creds'
+        applyReason:
+          type: string
+          example: 'apply for project xyz'
+      required:
+        - uid
+        - rev
     CfnInfo:
       required:
         - vpcId
