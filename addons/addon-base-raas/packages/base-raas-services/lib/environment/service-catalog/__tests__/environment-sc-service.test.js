@@ -12,7 +12,7 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-
+const YAML = require('js-yaml');
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
 const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
 const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
@@ -819,5 +819,189 @@ describe('EnvironmentSCService', () => {
         expect.objectContaining({ action: 'delete-environment-sc' }),
       );
     });
+  });
+
+  describe('getSecurityGroupDetails function', () => {
+    it('should send filtered security group rules as expected', async () => {
+      // BUILD
+      const requestContext = {};
+      const stackArn = 'sampleCloudFormationStackArn';
+      const environment = {
+        outputs: [{ OutputKey: 'CloudformationStackARN', OutputValue: `<AwsAccountRoot>/${stackArn}` }],
+        status: 'COMPLETED',
+      };
+      const origSecurityGroupId = 'sampleSecurityGroupId';
+      const stackResources = {
+        StackResourceSummaries: [{ LogicalResourceId: 'SecurityGroup', PhysicalResourceId: origSecurityGroupId }],
+      };
+      const templateDetails = {
+        TemplateBody: YAML.dump({
+          Resources: {
+            SecurityGroup: {
+              Properties: {
+                SecurityGroupIngress: [
+                  {
+                    IpProtocol: 'tcp',
+                    FromPort: 123,
+                    ToPort: 123,
+                  },
+                ],
+              },
+            },
+          },
+        }),
+      };
+      const workspaceIngressRules = [
+        {
+          IpProtocol: 'tcp',
+          FromPort: 123,
+          ToPort: 123,
+          IpRanges: [{ CidrIp: '123.123.123.123/32' }],
+        },
+        {
+          IpProtocol: 'tcp',
+          FromPort: 1,
+          ToPort: 1,
+          IpRanges: [{ CidrIp: '123.123.123.123/32' }],
+        },
+      ];
+      service.getCfnDetails = jest.fn(() => {
+        return { stackResources, templateDetails };
+      });
+      service.getWorkspaceSecurityGroup = jest.fn(() => {
+        return { securityGroupResponse: { SecurityGroups: [{ IpPermissions: workspaceIngressRules }] } };
+      });
+      const expectedOutcome = [
+        {
+          protocol: 'tcp',
+          fromPort: 123,
+          toPort: 123,
+          cidrBlocks: ['123.123.123.123/32'],
+        },
+      ];
+
+      // OPERATE
+      const { currentIngressRules, securityGroupId } = await service.getSecurityGroupDetails(
+        requestContext,
+        environment,
+      );
+
+      // CHECK
+      expect(currentIngressRules).toMatchObject(expectedOutcome);
+      expect(securityGroupId).toEqual(origSecurityGroupId);
+    });
+  });
+
+  it('should send filtered security group rules as expected for EMR', async () => {
+    // BUILD
+    const requestContext = {};
+    const stackArn = 'sampleCloudFormationStackArn';
+    const environment = {
+      outputs: [{ OutputKey: 'CloudformationStackARN', OutputValue: `<AwsAccountRoot>/${stackArn}` }],
+      status: 'COMPLETED',
+    };
+    const origSecurityGroupId = 'sampleSecurityGroupId';
+    // EMR's security group logical ID is different than the rest of the workspace-types
+    const stackResources = {
+      StackResourceSummaries: [{ LogicalResourceId: 'MasterSecurityGroup', PhysicalResourceId: origSecurityGroupId }],
+    };
+    const templateDetails = {
+      TemplateBody: YAML.dump({
+        Resources: {
+          SecurityGroup: {
+            Properties: {
+              SecurityGroupIngress: [
+                {
+                  IpProtocol: 'tcp',
+                  FromPort: 123,
+                  ToPort: 123,
+                },
+              ],
+            },
+          },
+        },
+      }),
+    };
+    const workspaceIngressRules = [
+      {
+        IpProtocol: 'tcp',
+        FromPort: 123,
+        ToPort: 123,
+        IpRanges: [{ CidrIp: '123.123.123.123/32' }],
+      },
+      {
+        IpProtocol: 'tcp',
+        FromPort: 1,
+        ToPort: 1,
+        IpRanges: [{ CidrIp: '123.123.123.123/32' }],
+      },
+    ];
+    service.getCfnDetails = jest.fn(() => {
+      return { stackResources, templateDetails };
+    });
+    service.getWorkspaceSecurityGroup = jest.fn(() => {
+      return { securityGroupResponse: { SecurityGroups: [{ IpPermissions: workspaceIngressRules }] } };
+    });
+    const expectedOutcome = [
+      {
+        protocol: 'tcp',
+        fromPort: 123,
+        toPort: 123,
+        cidrBlocks: ['123.123.123.123/32'],
+      },
+    ];
+
+    // OPERATE
+    const { currentIngressRules, securityGroupId } = await service.getSecurityGroupDetails(requestContext, environment);
+
+    // CHECK
+    expect(currentIngressRules).toMatchObject(expectedOutcome);
+    expect(securityGroupId).toEqual(origSecurityGroupId);
+  });
+
+  it('should send empty array for ingress rules if no security group was found', async () => {
+    // BUILD
+    const requestContext = {};
+    const stackArn = 'sampleCloudFormationStackArn';
+    const environment = {
+      outputs: [{ OutputKey: 'CloudformationStackARN', OutputValue: `<AwsAccountRoot>/${stackArn}` }],
+      status: 'COMPLETED',
+    };
+    const stackResources = {
+      StackResourceSummaries: [],
+    };
+    const templateDetails = {
+      TemplateBody: YAML.dump({
+        Resources: {}, // Resources does not contain SecurityGroup or MasterSecurityGroup
+      }),
+    };
+    const workspaceIngressRules = [
+      {
+        IpProtocol: 'tcp',
+        FromPort: 123,
+        ToPort: 123,
+        IpRanges: [{ CidrIp: '123.123.123.123/32' }],
+      },
+      {
+        IpProtocol: 'tcp',
+        FromPort: 1,
+        ToPort: 1,
+        IpRanges: [{ CidrIp: '123.123.123.123/32' }],
+      },
+    ];
+    service.getCfnDetails = jest.fn(() => {
+      return { stackResources, templateDetails };
+    });
+    service.getWorkspaceSecurityGroup = jest.fn(() => {
+      return { securityGroupResponse: { SecurityGroups: [{ IpPermissions: workspaceIngressRules }] } };
+    });
+    const expectedOutcome = [];
+
+    // OPERATE
+    const { currentIngressRules, securityGroupId } = await service.getSecurityGroupDetails(requestContext, environment);
+
+    // CHECK
+    expect(currentIngressRules).toMatchObject(expectedOutcome);
+    expect(securityGroupId).toBeUndefined();
   });
 });

@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.0] - TBD
+
+### Added 
+- feat: Adding ability to manage CIDR blocks of workspace's configured security group
+
+Note:
+1. This feature has added permissions to the onboard-account template and requires re-onboarding existing member accounts. Please contact your system administrator for the same.
+2. For RStudio instances, please allow 2-5 minutes for CIDR changes to take effect.
+3. For SageMaker instances, currently application admins and workspace owners have ability to access the SageMaker platform directly, irrespective of CIDR inclusion.
+
 ## [1.4.7] - 2021-01-28
 
 ### Added 
@@ -13,13 +23,6 @@ We recommend to apply this patch as soon as possible
 
 ### Added 
 - fix: Add tables back to cloudformation and don't authorize API Keys
-
-We recommend to apply this patch as soon as possible
-
-## [1.4.5] - 2021-01-14
-
-### Added 
-- fix: remove API Keys functionality
 
 We recommend to apply this patch as soon as possible
 
