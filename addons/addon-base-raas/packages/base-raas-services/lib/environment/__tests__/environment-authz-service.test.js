@@ -16,14 +16,15 @@
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
 
 // Mocked dependencies
-jest.mock('../../project/project-service');
-const ProjectServiceMock = require('../../project/project-service');
 
 jest.mock('@aws-ee/environment-type-mgmt-services/lib/environment-type/env-type-config-service');
 const EnvTypeConfigService = require('@aws-ee/environment-type-mgmt-services/lib/environment-type/env-type-config-service');
 
 jest.mock('@aws-ee/environment-type-mgmt-services/lib/environment-type/env-type-config-authz-service');
 const EnvTypeConfigAuthzService = require('@aws-ee/environment-type-mgmt-services/lib/environment-type/env-type-config-authz-service');
+
+jest.mock('../../project/project-service');
+const ProjectServiceMock = require('../../project/project-service');
 
 const EnvironmentAuthZService = require('../environment-authz-service.js');
 
