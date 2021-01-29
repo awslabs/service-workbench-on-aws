@@ -186,7 +186,7 @@ class ScEnvironmentUpdateCidrs extends React.Component {
 
     return (
       <Segment clearing className="p3 mb3">
-        {_.isEmpty(fields) && (
+        {fields.value.length === 0 && (
           <Message
             className="mb4"
             icon="warning"
