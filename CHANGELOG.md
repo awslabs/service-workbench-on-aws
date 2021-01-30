@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.4.8] - 2021-01-29
+## [2.0.0] - 2021-01-29
 
 ### Added 
 - feat: Adding ability to manage CIDR blocks of workspace's configured security group
