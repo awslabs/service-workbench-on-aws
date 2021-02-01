@@ -11,15 +11,18 @@
     "@aws-ee/base-services-container": "workspace:*",
     "@aws-ee/key-pair-mgmt-services": "workspace:*",
     "lodash": "^4.17.15",
+    "js-yaml": "^4.0.0",
     "node-cache": "^4.2.1",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.8",
     "uuid": "^3.4.0",
     "xml": "^1.0.1",
     "moment": "^2.27.0",
-    "node-fetch": "^2.6.0"
+    "node-fetch": "^2.6.0",
+    "is-cidr": "^3.1.0"
   },
   "devDependencies": {
+    "@aws-ee/environment-type-mgmt-services": "workspace:*",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.1.0",
     "eslint-config-prettier": "^6.10.0",

@@ -165,7 +165,6 @@ class ScEnvironmentDetailPage extends React.Component {
           {renderRow('Owner', <By uid={env.createdBy} skipPrefix />)}
           {renderRow('Studies', studyCount === 0 ? 'No studies linked to this workspace' : studyIds.join(', '))}
           {renderRow('Project', _.isEmpty(env.projectId) ? 'N/A' : env.projectId)}
-          {renderRow('Restricted CIDR', _.isEmpty(env.cidr) ? 'N/A' : env.cidr)}
           {renderRow('Workspace Type', <ScEnvironmentTypeName envTypeId={env.envTypeId} />)}
         </Table.Body>
       </Table>

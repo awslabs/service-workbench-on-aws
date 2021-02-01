@@ -41,6 +41,7 @@ const ComputePriceService = require('@aws-ee/base-raas-services/lib/compute/comp
 const EnvironmentAuthzService = require('@aws-ee/base-raas-services/lib/environment/environment-authz-service');
 const EnvironmentMountService = require('@aws-ee/base-raas-services/lib/environment/environment-mount-service');
 const EnvironmentDnsService = require('@aws-ee/base-raas-services/lib/environment/environment-dns-service');
+const EnvironmentScCidrService = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-cidr-service');
 const JwtService = require('@aws-ee/base-api-services/lib/jwt-service');
 const EnvironmentScService = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-service');
 const EnvironmentConfigVarsService = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-config-vars-service');
@@ -75,6 +76,7 @@ async function registerServices(container, pluginRegistry) {
   container.register('environmentSpotPriceHistoryService', new EnvironmentSpotPriceHistoryService());
   container.register('environmentMountService', new EnvironmentMountService());
   container.register('environmentDnsService', new EnvironmentDnsService());
+  container.register('environmentScCidrService', new EnvironmentScCidrService());
   container.register('cfnTemplateService', new CfnTemplateService());
   container.register('awsAccountsService', new AwsAccountsService());
   container.register('budgetsService', new BudgetsService());
