@@ -2,6 +2,52 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.0] - 2021-01-29
+
+### Added 
+- feat: Adding ability to manage CIDR blocks of workspace's configured security group
+
+Note:
+1. This feature has added permissions to the onboard-account template and requires re-onboarding existing member accounts. Please contact your system administrator for the same.
+2. For RStudio instances, please allow 2-5 minutes for CIDR changes to take effect.
+3. For SageMaker instances, currently application admins and workspace owners have ability to access the SageMaker platform directly, irrespective of CIDR inclusion.
+
+- feat: Remove APIs for built-in workspaces
+
+## [1.4.7] - 2021-01-28
+
+### Added 
+- fix: Fix a bug on the update user API
+
+We recommend to apply this patch as soon as possible
+
+## [1.4.6] - 2021-01-15
+
+### Added 
+- fix: Add tables back to cloudformation and don't authorize API Keys
+
+We recommend to apply this patch as soon as possible
+
+## [1.4.5] - 2021-01-14
+
+### Added 
+- fix: remove API Keys functionality
+
+We recommend to apply this patch as soon as possible
+
+## [1.4.4] - 2021-01-13
+
+### Added
+- fix: open data scraper bugfix
+- docs: improvements to deployment documentation
+- fix: Upload Files button disappears for R/W users
+- feat: install R3.6 and system packages required for dev
+- fix: file not found error in download-env-config script
+- test: Add github workflow for e2etest run
+- feat: modify filter criteria for Open Data
+- docs: delete dead links
+- fix: changed RStudio server CSP headers to allow uploads from same-origin
+
 ## [1.4.3] - 2020-11-24
 
 ### Added

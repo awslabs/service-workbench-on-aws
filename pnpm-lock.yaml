@@ -302,6 +302,8 @@ importers:
       '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
       '@aws-ee/base-services-container': 'link:../../../addon-base/packages/services-container'
       '@aws-ee/key-pair-mgmt-services': 'link:../../../addon-key-pair-mgmt-api/packages/key-pair-mgmt-services'
+      is-cidr: 3.1.0
+      js-yaml: 4.0.0
       lodash: 4.17.15
       moment: 2.27.0
       node-cache: 4.2.1
@@ -311,6 +313,7 @@ importers:
       uuid: 3.4.0
       xml: 1.0.1
     devDependencies:
+      '@aws-ee/environment-type-mgmt-services': 'link:../../../addon-environment-sc-api/packages/environment-type-mgmt-services'
       aws-sdk-mock: 5.1.0
       eslint: 6.8.0
       eslint-config-airbnb-base: 14.1.0_8cdb6d8c18c3319a1365bd5afa0063a3
@@ -330,6 +333,7 @@ importers:
       '@aws-ee/base-api-services': 'workspace:*'
       '@aws-ee/base-services': 'workspace:*'
       '@aws-ee/base-services-container': 'workspace:*'
+      '@aws-ee/environment-type-mgmt-services': 'workspace:*'
       '@aws-ee/key-pair-mgmt-services': 'workspace:*'
       aws-sdk-mock: ^5.1.0
       eslint: ^6.8.0
@@ -340,8 +344,10 @@ importers:
       eslint-plugin-jest: ^22.21.0
       eslint-plugin-prettier: ^3.1.2
       husky: ^3.1.0
+      is-cidr: ^3.1.0
       jest: ^24.9.0
       jest-junit: ^10.0.0
+      js-yaml: ^4.0.0
       lodash: ^4.17.15
       moment: ^2.27.0
       node-cache: ^4.2.1
@@ -7010,6 +7016,10 @@ packages:
       sprintf-js: 1.0.3
     resolution:
       integrity: sha512-o5Roy6tNG4SL/FOkCAN6RzjiakZS25RLYFrcMttJqbdd8BWrnA+fGz57iN5Pb06pvBGvl5gQ0B48dJlslXvoTg==
+  /argparse/2.0.1:
+    dev: false
+    resolution:
+      integrity: sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==
   /aria-query/3.0.0:
     dependencies:
       ast-types-flow: 0.0.7
@@ -15079,6 +15089,13 @@ packages:
     hasBin: true
     resolution:
       integrity: sha512-/4IbIeHcD9VMHFqDR/gQ7EdZdLimOvW2DdcxFjdyyZ9NsbS+ccrXqVWDtab/lRl5AlUqmpBx8EhPaWR+OtY17A==
+  /js-yaml/4.0.0:
+    dependencies:
+      argparse: 2.0.1
+    dev: false
+    hasBin: true
+    resolution:
+      integrity: sha512-pqon0s+4ScYUvX30wxQi3PogGFAlUyH0awepWvwkj4jD4v+ova3RiYw8bmA6x2rDrEaj8i/oWKoRxpVNW+Re8Q==
   /jsbn/0.1.1:
     resolution:
       integrity: sha1-peZUwuWi3rXyAdls77yoDA7y9RM=
@@ -22153,7 +22170,7 @@ packages:
       integrity: sha512-uZtkfKblCEQtZKBF6EBXVZeQNl82yqtDQdv+eck8u7tdPxjLu2/lp5/uPW+um2tpuxINHWy3GhiccY7QgEaVHQ==
   /tsutils/3.17.1:
     dependencies:
-      tslib: 1.14.1
+      tslib: 1.13.0
     dev: true
     engines:
       node: '>= 6'

@@ -44,7 +44,7 @@ module.exports = function newHandler({ studyService, log = consoleLogger } = {})
     rawGithubUrl: 'https://raw.githubusercontent.com',
     owner: 'awslabs',
     repository: 'open-data-registry',
-    ref: 'master',
+    ref: 'main',
     subtree: 'datasets',
     filterTags: [
       'genetic',

@@ -157,10 +157,11 @@ launchConstraintRoleName: '${self:custom.settings.namespace}-LaunchConstraint'
 # Specify wild-card ( i.e., '*') here to allow any prefix pattern
 launchConstraintPolicyPrefix: '*'
 
-# Enable/disable support for built-in workspaces and built-in workspace types.
-# If enableBuiltInWorkspaces = true then built in workspaces/workspace types are used.
-# If enableBuiltInWorkspaces = false then support for importing new workspace types based on
-#  AWS Service Catalog Products/Versions is enabled and the built-in workspaces feature is disabled
+# Disable support for built-in workspaces and built-in workspace types.
+# AWS Service Catalog Products/Versions is enabled and the built-in workspaces feature is disabled
+# Note that setting enableBuiltInWorkspaces = true won't be enough to get the built-in workspace support. In order to
+# get built-in workspaces support please open a new issue with Service Workbench
+# https://github.com/awslabs/service-workbench-on-aws/issues/new
 enableBuiltInWorkspaces: false
 
 # Name of the audit QLDB. This is the name of the QLDB ledger that will keep the audit logs.

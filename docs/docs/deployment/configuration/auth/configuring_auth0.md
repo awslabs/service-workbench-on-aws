@@ -1,38 +1,58 @@
 ---
 id: configuring_auth0
-title: Auth0 Setup Introduction
-sidebar_label: Configuring Auth0
+title: Configure Auth0 and SAML2
+sidebar_label: Configure Auth0 and SAML2
 ---
 
 import useBaseUrl from '@docusaurus/useBaseUrl';
 
-## Prerequisites
+Service Workbench on AWS can be configured to authenticate users through [Auth0][1] and SAML2. 
+[1]: https://auth0.com/
 
-These instructions require an existing account with auth0.com.
+## Configure Auth0
+### Prerequisites
 
-## Create Application
+You must have an existing account with [Auth0][2] before attempting to complete these instructions.
+[2]: https://auth0.com/
 
-Log into your account at [auth0.com](http://auth0.com/) and navigate to the 'Applications’ page.
-If one does not already exist for Service Workbench’s use, create an Auth0 application by clicking the Create Application button:
+### Create Application
+
+To create an application, log into your account at [Auth0][3]  and navigate to the ‘**Applications**’ page. If an application does not already exist for Service Workbench’s use, create an Auth0 application by clicking the ‘**Create Application**’ button. Then, select the application type as ‘**Single Page Web Applications**’ and click ‘**Create**'.
+[3]: https://auth0.com/
+
+**Figure 20** shows a screenshot image of the ‘**Applications**’ of [Auth0][4], while **Figure 21** displays a screenshot of the application types available after you click the ‘**Create Applications**’ button. 
+[4]: https://auth0.com/
+
 <img src={useBaseUrl('img/deployment/configuration/auth/auth0/0001.png')} />
 
-Select Single Page Web Applications as the type, then click Create.
+***Figure 20: Applications Webpage of Auth0.com***
+
 <img src={useBaseUrl('img/deployment/configuration/auth/auth0/0002.png')} />
+
+***Figure 21: Application Types***
 
 ## Configure SAML2
 
-Go to the Addons tab and enable SAML2 Web App.
+To configure SAML2, navigate to the ‘**Addons**’ tab and enable the ‘**SAML2 Web App**’.
+
+**Figure 22** shows a screenshot image of the ‘**Addons**’ tab for ‘**Single Page Web Applications**’. 
+
 <img src={useBaseUrl('img/deployment/configuration/auth/auth0/0003.png')} />
 
-In the Application Callback URL field, paste the following, replacing `STAGE_NAME` and `SOLUTION_NAME` with the values from the Service Workbench settings file, and replace `REGION` with the appropriate region:
+***Figure 22: Addons Tab for Single Page Web Applications***
+
+In the ‘**Application Callback URL**’ field, paste the URL below, while replacing `STAGE_NAME` and `SOLUTION_NAME` with the values from the Service Workbench settings file and `REGION` with the appropriate region: 
 
 ```
 https://`STAGE_NAME-SOLUTION_NAME`.auth.REGION.amazoncognito.com/saml2/idpresponse
 ```
+**Figure 23** shows an image of the ‘**Application Callback URL**’ page and the settings.
 
 <img src={useBaseUrl('img/deployment/configuration/auth/auth0/0004.png')} />
 
-Paste the following JSON into the Settings block, replacing `USER_POOL_ID` with the Service Workbench Cognito user pool ID value (found in the Cognito console), and the logout callback `STAGE_NAME`, `SOLUTION_NAME`, and `REGION` as before.
+***Figure 23: Application Callback URL Page and Settings***
+
+Paste the JSON below into the settings block, replacing `<USER_POOL_ID>` with the Service Workbench Cognito User Pool ID value (found in the Amazon Cognito console. Replace the logout callback `<STAGE_NAME>`, `<SOLUTION_NAME>`, and `<REGION>` with the same values as you did in the previous step. Once you paste in the JSON with the appropriate values, scroll to the bottom and click ‘**Save**’.
 
 ```
 {
@@ -50,16 +70,23 @@ Paste the following JSON into the Settings block, replacing `USER_POOL_ID` with 
 }
 ```
 
-Scroll to the bottom and click Save.
+### Download SAML Metadata
 
-## Download SAML Metadata
+To download SAML metadata, click on the ‘**SAML2 Web App**’ button again, and go to the ‘**Usage**’ tab. Select the  ‘**Download**’ option to download the SAML metadata XML file locally.
 
-Click on the SAML2 Web App button again, and go to the Usage tab. Click on Download to download the SAML metadata XML file locally.
+**Figure 24** shows the ‘**Usage**’ tab of the ‘**SAML2 Web App**’ page. 
+
 <img src={useBaseUrl('img/deployment/configuration/auth/auth0/0005.png')} />
 
-Rename and place this downloaded file in the repository at in `main/solution/post-demployment/config/saml-metadata/auth0_com-metadata.xml`.
+***Figure 24: Usage Tab of the SAML2 Web Application***
 
-## Configure Environment
+Rename and place the downloaded file in the repository at the following location:
+
+```
+main/solution/post-demployment/config/saml-metadata/auth0_com-metadata.xml
+```
+
+### Configure Environment
 
 Add the following items to the `$STAGE.yml` settings file for the environment (replace `DOMAIN` with the domain of your Auth0:
 
@@ -70,6 +97,7 @@ fedIdpDisplayNames: '["Auth0"]'
 fedIdpMetadatas: '["s3://${self:custom.settings.deploymentBucketName}/saml-metadata/auth0_com-metadata.xml"]'
 ```
 
-Re-deploy the system using the `scripts/environment-deploy.sh STAGE_NAME` command.
+Finally, redeploy the system using the `scripts/environment-deploy.sh STAGE_NAME` command.
 
-Reference: https://aws.amazon.com/premiumsupport/knowledge-center/auth0-saml-cognito-user-pool/
+The reference documentation can be found [here][5]. 
+[5]: https://aws.amazon.com/premiumsupport/knowledge-center/auth0-saml-cognito-user-pool/

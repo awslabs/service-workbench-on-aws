@@ -171,14 +171,6 @@ class StudyService extends Service {
   async update(requestContext, rawData) {
     const [validationService] = await this.service(['jsonSchemaValidationService']);
 
-    if (rawData.category === 'Open Data' && !isSystem(requestContext)) {
-      throw this.boom.badRequest('Only the system can update Open Data studies.', true);
-    }
-
-    if (rawData.category !== 'Open Data' && !_.isEmpty(rawData.resources)) {
-      throw this.boom.badRequest('Resources can only be updated for Open Data study category', true);
-    }
-
     // Validate input
     await validationService.ensureValid(rawData, updateSchema);
 
@@ -187,6 +179,14 @@ class StudyService extends Service {
     const { id, rev } = rawData;
 
     const study = await this.mustFind(requestContext, id);
+
+    if (study.category === 'Open Data' && !isSystem(requestContext)) {
+      throw this.boom.badRequest('Only the system can update Open Data studies.', true);
+    }
+
+    if (study.category !== 'Open Data' && !_.isEmpty(rawData.resources)) {
+      throw this.boom.badRequest('Resources can only be updated for Open Data study category', true);
+    }
 
     // validate if study can be read/write
     this.validateStudyType(rawData.accessType, study.category);
@@ -285,14 +285,7 @@ class StudyService extends Service {
               .get();
 
             // Filter by category and inject requestor's access level
-            const studyAccessMap = {};
-            ['admin', 'readwrite', 'readonly'].forEach(level => {
-              const studiesWithPermission = permissions[`${level}Access`];
-              if (studiesWithPermission && studiesWithPermission.length > 0)
-                studiesWithPermission.forEach(studyId => {
-                  studyAccessMap[studyId] = level;
-                });
-            });
+            const studyAccessMap = this._getStudyAccessMap(permissions);
 
             result = rawResult
               .filter(study => study.category === category)
@@ -307,6 +300,22 @@ class StudyService extends Service {
 
     // Return result
     return result;
+  }
+
+  _getStudyAccessMap(permissions) {
+    const studyAccessMap = {};
+    _.forEach(['admin', 'readwrite', 'readonly'], level => {
+      const studiesWithPermission = permissions[`${level}Access`];
+      if (studiesWithPermission && studiesWithPermission.length > 0)
+        studiesWithPermission.forEach(studyId => {
+          if (studyAccessMap[studyId]) {
+            studyAccessMap[studyId].push(level);
+          } else {
+            studyAccessMap[studyId] = [level];
+          }
+        });
+    });
+    return studyAccessMap;
   }
 
   /**
