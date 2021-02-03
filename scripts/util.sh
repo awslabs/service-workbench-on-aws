@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
+
 UTIL_SOURCED=yes
 export UTIL_SOURCED
 
