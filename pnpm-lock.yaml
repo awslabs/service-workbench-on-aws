@@ -1847,30 +1847,8 @@ importers:
       pretty-quick: ^1.11.1
   main/integration-tests:
     dependencies:
-      '@aws-ee/base-api-handler': 'link:../../addons/addon-base-rest-api/packages/base-api-handler'
-      '@aws-ee/base-api-handler-factory': 'link:../../addons/addon-base-rest-api/packages/api-handler-factory'
-      '@aws-ee/base-api-services': 'link:../../addons/addon-base-rest-api/packages/services'
-      '@aws-ee/base-authn-handler': 'link:../../addons/addon-base-rest-api/packages/base-authn-handler'
-      '@aws-ee/base-controllers': 'link:../../addons/addon-base-rest-api/packages/base-controllers'
-      '@aws-ee/base-raas-cfn-templates': 'link:../../addons/addon-base-raas/packages/base-raas-cfn-templates'
-      '@aws-ee/base-raas-rest-api': 'link:../../addons/addon-base-raas/packages/base-raas-rest-api'
-      '@aws-ee/base-raas-services': 'link:../../addons/addon-base-raas/packages/base-raas-services'
-      '@aws-ee/base-raas-workflow-steps': 'link:../../addons/addon-base-raas/packages/base-raas-workflow-steps'
-      '@aws-ee/base-raas-workflows': 'link:../../addons/addon-base-raas/packages/base-raas-workflows'
-      '@aws-ee/base-serverless-settings-helper': 'link:../../addons/addon-base/packages/serverless-settings-helper'
       '@aws-ee/base-services': 'link:../../addons/addon-base/packages/services'
-      '@aws-ee/base-services-container': 'link:../../addons/addon-base/packages/services-container'
-      '@aws-ee/base-workflow-api': 'link:../../addons/addon-base-workflow-api/packages/base-worklfow-api'
-      '@aws-ee/base-workflow-core': 'link:../../addons/addon-base-workflow/packages/base-workflow-core'
-      '@aws-ee/base-workflow-steps': 'link:../../addons/addon-base-workflow/packages/base-worklfow-steps'
-      '@aws-ee/environment-sc-workflow-steps': 'link:../../addons/addon-environment-sc-api/packages/environment-sc-workflow-steps'
-      '@aws-ee/environment-sc-workflows': 'link:../../addons/addon-environment-sc-api/packages/environment-sc-workflows'
-      '@aws-ee/environment-type-mgmt-api': 'link:../../addons/addon-environment-sc-api/packages/environment-type-mgmt-api'
-      '@aws-ee/environment-type-mgmt-services': 'link:../../addons/addon-environment-sc-api/packages/environment-type-mgmt-services'
-      '@aws-ee/key-pair-mgmt-api': 'link:../../addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-api'
-      '@aws-ee/key-pair-mgmt-services': 'link:../../addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-services'
       axios: 0.21.1
-      js-yaml: 4.0.0
       lodash: 4.17.20
       services: 'link:../packages/services'
     devDependencies:
@@ -1891,28 +1869,7 @@ importers:
       request: 2.88.2
       request-promise-native: 1.0.8_request@2.88.2
     specifiers:
-      '@aws-ee/base-api-handler': 'workspace:*'
-      '@aws-ee/base-api-handler-factory': 'workspace:*'
-      '@aws-ee/base-api-services': 'workspace:*'
-      '@aws-ee/base-authn-handler': 'workspace:*'
-      '@aws-ee/base-controllers': 'workspace:*'
-      '@aws-ee/base-raas-cfn-templates': 'workspace:*'
-      '@aws-ee/base-raas-rest-api': 'workspace:*'
-      '@aws-ee/base-raas-services': 'workspace:*'
-      '@aws-ee/base-raas-workflow-steps': 'workspace:*'
-      '@aws-ee/base-raas-workflows': 'workspace:*'
-      '@aws-ee/base-serverless-settings-helper': 'workspace:*'
       '@aws-ee/base-services': 'workspace:*'
-      '@aws-ee/base-services-container': 'workspace:*'
-      '@aws-ee/base-workflow-api': 'workspace:*'
-      '@aws-ee/base-workflow-core': 'workspace:*'
-      '@aws-ee/base-workflow-steps': 'workspace:*'
-      '@aws-ee/environment-sc-workflow-steps': 'workspace:*'
-      '@aws-ee/environment-sc-workflows': 'workspace:*'
-      '@aws-ee/environment-type-mgmt-api': 'workspace:*'
-      '@aws-ee/environment-type-mgmt-services': 'workspace:*'
-      '@aws-ee/key-pair-mgmt-api': 'workspace:*'
-      '@aws-ee/key-pair-mgmt-services': 'workspace:*'
       axios: ^0.21.1
       eslint: ^6.8.0
       eslint-config-airbnb: ^18.0.1
@@ -1926,7 +1883,6 @@ importers:
       husky: ^3.1.0
       jest: ^25.1.0
       jest-junit: ^10.0.0
-      js-yaml: ^4.0.0
       lodash: ^4.17.20
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
