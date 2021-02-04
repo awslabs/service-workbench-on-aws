@@ -1,6 +1,7 @@
 {
     "username": "",
     "password": "",
-    "authenticationProviderId": "",
-    "projectId": ""
+    "projectId": "",
+
+    "authenticationProviderId": "internal"
 }
