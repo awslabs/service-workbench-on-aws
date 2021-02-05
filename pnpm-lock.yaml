@@ -1849,6 +1849,7 @@ importers:
     dependencies:
       '@aws-ee/base-services': 'link:../../addons/addon-base/packages/services'
       axios: 0.21.1
+      js-yaml: 4.0.0
       lodash: 4.17.20
       services: 'link:../packages/services'
     devDependencies:
@@ -1883,6 +1884,7 @@ importers:
       husky: ^3.1.0
       jest: ^25.1.0
       jest-junit: ^10.0.0
+      js-yaml: ^4.0.0
       lodash: ^4.17.20
       prettier: ^1.19.1
       pretty-quick: ^1.11.1

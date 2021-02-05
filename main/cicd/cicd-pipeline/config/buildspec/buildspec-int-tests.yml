@@ -1,7 +1,6 @@
 version: 0.2
 
 phases:
-
   install:
     runtime-versions:
       nodejs: 12
@@ -19,6 +18,8 @@ phases:
       - printf "\n\n"
       - echo "Downloading environment config"
       - ./scripts/download-env-config.sh "$DEPLOYMENT_BUCKET" "$ENV_NAME"
+      - echo "Downloading test config"
+      - ./scripts/download-test-config.sh "$DEPLOYMENT_BUCKET" "$ENV_NAME"
       - printf "\n\n"
   build:
     commands:

@@ -6,8 +6,6 @@
 **/pnpm-debug.log
 **/.webpack
 
-**/test-config.json
-
 # Serverless directories
 .serverless
 

@@ -13,13 +13,18 @@
  *  permissions and limitations under the License.
  */
 
+const fs = require('fs');
 const _ = require('lodash');
+const YAML = require('js-yaml');
 const axios = require('axios').default;
 const { getProjectParams } = require('./api-param-generator');
 const { validResponse } = require('../utils/studies');
 const { listUsers } = require('../utils/users');
 const { getTestAdminToken } = require('../utils/auth-tokens');
-const TestConfig = require('../config/test-config.json');
+
+// Since the settings for integration test are not passed on similar to serverless variables in the
+// rest of the SDCs, we import the file directly according to the stage specified
+const TEST_CONFIG_PATH = `../integration-tests/config/settings/${process.env.ENV_NAME}.yml`;
 
 // Base Fixture
 /**
@@ -30,7 +35,7 @@ const TestConfig = require('../config/test-config.json');
  */
 class BaseFixture {
   constructor() {
-    this.testConfig = TestConfig;
+    this.testConfig = fs.existsSync(TEST_CONFIG_PATH) ? YAML.load(fs.readFileSync(TEST_CONFIG_PATH, 'utf8')) : {};
 
     // We initially assume the Base Fixture is not verified
     // For this to turn true, we need to confirm the test admin credentials and provided test project ID are valid
