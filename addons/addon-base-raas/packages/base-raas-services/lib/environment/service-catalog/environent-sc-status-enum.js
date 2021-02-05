@@ -28,6 +28,21 @@ const environmentScStatus = {
   // Environment provisioning completed successfully and is available for use
   COMPLETED: 'COMPLETED',
 
+  // Environment starting from a previously stopped state in progress or pending
+  STARTING: 'STARTING',
+
+  // Environment starting from a previously stopped state completed with errors
+  STARTING_FAILED: 'STARTING_FAILED',
+
+  // Environment stopping completed successfully
+  STOPPED: 'STOPPED',
+
+  // Environment stopping in progress or pending
+  STOPPING: 'STOPPING',
+
+  // Environment stopping from a previously stopped state completed with errors
+  STOPPING_FAILED: 'STOPPING_FAILED',
+
   // Environment termination in progress or pending
   TERMINATING: 'TERMINATING',
 

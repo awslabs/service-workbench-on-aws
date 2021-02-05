@@ -801,8 +801,19 @@ Resources:
                 - ec2:ModifyImageAttribute
                 - ec2:DescribeImages
                 - ec2:DescribeInstances
+                - ec2:DescribeSecurityGroups
+                - ec2:RevokeSecurityGroupIngress
+                - ec2:AuthorizeSecurityGroupIngress
                 - ec2-instance-connect:SendSSHPublicKey
               Effect: Allow
+              Resource: '*'
+        - PolicyName: cfn-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - cloudformation:ListStackResources
+                - cloudformation:GetTemplate
               Resource: '*'
         - PolicyName: param-store-access
           PolicyDocument:
