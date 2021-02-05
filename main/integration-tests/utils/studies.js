@@ -13,11 +13,10 @@
  *  permissions and limitations under the License.
  */
 
-const axios = require('axios').default;
 const { randomString } = require('@aws-ee/base-services/lib/helpers/utils');
 const { getStudyParams } = require('../helpers/api-param-generator');
 const { createStudyParams, getStudiesParams } = require('../helpers/api-param-generator');
-const { validResponse, RESOURCE_DESCRIPTION } = require('./common');
+const { RESOURCE_DESCRIPTION } = require('./common');
 
 // ************************ Study templates ************************
 
@@ -35,29 +34,21 @@ function createStudyJson({ projectId, category = 'My Studies', testName = random
 
 // ************************ API calls ************************
 
-async function getStudy(bearerToken, studyId) {
+async function getStudy(axiosClient, studyId) {
   const params = getStudyParams(studyId);
-  const headers = { 'Authorization': bearerToken, 'Content-Type': 'application/json' };
-  const response = await axios.get(params.api, { headers });
-
-  if (validResponse(response)) return response.data;
-  throw new Error('getStudy response was different than expected');
+  const response = await axiosClient.get(params.api);
+  return response.data;
 }
 
-async function listStudies(bearerToken, category) {
+async function listStudies(axiosClient, category) {
   const params = getStudiesParams(category);
-  const headers = { 'Authorization': bearerToken, 'Content-Type': 'application/json' };
-  const response = await axios.get(params.api, { headers });
-
-  if (validResponse(response)) return response.data;
-  throw new Error('getStudy response was different than expected');
+  const response = await axiosClient.get(params.api);
+  return response.data;
 }
 
-async function createStudy(bearerToken, studyToCreate = {}) {
-  const headers = { 'Authorization': bearerToken, 'Content-Type': 'application/json' };
+async function createStudy(axiosClient, studyToCreate = {}) {
   const params = createStudyParams(studyToCreate);
-
-  const response = await axios.post(params.api, params.body, { headers });
+  const response = await axiosClient.post(params.api, params.body);
   return response.data;
 }
 
@@ -66,5 +57,4 @@ module.exports = {
   listStudies,
   createStudy,
   createStudyJson,
-  validResponse,
 };

@@ -14,9 +14,8 @@
  */
 
 const _ = require('lodash');
-const axios = require('axios').default;
 const UpdateStudyFixture = require('./__fixtures__/update-study-fixture');
-const { getTestAdminToken } = require('../../../utils/auth-tokens');
+const { getTestAdminClient } = require('../../../utils/auth-tokens');
 const { listStudies } = require('../../../utils/studies');
 const { updateStudyParams, getStudyParams } = require('../../../helpers/api-param-generator');
 
@@ -37,42 +36,42 @@ describe('Update Study Test', () => {
   describe('Update Study API', () => {
     it('should fail while trying to update Open Data studies', async () => {
       // BUILD
-      const adminBearerToken = await getTestAdminToken(testFixture.testConfig);
+      const adminClient = await getTestAdminClient(testFixture.testConfig);
       // This is a known Open Data study
       // but let the test admin confirm that anyway
       const studyId = '1000-genomes';
       const projectId = testFixture.testConfig.projectId;
-      const openDataStudies = await listStudies(adminBearerToken, 'Open Data');
+      const openDataStudies = await listStudies(adminClient, 'Open Data');
       const studyOfInterest = _.find(openDataStudies, study => study.id === studyId);
       expect(studyOfInterest.category).toBe('Open Data');
 
       const updateRequest = { id: studyId, description: 'Sample desc change' };
-      const expectedErr = new Error('Request failed with status code 404');
 
-      const userA = await testFixture.createNonAdminUser(adminBearerToken, projectId);
-      const headers = { 'Authorization': userA.token, 'Content-Type': 'application/json' };
+      const userA = await testFixture.createNonAdminUser(adminClient, projectId);
       const params = updateStudyParams(studyId, updateRequest);
 
       // EXECUTE & CHECK
-      await expect(axios.put(params.api, params.body, { headers })).rejects.toThrow(expectedErr);
+      await expect(userA.axiosClient.put(params.api, params.body)).rejects.toMatchObject({
+        response: { status: 404 },
+      });
     });
 
     it("should fail while trying to update another user's personal studies", async () => {
       // BUILD
       const projectId = testFixture.testConfig.projectId;
-      const adminBearerToken = await getTestAdminToken(testFixture.testConfig);
-      const expectedErr = new Error('Request failed with status code 404');
+      const adminClient = await getTestAdminClient(testFixture.testConfig);
 
-      const userA = await testFixture.createNonAdminUser(adminBearerToken, projectId);
-      const studyA = await testFixture.createMyStudy(userA.token, projectId);
+      const userA = await testFixture.createNonAdminUser(adminClient, projectId);
+      const studyA = await testFixture.createMyStudy(userA.axiosClient, projectId);
 
       // UserB tries to access UserA's personal study
-      const userB = await testFixture.createNonAdminUser(adminBearerToken, projectId);
-      const headers = { 'Authorization': userB.token, 'Content-Type': 'application/json' };
+      const userB = await testFixture.createNonAdminUser(adminClient, projectId);
       const params = getStudyParams(studyA.id);
 
       // EXECUTE & CHECK
-      await expect(axios.get(params.api, { headers })).rejects.toThrow(expectedErr);
+      await expect(userB.axiosClient.get(params.api)).rejects.toMatchObject({
+        response: { status: 404 },
+      });
     });
   });
 });

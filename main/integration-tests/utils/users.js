@@ -13,10 +13,8 @@
  *  permissions and limitations under the License.
  */
 
-const axios = require('axios').default;
 const { randomString } = require('@aws-ee/base-services/lib/helpers/utils');
 const { addUserParams, listUsersParams } = require('../helpers/api-param-generator');
-const { validResponse } = require('./common');
 
 function createUserJson({ projId, testName = randomString(5), isAdmin = false, status = 'active' } = {}) {
   const userName = `test+${testName}-${new Date().getTime()}-@example.com`;
@@ -34,20 +32,16 @@ function createUserJson({ projId, testName = randomString(5), isAdmin = false, s
   };
 }
 
-async function createUser(bearerToken, userToCreate = {}) {
-  const headers = { 'Authorization': bearerToken, 'Content-Type': 'application/json' };
+async function createUser(axiosClient, userToCreate = {}) {
   const params = addUserParams(userToCreate);
-  const response = await axios.post(params.api, params.body, { headers });
+  const response = await axiosClient.post(params.api, params.body);
   return response.data;
 }
 
-async function listUsers(bearerToken) {
+async function listUsers(axiosClient) {
   const params = listUsersParams();
-  const headers = { 'Authorization': bearerToken, 'Content-Type': 'application/json' };
-  const response = await axios.get(params.api, { headers });
-  if (validResponse(response)) return response.data;
-
-  throw new Error('listUsers response was different than expected');
+  const response = await axiosClient.get(params.api);
+  return response.data;
 }
 
 module.exports = {

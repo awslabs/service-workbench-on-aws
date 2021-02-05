@@ -14,7 +14,7 @@
  */
 
 const BaseFixture = require('../../../../helpers/base-fixture');
-const { getInternalUserToken } = require('../../../../utils/auth-tokens');
+const { getInternalUserClient } = require('../../../../utils/auth-tokens');
 const { createStudyJson, createStudy } = require('../../../../utils/studies');
 const { createUserJson, createUser } = require('../../../../utils/users');
 
@@ -51,19 +51,19 @@ class UpdateStudyFixture extends BaseFixture {
     UpdateStudyFixture.ready = true;
   }
 
-  async createNonAdminUser(bearerToken, projectId) {
+  async createNonAdminUser(axiosClient, projectId) {
     const testName = 'UpdateStudy';
     const nonAdminUserJson = createUserJson({ projId: projectId, testName });
-    const response = await createUser(bearerToken, nonAdminUserJson);
-    const userToken = await getInternalUserToken(nonAdminUserJson.username, nonAdminUserJson.password);
+    const response = await createUser(axiosClient, nonAdminUserJson);
+    const newUserClient = await getInternalUserClient(nonAdminUserJson.username, nonAdminUserJson.password);
 
-    return { ...response, password: nonAdminUserJson.password, token: userToken };
+    return { ...response, password: nonAdminUserJson.password, axiosClient: newUserClient };
   }
 
-  async createMyStudy(bearerToken, projectId) {
+  async createMyStudy(axiosClient, projectId) {
     const testName = 'UpdateStudy';
     const studyToCreate = createStudyJson({ projectId, testName });
-    const study = await createStudy(bearerToken, studyToCreate);
+    const study = await createStudy(axiosClient, studyToCreate);
     return study;
   }
 }

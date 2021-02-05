@@ -15,28 +15,36 @@
 
 const axios = require('axios').default;
 const { getAuthIdTokenParams } = require('../helpers/api-param-generator');
-const { validResponse } = require('./common');
 
 // This token should only be used for creating test resources
 // And not for testing itself
-async function getTestAdminToken(testConfig) {
+async function getTestAdminClient(testConfig) {
   if (testConfig.authenticationProviderId === 'internal')
-    return getInternalUserToken(testConfig.username, testConfig.password);
+    return getInternalUserClient(testConfig.username, testConfig.password);
   throw new Error('Currently only internal auth provider is accepted in the integration test suite');
 }
 
-async function getInternalUserToken(username, password) {
+// This method leverages the API route '/api/authentication/id-tokens'
+// to generate the user's bearer token
+async function getInternalUserClient(username, password) {
   const params = getAuthIdTokenParams({
     username,
     password,
     authenticationProviderId: 'internal',
   });
   const response = await axios.post(params.api, params.payload);
-  if (validResponse(response)) return response.data.idToken;
-  throw new Error('getInternalUserToken response was different than expected');
+
+  const axiosClient = await axios.create({
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': response.data.idToken,
+    },
+  });
+
+  return axiosClient;
 }
 
 module.exports = {
-  getInternalUserToken,
-  getTestAdminToken,
+  getInternalUserClient,
+  getTestAdminClient,
 };

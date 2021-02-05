@@ -7,3 +7,8 @@ projectId: ""
 
 # Currently only "internal" auth provider is supported for test admin credentials.
 authenticationProviderId: "internal"
+
+# Set this to true if debugging locally
+isLocal: false
+# Set this to the API endpoint if different than the following
+localApiEndpoint: http://localhost:4000

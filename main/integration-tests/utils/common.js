@@ -13,22 +13,12 @@
  *  permissions and limitations under the License.
  */
 
-const _ = require('lodash');
+// This module is meant to contain generic utility methods that can be useful across test suites
 
 // Resources created via integration tests should have this description, wherever possible.
 // This would make it easier in the future for audit/cleanup
 const RESOURCE_DESCRIPTION = 'Resource automatically created by SWB integration test';
 
-function validResponse(response, statusCode = 200, statusText = 'OK') {
-  return (
-    response.status === statusCode &&
-    response.statusText === statusText &&
-    !_.isUndefined(response.data) &&
-    !_.isEmpty(response.data)
-  );
-}
-
 module.exports = {
-  validResponse,
   RESOURCE_DESCRIPTION,
 };

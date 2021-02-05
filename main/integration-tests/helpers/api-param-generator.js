@@ -13,12 +13,16 @@
  *  permissions and limitations under the License.
  */
 
+const fs = require('fs');
+const YAML = require('js-yaml');
+
+const testConfigPath = `../integration-tests/config/settings/${process.env.ENV_NAME}.yml`;
+const testConfig = fs.existsSync(testConfigPath) ? YAML.load(fs.readFileSync(testConfigPath, 'utf8')) : {};
+const apiEndpoint = testConfig.isLocal ? testConfig.localApiEndpoint : process.env.API_ENDPOINT;
+
 // **************** IMPORTANT  ****************
 // Please update this document if any SWB API is not found here
 // ********************************************
-
-const apiEndpoint = process.env.API_ENDPOINT;
-// const apiEndpoint = 'http://localhost:4000'; // When debugging locally
 
 function getAuthIdTokenParams(payload) {
   return { api: `${apiEndpoint}/api/authentication/id-tokens`, payload };
