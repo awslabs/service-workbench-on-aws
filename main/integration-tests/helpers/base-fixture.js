@@ -18,7 +18,7 @@ const _ = require('lodash');
 const YAML = require('js-yaml');
 const { getProjectParams } = require('./api-param-generator');
 const { listUsers } = require('../utils/users');
-const { getTestAdmin } = require('../utils/auth-tokens');
+const { getTestAdminClient } = require('../utils/auth-tokens');
 
 // Since the settings for integration test are not passed on similar to serverless variables in the
 // rest of the SDCs, we import the file directly according to the stage specified
@@ -53,15 +53,15 @@ class BaseFixture {
 
   // Check if TestAdmin is actually admin
   async verifyTestAdmin() {
-    const bearerToken = await getTestAdmin(this.testConfig);
-    const allUsers = await listUsers(bearerToken);
+    const axiosClient = await getTestAdminClient(this.testConfig);
+    const allUsers = await listUsers(axiosClient);
     const userOfInterest = _.find(allUsers, user => user.username === this.testConfig.username);
     return userOfInterest.isAdmin;
   }
 
   async verifyTestProject() {
     const params = getProjectParams(this.testConfig.projectId);
-    const axiosClient = await getTestAdmin(this.testConfig);
+    const axiosClient = await getTestAdminClient(this.testConfig);
     const response = await axiosClient.get(params.api);
     return !(_.isUndefined(response) || _.isEmpty(response));
   }
