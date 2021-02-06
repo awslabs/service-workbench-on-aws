@@ -32,6 +32,14 @@ function getUserRolesParams() {
   return { api: `${apiEndpoint}/api/user-roles` };
 }
 
+function getUserParams() {
+  return { api: `${apiEndpoint}/api/user` };
+}
+
+function updateUserParams(payload) {
+  return { api: `${apiEndpoint}/api/user`, payload };
+}
+
 function getAwsAccountsParams() {
   return { api: `${apiEndpoint}/api/aws-accounts` };
 }
@@ -300,6 +308,8 @@ module.exports = {
   getStudiesParams,
   getStudyParams,
   createStudyParams,
+  getUserParams,
+  updateUserParams,
   listStudyFilesParams,
   getStudyPermissionsParams,
   updateStudyPermissionsParams,

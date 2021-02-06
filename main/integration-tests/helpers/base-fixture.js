@@ -17,7 +17,7 @@ const fs = require('fs');
 const _ = require('lodash');
 const YAML = require('js-yaml');
 const { getProjectParams } = require('./api-param-generator');
-const { listUsers } = require('../utils/users');
+const { getUser } = require('../utils/users');
 const { getTestAdminClient } = require('../utils/auth-tokens');
 
 // Since the settings for integration test are not passed on similar to serverless variables in the
@@ -54,9 +54,8 @@ class BaseFixture {
   // Check if TestAdmin is actually admin
   async verifyTestAdmin() {
     const axiosClient = await getTestAdminClient(this.testConfig);
-    const allUsers = await listUsers(axiosClient);
-    const userOfInterest = _.find(allUsers, user => user.username === this.testConfig.username);
-    return userOfInterest.isAdmin;
+    const user = await getUser(axiosClient);
+    return user.isAdmin;
   }
 
   async verifyTestProject() {
