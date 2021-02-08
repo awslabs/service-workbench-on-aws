@@ -243,6 +243,7 @@ describe('UserService', () => {
       // BUILD
       const toUpdate = {
         uid,
+        usernameInIdp: 'user1',
         rev: 2,
       };
 
