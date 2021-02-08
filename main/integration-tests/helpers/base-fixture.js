@@ -41,6 +41,11 @@ class BaseFixture {
   }
 
   async setupBasePreRequisites() {
+    // If a test config file was not found at all, we cannot run integration tests
+    if (_.isEmpty(this.testConfig)) {
+      BaseFixture.ready = false;
+      throw new Error('Test configuration is not set up correctly');
+    }
     try {
       const testAdminVerified = await this.verifyTestAdmin();
       const projectVerified = await this.verifyTestProject();

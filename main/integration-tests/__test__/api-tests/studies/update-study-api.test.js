@@ -24,13 +24,8 @@ describe('Update Study Test', () => {
 
   beforeAll(async () => {
     testFixture = new UpdateStudyFixture();
-
-    if (!UpdateStudyFixture.baseReady) {
-      await testFixture.setupParent();
-    }
-    if (!UpdateStudyFixture.ready) {
-      await testFixture.setupPreRequisites();
-    }
+    if (!UpdateStudyFixture.baseReady) await testFixture.setupParent();
+    if (!UpdateStudyFixture.ready) await testFixture.setupPreRequisites();
   });
 
   describe('Update Study API', () => {

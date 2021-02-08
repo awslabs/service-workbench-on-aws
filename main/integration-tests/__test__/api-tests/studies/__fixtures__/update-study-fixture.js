@@ -40,7 +40,7 @@ class UpdateStudyFixture extends BaseFixture {
 
   async setupParent() {
     await this.setupBasePreRequisites();
-    UpdateStudyFixture.baseReady = true;
+    UpdateStudyFixture.baseReady = BaseFixture.ready;
   }
 
   // IMPORTANT: These will be created afresh every new integration test cycle

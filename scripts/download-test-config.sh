@@ -16,7 +16,13 @@ echo "Checking config file ${CONFIG_TARGET_PATH}"
 if [ -e "${CONFIG_TARGET_PATH}" ]; then
   echo "Already present; not overwriting!"
 else
-  echo "Not present; downloading from ${CONFIG_S3_PATH}!"
-  aws s3 cp "${CONFIG_S3_PATH}" "${CONFIG_TARGET_PATH}"
-fi
+  echo "Not present; checking if present in S3"
+  aws s3api head-object --bucket ${DEPLOYMENT_BUCKET} --key "integration-test/${ENV_NAME}.yml" || not_exist=true
 
+  if [ $not_exist ]; then
+  echo "Test config file does not exist. Integration tests will be skipped!"
+  else
+    echo "Test config found! Downloading from ${CONFIG_S3_PATH}"
+    aws s3 cp "${CONFIG_S3_PATH}" "${CONFIG_TARGET_PATH}"
+  fi
+fi
