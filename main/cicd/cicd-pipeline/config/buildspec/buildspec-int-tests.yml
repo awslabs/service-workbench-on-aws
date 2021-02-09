@@ -1,7 +1,6 @@
 version: 0.2
 
 phases:
-
   install:
     runtime-versions:
       nodejs: 12
@@ -22,7 +21,6 @@ phases:
       - printf "\n\n"
   build:
     commands:
-      - printf "\n\nRunning integration tests for environment "$ENV_NAME"\n"
       - ./scripts/run-integration-tests.sh "$ENV_NAME"
       - printf "\n\n"
 
