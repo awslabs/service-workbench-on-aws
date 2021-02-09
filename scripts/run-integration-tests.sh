@@ -17,12 +17,16 @@ if [ -e "${CONFIG_TARGET_PATH}" ]; then
 else
   echo "Not present; checking if present in S3"
   aws s3api head-object --bucket $DEPLOYMENT_BUCKET --key "integration-test/$ENV_NAME.yml" || TEST_CONFIG_EXISTS=false
+
+  if [ "$TEST_CONFIG_EXISTS" == true ]; then
+    echo "Test config found! Downloading from ${CONFIG_S3_PATH}"
+    aws s3 cp "${CONFIG_S3_PATH}" "${CONFIG_TARGET_PATH}"
+  else
+    echo "Test config file does not exist. Integration tests will be skipped!"
+  fi
 fi
 
 if [ "$TEST_CONFIG_EXISTS" == true ]; then
-    echo "Test config found! Downloading from ${CONFIG_S3_PATH}"
-    aws s3 cp "${CONFIG_S3_PATH}" "${CONFIG_TARGET_PATH}"
-
     printf "\n\nRunning integration tests for environment "$ENV_NAME"\n"
     printf "\n\nInitializing env variables required for running integration test against env %s\n" "$@"
     # shellcheck disable=SC1091
@@ -31,7 +35,6 @@ if [ "$TEST_CONFIG_EXISTS" == true ]; then
     printf "\n\nExecuting integration tests against env %s\n" "$@"
     pnpm run intTest --recursive --if-present
 else
-    echo "Test config file does not exist. Integration tests will be skipped!"
     # Create empty report file
-    echo 'No integration tests were run. Please provide your test config file to run integration tests' > "$INT_TEST_DIR/.build/test/junit.xml"
+    echo 'No integration tests were run. Please provide your test config file to run integration tests' > "main/integration-tests/.build/test/junit.xml"
 fi

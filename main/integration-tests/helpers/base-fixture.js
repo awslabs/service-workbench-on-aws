@@ -49,10 +49,19 @@ class BaseFixture {
       const testAdminVerified = await this.verifyTestAdmin();
       const projectVerified = await this.verifyTestProject();
 
-      if (projectVerified && testAdminVerified) BaseFixture.ready = true;
+      if (!projectVerified || !testAdminVerified)
+        throw new Error(
+          'Please make sure testAdmin credentials are for an "admin" level user, and the projectId provided actually exists',
+        );
     } catch (err) {
       throw new Error(`There was a problem verifying base fixture resources: ${err}`);
     }
+  }
+
+  async getAdminUser() {
+    const adminClient = await getTestAdminClient(this.testConfig);
+    const response = await getUser(adminClient);
+    return { ...response, password: this.testConfig.password, axiosClient: adminClient };
   }
 
   // Check if TestAdmin is actually admin

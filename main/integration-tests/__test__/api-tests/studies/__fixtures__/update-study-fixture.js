@@ -16,7 +16,7 @@
 const BaseFixture = require('../../../../helpers/base-fixture');
 const { getInternalUserClient } = require('../../../../utils/auth-tokens');
 const { buildStudyJson, createStudy } = require('../../../../utils/studies');
-const { buildUserJson, createUser, getUser } = require('../../../../utils/users');
+const { buildUserJson, createUser } = require('../../../../utils/users');
 
 // Test Fixture
 /**
@@ -33,12 +33,6 @@ class UpdateStudyFixture extends BaseFixture {
     // We currently only need helper methods to assist tests in the update-study test suite
     // Since we don't have any pre-requisite resources needed, set this to true
     await super.setup();
-  }
-
-  async getAdminUser() {
-    const adminClient = await getInternalUserClient(this.testConfig.username, this.testConfig.password);
-    const response = await getUser(adminClient);
-    return { ...response, password: this.testConfig.password, axiosClient: adminClient };
   }
 
   async createNonAdminUser(axiosClient, projectId) {
