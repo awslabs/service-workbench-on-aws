@@ -16,7 +16,7 @@
 const { randomString } = require('@aws-ee/base-services/lib/helpers/utils');
 const { addUserParams, listUsersParams, getUserParams } = require('../helpers/api-param-generator');
 
-function createUserJson({ projId, testName = randomString(5), isAdmin = false, status = 'active' } = {}) {
+function buildUserJson({ projId, testName = randomString(5), isAdmin = false, status = 'active' } = {}) {
   const userName = `test+${testName}-${new Date().getTime()}-@example.com`;
 
   return {
@@ -52,7 +52,7 @@ async function getUser(axiosClient) {
 
 module.exports = {
   createUser,
-  createUserJson,
+  buildUserJson,
   getUser,
   listUsers,
 };

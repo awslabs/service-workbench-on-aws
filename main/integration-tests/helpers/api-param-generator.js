@@ -91,7 +91,7 @@ async function deleteUserParams(user) {
 }
 
 function getStudiesParams(category) {
-  const queryStringParam = `?category=${category.replace(' ', '%20')}`;
+  const queryStringParam = `?category=${encodeURIComponent(category)}`;
   return { api: `${apiEndpoint}/api/studies${queryStringParam}` };
 }
 

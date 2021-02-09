@@ -15,8 +15,8 @@
 
 const BaseFixture = require('../../../../helpers/base-fixture');
 const { getInternalUserClient } = require('../../../../utils/auth-tokens');
-const { createStudyJson, createStudy } = require('../../../../utils/studies');
-const { createUserJson, createUser } = require('../../../../utils/users');
+const { buildStudyJson, createStudy } = require('../../../../utils/studies');
+const { buildUserJson, createUser, getUser } = require('../../../../utils/users');
 
 // Test Fixture
 /**
@@ -27,33 +27,23 @@ const { createUserJson, createUser } = require('../../../../utils/users');
  * For example, whenever update-study-api test suite is triggered
  */
 class UpdateStudyFixture extends BaseFixture {
-  constructor() {
-    super();
-    // This static property keeps track of whether or not its parent needs a check
-    // since parent may be different than BaseFixture
-    UpdateStudyFixture.baseReady = BaseFixture.ready;
-
-    // We initially assume the Test Fixture is not verified
-    // For this to turn true, we need to confirm the test pre-requisites are valid
-    UpdateStudyFixture.ready = false;
-  }
-
-  async setupParent() {
-    await this.setupBasePreRequisites();
-    UpdateStudyFixture.baseReady = BaseFixture.ready;
-  }
-
   // IMPORTANT: These will be created afresh every new integration test cycle
-  // Create and add pre-requisite resources here as needed
-  async setupPreRequisites() {
+  async setup() {
+    // Create and add pre-requisite resources here as needed
     // We currently only need helper methods to assist tests in the update-study test suite
     // Since we don't have any pre-requisite resources needed, set this to true
-    UpdateStudyFixture.ready = true;
+    await super.setup();
+  }
+
+  async getAdminUser() {
+    const adminClient = await getInternalUserClient(this.testConfig.username, this.testConfig.password);
+    const response = await getUser(adminClient);
+    return { ...response, password: this.testConfig.password, axiosClient: adminClient };
   }
 
   async createNonAdminUser(axiosClient, projectId) {
     const testName = 'UpdateStudy';
-    const nonAdminUserJson = createUserJson({ projId: projectId, testName });
+    const nonAdminUserJson = buildUserJson({ projId: projectId, testName });
     const response = await createUser(axiosClient, nonAdminUserJson);
     const newUserClient = await getInternalUserClient(nonAdminUserJson.username, nonAdminUserJson.password);
 
@@ -62,7 +52,7 @@ class UpdateStudyFixture extends BaseFixture {
 
   async createMyStudy(axiosClient, projectId) {
     const testName = 'UpdateStudy';
-    const studyToCreate = createStudyJson({ projectId, testName });
+    const studyToCreate = buildStudyJson({ projectId, testName });
     const study = await createStudy(axiosClient, studyToCreate);
     return study;
   }

@@ -15,7 +15,6 @@
 
 const _ = require('lodash');
 const UpdateStudyFixture = require('./__fixtures__/update-study-fixture');
-const { getTestAdminClient } = require('../../../utils/auth-tokens');
 const { listStudies } = require('../../../utils/studies');
 const { updateStudyParams, getStudyParams } = require('../../../helpers/api-param-generator');
 
@@ -24,29 +23,28 @@ describe('Update Study Test', () => {
 
   beforeAll(async () => {
     testFixture = new UpdateStudyFixture();
-    if (!UpdateStudyFixture.baseReady) await testFixture.setupParent();
-    if (!UpdateStudyFixture.ready) await testFixture.setupPreRequisites();
+    await testFixture.setup();
   });
 
   describe('Update Study API', () => {
     it('should fail while trying to update Open Data studies', async () => {
       // BUILD
-      const adminClient = await getTestAdminClient(testFixture.testConfig);
+      const adminUser = await testFixture.getAdminUser();
       // This is a known Open Data study
       // but let the test admin confirm that anyway
       const studyId = '1000-genomes';
       const projectId = testFixture.testConfig.projectId;
-      const openDataStudies = await listStudies(adminClient, 'Open Data');
+      const openDataStudies = await listStudies(adminUser.axiosClient, 'Open Data');
       const studyOfInterest = _.find(openDataStudies, study => study.id === studyId);
       expect(studyOfInterest.category).toBe('Open Data');
 
       const updateRequest = { id: studyId, description: 'Sample desc change' };
 
-      const userA = await testFixture.createNonAdminUser(adminClient, projectId);
+      const nonAdminUser = await testFixture.createNonAdminUser(adminUser.axiosClient, projectId);
       const params = updateStudyParams(studyId, updateRequest);
 
       // EXECUTE & CHECK
-      await expect(userA.axiosClient.put(params.api, params.body)).rejects.toMatchObject({
+      await expect(nonAdminUser.axiosClient.put(params.api, params.body)).rejects.toMatchObject({
         response: { status: 404 },
       });
     });
@@ -54,13 +52,13 @@ describe('Update Study Test', () => {
     it("should fail while trying to update another user's personal studies", async () => {
       // BUILD
       const projectId = testFixture.testConfig.projectId;
-      const adminClient = await getTestAdminClient(testFixture.testConfig);
+      const adminUser = await testFixture.getAdminUser();
 
-      const userA = await testFixture.createNonAdminUser(adminClient, projectId);
-      const studyA = await testFixture.createMyStudy(userA.axiosClient, projectId);
+      const nonAdminUser = await testFixture.createNonAdminUser(adminUser.axiosClient, projectId);
+      const studyA = await testFixture.createMyStudy(nonAdminUser.axiosClient, projectId);
 
-      // UserB tries to access UserA's personal study
-      const userB = await testFixture.createNonAdminUser(adminClient, projectId);
+      // UserB tries to access nonAdminUser's personal study
+      const userB = await testFixture.createNonAdminUser(adminUser.axiosClient, projectId);
       const params = getStudyParams(studyA.id);
 
       // EXECUTE & CHECK

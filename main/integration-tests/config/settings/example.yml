@@ -2,7 +2,7 @@
 username: ""
 password: ""
 
-# This is a Project ID in your SWB deployment safe to be used by integration tests
+# This is a Project ID in your SWB deployment. Please ensure it is safe to be used by integration tests
 projectId: ""
 
 # Currently only "internal" auth provider is supported for test admin credentials.

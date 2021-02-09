@@ -20,7 +20,7 @@ const { RESOURCE_DESCRIPTION } = require('./common');
 
 // ************************ Study templates ************************
 
-function createStudyJson({ projectId, category = 'My Studies', testName = randomString(5) } = {}) {
+function buildStudyJson({ projectId, category = 'My Studies', testName = randomString(5) } = {}) {
   const studyId = `IntegTest-${testName}-Study-${new Date().getTime()}`;
   return {
     id: studyId,
@@ -56,5 +56,5 @@ module.exports = {
   getStudy,
   listStudies,
   createStudy,
-  createStudyJson,
+  buildStudyJson,
 };

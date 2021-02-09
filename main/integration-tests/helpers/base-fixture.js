@@ -34,16 +34,15 @@ const TEST_CONFIG_PATH = `../integration-tests/config/settings/${process.env.ENV
 class BaseFixture {
   constructor() {
     this.testConfig = fs.existsSync(TEST_CONFIG_PATH) ? YAML.load(fs.readFileSync(TEST_CONFIG_PATH, 'utf8')) : {};
-
-    // We initially assume the Base Fixture is not verified
-    // For this to turn true, we need to confirm the test admin credentials and provided test project ID are valid
-    BaseFixture.ready = false;
   }
 
-  async setupBasePreRequisites() {
+  /**
+   * Override this method to include your initialization code, but also run super.setup() to ensure parent is initialized.
+   * Keep in mind that this method is async.
+   */
+  async setup() {
     // If a test config file was not found at all, we cannot run integration tests
     if (_.isEmpty(this.testConfig)) {
-      BaseFixture.ready = false;
       throw new Error('Test configuration is not set up correctly');
     }
     try {
