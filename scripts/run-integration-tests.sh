@@ -36,5 +36,6 @@ if [ "$TEST_CONFIG_EXISTS" == true ]; then
     pnpm run intTest --recursive --if-present
 else
     # Create empty report file
+    mkdir -p main/integration-tests/.build/test
     echo 'No integration tests were run. Please provide your test config file to run integration tests' > "main/integration-tests/.build/test/junit.xml"
 fi
