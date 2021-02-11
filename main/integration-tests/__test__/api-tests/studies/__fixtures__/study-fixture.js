@@ -26,7 +26,7 @@ const { buildUserJson, createUser } = require('../../../../utils/users');
  * The verification of these components are performed once every respective test suite cycle
  * For example, whenever update-study-api test suite is triggered
  */
-class UpdateStudyFixture extends BaseFixture {
+class StudyFixture extends BaseFixture {
   // IMPORTANT: These will be created afresh every new integration test cycle
   async setup() {
     // Create and add pre-requisite resources here as needed
@@ -52,4 +52,4 @@ class UpdateStudyFixture extends BaseFixture {
   }
 }
 
-module.exports = UpdateStudyFixture;
+module.exports = StudyFixture;
