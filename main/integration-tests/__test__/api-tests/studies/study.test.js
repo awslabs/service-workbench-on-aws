@@ -85,40 +85,6 @@ describe('Study Controller API Tests', () => {
         response: { status: 404 },
       });
     });
-
-    it('should pass while trying to get own studies', async () => {
-      // BUILD
-      const nonAdminUser = await testFixture.createNonAdminUser(testAdmin.axiosClient, testProjectId);
-      const studyA = await testFixture.createMyStudy(nonAdminUser.axiosClient, testProjectId);
-      const params = getStudyParams(studyA.id);
-
-      // EXECUTE & CHECK
-      const response = await nonAdminUser.axiosClient.get(params.api);
-      expect(response.data).toHaveProperty('projectId');
-      expect(response.data).toHaveProperty('rev');
-      expect(response.data).toHaveProperty('resources');
-      expect(response.data).toHaveProperty('updatedAt');
-      expect(response.data).toHaveProperty('category');
-      expect(response.data).toHaveProperty('createdAt');
-      expect(response.data).toHaveProperty('updatedBy');
-      expect(response.data).toHaveProperty('description');
-      expect(response.data).toHaveProperty('id');
-      expect(response.data).toHaveProperty('createdBy');
-      expect(response.data).toHaveProperty('name');
-      expect(response.data).toHaveProperty('uploadLocationEnabled');
-      expect(response.status).toEqual(200);
-    });
-  });
-
-  describe('Get Study List API: /api/studies/', () => {
-    it('should pass while trying to get studies list', async () => {
-      // BUILD
-      const newUser = await testFixture.createNonAdminUser(testAdmin.axiosClient, testProjectId);
-
-      // EXECUTE & CHECK
-      const response = await listStudies(newUser.axiosClient, 'Open Data');
-      expect(response).not.toBeUndefined();
-    });
   });
 
   describe('POST Study for create API: /api/studies/', () => {
