@@ -20,6 +20,13 @@
       "pre-commit": "pretty-quick --staged --pattern '**/*.*(js|jsx)'"
     }
   },
+  "dependencies": {
+    "@aws-ee/base-services": "workspace:*",
+    "services": "workspace:*",
+    "axios": "^0.21.1",
+    "lodash": "^4.17.20",
+    "js-yaml": "^4.0.0"
+  },
   "devDependencies": {
     "eslint": "^6.8.0",
     "eslint-config-airbnb": "^18.0.1",

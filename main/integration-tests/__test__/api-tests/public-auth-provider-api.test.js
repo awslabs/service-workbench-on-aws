@@ -13,18 +13,18 @@
  *  permissions and limitations under the License.
  */
 
-const request = require('request-promise-native');
+const axios = require('axios').default;
 
 describe('GET /api/authentication/public/provider/configs should,', () => {
   it('return at least one auth provider', async () => {
     const apiBaseUrl = process.env.API_ENDPOINT;
-    const response = await request({
-      uri: `${apiBaseUrl}/api/authentication/public/provider/configs`,
+    const response = await axios.get(`${apiBaseUrl}/api/authentication/public/provider/configs`, {
       json: true,
     });
 
     expect(response).not.toBeNull();
-    expect(response).toEqual(
+    expect(response.data).not.toBeNull();
+    expect(response.data).toEqual(
       expect.arrayContaining([
         {
           id: 'internal',
@@ -35,6 +35,6 @@ describe('GET /api/authentication/public/provider/configs should,', () => {
         },
       ]),
     );
-    expect(response.length).toBeGreaterThanOrEqual(1);
+    expect(response.data.length).toBeGreaterThanOrEqual(1);
   });
 });

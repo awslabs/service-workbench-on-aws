@@ -24,6 +24,7 @@ custom:
   hooks:
     'aws:deploy:finalize:cleanup':
       - scripts/upload-env-config-if-not-versioned.sh ${self:provider.profile} ${self:provider.deploymentBucket} ${self:custom.settings.stgEnvName} ${self:custom.settings.envName}
+      - scripts/upload-test-config-if-not-versioned.sh ${self:provider.profile} ${self:provider.deploymentBucket} ${self:custom.settings.stgEnvName} ${self:custom.settings.envName}
 
 resources:
   - Description: Service-Workbench-on-AWS ${self:custom.settings.version} ${self:custom.settings.solutionName} ${self:custom.settings.envName} CICD-Pipeline

@@ -1,0 +1,14 @@
+# Enter the Test Administrator username and password below. (Please make sure this user has admin privileges)
+username: ""
+password: ""
+
+# This is a Project ID in your SWB deployment. Please ensure it is safe to be used by integration tests
+projectId: ""
+
+# Currently only "internal" auth provider is supported for test admin credentials.
+authenticationProviderId: "internal"
+
+# Set this to true if debugging locally
+isLocal: false
+# Set this to the API endpoint if different than the following
+localApiEndpoint: http://localhost:4000

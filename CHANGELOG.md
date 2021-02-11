@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.1] - 2021-02-08
+
+### Added 
+fix: Added usernameInIdp property to update user schema
+fix: Made external researcher used UserOnboarding template less permissive
+fix: labeler yml syntax
+chore: add PR size labeler
+
+We recommend to apply this patch as soon as possible
+
 ## [2.0.0] - 2021-01-29
 
 ### Added 

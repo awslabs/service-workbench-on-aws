@@ -1846,6 +1846,12 @@ importers:
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
   main/integration-tests:
+    dependencies:
+      '@aws-ee/base-services': 'link:../../addons/addon-base/packages/services'
+      axios: 0.21.1
+      js-yaml: 4.0.0
+      lodash: 4.17.20
+      services: 'link:../packages/services'
     devDependencies:
       eslint: 6.8.0
       eslint-config-airbnb: 18.1.0_9bfaab310611d9c7b04264b84523c27a
@@ -1864,6 +1870,8 @@ importers:
       request: 2.88.2
       request-promise-native: 1.0.8_request@2.88.2
     specifiers:
+      '@aws-ee/base-services': 'workspace:*'
+      axios: ^0.21.1
       eslint: ^6.8.0
       eslint-config-airbnb: ^18.0.1
       eslint-config-airbnb-base: ^14.0.0
@@ -1876,10 +1884,13 @@ importers:
       husky: ^3.1.0
       jest: ^25.1.0
       jest-junit: ^10.0.0
+      js-yaml: ^4.0.0
+      lodash: ^4.17.20
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
       request: ^2.88.0
       request-promise-native: ^1.0.8
+      services: 'workspace:*'
   main/packages/controllers:
     dependencies:
       '@aws-ee/base-controllers': 'link:../../../addons/addon-base-rest-api/packages/base-controllers'
@@ -7358,6 +7369,12 @@ packages:
     dev: true
     resolution:
       integrity: sha512-fjgm5MvRHLhx+osE2xoekY70AhARk3a6hkN+3Io1jc00jtquGvxYlKlsFUhmUET0V5te6CcZI7lcv2Ym61mjHA==
+  /axios/0.21.1:
+    dependencies:
+      follow-redirects: 1.13.0
+    dev: false
+    resolution:
+      integrity: sha512-dKQiRHxGD9PPRIUNIWvZhPTPpl1rf/OxTYKsqKUDjBwYylTvV7SjSHJb9ratfyzM6wCdLCOYLzs73qpg5c4iGA==
   /axobject-query/2.2.0:
     dev: true
     resolution:
@@ -12084,7 +12101,6 @@ packages:
     resolution:
       integrity: sha512-3Z4XhFZ3992uIq0XOqb9AreonueSYphE6oYbpt5+3u06JWklbsPkNv3ZKkP9Bz/r+1MWCaMoSQ28P85+1Yc77w==
   /follow-redirects/1.13.0:
-    dev: true
     engines:
       node: '>=4.0'
     resolution:
