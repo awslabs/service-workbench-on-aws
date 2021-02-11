@@ -69,6 +69,56 @@ describe('UserService', () => {
     service.assertAuthorized = jest.fn();
   });
 
+  describe('updateUser', () => {
+    it('should not fail validation when usernameInIdp in schema', async () => {
+      const user = {
+        email: 'example@amazon.com',
+        usernameInIdp: 'example',
+        uid: 'user1',
+        rev: 0,
+      };
+
+      // mocked functions
+      service.toUserType = jest.fn(() => {
+        return { userType: 'root' };
+      });
+      service.getUserByPrincipal = jest.fn(() => {
+        return null;
+      });
+      service.findUser = jest.fn(() => {
+        return user;
+      });
+      await service.updateUser({}, user);
+    });
+
+    it('should fail validation when unknown property in schema', async () => {
+      const user = {
+        email: 'example@amazon.com',
+        usernameInIdp: 'example',
+        uid: 'user1',
+        rev: 0,
+        unknown: 'unknownProperty',
+      };
+
+      // mocked functions
+      service.toUserType = jest.fn(() => {
+        return { userType: 'root' };
+      });
+      service.getUserByPrincipal = jest.fn(() => {
+        return null;
+      });
+      service.findUser = jest.fn(() => {
+        return user;
+      });
+      try {
+        await service.updateUser({}, user);
+        expect.fail('Expected to throw error validation errors');
+      } catch (err) {
+        expect(err.message).toEqual('Input has validation errors');
+      }
+    });
+  });
+
   describe('createUsers', () => {
     it('should try to create a user', async () => {
       const user = {

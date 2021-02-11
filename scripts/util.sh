@@ -22,6 +22,9 @@ export SOLUTION_ROOT_DIR="${PWD}"
 export SOLUTION_DIR="${SOLUTION_ROOT_DIR}/main/solution"
 export CONFIG_DIR="${SOLUTION_ROOT_DIR}/main/config"
 export INT_TEST_DIR="${SOLUTION_ROOT_DIR}/main/integration-tests"
+# By default, we assume test config file exists. 
+# The check for it happens later
+export TEST_CONFIG_EXISTS=true
 popd > /dev/null
 
 function init_package_manager() {
