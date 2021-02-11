@@ -91,9 +91,9 @@ async function configure(context) {
       const possibleBody = req.body;
       const result = await studyService.create(requestContext, possibleBody);
 
-      // TODO we should move this call to the studyService itself, otherwise we need to do result.access = 'admin';
+      // TODO we should move this call to the studyService itself, otherwise we need to do result.access = ['admin'];
       await studyPermissionService.create(requestContext, result.id);
-      result.access = 'admin'; // TODO see the todo comment above
+      result.access = ['admin']; // TODO see the todo comment above
 
       res.status(200).json(result);
     }),

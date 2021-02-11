@@ -8,6 +8,7 @@ pushd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null
 [[ ${UTIL_SOURCED-no} != yes && -f ./util.sh ]] && source ./util.sh
 popd > /dev/null
 
+ENV_NAME=$@
 CONFIG_S3_PATH="s3://$DEPLOYMENT_BUCKET/integration-test/$ENV_NAME.yml"
 CONFIG_TARGET_PATH="$INT_TEST_DIR/config/settings/$ENV_NAME.yml"
 
@@ -28,14 +29,15 @@ fi
 
 if [ "$TEST_CONFIG_EXISTS" == true ]; then
     printf "\n\nRunning integration tests for environment "$ENV_NAME"\n"
-    printf "\n\nInitializing env variables required for running integration test against env %s\n" "$@"
+    printf "\n\nInitializing env variables required for running integration test against env %s\n" "$ENV_NAME"
     # shellcheck disable=SC1091
-    source ./scripts/get-info.sh "$@"
+    source ./scripts/get-info.sh "$ENV_NAME"
 
-    printf "\n\nExecuting integration tests against env %s\n" "$@"
+    printf "\n\nExecuting integration tests against env %s\n" "$ENV_NAME"
     pnpm run intTest --recursive --if-present
 else
     # Create empty report file
     mkdir -p main/integration-tests/.build/test
-    echo 'No integration tests were run. Please provide your test config file to run integration tests' > "main/integration-tests/.build/test/junit.xml"
+    echo '<?xml version="1.0" encoding="UTF-8"?>
+    <testsuites name="Integration tests were skipped!" tests="0" failures="0" time="0"><testsuite></testsuite></testsuites>' > "main/integration-tests/.build/test/junit.xml"
 fi
