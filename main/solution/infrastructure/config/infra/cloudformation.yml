@@ -3,6 +3,8 @@ Conditions:
   UseCustomDomain: !Not
     - !Equals ['${self:custom.settings.domainName}', '']
 
+Description: (SO0144) Service Workbench on AWS Solution
+
 Resources:
   # =============================================================================================
   # S3 Buckets
