@@ -72,6 +72,9 @@ class Resource {
     return this.doCall(async () => this.axiosClient.put(api, body, { params }));
   }
 
+  // TODO - delete
+  // async delete
+
   // We wrap the call to axios so that we can capture the boom code and payload attributes passed from the
   // server
   async doCall(fn) {
@@ -81,6 +84,13 @@ class Resource {
     } catch (error) {
       throw transform(error);
     }
+  }
+
+  // Empty implementation of the cleanup task for the resource. Extender should provide their own
+  // implementation when appropriate.
+  async cleanup() {
+    // Empty implementation
+    console.log(`Resource type [${this.type}] with id [${this.id}] has no cleanup logic`);
   }
 }
 
