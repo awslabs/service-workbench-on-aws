@@ -13,12 +13,23 @@
  *  permissions and limitations under the License.
  */
 
-// This module is meant to contain generic utility methods that can be useful across test suites
+const _ = require('lodash');
 
-// Resources created via integration tests should have this description, wherever possible.
-// This would make it easier in the future for audit/cleanup
-const RESOURCE_DESCRIPTION = 'Resource automatically created by SWB integration test';
+const Resource = require('../base/resource');
 
-module.exports = {
-  RESOURCE_DESCRIPTION,
-};
+class StudyPermissions extends Resource {
+  constructor({ clientSession, parent }) {
+    super({
+      clientSession,
+      type: 'studyPermissions',
+      parent,
+    });
+
+    if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [StudyPermissions]');
+    this.api = `${parent.api}/permissions`;
+  }
+
+  // ************************ Helpers methods ************************
+}
+
+module.exports = StudyPermissions;

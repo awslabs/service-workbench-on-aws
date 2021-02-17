@@ -13,18 +13,23 @@
  *  permissions and limitations under the License.
  */
 
-const axios = require('axios').default;
+const { runSetup } = require('../../../support/setup');
 
-describe('GET /api/authentication/public/provider/configs should,', () => {
+describe('Get public auth provider config scenarios', () => {
+  let setup;
+  let anonymousSession;
+
+  beforeAll(async () => {
+    setup = await runSetup();
+    anonymousSession = await setup.createAnonymousSession();
+  });
+
+  afterAll(async () => {
+    await setup.cleanup();
+  });
+
   it('return at least one auth provider', async () => {
-    const apiBaseUrl = process.env.API_ENDPOINT;
-    const response = await axios.get(`${apiBaseUrl}/api/authentication/public/provider/configs`, {
-      json: true,
-    });
-
-    expect(response).not.toBeNull();
-    expect(response.data).not.toBeNull();
-    expect(response.data).toEqual(
+    await expect(anonymousSession.resources.publicAuthProviderConfigs.get()).resolves.toEqual(
       expect.arrayContaining([
         {
           id: 'internal',
@@ -35,6 +40,5 @@ describe('GET /api/authentication/public/provider/configs should,', () => {
         },
       ]),
     );
-    expect(response.data.length).toBeGreaterThanOrEqual(1);
   });
 });
