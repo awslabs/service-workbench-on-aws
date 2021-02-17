@@ -33,12 +33,12 @@ class Study extends Resource {
 
   // StudyPermissions is a child resource operations helper
   permissions() {
-    return StudyPermissions({ clientSession: this.clientSession, parent: this });
+    return new StudyPermissions({ clientSession: this.clientSession, parent: this });
   }
 
   // StudyFiles is a child resource operations helper
   files() {
-    return StudyFiles({ clientSession: this.clientSession, parent: this });
+    return new StudyFiles({ clientSession: this.clientSession, parent: this });
   }
 
   // ************************ Helpers methods ************************
