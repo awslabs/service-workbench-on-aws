@@ -30,8 +30,8 @@ async function getGenerators({ setup }) {
     string,
     username: ({ prefix = 'test' } = {}) => string({ prefix, suffix: '@example.com' }),
     password: () => `${runId}-${chance.string()}`,
-    firstName: () => `${chance.first({ nationality: 'en' })}`,
-    lastName: () => `${chance.last({ nationality: 'en' })}`,
+    firstName: () => `TestUser${chance.first({ nationality: 'en' })}`,
+    lastName: () => `TestUser${chance.last({ nationality: 'en' })}`,
     description: () => `Resource automatically created by SWB integration test - ${runId}`,
     defaultProjectId: () => setup.settings.get('projectId'),
   };
