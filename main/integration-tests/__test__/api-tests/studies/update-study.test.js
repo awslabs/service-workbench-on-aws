@@ -16,7 +16,7 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
-describe('Get study scenarios', () => {
+describe('Update study scenarios', () => {
   let setup;
   let adminSession;
 
@@ -29,26 +29,19 @@ describe('Get study scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('Getting my study', () => {
-    it('should fail if user is inactive', async () => {
+  describe('Updating open data study', () => {
+    it('should fail while trying to update Open Data studies', async () => {
       const researcherSession = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: 'study-test' });
+      // This is a known Open Data study
+      const studyId = '1000-genomes';
 
-      await researcherSession.resources.studies.create({ id: studyId });
-      await adminSession.resources.users.deactivateUser(researcherSession.user);
-      await expect(researcherSession.resources.studies.study(studyId).get()).rejects.toMatchObject({
-        code: errorCode.http.code.unauthorized,
-      });
-    });
+      // We need to make sure that the study id above belongs to an open data study
+      const study = await adminSession.resources.studies.mustFind(studyId, 'Open Data');
+      const updateBody = { rev: study.rev, description: setup.gen.description() };
 
-    it('should fail if user is not owner', async () => {
-      const researcher1session = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: 'study-test' });
-
-      await researcher1session.resources.studies.create({ id: studyId });
-      const researcher2session = await setup.createResearcherSession();
-      await expect(researcher2session.resources.studies.study(studyId).get()).rejects.toMatchObject({
-        code: errorCode.http.code.forbidden,
+      // It is unfortunate, but the current study update api returns 404 (not found) instead of 403 (forbidden)
+      await expect(researcherSession.resources.studies.study(studyId).update(updateBody)).rejects.toMatchObject({
+        code: errorCode.http.code.notFound,
       });
     });
   });

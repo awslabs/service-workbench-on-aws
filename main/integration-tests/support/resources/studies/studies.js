@@ -1,3 +1,4 @@
+/* eslint-disable no-shadow */
 /*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -12,6 +13,8 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
+
+const _ = require('lodash');
 
 const CollectionResource = require('../base/collection-resource');
 const Study = require('./study');
@@ -50,6 +53,26 @@ class Studies extends CollectionResource {
   }
 
   // ************************ Helpers methods ************************
+  async mustFind(id, category) {
+    if (_.isEmpty(category)) throw new Error('A study category must be provided for the mustFind helper method.');
+    const studies = await this.get({ category });
+    const study = _.find(studies, study => study.id === id);
+
+    if (_.isEmpty(study)) throw new Error(`study "${id}" is not found`);
+    return study;
+  }
+
+  async getOpenData() {
+    return this.get({ category: 'Open Data' });
+  }
+
+  async getMyStudies() {
+    return this.get({ category: 'My Studies' });
+  }
+
+  async getOrganization() {
+    return this.get({ category: 'Organization' });
+  }
 }
 
 module.exports = Studies;
