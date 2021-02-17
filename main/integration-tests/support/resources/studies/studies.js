@@ -38,7 +38,7 @@ class Studies extends CollectionResource {
   }
 
   // When creating a child resource, this method provides default values. This method is used by the
-  // CollectionResource class when we use get() method on this resource operations helper.
+  // CollectionResource class when we use create() method on this resource operations helper.
   defaults(study = {}) {
     const id = study.id || this.setup.gen.string();
     return {
