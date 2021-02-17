@@ -42,7 +42,7 @@ class Resource {
     }
   }
 
-  // When creating a child resource, this method provides default values.
+  // When creating this resource, this method provides default values.
   // Extender should override this method and implement their own logic for providing default values
   defaults(resource = {}) {
     return resource;
