@@ -54,7 +54,6 @@ class Studies extends CollectionResource {
 
   // ************************ Helpers methods ************************
   async mustFind(id, category) {
-    if (_.isEmpty(category)) throw new Error('A study category must be provided for the mustFind helper method.');
     const studies = await this.get({ category });
     const study = _.find(studies, study => study.id === id);
 
