@@ -17,6 +17,8 @@ const _ = require('lodash');
 
 const Resource = require('../base/resource');
 const StudyPermissions = require('./study-permissions');
+const StudyFiles = require('./study-files');
+const StudyUploadRequests = require('./study-upload-requests');
 
 class Study extends Resource {
   constructor({ clientSession, id, parent }) {
@@ -32,7 +34,17 @@ class Study extends Resource {
 
   // StudyPermissions is a child resource operations helper
   permissions() {
-    return StudyPermissions({ clientSession: this.clientSession, parent: this });
+    return new StudyPermissions({ clientSession: this.clientSession, parent: this });
+  }
+
+  // StudyFiles is a child resource operations helper
+  files() {
+    return new StudyFiles({ clientSession: this.clientSession, parent: this });
+  }
+
+  // StudyFiles is a child resource operations helper
+  uploadRequests() {
+    return new StudyUploadRequests({ clientSession: this.clientSession, parent: this });
   }
 
   // ************************ Helpers methods ************************

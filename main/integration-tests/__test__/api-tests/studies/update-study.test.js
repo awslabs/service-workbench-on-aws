@@ -30,7 +30,7 @@ describe('Update study scenarios', () => {
   });
 
   describe('Updating open data study', () => {
-    it('should fail while trying to update Open Data studies', async () => {
+    it('should fail while trying to update Open Data studies by a non-admin', async () => {
       const researcherSession = await setup.createResearcherSession();
       // This is a known Open Data study
       const studyId = '1000-genomes';
