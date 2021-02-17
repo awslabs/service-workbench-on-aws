@@ -16,7 +16,7 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
-describe('Get study scenarios', () => {
+describe('List study scenarios', () => {
   let setup;
   let adminSession;
 
@@ -29,26 +29,24 @@ describe('Get study scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('Getting my study', () => {
-    it('should fail if user is inactive', async () => {
+  describe('Getting all studies of a category', () => {
+    it('should return empty list if category is not defined', async () => {
       const researcherSession = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: 'inactive-user-test' });
-
-      await researcherSession.resources.studies.create({ id: studyId });
-      await adminSession.resources.users.deactivateUser(researcherSession.user);
-      await expect(researcherSession.resources.studies.study(studyId).get()).rejects.toMatchObject({
-        code: errorCode.http.code.unauthorized,
-      });
+      await expect(researcherSession.resources.studies.get()).resolves.toStrictEqual([]);
     });
 
-    it('should fail if user is not owner', async () => {
-      const researcher1session = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: 'non-owner-study-test' });
+    it('should fail if inactive user tries to list studies from any category', async () => {
+      const researcherSession = await setup.createResearcherSession();
+      await adminSession.resources.users.deactivateUser(researcherSession.user);
 
-      await researcher1session.resources.studies.create({ id: studyId });
-      const researcher2session = await setup.createResearcherSession();
-      await expect(researcher2session.resources.studies.study(studyId).get()).rejects.toMatchObject({
-        code: errorCode.http.code.notFound,
+      await expect(researcherSession.resources.studies.getOpenData()).rejects.toMatchObject({
+        code: errorCode.http.code.unauthorized,
+      });
+      await expect(researcherSession.resources.studies.getMyStudies()).rejects.toMatchObject({
+        code: errorCode.http.code.unauthorized,
+      });
+      await expect(researcherSession.resources.studies.getOrganization()).rejects.toMatchObject({
+        code: errorCode.http.code.unauthorized,
       });
     });
   });

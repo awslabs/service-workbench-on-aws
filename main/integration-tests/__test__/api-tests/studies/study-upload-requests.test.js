@@ -16,7 +16,7 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
-describe('Get study scenarios', () => {
+describe('Study files upload request scenarios', () => {
   let setup;
   let adminSession;
 
@@ -29,26 +29,21 @@ describe('Get study scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('Getting my study', () => {
-    it('should fail if user is inactive', async () => {
+  describe('Study files upload request', () => {
+    it('should fail when inactive user tries upload files to their personal study', async () => {
       const researcherSession = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: 'inactive-user-test' });
+      const studyId = setup.gen.string({ prefix: 'inactive-user-file-upload-test' });
 
       await researcherSession.resources.studies.create({ id: studyId });
       await adminSession.resources.users.deactivateUser(researcherSession.user);
-      await expect(researcherSession.resources.studies.study(studyId).get()).rejects.toMatchObject({
+
+      await expect(
+        researcherSession.resources.studies
+          .study(studyId)
+          .uploadRequest()
+          .getPresignedRequests(['dummyFile1', 'dummyFile2']),
+      ).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
-      });
-    });
-
-    it('should fail if user is not owner', async () => {
-      const researcher1session = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: 'non-owner-study-test' });
-
-      await researcher1session.resources.studies.create({ id: studyId });
-      const researcher2session = await setup.createResearcherSession();
-      await expect(researcher2session.resources.studies.study(studyId).get()).rejects.toMatchObject({
-        code: errorCode.http.code.notFound,
       });
     });
   });

@@ -24,14 +24,14 @@ const chance = require('chance').Chance();
 async function getGenerators({ setup }) {
   const runId = setup.settings.get('runId');
   const string = ({ prefix = 'test', suffix = '', length = 6 } = {}) =>
-    `${prefix}-${runId}-${chance.string({ alpha: true, casing: 'lower', length })}${suffix}`;
+    `${prefix}-${runId}-${chance.string({ alpha: true, casing: 'lower', length })}-${suffix}`;
 
   const generators = {
     string,
     username: ({ prefix = 'test' } = {}) => string({ prefix, suffix: '@example.com' }),
     password: () => `${runId}-${chance.string()}`,
-    firstName: () => `Test${chance.first()}`,
-    lastName: () => `Test${chance.last()}`,
+    firstName: () => `${chance.first({ nationality: 'en' })}`,
+    lastName: () => `${chance.last({ nationality: 'en' })}`,
     description: () => `Resource automatically created by SWB integration test - ${runId}`,
     defaultProjectId: () => setup.settings.get('projectId'),
   };

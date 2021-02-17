@@ -39,7 +39,7 @@ describe('Update study scenarios', () => {
       const study = await adminSession.resources.studies.mustFind(studyId, 'Open Data');
       const updateBody = { rev: study.rev, description: setup.gen.description() };
 
-      // It is unfortunate, but the current study update api returns 404 (not found) instead of 403 (forbidden)
+      // It is unfortunate, but the current study update api returns 400 (badRequest) instead of 403 (forbidden)
       await expect(researcherSession.resources.studies.study(studyId).update(updateBody)).rejects.toMatchObject({
         code: errorCode.http.code.badRequest,
       });

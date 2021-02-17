@@ -42,8 +42,8 @@ class Study extends Resource {
     return new StudyFiles({ clientSession: this.clientSession, parent: this });
   }
 
-  // StudyFiles is a child resource operations helper
-  uploadRequests() {
+  // StudyUploadRequests is a child resource operations helper
+  uploadRequest() {
     return new StudyUploadRequests({ clientSession: this.clientSession, parent: this });
   }
 

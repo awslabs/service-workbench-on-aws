@@ -16,7 +16,7 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
-describe('Get study scenarios', () => {
+describe('Get study permissions scenarios', () => {
   let setup;
   let adminSession;
 
@@ -29,25 +29,37 @@ describe('Get study scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('Getting my study', () => {
-    it('should fail if user is inactive', async () => {
+  describe('Get study permissions', () => {
+    it('should fail if inactive user tries to get study permissions', async () => {
       const researcherSession = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: 'inactive-user-test' });
-
+      const studyId = setup.gen.string({ prefix: 'inactive-user-study-perm-test' });
       await researcherSession.resources.studies.create({ id: studyId });
       await adminSession.resources.users.deactivateUser(researcherSession.user);
-      await expect(researcherSession.resources.studies.study(studyId).get()).rejects.toMatchObject({
+
+      await expect(
+        researcherSession.resources.studies
+          .study(studyId)
+          .permissions()
+          .get(),
+      ).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });
 
-    it('should fail if user is not owner', async () => {
-      const researcher1session = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: 'non-owner-study-test' });
+    it('should fail if a user tries to get permissions of a study for which they are not the admin', async () => {
+      const researcher1Session = await setup.createResearcherSession();
+      const studyId = setup.gen.string({ prefix: 'non-study-admin-user-perm-test' });
+      await researcher1Session.resources.studies.create({ id: studyId });
 
-      await researcher1session.resources.studies.create({ id: studyId });
-      const researcher2session = await setup.createResearcherSession();
-      await expect(researcher2session.resources.studies.study(studyId).get()).rejects.toMatchObject({
+      // This user is brand new and does not have any permissions to [studyId] yet
+      const researcher2Session = await setup.createResearcherSession();
+
+      await expect(
+        researcher2Session.resources.studies
+          .study(studyId)
+          .permissions()
+          .get(),
+      ).rejects.toMatchObject({
         code: errorCode.http.code.notFound,
       });
     });
