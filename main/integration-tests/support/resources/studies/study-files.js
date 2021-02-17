@@ -15,33 +15,21 @@
 
 const _ = require('lodash');
 
-const Resource = require('../base/resource');
-const StudyPermissions = require('./study-permissions');
-const StudyFiles = require('./study-files');
+const CollectionResource = require('../base/collection-resource');
 
-class Study extends Resource {
-  constructor({ clientSession, id, parent }) {
+class StudyFiles extends CollectionResource {
+  constructor({ clientSession, parent }) {
     super({
       clientSession,
-      type: 'study',
-      id,
+      type: 'studyFiles',
       parent,
     });
 
-    if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [study]');
-  }
-
-  // StudyPermissions is a child resource operations helper
-  permissions() {
-    return StudyPermissions({ clientSession: this.clientSession, parent: this });
-  }
-
-  // StudyFiles is a child resource operations helper
-  files() {
-    return StudyFiles({ clientSession: this.clientSession, parent: this });
+    if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [StudyFiles]');
+    this.api = `${parent.api}/files`;
   }
 
   // ************************ Helpers methods ************************
 }
 
-module.exports = Study;
+module.exports = StudyFiles;

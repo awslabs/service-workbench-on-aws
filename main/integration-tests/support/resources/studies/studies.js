@@ -40,7 +40,7 @@ class Studies extends CollectionResource {
   // When creating a child resource, this method provides default values. This method is used by the
   // CollectionResource class when we use get() method on this resource operations helper.
   defaults(study = {}) {
-    const id = study.id || this.setup.gen.string({ prefix: 'study-test' });
+    const id = study.id || this.setup.gen.string();
     return {
       id,
       name: id,
@@ -54,11 +54,8 @@ class Studies extends CollectionResource {
 
   // ************************ Helpers methods ************************
   async mustFind(id, category) {
-    if (_.isEmpty(category)) throw new Error('A study category must be provided for the mustFind helper method.');
     const studies = await this.get({ category });
     const study = _.find(studies, study => study.id === id);
-
-    if (_.isEmpty(study)) throw new Error(`study "${id}" is not found`);
     return study;
   }
 
