@@ -41,7 +41,7 @@ describe('Update study scenarios', () => {
 
       // It is unfortunate, but the current study update api returns 404 (not found) instead of 403 (forbidden)
       await expect(researcherSession.resources.studies.study(studyId).update(updateBody)).rejects.toMatchObject({
-        code: errorCode.http.code.notFound,
+        code: errorCode.http.code.badRequest,
       });
     });
   });
