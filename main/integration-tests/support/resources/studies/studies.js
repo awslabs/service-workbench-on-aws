@@ -38,9 +38,9 @@ class Studies extends CollectionResource {
   }
 
   // When creating a child resource, this method provides default values. This method is used by the
-  // CollectionResource class when we use get() method on this resource operations helper.
+  // CollectionResource class when we use create() method on this resource operations helper.
   defaults(study = {}) {
-    const id = study.id || this.setup.gen.string();
+    const id = study.id || this.setup.gen.string({ prefix: 'study-test' });
     return {
       id,
       name: id,
@@ -56,6 +56,8 @@ class Studies extends CollectionResource {
   async mustFind(id, category) {
     const studies = await this.get({ category });
     const study = _.find(studies, study => study.id === id);
+
+    if (_.isEmpty(study)) throw new Error(`study "${id}" is not found`);
     return study;
   }
 
