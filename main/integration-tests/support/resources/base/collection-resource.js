@@ -38,6 +38,12 @@ class CollectionResource {
     this.parent = parent;
   }
 
+  // When creating a child resource, this method provides default values.
+  // Extender should override this method and implement their own logic for providing default values
+  defaults(resource = {}) {
+    return resource;
+  }
+
   async create(body = {}, params = {}, { api = this.api, applyDefault = true } = {}) {
     try {
       const requestBody = applyDefault ? this.defaults(body) : body;

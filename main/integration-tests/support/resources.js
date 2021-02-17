@@ -16,6 +16,7 @@
 const Users = require('./resources/users/users.js');
 const Studies = require('./resources/studies/studies.js');
 const CurrentUser = require('./resources/current-user.js');
+const PublicAuthProviderConfigs = require('./resources/public-auth-provider/public-auth-provider-configs');
 
 // Returns the top level resource operations helpers. You should not use this directly in your tests.
 // These top level resource operation helpers are available via client sessions.
@@ -24,6 +25,7 @@ async function getResources({ clientSession }) {
     users: new Users({ clientSession }),
     studies: new Studies({ clientSession }),
     currentUser: new CurrentUser({ clientSession }),
+    publicAuthProviderConfigs: new PublicAuthProviderConfigs({ clientSession }),
   };
 
   return resources;
