@@ -18,11 +18,9 @@ const errorCode = require('../../../support/utils/error-code');
 
 describe('Update current user scenarios', () => {
   let setup;
-  let adminSession;
 
   beforeAll(async () => {
     setup = await runSetup();
-    adminSession = await setup.defaultAdminSession();
   });
 
   afterAll(async () => {
