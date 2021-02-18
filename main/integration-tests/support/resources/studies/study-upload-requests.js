@@ -30,6 +30,9 @@ class StudyUploadRequests extends Resource {
   }
 
   // ************************ Helpers methods ************************
+  async getPresignedRequests(filenames = []) {
+    return this.get({ filenames });
+  }
 }
 
 module.exports = StudyUploadRequests;
