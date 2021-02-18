@@ -1,12 +1,29 @@
-name: Deploy
+#
+#  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#  SPDX-License-Identifier: Apache-2.0
+#
+
+name: Deploy & Integration Test
 on:
   push:
     branches:
-      - master
+      - develop
 jobs:
+  pre-deployment-check:
+    name: Pre deployment check
+    runs-on: ubuntu-18.04
+    timeout-minutes: 10
+    steps:
+      - name: "Block Concurrent Deployments"
+        uses: softprops/turnstyle@v1
+        with:
+          poll-interval-seconds: 10
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   deploy:
     name: Deploy to Dev
     runs-on: ubuntu-18.04
+    needs: pre-deployment-check
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -58,3 +75,16 @@ jobs:
           CYPRESS_BASE_URL: ${{ secrets.CYPRESS_BASE_URL}}
           CYPRESS_researcherEmail: ${{ secrets.CYPRESS_RESEARCHER_EMAIL}}
           CYPRESS_researcherPassword: ${{ secrets.CYPRESS_RESEARCHER_PASSWORD}}
+  merge-develop-to-mainline:
+    name: Merge develop to mainline
+    runs-on: ubuntu-18.04
+    needs: cypress-test
+    steps:
+      - uses: actions/checkout@v2
+      - name: Merge to mainline branch
+        uses: devmasx/merge-branch@v1.1.0
+        with:
+          type: now
+          target_branch: "mainline"
+        env:
+          GITHUB_TOKEN: ${{secrets.MERGE_TOKEN}}
