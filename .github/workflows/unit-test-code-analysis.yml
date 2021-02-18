@@ -1,0 +1,39 @@
+#
+#  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#  SPDX-License-Identifier: Apache-2.0
+#
+
+name: Unit Tests & Code Analysis
+on:
+  pull_request:
+    branches:
+      - develop
+jobs:
+  static-code-analysis-and-unit-test:
+    name: Unit Tests & Code Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Cache Node.js dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+            ${{ runner.os }}-
+      - name: Install Node.js dependencies
+        run: |
+          npm install -g pnpm
+          pnpm recursive install --unsafe-perm --stream
+      - name: Run static code analysis & linting tests
+        run: |
+          ./scripts/run-static-code-analysis.sh --stream
+      - name: Run unit tests
+        run: |
+          ./scripts/run-unit-tests.sh --stream
