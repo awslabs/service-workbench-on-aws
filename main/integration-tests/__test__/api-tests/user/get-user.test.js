@@ -36,21 +36,20 @@ describe('Get current user scenarios', () => {
     });
 
     it('should return current user information', async () => {
-      const { session: researcher1Session, username } = await setup.createResearcherSessionAndUserName();
-      await expect(researcher1Session.resources.currentUser.get()).resolves.toEqual(
+      const username = await setup.gen.username();
+      const researcherSession = await setup.createResearcherSession(username);
+      await expect(researcherSession.resources.currentUser.get()).resolves.toEqual(
         expect.objectContaining({ username }),
       );
     });
 
-    it('should return current user information for inactive and pending user', async () => {
-      const researcher2Session = await setup.createResearcherSession();
-      await expect(researcher2Session.resources.currentUser.get()).resolves.toMatchObject({ status: 'active' });
-
-      await researcher2Session.resources.currentUser.update({ status: 'inactive', rev: 0 });
-      await expect(researcher2Session.resources.currentUser.get()).resolves.toMatchObject({ status: 'inactive' });
-
-      await researcher2Session.resources.currentUser.update({ status: 'pending', rev: 1 });
-      await expect(researcher2Session.resources.currentUser.get()).resolves.toMatchObject({ status: 'pending' });
-    });
+    it.each(['active', 'inactive', 'pending'])(
+      'should return current user information for user in status %a',
+      async a => {
+        const researcher2Session = await setup.createResearcherSession();
+        await researcher2Session.resources.currentUser.update({ status: a, rev: 0 });
+        await expect(researcher2Session.resources.currentUser.get()).resolves.toMatchObject({ status: a });
+      },
+    );
   });
 });

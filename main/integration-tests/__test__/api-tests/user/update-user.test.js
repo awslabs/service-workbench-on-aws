@@ -45,25 +45,17 @@ describe('Update current user scenarios', () => {
       ).resolves.toEqual(expect.objectContaining({ uid: researcher1Info.uid }));
     });
 
-    it('should fail if non-admin user update restrictive fields', async () => {
-      const researcherSession = await setup.createResearcherSession();
-      await expect(
-        researcherSession.resources.currentUser.update({ rev: 0, isSamlAuthenticatedUser: false }),
-      ).rejects.toMatchObject({ code: errorCode.http.code.forbidden });
-    });
-
-    it('should not allow alleviate privilege', async () => {
-      // Researcher should not alleviate to Admin
-      const researcherSession = await setup.createResearcherSession();
-      await expect(researcherSession.resources.currentUser.update({ rev: 0, isAdmin: true })).rejects.toMatchObject({
-        code: errorCode.http.code.forbidden,
-      });
-      await expect(researcherSession.resources.currentUser.update({ rev: 0, userRole: 'admin' })).rejects.toMatchObject(
-        {
+    it.each([{ isSamlAuthenticatedUser: true }, { isAdmin: true }, { userRole: 'admin' }])(
+      'should fail if non-admin user update restrictive field %a',
+      async a => {
+        const researcherSession = await setup.createResearcherSession();
+        await expect(researcherSession.resources.currentUser.update({ rev: 0, ...a })).rejects.toMatchObject({
           code: errorCode.http.code.forbidden,
-        },
-      );
-      // Admin should not alleviate to root
+        });
+      },
+    );
+
+    it('should not allow admin elevate to root', async () => {
       const admin2Session = await setup.createAdminSession();
       await expect(admin2Session.resources.currentUser.update({ rev: 0, userRole: 'root' })).rejects.toMatchObject({
         code: errorCode.http.code.notFound,

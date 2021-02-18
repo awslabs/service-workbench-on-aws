@@ -90,15 +90,8 @@ class Setup {
     return session;
   }
 
-  async createResearcherSession() {
-    const sessionInfo = await this.createResearcherSessionAndUserName();
-    return sessionInfo.session;
-  }
-
-  async createResearcherSessionAndUserName() {
+  async createResearcherSession(username = this.gen.username(), password = this.gen.password()) {
     const adminSession = await this.defaultAdminSession();
-    const username = this.gen.username();
-    const password = this.gen.password();
 
     await adminSession.resources.users.create({
       username,
@@ -111,7 +104,7 @@ class Setup {
     const session = await getClientSession({ idToken, setup: this });
     this.sessions.push(session);
 
-    return { session, username };
+    return session;
   }
 
   async createAnonymousSession() {
