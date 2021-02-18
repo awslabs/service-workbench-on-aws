@@ -21,7 +21,7 @@ class WorkspaceType extends Resource {
   constructor({ clientSession, id, parent }) {
     super({
       clientSession,
-      type: 'workspace-type',
+      type: 'WorkspaceType',
       id,
       parent,
     });
