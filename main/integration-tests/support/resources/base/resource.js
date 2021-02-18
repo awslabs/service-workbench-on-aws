@@ -42,6 +42,28 @@ class Resource {
     }
   }
 
+  // When creating this resource, this method provides default values.
+  // Extender should override this method and implement their own logic for providing default values
+  defaults(resource = {}) {
+    return resource;
+  }
+
+  async create(body = {}, params = {}, { api = this.api, applyDefault = true } = {}) {
+    try {
+      const requestBody = applyDefault ? this.defaults(body) : body;
+      const response = await this.axiosClient.post(api, requestBody, { params });
+      const resource = response.data;
+      const taskId = `${this.type}-${this.id}`;
+
+      // We add a cleanup task to the cleanup queue for the session
+      this.clientSession.cleanupQueue.push({ id: taskId, task: async () => this.cleanup(resource) });
+
+      return resource;
+    } catch (error) {
+      throw transform(error);
+    }
+  }
+
   async get(params = {}, { api = this.api } = {}) {
     return this.doCall(async () => this.axiosClient.get(api, { params }));
   }
@@ -49,6 +71,9 @@ class Resource {
   async update(body = {}, params = {}, { api = this.api } = {}) {
     return this.doCall(async () => this.axiosClient.put(api, body, { params }));
   }
+
+  // TODO - delete
+  // async delete
 
   // We wrap the call to axios so that we can capture the boom code and payload attributes passed from the
   // server
@@ -59,6 +84,13 @@ class Resource {
     } catch (error) {
       throw transform(error);
     }
+  }
+
+  // Empty implementation of the cleanup task for the resource. Extender should provide their own
+  // implementation when appropriate.
+  async cleanup() {
+    // Empty implementation
+    console.log(`Resource type [${this.type}] with id [${this.id}] has no cleanup logic`);
   }
 }
 

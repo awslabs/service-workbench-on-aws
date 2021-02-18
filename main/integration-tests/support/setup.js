@@ -90,16 +90,19 @@ class Setup {
     return session;
   }
 
-  async createResearcherSession() {
+  async createResearcherSession({
+    username = this.gen.username(),
+    password = this.gen.password(),
+    projectId = [this.gen.defaultProjectId()],
+  } = {}) {
     const adminSession = await this.defaultAdminSession();
-    const username = this.gen.username();
-    const password = this.gen.password();
 
     await adminSession.resources.users.create({
       username,
       email: username,
       password,
       userRole: 'researcher',
+      projectId,
     });
 
     const idToken = await getIdToken({ username, password, apiEndpoint: this.apiEndpoint });

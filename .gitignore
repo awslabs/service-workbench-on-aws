@@ -8,7 +8,7 @@
 .build
 docs/build
 
-# https://github.com/github/gitignore/blob/master/Global/VisualStudioCode.gitignore
+# VisualStudioCode.gitignore
 .vscode/*
 !.vscode/*.example.json
 !.vscode/settings.json
@@ -31,3 +31,6 @@ docs/build
 */*/*/config/settings/*.yml
 !*/*/*/config/settings/.defaults.yml
 !*/*/*/config/settings/example*.yml
+
+# rStudio specific
+source/ServiceWorkbenchOnAWS/main/solution/machine-images/config/infra/files/rstudio/*
