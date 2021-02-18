@@ -93,7 +93,7 @@ class Setup {
   async createResearcherSession({
     username = this.gen.username(),
     password = this.gen.password(),
-    projectId = this.gen.defaultProjectId(),
+    projectId = [this.gen.defaultProjectId()],
   } = {}) {
     const adminSession = await this.defaultAdminSession();
 
