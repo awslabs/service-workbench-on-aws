@@ -16,11 +16,7 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
-const categoryCases = [
-  ['my-study', 'My Studies'],
-  ['org-study', 'Organization'],
-];
-describe('Get study scenarios', () => {
+describe('Get study permissions scenarios', () => {
   let setup;
   let adminSession;
 
@@ -33,36 +29,58 @@ describe('Get study scenarios', () => {
     await setup.cleanup();
   });
 
-  describe.each(categoryCases)('Getting %p', (studyPrefix, studyCategory) => {
-    it('should fail if user is inactive', async () => {
+  const studyCategoryCases = [
+    ['my-study', 'My Studies'],
+    ['org-study', 'Organization'],
+  ];
+  describe.each(studyCategoryCases)('Get %p permissions', (studyPrefix, studyCategory) => {
+    it(`should fail if inactive user tries to get ${studyPrefix} permissions`, async () => {
       const researcherSession = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: `inactive-user-get-${studyPrefix}-test` });
-
+      const studyId = setup.gen.string({ prefix: `inactive-user-get-${studyPrefix}-perm-test` });
       await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
       await adminSession.resources.users.deactivateUser(researcherSession.user);
-      await expect(researcherSession.resources.studies.study(studyId).get()).rejects.toMatchObject({
+
+      await expect(
+        researcherSession.resources.studies
+          .study(studyId)
+          .permissions()
+          .get(),
+      ).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });
 
-    it('should fail if user is not owner', async () => {
-      const researcher1session = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: `non-owner-get--${studyPrefix}-test` });
+    it(`should fail if a user tries to get permissions of ${studyPrefix} for which they are not the admin`, async () => {
+      const researcher1Session = await setup.createResearcherSession();
+      const studyId = setup.gen.string({ prefix: `non-study-admin-get-${studyPrefix}-perm-test` });
+      await researcher1Session.resources.studies.create({ id: studyId, category: studyCategory });
 
-      await researcher1session.resources.studies.create({ id: studyId, category: studyCategory });
-      const researcher2session = await setup.createResearcherSession();
-      await expect(researcher2session.resources.studies.study(studyId).get()).rejects.toMatchObject({
+      // This user is brand new and does not have any permissions to [studyId] yet
+      const researcher2Session = await setup.createResearcherSession();
+
+      // This error code might change once we merge with BYOB
+      await expect(
+        researcher2Session.resources.studies
+          .study(studyId)
+          .permissions()
+          .get(),
+      ).rejects.toMatchObject({
         code: errorCode.http.code.notFound,
       });
     });
 
     it('should fail for anonymous user', async () => {
       const researcherSession = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: `anon-user-get-${studyPrefix}-test` });
+      const studyId = setup.gen.string({ prefix: `anon-user-get-perm-${studyPrefix}-test` });
       await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
 
       const anonymousSession = await setup.createAnonymousSession();
-      await expect(anonymousSession.resources.studies.study(studyId).get()).rejects.toMatchObject({
+      await expect(
+        anonymousSession.resources.studies
+          .study(studyId)
+          .permissions()
+          .get(),
+      ).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });

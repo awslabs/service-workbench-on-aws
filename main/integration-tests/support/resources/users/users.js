@@ -36,7 +36,7 @@ class Users extends CollectionResource {
   }
 
   // When creating a child resource, this method provides default values. This method is used by the
-  // CollectionResource class when we use get() method on this resource operations helper.
+  // CollectionResource class when we use create() method on this resource operations helper.
   defaults(user = {}) {
     const gen = this.setup.gen;
     const username = user.username || gen.username();
@@ -52,6 +52,10 @@ class Users extends CollectionResource {
       userRole: 'researcher',
       ...user,
     };
+  }
+
+  async cleanup(user) {
+    await this.axiosClient.delete(`${this.api}/${user.uid}`);
   }
 
   // ************************ Helpers methods ************************

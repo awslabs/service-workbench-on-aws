@@ -1,14 +1,16 @@
-name: Static Code Analysis
+#
+#  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#  SPDX-License-Identifier: Apache-2.0
+#
+
+name: Unit Tests & Code Analysis
 on:
-  push:
-    branches:
-      - master
   pull_request:
     branches:
-      - master
+      - develop
 jobs:
-  static-code-analysis:
-    name: Static Code Analysis
+  static-code-analysis-and-unit-test:
+    name: Unit Tests & Code Analysis
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -29,6 +31,9 @@ jobs:
         run: |
           npm install -g pnpm
           pnpm recursive install --unsafe-perm --stream
-      - name: Run unit tests
+      - name: Run static code analysis & linting tests
         run: |
           ./scripts/run-static-code-analysis.sh --stream
+      - name: Run unit tests
+        run: |
+          ./scripts/run-unit-tests.sh --stream
