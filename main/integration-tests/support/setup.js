@@ -90,10 +90,8 @@ class Setup {
     return session;
   }
 
-  async createResearcherSession() {
+  async createResearcherSession({ username = this.gen.username(), password = this.gen.password() } = {}) {
     const adminSession = await this.defaultAdminSession();
-    const username = this.gen.username();
-    const password = this.gen.password();
 
     await adminSession.resources.users.create({
       username,
