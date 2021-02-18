@@ -40,7 +40,6 @@ function transform(error = {}) {
       status === 404 ? 'Resource not found' : 'Something went wrong calling the server',
     );
     const payload = _.get(response, 'data.payload');
-    console.log(payload);
     boom = new BoomError(msg, code, status);
     if (payload) {
       boom.withPayload(payload);

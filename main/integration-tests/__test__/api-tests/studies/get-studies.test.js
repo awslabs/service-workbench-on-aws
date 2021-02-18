@@ -49,5 +49,18 @@ describe('List study scenarios', () => {
         code: errorCode.http.code.unauthorized,
       });
     });
+
+    it('should fail for anonymous user', async () => {
+      const anonymousSession = await setup.createAnonymousSession();
+      await expect(anonymousSession.resources.studies.getOpenData()).rejects.toMatchObject({
+        code: errorCode.http.code.badImplementation,
+      });
+      await expect(anonymousSession.resources.studies.getMyStudies()).rejects.toMatchObject({
+        code: errorCode.http.code.badImplementation,
+      });
+      await expect(anonymousSession.resources.studies.getOrganization()).rejects.toMatchObject({
+        code: errorCode.http.code.badImplementation,
+      });
+    });
   });
 });

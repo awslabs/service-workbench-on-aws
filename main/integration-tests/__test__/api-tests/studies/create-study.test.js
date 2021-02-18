@@ -29,10 +29,14 @@ describe('Create study scenarios', () => {
     await setup.cleanup();
   });
 
+  const studyCategoryCases = [
+    ['my-study', 'My Studies'],
+    ['org-study', 'Organization'],
+  ];
   describe('Creating study', () => {
     it('should fail if non-system user tries to create Open Data studies', async () => {
       const researcherSession = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: 'inactive-user-open-data-study-test' });
+      const studyId = setup.gen.string({ prefix: 'non-system-create-open-data-study-test' });
 
       await expect(
         researcherSession.resources.studies.create({ id: studyId, category: 'Open Data' }),
@@ -41,25 +45,45 @@ describe('Create study scenarios', () => {
       });
     });
 
-    it('should fail when resources field is assigned to non-Open Data studies', async () => {
-      const researcherSession = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: 'inactive-user-study-resources-test' });
+    it.each(studyCategoryCases)(
+      'should fail when resources field is assigned while creating %p',
+      async (studyPrefix, studyCategory) => {
+        const researcherSession = await setup.createResearcherSession();
+        const studyId = setup.gen.string({ prefix: `${studyPrefix}-resources-test` });
 
-      await expect(
-        researcherSession.resources.studies.create({ id: studyId, resources: ['dummyResourcePath'] }),
-      ).rejects.toMatchObject({
-        code: errorCode.http.code.badRequest,
-      });
-    });
+        await expect(
+          researcherSession.resources.studies.create({
+            id: studyId,
+            resources: [{ arn: 'dummyResourceArn' }],
+            category: studyCategory,
+          }),
+        ).rejects.toMatchObject({
+          code: errorCode.http.code.badRequest,
+        });
+      },
+    );
 
-    it('should fail if inactive user tries to create user', async () => {
-      const researcherSession = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: 'inactive-user-study-create-test' });
+    it.each(studyCategoryCases)(
+      'should fail if inactive user tries to create %p',
+      async (studyPrefix, studyCategory) => {
+        const researcherSession = await setup.createResearcherSession();
+        const studyId = setup.gen.string({ prefix: `inactive-user-${studyPrefix}-create-test` });
 
-      await adminSession.resources.users.deactivateUser(researcherSession.user);
+        await adminSession.resources.users.deactivateUser(researcherSession.user);
 
-      await expect(researcherSession.resources.studies.create({ id: studyId })).rejects.toMatchObject({
-        code: errorCode.http.code.unauthorized,
+        await expect(
+          researcherSession.resources.studies.create({ id: studyId, category: studyCategory }),
+        ).rejects.toMatchObject({
+          code: errorCode.http.code.unauthorized,
+        });
+      },
+    );
+
+    it('should fail for anonymous user', async () => {
+      const anonymousSession = await setup.createAnonymousSession();
+      const studyId = setup.gen.string({ prefix: 'anon-user-study-create-test' });
+      await expect(anonymousSession.resources.studies.create({ id: studyId })).rejects.toMatchObject({
+        code: errorCode.http.code.badImplementation,
       });
     });
   });

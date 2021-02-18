@@ -16,7 +16,7 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
-describe('Get study permissions scenarios', () => {
+describe('Update study permissions scenarios', () => {
   let setup;
   let adminSession;
 
@@ -29,44 +29,70 @@ describe('Get study permissions scenarios', () => {
     await setup.cleanup();
   });
 
+  const studyCategoryCases = [
+    ['my-study', 'My Studies'],
+    ['org-study', 'Organization'],
+  ];
   describe('Update study permissions', () => {
-    it('should fail if inactive user tries to update study permissions', async () => {
+    it.each(studyCategoryCases)(
+      'should fail if inactive user tries to update %p permissions',
+      async (studyPrefix, studyCategory) => {
+        const researcherSession = await setup.createResearcherSession();
+        const studyId = setup.gen.string({ prefix: `inactive-user-update-${studyPrefix}-perm-test` });
+        await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
+        await adminSession.resources.users.deactivateUser(researcherSession.user);
+
+        await expect(
+          researcherSession.resources.studies
+            .study(studyId)
+            .permissions()
+            .update(),
+        ).rejects.toMatchObject({
+          code: errorCode.http.code.unauthorized,
+        });
+      },
+    );
+
+    it.each(studyCategoryCases)(
+      'should fail if a user tries to update permissions of %p for which they are not the admin',
+      async (studyPrefix, studyCategory) => {
+        const researcher1Session = await setup.createResearcherSession();
+        const studyId = setup.gen.string({ prefix: `researcher-update-${studyPrefix}-perm-test` });
+        await researcher1Session.resources.studies.create({ id: studyId, category: studyCategory });
+
+        // This user is brand new and does not have any permissions to [studyId] yet
+        const researcher2Session = await setup.createResearcherSession();
+
+        await expect(
+          researcher2Session.resources.studies
+            .study(studyId)
+            .permissions()
+            .update(),
+        ).rejects.toMatchObject({
+          code: errorCode.http.code.notFound,
+        });
+      },
+    );
+
+    it.each(studyCategoryCases)('should fail for anonymous user for %p', async (studyPrefix, studyCategory) => {
       const researcherSession = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: 'inactive-user-update-study-perm-test' });
-      await researcherSession.resources.studies.create({ id: studyId });
-      await adminSession.resources.users.deactivateUser(researcherSession.user);
+      const studyId = setup.gen.string({ prefix: `anon-user-get-files-${studyPrefix}-test` });
+      await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
 
+      const anonymousSession = await setup.createAnonymousSession();
       await expect(
-        researcherSession.resources.studies
+        anonymousSession.resources.studies
           .study(studyId)
           .permissions()
           .update(),
       ).rejects.toMatchObject({
-        code: errorCode.http.code.unauthorized,
+        code: errorCode.http.code.badImplementation,
       });
     });
 
-    it('should fail if a user tries to update permissions of a study for which they are not the admin', async () => {
-      const researcher1Session = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: 'non-study-admin-update-study-perm-test' });
-      await researcher1Session.resources.studies.create({ id: studyId, category: 'Organization' });
-
-      // This user is brand new and does not have any permissions to [studyId] yet
-      const researcher2Session = await setup.createResearcherSession();
-
-      await expect(
-        researcher2Session.resources.studies
-          .study(studyId)
-          .permissions()
-          .update(),
-      ).rejects.toMatchObject({
-        code: errorCode.http.code.notFound,
-      });
-    });
-
-    it('should pass if a user tries to update permissions of a study for which they are the admin', async () => {
+    it('should pass if a user tries to update permissions of an Organization for which they are the admin', async () => {
       const studyAdminSession = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: 'study-admin-update-study-perm-test' });
+      const studyId = setup.gen.string({ prefix: 'study-admin-update-org-study-perm-test' });
       await studyAdminSession.resources.studies.create({ id: studyId, category: 'Organization' });
       const readonlyUserSession = await setup.createResearcherSession();
       const readwriteUserSession = await setup.createResearcherSession();

@@ -29,11 +29,15 @@ describe('Get study permissions scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('Get study permissions', () => {
-    it('should fail if inactive user tries to get study permissions', async () => {
+  const studyCategoryCases = [
+    ['my-study', 'My Studies'],
+    ['org-study', 'Organization'],
+  ];
+  describe.each(studyCategoryCases)('Get %p permissions', (studyPrefix, studyCategory) => {
+    it(`should fail if inactive user tries to get ${studyPrefix} permissions`, async () => {
       const researcherSession = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: 'inactive-user-study-perm-test' });
-      await researcherSession.resources.studies.create({ id: studyId });
+      const studyId = setup.gen.string({ prefix: `inactive-user-get-${studyPrefix}-perm-test` });
+      await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
       await adminSession.resources.users.deactivateUser(researcherSession.user);
 
       await expect(
@@ -46,14 +50,15 @@ describe('Get study permissions scenarios', () => {
       });
     });
 
-    it('should fail if a user tries to get permissions of a study for which they are not the admin', async () => {
+    it(`should fail if a user tries to get permissions of ${studyPrefix} for which they are not the admin`, async () => {
       const researcher1Session = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: 'non-study-admin-user-perm-test' });
-      await researcher1Session.resources.studies.create({ id: studyId });
+      const studyId = setup.gen.string({ prefix: `non-study-admin-get-${studyPrefix}-perm-test` });
+      await researcher1Session.resources.studies.create({ id: studyId, category: studyCategory });
 
       // This user is brand new and does not have any permissions to [studyId] yet
       const researcher2Session = await setup.createResearcherSession();
 
+      // This error code might change once we merge with BYOB
       await expect(
         researcher2Session.resources.studies
           .study(studyId)
@@ -61,6 +66,22 @@ describe('Get study permissions scenarios', () => {
           .get(),
       ).rejects.toMatchObject({
         code: errorCode.http.code.notFound,
+      });
+    });
+
+    it('should fail for anonymous user', async () => {
+      const researcherSession = await setup.createResearcherSession();
+      const studyId = setup.gen.string({ prefix: `anon-user-get-perm-${studyPrefix}-test` });
+      await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
+
+      const anonymousSession = await setup.createAnonymousSession();
+      await expect(
+        anonymousSession.resources.studies
+          .study(studyId)
+          .permissions()
+          .get(),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.badImplementation,
       });
     });
   });

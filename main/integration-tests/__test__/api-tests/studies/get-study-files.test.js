@@ -29,13 +29,17 @@ describe('List study files scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('Listing study files', () => {
-    it('should return an empty list while trying to get files of a newly created study', async () => {
+  const studyCategoryCases = [
+    ['my-study', 'My Studies'],
+    ['org-study', 'Organization'],
+  ];
+  describe.each(studyCategoryCases)('Listing %p files', (studyPrefix, studyCategory) => {
+    it(`should return an empty list while trying to get files of a newly created ${studyPrefix}`, async () => {
       const researcherSession = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: 'empty-files-test' });
+      const studyId = setup.gen.string({ prefix: `empty-files-${studyPrefix}-test` });
 
       // Newly created study which does not have any files associated
-      await researcherSession.resources.studies.create({ id: studyId });
+      await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
 
       await expect(
         researcherSession.resources.studies
@@ -45,12 +49,12 @@ describe('List study files scenarios', () => {
       ).resolves.toStrictEqual([]);
     });
 
-    it('should fail when inactive user tries get files of a study', async () => {
+    it(`should fail when inactive user tries get files of ${studyPrefix}`, async () => {
       const researcherSession = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: 'empty-files-test' });
+      const studyId = setup.gen.string({ prefix: `inactive-user-get-files-${studyPrefix}-test` });
 
       // Newly created study which does not have any files associated
-      await researcherSession.resources.studies.create({ id: studyId });
+      await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
 
       await adminSession.resources.users.deactivateUser(researcherSession.user);
       await expect(
@@ -60,6 +64,22 @@ describe('List study files scenarios', () => {
           .get(),
       ).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
+      });
+    });
+
+    it('should fail for anonymous user', async () => {
+      const researcherSession = await setup.createResearcherSession();
+      const studyId = setup.gen.string({ prefix: `anon-user-get-files-${studyPrefix}-test` });
+      await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
+
+      const anonymousSession = await setup.createAnonymousSession();
+      await expect(
+        anonymousSession.resources.studies
+          .study(studyId)
+          .files()
+          .get(),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.badImplementation,
       });
     });
   });

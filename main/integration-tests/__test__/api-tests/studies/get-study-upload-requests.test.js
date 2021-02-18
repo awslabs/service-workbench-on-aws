@@ -28,13 +28,16 @@ describe('Study files upload request scenarios', () => {
   afterAll(async () => {
     await setup.cleanup();
   });
-
-  describe('Study files upload request', () => {
-    it('should fail when inactive user tries upload files to their personal study', async () => {
+  const studyCategoryCases = [
+    ['my-study', 'My Studies'],
+    ['org-study', 'Organization'],
+  ];
+  describe.each(studyCategoryCases)('Study files upload request for %p', (studyPrefix, studyCategory) => {
+    it(`should fail when inactive user tries upload files to ${studyPrefix}`, async () => {
       const researcherSession = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: 'inactive-user-file-upload-test' });
+      const studyId = setup.gen.string({ prefix: `inactive-user--${studyPrefix}-file-upload-test` });
 
-      await researcherSession.resources.studies.create({ id: studyId });
+      await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
       await adminSession.resources.users.deactivateUser(researcherSession.user);
 
       await expect(
@@ -44,6 +47,22 @@ describe('Study files upload request scenarios', () => {
           .getPresignedRequests(['dummyFile1', 'dummyFile2']),
       ).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
+      });
+    });
+
+    it('should fail for anonymous user', async () => {
+      const researcherSession = await setup.createResearcherSession();
+      const studyId = setup.gen.string({ prefix: `anon-user-file-upload-${studyPrefix}-test` });
+      await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
+
+      const anonymousSession = await setup.createAnonymousSession();
+      await expect(
+        anonymousSession.resources.studies
+          .study(studyId)
+          .uploadRequest()
+          .getPresignedRequests(['dummyFile1', 'dummyFile2']),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.badImplementation,
       });
     });
   });

@@ -44,5 +44,18 @@ describe('Update study scenarios', () => {
         code: errorCode.http.code.badRequest,
       });
     });
+    it('should fail for anonymous user', async () => {
+      // This is a known Open Data study
+      const studyId = '1000-genomes';
+
+      // We need to make sure that the study id above belongs to an open data study
+      const study = await adminSession.resources.studies.mustFind(studyId, 'Open Data');
+      const updateBody = { rev: study.rev, description: setup.gen.description() };
+
+      const anonymousSession = await setup.createAnonymousSession();
+      await expect(anonymousSession.resources.studies.study(studyId).update(updateBody)).rejects.toMatchObject({
+        code: errorCode.http.code.badImplementation,
+      });
+    });
   });
 });
