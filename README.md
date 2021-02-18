@@ -29,7 +29,7 @@ Before you can build this project, please install the following prerequisites.
 - **PNPM:** Install [pnpm](https://pnpm.js.org/en/) as follows
 
 ```bash
-$ npm install -g pnpm
+npm install -g pnpm
 ```
 
 - **Go:** You also need to install [Go](https://golang.org/doc/install). `Go` is used for creating a multipart S3 downloader tool that is used in AWS Service Catalog EC2 Windows based research environments.
@@ -41,7 +41,7 @@ In the rest of this README, \$STAGE is used to designate the stage.
 Now, let's perform an initial deployment. Note that when invoked without parameters, this will assume a deployment stage of \$USER, which is the logged-in user name on Mac and Linux systems.
 
 ```bash
-$ scripts/environment-deploy.sh
+scripts/environment-deploy.sh
 ```
 
 You can override the default stage name of \$USER if you prefer. For example, if you want your stage name to be `qa`, then:
@@ -52,51 +52,51 @@ You can override the default stage name of \$USER if you prefer. For example, if
 Following an initial successful deployment, you can subsequently deploy updates to the infrastructure, backend, and post-deployment components as follows:
 
 ```bash
-$ cd main/solution/<component>
-$ pnpx sls deploy -s $STAGE
-$ cd -
+cd main/solution/<component>
+pnpx sls deploy -s $STAGE
+cd -
 ```
 
 To run (rerun) the post-deployment steps:
 
 ```bash
-$ cd main/solution/post-deployment
-$ pnpx sls invoke -f postDeployment -s $STAGE
-$ cd -
+cd main/solution/post-deployment
+pnpx sls invoke -f postDeployment -s $STAGE
+cd -
 ```
 
 To re-deploy the UI
 
 ```bash
-$ cd main/solution/ui
-$ pnpx sls package-ui --stage $STAGE --local=true
-$ pnpx sls package-ui --stage $STAGE
-$ pnpx sls deploy-ui --stage $STAGE --invalidate-cache=true
-$ cd -
+cd main/solution/ui
+pnpx sls package-ui --stage $STAGE --local=true
+pnpx sls package-ui --stage $STAGE
+pnpx sls deploy-ui --stage $STAGE --invalidate-cache=true
+cd -
 ```
 
 To view information about the deployed components (e.g. CloudFront URL, root password), run the
 following, where `[stage]` is the name of the environment (defaults to `$STAGE` if not provided):
 
 ```bash
-$ scripts/get-info.sh [stage]
+scripts/get-info.sh [stage]
 ```
 
 Once you have deployed the app and the UI, you can start developing locally on your computer.
 You will be running a local server that uses the same lambda functions code. To start local development, run the following commands to run a local server:
 
 ```bash
-$ cd main/solution/backend
-$ pnpx sls offline -s $STAGE
-$ cd -
+cd main/solution/backend
+pnpx sls offline -s $STAGE
+cd -
 ```
 
 Then, in a separate terminal, run the following commands to start the ui server and open up a browser:
 
 ```bash
-$ cd main/solution/ui
-$ pnpx sls start-ui -s $STAGE
-$ cd -
+cd main/solution/ui
+pnpx sls start-ui -s $STAGE
+cd -
 ```
 
 ---
@@ -166,8 +166,8 @@ They are meant to provide a sample service, a sample controller and a sample UI 
 To audit the installed NPM packages, run the following commands:
 
 ```bash
-$ cd <root of git repo>
-$ pnpm audit
+cd <root of git repo>
+pnpm audit
 ```
 
 Please follow prevailing best practices for auditing your NPM dependencies and fixing them as needed.
