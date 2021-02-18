@@ -46,15 +46,14 @@ class WorkspaceTypes extends CollectionResource {
       name: id,
       desc: this.setup.gen.description(),
       status: 'not-approved',
-      product: { productId: this.setup.settings.get('defaultProductId') },
-      provisioningArtifact: { id: this.setup.settings.get('defaultProvisioningArtifactId') },
+      product: { productId: this.settings.get('defaultProductId') },
+      provisioningArtifact: { id: this.settings.get('defaultProvisioningArtifactId') },
       ...workspaceType,
     };
   }
 
   // ************************ Helpers methods ************************
   async mustFind(id, status) {
-    if (_.isEmpty(status)) throw new Error('A workspace-type status must be provided for the mustFind helper method.');
     const workspaceTypes = await this.get({ status });
     const workspaceType = _.find(workspaceTypes, workspaceType => workspaceType.id === id);
 
