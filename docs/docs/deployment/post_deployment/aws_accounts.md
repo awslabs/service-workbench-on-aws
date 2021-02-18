@@ -32,7 +32,7 @@ To configure the **Master** account:
 ```scripts/master-account-deploy.sh <stage>```
 The output of this command includes a **Master Role ARN** for the the next step.
 
-For additional details on configuring an account to be the Master Account, see [Prepare the Master Account](/deployment/reference/prepare_master_account) in the 'Reference' section.
+For more information on configuring an account to be the Master Account, see [Prepare the Master Account](/deployment/reference/prepare_master_account) in the 'Reference' section.
 
 
 ### AWS Organizations
