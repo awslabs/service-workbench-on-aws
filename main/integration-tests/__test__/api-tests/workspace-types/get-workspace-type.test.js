@@ -96,7 +96,7 @@ describe('Get workspace-type scenarios', () => {
       });
     });
 
-    it('should return get approved types if user is not an admin', async () => {
+    it('should return approved types if user is not an admin', async () => {
       const researcherSession = await setup.createResearcherSession();
       const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
@@ -110,7 +110,7 @@ describe('Get workspace-type scenarios', () => {
       ).resolves.toHaveProperty('id', workspaceTypeId);
     });
 
-    it('should return get not-approved types if user is an admin', async () => {
+    it('should return not-approved types if user is an admin', async () => {
       const adminSession2 = await setup.createAdminSession();
       const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
