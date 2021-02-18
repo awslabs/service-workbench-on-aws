@@ -33,4 +33,4 @@ docs/build
 !*/*/*/config/settings/example*.yml
 
 # rStudio specific
-source\ServiceWorkbenchOnAWS\main\solution\machine-images\config\infra\files\rstudio\*
+source/ServiceWorkbenchOnAWS/main/solution/machine-images/config/infra/files/rstudio/*
