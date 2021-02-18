@@ -79,12 +79,17 @@ describe('Create study scenarios', () => {
       },
     );
 
-    it('should fail for anonymous user', async () => {
-      const anonymousSession = await setup.createAnonymousSession();
-      const studyId = setup.gen.string({ prefix: 'anon-user-study-create-test' });
-      await expect(anonymousSession.resources.studies.create({ id: studyId })).rejects.toMatchObject({
-        code: errorCode.http.code.badImplementation,
-      });
-    });
+    it.each(studyCategoryCases)(
+      'should fail for anonymous user who tries to create %p',
+      async (studyPrefix, studyCategory) => {
+        const anonymousSession = await setup.createAnonymousSession();
+        const studyId = setup.gen.string({ prefix: `anon-user-${studyPrefix}-create-test` });
+        await expect(
+          anonymousSession.resources.studies.create({ id: studyId, category: studyCategory }),
+        ).rejects.toMatchObject({
+          code: errorCode.http.code.badImplementation,
+        });
+      },
+    );
   });
 });
