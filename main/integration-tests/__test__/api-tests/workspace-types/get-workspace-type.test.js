@@ -48,7 +48,7 @@ describe('Get workspace-type scenarios', () => {
       });
     });
 
-    it('should fail to get no-approved types if user is not an admin', async () => {
+    it('should fail to get not-approved types if user is not an admin', async () => {
       const researcherSession = await setup.createResearcherSession();
       const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
@@ -64,7 +64,39 @@ describe('Get workspace-type scenarios', () => {
       });
     });
 
-    it('should pass to get approved types if user is not an admin', async () => {
+    it('should fail to get approved types if user is anonymous', async () => {
+      const anonymousSession = await setup.createAnonymousSession();
+      const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
+
+      await adminSession.resources.workspaceTypes.create({
+        id: workspaceTypeId,
+        status: 'approved',
+      });
+
+      await expect(
+        anonymousSession.resources.workspaceTypes.workspaceType(workspaceTypeId).get(),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.badImplementation,
+      });
+    });
+
+    it('should fail to get not-approved types if user is anonymous', async () => {
+      const anonymousSession = await setup.createAnonymousSession();
+      const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
+
+      await adminSession.resources.workspaceTypes.create({
+        id: workspaceTypeId,
+        status: 'not-approved',
+      });
+
+      await expect(
+        anonymousSession.resources.workspaceTypes.workspaceType(workspaceTypeId).get(),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.badImplementation,
+      });
+    });
+
+    it('should return get approved types if user is not an admin', async () => {
       const researcherSession = await setup.createResearcherSession();
       const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
@@ -78,7 +110,7 @@ describe('Get workspace-type scenarios', () => {
       ).resolves.toHaveProperty('id', workspaceTypeId);
     });
 
-    it('should pass to get no-approved types if user is an admin', async () => {
+    it('should return get not-approved types if user is an admin', async () => {
       const adminSession2 = await setup.createAdminSession();
       const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
