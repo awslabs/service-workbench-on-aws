@@ -37,7 +37,7 @@ describe('Get current user scenarios', () => {
 
     it('should return current user information', async () => {
       const username = await setup.gen.username();
-      const researcherSession = await setup.createResearcherSession(username);
+      const researcherSession = await setup.createResearcherSession({ username });
       await expect(researcherSession.resources.currentUser.get()).resolves.toEqual(
         expect.objectContaining({ username }),
       );
