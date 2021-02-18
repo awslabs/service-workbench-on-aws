@@ -23,8 +23,8 @@ class WorkspaceTypes extends CollectionResource {
   constructor({ clientSession }) {
     super({
       clientSession,
-      type: 'WorkspaceTypes',
-      childType: 'WorkspaceType',
+      type: 'workspaceTypes',
+      childType: 'workspaceType',
     });
 
     this.api = '/api/workspace-types';
