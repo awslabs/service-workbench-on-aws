@@ -16,7 +16,7 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
-describe('List projects scenarios', () => {
+describe('List indexes scenarios', () => {
   let setup;
   let adminSession;
 
@@ -29,29 +29,29 @@ describe('List projects scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('List projects', () => {
+  describe('List indexes', () => {
     it('should fail if user is inactive', async () => {
       const admin2Session = await setup.createAdminSession();
       await adminSession.resources.users.deactivateUser(admin2Session.user);
 
-      await expect(admin2Session.resources.projects.get()).rejects.toMatchObject({
+      await expect(admin2Session.resources.indexes.get()).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });
 
-    it('should return empty project list for internal guest', async () => {
+    it('should return empty index list for internal guest', async () => {
       const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
-      await expect(guestSession.resources.projects.get()).resolves.toStrictEqual([]);
+      await expect(guestSession.resources.indexes.get()).resolves.toStrictEqual([]);
     });
 
-    it('should fail if external guest attempts to get project list', async () => {
+    it('should fail if external guest attempts to get index list', async () => {
       const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
-      await expect(guestSession.resources.projects.get()).resolves.toStrictEqual([]);
+      await expect(guestSession.resources.indexes.get()).resolves.toStrictEqual([]);
     });
 
     it('should fail for anonymous user', async () => {
       const anonymousSession = await setup.createAnonymousSession();
-      await expect(anonymousSession.resources.projects.get()).rejects.toMatchObject({
+      await expect(anonymousSession.resources.indexes.get()).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });
