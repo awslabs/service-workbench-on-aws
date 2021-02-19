@@ -55,7 +55,7 @@ class Indexes extends CollectionResource {
   // ************************ Helpers methods ************************
   async mustFind(id) {
     const indexes = await this.get();
-    const index = _.find(indexes, (ind) => ind.id === id);
+    const index = _.find(indexes, ind => ind.id === id);
 
     if (_.isEmpty(index)) throw new Error(`index "${id}" is not found`);
     return index;
