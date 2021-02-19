@@ -39,7 +39,7 @@ describe('List projects scenarios', () => {
       });
     });
 
-    it('should pass if internal guest attempts to get project list', async () => {
+    it('should return empty project list for internal guest', async () => {
       const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
       await expect(guestSession.resources.projects.get()).resolves.toStrictEqual([]);
     });
