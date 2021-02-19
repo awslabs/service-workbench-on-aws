@@ -35,7 +35,7 @@ describe('Study files upload request scenarios', () => {
   describe.each(studyCategoryCases)('Study files upload request for %p', (studyPrefix, studyCategory) => {
     it(`should fail when inactive user tries upload files to ${studyPrefix}`, async () => {
       const researcherSession = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: `inactive-user--${studyPrefix}-file-upload-test` });
+      const studyId = setup.gen.string({ prefix: `file-upload-${studyPrefix}-test-inactive-user` });
 
       await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
       await adminSession.resources.users.deactivateUser(researcherSession.user);
@@ -52,7 +52,7 @@ describe('Study files upload request scenarios', () => {
 
     it('should fail for anonymous user', async () => {
       const researcherSession = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: `anon-user-file-upload-${studyPrefix}-test` });
+      const studyId = setup.gen.string({ prefix: `file-upload-${studyPrefix}-test-anon-user` });
       await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
 
       const anonymousSession = await setup.createAnonymousSession();

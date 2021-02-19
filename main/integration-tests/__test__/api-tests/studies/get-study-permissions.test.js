@@ -36,7 +36,7 @@ describe('Get study permissions scenarios', () => {
   describe.each(studyCategoryCases)('Get %p permissions', (studyPrefix, studyCategory) => {
     it(`should fail if inactive user tries to get ${studyPrefix} permissions`, async () => {
       const researcherSession = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: `inactive-user-get-${studyPrefix}-perm-test` });
+      const studyId = setup.gen.string({ prefix: `get-${studyPrefix}-perm-test-inactive-user` });
       await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
       await adminSession.resources.users.deactivateUser(researcherSession.user);
 
@@ -52,7 +52,7 @@ describe('Get study permissions scenarios', () => {
 
     it(`should fail if a user tries to get permissions of ${studyPrefix} for which they are not the admin`, async () => {
       const researcher1Session = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: `non-study-admin-get-${studyPrefix}-perm-test` });
+      const studyId = setup.gen.string({ prefix: `get-${studyPrefix}-perm-test-non-study-admin` });
       await researcher1Session.resources.studies.create({ id: studyId, category: studyCategory });
 
       // This user is brand new and does not have any permissions to [studyId] yet
@@ -71,7 +71,7 @@ describe('Get study permissions scenarios', () => {
 
     it('should fail for anonymous user', async () => {
       const researcherSession = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: `anon-user-get-perm-${studyPrefix}-test` });
+      const studyId = setup.gen.string({ prefix: `get-${studyPrefix}-perm-test-anon-user` });
       await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
 
       const anonymousSession = await setup.createAnonymousSession();
