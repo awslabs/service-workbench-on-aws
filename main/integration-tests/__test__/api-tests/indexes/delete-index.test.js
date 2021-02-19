@@ -16,7 +16,7 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
-describe('Delete project scenarios', () => {
+describe('Delete index scenarios', () => {
   let setup;
   let adminSession;
   let defaultProject;
@@ -24,16 +24,16 @@ describe('Delete project scenarios', () => {
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
-    defaultProject = await adminSession.resources.projects.mustFind(setup.gen.defaultProjectId());
+    // defaultProject = await adminSession.resources.projects.mustFind(setup.gen.defaultProjectId());
   });
 
   afterAll(async () => {
     await setup.cleanup();
   });
 
-  describe('Deleting a project', () => {
+  describe('Deleting an index', () => {
     it('should fail if admin is inactive', async () => {
-      const testProjectId = setup.gen.string({ prefix: `delete-proj-test-inactive-admin` });
+      const testProjectId = setup.gen.string({ prefix: `inactive-admin-delete-proj-test` });
       const newProj = await adminSession.resources.projects.create({
         id: testProjectId,
         indexId: defaultProject.indexId,
@@ -48,7 +48,7 @@ describe('Delete project scenarios', () => {
     });
 
     it('should fail if non-admin user is trying to delete project', async () => {
-      const testProjectId = setup.gen.string({ prefix: `delete-proj-test-inactive-admin` });
+      const testProjectId = setup.gen.string({ prefix: `inactive-admin-delete-proj-test` });
       const newProj = await adminSession.resources.projects.create({
         id: testProjectId,
         indexId: defaultProject.indexId,
@@ -62,7 +62,7 @@ describe('Delete project scenarios', () => {
     });
 
     it('should fail for anonymous user', async () => {
-      const testProjectId = setup.gen.string({ prefix: `delete-proj-test-inactive-admin` });
+      const testProjectId = setup.gen.string({ prefix: `inactive-admin-delete-proj-test` });
       const newProj = await adminSession.resources.projects.create({
         id: testProjectId,
         indexId: defaultProject.indexId,

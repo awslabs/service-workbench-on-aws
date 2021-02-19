@@ -16,7 +16,7 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
-describe('Create project scenarios', () => {
+describe('List projects scenarios', () => {
   let setup;
   let adminSession;
 
@@ -29,38 +29,29 @@ describe('Create project scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('Creating a project', () => {
-    it('should fail if admin is inactive', async () => {
-      const testProjectId = setup.gen.string({ prefix: `create-proj-test-inactive-admin` });
+  describe('List projects', () => {
+    it('should fail if user is inactive', async () => {
       const admin2Session = await setup.createAdminSession();
       await adminSession.resources.users.deactivateUser(admin2Session.user);
 
-      await expect(admin2Session.resources.projects.create(testProjectId)).rejects.toMatchObject({
+      await expect(admin2Session.resources.projects.get()).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });
 
-    it('should fail if non-admin user is trying to create project', async () => {
-      const testProjectId = setup.gen.string({ prefix: `create-proj-test-non-admin` });
-      const researcherSession = await setup.createResearcherSession();
-
-      await expect(researcherSession.resources.projects.create(testProjectId)).rejects.toMatchObject({
-        code: errorCode.http.code.forbidden,
-      });
+    it('should return empty project list for internal guest', async () => {
+      const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
+      await expect(guestSession.resources.projects.get()).resolves.toStrictEqual([]);
     });
 
-    it('should fail if projectId is duplicate to the one already in the system', async () => {
-      const admin2Session = await setup.createAdminSession();
-
-      await expect(admin2Session.resources.projects.create(setup.gen.defaultProjectId())).rejects.toMatchObject({
-        code: errorCode.http.code.badRequest,
-      });
+    it('should fail if external guest attempts to get project list', async () => {
+      const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
+      await expect(guestSession.resources.projects.get()).resolves.toStrictEqual([]);
     });
 
     it('should fail for anonymous user', async () => {
-      const testProjectId = setup.gen.string({ prefix: `create-proj-test-anon-user` });
       const anonymousSession = await setup.createAnonymousSession();
-      await expect(anonymousSession.resources.projects.create(testProjectId)).rejects.toMatchObject({
+      await expect(anonymousSession.resources.projects.get()).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });
