@@ -16,6 +16,9 @@
     "react": "^16.8.4",
     "react-dom": "^16.8.4"
   },
+  "resolutions": {
+    "immer": "^8.0.1"
+  },
   "browserslist": {
     "production": [
       ">0.2%",
