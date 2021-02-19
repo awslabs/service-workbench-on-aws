@@ -29,6 +29,18 @@ class WorkspaceType extends Resource {
     if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [workspace-type]');
   }
 
+  async approve(body) {
+    const api = `${this.api}/approve`;
+
+    return this.doCall(async () => this.axiosClient.put(api, body, {}));
+  }
+
+  async revoke(body) {
+    const api = `${this.api}/revoke`;
+
+    return this.doCall(async () => this.axiosClient.put(api, body, {}));
+  }
+
   // ************************ Helpers methods ************************
 }
 
