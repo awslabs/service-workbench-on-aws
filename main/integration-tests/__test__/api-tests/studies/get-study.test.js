@@ -16,6 +16,10 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
+const categoryCases = [
+  ['my-study', 'My Studies'],
+  ['org-study', 'Organization'],
+];
 describe('Get study scenarios', () => {
   let setup;
   let adminSession;
@@ -29,12 +33,12 @@ describe('Get study scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('Getting my study', () => {
+  describe.each(categoryCases)('Getting %p', (studyPrefix, studyCategory) => {
     it('should fail if user is inactive', async () => {
       const researcherSession = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: 'study-test' });
+      const studyId = setup.gen.string({ prefix: `inactive-user-get-${studyPrefix}-test` });
 
-      await researcherSession.resources.studies.create({ id: studyId });
+      await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
       await adminSession.resources.users.deactivateUser(researcherSession.user);
       await expect(researcherSession.resources.studies.study(studyId).get()).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
@@ -43,12 +47,23 @@ describe('Get study scenarios', () => {
 
     it('should fail if user is not owner', async () => {
       const researcher1session = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: 'study-test' });
+      const studyId = setup.gen.string({ prefix: `non-owner-get--${studyPrefix}-test` });
 
-      await researcher1session.resources.studies.create({ id: studyId });
+      await researcher1session.resources.studies.create({ id: studyId, category: studyCategory });
       const researcher2session = await setup.createResearcherSession();
       await expect(researcher2session.resources.studies.study(studyId).get()).rejects.toMatchObject({
         code: errorCode.http.code.notFound,
+      });
+    });
+
+    it('should fail for anonymous user', async () => {
+      const researcherSession = await setup.createResearcherSession();
+      const studyId = setup.gen.string({ prefix: `anon-user-get-${studyPrefix}-test` });
+      await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
+
+      const anonymousSession = await setup.createAnonymousSession();
+      await expect(anonymousSession.resources.studies.study(studyId).get()).rejects.toMatchObject({
+        code: errorCode.http.code.badImplementation,
       });
     });
   });
