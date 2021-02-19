@@ -48,7 +48,7 @@ describe('Delete project scenarios', () => {
     });
 
     it('should fail if non-admin user is trying to delete project', async () => {
-      const testProjectId = setup.gen.string({ prefix: `delete-proj-test-inactive-admin` });
+      const testProjectId = setup.gen.string({ prefix: `delete-proj-test-non-admin` });
       const newProj = await adminSession.resources.projects.create({
         id: testProjectId,
         indexId: defaultProject.indexId,
@@ -62,7 +62,7 @@ describe('Delete project scenarios', () => {
     });
 
     it('should fail for anonymous user', async () => {
-      const testProjectId = setup.gen.string({ prefix: `delete-proj-test-inactive-admin` });
+      const testProjectId = setup.gen.string({ prefix: `delete-proj-test-anon-user` });
       const newProj = await adminSession.resources.projects.create({
         id: testProjectId,
         indexId: defaultProject.indexId,
