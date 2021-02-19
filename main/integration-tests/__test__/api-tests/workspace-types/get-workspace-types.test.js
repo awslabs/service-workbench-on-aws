@@ -30,7 +30,7 @@ describe('Get workspace-types scenarios', () => {
   });
 
   describe('Get workspace-types', () => {
-    it('should fail to get approved if user is inactive', async () => {
+    it('should fail to get approved workspaces if user is inactive', async () => {
       const adminSession2 = await setup.createAdminSession();
       await adminSession2.resources.users.deactivateUser(adminSession2.user);
 
@@ -39,7 +39,7 @@ describe('Get workspace-types scenarios', () => {
       });
     });
 
-    it('should fail to get not-approved if user is inactive', async () => {
+    it('should fail to get not-approved workspaces if user is inactive', async () => {
       const adminSession2 = await setup.createAdminSession();
       await adminSession2.resources.users.deactivateUser(adminSession2.user);
 
@@ -48,7 +48,7 @@ describe('Get workspace-types scenarios', () => {
       });
     });
 
-    it('should fail to get approved if user is anonymous', async () => {
+    it('should fail to get approved workspaces if user is anonymous', async () => {
       const anonymousSession = await setup.createAnonymousSession();
 
       await expect(anonymousSession.resources.workspaceTypes.getApproved()).rejects.toMatchObject({
@@ -56,7 +56,7 @@ describe('Get workspace-types scenarios', () => {
       });
     });
 
-    it('should fail to get not-approved if user is anonymous', async () => {
+    it('should fail to get not-approved workspaces if user is anonymous', async () => {
       const anonymousSession = await setup.createAnonymousSession();
 
       await expect(anonymousSession.resources.workspaceTypes.getNotApproved()).rejects.toMatchObject({
@@ -64,13 +64,19 @@ describe('Get workspace-types scenarios', () => {
       });
     });
 
-    it('should return approved if user is researcher', async () => {
+    it('should return approved workspaces if user is researcher', async () => {
       const researcherSession = await setup.createResearcherSession();
+      const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
-      await expect(researcherSession.resources.workspaceTypes.getApproved()).resolves.toEqual(expect.any(Array));
+      await adminSession.resources.workspaceTypes.create({
+        id: workspaceTypeId,
+        status: 'approved',
+      });
+
+      await expect(researcherSession.resources.workspaceTypes.getApproved()).resolves.not.toHaveLength(0);
     });
 
-    it('should return no not-approved if user is researcher', async () => {
+    it('should return no not-approved workspaces if user is researcher', async () => {
       const researcherSession = await setup.createResearcherSession();
       const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
@@ -79,15 +85,29 @@ describe('Get workspace-types scenarios', () => {
         status: 'not-approved',
       });
 
-      await expect(researcherSession.resources.workspaceTypes.getNotApproved()).resolves.toEqual([]);
+      await expect(researcherSession.resources.workspaceTypes.getNotApproved()).resolves.toHaveLength(0);
     });
 
-    it('should return approved if user is admin', async () => {
-      await expect(adminSession.resources.workspaceTypes.getApproved()).resolves.toEqual(expect.any(Array));
+    it('should return approved workspaces if user is admin', async () => {
+      const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
+
+      await adminSession.resources.workspaceTypes.create({
+        id: workspaceTypeId,
+        status: 'approved',
+      });
+
+      await expect(adminSession.resources.workspaceTypes.getApproved()).resolves.not.toHaveLength(0);
     });
 
-    it('should return not-approved if user is admin', async () => {
-      await expect(adminSession.resources.workspaceTypes.getNotApproved()).resolves.toEqual(expect.any(Array));
+    it('should return not-approved workspaces if user is admin', async () => {
+      const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
+
+      await adminSession.resources.workspaceTypes.create({
+        id: workspaceTypeId,
+        status: 'not-approved',
+      });
+
+      await expect(adminSession.resources.workspaceTypes.getNotApproved()).resolves.not.toHaveLength(0);
     });
   });
 });
