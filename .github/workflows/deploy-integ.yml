@@ -75,7 +75,7 @@ jobs:
   cypress-test:
     name: Cypress test
     runs-on: ubuntu-18.04
-    needs: deploy
+    needs: integration-test
     steps:
       - name: Checkout
         uses: actions/checkout@v2
