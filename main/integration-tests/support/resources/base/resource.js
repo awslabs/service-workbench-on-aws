@@ -72,8 +72,9 @@ class Resource {
     return this.doCall(async () => this.axiosClient.put(api, body, { params }));
   }
 
-  // TODO - delete
-  // async delete
+  async delete(params = {}, { api = this.api } = {}) {
+    return this.doCall(async () => this.axiosClient.delete(api, { params }));
+  }
 
   // We wrap the call to axios so that we can capture the boom code and payload attributes passed from the
   // server
