@@ -55,6 +55,7 @@ module.exports = async () => {
     verbose: false,
     notify: false,
     testEnvironment: 'node',
+    testTimeout: 60 * 60 * 1000,
     // testPathIgnorePatterns: [],
 
     // Configure JUnit reporter as CodeBuild currently only supports JUnit or Cucumber reports

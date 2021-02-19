@@ -54,10 +54,6 @@ class Users extends CollectionResource {
     };
   }
 
-  async cleanup(user) {
-    await this.axiosClient.delete(`${this.api}/${user.uid}`);
-  }
-
   // ************************ Helpers methods ************************
 
   async deactivateUser(user) {

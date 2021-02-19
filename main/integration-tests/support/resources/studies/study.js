@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 /*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -45,6 +46,10 @@ class Study extends Resource {
   // StudyUploadRequests is a child resource operations helper
   uploadRequest() {
     return new StudyUploadRequests({ clientSession: this.clientSession, parent: this });
+  }
+
+  async cleanup() {
+    console.log(`study [${this.id}] does not have cleanup logic (yet)`);
   }
 
   // ************************ Helpers methods ************************

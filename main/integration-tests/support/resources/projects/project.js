@@ -29,6 +29,11 @@ class Project extends Resource {
     if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [project]');
   }
 
+  async cleanup() {
+    if (this.id === this.setup.gen.defaultProjectId()) return;
+    await super.cleanup();
+  }
+
   // ************************ Helpers methods ************************
 }
 

@@ -34,7 +34,7 @@ class Settings {
 
   get(key) {
     const value = this.content[key];
-    if (_.isEmpty(value))
+    if (_.isEmpty(value) && !_.isBoolean(value))
       throw new Error(
         `The "${key}" setting value is required but it is either empty or not provided via the yaml configuration file.`,
       );

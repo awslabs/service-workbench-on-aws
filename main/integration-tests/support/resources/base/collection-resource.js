@@ -45,15 +45,24 @@ class CollectionResource {
   }
 
   async create(body = {}, params = {}, { api = this.api, applyDefault = true } = {}) {
+    // Because of the cleanup logic, before we do the create, we need to ensure that the extender of this collection
+    // resource class has a method that returns the resource operations helper for the child resource.
+    // For example, if the extender class is 'Users' and it provides childType = 'user', then Users class must have
+    // a method called 'user()'.
+    if (!_.isFunction(this[this.childType])) {
+      throw new Error(`The collection resource ['${this.type}] must have a method named [${this.childType}()]`);
+    }
+
     try {
       const requestBody = applyDefault ? this.defaults(body) : body;
       const response = await this.axiosClient.post(api, requestBody, { params });
       const resource = response.data;
       const id = _.get(resource, this.childIdProp);
       const taskId = `${this.type}-${id}`;
+      const resourceNode = this[this.childType](id);
 
       // We add a cleanup task to the cleanup queue for the session
-      this.clientSession.cleanupQueue.push({ id: taskId, task: async () => this.cleanup(resource) });
+      this.clientSession.addCleanupTask({ id: taskId, task: async () => resourceNode.cleanup(resource) });
 
       return resource;
     } catch (error) {
@@ -70,8 +79,11 @@ class CollectionResource {
     return this.doCall(async () => this.axiosClient.get(api, { params }));
   }
 
-  // TODO - delete
-  // async delete
+  // In general, most of SWB APIs on the server side should not support the ability to delete a collection
+  // resource. However, it might be desireable that we tes against this. Therefore, this method exists.
+  async delete(body = {}, params = {}, { api = this.api } = {}) {
+    return this.doCall(async () => this.axiosClient.delete(api, body, { params }));
+  }
 
   // We wrap the call to axios so that we can capture the boom code and payload attributes passed from the
   // server
@@ -82,14 +94,6 @@ class CollectionResource {
     } catch (error) {
       throw transform(error);
     }
-  }
-
-  // Empty implementation of the cleanup task for the child resources. Classes extending the collection
-  // resource class should provide their own implementation when appropriate.
-  async cleanup(resource) {
-    // Empty implementation
-    const id = _.get(resource, this.childIdProp);
-    console.log(`Resource type [${this.childType}] with id [${id}] has no cleanup logic`);
   }
 }
 
