@@ -52,10 +52,6 @@ class WorkspaceTypes extends CollectionResource {
     };
   }
 
-  async update(body = {}, params = {}, { api = this.api } = {}) {
-    return super.update(body, params, { api: `${api}/${body.id}` });
-  }
-
   // ************************ Helpers methods ************************
   async mustFind(id, status) {
     const workspaceTypes = await this.get({ status });

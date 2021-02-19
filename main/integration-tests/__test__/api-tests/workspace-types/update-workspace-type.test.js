@@ -46,7 +46,9 @@ describe('Update workspace-type scenarios', () => {
 
       await adminSession2.resources.users.deactivateUser(adminSession2.user);
 
-      await expect(adminSession2.resources.workspaceTypes.update(updateBody)).rejects.toMatchObject({
+      await expect(
+        adminSession2.resources.workspaceTypes.workspaceType(workspaceTypeId).update(updateBody),
+      ).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });
@@ -65,7 +67,9 @@ describe('Update workspace-type scenarios', () => {
         rev: 0,
       };
 
-      await expect(researcherSession.resources.workspaceTypes.update(updateBody)).rejects.toMatchObject({
+      await expect(
+        researcherSession.resources.workspaceTypes.workspaceType(workspaceTypeId).update(updateBody),
+      ).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
     });
@@ -84,7 +88,9 @@ describe('Update workspace-type scenarios', () => {
         rev: 0,
       };
 
-      await expect(anonymousSession.resources.workspaceTypes.update(updateBody)).rejects.toMatchObject({
+      await expect(
+        anonymousSession.resources.workspaceTypes.workspaceType(workspaceTypeId).update(updateBody),
+      ).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });
@@ -102,7 +108,9 @@ describe('Update workspace-type scenarios', () => {
         rev: 0,
       };
 
-      await expect(adminSession.resources.workspaceTypes.update(updateBody)).rejects.toMatchObject({
+      await expect(
+        adminSession.resources.workspaceTypes.workspaceType(workspaceTypeId).update(updateBody),
+      ).rejects.toMatchObject({
         code: errorCode.http.code.badRequest,
       });
     });
@@ -120,10 +128,9 @@ describe('Update workspace-type scenarios', () => {
         rev: 0,
       };
 
-      await expect(adminSession.resources.workspaceTypes.update(updateBody)).resolves.toHaveProperty(
-        'id',
-        workspaceTypeId,
-      );
+      await expect(
+        adminSession.resources.workspaceTypes.workspaceType(workspaceTypeId).update(updateBody),
+      ).resolves.toHaveProperty('id', workspaceTypeId);
     });
   });
 });
