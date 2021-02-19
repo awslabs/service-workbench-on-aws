@@ -12,7 +12,6 @@ Service Workbench uses _three_ types of accounts. You will see these account nam
 Read the following files in the source code documentation to learn more about the different types of AWS accounts within Service Workbench: 
 
 - `README.md`
-- `main/documentation/aws-accounts-readme.md`
 - `main/solution/prepare-master-acc/README.md`
 
 ## Enable Local Users
