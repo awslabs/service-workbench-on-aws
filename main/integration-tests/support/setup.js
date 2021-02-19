@@ -96,7 +96,6 @@ class Setup {
     projectId = [this.gen.defaultProjectId()],
   } = {}) {
     const adminSession = await this.defaultAdminSession();
-
     await adminSession.resources.users.create({
       username,
       email: username,
@@ -104,11 +103,29 @@ class Setup {
       userRole: 'researcher',
       projectId,
     });
-
     const idToken = await getIdToken({ username, password, apiEndpoint: this.apiEndpoint });
     const session = await getClientSession({ idToken, setup: this });
     this.sessions.push(session);
+    return session;
+  }
 
+  async createUserSession({
+    userRole = 'internal-guest',
+    username = this.gen.username(),
+    password = this.gen.password(),
+    projectId = [this.gen.defaultProjectId()],
+  } = {}) {
+    const adminSession = await this.defaultAdminSession();
+    await adminSession.resources.users.create({
+      username,
+      email: username,
+      password,
+      userRole,
+      projectId,
+    });
+    const idToken = await getIdToken({ username, password, apiEndpoint: this.apiEndpoint });
+    const session = await getClientSession({ idToken, setup: this });
+    this.sessions.push(session);
     return session;
   }
 
