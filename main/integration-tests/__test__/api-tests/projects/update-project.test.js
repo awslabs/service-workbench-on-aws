@@ -60,9 +60,10 @@ describe('Update project scenarios', () => {
       const adminSession2 = await setup.createAdminSession({ projectId: [testProjectId] });
       const updateBody = { rev: newProj.rev, description, id: testProjectId, indexId: defaultProject.indexId };
 
-      const retVal = await adminSession2.resources.projects.project(testProjectId).update(updateBody);
-      expect(retVal.id).toStrictEqual(testProjectId);
-      expect(retVal.description).toStrictEqual(description);
+      await expect(adminSession2.resources.projects.project(testProjectId).update(updateBody)).resolves.toMatchObject({
+        id: testProjectId,
+        description,
+      });
     });
 
     it('should fail for anonymous user', async () => {

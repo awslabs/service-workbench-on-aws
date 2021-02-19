@@ -40,12 +40,12 @@ describe('List projects scenarios', () => {
     });
 
     it('should pass if internal guest attempts to get project list', async () => {
-      const guestSession = await setup.createSessionForRole({ userRole: 'internal-guest', projectId: [] });
+      const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
       await expect(guestSession.resources.projects.get()).resolves.toStrictEqual([]);
     });
 
     it('should fail if external guest attempts to get project list', async () => {
-      const guestSession = await setup.createSessionForRole({ userRole: 'guest', projectId: [] });
+      const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
       await expect(guestSession.resources.projects.get()).resolves.toStrictEqual([]);
     });
 

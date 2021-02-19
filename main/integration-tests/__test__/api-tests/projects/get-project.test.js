@@ -40,14 +40,14 @@ describe('Get project scenarios', () => {
     });
 
     it('should fail if internal guest attempts to get project', async () => {
-      const guestSession = await setup.createSessionForRole({ userRole: 'internal-guest', projectId: [] });
+      const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
       await expect(guestSession.resources.projects.project(setup.gen.defaultProjectId()).get()).rejects.toMatchObject({
         code: errorCode.http.code.notFound,
       });
     });
 
     it('should fail if external guest attempts to get project', async () => {
-      const guestSession = await setup.createSessionForRole({ userRole: 'guest', projectId: [] });
+      const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
       await expect(guestSession.resources.projects.project(setup.gen.defaultProjectId()).get()).rejects.toMatchObject({
         code: errorCode.http.code.notFound,
       });

@@ -26,10 +26,7 @@ class Project extends Resource {
       parent,
     });
 
-    // In SWB, the user resource is mounted on two different namespaces: /api/users and /api/user
-    // The /api/user resource is meant to represent the current user.  This file represents the
-    // resource operations helper for /api/users. To represent the /api/user, see the current-user.js file
-    if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [user]');
+    if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [project]');
   }
 
   // ************************ Helpers methods ************************

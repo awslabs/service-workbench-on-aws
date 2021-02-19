@@ -109,7 +109,7 @@ class Setup {
     return session;
   }
 
-  async createSessionForRole({
+  async createUserSession({
     userRole = 'internal-guest',
     username = this.gen.username(),
     password = this.gen.password(),
