@@ -50,7 +50,7 @@ class Projects extends CollectionResource {
   }
 
   async cleanup(project) {
-    await this.axiosClient.delete(`${this.api}/${project.id}`);
+    if (project.id !== this.setup.gen.defaultProjectId()) await this.axiosClient.delete(`${this.api}/${project.id}`);
   }
 
   // ************************ Helpers methods ************************

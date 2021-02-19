@@ -16,7 +16,7 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
-describe('Get project scenarios', () => {
+describe('Create project scenarios', () => {
   let setup;
   let adminSession;
 
@@ -29,35 +29,37 @@ describe('Get project scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('Getting a project', () => {
-    it('should fail if user is inactive', async () => {
+  describe('Creating a project', () => {
+    it('should fail if admin is inactive', async () => {
+      const testProjectId = setup.gen.string({ prefix: `inactive-admin-create-proj-test` });
       const admin2Session = await setup.createAdminSession();
       await adminSession.resources.users.deactivateUser(admin2Session.user);
 
-      await expect(admin2Session.resources.projects.project(setup.gen.defaultProjectId()).get()).rejects.toMatchObject({
+      await expect(admin2Session.resources.projects.create(testProjectId)).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });
 
-    it('should fail if internal guest attempts to get project', async () => {
-      const guestSession = await setup.createSessionForRole({ userRole: 'internal-guest', projectId: [] });
-      await expect(guestSession.resources.projects.project(setup.gen.defaultProjectId()).get()).rejects.toMatchObject({
-        code: errorCode.http.code.notFound,
+    it('should fail if non-admin user is trying to create project', async () => {
+      const researcherSession = await setup.createResearcherSession();
+
+      await expect(researcherSession.resources.projects.create(setup.gen.defaultProjectId())).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
       });
     });
 
-    it('should fail if external guest attempts to get project', async () => {
-      const guestSession = await setup.createSessionForRole({ userRole: 'guest', projectId: [] });
-      await expect(guestSession.resources.projects.project(setup.gen.defaultProjectId()).get()).rejects.toMatchObject({
-        code: errorCode.http.code.notFound,
+    it('should fail if projectId is duplicate to the one already in the system', async () => {
+      const admin2Session = await setup.createAdminSession();
+
+      await expect(admin2Session.resources.projects.create(setup.gen.defaultProjectId())).rejects.toMatchObject({
+        code: errorCode.http.code.badRequest,
       });
     });
 
     it('should fail for anonymous user', async () => {
+      const testProjectId = setup.gen.string({ prefix: `anon-user-create-proj-test` });
       const anonymousSession = await setup.createAnonymousSession();
-      await expect(
-        anonymousSession.resources.projects.project(setup.gen.defaultProjectId()).get(),
-      ).rejects.toMatchObject({
+      await expect(anonymousSession.resources.projects.create(testProjectId)).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });

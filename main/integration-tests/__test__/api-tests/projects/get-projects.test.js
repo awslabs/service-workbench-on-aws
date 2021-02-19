@@ -16,7 +16,7 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
-describe('Get project scenarios', () => {
+describe('List projects scenarios', () => {
   let setup;
   let adminSession;
 
@@ -29,35 +29,29 @@ describe('Get project scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('Getting a project', () => {
+  describe('List projects', () => {
     it('should fail if user is inactive', async () => {
       const admin2Session = await setup.createAdminSession();
       await adminSession.resources.users.deactivateUser(admin2Session.user);
 
-      await expect(admin2Session.resources.projects.project(setup.gen.defaultProjectId()).get()).rejects.toMatchObject({
+      await expect(admin2Session.resources.projects.get()).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });
 
-    it('should fail if internal guest attempts to get project', async () => {
+    it('should pass if internal guest attempts to get project list', async () => {
       const guestSession = await setup.createSessionForRole({ userRole: 'internal-guest', projectId: [] });
-      await expect(guestSession.resources.projects.project(setup.gen.defaultProjectId()).get()).rejects.toMatchObject({
-        code: errorCode.http.code.notFound,
-      });
+      await expect(guestSession.resources.projects.get()).resolves.toStrictEqual([]);
     });
 
-    it('should fail if external guest attempts to get project', async () => {
+    it('should fail if external guest attempts to get project list', async () => {
       const guestSession = await setup.createSessionForRole({ userRole: 'guest', projectId: [] });
-      await expect(guestSession.resources.projects.project(setup.gen.defaultProjectId()).get()).rejects.toMatchObject({
-        code: errorCode.http.code.notFound,
-      });
+      await expect(guestSession.resources.projects.get()).resolves.toStrictEqual([]);
     });
 
     it('should fail for anonymous user', async () => {
       const anonymousSession = await setup.createAnonymousSession();
-      await expect(
-        anonymousSession.resources.projects.project(setup.gen.defaultProjectId()).get(),
-      ).rejects.toMatchObject({
+      await expect(anonymousSession.resources.projects.get()).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });
