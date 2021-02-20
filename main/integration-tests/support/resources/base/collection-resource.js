@@ -58,7 +58,7 @@ class CollectionResource {
       const response = await this.axiosClient.post(api, requestBody, { params });
       const resource = response.data;
       const id = _.get(resource, this.childIdProp);
-      const taskId = `${this.type}-${id}`;
+      const taskId = `${this.childType}-${id}`;
       const resourceNode = this[this.childType](id);
 
       // We add a cleanup task to the cleanup queue for the session
