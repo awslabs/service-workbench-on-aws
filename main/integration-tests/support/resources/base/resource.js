@@ -77,7 +77,7 @@ class Resource {
       await this.axiosClient.delete(api, { params });
 
       // Because we explicity deleting the resource, there is no longer a need to run the cleanup
-      // task for this rearouse  (if one existed)
+      // task for this resource  (if one existed)
       const taskId = `${this.type}-${this.id}`;
       this.clientSession.removeCleanupTask(taskId);
     });
