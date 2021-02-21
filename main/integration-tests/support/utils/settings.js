@@ -20,8 +20,9 @@ const _ = require('lodash');
  * when accessing settings values is so that we can print an informative message when keys are missing.
  */
 class Settings {
-  constructor(yamlObject = {}) {
+  constructor(yamlObject = {}, { sourceText = 'the yaml configuration file' } = {}) {
     this.content = _.cloneDeep(yamlObject);
+    this.sourceText = sourceText;
   }
 
   get entries() {
@@ -36,7 +37,7 @@ class Settings {
     const value = this.content[key];
     if (_.isEmpty(value) && !_.isBoolean(value))
       throw new Error(
-        `The "${key}" setting value is required but it is either empty or not provided via the yaml configuration file.`,
+        `The "${key}" setting value is required but it is either empty or not provided in ${this.sourceText}.`,
       );
 
     return value;

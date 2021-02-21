@@ -20,6 +20,7 @@ const Resource = require('../base/resource');
 const StudyPermissions = require('./study-permissions');
 const StudyFiles = require('./study-files');
 const StudyUploadRequests = require('./study-upload-requests');
+const { deleteStudy } = require('../../complex/delete-study');
 
 class Study extends Resource {
   constructor({ clientSession, id, parent }) {
@@ -49,7 +50,7 @@ class Study extends Resource {
   }
 
   async cleanup() {
-    console.log(`study [${this.id}] does not have cleanup logic (yet)`);
+    await deleteStudy({ aws: this.setup.aws, id: this.id });
   }
 
   // ************************ Helpers methods ************************
