@@ -35,6 +35,7 @@ async function getGenerators({ setup }) {
     description: () => `Resource automatically created by SWB integration test - ${runId}`,
     defaultProjectId: () => setup.settings.get('projectId'),
     defaultIndexId: () => setup.defaultIndexId,
+    defaultStepTemplateId: () => 'st-obtain-write-lock',
   };
 
   return generators;
