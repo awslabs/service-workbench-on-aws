@@ -16,59 +16,61 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
-describe('Delete project scenarios', () => {
+describe('Delete index scenarios', () => {
   let setup;
   let adminSession;
   let defaultProject;
+  let defaultIndex;
 
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
     defaultProject = await adminSession.resources.projects.mustFind(setup.gen.defaultProjectId());
+    defaultIndex = await adminSession.resources.indexes.mustFind(defaultProject.indexId);
   });
 
   afterAll(async () => {
     await setup.cleanup();
   });
 
-  describe('Deleting a project', () => {
+  describe('Deleting an index', () => {
     it('should fail if admin is inactive', async () => {
-      const testProjectId = setup.gen.string({ prefix: `delete-proj-test-inactive-admin` });
-      const newProj = await adminSession.resources.projects.create({
-        id: testProjectId,
-        indexId: defaultProject.indexId,
+      const testIndexId = setup.gen.string({ prefix: `delete-index-test-inactive-admin` });
+      const newIndex = await adminSession.resources.indexes.create({
+        id: testIndexId,
+        awsAccountId: defaultIndex.awsAccountId,
       });
 
       const admin2Session = await setup.createAdminSession();
       await adminSession.resources.users.deactivateUser(admin2Session.user);
 
-      await expect(admin2Session.resources.projects.project(newProj.id).delete()).rejects.toMatchObject({
+      await expect(admin2Session.resources.indexes.index(newIndex.id).delete()).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });
 
     it('should fail if non-admin user is trying to delete project', async () => {
-      const testProjectId = setup.gen.string({ prefix: `delete-proj-test-non-admin` });
-      const newProj = await adminSession.resources.projects.create({
-        id: testProjectId,
-        indexId: defaultProject.indexId,
+      const testIndexId = setup.gen.string({ prefix: `delete-index-test-non-admin` });
+      const newIndex = await adminSession.resources.indexes.create({
+        id: testIndexId,
+        awsAccountId: defaultIndex.awsAccountId,
       });
 
-      const researcherSession = await setup.createResearcherSession({ projectId: [testProjectId] });
+      const researcherSession = await setup.createResearcherSession();
 
-      await expect(researcherSession.resources.projects.project(newProj.id).delete()).rejects.toMatchObject({
+      await expect(researcherSession.resources.indexes.index(newIndex.id).delete()).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
     });
 
     it('should fail for anonymous user', async () => {
-      const testProjectId = setup.gen.string({ prefix: `delete-proj-test-anon-user` });
-      const newProj = await adminSession.resources.projects.create({
-        id: testProjectId,
-        indexId: defaultProject.indexId,
+      const testIndexId = setup.gen.string({ prefix: `delete-index-test-anon-user` });
+      const newIndex = await adminSession.resources.indexes.create({
+        id: testIndexId,
+        awsAccountId: defaultIndex.awsAccountId,
       });
       const anonymousSession = await setup.createAnonymousSession();
-      await expect(anonymousSession.resources.projects.project(newProj.id).delete()).rejects.toMatchObject({
+      await expect(anonymousSession.resources.indexes.index(newIndex.id).delete()).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });

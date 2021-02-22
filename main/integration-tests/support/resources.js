@@ -16,6 +16,7 @@
 const Users = require('./resources/users/users.js');
 const Studies = require('./resources/studies/studies.js');
 const Projects = require('./resources/projects/projects.js');
+const Indexes = require('./resources/indexes/indexes.js');
 const CurrentUser = require('./resources/current-user.js');
 const PublicAuthProviderConfigs = require('./resources/public-auth-provider/public-auth-provider-configs');
 const WorkspaceTypes = require('./resources/workspace-types/workspace-types.js');
@@ -27,6 +28,7 @@ async function getResources({ clientSession }) {
     users: new Users({ clientSession }),
     studies: new Studies({ clientSession }),
     projects: new Projects({ clientSession }),
+    indexes: new Indexes({ clientSession }),
     currentUser: new CurrentUser({ clientSession }),
     publicAuthProviderConfigs: new PublicAuthProviderConfigs({ clientSession }),
     workspaceTypes: new WorkspaceTypes({ clientSession }),
