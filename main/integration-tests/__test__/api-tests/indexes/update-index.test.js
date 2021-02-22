@@ -58,7 +58,7 @@ describe('Update index scenarios', () => {
 
       const description = setup.gen.description();
       const adminSession2 = await setup.createAdminSession({ projectId: [testIndexId] });
-      const updateBody = { rev: newIndex.rev, description, id: testIndexId, indexId: defaultProject.indexId };
+      const updateBody = { rev: newIndex.rev, description, id: testIndexId };
 
       await expect(adminSession2.resources.indexes.index(testIndexId).update(updateBody)).resolves.toMatchObject({
         id: testIndexId,
@@ -67,13 +67,16 @@ describe('Update index scenarios', () => {
     });
 
     it('should fail for anonymous user', async () => {
-      const projectId = setup.gen.string({ prefix: `update-index-test-non-admin` });
-      const newIndex = await adminSession.resources.indexes.create({ id: projectId, indexId: defaultProject.indexId });
+      const testIndexId = setup.gen.string({ prefix: `update-index-test-non-admin` });
+      const newIndex = await adminSession.resources.indexes.create({
+        id: testIndexId,
+        awsAccountId: defaultIndex.awsAccountId,
+      });
 
-      const updateBody = { rev: newIndex.rev, description: setup.gen.description() };
+      const updateBody = { rev: newIndex.rev, description: setup.gen.description(), id: testIndexId };
 
       const anonymousSession = await setup.createAnonymousSession();
-      await expect(anonymousSession.resources.indexes.index(projectId).update(updateBody)).rejects.toMatchObject({
+      await expect(anonymousSession.resources.indexes.index(testIndexId).update(updateBody)).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });

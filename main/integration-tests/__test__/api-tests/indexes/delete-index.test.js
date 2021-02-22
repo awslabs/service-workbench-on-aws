@@ -70,7 +70,7 @@ describe('Delete index scenarios', () => {
         awsAccountId: defaultIndex.awsAccountId,
       });
       const anonymousSession = await setup.createAnonymousSession();
-      await expect(anonymousSession.resources.indxees.index(newIndex.id).delete()).rejects.toMatchObject({
+      await expect(anonymousSession.resources.indexes.index(newIndex.id).delete()).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });
