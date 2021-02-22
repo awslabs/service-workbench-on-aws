@@ -16,7 +16,7 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
-describe('Create project scenarios', () => {
+describe('Create index scenarios', () => {
   let setup;
   let adminSession;
 
@@ -29,38 +29,40 @@ describe('Create project scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('Creating a project', () => {
+  describe('Creating an index', () => {
     it('should fail if admin is inactive', async () => {
-      const testProjectId = setup.gen.string({ prefix: `create-proj-test-inactive-admin` });
+      const testIndexId = setup.gen.string({ prefix: `create-index-test-inactive-admin` });
       const admin2Session = await setup.createAdminSession();
       await adminSession.resources.users.deactivateUser(admin2Session.user);
 
-      await expect(admin2Session.resources.projects.create(testProjectId)).rejects.toMatchObject({
+      await expect(admin2Session.resources.indexes.create(testIndexId)).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });
 
-    it('should fail if non-admin user is trying to create project', async () => {
-      const testProjectId = setup.gen.string({ prefix: `create-proj-test-non-admin` });
+    it('should fail if non-admin user is trying to create index', async () => {
+      const testIndexId = setup.gen.string({ prefix: `create-index-test-non-admin` });
       const researcherSession = await setup.createResearcherSession();
 
-      await expect(researcherSession.resources.projects.create(testProjectId)).rejects.toMatchObject({
+      await expect(researcherSession.resources.indexes.create(testIndexId)).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
     });
 
     it('should fail if projectId is duplicate to the one already in the system', async () => {
       const admin2Session = await setup.createAdminSession();
+      const testProj = await adminSession.resources.projects.mustFind(setup.gen.defaultProjectId());
+      const defaultIndexId = testProj.indexId;
 
-      await expect(admin2Session.resources.projects.create(setup.gen.defaultProjectId())).rejects.toMatchObject({
+      await expect(admin2Session.resources.indexes.create(defaultIndexId)).rejects.toMatchObject({
         code: errorCode.http.code.badRequest,
       });
     });
 
     it('should fail for anonymous user', async () => {
-      const testProjectId = setup.gen.string({ prefix: `create-proj-test-anon-user` });
+      const testIndexId = setup.gen.string({ prefix: `create-index-test-anon-user` });
       const anonymousSession = await setup.createAnonymousSession();
-      await expect(anonymousSession.resources.projects.create(testProjectId)).rejects.toMatchObject({
+      await expect(anonymousSession.resources.indexes.create(testIndexId)).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });

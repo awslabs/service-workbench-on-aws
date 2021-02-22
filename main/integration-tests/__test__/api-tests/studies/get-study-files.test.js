@@ -36,7 +36,7 @@ describe('List study files scenarios', () => {
   describe.each(studyCategoryCases)('Listing %p files', (studyPrefix, studyCategory) => {
     it(`should return an empty list while trying to get files of a newly created ${studyPrefix}`, async () => {
       const researcherSession = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: `empty-files-${studyPrefix}-test` });
+      const studyId = setup.gen.string({ prefix: `get-files-${studyPrefix}-test-empty-files` });
 
       // Newly created study which does not have any files associated
       await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
@@ -51,7 +51,7 @@ describe('List study files scenarios', () => {
 
     it(`should fail when inactive user tries get files of ${studyPrefix}`, async () => {
       const researcherSession = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: `inactive-user-get-files-${studyPrefix}-test` });
+      const studyId = setup.gen.string({ prefix: `get-files-${studyPrefix}-test-inactive-user` });
 
       // Newly created study which does not have any files associated
       await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
@@ -69,7 +69,7 @@ describe('List study files scenarios', () => {
 
     it('should fail for anonymous user', async () => {
       const researcherSession = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: `anon-user-get-files-${studyPrefix}-test` });
+      const studyId = setup.gen.string({ prefix: `get-files-${studyPrefix}-test-anon-user` });
       await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
 
       const anonymousSession = await setup.createAnonymousSession();

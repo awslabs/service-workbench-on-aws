@@ -36,7 +36,7 @@ describe('Create study scenarios', () => {
   describe('Creating study', () => {
     it('should fail if non-system user tries to create Open Data studies', async () => {
       const researcherSession = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: 'non-system-create-open-data-study-test' });
+      const studyId = setup.gen.string({ prefix: 'create-study-test-non-system' });
 
       await expect(
         researcherSession.resources.studies.create({ id: studyId, category: 'Open Data' }),
@@ -49,7 +49,7 @@ describe('Create study scenarios', () => {
       'should fail when resources field is assigned while creating %p',
       async (studyPrefix, studyCategory) => {
         const researcherSession = await setup.createResearcherSession();
-        const studyId = setup.gen.string({ prefix: `${studyPrefix}-resources-test` });
+        const studyId = setup.gen.string({ prefix: `create-study-test-${studyPrefix}-resources` });
 
         await expect(
           researcherSession.resources.studies.create({
@@ -67,7 +67,7 @@ describe('Create study scenarios', () => {
       'should fail if inactive user tries to create %p',
       async (studyPrefix, studyCategory) => {
         const researcherSession = await setup.createResearcherSession();
-        const studyId = setup.gen.string({ prefix: `inactive-user-${studyPrefix}-create-test` });
+        const studyId = setup.gen.string({ prefix: `create-study-test-inactive-user-${studyPrefix}` });
 
         await adminSession.resources.users.deactivateUser(researcherSession.user);
 
@@ -83,7 +83,7 @@ describe('Create study scenarios', () => {
       'should fail for anonymous user who tries to create %p',
       async (studyPrefix, studyCategory) => {
         const anonymousSession = await setup.createAnonymousSession();
-        const studyId = setup.gen.string({ prefix: `anon-user-${studyPrefix}-create-test` });
+        const studyId = setup.gen.string({ prefix: `create-study-test-anon-user-${studyPrefix}` });
         await expect(
           anonymousSession.resources.studies.create({ id: studyId, category: studyCategory }),
         ).rejects.toMatchObject({
