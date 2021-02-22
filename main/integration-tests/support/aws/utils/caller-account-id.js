@@ -13,28 +13,13 @@
  *  permissions and limitations under the License.
  */
 
-const _ = require('lodash');
-
-const Resource = require('../base/resource');
-
-class Project extends Resource {
-  constructor({ clientSession, id, parent }) {
-    super({
-      clientSession,
-      type: 'project',
-      id,
-      parent,
-    });
-
-    if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [project]');
-  }
-
-  async cleanup() {
-    if (this.id === this.setup.gen.defaultProjectId()) return;
-    await super.cleanup();
-  }
-
-  // ************************ Helpers methods ************************
+/**
+ * Returns the aws account id of the holder of the credentials
+ */
+async function getCallerAccountId({ aws }) {
+  const sts = new aws.sdk.STS();
+  const response = await sts.getCallerIdentity().promise();
+  return response.Account;
 }
 
-module.exports = Project;
+module.exports = { getCallerAccountId };

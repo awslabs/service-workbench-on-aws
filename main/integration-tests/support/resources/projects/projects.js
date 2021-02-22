@@ -49,10 +49,6 @@ class Projects extends CollectionResource {
     };
   }
 
-  async cleanup(project) {
-    if (project.id !== this.setup.gen.defaultProjectId()) await this.axiosClient.delete(`${this.api}/${project.id}`);
-  }
-
   // ************************ Helpers methods ************************
   async mustFind(id) {
     const projects = await this.get();
