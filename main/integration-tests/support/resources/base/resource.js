@@ -74,12 +74,13 @@ class Resource {
 
   async delete(params = {}, { api = this.api } = {}) {
     return this.doCall(async () => {
-      await this.axiosClient.delete(api, { params });
+      const response = this.axiosClient.delete(api, { params });
 
       // Because we explicity deleting the resource, there is no longer a need to run the cleanup
       // task for this resource  (if one existed)
       const taskId = `${this.type}-${this.id}`;
       this.clientSession.removeCleanupTask(taskId);
+      return response;
     });
   }
 
