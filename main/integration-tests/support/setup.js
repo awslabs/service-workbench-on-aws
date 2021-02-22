@@ -74,6 +74,12 @@ class Setup {
     return session;
   }
 
+  async getDefaultIndexId() {
+    const adminSession = await this.defaultAdminSession();
+    const defaultProject = await adminSession.resources.projects.project(this.gen.defaultProjectId()).get();
+    return defaultProject.indexId;
+  }
+
   async createAdminSession() {
     const adminSession = await this.defaultAdminSession();
     const username = this.gen.username({ prefix: 'test-admin' });

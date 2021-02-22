@@ -29,6 +29,13 @@ class Index extends Resource {
     if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [index]');
   }
 
+  async cleanup(index) {
+    const defaultIndexId = await this.setup.gen.defaultIndexId();
+
+    if (index.id === defaultIndexId) return;
+    await super.cleanup();
+  }
+
   // ************************ Helpers methods ************************
 }
 

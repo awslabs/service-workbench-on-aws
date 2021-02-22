@@ -48,10 +48,6 @@ class Indexes extends CollectionResource {
     };
   }
 
-  async cleanup(index) {
-    /* if (index.id !== this.setup.gen.defaultIndexId()) */ await this.axiosClient.delete(`${this.api}/${index.id}`);
-  }
-
   // ************************ Helpers methods ************************
   async mustFind(id) {
     const indexes = await this.get();
