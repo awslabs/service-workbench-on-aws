@@ -177,9 +177,9 @@ class ProjectService extends Service {
 
     // ensure that the project is not linked to any active environments
     const [dbService] = await this.service(['dbService']);
-    const environmentsTable = this.settings.get(settingKeys.tableName);
-    this._scanner = () => dbService.helper.scanner().table(environmentsTable);
-    const environments = await this._scanner().scan();
+    const environmentsTable = this.settings.get(settingKeys.environmentTableName);
+    const scanner = () => dbService.helper.scanner().table(environmentsTable);
+    const environments = await scanner().scan();
     if (environments.some(env => env.id === id)) {
       throw this.boom.badRequest(`Deletion could not be completed. Project is linked to existing resources`, true);
     }

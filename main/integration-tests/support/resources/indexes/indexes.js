@@ -15,48 +15,47 @@
 
 const _ = require('lodash');
 const CollectionResource = require('../base/collection-resource');
-const Project = require('./project');
+const Index = require('./index');
 
-class Projects extends CollectionResource {
+class Indexes extends CollectionResource {
   constructor({ clientSession }) {
     super({
       clientSession,
-      type: 'projects',
-      childType: 'project',
+      type: 'indexes',
+      childType: 'index',
       childIdProp: 'id',
     });
 
-    this.api = '/api/projects';
+    this.api = '/api/indexes';
   }
 
-  // Because Projects is a collection resource type, it is assumed that accessing the resource helper of the
-  // child resource is done by calling project(id). For example, the full access pattern to get hold of the
-  // resource helper of the child resource is: session.resources.projects.project(<id>)
-  project(id) {
-    return new Project({ clientSession: this.clientSession, id, parent: this });
+  // Because Indexes is a collection resource type, it is assumed that accessing the resource helper of the
+  // child resource is done by calling index(id). For example, the full access pattern to get hold of the
+  // resource helper of the child resource is: session.resources.indexes.index(<id>)
+  index(id) {
+    return new Index({ clientSession: this.clientSession, id, parent: this });
   }
 
   // When creating a child resource, this method provides default values. This method is used by the
   // CollectionResource class when we use create() method on this resource operations helper.
-  defaults(project = {}) {
-    const projId = project.id || this.setup.gen.string({ prefix: 'project-test' });
+  defaults(index = {}) {
+    const indexId = index.id || this.setup.gen.string({ prefix: 'index-test' });
     return {
       description: this.setup.gen.description(),
-      id: projId,
-      indexId: project.indexId,
-      projectAdmins: [],
-      ...project,
+      id: indexId,
+      awsAccountId: index.awsAccountId,
+      ...index,
     };
   }
 
   // ************************ Helpers methods ************************
   async mustFind(id) {
-    const projects = await this.get();
-    const project = _.find(projects, proj => proj.id === id);
+    const indexes = await this.get();
+    const index = _.find(indexes, ind => ind.id === id);
 
-    if (_.isEmpty(project)) throw new Error(`project "${id}" is not found`);
-    return project;
+    if (_.isEmpty(index)) throw new Error(`index "${id}" is not found`);
+    return index;
   }
 }
 
-module.exports = Projects;
+module.exports = Indexes;
