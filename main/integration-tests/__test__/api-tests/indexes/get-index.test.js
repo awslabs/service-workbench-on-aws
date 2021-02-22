@@ -19,12 +19,10 @@ const errorCode = require('../../../support/utils/error-code');
 describe('Get index scenarios', () => {
   let setup;
   let adminSession;
-  let defaultProject;
 
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
-    defaultProject = await adminSession.resources.projects.mustFind(setup.gen.defaultProjectId());
   });
 
   afterAll(async () => {
@@ -36,28 +34,28 @@ describe('Get index scenarios', () => {
       const admin2Session = await setup.createAdminSession();
       await adminSession.resources.users.deactivateUser(admin2Session.user);
 
-      await expect(admin2Session.resources.indexes.index(defaultProject.indexId).get()).rejects.toMatchObject({
+      await expect(admin2Session.resources.indexes.index(setup.defaultIndexId).get()).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });
 
-    it('should fail if internal guest attempts to get project', async () => {
+    it('should fail if internal guest attempts to get index', async () => {
       const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
-      await expect(guestSession.resources.indexes.index(defaultProject.indexId).get()).rejects.toMatchObject({
+      await expect(guestSession.resources.indexes.index(setup.defaultIndexId).get()).rejects.toMatchObject({
         code: errorCode.http.code.notFound,
       });
     });
 
-    it('should fail if external guest attempts to get project', async () => {
+    it('should fail if external guest attempts to get index', async () => {
       const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
-      await expect(guestSession.resources.indexes.index(defaultProject.indexId).get()).rejects.toMatchObject({
+      await expect(guestSession.resources.indexes.index(setup.defaultIndexId).get()).rejects.toMatchObject({
         code: errorCode.http.code.notFound,
       });
     });
 
     it('should fail for anonymous user', async () => {
       const anonymousSession = await setup.createAnonymousSession();
-      await expect(anonymousSession.resources.indexes.index(defaultProject.indexId).get()).rejects.toMatchObject({
+      await expect(anonymousSession.resources.indexes.index(setup.defaultIndexId).get()).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });

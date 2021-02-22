@@ -19,14 +19,12 @@ const errorCode = require('../../../support/utils/error-code');
 describe('Delete index scenarios', () => {
   let setup;
   let adminSession;
-  let defaultProject;
   let defaultIndex;
 
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
-    defaultProject = await adminSession.resources.projects.mustFind(setup.gen.defaultProjectId());
-    defaultIndex = await adminSession.resources.indexes.mustFind(defaultProject.indexId);
+    defaultIndex = await adminSession.resources.indexes.mustFind(setup.defaultIndexId);
   });
 
   afterAll(async () => {
@@ -49,7 +47,7 @@ describe('Delete index scenarios', () => {
       });
     });
 
-    it('should fail if non-admin user is trying to delete project', async () => {
+    it('should fail if non-admin user is trying to delete index', async () => {
       const testIndexId = setup.gen.string({ prefix: `delete-index-test-non-admin` });
       const newIndex = await adminSession.resources.indexes.create({
         id: testIndexId,

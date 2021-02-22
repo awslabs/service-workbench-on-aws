@@ -49,10 +49,9 @@ describe('Create index scenarios', () => {
       });
     });
 
-    it('should fail if projectId is duplicate to the one already in the system', async () => {
+    it('should fail if indexId is duplicate to the one already in the system', async () => {
       const admin2Session = await setup.createAdminSession();
-      const testProj = await adminSession.resources.projects.mustFind(setup.gen.defaultProjectId());
-      const defaultIndexId = testProj.indexId;
+      const defaultIndexId = setup.defaultIndexId;
 
       await expect(admin2Session.resources.indexes.create(defaultIndexId)).rejects.toMatchObject({
         code: errorCode.http.code.badRequest,
