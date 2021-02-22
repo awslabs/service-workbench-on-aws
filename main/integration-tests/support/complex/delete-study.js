@@ -40,7 +40,7 @@ async function deleteStudy({ aws, id = '' }) {
 
   const runId = aws.settings.get('runId');
 
-  if (!id.includes(runId)) {
+  if (!id.includes(`-${runId}-`)) {
     console.log(
       `Study id "${id}" does not contain the runId "${runId}", skipping the deletion of this study as a measurement of caution`,
     );
