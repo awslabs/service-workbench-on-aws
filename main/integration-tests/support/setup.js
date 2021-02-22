@@ -59,6 +59,9 @@ class Setup {
 
     // aws instance
     this.aws = await initAws({ settings: this.settings });
+
+    // index assigned to default test project provided
+    this.defaultIndexId = await this.getDefaultIndexId();
   }
 
   async defaultAdminSession() {
