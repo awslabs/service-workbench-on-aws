@@ -28,13 +28,10 @@ else
 fi
 
 if [ "$TEST_CONFIG_EXISTS" == true ]; then
-    printf "\n\nRunning integration tests for environment "$ENV_NAME"\n"
-    printf "\n\nInitializing env variables required for running integration test against env %s\n" "$ENV_NAME"
     # shellcheck disable=SC1091
-    source ./scripts/get-info.sh "$ENV_NAME"
 
     printf "\n\nExecuting integration tests against env %s\n" "$ENV_NAME"
-    pnpm run intTest --recursive --if-present
+    pnpm run intTest --recursive --if-present -- --stage="$ENV_NAME"
 else
     # Create empty report file
     mkdir -p main/integration-tests/.build/test

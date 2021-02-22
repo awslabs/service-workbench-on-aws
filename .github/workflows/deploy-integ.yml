@@ -48,10 +48,37 @@ jobs:
         run: |
           cp ./main/end-to-end-tests/e2eGitHubConfig.yml ./main/config/settings/${STAGE_NAME}.yml
           ./scripts/environment-deploy.sh ${STAGE_NAME}
+  integration-test:
+    name: Integration test
+    runs-on: ubuntu-18.04
+    needs: deploy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Install pnpm and system libraries
+        run: |
+          npm install -g pnpm
+          sudo apt-get install libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth xvfb
+      - name: Install dependencies
+        run: pnpm install
+        working-directory: main/integration-tests
+      - name: Run integration tests
+        run: ./scripts/run-integration-tests.sh ${STAGE_NAME}
+        working-directory: ./
+        env:
+          DEPLOYMENT_BUCKET: ${{ secrets.DEPLOYMENT_BUCKET}}
+          STAGE_NAME: e2etest
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
   cypress-test:
     name: Cypress test
     runs-on: ubuntu-18.04
-    needs: deploy
+    needs: integration-test
     steps:
       - name: Checkout
         uses: actions/checkout@v2

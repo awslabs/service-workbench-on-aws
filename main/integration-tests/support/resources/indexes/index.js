@@ -17,24 +17,26 @@ const _ = require('lodash');
 
 const Resource = require('../base/resource');
 
-class Project extends Resource {
+class Index extends Resource {
   constructor({ clientSession, id, parent }) {
     super({
       clientSession,
-      type: 'project',
+      type: 'index',
       id,
       parent,
     });
 
-    if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [project]');
+    if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [index]');
   }
 
-  async cleanup() {
-    if (this.id === this.setup.gen.defaultProjectId()) return;
+  async cleanup(index) {
+    const defaultIndexId = await this.setup.gen.defaultIndexId();
+
+    if (index.id === defaultIndexId) return;
     await super.cleanup();
   }
 
   // ************************ Helpers methods ************************
 }
 
-module.exports = Project;
+module.exports = Index;

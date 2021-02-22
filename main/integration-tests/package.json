@@ -22,12 +22,14 @@
   },
   "dependencies": {
     "@aws-ee/base-services": "workspace:*",
+    "aws-sdk": "^2.847.0",
     "axios": "^0.21.1",
     "chance": "^1.1.7",
     "fs-extra": "^9.1.0",
     "js-yaml": "^4.0.0",
     "lodash": "^4.17.20",
-    "services": "workspace:*"
+    "services": "workspace:*",
+    "yargs-parser": "^20.2.5"
   },
   "devDependencies": {
     "eslint": "^6.8.0",

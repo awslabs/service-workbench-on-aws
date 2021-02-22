@@ -22,6 +22,7 @@ const Settings = require('./utils/settings');
 const { getIdToken } = require('./utils/id-token');
 const { getClientSession } = require('./client-session');
 const { getGenerators } = require('./utils/generators');
+const { initAws } = require('./aws/init-aws');
 
 /**
  * This class serves two main purposes:
@@ -50,11 +51,17 @@ class Setup {
     }
 
     // eslint-disable-next-line no-undef
-    this.settings = new Settings(__settings__);
+    this.settings = new Settings(settingsInGlobal);
     this.apiEndpoint = this.settings.get('apiEndpoint');
 
     // value generators
     this.gen = await getGenerators({ setup: this });
+
+    // aws instance
+    this.aws = await initAws({ settings: this.settings });
+
+    // index assigned to default test project provided
+    this.defaultIndexId = await this.getDefaultIndexId();
   }
 
   async defaultAdminSession() {
@@ -68,6 +75,12 @@ class Setup {
     this.defaultAdminSessionInstance = session;
 
     return session;
+  }
+
+  async getDefaultIndexId() {
+    const adminSession = await this.defaultAdminSession();
+    const defaultProject = await adminSession.resources.projects.project(this.gen.defaultProjectId()).get();
+    return defaultProject.indexId;
   }
 
   async createAdminSession() {

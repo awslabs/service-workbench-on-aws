@@ -1848,12 +1848,14 @@ importers:
   main/integration-tests:
     dependencies:
       '@aws-ee/base-services': link:../../addons/addon-base/packages/services
+      aws-sdk: 2.847.0
       axios: 0.21.1
       chance: 1.1.7
       fs-extra: 9.1.0
       js-yaml: 4.0.0
       lodash: 4.17.20
       services: link:../packages/services
+      yargs-parser: 20.2.5
     devDependencies:
       eslint: 6.8.0
       eslint-config-airbnb: 18.1.0_9bfaab310611d9c7b04264b84523c27a
@@ -1873,6 +1875,7 @@ importers:
       request-promise-native: 1.0.8_request@2.88.2
     specifiers:
       '@aws-ee/base-services': workspace:*
+      aws-sdk: ^2.847.0
       axios: ^0.21.1
       chance: ^1.1.7
       eslint: ^6.8.0
@@ -1895,6 +1898,7 @@ importers:
       request: ^2.88.0
       request-promise-native: ^1.0.8
       services: workspace:*
+      yargs-parser: ^20.2.5
   main/packages/controllers:
     dependencies:
       '@aws-ee/base-controllers': link:../../../addons/addon-base-rest-api/packages/base-controllers
@@ -7414,6 +7418,22 @@ packages:
       node: '>= 0.8.0'
     resolution:
       integrity: sha512-PfjBr5Ag4PdcEYPrfMclVWk85kFSJNe7qllZBE8RhYNu+K+Z2pveKfYkC5mqYoKEYIQyI9by9N47F+Tqm1GXtg==
+  /aws-sdk/2.847.0:
+    dependencies:
+      buffer: 4.9.2
+      events: 1.1.1
+      ieee754: 1.1.13
+      jmespath: 0.15.0
+      querystring: 0.2.0
+      sax: 1.2.1
+      url: 0.10.3
+      uuid: 3.3.2
+      xml2js: 0.4.19
+    dev: false
+    engines:
+      node: '>= 0.8.0'
+    resolution:
+      integrity: sha512-1iWlJiMoiFJVIVPrnUZ+E3h9YqmzgLn/Etv2XsupQY4QvFHWnZHEGXsWS2bEkC9+Ovg8TTwAQIRvqYWlKQjkVg==
   /aws-sign2/0.7.0:
     resolution:
       integrity: sha1-tG6JCTSpWR8tL2+G1+ap8bP+dqg=
@@ -8144,7 +8164,7 @@ packages:
   /buffer/4.9.2:
     dependencies:
       base64-js: 1.5.1
-      ieee754: 1.1.13
+      ieee754: 1.2.1
       isarray: 1.0.0
     resolution:
       integrity: sha512-xq+q3SRMOxGivLhBNaUdC64hDTQwejJ+H0T/NB1XMtTVEwNTrfFF3gAxiyW0Bu/xWEGhjVKgUcMhCrUy2+uCWg==
@@ -13289,7 +13309,6 @@ packages:
     resolution:
       integrity: sha512-4vf7I2LYV/HaWerSo3XmlMkp5eZ83i+/CDluXi/IGTs/O1sejBNhTtnxzmRZfvOUqj7lZjqHkeTvpgSFDlWZTg==
   /ieee754/1.2.1:
-    dev: true
     resolution:
       integrity: sha512-dcyqhDvX1C46lXZcVqCpK+FtMRQVdIMN6/Df5js2zouUsqG7I6sFxitIC+7KYK29KdXOLHdu9zL4sFnoVQnqaA==
   /iferr/0.1.5:
@@ -20386,7 +20405,6 @@ packages:
     resolution:
       integrity: sha1-e45lYZCyKOgaZq6nSEgNgozS03o=
   /sax/1.2.4:
-    dev: true
     resolution:
       integrity: sha512-NqVDv9TpANUjFm0N8uM5GxL36UgKi9/atZw+x7YFnQ8ckwFGKrl4xX4yWtrey3UJm5nP1kUbnYgLopqWNSRhWw==
   /saxes/3.1.11:
@@ -23509,7 +23527,7 @@ packages:
       integrity: sha1-eLpyAgApxbyHuKgaPPzXS0ovweU=
   /xml2js/0.4.19:
     dependencies:
-      sax: 1.2.1
+      sax: 1.2.4
       xmlbuilder: 9.0.7
     resolution:
       integrity: sha512-esZnJZJOiJR9wWKMyuvSE1y6Dq5LCuJanqhxslH2bxM6duahNZ+HMpCLhBQGZkbX6xRf8x1Y2eJlgt2q3qo49Q==
@@ -23605,6 +23623,12 @@ packages:
       node: '>=6'
     resolution:
       integrity: sha512-o50j0JeToy/4K6OZcaQmW6lyXXKhq7csREXcDwk2omFPJEwUNOVtJKvmDr9EI1fAJZUyZcRF7kxGBWmRXudrCQ==
+  /yargs-parser/20.2.5:
+    dev: false
+    engines:
+      node: '>=10'
+    resolution:
+      integrity: sha512-jYRGS3zWy20NtDtK2kBgo/TlAoy5YUuhD9/LZ7z7W4j1Fdw2cqD0xEEclf8fxc8xjD6X5Qr+qQQwCEsP8iRiYg==
   /yargs/13.2.4:
     dependencies:
       cliui: 5.0.0
