@@ -33,7 +33,7 @@ describe('Update project scenarios', () => {
 
   describe('Updating a project', () => {
     it('should fail when non-admin user is trying to update project', async () => {
-      const testProjectId = setup.gen.string({ prefix: `non-admin-update-proj-test` });
+      const testProjectId = setup.gen.string({ prefix: `update-proj-test-non-admin` });
       const newProj = await adminSession.resources.projects.create({
         id: testProjectId,
         indexId: defaultProject.indexId,
@@ -50,7 +50,7 @@ describe('Update project scenarios', () => {
     });
 
     it('should pass when admin is trying to update project', async () => {
-      const testProjectId = setup.gen.string({ prefix: `admin-update-proj-test` });
+      const testProjectId = setup.gen.string({ prefix: `update-proj-test-admin` });
       const newProj = await adminSession.resources.projects.create({
         id: testProjectId,
         indexId: defaultProject.indexId,
@@ -67,7 +67,7 @@ describe('Update project scenarios', () => {
     });
 
     it('should fail for anonymous user', async () => {
-      const projectId = setup.gen.string({ prefix: `non-admin-update-proj-test` });
+      const projectId = setup.gen.string({ prefix: `update-proj-test-non-admin` });
       const newProj = await adminSession.resources.projects.create({ id: projectId, indexId: defaultProject.indexId });
 
       const updateBody = { rev: newProj.rev, description: setup.gen.description() };

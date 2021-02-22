@@ -16,7 +16,7 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
-describe('Delete project scenarios', () => {
+describe('Get index scenarios', () => {
   let setup;
   let adminSession;
   let defaultProject;
@@ -31,44 +31,33 @@ describe('Delete project scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('Deleting a project', () => {
-    it('should fail if admin is inactive', async () => {
-      const testProjectId = setup.gen.string({ prefix: `delete-proj-test-inactive-admin` });
-      const newProj = await adminSession.resources.projects.create({
-        id: testProjectId,
-        indexId: defaultProject.indexId,
-      });
-
+  describe('Getting an index', () => {
+    it('should fail if user is inactive', async () => {
       const admin2Session = await setup.createAdminSession();
       await adminSession.resources.users.deactivateUser(admin2Session.user);
 
-      await expect(admin2Session.resources.projects.project(newProj.id).delete()).rejects.toMatchObject({
+      await expect(admin2Session.resources.indexes.index(defaultProject.indexId).get()).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });
 
-    it('should fail if non-admin user is trying to delete project', async () => {
-      const testProjectId = setup.gen.string({ prefix: `delete-proj-test-non-admin` });
-      const newProj = await adminSession.resources.projects.create({
-        id: testProjectId,
-        indexId: defaultProject.indexId,
+    it('should fail if internal guest attempts to get project', async () => {
+      const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
+      await expect(guestSession.resources.indexes.index(defaultProject.indexId).get()).rejects.toMatchObject({
+        code: errorCode.http.code.notFound,
       });
+    });
 
-      const researcherSession = await setup.createResearcherSession({ projectId: [testProjectId] });
-
-      await expect(researcherSession.resources.projects.project(newProj.id).delete()).rejects.toMatchObject({
-        code: errorCode.http.code.forbidden,
+    it('should fail if external guest attempts to get project', async () => {
+      const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
+      await expect(guestSession.resources.indexes.index(defaultProject.indexId).get()).rejects.toMatchObject({
+        code: errorCode.http.code.notFound,
       });
     });
 
     it('should fail for anonymous user', async () => {
-      const testProjectId = setup.gen.string({ prefix: `delete-proj-test-anon-user` });
-      const newProj = await adminSession.resources.projects.create({
-        id: testProjectId,
-        indexId: defaultProject.indexId,
-      });
       const anonymousSession = await setup.createAnonymousSession();
-      await expect(anonymousSession.resources.projects.project(newProj.id).delete()).rejects.toMatchObject({
+      await expect(anonymousSession.resources.indexes.index(defaultProject.indexId).get()).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });

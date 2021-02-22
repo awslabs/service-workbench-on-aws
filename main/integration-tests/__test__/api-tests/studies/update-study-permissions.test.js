@@ -38,7 +38,7 @@ describe('Update study permissions scenarios', () => {
       'should fail if inactive user tries to update %p permissions',
       async (studyPrefix, studyCategory) => {
         const researcherSession = await setup.createResearcherSession();
-        const studyId = setup.gen.string({ prefix: `inactive-user-update-${studyPrefix}-perm-test` });
+        const studyId = setup.gen.string({ prefix: `update-${studyPrefix}-perm-test-inactive-user` });
         await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
         await adminSession.resources.users.deactivateUser(researcherSession.user);
 
@@ -57,7 +57,7 @@ describe('Update study permissions scenarios', () => {
       'should fail if a user tries to update permissions of %p for which they are not the admin',
       async (studyPrefix, studyCategory) => {
         const researcher1Session = await setup.createResearcherSession();
-        const studyId = setup.gen.string({ prefix: `researcher-update-${studyPrefix}-perm-test` });
+        const studyId = setup.gen.string({ prefix: `update-${studyPrefix}-perm-test-researcher` });
         await researcher1Session.resources.studies.create({ id: studyId, category: studyCategory });
 
         // This user is brand new and does not have any permissions to [studyId] yet
@@ -76,7 +76,7 @@ describe('Update study permissions scenarios', () => {
 
     it.each(studyCategoryCases)('should fail for anonymous user for %p', async (studyPrefix, studyCategory) => {
       const researcherSession = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: `anon-user-get-files-${studyPrefix}-test` });
+      const studyId = setup.gen.string({ prefix: `update-${studyPrefix}-perm-test-anon-user` });
       await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
 
       const anonymousSession = await setup.createAnonymousSession();
@@ -92,7 +92,7 @@ describe('Update study permissions scenarios', () => {
 
     it('should pass if a user tries to update permissions of an Organization for which they are the admin', async () => {
       const studyAdminSession = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: 'study-admin-update-org-study-perm-test' });
+      const studyId = setup.gen.string({ prefix: 'update-org-study-perm-test-study-admin' });
       await studyAdminSession.resources.studies.create({ id: studyId, category: 'Organization' });
       const readonlyUserSession = await setup.createResearcherSession();
       const readwriteUserSession = await setup.createResearcherSession();
