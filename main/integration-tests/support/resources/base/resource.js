@@ -56,7 +56,7 @@ class Resource {
       const taskId = `${this.type}-${this.id}`;
 
       // We add a cleanup task to the cleanup queue for the session
-      this.clientSession.cleanupQueue.push({ id: taskId, task: async () => this.cleanup(resource) });
+      this.clientSession.addCleanupTask({ id: taskId, task: async () => this.cleanup(resource) });
 
       return resource;
     } catch (error) {
@@ -72,14 +72,15 @@ class Resource {
     return this.doCall(async () => this.axiosClient.put(api, body, { params }));
   }
 
-  async delete(body = {}, params = {}, { api = this.api } = {}) {
-    const response = await this.doCall(async () => this.axiosClient.delete(api, body, { params }));
-    const indexToRemove = _.findIndex(
-      this.clientSession.cleanupQueue,
-      cleanUpItem => cleanUpItem.id === `${this.parent.type}-${this.id}`,
-    );
-    this.clientSession.cleanupQueue.splice(indexToRemove, 1);
-    return response;
+  async delete(params = {}, { api = this.api } = {}) {
+    return this.doCall(async () => {
+      await this.axiosClient.delete(api, { params });
+
+      // Because we explicity deleting the resource, there is no longer a need to run the cleanup
+      // task for this resource  (if one existed)
+      const taskId = `${this.type}-${this.id}`;
+      this.clientSession.removeCleanupTask(taskId);
+    });
   }
 
   // We wrap the call to axios so that we can capture the boom code and payload attributes passed from the
@@ -87,17 +88,30 @@ class Resource {
   async doCall(fn) {
     try {
       const response = await fn();
-      return response.data;
+      return _.get(response, 'data');
     } catch (error) {
       throw transform(error);
     }
   }
 
-  // Empty implementation of the cleanup task for the resource. Extender should provide their own
-  // implementation when appropriate.
+  // This method has the default implementation of the cleanup task for the resource.
+  // Classes extending the resource node class can choose to override this method and
+  // provide their own implementation but only when appropriate.
   async cleanup() {
-    // Empty implementation
-    console.log(`Resource type [${this.type}] with id [${this.id}] has no cleanup logic`);
+    // The cleanup logic is as follows:
+    // - We first try to delete the resource using the delete() method
+    // - However, it is possible that the user that created the resource does not have permission
+    //   to delete the resource or the user might have become inactive. Because of this we will
+    //   also try to perform the same delete() method but with default admin credentials
+
+    try {
+      await this.delete();
+    } catch (error) {
+      // Now we try with default admin credentials
+      const adminSession = await this.setup.defaultAdminSession();
+      this.axiosClient = adminSession.axiosClient;
+      await this.delete();
+    }
   }
 }
 

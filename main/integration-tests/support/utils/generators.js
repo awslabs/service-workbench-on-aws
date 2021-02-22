@@ -24,7 +24,7 @@ const chance = require('chance').Chance();
 async function getGenerators({ setup }) {
   const runId = setup.settings.get('runId');
   const string = ({ prefix = 'test', suffix = '', length = 6 } = {}) =>
-    `${prefix}-${runId}-${chance.string({ alpha: true, casing: 'lower', length })}-${suffix}`;
+    `${prefix}-${runId}-${chance.string({ alpha: true, casing: 'lower', length })}${suffix}`;
 
   const generators = {
     string,

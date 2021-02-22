@@ -35,7 +35,9 @@ class ClientSession {
     this.anonymous = _.isEmpty(idToken);
     this.setup = setup;
     this.settings = setup.settings;
-    this.cleanupQueue = []; // Each element is an object of shape { id, command = fn() }
+
+    // Each element is an object (cleanupTask) of shape { id, command = async fn() }
+    this.cleanupQueue = [];
 
     const headers = { 'Content-Type': 'application/json' };
 
@@ -72,6 +74,20 @@ class ClientSession {
     }
 
     this.cleanupQueue = []; // This way if the cleanup() method is called again, we don't need to cleanup again
+  }
+
+  // This is used by the Resource and CollectionResource base classes. You rarely need to use this method unless you
+  // want to add your explicit cleanup task
+  // @param {object} cleanupTask an object of shape { id, command = async fn() }
+  addCleanupTask(cleanupTask) {
+    this.cleanupQueue.push(cleanupTask);
+  }
+
+  // Given the id of the cleanup task, remove it from the cleanup queue. If there is more than one task with the same
+  // id in the queue, all of the tasks with the matching id will be removed.
+  // If the method is able to remove the task, the removed task will be returned otherwise undefined is returned
+  removeCleanupTask(id) {
+    return _.remove(this.cleanupQueue, ['id', id]);
   }
 }
 
