@@ -41,11 +41,11 @@ class DynamoDb {
 
     this.helpers = {
       unmarshal,
-      scanner: () => new Scanner(this.log, this.client),
-      updater: () => new Updater(this.log, this.client),
-      getter: () => new Getter(this.log, this.client),
-      query: () => new Query(this.log, this.client),
-      deleter: () => new Deleter(this.log, this.client),
+      scanner: () => new Scanner(console, this.client),
+      updater: () => new Updater(console, this.client),
+      getter: () => new Getter(console, this.client),
+      query: () => new Query(console, this.client),
+      deleter: () => new Deleter(console, this.client),
     };
 
     this.tables = await getTables({ dynamoDb: this });
