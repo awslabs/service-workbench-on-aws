@@ -49,7 +49,7 @@ async function deleteUser({ aws, id = '' }) {
 
   const username = user.username || '';
 
-  if (!username.includes(runId)) {
+  if (!username.includes(`-${runId}-`)) {
     console.log(
       `User username "${username}" does not contain the runId "${runId}", skipping the deletion of this user as a measurement of caution`,
     );
