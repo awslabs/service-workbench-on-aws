@@ -72,8 +72,15 @@ class Resource {
     return this.doCall(async () => this.axiosClient.put(api, body, { params }));
   }
 
-  // TODO - delete
-  // async delete
+  async delete(body = {}, params = {}, { api = this.api } = {}) {
+    const response = await this.doCall(async () => this.axiosClient.delete(api, body, { params }));
+    const indexToRemove = _.findIndex(
+      this.clientSession.cleanupQueue,
+      cleanUpItem => cleanUpItem.id === `${this.parent.type}-${this.id}`,
+    );
+    this.clientSession.cleanupQueue.splice(indexToRemove, 1);
+    return response;
+  }
 
   // We wrap the call to axios so that we can capture the boom code and payload attributes passed from the
   // server

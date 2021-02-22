@@ -55,7 +55,8 @@ class Users extends CollectionResource {
   }
 
   async cleanup(user) {
-    await this.axiosClient.delete(`${this.api}/${user.uid}`);
+    const resource = new User({ clientSession: this.clientSession, id: user.uid, parent: this });
+    return resource.delete();
   }
 
   // ************************ Helpers methods ************************
