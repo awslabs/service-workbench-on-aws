@@ -80,7 +80,7 @@ class CollectionResource {
   }
 
   // In general, most of SWB APIs on the server side should not support the ability to delete a collection
-  // resource. However, it might be desireable that we tes against this. Therefore, this method exists.
+  // resource. However, it might be desireable that we test against this. Therefore, this method exists.
   async delete(body = {}, params = {}, { api = this.api } = {}) {
     return this.doCall(async () => this.axiosClient.delete(api, body, { params }));
   }
