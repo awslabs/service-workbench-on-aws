@@ -15,26 +15,19 @@
 
 const _ = require('lodash');
 
-const Resource = require('../base/resource');
-
-class Project extends Resource {
-  constructor({ clientSession, id, parent }) {
-    super({
-      clientSession,
-      type: 'project',
-      id,
-      parent,
-    });
-
-    if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [project]');
+class ParameterStore {
+  constructor({ aws, sdk }) {
+    this.aws = aws;
+    this.sdk = sdk;
   }
 
-  async cleanup() {
-    if (this.id === this.setup.gen.defaultProjectId()) return;
-    await super.cleanup();
+  async getParameter(name) {
+    const response = await this.sdk.getParameter({ Name: name, WithDecryption: true }).promise();
+    return _.get(response, 'Parameter.Value');
   }
-
-  // ************************ Helpers methods ************************
 }
 
-module.exports = Project;
+// The aws javascript sdk client name
+ParameterStore.clientName = 'SSM';
+
+module.exports = ParameterStore;
