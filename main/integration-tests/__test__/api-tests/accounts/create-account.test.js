@@ -16,7 +16,7 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
-describe('Create AWS Account scenarios', () => {
+describe('Create Account scenarios', () => {
   let setup;
   let adminSession;
 
@@ -29,9 +29,9 @@ describe('Create AWS Account scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('Creating an AWS Account', () => {
+  describe('Creating an Account', () => {
     it('should fail if admin is inactive', async () => {
-      const testAwsAccountId = setup.gen.string({ prefix: `create-aws-account-test-inactive-admin` });
+      const testAwsAccountId = setup.gen.string({ prefix: `create-account-test-inactive-admin` });
       const admin2Session = await setup.createAdminSession();
       await adminSession.resources.users.deactivateUser(admin2Session.user);
 
@@ -40,8 +40,8 @@ describe('Create AWS Account scenarios', () => {
       });
     });
 
-    it('should fail if non-admin user is trying to create AWS Account', async () => {
-      const testAwsAccountId = setup.gen.string({ prefix: `create-aws-account-test-non-admin` });
+    it('should fail if non-admin user is trying to create Account', async () => {
+      const testAwsAccountId = setup.gen.string({ prefix: `create-account-test-non-admin` });
       const researcherSession = await setup.createResearcherSession();
 
       await expect(researcherSession.resources.accounts.create(testAwsAccountId)).rejects.toMatchObject({
@@ -51,7 +51,7 @@ describe('Create AWS Account scenarios', () => {
 
     it('should fail if the body does not contain required fields', async () => {
       const admin2Session = await setup.createAdminSession();
-      const prefix = 'create-aws-account-test-req-fields';
+      const prefix = 'create-account-test-req-fields';
       const requestBody = {
         accountName: setup.gen.string({ prefix }),
         accountEmail: setup.gen.username({ prefix }),
@@ -66,7 +66,7 @@ describe('Create AWS Account scenarios', () => {
     });
 
     it('should fail for anonymous user', async () => {
-      const testAwsAccountId = setup.gen.string({ prefix: `create-aws-account-test-anon-user` });
+      const testAwsAccountId = setup.gen.string({ prefix: `create-account-test-anon-user` });
       const anonymousSession = await setup.createAnonymousSession();
       await expect(anonymousSession.resources.accounts.create(testAwsAccountId)).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
