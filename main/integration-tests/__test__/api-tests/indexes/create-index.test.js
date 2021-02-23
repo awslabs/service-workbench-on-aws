@@ -24,7 +24,7 @@ describe('Create index scenarios', () => {
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
-    defaultIndex = await adminSession.resources.indexes.mustFind(setup.gen.defaultIndexId());
+    defaultIndex = await adminSession.resources.indexes.mustFind(setup.defaults.indexId);
   });
 
   afterAll(async () => {
@@ -57,7 +57,7 @@ describe('Create index scenarios', () => {
 
     it('should fail if indexId already exists', async () => {
       const admin2Session = await setup.createAdminSession();
-      const defaultIndexId = setup.defaultIndexId;
+      const defaultIndexId = setup.defaults.indexId;
 
       await expect(
         admin2Session.resources.indexes.create({ id: defaultIndexId, awsAccountId: defaultIndex.awsAccountId }),

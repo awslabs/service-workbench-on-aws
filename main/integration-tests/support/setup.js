@@ -60,11 +60,12 @@ class Setup {
     // aws instance
     this.aws = await initAws({ settings: this.settings });
 
-    // index assigned to default test project provided
-    this.defaultIndexId = await this.getDefaultIndexId();
-
-    // AWS account ID linked to default test project provided
-    this.defaultAwsAccountId = await this.getDefaultAwsAccountId();
+    // An object to abstract out the default setup IDs (eg. test project ID)
+    this.defaults = {};
+    this.defaults.projectId = this.settings.get('projectId');
+    this.defaults.indexId = await this.getDefaultIndexId();
+    this.defaults.awsAccountId = await this.getDefaultAwsAccountId();
+    this.defaults.stepTemplateId = 'st-obtain-write-lock';
   }
 
   async defaultAdminSession() {
@@ -82,13 +83,13 @@ class Setup {
 
   async getDefaultIndexId() {
     const adminSession = await this.defaultAdminSession();
-    const defaultProject = await adminSession.resources.projects.project(this.gen.defaultProjectId()).get();
+    const defaultProject = await adminSession.resources.projects.project(this.defaults.projectId).get();
     return defaultProject.indexId;
   }
 
   async getDefaultAwsAccountId() {
     const adminSession = await this.defaultAdminSession();
-    const defaultIndex = await adminSession.resources.indexes.index(this.defaultIndexId).get();
+    const defaultIndex = await adminSession.resources.indexes.index(this.defaults.indexId).get();
     return defaultIndex.awsAccountId;
   }
 
@@ -115,7 +116,7 @@ class Setup {
   async createResearcherSession({
     username = this.gen.username(),
     password = this.gen.password(),
-    projectId = [this.gen.defaultProjectId()],
+    projectId = [this.settings.get('projectId')],
   } = {}) {
     const adminSession = await this.defaultAdminSession();
     await adminSession.resources.users.create({
@@ -135,7 +136,7 @@ class Setup {
     userRole = 'internal-guest',
     username = this.gen.username(),
     password = this.gen.password(),
-    projectId = [this.gen.defaultProjectId()],
+    projectId = [this.settings.get('projectId')],
   } = {}) {
     const adminSession = await this.defaultAdminSession();
     await adminSession.resources.users.create({

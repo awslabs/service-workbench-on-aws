@@ -24,7 +24,7 @@ describe('Delete index scenarios', () => {
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
-    defaultIndex = await adminSession.resources.indexes.mustFind(setup.defaultIndexId);
+    defaultIndex = await adminSession.resources.indexes.mustFind(setup.defaults.indexId);
   });
 
   afterAll(async () => {

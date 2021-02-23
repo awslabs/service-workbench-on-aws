@@ -34,7 +34,7 @@ describe('Get Account scenarios', () => {
       const admin2Session = await setup.createAdminSession();
       await adminSession.resources.users.deactivateUser(admin2Session.user);
       const defaultAwsAccount = await adminSession.resources.awsAccounts.mustFindByAwsAccountId(
-        setup.gen.defaultAwsAccountId(),
+        setup.defaults.awsAccountId,
       );
 
       await expect(admin2Session.resources.accounts.account(defaultAwsAccount.accountId).get()).rejects.toMatchObject({
@@ -44,7 +44,7 @@ describe('Get Account scenarios', () => {
 
     it('should fail if internal guest attempts to get AWS Account', async () => {
       const defaultAwsAccount = await adminSession.resources.awsAccounts.mustFindByAwsAccountId(
-        setup.gen.defaultAwsAccountId(),
+        setup.defaults.awsAccountId,
       );
       const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
       await expect(guestSession.resources.accounts.account(defaultAwsAccount.accountId).get()).rejects.toMatchObject({
@@ -54,7 +54,7 @@ describe('Get Account scenarios', () => {
 
     it('should fail if external guest attempts to get AWS Account', async () => {
       const defaultAwsAccount = await adminSession.resources.awsAccounts.mustFindByAwsAccountId(
-        setup.gen.defaultAwsAccountId(),
+        setup.defaults.awsAccountId,
       );
       const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
       await expect(guestSession.resources.accounts.account(defaultAwsAccount.accountId).get()).rejects.toMatchObject({
@@ -64,7 +64,7 @@ describe('Get Account scenarios', () => {
 
     it('should fail for anonymous user', async () => {
       const defaultAwsAccount = await adminSession.resources.awsAccounts.mustFindByAwsAccountId(
-        setup.gen.defaultAwsAccountId(),
+        setup.defaults.awsAccountId,
       );
       const anonymousSession = await setup.createAnonymousSession();
       await expect(
