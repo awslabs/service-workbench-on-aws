@@ -28,6 +28,10 @@ const AuditServiceMock = require('@aws-ee/base-services/lib/audit/audit-writer-s
 
 jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
 const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
+
+jest.mock('../../aws-accounts/aws-accounts-service');
+const AwsAccountsServiceMock = require('../../aws-accounts/aws-accounts-service');
+
 const IndexesService = require('../indexes-service');
 
 // Tested Functions: create, update, delete
@@ -42,6 +46,7 @@ describe('IndexesService', () => {
     container.register('indexesService', new IndexesService());
     container.register('authorizationService', new AuthServiceMock());
     container.register('dbService', new DbServiceMock());
+    container.register('awsAccountsService', new AwsAccountsServiceMock());
     container.register('auditWriterService', new AuditServiceMock());
     container.register('settings', new SettingsServiceMock());
     await container.initServices();

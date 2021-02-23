@@ -19,10 +19,12 @@ const errorCode = require('../../../support/utils/error-code');
 describe('Create index scenarios', () => {
   let setup;
   let adminSession;
+  let defaultIndex;
 
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
+    defaultIndex = await adminSession.resources.indexes.mustFind(setup.gen.defaultIndexId());
   });
 
   afterAll(async () => {
@@ -35,7 +37,9 @@ describe('Create index scenarios', () => {
       const admin2Session = await setup.createAdminSession();
       await adminSession.resources.users.deactivateUser(admin2Session.user);
 
-      await expect(admin2Session.resources.indexes.create(testIndexId)).rejects.toMatchObject({
+      await expect(
+        admin2Session.resources.indexes.create({ id: testIndexId, awsAccountId: defaultIndex.awsAccountId }),
+      ).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });
@@ -44,7 +48,9 @@ describe('Create index scenarios', () => {
       const testIndexId = setup.gen.string({ prefix: `create-index-test-non-admin` });
       const researcherSession = await setup.createResearcherSession();
 
-      await expect(researcherSession.resources.indexes.create(testIndexId)).rejects.toMatchObject({
+      await expect(
+        researcherSession.resources.indexes.create({ id: testIndexId, awsAccountId: defaultIndex.awsAccountId }),
+      ).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
     });
@@ -53,7 +59,22 @@ describe('Create index scenarios', () => {
       const admin2Session = await setup.createAdminSession();
       const defaultIndexId = setup.defaultIndexId;
 
-      await expect(admin2Session.resources.indexes.create(defaultIndexId)).rejects.toMatchObject({
+      await expect(
+        admin2Session.resources.indexes.create({ id: defaultIndexId, awsAccountId: defaultIndex.awsAccountId }),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.badRequest,
+      });
+    });
+
+    it('should fail when awsAccountId is not found', async () => {
+      const admin2Session = await setup.createAdminSession();
+      const testIndexId = setup.gen.string({ prefix: `update-index-test-bad-account` });
+      const newIndex = {
+        id: testIndexId,
+        awsAccountId: setup.gen.string({ prefix: 'unknown-account-test' }),
+      };
+
+      await expect(admin2Session.resources.indexes.create(newIndex)).rejects.toMatchObject({
         code: errorCode.http.code.badRequest,
       });
     });
@@ -61,7 +82,9 @@ describe('Create index scenarios', () => {
     it('should fail for anonymous user', async () => {
       const testIndexId = setup.gen.string({ prefix: `create-index-test-anon-user` });
       const anonymousSession = await setup.createAnonymousSession();
-      await expect(anonymousSession.resources.indexes.create(testIndexId)).rejects.toMatchObject({
+      await expect(
+        anonymousSession.resources.indexes.create({ id: testIndexId, awsAccountId: defaultIndex.awsAccountId }),
+      ).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });

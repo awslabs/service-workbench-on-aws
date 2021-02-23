@@ -56,11 +56,27 @@ describe('Update index scenarios', () => {
 
       const description = setup.gen.description();
       const adminSession2 = await setup.createAdminSession();
-      const updateBody = { rev: newIndex.rev, description, id: testIndexId };
+      const updateBody = { rev: newIndex.rev, description, id: testIndexId, awsAccountId: defaultIndex.awsAccountId };
 
       await expect(adminSession2.resources.indexes.index(testIndexId).update(updateBody)).resolves.toMatchObject({
         id: testIndexId,
         description,
+      });
+    });
+
+    it('should fail when awsAccountId is not found', async () => {
+      const testIndexId = setup.gen.string({ prefix: `update-index-test-bad-account` });
+      const newIndex = await adminSession.resources.indexes.create({
+        id: testIndexId,
+        awsAccountId: defaultIndex.awsAccountId,
+      });
+
+      const newAwsAccountId = setup.gen.string('unknown-account-test');
+      const adminSession2 = await setup.createAdminSession();
+      const updateBody = { rev: newIndex.rev, awsAccountId: newAwsAccountId, id: testIndexId };
+
+      await expect(adminSession2.resources.indexes.index(testIndexId).update(updateBody)).rejects.toMatchObject({
+        code: errorCode.http.code.badRequest,
       });
     });
 
