@@ -36,6 +36,7 @@ async function getGenerators({ setup }) {
     defaultProjectId: () => setup.settings.get('projectId'),
     defaultIndexId: () => setup.defaultIndexId,
     defaultAwsAccountId: () => setup.defaultAwsAccountId,
+    defaultStepTemplateId: () => 'st-obtain-write-lock',
   };
 
   return generators;
