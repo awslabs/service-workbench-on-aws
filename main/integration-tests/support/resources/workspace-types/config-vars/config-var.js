@@ -29,26 +29,6 @@ class ConfigVar extends Resource {
     if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [config-var]');
   }
 
-  async create() {
-    throw Error('Not Implemented');
-  }
-
-  async get() {
-    throw Error('Not Implemented');
-  }
-
-  async update() {
-    throw Error('Not Implemented');
-  }
-
-  async delete() {
-    throw Error('Not Implemented');
-  }
-
-  async cleanup() {
-    // Do nothing
-  }
-
   // ************************ Helpers methods ************************
 }
 

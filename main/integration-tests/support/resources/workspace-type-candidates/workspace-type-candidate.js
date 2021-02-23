@@ -30,26 +30,6 @@ class WorkspaceTypeCandidate extends Resource {
       throw Error('A parent resource was not provided to resource type [workspace-type-candidate]');
   }
 
-  async create() {
-    throw Error('Not Implemented');
-  }
-
-  async get() {
-    throw Error('Not Implemented');
-  }
-
-  async update() {
-    throw Error('Not Implemented');
-  }
-
-  async delete() {
-    throw Error('Not Implemented');
-  }
-
-  async cleanup() {
-    // Do nothing
-  }
-
   // ************************ Helpers methods ************************
 }
 
