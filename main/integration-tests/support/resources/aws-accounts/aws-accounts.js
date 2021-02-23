@@ -36,11 +36,18 @@ class AwsAccounts extends CollectionResource {
   // When creating a child resource, this method provides default values. This method is used by the
   // CollectionResource class when we use create() method on this resource operations helper.
   defaults(awsAccount = {}) {
-    const awsAccountId = awsAccount.id || this.setup.gen.string({ prefix: 'aws-account-test' });
+    const gen = this.setup.gen;
+    const awsAccountId = awsAccount.id || gen.string({ prefix: awsAccount.name });
     return {
-      description: this.setup.gen.description(),
+      description: gen.description(),
       id: awsAccountId,
       accountId: awsAccount.accountId,
+      name: gen.string({ prefix: awsAccount.name }),
+      roleArn: gen.string({ prefix: 'aws-account-test' }),
+      externalId: gen.string({ prefix: 'aws-account-test' }),
+      vpcId: gen.string({ prefix: 'aws-account-test' }),
+      subnetId: gen.string({ prefix: 'aws-account-test' }),
+      encryptionKeyArn: gen.string({ prefix: 'aws-account-test' }),
       ...awsAccount,
     };
   }

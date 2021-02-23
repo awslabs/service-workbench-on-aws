@@ -64,19 +64,14 @@ describe('Update AWS Account scenarios', () => {
     });
 
     it('should fail for anonymous user', async () => {
-      const genParams = { prefix: 'create-aws-account-anon-user' };
-      const requestBody = {
-        name: setup.gen.string(genParams),
-        roleArn: setup.gen.string(genParams),
-        externalId: setup.gen.string(genParams),
-        accountId: setup.gen.string(genParams),
-        vpcId: setup.gen.string(genParams),
-        subnetId: setup.gen.string(genParams),
-        encryptionKeyArn: setup.gen.string(genParams),
-      };
-
       const anonymousSession = await setup.createAnonymousSession();
-      await expect(anonymousSession.resources.awsAccounts.provision(requestBody)).rejects.toMatchObject({
+      await expect(
+        anonymousSession.resources.awsAccounts.provision(
+          anonymousSession.resources.awsAccounts.defaults({
+            name: 'create-aws-account-anon-user',
+          }),
+        ),
+      ).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });
