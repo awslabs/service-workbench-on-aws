@@ -40,7 +40,7 @@ describe('Update AWS Account scenarios', () => {
         // accountId,vpcId,subnetId,encryptionKeyArn
       };
 
-      await expect(admin2Session.resources.awsAccounts.provision().create(requestBody)).rejects.toMatchObject({
+      await expect(admin2Session.resources.awsAccounts.provision(requestBody)).rejects.toMatchObject({
         code: errorCode.http.code.badRequest,
       });
     });
@@ -58,7 +58,7 @@ describe('Update AWS Account scenarios', () => {
         encryptionKeyArn: setup.gen.string(genParams),
       };
 
-      await expect(researcherSession.resources.awsAccounts.provision().create(requestBody)).rejects.toMatchObject({
+      await expect(researcherSession.resources.awsAccounts.provision(requestBody)).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
     });
@@ -76,7 +76,7 @@ describe('Update AWS Account scenarios', () => {
       };
 
       const anonymousSession = await setup.createAnonymousSession();
-      await expect(anonymousSession.resources.awsAccounts.provision().create(requestBody)).rejects.toMatchObject({
+      await expect(anonymousSession.resources.awsAccounts.provision(requestBody)).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });

@@ -49,7 +49,7 @@ describe('Create index scenarios', () => {
       });
     });
 
-    it('should fail if indexId is duplicate to the one already in the system', async () => {
+    it('should fail if indexId already exists', async () => {
       const admin2Session = await setup.createAdminSession();
       const defaultIndexId = setup.defaultIndexId;
 

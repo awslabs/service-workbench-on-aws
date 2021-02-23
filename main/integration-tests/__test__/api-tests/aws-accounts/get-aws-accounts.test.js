@@ -44,7 +44,7 @@ describe('List AWS accounts scenarios', () => {
       await expect(guestSession.resources.awsAccounts.get()).resolves.toStrictEqual([]);
     });
 
-    it('should fail if external guest attempts to get AWS Accounts list', async () => {
+    it('should return empty AWS Accounts list for external guest attempts to get AWS Accounts list', async () => {
       const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
       await expect(guestSession.resources.awsAccounts.get()).resolves.toStrictEqual([]);
     });

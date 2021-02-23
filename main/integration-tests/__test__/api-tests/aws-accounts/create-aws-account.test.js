@@ -40,7 +40,7 @@ describe('Create AWS Account scenarios', () => {
       });
     });
 
-    it('should fail if non-admin user is trying to create index', async () => {
+    it('should fail if non-admin user is trying to create AWS Account', async () => {
       const testAwsAccountId = setup.gen.string({ prefix: `create-aws-account-test-non-admin` });
       const researcherSession = await setup.createResearcherSession();
 

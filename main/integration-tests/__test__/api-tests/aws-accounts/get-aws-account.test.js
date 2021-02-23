@@ -41,7 +41,7 @@ describe('Get AWS Account scenarios', () => {
       });
     });
 
-    it('should fail if internal guest attempts to get index', async () => {
+    it('should fail if internal guest attempts to get AWS Account', async () => {
       const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
       await expect(
         guestSession.resources.awsAccounts.awsAccount(setup.defaultAwsAccountId).get(),
@@ -50,7 +50,7 @@ describe('Get AWS Account scenarios', () => {
       });
     });
 
-    it('should fail if external guest attempts to get index', async () => {
+    it('should fail if external guest attempts to get AWS Account', async () => {
       const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
       await expect(
         guestSession.resources.awsAccounts.awsAccount(setup.defaultAwsAccountId).get(),

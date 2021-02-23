@@ -16,7 +16,6 @@
 const _ = require('lodash');
 const CollectionResource = require('../base/collection-resource');
 const AwsAccount = require('./aws-account');
-const AwsAccountProvision = require('./aws-account-provision');
 
 class AwsAccounts extends CollectionResource {
   constructor({ clientSession }) {
@@ -32,10 +31,6 @@ class AwsAccounts extends CollectionResource {
 
   awsAccount(id) {
     return new AwsAccount({ clientSession: this.clientSession, id, parent: this });
-  }
-
-  provision() {
-    return new AwsAccountProvision({ clientSession: this.clientSession, parent: this });
   }
 
   // When creating a child resource, this method provides default values. This method is used by the
@@ -65,6 +60,10 @@ class AwsAccounts extends CollectionResource {
 
     if (_.isEmpty(awsAccount)) throw new Error(`AWS Account with id: "${awsAccountId}" is not found`);
     return awsAccount;
+  }
+
+  provision(body) {
+    return this.create(body, { api: `${this.api}/provision` });
   }
 }
 
