@@ -13,13 +13,14 @@
  *  permissions and limitations under the License.
  */
 
-const Users = require('./resources/users/users.js');
-const Studies = require('./resources/studies/studies.js');
-const Projects = require('./resources/projects/projects.js');
-const Indexes = require('./resources/indexes/indexes.js');
-const CurrentUser = require('./resources/current-user.js');
+const Users = require('./resources/users/users');
+const Studies = require('./resources/studies/studies');
+const Projects = require('./resources/projects/projects');
+const Indexes = require('./resources/indexes/indexes');
+const CurrentUser = require('./resources/current-user');
 const PublicAuthProviderConfigs = require('./resources/public-auth-provider/public-auth-provider-configs');
-const WorkspaceTypes = require('./resources/workspace-types/workspace-types.js');
+const WorkspaceTypes = require('./resources/workspace-types/workspace-types');
+const StepTemplates = require('./resources/step-templates/step-templates');
 
 // Returns the top level resource operations helpers. You should not use this directly in your tests.
 // These top level resource operation helpers are available via client sessions.
@@ -32,6 +33,7 @@ async function getResources({ clientSession }) {
     currentUser: new CurrentUser({ clientSession }),
     publicAuthProviderConfigs: new PublicAuthProviderConfigs({ clientSession }),
     workspaceTypes: new WorkspaceTypes({ clientSession }),
+    stepTemplates: new StepTemplates({ clientSession }),
   };
 
   return resources;
