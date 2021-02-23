@@ -92,7 +92,7 @@ describe('Approve workspace-type scenarios', () => {
       });
     });
 
-    it('should fail if input schema is not valid', async () => {
+    it('should fail if input is not valid', async () => {
       const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
       await adminSession.resources.workspaceTypes.create({
