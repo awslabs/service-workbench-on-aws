@@ -16,7 +16,7 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
-describe('Get index scenarios', () => {
+describe('Get AWS Account scenarios', () => {
   let setup;
   let adminSession;
 
@@ -29,33 +29,41 @@ describe('Get index scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('Getting an index', () => {
+  describe('Getting an AWS Account', () => {
     it('should fail if user is inactive', async () => {
       const admin2Session = await setup.createAdminSession();
       await adminSession.resources.users.deactivateUser(admin2Session.user);
 
-      await expect(admin2Session.resources.indexes.index(setup.defaultIndexId).get()).rejects.toMatchObject({
+      await expect(
+        admin2Session.resources.awsAccounts.awsAccount(setup.defaultAwsAccountId).get(),
+      ).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });
 
-    it('should fail if internal guest attempts to get index', async () => {
+    it('should fail if internal guest attempts to get AWS Account', async () => {
       const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
-      await expect(guestSession.resources.indexes.index(setup.defaultIndexId).get()).rejects.toMatchObject({
+      await expect(
+        guestSession.resources.awsAccounts.awsAccount(setup.defaultAwsAccountId).get(),
+      ).rejects.toMatchObject({
         code: errorCode.http.code.notFound,
       });
     });
 
-    it('should fail if external guest attempts to get index', async () => {
+    it('should fail if external guest attempts to get AWS Account', async () => {
       const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
-      await expect(guestSession.resources.indexes.index(setup.defaultIndexId).get()).rejects.toMatchObject({
+      await expect(
+        guestSession.resources.awsAccounts.awsAccount(setup.defaultAwsAccountId).get(),
+      ).rejects.toMatchObject({
         code: errorCode.http.code.notFound,
       });
     });
 
     it('should fail for anonymous user', async () => {
       const anonymousSession = await setup.createAnonymousSession();
-      await expect(anonymousSession.resources.indexes.index(setup.defaultIndexId).get()).rejects.toMatchObject({
+      await expect(
+        anonymousSession.resources.awsAccounts.awsAccount(setup.defaultAwsAccountId).get(),
+      ).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });

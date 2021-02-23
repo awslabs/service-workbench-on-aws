@@ -19,14 +19,12 @@ const errorCode = require('../../../support/utils/error-code');
 describe('Update index scenarios', () => {
   let setup;
   let adminSession;
-  let defaultProject;
   let defaultIndex;
 
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
-    defaultProject = await adminSession.resources.projects.mustFind(setup.gen.defaultProjectId());
-    defaultIndex = await adminSession.resources.indexes.mustFind(defaultProject.indexId);
+    defaultIndex = await adminSession.resources.indexes.mustFind(setup.defaultIndexId);
   });
 
   afterAll(async () => {
@@ -41,7 +39,7 @@ describe('Update index scenarios', () => {
         awsAccountId: defaultIndex.awsAccountId,
       });
 
-      const researcherSession = await setup.createResearcherSession({ projectId: [testIndexId] });
+      const researcherSession = await setup.createResearcherSession();
       const updateBody = { rev: newIndex.rev, description: setup.gen.description(), id: testIndexId };
 
       await expect(researcherSession.resources.indexes.index(testIndexId).update(updateBody)).rejects.toMatchObject({
@@ -57,7 +55,7 @@ describe('Update index scenarios', () => {
       });
 
       const description = setup.gen.description();
-      const adminSession2 = await setup.createAdminSession({ projectId: [testIndexId] });
+      const adminSession2 = await setup.createAdminSession();
       const updateBody = { rev: newIndex.rev, description, id: testIndexId };
 
       await expect(adminSession2.resources.indexes.index(testIndexId).update(updateBody)).resolves.toMatchObject({

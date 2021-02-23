@@ -16,7 +16,7 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
-describe('Create index scenarios', () => {
+describe('Create AWS Account scenarios', () => {
   let setup;
   let adminSession;
 
@@ -29,39 +29,47 @@ describe('Create index scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('Creating an index', () => {
+  describe('Creating an AWS Account', () => {
     it('should fail if admin is inactive', async () => {
-      const testIndexId = setup.gen.string({ prefix: `create-index-test-inactive-admin` });
+      const testAwsAccountId = setup.gen.string({ prefix: `create-aws-account-test-inactive-admin` });
       const admin2Session = await setup.createAdminSession();
       await adminSession.resources.users.deactivateUser(admin2Session.user);
 
-      await expect(admin2Session.resources.indexes.create(testIndexId)).rejects.toMatchObject({
+      await expect(admin2Session.resources.awsAccounts.create(testAwsAccountId)).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });
 
-    it('should fail if non-admin user is trying to create index', async () => {
-      const testIndexId = setup.gen.string({ prefix: `create-index-test-non-admin` });
+    it('should fail if non-admin user is trying to create AWS Account', async () => {
+      const testAwsAccountId = setup.gen.string({ prefix: `create-aws-account-test-non-admin` });
       const researcherSession = await setup.createResearcherSession();
 
-      await expect(researcherSession.resources.indexes.create(testIndexId)).rejects.toMatchObject({
+      await expect(researcherSession.resources.awsAccounts.create(testAwsAccountId)).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
     });
 
-    it('should fail if indexId already exists', async () => {
+    it('should fail if the body does not contain required fields', async () => {
       const admin2Session = await setup.createAdminSession();
-      const defaultIndexId = setup.defaultIndexId;
+      const genParams = { prefix: 'create-aws-account-test-req-fields' };
+      const requestBody = {
+        name: setup.gen.string(genParams),
+        roleArn: setup.gen.string(genParams),
+        externalId: setup.gen.string(genParams),
 
-      await expect(admin2Session.resources.indexes.create(defaultIndexId)).rejects.toMatchObject({
+        // Other required params are:
+        // accountId,vpcId,subnetId,encryptionKeyArn
+      };
+
+      await expect(admin2Session.resources.awsAccounts.create(requestBody)).rejects.toMatchObject({
         code: errorCode.http.code.badRequest,
       });
     });
 
     it('should fail for anonymous user', async () => {
-      const testIndexId = setup.gen.string({ prefix: `create-index-test-anon-user` });
+      const testAwsAccountId = setup.gen.string({ prefix: `create-aws-account-test-anon-user` });
       const anonymousSession = await setup.createAnonymousSession();
-      await expect(anonymousSession.resources.indexes.create(testIndexId)).rejects.toMatchObject({
+      await expect(anonymousSession.resources.awsAccounts.create(testAwsAccountId)).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });
