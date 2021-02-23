@@ -15,14 +15,13 @@
 
 const _ = require('lodash');
 
-const Resource = require('../base/resource');
-const Configurations = require('./configurations/configurations');
+const Resource = require('../../base/resource');
 
-class WorkspaceType extends Resource {
+class Configuration extends Resource {
   constructor({ clientSession, id, parent }) {
     super({
       clientSession,
-      type: 'workspaceType',
+      type: 'configuration',
       id,
       parent,
     });
@@ -30,23 +29,7 @@ class WorkspaceType extends Resource {
     if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [workspace-type]');
   }
 
-  configurations() {
-    return new Configurations({ clientSession: this.clientSession, parent: this });
-  }
-
-  async approve(body) {
-    const api = `${this.api}/approve`;
-
-    return this.doCall(async () => this.axiosClient.put(api, body, {}));
-  }
-
-  async revoke(body) {
-    const api = `${this.api}/revoke`;
-
-    return this.doCall(async () => this.axiosClient.put(api, body, {}));
-  }
-
   // ************************ Helpers methods ************************
 }
 
-module.exports = WorkspaceType;
+module.exports = Configuration;

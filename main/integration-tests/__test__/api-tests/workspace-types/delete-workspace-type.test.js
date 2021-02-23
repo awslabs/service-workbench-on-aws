@@ -16,7 +16,7 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
-describe('Revoke workspace-type scenarios', () => {
+describe('Delete workspace-type scenarios', () => {
   let setup;
   let adminSession;
 
@@ -29,27 +29,27 @@ describe('Revoke workspace-type scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('Revoke workspace-type', () => {
+  describe('Delete workspace-type', () => {
     it('should fail if user is inactive', async () => {
       const adminSession2 = await setup.createAdminSession();
       const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
       await adminSession.resources.workspaceTypes.create({
         id: workspaceTypeId,
-        status: 'approved',
       });
-
-      const revokeBody = {
-        rev: 0,
-      };
 
       await adminSession2.resources.users.deactivateUser(adminSession2.user);
 
       await expect(
-        adminSession2.resources.workspaceTypes.workspaceType(workspaceTypeId).revoke(revokeBody),
+        adminSession2.resources.workspaceTypes.workspaceType(workspaceTypeId).delete(),
       ).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
+
+      await expect(adminSession.resources.workspaceTypes.workspaceType(workspaceTypeId).get()).resolves.toHaveProperty(
+        'id',
+        workspaceTypeId,
+      );
     });
 
     it('should fail if user is not admin', async () => {
@@ -58,74 +58,54 @@ describe('Revoke workspace-type scenarios', () => {
 
       await adminSession.resources.workspaceTypes.create({
         id: workspaceTypeId,
-        status: 'approved',
       });
 
-      const revokeBody = {
-        rev: 0,
-      };
-
       await expect(
-        researcherSession.resources.workspaceTypes.workspaceType(workspaceTypeId).revoke(revokeBody),
+        researcherSession.resources.workspaceTypes.workspaceType(workspaceTypeId).delete(),
       ).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
+
+      await expect(adminSession.resources.workspaceTypes.workspaceType(workspaceTypeId).get()).resolves.toHaveProperty(
+        'id',
+        workspaceTypeId,
+      );
     });
 
     it('should fail if user is anonymous', async () => {
-      const anonymousSession = await setup.createAnonymousSession();
+      const anonymousSession = await setup.createResearcherSession();
       const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
       await adminSession.resources.workspaceTypes.create({
         id: workspaceTypeId,
-        status: 'approved',
       });
-
-      const revokeBody = {
-        rev: 0,
-      };
 
       await expect(
-        anonymousSession.resources.workspaceTypes.workspaceType(workspaceTypeId).revoke(revokeBody),
+        anonymousSession.resources.workspaceTypes.workspaceType(workspaceTypeId).delete(),
       ).rejects.toMatchObject({
-        code: errorCode.http.code.badImplementation,
+        code: errorCode.http.code.forbidden,
       });
+
+      await expect(adminSession.resources.workspaceTypes.workspaceType(workspaceTypeId).get()).resolves.toHaveProperty(
+        'id',
+        workspaceTypeId,
+      );
     });
 
-    it('should fail if input is not valid', async () => {
+    it('should delete if user is admin', async () => {
       const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
       await adminSession.resources.workspaceTypes.create({
         id: workspaceTypeId,
-        status: 'approved',
       });
-
-      const revokeBody = {
-        invalid: 0,
-      };
 
       await expect(
-        adminSession.resources.workspaceTypes.workspaceType(workspaceTypeId).revoke(revokeBody),
-      ).rejects.toMatchObject({
-        code: errorCode.http.code.badRequest,
+        adminSession.resources.workspaceTypes.workspaceType(workspaceTypeId).delete(),
+      ).resolves.toBeUndefined();
+
+      await expect(adminSession.resources.workspaceTypes.workspaceType(workspaceTypeId).get()).rejects.toMatchObject({
+        code: errorCode.http.code.notFound,
       });
-    });
-
-    it('should revoke if user is admin', async () => {
-      const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
-
-      await adminSession.resources.workspaceTypes.create({
-        id: workspaceTypeId,
-        status: 'approved',
-      });
-
-      const revokeBody = {
-        rev: 0,
-      };
-
-      await expect(
-        adminSession.resources.workspaceTypes.workspaceType(workspaceTypeId).revoke(revokeBody),
-      ).resolves.toHaveProperty('status', 'not-approved');
     });
   });
 });
