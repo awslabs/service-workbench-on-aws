@@ -116,7 +116,7 @@ class Setup {
   async createResearcherSession({
     username = this.gen.username(),
     password = this.gen.password(),
-    projectId = [this.settings.get('projectId')],
+    projectId = [this.defaults.projectId],
   } = {}) {
     const adminSession = await this.defaultAdminSession();
     await adminSession.resources.users.create({
@@ -136,7 +136,7 @@ class Setup {
     userRole = 'internal-guest',
     username = this.gen.username(),
     password = this.gen.password(),
-    projectId = [this.settings.get('projectId')],
+    projectId = [this.defaults.projectId],
   } = {}) {
     const adminSession = await this.defaultAdminSession();
     await adminSession.resources.users.create({
