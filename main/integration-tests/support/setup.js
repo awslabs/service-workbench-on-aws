@@ -62,6 +62,9 @@ class Setup {
 
     // index assigned to default test project provided
     this.defaultIndexId = await this.getDefaultIndexId();
+
+    // AWS account ID linked to default test project provided
+    this.defaultAwsAccountId = await this.getDefaultAwsAccountId();
   }
 
   async defaultAdminSession() {
@@ -81,6 +84,12 @@ class Setup {
     const adminSession = await this.defaultAdminSession();
     const defaultProject = await adminSession.resources.projects.project(this.gen.defaultProjectId()).get();
     return defaultProject.indexId;
+  }
+
+  async getDefaultAwsAccountId() {
+    const adminSession = await this.defaultAdminSession();
+    const defaultIndex = await adminSession.resources.indexes.index(this.defaultIndexId).get();
+    return defaultIndex.awsAccountId;
   }
 
   async createAdminSession() {

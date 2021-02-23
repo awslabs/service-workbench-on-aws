@@ -19,7 +19,8 @@ const Projects = require('./resources/projects/projects');
 const Indexes = require('./resources/indexes/indexes');
 const CurrentUser = require('./resources/current-user');
 const PublicAuthProviderConfigs = require('./resources/public-auth-provider/public-auth-provider-configs');
-const WorkspaceTypes = require('./resources/workspace-types/workspace-types');
+const WorkspaceTypes = require('./resources/workspace-types/workspace-types.js');
+const AwsAccounts = require('./resources/aws-accounts/aws-accounts.js');
 const StepTemplates = require('./resources/step-templates/step-templates');
 
 // Returns the top level resource operations helpers. You should not use this directly in your tests.
@@ -30,6 +31,7 @@ async function getResources({ clientSession }) {
     studies: new Studies({ clientSession }),
     projects: new Projects({ clientSession }),
     indexes: new Indexes({ clientSession }),
+    awsAccounts: new AwsAccounts({ clientSession }),
     currentUser: new CurrentUser({ clientSession }),
     publicAuthProviderConfigs: new PublicAuthProviderConfigs({ clientSession }),
     workspaceTypes: new WorkspaceTypes({ clientSession }),
