@@ -121,7 +121,7 @@ describe('Get configurations scenarios', () => {
     ).resolves.toHaveLength(0);
   });
 
-  it('should return configurations a user has access', async () => {
+  it('should return configurations when a user has access', async () => {
     const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
     await adminSession.resources.workspaceTypes.create({

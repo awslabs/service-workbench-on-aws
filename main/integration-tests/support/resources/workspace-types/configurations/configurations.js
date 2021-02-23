@@ -27,7 +27,7 @@ class Configurations extends CollectionResource {
       childType: 'configuration',
     });
 
-    if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [configurations]');
+    if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [configuration]');
 
     this.api = `${parent.api}/configurations`;
   }
@@ -48,8 +48,8 @@ class Configurations extends CollectionResource {
       name: id,
       desc: this.setup.gen.description(),
       allowRoleIds: ['admin'],
-      // Match the template parameters of the cloud formation template of the service
-      // catalog product referenced the 'defaultProductId' setting.
+      // Matches the template parameters of the cloud formation template of the service
+      // catalog product referenced by the 'defaultProductId' setting.
       params: [
         { key: 'Namespace', value: 'int-test' },
         { key: 'AmiId', value: 'ami-0ff8a91507f77f867' },
