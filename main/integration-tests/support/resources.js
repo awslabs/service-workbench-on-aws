@@ -20,6 +20,7 @@ const Indexes = require('./resources/indexes/indexes.js');
 const CurrentUser = require('./resources/current-user.js');
 const PublicAuthProviderConfigs = require('./resources/public-auth-provider/public-auth-provider-configs');
 const WorkspaceTypes = require('./resources/workspace-types/workspace-types.js');
+const AwsAccounts = require('./resources/aws-accounts/aws-accounts.js');
 
 // Returns the top level resource operations helpers. You should not use this directly in your tests.
 // These top level resource operation helpers are available via client sessions.
@@ -29,6 +30,7 @@ async function getResources({ clientSession }) {
     studies: new Studies({ clientSession }),
     projects: new Projects({ clientSession }),
     indexes: new Indexes({ clientSession }),
+    awsAccounts: new AwsAccounts({ clientSession }),
     currentUser: new CurrentUser({ clientSession }),
     publicAuthProviderConfigs: new PublicAuthProviderConfigs({ clientSession }),
     workspaceTypes: new WorkspaceTypes({ clientSession }),
