@@ -16,42 +16,41 @@
 const _ = require('lodash');
 
 const Resource = require('../base/resource');
-const Configurations = require('./configurations/configurations');
-const ConfigVars = require('./config-vars/config-vars');
 
-class WorkspaceType extends Resource {
+class WorkspaceTypeCandidate extends Resource {
   constructor({ clientSession, id, parent }) {
     super({
       clientSession,
-      type: 'workspaceType',
+      type: 'workspaceTypeCandidate',
       id,
       parent,
     });
 
-    if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [workspace-type]');
+    if (_.isEmpty(parent))
+      throw Error('A parent resource was not provided to resource type [workspace-type-candidate]');
   }
 
-  configurations() {
-    return new Configurations({ clientSession: this.clientSession, parent: this });
+  async create() {
+    throw Error('Not Implemented');
   }
 
-  configVars() {
-    return new ConfigVars({ clientSession: this.clientSession, parent: this });
+  async get() {
+    throw Error('Not Implemented');
   }
 
-  async approve(body) {
-    const api = `${this.api}/approve`;
-
-    return this.doCall(async () => this.axiosClient.put(api, body, {}));
+  async update() {
+    throw Error('Not Implemented');
   }
 
-  async revoke(body) {
-    const api = `${this.api}/revoke`;
+  async delete() {
+    throw Error('Not Implemented');
+  }
 
-    return this.doCall(async () => this.axiosClient.put(api, body, {}));
+  async cleanup() {
+    // Do nothing
   }
 
   // ************************ Helpers methods ************************
 }
 
-module.exports = WorkspaceType;
+module.exports = WorkspaceTypeCandidate;
