@@ -42,7 +42,7 @@ describe('Get Account scenarios', () => {
       });
     });
 
-    it('should fail if internal guest attempts to get AWS Account', async () => {
+    it('should fail if internal guest attempts to get Account', async () => {
       const defaultAwsAccount = await adminSession.resources.awsAccounts.mustFindByAwsAccountId(
         setup.defaults.awsAccountId,
       );
@@ -52,7 +52,7 @@ describe('Get Account scenarios', () => {
       });
     });
 
-    it('should fail if external guest attempts to get AWS Account', async () => {
+    it('should fail if external guest attempts to get Account', async () => {
       const defaultAwsAccount = await adminSession.resources.awsAccounts.mustFindByAwsAccountId(
         setup.defaults.awsAccountId,
       );
@@ -68,7 +68,7 @@ describe('Get Account scenarios', () => {
       );
       const anonymousSession = await setup.createAnonymousSession();
       await expect(
-        anonymousSession.resources.awsAccounts.awsAccount(defaultAwsAccount.accountId).get(),
+        anonymousSession.resources.accounts.account(defaultAwsAccount.accountId).get(),
       ).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
