@@ -47,18 +47,14 @@ describe('Update AWS Account scenarios', () => {
 
     it('should fail when non-admin user is trying to provision AWS Account', async () => {
       const researcherSession = await setup.createResearcherSession();
-      const genParams = { prefix: 'create-aws-account-test-non-admin' };
-      const requestBody = {
-        name: setup.gen.string(genParams),
-        roleArn: setup.gen.string(genParams),
-        externalId: setup.gen.string(genParams),
-        accountId: setup.gen.string(genParams),
-        vpcId: setup.gen.string(genParams),
-        subnetId: setup.gen.string(genParams),
-        encryptionKeyArn: setup.gen.string(genParams),
-      };
 
-      await expect(researcherSession.resources.awsAccounts.provision(requestBody)).rejects.toMatchObject({
+      await expect(
+        researcherSession.resources.awsAccounts.provision(
+          researcherSession.resources.awsAccounts.defaults({
+            name: 'create-aws-account-test-non-admin',
+          }),
+        ),
+      ).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
     });
