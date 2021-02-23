@@ -13,10 +13,10 @@
  *  permissions and limitations under the License.
  */
 
-const { runSetup } = require('../../../support/setup');
-const errorCode = require('../../../support/utils/error-code');
+const { runSetup } = require('../../../../support/setup');
+const errorCode = require('../../../../support/utils/error-code');
 
-describe('Revoke workspace-type scenarios', () => {
+describe('Create configuration scenarios', () => {
   let setup;
   let adminSession;
 
@@ -29,24 +29,26 @@ describe('Revoke workspace-type scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('Revoke workspace-type', () => {
+  describe('Create configuration', () => {
     it('should fail if user is inactive', async () => {
       const adminSession2 = await setup.createAdminSession();
       const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
       await adminSession.resources.workspaceTypes.create({
         id: workspaceTypeId,
-        status: 'approved',
       });
 
-      const revokeBody = {
-        rev: 0,
-      };
+      await adminSession.resources.users.deactivateUser(adminSession2.user);
 
-      await adminSession2.resources.users.deactivateUser(adminSession2.user);
+      const configurationId = setup.gen.string({ prefix: 'configuration-test' });
 
       await expect(
-        adminSession2.resources.workspaceTypes.workspaceType(workspaceTypeId).revoke(revokeBody),
+        adminSession2.resources.workspaceTypes
+          .workspaceType(workspaceTypeId)
+          .configurations()
+          .create({
+            id: configurationId,
+          }),
       ).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
@@ -58,15 +60,17 @@ describe('Revoke workspace-type scenarios', () => {
 
       await adminSession.resources.workspaceTypes.create({
         id: workspaceTypeId,
-        status: 'approved',
       });
 
-      const revokeBody = {
-        rev: 0,
-      };
+      const configurationId = setup.gen.string({ prefix: 'configuration-test' });
 
       await expect(
-        researcherSession.resources.workspaceTypes.workspaceType(workspaceTypeId).revoke(revokeBody),
+        researcherSession.resources.workspaceTypes
+          .workspaceType(workspaceTypeId)
+          .configurations()
+          .create({
+            id: configurationId,
+          }),
       ).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
@@ -78,15 +82,17 @@ describe('Revoke workspace-type scenarios', () => {
 
       await adminSession.resources.workspaceTypes.create({
         id: workspaceTypeId,
-        status: 'approved',
       });
 
-      const revokeBody = {
-        rev: 0,
-      };
+      const configurationId = setup.gen.string({ prefix: 'configuration-test' });
 
       await expect(
-        anonymousSession.resources.workspaceTypes.workspaceType(workspaceTypeId).revoke(revokeBody),
+        anonymousSession.resources.workspaceTypes
+          .workspaceType(workspaceTypeId)
+          .configurations()
+          .create({
+            id: configurationId,
+          }),
       ).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
@@ -97,35 +103,40 @@ describe('Revoke workspace-type scenarios', () => {
 
       await adminSession.resources.workspaceTypes.create({
         id: workspaceTypeId,
-        status: 'approved',
       });
 
-      const revokeBody = {
-        invalid: 0,
-      };
+      const configurationId = setup.gen.string({ prefix: 'configuration-test' });
 
       await expect(
-        adminSession.resources.workspaceTypes.workspaceType(workspaceTypeId).revoke(revokeBody),
+        adminSession.resources.workspaceTypes
+          .workspaceType(workspaceTypeId)
+          .configurations()
+          .create({
+            id: configurationId,
+            invalid: 'data',
+          }),
       ).rejects.toMatchObject({
         code: errorCode.http.code.badRequest,
       });
     });
 
-    it('should revoke if user is admin', async () => {
+    it('should create if user is admin', async () => {
       const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
       await adminSession.resources.workspaceTypes.create({
         id: workspaceTypeId,
-        status: 'approved',
       });
 
-      const revokeBody = {
-        rev: 0,
-      };
+      const configurationId = setup.gen.string({ prefix: 'configuration-test' });
 
       await expect(
-        adminSession.resources.workspaceTypes.workspaceType(workspaceTypeId).revoke(revokeBody),
-      ).resolves.toHaveProperty('status', 'not-approved');
+        adminSession.resources.workspaceTypes
+          .workspaceType(workspaceTypeId)
+          .configurations()
+          .create({
+            id: configurationId,
+          }),
+      ).resolves.toHaveProperty('id', configurationId);
     });
   });
 });
