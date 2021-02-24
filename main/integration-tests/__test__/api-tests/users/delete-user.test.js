@@ -26,16 +26,8 @@ describe('Delete user scenarios', () => {
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
-    username = await setup.gen.username();
-    const password = await setup.gen.password();
-
-    defaultUser = {
-      username,
-      email: username,
-      password,
-      isAdmin: false,
-      userRole: 'researcher',
-    };
+    username = setup.gen.username();
+    defaultUser = adminSession.resources.users.defaults({ username });
 
     const defaultUserDetail = await adminSession.resources.users.create(defaultUser);
     uid = defaultUserDetail.uid;
@@ -55,7 +47,7 @@ describe('Delete user scenarios', () => {
 
     it('should fail for inactive admin', async () => {
       const admin1Session = await setup.createAdminSession();
-      await admin1Session.resources.currentUser.update({ status: 'inactive', rev: 0 });
+      await adminSession.resources.users.deactivateUser(admin1Session.user);
       await expect(admin1Session.resources.users.user(uid).delete()).rejects.toEqual(
         expect.objectContaining({ code: errorCode.http.code.unauthorized }),
       );
@@ -68,7 +60,7 @@ describe('Delete user scenarios', () => {
     });
 
     it('should fail for deleting user that does not exist', async () => {
-      const user1name = await setup.gen.username();
+      const user1name = setup.gen.username();
       const user1Detail = await adminSession.resources.users.create({
         ...defaultUser,
         username: user1name,

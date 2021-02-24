@@ -21,21 +21,11 @@ describe('Update user scenarios', () => {
   let defaultUser;
   let uid;
   let adminSession;
-  let username;
 
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
-    username = await setup.gen.username();
-    const password = await setup.gen.password();
-
-    defaultUser = {
-      username,
-      email: username,
-      password,
-      isAdmin: false,
-      userRole: 'researcher',
-    };
+    defaultUser = adminSession.resources.users.defaults();
 
     const defaultUserDetail = await adminSession.resources.users.create(defaultUser);
     uid = defaultUserDetail.uid;
@@ -57,10 +47,10 @@ describe('Update user scenarios', () => {
 
     it('should fail for inactive admin', async () => {
       const admin1Session = await setup.createAdminSession();
-      await admin1Session.resources.currentUser.update({ status: 'inactive', rev: 0 });
-      await expect(admin1Session.resources.users.user(uid).updateUserPassword(setup.gen.password())).rejects.toEqual(
-        expect.objectContaining({ code: errorCode.http.code.unauthorized }),
-      );
+      await adminSession.resources.users.deactivateUser(admin1Session.user);
+      await expect(
+        admin1Session.resources.users.user(uid).updateUserPassword(setup.gen.password()),
+      ).rejects.toMatchObject({ code: errorCode.http.code.unauthorized });
     });
 
     it('should update other user successfully for admin', async () => {
@@ -74,10 +64,8 @@ describe('Update user scenarios', () => {
 
     it.each(['researcher', 'guest', 'internal-guest'])('%a should fail to update password of self', async a => {
       const nonAdminSession = await setup.createUserSession({ userRole: a, projectId: [] });
-      const nonAdminDetail = await nonAdminSession.resources.currentUser.get();
-      const uid2 = nonAdminDetail.uid;
       await expect(
-        nonAdminSession.resources.users.user(uid2).updateUserPassword(setup.gen.password()),
+        nonAdminSession.resources.users.user(nonAdminSession.user.uid).updateUserPassword(setup.gen.password()),
       ).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });

@@ -20,11 +20,12 @@ describe('Create user scenarios', () => {
   let setup;
   let defaultUser;
   let username;
+  let adminSession;
 
   beforeAll(async () => {
     setup = await runSetup();
-    const adminSession = await setup.defaultAdminSession();
-    username = await setup.gen.username();
+    adminSession = await setup.defaultAdminSession();
+    username = setup.gen.username();
     defaultUser = adminSession.resources.users.defaults({ username });
   });
 
@@ -41,25 +42,25 @@ describe('Create user scenarios', () => {
     });
 
     it('should fail for inactive admin', async () => {
-      const adminSession = await setup.createAdminSession();
-      await adminSession.resources.currentUser.update({ status: 'inactive', rev: 0 });
-      await expect(adminSession.resources.users.bulkAddUsers([defaultUser])).rejects.toMatchObject({
+      const admin1Session = await setup.createAdminSession();
+      await adminSession.resources.users.deactivateUser(admin1Session.user);
+      await expect(admin1Session.resources.users.bulkAddUsers([defaultUser])).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });
 
     it('should create users successfully', async () => {
-      const adminSession = await setup.createAdminSession();
-      await expect(adminSession.resources.users.bulkAddUsers([defaultUser])).resolves.toMatchObject({
+      const admin1Session = await setup.createAdminSession();
+      await expect(admin1Session.resources.users.bulkAddUsers([defaultUser])).resolves.toMatchObject({
         errorCount: 0,
         successCount: 1,
       });
     });
 
     it('should fail for adding user that already exist', async () => {
-      const adminSession = await setup.createAdminSession();
-      const newUser = adminSession.resources.users.defaults();
-      await expect(adminSession.resources.users.bulkAddUsers([defaultUser, newUser])).rejects.toMatchObject({
+      const admin1Session = await setup.createAdminSession();
+      const newUser = admin1Session.resources.users.defaults();
+      await expect(admin1Session.resources.users.bulkAddUsers([defaultUser, newUser])).rejects.toMatchObject({
         code: errorCode.http.code.internalError,
       });
     });

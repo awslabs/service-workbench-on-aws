@@ -54,11 +54,6 @@ class Users extends CollectionResource {
     };
   }
 
-  async cleanup(user) {
-    const resource = new User({ clientSession: this.clientSession, id: user.uid, parent: this });
-    return resource.delete();
-  }
-
   // ************************ Helpers methods ************************
 
   async deactivateUser(user) {

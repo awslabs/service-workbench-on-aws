@@ -14,7 +14,7 @@
  */
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
 const UserAuthzService = require('../user-authz-service');
-const SystemContext = require('../../helpers/system-context');
+const systemContext = require('../../helpers/system-context');
 
 describe('UserAuthzService', () => {
   let service = null;
@@ -32,7 +32,7 @@ describe('UserAuthzService', () => {
   describe('authorizeCreate test', () => {
     it('should allow system to create root user', async () => {
       // BUILD
-      const sysContext = SystemContext.getSystemRequestContext();
+      const sysContext = systemContext.getSystemRequestContext();
 
       // OPERATE
       const sysContextTest = await service.authorizeCreate(sysContext, { action: 'test' }, { userType: 'root' });

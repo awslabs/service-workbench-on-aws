@@ -19,9 +19,11 @@ const errorCode = require('../../../support/utils/error-code');
 
 describe('Create user scenarios', () => {
   let setup;
+  let adminSession;
 
   beforeAll(async () => {
     setup = await runSetup();
+    adminSession = await setup.defaultAdminSession();
   });
 
   afterAll(async () => {
@@ -37,30 +39,30 @@ describe('Create user scenarios', () => {
     });
 
     it('should fail for inactive user', async () => {
-      const adminSession = await setup.createAdminSession();
-      await adminSession.resources.currentUser.update({ status: 'inactive', rev: 0 });
-      await expect(adminSession.resources.users.get()).rejects.toEqual(
-        expect.objectContaining({ code: errorCode.http.code.unauthorized }),
-      );
+      const admin1Session = await setup.createAdminSession();
+      await adminSession.resources.users.deactivateUser(admin1Session.user);
+      await expect(admin1Session.resources.users.get()).rejects.toMatchObject({
+        code: errorCode.http.code.unauthorized,
+      });
     });
 
     it('should return redacted list for researcher', async () => {
       const researcherSession = await setup.createResearcherSession();
       const result = await researcherSession.resources.users.get();
       expect(result.length).toBeGreaterThan(0);
-      const filterdResult = _.filter(
+      const filteredResult = _.filter(
         result,
-        user => 'isAdmin' in user || 'userRole' in user || 'encryptedCreds' in user,
+        user => _.has(user, 'isAdmin') || _.has(user, 'userRole') || _.has(user, 'encryptedCreds'),
       );
-      expect(filterdResult.length).toEqual(0);
+      expect(filteredResult.length).toEqual(0);
     });
 
     it('should return full list for Admin', async () => {
-      const adminSession = await setup.createAdminSession();
-      const result = await adminSession.resources.users.get();
+      const admin1Session = await setup.createAdminSession();
+      const result = await admin1Session.resources.users.get();
       expect(result.length).toBeGreaterThan(0);
-      const filterdResult = _.filter(result, user => 'isAdmin' in user && 'userRole' in user);
-      expect(filterdResult.length).toEqual(result.length);
+      const filteredResult = _.filter(result, user => _.has(user, 'isAdmin') && _.has(user, 'userRole'));
+      expect(filteredResult.length).toEqual(result.length);
     });
   });
 });

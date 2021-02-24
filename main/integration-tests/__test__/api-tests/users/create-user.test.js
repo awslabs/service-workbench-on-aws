@@ -20,19 +20,13 @@ describe('Create user scenarios', () => {
   let setup;
   let defaultUser;
   let username;
+  let adminSession;
 
   beforeAll(async () => {
     setup = await runSetup();
-    username = await setup.gen.username();
-    const password = await setup.gen.password();
-
-    defaultUser = {
-      username,
-      email: username,
-      password,
-      isAdmin: false,
-      userRole: 'researcher',
-    };
+    adminSession = await setup.defaultAdminSession();
+    username = setup.gen.username();
+    defaultUser = adminSession.resources.users.defaults({ username });
   });
 
   afterAll(async () => {
@@ -48,33 +42,33 @@ describe('Create user scenarios', () => {
     });
 
     it('should fail for inactive admin', async () => {
-      const adminSession = await setup.createAdminSession();
-      await adminSession.resources.currentUser.update({ status: 'inactive', rev: 0 });
-      await expect(adminSession.resources.users.create(defaultUser)).rejects.toEqual(
+      const admin1Session = await setup.createAdminSession();
+      await adminSession.resources.users.deactivateUser(admin1Session.user);
+      await expect(admin1Session.resources.users.create(defaultUser)).rejects.toEqual(
         expect.objectContaining({ code: errorCode.http.code.unauthorized }),
       );
     });
 
     it('should fail for creating root user', async () => {
-      const adminSession = await setup.createAdminSession();
+      const admin1Session = await setup.createAdminSession();
       await expect(
-        adminSession.resources.users.create({ ...defaultUser, isAdmin: true, userRole: 'admin', userType: 'root' }),
+        admin1Session.resources.users.create({ ...defaultUser, isAdmin: true, userRole: 'admin', userType: 'root' }),
       ).rejects.toEqual(expect.objectContaining({ code: errorCode.http.code.forbidden }));
     });
 
     it('should create user successfully', async () => {
-      const adminSession = await setup.createAdminSession();
-      await expect(adminSession.resources.users.create(defaultUser)).resolves.toMatchObject({
+      const admin1Session = await setup.createAdminSession();
+      await expect(admin1Session.resources.users.create(defaultUser)).resolves.toMatchObject({
         username,
       });
     });
 
     it('should fail for adding user that already exist', async () => {
-      const adminSession = await setup.createAdminSession();
+      const admin1Session = await setup.createAdminSession();
       const username1 = await setup.gen.username();
-      await adminSession.resources.users.create({ ...defaultUser, username: username1, email: username1 });
+      await admin1Session.resources.users.create({ ...defaultUser, username: username1, email: username1 });
       await expect(
-        adminSession.resources.users.create({ ...defaultUser, username: username1, email: username1 }),
+        admin1Session.resources.users.create({ ...defaultUser, username: username1, email: username1 }),
       ).rejects.toMatchObject({
         code: errorCode.http.code.alreadyExists,
       });

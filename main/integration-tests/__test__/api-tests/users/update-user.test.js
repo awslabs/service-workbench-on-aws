@@ -26,16 +26,8 @@ describe('Update user scenarios', () => {
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
-    username = await setup.gen.username();
-    const password = await setup.gen.password();
-
-    defaultUser = {
-      username,
-      email: username,
-      password,
-      isAdmin: false,
-      userRole: 'researcher',
-    };
+    username = setup.gen.username();
+    defaultUser = adminSession.resources.users.defaults({ username });
 
     const defaultUserDetail = await adminSession.resources.users.create(defaultUser);
     uid = defaultUserDetail.uid;
@@ -57,10 +49,10 @@ describe('Update user scenarios', () => {
 
     it('should fail for inactive admin', async () => {
       const admin1Session = await setup.createAdminSession();
-      await admin1Session.resources.currentUser.update({ status: 'inactive', rev: 0 });
-      await expect(admin1Session.resources.users.user(uid).update({ rev: 0, firstName: 'John' })).rejects.toEqual(
-        expect.objectContaining({ code: errorCode.http.code.unauthorized }),
-      );
+      await adminSession.resources.users.deactivateUser(admin1Session.user);
+      await expect(
+        admin1Session.resources.users.user(uid).update({ rev: 0, firstName: 'John' }),
+      ).rejects.toMatchObject({ code: errorCode.http.code.unauthorized });
     });
 
     it('should update other user successfully for admin', async () => {
@@ -74,26 +66,24 @@ describe('Update user scenarios', () => {
 
     it.each(['researcher', 'guest', 'internal-guest'])('should update self successfully for %a', async a => {
       const nonAdminSession = await setup.createUserSession({ userRole: a, projectId: [] });
-      const nonAdminDetail = await nonAdminSession.resources.currentUser.get();
       await expect(
-        nonAdminSession.resources.users.user(nonAdminDetail.uid).update({ rev: 0, firstName: 'John' }),
+        nonAdminSession.resources.users.user(nonAdminSession.user.uid).update({ rev: 0, firstName: 'John' }),
       ).resolves.toMatchObject({
-        uid: nonAdminDetail.uid,
+        uid: nonAdminSession.user.uid,
         firstName: 'John',
       });
     });
 
     it.each(['researcher', 'guest', 'internal-guest'])('should fail if %a update restrictive fields', async a => {
       const nonAdminSession = await setup.createUserSession({ userRole: a, projectId: [] });
-      const nonAdminDetail = await nonAdminSession.resources.currentUser.get();
       await expect(
-        nonAdminSession.resources.users.user(nonAdminDetail.uid).update({ rev: 0, isAdmin: true }),
+        nonAdminSession.resources.users.user(nonAdminSession.user.uid).update({ rev: 0, isAdmin: true }),
       ).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
       const projectId = await setup.gen.defaultProjectId();
       await expect(
-        nonAdminSession.resources.users.user(nonAdminDetail.uid).update({ rev: 0, projectId: [projectId] }),
+        nonAdminSession.resources.users.user(nonAdminSession.user.uid).update({ rev: 0, projectId: [projectId] }),
       ).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
