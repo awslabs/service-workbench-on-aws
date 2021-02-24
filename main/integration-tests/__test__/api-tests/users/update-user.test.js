@@ -81,7 +81,7 @@ describe('Update user scenarios', () => {
       ).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
-      const projectId = await setup.gen.defaultProjectId();
+      const projectId = setup.defaults.project.id;
       await expect(
         nonAdminSession.resources.users.user(nonAdminSession.user.uid).update({ rev: 0, projectId: [projectId] }),
       ).rejects.toMatchObject({
