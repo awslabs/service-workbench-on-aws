@@ -24,7 +24,7 @@ describe('Update project scenarios', () => {
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
-    defaultProject = await adminSession.resources.projects.mustFind(setup.defaults.project.id);
+    defaultProject = setup.defaults.project;
   });
 
   afterAll(async () => {

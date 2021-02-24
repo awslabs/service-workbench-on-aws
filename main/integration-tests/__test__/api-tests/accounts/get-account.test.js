@@ -19,10 +19,12 @@ const errorCode = require('../../../support/utils/error-code');
 describe('Get Account scenarios', () => {
   let setup;
   let adminSession;
+  let defaultAwsAccount;
 
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
+    defaultAwsAccount = setup.defaults.awsAccount;
   });
 
   afterAll(async () => {
@@ -33,9 +35,6 @@ describe('Get Account scenarios', () => {
     it('should fail if user is inactive', async () => {
       const admin2Session = await setup.createAdminSession();
       await adminSession.resources.users.deactivateUser(admin2Session.user);
-      const defaultAwsAccount = await adminSession.resources.awsAccounts.mustFindByAwsAccountId(
-        setup.defaults.awsAccount.id,
-      );
 
       await expect(admin2Session.resources.accounts.account(defaultAwsAccount.accountId).get()).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
@@ -43,9 +42,6 @@ describe('Get Account scenarios', () => {
     });
 
     it('should fail if internal guest attempts to get Account', async () => {
-      const defaultAwsAccount = await adminSession.resources.awsAccounts.mustFindByAwsAccountId(
-        setup.defaults.awsAccount.id,
-      );
       const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
       await expect(guestSession.resources.accounts.account(defaultAwsAccount.accountId).get()).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
@@ -53,9 +49,6 @@ describe('Get Account scenarios', () => {
     });
 
     it('should fail if external guest attempts to get Account', async () => {
-      const defaultAwsAccount = await adminSession.resources.awsAccounts.mustFindByAwsAccountId(
-        setup.defaults.awsAccount.id,
-      );
       const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
       await expect(guestSession.resources.accounts.account(defaultAwsAccount.accountId).get()).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
@@ -63,9 +56,6 @@ describe('Get Account scenarios', () => {
     });
 
     it('should fail for anonymous user', async () => {
-      const defaultAwsAccount = await adminSession.resources.awsAccounts.mustFindByAwsAccountId(
-        setup.defaults.awsAccount.id,
-      );
       const anonymousSession = await setup.createAnonymousSession();
       await expect(
         anonymousSession.resources.accounts.account(defaultAwsAccount.accountId).get(),
