@@ -92,7 +92,7 @@ class IndexesService extends Service {
     try {
       await awsAccountsService.mustFind(requestContext, { id: rawData.awsAccountId });
     } catch (err) {
-      throw this.boom.badRequest(`Incorrect AWS Account ID provided`, true).cause(err);
+      throw this.boom.badRequest('Incorrect AWS Account ID provided', true).cause(err);
     }
 
     // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups

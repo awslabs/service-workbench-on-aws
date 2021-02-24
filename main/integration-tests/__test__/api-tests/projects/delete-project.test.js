@@ -24,7 +24,7 @@ describe('Delete project scenarios', () => {
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
-    defaultProject = await adminSession.resources.projects.mustFind(setup.defaults.projectId);
+    defaultProject = await adminSession.resources.projects.mustFind(setup.defaults.project.id);
   });
 
   afterAll(async () => {

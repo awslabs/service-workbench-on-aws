@@ -52,7 +52,7 @@ describe('Create project scenarios', () => {
     it('should fail if projectId is duplicate to the one already in the system', async () => {
       const admin2Session = await setup.createAdminSession();
 
-      await expect(admin2Session.resources.projects.create(setup.defaults.projectId)).rejects.toMatchObject({
+      await expect(admin2Session.resources.projects.create(setup.defaults.project.id)).rejects.toMatchObject({
         code: errorCode.http.code.badRequest,
       });
     });

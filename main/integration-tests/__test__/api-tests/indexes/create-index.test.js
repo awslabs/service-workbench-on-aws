@@ -19,12 +19,10 @@ const errorCode = require('../../../support/utils/error-code');
 describe('Create index scenarios', () => {
   let setup;
   let adminSession;
-  let defaultIndex;
 
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
-    defaultIndex = await adminSession.resources.indexes.mustFind(setup.defaults.indexId);
   });
 
   afterAll(async () => {
@@ -38,7 +36,7 @@ describe('Create index scenarios', () => {
       await adminSession.resources.users.deactivateUser(admin2Session.user);
 
       await expect(
-        admin2Session.resources.indexes.create({ id: testIndexId, awsAccountId: defaultIndex.awsAccountId }),
+        admin2Session.resources.indexes.create({ id: testIndexId, awsAccountId: setup.defaults.index.awsAccountId }),
       ).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
@@ -49,7 +47,10 @@ describe('Create index scenarios', () => {
       const researcherSession = await setup.createResearcherSession();
 
       await expect(
-        researcherSession.resources.indexes.create({ id: testIndexId, awsAccountId: defaultIndex.awsAccountId }),
+        researcherSession.resources.indexes.create({
+          id: testIndexId,
+          awsAccountId: setup.defaults.index.awsAccountId,
+        }),
       ).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
@@ -57,10 +58,10 @@ describe('Create index scenarios', () => {
 
     it('should fail if indexId already exists', async () => {
       const admin2Session = await setup.createAdminSession();
-      const defaultIndexId = setup.defaults.indexId;
+      const defaultIndexId = setup.defaults.index.id;
 
       await expect(
-        admin2Session.resources.indexes.create({ id: defaultIndexId, awsAccountId: defaultIndex.awsAccountId }),
+        admin2Session.resources.indexes.create({ id: defaultIndexId, awsAccountId: setup.defaults.index.awsAccountId }),
       ).rejects.toMatchObject({
         code: errorCode.http.code.badRequest,
       });
@@ -83,7 +84,7 @@ describe('Create index scenarios', () => {
       const testIndexId = setup.gen.string({ prefix: `create-index-test-anon-user` });
       const anonymousSession = await setup.createAnonymousSession();
       await expect(
-        anonymousSession.resources.indexes.create({ id: testIndexId, awsAccountId: defaultIndex.awsAccountId }),
+        anonymousSession.resources.indexes.create({ id: testIndexId, awsAccountId: setup.defaults.index.awsAccountId }),
       ).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });

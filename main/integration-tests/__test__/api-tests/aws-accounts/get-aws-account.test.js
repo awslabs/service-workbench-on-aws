@@ -35,7 +35,7 @@ describe('Get AWS Account scenarios', () => {
       await adminSession.resources.users.deactivateUser(admin2Session.user);
 
       await expect(
-        admin2Session.resources.awsAccounts.awsAccount(setup.defaults.awsAccountId).get(),
+        admin2Session.resources.awsAccounts.awsAccount(setup.defaults.awsAccount.id).get(),
       ).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
@@ -44,7 +44,7 @@ describe('Get AWS Account scenarios', () => {
     it('should fail if internal guest attempts to get AWS Account', async () => {
       const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
       await expect(
-        guestSession.resources.awsAccounts.awsAccount(setup.defaults.awsAccountId).get(),
+        guestSession.resources.awsAccounts.awsAccount(setup.defaults.awsAccount.id).get(),
       ).rejects.toMatchObject({
         code: errorCode.http.code.notFound,
       });
@@ -53,7 +53,7 @@ describe('Get AWS Account scenarios', () => {
     it('should fail if external guest attempts to get AWS Account', async () => {
       const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
       await expect(
-        guestSession.resources.awsAccounts.awsAccount(setup.defaults.awsAccountId).get(),
+        guestSession.resources.awsAccounts.awsAccount(setup.defaults.awsAccount.id).get(),
       ).rejects.toMatchObject({
         code: errorCode.http.code.notFound,
       });
@@ -62,7 +62,7 @@ describe('Get AWS Account scenarios', () => {
     it('should fail for anonymous user', async () => {
       const anonymousSession = await setup.createAnonymousSession();
       await expect(
-        anonymousSession.resources.awsAccounts.awsAccount(setup.defaults.awsAccountId).get(),
+        anonymousSession.resources.awsAccounts.awsAccount(setup.defaults.awsAccount.id).get(),
       ).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });

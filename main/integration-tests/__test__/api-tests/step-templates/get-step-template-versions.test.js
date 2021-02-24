@@ -24,7 +24,7 @@ describe('Get step templates versions scenarios', () => {
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
-    templateId = setup.defaults.stepTemplateId;
+    templateId = setup.defaults.stepTemplate.id;
   });
 
   afterAll(async () => {

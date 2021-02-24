@@ -46,7 +46,7 @@ class Studies extends CollectionResource {
       name: id,
       category: 'My Studies',
       description: this.setup.gen.description(),
-      projectId: this.setup.defaults.projectId,
+      projectId: this.setup.defaults.project.id,
       uploadLocationEnabled: true,
       ...study,
     };
