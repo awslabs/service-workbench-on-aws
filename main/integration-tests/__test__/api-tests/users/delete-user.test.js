@@ -48,9 +48,9 @@ describe('Delete user scenarios', () => {
     it('should fail for inactive admin', async () => {
       const admin1Session = await setup.createAdminSession();
       await adminSession.resources.users.deactivateUser(admin1Session.user);
-      await expect(admin1Session.resources.users.user(uid).delete()).rejects.toEqual(
-        expect.objectContaining({ code: errorCode.http.code.unauthorized }),
-      );
+      await expect(admin1Session.resources.users.user(uid).delete()).rejects.toMatchObject({
+        code: errorCode.http.code.unauthorized,
+      });
     });
 
     it('should delete user successfully', async () => {

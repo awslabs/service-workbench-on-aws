@@ -65,7 +65,7 @@ describe('Create user scenarios', () => {
 
     it('should fail for adding user that already exist', async () => {
       const admin1Session = await setup.createAdminSession();
-      const username1 = await setup.gen.username();
+      const username1 = setup.gen.username();
       await admin1Session.resources.users.create({ ...defaultUser, username: username1, email: username1 });
       await expect(
         admin1Session.resources.users.create({ ...defaultUser, username: username1, email: username1 }),
