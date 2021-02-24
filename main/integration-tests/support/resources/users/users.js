@@ -48,7 +48,7 @@ class Users extends CollectionResource {
       lastName: gen.lastName(),
       isAdmin: false,
       status: 'active',
-      projectId: [gen.defaultProjectId()],
+      projectId: [this.setup.defaults.project.id],
       userRole: 'researcher',
       ...user,
     };
