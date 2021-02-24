@@ -17,24 +17,19 @@ const _ = require('lodash');
 
 const Resource = require('../base/resource');
 
-class Project extends Resource {
+class Account extends Resource {
   constructor({ clientSession, id, parent }) {
     super({
       clientSession,
-      type: 'project',
+      type: 'account',
       id,
       parent,
     });
 
-    if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [project]');
-  }
-
-  async cleanup() {
-    if (this.id === this.setup.defaults.project.id) return;
-    await super.cleanup();
+    if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [account]');
   }
 
   // ************************ Helpers methods ************************
 }
 
-module.exports = Project;
+module.exports = Account;

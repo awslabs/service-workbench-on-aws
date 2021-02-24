@@ -16,7 +16,7 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
-describe('Delete index scenarios', () => {
+describe('List accounts scenarios', () => {
   let setup;
   let adminSession;
 
@@ -29,44 +29,33 @@ describe('Delete index scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('Deleting an index', () => {
-    it('should fail if admin is inactive', async () => {
-      const testIndexId = setup.gen.string({ prefix: `delete-index-test-inactive-admin` });
-      const newIndex = await adminSession.resources.indexes.create({
-        id: testIndexId,
-        awsAccountId: setup.defaults.index.awsAccountId,
-      });
-
+  describe('List accounts', () => {
+    it('should fail if user is inactive', async () => {
       const admin2Session = await setup.createAdminSession();
       await adminSession.resources.users.deactivateUser(admin2Session.user);
 
-      await expect(admin2Session.resources.indexes.index(newIndex.id).delete()).rejects.toMatchObject({
+      await expect(admin2Session.resources.accounts.get()).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });
 
-    it('should fail if non-admin user is trying to delete index', async () => {
-      const testIndexId = setup.gen.string({ prefix: `delete-index-test-non-admin` });
-      const newIndex = await adminSession.resources.indexes.create({
-        id: testIndexId,
-        awsAccountId: setup.defaults.index.awsAccountId,
+    it('should fail to get Accounts list for internal guest', async () => {
+      const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
+      await expect(guestSession.resources.accounts.get()).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
       });
+    });
 
-      const researcherSession = await setup.createResearcherSession();
-
-      await expect(researcherSession.resources.indexes.index(newIndex.id).delete()).rejects.toMatchObject({
+    it('should fail to get Accounts list for external guest', async () => {
+      const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
+      await expect(guestSession.resources.accounts.get()).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
     });
 
     it('should fail for anonymous user', async () => {
-      const testIndexId = setup.gen.string({ prefix: `delete-index-test-anon-user` });
-      const newIndex = await adminSession.resources.indexes.create({
-        id: testIndexId,
-        awsAccountId: setup.defaults.index.awsAccountId,
-      });
       const anonymousSession = await setup.createAnonymousSession();
-      await expect(anonymousSession.resources.indexes.index(newIndex.id).delete()).rejects.toMatchObject({
+      await expect(anonymousSession.resources.accounts.get()).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });

@@ -33,7 +33,7 @@ describe('Validate a step templates version configuration scenarios', () => {
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
-    templateId = setup.gen.defaultStepTemplateId();
+    templateId = setup.defaults.stepTemplate.id;
   });
 
   afterAll(async () => {

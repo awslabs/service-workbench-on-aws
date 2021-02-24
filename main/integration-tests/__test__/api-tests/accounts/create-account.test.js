@@ -16,7 +16,7 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
-describe('Delete index scenarios', () => {
+describe('Create Account scenarios', () => {
   let setup;
   let adminSession;
 
@@ -29,44 +29,46 @@ describe('Delete index scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('Deleting an index', () => {
+  describe('Creating an Account', () => {
     it('should fail if admin is inactive', async () => {
-      const testIndexId = setup.gen.string({ prefix: `delete-index-test-inactive-admin` });
-      const newIndex = await adminSession.resources.indexes.create({
-        id: testIndexId,
-        awsAccountId: setup.defaults.index.awsAccountId,
-      });
-
+      const testAwsAccountId = setup.gen.string({ prefix: `create-account-test-inactive-admin` });
       const admin2Session = await setup.createAdminSession();
       await adminSession.resources.users.deactivateUser(admin2Session.user);
 
-      await expect(admin2Session.resources.indexes.index(newIndex.id).delete()).rejects.toMatchObject({
+      await expect(admin2Session.resources.accounts.create(testAwsAccountId)).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });
 
-    it('should fail if non-admin user is trying to delete index', async () => {
-      const testIndexId = setup.gen.string({ prefix: `delete-index-test-non-admin` });
-      const newIndex = await adminSession.resources.indexes.create({
-        id: testIndexId,
-        awsAccountId: setup.defaults.index.awsAccountId,
-      });
-
+    it('should fail if non-admin user is trying to create Account', async () => {
+      const testAwsAccountId = setup.gen.string({ prefix: `create-account-test-non-admin` });
       const researcherSession = await setup.createResearcherSession();
 
-      await expect(researcherSession.resources.indexes.index(newIndex.id).delete()).rejects.toMatchObject({
+      await expect(researcherSession.resources.accounts.create(testAwsAccountId)).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
     });
 
-    it('should fail for anonymous user', async () => {
-      const testIndexId = setup.gen.string({ prefix: `delete-index-test-anon-user` });
-      const newIndex = await adminSession.resources.indexes.create({
-        id: testIndexId,
-        awsAccountId: setup.defaults.index.awsAccountId,
+    it('should fail if the body does not contain required fields', async () => {
+      const admin2Session = await setup.createAdminSession();
+      const prefix = 'create-account-test-req-fields';
+      const requestBody = {
+        accountName: setup.gen.string({ prefix }),
+        accountEmail: setup.gen.username({ prefix }),
+
+        // Other required params are:
+        // masterRoleArn, externalId
+      };
+
+      await expect(admin2Session.resources.accounts.create(requestBody)).rejects.toMatchObject({
+        code: errorCode.http.code.badRequest,
       });
+    });
+
+    it('should fail for anonymous user', async () => {
+      const testAwsAccountId = setup.gen.string({ prefix: `create-account-test-anon-user` });
       const anonymousSession = await setup.createAnonymousSession();
-      await expect(anonymousSession.resources.indexes.index(newIndex.id).delete()).rejects.toMatchObject({
+      await expect(anonymousSession.resources.accounts.create(testAwsAccountId)).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });
