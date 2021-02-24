@@ -68,7 +68,13 @@ describe('Get workflow templates drafts scenarios', () => {
     });
 
     it('should return workflow template drafts if admin', async () => {
-      await expect(adminSession.resources.workflowTemplates.drafts().get()).resolves.toStrictEqual([]);
+      // First we create at least one draft since we don't know how many drafts are in the database
+      const draft = await adminSession.resources.workflowTemplates.drafts().create();
+
+      await expect(adminSession.resources.workflowTemplates.drafts().find(draft.id)).resolves.toHaveProperty(
+        'id',
+        draft.id,
+      );
     });
   });
 });
