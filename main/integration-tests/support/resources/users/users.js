@@ -60,6 +60,10 @@ class Users extends CollectionResource {
     const resource = new User({ clientSession: this.clientSession, id: user.uid, parent: this });
     return resource.update({ status: 'inactive', rev: user.rev });
   }
+
+  async bulkAddUsers(users) {
+    return this.doCall(async () => this.axiosClient.post(`${this.api}/bulk`, users));
+  }
 }
 
 module.exports = Users;
