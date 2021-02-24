@@ -18,6 +18,12 @@ const { createHash } = require('@aws-ee/base-services/lib/helpers/utils');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
 
+// To add a new service catalog CfN template,
+// Add the file in addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/service-catalog
+// Note: 1. The *Product Name* that will be used to create/update/record for this auto-create process will be the displayName value.
+//          If displayName is not provided, then the filename will be used instead
+//       2. Please make sure there isn't a product with the same *Product Name* already in SC,
+//          else it will get skipped during creation
 const productsToCreate = [
   // ADD YOUR NEW CFN FILE DETAILS HERE
   // {
