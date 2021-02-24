@@ -16,7 +16,7 @@
 
 const CollectionResource = require('../base/collection-resource');
 
-class WorkspaceTypeCandidate extends CollectionResource {
+class WorkspaceTypeCandidates extends CollectionResource {
   constructor({ clientSession }) {
     super({
       clientSession,
@@ -30,4 +30,4 @@ class WorkspaceTypeCandidate extends CollectionResource {
   // ************************ Helpers methods ************************
 }
 
-module.exports = WorkspaceTypeCandidate;
+module.exports = WorkspaceTypeCandidates;

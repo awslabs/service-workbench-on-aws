@@ -20,7 +20,7 @@ const Indexes = require('./resources/indexes/indexes');
 const CurrentUser = require('./resources/current-user');
 const PublicAuthProviderConfigs = require('./resources/public-auth-provider/public-auth-provider-configs');
 const WorkspaceTypes = require('./resources/workspace-types/workspace-types');
-const WorkspaceTypeCandidates = require('./resources/workspace-type-candidates/workspace-type-candidates.js');
+const WorkspaceTypeCandidates = require('./resources/workspace-type-candidates/workspace-type-candidates');
 const AwsAccounts = require('./resources/aws-accounts/aws-accounts');
 const StepTemplates = require('./resources/step-templates/step-templates');
 
