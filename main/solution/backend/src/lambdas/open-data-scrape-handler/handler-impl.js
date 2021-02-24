@@ -174,8 +174,16 @@ module.exports = function newHandler({ studyService, log = consoleLogger } = {})
     log.info(`Fetching ${fileUrls.length} metadata files`);
     const metadata = await Promise.all(fileUrls.map(fetchFile));
 
-    log.info(`Filtering for ${requiredTags} tags`);
-    const filtered = metadata.filter(({ tags }) => requiredTags.some(filterTag => tags.includes(filterTag)));
+    log.info(`Filtering for ${requiredTags} tags and resources with valid ARNs`);
+    const validS3Arn = new RegExp(/^arn:aws:s3:.*:.*:.+$/);
+    const filtered = metadata.filter(({ tags, resources }) => {
+      return (
+        requiredTags.some(filterTag => tags.includes(filterTag)) &&
+        resources.every(resource => {
+          return resource.type === 'S3 Bucket' && validS3Arn.test(resource.arn);
+        })
+      );
+    });
 
     return filtered;
   }
