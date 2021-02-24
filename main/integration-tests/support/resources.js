@@ -22,6 +22,7 @@ const PublicAuthProviderConfigs = require('./resources/public-auth-provider/publ
 const WorkspaceTypes = require('./resources/workspace-types/workspace-types');
 const AwsAccounts = require('./resources/aws-accounts/aws-accounts');
 const Accounts = require('./resources/accounts/accounts');
+const WorkspaceTypeCandidates = require('./resources/workspace-type-candidates/workspace-type-candidates');
 const StepTemplates = require('./resources/step-templates/step-templates');
 
 // Returns the top level resource operations helpers. You should not use this directly in your tests.
@@ -37,6 +38,7 @@ async function getResources({ clientSession }) {
     currentUser: new CurrentUser({ clientSession }),
     publicAuthProviderConfigs: new PublicAuthProviderConfigs({ clientSession }),
     workspaceTypes: new WorkspaceTypes({ clientSession }),
+    workspaceTypeCandidates: new WorkspaceTypeCandidates({ clientSession }),
     stepTemplates: new StepTemplates({ clientSession }),
   };
 
