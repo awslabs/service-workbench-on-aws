@@ -30,9 +30,7 @@ class Index extends Resource {
   }
 
   async cleanup(index) {
-    const defaultIndexId = await this.setup.gen.defaultIndexId();
-
-    if (index.id === defaultIndexId) return;
+    if (index.id === this.setup.defaults.index.id) return;
     await super.cleanup();
   }
 

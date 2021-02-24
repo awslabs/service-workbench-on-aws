@@ -16,6 +16,8 @@
 const _ = require('lodash');
 
 const Resource = require('../base/resource');
+const Configurations = require('./configurations/configurations');
+const ConfigVars = require('./config-vars/config-vars');
 
 class WorkspaceType extends Resource {
   constructor({ clientSession, id, parent }) {
@@ -27,6 +29,14 @@ class WorkspaceType extends Resource {
     });
 
     if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [workspace-type]');
+  }
+
+  configurations() {
+    return new Configurations({ clientSession: this.clientSession, parent: this });
+  }
+
+  configVars() {
+    return new ConfigVars({ clientSession: this.clientSession, parent: this });
   }
 
   async approve(body) {

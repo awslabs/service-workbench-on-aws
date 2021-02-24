@@ -19,14 +19,10 @@ const errorCode = require('../../../support/utils/error-code');
 describe('Delete index scenarios', () => {
   let setup;
   let adminSession;
-  let defaultProject;
-  let defaultIndex;
 
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
-    defaultProject = await adminSession.resources.projects.mustFind(setup.gen.defaultProjectId());
-    defaultIndex = await adminSession.resources.indexes.mustFind(defaultProject.indexId);
   });
 
   afterAll(async () => {
@@ -38,7 +34,7 @@ describe('Delete index scenarios', () => {
       const testIndexId = setup.gen.string({ prefix: `delete-index-test-inactive-admin` });
       const newIndex = await adminSession.resources.indexes.create({
         id: testIndexId,
-        awsAccountId: defaultIndex.awsAccountId,
+        awsAccountId: setup.defaults.index.awsAccountId,
       });
 
       const admin2Session = await setup.createAdminSession();
@@ -49,11 +45,11 @@ describe('Delete index scenarios', () => {
       });
     });
 
-    it('should fail if non-admin user is trying to delete project', async () => {
+    it('should fail if non-admin user is trying to delete index', async () => {
       const testIndexId = setup.gen.string({ prefix: `delete-index-test-non-admin` });
       const newIndex = await adminSession.resources.indexes.create({
         id: testIndexId,
-        awsAccountId: defaultIndex.awsAccountId,
+        awsAccountId: setup.defaults.index.awsAccountId,
       });
 
       const researcherSession = await setup.createResearcherSession();
@@ -67,7 +63,7 @@ describe('Delete index scenarios', () => {
       const testIndexId = setup.gen.string({ prefix: `delete-index-test-anon-user` });
       const newIndex = await adminSession.resources.indexes.create({
         id: testIndexId,
-        awsAccountId: defaultIndex.awsAccountId,
+        awsAccountId: setup.defaults.index.awsAccountId,
       });
       const anonymousSession = await setup.createAnonymousSession();
       await expect(anonymousSession.resources.indexes.index(newIndex.id).delete()).rejects.toMatchObject({
