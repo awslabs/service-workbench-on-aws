@@ -19,6 +19,7 @@ const errorCode = require('../../../support/utils/error-code');
 describe('Delete project scenarios', () => {
   let setup;
   let adminSession;
+  let defaultProject;
 
   beforeAll(async () => {
     setup = await runSetup();
