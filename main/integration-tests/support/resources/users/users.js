@@ -64,10 +64,6 @@ class Users extends CollectionResource {
   async bulkAddUsers(users) {
     return this.doCall(async () => this.axiosClient.post(`${this.api}/bulk`, users));
   }
-
-  roles() {
-    return ['admin', 'researcher', 'guest', 'internal-guest'];
-  }
 }
 
 module.exports = Users;
