@@ -101,7 +101,7 @@ describe('Delete workspace-type scenarios', () => {
 
       await expect(
         adminSession.resources.workspaceTypes.workspaceType(workspaceTypeId).delete(),
-      ).resolves.toBeUndefined();
+      ).resolves.toMatchObject({});
 
       await expect(adminSession.resources.workspaceTypes.workspaceType(workspaceTypeId).get()).rejects.toMatchObject({
         code: errorCode.http.code.notFound,

@@ -35,6 +35,10 @@ function isRoot(requestContext) {
   return _.get(requestContext, 'principal.userType', '') === 'root';
 }
 
+function isSystem(requestContext) {
+  return _.get(requestContext, 'principalIdentifier.uid') === '_system_';
+}
+
 function allow() {
   return {
     effect: 'allow',
@@ -100,6 +104,13 @@ async function allowIfRoot(requestContext, { action }) {
   return allow();
 }
 
+async function allowIfSystem(requestContext, { action }) {
+  if (!isSystem(requestContext)) {
+    return deny(`Cannot perform the specified action "${action}". Only system can.`);
+  }
+  return allow();
+}
+
 function isAllow({ effect }) {
   return _.toLower(effect) === 'allow';
 }
@@ -118,6 +129,7 @@ module.exports = {
   allowIfActive,
   allowIfAdmin,
   allowIfRoot,
+  allowIfSystem,
 
   isAllow,
   isDeny,
@@ -127,4 +139,5 @@ module.exports = {
   isAdmin,
   isActive,
   isRoot,
+  isSystem,
 };
