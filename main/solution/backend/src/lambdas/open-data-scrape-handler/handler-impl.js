@@ -38,7 +38,7 @@ if (typeof fetch !== 'function' && fetch.default && typeof fetch.default === 'fu
   fetch = fetch.default;
 }
 
-module.exports = function newHandler({ studyService, log = consoleLogger } = {}) {
+const newHandler = async ({ studyService, log = consoleLogger } = {}) => {
   const scrape = {
     githubApiUrl: 'https://api.github.com',
     rawGithubUrl: 'https://raw.githubusercontent.com',
@@ -170,16 +170,6 @@ module.exports = function newHandler({ studyService, log = consoleLogger } = {})
     return normalizeKeys({ ...doc, id, sha });
   }
 
-  async function fetchOpenData({ fileUrls, requiredTags }) {
-    log.info(`Fetching ${fileUrls.length} metadata files`);
-    const metadata = await Promise.all(fileUrls.map(fetchFile));
-
-    log.info(`Filtering for ${requiredTags} tags`);
-    const filtered = metadata.filter(({ tags }) => requiredTags.some(filterTag => tags.includes(filterTag)));
-
-    return filtered;
-  }
-
   function basicProjection({ id, sha, name, description, resources }) {
     return {
       id,
@@ -193,7 +183,7 @@ module.exports = function newHandler({ studyService, log = consoleLogger } = {})
 
   return async () => {
     const fileUrls = await fetchDatasetFiles();
-    const opendata = await fetchOpenData({ fileUrls, requiredTags: scrape.filterTags });
+    const opendata = await fetchOpenData({ fileUrls, requiredTags: scrape.filterTags, log, fetchFile });
 
     const simplified = opendata.map(basicProjection);
 
@@ -217,4 +207,27 @@ module.exports = function newHandler({ studyService, log = consoleLogger } = {})
 
     return simplified;
   };
+};
+
+const fetchOpenData = async ({ fileUrls, requiredTags, log, fetchFile }) => {
+  log.info(`Fetching ${fileUrls.length} metadata files`);
+  const metadata = await Promise.all(fileUrls.map(fetchFile));
+
+  log.info(`Filtering for ${requiredTags} tags and resources with valid ARNs`);
+  const validS3Arn = new RegExp(/^arn:aws:s3:.*:.*:.+$/);
+  const filtered = metadata.filter(({ tags, resources }) => {
+    return (
+      requiredTags.some(filterTag => tags.includes(filterTag)) &&
+      resources.every(resource => {
+        return resource.type === 'S3 Bucket' && validS3Arn.test(resource.arn);
+      })
+    );
+  });
+
+  return filtered;
+};
+
+module.exports = {
+  fetchOpenData,
+  newHandler,
 };
