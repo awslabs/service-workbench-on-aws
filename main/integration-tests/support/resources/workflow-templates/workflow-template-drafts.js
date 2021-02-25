@@ -17,6 +17,7 @@ const _ = require('lodash');
 
 const CollectionResource = require('../base/collection-resource');
 const WorkflowTemplateDraft = require('./workflow-template-draft');
+const { deleteWorkflowTemplateVersion } = require('../../complex/delete-workflow-template-version');
 
 class WorkflowTemplateDrafts extends CollectionResource {
   constructor({ clientSession, id, parent }) {
@@ -80,10 +81,7 @@ class WorkflowTemplateDrafts extends CollectionResource {
       // Add the appropriate cleanup task
       this.clientSession.addCleanupTask({
         id: taskId,
-        task: async () => {
-          // TODO - coming in part 2
-          // console.log('At cleanup for workflow template version');
-        },
+        task: async () => deleteWorkflowTemplateVersion({ aws: this.setup.aws, id: data.id, version: data.v }),
       });
 
       return response;
