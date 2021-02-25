@@ -31,6 +31,13 @@ class KeyPair extends Resource {
   }
 
   // ************************ Helpers methods ************************
+  async activate(requestBody) {
+    return this.doCall(async () => this.axiosClient.put(`${this.api}/activate`, requestBody));
+  }
+
+  async deactivate(requestBody) {
+    return this.doCall(async () => this.axiosClient.put(`${this.api}/deactivate`, requestBody));
+  }
 }
 
 module.exports = KeyPair;

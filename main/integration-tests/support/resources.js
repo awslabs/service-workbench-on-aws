@@ -24,6 +24,7 @@ const AwsAccounts = require('./resources/aws-accounts/aws-accounts');
 const Accounts = require('./resources/accounts/accounts');
 const WorkspaceTypeCandidates = require('./resources/workspace-type-candidates/workspace-type-candidates');
 const StepTemplates = require('./resources/step-templates/step-templates');
+const KeyPairs = require('./resources/key-pairs/key-pairs');
 
 // Returns the top level resource operations helpers. You should not use this directly in your tests.
 // These top level resource operation helpers are available via client sessions.
@@ -40,6 +41,7 @@ async function getResources({ clientSession }) {
     workspaceTypes: new WorkspaceTypes({ clientSession }),
     workspaceTypeCandidates: new WorkspaceTypeCandidates({ clientSession }),
     stepTemplates: new StepTemplates({ clientSession }),
+    keyPairs: new KeyPairs({ clientSession }),
   };
 
   return resources;
