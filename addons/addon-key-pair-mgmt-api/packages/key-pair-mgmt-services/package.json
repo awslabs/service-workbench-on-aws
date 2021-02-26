@@ -8,7 +8,7 @@
   "dependencies": {
     "@aws-ee/base-services": "workspace:*",
     "@aws-ee/base-services-container": "workspace:*",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "node-forge": "^0.9.1",
     "uuid": "^3.4.0"
   },
