@@ -8,7 +8,7 @@
   "dependencies": {
     "@aws-ee/base-services": "workspace:*",
     "@aws-ee/base-workflow-core": "workspace:*",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "slugify": "^1.4.0"
   },
   "devDependencies": {

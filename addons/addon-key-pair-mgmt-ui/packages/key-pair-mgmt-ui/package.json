@@ -7,7 +7,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@aws-ee/base-ui": "workspace:*",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "mobx": "^5.15.4",
     "mobx-react": "^6.1.7",
     "mobx-state-tree": "^3.15.0",

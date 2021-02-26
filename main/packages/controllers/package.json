@@ -7,7 +7,7 @@
   "dependencies": {
     "@aws-ee/base-controllers": "workspace:*",
     "services": "workspace:*",
-    "lodash": "^4.17.15"
+    "lodash": "^4.17.21"
   },
   "devDependencies": {
     "eslint": "^6.8.0",
