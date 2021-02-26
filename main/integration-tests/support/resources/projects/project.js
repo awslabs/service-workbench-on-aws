@@ -30,7 +30,7 @@ class Project extends Resource {
   }
 
   async cleanup() {
-    if (this.id === this.setup.gen.defaultProjectId()) return;
+    if (this.id === this.setup.defaults.project.id) return;
     await super.cleanup();
   }
 

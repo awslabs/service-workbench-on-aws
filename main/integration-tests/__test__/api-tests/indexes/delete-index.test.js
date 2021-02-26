@@ -19,12 +19,10 @@ const errorCode = require('../../../support/utils/error-code');
 describe('Delete index scenarios', () => {
   let setup;
   let adminSession;
-  let defaultIndex;
 
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
-    defaultIndex = await adminSession.resources.indexes.mustFind(setup.defaultIndexId);
   });
 
   afterAll(async () => {
@@ -36,7 +34,7 @@ describe('Delete index scenarios', () => {
       const testIndexId = setup.gen.string({ prefix: `delete-index-test-inactive-admin` });
       const newIndex = await adminSession.resources.indexes.create({
         id: testIndexId,
-        awsAccountId: defaultIndex.awsAccountId,
+        awsAccountId: setup.defaults.index.awsAccountId,
       });
 
       const admin2Session = await setup.createAdminSession();
@@ -51,7 +49,7 @@ describe('Delete index scenarios', () => {
       const testIndexId = setup.gen.string({ prefix: `delete-index-test-non-admin` });
       const newIndex = await adminSession.resources.indexes.create({
         id: testIndexId,
-        awsAccountId: defaultIndex.awsAccountId,
+        awsAccountId: setup.defaults.index.awsAccountId,
       });
 
       const researcherSession = await setup.createResearcherSession();
@@ -65,7 +63,7 @@ describe('Delete index scenarios', () => {
       const testIndexId = setup.gen.string({ prefix: `delete-index-test-anon-user` });
       const newIndex = await adminSession.resources.indexes.create({
         id: testIndexId,
-        awsAccountId: defaultIndex.awsAccountId,
+        awsAccountId: setup.defaults.index.awsAccountId,
       });
       const anonymousSession = await setup.createAnonymousSession();
       await expect(anonymousSession.resources.indexes.index(newIndex.id).delete()).rejects.toMatchObject({

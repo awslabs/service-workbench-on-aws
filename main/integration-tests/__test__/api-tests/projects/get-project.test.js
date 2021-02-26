@@ -34,30 +34,28 @@ describe('Get project scenarios', () => {
       const admin2Session = await setup.createAdminSession();
       await adminSession.resources.users.deactivateUser(admin2Session.user);
 
-      await expect(admin2Session.resources.projects.project(setup.gen.defaultProjectId()).get()).rejects.toMatchObject({
+      await expect(admin2Session.resources.projects.project(setup.defaults.project.id).get()).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });
 
     it('should fail if internal guest attempts to get project', async () => {
       const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
-      await expect(guestSession.resources.projects.project(setup.gen.defaultProjectId()).get()).rejects.toMatchObject({
+      await expect(guestSession.resources.projects.project(setup.defaults.project.id).get()).rejects.toMatchObject({
         code: errorCode.http.code.notFound,
       });
     });
 
     it('should fail if external guest attempts to get project', async () => {
       const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
-      await expect(guestSession.resources.projects.project(setup.gen.defaultProjectId()).get()).rejects.toMatchObject({
+      await expect(guestSession.resources.projects.project(setup.defaults.project.id).get()).rejects.toMatchObject({
         code: errorCode.http.code.notFound,
       });
     });
 
     it('should fail for anonymous user', async () => {
       const anonymousSession = await setup.createAnonymousSession();
-      await expect(
-        anonymousSession.resources.projects.project(setup.gen.defaultProjectId()).get(),
-      ).rejects.toMatchObject({
+      await expect(anonymousSession.resources.projects.project(setup.defaults.project.id).get()).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });
