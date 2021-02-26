@@ -15,6 +15,7 @@
 
 const _ = require('lodash');
 const CollectionResource = require('../base/collection-resource');
+const AuthenticationIdToken = require('./authentication-id-token');
 
 class AuthenticationIdTokens extends CollectionResource {
   constructor({ clientSession, parent }) {
@@ -22,10 +23,16 @@ class AuthenticationIdTokens extends CollectionResource {
       clientSession,
       type: 'idTokens',
       parent,
+      childType: 'idToken',
+      childIdProp: 'username',
     });
 
     if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [idTokens]');
     this.api = `${parent.api}/id-tokens`;
+  }
+
+  idToken(username) {
+    return new AuthenticationIdToken({ clientSession: this.clientSession, id: username, parent: this });
   }
 
   async request(body = {}, params = {}) {

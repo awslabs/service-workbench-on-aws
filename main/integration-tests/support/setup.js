@@ -137,15 +137,12 @@ class Setup {
     return session;
   }
 
-  async createUserSession(
-    {
-      userRole = 'internal-guest',
-      username = this.gen.username(),
-      password = this.gen.password(),
-      projectId = [this.defaults.project.id],
-    } = {},
-    { includeCreds = false } = {},
-  ) {
+  async createUserSession({
+    userRole = 'internal-guest',
+    username = this.gen.username(),
+    password = this.gen.password(),
+    projectId = [this.defaults.project.id],
+  } = {}) {
     const adminSession = await this.defaultAdminSession();
     await adminSession.resources.users.create({
       username,
@@ -158,9 +155,7 @@ class Setup {
     const session = await getClientSession({ idToken, setup: this });
     this.sessions.push(session);
 
-    if (!includeCreds) return session;
-
-    return { session, username, password };
+    return session;
   }
 
   async createAnonymousSession() {

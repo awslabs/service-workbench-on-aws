@@ -16,7 +16,7 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
-describe('Create authentication config scenarios', () => {
+describe('Update authentication config scenarios', () => {
   let setup;
   let adminSession;
 
@@ -29,13 +29,22 @@ describe('Create authentication config scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('Create authentication config', () => {
+  describe('Update authentication config', () => {
     it('should fail if user is not an admin', async () => {
       const researcherSession = await setup.createResearcherSession();
       const requestBody = researcherSession.resources.authentication.configs().defaults();
 
-      await expect(researcherSession.resources.authentication.configs().create(requestBody)).rejects.toMatchObject({
+      await expect(researcherSession.resources.authentication.configs().update(requestBody)).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
+      });
+    });
+
+    it('should fail to update auth provider config with invalid providerConfigId', async () => {
+      const admin2Session = await setup.createAdminSession();
+      const requestBody = admin2Session.resources.authentication.configs().defaults();
+
+      await expect(admin2Session.resources.authentication.configs().update(requestBody)).rejects.toMatchObject({
+        code: errorCode.http.code.badRequest,
       });
     });
 
@@ -43,7 +52,7 @@ describe('Create authentication config scenarios', () => {
       const admin2Session = await setup.createAdminSession();
       const requestBody = {};
 
-      await expect(admin2Session.resources.authentication.configs().create(requestBody)).rejects.toMatchObject({
+      await expect(admin2Session.resources.authentication.configs().update(requestBody)).rejects.toMatchObject({
         code: errorCode.http.code.badRequest,
       });
     });
@@ -53,34 +62,25 @@ describe('Create authentication config scenarios', () => {
       await adminSession.resources.users.deactivateUser(admin2Session.user);
       const requestBody = admin2Session.resources.authentication.configs().defaults();
 
-      await expect(admin2Session.resources.authentication.configs().create(requestBody)).rejects.toMatchObject({
+      await expect(admin2Session.resources.authentication.configs().update(requestBody)).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });
 
-    it('should fail to create auth provider config with invalid providerConfigId', async () => {
-      const admin2Session = await setup.createAdminSession();
-      const requestBody = admin2Session.resources.authentication.configs().defaults();
-
-      await expect(admin2Session.resources.authentication.configs().create(requestBody)).rejects.toMatchObject({
-        code: errorCode.http.code.badRequest,
-      });
-    });
-
-    it('should fail if internal guest attempts to create auth config', async () => {
+    it('should fail if internal guest attempts to update auth config', async () => {
       const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
       const requestBody = guestSession.resources.authentication.configs().defaults();
 
-      await expect(guestSession.resources.authentication.configs().create(requestBody)).rejects.toMatchObject({
+      await expect(guestSession.resources.authentication.configs().update(requestBody)).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
     });
 
-    it('should fail if external guest attempts to create auth config', async () => {
+    it('should fail if external guest attempts to update auth config', async () => {
       const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
       const requestBody = guestSession.resources.authentication.configs().defaults();
 
-      await expect(guestSession.resources.authentication.configs().create(requestBody)).rejects.toMatchObject({
+      await expect(guestSession.resources.authentication.configs().update(requestBody)).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
     });
@@ -89,7 +89,7 @@ describe('Create authentication config scenarios', () => {
       const anonymousSession = await setup.createAnonymousSession();
       const requestBody = anonymousSession.resources.authentication.configs().defaults();
 
-      await expect(anonymousSession.resources.authentication.configs().create(requestBody)).rejects.toMatchObject({
+      await expect(anonymousSession.resources.authentication.configs().update(requestBody)).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });

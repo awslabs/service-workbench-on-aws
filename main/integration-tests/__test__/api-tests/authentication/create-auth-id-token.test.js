@@ -38,11 +38,58 @@ describe('Create authentication token upon user login scenarios', () => {
       });
     });
 
+    it('should fail to perform operations using invalid username', async () => {
+      const username = setup.gen.username(); // Create a random username
+      const password = setup.gen.password();
+      const session = await setup.createUserSession({ userRole: 'researcher', username, password });
+      const requestBody = {
+        username: setup.gen.username(), // Pass a different random username
+        password,
+        authenticationProviderId: 'internal',
+      };
+
+      // Verify user can still get id-token (login operation)
+      await expect(session.resources.authentication.idTokens().request(requestBody)).rejects.toMatchObject({
+        code: errorCode.http.code.invalidCredentials,
+      });
+    });
+
+    it('should fail to perform operations using invalid password', async () => {
+      const username = setup.gen.username();
+      const password = setup.gen.password(); // Create a random password
+      const session = await setup.createUserSession({ userRole: 'researcher', username, password });
+      const requestBody = {
+        username,
+        password: setup.gen.password(), // Pass a different random password
+        authenticationProviderId: 'internal',
+      };
+
+      // Verify user can still get id-token (login operation)
+      await expect(session.resources.authentication.idTokens().request(requestBody)).rejects.toMatchObject({
+        code: errorCode.http.code.invalidCredentials,
+      });
+    });
+
+    it('should fail to perform operations using invalid credential combo', async () => {
+      const username = setup.gen.username(); // Create a random username
+      const password = setup.gen.password(); // Create a random password
+      const session = await setup.createUserSession({ userRole: 'researcher', username, password });
+      const requestBody = {
+        username: setup.gen.username(), // Pass a different random username
+        password: setup.gen.password(), // Pass a different random password
+        authenticationProviderId: 'internal',
+      };
+
+      // Verify user can still get id-token (login operation)
+      await expect(session.resources.authentication.idTokens().request(requestBody)).rejects.toMatchObject({
+        code: errorCode.http.code.invalidCredentials,
+      });
+    });
+
     it('should fail to perform operations using auth token of an inactive user', async () => {
-      const { session, username, password } = await setup.createUserSession(
-        { userRole: 'researcher' },
-        { includeCreds: true },
-      );
+      const username = setup.gen.username();
+      const password = setup.gen.password();
+      const session = await setup.createUserSession({ userRole: 'researcher', username, password });
       const requestBody = {
         username,
         password,
@@ -65,10 +112,9 @@ describe('Create authentication token upon user login scenarios', () => {
     });
 
     it('should provide auth token', async () => {
-      const { session, username, password } = await setup.createUserSession(
-        { userRole: 'researcher' },
-        { includeCreds: true },
-      );
+      const username = setup.gen.username();
+      const password = setup.gen.password();
+      const session = await setup.createUserSession({ userRole: 'researcher', username, password });
       const requestBody = {
         username,
         password,

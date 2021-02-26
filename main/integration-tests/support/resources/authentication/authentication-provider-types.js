@@ -16,6 +16,8 @@
 const _ = require('lodash');
 
 const CollectionResource = require('../base/collection-resource');
+const InternalAuthProviderType = require('./helpers/default-auth-provider-type-internal.json');
+const CognitoAuthProviderType = require('./helpers/default-auth-provider-type-cognito.json');
 
 class AuthenticationProviderTypes extends CollectionResource {
   constructor({ clientSession, parent }) {
@@ -30,6 +32,9 @@ class AuthenticationProviderTypes extends CollectionResource {
   }
 
   // ************************ Helpers methods ************************
+  getDefaultTypes() {
+    return [InternalAuthProviderType, CognitoAuthProviderType];
+  }
 }
 
 module.exports = AuthenticationProviderTypes;
