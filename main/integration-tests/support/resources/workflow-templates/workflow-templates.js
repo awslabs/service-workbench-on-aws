@@ -15,6 +15,7 @@
 
 const CollectionResource = require('../base/collection-resource');
 const WorkflowTemplateDrafts = require('./workflow-template-drafts');
+const WorkflowTemplateVersions = require('./workflow-template-versions');
 
 class WorkflowTemplates extends CollectionResource {
   constructor({ clientSession }) {
@@ -29,6 +30,14 @@ class WorkflowTemplates extends CollectionResource {
 
   drafts() {
     return new WorkflowTemplateDrafts({ clientSession: this.clientSession, parent: this });
+  }
+
+  versions(id) {
+    return new WorkflowTemplateVersions({ clientSession: this.clientSession, id, parent: this });
+  }
+
+  async latest() {
+    return this.get({}, { api: `${this.api}/latest` });
   }
 
   // ************************ Helpers methods ************************

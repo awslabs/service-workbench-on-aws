@@ -60,8 +60,8 @@ class Setup {
     // aws instance
     this.aws = await initAws({ settings: this.settings });
 
-    // An object to abstract out the default setup resources (eg. default test project)
-    this.defaults = await this.getDefaultResources();
+    // An object to abstract out the default setup (eg. default test project)
+    this.defaults = await this.getDefaults();
   }
 
   async defaultAdminSession() {
@@ -78,7 +78,7 @@ class Setup {
   }
 
   // For future enhancement, we can capture this in a different file similar to how we did the getGenerators() and getServices().
-  async getDefaultResources() {
+  async getDefaults() {
     const adminSession = await this.defaultAdminSession();
     const project = await adminSession.resources.projects.project(this.settings.get('projectId')).get();
 
@@ -93,7 +93,9 @@ class Setup {
       .version(1)
       .get();
 
-    return { project, index, awsAccount, stepTemplate };
+    const workflowTemplateId = 'wt-empty';
+
+    return { project, index, awsAccount, stepTemplate, workflowTemplateId };
   }
 
   async createAdminSession() {
