@@ -24,7 +24,7 @@ const { transform } = require('../../utils/axios-error');
  * The frequency of changes to this class is expected to be minimal.
  */
 class CollectionResource {
-  constructor({ clientSession, type, childType, childIdProp = 'id', parent }) {
+  constructor({ clientSession, type, childType, childIdProp = 'id', parent, id }) {
     this.clientSession = clientSession;
     this.axiosClient = clientSession.axiosClient;
     this.setup = clientSession.setup;
@@ -36,6 +36,7 @@ class CollectionResource {
     // id property.
     this.childIdProp = childIdProp;
     this.parent = parent;
+    this.id = id;
   }
 
   // When creating a child resource, this method provides default values.
