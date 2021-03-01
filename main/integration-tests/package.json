@@ -27,7 +27,7 @@
     "chance": "^1.1.7",
     "fs-extra": "^9.1.0",
     "js-yaml": "^4.0.0",
-    "lodash": "^4.17.20",
+    "lodash": "^4.17.21",
     "services": "workspace:*",
     "yargs-parser": "^20.2.5"
   },
