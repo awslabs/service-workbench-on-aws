@@ -13,8 +13,6 @@
  *  permissions and limitations under the License.
  */
 
-const _ = require('lodash');
-
 const CollectionResource = require('../base/collection-resource');
 const WorkspaceServiceCatalog = require('./workspace-service-catalog');
 
