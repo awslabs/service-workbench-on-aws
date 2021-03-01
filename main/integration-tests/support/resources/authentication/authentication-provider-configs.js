@@ -49,7 +49,7 @@ class AuthenticationProviderConfigs extends CollectionResource {
   }
 
   // ************************ Helpers methods ************************
-  getDefaultConfigs() {
+  defaultConfigs() {
     return InternalAuthProviderConfig;
   }
 }

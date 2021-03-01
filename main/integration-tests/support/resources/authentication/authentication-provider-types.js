@@ -32,7 +32,7 @@ class AuthenticationProviderTypes extends CollectionResource {
   }
 
   // ************************ Helpers methods ************************
-  getDefaultTypes() {
+  defaultTypes() {
     return [InternalAuthProviderType, CognitoAuthProviderType];
   }
 }

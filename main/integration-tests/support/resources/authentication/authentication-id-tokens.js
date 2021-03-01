@@ -35,10 +35,6 @@ class AuthenticationIdTokens extends CollectionResource {
     return new AuthenticationIdToken({ clientSession: this.clientSession, id: username, parent: this });
   }
 
-  async request(body = {}, params = {}) {
-    return this.doCall(async () => this.axiosClient.post(this.api, body, { params }));
-  }
-
   // ************************ Helpers methods ************************
 }
 

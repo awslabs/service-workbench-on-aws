@@ -51,7 +51,7 @@ describe('Get authentication types list scenarios', () => {
       const admin2Session = await setup.createAdminSession();
 
       await expect(admin2Session.resources.authentication.types().get()).resolves.toEqual(
-        expect.arrayContaining(admin2Session.resources.authentication.types().getDefaultTypes()),
+        expect.arrayContaining(admin2Session.resources.authentication.types().defaultTypes()),
       );
     });
 

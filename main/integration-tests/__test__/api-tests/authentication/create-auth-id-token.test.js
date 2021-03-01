@@ -33,7 +33,7 @@ describe('Create authentication token upon user login scenarios', () => {
     it('should fail if empty request body is passed', async () => {
       const researcherSession = await setup.createResearcherSession();
 
-      await expect(researcherSession.resources.authentication.idTokens().request()).rejects.toMatchObject({
+      await expect(researcherSession.resources.authentication.idTokens().create()).rejects.toMatchObject({
         code: errorCode.http.code.badRequest,
       });
     });
@@ -49,7 +49,7 @@ describe('Create authentication token upon user login scenarios', () => {
       };
 
       // Verify user can still get id-token (login operation)
-      await expect(session.resources.authentication.idTokens().request(requestBody)).rejects.toMatchObject({
+      await expect(session.resources.authentication.idTokens().create(requestBody)).rejects.toMatchObject({
         code: errorCode.http.code.invalidCredentials,
       });
     });
@@ -65,7 +65,7 @@ describe('Create authentication token upon user login scenarios', () => {
       };
 
       // Verify user can still get id-token (login operation)
-      await expect(session.resources.authentication.idTokens().request(requestBody)).rejects.toMatchObject({
+      await expect(session.resources.authentication.idTokens().create(requestBody)).rejects.toMatchObject({
         code: errorCode.http.code.invalidCredentials,
       });
     });
@@ -81,7 +81,7 @@ describe('Create authentication token upon user login scenarios', () => {
       };
 
       // Verify user can still get id-token (login operation)
-      await expect(session.resources.authentication.idTokens().request(requestBody)).rejects.toMatchObject({
+      await expect(session.resources.authentication.idTokens().create(requestBody)).rejects.toMatchObject({
         code: errorCode.http.code.invalidCredentials,
       });
     });
@@ -103,7 +103,7 @@ describe('Create authentication token upon user login scenarios', () => {
       await adminSession.resources.users.deactivateUser(session.user);
 
       // Verify user can still get id-token (login operation)
-      await expect(session.resources.authentication.idTokens().request(requestBody)).resolves.toHaveProperty('idToken');
+      await expect(session.resources.authentication.idTokens().create(requestBody)).resolves.toHaveProperty('idToken');
 
       // Also verify user cannot perform operations as before
       await expect(session.resources.studies.get()).rejects.toMatchObject({
@@ -121,7 +121,7 @@ describe('Create authentication token upon user login scenarios', () => {
         authenticationProviderId: 'internal',
       };
 
-      await expect(session.resources.authentication.idTokens().request(requestBody)).resolves.toHaveProperty('idToken');
+      await expect(session.resources.authentication.idTokens().create(requestBody)).resolves.toHaveProperty('idToken');
     });
   });
 });

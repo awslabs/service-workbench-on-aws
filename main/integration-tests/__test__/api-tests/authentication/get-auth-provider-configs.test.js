@@ -53,7 +53,7 @@ describe('Get authentication config list scenarios', () => {
 
       await expect(response).toEqual(
         expect.arrayContaining([
-          expect.objectContaining(admin2Session.resources.authentication.configs().getDefaultConfigs()),
+          expect.objectContaining(admin2Session.resources.authentication.configs().defaultConfigs()),
         ]),
       );
     });
