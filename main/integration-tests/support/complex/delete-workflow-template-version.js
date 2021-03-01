@@ -78,7 +78,7 @@ async function deleteWorkflowTemplateVersion({ aws, id, version = 1 }) {
       await deleteVersion({ db, template: latest });
     }
 
-    // We are done, lets exist
+    // We are done, lets exit
     return;
   }
 

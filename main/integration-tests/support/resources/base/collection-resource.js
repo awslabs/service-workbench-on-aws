@@ -51,7 +51,7 @@ class CollectionResource {
     // For example, if the extender class is 'Users' and it provides childType = 'user', then Users class must have
     // a method called 'user()'.
     if (!_.isFunction(this[this.childType])) {
-      throw new Error(`The collection resource ['${this.type}] must have a method named [${this.childType}()]`);
+      throw new Error(`The collection resource ['${this.type}'] must have a method named [${this.childType}()]`);
     }
 
     try {
