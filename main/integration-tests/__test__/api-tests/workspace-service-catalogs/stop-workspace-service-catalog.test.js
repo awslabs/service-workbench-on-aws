@@ -16,6 +16,10 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
+const {
+  createWorkspaceTypeAndConfiguration,
+} = require('../../../support/complex/create-workspace-type-and-configuration');
+
 describe('Stop workspace-service-catalog scenarios', () => {
   let setup;
   let adminSession;
@@ -29,25 +33,11 @@ describe('Stop workspace-service-catalog scenarios', () => {
     await setup.cleanup();
   });
 
-  async function createWorkspace(allowRoleIds = ['admin']) {
-    const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
-    const configurationId = setup.gen.string({ prefix: 'configuration-test' });
-
-    await adminSession.resources.workspaceTypes.create({ id: workspaceTypeId, status: 'approved' });
-    await adminSession.resources.workspaceTypes
-      .workspaceType(workspaceTypeId)
-      .configurations()
-      .create({ id: configurationId, allowRoleIds });
-
-    return { workspaceTypeId, configurationId };
-  }
-
   describe('Stop workspace-service-catalog', () => {
     it('should fail if user is inactive', async () => {
       const adminSession2 = await setup.createAdminSession();
       const workspaceName = setup.gen.string({ prefix: 'workspace-service-catalog-test' });
-      const { workspaceTypeId, configurationId } = await createWorkspace();
-
+      const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(adminSession, setup);
       await adminSession.resources.users.deactivateUser(adminSession2.user);
 
       const response = await adminSession.resources.workspaceServiceCatalogs.create({
@@ -66,7 +56,7 @@ describe('Stop workspace-service-catalog scenarios', () => {
     it('should fail if user is anonymous', async () => {
       const anonymousSession = await setup.createAnonymousSession();
       const workspaceName = setup.gen.string({ prefix: 'workspace-service-catalog-test' });
-      const { workspaceTypeId, configurationId } = await createWorkspace();
+      const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(adminSession, setup);
 
       const response = await adminSession.resources.workspaceServiceCatalogs.create({
         name: workspaceName,

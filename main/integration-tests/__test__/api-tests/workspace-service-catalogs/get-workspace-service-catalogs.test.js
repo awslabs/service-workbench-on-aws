@@ -16,6 +16,10 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
+const {
+  createWorkspaceTypeAndConfiguration,
+} = require('../../../support/complex/create-workspace-type-and-configuration');
+
 describe('Get workspace-service-catalogs scenarios', () => {
   let setup;
   let adminSession;
@@ -28,19 +32,6 @@ describe('Get workspace-service-catalogs scenarios', () => {
   afterAll(async () => {
     await setup.cleanup();
   });
-
-  async function createWorkspace(allowRoleIds = ['admin']) {
-    const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
-    const configurationId = setup.gen.string({ prefix: 'configuration-test' });
-
-    await adminSession.resources.workspaceTypes.create({ id: workspaceTypeId, status: 'approved' });
-    await adminSession.resources.workspaceTypes
-      .workspaceType(workspaceTypeId)
-      .configurations()
-      .create({ id: configurationId, allowRoleIds });
-
-    return { workspaceTypeId, configurationId };
-  }
 
   describe('Get workspace-service-catalogs', () => {
     it('should fail to get workspaces if user is inactive', async () => {
@@ -68,7 +59,9 @@ describe('Get workspace-service-catalogs scenarios', () => {
     it('should succeed to get workspaces of user if user is not admin', async () => {
       const researcherSession = await setup.createResearcherSession();
       const workspaceName = setup.gen.string({ prefix: 'workspace-service-catalog-test' });
-      const { workspaceTypeId, configurationId } = await createWorkspace(['researcher']);
+      const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(adminSession, setup, [
+        'researcher',
+      ]);
 
       await researcherSession.resources.workspaceServiceCatalogs.create({
         name: workspaceName,
