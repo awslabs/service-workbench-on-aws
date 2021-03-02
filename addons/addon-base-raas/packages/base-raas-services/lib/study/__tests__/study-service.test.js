@@ -129,6 +129,16 @@ describe('studyService', () => {
         permissions: { adminUsers: [], readonlyUsers: [uid], readwriteUsers: [], writeonlyUsers: [] },
       });
     });
+    it('should fail since the given study id is invalid', async () => {
+      // BUILD
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid }, principal: { userRole: 'researcher', status: 'active' } };
+      // OPERATE
+      await expect(service.getStudyPermissions(requestContext, '<hack>')).rejects.toThrow(
+        // CHECK
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
   });
 
   describe('getUserPermissions', () => {
@@ -454,46 +464,6 @@ describe('studyService', () => {
       });
     });
 
-    it('should fail to update resource list of non-Open Data study', async () => {
-      // BUILD
-      const dataIpt = {
-        id: 'newOpenStudy',
-        category: 'Organization',
-        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
-      };
-      service.audit = jest.fn();
-
-      // OPERATE
-      await expect(
-        service.update(
-          { principal: { userRole: 'researcher' }, principalIdentifier: { uid: 'someRandomUserUid' } },
-          dataIpt,
-        ),
-      ).rejects.toThrow({
-        message: 'Resources can only be updated for Open Data study category',
-      });
-    });
-
-    it('should fail to update Open Data study by non-system user', async () => {
-      // BUILD
-      const dataIpt = {
-        id: 'newOpenStudy',
-        category: 'Open Data',
-        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
-      };
-      service.audit = jest.fn();
-
-      // OPERATE
-      await expect(
-        service.update(
-          { principal: { userRole: 'admin' }, principalIdentifier: { uid: 'someRandomUserUid' } },
-          dataIpt,
-        ),
-      ).rejects.toThrow({
-        message: 'Only the system can update Open Data studies.',
-      });
-    });
-
     it('should try to create the open data study successfully', async () => {
       const requestContext = {
         principal: { userRole: 'admin', status: 'active' },
@@ -701,6 +671,65 @@ describe('studyService', () => {
   });
 
   describe('update', () => {
+    it('should fail to update resource list of non-Open Data study', async () => {
+      // BUILD
+      const dataIpt = {
+        id: 'newOpenStudy',
+        category: 'Organization',
+        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
+      };
+      service.audit = jest.fn();
+
+      // OPERATE
+      await expect(
+        service.update(
+          { principal: { userRole: 'researcher' }, principalIdentifier: { uid: 'someRandomUserUid' } },
+          dataIpt,
+        ),
+      ).rejects.toThrow({
+        message: 'Resources can only be updated for Open Data study category',
+      });
+    });
+
+    it('should fail to update Open Data study by non-system user', async () => {
+      // BUILD
+      const dataIpt = {
+        id: 'newOpenStudy',
+        category: 'Open Data',
+        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
+      };
+      service.audit = jest.fn();
+
+      // OPERATE
+      await expect(
+        service.update(
+          { principal: { userRole: 'admin' }, principalIdentifier: { uid: 'someRandomUserUid' } },
+          dataIpt,
+        ),
+      ).rejects.toThrow({
+        message: 'Only the system can update Open Data studies.',
+      });
+    });
+
+    it('should fail since the given study id is invalid', async () => {
+      // BUILD
+      const uid = 'u-currentUserId';
+      const requestContext = {
+        principalIdentifier: { uid },
+        principal: { userRole: 'researcher', status: 'active' },
+      };
+      const dataIpt = {
+        id: '<hack>',
+        category: 'Organization',
+        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
+      };
+      // OPERATE
+      await expect(service.update(requestContext, dataIpt)).rejects.toThrow(
+        // CHECK
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
+
     it('should fail due to missing rev', async () => {
       // BUILD
       const ipt = {

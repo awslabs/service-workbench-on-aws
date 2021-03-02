@@ -33,7 +33,8 @@
       "enum": ["active", "inactive", "pending"]
     },
     "rev": {
-      "type": "number"
+      "type": "number",
+      "minimum": 0
     },
     "userRole": {
       "type": "string"

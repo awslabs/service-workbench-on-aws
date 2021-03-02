@@ -3400,11 +3400,11 @@ components:
           example: 2
         name:
           type: string
-          maxLength: 2048
+          maxLength: 300
           example: 'Org Study Test'
         description:
           type: string
-          maxLength: 8192
+          maxLength: 2048
           example: 'An org study to test a few things'
         sha:
           type: string

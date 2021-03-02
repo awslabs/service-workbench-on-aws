@@ -26,6 +26,7 @@ const {
 
 const createSchema = require('../schema/create-study-permissions');
 const updateSchema = require('../schema/update-study-permissions');
+const getSchema = require('../schema/get-study-permissions');
 const { isAdmin } = require('../helpers/is-role');
 const { hasPermissions, isAdmin: isStudyAdmin } = require('./helpers/entities/study-permissions-methods');
 const {
@@ -322,6 +323,7 @@ class StudyPermissionService extends Service {
     // Validate input
     const [validationService, lockService] = await this.service(['jsonSchemaValidationService', 'lockService']);
     await validationService.ensureValid(updateRequest, updateSchema);
+    await validationService.ensureValid({ id: studyEntity.id }, getSchema);
 
     const lockId = `study-${studyEntity.id}`;
     const entity = await lockService.tryWriteLockAndRun({ id: lockId }, async () => {
