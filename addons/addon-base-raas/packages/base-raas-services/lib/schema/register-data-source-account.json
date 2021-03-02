@@ -6,15 +6,18 @@
     "name": {
       "type": "string",
       "minLength": 1,
-      "maxLength": 300
+      "maxLength": 300,
+      "pattern": "^([^<>{}]+)$"
     },
     "description": {
       "type": "string",
-      "maxLength": 2048
+      "maxLength": 2048,
+      "pattern": "^([^<>{}]+)$"
     },
     "contactInfo": {
       "type": "string",
-      "maxLength": 2048
+      "maxLength": 2048,
+      "pattern": "^([^<>{}]+)$"
     },
     "id": {
       "type": "string",

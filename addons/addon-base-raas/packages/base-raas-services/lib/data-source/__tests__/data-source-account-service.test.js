@@ -75,6 +75,8 @@ describe('DataSourceAccountService', () => {
         id,
         name: 'Computer Science Department Account',
         mainRegion: 'us-east-1',
+        description: 'This is a description. with long chars #/$ test test!',
+        contactInfo: 'email@email.com',
       };
 
       await service.register(requestContext, rawData);
@@ -147,6 +149,51 @@ describe('DataSourceAccountService', () => {
         expect.objectContaining({ boom: true, code: 'alreadyExists', safe: true }),
       );
     });
+
+    it('fails because name is invalid', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
+      const rawData = {
+        id: '123456789012',
+        name: '<!!>',
+        mainRegion: 'us-east-1',
+      };
+
+      await expect(service.register(requestContext, rawData)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
+
+    it('fails because description is invalid', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
+      const rawData = {
+        id: '123456789012',
+        name: 'test',
+        mainRegion: 'us-east-1',
+        description: 'This is a description. with long chars #/$ test test!<script>haxor</script>',
+      };
+
+      await expect(service.register(requestContext, rawData)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
+
+    it('fails because contactInfo is invalid', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
+      const rawData = {
+        id: '123456789012',
+        name: 'test',
+        mainRegion: 'us-east-1',
+        description: 'This is a description',
+        contactInfo: '<script>haxor</script>',
+      };
+
+      await expect(service.register(requestContext, rawData)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
   });
 
   describe('update account', () => {
@@ -154,7 +201,13 @@ describe('DataSourceAccountService', () => {
       const uid = 'u-currentUserId';
       const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
       const id = '123456789012';
-      const rawData = { id, name: 'Computer Science Department Account', rev: 2 };
+      const rawData = {
+        id,
+        name: 'Computer Science Department Account',
+        rev: 2,
+        description: 'valid description!',
+        contactInfo: 'valid@email.com',
+      };
 
       await service.update(requestContext, rawData);
 
@@ -231,6 +284,66 @@ describe('DataSourceAccountService', () => {
 
       await expect(service.update(requestContext, rawData)).rejects.toThrow(
         expect.objectContaining({ boom: true, code: 'outdatedUpdateAttempt', safe: true }),
+      );
+    });
+
+    it('fails because name is invalid', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
+      const rawData = {
+        id: '123456789012',
+        rev: 1,
+        name: '<!!>',
+      };
+
+      await expect(service.update(requestContext, rawData)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
+
+    it('fails because description is invalid', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
+      const rawData = {
+        id: '123456789012',
+        rev: 1,
+        name: 'test',
+        description: 'This is a description. with long chars #/$ test test!<script>haxor</script>',
+      };
+
+      await expect(service.update(requestContext, rawData)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
+
+    it('fails because contactInfo is invalid', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
+      const rawData = {
+        id: '123456789012',
+        rev: 1,
+        name: 'test',
+        description: 'This is a description',
+        contactInfo: '<script>haxor</script>',
+      };
+
+      await expect(service.update(requestContext, rawData)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
+
+    it('fails because id is too long', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
+      const rawData = {
+        id: '123456789012111111',
+        rev: 1,
+        name: 'valid',
+        description: 'This is a description',
+      };
+
+      await expect(service.update(requestContext, rawData)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
       );
     });
   });
