@@ -155,7 +155,7 @@ describe('DataSourceAccountService', () => {
       const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
       const rawData = {
         id: '123456789012',
-        name: 'InvalidName!!',
+        name: '<!!>',
         mainRegion: 'us-east-1',
       };
 
@@ -293,7 +293,7 @@ describe('DataSourceAccountService', () => {
       const rawData = {
         id: '123456789012',
         rev: 1,
-        name: 'InvalidName!!',
+        name: '<!!>',
       };
 
       await expect(service.update(requestContext, rawData)).rejects.toThrow(

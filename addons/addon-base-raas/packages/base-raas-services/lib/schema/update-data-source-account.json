@@ -15,17 +15,17 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 300,
-      "pattern": "^([A-Za-z0-9-_ ]+)$"
+      "pattern": "^([^<>{}]+)$"
     },
     "description": {
       "type": "string",
       "maxLength": 2048,
-      "pattern": "^([A-Za-z0-9-_ .,!?/#$;]+)$"
+      "pattern": "^([^<>{}]+)$"
     },
     "contactInfo": {
       "type": "string",
-      "format": "email",
-      "maxLength": 2048
+      "maxLength": 2048,
+      "pattern": "^([^<>{}]+)$"
     }
   },
   "required": ["id", "rev"]

@@ -12,7 +12,7 @@
     "name": {
       "type": "string",
       "maxLength": 300,
-      "pattern": "^([A-Za-z0-9-_ ]+)$"
+      "pattern": "^([^<>{}]+)$"
     },
     "category": {
       "type": "string",
@@ -21,7 +21,7 @@
     "description": {
       "type": "string",
       "maxLength": 2048,
-      "pattern": "^([A-Za-z0-9-_ .,!?/#$;]+)$"
+      "pattern": "^([^<>{}]+)$"
     },
     "projectId": {
       "type": "string",
@@ -33,7 +33,7 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 1000,
-      "pattern": "^([A-Za-z0-9-_ ]+)$"
+      "pattern": "^([^<>{}]+)$"
     },
     "kmsArn": {
       "type": "string",
