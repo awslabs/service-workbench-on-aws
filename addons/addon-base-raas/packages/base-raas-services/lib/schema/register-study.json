@@ -11,7 +11,8 @@
     },
     "name": {
       "type": "string",
-      "maxLength": 2048
+      "maxLength": 300,
+      "pattern": "^([A-Za-z0-9-_ ]+)$"
     },
     "category": {
       "type": "string",
@@ -19,7 +20,8 @@
     },
     "description": {
       "type": "string",
-      "maxLength": 8192
+      "maxLength": 2048,
+      "pattern": "^([A-Za-z0-9-_ .,!?/#$]+)$"
     },
     "projectId": {
       "type": "string",
@@ -30,11 +32,13 @@
     "folder": {
       "type": "string",
       "minLength": 1,
-      "maxLength": 1000
+      "maxLength": 1000,
+      "pattern": "^([A-Za-z0-9-_ ]+)$"
     },
     "kmsArn": {
       "type": "string",
-      "maxLength": 90
+      "maxLength": 90,
+      "pattern": "arn:aws[a-zA-Z-]*:kms:[a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-[0-9]{1}:[0-9]{12}:key[/]{1}[a-zA-Z0-9-]+"
     },
     "kmsScope": {
       "enum": ["bucket", "study", "none"]

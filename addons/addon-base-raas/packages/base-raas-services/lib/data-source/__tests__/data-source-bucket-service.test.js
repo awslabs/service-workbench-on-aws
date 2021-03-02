@@ -64,7 +64,7 @@ describe('DataSourceBucketService', () => {
         name: 'bucket-1',
         region: 'us-east-1',
         awsPartition: 'aws',
-        kmsArn: 'kmsArn-1234',
+        kmsArn: 'arn:aws:kms:us-east-1:123456789101:key/2e3c97b6-8bb3-4cf8-bc77-d56ebf84test',
         access: 'roles',
         sse: 'kms',
       };
@@ -90,7 +90,7 @@ describe('DataSourceBucketService', () => {
         name: 'bucket-1',
         region: 'us-east-1',
         partition: 'aws',
-        kmsArn: 'kmsArn-1234',
+        kmsArn: 'arn:aws:kms:us-east-1:123456789101:key/2e3c97b6-8bb3-4cf8-bc77-d56ebf84test',
       };
 
       await expect(service.register(requestContext, { id }, rawData)).rejects.toThrow(
@@ -111,7 +111,7 @@ describe('DataSourceBucketService', () => {
         name: 'bucket-1',
         region: 'us-east-1',
         awsPartition: 'aws',
-        kmsArn: 'kmsArn-1234',
+        kmsArn: 'arn:aws:kms:us-east-1:123456789101:key/2e3c97b6-8bb3-4cf8-bc77-d56ebf84test',
         access: 'roles',
         sse: 'kms',
       };
@@ -135,6 +135,60 @@ describe('DataSourceBucketService', () => {
 
       await expect(service.register(requestContext, { id }, rawData)).rejects.toThrow(
         expect.objectContaining({ boom: true, code: 'alreadyExists', safe: true }),
+      );
+    });
+
+    it('fails because accountId is too long', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
+      const id = '12345678901214354253454';
+      const rawData = {
+        name: 'bucket-1',
+        region: 'us-east-1',
+        awsPartition: 'aws',
+        kmsArn: 'arn:aws:kms:us-east-1:123456789101:key/2e3c97b6-8bb3-4cf8-bc77-d56ebf84test',
+        access: 'roles',
+        sse: 'kms',
+      };
+
+      await expect(service.register(requestContext, { id }, rawData)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
+
+    it('fails because name is invalid', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
+      const id = '123456789012';
+      const rawData = {
+        name: 'bucket-1##<hack>',
+        region: 'us-east-1',
+        awsPartition: 'aws',
+        kmsArn: 'arn:aws:kms:us-east-1:123456789101:key/2e3c97b6-8bb3-4cf8-bc77-d56ebf84test',
+        access: 'roles',
+        sse: 'kms',
+      };
+
+      await expect(service.register(requestContext, { id }, rawData)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
+
+    it('fails because kmsArn is invalid', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
+      const id = '123456789012';
+      const rawData = {
+        name: 'bucket-1',
+        region: 'us-east-1',
+        awsPartition: 'aws',
+        kmsArn: 'invalid',
+        access: 'roles',
+        sse: 'kms',
+      };
+
+      await expect(service.register(requestContext, { id }, rawData)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
       );
     });
   });

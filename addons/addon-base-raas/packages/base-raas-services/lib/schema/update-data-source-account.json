@@ -8,19 +8,23 @@
       "pattern": "^[0-9]{12}$"
     },
     "rev": {
-      "type": "number"
+      "type": "number",
+      "minimum": 0
     },
     "name": {
       "type": "string",
       "minLength": 1,
-      "maxLength": 300
+      "maxLength": 300,
+      "pattern": "^([A-Za-z0-9-_ ]+)$"
     },
     "description": {
       "type": "string",
-      "maxLength": 2048
+      "maxLength": 2048,
+      "pattern": "^([A-Za-z0-9-_ .,!?/#$]+)$"
     },
     "contactInfo": {
       "type": "string",
+      "format": "email",
       "maxLength": 2048
     }
   },
