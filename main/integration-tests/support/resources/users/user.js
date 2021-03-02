@@ -16,6 +16,7 @@
 const _ = require('lodash');
 
 const Resource = require('../base/resource');
+const { deleteUser } = require('../../complex/delete-user');
 
 class User extends Resource {
   constructor({ clientSession, id, parent }) {
@@ -32,7 +33,15 @@ class User extends Resource {
     if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [user]');
   }
 
+  async cleanup() {
+    await deleteUser({ aws: this.setup.aws, id: this.id });
+  }
+
   // ************************ Helpers methods ************************
+
+  async updatePassword(password) {
+    return this.doCall(async () => this.axiosClient.put(`${this.api}/password`, { password }));
+  }
 }
 
 module.exports = User;

@@ -22,6 +22,7 @@ const Settings = require('./utils/settings');
 const { getIdToken } = require('./utils/id-token');
 const { getClientSession } = require('./client-session');
 const { getGenerators } = require('./utils/generators');
+const { initAws } = require('./aws/init-aws');
 
 /**
  * This class serves two main purposes:
@@ -50,11 +51,17 @@ class Setup {
     }
 
     // eslint-disable-next-line no-undef
-    this.settings = new Settings(__settings__);
+    this.settings = new Settings(settingsInGlobal);
     this.apiEndpoint = this.settings.get('apiEndpoint');
 
     // value generators
     this.gen = await getGenerators({ setup: this });
+
+    // aws instance
+    this.aws = await initAws({ settings: this.settings });
+
+    // An object to abstract out the default setup (eg. default test project)
+    this.defaults = await this.getDefaults();
   }
 
   async defaultAdminSession() {
@@ -68,6 +75,27 @@ class Setup {
     this.defaultAdminSessionInstance = session;
 
     return session;
+  }
+
+  // For future enhancement, we can capture this in a different file similar to how we did the getGenerators() and getServices().
+  async getDefaults() {
+    const adminSession = await this.defaultAdminSession();
+    const project = await adminSession.resources.projects.project(this.settings.get('projectId')).get();
+
+    const indexId = project.indexId;
+    const index = await adminSession.resources.indexes.index(indexId).get();
+
+    const awsAccountId = index.awsAccountId;
+    const awsAccount = await adminSession.resources.awsAccounts.awsAccount(awsAccountId).get();
+
+    const stepTemplate = await adminSession.resources.stepTemplates
+      .versions('st-obtain-write-lock')
+      .version(1)
+      .get();
+
+    const workflowTemplateId = 'wt-empty';
+
+    return { project, index, awsAccount, stepTemplate, workflowTemplateId };
   }
 
   async createAdminSession() {
@@ -93,10 +121,9 @@ class Setup {
   async createResearcherSession({
     username = this.gen.username(),
     password = this.gen.password(),
-    projectId = [this.gen.defaultProjectId()],
+    projectId = [this.defaults.project.id],
   } = {}) {
     const adminSession = await this.defaultAdminSession();
-
     await adminSession.resources.users.create({
       username,
       email: username,
@@ -104,7 +131,26 @@ class Setup {
       userRole: 'researcher',
       projectId,
     });
+    const idToken = await getIdToken({ username, password, apiEndpoint: this.apiEndpoint });
+    const session = await getClientSession({ idToken, setup: this });
+    this.sessions.push(session);
+    return session;
+  }
 
+  async createUserSession({
+    userRole = 'internal-guest',
+    username = this.gen.username(),
+    password = this.gen.password(),
+    projectId = [this.defaults.project.id],
+  } = {}) {
+    const adminSession = await this.defaultAdminSession();
+    await adminSession.resources.users.create({
+      username,
+      email: username,
+      password,
+      userRole,
+      projectId,
+    });
     const idToken = await getIdToken({ username, password, apiEndpoint: this.apiEndpoint });
     const session = await getClientSession({ idToken, setup: this });
     this.sessions.push(session);
