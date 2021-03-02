@@ -644,6 +644,8 @@ describe('EnvironmentSCService', () => {
       ]);
       AWSMock.restore();
     });
+
+    it('', async () => {});
   });
 
   describe('changeWorkspaceRunState function', () => {
