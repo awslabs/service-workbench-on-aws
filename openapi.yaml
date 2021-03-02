@@ -3068,13 +3068,13 @@ components:
           example: 'org-study-byob-test-3'
         name:
           type: string
-          maxLength: 2048
+          maxLength: 300
           example: 'Org Study test 3'
         category:
           $ref: '#/components/schemas/StudyCategory'
         description:
           type: string
-          maxLength: 8192
+          maxLength: 2048
           example: 'This is a test study'
         projectId:
           type: string
@@ -3089,6 +3089,7 @@ components:
           example: 'study-folder-test-3'
         kmsArn:
           type: string
+          example: 'arn:aws:kms:us-east-1:123456789101:key/2e3c97b6-8bb3-4cf8-bc77-d56ebf847d23'
           maxLength: 90
         kmsScope:
           enum:
