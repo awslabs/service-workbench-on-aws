@@ -31,6 +31,7 @@ const PluginRegistryService = require('@aws-ee/base-services/lib/plugin-registry
 const SettingsService = require('@aws-ee/base-services/lib/settings/env-settings-service');
 const AuthService = require('@aws-ee/base-services/lib/authorization/authorization-service');
 const AuditService = require('@aws-ee/base-services/lib/audit/audit-writer-service');
+const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
 const WorkflowTriggerService = require('@aws-ee/base-workflow-core/lib/workflow/workflow-trigger-service');
 const StudyService = require('../../study/study-service');
 const DataSourceAccountService = require('../data-source-account-service');
@@ -62,6 +63,7 @@ describe('DataSourceBucketService', () => {
     container.register('dataSourceAccountService', new DataSourceAccountService());
     container.register('roles-only/applicationRoleService', new ApplicationRoleService());
     container.register('dataSourceReachabilityService', new DataSourceReachabilityService());
+    container.register('jsonSchemaValidationService', new JsonSchemaValidationService());
     await container.initServices();
 
     service = await container.find('dataSourceReachabilityService');
@@ -274,6 +276,59 @@ describe('DataSourceBucketService', () => {
         status: 'error',
         statusMsg: `ERR|||Error getting information from study ${params.id}`,
       });
+    });
+
+    it('fails because id is invalid', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid } };
+      const params = { id: '**', status: 'pending' };
+
+      await expect(service.attemptReach(requestContext, params)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
+
+    it('fails because id is empty', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid } };
+      const params = { id: '', status: 'pending' };
+
+      await expect(service.attemptReach(requestContext, params)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
+
+    it('fails because id is too long (101 chars)', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid } };
+      const params = {
+        id: 'asdfjasuihfwiruhglkajfbmznbvlkjfhiruhalksjbmxncbvlsjkfghirwuygasjhbvmxznbflashjwiuyralsjkhgsbhfgdzxc',
+        status: 'pending',
+      };
+
+      await expect(service.attemptReach(requestContext, params)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
+
+    it('fails because type is invalid', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid } };
+      const params = { id: '*', type: 'teapot' };
+
+      await expect(service.attemptReach(requestContext, params)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
+
+    it('fails because status is invalid', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid } };
+      const params = { id: '*', status: 'teapot' };
+
+      await expect(service.attemptReach(requestContext, params)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
     });
   });
 });
