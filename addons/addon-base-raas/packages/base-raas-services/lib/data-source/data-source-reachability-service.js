@@ -17,6 +17,7 @@ const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
+const attemptReachSchema = require('../schema/attempt-reach-data-source');
 
 const workflowIds = {
   bulkCheck: 'wf-bulk-reachability-check',
@@ -32,6 +33,7 @@ class DataSourceReachabilityService extends Service {
       'studyService',
       'workflowTriggerService',
       'aws',
+      'jsonSchemaValidationService',
       'roles-only/applicationRoleService',
     ]);
   }
@@ -267,6 +269,10 @@ class DataSourceReachabilityService extends Service {
       { action: 'update', conditions: [allowIfActive, allowIfAdmin] },
       { id, status, type },
     );
+
+    // Validate input
+    const [validationService] = await this.service(['jsonSchemaValidationService']);
+    await validationService.ensureValid(requestBody, attemptReachSchema);
 
     if (!id) {
       throw this.boom.badRequest(`ID is undefined. Please enter a valid dsAccountId, studyId, or '*'`, true);

@@ -8,20 +8,24 @@
       "pattern": "^[0-9]{12}$"
     },
     "rev": {
-      "type": "number"
+      "type": "number",
+      "minimum": 0
     },
     "name": {
       "type": "string",
       "minLength": 1,
-      "maxLength": 300
+      "maxLength": 300,
+      "pattern": "^([^<>{}]+)$"
     },
     "description": {
       "type": "string",
-      "maxLength": 2048
+      "maxLength": 2048,
+      "pattern": "^([^<>{}]+)$"
     },
     "contactInfo": {
       "type": "string",
-      "maxLength": 2048
+      "maxLength": 2048,
+      "pattern": "^([^<>{}]+)$"
     }
   },
   "required": ["id", "rev"]

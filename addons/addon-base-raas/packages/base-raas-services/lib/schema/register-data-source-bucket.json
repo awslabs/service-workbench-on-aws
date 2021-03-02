@@ -10,7 +10,8 @@
     "name": {
       "type": "string",
       "minLength": 3,
-      "maxLength": 255
+      "maxLength": 255,
+      "pattern": "^([^<>{}]+)$"
     },
     "region": {
       "type": "string",
@@ -48,7 +49,8 @@
     },
     "kmsArn": {
       "type": "string",
-      "maxLength": 90
+      "maxLength": 90,
+      "pattern": "arn:aws[a-zA-Z-]*:kms:[a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-[0-9]{1}:[0-9]{12}:key[/]{1}[a-zA-Z0-9-]+"
     },
     "access": {
       "type": "string",
