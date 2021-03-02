@@ -15,6 +15,9 @@
 
 const { runSetup } = require('../../../../support/setup');
 const errorCode = require('../../../../support/utils/error-code');
+const {
+  validateDefaultServiceCatalogProduct,
+} = require('../../../../support/complex/validate-default-service-catalog-product');
 
 describe('Get configurations scenarios', () => {
   let setup;
@@ -23,6 +26,7 @@ describe('Get configurations scenarios', () => {
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
+    await validateDefaultServiceCatalogProduct(setup);
   });
 
   afterAll(async () => {

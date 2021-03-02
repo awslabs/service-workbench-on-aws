@@ -14,6 +14,9 @@
  */
 
 const { runSetup } = require('../../../support/setup');
+const {
+  validateDefaultServiceCatalogProduct,
+} = require('../../../support/complex/validate-default-service-catalog-product');
 const errorCode = require('../../../support/utils/error-code');
 
 describe('Delete workspace-type scenarios', () => {
@@ -23,6 +26,7 @@ describe('Delete workspace-type scenarios', () => {
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
+    await validateDefaultServiceCatalogProduct(setup);
   });
 
   afterAll(async () => {
@@ -73,7 +77,7 @@ describe('Delete workspace-type scenarios', () => {
     });
 
     it('should fail if user is anonymous', async () => {
-      const anonymousSession = await setup.createResearcherSession();
+      const anonymousSession = await setup.createAnonymousSession();
       const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
       await adminSession.resources.workspaceTypes.create({
@@ -83,7 +87,7 @@ describe('Delete workspace-type scenarios', () => {
       await expect(
         anonymousSession.resources.workspaceTypes.workspaceType(workspaceTypeId).delete(),
       ).rejects.toMatchObject({
-        code: errorCode.http.code.forbidden,
+        code: errorCode.http.code.badImplementation,
       });
 
       await expect(adminSession.resources.workspaceTypes.workspaceType(workspaceTypeId).get()).resolves.toHaveProperty(

@@ -52,7 +52,8 @@ localApiEndpoint: http://localhost:4000
 # 1. Go to the Service Catalog AWS console.
 # 2. Go to Portfolios.
 # 3. Go to the portfolio of Service Workbench.
-# 4. Click the "Upload new product" button and create a product for the Cloudformation template specified above.
+# 4. Click the "Upload new product" button and create a product for the Cloudformation template specified above
+#    using "Integration Test" as the name of the product.
 # 5. Once the product is created, go to the Constraints tab.
 # 6. Click the "Create constraint" button.
 # 7. Specify the new product in the product dropdown list, check the "Launch constraint" radio button, and then

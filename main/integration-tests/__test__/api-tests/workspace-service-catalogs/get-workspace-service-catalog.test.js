@@ -18,6 +18,9 @@ const { runSetup } = require('../../../support/setup');
 const {
   createWorkspaceTypeAndConfiguration,
 } = require('../../../support/complex/create-workspace-type-and-configuration');
+const {
+  validateDefaultServiceCatalogProduct,
+} = require('../../../support/complex/validate-default-service-catalog-product');
 const errorCode = require('../../../support/utils/error-code');
 
 describe('Get workspace-service-catalog scenarios', () => {
@@ -27,6 +30,7 @@ describe('Get workspace-service-catalog scenarios', () => {
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
+    await validateDefaultServiceCatalogProduct(setup);
   });
 
   afterAll(async () => {

@@ -2,8 +2,8 @@
  * A function that performs the complex task of creating a workspace type
  * and configuration.
  *
- * @param {string} adminSession The admin session.
- * @param {string} setup The setup object.
+ * @param {Session} adminSession The admin session.
+ * @param {Setup} setup The setup object.
  * @param {Array} allowRoledIds The roles allowed to launch the workspace.
  */
 async function createWorkspaceTypeAndConfiguration(adminSession, setup, allowRoleIds = ['admin']) {

@@ -14,6 +14,9 @@
  */
 
 const { runSetup } = require('../../../support/setup');
+const {
+  validateDefaultServiceCatalogProduct,
+} = require('../../../support/complex/validate-default-service-catalog-product');
 const errorCode = require('../../../support/utils/error-code');
 
 describe('Approve workspace-type scenarios', () => {
@@ -23,6 +26,7 @@ describe('Approve workspace-type scenarios', () => {
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
+    await validateDefaultServiceCatalogProduct(setup);
   });
 
   afterAll(async () => {
