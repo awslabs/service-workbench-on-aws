@@ -38,12 +38,30 @@ isLocal: false
 # Set this to the API endpoint if different than the following
 localApiEndpoint: http://localhost:4000
 
-# In the AWS Console, go to Service Catalog > Products and select the ID of a product
-# to set as the default product ID.
+# For integration testing, the default service catalog product should not create EC2 instances to prevent the
+# possibility of creating dozens or even hundreds of EC2 instances that may not be terminated due to an
+# accidental resource leak. The default service catalog product is based on a Cloudformation template located in:
+#
+# main/integration-tests/support/service-catalog/default-integration-test-product.yml
+#
+# This template only creates an entry in the Secrets Manager, and therefore, there won't be a drastic impact
+# if dozens or hundreds of instances of the product don't get terminated.
+#
+# To use this product, do the following:
+#
+# 1. Go to the Service Catalog AWS console.
+# 2. Go to Portfolios.
+# 3. Go to the portfolio of Service Workbench.
+# 4. Click the "Upload new product" button and create a product for the Cloudformation template specified above.
+# 5. Once the product is created, go to the Constraints tab.
+# 6. Click the "Create constraint" button.
+# 7. Specify the new product in the product dropdown list, check the "Launch constraint" radio button, and then
+#    specify as a role name <stage>-<region>-sw-LaunchConstraint (For example, mystage-va-LaunchConstraint)
+#
+# Next, import the product as a workspace type in the Service Workbench UI, and grab the product and provisioning
+# artifact IDs from the UI card of the workspace type. The concatenation of the product id and provisioning artifact
+# ID are shown below the name of the workspace type in the card. For example, prod-qmeib2re62zba-pa-mpsdtdd45vzqe.
+# In this example, prod-qmeib2re62zba is the product ID and pa-mpsdtdd45vzqe is the provisioning artifact ID. Set the
+# product and provisioning artifact IDs you obtained below:
 defaultProductId: ""
-
-# Launch an instance of the above product by going to Service Catalog > Products.
-# Make sure to stop the instance so that it won't incur significant cost. Specify the
-# provisioning artifact ID of the launched product below by obtaining it from Service
-# Catalog > Provisioned products.
 defaultProvisioningArtifactId: ""
