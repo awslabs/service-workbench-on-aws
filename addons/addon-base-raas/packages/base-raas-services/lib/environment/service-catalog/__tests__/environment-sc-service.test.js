@@ -645,7 +645,110 @@ describe('EnvironmentSCService', () => {
       AWSMock.restore();
     });
 
-    it('', async () => {});
+    it('Should call listNotebookInstances with NextToken if NextToken is returned', async () => {
+      // BUILD
+      indexesService.list = jest
+        .fn()
+        .mockResolvedValue([{ id: 'some-index-id', awsAccountId: 'some-aws-account-uuid' }]);
+      awsAccountsService.list = jest.fn().mockResolvedValue([
+        {
+          roleArn: 'some-role-arn',
+          externalId: 'some-external-id',
+          id: 'some-aws-account-uuid',
+          accountId: 'some-aws-account-id',
+        },
+      ]);
+      dbService.table.scan.mockResolvedValueOnce([
+        {
+          id: 'some-environment-id',
+          indexId: 'some-index-id',
+          status: 'STOPPING',
+          outputs: [{ OutputKey: 'NotebookInstanceName', OutputValue: 'notebook-instance-name' }],
+        },
+        {
+          id: 'some-environment-id-1',
+          indexId: 'some-index-id',
+          status: 'STOPPING',
+          outputs: [{ OutputKey: 'NotebookInstanceName', OutputValue: 'notebook-instance-name-1' }],
+        },
+        {
+          id: 'some-environment-id-2',
+          indexId: 'some-index-id',
+          status: 'STOPPING',
+          outputs: [{ OutputKey: 'NotebookInstanceName', OutputValue: 'notebook-instance-name-2' }],
+        },
+      ]);
+      service.update = jest.fn();
+
+      AWSMock.setSDKInstance(aws.sdk);
+      AWSMock.mock('STS', 'assumeRole', { Credentials: stsResponse });
+      let listNoteBookTimes = 2;
+      AWSMock.mock('SageMaker', 'listNotebookInstances', (params, callback) => {
+        if (listNoteBookTimes === 2) {
+          listNoteBookTimes -= 1;
+          callback(null, {
+            NotebookInstances: [
+              {
+                NotebookInstanceName: 'notebook-instance-name',
+                NotebookInstanceStatus: 'Stopped',
+              },
+              {
+                NotebookInstanceName: 'notebook-instance-name-1',
+                NotebookInstanceStatus: 'InService',
+              },
+            ],
+            NextToken: 'some-next-token',
+          });
+        } else if (listNoteBookTimes === 1) {
+          if (params.NextToken === 'some-next-token') {
+            listNoteBookTimes -= 1;
+            callback(null, {
+              NotebookInstances: [
+                {
+                  NotebookInstanceName: 'notebook-instance-name-2',
+                  NotebookInstanceStatus: 'Updating',
+                },
+              ],
+            });
+          } else {
+            callback({ message: 'NextToken is different from expected' }, null);
+          }
+        } else {
+          callback(
+            { message: `list notebook was called the ${2 - listNoteBookTimes} time, only 2 calls expected` },
+            null,
+          );
+        }
+      });
+
+      // OPERATE
+      const result = await service.pollAndSyncWsStatus(requestContext);
+      // CHECK
+      expect(result).toMatchObject([
+        {
+          accountId: 'some-aws-account-id',
+          ec2Updated: {},
+          sagemakerUpdated: {
+            'notebook-instance-name': {
+              currentStatus: 'STOPPED',
+              ddbID: 'some-environment-id',
+              staleStatus: 'STOPPING',
+            },
+            'notebook-instance-name-1': {
+              currentStatus: 'COMPLETED',
+              ddbID: 'some-environment-id-1',
+              staleStatus: 'STOPPING',
+            },
+            'notebook-instance-name-2': {
+              currentStatus: 'STARTING',
+              ddbID: 'some-environment-id-2',
+              staleStatus: 'STOPPING',
+            },
+          },
+        },
+      ]);
+      AWSMock.restore();
+    });
   });
 
   describe('changeWorkspaceRunState function', () => {
