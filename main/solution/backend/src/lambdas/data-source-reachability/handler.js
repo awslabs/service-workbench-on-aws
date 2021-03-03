@@ -21,15 +21,15 @@ const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const pluginRegistry = require('./plugins/plugin-registry');
 
-const handler = async existingContainer => {
-  let container = existingContainer;
-  if (!container || _.isEmpty(container)) {
-    container = new ServicesContainer(['settings', 'log']);
-    // registerServices - Registers services by calling each service registration plugin in order.
-    await registerServices(container, pluginRegistry);
-    await container.initServices();
-  }
+const handler = async () => {
+  const container = new ServicesContainer(['settings', 'log']);
+  // registerServices - Registers services by calling each service registration plugin in order.
+  await registerServices(container, pluginRegistry);
+  await container.initServices();
+  await handlerWithContainer(container);
+};
 
+const handlerWithContainer = async container => {
   const dataSourceReachabilityService = await container.find('dataSourceReachabilityService');
   const studyService = await container.find('studyService');
   const dataSourceAccountService = await container.find('dataSourceAccountService');
@@ -62,3 +62,4 @@ const handler = async existingContainer => {
 
 // eslint-disable-next-line import/prefer-default-export
 module.exports.handler = handler;
+module.exports.handlerWithContainer = handlerWithContainer;
