@@ -104,7 +104,6 @@ module.exports = {
                     ],
                   },
                 ],
-                "API Keys": ["user_guide/sidebar/admin/api_keys/introduction"],
                 Workflows: ["user_guide/sidebar/admin/workflows/introduction"],
                 Studies: [
                   "user_guide/sidebar/common/studies/introduction",

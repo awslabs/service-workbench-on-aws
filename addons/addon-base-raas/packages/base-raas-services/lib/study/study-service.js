@@ -385,14 +385,6 @@ class StudyService extends Service {
   async update(requestContext, rawData) {
     const [validationService] = await this.service(['jsonSchemaValidationService']);
 
-    if (isOpenData(rawData) && !isSystem(requestContext)) {
-      throw this.boom.forbidden('Only the system can update Open Data studies.', true);
-    }
-
-    if (!isOpenData(rawData) && !_.isEmpty(rawData.resources)) {
-      throw this.boom.badRequest('Resources can only be updated for Open Data study category', true);
-    }
-
     if (!_.isEmpty(rawData.appRoleArn) && !isAdmin(requestContext)) {
       throw this.boom.forbidden("You don't have permissions to update the application role arn", true);
     }
@@ -406,6 +398,14 @@ class StudyService extends Service {
     const studyEntity = await this.getStudyPermissions(requestContext, id);
     if (!isStudyAdmin(studyEntity.permissions) && !isAdmin(requestContext)) {
       throw this.boom.forbidden("You don't have permissions to update this study", true);
+    }
+
+    if (isOpenData(studyEntity) && !isSystem(requestContext)) {
+      throw this.boom.badRequest('Only the system can update Open Data studies.', true);
+    }
+
+    if (!isOpenData(studyEntity) && !_.isEmpty(rawData.resources)) {
+      throw this.boom.badRequest('Resources can only be updated for Open Data study category', true);
     }
 
     const by = _.get(requestContext, 'principalIdentifier.uid');

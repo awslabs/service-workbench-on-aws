@@ -19,7 +19,6 @@ import Dashboard from '../parts/dashboard/Dashboard';
 import AddAuthenticationProvider from '../parts/authentication-providers/AddAuthenticationProvider';
 import EditAuthenticationProvider from '../parts/authentication-providers/EditAuthenticationProvider';
 import AuthenticationProvidersList from '../parts/authentication-providers/AuthenticationProvidersList';
-import ApiKeysList from '../parts/api-keys/ApiKeysList';
 import AddUser from '../parts/users/AddUser';
 import UsersList from '../parts/users/UsersList';
 import withAuth from '../withAuth';
@@ -39,7 +38,6 @@ function registerRoutes(routesMap, { location, appContext }) {
     ['/authentication-providers/add', withAuth(AddAuthenticationProvider)],
     ['/authentication-providers/:authenticationProviderConfigId/edit', withAuth(EditAuthenticationProvider)],
     ['/authentication-providers', withAuth(AuthenticationProvidersList)],
-    ['/api-keys', withAuth(ApiKeysList)],
     ['/users/add', withAuth(AddUser)],
     ['/users', withAuth(UsersList)],
     ['/dashboard', withAuth(Dashboard)],

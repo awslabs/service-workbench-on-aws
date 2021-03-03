@@ -18,6 +18,12 @@ const cycle = require('cycle');
 
 class LogTransformer {
   constructor(loggingContext = {}, fieldsToMask = ['x-amz-security-token', 'user', 'accessKey', 'password']) {
+    if (!Array.isArray(fieldsToMask) || fieldsToMask.some(field => typeof field !== 'string')) {
+      throw new Error(
+        `expected fieldsToMask to be an array of strings, but got instead: ${JSON.stringify(fieldsToMask)}`,
+      );
+    }
+
     this.loggingContext = loggingContext;
     this.fieldsToMask = fieldsToMask;
   }

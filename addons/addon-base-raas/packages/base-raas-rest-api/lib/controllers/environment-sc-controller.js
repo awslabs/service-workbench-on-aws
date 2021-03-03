@@ -69,6 +69,26 @@ async function configure(context) {
   );
 
   // ===============================================================
+  //  POST / (mounted to /api/workspaces/service-catalog)
+  // ===============================================================
+  router.post(
+    '/:id/cidr',
+    wrap(async (req, res) => {
+      const requestContext = res.locals.requestContext;
+      const id = req.params.id;
+      const updateRequest = req.body.cidr;
+
+      const [environmentScCidrService] = await context.service(['environmentScCidrService']);
+      const result = await environmentScCidrService.update(requestContext, {
+        id,
+        updateRequest,
+      });
+
+      res.status(200).json(result);
+    }),
+  );
+
+  // ===============================================================
   //  GET /:id/connections (mounted to /api/workspaces/service-catalog)
   // ===============================================================
   router.get(
