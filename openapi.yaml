@@ -2178,7 +2178,7 @@ components:
     KeyPairId:
       type: string
       minLength: 1
-      maxLength: 100
+      maxLength: 1024
       pattern: "^[A-Za-z0-9-_]+$"
       example: 'bdf175e3-2966-456b-bd6a-a6125fa33b8c'
     KeyPairRev:
@@ -3339,7 +3339,7 @@ components:
           example: 'org-study-test-2'
         name:
           type: string
-          maxLength: 2048
+          maxLength: 300
           example: 'Org Study 2'
         category:
           type: string
@@ -3350,7 +3350,7 @@ components:
           example: 'Organization'
         description:
           type: string
-          maxLength: 8192
+          maxLength: 2048
           example: 'An org study to test a few things'
         projectId:
           type: string
@@ -3376,6 +3376,7 @@ components:
             properties:
               arn:
                 type: string
+                maxLength: 2048
         accessType:
           type: string
           enum:
@@ -3425,8 +3426,10 @@ components:
             properties:
               arn:
                 type: string
+                maxLength: 2048                 
               fileShareArn:
                 type: string
+                maxLength: 2048
       required:
         - id
     permissionLevel:
@@ -3476,12 +3479,17 @@ components:
             budgetLimit:
               type: string
               example: '1000'
+              maxLength: 2048
             startDate:
               type: integer
               example: 1611964800
             endDate:
               type: integer
               example: 1611964800
+            description:
+              type: string
+              maxLength: 2048
+              example: 'An org study to test a few things'
             thresholds:
               type: array
               example: [50,90]
@@ -3498,6 +3506,7 @@ components:
               type: string
               example: 'test@example.com'
               format: email
+              maxLength: 2048
               description: thresholds and notification depend on each other
           additionalProperties: false
       additionalProperties: false
