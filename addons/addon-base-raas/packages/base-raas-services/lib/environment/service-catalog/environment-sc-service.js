@@ -234,11 +234,10 @@ class EnvironmentScService extends Service {
   async pollSageMakerRealtimeStatus(roleArn, externalId) {
     const aws = await this.service('aws');
     const sagemakerClient = await aws.getClientSdkForRole({ roleArn, externalId, clientName: 'SageMaker' });
-    const params = {};
+    const params = { MaxResults: 100 };
     const sagemakerRealtimeStatus = {};
-    let data;
     do {
-      data = await sagemakerClient.listNotebookInstances().promise(); // eslint-disable-line no-await-in-loop
+      const data = await sagemakerClient.listNotebookInstances(params).promise(); // eslint-disable-line no-await-in-loop
       params.NextToken = data.NextToken;
       data.NotebookInstances.forEach(instance => {
         sagemakerRealtimeStatus[instance.NotebookInstanceName] = instance.NotebookInstanceStatus;
