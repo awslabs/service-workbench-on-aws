@@ -7,7 +7,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@aws-ee/base-workflow-core": "workspace:*",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "slugify": "^1.4.0"
   },
   "devDependencies": {

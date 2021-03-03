@@ -46,10 +46,10 @@ Parameters:
   RecurringDownloads:
     Type: String
     Description: A flag indicating whether to keep syncing studies data to local EBS volumes on recurring basis. Setting this to false will download studies data only once at the instance bootstrap time. When this flag is set to true the instance will periodically sync changes from S3 to local EBS i.e., it will download any new files added to S3, re-download any files changed in S3 (will use object ETag value to determine if file changed in S3), delete files from local EBS if they are deleted from S3.
-    Default: "true"
+    Default: 'true'
     AllowedValues:
-      - "true"
-      - "false"
+      - 'true'
+      - 'false'
   DownloadInterval:
     Type: Number
     Description: An interval in seconds to wait between two downloads in case of recurring downloads. This is only applicable when RecurringDownloads is set to "true". Note that this does not include the download time. This specifies the duration in seconds to wait before initiating the next download after the previous one completes.
@@ -60,70 +60,60 @@ Parameters:
     Default: 30
 
 Conditions:
-  IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, "{}"]
+  IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
 
 Resources:
   IAMRole:
-    Type: "AWS::IAM::Role"
+    Type: 'AWS::IAM::Role'
     Properties:
-      RoleName: !Join ["-", [Ref: Namespace, "ec2-role"]]
-      Path: "/"
+      RoleName: !Join ['-', [Ref: Namespace, 'ec2-role']]
+      Path: '/'
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
-          - Effect: "Allow"
+          - Effect: 'Allow'
             Principal:
               Service:
-                - "ec2.amazonaws.com"
+                - 'ec2.amazonaws.com'
             Action:
-              - "sts:AssumeRole"
+              - 'sts:AssumeRole'
       Policies:
         - !If
           - IamPolicyEmpty
-          - !Ref "AWS::NoValue"
-          - PolicyName: !Join ["-", [Ref: Namespace, "s3-studydata-policy"]]
+          - !Ref 'AWS::NoValue'
+          - PolicyName: !Join ['-', [Ref: Namespace, 's3-studydata-policy']]
             PolicyDocument: !Ref IamPolicyDocument
-        - PolicyName:
-            !Join ["-", [Ref: Namespace, "s3-bootstrap-script-policy"]]
+        - PolicyName: !Join ['-', [Ref: Namespace, 's3-bootstrap-script-policy']]
           PolicyDocument:
-            Version: "2012-10-17"
+            Version: '2012-10-17'
             Statement:
-              - Effect: "Allow"
-                Action: "s3:GetObject"
+              - Effect: 'Allow'
+                Action: 's3:GetObject'
                 Resource: !Sub
-                  - "arn:aws:s3:::${S3Location}/*"
+                  - 'arn:aws:s3:::${S3Location}/*'
                   # Remove "s3://" prefix from EnvironmentInstanceFiles
-                  - S3Location:
-                      !Select [
-                          1,
-                          !Split ["s3://", !Ref EnvironmentInstanceFiles],
-                      ]
-              - Effect: "Allow"
-                Action: "s3:ListBucket"
+                  - S3Location: !Select [1, !Split ['s3://', !Ref EnvironmentInstanceFiles]]
+              - Effect: 'Allow'
+                Action: 's3:ListBucket'
                 Resource: !Sub
-                  - "arn:aws:s3:::${S3Bucket}"
-                  - S3Bucket:
-                      !Select [2, !Split ["/", !Ref EnvironmentInstanceFiles]]
+                  - 'arn:aws:s3:::${S3Bucket}'
+                  - S3Bucket: !Select [2, !Split ['/', !Ref EnvironmentInstanceFiles]]
                 Condition:
                   StringLike:
                     s3:prefix: !Sub
-                      - "${S3Prefix}/*"
-                      - S3Prefix:
-                          !Select [
-                              3,
-                              !Split ["/", !Ref EnvironmentInstanceFiles],
-                          ]
+                      - '${S3Prefix}/*'
+                      - S3Prefix: !Select [3, !Split ['/', !Ref EnvironmentInstanceFiles]]
 
   InstanceProfile:
-    Type: "AWS::IAM::InstanceProfile"
+    Type: 'AWS::IAM::InstanceProfile'
     Properties:
-      InstanceProfileName: !Join ["-", [Ref: Namespace, "ec2-profile"]]
-      Path: "/"
+      InstanceProfileName: !Join ['-', [Ref: Namespace, 'ec2-profile']]
+      Path: '/'
       Roles:
         - Ref: IAMRole
 
   SecurityGroup:
-    Type: "AWS::EC2::SecurityGroup"
+    Type: 'AWS::EC2::SecurityGroup'
     Properties:
       GroupDescription: EC2 workspace security group
       SecurityGroupEgress:
@@ -142,16 +132,16 @@ Resources:
           CidrIp: !Ref AccessFromCIDRBlock
       Tags:
         - Key: Name
-          Value: !Join ["-", [Ref: Namespace, "ec2-sg"]]
+          Value: !Join ['-', [Ref: Namespace, 'ec2-sg']]
         - Key: Description
           Value: EC2 environment security group
       VpcId: !Ref VPC
 
   EC2Instance:
-    Type: "AWS::EC2::Instance"
+    Type: 'AWS::EC2::Instance'
     CreationPolicy:
       ResourceSignal:
-        Timeout: "PT20M"
+        Timeout: 'PT20M'
     Properties:
       ImageId: !Ref AmiId
       InstanceType: !Ref InstanceType
@@ -223,13 +213,13 @@ Resources:
             DeleteOnTermination: true
       NetworkInterfaces:
         - AssociatePublicIpAddress: true
-          DeviceIndex: "0"
+          DeviceIndex: '0'
           GroupSet:
             - !Ref SecurityGroup
           SubnetId: !Ref Subnet
       Tags:
         - Key: Name
-          Value: !Join ["-", [Ref: Namespace, "ec2-windows"]]
+          Value: !Join ['-', [Ref: Namespace, 'ec2-windows']]
         - Key: Description
           Value: EC2 workspace instance
       UserData:
