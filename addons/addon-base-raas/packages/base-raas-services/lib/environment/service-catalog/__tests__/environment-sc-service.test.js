@@ -682,10 +682,9 @@ describe('EnvironmentSCService', () => {
 
       AWSMock.setSDKInstance(aws.sdk);
       AWSMock.mock('STS', 'assumeRole', { Credentials: stsResponse });
-      let listNoteBookTimes = 2;
-      AWSMock.mock('SageMaker', 'listNotebookInstances', (params, callback) => {
-        if (listNoteBookTimes === 2) {
-          listNoteBookTimes -= 1;
+      const mockListNotebookInstance = jest
+        .fn()
+        .mockImplementationOnce((params, callback) => {
           callback(null, {
             NotebookInstances: [
               {
@@ -699,9 +698,9 @@ describe('EnvironmentSCService', () => {
             ],
             NextToken: 'some-next-token',
           });
-        } else if (listNoteBookTimes === 1) {
+        })
+        .mockImplementationOnce((params, callback) => {
           if (params.NextToken === 'some-next-token') {
-            listNoteBookTimes -= 1;
             callback(null, {
               NotebookInstances: [
                 {
@@ -713,13 +712,11 @@ describe('EnvironmentSCService', () => {
           } else {
             callback({ message: 'NextToken is different from expected' }, null);
           }
-        } else {
-          callback(
-            { message: `list notebook was called the ${2 - listNoteBookTimes} time, only 2 calls expected` },
-            null,
-          );
-        }
-      });
+        })
+        .mockImplementationOnce((params, callback) => {
+          callback({ message: `list notebook was called the third time, only 2 calls expected` }, null);
+        });
+      AWSMock.mock('SageMaker', 'listNotebookInstances', mockListNotebookInstance);
 
       // OPERATE
       const result = await service.pollAndSyncWsStatus(requestContext);
