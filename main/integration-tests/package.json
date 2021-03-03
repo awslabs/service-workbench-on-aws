@@ -6,7 +6,7 @@
   "author": "Amazon Web Services",
   "license": "Apache-2.0",
   "scripts": {
-    "intTest": "NODE_ENV=test jest --config jest.config.js --passWithNoTests",
+    "intTest": "NODE_ENV=test jest --config jest.config.js --passWithNoTests --runInBand",
     "intTestWatch": "NODE_ENV=test jest --config jest.config.js  --passWithNoTests --watchAll",
     "lint": "pnpm run lint:eslint && pnpm run lint:prettier",
     "lint:eslint": "eslint --ignore-path .gitignore . ",
@@ -27,7 +27,7 @@
     "chance": "^1.1.7",
     "fs-extra": "^9.1.0",
     "js-yaml": "^4.0.0",
-    "lodash": "^4.17.20",
+    "lodash": "^4.17.21",
     "services": "workspace:*",
     "yargs-parser": "^20.2.5"
   },

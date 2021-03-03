@@ -44,7 +44,7 @@ describe('List indexes scenarios', () => {
       await expect(guestSession.resources.indexes.get()).resolves.toStrictEqual([]);
     });
 
-    it('should fail if external guest attempts to get index list', async () => {
+    it('should return empty index list for external guest', async () => {
       const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
       await expect(guestSession.resources.indexes.get()).resolves.toStrictEqual([]);
     });

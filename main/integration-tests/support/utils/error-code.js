@@ -22,6 +22,7 @@ const errorCode = () => {
     // Make sure you know the difference between forbidden and unauthorized
     // (see https://stackoverflow.com/questions/3297048/403-forbidden-vs-401-unauthorized-http-responses)
     unauthorized: 401,
+    invalidCredentials: 401,
     forbidden: 403,
     invalidToken: 403,
     notFound: 404,

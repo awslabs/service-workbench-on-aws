@@ -16,7 +16,7 @@
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
 const { registerServices } = require('@aws-ee/base-services/lib/utils/services-registration-util');
 
-const newHandler = require('./handler-impl');
+const { newHandler } = require('./handler-impl');
 const pluginRegistry = require('./plugins/plugin-registry');
 
 const initHandler = (async () => {

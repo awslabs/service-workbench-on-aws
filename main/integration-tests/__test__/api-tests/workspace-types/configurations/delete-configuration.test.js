@@ -163,7 +163,7 @@ describe('Delete workspace-type scenarios', () => {
         .configurations()
         .configuration(configurationId)
         .delete(),
-    ).resolves.toBeUndefined();
+    ).resolves.toMatchObject({ id: configurationId });
 
     await expect(
       adminSession.resources.workspaceTypes

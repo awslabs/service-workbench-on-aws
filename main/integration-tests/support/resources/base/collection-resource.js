@@ -24,7 +24,7 @@ const { transform } = require('../../utils/axios-error');
  * The frequency of changes to this class is expected to be minimal.
  */
 class CollectionResource {
-  constructor({ clientSession, type, childType, childIdProp = 'id', parent }) {
+  constructor({ clientSession, type, childType, childIdProp = 'id', parent, id }) {
     this.clientSession = clientSession;
     this.axiosClient = clientSession.axiosClient;
     this.setup = clientSession.setup;
@@ -36,6 +36,7 @@ class CollectionResource {
     // id property.
     this.childIdProp = childIdProp;
     this.parent = parent;
+    this.id = id;
   }
 
   // When creating a child resource, this method provides default values.
@@ -50,7 +51,7 @@ class CollectionResource {
     // For example, if the extender class is 'Users' and it provides childType = 'user', then Users class must have
     // a method called 'user()'.
     if (!_.isFunction(this[this.childType])) {
-      throw new Error(`The collection resource ['${this.type}] must have a method named [${this.childType}()]`);
+      throw new Error(`The collection resource ['${this.type}'] must have a method named [${this.childType}()]`);
     }
 
     try {

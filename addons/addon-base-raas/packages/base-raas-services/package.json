@@ -10,7 +10,7 @@
     "@aws-ee/base-services": "workspace:*",
     "@aws-ee/base-services-container": "workspace:*",
     "@aws-ee/key-pair-mgmt-services": "workspace:*",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "js-yaml": "^4.0.0",
     "node-cache": "^4.2.1",
     "request": "^2.88.2",

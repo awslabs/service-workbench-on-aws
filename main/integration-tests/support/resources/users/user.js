@@ -38,6 +38,10 @@ class User extends Resource {
   }
 
   // ************************ Helpers methods ************************
+
+  async updatePassword(password) {
+    return this.doCall(async () => this.axiosClient.put(`${this.api}/password`, { password }));
+  }
 }
 
 module.exports = User;
