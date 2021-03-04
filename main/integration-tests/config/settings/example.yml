@@ -1,0 +1,49 @@
+# Set this to true, if this configuration file is for the CI/CD pipeline build server, otherwise leave it false
+isBuildServer: false
+
+# The AWS region where the service workbench application is deployed
+awsRegion: us-east-1
+
+# AWS profile to use for deployment. You must provide this value if isBuildServer = false
+awsProfile:
+
+# Make sure that the solutionName matches the one you are using in /main/config/settings
+solutionName:
+
+# Required. Usually, this is the same as the stage name that you used when you deployed the service
+# workbench application
+envName:
+
+# Make sure that the envType matches the one you are using in /main/config/settings
+# Make sure that you are not trying to run integration tests against your production environment
+envType: dev
+
+# Store the Test Administrator password in AWS Parameter Store. Pick a parameter name of your choice.
+# For the parameter type, choose 'String' and for the data type choose 'text'.
+
+# Provide the Test Administrator username and the location of the password in the parameter store
+# Please make sure this user has admin privileges
+username: ""
+passwordPath: # This is the parameter name/path where you stored the password. Example: alan/int-test-user/password
+
+# This is a Project ID in your SWB deployment. Please ensure it is safe to be used by integration tests
+projectId: ""
+
+# Currently only "internal" auth provider is supported for test admin credentials.
+authenticationProviderId: "internal"
+
+# Set this to true if debugging locally
+isLocal: false
+
+# Set this to the API endpoint if different than the following
+localApiEndpoint: http://localhost:4000
+
+# In the AWS Console, go to Service Catalog > Products and select the ID of a product
+# to set as the default product ID.
+defaultProductId: ""
+
+# Launch an instance of the above product by going to Service Catalog > Products.
+# Make sure to stop the instance so that it won't incur significant cost. Specify the
+# provisioning artifact ID of the launched product below by obtaining it from Service
+# Catalog > Provisioned products.
+defaultProvisioningArtifactId: ""

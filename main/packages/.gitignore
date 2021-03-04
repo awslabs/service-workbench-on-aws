@@ -11,7 +11,7 @@
 .serverless
 
 
-# https://github.com/github/gitignore/blob/master/Global/VisualStudioCode.gitignore
+# VisualStudioCode.gitignore
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json

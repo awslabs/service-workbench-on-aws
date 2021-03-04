@@ -73,26 +73,73 @@ const generateDefaultIAMPolicy = accountId =>
     {
       "Sid": "ec2",
       "Effect": "Allow",
-      "Action": "ec2:*",
+      "Action": [
+        "ec2:AuthorizeSecurityGroupIngress",
+        "ec2:CreateKeyPair",
+        "ec2:CreateNetworkInterface",
+        "ec2:CreateSecurityGroup",
+        "ec2:CreateTags",
+        "ec2:DeleteKeyPair",
+        "ec2:DeleteNetworkInterface",
+        "ec2:DeleteSecurityGroup",
+        "ec2:DescribeAccountAttributes",
+        "ec2:DescribeDhcpOptions",
+        "ec2:DescribeImages",
+        "ec2:DescribeInstances",
+        "ec2:DescribeKeyPairs",
+        "ec2:DescribeNetworkAcls",
+        "ec2:DescribeNetworkInterfaces",
+        "ec2:DescribeRouteTables",
+        "ec2:DescribeSecurityGroups",
+        "ec2:DescribeSubnets",
+        "ec2:DescribeVolumeStatus",
+        "ec2:DescribeVolumes",
+        "ec2:DescribeVpcAttribute",
+        "ec2:DescribeVpcs",
+        "ec2:RunInstances",
+        "ec2:TerminateInstances"
+      ],
       "Resource": "*"
     },
     {
       "Sid": "cloudformation",
       "Effect": "Allow",
-      "Action": "cloudformation:*",
-      "Resource": "*"
+      "Action": [
+        "cloudformation:CreateStack",
+        "cloudformation:DeleteStack",
+        "cloudformation:DescribeStacks"
+      ],
+      "Resource": "arn:aws:cloudformation:*:${accountId}:stack/analysis*/*"
     },
     {
       "Sid": "emr",
       "Effect": "Allow",
-      "Action": "elasticmapreduce:*",
+      "Action": [
+        "elasticmapreduce:CreateSecurityConfiguration",
+        "elasticmapreduce:DeleteSecurityConfiguration",
+        "elasticmapreduce:DescribeCluster",
+        "elasticmapreduce:RunJobFlow",
+        "elasticmapreduce:TerminateJobFlows"
+      ],
       "Resource": "*"
     },
     {
       "Sid": "sagemaker",
       "Effect": "Allow",
-      "Action": "sagemaker:*",
-      "Resource": "*"
+      "Action": [
+        "sagemaker:CreateNotebookInstance",
+        "sagemaker:CreateNotebookInstanceLifecycleConfig",
+        "sagemaker:CreatePresignedNotebookInstanceUrl",
+        "sagemaker:DeleteNotebookInstance",
+        "sagemaker:DeleteNotebookInstanceLifecycleConfig",
+        "sagemaker:DescribeNotebookInstance",
+        "sagemaker:DescribeNotebookInstanceLifecycleConfig",
+        "sagemaker:StopNotebookInstance"
+      ],
+      "Resource": [
+        "arn:aws:sagemaker:*:${accountId}:notebook-instance-lifecycle-config/*",
+        "arn:aws:sagemaker:*:${accountId}:notebook-instance/*"
+      ]
     },
     {
       "Sid": "iamRoleAccess",
@@ -155,19 +202,48 @@ const generateDefaultIAMPolicy = accountId =>
     {
       "Sid": "s3",
       "Effect": "Allow",
-      "Action": "s3:*",
-      "Resource": "*"
+      "Action": [
+        "s3:CreateBucket",
+        "s3:PutBucketPublicAccessBlock",
+        "s3:PutBucketTagging"
+      ],
+      "Resource": "arn:aws:s3:::analysis*"
     },
     {
       "Sid": "ssm",
       "Effect": "Allow",
-      "Action": "ssm:*",
+      "Action": [
+        "ssm:DeleteParameter",
+        "ssm:GetParameter",
+        "ssm:PutParameter"
+      ],
       "Resource": "*"
     },
     {
       "Sid": "kms",
       "Effect": "Allow",
-      "Action": "kms:*",
+      "Action": [
+        "kms:CreateGrant",
+        "kms:CreateKey",
+        "kms:DeleteAlias",
+        "kms:DescribeKey",
+        "kms:EnableKeyRotation",
+        "kms:Encrypt",
+        "kms:GenerateDataKeyWithoutPlaintext",
+        "kms:GetKeyPolicy",
+        "kms:GetKeyRotationStatus",
+        "kms:GetParametersForImport",
+        "kms:ListAliases",
+        "kms:ListGrants",
+        "kms:ListKeyPolicies",
+        "kms:ListKeys",
+        "kms:ListResourceTags",
+        "kms:ListRetirableGrants",
+        "kms:PutKeyPolicy",
+        "kms:ScheduleKeyDeletion",
+        "kms:TagResource",
+        "kms:UntagResource"
+      ],
       "Resource": "*"
     }
   ]

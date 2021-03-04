@@ -63,6 +63,7 @@ class ScEnvironmentCard extends React.Component {
   renderDetailTable(env) {
     const studyCount = _.size(_.get(env, 'studyIds', []));
     const envType = this.envType || {};
+
     const renderRow = (key, value) => (
       <Table.Row>
         <Table.Cell width={5}>{key}</Table.Cell>
@@ -78,7 +79,6 @@ class ScEnvironmentCard extends React.Component {
           {renderRow('Owner', <By uid={env.createdBy} skipPrefix />)}
           {renderRow('Studies', studyCount === 0 ? 'No studies linked to this workspace' : niceNumber(studyCount))}
           {renderRow('Project', _.isEmpty(env.projectId) ? 'N/A' : env.projectId)}
-          {renderRow('Restricted CIDR', _.isEmpty(env.cidr) ? 'N/A' : env.cidr)}
           {renderRow('Workspace Type', envType.name)}
         </Table.Body>
       </Table>

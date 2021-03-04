@@ -24,7 +24,7 @@
     "@aws-ee/key-pair-mgmt-services": "workspace:*",
     "@aws-ee/user-id-upgrade-post-deployment": "workspace:*",
     "aws-sdk": "^2.713.0",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "services": "workspace:*"
   },
   "devDependencies": {

@@ -61,6 +61,7 @@ describe('studyService', () => {
   let service = null;
   let dbService = null;
   let projectService = null;
+  let studyPermissionService = null;
   const error = { code: 'ConditionalCheckFailedException' };
   beforeEach(async () => {
     const container = new ServicesContainer();
@@ -84,6 +85,7 @@ describe('studyService', () => {
     service = await container.find('studyService');
     dbService = await container.find('dbService');
     projectService = await container.find('projectService');
+    studyPermissionService = await container.find('studyPermissionService');
   });
 
   describe('getStudyPermissions', () => {
@@ -768,6 +770,119 @@ describe('studyService', () => {
       } catch (err) {
         // CHECK
         expect(err.message).toEqual('Study with id "doppelganger" does not exist');
+      }
+    });
+
+    it('should fail if non-system user is trying to update Open Data study', async () => {
+      // BUILD
+      const dataIpt = {
+        id: 'existingOpenStudy',
+        rev: 1,
+      };
+
+      service.find = jest.fn().mockImplementationOnce(() => {
+        return { id: 'existingOpenStudy', updatedBy: { username: 'another doppelganger' }, category: 'Open Data' };
+      });
+      studyPermissionService.findStudyPermissions = jest.fn().mockImplementationOnce(() => {
+        return getEmptyStudyPermissions();
+      });
+
+      // OPERATE
+      try {
+        await service.update(
+          { principal: { userRole: 'admin' }, principalIdentifier: { uid: 'someRandomUserUid' } },
+          dataIpt,
+        );
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Only the system can update Open Data studies.');
+      }
+    });
+
+    it('should pass if a researcher who is a study admin is trying to update', async () => {
+      // BUILD
+      const dataIpt = {
+        id: 'existingOrgStudy',
+        rev: 1,
+      };
+
+      service.find = jest.fn().mockImplementationOnce(() => {
+        return { id: 'existingOrgStudy', updatedBy: { username: 'another doppelganger' }, category: 'Organization' };
+      });
+      studyPermissionService.findStudyPermissions = jest.fn().mockImplementationOnce(() => {
+        const studyPermissions = getEmptyStudyPermissions();
+        studyPermissions.adminUsers = ['u-123'];
+        return studyPermissions;
+      });
+
+      service.audit = jest.fn();
+
+      // OPERATE
+      await service.update({ principal: { userRole: 'researcher' }, principalIdentifier: { uid: 'u-123' } }, dataIpt);
+
+      // CHECK
+      expect(dbService.table.update).toHaveBeenCalled();
+      expect(service.audit).toHaveBeenCalledWith(
+        { principal: { userRole: 'researcher' }, principalIdentifier: { uid: 'u-123' } },
+        { action: 'update-study', body: undefined },
+      );
+    });
+
+    it('should pass if system is trying to update Open Data study', async () => {
+      // BUILD
+      const dataIpt = {
+        id: 'existingOpenStudy',
+        rev: 1,
+      };
+
+      service.find = jest.fn().mockImplementationOnce(() => {
+        return { id: 'existingOpenStudy', updatedBy: { username: 'another doppelganger' }, category: 'Open Data' };
+      });
+      studyPermissionService.findStudyPermissions = jest.fn().mockImplementationOnce(() => {
+        return getEmptyStudyPermissions();
+      });
+
+      service.audit = jest.fn();
+
+      // OPERATE
+      await service.update({ principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } }, dataIpt);
+
+      // CHECK
+      expect(dbService.table.update).toHaveBeenCalled();
+      expect(service.audit).toHaveBeenCalledWith(
+        { principal: { userRole: 'admin' }, principalIdentifier: { uid: '_system_' } },
+        { action: 'update-study', body: undefined },
+      );
+    });
+
+    it('should fail if non Open Data study type has non-empty resources list', async () => {
+      // BUILD
+      const dataIpt = {
+        id: 'existingOrgStudy',
+        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
+        rev: 1,
+      };
+
+      service.find = jest.fn().mockImplementationOnce(() => {
+        return { id: 'existingOrgStudy', updatedBy: { username: 'another doppelganger' }, category: 'Organization' };
+      });
+      studyPermissionService.findStudyPermissions = jest.fn().mockImplementationOnce(() => {
+        return getEmptyStudyPermissions();
+      });
+
+      projectService.verifyUserProjectAssociation.mockImplementationOnce(() => true);
+
+      // OPERATE
+      try {
+        await service.update(
+          { principal: { userRole: 'admin' }, principalIdentifier: { uid: 'someRandomUserUid' } },
+          dataIpt,
+        );
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Resources can only be updated for Open Data study category');
       }
     });
   });

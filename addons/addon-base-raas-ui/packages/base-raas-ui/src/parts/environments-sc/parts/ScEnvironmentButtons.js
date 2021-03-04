@@ -8,6 +8,7 @@ import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
 import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
 
 import ScEnvironmentConnections from './ScEnvironmentConnections';
+import ScEnvironmentUpdateCidrs from './ScEnvironmentUpdateCidrs';
 
 // expected props
 // - scEnvironment (via prop)
@@ -21,6 +22,8 @@ class ScEnvironmentButtons extends React.Component {
       this.processing = false;
       // A flag to indicate if the connections button is active
       this.connectionsButtonActive = false;
+      // A flag to indicate if the cidr edit button is active
+      this.editCidrButtonActive = false;
     });
   }
 
@@ -79,12 +82,17 @@ class ScEnvironmentButtons extends React.Component {
     this.connectionsButtonActive = !this.connectionsButtonActive;
   };
 
+  handleCidrEditToggle = () => {
+    this.editCidrButtonActive = !this.editCidrButtonActive;
+  };
+
   render() {
     const env = this.environment;
     const state = env.state;
     const processing = this.processing;
     const showDetailButton = this.props.showDetailButton;
     const connectionsButtonActive = this.connectionsButtonActive;
+    const editCidrButtonActive = this.editCidrButtonActive;
     const canConnect = state.canConnect;
     const canStart = state.canStart && this.canChangeState();
     const canStop = state.canStop && this.canChangeState();
@@ -163,8 +171,22 @@ class ScEnvironmentButtons extends React.Component {
               View Detail
             </Button>
           )}
+          {state.canTerminate && !state.key.includes('FAILED') && (
+            <Button
+              floated="left"
+              basic
+              size="mini"
+              className="mt1 mb1 ml2"
+              toggle
+              active={editCidrButtonActive}
+              onClick={this.handleCidrEditToggle}
+            >
+              Edit CIDRs
+            </Button>
+          )}
         </div>
         {canConnect && connectionsButtonActive && <ScEnvironmentConnections scEnvironment={env} />}
+        {editCidrButtonActive && <ScEnvironmentUpdateCidrs scEnvironment={env} onCancel={this.handleCidrEditToggle} />}
       </>
     );
   }
@@ -176,9 +198,11 @@ decorate(ScEnvironmentButtons, {
   environment: computed,
   processing: observable,
   connectionsButtonActive: observable,
+  editCidrButtonActive: observable,
   handleViewDetail: action,
   handleAction: action,
   handleToggle: action,
+  handleCidrEditToggle: action,
 });
 
 export default inject('scEnvironmentsStore')(withRouter(observer(ScEnvironmentButtons)));

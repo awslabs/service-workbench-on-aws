@@ -10,6 +10,7 @@ import {
   deleteScEnvironment,
   startScEnvironment,
   stopScEnvironment,
+  updateScEnvironmentCidrs,
 } from '../../helpers/api';
 import { ScEnvironment } from './ScEnvironment';
 import { ScEnvironmentStore } from './ScEnvironmentStore';
@@ -58,8 +59,8 @@ const ScEnvironmentsStore = BaseStore.named('ScEnvironmentsStore')
       async doLoad() {
         const environments = await getScEnvironments();
         self.runInAction(() => {
-          consolidateToMap(self.environments, environments, (exiting, newItem) => {
-            exiting.setScEnvironment(newItem);
+          consolidateToMap(self.environments, environments, (existing, newItem) => {
+            existing.setScEnvironment(newItem);
           });
         });
       },
@@ -75,8 +76,14 @@ const ScEnvironmentsStore = BaseStore.named('ScEnvironmentsStore')
         }
       },
 
+      async updateScEnvironmentCidrs(envId, updateRequest) {
+        const result = await updateScEnvironmentCidrs(envId, updateRequest);
+        const env = self.getScEnvironment(envId);
+        env.setScEnvironment(result);
+        return env;
+      },
+
       async createScEnvironment(environment) {
-        // environment = { name, description, projectId, envTypeId, envTypeConfigId, studyIds (optional) }
         const result = await createScEnvironment(environment);
         self.addScEnvironment(result);
         return self.getScEnvironment(result.id);
