@@ -11,7 +11,7 @@
       "type": "string",
       "minLength": 3,
       "maxLength": 255,
-      "pattern": "^([^<>{}]+)$"
+      "pattern": "^([^<>{}]*)$"
     },
     "region": {
       "type": "string",

@@ -263,7 +263,7 @@ describe('BudgetsService', () => {
 
       // OPERATE and CHECK
       await expect(service.create(requestContext, requestBodyCopy)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
@@ -274,7 +274,7 @@ describe('BudgetsService', () => {
 
       // OPERATE and CHECK
       await expect(service.create(requestContext, requestBodyCopy)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
@@ -285,7 +285,7 @@ describe('BudgetsService', () => {
 
       // OPERATE and CHECK
       await expect(service.create(requestContext, requestBodyCopy)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
@@ -296,7 +296,7 @@ describe('BudgetsService', () => {
 
       // OPERATE and CHECK
       await expect(service.create(requestContext, requestBodyCopy)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
@@ -478,7 +478,7 @@ describe('BudgetsService', () => {
 
       // OPERATE and CHECK
       await expect(service.update(requestContext, requestBodyCopy)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
@@ -489,7 +489,7 @@ describe('BudgetsService', () => {
 
       // OPERATE and CHECK
       await expect(service.update(requestContext, requestBodyCopy)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
@@ -500,7 +500,7 @@ describe('BudgetsService', () => {
 
       // OPERATE and CHECK
       await expect(service.update(requestContext, requestBodyCopy)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
@@ -511,7 +511,7 @@ describe('BudgetsService', () => {
 
       // OPERATE and CHECK
       await expect(service.update(requestContext, requestBodyCopy)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
