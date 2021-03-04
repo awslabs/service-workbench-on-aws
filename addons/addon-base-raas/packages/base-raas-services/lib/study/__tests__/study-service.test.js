@@ -131,6 +131,16 @@ describe('studyService', () => {
         permissions: { adminUsers: [], readonlyUsers: [uid], readwriteUsers: [], writeonlyUsers: [] },
       });
     });
+    it('should fail since the given study id is invalid', async () => {
+      // BUILD
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid }, principal: { userRole: 'researcher', status: 'active' } };
+      // OPERATE
+      await expect(service.getStudyPermissions(requestContext, '<hack>')).rejects.toThrow(
+        // CHECK
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
   });
 
   describe('getUserPermissions', () => {
@@ -660,9 +670,169 @@ describe('studyService', () => {
         expect(err.message).toEqual('Open Data study cannot be read/write');
       }
     });
+
+    it('should fail since the given study id is invalid', async () => {
+      // BUILD
+      const uid = 'u-currentUserId';
+      const requestContext = {
+        principalIdentifier: { uid },
+        principal: { userRole: 'researcher', status: 'active' },
+      };
+      const dataIpt = {
+        id: '<hack>',
+        name: 'name',
+        category: 'Organization',
+        description: 'desc',
+        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
+      };
+      // OPERATE
+      await expect(service.create(requestContext, dataIpt)).rejects.toThrow(
+        // CHECK
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
+    it('should fail since the given study name is invalid', async () => {
+      // BUILD
+      const uid = 'u-currentUserId';
+      const requestContext = {
+        principalIdentifier: { uid },
+        principal: { userRole: 'researcher', status: 'active' },
+      };
+      const dataIpt = {
+        id: 'id',
+        name: '<hack>',
+        category: 'Organization',
+        description: 'desc',
+        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
+      };
+      // OPERATE
+      await expect(service.create(requestContext, dataIpt)).rejects.toThrow(
+        // CHECK
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
+    it('should fail since the given study desc is invalid', async () => {
+      // BUILD
+      const uid = 'u-currentUserId';
+      const requestContext = {
+        principalIdentifier: { uid },
+        principal: { userRole: 'researcher', status: 'active' },
+      };
+      const dataIpt = {
+        id: 'id',
+        name: 'name',
+        category: 'Organization',
+        description: '<hack>',
+        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
+      };
+      // OPERATE
+      await expect(service.create(requestContext, dataIpt)).rejects.toThrow(
+        // CHECK
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
+    it('should fail since the given study sha is invalid', async () => {
+      // BUILD
+      const uid = 'u-currentUserId';
+      const requestContext = {
+        principalIdentifier: { uid },
+        principal: { userRole: 'researcher', status: 'active' },
+      };
+      const dataIpt = {
+        id: 'id',
+        name: 'name',
+        category: 'Organization',
+        description: 'desc',
+        sha: 'fake',
+        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
+      };
+      // OPERATE
+      await expect(service.create(requestContext, dataIpt)).rejects.toThrow(
+        // CHECK
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
   });
 
   describe('update', () => {
+    it('should fail since the given study id is invalid', async () => {
+      // BUILD
+      const uid = 'u-currentUserId';
+      const requestContext = {
+        principalIdentifier: { uid },
+        principal: { userRole: 'researcher', status: 'active' },
+      };
+      const dataIpt = {
+        id: '<hack>',
+        name: 'name',
+        description: 'desc',
+        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
+      };
+      // OPERATE
+      await expect(service.update(requestContext, dataIpt)).rejects.toThrow(
+        // CHECK
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
+    it('should fail since the given study name is invalid', async () => {
+      // BUILD
+      const uid = 'u-currentUserId';
+      const requestContext = {
+        principalIdentifier: { uid },
+        principal: { userRole: 'researcher', status: 'active' },
+      };
+      const dataIpt = {
+        id: 'id',
+        name: '<hack>',
+        description: 'desc',
+        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
+      };
+      // OPERATE
+      await expect(service.update(requestContext, dataIpt)).rejects.toThrow(
+        // CHECK
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
+    it('should fail since the given sha is invalid', async () => {
+      // BUILD
+      const uid = 'u-currentUserId';
+      const requestContext = {
+        principalIdentifier: { uid },
+        principal: { userRole: 'researcher', status: 'active' },
+      };
+      const dataIpt = {
+        id: 'id',
+        name: 'name',
+        description: 'desc',
+        sha: 'fake',
+        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
+      };
+      // OPERATE
+      await expect(service.update(requestContext, dataIpt)).rejects.toThrow(
+        // CHECK
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
+    it('should fail since the given study desc is invalid', async () => {
+      // BUILD
+      const uid = 'u-currentUserId';
+      const requestContext = {
+        principalIdentifier: { uid },
+        principal: { userRole: 'researcher', status: 'active' },
+      };
+      const dataIpt = {
+        id: 'id',
+        name: 'name',
+        description: '<hack>',
+        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
+      };
+      // OPERATE
+      await expect(service.update(requestContext, dataIpt)).rejects.toThrow(
+        // CHECK
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
+
     it('should fail due to missing rev', async () => {
       // BUILD
       const ipt = {

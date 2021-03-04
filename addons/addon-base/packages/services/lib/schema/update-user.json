@@ -43,7 +43,8 @@
       "enum": ["active", "inactive"]
     },
     "rev": {
-      "type": "number"
+      "type": "number",
+      "minimum": 0
     }
   },
   "required": ["uid", "rev"]

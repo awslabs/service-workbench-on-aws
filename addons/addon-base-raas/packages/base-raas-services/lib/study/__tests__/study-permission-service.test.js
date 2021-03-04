@@ -583,4 +583,24 @@ describe('StudyPermissionService', () => {
       });
     });
   });
+
+  describe('update permissions', () => {
+    it('should fail since the given study id is invalid', async () => {
+      // BUILD
+      const uid = 'u-currentUserId';
+      const requestContext = {
+        principalIdentifier: { uid },
+        principal: { userRole: 'researcher', status: 'active' },
+      };
+      const studyEntity = {
+        id: '<hack>',
+      };
+      const updateRequest = {};
+      // OPERATE
+      await expect(service.update(requestContext, studyEntity, updateRequest)).rejects.toThrow(
+        // CHECK
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
+  });
 });

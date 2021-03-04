@@ -34,6 +34,7 @@ const { getStudyIds } = require('./helpers/entities/user-permissions-methods');
 const registerSchema = require('../schema/register-study');
 const createSchema = require('../schema/create-study');
 const updateSchema = require('../schema/update-study');
+const getPermissionsSchema = require('../schema/get-study-permissions');
 
 const settingKeys = {
   tableName: 'dbStudies',
@@ -134,6 +135,11 @@ class StudyService extends Service {
    * of the study entity.
    */
   async getStudyPermissions(requestContext, id, fields = []) {
+    const [validationService] = await this.service(['jsonSchemaValidationService']);
+
+    // Validate input
+    await validationService.ensureValid({ id }, getPermissionsSchema);
+
     const studyEntity = await this.mustFind(requestContext, id, fields);
     const [studyPermissionService] = await this.service(['studyPermissionService']);
 
