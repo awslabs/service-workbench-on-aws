@@ -29,7 +29,13 @@ const settingKeys = {
 class IndexesService extends Service {
   constructor() {
     super();
-    this.dependency(['jsonSchemaValidationService', 'authorizationService', 'dbService', 'auditWriterService']);
+    this.dependency([
+      'jsonSchemaValidationService',
+      'authorizationService',
+      'dbService',
+      'auditWriterService',
+      'awsAccountsService',
+    ]);
   }
 
   async init() {
@@ -76,8 +82,18 @@ class IndexesService extends Service {
     );
 
     // Validate input
-    const [validationService] = await this.service(['jsonSchemaValidationService']);
+    const [validationService, awsAccountsService] = await this.service([
+      'jsonSchemaValidationService',
+      'awsAccountsService',
+    ]);
     await validationService.ensureValid(rawData, createSchema);
+
+    // Make sure the AWS Account actually exists
+    try {
+      await awsAccountsService.mustFind(requestContext, { id: rawData.awsAccountId });
+    } catch (err) {
+      throw this.boom.badRequest('Incorrect AWS Account ID provided', true).cause(err);
+    }
 
     // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
     const by = _.get(requestContext, 'principalIdentifier.uid');
@@ -116,8 +132,20 @@ class IndexesService extends Service {
     );
 
     // Validate input
-    const [validationService] = await this.service(['jsonSchemaValidationService']);
+    const [validationService, awsAccountsService] = await this.service([
+      'jsonSchemaValidationService',
+      'awsAccountsService',
+    ]);
     await validationService.ensureValid(rawData, updateSchema);
+
+    // Make sure the AWS Account actually exists
+    if (!_.isUndefined(rawData.awsAccountId)) {
+      try {
+        await awsAccountsService.mustFind(requestContext, { id: rawData.awsAccountId });
+      } catch (err) {
+        throw this.boom.badRequest('Incorrect AWS Account ID provided', true).cause(err);
+      }
+    }
 
     // For now, we assume that 'updatedBy' is always a user and not a group
     const by = _.get(requestContext, 'principalIdentifier.uid');

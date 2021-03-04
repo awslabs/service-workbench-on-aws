@@ -26,7 +26,7 @@ jest.mock('@aws-ee/base-raas-services/lib/data-source/data-source-account-servic
 jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
 jest.mock('@aws-ee/base-services/lib/logger/logger-service');
 
-const { handler } = require('../handler');
+const { handlerWithContainer } = require('../handler');
 
 describe('handler', () => {
   let dataSourceReachabilityService;
@@ -69,7 +69,7 @@ describe('handler', () => {
     );
 
     // EXECUTE
-    await handler(container);
+    await handlerWithContainer(container);
 
     // CHECK
     // Called 2 times to bulk check DS Account reachability of those in pending/error states
@@ -198,7 +198,7 @@ describe('handler', () => {
     );
 
     // EXECUTE
-    await handler(container);
+    await handlerWithContainer(container);
 
     // CHECK
     // Called 2 times to bulk check DS Account reachability of those in pending/error states

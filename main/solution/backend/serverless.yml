@@ -22,6 +22,10 @@ provider:
   # See https://forum.serverless.com/t/getting-handle-accountid-in-serverless-config/946/11 and
   # See https://github.com/serverless/serverless/issues/5011
   variableSyntax: '\$\{((((self|opt|deep|cf):)|file)((?!\$\{).)+?)}'
+  logs:
+    restApi:
+      format: '{"authorizer.principalId":"$context.authorizer.principalId","error.message":"$context.error.message","extendedRequestId":"$context.extendedRequestId","httpMethod":"$context.httpMethod","identity.sourceIp":"$context.identity.sourceIp","integration.error":"$context.integration.error","integration.integrationStatus":"$context.integration.integrationStatus","integration.latency":"$context.integration.latency","integration.requestId":"$context.integration.requestId","integration.status":"$context.integration.status","path":"$context.path","requestId":"$context.requestId","responseLatency":"$context.responseLatency","responseLength":"$context.responseLength","stage":"$context.stage","status":"$context.status"}'
+      executionLogging: false
   environment:
     APP_ENV_TYPE: ${self:custom.settings.envType}
     APP_ENV_NAME: ${self:custom.settings.envName}

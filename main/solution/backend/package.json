@@ -32,7 +32,7 @@
     "controllers": "workspace:*",
     "js-yaml": "^3.13.1",
     "jwt-decode": "^2.2.0",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "node-fetch": "^2.6.0"
   },
   "devDependencies": {
