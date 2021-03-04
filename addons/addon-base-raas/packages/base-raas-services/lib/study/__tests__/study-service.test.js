@@ -731,6 +731,35 @@ describe('studyService', () => {
       }
     });
 
+    it('should pass if a researcher who is a study admin is trying to update', async () => {
+      // BUILD
+      const dataIpt = {
+        id: 'existingOrgStudy',
+        rev: 1,
+      };
+
+      service.find = jest.fn().mockImplementationOnce(() => {
+        return { id: 'existingOrgStudy', updatedBy: { username: 'another doppelganger' }, category: 'Organization' };
+      });
+      studyPermissionService.findStudyPermissions = jest.fn().mockImplementationOnce(() => {
+        const studyPermissions = getEmptyStudyPermissions();
+        studyPermissions.adminUsers = ['u-123'];
+        return studyPermissions;
+      });
+
+      service.audit = jest.fn();
+
+      // OPERATE
+      await service.update({ principal: { userRole: 'researcher' }, principalIdentifier: { uid: 'u-123' } }, dataIpt);
+
+      // CHECK
+      expect(dbService.table.update).toHaveBeenCalled();
+      expect(service.audit).toHaveBeenCalledWith(
+        { principal: { userRole: 'researcher' }, principalIdentifier: { uid: 'u-123' } },
+        { action: 'update-study', body: undefined },
+      );
+    });
+
     it('should pass if system is trying to update Open Data study', async () => {
       // BUILD
       const dataIpt = {

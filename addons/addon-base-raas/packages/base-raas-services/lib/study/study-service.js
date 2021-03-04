@@ -392,11 +392,12 @@ class StudyService extends Service {
     // Validate input
     await validationService.ensureValid(rawData, updateSchema);
     const { id } = rawData;
+    const by = _.get(requestContext, 'principalIdentifier.uid');
 
     // Ensure the principal has update permission. This is done by getting the study permissions entity
     // and checking if the principal has a study admin permissions
     const studyEntity = await this.getStudyPermissions(requestContext, id);
-    if (!isStudyAdmin(studyEntity.permissions) && !isAdmin(requestContext)) {
+    if (!isStudyAdmin(studyEntity.permissions, by) && !isAdmin(requestContext)) {
       throw this.boom.forbidden("You don't have permissions to update this study", true);
     }
 
@@ -407,8 +408,6 @@ class StudyService extends Service {
     if (!isOpenData(studyEntity) && !_.isEmpty(rawData.resources)) {
       throw this.boom.badRequest('Resources can only be updated for Open Data study category', true);
     }
-
-    const by = _.get(requestContext, 'principalIdentifier.uid');
 
     // Prepare the db object
     const dbObject = _.omit(toDbEntity(rawData, { updatedBy: by }), ['rev']);

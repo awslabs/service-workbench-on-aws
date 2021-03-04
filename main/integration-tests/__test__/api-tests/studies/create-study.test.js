@@ -41,7 +41,7 @@ describe('Create study scenarios', () => {
       await expect(
         researcherSession.resources.studies.create({ id: studyId, category: 'Open Data' }),
       ).rejects.toMatchObject({
-        code: errorCode.http.code.badRequest,
+        code: errorCode.http.code.forbidden,
       });
     });
 
@@ -58,7 +58,7 @@ describe('Create study scenarios', () => {
             category: studyCategory,
           }),
         ).rejects.toMatchObject({
-          code: errorCode.http.code.badRequest,
+          code: errorCode.http.code.forbidden,
         });
       },
     );

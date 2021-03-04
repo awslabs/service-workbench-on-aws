@@ -65,7 +65,7 @@ describe('Get study permissions scenarios', () => {
           .permissions()
           .get(),
       ).rejects.toMatchObject({
-        code: errorCode.http.code.notFound,
+        code: errorCode.http.code.forbidden,
       });
     });
 
