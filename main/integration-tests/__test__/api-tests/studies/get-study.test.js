@@ -52,7 +52,7 @@ describe('Get study scenarios', () => {
       await researcher1session.resources.studies.create({ id: studyId, category: studyCategory });
       const researcher2session = await setup.createResearcherSession();
       await expect(researcher2session.resources.studies.study(studyId).get()).rejects.toMatchObject({
-        code: errorCode.http.code.notFound,
+        code: errorCode.http.code.forbidden,
       });
     });
 

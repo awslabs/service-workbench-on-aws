@@ -326,10 +326,14 @@ class StudyPermissionService extends Service {
     const lockId = `study-${studyEntity.id}`;
     const entity = await lockService.tryWriteLockAndRun({ id: lockId }, async () => {
       const studyPermissionsEntity = await this.findStudyPermissions(requestContext, studyEntity);
-      await this.assertAuthorized(requestContext, {
-        action: 'update-study-permissions',
-        conditions: [allowIfActive, this.allowUpdate],
-      });
+      await this.assertAuthorized(
+        requestContext,
+        {
+          action: 'update-study-permissions',
+          conditions: [allowIfActive, this.allowUpdate],
+        },
+        { studyEntity, studyPermissionsEntity },
+      );
 
       applyUpdateRequest(studyPermissionsEntity, updateRequest);
 

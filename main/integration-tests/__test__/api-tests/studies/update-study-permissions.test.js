@@ -69,7 +69,7 @@ describe('Update study permissions scenarios', () => {
             .permissions()
             .update(),
         ).rejects.toMatchObject({
-          code: errorCode.http.code.notFound,
+          code: errorCode.http.code.forbidden,
         });
       },
     );
