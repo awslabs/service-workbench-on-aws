@@ -284,7 +284,7 @@ describe('DataSourceBucketService', () => {
       const params = { id: '**', status: 'pending' };
 
       await expect(service.attemptReach(requestContext, params)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
@@ -294,7 +294,7 @@ describe('DataSourceBucketService', () => {
       const params = { id: '', status: 'pending' };
 
       await expect(service.attemptReach(requestContext, params)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
@@ -307,7 +307,7 @@ describe('DataSourceBucketService', () => {
       };
 
       await expect(service.attemptReach(requestContext, params)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
@@ -317,7 +317,7 @@ describe('DataSourceBucketService', () => {
       const params = { id: '*', type: 'teapot' };
 
       await expect(service.attemptReach(requestContext, params)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
@@ -327,7 +327,7 @@ describe('DataSourceBucketService', () => {
       const params = { id: '*', status: 'teapot' };
 
       await expect(service.attemptReach(requestContext, params)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
   });

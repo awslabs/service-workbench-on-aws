@@ -152,7 +152,7 @@ describe('DataSourceBucketService', () => {
       };
 
       await expect(service.register(requestContext, { id }, rawData)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
@@ -170,7 +170,7 @@ describe('DataSourceBucketService', () => {
       };
 
       await expect(service.register(requestContext, { id }, rawData)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
@@ -188,7 +188,7 @@ describe('DataSourceBucketService', () => {
       };
 
       await expect(service.register(requestContext, { id }, rawData)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
   });

@@ -138,7 +138,7 @@ describe('studyService', () => {
       // OPERATE
       await expect(service.getStudyPermissions(requestContext, '<hack>')).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
   });
@@ -194,7 +194,7 @@ describe('studyService', () => {
       // OPERATE
       await expect(service.register(requestContext, accountEntity, bucketEntity, rawStudyEntity)).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
     it('should fail due to invalid name', async () => {
@@ -221,7 +221,7 @@ describe('studyService', () => {
       // OPERATE
       await expect(service.register(requestContext, accountEntity, bucketEntity, rawStudyEntity)).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
     it('should fail due to invalid description', async () => {
@@ -248,7 +248,7 @@ describe('studyService', () => {
       // OPERATE
       await expect(service.register(requestContext, accountEntity, bucketEntity, rawStudyEntity)).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
     it('should fail due to invalid folder', async () => {
@@ -275,7 +275,7 @@ describe('studyService', () => {
       // OPERATE
       await expect(service.register(requestContext, accountEntity, bucketEntity, rawStudyEntity)).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
     it('should fail due to invalid kmsArn', async () => {
@@ -302,7 +302,7 @@ describe('studyService', () => {
       // OPERATE
       await expect(service.register(requestContext, accountEntity, bucketEntity, rawStudyEntity)).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
   });
@@ -688,7 +688,7 @@ describe('studyService', () => {
       // OPERATE
       await expect(service.create(requestContext, dataIpt)).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
     it('should fail since the given study name is invalid', async () => {
@@ -708,7 +708,7 @@ describe('studyService', () => {
       // OPERATE
       await expect(service.create(requestContext, dataIpt)).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
     it('should fail since the given study desc is invalid', async () => {
@@ -728,7 +728,7 @@ describe('studyService', () => {
       // OPERATE
       await expect(service.create(requestContext, dataIpt)).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
     it('should fail since the given study sha is invalid', async () => {
@@ -749,7 +749,7 @@ describe('studyService', () => {
       // OPERATE
       await expect(service.create(requestContext, dataIpt)).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
   });
@@ -771,7 +771,7 @@ describe('studyService', () => {
       // OPERATE
       await expect(service.update(requestContext, dataIpt)).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
     it('should fail since the given study name is invalid', async () => {
@@ -790,7 +790,7 @@ describe('studyService', () => {
       // OPERATE
       await expect(service.update(requestContext, dataIpt)).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
     it('should fail since the given sha is invalid', async () => {
@@ -810,7 +810,7 @@ describe('studyService', () => {
       // OPERATE
       await expect(service.update(requestContext, dataIpt)).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
     it('should fail since the given study desc is invalid', async () => {
@@ -829,7 +829,7 @@ describe('studyService', () => {
       // OPERATE
       await expect(service.update(requestContext, dataIpt)).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 

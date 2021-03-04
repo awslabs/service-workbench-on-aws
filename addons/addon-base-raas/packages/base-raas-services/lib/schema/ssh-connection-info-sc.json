@@ -6,12 +6,12 @@
     "keyPairId": {
       "type": "string",
       "maxLength": 1024,
-      "pattern": "^([^<>{}]+)$"
+      "pattern": "^([^<>{}]*)$"
     },
     "instanceOsUser": {
       "type": "string",
       "maxLength": 1024,
-      "pattern": "^([^<>{}]+)$"
+      "pattern": "^([^<>{}]*)$"
     }
   },
   "required": ["keyPairId"]
