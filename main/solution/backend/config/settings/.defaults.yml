@@ -1,5 +1,6 @@
 # Options used when issuing JWT token such as which algorithm to use for hashing and how long to keep the tokens alive etc
-jwtOptions: '{"algorithm":"HS256","expiresIn":"2 days"}'
+# Note that default expiry of access token is set to one hour. This will force the user to logout and login back after an hour
+jwtOptions: '{"algorithm":"HS256","expiresIn":"1 hours"}'
 
 # Name of the parameter in parameter store containing secret key for JWT. This key is used for signing and validating JWT tokens
 # issued by data lake authentication providers
