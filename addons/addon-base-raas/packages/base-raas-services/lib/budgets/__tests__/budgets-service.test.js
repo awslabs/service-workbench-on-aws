@@ -289,6 +289,17 @@ describe('BudgetsService', () => {
       );
     });
 
+    it('should fail notificationEmail invalid', async () => {
+      // BUILD
+      const requestBodyCopy = _.cloneDeep(requestBody);
+      requestBodyCopy.notificationEmail = '<hack>';
+
+      // OPERATE and CHECK
+      await expect(service.create(requestContext, requestBodyCopy)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
+
     it('should throw validation error when Budget API create method throw validation error', async () => {
       // BUILD
       const requestBodyCopy = _.cloneDeep(requestBody);
@@ -486,6 +497,17 @@ describe('BudgetsService', () => {
       // BUILD
       const requestBodyCopy = _.cloneDeep(requestBody);
       requestBodyCopy.description = '<hack>';
+
+      // OPERATE and CHECK
+      await expect(service.update(requestContext, requestBodyCopy)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
+
+    it('should fail notificationEmail invalid', async () => {
+      // BUILD
+      const requestBodyCopy = _.cloneDeep(requestBody);
+      requestBodyCopy.notificationEmail = '<hack>';
 
       // OPERATE and CHECK
       await expect(service.update(requestContext, requestBodyCopy)).rejects.toThrow(
