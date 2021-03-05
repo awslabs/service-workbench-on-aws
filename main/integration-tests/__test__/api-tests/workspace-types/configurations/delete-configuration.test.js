@@ -15,21 +15,25 @@
 
 const { runSetup } = require('../../../../support/setup');
 const {
-  validateDefaultServiceCatalogProduct,
-} = require('../../../../support/complex/validate-default-service-catalog-product');
+  createDefaultServiceCatalogProduct,
+  deleteDefaultServiceCatalogProduct,
+  addProductInfo,
+} = require('../../../../support/complex/default-integration-test-product');
 const errorCode = require('../../../../support/utils/error-code');
 
 describe('Delete workspace-type scenarios', () => {
   let setup;
   let adminSession;
+  let productInfo;
 
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
-    await validateDefaultServiceCatalogProduct(setup);
+    productInfo = await createDefaultServiceCatalogProduct(setup);
   });
 
   afterAll(async () => {
+    await deleteDefaultServiceCatalogProduct(setup, productInfo);
     await setup.cleanup();
   });
 
@@ -38,9 +42,7 @@ describe('Delete workspace-type scenarios', () => {
       const adminSession2 = await setup.createAdminSession();
       const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
-      await adminSession.resources.workspaceTypes.create({
-        id: workspaceTypeId,
-      });
+      await adminSession.resources.workspaceTypes.create(addProductInfo({ id: workspaceTypeId }, productInfo));
 
       const configurationId = setup.gen.string({ prefix: 'configuration-test' });
 
@@ -77,9 +79,7 @@ describe('Delete workspace-type scenarios', () => {
     const anonymousSession = await setup.createAnonymousSession();
     const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
-    await adminSession.resources.workspaceTypes.create({
-      id: workspaceTypeId,
-    });
+    await adminSession.resources.workspaceTypes.create(addProductInfo({ id: workspaceTypeId }, productInfo));
 
     const configurationId = setup.gen.string({ prefix: 'configuration-test' });
 
@@ -113,9 +113,7 @@ describe('Delete workspace-type scenarios', () => {
     const researcherSession = await setup.createResearcherSession();
     const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
-    await adminSession.resources.workspaceTypes.create({
-      id: workspaceTypeId,
-    });
+    await adminSession.resources.workspaceTypes.create(addProductInfo({ id: workspaceTypeId }, productInfo));
 
     const configurationId = setup.gen.string({ prefix: 'configuration-test' });
 
@@ -148,9 +146,7 @@ describe('Delete workspace-type scenarios', () => {
   it('should delete when user is admin', async () => {
     const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
-    await adminSession.resources.workspaceTypes.create({
-      id: workspaceTypeId,
-    });
+    await adminSession.resources.workspaceTypes.create(addProductInfo({ id: workspaceTypeId }, productInfo));
 
     const configurationId = setup.gen.string({ prefix: 'configuration-test' });
 

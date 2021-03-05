@@ -15,21 +15,24 @@
 
 const { runSetup } = require('../../../support/setup');
 const {
-  validateDefaultServiceCatalogProduct,
-} = require('../../../support/complex/validate-default-service-catalog-product');
+  createDefaultServiceCatalogProduct,
+  deleteDefaultServiceCatalogProduct,
+} = require('../../../support/complex/default-integration-test-product');
 const errorCode = require('../../../support/utils/error-code');
 
 describe('Get workspace-type candidates scenarios', () => {
   let setup;
   let adminSession;
+  let productInfo;
 
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
-    await validateDefaultServiceCatalogProduct(setup);
+    productInfo = await createDefaultServiceCatalogProduct(setup);
   });
 
   afterAll(async () => {
+    await deleteDefaultServiceCatalogProduct(setup, productInfo);
     await setup.cleanup();
   });
 

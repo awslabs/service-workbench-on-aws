@@ -20,20 +20,23 @@ const {
   createWorkspaceTypeAndConfiguration,
 } = require('../../../support/complex/create-workspace-type-and-configuration');
 const {
-  validateDefaultServiceCatalogProduct,
-} = require('../../../support/complex/validate-default-service-catalog-product');
+  createDefaultServiceCatalogProduct,
+  deleteDefaultServiceCatalogProduct,
+} = require('../../../support/complex/default-integration-test-product');
 
 describe('Get workspace-service-catalogs scenarios', () => {
   let setup;
   let adminSession;
+  let productInfo;
 
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
-    await validateDefaultServiceCatalogProduct(setup);
+    productInfo = await createDefaultServiceCatalogProduct(setup);
   });
 
   afterAll(async () => {
+    await deleteDefaultServiceCatalogProduct(setup, productInfo);
     await setup.cleanup();
   });
 
@@ -63,9 +66,12 @@ describe('Get workspace-service-catalogs scenarios', () => {
     it('should succeed to get workspaces of user if user is not admin', async () => {
       const researcherSession = await setup.createResearcherSession();
       const workspaceName = setup.gen.string({ prefix: 'workspace-service-catalog-test' });
-      const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(adminSession, setup, [
-        'researcher',
-      ]);
+      const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(
+        productInfo,
+        adminSession,
+        setup,
+        ['researcher'],
+      );
 
       await researcherSession.resources.workspaceServiceCatalogs.create({
         name: workspaceName,

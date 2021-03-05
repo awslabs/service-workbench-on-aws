@@ -19,21 +19,24 @@ const {
   createWorkspaceTypeAndConfiguration,
 } = require('../../../support/complex/create-workspace-type-and-configuration');
 const {
-  validateDefaultServiceCatalogProduct,
-} = require('../../../support/complex/validate-default-service-catalog-product');
+  createDefaultServiceCatalogProduct,
+  deleteDefaultServiceCatalogProduct,
+} = require('../../../support/complex/default-integration-test-product');
 const errorCode = require('../../../support/utils/error-code');
 
 describe('Get workspace-service-catalog scenarios', () => {
   let setup;
   let adminSession;
+  let productInfo;
 
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
-    await validateDefaultServiceCatalogProduct(setup);
+    productInfo = await createDefaultServiceCatalogProduct(setup);
   });
 
   afterAll(async () => {
+    await deleteDefaultServiceCatalogProduct(setup, productInfo);
     await setup.cleanup();
   });
 
@@ -41,7 +44,11 @@ describe('Get workspace-service-catalog scenarios', () => {
     it('should fail if user is inactive', async () => {
       const adminSession2 = await setup.createAdminSession();
       const workspaceName = setup.gen.string({ prefix: 'workspace-service-catalog-test' });
-      const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(adminSession, setup);
+      const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(
+        productInfo,
+        adminSession,
+        setup,
+      );
 
       await adminSession.resources.users.deactivateUser(adminSession2.user);
 
@@ -61,7 +68,11 @@ describe('Get workspace-service-catalog scenarios', () => {
     it('should fail if user is anonymous', async () => {
       const anonymousSession = await setup.createAnonymousSession();
       const workspaceName = setup.gen.string({ prefix: 'workspace-service-catalog-test' });
-      const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(adminSession, setup);
+      const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(
+        productInfo,
+        adminSession,
+        setup,
+      );
 
       const response = await adminSession.resources.workspaceServiceCatalogs.create({
         name: workspaceName,
@@ -79,7 +90,11 @@ describe('Get workspace-service-catalog scenarios', () => {
     it('should fail if user role is not owner', async () => {
       const researcherSession = await setup.createResearcherSession();
       const workspaceName = setup.gen.string({ prefix: 'workspace-service-catalog-test' });
-      const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(adminSession, setup);
+      const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(
+        productInfo,
+        adminSession,
+        setup,
+      );
 
       const response = await adminSession.resources.workspaceServiceCatalogs.create({
         name: workspaceName,
@@ -97,9 +112,12 @@ describe('Get workspace-service-catalog scenarios', () => {
     it('should pass if user role is owner', async () => {
       const researcherSession = await setup.createResearcherSession();
       const workspaceName = setup.gen.string({ prefix: 'workspace-service-catalog-test' });
-      const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(adminSession, setup, [
-        'researcher',
-      ]);
+      const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(
+        productInfo,
+        adminSession,
+        setup,
+        ['researcher'],
+      );
 
       const response = await researcherSession.resources.workspaceServiceCatalogs.create({
         name: workspaceName,
@@ -117,7 +135,11 @@ describe('Get workspace-service-catalog scenarios', () => {
 
     it('should pass if user is admin', async () => {
       const workspaceName = setup.gen.string({ prefix: 'workspace-service-catalog-test' });
-      const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(adminSession, setup);
+      const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(
+        productInfo,
+        adminSession,
+        setup,
+      );
 
       const response = await adminSession.resources.workspaceServiceCatalogs.create({
         name: workspaceName,
