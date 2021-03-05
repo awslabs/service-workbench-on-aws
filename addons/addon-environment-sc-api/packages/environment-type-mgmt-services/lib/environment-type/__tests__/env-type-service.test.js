@@ -232,7 +232,7 @@ describe('EnvTypeService', () => {
 
       // OPERATE and CHECK
       await expect(service.update(requestContext, envType)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
@@ -260,7 +260,7 @@ describe('EnvTypeService', () => {
 
       // OPERATE and CHECK
       await expect(service.update(requestContext, envType)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
@@ -288,7 +288,7 @@ describe('EnvTypeService', () => {
 
       // OPERATE and CHECK
       await expect(service.update(requestContext, envType)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
@@ -473,7 +473,7 @@ describe('EnvTypeService', () => {
 
       // OPERATE and CHECK
       await expect(service.create(requestContext, envType)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
@@ -504,7 +504,7 @@ describe('EnvTypeService', () => {
 
       // OPERATE and CHECK
       await expect(service.create(requestContext, envType)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
@@ -535,7 +535,7 @@ describe('EnvTypeService', () => {
 
       // OPERATE and CHECK
       await expect(service.create(requestContext, envType)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
     it('should fail provisioningArtifactId incorrect', async () => {
@@ -565,7 +565,7 @@ describe('EnvTypeService', () => {
 
       // OPERATE and CHECK
       await expect(service.create(requestContext, envType)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
   });

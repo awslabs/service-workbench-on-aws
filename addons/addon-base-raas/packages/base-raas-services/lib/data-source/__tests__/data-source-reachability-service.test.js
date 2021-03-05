@@ -281,10 +281,10 @@ describe('DataSourceBucketService', () => {
     it('fails because id is invalid', async () => {
       const uid = 'u-currentUserId';
       const requestContext = { principalIdentifier: { uid } };
-      const params = { id: '**', status: 'pending' };
+      const params = { id: '<**>', status: 'pending' };
 
       await expect(service.attemptReach(requestContext, params)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
@@ -294,7 +294,7 @@ describe('DataSourceBucketService', () => {
       const params = { id: '', status: 'pending' };
 
       await expect(service.attemptReach(requestContext, params)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
@@ -302,12 +302,13 @@ describe('DataSourceBucketService', () => {
       const uid = 'u-currentUserId';
       const requestContext = { principalIdentifier: { uid } };
       const params = {
-        id: 'asdfjasuihfwiruhglkajfbmznbvlkjfhiruhalksjbmxncbvlsjkfghirwuygasjhbvmxznbflashjwiuyralsjkhgsbhfgdzxc',
+        id:
+          'asdfjasuihfwiruhglkajfbmznbvlkjfhiruhalksjbmxncbvlsjkfghirwuygasjhbvmxznbflashjwiuyralsjkhgsbhfgdzxasdfasdfc',
         status: 'pending',
       };
 
       await expect(service.attemptReach(requestContext, params)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
@@ -317,7 +318,7 @@ describe('DataSourceBucketService', () => {
       const params = { id: '*', type: 'teapot' };
 
       await expect(service.attemptReach(requestContext, params)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
@@ -327,7 +328,7 @@ describe('DataSourceBucketService', () => {
       const params = { id: '*', status: 'teapot' };
 
       await expect(service.attemptReach(requestContext, params)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
   });
