@@ -16,7 +16,7 @@
 const _ = require('lodash');
 
 const Resource = require('../base/resource');
-// const { unregisterBucket } = require('../../complex/unregister-bucket');
+const { unregisterBucket } = require('../../complex/unregister-bucket');
 
 class Bucket extends Resource {
   constructor({ clientSession, id, parent }) {
@@ -32,8 +32,7 @@ class Bucket extends Resource {
   }
 
   async cleanup() {
-    console.log(`Needs to add cleanup logic for bucket "${this.name}" in account "${this.parent.accountId}"`);
-    // await unregisterBucket({ aws: this.setup.aws, name: this.name });
+    await unregisterBucket({ aws: this.setup.aws, name: this.name, accountId: this.parent.accountId });
   }
 
   // ************************ Helpers methods ************************

@@ -19,8 +19,6 @@ const { run } = require('../utils/utils');
 
 /**
  * A function that performs the complex task of un-registering a data source account.
- *
- * @param {string} id The study id to be deleted
  */
 async function unregisterAccount({ aws, id = '' }) {
   // The clean up logic:
