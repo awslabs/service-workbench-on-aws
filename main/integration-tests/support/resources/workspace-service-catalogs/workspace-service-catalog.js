@@ -17,6 +17,7 @@ const _ = require('lodash');
 
 const Resource = require('../base/resource');
 const Connections = require('./connections/connections');
+const { deleteWorkspaceServiceCatalog } = require('../../complex/delete-workspace-service-catalog.js');
 
 class WorkspaceServiceCatalog extends Resource {
   constructor({ clientSession, id, parent }) {
@@ -51,6 +52,11 @@ class WorkspaceServiceCatalog extends Resource {
     const api = `${this.api}/cidr`;
 
     return this.doCall(async () => this.axiosClient.put(api, body, {}));
+  }
+
+  async cleanup() {
+    await super.cleanup();
+    await deleteWorkspaceServiceCatalog({ aws: this.setup.aws, id: this.id });
   }
 
   // ************************ Helpers methods ************************
