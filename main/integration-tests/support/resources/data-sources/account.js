@@ -43,6 +43,12 @@ class Account extends Resource {
     return new Buckets({ clientSession: this.clientSession, parent: this });
   }
 
+  async cfn() {
+    const api = `${this.api}/cfn`;
+
+    return this.doCall(async () => this.axiosClient.post(api, {}));
+  }
+
   async cleanup() {
     await unregisterAccount({ aws: this.setup.aws, id: this.id });
   }

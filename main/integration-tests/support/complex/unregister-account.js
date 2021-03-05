@@ -26,7 +26,6 @@ async function unregisterAccount({ aws, id = '' }) {
   //   skip the deletion of the account to avoid deleting the entry by mistake.
   // - Future: we check if there is a cfn template already created for the account and 'if' so, then we
   //   need to delete the cfn stack.
-  // - TODO: clear all the buckets entries
 
   const runId = aws.settings.get('runId');
   const db = await aws.services.dynamoDb();
@@ -47,6 +46,11 @@ async function unregisterAccount({ aws, id = '' }) {
     );
     return;
   }
+
+  // We delete any cfn templates that we generated and uploaded to S3 (if any)
+  const cfnBucket = aws.settings.get('environmentsBootstrapBucketName');
+  const s3 = await aws.services.s3();
+  await run(async () => s3.deleteFolder(cfnBucket, `data-sources/acct-${id}/`));
 
   // We delete the entry
   await run(async () =>
