@@ -1,3 +1,5 @@
+/* eslint-disable no-restricted-syntax */
+/* eslint-disable no-await-in-loop */
 /* eslint-disable no-console */
 /*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
@@ -24,6 +26,8 @@ async function unregisterBucket({ aws, name = '', accountId }) {
   // The clean up logic:
   // - Get the bucket row from the database, if the name of the bucket does not contain the runID, then
   //   skip the deletion of the bucket row to avoid deleting the entry by mistake.
+  // - We look for all the role allocation entries in RoleAllocations table that belong to this bucket
+  //   and delete these entries
 
   const runId = aws.settings.get('runId');
   const db = await aws.services.dynamoDb();
@@ -45,6 +49,27 @@ async function unregisterBucket({ aws, name = '', accountId }) {
       `Bucket "${name}" does not contain the runId "${runId}", skipping the un-registering of the bucket as a measurement of caution`,
     );
     return;
+  }
+
+  // We need to get all the role allocation entries (if any)
+  const roleSkPrefix = `APP#${name}`;
+  const allocations = await run(async () =>
+    db.tables.roleAllocations
+      .query()
+      .key('pk', pk)
+      .sortKey('sk')
+      .begins(roleSkPrefix)
+      .limit(1000)
+      .query(),
+  );
+
+  for (const allocation of allocations) {
+    await run(async () =>
+      db.tables.roleAllocations
+        .deleter()
+        .key({ pk: allocation.pk, sk: allocation.sk })
+        .delete(),
+    );
   }
 
   // We delete the entry

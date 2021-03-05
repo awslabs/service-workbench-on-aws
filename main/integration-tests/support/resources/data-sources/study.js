@@ -16,7 +16,7 @@
 const _ = require('lodash');
 
 const Resource = require('../base/resource');
-// const { unregisterStudy } = require('../../complex/unregister-study');
+const { deleteStudy } = require('../../complex/delete-study');
 
 class Study extends Resource {
   constructor({ clientSession, id, parent }) {
@@ -35,8 +35,7 @@ class Study extends Resource {
   }
 
   async cleanup() {
-    console.log(`Need to clean study "${this.id}" in bucket "${this.bucketName}" in account "${this.accountId}"`);
-    // await unregisterStudy({ aws: this.setup.aws, id: this.id, bucketName: this.bucketName, accountId: this.accountId });
+    await deleteStudy({ aws: this.setup.aws, id: this.id });
   }
 
   // ************************ Helpers methods ************************
