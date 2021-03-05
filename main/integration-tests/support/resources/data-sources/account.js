@@ -18,6 +18,7 @@ const _ = require('lodash');
 const Resource = require('../base/resource');
 const { unregisterAccount } = require('../../complex/unregister-account');
 const Buckets = require('./buckets');
+const Studies = require('./studies');
 
 class Account extends Resource {
   constructor({ clientSession, id, parent }) {
@@ -29,7 +30,13 @@ class Account extends Resource {
     });
 
     if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [account]');
+
+    this.accountId = id;
     this.api = `${parent.api}/${id}`;
+  }
+
+  studies() {
+    return new Studies({ clientSession: this.clientSession, parent: this });
   }
 
   buckets() {
