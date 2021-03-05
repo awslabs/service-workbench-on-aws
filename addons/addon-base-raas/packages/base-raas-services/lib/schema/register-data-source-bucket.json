@@ -10,8 +10,8 @@
     "name": {
       "type": "string",
       "minLength": 3,
-      "maxLength": 255,
-      "pattern": "^([^<>{}]*)$"
+      "maxLength": 63,
+      "pattern": "^[a-z0-9-.]+$"
     },
     "region": {
       "type": "string",

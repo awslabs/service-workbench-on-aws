@@ -156,6 +156,60 @@ describe('DataSourceBucketService', () => {
       );
     });
 
+    it('fails because name is long', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
+      const id = '123456789012';
+      const rawData = {
+        name: 'bucketbucketbucketbucketbucketbucketbucketbucketbucketbucketbucket',
+        region: 'us-east-1',
+        awsPartition: 'aws',
+        kmsArn: 'arn:aws:kms:us-east-1:123456789101:key/2e3c97b6-8bb3-4cf8-bc77-d56ebf84test',
+        access: 'roles',
+        sse: 'kms',
+      };
+
+      await expect(service.register(requestContext, { id }, rawData)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+
+    it('fails because name has wildcard ?', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
+      const id = '123456789012';
+      const rawData = {
+        name: 'bucket?',
+        region: 'us-east-1',
+        awsPartition: 'aws',
+        kmsArn: 'arn:aws:kms:us-east-1:123456789101:key/2e3c97b6-8bb3-4cf8-bc77-d56ebf84test',
+        access: 'roles',
+        sse: 'kms',
+      };
+
+      await expect(service.register(requestContext, { id }, rawData)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+
+    it('fails because name has wildcard *', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
+      const id = '123456789012';
+      const rawData = {
+        name: 'bucket*',
+        region: 'us-east-1',
+        awsPartition: 'aws',
+        kmsArn: 'arn:aws:kms:us-east-1:123456789101:key/2e3c97b6-8bb3-4cf8-bc77-d56ebf84test',
+        access: 'roles',
+        sse: 'kms',
+      };
+
+      await expect(service.register(requestContext, { id }, rawData)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+
     it('fails because name is invalid', async () => {
       const uid = 'u-currentUserId';
       const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
