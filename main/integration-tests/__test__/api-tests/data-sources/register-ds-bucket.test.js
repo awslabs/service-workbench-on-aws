@@ -16,69 +16,105 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
-describe('Create data source account scenarios', () => {
+describe('Register data source bucket scenarios', () => {
   let setup;
   let adminSession;
+  let accountId;
 
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
+    accountId = setup.gen.accountId();
+    await adminSession.resources.dataSources.accounts.create({ id: accountId });
   });
 
   afterAll(async () => {
     await setup.cleanup();
   });
 
-  describe('Creating a data source account', () => {
+  describe('Registering a data source bucket', () => {
     it('should fail for anonymous user', async () => {
       const anonymousSession = await setup.createAnonymousSession();
+      const name = setup.gen.string({ prefix: 'ds-bucket-test' });
 
-      await expect(anonymousSession.resources.dataSources.accounts.create()).rejects.toMatchObject({
+      await expect(
+        anonymousSession.resources.dataSources.accounts
+          .account(accountId)
+          .buckets()
+          .create({ name }),
+      ).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });
 
     it('should fail for inactive user', async () => {
       const researcherSession = await setup.createResearcherSession();
+      const name = setup.gen.string({ prefix: 'ds-bucket-test' });
 
       await adminSession.resources.users.deactivateUser(researcherSession.user);
 
-      await expect(researcherSession.resources.dataSources.accounts.create()).rejects.toMatchObject({
+      await expect(
+        researcherSession.resources.dataSources.accounts
+          .account(accountId)
+          .buckets()
+          .create({ name }),
+      ).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });
 
     it('should fail for internal guest', async () => {
       const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
+      const name = setup.gen.string({ prefix: 'ds-bucket-test' });
 
-      await expect(guestSession.resources.dataSources.accounts.create()).rejects.toMatchObject({
+      await expect(
+        guestSession.resources.dataSources.accounts
+          .account(accountId)
+          .buckets()
+          .create({ name }),
+      ).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
     });
 
     it('should fail for external guest', async () => {
       const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
-      await expect(guestSession.resources.dataSources.accounts.create()).rejects.toMatchObject({
+      const name = setup.gen.string({ prefix: 'ds-bucket-test' });
+
+      await expect(
+        guestSession.resources.dataSources.accounts
+          .account(accountId)
+          .buckets()
+          .create({ name }),
+      ).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
     });
 
     it('should fail for researcher', async () => {
       const researcherSession = await setup.createResearcherSession();
+      const name = setup.gen.string({ prefix: 'ds-bucket-test' });
 
-      await expect(researcherSession.resources.dataSources.accounts.create()).rejects.toMatchObject({
+      await expect(
+        researcherSession.resources.dataSources.accounts
+          .account(accountId)
+          .buckets()
+          .create({ name }),
+      ).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
     });
 
-    it('should return workflow template version if admin', async () => {
+    it('should return bucket registration information if admin', async () => {
       const admin2Session = await setup.createAdminSession();
-      const accountId = setup.gen.accountId();
+      const name = setup.gen.string({ prefix: 'ds-bucket-test' });
 
-      await expect(admin2Session.resources.dataSources.accounts.create({ id: accountId })).resolves.toHaveProperty(
-        'id',
-        accountId,
-      );
+      await expect(
+        admin2Session.resources.dataSources.accounts
+          .account(accountId)
+          .buckets()
+          .create({ name }),
+      ).resolves.toHaveProperty('name', name);
     });
   });
 });
