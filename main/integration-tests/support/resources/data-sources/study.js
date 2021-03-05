@@ -16,32 +16,30 @@
 const _ = require('lodash');
 
 const Resource = require('../base/resource');
-const { unregisterBucket } = require('../../complex/unregister-bucket');
-const Studies = require('./studies');
+// const { unregisterStudy } = require('../../complex/unregister-study');
 
-class Bucket extends Resource {
+class Study extends Resource {
   constructor({ clientSession, id, parent }) {
     super({
       clientSession,
-      type: 'bucket',
+      type: 'study',
       id,
       parent,
     });
 
-    this.name = id;
-    this.accountId = this.parent.accountId;
-    if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [bucket]');
-  }
+    if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [study]');
 
-  studies() {
-    return new Studies({ clientSession: this.clientSession, parent: this });
+    this.accountId = this.parent.accountId;
+    this.bucketName = this.parent.bucketName;
+    this.api = `${parent.api}/${id}`;
   }
 
   async cleanup() {
-    await unregisterBucket({ aws: this.setup.aws, name: this.name, accountId: this.accountId });
+    console.log(`Need to clean study "${this.id}" in bucket "${this.bucketName}" in account "${this.accountId}"`);
+    // await unregisterStudy({ aws: this.setup.aws, id: this.id, bucketName: this.bucketName, accountId: this.accountId });
   }
 
   // ************************ Helpers methods ************************
 }
 
-module.exports = Bucket;
+module.exports = Study;
