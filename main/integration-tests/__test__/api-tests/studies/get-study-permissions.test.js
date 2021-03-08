@@ -19,10 +19,23 @@ const errorCode = require('../../../support/utils/error-code');
 describe('Get study permissions scenarios', () => {
   let setup;
   let adminSession;
+  let accountId;
+  let bucketName;
 
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
+
+    // We register an account to be used by all the tests in this test suite
+    accountId = setup.gen.accountId();
+    await adminSession.resources.dataSources.accounts.create({ id: accountId });
+
+    // We register a bucket to be used by all the BYOB-related tests in this test suite
+    bucketName = setup.gen.string({ prefix: 'ds-study-test' });
+    await adminSession.resources.dataSources.accounts
+      .account(accountId)
+      .buckets()
+      .create({ name: bucketName });
   });
 
   afterAll(async () => {
@@ -83,6 +96,84 @@ describe('Get study permissions scenarios', () => {
       ).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
+    });
+  });
+
+  describe('Getting BYOB study permissions', () => {
+    it('should fail to fetch BYOB study permissions with anonymous users', async () => {
+      const anonymousSession = await setup.createAnonymousSession();
+      const admin2Session = await setup.createAdminSession();
+      const id = setup.gen.string({ prefix: 'get-study-perm-test-byob' });
+      const study = {
+        id,
+        adminUsers: [admin2Session.user.uid],
+      };
+
+      await admin2Session.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      await expect(
+        anonymousSession.resources.studies
+          .study(study.id)
+          .permissions()
+          .get(),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.badImplementation,
+      });
+    });
+
+    it('should fail to fetch BYOB study permissions with unauthorized users', async () => {
+      const researcherSession = await setup.createResearcherSession();
+      const admin2Session = await setup.createAdminSession();
+      const id = setup.gen.string({ prefix: 'get-study-perm-test-byob' });
+      const study = {
+        id,
+        adminUsers: [admin2Session.user.uid],
+      };
+
+      await admin2Session.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      await expect(
+        researcherSession.resources.studies
+          .study(study.id)
+          .permissions()
+          .get(),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
+    it('should return BYOB study permissions with Organization category', async () => {
+      const researcherSession = await setup.createResearcherSession();
+      const admin2Session = await setup.createAdminSession();
+      const id = setup.gen.string({ prefix: 'get-study-perm-test-byob' });
+      const study = {
+        id,
+        adminUsers: [admin2Session.user.uid, researcherSession.user.uid],
+      };
+
+      await admin2Session.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      await expect(
+        researcherSession.resources.studies
+          .study(study.id)
+          .permissions()
+          .get(),
+      ).resolves.toEqual(expect.objectContaining({ adminUsers: [admin2Session.user.uid, researcherSession.user.uid] }));
     });
   });
 });

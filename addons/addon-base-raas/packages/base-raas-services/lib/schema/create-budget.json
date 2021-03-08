@@ -48,7 +48,7 @@
     "description": {
       "type": "string",
       "maxLength": 2048,
-      "pattern": "^([^<>{}]+)$"
+      "pattern": "^([^<>{}]*)$"
     }
   },
   "additionalProperties": false

@@ -138,7 +138,7 @@ describe('studyService', () => {
       // OPERATE
       await expect(service.getStudyPermissions(requestContext, '<hack>')).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
   });
@@ -170,6 +170,87 @@ describe('studyService', () => {
 
   describe('register', () => {
     // TODO add positive tests
+    it('should fail if study path is a wildcard *', async () => {
+      // BUILD
+      const uid = 'u-currentUserId';
+      const requestContext = {
+        principalIdentifier: { uid },
+        principal: { isAdmin: true, userRole: 'admin', status: 'active' },
+      };
+      const accountEntity = {};
+      const bucketEntity = {};
+      const rawStudyEntity = {
+        id: 'study-1',
+        name: 'study-1',
+        category: 'Organization',
+        description: 'asas',
+        projectId: 'project1',
+        folder: '*',
+        kmsArn: 'arn:aws:kms:us-east-1:123456789101:key/2e3c97b6-8bb3-4cf8-bc77-d56ebf84test',
+        kmsScope: 'bucket',
+        adminUsers: ['admin'],
+        accessType: 'readonly',
+      };
+      // OPERATE
+      await expect(service.register(requestContext, accountEntity, bucketEntity, rawStudyEntity)).rejects.toThrow(
+        // CHECK
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+    it('should fail if study path has wildcard *', async () => {
+      // BUILD
+      const uid = 'u-currentUserId';
+      const requestContext = {
+        principalIdentifier: { uid },
+        principal: { isAdmin: true, userRole: 'admin', status: 'active' },
+      };
+      const accountEntity = {};
+      const bucketEntity = {};
+      const rawStudyEntity = {
+        id: 'study-1',
+        name: 'study-1',
+        category: 'Organization',
+        description: 'asas',
+        projectId: 'project1',
+        folder: 'folder*',
+        kmsArn: 'arn:aws:kms:us-east-1:123456789101:key/2e3c97b6-8bb3-4cf8-bc77-d56ebf84test',
+        kmsScope: 'bucket',
+        adminUsers: ['admin'],
+        accessType: 'readonly',
+      };
+      // OPERATE
+      await expect(service.register(requestContext, accountEntity, bucketEntity, rawStudyEntity)).rejects.toThrow(
+        // CHECK
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+    it('should fail if study path has wildcard ?', async () => {
+      // BUILD
+      const uid = 'u-currentUserId';
+      const requestContext = {
+        principalIdentifier: { uid },
+        principal: { isAdmin: true, userRole: 'admin', status: 'active' },
+      };
+      const accountEntity = {};
+      const bucketEntity = {};
+      const rawStudyEntity = {
+        id: 'study-1',
+        name: 'study-1',
+        category: 'Organization',
+        description: 'valid',
+        projectId: 'project1',
+        folder: 'folder?',
+        kmsArn: 'arn:aws:kms:us-east-1:123456789101:key/2e3c97b6-8bb3-4cf8-bc77-d56ebf84test',
+        kmsScope: 'bucket',
+        adminUsers: ['admin'],
+        accessType: 'readonly',
+      };
+      // OPERATE
+      await expect(service.register(requestContext, accountEntity, bucketEntity, rawStudyEntity)).rejects.toThrow(
+        // CHECK
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
     it('should fail due to invalid id', async () => {
       // BUILD
       const uid = 'u-currentUserId';
@@ -194,7 +275,7 @@ describe('studyService', () => {
       // OPERATE
       await expect(service.register(requestContext, accountEntity, bucketEntity, rawStudyEntity)).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
     it('should fail due to invalid name', async () => {
@@ -221,7 +302,7 @@ describe('studyService', () => {
       // OPERATE
       await expect(service.register(requestContext, accountEntity, bucketEntity, rawStudyEntity)).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
     it('should fail due to invalid description', async () => {
@@ -248,7 +329,7 @@ describe('studyService', () => {
       // OPERATE
       await expect(service.register(requestContext, accountEntity, bucketEntity, rawStudyEntity)).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
     it('should fail due to invalid folder', async () => {
@@ -275,7 +356,7 @@ describe('studyService', () => {
       // OPERATE
       await expect(service.register(requestContext, accountEntity, bucketEntity, rawStudyEntity)).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
     it('should fail due to invalid kmsArn', async () => {
@@ -302,7 +383,7 @@ describe('studyService', () => {
       // OPERATE
       await expect(service.register(requestContext, accountEntity, bucketEntity, rawStudyEntity)).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
   });
@@ -688,7 +769,7 @@ describe('studyService', () => {
       // OPERATE
       await expect(service.create(requestContext, dataIpt)).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
     it('should fail since the given study name is invalid', async () => {
@@ -708,7 +789,7 @@ describe('studyService', () => {
       // OPERATE
       await expect(service.create(requestContext, dataIpt)).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
     it('should fail since the given study desc is invalid', async () => {
@@ -728,7 +809,7 @@ describe('studyService', () => {
       // OPERATE
       await expect(service.create(requestContext, dataIpt)).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
     it('should fail since the given study sha is invalid', async () => {
@@ -749,7 +830,7 @@ describe('studyService', () => {
       // OPERATE
       await expect(service.create(requestContext, dataIpt)).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
   });
@@ -771,7 +852,7 @@ describe('studyService', () => {
       // OPERATE
       await expect(service.update(requestContext, dataIpt)).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
     it('should fail since the given study name is invalid', async () => {
@@ -790,7 +871,7 @@ describe('studyService', () => {
       // OPERATE
       await expect(service.update(requestContext, dataIpt)).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
     it('should fail since the given sha is invalid', async () => {
@@ -810,7 +891,7 @@ describe('studyService', () => {
       // OPERATE
       await expect(service.update(requestContext, dataIpt)).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
     it('should fail since the given study desc is invalid', async () => {
@@ -829,7 +910,7 @@ describe('studyService', () => {
       // OPERATE
       await expect(service.update(requestContext, dataIpt)).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 

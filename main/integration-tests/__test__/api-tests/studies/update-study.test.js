@@ -19,10 +19,23 @@ const errorCode = require('../../../support/utils/error-code');
 describe('Update study scenarios', () => {
   let setup;
   let adminSession;
+  let accountId;
+  let bucketName;
 
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
+
+    // We register an account to be used by all the tests in this test suite
+    accountId = setup.gen.accountId();
+    await adminSession.resources.dataSources.accounts.create({ id: accountId });
+
+    // We register a bucket to be used by all the BYOB-related tests in this test suite
+    bucketName = setup.gen.string({ prefix: 'ds-study-test' });
+    await adminSession.resources.dataSources.accounts
+      .account(accountId)
+      .buckets()
+      .create({ name: bucketName });
   });
 
   afterAll(async () => {
@@ -37,11 +50,10 @@ describe('Update study scenarios', () => {
 
       // We need to make sure that the study id above belongs to an open data study
       const study = await adminSession.resources.studies.mustFind(studyId, 'Open Data');
-      const updateBody = { rev: study.rev, description: setup.gen.description() };
+      const updateBody = { rev: study.rev, description: setup.gen.description(), id: studyId };
 
-      // It is unfortunate, but the current study update api returns 400 (badRequest) instead of 403 (forbidden)
       await expect(researcherSession.resources.studies.study(studyId).update(updateBody)).rejects.toMatchObject({
-        code: errorCode.http.code.badRequest,
+        code: errorCode.http.code.forbidden,
       });
     });
     it('should fail for anonymous user', async () => {
@@ -50,12 +62,106 @@ describe('Update study scenarios', () => {
 
       // We need to make sure that the study id above belongs to an open data study
       const study = await adminSession.resources.studies.mustFind(studyId, 'Open Data');
-      const updateBody = { rev: study.rev, description: setup.gen.description() };
+      const updateBody = { rev: study.rev, description: setup.gen.description(), id: studyId };
 
       const anonymousSession = await setup.createAnonymousSession();
       await expect(anonymousSession.resources.studies.study(studyId).update(updateBody)).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
+    });
+
+    it('should update study as expected', async () => {
+      const researcherSession = await setup.createResearcherSession();
+      const id = setup.gen.string({ prefix: 'update-study-test' });
+      const study = {
+        id,
+        category: 'My Studies',
+      };
+
+      await researcherSession.resources.studies.create(study);
+
+      const updateBody = { rev: study.rev, description: setup.gen.description(), id };
+
+      const retVal = await researcherSession.resources.studies.study(study.id).update(updateBody);
+
+      expect(retVal).toStrictEqual(
+        expect.objectContaining({
+          description: updateBody.description,
+        }),
+      );
+    });
+  });
+
+  describe('Updating BYOB study', () => {
+    it('should fail to update BYOB study with anonymous users', async () => {
+      const anonymousSession = await setup.createAnonymousSession();
+      const admin2Session = await setup.createAdminSession();
+      const id = setup.gen.string({ prefix: 'update-study-test-byob' });
+      const study = {
+        id,
+        adminUsers: [admin2Session.user.uid],
+      };
+
+      await admin2Session.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      const updateBody = { rev: study.rev, description: setup.gen.description(), id };
+
+      await expect(anonymousSession.resources.studies.study(study.id).update(updateBody)).rejects.toMatchObject({
+        code: errorCode.http.code.badImplementation,
+      });
+    });
+
+    it('should fail to fetch BYOB study with unauthorized users', async () => {
+      const researcherSession = await setup.createResearcherSession();
+      const admin2Session = await setup.createAdminSession();
+      const id = setup.gen.string({ prefix: 'update-study-test-byob' });
+      const study = {
+        id,
+        adminUsers: [admin2Session.user.uid],
+      };
+
+      await admin2Session.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      const updateBody = { rev: study.rev, description: setup.gen.description(), id };
+
+      await expect(researcherSession.resources.studies.study(study.id).update(updateBody)).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
+    it('should update BYOB study', async () => {
+      const tempStudyAdmin = await setup.createResearcherSession();
+      const admin2Session = await setup.createAdminSession();
+      const id = setup.gen.string({ prefix: 'update-study-test-byob' });
+      const study = {
+        id,
+        adminUsers: [admin2Session.user.uid, tempStudyAdmin.user.uid],
+      };
+
+      await admin2Session.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      const updateBody = { rev: study.rev, description: setup.gen.description(), id };
+
+      await expect(admin2Session.resources.studies.study(study.id).update(updateBody)).resolves.toStrictEqual(
+        expect.objectContaining({
+          description: updateBody.description,
+        }),
+      );
     });
   });
 });

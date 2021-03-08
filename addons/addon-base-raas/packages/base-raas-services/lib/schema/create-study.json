@@ -13,7 +13,7 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 300,
-      "pattern": "^([^<>{}]+)$"
+      "pattern": "^([^<>{}]*)$"
     },
     "category": {
       "type": "string",
@@ -22,7 +22,7 @@
     "description": {
       "type": "string",
       "maxLength": 2048,
-      "pattern": "^([^<>{}]+)$"
+      "pattern": "^([^<>{}]*)$"
     },
     "projectId": {
       "type": "string",
