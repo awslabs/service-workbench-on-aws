@@ -86,4 +86,26 @@ describe('Stop workspace-service-catalog scenarios', () => {
       });
     });
   });
+
+  it('should fail if user is not owner of workspace', async () => {
+    const researcherSession = await setup.createResearcherSession();
+    const workspaceName = setup.gen.string({ prefix: 'workspace-service-catalog-test' });
+    const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(
+      productInfo,
+      adminSession,
+      setup,
+    );
+
+    const response = await adminSession.resources.workspaceServiceCatalogs.create({
+      name: workspaceName,
+      envTypeId: workspaceTypeId,
+      envTypeConfigId: configurationId,
+    });
+
+    await expect(
+      researcherSession.resources.workspaceServiceCatalogs.workspaceServiceCatalog(response.id).stop(),
+    ).rejects.toMatchObject({
+      code: errorCode.http.code.forbidden,
+    });
+  });
 });
