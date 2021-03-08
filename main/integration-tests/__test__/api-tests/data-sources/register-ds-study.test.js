@@ -160,7 +160,7 @@ describe('Register data source study scenarios', () => {
           .bucket(bucketName)
           .studies()
           .create(study),
-      ).resolves.toHaveProperty('id', id);
+      ).resolves.toMatchObject({ id, accountId, bucket: bucketName });
     });
   });
 });

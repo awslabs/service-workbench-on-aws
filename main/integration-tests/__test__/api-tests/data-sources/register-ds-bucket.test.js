@@ -114,7 +114,7 @@ describe('Register data source bucket scenarios', () => {
           .account(accountId)
           .buckets()
           .create({ name }),
-      ).resolves.toHaveProperty('name', name);
+      ).resolves.toMatchObject({ name, accountId });
     });
   });
 });
