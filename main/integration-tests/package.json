@@ -6,7 +6,7 @@
   "author": "Amazon Web Services",
   "license": "Apache-2.0",
   "scripts": {
-    "intTest": "NODE_ENV=test jest --config jest.config.js --passWithNoTests",
+    "intTest": "NODE_ENV=test jest --config jest.config.js --passWithNoTests --runInBand --verbose",
     "intTestWatch": "NODE_ENV=test jest --config jest.config.js  --passWithNoTests --watchAll",
     "lint": "pnpm run lint:eslint && pnpm run lint:prettier",
     "lint:eslint": "eslint --ignore-path .gitignore . ",

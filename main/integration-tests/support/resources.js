@@ -13,6 +13,7 @@
  *  permissions and limitations under the License.
  */
 
+const Authentication = require('./resources/authentication/authentication');
 const Users = require('./resources/users/users');
 const Studies = require('./resources/studies/studies');
 const Projects = require('./resources/projects/projects');
@@ -32,6 +33,7 @@ const WorkspaceServiceCatalogs = require('./resources/workspace-service-catalogs
 // These top level resource operation helpers are available via client sessions.
 async function getResources({ clientSession }) {
   const resources = {
+    authentication: new Authentication({ clientSession }),
     users: new Users({ clientSession }),
     studies: new Studies({ clientSession }),
     projects: new Projects({ clientSession }),

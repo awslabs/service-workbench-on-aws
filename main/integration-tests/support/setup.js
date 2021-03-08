@@ -154,6 +154,7 @@ class Setup {
     const idToken = await getIdToken({ username, password, apiEndpoint: this.apiEndpoint });
     const session = await getClientSession({ idToken, setup: this });
     this.sessions.push(session);
+
     return session;
   }
 

@@ -2,13 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.2] - 2021-03-03
+
+### Added 
+- fix: SageMaker environment status update
+- fix: Validate Open Data ARNs
+- test: Integration test components and framework
+- chore: Dependency version bump
+
 ## [2.0.1] - 2021-02-08
 
 ### Added 
-fix: Added usernameInIdp property to update user schema
-fix: Made external researcher used UserOnboarding template less permissive
-fix: labeler yml syntax
-chore: add PR size labeler
+- fix: Added usernameInIdp property to update user schema
+- fix: Made external researcher used UserOnboarding template less permissive
+- fix: labeler yml syntax
+- chore: add PR size labeler
 
 We recommend to apply this patch as soon as possible
 

@@ -16,7 +16,7 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
-describe('List indexes scenarios', () => {
+describe('Get authentication types list scenarios', () => {
   let setup;
   let adminSession;
 
@@ -29,29 +29,51 @@ describe('List indexes scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('List indexes', () => {
+  describe('Get authentication types list', () => {
+    it('should fail if user is not an admin', async () => {
+      const researcherSession = await setup.createResearcherSession();
+
+      await expect(researcherSession.resources.authentication.types().get()).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
     it('should fail if user is inactive', async () => {
       const admin2Session = await setup.createAdminSession();
       await adminSession.resources.users.deactivateUser(admin2Session.user);
 
-      await expect(admin2Session.resources.indexes.get()).rejects.toMatchObject({
+      await expect(admin2Session.resources.authentication.types().get()).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });
 
-    it('should return empty index list for internal guest', async () => {
-      const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
-      await expect(guestSession.resources.indexes.get()).resolves.toStrictEqual([]);
+    it('should list auth provider types', async () => {
+      const admin2Session = await setup.createAdminSession();
+
+      await expect(admin2Session.resources.authentication.types().get()).resolves.toEqual(
+        expect.arrayContaining(admin2Session.resources.authentication.types().defaultTypes()),
+      );
     });
 
-    it('should return empty index list for external guest', async () => {
+    it('should fail if internal guest attempts to get auth types list', async () => {
+      const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
+
+      await expect(guestSession.resources.authentication.types().get()).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
+    it('should fail if external guest attempts to get auth types list', async () => {
       const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
-      await expect(guestSession.resources.indexes.get()).resolves.toStrictEqual([]);
+
+      await expect(guestSession.resources.authentication.types().get()).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
     });
 
     it('should fail for anonymous user', async () => {
       const anonymousSession = await setup.createAnonymousSession();
-      await expect(anonymousSession.resources.indexes.get()).rejects.toMatchObject({
+      await expect(anonymousSession.resources.authentication.types().get()).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });
