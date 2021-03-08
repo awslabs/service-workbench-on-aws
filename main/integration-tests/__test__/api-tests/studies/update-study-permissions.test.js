@@ -127,15 +127,19 @@ describe('Update study permissions scenarios', () => {
         usersToRemove: [],
       };
 
-      const retVal = await studyAdminSession.resources.studies
-        .study(studyId)
-        .permissions()
-        .update(updateRequest);
-
-      expect(retVal.adminUsers).toStrictEqual([studyAdminSession.user.uid]);
-      expect(retVal.readonlyUsers).toStrictEqual([readonlyUserSession.user.uid]);
-      expect(retVal.readwriteUsers).toStrictEqual([readwriteUserSession.user.uid]);
-      expect(retVal.writeonlyUsers).toStrictEqual([]);
+      await expect(
+        studyAdminSession.resources.studies
+          .study(studyId)
+          .permissions()
+          .update(updateRequest),
+      ).resolves.toStrictEqual(
+        expect.objectContaining({
+          adminUsers: [studyAdminSession.user.uid],
+          readonlyUsers: [readonlyUserSession.user.uid],
+          readwriteUsers: [readwriteUserSession.user.uid],
+          writeonlyUsers: [],
+        }),
+      );
     });
   });
 
@@ -232,16 +236,20 @@ describe('Update study permissions scenarios', () => {
         usersToRemove: [tempStudyAdminToRemove],
       };
 
-      const retVal = await admin2Session.resources.studies
-        .study(study.id)
-        .permissions()
-        .update(updateRequest);
-
       // Check if the returned body shows expected permission assignment
-      expect(retVal.adminUsers).toStrictEqual([admin2Session.user.uid]);
-      expect(retVal.readonlyUsers).toStrictEqual([readonlyUserSession.user.uid]);
-      expect(retVal.readwriteUsers).toStrictEqual([readwriteUserSession.user.uid]);
-      expect(retVal.writeonlyUsers).toStrictEqual([]);
+      await expect(
+        admin2Session.resources.studies
+          .study(study.id)
+          .permissions()
+          .update(updateRequest),
+      ).resolves.toStrictEqual(
+        expect.objectContaining({
+          adminUsers: [admin2Session.user.uid],
+          readonlyUsers: [readonlyUserSession.user.uid],
+          readwriteUsers: [readwriteUserSession.user.uid],
+          writeonlyUsers: [],
+        }),
+      );
 
       // Get study permissions separately and check if the returned body shows expected permission assignment
       await expect(
