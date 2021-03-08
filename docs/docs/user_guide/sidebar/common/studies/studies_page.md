@@ -6,7 +6,7 @@ sidebar_label: Studies Page
 
 The Studies page provides a central location for creating Studies, uploading files, managing Study permissions, and creating new Workspaces.
 
-### Changing organization's Study permissions
+### Changing organization-categorized Study permissions
 To change permissions for an organization's Study:
 
 1.	Click the **Permissions** button for the Study.

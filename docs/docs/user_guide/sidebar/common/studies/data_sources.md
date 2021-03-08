@@ -43,8 +43,7 @@ To register an external Study, follow these steps:
 4.  For **Study Folder**, enter the folder name (path in the S3 bucket).
 5.  For **Project**, choose a project.
 6.	Choose the **Type**. For more information, refer to [Creating a Study](/user_guide/sidebar/common/studies/creating_a_study).
-7.	For **Access**, choose either **Read Only** or **Read/Write**.
-     **Note**: Appropriate permissions can be assigned on a per-user basis on the Studies page, if it is an organization Study.
+7.	For **Access**, choose either **Read Only** or **Read/Write**. Appropriate permissions can be assigned on a per-user basis on the Studies page, if it is an organization's Study.
 8.	For **Description**, enter the Study project details.
 9.	For **Study KMS ARN**, enter the value, if applicable.
 10.	For **Admin**, choose one or more admins for the Study, if it is an organization's Study. This can be edited later on the **Studies** page.
@@ -78,6 +77,6 @@ To onboard an external study account for the first time:
 ## Removing External Studies ##
 Removing external Studies is not supported at this time and it will be available in a future release.
 
-To remove access to the data in the external study account, delete the CloudFormation stack in the AWS account. This removes permissions enabling access to the data.
+To remove access to the data in the external study account, delete the CloudFormation stack in the AWS account (specified in the "Onboarding an external Study account section above"). This removes permissions enabling access to the data.
 
 

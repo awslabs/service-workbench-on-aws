@@ -25,6 +25,7 @@ module.exports = {
           "deployment/post_deployment/create_index_project",
           "deployment/post_deployment/create_admin_user",
           "deployment/post_deployment/import_service_catalog_products",
+          "deployment/post_deployment/logs",
         ],
       },
       {
