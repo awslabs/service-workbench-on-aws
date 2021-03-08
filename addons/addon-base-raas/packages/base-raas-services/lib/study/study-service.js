@@ -623,7 +623,11 @@ class StudyService extends Service {
   async createPresignedPostRequests(requestContext, studyId, filenames, encrypt = true, multiPart = true) {
     // Get study details and check permissions
     const uid = _.get(requestContext, 'principalIdentifier.uid');
+
     const studyEntity = await this.getStudyPermissions(requestContext, studyId);
+    if (!_.isUndefined(studyEntity.bucket))
+      throw this.boom.forbidden('Currently presigned post requests can only be performed for internal studies', true);
+
     const { admin, write } = accessLevels(studyEntity, uid);
 
     if (!write && !admin) throw this.boom.forbidden("You don't have permission to perform this operation", true);

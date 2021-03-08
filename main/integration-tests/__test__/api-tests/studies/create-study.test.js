@@ -19,10 +19,23 @@ const errorCode = require('../../../support/utils/error-code');
 describe('Create study scenarios', () => {
   let setup;
   let adminSession;
+  let accountId;
+  let bucketName;
 
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
+
+    // We register an account to be used by all the tests in this test suite
+    accountId = setup.gen.accountId();
+    await adminSession.resources.dataSources.accounts.create({ id: accountId });
+
+    // We register a bucket to be used by all the BYOB-related tests in this test suite
+    bucketName = setup.gen.string({ prefix: 'ds-study-test' });
+    await adminSession.resources.dataSources.accounts
+      .account(accountId)
+      .buckets()
+      .create({ name: bucketName });
   });
 
   afterAll(async () => {
@@ -91,5 +104,22 @@ describe('Create study scenarios', () => {
         });
       },
     );
+  });
+
+  describe('Create BYOB study', () => {
+    it('should fail to create an unregistered BYOB study', async () => {
+      const admin2Session = await setup.createAdminSession();
+      const id = setup.gen.string({ prefix: 'update-study-test-byob' });
+      const study = {
+        id,
+        adminUsers: [admin2Session.user.uid],
+        accountId,
+        bucket: bucketName,
+      };
+
+      await expect(admin2Session.resources.studies.create(study)).rejects.toMatchObject({
+        code: errorCode.http.code.badRequest,
+      });
+    });
   });
 });
