@@ -6,29 +6,25 @@ sidebar_label: Studies Page
 
 The Studies page provides a central location for creating Studies, uploading files, managing Study permissions, and creating new Workspaces.
 
-### Changing Organization Study Permissions
-To change permissions for an Organization Study:
+### Changing organization's Study permissions
+To change permissions for an organization's Study:
 
-1.	Click the **Permissions** button for the Study
-2.	Click the pencil icon beside the Users level
+1.	Click the **Permissions** button for the Study.
+2.	Click the pencil icon beside the Users level.
 3.	Update permissions as needed.
 
-:::note
-Changing a user’s permissions for an External Study will result in all existing Workspaces for that user losing all access to the Study. This will be addressed in a future release.
-:::
+**Note**: Changing a user’s permissions for an external Study results in all existing workspaces for that user losing all access to the Study. This will be addressed in a future release.
 
-### Creating a Study and Uploading Files
+### Creating a Study and uploading files
 To create a Study:
 
 1.	Click **Create Study**.
-2.	Provide a unique ID, type, Name, Description, and Project ID.
+2.	Enter a unique ID, type (My study or Organization Study), Name, Description, and Project ID.
 3.	Click **Create Study**.
 
 To upload files:
 
-4.	Click **Upload Files**.
-5.	Either drag and drop the files you want to upload, or click the Browse Files button to select the files to upload.
+1.	Click **Upload Files**.
+2.	Either drag and drop the files you want to upload, or click the **Browse Files** button to select the files to upload.
 
-:::note
-The **Upload Files** button will not be visible if you lack Write permissions to the Study, or if the Study is an External Study.
-:::
+**Note**: The **Upload Files** button is not visible if you lack write permissions to the Study, or if the Study is external.

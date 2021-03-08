@@ -1,14 +1,14 @@
 module.exports = {
   serviceWorkbenchSidebar: {
-    ServiceWorkBench: ["introduction"],    
+    ServiceWorkBench: ["introduction"],
     "Deployment Guide": [
       "deployment/about_this_guide",
       "deployment/summary",
-      "deployment/deployment_stages",      
+      "deployment/deployment_stages",
       {
         "Pre Deployment": [
           "deployment/pre_deployment/pre_deployment",
-	  "deployment/pre_deployment/accounts",
+          "deployment/pre_deployment/accounts",
           "deployment/pre_deployment/prereq_commands",
           "deployment/pre_deployment/deployment_instance",
           "deployment/pre_deployment/source_code",
@@ -59,6 +59,7 @@ module.exports = {
                 Studies: [
                   "user_guide/sidebar/common/studies/introduction",
                   "user_guide/sidebar/common/studies/creating_a_study",
+                  "user_guide/sidebar/common/studies/data_sources",
                   "user_guide/sidebar/common/studies/studies_page",
                   "user_guide/sidebar/common/studies/sharing_a_study",
                 ],
