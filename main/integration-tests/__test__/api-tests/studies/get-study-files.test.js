@@ -165,12 +165,12 @@ describe('List study files scenarios', () => {
         .studies()
         .create(study);
 
-      const retVal = await admin2Session.resources.studies
-        .study(study.id)
-        .files()
-        .get();
-
-      expect(retVal).toStrictEqual([]);
+      await expect(
+        admin2Session.resources.studies
+          .study(study.id)
+          .files()
+          .get(),
+      ).resolves.toStrictEqual([]);
     });
   });
 });

@@ -157,9 +157,7 @@ describe('Update study scenarios', () => {
 
       const updateBody = { rev: study.rev, description: setup.gen.description(), id };
 
-      const retVal = await admin2Session.resources.studies.study(study.id).update(updateBody);
-
-      expect(retVal).toStrictEqual(
+      await expect(admin2Session.resources.studies.study(study.id).update(updateBody)).resolves.toStrictEqual(
         expect.objectContaining({
           description: updateBody.description,
         }),
