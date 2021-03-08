@@ -160,7 +160,7 @@ describe('DataSourceAccountService', () => {
       };
 
       await expect(service.register(requestContext, rawData)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
@@ -175,7 +175,7 @@ describe('DataSourceAccountService', () => {
       };
 
       await expect(service.register(requestContext, rawData)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
@@ -191,7 +191,7 @@ describe('DataSourceAccountService', () => {
       };
 
       await expect(service.register(requestContext, rawData)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
   });
@@ -297,7 +297,7 @@ describe('DataSourceAccountService', () => {
       };
 
       await expect(service.update(requestContext, rawData)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
@@ -312,7 +312,7 @@ describe('DataSourceAccountService', () => {
       };
 
       await expect(service.update(requestContext, rawData)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
@@ -328,7 +328,7 @@ describe('DataSourceAccountService', () => {
       };
 
       await expect(service.update(requestContext, rawData)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
@@ -343,7 +343,7 @@ describe('DataSourceAccountService', () => {
       };
 
       await expect(service.update(requestContext, rawData)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
   });

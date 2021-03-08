@@ -599,7 +599,7 @@ describe('StudyPermissionService', () => {
       // OPERATE
       await expect(service.update(requestContext, studyEntity, updateRequest)).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
   });

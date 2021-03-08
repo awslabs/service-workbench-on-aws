@@ -19,10 +19,23 @@ const errorCode = require('../../../support/utils/error-code');
 describe('Update study permissions scenarios', () => {
   let setup;
   let adminSession;
+  let accountId;
+  let bucketName;
 
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
+
+    // We register an account to be used by all the tests in this test suite
+    accountId = setup.gen.accountId();
+    await adminSession.resources.dataSources.accounts.create({ id: accountId });
+
+    // We register a bucket to be used by all the BYOB-related tests in this test suite
+    bucketName = setup.gen.string({ prefix: 'ds-study-test' });
+    await adminSession.resources.dataSources.accounts
+      .account(accountId)
+      .buckets()
+      .create({ name: bucketName });
   });
 
   afterAll(async () => {
@@ -114,15 +127,144 @@ describe('Update study permissions scenarios', () => {
         usersToRemove: [],
       };
 
-      const retVal = await studyAdminSession.resources.studies
-        .study(studyId)
-        .permissions()
-        .update(updateRequest);
+      await expect(
+        studyAdminSession.resources.studies
+          .study(studyId)
+          .permissions()
+          .update(updateRequest),
+      ).resolves.toStrictEqual(
+        expect.objectContaining({
+          adminUsers: [studyAdminSession.user.uid],
+          readonlyUsers: [readonlyUserSession.user.uid],
+          readwriteUsers: [readwriteUserSession.user.uid],
+          writeonlyUsers: [],
+        }),
+      );
+    });
+  });
 
-      expect(retVal.adminUsers).toStrictEqual([studyAdminSession.user.uid]);
-      expect(retVal.readonlyUsers).toStrictEqual([readonlyUserSession.user.uid]);
-      expect(retVal.readwriteUsers).toStrictEqual([readwriteUserSession.user.uid]);
-      expect(retVal.writeonlyUsers).toStrictEqual([]);
+  describe('Updating BYOB study permissions', () => {
+    it('should fail to update BYOB study permissions with anonymous users', async () => {
+      const anonymousSession = await setup.createAnonymousSession();
+      const admin2Session = await setup.createAdminSession();
+      const id = setup.gen.string({ prefix: 'update-study-perm-test-byob' });
+      const study = {
+        id,
+        adminUsers: [admin2Session.user.uid],
+      };
+
+      await admin2Session.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      await expect(
+        anonymousSession.resources.studies
+          .study(study.id)
+          .permissions()
+          .update(),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.badImplementation,
+      });
+    });
+
+    it('should fail to update BYOB study permissions with unauthorized users', async () => {
+      const researcherSession = await setup.createResearcherSession();
+      const admin2Session = await setup.createAdminSession();
+      const id = setup.gen.string({ prefix: 'update-study-perm-test-byob' });
+      const study = {
+        id,
+        adminUsers: [admin2Session.user.uid],
+      };
+
+      await admin2Session.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      await expect(
+        researcherSession.resources.studies
+          .study(study.id)
+          .permissions()
+          .update(),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
+    it('should update BYOB study permissions', async () => {
+      const tempStudyAdmin = await setup.createResearcherSession();
+      const admin2Session = await setup.createAdminSession();
+      const id = setup.gen.string({ prefix: 'update-study-perm-test-byob' });
+      const study = {
+        id,
+        adminUsers: [admin2Session.user.uid, tempStudyAdmin.user.uid],
+      };
+
+      await admin2Session.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      const readonlyUserSession = await setup.createResearcherSession();
+      const readwriteUserSession = await setup.createResearcherSession();
+
+      const readwriteuser = {
+        uid: readwriteUserSession.user.uid,
+        permissionLevel: 'readwrite',
+      };
+      const readonlyuser = {
+        uid: readonlyUserSession.user.uid,
+        permissionLevel: 'readonly',
+      };
+      const adminuser = {
+        uid: admin2Session.user.uid,
+        permissionLevel: 'admin',
+      };
+      const tempStudyAdminToRemove = {
+        uid: tempStudyAdmin.user.uid,
+        permissionLevel: 'admin',
+      };
+      const updateRequest = {
+        usersToAdd: [readonlyuser, adminuser, readwriteuser],
+        usersToRemove: [tempStudyAdminToRemove],
+      };
+
+      // Check if the returned body shows expected permission assignment
+      await expect(
+        admin2Session.resources.studies
+          .study(study.id)
+          .permissions()
+          .update(updateRequest),
+      ).resolves.toStrictEqual(
+        expect.objectContaining({
+          adminUsers: [admin2Session.user.uid],
+          readonlyUsers: [readonlyUserSession.user.uid],
+          readwriteUsers: [readwriteUserSession.user.uid],
+          writeonlyUsers: [],
+        }),
+      );
+
+      // Get study permissions separately and check if the returned body shows expected permission assignment
+      await expect(
+        admin2Session.resources.studies
+          .study(study.id)
+          .permissions()
+          .get(),
+      ).resolves.toStrictEqual(
+        expect.objectContaining({
+          adminUsers: [admin2Session.user.uid],
+          readonlyUsers: [readonlyUserSession.user.uid],
+          readwriteUsers: [readwriteUserSession.user.uid],
+          writeonlyUsers: [],
+        }),
+      );
     });
   });
 });

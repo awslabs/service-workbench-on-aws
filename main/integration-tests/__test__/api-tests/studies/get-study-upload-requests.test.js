@@ -19,10 +19,23 @@ const errorCode = require('../../../support/utils/error-code');
 describe('Study files upload request scenarios', () => {
   let setup;
   let adminSession;
+  let accountId;
+  let bucketName;
 
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
+
+    // We register an account to be used by all the tests in this test suite
+    accountId = setup.gen.accountId();
+    await adminSession.resources.dataSources.accounts.create({ id: accountId });
+
+    // We register a bucket to be used by all the BYOB-related tests in this test suite
+    bucketName = setup.gen.string({ prefix: 'ds-study-test' });
+    await adminSession.resources.dataSources.accounts
+      .account(accountId)
+      .buckets()
+      .create({ name: bucketName });
   });
 
   afterAll(async () => {
@@ -44,7 +57,7 @@ describe('Study files upload request scenarios', () => {
         researcherSession.resources.studies
           .study(studyId)
           .uploadRequest()
-          .getPresignedRequests(['dummyFile1', 'dummyFile2']),
+          .getPresignedRequests('dummyFile1'),
       ).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
@@ -60,9 +73,62 @@ describe('Study files upload request scenarios', () => {
         anonymousSession.resources.studies
           .study(studyId)
           .uploadRequest()
-          .getPresignedRequests(['dummyFile1', 'dummyFile2']),
+          .getPresignedRequests('dummyFile1'),
       ).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
+      });
+    });
+  });
+
+  describe('BYOB study files upload request', () => {
+    it('should fail BYOB study files upload request with anonymous users', async () => {
+      const anonymousSession = await setup.createAnonymousSession();
+      const admin2Session = await setup.createAdminSession();
+      const id = setup.gen.string({ prefix: 'file-upload-test-byob' });
+      const study = {
+        id,
+        adminUsers: [admin2Session.user.uid],
+      };
+
+      await admin2Session.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      await expect(
+        anonymousSession.resources.studies
+          .study(study.id)
+          .uploadRequest()
+          .getPresignedRequests('dummyFile1'),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.badImplementation,
+      });
+    });
+
+    it('should fail BYOB study files upload request with DS studies', async () => {
+      const admin2Session = await setup.createAdminSession();
+      const id = setup.gen.string({ prefix: 'file-upload-test-byob' });
+      const study = {
+        id,
+        adminUsers: [admin2Session.user.uid],
+      };
+
+      await admin2Session.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      await expect(
+        admin2Session.resources.studies
+          .study(study.id)
+          .uploadRequest()
+          .getPresignedRequests('dummyFile1'),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
       });
     });
   });

@@ -247,7 +247,7 @@ describe('EnvTypeService', () => {
 
       // OPERATE and CHECK
       await expect(service.create({}, newConfig.id, newConfig)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
     it('should fail estimatedCostInfo incorrect', async () => {
@@ -282,7 +282,7 @@ describe('EnvTypeService', () => {
 
       // OPERATE and CHECK
       await expect(service.create({}, newConfig.id, newConfig)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
 
