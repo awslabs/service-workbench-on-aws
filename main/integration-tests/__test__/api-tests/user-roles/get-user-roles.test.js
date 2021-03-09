@@ -29,6 +29,32 @@ describe('Get user role scenarios', () => {
     await setup.cleanup();
   });
 
+  const adminRole = {
+    createdBy: '_system_',
+    description: 'Administrator',
+    id: 'admin',
+    userType: 'INTERNAL',
+  };
+  const internalGuestRole = {
+    createdBy: '_system_',
+    description: 'Internal Guest',
+    id: 'internal-guest',
+    userType: 'INTERNAL',
+  };
+
+  const internalResearcherRole = {
+    createdBy: '_system_',
+    description: 'Internal Researcher',
+    id: 'researcher',
+    userType: 'INTERNAL',
+  };
+  const externalGuestRole = {
+    createdBy: '_system_',
+    description: 'External Guest',
+    id: 'guest',
+    userType: 'EXTERNAL',
+  };
+
   describe('Getting user roles', () => {
     it('should fail if user is inactive', async () => {
       const researcherSession = await setup.createResearcherSession();
@@ -43,30 +69,10 @@ describe('Get user role scenarios', () => {
       const researcherSession = await setup.createResearcherSession();
       await expect(researcherSession.resources.userRoles.get()).resolves.toEqual(
         expect.arrayContaining([
-          expect.objectContaining({
-            createdBy: '_system_',
-            description: 'Administrator',
-            id: 'admin',
-            userType: 'INTERNAL',
-          }),
-          expect.objectContaining({
-            createdBy: '_system_',
-            description: 'Internal Guest',
-            id: 'internal-guest',
-            userType: 'INTERNAL',
-          }),
-          expect.objectContaining({
-            createdBy: '_system_',
-            description: 'Internal Researcher',
-            id: 'researcher',
-            userType: 'INTERNAL',
-          }),
-          expect.objectContaining({
-            createdBy: '_system_',
-            description: 'External Guest',
-            id: 'guest',
-            userType: 'EXTERNAL',
-          }),
+          expect.objectContaining(adminRole),
+          expect.objectContaining(internalGuestRole),
+          expect.objectContaining(internalResearcherRole),
+          expect.objectContaining(externalGuestRole),
         ]),
       );
     });
@@ -75,30 +81,10 @@ describe('Get user role scenarios', () => {
       const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
       await expect(guestSession.resources.userRoles.get()).resolves.toEqual(
         expect.arrayContaining([
-          expect.objectContaining({
-            createdBy: '_system_',
-            description: 'Administrator',
-            id: 'admin',
-            userType: 'INTERNAL',
-          }),
-          expect.objectContaining({
-            createdBy: '_system_',
-            description: 'Internal Guest',
-            id: 'internal-guest',
-            userType: 'INTERNAL',
-          }),
-          expect.objectContaining({
-            createdBy: '_system_',
-            description: 'Internal Researcher',
-            id: 'researcher',
-            userType: 'INTERNAL',
-          }),
-          expect.objectContaining({
-            createdBy: '_system_',
-            description: 'External Guest',
-            id: 'guest',
-            userType: 'EXTERNAL',
-          }),
+          expect.objectContaining(adminRole),
+          expect.objectContaining(internalGuestRole),
+          expect.objectContaining(internalResearcherRole),
+          expect.objectContaining(externalGuestRole),
         ]),
       );
     });
@@ -107,30 +93,10 @@ describe('Get user role scenarios', () => {
       const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
       await expect(guestSession.resources.userRoles.get()).resolves.toEqual(
         expect.arrayContaining([
-          expect.objectContaining({
-            createdBy: '_system_',
-            description: 'Administrator',
-            id: 'admin',
-            userType: 'INTERNAL',
-          }),
-          expect.objectContaining({
-            createdBy: '_system_',
-            description: 'Internal Guest',
-            id: 'internal-guest',
-            userType: 'INTERNAL',
-          }),
-          expect.objectContaining({
-            createdBy: '_system_',
-            description: 'Internal Researcher',
-            id: 'researcher',
-            userType: 'INTERNAL',
-          }),
-          expect.objectContaining({
-            createdBy: '_system_',
-            description: 'External Guest',
-            id: 'guest',
-            userType: 'EXTERNAL',
-          }),
+          expect.objectContaining(adminRole),
+          expect.objectContaining(internalGuestRole),
+          expect.objectContaining(internalResearcherRole),
+          expect.objectContaining(externalGuestRole),
         ]),
       );
     });

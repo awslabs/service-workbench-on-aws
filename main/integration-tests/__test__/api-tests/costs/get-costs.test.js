@@ -42,7 +42,10 @@ describe('Get costs scenarios', () => {
     it('should pass if user is active', async () => {
       const researcherSession = await setup.createResearcherSession();
 
-      await expect(researcherSession.resources.costs.getIndexCosts()).resolves.toMatchObject({});
+      const response = await researcherSession.resources.costs.getIndexCosts();
+
+      expect(response[0]).toHaveProperty('cost');
+      expect(response[0]).toHaveProperty('startDate');
     });
 
     it('should fail if internal guest attempts to get costs', async () => {
