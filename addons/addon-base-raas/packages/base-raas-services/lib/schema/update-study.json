@@ -17,12 +17,12 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 300,
-      "pattern": "^([^<>{}]+)$"
+      "pattern": "^([^<>{}]*)$"
     },
     "description": {
       "type": "string",
       "maxLength": 2048,
-      "pattern": "^([^<>{}]+)$"
+      "pattern": "^([^<>{}]*)$"
     },
     "sha": {
       "type": "string",

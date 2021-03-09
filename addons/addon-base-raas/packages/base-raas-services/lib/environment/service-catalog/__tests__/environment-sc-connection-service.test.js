@@ -142,7 +142,7 @@ describe('EnvironmentScConnectionService', () => {
 
       // OPERATE and CHECK
       await expect(service.sendSshPublicKey({}, 'envId', 'connectionId', sshConnectionInfo)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
     it('should fail invalid instanceOsUser', async () => {
@@ -151,7 +151,7 @@ describe('EnvironmentScConnectionService', () => {
 
       // OPERATE and CHECK
       await expect(service.sendSshPublicKey({}, 'envId', 'connectionId', sshConnectionInfo)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
   });

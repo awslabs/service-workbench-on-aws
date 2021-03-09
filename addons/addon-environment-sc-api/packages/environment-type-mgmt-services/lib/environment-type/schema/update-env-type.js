@@ -43,7 +43,7 @@ const schema = {
     desc: {
       type: 'string',
       maxLength: 8191,
-      pattern: '^([^<>{}]+)$',
+      pattern: '^([^<>{}]*)$',
     },
     status: {
       type: 'string',
