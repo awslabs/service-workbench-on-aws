@@ -22,10 +22,14 @@ class Costs extends CollectionResource {
       type: 'costs',
     });
 
-    this.api = '';
+    this.api = '/api/costs';
   }
 
   // ************************ Helpers methods ************************
+  async getIndexCosts() {
+    // Future: Need to rename the param 'proj' to 'index' since we're required to pass the Index ID value to it
+    return this.get({ numberOfDaysInPast: 10, proj: this.setup.defaults.index.id });
+  }
 }
 
 module.exports = Costs;

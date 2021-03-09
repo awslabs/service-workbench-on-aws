@@ -16,7 +16,7 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
-describe('Get costs scenarios', () => {
+describe('Get external CFN template scenarios', () => {
   let setup;
   let adminSession;
 
@@ -29,39 +29,36 @@ describe('Get costs scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('Getting costs on dashboard', () => {
+  describe('Getting an external CFN template', () => {
     it('should fail if user is inactive', async () => {
       const researcherSession = await setup.createResearcherSession();
       await adminSession.resources.users.deactivateUser(researcherSession.user);
 
-      await expect(researcherSession.resources.costs.getIndexCosts()).rejects.toMatchObject({
+      await expect(researcherSession.resources.templates.template('sampleId').get()).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });
 
-    it('should pass if user is active', async () => {
+    it('should fail if user is key not found', async () => {
       const researcherSession = await setup.createResearcherSession();
 
-      await expect(researcherSession.resources.costs.getIndexCosts()).resolves.toMatchObject({});
+      await expect(
+        researcherSession.resources.templates.template('sampleFolder1/sampleFolder2').get(),
+      ).rejects.toMatchObject({ code: errorCode.http.code.badImplementation });
     });
 
-    it('should fail if internal guest attempts to get costs', async () => {
-      const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
-      await expect(guestSession.resources.costs.getIndexCosts()).rejects.toMatchObject({
-        code: errorCode.http.code.forbidden,
-      });
-    });
+    it('should pass for dummy file with dummy URL', async () => {
+      const researcherSession = await setup.createResearcherSession();
+      const dummyFile = setup.gen.string({ prefix: 'ext-cfn-test' });
 
-    it('should fail if external guest attempts to get costs', async () => {
-      const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
-      await expect(guestSession.resources.costs.getIndexCosts()).rejects.toMatchObject({
-        code: errorCode.http.code.forbidden,
-      });
+      // This generates a presigned URL for a resource that does not exist in S3
+      // and therefore results in an error if someone were to follow the link
+      await expect(researcherSession.resources.templates.template(dummyFile).get()).resolves.not.toBeUndefined();
     });
 
     it('should fail for anonymous user', async () => {
       const anonymousSession = await setup.createAnonymousSession();
-      await expect(anonymousSession.resources.costs.getIndexCosts()).rejects.toMatchObject({
+      await expect(anonymousSession.resources.templates.template('sampleId').get()).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });
