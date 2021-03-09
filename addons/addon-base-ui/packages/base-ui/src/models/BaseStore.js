@@ -13,7 +13,8 @@
  *  permissions and limitations under the License.
  */
 
-import { types } from 'mobx-state-tree';
+import _ from 'lodash';
+import { types, isValidReference } from 'mobx-state-tree';
 import { toErr, Err } from './Err';
 
 // A four-state model that has the following states:
@@ -51,6 +52,10 @@ const BaseStore = types
     let loadingPromise;
 
     return {
+      beforeDestroy: () => {
+        // Lets stop the heartbeat
+        self.stopHeartbeat();
+      },
       load: (...args) => {
         if (loadingPromise) return loadingPromise;
 
@@ -159,6 +164,13 @@ const isStoreLoading = obj => obj.loading;
 const isStoreReloading = obj => obj.reloading;
 const isStoreNew = obj => obj.initial;
 const isStoreError = obj => !!obj.error;
+const stopHeartbeat = store => {
+  // There is a chance that the store is detached (if we logout while the component is shown).
+  // We use isValidReference to detect if the store has been detached
+  if (_.isUndefined(store)) return;
+  if (!isValidReference(() => store)) return;
+  store.stopHeartbeat();
+};
 
 export {
   BaseStore,
@@ -169,4 +181,5 @@ export {
   isStoreReloading,
   isStoreNew,
   isStoreError,
+  stopHeartbeat,
 };

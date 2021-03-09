@@ -31,6 +31,7 @@ const StepTemplates = require('./resources/step-templates/step-templates');
 const KeyPairs = require('./resources/key-pairs/key-pairs');
 const WorkflowTemplates = require('./resources/workflow-templates/workflow-templates');
 const WorkspaceServiceCatalogs = require('./resources/workspace-service-catalogs/workspace-service-catalogs');
+const DataSourceAccounts = require('./resources/data-sources/accounts');
 
 // Returns the top level resource operations helpers. You should not use this directly in your tests.
 // These top level resource operation helpers are available via client sessions.
@@ -54,6 +55,7 @@ async function getResources({ clientSession }) {
     keyPairs: new KeyPairs({ clientSession }),
     workflowTemplates: new WorkflowTemplates({ clientSession }),
     workspaceServiceCatalogs: new WorkspaceServiceCatalogs({ clientSession }),
+    dataSources: { accounts: new DataSourceAccounts({ clientSession }) },
   };
 
   return resources;

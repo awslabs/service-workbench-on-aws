@@ -1,5 +1,6 @@
 # Options used when issuing JWT token such as which algorithm to use for hashing and how long to keep the tokens alive etc
-jwtOptions: '{"algorithm":"HS256","expiresIn":"2 days"}'
+# Note that default expiry of access token is set to one hour. This will force the user to logout and login back after an hour
+jwtOptions: '{"algorithm":"HS256","expiresIn":"1 hours"}'
 
 # Name of the parameter in parameter store containing secret key for JWT. This key is used for signing and validating JWT tokens
 # issued by data lake authentication providers
@@ -138,6 +139,9 @@ dbStudies: ${self:custom.settings.dbPrefix}-Studies
 # DynamoDB table global secondary index name for the "category" field
 dbStudiesCategoryIndex: CategoryIndex
 
+# DynamoDB table global secondary index name for the "accountId" field
+dbStudiesAccountIdIndex: AccountIdIndex
+
 # DynamoDB table name for Environments
 dbEnvironments: ${self:custom.settings.dbPrefix}-Environments
 
@@ -176,6 +180,15 @@ dbKeyPairs: ${self:custom.settings.dbPrefix}-KeyPairs
 
 # DynamoDB table for managing StorageGateway
 dbStorageGateway: ${self:custom.settings.dbPrefix}-StorageGateway
+
+# DynamoDB table name for Data source accounts
+dbDsAccounts: ${self:custom.settings.dbPrefix}-DsAccounts
+
+# DynamoDB table name for Role allocations
+dbRoleAllocations: ${self:custom.settings.dbPrefix}-RoleAllocations
+
+# DynamoDB table name for Resource usages
+dbResourceUsages: ${self:custom.settings.dbPrefix}-ResourceUsages
 
 # ================================ DB Settings - Depreciated ===========================================
 

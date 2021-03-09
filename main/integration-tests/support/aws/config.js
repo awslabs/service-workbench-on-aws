@@ -55,6 +55,7 @@ const config = async ({ settings }) => {
     backendStackName: `${envName}-${awsRegionShortName}-${solutionName}-backend`,
     dbPrefix: namespace,
     studyDataBucketName: `${globalNamespace}-studydata`,
+    environmentsBootstrapBucketName: `${globalNamespace}-environments-bootstrap-scripts`,
   };
 };
 

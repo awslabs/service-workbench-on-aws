@@ -22,17 +22,30 @@ import { types } from 'mobx-state-tree';
 const StudyPermissions = types
   .model('StudyPermissions', {
     id: types.identifier,
-    adminUsers: types.optional(types.array(types.string), []),
-    readonlyUsers: types.optional(types.array(types.string), []),
-    readwriteUsers: types.optional(types.array(types.string), []),
+    adminUsers: types.array(types.string),
+    readonlyUsers: types.array(types.string),
+    readwriteUsers: types.array(types.string),
+    writeonlyUsers: types.array(types.string),
     createdAt: '',
     createdBy: '',
     updatedAt: '',
     updatedBy: '',
   })
-  .views(_self => ({
-    get userTypes() {
-      return ['admin', 'readwrite', 'readonly'];
+  .actions(self => ({
+    setStudyPermissions(raw = {}) {
+      self.adminUsers.replace(raw.adminUsers || []);
+      self.readonlyUsers.replace(raw.readonlyUsers || []);
+      self.readwriteUsers.replace(raw.readwriteUsers || []);
+      self.writeonlyUsers.replace(raw.writeonlyUsers || []);
+      self.createdAt = raw.createdAt;
+      self.createdBy = raw.createdBy;
+      self.updatedAt = raw.updatedAt;
+      self.updatedBy = raw.updatedBy;
+    },
+  }))
+  .views(self => ({
+    isStudyAdmin(uid) {
+      return self.adminUsers.some(adminUid => adminUid === uid);
     },
   }));
 

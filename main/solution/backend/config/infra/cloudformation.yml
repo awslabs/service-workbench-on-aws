@@ -372,6 +372,9 @@ Resources:
                 - !GetAtt [KeyPairsDb, Arn]
                 - !Join ['', [!GetAtt [KeyPairsDb, Arn], '/index/*']]
                 - !GetAtt [StorageGatewayDb, Arn]
+                - !GetAtt [DsAccountsDb, Arn]
+                - !GetAtt [RoleAllocationsDb, Arn]
+                - !GetAtt [ResourceUsagesDb, Arn]
 
         - PolicyName: param-store-access
           PolicyDocument:
@@ -420,11 +423,13 @@ Resources:
                   - s3:*
                 Resource:
                   - 'arn:aws:s3:::${self:custom.settings.studyDataBucketName}/*'
+                  - 'arn:aws:s3:::${self:custom.settings.environmentsBootstrapBucketName}/*'
               - Effect: Allow
                 Action:
                   - s3:ListBucket
                 Resource:
                   - 'arn:aws:s3:::${self:custom.settings.studyDataBucketName}'
+                  - 'arn:aws:s3:::${self:custom.settings.environmentsBootstrapBucketName}'
               - Effect: Allow
                 Action:
                   - kms:GenerateDataKey
@@ -454,6 +459,7 @@ Resources:
                   - s3:DeleteObject
                 Resource:
                   - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}/*'
+
               - Effect: 'Allow'
                 Action:
                   - s3:ListBucket
@@ -571,6 +577,9 @@ Resources:
                 - !GetAtt [CostApiCachesDb, Arn]
                 - !GetAtt [UserRolesDb, Arn]
                 - !GetAtt [StorageGatewayDb, Arn]
+                - !GetAtt [DsAccountsDb, Arn]
+                - !GetAtt [RoleAllocationsDb, Arn]
+                - !GetAtt [ResourceUsagesDb, Arn]
 
         - PolicyName: param-store-access
           PolicyDocument:
@@ -595,6 +604,14 @@ Resources:
                 Action:
                   - route53:ChangeResourceRecordSets
                 Resource: 'arn:aws:route53:::hostedzone/${self:custom.settings.hostedZoneId}'
+
+        - PolicyName: step-functions-invocation
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - states:StartExecution
+                Resource: '*'
 
         - PolicyName: ec2-access
           PolicyDocument:
@@ -763,6 +780,40 @@ Resources:
                 - !GetAtt [IndexesDb, Arn]
                 - !GetAtt [ProjectsDb, Arn]
                 - !GetAtt [AwsAccountsDb, Arn]
+        - PolicyName: assume-role
+          PolicyDocument:
+            Statement:
+              Action: 'sts:AssumeRole'
+              Effect: Allow
+              Resource: '*' # TODO: LOCK THIS DOWN!
+
+    # IAM Role for the dataSourceReachabilityHandler Function
+  RoleDataSourceReachabilityHandler:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: db-data-source-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:Query
+                - dynamodb:Scan
+                - dynamodb:UpdateItem
+              Resource:
+                - !GetAtt [StudiesDb, Arn]
+                - !Join ['', [!GetAtt [StudiesDb, Arn], '/index/*']]
+                - !GetAtt [DsAccountsDb, Arn]
         - PolicyName: assume-role
           PolicyDocument:
             Statement:
@@ -1058,6 +1109,8 @@ Resources:
           AttributeType: 'S'
         - AttributeName: 'category'
           AttributeType: 'S'
+        - AttributeName: 'accountId'
+          AttributeType: 'S'
       KeySchema:
         - AttributeName: 'id'
           KeyType: 'HASH'
@@ -1066,6 +1119,12 @@ Resources:
         - IndexName: ${self:custom.settings.dbStudiesCategoryIndex}
           KeySchema:
             - AttributeName: 'category'
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: 'ALL'
+        - IndexName: ${self:custom.settings.dbStudiesAccountIdIndex}
+          KeySchema:
+            - AttributeName: 'accountId'
               KeyType: 'HASH'
           Projection:
             ProjectionType: 'ALL'
@@ -1393,6 +1452,57 @@ Resources:
       KeySchema:
         - AttributeName: 'id'
           KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+
+  DsAccountsDb:
+    Type: AWS::DynamoDB::Table
+    DependsOn: StudiesDb
+    Properties:
+      TableName: ${self:custom.settings.dbDsAccounts}
+      AttributeDefinitions:
+        - AttributeName: 'pk'
+          AttributeType: 'S'
+        - AttributeName: 'sk'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'pk'
+          KeyType: 'HASH'
+        - AttributeName: 'sk'
+          KeyType: 'RANGE'
+      BillingMode: PAY_PER_REQUEST
+
+  RoleAllocationsDb:
+    Type: AWS::DynamoDB::Table
+    DependsOn: DsAccountsDb
+    Properties:
+      TableName: ${self:custom.settings.dbRoleAllocations}
+      AttributeDefinitions:
+        - AttributeName: 'pk'
+          AttributeType: 'S'
+        - AttributeName: 'sk'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'pk'
+          KeyType: 'HASH'
+        - AttributeName: 'sk'
+          KeyType: 'RANGE'
+      BillingMode: PAY_PER_REQUEST
+
+  ResourceUsagesDb:
+    Type: AWS::DynamoDB::Table
+    DependsOn: DsAccountsDb
+    Properties:
+      TableName: ${self:custom.settings.dbResourceUsages}
+      AttributeDefinitions:
+        - AttributeName: 'pk'
+          AttributeType: 'S'
+        - AttributeName: 'sk'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'pk'
+          KeyType: 'HASH'
+        - AttributeName: 'sk'
+          KeyType: 'RANGE'
       BillingMode: PAY_PER_REQUEST
 
   # =============================================================================================
@@ -1841,5 +1951,7 @@ Outputs:
     Value: !GetAtt RoleOpenDataScrapeHandler.Arn
   EnvStatusPollHandlerRoleArn:
     Value: !GetAtt RoleEnvStatusPollHandler.Arn
+  DataSourceReachabilityHandlerRoleArn:
+    Value: !GetAtt RoleDataSourceReachabilityHandler.Arn
   EnvMgmtRoleArn:
     Value: !GetAtt RoleEnvMgmt.Arn

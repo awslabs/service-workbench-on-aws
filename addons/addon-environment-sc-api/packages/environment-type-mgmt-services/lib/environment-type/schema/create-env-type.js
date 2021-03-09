@@ -22,7 +22,7 @@ const schema = {
       type: 'string',
       maxLength: 100,
       minLength: 2,
-      pattern: '^[a-zA-Z0-9_\\-]*',
+      pattern: '^[a-zA-Z0-9_\\-]*$',
     },
     // Name for this workspace-type
     // Defaults to ${product.name}-${provisioningArtifact.name}
@@ -33,13 +33,14 @@ const schema = {
       // To accommodate default value ${product.name}-${provisioningArtifact.name} we need 16383
       maxLength: 16383,
       minLength: 2,
-      pattern: '^[a-zA-Z0-9_\\-]*',
+      pattern: '^[a-zA-Z0-9_\\-]*$',
     },
     // Description for this workspace-type
     // Defaults to provisioningArtifact.description
     desc: {
       type: 'string',
       maxLength: 8191,
+      pattern: '^([^<>{}]*)$',
     },
     status: {
       type: 'string',
@@ -57,7 +58,7 @@ const schema = {
           type: 'string',
           maxLength: 100,
           // This pattern needs to match the pattern for "Id" at https://docs.aws.amazon.com/servicecatalog/latest/dg/API_ProductViewSummary.html
-          pattern: '^[a-zA-Z0-9_\\-]*',
+          pattern: '^[a-zA-Z0-9_\\-]*$',
         },
       },
       required: ['productId'],
@@ -73,7 +74,7 @@ const schema = {
           type: 'string',
           maxLength: 100,
           // This pattern needs to match the pattern for "Id" at https://docs.aws.amazon.com/servicecatalog/latest/dg/API_ProvisioningArtifact.html
-          pattern: '^[a-zA-Z0-9_\\-]*',
+          pattern: '^[a-zA-Z0-9_\\-]*$',
         },
       },
       required: ['id'],

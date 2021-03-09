@@ -10,7 +10,8 @@
       "pattern": "^[A-Za-z0-9-_ ]+$"
     },
     "rev": {
-      "type": "number"
+      "type": "number",
+      "minimum": 0
     },
     "description": {
       "type": "string",
@@ -18,14 +19,8 @@
     },
     "userType": {
       "type": "string",
-      "enum": [
-        "INTERNAL", "EXTERNAL"
-      ]
+      "enum": ["INTERNAL", "EXTERNAL"]
     }
   },
-  "required": [
-    "id",
-    "rev",
-    "userType"
-  ]
+  "required": ["id", "rev", "userType"]
 }

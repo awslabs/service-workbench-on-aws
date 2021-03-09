@@ -10,19 +10,29 @@
       "pattern": "^[A-Za-z0-9-_ ]+$"
     },
     "rev": {
-      "type": "number"
+      "type": "number",
+      "minimum": 0
     },
     "name": {
       "type": "string",
-      "maxLength": 2048
+      "minLength": 1,
+      "maxLength": 300,
+      "pattern": "^([^<>{}]*)$"
     },
     "description": {
       "type": "string",
-      "maxLength": 8192
+      "maxLength": 2048,
+      "pattern": "^([^<>{}]*)$"
     },
     "sha": {
       "type": "string",
-      "maxLength": 64
+      "maxLength": 64,
+      "pattern": "^([A-Fa-f0-9])$"
+    },
+    "appRoleArn": {
+      "type": "string",
+      "maxLength": 2048,
+      "pattern": "^(arn:aws[a-zA-Z-]*:iam::[0-9]{12}:role[/]{1}[a-zA-Z0-9-]+)$"
     },
     "resources": {
       "type": "array",
@@ -32,19 +42,19 @@
           "additionalProperties": false,
           "properties": {
             "arn": {
-              "type": "string"
+              "type": "string",
+              "maxLength": 2048,
+              "pattern": "^(arn:aws[a-zA-Z-]*:[a-zA-Z0-9-/.:_?*]+)$"
             },
             "fileShareArn": {
-              "type": "string"
+              "type": "string",
+              "maxLength": 2048,
+              "pattern": "^(arn:aws[a-zA-Z-]*:[a-zA-Z0-9-/.:_?*]+)$"
             }
           }
-        }    
+        }
       ]
-    },
-    "accessType": {
-      "type": "string",
-      "enum": ["readonly", "readwrite"]
     }
   },
-  "required": ["id", "rev"]
+  "required": ["id"]
 }
