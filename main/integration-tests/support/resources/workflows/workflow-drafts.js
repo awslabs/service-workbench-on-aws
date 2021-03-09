@@ -17,7 +17,7 @@ const _ = require('lodash');
 
 const CollectionResource = require('../base/collection-resource');
 const WorkflowDraft = require('./workflow-draft');
-// const { deleteWorkflowVersion } = require('../../complex/delete-workflow-version');
+const { deleteWorkflowVersion } = require('../../complex/delete-workflow-version');
 
 class WorkflowDrafts extends CollectionResource {
   constructor({ clientSession, id, parent }) {
@@ -66,33 +66,33 @@ class WorkflowDrafts extends CollectionResource {
     return draft;
   }
 
-  // async publish(body) {
-  //   const api = `${this.api}/publish`;
+  async publish(body) {
+    const api = `${this.api}/publish`;
 
-  //   return this.doCall(async () => {
-  //     const response = await this.axiosClient.post(api, body);
-  //     const data = _.get(response, 'data.template');
+    return this.doCall(async () => {
+      const response = await this.axiosClient.post(api, body);
+      const workflow = _.get(response, 'data.workflow', {});
 
-  //     // We need to schedule a cleanup for this workflow template version, at the same time, we need to remove
-  //     // the cleanup task for the workflow template draft (if one is created), this is because the logic on
-  //     // the server side is to delete the draft from the database. So, if in our tests we create a draft and
-  //     // publish it, the tests will try (as part of the cleanup process) to delete the draft, which no longer
-  //     // exists on the server side.
-  //     const taskId = `workflowTemplateVersion-${data.id}`;
-  //     const taskIdForDraft = `workflowTemplateDraft-${body.id}`;
+      // We need to schedule a cleanup for this workflow version, at the same time, we need to remove
+      // the cleanup task for the workflow draft (if one is created), this is because the logic on
+      // the server side is to delete the draft from the database. So, if in our tests we create a draft and
+      // publish it, the tests will try (as part of the cleanup process) to delete the draft, which no longer
+      // exists on the server side.
+      const taskId = `workflowVersion-${workflow.id}`;
+      const taskIdForDraft = `workflowDraft-${body.id}`;
 
-  //     // Remove existing cleanup task for the draft
-  //     this.clientSession.removeCleanupTask(taskIdForDraft);
+      // Remove existing cleanup task for the draft
+      this.clientSession.removeCleanupTask(taskIdForDraft);
 
-  //     // Add the appropriate cleanup task
-  //     this.clientSession.addCleanupTask({
-  //       id: taskId,
-  //       task: async () => deleteWorkflowTemplateVersion({ aws: this.setup.aws, id: data.id, version: data.v }),
-  //     });
+      // Add the appropriate cleanup task
+      this.clientSession.addCleanupTask({
+        id: taskId,
+        task: async () => deleteWorkflowVersion({ aws: this.setup.aws, id: workflow.id, version: workflow.v }),
+      });
 
-  //     return response;
-  //   });
-  // }
+      return response;
+    });
+  }
 }
 
 module.exports = WorkflowDrafts;
