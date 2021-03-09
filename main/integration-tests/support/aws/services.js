@@ -19,6 +19,7 @@ const CloudFormation = require('./services/cloudformation.js');
 const ParameterStore = require('./services/parameter-store.js');
 const DynamoDb = require('./services/dynamodb');
 const S3 = require('./services/s3');
+const ServiceCatalog = require('./services/service-catalog.js');
 
 /**
  * The function assumes the specified role and constructs an instance of the specified AWS client SDK with the
@@ -57,6 +58,7 @@ async function getServices({ aws }) {
     parameterStore: async (options = {}, roleInfo = {}) => getInstance(ParameterStore, { aws }, options, roleInfo),
     dynamoDb: async (options = {}, roleInfo = {}) => getInstance(DynamoDb, { aws }, options, roleInfo),
     s3: async (options = {}, roleInfo = {}) => getInstance(S3, { aws }, options, roleInfo),
+    serviceCatalog: async (options = {}, roleInfo = {}) => getInstance(ServiceCatalog, { aws }, options, roleInfo),
   };
 
   return services;

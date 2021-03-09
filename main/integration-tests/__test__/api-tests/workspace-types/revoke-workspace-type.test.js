@@ -14,18 +14,26 @@
  */
 
 const { runSetup } = require('../../../support/setup');
+const {
+  createDefaultServiceCatalogProduct,
+  deleteDefaultServiceCatalogProduct,
+  addProductInfo,
+} = require('../../../support/complex/default-integration-test-product');
 const errorCode = require('../../../support/utils/error-code');
 
 describe('Revoke workspace-type scenarios', () => {
   let setup;
   let adminSession;
+  let productInfo;
 
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
+    productInfo = await createDefaultServiceCatalogProduct(setup);
   });
 
   afterAll(async () => {
+    await deleteDefaultServiceCatalogProduct(setup, productInfo);
     await setup.cleanup();
   });
 
@@ -34,10 +42,9 @@ describe('Revoke workspace-type scenarios', () => {
       const adminSession2 = await setup.createAdminSession();
       const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
-      await adminSession.resources.workspaceTypes.create({
-        id: workspaceTypeId,
-        status: 'approved',
-      });
+      await adminSession.resources.workspaceTypes.create(
+        addProductInfo({ id: workspaceTypeId, status: 'approved' }, productInfo),
+      );
 
       const revokeBody = {
         rev: 0,
@@ -56,10 +63,9 @@ describe('Revoke workspace-type scenarios', () => {
       const researcherSession = await setup.createResearcherSession();
       const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
-      await adminSession.resources.workspaceTypes.create({
-        id: workspaceTypeId,
-        status: 'approved',
-      });
+      await adminSession.resources.workspaceTypes.create(
+        addProductInfo({ id: workspaceTypeId, status: 'approved' }, productInfo),
+      );
 
       const revokeBody = {
         rev: 0,
@@ -76,10 +82,9 @@ describe('Revoke workspace-type scenarios', () => {
       const anonymousSession = await setup.createAnonymousSession();
       const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
-      await adminSession.resources.workspaceTypes.create({
-        id: workspaceTypeId,
-        status: 'approved',
-      });
+      await adminSession.resources.workspaceTypes.create(
+        addProductInfo({ id: workspaceTypeId, status: 'approved' }, productInfo),
+      );
 
       const revokeBody = {
         rev: 0,
@@ -95,10 +100,9 @@ describe('Revoke workspace-type scenarios', () => {
     it('should fail if input is not valid', async () => {
       const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
-      await adminSession.resources.workspaceTypes.create({
-        id: workspaceTypeId,
-        status: 'approved',
-      });
+      await adminSession.resources.workspaceTypes.create(
+        addProductInfo({ id: workspaceTypeId, status: 'approved' }, productInfo),
+      );
 
       const revokeBody = {
         invalid: 0,
@@ -114,10 +118,9 @@ describe('Revoke workspace-type scenarios', () => {
     it('should revoke if user is admin', async () => {
       const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
-      await adminSession.resources.workspaceTypes.create({
-        id: workspaceTypeId,
-        status: 'approved',
-      });
+      await adminSession.resources.workspaceTypes.create(
+        addProductInfo({ id: workspaceTypeId, status: 'approved' }, productInfo),
+      );
 
       const revokeBody = {
         rev: 0,
