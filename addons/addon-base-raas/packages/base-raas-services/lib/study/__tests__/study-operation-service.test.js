@@ -147,8 +147,14 @@ describe('StudyOperationService', () => {
       service.deallocateResources = jest.fn();
 
       await expect(service.updatePermissions(requestContext, studyId, updateRequest)).resolves.toBeUndefined();
-      expect(envService.find).toHaveBeenNthCalledWith(1, expect.objectContaining(systemContext), { id: 'env-1' });
-      expect(envService.find).toHaveBeenNthCalledWith(2, expect.objectContaining(systemContext), { id: 'env-2' });
+      expect(envService.find).toHaveBeenNthCalledWith(1, expect.objectContaining(systemContext), {
+        id: 'env-1',
+        fetchCidr: false,
+      });
+      expect(envService.find).toHaveBeenNthCalledWith(2, expect.objectContaining(systemContext), {
+        id: 'env-2',
+        fetchCidr: false,
+      });
       expect(service.deallocateResources).toHaveBeenCalledTimes(4); // 2 users with 2 env
     });
 
@@ -192,8 +198,14 @@ describe('StudyOperationService', () => {
       studyService.updatePermissions = jest.fn(() => study);
 
       await expect(service.updatePermissions(requestContext, studyId, updateRequest)).resolves.toStrictEqual(study);
-      expect(envService.find).toHaveBeenNthCalledWith(1, expect.objectContaining(systemContext), { id: 'env-1' });
-      expect(envService.find).toHaveBeenNthCalledWith(2, expect.objectContaining(systemContext), { id: 'env-2' });
+      expect(envService.find).toHaveBeenNthCalledWith(1, expect.objectContaining(systemContext), {
+        id: 'env-1',
+        fetchCidr: false,
+      });
+      expect(envService.find).toHaveBeenNthCalledWith(2, expect.objectContaining(systemContext), {
+        id: 'env-2',
+        fetchCidr: false,
+      });
       expect(service.allocateResources).toHaveBeenCalledTimes(2); // We only have 1 user in the usersToAdd with 2 envs.
     });
 
@@ -254,7 +266,10 @@ describe('StudyOperationService', () => {
       envService.updateRolePolicy = jest.fn();
 
       await expect(service.updatePermissions(requestContext, studyId, updateRequest)).resolves.toStrictEqual(study);
-      expect(envService.find).toHaveBeenNthCalledWith(1, expect.objectContaining(systemContext), { id: 'env-1' });
+      expect(envService.find).toHaveBeenNthCalledWith(1, expect.objectContaining(systemContext), {
+        id: 'env-1',
+        fetchCidr: false,
+      });
       expect(service.allocateResources).toHaveBeenCalledTimes(1);
       expect(envService.updateRolePolicy).toHaveBeenCalledWith(requestContext, { id: 'env-1', studyIds }, policy);
     });
@@ -302,8 +317,14 @@ describe('StudyOperationService', () => {
       await expect(service.updatePermissions(requestContext, studyId, updateRequest)).rejects.toThrow(
         expect.objectContaining({ boom: true, safe: true, code: 'internalError' }),
       );
-      expect(envService.find).toHaveBeenNthCalledWith(1, expect.objectContaining(systemContext), { id: 'env-1' });
-      expect(envService.find).toHaveBeenNthCalledWith(2, expect.objectContaining(systemContext), { id: 'env-2' });
+      expect(envService.find).toHaveBeenNthCalledWith(1, expect.objectContaining(systemContext), {
+        id: 'env-1',
+        fetchCidr: false,
+      });
+      expect(envService.find).toHaveBeenNthCalledWith(2, expect.objectContaining(systemContext), {
+        id: 'env-2',
+        fetchCidr: false,
+      });
       // We only have 1 user in the usersToAdd with 2 envs, one of them failed, so the number of allocation should 1
       expect(service.allocateResources).toHaveBeenCalledTimes(1);
     });
@@ -344,8 +365,14 @@ describe('StudyOperationService', () => {
       await expect(service.updatePermissions(requestContext, studyId, updateRequest)).rejects.toThrow(
         expect.objectContaining({ boom: true, safe: true, code: 'internalError' }),
       );
-      expect(envService.find).toHaveBeenNthCalledWith(1, expect.objectContaining(systemContext), { id: 'env-1' });
-      expect(envService.find).toHaveBeenNthCalledWith(2, expect.objectContaining(systemContext), { id: 'env-2' });
+      expect(envService.find).toHaveBeenNthCalledWith(1, expect.objectContaining(systemContext), {
+        id: 'env-1',
+        fetchCidr: false,
+      });
+      expect(envService.find).toHaveBeenNthCalledWith(2, expect.objectContaining(systemContext), {
+        id: 'env-2',
+        fetchCidr: false,
+      });
       // without errors, there should be 4 deallocation because we have 2 user with 2 env each. But because we always
       // fail 'env-1' for both users, then the number of deallocation should be 2
       expect(service.deallocateResources).toHaveBeenCalledTimes(2);

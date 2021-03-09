@@ -62,6 +62,7 @@ dataSourceReachabilityDailyHandler:
     APP_SM_WORKFLOW: ${self:custom.settings.workflowStateMachineArn}
 
 apiHandler:
+  timeout: 30 # in seconds, default is 6
   handler: src/lambdas/api-handler/handler.handler
   role: RoleApiHandler
   tags: ${self:custom.tags}

@@ -150,8 +150,12 @@ class StudyOperationService extends Service {
             // We need to remember the original permission level for this user for this environment
             originalStudy.envPermission = accessLevels(originalStudy, createdBy);
 
+            // disable CIDR fetching to save latency. We don't need CIDR ranges here for de-allocation/allocation of
+            // study
+            const fetchCidr = false;
+
             // Get the environmentScEntity again, this is needed because the entity might have changed underneath us
-            let environment = await environmentScService.find(systemContext, { id });
+            let environment = await environmentScService.find(systemContext, { id, fetchCidr });
 
             // We start by de-allocating previously allocated resources for the study (such as filesystem roles,
             // and certain statements from the bucket policy). We do that even if the user was not removed from the study.
@@ -161,7 +165,7 @@ class StudyOperationService extends Service {
 
             // We need to get the environment sc entity again form the database in case the deallocateResources()
             // modified it in the database.
-            environment = await environmentScService.find(systemContext, { id });
+            environment = await environmentScService.find(systemContext, { id, fetchCidr });
 
             // After the study permissions were updated, does the user still have access?
             if (hasAccess(studyEntity, createdBy)) {
