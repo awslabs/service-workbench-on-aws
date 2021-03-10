@@ -14,6 +14,7 @@
  */
 
 const _ = require('lodash');
+const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const Resource = require('../../base/resource');
 
@@ -31,20 +32,26 @@ class Connection extends Resource {
 
   async createUrl() {
     const api = `${this.api}/url`;
+    const response = this.doCall(async () => this.axiosClient.post(api, {}, {}));
 
-    return this.doCall(async () => this.axiosClient.post(api, {}, {}));
+    await sleep(this.deflakeDelay());
+    return response;
   }
 
   async windowsRdpInfo() {
     const api = `${this.api}/windows-rdp-info`;
+    const response = this.doCall(async () => this.axiosClient.get(api, {}, {}));
 
-    return this.doCall(async () => this.axiosClient.get(api, {}, {}));
+    await sleep(this.deflakeDelay());
+    return response;
   }
 
   async sendSshPublicKey(body) {
     const api = `${this.api}/send-ssh-public-key`;
+    const response = this.doCall(async () => this.axiosClient.post(api, body, {}));
 
-    return this.doCall(async () => this.axiosClient.post(api, body, {}));
+    await sleep(this.deflakeDelay());
+    return response;
   }
 
   // ************************ Helpers methods ************************

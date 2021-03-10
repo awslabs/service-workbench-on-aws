@@ -1,3 +1,5 @@
+const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
+
 /**
  * Creates the default service catalog product.
  */
@@ -29,6 +31,8 @@ async function createDefaultServiceCatalogProduct(setup) {
 
   const templateS3Path = `s3://${bucket}/${key}`;
 
+  await sleep(1000); // Delay to ensure eventually consistent writes are committed before proceeding.
+
   return { ...productInfo, portfolioId, constraintId, templateS3Path };
 }
 
@@ -45,6 +49,8 @@ async function deleteDefaultServiceCatalogProduct(setup, productInfo) {
   const s3 = await setup.aws.services.s3();
 
   await s3.deleteObject(productInfo.templateS3Path);
+
+  await sleep(1000); // Delay to ensure eventually consistent writes are committed before proceeding.
 }
 
 /**

@@ -14,6 +14,7 @@
  */
 
 const _ = require('lodash');
+const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const Resource = require('../base/resource');
 const Connections = require('./connections/connections');
@@ -38,20 +39,26 @@ class WorkspaceServiceCatalog extends Resource {
 
   async stop() {
     const api = `${this.api}/stop`;
+    const response = this.doCall(async () => this.axiosClient.put(api, {}, {}));
 
-    return this.doCall(async () => this.axiosClient.put(api, {}, {}));
+    await sleep(this.deflakeDelay());
+    return response;
   }
 
   async start() {
     const api = `${this.api}/start`;
+    const response = this.doCall(async () => this.axiosClient.put(api, {}, {}));
 
-    return this.doCall(async () => this.axiosClient.put(api, {}, {}));
+    await sleep(this.deflakeDelay());
+    return response;
   }
 
   async cidr(body) {
     const api = `${this.api}/cidr`;
+    const response = this.doCall(async () => this.axiosClient.put(api, body, {}));
 
-    return this.doCall(async () => this.axiosClient.put(api, body, {}));
+    await sleep(this.deflakeDelay());
+    return response;
   }
 
   async cleanup() {
