@@ -35,11 +35,21 @@ describe('Get workflow versions scenarios', () => {
   describe('Getting workflow versions', () => {
     it('should fail for anonymous user', async () => {
       const anonymousSession = await setup.createAnonymousSession();
+
       await expect(anonymousSession.resources.workflows.versions(workflow.id).get()).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
 
       await expect(anonymousSession.resources.workflows.versions(workflow.id).latest()).rejects.toMatchObject({
+        code: errorCode.http.code.badImplementation,
+      });
+
+      await expect(
+        anonymousSession.resources.workflows
+          .versions(workflow.id)
+          .version(workflow.v)
+          .get(),
+      ).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });
@@ -55,6 +65,15 @@ describe('Get workflow versions scenarios', () => {
       await expect(researcherSession.resources.workflows.versions(workflow.id).latest()).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
+
+      await expect(
+        researcherSession.resources.workflows
+          .versions(workflow.id)
+          .version(workflow.v)
+          .get(),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.unauthorized,
+      });
     });
 
     it('should fail for internal guest', async () => {
@@ -64,6 +83,15 @@ describe('Get workflow versions scenarios', () => {
       });
 
       await expect(guestSession.resources.workflows.versions(workflow.id).latest()).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+
+      await expect(
+        guestSession.resources.workflows
+          .versions(workflow.id)
+          .version(workflow.v)
+          .get(),
+      ).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
     });
@@ -77,29 +105,61 @@ describe('Get workflow versions scenarios', () => {
       await expect(guestSession.resources.workflows.versions(workflow.id).latest()).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
+
+      await expect(
+        guestSession.resources.workflows
+          .versions(workflow.id)
+          .version(workflow.v)
+          .get(),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
     });
 
     it('should fail for researcher', async () => {
       const researcherSession = await setup.createResearcherSession();
+
+      // To test returning all versions of a specific workflow
       await expect(researcherSession.resources.workflows.versions(workflow.id).get()).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
 
+      // To test returning the latest version of a specific workflow
       await expect(researcherSession.resources.workflows.versions(workflow.id).latest()).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+
+      // To test returning a specific version of a specific workflow
+      await expect(
+        researcherSession.resources.workflows
+          .versions(workflow.id)
+          .version(workflow.v)
+          .get(),
+      ).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
     });
 
     it('should return workflow versions for admin', async () => {
+      // To test returning all versions of a specific workflow
       await expect(adminSession.resources.workflows.versions(workflow.id).get()).resolves.toMatchObject(
         expect.arrayContaining([expect.objectContaining({ id: workflow.id, title: workflow.title, v: workflow.v })]),
       );
 
+      // To test returning the latest version of a specific workflow
       await expect(adminSession.resources.workflows.versions(workflow.id).latest()).resolves.toMatchObject({
         id: workflow.id,
         title: workflow.title,
         v: workflow.v,
       });
+
+      // To test returning a specific version of a specific workflow
+      await expect(
+        adminSession.resources.workflows
+          .versions(workflow.id)
+          .version(workflow.v)
+          .get(),
+      ).resolves.toMatchObject({ id: workflow.id, title: workflow.title, v: workflow.v });
     });
   });
 });
