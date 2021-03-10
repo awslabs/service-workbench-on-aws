@@ -37,13 +37,3 @@ isLocal: false
 
 # Set this to the API endpoint if different than the following
 localApiEndpoint: http://localhost:4000
-
-# In the AWS Console, go to Service Catalog > Products and select the ID of a product
-# to set as the default product ID.
-defaultProductId: ""
-
-# Launch an instance of the above product by going to Service Catalog > Products.
-# Make sure to stop the instance so that it won't incur significant cost. Specify the
-# provisioning artifact ID of the launched product below by obtaining it from Service
-# Catalog > Provisioned products.
-defaultProvisioningArtifactId: ""

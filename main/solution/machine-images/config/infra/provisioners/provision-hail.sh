@@ -40,6 +40,8 @@ PACKAGES="humanize==1.0.0
 
 sudo python3 -m pip install $PACKAGES
 
+sudo python3 -m pip install -Iv jupyterlab==2.2.6
+
 export HASH="current"
 ./hail_build.sh -v $HASH
 

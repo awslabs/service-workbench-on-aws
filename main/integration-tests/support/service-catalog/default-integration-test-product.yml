@@ -1,0 +1,12 @@
+Description: "Default integration test product template"
+
+Resources:
+  # We create a resource that does not have an adverse impact if created in
+  # large numbers. The resource we create is a Secret Manager entry. The
+  # footprint of such resource is small and up to 40,000 entries can be
+  # created.
+  DefaultIntTestScProduct:
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Value: "integration-test-resource"
