@@ -15,6 +15,10 @@
 
 const Authentication = require('./resources/authentication/authentication');
 const Users = require('./resources/users/users');
+const Ip = require('./resources/ip/ip');
+const Costs = require('./resources/costs/costs');
+const Templates = require('./resources/templates/templates');
+const UserRoles = require('./resources/user-roles/user-roles');
 const Studies = require('./resources/studies/studies');
 const Projects = require('./resources/projects/projects');
 const Indexes = require('./resources/indexes/indexes');
@@ -37,6 +41,10 @@ async function getResources({ clientSession }) {
   const resources = {
     authentication: new Authentication({ clientSession }),
     users: new Users({ clientSession }),
+    ip: new Ip({ clientSession }),
+    costs: new Costs({ clientSession }),
+    templates: new Templates({ clientSession }),
+    userRoles: new UserRoles({ clientSession }),
     studies: new Studies({ clientSession }),
     projects: new Projects({ clientSession }),
     indexes: new Indexes({ clientSession }),

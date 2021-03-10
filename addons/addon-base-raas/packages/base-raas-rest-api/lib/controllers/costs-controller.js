@@ -22,6 +22,9 @@ async function configure(context) {
 
   const [costsService] = await context.service(['costsService']);
 
+  // ===============================================================
+  //  GET / (mounted to /api/costs)
+  // ===============================================================
   router.get(
     '/',
     wrap(async (req, res) => {
