@@ -36,14 +36,17 @@ describe('Get workflow versions scenarios', () => {
     it('should fail for anonymous user', async () => {
       const anonymousSession = await setup.createAnonymousSession();
 
+      // To test returning all versions of a specific workflow
       await expect(anonymousSession.resources.workflows.versions(workflow.id).get()).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
 
+      // To test returning the latest version of a specific workflow
       await expect(anonymousSession.resources.workflows.versions(workflow.id).latest()).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
 
+      // To test returning a specific version of a specific workflow
       await expect(
         anonymousSession.resources.workflows
           .versions(workflow.id)
@@ -58,14 +61,17 @@ describe('Get workflow versions scenarios', () => {
       const researcherSession = await setup.createResearcherSession();
       await adminSession.resources.users.deactivateUser(researcherSession.user);
 
+      // To test returning all versions of a specific workflow
       await expect(researcherSession.resources.workflows.versions(workflow.id).get()).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
 
+      // To test returning the latest version of a specific workflow
       await expect(researcherSession.resources.workflows.versions(workflow.id).latest()).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
 
+      // To test returning a specific version of a specific workflow
       await expect(
         researcherSession.resources.workflows
           .versions(workflow.id)
@@ -78,14 +84,18 @@ describe('Get workflow versions scenarios', () => {
 
     it('should fail for internal guest', async () => {
       const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
+
+      // To test returning all versions of a specific workflow
       await expect(guestSession.resources.workflows.versions(workflow.id).get()).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
 
+      // To test returning the latest version of a specific workflow
       await expect(guestSession.resources.workflows.versions(workflow.id).latest()).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
 
+      // To test returning a specific version of a specific workflow
       await expect(
         guestSession.resources.workflows
           .versions(workflow.id)
@@ -98,14 +108,18 @@ describe('Get workflow versions scenarios', () => {
 
     it('should fail for external guest', async () => {
       const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
+
+      // To test returning all versions of a specific workflow
       await expect(guestSession.resources.workflows.versions(workflow.id).get()).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
 
+      // To test returning the latest version of a specific workflow
       await expect(guestSession.resources.workflows.versions(workflow.id).latest()).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
 
+      // To test returning a specific version of a specific workflow
       await expect(
         guestSession.resources.workflows
           .versions(workflow.id)
