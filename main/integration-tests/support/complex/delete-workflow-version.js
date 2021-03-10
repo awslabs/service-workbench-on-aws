@@ -19,6 +19,7 @@
 const _ = require('lodash');
 
 const { run } = require('../utils/utils');
+const { deleteWorkflowInstance } = require('./delete-workflow-instance');
 
 /**
  * A function that performs the complex task of deleting a workflow version.
@@ -68,7 +69,7 @@ async function deleteWorkflowVersion({ aws, id, version = 1 }) {
   }
 
   // We need to delete all the workflow instances associated with this specific workflow id and version
-  await deleteInstances({ db, workflow });
+  await deleteInstances({ aws, db, workflow });
 
   // We delete the specific version from the database
   await deleteVersion({ db, workflow });
@@ -105,7 +106,7 @@ async function deleteVersion({ db, workflow }) {
   );
 }
 
-async function deleteInstances({ db, workflow }) {
+async function deleteInstances({ aws, db, workflow }) {
   const instances = await db.tables.workflowInstances
     .query()
     .index('WorkflowIndex')
@@ -114,12 +115,10 @@ async function deleteInstances({ db, workflow }) {
     .query();
 
   for (const row of instances) {
-    await run(async () =>
-      db.tables.workflowInstances
-        .deleter()
-        .key({ id: row.id })
-        .delete(),
-    );
+    const instanceId = row.id;
+    const workflowId = workflow.id;
+    const version = workflow.v;
+    await deleteWorkflowInstance({ aws, instanceId, workflowId, version });
   }
 }
 

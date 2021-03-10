@@ -16,39 +16,33 @@
 const _ = require('lodash');
 
 const Resource = require('../base/resource');
-const { deleteWorkflowVersion } = require('../../complex/delete-workflow-version');
-const WorkflowInstances = require('./workflow-instances');
+const { deleteWorkflowInstance } = require('../../complex/delete-workflow-instance');
 
 class WorkflowVersion extends Resource {
   constructor({ clientSession, id, parent }) {
     super({
       clientSession,
-      type: 'workflowVersion',
+      type: 'workflowInstance',
       id,
       parent,
     });
 
-    if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [workflowVersion]');
-    this.api = `${parent.api}/v/${id}`;
-    this.version = this.id;
-    this.workflowId = this.parent.id;
-  }
+    if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [workflowInstance]');
+    this.api = `${parent.api}/${id}`;
 
-  instances() {
-    return new WorkflowInstances({ clientSession: this.clientSession, parent: this });
-  }
-
-  async trigger(body) {
-    return this.instances().create(body);
+    this.instanceId = id;
+    this.version = parent.version;
+    this.workflowId = parent.workflowId;
   }
 
   // ************************ Helpers methods ************************
 
-  async cleanup() {
-    // This is the workflow id, we get it by using the parent id
-    const id = this.parent.id;
-    const version = this.id;
-    await deleteWorkflowVersion({ aws: this.setup.aws, id, version });
+  async cleanup(resource) {
+    const instanceId = this.instanceId;
+    const version = this.version;
+    const workflowId = this.workflowId;
+    const executionArn = _.get(resource, 'executionArn');
+    await deleteWorkflowInstance({ aws: this.setup.aws, instanceId, version, workflowId, executionArn });
   }
 }
 
