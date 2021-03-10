@@ -39,13 +39,16 @@ class Indexes extends CollectionResource {
   // When creating a child resource, this method provides default values. This method is used by the
   // CollectionResource class when we use create() method on this resource operations helper.
   defaults(budget = {}) {
-    const hammerTimeNow = new Date().getTime() / 1000;
+    const hammerTimeNow = Math.ceil(new Date().getTime() / 1000);
     return {
-      description: this.setup.gen.description(),
       id: budget.id,
-      budgetLimit: this.setup.gen.integer().toString(),
-      startDate: hammerTimeNow,
-      endDate: hammerTimeNow + 30000000,
+      budgetConfiguration: {
+        budgetLimit: this.setup.gen.integer().toString(),
+        startDate: hammerTimeNow,
+        endDate: hammerTimeNow + 30000000,
+        thresholds: [50, 80, 90],
+        notificationEmail: 'test@example.com',
+      },
       ...budget,
     };
   }
