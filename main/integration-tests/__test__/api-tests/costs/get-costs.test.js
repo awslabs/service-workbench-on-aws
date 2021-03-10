@@ -42,8 +42,9 @@ describe('Get costs scenarios', () => {
     it('should pass if user is active', async () => {
       const researcherSession = await setup.createResearcherSession();
 
+      // This will only work if your Cost Explorer service is enabled,
+      // and the tags 'Env', 'Proj' anc 'createdBy' are activated in your main account
       const response = await researcherSession.resources.costs.getIndexCosts();
-
       expect(response[0]).toHaveProperty('cost');
       expect(response[0]).toHaveProperty('startDate');
     });

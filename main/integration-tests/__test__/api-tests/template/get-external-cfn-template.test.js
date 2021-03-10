@@ -39,12 +39,32 @@ describe('Get external CFN template scenarios', () => {
       });
     });
 
-    it('should fail if user is key not found', async () => {
+    it('should fail is key not found', async () => {
       const researcherSession = await setup.createResearcherSession();
 
       await expect(
         researcherSession.resources.templates.template('sampleFolder1/sampleFolder2').get(),
       ).rejects.toMatchObject({ code: errorCode.http.code.badImplementation });
+    });
+
+    it('should pass for dummy file with dummy URL for internal guest', async () => {
+      const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
+
+      const dummyFile = setup.gen.string({ prefix: 'ext-cfn-test' });
+
+      // This generates a presigned URL for a resource that does not exist in S3
+      // and therefore results in an error if someone were to follow the link
+      await expect(guestSession.resources.templates.template(dummyFile).get()).resolves.not.toBeUndefined();
+    });
+
+    it('should pass for dummy file with dummy URL for external guest', async () => {
+      const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
+
+      const dummyFile = setup.gen.string({ prefix: 'ext-cfn-test' });
+
+      // This generates a presigned URL for a resource that does not exist in S3
+      // and therefore results in an error if someone were to follow the link
+      await expect(guestSession.resources.templates.template(dummyFile).get()).resolves.not.toBeUndefined();
     });
 
     it('should pass for dummy file with dummy URL', async () => {
