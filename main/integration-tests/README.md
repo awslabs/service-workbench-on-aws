@@ -16,6 +16,7 @@
 - Create/Locate the test config file in your local repository (placed in `main/integration-tests/config/settings/<STAGE>.yml`). This will be useful when you're triggering the tests locally.
 
 - Enter the Test Administrator username, password path (AWS Parameter Store), Test Project ID, and the rest of the values as directed in the `main/integration-tests/config/settings/example.yml` file. Your config file will be ignored by git when you make any changes.
+
 - Be sure to have your Cost Explorer service in your main account to be enabled and the tags 'Env', 'Proj' anc 'createdBy' to be activated (this is required for your Cost API tests to pass)
 
 ### For CI/CD Pipeline
