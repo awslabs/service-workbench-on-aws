@@ -16,6 +16,7 @@
  */
 
 const _ = require('lodash');
+const fs = require('fs');
 
 const { run } = require('../../utils/utils');
 
@@ -48,6 +49,30 @@ class S3 {
     } while (!_.isEmpty(params.ContinuationToken));
 
     return result;
+  }
+
+  async uploadFile(bucket, key, localFilePath) {
+    const content = fs.readFileSync(localFilePath);
+
+    await this.sdk.upload({ Bucket: bucket, Key: key, Body: content }).promise();
+  }
+
+  async deleteObject(s3Location) {
+    const { s3BucketName, s3Key } = this.parseS3Details(s3Location);
+    await this.sdk.deleteObject({ Bucket: s3BucketName, Key: s3Key }).promise();
+  }
+
+  parseS3Details(s3Location) {
+    const s3Prefix = 's3://';
+    if (!_.startsWith(s3Location, s3Prefix)) {
+      throw new Error('Incorrect s3Location. Expecting s3Location to be in s3://bucketname/s3key format');
+    }
+    const s3Path = s3Location.substring(s3Prefix.length, s3Location.length);
+    const idxOfFirstSlash = s3Path.indexOf('/');
+    const s3BucketName = s3Path.substring(0, idxOfFirstSlash < 0 ? s3Path.length : idxOfFirstSlash);
+    const s3Key = s3Path.substring(idxOfFirstSlash + 1, idxOfFirstSlash < 0 ? idxOfFirstSlash : s3Path.length);
+
+    return { s3BucketName, s3Key };
   }
 
   /**

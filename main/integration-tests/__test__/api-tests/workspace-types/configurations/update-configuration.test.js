@@ -15,17 +15,25 @@
 
 const { runSetup } = require('../../../../support/setup');
 const errorCode = require('../../../../support/utils/error-code');
+const {
+  createDefaultServiceCatalogProduct,
+  deleteDefaultServiceCatalogProduct,
+  addProductInfo,
+} = require('../../../../support/complex/default-integration-test-product');
 
 describe('Update configuration scenarios', () => {
   let setup;
   let adminSession;
+  let productInfo;
 
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
+    productInfo = await createDefaultServiceCatalogProduct(setup);
   });
 
   afterAll(async () => {
+    await deleteDefaultServiceCatalogProduct(setup, productInfo);
     await setup.cleanup();
   });
 
@@ -34,9 +42,7 @@ describe('Update configuration scenarios', () => {
       const adminSession2 = await setup.createAdminSession();
       const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
-      await adminSession.resources.workspaceTypes.create({
-        id: workspaceTypeId,
-      });
+      await adminSession.resources.workspaceTypes.create(addProductInfo({ id: workspaceTypeId }, productInfo));
 
       const configurationId = setup.gen.string({ prefix: 'configuration-test' });
 
@@ -70,11 +76,15 @@ describe('Update configuration scenarios', () => {
   it('should fail if user is anonymous', async () => {
     const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
-    await adminSession.resources.workspaceTypes.create({
-      id: workspaceTypeId,
-    });
+    await adminSession.resources.workspaceTypes.create(addProductInfo({ id: workspaceTypeId }, productInfo));
 
     const configurationId = setup.gen.string({ prefix: 'configuration-test' });
+
+    const updateBody = {
+      id: configurationId,
+      name: configurationId,
+      desc: setup.gen.description(),
+    };
 
     await adminSession.resources.workspaceTypes
       .workspaceType(workspaceTypeId)
@@ -82,12 +92,6 @@ describe('Update configuration scenarios', () => {
       .create({
         id: configurationId,
       });
-
-    const updateBody = {
-      id: configurationId,
-      name: configurationId,
-      desc: setup.gen.description(),
-    };
 
     const anonymousSession = await setup.createAnonymousSession();
 
@@ -105,9 +109,7 @@ describe('Update configuration scenarios', () => {
   it('should fail if user is not admin', async () => {
     const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
-    await adminSession.resources.workspaceTypes.create({
-      id: workspaceTypeId,
-    });
+    await adminSession.resources.workspaceTypes.create(addProductInfo({ id: workspaceTypeId }, productInfo));
 
     const configurationId = setup.gen.string({ prefix: 'configuration-test' });
 
@@ -140,9 +142,7 @@ describe('Update configuration scenarios', () => {
   it('should fail if input is not valid', async () => {
     const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
-    await adminSession.resources.workspaceTypes.create({
-      id: workspaceTypeId,
-    });
+    await adminSession.resources.workspaceTypes.create(addProductInfo({ id: workspaceTypeId }, productInfo));
 
     const configurationId = setup.gen.string({ prefix: 'configuration-test' });
 
@@ -174,11 +174,15 @@ describe('Update configuration scenarios', () => {
   it('should update if user is admin', async () => {
     const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
-    await adminSession.resources.workspaceTypes.create({
-      id: workspaceTypeId,
-    });
+    await adminSession.resources.workspaceTypes.create(addProductInfo({ id: workspaceTypeId }, productInfo));
 
     const configurationId = setup.gen.string({ prefix: 'configuration-test' });
+
+    const updateBody = {
+      id: configurationId,
+      name: configurationId,
+      desc: setup.gen.description(),
+    };
 
     await adminSession.resources.workspaceTypes
       .workspaceType(workspaceTypeId)
@@ -186,12 +190,6 @@ describe('Update configuration scenarios', () => {
       .create({
         id: configurationId,
       });
-
-    const updateBody = {
-      id: configurationId,
-      name: configurationId,
-      desc: setup.gen.description(),
-    };
 
     await expect(
       adminSession.resources.workspaceTypes
