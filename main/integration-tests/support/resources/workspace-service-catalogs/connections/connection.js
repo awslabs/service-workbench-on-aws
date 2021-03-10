@@ -32,7 +32,7 @@ class Connection extends Resource {
 
   async createUrl() {
     const api = `${this.api}/url`;
-    const response = this.doCall(async () => this.axiosClient.post(api, {}, {}));
+    const response = await this.doCall(async () => this.axiosClient.post(api, {}, {}));
 
     await sleep(this.deflakeDelay());
     return response;
@@ -40,15 +40,13 @@ class Connection extends Resource {
 
   async windowsRdpInfo() {
     const api = `${this.api}/windows-rdp-info`;
-    const response = this.doCall(async () => this.axiosClient.get(api, {}, {}));
 
-    await sleep(this.deflakeDelay());
-    return response;
+    return this.doCall(async () => this.axiosClient.get(api, {}, {}));
   }
 
   async sendSshPublicKey(body) {
     const api = `${this.api}/send-ssh-public-key`;
-    const response = this.doCall(async () => this.axiosClient.post(api, body, {}));
+    const response = await this.doCall(async () => this.axiosClient.post(api, body, {}));
 
     await sleep(this.deflakeDelay());
     return response;

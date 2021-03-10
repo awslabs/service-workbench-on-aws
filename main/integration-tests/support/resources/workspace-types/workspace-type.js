@@ -43,7 +43,7 @@ class WorkspaceType extends Resource {
 
   async approve(body) {
     const api = `${this.api}/approve`;
-    const response = this.doCall(async () => this.axiosClient.put(api, body, {}));
+    const response = await this.doCall(async () => this.axiosClient.put(api, body, {}));
 
     await sleep(this.deflakeDelay());
     return response;
@@ -51,7 +51,7 @@ class WorkspaceType extends Resource {
 
   async revoke(body) {
     const api = `${this.api}/revoke`;
-    const response = this.doCall(async () => this.axiosClient.put(api, body, {}));
+    const response = await this.doCall(async () => this.axiosClient.put(api, body, {}));
 
     await sleep(this.deflakeDelay());
     return response;

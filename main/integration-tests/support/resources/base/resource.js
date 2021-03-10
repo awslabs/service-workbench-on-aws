@@ -72,7 +72,7 @@ class Resource {
   }
 
   async update(body = {}, params = {}, { api = this.api } = {}) {
-    const response = this.doCall(async () => this.axiosClient.put(api, body, { params }));
+    const response = await this.doCall(async () => this.axiosClient.put(api, body, { params }));
 
     await sleep(this.deflakeDelay());
     return response;

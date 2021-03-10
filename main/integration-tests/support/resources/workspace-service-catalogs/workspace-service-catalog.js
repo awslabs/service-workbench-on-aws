@@ -39,7 +39,7 @@ class WorkspaceServiceCatalog extends Resource {
 
   async stop() {
     const api = `${this.api}/stop`;
-    const response = this.doCall(async () => this.axiosClient.put(api, {}, {}));
+    const response = await this.doCall(async () => this.axiosClient.put(api, {}, {}));
 
     await sleep(this.deflakeDelay());
     return response;
@@ -47,7 +47,7 @@ class WorkspaceServiceCatalog extends Resource {
 
   async start() {
     const api = `${this.api}/start`;
-    const response = this.doCall(async () => this.axiosClient.put(api, {}, {}));
+    const response = await this.doCall(async () => this.axiosClient.put(api, {}, {}));
 
     await sleep(this.deflakeDelay());
     return response;
@@ -55,7 +55,7 @@ class WorkspaceServiceCatalog extends Resource {
 
   async cidr(body) {
     const api = `${this.api}/cidr`;
-    const response = this.doCall(async () => this.axiosClient.put(api, body, {}));
+    const response = await this.doCall(async () => this.axiosClient.put(api, body, {}));
 
     await sleep(this.deflakeDelay());
     return response;

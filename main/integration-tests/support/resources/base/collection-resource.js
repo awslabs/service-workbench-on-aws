@@ -74,7 +74,7 @@ class CollectionResource {
   }
 
   async update(body = {}, params = {}, { api = this.api } = {}) {
-    const response = this.doCall(async () => this.axiosClient.put(api, body, { params }));
+    const response = await this.doCall(async () => this.axiosClient.put(api, body, { params }));
 
     await sleep(this.deflakeDelay());
     return response;
@@ -88,7 +88,7 @@ class CollectionResource {
   // In general, most of SWB APIs on the server side should not support the ability to delete a collection
   // resource. However, it might be desireable that we test against this. Therefore, this method exists.
   async delete(body = {}, params = {}, { api = this.api } = {}) {
-    const response = this.doCall(async () => this.axiosClient.delete(api, body, { params }));
+    const response = await this.doCall(async () => this.axiosClient.delete(api, body, { params }));
 
     await sleep(this.deflakeDelay());
     return response;
