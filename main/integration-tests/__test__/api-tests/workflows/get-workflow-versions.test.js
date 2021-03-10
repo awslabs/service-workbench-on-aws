@@ -24,7 +24,7 @@ describe('Get workflow versions scenarios', () => {
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
-    const workflowId = setup.gen.string({ prefix: 'wf-version-test' });
+    const workflowId = setup.gen.string({ prefix: 'get-wf-version-test' });
     workflow = await adminSession.resources.workflows.versions(workflowId).create();
   });
 

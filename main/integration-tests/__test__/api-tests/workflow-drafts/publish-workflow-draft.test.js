@@ -22,8 +22,8 @@ describe('Publish workflow drafts scenarios', () => {
 
   // Creates a publish request object that is ready to be used for the publish operation
   const createPublishRequest = async () => {
-    const workflowId = setup.gen.string({ prefix: 'wf-publish-test-update' });
-    const title = setup.gen.string({ prefix: 'Title updated wf-publish-test-update' });
+    const workflowId = setup.gen.string({ prefix: 'publish-wf-test-update' });
+    const title = setup.gen.string({ prefix: 'Title updated publish-wf-test-update' });
     const draft = await adminSession.resources.workflows.drafts().create({ workflowId });
 
     return {

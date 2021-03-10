@@ -22,8 +22,8 @@ describe('Update workflow drafts scenarios', () => {
 
   // Creates an update request object that is ready to be used for the update operation
   const createUpdateRequest = async () => {
-    const workflowId = setup.gen.string({ prefix: 'wf-draft-test-update' });
-    const title = setup.gen.string({ prefix: 'Title updated wf-draft-test-update' });
+    const workflowId = setup.gen.string({ prefix: 'update-wf-draft-test' });
+    const title = setup.gen.string({ prefix: 'Title updated update-wf-draft-test' });
     const draft = await adminSession.resources.workflows.drafts().create({ workflowId });
 
     return {
