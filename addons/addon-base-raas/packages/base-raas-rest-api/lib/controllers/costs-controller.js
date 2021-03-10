@@ -23,7 +23,7 @@ async function configure(context) {
   const [costsService] = await context.service(['costsService']);
 
   // ===============================================================
-  //  GET /:id (mounted to /api/costs)
+  //  GET / (mounted to /api/costs)
   // ===============================================================
   router.get(
     '/',
