@@ -49,7 +49,7 @@ Note: Integration tests will create resources in the environment they are execut
   - set `isBuildServer` to `false`
   - set `isLocal` to `false`
  
-#####run all integration tests from the root directory with: 
+##### run all integration tests from the root directory with: 
 ```bash
 $ scripts/run-integration-tests.sh <STAGE>
 ```
