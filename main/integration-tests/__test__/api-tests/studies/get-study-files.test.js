@@ -95,6 +95,52 @@ describe('List study files scenarios', () => {
         code: errorCode.http.code.badImplementation,
       });
     });
+
+    it('should fail for internal guest user', async () => {
+      const researcherSession = await setup.createResearcherSession();
+      const studyId = setup.gen.string({ prefix: `get-files-${studyPrefix}-test-int-guest-user` });
+      await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
+
+      const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
+      await expect(
+        guestSession.resources.studies
+          .study(studyId)
+          .files()
+          .get(),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
+    it('should fail for external guest user', async () => {
+      const researcherSession = await setup.createResearcherSession();
+      const studyId = setup.gen.string({ prefix: `get-files-${studyPrefix}-test-ext-guest-user` });
+      await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
+
+      const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
+      await expect(
+        guestSession.resources.studies
+          .study(studyId)
+          .files()
+          .get(),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
+    it('should pass for sysadmin user', async () => {
+      const studyAdmin = await setup.createResearcherSession();
+      const sysadmin = await setup.createAdminSession();
+      const studyId = setup.gen.string({ prefix: `get-files-${studyPrefix}-test-sysadmin` });
+      await studyAdmin.resources.studies.create({ id: studyId, category: studyCategory });
+
+      await expect(
+        sysadmin.resources.studies
+          .study(studyId)
+          .files()
+          .get(),
+      ).resolves.toStrictEqual([]);
+    });
   });
 
   describe('Get BYOB study files', () => {
@@ -148,6 +194,82 @@ describe('List study files scenarios', () => {
       ).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
+    });
+
+    it('should fail to fetch BYOB study files with internal guest users', async () => {
+      const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
+      const admin2Session = await setup.createAdminSession();
+      const id = setup.gen.string({ prefix: 'get-files-test-byob-int-guest' });
+      const study = {
+        id,
+        adminUsers: [admin2Session.user.uid],
+      };
+
+      await admin2Session.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      await expect(
+        guestSession.resources.studies
+          .study(study.id)
+          .files()
+          .get(),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
+    it('should fail to fetch BYOB study files with external guest users', async () => {
+      const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
+      const admin2Session = await setup.createAdminSession();
+      const id = setup.gen.string({ prefix: 'get-files-test-byob-ext-guest' });
+      const study = {
+        id,
+        adminUsers: [admin2Session.user.uid],
+      };
+
+      await admin2Session.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      await expect(
+        guestSession.resources.studies
+          .study(study.id)
+          .files()
+          .get(),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
+    it('should pass to fetch BYOB study files with sysadmin users', async () => {
+      const studyAdmin = await setup.createAdminSession();
+      const sysadmin = await setup.createAdminSession();
+      const id = setup.gen.string({ prefix: 'get-files-test-byob-sysadmin' });
+      const study = {
+        id,
+        adminUsers: [studyAdmin.user.uid],
+      };
+
+      await studyAdmin.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      await expect(
+        sysadmin.resources.studies
+          .study(study.id)
+          .files()
+          .get(),
+      ).resolves.toStrictEqual([]);
     });
 
     it('should get empty BYOB study files', async () => {

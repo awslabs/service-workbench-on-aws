@@ -42,7 +42,7 @@ describe('Update study scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('Updating open data study', () => {
+  describe('Updating studies', () => {
     it('should fail while trying to update Open Data studies by a non-admin', async () => {
       const researcherSession = await setup.createResearcherSession();
       // This is a known Open Data study
@@ -56,7 +56,8 @@ describe('Update study scenarios', () => {
         code: errorCode.http.code.forbidden,
       });
     });
-    it('should fail for anonymous user', async () => {
+
+    it('should fail while trying to update Open Data studies for anonymous user', async () => {
       // This is a known Open Data study
       const studyId = '1000-genomes';
 
@@ -67,6 +68,34 @@ describe('Update study scenarios', () => {
       const anonymousSession = await setup.createAnonymousSession();
       await expect(anonymousSession.resources.studies.study(studyId).update(updateBody)).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
+      });
+    });
+
+    it('should fail while trying to update Open Data studies for internal guest user', async () => {
+      // This is a known Open Data study
+      const studyId = '1000-genomes';
+
+      // We need to make sure that the study id above belongs to an open data study
+      const study = await adminSession.resources.studies.mustFind(studyId, 'Open Data');
+      const updateBody = { rev: study.rev, description: setup.gen.description(), id: studyId };
+
+      const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
+      await expect(guestSession.resources.studies.study(studyId).update(updateBody)).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
+    it('should fail while trying to update Open Data studies for external guest user', async () => {
+      // This is a known Open Data study
+      const studyId = '1000-genomes';
+
+      // We need to make sure that the study id above belongs to an open data study
+      const study = await adminSession.resources.studies.mustFind(studyId, 'Open Data');
+      const updateBody = { rev: study.rev, description: setup.gen.description(), id: studyId };
+
+      const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
+      await expect(guestSession.resources.studies.study(studyId).update(updateBody)).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
       });
     });
 
@@ -89,6 +118,137 @@ describe('Update study scenarios', () => {
           description: updateBody.description,
         }),
       );
+    });
+
+    it('should fail to update My Study for internal guest', async () => {
+      const researcherSession = await setup.createResearcherSession();
+      const id = setup.gen.string({ prefix: 'update-study-test' });
+      const study = {
+        id,
+        category: 'My Studies',
+      };
+
+      const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
+
+      await researcherSession.resources.studies.create(study);
+
+      const updateBody = { rev: study.rev, description: setup.gen.description(), id };
+
+      await expect(guestSession.resources.studies.study(study.id).update(updateBody)).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
+    it('should fail to update My Study for external guest', async () => {
+      const researcherSession = await setup.createResearcherSession();
+      const id = setup.gen.string({ prefix: 'update-study-test' });
+      const study = {
+        id,
+        category: 'My Studies',
+      };
+
+      const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
+
+      await researcherSession.resources.studies.create(study);
+
+      const updateBody = { rev: study.rev, description: setup.gen.description(), id };
+
+      await expect(guestSession.resources.studies.study(study.id).update(updateBody)).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
+    it('should pass to update My Study for non-study-admin sysadmin user', async () => {
+      const researcherSession = await setup.createResearcherSession();
+      const id = setup.gen.string({ prefix: 'update-my-study-test-sysadmin' });
+      const study = {
+        id,
+        category: 'My Studies',
+      };
+
+      const sysAdminSession = await setup.createAdminSession();
+
+      await researcherSession.resources.studies.create(study);
+
+      const updateBody = { rev: study.rev, description: setup.gen.description(), id };
+
+      await expect(sysAdminSession.resources.studies.study(study.id).update(updateBody)).resolves.toMatchObject({
+        description: setup.gen.description(),
+        id,
+      });
+    });
+
+    it('should pass to update Org Study for non-owner sysadmin', async () => {
+      const researcherSession = await setup.createResearcherSession();
+      const id = setup.gen.string({ prefix: 'update-org-study-test-sysadmin' });
+      const study = {
+        id,
+        category: 'Organization',
+      };
+
+      const sysAdminSession = await setup.createAdminSession();
+
+      await researcherSession.resources.studies.create(study);
+
+      const updateBody = { rev: study.rev, description: setup.gen.description(), id };
+
+      await expect(sysAdminSession.resources.studies.study(study.id).update(updateBody)).resolves.toMatchObject({
+        description: setup.gen.description(),
+        id,
+      });
+    });
+
+    it('should fail to update Org Study for internal guest', async () => {
+      const researcherSession = await setup.createResearcherSession();
+      const id = setup.gen.string({ prefix: 'update-study-test-int-guest' });
+      const study = {
+        id,
+        category: 'Organization',
+      };
+
+      const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
+
+      await researcherSession.resources.studies.create(study);
+
+      const updateBody = { rev: study.rev, description: setup.gen.description(), id };
+
+      await expect(guestSession.resources.studies.study(study.id).update(updateBody)).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
+    it('should fail to update Org Study for external guest', async () => {
+      const researcherSession = await setup.createResearcherSession();
+      const id = setup.gen.string({ prefix: 'update-study-test-ext-guest' });
+      const study = {
+        id,
+        category: 'Organization',
+      };
+
+      const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
+
+      await researcherSession.resources.studies.create(study);
+
+      const updateBody = { rev: study.rev, description: setup.gen.description(), id };
+
+      await expect(guestSession.resources.studies.study(study.id).update(updateBody)).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
+    it('should fail while trying to update Open Data studies for sysAdmin user', async () => {
+      // This is a known Open Data study
+      const studyId = '1000-genomes';
+
+      // We need to make sure that the study id above belongs to an open data study
+      const study = await adminSession.resources.studies.mustFind(studyId, 'Open Data');
+
+      const updateBody = { rev: study.rev, description: setup.gen.description(), id: studyId };
+
+      const sysAdminSession = await setup.createAdminSession();
+      await expect(sysAdminSession.resources.studies.study(study.id).update(updateBody)).rejects.toMatchObject({
+        code: errorCode.http.code.badRequest,
+      });
     });
   });
 
@@ -116,7 +276,53 @@ describe('Update study scenarios', () => {
       });
     });
 
-    it('should fail to fetch BYOB study with unauthorized users', async () => {
+    it('should fail to update BYOB study with internal guest users', async () => {
+      const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
+      const admin2Session = await setup.createAdminSession();
+      const id = setup.gen.string({ prefix: 'update-study-test-byob-int-guest' });
+      const study = {
+        id,
+        adminUsers: [admin2Session.user.uid],
+      };
+
+      await admin2Session.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      const updateBody = { rev: study.rev, description: setup.gen.description(), id };
+
+      await expect(guestSession.resources.studies.study(study.id).update(updateBody)).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
+    it('should fail to update BYOB study with external guest users', async () => {
+      const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
+      const admin2Session = await setup.createAdminSession();
+      const id = setup.gen.string({ prefix: 'update-study-test-byob-ext-guest' });
+      const study = {
+        id,
+        adminUsers: [admin2Session.user.uid],
+      };
+
+      await admin2Session.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      const updateBody = { rev: study.rev, description: setup.gen.description(), id };
+
+      await expect(guestSession.resources.studies.study(study.id).update(updateBody)).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
+    it('should fail to update BYOB study with unauthorized users', async () => {
       const researcherSession = await setup.createResearcherSession();
       const admin2Session = await setup.createAdminSession();
       const id = setup.gen.string({ prefix: 'update-study-test-byob' });
@@ -158,6 +364,32 @@ describe('Update study scenarios', () => {
       const updateBody = { rev: study.rev, description: setup.gen.description(), id };
 
       await expect(admin2Session.resources.studies.study(study.id).update(updateBody)).resolves.toStrictEqual(
+        expect.objectContaining({
+          description: updateBody.description,
+        }),
+      );
+    });
+
+    it('should update BYOB study by other sysAdmin', async () => {
+      const tempStudyAdmin = await setup.createResearcherSession();
+      const admin2Session = await setup.createAdminSession();
+      const otherSysAdminSession = await setup.createAdminSession();
+      const id = setup.gen.string({ prefix: 'update-study-test-byob-sysadmin' });
+      const study = {
+        id,
+        adminUsers: [admin2Session.user.uid, tempStudyAdmin.user.uid],
+      };
+
+      await admin2Session.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      const updateBody = { rev: study.rev, description: setup.gen.description(), id };
+
+      await expect(otherSysAdminSession.resources.studies.study(study.id).update(updateBody)).resolves.toStrictEqual(
         expect.objectContaining({
           description: updateBody.description,
         }),
