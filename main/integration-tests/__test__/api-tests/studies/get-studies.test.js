@@ -108,6 +108,21 @@ describe('List study scenarios', () => {
       );
     });
 
+    it('should not list studies that researcher is not authorized for', async () => {
+      const studyAdmin = await setup.createResearcherSession();
+      const researcherSession = await setup.createResearcherSession();
+      const studyId = setup.gen.string({ prefix: `get-studies-test-org-researcher` });
+
+      await studyAdmin.resources.studies.create({
+        id: studyId,
+        category: 'Organization',
+      });
+
+      await expect(researcherSession.resources.studies.getOrganization()).resolves.toEqual(
+        expect.not.arrayContaining([expect.objectContaining({ id: studyId })]),
+      );
+    });
+
     it('should fail for anonymous user', async () => {
       const anonymousSession = await setup.createAnonymousSession();
       await expect(anonymousSession.resources.studies.getOpenData()).rejects.toMatchObject({

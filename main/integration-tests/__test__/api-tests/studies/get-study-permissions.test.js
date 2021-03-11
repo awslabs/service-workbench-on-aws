@@ -205,6 +205,32 @@ describe('Get study permissions scenarios', () => {
       });
     });
 
+    it('should fail to fetch BYOB study permissions with researchers', async () => {
+      const researcherSession = await setup.createResearcherSession();
+      const admin2Session = await setup.createAdminSession();
+      const id = setup.gen.string({ prefix: 'get-study-perm-test-byob-researcher' });
+      const study = {
+        id,
+        adminUsers: [admin2Session.user.uid],
+      };
+
+      await admin2Session.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      await expect(
+        researcherSession.resources.studies
+          .study(study.id)
+          .permissions()
+          .get(),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
     it('should fail to fetch BYOB study permissions with internal guest users', async () => {
       const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
       const admin2Session = await setup.createAdminSession();

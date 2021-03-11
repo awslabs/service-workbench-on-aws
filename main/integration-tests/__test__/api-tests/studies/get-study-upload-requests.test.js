@@ -233,6 +233,58 @@ describe('Study files upload request scenarios', () => {
       });
     });
 
+    it('should fail BYOB study files upload request with unauthorized researchers', async () => {
+      const studyAdmin = await setup.createAdminSession();
+      const researcherSession = await setup.createResearcherSession();
+      const id = setup.gen.string({ prefix: 'upload-file-test-byob-unauth-researcher' });
+      const study = {
+        id,
+        adminUsers: [studyAdmin.user.uid],
+      };
+
+      await studyAdmin.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      await expect(
+        researcherSession.resources.studies
+          .study(study.id)
+          .uploadRequest()
+          .getPresignedRequests('dummyFile1'),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
+    it('should fail BYOB study files upload request with authorized researchers', async () => {
+      const studyAdmin = await setup.createAdminSession();
+      const researcherSession = await setup.createResearcherSession();
+      const id = setup.gen.string({ prefix: 'upload-file-test-byob-auth-researcher' });
+      const study = {
+        id,
+        adminUsers: [studyAdmin.user.uid, researcherSession.user.uid],
+      };
+
+      await studyAdmin.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      await expect(
+        researcherSession.resources.studies
+          .study(study.id)
+          .uploadRequest()
+          .getPresignedRequests('dummyFile1'),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
     it('should fail BYOB study files upload request with DS studies', async () => {
       const admin2Session = await setup.createAdminSession();
       const id = setup.gen.string({ prefix: 'upload-file-test-byob' });

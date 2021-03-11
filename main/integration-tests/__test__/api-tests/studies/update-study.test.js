@@ -322,7 +322,7 @@ describe('Update study scenarios', () => {
       });
     });
 
-    it('should fail to fetch BYOB study with unauthorized users', async () => {
+    it('should fail to update BYOB study with unauthorized users', async () => {
       const researcherSession = await setup.createResearcherSession();
       const admin2Session = await setup.createAdminSession();
       const id = setup.gen.string({ prefix: 'update-study-test-byob' });
