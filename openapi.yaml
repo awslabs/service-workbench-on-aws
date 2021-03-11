@@ -1270,7 +1270,7 @@ paths:
         '200':
           description: 'Return array of workflow instances filtered by status and created time'
   /api/workflows/{workflowId}/assignments:
-    post:
+    get:
       tags:
         - admins
         - Workflows
