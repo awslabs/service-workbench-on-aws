@@ -41,13 +41,13 @@ describe('Get workflows scenarios', () => {
     });
 
     it('should fail for inactive user', async () => {
-      const researcherSession = await setup.createResearcherSession();
-      await adminSession.resources.users.deactivateUser(researcherSession.user);
+      const admin2Session = await setup.createAdminSession();
+      await adminSession.resources.users.deactivateUser(admin2Session.user);
 
-      await expect(researcherSession.resources.workflows.get()).rejects.toMatchObject({
+      await expect(admin2Session.resources.workflows.get()).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
-      await expect(researcherSession.resources.workflows.latest()).rejects.toMatchObject({
+      await expect(admin2Session.resources.workflows.latest()).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });

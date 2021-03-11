@@ -73,12 +73,12 @@ describe('Get workflow instances scenarios', () => {
     });
 
     it('should fail for inactive user', async () => {
-      const researcherSession = await setup.createResearcherSession();
-      await adminSession.resources.users.deactivateUser(researcherSession.user);
+      const admin2Session = await setup.createAdminSession();
+      await adminSession.resources.users.deactivateUser(admin2Session.user);
 
       // To test returning all the instances
       await expect(
-        researcherSession.resources.workflows
+        admin2Session.resources.workflows
           .versions(workflow.id)
           .version(workflow.v)
           .instances()
@@ -89,7 +89,7 @@ describe('Get workflow instances scenarios', () => {
 
       // To test returning a specific instance
       await expect(
-        researcherSession.resources.workflows
+        admin2Session.resources.workflows
           .versions(workflow.id)
           .version(workflow.v)
           .instances()
