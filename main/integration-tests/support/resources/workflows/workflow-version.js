@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 /*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -14,9 +15,11 @@
  */
 
 const _ = require('lodash');
+const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const Resource = require('../base/resource');
 const { deleteWorkflowVersion } = require('../../complex/delete-workflow-version');
+const WorkflowInstances = require('./workflow-instances');
 
 class WorkflowVersion extends Resource {
   constructor({ clientSession, id, parent }) {
@@ -29,15 +32,47 @@ class WorkflowVersion extends Resource {
 
     if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [workflowVersion]');
     this.api = `${parent.api}/v/${id}`;
+    this.version = this.id;
+    this.workflowId = this.parent.id;
   }
 
-  // ************************ Helpers methods ************************
+  instances() {
+    return new WorkflowInstances({ clientSession: this.clientSession, parent: this });
+  }
+
+  async trigger(body) {
+    return this.instances().create(body);
+  }
 
   async cleanup() {
     // This is the workflow id, we get it by using the parent id
     const id = this.parent.id;
     const version = this.id;
     await deleteWorkflowVersion({ aws: this.setup.aws, id, version });
+  }
+
+  // ************************ Helpers methods ************************
+
+  // Triggers the workflow and pulls the the status of the workflow every second and only returns if the status is done
+  // or until maxSecondsCount is reached. Default maxSecondsCount is 5 minutes.
+  async triggerAndWait(body = {}, maxSecondsCount = 300) {
+    let counter = 0;
+    let status;
+    const triggerInfo = await this.trigger(body);
+    const instanceId = _.get(triggerInfo, 'instance.id');
+
+    do {
+      await sleep(1000);
+      counter += 1;
+
+      const instance = await this.instances()
+        .instance(instanceId)
+        .get();
+
+      status = instance.wfStatus;
+    } while (status !== 'done' && counter < maxSecondsCount);
+
+    return triggerInfo;
   }
 }
 
