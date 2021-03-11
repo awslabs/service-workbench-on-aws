@@ -1,3 +1,5 @@
+const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
+
 /**
  * Creates the default service catalog product.
  */
@@ -21,13 +23,23 @@ async function createDefaultServiceCatalogProduct(setup) {
     templateUrl,
   );
 
+  // Delay to prevent eventual consistency issues from affecting the next call.
+  await sleep(1000);
+
   await serviceCatalog.associateProductWithPortfolio(productInfo.productId, portfolioId);
 
   const namespace = setup.aws.settings.get('namespace');
   const roleName = `${namespace}-LaunchConstraint`;
+
+  // Delay to prevent eventual consistency issues from affecting the next call.
+  await sleep(1000);
+
   const constraintId = await serviceCatalog.createConstraint(productInfo.productId, portfolioId, 'LAUNCH', roleName);
 
   const templateS3Path = `s3://${bucket}/${key}`;
+
+  // Large delay needed to ensure the above service catalog changes are fully persisted.
+  await sleep(30000);
 
   return { ...productInfo, portfolioId, constraintId, templateS3Path };
 }
