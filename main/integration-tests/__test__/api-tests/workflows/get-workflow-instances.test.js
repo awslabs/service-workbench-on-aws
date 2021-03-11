@@ -35,7 +35,7 @@ describe('Get workflow instances scenarios', () => {
     const triggerInfo = await adminSession.resources.workflows
       .versions(workflow.id)
       .version(workflow.v)
-      .trigger();
+      .triggerAndWait();
 
     instanceId = _.get(triggerInfo, 'instance.id');
   });
