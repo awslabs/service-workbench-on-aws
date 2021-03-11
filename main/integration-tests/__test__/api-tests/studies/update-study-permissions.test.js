@@ -87,6 +87,46 @@ describe('Update study permissions scenarios', () => {
       },
     );
 
+    it.each(studyCategoryCases)(
+      'should fail if an internal guest tries to update permissions of %p for which they are not the admin',
+      async (studyPrefix, studyCategory) => {
+        const researcher1Session = await setup.createResearcherSession();
+        const studyId = setup.gen.string({ prefix: `update-${studyPrefix}-perm-test-int-guest` });
+        await researcher1Session.resources.studies.create({ id: studyId, category: studyCategory });
+
+        const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
+
+        await expect(
+          guestSession.resources.studies
+            .study(studyId)
+            .permissions()
+            .update(),
+        ).rejects.toMatchObject({
+          code: errorCode.http.code.forbidden,
+        });
+      },
+    );
+
+    it.each(studyCategoryCases)(
+      'should fail if an external guest tries to update permissions of %p for which they are not the admin',
+      async (studyPrefix, studyCategory) => {
+        const researcher1Session = await setup.createResearcherSession();
+        const studyId = setup.gen.string({ prefix: `update-${studyPrefix}-perm-test-ext-guest` });
+        await researcher1Session.resources.studies.create({ id: studyId, category: studyCategory });
+
+        const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
+
+        await expect(
+          guestSession.resources.studies
+            .study(studyId)
+            .permissions()
+            .update(),
+        ).rejects.toMatchObject({
+          code: errorCode.http.code.forbidden,
+        });
+      },
+    );
+
     it.each(studyCategoryCases)('should fail for anonymous user for %p', async (studyPrefix, studyCategory) => {
       const researcherSession = await setup.createResearcherSession();
       const studyId = setup.gen.string({ prefix: `update-${studyPrefix}-perm-test-anon-user` });
@@ -129,6 +169,64 @@ describe('Update study permissions scenarios', () => {
 
       await expect(
         studyAdminSession.resources.studies
+          .study(studyId)
+          .permissions()
+          .update(updateRequest),
+      ).resolves.toStrictEqual(
+        expect.objectContaining({
+          adminUsers: [studyAdminSession.user.uid],
+          readonlyUsers: [readonlyUserSession.user.uid],
+          readwriteUsers: [readwriteUserSession.user.uid],
+          writeonlyUsers: [],
+        }),
+      );
+    });
+
+    it('should fail if a sysadmin tries to update permissions of My Study and not a study admin', async () => {
+      const researcher1Session = await setup.createResearcherSession();
+      const studyId = setup.gen.string({ prefix: `update-my-study-perm-test-sysadmin` });
+      await researcher1Session.resources.studies.create({ id: studyId, category: 'My Studies' });
+
+      // This user is brand new and does not have any permissions to [studyId] yet
+      const sysAdminSession = await setup.createAdminSession();
+
+      await expect(
+        sysAdminSession.resources.studies
+          .study(studyId)
+          .permissions()
+          .update(),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
+    it('should pass if a sysadmin tries to update permissions of Org Study for not a study admin', async () => {
+      const studyAdminSession = await setup.createResearcherSession();
+      const sysAdminSession = await setup.createAdminSession();
+      const studyId = setup.gen.string({ prefix: 'update-org-study-perm-test-study-admin' });
+      await studyAdminSession.resources.studies.create({ id: studyId, category: 'Organization' });
+      const readonlyUserSession = await setup.createResearcherSession();
+      const readwriteUserSession = await setup.createResearcherSession();
+
+      const readwriteuser = {
+        uid: readwriteUserSession.user.uid,
+        permissionLevel: 'readwrite',
+      };
+      const readonlyuser = {
+        uid: readonlyUserSession.user.uid,
+        permissionLevel: 'readonly',
+      };
+      const adminuser = {
+        uid: studyAdminSession.user.uid,
+        permissionLevel: 'admin',
+      };
+      const updateRequest = {
+        usersToAdd: [readonlyuser, adminuser, readwriteuser],
+        usersToRemove: [],
+      };
+
+      await expect(
+        sysAdminSession.resources.studies
           .study(studyId)
           .permissions()
           .update(updateRequest),
@@ -196,6 +294,58 @@ describe('Update study permissions scenarios', () => {
       });
     });
 
+    it('should fail to update BYOB study permissions with internal guest users', async () => {
+      const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
+      const admin2Session = await setup.createAdminSession();
+      const id = setup.gen.string({ prefix: 'update-study-perm-test-byob-int-guest' });
+      const study = {
+        id,
+        adminUsers: [admin2Session.user.uid],
+      };
+
+      await admin2Session.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      await expect(
+        guestSession.resources.studies
+          .study(study.id)
+          .permissions()
+          .update(),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
+    it('should fail to update BYOB study permissions with external guest users', async () => {
+      const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
+      const admin2Session = await setup.createAdminSession();
+      const id = setup.gen.string({ prefix: 'update-study-perm-test-byob-ext-guest' });
+      const study = {
+        id,
+        adminUsers: [admin2Session.user.uid],
+      };
+
+      await admin2Session.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      await expect(
+        guestSession.resources.studies
+          .study(study.id)
+          .permissions()
+          .update(),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
     it('should update BYOB study permissions', async () => {
       const tempStudyAdmin = await setup.createResearcherSession();
       const admin2Session = await setup.createAdminSession();
@@ -239,6 +389,78 @@ describe('Update study permissions scenarios', () => {
       // Check if the returned body shows expected permission assignment
       await expect(
         admin2Session.resources.studies
+          .study(study.id)
+          .permissions()
+          .update(updateRequest),
+      ).resolves.toStrictEqual(
+        expect.objectContaining({
+          adminUsers: [admin2Session.user.uid],
+          readonlyUsers: [readonlyUserSession.user.uid],
+          readwriteUsers: [readwriteUserSession.user.uid],
+          writeonlyUsers: [],
+        }),
+      );
+
+      // Get study permissions separately and check if the returned body shows expected permission assignment
+      await expect(
+        admin2Session.resources.studies
+          .study(study.id)
+          .permissions()
+          .get(),
+      ).resolves.toStrictEqual(
+        expect.objectContaining({
+          adminUsers: [admin2Session.user.uid],
+          readonlyUsers: [readonlyUserSession.user.uid],
+          readwriteUsers: [readwriteUserSession.user.uid],
+          writeonlyUsers: [],
+        }),
+      );
+    });
+
+    it('should update BYOB study permissions with other sysadmin users', async () => {
+      const tempStudyAdmin = await setup.createResearcherSession();
+      const otherAdminSession = await setup.createAdminSession();
+      const admin2Session = await setup.createAdminSession();
+      const id = setup.gen.string({ prefix: 'update-study-perm-test-byob-sysadmin' });
+      const study = {
+        id,
+        adminUsers: [admin2Session.user.uid, tempStudyAdmin.user.uid],
+      };
+
+      await admin2Session.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      const readonlyUserSession = await setup.createResearcherSession();
+      const readwriteUserSession = await setup.createResearcherSession();
+
+      const readwriteuser = {
+        uid: readwriteUserSession.user.uid,
+        permissionLevel: 'readwrite',
+      };
+      const readonlyuser = {
+        uid: readonlyUserSession.user.uid,
+        permissionLevel: 'readonly',
+      };
+      const adminuser = {
+        uid: admin2Session.user.uid,
+        permissionLevel: 'admin',
+      };
+      const tempStudyAdminToRemove = {
+        uid: tempStudyAdmin.user.uid,
+        permissionLevel: 'admin',
+      };
+      const updateRequest = {
+        usersToAdd: [readonlyuser, adminuser, readwriteuser],
+        usersToRemove: [tempStudyAdminToRemove],
+      };
+
+      // Check if the returned body shows expected permission assignment
+      await expect(
+        otherAdminSession.resources.studies
           .study(study.id)
           .permissions()
           .update(updateRequest),

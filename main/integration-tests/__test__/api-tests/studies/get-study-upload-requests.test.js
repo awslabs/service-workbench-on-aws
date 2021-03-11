@@ -48,7 +48,7 @@ describe('Study files upload request scenarios', () => {
   describe.each(studyCategoryCases)('Study files upload request for %p', (studyPrefix, studyCategory) => {
     it(`should fail when inactive user tries upload files to ${studyPrefix}`, async () => {
       const researcherSession = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: `file-upload-${studyPrefix}-test-inactive-user` });
+      const studyId = setup.gen.string({ prefix: `upload-file-${studyPrefix}-test-inactive-user` });
 
       await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
       await adminSession.resources.users.deactivateUser(researcherSession.user);
@@ -65,7 +65,7 @@ describe('Study files upload request scenarios', () => {
 
     it('should fail for anonymous user', async () => {
       const researcherSession = await setup.createResearcherSession();
-      const studyId = setup.gen.string({ prefix: `file-upload-${studyPrefix}-test-anon-user` });
+      const studyId = setup.gen.string({ prefix: `upload-file-${studyPrefix}-test-anon-user` });
       await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
 
       const anonymousSession = await setup.createAnonymousSession();
@@ -78,13 +78,61 @@ describe('Study files upload request scenarios', () => {
         code: errorCode.http.code.badImplementation,
       });
     });
+
+    it('should fail for internal guest user', async () => {
+      const researcherSession = await setup.createResearcherSession();
+      const studyId = setup.gen.string({ prefix: `upload-file-${studyPrefix}-test-int-guest` });
+      await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
+
+      const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
+      await expect(
+        guestSession.resources.studies
+          .study(studyId)
+          .uploadRequest()
+          .getPresignedRequests('dummyFile1'),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
+    it('should fail for other sysadmin user', async () => {
+      const studyAdmin = await setup.createResearcherSession();
+      const sysadmin = await setup.createAdminSession();
+      const studyId = setup.gen.string({ prefix: `upload-file-${studyPrefix}-test-sysadmin` });
+      await studyAdmin.resources.studies.create({ id: studyId, category: studyCategory });
+
+      await expect(
+        sysadmin.resources.studies
+          .study(studyId)
+          .uploadRequest()
+          .getPresignedRequests('dummyFile1'),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
+    it('should fail for external guest user', async () => {
+      const researcherSession = await setup.createResearcherSession();
+      const studyId = setup.gen.string({ prefix: `upload-file-${studyPrefix}-test-ext-guest` });
+      await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
+
+      const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
+      await expect(
+        guestSession.resources.studies
+          .study(studyId)
+          .uploadRequest()
+          .getPresignedRequests('dummyFile1'),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
   });
 
   describe('BYOB study files upload request', () => {
     it('should fail BYOB study files upload request with anonymous users', async () => {
       const anonymousSession = await setup.createAnonymousSession();
       const admin2Session = await setup.createAdminSession();
-      const id = setup.gen.string({ prefix: 'file-upload-test-byob' });
+      const id = setup.gen.string({ prefix: 'upload-file-test-byob' });
       const study = {
         id,
         adminUsers: [admin2Session.user.uid],
@@ -107,9 +155,87 @@ describe('Study files upload request scenarios', () => {
       });
     });
 
+    it('should fail BYOB study files upload request with internal guest users', async () => {
+      const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
+      const admin2Session = await setup.createAdminSession();
+      const id = setup.gen.string({ prefix: 'upload-file-test-byob-int-guest' });
+      const study = {
+        id,
+        adminUsers: [admin2Session.user.uid],
+      };
+
+      await admin2Session.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      await expect(
+        guestSession.resources.studies
+          .study(study.id)
+          .uploadRequest()
+          .getPresignedRequests('dummyFile1'),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
+    it('should fail BYOB study files upload request with external guest users', async () => {
+      const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
+      const admin2Session = await setup.createAdminSession();
+      const id = setup.gen.string({ prefix: 'upload-file-test-byob-ext-guest' });
+      const study = {
+        id,
+        adminUsers: [admin2Session.user.uid],
+      };
+
+      await admin2Session.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      await expect(
+        guestSession.resources.studies
+          .study(study.id)
+          .uploadRequest()
+          .getPresignedRequests('dummyFile1'),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
+    it('should fail BYOB study files upload request with other sysadmin users', async () => {
+      const studyAdmin = await setup.createAdminSession();
+      const sysadmin = await setup.createAdminSession();
+      const id = setup.gen.string({ prefix: 'upload-file-test-byob-sysadmin' });
+      const study = {
+        id,
+        adminUsers: [studyAdmin.user.uid],
+      };
+
+      await studyAdmin.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      await expect(
+        sysadmin.resources.studies
+          .study(study.id)
+          .uploadRequest()
+          .getPresignedRequests('dummyFile1'),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
     it('should fail BYOB study files upload request with DS studies', async () => {
       const admin2Session = await setup.createAdminSession();
-      const id = setup.gen.string({ prefix: 'file-upload-test-byob' });
+      const id = setup.gen.string({ prefix: 'upload-file-test-byob' });
       const study = {
         id,
         adminUsers: [admin2Session.user.uid],

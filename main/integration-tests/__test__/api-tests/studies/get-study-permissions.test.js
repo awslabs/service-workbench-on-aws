@@ -97,6 +97,59 @@ describe('Get study permissions scenarios', () => {
         code: errorCode.http.code.badImplementation,
       });
     });
+
+    it('should fetch study permissions for non-study-admin sysadmin user', async () => {
+      const studyAdmin = await setup.createResearcherSession();
+      const sysadmin = await setup.createAdminSession();
+      const studyId = setup.gen.string({ prefix: `get-${studyPrefix}-perm-test-sysadmin` });
+      await studyAdmin.resources.studies.create({ id: studyId, category: studyCategory });
+
+      await expect(
+        sysadmin.resources.studies
+          .study(studyId)
+          .permissions()
+          .get(),
+      ).resolves.toEqual(
+        expect.objectContaining({
+          adminUsers: [studyAdmin.user.uid],
+          readonlyUsers: [],
+          readwriteUsers: [],
+          writeonlyUsers: [],
+        }),
+      );
+    });
+
+    it('should fail for internal guest user', async () => {
+      const researcherSession = await setup.createResearcherSession();
+      const studyId = setup.gen.string({ prefix: `get-${studyPrefix}-perm-test-int-guest` });
+      await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
+
+      const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
+      await expect(
+        guestSession.resources.studies
+          .study(studyId)
+          .permissions()
+          .get(),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
+    it('should fail for external guest user', async () => {
+      const researcherSession = await setup.createResearcherSession();
+      const studyId = setup.gen.string({ prefix: `get-${studyPrefix}-perm-test-ext-guest` });
+      await researcherSession.resources.studies.create({ id: studyId, category: studyCategory });
+
+      const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
+      await expect(
+        guestSession.resources.studies
+          .study(studyId)
+          .permissions()
+          .get(),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
   });
 
   describe('Getting BYOB study permissions', () => {
@@ -150,6 +203,89 @@ describe('Get study permissions scenarios', () => {
       ).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
+    });
+
+    it('should fail to fetch BYOB study permissions with internal guest users', async () => {
+      const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
+      const admin2Session = await setup.createAdminSession();
+      const id = setup.gen.string({ prefix: 'get-study-perm-test-byob-int-guest' });
+      const study = {
+        id,
+        adminUsers: [admin2Session.user.uid],
+      };
+
+      await admin2Session.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      await expect(
+        guestSession.resources.studies
+          .study(study.id)
+          .permissions()
+          .get(),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
+    it('should fail to fetch BYOB study permissions with external guest users', async () => {
+      const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
+      const admin2Session = await setup.createAdminSession();
+      const id = setup.gen.string({ prefix: 'get-study-perm-test-byob-ext-guest' });
+      const study = {
+        id,
+        adminUsers: [admin2Session.user.uid],
+      };
+
+      await admin2Session.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      await expect(
+        guestSession.resources.studies
+          .study(study.id)
+          .permissions()
+          .get(),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
+
+    it('should pass to fetch BYOB study permissions with other sysadmin users', async () => {
+      const studyAdmin = await setup.createAdminSession();
+      const sysadmin = await setup.createAdminSession();
+      const id = setup.gen.string({ prefix: 'get-study-perm-test-byob-sysadmin' });
+      const study = {
+        id,
+        adminUsers: [studyAdmin.user.uid],
+      };
+
+      await studyAdmin.resources.dataSources.accounts
+        .account(accountId)
+        .buckets()
+        .bucket(bucketName)
+        .studies()
+        .create(study);
+
+      await expect(
+        sysadmin.resources.studies
+          .study(study.id)
+          .permissions()
+          .get(),
+      ).resolves.toEqual(
+        expect.objectContaining({
+          adminUsers: [studyAdmin.user.uid],
+          readonlyUsers: [],
+          readwriteUsers: [],
+          writeonlyUsers: [],
+        }),
+      );
     });
 
     it('should return BYOB study permissions with Organization category', async () => {
