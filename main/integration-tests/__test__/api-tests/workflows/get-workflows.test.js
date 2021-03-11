@@ -16,26 +16,26 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
-describe('Get workflow assignments scenarios', () => {
+describe('Get workflows scenarios', () => {
   let setup;
   let adminSession;
-  let workflow;
 
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
-    const workflowId = setup.gen.string({ prefix: 'assignment-wf-test' });
-    workflow = await adminSession.resources.workflows.versions(workflowId).create();
   });
 
   afterAll(async () => {
     await setup.cleanup();
   });
 
-  describe('Getting workflow assignments', () => {
+  describe('Getting workflows', () => {
     it('should fail for anonymous user', async () => {
       const anonymousSession = await setup.createAnonymousSession();
-      await expect(anonymousSession.resources.workflows.assignments(workflow.id).get()).rejects.toMatchObject({
+      await expect(anonymousSession.resources.workflows.get()).rejects.toMatchObject({
+        code: errorCode.http.code.badImplementation,
+      });
+      await expect(anonymousSession.resources.workflows.latest()).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });
@@ -44,34 +44,47 @@ describe('Get workflow assignments scenarios', () => {
       const researcherSession = await setup.createResearcherSession();
       await adminSession.resources.users.deactivateUser(researcherSession.user);
 
-      await expect(researcherSession.resources.workflows.assignments(workflow.id).get()).rejects.toMatchObject({
+      await expect(researcherSession.resources.workflows.get()).rejects.toMatchObject({
+        code: errorCode.http.code.unauthorized,
+      });
+      await expect(researcherSession.resources.workflows.latest()).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });
 
     it('should fail for internal guest', async () => {
       const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
-      await expect(guestSession.resources.workflows.assignments(workflow.id).get()).rejects.toMatchObject({
+      await expect(guestSession.resources.workflows.get()).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+      await expect(guestSession.resources.workflows.latest()).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
     });
 
     it('should fail for external guest', async () => {
       const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
-      await expect(guestSession.resources.workflows.assignments(workflow.id).get()).rejects.toMatchObject({
+      await expect(guestSession.resources.workflows.get()).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+      await expect(guestSession.resources.workflows.latest()).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
     });
 
     it('should fail for researcher', async () => {
       const researcherSession = await setup.createResearcherSession();
-      await expect(researcherSession.resources.workflows.assignments(workflow.id).get()).rejects.toMatchObject({
+      await expect(researcherSession.resources.workflows.get()).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+      await expect(researcherSession.resources.workflows.latest()).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
     });
 
-    it('should return workflow assignments for admin', async () => {
-      await expect(adminSession.resources.workflows.assignments(workflow.id).get()).resolves.toMatchObject([]);
+    it('should return workflows for admin', async () => {
+      await expect(adminSession.resources.workflows.get()).resolves.not.toHaveLength(0);
+      await expect(adminSession.resources.workflows.latest()).resolves.not.toHaveLength(0);
     });
   });
 });
