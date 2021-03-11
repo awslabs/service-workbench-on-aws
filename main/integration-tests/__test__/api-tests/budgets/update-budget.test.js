@@ -16,7 +16,7 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
-describe('Create budget', () => {
+describe('Update budget', () => {
   let setup;
   let adminSession;
   let accountUUID;
@@ -36,7 +36,7 @@ describe('Create budget', () => {
   const userRoles = ['admin', 'researcher', 'guest', 'internal-guest'];
   const nonAdminUserRoles = ['researcher', 'guest', 'internal-guest'];
 
-  describe('Create budget', () => {
+  describe('Update budget', () => {
     it('should fail for anonymous user', async () => {
       const anonymousSession = await setup.createAnonymousSession();
       await expect(anonymousSession.resources.budgets.update({ id: accountUUID })).rejects.toMatchObject({

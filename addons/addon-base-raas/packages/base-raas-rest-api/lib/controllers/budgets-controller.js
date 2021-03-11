@@ -36,7 +36,7 @@ async function configure(context) {
   );
 
   // ===============================================================
-  //  PUT / (mounted to /api/budgets)
+  //  POST / (mounted to /api/budgets)
   // ===============================================================
   router.post(
     '/aws-account',
@@ -50,7 +50,7 @@ async function configure(context) {
   );
 
   // ===============================================================
-  //  POST / (mounted to /api/budgets)
+  //  PUT / (mounted to /api/budgets)
   // ===============================================================
   router.put(
     '/aws-account',
