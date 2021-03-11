@@ -16,6 +16,7 @@
 const CollectionResource = require('../base/collection-resource');
 const WorkflowDrafts = require('./workflow-drafts');
 const WorkflowVersions = require('./workflow-versions');
+const WorkflowAssignments = require('./workflow-assignments');
 
 class Workflows extends CollectionResource {
   constructor({ clientSession }) {
@@ -34,6 +35,10 @@ class Workflows extends CollectionResource {
 
   versions(id) {
     return new WorkflowVersions({ clientSession: this.clientSession, id, parent: this });
+  }
+
+  assignments(id) {
+    return new WorkflowAssignments({ clientSession: this.clientSession, id, parent: this });
   }
 
   async latest() {
