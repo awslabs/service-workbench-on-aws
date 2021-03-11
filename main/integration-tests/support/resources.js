@@ -32,6 +32,7 @@ const StepTemplates = require('./resources/step-templates/step-templates');
 const KeyPairs = require('./resources/key-pairs/key-pairs');
 const WorkflowTemplates = require('./resources/workflow-templates/workflow-templates');
 const DataSourceAccounts = require('./resources/data-sources/accounts');
+const Budgets = require('./resources/budgets/budgets');
 const WorkspaceServiceCatalogs = require('./resources/workspace-service-catalogs/workspace-service-catalogs');
 const Workflows = require('./resources/workflows/workflows');
 
@@ -58,6 +59,7 @@ async function getResources({ clientSession }) {
     keyPairs: new KeyPairs({ clientSession }),
     workflowTemplates: new WorkflowTemplates({ clientSession }),
     dataSources: { accounts: new DataSourceAccounts({ clientSession }) },
+    budgets: new Budgets({ clientSession }),
     workspaceServiceCatalogs: new WorkspaceServiceCatalogs({ clientSession }),
     workflows: new Workflows({ clientSession }),
   };
