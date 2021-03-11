@@ -2072,7 +2072,7 @@ paths:
         '200':
           description: 'Return budget of the AWS account'
   /api/budgets/aws-account:
-    put:
+    post:
       tags:
         - admins
         - Budgets
@@ -2087,7 +2087,7 @@ paths:
       responses:
         '200':
           description: 'Return success create message'
-    post:
+    put:
       tags:
         - admins
         - Budgets
