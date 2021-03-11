@@ -76,23 +76,6 @@ async function configure(context) {
   );
 
   // ===============================================================
-  //  POST /instances/status (mounted to /api/workflows)
-  // ===============================================================
-  router.post(
-    '/instances/status/:status',
-    wrap(async (req, res) => {
-      const status = req.params.status;
-      const { startTime, endTime } = req.body;
-      const result = await workflowInstanceService.listByStatus({
-        status,
-        startTime,
-        endTime,
-      });
-      res.status(200).json(result);
-    }),
-  );
-
-  // ===============================================================
   //  GET /:id/assignments (mounted to /api/workflows)
   // ===============================================================
   router.get(
