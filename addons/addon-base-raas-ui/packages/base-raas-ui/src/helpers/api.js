@@ -37,11 +37,11 @@ function getAwsAccountBudget(accountUUID) {
 }
 
 function createAwsAccountBudget(budgetConfiguration) {
-  return httpApiPut(`api/budgets/aws-account`, { data: budgetConfiguration });
+  return httpApiPost(`api/budgets/aws-account`, { data: budgetConfiguration });
 }
 
 function updateAwsAccountBudget(budgetConfiguration) {
-  return httpApiPost(`api/budgets/aws-account`, { data: budgetConfiguration });
+  return httpApiPut(`api/budgets/aws-account`, { data: budgetConfiguration });
 }
 
 function addUsers(users) {

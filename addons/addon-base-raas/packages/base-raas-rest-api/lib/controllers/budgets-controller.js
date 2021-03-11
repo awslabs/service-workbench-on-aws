@@ -36,9 +36,9 @@ async function configure(context) {
   );
 
   // ===============================================================
-  //  PUT / (mounted to /api/budgets)
+  //  POST / (mounted to /api/budgets)
   // ===============================================================
-  router.put(
+  router.post(
     '/aws-account',
     wrap(async (req, res) => {
       const requestContext = res.locals.requestContext;
@@ -50,9 +50,9 @@ async function configure(context) {
   );
 
   // ===============================================================
-  //  POST / (mounted to /api/budgets)
+  //  PUT / (mounted to /api/budgets)
   // ===============================================================
-  router.post(
+  router.put(
     '/aws-account',
     wrap(async (req, res) => {
       const requestContext = res.locals.requestContext;
