@@ -10,7 +10,7 @@
     "userEntry": {
       "type": "object",
       "properties": {
-        "uid": { "type": "string"},
+        "uid": { "type": "string" },
         "permissionLevel": { "$ref": "#/definitions/permissionLevel" }
       },
       "required": ["uid"]

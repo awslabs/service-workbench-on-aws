@@ -1,14 +1,17 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"github.com/aws/aws-sdk-go/aws"
 	"log"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3/s3manager"
 )
 
 func main() {
@@ -22,10 +25,10 @@ func main() {
 	// Passing stopUploadWatchersAfter as -1 to let file watchers continue indefinitely if mount is writeable
 	stopUploadWatchersAfter := -1
 
-	mainImpl(sess, debug, recurringDownloads, stopRecurringDownloadsAfter, downloadInterval, stopUploadWatchersAfter, concurrency, defaultS3Mounts, destinationBase)
+	mainImpl(sess, debug, recurringDownloads, stopRecurringDownloadsAfter, downloadInterval, stopUploadWatchersAfter, concurrency, defaultS3Mounts, destinationBase, region)
 }
 
-func mainImpl(sess *session.Session, debug bool, recurringDownloads bool, stopRecurringDownloadsAfter int, downloadInterval int, stopUploadWatchersAfter int, concurrency int, defaultS3Mounts string, destinationBase string) error {
+func mainImpl(sess *session.Session, debug bool, recurringDownloads bool, stopRecurringDownloadsAfter int, downloadInterval int, stopUploadWatchersAfter int, concurrency int, defaultS3Mounts string, destinationBase string, region string) error {
 	// Use a map to emulate a set to keep track of existing mounts
 	currentMounts := make(map[string]struct{}, 0)
 	mountsCh := make(chan *mountConfiguration, 50)
@@ -43,15 +46,31 @@ func mainImpl(sess *session.Session, debug bool, recurringDownloads bool, stopRe
 			if debug {
 				log.Printf("Received mount configuration from channel: %+v\n", mountConfig)
 			}
+			var sessionToUse *session.Session = sess
+			var studyId string = filepath.Base(mountConfig.destination)
+			if !(strings.TrimSpace(mountConfig.roleArn) == "") {
+				sessionToUse = makeSession(studyId, region)
+			}
+			bucket := mountConfig.bucket
+			awsRegion, err := s3manager.GetBucketRegion(context.Background(), sessionToUse, bucket, *sess.Config.Region)
+			if debug {
+				log.Println("Bucket", bucket, "region is", awsRegion)
+			}
+			if err != nil {
+				log.Println("Error getting region of the bucket", bucket, err)
+			} else {
+				sessionToUse = session.Must(session.NewSession(sessionToUse.Config))
+				sessionToUse.Config.WithRegion(awsRegion)
+			}
 			if recurringDownloads {
 				// Trigger recurring download
-				setupRecurringDownloads(&wg, sess, mountConfig, concurrency, debug, downloadInterval, stopRecurringDownloadsAfter)
+				setupRecurringDownloads(&wg, sessionToUse, mountConfig, concurrency, debug, downloadInterval, stopRecurringDownloadsAfter)
 			} else {
-				downloadFiles(sess, mountConfig, concurrency, debug)
+				downloadFiles(sessionToUse, mountConfig, concurrency, debug)
 			}
 			if mountConfig.writeable {
 				go func() {
-					err := setupUploadWatcher(&wg, sess, mountConfig, stopUploadWatchersAfter, debug)
+					err := setupUploadWatcher(&wg, sessionToUse, mountConfig, stopUploadWatchersAfter, debug)
 					if err != nil {
 						log.Printf("Error setting up file watcher: " + err.Error())
 					}
@@ -102,7 +121,8 @@ func mainImpl(sess *session.Session, debug bool, recurringDownloads bool, stopRe
 				*mount.Prefix,
 				destination,
 				*mount.Writeable,
-				*mount.KmsKeyId,
+				*mount.KmsArn,
+				*mount.RoleArn,
 			)
 			wg.Add(1) // Increment wait group counter everytime we push config to the mount channel
 			if debug {

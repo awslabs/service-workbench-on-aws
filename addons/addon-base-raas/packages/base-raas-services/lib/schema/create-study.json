@@ -11,7 +11,9 @@
     },
     "name": {
       "type": "string",
-      "maxLength": 2048
+      "minLength": 1,
+      "maxLength": 300,
+      "pattern": "^([^<>{}]*)$"
     },
     "category": {
       "type": "string",
@@ -19,7 +21,8 @@
     },
     "description": {
       "type": "string",
-      "maxLength": 8192
+      "maxLength": 2048,
+      "pattern": "^([^<>{}]*)$"
     },
     "projectId": {
       "type": "string",
@@ -32,7 +35,8 @@
     },
     "sha": {
       "type": "string",
-      "maxLength": 64
+      "maxLength": 64,
+      "pattern": "^([A-Fa-f0-9])$"
     },
     "resources": {
       "type": "array",
@@ -42,10 +46,12 @@
           "additionalProperties": false,
           "properties": {
             "arn": {
-              "type": "string"
+              "type": "string",
+              "maxLength": 2048,
+              "pattern": "^(arn:aws[a-zA-Z-]*:[a-zA-Z0-9-/.:_?*]+)$"
             }
           }
-        }    
+        }
       ]
     },
     "accessType": {

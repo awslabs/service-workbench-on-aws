@@ -13,6 +13,7 @@
  *  permissions and limitations under the License.
  */
 
+import React from 'react';
 import _ from 'lodash';
 /**
  * Adds navigation menu items to the given itemsMap.
@@ -36,11 +37,19 @@ function registerMenuItems(itemsMap, { location, appContext }) {
   const isAdmin = _.get(appContext, 'userStore.user.isAdmin');
   const canCreateWorkspaces = _.get(appContext, 'userStore.user.capabilities.canCreateWorkspace');
   const canViewDashboard = _.get(appContext, 'userStore.user.capabilities.canViewDashboard');
+  const dataSources = (
+    <span>
+      Data
+      <br />
+      Sources
+    </span>
+  );
   const items = new Map([
     ..._.filter([...itemsMap], item => {
       if (item[0] === '/dashboard' && !canViewDashboard) return false;
       return true;
     }),
+    ['/data-sources', { title: dataSources, icon: 'database', shouldShow: isAdmin }],
     ['/accounts', { title: 'Accounts', icon: 'sitemap', shouldShow: isAdmin }],
     ['/studies', { title: 'Studies', icon: 'book', shouldShow: true }],
     ['/workspaces', { title: 'Workspaces', icon: 'server', shouldShow: canCreateWorkspaces }],

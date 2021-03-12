@@ -4,10 +4,14 @@
   "additionalProperties": false,
   "properties": {
     "keyPairId": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 1024,
+      "pattern": "^([^<>{}]*)$"
     },
-    "instanceOsUser":{
-      "type": "string"
+    "instanceOsUser": {
+      "type": "string",
+      "maxLength": 1024,
+      "pattern": "^([^<>{}]*)$"
     }
   },
   "required": ["keyPairId"]

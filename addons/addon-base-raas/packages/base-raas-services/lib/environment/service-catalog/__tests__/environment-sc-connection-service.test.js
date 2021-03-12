@@ -135,4 +135,24 @@ describe('EnvironmentScConnectionService', () => {
       expect(authUrl).toEqual(`https://rstudio-${id}.example.com/auth-do-sign-in?SampleEncodedParams`);
     });
   });
+  describe('sendSshPublicKey ', () => {
+    it('should fail invalid keyPairId', async () => {
+      // BUILD
+      const sshConnectionInfo = { keyPairId: '<script>', instanceOsUser: 'hacker' };
+
+      // OPERATE and CHECK
+      await expect(service.sendSshPublicKey({}, 'envId', 'connectionId', sshConnectionInfo)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+    it('should fail invalid instanceOsUser', async () => {
+      // BUILD
+      const sshConnectionInfo = { keyPairId: 'keyPairId', instanceOsUser: '<hacker>' };
+
+      // OPERATE and CHECK
+      await expect(service.sendSshPublicKey({}, 'envId', 'connectionId', sshConnectionInfo)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+  });
 });

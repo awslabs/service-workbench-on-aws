@@ -27,6 +27,7 @@ username: ""
 passwordPath: # This is the parameter name/path where you stored the password. Example: alan/int-test-user/password
 
 # This is a Project ID in your SWB deployment. Please ensure it is safe to be used by integration tests
+# Please ensure the AWS account this project is associated with has a Budget created through SWB
 projectId: ""
 
 # Currently only "internal" auth provider is supported for test admin credentials.

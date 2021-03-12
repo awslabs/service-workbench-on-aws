@@ -8,6 +8,7 @@ on:
   pull_request:
     branches:
       - develop
+      - 'feat-*'
 jobs:
   static-code-analysis-and-unit-test:
     name: Unit Tests & Code Analysis

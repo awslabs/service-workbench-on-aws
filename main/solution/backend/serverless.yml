@@ -32,6 +32,7 @@ provider:
     APP_AWS_REGION: ${self:custom.settings.awsRegion}
     APP_SOLUTION_NAME: ${self:custom.settings.solutionName}
     APP_DB_PREFIX: ${self:custom.settings.dbPrefix}
+    APP_MAIN_ACCT: ${self:custom.settings.awsAccountInfo.awsAccountId}
 
 custom:
   settings: ${file(./config/settings/.settings.js):merged}
@@ -72,6 +73,12 @@ custom:
         envStatusPollHandler:
           environment:
             APP_LOCAL_ROLE_ARN: ${cfnOutput('EnvStatusPollHandlerRoleArn')} # When running locally, run under this role
+        dataSourceReachabilityHandler:
+          environment:
+            APP_LOCAL_ROLE_ARN: ${cfnOutput('DataSourceReachabilityHandlerRoleArn')} # When running locally, run under this role
+        dataSourceReachabilityDailyHandler:
+          environment:
+            APP_LOCAL_ROLE_ARN: ${cfnOutput('DataSourceReachabilityHandlerRoleArn')} # Use same role arn as the one above (used for more frequent cron lambda)
 
   s3Sync:
     - bucketName: ${self:custom.settings.externalCfnTemplatesBucketName} # required

@@ -55,7 +55,8 @@
       "enum": ["active", "inactive"]
     },
     "rev": {
-      "type": "number"
+      "type": "number",
+      "minimum": 0
     }
   },
   "required": ["username", "email", "firstName", "lastName"]

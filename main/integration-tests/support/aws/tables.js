@@ -49,6 +49,8 @@ async function getTableNames() {
     'workflows',
     'workflowTemplateDrafts',
     'workflowTemplates',
+    'dsAccounts',
+    'roleAllocations',
   ];
 }
 
