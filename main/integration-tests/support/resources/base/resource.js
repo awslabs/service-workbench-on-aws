@@ -126,7 +126,7 @@ class Resource {
   // Specifies the delay duration in milliseconds needed to minimize the usage of stale data due to eventual
   // consistency. Duration can be altered by overriding function in sub-class.
   async deflakeDelay() {
-    return 1000;
+    return 2000;
   }
 }
 
