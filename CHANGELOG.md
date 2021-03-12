@@ -5,11 +5,11 @@ All notable changes to this project will be documented in this file.
 ## [2.1.0] - 2021-03-12
 
 ### Added
+- fix: Upgraded react-dev-utils yarn dependency version
 - feat: Added Bring Your Own Bucket(BYOB) functionality
 - feat: Added integration testing for all APIs
 - feat: Added OpenAPI documentation
 - feat: Removed unused APIs- listWorkflowInstancesByStatus and createAuthenticationProviderConfig
-- fix: Upgraded react-dev-utils yarn dependency version
 
 ## [2.0.3] - 2021-03-12
 - chore(deps): bump websocket-extensions from 0.1.3 to 0.1.4
