@@ -18,6 +18,8 @@
 
 const _ = require('lodash');
 
+const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
+
 const Settings = require('./utils/settings');
 const { getIdToken } = require('./utils/id-token');
 const { getClientSession } = require('./client-session');
@@ -111,6 +113,9 @@ class Setup {
       userRole: 'admin',
     });
 
+    // Delay to prevent eventual consistency issues from affecting the next call.
+    await sleep(1000);
+
     const idToken = await getIdToken({ username, password, apiEndpoint: this.apiEndpoint });
     const session = await getClientSession({ idToken, setup: this });
     this.sessions.push(session);
@@ -131,6 +136,10 @@ class Setup {
       userRole: 'researcher',
       projectId,
     });
+
+    // Delay to prevent eventual consistency issues from affecting the next call.
+    await sleep(1000);
+
     const idToken = await getIdToken({ username, password, apiEndpoint: this.apiEndpoint });
     const session = await getClientSession({ idToken, setup: this });
     this.sessions.push(session);
@@ -151,6 +160,10 @@ class Setup {
       userRole,
       projectId,
     });
+
+    // Delay to prevent eventual consistency issues from affecting the next call.
+    await sleep(1000);
+
     const idToken = await getIdToken({ username, password, apiEndpoint: this.apiEndpoint });
     const session = await getClientSession({ idToken, setup: this });
     this.sessions.push(session);
