@@ -135,7 +135,7 @@ class DropDown extends React.Component {
       search: getValue('search', search, DEFAULT_SEARCH),
       fluid: getValue('fluid', fluid, DEFAULT_FLUID),
       allowAdditions: getValue('allowAdditions', allowAdditions, DEFAULT_ALLOW_ADDITIONS),
-      disabled: getValue('disabled', disabled, DEFAULT_DISABLED),
+      disabled: getValue('disabled', isDisabled, DEFAULT_DISABLED),
       additionLabel: getValue('additionLabel', additionLabel, DEFAULT_ADDITION_LABEL),
       error: hasError,
     };

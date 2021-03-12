@@ -17,6 +17,8 @@ const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
 
+const { hasAccess, accessLevels, isOpenData } = require('../study/helpers/entities/study-methods');
+
 const settingKeys = {
   environmentInstanceFiles: 'environmentInstanceFiles',
   studyDataBucketName: 'studyDataBucketName',
@@ -44,6 +46,13 @@ const parseS3Arn = arn => {
       };
 };
 
+/**
+ * DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED
+ * DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED DEPRECATED
+ *
+ * This service is deprecated and should no longer used. It is only here because built-in workspaces services
+ * reference it. Once we remove the code for the built-in workspaces, we can remove this service.
+ */
 class EnvironmentMountService extends Service {
   constructor() {
     super();
@@ -51,7 +60,6 @@ class EnvironmentMountService extends Service {
       'aws',
       'lockService',
       'studyService',
-      'studyPermissionService',
       'environmentScService',
       'iamService',
       'storageGatewayService',
@@ -63,25 +71,43 @@ class EnvironmentMountService extends Service {
     return this.getStudyAccessInfo(requestContext, studyIds);
   }
 
+  // This method is only here to keep built-in workspace logic. We shouldn't be calculating this information on the
+  // fly every time we need it, instead we should compute this information upfront when the env is being
+  // provisioned and store the information in the environmentSc entity. In general, the whole environment mount service
+  // is no longer being used any where in the code, except for built-in workspaces.
   async getStudyAccessInfo(requestContext, studyIds) {
-    const studyInfo = await this._getStudyInfo(requestContext, studyIds);
-    await this._validateStudyPermissions(requestContext, studyInfo);
-    const s3Mounts = await this._prepareS3Mounts(studyInfo);
-    const iamPolicyDocument = await this._generateIamPolicyDoc(studyInfo);
+    const studyDataKmsKeyArn = this.settings.get(settingKeys.studyDataKmsKeyArn);
+    const studies = await this.getStudies(requestContext, studyIds);
+    const internalStudies = _.filter(studies, study => !_.isEmpty(study.resources));
+    const iamPolicyDocument = await this._generateIamPolicyDoc(internalStudies);
+    const s3Mounts = [];
+    const s3Prefixes = [];
+
+    _.forEach(studies, study => {
+      // 'resources' are for the default/internal studies. No need to parse arn for
+      // external studies because the folder information is already available on the
+      // study entity
+      const item = _.omit(study, ['category']);
+      if (_.isEmpty(study.resources)) {
+        s3Mounts.push(_.omit(item, ['resources']));
+        return;
+      }
+      _.forEach(study.resources, resource => {
+        const { bucket, prefix } = parseS3Arn(resource.arn);
+        const entry = { ..._.omit(item, ['resources']), bucket, prefix };
+        if (!isOpenData(study)) {
+          entry.kmsKeyId = studyDataKmsKeyArn;
+          s3Prefixes.push(prefix);
+        }
+        s3Mounts.push(entry);
+      });
+    });
 
     return {
-      s3Mounts: JSON.stringify(
-        s3Mounts.map(({ id, bucket, prefix, writeable, kmsKeyId }) => ({
-          id,
-          bucket,
-          prefix,
-          writeable,
-          kmsKeyId,
-        })),
-      ),
+      s3Mounts: JSON.stringify(s3Mounts),
       iamPolicyDocument: JSON.stringify(iamPolicyDocument),
       environmentInstanceFiles: this.settings.get(settingKeys.environmentInstanceFiles),
-      s3Prefixes: s3Mounts.filter(({ category }) => category !== 'Open Data').map(mount => mount.prefix),
+      s3Prefixes,
     };
   }
 
@@ -767,82 +793,46 @@ class EnvironmentMountService extends Service {
     return iamClient;
   }
 
-  async _getStudyInfo(requestContext, studyIds) {
-    let studyInfo = [];
-    if (studyIds && studyIds.length) {
-      const [studyService, studyPermissionService] = await this.service(['studyService', 'studyPermissionService']);
+  // @private
+  async getStudies(requestContext, studyIds) {
+    if (_.isEmpty(studyIds)) return [];
 
-      studyInfo = await Promise.all(
-        _.map(studyIds, async studyId => {
-          try {
-            const { id, name, category, resources } = await studyService.mustFind(requestContext, studyId);
-            // Find out if the current user has Read/Write access
-            const uid = _.get(requestContext, 'principalIdentifier.uid');
-            const studyPermission = await studyPermissionService.findByUser(requestContext, uid);
-            const writeable = _.includes(studyPermission.readwriteAccess, studyId) || category === 'My Studies';
-            return { id, name, category, resources, writeable };
-          } catch (error) {
-            // Because the studies update periodically we cannot
-            // guarantee consistency so filter anything invalid here
-            return { name: '', resources: [] };
-          }
-        }),
-      );
-    }
-    return studyInfo;
-  }
+    const [studyService] = await this.service(['studyService']);
+    const uid = _.get(requestContext, 'principalIdentifier.uid');
+    const getInfo = async studyId => {
+      const studyEntity = await studyService.getStudyPermissions(requestContext, studyId);
+      if (!hasAccess(studyEntity, uid)) throw this.boom.forbidden(`You don't have access to study "${studyId}"`, true);
+      const { read, write } = accessLevels(studyEntity, uid);
+      const {
+        id,
+        category,
+        bucket,
+        region,
+        awsPartition,
+        folder,
+        resources = [],
+        // roleArn, this not available from the study entity, it needs to be checked out
+        kmsArn,
+      } = studyEntity;
 
-  async _validateStudyPermissions(requestContext, studyInfo) {
-    let permissions = {};
-    if (studyInfo.length) {
-      // Get requested study IDs
-      const requestedStudyIds = studyInfo.map(study => study.id);
+      return {
+        id,
+        category,
+        bucket,
+        region,
+        awsPartition,
+        prefix: folder,
+        resources,
+        // roleArn, this not available from the study entity, it needs to be checked out
+        kmsArn,
+        readable: read,
+        writeable: write,
+      };
+    };
 
-      // Retrieve and verify user's study permissions
-      const [studyPermissionService, studyService] = await this.service(['studyPermissionService', 'studyService']);
-      const storedPermissions = await studyPermissionService.getRequestorPermissions(requestContext);
+    const result = await Promise.all(_.map(studyIds, getInfo));
 
-      // If there are no stored permissions, use an empty permissions object
-      permissions = storedPermissions || studyPermissionService.getEmptyUserPermissions();
-
-      // Add Open Data read access for everyone
-      permissions.readonlyAccess = permissions.readonlyAccess.concat(
-        studyInfo.filter(study => study.category === 'Open Data').map(study => study.id),
-      );
-
-      // Determine whether any forbidden studies were requested
-      const allowedStudies = studyService.getAllowedStudies(permissions);
-      const forbiddenStudies = _.difference(requestedStudyIds, allowedStudies);
-      if (!_.isEmpty(forbiddenStudies)) {
-        throw new Error(`Studies not found: ${forbiddenStudies.join(',')}`);
-      }
-    }
-    return permissions;
-  }
-
-  async _prepareS3Mounts(studyInfo) {
-    let mounts = [];
-    if (studyInfo.length) {
-      const studyDataKmsKeyArn = this.settings.get(settingKeys.studyDataKmsKeyArn);
-
-      // There might be multiple resources. In the future we may flatMap, for now...
-      mounts = studyInfo.reduce(
-        (result, { id, resources, category, writeable }) =>
-          result.concat(
-            resources.map(resource => {
-              const { bucket, prefix } = parseS3Arn(resource.arn);
-              const mount = { id, bucket, prefix, category, writeable };
-              if (category !== 'Open Data') {
-                mount.kmsKeyId = studyDataKmsKeyArn;
-              }
-              return mount;
-            }),
-          ),
-        [],
-      );
-    }
-
-    return mounts;
+    return result;
   }
 
   _getObjectPathArns(studyInfo) {
@@ -873,6 +863,9 @@ class EnvironmentMountService extends Service {
     return objectPathArns;
   }
 
+  // IMPORTANT: this method should no longer be used, it has been replaces with the
+  // extension point 'study-access-strategy'. It is being left here because it is
+  // still needed for the built-in workspaces
   async _generateIamPolicyDoc(studyInfo) {
     let policyDoc = {};
     // Build policy statements for object-level permissions

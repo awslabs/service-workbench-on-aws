@@ -256,6 +256,50 @@ describe('BudgetsService', () => {
       );
     });
 
+    it('should fail id invalid', async () => {
+      // BUILD
+      const requestBodyCopy = _.cloneDeep(requestBody);
+      requestBodyCopy.id = 'invalid##';
+
+      // OPERATE and CHECK
+      await expect(service.create(requestContext, requestBodyCopy)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+
+    it('should fail budgetLimit invalid', async () => {
+      // BUILD
+      const requestBodyCopy = _.cloneDeep(requestBody);
+      requestBodyCopy.budgetConfiguration.budgetLimit = 'invalid##';
+
+      // OPERATE and CHECK
+      await expect(service.create(requestContext, requestBodyCopy)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+
+    it('should fail description invalid', async () => {
+      // BUILD
+      const requestBodyCopy = _.cloneDeep(requestBody);
+      requestBodyCopy.description = '<hack>';
+
+      // OPERATE and CHECK
+      await expect(service.create(requestContext, requestBodyCopy)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+
+    it('should fail notificationEmail invalid', async () => {
+      // BUILD
+      const requestBodyCopy = _.cloneDeep(requestBody);
+      requestBodyCopy.notificationEmail = '<hack>';
+
+      // OPERATE and CHECK
+      await expect(service.create(requestContext, requestBodyCopy)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+
     it('should throw validation error when Budget API create method throw validation error', async () => {
       // BUILD
       const requestBodyCopy = _.cloneDeep(requestBody);
@@ -425,6 +469,50 @@ describe('BudgetsService', () => {
           },
         ],
       });
+    });
+
+    it('should fail id invalid', async () => {
+      // BUILD
+      const requestBodyCopy = _.cloneDeep(requestBody);
+      requestBodyCopy.id = 'invalid##';
+
+      // OPERATE and CHECK
+      await expect(service.update(requestContext, requestBodyCopy)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+
+    it('should fail budgetLimit invalid', async () => {
+      // BUILD
+      const requestBodyCopy = _.cloneDeep(requestBody);
+      requestBodyCopy.budgetConfiguration.budgetLimit = 'invalid##';
+
+      // OPERATE and CHECK
+      await expect(service.update(requestContext, requestBodyCopy)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+
+    it('should fail description invalid', async () => {
+      // BUILD
+      const requestBodyCopy = _.cloneDeep(requestBody);
+      requestBodyCopy.description = '<hack>';
+
+      // OPERATE and CHECK
+      await expect(service.update(requestContext, requestBodyCopy)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+
+    it('should fail notificationEmail invalid', async () => {
+      // BUILD
+      const requestBodyCopy = _.cloneDeep(requestBody);
+      requestBodyCopy.notificationEmail = '<hack>';
+
+      // OPERATE and CHECK
+      await expect(service.update(requestContext, requestBodyCopy)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
     });
 
     it('should throw validation error when Budget API add notification method throw validation error', async () => {

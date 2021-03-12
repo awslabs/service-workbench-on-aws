@@ -254,6 +254,30 @@ Resources:
 
           diskpart /s diskpart.txt
 
+          # script to create credentials file with all the roleArns for each study
+          $createCredentialsFile = @'
+          $credentialsFolder = -join ($env:USERPROFILE, "\.aws")
+          md -Force $credentialsFolder
+          $credentialsFileName = "credentials"
+          $credentialsFile = -join ($credentialsFolder, "\", $credentialsFileName)
+          if (!(Test-Path $credentialsFile)) {
+              New-Item -itemType File -Path $credentialsFolder -Name $credentialsFileName
+          }
+          $studyJson = convertfrom-json '${S3Mounts}'
+          $studyJson | ForEach {
+              $studyId = $_.id
+              $roleArn = $_.roleArn
+              # if roleArn is present and the study isn't added yet to the credentials file, then add it
+              If ( ( $roleArn.length -GT 0 ) -AND  -NOT ( Select-String -Path $credentialsFile -Pattern "\[$studyId\]" -Quiet ) ) {
+                  Add-Content $credentialsFile "[$studyId]"
+                  Add-Content $credentialsFile "role_arn = $roleArn"
+                  Add-Content $credentialsFile "credential_source = Ec2InstanceMetadata"
+              }
+          }
+          '@
+          Set-Content -Path c:\workdir\create-credentials-file.ps1 -Value $createCredentialsFile
+          ."C:\workdir\create-credentials-file.ps1"
+
           # Create script to download the s3 synchronizer
           $downloadS3Synchronizer = @'
           # Download s3-synchronizer Windows executable
@@ -268,6 +292,8 @@ Resources:
 
           # Create script to start the s3 synchronizer process
           $startS3SyncScriptContent = @'
+          # enable AWS_SDK_LOAD_CONFIG to 1. This will allow S3 session to use .aws/profile and .aws/credentials file
+          $env:AWS_SDK_LOAD_CONFIG = 1
           $defaultS3Mounts = '${S3Mounts}' | ConvertTo-Json
 
           $arguments = "-defaultS3Mounts=$defaultS3Mounts -destination=d:\ -region=${AWS::Region} -recurringDownloads=${RecurringDownloads} -downloadInterval=${DownloadInterval} -stopRecurringDownloadsAfter=${StopRecurringDownloadsAfter}"

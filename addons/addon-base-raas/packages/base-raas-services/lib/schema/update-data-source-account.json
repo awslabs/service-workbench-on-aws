@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^[0-9]{12}$"
+    },
+    "rev": {
+      "type": "number",
+      "minimum": 0
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 300,
+      "pattern": "^([^<>{}]*)$"
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 2048,
+      "pattern": "^([^<>{}]*)$"
+    },
+    "contactInfo": {
+      "type": "string",
+      "maxLength": 2048,
+      "pattern": "^([^<>{}]*)$"
+    }
+  },
+  "required": ["id", "rev"]
+}

@@ -159,6 +159,16 @@ class IamService extends Service {
       .promise();
   }
 
+  async deleteRolePolicy(roleName, policyName, iamClient) {
+    const iamSdk = iamClient || this.api;
+    await iamSdk
+      .deleteRolePolicy({
+        RoleName: roleName,
+        PolicyName: policyName,
+      })
+      .promise();
+  }
+
   async getPolicyVersion(policyArn, versionId, iamClient) {
     const iamSdk = iamClient || this.api;
     const { PolicyVersion: policyVersionInfo } = await iamSdk

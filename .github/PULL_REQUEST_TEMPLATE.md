@@ -9,6 +9,7 @@ Checklist:
 - [ ] Have you successfully deployed to an AWS account with your changes?
 - [ ] Have you written new tests for your core changes, as applicable?
 - [ ] Have you successfully tested with your changes locally?
+- [ ] Have you updated openapi.yaml if you made updates to API definition (including add, delete or update parameter and request data schema)?
 - [ ] If you had to run manual tests, have you considered automating those tests by adding them to [end-to-end tests](../main/end-to-end-tests/README.md)?
 
 <!-- For major releases please provide internal ticket id -->

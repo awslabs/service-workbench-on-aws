@@ -53,9 +53,11 @@ function normalizeStudyFolder(str = '') {
  */
 async function run(fn) {
   try {
-    await fn();
+    const result = await fn();
+    return result;
   } catch (error) {
     console.error(error);
+    return undefined;
   }
 }
 

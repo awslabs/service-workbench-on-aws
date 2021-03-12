@@ -30,10 +30,6 @@ class AuthenticationProviderConfigs extends CollectionResource {
     if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [providerConfigs]');
   }
 
-  async create(body = {}, params = {}) {
-    return this.doCall(async () => this.axiosClient.post(this.api, body, { params }));
-  }
-
   defaults({
     providerConfigId = this.setup.gen.string({ prefix: 'auth-prov-test-config-id' }),
     providerTypeId = this.setup.gen.string({ prefix: 'auth-prov-test-type-id' }),

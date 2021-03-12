@@ -15,7 +15,7 @@
 
 /* eslint-disable import/prefer-default-export */
 import _ from 'lodash';
-import { types } from 'mobx-state-tree';
+import { getParent, types } from 'mobx-state-tree';
 import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
 
 import { getStudyPermissions, updateStudyPermissions } from '../../helpers/api';
@@ -38,21 +38,28 @@ const StudyPermissionsStore = BaseStore.named('StudyPermissionsStore')
     return {
       doLoad: async () => {
         const newPermissions = await getStudyPermissions(self.studyId);
-        if (!self.studyPermissions || !_.isEqual(self.studyPermissions, newPermissions)) {
-          self.runInAction(() => {
-            self.studyPermissions = newPermissions;
-          });
-        }
+        self.runInAction(() => {
+          if (!self.studyPermissions) {
+            self.studyPermissions = StudyPermissions.create({
+              id: self.studyId,
+              ...newPermissions,
+            });
+          } else {
+            self.studyPermissions.setStudyPermissions(newPermissions);
+          }
+        });
       },
 
       cleanup: () => {
+        self.studyPermissions = undefined;
         superCleanup();
       },
 
       update: async selectedUserIds => {
         const updateRequest = { usersToAdd: [], usersToRemove: [] };
 
-        self.studyPermissions.userTypes.forEach(type => {
+        const parent = getParent(self, 1);
+        parent.userTypes.forEach(type => {
           const userToRequestFormat = uid => ({ uid, permissionLevel: type });
 
           // Set selected users as "usersToAdd" (API is idempotent)

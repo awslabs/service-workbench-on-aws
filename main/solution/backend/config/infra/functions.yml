@@ -14,6 +14,7 @@ openDataScrapeHandler:
   description: Handles scraping the metadata from the AWS open data registry.
   environment:
     APP_DB_STUDIES_CATEGORY_INDEX: ${self:custom.settings.dbStudiesCategoryIndex}
+    APP_DB_STUDIES_ACCOUNTID_INDEX: ${self:custom.settings.dbStudiesAccountIdIndex}
     APP_STUDY_DATA_BUCKET_NAME: ${self:custom.settings.studyDataBucketName}
   events:
     - schedule:
@@ -31,7 +32,37 @@ envStatusPollHandler:
         rate: rate(3 minutes)
         description: 'Invokes the lambda function that polls and synchronize environment status.'
 
+dataSourceReachabilityHandler:
+  handler: src/lambdas/data-source-reachability/handler.handler
+  role: RoleApiHandler
+  tags: ${self:custom.tags}
+  timeout: 900 # in seconds, default is 6
+  description: Handles data source reachability polling (5 min)
+  events:
+    - schedule:
+        rate: rate(5 minutes)
+        description: 'Invokes the lambda function that polls and synchronize data source account and study status.'
+  environment:
+    APP_SM_WORKFLOW: ${self:custom.settings.workflowStateMachineArn}
+    APP_DB_STUDIES_CATEGORY_INDEX: ${self:custom.settings.dbStudiesCategoryIndex}
+    APP_DB_STUDIES_ACCOUNTID_INDEX: ${self:custom.settings.dbStudiesAccountIdIndex}
+    APP_STUDY_DATA_BUCKET_NAME: ${self:custom.settings.studyDataBucketName}
+
+dataSourceReachabilityDailyHandler:
+  handler: src/lambdas/data-source-reachability-daily/handler.handler
+  role: RoleApiHandler
+  tags: ${self:custom.tags}
+  timeout: 900 # in seconds, default is 6
+  description: Handles data source reachability polling (1 day)
+  events:
+    - schedule:
+        rate: rate(1 day)
+        description: 'Invokes the lambda function that polls and synchronize data source account and study status.'
+  environment:
+    APP_SM_WORKFLOW: ${self:custom.settings.workflowStateMachineArn}
+
 apiHandler:
+  timeout: 30 # in seconds, default is 6
   handler: src/lambdas/api-handler/handler.handler
   role: RoleApiHandler
   tags: ${self:custom.tags}
@@ -102,6 +133,7 @@ apiHandler:
     APP_EC2_WINDOWS_AMI_PREFIX: ${self:custom.settings.ec2WindowsAmiPrefix}
     APP_EMR_AMI_PREFIX: ${self:custom.settings.emrAmiPrefix}
     APP_DB_STUDIES_CATEGORY_INDEX: ${self:custom.settings.dbStudiesCategoryIndex}
+    APP_DB_STUDIES_ACCOUNTID_INDEX: ${self:custom.settings.dbStudiesAccountIdIndex}
     APP_STUDY_DATA_BUCKET_NAME: ${self:custom.settings.studyDataBucketName}
     APP_WORKFLOW_ROLE_ARN: ${self:custom.settings.workflowLoopRunnerRoleArn}
     APP_API_HANDLER_ARN: ${self:custom.settings.apiHandlerRoleArn}
@@ -114,6 +146,7 @@ apiHandler:
     APP_LAUNCH_CONSTRAINT_ROLE_PREFIX: ${self:custom.settings.launchConstraintRolePrefix}
     APP_LAUNCH_CONSTRAINT_POLICY_PREFIX: ${self:custom.settings.launchConstraintPolicyPrefix}
     APP_ENV_TYPE_CONFIGS_BUCKET_NAME: ${self:custom.settings.envTypeConfigsBucketName}
+    APP_ENV_BOOTSTRAP_BUCKET_NAME: ${self:custom.settings.environmentsBootstrapBucketName}
 
 workflowLoopRunner:
   handler: src/lambdas/workflow-loop-runner/handler.handler
@@ -128,6 +161,7 @@ workflowLoopRunner:
     APP_PARAM_STORE_JWT_SECRET: ${self:custom.settings.paramStoreJwtSecret}
     APP_JWT_OPTIONS: ${self:custom.settings.jwtOptions}
     APP_DB_STUDIES_CATEGORY_INDEX: ${self:custom.settings.dbStudiesCategoryIndex}
+    APP_DB_STUDIES_ACCOUNTID_INDEX: ${self:custom.settings.dbStudiesAccountIdIndex}
     APP_STUDY_DATA_BUCKET_NAME: ${self:custom.settings.studyDataBucketName}
     APP_ARTIFACTS_BUCKET_NAME: ${self:custom.settings.deploymentBucketName}
     APP_ENVIRONMENT_INSTANCE_FILES: ${self:custom.settings.environmentInstanceFiles}
@@ -140,3 +174,4 @@ workflowLoopRunner:
     APP_ENV_TYPE_CONFIGS_BUCKET_NAME: ${self:custom.settings.envTypeConfigsBucketName}
     APP_HOSTED_ZONE_ID: ${self:custom.settings.hostedZoneId}
     APP_DOMAIN_NAME: ${self:custom.settings.domainName}
+    APP_ENV_BOOTSTRAP_BUCKET_NAME: ${self:custom.settings.environmentsBootstrapBucketName}

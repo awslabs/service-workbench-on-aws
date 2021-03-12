@@ -2,7 +2,6 @@
 package main
 
 import (
-	"context"
 	"log"
 	"math"
 	"os"
@@ -43,15 +42,17 @@ type mountConfiguration struct {
 	destination string
 	writeable   bool
 	kmsKeyId    string
+	roleArn     string
 }
 
-func newMountConfiguration(bucket string, prefix string, destination string, writeable bool, kmsKeyId string) *mountConfiguration {
+func newMountConfiguration(bucket string, prefix string, destination string, writeable bool, kmsKeyId string, roleArn string) *mountConfiguration {
 	config := mountConfiguration{
 		bucket:      bucket,
 		prefix:      prefix,
 		destination: destination,
 		writeable:   writeable,
 		kmsKeyId:    kmsKeyId,
+		roleArn:     roleArn,
 	}
 	return &config
 }
@@ -108,17 +109,7 @@ func syncS3ToLocal(sess *session.Session, config *mountConfiguration, concurrenc
 
 	bucket := config.bucket
 	prefix := config.prefix
-	awsRegion, err := s3manager.GetBucketRegion(context.Background(), sess, bucket, *sess.Config.Region)
-	if debug {
-		log.Println("Bucket", bucket, "region is", awsRegion)
-	}
-
-	sessForTheMount := session.Must(session.NewSession(sess.Config))
-	sessForTheMount.Config.WithRegion(awsRegion)
-	svc := s3.New(sessForTheMount)
-	if err != nil {
-		log.Println("Error getting region of the bucket", bucket, err)
-	}
+	svc := s3.New(sess)
 
 	if debug {
 		log.Println("Listing", bucket, "for prefix", prefix)
@@ -153,7 +144,7 @@ func syncS3ToLocal(sess *session.Session, config *mountConfiguration, concurrenc
 		truncatedListing = *resp.IsTruncated
 	}
 
-	err = deleteLocalFilesNotInS3(listObjectResponses, config, debug)
+	err := deleteLocalFilesNotInS3(listObjectResponses, config, debug)
 	if err != nil {
 		log.Println("Error: ", err)
 	}
