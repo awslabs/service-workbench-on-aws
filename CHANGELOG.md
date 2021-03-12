@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.0.3] - 2021-03-12
+- chore(deps): bump websocket-extensions from 0.1.3 to 0.1.4
+- test: fix flaky integ tests
+- fix: emr workspace image. Lock jupyterlab to version 2.2.6
+- test: Implemented integration tests for service catalog workspaces
+- feat: verbose integ test log
+
 ## [2.0.2] - 2021-03-03
 
 ### Added 
