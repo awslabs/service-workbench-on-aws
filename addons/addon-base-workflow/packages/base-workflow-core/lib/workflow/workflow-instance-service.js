@@ -30,7 +30,6 @@ const settingKeys = {
 };
 
 const workflowIndexName = 'WorkflowIndex';
-const workflowStatusIndexName = 'InstanceStatusCreatedIndex';
 
 class WorkflowInstanceService extends Service {
   constructor() {
@@ -262,25 +261,6 @@ class WorkflowInstanceService extends Service {
         throw this.boom.badRequest(`Workflow instance "${instanceId}" does not exist`, true);
       },
     );
-
-    return result;
-  }
-
-  // List the all workflow instances by status for a specified time period
-  // startTime and endTime must be in ISO format
-  async listByStatus({ startTime, endTime, status, fields = [] } = {}) {
-    const dbService = await this.service('dbService');
-    const table = this.tableName;
-
-    const result = await dbService.helper
-      .query()
-      .table(table)
-      .index(workflowStatusIndexName)
-      .key('wfStatus', status)
-      .sortKey('createdAt')
-      .between(startTime, endTime)
-      .projection(fields)
-      .query();
 
     return result;
   }

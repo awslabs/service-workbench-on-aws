@@ -29,6 +29,8 @@ const baseRaasSchemaPlugin = require('@aws-ee/base-raas-services/lib/plugins/sch
 const bassRaasEnvTypeVarsPlugin = require('@aws-ee/base-raas-services/lib/plugins/env-provisioning-plugin');
 const keyPairRoutesPlugin = require('@aws-ee/key-pair-mgmt-api/lib/plugins/routes-plugin');
 const keyPairServicesPlugin = require('@aws-ee/key-pair-mgmt-services/lib/plugins/services-plugin');
+const rolesOnlyStrategyPlugin = require('@aws-ee/base-raas-services/lib/plugins/roles-only-strategy-plugin');
+const legacyStrategyPlugin = require('@aws-ee/base-raas-services/lib/plugins/legacy-strategy-plugin');
 
 const routesPlugin = require('./routes-plugin');
 
@@ -66,6 +68,7 @@ const extensionPoints = {
 
   'schema': [baseRaasSchemaPlugin],
   'env-sc-connection-url': [],
+  'study-access-strategy': [legacyStrategyPlugin, rolesOnlyStrategyPlugin],
 };
 
 async function getPlugins(extensionPoint) {

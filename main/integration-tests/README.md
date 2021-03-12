@@ -1,65 +1,89 @@
-# Integration Testing for Service Workbench
+# Integration Tests for Service Workbench
 
-## Terms
+## Intro
 
-**Test Administrator:** An admin-role user added in Service Workbench specifically for creating integration test resources
+The integration-tests package is for running API tests against all SWB APIs. 
+These tests can run against local and dev environments during development. 
+They can also be configured to run automatically as part of a GitHub workflow or CI/CD pipeline.
 
-**Test Project:** The default project assigned for running integration tests
+## Prerequisites
 
-## Setup
+### Test Resources
 
-- Create a Test Administrator user in your Service Workbench deployment where you want to run integration tests.
-  Currently only internal auth provider can be used for authenticating this user.
+To run integration tests, the following resources need to be created in advance:
 
-- Store the Test Administrator password in AWS Parameter Store. Pick a parameter name of your choice. For the parameter type, choose 'SecureString' and for the data type choose 'text'.
+#### Resources to create through SWB UI:
 
-- Create/Locate the test config file in your local repository (placed in `main/integration-tests/config/settings/<STAGE>.yml`). This will be useful when you're triggering the tests locally.
+* **Test Administrator:** Create an internal admin-role user for running integration tests. (**Note the username and password**)
 
-- Enter the Test Administrator username, password path (AWS Parameter Store), Test Project ID, and the rest of the values as directed in the `main/integration-tests/config/settings/example.yml` file. Your config file will be ignored by git when you make any changes.
+* **Test Project:** Create a default project for running integration tests. (**Note the projectId**)
 
-### For CI/CD Pipeline
+* **AWS Budget:** Create a budget for the AWS account associated with the Test Project.
 
-- Ensure the `isBuildServer` parameter value is set to `true` in your `main/integration-tests/config/settings/<STAGE>.yml` config file
-- Ensure the `awsProfile` value corresponds to the correct AWS account
-- Follow the steps mentioned in the `main/cicd/README.md` file to set up the CI/CD Pipeline
-- The integration test config file is automatically saved in your S3 `<namespace>-artifacts` bucket as part of this process, in the `integration-test` folder
+#### Resources to create through AWS Console:
 
-### For GitHub Pipeline
+* **Test Administrator password:** Create an AWS Parameter Store record to store Test Administrator password. Pick a parameter name of your choice. Use 'SecureString' for parameter type 'text' for data type.(**Note the parameter name**)
 
-- Create/Locate the integration test config file in your S3 `<namespace>-artifacts` bucket's `integration-test` folder
-- Ensure the `isBuildServer` parameter value is set to `true` in your config file
-- Ensure the following GitHub secrets are created in your target repository: 
-  - AWS_ACCESS_KEY_ID
-  - AWS_SECRET_ACCESS_KEY
-  - DEPLOYMENT_BUCKET (same as `<namespace>-artifacts`)
+* **Cost Explorer:** Turn on Cost Explorer service, activate tags 'Env', 'Proj' anc 'createdBy'.
 
+### Config File
 
-### For Debugging Tests against Deployed Application
+Once test resources are created, create a config file `main/integration-tests/config/settings/<STAGE>.yml` follow the example `main/integration-tests/config/settings/example.yml`.
+Use the same `<STAGE>` name as the main config file in `/main/config/settings`.
 
-- Ensure the `isBuildServer` parameter value is set to `false`
-
-### For Debugging Tests Locally (SLS Offline)
-
-- Ensure the `isBuildServer` parameter value is set to `false`
-- Ensure the `isLocal` parameter value is set to `true`. Verify the `localApiEndpoint` parameter value is accurate
-- Remember to launch sls offline
+Use Test Admin username, projectId, and Parameter Store name noted from the [Test Resources](#test-resources) section for field username, passwordPath and projectId in the config file.
+Use the same config values used in `/main/config/settings` for fields awsRegion, awsProfile, solutionName, envName, ane envType. 
 
 **Note**
 
-This file is unique from the rest of the `<STAGE>.yml` files created in the SDCs in that it does not gather serverless settings passed on from the hierarchies above (eg. from `main/config/settings/.defaults.yml`)
+This file is unique from other `<STAGE>.yml` files under other SDCs. It does not gather serverless settings passed on from the hierarchies above (eg. from `main/config/settings/.defaults.yml`)
 
-## Execution:
+## Execution
 
-Now run the command below to trigger the integration test suite. Note that this will generate test-related resources in the deployment linked to the provided stage name.
+Once test resources and config file are created, you can run the integration tests against the non-production environment defined in the config file.
 
+Note: Integration tests will create resources in the environment they are executed against.
+
+### Run against dev environment
+- In config file `main/integration-tests/config/settings/<STAGE>.yml`
+  - set `isBuildServer` to `false`
+  - set `isLocal` to `false`
+ 
+##### run all integration tests from the root directory with: 
 ```bash
 $ scripts/run-integration-tests.sh <STAGE>
 ```
 
-If you want to run a specific test suite, you can use the following command:
-
+Run specific test suites under `main/integration-tests` with: 
 ```bash
-$ cd integration-tests
 $ pnpm intTest __test__/api-tests/<your test suite file> -- --stage=<STAGE>
 # IMPORTANT: notice the additional '-- ' in front of the '--stage='
 ```
+
+### Run against local deployment (SLS Offline)
+- In config file `main/integration-tests/config/settings/<STAGE>.yml`
+  - set `isBuildServer` to `false`
+  - set `isLocal` to `true`
+  - set `localApiEndpoint` to local API endpoint
+- Launch sls offline
+- Trigger integration tests with the same [commands](#run-all-integration-tests-from-the-root-directory-with)
+
+### Run in CI/CD Pipeline
+- In config file `main/integration-tests/config/settings/<STAGE>.yml`
+  - set `isBuildServer` to `true`
+  - set `isLocal` to `false`
+  - set `awsProfile` to the AWS account used for integration tests
+- Follow the steps mentioned in the `main/cicd/README.md` file to set up the CI/CD Pipeline
+- The integration test config file will be automatically saved in the deployment S3 bucket `<namespace>-artifacts` under `integration-test` folder
+- Integration test will be triggered as part of the CI/CD pipeline
+
+### Run in GitHub Workflow
+- In config file `main/integration-tests/config/settings/<STAGE>.yml`
+  - set `isBuildServer` to `true`
+  - set `isLocal` to `false`
+- Upload the config file to the deployment S3 bucket `<namespace>-artifacts` under `integration-test` folder if it's not present
+- Create the following GitHub secrets in your target repository: 
+  - AWS_ACCESS_KEY_ID
+  - AWS_SECRET_ACCESS_KEY
+  - DEPLOYMENT_BUCKET (set the value to `<namespace>-artifacts`)
+- Integration test will be triggered as part of a GitHub workflow

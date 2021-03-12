@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "stackId": {
+      "type": "string",
+      "maxLength": 400
+    },
+    "templateIdExpected": {
+      "type": "string",
+      "maxLength": 400
+    },
+    "templateIdFound": {
+      "type": "string",
+      "maxLength": 400
+    },
+    "stackCreated": {
+      "type": "boolean"
+    }
+  }
+}

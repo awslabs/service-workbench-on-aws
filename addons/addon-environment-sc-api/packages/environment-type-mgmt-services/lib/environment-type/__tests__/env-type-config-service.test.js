@@ -215,15 +215,90 @@ describe('EnvTypeService', () => {
       }
     });
 
+    it('should fail desc incorrect', async () => {
+      // BUILD
+      const newConfig = {
+        id: 'iFindYourLackOfFaith',
+        name: 'disturbing',
+        desc: '<stuff>',
+        estimatedCostInfo: 'costs alot',
+        allowRoleIds: ['1234'],
+        denyRoleIds: ['1234'],
+        params: [
+          {
+            key: 'someProperty',
+            value: 'someValue',
+          },
+        ],
+      };
+
+      const envType = {
+        id: newConfig.id,
+        name: 'anakin',
+        params: [
+          {
+            ParameterKey: 'someProperty',
+            ParameterType: 'String',
+          },
+        ],
+      };
+      envTypeService.mustFind.mockImplementationOnce(() => envType);
+      service.audit = jest.fn();
+
+      // OPERATE and CHECK
+      await expect(service.create({}, newConfig.id, newConfig)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+    it('should fail estimatedCostInfo incorrect', async () => {
+      // BUILD
+      const newConfig = {
+        id: 'iFindYourLackOfFaith',
+        name: 'disturbing',
+        desc: 'stuff',
+        estimatedCostInfo: '<costs alot>',
+        allowRoleIds: ['1234'],
+        denyRoleIds: ['1234'],
+        params: [
+          {
+            key: 'someProperty',
+            value: 'someValue',
+          },
+        ],
+      };
+
+      const envType = {
+        id: newConfig.id,
+        name: 'anakin',
+        params: [
+          {
+            ParameterKey: 'someProperty',
+            ParameterType: 'String',
+          },
+        ],
+      };
+      envTypeService.mustFind.mockImplementationOnce(() => envType);
+      service.audit = jest.fn();
+
+      // OPERATE and CHECK
+      await expect(service.create({}, newConfig.id, newConfig)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+
     it('should succeed to create a config for the envType', async () => {
       // BUILD
       const newConfig = {
         id: 'iFindYourLackOfFaith',
         name: 'disturbing',
+        desc: 'stuff',
+        estimatedCostInfo: 'costs alot',
+        allowRoleIds: ['1234'],
+        denyRoleIds: ['1234'],
         params: [
           {
-            key: 'someProperty',
-            value: 'someValue',
+            key: 'vpcId',
+            value: '${vpcId}',
           },
         ],
       };
@@ -232,7 +307,7 @@ describe('EnvTypeService', () => {
         name: 'anakin',
         params: [
           {
-            ParameterKey: 'someProperty',
+            ParameterKey: 'vpcId',
             ParameterType: 'String',
           },
         ],

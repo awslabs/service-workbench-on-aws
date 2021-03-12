@@ -20,6 +20,8 @@ import { Message, Button } from 'semantic-ui-react';
 
 // expected props
 // - error (an object with a "message" property  or a string)
+// - onRetry (via prop) a call back function
+// - onCancel (via prop) a call back function
 // - className
 class ErrorBox extends React.Component {
   handleRetry = () => {
@@ -39,7 +41,7 @@ class ErrorBox extends React.Component {
 
     return (
       <div className={`${className}`}>
-        <Message negative className="clearfix">
+        <Message negative className="clearfix" onDismiss={this.props.onCancel}>
           <Message.Header>A problem was encountered</Message.Header>
           <p>{message}</p>
           {shouldRetry && (

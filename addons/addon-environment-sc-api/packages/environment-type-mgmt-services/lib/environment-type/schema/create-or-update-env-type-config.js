@@ -33,11 +33,13 @@ const schema = {
     desc: {
       type: 'string',
       maxLength: 8191,
+      pattern: '^([^<>{}]*)$',
     },
     // A string explaining estimated cost
     estimatedCostInfo: {
       type: 'string',
       maxLength: 1024,
+      pattern: '^([^<>{}]*)$',
     },
     allowRoleIds: {
       type: 'array',
@@ -70,9 +72,13 @@ const schema = {
           properties: {
             key: {
               type: 'string', // The name of the CFN parameter
+              maxLength: 8191,
+              pattern: '^([^<>{}]*)$',
             },
             value: {
               type: 'string', // The value for the CFN param or variable expression such as ${vpcId} that will be resolved at the time of launching envs
+              maxLength: 8191,
+              pattern: '^([^<>]+)$',
             },
           },
         },
@@ -89,9 +95,13 @@ const schema = {
           properties: {
             key: {
               type: 'string', // Tag name
+              maxLength: 8191,
+              pattern: '^([^<>{}]*)$',
             },
             value: {
               type: 'string', // Tag value
+              maxLength: 8191,
+              pattern: '^([^<>{}]*)$',
             },
           },
         },

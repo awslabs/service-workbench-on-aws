@@ -5,20 +5,26 @@
   "properties": {
     "id": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "^[A-Za-z0-9-_]+$"
     },
     "budgetConfiguration": {
       "type": "object",
       "required": ["budgetLimit", "startDate", "endDate"],
       "properties": {
         "budgetLimit": {
-          "type": "string"
+          "type": "string",
+          "maxLength": 512,
+          "pattern": "^([0-9.]+)$"
         },
         "startDate": {
-          "type": "integer"
+          "type": "integer",
+          "minimum": 0
         },
         "endDate": {
-          "type": "integer"
+          "type": "integer",
+          "minimum": 0
         },
         "thresholds": {
           "type": "array",
@@ -29,6 +35,7 @@
         },
         "notificationEmail": {
           "type": "string",
+          "maxLength": 512,
           "format": "email"
         }
       },
@@ -39,7 +46,9 @@
       "additionalProperties": false
     },
     "description": {
-      "type": "string"
+      "type": "string",
+      "maxLength": 2048,
+      "pattern": "^([^<>{}]*)$"
     }
   },
   "additionalProperties": false
