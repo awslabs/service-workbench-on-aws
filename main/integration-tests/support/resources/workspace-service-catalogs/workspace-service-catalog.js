@@ -14,50 +14,59 @@
  */
 
 const _ = require('lodash');
-
 const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const Resource = require('../base/resource');
-const Configurations = require('./configurations/configurations');
-const ConfigVars = require('./config-vars/config-vars');
+const Connections = require('./connections/connections');
+const { deleteWorkspaceServiceCatalog } = require('../../complex/delete-workspace-service-catalog.js');
 
-class WorkspaceType extends Resource {
+class WorkspaceServiceCatalog extends Resource {
   constructor({ clientSession, id, parent }) {
     super({
       clientSession,
-      type: 'workspaceType',
+      type: 'workspaceServiceCatalog',
       id,
       parent,
     });
 
-    if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [workspace-type]');
+    if (_.isEmpty(parent))
+      throw Error('A parent resource was not provided to resource type [workspace-service-catalog]');
   }
 
-  configurations() {
-    return new Configurations({ clientSession: this.clientSession, parent: this });
+  connections() {
+    return new Connections({ clientSession: this.clientSession, parent: this });
   }
 
-  configVars() {
-    return new ConfigVars({ clientSession: this.clientSession, parent: this });
+  async stop() {
+    const api = `${this.api}/stop`;
+    const response = await this.doCall(async () => this.axiosClient.put(api, {}, {}));
+
+    await sleep(this.deflakeDelay());
+    return response;
   }
 
-  async approve(body) {
-    const api = `${this.api}/approve`;
+  async start() {
+    const api = `${this.api}/start`;
+    const response = await this.doCall(async () => this.axiosClient.put(api, {}, {}));
+
+    await sleep(this.deflakeDelay());
+    return response;
+  }
+
+  async cidr(body) {
+    const api = `${this.api}/cidr`;
     const response = await this.doCall(async () => this.axiosClient.put(api, body, {}));
 
     await sleep(this.deflakeDelay());
     return response;
   }
 
-  async revoke(body) {
-    const api = `${this.api}/revoke`;
-    const response = await this.doCall(async () => this.axiosClient.put(api, body, {}));
-
-    await sleep(this.deflakeDelay());
-    return response;
+  async cleanup() {
+    await super.cleanup();
+    await deleteWorkspaceServiceCatalog({ aws: this.setup.aws, id: this.id });
   }
 
   // ************************ Helpers methods ************************
 }
 
-module.exports = WorkspaceType;
+module.exports = WorkspaceServiceCatalog;

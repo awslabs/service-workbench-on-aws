@@ -14,44 +14,39 @@
  */
 
 const _ = require('lodash');
-
 const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
 
-const Resource = require('../base/resource');
-const Configurations = require('./configurations/configurations');
-const ConfigVars = require('./config-vars/config-vars');
+const Resource = require('../../base/resource');
 
-class WorkspaceType extends Resource {
+class Connection extends Resource {
   constructor({ clientSession, id, parent }) {
     super({
       clientSession,
-      type: 'workspaceType',
+      type: 'connection',
       id,
       parent,
     });
 
-    if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [workspace-type]');
+    if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [connection]');
   }
 
-  configurations() {
-    return new Configurations({ clientSession: this.clientSession, parent: this });
-  }
-
-  configVars() {
-    return new ConfigVars({ clientSession: this.clientSession, parent: this });
-  }
-
-  async approve(body) {
-    const api = `${this.api}/approve`;
-    const response = await this.doCall(async () => this.axiosClient.put(api, body, {}));
+  async createUrl() {
+    const api = `${this.api}/url`;
+    const response = await this.doCall(async () => this.axiosClient.post(api, {}, {}));
 
     await sleep(this.deflakeDelay());
     return response;
   }
 
-  async revoke(body) {
-    const api = `${this.api}/revoke`;
-    const response = await this.doCall(async () => this.axiosClient.put(api, body, {}));
+  async windowsRdpInfo() {
+    const api = `${this.api}/windows-rdp-info`;
+
+    return this.doCall(async () => this.axiosClient.get(api, {}, {}));
+  }
+
+  async sendSshPublicKey(body) {
+    const api = `${this.api}/send-ssh-public-key`;
+    const response = await this.doCall(async () => this.axiosClient.post(api, body, {}));
 
     await sleep(this.deflakeDelay());
     return response;
@@ -60,4 +55,4 @@ class WorkspaceType extends Resource {
   // ************************ Helpers methods ************************
 }
 
-module.exports = WorkspaceType;
+module.exports = Connection;

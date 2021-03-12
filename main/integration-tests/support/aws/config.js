@@ -51,6 +51,7 @@ const config = async ({ settings }) => {
   return {
     awsRegionShortName,
     namespace,
+    globalNamespace,
     backendStackName: `${envName}-${awsRegionShortName}-${solutionName}-backend`,
     dbPrefix: namespace,
     studyDataBucketName: `${globalNamespace}-studydata`,

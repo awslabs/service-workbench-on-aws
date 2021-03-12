@@ -15,6 +15,7 @@
  */
 
 const _ = require('lodash');
+const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const { transform } = require('../../utils/axios-error');
 
@@ -58,6 +59,8 @@ class Resource {
       // We add a cleanup task to the cleanup queue for the session
       this.clientSession.addCleanupTask({ id: taskId, task: async () => this.cleanup(resource) });
 
+      await sleep(this.deflakeDelay());
+
       return resource;
     } catch (error) {
       throw transform(error);
@@ -69,7 +72,10 @@ class Resource {
   }
 
   async update(body = {}, params = {}, { api = this.api } = {}) {
-    return this.doCall(async () => this.axiosClient.put(api, body, { params }));
+    const response = await this.doCall(async () => this.axiosClient.put(api, body, { params }));
+
+    await sleep(this.deflakeDelay());
+    return response;
   }
 
   async delete(params = {}, { api = this.api } = {}) {
@@ -80,6 +86,8 @@ class Resource {
       // task for this resource  (if one existed)
       const taskId = `${this.type}-${this.id}`;
       this.clientSession.removeCleanupTask(taskId);
+
+      await sleep(this.deflakeDelay());
       return response;
     });
   }
@@ -113,6 +121,12 @@ class Resource {
       this.axiosClient = adminSession.axiosClient;
       await this.delete();
     }
+  }
+
+  // Specifies the delay duration in milliseconds needed to minimize the usage of stale data due to eventual
+  // consistency. Duration can be altered by overriding function in sub-class.
+  async deflakeDelay() {
+    return 2000;
   }
 }
 
