@@ -21,7 +21,7 @@ import { Button, Dimmer, Dropdown, Loader, Icon, Table } from 'semantic-ui-react
 
 import { displayError, displaySuccess } from '@aws-ee/base-ui/dist/helpers/notification';
 import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import { isStoreError, isStoreLoading, isStoreNew } from '@aws-ee/base-ui/dist/models/BaseStore';
+import { isStoreError, isStoreLoading, isStoreNew, stopHeartbeat } from '@aws-ee/base-ui/dist/models/BaseStore';
 import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
 import UserLabels from '@aws-ee/base-ui/dist/parts/helpers/UserLabels';
@@ -42,18 +42,22 @@ class StudyPermissionsTable extends React.Component {
     });
   }
 
+  get study() {
+    return this.props.study;
+  }
+
   componentDidMount() {
     swallowError(this.permissionsStore.load());
     this.permissionsStore.startHeartbeat();
   }
 
   componentWillUnmount() {
-    this.permissionsStore.stopHeartbeat();
+    stopHeartbeat(this.permissionsStore);
   }
 
   enableEditMode = () => {
     // Set users who currently have permission to the study as the selected users
-    this.permissionsStore.studyPermissions.userTypes.forEach(userType => {
+    this.study.userTypes.forEach(userType => {
       this.selectedUserIds[userType] = this.permissionsStore.studyPermissions[`${userType}Users`];
     });
 
@@ -103,7 +107,7 @@ class StudyPermissionsTable extends React.Component {
 
   renderTable() {
     const studyPermissions = this.permissionsStore.studyPermissions;
-    const isEditable = studyPermissions.adminUsers.some(uid => uid === this.currUser.uid);
+    const isEditable = studyPermissions.isStudyAdmin(this.currUser.uid) && this.study.state.canChangePermission;
 
     return (
       <>
@@ -125,7 +129,7 @@ class StudyPermissionsTable extends React.Component {
             </Table.Header>
 
             <Table.Body>
-              {this.permissionsStore.studyPermissions.userTypes.map(userType => {
+              {this.study.userTypes.map(userType => {
                 const uids = studyPermissions[`${userType}Users`];
                 const userIdentifiers = _.map(uids, uid => ({ uid }));
                 const users = this.usersStore.asUserObjects(userIdentifiers);

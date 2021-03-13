@@ -46,8 +46,6 @@ class WorkspaceTypes extends CollectionResource {
       name: id,
       desc: this.setup.gen.description(),
       status: 'not-approved',
-      product: { productId: this.settings.get('defaultProductId') },
-      provisioningArtifact: { id: this.settings.get('defaultProvisioningArtifactId') },
       ...workspaceType,
     };
   }

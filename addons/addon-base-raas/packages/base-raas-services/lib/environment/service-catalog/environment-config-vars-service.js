@@ -17,6 +17,12 @@ const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
 
+const { StudyPolicy } = require('../../helpers/iam/study-policy');
+
+const settingKeys = {
+  environmentInstanceFiles: 'environmentInstanceFiles',
+};
+
 /**
  * Creation of Environment Type Configuration requires specifying mapping between AWS CloudFormation Input Parameters
  * and predefined values. Many times, the values are not available at the time of creating this mapping. In such cases,
@@ -37,7 +43,8 @@ class EnvironmentConfigVarsService extends Service {
       'awsAccountsService',
       'environmentAmiService',
       'envTypeConfigService',
-      'environmentMountService',
+      'studyService',
+      'pluginRegistryService',
     ]);
   }
 
@@ -105,7 +112,7 @@ class EnvironmentConfigVarsService extends Service {
         desc:
           'A JSON array of objects with name, bucket and prefix properties used to mount data from S3 based on the associated studies',
       },
-      { name: 's3Prefixes', desc: 'A JSON array of S3 prefixes based on the associated studies' },
+      // { name: 's3Prefixes', desc: 'A JSON array of S3 prefixes based on the associated studies' },
       { name: 'iamPolicyDocument', desc: 'The IAM policy to be associated with the launched environment workstation' },
       {
         name: 'environmentInstanceFiles',
@@ -138,7 +145,6 @@ class EnvironmentConfigVarsService extends Service {
       awsAccountsService,
       environmentAmiService,
       envTypeConfigService,
-      environmentMountService,
     ] = await this.service([
       'userService',
       'environmentScService',
@@ -147,7 +153,6 @@ class EnvironmentConfigVarsService extends Service {
       'awsAccountsService',
       'environmentAmiService',
       'envTypeConfigService',
-      'environmentMountService',
     ]);
     const environment = await environmentScService.mustFind(requestContext, { id: envId });
 
@@ -192,21 +197,28 @@ class EnvironmentConfigVarsService extends Service {
       });
     }
 
-    const {
-      s3Mounts,
-      iamPolicyDocument,
-      environmentInstanceFiles,
-      s3Prefixes,
-    } = await environmentMountService.getStudyAccessInfo(requestContext, studyIds, environment.createdAt);
+    const studies = await environmentScService.getStudies(requestContext, environment);
+
+    const iamPolicyDocument = await this.getEnvRolePolicy(requestContext, {
+      environment,
+      studies,
+      memberAccountId: accountId,
+    });
+
+    const s3Mounts = await this.getS3Mounts(requestContext, {
+      environment,
+      studies,
+      memberAccountId: accountId,
+    });
 
     // TODO: If the ami sharing gets moved (because it doesn't contribute to an env var)
     // then move the update local resource policies too.
     // Using the account root provides basically the same level of security because in either
     // case we have to trust that the member account hasn't altered the role's assume role policy to allow other
     // principals assume it
-    if (s3Prefixes.length > 0) {
-      await environmentMountService.addRoleArnToLocalResourcePolicies(`arn:aws:iam::${accountId}:root`, s3Prefixes);
-    }
+    // if (s3Prefixes.length > 0) {
+    //   await environmentMountService.addRoleArnToLocalResourcePolicies(`arn:aws:iam::${accountId}:root`, s3Prefixes);
+    // }
 
     // Check if the environment being launched needs an admin key-pair to be created in the target account
     // If the configuration being used has any parameter that uses the "adminKeyPairName" variable then it means
@@ -240,10 +252,11 @@ class EnvironmentConfigVarsService extends Service {
       xAccEnvMgmtRoleArn,
       externalId,
 
-      s3Mounts,
-      iamPolicyDocument,
-      environmentInstanceFiles,
-      s3Prefixes,
+      s3Mounts: JSON.stringify(s3Mounts),
+      iamPolicyDocument: JSON.stringify(iamPolicyDocument),
+      environmentInstanceFiles: this.settings.get(settingKeys.environmentInstanceFiles),
+      // s3Prefixes // This variable is no longer relevant it is being removed, the assumption is that
+      // this variable has not been used in any of the product templates.
 
       uid: user.uid,
       username: user.username,
@@ -251,6 +264,43 @@ class EnvironmentConfigVarsService extends Service {
 
       adminKeyPairName,
     };
+  }
+
+  async getEnvRolePolicy(requestContext, { environment, studies, memberAccountId }) {
+    const policyDoc = new StudyPolicy();
+    const pluginRegistryService = await this.service('pluginRegistryService');
+
+    const result = await pluginRegistryService.visitPlugins('study-access-strategy', 'provideEnvRolePolicy', {
+      payload: {
+        requestContext,
+        container: this.container,
+        environmentScEntity: environment,
+        studies,
+        policyDoc,
+        memberAccountId,
+      },
+    });
+
+    const doc = _.get(result, 'policyDoc');
+    return _.isUndefined(doc) ? {} : doc.toPolicyDoc();
+  }
+
+  async getS3Mounts(requestContext, { environment, studies, memberAccountId }) {
+    const s3Mounts = [];
+    const pluginRegistryService = await this.service('pluginRegistryService');
+
+    const result = await pluginRegistryService.visitPlugins('study-access-strategy', 'provideStudyMount', {
+      payload: {
+        requestContext,
+        container: this.container,
+        environmentScEntity: environment,
+        studies,
+        s3Mounts,
+        memberAccountId,
+      },
+    });
+
+    return _.get(result, 's3Mounts', []);
   }
 
   async getDefaultTags(requestContext, resolvedVars) {

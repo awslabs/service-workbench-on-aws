@@ -16,7 +16,7 @@
 import React from 'react';
 import { decorate, action, computed, runInAction, observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
-import { Header, Checkbox, Segment, Accordion, Icon } from 'semantic-ui-react';
+import { Header, Checkbox, Segment, Accordion, Icon, Popup, Label } from 'semantic-ui-react';
 import c from 'classnames';
 
 import StudyFilesTable from './StudyFilesTable';
@@ -41,7 +41,7 @@ class StudyRow extends React.Component {
   }
 
   get isSelectable() {
-    return this.props.isSelectable;
+    return this.props.isSelectable && this.study.state.canSelect;
   }
 
   handleFileSelection = study => {
@@ -78,9 +78,10 @@ class StudyRow extends React.Component {
       <Segment clearing padded raised className="mb3" {...attrs}>
         <div className="flex">
           <div className="mr2" {...onClickAttr}>
-            {isSelectable && <Checkbox checked={isSelected} style={{ marginTop: '3px' }} />}
+            {isSelectable && <Checkbox checked={isSelected} style={{ marginTop: '17px' }} />}
           </div>
           <div className="flex-auto mb1">
+            {this.renderStatus(study.state)}
             {this.renderHeader(study)}
             {this.renderDescription(study)}
             {this.renderFilesAccordion(study)}
@@ -98,21 +99,41 @@ class StudyRow extends React.Component {
     if (isSelectable) onClickAttr.onClick = () => this.handleFileSelection(study);
 
     return (
-      <>
-        {study.uploadLocationEnabled && study.canUpload && <UploadStudyFiles studyId={study.id} />}
-        <Header as="h3" color="blue" className={c('mt0', isSelectable ? 'cursor-pointer' : '')} {...onClickAttr}>
+      <div>
+        <Header as="h3" color="blue" className={c('mt2', isSelectable ? 'cursor-pointer' : '')} {...onClickAttr}>
+          {study.uploadLocationEnabled && study.canUpload && <UploadStudyFiles studyId={study.id} />}
           {study.name}
           <Header.Subheader>
             <span className="pt1 fs-8 color-grey">{study.id}</span>
             {study.projectId && <span className="fs-8 color-grey"> &middot; {study.projectId}</span>}
           </Header.Subheader>
         </Header>
-      </>
+      </div>
     );
   }
 
   renderDescription(study) {
     return <div>{study.description}</div>;
+  }
+
+  renderStatus(state) {
+    // Do not show a label if it is default/reachable
+    if (state && (state.key === 'default' || state.key === 'reachable')) return null;
+
+    return (
+      <div style={{ cursor: 'default' }}>
+        <Popup
+          trigger={
+            <Label attached="top left" size="mini" color={state.color}>
+              {state.spinner && <Icon name="spinner" loading />}
+              {state.display}
+            </Label>
+          }
+        >
+          {state.tip}
+        </Popup>
+      </div>
+    );
   }
 
   renderFilesAccordion(study) {

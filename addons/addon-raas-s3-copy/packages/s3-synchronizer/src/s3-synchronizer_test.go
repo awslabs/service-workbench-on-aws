@@ -65,7 +65,7 @@ func TestMainImplForInitialDownloadSingleMount(t *testing.T) {
 	fmt.Printf("Input: \n\n%s\n\n", testMountsJson)
 
 	// ---- Run code under test ----
-	err = mainImpl(testAwsSession, debug, false, -1, 60, -1, concurrency, testMountsJson, destinationBase)
+	err = mainImpl(testAwsSession, debug, false, -1, 60, -1, concurrency, testMountsJson, destinationBase, testRegion)
 	if err != nil {
 		// Fail test in case of any errors
 		t.Logf("Error running the main s3-synchronizer with testMountsJson %s", testMountsJson)
@@ -109,7 +109,7 @@ func TestMainImplForInitialDownloadMultipleMounts(t *testing.T) {
 	fmt.Printf("Input: \n\n%s\n\n", testMountsJson)
 
 	// ---- Run code under test ----
-	err = mainImpl(testAwsSession, debug, false, -1, 60, -1, concurrency, testMountsJson, destinationBase)
+	err = mainImpl(testAwsSession, debug, false, -1, 60, -1, concurrency, testMountsJson, destinationBase, testRegion)
 	if err != nil {
 		// Fail test in case of any errors
 		t.Logf("Error running the main s3-synchronizer with testMountsJson %s", testMountsJson)
@@ -141,7 +141,7 @@ func TestMainImplForInitialDownloadEmptyMounts(t *testing.T) {
 	fmt.Printf("Input: \n\n%s\n\n", testMountsJson)
 
 	// ---- Run code under test ----
-	err = mainImpl(testAwsSession, debug, false, -1, 60, -1, concurrency, testMountsJson, destinationBase)
+	err = mainImpl(testAwsSession, debug, false, -1, 60, -1, concurrency, testMountsJson, destinationBase, testRegion)
 	if err != nil {
 		// Fail test in case of any errors
 		t.Logf("Error running the main s3-synchronizer with testMountsJson %s", testMountsJson)
@@ -158,7 +158,7 @@ func TestMainImplForInitialDownloadInvalidMounts(t *testing.T) {
 	fmt.Printf("Input: \n\n%s\n\n", testMountsJson)
 
 	// ---- Run code under test ----
-	err := mainImpl(testAwsSession, debug, false, -1, 60, -1, concurrency, testMountsJson, destinationBase)
+	err := mainImpl(testAwsSession, debug, false, -1, 60, -1, concurrency, testMountsJson, destinationBase, testRegion)
 	if err == nil {
 		// Fail test in case of no errors since we are expecting errors when passing invalid json for mounting
 		t.Logf("Expecting error when running the main s3-synchronizer with invalid testMountsJson but it ran fine")
@@ -200,7 +200,7 @@ func TestMainImplForSyncSingleMount(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		// ---- Run code under test ----
-		err = mainImpl(testAwsSession, debug, recurringDownloads, stopRecurringDownloadsAfter, downloadInterval, -1, concurrency, testMountsJson, destinationBase)
+		err = mainImpl(testAwsSession, debug, recurringDownloads, stopRecurringDownloadsAfter, downloadInterval, -1, concurrency, testMountsJson, destinationBase, testRegion)
 		if err != nil {
 			// Fail test in case of any errors
 			t.Logf("Error running the main s3-synchronizer with testMountsJson %s", testMountsJson)
@@ -307,7 +307,7 @@ func TestMainImplForSyncMultipleMounts(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		// ---- Run code under test ----
-		err = mainImpl(testAwsSession, debug, recurringDownloads, stopRecurringDownloadsAfter, downloadInterval, -1, concurrency, testMountsJson, destinationBase)
+		err = mainImpl(testAwsSession, debug, recurringDownloads, stopRecurringDownloadsAfter, downloadInterval, -1, concurrency, testMountsJson, destinationBase, testRegion)
 		if err != nil {
 			// Fail test in case of any errors
 			t.Logf("Error running the main s3-synchronizer with testMountsJson %s", testMountsJson)
@@ -401,7 +401,7 @@ func TestMainImplForRecurringDownloadEmptyMounts(t *testing.T) {
 	fmt.Printf("Input: \n\n%s\n\n", testMountsJson)
 
 	// ---- Run code under test ----
-	err = mainImpl(testAwsSession, debug, true, 5, 1, -1, concurrency, testMountsJson, destinationBase)
+	err = mainImpl(testAwsSession, debug, true, 5, 1, -1, concurrency, testMountsJson, destinationBase, testRegion)
 	if err != nil {
 		// Fail test in case of any errors
 		t.Logf("Error running the main s3-synchronizer with testMountsJson %s", testMountsJson)
@@ -418,7 +418,7 @@ func TestMainImplForRecurringDownloadInvalidMounts(t *testing.T) {
 	fmt.Printf("Input: \n\n%s\n\n", testMountsJson)
 
 	// ---- Run code under test ----
-	err := mainImpl(testAwsSession, debug, true, 5, 1, -1, concurrency, testMountsJson, destinationBase)
+	err := mainImpl(testAwsSession, debug, true, 5, 1, -1, concurrency, testMountsJson, destinationBase, testRegion)
 	if err == nil {
 		// Fail test in case of no errors since we are expecting errors when passing invalid json for mounting
 		t.Logf("Expecting error when running the main s3-synchronizer with invalid testMountsJson but it ran fine")
@@ -469,7 +469,7 @@ func TestMainImplForBiDirectionalSyncSingleMount(t *testing.T) {
 	go func() {
 
 		// ---- Run code under test ----
-		err = mainImpl(testAwsSession, debug, recurringDownloads, stopRecurringDownloadsAfter, downloadInterval, stopUploadWatchersAfter, concurrency, testMountsJson, destinationBase)
+		err = mainImpl(testAwsSession, debug, recurringDownloads, stopRecurringDownloadsAfter, downloadInterval, stopUploadWatchersAfter, concurrency, testMountsJson, destinationBase, testRegion)
 		if err != nil {
 			// Fail test in case of any errors
 			t.Logf("Error running the main s3-synchronizer with testMountsJson %s", testMountsJson)
@@ -702,7 +702,7 @@ func TestMainImplForBiDirectionalSyncMultipleMounts(t *testing.T) {
 	wg.Add(1)
 	go func() {
 		// ---- Run code under test ----
-		err = mainImpl(testAwsSession, debug, recurringDownloads, stopRecurringDownloadsAfter, downloadInterval, stopUploadWatchersAfter, concurrency, testMountsJson, destinationBase)
+		err = mainImpl(testAwsSession, debug, recurringDownloads, stopRecurringDownloadsAfter, downloadInterval, stopUploadWatchersAfter, concurrency, testMountsJson, destinationBase, testRegion)
 		if err != nil {
 			// Fail test in case of any errors
 			t.Logf("Error running the main s3-synchronizer with testMountsJson %s", testMountsJson)
@@ -950,7 +950,7 @@ func putTestMountFiles(t *testing.T, bucketName string, testMountId string, noOf
 		}
 	}
 	kmsKeyId := ""
-	return &s3Mount{Id: &testMountId, Bucket: &bucketName, Prefix: &mountPrefix, Writeable: &writeable, KmsKeyId: &kmsKeyId}
+	return &s3Mount{Id: &testMountId, Bucket: &bucketName, Prefix: &mountPrefix, Writeable: &writeable, KmsArn: &kmsKeyId}
 }
 
 func createTestFilesLocally(t *testing.T, testMountId string, noOfFiles int) {

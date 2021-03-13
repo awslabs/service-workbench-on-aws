@@ -61,6 +61,8 @@ class EnvironmentAuthzService extends Service {
         return this.authorizeCreateSc(requestContext, { action }, ...args);
       case 'create-external':
         return this.authorizeCreateExternal(requestContext, { action }, ...args);
+      case 'update-study-role-map':
+        return this.allowIfOwnerOrAdmin(requestContext, { action }, ...args);
       default:
         // This authorizer does not know how to perform authorization for the specified action.
         // Return with the current authorization decision collected so far (from other plugins, if any)

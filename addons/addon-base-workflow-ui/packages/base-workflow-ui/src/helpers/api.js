@@ -90,10 +90,6 @@ async function getWorkflow(id) {
   return httpApiGet(`api/workflows/${encodeURIComponent(id)}`);
 }
 
-async function listWorkflowInstancesByStatus({ status, data }) {
-  return httpApiPost(`api/workflows/instances/status/${status}`, { data });
-}
-
 async function getWorkflowInstances(id, ver) {
   return httpApiGet(`api/workflows/${encodeURIComponent(id)}/v/${ver}/instances`);
 }
@@ -128,7 +124,6 @@ export {
   publishWorkflowDraft,
   deleteWorkflowDraft,
   getWorkflow,
-  listWorkflowInstancesByStatus,
   getWorkflowInstances,
   getWorkflowInstance,
   triggerWorkflow,

@@ -14,18 +14,26 @@
  */
 
 const { runSetup } = require('../../../support/setup');
+const {
+  createDefaultServiceCatalogProduct,
+  deleteDefaultServiceCatalogProduct,
+  addProductInfo,
+} = require('../../../support/complex/default-integration-test-product');
 const errorCode = require('../../../support/utils/error-code');
 
 describe('Get workspace-types scenarios', () => {
   let setup;
   let adminSession;
+  let productInfo;
 
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
+    productInfo = await createDefaultServiceCatalogProduct(setup);
   });
 
   afterAll(async () => {
+    await deleteDefaultServiceCatalogProduct(setup, productInfo);
     await setup.cleanup();
   });
 
@@ -68,10 +76,9 @@ describe('Get workspace-types scenarios', () => {
       const researcherSession = await setup.createResearcherSession();
       const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
-      await adminSession.resources.workspaceTypes.create({
-        id: workspaceTypeId,
-        status: 'approved',
-      });
+      await adminSession.resources.workspaceTypes.create(
+        addProductInfo({ id: workspaceTypeId, status: 'approved' }, productInfo),
+      );
 
       await expect(researcherSession.resources.workspaceTypes.getApproved()).resolves.not.toHaveLength(0);
     });
@@ -80,10 +87,9 @@ describe('Get workspace-types scenarios', () => {
       const researcherSession = await setup.createResearcherSession();
       const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
-      await adminSession.resources.workspaceTypes.create({
-        id: workspaceTypeId,
-        status: 'not-approved',
-      });
+      await adminSession.resources.workspaceTypes.create(
+        addProductInfo({ id: workspaceTypeId, status: 'not-approved' }, productInfo),
+      );
 
       await expect(researcherSession.resources.workspaceTypes.getNotApproved()).resolves.toHaveLength(0);
     });
@@ -91,10 +97,9 @@ describe('Get workspace-types scenarios', () => {
     it('should return approved workspaces if user is admin', async () => {
       const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
-      await adminSession.resources.workspaceTypes.create({
-        id: workspaceTypeId,
-        status: 'approved',
-      });
+      await adminSession.resources.workspaceTypes.create(
+        addProductInfo({ id: workspaceTypeId, status: 'approved' }, productInfo),
+      );
 
       await expect(adminSession.resources.workspaceTypes.getApproved()).resolves.not.toHaveLength(0);
     });
@@ -102,10 +107,9 @@ describe('Get workspace-types scenarios', () => {
     it('should return not-approved workspaces if user is admin', async () => {
       const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
-      await adminSession.resources.workspaceTypes.create({
-        id: workspaceTypeId,
-        status: 'not-approved',
-      });
+      await adminSession.resources.workspaceTypes.create(
+        addProductInfo({ id: workspaceTypeId, status: 'not-approved' }, productInfo),
+      );
 
       await expect(adminSession.resources.workspaceTypes.getNotApproved()).resolves.not.toHaveLength(0);
     });

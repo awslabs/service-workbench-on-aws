@@ -1,14 +1,14 @@
 module.exports = {
   serviceWorkbenchSidebar: {
-    ServiceWorkBench: ["introduction"],    
+    ServiceWorkBench: ["introduction"],
     "Deployment Guide": [
       "deployment/about_this_guide",
       "deployment/summary",
-      "deployment/deployment_stages",      
+      "deployment/deployment_stages",
       {
         "Pre Deployment": [
           "deployment/pre_deployment/pre_deployment",
-	  "deployment/pre_deployment/accounts",
+          "deployment/pre_deployment/accounts",
           "deployment/pre_deployment/prereq_commands",
           "deployment/pre_deployment/deployment_instance",
           "deployment/pre_deployment/source_code",
@@ -25,6 +25,7 @@ module.exports = {
           "deployment/post_deployment/create_index_project",
           "deployment/post_deployment/create_admin_user",
           "deployment/post_deployment/import_service_catalog_products",
+          "deployment/post_deployment/logs",
         ],
       },
       {
@@ -59,7 +60,8 @@ module.exports = {
                 Studies: [
                   "user_guide/sidebar/common/studies/introduction",
                   "user_guide/sidebar/common/studies/creating_a_study",
-                  "user_guide/sidebar/common/studies/uploading_files",
+                  "user_guide/sidebar/common/studies/data_sources",
+                  "user_guide/sidebar/common/studies/studies_page",
                   "user_guide/sidebar/common/studies/sharing_a_study",
                 ],
                 Workspaces: [
@@ -108,8 +110,9 @@ module.exports = {
                 Studies: [
                   "user_guide/sidebar/common/studies/introduction",
                   "user_guide/sidebar/common/studies/creating_a_study",
-                  "user_guide/sidebar/common/studies/uploading_files",
+                  "user_guide/sidebar/common/studies/studies_page",
                   "user_guide/sidebar/common/studies/sharing_a_study",
+                  "user_guide/sidebar/common/studies/data_sources",
                 ],
                 Workspaces: [
                   "user_guide/sidebar/common/workspaces/introduction",

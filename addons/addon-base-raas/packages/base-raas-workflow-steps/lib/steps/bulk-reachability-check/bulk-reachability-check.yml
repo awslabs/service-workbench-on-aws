@@ -1,0 +1,8 @@
+id: st-bulk-reachability-check
+v: 1
+title: Check Data Source Reachability
+desc: |
+  Check Data Source (account and/or study) Reachability
+
+skippable: true # this means that if there is an error in a previous step, then this step will be skipped
+hidden: true

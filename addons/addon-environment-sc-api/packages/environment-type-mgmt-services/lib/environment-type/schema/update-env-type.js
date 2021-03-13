@@ -22,10 +22,11 @@ const schema = {
       type: 'string',
       maxLength: 100,
       minLength: 2,
-      pattern: '^[a-zA-Z0-9_\\-]*',
+      pattern: '^[a-zA-Z0-9_\\-]*$',
     },
     rev: {
       type: 'number',
+      minimum: 0,
     },
     // Name for this workspace-type
     name: {
@@ -35,13 +36,14 @@ const schema = {
       // To accommodate default value ${product.name}-${provisioningArtifact.name} we need 16383
       maxLength: 16383,
       minLength: 2,
-      pattern: '^[a-zA-Z0-9_\\-]*',
+      pattern: '^[a-zA-Z0-9_\\-]*$',
     },
     // Description for this workspace-type
     // Defaults to provisioningArtifact.description
     desc: {
       type: 'string',
       maxLength: 8191,
+      pattern: '^([^<>{}]*)$',
     },
     status: {
       type: 'string',

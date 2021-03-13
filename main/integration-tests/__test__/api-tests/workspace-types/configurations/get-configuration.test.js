@@ -15,17 +15,25 @@
 
 const { runSetup } = require('../../../../support/setup');
 const errorCode = require('../../../../support/utils/error-code');
+const {
+  createDefaultServiceCatalogProduct,
+  deleteDefaultServiceCatalogProduct,
+  addProductInfo,
+} = require('../../../../support/complex/default-integration-test-product');
 
 describe('Get configuration scenarios', () => {
   let setup;
   let adminSession;
+  let productInfo;
 
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
+    productInfo = await createDefaultServiceCatalogProduct(setup);
   });
 
   afterAll(async () => {
+    await deleteDefaultServiceCatalogProduct(setup, productInfo);
     await setup.cleanup();
   });
 
@@ -34,9 +42,7 @@ describe('Get configuration scenarios', () => {
       const adminSession2 = await setup.createAdminSession();
       const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
-      await adminSession.resources.workspaceTypes.create({
-        id: workspaceTypeId,
-      });
+      await adminSession.resources.workspaceTypes.create(addProductInfo({ id: workspaceTypeId }, productInfo));
 
       const configurationId = setup.gen.string({ prefix: 'configuration-test' });
 
@@ -65,9 +71,7 @@ describe('Get configuration scenarios', () => {
     const anonymousSession = await setup.createAnonymousSession();
     const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
-    await adminSession.resources.workspaceTypes.create({
-      id: workspaceTypeId,
-    });
+    await adminSession.resources.workspaceTypes.create(addProductInfo({ id: workspaceTypeId }, productInfo));
 
     const configurationId = setup.gen.string({ prefix: 'configuration-test' });
 
@@ -92,10 +96,9 @@ describe('Get configuration scenarios', () => {
   it("should fail if user's role does not have access", async () => {
     const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
-    await adminSession.resources.workspaceTypes.create({
-      id: workspaceTypeId,
-      status: 'approved',
-    });
+    await adminSession.resources.workspaceTypes.create(
+      addProductInfo({ id: workspaceTypeId, status: 'approved' }, productInfo),
+    );
 
     const configurationId = setup.gen.string({ prefix: 'configuration-test' });
 
@@ -123,10 +126,9 @@ describe('Get configuration scenarios', () => {
   it("should get a configuration if user's role has access", async () => {
     const workspaceTypeId = setup.gen.string({ prefix: 'workspace-test' });
 
-    await adminSession.resources.workspaceTypes.create({
-      id: workspaceTypeId,
-      status: 'approved',
-    });
+    await adminSession.resources.workspaceTypes.create(
+      addProductInfo({ id: workspaceTypeId, status: 'approved' }, productInfo),
+    );
 
     const configurationId = setup.gen.string({ prefix: 'configuration-test' });
 

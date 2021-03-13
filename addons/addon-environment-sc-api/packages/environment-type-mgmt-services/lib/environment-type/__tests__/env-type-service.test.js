@@ -208,11 +208,98 @@ describe('EnvTypeService', () => {
       }
     });
 
+    it('should fail id incorrect', async () => {
+      // BUILD
+      const envType = {
+        id: '<theverybest>',
+        rev: 1,
+        name: 'stuff',
+        desc: 'stuff',
+        status: 'approved',
+      };
+
+      const requestContext = {
+        principalIdentifier: {
+          id: 'aheartsotrue',
+          ns: 'ourcouragewillpullusthrough',
+        },
+      };
+
+      service.audit = jest.fn();
+
+      // This function mainly just wraps some aws functions on a ServiceCatalogClient instance
+      service.getProvisioningArtifactParams = jest.fn();
+
+      // OPERATE and CHECK
+      await expect(service.update(requestContext, envType)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+
+    it('should fail name incorrect', async () => {
+      // BUILD
+      const envType = {
+        id: 'theverybest',
+        rev: 1,
+        name: '<stuff>',
+        desc: 'stuff',
+        status: 'approved',
+      };
+
+      service.audit = jest.fn();
+
+      // This function mainly just wraps some aws functions on a ServiceCatalogClient instance
+      service.getProvisioningArtifactParams = jest.fn();
+
+      const requestContext = {
+        principalIdentifier: {
+          id: 'aheartsotrue',
+          ns: 'ourcouragewillpullusthrough',
+        },
+      };
+
+      // OPERATE and CHECK
+      await expect(service.update(requestContext, envType)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+
+    it('should fail desc incorrect', async () => {
+      // BUILD
+      const envType = {
+        id: 'theverybest',
+        rev: 1,
+        name: 'stuff',
+        desc: '<stuff>',
+        status: 'approved',
+      };
+
+      const requestContext = {
+        principalIdentifier: {
+          id: 'aheartsotrue',
+          ns: 'ourcouragewillpullusthrough',
+        },
+      };
+
+      service.audit = jest.fn();
+
+      // This function mainly just wraps some aws functions on a ServiceCatalogClient instance
+      service.getProvisioningArtifactParams = jest.fn();
+
+      // OPERATE and CHECK
+      await expect(service.update(requestContext, envType)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+
     it('should succeed to update', async () => {
       // BUILD
       const envType = {
         id: 'theverybest',
         rev: 1,
+        name: 'stuff',
+        desc: 'stuff',
+        status: 'approved',
       };
       service.audit = jest.fn();
 
@@ -356,6 +443,129 @@ describe('EnvTypeService', () => {
       expect(service.audit).toHaveBeenCalledWith(
         requestContext,
         expect.objectContaining({ action: 'create-environment-type' }),
+      );
+    });
+
+    it('should fail id incorrect', async () => {
+      // BUILD
+      const envType = {
+        id: '<script>',
+        name: 'searchingfarandwide',
+        product: {
+          productId: 'each-------tounderstand',
+        },
+        provisioningArtifact: {
+          id: 'thepowerthatsinside',
+        },
+      };
+
+      const requestContext = {
+        principalIdentifier: {
+          id: 'aheartsotrue',
+          ns: 'ourcouragewillpullusthrough',
+        },
+      };
+
+      service.audit = jest.fn();
+
+      // This function mainly just wraps some aws functions on a ServiceCatalogClient instance
+      service.getProvisioningArtifactParams = jest.fn();
+
+      // OPERATE and CHECK
+      await expect(service.create(requestContext, envType)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+
+    it('should fail name incorrect', async () => {
+      // BUILD
+      const envType = {
+        id: 'id',
+        name: '<script>',
+        product: {
+          productId: 'each-------tounderstand',
+        },
+        provisioningArtifact: {
+          id: 'thepowerthatsinside',
+        },
+      };
+
+      service.audit = jest.fn();
+
+      // This function mainly just wraps some aws functions on a ServiceCatalogClient instance
+      service.getProvisioningArtifactParams = jest.fn();
+
+      const requestContext = {
+        principalIdentifier: {
+          id: 'aheartsotrue',
+          ns: 'ourcouragewillpullusthrough',
+        },
+      };
+
+      // OPERATE and CHECK
+      await expect(service.create(requestContext, envType)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+
+    it('should fail productId incorrect', async () => {
+      // BUILD
+      const envType = {
+        id: 'id',
+        name: 'name',
+        product: {
+          productId: '<script>',
+        },
+        provisioningArtifact: {
+          id: 'thepowerthatsinside',
+        },
+      };
+
+      const requestContext = {
+        principalIdentifier: {
+          id: 'aheartsotrue',
+          ns: 'ourcouragewillpullusthrough',
+        },
+      };
+
+      service.audit = jest.fn();
+
+      // This function mainly just wraps some aws functions on a ServiceCatalogClient instance
+      service.getProvisioningArtifactParams = jest.fn();
+
+      // OPERATE and CHECK
+      await expect(service.create(requestContext, envType)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+    it('should fail provisioningArtifactId incorrect', async () => {
+      // BUILD
+      const envType = {
+        id: 'id',
+        name: 'name',
+        product: {
+          productId: 'id',
+        },
+        provisioningArtifact: {
+          id: '<script>',
+        },
+      };
+
+      const requestContext = {
+        principalIdentifier: {
+          id: 'aheartsotrue',
+          ns: 'ourcouragewillpullusthrough',
+        },
+      };
+
+      service.audit = jest.fn();
+
+      // This function mainly just wraps some aws functions on a ServiceCatalogClient instance
+      service.getProvisioningArtifactParams = jest.fn();
+
+      // OPERATE and CHECK
+      await expect(service.create(requestContext, envType)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
   });

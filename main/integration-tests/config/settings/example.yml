@@ -27,6 +27,7 @@ username: ""
 passwordPath: # This is the parameter name/path where you stored the password. Example: alan/int-test-user/password
 
 # This is a Project ID in your SWB deployment. Please ensure it is safe to be used by integration tests
+# Please ensure the AWS account this project is associated with has a Budget created through SWB
 projectId: ""
 
 # Currently only "internal" auth provider is supported for test admin credentials.
@@ -37,13 +38,3 @@ isLocal: false
 
 # Set this to the API endpoint if different than the following
 localApiEndpoint: http://localhost:4000
-
-# In the AWS Console, go to Service Catalog > Products and select the ID of a product
-# to set as the default product ID.
-defaultProductId: ""
-
-# Launch an instance of the above product by going to Service Catalog > Products.
-# Make sure to stop the instance so that it won't incur significant cost. Specify the
-# provisioning artifact ID of the launched product below by obtaining it from Service
-# Catalog > Provisioned products.
-defaultProvisioningArtifactId: ""

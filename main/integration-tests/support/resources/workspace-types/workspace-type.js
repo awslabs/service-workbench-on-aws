@@ -15,6 +15,8 @@
 
 const _ = require('lodash');
 
+const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
+
 const Resource = require('../base/resource');
 const Configurations = require('./configurations/configurations');
 const ConfigVars = require('./config-vars/config-vars');
@@ -41,14 +43,18 @@ class WorkspaceType extends Resource {
 
   async approve(body) {
     const api = `${this.api}/approve`;
+    const response = await this.doCall(async () => this.axiosClient.put(api, body, {}));
 
-    return this.doCall(async () => this.axiosClient.put(api, body, {}));
+    await sleep(this.deflakeDelay());
+    return response;
   }
 
   async revoke(body) {
     const api = `${this.api}/revoke`;
+    const response = await this.doCall(async () => this.axiosClient.put(api, body, {}));
 
-    return this.doCall(async () => this.axiosClient.put(api, body, {}));
+    await sleep(this.deflakeDelay());
+    return response;
   }
 
   // ************************ Helpers methods ************************
