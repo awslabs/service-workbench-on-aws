@@ -62,6 +62,9 @@ class Setup {
 
     // An object to abstract out the default setup (eg. default test project)
     this.defaults = await this.getDefaults();
+
+    // Retry failed tests up to three times
+    jest.retryTimes(3);
   }
 
   async defaultAdminSession() {
