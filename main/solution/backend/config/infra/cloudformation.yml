@@ -762,13 +762,29 @@ Resources:
               - !GetAtt [DsAccountsDb, Arn]
           - Effect: Allow
             Action:
+              - dynamodb:GetItem
+            Resource: !GetAtt [WorkflowsDb, Arn]
+          - Effect: Allow
+            Action: dynamodb:UpdateItem
+            Resource: !GetAtt [WorkflowInstancesDb, Arn]
+          - Effect: Allow
+            Action:
+              - states:StartExecution
+            Resource:
+              - !Ref SMWorkflow
+          - Effect: Allow
+            Action:
               - logs:CreateLogGroup
               - logs:CreateLogStream
-            Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-dataSourceReachabilityDailyHandler:*'
+            Resource:
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-dataSourceReachabilityDailyHandler:*'
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-dataSourceReachabilityHandler:*'
           - Effect: Allow
             Action:
               - logs:PutLogEvents
-            Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-dataSourceReachabilityDailyHandler:*:log-stream:*'
+            Resource:
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-dataSourceReachabilityDailyHandler:*:log-stream:*'
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-dataSourceReachabilityHandler:*:log-stream:*'
           - Effect: Allow
             Action: 'sts:AssumeRole'
             Resource: 'arn:aws:iam::*:role/swb-*'
