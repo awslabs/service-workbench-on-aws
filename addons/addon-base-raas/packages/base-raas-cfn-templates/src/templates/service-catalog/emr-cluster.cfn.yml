@@ -151,7 +151,7 @@ Resources:
               - Effect: 'Allow'
                 Action: 's3:GetObject'
                 Resource:
-                  - 'arn:aws:s3:::us-east-1.elasticmapreduce/bootstrap-actions/run-if'
+                  - !Sub 'arn:aws:s3:::${AWS::Region}.elasticmapreduce/bootstrap-actions/run-if'
                   - !Sub
                     - 'arn:aws:s3:::${S3Location}/*'
                     # Remove "s3://" prefix from EnvironmentInstanceFiles
@@ -218,7 +218,7 @@ Resources:
       BootstrapActions:
         - Name: Run-Python-Jupyter
           ScriptBootstrapAction:
-            Path: s3://us-east-1.elasticmapreduce/bootstrap-actions/run-if
+            Path: !Sub 's3://${AWS::Region}.elasticmapreduce/bootstrap-actions/run-if'
             Args:
               - 'instance.isMaster=true'
               - '/opt/hail-on-AWS-spot-instances/src/jupyter_run.sh'
