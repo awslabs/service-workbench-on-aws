@@ -743,49 +743,51 @@ Resources:
                 - dynamodb:UpdateItem
               Resource:
                 - !GetAtt [StudiesDb, Arn]
-
-    # IAM Role for the envStatusPollHandler Function
-  RoleEnvStatusPollHandler:
-    Type: 'AWS::IAM::Role'
+  PolicyDataSourceReachabilityHandler:
+    Type: AWS::IAM::ManagedPolicy
     Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+      Description: Grant ClouWatch access for logging and ddb access to studies and accounts table
+      PolicyDocument:
+        Version: "2012-10-17"
         Statement:
           - Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:UpdateItem
+            Resource:
+              - !GetAtt [StudiesDb, Arn]
+              - !Join ['', [!GetAtt [StudiesDb, Arn], '/index/*']]
+              - !GetAtt [DsAccountsDb, Arn]
+          - Effect: Allow
+            Action:
+              - dynamodb:GetItem
+            Resource: !GetAtt [WorkflowsDb, Arn]
+          - Effect: Allow
+            Action: dynamodb:UpdateItem
+            Resource: !GetAtt [WorkflowInstancesDb, Arn]
+          - Effect: Allow
+            Action:
+              - states:StartExecution
+            Resource:
+              - !Ref SMWorkflow
+          - Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+            Resource:
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-dataSourceReachabilityDailyHandler:*'
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-dataSourceReachabilityHandler:*'
+          - Effect: Allow
+            Action:
+              - logs:PutLogEvents
+            Resource:
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-dataSourceReachabilityDailyHandler:*:log-stream:*'
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-dataSourceReachabilityHandler:*:log-stream:*'
+          - Effect: Allow
             Action: 'sts:AssumeRole'
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      Policies:
-        - PolicyName: db-environment-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - dynamodb:GetItem
-                - dynamodb:Query
-                - dynamodb:Scan
-                - dynamodb:UpdateItem
-              Resource:
-                - !GetAtt [EnvironmentsScDb, Arn]
-                - !Join ['', [!GetAtt [EnvironmentsScDb, Arn], '/index/*']]
-        - PolicyName: db-scan
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - dynamodb:Scan
-              Resource:
-                - !GetAtt [IndexesDb, Arn]
-                - !GetAtt [ProjectsDb, Arn]
-                - !GetAtt [AwsAccountsDb, Arn]
-        - PolicyName: assume-role
-          PolicyDocument:
-            Statement:
-              Action: 'sts:AssumeRole'
-              Effect: Allow
-              Resource: '*' # TODO: LOCK THIS DOWN!
+            Resource: 'arn:aws:iam::*:role/swb-*'
 
     # IAM Role for the dataSourceReachabilityHandler Function
   RoleDataSourceReachabilityHandler:
@@ -799,27 +801,9 @@ Resources:
               Service: lambda.amazonaws.com
             Action: 'sts:AssumeRole'
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      Policies:
-        - PolicyName: db-data-source-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - dynamodb:GetItem
-                - dynamodb:Query
-                - dynamodb:Scan
-                - dynamodb:UpdateItem
-              Resource:
-                - !GetAtt [StudiesDb, Arn]
-                - !Join ['', [!GetAtt [StudiesDb, Arn], '/index/*']]
-                - !GetAtt [DsAccountsDb, Arn]
-        - PolicyName: assume-role
-          PolicyDocument:
-            Statement:
-              Action: 'sts:AssumeRole'
-              Effect: Allow
-              Resource: '*' # TODO: LOCK THIS DOWN!
+        - !Ref PolicyDataSourceReachabilityHandler
+      PermissionsBoundary: !Ref PolicyDataSourceReachabilityHandler
+
 
   # An environment management role giving AWS Service Catalog Permissions
   # This is the role that the Admin users share their AWS Service Catalog products/portfolios with.
@@ -1949,8 +1933,6 @@ Outputs:
     Value: !GetAtt RoleWorkflowLoopRunner.Arn
   OpenDataScrapeHandlerRoleArn:
     Value: !GetAtt RoleOpenDataScrapeHandler.Arn
-  EnvStatusPollHandlerRoleArn:
-    Value: !GetAtt RoleEnvStatusPollHandler.Arn
   DataSourceReachabilityHandlerRoleArn:
     Value: !GetAtt RoleDataSourceReachabilityHandler.Arn
   EnvMgmtRoleArn:

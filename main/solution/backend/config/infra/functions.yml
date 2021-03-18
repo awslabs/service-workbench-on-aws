@@ -34,7 +34,7 @@ envStatusPollHandler:
 
 dataSourceReachabilityHandler:
   handler: src/lambdas/data-source-reachability/handler.handler
-  role: RoleApiHandler
+  role: RoleDataSourceReachabilityHandler
   tags: ${self:custom.tags}
   timeout: 900 # in seconds, default is 6
   description: Handles data source reachability polling (5 min)
@@ -50,7 +50,7 @@ dataSourceReachabilityHandler:
 
 dataSourceReachabilityDailyHandler:
   handler: src/lambdas/data-source-reachability-daily/handler.handler
-  role: RoleApiHandler
+  role: RoleDataSourceReachabilityHandler
   tags: ${self:custom.tags}
   timeout: 900 # in seconds, default is 6
   description: Handles data source reachability polling (1 day)
