@@ -73,6 +73,38 @@ describe('DataSourceBucketService', () => {
   });
 
   describe('reach scenarios', () => {
+    it('calls attemptReach for wildcard without any errors if status is reachable', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid } };
+      const params = { id: '*', status: 'reachable' };
+
+      service.bulkReach = jest.fn();
+
+      await service.attemptReach(requestContext, params);
+
+      expect(service.bulkReach).toHaveBeenCalledWith(
+        requestContext,
+        { status: params.status },
+        { forceCheckAll: false },
+      );
+    });
+
+    it('calls attemptReach for wildcard without any errors if status is error', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid } };
+      const params = { id: '*', status: 'error' };
+
+      service.bulkReach = jest.fn();
+
+      await service.attemptReach(requestContext, params);
+
+      expect(service.bulkReach).toHaveBeenCalledWith(
+        requestContext,
+        { status: params.status },
+        { forceCheckAll: false },
+      );
+    });
+
     it('calls attemptReach for wildcard without any errors', async () => {
       const uid = 'u-currentUserId';
       const requestContext = { principalIdentifier: { uid } };
