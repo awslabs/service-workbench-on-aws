@@ -72,7 +72,7 @@ custom:
             APP_LOCAL_ROLE_ARN: ${cfnOutput('OpenDataScrapeHandlerRoleArn')} # When running locally, run under this role
         envStatusPollHandler:
           environment:
-            APP_LOCAL_ROLE_ARN: ${cfnOutput('EnvStatusPollHandlerRoleArn')} # When running locally, run under this role
+            APP_LOCAL_ROLE_ARN: ${cfnOutput('ApiHandlerRoleArn')} # When running locally, run under this role
         dataSourceReachabilityHandler:
           environment:
             APP_LOCAL_ROLE_ARN: ${cfnOutput('DataSourceReachabilityHandlerRoleArn')} # When running locally, run under this role
