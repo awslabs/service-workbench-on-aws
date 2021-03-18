@@ -15,7 +15,7 @@
     },
     "status": {
       "type": "string",
-      "enum": ["active", "inactive", "pending", "*"]
+      "enum": ["active", "inactive", "pending", "error", "reachable", "*"]
     }
   },
   "required": ["id"]

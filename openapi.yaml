@@ -3056,6 +3056,13 @@ components:
           example: 'study'
         status:
           type: string
+          enum:
+            - active
+            - inactive
+            - pending
+            - error
+            - reachable
+            - *
           description: id must be * when status is specified
     RegisterStudy:
       type: object
