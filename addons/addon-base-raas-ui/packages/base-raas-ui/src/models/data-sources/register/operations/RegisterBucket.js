@@ -25,11 +25,14 @@ class RegisterBucketOperation extends Operation {
     this.bucket = bucket;
     this.name = `Registering bucket ${bucket.name}`;
     this.accountsStore = accountsStore;
+    if (this.bucket.kmsArn === '') {
+      delete this.bucket.kmsArn;
+    }
   }
 
   async doRun() {
     const { name } = this.bucket;
-    this.setMessage(`Registering bucket${name}`);
+    this.setMessage(`Registering bucket ${name}`);
     try {
       await this.accountsStore.registerBucket(this.accountId, this.bucket);
       this.setMessage(`Successfully registered bucket ${name}`);
