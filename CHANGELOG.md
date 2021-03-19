@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.1] - 2021-03-19
+
+### Added
+- chore: Enable SSE-S3 when registering buckets in BYOB
+- refactor: restrict data source reachability Lambda role
+- fix: Add 'reachable' and 'error' status to reachability check schema
+- fix: added region parameter reference to elasticmapreduce bucket references
+
 ## [2.1.0] - 2021-03-12
 
 ### Added
@@ -12,6 +20,8 @@ All notable changes to this project will be documented in this file.
 - feat: Removed unused APIs- listWorkflowInstancesByStatus and createAuthenticationProviderConfig
 
 ## [2.0.3] - 2021-03-12
+
+### Added 
 - chore(deps): bump websocket-extensions from 0.1.3 to 0.1.4
 - test: fix flaky integ tests
 - fix: emr workspace image. Lock jupyterlab to version 2.2.6
