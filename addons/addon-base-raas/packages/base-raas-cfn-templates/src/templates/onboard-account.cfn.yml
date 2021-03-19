@@ -177,6 +177,52 @@ Resources:
                 Resource:
                   - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/${LaunchConstraintPolicyPrefix}'
 
+  PolicyCrossAccountRoleManagement:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Allows main account to perform IAM role management on restricted resources
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 's3:GetBucketPolicy'
+              - 's3:GetObjectTagging'
+              - 's3:GetObjectTorrent'
+              - 's3:GetObjectVersion'
+              - 's3:GetObjectVersionTagging'
+              - 's3:GetObjectVersionTorrent'
+              - 's3:AbortMultipartUpload'
+              - 's3:ListMultipartUploadParts'
+              - 's3:PutObject'
+              - 's3:PutObjectAcl'
+              - 's3:PutObjectTagging'
+              - 's3:PutObjectVersionTagging'
+              - 's3:DeleteObject'
+              - 's3:DeleteObjectTagging'
+              - 's3:DeleteObjectVersion'
+              - 's3:DeleteObjectVersionTagging'
+            Resource: 
+              - 'arn:aws:s3:::sc-*'
+          - Effect: Allow
+            Action:
+              - 's3:ListBucket'
+              - 's3:ListBucketVersions'
+            Resource: 
+              - 'arn:aws:s3:::sc-*'
+          - Effect: Allow
+            Action:
+              - 'kms:DescribeKey'
+              - 'kms:Encrypt'
+              - 'kms:Decrypt'
+              - 'kms:ReEncrypt*'
+              - 'kms:GenerateDataKey'
+              - 'kms:GenerateDataKeyWithoutPlaintext'
+              - 'kms:CreateGrant'
+              - 'kms:RevokeGrant'
+            Resource: 
+              - !Ref 'arn:aws:kms:{AWS::Region}:{AWS::AccountId}:key/*'
+
   PolicyCrossAccountExecution:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -201,16 +247,23 @@ Resources:
           - Effect: Allow
             Action:
               - iam:GetRole
-              - iam:CreateRole
               - iam:TagRole
               - iam:GetRolePolicy
-              - iam:PutRolePolicy
               - iam:DeleteRolePolicy
               - iam:DeleteRole
               - iam:PassRole
             Resource:
               - !Sub 'arn:aws:iam::${AWS::AccountId}:role/analysis-*'
               - !Sub 'arn:aws:iam::${AWS::AccountId}:role/SC-*'
+          - Effect: Allow
+            Action:
+              - iam:PutRolePolicy
+            Resource:
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/analysis-*'
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/SC-*'
+            Condition:
+              StringEquals:
+                iam:PermissionsBoundary: PolicyCrossAccountRoleManagement
           - Effect: Allow
             Action:
               - iam:AddRoleToInstanceProfile
@@ -253,12 +306,12 @@ Resources:
             Action:
               - s3:GetObject
               - s3:ListBucket
+              - s3:GetBucketPolicy
               - s3:PutBucketPolicy
               - s3:DeleteObject
               - s3:CreateBucket
             Resource: 
               - 'arn:aws:s3:::sc-*'
-              - !Sub 'arn:aws:s3:::swb-cloudtrail-log-bucket-${AWS::AccountId}'
           - Effect: Allow
             Action:
               - ec2:StartInstances
@@ -268,7 +321,7 @@ Resources:
             Action:
               - ec2:DescribeInstanceStatus
               - ec2:DescribeInstances
-            Resource:'*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
+            Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
           - Effect: Allow
             Action:
               - ec2:DescribeSubnets
@@ -413,115 +466,6 @@ Resources:
     Properties:
       AliasName: !Join ['', ['alias/', Ref: Namespace, '-encryption-key']]
       TargetKeyId: !Ref EncryptionKey
-
-  CloudTrailBucket: 
-    DeletionPolicy: Retain
-    Type: AWS::S3::Bucket
-    Properties: 
-      BucketName: !Join ['-', ['swb', 'cloudtrail-log-bucket', Ref: AWS::AccountId]]
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-
-  CloudTrailBucketPolicy: 
-    Type: AWS::S3::BucketPolicy
-    Properties: 
-      Bucket: 
-        Ref: CloudTrailBucket
-      PolicyDocument: 
-        Version: '2012-10-17'
-        Statement: 
-          - 
-            Sid: 'AWSCloudTrailAclCheck'
-            Effect: 'Allow'
-            Principal: 
-              Service: 'cloudtrail.amazonaws.com'
-            Action: 's3:GetBucketAcl'
-            Resource: 
-              !Sub |-
-                arn:aws:s3:::${CloudTrailBucket}
-          - 
-            Sid: 'AWSCloudTrailWrite'
-            Effect: 'Allow'
-            Principal: 
-              Service: 'cloudtrail.amazonaws.com'
-            Action: 's3:PutObject'
-            Resource:
-              !Sub |-
-                arn:aws:s3:::${CloudTrailBucket}/AWSLogs/${AWS::AccountId}/*
-            Condition: 
-              StringEquals:
-                s3:x-amz-acl: 'bucket-owner-full-control'
-
-  LogGroup:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: 'swb-initial-stack-cloudtrail-log-group'
-      RetentionInDays: 365
-
-  CloudTrailLogsRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: 'swb-initial-stack-cloudtrail-role'
-      AssumeRolePolicyDocument:
-        Statement:
-        - Action: sts:AssumeRole
-          Effect: Allow
-          Principal:
-            Service: cloudtrail.amazonaws.com
-        Version: '2012-10-17'
-      ManagedPolicyArns:
-        - Ref: CloudTrailLogsPolicy
-      PermissionsBoundary: !Ref CloudTrailLogsPolicy
-
-  CloudTrailLogsPolicy:
-    Type: AWS::IAM::ManagedPolicy
-    Properties:
-      Description: Allows CloudTrail perform logging operations in member account
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-        - Effect: Allow
-          Action:
-          - logs:PutLogEvents
-          - logs:CreateLogStream
-          Effect: Allow
-          Resource:
-            Fn::GetAtt:
-            - LogGroup
-            - Arn
-      Roles:
-      - Ref: CloudTrailLogsRole
-
-  CloudTrail:
-    Type: AWS::CloudTrail::Trail
-    Properties:
-      IsLogging: true
-      EnableLogFileValidation: true
-      TrailName : 'swb-initial-stack-default-cloudtrail'
-      Tags:
-        - Key: Name
-          Value: !Sub Cloudtrail for ${AWS::AccountId}
-      S3BucketName: 
-          Ref: CloudTrailBucket
-      CloudWatchLogsLogGroupArn:
-        Fn::GetAtt:
-        - LogGroup
-        - Arn
-      CloudWatchLogsRoleArn:
-        Fn::GetAtt:
-        - CloudTrailLogsRole
-        - Arn
-    DependsOn:
-    - CloudTrailBucketPolicy
-    - CloudTrailLogsPolicy
-    - CloudTrailLogsRole
 
 Outputs:
   CrossAccountEnvMgmtRoleArn:
