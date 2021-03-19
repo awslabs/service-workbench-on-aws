@@ -156,7 +156,7 @@ describe('DataSourceBucketService', () => {
       );
     });
 
-    it('fails because kmsArn is empty', async () => {
+    it('fails because kmsArn is empty with kms as sse', async () => {
       const uid = 'u-currentUserId';
       const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
       const id = '123456789012';
@@ -167,6 +167,24 @@ describe('DataSourceBucketService', () => {
         kmsArn: '',
         access: 'roles',
         sse: 'kms',
+      };
+
+      await expect(service.register(requestContext, { id }, rawData)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+
+    it('fails because kmsArn is empty with s3 as sse', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
+      const id = '123456789012';
+      const rawData = {
+        name: 'bucket-1',
+        region: 'us-east-1',
+        awsPartition: 'aws',
+        kmsArn: '',
+        access: 'roles',
+        sse: 's3',
       };
 
       await expect(service.register(requestContext, { id }, rawData)).rejects.toThrow(
