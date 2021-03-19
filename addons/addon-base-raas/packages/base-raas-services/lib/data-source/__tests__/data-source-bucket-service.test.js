@@ -82,6 +82,31 @@ describe('DataSourceBucketService', () => {
       );
     });
 
+    it('should call DBService when sse is s3', async () => {
+      const uid = 'u-currentUserId';
+      const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
+      const id = '123456789012';
+      const rawData = {
+        name: 'bucket-1',
+        region: 'us-east-1',
+        awsPartition: 'aws',
+        access: 'roles',
+        sse: 's3',
+      };
+
+      await service.register(requestContext, { id }, rawData);
+
+      expect(dbService.table.key).toHaveBeenCalledWith({ pk: `ACT#${id}`, sk: `BUK#${rawData.name}` });
+      expect(dbService.table.item).toHaveBeenCalledWith(
+        expect.objectContaining({
+          ..._.omit(rawData, ['name']),
+          updatedBy: uid,
+          createdBy: uid,
+          rev: 0,
+        }),
+      );
+    });
+
     it('only admins are allowed to create data source bucket', async () => {
       const uid = 'u-currentUserId';
       const requestContext = { principalIdentifier: { uid } };
