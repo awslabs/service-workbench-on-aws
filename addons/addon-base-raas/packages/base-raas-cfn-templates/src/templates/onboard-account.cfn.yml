@@ -237,7 +237,7 @@ Resources:
             Action:
               - budgets:ViewBudget
               - budgets:ModifyBudget
-            Resource: !Sub 'arn:aws:budgets::${AWS::AccountId}:budget/service-workbench-system-generated-do-not-update'
+            Resource: !Sub 'arn:aws:budgets::${AWS::AccountId}:budget/service-workbench-system-generated*'
           - Effect: Allow
             Action:
               - s3:GetObject
