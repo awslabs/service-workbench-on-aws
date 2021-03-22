@@ -90,13 +90,13 @@ resources:
   - Description: Service-Workbench-on-AWS ${self:custom.settings.version} ${self:custom.settings.solutionName} ${self:custom.settings.envName} Backend
   - ${file(./config/infra/cloudformation.yml)}
   - Resources:
-      # Create a permissions boundary for role serverless creates to manage Cloudwatch access
+      # Create a permissions boundary for role Serverless creates to manage Cloudwatch access
       # The default role has permission to create any role and attach any policy. Here we are restricting
       # the role to only create a specific role and attach only Cloudwatch publishing managed policy
       ServerlessLogsBoundary:
         Type: AWS::IAM::ManagedPolicy
         Properties:
-          Description: Allows main account to perform critical analytics on workspaces provisioned in member accounts
+          Description: Allows serverless to manage CloudWatch publishing
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
