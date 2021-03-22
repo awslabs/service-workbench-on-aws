@@ -223,19 +223,19 @@ Resources:
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
-              - Action:
-                  - iam:AttachRolePolicy
-                  - iam:CreateRole
-                  - iam:DeleteRole
-                  - iam:DeleteRolePolicy
-                  - iam:DetachRolePolicy
-                  - iam:GetRole
-                  - iam:GetRolePolicy
-                  - iam:PassRole
-                  - iam:PutRolePolicy
-                  - iam:*TagRole*
-                Resource: '*'
-                Effect: Allow
+              Action:
+                - iam:AttachRolePolicy
+                - iam:CreateRole
+                - iam:DeleteRole
+                - iam:DeleteRolePolicy
+                - iam:DetachRolePolicy
+                - iam:GetRole
+                - iam:GetRolePolicy
+                - iam:PassRole
+                - iam:PutRolePolicy
+                - iam:*TagRole*
+              Resource: 'arn:aws:iam::*:role/analysis-*'
+              Effect: Allow
         - PolicyName: iam-instance-profile-access
           PolicyDocument:
             Statement:
@@ -246,7 +246,7 @@ Resources:
                 - iam:GetInstanceProfile
                 - iam:DeleteInstanceProfile
                 - iam:RemoveRoleFromInstanceProfile
-              Resource: '*'
+              Resource: 'arn:aws:iam::*:instance-profile/analysis-*'
   # =============================================================================================
   # Dynamo db
   # =============================================================================================
