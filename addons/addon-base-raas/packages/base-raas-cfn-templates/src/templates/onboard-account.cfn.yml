@@ -68,7 +68,7 @@ Resources:
   # This is the role that code (ApiHandlerLambda and WorkflowLoopRunnerLambda) in central account
   # assumes before performing any AWS Service Catalog interactions in this account (the on-boarded account)
   # for launching environments.
-  # Equivalent role for central account is created by "main/solution/backend/config/infra/cloudformation.yml"
+  # Equivalent role for central account is created by 'main/solution/backend/config/infra/cloudformation.yml'
   CrossAccountRoleEnvMgmt:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -177,7 +177,68 @@ Resources:
                 Resource:
                   - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/${LaunchConstraintPolicyPrefix}'
 
-  # TODO lock these permissions down further
+  PolicyCrossAccountExecution:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Allows main account to perform critical analytics on workspaces provisioned in member accounts
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - cloudformation:CreateStack
+              - cloudformation:DeleteStack
+              - cloudformation:DescribeStacks
+              - cloudformation:DescribeStackEvents
+            Resource: !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/SC-*'
+          - Effect: Allow
+            Action:
+              - sagemaker:CreatePresignedNotebookInstanceUrl
+              - sagemaker:StartNotebookInstance
+              - sagemaker:StopNotebookInstance
+              - sagemaker:DescribeNotebookInstance
+            Resource: !Sub 'arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:notebook-instance/basicnotebookinstance-*'
+          - Effect: Allow
+            Action:
+              - iam:GetRole
+              - iam:TagRole
+              - iam:GetRolePolicy
+              - iam:DeleteRolePolicy
+              - iam:DeleteRole
+              - iam:PassRole
+              - iam:PutRolePolicy
+            Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/analysis-*'
+          - Effect: Allow
+            Action:
+              - ce:GetCostAndUsage
+            Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
+          - Effect: Allow
+            Action:
+              - budgets:ViewBudget
+              - budgets:ModifyBudget
+            Resource: !Sub 'arn:aws:budgets::${AWS::AccountId}:budget/service-workbench-system-generated*'
+          - Effect: Allow
+            Action:
+              - ec2:StartInstances
+              - ec2:StopInstances
+            Resource: !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/*'
+          - Effect: Allow
+            Action:
+              - ec2:DescribeInstanceStatus
+              - ec2:DescribeInstances
+            Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
+          - Effect: Allow
+            Action:
+              - ec2:DescribeSubnets
+              - ec2:DescribeVpcs
+              - ec2:DescribeNetworkInterfaces
+            Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
+          - Effect: Allow
+            Action:
+              - ssm:GetParameter
+            Resource:
+              - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/*'
+
   CrossAccountExecutionRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -197,120 +258,9 @@ Resources:
             Condition:
               StringEquals:
                 sts:ExternalId: !Ref ExternalId
-      Policies:
-        - PolicyName: cfn-access
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - cloudformation:CreateStack
-                  - cloudformation:DeleteStack
-                  - cloudformation:DescribeStacks
-                  - cloudformation:DescribeStackEvents
-                Resource: '*'
-        - PolicyName: sagemaker-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - sagemaker:*
-              Resource: '*'
-        - PolicyName: iam-role-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - iam:GetRole
-                - iam:CreateRole
-                - iam:TagRole
-                - iam:GetRolePolicy
-                - iam:PutRolePolicy
-                - iam:DeleteRolePolicy
-                - iam:DeleteRole
-                - iam:PassRole
-              Resource:
-                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/analysis-*'
-        - PolicyName: iam-instance-profile-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - iam:AddRoleToInstanceProfile
-                - iam:CreateInstanceProfile
-                - iam:GetInstanceProfile
-                - iam:DeleteInstanceProfile
-                - iam:RemoveRoleFromInstanceProfile
-              Resource:
-                - !Sub 'arn:aws:iam::${AWS::AccountId}:instance-profile/analysis-*'
-        - PolicyName: iam-role-service-policy-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - iam:AttachRolePolicy
-                - iam:DetachRolePolicy
-              Resource:
-                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/analysis-*'
-              Condition:
-                ArnLike:
-                  iam:PolicyARN: arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole
-        - PolicyName: iam-service-linked-role-create-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - iam:CreateServiceLinkedRole
-                - iam:PutRolePolicy
-              Resource: arn:aws:iam::*:role/aws-service-role/elasticmapreduce.amazonaws.com*/AWSServiceRoleForEMRCleanup*
-              Condition:
-                StringLike:
-                  iam:AWSServiceName:
-                    - elasticmapreduce.amazonaws.com
-                    - elasticmapreduce.amazonaws.com.cn
-        - PolicyName: cost-explorer-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - ce:*
-              Resource: '*'
-        - PolicyName: budget-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - budgets:ViewBudget
-                - budgets:ModifyBudget
-              Resource: '*'
-        - PolicyName: s3-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - s3:*
-              Resource: '*'
-        - PolicyName: ec2-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - ec2:*
-              Resource: '*'
-        - PolicyName: ssm-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - ssm:*
-              Resource: '*'
-        - PolicyName: emr-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - elasticmapreduce:*
-              Resource: '*'
+      ManagedPolicyArns:
+        - !Ref PolicyCrossAccountExecution
+      PermissionsBoundary: !Ref PolicyCrossAccountExecution
 
   # VPC for launching EMR clusters into
   # Just one AZ as we're aiming for transient low-cost clusters rather than HA
