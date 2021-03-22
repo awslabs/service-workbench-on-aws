@@ -89,6 +89,39 @@ functions: ${file(./config/infra/functions.yml)}
 resources:
   - Description: Service-Workbench-on-AWS ${self:custom.settings.version} ${self:custom.settings.solutionName} ${self:custom.settings.envName} Backend
   - ${file(./config/infra/cloudformation.yml)}
+  - Resources:
+      # Create a permissions boundary for role serverless creates to manage Cloudwatch access
+      # The default role has permission to create any role and attach any policy. Here we are restricting
+      # the role to only create a specific role and attach only Cloudwatch publishing managed policy
+      ServerlessLogsBoundary:
+        Type: AWS::IAM::ManagedPolicy
+        Properties:
+          Description: Allows main account to perform critical analytics on workspaces provisioned in member accounts
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - apigateway:GET
+                  - apigateway:PATCH
+                Resource: 'arn:aws:apigateway:*::/account'
+              - Effect: Allow
+                Action:
+                  - iam:CreateRole
+                  - iam:AttachRolePolicy
+                  - iam:ListAttachedRolePolicies
+                  - iam:PassRole
+                Resource: 'arn:aws:iam::${self:custom.settings.awsAccountInfo.awsAccountId}:role/serverlessApiGatewayCloudWatchRole'
+                Condition:
+                  ArnEqualsIfExists:
+                    iam:PolicyARN: 'arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs'
+  - extensions:
+      # Add custom permission boundary to role serverless uses for creating Cloudwatch publishing role
+      IamRoleCustomResourcesLambdaExecution:
+        Properties:
+          PermissionsBoundary: !Ref ServerlessLogsBoundary
+
+
 
 plugins:
   - serverless-webpack
