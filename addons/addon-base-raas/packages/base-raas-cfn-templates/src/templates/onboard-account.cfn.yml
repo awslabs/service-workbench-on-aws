@@ -207,9 +207,7 @@ Resources:
               - iam:DeleteRole
               - iam:PassRole
               - iam:PutRolePolicy
-            Resource:
-              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/analysis-*'
-              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/SC-*'
+            Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/analysis-*'
           - Effect: Allow
             Action:
               - ce:GetCostAndUsage
