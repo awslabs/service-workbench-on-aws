@@ -212,25 +212,6 @@ Resources:
               - !Sub 'arn:aws:iam::${AWS::AccountId}:role/SC-*'
           - Effect: Allow
             Action:
-              - iam:AttachRolePolicy
-              - iam:DetachRolePolicy
-            Resource:
-              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/analysis-*'
-            Condition:
-              ArnLike:
-                iam:PolicyARN: arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole
-          - Effect: Allow
-            Action:
-              - iam:CreateServiceLinkedRole
-              - iam:PutRolePolicy
-            Resource: !Sub arn:aws:iam::${AWS::AccountId}:role/aws-service-role/elasticmapreduce.amazonaws.com*/AWSServiceRoleForEMRCleanup*
-            Condition:
-              StringLike:
-                iam:AWSServiceName:
-                  - elasticmapreduce.amazonaws.com
-                  - elasticmapreduce.amazonaws.com.cn
-          - Effect: Allow
-            Action:
               - ce:GetCostAndUsage
             Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
           - Effect: Allow
@@ -238,16 +219,6 @@ Resources:
               - budgets:ViewBudget
               - budgets:ModifyBudget
             Resource: !Sub 'arn:aws:budgets::${AWS::AccountId}:budget/service-workbench-system-generated*'
-          - Effect: Allow
-            Action:
-              - s3:GetObject
-              - s3:ListBucket
-              - s3:GetBucketPolicy
-              - s3:PutBucketPolicy
-              - s3:DeleteObject
-              - s3:CreateBucket
-            Resource: 
-              - 'arn:aws:s3:::sc-*'
           - Effect: Allow
             Action:
               - ec2:StartInstances
@@ -267,21 +238,8 @@ Resources:
           - Effect: Allow
             Action:
               - ssm:GetParameter
-            Resource: 
+            Resource:
               - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/*'
-          - Effect: Allow
-            Action:
-              - elasticmapreduce:DescribeCluster
-              - elasticmapreduce:TerminateJobFlows
-            Resource: 
-              - !Sub 'arn:aws:elasticmapreduce:${AWS::Region}:${AWS::AccountId}:cluster/*'
-          - Effect: Allow
-            Action:
-              - elasticmapreduce:CreateSecurityConfiguration
-              - elasticmapreduce:DeleteSecurityConfiguration
-              - elasticmapreduce:RunJobFlow
-            Resource: 
-              - '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
 
   CrossAccountExecutionRole:
     Type: 'AWS::IAM::Role'
