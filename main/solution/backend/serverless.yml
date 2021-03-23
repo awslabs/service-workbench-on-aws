@@ -104,7 +104,7 @@ resources:
                 Action:
                   - apigateway:GET
                   - apigateway:PATCH
-                Resource: 'arn:aws:apigateway:*::/account'
+                Resource: 'arn:aws:apigateway:${self:custom.settings.awsRegion}::/account'
               - Effect: Allow
                 Action:
                   - iam:CreateRole
