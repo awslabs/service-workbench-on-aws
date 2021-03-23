@@ -200,6 +200,10 @@ Resources:
             Resource: !Sub 'arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:notebook-instance/basicnotebookinstance-*'
           - Effect: Allow
             Action:
+              - sagemaker:ListNotebookInstances
+            Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
+          - Effect: Allow
+            Action:
               - iam:GetRole
               - iam:TagRole
               - iam:GetRolePolicy
