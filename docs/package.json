@@ -17,7 +17,8 @@
     "react-dom": "^16.8.4"
   },
   "resolutions": {
-    "immer": "^8.0.1"
+    "immer": "^8.0.1",
+    "is-svg": "4.2.2"
   },
   "browserslist": {
     "production": [
