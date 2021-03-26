@@ -384,22 +384,11 @@ Resources:
               - !Ref SMWorkflow
           - Effect: Allow
             Action:
-              - s3:GetObject
-              - s3:GetObjectTagging
-              - s3:GetObjectTorrent
-              - s3:GetObjectVersion
-              - s3:GetObjectVersionTagging
-              - s3:GetObjectVersionTorrent
+              - s3:GetObject*
               - s3:AbortMultipartUpload
               - s3:ListMultipartUploadParts
-              - s3:PutObject
-              - s3:PutObjectAcl
-              - s3:PutObjectTagging
-              - s3:PutObjectVersionTagging
-              - s3:DeleteObject
-              - s3:DeleteObjectTagging
-              - s3:DeleteObjectVersion
-              - s3:DeleteObjectVersionTagging
+              - s3:PutObject*
+              - s3:DeleteObject*
             Resource:
               - 'arn:aws:s3:::${self:custom.settings.studyDataBucketName}/*'
               - 'arn:aws:s3:::${self:custom.settings.environmentsBootstrapBucketName}/*'
@@ -458,12 +447,13 @@ Resources:
               - !GetAtt [RoleEnvMgmt, Arn]
               - 'arn:aws:iam::*:role/initial-stack-*'
               - 'arn:aws:iam::*:role/SC-*'
+              - 'arn:aws:iam::*:role/swb-*'
               - 'arn:aws:iam::*:role/analysis-*'
           - Effect: Allow
             Action:
               - logs:CreateLog*
               - logs:PutLogEvents
-            Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*'
+            Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}*'
 
   # IAM Role for the apiHandler Function
   RoleApiHandler:
@@ -624,11 +614,12 @@ Resources:
               - 'arn:aws:iam::*:role/initial-stack-*'
               - 'arn:aws:iam::*:role/SC-*'
               - 'arn:aws:iam::*:role/analysis-*'
+              - 'arn:aws:iam::*:role/swb-*'
           - Effect: Allow
             Action:
               - logs:CreateLog*
               - logs:PutLogEvents
-            Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:*'
+            Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}*'
 
   # IAM Role for the workflowLoopRunner Function
   RoleWorkflowLoopRunner:
