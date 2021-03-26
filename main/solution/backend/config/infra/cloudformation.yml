@@ -114,7 +114,7 @@ Resources:
             Effect: Allow
             Principal:
               AWS:
-                - !GetAtt [RoleApiHandler, Arn]
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-ApiHandler'
             Action:
               - kms:GenerateDataKey
               - kms:DescribeKey
@@ -125,7 +125,7 @@ Resources:
             Effect: Allow
             Principal:
               AWS:
-                - !GetAtt [RoleWorkflowLoopRunner, Arn]
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-WorkflowLoopRunner'
             Action:
               - kms:DescribeKey
               - kms:GetKeyPolicy
@@ -369,7 +369,6 @@ Resources:
               - ssm:GetParameter
             Resource:
               - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
-              - !Sub 'arn:aws:ssm:${AWS::Region}:*:parameter/aws/service/storagegateway/ami/FILE_S3/latest'
           - Effect: Allow
             Action:
               - states:StartExecution
@@ -406,10 +405,7 @@ Resources:
               - kms:GetKeyPolicy
               - kms:PutKeyPolicy
             Resource:
-              # NOTE: Can't use '!GetAtt StudyDataEncryptionKey.Arn' due to
-              #   circular dependency in StudyDataEncryptionKey's KeyPolicy
-              - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.studyDataKmsKeyAlias}'
-              - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
+              - !GetAtt StudyDataEncryptionKey.Arn
           - Effect: 'Allow'
             Action:
               - ce:GetCostAndUsage
@@ -527,10 +523,7 @@ Resources:
               - ec2:DescribeSubnets
               - ec2:DescribeVpcs
               - ec2:DescribeNetworkInterfaces
-              - ec2:DescribeInstanceStatus
-              - ec2:DescribeInstances
               - ec2:DescribeImages
-              - ec2:DescribeVolumes
               - ec2:DescribeSpotPriceHistory
             Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
           - Effect: Allow
@@ -551,10 +544,7 @@ Resources:
               - kms:GetKeyPolicy
               - kms:PutKeyPolicy
             Resource:
-              # NOTE: Can't use '!GetAtt StudyDataEncryptionKey.Arn' due to
-              #   circular dependency in StudyDataEncryptionKey's KeyPolicy
-              - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.studyDataKmsKeyAlias}'
-              - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
+              - !GetAtt StudyDataEncryptionKey.Arn
           - Effect: 'Allow'
             Action:
               - s3:GetObject
