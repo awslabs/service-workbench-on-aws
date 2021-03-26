@@ -372,13 +372,6 @@ Resources:
               - !Sub 'arn:aws:ssm:${AWS::Region}:*:parameter/aws/service/storagegateway/ami/FILE_S3/latest'
           - Effect: Allow
             Action:
-              - storagegateway:CreateNFSFileShare
-              - storagegateway:ListFileShares
-              - storagegateway:DescribeNFSFileShares
-              - storagegateway:UpdateNFSFileShare
-            Resource: !Sub 'arn:aws:storagegateway:${AWS::Region}:${AWS::AccountId}:gateway/*'
-          - Effect: Allow
-            Action:
               - states:StartExecution
             Resource:
               - !Ref SMWorkflow
@@ -417,22 +410,6 @@ Resources:
               #   circular dependency in StudyDataEncryptionKey's KeyPolicy
               - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.studyDataKmsKeyAlias}'
               - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
-          - Effect: Allow
-            Action:
-              - sagemaker:CreatePresignedNotebookInstanceUrl
-            Resource:
-              - !Sub 'arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:notebook-instance/basicnotebookinstance-*'
-          - Effect: Allow
-            Action:
-              - ec2:DescribeInstanceStatus
-              - ec2:DescribeInstances
-            Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
-          - Effect: Allow
-            Action:
-              - ec2:DescribeSubnets
-              - ec2:DescribeVpcs
-              - ec2:DescribeNetworkInterfaces
-            Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
           - Effect: 'Allow'
             Action:
               - ce:GetCostAndUsage
@@ -530,7 +507,6 @@ Resources:
               - ssm:GetParameter
             Resource:
               - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
-              - !Sub 'arn:aws:ssm:${AWS::Region}:*:parameter/aws/service/storagegateway/ami/FILE_S3/latest'
           - Effect: Allow
             Action:
               - ssm:PutParameter
@@ -548,11 +524,6 @@ Resources:
               - !Sub 'arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${self:custom.settings.workflowStateMachineName}'
           - Effect: Allow
             Action:
-              - ec2:StartInstances
-              - ec2:StopInstances
-            Resource: !Sub 'arn:aws:ec2:${AWS::Region}:*:instance/*'
-          - Effect: Allow
-            Action:
               - ec2:DescribeSubnets
               - ec2:DescribeVpcs
               - ec2:DescribeNetworkInterfaces
@@ -566,17 +537,6 @@ Resources:
             Action:
               - ec2:ModifyImageAttribute
             Resource: !Sub 'arn:aws:ec2:${AWS::Region}::image/*'
-          - Effect: 'Allow'
-            Action:
-              - storagegateway:ActivateGateway
-              - storagegateway:ListLocalDisks
-              - storagegateway:AddCache
-              - storagegateway:DeleteGateway
-              - storagegateway:CreateNFSFileShare
-              - storagegateway:ListFileShares
-              - storagegateway:DescribeNFSFileShares
-              - storagegateway:UpdateNFSFileShare
-            Resource: !Sub 'arn:aws:storagegateway:${AWS::Region}:${AWS::AccountId}:gateway/*'
           - Effect: 'Allow'
             Action:
               - s3:GetBucketPolicy
