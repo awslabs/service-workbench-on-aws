@@ -118,7 +118,7 @@ jobs:
         with:
           route: DELETE /repos/{owner}/{repo}/branches/{branch}/protection/enforce_admins
           owner: awslabs
-          repo: fhir-works-on-aws-deployment
+          repo: service-workbench-on-aws
           branch: mainline
         env:
           GITHUB_TOKEN: ${{ secrets.MERGE_TOKEN }}
@@ -137,7 +137,7 @@ jobs:
         with:
           route: POST /repos/{owner}/{repo}/branches/{branch}/protection/enforce_admins
           owner: awslabs
-          repo: fhir-works-on-aws-deployment
+          repo: service-workbench-on-aws
           branch: mainline
         env:
           GITHUB_TOKEN: ${{ secrets.MERGE_TOKEN }}
