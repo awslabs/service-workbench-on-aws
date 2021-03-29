@@ -422,6 +422,7 @@ Resources:
               - 'arn:aws:iam::*:role/SC-*'
               - 'arn:aws:iam::*:role/swb-*'
               - 'arn:aws:iam::*:role/analysis-*'
+              - 'arn:aws:iam::${AWS::AccountId}:role/*' # This is required since when users onboard the main account as a member account, so the onboard CFN stack would also reside there
           - Effect: Allow
             Action:
               - logs:CreateLog*
