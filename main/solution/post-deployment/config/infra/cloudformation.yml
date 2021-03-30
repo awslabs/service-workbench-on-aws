@@ -220,19 +220,29 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - iam:AttachRolePolicy
-                  - iam:CreateRole
-                  - iam:DeleteRole
-                  - iam:DeleteRolePolicy
-                  - iam:DetachRolePolicy
                   - iam:GetRole
                   - iam:GetRolePolicy
-                  - iam:PassRole
-                  - iam:PutRolePolicy
                   - iam:*TagRole*
+                  - iam:PassRole
+                  - iam:DeleteRole
                 Resource:
                   - 'arn:aws:iam::*:role/analysis-*'
                   - 'arn:aws:iam::*:role/SC-*-ServiceRole-*'
+              - Effect: Allow
+                Action:
+                  - iam:PutRolePolicy
+                  - iam:DeleteRolePolicy
+                  - iam:DetachRolePolicy
+                  - iam:AttachRolePolicy
+                  - iam:CreateRole
+                Resource:
+                  - 'arn:aws:iam::*:role/analysis-*'
+                  - 'arn:aws:iam::*:role/SC-*-ServiceRole-*'
+                Condition:
+                  StringLike:
+                    iam:PermissionsBoundary:
+                      - 'arn:aws:iam::*:policy/analysis-*-permission-boundary'
+                      - 'arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole'
               - Effect: Allow
                 Action:
                   - iam:AddRoleToInstanceProfile
@@ -243,6 +253,13 @@ Resources:
                 Resource:
                   - 'arn:aws:iam::*:instance-profile/analysis-*'
                   - 'arn:aws:iam::*:instance-profile/SC-*-InstanceProfile-*'
+              - Effect: Allow
+                Action:
+                  - iam:GetPolicy
+                  - iam:CreatePolicy
+                  - iam:ListPolicyVersions
+                  - iam:DeletePolicy
+                Resource: 'arn:aws:iam::*:policy/analysis-*-permission-boundary'
               - Effect: Allow
                 Action:
                   - cloudformation:CreateStack

@@ -124,6 +124,19 @@ Resources:
         - Ref: Ec2Role
     Type: AWS::IAM::InstanceProfile
 
+  InstanceRolePermissionBoundary:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Permission boundary for EC2 instance role
+      ManagedPolicyName: !Join ['-', [Ref: Namespace, 'emr-permission-boundary']]
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 's3:*'
+            Resource: '*'
+
   Ec2Role:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -166,6 +179,7 @@ Resources:
                     s3:prefix: !Sub
                       - '${S3Prefix}/*'
                       - S3Prefix: !Select [3, !Split ['/', !Ref EnvironmentInstanceFiles]]
+      PermissionsBoundary: !Ref InstanceRolePermissionBoundary
 
   ServiceRole:
     Type: AWS::IAM::Role
@@ -182,6 +196,7 @@ Resources:
         Version: '2012-10-17'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole
+      PermissionsBoundary: arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole
 
   EmrSecurityConfiguration:
     Type: AWS::EMR::SecurityConfiguration
