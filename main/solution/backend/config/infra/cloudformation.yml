@@ -114,7 +114,7 @@ Resources:
             Effect: Allow
             Principal:
               AWS:
-                - !GetAtt [RoleApiHandler, Arn]
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-ApiHandler'
             Action:
               - kms:GenerateDataKey
               - kms:DescribeKey
@@ -125,7 +125,7 @@ Resources:
             Effect: Allow
             Principal:
               AWS:
-                - !GetAtt [RoleWorkflowLoopRunner, Arn]
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-WorkflowLoopRunner'
             Action:
               - kms:DescribeKey
               - kms:GetKeyPolicy
@@ -307,9 +307,133 @@ Resources:
                 - ssm:GetParameter
               Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
 
+  PolicyApiHandler:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Allows main account to create resources required for SWB backend functionality
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - dynamodb:DeleteItem
+              - dynamodb:GetItem
+              - dynamodb:BatchGetItem
+              - dynamodb:PutItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:UpdateItem
+            Resource:
+              - !GetAtt [AuthenticationProviderTypesDb, Arn]
+              - !GetAtt [AuthenticationProviderConfigsDb, Arn]
+              - !GetAtt [RevokedTokensDb, Arn]
+              - !GetAtt [UsersDb, Arn]
+              - !Sub '${UsersDb.Arn}/index/*'
+              - !GetAtt [PasswordsDb, Arn]
+              - !GetAtt [LocksDb, Arn]
+              - !GetAtt [StudiesDb, Arn]
+              - !GetAtt [StudyPermissionsDb, Arn]
+              - !Join ['', [!GetAtt [StudiesDb, Arn], '/index/*']]
+              - !GetAtt [StepTemplatesDb, Arn]
+              - !GetAtt [WorkflowTemplatesDb, Arn]
+              - !GetAtt [WorkflowTemplateDraftsDb, Arn]
+              - !Join ['', [!GetAtt [WorkflowTemplateDraftsDb, Arn], '/index/*']]
+              - !GetAtt [WorkflowsDb, Arn]
+              - !GetAtt [WorkflowDraftsDb, Arn]
+              - !Join ['', [!GetAtt [WorkflowDraftsDb, Arn], '/index/*']]
+              - !GetAtt [WorkflowInstancesDb, Arn]
+              - !Join ['', [!GetAtt [WorkflowInstancesDb, Arn], '/index/*']]
+              - !GetAtt [WfAssignmentsDb, Arn]
+              - !Join ['', [!GetAtt [WfAssignmentsDb, Arn], '/index/*']]
+              - !GetAtt [StudiesDb, Arn]
+              - !GetAtt [StudyPermissionsDb, Arn]
+              - !Join ['', [!GetAtt [StudiesDb, Arn], '/index/*']]
+              - !GetAtt [EnvironmentsDb, Arn]
+              - !GetAtt [EnvironmentsScDb, Arn]
+              - !Join ['', [!GetAtt [EnvironmentsScDb, Arn], '/index/*']]
+              - !GetAtt [EnvironmentsTypesDb, Arn]
+              - !GetAtt [UserRolesDb, Arn]
+              - !GetAtt [AwsAccountsDb, Arn]
+              - !GetAtt [IndexesDb, Arn]
+              - !GetAtt [CostApiCachesDb, Arn]
+              - !GetAtt [ProjectsDb, Arn]
+              - !GetAtt [AccountsDb, Arn]
+              - !GetAtt [KeyPairsDb, Arn]
+              - !Join ['', [!GetAtt [KeyPairsDb, Arn], '/index/*']]
+              - !GetAtt [StorageGatewayDb, Arn]
+              - !GetAtt [DsAccountsDb, Arn]
+              - !GetAtt [RoleAllocationsDb, Arn]
+              - !GetAtt [ResourceUsagesDb, Arn]
+          - Effect: Allow
+            Action:
+              - ssm:GetParameter
+            Resource:
+              - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
+          - Effect: Allow
+            Action:
+              - states:StartExecution
+            Resource:
+              - !Ref SMWorkflow
+          - Effect: Allow
+            Action:
+              - s3:GetObject*
+              - s3:AbortMultipartUpload
+              - s3:ListMultipartUploadParts
+              - s3:PutObject*
+              - s3:DeleteObject*
+            Resource:
+              - 'arn:aws:s3:::${self:custom.settings.studyDataBucketName}/*'
+              - 'arn:aws:s3:::${self:custom.settings.environmentsBootstrapBucketName}/*'
+              - 'arn:aws:s3:::${self:custom.settings.externalCfnTemplatesBucketName}/*'
+              - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}/*'
+          - Effect: Allow
+            Action:
+              - s3:ListBucket
+              - s3:GetBucketPolicy
+              - s3:PutBucketPolicy
+            Resource:
+              - 'arn:aws:s3:::${self:custom.settings.studyDataBucketName}'
+              - 'arn:aws:s3:::${self:custom.settings.environmentsBootstrapBucketName}'
+              - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}'
+          - Effect: Allow
+            Action:
+              - kms:GenerateDataKey
+              - kms:Decrypt
+              - kms:DescribeKey
+              - kms:Encrypt
+              - kms:ReEncrypt*
+              - kms:GetKeyPolicy
+              - kms:PutKeyPolicy
+            Resource:
+              - !GetAtt StudyDataEncryptionKey.Arn
+          - Effect: 'Allow'
+            Action:
+              - ce:GetCostAndUsage
+            Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
+          - Effect: Allow
+            Action:
+              - sts:GetCallerIdentity
+            Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
+          - Effect: Allow
+            Action: 'sts:AssumeRole'
+            Resource:
+              - !GetAtt [RoleEnvMgmt, Arn]
+              - 'arn:aws:iam::*:role/initial-stack-*'
+              - 'arn:aws:iam::*:role/SC-*'
+              - 'arn:aws:iam::*:role/swb-*'
+              - 'arn:aws:iam::*:role/analysis-*'
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/*-cross-account-role' # This is required since when users onboard the main account as a member account, the onboard CFN stack would also reside there
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/*-xacc-env-mgmt'
+          - Effect: Allow
+            Action:
+              - logs:CreateLog*
+              - logs:PutLogEvents
+            Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}*'
+
   # IAM Role for the apiHandler Function
   RoleApiHandler:
     Type: 'AWS::IAM::Role'
+    DependsOn: RoleEnvMgmt
     Properties:
       RoleName: ${self:custom.settings.apiHandlerRoleName}
       AssumeRolePolicyDocument:
@@ -320,205 +444,141 @@ Resources:
               Service: lambda.amazonaws.com
             Action: 'sts:AssumeRole'
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      Policies:
-        - PolicyName: db-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - dynamodb:DeleteItem
-                - dynamodb:GetItem
-                - dynamodb:BatchGetItem
-                - dynamodb:PutItem
-                - dynamodb:Query
-                - dynamodb:Scan
-                - dynamodb:UpdateItem
-              Resource:
-                - !GetAtt [AuthenticationProviderTypesDb, Arn]
-                - !GetAtt [AuthenticationProviderConfigsDb, Arn]
-                - !GetAtt [RevokedTokensDb, Arn]
-                - !GetAtt [UsersDb, Arn]
-                - !Sub '${UsersDb.Arn}/index/*'
-                - !GetAtt [PasswordsDb, Arn]
-                - !GetAtt [LocksDb, Arn]
-                - !GetAtt [StudiesDb, Arn]
-                - !GetAtt [StudyPermissionsDb, Arn]
-                - !Join ['', [!GetAtt [StudiesDb, Arn], '/index/*']]
-                - !GetAtt [StepTemplatesDb, Arn]
-                - !GetAtt [WorkflowTemplatesDb, Arn]
-                - !GetAtt [WorkflowTemplateDraftsDb, Arn]
-                - !Join ['', [!GetAtt [WorkflowTemplateDraftsDb, Arn], '/index/*']]
-                - !GetAtt [WorkflowsDb, Arn]
-                - !GetAtt [WorkflowDraftsDb, Arn]
-                - !Join ['', [!GetAtt [WorkflowDraftsDb, Arn], '/index/*']]
-                - !GetAtt [WorkflowInstancesDb, Arn]
-                - !Join ['', [!GetAtt [WorkflowInstancesDb, Arn], '/index/*']]
-                - !GetAtt [WfAssignmentsDb, Arn]
-                - !Join ['', [!GetAtt [WfAssignmentsDb, Arn], '/index/*']]
-                - !GetAtt [StudiesDb, Arn]
-                - !GetAtt [StudyPermissionsDb, Arn]
-                - !Join ['', [!GetAtt [StudiesDb, Arn], '/index/*']]
-                - !GetAtt [EnvironmentsDb, Arn]
-                - !GetAtt [EnvironmentsScDb, Arn]
-                - !Join ['', [!GetAtt [EnvironmentsScDb, Arn], '/index/*']]
-                - !GetAtt [EnvironmentsTypesDb, Arn]
-                - !GetAtt [UserRolesDb, Arn]
-                - !GetAtt [AwsAccountsDb, Arn]
-                - !GetAtt [IndexesDb, Arn]
-                - !GetAtt [CostApiCachesDb, Arn]
-                - !GetAtt [ProjectsDb, Arn]
-                - !GetAtt [AccountsDb, Arn]
-                - !GetAtt [KeyPairsDb, Arn]
-                - !Join ['', [!GetAtt [KeyPairsDb, Arn], '/index/*']]
-                - !GetAtt [StorageGatewayDb, Arn]
-                - !GetAtt [DsAccountsDb, Arn]
-                - !GetAtt [RoleAllocationsDb, Arn]
-                - !GetAtt [ResourceUsagesDb, Arn]
+        - !Ref PolicyApiHandler
+      PermissionsBoundary: !Ref PolicyApiHandler
 
-        - PolicyName: param-store-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - ssm:GetParameter
-              Resource:
-                - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
-                - !Sub 'arn:aws:ssm:${AWS::Region}:*:parameter/aws/service/storagegateway/ami/FILE_S3/latest'
-
-        - PolicyName: storage-gateway-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - storagegateway:CreateNFSFileShare
-                - storagegateway:ListFileShares
-                - storagegateway:DescribeNFSFileShares
-                - storagegateway:UpdateNFSFileShare
-              Resource: '*'
-
-        - PolicyName: iam-pass-role
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - iam:PassRole
-              Resource: '*'
-
-        - PolicyName: step-functions-invocation
-          PolicyDocument:
-            Statement:
-              - Effect: Allow
-                Action:
-                  - states:StartExecution
-                Resource:
-                  - !Ref SMWorkflow
-
-        - PolicyName: s3-access
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - s3:*
-                Resource:
-                  - 'arn:aws:s3:::${self:custom.settings.studyDataBucketName}/*'
-                  - 'arn:aws:s3:::${self:custom.settings.environmentsBootstrapBucketName}/*'
-              - Effect: Allow
-                Action:
-                  - s3:ListBucket
-                Resource:
-                  - 'arn:aws:s3:::${self:custom.settings.studyDataBucketName}'
-                  - 'arn:aws:s3:::${self:custom.settings.environmentsBootstrapBucketName}'
-              - Effect: Allow
-                Action:
-                  - kms:GenerateDataKey
-                Resource:
-                  # NOTE: Can't use '!GetAtt StudyDataEncryptionKey.Arn' due to
-                  #   circular dependency in StudyDataEncryptionKey's KeyPolicy  =[
-                  - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.studyDataKmsKeyAlias}'
-              - Effect: Allow
-                Action:
-                  - s3:*
-                Resource:
-                  - 'arn:aws:s3:::${self:custom.settings.externalCfnTemplatesBucketName}/*'
-              - Effect: 'Allow'
-                Action:
-                  - s3:GetBucketPolicy
-                  - s3:PutBucketPolicy
-                Resource:
-                  - 'arn:aws:s3:::${self:custom.settings.environmentsBootstrapBucketName}'
-                  - 'arn:aws:s3:::${self:custom.settings.studyDataBucketName}'
-        - PolicyName: env-type-configs-s3-access
-          PolicyDocument:
-            Statement:
-              - Effect: 'Allow'
-                Action:
-                  - s3:GetObject
-                  - s3:PutObject
-                  - s3:DeleteObject
-                Resource:
-                  - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}/*'
-
-              - Effect: 'Allow'
-                Action:
-                  - s3:ListBucket
-                  - s3:HeadBucket
-                Resource:
-                  - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}'
-
-        - PolicyName: sagemaker-access
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - sagemaker:CreatePresignedNotebookInstanceUrl
-                Resource:
-                  - '*'
-
-        - PolicyName: ec2-access
-          PolicyDocument:
-            Statement:
-              - Effect: 'Allow'
-                Action:
-                  - ec2:*
-                Resource: '*'
-
-        - PolicyName: cost-explorer
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: 'Allow'
-                Action:
-                  - ce:*
-                Resource: '*'
-
-        - PolicyName: assume-role
-          PolicyDocument:
-            Statement:
-              Action:
-                - sts:AssumeRole
-                - sts:GetCallerIdentity
-              Effect: Allow
-              Resource: '*' # TODO: LOCK THIS DOWN!
-
-        - PolicyName: study-kms-policy-update
-          PolicyDocument:
-            Statement:
-              - Effect: 'Allow'
-                Action:
-                  - kms:DescribeKey
-                  - kms:GetKeyPolicy
-                  - kms:PutKeyPolicy
-                Resource:
-                  # NOTE: Can't use '!GetAtt StudyDataEncryptionKey.Arn' due to
-                  #   circular dependency in StudyDataEncryptionKey's KeyPolicy  =[
-                  - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.studyDataKmsKeyAlias}'
+  PolicyWorkflowLoopRunner:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Allows main account to create resources required for SWB backend functionality
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - dynamodb:DeleteItem
+              - dynamodb:GetItem
+              - dynamodb:BatchGetItem
+              - dynamodb:PutItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:UpdateItem
+            Resource:
+              - !GetAtt [PasswordsDb, Arn]
+              - !GetAtt [UsersDb, Arn]
+              - !GetAtt [LocksDb, Arn]
+              - !GetAtt [StepTemplatesDb, Arn]
+              - !GetAtt [WorkflowTemplatesDb, Arn]
+              - !GetAtt [WorkflowTemplateDraftsDb, Arn]
+              - !Join ['', [!GetAtt [WorkflowTemplateDraftsDb, Arn], '/index/*']]
+              - !GetAtt [WorkflowsDb, Arn]
+              - !GetAtt [WorkflowDraftsDb, Arn]
+              - !Join ['', [!GetAtt [WorkflowDraftsDb, Arn], '/index/*']]
+              - !GetAtt [WorkflowInstancesDb, Arn]
+              - !Join ['', [!GetAtt [WorkflowInstancesDb, Arn], '/index/*']]
+              - !GetAtt [WfAssignmentsDb, Arn]
+              - !Join ['', [!GetAtt [WfAssignmentsDb, Arn], '/index/*']]
+              - !GetAtt [EnvironmentsDb, Arn]
+              - !GetAtt [EnvironmentsScDb, Arn]
+              - !Join ['', [!GetAtt [EnvironmentsScDb, Arn], '/index/*']]
+              - !GetAtt [EnvironmentsTypesDb, Arn]
+              - !GetAtt [StudiesDb, Arn]
+              - !GetAtt [ProjectsDb, Arn]
+              - !GetAtt [StudyPermissionsDb, Arn]
+              - !GetAtt [IndexesDb, Arn]
+              - !GetAtt [ProjectsDb, Arn]
+              - !GetAtt [AccountsDb, Arn]
+              - !GetAtt [AwsAccountsDb, Arn]
+              - !GetAtt [AuthenticationProviderTypesDb, Arn]
+              - !GetAtt [AuthenticationProviderConfigsDb, Arn]
+              - !GetAtt [RevokedTokensDb, Arn]
+              - !Join ['', [!GetAtt [StudiesDb, Arn], '/index/*']]
+              - !GetAtt [IndexesDb, Arn]
+              - !GetAtt [CostApiCachesDb, Arn]
+              - !GetAtt [UserRolesDb, Arn]
+              - !GetAtt [StorageGatewayDb, Arn]
+              - !GetAtt [DsAccountsDb, Arn]
+              - !GetAtt [RoleAllocationsDb, Arn]
+              - !GetAtt [ResourceUsagesDb, Arn]
+          - Effect: Allow
+            Action:
+              - ssm:GetParameter
+            Resource:
+              - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
+          - Effect: Allow
+            Action:
+              - ssm:PutParameter
+              - ssm:DeleteParameter
+            Resource:
+              - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
+          - Effect: 'Allow'
+            Action:
+              - route53:ChangeResourceRecordSets
+            Resource: 'arn:aws:route53:::hostedzone/${self:custom.settings.hostedZoneId}'
+          - Effect: Allow
+            Action:
+              - states:StartExecution
+            Resource:
+              - !Sub 'arn:aws:states:${AWS::Region}:${AWS::AccountId}:stateMachine:${self:custom.settings.workflowStateMachineName}'
+          - Effect: Allow
+            Action:
+              - ec2:DescribeSubnets
+              - ec2:DescribeVpcs
+              - ec2:DescribeNetworkInterfaces
+              - ec2:DescribeImages
+              - ec2:DescribeSpotPriceHistory
+            Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
+          - Effect: Allow
+            Action:
+              - ec2:ModifyImageAttribute
+            Resource: !Sub 'arn:aws:ec2:${AWS::Region}::image/*'
+          - Effect: 'Allow'
+            Action:
+              - s3:GetBucketPolicy
+              - s3:PutBucketPolicy
+            Resource:
+              - 'arn:aws:s3:::${self:custom.settings.studyDataBucketName}'
+              - 'arn:aws:s3:::${self:custom.settings.deploymentBucketName}'
+              - 'arn:aws:s3:::${self:custom.settings.environmentsBootstrapBucketName}'
+          - Effect: 'Allow'
+            Action:
+              - kms:DescribeKey
+              - kms:GetKeyPolicy
+              - kms:PutKeyPolicy
+            Resource:
+              - !GetAtt StudyDataEncryptionKey.Arn
+          - Effect: 'Allow'
+            Action:
+              - s3:GetObject
+              - s3:PutObject
+              - s3:DeleteObject
+            Resource:
+              - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}/*'
+          - Effect: 'Allow'
+            Action:
+              - s3:ListBucket
+            Resource:
+              - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}'
+          - Effect: Allow
+            Action: 'sts:AssumeRole'
+            Resource:
+              - !GetAtt [RoleEnvMgmt, Arn]
+              - 'arn:aws:iam::*:role/initial-stack-*'
+              - 'arn:aws:iam::*:role/SC-*'
+              - 'arn:aws:iam::*:role/analysis-*'
+              - 'arn:aws:iam::*:role/swb-*'
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/*-cross-account-role' # This is required since when users onboard the main account as a member account, the onboard CFN stack would also reside there
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/*-xacc-env-mgmt'
+          - Effect: Allow
+            Action:
+              - logs:CreateLog*
+              - logs:PutLogEvents
+            Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}*'
 
   # IAM Role for the workflowLoopRunner Function
   RoleWorkflowLoopRunner:
     Type: 'AWS::IAM::Role'
+    DependsOn: RoleEnvMgmt
     Properties:
       RoleName: ${self:custom.settings.workflowLoopRunnerRoleName}
       AssumeRolePolicyDocument:
@@ -529,170 +589,8 @@ Resources:
               Service: lambda.amazonaws.com
             Action: 'sts:AssumeRole'
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      Policies:
-        - PolicyName: db-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - dynamodb:DeleteItem
-                - dynamodb:GetItem
-                - dynamodb:BatchGetItem
-                - dynamodb:PutItem
-                - dynamodb:Query
-                - dynamodb:Scan
-                - dynamodb:UpdateItem
-              Resource:
-                - !GetAtt [PasswordsDb, Arn]
-                - !GetAtt [UsersDb, Arn]
-                - !GetAtt [LocksDb, Arn]
-                - !GetAtt [StepTemplatesDb, Arn]
-                - !GetAtt [WorkflowTemplatesDb, Arn]
-                - !GetAtt [WorkflowTemplateDraftsDb, Arn]
-                - !Join ['', [!GetAtt [WorkflowTemplateDraftsDb, Arn], '/index/*']]
-                - !GetAtt [WorkflowsDb, Arn]
-                - !GetAtt [WorkflowDraftsDb, Arn]
-                - !Join ['', [!GetAtt [WorkflowDraftsDb, Arn], '/index/*']]
-                - !GetAtt [WorkflowInstancesDb, Arn]
-                - !Join ['', [!GetAtt [WorkflowInstancesDb, Arn], '/index/*']]
-                - !GetAtt [WfAssignmentsDb, Arn]
-                - !Join ['', [!GetAtt [WfAssignmentsDb, Arn], '/index/*']]
-                - !GetAtt [EnvironmentsDb, Arn]
-                - !GetAtt [EnvironmentsScDb, Arn]
-                - !Join ['', [!GetAtt [EnvironmentsScDb, Arn], '/index/*']]
-                - !GetAtt [EnvironmentsTypesDb, Arn]
-                - !GetAtt [StudiesDb, Arn]
-                - !GetAtt [ProjectsDb, Arn]
-                - !GetAtt [StudyPermissionsDb, Arn]
-                - !GetAtt [IndexesDb, Arn]
-                - !GetAtt [ProjectsDb, Arn]
-                - !GetAtt [AccountsDb, Arn]
-                - !GetAtt [AwsAccountsDb, Arn]
-                - !GetAtt [AuthenticationProviderTypesDb, Arn]
-                - !GetAtt [AuthenticationProviderConfigsDb, Arn]
-                - !GetAtt [RevokedTokensDb, Arn]
-                - !Join ['', [!GetAtt [StudiesDb, Arn], '/index/*']]
-                - !GetAtt [IndexesDb, Arn]
-                - !GetAtt [CostApiCachesDb, Arn]
-                - !GetAtt [UserRolesDb, Arn]
-                - !GetAtt [StorageGatewayDb, Arn]
-                - !GetAtt [DsAccountsDb, Arn]
-                - !GetAtt [RoleAllocationsDb, Arn]
-                - !GetAtt [ResourceUsagesDb, Arn]
-
-        - PolicyName: param-store-access
-          PolicyDocument:
-            Statement:
-              - Effect: Allow
-                Action:
-                  - ssm:GetParameter
-                Resource:
-                  - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
-                  - !Sub 'arn:aws:ssm:${AWS::Region}:*:parameter/aws/service/storagegateway/ami/FILE_S3/latest'
-              - Effect: Allow
-                Action:
-                  - ssm:PutParameter
-                  - ssm:DeleteParameter
-                Resource:
-                  - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
-
-        - PolicyName: dns-record-access
-          PolicyDocument:
-            Statement:
-              - Effect: 'Allow'
-                Action:
-                  - route53:ChangeResourceRecordSets
-                Resource: 'arn:aws:route53:::hostedzone/${self:custom.settings.hostedZoneId}'
-
-        - PolicyName: step-functions-invocation
-          PolicyDocument:
-            Statement:
-              - Effect: Allow
-                Action:
-                  - states:StartExecution
-                Resource: '*'
-
-        - PolicyName: ec2-access
-          PolicyDocument:
-            Statement:
-              - Effect: 'Allow'
-                Action:
-                  - ec2:*
-                Resource: '*'
-
-        - PolicyName: storage-gateway
-          PolicyDocument:
-            Statement:
-              - Effect: 'Allow'
-                Action:
-                  - storagegateway:ActivateGateway
-                  - storagegateway:ListLocalDisks
-                  - storagegateway:AddCache
-                  - storagegateway:DeleteGateway
-                  - storagegateway:CreateNFSFileShare
-                  - storagegateway:ListFileShares
-                  - storagegateway:DescribeNFSFileShares
-                  - storagegateway:UpdateNFSFileShare
-                Resource: '*'
-
-        - PolicyName: study-s3-policy-update
-          PolicyDocument:
-            Statement:
-              - Effect: 'Allow'
-                Action:
-                  - s3:GetBucketPolicy
-                  - s3:PutBucketPolicy
-                Resource:
-                  - 'arn:aws:s3:::${self:custom.settings.studyDataBucketName}'
-                  - 'arn:aws:s3:::${self:custom.settings.deploymentBucketName}'
-                  - 'arn:aws:s3:::${self:custom.settings.environmentsBootstrapBucketName}'
-        - PolicyName: study-kms-policy-update
-          PolicyDocument:
-            Statement:
-              - Effect: 'Allow'
-                Action:
-                  - kms:DescribeKey
-                  - kms:GetKeyPolicy
-                  - kms:PutKeyPolicy
-                Resource:
-                  # NOTE: Can't use '!GetAtt StudyDataEncryptionKey.Arn' due to
-                  #   circular dependency in StudyDataEncryptionKey's KeyPolicy  =[
-                  - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.studyDataKmsKeyAlias}'
-        - PolicyName: cfn-access
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - cloudformation:CreateStack
-                  - cloudformation:DeleteStack
-                  - cloudformation:DescribeStacks
-                Resource: '*'
-
-        - PolicyName: assume-role
-          PolicyDocument:
-            Statement:
-              Action: 'sts:AssumeRole'
-              Effect: Allow
-              Resource: '*' # TODO: LOCK THIS DOWN!
-
-        - PolicyName: env-type-configs-s3-access
-          PolicyDocument:
-            Statement:
-              - Effect: 'Allow'
-                Action:
-                  - s3:GetObject
-                  - s3:PutObject
-                  - s3:DeleteObject
-                Resource:
-                  - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}/*'
-              - Effect: 'Allow'
-                Action:
-                  - s3:ListBucket
-                  - s3:HeadBucket
-                Resource:
-                  - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}'
+        - !Ref PolicyWorkflowLoopRunner
+      PermissionsBoundary: !Ref PolicyWorkflowLoopRunner
 
   # IAM Role for Step Functions to invoke lambda
   RoleStepFunctionsWorkflow:
@@ -743,12 +641,13 @@ Resources:
                 - dynamodb:UpdateItem
               Resource:
                 - !GetAtt [StudiesDb, Arn]
+
   PolicyDataSourceReachabilityHandler:
     Type: AWS::IAM::ManagedPolicy
     Properties:
       Description: Grant ClouWatch access for logging and ddb access to studies and accounts table
       PolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Action:
@@ -803,7 +702,6 @@ Resources:
       ManagedPolicyArns:
         - !Ref PolicyDataSourceReachabilityHandler
       PermissionsBoundary: !Ref PolicyDataSourceReachabilityHandler
-
 
   # An environment management role giving AWS Service Catalog Permissions
   # This is the role that the Admin users share their AWS Service Catalog products/portfolios with.

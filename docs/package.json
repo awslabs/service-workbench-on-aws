@@ -9,15 +9,16 @@
     "deploy": "docusaurus deploy"
   },
   "dependencies": {
-    "@docusaurus/core": "^2.0.0-alpha.70",
-    "@docusaurus/preset-classic": "^2.0.0-alpha.70",
+    "@docusaurus/core": "^2.0.0-alpha.72",
+    "@docusaurus/preset-classic": "^2.0.0-alpha.72",
     "classnames": "^2.2.6",
     "pandoc": "^0.2.0",
     "react": "^16.8.4",
     "react-dom": "^16.8.4"
   },
   "resolutions": {
-    "immer": "^8.0.1"
+    "immer": "^8.0.1",
+    "is-svg": "4.2.2"
   },
   "browserslist": {
     "production": [
