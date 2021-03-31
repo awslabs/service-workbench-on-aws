@@ -114,7 +114,7 @@ Resources:
             Effect: Allow
             Principal:
               AWS:
-                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-ApiHandler'
+                - !GetAtt [RoleApiHandler, Arn]
             Action:
               - kms:GenerateDataKey
               - kms:DescribeKey
@@ -125,7 +125,7 @@ Resources:
             Effect: Allow
             Principal:
               AWS:
-                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-WorkflowLoopRunner'
+                - !GetAtt [RoleWorkflowLoopRunner, Arn]
             Action:
               - kms:DescribeKey
               - kms:GetKeyPolicy
@@ -405,7 +405,10 @@ Resources:
               - kms:GetKeyPolicy
               - kms:PutKeyPolicy
             Resource:
-              - !GetAtt StudyDataEncryptionKey.Arn
+              # NOTE: Can't use '!GetAtt StudyDataEncryptionKey.Arn' due to
+              #   circular dependency in StudyDataEncryptionKey's KeyPolicy
+              - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.studyDataKmsKeyAlias}'
+              - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
           - Effect: 'Allow'
             Action:
               - ce:GetCostAndUsage
@@ -546,7 +549,10 @@ Resources:
               - kms:GetKeyPolicy
               - kms:PutKeyPolicy
             Resource:
-              - !GetAtt StudyDataEncryptionKey.Arn
+              # NOTE: Can't use '!GetAtt StudyDataEncryptionKey.Arn' due to
+              #   circular dependency in StudyDataEncryptionKey's KeyPolicy
+              - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.studyDataKmsKeyAlias}'
+              - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
           - Effect: 'Allow'
             Action:
               - s3:GetObject
