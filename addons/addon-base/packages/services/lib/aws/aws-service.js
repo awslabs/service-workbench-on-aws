@@ -36,11 +36,8 @@ class AwsService extends Service {
     this._sdk = require('aws-sdk');
     if (!process.env.IS_OFFLINE) {
       const AWSXRay = require('aws-xray-sdk');
-      // AWSXRay.setLogger(this.log);
       this._sdk = AWSXRay.captureAWS(require('aws-sdk'));
     }
-
-    // this._sdk = require('aws-sdk');
 
     // It's possible to get throttling errors during heavy load due to the rate limit of aws apis calls,
     // so slow down and try more often in an attempt to recover from these errors.
