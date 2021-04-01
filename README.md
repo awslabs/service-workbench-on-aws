@@ -192,4 +192,4 @@ Included AWS Lambda functions are licensed under the MIT-0 license. See [LICENSE
 
 ## Feedback
 
-We'd love to hear from you! Please reach out to our team: [service-workbench-dev](mailto:service-workbench-dev@amazon.com) for any feedback.
+We'd love to hear from you! Please reach out to our team via GitHub Issues for any feedback.
