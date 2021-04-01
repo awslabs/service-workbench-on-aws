@@ -33,12 +33,10 @@ class AwsService extends Service {
   async init() {
     await super.init();
 
-    this.log.log('Initializing AWS SDK');
     this._sdk = require('aws-sdk');
     if (!process.env.IS_OFFLINE) {
       const AWSXRay = require('aws-xray-sdk');
-      // https://github.com/aws/aws-xray-sdk-node/tree/master/packages/core#context-missing-strategy-configuration
-      AWSXRay.setContextMissingStrategy('LOG_ERROR');
+      // AWSXRay.setLogger(this.log);
       this._sdk = AWSXRay.captureAWS(require('aws-sdk'));
     }
 

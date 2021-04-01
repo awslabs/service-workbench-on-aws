@@ -306,6 +306,15 @@ Resources:
               Action:
                 - ssm:GetParameter
               Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
+        - PolicyName: xray-write-access
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - xray:PutTraceSegments
+                  - xray:PutTelemetryRecords
+                Resource:
+                  - '*'
 
   PolicyApiHandler:
     Type: AWS::IAM::ManagedPolicy
