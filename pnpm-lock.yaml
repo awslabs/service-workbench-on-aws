@@ -1270,7 +1270,7 @@ importers:
     dependencies:
       '@aws-ee/base-services-container': 'link:../services-container'
       ajv: 6.12.0
-      aws-sdk: 2.656.0
+      aws-sdk: 2.847.0
       aws-xray-sdk: 3.2.0
       cycle: 1.0.3
       jsonwebtoken: 8.5.1
@@ -1298,8 +1298,8 @@ importers:
     specifiers:
       '@aws-ee/base-services-container': 'workspace:*'
       ajv: ^6.11.0
-      aws-sdk: ^2.647.0
-      aws-xray-sdk: ^3.1.0
+      aws-sdk: ^2.7.15.0
+      aws-xray-sdk: ^3.2.0
       cycle: ^1.0.3
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.0.0
@@ -2006,7 +2006,7 @@ importers:
       '@aws-ee/environment-type-mgmt-services': 'link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-services'
       '@aws-ee/key-pair-mgmt-api': 'link:../../../addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-api'
       '@aws-ee/key-pair-mgmt-services': 'link:../../../addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-services'
-      aws-sdk: 2.656.0
+      aws-sdk: 2.847.0
       controllers: 'link:../../packages/controllers'
       js-yaml: 3.13.1
       jwt-decode: 2.2.0
@@ -2074,7 +2074,7 @@ importers:
       '@babel/core': ^7.8.4
       '@babel/plugin-transform-runtime': ^7.8.3
       '@babel/preset-env': ^7.8.4
-      aws-sdk: ^2.647.0
+      aws-sdk: ^2.7.15
       babel-jest: ^24.9.0
       babel-loader: ^8.0.6
       babel-plugin-source-map-support: ^2.1.1

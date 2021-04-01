@@ -34,12 +34,15 @@ class AwsService extends Service {
     await super.init();
 
     this.log.log('Initializing AWS SDK');
-    // https://github.com/aws/aws-xray-sdk-node/tree/master/packages/core#context-missing-strategy-configuration
-    // const AWSXRay = require('aws-xray-sdk');
-    // AWSXRay.setContextMissingStrategy('LOG_ERROR');
-    // this._sdk = AWSXRay.captureAWS(require('aws-sdk'));
-
     this._sdk = require('aws-sdk');
+    if (!process.env.IS_OFFLINE) {
+      const AWSXRay = require('aws-xray-sdk');
+      // https://github.com/aws/aws-xray-sdk-node/tree/master/packages/core#context-missing-strategy-configuration
+      AWSXRay.setContextMissingStrategy('LOG_ERROR');
+      this._sdk = AWSXRay.captureAWS(require('aws-sdk'));
+    }
+
+    // this._sdk = require('aws-sdk');
 
     // It's possible to get throttling errors during heavy load due to the rate limit of aws apis calls,
     // so slow down and try more often in an attempt to recover from these errors.
