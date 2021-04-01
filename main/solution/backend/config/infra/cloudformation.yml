@@ -429,9 +429,12 @@ Resources:
               - !Sub 'arn:aws:iam::${AWS::AccountId}:role/*-xacc-env-mgmt'
           - Effect: Allow
             Action:
-              - logs:CreateLog*
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
               - logs:PutLogEvents
-            Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}*'
+            Resource:
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-*:*'
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-*:log-stream:*'
 
   # IAM Role for the apiHandler Function
   RoleApiHandler:
@@ -577,9 +580,12 @@ Resources:
               - !Sub 'arn:aws:iam::${AWS::AccountId}:role/*-xacc-env-mgmt'
           - Effect: Allow
             Action:
-              - logs:CreateLog*
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
               - logs:PutLogEvents
-            Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}*'
+            Resource:
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-workflowLoopRunner:*'
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-workflowLoopRunner:log-stream:*'
 
   # IAM Role for the workflowLoopRunner Function
   RoleWorkflowLoopRunner:
