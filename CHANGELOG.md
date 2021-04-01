@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 - fix: managing AppDeployer role permission boundary
 - refactor: restrict ApiHandler role permissions
-- refactor: restrict WorkflowLoopHandler role permissions
+- refactor: restrict WorkflowLoopRunner role permissions
 - refactor: restrict CrossAcctExec role permissions
 - chore: team email removed from feedback section in readme
 - chore: updates to npm dependencies
