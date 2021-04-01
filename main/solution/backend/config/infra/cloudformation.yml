@@ -429,7 +429,12 @@ Resources:
               - logs:CreateLog*
               - logs:PutLogEvents
             Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}*'
-
+#          - Effect: Allow
+#            Action:
+#              - xray:PutTraceSegments
+#              - xray:PutTelemetryRecords
+#            Resource:
+#              - '*'
   # IAM Role for the apiHandler Function
   RoleApiHandler:
     Type: 'AWS::IAM::Role'
@@ -574,6 +579,12 @@ Resources:
               - logs:CreateLog*
               - logs:PutLogEvents
             Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}*'
+#          - Effect: Allow
+#            Action:
+#              - xray:PutTraceSegments
+#              - xray:PutTelemetryRecords
+#            Resource:
+#              - '*'
 
   # IAM Role for the workflowLoopRunner Function
   RoleWorkflowLoopRunner:

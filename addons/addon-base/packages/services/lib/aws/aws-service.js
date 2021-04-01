@@ -13,6 +13,8 @@
  *  permissions and limitations under the License.
  */
 
+/* eslint-disable global-require */
+
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 
@@ -30,7 +32,14 @@ const settingKeys = {
 class AwsService extends Service {
   async init() {
     await super.init();
-    this._sdk = require('aws-sdk'); // eslint-disable-line global-require
+
+    this.log.log('Initializing AWS SDK');
+    // https://github.com/aws/aws-xray-sdk-node/tree/master/packages/core#context-missing-strategy-configuration
+    // const AWSXRay = require('aws-xray-sdk');
+    // AWSXRay.setContextMissingStrategy('LOG_ERROR');
+    // this._sdk = AWSXRay.captureAWS(require('aws-sdk'));
+
+    this._sdk = require('aws-sdk');
 
     // It's possible to get throttling errors during heavy load due to the rate limit of aws apis calls,
     // so slow down and try more often in an attempt to recover from these errors.
