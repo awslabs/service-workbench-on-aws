@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.2] - 2021-04-01
+
+### Added
+- fix: managing AppDeployer role permission boundary
+- refactor: restrict ApiHandler role permissions
+- refactor: restrict WorkflowLoopHandler role permissions
+- refactor: restrict CrossAcctExec role permissions
+- chore: team email removed from feedback section in readme
+- chore: updates to npm dependencies
+
 ## [2.1.1] - 2021-03-19
 
 ### Added
