@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - fix: managing AppDeployer role permission boundary
+- fix: CW log resources corrected in backend CFN template
 - refactor: restrict ApiHandler role permissions
 - refactor: restrict WorkflowLoopRunner role permissions
 - refactor: restrict CrossAcctExec role permissions
