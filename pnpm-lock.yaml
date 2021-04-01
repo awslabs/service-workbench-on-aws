@@ -1298,7 +1298,7 @@ importers:
     specifiers:
       '@aws-ee/base-services-container': 'workspace:*'
       ajv: ^6.11.0
-      aws-sdk: ^2.7.15.0
+      aws-sdk: ^2.7.15
       aws-xray-sdk: ^3.2.0
       cycle: ^1.0.3
       eslint: ^6.8.0
