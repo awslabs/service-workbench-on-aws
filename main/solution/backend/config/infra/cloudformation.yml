@@ -279,6 +279,7 @@ Resources:
             Action: 'sts:AssumeRole'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
       Policies:
         - PolicyName: db-access
           PolicyDocument:
@@ -306,15 +307,6 @@ Resources:
               Action:
                 - ssm:GetParameter
               Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
-        - PolicyName: xray-write-access
-          PolicyDocument:
-            Statement:
-              - Effect: Allow
-                Action:
-                  - xray:PutTraceSegments
-                  - xray:PutTelemetryRecords
-                Resource:
-                  - '*'
 
   PolicyApiHandler:
     Type: AWS::IAM::ManagedPolicy
@@ -659,26 +651,21 @@ Resources:
             Action: 'sts:AssumeRole'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
       Policies:
         - PolicyName: db-access
           PolicyDocument:
             Statement:
-              - Effect: Allow
-                Action:
-                  - dynamodb:DeleteItem
-                  - dynamodb:GetItem
-                  - dynamodb:PutItem
-                  - dynamodb:Query
-                  - dynamodb:Scan
-                  - dynamodb:UpdateItem
-                Resource:
-                  - !GetAtt [StudiesDb, Arn]
-              - Effect: Allow
-                Action:
-                  - xray:PutTraceSegments
-                  - xray:PutTelemetryRecords
-                Resource:
-                  - '*'
+              Effect: Allow
+              Action:
+                - dynamodb:DeleteItem
+                - dynamodb:GetItem
+                - dynamodb:PutItem
+                - dynamodb:Query
+                - dynamodb:Scan
+                - dynamodb:UpdateItem
+              Resource:
+                - !GetAtt [StudiesDb, Arn]
 
   PolicyDataSourceReachabilityHandler:
     Type: AWS::IAM::ManagedPolicy
