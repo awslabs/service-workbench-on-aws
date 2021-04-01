@@ -438,9 +438,13 @@ Resources:
               - !Sub 'arn:aws:iam::${AWS::AccountId}:role/*-xacc-env-mgmt'
           - Effect: Allow
             Action:
-              - logs:CreateLog*
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+            Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-apiHandler:*'
+          - Effect: Allow
+            Action:
               - logs:PutLogEvents
-            Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}*'
+            Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-apiHandler:log-stream:*'
           - Effect: Allow
             Action:
               - xray:PutTraceSegments
