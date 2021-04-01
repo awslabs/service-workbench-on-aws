@@ -234,6 +234,15 @@ Resources:
                   - iam:*TagRole*
                 Resource: '*'
                 Effect: Allow
+              - Action:
+                  - iam:CreatePolicy
+                Effect: Allow
+                Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.namespace}-*'
+              - Action:
+                  - iam:PutRolePermissionsBoundary
+                  - iam:DeleteRolePermissionsBoundary
+                Effect: Allow
+                Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*'
 
   # Role that allows triggering the CodePipeline. This role is assumed by CloudWatch Events from the Source AWS Account
   # where the source code is located (i.e., the account containing the AWS CodeCommit repo with the source code)
