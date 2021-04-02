@@ -190,6 +190,9 @@ dbRoleAllocations: ${self:custom.settings.dbPrefix}-RoleAllocations
 # DynamoDB table name for Resource usages
 dbResourceUsages: ${self:custom.settings.dbPrefix}-ResourceUsages
 
+# Version number of current release
+customUserAgent: AwsLabs/SO0144/2.1.2
+
 # ================================ DB Settings - Depreciated ===========================================
 
 # DynamoDB table name for supported authentication provider types
