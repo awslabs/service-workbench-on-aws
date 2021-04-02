@@ -220,7 +220,7 @@ Resources:
               - iam:ListGroups
               - iam:ListRoles
               - iam:ListUsers
-            Resource: '*'
+            Resource: '*' # These non-mutating IAM actions cover the permissions in managed policy AWSServiceCatalogAdminFullAccess
 
   PolicyCrossAccountExecution:
     Type: AWS::IAM::ManagedPolicy
