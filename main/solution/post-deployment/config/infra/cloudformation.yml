@@ -228,6 +228,7 @@ Resources:
                 Resource:
                   - 'arn:aws:iam::*:role/analysis-*'
                   - 'arn:aws:iam::*:role/SC-*-ServiceRole-*'
+                  - 'arn:aws:iam::*:role/*-sagemaker-notebook-role'
               - Effect: Allow
                 Action:
                   - iam:PutRolePolicy
@@ -238,10 +239,11 @@ Resources:
                 Resource:
                   - 'arn:aws:iam::*:role/analysis-*'
                   - 'arn:aws:iam::*:role/SC-*-ServiceRole-*'
+                  - 'arn:aws:iam::*:role/*-sagemaker-notebook-role'
                 Condition:
                   StringLike:
                     iam:PermissionsBoundary:
-                      - 'arn:aws:iam::*:policy/analysis-*-permission-boundary'
+                      - 'arn:aws:iam::*:policy/*-permission-boundary'
                       - 'arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole'
               - Effect: Allow
                 Action:
@@ -259,7 +261,7 @@ Resources:
                   - iam:CreatePolicy
                   - iam:ListPolicyVersions
                   - iam:DeletePolicy
-                Resource: 'arn:aws:iam::*:policy/analysis-*-permission-boundary'
+                Resource: 'arn:aws:iam::*:policy/*-permission-boundary'
               - Effect: Allow
                 Action:
                   - cloudformation:CreateStack
@@ -315,6 +317,19 @@ Resources:
                 Condition:
                   StringLike:
                     aws:ResourceTag/name: 'analysis-*-emr'
+              - Effect: Allow
+                Action:
+                  - iam:CreateServiceLinkedRole
+                  - iam:PutRolePolicy
+                  - iam:UpdateRoleDescription
+                  - iam:DeleteServiceLinkedRole
+                  - iam:GetServiceLinkedRoleDeletionStatus
+                Resource: arn:aws:iam::*:role/aws-service-role/elasticmapreduce.amazonaws.com*/AWSServiceRoleForEMRCleanup*
+                Condition:
+                  StringLike:
+                    iam:AWSServiceName:
+                      - elasticmapreduce.amazonaws.com
+                      - elasticmapreduce.amazonaws.com.cn
         - PolicyName: SageMakerLaunchPermissions
           PolicyDocument:
             Statement:

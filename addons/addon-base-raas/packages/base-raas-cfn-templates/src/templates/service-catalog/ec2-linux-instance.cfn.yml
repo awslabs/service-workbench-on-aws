@@ -53,6 +53,14 @@ Resources:
             Action:
               - 's3:*'
             Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'kms:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'sts:AssumeRole'
+            Resource: 'arn:aws:iam::*:role/swb-*'
   IAMRole:
     Type: 'AWS::IAM::Role'
     Properties:

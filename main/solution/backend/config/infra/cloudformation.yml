@@ -418,12 +418,11 @@ Resources:
             Action: 'sts:AssumeRole'
             Resource:
               - !GetAtt [RoleEnvMgmt, Arn]
-              - 'arn:aws:iam::*:role/initial-stack-*'
               - 'arn:aws:iam::*:role/SC-*'
               - 'arn:aws:iam::*:role/swb-*'
               - 'arn:aws:iam::*:role/analysis-*'
-              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/*-cross-account-role' # This is required since when users onboard the main account as a member account, the onboard CFN stack would also reside there
-              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/*-xacc-env-mgmt'
+              - !Sub 'arn:aws:iam::*:role/*-cross-account-role' # It covers when user create or add an AWS account as member account
+              - !Sub 'arn:aws:iam::*:role/*-xacc-env-mgmt'
           - Effect: Allow
             Action:
               - logs:CreateLog*
@@ -563,12 +562,11 @@ Resources:
             Action: 'sts:AssumeRole'
             Resource:
               - !GetAtt [RoleEnvMgmt, Arn]
-              - 'arn:aws:iam::*:role/initial-stack-*'
               - 'arn:aws:iam::*:role/SC-*'
               - 'arn:aws:iam::*:role/analysis-*'
               - 'arn:aws:iam::*:role/swb-*'
-              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/*-cross-account-role' # This is required since when users onboard the main account as a member account, the onboard CFN stack would also reside there
-              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/*-xacc-env-mgmt'
+              - !Sub 'arn:aws:iam::*:role/*-cross-account-role' # # It covers when user create or add an AWS account as member account
+              - !Sub 'arn:aws:iam::*:role/*-xacc-env-mgmt'
           - Effect: Allow
             Action:
               - logs:CreateLog*
@@ -734,32 +732,19 @@ Resources:
         Statement:
           - Effect: Allow
             Action:
-              - 's3:*'
-            Resource: '*'
-          - Effect: Allow
-            Action:
               - iam:GetRole
-              - iam:CreateRole
               - iam:TagRole
               - iam:GetRolePolicy
-              - iam:PutRolePolicy
-              - iam:DeleteRolePolicy
               - iam:ListRolePolicies
               - iam:ListAttachedRolePolicies
-              - iam:UpdateAssumeRolePolicy
               - iam:UpdateRoleDescription
-              - iam:AttachRolePolicy
-              - iam:DetachRolePolicy
             Resource:
-              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${self:custom.settings.launchConstraintRolePrefix}'
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${self:custom.settings.launchConstraintRolePrefix}LaunchConstraint'
           - Effect: Allow
             Action:
-              - iam:CreatePolicy
               - iam:GetPolicy
               - iam:GetPolicyVersion
               - iam:ListPolicyVersions
-              - iam:DeletePolicy
-              - iam:DeletePolicyVersion
             Resource:
               - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/${self:custom.settings.launchConstraintPolicyPrefix}'
           - Effect: Allow
@@ -770,12 +755,6 @@ Resources:
             Action:
               - s3:GetObject
             Resource:
-              # S3 GetObject required to be able to read CFN templates for service catalog products
-              # Various AWS Service Catalog APIs will fail without this (such as describeProvisioningParameters)
-              # AWS Service Catalog uploads the CFN templates to S3 bucket starting with "cf-templates-"
-              # See https://docs.aws.amazon.com/servicecatalog/latest/adminguide/portfoliomgmt-products.html for more details
-              # - !Sub arn:${AWS::Partition}:s3:::cf-templates-*/* (Somehow this pattern is not working.)
-              # TODO: Lock down S3 pattern instead of wildcard)
               - 'arn:aws:s3:::cf-templates-*/*'
   # =============================================================================================
   # Step Functions

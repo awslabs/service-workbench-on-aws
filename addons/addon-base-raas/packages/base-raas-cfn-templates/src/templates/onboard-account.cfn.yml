@@ -124,14 +124,16 @@ Resources:
                 - ssm:GetParameter
                 - ssm:GetParameters
                 - ssm:DeleteParameter
-              Resource: 'arn:aws:ssm:*:167707142174:parameter/*/sc-environments/*'
+              Resource:
+                - !Sub 'arn:aws:ssm:*:${AWS::AccountId}:parameter/*/sc-environments/*'
         - PolicyName: s3-access
           PolicyDocument:
             Statement:
               Effect: Allow
               Action:
-                - s3:*
-              Resource: '*'
+                - s3:GetObject
+              Resource:
+                - 'arn:aws:s3:::cf-templates-*/*'
         - PolicyName: sagemaker-access
           PolicyDocument:
             Statement:
@@ -157,19 +159,8 @@ Resources:
                   - iam:AttachRolePolicy
                   - iam:DetachRolePolicy
                 Resource:
-                  - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${LaunchConstraintRolePrefix}'
-              - Effect: Allow
-                Action:
-                  - iam:CreatePolicy
-                  - iam:GetPolicy
-                  - iam:GetPolicyVersion
-                  - iam:ListPolicyVersions
-                  - iam:DeletePolicy
-                  - iam:DeletePolicyVersion
-                Resource:
-                  - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/${LaunchConstraintPolicyPrefix}'
+                  - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${LaunchConstraintRolePrefix}LaunchConstraint'
       PermissionsBoundary: !Ref CrossAccountEnvMgmtPermissionsBoundary
-
 
   CrossAccountEnvMgmtPermissionsBoundary:
     Type: AWS::IAM::ManagedPolicy
@@ -180,17 +171,18 @@ Resources:
         Statement:
           - Effect: Allow
             Action:
-              - 's3:*'
-              - 'cloudformation:*'
-              - 'sagemaker:*'
-              - 'ec2:*'
-              - 'ssm:*'
-              - 'config:*'
-              - 'servicecatalog:*'
+              - s3:*
+              - cloudformation:*
+              - sagemaker:*
+              - ec2:*
+              - ssm:*
+              - config:*
+              - servicecatalog:*
+              - ec2-instance-connect:*
             Resource: '*'
           - Effect: Allow
             Action:
-              - 'iam:PassRole'
+              - iam:PassRole
             Resource: '*'
             Condition:
               StringEquals:
