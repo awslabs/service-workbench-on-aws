@@ -13,7 +13,7 @@ All notable changes to this project will be documented in this file.
 - chore: team email removed from feedback section in readme
 - chore: updates to npm dependencies
 
-To fully incorporate the fix made to CI/CD pipeline, please redeploy the pipeline stack by following the steps listed on the `main/cicd/README.md` file.
+If you have been using CI/CD pipeline, please redeploy the pipeline stack to incorporate this fix by following the steps listed on the `main/cicd/README.md` file.
 
 ## [2.1.1] - 2021-03-19
 
