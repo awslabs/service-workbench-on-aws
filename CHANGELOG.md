@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.2] - 2021-04-01
+
+### Added
+- fix: managing AppDeployer role permission boundary
+- fix: CW log resources corrected in backend CFN template
+- refactor: restrict ApiHandler role permissions
+- refactor: restrict WorkflowLoopRunner role permissions
+- refactor: restrict CrossAcctExec role permissions
+- chore: team email removed from feedback section in readme
+- chore: updates to npm dependencies
+
+If you have been using CI/CD pipeline, please redeploy the pipeline stack to incorporate this fix by following the steps listed on the `main/cicd/README.md` file.
+
 ## [2.1.1] - 2021-03-19
 
 ### Added
