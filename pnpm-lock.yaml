@@ -1298,7 +1298,7 @@ importers:
     specifiers:
       '@aws-ee/base-services-container': 'workspace:*'
       ajv: ^6.11.0
-      aws-sdk: ^2.7.15
+      aws-sdk: ^2.647.0
       aws-xray-sdk: ^3.2.0
       cycle: ^1.0.3
       eslint: ^6.8.0
@@ -2074,7 +2074,7 @@ importers:
       '@babel/core': ^7.8.4
       '@babel/plugin-transform-runtime': ^7.8.3
       '@babel/preset-env': ^7.8.4
-      aws-sdk: ^2.7.15
+      aws-sdk: ^2.647.0
       babel-jest: ^24.9.0
       babel-loader: ^8.0.6
       babel-plugin-source-map-support: ^2.1.1
