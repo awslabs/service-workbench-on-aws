@@ -33,10 +33,6 @@ class AwsService extends Service {
   async init() {
     await super.init();
 
-    const customUserAgent = this.settings.get('customUserAgent');
-    // eslint-disable-next-line no-console
-    console.log('customUserAgent in init', customUserAgent);
-
     this._sdk = require('aws-sdk');
     if (!process.env.IS_OFFLINE) {
       const AWSXRay = require('aws-xray-sdk');
