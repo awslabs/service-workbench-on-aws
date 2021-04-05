@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file.
 ### Added
 - fix: adding required AppDeployer permissions
 - chore: package dependency updates
+- fix: added X-ray support and fix CWL IAM permissions
   
 If you have been using CI/CD pipeline, please redeploy the pipeline stack to incorporate this fix by following the steps listed on the `main/cicd/README.md` file.
 
