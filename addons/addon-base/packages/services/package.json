@@ -8,7 +8,8 @@
   "dependencies": {
     "@aws-ee/base-services-container": "workspace:*",
     "ajv": "^6.11.0",
-    "aws-sdk": "^2.647.0",
+    "aws-sdk": "^2.7.15",
+    "aws-xray-sdk": "^3.2.0",
     "cycle": "^1.0.3",
     "jsonwebtoken": "^8.5.1",
     "jwk-to-pem": "^2.0.3",

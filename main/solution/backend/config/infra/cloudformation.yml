@@ -279,6 +279,7 @@ Resources:
             Action: 'sts:AssumeRole'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
       Policies:
         - PolicyName: db-access
           PolicyDocument:
@@ -435,7 +436,12 @@ Resources:
             Resource:
               - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-*:*'
               - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-*:log-stream:*'
-
+          - Effect: Allow
+            Action:
+              - xray:PutTraceSegments
+              - xray:PutTelemetryRecords
+            Resource:
+              - '*'
   # IAM Role for the apiHandler Function
   RoleApiHandler:
     Type: 'AWS::IAM::Role'
@@ -586,6 +592,12 @@ Resources:
             Resource:
               - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-workflowLoopRunner:*'
               - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-workflowLoopRunner:log-stream:*'
+          - Effect: Allow
+            Action:
+              - xray:PutTraceSegments
+              - xray:PutTelemetryRecords
+            Resource:
+              - '*'
 
   # IAM Role for the workflowLoopRunner Function
   RoleWorkflowLoopRunner:
@@ -639,6 +651,7 @@ Resources:
             Action: 'sts:AssumeRole'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AWSXrayWriteOnlyAccess
       Policies:
         - PolicyName: db-access
           PolicyDocument:
@@ -699,6 +712,12 @@ Resources:
           - Effect: Allow
             Action: 'sts:AssumeRole'
             Resource: 'arn:aws:iam::*:role/swb-*'
+          - Effect: Allow
+            Action:
+              - xray:PutTraceSegments
+              - xray:PutTelemetryRecords
+            Resource:
+              - '*'
 
     # IAM Role for the dataSourceReachabilityHandler Function
   RoleDataSourceReachabilityHandler:
