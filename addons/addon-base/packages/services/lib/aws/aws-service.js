@@ -35,19 +35,20 @@ class AwsService extends Service {
 
     this._sdk = require('aws-sdk');
 
-    // It's possible to get throttling errors during heavy load due to the rate limit of aws apis calls,
-    // so slow down and try more often in an attempt to recover from these errors.
-    // Make sure to use regional endpoints for STS. Global STS endpoints are deprecated.
-    this._sdk.config.update({ stsRegionalEndpoints: 'regional', maxRetries: 6, retryDelayOptions: { base: 1000 } });
     if (process.env.IS_OFFLINE || process.env.IS_LOCAL) {
       await this.prepareForLocal(this._sdk);
     } else {
       const AWSXRay = require('aws-xray-sdk');
-      this._sdk = AWSXRay.captureAWS(require('aws-sdk'));
+      this._sdk = AWSXRay.captureAWS(this._sdk);
       this._sdk.config.update({
         customUserAgent: this.settings.get('customUserAgent'),
       });
     }
+
+    // It's possible to get throttling errors during heavy load due to the rate limit of aws apis calls,
+    // so slow down and try more often in an attempt to recover from these errors.
+    // Make sure to use regional endpoints for STS. Global STS endpoints are deprecated.
+    this._sdk.config.update({ stsRegionalEndpoints: 'regional', maxRetries: 6, retryDelayOptions: { base: 1000 } });
   }
 
   get sdk() {
