@@ -6,6 +6,7 @@ authenticationLayerHandler:
   environment:
     APP_PARAM_STORE_JWT_SECRET: ${self:custom.settings.paramStoreJwtSecret}
     APP_JWT_OPTIONS: ${self:custom.settings.jwtOptions}
+    APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
 
 openDataScrapeHandler:
   handler: src/lambdas/open-data-scrape-handler/handler.handler
@@ -16,6 +17,8 @@ openDataScrapeHandler:
     APP_DB_STUDIES_CATEGORY_INDEX: ${self:custom.settings.dbStudiesCategoryIndex}
     APP_DB_STUDIES_ACCOUNTID_INDEX: ${self:custom.settings.dbStudiesAccountIdIndex}
     APP_STUDY_DATA_BUCKET_NAME: ${self:custom.settings.studyDataBucketName}
+    APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
+
   events:
     - schedule:
         rate: rate(1 day)
@@ -31,6 +34,8 @@ envStatusPollHandler:
     - schedule:
         rate: rate(3 minutes)
         description: 'Invokes the lambda function that polls and synchronize environment status.'
+  environment:
+    APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
 
 dataSourceReachabilityHandler:
   handler: src/lambdas/data-source-reachability/handler.handler
@@ -47,6 +52,7 @@ dataSourceReachabilityHandler:
     APP_DB_STUDIES_CATEGORY_INDEX: ${self:custom.settings.dbStudiesCategoryIndex}
     APP_DB_STUDIES_ACCOUNTID_INDEX: ${self:custom.settings.dbStudiesAccountIdIndex}
     APP_STUDY_DATA_BUCKET_NAME: ${self:custom.settings.studyDataBucketName}
+    APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
 
 dataSourceReachabilityDailyHandler:
   handler: src/lambdas/data-source-reachability-daily/handler.handler
@@ -60,6 +66,7 @@ dataSourceReachabilityDailyHandler:
         description: 'Invokes the lambda function that polls and synchronize data source account and study status.'
   environment:
     APP_SM_WORKFLOW: ${self:custom.settings.workflowStateMachineArn}
+    APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
 
 apiHandler:
   timeout: 30 # in seconds, default is 6
@@ -147,6 +154,7 @@ apiHandler:
     APP_LAUNCH_CONSTRAINT_POLICY_PREFIX: ${self:custom.settings.launchConstraintPolicyPrefix}
     APP_ENV_TYPE_CONFIGS_BUCKET_NAME: ${self:custom.settings.envTypeConfigsBucketName}
     APP_ENV_BOOTSTRAP_BUCKET_NAME: ${self:custom.settings.environmentsBootstrapBucketName}
+    APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
 
 workflowLoopRunner:
   handler: src/lambdas/workflow-loop-runner/handler.handler
@@ -175,3 +183,4 @@ workflowLoopRunner:
     APP_HOSTED_ZONE_ID: ${self:custom.settings.hostedZoneId}
     APP_DOMAIN_NAME: ${self:custom.settings.domainName}
     APP_ENV_BOOTSTRAP_BUCKET_NAME: ${self:custom.settings.environmentsBootstrapBucketName}
+    APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
