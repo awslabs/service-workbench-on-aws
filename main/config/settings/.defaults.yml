@@ -172,4 +172,4 @@ auditQldbName: ${self:custom.settings.namespace}-audit
 createServiceCatalogPortfolio: true
 
 # Version number of current release
-customUserAgent: AwsLabs/SO0144/2.1.3
+customUserAgent: AwsLabs/SO0144/2.1.4
