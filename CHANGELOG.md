@@ -2,7 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
-## [2.1.3] - 2021-04-05
+
+## [2.1.4] - 2021-04-06
+
+### Added
+- fix: managing pnpm version for nodejs compatibility
+
+## [2.1.3] - 2021-04-06
 
 ### Added
 - fix: adding required AppDeployer permissions
