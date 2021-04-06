@@ -37,11 +37,10 @@ class AwsService extends Service {
     if (!process.env.IS_OFFLINE) {
       const AWSXRay = require('aws-xray-sdk');
       this._sdk = AWSXRay.captureAWS(require('aws-sdk'));
+      this._sdk.config.update({
+        customUserAgent: this.settings.get('customUserAgent'),
+      });
     }
-
-    this._sdk.config.update({
-      customUserAgent: this.settings.get('customUserAgent'),
-    });
 
     // It's possible to get throttling errors during heavy load due to the rate limit of aws apis calls,
     // so slow down and try more often in an attempt to recover from these errors.
