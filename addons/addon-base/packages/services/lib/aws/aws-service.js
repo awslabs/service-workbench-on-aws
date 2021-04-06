@@ -33,12 +33,13 @@ class AwsService extends Service {
   async init() {
     await super.init();
 
+    this._sdk = require('aws-sdk');
+
     if (process.env.IS_OFFLINE || process.env.IS_LOCAL) {
-      this._sdk = require('aws-sdk');
       await this.prepareForLocal(this._sdk);
     } else {
       const AWSXRay = require('aws-xray-sdk');
-      this._sdk = AWSXRay.captureAWS(require('aws-sdk'));
+      this._sdk = AWSXRay.captureAWS(this._sdk);
       this._sdk.config.update({
         customUserAgent: this.settings.get('customUserAgent'),
       });
