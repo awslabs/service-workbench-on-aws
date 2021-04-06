@@ -30,7 +30,7 @@ popd > /dev/null
 function init_package_manager() {
   PACKAGE_MANAGER=pnpm
   if ! command -v $PACKAGE_MANAGER; then
-    npm install -g pnpm
+    npm install -g pnpm@5.18.9
   fi
   case "$PACKAGE_MANAGER" in
     yarn)
