@@ -170,3 +170,6 @@ auditQldbName: ${self:custom.settings.namespace}-audit
 # Enable this to create a Service Catalog portfolio and populate workspace products
 # Override and disable this setting if you wish to create your portfolio manually
 createServiceCatalogPortfolio: true
+
+# Version number of current release
+customUserAgent: AwsLabs/SO0144/2.1.4

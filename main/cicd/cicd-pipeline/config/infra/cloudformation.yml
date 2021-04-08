@@ -236,6 +236,8 @@ Resources:
                 Effect: Allow
               - Action:
                   - iam:CreatePolicy
+                  - iam:GetPolicy
+                  - iam:*PolicyVersion*
                 Effect: Allow
                 Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.namespace}-*'
               - Action:

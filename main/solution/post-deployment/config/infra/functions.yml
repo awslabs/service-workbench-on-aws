@@ -33,3 +33,4 @@ postDeployment:
     APP_ENV_MGMT_ROLE_NAME: ${self:custom.settings.envMgmtRoleName}
     APP_LAUNCH_CONSTRAINT_ROLE_NAME: ${self:custom.settings.launchConstraintRoleName}
     APP_ENV_MGMT_ROLE_ARN: ${self:custom.settings.envMgmtRoleArn}
+    APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
