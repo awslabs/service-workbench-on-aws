@@ -426,8 +426,8 @@ Resources:
               - 'arn:aws:iam::*:role/SC-*'
               - 'arn:aws:iam::*:role/swb-*'
               - 'arn:aws:iam::*:role/analysis-*'
-              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/*-cross-account-role' # This is required since when users onboard the main account as a member account, the onboard CFN stack would also reside there
-              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/*-xacc-env-mgmt'
+              - !Sub 'arn:aws:iam::*:role/*-cross-account-role' # This is required since when users onboard the main account as a member account, the onboard CFN stack would also reside there
+              - !Sub 'arn:aws:iam::*:role/*-xacc-env-mgmt'
           - Effect: Allow
             Action:
               - logs:CreateLogGroup
@@ -582,8 +582,8 @@ Resources:
               - 'arn:aws:iam::*:role/SC-*'
               - 'arn:aws:iam::*:role/analysis-*'
               - 'arn:aws:iam::*:role/swb-*'
-              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/*-cross-account-role' # This is required since when users onboard the main account as a member account, the onboard CFN stack would also reside there
-              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/*-xacc-env-mgmt'
+              - !Sub 'arn:aws:iam::*:role/*-cross-account-role' # This is required since when users onboard the main account as a member account, the onboard CFN stack would also reside there
+              - !Sub 'arn:aws:iam::*:role/*-xacc-env-mgmt'
           - Effect: Allow
             Action:
               - logs:CreateLogGroup
