@@ -113,9 +113,8 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - cloudformation:ListStackResources
                   - cloudformation:GetTemplate
-                Resource: '*'
+                Resource: 'arn:aws:cloudformation:*:*:stack/SC-*/*'
         - PolicyName: ssm-access
           PolicyDocument:
             Statement:
@@ -125,34 +124,29 @@ Resources:
                 - ssm:GetParameter
                 - ssm:GetParameters
                 - ssm:DeleteParameter
-              Resource: '*'
-        - PolicyName: cost-explorer-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - ce:*
-              Resource: '*'
+              Resource:
+                - !Sub 'arn:aws:ssm:*:${AWS::AccountId}:parameter/*/sc-environments/*'
         - PolicyName: s3-access
           PolicyDocument:
             Statement:
               Effect: Allow
               Action:
-                - s3:*
-              Resource: '*'
+                - s3:GetObject
+              Resource:
+                - 'arn:aws:s3:::cf-templates-*/*'
         - PolicyName: sagemaker-access
           PolicyDocument:
             Statement:
               Effect: Allow
               Action:
-                - sagemaker:*
+                - sagemaker:CreatePresignedNotebookInstanceUrl
+                - sagemaker:ListNotebookInstances
               Resource: '*'
         - PolicyName: iam-role-access
           PolicyDocument:
             Statement:
               - Effect: Allow
                 Action:
-                  - iam:GetRole
                   - iam:CreateRole
                   - iam:TagRole
                   - iam:GetRolePolicy
@@ -165,17 +159,68 @@ Resources:
                   - iam:AttachRolePolicy
                   - iam:DetachRolePolicy
                 Resource:
-                  - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${LaunchConstraintRolePrefix}'
-              - Effect: Allow
-                Action:
-                  - iam:CreatePolicy
-                  - iam:GetPolicy
-                  - iam:GetPolicyVersion
-                  - iam:ListPolicyVersions
-                  - iam:DeletePolicy
-                  - iam:DeletePolicyVersion
-                Resource:
-                  - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/${LaunchConstraintPolicyPrefix}'
+                  - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${LaunchConstraintRolePrefix}LaunchConstraint'
+      PermissionsBoundary: !Ref CrossAccountEnvMgmtPermissionsBoundary
+
+  CrossAccountEnvMgmtPermissionsBoundary:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Permission boundary for cross account EnvMgmt role
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:*
+              - cloudformation:*
+              - sagemaker:*
+              - ec2:*
+              - ssm:*
+              - config:*
+              - servicecatalog:*
+              - ec2-instance-connect:*
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - iam:PassRole
+            Resource: '*'
+            Condition:
+              StringEquals:
+                iam:PassedToService: 'servicecatalog.amazonaws.com'
+          - Effect: Allow
+            Action:
+              - iam:CreateRole
+              - iam:TagRole
+              - iam:GetRolePolicy
+              - iam:PutRolePolicy
+              - iam:DeleteRolePolicy
+              - iam:ListRolePolicies
+              - iam:ListAttachedRolePolicies
+              - iam:UpdateAssumeRolePolicy
+              - iam:UpdateRoleDescription
+              - iam:AttachRolePolicy
+              - iam:DetachRolePolicy
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${LaunchConstraintRolePrefix}'
+          - Effect: Allow
+            Action:
+              - iam:CreatePolicy
+              - iam:GetPolicy
+              - iam:GetPolicyVersion
+              - iam:ListPolicyVersions
+              - iam:DeletePolicy
+              - iam:DeletePolicyVersion
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/${LaunchConstraintPolicyPrefix}'
+          - Effect: Allow
+            Action:
+              - iam:GetGroup
+              - iam:GetRole
+              - iam:GetUser
+              - iam:ListGroups
+              - iam:ListRoles
+              - iam:ListUsers
+            Resource: '*' # These non-mutating IAM actions cover the permissions in managed policy AWSServiceCatalogAdminFullAccess
 
   PolicyCrossAccountExecution:
     Type: AWS::IAM::ManagedPolicy

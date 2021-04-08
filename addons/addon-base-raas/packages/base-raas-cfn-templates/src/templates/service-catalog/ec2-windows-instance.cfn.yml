@@ -63,6 +63,26 @@ Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
 
 Resources:
+  InstanceRolePermissionBoundary:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Permission boundary for EC2 instance role
+      ManagedPolicyName: !Join ['-', [Ref: Namespace, 'ec2-windows-permission-boundary']]
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 's3:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'kms:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'sts:AssumeRole'
+            Resource: 'arn:aws:iam::*:role/swb-*'
   IAMRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -103,6 +123,7 @@ Resources:
                     s3:prefix: !Sub
                       - '${S3Prefix}/*'
                       - S3Prefix: !Select [3, !Split ['/', !Ref EnvironmentInstanceFiles]]
+      PermissionsBoundary: !Ref InstanceRolePermissionBoundary
 
   InstanceProfile:
     Type: 'AWS::IAM::InstanceProfile'

@@ -52,7 +52,27 @@ Resources:
           FromPort: 443
           ToPort: 443
           CidrIp: !Ref AccessFromCIDRBlock
-
+  InstanceRolePermissionBoundary:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Permission boundary for EC2 instance role
+      ManagedPolicyName: !Join ['-', [Ref: Namespace, 'ec2-sagemaker-permission-boundary']]
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 's3:*'
+              - 'logs:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'kms:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'sts:AssumeRole'
+            Resource: 'arn:aws:iam::*:role/swb-*'
   IAMRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -93,7 +113,6 @@ Resources:
                     s3:prefix: !Sub
                       - '${S3Prefix}/*'
                       - S3Prefix: !Select [3, !Split ['/', !Ref EnvironmentInstanceFiles]]
-
         - PolicyName: cw-logs
           PolicyDocument:
             Statement:
@@ -105,6 +124,7 @@ Resources:
                 - logs:CreateLogGroup
               Resource:
                 - !Sub arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/sagemaker/*
+      PermissionsBoundary: !Ref InstanceRolePermissionBoundary
 
   # This policy is attached to the role after the instance is created
   # so that the instance can be referenced in the resource section
