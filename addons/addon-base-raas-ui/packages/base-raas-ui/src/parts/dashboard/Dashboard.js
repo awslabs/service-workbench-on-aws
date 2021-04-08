@@ -36,7 +36,9 @@ class Dashboard extends React.Component {
       totalCost: 0,
       projNameToTotalCost: {},
       projNameToUserTotalCost: {},
-      envNameToCostInfo: {},
+      envIdToCostInfo: {},
+      envIdToEnvMetadata: {},
+      duplicateEnvNames: new Set(),
       isLoading: true,
     };
   }
@@ -44,12 +46,21 @@ class Dashboard extends React.Component {
   async componentDidMount() {
     window.scrollTo(0, 0);
     try {
-      const { totalCost, projNameToTotalCost, projNameToUserTotalCost, envNameToCostInfo } = await this.getCosts();
+      const {
+        totalCost,
+        projNameToTotalCost,
+        projNameToUserTotalCost,
+        envIdToCostInfo,
+        envIdToEnvMetadata,
+        duplicateEnvNames,
+      } = await this.getCosts();
       this.setState({
         totalCost,
         projNameToTotalCost,
         projNameToUserTotalCost,
-        envNameToCostInfo,
+        envIdToCostInfo,
+        envIdToEnvMetadata,
+        duplicateEnvNames,
         isLoading: false,
       });
     } catch (error) {
@@ -115,18 +126,17 @@ class Dashboard extends React.Component {
   }
 
   async getCosts() {
-    const { envNameToCostInfo, envNameToIndex } = await this.getAccumulatedEnvCost();
+    const { envIdToCostInfo, envIdToEnvMetadata, duplicateEnvNames } = await this.getAccumulatedEnvCost();
 
     const projNameToUserTotalCost = {};
-    Object.keys(envNameToCostInfo).forEach(envName => {
-      const projName = envNameToIndex[envName];
+    Object.keys(envIdToCostInfo).forEach(envId => {
+      const projName = envIdToEnvMetadata[envId].index;
       if (projNameToUserTotalCost[projName] === undefined) {
         projNameToUserTotalCost[projName] = {};
       }
-      Object.keys(envNameToCostInfo[envName].pastMonthCostByUser).forEach(user => {
-        const currentUserCost = _.get(projNameToUserTotalCost, `${projName}.${user}`, 0);
-        projNameToUserTotalCost[projName][user] =
-          currentUserCost + envNameToCostInfo[envName].pastMonthCostByUser[user];
+      Object.keys(envIdToCostInfo[envId].pastMonthCostByUser).forEach(user => {
+        const currentUserCost = _.get(projNameToUserTotalCost[projName], user, 0);
+        projNameToUserTotalCost[projName][user] = currentUserCost + envIdToCostInfo[envId].pastMonthCostByUser[user];
       });
     });
 
@@ -141,21 +151,36 @@ class Dashboard extends React.Component {
       projNameToTotalCost[projName] = indexCost;
     });
 
-    return { totalCost, projNameToTotalCost, projNameToUserTotalCost, envNameToCostInfo };
+    return {
+      totalCost,
+      projNameToTotalCost,
+      projNameToUserTotalCost,
+      envIdToCostInfo,
+      envIdToEnvMetadata,
+      duplicateEnvNames,
+    };
   }
 
   async getAccumulatedEnvCost() {
     const environments = enableBuiltInWorkspaces ? await getEnvironments() : await getScEnvironments();
-    const envIdToName = {};
 
-    const envNameToIndex = {};
+    const duplicateEnvNames = new Set();
+    const envNameToEnvId = {};
+    const envIdToEnvMetadata = {};
     environments.forEach(env => {
       if (env.isExternal) return;
-      envIdToName[env.id] = env.name;
-      envNameToIndex[env.name] = env.indexId;
+      envIdToEnvMetadata[env.id] = {
+        index: env.indexId,
+        name: env.name,
+      };
+      if (envNameToEnvId[env.name] === undefined) {
+        envNameToEnvId[env.name] = env.id;
+      } else {
+        duplicateEnvNames.add(env.name);
+      }
     });
 
-    const envIds = Object.keys(envIdToName);
+    const envIds = Object.keys(envIdToEnvMetadata);
     const envCostPromises = envIds.map(envId => {
       return enableBuiltInWorkspaces
         ? getEnvironmentCost(envId, 30, false, true)
@@ -189,15 +214,15 @@ class Dashboard extends React.Component {
       return totalCost;
     });
 
-    const envNameToCostInfo = {};
+    const envIdToCostInfo = {};
     for (let i = 0; i < envIds.length; i++) {
-      const key = envIdToName[envIds[i]];
-      envNameToCostInfo[key] = {
+      envIdToCostInfo[envIds[i]] = {
         pastMonthCostByUser: pastMonthCostByUserArray[i],
         yesterdayCost: yesterdayCostArray[i],
       };
     }
-    return { envNameToCostInfo, envNameToIndex };
+
+    return { envIdToCostInfo, envIdToEnvMetadata, duplicateEnvNames };
   }
 
   renderCostPerProj() {
@@ -218,20 +243,26 @@ class Dashboard extends React.Component {
   }
 
   renderPastMonthCostPerEnv() {
-    if (_.isEmpty(this.state.envNameToCostInfo)) {
+    if (_.isEmpty(this.state.envIdToCostInfo)) {
       return <ProgressPlaceHolder />;
     }
 
     const pastMonthCostTotalArray = [];
-    Object.keys(this.state.envNameToCostInfo).forEach(envName => {
+    Object.keys(this.state.envIdToCostInfo).forEach(envId => {
       let total = 0;
-      Object.keys(this.state.envNameToCostInfo[envName].pastMonthCostByUser).forEach(user => {
-        total += this.state.envNameToCostInfo[envName].pastMonthCostByUser[user];
+      Object.keys(this.state.envIdToCostInfo[envId].pastMonthCostByUser).forEach(user => {
+        total += this.state.envIdToCostInfo[envId].pastMonthCostByUser[user];
       });
       pastMonthCostTotalArray.push(total);
     });
     const title = 'Env Cost for Past 30 Days';
-    const labels = Object.keys(this.state.envNameToCostInfo);
+    const labels = Object.keys(this.state.envIdToCostInfo).map(envId => {
+      const envName = this.state.envIdToEnvMetadata[envId].name;
+      if (this.state.duplicateEnvNames.has(envName)) {
+        return `${envName}: ${envId}`;
+      }
+      return envName;
+    });
     const dataPoints = pastMonthCostTotalArray;
     const data = {
       labels,
@@ -242,13 +273,19 @@ class Dashboard extends React.Component {
   }
 
   renderYesterdayCostPerEnv() {
-    if (_.isEmpty(this.state.envNameToCostInfo)) {
+    if (_.isEmpty(this.state.envIdToCostInfo)) {
       return <ProgressPlaceHolder />;
     }
     const title = "Yesterday's Env Cost";
-    const labels = Object.keys(this.state.envNameToCostInfo);
-    const dataPoints = Object.keys(this.state.envNameToCostInfo).map(envName => {
-      return this.state.envNameToCostInfo[envName].yesterdayCost;
+    const labels = Object.keys(this.state.envIdToCostInfo).map(envId => {
+      const envName = this.state.envIdToEnvMetadata[envId].name;
+      if (this.state.duplicateEnvNames.has(envName)) {
+        return `${envName}: ${envId}`;
+      }
+      return envName;
+    });
+    const dataPoints = Object.keys(this.state.envIdToCostInfo).map(envId => {
+      return this.state.envIdToCostInfo[envId].yesterdayCost;
     });
     const data = {
       labels,
