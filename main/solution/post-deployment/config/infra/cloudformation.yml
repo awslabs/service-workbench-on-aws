@@ -240,11 +240,6 @@ Resources:
                   - 'arn:aws:iam::*:role/analysis-*'
                   - 'arn:aws:iam::*:role/SC-*-ServiceRole-*'
                   - 'arn:aws:iam::*:role/*-sagemaker-notebook-role'
-                Condition:
-                  StringLike:
-                    iam:PermissionsBoundary:
-                      - 'arn:aws:iam::*:policy/*-permission-boundary'
-                      - 'arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole'
               - Effect: Allow
                 Action:
                   - iam:AddRoleToInstanceProfile
