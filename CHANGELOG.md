@@ -3,6 +3,11 @@
 All notable changes to this project will be documented in this file.
 
 
+## [2.1.5] - 2021-04-08
+
+### Added
+- fix: assume role on added member account
+
 ## [2.1.4] - 2021-04-06
 
 ### Added
