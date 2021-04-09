@@ -6,7 +6,6 @@ All notable changes to this project will be documented in this file.
 ## [2.1.5] - 2021-04-08
 
 ### Added
-- chore: Add custom user agent
 - fix: Ensure sdk retry logic is enabled in prod
 - docs: Readme updated
 - fix: assume role on added member account
