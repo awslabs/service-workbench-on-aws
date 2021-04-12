@@ -53,7 +53,6 @@ class MainLayout extends React.Component {
   }
 
   render() {
-    console.log('props', this.props);
     const currentUser = this.props.userStore.user;
     const displayName = currentUser ? currentUser.displayName : 'Not Logged In';
     const pathname = _.get(this.props.location, 'pathname', '');
@@ -88,7 +87,7 @@ class MainLayout extends React.Component {
             style={{ height: '40px', width: 'auto' }}
           />
           <span style={{ paddingLeft: '5px' }}>{branding.main.title}</span>
-          <span style={{ paddingLeft: '20px' }}> {versionAndDate}</span>
+          <span style={{ paddingLeft: '20px' }}>{versionAndDate}</span>
         </Menu.Item>
         <Menu.Menu position="right">
           <Menu.Item>
