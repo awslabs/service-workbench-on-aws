@@ -70,12 +70,12 @@ EOF
 }
 
 # Install dependencies
-yum install -y fuse jq
+yum install -y fuse-2.9.2 jq-1.5
 curl -LSs -o "/usr/local/bin/goofys" "$GOOFYS_URL"
 chmod +x "/usr/local/bin/goofys"
 
 # Install ec2 instance connect agent
-sudo yum install ec2-instance-connect
+sudo yum install ec2-instance-connect-1.1
 
 # Create S3 mount script and config file
 chmod +x "${FILES_DIR}/bin/mount_s3.sh"
