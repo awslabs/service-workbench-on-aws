@@ -34,4 +34,16 @@ const branding = {
   },
 };
 
-export { awsRegion, apiPath, isLocalDev, websiteUrl, stage, region, branding, autoLogoutTimeoutInMinutes };
+const versionAndDate = process.env.REACT_APP_VERSION_AND_DATE;
+
+export {
+  awsRegion,
+  apiPath,
+  isLocalDev,
+  websiteUrl,
+  stage,
+  region,
+  branding,
+  autoLogoutTimeoutInMinutes,
+  versionAndDate,
+};
