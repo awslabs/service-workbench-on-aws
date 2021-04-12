@@ -282,6 +282,9 @@ Resources:
               - cloudformation:ValidateTemplate
               - kms:CreateKey
               - kms:ListKeys
+              - kms:ListAliases
+              - kms:PutKeyPolicy
+              - kms:GenerateRandom
               - s3:ListBuckets
             Resource:
               - '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
@@ -316,14 +319,20 @@ Resources:
           - Effect: 'Allow'
             Action:
               - kms:DescribeKey
+              - kms:EnableKey
               - kms:Encrypt
               - kms:Decrypt
               - kms:CreateAlias
+              - kms:ListKeyPolicies
               - kms:ReEncrypt*
               - kms:GenerateDataKey
+              - kms:ListGrants
               - kms:GenerateDataKeyWithoutPlaintext
               - kms:CreateGrant
               - kms:RevokeGrant
+              - kms:TagResource
+              - kms:UntagResource
+              - kms:GetKeyPolicy
             Resource:
               - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/*${self:custom.settings.namespace}*'
               - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
