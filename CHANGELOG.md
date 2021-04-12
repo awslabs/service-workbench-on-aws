@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file.
 
+## [2.1.6] - 2021-04-12
+### Added
+- feat: Display SWB Version in UI's Top Bar
 
 ## [2.1.5] - 2021-04-08
 
