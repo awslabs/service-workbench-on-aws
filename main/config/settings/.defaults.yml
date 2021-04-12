@@ -172,7 +172,7 @@ auditQldbName: ${self:custom.settings.namespace}-audit
 createServiceCatalogPortfolio: true
 
 # Version number of current release
-versionNumber: '2.1.6'
+versionNumber: '2.2.0'
 
 # Release date of current release
 versionDate: '2021-04-12'
