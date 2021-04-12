@@ -16,6 +16,7 @@ REACT_APP_BRAND_LOGIN_SUBTITLE: ${self:custom.settings.brandLoginSubtitle}
 REACT_APP_AUTO_LOGOUT_TIMEOUT_IN_MINUTES: ${self:custom.settings.autoLogoutTimeoutInMinutes}
 REACT_APP_ENV_MGMT_ROLE_NAME: ${self:custom.settings.envMgmtRoleName}
 REACT_APP_ENABLE_BUILT_IN_WORKSPACES: ${self:custom.settings.enableBuiltInWorkspaces}
+REACT_APP_VERSION_AND_DATE: ${self:custom.settings.versionAndDate}
 
 # ========================================================================
 # Overrides for .env.local
