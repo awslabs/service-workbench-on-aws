@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 - feat: Display SWB Version in UI's Top Bar
+- fix: Fix cost dashboard bugs
 
 ## [2.1.5] - 2021-04-08
 
