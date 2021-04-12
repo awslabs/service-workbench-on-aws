@@ -221,6 +221,12 @@ Resources:
             Effect: Allow
             Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*'
           - Action:
+              - iam:CreateRole
+              - iam:PutRolePolicy
+              - iam:AttachRolePolicy
+            Effect: Deny
+            Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-cicd-pipeline-AppDeployerRole-*'
+          - Action:
               - iam:CreatePolicy
               - iam:GetPolicy
               - iam:DeletePolicy
