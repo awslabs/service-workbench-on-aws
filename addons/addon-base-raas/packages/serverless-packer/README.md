@@ -16,3 +16,8 @@ When installed as a [Serverless plugin](https://serverless.com/framework/docs/pr
 ### `pnpx sls build-image -s <STAGE> [--file]`
 
 By convention, this looks in the `./config/infra` directory for a json file that starts with packer. This file is then used by packer to build the AMI.
+
+## Topics
+
+- [Installing Packer](https://learn.hashicorp.com/tutorials/packer/getting-started-install)
+- [Troubleshooting](https://learn.hashicorp.com/tutorials/packer/getting-started-install#troubleshooting)
