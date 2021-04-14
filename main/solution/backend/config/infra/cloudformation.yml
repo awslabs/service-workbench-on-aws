@@ -596,6 +596,11 @@ Resources:
               - xray:PutTelemetryRecords
             Resource:
               - '*'
+          - Effect: Allow
+            Action:
+              - sts:AssumeRole
+            Resource:
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-prep-raas-master-MasterRole-*'
 
   # IAM Role for the workflowLoopRunner Function
   RoleWorkflowLoopRunner:
@@ -759,7 +764,7 @@ Resources:
     Properties:
       Description: Permission boundary for EnvMgmt role
       PolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Action:
