@@ -201,14 +201,6 @@ const newHandler = async ({ studyService, log = consoleLogger } = {}) => {
           if (!existingStudy) {
             await studyService.create(userContext, study);
           } else {
-            // const studyToUpdate = _.omit(existingStudy, [
-            //   'updatedAt',
-            //   'updatedBy',
-            //   'createdAt',
-            //   'createdBy',
-            //   'category',
-            // ]);
-            // await studyService.update(userContext, studyToUpdate);
             await studyService.update(userContext, { rev: existingStudy.rev, ..._.omit(study, 'category') });
           }
           // Catch the err here so other open data update could continue

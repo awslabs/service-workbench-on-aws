@@ -20,14 +20,13 @@
       "pattern": "^([^<>{}]*)$"
     },
     "description": {
-      "type": "string",
-      "maxLength": 2048,
-      "pattern": "^([^<>{}]*)$"
+      "type": "string"
     },
     "sha": {
       "type": "string",
       "maxLength": 64,
-      "pattern": "^([A-Fa-f0-9])$"
+      "pattern": "^([A-Fa-f0-9]*)$",
+      "description": "A unique identifier for Open Data in MD5 hash, hexadecimal"
     },
     "appRoleArn": {
       "type": "string",
