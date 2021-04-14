@@ -25,6 +25,10 @@ const consoleLogger = {
     // eslint-disable-next-line no-console
     console.log(...args);
   },
+  error(...args) {
+    // eslint-disable-next-line no-console
+    console.error(...args);
+  },
 };
 
 const _ = require('lodash');
@@ -183,24 +187,34 @@ const newHandler = async ({ studyService, log = consoleLogger } = {}) => {
 
   return async () => {
     const fileUrls = await fetchDatasetFiles();
-    const opendata = await fetchOpenData({ fileUrls, requiredTags: scrape.filterTags, log, fetchFile });
+    const openData = await fetchOpenData({ fileUrls, requiredTags: scrape.filterTags, log, fetchFile });
 
-    const simplified = opendata.map(basicProjection);
+    const simplified = openData.map(basicProjection);
 
     log.info('Updating studies');
     // create or update existing record
     const userContext = getSystemRequestContext();
     await Promise.all(
       simplified.map(async study => {
-        // studyService.find returns the entire db row for that study id
-        const existingStudy = await studyService.find(userContext, study.id);
-        if (!existingStudy) {
-          await studyService.create(userContext, study);
-        } else {
-          // remove additional properties before update call to match jsonSchemaValidation
-          const studyToUpdate = _.omit(existingStudy, ['updatedAt', 'updatedBy', 'createdAt', 'createdBy', 'category']);
-
-          await studyService.update(userContext, studyToUpdate);
+        try {
+          const existingStudy = await studyService.find(userContext, study.id);
+          if (!existingStudy) {
+            await studyService.create(userContext, study);
+          } else {
+            // const studyToUpdate = _.omit(existingStudy, [
+            //   'updatedAt',
+            //   'updatedBy',
+            //   'createdAt',
+            //   'createdBy',
+            //   'category',
+            // ]);
+            // await studyService.update(userContext, studyToUpdate);
+            await studyService.update(userContext, { rev: existingStudy.rev, ..._.omit(study, 'category') });
+          }
+          // Catch the err here so other open data update could continue
+        } catch (err) {
+          log.error(err);
+          log.error(study);
         }
       }),
     );
