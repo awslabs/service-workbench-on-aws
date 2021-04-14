@@ -185,34 +185,7 @@ const newHandler = async ({ studyService, log = consoleLogger } = {}) => {
     };
   }
 
-  return async () => {
-    const fileUrls = await fetchDatasetFiles();
-    const openData = await fetchOpenData({ fileUrls, requiredTags: scrape.filterTags, log, fetchFile });
-
-    const simplified = openData.map(basicProjection);
-
-    log.info('Updating studies');
-    // create or update existing record
-    const userContext = getSystemRequestContext();
-    await Promise.all(
-      simplified.map(async study => {
-        try {
-          const existingStudy = await studyService.find(userContext, study.id);
-          if (!existingStudy) {
-            await studyService.create(userContext, study);
-          } else {
-            await studyService.update(userContext, { rev: existingStudy.rev, ..._.omit(study, 'category') });
-          }
-          // Catch the err here so other open data update could continue
-        } catch (err) {
-          log.error(err);
-          log.error(study);
-        }
-      }),
-    );
-
-    return simplified;
-  };
+  return async () => fetchAndSaveOpenData(fetchDatasetFiles, scrape, log, fetchFile, basicProjection, studyService);
 };
 
 const fetchOpenData = async ({ fileUrls, requiredTags, log, fetchFile }) => {
@@ -233,7 +206,41 @@ const fetchOpenData = async ({ fileUrls, requiredTags, log, fetchFile }) => {
   return filtered;
 };
 
+async function saveOpenData(log, simplified, studyService) {
+  log.info('Updating studies');
+  // create or update existing record
+  const userContext = getSystemRequestContext();
+  await Promise.all(
+    simplified.map(async study => {
+      try {
+        const existingStudy = await studyService.find(userContext, study.id);
+        if (!existingStudy) {
+          await studyService.create(userContext, study);
+        } else {
+          await studyService.update(userContext, { rev: existingStudy.rev, ..._.omit(study, 'category') });
+        }
+        // Catch the err here so other open data update could continue
+      } catch (err) {
+        log.error(`Error updating study for id ${study.id} and name ${study.name}. See error and study data below: `);
+        log.error(err);
+        log.error(study);
+      }
+    }),
+  );
+  return simplified;
+}
+
+const fetchAndSaveOpenData = async (fetchDatasetFiles, scrape, log, fetchFile, basicProjection, studyService) => {
+  const fileUrls = await fetchDatasetFiles();
+  const openData = await fetchOpenData({ fileUrls, requiredTags: scrape.filterTags, log, fetchFile });
+
+  const simplifiedStudyData = openData.map(basicProjection);
+
+  return saveOpenData(log, simplifiedStudyData, studyService);
+};
+
 module.exports = {
   fetchOpenData,
   newHandler,
+  saveOpenData,
 };

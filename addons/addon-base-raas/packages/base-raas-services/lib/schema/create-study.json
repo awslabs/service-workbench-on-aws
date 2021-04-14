@@ -20,7 +20,8 @@
       "enum": ["My Studies", "Organization", "Open Data"]
     },
     "description": {
-      "type": "string"
+      "type": "string",
+      "description": "Leaving length and pattern blank to accommodate open data"
     },
     "projectId": {
       "type": "string",
@@ -34,7 +35,7 @@
     "sha": {
       "type": "string",
       "maxLength": 64,
-      "pattern": "^([A-Fa-f0-9]*)$",
+      "pattern": "^([A-Fa-f0-9]{40})$",
       "description": "A unique identifier for Open Data in MD5 hash, hexadecimal"
     },
     "resources": {
