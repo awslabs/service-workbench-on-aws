@@ -269,6 +269,8 @@ Resources:
             Resource:
               - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.namespace}*
               - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.namespace}*/*
+              - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.envName}-va-${self:custom.settings.solutionName}*
+              - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.envName}-va-${self:custom.settings.solutionName}*/*
           - Effect: Allow
             Action:
               - ssm:GetParameter
