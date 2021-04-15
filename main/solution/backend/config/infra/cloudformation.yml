@@ -656,16 +656,21 @@ Resources:
         - PolicyName: db-access
           PolicyDocument:
             Statement:
-              Effect: Allow
-              Action:
-                - dynamodb:DeleteItem
-                - dynamodb:GetItem
-                - dynamodb:PutItem
-                - dynamodb:Query
-                - dynamodb:Scan
-                - dynamodb:UpdateItem
-              Resource:
-                - !GetAtt [StudiesDb, Arn]
+              - Effect: Allow
+                Action:
+                  - dynamodb:DeleteItem
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:UpdateItem
+                Resource:
+                  - !GetAtt [StudiesDb, Arn]
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                Resource:
+                  - !GetAtt [StudyPermissionsDb, Arn]
 
   PolicyDataSourceReachabilityHandler:
     Type: AWS::IAM::ManagedPolicy

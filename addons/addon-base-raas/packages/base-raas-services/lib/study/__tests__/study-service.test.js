@@ -17,6 +17,7 @@ const _ = require('lodash');
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
 const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
 const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
+const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
 
 jest.mock('@aws-ee/base-services/lib/db-service');
 jest.mock('@aws-ee/base-services/lib/logger/logger-service');
@@ -389,6 +390,51 @@ describe('studyService', () => {
   });
 
   describe('create', () => {
+    it('should succeed for valid open data record', async () => {
+      // BUILD
+      const systemContext = getSystemRequestContext();
+      const studyData = {
+        description: 'Example study 1',
+        id: 'study-2',
+        name: 'Study 1',
+        resources: [
+          {
+            arn: 'arn:aws:s3:::study1',
+          },
+        ],
+        sha: '19d5b9c735712185ca1c691143e458a7aa2b7f69',
+        category: 'Open Data',
+      };
+      dbService.table.update.mockResolvedValueOnce(studyData);
+
+      // OPERATE
+      await expect(service.create(systemContext, studyData)).resolves.toMatchObject(studyData);
+    });
+    it('should fail for invalid open data record', async () => {
+      // BUILD
+      const systemContext = getSystemRequestContext();
+      const studyData = {
+        description: 'Example study 1',
+        id: 'study-2',
+        name: 'Study 1',
+        resources: [
+          {
+            arn: 'arn:aws:s3:::study1',
+          },
+        ],
+        sha: '19d5b9z735712185ca1c691143t458a7aa2b7f69',
+        category: 'Open Data',
+      };
+
+      // OPERATE
+      try {
+        await service.create(systemContext, studyData);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Input has validation errors');
+      }
+    });
     it('should fail due to missing id', async () => {
       // BUILD
       const ipt = {
@@ -792,26 +838,6 @@ describe('studyService', () => {
         expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
-    it('should fail since the given study desc is invalid', async () => {
-      // BUILD
-      const uid = 'u-currentUserId';
-      const requestContext = {
-        principalIdentifier: { uid },
-        principal: { userRole: 'researcher', status: 'active' },
-      };
-      const dataIpt = {
-        id: 'id',
-        name: 'name',
-        category: 'Organization',
-        description: '<hack>',
-        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
-      };
-      // OPERATE
-      await expect(service.create(requestContext, dataIpt)).rejects.toThrow(
-        // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
-      );
-    });
     it('should fail since the given study sha is invalid', async () => {
       // BUILD
       const uid = 'u-currentUserId';
@@ -836,6 +862,57 @@ describe('studyService', () => {
   });
 
   describe('update', () => {
+    it('should succeed for valid open data record', async () => {
+      // BUILD
+      const systemContext = getSystemRequestContext();
+      const studyData = {
+        description: 'Example study 1',
+        id: 'study-2',
+        name: 'Study 1',
+        resources: [
+          {
+            arn: 'arn:aws:s3:::study1',
+          },
+        ],
+        sha: '19d5b9c735712185ca1c691143e458a7aa2b7f69',
+        rev: 0,
+      };
+      dbService.table.update.mockResolvedValueOnce(studyData);
+      service.getStudyPermissions = jest.fn().mockResolvedValueOnce({
+        ...studyData,
+        category: 'Open Data',
+        status: 'reachable',
+        permissions: { adminUsers: [], readonlyUsers: [], readwriteUsers: [], writeonlyUsers: [] },
+      });
+
+      // OPERATE
+      await expect(service.update(systemContext, studyData)).resolves.toMatchObject(studyData);
+    });
+    it('should fail for invalid open data record', async () => {
+      // BUILD
+      const systemContext = getSystemRequestContext();
+      const studyData = {
+        description: 'Example study 1',
+        id: 'study-2',
+        name: 'Study 1',
+        resources: [
+          {
+            arn: 'arn:aws:s3:::study1',
+          },
+        ],
+        sha: '19d5b9z735712185ca1c691143t458a7aa2b7f69',
+        rev: 0,
+      };
+
+      // OPERATE
+      try {
+        await service.update(systemContext, studyData);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Input has validation errors');
+      }
+    });
     it('should fail since the given study id is invalid', async () => {
       // BUILD
       const uid = 'u-currentUserId';
@@ -886,25 +963,6 @@ describe('studyService', () => {
         name: 'name',
         description: 'desc',
         sha: 'fake',
-        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
-      };
-      // OPERATE
-      await expect(service.update(requestContext, dataIpt)).rejects.toThrow(
-        // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
-      );
-    });
-    it('should fail since the given study desc is invalid', async () => {
-      // BUILD
-      const uid = 'u-currentUserId';
-      const requestContext = {
-        principalIdentifier: { uid },
-        principal: { userRole: 'researcher', status: 'active' },
-      };
-      const dataIpt = {
-        id: 'id',
-        name: 'name',
-        description: '<hack>',
         resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
       };
       // OPERATE

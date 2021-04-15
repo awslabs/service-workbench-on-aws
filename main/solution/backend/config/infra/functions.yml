@@ -12,6 +12,7 @@ openDataScrapeHandler:
   handler: src/lambdas/open-data-scrape-handler/handler.handler
   role: RoleOpenDataScrapeHandler
   tags: ${self:custom.tags}
+  timeout: 30  # in seconds, default is 6. this function usually finishes in 10secs, setting it to 30 just to be safe
   description: Handles scraping the metadata from the AWS open data registry.
   environment:
     APP_DB_STUDIES_CATEGORY_INDEX: ${self:custom.settings.dbStudiesCategoryIndex}
