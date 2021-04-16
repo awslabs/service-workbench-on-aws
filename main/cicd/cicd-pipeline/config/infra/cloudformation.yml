@@ -343,6 +343,11 @@ Resources:
               - iam:DeleteRolePermissionsBoundary
             Effect: Allow
             Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*'
+          - Action:
+              - iam:PutRolePermissionsBoundary
+              - iam:DeleteRolePermissionsBoundary
+            Effect: Deny
+            Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-cicd-pipeline-AppDeployerRole-*'
 
   AppDeployerRole:
     Type: AWS::IAM::Role
