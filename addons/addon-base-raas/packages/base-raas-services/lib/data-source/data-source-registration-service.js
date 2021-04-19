@@ -31,7 +31,7 @@ const getCreateStackUrl = accountTemplateInfo => {
   // see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-create-stacks-quick-create-links.html
   const { name, region, signedUrl } = accountTemplateInfo;
   const url = [
-    `https://console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/new`,
+    `https://console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/create/review`,
     `?templateURL=${encodeURIComponent(signedUrl)}`,
     `&stackName=${name}`,
   ].join('');
