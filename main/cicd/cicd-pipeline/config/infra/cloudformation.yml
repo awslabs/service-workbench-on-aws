@@ -199,6 +199,156 @@ Resources:
                 Effect: Allow
                 Resource: !Ref PipelineNotificationsTopic
 
+  PolicyAppDeployer:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Allows CodePipeline to create resources required for deploying SWB
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+              - iam:GetRole
+              - iam:GetRolePolicy
+              - iam:PassRole
+              - iam:CreateRole
+              - iam:PutRolePolicy
+              - iam:AttachRolePolicy
+              - iam:DeleteRole
+              - iam:DeleteRolePolicy
+              - iam:DetachRolePolicy
+              - iam:UpdateRoleDescription
+              - iam:*TagRole*
+            Effect: Allow
+            Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*'
+          - Action:
+              - iam:CreateRole
+              - iam:PutRolePolicy
+              - iam:AttachRolePolicy
+            Effect: Deny
+            Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-cicd-pipeline-AppDeployerRole-*'
+          - Action:
+              - iam:CreatePolicy
+              - iam:GetPolicy
+              - iam:DeletePolicy
+              - iam:*PolicyVersion*
+            Effect: Allow
+            Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.namespace}-*'
+          - Action:
+              - events:*
+              - states:*
+              - cloudfront:*
+              - apigateway:*
+            Effect: Allow
+            Resource: '*'
+          - Action:
+              - dynamodb:*
+            Effect: Allow
+            Resource: !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.namespace}-*'
+          - Effect: Allow
+            Action:
+              - logs:CreateLogStream
+              - logs:DescribeLogStreams
+              - logs:PutLogEvents
+              - logs:CreateLogGroup
+              - logs:DeleteLogGroup
+              - logs:DeleteLogStream
+            Resource:
+              - !Sub 'arn:aws:logs:*:${AWS::AccountId}:log-group:/aws/*'
+              - !Sub 'arn:aws:logs:*:${AWS::AccountId}:log-group:/aws/*:log-stream:*'
+          - Effect: Allow
+            Action:
+              - lambda:*
+            Resource:
+              - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.namespace}*:*'
+              - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.namespace}*'
+              - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-*-${self:custom.settings.envName}-*:*'
+              - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-*-${self:custom.settings.envName}-*'
+          - Action:
+              - 's3:*'
+            Effect: Allow
+            Resource:
+              - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.namespace}*
+              - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.namespace}*/*
+              - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.envName}-va-${self:custom.settings.solutionName}*
+              - !Sub arn:aws:s3:::${AWS::AccountId}-${self:custom.settings.envName}-va-${self:custom.settings.solutionName}*/*
+          - Effect: Allow
+            Action:
+              - ssm:GetParameter
+            Resource:
+              - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.envName}/*'
+          - Effect: Allow
+            Action:
+              - iam:ListRoles
+              - organizations:DescribeOrganization
+              - account:ListRegions
+              - cloudformation:ValidateTemplate
+              - kms:CreateKey
+              - kms:ListKeys
+              - kms:ListAliases
+              - kms:PutKeyPolicy
+              - kms:GenerateRandom
+              - s3:ListBuckets
+            Resource:
+              - '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
+          - Effect: Allow
+            Action:
+              - iam:CreateServiceLinkedRole
+              - iam:DeleteServiceLinkedRole
+              - iam:GetServiceLinkedRoleDeletionStatus
+              - iam:UpdateRoleDescription
+            Resource:
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/*'
+          - Effect: Allow
+            Action:
+              - codebuild:CreateReportGroup
+              - codebuild:CreateReport
+              - codebuild:BatchPutTestCases
+              - codebuild:UpdateReport
+            Resource:
+              - !Sub 'arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/*'
+          - Effect: Allow
+            Action:
+              - cloudformation:CreateStack
+              - cloudformation:DeleteStack
+              - cloudformation:DescribeStacks
+              - cloudformation:UpdateStack
+              - cloudformation:GetTemplate
+              - cloudformation:ListStackResources
+              - cloudformation:DescribeStackEvents
+            Resource:
+              - !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${self:custom.settings.namespace}-*'
+              - !Sub 'arn:aws:cloudformation:us-east-1:${AWS::AccountId}:stack/${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-*'
+          - Effect: 'Allow'
+            Action:
+              - kms:DescribeKey
+              - kms:EnableKey
+              - kms:Encrypt
+              - kms:Decrypt
+              - kms:CreateAlias
+              - kms:ListKeyPolicies
+              - kms:ReEncrypt*
+              - kms:GenerateDataKey
+              - kms:ListGrants
+              - kms:GenerateDataKeyWithoutPlaintext
+              - kms:CreateGrant
+              - kms:RevokeGrant
+              - kms:TagResource
+              - kms:UntagResource
+              - kms:GetKeyPolicy
+            Resource:
+              - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/*${self:custom.settings.namespace}*'
+              - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
+          - Action:
+              - iam:PutRolePermissionsBoundary
+              - iam:DeleteRolePermissionsBoundary
+            Effect: Allow
+            Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*'
+          - Action:
+              - iam:PutRolePermissionsBoundary
+              - iam:DeleteRolePermissionsBoundary
+            Effect: Deny
+            Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-cicd-pipeline-AppDeployerRole-*'
+
   AppDeployerRole:
     Type: AWS::IAM::Role
     Properties:
@@ -214,37 +364,8 @@ Resources:
         # The deployer role needs permissions to deploy CFN stacks and all actions those stacks are performing
         # The permissions required by stacks are very fluid and dependent on which resources are declared in those
         # stacks
-        - arn:aws:iam::aws:policy/PowerUserAccess
-      Policies:
-        - PolicyName: CodeBuildDeployerPermissions
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Action:
-                  - iam:AttachRolePolicy
-                  - iam:CreateRole
-                  - iam:DeleteRole
-                  - iam:DeleteRolePolicy
-                  - iam:DetachRolePolicy
-                  - iam:GetRole
-                  - iam:GetRolePolicy
-                  - iam:PassRole
-                  - iam:PutRolePolicy
-                  - iam:UpdateAssumeRolePolicy
-                  - iam:*TagRole*
-                Resource: '*'
-                Effect: Allow
-              - Action:
-                  - iam:CreatePolicy
-                  - iam:GetPolicy
-                  - iam:*PolicyVersion*
-                Effect: Allow
-                Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.namespace}-*'
-              - Action:
-                  - iam:PutRolePermissionsBoundary
-                  - iam:DeleteRolePermissionsBoundary
-                Effect: Allow
-                Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*'
+        - !Ref PolicyAppDeployer
+      PermissionsBoundary: !Ref PolicyAppDeployer
 
   # Role that allows triggering the CodePipeline. This role is assumed by CloudWatch Events from the Source AWS Account
   # where the source code is located (i.e., the account containing the AWS CodeCommit repo with the source code)

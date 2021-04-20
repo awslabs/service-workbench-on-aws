@@ -213,40 +213,166 @@ Resources:
               Service:
                 - servicecatalog.amazonaws.com
             Action: sts:AssumeRole
-      ManagedPolicyArns:
-        # The deployer role needs permissions to deploy CFN stacks and all actions those stacks are performing
-        # The permissions required by stacks are very fluid and dependent on which resources are declared in those
-        # stacks
-        - arn:aws:iam::aws:policy/PowerUserAccess
       Policies:
-        - PolicyName: ServiceCatalogProductLaunchPermissions
+        - PolicyName: CommonSCProductLaunchPermissions
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
-              - Action:
-                  - iam:AttachRolePolicy
-                  - iam:CreateRole
-                  - iam:DeleteRole
-                  - iam:DeleteRolePolicy
-                  - iam:DetachRolePolicy
+              - Effect: Allow
+                Action:
                   - iam:GetRole
                   - iam:GetRolePolicy
-                  - iam:PassRole
-                  - iam:PutRolePolicy
                   - iam:*TagRole*
+                  - iam:PassRole
+                  - iam:DeleteRole
+                Resource:
+                  - 'arn:aws:iam::*:role/analysis-*'
+                  - 'arn:aws:iam::*:role/SC-*-ServiceRole-*'
+                  - 'arn:aws:iam::*:role/*-sagemaker-notebook-role'
+              - Effect: Allow
+                Action:
+                  - iam:PutRolePolicy
+                  - iam:DeleteRolePolicy
+                  - iam:DetachRolePolicy
+                  - iam:AttachRolePolicy
+                  - iam:CreateRole
+                Resource:
+                  - 'arn:aws:iam::*:role/analysis-*'
+                  - 'arn:aws:iam::*:role/SC-*-ServiceRole-*'
+                  - 'arn:aws:iam::*:role/*-sagemaker-notebook-role'
+              - Effect: Allow
+                Action:
+                  - iam:AddRoleToInstanceProfile
+                  - iam:CreateInstanceProfile
+                  - iam:GetInstanceProfile
+                  - iam:DeleteInstanceProfile
+                  - iam:RemoveRoleFromInstanceProfile
+                Resource:
+                  - 'arn:aws:iam::*:instance-profile/analysis-*'
+                  - 'arn:aws:iam::*:instance-profile/SC-*-InstanceProfile-*'
+              - Effect: Allow
+                Action:
+                  - iam:GetPolicy
+                  - iam:CreatePolicy
+                  - iam:ListPolicyVersions
+                  - iam:DeletePolicy
+                Resource: 'arn:aws:iam::*:policy/*-permission-boundary'
+              - Effect: Allow
+                Action:
+                  - cloudformation:CreateStack
+                  - cloudformation:DescribeStacks
+                  - cloudformation:DescribeStackEvents
+                  - cloudformation:DeleteStack
+                Resource: 'arn:aws:cloudformation:*:*:stack/SC-*/*'
+              - Effect: Allow # Used for SC update product
+                Action:
+                  - cloudformation:GetTemplateSummary
                 Resource: '*'
-                Effect: Allow
-        - PolicyName: iam-instance-profile-access
+              - Effect: Allow # Used for SC update product
+                Action:
+                  - s3:GetObject
+                Resource: 'arn:aws:s3:::sc-*'
+              - Effect: Allow
+                Action:
+                  - ec2:AuthorizeSecurityGroupIngress
+                  - ec2:RevokeSecurityGroupEgress
+                  - ec2:CreateSecurityGroup
+                  - ec2:DeleteSecurityGroup
+                  - ec2:CreateTags
+                  - ec2:DescribeTags
+                  - ec2:DescribeKeyPairs
+                  - ec2:DescribeSecurityGroups
+                  - ec2:DescribeSubnets
+                  - ec2:DescribeVpcs
+                Resource: '*' # EMR slave node security group has a machine generated ID and no tags, can not specify resource or add condition here
+              - Effect: Allow
+                Action:
+                  - kms:CreateGrant
+                Resource: '*' # Customer can choose to manually create the KMS key used here, can not specify resource
+        - PolicyName: EMRLaunchPermissions
           PolicyDocument:
             Statement:
-              Effect: Allow
-              Action:
-                - iam:AddRoleToInstanceProfile
-                - iam:CreateInstanceProfile
-                - iam:GetInstanceProfile
-                - iam:DeleteInstanceProfile
-                - iam:RemoveRoleFromInstanceProfile
-              Resource: '*'
+              - Effect: Allow
+                Action:
+                  - s3:CreateBucket
+                  - s3:PutBucketPublicAccessBlock
+                  - s3:PutBucketTagging
+                Resource: 'arn:aws:s3:::sc-*-logbucket-*'
+              - Effect: Allow
+                Action:
+                  - elasticmapreduce:CreateSecurityConfiguration
+                  - elasticmapreduce:RunJobFlow
+                  - elasticmapreduce:TerminateJobFlows
+                  - elasticmapreduce:DeleteSecurityConfiguration
+                Resource: '*' # The above actions do not support specifying resources or resource tag
+              - Effect: Allow
+                Action:
+                  - elasticmapreduce:DescribeCluster
+                Resource: '*'
+                Condition:
+                  StringLike:
+                    aws:ResourceTag/name: 'analysis-*-emr'
+              - Effect: Allow
+                Action:
+                  - iam:CreateServiceLinkedRole
+                  - iam:PutRolePolicy
+                  - iam:UpdateRoleDescription
+                  - iam:DeleteServiceLinkedRole
+                  - iam:GetServiceLinkedRoleDeletionStatus
+                Resource: arn:aws:iam::*:role/aws-service-role/elasticmapreduce.amazonaws.com*/AWSServiceRoleForEMRCleanup*
+                Condition:
+                  StringLike:
+                    iam:AWSServiceName:
+                      - elasticmapreduce.amazonaws.com
+                      - elasticmapreduce.amazonaws.com.cn
+        - PolicyName: SageMakerLaunchPermissions
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sagemaker:DescribeNotebookInstanceLifecycleConfig
+                  - sagemaker:CreateNotebookInstanceLifecycleConfig
+                  - sagemaker:DeleteNotebookInstanceLifecycleConfig
+                Resource: 'arn:aws:sagemaker:*:*:notebook-instance-lifecycle-config/basicnotebookinstancelifecycleconfig-*'
+              - Effect: Allow
+                Action:
+                  - sagemaker:DescribeNotebookInstance
+                  - sagemaker:CreateNotebookInstance
+                  - sagemaker:StopNotebookInstance
+                  - sagemaker:StopNotebookInstance
+                  - sagemaker:DeleteNotebookInstance
+                Resource: 'arn:aws:sagemaker:*:*:notebook-instance/basicnotebookinstance-*'
+              - Effect: Allow
+                Action:
+                  - ec2:DescribeNetworkInterfaces
+                  - ec2:CreateNetworkInterface
+                  - ec2:DeleteNetworkInterface
+                Resource: '*' # Network interfaces created here have a machine generated name and do not have any tags
+        - PolicyName: EC2LaunchPermissions
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - kms:GenerateDataKeyWithoutPlaintext
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - ec2:TerminateInstances
+                Resource: 'arn:aws:ec2:*:*:instance/*'
+              - Effect: Allow
+                Action:
+                  - ec2:RunInstances # RunInstances involves 6 different resource types, it's hard to narrow it down
+                  - ec2:DescribeInstances # DescribeInstances does not support specifying resources
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - ec2:AuthorizeSecurityGroupEgress
+                  - ec2:RevokeSecurityGroupEgress
+                Resource: '*'
+                Condition:
+                  StringLike:
+                    ec2:ResourceTag/name: 'analysis-*-sg'
+
   # =============================================================================================
   # Dynamo db
   # =============================================================================================
