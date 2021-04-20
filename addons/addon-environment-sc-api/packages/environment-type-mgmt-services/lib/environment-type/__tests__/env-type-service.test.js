@@ -297,7 +297,7 @@ describe('EnvTypeService', () => {
       const envType = {
         id: 'theverybest',
         rev: 1,
-        name: 'stuff',
+        name: 'stuff with spaces',
         desc: 'stuff',
         status: 'approved',
       };
@@ -413,7 +413,7 @@ describe('EnvTypeService', () => {
       // BUILD
       const envType = {
         id: 'iwilltravelacrosstheland',
-        name: 'searchingfarandwide',
+        name: 'searchingfarandwide with spaces',
         product: {
           productId: 'each-------tounderstand',
         },
