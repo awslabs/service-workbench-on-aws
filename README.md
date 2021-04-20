@@ -247,7 +247,7 @@ Follow these steps to create a customized CloudFormation template:
 2. Add your new product's details in the format specified in the file `addons/addon-base-raas/packages/base-raas-post-deployment/lib/steps/create-service-catalog-portfolio.js` (lines 23-35).
       
      **Note**: Line numbers might change in a future release.
-1. Run the `environment-deploy.sh` script.
+3. Run the `environment-deploy.sh` script.
 
 ## Audits
 
