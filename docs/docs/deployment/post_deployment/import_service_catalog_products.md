@@ -100,15 +100,19 @@ For Amazon EC2 Linux, the only two fields that are not available in the drop-dow
 
 For Amazon EC2 Windows, the only two fields that are not available in the drop-down are ‘**InstanceType**’ and ‘**AmiId**’. (Use the AMI ID you copied in Prerequisites - AMI)
 
-**Figure 12** and **Figure 13** display screenshot images that exemplify Amazon EC2 Windows configurations.
+**Figure 12**, **Figure 13**, and **Figure 14** display screenshot images that exemplify Amazon EC2 Windows configurations.
 
-<img src={useBaseUrl('img/deployment/post_deployment/sc_ec2_windows_00.png')} />
+<img src={useBaseUrl('img/deployment/post_deployment/SWB_param1.png')} />
 
 ***Figure 12: Configurations for EC2 Windows*** 
 
-<img src={useBaseUrl('img/deployment/post_deployment/sc_ec2_windows_01.png')} />
+<img src={useBaseUrl('img/deployment/post_deployment/SWB_param2.png')} />
 
-***Figure 13: Configurations for EC2 Windows*** 
+***Figure 13: Configurations for EC2 Windows***
+
+<img src={useBaseUrl('img/deployment/post_deployment/SWB_param3.png')} />
+
+***Figure 14: Configurations for EC2 Windows*** 
 
 ### Configuration for Amazon SageMaker
 
