@@ -422,7 +422,6 @@ Resources:
             Action: 'sts:AssumeRole'
             Resource:
               - !GetAtt [RoleEnvMgmt, Arn]
-              - 'arn:aws:iam::*:role/initial-stack-*'
               - 'arn:aws:iam::*:role/SC-*'
               - 'arn:aws:iam::*:role/swb-*'
               - 'arn:aws:iam::*:role/analysis-*'
@@ -578,7 +577,6 @@ Resources:
             Action: 'sts:AssumeRole'
             Resource:
               - !GetAtt [RoleEnvMgmt, Arn]
-              - 'arn:aws:iam::*:role/initial-stack-*'
               - 'arn:aws:iam::*:role/SC-*'
               - 'arn:aws:iam::*:role/analysis-*'
               - 'arn:aws:iam::*:role/swb-*'
@@ -598,6 +596,11 @@ Resources:
               - xray:PutTelemetryRecords
             Resource:
               - '*'
+          - Effect: Allow
+            Action:
+              - sts:AssumeRole
+            Resource:
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-prep-raas-master-MasterRole-*'
 
   # IAM Role for the workflowLoopRunner Function
   RoleWorkflowLoopRunner:
@@ -656,16 +659,21 @@ Resources:
         - PolicyName: db-access
           PolicyDocument:
             Statement:
-              Effect: Allow
-              Action:
-                - dynamodb:DeleteItem
-                - dynamodb:GetItem
-                - dynamodb:PutItem
-                - dynamodb:Query
-                - dynamodb:Scan
-                - dynamodb:UpdateItem
-              Resource:
-                - !GetAtt [StudiesDb, Arn]
+              - Effect: Allow
+                Action:
+                  - dynamodb:DeleteItem
+                  - dynamodb:GetItem
+                  - dynamodb:PutItem
+                  - dynamodb:Query
+                  - dynamodb:Scan
+                  - dynamodb:UpdateItem
+                Resource:
+                  - !GetAtt [StudiesDb, Arn]
+              - Effect: Allow
+                Action:
+                  - dynamodb:GetItem
+                Resource:
+                  - !GetAtt [StudyPermissionsDb, Arn]
 
   PolicyDataSourceReachabilityHandler:
     Type: AWS::IAM::ManagedPolicy
@@ -753,86 +761,42 @@ Resources:
               AWS: !Sub ${AWS::AccountId}
             Action: 'sts:AssumeRole'
       ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/AWSServiceCatalogAdminFullAccess
-      Policies:
-        - PolicyName: ec2-access
-          PolicyDocument:
-            Statement:
-              Action:
-                - ec2:CreateKeyPair
-                - ec2:DeleteKeyPair
-                - ec2:GetPasswordData
-                - ec2:ModifyImageAttribute
-                - ec2:DescribeImages
-                - ec2:DescribeInstances
-                - ec2:DescribeSecurityGroups
-                - ec2:RevokeSecurityGroupIngress
-                - ec2:AuthorizeSecurityGroupIngress
-                - ec2-instance-connect:SendSSHPublicKey
-              Effect: Allow
-              Resource: '*'
-        - PolicyName: cfn-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - cloudformation:ListStackResources
-                - cloudformation:GetTemplate
-              Resource: '*'
-        - PolicyName: param-store-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - ssm:PutParameter
-                - ssm:GetParameter
-                - ssm:GetParameters
-                - ssm:DeleteParameter
-              Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
-        - PolicyName: cfn-read-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - s3:GetObject
-              Resource:
-                # S3 GetObject required to be able to read CFN templates for service catalog products
-                # Various AWS Service Catalog APIs will fail without this (such as describeProvisioningParameters)
-                # AWS Service Catalog uploads the CFN templates to S3 bucket starting with "cf-templates-"
-                # See https://docs.aws.amazon.com/servicecatalog/latest/adminguide/portfoliomgmt-products.html for more details
-                # - !Sub arn:${AWS::Partition}:s3:::cf-templates-*/* (Somehow this pattern is not working.)
-                # TODO: Lock down S3 pattern instead of wildcard)
-                - '*'
-        - PolicyName: iam-role-access
-          PolicyDocument:
-            Statement:
-              - Effect: Allow
-                Action:
-                  - iam:GetRole
-                  - iam:CreateRole
-                  - iam:TagRole
-                  - iam:GetRolePolicy
-                  - iam:PutRolePolicy
-                  - iam:DeleteRolePolicy
-                  - iam:ListRolePolicies
-                  - iam:ListAttachedRolePolicies
-                  - iam:UpdateAssumeRolePolicy
-                  - iam:UpdateRoleDescription
-                  - iam:AttachRolePolicy
-                  - iam:DetachRolePolicy
-                Resource:
-                  - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${self:custom.settings.launchConstraintRolePrefix}'
-              - Effect: Allow
-                Action:
-                  - iam:CreatePolicy
-                  - iam:GetPolicy
-                  - iam:GetPolicyVersion
-                  - iam:ListPolicyVersions
-                  - iam:DeletePolicy
-                  - iam:DeletePolicyVersion
-                Resource:
-                  - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/${self:custom.settings.launchConstraintPolicyPrefix}'
+        - !Ref PolicyEnvMgmt
+      PermissionsBoundary: !Ref PolicyEnvMgmt
 
+  PolicyEnvMgmt:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Permission boundary for EnvMgmt role
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - iam:GetRole
+              - iam:TagRole
+              - iam:GetRolePolicy
+              - iam:ListRolePolicies
+              - iam:ListAttachedRolePolicies
+              - iam:UpdateRoleDescription
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${self:custom.settings.launchConstraintRolePrefix}LaunchConstraint'
+          - Effect: Allow
+            Action:
+              - iam:GetPolicy
+              - iam:GetPolicyVersion
+              - iam:ListPolicyVersions
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/${self:custom.settings.launchConstraintPolicyPrefix}'
+          - Effect: Allow
+            Action:
+              - servicecatalog:*
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - s3:GetObject
+            Resource:
+              - 'arn:aws:s3:::cf-templates-*/*'
   # =============================================================================================
   # Step Functions
   # =============================================================================================
