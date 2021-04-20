@@ -44,6 +44,27 @@ Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
 
 Resources:
+  InstanceRolePermissionBoundary:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Permission boundary for EC2 instance role
+      ManagedPolicyName: !Join ['-', [Ref: Namespace, 'ec2-rstudio-permission-boundary']]
+      PolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Action:
+              - 's3:*'
+              - 'ssm:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'kms:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'sts:AssumeRole'
+            Resource: 'arn:aws:iam::*:role/swb-*'
   IAMRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -93,6 +114,7 @@ Resources:
                   - 'ssm:GetParameter'
                   - 'ssm:PutParameter'
                 Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/*'
+      PermissionsBoundary: !Ref InstanceRolePermissionBoundary
 
   InstanceProfile:
     Type: 'AWS::IAM::InstanceProfile'
