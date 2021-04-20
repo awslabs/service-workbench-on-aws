@@ -1,6 +1,24 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [3.0.0] - 2021-04-19
+
+### Added
+- refactor: restricting AppDeployer permissions
+- refactor: Remove permission boundary condition on launch constraint role
+- refactor: restrict sc roles
+
+**Permissions boundaries are being added to the several important IAM roles used by Service Workbench as a security best practice.**
+
+**Customer Impact:** Below outlines the actions required for you to successfully adopt this security enhancement. The first two items are applicable to all customers. If you have created custom workspace types, then all three items below are applicable.
+
+1. After running the update, onboard all hosting accounts once again to benefit from the enhanced security, and test the application.
+**Note:** The attached pdf contains steps for onboarding hosting accounts, contact your Service Workbench Administrator if you have not performed these steps before.
+
+2. After running the update, import and use the newly available Service Catalog product versions for workspace types (latest version numbers) to benefit from the enhanced security.
+
+3. **ONLY Customers that have created custom workspace types:** It is possible that the permissions boundaries would prevent actions that were formerly allowed. You should plan to validate your custom workspace types after the update. Issues should be addressed by modifying the custom workspaces to work within the permissions granted, or modify the permissions boundary for your installation (this would require a change to Service Workbench code (specifically the IAM policies that are attached as the permissions boundary) for your install).
+Note: Any existing custom or non-custom workspaces types (for example, EC2 Linux/Windows, EMR, SageMaker, R Studio) are not impacted by this upgrade.
 
 ## [2.2.0] - 2021-04-12
 
