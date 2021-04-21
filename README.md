@@ -241,7 +241,7 @@ They are meant to provide a sample service, a sample controller and a sample UI 
 
 ### Adding a custom Service Catalog product
 
-Follow these steps to create a customized CloudFormation template:
+Follow these steps to add a custom Service Catalog product:
 
 1. Add your custom CloudFormation template in the `addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/service-catalog` folder.
 2. Add your new product's details in the format specified in the file `addons/addon-base-raas/packages/base-raas-post-deployment/lib/steps/create-service-catalog-portfolio.js` (lines 23-35).
