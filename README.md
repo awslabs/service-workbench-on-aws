@@ -227,7 +227,7 @@ After choosing your desired studies, click Next to create a workspace. Refer to 
 
 Once you have finished determining the properties of your workspace, Service Workbench generates your workspace and preloads it with your study data. You can access it from the Workspaces page by choosing the Connect button on your workspace.
 
----
+
 
 ## Code Customization
 
@@ -239,7 +239,15 @@ Start by looking at these files:
 
 They are meant to provide a sample service, a sample controller and a sample UI page.
 
----
+### Adding a custom Service Catalog product
+
+Follow these steps to add a custom Service Catalog product:
+
+1. Add your custom CloudFormation template in the `addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/service-catalog` folder.
+2. Add your new product's details in the format specified in the file `addons/addon-base-raas/packages/base-raas-post-deployment/lib/steps/create-service-catalog-portfolio.js` (lines 23-35).
+      
+     **Note**: Line numbers might change in a future release.
+3. Run the `environment-deploy.sh` script.
 
 ## Audits
 
