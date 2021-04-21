@@ -239,7 +239,7 @@ Start by looking at these files:
 
 They are meant to provide a sample service, a sample controller and a sample UI page.
 
-### Creating a customized AWS CloudFormation template
+### Adding a custom Service Catalog product
 
 Follow these steps to create a customized CloudFormation template:
 
