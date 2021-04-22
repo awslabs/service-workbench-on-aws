@@ -101,7 +101,7 @@ const schema = {
             value: {
               type: 'string', // Tag value
               maxLength: 8191,
-              pattern: '^([^<>{}]*)$',
+              pattern: '^([$\\{]*[^<>{}]*[\\}]*)$',
             },
           },
         },
