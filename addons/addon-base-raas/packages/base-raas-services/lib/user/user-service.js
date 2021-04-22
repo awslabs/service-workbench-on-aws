@@ -112,6 +112,146 @@ class UserService extends BaseUserService {
     return super.updateUser(requestContext, user);
   }
 
+  async updateUser2(requestContext, user) {
+    if (user.userRole) {
+      const userType = await this.toUserType(requestContext, user.userRole);
+
+      user.isExternalUser = userType === 'EXTERNAL';
+    }
+
+    return super.updateUser(requestContext, user);
+  }
+
+  async updateUser3(requestContext, user) {
+    if (user.userRole) {
+      const userType = await this.toUserType(requestContext, user.userRole);
+
+      user.isExternalUser = userType === 'EXTERNAL';
+    }
+
+    return super.updateUser(requestContext, user);
+  }
+
+  async updateUser4(requestContext, user) {
+    if (user.userRole) {
+      const userType = await this.toUserType(requestContext, user.userRole);
+
+      user.isExternalUser = userType === 'EXTERNAL';
+    }
+
+    return super.updateUser(requestContext, user);
+  }
+
+  async updateUser5(requestContext, user) {
+    if (user.userRole) {
+      const userType = await this.toUserType(requestContext, user.userRole);
+
+      user.isExternalUser = userType === 'EXTERNAL';
+    }
+
+    return super.updateUser(requestContext, user);
+  }
+
+  async updateUser6(requestContext, user) {
+    if (user.userRole) {
+      const userType = await this.toUserType(requestContext, user.userRole);
+
+      user.isExternalUser = userType === 'EXTERNAL';
+    }
+
+    return super.updateUser(requestContext, user);
+  }
+
+  async updateUser7(requestContext, user) {
+    if (user.userRole) {
+      const userType = await this.toUserType(requestContext, user.userRole);
+
+      user.isExternalUser = userType === 'EXTERNAL';
+    }
+
+    return super.updateUser(requestContext, user);
+  }
+
+  async updateUser8(requestContext, user) {
+    if (user.userRole) {
+      const userType = await this.toUserType(requestContext, user.userRole);
+
+      user.isExternalUser = userType === 'EXTERNAL';
+    }
+
+    return super.updateUser(requestContext, user);
+  }
+
+  async updateUser22(requestContext, user) {
+    if (user.userRole) {
+      const userType = await this.toUserType(requestContext, user.userRole);
+
+      user.isExternalUser = userType === 'EXTERNAL';
+    }
+
+    return super.updateUser(requestContext, user);
+  }
+
+  async updateUser32(requestContext, user) {
+    if (user.userRole) {
+      const userType = await this.toUserType(requestContext, user.userRole);
+
+      user.isExternalUser = userType === 'EXTERNAL';
+    }
+
+    return super.updateUser(requestContext, user);
+  }
+
+  async updateUser42(requestContext, user) {
+    if (user.userRole) {
+      const userType = await this.toUserType(requestContext, user.userRole);
+
+      user.isExternalUser = userType === 'EXTERNAL';
+    }
+
+    return super.updateUser(requestContext, user);
+  }
+
+  async updateUser52(requestContext, user) {
+    if (user.userRole) {
+      const userType = await this.toUserType(requestContext, user.userRole);
+
+      user.isExternalUser = userType === 'EXTERNAL';
+    }
+
+    return super.updateUser(requestContext, user);
+  }
+
+  async updateUser62(requestContext, user) {
+    if (user.userRole) {
+      const userType = await this.toUserType(requestContext, user.userRole);
+
+      user.isExternalUser = userType === 'EXTERNAL';
+    }
+
+    return super.updateUser(requestContext, user);
+  }
+
+  async updateUser72(requestContext, user) {
+    if (user.userRole) {
+      const userType = await this.toUserType(requestContext, user.userRole);
+
+      user.isExternalUser = userType === 'EXTERNAL';
+    }
+
+    return super.updateUser(requestContext, user);
+  }
+
+  async updateUser82(requestContext, user) {
+    if (user.userRole) {
+      const userType = await this.toUserType(requestContext, user.userRole);
+
+      user.isExternalUser = userType === 'EXTERNAL';
+    }
+
+    return super.updateUser(requestContext, user);
+  }
+
   async listUsers(requestContext, { fields = [] } = {}) {
     const users = await super.listUsers(requestContext, fields);
 
