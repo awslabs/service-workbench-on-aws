@@ -3,15 +3,14 @@
 #  SPDX-License-Identifier: Apache-2.0
 #
 
-name: Unit Tests & Code Analysis
+name: Push Merge Commit Coverage Report
 on:
-  pull_request:
+  push:
     branches:
       - develop
-      - "feat-*"
 jobs:
-  static-code-analysis-and-unit-test:
-    name: Unit Tests & Code Analysis
+  codecov:
+    name: Send merge commit coverage report
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -33,9 +32,6 @@ jobs:
           npm install -g pnpm
           npm install -g codecov
           pnpm recursive install --unsafe-perm --stream
-      - name: Run static code analysis & linting tests
-        run: |
-          ./scripts/run-static-code-analysis.sh --stream
       - name: Run unit tests
         run: |
           pnpm run coverage --recursive --if-present --stream
