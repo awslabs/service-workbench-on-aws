@@ -301,6 +301,12 @@ describe('EnvTypeService', () => {
             value: '${vpcId}',
           },
         ],
+        tags: [
+          {
+            key: 'customTag',
+            value: '${indexId}',
+          },
+        ],
       };
       const envType = {
         id: newConfig.id,
