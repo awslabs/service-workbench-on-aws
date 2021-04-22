@@ -49,7 +49,7 @@
     "pretty-quick": "^1.11.1"
   },
   "scripts": {
-    "test-gh": "NODE_ENV=test jest --config jest.config.js --passWithNoTests --verbose --collectCoverage --watchAll=false --coverage && codecov",
+    "coverage": "NODE_ENV=test jest --config jest.config.js --passWithNoTests --verbose --collectCoverage --watchAll=false --coverage && codecov",
     "test": "NODE_ENV=test jest --config jest.config.js --passWithNoTests",
     "test:watch": "NODE_ENV=test jest --config jest.config.js  --passWithNoTests --watchAll",
     "babel": "babel src/ --out-dir dist/ --source-maps",

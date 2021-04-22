@@ -38,7 +38,7 @@ jobs:
           ./scripts/run-static-code-analysis.sh --stream
       - name: Run unit tests
         run: |
-          ./scripts/run-unit-tests-github.sh --stream
+          pnpm run coverage --recursive --if-present --stream
       - name: CodeCov
         uses: codecov/codecov-action@v1
         with:
