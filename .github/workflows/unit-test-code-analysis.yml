@@ -41,5 +41,3 @@ jobs:
           pnpm run coverage --recursive --if-present --stream
       - name: CodeCov
         uses: codecov/codecov-action@v1
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos, but helps in smoother report uploads
