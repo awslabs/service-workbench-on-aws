@@ -1,7 +1,8 @@
 {
   "name": "service-workbench-docusaurus",
   "version": "0.0.8",
-  "private": true,"scripts": {
+  "private": true,
+  "scripts": {
     "start": "docusaurus start",
     "build": "docusaurus build",
     "swizzle": "docusaurus swizzle",

@@ -33,6 +33,9 @@ jobs:
           npm install -g pnpm
           npm install -g codecov
           pnpm recursive install --unsafe-perm --stream
+      - name: Run static code analysis & linting tests
+        run: |
+          ./scripts/run-static-code-analysis.sh --stream
       - name: Run unit tests
         run: |
           ./scripts/run-unit-tests-github.sh --stream

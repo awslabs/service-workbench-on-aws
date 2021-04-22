@@ -4,7 +4,8 @@
   "private": true,
   "description": "End to end tests for the base-poc solution",
   "author": "Amazon Web Services",
-  "license": "Apache-2.0","scripts": {
+  "license": "Apache-2.0",
+  "scripts": {
     "cypress:open:local": "cypress open -C cypress.local.json",
     "cypress:open:dev": "cypress open -C cypress.dev.json",
     "cypress:run-tests:local": "cypress run -C cypress.local.json",
