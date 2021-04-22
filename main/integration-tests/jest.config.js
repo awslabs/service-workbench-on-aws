@@ -101,6 +101,8 @@ module.exports = async () => {
     verbose: false,
     notify: false,
     testEnvironment: 'node',
+
+    collectCoverage: true,
     testTimeout: 60 * 60 * 1000,
     // testPathIgnorePatterns: [],
 
