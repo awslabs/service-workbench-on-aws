@@ -20,4 +20,5 @@ By convention, this looks in the `./config/infra` directory for a json file that
 ## Topics
 
 - [Installing Packer](https://learn.hashicorp.com/tutorials/packer/getting-started-install)
+
 - [Troubleshooting](https://learn.hashicorp.com/tutorials/packer/getting-started-install#troubleshooting)
