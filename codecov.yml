@@ -7,7 +7,7 @@ coverage:
       default:
         # basic
         target: 100
-        threshold: 0%
+        threshold: 0.1%
         # advanced settings
         if_ci_failed: error #success, failure, error, ignore
         informational: false
@@ -16,7 +16,7 @@ coverage:
       default:
         # basic
         target: 100
-        threshold: 0%
+        threshold: 0.1%
         # advanced settings
         if_ci_failed: error #success, failure, error, ignore
         informational: false
