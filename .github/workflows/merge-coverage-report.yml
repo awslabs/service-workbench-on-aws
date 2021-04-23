@@ -36,4 +36,4 @@ jobs:
         run: |
           pnpm run coverage --recursive --if-present --stream
       - name: CodeCov
-        uses: codecov/codecov-action@v1
+        run: bash <(curl -s https://codecov.io/bash) -f ./coverage/coverage-final.json
