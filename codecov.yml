@@ -5,9 +5,8 @@ coverage:
     project:
       default:
         # basic
-        target: auto
+        target: 45
         threshold: 0%
-        base: auto
         # advanced settings
         if_ci_failed: error #success, failure, error, ignore
         informational: false
@@ -15,9 +14,8 @@ coverage:
     patch:
       default:
         # basic
-        target: auto
+        target: 80
         threshold: 0%
-        base: auto
         # advanced settings
         if_ci_failed: error #success, failure, error, ignore
         informational: false
