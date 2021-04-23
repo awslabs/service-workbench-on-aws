@@ -242,6 +242,16 @@ class UserService extends BaseUserService {
     return super.updateUser(requestContext, user);
   }
 
+  async updateUser722(requestContext, user) {
+    if (user.userRole) {
+      const userType = await this.toUserType(requestContext, user.userRole);
+
+      user.isExternalUser = userType === 'EXTERNAL';
+    }
+
+    return super.updateUser(requestContext, user);
+  }
+
   async updateUser82(requestContext, user) {
     if (user.userRole) {
       const userType = await this.toUserType(requestContext, user.userRole);
