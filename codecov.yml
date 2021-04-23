@@ -22,14 +22,6 @@ coverage:
         informational: false
         only_pulls: false
 
-parsers:
-  gcov:
-    branch_detection:
-      conditional: yes
-      loop: yes
-      method: no
-      macro: no
-
 comment:
   layout: "reach,diff,flags,files,footer"
   behavior: default
