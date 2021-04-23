@@ -21,9 +21,6 @@ coverage:
         informational: false
         only_pulls: false
 
-codecov:
-  require_ci_to_pass: yes
-
 parsers:
   gcov:
     branch_detection:
