@@ -205,11 +205,15 @@ class EnvTypeCandidateService extends Service {
           _.filter(paResult.ProvisioningArtifactDetails || [], pa => pa.Active), // filter out inactive versions
           v => -1 * v.CreatedTime,
         );
-        const latestVersion = provisioningArtifacts[0];
-        latestVersion.isLatest = true;
-        provisioningArtifacts = versionFilterEnum.includeOnlyLatest(versionFilter)
-          ? [latestVersion]
-          : provisioningArtifacts;
+
+        // Ensure there are some items in the array before we index it
+        if(!_.isEmpty(provisioningArtifacts)) {
+          const latestVersion = provisioningArtifacts[0];
+          latestVersion.isLatest = true;
+          provisioningArtifacts = versionFilterEnum.includeOnlyLatest(versionFilter)
+            ? [latestVersion]
+            : provisioningArtifacts;
+        }
 
         // In AWS Service Catalog each product could have one or more versions
         // We want to represent each version of the product as an independent environment type
