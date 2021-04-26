@@ -41,8 +41,6 @@ jobs:
           pnpm run coverage --recursive --if-present --stream
       - name: CodeCov
         run: bash <(curl -s https://codecov.io/bash) -f ./coverage/coverage-final.json
-      - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v1
   CodeQL-Build:
     # CodeQL runs on ubuntu-latest, windows-latest, and macos-latest
     runs-on: ubuntu-latest
