@@ -46,7 +46,6 @@ jobs:
         run: bash <(curl -s https://codecov.io/bash) -f ./coverage/coverage-final.json
   CodeQL-Build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
