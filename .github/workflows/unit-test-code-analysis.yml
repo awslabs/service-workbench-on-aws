@@ -9,9 +9,6 @@ on:
     branches:
       - develop
       - "feat-*"
-    paths-ignore:
-      - '**/*.md'
-      - '**/*.txt'
 jobs:
   static-code-analysis-and-unit-test:
     name: Unit Tests & Code Analysis
