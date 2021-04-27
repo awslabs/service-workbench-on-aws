@@ -224,7 +224,7 @@ class EnvTypeCandidateService extends Service {
         );
       }),
     );
-    return _.filter(productEnvTypes);
+    return _.filter(productEnvTypes, productEnvType => productEnvType !== null);
   }
 
   /**
