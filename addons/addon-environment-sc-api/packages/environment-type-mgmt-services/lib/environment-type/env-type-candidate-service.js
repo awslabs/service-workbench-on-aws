@@ -205,6 +205,10 @@ class EnvTypeCandidateService extends Service {
           _.filter(paResult.ProvisioningArtifactDetails || [], pa => pa.Active), // filter out inactive versions
           v => -1 * v.CreatedTime,
         );
+        if (_.isEmpty(provisioningArtifacts)) {
+          // No active versions
+          return null;
+        }
         const latestVersion = provisioningArtifacts[0];
         latestVersion.isLatest = true;
         provisioningArtifacts = versionFilterEnum.includeOnlyLatest(versionFilter)
@@ -220,7 +224,7 @@ class EnvTypeCandidateService extends Service {
         );
       }),
     );
-    return productEnvTypes;
+    return _.filter(productEnvTypes, productEnvType => productEnvType !== null);
   }
 
   /**
