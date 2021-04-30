@@ -14,6 +14,10 @@ on:
       - '**/*.txt'
   schedule:
     - cron: '0 0 * * *'
+  push:
+    branches:
+      - develop
+      - "feat-*"
 jobs:
   CodeQL-Analyze:
     runs-on: ubuntu-latest
