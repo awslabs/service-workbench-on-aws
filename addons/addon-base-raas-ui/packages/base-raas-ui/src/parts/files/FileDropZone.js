@@ -30,6 +30,8 @@ const ReusableFileInput = React.forwardRef(({ onChange, ...props }, ref) => {
   const [inputKey, setInputKey] = React.useState(uuidv4());
   return (
     <input
+      directory=""
+      webkitdirectory=""
       key={inputKey}
       ref={ref}
       type="file"
@@ -104,6 +106,7 @@ class FileDropZone extends React.Component {
             onChange={event => {
               if (this.props.onSelectFiles) {
                 const fileList = event.currentTarget.files || [];
+                console.log('FileList', fileList);
                 this.props.onSelectFiles([...fileList]);
               }
             }}
