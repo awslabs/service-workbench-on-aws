@@ -30,8 +30,6 @@ const ReusableFileInput = React.forwardRef(({ onChange, ...props }, ref) => {
   const [inputKey, setInputKey] = React.useState(uuidv4());
   return (
     <input
-      directory=""
-      webkitdirectory=""
       key={inputKey}
       ref={ref}
       type="file"
@@ -60,6 +58,7 @@ class FileDropZone extends React.Component {
 
   render() {
     const fileInputRef = React.createRef();
+    const folderInputRef = React.createRef();
     const enabled = this.props.state === 'PENDING';
     return (
       <Segment
@@ -106,7 +105,19 @@ class FileDropZone extends React.Component {
             onChange={event => {
               if (this.props.onSelectFiles) {
                 const fileList = event.currentTarget.files || [];
-                console.log('FileList', fileList);
+                this.props.onSelectFiles([...fileList]);
+              }
+            }}
+          />
+          <ReusableFileInput
+            ref={folderInputRef}
+            hidden
+            multiple
+            directory=""
+            webkitdirectory=""
+            onChange={event => {
+              if (this.props.onSelectFiles) {
+                const fileList = event.currentTarget.files || [];
                 this.props.onSelectFiles([...fileList]);
               }
             }}
@@ -114,7 +125,7 @@ class FileDropZone extends React.Component {
           {this.props.state === 'PENDING' ? (
             <>
               <Icon name="upload" className="mb2" />
-              Drag and drop
+              Drag and drop files
               <Divider horizontal>Or</Divider>
               <Button
                 basic
@@ -125,7 +136,19 @@ class FileDropZone extends React.Component {
                   }
                 }}
               >
-                Browse Files
+                Upload Files
+              </Button>
+              <Divider horizontal>Or</Divider>
+              <Button
+                basic
+                color="blue"
+                onClick={() => {
+                  if (folderInputRef.current) {
+                    folderInputRef.current.click();
+                  }
+                }}
+              >
+                Upload Folder
               </Button>
             </>
           ) : this.props.state === 'UPLOADING' ? (
