@@ -14,10 +14,9 @@
  */
 
 const crypto = require('crypto');
+const NodeRSA = require('node-rsa');
 const querystring = require('querystring');
 const request = require('request-promise-native');
-
-const rstudioEncryptor = require('@aws-ee/base-services/lib/helpers/rstudio-encryptor');
 const Service = require('@aws-ee/base-services-container/lib/service');
 
 class EnvironmentUrlService extends Service {
@@ -58,7 +57,16 @@ class EnvironmentUrlService extends Service {
     const credentials = `${username}\n${password}`;
     const publicKey = await request(rstudioPublicKeyUrl);
     const [exponent, modulus] = publicKey.split(':', 2);
-    const params = { v: rstudioEncryptor.encrypt(credentials, exponent, modulus) };
+    const exponentBuffer = Buffer.from(exponent, 'hex');
+    const modulusBuffer = Buffer.from(modulus, 'hex');
+    const key = new NodeRSA();
+    const publicKeyObject = key.importKey({ n: modulusBuffer, e: exponentBuffer }, 'components-public');
+    const payloadBuffer = Buffer.from(credentials);
+    const result = crypto.publicEncrypt(
+      { key: publicKeyObject.exportKey('public'), padding: crypto.constants.RSA_PKCS1_PADDING },
+      payloadBuffer,
+    );
+    const params = { v: result.toString('base64') };
     const authorizedUrl = `${rstudioSignInUrl}?${querystring.encode(params)}`;
     return { AuthorizedUrl: authorizedUrl };
   }

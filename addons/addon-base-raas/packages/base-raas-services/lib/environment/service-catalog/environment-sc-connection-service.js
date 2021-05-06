@@ -15,8 +15,8 @@
 
 const _ = require('lodash');
 const crypto = require('crypto');
+const NodeRSA = require('node-rsa');
 const querystring = require('querystring');
-const rstudioEncryptor = require('@aws-ee/base-services/lib/helpers/rstudio-encryptor');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const sshConnectionInfoSchema = require('../../schema/ssh-connection-info-sc');
 const { connectionScheme } = require('./environment-sc-connection-enum');
@@ -178,6 +178,15 @@ class EnvironmentScConnectionService extends Service {
   }
 
   async getRStudioUrl(requestContext, id, connection) {
+    // The username for RStudio url access was changed as of 08/26/20
+    // If you're experiencing difficulty accessing previously provisioned RStudio instance,
+    // the steps to perform for backwards compatibility are:
+    // 1. Redeploy machine-images SDC (this will update the RStudio AMIs to have the new username)
+    // 2. For already provisioned RStudio instances, get sudo/root access on the box and add the user
+    // as a linux user using the command 'sudo useradd -m rstudio-user'
+    // 3. Update the username in boot script 'set-password' (found in /usr/local/bin/)
+    // 4. Reboot the box
+
     const environmentDnsService = await this.service('environmentDnsService');
     const rstudioDomainName = environmentDnsService.getHostname('rstudio', id);
     const rstudioSignInUrl = `https://${rstudioDomainName}/auth-do-sign-in`;
@@ -190,7 +199,16 @@ class EnvironmentScConnectionService extends Service {
     const credentials = `${username}\n${password}`;
     const publicKey = await this.getRstudioPublicKey(requestContext, instanceId, id);
     const [exponent, modulus] = publicKey.split(':', 2);
-    const params = { v: rstudioEncryptor.encrypt(credentials, exponent, modulus) };
+    const exponentBuffer = Buffer.from(exponent, 'hex');
+    const modulusBuffer = Buffer.from(modulus, 'hex');
+    const key = new NodeRSA();
+    const publicKeyObject = key.importKey({ n: modulusBuffer, e: exponentBuffer }, 'components-public');
+    const payloadBuffer = Buffer.from(credentials);
+    const result = crypto.publicEncrypt(
+      { key: publicKeyObject.exportKey('public'), padding: crypto.constants.RSA_PKCS1_PADDING },
+      payloadBuffer,
+    );
+    const params = { v: result.toString('base64') };
     const authorizedUrl = `${rstudioSignInUrl}?${querystring.encode(params)}`;
     return authorizedUrl;
   }
