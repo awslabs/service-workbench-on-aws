@@ -42,9 +42,7 @@ class UploadStudyFiles extends React.Component {
     // Get presigned POST request
     let uploadRequest;
     try {
-      console.log('fullFilePath', fileUpload.fullFilePath);
       const presignResult = await getPresignedStudyUploadRequests(this.props.studyId, fileUpload.fullFilePath);
-      // uploadRequest = presignResult[fileUpload.name];
       uploadRequest = presignResult[fileUpload.fullFilePath];
     } catch (error) {
       const errMessage = 'Error occurred obtaining presigned request';

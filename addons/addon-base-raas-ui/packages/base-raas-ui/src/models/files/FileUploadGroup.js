@@ -47,7 +47,7 @@ const FileUpload = types
     },
     get folder() {
       if (self.file && self.file.webkitRelativePath) {
-        const regExpForReplacingFileName = new RegExp(`${self.file.name}$`);
+        const regExpForReplacingFileName = new RegExp(`/${self.file.name}$`);
         return self.file.webkitRelativePath.replace(regExpForReplacingFileName, '');
       }
       return '';
