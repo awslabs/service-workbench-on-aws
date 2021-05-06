@@ -2,10 +2,11 @@ import FileUploadGroup from '../FileUploadGroup';
 
 describe('FileUploadGroup', () => {
   const currentTimeFromEpoch = Date.now();
+  const fileName = 'sample.json';
   const file = {
     lastModified: currentTimeFromEpoch,
     lastModifiedDate: new Date(currentTimeFromEpoch),
-    name: 'sample.json',
+    name: fileName,
     size: 0,
     type: 'application/json',
   };
@@ -24,19 +25,28 @@ describe('FileUploadGroup', () => {
   }
 
   it('should handle top level folder correctly', () => {
-    const fileUploadObj = getFileUploadObject('sampleFolder/sample.json');
+    const fileUploadObj = getFileUploadObject(`sampleFolder/${fileName}`);
 
     // OPERATE & CHECK
     expect(fileUploadObj.folder).toEqual('sampleFolder');
-    expect(fileUploadObj.fullFilePath).toEqual('sampleFolder/sample.json');
+    expect(fileUploadObj.fullFilePath).toEqual(`sampleFolder/${fileName}`);
   });
 
   it('should handle sub level folder correctly', () => {
     // BUILD
-    const fileUploadObj = getFileUploadObject('sampleFolder/subfolder/sample.json');
+    const fileUploadObj = getFileUploadObject(`sampleFolder/subfolder/${fileName}`);
 
     // OPERATE & CHECK
     expect(fileUploadObj.folder).toEqual('sampleFolder/subfolder');
-    expect(fileUploadObj.fullFilePath).toEqual('sampleFolder/subfolder/sample.json');
+    expect(fileUploadObj.fullFilePath).toEqual(`sampleFolder/subfolder/${fileName}`);
+  });
+
+  it('should handle uploading a file correctly', () => {
+    // BUILD
+    const fileUploadObj = getFileUploadObject('');
+
+    // OPERATE & CHECK
+    expect(fileUploadObj.folder).toEqual('');
+    expect(fileUploadObj.fullFilePath).toEqual(fileName);
   });
 });
