@@ -309,6 +309,7 @@ importers:
       nanoid: 3.1.20
       node-cache: 4.2.1
       node-fetch: 2.6.0
+      node-rsa: 1.1.1
       request: 2.88.2
       request-promise-native: 1.0.8_request@2.88.2
       uuid: 3.4.0
@@ -356,6 +357,7 @@ importers:
       nanoid: ^3.1.16
       node-cache: ^4.2.1
       node-fetch: ^2.6.0
+      node-rsa: ^1.1.1
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
       request: ^2.88.2
@@ -17170,6 +17172,12 @@ packages:
     dev: true
     resolution:
       integrity: sha512-V5QF9noGFl3EymEwUYzO+3NTDpGfQB4ve6Qfnzf3UNydMhjQRVPR1DZTuvWiLzaFJYw2fmDwAfnRNEVb64hSIg==
+  /node-rsa/1.1.1:
+    dependencies:
+      asn1: 0.2.4
+    dev: false
+    resolution:
+      integrity: sha512-Jd4cvbJMryN21r5HgxQOpMEqv+ooke/korixNNK3mGqfGJmy0M77WDDzo/05969+OkMy3XW1UuZsSmW9KQm7Fw==
   /node-source-walk/4.2.0:
     dependencies:
       '@babel/parser': 7.9.4
