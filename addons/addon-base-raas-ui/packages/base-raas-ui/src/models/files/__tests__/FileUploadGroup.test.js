@@ -3,11 +3,12 @@ import FileUploadGroup from '../FileUploadGroup';
 describe('FileUploadGroup', () => {
   const currentTimeFromEpoch = Date.now();
   const fileName = 'sample.json';
+  const size = 0;
   const file = {
     lastModified: currentTimeFromEpoch,
     lastModifiedDate: new Date(currentTimeFromEpoch),
     name: fileName,
-    size: 0,
+    size,
     type: 'application/json',
   };
 
@@ -28,6 +29,8 @@ describe('FileUploadGroup', () => {
     const fileUploadObj = getFileUploadObject(`sampleFolder/${fileName}`);
 
     // OPERATE & CHECK
+    expect(fileUploadObj.size).toEqual(size);
+    expect(fileUploadObj.name).toEqual(fileName);
     expect(fileUploadObj.folder).toEqual('sampleFolder');
     expect(fileUploadObj.fullFilePath).toEqual(`sampleFolder/${fileName}`);
   });
@@ -37,6 +40,8 @@ describe('FileUploadGroup', () => {
     const fileUploadObj = getFileUploadObject(`sampleFolder/subfolder/${fileName}`);
 
     // OPERATE & CHECK
+    expect(fileUploadObj.size).toEqual(size);
+    expect(fileUploadObj.name).toEqual(fileName);
     expect(fileUploadObj.folder).toEqual('sampleFolder/subfolder');
     expect(fileUploadObj.fullFilePath).toEqual(`sampleFolder/subfolder/${fileName}`);
   });
@@ -46,6 +51,8 @@ describe('FileUploadGroup', () => {
     const fileUploadObj = getFileUploadObject('');
 
     // OPERATE & CHECK
+    expect(fileUploadObj.size).toEqual(size);
+    expect(fileUploadObj.name).toEqual(fileName);
     expect(fileUploadObj.folder).toEqual('');
     expect(fileUploadObj.fullFilePath).toEqual(fileName);
   });
