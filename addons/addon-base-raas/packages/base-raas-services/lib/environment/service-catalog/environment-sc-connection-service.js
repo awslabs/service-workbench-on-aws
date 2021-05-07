@@ -15,8 +15,8 @@
 
 const _ = require('lodash');
 const crypto = require('crypto');
+const NodeRSA = require('node-rsa');
 const querystring = require('querystring');
-const rstudioEncryptor = require('@aws-ee/base-services/lib/helpers/rstudio-encryptor');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const sshConnectionInfoSchema = require('../../schema/ssh-connection-info-sc');
 const { connectionScheme } = require('./environment-sc-connection-enum');
@@ -190,7 +190,16 @@ class EnvironmentScConnectionService extends Service {
     const credentials = `${username}\n${password}`;
     const publicKey = await this.getRstudioPublicKey(requestContext, instanceId, id);
     const [exponent, modulus] = publicKey.split(':', 2);
-    const params = { v: rstudioEncryptor.encrypt(credentials, exponent, modulus) };
+    const exponentBuffer = Buffer.from(exponent, 'hex');
+    const modulusBuffer = Buffer.from(modulus, 'hex');
+    const key = new NodeRSA();
+    const publicKeyObject = key.importKey({ n: modulusBuffer, e: exponentBuffer }, 'components-public');
+    const payloadBuffer = Buffer.from(credentials);
+    const result = crypto.publicEncrypt(
+      { key: publicKeyObject.exportKey('public'), padding: crypto.constants.RSA_PKCS1_PADDING },
+      payloadBuffer,
+    );
+    const params = { v: result.toString('base64') };
     const authorizedUrl = `${rstudioSignInUrl}?${querystring.encode(params)}`;
     return authorizedUrl;
   }
