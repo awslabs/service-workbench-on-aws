@@ -25,9 +25,6 @@ To create a Study:
 To upload files:
 
 1.	Click **Upload Files**.
-2.	There are three options for uploading files
-      * Drag and drop
-      * Click the **Upload Files** button 
-      * Click the **Upload Folder** button
+2.	You can upload files either by dragging and dropping, or by clicking the **Upload Files** or **Upload Folder** button.
 
 **Note**: The **Upload Files** button is not visible if you lack write permissions to the Study, or if the Study is external.
