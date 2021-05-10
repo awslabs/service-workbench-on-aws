@@ -17,6 +17,7 @@ import React from 'react';
 import { decorate, observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react';
 import PropTypes from 'prop-types';
+import toastr from 'toastr';
 
 import { Segment, Header, Divider, Button, Icon } from 'semantic-ui-react';
 import uuidv4 from 'uuid/v4';
@@ -55,6 +56,19 @@ class FileDropZone extends React.Component {
       this.highlighted = isHighlighted;
     });
   }
+
+  handleSelectingFiles = event => {
+    if (this.props.onSelectFiles) {
+      const fileList = event.currentTarget.files || [];
+      if (fileList.length > this.props.maximumUploadFilesLimit) {
+        toastr.warning(
+          `There are currently ${fileList.length} files selected. Please select less than ${this.props.maximumUploadFilesLimit} files.`,
+        );
+      } else {
+        this.props.onSelectFiles([...fileList]);
+      }
+    }
+  };
 
   render() {
     const fileInputRef = React.createRef();
@@ -103,10 +117,7 @@ class FileDropZone extends React.Component {
             hidden
             multiple
             onChange={event => {
-              if (this.props.onSelectFiles) {
-                const fileList = event.currentTarget.files || [];
-                this.props.onSelectFiles([...fileList]);
-              }
+              this.handleSelectingFiles(event);
             }}
           />
           <ReusableFileInput
@@ -116,10 +127,7 @@ class FileDropZone extends React.Component {
             directory=""
             webkitdirectory=""
             onChange={event => {
-              if (this.props.onSelectFiles) {
-                const fileList = event.currentTarget.files || [];
-                this.props.onSelectFiles([...fileList]);
-              }
+              this.handleSelectingFiles(event);
             }}
           />
           {this.props.state === 'PENDING' ? (
@@ -168,6 +176,7 @@ class FileDropZone extends React.Component {
   }
 }
 FileDropZone.propTypes = {
+  maximumUploadFilesLimit: PropTypes.isRequired,
   state: PropTypes.oneOf(['PENDING', 'UPLOADING', 'COMPLETE']).isRequired,
   onSelectFiles: PropTypes.func,
 };

@@ -22,9 +22,11 @@ import { Button, Grid, Header, Segment } from 'semantic-ui-react';
 
 import { displayError, displaySuccess, displayWarning } from '@aws-ee/base-ui/dist/helpers/notification';
 
+import toastr from 'toastr';
 import StudyFileDropZone from './FileDropZone';
 import FileUploadTable from './FileUploadTable';
 
+const maximumUploadFilesLimit = 1000;
 const FileUpload = observer(
   ({
     files = [],
@@ -40,7 +42,11 @@ const FileUpload = observer(
     return (
       <Segment vertical>
         <Header as="h3">Upload Files</Header>
-        <StudyFileDropZone state={state} onSelectFiles={onSelectFiles} />
+        <StudyFileDropZone
+          state={state}
+          onSelectFiles={onSelectFiles}
+          maximumUploadFilesLimit={maximumUploadFilesLimit}
+        />
         {files.length > 0 && (
           <Segment>
             <Grid>
@@ -57,7 +63,20 @@ const FileUpload = observer(
               <Grid.Row>
                 <Grid.Column>
                   {state === 'PENDING' ? (
-                    <Button floated="right" basic color="blue" onClick={onClickStartUpload}>
+                    <Button
+                      floated="right"
+                      basic
+                      color="blue"
+                      onClick={() => {
+                        if (files.length > maximumUploadFilesLimit) {
+                          toastr.warning(
+                            `There are currently ${files.length} files selected. Please select less than ${maximumUploadFilesLimit} files.`,
+                          );
+                        } else {
+                          onClickStartUpload();
+                        }
+                      }}
+                    >
                       Upload Files
                     </Button>
                   ) : state === 'UPLOADING' ? (
