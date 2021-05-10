@@ -61,6 +61,7 @@ const FileUploadToolbar = observer(({ file, state, onClickRemove, onClickCancel 
 
 const FileUploadRow = observer(({ file, state, onClickRemove, onClickCancel }) => (
   <Table.Row>
+    <Table.Cell>{file.folder}</Table.Cell>
     <Table.Cell>{file.name}</Table.Cell>
     <Table.Cell>{prettyBytes(file.size)}</Table.Cell>
     <Table.Cell>
@@ -76,6 +77,7 @@ const FileUploadTable = observer(({ files = [], state, onClickRemoveFile, onClic
   <Table basic="very">
     <Table.Header>
       <Table.Row>
+        <Table.HeaderCell>Folder</Table.HeaderCell>
         <Table.HeaderCell>Filename</Table.HeaderCell>
         <Table.HeaderCell>Size</Table.HeaderCell>
         <Table.HeaderCell>Status</Table.HeaderCell>
