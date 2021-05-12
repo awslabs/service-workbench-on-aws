@@ -15,7 +15,7 @@
 
 import React from 'react';
 import { Tab, Segment, Container } from 'semantic-ui-react';
-import { observer } from 'mobx-react';
+import { inject, observer } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import RolesList from './RolesList';
 import UsersList from './UsersList';
@@ -28,6 +28,9 @@ const panes = [
 // eslint-disable-next-line react/prefer-stateless-function
 class User extends React.Component {
   render() {
+    if (!this.props.userStore.cloneUser.isAdmin) {
+      this.props.history.push('/');
+    }
     return (
       <Container className="mt3 animated fadeIn">
         <Segment basic className="p0">
@@ -38,4 +41,6 @@ class User extends React.Component {
   }
 }
 
-export default withRouter(observer(User));
+// export default withRouter(observer(User));
+
+export default inject('userStore')(withRouter(observer(User)));
