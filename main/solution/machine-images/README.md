@@ -4,7 +4,7 @@
 
 This solution uses [Packer](https://www.packer.io/) to create an Amazon Machine Image (AMI). This AMI forms the basis for EC2/EMR environments that investigators use for their research.
 
-To install Packer v1.6.0, you can use Packer version manager [pkenv](https://github.com/iamhsa/pkenv).
+To install Packer 1.6.0, use [pkenv](https://github.com/iamhsa/pkenv).
 
 ## Preparation
 
