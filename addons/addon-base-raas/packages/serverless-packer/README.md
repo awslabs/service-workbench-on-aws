@@ -4,7 +4,7 @@
 
 - Node 12
 - [Hashicorp Packer](https://www.packer.io/)
-    - Code was tested with Packer v1.6.0. You can install specific versions of packer by using [pkenv](https://github.com/iamhsa/pkenv).
+    - The Service Workbench code is tested with Packer 1.6.0. You can install Packer 1.6.0 by using Packer version manager [pkenv](https://github.com/iamhsa/pkenv).
 
 #### Project variables
 
