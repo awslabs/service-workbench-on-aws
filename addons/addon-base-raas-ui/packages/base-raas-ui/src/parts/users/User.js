@@ -41,6 +41,4 @@ class User extends React.Component {
   }
 }
 
-// export default withRouter(observer(User));
-
 export default inject('userStore')(withRouter(observer(User)));
