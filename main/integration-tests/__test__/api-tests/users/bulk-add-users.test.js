@@ -65,12 +65,12 @@ describe('Create user scenarios', () => {
       });
     });
 
-    it('should fail with internalError code for adding malformed users', async () => {
+    it('should fail with badRequest code for adding malformed users', async () => {
       const admin1Session = await setup.createAdminSession();
       const badUser = {};
       const newUser = admin1Session.resources.users.defaults();
       await expect(admin1Session.resources.users.bulkAddUsers([newUser, badUser])).rejects.toMatchObject({
-        code: errorCode.http.code.internalError,
+        code: errorCode.http.code.badRequest,
       });
     });
   });
