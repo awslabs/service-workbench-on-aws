@@ -34,7 +34,7 @@ class User extends React.Component {
     return (
       <Container className="mt3 animated fadeIn">
         <Segment basic className="p0">
-          <Tab panes={panes} />
+          <Tab panes={panes} data-testid="users-table" />
         </Segment>
       </Container>
     );
