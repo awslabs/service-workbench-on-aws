@@ -124,7 +124,7 @@ class UserService extends BaseUserService {
       // Write audit event before throwing error since some users were still added
       await this.audit(requestContext, {
         action: 'create-users-batch',
-        body: { totalUsers: _.size(users), completedSuccessfully: false, numErrors: errors },
+        body: { totalUsers: _.size(users), completedSuccessfully: false, numErrors: errorCount },
       });
       throw this.boom
         .internalError(`Errors creating users in bulk. Check the payload for more details.`, true)
