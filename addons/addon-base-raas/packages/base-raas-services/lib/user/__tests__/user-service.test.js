@@ -159,7 +159,7 @@ describe('UserService', () => {
       }
     });
 
-    it('should fail because a duplicate user exists', async () => {
+    it('should fail without calling createUser because a duplicate user exists', async () => {
       // BUILD
       const user1 = {
         email: 'example@amazon.com',
@@ -173,6 +173,10 @@ describe('UserService', () => {
         lastName: 'Guy',
       };
 
+      const user3 = {
+        email: 'othervaliduser@amazon.com',
+      };
+
       service.toUserType = jest.fn(() => {
         return { userType: 'root' };
       });
@@ -183,13 +187,16 @@ describe('UserService', () => {
 
       // OPERATE
       try {
-        await service.createUsers({}, [user2], 'internal');
+        await service.createUsers({}, [user2, user3], 'internal');
         expect.hasAssertions();
       } catch (err) {
         // CHECK
+        expect(err.code).toEqual('badRequest');
         expect(err.payload).toBeDefined();
         const error = err.payload[0];
         expect(error).toEqual('Error creating user example@amazon.com. Cannot add user. The user already exists.');
+        expect(service.createUser).not.toHaveBeenCalled();
+        // If duplicate user exists, a badRequest error should be thrown, and no users should be added (even if not all are invalid)
       }
     });
 
@@ -255,6 +262,55 @@ describe('UserService', () => {
 
       // CHECK
       expect(service.createUser).toHaveBeenCalledTimes(4);
+    });
+
+    it('should throw internalError and log audit event appropriately if an internal error occurs', async () => {
+      // BUILD
+      const user1 = {
+        email: 'example1@amazon.com',
+      };
+
+      const user2 = {
+        email: 'example2@amazon.com',
+      };
+
+      const expectedAuditCall = {
+        action: 'create-users-batch',
+        body: {
+          totalUsers: 2,
+          completedSuccessfully: false,
+          numErrors: 1,
+          numSuccesses: 1,
+        },
+      };
+
+      service.toUserType = jest.fn(() => {
+        return { userType: 'root' };
+      });
+      service.getUserByPrincipal = jest.fn(() => {
+        return null;
+      });
+      service.audit = jest.fn();
+
+      service.createUser = jest.fn().mockImplementationOnce(() => {
+        throw new Error('unexpected error!');
+      });
+
+      // OPERATE
+      try {
+        await service.createUsers({}, [user1, user2], 'internal');
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.code).toEqual('internalError');
+        expect(err.payload).toBeDefined();
+        const error = err.payload[0];
+        expect(error).toEqual('Error creating user example1@amazon.com');
+        expect(service.createUser).toHaveBeenCalledTimes(2);
+        expect(service.audit).toHaveBeenCalledWith({}, expectedAuditCall);
+        // If we get an error after validation, internalError should be thrown
+        // Audit event should be logged with details on the failed call
+      }
     });
   });
 });

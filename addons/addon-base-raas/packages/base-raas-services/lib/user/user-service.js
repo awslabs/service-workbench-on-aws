@@ -42,9 +42,12 @@ class UserService extends BaseUserService {
     await this.assertAuthorized(requestContext, { action: 'createBulk' });
 
     const errors = [];
+    const validationErrors = [];
+    const usersToCreate = [];
     let successCount = 0;
     let errorCount = 0;
-    const createUser = async curUser => {
+
+    const validateUser = async curUser => {
       try {
         const isAdmin = curUser.isAdmin === true;
         const authenticationProviderId =
@@ -65,7 +68,9 @@ class UserService extends BaseUserService {
           status: 'active',
           isExternalUser: userType === 'EXTERNAL',
         };
-        if (!_.isEmpty(userToCreate.email)) {
+
+        // Check if user already exists
+        if (!_.isEmpty(curUser.email)) {
           const user = await this.findUserByPrincipal({
             username: userToCreate.username,
             authenticationProviderId: userToCreate.authenticationProviderId,
@@ -73,13 +78,30 @@ class UserService extends BaseUserService {
           });
           if (user) {
             throw this.boom.alreadyExists('Cannot add user. The user already exists.', true);
-          } else {
-            await this.createUser(requestContext, userToCreate);
-            successCount += 1;
           }
         }
+
+        // Validate user data
+        await this.validateCreateUser(requestContext, userToCreate);
+
+        usersToCreate.push(userToCreate);
       } catch (e) {
-        const errorMsg = e.safe // if error is boom error then see if it is safe to propagate it's message
+        const errorMsg = e.safe // if error is boom error then see if it is safe to propagate its message
+          ? `Error creating user ${curUser.email}. ${e.message}`
+          : `Error creating user ${curUser.email}`;
+
+        this.log.error(errorMsg);
+        this.log.error(e);
+        validationErrors.push(errorMsg);
+      }
+    };
+
+    const createUser = async curUser => {
+      try {
+        await this.createUser(requestContext, curUser);
+        successCount += 1;
+      } catch (e) {
+        const errorMsg = e.safe // if error is boom error then see if it is safe to propagate its message
           ? `Error creating user ${curUser.email}. ${e.message}`
           : `Error creating user ${curUser.email}`;
 
@@ -90,15 +112,37 @@ class UserService extends BaseUserService {
         errorCount += 1;
       }
     };
-    // Create users in parallel in the specified batches
-    await processInBatches(users, batchSize, createUser);
-    if (!_.isEmpty(errors)) {
-      throw this.boom.internalError(`Errors creating users in bulk`, true).withPayload(errors);
+    // Check to make sure users to create don't already exist (if so, exit early with badRequest)
+    await processInBatches(users, batchSize, validateUser);
+    if (!_.isEmpty(validationErrors)) {
+      throw this.boom
+        .badRequest(`Error: Some entries have validation errors. No users were added.`, true)
+        .withPayload(validationErrors);
     }
 
-    // Write audit event
-    await this.audit(requestContext, { action: 'create-users-batch', body: { totalUsers: _.size(users) } });
-
+    // Create users in parallel in the specified batches
+    await processInBatches(usersToCreate, batchSize, createUser);
+    if (!_.isEmpty(errors)) {
+      // Write audit event before throwing error since some users were still added
+      await this.audit(requestContext, {
+        action: 'create-users-batch',
+        body: {
+          totalUsers: _.size(users),
+          completedSuccessfully: false,
+          numErrors: errorCount,
+          numSuccesses: successCount,
+        },
+      });
+      throw this.boom
+        .internalError(`Errors creating users in bulk. Check the payload for more details.`, true)
+        .withPayload(errors);
+    } else {
+      // Write audit event
+      await this.audit(requestContext, {
+        action: 'create-users-batch',
+        body: { totalUsers: _.size(users), completedSuccessfully: true },
+      });
+    }
     return { successCount, errorCount };
   }
 
