@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
 # Various development packages needed to compile R
-sudo yum install -y gcc gcc-gfortran gcc-c++
-sudo yum install -y java-1.8.0-openjdk-devel
-sudo yum install -y readline-devel zlib-devel bzip2-devel xz-devel pcre-devel
-sudo yum install -y libcurl-devel libpng-devel cairo-devel pango-devel
-sudo yum install -y xorg-x11-server-devel libX11-devel libXt-devel
+sudo yum install -y gcc-7.3.* gcc-gfortran-7.3.* gcc-c++-7.3.*
+sudo yum install -y java-1.8.0-openjdk-devel-1.8.0.*
+sudo yum install -y readline-devel-6.2 zlib-devel-1.2.* bzip2-devel-1.0.* xz-devel-5.2.* pcre-devel-8.32
+sudo yum install -y libcurl-devel-7.61.* libpng-devel-1.5.* cairo-devel-1.15.* pango-devel-1.42.*
+sudo yum install -y xorg-x11-server-devel-1.20.* libX11-devel-1.6.* libXt-devel-1.1.*
 
 # Install R from source (https://docs.rstudio.com/resources/install-r-source/)
 R_VERSION="3.6.3"
@@ -61,7 +61,7 @@ sudo crontab "/tmp/crontab"
 
 
 # Install system packages necessary for installing R packages through RStudio CRAN [devtools, tidyverse]
-sudo yum install -y git libcurl-devel openssl-devel libxml2-devel
+sudo yum install -y git-2.23.* openssl-devel-1.0.* libxml2-devel-2.9.*
 libgit2_rpm="libgit2-0.26.6-1.el7.x86_64.rpm"
 libgit2_devel_rpm="libgit2-devel-0.26.6-1.el7.x86_64.rpm"
 mkdir -p "/tmp/libgit2/"
@@ -73,16 +73,16 @@ sudo yum install -y "/tmp/libgit2/${libgit2_devel_rpm}"
 
 # Other recommended system packages for installing R packages (https://docs.rstudio.com/rsc/post-setup-tool/)
 sudo yum groupinstall -y 'Development Tools'            # Compiling tools 
-sudo yum install -y libssh2-devel                       # Client SSH
+sudo yum install -y libssh2-devel-1.4.*                       # Client SSH
 
-sudo yum install -y libpng-devel libjpeg-turbo-devel    # Images
-sudo yum install -y ImageMagick ImageMagick-c++-devel   # Images
-sudo yum install -y cairo-devel libGLU-devel            # Graphs
-sudo yum install freetype-devel harfbuzz-devel          # Font
+sudo yum install -y libjpeg-turbo-devel-1.2.*    # Images
+sudo yum install -y ImageMagick-6.9.* ImageMagick-c++-devel-6.9.*   # Images
+sudo yum install -y mesa-libGLU-devel-9.0.*            # Graphs
+sudo yum install freetype-devel-2.8 harfbuzz-devel-1.7.*          # Font
 
-sudo yum install -y mariadb-devel                       # MariaDB/MySQL client & server packages
-sudo yum install -y unixODBC-devel                      # ODBC API client
-sudo yum install -y gmp-devel                           # GNU MP arbitrary precision library
+sudo yum install -y mariadb-devel-5.5.*                       # MariaDB/MySQL client & server packages
+sudo yum install -y unixODBC-devel-2.3.*                      # ODBC API client
+sudo yum install -y gmp-devel-6.0.*                           # GNU MP arbitrary precision library
 
 # Wipe out all traces of provisioning files
 sudo rm -rf "/tmp/rstudio"

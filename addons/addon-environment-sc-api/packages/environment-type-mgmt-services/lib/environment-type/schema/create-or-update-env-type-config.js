@@ -33,13 +33,11 @@ const schema = {
     desc: {
       type: 'string',
       maxLength: 8191,
-      pattern: '^([^<>{}]*)$',
     },
     // A string explaining estimated cost
     estimatedCostInfo: {
       type: 'string',
       maxLength: 1024,
-      pattern: '^([^<>{}]*)$',
     },
     allowRoleIds: {
       type: 'array',
