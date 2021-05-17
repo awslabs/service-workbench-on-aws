@@ -209,7 +209,6 @@ Resources:
           - Action:
               - iam:GetRole
               - iam:GetRolePolicy
-              - iam:PassRole
               - iam:CreateRole
               - iam:PutRolePolicy
               - iam:AttachRolePolicy
@@ -221,10 +220,8 @@ Resources:
             Effect: Allow
             Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*'
           - Action:
-              - iam:CreateRole
-              - iam:PutRolePolicy
-              - iam:AttachRolePolicy
-            Effect: Deny
+              - iam:PassRole
+            Effect: Allow
             Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-cicd-pipeline-AppDeployerRole-*'
           - Action:
               - iam:CreatePolicy
@@ -346,8 +343,15 @@ Resources:
           - Action:
               - iam:PutRolePermissionsBoundary
               - iam:DeleteRolePermissionsBoundary
+              - iam:CreateRole
+              - iam:PutRolePolicy
+              - iam:AttachRolePolicy
+              - iam:DeleteRolePolicy
+              - iam:DetachRolePolicy
             Effect: Deny
-            Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-cicd-pipeline-AppDeployerRole-*'
+            Resource:
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-cicd-pipeline-AppDeployerRole-*'
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.namespace}-cicd-pipeline-PolicyAppDeployer-*'
 
   AppDeployerRole:
     Type: AWS::IAM::Role
