@@ -1,0 +1,58 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "^[A-Za-z0-9-_ ]+$"
+    },
+    "name": {
+      "type": "string",
+      "maxLength": 300,
+      "pattern": "^([^<>{}]*)$"
+    },
+    "category": {
+      "type": "string",
+      "enum": ["My Studies", "Organization"]
+    },
+    "description": {
+      "type": "string",
+      "maxLength": 2048,
+      "pattern": "^([^<>{}]*)$"
+    },
+    "projectId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "^[A-Za-z0-9-_]+$"
+    },
+    "folder": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 1000,
+      "pattern": "^([^<>{}*?]+)$"
+    },
+    "kmsArn": {
+      "type": "string",
+      "maxLength": 90,
+      "pattern": "arn:aws[a-zA-Z-]*:kms:[a-z]{2}((-gov)|(-iso(b?)))?-[a-z]+-[0-9]{1}:[0-9]{12}:key[/]{1}[a-zA-Z0-9-]+"
+    },
+    "kmsScope": {
+      "enum": ["bucket", "study", "none"]
+    },
+    "adminUsers": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "accessType": {
+      "type": "string",
+      "enum": ["readonly", "readwrite"]
+    }
+  },
+  "required": ["id", "category", "folder", "accessType", "adminUsers"]
+}

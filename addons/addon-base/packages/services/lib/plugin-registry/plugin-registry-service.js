@@ -92,6 +92,7 @@ class PluginRegistryService extends Service {
     ...args
   ) {
     const plugins = await this.getPluginsWithMethod(extensionPoint, methodName);
+    const errors = [];
 
     let payloadSoFar = payload;
     // eslint-disable-next-line no-restricted-syntax
@@ -103,9 +104,18 @@ class PluginRegistryService extends Service {
       } catch (err) {
         if (!continueOnError) {
           throw err;
+        } else {
+          errors.push(err);
         }
       }
     }
+
+    // if options.continueOnError is true and we have errors, then check if the payloadSoFar is not undefined
+    // and if not, include a property named 'pluginErrors'
+    if (!_.isUndefined(payloadSoFar) && continueOnError) {
+      payloadSoFar.pluginErrors = errors;
+    }
+
     return payloadSoFar;
   }
 }

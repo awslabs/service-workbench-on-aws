@@ -215,15 +215,106 @@ describe('EnvTypeService', () => {
       }
     });
 
+    it('should pass desc is free-form', async () => {
+      // BUILD
+      const newConfig = {
+        id: 'iFindYourLackOfFaith',
+        name: 'disturbing',
+        desc: '<stuff>',
+        estimatedCostInfo: 'costs alot',
+        allowRoleIds: ['1234'],
+        denyRoleIds: ['1234'],
+        params: [
+          {
+            key: 'someProperty',
+            value: 'someValue',
+          },
+        ],
+      };
+
+      const envType = {
+        id: newConfig.id,
+        name: 'anakin',
+        params: [
+          {
+            ParameterKey: 'someProperty',
+            ParameterType: 'String',
+          },
+        ],
+      };
+      envTypeService.mustFind.mockImplementationOnce(() => envType);
+      service.audit = jest.fn();
+
+      // OPERATE
+      await service.create({}, envType.id, newConfig);
+
+      // CHECK
+      expect(s3Service.api.putObject).toHaveBeenCalled();
+      expect(service.audit).toHaveBeenCalledWith(
+        {},
+        expect.objectContaining({ action: 'create-environment-type-config' }),
+      );
+    });
+    it('should pass estimatedCostInfo is free-form', async () => {
+      // BUILD
+      const newConfig = {
+        id: 'iFindYourLackOfFaith',
+        name: 'disturbing',
+        desc: 'stuff',
+        estimatedCostInfo: '<costs alot>',
+        allowRoleIds: ['1234'],
+        denyRoleIds: ['1234'],
+        params: [
+          {
+            key: 'someProperty',
+            value: 'someValue',
+          },
+        ],
+      };
+
+      const envType = {
+        id: newConfig.id,
+        name: 'anakin',
+        params: [
+          {
+            ParameterKey: 'someProperty',
+            ParameterType: 'String',
+          },
+        ],
+      };
+      envTypeService.mustFind.mockImplementationOnce(() => envType);
+      service.audit = jest.fn();
+
+      // OPERATE
+      await service.create({}, envType.id, newConfig);
+
+      // CHECK
+      expect(s3Service.api.putObject).toHaveBeenCalled();
+      expect(service.audit).toHaveBeenCalledWith(
+        {},
+        expect.objectContaining({ action: 'create-environment-type-config' }),
+      );
+    });
+
     it('should succeed to create a config for the envType', async () => {
       // BUILD
       const newConfig = {
         id: 'iFindYourLackOfFaith',
         name: 'disturbing',
+        desc: 'stuff',
+        estimatedCostInfo: 'costs alot',
+        allowRoleIds: ['1234'],
+        denyRoleIds: ['1234'],
         params: [
           {
-            key: 'someProperty',
-            value: 'someValue',
+            key: 'vpcId',
+            value: '${vpcId}',
+          },
+        ],
+        tags: [
+          {
+            key: 'customTag',
+            value: '${indexId}',
           },
         ],
       };
@@ -232,7 +323,7 @@ describe('EnvTypeService', () => {
         name: 'anakin',
         params: [
           {
-            ParameterKey: 'someProperty',
+            ParameterKey: 'vpcId',
             ParameterType: 'String',
           },
         ],

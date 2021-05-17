@@ -25,6 +25,10 @@ const consoleLogger = {
     // eslint-disable-next-line no-console
     console.log(...args);
   },
+  error(...args) {
+    // eslint-disable-next-line no-console
+    console.error(...args);
+  },
 };
 
 const _ = require('lodash');
@@ -38,7 +42,7 @@ if (typeof fetch !== 'function' && fetch.default && typeof fetch.default === 'fu
   fetch = fetch.default;
 }
 
-module.exports = function newHandler({ studyService, log = consoleLogger } = {}) {
+const newHandler = async ({ studyService, log = consoleLogger } = {}) => {
   const scrape = {
     githubApiUrl: 'https://api.github.com',
     rawGithubUrl: 'https://raw.githubusercontent.com',
@@ -170,16 +174,6 @@ module.exports = function newHandler({ studyService, log = consoleLogger } = {})
     return normalizeKeys({ ...doc, id, sha });
   }
 
-  async function fetchOpenData({ fileUrls, requiredTags }) {
-    log.info(`Fetching ${fileUrls.length} metadata files`);
-    const metadata = await Promise.all(fileUrls.map(fetchFile));
-
-    log.info(`Filtering for ${requiredTags} tags`);
-    const filtered = metadata.filter(({ tags }) => requiredTags.some(filterTag => tags.includes(filterTag)));
-
-    return filtered;
-  }
-
   function basicProjection({ id, sha, name, description, resources }) {
     return {
       id,
@@ -191,30 +185,62 @@ module.exports = function newHandler({ studyService, log = consoleLogger } = {})
     };
   }
 
-  return async () => {
-    const fileUrls = await fetchDatasetFiles();
-    const opendata = await fetchOpenData({ fileUrls, requiredTags: scrape.filterTags });
+  return async () => fetchAndSaveOpenData(fetchDatasetFiles, scrape, log, fetchFile, basicProjection, studyService);
+};
 
-    const simplified = opendata.map(basicProjection);
+const fetchOpenData = async ({ fileUrls, requiredTags, log, fetchFile }) => {
+  log.info(`Fetching ${fileUrls.length} metadata files`);
+  const metadata = await Promise.all(fileUrls.map(fetchFile));
 
-    log.info('Updating studies');
-    // create or update existing record
-    const userContext = getSystemRequestContext();
-    await Promise.all(
-      simplified.map(async study => {
-        // studyService.find returns the entire db row for that study id
+  log.info(`Filtering for ${requiredTags} tags and resources with valid ARNs`);
+  const validS3Arn = new RegExp(/^arn:aws:s3:.*:.*:.+$/);
+  const filtered = metadata.filter(({ tags, resources }) => {
+    return (
+      requiredTags.some(filterTag => tags.includes(filterTag)) &&
+      resources.every(resource => {
+        return resource.type === 'S3 Bucket' && validS3Arn.test(resource.arn);
+      })
+    );
+  });
+
+  return filtered;
+};
+
+async function saveOpenData(log, simplified, studyService) {
+  log.info('Updating studies');
+  // create or update existing record
+  const userContext = getSystemRequestContext();
+  await Promise.all(
+    simplified.map(async study => {
+      try {
         const existingStudy = await studyService.find(userContext, study.id);
         if (!existingStudy) {
           await studyService.create(userContext, study);
         } else {
-          // remove additional properties before update call to match jsonSchemaValidation
-          const studyToUpdate = _.omit(existingStudy, ['updatedAt', 'updatedBy', 'createdAt', 'createdBy', 'category']);
-
-          await studyService.update(userContext, studyToUpdate);
+          await studyService.update(userContext, { rev: existingStudy.rev, ..._.omit(study, 'category') });
         }
-      }),
-    );
+        // Catch the err here so other open data update could continue
+      } catch (err) {
+        log.error(`Error updating study for id ${study.id} and name ${study.name}. See error and study data below: `);
+        log.error(err);
+        log.error(study);
+      }
+    }),
+  );
+  return simplified;
+}
 
-    return simplified;
-  };
+const fetchAndSaveOpenData = async (fetchDatasetFiles, scrape, log, fetchFile, basicProjection, studyService) => {
+  const fileUrls = await fetchDatasetFiles();
+  const openData = await fetchOpenData({ fileUrls, requiredTags: scrape.filterTags, log, fetchFile });
+
+  const simplifiedStudyData = openData.map(basicProjection);
+
+  return saveOpenData(log, simplifiedStudyData, studyService);
+};
+
+module.exports = {
+  fetchOpenData,
+  newHandler,
+  saveOpenData,
 };

@@ -49,6 +49,8 @@ const terminateProductYaml = require('../steps/terminate-product/terminate-produ
 
 const CheckLaunchDependency = require('../steps/check-launch-dependency/check-launch-dependency');
 const CheckLaunchDependencyYaml = require('../steps/check-launch-dependency/check-launch-dependency.yml');
+const preProvisioning = require('../steps/pre-environment-provisioning/pre-environment-provisioning.js');
+const preProvisioningYaml = require('../steps/pre-environment-provisioning/pre-environment-provisioning.yml');
 
 const add = (implClass, yaml) => ({ implClass, yaml });
 
@@ -66,6 +68,7 @@ const steps = [
   add(stopSageMaker, stopSageMakerYaml),
   add(terminateProduct, terminateProductYaml),
   add(CheckLaunchDependency, CheckLaunchDependencyYaml),
+  add(preProvisioning, preProvisioningYaml),
 ];
 
 async function registerWorkflowSteps(registry) {

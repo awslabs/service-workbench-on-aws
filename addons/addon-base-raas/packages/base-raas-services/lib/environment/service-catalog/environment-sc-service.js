@@ -18,12 +18,14 @@ const YAML = require('js-yaml');
 const { v4: uuid } = require('uuid');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
+const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
 const { isAdmin, isCurrentUser } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 
 const createSchema = require('../../schema/create-environment-sc');
 const updateSchema = require('../../schema/update-environment-sc');
 const environmentScStatus = require('./environent-sc-status-enum');
 const { hasConnections, cfnOutputsArrayToObject } = require('./helpers/connections-util');
+const { hasAccess, accessLevels } = require('../../study/helpers/entities/study-methods');
 
 const settingKeys = {
   tableName: 'dbEnvironmentsSc',
@@ -47,6 +49,7 @@ class EnvironmentScService extends Service {
     super();
     this.dependency([
       'aws',
+      'iamService',
       'jsonSchemaValidationService',
       'dbService',
       'authorizationService',
@@ -57,6 +60,7 @@ class EnvironmentScService extends Service {
       'projectService',
       'awsAccountsService',
       'indexesService',
+      'studyService',
     ]);
   }
 
@@ -234,11 +238,10 @@ class EnvironmentScService extends Service {
   async pollSageMakerRealtimeStatus(roleArn, externalId) {
     const aws = await this.service('aws');
     const sagemakerClient = await aws.getClientSdkForRole({ roleArn, externalId, clientName: 'SageMaker' });
-    const params = {};
+    const params = { MaxResults: 100 };
     const sagemakerRealtimeStatus = {};
-    let data;
     do {
-      data = await sagemakerClient.listNotebookInstances().promise(); // eslint-disable-line no-await-in-loop
+      const data = await sagemakerClient.listNotebookInstances(params).promise(); // eslint-disable-line no-await-in-loop
       params.NextToken = data.NextToken;
       data.NotebookInstances.forEach(instance => {
         sagemakerRealtimeStatus[instance.NotebookInstanceName] = instance.NotebookInstanceStatus;
@@ -282,6 +285,20 @@ class EnvironmentScService extends Service {
     return envs;
   }
 
+  /**
+   * Returns the member account entity in which given an environment is running.
+   *
+   * @param environmentScEntity The environmentScEntity object with the 'indexId' property populated
+   */
+  async getMemberAccount(requestContext, environmentScEntity) {
+    const [indexesService, awsAccountsService] = await this.service(['indexesService', 'awsAccountsService']);
+    const { indexId } = environmentScEntity;
+    const { awsAccountId } = await indexesService.mustFind(requestContext, { id: indexId });
+    const accountEntity = awsAccountsService.mustFind(requestContext, { id: awsAccountId });
+
+    return accountEntity;
+  }
+
   async getActiveEnvsForUser(userUid) {
     const filterStatus = ['TERMINATING', 'TERMINATED'];
     const envs = await this._query()
@@ -293,7 +310,7 @@ class EnvironmentScService extends Service {
     return _.filter(envs, env => !_.includes(filterStatus, env.status) && !env.status.includes('FAILED'));
   }
 
-  async find(requestContext, { id, fields = [] }) {
+  async find(requestContext, { id, fields = [], fetchCidr = true }) {
     // Make sure 'createdBy' is always returned as that's required for authorizing the 'get' action
     // If empty "fields" is specified then it means the caller is asking for all fields. No need to append 'createdBy'
     // in that case.
@@ -321,7 +338,8 @@ class EnvironmentScService extends Service {
           environmentScStatus.STARTING,
         ],
         env.status,
-      )
+      ) &&
+      fetchCidr
     ) {
       const { currentIngressRules } = await this.getSecurityGroupDetails(requestContext, env);
       env.cidr = currentIngressRules;
@@ -330,8 +348,8 @@ class EnvironmentScService extends Service {
     return toReturn;
   }
 
-  async mustFind(requestContext, { id, fields = [] }) {
-    const result = await this.find(requestContext, { id, fields });
+  async mustFind(requestContext, { id, fields = [], fetchCidr = true }) {
+    const result = await this.find(requestContext, { id, fields, fetchCidr });
     if (!result) throw this.boom.notFound(`environment with id "${id}" does not exist`, true);
     return result;
   }
@@ -429,7 +447,7 @@ class EnvironmentScService extends Service {
       'jsonSchemaValidationService',
       'storageGatewayService',
     ]);
-    await validationService.ensureValid(environment, updateSchema);
+    await validationService.ensureValid(_.omit(environment, ['studyRoles']), updateSchema);
 
     // Retrieve the existing environment, this is required for authorization below
     const existingEnvironment = await this.mustFind(requestContext, { id: environment.id });
@@ -446,7 +464,7 @@ class EnvironmentScService extends Service {
     const { id, rev } = environment;
 
     // Prepare the db object
-    const dbObject = _.omit(this._fromRawToDbObject(environment, { updatedBy: by }), ['rev']);
+    const dbObject = _.omit(this._fromRawToDbObject(environment, { updatedBy: by }), ['rev', 'studyRoles']);
 
     // Time to save the the db object
     const result = await runAndCatch(
@@ -485,6 +503,101 @@ class EnvironmentScService extends Service {
 
     // Write audit event
     await this.audit(requestContext, { action: 'update-environment-sc', body: environment });
+
+    return result;
+  }
+
+  /**
+   * Returns an array of StudyEntity that are associated with the environment. If a study is listed as part of the
+   * environment studyIds but the creator of the environment no longer has access to the study, then the study
+   * will not be part of the study entities returned by this method.
+   *
+   * IMPORTANT: each element in the array is the standard StudyEntity, however, there is one additional attributes
+   * added to each of the StudyEntity. This additional attribute is called 'envPermission', it is an object with the
+   * following shape: { read: true/false, write: true/false }
+   *
+   * @param requestContext The standard request context
+   * @param environmentScEntity The environmentScEntity
+   */
+  async getStudies(requestContext, environmentScEntity) {
+    const studyService = await this.service('studyService');
+
+    const studyIds = environmentScEntity.studyIds;
+    const createdBy = environmentScEntity.createdBy;
+
+    if (_.isEmpty(studyIds)) return [];
+
+    const acceptedStudies = [];
+    const systemContext = getSystemRequestContext();
+    const studies = await studyService.listByIds(
+      systemContext,
+      _.map(studyIds, id => ({ id })),
+    );
+
+    // Time to populate the envPermission: { write: read: }
+    const permissionLookup = async study => {
+      const entity = await studyService.getStudyPermissions(systemContext, study.id);
+      if (hasAccess(entity, createdBy)) {
+        const { read, write } = accessLevels(entity, createdBy);
+        study.envPermission = { read, write };
+        acceptedStudies.push(study);
+      }
+      // Note: if the createdBy does not have access to the study, we simply don't return include this study at all.
+      // We don't want to throw an exception here. This is because this method can be used during a workspace
+      // termination and it is possible that the workspace lost its access to the study while it was active.
+    };
+
+    await Promise.all(_.map(studies, permissionLookup));
+
+    return acceptedStudies;
+  }
+
+  /**
+   * Updates the study role map for the environment sc entity.
+   *
+   * @param requestContext The standard request context
+   * @param rawData The study role map. Keys are the study ids and values are the role arns
+   */
+  async updateStudyRoles(requestContext, id, rawData) {
+    // disable CIDR fetching to save latency. We don't need CIDR ranges here for updating study roles
+    const envEntity = await this.mustFind(requestContext, { id, fetchCidr: false });
+    await this.assertAuthorized(
+      requestContext,
+      { action: 'update-study-role-map', conditions: [this._allowAuthorized] },
+      envEntity,
+    );
+
+    // lets ensure that rawData only contains values that are strings
+    _.forEach(rawData, (value, key) => {
+      if (!_.isString(value) || _.isEmpty(value)) {
+        throw this.boom.badRequest(
+          `The study role map can only contain values of type string and can not be empty. Received incorrect value for the key '${key}'`,
+          true,
+        );
+      }
+    });
+
+    if (_.isUndefined(rawData)) throw this.boom.badRequest('No study role map is provided', true);
+    if (_.isEmpty(id)) throw this.boom.badRequest('No environment id was provided', true);
+
+    const by = _.get(requestContext, 'principalIdentifier.uid');
+
+    // Prepare the db object
+    const dbObject = { studyRoles: rawData, updatedBy: by };
+
+    // Time to save the the db object
+    const result = await runAndCatch(
+      async () => {
+        return this._updater()
+          .condition('attribute_exists(id)') // make sure the record being updated exists
+          .key({ id })
+          .item(dbObject)
+          .update();
+      },
+      async () => {
+        throw this.boom.notFound(`environment with id "${id}" does not exist`, true);
+      },
+    );
 
     return result;
   }
@@ -592,6 +705,115 @@ class EnvironmentScService extends Service {
     );
 
     return { cfnExecutionRoleArn, roleExternalId };
+  }
+
+  /**
+   * Returns an aws sdk instance configured with the correct role so that the sdk can be used to update
+   * the environment resources in the hosting account (a.k.a member account).
+   *
+   * @param requestContext The standard request context
+   * @param environmentScEntity The environmentScEntity
+   */
+  async getIamClient(requestContext, environmentScEntity) {
+    const aws = await this.service('aws');
+    const { cfnExecutionRoleArn, roleExternalId } = await this.getCfnExecutionRoleArn(
+      requestContext,
+      environmentScEntity,
+    );
+
+    const iamClient = await aws.getClientSdkForRole({
+      roleArn: cfnExecutionRoleArn,
+      externalId: roleExternalId,
+      clientName: 'IAM',
+    });
+
+    return iamClient;
+  }
+
+  /**
+   * Updates the role policy document in the environment instance profile role.  If the provided policy document is empty,
+   * then this method removes the policy doc from the role (if it existed).
+   *
+   * @param requestContext The standard request context
+   * @param environmentScEntity The environmentScEntity
+   * @param policyDoc The policy document
+   */
+  async updateRolePolicy(requestContext, environmentScEntity, policyDoc) {
+    const iamService = await this.service('iamService');
+    const { roleName, policyName, exists } = await this.getRolePolicy(requestContext, environmentScEntity);
+    const iamClient = await this.getIamClient(requestContext, environmentScEntity);
+
+    const empty = _.isEmpty(policyDoc);
+
+    if (exists && empty) {
+      // Remove the policy
+      await iamService.deleteRolePolicy(roleName, policyName, iamClient);
+    } else {
+      // Update/create the policy
+      await iamService.putRolePolicy(roleName, policyName, JSON.stringify(policyDoc), iamClient);
+    }
+  }
+
+  /**
+   * Returns information about the role policy document in the environment instance profile role. The returned object
+   * has this shape: { policyName, policyDoc, roleName, exists }
+   *
+   * @param requestContext The standard request context
+   * @param environmentScEntity The environmentScEntity
+   */
+  async getRolePolicy(requestContext, environmentScEntity) {
+    const workspaceRoleObject = _.find(environmentScEntity.outputs, { OutputKey: 'WorkspaceInstanceRoleArn' });
+    if (!workspaceRoleObject) {
+      throw new Error(
+        'Workspace IAM Role is not ready yet. It is possible that the environment is still in pending state',
+      );
+    }
+
+    // We need to figure out the policy name inside the workspace role. This policy was originally created in the
+    // service catalog product template. Because we named this policy differently in different releases, we need
+    // to account for that when we try to find the policy.
+    const workspaceRoleArn = workspaceRoleObject.OutputValue;
+    const roleName = workspaceRoleArn.split('role/')[1];
+    const policyNamePrefix = `analysis-${workspaceRoleArn.split('-')[1]}`;
+    const possibleInlinePolicyNames = [
+      `${policyNamePrefix}-s3-studydata-policy`,
+      `${policyNamePrefix}-s3-data-access-policy`,
+      `${policyNamePrefix}-s3-policy`,
+    ];
+
+    const iamClient = await this.getIamClient(requestContext, environmentScEntity);
+    const policy = await this.getPolicy(possibleInlinePolicyNames, roleName, iamClient);
+    const policyDoc = _.get(policy, 'PolicyDocumentObj', {});
+    const policyName = _.get(policy, 'PolicyName', possibleInlinePolicyNames[0]);
+
+    return { policyDoc, roleName, policyName, exists: !_.isUndefined(policy) };
+  }
+
+  /**
+   * @private
+   *
+   * This method looks for inline policy based on the given array of "possibleInlinePolicyNames".
+   * The method returns as soon as it finds an inline policy in the given role (identified by the "roleName")
+   * with a matching name from the "possibleInlinePolicyNames". If no inline policy is found with any of the names from
+   * the "possibleInlinePolicyNames", the method returns undefined.
+   *
+   * @param {Object} possibleInlinePolicyNames - Known policy names we have used in out-of-the-box SC product templates
+   * @param {Object} roleName - Name of the IAM role for the given workspace
+   * @param {Object} iamClient
+   * @returns {Object} - Returns policy object
+   */
+  async getPolicy(possibleInlinePolicyNames, roleName, iamClient) {
+    const iamService = await this.service('iamService');
+
+    // eslint-disable-next-line no-restricted-syntax
+    for (const possiblePolicyName of possibleInlinePolicyNames) {
+      // eslint-disable-next-line no-await-in-loop
+      const policy = await iamService.getRolePolicy(roleName, possiblePolicyName, iamClient);
+      if (policy && policy.PolicyDocumentObj) {
+        return policy;
+      }
+    }
+    return undefined;
   }
 
   // Do some properties renaming to prepare the object to be saved in the database

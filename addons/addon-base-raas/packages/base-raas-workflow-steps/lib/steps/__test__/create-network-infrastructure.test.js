@@ -17,6 +17,7 @@ const ServicesContainer = require('@aws-ee/base-services-container/lib/services-
 const WorkflowPayload = require('@aws-ee/workflow-engine/lib/workflow-payload');
 const AWSMock = require('aws-sdk-mock');
 const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
+const SettingsService = require('@aws-ee/base-services/lib/settings/env-settings-service');
 const CreateNetworkInfrastructure = require('../storage-gateway/create-network-infrastructure');
 
 describe('CreateNetworkInfra', () => {
@@ -35,6 +36,15 @@ describe('CreateNetworkInfra', () => {
 
   beforeAll(async () => {
     container = new ServicesContainer();
+    const settingsService = new SettingsService();
+    settingsService.get = jest.fn(key => {
+      if (key === 'customUserAgent') {
+        return 'AwsLabs/SO0144/X.Y.Z';
+      }
+      throw new Error('Unexpected key');
+    });
+
+    container.register('settings', settingsService);
     container.register('aws', new AwsService());
     await container.initServices();
   });

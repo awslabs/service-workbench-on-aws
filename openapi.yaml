@@ -1,0 +1,3522 @@
+---
+openapi: 3.0.0
+info:
+  title: service-workbench-on-aws
+  description: API collection of service-workbench-on-aws
+  contact:
+    email: aws-chamonix-dev@amazon.com
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  version: v1.4.3
+tags:
+  - name: admins
+    description: Secured Admin-only calls
+  - name: researchers
+    description: Operations available to regular researchers
+  - name: internal-guests
+    description: Operations available to guest users
+  - name: guests
+    description: Operations available to guest users
+  - name: public
+    description: Operations available to public
+  - name: BYOB
+    description: Operations for bring your own bucket configuration
+  - name: SC-EnvType
+    description: Operations for service catalog environment types
+  - name: SC-EnvTypeConfig
+    description: Operations for service catalog environment type configurations
+  - name: SC-EnvWorkspace
+    description: Operations for create and manage workspaces with service catalog environment types
+  - name: Studies
+    description: Operations for create and manage studies (Data folders)
+  - name: Budgets
+    description: Operations for create and manage budgets
+  - name: Accounts
+    description: Operations available for managing internal accounts
+  - name: AwsAccounts
+    description: Operations available for managing AWS accounts which back internal accounts
+  - name: Compute
+    description: Operations for compute platforms available for provisioning
+  - name: Index
+    description: Operations for managing Indexes
+  - name: IP
+    description: Operation for getting IP address
+  - name: Project
+    description: Operations for managing Projects
+  - name: CfnTemplate
+    description: Operation to fetch CloudFormation templates
+  - name: UserRoles
+    description: Operation to fetch all types of user roles
+  - name: User
+    description: Operations to manage users in Service Workbench
+  - name: Cost
+    description: Operation to view cost breakdown
+  - name: StepTemplates
+    description: Operations for viewing step templates. Step templates can be added to new Workflows
+  - name: authN
+    description: Operation for login, logout, authN provider
+  - name: Workflows
+    description: Operations for viewing, editing, and adding Workflows
+  - name: WorkflowTemplates
+    description: Operations for viewing, editing, and adding Workflow Templates
+  - name: KeyPairs
+    description: Operations for viewing, editing, and adding KeyPairs
+paths:
+  /api/authentication/provider/configs:
+    get:
+      tags:
+        - admin
+        - authN
+      summary: Get authentication provider configs detail
+      operationId: GetAuthNConfigsDetail
+      description: |
+        Get authentication provider configs detail
+      responses:
+        '200':
+          description: Array of authN provider configs detail
+  /api/authentication/provider/types:
+    get:
+      tags:
+        - admin
+        - authN
+      summary: Get authentication provider types
+      operationId: GetAuthNTypes
+      description: |
+        Get authentication provider types
+      responses:
+        '200':
+          description: Array of authN provider types
+  /api/authentication/public/provider/configs/:
+    get:
+      tags:
+        - public
+        - authN
+      summary: Get authentication provider configs
+      operationId: GetAuthNConfigs
+      description: |
+        Get authentication provider configs
+      responses:
+        '200':
+          description: Array of authN provider configs
+  /api/authentication/id-tokens/:
+    post:
+      tags:
+        - public
+        - authN
+      summary: Log in
+      operationId: LogIn
+      description: |
+        Log In
+      parameters:
+        - in: query
+          name: redirect_uri
+          schema:
+            type: string
+            description: 'uri to redirect to after success login'
+          required: true
+      requestBody:
+        description: Log in information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogInRequest'
+      responses:
+        '200':
+          description: Success log in message
+  /api/authentication/logout:
+    post:
+      tags:
+        - authN
+      summary: Log out
+      operationId: LogOut
+      description: |
+        Log out
+      responses:
+        '200':
+          description: Revoked message
+  /api/costs:
+    get:
+      tags:
+        - researchers
+        - admins
+      summary: Get cost breakdown
+      operationId: GetCosts
+      description: |
+        Get cost breakdown based on query parameters
+      parameters:
+        - in: query
+          name: env
+          schema:
+            type: string
+            description: 'EnvironmentId for fetching costs'
+        - in: query
+          name: scEnv
+          schema:
+            type: string
+            description: 'Service Catalog EnvironmentId for fetching costs'
+        - in: query
+          name: proj
+          schema:
+            type: string
+            description: 'Index to use for fetching costs'
+        - in: query
+          name: groupByUser
+          schema:
+            type: boolean
+            description: 'true if grouping costs by user'
+        - in: query
+          name: groupByEnv
+          schema:
+            type: boolean
+            description: 'true if grouping costs by environment'
+        - in: query
+          name: groupByService
+          schema:
+            type: boolean
+            description: 'true if grouping costs by service'
+        - in: query
+          name: numberOfDaysInPast
+          schema:
+            type: string
+            description: 'How far back to look for fetching costs'
+      responses:
+        '200':
+          description: Cost breakdown
+  /api/users:
+    get:
+      tags:
+        - admins
+        - researchers
+        - guests
+        - internal-guests
+        - User
+      summary: List all users
+      operationId: ListUsers
+      description: |
+        List all users
+      responses:
+        '200':
+          description: Array of registered users
+    post:
+      tags:
+        - admins
+        - User
+      summary: Create a new User
+      operationId: CreateUser
+      description: |
+        Create a new User
+      requestBody:
+        description: User information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUserRequest'
+      responses:
+        '200':
+          description: User added
+  /api/users/bulk:
+    post:
+      tags:
+        - admins
+        - User
+      summary: Create users in bulk
+      operationId: CreateUsers
+      description: |
+        Create a new User
+      requestBody:
+        description: Bulk User information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateUsersRequest'
+      responses:
+        '200':
+          description: Users added
+  /api/users/{userId}:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/UserId'
+    put:
+      tags:
+        - admins
+        - User
+      summary: Update user
+      operationId: UpdateUser
+      requestBody:
+        description: User information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      description: |
+        Update a user
+      responses:
+        '200':
+          description: User updated
+    delete:
+      tags:
+        - admins
+        - User
+      summary: Delete a User
+      operationId: DeleteUser
+      description: |
+        Delete a User
+      responses:
+        '200':
+          description: User deleted
+  /api/users/{userId}/password:
+    put:
+      tags:
+        - admins
+        - User
+      summary: Update user password
+      operationId: UpdateUserPassword
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/UserId'
+      requestBody:
+        description: password of the user
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserPasswordRequest'
+      description: |
+        Update a user
+      responses:
+        '200':
+          description: User password updated
+  /api/user:
+    get:
+      tags:
+        - admins
+        - researchers
+        - guests
+        - internal guests
+        - User
+      summary: Get user information of current user
+      operationId: getCurrentUser
+      description: |
+        Get current user information
+      responses:
+        '200':
+          description: user information
+    put:
+      tags:
+        - admins
+        - researchers
+        - guests
+        - internal guests
+        - User
+      summary: Update user information of current user
+      operationId: updateCurrentUser
+      description: |
+        Update current user information
+      responses:
+        '200':
+          description: updated user information
+      requestBody:
+        description: fields to update in user information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCurrentUserInfo'
+  /api/user-roles:
+    get:
+      tags:
+        - admins
+        - guests
+        - internal-guests
+        - researchers
+        - UserRoles
+      summary: Fetch all user roles present in Service Workbench
+      operationId: ListUserRoles
+      description: |
+        Fetch all user roles present in Service Workbench
+      responses:
+        '200':
+          description: Array of all the registered user roles
+  /api/template/{templateId}:
+    get:
+      tags:
+        - admins
+        - guests
+        - internal-guests
+        - researchers
+        - CfnTemplate
+      summary: Fetch S3 pre-signed URL which points to the requested CloudFormation template
+      operationId: GetCfnTemplateById
+      parameters:
+        - name: templateId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/TemplateId'
+      description: |
+        Fetch S3 pre-signed URL which points to the requested CloudFormation template
+      responses:
+        '200':
+          description: Pre-signed URL pointing to requested CloudFormation template
+  /api/ip:
+    get:
+      tags:
+        - admins
+        - guests
+        - internal-guests
+        - researchers
+        - IP
+      summary: Fetch IP address of the requester
+      operationId: GetIPAddress
+      description: |
+        Fetch IP address of the requester
+      responses:
+        '200':
+          description: IP address of the requester
+  /api/projects:
+    get:
+      tags:
+        - admins
+        - Project
+      summary: List all projects
+      operationId: ListProjects
+      description: |
+        List all projects
+      responses:
+        '200':
+          description: Array of registered projects
+    post:
+      tags:
+        - admins
+        - Project
+      summary: Create a new Project
+      operationId: CreateProject
+      description: |
+        Create new Project
+      requestBody:
+        description: Project information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProjectRequest'
+      responses:
+        '200':
+          description: Project added
+  /api/projects/{projectId}:
+    parameters:
+      - name: projectId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/ProjectId'
+    get:
+      tags:
+        - admins
+        - Project
+      summary: Get Project by projectId
+      operationId: GetProjectById
+      description: |
+        List Project by projectId
+      responses:
+        '200':
+          description: The requested project
+    put:
+      tags:
+        - admins
+        - Project
+      summary: Update a Project
+      operationId: UpdateProject
+      requestBody:
+        description: Project information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProjectRequest'
+      description: |
+        Update a Project
+      responses:
+        '200':
+          description: Project updated
+    delete:
+      tags:
+        - admins
+        - Project
+      summary: Delete a Project
+      operationId: DeleteProject
+      description: |
+        Delete a Project
+      responses:
+        '200':
+          description: Project deleted
+  /api/indexes:
+    get:
+      tags:
+        - admins
+        - Index
+      summary: List all indexes
+      operationId: ListIndex
+      description: |
+        List all indexes
+      responses:
+        '200':
+          description: Array of registered indexes
+    post:
+      tags:
+        - admins
+        - Index
+      summary: Create a new Index
+      operationId: CreateIndex
+      description: |
+        Create new Index
+      requestBody:
+        description: Index information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateIndexRequest'
+      responses:
+        '200':
+          description: Index added
+  /api/indexes/{indexId}:
+    parameters:
+      - name: indexId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/IndexId'
+    get:
+      tags:
+        - admins
+        - Index
+      summary: Get Index by indexId
+      operationId: GetIndexById
+      description: |
+        List Index by indexId
+      responses:
+        '200':
+          description: Array of registered indexes
+    put:
+      tags:
+        - admins
+        - Index
+      summary: Update an Index
+      operationId: UpdateIndex
+      requestBody:
+        description: Index information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateIndexRequest'
+      description: |
+        Update an Index
+      responses:
+        '200':
+          description: Index updated
+    delete:
+      tags:
+        - admins
+        - Index
+      summary: Delete an Index
+      operationId: DeleteIndex
+      description: |
+        Delete an Index
+      responses:
+        '200':
+          description: Index deleted
+  /api/aws-accounts:
+    get:
+      tags:
+        - admins
+        - AwsAccounts
+      summary: List all registered AWS accounts
+      operationId: ListAwsAccounts
+      description: |
+        List all registered AWS accounts
+      responses:
+        '200':
+          description: Array of registered AWS accounts
+    post:
+      tags:
+        - admins
+        - AwsAccounts
+      summary: Create a new AWS Account
+      operationId: CreateAwsAccount
+      description: |
+        Create the AWS Account. Note that this doesn't provision a new account, just adds an entry in backend
+      requestBody:
+        description: AWS Account information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateAwsAccountRequest'
+      responses:
+        '200':
+          description: AWS Account information added
+  /api/aws-accounts/{awsAccountUUID}:
+    get:
+      tags:
+        - admins
+        - AwsAccounts
+      summary: Get AWS account information
+      operationId: GetAwsAccount
+      parameters:
+        - name: awsAccountUUID
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/AwsAccountUUID'
+      description: |
+        Get AWS Account information
+      responses:
+        '200':
+          description: AWS Account information
+  /api/aws-accounts/provision:
+    post:
+      tags:
+        - admins
+        - AwsAccounts
+      summary: Provision a new AWS Account
+      operationId: ProvisionAwsAccounts
+      description: |
+        Provision a new AWS Account
+      requestBody:
+        description: AWS Account information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProvisionAccountRequest'
+      responses:
+        '200':
+          description: AWS Account provisioning started
+  /api/accounts:
+    get:
+      tags:
+        - admins
+        - Accounts
+      summary: List all registered accounts
+      operationId: ListAccounts
+      description: |
+        List all registered accounts
+      responses:
+        '200':
+          description: Array of registered accounts
+    post:
+      tags:
+        - admins
+        - Accounts
+      summary: Provision a new AWS Account
+      operationId: ProvisionAccount
+      description: |
+        Provision the requested AWS Account
+      requestBody:
+        description: AWS account info for provisioning
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProvisionAccountRequest'
+      responses:
+        '200':
+          description: AWS Account provisioning started
+  /api/accounts/{awsAccountId}:
+    parameters:
+      - name: awsAccountId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/AwsAccountId'
+    get:
+      tags:
+        - admins
+        - Accounts
+      summary: Get account information
+      operationId: GetAccount
+      description: |
+        Get account information
+      responses:
+        '200':
+          description: Account information
+    put:
+      tags:
+        - admins
+        - Accounts
+      summary: Update account information
+      operationId: UpdateAccount
+      description: |
+        Update the requested Account
+      requestBody:
+        description: Account information to update
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAccountRequest'
+      responses:
+        '200':
+          description: Account information updated
+    delete:
+      tags:
+        - admins
+        - Accounts
+      summary: Delete account
+      operationId: DeleteAccount
+      description: |
+        Delete account
+      responses:
+        '200':
+          description: Account deleted
+  /api/data-sources/accounts:
+    get:
+      tags:
+        - admins
+        - BYOB
+      summary: List DS Acccounts
+      operationId: ListDSAcccounts
+      description: |
+        List all external DataSource accounts
+      responses:
+        '200':
+          description: Array of data source accounts
+    post:
+      tags:
+        - admins
+        - BYOB
+      summary: Register DS account
+      description: Add a data source account
+      operationId: RegisterDSaccount
+      requestBody:
+        description: Data source AWS account to add
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDataSourceAccount'
+      responses:
+        "201":
+          description: item created
+  /api/data-sources/accounts/{awsAccountId}:
+    put:
+      tags:
+        - admins
+        - BYOB
+      summary: Update DS account
+      operationId: UpdateDSaccount
+      parameters:
+        - name: awsAccountId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/AwsAccountId'
+      responses:
+        '200':
+          description: 'Update existing data source account'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateDataSourceAccount'
+  /api/data-sources/accounts/{awsAccountId}/buckets:
+    post:
+      tags:
+        - admins
+        - BYOB
+      summary: Register DS bucket
+      operationId: RegisterDSbucket
+      parameters:
+        - name: awsAccountId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/AwsAccountId'
+      responses:
+        '201':
+          description: 'bucket registered'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterDataSourceBucket'
+  /api/data-sources/accounts/ops/reachability:
+    post:
+      tags:
+        - admins
+        - BYOB
+      summary: Attempt to reach
+      description: Attempt to test reachability/availability of registered accounts and their studies.
+      operationId: AttemptReach
+      responses:
+        '200':
+          description: reachability/availability of registered accounts and their studies requested
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DataSourceReachability'
+  /api/data-sources/accounts/{awsAccountId}/cfn:
+    post:
+      tags:
+        - admins
+        - BYOB
+      summary: Generate Account CFN template
+      operationId: GenerateAccountCFNtemplate
+      description: Creates a CloudFormation template which will create an IAM role in Data Source Account which allows Service Workbench to create roles which will have access to S3 Study paths and KMS keys
+      parameters:
+        - name: awsAccountId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/AwsAccountId'
+      responses:
+        '200':
+          description: cfn template for data source account onboard
+  /api/data-sources/accounts/{awsAccountId}/studies:
+    get:
+      tags:
+        - admins
+        - BYOB
+      summary: List studies for account
+      description: List all the studies under a data source account
+      operationId: ListStudiesForAccount
+      parameters:
+        - name: awsAccountId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/AwsAccountId'
+      responses:
+        '200':
+          description: array of studies under the data source account specified
+  /api/data-sources/accounts/{awsAccountId}/buckets/{bucketName}/studies:
+    post:
+      tags:
+        - admins
+        - BYOB
+      summary: Register Study
+      operationId: RegisterStudy
+      parameters:
+        - name: awsAccountId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/AwsAccountId'
+        - name: bucketName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: array of studies under the bucket specified
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterStudy'
+
+  /api/workspace-type-candidates:
+    get:
+      tags:
+        - SC-EnvType
+        - admins
+      summary: list workspace type candidates
+      operationId: listWSTypeCandidates
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum:
+              - '*'
+              - 'not-imported'
+        - name: version
+          in: query
+          schema:
+            type: string
+            enum:
+              - '*'
+              - 'latest'
+      responses:
+        '200':
+          description: Array of workspace type candidates that fits the query filters. Default return latest not imported workspace type candidates.
+  /api/workspace-types:
+    get:
+      tags:
+        - SC-EnvType
+        - admins
+      summary: list workspace types
+      operationId: listWSTypes
+      parameters:
+        - in: query
+          name: status
+          schema:
+            type: string
+            enum:
+              - '*'
+              - 'not-approved'
+              - 'approved'
+      responses:
+        '200':
+          description: Array of workspace types in the status queried. Default return approved.
+    post:
+      tags:
+        - SC-EnvType
+        - admins
+      summary: create (import) workspace type
+      operationId: createWSType
+      responses:
+        '200':
+          description: 'Return the workspace type imported.'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEnvType'
+  /api/workspace-types/{envTypeId}:
+    parameters:
+      - name: envTypeId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/EnvTypeId'
+    get:
+      tags:
+        - admins
+        - SC-EnvType
+      summary: get environment type
+      operationId: getEnvType
+      responses:
+        '200':
+          description: 'return the environment type requested'
+    delete:
+      tags:
+        - admins
+        - SC-EnvType
+      summary: delete (unimport) environment type
+      operationId: deleteEnvType
+      responses:
+        '200':
+          description: 'Return empty json object'
+    put:
+      tags:
+        - admins
+        - SC-EnvType
+      summary: update environment type
+      operationId: updateEnvType
+      responses:
+        '200':
+          description: 'Return the updated environment type'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEnvType'
+  /api/workspace-types/{envTypeId}/approve:
+    put:
+      tags:
+        - admins
+        - SC-EnvType
+      summary: approve imported environment type
+      operationId: approveEnvType
+      responses:
+        '200':
+          description: 'Return the approved workspace type'
+      parameters:
+        - name: envTypeId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/EnvTypeId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rev:
+                  type: integer
+                  description: revision number of the workspace type
+  /api/workspace-types/{envTypeId}/revoke:
+    put:
+      summary: revoke
+      operationId: revoke
+      tags:
+        - admins
+        - SC-EnvType
+      parameters:
+        - name: envTypeId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/EnvTypeId'
+      responses:
+        '200':
+          description: 'Return the revoked workspace type'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rev:
+                  type: integer
+                  description: revision number of the workspace type
+  /api/workspace-types/{envTypeId}/configurations/:
+    parameters:
+      - name: envTypeId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/EnvTypeId'
+    get:
+      summary: list environment configurations
+      operationId: listEnvConfigs
+      tags:
+        - admins
+        - SC-EnvTypeConfig
+      parameters:
+        - name: include
+          in: query
+          schema:
+            type: string
+            enum:
+              - all
+      responses:
+        '200':
+          description: 'Return array of environment type configurations. Default return allowed to use only.'
+    post:
+      summary: create environment type configuration
+      operationId: createEnvTypeConfig
+      tags:
+        - admins
+        - SC-EnvTypeConfig
+      responses:
+        '200':
+          description: 'Return the env type config created'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnvTypeConfig'
+  /api/workspace-types/{envTypeId}/configurations/{envTypeConfigId}:
+    parameters:
+      - name: envTypeId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/EnvTypeId'
+      - name: envTypeConfigId
+        in: path
+        required: true
+        schema:
+          type: string
+    get:
+      summary: get a environment type configuration
+      operationId: getEnvTypeConfig
+      tags:
+        - admins
+        - SC-EnvTypeConfig
+      responses:
+        '200':
+          description: 'Return the env type config requested'
+    put:
+      summary: update env type config
+      operationId: updateEnvTypeConfig
+      tags:
+        - admins
+        - SC-EnvTypeConfig
+      responses:
+        '200':
+          description: 'Return the updated env type config'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EnvTypeConfig'
+    delete:
+      tags:
+        - admins
+        - SC-EnvTypeConfig
+      summary: delete
+      operationId: delete
+      responses:
+        '200':
+          description: 'Return the config that was deleted'
+  /api/workspace-types/{envTypeId}/config-vars/:
+    get:
+      summary: list config vars for env type config
+      operationId: listConfigVars
+      parameters:
+        - name: envTypeId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/EnvTypeId'
+      tags:
+        - admins
+        - SC-EnvTypeConfig
+      responses:
+        '200':
+          description: 'Array of env type config variables'
+  /api/step-templates:
+    get:
+      tags:
+        - admins
+        - StepTemplates
+      summary: list step templates
+      operationId: listStepTemplates
+      responses:
+        '200':
+          description: 'Return list of step templates'
+  /api/step-templates/latest:
+    get:
+      tags:
+        - admins
+        - StepTemplates
+      summary: list latest step templates
+      operationId: listLatestStepTemplates
+      responses:
+        '200':
+          description: 'Return list of the latest version of each step template'
+  /api/step-templates/{stepTemplateId}:
+    get:
+      tags:
+        - admins
+        - StepTemplates
+      summary: get step template
+      operationId: getStepTemplate
+      parameters:
+        - name: stepTemplateId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/StepTemplateId'
+      responses:
+        '200':
+          description: 'Return list of all versions of the requested step template'
+  /api/step-templates/{stepTemplateId}/latest:
+    get:
+      tags:
+        - admins
+        - StepTemplates
+      summary: get latest step template
+      operationId: getStepTemplateLatest
+      parameters:
+        - name: stepTemplateId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/StepTemplateId'
+      responses:
+        '200':
+          description: 'Return the latest step template requested'
+  /api/step-templates/{stepTemplateId}/v/{versionId}:
+    get:
+      tags:
+        - admins
+        - StepTemplates
+      summary: get step template by id and version
+      operationId: getStepTemplateByVersion
+      parameters:
+        - name: stepTemplateId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/StepTemplateId'
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/VersionId'
+      responses:
+        '200':
+          description: 'Return requested step template'
+  /api/step-templates/{stepTemplateId}/v/{versionId}/validate:
+    post:
+      tags:
+        - admins
+        - StepTemplates
+      summary: validate step template
+      operationId: validateStepTemplate
+      parameters:
+        - name: stepTemplateId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/StepTemplateId'
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/VersionId'
+      requestBody:
+        required: false
+        description: 'Validation rules to check for'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValidateConfig'
+      responses:
+        '200':
+          description: 'Return any validation errors for the requested step template and version'
+        '404':
+          description: 'Requested step template was not found'
+  /api/workflows/{workflowId}/v/{versionId}/trigger:
+    post:
+      tags:
+        - admins
+        - Workflows
+      summary: trigger a workflow to start
+      operationId: triggerWorkflow
+      parameters:
+        - name: workflowId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowId'
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/VersionId'
+      requestBody:
+        required: true
+        description: 'Metadata and input of workflow.'
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkflowTriggerRequest'
+      responses:
+        '200':
+          description: 'Return executionArn and status of StepFunction'
+  /api/workflows/{workflowId}/v/{versionId}/instances:
+    get:
+      tags:
+        - admins
+        - Workflows
+      summary: get instances of the requested workflow
+      operationId: getWorkflowInstances
+      parameters:
+        - name: workflowId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowId'
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/VersionId'
+      responses:
+        '200':
+          description: 'Return array of instances of the requested workflow'
+  /api/workflows/{workflowId}/v/{versionId}/instances/{workflowInstanceId}:
+    get:
+      tags:
+        - admins
+        - Workflows
+      summary: get requested instance of the workflow
+      operationId: getWorkflowInstance
+      parameters:
+        - name: workflowId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowId'
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/VersionId'
+        - name: workflowInstanceId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowInstanceId'
+      responses:
+        '200':
+          description: 'Return requested instance of the workflow'
+  /api/workflows/instances/{status}:
+    post:
+      tags:
+        - admins
+        - Workflows
+      summary: List workflow instances, filtered by status and created time
+      operationId: workflowInstanceStatuses
+      parameters:
+        - name: status
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowInstanceStatus'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InstanceStatusTimePeriod'
+      responses:
+        '200':
+          description: 'Return array of workflow instances filtered by status and created time'
+  /api/workflows/{workflowId}/assignments:
+    get:
+      tags:
+        - admins
+        - Workflows
+      summary: List the requested workflow's assignments
+      operationId: workflowAssignments
+      parameters:
+        - name: workflowId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowId'
+      responses:
+        '200':
+          description: 'Return array of assignments for the requested workflow'
+  /api/workflows/drafts:
+    get:
+      tags:
+        - admins
+        - Workflows
+      summary: List all workflow drafts
+      operationId: getWorkflowDrafts
+      responses:
+        '200':
+          description: 'Return array of workflow drafts'
+    post:
+      tags:
+        - admins
+        - Workflows
+      summary: Create a draft workflow
+      operationId: createDraftWorkflow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDraftWorkflow'
+      responses:
+        '200':
+          description: 'Return created draft workflow'
+  /api/workflows/drafts/{workflowId}:
+    put:
+      tags:
+        - admins
+        - Workflows
+      summary: Edit draft workflow
+      operationId: editDraftWorkflow
+      parameters:
+        - name: workflowId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditDraftWorkflow'
+      responses:
+        '200':
+          description: 'Return edited draft workflow'
+    delete:
+      tags:
+        - admins
+        - Workflows
+      summary: Delete draft workflow
+      parameters:
+        - name: workflowId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowId'
+      responses:
+        '200':
+          description: 'Return empty object'
+  /api/workflows/drafts/publish:
+    post:
+      tags:
+        - admins
+        - Workflows
+      summary: Publish draft workflow
+      operationId: publishDraftWorkflow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublishDraftWorkflow'
+      responses:
+        '200':
+          description: 'Return published draft workflow'
+
+  /api/workflows:
+    get:
+      tags:
+        - admins
+        - Workflows
+      summary: List all workflows
+      operationId: getWorkflows
+      responses:
+        '200':
+          description: 'Return array of workflows'
+  /api/workflows/latest:
+    get:
+      tags:
+        - admins
+        - Workflows
+      summary: List the latest version of each workflow
+      operationId: getLatestWorkflows
+      responses:
+        '200':
+          description: 'Return array of latest version of each workflow'
+  /api/workflows/{workflowId}:
+    get:
+      tags:
+        - admins
+        - Workflows
+      summary: Get requested workflow
+      operationId: getWorkflowById
+      parameters:
+        - name: workflowId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowId'
+      responses:
+        '200':
+          description: 'Return requested workflow'
+  /api/workflows/{workflowId}/latest:
+    get:
+      tags:
+        - admins
+        - Workflows
+      summary: Get latest version of requested workflow
+      operationId: getLatestWorkflowById
+      parameters:
+        - name: workflowId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowId'
+      responses:
+        '200':
+          description: 'Return latest version of requested workflow'
+  /api/workflows/{workflowId}/v/{versionId}:
+    get:
+      tags:
+        - admins
+        - Workflows
+      summary: Get requested workflow by version ID
+      operationId: getWorkflowByVersionId
+      parameters:
+        - name: workflowId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowId'
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/VersionId'
+      responses:
+        '200':
+          description: 'Return requested workflow'
+  /api/workflows/{workflowId}/v:
+    post:
+      tags:
+        - admins
+        - Workflows
+      summary: Create a workflow with given workflowId
+      operationId: createWorkflow
+      parameters:
+        - name: workflowId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorkflow'
+      responses:
+        '200':
+          description: 'Return created workflow'
+  /api/workflow-templates/drafts:
+    get:
+      tags:
+        - admins
+        - WorkflowTemplates
+      summary: Get draft workflow templates
+      operationId: getDraftWorkflowTemplates
+      responses:
+        '200':
+          description: 'Return array of draft workflow templates'
+    post:
+      tags:
+        - admins
+        - WorkflowTemplates
+      summary: Created draft workflow template
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateDraftWorkflowTemplate'
+      operationId: createDraftWorkflowTemplate
+      responses:
+        '200':
+          description: 'Return created draft workflow template'
+  /api/workflow-templates/drafts/{workflowTemplateId}:
+    put:
+      tags:
+        - admins
+        - WorkflowTemplates
+      summary: Edit draft workflow template
+      parameters:
+        - name: workflowTemplateId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowTemplateId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublishDraftWorkflowTemplate'
+      operationId: editDraftWorkflowTemplate
+      responses:
+        '200':
+          description: 'Return edited draft workflow template'
+    delete:
+      tags:
+        - admins
+        - WorkflowTemplates
+      summary: Delete draft workflow template
+      parameters:
+        - name: workflowTemplateId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowTemplateId'
+      operationId: deleteDraftWorkflowTemplate
+      responses:
+        '200':
+          description: 'Return empty object'
+
+  /api/workflow-templates/drafts/publish:
+    post:
+      tags:
+        - admins
+        - WorkflowTemplates
+      summary: Publish draft workflow template
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublishDraftWorkflowTemplate'
+      operationId: publishDraftWorkflowTemplate
+      responses:
+        '200':
+          description: 'Return created workflow template'
+  /api/workflow-templates:
+    get:
+      tags:
+        - admins
+        - WorkflowTemplates
+      summary: Get workflow templates
+      operationId: getWorkflowTemplates
+      responses:
+        '200':
+          description: 'Return array of workflow templates'
+  /api/workflow-templates/latest:
+    get:
+      tags:
+        - admins
+        - WorkflowTemplates
+      summary: Get latest workflow templates
+      operationId: getLatestWorkflowTemplates
+      responses:
+        '200':
+          description: 'Return array of latest workflow templates'
+  /api/workflow-templates/{workflowTemplateId}:
+    get:
+      tags:
+        - admins
+        - WorkflowTemplates
+      summary: Get all versions of requested workflow template
+      parameters:
+        - name: workflowTemplateId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowTemplateId'
+      operationId: getWorkflowTemplate
+      responses:
+        '200':
+          description: 'Return array of all versions of requested workflow template'
+  /api/workflow-templates/{workflowTemplateId}/latest:
+    get:
+      tags:
+        - admins
+        - WorkflowTemplates
+      summary: Get latest version of requested workflow template
+      parameters:
+        - name: workflowTemplateId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowTemplateId'
+      operationId: getLatestWorkflowTemplateById
+      responses:
+        '200':
+          description: 'Return latest version of requested workflow template'
+  /api/workflow-templates/{workflowTemplateId}/v/{versionId}:
+    get:
+      tags:
+        - admins
+        - WorkflowTemplates
+      summary: Get requested workflow template by id and versionId
+      parameters:
+        - name: workflowTemplateId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowTemplateId'
+        - name: versionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/VersionId'
+      operationId: getWorkflowTemplateByIdAndVersion
+      responses:
+        '200':
+          description: 'Return requested workflow template'
+  /api/workflow-templates/{workflowTemplateId}/v:
+    post:
+      tags:
+        - admins
+        - WorkflowTemplates
+      summary: Created new workflow template
+      parameters:
+        - name: workflowTemplateId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkflowTemplateId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateWorkflowTemplate'
+      operationId: createWorkflowTemplate
+      responses:
+        '200':
+          description: 'Return created workflow template'
+  /api/key-pairs:
+    get:
+      tags:
+        - KeyPairs
+      summary: Get all key pairs
+      operationId: getKeyPairs
+      responses:
+        '200':
+          description: 'Return all key pairs user has access to, including public key but not private key'
+    post:
+      tags:
+        - KeyPairs
+      summary: Create a key pair
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateKeyPair'
+      operationId: createKeyPair
+      responses:
+        '200':
+          description: 'Return created key pair, including private key'
+  /api/key-pairs/{keyPairId}:
+    get:
+      tags:
+        - KeyPairs
+      summary: Get all key pairs
+      parameters:
+        - name: keyPairId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/KeyPairId'
+      operationId: getKeyPair
+      responses:
+        '200':
+          description: 'Return requested keypair including public key but not private key'
+    put:
+      tags:
+        - KeyPairs
+      summary: Edit key pair
+      parameters:
+        - name: keyPairId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/KeyPairId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EditKeyPair'
+      operationId: editKeyPair
+      responses:
+        '200':
+          description: 'Return requested keypair including public key but not private key'
+    delete:
+      tags:
+        - KeyPairs
+      summary: Delete keypair
+      parameters:
+        - name: keyPairId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/KeyPairId'
+      operationId: deleteKeyPair
+      responses:
+        '200':
+          description: 'Return empty object'
+  /api/key-pairs/{keyPairId}/deactivate:
+    put:
+      tags:
+        - KeyPairs
+      summary: Deactivate key pair
+      parameters:
+        - name: keyPairId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/KeyPairId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KeyPairRev'
+      operationId: deactivateKeyPair
+      responses:
+        '200':
+          description: 'Return deactivated keypair including public key but not private key'
+  /api/key-pairs/{keyPairId}/activate:
+    put:
+      tags:
+        - KeyPairs
+      summary: Activate key pair
+      parameters:
+        - name: keyPairId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/KeyPairId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KeyPairRev'
+      operationId: ActivateKeyPair
+      responses:
+        '200':
+          description: 'Return activated keypair including public key but not private key'
+
+  /api/workspaces/service-catalog:
+    post:
+      tags:
+        - researchers
+        - SC-EnvWorkspace
+      summary: create environment using a configured SC product
+      operationId: createSCEnv
+      responses:
+        '200':
+          description: 'Return the workspace created'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateSCWorkspace'
+    get:
+      tags:
+        - researchers
+        - SC-EnvWorkspace
+      summary: list SC Workspaces
+      operationId: listScWorkspaces
+      responses:
+        '200':
+          description: 'Return list of Service Catalog workspaces'
+  /api/workspaces/service-catalog/{workspaceId}:
+    get:
+      summary: get SC workspace
+      operationId: getSCWorkspace
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkspaceId'
+      responses:
+        '200':
+          description: 'Return the service catalog workspace requested'
+      tags:
+        - researchers
+        - SC-EnvWorkspace
+    delete:
+      summary: delete(terminate) SC workspace
+      operationId: deleteSCWorkspace
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkspaceId'
+      responses:
+        '200':
+          description: 'Return empty object'
+      tags:
+        - researchers
+        - SC-EnvWorkspace
+  /api/workspaces/service-catalog/{workspaceId}/stop:
+    put:
+      tags:
+        - researchers
+        - SC-EnvWorkspace
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkspaceId'
+      summary: Stop a SC workspace
+      operationId: stopScWs
+      responses:
+        '200':
+          description: 'Return the workspace stopped'
+  /api/workspaces/service-catalog/{workspaceId}/start:
+    put:
+      tags:
+        - researchers
+        - SC-EnvWorkspace
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkspaceId'
+      summary: start SC workspace
+      operationId: startScWs
+      responses:
+        '200':
+          description: 'Return the workspace started'
+  /api/workspaces/service-catalog/{workspaceId}/connections:
+    get:
+      tags:
+        - researchers
+        - SC-EnvWorkspace
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkspaceId'
+      summary: list connections of a SC workspace
+      operationId: listConnections
+      responses:
+        '200':
+          description: 'Array of connections of the workspace'
+  /api/workspaces/service-catalog/{workspaceId}/connections/{connectionId}/url:
+    post:
+      tags:
+        - researchers
+        - SC-EnvWorkspace
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkspaceId'
+        - name: connectionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/ConnectionId'
+      summary: Create connection URL
+      operationId: createConnectionURL
+      responses:
+        '200':
+          description: 'Return connection information with URL'
+  /api/workspaces/service-catalog/{workspaceId}/connections/{connectionId}/windows-rdp-info:
+    get:
+      tags:
+        - researchers
+        - SC-EnvWorkspace
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkspaceId'
+        - name: connectionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/ConnectionId'
+      summary: get Windows password data for rdp
+      operationId: getRdpInfo
+      responses:
+        '200':
+          description: 'Return windows rdp info'
+  /api/workspaces/service-catalog/{workspaceId}/connections/{connectionId}/send-ssh-public-key:
+    post:
+      tags:
+        - researchers
+        - SC-EnvWorkspace
+      parameters:
+        - name: workspaceId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/WorkspaceId'
+        - name: connectionId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/ConnectionId'
+      summary: Send SSH public key
+      operationId: sendPublicKey
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [keyPairId]
+              properties:
+                keyPairId:
+                  type: string
+                  description: uuid of the SSH key
+      responses:
+        '200':
+          description: 'Array of network interfaces'
+  /api/studies:
+    get:
+      tags:
+        - researchers
+        - Studies
+      summary: list studies
+      operationId: listStudies
+      parameters:
+        - in: query
+          name: category
+          required: true
+          schema:
+            $ref: '#/components/schemas/StudyCategory'
+      responses:
+        '200':
+          description: 'Return array of studies'
+    post:
+      tags:
+        - researchers
+        - Studies
+      summary: create study
+      operationId: createStudy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateStudy'
+      responses:
+        '200':
+          description: 'Return the study created'
+  /api/studies/{studyId}:
+    parameters:
+      - name: studyId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StudyId'
+    get:
+      tags:
+        - researchers
+        - Studies
+      summary: get study
+      operationId: getStudy
+      responses:
+        '200':
+          description: 'Return the study'
+    put:
+      tags:
+        - researchers
+        - Studies
+      summary: update study
+      operationId: updateStudy
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStudy'
+      responses:
+        '200':
+          description: ''
+  /api/studies/{studyId}/permissions:
+    parameters:
+      - name: studyId
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/StudyId'
+    get:
+      tags:
+        - researchers
+        - Studies
+      summary: get study permissions
+      operationId: getStudyPermissions
+      responses:
+        '200':
+          description: 'Return study permissions'
+    put:
+      tags:
+        - researchers
+        - Studies
+      summary: update study permissions
+      operationId: updateStudyPermissions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateStudyPermission'
+      responses:
+        '200':
+          description: 'Return updated study permissions'
+  /api/studies/{studyId}/files:
+    get:
+      tags:
+        - researchers
+        - Studies
+      summary: list study files
+      operationId: listStudyFiles
+      parameters:
+        - name: studyId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/StudyId'
+      responses:
+        '200':
+          description: 'Return study files'
+  /api/studies/{studyId}/upload-requests:
+    get:
+      tags:
+        - researchers
+        - Studies
+      summary: create presigned upload requests
+      operationId: createPresignedUploadRequests
+      parameters:
+        - name: studyId
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/StudyId'
+        - in: query
+          name: filenames
+          schema:
+            type: string
+            description: 'Comma separated filenames to upload'
+      responses:
+        '200':
+          description: 'Return presigned url for file upload'
+  /api/budgets/aws-account/{awsAccountUUID}:
+    parameters:
+      - name: awsAccountUUID
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/AwsAccountUUID'
+    get:
+      tags:
+        - admins
+        - Budgets
+      summary: get budget
+      operationId: getBudget
+      responses:
+        '200':
+          description: 'Return budget of the AWS account'
+  /api/budgets/aws-account:
+    post:
+      tags:
+        - admins
+        - Budgets
+      summary: create budget
+      operationId: createBudget
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBudget'
+      responses:
+        '200':
+          description: 'Return success create message'
+    put:
+      tags:
+        - admins
+        - Budgets
+      summary: update budget
+      operationId: updateBudget
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBudget'
+      responses:
+        '200':
+          description: 'Return success update message'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    RoleArn:
+      type: string
+      pattern: '^arn:aws:iam::.*$'
+      example: 'arn:aws:iam::000000000000:role/role-arn'
+    VpcId:
+      type: string
+      pattern: '^vpc-[a-f0-9]{8,17}$'
+      example: 'vpc-00000000000000000'
+    SubnetId:
+      type: string
+      pattern: '^subnet-[a-f0-9]{8,17}$'
+      example: 'subnet-00000000000000000'
+    EncryptionKeyArn:
+      type: string
+      pattern: '^arn:aws:kms:.*$'
+      example: 'arn:aws:kms:us-west-2:000000000000:key/1234a5b6-c7d8-11ea-b397-791ba40a5d32'
+    AwsAccountId:
+      type: string
+      example: '123456789101'
+      pattern: ^[0-9]{12}$
+    TemplateId:
+      type: string
+      example: 'sagemaker.cfn.yml'
+    ProjectId:
+      type: string
+      minLength: 1
+      maxLength: 100
+      pattern: "^[A-Za-z0-9-_]+$"
+      example: 'ServiceWorkbenchProject'
+    IndexId:
+      type: string
+      minLength: 1
+      maxLength: 100
+      pattern: "^[A-Za-z0-9-_]+$"
+      example: 'ServiceWorkbenchIndex'
+    AwsAccountUUID:
+      type: string
+      example: '1234a5b6-c7d8-11ea-b397-791ba40a5d32'
+      minLength: 1
+      maxLength: 100
+      pattern: '^[A-Za-z0-9-_ ]+$'
+    StepTemplateId:
+      type: string
+      minLength: 1
+      maxLength: 100
+      pattern: "^[A-Za-z0-9-_]+$"
+      example: 'create-network-interface'
+    VersionId:
+      type: number
+      example: 2
+    ValidateConfig:
+      type: object
+      example: { "fieldA": "A string value", "fieldB": 1}
+    WorkflowTriggerRequest:
+      type: object
+      properties:
+        meta:
+          type: object
+        input:
+          type: object
+    WorkflowId:
+      type: string
+      minLength: 1
+      maxLength: 100
+      pattern: "^[A-Za-z0-9-_]+$"
+      example: 'wf-create-environment'
+    KeyPairId:
+      type: string
+      minLength: 1
+      maxLength: 1024
+      pattern: "^[A-Za-z0-9-_]+$"
+      example: 'bdf175e3-2966-456b-bd6a-a6125fa33b8c'
+    KeyPairRev:
+      type: object
+      example: { "rev": 0}
+    WorkflowInstanceId:
+      type: string
+      minLength: 1
+      maxLength: 100
+      pattern: "^[A-Za-z0-9-_]+$"
+      example: '9FEAamTBlj464aqCDKql5'
+    InstanceStatusTimePeriod:
+      type: object
+      properties:
+        startTime:
+          type: string
+        endTime:
+          type: string
+      example: {startTime: '2020-10-05T14:48:00.000Z', endTime: '2020-11-05T14:48:00.000Z'}
+    WorkflowTemplateId:
+      type: string
+      minLength: 1
+      maxLength: 100
+      pattern: "^[A-Za-z0-9-_]+$"
+      example: 'wt-empty'
+    CreateWorkflow:
+      type: object
+      properties:
+        workflowTemplateId:
+          $ref: '#/components/schemas/WorkflowTemplateId'
+        selectedSteps:
+          $ref: '#/components/schemas/SelectedStep'
+        desc:
+          type: string
+        workflowTemplateVer:
+          type: number
+        v:
+          type: number
+        id:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: "^[A-Za-z0-9-_]+$"
+        title:
+          type: string
+      example: {
+        "workflowTemplateId": "wt-empty",
+        "selectedSteps": [ ],
+        "desc": "Start a Service Catalog SageMaker Jupyter Notebook.\n",
+        "workflowTemplateVer": 1,
+        "v": 1,
+        "title": "Start a Service Catalog SageMaker Notebook",
+        "id": "foo-5-workflow",
+      }
+    CreateDraftWorkflow:
+      type: object
+      properties:
+        selectedSteps:
+          $ref: '#/components/schemas/SelectedSteps'
+        desc:
+          type: string
+        workflowTemplateVer:
+          type: number
+        v:
+          type: number
+        title:
+          type: string
+        templateId:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: "^[A-Za-z0-9-_]+$"
+        workflowId:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: "^[A-Za-z0-9-_]+$"
+      example: {
+        "workflowId": "foo-1-draft-workflow",
+        "selectedSteps": [ ],
+        "desc": "Start a Service Catalog SageMaker Jupyter Notebook.\n",
+        "workflowTemplateVer": 1,
+        "v": 1,
+        "title": "Start a Service Catalog SageMaker Notebook",
+        "templateId": "wt-empty",
+      }
+    EditDraftWorkflow:
+      type: object
+      properties:
+        rev:
+          type: number
+        workflowId:
+          type: string
+        templateId:
+          type: string
+        id:
+          type: string
+        workflow:
+          type: object
+      example: {
+        "rev": 6,
+        "workflowId": "wf-foo-1-draft-workflow",
+        "templateId": "wt-empty",
+        "updatedBy": "u-uodoD9RlS9IAOfwpFyqwQ",
+        "id": "u-uodoD9RlS9IAOfwpFyqwQ_wf-foo-1-draft-workflow_0",
+        "workflow": {
+          "id": "wf-foo-1-draft-workflow",
+          "selectedSteps": [ ],
+          "desc": "An empty workflow so that you have full control of the workflow.\n",
+          "workflowTemplateVer": 1,
+          "v": 1,
+          "title": "Empty Workflow",
+          "workflowTemplateId": "wt-empty",
+          "updatedAt": "2021-01-28T22:04:16.341Z"
+        },
+      }
+    PublishDraftWorkflow:
+      type: object
+      properties:
+        rev:
+          type: number
+        workflow:
+          type: object
+        workflowId:
+          type: string
+        templateVer:
+          type: number
+        templateId:
+          type: string
+        workflowVer:
+          type: number
+        updatedBy:
+          type: string
+        id:
+          type: string
+        createdBy:
+          type: string
+      example: {
+        "rev": 0,
+        "workflow": {
+          "rev": 0,
+          "updatedBy": "u-uodoD9RlS9IAOfwpFyqwQ",
+          "selectedSteps": [ ],
+          "builtin": false,
+          "title": "Empty Workflow",
+          "createdAt": "2021-01-28T22:31:03.542Z",
+          "workflowTemplateId": "wt-empty",
+          "createdBy": "u-uodoD9RlS9IAOfwpFyqwQ",
+          "v": 1,
+          "id": "wf-foo-5-draft-workflow",
+          "workflowTemplateVer": 1,
+          "desc": "An empty workflow so that you have full control of the workflow.\n",
+          "updatedAt": "2021-01-28T22:31:03.542Z"
+        },
+        "workflowId": "wf-foo-5-draft-workflow",
+        "templateVer": 1,
+        "templateId": "wt-empty",
+        "workflowVer": 0,
+        "updatedBy": "u-uodoD9RlS9IAOfwpFyqwQ",
+        "id": "u-uodoD9RlS9IAOfwpFyqwQ_wf-foo-5-draft-workflow_0",
+        "createdBy": "u-uodoD9RlS9IAOfwpFyqwQ"
+      }
+    CreateWorkflowTemplate:
+      type: object
+      properties:
+        desc:
+          type: string
+        id:
+          type: string
+        v:
+          type: number
+        selectedSteps:
+          $ref: '#/components/schemas/SelectedSteps'
+        title:
+          type: string
+        propsOverrideOption:
+          type: object
+      example: {
+        "desc": "Start a Service Catalog SageMaker Jupyter Notebook.\n",
+        "id": "foo-1-workflow",
+        "v": 1,
+        "selectedSteps": [ ],
+        "title": "Start a Service Catalog SageMaker Notebook",
+        "propsOverrideOption": { }
+      }
+    CreateDraftWorkflowTemplate:
+      type: object
+      properties:
+        desc:
+          type: string
+        templateId:
+          type: string
+        title:
+          type: string
+      example: {
+        "desc": "An empty workflow so that you have full control of the workflow.\n",
+        "templateId": "wt-draft-foo5",
+        "title": "Empty Workflow"
+      }
+    PublishDraftWorkflowTemplate:
+      type: object
+      properties:
+        id:
+          type: string
+        template:
+          type: object
+        templateId:
+          type: string
+      example: {
+        "id": "u-uodoD9RlS9IAOfwpFyqwQ_wt-draft-foo-7_0",
+        "template": {
+          "id": "wt-draft-foo-7",
+          "propsOverrideOption": { },
+          "selectedSteps": [ ],
+          "title": "Untitled",
+          "v": 1
+        },
+        "templateId": "wt-draft-foo7"
+      }
+    SelectedStep:
+      type: object
+      properties:
+        stepTemplateId:
+          type: string
+        configs:
+          type: object
+        stepTemplateVer:
+          type: number
+        skippable:
+          type: boolean
+        id:
+          type: string
+        title:
+          type: string
+        desc:
+          type: string
+      example: {
+        "stepTemplateId": "st-start-sagemaker-environment-sc",
+        "configs": { },
+        "stepTemplateVer": 1,
+        "skippable": true,
+        "id": "wf-step_1_1517380435823_28",
+        "title": "Start SageMaker Environment",
+        "desc": "Start a SageMaker Jupyter Notebook.\n"
+      }
+    SelectedSteps:
+      type: array
+      items:
+        $ref: '#/components/schemas/SelectedStep'
+      example: [
+        {
+          "stepTemplateId": "st-start-sagemaker-environment-sc",
+          "configs": { },
+          "stepTemplateVer": 1,
+          "skippable": true,
+          "id": "wf-step_1_1517380435823_28",
+          "title": "Start SageMaker Environment",
+          "desc": "Start a SageMaker Jupyter Notebook.\n"
+        }
+      ]
+    CreateKeyPair:
+      type: object
+      properties:
+        name:
+          type: string
+        desc:
+          type: string
+      example: {"name": "foo2-key", "desc": "Example key being created"}
+    EditKeyPair:
+      type: object
+      properties:
+        rev:
+          type: number
+        name:
+          type: string
+        desc:
+          type: string
+      example: { "rev": 0, "name": "foo2-key", "desc": "Example key being created" }
+    WorkflowInstanceStatus:
+      type: string
+      enum:
+        - not_started
+        - in_progress
+        - done
+      example: 'done'
+    WorkspaceId:
+      type: string
+      example: '1234a5b6-c7d8-11ea-b397-791ba40a5d32'
+      minLength: 1
+      maxLength: 100
+      pattern: '^[A-Za-z0-9-_ ]+$'
+    StudyId:
+      type: string
+      example: 'test_study_id'
+      minLength: 1
+      maxLength: 100
+      pattern: '^[A-Za-z0-9-_ ]+$'
+    StudyCategory:
+      type: string
+      enum:
+        - My Studies
+        - Organization
+        - Open Data
+      example: 'Organization'
+    UserId:
+      type: string
+      example: 'u-C-l14OuIfNk7vL7AqmjvC'
+      description: id used to uniquely identify a user
+    ConnectionId:
+      type: string
+      example: 'id-0'
+    AwsPartition:
+      type: string
+      enum:
+        - aws
+        - aws-cn
+        - aws-us-gov
+      example: 'aws'
+    AwsRegion:
+      type: string
+      example: 'us-east-1'
+      enum:
+        - us-west-1
+        - us-west-2
+        - us-east-1
+        - us-east-2
+        - af-south-1
+        - ap-east-1
+        - ap-south-1
+        - ap-northeast-1
+        - ap-northeast-2
+        - ap-northeast-3
+        - ap-southeast-1
+        - ap-southeast-2
+        - ca-central-1
+        - cn-north-1
+        - cn-northwest-1
+        - eu-central-1
+        - eu-north-1
+        - eu-south-1
+        - eu-west-1
+        - eu-west-2
+        - eu-west-3
+        - me-south-1
+        - sa-east-1
+        - us-gov-east-1
+        - us-gov-west-1
+    CreateUsersRequest:
+      type: array
+      items:
+        $ref: '#/components/schemas/CreateUserRequest'
+    LogInRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 300
+          pattern: '^[A-Za-z0-9-_.]+$|^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$'
+          example: 'testuser'
+        password:
+          type: string
+          example: 'randompassword'
+        authenticationProviderId:
+          type: string
+          example: 'internal'
+    CreateUserRequest:
+      required:
+        - username
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 3
+          maxLength: 300
+          pattern: '^[A-Za-z0-9-_.]+$|^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$'
+          example: 'testuser'
+        usernameInIdp:
+          type: string
+          minLength: 3
+          maxLength: 300
+          pattern: '^[A-Za-z0-9-_.]+$|^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$'
+          example: 'testidpuser'
+        password:
+          type: string
+          example: 'randompassword'
+        authenticationProviderId:
+          type: string
+          example: 'https://cognito-idp.us-west-2.amazonaws.com/us-west-2_123456789'
+        identityProviderName:
+          type: string
+          example: 'AWS-SSO'
+        email:
+          type: string
+          pattern: '^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$'
+          example: 'nobody@example.com'
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 500
+          pattern: '^[A-Za-z0-9 .-]+$'
+          example: 'Test'
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 500
+          pattern: '^[A-Za-z0-9 .-]+$'
+          example: 'User'
+        userType:
+          type: string
+          enum:
+            - root
+          example: 'root'
+        isSamlAuthenticatedUser:
+          type: boolean
+          example: true
+        isAdmin:
+          type: boolean
+          example: true
+        status:
+          type: string
+          enum:
+            - active
+            - inactive
+            - pending
+          example: 'active'
+        rev:
+          type: number
+          example: 0
+        userRole:
+          type: string
+          example: 'researcher'
+        projectId:
+          type: string
+          example: 'TestProject'
+        isExternalUser:
+          type: boolean
+          example: true
+        encryptedCreds:
+          type: string
+          example: 'EncryptedCreds123'
+        applyReason:
+          type: string
+          example: 'Research'
+    UpdateUserRequest:
+      required:
+        - uid
+        - rev
+      type: object
+      properties:
+        uid:
+          $ref: '#/components/schemas/UserId'
+        email:
+          type: string
+          pattern: '^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$'
+          example: 'nobody@example.com'
+          description: 'Email address of the user'
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 500
+          pattern: '^[A-Za-z0-9 .-]+$'
+          example: 'Test'
+          description: 'First name of the user'
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 500
+          pattern: '^[A-Za-z0-9 .-]+$'
+          example: 'User'
+          description: 'Last name of the user'
+        userType:
+          type: string
+          enum:
+            - root
+          example: 'root'
+          description: 'Specify if user is root'
+        isSamlAuthenticatedUser:
+          type: boolean
+          example: true
+          description: 'If using Cognito, is the user authenticated using SAML'
+        isAdmin:
+          type: boolean
+          example: true
+          description: 'True if user is admin'
+        status:
+          type: string
+          enum:
+            - active
+            - inactive
+            - pending
+          example: 'active'
+          description: 'Status of the user. Only active users are allowed access'
+        rev:
+          type: number
+          example: 1
+          description: 'Revision specifying the updates the record has gone through'
+        userRole:
+          type: string
+          example: 'researcher'
+        projectId:
+          type: array
+          items:
+            type: string
+          example: ['project1','project2']
+        isExternalUser:
+          type: boolean
+          example: true
+        encryptedCreds:
+          type: string
+          example: 'EncryptedCreds123'
+        applyReason:
+          type: string
+          example: 'Research'
+    UpdateUserPasswordRequest:
+      required:
+        - password
+      type: object
+      properties:
+        password:
+          type: string
+          example: 'TeStPa$$word6235'
+          description: 'Password of the user which should be a string of atleast 4 characters'
+    UpdateCurrentUserInfo:
+      type: object
+      additionalProperties: false
+      properties:
+        uid:
+          $ref: '#/components/schemas/UserId'
+        email:
+          type: string
+          pattern: '^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$'
+          example: 'nobody@example.com'
+          description: 'Email address of the user'
+        firstName:
+          type: string
+          maxLength: 500
+          pattern: '^[A-Za-z0-9 .-]+$'
+          example: 'Test'
+          description: 'First name of the user'
+        lastName:
+          type: string
+          maxLength: 500
+          pattern: '^[A-Za-z0-9 .-]+$'
+          example: 'Test'
+          description: 'First name of the user'
+        userType:
+          type: string
+          enum:
+            - root
+          example: 'root'
+          description: 'Specify if user is root'
+        isSamlAuthenticatedUser:
+          type: boolean
+          example: true
+          description: 'If using Cognito, is the user authenticated using SAML'
+        isAdmin:
+          type: boolean
+          example: true
+          description: 'True if user is admin'
+        status:
+          type: string
+          enum:
+            - active
+            - inactive
+            - pending
+          example: 'active'
+          description: 'Status of the user. Only active users are allowed access'
+        rev:
+          type: number
+          example: 1
+          description: 'Revision specifying the updates the record has gone through'
+      required:
+        - uid
+        - rev
+    CfnInfo:
+      required:
+        - vpcId
+        - subnetId
+        - crossAccountExecutionRoleArn
+        - crossAccountEnvMgmtRoleArn
+        - stackId
+        - encryptionKeyArn
+      type: object
+      properties:
+        vpcId:
+          $ref: '#/components/schemas/VpcId'
+        subnetId:
+          $ref: '#/components/schemas/SubnetId'
+        crossAccountExecutionRoleArn:
+          $ref: '#/components/schemas/RoleArn'
+        crossAccountEnvMgmtRoleArn:
+          $ref: '#/components/schemas/RoleArn'
+        stackId:
+          type: string
+        encryptionKeyArn:
+          $ref: '#/components/schemas/EncryptionKeyArn'
+    CreateProjectRequest:
+      required:
+        - id
+        - indexId
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/ProjectId'
+        indexId:
+          type: string
+          minLength: 1
+          example: 'TestIndex'
+        projectAdmins:
+          type: array
+          items:
+            type: string
+          default: []
+          example: ['user1','user2']
+        description:
+          type: string
+          example: 'Test Project'
+    UpdateProjectRequest:
+      required:
+        - id
+        - rev
+        - indexId
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/ProjectId'
+        indexId:
+          type: string
+          example: 'TestIndex'
+        description:
+          type: string
+          maxLength: 3000
+          example: 'Test Project'
+        projectAdmins:
+          type: array
+          items:
+            type: string
+          default: []
+          example: ['user1','user2']
+        rev:
+          type: number
+          example: 0
+    CreateIndexRequest:
+      required:
+        - id
+        - awsAccountId
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/IndexId'
+        awsAccountId:
+          type: string
+          minLength: 1
+          example: '11111111-5541-11eb-8eed-65cc7fae9077'
+        description:
+          type: string
+          example: 'Test Index'
+    UpdateIndexRequest:
+      required:
+        - id
+        - rev
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/IndexId'
+        awsAccountId:
+          type: string
+          minLength: 1
+          example: '11111111-5541-11eb-8eed-65cc7fae9077'
+        description:
+          type: string
+          example: 'Test Index'
+        rev:
+          type: number
+          example: 0
+    CreateAwsAccountRequest:
+      required:
+        - name
+        - description
+        - accountId
+        - roleArn
+        - xAccEnvMgmtRoleArn
+        - externalId
+        - vpcId
+        - subnetId
+        - encryptionKeyArn
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: 'TestAccount'
+        description:
+          type: string
+          maxLength: 2048
+          example: 'Test Account Description'
+        accountId:
+          $ref: '#/components/schemas/AwsAccountId'
+        roleArn:
+          type: string
+          minLength: 10
+          example: 'arn:aws:iam::000000000000:role/role-arn'
+        xAccEnvMgmtRoleArn:
+          type: string
+          minLength: 10
+          example: 'arn:aws:iam::000000000000:role/role-arn'
+        externalId:
+          type: string
+          minLength: 1
+          example: 'ExternalId'
+        vpcId:
+          $ref: '#/components/schemas/VpcId'
+        subnetId:
+          $ref: '#/components/schemas/SubnetId'
+        encryptionKeyArn:
+          $ref: '#/components/schemas/EncryptionKeyArn'
+    ProvisionAccountRequest:
+      required:
+        - accountName
+        - accountEmail
+        - masterRoleArn
+        - externalId
+        - description
+      type: object
+      properties:
+        accountName:
+          type: string
+          example: 'TestAccount'
+        accountEmail:
+          type: string
+          example: 'test-account-email@testing-domain.com'
+        masterRoleArn:
+          type: string
+          example: 'arn:aws:iam::000000000000:role/master-role-arn'
+        externalId:
+          type: string
+          example: 'ExternalId'
+        description:
+          type: string
+          example: 'My test account'
+    UpdateAccountRequest:
+      required:
+        - id
+        - stackId
+        - cfnInfo
+        - status
+        - name
+      type: object
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: '^[A-Za-z0-9-_]+$'
+          example: '000000000000'
+        stackId:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: 'arn:aws:cloudformation:us-west-2:000000000000:stack/initial-stack-0000000000000/00000000-0000-0000-0000-000000000000'
+        cfnInfo:
+          $ref: '#/components/schemas/CfnInfo'
+        status:
+          type: string
+          example: 'COMPLETED'
+        name:
+          type: string
+          example: 'TestAccount'
+    CreateDataSourceAccount:
+      required:
+        - id
+        - mainRegion
+        - name
+      type: object
+      properties:
+        name:
+          maxLength: 300
+          minLength: 1
+          type: string
+          example: 'test data source account name'
+        description:
+          maxLength: 2048
+          type: string
+          example: 'this is a data source account for testing'
+        contactInfo:
+          maxLength: 2048
+          type: string
+          example: 'nobody@example.com'
+        id:
+          $ref: '#/components/schemas/AwsAccountId'
+        mainRegion:
+          $ref: '#/components/schemas/AwsRegion'
+    UpdateDataSourceAccount:
+      type: object
+      required:
+        - id
+        - rev
+      properties:
+        id:
+          $ref: '#/components/schemas/AwsAccountId'
+        rev:
+          type: number
+          example: 1
+        name:
+          maxLength: 300
+          minLength: 1
+          type: string
+          example: 'test data source account name'
+        description:
+          maxLength: 2048
+          type: string
+          example: 'this is a data source account for testing'
+        contactInfo:
+          maxLength: 2048
+          type: string
+          example: 'nobody@example.com'
+    RegisterDataSourceBucket:
+      type: object
+      additionalProperties: false
+      properties:
+        accountId:
+          $ref: '#/components/schemas/AwsAccountId'
+        name:
+          type: string
+          minLength: 3
+          maxLength: 63
+          pattern: '^[a-z0-9-.]+$'
+          example: 'testbucketname'
+        region:
+          $ref: '#/components/schemas/AwsRegion'
+        awsPartition:
+          $ref: '#/components/schemas/AwsPartition'
+        kmsArn:
+          type: string
+          example: 'arn:aws:kms:us-east-1:123456789101:key/2e3c97b6-8bb3-4cf8-bc77-d56ebf847d23'
+          maxLength: 90
+        access:
+          type: string
+          example: 'roles'
+          enum:
+            - roles
+            - accessPoint
+            - bucketPolicy
+        sse:
+          type: string
+          example: 'kms'
+          enum:
+            - kms
+            - s3
+            - none
+      required:
+        - accountId
+        - name
+        - region
+        - awsPartition
+        - access
+        - sse
+    DataSourceReachability:
+      type: object
+      required:
+        - id
+      properties:
+        id:
+          type: string
+          description: Use * for bulk reach data source account, or dsAccountId, studyId with type
+          example: 'test_study_id'
+        type:
+          type: string
+          enum:
+            - dsAccount
+            - study
+          description: id must NOT be * when type is specified
+          example: 'study'
+        status:
+          type: string
+          enum:
+            - active
+            - inactive
+            - pending
+            - error
+            - reachable
+            - *
+          description: id must be * when status is specified
+    RegisterStudy:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: '^[A-Za-z0-9-_ ]+$'
+          example: 'org-study-byob-test-3'
+        name:
+          type: string
+          maxLength: 300
+          example: 'Org Study test 3'
+        category:
+          $ref: '#/components/schemas/StudyCategory'
+        description:
+          type: string
+          maxLength: 2048
+          example: 'This is a test study'
+        projectId:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: '^[A-Za-z0-9-_]+$'
+          example: 'test-project-id'
+        folder:
+          type: string
+          minLength: 1
+          maxLength: 1000
+          example: 'study-folder-test-3'
+        kmsArn:
+          type: string
+          example: 'arn:aws:kms:us-east-1:123456789101:key/2e3c97b6-8bb3-4cf8-bc77-d56ebf847d23'
+          maxLength: 90
+        kmsScope:
+          enum:
+            - bucket
+            - study
+            - none
+          example: bucket
+        adminUsers:
+          type: array
+          items:
+            type: string
+          example: 'u-C-l14OuIfNk7vL7AqmjvC'
+        accessType:
+          type: string
+          enum:
+            - readonly
+            - readwrite
+          example: 'readwrite'
+      required:
+        - id
+        - category
+        - folder
+        - accessType
+        - adminUsers
+    EnvTypeId:
+      type: string
+      example: 'prod-hpr4lsrmztito-pa-vg2oae2qdhmfq'
+      maxLength: 100
+      minLength: 2
+      pattern: '^[a-zA-Z0-9_\\-]*'
+    CreateEnvType:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          $ref: '#/components/schemas/EnvTypeId'
+        name:
+          type: string
+          maxLength: 16383
+          minLength: 2
+          pattern: '^[a-zA-Z0-9_\\-]*'
+          example: 'EC2 Windows-v6'
+        desc:
+          type: string
+          maxLength: 8191
+          example: 'An EC2 Windows instance with RDP access'
+        status:
+          type: string
+          enum:
+            - not-approved
+            - approved
+          example: 'not-approved'
+        product:
+          type: object
+          additionalProperties: false
+          properties:
+            productId:
+              type: string
+              maxLength: 100
+              pattern: '^[a-zA-Z0-9_\\-]*'
+              example: 'prod-w7buwy2wj3blo'
+          required:
+            - productId
+        provisioningArtifact:
+          type: object
+          additionalProperties: false
+          properties:
+            id:
+              type: string
+              maxLength: 100
+              pattern: '^[a-zA-Z0-9_\\-]*'
+              example: 'pa-k5flbawwg5b6q'
+          required:
+            - id
+      required:
+        - id
+        - name
+        - product
+        - provisioningArtifact
+    UpdateEnvType:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          $ref: '#/components/schemas/EnvTypeId'
+        rev:
+          type: number
+          example: 1
+        name:
+          type: string
+          maxLength: 16383
+          minLength: 2
+          pattern: '^[a-zA-Z0-9_\\-]*'
+          example: 'EC2 Windows-v6'
+        desc:
+          type: string
+          maxLength: 8191
+          example: 'An EC2 Windows instance with RDP access'
+        status:
+          type: string
+          enum:
+            - not-approved
+            - approved
+          example: 'approved'
+      required:
+        - id
+        - rev
+    EnvTypeConfig:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          maxLength: 128
+          minLength: 2
+          pattern: '^[A-Za-z0-9-_]+$'
+          example: 'small'
+        name:
+          type: string
+          maxLength: 128
+          minLength: 2
+          pattern: '^[A-Za-z0-9-_ ]+$'
+          example: 'small'
+        desc:
+          type: string
+          maxLength: 8191
+          example: 'A small research workspace meant for prototyping and proving out scripts before scaling up to a larger. It costs the least amount per hour.'
+        estimatedCostInfo:
+          type: string
+          maxLength: 1024
+        allowRoleIds:
+          type: array
+          example: ['admin','researcher']
+          items:
+            type: string
+            maxLength: 100
+            pattern: '^[A-Za-z0-9-_ ]+$'
+        denyRoleIds:
+          type: array
+          example: ['guest']
+          items:
+            type: string
+            maxLength: 100
+            pattern: '^[A-Za-z0-9-_ ]+$'
+        params:
+          type: array
+          example: [
+          {
+            "key":"InstanceType",
+            "value":"ml.t3.xlarge"
+          },
+          {
+            "key": "EncryptionKeyArn",
+            "value": "${encryptionKeyArn}"
+          },
+          {
+            "key": "IamPolicyDocument",
+            "value": "${iamPolicyDocument}"
+          },
+          {
+            "key": "VPC",
+            "value": "${vpcId}"
+          },
+          {
+            "key": "EnvironmentInstanceFiles",
+            "value": "${environmentInstanceFiles}"
+          },
+          {
+            "key": "Subnet",
+            "value": "${subnetId}"
+          },
+          {
+            "key": "S3Mounts",
+            "value": "${s3Mounts}"
+          },
+          {
+            "key": "Namespace",
+            "value": "${namespace}"
+          }
+          ]
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              value:
+                type: string
+        tags:
+          type: array
+          items:
+            type: object
+            properties:
+              key:
+                type: string
+              value:
+                type: string
+      required:
+        - id
+        - name
+    CreateSCWorkspace:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+          maxLength: 128
+          minLength: 3
+          pattern: '^[A-Za-z][A-Za-z0-9-]+$'
+          example: 'test-sagemaker-env'
+        description:
+          type: string
+          maxLength: 2048
+          example: 'test-sagemaker-env'
+        envTypeId:
+          $ref: '#/components/schemas/EnvTypeId'
+        envTypeConfigId:
+          type: string
+          minLength: 1
+          maxLength: 300
+          example: 'small'
+        projectId:
+          type: string
+          example: 'test-project-id'
+        cidr:
+          type: string
+          pattern: '^(?:([0-9]{1,3}\.){3}[0-9]{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))?)?$'
+          example: '192.255.255.255/32'
+        studyIds:
+          type: array
+          example: ['test_study1']
+          items:
+            type: string
+            minLength: 1
+      required:
+        - name
+        - envTypeId
+        - envTypeConfigId
+    CreateStudy:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: '^[A-Za-z0-9-_ ]+$'
+          example: 'org-study-test-2'
+        name:
+          type: string
+          maxLength: 300
+          example: 'Org Study 2'
+        category:
+          type: string
+          enum:
+            - My Studies
+            - Organization
+            - Open Data
+          example: 'Organization'
+        description:
+          type: string
+          maxLength: 2048
+          example: 'An org study to test a few things'
+        projectId:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: '^[A-Za-z0-9-_]+$'
+          example: 'test-project-id'
+        uploadLocationEnabled:
+          type: boolean
+          example: false
+        sha:
+          type: string
+          maxLength: 64
+          description: sha is only used for open data study in system originated update, external request should leave this field empty
+        resources:
+          type: array
+          example: [
+          {"arn": "arn:aws:s3:::123456789101-studydata/studies/Organization/org-study-2/"}
+          ]
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              arn:
+                type: string
+                maxLength: 2048
+        accessType:
+          type: string
+          enum:
+            - readonly
+            - readwrite
+          example: 'readonly'
+      required:
+        - id
+        - category
+    UpdateStudy:
+      type: object
+      additionalProperties: false
+      properties:
+        id:
+          type: string
+          minLength: 1
+          maxLength: 100
+          pattern: '^[A-Za-z0-9-_ ]+$'
+          example: 'org-study-test-2'
+        rev:
+          type: number
+          example: 2
+        name:
+          type: string
+          maxLength: 300
+          example: 'Org Study Test'
+        description:
+          type: string
+          maxLength: 2048
+          example: 'An org study to test a few things'
+        sha:
+          type: string
+          maxLength: 64
+          description: sha is only used for open data study in system originated update, external request should leave this field empty
+        appRoleArn:
+          type: string
+          maxLength: 2048
+          example: 'arn:aws:iam::123456789101:role/swb-data-access-role'
+        resources:
+          type: array
+          example: [
+          {"arn": "arn:aws:s3:::123456789101-studydata/studies/Organization/org-study-2/"}
+          ]
+          items:
+            type: object
+            additionalProperties: false
+            properties:
+              arn:
+                type: string
+                maxLength: 2048                 
+              fileShareArn:
+                type: string
+                maxLength: 2048
+      required:
+        - id
+    permissionLevel:
+      type: string
+      enum:
+        - admin
+        - readonly
+        - writeonly
+        - readwrite
+      example: readonly
+    userEntry:
+      type: object
+      properties:
+        uid:
+          $ref: '#/components/schemas/UserId'
+        permissionLevel:
+          $ref: '#/components/schemas/permissionLevel'
+      required:
+        - uid
+    UpdateStudyPermission:
+      type: object
+      additionalProperties: false
+      properties:
+        usersToAdd:
+          type: array
+          items:
+            $ref: '#/components/schemas/userEntry'
+        usersToRemove:
+          type: array
+          items:
+            $ref: '#/components/schemas/userEntry'
+    CreateBudget:
+      type: object
+      required:
+        - id
+        - budgetConfiguration
+      properties:
+        id:
+          $ref: '#/components/schemas/AwsAccountUUID'
+        budgetConfiguration:
+          type: object
+          required:
+            - budgetLimit
+            - startDate
+            - endDate
+          properties:
+            budgetLimit:
+              type: string
+              example: '1000'
+              maxLength: 2048
+            startDate:
+              type: integer
+              example: 1611964800
+            endDate:
+              type: integer
+              example: 1611964800
+            description:
+              type: string
+              maxLength: 2048
+              example: 'An org study to test a few things'
+            thresholds:
+              type: array
+              example: [50,90]
+              items:
+                type: number
+                enum:
+                  - 50
+                  - 70
+                  - 80
+                  - 90
+                  - 100
+              description: thresholds and notification depend on each other
+            notificationEmail:
+              type: string
+              example: 'test@example.com'
+              format: email
+              maxLength: 2048
+              description: thresholds and notification depend on each other
+          additionalProperties: false
+      additionalProperties: false
+security:
+  - bearerAuth: []

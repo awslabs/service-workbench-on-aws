@@ -39,6 +39,19 @@ const FileUpload = types
     get name() {
       return self.file ? self.file.name : '';
     },
+    get fullFilePath() {
+      if (self.file) {
+        return self.file.webkitRelativePath ? self.file.webkitRelativePath : self.file.name;
+      }
+      return '';
+    },
+    get folder() {
+      if (self.file && self.file.webkitRelativePath) {
+        const regExpForReplacingFileName = new RegExp(`/${self.file.name}$`);
+        return self.file.webkitRelativePath.replace(regExpForReplacingFileName, '');
+      }
+      return '';
+    },
     getFile() {
       return self.file;
     },

@@ -26,12 +26,16 @@ provider:
     restApi:
       format: '{"authorizer.principalId":"$context.authorizer.principalId","error.message":"$context.error.message","extendedRequestId":"$context.extendedRequestId","httpMethod":"$context.httpMethod","identity.sourceIp":"$context.identity.sourceIp","integration.error":"$context.integration.error","integration.integrationStatus":"$context.integration.integrationStatus","integration.latency":"$context.integration.latency","integration.requestId":"$context.integration.requestId","integration.status":"$context.integration.status","path":"$context.path","requestId":"$context.requestId","responseLatency":"$context.responseLatency","responseLength":"$context.responseLength","stage":"$context.stage","status":"$context.status"}'
       executionLogging: false
+  tracing:
+    apiGateway: true
+    lambda: true
   environment:
     APP_ENV_TYPE: ${self:custom.settings.envType}
     APP_ENV_NAME: ${self:custom.settings.envName}
     APP_AWS_REGION: ${self:custom.settings.awsRegion}
     APP_SOLUTION_NAME: ${self:custom.settings.solutionName}
     APP_DB_PREFIX: ${self:custom.settings.dbPrefix}
+    APP_MAIN_ACCT: ${self:custom.settings.awsAccountInfo.awsAccountId}
 
 custom:
   settings: ${file(./config/settings/.settings.js):merged}
@@ -71,7 +75,13 @@ custom:
             APP_LOCAL_ROLE_ARN: ${cfnOutput('OpenDataScrapeHandlerRoleArn')} # When running locally, run under this role
         envStatusPollHandler:
           environment:
-            APP_LOCAL_ROLE_ARN: ${cfnOutput('EnvStatusPollHandlerRoleArn')} # When running locally, run under this role
+            APP_LOCAL_ROLE_ARN: ${cfnOutput('ApiHandlerRoleArn')} # When running locally, run under this role
+        dataSourceReachabilityHandler:
+          environment:
+            APP_LOCAL_ROLE_ARN: ${cfnOutput('DataSourceReachabilityHandlerRoleArn')} # When running locally, run under this role
+        dataSourceReachabilityDailyHandler:
+          environment:
+            APP_LOCAL_ROLE_ARN: ${cfnOutput('DataSourceReachabilityHandlerRoleArn')} # Use same role arn as the one above (used for more frequent cron lambda)
 
   s3Sync:
     - bucketName: ${self:custom.settings.externalCfnTemplatesBucketName} # required
@@ -82,6 +92,39 @@ functions: ${file(./config/infra/functions.yml)}
 resources:
   - Description: Service-Workbench-on-AWS ${self:custom.settings.version} ${self:custom.settings.solutionName} ${self:custom.settings.envName} Backend
   - ${file(./config/infra/cloudformation.yml)}
+  - Resources:
+      # Create a permissions boundary for role Serverless creates to manage Cloudwatch access
+      # The default role has permission to create any role and attach any policy. Here we are restricting
+      # the role to only create a specific role and attach only Cloudwatch publishing managed policy
+      ServerlessLogsBoundary:
+        Type: AWS::IAM::ManagedPolicy
+        Properties:
+          Description: Allows serverless to manage CloudWatch publishing
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - apigateway:GET
+                  - apigateway:PATCH
+                Resource: 'arn:aws:apigateway:${self:custom.settings.awsRegion}::/account'
+              - Effect: Allow
+                Action:
+                  - iam:CreateRole
+                  - iam:AttachRolePolicy
+                  - iam:ListAttachedRolePolicies
+                  - iam:PassRole
+                Resource: 'arn:aws:iam::${self:custom.settings.awsAccountInfo.awsAccountId}:role/serverlessApiGatewayCloudWatchRole'
+                Condition:
+                  ArnEqualsIfExists:
+                    iam:PolicyARN: 'arn:aws:iam::aws:policy/service-role/AmazonAPIGatewayPushToCloudWatchLogs'
+  - extensions:
+      # Add custom permission boundary to role serverless uses for creating Cloudwatch publishing role
+      IamRoleCustomResourcesLambdaExecution:
+        Properties:
+          PermissionsBoundary: !Ref ServerlessLogsBoundary
+
+
 
 plugins:
   - serverless-webpack

@@ -18,6 +18,7 @@ const sinon = require('sinon');
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
 const Aws = require('@aws-ee/base-services/lib/aws/aws-service');
 const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
+const SettingsService = require('@aws-ee/base-services/lib/settings/env-settings-service');
 const AWSMock = require('aws-sdk-mock');
 
 // Mocked dependencies
@@ -52,6 +53,15 @@ describe('BudgetsService', () => {
   beforeAll(async () => {
     // Initialize services container and register dependencies
     const container = new ServicesContainer();
+    const settingsService = new SettingsService();
+    settingsService.get = jest.fn(key => {
+      if (key === 'customUserAgent') {
+        return 'AwsLabs/SO0144/X.Y.Z';
+      }
+      throw new Error('Unexpected key');
+    });
+    container.register('settings', settingsService);
+
     container.register('awsAccountsService', new AWSAccountsServiceMock());
     container.register('aws', new Aws());
     container.register('jsonSchemaValidationService', new JsonSchemaValidationService());
@@ -256,6 +266,50 @@ describe('BudgetsService', () => {
       );
     });
 
+    it('should fail id invalid', async () => {
+      // BUILD
+      const requestBodyCopy = _.cloneDeep(requestBody);
+      requestBodyCopy.id = 'invalid##';
+
+      // OPERATE and CHECK
+      await expect(service.create(requestContext, requestBodyCopy)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+
+    it('should fail budgetLimit invalid', async () => {
+      // BUILD
+      const requestBodyCopy = _.cloneDeep(requestBody);
+      requestBodyCopy.budgetConfiguration.budgetLimit = 'invalid##';
+
+      // OPERATE and CHECK
+      await expect(service.create(requestContext, requestBodyCopy)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+
+    it('should fail description invalid', async () => {
+      // BUILD
+      const requestBodyCopy = _.cloneDeep(requestBody);
+      requestBodyCopy.description = '<hack>';
+
+      // OPERATE and CHECK
+      await expect(service.create(requestContext, requestBodyCopy)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+
+    it('should fail notificationEmail invalid', async () => {
+      // BUILD
+      const requestBodyCopy = _.cloneDeep(requestBody);
+      requestBodyCopy.notificationEmail = '<hack>';
+
+      // OPERATE and CHECK
+      await expect(service.create(requestContext, requestBodyCopy)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+
     it('should throw validation error when Budget API create method throw validation error', async () => {
       // BUILD
       const requestBodyCopy = _.cloneDeep(requestBody);
@@ -425,6 +479,50 @@ describe('BudgetsService', () => {
           },
         ],
       });
+    });
+
+    it('should fail id invalid', async () => {
+      // BUILD
+      const requestBodyCopy = _.cloneDeep(requestBody);
+      requestBodyCopy.id = 'invalid##';
+
+      // OPERATE and CHECK
+      await expect(service.update(requestContext, requestBodyCopy)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+
+    it('should fail budgetLimit invalid', async () => {
+      // BUILD
+      const requestBodyCopy = _.cloneDeep(requestBody);
+      requestBodyCopy.budgetConfiguration.budgetLimit = 'invalid##';
+
+      // OPERATE and CHECK
+      await expect(service.update(requestContext, requestBodyCopy)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+
+    it('should fail description invalid', async () => {
+      // BUILD
+      const requestBodyCopy = _.cloneDeep(requestBody);
+      requestBodyCopy.description = '<hack>';
+
+      // OPERATE and CHECK
+      await expect(service.update(requestContext, requestBodyCopy)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
+    });
+
+    it('should fail notificationEmail invalid', async () => {
+      // BUILD
+      const requestBodyCopy = _.cloneDeep(requestBody);
+      requestBodyCopy.notificationEmail = '<hack>';
+
+      // OPERATE and CHECK
+      await expect(service.update(requestContext, requestBodyCopy)).rejects.toThrow(
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      );
     });
 
     it('should throw validation error when Budget API add notification method throw validation error', async () => {

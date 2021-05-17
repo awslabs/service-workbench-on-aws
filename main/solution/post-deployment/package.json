@@ -24,7 +24,7 @@
     "@aws-ee/key-pair-mgmt-services": "workspace:*",
     "@aws-ee/user-id-upgrade-post-deployment": "workspace:*",
     "aws-sdk": "^2.713.0",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "services": "workspace:*"
   },
   "devDependencies": {
@@ -56,6 +56,7 @@
     "webpack": "^4.41.5"
   },
   "scripts": {
+    "coverage": "NODE_ENV=test jest --config jest.config.js --passWithNoTests --verbose --collectCoverage --watchAll=false --coverage && codecov --disable=gcov",
     "test": "NODE_ENV=test jest --config jest.config.js --passWithNoTests",
     "test:watch": "NODE_ENV=test jest --config jest.config.js  --passWithNoTests --watchAll",
     "lint": "pnpm run lint:eslint && pnpm run lint:prettier",

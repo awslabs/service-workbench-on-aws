@@ -9,6 +9,9 @@ hidden: false
 builtin: true
 instanceTtl: 30 # In days, however, empty value means that it is indefinite
 selectedSteps:
+  - stepTemplateId: st-pre-environment-provisioning
+    stepTemplateVer: 1
+    id: wf-step_1_1576783029730_20
   - stepTemplateId: st-read-environment-info
     stepTemplateVer: 1
     id: wf-step_1_1576783029739_21

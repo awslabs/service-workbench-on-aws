@@ -8,6 +8,7 @@ pushd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null
 [[ ${UTIL_SOURCED-no} != yes && -f ./util.sh ]] && source ./util.sh
 popd > /dev/null
 
+ENV_NAME=$@
 CONFIG_S3_PATH="s3://$DEPLOYMENT_BUCKET/integration-test/$ENV_NAME.yml"
 CONFIG_TARGET_PATH="$INT_TEST_DIR/config/settings/$ENV_NAME.yml"
 
@@ -27,13 +28,10 @@ else
 fi
 
 if [ "$TEST_CONFIG_EXISTS" == true ]; then
-    printf "\n\nRunning integration tests for environment "$ENV_NAME"\n"
-    printf "\n\nInitializing env variables required for running integration test against env %s\n" "$@"
     # shellcheck disable=SC1091
-    source ./scripts/get-info.sh "$@"
 
-    printf "\n\nExecuting integration tests against env %s\n" "$@"
-    pnpm run intTest --recursive --if-present
+    printf "\n\nExecuting integration tests against env %s\n" "$ENV_NAME"
+    pnpm run intTest --recursive --if-present -- --stage="$ENV_NAME"
 else
     # Create empty report file
     mkdir -p main/integration-tests/.build/test

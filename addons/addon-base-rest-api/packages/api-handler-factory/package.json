@@ -12,7 +12,7 @@
     "compression": "^1.7.4",
     "cors": "^2.8.5",
     "express": "^4.17.1",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "serverless-http": "^2.3.1"
   },
   "devDependencies": {
@@ -31,6 +31,7 @@
     "source-map-support": "^0.5.16"
   },
   "scripts": {
+    "coverage": "NODE_ENV=test jest --config jest.config.js --passWithNoTests --verbose --collectCoverage --watchAll=false --coverage && codecov --disable=gcov",
     "test": "NODE_ENV=test jest --config jest.config.js --passWithNoTests",
     "test:watch": "NODE_ENV=test jest --config jest.config.js  --passWithNoTests --watchAll",
     "lint": "pnpm run lint:eslint && pnpm run lint:prettier",

@@ -48,6 +48,15 @@ with a custom domain for RStudio to work properly. In order to configure your cu
 > 3. The auto-stop feature is enabled by default and configured to 1 hour. For configuring a different auto-stop timeout, please assign the MAX_IDLE_MINUTES value accordingly in `main/solution/machine-images/config/infra/files/rstudio/check-idle` and redeploy the machine-images SDC.
 > 4. To disable auto-stop, assign the value 0 to MAX_IDLE_MINUTES and redploy machine-images SDC.
 
+> The username for RStudio url access was changed as of 08/26/20
+>    If you're experiencing difficulty accessing previously provisioned RStudio instance,
+>    the steps to perform for backwards compatibility are:
+>    1. Redeploy machine-images SDC (this will update the RStudio AMIs to have the new username)
+>    2. For already provisioned RStudio instances, get sudo/root access on the box and add the user
+>    as a linux user using the command `sudo useradd -m rstudio-user`
+>    3. Update the username in boot script `set-password` (found in `/usr/local/bin/`)
+>    4. Reboot the box
+
 ## Package and Deploy
 
 To build Amazon Machine Images:

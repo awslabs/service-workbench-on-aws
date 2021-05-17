@@ -1,5 +1,6 @@
 **/.class
 **/.DS_Store
+**/coverage
 **/node_modules
 
 **/npm-debug.log
@@ -7,7 +8,7 @@
 
 config/workspaces-catalogue.json
 
-# https://github.com/github/gitignore/blob/master/Global/VisualStudioCode.gitignore
+# VisualStudioCode.gitignore
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json

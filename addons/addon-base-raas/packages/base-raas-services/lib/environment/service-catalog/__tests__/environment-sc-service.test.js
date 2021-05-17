@@ -15,9 +15,13 @@
 const YAML = require('js-yaml');
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
 const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
+
+jest.mock('@aws-ee/base-services/lib/iam/iam-service.js');
+jest.mock('@aws-ee/base-services/lib/logger/logger-service');
 const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
 const AWSMock = require('aws-sdk-mock');
 const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
+const IamService = require('@aws-ee/base-services/lib/iam/iam-service.js');
 
 // Mocked dependencies
 jest.mock('@aws-ee/base-services/lib/db-service');
@@ -49,6 +53,9 @@ const IndexesServiceMock = require('../../../indexes/indexes-service');
 
 jest.mock('../../../storage-gateway/storage-gateway-service');
 const StorageGatewayService = require('../../../storage-gateway/storage-gateway-service');
+
+jest.mock('../../../study/study-service');
+const StudyService = require('../../../study/study-service');
 
 const EnvironmentSCService = require('../environment-sc-service');
 
@@ -83,6 +90,8 @@ describe('EnvironmentSCService', () => {
     container.register('indexesService', new IndexesServiceMock());
     container.register('environmentSCService', new EnvironmentSCService());
     container.register('storageGatewayService', new StorageGatewayService());
+    container.register('iamService', new IamService());
+    container.register('studyService', new StudyService());
     await container.initServices();
 
     // suppress expected console errors
@@ -245,6 +254,218 @@ describe('EnvironmentSCService', () => {
         expect.objectContaining({ action: 'create-environment-sc' }),
       );
       expect(wfService.triggerWorkflow).toHaveBeenCalled();
+    });
+  });
+
+  describe('find', () => {
+    it('verify mustFind without defaults', async () => {
+      // BUILD
+      const uid = 'u-12345';
+      const requestContext = { principalIdentifier: { uid } };
+      const env = {
+        status: 'COMPLETED',
+        id: 'oldId',
+        name: 'exampleName',
+        envTypeId: 'exampleETI',
+        envTypeConfigId: 'exampleETCI',
+        updatedBy: {
+          username: 'user',
+        },
+        studyIds: ['study1', 'study2'],
+      };
+
+      service.find = jest.fn().mockResolvedValueOnce(env);
+
+      // OPERATE
+      await service.mustFind(requestContext, { id: 'oldId' });
+
+      // CHECK
+      expect(service.find).toHaveBeenCalledWith(requestContext, { id: 'oldId', fields: [], fetchCidr: true });
+    });
+
+    it('verify mustFind with fetchCidr', async () => {
+      // BUILD
+      const uid = 'u-12345';
+      const requestContext = { principalIdentifier: { uid } };
+      const env = {
+        status: 'COMPLETED',
+        id: 'oldId',
+        name: 'exampleName',
+        envTypeId: 'exampleETI',
+        envTypeConfigId: 'exampleETCI',
+        updatedBy: {
+          username: 'user',
+        },
+        studyIds: ['study1', 'study2'],
+      };
+
+      service.find = jest.fn().mockResolvedValueOnce(env);
+
+      // OPERATE
+      await service.mustFind(requestContext, { id: 'oldId', fields: [], fetchCidr: false });
+
+      // CHECK
+      expect(service.find).toHaveBeenCalledWith(requestContext, { id: 'oldId', fields: [], fetchCidr: false });
+    });
+
+    it('verify getSecurityGroupDetails not called when fetchCidr is false', async () => {
+      // BUILD
+      const uid = 'u-12345';
+      const requestContext = { principalIdentifier: { uid } };
+
+      const env = {
+        status: 'COMPLETED',
+        id: 'oldId',
+        name: 'exampleName',
+        envTypeId: 'exampleETI',
+        envTypeConfigId: 'exampleETCI',
+        updatedBy: {
+          username: 'user',
+        },
+        studyIds: ['study1', 'study2'],
+      };
+      service.audit = jest.fn();
+      service.getSecurityGroupDetails = jest.fn();
+      dbService.table.get.mockReturnValueOnce(env);
+
+      // OPERATE
+      await service.find(requestContext, { id: 'oldId', fetchCidr: false });
+
+      // CHECK
+      expect(service.getSecurityGroupDetails).not.toHaveBeenCalled();
+      expect(service.assertAuthorized).toHaveBeenCalledWith(
+        requestContext,
+        expect.objectContaining({ action: 'get-sc', conditions: [service._allowAuthorized] }),
+        env,
+      );
+    });
+
+    it('verify getSecurityGroupDetails called by default', async () => {
+      // BUILD
+      const uid = 'u-12345';
+      const requestContext = { principalIdentifier: { uid } };
+
+      const env = {
+        status: 'COMPLETED',
+        id: 'oldId',
+        name: 'exampleName',
+        envTypeId: 'exampleETI',
+        envTypeConfigId: 'exampleETCI',
+        updatedBy: {
+          username: 'user',
+        },
+        studyIds: ['study1', 'study2'],
+      };
+      service.audit = jest.fn();
+      dbService.table.get.mockReturnValueOnce(env);
+      service.getSecurityGroupDetails = jest.fn().mockReturnValueOnce([
+        {
+          fromPort: 3389,
+          toPort: 3389,
+          protocol: 'tcp',
+          cidrBlocks: ['0.0.0.0/0'],
+        },
+      ]);
+
+      // OPERATE
+      await service.find(requestContext, { id: 'oldId' });
+
+      // CHECK
+      expect(service.getSecurityGroupDetails).toHaveBeenNthCalledWith(
+        1,
+        expect.objectContaining(requestContext),
+        expect.objectContaining(env),
+      );
+      expect(service.assertAuthorized).toHaveBeenCalledWith(
+        requestContext,
+        expect.objectContaining({ action: 'get-sc', conditions: [service._allowAuthorized] }),
+        env,
+      );
+    });
+  });
+
+  describe('update study roles', () => {
+    it('throw error if studyRoleMap is invalid', async () => {
+      // BUILD
+      const uid = 'u-12345';
+      const requestContext = { principalIdentifier: { uid } };
+
+      const env = {
+        id: 'oldId',
+        name: 'exampleName',
+        envTypeId: 'exampleETI',
+        envTypeConfigId: 'exampleETCI',
+        updatedBy: {
+          username: 'user',
+        },
+        studyIds: ['study1'],
+      };
+      const studyRoles = {
+        study1: 123,
+      };
+      service.audit = jest.fn();
+      service.mustFind = jest.fn().mockResolvedValueOnce(env);
+
+      // OPERATE
+      try {
+        await service.updateStudyRoles(requestContext, 'oldId', studyRoles);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(err.message).toBe(
+          "The study role map can only contain values of type string and can not be empty. Received incorrect value for the key 'study1'",
+        );
+      }
+
+      // CHECK
+      expect(dbService.table.update).not.toHaveBeenCalled();
+      expect(service.mustFind).toHaveBeenNthCalledWith(1, expect.objectContaining(requestContext), {
+        id: 'oldId',
+        fetchCidr: false,
+      });
+      expect(service.assertAuthorized).toHaveBeenCalledWith(
+        requestContext,
+        expect.objectContaining({ action: 'update-study-role-map', conditions: [service._allowAuthorized] }),
+        env,
+      );
+    });
+
+    it('should succeed to update study roles', async () => {
+      // BUILD
+      const uid = 'u-12345';
+      const requestContext = { principalIdentifier: { uid } };
+
+      const env = {
+        id: 'oldId',
+        name: 'exampleName',
+        envTypeId: 'exampleETI',
+        envTypeConfigId: 'exampleETCI',
+        updatedBy: {
+          username: 'user',
+        },
+        studyIds: ['study1', 'study2'],
+      };
+      const studyRoles = {
+        study1: 'arn:aws:iam::012345678900:role/swb-random-fs-1615225782025',
+      };
+      service.audit = jest.fn();
+      service.mustFind = jest.fn().mockResolvedValueOnce(env);
+
+      // OPERATE
+      await service.updateStudyRoles(requestContext, 'oldId', studyRoles);
+
+      // CHECK
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: env.id });
+      expect(dbService.table.item).toHaveBeenCalledWith({ studyRoles, updatedBy: uid });
+      expect(dbService.table.update).toHaveBeenCalled();
+      expect(service.mustFind).toHaveBeenNthCalledWith(1, expect.objectContaining(requestContext), {
+        id: 'oldId',
+        fetchCidr: false,
+      });
+      expect(service.assertAuthorized).toHaveBeenCalledWith(
+        requestContext,
+        expect.objectContaining({ action: 'update-study-role-map', conditions: [service._allowAuthorized] }),
+        env,
+      );
     });
   });
 
@@ -637,6 +858,108 @@ describe('EnvironmentSCService', () => {
             'notebook-instance-name': {
               currentStatus: 'STOPPED',
               ddbID: 'some-environment-id',
+              staleStatus: 'STOPPING',
+            },
+          },
+        },
+      ]);
+      AWSMock.restore();
+    });
+
+    it('Should call listNotebookInstances with NextToken if NextToken is returned', async () => {
+      // BUILD
+      indexesService.list = jest
+        .fn()
+        .mockResolvedValue([{ id: 'some-index-id', awsAccountId: 'some-aws-account-uuid' }]);
+      awsAccountsService.list = jest.fn().mockResolvedValue([
+        {
+          roleArn: 'some-role-arn',
+          externalId: 'some-external-id',
+          id: 'some-aws-account-uuid',
+          accountId: 'some-aws-account-id',
+        },
+      ]);
+      dbService.table.scan.mockResolvedValueOnce([
+        {
+          id: 'some-environment-id',
+          indexId: 'some-index-id',
+          status: 'STOPPING',
+          outputs: [{ OutputKey: 'NotebookInstanceName', OutputValue: 'notebook-instance-name' }],
+        },
+        {
+          id: 'some-environment-id-1',
+          indexId: 'some-index-id',
+          status: 'STOPPING',
+          outputs: [{ OutputKey: 'NotebookInstanceName', OutputValue: 'notebook-instance-name-1' }],
+        },
+        {
+          id: 'some-environment-id-2',
+          indexId: 'some-index-id',
+          status: 'STOPPING',
+          outputs: [{ OutputKey: 'NotebookInstanceName', OutputValue: 'notebook-instance-name-2' }],
+        },
+      ]);
+      service.update = jest.fn();
+
+      AWSMock.setSDKInstance(aws.sdk);
+      AWSMock.mock('STS', 'assumeRole', { Credentials: stsResponse });
+      const mockListNotebookInstance = jest
+        .fn()
+        .mockImplementationOnce((params, callback) => {
+          callback(null, {
+            NotebookInstances: [
+              {
+                NotebookInstanceName: 'notebook-instance-name',
+                NotebookInstanceStatus: 'Stopped',
+              },
+              {
+                NotebookInstanceName: 'notebook-instance-name-1',
+                NotebookInstanceStatus: 'InService',
+              },
+            ],
+            NextToken: 'some-next-token',
+          });
+        })
+        .mockImplementationOnce((params, callback) => {
+          if (params.NextToken === 'some-next-token') {
+            callback(null, {
+              NotebookInstances: [
+                {
+                  NotebookInstanceName: 'notebook-instance-name-2',
+                  NotebookInstanceStatus: 'Updating',
+                },
+              ],
+            });
+          } else {
+            callback({ message: 'NextToken is different from expected' }, null);
+          }
+        })
+        .mockImplementationOnce((params, callback) => {
+          callback({ message: `list notebook was called the third time, only 2 calls expected` }, null);
+        });
+      AWSMock.mock('SageMaker', 'listNotebookInstances', mockListNotebookInstance);
+
+      // OPERATE
+      const result = await service.pollAndSyncWsStatus(requestContext);
+      // CHECK
+      expect(result).toMatchObject([
+        {
+          accountId: 'some-aws-account-id',
+          ec2Updated: {},
+          sagemakerUpdated: {
+            'notebook-instance-name': {
+              currentStatus: 'STOPPED',
+              ddbID: 'some-environment-id',
+              staleStatus: 'STOPPING',
+            },
+            'notebook-instance-name-1': {
+              currentStatus: 'COMPLETED',
+              ddbID: 'some-environment-id-1',
+              staleStatus: 'STOPPING',
+            },
+            'notebook-instance-name-2': {
+              currentStatus: 'STARTING',
+              ddbID: 'some-environment-id-2',
               staleStatus: 'STOPPING',
             },
           },

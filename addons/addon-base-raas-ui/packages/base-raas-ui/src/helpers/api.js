@@ -37,11 +37,11 @@ function getAwsAccountBudget(accountUUID) {
 }
 
 function createAwsAccountBudget(budgetConfiguration) {
-  return httpApiPut(`api/budgets/aws-account`, { data: budgetConfiguration });
+  return httpApiPost(`api/budgets/aws-account`, { data: budgetConfiguration });
 }
 
 function updateAwsAccountBudget(budgetConfiguration) {
-  return httpApiPost(`api/budgets/aws-account`, { data: budgetConfiguration });
+  return httpApiPut(`api/budgets/aws-account`, { data: budgetConfiguration });
 }
 
 function addUsers(users) {
@@ -288,7 +288,55 @@ function getWindowsRpInfo(envId, connectionId) {
   return httpApiGet(`api/workspaces/service-catalog/${envId}/connections/${connectionId}/windows-rdp-info`);
 }
 
-// API Functions Insertion Point (do not change this text, it is being used by hygen cli)
+function getDataSourceAccounts() {
+  return httpApiGet(`api/data-sources/accounts/`);
+}
+
+function getDataSourceStudies(accountId) {
+  return httpApiGet(`api/data-sources/accounts/${accountId}/studies`);
+}
+
+function checkAccountReachability(accountId) {
+  return httpApiPost('api/data-sources/accounts/ops/reachability', {
+    data: { id: accountId, type: 'dsAccount' },
+  });
+}
+
+function checkStudyReachability(studyId) {
+  return httpApiPost('api/data-sources/accounts/ops/reachability', {
+    data: { id: studyId, type: 'study' },
+  });
+}
+
+function registerAccount(account) {
+  return httpApiPost('api/data-sources/accounts', {
+    data: account,
+  });
+}
+
+function registerBucket(accountId, bucket) {
+  return httpApiPost(`api/data-sources/accounts/${accountId}/buckets`, {
+    data: bucket,
+  });
+}
+
+function registerStudy(accountId, bucketName, study) {
+  return httpApiPost(`api/data-sources/accounts/${accountId}/buckets/${bucketName}/studies`, {
+    data: study,
+  });
+}
+
+function generateAccountCfnTemplate(accountId) {
+  return httpApiPost(`api/data-sources/accounts/${accountId}/cfn`, {
+    data: {},
+  });
+}
+
+function updateRegisteredAccount(accountId, data) {
+  return httpApiPut(`api/data-sources/accounts/${accountId}`, {
+    data,
+  });
+}
 
 export {
   addIndex,
@@ -351,4 +399,13 @@ export {
   updateScEnvironmentCidrs,
   sendSshKey,
   getWindowsRpInfo,
+  getDataSourceAccounts,
+  getDataSourceStudies,
+  checkStudyReachability,
+  checkAccountReachability,
+  registerAccount,
+  registerBucket,
+  registerStudy,
+  generateAccountCfnTemplate,
+  updateRegisteredAccount,
 };

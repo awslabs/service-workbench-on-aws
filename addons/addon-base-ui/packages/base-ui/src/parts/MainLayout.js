@@ -22,7 +22,7 @@ import { Menu, Icon, Image } from 'semantic-ui-react';
 
 import { createLink } from '../helpers/routing';
 import { displayError } from '../helpers/notification';
-import { branding } from '../helpers/settings';
+import { branding, versionAndDate } from '../helpers/settings';
 
 // expected props
 // - userStore (via injection)
@@ -87,6 +87,7 @@ class MainLayout extends React.Component {
             style={{ height: '40px', width: 'auto' }}
           />
           <span style={{ paddingLeft: '5px' }}>{branding.main.title}</span>
+          <span style={{ paddingLeft: '20px' }}>{versionAndDate}</span>
         </Menu.Item>
         <Menu.Menu position="right">
           <Menu.Item>

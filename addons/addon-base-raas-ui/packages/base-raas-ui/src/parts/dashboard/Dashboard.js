@@ -34,9 +34,11 @@ class Dashboard extends React.Component {
     super(props);
     this.state = {
       totalCost: 0,
-      projNameToTotalCost: {},
-      projNameToUserTotalCost: {},
-      envNameToCostInfo: {},
+      indexNameToTotalCost: {},
+      indexNameToUserTotalCost: {},
+      envIdToCostInfo: {},
+      envIdToEnvMetadata: {},
+      duplicateEnvNames: new Set(),
       isLoading: true,
     };
   }
@@ -44,12 +46,23 @@ class Dashboard extends React.Component {
   async componentDidMount() {
     window.scrollTo(0, 0);
     try {
-      const { totalCost, projNameToTotalCost, projNameToUserTotalCost, envNameToCostInfo } = await this.getCosts();
+      const environmentFn = enableBuiltInWorkspaces ? getEnvironments : getScEnvironments;
+      const getEnvironmentCostFn = enableBuiltInWorkspaces ? getEnvironmentCost : getScEnvironmentCost;
+      const {
+        totalCost,
+        indexNameToTotalCost,
+        indexNameToUserTotalCost,
+        envIdToCostInfo,
+        envIdToEnvMetadata,
+        duplicateEnvNames,
+      } = await getCosts(environmentFn, getEnvironmentCostFn);
       this.setState({
         totalCost,
-        projNameToTotalCost,
-        projNameToUserTotalCost,
-        envNameToCostInfo,
+        indexNameToTotalCost,
+        indexNameToUserTotalCost,
+        envIdToCostInfo,
+        envIdToEnvMetadata,
+        duplicateEnvNames,
         isLoading: false,
       });
     } catch (error) {
@@ -100,10 +113,10 @@ class Dashboard extends React.Component {
           <Segment className="bold">No cost data to show</Segment>
         ) : (
           <>
-            <Segment>{this.renderCostPerProj()}</Segment>
+            <Segment>{this.renderCostPerIndex()}</Segment>
             <Segment>{this.renderPastMonthCostPerEnv()}</Segment>
             <Segment>{this.renderYesterdayCostPerEnv()}</Segment>
-            <Segment className="clearfix">{this.renderPastMonthCostPerProjPerUser()}</Segment>
+            <Segment className="clearfix">{this.renderPastMonthCostPerIndexPerUser()}</Segment>
             <Segment className="bold">
               Total cost of all research workspaces for the past 30 days: $
               {Math.round(this.state.totalCost * 100) / 100}
@@ -114,100 +127,14 @@ class Dashboard extends React.Component {
     );
   }
 
-  async getCosts() {
-    const { envNameToCostInfo, envNameToIndex } = await this.getAccumulatedEnvCost();
-
-    const projNameToUserTotalCost = {};
-    Object.keys(envNameToCostInfo).forEach(envName => {
-      const projName = envNameToIndex[envName];
-      if (projNameToUserTotalCost[projName] === undefined) {
-        projNameToUserTotalCost[projName] = {};
-      }
-      Object.keys(envNameToCostInfo[envName].pastMonthCostByUser).forEach(user => {
-        const currentUserCost = _.get(projNameToUserTotalCost, `${projName}.${user}`, 0);
-        projNameToUserTotalCost[projName][user] =
-          currentUserCost + envNameToCostInfo[envName].pastMonthCostByUser[user];
-      });
-    });
-
-    const projNameToTotalCost = {};
-    let totalCost = 0;
-    Object.keys(projNameToUserTotalCost).forEach(projName => {
-      let indexCost = 0;
-      Object.keys(projNameToUserTotalCost[projName]).forEach(user => {
-        indexCost += projNameToUserTotalCost[projName][user];
-      });
-      totalCost += indexCost;
-      projNameToTotalCost[projName] = indexCost;
-    });
-
-    return { totalCost, projNameToTotalCost, projNameToUserTotalCost, envNameToCostInfo };
-  }
-
-  async getAccumulatedEnvCost() {
-    const environments = enableBuiltInWorkspaces ? await getEnvironments() : await getScEnvironments();
-    const envIdToName = {};
-
-    const envNameToIndex = {};
-    environments.forEach(env => {
-      if (env.isExternal) return;
-      envIdToName[env.id] = env.name;
-      envNameToIndex[env.name] = env.indexId;
-    });
-
-    const envIds = Object.keys(envIdToName);
-    const envCostPromises = envIds.map(envId => {
-      return enableBuiltInWorkspaces
-        ? getEnvironmentCost(envId, 30, false, true)
-        : getScEnvironmentCost(envId, 30, false, true);
-    });
-
-    const envCostResults = await Promise.all(envCostPromises);
-    const pastMonthCostByUserArray = envCostResults.map(costResult => {
-      const createdByToCost = {};
-      _.forEach(costResult, costDate => {
-        const cost = costDate.cost;
-        Object.keys(cost).forEach(group => {
-          let createdBy = group.split('$')[1];
-          createdBy = createdBy || 'None';
-          const currentUserCost = _.get(createdByToCost, createdBy, 0);
-          createdByToCost[createdBy] = currentUserCost + cost[group].amount;
-        });
-      });
-      return createdByToCost;
-    });
-
-    const yesterdayCostArray = envCostResults.map(costResult => {
-      const yesterdayCost = costResult.length > 0 ? costResult[costResult.length - 1] : {};
-      let totalCost = 0;
-      if (yesterdayCost) {
-        const arrayOfCosts = _.flatMapDeep(yesterdayCost.cost);
-        arrayOfCosts.forEach(cost => {
-          totalCost += cost.amount;
-        });
-      }
-      return totalCost;
-    });
-
-    const envNameToCostInfo = {};
-    for (let i = 0; i < envIds.length; i++) {
-      const key = envIdToName[envIds[i]];
-      envNameToCostInfo[key] = {
-        pastMonthCostByUser: pastMonthCostByUserArray[i],
-        yesterdayCost: yesterdayCostArray[i],
-      };
-    }
-    return { envNameToCostInfo, envNameToIndex };
-  }
-
-  renderCostPerProj() {
-    if (_.isEmpty(this.state.projNameToTotalCost)) {
+  renderCostPerIndex() {
+    if (_.isEmpty(this.state.indexNameToTotalCost)) {
       return <ProgressPlaceHolder />;
     }
     const title = 'Index Costs for Past 30 Days';
-    const labels = Object.keys(this.state.projNameToTotalCost);
-    const dataPoints = Object.keys(this.state.projNameToTotalCost).map(projName => {
-      return this.state.projNameToTotalCost[projName];
+    const labels = Object.keys(this.state.indexNameToTotalCost);
+    const dataPoints = Object.keys(this.state.indexNameToTotalCost).map(indexName => {
+      return this.state.indexNameToTotalCost[indexName];
     });
     const data = {
       labels,
@@ -218,20 +145,17 @@ class Dashboard extends React.Component {
   }
 
   renderPastMonthCostPerEnv() {
-    if (_.isEmpty(this.state.envNameToCostInfo)) {
+    if (_.isEmpty(this.state.envIdToCostInfo)) {
       return <ProgressPlaceHolder />;
     }
 
     const pastMonthCostTotalArray = [];
-    Object.keys(this.state.envNameToCostInfo).forEach(envName => {
-      let total = 0;
-      Object.keys(this.state.envNameToCostInfo[envName].pastMonthCostByUser).forEach(user => {
-        total += this.state.envNameToCostInfo[envName].pastMonthCostByUser[user];
-      });
+    Object.keys(this.state.envIdToCostInfo).forEach(envId => {
+      const total = _.sum(_.values(this.state.envIdToCostInfo[envId].pastMonthCostByUser));
       pastMonthCostTotalArray.push(total);
     });
     const title = 'Env Cost for Past 30 Days';
-    const labels = Object.keys(this.state.envNameToCostInfo);
+    const labels = getLabels(this.state.envIdToCostInfo, this.state.envIdToEnvMetadata, this.state.duplicateEnvNames);
     const dataPoints = pastMonthCostTotalArray;
     const data = {
       labels,
@@ -242,13 +166,13 @@ class Dashboard extends React.Component {
   }
 
   renderYesterdayCostPerEnv() {
-    if (_.isEmpty(this.state.envNameToCostInfo)) {
+    if (_.isEmpty(this.state.envIdToCostInfo)) {
       return <ProgressPlaceHolder />;
     }
     const title = "Yesterday's Env Cost";
-    const labels = Object.keys(this.state.envNameToCostInfo);
-    const dataPoints = Object.keys(this.state.envNameToCostInfo).map(envName => {
-      return this.state.envNameToCostInfo[envName].yesterdayCost;
+    const labels = getLabels(this.state.envIdToCostInfo, this.state.envIdToEnvMetadata, this.state.duplicateEnvNames);
+    const dataPoints = Object.keys(this.state.envIdToCostInfo).map(envId => {
+      return this.state.envIdToCostInfo[envId].yesterdayCost;
     });
     const data = {
       labels,
@@ -258,20 +182,20 @@ class Dashboard extends React.Component {
     return <BarGraph className="mr4" data={data} title={title} />;
   }
 
-  renderPastMonthCostPerProjPerUser() {
-    if (_.isEmpty(this.state.projNameToUserTotalCost)) {
+  renderPastMonthCostPerIndexPerUser() {
+    if (_.isEmpty(this.state.indexNameToUserTotalCost)) {
       return <ProgressPlaceHolder />;
     }
     const results = [];
-    Object.keys(this.state.projNameToUserTotalCost).forEach(projName => {
-      const projCostData = this.state.projNameToUserTotalCost[projName];
-      const labels = Object.keys(projCostData);
+    Object.keys(this.state.indexNameToUserTotalCost).forEach(indexName => {
+      const indexCostData = this.state.indexNameToUserTotalCost[indexName];
+      const labels = Object.keys(indexCostData);
       // NOTE: We need a color for each user
       const colors = ['#FF6384', '#36A2EB', '#FFCE56', '#CDDC39', '#4527a0', '#f4511e'];
       const datasets = [
         {
-          data: Object.keys(projCostData).map(user => {
-            return projCostData[user];
+          data: Object.keys(indexCostData).map(user => {
+            return indexCostData[user];
           }),
           backgroundColor: colors,
           hoverBackgroundColor: colors,
@@ -284,8 +208,8 @@ class Dashboard extends React.Component {
       };
 
       results.push(
-        <div key={projName} className="col col-6">
-          <div className="center">{projName}</div>
+        <div key={indexName} className="col col-6">
+          <div className="center">{indexName}</div>
           <Pie data={data} />
         </div>,
       );
@@ -299,7 +223,119 @@ class Dashboard extends React.Component {
   }
 }
 
+async function getCosts(getEnvironmentsFn, getEnvironmentCostFn) {
+  const { envIdToCostInfo, envIdToEnvMetadata, duplicateEnvNames } = await getAccumulatedEnvCost(
+    getEnvironmentsFn,
+    getEnvironmentCostFn,
+  );
+
+  const indexNameToUserTotalCost = {};
+  Object.keys(envIdToCostInfo).forEach(envId => {
+    const indexName = envIdToEnvMetadata[envId].index;
+    if (indexNameToUserTotalCost[indexName] === undefined) {
+      indexNameToUserTotalCost[indexName] = {};
+    }
+    Object.keys(envIdToCostInfo[envId].pastMonthCostByUser).forEach(user => {
+      const currentUserCost = _.get(indexNameToUserTotalCost[indexName], user, 0);
+      indexNameToUserTotalCost[indexName][user] = currentUserCost + envIdToCostInfo[envId].pastMonthCostByUser[user];
+    });
+  });
+
+  const indexNameToTotalCost = {};
+  let totalCost = 0;
+  Object.keys(indexNameToUserTotalCost).forEach(indexName => {
+    let indexCost = 0;
+    Object.keys(indexNameToUserTotalCost[indexName]).forEach(user => {
+      indexCost += indexNameToUserTotalCost[indexName][user];
+    });
+    totalCost += indexCost;
+    indexNameToTotalCost[indexName] = indexCost;
+  });
+
+  return {
+    totalCost,
+    indexNameToTotalCost,
+    indexNameToUserTotalCost,
+    envIdToCostInfo,
+    envIdToEnvMetadata,
+    duplicateEnvNames,
+  };
+}
+
+function getLabels(envIdToCostInfo, envIdToEnvMetadata, duplicateEnvNames) {
+  const labels = Object.keys(envIdToCostInfo).map(envId => {
+    const envName = envIdToEnvMetadata[envId].name;
+    if (duplicateEnvNames.has(envName)) {
+      return `${envName}: ${envId}`;
+    }
+    return envName;
+  });
+  return labels;
+}
+
+async function getAccumulatedEnvCost(getEnvironmentsFn, getEnvironmentCostFn) {
+  const environments = await getEnvironmentsFn();
+  const duplicateEnvNames = new Set();
+  const envNameToEnvId = {};
+  const envIdToEnvMetadata = {};
+  environments.forEach(env => {
+    if (env.isExternal) return;
+    envIdToEnvMetadata[env.id] = {
+      index: env.indexId,
+      name: env.name,
+    };
+    if (envNameToEnvId[env.name] === undefined) {
+      envNameToEnvId[env.name] = env.id;
+    } else {
+      duplicateEnvNames.add(env.name);
+    }
+  });
+
+  const envIds = Object.keys(envIdToEnvMetadata);
+  const envCostPromises = envIds.map(envId => {
+    return getEnvironmentCostFn(envId, 30, false, true);
+  });
+
+  const envCostResults = await Promise.all(envCostPromises);
+  const pastMonthCostByUserArray = envCostResults.map(costResult => {
+    const createdByToCost = {};
+    _.forEach(costResult, costDate => {
+      const cost = costDate.cost;
+      Object.keys(cost).forEach(group => {
+        let createdBy = group.split('$')[1];
+        createdBy = createdBy || 'None';
+        const currentUserCost = _.get(createdByToCost, createdBy, 0);
+        createdByToCost[createdBy] = currentUserCost + cost[group].amount;
+      });
+    });
+    return createdByToCost;
+  });
+
+  const yesterdayCostArray = envCostResults.map(costResult => {
+    const yesterdayCost = costResult.length > 0 ? costResult[costResult.length - 1] : {};
+    let totalCost = 0;
+    if (yesterdayCost) {
+      const arrayOfCosts = _.flatMapDeep(yesterdayCost.cost);
+      arrayOfCosts.forEach(cost => {
+        totalCost += cost.amount;
+      });
+    }
+    return totalCost;
+  });
+
+  const envIdToCostInfo = {};
+  for (let i = 0; i < envIds.length; i++) {
+    envIdToCostInfo[envIds[i]] = {
+      pastMonthCostByUser: pastMonthCostByUserArray[i],
+      yesterdayCost: yesterdayCostArray[i],
+    };
+  }
+
+  return { envIdToCostInfo, envIdToEnvMetadata, duplicateEnvNames };
+}
+
 // see https://medium.com/@mweststrate/mobx-4-better-simpler-faster-smaller-c1fbc08008da
 decorate(Dashboard, {});
 
 export default inject('userStore')(withRouter(observer(Dashboard)));
+export { getAccumulatedEnvCost, getCosts, getLabels };

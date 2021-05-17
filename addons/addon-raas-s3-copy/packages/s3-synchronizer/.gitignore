@@ -1,10 +1,11 @@
 **/.class
 **/.DS_Store
+**/coverage
 **/node_modules
 
 **/npm-debug.log
 
-# https://github.com/github/gitignore/blob/master/Global/VisualStudioCode.gitignore
+# VisualStudioCode.gitignore
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json

@@ -34,6 +34,7 @@ const templateController = require('../controllers/template-controller');
 const computeController = require('../controllers/compute-controller');
 const ipController = require('../controllers/ip-controller');
 const budgetsController = require('../controllers/budgets-controller');
+const dataSourceController = require('../controllers/data-source-controller');
 
 /**
  * Adds routes to the given routesMap.
@@ -82,6 +83,7 @@ async function getRoutes(routesMap, pluginRegistry) {
     // PROTECTED APIS accessible only to logged in active, admin users
     ['/api/accounts', [setupAuthContext, prepareContext, ensureActive, ensureAdmin, accountsController]],
     ['/api/budgets', [setupAuthContext, prepareContext, ensureActive, ensureAdmin, budgetsController]],
+    ['/api/data-sources', [setupAuthContext, prepareContext, ensureActive, ensureAdmin, dataSourceController]],
   ]);
   return routes;
 }

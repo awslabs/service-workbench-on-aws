@@ -4,19 +4,17 @@ title: Studies Introduction
 sidebar_label: Introduction
 ---
 
-Service Workbench enables an organization to provide researchers with a centralized location to search for data sets (studies) and deploy research workspaces with them. Researchers can access a portal, quickly find data that they are interested in and with a few clicks be analyzing it in SageMaker Notebooks, for example.
+Service Workbench provides multiple ways to connect compute workspaces to data (Studies) saved in Amazon S3. As a researcher, you can also use it to search data using tools specific to your requirements.  
 
-Service Workbench also allows an organization to provide access to their data sets, or a subset of their data sets, to external organizations in a controlled way. Further to this, the external organization can use their own AWS account for the research workspace and access the data in the hosting organization.
+Using Service Workbench, an organization can share Studies with other organizations with access controls. 
 
-A user can mount zero or more Studies from each of the levels to their [Workspaces](/user_guide/sidebar/common/workspaces/introduction).
-
-There are 3 types of Studies available.
+There are three types of Studies available in Service Workbench. You can mount multiple Studies, of any type, to your [Workspaces](/user_guide/sidebar/common/workspaces/introduction).
 
 | Type                     | Description                                                                                                                                                                                                                                                                                               |
 | :----------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **My Studies**           | Studies that are only available to the user that created them. A user can use this to work on datasets that are exclusive to them or that are used specifically for their research. Users can also grant permission to other users in order to allow them access to their studies.                        |
-| **Organization Studies** | Studies that have been shared with the Organization. These could be data that had been collected by efforts of the organization or are licensed to the organization. It is possible to grant or deny users access to this data in order to comply with regulations or licensing restrictions on the data. |
-| **Open Data**            | Service Workbench provides access to AWS Open Data Data Sets by frequently scanning the set of AWS Open Datasets and adding new datasets to this category. This can include the 1000 genomes and other datasets openly available through Amazon.                                                          |
+| **My Studies**           | Specifies Studies created by users. Use this option to work on datasets that are exclusive to you or that are used specifically for your research.                        |
+| **Organization Studies** | Specifies Studies that can be shared with other users.  It contains data that had been collected by an organization or is licensed. You can grant or deny users access to this data in order to comply with regulations or licensing restrictions on the data. |
+| **Open Data**            | Service Workbench provides access to [Open Data on AWS](https://aws.amazon.com/opendata/) data by frequently scanning the set of AWS open datasets and adding new datasets to this category. This can include 1,000 genomes and other datasets openly available through Amazon.                                                          |
 
-All Study data is stored in the **studydata**
-[S3 Bucket](/deployment/reference/aws_services).
+Service Workbench can host data for My Studies and Organization Studies internally, in the `studydata` 
+[S3 Bucket](/deployment/reference/aws_services) created in the AWS account where Service Workbench was deployed. The application can also provide access to Studies hosted in external S3 buckets in other AWS accounts using the **Datasets** page.

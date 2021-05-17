@@ -1,14 +1,124 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
+
+## [3.1.0](https://github.com/nguyen102/service-workbench-on-aws/compare/v3.0.0...v3.1.0) (2021-05-10)
+
+
+### Features
+
+* Allow uploading a folder to My Studies ([#475](https://github.com/awslabs/service-workbench-on-aws/issues/475)) ([cb17d4b](https://github.com/awslabs/service-workbench-on-aws/commit/cb17d4be8c0fdaaee7384229629e4bc7ec7d95a1))
+* Run coverage for merge commit ([#458](https://github.com/awslabs/service-workbench-on-aws/issues/458)) ([03afe0e](https://github.com/awslabs/service-workbench-on-aws/commit/03afe0e1387b30dfc50ffab48b9982103048c585))
+* Test coverage ([#456](https://github.com/awslabs/service-workbench-on-aws/issues/456)) ([252b504](https://github.com/awslabs/service-workbench-on-aws/commit/252b5049400c1d3fcb2ceb4720f64210bf0d5359))
+
+
+### Bug Fixes
+
+* Fix BYOB app role to only modify FS roles ([#454](https://github.com/awslabs/service-workbench-on-aws/issues/454)) ([35f6cce](https://github.com/awslabs/service-workbench-on-aws/commit/35f6cce3ccc301921ead742240c15c1a7e332f0c))
+* free-form strings for workspace configs ([#479](https://github.com/awslabs/service-workbench-on-aws/issues/479)) ([fca73f4](https://github.com/awslabs/service-workbench-on-aws/commit/fca73f4dbaf509f06ce55b6b0c87c66e31ed8a88))
+* properly handle SC products with no active versions ([#468](https://github.com/awslabs/service-workbench-on-aws/issues/468)) ([3c561f4](https://github.com/awslabs/service-workbench-on-aws/commit/3c561f4850faffe3ccc6fd0ffcc5b7065f53f3c6))
+* Update workspace name reg exp and workspace config tags reg exp ([#452](https://github.com/awslabs/service-workbench-on-aws/issues/452)) ([f9b7d62](https://github.com/awslabs/service-workbench-on-aws/commit/f9b7d628a08b337eaa0a9c8b71bb6226ff0f7b34))
+
+## [3.0.0] - 2021-04-19
+
+### Added
+- refactor: restricting AppDeployer permissions
+- refactor: Remove permission boundary condition on launch constraint role
+- refactor: restrict sc roles
+
+**Permissions boundaries are being added to the several important IAM roles used by Service Workbench as a security best practice.**
+
+**Customer Impact:** Below outlines the actions required for you to successfully adopt this security enhancement. The first two items are applicable to all customers. If you have created custom workspace types, then all three items below are applicable.
+
+1. After running the update, onboard all hosting accounts once again to benefit from the enhanced security, and test the application.
+**Note:** The attached pdf contains steps for onboarding hosting accounts, contact your Service Workbench Administrator if you have not performed these steps before.
+
+2. After running the update, import and use the newly available Service Catalog product versions for workspace types (latest version numbers) to benefit from the enhanced security.
+
+3. **ONLY Customers that have created custom workspace types:** It is possible that the permissions boundaries would prevent actions that were formerly allowed. You should plan to validate your custom workspace types after the update. Issues should be addressed by modifying the custom workspaces to work within the permissions granted, or modify the permissions boundary for your installation (this would require a change to Service Workbench code (specifically the IAM policies that are attached as the permissions boundary) for your install).
+Note: Any existing custom or non-custom workspaces types (for example, EC2 Linux/Windows, EMR, SageMaker, R Studio) are not impacted by this upgrade.
+
+## [2.2.0] - 2021-04-12
+
+### Added
+- feat: Display SWB Version in UI's Top Bar
+- fix: Fix cost dashboard bugs
+
+## [2.1.5] - 2021-04-08
+
+### Added
+- fix: Ensure sdk retry logic is enabled in prod
+- docs: Readme updated
+- fix: assume role on added member account
+
+## [2.1.4] - 2021-04-06
+
+### Added
+- fix: managing pnpm version for nodejs compatibility
+
+## [2.1.3] - 2021-04-06
+
+### Added
+- fix: adding required AppDeployer permissions
+- chore: package dependency updates
+- fix: added X-ray support and fix CWL IAM permissions
+  
+If you have been using CI/CD pipeline, please redeploy the pipeline stack to incorporate this fix by following the steps listed on the `main/cicd/README.md` file.
+
+## [2.1.2] - 2021-04-01
+
+### Added
+- fix: managing AppDeployer role permission boundary
+- fix: CW log resources corrected in backend CFN template
+- refactor: restrict ApiHandler role permissions
+- refactor: restrict WorkflowLoopRunner role permissions
+- refactor: restrict CrossAcctExec role permissions
+- chore: team email removed from feedback section in readme
+- chore: updates to npm dependencies
+
+If you have been using CI/CD pipeline, please redeploy the pipeline stack to incorporate this fix by following the steps listed on the `main/cicd/README.md` file.
+
+## [2.1.1] - 2021-03-19
+
+### Added
+- chore: Enable SSE-S3 when registering buckets in BYOB
+- refactor: restrict data source reachability Lambda role
+- fix: Add 'reachable' and 'error' status to reachability check schema
+- fix: added region parameter reference to elasticmapreduce bucket references
+
+## [2.1.0] - 2021-03-12
+
+### Added
+- fix: Upgraded react-dev-utils yarn dependency version
+- feat: Added Bring Your Own Bucket(BYOB) functionality
+- feat: Added integration testing for all APIs
+- feat: Added OpenAPI documentation
+- feat: Removed unused APIs- listWorkflowInstancesByStatus and createAuthenticationProviderConfig
+
+## [2.0.3] - 2021-03-12
+
+### Added 
+- chore(deps): bump websocket-extensions from 0.1.3 to 0.1.4
+- test: fix flaky integ tests
+- fix: emr workspace image. Lock jupyterlab to version 2.2.6
+- test: Implemented integration tests for service catalog workspaces
+- feat: verbose integ test log
+
+## [2.0.2] - 2021-03-03
+
+### Added 
+- fix: SageMaker environment status update
+- fix: Validate Open Data ARNs
+- test: Integration test components and framework
+- chore: Dependency version bump
 
 ## [2.0.1] - 2021-02-08
 
 ### Added 
-fix: Added usernameInIdp property to update user schema
-fix: Made external researcher used UserOnboarding template less permissive
-fix: labeler yml syntax
-chore: add PR size labeler
+- fix: Added usernameInIdp property to update user schema
+- fix: Made external researcher used UserOnboarding template less permissive
+- fix: labeler yml syntax
+- chore: add PR size labeler
 
 We recommend to apply this patch as soon as possible
 

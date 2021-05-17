@@ -20,7 +20,13 @@ import { computed, decorate } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { Header, Icon, Segment } from 'semantic-ui-react';
 import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import { isStoreLoading, isStoreError, isStoreReady, isStoreEmpty } from '@aws-ee/base-ui/dist/models/BaseStore';
+import {
+  isStoreLoading,
+  isStoreError,
+  isStoreReady,
+  isStoreEmpty,
+  stopHeartbeat,
+} from '@aws-ee/base-ui/dist/models/BaseStore';
 import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
 
@@ -44,9 +50,7 @@ class StudiesTab extends React.Component {
   }
 
   componentWillUnmount() {
-    const store = this.studiesStore;
-    if (!store) return;
-    store.stopHeartbeat();
+    stopHeartbeat(this.studiesStore);
   }
 
   get canCreateStudy() {

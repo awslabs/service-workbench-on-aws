@@ -16,6 +16,7 @@
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
+const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
 
 const uuid = require('uuid/v1');
 let fetch = require('node-fetch');
@@ -191,15 +192,23 @@ class StorageGatewayService extends Service {
   async updateStudyFileMountIPAllowList(requestContext, existingEnvironment, ipAllowListAction) {
     const studyService = await this.service('studyService');
     // Check if the mounted study is using StorageGateway
+
+    // We want to use the system context when calling listByIds, because this method must be called by admins
+    const systemContext = getSystemRequestContext();
     const studiesList = await studyService.listByIds(
-      requestContext,
+      systemContext,
       existingEnvironment.studyIds.map(id => {
         return { id };
       }),
     );
 
     // If yes, get the file share ARNs and call to update IP allow list
-    const fileShareARNs = studiesList.map(study => study.resources[0].fileShareArn).filter(arn => !_.isUndefined(arn));
+    // We can't assume that the study entity will have a property named 'resources', therefore, we need to use _.get()
+    const fileShareARNs = _.filter(studiesList, study => {
+      const fileShareArn = _.get(study, 'resources[0].fileShareArn');
+      return !_.isUndefined(fileShareArn);
+    }).map(study => _.get(study, 'resources[0].fileShareArn'));
+
     if (!_.isEmpty(fileShareARNs)) {
       let ip;
       // If IP is in ipAllowListAction, use that, if not, find it in existingEnvironment

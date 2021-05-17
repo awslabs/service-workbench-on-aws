@@ -9,23 +9,6 @@ module.exports = {
   themeConfig: {
     navbar: {
       title: "Home",
-      // logo: {
-      //   alt: 'Product Logo',
-      //   src: 'img/logo.svg',
-      // },
-      links: [
-        // {
-        //   to: 'docs/doc1',
-        //   activeBasePath: 'docs',
-        //   label: 'Docs',
-        //   position: 'left',
-        // },
-        // {
-        //   href: 'https://github.com/facebook/docusaurus',
-        //   label: 'GitHub',
-        //   position: 'right',
-        // },
-      ],
     },
     footer: {
       style: "dark",
