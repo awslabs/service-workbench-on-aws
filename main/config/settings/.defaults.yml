@@ -175,7 +175,7 @@ createServiceCatalogPortfolio: true
 versionNumber: '3.1.0'
 
 # Release date of current release
-versionDate: '2021-04-19'
+versionDate: '2021-05-11'
 
 # Metadata provided with AWS SDK calls
 customUserAgent: 'AwsLabs/SO0144/${self:custom.settings.versionNumber}'
