@@ -6,6 +6,8 @@
   "env": {
     "researcherEmail": "<EMAIL ACCOUNT OF PREMADE RESEARCHER>",
     "researcherPassword": "<RESEARCHER ACCOUNT PASSWORD>",
+    "adminEmail": "<EMAIL ACCOUNT OF PREMADE ADMIN>",
+    "adminPassword": "<ADMIN ACCOUNT PASSWORD>",
     "isCognitoEnabled": false,
     "workspaces": {
       "sagemaker": {

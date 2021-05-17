@@ -15,7 +15,7 @@
 
 describe('Launch a new sagemaker workspace', () => {
   before(() => {
-    cy.login();
+    cy.login('researcher');
     navigateToWorkspaces();
     terminatePrexistingWorkspaces();
   });
