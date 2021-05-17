@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.1.1](https://github.com/nguyen102/service-workbench-on-aws/compare/v3.1.0...v3.1.1) (2021-05-17)
+
+
+### Bug Fixes
+
+* adds 'stopped' filter for workspaces ([960b592](https://github.com/nguyen102/service-workbench-on-aws/commit/960b592341b186f09da12307cca138fd0b4fde25))
+* moved notification boxes to avoid blocking the top ribbon. ([#483](https://github.com/nguyen102/service-workbench-on-aws/issues/483)) ([5a226d7](https://github.com/nguyen102/service-workbench-on-aws/commit/5a226d7a46ccae2d9f741dbeffe24d78e8dad252))
+* update UI software version banner to have the correct version number
+
 ## [3.1.0](https://github.com/nguyen102/service-workbench-on-aws/compare/v3.0.0...v3.1.0) (2021-05-10)
 
 
