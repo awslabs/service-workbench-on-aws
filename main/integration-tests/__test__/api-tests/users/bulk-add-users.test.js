@@ -57,11 +57,20 @@ describe('Create user scenarios', () => {
       });
     });
 
-    it('should fail for adding user that already exist', async () => {
+    it('should fail with badRequest code for adding users that already exist', async () => {
       const admin1Session = await setup.createAdminSession();
       const newUser = admin1Session.resources.users.defaults();
       await expect(admin1Session.resources.users.bulkAddUsers([defaultUser, newUser])).rejects.toMatchObject({
-        code: errorCode.http.code.internalError,
+        code: errorCode.http.code.badRequest,
+      });
+    });
+
+    it('should fail with badRequest code for adding malformed users', async () => {
+      const admin1Session = await setup.createAdminSession();
+      const badUser = {};
+      const newUser = admin1Session.resources.users.defaults();
+      await expect(admin1Session.resources.users.bulkAddUsers([newUser, badUser])).rejects.toMatchObject({
+        code: errorCode.http.code.badRequest,
       });
     });
   });
