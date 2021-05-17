@@ -102,6 +102,8 @@ jobs:
           CYPRESS_BASE_URL: ${{ secrets.CYPRESS_BASE_URL}}
           CYPRESS_researcherEmail: ${{ secrets.CYPRESS_RESEARCHER_EMAIL}}
           CYPRESS_researcherPassword: ${{ secrets.CYPRESS_RESEARCHER_PASSWORD}}
+          CYPRESS_adminEmail: ${{ secrets.CYPRESS_ADMIN_EMAIL}}
+          CYPRESS_adminPassword: ${{ secrets.CYPRESS_ADMIN_PASSWORD}}
   merge-develop-to-mainline:
     name: Merge develop to mainline
     runs-on: ubuntu-18.04
