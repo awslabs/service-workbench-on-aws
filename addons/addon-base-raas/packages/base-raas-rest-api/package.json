@@ -10,6 +10,7 @@
     "@aws-ee/base-controllers": "workspace:*",
     "@aws-ee/base-raas-services": "workspace:*",
     "@aws-ee/base-services": "workspace:*",
+    "@aws-ee/base-post-deployment": "workspace:*",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
