@@ -11,7 +11,8 @@
     "@aws-ee/environment-type-mgmt-services": "workspace:*",
     "lodash": "^4.17.15",
     "slugify": "^1.4.0",
-    "uuid": "^8.2.0"
+    "uuid": "^8.2.0",
+    "js-yaml": "^4.0.0"
   },
   "devDependencies": {
     "@aws-ee/workflow-engine": "workspace:*",

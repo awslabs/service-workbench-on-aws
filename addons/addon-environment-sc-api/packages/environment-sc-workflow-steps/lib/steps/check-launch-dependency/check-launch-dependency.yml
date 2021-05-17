@@ -1,0 +1,8 @@
+id: st-check-launch-dependency
+v: 1
+title: Check Dependencies Before Launching a Service Catalog Product
+desc: |
+  Checks Dependencies Before Launching a Service Catalog Product and Solves it
+
+skippable: true # this means that if there is an error in a previous step, then this step will be skipped
+hidden: true

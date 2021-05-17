@@ -127,6 +127,29 @@ async function updateEnvOnProvisioningSuccess({
       const environmentDnsService = await container.find('environmentDnsService');
       await environmentDnsService.createRecord('rstudio', envId, dnsName);
     }
+    else if (connectionTypeValue.toLowerCase() === 'rstudiov2') {
+      const albService = await container.find('albService');
+      const deploymentItem = await albService.getAlbDetails(requestContext, resolvedVars.projectId);
+      const albExists = await albService.checkAlbExists(requestContext, resolvedVars.projectId);
+      if (!albExists) {
+        throw new Error(`Error provisioning environment. Reason: No ALB found for this AWS account`);
+      }
+      const dnsName = JSON.parse(deploymentItem.value).albDnsName;
+      const targetGroupArn = _.find(outputs, o => o.OutputKey === 'TargetGroupARN').OutputValue;
+      // Create DNS record for RStudio workspaces
+      const environmentDnsService = await container.find('environmentDnsService');
+      await environmentDnsService.createRecord('rstudio', envId, dnsName);
+      //Create a listener rule
+      const ruleARN = await albService.createListenerRule('rstudio', requestContext, resolvedVars, targetGroupArn);
+      // Save the Rule ARN as an output in DB
+      const ruleRecord = {
+        Description: "ARN of the listener rule created by code",
+        OutputKey: "ListenerRuleARN",
+        OutputValue: ruleARN
+      };
+      outputs.push(ruleRecord);
+      await albService.increaseAlbDependentWorkspaceCount(requestContext, resolvedVars);
+    }
   }
 
   const environment = {
@@ -254,12 +277,19 @@ async function rstudioCleanup(requestContext, updatedEnvironment, container) {
   let connectionTypeValue;
   if (connectionType) {
     connectionTypeValue = connectionType.OutputValue;
-    if (connectionTypeValue.toLowerCase() === 'rstudio') {
-      const dnsName = _.find(updatedEnvironment.outputs, x => x.OutputKey === 'Ec2WorkspaceDnsName').OutputValue;
+    if (connectionTypeValue.toLowerCase() === 'rstudio' || connectionTypeValue.toLowerCase() === 'rstudiov2') {
+      let dnsName;
+      if (connectionTypeValue.toLowerCase() === 'rstudio') {
+        dnsName = _.find(updatedEnvironment.outputs, x => x.OutputKey === 'Ec2WorkspaceDnsName').OutputValue;
+        //Moved the code here to handle intermediate provisioning before termination code
+        const environmentDnsService = await container.find('environmentDnsService');
+        await environmentDnsService.deleteRecord('rstudio', updatedEnvironment.id, dnsName);
+      }
+      else if (connectionTypeValue.toLowerCase() === 'rstudiov2') {
+        // TODO: Add code to remove record for new Rstudio version
+      }
       const instanceId = _.find(updatedEnvironment.outputs, x => x.OutputKey === 'Ec2WorkspaceInstanceId').OutputValue;
-      const environmentDnsService = await container.find('environmentDnsService');
       const environmentScService = await container.find('environmentScService');
-      await environmentDnsService.deleteRecord('rstudio', updatedEnvironment.id, dnsName);
 
       const ssm = await environmentScService.getClientSdkWithEnvMgmtRole(
         requestContext,

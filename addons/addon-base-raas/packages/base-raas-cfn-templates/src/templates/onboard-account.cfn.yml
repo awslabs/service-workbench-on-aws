@@ -311,6 +311,13 @@ Resources:
               Action:
                 - elasticmapreduce:*
               Resource: '*'
+        - PolicyName: elb-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - elasticloadbalancing:*
+              Resource: '*'
 
   # VPC for launching EMR clusters into
   # Just one AZ as we're aiming for transient low-cost clusters rather than HA

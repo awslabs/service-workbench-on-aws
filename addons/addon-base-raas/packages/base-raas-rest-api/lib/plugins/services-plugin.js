@@ -46,6 +46,8 @@ const JwtService = require('@aws-ee/base-api-services/lib/jwt-service');
 const EnvironmentScService = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-service');
 const EnvironmentConfigVarsService = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-config-vars-service');
 const EnvironmentScKeypairService = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-keypair-service');
+const DeploymentStoreService = require('@aws-ee/base-post-deployment/lib/deployment-store-service');
+const AlbService = require('@aws-ee/base-raas-services/lib/alb/alb-service');
 
 const settingKeys = {
   tablePrefix: 'dbPrefix',
@@ -94,6 +96,8 @@ async function registerServices(container, pluginRegistry) {
   container.register('environmentScKeypairService', new EnvironmentScKeypairService());
   container.register('pluginRegistryService', new PluginRegistryService(pluginRegistry), { lazy: false });
   container.register('jwtService', new JwtService());
+  container.register('deploymentStoreService', new DeploymentStoreService());
+  container.register('albService', new AlbService());
 
   // Authorization Services from raas addon
   container.register('raasUserAuthzService', new UserAuthzService());
@@ -130,6 +134,7 @@ function getStaticSettings(existingStaticSettings, settings, pluginRegistry) {
   table('dbProjects', 'Projects');
   table('dbStudyPermissions', 'StudyPermissions');
   table('StorageGateway', 'StorageGateway');
+  table('dbDeploymentStore', 'DeploymentStore');
 
   return staticSettings;
 }

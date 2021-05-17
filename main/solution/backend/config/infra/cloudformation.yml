@@ -571,7 +571,7 @@ Resources:
                 - !GetAtt [CostApiCachesDb, Arn]
                 - !GetAtt [UserRolesDb, Arn]
                 - !GetAtt [StorageGatewayDb, Arn]
-
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbDeploymentStore}'
         - PolicyName: param-store-access
           PolicyDocument:
             Statement:
@@ -676,6 +676,15 @@ Resources:
                   - s3:HeadBucket
                 Resource:
                   - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}'
+        #Policy to give read access for CFT templates stored by service catalog
+        - PolicyName: service-catalog-cft-s3-access
+          PolicyDocument:
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - s3:GetObject
+                Resource:
+                  - 'arn:aws:s3:::cf-templates-*/*'
 
   # IAM Role for Step Functions to invoke lambda
   RoleStepFunctionsWorkflow:

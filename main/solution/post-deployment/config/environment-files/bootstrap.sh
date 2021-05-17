@@ -69,6 +69,32 @@ update_jupyter_config() {
 EOF
 }
 
+# Define a function to generate self signed certificate
+generate_ssl_certificate() {
+    commonname=$(uname -n)
+    password=dummypassword
+
+    mkdir -p /tmp/rstudio/ssl
+    chmod 700 /tmp/rstudio/ssl
+    cd /tmp/rstudio/ssl
+
+    #Generate a key
+    openssl genrsa -des3 -passout pass:$password -out cert.key 2048
+    #Remove passphrase from the key. Comment the line out to keep the passphrase
+    openssl rsa -in cert.key -passin pass:$password -out cert.key
+    #Create the request
+    openssl req -new -key cert.key -out cert.csr -passin pass:$password \
+        -subj "/C=NA/ST=NA/L=NA/O=NA/OU=SWB/CN=$commonname/emailAddress=example.com"
+    openssl x509 -req -days 365 -in cert.csr -signkey cert.key -out cert.pem
+    #Move the certificate files to nginx directory
+    mkdir -p /tmp/rstudio/generated/nginx/
+    sudo mv cert.pem "/etc/nginx/"
+    sudo mv cert.key "/etc/nginx/"
+    sudo systemctl restart nginx
+    cd "../../.."
+    sudo rm -rf "/tmp/rstudio"
+}
+
 # Install dependencies
 yum install -y fuse jq
 curl -LSs -o "/usr/local/bin/goofys" "$GOOFYS_URL"
@@ -96,6 +122,7 @@ case "$(env_type)" in
         printf "\n# Mount S3 study data\nmount_s3.sh\n\n" >> "/home/ec2-user/.bash_profile"
         ;;
     "rstudio") # Add mount script to bash profile
+        generate_ssl_certificate
         printf "\n# Mount S3 study data\nmount_s3.sh\n\n" >> "/home/rstudio-user/.bash_profile"
         ;;
 esac

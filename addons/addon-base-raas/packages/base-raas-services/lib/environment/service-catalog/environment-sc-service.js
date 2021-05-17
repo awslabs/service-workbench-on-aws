@@ -408,6 +408,7 @@ class EnvironmentScService extends Service {
         envId: id,
         envTypeId,
         envTypeConfigId,
+        projectId,
       });
     } catch (e) {
       const error = this.boom.internalError(`Error triggering ${workflowIds.create} workflow`).cause(e);

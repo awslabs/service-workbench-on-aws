@@ -157,7 +157,8 @@ class EnvironmentScConnectionService extends Service {
       connection.url = _.get(sageMakerResponse, 'AuthorizedUrl');
     }
 
-    if (_.toLower(_.get(connection, 'type', '')) === 'rstudio') {
+    if (_.toLower(_.get(connection, 'type', '')) === 'rstudio' ||
+      _.toLower(_.get(connection, 'type', '')) === 'rstudiov2') {
       connection.url = await this.getRStudioUrl(requestContext, envId, connection);
     }
 
