@@ -35,6 +35,9 @@ jobs:
           npm install -g pnpm
           npm install -g codecov
           pnpm recursive install --unsafe-perm --stream
+      - name: Check dependencies for vulnerabilities
+        run: |
+          ./scripts/check-dependency-vulnerabilities.sh
       - name: Run static code analysis & linting tests
         run: |
           ./scripts/run-static-code-analysis.sh --stream
