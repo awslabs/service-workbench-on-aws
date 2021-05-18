@@ -25,6 +25,7 @@
     "source-map-support": "^0.5.16"
   },
   "scripts": {
+    "coverage": "NODE_ENV=test jest --config jest.config.js --passWithNoTests --verbose --collectCoverage --watchAll=false --coverage && codecov --disable=gcov",
     "test": "NODE_ENV=test jest --config jest.config.js --passWithNoTests",
     "test:watch": "NODE_ENV=test jest --config jest.config.js  --passWithNoTests --watchAll",
     "lint": "pnpm run lint:eslint && pnpm run lint:prettier",

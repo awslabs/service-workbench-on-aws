@@ -70,12 +70,12 @@ EOF
 }
 
 # Install dependencies
-yum install -y fuse jq
+yum install -y jq-1.5
 curl -LSs -o "/usr/local/bin/goofys" "$GOOFYS_URL"
 chmod +x "/usr/local/bin/goofys"
 
 # Install ec2 instance connect agent
-sudo yum install ec2-instance-connect
+sudo yum install ec2-instance-connect-1.1
 
 # Create S3 mount script and config file
 chmod +x "${FILES_DIR}/bin/mount_s3.sh"
@@ -85,17 +85,21 @@ printf "%s" "$S3_MOUNTS" > "/usr/local/etc/s3-mounts.json"
 # Apply updates to environments based on environment type
 case "$(env_type)" in
     "emr") # Update config and restart Jupyter
+        yum install -y fuse-2.9.4
         update_jupyter_config "/opt/hail-on-AWS-spot-instances/src/jupyter_notebook_config.py"
         sudo -u hadoop PATH=$PATH:/usr/local/bin /opt/hail-on-AWS-spot-instances/src/jupyter_run.sh
         ;;
     "sagemaker") # Update config and restart Jupyter
+        yum install -y fuse-2.9.4
         update_jupyter_config "/home/ec2-user/.jupyter/jupyter_notebook_config.py"
         initctl restart jupyter-server --no-wait
         ;;
     "ec2-linux") # Add mount script to bash profile
+        yum install -y fuse-2.9.2
         printf "\n# Mount S3 study data\nmount_s3.sh\n\n" >> "/home/ec2-user/.bash_profile"
         ;;
     "rstudio") # Add mount script to bash profile
+        yum install -y fuse-2.9.2
         printf "\n# Mount S3 study data\nmount_s3.sh\n\n" >> "/home/rstudio-user/.bash_profile"
         ;;
 esac
