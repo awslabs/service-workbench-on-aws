@@ -31,7 +31,6 @@ const inPayloadKeys = {
     resolvedVars: 'resolvedVars',
     portfolioId: 'portfolioId',
     productId: 'productId',
-    projectId: 'projectId',
 };
 
 // const outPayloadKeys = {
@@ -73,45 +72,28 @@ class CheckLaunchDependency extends StepBase {
             [inPayloadKeys.productId]: 'string',
             [inPayloadKeys.envTypeId]: 'string',
             [inPayloadKeys.envTypeConfigId]: 'string',
-            [inPayloadKeys.projectId]: 'string',
         };
     }
 
     async start() {
-        const [requestContext, resolvedVars, productId, envTypeId, envTypeConfigId, projectId] = await Promise.all([
+        const [requestContext, resolvedVars, productId, envTypeId, envTypeConfigId] = await Promise.all([
             this.payloadOrConfig.object(inPayloadKeys.requestContext),
             this.payloadOrConfig.object(inPayloadKeys.resolvedVars),
             this.payloadOrConfig.string(inPayloadKeys.productId),
             this.payloadOrConfig.string(inPayloadKeys.envTypeId),
             this.payloadOrConfig.string(inPayloadKeys.envTypeConfigId),
-            this.payloadOrConfig.string(inPayloadKeys.projectId),
         ]);
-
-        const [envTypeService, envTypeConfigService, aws, iamService] = await this.mustFindServices(['envTypeService', 'envTypeConfigService', 'aws', 'iamService']);
+        const projectId = resolvedVars.projectId;
+        const [envTypeService, envTypeConfigService, aws] = await this.mustFindServices(['envTypeService', 'envTypeConfigService', 'aws']);
         const envTypeConfig = await envTypeConfigService.mustFind(requestContext, envTypeId, { id: envTypeConfigId });
         const envType = await envTypeService.mustFind(requestContext, { id: envTypeId });
         const resolvedInputParams = await this.resolveVarExpressions(envTypeConfig.params, resolvedVars);
-        this.print({
-            msg: `Checking dependency for the product ${productId}`,
-            productId,
-            envTypeId,
-            envTypeConfigId,
-            projectId,
-            resolvedVars
-        });
         const templateOutputs = await this.getTemplateOutputs(requestContext, envTypeId, productId);
-        this.print({
-            msg: `Template Outputs Parsed ${JSON.stringify(templateOutputs)}`
-        });
         const needsAlb = _.get(templateOutputs.NeedsALB, 'Value', false);
         const maxAlbWorkspacesCount = _.get(templateOutputs.MaxCountALBDependentWorkspaces, 'Value', MAX_COUNT_ALB_DEPENDENT_WORKSPACES);
-        this.print({
-            msg: `Template Outputs Parsed ${needsAlb}, ${maxAlbWorkspacesCount}`
-        });
         if (needsAlb) {
             return await this.provisionAlb(requestContext, resolvedVars, projectId, resolvedInputParams, maxAlbWorkspacesCount);
         }
-        return this.wait(60);
     }
 
     /**
@@ -129,9 +111,6 @@ class CheckLaunchDependency extends StepBase {
         const [ALBService] = await this.mustFindServices(['albService']);
         const count = await ALBService.albDependentWorkspacesCount(requestContext, projectId);
         const albExists = await ALBService.checkAlbExists(requestContext, projectId);
-        this.print({
-            msg: `Got Count ${count}`,
-        });
         if (count >= maxAlbWorkspacesCount) {
             throw new Error(`Error provisioning environment. Reason: Maximum workspaces using ALB has reached`);
         }
@@ -144,9 +123,6 @@ class CheckLaunchDependency extends StepBase {
                 msg: `Workspace needs ALB. Provisioning an ALB.`,
             });
             const stackInput = await ALBService.getStackCreationInput(requestContext, resolvedInputParams, projectId);
-            this.print({
-                msg: `Stack Creation input ${JSON.stringify(stackInput)}`
-            });
             //Storing Dependency type so the stack completion can be handled for different dependencies
             this.state.setKey('DEPENDENCY_TYPE', 'ALB');
             //Create Stack
@@ -165,9 +141,6 @@ class CheckLaunchDependency extends StepBase {
     async deployStack(requestContext, resolvedVars, stackInput) {
         const cfn = await this.getCloudFormationService(requestContext, resolvedVars);
         const response = await cfn.createStack(stackInput).promise();
-        this.print({
-            msg: `Stack Creation response ${JSON.stringify(response)}`
-        });
         // Update workflow state and poll for stack creation completion
         this.state.setKey('STACK_ID', response.StackId);
         return (
@@ -191,13 +164,13 @@ class CheckLaunchDependency extends StepBase {
     * @returns {Promise<>}
     */
     async handleStackCompletion(stackOutputs) {
-        const [requestContext, projectId, resolvedVars, stackId, dependencyType] = await Promise.all([
+        const [requestContext, resolvedVars, stackId, dependencyType] = await Promise.all([
             this.payloadOrConfig.object(inPayloadKeys.requestContext),
-            this.payloadOrConfig.string(inPayloadKeys.projectId),
             this.payloadOrConfig.object(inPayloadKeys.resolvedVars),
             this.state.string('STACK_ID'),
             this.state.string('DEPENDENCY_TYPE'),
         ]);
+        const projectId = resolvedVars.projectId;
         const [ALBService] = await this.mustFindServices(['albService']);
         const awsAccountId = await ALBService.findAwsAccountId(requestContext, projectId);
         if (dependencyType == "ALB") {
@@ -209,9 +182,6 @@ class CheckLaunchDependency extends StepBase {
                 albDnsName: _.get(stackOutputs, 'ALBDNSName', null),
                 albDependentWorkspacesCount: 0
             }
-            this.print({
-                msg: `ALB Details ${JSON.stringify(albDetails)}`
-            });
             await ALBService.saveAlbDetails(awsAccountId, albDetails);
         }
         this.print({
@@ -229,23 +199,11 @@ class CheckLaunchDependency extends StepBase {
     * @returns {Promise<{Key: string:{Value: string, Description: string}}[]>}
     */
     async getTemplateOutputs(requestContext, envTypeId, productId) {
-        this.print({
-            msg: `In Get Template Outputs`
-        });
         const { artifactInfo } = await this.describeArtifact(requestContext, envTypeId, productId);
         const templateUrl = artifactInfo.TemplateUrl;
         const { bucketName, key } = await this.parseS3DetailsfromUrl(templateUrl);
-        this.print({
-            msg: `Bucket Details ${bucketName}, ${key}`
-        });
         const templateBody = await this.getS3Object(bucketName, key);
-        this.print({
-            msg: `Template Body ${templateBody}`
-        });
         const templateBodyParsed = YAML.load(templateBody, { schema: jsYamlCustomSchema, json: true });
-        this.print({
-            msg: `Template Body Parsed ${JSON.stringify(templateBodyParsed)}`
-        });
         const templateOutputs = _.get(templateBodyParsed, 'Outputs', {});
         return templateOutputs;
     }
@@ -262,22 +220,13 @@ class CheckLaunchDependency extends StepBase {
     async describeArtifact(requestContext, envTypeId, productId) {
         const [envTypeService, aws] = await this.mustFindServices(['envTypeService', 'aws']);
         const envType = await envTypeService.mustFind(requestContext, { id: envTypeId });
-
         const envMgmtRoleArn = this.settings.get(settingKeys.envMgmtRoleArn);
         const serviceCatalogClient = await getServiceCatalogClient(aws, envMgmtRoleArn);
         const params = {
             ProductId: productId,
             ProvisioningArtifactId: envType.provisioningArtifact.id,
         };
-        this.print({
-            msg: `Describing Provisioning Artifact ${envType.provisioningArtifact.id}`,
-            params,
-        });
         const { Info: artifactInfo } = await serviceCatalogClient.describeProvisioningArtifact(params).promise();
-
-        this.print({
-            msg: `Provisioning Artifact, ${artifactInfo}`
-        });
         return { artifactInfo };
     }
 
@@ -408,12 +357,8 @@ class CheckLaunchDependency extends StepBase {
             this.state.string('STACK_ID'),
             this.payloadOrConfig.object(inPayloadKeys.resolvedVars),
         ]);
-        this.print(`checking status of cfn stack: ${stackId}`);
         const cfn = await this.getCloudFormationService(requestContext, resolvedVars);
         const stackInfo = (await cfn.describeStacks({ StackName: stackId }).promise()).Stacks[0];
-        this.print({
-            msg: `Stack Describe response ${JSON.stringify(stackInfo)}`
-        });
 
         if (_.includes(failureStatuses, stackInfo.StackStatus)) {
             // If provisioning failed then throw error, any unhandled workflow errors
@@ -443,9 +388,6 @@ class CheckLaunchDependency extends StepBase {
         const cfn = await this.getCloudFormationService(requestContext, resolvedVars);
         const stackInfo = (await cfn.describeStacks({ StackName: stackId }).promise()).Stacks[0];
         const stackOutputs = this.getStackOutputs(stackInfo);
-        this.print({
-            msg: `Stack Outputs ${JSON.stringify(stackOutputs)}`
-        });
         return await this.handleStackCompletion(stackOutputs);
     }
 

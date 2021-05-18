@@ -49,9 +49,7 @@ class ALBService extends Service {
     * @returns {Promise<int>}
     */
     async albDependentWorkspacesCount(requestContext, projectId) {
-        await this.audit(requestContext, { action: 'dev-log', body: { "Log": "In Function" } });
         const deploymentItem = await this.getAlbDetails(requestContext, projectId);
-        await this.audit(requestContext, { action: 'dev-log', body: { "DeploymentItem": deploymentItem } });
         if (deploymentItem) {
             const albRecord = JSON.parse(deploymentItem.value);
             return albRecord.albDependentWorkspacesCount;
@@ -69,7 +67,6 @@ class ALBService extends Service {
     * @returns {Promise<boolean>}
     */
     async checkAlbExists(requestContext, projectId) {
-        await this.audit(requestContext, { action: 'dev-log', body: { "Log": "In provision ALB" } });
         const deploymentItem = await this.getAlbDetails(requestContext, projectId);
         if (deploymentItem) {
             const albRecord = JSON.parse(deploymentItem.value);
@@ -101,8 +98,6 @@ class ALBService extends Service {
         addParam('Subnet1', awsAccountDetails.subnetId);
         addParam('ACMSSLCertARN', certificateArn.Value);
         addParam('VPC', awsAccountDetails.vpcId);
-
-        await this.audit(requestContext, { action: 'dev-log', body: { "Params": cfnParams } });
 
         const input = {
             StackName: stackName,
@@ -139,7 +134,6 @@ class ALBService extends Service {
     */
     async getAlbDetails(requestContext, projectId) {
         const awsAccountId = await this.findAwsAccountId(requestContext, projectId);
-        await this.audit(requestContext, { action: 'dev-log', body: { "awsAccountId": awsAccountId } });
         return await this.findDeploymentItem({ id: awsAccountId });
     }
 
@@ -173,9 +167,7 @@ class ALBService extends Service {
         ]);
         const project = await ProjectService.mustFind(requestContext, { id: projectId });
         const { indexId } = project;
-        await this.audit(requestContext, { action: 'dev-log', body: { "index": indexId, "Project": project } });
-
-        // // Get the aws account information
+        // Get the aws account information
         const { awsAccountId } = await indexesService.mustFind(requestContext, { id: indexId });
         return awsAccountId;
     }
@@ -203,7 +195,6 @@ class ALBService extends Service {
     */
     async createListenerRule(prefix, requestContext, resolvedVars, targetGroupArn) {
         const deploymentItem = await this.getAlbDetails(requestContext, resolvedVars.projectId);
-        await this.audit(requestContext, { action: 'dev-log', body: { "DeploymentItem": deploymentItem } });
         const albRecord = JSON.parse(deploymentItem.value);
         const listenerArn = albRecord.listenerArn;
         const priority = albRecord.albDependentWorkspacesCount + 1;
@@ -233,10 +224,8 @@ class ALBService extends Service {
             ],
             Tags: resolvedVars.tags
         }
-        await this.audit(requestContext, { action: 'dev-log', body: { "Parameter": params } });
         const albClient = await this.getAlbSdk(requestContext, resolvedVars);
         const response = await albClient.createRule(params).promise();
-        await this.audit(requestContext, { action: 'dev-log', body: { "Rule Creation response": response } });
         return response.Rules[0].RuleArn;
     }
 
@@ -249,7 +238,6 @@ class ALBService extends Service {
     */
     async increaseAlbDependentWorkspaceCount(requestContext, resolvedVars) {
         const deploymentItem = await this.getAlbDetails(requestContext, resolvedVars.projectId);
-        await this.audit(requestContext, { action: 'dev-log', body: { "DeploymentItem": deploymentItem } });
         var albRecord = JSON.parse(deploymentItem.value);
         albRecord.albDependentWorkspacesCount = albRecord.albDependentWorkspacesCount + 1;
         await this.saveAlbDetails(deploymentItem.id, albRecord);
@@ -278,7 +266,6 @@ class ALBService extends Service {
         const [aws] = await this.service(['aws']);
         const roleArn = await this.getTargetAccountRoleArn(requestContext, resolvedVars.projectId);
         const externalId = resolvedVars.externalId;
-        await this.audit(requestContext, { action: 'dev-log', body: { "Role ARN": roleArn } });
         const albClient = await aws.getClientSdkForRole({
             roleArn,
             clientName: 'ELBv2',
