@@ -22,6 +22,7 @@ import sagemakerInstance from '../templates/sagemaker-notebook-instance.cfn.yml'
 import emrCluster from '../templates/emr-cluster.cfn.yml';
 import onboardAccount from '../templates/onboard-account.cfn.yml';
 import storageGatewayNetworkInfra from '../templates/storage-gateway/network-infrastructure.cfn.yml';
+import applicationLoadBalancer from '../templates/application-load-balancer.cfn.yml';
 
 const add = (name, yaml) => ({ name, yaml });
 
@@ -34,6 +35,7 @@ const templates = [
   add('emr-cluster', emrCluster),
   add('onboard-account', onboardAccount),
   add('storage-gateway-network-infra', storageGatewayNetworkInfra),
+  add('application-load-balancer', applicationLoadBalancer),
 ];
 
 async function registerCfnTemplates(registry) {

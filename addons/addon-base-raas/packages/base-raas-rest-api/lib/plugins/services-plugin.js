@@ -46,6 +46,8 @@ const JwtService = require('@aws-ee/base-api-services/lib/jwt-service');
 const EnvironmentScService = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-service');
 const EnvironmentConfigVarsService = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-config-vars-service');
 const EnvironmentScKeypairService = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-keypair-service');
+const DeploymentStoreService = require('@aws-ee/base-post-deployment/lib/deployment-store-service');
+const AlbService = require('@aws-ee/base-raas-services/lib/alb/alb-service');
 const DataSourceRegistrationService = require('@aws-ee/base-raas-services/lib/data-source/data-source-registration-service');
 const DataSourceReachabilityService = require('@aws-ee/base-raas-services/lib/data-source/data-source-reachability-service');
 const DataSourceAccountService = require('@aws-ee/base-raas-services/lib/data-source/data-source-account-service');
@@ -104,6 +106,8 @@ async function registerServices(container, pluginRegistry) {
   container.register('environmentScKeypairService', new EnvironmentScKeypairService());
   container.register('pluginRegistryService', new PluginRegistryService(pluginRegistry), { lazy: false });
   container.register('jwtService', new JwtService());
+  container.register('deploymentStoreService', new DeploymentStoreService());
+  container.register('albService', new AlbService());
   container.register('dataSourceRegistrationService', new DataSourceRegistrationService());
   container.register('dataSourceReachabilityService', new DataSourceReachabilityService());
   container.register('dataSourceAccountService', new DataSourceAccountService());
@@ -153,6 +157,7 @@ function getStaticSettings(existingStaticSettings, settings, pluginRegistry) {
   table('dbRoleAllocations', 'RoleAllocations');
   table('dbResourceUsages', 'ResourceUsages');
   table('StorageGateway', 'StorageGateway');
+  table('dbDeploymentStore', 'DeploymentStore');
 
   return staticSettings;
 }
