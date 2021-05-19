@@ -5,7 +5,7 @@ Description: Service-Workbench-on-AWS ALB for RStudio IDE
 Parameters:
   Namespace:
     Type: String
-    Description: An environment name that will be prefixed to resource names  
+    Description: An environment name that will be prefixed to resource names
   VPC:
     Description: The VPC in which the EC2 instance will reside
     Type: AWS::EC2::VPC::Id
@@ -15,15 +15,13 @@ Parameters:
   ACMSSLCertARN:
     Type: String
     Description: The ARN of the AWS Certificate Manager SSL Certificate to associate with the Load Balancer
-    Default: arn:aws:acm:us-east-1:484479102124:certificate/7028e5b5-be20-4cf2-be41-a71e889abcf9
-
 Resources:
   ALBSubnet:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
       CidrBlock: 10.0.32.0/19
-      AvailabilityZone: us-east-1b   
+      AvailabilityZone: us-east-1b
   ALBListener:
      Type: AWS::ElasticLoadBalancingV2::Listener
      Properties:
@@ -55,24 +53,18 @@ Resources:
     Properties:
       SecurityGroupIngress:
         - CidrIp: "0.0.0.0/0"
-          FromPort: 22
-          ToPort: 22
-          IpProtocol: tcp
-        - CidrIp: "0.0.0.0/0"
           FromPort: 443
           ToPort: 443
           IpProtocol: tcp
-        - CidrIp: "0.0.0.0/0"
-          FromPort: 80
-          ToPort: 80
-          IpProtocol: tcp
       GroupDescription: ALB SecurityGroup
       VpcId: !Ref VPC
-
 Outputs:
   LoadBalancerArn:
+    Description: ARN of Application Load Balancer
     Value: !Ref ApplicationLoadBalancer
   ALBDNSName:
+    Description: DNS Name of Application Load Balancer
     Value: !GetAtt ApplicationLoadBalancer.DNSName
   ListenerArn:
+    Description: ARN of Application Load Balancer Listener
     Value: !Ref ALBListener
