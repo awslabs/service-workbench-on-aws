@@ -109,13 +109,20 @@ class StudyPermissionsTable extends React.Component {
     const studyPermissions = this.permissionsStore.studyPermissions;
     const isEditable = studyPermissions.isStudyAdmin(this.currUser.uid) && this.study.state.canChangePermission;
 
+    if (!isEditable) {
+      return (
+        <div data-testid="unable-to-access-permission">
+          You do not have access to permissions. Only Study Admin can access a study&apos;s permission
+        </div>
+      );
+    }
     return (
       <>
         <Dimmer.Dimmable dimmed={this.isProcessing}>
           <Dimmer active={this.isProcessing} inverted>
             <Loader size="big" />
           </Dimmer>
-          <Table striped className="mt0">
+          <Table data-testid="edit-permission-table" striped className="mt0">
             <Table.Header>
               <Table.Row>
                 <Table.HeaderCell width={2}>Permission Level</Table.HeaderCell>
