@@ -15,7 +15,7 @@
 
 const _ = require('lodash');
 const url = require('url');
-const YAML = require('js-yaml');
+const yaml = require('js-yaml');
 
 const StepBase = require('@aws-ee/base-workflow-core/lib/workflow/helpers/step-base');
 const {
@@ -84,9 +84,8 @@ class CheckLaunchDependency extends StepBase {
             this.payloadOrConfig.string(inPayloadKeys.envTypeConfigId),
         ]);
         const projectId = resolvedVars.projectId;
-        const [envTypeService, envTypeConfigService, aws] = await this.mustFindServices(['envTypeService', 'envTypeConfigService', 'aws']);
+        const [envTypeConfigService] = await this.mustFindServices(['envTypeConfigService']);
         const envTypeConfig = await envTypeConfigService.mustFind(requestContext, envTypeId, { id: envTypeConfigId });
-        const envType = await envTypeService.mustFind(requestContext, { id: envTypeId });
         const resolvedInputParams = await this.resolveVarExpressions(envTypeConfig.params, resolvedVars);
         const templateOutputs = await this.getTemplateOutputs(requestContext, envTypeId, productId);
         const needsAlb = _.get(templateOutputs.NeedsALB, 'Value', false);
@@ -203,7 +202,7 @@ class CheckLaunchDependency extends StepBase {
         const templateUrl = artifactInfo.TemplateUrl;
         const { bucketName, key } = await this.parseS3DetailsfromUrl(templateUrl);
         const templateBody = await this.getS3Object(bucketName, key);
-        const templateBodyParsed = YAML.load(templateBody, { schema: jsYamlCustomSchema, json: true });
+        const templateBodyParsed = yaml.load(templateBody, { schema: jsYamlCustomSchema, json: true });
         const templateOutputs = _.get(templateBodyParsed, 'Outputs', {});
         return templateOutputs;
     }

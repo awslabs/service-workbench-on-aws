@@ -15,8 +15,6 @@
 
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
-const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
-const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 
 const settingKeys = {
     domainName: 'domainName',
@@ -106,7 +104,7 @@ class ALBService extends Service {
             Tags: [
                 {
                     Key: 'Description',
-                    Value: `Created by SWB for the AWS account`,
+                    Value: 'Created by SWB for the AWS account',
                 },
             ],
         };

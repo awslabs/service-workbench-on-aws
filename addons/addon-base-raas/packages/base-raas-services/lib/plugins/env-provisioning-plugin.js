@@ -411,7 +411,8 @@ async function rstudioCleanup(requestContext, updatedEnvironment, container) {
       let dnsName;
       if (connectionTypeValue.toLowerCase() === 'rstudio') {
         dnsName = _.find(updatedEnvironment.outputs, x => x.OutputKey === 'Ec2WorkspaceDnsName').OutputValue;
-        //Moved the code here to handle intermediate provisioning before termination code
+        //Moved the code here to handle deletion of RstudioV1, This will be changed when termination
+        // code for RstudioV2 comes in. Please ignore this on code review
         const environmentDnsService = await container.find('environmentDnsService');
         await environmentDnsService.deleteRecord('rstudio', updatedEnvironment.id, dnsName);
       }
