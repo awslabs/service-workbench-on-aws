@@ -44,11 +44,19 @@
 
 // TODO: If an environment is configured with an Identity Provider, the login steps needs to select an
 // identity provider
-Cypress.Commands.add('login', () => {
-  const loginInfo = {
-    researcherEmail: Cypress.env('researcherEmail'),
-    researcherPassword: Cypress.env('researcherPassword'),
-  };
+Cypress.Commands.add('login', role => {
+  let loginInfo = {};
+  if (role === 'researcher') {
+    loginInfo = {
+      email: Cypress.env('researcherEmail'),
+      password: Cypress.env('researcherPassword'),
+    };
+  } else if (role === 'admin') {
+    loginInfo = {
+      email: Cypress.env('adminEmail'),
+      password: Cypress.env('adminPassword'),
+    };
+  }
   const isCognitoEnabled = Cypress.env('isCognitoEnabled');
 
   if (isCognitoEnabled) {
@@ -56,8 +64,8 @@ Cypress.Commands.add('login', () => {
   } else {
     cy.visit('/');
   }
-  cy.get("div[data-testid='username'] input").type(loginInfo.researcherEmail);
-  cy.get("div[data-testid='password'] input").type(loginInfo.researcherPassword);
+  cy.get("div[data-testid='username'] input").type(loginInfo.email);
+  cy.get("div[data-testid='password'] input").type(loginInfo.password);
   cy.get("button[data-testid='login']").click();
   cy.get("div[data-testid='page-title'] div").contains('Dashboard');
 });

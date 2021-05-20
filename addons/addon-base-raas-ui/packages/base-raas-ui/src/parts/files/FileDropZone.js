@@ -17,6 +17,7 @@ import React from 'react';
 import { decorate, observable, runInAction } from 'mobx';
 import { observer } from 'mobx-react';
 import PropTypes from 'prop-types';
+import toastr from 'toastr';
 
 import { Segment, Header, Divider, Button, Icon } from 'semantic-ui-react';
 import uuidv4 from 'uuid/v4';
@@ -56,8 +57,22 @@ class FileDropZone extends React.Component {
     });
   }
 
+  handleSelectingFiles = event => {
+    if (this.props.onSelectFiles) {
+      const fileList = event.currentTarget.files || [];
+      if (fileList.length > this.props.maximumUploadFilesLimit) {
+        toastr.warning(
+          `There are currently ${fileList.length} files selected. Please select less than ${this.props.maximumUploadFilesLimit} files.`,
+        );
+      } else {
+        this.props.onSelectFiles([...fileList]);
+      }
+    }
+  };
+
   render() {
     const fileInputRef = React.createRef();
+    const folderInputRef = React.createRef();
     const enabled = this.props.state === 'PENDING';
     return (
       <Segment
@@ -102,16 +117,23 @@ class FileDropZone extends React.Component {
             hidden
             multiple
             onChange={event => {
-              if (this.props.onSelectFiles) {
-                const fileList = event.currentTarget.files || [];
-                this.props.onSelectFiles([...fileList]);
-              }
+              this.handleSelectingFiles(event);
+            }}
+          />
+          <ReusableFileInput
+            ref={folderInputRef}
+            hidden
+            multiple
+            directory=""
+            webkitdirectory=""
+            onChange={event => {
+              this.handleSelectingFiles(event);
             }}
           />
           {this.props.state === 'PENDING' ? (
             <>
               <Icon name="upload" className="mb2" />
-              Drag and drop
+              Drag and drop files
               <Divider horizontal>Or</Divider>
               <Button
                 basic
@@ -122,7 +144,19 @@ class FileDropZone extends React.Component {
                   }
                 }}
               >
-                Browse Files
+                Upload Files
+              </Button>
+              <Divider horizontal>Or</Divider>
+              <Button
+                basic
+                color="blue"
+                onClick={() => {
+                  if (folderInputRef.current) {
+                    folderInputRef.current.click();
+                  }
+                }}
+              >
+                Upload Folder
               </Button>
             </>
           ) : this.props.state === 'UPLOADING' ? (
@@ -142,6 +176,7 @@ class FileDropZone extends React.Component {
   }
 }
 FileDropZone.propTypes = {
+  maximumUploadFilesLimit: PropTypes.isRequired,
   state: PropTypes.oneOf(['PENDING', 'UPLOADING', 'COMPLETE']).isRequired,
   onSelectFiles: PropTypes.func,
 };

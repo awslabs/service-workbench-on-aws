@@ -64,8 +64,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "INLINE_RUNTIME_CHUNK=false react-scripts build",
-    "test": "react-scripts test --watchAll=false --passWithNoTests",
-    "test:watch": "react-scripts test --passWithNoTests",
+    "test": "react-scripts test --watchAll=false --passWithNoTests --verbose --coverage",
+    "test:watch": "react-scripts test --passWithNoTests --verbose --coverage",
     "eject": "react-scripts eject",
     "lint": "pnpm run lint:eslint && pnpm run lint:prettier",
     "lint:eslint": "eslint --ignore-path .gitignore . ",

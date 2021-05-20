@@ -3062,7 +3062,7 @@ components:
             - pending
             - error
             - reachable
-            - *
+            - "*"
           description: id must be * when status is specified
     RegisterStudy:
       type: object

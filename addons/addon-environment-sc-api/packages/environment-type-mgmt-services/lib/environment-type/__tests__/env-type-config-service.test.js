@@ -215,7 +215,7 @@ describe('EnvTypeService', () => {
       }
     });
 
-    it('should fail desc incorrect', async () => {
+    it('should pass desc is free-form', async () => {
       // BUILD
       const newConfig = {
         id: 'iFindYourLackOfFaith',
@@ -245,12 +245,17 @@ describe('EnvTypeService', () => {
       envTypeService.mustFind.mockImplementationOnce(() => envType);
       service.audit = jest.fn();
 
-      // OPERATE and CHECK
-      await expect(service.create({}, newConfig.id, newConfig)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      // OPERATE
+      await service.create({}, envType.id, newConfig);
+
+      // CHECK
+      expect(s3Service.api.putObject).toHaveBeenCalled();
+      expect(service.audit).toHaveBeenCalledWith(
+        {},
+        expect.objectContaining({ action: 'create-environment-type-config' }),
       );
     });
-    it('should fail estimatedCostInfo incorrect', async () => {
+    it('should pass estimatedCostInfo is free-form', async () => {
       // BUILD
       const newConfig = {
         id: 'iFindYourLackOfFaith',
@@ -280,9 +285,14 @@ describe('EnvTypeService', () => {
       envTypeService.mustFind.mockImplementationOnce(() => envType);
       service.audit = jest.fn();
 
-      // OPERATE and CHECK
-      await expect(service.create({}, newConfig.id, newConfig)).rejects.toThrow(
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
+      // OPERATE
+      await service.create({}, envType.id, newConfig);
+
+      // CHECK
+      expect(s3Service.api.putObject).toHaveBeenCalled();
+      expect(service.audit).toHaveBeenCalledWith(
+        {},
+        expect.objectContaining({ action: 'create-environment-type-config' }),
       );
     });
 
@@ -299,6 +309,12 @@ describe('EnvTypeService', () => {
           {
             key: 'vpcId',
             value: '${vpcId}',
+          },
+        ],
+        tags: [
+          {
+            key: 'customTag',
+            value: '${indexId}',
           },
         ],
       };
