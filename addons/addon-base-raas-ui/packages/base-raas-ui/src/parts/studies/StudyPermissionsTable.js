@@ -112,7 +112,7 @@ class StudyPermissionsTable extends React.Component {
     if (!isEditable) {
       return (
         <div data-testid="unable-to-access-permission">
-          You do not have access to permissions. Only Study Admin can access a study&apos;s permission
+          You cannot access permissions as you are not a Study administrator.
         </div>
       );
     }
