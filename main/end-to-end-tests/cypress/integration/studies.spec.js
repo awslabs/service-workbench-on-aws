@@ -6,32 +6,35 @@ describe('studies', () => {
       .click();
   };
 
-  const getOrgStudyPermissions = studyName => {
-    cy.login('researcher');
-    navigateToStudies();
-    cy.get("div[data-testid='studies-table'] a[data-testid='table-tab']")
-      .contains('Organization')
-      .click();
+  const clickOnStudyPermission = studyName => {
     cy.get("div[data-testid='studies-table'] div[data-testid='study-card']")
       .contains(studyName)
       .parents("div[data-testid='study-card']")
       .contains('Permissions')
       .click();
   };
-  describe('permissions', () => {
-    it('researcher that is not study admin should not have access to permissions', () => {
-      const studyThatResearcherIsNotStudyAdmin = studies.organizations.find(study => {
-        return study.researcherIsAdmin === false;
-      }).name;
-      getOrgStudyPermissions(studyThatResearcherIsNotStudyAdmin);
-      cy.get("div[data-testid='unable-to-access-permission']");
-    });
-    it('researcher that is study admin should have access to permissions', () => {
-      const studyThatResearcherIsStudyAdmin = studies.organizations.find(study => {
-        return study.researcherIsAdmin;
-      }).name;
-      getOrgStudyPermissions(studyThatResearcherIsStudyAdmin);
-      cy.get("table[data-testid='edit-permission-table']");
-    });
+  it('should only allow Study Admin to access study permissions', () => {
+    cy.login('researcher');
+
+    navigateToStudies();
+
+    // Click on organization tab
+    cy.get("div[data-testid='studies-table'] a[data-testid='table-tab']")
+      .contains('Organization')
+      .click();
+
+    // Click on Study in which researcher is NOT Study Admin
+    const studyThatResearcherIsNotStudyAdmin = studies.organizations.find(study => {
+      return study.researcherIsAdmin === false;
+    }).name;
+    clickOnStudyPermission(studyThatResearcherIsNotStudyAdmin);
+    cy.get("div[data-testid='unable-to-access-permission']");
+
+    // Click on Study in which researcher IS Study Admin
+    const studyThatResearcherIsStudyAdmin = studies.organizations.find(study => {
+      return study.researcherIsAdmin;
+    }).name;
+    clickOnStudyPermission(studyThatResearcherIsStudyAdmin);
+    cy.get("table[data-testid='edit-permission-table']");
   });
 });
