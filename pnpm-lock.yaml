@@ -7412,7 +7412,6 @@ packages:
     resolution: {integrity: sha1-5QNHYR1+aQlDIIu9r+vLwvuGbUY=}
     dev: true
 
-    resolution: {integrity: sha512-WHnQJFcOrIWT1RLOkFFBQkFVvyt9BPOOrH+Dp152Zk4R993rSzXUGPmkybIcUFhHE2d/iHH+nCaOWVCDbO8fgA==}
   /asn1.js/5.4.1:
     resolution: {integrity: sha512-+I//4cYPccV8LdmBLiX8CYvf9Sp3vQsrqu2QNXRcrbiWvcx/UdlFiqUJJzxRQxgsZmvhXhn4cSKeSmoFjVdupA==}
     dependencies:
@@ -8108,7 +8107,6 @@ packages:
   /bluebird/3.7.2:
     resolution: {integrity: sha512-XpNj6GDQzdfW+r2Wnn7xiSAd7TM3jzkxGXBGTtWKuSXv1xUV+azxAm8jdWZN06QTQk+2N2XB9jRDkvbmQmcRtg==}
 
-    resolution: {integrity: sha512-ItfYfPLkWHUjckQCk8xC+LwxgK8NYcXywGigJgSwOP8Y2iyWT4f2vsZnoOXTTbo+o5yXmIUJ4gn5538SO5S3gA==}
   /bn.js/4.11.9:
     resolution: {integrity: sha512-E6QoYqCKZfgatHTdHzs1RRKP7ip4vvm+EyRUeE2RF0NblwVvb0p6jSVeNTOFxPn26QXN2o6SMfNxKp6kU8zQaw==}
 
@@ -8652,7 +8650,6 @@ packages:
 
   /chart.js/2.9.4:
     resolution: {integrity: sha512-B07aAzxcrikjAPyV+01j7BmOpxtQETxTSlQ26BEYJ+3iUkbNKaOJ/nDbT6JjyqYxseM0ON12COHYdU2cTIjC7A==}
-    resolution: {integrity: sha512-+2jlOobSk52c1VU6fzkh3UwqHMdSlgH1xFv9FKMqHiNCpXsGPQa/+81AFa+i3jZ253Mq9aAycPwDjnn1XbRNNw==}
     dependencies:
       chartjs-color: 2.4.1
       moment: 2.29.1
@@ -10518,7 +10515,6 @@ packages:
 
   /elliptic/6.5.3:
     resolution: {integrity: sha512-IMqzv5wNQf+E6aHeIqATs0tOLeOTwj1QKbRcS3jBbYkl5oLAserA8yJTT7/VyHUYG91PRmPyeQDObKLPpeS4dw==}
-    resolution: {integrity: sha512-f4x70okzZbIQl/NSRLkI/+tteV/9WqL98zx+SQ69KbXxmVrmjwsNUPn/gYJJ0sHvEak24cZgHIPegRePAtA/xw==}
     dependencies:
       bn.js: 4.11.9
       brorand: 1.1.0
@@ -10530,7 +10526,6 @@ packages:
 
   /elliptic/6.5.4:
     resolution: {integrity: sha512-iLhC6ULemrljPZb+QutR5TQGB+pdW6KGD5RSegS+8sorOZT+rdQFbsQFJgvN3eRqNALqJer4oQ16YvJHlU8hzQ==}
-    resolution: {integrity: sha512-IMqzv5wNQf+E6aHeIqATs0tOLeOTwj1QKbRcS3jBbYkl5oLAserA8yJTT7/VyHUYG91PRmPyeQDObKLPpeS4dw==}
     dependencies:
       bn.js: 4.11.9
       brorand: 1.1.0
@@ -15349,7 +15344,6 @@ packages:
 
   /jwk-to-pem/2.0.5:
     resolution: {integrity: sha512-L90jwellhO8jRKYwbssU9ifaMVqajzj3fpRjDKcsDzrslU9syRbFqfkXtT4B89HYAap+xsxNcxgBSB09ig+a7A==}
-    resolution: {integrity: sha512-T1MA0L3DVB2mOIZytZyNTdcAAOJscLLCi25dgzQtkHjTcuwpRW3BFnjj0eEpMORfJyZtFZ5wy++Ys6wsMolPsA==}
     dependencies:
       asn1.js: 5.4.1
       elliptic: 6.5.4
@@ -16270,9 +16264,12 @@ packages:
   /mobx-react-form/2.0.9_mobx@5.15.7:
     resolution: {integrity: sha512-YLbtXVUF6BtifeVr6XWJ76dQWJs3T/+aPNI/DKvNs1Opcl4jNCzENahqlqNsNI+RgXZbP36zck//IGWBNZsr0A==}
     engines: {node: '>=8.0.0'}
-    resolution: {integrity: sha512-7ifvIAHqxGDgVidRiSNIKLenZaspfhSDz9nkyWiyyZlqHbVTnxqNcB1jnQHEE9Kycl75Z//dN3IoQNeqWWsZ4g==}
+    peerDependencies:
+      mobx: ^2.5.0 || ^3.0.0 || ^4.0.0 || ^5.0.0
+    dependencies:
       lodash: 4.17.21
       mobx: 5.15.7
+    dev: false
 
   /mobx-react-lite/2.0.5_mobx@5.15.4+react@16.13.1:
     resolution: {integrity: sha512-7ifvIAHqxGDgVidRiSNIKLenZaspfhSDz9nkyWiyyZlqHbVTnxqNcB1jnQHEE9Kycl75Z//dN3IoQNeqWWsZ4g==}
@@ -16373,7 +16370,6 @@ packages:
       requirejs-config-file: 3.1.2
     dev: true
 
-    resolution: {integrity: sha512-bV7f+6l2QigeBBZSM/6yTNq4P2fNpSWj/0e7jQcy87A8e7o2nAfP/34/2ky5Vw4B9S446EtIhodAzkFCcR4dQg==}
   /moment/2.27.0:
     resolution: {integrity: sha512-al0MUK7cpIcglMv3YF13qSgdAIqxHTO7brRtaz3DlSULbqfazqkc5kEjNrLDOM7fsjshoFIihnU8snrP7zUvhQ==}
 
@@ -16609,8 +16605,6 @@ packages:
     resolution: {integrity: sha512-PPmu8eEeG9saEUvI97fm4OYxXVB6bFvyNTyiUOBichBpFG8A1Ljw3bY62+5oOjDEMHRnd0Y7HQ+x7uzxOzC6JA==}
     engines: {node: '>= 6.0.0'}
 
-    resolution: {integrity: sha512-G6RlQt5Sb4GMBzXvhfkeFmbqR6MzhtnT7VTHuLadjkii3rdYHNdw0m8zA4BTxVIh68FicCQ2NSUANpsqkr9jvQ==}
-    engines: {node: '>= 4.5.0'}
   /node-int64/0.4.0:
     resolution: {integrity: sha1-h6kGXNs1XTGC2PlM4RGIuCXGijs=}
     dev: true
@@ -18728,10 +18722,6 @@ packages:
 
   /react-chartjs-2/2.9.0_2e13d21025a4ffbd21356d7d9105cb5f:
     resolution: {integrity: sha512-IYwqUUnQRAJ9SNA978vxulHJTcUFTJk2LDVfbAyk0TnJFZZG7+6U/2flsE4MCw6WCbBjTTypy8T82Ch7XrPtRw==}
-      chart.js: ^2.3
-      react: ^0.14.0 || ^15.0.0 || ^16.0.0-beta || ^16.0.0
-      react-dom: ^0.14.0 || ^15.0.0 || ^16.0.0-beta || ^16.0.0
-    resolution: {integrity: sha512-IYwqUUnQRAJ9SNA978vxulHJTcUFTJk2LDVfbAyk0TnJFZZG7+6U/2flsE4MCw6WCbBjTTypy8T82Ch7XrPtRw==}
     peerDependencies:
       chart.js: ^2.3
       react: ^0.14.0 || ^15.0.0 || ^16.0.0-beta || ^16.0.0
@@ -18862,14 +18852,19 @@ packages:
       prop-types: ^15.x.x
       react: ^16.x.x
       react-dom: ^16.x.x
+    dependencies:
+      prop-types: 15.7.2
+      react: 16.13.1
+      react-dom: 16.13.1_react@16.13.1
+    dev: false
 
+  /react-input-autosize/2.2.2_react@16.13.1:
     resolution: {integrity: sha512-jQJgYCA3S0j+cuOwzuCd1OjmBmnZLdqQdiLKRYrsMMzbjUrVDS5RvJUDwJqA7sKuksDuzFtm6hZGKFu7Mjk5aw==}
     peerDependencies:
       react: ^0.14.9 || ^15.3.0 || ^16.0.0-rc || ^16.0
     dependencies:
       prop-types: 15.7.2
       react: 16.13.1
-      react-dom: 16.13.1_react@16.13.1
     dev: false
 
   /react-input-autosize/3.0.0_react@16.13.1:
@@ -19107,12 +19102,9 @@ packages:
 
   /react-select/3.2.0_react-dom@16.13.1+react@16.13.1:
     resolution: {integrity: sha512-B/q3TnCZXEKItO0fFN/I0tWOX3WJvi/X2wtdffmwSQVRwg5BpValScTO1vdic9AxlUgmeSzib2hAZAwIUQUZGQ==}
+    peerDependencies:
       react: ^16.8.0 || ^17.0.0
       react-dom: ^16.8.0 || ^17.0.0
-    resolution: {integrity: sha512-bJFt9K4c5Z0k44G8KtxIhbG+iyxrKjBZhdW6afP+R7EnIq+iKjbWbEFISrf3WKNFsda+C46XAfnX0StS5fbDcg==}
-    peerDependencies:
-      react: '*'
-      react-dom: '*'
     dependencies:
       '@babel/runtime': 7.12.5
       '@emotion/cache': 10.0.29
@@ -19128,6 +19120,9 @@ packages:
 
   /react-sparklines/1.7.0_react-dom@16.13.1+react@16.13.1:
     resolution: {integrity: sha512-bJFt9K4c5Z0k44G8KtxIhbG+iyxrKjBZhdW6afP+R7EnIq+iKjbWbEFISrf3WKNFsda+C46XAfnX0StS5fbDcg==}
+    peerDependencies:
+      react: '*'
+      react-dom: '*'
     dependencies:
       prop-types: 15.7.2
       react: 16.13.1
@@ -21850,7 +21845,6 @@ packages:
 
   /underscore/1.13.1:
     resolution: {integrity: sha512-hzSoAVtJF+3ZtiFX0VgfFPHEDRm7Y/QPjGyNo4TVdnDTdft3tr8hEkD25a1jC+TjTuE7tkHGKkhwCgs9dgBB2g==}
-    resolution: {integrity: sha512-N4P+Q/BuyuEKFJ43B9gYuOj4TQUHXX+j2FqguVOpjkssLUUrnJofCcBccJSCoeturDoZU6GorDTHSvUDlSQbTg==}
     dev: false
 
   /unfetch/4.1.0:

@@ -22,11 +22,11 @@
     "studies": {
       "organizations": [
         {
-          "name": "org-study-2",
+          "name": "org-study-1",
           "researcherIsAdmin": true
         },
         {
-          "name": "org-study-1",
+          "name": "org-study-2",
           "researcherIsAdmin": false
         }
       ]
