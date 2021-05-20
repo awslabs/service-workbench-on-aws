@@ -79,26 +79,26 @@ class ALBService extends Service {
     * The method reads cfn template using the cfnTemplateService
     *
     * @param requestContext
+    * @param resolvedVars
     * @param resolvedInputParams
     * @param projectId
     * @returns {Promise<{}>}
     */
-    async getStackCreationInput(requestContext, resolvedInputParams, projectId) {
+    async getStackCreationInput(requestContext, resolvedVars, resolvedInputParams, projectId) {
         const awsAccountDetails = await this.findAwsAccountDetails(requestContext, projectId);
         const [cfnTemplateService] = await this.service(['cfnTemplateService']);
         const [template] = await Promise.all([cfnTemplateService.getTemplate('application-load-balancer')]);
-        const stackName = `alb-stack-${new Date().getTime()}`;
         const cfnParams = [];
         const certificateArn = _.find(resolvedInputParams, o => o.Key === 'ACMSSLCertARN');
 
         const addParam = (key, v) => cfnParams.push({ ParameterKey: key, ParameterValue: v });
-        addParam('Namespace', stackName);
+        addParam('Namespace', resolvedVars.namespace);
         addParam('Subnet1', awsAccountDetails.subnetId);
         addParam('ACMSSLCertARN', certificateArn.Value);
         addParam('VPC', awsAccountDetails.vpcId);
 
         const input = {
-            StackName: stackName,
+            StackName: resolvedVars.namespace,
             Parameters: cfnParams,
             TemplateBody: template,
             Tags: [
@@ -225,6 +225,22 @@ class ALBService extends Service {
         const albClient = await this.getAlbSdk(requestContext, resolvedVars);
         const response = await albClient.createRule(params).promise();
         return response.Rules[0].RuleArn;
+    }
+
+    /**
+    * Method to delete listener rule. The method deletes rule using the ALB SDK client.
+    *
+    * @param requestContext
+    * @param resolvedVars
+    * @param ruleArn
+    * @returns {Promise<>}
+    */
+    async deleteListenerRule(requestContext, resolvedVars, ruleArn) {
+        const params = {
+            RuleArn: ruleArn,
+        }
+        const albClient = await this.getAlbSdk(requestContext, resolvedVars);
+        await albClient.deleteRule(params).promise();
     }
 
     /**

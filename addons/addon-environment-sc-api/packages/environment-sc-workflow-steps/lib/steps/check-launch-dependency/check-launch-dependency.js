@@ -86,6 +86,13 @@ class CheckLaunchDependency extends StepBase {
         const projectId = resolvedVars.projectId;
         const [envTypeConfigService] = await this.mustFindServices(['envTypeConfigService']);
         const envTypeConfig = await envTypeConfigService.mustFind(requestContext, envTypeId, { id: envTypeConfigId });
+
+        // Set "namespace" as the stack name
+        // The variable is claimed to be provided as one of the available variables to be used in variable expressions
+        // in "EnvTypeConfigVarService.list" method.
+        // If you change the name from "namespace" to something else, make sure to change it in
+        // "EnvTypeConfigVarService.list" as well
+        resolvedVars.namespace = `analysis-${Date.now()}`;
         const resolvedInputParams = await this.resolveVarExpressions(envTypeConfig.params, resolvedVars);
         const templateOutputs = await this.getTemplateOutputs(requestContext, envTypeId, productId);
         const needsAlb = _.get(templateOutputs.NeedsALB, 'Value', false);
@@ -121,7 +128,7 @@ class CheckLaunchDependency extends StepBase {
             this.print({
                 msg: `Workspace needs ALB. Provisioning an ALB.`,
             });
-            const stackInput = await ALBService.getStackCreationInput(requestContext, resolvedInputParams, projectId);
+            const stackInput = await ALBService.getStackCreationInput(requestContext, resolvedVars, resolvedInputParams, projectId);
             //Storing Dependency type so the stack completion can be handled for different dependencies
             this.state.setKey('DEPENDENCY_TYPE', 'ALB');
             //Create Stack
