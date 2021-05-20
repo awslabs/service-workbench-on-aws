@@ -87,11 +87,7 @@ class CheckLaunchDependency extends StepBase {
         const [envTypeConfigService] = await this.mustFindServices(['envTypeConfigService']);
         const envTypeConfig = await envTypeConfigService.mustFind(requestContext, envTypeId, { id: envTypeConfigId });
 
-        // Set "namespace" as the stack name
-        // The variable is claimed to be provided as one of the available variables to be used in variable expressions
-        // in "EnvTypeConfigVarService.list" method.
-        // If you change the name from "namespace" to something else, make sure to change it in
-        // "EnvTypeConfigVarService.list" as well
+        // Create dynamic namespace follows the existing pattern of namespace
         resolvedVars.namespace = `analysis-${Date.now()}`;
         const resolvedInputParams = await this.resolveVarExpressions(envTypeConfig.params, resolvedVars);
         const templateOutputs = await this.getTemplateOutputs(requestContext, envTypeId, productId);
