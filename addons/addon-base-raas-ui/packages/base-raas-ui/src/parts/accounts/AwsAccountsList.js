@@ -18,13 +18,15 @@ import { Button, Container, Header, Icon, Label, Message } from 'semantic-ui-rea
 import { withRouter } from 'react-router-dom';
 import { decorate, observable, runInAction } from 'mobx';
 import { inject, observer } from 'mobx-react';
-import ReactTable from 'react-table';
+// import ReactTable from 'react-table';
 
 import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
 import { isStoreError, isStoreLoading } from '@aws-ee/base-ui/dist/models/BaseStore';
 import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
 import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
+import UpdateAccountPerms from './UpdateAccountPerms';
+import AccountCard from './AccountCard';
 
 class AwsAccountsList extends React.Component {
   constructor(props) {
@@ -66,65 +68,11 @@ class AwsAccountsList extends React.Component {
 
   renderMain() {
     const awsAccountsData = this.getAwsAccounts();
-    const pageSize = 5;
-    const showPagination = awsAccountsData.length > pageSize;
     return (
-      <div>
-        <ReactTable
-          data={awsAccountsData}
-          showPagination={showPagination}
-          defaultPageSize={pageSize}
-          className="-striped -highlight"
-          filterable
-          defaultFilterMethod={(filter, row) => {
-            const columnValue = String(row[filter.id]).toLowerCase();
-            const filterValue = filter.value.toLowerCase();
-            return columnValue.indexOf(filterValue) >= 0;
-          }}
-          columns={[
-            {
-              Header: 'Account Name',
-              accessor: 'name',
-            },
-            {
-              Header: 'AWS Account ID',
-              accessor: 'accountId',
-            },
-            {
-              Header: 'Description',
-              accessor: 'description',
-            },
-            {
-              Header: 'Role ARN',
-              accessor: 'roleArn',
-            },
-            {
-              Header: 'External ID',
-              accessor: 'externalId',
-            },
-            {
-              Header: 'VPC ID',
-              accessor: 'vpcId',
-            },
-            {
-              Header: 'Subnet ID',
-              accessor: 'subnetId',
-            },
-            {
-              Header: 'Encryption Key Arn',
-              accessor: 'encryptionKeyArn',
-            },
-            {
-              Header: 'Budget Configuration',
-              filterable: false,
-              Cell: observer(cell => (
-                <Button primary compact size="mini" onClick={() => this.handleBudgetConfiguration(cell.original.id)}>
-                  Budget Detail
-                </Button>
-              )),
-            },
-          ]}
-        />
+      <div className="mt3 mr0 ml0">
+        {awsAccountsData.map(account => (
+          <AccountCard key={account.accountId} account={account} isSelectable />
+        ))}
       </div>
     );
   }
@@ -163,6 +111,7 @@ class AwsAccountsList extends React.Component {
         <Button className="ml2" color="blue" size="medium" basic onClick={this.handleAddAwsAccount}>
           Add AWS Account
         </Button>
+        <UpdateAccountPerms />
       </div>
     );
   }
