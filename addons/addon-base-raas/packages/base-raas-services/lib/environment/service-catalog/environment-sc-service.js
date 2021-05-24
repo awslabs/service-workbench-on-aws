@@ -138,6 +138,18 @@ class EnvironmentScService extends Service {
     return { accountId, ec2Updated, sagemakerUpdated };
   }
 
+  async updateStatus(requestContext, existingEnvRecord, expectedDDBStatus) {
+    if (expectedDDBStatus && existingEnvRecord.status !== expectedDDBStatus) {
+      return this.updateDDBStatus(requestContext, existingEnvRecord, expectedDDBStatus);
+    }
+    if (!expectedDDBStatus) {
+      // If workspace is not found assume it was FAILED
+      this.log.warn(`Error getting record status for: ${existingEnvRecord.id}; Defaulting the status to 'FAILED'`);
+      return this.updateDDBStatus(requestContext, existingEnvRecord, 'FAILED');
+    }
+    return undefined;
+  }
+
   async updateDDBStatus(requestContext, existingEnvRecord, expectedDDBStatus) {
     const newEnvironment = {
       id: existingEnvRecord.id,
@@ -158,6 +170,7 @@ class EnvironmentScService extends Service {
       this.log.error(`Error updating record ${existingEnvRecord.id}`);
       this.log.error(e);
     }
+    return undefined;
   }
 
   async pollAndSyncEc2Status(roleArn, externalId, ec2Instances, requestContext) {
@@ -173,14 +186,7 @@ class EnvironmentScService extends Service {
     const ec2Updated = {};
     _.forEach(ec2Instances, async (existingEnvRecord, ec2InstanceId) => {
       const expectedDDBStatus = EC2StatusMap[ec2RealtimeStatus[ec2InstanceId]];
-      let updateStatusResult;
-      if (expectedDDBStatus && existingEnvRecord.status !== expectedDDBStatus) {
-        updateStatusResult = await this.updateDDBStatus(requestContext, existingEnvRecord, expectedDDBStatus);
-      } else if (!expectedDDBStatus) {
-        // If ec2 instance is not found assume it was FAILED
-        this.log.warn(`Error getting record status for: ${existingEnvRecord.id}; Defaulting the status to 'FAILED'`);
-        updateStatusResult = await this.updateDDBStatus(requestContext, existingEnvRecord, 'FAILED');
-      }
+      const updateStatusResult = await this.updateStatus(requestContext, existingEnvRecord, expectedDDBStatus);
       if (updateStatusResult) {
         ec2Updated[ec2InstanceId] = updateStatusResult;
       }
@@ -222,14 +228,7 @@ class EnvironmentScService extends Service {
     const sagemakerUpdated = {};
     _.forEach(sagemakerInstances, async (existingEnvRecord, key) => {
       const expectedDDBStatus = SageMakerStatusMap[sagemakerRealtimeStatus[key]];
-      let updateStatusResult;
-      if (expectedDDBStatus && existingEnvRecord.status !== expectedDDBStatus) {
-        updateStatusResult = await this.updateDDBStatus(requestContext, existingEnvRecord, expectedDDBStatus);
-      } else if (!expectedDDBStatus) {
-        // If notebook instance is not found assume it was FAILED
-        this.log.warn(`Error getting record status for: ${existingEnvRecord.id}; Defaulting the status to 'FAILED'`);
-        updateStatusResult = await this.updateDDBStatus(requestContext, existingEnvRecord, 'FAILED');
-      }
+      const updateStatusResult = await this.updateStatus(requestContext, existingEnvRecord, expectedDDBStatus);
       if (updateStatusResult) {
         sagemakerUpdated[key] = updateStatusResult;
       }
