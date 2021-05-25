@@ -16,7 +16,7 @@
 import { types } from 'mobx-state-tree';
 import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
 
-import { getAwsAccounts, addAwsAccount, createAwsAccount } from '../../helpers/api';
+import { getAwsAccounts, addAwsAccount, createAwsAccount, updateAwsAccount } from '../../helpers/api';
 import { AwsAccount } from './AwsAccount';
 import { BudgetStore } from './BudgetStore';
 import Budget from './Budget';
@@ -70,6 +70,19 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         await createAwsAccount(awsAccount);
       },
 
+      checkPermissions: async () => {
+        const awsAccounts = (await getAwsAccounts()) || [];
+        self.runInAction(() => {
+          awsAccounts.forEach(account => {
+            const newStatus = account.needsPermissionUpdate === undefined ? false : !account.needsPermissionUpdate;
+            if (account.needsPermissionUpdate !== newStatus) {
+              account.needsPermissionUpdate = newStatus;
+              updateAwsAccount(account.id, account);
+            }
+          });
+        });
+      },
+
       getBudgetStore: awsAccountUUID => {
         let entry = self.budgetStores.get(awsAccountUUID);
         if (!entry) {
@@ -101,6 +114,7 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         res.externalId = awsAccount.externalId;
         res.vpcId = awsAccount.vpcId;
         res.subnetId = awsAccount.subnetId;
+        res.needsPermissionUpdate = awsAccount.needsPermissionUpdate;
         res.encryptionKeyArn = awsAccount.encryptionKeyArn;
         result.push(res);
       });

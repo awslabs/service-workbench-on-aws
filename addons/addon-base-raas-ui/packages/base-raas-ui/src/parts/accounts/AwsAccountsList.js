@@ -25,7 +25,6 @@ import { isStoreError, isStoreLoading } from '@aws-ee/base-ui/dist/models/BaseSt
 import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
 import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
-import UpdateAccountPerms from './UpdateAccountPerms';
 import AccountCard from './AccountCard';
 
 class AwsAccountsList extends React.Component {
@@ -71,7 +70,12 @@ class AwsAccountsList extends React.Component {
     return (
       <div className="mt3 mr0 ml0">
         {awsAccountsData.map(account => (
-          <AccountCard key={account.accountId} account={account} isSelectable />
+          <AccountCard
+            key={account.accountId}
+            account={account}
+            needsUpdate={account.needsPermissionUpdate}
+            isSelectable
+          />
         ))}
       </div>
     );
@@ -95,6 +99,11 @@ class AwsAccountsList extends React.Component {
     this.goto(`/aws-accounts/budget/${awsAccountId}`);
   }
 
+  handleCheckPermissions = () => {
+    const awsAccountsStore = this.props.awsAccountsStore;
+    awsAccountsStore.checkPermissions();
+  };
+
   renderHeader() {
     return (
       <div className="mb3 flex">
@@ -111,7 +120,9 @@ class AwsAccountsList extends React.Component {
         <Button className="ml2" color="blue" size="medium" basic onClick={this.handleAddAwsAccount}>
           Add AWS Account
         </Button>
-        <UpdateAccountPerms />
+        <Button className="ml2" color="blue" size="medium" basic onClick={this.handleCheckPermissions}>
+          Update Account Permissions
+        </Button>
       </div>
     );
   }

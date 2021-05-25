@@ -65,6 +65,24 @@ async function configure(context) {
   );
 
   // ===============================================================
+  //  PUT /:id/update-account (mounted to /api/aws-accounts)
+  // ===============================================================
+  router.put(
+    '/:id/update-account',
+    wrap(async (req, res) => {
+      const requestContext = res.locals.requestContext;
+      const id = req.params.id;
+      const acctInBody = req.body || {};
+      const awsAccount = await awsAccountsService.update(requestContext, {
+        ...acctInBody,
+        id,
+      });
+
+      res.status(200).json(awsAccount);
+    }),
+  );
+
+  // ===============================================================
   //  POST / (mounted to /api/aws-accounts)
   // ===============================================================
   router.post(

@@ -35,6 +35,7 @@ const AwsAccount = types
     createdBy: '',
     updatedAt: '',
     updatedBy: '',
+    needsPermissionUpdate: types.maybe(types.boolean),
     budget: types.optional(Budget, {}),
   })
   .actions(self => ({
@@ -53,6 +54,13 @@ const AwsAccount = types
       self.updatedAt = rawAwsAccounts.updatedAt || self.updatedAt;
       self.createdBy = rawAwsAccounts.createdBy || self.createdBy;
       self.updatedBy = rawAwsAccounts.updatedBy || self.updatedBy;
+      self.needsPermissionUpdate =
+        typeof rawAwsAccounts.needsPermissionUpdate === 'boolean'
+          ? rawAwsAccounts.needsPermissionUpdate
+          : typeof self.needsPermissionUpdate === 'boolean'
+          ? self.needsPermissionUpdate
+          : undefined;
+      // Can't use || for needsPermissionUpdate because the value is a Boolean
       // we don't update the other fields because they are being populated by a separate store
     },
   }))

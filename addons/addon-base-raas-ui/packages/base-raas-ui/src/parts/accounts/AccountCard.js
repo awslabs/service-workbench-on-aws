@@ -30,7 +30,6 @@ class AccountCard extends React.Component {
     runInAction(() => {
       this.detailsExpanded = false;
       this.isSelected = false;
-      this.needsUpdate = false;
       this.statusAt = new Date().toISOString();
     });
   }
@@ -43,6 +42,10 @@ class AccountCard extends React.Component {
     return this.props.isSelectable;
   }
 
+  get needsUpdate() {
+    return this.props.needsUpdate;
+  }
+
   handleDetailsExpanded = () => {
     this.detailsExpanded = !this.detailsExpanded;
   };
@@ -52,7 +55,7 @@ class AccountCard extends React.Component {
   };
 
   handleBudgetButton = () => {
-    this.needsUpdate = !this.needsUpdate;
+    return undefined;
   };
 
   render() {
@@ -60,7 +63,6 @@ class AccountCard extends React.Component {
     const account = this.account;
     const attrs = {};
     const onClickAttr = {};
-    const showUpdateButton = this.needsUpdate;
     const needsUpdate = this.needsUpdate;
 
     if (this.isSelected) attrs.color = 'blue';
@@ -73,11 +75,11 @@ class AccountCard extends React.Component {
             {isSelectable && <Checkbox checked={this.isSelected} style={{ marginTop: '31px' }} />}
           </div>
           <div className="flex-auto mb1">
-            {this.renderStatus(needsUpdate)}
+            {this.renderStatus()}
             {this.renderBudgetButton()}
             {this.renderHeader(account)}
             {this.renderDescription(account)}
-            {showUpdateButton && this.renderUpdatePermsButton()}
+            {needsUpdate !== false && this.renderUpdatePermsButton()}
             {this.renderDetailsAccordion(account)}
           </div>
         </div>
@@ -110,10 +112,14 @@ class AccountCard extends React.Component {
     return <div>{account.description}</div>;
   }
 
-  renderStatus(needsUpdate) {
-    const state = needsUpdate
-      ? { color: 'orange', display: 'Needs Update' }
-      : { color: 'green', display: 'Up-to-Date' };
+  renderStatus() {
+    const needsUpdate = this.needsUpdate;
+    const state =
+      needsUpdate === undefined
+        ? { color: 'blue', display: 'New' }
+        : needsUpdate === true
+        ? { color: 'orange', display: 'Needs Update' }
+        : { color: 'green', display: 'Up-to-Date' };
     return (
       <Label attached="top left" size="mini" color={state.color}>
         {state.display}
@@ -190,9 +196,8 @@ decorate(AccountCard, {
   account: computed,
   detailsExpanded: observable,
   isSelectable: computed,
-  modalOpen: observable,
-  needsUpdate: observable,
   isSelected: observable,
+  needsUpdate: computed,
 });
 
 export default observer(AccountCard);

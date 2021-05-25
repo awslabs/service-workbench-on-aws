@@ -49,6 +49,21 @@
     "encryptionKeyArn": {
       "type": "string",
       "pattern": "^arn:aws:kms:.*$"
+    },
+    "needsPermissionUpdate": {
+      "type": "boolean"
+    },
+    "createdAt": {
+      "type": "string"
+    },
+    "createdBy": {
+      "type": "string"
+    },
+    "updatedAt": {
+      "type": "string"
+    },
+    "updatedBy": {
+      "type": "string"
     }
   },
   "required": ["id", "rev", "roleArn", "externalId"]
