@@ -27,8 +27,8 @@ describe('db-password-service', () => {
     settingService = await container.find('settings');
 
     settingMockFunction.mockReturnValue('root');
-
     settingService.get = settingMockFunction;
+
     service.assertAuthorized = jest.fn();
   });
 
@@ -64,6 +64,10 @@ describe('db-password-service', () => {
     principalIdentifier: { uid: '_system_' },
   };
 
+  afterEach(() => {
+    expect(settingMockFunction.mock.calls[0][0]).toBe('rootUserName');
+  });
+
   describe('saveRootPassword', () => {
     it('should allow system to save root password', async () => {
       // OPERATE
@@ -71,7 +75,6 @@ describe('db-password-service', () => {
 
       // CHECK
       expect(dbService.table.update).toHaveBeenCalled();
-      expect(settingMockFunction.mock.calls[0][0]).toBe('rootUserName');
     });
 
     it('should NOT allow non-system user to save root password', async () => {
@@ -79,8 +82,6 @@ describe('db-password-service', () => {
       await expect(
         service.saveRootPassword(adminNonSystemRequestContext, { uid: 'abcd', password: 'fakePassword' }),
       ).rejects.toEqual(new Boom().badRequest("'root' password can not be changed", true));
-
-      expect(settingMockFunction.mock.calls[0][0]).toBe('rootUserName');
     });
   });
 
@@ -95,11 +96,10 @@ describe('db-password-service', () => {
 
       // CHECK
       expect(dbService.table.update).toHaveBeenCalled();
-      expect(settingMockFunction.mock.calls[0][0]).toBe('rootUserName');
     });
 
     it('should NOT allow admin to save root password', async () => {
-      // OPERATE
+      // OPERATE & CHECK
       await expect(
         service.savePassword(adminNonSystemRequestContext, {
           username: 'root',
@@ -107,13 +107,10 @@ describe('db-password-service', () => {
           password: 'fakePassword',
         }),
       ).rejects.toEqual(new Boom().badRequest("'root' password can not be changed", true));
-
-      // CHECK
-      expect(settingMockFunction.mock.calls[0][0]).toBe('rootUserName');
     });
 
     it('should NOT allow system to save root password', async () => {
-      // OPERATE
+      // OPERATE & CHECK
       await expect(
         service.savePassword(systemRequestContext, {
           username: 'root',
@@ -121,9 +118,6 @@ describe('db-password-service', () => {
           password: 'fakePassword',
         }),
       ).rejects.toEqual(new Boom().badRequest("'root' password can not be changed", true));
-
-      // CHECK
-      expect(settingMockFunction.mock.calls[0][0]).toBe('rootUserName');
     });
 
     it('should NOT allow non current user to save password', async () => {
@@ -143,7 +137,7 @@ describe('db-password-service', () => {
         principalIdentifier: { uid: 'xyz' },
       };
 
-      // OPERATE
+      // OPERATE & CHECK
       await expect(
         service.savePassword(nonAdminRequestContext, {
           username: 'fakeUser',
@@ -151,9 +145,34 @@ describe('db-password-service', () => {
           password: 'fakePassword',
         }),
       ).rejects.toEqual(new Boom().forbidden('You are not authorized to perform this operation', true));
+    });
+
+    it('should allow current user to save password', async () => {
+      const nonAdminRequestContext = {
+        actions: [],
+        resources: [],
+        authenticated: true,
+        principal: {
+          uid: 'abcd',
+          username: 'user2',
+          ns: 'internal',
+          isAdmin: false,
+          userRole: 'admin',
+          status: 'active',
+        },
+        attr: {},
+        principalIdentifier: { uid: 'abcd' },
+      };
+
+      // OPERATE
+      await service.savePassword(nonAdminRequestContext, {
+        username: 'user2',
+        uid: 'abcd',
+        password: 'fakePassword',
+      });
 
       // CHECK
-      expect(settingMockFunction.mock.calls[0][0]).toBe('rootUserName');
+      expect(dbService.table.update).toHaveBeenCalled();
     });
   });
 });
