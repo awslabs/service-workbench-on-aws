@@ -109,7 +109,7 @@ class EnvironmentScService extends Service {
       envs,
       // Status polling is created to account for instance auto stop functionality
       // COMPLETED is included since the corresponding instance could be stopped
-      // Other 'unstalbe' statuses are included as they could be result of a previous poll and sync
+      // Other 'unstable' statuses are included as they could be result of a previous poll and sync
       env => _.includes(['COMPLETED', 'STARTING', 'STOPPING', 'TERMINATING'], env.status) && env.inWorkflow !== 'true',
     );
     const indexes = await indexesService.list(requestContext, { fields: ['id', 'awsAccountId'] });
@@ -138,6 +138,41 @@ class EnvironmentScService extends Service {
     return { accountId, ec2Updated, sagemakerUpdated };
   }
 
+  async updateStatus(requestContext, existingEnvRecord, expectedDDBStatus) {
+    if (expectedDDBStatus && existingEnvRecord.status !== expectedDDBStatus) {
+      return this.updateDDBStatus(requestContext, existingEnvRecord, expectedDDBStatus);
+    }
+    if (!expectedDDBStatus) {
+      // If workspace is not found assume it was FAILED
+      this.log.warn(`Error getting record status for: ${existingEnvRecord.id}; Defaulting the status to 'FAILED'`);
+      return this.updateDDBStatus(requestContext, existingEnvRecord, 'FAILED');
+    }
+    return undefined;
+  }
+
+  async updateDDBStatus(requestContext, existingEnvRecord, expectedDDBStatus) {
+    const newEnvironment = {
+      id: existingEnvRecord.id,
+      rev: existingEnvRecord.rev || 0,
+      status: expectedDDBStatus.toUpperCase(),
+    };
+    try {
+      // Might run into situation where the environment was just updated and rev number does not match
+      // Log the error and skip the update for now
+      // The next invocation of poll and sync will do the sync if it's still needed
+      await this.update(requestContext, newEnvironment);
+      return {
+        ddbID: existingEnvRecord.id,
+        currentStatus: expectedDDBStatus,
+        staleStatus: existingEnvRecord.status,
+      };
+    } catch (e) {
+      this.log.error(`Error updating record ${existingEnvRecord.id}`);
+      this.log.error(e);
+    }
+    return undefined;
+  }
+
   async pollAndSyncEc2Status(roleArn, externalId, ec2Instances, requestContext) {
     const EC2StatusMap = {
       'running': 'COMPLETED',
@@ -151,26 +186,9 @@ class EnvironmentScService extends Service {
     const ec2Updated = {};
     _.forEach(ec2Instances, async (existingEnvRecord, ec2InstanceId) => {
       const expectedDDBStatus = EC2StatusMap[ec2RealtimeStatus[ec2InstanceId]];
-      if (expectedDDBStatus && existingEnvRecord.status !== expectedDDBStatus) {
-        const newEnvironment = {
-          id: existingEnvRecord.id,
-          rev: existingEnvRecord.rev || 0,
-          status: expectedDDBStatus.toUpperCase(),
-        };
-        try {
-          // Might run into situation where the environment was just updated and rev number does not match
-          // Log the error and skip the update for now
-          // The next invocation of poll and sync will do the sync if it's still needed
-          await this.update(requestContext, newEnvironment);
-          ec2Updated[ec2InstanceId] = {
-            ddbID: existingEnvRecord.id,
-            currentStatus: expectedDDBStatus,
-            staleStatus: existingEnvRecord.status,
-          };
-        } catch (e) {
-          this.log.error(`Error updating record ${existingEnvRecord.id}`);
-          this.log.error(e);
-        }
+      const updateStatusResult = await this.updateStatus(requestContext, existingEnvRecord, expectedDDBStatus);
+      if (updateStatusResult) {
+        ec2Updated[ec2InstanceId] = updateStatusResult;
       }
     });
     return ec2Updated;
@@ -210,26 +228,9 @@ class EnvironmentScService extends Service {
     const sagemakerUpdated = {};
     _.forEach(sagemakerInstances, async (existingEnvRecord, key) => {
       const expectedDDBStatus = SageMakerStatusMap[sagemakerRealtimeStatus[key]];
-      if (expectedDDBStatus && existingEnvRecord.status !== expectedDDBStatus) {
-        const newEnvironment = {
-          id: existingEnvRecord.id,
-          rev: existingEnvRecord.rev || 0,
-          status: SageMakerStatusMap[sagemakerRealtimeStatus[key]].toUpperCase(),
-        };
-        try {
-          // Might run into situation where the environment was just updated and rev number does not match
-          // Log the error and skip the update for now
-          // The next invocation of poll and sync will do the sync if it's still needed
-          await this.update(requestContext, newEnvironment);
-          sagemakerUpdated[key] = {
-            ddbID: existingEnvRecord.id,
-            currentStatus: expectedDDBStatus,
-            staleStatus: existingEnvRecord.status,
-          };
-        } catch (e) {
-          this.log.error(`Error updating record ${existingEnvRecord.id}`);
-          this.log.error(e);
-        }
+      const updateStatusResult = await this.updateStatus(requestContext, existingEnvRecord, expectedDDBStatus);
+      if (updateStatusResult) {
+        sagemakerUpdated[key] = updateStatusResult;
       }
     });
     return sagemakerUpdated;

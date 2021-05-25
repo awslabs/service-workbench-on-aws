@@ -725,6 +725,53 @@ describe('EnvironmentSCService', () => {
       AWSMock.restore();
     });
 
+    it('Should sync EC2 status to FAILED when stale status is COMPLETED and we cannot retrieve current status', async () => {
+      // BUILD
+      indexesService.list = jest
+        .fn()
+        .mockResolvedValue([{ id: 'some-index-id', awsAccountId: 'some-aws-account-uuid' }]);
+      awsAccountsService.list = jest.fn().mockResolvedValue([
+        {
+          roleArn: 'some-role-arn',
+          externalId: 'some-external-id',
+          id: 'some-aws-account-uuid',
+          accountId: 'some-aws-account-id',
+        },
+      ]);
+      dbService.table.scan.mockResolvedValueOnce([
+        {
+          id: 'some-environment-id',
+          indexId: 'some-index-id',
+          status: 'COMPLETED',
+          outputs: [{ OutputKey: 'Ec2WorkspaceInstanceId', OutputValue: 'ec2-instance-id' }],
+        },
+      ]);
+      service.update = jest.fn();
+      AWSMock.setSDKInstance(aws.sdk);
+      AWSMock.mock('STS', 'assumeRole', { Credentials: stsResponse });
+      AWSMock.mock('EC2', 'describeInstances', {
+        Reservations: [
+          {
+            Instances: [],
+          },
+        ],
+      });
+
+      // OPERATE
+      const result = await service.pollAndSyncWsStatus(requestContext);
+      expect(result).toMatchObject([
+        {
+          accountId: 'some-aws-account-id',
+          ec2Updated: {
+            'ec2-instance-id': { currentStatus: 'FAILED', ddbID: 'some-environment-id', staleStatus: 'COMPLETED' },
+          },
+          sagemakerUpdated: {},
+        },
+      ]);
+      // CHECK
+      AWSMock.restore();
+    });
+
     it('Should not sync EC2 status when stale status is STARTING and inWorkflow is true', async () => {
       // BUILD
       indexesService.list = jest
@@ -859,6 +906,54 @@ describe('EnvironmentSCService', () => {
               currentStatus: 'STOPPED',
               ddbID: 'some-environment-id',
               staleStatus: 'STOPPING',
+            },
+          },
+        },
+      ]);
+      AWSMock.restore();
+    });
+
+    it('Should sync SageMaker status to FAILED when stale status is COMPLETED and we cannot find it', async () => {
+      // BUILD
+      indexesService.list = jest
+        .fn()
+        .mockResolvedValue([{ id: 'some-index-id', awsAccountId: 'some-aws-account-uuid' }]);
+      awsAccountsService.list = jest.fn().mockResolvedValue([
+        {
+          roleArn: 'some-role-arn',
+          externalId: 'some-external-id',
+          id: 'some-aws-account-uuid',
+          accountId: 'some-aws-account-id',
+        },
+      ]);
+      dbService.table.scan.mockResolvedValueOnce([
+        {
+          id: 'some-environment-id',
+          indexId: 'some-index-id',
+          status: 'COMPLETED',
+          outputs: [{ OutputKey: 'NotebookInstanceName', OutputValue: 'notebook-instance-name' }],
+        },
+      ]);
+      service.update = jest.fn();
+
+      AWSMock.setSDKInstance(aws.sdk);
+      AWSMock.mock('STS', 'assumeRole', { Credentials: stsResponse });
+      AWSMock.mock('SageMaker', 'listNotebookInstances', {
+        NotebookInstances: [],
+      });
+
+      // OPERATE
+      const result = await service.pollAndSyncWsStatus(requestContext);
+      // CHECK
+      expect(result).toMatchObject([
+        {
+          accountId: 'some-aws-account-id',
+          ec2Updated: {},
+          sagemakerUpdated: {
+            'notebook-instance-name': {
+              currentStatus: 'FAILED',
+              ddbID: 'some-environment-id',
+              staleStatus: 'COMPLETED',
             },
           },
         },
