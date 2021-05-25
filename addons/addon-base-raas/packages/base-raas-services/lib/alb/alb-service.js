@@ -247,13 +247,27 @@ class ALBService extends Service {
     * Method to increase the count of alb dependent workspaces in database
     *
     * @param requestContext
-    * @param resolvedVars
+    * @param projectId
     * @returns {Promise<>}
     */
-    async increaseAlbDependentWorkspaceCount(requestContext, resolvedVars) {
-        const deploymentItem = await this.getAlbDetails(requestContext, resolvedVars.projectId);
+    async increaseAlbDependentWorkspaceCount(requestContext, projectId) {
+        const deploymentItem = await this.getAlbDetails(requestContext, projectId);
         var albRecord = JSON.parse(deploymentItem.value);
         albRecord.albDependentWorkspacesCount = albRecord.albDependentWorkspacesCount + 1;
+        await this.saveAlbDetails(deploymentItem.id, albRecord);
+    }
+
+    /**
+    * Method to decrease the count of alb dependent workspaces in database
+    *
+    * @param requestContext
+    * @param projectId
+    * @returns {Promise<>}
+    */
+    async decreaseAlbDependentWorkspaceCount(requestContext, projectId) {
+        const deploymentItem = await this.getAlbDetails(requestContext, projectId);
+        var albRecord = JSON.parse(deploymentItem.value);
+        albRecord.albDependentWorkspacesCount = albRecord.albDependentWorkspacesCount - 1;
         await this.saveAlbDetails(deploymentItem.id, albRecord);
     }
 

@@ -90,7 +90,7 @@ class CheckLaunchDependency extends StepBase {
         // Create dynamic namespace follows the existing pattern of namespace
         resolvedVars.namespace = `analysis-${Date.now()}`;
         const resolvedInputParams = await this.resolveVarExpressions(envTypeConfig.params, resolvedVars);
-        const templateOutputs = await this.getTemplateOutputs(requestContext, envTypeId, productId);
+        const templateOutputs = await this.getTemplateOutputs(requestContext, envTypeId);
         const needsAlb = _.get(templateOutputs.NeedsALB, 'Value', false);
         const maxAlbWorkspacesCount = _.get(templateOutputs.MaxCountALBDependentWorkspaces, 'Value', MAX_COUNT_ALB_DEPENDENT_WORKSPACES);
         if (needsAlb) {
@@ -197,11 +197,10 @@ class CheckLaunchDependency extends StepBase {
     *
     * @param requestContext
     * @param envTypeId
-    * @param productId
     * @returns {Promise<{Key: string:{Value: string, Description: string}}[]>}
     */
-    async getTemplateOutputs(requestContext, envTypeId, productId) {
-        const { artifactInfo } = await this.describeArtifact(requestContext, envTypeId, productId);
+    async getTemplateOutputs(requestContext, envTypeId) {
+        const { artifactInfo } = await this.describeArtifact(requestContext, envTypeId);
         const templateUrl = artifactInfo.TemplateUrl;
         const { bucketName, key } = await this.parseS3DetailsfromUrl(templateUrl);
         const templateBody = await this.getS3Object(bucketName, key);
@@ -216,16 +215,15 @@ class CheckLaunchDependency extends StepBase {
     *
     * @param requestContext
     * @param envTypeId
-    * @param productId
     * @returns {Promise<{artifactInfo: {}}[]>}
     */
-    async describeArtifact(requestContext, envTypeId, productId) {
+    async describeArtifact(requestContext, envTypeId) {
         const [envTypeService, aws] = await this.mustFindServices(['envTypeService', 'aws']);
         const envType = await envTypeService.mustFind(requestContext, { id: envTypeId });
         const envMgmtRoleArn = this.settings.get(settingKeys.envMgmtRoleArn);
         const serviceCatalogClient = await getServiceCatalogClient(aws, envMgmtRoleArn);
         const params = {
-            ProductId: productId,
+            ProductId: envType.product.productId,
             ProvisioningArtifactId: envType.provisioningArtifact.id,
         };
         const { Info: artifactInfo } = await serviceCatalogClient.describeProvisioningArtifact(params).promise();
