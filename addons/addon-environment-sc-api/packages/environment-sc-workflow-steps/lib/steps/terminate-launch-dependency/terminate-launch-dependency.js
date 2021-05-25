@@ -77,11 +77,6 @@ class TerminateLaunchDependency extends StepBase {
         ]);
         const [environmentScService] = await this.mustFindServices(['environmentScService']);
         const environment = await environmentScService.mustFind(requestContext, { id: envId });
-        this.print({
-            msg: `Environment Details`,
-            environment,
-            existingEnvironmentStatus,
-        });
         const projectId = environment.projectId;
         // Setting project id to use while polling for status
         this.state.setKey('PROJECT_ID', projectId);
@@ -105,9 +100,6 @@ class TerminateLaunchDependency extends StepBase {
                 }
             }
             const ruleArn = _.get(environmentOutputs, 'ListenerRuleARN', null);
-            this.print({
-                msg: `Rule ARN ${ruleArn}`,
-            });
             //Skipping rule deletion for the cases where the product provisioing failed before creating rule
             //Termination should not be affected in such scenarios
             if (ruleArn) {
@@ -118,9 +110,6 @@ class TerminateLaunchDependency extends StepBase {
                         externalId: externalId
                     };
                     await albService.deleteListenerRule(requestContext, resolvedVars, ruleArn);
-                    this.print({
-                        msg: `Rule deleted`,
-                    });
                 } catch (error) {
                     // Don't fail the termination if rule deletion failed
                     this.print({
@@ -132,10 +121,6 @@ class TerminateLaunchDependency extends StepBase {
         // Get Template outputs to check NeedsALB flag. Not reading template outputs from DB
         // Because failed products will not have outputs stored
         const templateOutputs = await this.getTemplateOutputs(requestContext, environment.envTypeId);
-        this.print({
-            msg: 'Template outputs',
-            templateOutputs
-        });
         const needsAlb = _.get(templateOutputs.NeedsALB, 'Value', false);
         if (needsAlb) {
             //Dont decrease count for failed products
