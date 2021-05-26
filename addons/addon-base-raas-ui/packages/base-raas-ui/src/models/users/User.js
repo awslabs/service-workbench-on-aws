@@ -103,7 +103,6 @@ const User = types
     },
 
     get isInternalAuthUser() {
-      console.log('self', self);
       return _.toLower(self.authenticationProviderId) === 'internal';
     },
 
