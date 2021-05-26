@@ -81,7 +81,7 @@ describe('db-password-service', () => {
       // OPERATE & CHECK
       await expect(
         service.saveRootPassword(adminNonSystemRequestContext, { uid: 'abcd', password: 'fakePassword' }),
-      ).rejects.toEqual(new Boom().badRequest("'root' password can not be changed", true));
+      ).rejects.toEqual(new Boom().badRequest("'root' password can only be changed by 'system' user", true));
     });
   });
 

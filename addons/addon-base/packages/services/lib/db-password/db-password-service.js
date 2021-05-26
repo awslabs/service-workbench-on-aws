@@ -49,7 +49,7 @@ class DbPasswordService extends Service {
   async saveRootPassword(requestContext, { password, uid }) {
     const username = this.settings.get('rootUserName');
     if (!isSystem(requestContext)) {
-      throw this.boom.badRequest("'root' password can not be changed", true);
+      throw this.boom.badRequest("'root' password can only be changed by 'system' user", true);
     }
     await this.savePasswordHelper(username, password, uid);
   }
