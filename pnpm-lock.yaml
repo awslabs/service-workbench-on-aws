@@ -1298,6 +1298,7 @@ importers:
 
   addons/addon-base/packages/services:
     specifiers:
+      '@aws-ee/base-services': workspace:*
       '@aws-ee/base-services-container': workspace:*
       ajv: ^6.11.0
       aws-sdk: ^2.647.0
@@ -1340,6 +1341,7 @@ importers:
       uuid: 3.4.0
       validatorjs: 3.18.1
     devDependencies:
+      '@aws-ee/base-services': 'link:'
       eslint: 6.8.0
       eslint-config-airbnb-base: 14.1.0_8cdb6d8c18c3319a1365bd5afa0063a3
       eslint-config-prettier: 6.10.1_eslint@6.8.0
@@ -7522,7 +7524,7 @@ packages:
   /aws-sdk-mock/5.1.0:
     resolution: {integrity: sha512-Wa5eCSo8HX0Snqb7FdBylaXMmfrAWoWZ+d7MFhiYsgHPvNvMEGjV945FF2qqE1U0Tolr1ALzik1fcwgaOhqUWQ==}
     dependencies:
-      aws-sdk: 2.721.0
+      aws-sdk: 2.847.0
       sinon: 9.0.3
       traverse: 0.6.6
     dev: true
@@ -7582,7 +7584,6 @@ packages:
       url: 0.10.3
       uuid: 3.3.2
       xml2js: 0.4.19
-    dev: false
 
   /aws-sign2/0.7.0:
     resolution: {integrity: sha1-tG6JCTSpWR8tL2+G1+ap8bP+dqg=}
