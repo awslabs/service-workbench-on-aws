@@ -80,8 +80,14 @@ async function postInit(payload, appContext) {
   await userStore.load();
 
   const isRootUser = userStore.user.isRootUser;
+  const isInternalAuthUser = userStore.user.isInternalAuthUser;
   if (isRootUser) {
     displayWarning('You have logged in as root user. Logging in as root user is discouraged.');
+  }
+  if (isInternalAuthUser) {
+    displayWarning(
+      'You are using internal Authentication for this user. Internal Authentication is not recommended for prod accounts. Please consider using an alternate Auth Provider such as Cognito.',
+    );
   }
 }
 
