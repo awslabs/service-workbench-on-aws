@@ -13,6 +13,7 @@
  *  permissions and limitations under the License.
  */
 
+import _ from 'lodash';
 import { types } from 'mobx-state-tree';
 import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
 
@@ -20,6 +21,21 @@ import { getAwsAccounts, addAwsAccount, createAwsAccount, updateAwsAccount } fro
 import { AwsAccount } from './AwsAccount';
 import { BudgetStore } from './BudgetStore';
 import Budget from './Budget';
+
+const filterNames = {
+  ALL: 'All',
+  CURRENT: 'Up-to-Date',
+  UPDATEME: 'Needs Update',
+  NEW: 'New',
+};
+
+// A map, with the key being the filter name and the value being the function that will be used to filter the workspace
+const filters = {
+  [filterNames.ALL]: () => true,
+  [filterNames.CURRENT]: account => account.needsPermissionUpdate === false,
+  [filterNames.UPDATEME]: account => account.needsPermissionUpdate === true,
+  [filterNames.NEW]: account => account.needsPermissionUpdate === undefined,
+};
 
 // ==================================================================
 // AwsAccountsStore
@@ -71,6 +87,8 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
       },
 
       checkPermissions: async () => {
+        // This is a placeholder function that just switches the needsPermissionUpdate to its opposite value
+        // Will be implemented later
         const awsAccounts = (await getAwsAccounts()) || [];
         self.runInAction(() => {
           awsAccounts.forEach(account => {
@@ -116,6 +134,7 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         res.subnetId = awsAccount.subnetId;
         res.needsPermissionUpdate = awsAccount.needsPermissionUpdate;
         res.encryptionKeyArn = awsAccount.encryptionKeyArn;
+        res.updatedAt = awsAccount.updatedAt;
         result.push(res);
       });
       return result;
@@ -149,10 +168,19 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
     getAwsAccount(id) {
       return self.awsAccounts.get(id);
     },
+
+    filtered(filterName) {
+      const filter = filters[filterName] || (() => true);
+      const result = [];
+      self.list.forEach(awsAccount => {
+        if (filter(awsAccount)) result.push(awsAccount);
+      });
+      return _.orderBy(result, [account => account.name.toLowerCase()], ['asc']);
+    },
   }));
 
 function registerContextItems(appContext) {
   appContext.awsAccountsStore = AwsAccountsStore.create({}, appContext);
 }
 
-export { AwsAccountsStore, registerContextItems };
+export { AwsAccountsStore, filterNames, registerContextItems };

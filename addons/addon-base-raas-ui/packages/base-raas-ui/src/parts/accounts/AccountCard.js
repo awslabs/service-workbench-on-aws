@@ -16,14 +16,18 @@
 import React from 'react';
 import { decorate, action, computed, runInAction, observable } from 'mobx';
 import { observer } from 'mobx-react';
-import { Header, Checkbox, Segment, Accordion, Icon, Label, Table, Button } from 'semantic-ui-react';
+import { Header, Segment, Accordion, Icon, Label, Table, Button } from 'semantic-ui-react';
 import TimeAgo from 'react-timeago';
 import c from 'classnames';
 
+import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
+
 // expected props
-// - study (via props)
+// - key (via props)
+// - account (via props)
+// - needsUpdate (via props)
 // - isSelectable (via props)
-// - filesSelection (via injection)
+// - location (via props)
 class AccountCard extends React.Component {
   constructor(props) {
     super(props);
@@ -46,6 +50,12 @@ class AccountCard extends React.Component {
     return this.props.needsUpdate;
   }
 
+  goto(pathname) {
+    const location = this.props.location;
+    const link = createLink({ location, pathname });
+    this.props.history.push(link);
+  }
+
   handleDetailsExpanded = () => {
     this.detailsExpanded = !this.detailsExpanded;
   };
@@ -55,7 +65,8 @@ class AccountCard extends React.Component {
   };
 
   handleBudgetButton = () => {
-    return undefined;
+    const accountId = this.account.accountId;
+    this.goto(`/aws-accounts/budget/${accountId}`);
   };
 
   render() {
@@ -71,9 +82,6 @@ class AccountCard extends React.Component {
     return (
       <Segment clearing padded raised className="mb3" {...attrs}>
         <div className="flex">
-          <div className="mr2" {...onClickAttr}>
-            {isSelectable && <Checkbox checked={this.isSelected} style={{ marginTop: '31px' }} />}
-          </div>
           <div className="flex-auto mb1">
             {this.renderStatus()}
             {this.renderBudgetButton()}
@@ -85,6 +93,11 @@ class AccountCard extends React.Component {
         </div>
       </Segment>
     );
+
+    // Checkbox will be added to this segment when functionality for edit/delete users is added
+    // <div className="mr2" {...onClickAttr}>
+    //   {isSelectable && <Checkbox checked={this.isSelected} style={{ marginTop: '31px' }} />}
+    // </div>
   }
 
   renderHeader(account) {
@@ -92,17 +105,27 @@ class AccountCard extends React.Component {
     const onClickAttr = {};
     const idReadable = account.accountId.replace(/(.{4})(.{4})/g, '$1-$2-');
     if (isSelectable) onClickAttr.onClick = () => this.handleSelected();
-
+    const timeLastUpdated = this.account.updatedAt; // this defaults to empty string if not found
+    const needsUpdate = this.needsUpdate;
     return (
       <div>
         <Header as="h3" color="blue" className={c('mt2', isSelectable ? 'cursor-pointer' : '')} {...onClickAttr}>
           {account.name}
           <Header.Subheader>
             <span className="pt1 fs-8 color-grey">AWS Account #{idReadable}</span>
-            <span className="fs-8 color-grey mr1">
-              &mdash; Permissions checked <TimeAgo date={this.statusAt} className="mr1" />
-            </span>
           </Header.Subheader>
+          {needsUpdate !== undefined && timeLastUpdated !== '' && (
+            <Header.Subheader>
+              <span className="fs-8 color-grey mr1">
+                Permissions checked <TimeAgo date={timeLastUpdated} className="mr1" />
+              </span>
+            </Header.Subheader>
+          )}
+          {needsUpdate !== undefined && timeLastUpdated === '' && (
+            <Header.Subheader>
+              <span className="fs-8 color-grey mr1">Error checking last permission update time</span>
+            </Header.Subheader>
+          )}
         </Header>
       </div>
     );
@@ -116,7 +139,7 @@ class AccountCard extends React.Component {
     const needsUpdate = this.needsUpdate;
     const state =
       needsUpdate === undefined
-        ? { color: 'blue', display: 'New' }
+        ? { color: 'purple', display: 'New' }
         : needsUpdate === true
         ? { color: 'orange', display: 'Needs Update' }
         : { color: 'green', display: 'Up-to-Date' };
@@ -174,16 +197,22 @@ class AccountCard extends React.Component {
   }
 
   renderUpdatePermsButton() {
+    const needsUpdate = this.needsUpdate;
+    const buttonArgs =
+      needsUpdate === true
+        ? { message: 'Update Permissions', color: 'orange' }
+        : { message: 'Onboard Account', color: 'purple' };
+    // This button is only displayed if needsUpdate is either True or undefined
     return (
       <Button
         floated="right"
-        color="orange"
+        color={buttonArgs.color}
         basic
         onClick={() => {
           return null;
         }}
       >
-        Update Permissions
+        {buttonArgs.message}
       </Button>
     );
   }

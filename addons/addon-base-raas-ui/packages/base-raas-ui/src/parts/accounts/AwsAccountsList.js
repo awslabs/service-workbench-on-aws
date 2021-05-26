@@ -14,9 +14,10 @@
  */
 
 import React from 'react';
-import { Button, Container, Header, Icon, Label, Message } from 'semantic-ui-react';
+import _ from 'lodash';
+import { Button, Container, Header, Icon, Label, Message, Segment } from 'semantic-ui-react';
 import { withRouter } from 'react-router-dom';
-import { decorate, observable, runInAction } from 'mobx';
+import { decorate, observable, runInAction, action } from 'mobx';
 import { inject, observer } from 'mobx-react';
 // import ReactTable from 'react-table';
 
@@ -26,6 +27,7 @@ import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
 import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
 import AccountCard from './AccountCard';
+import AccountsFilterButtons from './AccountsFilterButtons';
 
 class AwsAccountsList extends React.Component {
   constructor(props) {
@@ -36,6 +38,7 @@ class AwsAccountsList extends React.Component {
       // Each key in the object below has key as user's unique id (i.e., uid)
       // and value as flag indicating whether to show the editor for the user
       this.mapOfUsersBeingEdited = {};
+      this.selectedFilter = 'All';
     });
   }
 
@@ -66,17 +69,40 @@ class AwsAccountsList extends React.Component {
   }
 
   renderMain() {
-    const awsAccountsData = this.getAwsAccounts();
+    const awsAccountsStore = this.getAwsAccountsStore();
+    const selectedFilter = this.selectedFilter;
+    const awsAccountsData = awsAccountsStore.filtered(selectedFilter);
+    const isEmpty = _.isEmpty(awsAccountsData);
+    const location = this.props.location;
     return (
-      <div className="mt3 mr0 ml0">
-        {awsAccountsData.map(account => (
-          <AccountCard
-            key={account.accountId}
-            account={account}
-            needsUpdate={account.needsPermissionUpdate}
-            isSelectable
-          />
-        ))}
+      <div data-testid="awsaccounts">
+        <AccountsFilterButtons
+          selectedFilter={selectedFilter}
+          onSelectedFilter={this.handleSelectedFilter}
+          className="mb3"
+        />
+        {!isEmpty && (
+          <div className="mt3 mr0 ml0">
+            {awsAccountsData.map(account => (
+              <AccountCard
+                key={account.accountId}
+                account={account}
+                needsUpdate={account.needsPermissionUpdate}
+                location={location}
+                isSelectable
+              />
+            ))}
+          </div>
+        )}
+        {isEmpty && (
+          <Segment placeholder>
+            <Header icon className="color-grey">
+              <Icon name="user x" />
+              No accounts matching the selected filter.
+              <Header.Subheader>Select &apos;All&apos; to view all accounts</Header.Subheader>
+            </Header>
+          </Segment>
+        )}
       </div>
     );
   }
@@ -100,8 +126,13 @@ class AwsAccountsList extends React.Component {
   }
 
   handleCheckPermissions = () => {
-    const awsAccountsStore = this.props.awsAccountsStore;
-    awsAccountsStore.checkPermissions();
+    // const awsAccountsStore = this.props.awsAccountsStore;
+    // awsAccountsStore.checkPermissions();
+    return undefined;
+  };
+
+  handleSelectedFilter = name => {
+    this.selectedFilter = name;
   };
 
   renderHeader() {
@@ -190,6 +221,8 @@ class AwsAccountsList extends React.Component {
 // see https://medium.com/@mweststrate/mobx-4-better-simpler-faster-smaller-c1fbc08008da
 decorate(AwsAccountsList, {
   mapOfUsersBeingEdited: observable,
+  selectedFilter: observable,
+  handleSelectedFilter: action,
 });
 
 export default inject('awsAccountsStore', 'accountsStore')(withRouter(observer(AwsAccountsList)));
