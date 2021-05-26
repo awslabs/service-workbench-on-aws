@@ -16,11 +16,13 @@
 import React from 'react';
 import { decorate, action, computed, runInAction, observable } from 'mobx';
 import { observer } from 'mobx-react';
+import { withRouter } from 'react-router-dom';
 import { Header, Segment, Accordion, Icon, Label, Table, Button } from 'semantic-ui-react';
 import TimeAgo from 'react-timeago';
 import c from 'classnames';
 
 import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
+// import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
 
 // expected props
 // - key (via props)
@@ -65,8 +67,8 @@ class AccountCard extends React.Component {
   };
 
   handleBudgetButton = () => {
-    const accountId = this.account.accountId;
-    this.goto(`/aws-accounts/budget/${accountId}`);
+    const awsAccountId = this.account.id;
+    this.goto(`/aws-accounts/budget/${awsAccountId}`);
   };
 
   render() {
@@ -190,7 +192,7 @@ class AccountCard extends React.Component {
 
   renderBudgetButton() {
     return (
-      <Button floated="right" color="blue" basic onClick={this.handleBudgetButton}>
+      <Button floated="right" color="blue" onClick={this.handleBudgetButton}>
         Budget Detail
       </Button>
     );
@@ -229,4 +231,4 @@ decorate(AccountCard, {
   needsUpdate: computed,
 });
 
-export default observer(AccountCard);
+export default withRouter(observer(AccountCard));

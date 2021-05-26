@@ -73,7 +73,6 @@ class AwsAccountsList extends React.Component {
     const selectedFilter = this.selectedFilter;
     const awsAccountsData = awsAccountsStore.filtered(selectedFilter);
     const isEmpty = _.isEmpty(awsAccountsData);
-    const location = this.props.location;
     return (
       <div data-testid="awsaccounts">
         <AccountsFilterButtons
@@ -88,7 +87,6 @@ class AwsAccountsList extends React.Component {
                 key={account.accountId}
                 account={account}
                 needsUpdate={account.needsPermissionUpdate}
-                location={location}
                 isSelectable
               />
             ))}
@@ -126,6 +124,8 @@ class AwsAccountsList extends React.Component {
   }
 
   handleCheckPermissions = () => {
+    // This function will be implemented later
+
     // const awsAccountsStore = this.props.awsAccountsStore;
     // awsAccountsStore.checkPermissions();
     return undefined;
