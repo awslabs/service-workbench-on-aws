@@ -88,7 +88,7 @@ async function postInit(payload, appContext) {
   const isProduction = process.env.REACT_APP_SITE_ENV_TYPE === 'prod';
   if (isInternalAuthUser && isProduction) {
     displayWarning(
-      'You are using internal Authentication for this user. Internal Authentication is not recommended for prod environments. Please consider using an alternate IDP.',
+      'You are using internal Authentication for this user. Internal Authentication is not recommended for prod environments. Please consider using an IDP.',
     );
   }
 }
