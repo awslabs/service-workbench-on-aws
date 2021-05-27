@@ -208,7 +208,6 @@ class AccountCard extends React.Component {
       <Button
         floated="right"
         color={buttonArgs.color}
-        basic
         onClick={() => {
           return null;
         }}
