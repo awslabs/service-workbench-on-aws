@@ -241,7 +241,7 @@ async function updateEnvOnProvisioningSuccess({
         OutputValue: ruleARN
       };
       outputs.push(ruleRecord);
-      await albService.increaseAlbDependentWorkspaceCount(requestContext, resolvedVars);
+      await albService.increaseAlbDependentWorkspaceCount(requestContext, resolvedVars.projectId);
     }
   }
 
@@ -408,16 +408,11 @@ async function rstudioCleanup(requestContext, updatedEnvironment, container) {
   if (connectionType) {
     connectionTypeValue = connectionType.OutputValue;
     if (connectionTypeValue.toLowerCase() === 'rstudio' || connectionTypeValue.toLowerCase() === 'rstudiov2') {
-      let dnsName;
+      //Delete Route53 record for Rstudio. For RstudioV2 the record will be deleted in dependency check step
       if (connectionTypeValue.toLowerCase() === 'rstudio') {
-        dnsName = _.find(updatedEnvironment.outputs, x => x.OutputKey === 'Ec2WorkspaceDnsName').OutputValue;
-        //Moved the code here to handle deletion of RstudioV1, This will be changed when termination
-        // code for RstudioV2 comes in. Please ignore this on code review
+        const dnsName = _.find(updatedEnvironment.outputs, x => x.OutputKey === 'Ec2WorkspaceDnsName').OutputValue;
         const environmentDnsService = await container.find('environmentDnsService');
         await environmentDnsService.deleteRecord('rstudio', updatedEnvironment.id, dnsName);
-      }
-      else if (connectionTypeValue.toLowerCase() === 'rstudiov2') {
-        // TODO: Add code to remove record for new Rstudio version
       }
       const instanceId = _.find(updatedEnvironment.outputs, x => x.OutputKey === 'Ec2WorkspaceInstanceId').OutputValue;
       const environmentScService = await container.find('environmentScService');

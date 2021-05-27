@@ -1,0 +1,8 @@
+id: st-terminate-launch-dependency
+v: 1
+title: Terminate Dependencies Before Terminating a Service Catalog Product
+desc: |
+  Terminate Dependencies Before Terminating a Service Catalog Product
+
+skippable: true # this means that if there is an error in a previous step, then this step will be skipped
+hidden: true
