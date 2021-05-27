@@ -94,8 +94,8 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
           awsAccounts.forEach(account => {
             const newStatus = account.needsPermissionUpdate === undefined ? false : !account.needsPermissionUpdate;
             if (account.needsPermissionUpdate !== newStatus) {
-              account.needsPermissionUpdate = newStatus;
-              updateAwsAccount(account.id, account);
+              const newAccount = { ...account, needsPermissionUpdate: newStatus };
+              updateAwsAccount(newAccount.id, newAccount);
             }
           });
         });
