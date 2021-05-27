@@ -60,9 +60,8 @@ class CreateRootUserService extends Service {
       });
       this.log.info('Created root user in the data lake');
 
-      await dbPasswordService.savePassword(getSystemRequestContext(), {
+      await dbPasswordService.saveRootPassword(getSystemRequestContext(), {
         uid: createdUser.uid,
-        username: rootUserName,
         password: rootUserPassword,
       });
       this.log.info("Created root user's password");
