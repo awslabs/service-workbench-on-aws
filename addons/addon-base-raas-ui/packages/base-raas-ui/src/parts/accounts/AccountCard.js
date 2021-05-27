@@ -22,7 +22,6 @@ import TimeAgo from 'react-timeago';
 import c from 'classnames';
 
 import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
-// import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
 
 // expected props
 // - key (via props)

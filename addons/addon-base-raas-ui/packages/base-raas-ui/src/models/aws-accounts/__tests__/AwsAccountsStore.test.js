@@ -34,6 +34,7 @@ describe('AwsAccountsStore', () => {
     encryptionKeyArn: 'AndHeresThePartThatHurtsTheMost',
     createdAt: 'humans cannot ride a ghost :(',
     updatedAt: 'Bye bye, Lil Sebastian',
+    needsPermissionUpdate: false,
   };
 
   beforeEach(async () => {
@@ -68,6 +69,20 @@ describe('AwsAccountsStore', () => {
 
       // CHECK
       expect(store.list.length).toBe(1);
+    });
+  });
+
+  describe('filteredList', () => {
+    it('should return the whole list if the filter does not exist', async () => {
+      // BUILD
+      getAwsAccounts.mockResolvedValue([newAwsAccount]);
+      await store.load();
+
+      // OPERATE
+      const retVal = store.filtered('randomfiltername');
+
+      // CHECK
+      expect(retVal).toMatchObject(store.list);
     });
   });
 });

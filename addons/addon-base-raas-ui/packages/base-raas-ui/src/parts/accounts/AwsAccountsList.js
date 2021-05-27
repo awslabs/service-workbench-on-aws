@@ -19,7 +19,6 @@ import { Button, Container, Header, Icon, Label, Message, Segment } from 'semant
 import { withRouter } from 'react-router-dom';
 import { decorate, observable, runInAction, action } from 'mobx';
 import { inject, observer } from 'mobx-react';
-// import ReactTable from 'react-table';
 
 import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
 import { isStoreError, isStoreLoading } from '@aws-ee/base-ui/dist/models/BaseStore';
@@ -38,7 +37,7 @@ class AwsAccountsList extends React.Component {
       // Each key in the object below has key as user's unique id (i.e., uid)
       // and value as flag indicating whether to show the editor for the user
       this.mapOfUsersBeingEdited = {};
-      this.selectedFilter = 'All';
+      this.selectedFilter = 'All'; // case-sensitive, see AwsAccountsStore.js for options
     });
   }
 
@@ -118,10 +117,6 @@ class AwsAccountsList extends React.Component {
   handleCreateAwsAccount = () => {
     this.goto('/aws-accounts/create');
   };
-
-  handleBudgetConfiguration(awsAccountId) {
-    this.goto(`/aws-accounts/budget/${awsAccountId}`);
-  }
 
   handleCheckPermissions = () => {
     // This function will be implemented later

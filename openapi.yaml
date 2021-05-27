@@ -593,6 +593,25 @@ paths:
       responses:
         '200':
           description: AWS Account provisioning started
+  /api/aws-accounts/{awsAccountUUID}/update-account:
+    put:
+      tags:
+        - admins
+        - AwsAccounts
+      summary: Update an existing AWS Account
+      operationId: UpdateAwsAccount
+      description: |
+        Update an existing AWS Account's details in the backend DB
+      requestBody:
+        description: Updated AWS Account information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAwsAccount'
+      responses:
+        '200':
+          description: AWS Account updated
+      
   /api/accounts:
     get:
       tags:
@@ -2921,6 +2940,29 @@ components:
         description:
           type: string
           example: 'My test account'
+    UpdateAwsAccount:
+      required:
+        - name
+        - accountId
+        - roleArn
+        - externalId
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: 'TestAccount'
+        accountId:
+          $ref: '#/components/schemas/AwsAccountId'
+        roleArn:
+          type: string
+          minLength: 10
+          example: 'arn:aws:iam::000000000000:role/role-arn'
+        externalId:
+          type: string
+          minLength: 1
+          example: 'ExternalId'
     UpdateAccountRequest:
       required:
         - id
