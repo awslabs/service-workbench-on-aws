@@ -18,7 +18,10 @@
   },
   "resolutions": {
     "immer": "^8.0.1",
-    "is-svg": "4.2.2"
+    "is-svg": "4.2.2",
+    "postcss": "^8.2.10",
+    "trim": "^0.0.3",
+    "browserslist": "^4.16.5"
   },
   "browserslist": {
     "production": [

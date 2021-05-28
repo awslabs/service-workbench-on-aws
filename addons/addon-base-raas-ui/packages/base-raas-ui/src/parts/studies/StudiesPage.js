@@ -133,7 +133,7 @@ class StudiesPage extends React.Component {
 
     const studyPanes = _.map(applicableCategories, category => ({
       menuItem: (
-        <Menu.Item key={category.id}>
+        <Menu.Item data-testid="table-tab" key={category.id}>
           {category.name} {getMenuItemLabel(category)}
         </Menu.Item>
       ),
@@ -144,7 +144,15 @@ class StudiesPage extends React.Component {
       ),
     }));
 
-    return <Tab className="mt3" menu={{ secondary: true, pointing: true }} renderActiveOnly panes={studyPanes} />;
+    return (
+      <Tab
+        data-testid="studies-table"
+        className="mt3"
+        menu={{ secondary: true, pointing: true }}
+        renderActiveOnly
+        panes={studyPanes}
+      />
+    );
   }
 
   renderSelection() {

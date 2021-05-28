@@ -2,8 +2,6 @@
 
 This package runs End to End tests on Service Workbench from the perspective of a customer. While unit tests helps ensure that each component works as designed, E2E tests will help us ensure that the components still fit together as a whole.
 
-To see videos of the test cases that are covered, please check out the videos in `test-case-videos`. Each test case in `cypress/integration` will have a corresponding video saved in `test-case-videos`. The video shows what the test looks like when it passes.
-
 ## Setup
 
 In this section we will discuss how you can run these tests from your desktop.
@@ -11,6 +9,7 @@ In this section we will discuss how you can run these tests from your desktop.
 To run the E2E tests, you will need the following items:
 
 - A Service Workbench environment setup with Service Catalog
+- Username and password of an admin for the Service Workbench environment
 - Username and password of a researcher for the Service Workbench environment
 - A project set up for that researcher that can launch EC2 workspaces and Sagemaker workspaces
 - A configured EC2 workspace

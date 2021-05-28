@@ -96,7 +96,7 @@ const toasterErrorOptions = {
   debug: false,
   newestOnTop: true,
   progressBar: true,
-  positionClass: 'toast-top-right',
+  positionClass: 'toast-bottom-right',
   preventDuplicates: true,
   timeOut: '20000', // 1000000
   extendedTimeOut: '50000', // 1000000
@@ -107,7 +107,7 @@ const toasterWarningOptions = {
   debug: false,
   newestOnTop: true,
   progressBar: true,
-  positionClass: 'toast-top-right',
+  positionClass: 'toast-bottom-right',
   preventDuplicates: true,
   timeOut: '20000', // 1000000
   extendedTimeOut: '50000', // 1000000
@@ -118,7 +118,7 @@ const toasterSuccessOptions = {
   debug: false,
   newestOnTop: true,
   progressBar: true,
-  positionClass: 'toast-top-right',
+  positionClass: 'toast-bottom-right',
   preventDuplicates: true,
   timeOut: '3000',
   extendedTimeOut: '10000',
