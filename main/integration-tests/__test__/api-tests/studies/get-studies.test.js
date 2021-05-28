@@ -41,7 +41,63 @@ describe('List study scenarios', () => {
   afterAll(async () => {
     await setup.cleanup();
   });
+  describe('Raymond Test', () => {
+    it('create user', async () => {
+      const researcher1Session = await setup.createResearcherSession();
+      // Things to do
+      // 1. Create user
+      const admin1Session = await setup.createAdminSession();
+      username = setup.gen.username();
+      defaultUser = admin1Session.resources.users.defaults({username});
+      
+      await expect(admin1Session.resources.users.create(defaultUser)).resolves.toMatchObject({
+        username,
+      });
+      // 2. Assign Project ID to user (assigned by default)
 
+      // 3. Create My Study, Org Study, Data Source study
+      const studyCategoryCases = [
+        ['my-study', 'My Studies'],
+        ['org-study', 'Organization'],
+        ['data-src', 'Data Source']
+      ];
+      studyCategoryCases.forEach( async (prefix, category) => {
+        studyId = setup.gen.string({prefix: `create-study-test-${prefix}`});
+        await expect(
+          researcher1Session.resources.studies.create({ id: studyId, category: category }),
+        ).resolves.toMatchObject({
+          studyId,
+        });
+      })
+      
+      // 4. Create workspace with the above studies
+      let productInfo = await createDefaultServiceCatalogProduct(setup);
+      const workspaceName = setup.gen.string({ prefix: 'workspace-service-catalog-test' });
+      const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(
+        productInfo,
+        admin1Session,
+        setup,
+      );
+
+      await expect(
+        admin1Session.resources.workspaceServiceCatalogs.create({
+          name: workspaceName,
+          envTypeId: workspaceTypeId,
+          envTypeConfigId: configurationId,
+          studyIds: [
+            'create-study-test-my-study',
+            'create-study-test-org-study',
+            'create-study-test-data-src'
+          ]
+        }),
+      ).resolves.toMatchObject({
+        workspaceName,
+        workspaceTypeId,
+        configurationId,
+        studyIds
+      });
+    });
+  });
   describe('Getting all studies of a category', () => {
     it('should return empty list if category is not defined', async () => {
       const researcherSession = await setup.createResearcherSession();
