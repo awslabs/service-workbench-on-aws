@@ -158,12 +158,12 @@ class ALBService extends Service {
     async findAwsAccountId(requestContext, projectId) {
         const [
             indexesService,
-            ProjectService,
+            projectService,
         ] = await this.service([
             'indexesService',
             'projectService',
         ]);
-        const project = await ProjectService.mustFind(requestContext, { id: projectId });
+        const project = await projectService.mustFind(requestContext, { id: projectId });
         const { indexId } = project;
         // Get the aws account information
         const { awsAccountId } = await indexesService.mustFind(requestContext, { id: indexId });

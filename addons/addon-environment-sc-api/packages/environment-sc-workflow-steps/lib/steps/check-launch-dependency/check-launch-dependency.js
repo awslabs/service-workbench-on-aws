@@ -110,9 +110,9 @@ class CheckLaunchDependency extends StepBase {
     * @returns {Promise<>}
     */
     async provisionAlb(requestContext, resolvedVars, projectId, resolvedInputParams, maxAlbWorkspacesCount) {
-        const [ALBService] = await this.mustFindServices(['albService']);
-        const count = await ALBService.albDependentWorkspacesCount(requestContext, projectId);
-        const albExists = await ALBService.checkAlbExists(requestContext, projectId);
+        const [albService] = await this.mustFindServices(['albService']);
+        const count = await albService.albDependentWorkspacesCount(requestContext, projectId);
+        const albExists = await albService.checkAlbExists(requestContext, projectId);
         if (count >= maxAlbWorkspacesCount) {
             throw new Error(`Error provisioning environment. Reason: Maximum workspaces using ALB has reached`);
         }
@@ -124,7 +124,7 @@ class CheckLaunchDependency extends StepBase {
             this.print({
                 msg: `Workspace needs ALB. Provisioning an ALB.`,
             });
-            const stackInput = await ALBService.getStackCreationInput(requestContext, resolvedVars, resolvedInputParams, projectId);
+            const stackInput = await albService.getStackCreationInput(requestContext, resolvedVars, resolvedInputParams, projectId);
             //Storing Dependency type so the stack completion can be handled for different dependencies
             this.state.setKey('DEPENDENCY_TYPE', 'ALB');
             //Create Stack
@@ -173,8 +173,8 @@ class CheckLaunchDependency extends StepBase {
             this.state.string('DEPENDENCY_TYPE'),
         ]);
         const projectId = resolvedVars.projectId;
-        const [ALBService] = await this.mustFindServices(['albService']);
-        const awsAccountId = await ALBService.findAwsAccountId(requestContext, projectId);
+        const [albService] = await this.mustFindServices(['albService']);
+        const awsAccountId = await albService.findAwsAccountId(requestContext, projectId);
         if (dependencyType == "ALB") {
             const albDetails = {
                 id: awsAccountId,
@@ -184,7 +184,7 @@ class CheckLaunchDependency extends StepBase {
                 albDnsName: _.get(stackOutputs, 'ALBDNSName', null),
                 albDependentWorkspacesCount: 0
             }
-            await ALBService.saveAlbDetails(awsAccountId, albDetails);
+            await albService.saveAlbDetails(awsAccountId, albDetails);
         }
         this.print({
             msg: `Dependency Details Updated Successfully`
@@ -302,8 +302,8 @@ class CheckLaunchDependency extends StepBase {
     * @returns {Promise<string>}
     */
     async getTargetAccountRoleArn(requestContext, resolvedVars) {
-        const [ALBService] = await this.mustFindServices(['albService']);
-        const { roleArn } = await ALBService.findAwsAccountDetails(requestContext, resolvedVars.projectId);
+        const [albService] = await this.mustFindServices(['albService']);
+        const { roleArn } = await albService.findAwsAccountDetails(requestContext, resolvedVars.projectId);
         return roleArn;
     }
 
