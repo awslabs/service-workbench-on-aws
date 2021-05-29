@@ -223,8 +223,7 @@ async function updateEnvOnProvisioningSuccess({
     else if (connectionTypeValue.toLowerCase() === 'rstudiov2') {
       const albService = await container.find('albService');
       const deploymentItem = await albService.getAlbDetails(requestContext, resolvedVars.projectId);
-      const albExists = await albService.checkAlbExists(requestContext, resolvedVars.projectId);
-      if (!albExists) {
+      if (!deploymentItem) {
         throw new Error(`Error provisioning environment. Reason: No ALB found for this AWS account`);
       }
       const dnsName = JSON.parse(deploymentItem.value).albDnsName;
