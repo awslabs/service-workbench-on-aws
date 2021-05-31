@@ -16,7 +16,7 @@
 /*
  * Schema created to parse the custom tags in CFT which will not be supported by js-yaml
  * Took the reference from js-yaml example https://github.com/nodeca/js-yaml/blob/a0d0caa5aa0f5354fefa9c637cfb7c4c17ef7d02/examples/handle_unknown_types.js
-*/
+ */
 
 const YAML = require('js-yaml');
 
@@ -27,21 +27,21 @@ class CustomTag {
   }
 }
 
-const tags = ['scalar', 'sequence', 'mapping'].map(function (kind) {
+const tags = ['scalar', 'sequence', 'mapping'].map(kind => {
   // first argument here is a prefix, so this type will handle anything starting with !
   return new YAML.Type('!', {
-    kind: kind,
+    kind,
     multi: true,
-    representName: function (object) {
+    representName(object) {
       return object.type;
     },
-    represent: function (object) {
+    represent(object) {
       return object.data;
     },
     instanceOf: CustomTag,
-    construct: function (data, type) {
+    construct(data, type) {
       return new CustomTag(type, data);
-    }
+    },
   });
 });
 
