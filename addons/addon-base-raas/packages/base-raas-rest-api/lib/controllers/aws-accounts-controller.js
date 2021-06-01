@@ -21,6 +21,7 @@ async function configure(context) {
   // const boom = context.boom;
 
   const awsAccountsService = await context.service('awsAccountsService');
+  const awsCfnService = await context.service('awsCfnService');
   const accountService = await context.service('accountService');
 
   // ===============================================================
@@ -83,7 +84,7 @@ async function configure(context) {
   );
 
   // ===============================================================
-  //  POST / (mounted to /api/aws-accounts)
+  //  POST /provision (mounted to /api/aws-accounts)
   // ===============================================================
   router.post(
     '/provision',
@@ -93,6 +94,20 @@ async function configure(context) {
       await accountService.provisionAccount(requestContext, possibleBody);
 
       res.status(200).json({ message: 'account creating' });
+    }),
+  );
+
+  // ===============================================================
+  //  GET /:id/permissions (mounted to /api/aws-accounts)
+  // ===============================================================
+  router.get(
+    '/:id/permissions',
+    wrap(async (req, res) => {
+      const account = req.params.account;
+      const requestContext = res.locals.requestContext;
+
+      const result = await awsCfnService.queryStack(requestContext, account);
+      res.status(200).json(result);
     }),
   );
 

@@ -65,6 +65,10 @@ function updateAwsAccount(accountUUID, data) {
   return httpApiPut(`api/aws-accounts/${accountUUID}/update-account`, { data });
 }
 
+function checkAccountPermissions(accountUUID, account) {
+  return httpApiGet(`api/aws-accounts/${accountUUID}/permissions`, { account });
+}
+
 function updateUserApplication(user) {
   // Remove nulls and omit extra fields from the payload before calling the API
   // The user is identified by the uid in the url
@@ -364,6 +368,7 @@ export {
   addAwsAccount,
   createAwsAccount,
   updateAwsAccount,
+  checkAccountPermissions,
   getStepTemplates,
   getEnvironments,
   getEnvironment,

@@ -17,7 +17,13 @@ import _ from 'lodash';
 import { types } from 'mobx-state-tree';
 import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
 
-import { getAwsAccounts, addAwsAccount, createAwsAccount, updateAwsAccount } from '../../helpers/api';
+import {
+  getAwsAccounts,
+  addAwsAccount,
+  createAwsAccount,
+  // updateAwsAccount,
+  checkAccountPermissions,
+} from '../../helpers/api';
 import { AwsAccount } from './AwsAccount';
 import { BudgetStore } from './BudgetStore';
 import Budget from './Budget';
@@ -90,15 +96,14 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         // This is a placeholder function that just switches the needsPermissionUpdate to its opposite value
         // Will be implemented later
         const awsAccounts = (await getAwsAccounts()) || [];
+        const perms = [];
         self.runInAction(() => {
           awsAccounts.forEach(account => {
-            const newStatus = account.needsPermissionUpdate === undefined ? false : !account.needsPermissionUpdate;
-            if (account.needsPermissionUpdate !== newStatus) {
-              const newAccount = { ...account, needsPermissionUpdate: newStatus };
-              updateAwsAccount(newAccount.id, newAccount);
-            }
+            const res = checkAccountPermissions(account.id, account);
+            perms.push(res);
           });
         });
+        return perms;
       },
 
       getBudgetStore: awsAccountUUID => {
