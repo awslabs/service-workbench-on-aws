@@ -153,7 +153,7 @@ class StartRStudioEnvironmentSc extends StepBase {
     this.updateOutputValue(outputs, 'Ec2WorkspaceDnsName', newDnsName);
 
     const envId = await this.state.string('STATE_ENVIRONMENT_ID');
-    //Update CNAME record for older version of Rstudio
+    // Update CNAME record for older version of Rstudio
     const connectionType = _.find(outputs, o => o.OutputKey === 'MetaConnection1Type');
     let connectionTypeValue;
     if (connectionType) {
