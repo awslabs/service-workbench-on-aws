@@ -22,7 +22,7 @@ import {
   addAwsAccount,
   createAwsAccount,
   // updateAwsAccount,
-  checkAccountPermissions,
+  getAccountPermissions,
 } from '../../helpers/api';
 import { AwsAccount } from './AwsAccount';
 import { BudgetStore } from './BudgetStore';
@@ -99,7 +99,7 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         const perms = [];
         self.runInAction(() => {
           awsAccounts.forEach(account => {
-            const res = checkAccountPermissions(account.id, account);
+            const res = getAccountPermissions(account.id);
             perms.push(res);
           });
         });

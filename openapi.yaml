@@ -612,6 +612,12 @@ paths:
         '200':
           description: AWS Account updated
   /api/aws-accounts/{awsAccountUUID}/permissions:
+    parameters:
+      - name: awsAccountUUID
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GetAwsAccountPermissions'
     get:
       tags:
         - admins
@@ -620,12 +626,9 @@ paths:
       operationId: getAwsAccountPermissions
       description: |
         Get permissions for an AWS account from CFN stack
-      requestBody:
-        description: AWS Account information
-        content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/GetAwsAccountPermissions'
+      responses:
+        '200':
+          description: Permissions information
   /api/accounts:
     get:
       tags:

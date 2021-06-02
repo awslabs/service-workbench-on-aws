@@ -60,9 +60,8 @@ class AwsCfnService extends Service {
       { accountEntity },
     );
 
-    const { roleArn, stack: cfnStackName, mainRegion } = accountEntity;
-    // const roleName = `${qualifier}-app-role-stack`;
-    const cfnApi = await this.getCfnSdk(roleArn, mainRegion);
+    const { xAccEnvMgmtRoleArn, cfnStackName, mainRegion, externalId } = accountEntity;
+    const cfnApi = await this.getCfnSdk(xAccEnvMgmtRoleArn, externalId, mainRegion);
     const params = { StackName: cfnStackName };
     const stacks = await cfnApi.describeStacks(params).promise();
     const stack = _.find(_.get(stacks, 'Stacks', []), item => item.StackName === cfnStackName);
@@ -72,19 +71,28 @@ class AwsCfnService extends Service {
     }
 
     const stackId = stack.StackId;
-    const permissionsTemplateStr = stack.Parameters;
-    const permissionsTemplate = _.isEmpty(permissionsTemplateStr) ? {} : JSON.parse(permissionsTemplateStr);
+    // const permissionsTemplateStr = await cfnApi.getTemplateSummary(params).promise(); // stack.Template;
+    const permissionsTemplateRaw = await cfnApi.getTemplate(params).promise();
+    const permissionsStr = permissionsTemplateRaw.TemplateBody;
+    // const permissionsTemplate = _.isEmpty(permissionsTemplateStr.TemplateBody)
+    //   ? {}
+    //   : JSON.parse(permissionsTemplateStr.TemplateBody);
     return {
       stackId,
-      permissions: permissionsTemplate,
+      permissionsStr,
     };
   }
 
   // @private
-  async getCfnSdk(roleArn, region) {
+  async getCfnSdk(xAccEnvMgmtRoleArn, externalId, region) {
     const aws = await this.service('aws');
     try {
-      const cfnClient = await aws.getClientSdkForRole({ roleArn, clientName: 'CloudFormation', options: { region } });
+      const cfnClient = await aws.getClientSdkForRole({
+        roleArn: xAccEnvMgmtRoleArn,
+        externalId,
+        clientName: 'CloudFormation',
+        options: { region },
+      });
       return cfnClient;
     } catch (error) {
       throw this.boom.forbidden(`Could not assume a role to check the stack status`, true).cause(error);

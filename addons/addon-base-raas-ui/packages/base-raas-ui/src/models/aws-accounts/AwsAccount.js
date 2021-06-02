@@ -36,8 +36,8 @@ const AwsAccount = types
     updatedAt: '',
     updatedBy: '',
     needsPermissionUpdate: types.maybe(types.boolean),
-    cfnName: '',
-    region: '',
+    cfnStackName: '',
+    mainRegion: '',
     budget: types.optional(Budget, {}),
   })
   .actions(self => ({
@@ -56,8 +56,8 @@ const AwsAccount = types
       self.updatedAt = rawAwsAccounts.updatedAt || self.updatedAt;
       self.createdBy = rawAwsAccounts.createdBy || self.createdBy;
       self.updatedBy = rawAwsAccounts.updatedBy || self.updatedBy;
-      self.cfnName = rawAwsAccounts.cfnName || self.cfnName;
-      self.region = rawAwsAccounts.region || self.region;
+      self.cfnStackName = rawAwsAccounts.cfnStackName || self.cfnStackName;
+      self.mainRegion = rawAwsAccounts.mainRegion || self.mainRegion;
       self.needsPermissionUpdate =
         typeof rawAwsAccounts.needsPermissionUpdate === 'boolean'
           ? rawAwsAccounts.needsPermissionUpdate

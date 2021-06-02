@@ -103,10 +103,11 @@ async function configure(context) {
   router.get(
     '/:id/permissions',
     wrap(async (req, res) => {
-      const account = req.body || {};
       const requestContext = res.locals.requestContext;
+      const accountId = req.params.id;
 
-      const result = await awsCfnService.queryStack(requestContext, { ...account });
+      const accountDetails = await awsAccountsService.mustFind(requestContext, { id: accountId });
+      const result = await awsCfnService.queryStack(requestContext, { ...accountDetails });
       res.status(200).json(result);
     }),
   );
