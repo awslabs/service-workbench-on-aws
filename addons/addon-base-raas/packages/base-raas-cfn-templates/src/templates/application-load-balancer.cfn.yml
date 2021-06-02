@@ -21,7 +21,7 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       CidrBlock: 10.0.32.0/19
-      AvailabilityZone: us-east-1b
+      AvailabilityZone: !Select [1, !GetAZs ]
   ALBListener:
      Type: AWS::ElasticLoadBalancingV2::Listener
      Properties:
