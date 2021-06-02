@@ -118,11 +118,12 @@ class ALBService extends Service {
    */
   async saveAlbDetails(awsAccountId, details) {
     const [deploymentStore] = await this.service(['deploymentStoreService']);
-    return deploymentStore.createOrUpdate({
+    const result = await deploymentStore.createOrUpdate({
       type: 'account-workspace-details',
       id: awsAccountId,
       value: JSON.stringify(details),
     });
+    return result;
   }
 
   /**
@@ -176,7 +177,7 @@ class ALBService extends Service {
    */
   async findDeploymentItem({ id }) {
     const [deploymentStore] = await this.service(['deploymentStoreService']);
-    const deploymentItem = await deploymentStore.find({ type: 'account-workspace-details', id });
+    const deploymentItem = await deploymentStore.mustFind({ type: 'account-workspace-details', id });
     return deploymentItem;
   }
 
@@ -222,7 +223,12 @@ class ALBService extends Service {
       Tags: resolvedVars.tags,
     };
     const albClient = await this.getAlbSdk(requestContext, resolvedVars);
-    const response = await albClient.createRule(params).promise();
+    let response = null;
+    try {
+      response = await albClient.createRule(params).promise();
+    } catch (err) {
+      throw new Error(`Error creating rule. Rule creation failed with message - ${err.message}`);
+    }
     return response.Rules[0].RuleArn;
   }
 
@@ -239,7 +245,13 @@ class ALBService extends Service {
       RuleArn: ruleArn,
     };
     const albClient = await this.getAlbSdk(requestContext, resolvedVars);
-    await albClient.deleteRule(params).promise();
+    let response = null;
+    try {
+      response = await albClient.deleteRule(params).promise();
+    } catch (err) {
+      throw new Error(`Error deleting rule. Rule deletion failed with message - ${err.message}`);
+    }
+    return response;
   }
 
   /**
@@ -253,7 +265,9 @@ class ALBService extends Service {
     const deploymentItem = await this.getAlbDetails(requestContext, projectId);
     const albRecord = JSON.parse(deploymentItem.value);
     albRecord.albDependentWorkspacesCount += 1;
-    await this.saveAlbDetails(deploymentItem.id, albRecord);
+    const result = await this.saveAlbDetails(deploymentItem.id, albRecord);
+    await this.audit(requestContext, { action: 'update-deployment-store', body: result });
+    return result;
   }
 
   /**
@@ -267,7 +281,9 @@ class ALBService extends Service {
     const deploymentItem = await this.getAlbDetails(requestContext, projectId);
     const albRecord = JSON.parse(deploymentItem.value);
     albRecord.albDependentWorkspacesCount -= 1;
-    await this.saveAlbDetails(deploymentItem.id, albRecord);
+    const result = await this.saveAlbDetails(deploymentItem.id, albRecord);
+    await this.audit(requestContext, { action: 'update-deployment-store', body: result });
+    return result;
   }
 
   /**
