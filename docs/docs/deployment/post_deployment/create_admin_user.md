@@ -15,8 +15,10 @@ _**Figure 7: Create an Administrator**_
 
 _**Note**: A root user account will already be created, however, you must not routinely use the root user account._ 
 
-1.	Click ‘**Add Local User**’. Assign the user the administrator’s role, and associate the user with the **Project** you created, and set the status to ‘**Active**’. See **Figure 8**.
+For testing purposes, you can create a local user by clicking  ‘**Add Local User**’. Assign the user the administrator’s role, and associate the user with the **Project** you created, and set the status to ‘**Active**’. See **Figure 8**.
 
 <img src={useBaseUrl('img/deployment/post_deployment/create_user_01.jpg')} />
 
 _**Figure 8: Add Local User**_
+
+**In prod environments we highly recommend using an IDP. For more details, click [here](../../user_guide/sidebar/admin/auth/introduction.md)**
