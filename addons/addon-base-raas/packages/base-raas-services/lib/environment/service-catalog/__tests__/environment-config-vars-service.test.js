@@ -59,6 +59,9 @@ const EnvironmentSCServiceMock = require('../environment-sc-service');
 jest.mock('../environment-sc-keypair-service');
 const EnvironmentSCKeyPairServiceMock = require('../environment-sc-keypair-service');
 
+jest.mock('../../../data-egress/data-egress-service.js');
+const DataEgressService = require('../../../data-egress/data-egress-service.js');
+
 const EnvironmentConfigVarsService = require('../environment-config-vars-service');
 
 describe('EnvironmentSCService', () => {
@@ -87,6 +90,7 @@ describe('EnvironmentSCService', () => {
     container.register('environmentScService', new EnvironmentSCServiceMock());
     container.register('environmentScKeypairService', new EnvironmentSCKeyPairServiceMock());
     container.register('studyService', new StudyServiceMock());
+    container.register('dataEgressService', new DataEgressService());
     await container.initServices();
 
     // suppress expected console errors
