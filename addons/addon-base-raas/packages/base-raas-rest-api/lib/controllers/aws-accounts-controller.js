@@ -107,8 +107,9 @@ async function configure(context) {
       const accountId = req.params.id;
 
       const accountDetails = await awsAccountsService.mustFind(requestContext, { id: accountId });
-      // const result = await awsCfnService.queryStack(requestContext, { ...accountDetails });
-      const result = await awsCfnService.checkAccountPermissions(requestContext, { ...accountDetails });
+      const result = await awsCfnService.checkAccountPermissions(requestContext, {
+        ...accountDetails,
+      });
       res.status(200).json(result);
     }),
   );

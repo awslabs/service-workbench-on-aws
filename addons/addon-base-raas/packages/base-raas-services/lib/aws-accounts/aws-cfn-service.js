@@ -14,15 +14,9 @@
  */
 
 const _ = require('lodash');
-const crypto = require('crypto');
 const Service = require('@aws-ee/base-services-container/lib/service');
 // const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
-const fs = require('fs');
-
-// const expectedTemplatePath = `${__dirname}/../../../../../../onboard-account-template.json`;
-const expectedTemplatePath = `${__dirname}/../../../../../../onboard-account-template.cfn.yml`;
-const expectedTemplate = fs.existsSync(expectedTemplatePath) ? fs.readFileSync(expectedTemplatePath, 'utf-8') : '';
 
 // const { generateId } = require('../helpers/utils');
 
@@ -34,18 +28,17 @@ class AwsCfnService extends Service {
   constructor() {
     super();
     this.boom.extend(['notSupported', 400]);
-    this.dependency(['aws', 'jsonSchemaValidationService', 'authorizationService', 'auditWriterService']);
+    this.dependency([
+      'aws',
+      'jsonSchemaValidationService',
+      'authorizationService',
+      'auditWriterService',
+      'cfnTemplateService',
+    ]);
   }
 
   async init() {
     await super.init();
-    // const [dbService] = await this.service(['dbService']);
-
-    // this._getter = () => dbService.helper.getter().table(table);
-    // this._updater = () => dbService.helper.updater().table(table);
-    // this._query = () => dbService.helper.query().table(table);
-    // this._deleter = () => dbService.helper.deleter().table(table);
-    // this._scanner = () => dbService.helper.scanner().table(table);
   }
 
   /**
@@ -59,7 +52,7 @@ class AwsCfnService extends Service {
    * @param requestContext
    * @param accountEntity
    */
-  async queryStack(requestContext, accountEntity) {
+  async getStackTemplate(requestContext, accountEntity) {
     await this.assertAuthorized(
       requestContext,
       { action: 'query-aws-cfn-stack', conditions: [allowIfActive, allowIfAdmin] },
@@ -77,11 +70,10 @@ class AwsCfnService extends Service {
     }
 
     // Not sure yet how we'll deal with YAML vs. JSON, no easy way to convert
-    const stackId = stack.StackId;
+    // for now I think it's safe to assume it'll be YAML
     const permissionsTemplateRaw = await cfnApi.getTemplate(params).promise();
 
     return {
-      stackId,
       permissionsTemplateStr: permissionsTemplateRaw.TemplateBody,
     };
   }
@@ -92,27 +84,34 @@ class AwsCfnService extends Service {
       { action: 'check-aws-permissions', conditions: [allowIfActive, allowIfAdmin] },
       { accountEntity },
     );
+    const [cfnTemplateService] = await this.service(['cfnTemplateService']);
+    const expectedTemplate = await cfnTemplateService.getTemplate('onboard-account');
 
     // hashing the values for an easier comparison
     // not sure if this is really necessary, since string equivalence would also do the trick at this point
-    // whitespace removed because platform-specific differences lead to different hash values
+    // whitespace and comments removed before hashing
     // benefit of hashes is we can return them without worry about exposing information
-    const curPermissions = await this.queryStack(requestContext, accountEntity);
-    const trimmedCurPermString = curPermissions.permissionsTemplateStr.replace(/#.*/g, '').replace(/\s+/g, '');
-    const curPermHasher = crypto.createHash('sha256');
-    curPermHasher.update(trimmedCurPermString);
-    const curPermHash = curPermHasher.digest('hex');
-
-    const expPermHasher = crypto.createHash('sha256');
-    const trimmedExpPermString = expectedTemplate.replace(/#.*/g, '').replace(/\s+/g, '');
-    expPermHasher.update(trimmedExpPermString);
-    const expPermHash = expPermHasher.digest('hex');
-
+    const curPermissions = await this.getStackTemplate(requestContext, accountEntity);
+    const trimmedCurPermString = curPermissions.permissionsTemplateStr.replace(/#.*/g, ''); // .replace(/\s+/g, '');
+    const trimmedExpPermString = expectedTemplate.replace(/#.*/g, ''); // .replace(/\s+/g, '');
+    const sameLength = trimmedCurPermString.length === trimmedExpPermString.length;
     return {
-      needsUpdate: curPermHash !== expPermHash,
-      curPermHash,
-      expPermHash,
+      needsUpdate: trimmedExpPermString !== trimmedCurPermString,
+      addedInformation: !this.stringInOther(trimmedCurPermString, trimmedExpPermString) && !sameLength,
+      removedInformation: !this.stringInOther(trimmedExpPermString, trimmedCurPermString) && !sameLength,
+      expLength: trimmedExpPermString.length,
+      curLength: trimmedCurPermString.length,
     };
+  }
+
+  stringInOther(s1, s2) {
+    let j = 1;
+    for (let i = 0; i < s2.length; i += 1) {
+      if (s1.charAt(j - 1) === s2.charAt(i)) {
+        j += 1;
+      }
+    }
+    return j === s1.length;
   }
 
   // @private

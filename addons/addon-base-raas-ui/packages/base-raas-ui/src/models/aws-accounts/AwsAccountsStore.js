@@ -21,8 +21,8 @@ import {
   getAwsAccounts,
   addAwsAccount,
   createAwsAccount,
-  // updateAwsAccount,
-  getAccountPermissions,
+  updateAwsAccount,
+  getAccountPermissionsStatus,
 } from '../../helpers/api';
 import { AwsAccount } from './AwsAccount';
 import { BudgetStore } from './BudgetStore';
@@ -92,18 +92,27 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         await createAwsAccount(awsAccount);
       },
 
-      checkPermissions: async () => {
-        // This is a placeholder function that just switches the needsPermissionUpdate to its opposite value
-        // Will be implemented later
+      checkUpdatePermissions: async () => {
+        // Still needs error-checking
         const awsAccounts = (await getAwsAccounts()) || [];
-        const perms = [];
         self.runInAction(() => {
           awsAccounts.forEach(account => {
-            const res = getAccountPermissions(account.id);
-            perms.push(res);
+            const res = {};
+            try {
+              const status = getAccountPermissionsStatus(account.id);
+              res.needsUpdate = status.needsUpdate;
+            } catch {
+              res.needsUpdate = account.needsUpdate === undefined ? undefined : true;
+            }
+            if (res.needsUpdate !== account.needsUpdate) {
+              updateAwsAccount(account.id, {
+                ...account,
+                needsUpdate: res.needsUpdate,
+                updatedAt: new Date().toISOString(),
+              });
+            }
           });
         });
-        return perms;
       },
 
       getBudgetStore: awsAccountUUID => {

@@ -119,11 +119,8 @@ class AwsAccountsList extends React.Component {
   };
 
   handleCheckPermissions = () => {
-    // This function will be implemented later
-
-    // const awsAccountsStore = this.props.awsAccountsStore;
-    // awsAccountsStore.checkPermissions();
-    return undefined;
+    const awsAccountsStore = this.props.awsAccountsStore;
+    awsAccountsStore.checkUpdatePermissions();
   };
 
   handleSelectedFilter = name => {
