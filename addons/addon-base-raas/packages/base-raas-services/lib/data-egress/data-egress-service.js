@@ -12,7 +12,7 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-
+const _ = require('lodash');
 const uuid = require('uuid/v1');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const Service = require('@aws-ee/base-services-container/lib/service');
@@ -238,6 +238,7 @@ class DataEgressService extends Service {
     // Write audit event
     await this.audit(requestContext, { action: 'add-egress-store-bucket-policy', body: s3Policy });
   }
+
   addAccountToStatement(oldStatement, memberAccountId) {
     const principal = this.getRootArnForAccount(memberAccountId);
     const statement = this.addEmptyPrincipalIfNotPresent(oldStatement);
@@ -251,10 +252,12 @@ class DataEgressService extends Service {
     }
     return statement;
   }
+
   // @private
   getRootArnForAccount(memberAccountId) {
     return `arn:aws:iam::${memberAccountId}:root`;
   }
+
   // @private
   addEmptyPrincipalIfNotPresent(statement) {
     if (!statement.Principal) {
@@ -265,6 +268,7 @@ class DataEgressService extends Service {
     }
     return statement;
   }
+
   // @private
   async getRevisedS3Statements(s3Policy, egressStore, bucket, statementParamFunctions, updateStatementFn) {
     const revisedStatementsPerStudy = _.map(statementParamFunctions, statementParameterFn => {
@@ -284,6 +288,7 @@ class DataEgressService extends Service {
     return revisedStatementsPerStudy;
   }
 
+  // @private
   async updateS3BucketPolicy(s3BucketName, s3Policy, revisedStatements) {
     const s3Client = await this.getS3();
 
