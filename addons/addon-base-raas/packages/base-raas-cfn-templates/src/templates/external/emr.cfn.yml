@@ -84,10 +84,14 @@ Parameters:
   IamPolicyDocument:
     Type: String
     Description: The IAM policy to be associated with the launched workstation
+  EgressStoreIamPolicyDocument:
+    Type: String
+    Description: The IAM policy for launched workstation to access egress store
 
 Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
   IsOnDemandCondition: !Equals [!Ref Market, ON_DEMAND]
+  EgressStoreIamPolicyEmpty: !Equals [!Ref EgressStoreIamPolicyDocument, '{}']
 
 Resources:
   # TODO: Use one bucket for EMR logs per account, so shift deployment to account on-boarding and pass here as param
@@ -174,6 +178,11 @@ Resources:
           - !Ref 'AWS::NoValue'
           - PolicyName: !Join ['-', [Ref: Namespace, 's3-studydata-policy']]
             PolicyDocument: !Ref IamPolicyDocument
+        - !If
+          - EgressStoreIamPolicyEmpty
+          - !Ref 'AWS::NoValue'
+          - PolicyName: !Join ['-', [Ref: Namespace, 's3-egressstore-policy']]
+            PolicyDocument: !Ref EgressStoreIamPolicyDocument
         - PolicyName: !Join ['-', [Ref: Namespace, 's3-bootstrap-script-policy']]
           PolicyDocument:
             Version: '2012-10-17'
