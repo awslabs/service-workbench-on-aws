@@ -14,9 +14,15 @@
  */
 
 const _ = require('lodash');
+const crypto = require('crypto');
 const Service = require('@aws-ee/base-services-container/lib/service');
 // const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
+const fs = require('fs');
+
+// const expectedTemplatePath = `${__dirname}/../../../../../../onboard-account-template.json`;
+const expectedTemplatePath = `${__dirname}/../../../../../../onboard-account-template.cfn.yml`;
+const expectedTemplate = fs.existsSync(expectedTemplatePath) ? fs.readFileSync(expectedTemplatePath, 'utf-8') : '';
 
 // const { generateId } = require('../helpers/utils');
 
@@ -70,16 +76,42 @@ class AwsCfnService extends Service {
       throw this.boom.notFound(`Stack '${cfnStackName}' not found`, true);
     }
 
+    // Not sure yet how we'll deal with YAML vs. JSON, no easy way to convert
     const stackId = stack.StackId;
-    // const permissionsTemplateStr = await cfnApi.getTemplateSummary(params).promise(); // stack.Template;
     const permissionsTemplateRaw = await cfnApi.getTemplate(params).promise();
-    const permissionsStr = permissionsTemplateRaw.TemplateBody;
-    // const permissionsTemplate = _.isEmpty(permissionsTemplateStr.TemplateBody)
-    //   ? {}
-    //   : JSON.parse(permissionsTemplateStr.TemplateBody);
+
     return {
       stackId,
-      permissionsStr,
+      permissionsTemplateStr: permissionsTemplateRaw.TemplateBody,
+    };
+  }
+
+  async checkAccountPermissions(requestContext, accountEntity) {
+    await this.assertAuthorized(
+      requestContext,
+      { action: 'check-aws-permissions', conditions: [allowIfActive, allowIfAdmin] },
+      { accountEntity },
+    );
+
+    // hashing the values for an easier comparison
+    // not sure if this is really necessary, since string equivalence would also do the trick at this point
+    // whitespace removed because platform-specific differences lead to different hash values
+    // benefit of hashes is we can return them without worry about exposing information
+    const curPermissions = await this.queryStack(requestContext, accountEntity);
+    const trimmedCurPermString = curPermissions.permissionsTemplateStr.replace(/#.*/g, '').replace(/\s+/g, '');
+    const curPermHasher = crypto.createHash('sha256');
+    curPermHasher.update(trimmedCurPermString);
+    const curPermHash = curPermHasher.digest('hex');
+
+    const expPermHasher = crypto.createHash('sha256');
+    const trimmedExpPermString = expectedTemplate.replace(/#.*/g, '').replace(/\s+/g, '');
+    expPermHasher.update(trimmedExpPermString);
+    const expPermHash = expPermHasher.digest('hex');
+
+    return {
+      needsUpdate: curPermHash !== expPermHash,
+      curPermHash,
+      expPermHash,
     };
   }
 

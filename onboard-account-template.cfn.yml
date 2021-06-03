@@ -292,7 +292,6 @@ Resources:
               - cloudformation:DescribeStacks
               - cloudformation:DescribeStackEvents
               - cloudformation:GetTemplate
-              - cloudformation:GetTemplateSummary
             Resource:
               - !Sub "arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/SWB-Onboard*"
 
