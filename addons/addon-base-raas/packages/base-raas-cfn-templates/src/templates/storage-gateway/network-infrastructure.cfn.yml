@@ -158,24 +158,24 @@ Resources:
           # Signal result to CloudFormation
           /opt/aws/bin/cfn-signal -e $? --stack "${AWS::StackName}" --resource "EC2Instance" --region "${AWS::Region}"
 
-  VolumeAttach:
-    Type: 'AWS::EC2::VolumeAttachment'
-    Properties:
-      Device: /dev/sdc
-      InstanceId: !Ref EC2Instance
-      VolumeId: !Ref CacheVolume
-
-  CacheVolume:
-    Type: 'AWS::EC2::Volume'
-    Properties:
-      AvailabilityZone: !GetAtt
-        - EC2Instance
-        - AvailabilityZone
-      Size: 150
-      VolumeType: gp2
-      Tags:
-        - Key: Name
-          Value: !Join ['-', [Ref: Namespace, 'ec2-storage-gateway-volume']]
+#  VolumeAttach:
+#    Type: 'AWS::EC2::VolumeAttachment'
+#    Properties:
+#      Device: /dev/sdc
+#      InstanceId: !Ref EC2Instance
+#      VolumeId: !Ref CacheVolume
+#
+#  CacheVolume:
+#    Type: 'AWS::EC2::Volume'
+#    Properties:
+#      AvailabilityZone: !GetAtt
+#        - EC2Instance
+#        - AvailabilityZone
+#      Size: 150
+#      VolumeType: gp2
+#      Tags:
+#        - Key: Name
+#          Value: !Join ['-', [Ref: Namespace, 'ec2-storage-gateway-volume']]
 
   ElasticIP:
     Type: AWS::EC2::EIP
@@ -199,9 +199,9 @@ Outputs:
     Description: Elastic IP
     Value: !Ref ElasticIP
 
-  CacheVolume:
-    Description: EC2 Volume
-    Value: !Ref CacheVolume
+#  CacheVolume:
+#    Description: EC2 Volume
+#    Value: !Ref CacheVolume
 
   SecurityGroup:
     Description: Security Group
