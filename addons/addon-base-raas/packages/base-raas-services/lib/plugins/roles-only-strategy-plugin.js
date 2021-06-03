@@ -129,6 +129,20 @@ async function provideStudyMount(payload) {
   return { ...payload, s3Mounts: updatedS3Mounts };
 }
 
+async function provideEnvEgressStorePolicy(payload) {
+  const { requestContext, container, environmentScEntity, egressStore, policyDoc, memberAccountId } = payload;
+
+  const resourceService = await container.find('roles-only/environmentResourceService');
+  const updatedPolicyDoc = await resourceService.provideEnvEgressStorePolicy(requestContext, {
+    environmentScEntity,
+    egressStore,
+    policyDoc,
+    memberAccountId,
+  });
+
+  return { ...payload, policyDoc: updatedPolicyDoc };
+}
+
 const plugin = {
   onStudyRegistration,
   provideAccountCfnTemplate,
@@ -136,6 +150,7 @@ const plugin = {
   deallocateEnvStudyResources,
   provideEnvRolePolicy,
   provideStudyMount,
+  provideEnvEgressStorePolicy,
 };
 
 module.exports = plugin;

@@ -202,6 +202,18 @@ class EnvironmentResourceService extends Service {
     return policyDoc;
   }
 
+  async provideEnvEgressStorePolicy(requestContext, { policyDoc, egressStore, environmentScEntity }) {
+    const roleArn = _.get(environmentScEntity, 'studyRoles', {})[egressStore.id];
+    policyDoc.addStudyRole(roleArn);
+    policyDoc.addStudy({
+      bucket: egressStore.bucket,
+      kmsArn: egressStore.kmsArn,
+      resources: egressStore.resources,
+      permission: egressStore.envPermission,
+    });
+    return policyDoc;
+  }
+
   /**
    * Populate s3 mount information that is going to be passed to the user data of the compute instance. This s3 mount
    * information is then used by the mount script that runs on the compute instance. It is important to keep in mind

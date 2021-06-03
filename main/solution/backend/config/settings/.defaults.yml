@@ -61,6 +61,19 @@ apiHandlerRoleArn: 'arn:aws:iam::${self:custom.settings.awsAccountInfo.awsAccoun
 # env launch options)
 envTypeConfigsBucketName: ${self:custom.settings.globalNamespace}-env-type-configs
 
+# The S3 bucket name to be used to store egress store data
+egressStoreBucketName: ${self:custom.settings.globalNamespace}-egress-store
+
+# The alias used for the KMS key created to encrypt/decrypt egress store
+egressStoreKmsKeyAlias: ${self:custom.settings.globalNamespace}/s3/egressstore
+
+# The arn of the egress store KMS Key alias
+egressStoreKmsKeyAliasArn: arn:aws:kms:${self:custom.settings.awsRegion}:${self:custom.settings.awsAccountInfo.awsAccountId}:alias/${self:custom.settings.egressStoreKmsKeyAlias}
+
+# The statement ID in the generated KMS key's key policy that controls which workspaces
+#   can decrypt data in the egress store data bucket
+egressStoreKmsPolicyWorkspaceSid: Allow workspace environments to CRUD egress data
+
 # Enable or disable workflow processing
 workflowsEnabled: true
 
@@ -189,6 +202,12 @@ dbRoleAllocations: ${self:custom.settings.dbPrefix}-RoleAllocations
 
 # DynamoDB table name for Resource usages
 dbResourceUsages: ${self:custom.settings.dbPrefix}-ResourceUsages
+
+# DynamoDB table name for Egress Store
+dbEgressStore: ${self:custom.settings.dbPrefix}-EgressStore
+
+# DynamoDB table global secondary index name for the "WorkspaceIdIndex" field
+dbEgressStoreWorkspaceIdIndex: WorkspaceIdIndex
 
 # ================================ DB Settings - Depreciated ===========================================
 

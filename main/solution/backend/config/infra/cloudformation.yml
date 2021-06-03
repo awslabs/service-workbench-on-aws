@@ -1,5 +1,6 @@
 Conditions:
   IsDev: !Equals ['${self:custom.settings.envType}', 'dev']
+  EnableEgressStore: !Equals ['${self:custom.settings.enableEgressStore}', true]
 
 Resources:
   # =============================================================================================
@@ -262,6 +263,121 @@ Resources:
               StringNotEquals:
                 s3:signatureversion: 'AWS4-HMAC-SHA256'
 
+  EgressStoreEncryptionKey:
+    Condition: EnableEgressStore
+    Type: AWS::KMS::Key
+    Properties:
+      Description: >-
+        Master key used to encrypt objects stored in the
+        ${self:custom.settings.egressStoreBucketName} bucket
+      KeyPolicy:
+        Version: '2012-10-17'
+        Id: egress-store-kms-policy
+        Statement:
+          - Sid: Allow root
+            Effect: Allow
+            Principal:
+              AWS:
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action:
+              - 'kms:*'
+            Resource: '*'
+          - Sid: Allow API access to create object and update policy for new workspaces
+            Effect: Allow
+            Principal:
+              AWS:
+                - !GetAtt [RoleApiHandler, Arn]
+            Action:
+              - kms:GenerateDataKey
+              - kms:DescribeKey
+              - kms:GetKeyPolicy
+              - kms:PutKeyPolicy
+            Resource: '*'
+          - Sid: Allow workflows to update key policy for new workspaces
+            Effect: Allow
+            Principal:
+              AWS:
+                - !GetAtt [RoleWorkflowLoopRunner, Arn]
+            Action:
+              - kms:GenerateDataKey
+              - kms:Decrypt
+              - kms:DescribeKey
+              - kms:Encrypt
+              - kms:ReEncrypt*
+              - kms:GetKeyPolicy
+              - kms:PutKeyPolicy
+            Resource: '*'
+
+  EgressStoreEncryptionKeyAlias:
+    Condition: EnableEgressStore
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/${self:custom.settings.egressStoreKmsKeyAlias}
+      TargetKeyId: !Ref EgressStoreEncryptionKey
+
+  # S3 bucket used to store egress data from workspace
+  EgressStoreBucket:
+    Condition: EnableEgressStore
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ${self:custom.settings.egressStoreBucketName}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: !GetAtt EgressStoreEncryptionKey.Arn
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
+      LoggingConfiguration:
+        DestinationBucketName: ${self:custom.settings.loggingBucketName}
+        LogFilePrefix: egressStore/
+      VersioningConfiguration:
+        Status: Enabled
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins:
+              - ${self:custom.settings.websiteUrl}
+              - !If
+                - IsDev
+                - http://localhost:3000
+                - !Ref 'AWS::NoValue'
+            AllowedMethods:
+              - POST
+            ExposedHeaders:
+              - ETag
+      PublicAccessBlockConfiguration: # Block all public access configuration for the S3 bucket
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  EgressStoreBucketPolicy:
+    Condition: EnableEgressStore
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref EgressStoreBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Id: PutObjectPolicy
+        Statement:
+          - Sid: Deny requests that do not use TLS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt EgressStoreBucket.Arn, '*']]
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Sid: Deny requests that do not use SigV4
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt EgressStoreBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:signatureversion: 'AWS4-HMAC-SHA256'
+
   # =============================================================================================
   # IAM Roles
   # =============================================================================================
@@ -365,6 +481,8 @@ Resources:
               - !GetAtt [DsAccountsDb, Arn]
               - !GetAtt [RoleAllocationsDb, Arn]
               - !GetAtt [ResourceUsagesDb, Arn]
+              - !GetAtt [EgressStoreDb, Arn]
+              - !Join ['', [!GetAtt [EgressStoreDb, Arn], '/index/*']]
           - Effect: Allow
             Action:
               - ssm:GetParameter
@@ -387,6 +505,7 @@ Resources:
               - 'arn:aws:s3:::${self:custom.settings.environmentsBootstrapBucketName}/*'
               - 'arn:aws:s3:::${self:custom.settings.externalCfnTemplatesBucketName}/*'
               - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}/*'
+              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}/*'
           - Effect: Allow
             Action:
               - s3:ListBucket
@@ -511,6 +630,8 @@ Resources:
               - !GetAtt [DsAccountsDb, Arn]
               - !GetAtt [RoleAllocationsDb, Arn]
               - !GetAtt [ResourceUsagesDb, Arn]
+              - !GetAtt [EgressStoreDb, Arn]
+              - !Join ['', [!GetAtt [EgressStoreDb, Arn], '/index/*']]
           - Effect: Allow
             Action:
               - ssm:GetParameter
@@ -601,6 +722,31 @@ Resources:
               - sts:AssumeRole
             Resource:
               - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-prep-raas-master-MasterRole-*'
+          - Effect: Allow
+            Action:
+              - s3:GetObject*
+              - s3:PutObject*
+            Resource:
+              - !Sub 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}/*'
+          - Effect: Allow
+            Action:
+              - s3:ListBucket
+              - s3:GetBucketPolicy
+              - s3:PutBucketPolicy
+            Resource:
+              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}'
+          - Effect: 'Allow'
+            Action:
+              - kms:GenerateDataKey
+              - kms:Decrypt
+              - kms:DescribeKey
+              - kms:Encrypt
+              - kms:ReEncrypt*
+              - kms:GetKeyPolicy
+              - kms:PutKeyPolicy
+            Resource:
+              - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
+              - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.egressStoreKmsKeyAlias}'
 
   # IAM Role for the workflowLoopRunner Function
   RoleWorkflowLoopRunner:
@@ -1381,6 +1527,28 @@ Resources:
         - AttributeName: 'sk'
           KeyType: 'RANGE'
       BillingMode: PAY_PER_REQUEST
+
+  EgressStoreDb:
+    Condition: EnableEgressStore
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbEgressStore}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'workspaceId'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: ${self:custom.settings.dbEgressStoreWorkspaceIdIndex}
+          KeySchema:
+            - AttributeName: 'workspaceId'
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: 'ALL'
 
   # =============================================================================================
   # DEPRECATED -- Dynamo DB

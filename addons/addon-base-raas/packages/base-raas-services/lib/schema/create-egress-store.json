@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "projectId": {
+      "type": "string"
+    },
+    "rev": {
+      "type": "number"
+    },
+    "inWorkflow": {
+      "type": "string"
+    },
+    "status": {
+      "type": "string"
+    },
+    "cidr": {
+      "type": "string"
+    },
+    "createdAt": {
+      "type": "string"
+    },
+    "updatedBy": {
+      "type": "string"
+    },
+    "createdBy": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "studyIds": {
+      "type": "array"
+    },
+    "updatedAt": {
+      "type": "string"
+    },
+    "indexId": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string"
+    },
+    "envTypeConfigId": {
+      "type": "string"
+    },
+    "envTypeId": {
+      "type": "string"
+    },
+    "hasConnections": { "type": "boolean" }
+  },
+  "required": [
+    "projectId",
+    "rev",
+    "inWorkflow",
+    "status",
+    "cidr",
+    "createdAt",
+    "updatedBy",
+    "createdBy",
+    "name",
+    "studyIds",
+    "updatedAt",
+    "indexId",
+    "description",
+    "id",
+    "envTypeConfigId",
+    "envTypeId",
+    "hasConnections"
+  ]
+}

@@ -12,7 +12,7 @@ openDataScrapeHandler:
   handler: src/lambdas/open-data-scrape-handler/handler.handler
   role: RoleOpenDataScrapeHandler
   tags: ${self:custom.tags}
-  timeout: 30  # in seconds, default is 6. this function usually finishes in 10secs, setting it to 30 just to be safe
+  timeout: 30 # in seconds, default is 6. this function usually finishes in 10secs, setting it to 30 just to be safe
   description: Handles scraping the metadata from the AWS open data registry.
   environment:
     APP_DB_STUDIES_CATEGORY_INDEX: ${self:custom.settings.dbStudiesCategoryIndex}
@@ -185,3 +185,7 @@ workflowLoopRunner:
     APP_DOMAIN_NAME: ${self:custom.settings.domainName}
     APP_ENV_BOOTSTRAP_BUCKET_NAME: ${self:custom.settings.environmentsBootstrapBucketName}
     APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
+    APP_ENABLE_EGRESS_STORE: ${self:custom.settings.enableEgressStore}
+    APP_EGRESS_STORE_BUCKET_NAME: ${self:custom.settings.egressStoreBucketName}
+    APP_EGRESS_STORE_KMS_KEY_ALIAS_ARN: ${self:custom.settings.egressStoreKmsKeyAliasArn}
+    APP_EGRESS_STORE_KMS_POLICY_WORKSPACE_SID: ${self:custom.settings.egressStoreKmsPolicyWorkspaceSid}
