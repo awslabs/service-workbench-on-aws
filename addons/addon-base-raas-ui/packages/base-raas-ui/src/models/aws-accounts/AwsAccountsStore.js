@@ -36,11 +36,12 @@ const filterNames = {
 };
 
 // A map, with the key being the filter name and the value being the function that will be used to filter the workspace
+// cfnStackName is an empty string if the account hasn't been onboarded yet
 const filters = {
   [filterNames.ALL]: () => true,
-  [filterNames.CURRENT]: account => account.needsPermissionUpdate === false,
-  [filterNames.UPDATEME]: account => account.needsPermissionUpdate === true,
-  [filterNames.NEW]: account => account.needsPermissionUpdate === undefined,
+  [filterNames.CURRENT]: account => account.needsPermissionUpdate === false && account.cfnStackName !== '',
+  [filterNames.UPDATEME]: account => account.needsPermissionUpdate === true && account.cfnStackName !== '',
+  [filterNames.NEW]: account => account.cfnStackName === '',
 };
 
 // ==================================================================

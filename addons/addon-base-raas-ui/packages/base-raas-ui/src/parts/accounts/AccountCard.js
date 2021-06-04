@@ -107,7 +107,7 @@ class AccountCard extends React.Component {
     const idReadable = account.accountId.replace(/(.{4})(.{4})/g, '$1-$2-');
     if (isSelectable) onClickAttr.onClick = () => this.handleSelected();
     const timeLastUpdated = this.account.updatedAt; // this defaults to empty string if not found
-    const needsUpdate = this.needsUpdate;
+    const cfnStackName = this.account.cfnStackName;
     return (
       <div>
         <Header as="h3" color="blue" className={c('mt2', isSelectable ? 'cursor-pointer' : '')} {...onClickAttr}>
@@ -115,14 +115,14 @@ class AccountCard extends React.Component {
           <Header.Subheader>
             <span className="pt1 fs-8 color-grey">AWS Account #{idReadable}</span>
           </Header.Subheader>
-          {needsUpdate !== undefined && timeLastUpdated !== '' && (
+          {cfnStackName !== '' && timeLastUpdated !== '' && (
             <Header.Subheader>
               <span className="fs-8 color-grey mr1">
                 Permissions checked <TimeAgo date={timeLastUpdated} className="mr1" />
               </span>
             </Header.Subheader>
           )}
-          {needsUpdate !== undefined && timeLastUpdated === '' && (
+          {cfnStackName !== '' && timeLastUpdated === '' && (
             <Header.Subheader>
               <span className="fs-8 color-grey mr1">Error checking last permission update time</span>
             </Header.Subheader>
@@ -138,8 +138,9 @@ class AccountCard extends React.Component {
 
   renderStatus() {
     const needsUpdate = this.needsUpdate;
+    const account = this.account;
     const state =
-      needsUpdate === undefined
+      account.cfnStackName === ''
         ? { color: 'purple', display: 'New' }
         : needsUpdate === true
         ? { color: 'orange', display: 'Needs Update' }

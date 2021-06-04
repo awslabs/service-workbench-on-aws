@@ -56,10 +56,6 @@ function createAwsAccount(awsAccount) {
   return httpApiPost('api/aws-accounts/provision', { data: awsAccount });
 }
 
-function addIndex(index) {
-  return httpApiPost('api/indexes', { data: index });
-}
-
 // Note the accountUUID used here is the 'id' column in dbAwsAccounts table and 'id' attribute in AwsAccount.js, not AWS account id
 function updateAwsAccount(accountUUID, data) {
   return httpApiPut(`api/aws-accounts/${accountUUID}/update-account`, { data });
@@ -67,6 +63,10 @@ function updateAwsAccount(accountUUID, data) {
 
 function getAccountPermissionsStatus(accountUUID) {
   return httpApiGet(`api/aws-accounts/${accountUUID}/permissions`);
+}
+
+function addIndex(index) {
+  return httpApiPost('api/indexes', { data: index });
 }
 
 function updateUserApplication(user) {

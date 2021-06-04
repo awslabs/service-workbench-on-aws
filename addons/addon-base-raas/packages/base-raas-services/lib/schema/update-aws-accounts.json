@@ -26,6 +26,13 @@
       "type": "string",
       "pattern": "^[0-9]{12}$"
     },
+    "cfnStackName": {
+      "type": "string",
+      "maxLength": 255
+    },
+    "mainRegion:": {
+      "type": "string"
+    },
     "roleArn": {
       "type": "string",
       "minLength": 10
@@ -52,19 +59,12 @@
     },
     "needsPermissionUpdate": {
       "type": "boolean"
-    },
-    "createdAt": {
-      "type": "string"
-    },
-    "createdBy": {
-      "type": "string"
-    },
-    "updatedAt": {
-      "type": "string"
-    },
-    "updatedBy": {
-      "type": "string"
     }
   },
-  "required": ["id", "rev", "roleArn", "externalId"]
+  "required": [
+    "id",
+    "rev",
+    "roleArn",
+    "externalId"
+  ]
 }
