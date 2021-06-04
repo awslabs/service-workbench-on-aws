@@ -57,9 +57,8 @@ const AwsAccount = types
       self.needsPermissionUpdate =
         typeof rawAwsAccounts.needsPermissionUpdate === 'boolean'
           ? rawAwsAccounts.needsPermissionUpdate
-          : typeof self.needsPermissionUpdate === 'boolean'
-          ? self.needsPermissionUpdate
-          : undefined;
+          : self.needsPermissionUpdate;
+
       // Can't use || for needsPermissionUpdate because the value is a Boolean
       // we don't update the other fields because they are being populated by a separate store
     },
