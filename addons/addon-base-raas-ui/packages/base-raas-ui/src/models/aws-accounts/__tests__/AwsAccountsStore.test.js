@@ -35,6 +35,8 @@ describe('AwsAccountsStore', () => {
     createdAt: 'humans cannot ride a ghost :(',
     updatedAt: 'Bye bye, Lil Sebastian',
     needsPermissionUpdate: false,
+    cfnStackName: 'testCfnName',
+    mainRegion: 'aws-region-1',
   };
 
   beforeEach(async () => {

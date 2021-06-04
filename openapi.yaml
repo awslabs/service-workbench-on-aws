@@ -2959,6 +2959,13 @@ components:
           example: 'Test Account Description'
         accountId:
           $ref: '#/components/schemas/AwsAccountId'
+        cfnStackName:
+          type: string
+          maxLength: 255
+          example: 'stack-name'
+        mainRegion:
+          type: string
+          example: 'us-east-1'
         roleArn:
           type: string
           minLength: 10
