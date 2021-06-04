@@ -26,7 +26,7 @@ const filterNames = {
   ALL: 'All',
   CURRENT: 'Up-to-Date',
   UPDATEME: 'Needs Update',
-  NEW: 'New',
+  ONBOARDME: 'Needs Onboard',
 };
 
 // A map, with the key being the filter name and the value being the function that will be used to filter the workspace
@@ -35,7 +35,7 @@ const filters = {
   [filterNames.ALL]: () => true,
   [filterNames.CURRENT]: account => account.needsPermissionUpdate === false && account.cfnStackName !== '',
   [filterNames.UPDATEME]: account => account.needsPermissionUpdate === true && account.cfnStackName !== '',
-  [filterNames.NEW]: account => account.cfnStackName === '',
+  [filterNames.ONBOARDME]: account => account.cfnStackName === '',
 };
 
 // ==================================================================

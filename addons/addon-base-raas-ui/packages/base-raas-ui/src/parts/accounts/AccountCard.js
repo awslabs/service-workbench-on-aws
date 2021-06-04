@@ -141,7 +141,7 @@ class AccountCard extends React.Component {
     const account = this.account;
     const state =
       account.cfnStackName === ''
-        ? { color: 'purple', display: 'New' }
+        ? { color: 'purple', display: 'Needs Onboard' }
         : needsUpdate === true
         ? { color: 'orange', display: 'Needs Update' }
         : { color: 'green', display: 'Up-to-Date' };

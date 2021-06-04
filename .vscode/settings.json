@@ -16,7 +16,6 @@
     "stackable",
     "webapp"
   ],
-  "editor.formatOnSave": true,
   "eslint.packageManager": "pnpm",
   "prettier.packageManager": "pnpm",
   "eslint.workingDirectories": [{ "mode": "auto" }]
