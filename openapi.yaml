@@ -2953,9 +2953,17 @@ components:
           minLength: 1
           maxLength: 100
           example: 'TestAccount'
+        description:
+          type: string
+          maxLength: 2048
+          example: 'Test Account Description'
         accountId:
           $ref: '#/components/schemas/AwsAccountId'
         roleArn:
+          type: string
+          minLength: 10
+          example: 'arn:aws:iam::000000000000:role/role-arn'
+        xAccEnvMgmtRoleArn:
           type: string
           minLength: 10
           example: 'arn:aws:iam::000000000000:role/role-arn'
@@ -2963,6 +2971,15 @@ components:
           type: string
           minLength: 1
           example: 'ExternalId'
+        vpcId:
+          $ref: '#/components/schemas/VpcId'
+        subnetId:
+          $ref: '#/components/schemas/SubnetId'
+        encryptionKeyArn:
+          $ref: '#/components/schemas/EncryptionKeyArn'
+        needsPermissionUpdate:
+          type: boolean
+          example: true
     UpdateAccountRequest:
       required:
         - id
