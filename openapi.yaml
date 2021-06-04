@@ -617,18 +617,18 @@ paths:
         in: path
         required: true
         schema:
-          $ref: '#/components/schemas/GetAwsAccountPermissions'
+          $ref: '#/components/schemas/GetAwsAccountPermissionsStatus'
     get:
       tags:
         - admins
         - AwsAccounts
-      summary: Get permissions for an AWS account from CFN stack
-      operationId: getAwsAccountPermissions
+      summary: Get status of permissions for an AWS account from CFN stack
+      operationId: getAwsAccountPermissionsStatus
       description: |
-        Get permissions for an AWS account from CFN stack
+        Get status of permissions for an AWS account from CFN stack
       responses:
         '200':
-          description: Permissions information
+          description: Permissions status information
   /api/accounts:
     get:
       tags:
@@ -2980,7 +2980,7 @@ components:
           type: string
           minLength: 1
           example: 'ExternalId'
-    GetAwsAccountPermissions:
+    GetAwsAccountPermissionsStatus:
       required:
         - accountId
       type: object
