@@ -87,9 +87,6 @@ class CheckLaunchDependency extends StepBase {
     ]);
     const projectId = resolvedVars.projectId;
     const awsAccountId = await albService.findAwsAccountId(requestContext, projectId);
-    this.print({
-      msg: `Trying to get lock`,
-    });
     // Locking the ALB provisioing to avoid race condiitons on parallel provisioning.
     // expiresIn is set to 10 minutes. attemptsCount is set to 600 to retry after 1 seconds for 10 minutes
     const lock = await lockService.tryWriteLock(

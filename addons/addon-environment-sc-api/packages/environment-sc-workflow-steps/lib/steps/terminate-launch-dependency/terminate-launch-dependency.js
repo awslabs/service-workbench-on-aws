@@ -82,9 +82,6 @@ class TerminateLaunchDependency extends StepBase {
     const environment = await environmentScService.mustFind(requestContext, { id: envId });
     const projectId = environment.projectId;
     const awsAccountId = await albService.findAwsAccountId(requestContext, projectId);
-    this.print({
-      msg: `Trying to get lock`,
-    });
     // Locking the ALB termination to avoid race condiitons on parallel provisioning.
     // expiresIn is set to 10 minutes. attemptsCount is set to 600 to retry after 1 seconds for 10 minutes
     const lock = await lockService.tryWriteLock(
