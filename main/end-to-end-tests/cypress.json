@@ -6,6 +6,8 @@
   "env": {
     "researcherEmail": "<EMAIL ACCOUNT OF PREMADE RESEARCHER>",
     "researcherPassword": "<RESEARCHER ACCOUNT PASSWORD>",
+    "adminEmail": "<EMAIL ACCOUNT OF PREMADE ADMIN>",
+    "adminPassword": "<ADMIN ACCOUNT PASSWORD>",
     "isCognitoEnabled": false,
     "workspaces": {
       "sagemaker": {
@@ -18,6 +20,18 @@
         "configuration": "<EC2 WORKSPACE CONFIGURATION>",
         "projectId": "<PROJECT TO LAUNCH EC2 WORKSPACE IN>"
       }
+    },
+    "studies": {
+      "organizations": [
+        {
+          "name": "<STUDY IN WHICH RESEARCHER ACCOUNT IS STUDY ADMIN>",
+          "researcherIsAdmin": true
+        },
+        {
+          "name": "<STUDY IN WHICH RESEARCHER ACCOUNT IS NOT STUDY ADMIN>",
+          "researcherIsAdmin": false
+        }
+      ]
     }
   },
   "defaultCommandTimeout": 20000,

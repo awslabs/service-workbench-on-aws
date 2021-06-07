@@ -76,7 +76,7 @@ class StudyRow extends React.Component {
 
     return (
       <Segment clearing padded raised className="mb3" {...attrs}>
-        <div className="flex">
+        <div data-testid="study-card" className="flex">
           <div className="mr2" {...onClickAttr}>
             {isSelectable && <Checkbox checked={isSelected} style={{ marginTop: '17px' }} />}
           </div>

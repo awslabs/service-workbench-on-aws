@@ -18,6 +18,18 @@
         "configuration": "ec2-instance",
         "projectId": "GalCrossAccountProject"
       }
+    },
+    "studies": {
+      "organizations": [
+        {
+          "name": "org-study-1",
+          "researcherIsAdmin": true
+        },
+        {
+          "name": "org-study-2",
+          "researcherIsAdmin": false
+        }
+      ]
     }
   },
   "defaultCommandTimeout": 90000,

@@ -20,10 +20,12 @@ Resources:
     Type: AWS::SNS::Topic
     Properties: !If
       - SubscribeNotificationEmail
-      - Subscription:
+      -
+        Subscription:
           - Endpoint: ${self:custom.settings.emailForNotifications}
             Protocol: email
-      - !Ref AWS::NoValue
+        KmsMasterKeyId: alias/aws/sns
+      - KmsMasterKeyId: alias/aws/sns
 
   # SNS Topic Policy to allow CloudWatch Event Service to send notifications to the topic
   PipelineNotificationsTopicPolicy:
@@ -97,6 +99,11 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: ${self:custom.settings.cicdAppArtifactBucketName}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+            BucketKeyEnabled: true
       VersioningConfiguration:
         Status: Enabled
       PublicAccessBlockConfiguration: # Block all public access configuration for the S3 bucket
