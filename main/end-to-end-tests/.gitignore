@@ -4,3 +4,4 @@ cypress.env.json
 
 cypress.local.json
 cypress.dev.json
+fixtures/example.json
