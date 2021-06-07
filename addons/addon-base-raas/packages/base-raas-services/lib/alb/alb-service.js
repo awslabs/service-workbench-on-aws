@@ -177,7 +177,7 @@ class ALBService extends Service {
    */
   async findDeploymentItem({ id }) {
     const [deploymentStore] = await this.service(['deploymentStoreService']);
-    const deploymentItem = await deploymentStore.mustFind({ type: 'account-workspace-details', id });
+    const deploymentItem = await deploymentStore.find({ type: 'account-workspace-details', id });
     return deploymentItem;
   }
 
