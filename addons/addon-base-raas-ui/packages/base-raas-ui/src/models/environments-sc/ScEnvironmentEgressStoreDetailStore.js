@@ -25,8 +25,6 @@ const ScEnvironmentEgressStoreDetailStore = BaseStore.named('ScEnvironmentEgress
     },
   }));
 
-// Note: Do NOT register this in the global context, if you want to gain access to an instance
-//       use scEnvironmentsStore.getScEnvironmentStore()
 function registerContextItems(appContext) {
   appContext.scEnvironmentEgressStoreDetailStore = ScEnvironmentEgressStoreDetailStore.create({}, appContext);
 }
