@@ -17,6 +17,14 @@ const uuid = require('uuid/v1');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const createSchema = require('../schema/create-egress-store.json');
+const {
+  createAllowStatement,
+  getStatementParamsFn,
+  listStatementParamsFn,
+  putStatementParamsFn,
+  updateS3BucketPolicy,
+  addAccountToStatement,
+} = require('../helpers/utils');
 
 const settingKeys = {
   tableName: 'dbEgressStore',
@@ -24,42 +32,6 @@ const settingKeys = {
   egressStoreBucketName: 'egressStoreBucketName',
   egressStoreKmsKeyAliasArn: 'egressStoreKmsKeyAliasArn',
 };
-
-const listStatementParamsFn = (bucket, prefix) => {
-  return {
-    statementId: `List:${prefix}`,
-    resource: `arn:aws:s3:::${bucket}`,
-    actions: ['s3:ListBucket'],
-    condition: {
-      StringLike: {
-        's3:prefix': [`${prefix}*`],
-      },
-    },
-  };
-};
-
-const getStatementParamsFn = (bucket, prefix) => {
-  return {
-    statementId: `Get:${prefix}`,
-    resource: [`arn:aws:s3:::${bucket}/${prefix}*`],
-    actions: ['s3:GetObject'],
-  };
-};
-
-const putStatementParamsFn = (bucket, prefix) => {
-  return {
-    statementId: `Put:${prefix}`,
-    resource: [`arn:aws:s3:::${bucket}/${prefix}*`],
-    actions: [
-      's3:AbortMultipartUpload',
-      's3:ListMultipartUploadParts',
-      's3:PutObject',
-      's3:PutObjectAcl',
-      's3:DeleteObject',
-    ],
-  };
-};
-
 class DataEgressService extends Service {
   constructor() {
     super();
@@ -230,43 +202,15 @@ class DataEgressService extends Service {
       egressStore,
       s3BucketName,
       statementParamFunctions,
-      oldStatement => this.addAccountToStatement(oldStatement, memberAccountId),
+      oldStatement => addAccountToStatement(oldStatement, memberAccountId),
     );
 
-    await this.updateS3BucketPolicy(s3BucketName, s3Policy, revisedStatements);
+    const s3Client = await this.getS3();
+
+    await updateS3BucketPolicy(s3Client, s3BucketName, s3Policy, revisedStatements);
 
     // Write audit event
     await this.audit(requestContext, { action: 'add-egress-store-bucket-policy', body: s3Policy });
-  }
-
-  addAccountToStatement(oldStatement, memberAccountId) {
-    const principal = this.getRootArnForAccount(memberAccountId);
-    const statement = this.addEmptyPrincipalIfNotPresent(oldStatement);
-    if (Array.isArray(statement.Principal.AWS)) {
-      // add the principal if it doesn't exist already
-      if (!statement.Principal.AWS.includes(principal)) {
-        statement.Principal.AWS.push(principal);
-      }
-    } else if (statement.Principal.AWS !== principal) {
-      statement.Principal.AWS = [statement.Principal.AWS, principal];
-    }
-    return statement;
-  }
-
-  // @private
-  getRootArnForAccount(memberAccountId) {
-    return `arn:aws:iam::${memberAccountId}:root`;
-  }
-
-  // @private
-  addEmptyPrincipalIfNotPresent(statement) {
-    if (!statement.Principal) {
-      statement.Principal = {};
-    }
-    if (!statement.Principal.AWS) {
-      statement.Principal.AWS = [];
-    }
-    return statement;
   }
 
   // @private
@@ -275,7 +219,7 @@ class DataEgressService extends Service {
       const statementParams = statementParameterFn(bucket, egressStore.prefix);
       let oldStatement = s3Policy.Statement.find(statement => statement.Sid === statementParams.statementId);
       if (!oldStatement) {
-        oldStatement = this.createAllowStatement(
+        oldStatement = createAllowStatement(
           statementParams.statementId,
           statementParams.actions,
           statementParams.resource,
@@ -286,40 +230,6 @@ class DataEgressService extends Service {
       return newStatement;
     });
     return revisedStatementsPerStudy;
-  }
-
-  // @private
-  async updateS3BucketPolicy(s3BucketName, s3Policy, revisedStatements) {
-    const s3Client = await this.getS3();
-
-    // remove all the old statements from s3Policy that have changed
-    const revisedStatementIds = revisedStatements.flat().map(statement => statement.Sid);
-    s3Policy.Statement = s3Policy.Statement.filter(statement => !revisedStatementIds.includes(statement.Sid));
-
-    // add all the revised statements to the s3Policy
-    revisedStatements.flat().forEach(statement => {
-      // Only add updated statement if it contains principals (otherwise leave it out)
-      if (statement.Principal.AWS.length > 0) {
-        s3Policy.Statement.push(statement);
-      }
-    });
-    // Update S3 bucket policy
-    await s3Client.putBucketPolicy({ Bucket: s3BucketName, Policy: JSON.stringify(s3Policy) }).promise();
-  }
-
-  // @private
-  createAllowStatement(statementId, actions, resource, condition) {
-    const baseAllowStatement = {
-      Sid: statementId,
-      Effect: 'Allow',
-      Principal: { AWS: [] },
-      Action: actions,
-      Resource: resource,
-    };
-    if (condition) {
-      baseAllowStatement.Condition = condition;
-    }
-    return baseAllowStatement;
   }
 }
 
