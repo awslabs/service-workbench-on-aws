@@ -338,6 +338,35 @@ class ALBService extends Service {
     // return auditWriterService.write(requestContext, auditEvent);
     return auditWriterService.writeAndForget(requestContext, auditEvent);
   }
+
+  /**
+   * Method to modify rule. The method modify the rule using the ALB SDK client.
+   * Tags are read form the resolvedVars so the billing will happen properly
+   *
+   * @param requestContext
+   * @param resolvedVars
+   * @returns {Promise<D & {$response: Response<D, E>}>}
+   */
+  async modifyRule(requestContext, resolvedVars) {
+    const [cidr] = resolvedVars.cidr;
+    const params = {
+      Conditions: [
+        {
+          Field: 'source-ip',
+          SourceIpConfig: {
+            Values: [cidr],
+          },
+        },
+      ],
+      RuleArn: resolvedVars.ruleARN,
+    };
+
+    const { externalId } = await this.findAwsAccountDetails(requestContext, resolvedVars.projectId);
+    resolvedVars.externalId = externalId;
+    const albClient = await this.getAlbSdk(requestContext, resolvedVars);
+    const response = await albClient.modifyRule(params).promise();
+    return response;
+  }
 }
 
 module.exports = ALBService;

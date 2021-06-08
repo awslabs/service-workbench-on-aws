@@ -430,4 +430,24 @@ describe('ALBService', () => {
       }
     });
   });
+
+  describe('modifyRule', () => { 
+    it('should pass and return empty object with success', async () => {
+      service.findAwsAccountDetails = jest.fn(() => {
+        return {
+          externalId: 'subnet-0a661d9f417ecff3f'
+        };
+      });
+      albClient.modifyRule = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return {};
+          },
+        };
+      });
+      service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
+      const response = await service.modifyRule({}, {cidr : [], projectId});
+      expect(response).toEqual({});
+    });
+  });
 });

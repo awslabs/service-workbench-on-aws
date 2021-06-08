@@ -30,6 +30,7 @@ class EnvironmentScCidrService extends Service {
       'authorizationService',
       'jsonSchemaValidationService',
       'lockService',
+      'albService',
     ]);
   }
 
@@ -82,10 +83,11 @@ class EnvironmentScCidrService extends Service {
    * @returns {Promise<*>} ScEnvironment entity object with updated cidr
    */
   async update(requestContext, { id, updateRequest }) {
-    const [environmentScService, lockService, validationService] = await this.service([
+    const [environmentScService, lockService, validationService, albService] = await this.service([
       'environmentScService',
       'lockService',
       'jsonSchemaValidationService',
+      'albService',
     ]);
 
     // Validate input
@@ -94,6 +96,18 @@ class EnvironmentScCidrService extends Service {
 
     const existingEnvironment = await environmentScService.mustFind(requestContext, { id });
 
+    const eEnvOutputs = existingEnvironment.outputs;
+    const metaConnection1Type = eEnvOutputs.find(obj => obj.OutputKey === 'MetaConnection1Type');
+    const listenerRuleARN = eEnvOutputs.find(obj => obj.OutputKey === 'ListenerRuleARN');
+    if (metaConnection1Type.OutputValue === 'RStudioV2' && listenerRuleARN) {
+      const cidrObj = updateRequest.find(obj => obj.fromPort === 443);
+      const ruleARN = listenerRuleARN.OutputValue;
+      const projectId = existingEnvironment.projectId;
+      const resolvedVars = { ruleARN, projectId, cidr: cidrObj.cidrBlocks };
+      const resStatus = albService.modifyRule(requestContext, resolvedVars);
+      console.log('......................resStatus');
+      console.log(resStatus);
+    }
     // Check if user is allowed to update cidrs
     await this.assertAuthorized(
       requestContext,
