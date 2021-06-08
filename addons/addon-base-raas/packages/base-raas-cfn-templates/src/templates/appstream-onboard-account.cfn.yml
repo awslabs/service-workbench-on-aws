@@ -6,7 +6,7 @@ Resources:
       EnableDnsSupport: true
       EnableDnsHostnames: true
 
-  PrivateAppstreamSubnet:
+  PrivateAppStreamSubnet:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
@@ -17,16 +17,16 @@ Resources:
         - Key: Name
           Value: Private AppStream Subnet
 
-  PrivateAppstreamRouteTable:
+  PrivateAppStreamRouteTable:
     Type: 'AWS::EC2::RouteTable'
     Properties:
       VpcId: !Ref VPC
 
-  AppstreamSubnetAssociationRouteTable:
+  AppStreamSubnetAssociationRouteTable:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
     Properties:
-      SubnetId: !Ref PrivateAppstreamSubnet
-      RouteTableId: !Ref PrivateAppstreamRouteTable
+      SubnetId: !Ref PrivateAppStreamSubnet
+      RouteTableId: !Ref PrivateAppStreamRouteTable
 
   PrivateWorkspaceSubnet:
     Type: AWS::EC2::Subnet
@@ -66,7 +66,7 @@ Resources:
               - 'arn:aws:s3:::*/*'
       RouteTableIds:
         - !Ref PrivateWorkspaceRouteTable
-        - !Ref PrivateAppstreamRouteTable
+        - !Ref PrivateAppStreamRouteTable
       VpcEndpointType: Gateway
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
       VpcId: !Ref VPC

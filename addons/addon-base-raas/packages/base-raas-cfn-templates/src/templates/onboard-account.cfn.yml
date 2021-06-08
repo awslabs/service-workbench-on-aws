@@ -3,6 +3,10 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: Service-Workbench-on-AWS Research-Account
 
 Parameters:
+  EnableAppStream:
+    Type: Boolean
+    Description: Onboard this account to support AppStream
+
   Namespace:
     Type: String
     Description: An environment name that will be prefixed to resource names
@@ -62,7 +66,12 @@ Metadata:
         Parameters:
           - VpcCidr
           - VpcPublicSubnet1Cidr
-
+Condition:
+  isAppStream: !Equals
+    - !Ref EnableAppStream
+    - true
+  isNotAppStream:
+    !Not [Condition: isAppStream]
 Resources:
   # A role used for launching environments using AWS Service Catalog
   # This is the role that code (ApiHandlerLambda and WorkflowLoopRunnerLambda) in central account
@@ -325,6 +334,7 @@ Resources:
 
   InternetGateway:
     Type: AWS::EC2::InternetGateway
+    Condition: isNotAppStream
     Properties:
       Tags:
         - Key: Name
@@ -332,12 +342,14 @@ Resources:
 
   InternetGatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
+    Condition: isNotAppStream
     Properties:
       InternetGatewayId: !Ref InternetGateway
       VpcId: !Ref VPC
 
   PublicSubnet1:
     Type: AWS::EC2::Subnet
+    Condition: isNotAppStream
     Properties:
       VpcId: !Ref VPC
       AvailabilityZone: !Select [0, !GetAZs ]
@@ -349,6 +361,7 @@ Resources:
 
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
+    Condition: isNotAppStream
     Properties:
       VpcId: !Ref VPC
       Tags:
@@ -357,6 +370,7 @@ Resources:
 
   DefaultPublicRoute:
     Type: AWS::EC2::Route
+    Condition: isNotAppStream
     DependsOn: InternetGatewayAttachment
     Properties:
       RouteTableId: !Ref PublicRouteTable
@@ -365,6 +379,7 @@ Resources:
 
   PublicSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: isNotAppStream
     Properties:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet1
