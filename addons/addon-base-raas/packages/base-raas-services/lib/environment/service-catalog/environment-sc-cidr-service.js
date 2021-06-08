@@ -95,7 +95,7 @@ class EnvironmentScCidrService extends Service {
     this.checkRequest(updateRequest);
 
     const existingEnvironment = await environmentScService.mustFind(requestContext, { id });
-
+    // TODO : Remove the console once the testing is complete
     const eEnvOutputs = existingEnvironment.outputs;
     const metaConnection1Type = eEnvOutputs.find(obj => obj.OutputKey === 'MetaConnection1Type');
     const listenerRuleARN = eEnvOutputs.find(obj => obj.OutputKey === 'ListenerRuleARN');

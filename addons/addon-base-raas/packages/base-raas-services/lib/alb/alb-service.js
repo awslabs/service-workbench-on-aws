@@ -348,24 +348,29 @@ class ALBService extends Service {
    * @returns {Promise<D & {$response: Response<D, E>}>}
    */
   async modifyRule(requestContext, resolvedVars) {
-    const [cidr] = resolvedVars.cidr;
-    const params = {
-      Conditions: [
-        {
-          Field: 'source-ip',
-          SourceIpConfig: {
-            Values: [cidr],
+    try {
+      const [cidr] = resolvedVars.cidr;
+      const params = {
+        Conditions: [
+          {
+            Field: 'source-ip',
+            SourceIpConfig: {
+              Values: [cidr],
+            },
           },
-        },
-      ],
-      RuleArn: resolvedVars.ruleARN,
-    };
+        ],
+        RuleArn: resolvedVars.ruleARN,
+      };
 
-    const { externalId } = await this.findAwsAccountDetails(requestContext, resolvedVars.projectId);
-    resolvedVars.externalId = externalId;
-    const albClient = await this.getAlbSdk(requestContext, resolvedVars);
-    const response = await albClient.modifyRule(params).promise();
-    return response;
+      const { externalId } = await this.findAwsAccountDetails(requestContext, resolvedVars.projectId);
+      resolvedVars.externalId = externalId;
+      const albClient = await this.getAlbSdk(requestContext, resolvedVars);
+      const response = await albClient.modifyRule(params).promise();
+      return response;
+    } catch (e) {
+      if (!e.message) throw this.boom.unauthorized(`${e.message}`, true);
+      return e.message;
+    }
   }
 }
 
