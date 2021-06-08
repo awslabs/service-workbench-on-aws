@@ -359,6 +359,9 @@ describe('ALBService', () => {
       service.getHostname = jest.fn(() => {
         return 'rtsudio-test.example.com';
       });
+      service.calculateRulePriority = jest.fn(() => {
+        return 1;
+      });
       await service.createListenerRule(prefix, requestContext, resolvedVars, targetGroupArn);
       expect(albClient.createRule).toHaveBeenCalled();
     });
@@ -380,7 +383,9 @@ describe('ALBService', () => {
       service.getHostname = jest.fn(() => {
         return 'rtsudio-test.example.com';
       });
-
+      service.calculateRulePriority = jest.fn(() => {
+        return 1;
+      });
       const response = await service.createListenerRule(prefix, requestContext, resolvedVars, targetGroupArn);
       expect(albClient.createRule).toHaveBeenCalled();
       expect(response).toBe(validateARN);
@@ -396,6 +401,9 @@ describe('ALBService', () => {
       });
       service.getHostname = jest.fn(() => {
         return 'rtsudio-test.example.com';
+      });
+      service.calculateRulePriority = jest.fn(() => {
+        return 1;
       });
       try {
         await service.createListenerRule(prefix, requestContext, resolvedVars, targetGroupArn);
