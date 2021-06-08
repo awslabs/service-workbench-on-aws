@@ -191,7 +191,15 @@ describe('ALBService', () => {
       }
     });
 
-    it('should pass if the input is valid', async () => {
+    it('should pass and increment count if the input is valid', async () => {
+      const updatedAlbDetails = {
+        id: 'test-id',
+        albStackName: null,
+        albArn: 'arn:test-arn',
+        listenerArn: null,
+        albDnsName: null,
+        albDependentWorkspacesCount: 2,
+      };
       service.getAlbDetails = jest.fn(() => {
         return albDetails;
       });
@@ -203,7 +211,7 @@ describe('ALBService', () => {
       await service.increaseAlbDependentWorkspaceCount({}, 'test-id');
 
       // CHECK
-      expect(service.saveAlbDetails).toHaveBeenCalled();
+      expect(service.saveAlbDetails).toHaveBeenCalledWith(albDetails.id, updatedAlbDetails);
     });
 
     it('should call audit on success', async () => {
@@ -236,7 +244,15 @@ describe('ALBService', () => {
       }
     });
 
-    it('should pass if the input is valid', async () => {
+    it('should pass and decrement count if the input is valid', async () => {
+      const updatedAlbDetails = {
+        id: 'test-id',
+        albStackName: null,
+        albArn: 'arn:test-arn',
+        listenerArn: null,
+        albDnsName: null,
+        albDependentWorkspacesCount: 0,
+      };
       service.getAlbDetails = jest.fn(() => {
         return albDetails;
       });
@@ -248,7 +264,7 @@ describe('ALBService', () => {
       await service.decreaseAlbDependentWorkspaceCount({}, 'test-id');
 
       // CHECK
-      expect(service.saveAlbDetails).toHaveBeenCalled();
+      expect(service.saveAlbDetails).toHaveBeenCalledWith(albDetails.id, updatedAlbDetails);
     });
 
     it('should call audit if the success', async () => {

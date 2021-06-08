@@ -7,10 +7,10 @@ Parameters:
     Type: String
     Description: An environment name that will be prefixed to resource names
   VPC:
-    Description: The VPC in which the EC2 instance will reside
+    Description: The VPC in which the ALB will reside
     Type: AWS::EC2::VPC::Id
   Subnet1:
-    Description: The VPC subnet in which the EC2 instance will reside
+    Description: The VPC subnet in which the ALB will reside
     Type: AWS::EC2::Subnet::Id
   ACMSSLCertARN:
     Type: String
