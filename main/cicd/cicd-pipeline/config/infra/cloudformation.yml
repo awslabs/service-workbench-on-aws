@@ -20,10 +20,12 @@ Resources:
     Type: AWS::SNS::Topic
     Properties: !If
       - SubscribeNotificationEmail
-      - Subscription:
+      -
+        Subscription:
           - Endpoint: ${self:custom.settings.emailForNotifications}
             Protocol: email
-      - !Ref AWS::NoValue
+        KmsMasterKeyId: alias/aws/sns
+      - KmsMasterKeyId: alias/aws/sns
 
   # SNS Topic Policy to allow CloudWatch Event Service to send notifications to the topic
   PipelineNotificationsTopicPolicy:
@@ -97,6 +99,11 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: ${self:custom.settings.cicdAppArtifactBucketName}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+            BucketKeyEnabled: true
       VersioningConfiguration:
         Status: Enabled
       PublicAccessBlockConfiguration: # Block all public access configuration for the S3 bucket
@@ -209,7 +216,6 @@ Resources:
           - Action:
               - iam:GetRole
               - iam:GetRolePolicy
-              - iam:PassRole
               - iam:CreateRole
               - iam:PutRolePolicy
               - iam:AttachRolePolicy
@@ -221,10 +227,8 @@ Resources:
             Effect: Allow
             Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*'
           - Action:
-              - iam:CreateRole
-              - iam:PutRolePolicy
-              - iam:AttachRolePolicy
-            Effect: Deny
+              - iam:PassRole
+            Effect: Allow
             Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-cicd-pipeline-AppDeployerRole-*'
           - Action:
               - iam:CreatePolicy
@@ -346,8 +350,15 @@ Resources:
           - Action:
               - iam:PutRolePermissionsBoundary
               - iam:DeleteRolePermissionsBoundary
+              - iam:CreateRole
+              - iam:PutRolePolicy
+              - iam:AttachRolePolicy
+              - iam:DeleteRolePolicy
+              - iam:DetachRolePolicy
             Effect: Deny
-            Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-cicd-pipeline-AppDeployerRole-*'
+            Resource:
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-cicd-pipeline-AppDeployerRole-*'
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.namespace}-cicd-pipeline-PolicyAppDeployer-*'
 
   AppDeployerRole:
     Type: AWS::IAM::Role

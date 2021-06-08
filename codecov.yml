@@ -1,13 +1,13 @@
 coverage:
   round: down
   precision: 2
+  range: "40...100"
   status:
     project:
       default:
         # basic
         target: auto
-        threshold: 0%
-        base: auto
+        threshold: 0.1%
         # advanced settings
         if_ci_failed: error #success, failure, error, ignore
         informational: false
@@ -16,23 +16,11 @@ coverage:
       default:
         # basic
         target: auto
-        threshold: 0%
-        base: auto
+        threshold: 0.1%
         # advanced settings
         if_ci_failed: error #success, failure, error, ignore
         informational: false
         only_pulls: false
-
-codecov:
-  require_ci_to_pass: yes
-
-parsers:
-  gcov:
-    branch_detection:
-      conditional: yes
-      loop: yes
-      method: no
-      macro: no
 
 comment:
   layout: "reach,diff,flags,files,footer"
