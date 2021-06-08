@@ -5,9 +5,7 @@ Resources:
       CidrBlock: 10.192.0.0/16
       EnableDnsSupport: true
       EnableDnsHostnames: true
-      Tags:
-        - Key: Name
-          Value: !Sub ${Namespace} vpc
+
   PrivateAppstreamSubnet:
     Type: AWS::EC2::Subnet
     Properties:
@@ -17,13 +15,24 @@ Resources:
       MapPublicIpOnLaunch: false
       Tags:
         - Key: Name
-          Value: Private Subnet AppStream Subnet
+          Value: Private AppStream Subnet
+
+  PrivateAppstreamRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+
+  AppstreamSubnetAssociationRouteTable:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref PrivateAppstreamSubnet
+      RouteTableId: !Ref PrivateAppstreamRouteTable
 
   PrivateWorkspaceSubnet:
     Type: AWS::EC2::Subnet
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Select [ 1, !GetAZs  '' ]
+      AvailabilityZone: !Select [ 0, !GetAZs  '' ]
       CidrBlock: 10.192.21.0/24
       MapPublicIpOnLaunch: false
       Tags:
@@ -34,6 +43,7 @@ Resources:
     Type: 'AWS::EC2::RouteTable'
     Properties:
       VpcId: !Ref VPC
+
   WorkspaceSubnetAssociationRouteTable:
     Type: 'AWS::EC2::SubnetRouteTableAssociation'
     Properties:
@@ -50,30 +60,22 @@ Resources:
           - Effect: Allow
             Principal: '*'
             Action:
-              - 's3:*'
+              - 's3:GetObject'
+              - 's3:'
             Resource:
               - 'arn:aws:s3:::*/*'
       RouteTableIds:
         - !Ref PrivateWorkspaceRouteTable
+        - !Ref PrivateAppstreamRouteTable
       VpcEndpointType: Gateway
-      PrivateDnsEnabled: true
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
       VpcId: !Ref VPC
 
   KMSEndpoint:
     Type: 'AWS::EC2::VPCEndpoint'
     Properties:
-      PolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal: '*'
-            Action:
-              - 'kms:*'
-            Resource:
-              - 'arn:aws:kms:*:*:key/*'
-      RouteTableIds:
-        - !Ref PrivateWorkspaceRouteTable
+      SubnetIds:
+        - !Ref PrivateWorkspaceSubnet
       PrivateDnsEnabled: true
       VpcEndpointType: Interface
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.kms'
@@ -82,17 +84,8 @@ Resources:
   STSEndpoint:
     Type: 'AWS::EC2::VPCEndpoint'
     Properties:
-      PolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal: '*'
-            Action:
-              - 'sts:*'
-            Resource:
-              - '*'
-      RouteTableIds:
-        - !Ref PrivateWorkspaceRouteTable
+      SubnetIds:
+        - !Ref PrivateWorkspaceSubnet
       VpcEndpointType: Interface
       PrivateDnsEnabled: true
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.sts'
@@ -101,17 +94,8 @@ Resources:
   EC2Endpoint:
     Type: 'AWS::EC2::VPCEndpoint'
     Properties:
-      PolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal: '*'
-            Action:
-              - 'ec2:*'
-            Resource:
-              - '*'
-      RouteTableIds:
-        - !Ref PrivateWorkspaceRouteTable
+      SubnetIds:
+        - !Ref PrivateWorkspaceSubnet
       VpcEndpointType: Interface
       PrivateDnsEnabled: true
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ec2'
