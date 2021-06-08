@@ -141,8 +141,6 @@ class CheckLaunchDependency extends StepBase {
         resolvedInputParams,
         projectId,
       );
-      // Storing Dependency type so the stack completion can be handled for different dependencies
-      this.state.setKey('DEPENDENCY_TYPE', 'ALB');
       // Create Stack
       // eslint-disable-next-line no-return-await
       return await this.deployStack(requestContext, resolvedVars, stackInput);
@@ -184,26 +182,24 @@ class CheckLaunchDependency extends StepBase {
    * @returns {Promise<>}
    */
   async handleStackCompletion(stackOutputs) {
-    const [requestContext, resolvedVars, stackId, dependencyType] = await Promise.all([
+    const [requestContext, resolvedVars, stackId] = await Promise.all([
       this.payloadOrConfig.object(inPayloadKeys.requestContext),
       this.payloadOrConfig.object(inPayloadKeys.resolvedVars),
       this.state.string('STACK_ID'),
-      this.state.string('DEPENDENCY_TYPE'),
     ]);
     const projectId = resolvedVars.projectId;
+    // Update ALB details to DB
     const [albService] = await this.mustFindServices(['albService']);
     const awsAccountId = await albService.findAwsAccountId(requestContext, projectId);
-    if (dependencyType === 'ALB') {
-      const albDetails = {
-        id: awsAccountId,
-        albStackName: stackId,
-        albArn: _.get(stackOutputs, 'LoadBalancerArn', null),
-        listenerArn: _.get(stackOutputs, 'ListenerArn', null),
-        albDnsName: _.get(stackOutputs, 'ALBDNSName', null),
-        albDependentWorkspacesCount: 0,
-      };
-      await albService.saveAlbDetails(awsAccountId, albDetails);
-    }
+    const albDetails = {
+      id: awsAccountId,
+      albStackName: stackId,
+      albArn: _.get(stackOutputs, 'LoadBalancerArn', null),
+      listenerArn: _.get(stackOutputs, 'ListenerArn', null),
+      albDnsName: _.get(stackOutputs, 'ALBDNSName', null),
+      albDependentWorkspacesCount: 0,
+    };
+    await albService.saveAlbDetails(awsAccountId, albDetails);
     this.print({
       msg: `Dependency Details Updated Successfully`,
     });
