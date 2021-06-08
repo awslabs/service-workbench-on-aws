@@ -132,6 +132,24 @@ function addAccountToStatement(oldStatement, memberAccountId) {
   return statement;
 }
 
+async function getRevisedS3Statements(s3Policy, studyEntity, bucket, statementParamFunctions, updateStatementFn) {
+  const revisedStatementsPerStudy = _.map(statementParamFunctions, statementParameterFn => {
+    const statementParams = statementParameterFn(bucket, studyEntity.prefix);
+    let oldStatement = s3Policy.Statement.find(statement => statement.Sid === statementParams.statementId);
+    if (!oldStatement) {
+      oldStatement = createAllowStatement(
+        statementParams.statementId,
+        statementParams.actions,
+        statementParams.resource,
+        statementParams.condition,
+      );
+    }
+    const newStatement = updateStatementFn(oldStatement);
+    return newStatement;
+  });
+  return revisedStatementsPerStudy;
+}
+
 module.exports = {
   generateId,
   chopRight,
@@ -145,4 +163,5 @@ module.exports = {
   listStatementParamsFn,
   putStatementParamsFn,
   addAccountToStatement,
+  getRevisedS3Statements,
 };

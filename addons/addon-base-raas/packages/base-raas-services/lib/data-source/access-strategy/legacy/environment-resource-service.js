@@ -24,8 +24,8 @@ const {
   putStatementParamsFn,
   addEmptyPrincipalIfNotPresent,
   getRootArnForAccount,
-  createAllowStatement,
   addAccountToStatement,
+  getRevisedS3Statements,
 } = require('../../../helpers/utils');
 
 const { parseS3Arn } = require('../../../helpers/s3-arn');
@@ -256,7 +256,7 @@ class EnvironmentResourceService extends Service {
         if (study.envPermission.read || study.envPermission.write) {
           statementParamFunctions.push(listStatementParamsFn);
         }
-        const revisedStatementsPerStudy = await this.getRevisedS3Statements(
+        const revisedStatementsPerStudy = await getRevisedS3Statements(
           s3Policy,
           study,
           s3BucketName,
@@ -286,7 +286,7 @@ class EnvironmentResourceService extends Service {
     const revisedStatements = await Promise.all(
       _.map(filteredStudies, async study => {
         const statementParamFunctions = [getStatementParamsFn, putStatementParamsFn, listStatementParamsFn];
-        const revisedStatementsPerStudy = await this.getRevisedS3Statements(
+        const revisedStatementsPerStudy = await getRevisedS3Statements(
           s3Policy,
           study,
           s3BucketName,
@@ -385,25 +385,6 @@ class EnvironmentResourceService extends Service {
       statement.Principal.AWS = [];
     }
     return statement;
-  }
-
-  // @private
-  async getRevisedS3Statements(s3Policy, study, bucket, statementParamFunctions, updateStatementFn) {
-    const revisedStatementsPerStudy = _.map(statementParamFunctions, statementParameterFn => {
-      const statementParams = statementParameterFn(bucket, study.prefix);
-      let oldStatement = s3Policy.Statement.find(statement => statement.Sid === statementParams.statementId);
-      if (!oldStatement) {
-        oldStatement = createAllowStatement(
-          statementParams.statementId,
-          statementParams.actions,
-          statementParams.resource,
-          statementParams.condition,
-        );
-      }
-      const newStatement = updateStatementFn(oldStatement);
-      return newStatement;
-    });
-    return revisedStatementsPerStudy;
   }
 
   // @private

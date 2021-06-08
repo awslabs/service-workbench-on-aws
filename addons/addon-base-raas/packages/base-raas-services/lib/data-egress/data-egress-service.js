@@ -12,18 +12,17 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-const _ = require('lodash');
 const uuid = require('uuid/v1');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const createSchema = require('../schema/create-egress-store.json');
 const {
-  createAllowStatement,
   getStatementParamsFn,
   listStatementParamsFn,
   putStatementParamsFn,
   updateS3BucketPolicy,
   addAccountToStatement,
+  getRevisedS3Statements,
 } = require('../helpers/utils');
 
 const settingKeys = {
@@ -197,7 +196,7 @@ class DataEgressService extends Service {
     if (egressStore.envPermission.read || egressStore.envPermission.write) {
       statementParamFunctions.push(listStatementParamsFn);
     }
-    const revisedStatements = await this.getRevisedS3Statements(
+    const revisedStatements = await getRevisedS3Statements(
       s3Policy,
       egressStore,
       s3BucketName,
@@ -211,25 +210,6 @@ class DataEgressService extends Service {
 
     // Write audit event
     await this.audit(requestContext, { action: 'add-egress-store-bucket-policy', body: s3Policy });
-  }
-
-  // @private
-  async getRevisedS3Statements(s3Policy, egressStore, bucket, statementParamFunctions, updateStatementFn) {
-    const revisedStatementsPerStudy = _.map(statementParamFunctions, statementParameterFn => {
-      const statementParams = statementParameterFn(bucket, egressStore.prefix);
-      let oldStatement = s3Policy.Statement.find(statement => statement.Sid === statementParams.statementId);
-      if (!oldStatement) {
-        oldStatement = createAllowStatement(
-          statementParams.statementId,
-          statementParams.actions,
-          statementParams.resource,
-          statementParams.condition,
-        );
-      }
-      const newStatement = updateStatementFn(oldStatement);
-      return newStatement;
-    });
-    return revisedStatementsPerStudy;
   }
 }
 
