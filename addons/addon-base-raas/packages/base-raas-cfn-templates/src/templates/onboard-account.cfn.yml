@@ -4,7 +4,8 @@ Description: Service-Workbench-on-AWS Research-Account
 
 Parameters:
   EnableAppStream:
-    Type: Boolean
+    Type: String
+    AllowedValues: [true, false]
     Description: Onboard this account to support AppStream
 
   Namespace:
@@ -22,7 +23,7 @@ Parameters:
   VpcCidr:
     Description: Please enter the IP range (CIDR notation) for this VPC
     Type: String
-    Default: 10.0.0.0/16
+    Default: 10.1.0.0/16
 
   ApiHandlerArn:
     Type: String
@@ -34,10 +35,15 @@ Parameters:
 
   # Generous subnet allocation of 8192 addresses (ie room for a few concurrent EMR clusters)
   # ending at 10.0.31.255
-  VpcPublicSubnet1Cidr:
-    Description: Please enter the IP range (CIDR notation) for the public subnet in the 1st Availability Zone
+  Subnet1Cidr:
+    Description: Please enter the IP range (CIDR notation) for the first subnet
     Type: String
-    Default: 10.0.0.0/19
+    Default: 10.1.20.0/24
+
+  Subnet2Cidr:
+    Description: Please enter the IP range (CIDR notation) for the second subnet. This value is only used if AppStream is enabled. It's used for PrivateWorkspaceSubnet
+    Type: String
+    Default: 10.1.21.0/24
 
   LaunchConstraintRolePrefix:
     Description: Role name prefix to use when creating a launch constraint role in the on-boarded account
@@ -65,8 +71,8 @@ Metadata:
           default: Deployment Configuration
         Parameters:
           - VpcCidr
-          - VpcPublicSubnet1Cidr
-Condition:
+          - Subnet1Cidr
+Conditions:
   isAppStream: !Equals
     - !Ref EnableAppStream
     - true
@@ -353,7 +359,7 @@ Resources:
     Properties:
       VpcId: !Ref VPC
       AvailabilityZone: !Select [0, !GetAZs ]
-      CidrBlock: !Ref VpcPublicSubnet1Cidr
+      CidrBlock: !Ref Subnet1Cidr
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
@@ -423,6 +429,132 @@ Resources:
       AliasName: !Join ['', ['alias/', Ref: Namespace, '-encryption-key']]
       TargetKeyId: !Ref EncryptionKey
 
+#------------AppStream Resources Below-------
+  PrivateAppStreamSubnet:
+    Type: AWS::EC2::Subnet
+    Condition: isAppStream
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 0, !GetAZs  '' ]
+      CidrBlock: !Ref Subnet1Cidr
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: Private AppStream Subnet
+
+  PrivateWorkspaceSubnet:
+    Type: AWS::EC2::Subnet
+    Condition: isAppStream
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 0, !GetAZs  '' ]
+      CidrBlock: !Ref Subnet2Cidr
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: Private Workspace Subnet
+
+  PrivateWorkspaceRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Condition: isAppStream
+    Properties:
+      VpcId: !Ref VPC
+
+  WorkspaceSubnetAssociationRouteTable:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Condition: isAppStream
+    Properties:
+      SubnetId: !Ref PrivateWorkspaceSubnet
+      RouteTableId: !Ref PrivateWorkspaceRouteTable
+
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html
+  S3Endpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Condition: isAppStream
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action:
+              - 's3:GetObject'
+              - 's3:ListBucket'
+              - 's3:ListAllMyBuckets'
+            Resource:
+              - '*'
+      RouteTableIds:
+        - !Ref PrivateWorkspaceRouteTable
+      VpcEndpointType: Gateway
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
+      VpcId: !Ref VPC
+
+  KMSEndpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Condition: isAppStream
+    Properties:
+      SubnetIds:
+        - !Ref PrivateWorkspaceSubnet
+      PrivateDnsEnabled: true
+      VpcEndpointType: Interface
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.kms'
+      VpcId: !Ref VPC
+
+  STSEndpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Condition: isAppStream
+    Properties:
+      SubnetIds:
+        - !Ref PrivateWorkspaceSubnet
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.sts'
+      VpcId: !Ref VPC
+
+  EC2Endpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Condition: isAppStream
+    Properties:
+      SubnetIds:
+        - !Ref PrivateWorkspaceSubnet
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ec2'
+      VpcId: !Ref VPC
+
+    # Allows creating of presigned URL
+    #  SagemakerApiEndpoint:
+    #    Type: 'AWS::EC2::VPCEndpoint'
+    #    Properties:
+    #      SubnetIds:
+    #        - !Ref PrivateAppStreamSubnet
+    #      VpcEndpointType: Interface
+    #      PrivateDnsEnabled: true
+    #      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.sagemaker.api'
+    #      VpcId: !Ref VPC
+    #
+    #  SagemakerRuntimeEndpoint:
+    #    Type: 'AWS::EC2::VPCEndpoint'
+    #    Properties:
+    #      SubnetIds:
+    #        - !Ref PrivateAppStreamSubnet
+    #      VpcEndpointType: Interface
+    #      PrivateDnsEnabled: true
+    #      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.sagemaker.runtime'
+    #      VpcId: !Ref VPC
+
+    # https://docs.aws.amazon.com/sagemaker/latest/dg/notebook-interface-endpoint.html
+  SagemakerNotebookEndpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Condition: isAppStream
+    Properties:
+      SubnetIds:
+        - !Ref PrivateAppStreamSubnet
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      ServiceName: !Sub 'aws.sagemaker.${AWS::Region}.notebook'
+      VpcId: !Ref VPC
+
 Outputs:
   CrossAccountEnvMgmtRoleArn:
     Description: The arn of the cross account role for environment management using AWS Service Catalog
@@ -436,10 +568,11 @@ Outputs:
     Description: VPC ID
     Value: !Ref VPC
 
-  VpcPublicSubnet1:
-    Description: A reference to the public subnet in the 1st Availability Zone
-    Value: !Ref PublicSubnet1
+#  VpcPublicSubnet1:
+#    Description: A reference to the public subnet in the 1st Availability Zone
+#    Value: !Ref PublicSubnet1
+#
+#  EncryptionKeyArn:
+#    Description: KMS Encryption Key Arn
+#    Value: !GetAtt [EncryptionKey, Arn]
 
-  EncryptionKeyArn:
-    Description: KMS Encryption Key Arn
-    Value: !GetAtt [EncryptionKey, Arn]

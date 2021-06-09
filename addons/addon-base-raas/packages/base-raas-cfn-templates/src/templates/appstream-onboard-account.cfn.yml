@@ -1,3 +1,4 @@
+# For testing purposes only
 Resources:
   VPC:
     Type: AWS::EC2::VPC
@@ -16,17 +17,6 @@ Resources:
       Tags:
         - Key: Name
           Value: Private AppStream Subnet
-
-  PrivateAppStreamRouteTable:
-    Type: 'AWS::EC2::RouteTable'
-    Properties:
-      VpcId: !Ref VPC
-
-  AppStreamSubnetAssociationRouteTable:
-    Type: 'AWS::EC2::SubnetRouteTableAssociation'
-    Properties:
-      SubnetId: !Ref PrivateAppStreamSubnet
-      RouteTableId: !Ref PrivateAppStreamRouteTable
 
   PrivateWorkspaceSubnet:
     Type: AWS::EC2::Subnet
@@ -61,12 +51,12 @@ Resources:
             Principal: '*'
             Action:
               - 's3:GetObject'
-              - 's3:'
+              - 's3:ListBucket'
+              - 's3:ListAllMyBuckets'
             Resource:
-              - 'arn:aws:s3:::*/*'
+              - '*'
       RouteTableIds:
         - !Ref PrivateWorkspaceRouteTable
-        - !Ref PrivateAppStreamRouteTable
       VpcEndpointType: Gateway
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
       VpcId: !Ref VPC
@@ -99,4 +89,36 @@ Resources:
       VpcEndpointType: Interface
       PrivateDnsEnabled: true
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ec2'
+      VpcId: !Ref VPC
+
+  # Allows creating of presigned URL
+#  SagemakerApiEndpoint:
+#    Type: 'AWS::EC2::VPCEndpoint'
+#    Properties:
+#      SubnetIds:
+#        - !Ref PrivateAppStreamSubnet
+#      VpcEndpointType: Interface
+#      PrivateDnsEnabled: true
+#      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.sagemaker.api'
+#      VpcId: !Ref VPC
+#
+#  SagemakerRuntimeEndpoint:
+#    Type: 'AWS::EC2::VPCEndpoint'
+#    Properties:
+#      SubnetIds:
+#        - !Ref PrivateAppStreamSubnet
+#      VpcEndpointType: Interface
+#      PrivateDnsEnabled: true
+#      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.sagemaker.runtime'
+#      VpcId: !Ref VPC
+
+  # https://docs.aws.amazon.com/sagemaker/latest/dg/notebook-interface-endpoint.html
+  SagemakerNotebookEndpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Properties:
+      SubnetIds:
+        - !Ref PrivateAppStreamSubnet
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      ServiceName: !Sub 'aws.sagemaker.${AWS::Region}.notebook'
       VpcId: !Ref VPC
