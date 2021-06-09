@@ -4,13 +4,14 @@ import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
 // ScEnvironmentEgressStoreDetailStore
 // ==================================================================
 const ScEnvironmentEgressStoreDetailStore = BaseStore.named('ScEnvironmentEgressStoreDetailStore')
-  .props({ egressStoreStatus: '' })
+  .props({})
 
   .actions(self => {
     // TODO: add actions for getting egress store and init the store
     const superCleanup = self.cleanup;
 
     return {
+      async doLoad() {},
       cleanup: () => {
         superCleanup();
       },
@@ -20,7 +21,6 @@ const ScEnvironmentEgressStoreDetailStore = BaseStore.named('ScEnvironmentEgress
   .views(self => ({
     get egressStoreStatus() {
       // TODO: add fetch egress store status from self
-      self.egressStoreStatus = 'waiting';
       return 'waiting';
     },
   }));
