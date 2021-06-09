@@ -522,27 +522,6 @@ Resources:
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ec2'
       VpcId: !Ref VPC
 
-    # Allows creating of presigned URL
-    #  SagemakerApiEndpoint:
-    #    Type: 'AWS::EC2::VPCEndpoint'
-    #    Properties:
-    #      SubnetIds:
-    #        - !Ref PrivateAppStreamSubnet
-    #      VpcEndpointType: Interface
-    #      PrivateDnsEnabled: true
-    #      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.sagemaker.api'
-    #      VpcId: !Ref VPC
-    #
-    #  SagemakerRuntimeEndpoint:
-    #    Type: 'AWS::EC2::VPCEndpoint'
-    #    Properties:
-    #      SubnetIds:
-    #        - !Ref PrivateAppStreamSubnet
-    #      VpcEndpointType: Interface
-    #      PrivateDnsEnabled: true
-    #      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.sagemaker.runtime'
-    #      VpcId: !Ref VPC
-
     # https://docs.aws.amazon.com/sagemaker/latest/dg/notebook-interface-endpoint.html
   SagemakerNotebookEndpoint:
     Type: 'AWS::EC2::VPCEndpoint'
@@ -568,11 +547,22 @@ Outputs:
     Description: VPC ID
     Value: !Ref VPC
 
-#  VpcPublicSubnet1:
-#    Description: A reference to the public subnet in the 1st Availability Zone
-#    Value: !Ref PublicSubnet1
-#
-#  EncryptionKeyArn:
-#    Description: KMS Encryption Key Arn
-#    Value: !GetAtt [EncryptionKey, Arn]
+  VpcPublicSubnet1:
+    Description: A reference to the public subnet in the 1st Availability Zone
+    Condition: isNotAppStream
+    Value: !Ref PublicSubnet1
+
+  PrivateAppStreamSubnet:
+    Description: AppStream subnet
+    Condition: isAppStream
+    Value: !Ref PrivateAppStreamSubnet
+
+  PrivateWorkspaceSubnet:
+    Description: Workspace subnet
+    Condition: isAppStream
+    Value: !Ref PrivateWorkspaceSubnet
+
+  EncryptionKeyArn:
+    Description: KMS Encryption Key Arn
+    Value: !GetAtt [EncryptionKey, Arn]
 
