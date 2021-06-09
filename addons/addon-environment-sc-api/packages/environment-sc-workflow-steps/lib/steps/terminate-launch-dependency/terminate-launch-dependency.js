@@ -107,6 +107,9 @@ class TerminateLaunchDependency extends StepBase {
           const deploymentItem = await albService.getAlbDetails(requestContext, projectId);
           const dnsName = JSON.parse(deploymentItem.value).albDnsName;
           await environmentDnsService.deleteRecord('rstudio', envId, dnsName);
+          this.print({
+            msg: 'Route53 record deleted successfully',
+          });
         } catch (error) {
           // Don't fail the termination if record deletion failed
           this.print({
@@ -125,6 +128,9 @@ class TerminateLaunchDependency extends StepBase {
             externalId,
           };
           await albService.deleteListenerRule(requestContext, resolvedVars, ruleArn);
+          this.print({
+            msg: 'Listener rule deleted successfully',
+          });
         } catch (error) {
           // Don't fail the termination if rule deletion failed
           this.print({
@@ -170,8 +176,6 @@ class TerminateLaunchDependency extends StepBase {
       });
       const albDetails = await albService.getAlbDetails(requestContext, projectId);
       const albRecord = JSON.parse(albDetails.value);
-      // Storing Dependency type so the stack termination can be handled for different dependencies
-      this.state.setKey('DEPENDENCY_TYPE', 'ALB');
       // eslint-disable-next-line no-return-await
       return await this.terminateStack(requestContext, projectId, externalId, albRecord.albStackName);
     }
@@ -374,26 +378,24 @@ class TerminateLaunchDependency extends StepBase {
    * @returns {Promise<*>}
    */
   async onSuccessfulCompletion() {
-    const [requestContext, projectId, dependencyType] = await Promise.all([
+    const [requestContext, projectId] = await Promise.all([
       this.payloadOrConfig.object(inPayloadKeys.requestContext),
       this.state.string('PROJECT_ID'),
-      this.state.string('DEPENDENCY_TYPE'),
     ]);
-    if (dependencyType === 'ALB') {
-      const [albService] = await this.mustFindServices(['albService']);
-      const awsAccountId = await albService.findAwsAccountId(requestContext, projectId);
-      const albDetails = {
-        id: awsAccountId,
-        albStackName: null,
-        albArn: null,
-        listenerArn: null,
-        albDnsName: null,
-        albDependentWorkspacesCount: 0,
-      };
-      await albService.saveAlbDetails(awsAccountId, albDetails);
-    }
+    // Update ALB record in DB
+    const [albService] = await this.mustFindServices(['albService']);
+    const awsAccountId = await albService.findAwsAccountId(requestContext, projectId);
+    const albDetails = {
+      id: awsAccountId,
+      albStackName: null,
+      albArn: null,
+      listenerArn: null,
+      albDnsName: null,
+      albDependentWorkspacesCount: 0,
+    };
+    await albService.saveAlbDetails(awsAccountId, albDetails);
     this.print({
-      msg: `Dependency Details Updated Successfully`,
+      msg: `ALB deleted and dependency details updated successfully`,
     });
   }
 
@@ -439,28 +441,26 @@ class TerminateLaunchDependency extends StepBase {
     // Add custom Error message
     error.message = `ALB Termination has failed with the folowing error. \
         Please contact your administrator. Retry the termination to terminate the workspace. Reason:${error.message}`;
-    const [requestContext, envId, projectId, dependencyType, albLock] = await Promise.all([
+    const [requestContext, envId, projectId, albLock] = await Promise.all([
       this.payloadOrConfig.object(inPayloadKeys.requestContext),
       this.payloadOrConfig.string(inPayloadKeys.envId),
       this.state.string('PROJECT_ID'),
-      this.state.optionalString('DEPENDENCY_TYPE'),
       this.state.optionalString('ALB_LOCK'),
     ]);
     let record;
 
-    if (dependencyType === 'ALB') {
-      const [albService] = await this.mustFindServices(['albService']);
-      const awsAccountId = await albService.findAwsAccountId(requestContext, projectId);
-      const albDetails = {
-        id: awsAccountId,
-        albStackName: null,
-        albArn: null,
-        listenerArn: null,
-        albDnsName: null,
-        albDependentWorkspacesCount: 0,
-      };
-      await albService.saveAlbDetails(awsAccountId, albDetails);
-    }
+    // Update ALB record in DB
+    const [albService] = await this.mustFindServices(['albService']);
+    const awsAccountId = await albService.findAwsAccountId(requestContext, projectId);
+    const albDetails = {
+      id: awsAccountId,
+      albStackName: null,
+      albArn: null,
+      listenerArn: null,
+      albDnsName: null,
+      albDependentWorkspacesCount: 0,
+    };
+    await albService.saveAlbDetails(awsAccountId, albDetails);
     this.print({
       msg: `Dependency Details Updated Successfully`,
     });
