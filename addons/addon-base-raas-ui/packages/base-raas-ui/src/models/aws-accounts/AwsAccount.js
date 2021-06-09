@@ -57,6 +57,8 @@ const AwsAccount = types
       self.updatedAt = rawAwsAccounts.updatedAt || self.updatedAt;
       self.createdBy = rawAwsAccounts.createdBy || self.createdBy;
       self.updatedBy = rawAwsAccounts.updatedBy || self.updatedBy;
+
+      // Can't use || for needsPermissionUpdate because the value is a Boolean
       // we don't update the other fields because they are being populated by a separate store
     },
   }))
