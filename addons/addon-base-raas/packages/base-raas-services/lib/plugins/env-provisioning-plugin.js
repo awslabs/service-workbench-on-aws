@@ -239,7 +239,6 @@ async function updateEnvOnProvisioningSuccess({
         OutputValue: ruleARN,
       };
       outputs.push(ruleRecord);
-      await albService.increaseAlbDependentWorkspaceCount(requestContext, resolvedVars.projectId);
     }
   }
 
