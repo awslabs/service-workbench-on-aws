@@ -34,6 +34,9 @@ describe('AwsAccountsStore', () => {
     encryptionKeyArn: 'AndHeresThePartThatHurtsTheMost',
     createdAt: 'humans cannot ride a ghost :(',
     updatedAt: 'Bye bye, Lil Sebastian',
+    needsPermissionUpdate: false,
+    cfnStackName: 'testCfnName',
+    mainRegion: 'aws-region-1',
   };
 
   beforeEach(async () => {
@@ -68,6 +71,37 @@ describe('AwsAccountsStore', () => {
 
       // CHECK
       expect(store.list.length).toBe(1);
+    });
+  });
+
+  describe('filteredList', () => {
+    it('should return the whole list if the filter does not exist', async () => {
+      // BUILD
+      getAwsAccounts.mockResolvedValue([newAwsAccount]);
+      await store.load();
+
+      // OPERATE
+      const retVal = store.filtered('randomfiltername');
+
+      // CHECK
+      expect(retVal).toMatchObject(store.list);
+    });
+  });
+
+  describe('checkPermissions', () => {
+    it('should try to check the permissions status (WIP)', async () => {
+      // This implementation will change in the future, this is just a stopgap unit test
+      // It'll be changed when the function is fully implemented
+
+      // BUILD
+      getAwsAccounts.mockResolvedValue([newAwsAccount]);
+      await store.load();
+
+      // OPERATE
+      await store.checkPermissions();
+
+      // CHECK
+      // Nothing to check yet
     });
   });
 });

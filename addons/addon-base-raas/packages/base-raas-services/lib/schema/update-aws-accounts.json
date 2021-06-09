@@ -26,6 +26,13 @@
       "type": "string",
       "pattern": "^[0-9]{12}$"
     },
+    "cfnStackName": {
+      "type": "string",
+      "maxLength": 255
+    },
+    "mainRegion:": {
+      "type": "string"
+    },
     "roleArn": {
       "type": "string",
       "minLength": 10
@@ -49,7 +56,15 @@
     "encryptionKeyArn": {
       "type": "string",
       "pattern": "^arn:aws:kms:.*$"
+    },
+    "needsPermissionUpdate": {
+      "type": "boolean"
     }
   },
-  "required": ["id", "rev", "roleArn", "externalId"]
+  "required": [
+    "id",
+    "rev",
+    "roleArn",
+    "externalId"
+  ]
 }

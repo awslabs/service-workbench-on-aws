@@ -13,6 +13,7 @@
  *  permissions and limitations under the License.
  */
 
+import _ from 'lodash';
 import { types } from 'mobx-state-tree';
 import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
 
@@ -20,6 +21,22 @@ import { getAwsAccounts, addAwsAccount, createAwsAccount } from '../../helpers/a
 import { AwsAccount } from './AwsAccount';
 import { BudgetStore } from './BudgetStore';
 import Budget from './Budget';
+
+const filterNames = {
+  ALL: 'All',
+  CURRENT: 'Up-to-Date',
+  UPDATEME: 'Needs Update',
+  ONBOARDME: 'Needs Onboard',
+};
+
+// A map, with the key being the filter name and the value being the function that will be used to filter the workspace
+// cfnStackName is an empty string if the account hasn't been onboarded yet
+const filters = {
+  [filterNames.ALL]: () => true,
+  [filterNames.CURRENT]: account => account.needsPermissionUpdate === false && account.cfnStackName !== '',
+  [filterNames.UPDATEME]: account => account.needsPermissionUpdate === true && account.cfnStackName !== '',
+  [filterNames.ONBOARDME]: account => account.cfnStackName === '',
+};
 
 // ==================================================================
 // AwsAccountsStore
@@ -70,6 +87,12 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         await createAwsAccount(awsAccount);
       },
 
+      checkPermissions: async () => {
+        // This is a placeholder function that just switches the needsPermissionUpdate to its opposite value
+        // Will be implemented later
+        return undefined;
+      },
+
       getBudgetStore: awsAccountUUID => {
         let entry = self.budgetStores.get(awsAccountUUID);
         if (!entry) {
@@ -101,7 +124,9 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         res.externalId = awsAccount.externalId;
         res.vpcId = awsAccount.vpcId;
         res.subnetId = awsAccount.subnetId;
+        res.needsPermissionUpdate = awsAccount.needsPermissionUpdate;
         res.encryptionKeyArn = awsAccount.encryptionKeyArn;
+        res.updatedAt = awsAccount.updatedAt;
         result.push(res);
       });
       return result;
@@ -135,10 +160,19 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
     getAwsAccount(id) {
       return self.awsAccounts.get(id);
     },
+
+    filtered(filterName) {
+      const filter = filters[filterName] || (() => true);
+      const result = [];
+      self.list.forEach(awsAccount => {
+        if (filter(awsAccount)) result.push(awsAccount);
+      });
+      return _.orderBy(result, [account => account.name.toLowerCase()], ['asc']);
+    },
   }));
 
 function registerContextItems(appContext) {
   appContext.awsAccountsStore = AwsAccountsStore.create({}, appContext);
 }
 
-export { AwsAccountsStore, registerContextItems };
+export { AwsAccountsStore, filterNames, registerContextItems };
