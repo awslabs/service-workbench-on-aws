@@ -17,12 +17,17 @@ const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 // const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
+const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
 
 // const { generateId } = require('../helpers/utils');
 
 /**
  * This service is responsible for managing CFN stacks that provision AWS account permissions
  */
+
+const settingKeys = {
+  awsRegion: 'awsRegion',
+};
 
 class AwsCfnService extends Service {
   constructor() {
@@ -34,6 +39,7 @@ class AwsCfnService extends Service {
       'authorizationService',
       'auditWriterService',
       'cfnTemplateService',
+      'awsAccountsService',
     ]);
   }
 
@@ -58,9 +64,9 @@ class AwsCfnService extends Service {
       { action: 'query-aws-cfn-stack', conditions: [allowIfActive, allowIfAdmin] },
       { accountEntity },
     );
-
-    const { xAccEnvMgmtRoleArn, cfnStackName, mainRegion, externalId } = accountEntity;
-    const cfnApi = await this.getCfnSdk(xAccEnvMgmtRoleArn, externalId, mainRegion);
+    const region = this.settings.get(settingKeys.awsRegion);
+    const { xAccEnvMgmtRoleArn, cfnStackName, externalId } = accountEntity;
+    const cfnApi = await this.getCfnSdk(xAccEnvMgmtRoleArn, externalId, region);
     const params = { StackName: cfnStackName };
     const stacks = await cfnApi.describeStacks(params).promise();
     const stack = _.find(_.get(stacks, 'Stacks', []), item => item.StackName === cfnStackName);
@@ -69,8 +75,6 @@ class AwsCfnService extends Service {
       throw this.boom.notFound(`Stack '${cfnStackName}' not found`, true);
     }
 
-    // Not sure yet how we'll deal with YAML vs. JSON, no easy way to convert
-    // for now I think it's safe to assume it'll be YAML
     const permissionsTemplateRaw = await cfnApi.getTemplate(params).promise();
 
     return {
@@ -87,31 +91,73 @@ class AwsCfnService extends Service {
     const [cfnTemplateService] = await this.service(['cfnTemplateService']);
     const expectedTemplate = await cfnTemplateService.getTemplate('onboard-account');
 
-    // hashing the values for an easier comparison
-    // not sure if this is really necessary, since string equivalence would also do the trick at this point
-    // whitespace and comments removed before hashing
-    // benefit of hashes is we can return them without worry about exposing information
+    // whitespace and comments removed before comparison
     const curPermissions = await this.getStackTemplate(requestContext, accountEntity);
-    const trimmedCurPermString = curPermissions.permissionsTemplateStr.replace(/#.*/g, ''); // .replace(/\s+/g, '');
-    const trimmedExpPermString = expectedTemplate.replace(/#.*/g, ''); // .replace(/\s+/g, '');
-    const sameLength = trimmedCurPermString.length === trimmedExpPermString.length;
-    return {
-      needsUpdate: trimmedExpPermString !== trimmedCurPermString,
-      addedInformation: !this.stringInOther(trimmedCurPermString, trimmedExpPermString) && !sameLength,
-      removedInformation: !this.stringInOther(trimmedExpPermString, trimmedCurPermString) && !sameLength,
-      expLength: trimmedExpPermString.length,
-      curLength: trimmedCurPermString.length,
-    };
+    const trimmedCurPermString = curPermissions.permissionsTemplateStr.replace(/#.*/g, '').replace(/\s+/g, '');
+    const trimmedExpPermString = expectedTemplate.replace(/#.*/g, '').replace(/\s+/g, '');
+
+    // still hash values
+    return trimmedExpPermString !== trimmedCurPermString ? 'NEEDSUPDATE' : 'CURRENT';
   }
 
-  stringInOther(s1, s2) {
-    let j = 1;
-    for (let i = 0; i < s2.length; i += 1) {
-      if (s1.charAt(j - 1) === s2.charAt(i)) {
-        j += 1;
+  async batchCheckAccountPermissions(requestContext, accountsList, batchSize = 5) {
+    await this.assertAuthorized(
+      requestContext,
+      { action: 'check-aws-permissions-batch', conditions: [allowIfActive, allowIfAdmin] },
+      { accountsList },
+    );
+
+    const awsAccountsService = await this.service('awsAccountsService');
+    const newStatus = {};
+    const errors = {};
+    const idList = accountsList.forEach(account => account.accountId);
+    let res;
+    let errorMsg = '';
+
+    const checkPermissions = async account => {
+      if (account.cfnStackName === '') {
+        res = account.permissionStatus === 'NEEDSONBOARD' ? 'NEEDSONBOARD' : 'NOSTACKNAME';
+        errorMsg = `Error: Account ${account.accountId} has no CFN stack name specified.`;
+      } else {
+        try {
+          res = await this.checkAccountPermissions(requestContext, account);
+        } catch (e) {
+          res = 'ERRORED';
+          errorMsg = e.safe // if error is boom error then see if it is safe to propagate its message
+            ? `Error checking permissions for account ${account.accountId}. ${e.message}`
+            : `Error checking permissions for account ${account.accountId}`;
+        }
       }
-    }
-    return j === s1.length;
+
+      if (errorMsg !== '') {
+        this.log.error(errorMsg);
+        errors[account.id] = errorMsg;
+      }
+
+      newStatus[account.id] = res;
+      if (res !== account.permissionStatus) {
+        const updatedAcct = {
+          id: account.id,
+          rev: account.rev,
+          roleArn: account.roleArn,
+          externalId: account.externalId,
+          permissionStatus: res,
+        };
+        await awsAccountsService.update(requestContext, updatedAcct);
+      }
+    };
+
+    // Check permissions in parallel in the specified batches
+    await processInBatches(accountsList, batchSize, checkPermissions);
+    await this.audit(requestContext, {
+      action: 'check-aws-permissions-batch',
+      body: {
+        totalAccounts: _.size(accountsList),
+        usersChecked: idList,
+        errors,
+      },
+    });
+    return { newStatus, errors };
   }
 
   // @private

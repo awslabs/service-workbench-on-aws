@@ -23,10 +23,19 @@ import c from 'classnames';
 
 import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
 
+const statusDisplay = {
+  CURRENT: { color: 'green', display: 'Up-to-Date' },
+  NEEDSUPDATE: { color: 'orange', display: 'Needs Update' },
+  NEEDSONBOARD: { color: 'purple', display: 'Needs Onboarding' },
+  NOSTACKNAME: { color: 'yellow', display: 'Stack Name Missing' },
+  ERROR: { color: 'red', display: 'Error' },
+  UNKNOWN: { color: 'grey', display: 'Unknown' },
+};
+
 // expected props
 // - key (via props)
 // - account (via props)
-// - needsUpdate (via props)
+// - permissionStatus (via props)
 // - isSelectable (via props)
 // - location (via props)
 class AccountCard extends React.Component {
@@ -47,8 +56,9 @@ class AccountCard extends React.Component {
     return this.props.isSelectable;
   }
 
-  get needsUpdate() {
-    return this.props.needsUpdate;
+  get permissionStatus() {
+    // Possible Values: CURRENT, NEEDSUPDATE, NEEDSONBOARD, ERRORED, NOSTACKNAME
+    return this.props.permissionStatus;
   }
 
   goto(pathname) {
@@ -70,12 +80,24 @@ class AccountCard extends React.Component {
     this.goto(`/aws-accounts/budget/${awsAccountId}`);
   };
 
+  handleOnboardAccount = () => {
+    return undefined;
+  };
+
+  handleUpdateAccountPerms = () => {
+    return undefined;
+  };
+
+  handleInputCfnStackName = () => {
+    return undefined;
+  };
+
   render() {
     const isSelectable = this.isSelectable; // Internal and external guests can't select studies
     const account = this.account;
     const attrs = {};
     const onClickAttr = {};
-    const needsUpdate = this.needsUpdate;
+    const permissionStatus = this.permissionStatus;
 
     if (this.isSelected) attrs.color = 'blue';
     if (isSelectable) onClickAttr.onClick = () => this.handleSelected();
@@ -84,11 +106,14 @@ class AccountCard extends React.Component {
       <Segment clearing padded raised className="mb3" {...attrs}>
         <div className="flex">
           <div className="flex-auto mb1">
-            {this.renderStatus()}
+            {this.renderStatus(permissionStatus)}
             {this.renderBudgetButton()}
             {this.renderHeader(account)}
             {this.renderDescription(account)}
-            {needsUpdate !== false && this.renderUpdatePermsButton()}
+            {(permissionStatus === 'NEEDSUPDATE' ||
+              permissionStatus === 'NEEDSONBOARD' ||
+              permissionStatus === 'NOSTACKNAME') &&
+              this.renderUpdatePermsButton()}
             {this.renderDetailsAccordion(account)}
           </div>
         </div>
@@ -136,15 +161,8 @@ class AccountCard extends React.Component {
     return <div>{account.description}</div>;
   }
 
-  renderStatus() {
-    const needsUpdate = this.needsUpdate;
-    const account = this.account;
-    const state =
-      account.cfnStackName === ''
-        ? { color: 'purple', display: 'New' }
-        : needsUpdate === true
-        ? { color: 'orange', display: 'Needs Update' }
-        : { color: 'green', display: 'Up-to-Date' };
+  renderStatus(status) {
+    const state = statusDisplay[status] || statusDisplay.UNKNOWN;
     return (
       <Label attached="top left" size="mini" color={state.color}>
         {state.display}
@@ -180,6 +198,15 @@ class AccountCard extends React.Component {
                         <Table.Cell>{account[entry]}</Table.Cell>
                       </Table.Row>
                     ))}
+                    <Table.Row key="cfnStackName">
+                      <Table.Cell>Cloudformation Stack Name</Table.Cell>
+                      <Table.Cell>
+                        {account.cfnStackName}
+                        <Button floated="right" color="yellow" size="mini" onClick={this.handleInputCfnStackName}>
+                          Edit CFN Name
+                        </Button>
+                      </Table.Cell>
+                    </Table.Row>
                   </Table.Body>
                 </Table>
               </>
@@ -199,20 +226,16 @@ class AccountCard extends React.Component {
   }
 
   renderUpdatePermsButton() {
-    const needsUpdate = this.needsUpdate;
+    const permissionStatus = this.permissionStatus;
     const buttonArgs =
-      needsUpdate === true
-        ? { message: 'Update Permissions', color: 'orange' }
-        : { message: 'Onboard Account', color: 'purple' };
-    // This button is only displayed if needsUpdate is either True or undefined
+      permissionStatus === 'NEEDSUPDATE'
+        ? { message: 'Update Permissions', color: 'orange', onClick: this.handleUpdateAccountPerms }
+        : permissionStatus === 'NOSTACKNAME'
+        ? { message: 'Input Stack Name', color: 'yellow', onClick: this.handleInputCfnStackName }
+        : { message: 'Onboard Account', color: 'purple', onClick: this.handleOnboardAccount };
+    // This button is only displayed if permissionStatus is either NEEDSUPDATE or NEEDSONBOARD
     return (
-      <Button
-        floated="right"
-        color={buttonArgs.color}
-        onClick={() => {
-          return null;
-        }}
-      >
+      <Button floated="right" color={buttonArgs.color} onClick={buttonArgs.onClick}>
         {buttonArgs.message}
       </Button>
     );
@@ -227,7 +250,7 @@ decorate(AccountCard, {
   detailsExpanded: observable,
   isSelectable: computed,
   isSelected: observable,
-  needsUpdate: computed,
+  permissionStatus: computed,
 });
 
 export default withRouter(observer(AccountCard));

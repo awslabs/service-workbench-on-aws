@@ -61,8 +61,12 @@ function updateAwsAccount(accountUUID, data) {
   return httpApiPut(`api/aws-accounts/${accountUUID}/update-account`, { data });
 }
 
-function getAccountPermissionsStatus(accountUUID) {
+function getAccountsPermissionsStatus(accountUUID) {
   return httpApiGet(`api/aws-accounts/${accountUUID}/permissions`);
+}
+
+function getAllAccountsPermissionStatus() {
+  return httpApiGet(`api/aws-accounts/permissions`);
 }
 
 function addIndex(index) {
@@ -368,7 +372,8 @@ export {
   addAwsAccount,
   createAwsAccount,
   updateAwsAccount,
-  getAccountPermissionsStatus,
+  getAccountsPermissionsStatus,
+  getAllAccountsPermissionStatus,
   getStepTemplates,
   getEnvironments,
   getEnvironment,

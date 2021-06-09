@@ -27,9 +27,8 @@ const AwsAccount = types
     description: '',
     accountId: '',
     externalId: '',
-    needsPermissionUpdate: true,
+    permissionStatus: '',
     cfnStackName: '',
-    mainRegion: '',
     roleArn: '',
     vpcId: '',
     subnetId: '',
@@ -48,12 +47,8 @@ const AwsAccount = types
       self.description = rawAwsAccounts.description || self.description;
       self.accountId = rawAwsAccounts.accountId || rawAwsAccounts.accountId;
       self.externalId = rawAwsAccounts.externalId || self.externalId;
-      self.needsPermissionUpdate =
-        rawAwsAccounts.needsPermissionUpdate !== undefined
-          ? rawAwsAccounts.needsPermissionUpdate
-          : self.needsPermissionUpdate;
+      self.permissionStatus = rawAwsAccounts.permissionStatus || self.permissionStatus || 'ERROR';
       self.cfnStackName = rawAwsAccounts.cfnStackName || self.cfnStackName;
-      self.mainRegion = rawAwsAccounts.mainRegion || self.mainRegion;
       self.roleArn = rawAwsAccounts.roleArn || self.roleArn;
       self.vpcId = rawAwsAccounts.vpcId || self.vpcId;
       self.subnetId = rawAwsAccounts.subnetId || self.subnetId;
@@ -62,7 +57,6 @@ const AwsAccount = types
       self.updatedAt = rawAwsAccounts.updatedAt || self.updatedAt;
       self.createdBy = rawAwsAccounts.createdBy || self.createdBy;
       self.updatedBy = rawAwsAccounts.updatedBy || self.updatedBy;
-      // Can't use || for needsPermissionUpdate because the value is a Boolean
       // we don't update the other fields because they are being populated by a separate store
     },
   }))

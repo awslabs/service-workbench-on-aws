@@ -611,7 +611,19 @@ paths:
       responses:
         '200':
           description: AWS Account updated
-  /api/aws-accounts/{awsAccountUUID}/permissions:
+  /api/aws-accounts/permissions:
+    get:
+      tags:
+        - admins
+        - AwsAccounts
+      summary: Get status of permissions for all AWS accounts from CFN stacks
+      operationId: getAllAwsAccountsPermissionsStatus
+      description: |
+        Get status of permissions for all AWS accounts from CFN stacks
+      responses:
+        '200':
+          description: Permissions status information
+  /api/aws-accounts/permissions/{awsAccountUUID}:
     parameters:
       - name: awsAccountUUID
         in: path
@@ -622,10 +634,10 @@ paths:
       tags:
         - admins
         - AwsAccounts
-      summary: Get status of permissions for an AWS account from CFN stack
+      summary: Get status of permissions for a specific AWS account from CFN stack
       operationId: getAwsAccountPermissionsStatus
       description: |
-        Get status of permissions for an AWS account from CFN stack
+        Get status of permissions for a specific AWS account from CFN stack
       responses:
         '200':
           description: Permissions status information
@@ -2980,9 +2992,6 @@ components:
           type: string
           maxLength: 255
           example: 'stack-name'
-        mainRegion:
-          type: string
-          example: 'us-east-1'
         roleArn:
           type: string
           minLength: 10
@@ -3001,9 +3010,6 @@ components:
           $ref: '#/components/schemas/SubnetId'
         encryptionKeyArn:
           $ref: '#/components/schemas/EncryptionKeyArn'
-        needsPermissionUpdate:
-          type: boolean
-          example: true
     UpdateAccountRequest:
       required:
         - id

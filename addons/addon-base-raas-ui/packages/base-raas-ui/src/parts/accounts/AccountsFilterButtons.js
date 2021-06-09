@@ -12,6 +12,7 @@ const filterColorMap = {
   [filterNames.CURRENT]: 'green',
   [filterNames.UPDATEME]: 'orange',
   [filterNames.NEW]: 'purple',
+  [filterNames.ERRORED]: 'red',
 };
 
 // expected props

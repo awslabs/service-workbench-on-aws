@@ -38,6 +38,19 @@ async function configure(context) {
   );
 
   // ===============================================================
+  //  GET /permissions (mounted to /api/aws-accounts)
+  // ===============================================================
+  router.get(
+    '/permissions',
+    wrap(async (req, res) => {
+      const requestContext = res.locals.requestContext;
+      const accountsList = await awsAccountsService.list();
+      const result = await awsCfnService.batchCheckAccountPermissions(requestContext, accountsList);
+      res.status(200).json(result);
+    }),
+  );
+
+  // ===============================================================
   //  GET /:id (mounted to /api/aws-accounts)
   // ===============================================================
   router.get(

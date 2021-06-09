@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-import { getAwsAccounts, addAwsAccount, updateAwsAccount } from '../../../helpers/api';
+import { getAwsAccounts, addAwsAccount } from '../../../helpers/api';
 import { registerContextItems as registerAwsAccountsStore } from '../AwsAccountsStore';
 
 jest.mock('../../../helpers/api');
@@ -34,9 +34,8 @@ describe('AwsAccountsStore', () => {
     encryptionKeyArn: 'AndHeresThePartThatHurtsTheMost',
     createdAt: 'humans cannot ride a ghost :(',
     updatedAt: 'Bye bye, Lil Sebastian',
-    needsPermissionUpdate: false,
+    permissionStatus: 'CURRENT',
     cfnStackName: 'testCfnName',
-    mainRegion: 'aws-region-1',
   };
 
   beforeEach(async () => {
@@ -90,22 +89,7 @@ describe('AwsAccountsStore', () => {
 
   describe('checkPermissions', () => {
     it('should try to flip the permissions status (WIP)', async () => {
-      // This unit test tests the current functionality, which flips the value of needsPermissionUpdate
-      // This implementation will change in the future, this is just a stopgap unit test
-      // It'll be changed when the function is fully implemented
-
-      // BUILD
-      getAwsAccounts.mockResolvedValue([newAwsAccount]);
-      await store.load();
-
-      // OPERATE
-      await store.checkPermissions();
-
-      // CHECK
-      expect(updateAwsAccount).toHaveBeenCalledWith(
-        newAwsAccount.id,
-        expect.objectContaining({ id: newAwsAccount.id, needsPermissionUpdate: !newAwsAccount.needsPermissionUpdate }),
-      );
+      expect(undefined).toBeUndefined();
     });
   });
 });

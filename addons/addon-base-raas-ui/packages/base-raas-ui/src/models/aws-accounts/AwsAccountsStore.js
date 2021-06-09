@@ -22,7 +22,7 @@ import {
   addAwsAccount,
   createAwsAccount,
   updateAwsAccount,
-  getAccountPermissionsStatus,
+  getAllAccountsPermissionStatus,
 } from '../../helpers/api';
 import { AwsAccount } from './AwsAccount';
 import { BudgetStore } from './BudgetStore';
@@ -32,16 +32,18 @@ const filterNames = {
   ALL: 'All',
   CURRENT: 'Up-to-Date',
   UPDATEME: 'Needs Update',
-  NEW: 'New',
+  NEW: 'Needs Onboarding',
+  ERRORED: 'Errored',
 };
 
 // A map, with the key being the filter name and the value being the function that will be used to filter the workspace
 // cfnStackName is an empty string if the account hasn't been onboarded yet
 const filters = {
   [filterNames.ALL]: () => true,
-  [filterNames.CURRENT]: account => account.needsPermissionUpdate === false && account.cfnStackName !== '',
-  [filterNames.UPDATEME]: account => account.needsPermissionUpdate === true && account.cfnStackName !== '',
-  [filterNames.NEW]: account => account.cfnStackName === '',
+  [filterNames.CURRENT]: account => account.cfnStackName !== '' && account.permissionStatus === 'CURRENT',
+  [filterNames.UPDATEME]: account => account.cfnStackName !== '' && account.permissionStatus === 'NEEDSUPDATE',
+  [filterNames.NEW]: account => account.permissionStatus === 'NEEDSONBOARD',
+  [filterNames.ERRORED]: account => account.permissionStatus === 'ERROR' || account.permissionStatus === 'NOSTACKNAME',
 };
 
 // ==================================================================
@@ -61,10 +63,12 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
     return {
       async doLoad() {
         const awsAccounts = (await getAwsAccounts()) || [];
+        const statuses = await getAllAccountsPermissionStatus();
         // We try to preserve existing accounts data and merge the new data instead
         // We could have used self.accounts.replace(), but it will do clear() then merge()
         self.runInAction(() => {
           awsAccounts.forEach(awsAccount => {
+            awsAccount.permissionStatus = statuses.newStatus[awsAccount.id];
             const awsAccountsModel = AwsAccount.create(awsAccount);
             const previous = self.awsAccounts.get(awsAccountsModel.id);
             if (!previous) {
@@ -93,27 +97,8 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         await createAwsAccount(awsAccount);
       },
 
-      checkUpdatePermissions: async () => {
-        // Still needs error-checking
-        const awsAccounts = (await getAwsAccounts()) || [];
-        self.runInAction(() => {
-          awsAccounts.forEach(account => {
-            const res = {};
-            try {
-              const status = getAccountPermissionsStatus(account.id);
-              res.needsUpdate = status.needsUpdate;
-            } catch {
-              res.needsUpdate = account.needsUpdate === undefined ? undefined : true;
-            }
-            if (res.needsUpdate !== account.needsUpdate) {
-              updateAwsAccount(account.id, {
-                ...account,
-                needsUpdate: res.needsUpdate,
-                updatedAt: new Date().toISOString(),
-              });
-            }
-          });
-        });
+      updateAwsAccount: async (awsAccountUUID, updatedAcctInfo) => {
+        await updateAwsAccount(awsAccountUUID, updatedAcctInfo);
       },
 
       getBudgetStore: awsAccountUUID => {
@@ -147,8 +132,9 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         res.externalId = awsAccount.externalId;
         res.vpcId = awsAccount.vpcId;
         res.subnetId = awsAccount.subnetId;
-        res.needsPermissionUpdate = awsAccount.needsPermissionUpdate;
+        res.permissionStatus = awsAccount.permissionStatus;
         res.encryptionKeyArn = awsAccount.encryptionKeyArn;
+        res.cfnStackName = awsAccount.cfnStackName;
         res.updatedAt = awsAccount.updatedAt;
         result.push(res);
       });

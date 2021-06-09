@@ -85,7 +85,7 @@ class AwsAccountsList extends React.Component {
               <AccountCard
                 key={account.accountId}
                 account={account}
-                needsUpdate={account.needsPermissionUpdate}
+                permissionStatus={account.permissionStatus}
                 isSelectable
               />
             ))}
@@ -118,11 +118,6 @@ class AwsAccountsList extends React.Component {
     this.goto('/aws-accounts/create');
   };
 
-  handleCheckPermissions = () => {
-    const awsAccountsStore = this.props.awsAccountsStore;
-    awsAccountsStore.checkUpdatePermissions();
-  };
-
   handleSelectedFilter = name => {
     this.selectedFilter = name;
   };
@@ -142,9 +137,6 @@ class AwsAccountsList extends React.Component {
         </Button>
         <Button className="ml2" color="blue" size="medium" basic onClick={this.handleAddAwsAccount}>
           Add AWS Account
-        </Button>
-        <Button className="ml2" color="blue" size="medium" basic onClick={this.handleCheckPermissions}>
-          Update Account Permissions
         </Button>
       </div>
     );
