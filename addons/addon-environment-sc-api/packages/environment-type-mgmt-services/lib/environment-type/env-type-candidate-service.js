@@ -159,11 +159,26 @@ class EnvTypeCandidateService extends Service {
         .promise(),
     );
     const params = ppResult.ProvisioningArtifactParameters;
+    const usageInstructions = ppResult.UsageInstructions;
+    const metaData = usageInstructions.find(obj => obj.Type === 'metadata') || null;
+    let mdValues = {};
+    if (metaData) {
+      const { Value } = metaData || null;
+      if (Value) {
+        mdValues = JSON.parse(Value);
+      }
+    }
+    const { PartnerName, KnowMore, PartnerURL } = mdValues;
     const environmentType = {
       id: `${product.ProductId}-${provisioningArtifact.Id}`,
       name: `${product.Name}-${provisioningArtifact.Name}`,
       desc: provisioningArtifact.Description,
       isLatest: provisioningArtifact.isLatest || false,
+      metadata: {
+        partnerName: PartnerName || '',
+        knowMore: KnowMore || '',
+        partnerURL: PartnerURL || '',
+      },
       product: {
         productId: product.ProductId,
         name: product.Name,
