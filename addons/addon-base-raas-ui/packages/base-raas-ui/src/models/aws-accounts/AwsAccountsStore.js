@@ -68,7 +68,7 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         // We could have used self.accounts.replace(), but it will do clear() then merge()
         self.runInAction(() => {
           awsAccounts.forEach(awsAccount => {
-            awsAccount.permissionStatus = statuses.newStatus[awsAccount.id];
+            awsAccount = { ...awsAccount, permissionStatus: statuses.newStatus[awsAccount.id] };
             const awsAccountsModel = AwsAccount.create(awsAccount);
             const previous = self.awsAccounts.get(awsAccountsModel.id);
             if (!previous) {
