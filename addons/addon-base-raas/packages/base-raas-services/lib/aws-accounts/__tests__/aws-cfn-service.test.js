@@ -15,8 +15,6 @@
 
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
 const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
-const AwsMock = require('aws-sdk-mock');
-const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
 
 // Mocked dependencies
 jest.mock('@aws-ee/base-services/lib/db-service');
@@ -40,6 +38,9 @@ const S3ServiceMock = require('@aws-ee/base-services/lib/s3-service');
 jest.mock('@aws-ee/base-services/lib/logger/logger-service');
 const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
 
+jest.mock('@aws-ee/base-services/lib/aws/aws-service');
+const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
+
 jest.mock('../aws-accounts-service');
 const AwsAccountsServiceMock = require('../aws-accounts-service');
 
@@ -51,6 +52,7 @@ describe('AwsAccountService', () => {
   let service = null;
   let awsService = null;
   let awsAccountsService = null;
+  let cfnTemplateService = null;
 
   const mockAccount = {
     id: 'testid',
@@ -70,14 +72,24 @@ describe('AwsAccountService', () => {
     externalId: mockAccount.externalId,
   };
 
-  const mockCredentials = {
-    accessKeyId: 'accessKeyId',
-    secretAccessKey: 'secretAccessKey',
-    sessionToken: 'sessionToken',
-    accountId: 'accountId',
-  };
-
   const mockYmlResponse = 'Attribute:\n\t- Value #This is a comment';
+
+  const mockCfnApi = {
+    describeStacks: () => {
+      return {
+        promise: async () => {
+          return { Stacks: [{ StackName: mockAccount.cfnStackName }] };
+        },
+      };
+    },
+    getTemplate: () => {
+      return {
+        promise: async () => {
+          return { TemplateBody: mockYmlResponse };
+        },
+      };
+    },
+  };
 
   beforeAll(async () => {
     // Initialize services container and register dependencies
@@ -100,85 +112,120 @@ describe('AwsAccountService', () => {
     service = await container.find('awsCfnService');
     awsAccountsService = await container.find('awsAccountsService');
     awsService = await container.find('aws');
-    AwsMock.setSDKInstance(awsService.sdk);
+    cfnTemplateService = await container.find('cfnTemplateService');
 
-    // awsService.getCredentialsForRole.mockImplementation(jest.fn());
-
-    awsService.getCredentialsForRole = jest.fn();
+    awsService.getCredentialsForRole.mockImplementation(jest.fn());
 
     // Skip authorization by default
     service.assertAuthorized = jest.fn();
-    // service._getCredentials = jest.fn(() => mockCredentials);
+    awsService.getClientSdkForRole.mockImplementation(() => mockCfnApi);
+    cfnTemplateService.getTemplate.mockImplementation(() => mockYmlResponse);
   });
 
-  afterEach(() => {
-    AwsMock.restore();
+  describe('getCfnSdk', () => {
+    it('should fail due to an unassumable role', async () => {
+      awsService.getClientSdkForRole.mockImplementationOnce(async () => {
+        throw Error('error!');
+      });
+      try {
+        await service.getCfnSdk(mockAccount.xAccEnvMgmtRoleArn, mockAccount.cfnStackName, 'us-east-1');
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Could not assume a role to check the stack status');
+      }
+    });
   });
-
-  //   describe('something', () => {
-  //     it('will do stuff', () => {
-  //       expect(undefined).toBeUndefined();
-  //     });
-  //   });
-
-  //   describe('getCfnSdk', () => {
-  //     it('should fail due to an unassumable role', async () => {
-  //       try {
-  //         await service.getCfnSdk(mockAccount.xAccEnvMgmtRoleArn, mockAccount.cfnStackName, 'us-east-1');
-  //         expect.hasAssertions();
-  //       } catch (err) {
-  //         // CHECK
-  //         expect(err.message).toEqual('Could not assume a role to check the stack status');
-  //       }
-  //     });
-  //   });
 
   describe('checkAccountPermissions', () => {
     const requestContext = {};
-    AwsMock.mock('CloudFormation', 'getTemplate', mockAccount);
 
-    it('will do other stuff', () => {
-      expect(undefined).toBeUndefined();
+    it('should fail due to insufficient permissions', async () => {
+      service.assertAuthorized.mockImplementationOnce(() => {
+        throw new Error('User is not authorized');
+      });
+
+      // OPERATE
+      try {
+        await service.checkAccountPermissions(requestContext, mockAccount.id);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('User is not authorized');
+      }
     });
 
-    //   it('should fail due to insufficient permissions', async () => {
-    //     service.assertAuthorized.mockImplementationOnce(() => {
-    //       throw new Error('User is not authorized');
-    //     });
+    it('should try to update the account from NEEDSUPDATE to CURRENT', async () => {
+      const expResult = { ...expectedUpdate, permissionStatus: 'CURRENT' };
+      await service.batchCheckAccountPermissions(requestContext, [mockAccount]);
+      expect(awsAccountsService.update).toHaveBeenCalledWith(requestContext, expResult);
+    });
 
-    //     // OPERATE
-    //     try {
-    //       await service.checkAccountPermissions(requestContext, mockAccount.id);
-    //       expect.hasAssertions();
-    //     } catch (err) {
-    //       // CHECK
-    //       expect(err.message).toEqual('User is not authorized');
-    //     }
-    //   });
+    it('should correctly set account with undefined cfnStackName to NEEDSONBOARD or NOSTACKNAME', async () => {
+      // This account should remain the same
+      const needsOnboardMock = {
+        ...mockAccount,
+        id: 'needsOnboard',
+        accountId: 'needsOnboard',
+        cfnStackName: '',
+        permissionStatus: 'NEEDSONBOARD',
+      };
+      // This account's status should change to 'NOSTACKNAME'
+      const noStackNameMock = {
+        ...mockAccount,
+        id: 'noStackName',
+        accountId: 'noStackName',
+        cfnStackName: '',
+        permissionStatus: 'ERRORED',
+      };
+      const expUpdate = { ...expectedUpdate, id: noStackNameMock.id, permissionStatus: 'NOSTACKNAME' };
+      const expBadUpdate = { ...expectedUpdate, id: needsOnboardMock.id, permissionStatus: 'NEEDSONBOARD' };
 
-    // it('should try to update the account from NEEDSUPDATE to CURRENT', async () => {
-    //   const expResult = { ...expectedUpdate, permissionStatus: 'CURRENT' };
-    //   await service.batchCheckAccountPermissions(requestContext, [mockAccount]);
-    //   expect(awsAccountsService.update).toHaveBeenCalledWith(requestContext, expResult);
-    // });
+      const res = await service.batchCheckAccountPermissions(requestContext, [needsOnboardMock, noStackNameMock]);
+      expect(awsAccountsService.update).toHaveBeenCalledWith(requestContext, expUpdate);
+      expect(awsAccountsService.update).not.toHaveBeenCalledWith(requestContext, expBadUpdate);
+
+      expect(res.errors[needsOnboardMock.id]).toEqual(
+        `Error: Account ${needsOnboardMock.accountId} has no CFN stack name specified.`,
+      );
+      expect(res.errors[noStackNameMock.id]).toEqual(
+        `Error: Account ${noStackNameMock.accountId} has no CFN stack name specified.`,
+      );
+    });
+
+    it('should correctly determine that the permissions are out of date', async () => {
+      const mockNewYmlResponse = 'Attribute:\n\t- UpdatedValue #This is a comment';
+      cfnTemplateService.getTemplate.mockImplementationOnce(async () => mockNewYmlResponse);
+
+      const res = await service.checkAccountPermissions(requestContext, mockAccount);
+      expect(res).toEqual('NEEDSUPDATE');
+    });
+
+    it('should correctly ignore comments and whitespace for checking permissions', async () => {
+      const mockNewYmlResponse = '\nAttribute:\n\t- Value #This is a newer comment';
+      cfnTemplateService.getTemplate.mockImplementationOnce(async () => mockNewYmlResponse);
+
+      const res = await service.checkAccountPermissions(requestContext, mockAccount);
+      expect(res).toEqual('CURRENT');
+    });
   });
 
-  //   describe('getStackTemplate', () => {
-  //     const requestContext = {};
+  describe('getStackTemplate', () => {
+    const requestContext = {};
 
-  //     it('should fail due to insufficient permissions', async () => {
-  //       service.assertAuthorized.mockImplementationOnce(() => {
-  //         throw new Error('User is not authorized');
-  //       });
+    it('should fail due to insufficient permissions', async () => {
+      service.assertAuthorized.mockImplementationOnce(() => {
+        throw new Error('User is not authorized');
+      });
 
-  //       // OPERATE
-  //       try {
-  //         await service.getStackTemplate(requestContext, mockAccount.id);
-  //         expect.hasAssertions();
-  //       } catch (err) {
-  //         // CHECK
-  //         expect(err.message).toEqual('User is not authorized');
-  //       }
-  //     });
-  //   });
+      // OPERATE
+      try {
+        await service.getStackTemplate(requestContext, mockAccount.id);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('User is not authorized');
+      }
+    });
+  });
 });
