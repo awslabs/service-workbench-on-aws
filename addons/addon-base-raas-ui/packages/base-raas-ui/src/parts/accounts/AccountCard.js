@@ -18,7 +18,6 @@ import { decorate, action, computed, runInAction, observable } from 'mobx';
 import { observer } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Header, Segment, Accordion, Icon, Label, Table, Button } from 'semantic-ui-react';
-import TimeAgo from 'react-timeago';
 import c from 'classnames';
 
 import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
@@ -44,7 +43,6 @@ class AccountCard extends React.Component {
     runInAction(() => {
       this.detailsExpanded = false;
       this.isSelected = false;
-      this.statusAt = new Date().toISOString();
     });
   }
 
@@ -131,8 +129,6 @@ class AccountCard extends React.Component {
     const onClickAttr = {};
     const idReadable = account.accountId.replace(/(.{4})(.{4})/g, '$1-$2-');
     if (isSelectable) onClickAttr.onClick = () => this.handleSelected();
-    const timeLastUpdated = this.account.updatedAt; // this defaults to empty string if not found
-    const cfnStackName = this.account.cfnStackName;
     return (
       <div>
         <Header as="h3" color="blue" className={c('mt2', isSelectable ? 'cursor-pointer' : '')} {...onClickAttr}>
@@ -140,18 +136,6 @@ class AccountCard extends React.Component {
           <Header.Subheader>
             <span className="pt1 fs-8 color-grey">AWS Account #{idReadable}</span>
           </Header.Subheader>
-          {cfnStackName !== '' && timeLastUpdated !== '' && (
-            <Header.Subheader>
-              <span className="fs-8 color-grey mr1">
-                Permissions checked <TimeAgo date={timeLastUpdated} className="mr1" />
-              </span>
-            </Header.Subheader>
-          )}
-          {cfnStackName !== '' && timeLastUpdated === '' && (
-            <Header.Subheader>
-              <span className="fs-8 color-grey mr1">Error checking last permission update time</span>
-            </Header.Subheader>
-          )}
         </Header>
       </div>
     );
@@ -233,7 +217,7 @@ class AccountCard extends React.Component {
         : permissionStatus === 'NOSTACKNAME'
         ? { message: 'Input Stack Name', color: 'yellow', onClick: this.handleInputCfnStackName }
         : { message: 'Onboard Account', color: 'purple', onClick: this.handleOnboardAccount };
-    // This button is only displayed if permissionStatus is either NEEDSUPDATE or NEEDSONBOARD
+    // This button is only displayed if permissionStatus is NEEDSUPDATE, NEEDSONBOARD, or NOSTACKNAME
     return (
       <Button floated="right" color={buttonArgs.color} onClick={buttonArgs.onClick}>
         {buttonArgs.message}
