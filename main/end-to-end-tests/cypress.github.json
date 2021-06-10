@@ -16,6 +16,18 @@
         "configuration": "ec2-linux-e2e",
         "projectId": "e2eTestProject"
       }
+    },
+    "studies": {
+      "organizations": [
+        {
+          "name": "org-study-1",
+          "researcherIsAdmin": true
+        },
+        {
+          "name": "org-study-2",
+          "researcherIsAdmin": false
+        }
+      ]
     }
   },
   "defaultCommandTimeout": 90000,

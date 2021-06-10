@@ -10,7 +10,7 @@
     "@aws-ee/base-services": "workspace:*",
     "@aws-ee/key-pair-mgmt-ui": "workspace:*",
     "aws-sdk": "^2.713.0",
-    "chart.js": "^2.9.3",
+    "chart.js": "^2.9.4",
     "classnames": "^2.2.6",
     "crypto-browserify": "^3.12.0",
     "csvtojson": "^2.0.10",
