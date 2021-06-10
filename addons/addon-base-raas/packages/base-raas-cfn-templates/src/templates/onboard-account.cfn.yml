@@ -33,17 +33,18 @@ Parameters:
     Type: String
     Description: The arn of workflowRunner role
 
-  # Generous subnet allocation of 8192 addresses (ie room for a few concurrent EMR clusters)
-  # ending at 10.0.31.255
+  # Generous subnet allocation of 4096 addresses (ie room for a few concurrent EMR clusters)
+  # Range from 10.0.32.0 to 10.0.47.255
   Subnet1Cidr:
     Description: Please enter the IP range (CIDR notation) for the first subnet
     Type: String
-    Default: 10.0.20.0/24
+    Default: 10.0.40.0/20
 
+  # Range from 10.0.48.0 to 10.0.63.255
   Subnet2Cidr:
     Description: Please enter the IP range (CIDR notation) for the second subnet. This value is only used if AppStream is enabled. It's used for PrivateWorkspaceSubnet
     Type: String
-    Default: 10.0.21.0/24
+    Default: 10.0.50.0/20
 
   LaunchConstraintRolePrefix:
     Description: Role name prefix to use when creating a launch constraint role in the on-boarded account
