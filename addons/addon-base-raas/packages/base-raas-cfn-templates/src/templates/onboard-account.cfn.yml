@@ -23,7 +23,7 @@ Parameters:
   VpcCidr:
     Description: Please enter the IP range (CIDR notation) for this VPC
     Type: String
-    Default: 10.1.0.0/16
+    Default: 10.0.0.0/16
 
   ApiHandlerArn:
     Type: String
@@ -38,12 +38,12 @@ Parameters:
   Subnet1Cidr:
     Description: Please enter the IP range (CIDR notation) for the first subnet
     Type: String
-    Default: 10.1.20.0/24
+    Default: 10.0.20.0/24
 
   Subnet2Cidr:
     Description: Please enter the IP range (CIDR notation) for the second subnet. This value is only used if AppStream is enabled. It's used for PrivateWorkspaceSubnet
     Type: String
-    Default: 10.1.21.0/24
+    Default: 10.0.21.0/24
 
   LaunchConstraintRolePrefix:
     Description: Role name prefix to use when creating a launch constraint role in the on-boarded account
