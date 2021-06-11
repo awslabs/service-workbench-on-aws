@@ -50,9 +50,8 @@ class ScEnvironmentEgressStoreDetail extends React.Component {
   handleSubmitEgressRequest = () => {
     runInAction(() => {
       this.egressStoreRequestSubmitted = !this.egressStoreRequestSubmitted;
-      console.log('egress request submitted');
+      // TODO: invoke store action to actually submit the request
     });
-    // TODO: invoke store action to actually submit the request
   };
 
   render() {

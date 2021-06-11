@@ -14,7 +14,7 @@ import ScEnvironmentEgressStoreDetail from './ScEnvironmentEgressStoreDetail';
 
 const EGRESSING_STATUS_CODE = 'egressing';
 const WORKSPACE_TERMINATION_ERROR_MESSAGE =
-  'Termination is NOT allowed. Your data transfer from egress store is still in process. Please contact your Data Manager to confirm the data is transferred before you try to terminate the workspace again.';
+  'Termination is NOT allowed. Your data transfer from egress store is still in progress. Please contact your Data Manager to confirm the data is transferred before you try to terminate the workspace again.';
 
 // expected props
 // - scEnvironment (via prop)
