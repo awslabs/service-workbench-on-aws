@@ -33,18 +33,18 @@ Parameters:
     Type: String
     Description: The arn of workflowRunner role
 
-  # Generous subnet allocation of 4096 addresses (ie room for a few concurrent EMR clusters)
-  # Range from 10.0.32.0 to 10.0.47.255
+  # Generous subnet allocation of 8192 addresses (ie room for a few concurrent EMR clusters)
+  # Range from 10.0.0.0 to 10.0.31.255
   Subnet1Cidr:
     Description: Please enter the IP range (CIDR notation) for the first subnet
     Type: String
-    Default: 10.0.40.0/20
+    Default: 10.0.0.0/19
 
-  # Range from 10.0.48.0 to 10.0.63.255
+  # Range from 10.0.32.0 to 10.0.63.255
   Subnet2Cidr:
     Description: Please enter the IP range (CIDR notation) for the second subnet. This value is only used if AppStream is enabled. It's used for PrivateWorkspaceSubnet
     Type: String
-    Default: 10.0.50.0/20
+    Default: 10.0.32.0/19
 
   LaunchConstraintRolePrefix:
     Description: Role name prefix to use when creating a launch constraint role in the on-boarded account
@@ -480,8 +480,21 @@ Resources:
             Principal: '*'
             Action:
               - 's3:GetObject'
-              - 's3:ListBucket'
-              - 's3:ListAllMyBuckets'
+              - 's3:GetObjectTagging'
+              - 's3:GetObjectTorrent'
+              - 's3:GetObjectVersion'
+              - 's3:GetObjectVersionTagging'
+              - 's3:GetObjectVersionTorrent'
+              - 's3:AbortMultipartUpload'
+              - 's3:ListMultipartUploadParts'
+              - 's3:PutObject'
+              - 's3:PutObjectAcl'
+              - 's3:PutObjectTagging',
+          's3:PutObjectVersionTagging',
+          's3:DeleteObject',
+          's3:DeleteObjectTagging',
+          's3:DeleteObjectVersion',
+          's3:DeleteObjectVersionTagging',
             Resource:
               - '*'
       RouteTableIds:
