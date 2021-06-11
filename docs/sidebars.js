@@ -48,6 +48,11 @@ module.exports = {
         ],
       },
     ],
+    "Installation Guide": [
+      "installation_guide/overview",
+      "installation_guide/architecture",
+      "installation_guide/components",
+    ],
     "User Guide": [
       "user_guide/account_structure",
       "user_guide/introduction",
