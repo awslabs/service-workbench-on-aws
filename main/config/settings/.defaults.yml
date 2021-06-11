@@ -172,10 +172,10 @@ auditQldbName: ${self:custom.settings.namespace}-audit
 createServiceCatalogPortfolio: true
 
 # Version number of current release
-versionNumber: '3.1.0'
+versionNumber: '3.2.0'
 
 # Release date of current release
-versionDate: '2021-05-11'
+versionDate: '2021-06-11'
 
 # Metadata provided with AWS SDK calls
 customUserAgent: 'AwsLabs/SO0144/${self:custom.settings.versionNumber}'
