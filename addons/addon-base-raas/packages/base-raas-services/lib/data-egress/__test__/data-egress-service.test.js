@@ -38,6 +38,7 @@ describe('DataEgressService', () => {
   let dataEgressService;
   let aws;
   let environmentScService;
+  let s3Service;
 
   const testS3PolicyFn = () => {
     return {
@@ -94,6 +95,7 @@ describe('DataEgressService', () => {
     AWSMock.setSDKInstance(aws.sdk);
     environmentScService = await dataEgressService.service('environmentScService');
     environmentScService.getMemberAccount = jest.fn().mockResolvedValue({ accountId: 'test-accountId' });
+    s3Service = await container.find('s3Service');
   });
 
   afterEach(() => {
@@ -125,6 +127,83 @@ describe('DataEgressService', () => {
         // same code but different messages (to address different scenarios), you might
         // want to suggest to the service author to use different codes.
         expect.objectContaining({ boom: true, code: 'forbidden', safe: true }),
+      );
+    });
+
+    it('should fail creating egress store with wrong schema', async () => {
+      dataEgressService._settings = {
+        get: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return true;
+          }
+          return undefined;
+        },
+      };
+      const requestContext = {};
+      const rawEnvironment = {
+        id: 'test-id',
+        name: 'test-raw-environment-name',
+        createdBy: 'test-raw-environment-createdby',
+        projectId: 'test-raw-environment-projectId',
+      };
+
+      await expect(dataEgressService.createEgressStore(requestContext, rawEnvironment)).rejects.toThrow(
+        expect.objectContaining({
+          boom: true,
+          code: 'badRequest',
+          safe: true,
+          message: 'Input has validation errors',
+        }),
+      );
+    });
+
+    it('should fail creating with create s3 path fail', async () => {
+      dataEgressService._settings = {
+        get: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return true;
+          }
+          if (settingName === 'egressStoreKmsKeyAliasArn') {
+            return 'test-egressStoreKmsKeyAliasArn';
+          }
+          if (settingName === 'egressStoreBucketName') {
+            return 'test-egressStoreBucketName';
+          }
+          return undefined;
+        },
+      };
+
+      s3Service.createFolder = jest.fn(() => {
+        throw new Error();
+      });
+      const requestContext = {};
+      const rawEnvironment = {
+        id: 'test-id',
+        name: 'test-raw-environment-name',
+        createdBy: 'test-raw-environment-createdby',
+        updatedBy: 'test-updatedBy',
+        projectId: 'test-raw-environment-projectId',
+        rev: 0,
+        inWorkflow: 'test-inWorkflow',
+        status: 'test-status',
+        cidr: '0.0.0.0',
+        createdAt: 'testCreatedAt',
+        updatedAt: 'testUpdatedAt',
+        studyIds: [],
+        indexId: 'testIndexId',
+        description: 'testDescription',
+        envTypeConfigId: 'envTypeConfigId',
+        envTypeId: 'envTypeId',
+        hasConnections: true,
+      };
+
+      await expect(dataEgressService.createEgressStore(requestContext, rawEnvironment)).rejects.toThrow(
+        // It is better to check using boom.code instead of just the actual string, unless
+        // there are a few errors with the exact same boom code but different messages.
+        // Note: if you encounter a case where a service is throwing exceptions with the
+        // same code but different messages (to address different scenarios), you might
+        // want to suggest to the service author to use different codes.
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
       );
     });
 

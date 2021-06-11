@@ -72,7 +72,7 @@ class DataEgressService extends Service {
 
     try {
       s3Service.createFolder(bucketName, folderName);
-    } catch (errot) {
+    } catch (error) {
       throw this.boom.badRequest(`Error in creating egress store:${folderName} in bucket: ${bucketName}`, true);
     }
 
