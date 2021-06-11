@@ -95,11 +95,12 @@ class EnvironmentScCidrService extends Service {
     this.checkRequest(updateRequest);
 
     const existingEnvironment = await environmentScService.mustFind(requestContext, { id });
-    // TODO : Remove the console once the testing is complete
+
+    // Validate the CFT output if RStudio is exist then modify the rule
     const eEnvOutputs = existingEnvironment.outputs;
     const metaConnection1Type = eEnvOutputs.find(obj => obj.OutputKey === 'MetaConnection1Type');
     const listenerRuleARN = eEnvOutputs.find(obj => obj.OutputKey === 'ListenerRuleARN');
-    let tempUpdateRequest = JSON.stringify(updateRequest);
+    let cloneUpdateRequest = JSON.stringify(updateRequest);
     if (metaConnection1Type.OutputValue === 'RStudioV2' && listenerRuleARN) {
       const cidrObj = updateRequest.find(obj => obj.fromPort === 443);
       const ruleARN = listenerRuleARN.OutputValue;
@@ -119,6 +120,7 @@ class EnvironmentScCidrService extends Service {
         return obj;
       });
     }
+
     // Check if user is allowed to update cidrs
     await this.assertAuthorized(
       requestContext,
@@ -149,9 +151,10 @@ class EnvironmentScCidrService extends Service {
       // we return the cidr field as part of the env obj
       existingEnvironment.cidr = newCidrList;
     });
+
     if (metaConnection1Type.OutputValue === 'RStudioV2') {
-      tempUpdateRequest = JSON.parse(tempUpdateRequest);
-      existingEnvironment.cidr = tempUpdateRequest;
+      cloneUpdateRequest = JSON.parse(cloneUpdateRequest);
+      existingEnvironment.cidr = cloneUpdateRequest;
     }
     // Write audit event
     await this.audit(requestContext, { action: 'update-environment-sc-cidr', body: existingEnvironment });

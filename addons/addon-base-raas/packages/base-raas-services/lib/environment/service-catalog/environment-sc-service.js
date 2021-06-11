@@ -344,6 +344,8 @@ class EnvironmentScService extends Service {
       fetchCidr
     ) {
       const { currentIngressRules } = await this.getSecurityGroupDetails(requestContext, env);
+
+      // Validate the CFT output if RStudio is exist then retrieve the describe rule and inject into the currentIngressRules
       const { MetaConnection1Type, ListenerRuleARN } = cfnOutputsArrayToObject(env.outputs);
       if (MetaConnection1Type === 'RStudioV2') {
         const albService = await this.service('albService');

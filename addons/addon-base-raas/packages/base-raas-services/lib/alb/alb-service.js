@@ -401,7 +401,7 @@ class ALBService extends Service {
       const { Values } = response.Rules[0].Conditions[0].SourceIpConfig;
       return Values;
     } catch (e) {
-      if (!e.message) throw this.boom.unauthorized(`${e.message}`, true);
+      if (e.message) throw this.boom.unauthorized(`${e.message}`, true);
       return e.message;
     }
   }

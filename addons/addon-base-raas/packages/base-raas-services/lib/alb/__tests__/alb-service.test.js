@@ -432,7 +432,6 @@ describe('ALBService', () => {
   });
 
   describe('modifyRule', () => {
-
     it('should pass and return empty object with success', async () => {
       service.getHostname = jest.fn(() => {
         return 'rtsudio-test.example.com';
@@ -454,14 +453,6 @@ describe('ALBService', () => {
       expect(response).toEqual({});
     });
     it('should fail when user passed empty cidr and return error message', async () => {
-      service.getHostname = jest.fn(() => {
-        return 'rtsudio-test.example.com';
-      });
-      service.findAwsAccountDetails = jest.fn(() => {
-        return {
-          externalId: 'subnet-0a661d9f417ecff3f',
-        };
-      });
       albClient.modifyRule = jest.fn().mockImplementation(() => {
         throw new Error(`Error modify rule. Rule modify failed with message - A condition value cannot be empty`);
       });
@@ -486,13 +477,16 @@ describe('ALBService', () => {
       albClient.describeRules = jest.fn().mockImplementation(() => {
         return {
           promise: () => {
-            return {};
+            return {
+              Rules: [{ Conditions: [{ SourceIpConfig: { Values: ['1'] } }] }],
+            };
           },
         };
       });
       service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
-      await service.describeRules({}, { cidr: [], projectId: '' });
+      const response = await service.describeRules({}, { cidr: [], projectId: '' });
       expect(albClient.describeRules).toHaveBeenCalled();
+      expect(response).toEqual(['1']);
     });
   });
 });
