@@ -19,7 +19,6 @@ import ec2RStudioInstance from '../templates/ec2-rstudio-instance.cfn.yml';
 import ec2LinuxInstance from '../templates/ec2-linux-instance.cfn.yml';
 import ec2WindowsInstance from '../templates/ec2-windows-instance.cfn.yml';
 import sagemakerInstance from '../templates/sagemaker-notebook-instance.cfn.yml';
-import emrCluster from '../templates/emr-cluster.cfn.yml';
 import onboardAccount from '../templates/onboard-account.cfn.yml';
 import storageGatewayNetworkInfra from '../templates/storage-gateway/network-infrastructure.cfn.yml';
 
@@ -31,7 +30,6 @@ const templates = [
   add('ec2-linux-instance', ec2LinuxInstance),
   add('ec2-windows-instance', ec2WindowsInstance),
   add('sagemaker-notebook-instance', sagemakerInstance),
-  add('emr-cluster', emrCluster),
   add('onboard-account', onboardAccount),
   add('storage-gateway-network-infra', storageGatewayNetworkInfra),
 ];

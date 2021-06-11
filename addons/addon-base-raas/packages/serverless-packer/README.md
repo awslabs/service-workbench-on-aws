@@ -4,6 +4,7 @@
 
 - Node 12
 - [Hashicorp Packer](https://www.packer.io/)
+    - The Service Workbench code is tested with Packer 1.6.0. You can install Packer 1.6.0 by using Packer version manager [pkenv](https://github.com/iamhsa/pkenv).
 
 #### Project variables
 
@@ -19,6 +20,6 @@ By convention, this looks in the `./config/infra` directory for a json file that
 
 ## Topics
 
-- [Installing Packer](https://learn.hashicorp.com/tutorials/packer/getting-started-install)
+- [Installing Packer](https://github.com/iamhsa/pkenv)
 
 - [Troubleshooting](https://learn.hashicorp.com/tutorials/packer/getting-started-install#troubleshooting)
