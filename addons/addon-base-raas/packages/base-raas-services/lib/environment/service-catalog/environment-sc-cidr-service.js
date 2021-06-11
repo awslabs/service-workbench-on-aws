@@ -99,14 +99,25 @@ class EnvironmentScCidrService extends Service {
     const eEnvOutputs = existingEnvironment.outputs;
     const metaConnection1Type = eEnvOutputs.find(obj => obj.OutputKey === 'MetaConnection1Type');
     const listenerRuleARN = eEnvOutputs.find(obj => obj.OutputKey === 'ListenerRuleARN');
+    let tempUpdateRequest = JSON.stringify(updateRequest);
     if (metaConnection1Type.OutputValue === 'RStudioV2' && listenerRuleARN) {
       const cidrObj = updateRequest.find(obj => obj.fromPort === 443);
       const ruleARN = listenerRuleARN.OutputValue;
       const projectId = existingEnvironment.projectId;
-      const resolvedVars = { ruleARN, projectId, cidr: cidrObj.cidrBlocks };
-      const resStatus = albService.modifyRule(requestContext, resolvedVars);
-      console.log('......................resStatus');
-      console.log(resStatus);
+      const resolvedVars = {
+        prefix: 'rstudio',
+        ruleARN,
+        projectId,
+        cidr: cidrObj.cidrBlocks,
+        envId: existingEnvironment.id,
+      };
+      await albService.modifyRule(requestContext, resolvedVars);
+      updateRequest.map(obj => {
+        if (obj.fromPort === 443) {
+          obj.cidrBlocks = [];
+        }
+        return obj;
+      });
     }
     // Check if user is allowed to update cidrs
     await this.assertAuthorized(
@@ -127,7 +138,6 @@ class EnvironmentScCidrService extends Service {
           'The Security Group for this workspace does not contain any ingress rules configured in the Service Catalog product template',
           true,
         );
-
       // Perform the actual security group ingress rule updates
       const newCidrList = await this.getUpdatedIngressRules(requestContext, {
         existingEnvironment,
@@ -135,15 +145,16 @@ class EnvironmentScCidrService extends Service {
         currentIngressRules,
         updateRequest,
       });
-
       // Not storing the changes in the DB, but since all went well
       // we return the cidr field as part of the env obj
       existingEnvironment.cidr = newCidrList;
     });
-
+    if (metaConnection1Type.OutputValue === 'RStudioV2') {
+      tempUpdateRequest = JSON.parse(tempUpdateRequest);
+      existingEnvironment.cidr = tempUpdateRequest;
+    }
     // Write audit event
     await this.audit(requestContext, { action: 'update-environment-sc-cidr', body: existingEnvironment });
-
     return existingEnvironment;
   }
 

@@ -431,11 +431,15 @@ describe('ALBService', () => {
     });
   });
 
-  describe('modifyRule', () => { 
+  describe('modifyRule', () => {
+
     it('should pass and return empty object with success', async () => {
+      service.getHostname = jest.fn(() => {
+        return 'rtsudio-test.example.com';
+      });
       service.findAwsAccountDetails = jest.fn(() => {
         return {
-          externalId: 'subnet-0a661d9f417ecff3f'
+          externalId: 'subnet-0a661d9f417ecff3f',
         };
       });
       albClient.modifyRule = jest.fn().mockImplementation(() => {
@@ -446,8 +450,49 @@ describe('ALBService', () => {
         };
       });
       service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
-      const response = await service.modifyRule({}, {cidr : [], projectId});
+      const response = await service.modifyRule({}, { cidr: [], projectId: '' });
       expect(response).toEqual({});
+    });
+    it('should fail when user passed empty cidr and return error message', async () => {
+      service.getHostname = jest.fn(() => {
+        return 'rtsudio-test.example.com';
+      });
+      service.findAwsAccountDetails = jest.fn(() => {
+        return {
+          externalId: 'subnet-0a661d9f417ecff3f',
+        };
+      });
+      albClient.modifyRule = jest.fn().mockImplementation(() => {
+        throw new Error(`Error modify rule. Rule modify failed with message - A condition value cannot be empty`);
+      });
+      service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
+      try {
+        await service.modifyRule({}, { cidr: [], projectId: '' });
+      } catch (err) {
+        expect(err.message).toContain(
+          `Error modify rule. Rule modify failed with message - A condition value cannot be empty`,
+        );
+      }
+    });
+  });
+
+  describe('describeRules', () => {
+    it('should pass and return empty object with success', async () => {
+      service.findAwsAccountDetails = jest.fn(() => {
+        return {
+          externalId: 'subnet-0a661d9f417ecff3f',
+        };
+      });
+      albClient.describeRules = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return {};
+          },
+        };
+      });
+      service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
+      await service.describeRules({}, { cidr: [], projectId: '' });
+      expect(albClient.describeRules).toHaveBeenCalled();
     });
   });
 });

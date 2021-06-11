@@ -30,8 +30,7 @@ class ALBService extends Service {
       'projectService',
       'deploymentStoreService',
       'awsAccountsService',
-      'cfnTemplateService',
-      'environmentScService',
+      'cfnTemplateService'
     ]);
   }
 
@@ -348,25 +347,59 @@ class ALBService extends Service {
    * @returns {Promise<D & {$response: Response<D, E>}>}
    */
   async modifyRule(requestContext, resolvedVars) {
+    const subdomain = this.getHostname(resolvedVars.prefix, resolvedVars.envId);
     try {
-      const [cidr] = resolvedVars.cidr;
+      const cidrLen = resolvedVars.cidr.length;
+      if (cidrLen === 0) {
+        resolvedVars.cidr = ['0.0.0.0/0'];
+      }
       const params = {
         Conditions: [
           {
+            Field: 'host-header',
+            HostHeaderConfig: {
+              Values: [subdomain],
+            },
+          },
+          {
             Field: 'source-ip',
             SourceIpConfig: {
-              Values: [cidr],
+              Values: resolvedVars.cidr,
             },
           },
         ],
         RuleArn: resolvedVars.ruleARN,
       };
-
       const { externalId } = await this.findAwsAccountDetails(requestContext, resolvedVars.projectId);
       resolvedVars.externalId = externalId;
       const albClient = await this.getAlbSdk(requestContext, resolvedVars);
       const response = await albClient.modifyRule(params).promise();
       return response;
+    } catch (e) {
+      if (e.message) throw this.boom.unauthorized(`${e.message}`, true);
+      return e.message;
+    }
+  }
+
+  /**
+   * Method to describe rule. The method describe the rule using the ALB SDK client.
+   * Tags are read form the resolvedVars so the billing will happen properly
+   *
+   * @param requestContext
+   * @param resolvedVars
+   * @returns {Promise<D & {$response: Response<D, E>}>}
+   */
+  async describeRules(requestContext, resolvedVars) {
+    try {
+      const params = {
+        RuleArns: [resolvedVars.ruleARN],
+      };
+      const { externalId } = await this.findAwsAccountDetails(requestContext, resolvedVars.projectId);
+      resolvedVars.externalId = externalId;
+      const albClient = await this.getAlbSdk(requestContext, resolvedVars);
+      const response = await albClient.describeRules(params).promise();
+      const { Values } = response.Rules[0].Conditions[0].SourceIpConfig;
+      return Values;
     } catch (e) {
       if (!e.message) throw this.boom.unauthorized(`${e.message}`, true);
       return e.message;
