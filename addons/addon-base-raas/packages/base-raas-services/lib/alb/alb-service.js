@@ -30,7 +30,7 @@ class ALBService extends Service {
       'projectService',
       'deploymentStoreService',
       'awsAccountsService',
-      'cfnTemplateService'
+      'cfnTemplateService',
     ]);
   }
 
