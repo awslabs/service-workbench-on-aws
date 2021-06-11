@@ -80,8 +80,16 @@ async function postInit(payload, appContext) {
   await userStore.load();
 
   const isRootUser = userStore.user.isRootUser;
+  const isInternalAuthUser = userStore.user.isInternalAuthUser;
   if (isRootUser) {
     displayWarning('You have logged in as root user. Logging in as root user is discouraged.');
+  }
+
+  const isProduction = process.env.REACT_APP_SITE_ENV_TYPE === 'prod';
+  if (isInternalAuthUser && isProduction) {
+    displayWarning(
+      'You are using internal Authentication for this user. Internal Authentication is not recommended for prod environments. Please consider using an IDP.',
+    );
   }
 }
 
