@@ -19,10 +19,8 @@ const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
 const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
 
 jest.mock('../../../alb/alb-service');
-const ALBService = require('../../../alb/alb-service');
 
 jest.mock('../../../indexes/indexes-service');
-const IndexServiceMock = require('../../../indexes/indexes-service');
 
 // Mocked dependencies
 jest.mock('@aws-ee/base-services/lib/authorization/authorization-service');
@@ -36,6 +34,8 @@ const AuditServiceMock = require('@aws-ee/base-services/lib/audit/audit-writer-s
 
 jest.mock('@aws-ee/base-services/lib/lock/lock-service');
 const LockServiceMock = require('@aws-ee/base-services/lib/lock/lock-service');
+const IndexServiceMock = require('../../../indexes/indexes-service');
+const ALBService = require('../../../alb/alb-service');
 
 jest.mock('../../environment-authz-service.js');
 const EnvironmentAuthZServiceMock = require('../../environment-authz-service.js');
