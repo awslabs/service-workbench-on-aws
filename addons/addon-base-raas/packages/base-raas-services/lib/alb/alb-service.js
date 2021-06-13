@@ -398,8 +398,11 @@ class ALBService extends Service {
       resolvedVars.externalId = externalId;
       const albClient = await this.getAlbSdk(requestContext, resolvedVars);
       const response = await albClient.describeRules(params).promise();
-      const { Values } = response.Rules[0].Conditions[0].SourceIpConfig;
-      return Values;
+      const ruleConditions = response.Rules[0].Conditions;
+      const ruleSourceIpConfig = ruleConditions.find(obj => obj.Field === 'source-ip');
+      const { SourceIpConfig } = ruleSourceIpConfig;
+      const sourceIps = SourceIpConfig.Values;
+      return sourceIps;
     } catch (e) {
       if (e.message) throw this.boom.unauthorized(`${e.message}`, true);
       return e.message;

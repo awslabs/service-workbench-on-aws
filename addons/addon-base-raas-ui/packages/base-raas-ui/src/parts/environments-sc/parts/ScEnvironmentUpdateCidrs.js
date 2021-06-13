@@ -228,7 +228,7 @@ class ScEnvironmentUpdateCidrs extends React.Component {
                   className="mb4"
                   icon="warning"
                   header="Maximum limit CIDR reached"
-                  content="You can set maximum number of 5 IPv4 CIDR in this blocks"
+                  content="You can set maximum number of 4 IPv4 CIDR in this blocks"
                 />
               )}
               <Button
@@ -282,7 +282,7 @@ class ScEnvironmentUpdateCidrs extends React.Component {
       if (productName === 'RStudioV2' && fromPort === 443) {
         const cidrBlocks = field.value.cidrBlocks;
         const cidrLen = cidrBlocks.length;
-        if (cidrLen > 5) {
+        if (cidrLen > 4) {
           this.validateMaxCidrs = true;
         } else {
           this.validateMaxCidrs = false;

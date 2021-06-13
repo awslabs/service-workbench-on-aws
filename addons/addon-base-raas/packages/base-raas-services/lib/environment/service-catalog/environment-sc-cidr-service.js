@@ -97,29 +97,11 @@ class EnvironmentScCidrService extends Service {
     const existingEnvironment = await environmentScService.mustFind(requestContext, { id });
 
     // Validate the CFT output if RStudio is exist then modify the rule
-    const eEnvOutputs = existingEnvironment.outputs;
-    const metaConnection1Type = eEnvOutputs.find(obj => obj.OutputKey === 'MetaConnection1Type');
-    const listenerRuleARN = eEnvOutputs.find(obj => obj.OutputKey === 'ListenerRuleARN');
-    let cloneUpdateRequest = JSON.stringify(updateRequest);
-    if (metaConnection1Type.OutputValue === 'RStudioV2' && listenerRuleARN) {
-      const cidrObj = updateRequest.find(obj => obj.fromPort === 443);
-      const ruleARN = listenerRuleARN.OutputValue;
-      const projectId = existingEnvironment.projectId;
-      const resolvedVars = {
-        prefix: 'rstudio',
-        ruleARN,
-        projectId,
-        cidr: cidrObj.cidrBlocks,
-        envId: existingEnvironment.id,
-      };
-      await albService.modifyRule(requestContext, resolvedVars);
-      updateRequest.map(obj => {
-        if (obj.fromPort === 443) {
-          obj.cidrBlocks = [];
-        }
-        return obj;
-      });
-    }
+    let {
+      // eslint-disable-next-line prefer-const
+      metaConnection1Type,
+      cloneUpdateRequest,
+    } = await this.modifyELBRule(existingEnvironment, updateRequest, albService, requestContext);
 
     // Check if user is allowed to update cidrs
     await this.assertAuthorized(
@@ -159,6 +141,33 @@ class EnvironmentScCidrService extends Service {
     // Write audit event
     await this.audit(requestContext, { action: 'update-environment-sc-cidr', body: existingEnvironment });
     return existingEnvironment;
+  }
+
+  async modifyELBRule(existingEnvironment, updateRequest, albService, requestContext) {
+    const eEnvOutputs = existingEnvironment.outputs;
+    const metaConnection1Type = eEnvOutputs.find(obj => obj.OutputKey === 'MetaConnection1Type');
+    const listenerRuleARN = eEnvOutputs.find(obj => obj.OutputKey === 'ListenerRuleARN');
+    const cloneUpdateRequest = JSON.stringify(updateRequest);
+    if (metaConnection1Type.OutputValue === 'RStudioV2' && listenerRuleARN) {
+      const cidrObj = updateRequest.find(obj => obj.fromPort === 443);
+      const ruleARN = listenerRuleARN.OutputValue;
+      const projectId = existingEnvironment.projectId;
+      const resolvedVars = {
+        prefix: 'rstudio',
+        ruleARN,
+        projectId,
+        cidr: cidrObj.cidrBlocks,
+        envId: existingEnvironment.id,
+      };
+      await albService.modifyRule(requestContext, resolvedVars);
+      updateRequest.map(obj => {
+        if (obj.fromPort === 443) {
+          obj.cidrBlocks = [];
+        }
+        return obj;
+      });
+    }
+    return { metaConnection1Type, cloneUpdateRequest };
   }
 
   // This method is responsible for generating the IpPermissions object

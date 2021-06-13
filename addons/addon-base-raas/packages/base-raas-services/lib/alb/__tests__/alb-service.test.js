@@ -478,7 +478,7 @@ describe('ALBService', () => {
         return {
           promise: () => {
             return {
-              Rules: [{ Conditions: [{ SourceIpConfig: { Values: ['1'] } }] }],
+              Rules: [{ Conditions: [{ Field: 'source-ip', SourceIpConfig: { Values: ['1'] } }] }],
             };
           },
         };
