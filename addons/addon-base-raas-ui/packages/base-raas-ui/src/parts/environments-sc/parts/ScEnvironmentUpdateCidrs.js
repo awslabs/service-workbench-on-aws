@@ -186,7 +186,16 @@ class ScEnvironmentUpdateCidrs extends React.Component {
     };
 
     const validateMaxRStudioCidr = () => {
-      return this.validateMaxCidrs;
+      let status = false;
+      const eEnvOutputs = this.environment.outputs;
+      const metaConnection1Type = eEnvOutputs.find(obj => obj.OutputKey === 'MetaConnection1Type');
+      if (metaConnection1Type) {
+        const productName = metaConnection1Type.OutputValue;
+        if (productName === 'RStudioV2') {
+          status = this.validateMaxCidrs;
+        }
+      }
+      return status;
     };
 
     return (
@@ -275,17 +284,18 @@ class ScEnvironmentUpdateCidrs extends React.Component {
     };
 
     const validateMaxRStudioCidr = () => {
+      this.validateMaxCidrs = false;
       const eEnvOutputs = this.environment.outputs;
       const metaConnection1Type = eEnvOutputs.find(obj => obj.OutputKey === 'MetaConnection1Type');
-      const productName = metaConnection1Type.OutputValue;
-      const fromPort = field.value.fromPort;
-      if (productName === 'RStudioV2' && fromPort === 443) {
-        const cidrBlocks = field.value.cidrBlocks;
-        const cidrLen = cidrBlocks.length;
-        if (cidrLen > 4) {
-          this.validateMaxCidrs = true;
-        } else {
-          this.validateMaxCidrs = false;
+      if (metaConnection1Type) {
+        const productName = metaConnection1Type.OutputValue;
+        const fromPort = field.value.fromPort;
+        if (productName === 'RStudioV2' && fromPort === 443) {
+          const cidrBlocks = field.value.cidrBlocks;
+          const cidrLen = cidrBlocks.length;
+          if (cidrLen > 4) {
+            this.validateMaxCidrs = true;
+          }
         }
       }
       return this.validateMaxCidrs;

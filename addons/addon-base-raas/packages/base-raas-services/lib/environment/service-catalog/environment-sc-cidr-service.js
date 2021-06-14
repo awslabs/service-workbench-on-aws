@@ -99,7 +99,7 @@ class EnvironmentScCidrService extends Service {
     // Validate the CFT output if RStudio is exist then modify the elb rule
     let {
       // eslint-disable-next-line prefer-const
-      OutputValue,
+      productName,
       cloneUpdateRequest,
     } = await this.modifyELBRule(existingEnvironment, updateRequest, albService, requestContext);
 
@@ -135,7 +135,7 @@ class EnvironmentScCidrService extends Service {
     });
     // As we removed the 443 Port CIDRs values for Rstudio during the ingress rule updates.
     // So once it is done we replace the original values to the existing env.
-    if (OutputValue === 'RStudioV2') {
+    if (productName === 'RStudioV2') {
       cloneUpdateRequest = JSON.parse(cloneUpdateRequest);
       existingEnvironment.cidr = cloneUpdateRequest;
     }
@@ -145,34 +145,37 @@ class EnvironmentScCidrService extends Service {
   }
 
   async modifyELBRule(existingEnvironment, updateRequest, albService, requestContext) {
-    const eEnvOutputs = existingEnvironment.outputs;
-    const metaConnection1Type = eEnvOutputs.find(obj => obj.OutputKey === 'MetaConnection1Type');
-    const { OutputValue } = metaConnection1Type;
-    const listenerRuleARN = eEnvOutputs.find(obj => obj.OutputKey === 'ListenerRuleARN');
     // clone the update request for future use to replace the existing env data
     const cloneUpdateRequest = JSON.stringify(updateRequest);
-    if (OutputValue === 'RStudioV2' && listenerRuleARN) {
-      const cidrObj = updateRequest.find(obj => obj.fromPort === 443);
-      const ruleARN = listenerRuleARN.OutputValue;
-      const projectId = existingEnvironment.projectId;
-      const resolvedVars = {
-        prefix: 'rstudio',
-        ruleARN,
-        projectId,
-        cidr: cidrObj.cidrBlocks,
-        envId: existingEnvironment.id,
-      };
-      await albService.modifyRule(requestContext, resolvedVars);
-      // Removing the values of 443 Port CIDRs in the updateRequest
-      // because the new RStudio ALB does not support the security group ip.
-      updateRequest.map(obj => {
-        if (obj.fromPort === 443) {
-          obj.cidrBlocks = [];
-        }
-        return obj;
-      });
+    const eEnvOutputs = existingEnvironment.outputs;
+    let productName = null;
+    const metaConnection1Type = eEnvOutputs.find(obj => obj.OutputKey === 'MetaConnection1Type');
+    if (metaConnection1Type) {
+      productName = metaConnection1Type.OutputValue;
+      const listenerRuleARN = eEnvOutputs.find(obj => obj.OutputKey === 'ListenerRuleARN');
+      if (productName === 'RStudioV2' && listenerRuleARN) {
+        const cidrObj = updateRequest.find(obj => obj.fromPort === 443);
+        const ruleARN = listenerRuleARN.OutputValue;
+        const projectId = existingEnvironment.projectId;
+        const resolvedVars = {
+          prefix: 'rstudio',
+          ruleARN,
+          projectId,
+          cidr: cidrObj.cidrBlocks,
+          envId: existingEnvironment.id,
+        };
+        await albService.modifyRule(requestContext, resolvedVars);
+        // Removed the original value in 443 Port CIDRs and replace the default values in the updateRequest
+        // because the new RStudio ALB we are not storing 443 Port CIDRs into security group.
+        updateRequest.map(obj => {
+          if (obj.fromPort === 443) {
+            obj.cidrBlocks = ['0.0.0.0/0'];
+          }
+          return obj;
+        });
+      }
     }
-    return { OutputValue, cloneUpdateRequest };
+    return { productName, cloneUpdateRequest };
   }
 
   // This method is responsible for generating the IpPermissions object
