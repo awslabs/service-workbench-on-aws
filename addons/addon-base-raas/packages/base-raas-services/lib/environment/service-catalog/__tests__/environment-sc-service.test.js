@@ -57,6 +57,9 @@ const StorageGatewayService = require('../../../storage-gateway/storage-gateway-
 jest.mock('../../../study/study-service');
 const StudyService = require('../../../study/study-service');
 
+jest.mock('../../../alb/alb-service');
+const ALBService = require('../../../alb/alb-service');
+
 const EnvironmentSCService = require('../environment-sc-service');
 
 const workflowIds = {
@@ -88,6 +91,7 @@ describe('EnvironmentSCService', () => {
     container.register('projectService', new ProjectServiceMock());
     container.register('awsAccountsService', new AwsAccountsServiceMock());
     container.register('indexesService', new IndexesServiceMock());
+    container.register('albService', new ALBService());
     container.register('environmentSCService', new EnvironmentSCService());
     container.register('storageGatewayService', new StorageGatewayService());
     container.register('iamService', new IamService());
