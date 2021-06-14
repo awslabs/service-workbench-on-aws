@@ -320,7 +320,7 @@ describe('EnvironmentScCidrService', () => {
       };
       service.modifyELBRule = jest.fn().mockImplementation(() => {
         return {
-          metaConnection1Type: { OutputValue: 'RStudioV2' },
+          OutputValue: 'RStudioV2',
           cloneUpdateRequest: "{cidrBlocks: ['123.123.123.123/32']",
         };
       });
@@ -387,7 +387,7 @@ describe('EnvironmentScCidrService', () => {
 
       service.modifyELBRule = jest.fn().mockImplementation(() => {
         return {
-          metaConnection1Type: { OutputValue: 'RStudioV2' },
+          OutputValue: 'RStudioV2',
           cloneUpdateRequest: JSON.stringify({ cidrBlocks: ['123.123.123.123/32'] }),
         };
       });
@@ -438,7 +438,7 @@ describe('EnvironmentScCidrService', () => {
       service.authorizeSecurityGroupIngress = jest.fn();
       service.modifyELBRule = jest.fn().mockImplementation(() => {
         return {
-          metaConnection1Type: { OutputValue: 'RStudioV2' },
+          OutputValue: 'RStudioV2',
           cloneUpdateRequest: JSON.stringify({ cidrBlocks: ['123.123.123.123/32'] }),
         };
       });
@@ -480,7 +480,7 @@ describe('EnvironmentScCidrService', () => {
       }));
       service.modifyELBRule = jest.fn().mockImplementation(() => {
         return {
-          metaConnection1Type: { OutputValue: 'RStudioV2' },
+          OutputValue: 'RStudioV2',
           cloneUpdateRequest: JSON.stringify({ cidrBlocks: ['123.123.123.123/32'] }),
         };
       });
@@ -533,7 +533,7 @@ describe('EnvironmentScCidrService', () => {
       });
       service.modifyELBRule = jest.fn().mockImplementation(() => {
         return {
-          metaConnection1Type: { OutputValue: 'RStudioV2' },
+          OutputValue: 'RStudioV2',
           cloneUpdateRequest: JSON.stringify({ cidrBlocks: ['123.123.123.123/32'] }),
         };
       });
@@ -586,7 +586,7 @@ describe('EnvironmentScCidrService', () => {
       });
       service.modifyELBRule = jest.fn().mockImplementation(() => {
         return {
-          metaConnection1Type: { OutputValue: 'RStudioV2' },
+          OutputValue: 'RStudioV2',
           cloneUpdateRequest: JSON.stringify({ cidrBlocks: ['123.123.123.123/32'] }),
         };
       });
@@ -649,7 +649,7 @@ describe('EnvironmentScCidrService', () => {
       });
       service.modifyELBRule = jest.fn().mockImplementation(() => {
         return {
-          metaConnection1Type: { OutputValue: 'RStudioV2' },
+          OutputValue: 'RStudioV2',
           cloneUpdateRequest: JSON.stringify({ cidrBlocks: ['123.123.123.123/32'] }),
         };
       });
@@ -712,7 +712,7 @@ describe('EnvironmentScCidrService', () => {
       });
       service.modifyELBRule = jest.fn().mockImplementation(() => {
         return {
-          metaConnection1Type: { OutputValue: 'RStudioV2' },
+          OutputValue: 'RStudioV2',
           cloneUpdateRequest: JSON.stringify({ cidrBlocks: ['123.123.123.123/32'] }),
         };
       });
@@ -779,7 +779,7 @@ describe('EnvironmentScCidrService', () => {
       });
       service.modifyELBRule = jest.fn().mockImplementation(() => {
         return {
-          metaConnection1Type: { OutputValue: 'RStudioV2' },
+          OutputValue: 'RStudioV2',
           cloneUpdateRequest: JSON.stringify({ cidrBlocks: ['123.123.123.123/32'] }),
         };
       });
@@ -829,7 +829,7 @@ describe('EnvironmentScCidrService', () => {
       service.authorizeSecurityGroupIngress = jest.fn();
       service.modifyELBRule = jest.fn().mockImplementation(() => {
         return {
-          metaConnection1Type: { OutputValue: 'RStudioV2' },
+          OutputValue: 'RStudioV2',
           cloneUpdateRequest: JSON.stringify({ cidrBlocks: ['123.123.123.123/32'] }),
         };
       });

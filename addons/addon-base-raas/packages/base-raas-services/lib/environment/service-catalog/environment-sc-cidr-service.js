@@ -96,10 +96,10 @@ class EnvironmentScCidrService extends Service {
 
     const existingEnvironment = await environmentScService.mustFind(requestContext, { id });
 
-    // Validate the CFT output if RStudio is exist then modify the rule
+    // Validate the CFT output if RStudio is exist then modify the elb rule
     let {
       // eslint-disable-next-line prefer-const
-      metaConnection1Type,
+      OutputValue,
       cloneUpdateRequest,
     } = await this.modifyELBRule(existingEnvironment, updateRequest, albService, requestContext);
 
@@ -133,8 +133,9 @@ class EnvironmentScCidrService extends Service {
       // we return the cidr field as part of the env obj
       existingEnvironment.cidr = newCidrList;
     });
-
-    if (metaConnection1Type.OutputValue === 'RStudioV2') {
+    // As we removed the 443 Port CIDRs values for Rstudio during the ingress rule updates.
+    // So once it is done we replace the original values to the existing env.
+    if (OutputValue === 'RStudioV2') {
       cloneUpdateRequest = JSON.parse(cloneUpdateRequest);
       existingEnvironment.cidr = cloneUpdateRequest;
     }
@@ -146,9 +147,11 @@ class EnvironmentScCidrService extends Service {
   async modifyELBRule(existingEnvironment, updateRequest, albService, requestContext) {
     const eEnvOutputs = existingEnvironment.outputs;
     const metaConnection1Type = eEnvOutputs.find(obj => obj.OutputKey === 'MetaConnection1Type');
+    const { OutputValue } = metaConnection1Type;
     const listenerRuleARN = eEnvOutputs.find(obj => obj.OutputKey === 'ListenerRuleARN');
+    // clone the update request for future use to replace the existing env data
     const cloneUpdateRequest = JSON.stringify(updateRequest);
-    if (metaConnection1Type.OutputValue === 'RStudioV2' && listenerRuleARN) {
+    if (OutputValue === 'RStudioV2' && listenerRuleARN) {
       const cidrObj = updateRequest.find(obj => obj.fromPort === 443);
       const ruleARN = listenerRuleARN.OutputValue;
       const projectId = existingEnvironment.projectId;
@@ -160,6 +163,8 @@ class EnvironmentScCidrService extends Service {
         envId: existingEnvironment.id,
       };
       await albService.modifyRule(requestContext, resolvedVars);
+      // Removing the values of 443 Port CIDRs in the updateRequest
+      // because the new RStudio ALB does not support the security group ip.
       updateRequest.map(obj => {
         if (obj.fromPort === 443) {
           obj.cidrBlocks = [];
@@ -167,7 +172,7 @@ class EnvironmentScCidrService extends Service {
         return obj;
       });
     }
-    return { metaConnection1Type, cloneUpdateRequest };
+    return { OutputValue, cloneUpdateRequest };
   }
 
   // This method is responsible for generating the IpPermissions object

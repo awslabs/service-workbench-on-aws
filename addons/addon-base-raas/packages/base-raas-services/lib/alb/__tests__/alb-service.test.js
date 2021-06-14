@@ -452,18 +452,18 @@ describe('ALBService', () => {
       const response = await service.modifyRule({}, { cidr: [], projectId: '' });
       expect(response).toEqual({});
     });
-    it('should fail when user passed empty cidr and return error message', async () => {
+    it('should pass when user passed empty cidr value to modify rule', async () => {
+      // the system should validate and replace the default ip "0.0.0.0/0" and execute
       albClient.modifyRule = jest.fn().mockImplementation(() => {
-        throw new Error(`Error modify rule. Rule modify failed with message - A condition value cannot be empty`);
+        return {
+          promise: () => {
+            return {};
+          },
+        };
       });
       service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
-      try {
-        await service.modifyRule({}, { cidr: [], projectId: '' });
-      } catch (err) {
-        expect(err.message).toContain(
-          `Error modify rule. Rule modify failed with message - A condition value cannot be empty`,
-        );
-      }
+      await service.modifyRule({}, { cidr: [], projectId: '' });
+      expect(albClient.modifyRule).toHaveBeenCalled();
     });
   });
 

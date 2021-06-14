@@ -350,6 +350,9 @@ class ALBService extends Service {
     const subdomain = this.getHostname(resolvedVars.prefix, resolvedVars.envId);
     try {
       const cidrLen = resolvedVars.cidr.length;
+      // ModifyRule does not accept the empty value to update
+      // so the system should validate the cidr and if it is empty then
+      // replace the default ip "0.0.0.0/0"
       if (cidrLen === 0) {
         resolvedVars.cidr = ['0.0.0.0/0'];
       }

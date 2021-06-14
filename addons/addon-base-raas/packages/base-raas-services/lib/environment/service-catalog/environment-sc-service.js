@@ -350,10 +350,10 @@ class EnvironmentScService extends Service {
       if (MetaConnection1Type === 'RStudioV2') {
         const albService = await this.service('albService');
         const resolvedVars = { ruleARN: ListenerRuleARN, projectId: env.projectId };
-        const responseDescribeRules = await albService.describeRules(requestContext, resolvedVars);
+        const ruleSourceIps = await albService.describeRules(requestContext, resolvedVars);
         currentIngressRules.map(obj => {
           if (obj.fromPort === 443) {
-            obj.cidrBlocks = responseDescribeRules;
+            obj.cidrBlocks = ruleSourceIps;
           }
           return obj;
         });
