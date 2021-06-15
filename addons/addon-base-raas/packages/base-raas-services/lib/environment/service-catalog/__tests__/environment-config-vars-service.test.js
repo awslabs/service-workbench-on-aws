@@ -59,6 +59,9 @@ const EnvironmentSCServiceMock = require('../environment-sc-service');
 jest.mock('../environment-sc-keypair-service');
 const EnvironmentSCKeyPairServiceMock = require('../environment-sc-keypair-service');
 
+jest.mock('../../../data-egress/data-egress-service.js');
+const DataEgressService = require('../../../data-egress/data-egress-service.js');
+
 const EnvironmentConfigVarsService = require('../environment-config-vars-service');
 
 describe('EnvironmentSCService', () => {
@@ -87,6 +90,7 @@ describe('EnvironmentSCService', () => {
     container.register('environmentScService', new EnvironmentSCServiceMock());
     container.register('environmentScKeypairService', new EnvironmentSCKeyPairServiceMock());
     container.register('studyService', new StudyServiceMock());
+    container.register('dataEgressService', new DataEgressService());
     await container.initServices();
 
     // suppress expected console errors
@@ -284,6 +288,93 @@ describe('EnvironmentSCService', () => {
         name: 'environment-1',
         projectId: 'testProj',
         s3Mounts: '[]',
+        studyIds: ['study-1', 'study-2'],
+        subnetId: 'SubnetId-Test',
+        uid: 'dunderMifflin',
+        userNamespace: 'test@example.com',
+        username: 'Michael Scott',
+        vpcId: 'VpcId-Test',
+        xAccEnvMgmtRoleArn: 'xAccEnvMgmtRole-Test',
+      };
+
+      // EXECUTE & CHECK
+      await expect(
+        service.resolveEnvConfigVars(requestContext, { envId, envTypeId, envTypeConfigId }),
+      ).resolves.toStrictEqual(expectedResponse);
+    });
+
+    it('should success for happy path scenario with data egress feature enabled', async () => {
+      // BUILD
+      service._settings = {
+        get: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return true;
+          }
+          return undefined;
+        },
+      };
+      const requestContext = 'sampleRequestContext';
+      const envId = 'sampleEnvId';
+      const envTypeId = 'sampleEnvTypeId';
+      const envTypeConfigId = 'sampleEnvTypeConfigId';
+
+      environmentScService.mustFind = jest.fn(() => {
+        return {
+          name: 'environment-1',
+          description: 'env-desc',
+          projectId: 'testProj',
+          indexId: 'testIndex',
+          cidr: '192.168.xx.yy',
+          studyIds: ['study-1', 'study-2'],
+        };
+      });
+
+      indexesService.mustFind = jest.fn(() => {
+        return { awsAccountId: '123456789012' };
+      });
+
+      awsAccountsService.mustFind = jest.fn(() => {
+        return {
+          xAccEnvMgmtRoleArn: 'xAccEnvMgmtRole-Test',
+          externalId: 'ExternalId-Test',
+          accountId: '123456789012',
+          vpcId: 'VpcId-Test',
+          subnetId: 'SubnetId-Test',
+          encryptionKeyArn: 'UltraSecureEncryptionKey',
+        };
+      });
+
+      envTypeConfigService.mustFind = jest.fn(() => {
+        return { params: [{ value: 'ami-1234567890' }, { value: 'ami-0987654321' }] };
+      });
+
+      environmentAmiService.ensurePermissions = jest.fn();
+
+      userService.mustFindUser = jest.fn(() => {
+        return { uid: 'dunderMifflin', username: 'Michael Scott', ns: 'test@example.com' };
+      });
+
+      service.getEgressStoreMount = jest.fn(() => {
+        return {};
+      });
+
+      const expectedResponse = {
+        egressStoreIamPolicyDocument: '{}',
+        accountId: '123456789012',
+        adminKeyPairName: '',
+        cidr: '192.168.xx.yy',
+        description: 'env-desc',
+        encryptionKeyArn: 'UltraSecureEncryptionKey',
+        envId: 'sampleEnvId',
+        envTypeConfigId: 'sampleEnvTypeConfigId',
+        envTypeId: 'sampleEnvTypeId',
+        environmentInstanceFiles: undefined,
+        externalId: 'ExternalId-Test',
+        iamPolicyDocument: '{}',
+        indexId: 'testIndex',
+        name: 'environment-1',
+        projectId: 'testProj',
+        s3Mounts: '[{}]',
         studyIds: ['study-1', 'study-2'],
         subnetId: 'SubnetId-Test',
         uid: 'dunderMifflin',

@@ -27,9 +27,13 @@ Parameters:
     Description: >-
       An S3 URI (starting with "s3://") that specifies the location of files to be copied to
       the environment instance, including any bootstrap scripts
+  EgressStoreIamPolicyDocument:
+    Type: String
+    Description: The IAM policy for launched workstation to access egress store
 
 Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
+  EgressStoreIamPolicyEmpty: !Equals [!Ref EgressStoreIamPolicyDocument, '{}']
 
 Resources:
   EncryptionKey:
@@ -92,6 +96,11 @@ Resources:
           - !Ref 'AWS::NoValue'
           - PolicyName: !Join ['-', [Ref: Namespace, 's3-studydata-policy']]
             PolicyDocument: !Ref IamPolicyDocument
+        - !If
+          - EgressStoreIamPolicyEmpty
+          - !Ref 'AWS::NoValue'
+          - PolicyName: !Join ['-', [Ref: Namespace, 's3-egressstore-policy']]
+            PolicyDocument: !Ref EgressStoreIamPolicyDocument
         - PolicyName: !Join ['-', [Ref: Namespace, 's3-bootstrap-script-policy']]
           PolicyDocument:
             Version: '2012-10-17'
