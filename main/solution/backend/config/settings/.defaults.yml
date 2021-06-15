@@ -181,6 +181,8 @@ dbKeyPairs: ${self:custom.settings.dbPrefix}-KeyPairs
 # DynamoDB table for managing StorageGateway
 dbStorageGateway: ${self:custom.settings.dbPrefix}-StorageGateway
 
+# DynamoDB table name for the deployment store
+dbDeploymentStore: ${self:custom.settings.dbPrefix}-DeploymentStore
 # DynamoDB table name for Data source accounts
 dbDsAccounts: ${self:custom.settings.dbPrefix}-DsAccounts
 

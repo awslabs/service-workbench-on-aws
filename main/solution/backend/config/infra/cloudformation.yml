@@ -514,6 +514,7 @@ Resources:
               - !GetAtt [DsAccountsDb, Arn]
               - !GetAtt [RoleAllocationsDb, Arn]
               - !GetAtt [ResourceUsagesDb, Arn]
+              - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbDeploymentStore}'
           - Effect: Allow
             Action:
               - ssm:GetParameter
@@ -604,6 +605,11 @@ Resources:
               - sts:AssumeRole
             Resource:
               - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-prep-raas-master-MasterRole-*'
+          - Effect: 'Allow'
+            Action:
+              - s3:GetObject
+            Resource:
+              - 'arn:aws:s3:::cf-templates-*/*'
 
   # IAM Role for the workflowLoopRunner Function
   RoleWorkflowLoopRunner:

@@ -876,6 +876,7 @@ class EnvironmentScService extends Service {
         xAccEnvMgmtRoleArn,
         externalId,
         provisionedProductId: existingEnvironment.provisionedProductId,
+        existingEnvironmentStatus: existingEnvironment.status,
       });
     } catch (e) {
       const error = this.boom.internalError(`Error triggering ${workflowIds.delete} workflow`).cause(e);

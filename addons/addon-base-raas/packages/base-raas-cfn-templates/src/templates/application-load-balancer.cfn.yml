@@ -1,0 +1,70 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Service-Workbench-on-AWS ALB for RStudio IDE
+
+Parameters:
+  Namespace:
+    Type: String
+    Description: An environment name that will be prefixed to resource names
+  VPC:
+    Description: The VPC in which the ALB will reside
+    Type: AWS::EC2::VPC::Id
+  Subnet1:
+    Description: The VPC subnet in which the ALB will reside
+    Type: AWS::EC2::Subnet::Id
+  ACMSSLCertARN:
+    Type: String
+    Description: The ARN of the AWS Certificate Manager SSL Certificate to associate with the Load Balancer
+Resources:
+  ALBSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      CidrBlock: 10.0.32.0/19
+      AvailabilityZone: !Select [1, !GetAZs ]
+  ALBListener:
+     Type: AWS::ElasticLoadBalancingV2::Listener
+     Properties:
+       DefaultActions:
+         - Type: fixed-response
+           FixedResponseConfig:
+             ContentType: "text/plain"
+             MessageBody: "Forbidden"
+             StatusCode: "403"
+       LoadBalancerArn:
+           Ref: ApplicationLoadBalancer
+       Port: 443
+       Protocol: HTTPS
+       SslPolicy: ELBSecurityPolicy-2016-08
+       Certificates: 
+          - CertificateArn: !Ref ACMSSLCertARN
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Ref Namespace
+      Scheme: internet-facing # or internal
+      Subnets:
+      - Ref: Subnet1
+      - Ref: ALBSubnet
+      SecurityGroups: 
+      - Ref: ALBSecurityGroup
+  ALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      SecurityGroupIngress:
+        - CidrIp: "0.0.0.0/0"
+          FromPort: 443
+          ToPort: 443
+          IpProtocol: tcp
+      GroupDescription: ALB SecurityGroup
+      VpcId: !Ref VPC
+Outputs:
+  LoadBalancerArn:
+    Description: ARN of Application Load Balancer
+    Value: !Ref ApplicationLoadBalancer
+  ALBDNSName:
+    Description: DNS Name of Application Load Balancer
+    Value: !GetAtt ApplicationLoadBalancer.DNSName
+  ListenerArn:
+    Description: ARN of Application Load Balancer Listener
+    Value: !Ref ALBListener

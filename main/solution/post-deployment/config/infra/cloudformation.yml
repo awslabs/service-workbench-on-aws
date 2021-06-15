@@ -373,6 +373,24 @@ Resources:
                 Condition:
                   StringLike:
                     ec2:ResourceTag/name: 'analysis-*-sg'
+        - PolicyName: RstudioLaunchPermissions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - elasticloadbalancing:DescribeTargetHealth
+                  - elasticloadbalancing:DescribeTargetGroups # DescribeTargetGroups does not support specifying resources
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - elasticloadbalancing:CreateTargetGroup
+                  - elasticloadbalancing:RegisterTargets
+                  - elasticloadbalancing:DeleteTargetGroup
+                  - elasticloadbalancing:DeregisterTargets
+                  - elasticloadbalancing:AddTags
+                Resource:
+                  - 'arn:aws:elasticloadbalancing:*:*:targetgroup/analysis-*'
 
   # =============================================================================================
   # Dynamo db
