@@ -15,7 +15,6 @@
  */
 
 /* eslint-disable max-classes-per-file */
-const _ = require('lodash');
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
 const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
 
