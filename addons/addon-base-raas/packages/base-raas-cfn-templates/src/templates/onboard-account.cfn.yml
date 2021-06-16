@@ -3,6 +3,11 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: Service-Workbench-on-AWS Research-Account
 
 Parameters:
+  EnableAppStream:
+    Type: String
+    AllowedValues: [true, false]
+    Description: Onboard this account to support AppStream
+
   Namespace:
     Type: String
     Description: An environment name that will be prefixed to resource names
@@ -29,11 +34,23 @@ Parameters:
     Description: The arn of workflowRunner role
 
   # Generous subnet allocation of 8192 addresses (ie room for a few concurrent EMR clusters)
-  # ending at 10.0.31.255
-  VpcPublicSubnet1Cidr:
-    Description: Please enter the IP range (CIDR notation) for the public subnet in the 1st Availability Zone
+  # Range from 10.0.0.0 to 10.0.31.255
+  PublicSubnetCidr:
+    Description: Please enter the IP range (CIDR notation) for the public subnet. This value is only required if AppStream is disabled.
     Type: String
     Default: 10.0.0.0/19
+
+  # Range from 10.0.32.0 to 10.0.63.255
+  AppStreamSubnetCidr:
+    Description: Please enter the IP range (CIDR notation) for the the AppStream subnet. This value is only used if AppStream is enabled.
+    Type: String
+    Default: 10.0.32.0/19
+
+  # Range from 10.0.64.0 to 10.0.95.255
+  WorkspaceSubnetCidr:
+    Description: Please enter the IP range (CIDR notation) for the Workspace subnet. This value is only used if AppStream is enabled.
+    Type: String
+    Default: 10.0.64.0/19
 
   LaunchConstraintRolePrefix:
     Description: Role name prefix to use when creating a launch constraint role in the on-boarded account
@@ -61,8 +78,13 @@ Metadata:
           default: Deployment Configuration
         Parameters:
           - VpcCidr
-          - VpcPublicSubnet1Cidr
-
+          - PublicSubnetCidr
+Conditions:
+  isAppStream: !Equals
+    - !Ref EnableAppStream
+    - true
+  isNotAppStream:
+    !Not [Condition: isAppStream]
 Resources:
   # A role used for launching environments using AWS Service Catalog
   # This is the role that code (ApiHandlerLambda and WorkflowLoopRunnerLambda) in central account
@@ -325,6 +347,7 @@ Resources:
 
   InternetGateway:
     Type: AWS::EC2::InternetGateway
+    Condition: isNotAppStream
     Properties:
       Tags:
         - Key: Name
@@ -332,16 +355,18 @@ Resources:
 
   InternetGatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
+    Condition: isNotAppStream
     Properties:
       InternetGatewayId: !Ref InternetGateway
       VpcId: !Ref VPC
 
   PublicSubnet1:
     Type: AWS::EC2::Subnet
+    Condition: isNotAppStream
     Properties:
       VpcId: !Ref VPC
       AvailabilityZone: !Select [0, !GetAZs ]
-      CidrBlock: !Ref VpcPublicSubnet1Cidr
+      CidrBlock: !Ref PublicSubnetCidr
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
@@ -349,6 +374,7 @@ Resources:
 
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
+    Condition: isNotAppStream
     Properties:
       VpcId: !Ref VPC
       Tags:
@@ -357,6 +383,7 @@ Resources:
 
   DefaultPublicRoute:
     Type: AWS::EC2::Route
+    Condition: isNotAppStream
     DependsOn: InternetGatewayAttachment
     Properties:
       RouteTableId: !Ref PublicRouteTable
@@ -365,6 +392,7 @@ Resources:
 
   PublicSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: isNotAppStream
     Properties:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet1
@@ -408,6 +436,124 @@ Resources:
       AliasName: !Join ['', ['alias/', Ref: Namespace, '-encryption-key']]
       TargetKeyId: !Ref EncryptionKey
 
+#------------AppStream Resources Below-------
+  PrivateAppStreamSubnet:
+    Type: AWS::EC2::Subnet
+    Condition: isAppStream
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 0, !GetAZs  '' ]
+      CidrBlock: !Ref AppStreamSubnetCidr
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: Private AppStream Subnet
+
+  PrivateWorkspaceSubnet:
+    Type: AWS::EC2::Subnet
+    Condition: isAppStream
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 0, !GetAZs  '' ]
+      CidrBlock: !Ref WorkspaceSubnetCidr
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: Private Workspace Subnet
+
+  PrivateWorkspaceRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Condition: isAppStream
+    Properties:
+      VpcId: !Ref VPC
+
+  WorkspaceSubnetAssociationRouteTable:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Condition: isAppStream
+    Properties:
+      SubnetId: !Ref PrivateWorkspaceSubnet
+      RouteTableId: !Ref PrivateWorkspaceRouteTable
+
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html
+  S3Endpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Condition: isAppStream
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action:
+              - 's3:GetObject'
+              - 's3:GetObjectTagging'
+              - 's3:GetObjectTorrent'
+              - 's3:GetObjectVersion'
+              - 's3:GetObjectVersionTagging'
+              - 's3:GetObjectVersionTorrent'
+              - 's3:AbortMultipartUpload'
+              - 's3:ListMultipartUploadParts'
+              - 's3:PutObject'
+              - 's3:PutObjectAcl'
+              - 's3:PutObjectTagging'
+              - 's3:PutObjectVersionTagging'
+              - 's3:DeleteObject'
+              - 's3:DeleteObjectTagging'
+              - 's3:DeleteObjectVersion'
+              - 's3:DeleteObjectVersionTagging'
+            Resource:
+              - '*'
+      RouteTableIds:
+        - !Ref PrivateWorkspaceRouteTable
+      VpcEndpointType: Gateway
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
+      VpcId: !Ref VPC
+
+  KMSEndpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Condition: isAppStream
+    Properties:
+      SubnetIds:
+        - !Ref PrivateWorkspaceSubnet
+      PrivateDnsEnabled: true
+      VpcEndpointType: Interface
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.kms'
+      VpcId: !Ref VPC
+
+  STSEndpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Condition: isAppStream
+    Properties:
+      SubnetIds:
+        - !Ref PrivateWorkspaceSubnet
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.sts'
+      VpcId: !Ref VPC
+
+  EC2Endpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Condition: isAppStream
+    Properties:
+      SubnetIds:
+        - !Ref PrivateWorkspaceSubnet
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ec2'
+      VpcId: !Ref VPC
+
+    # https://docs.aws.amazon.com/sagemaker/latest/dg/notebook-interface-endpoint.html
+  SagemakerNotebookEndpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Condition: isAppStream
+    Properties:
+      SubnetIds:
+        - !Ref PrivateAppStreamSubnet
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      ServiceName: !Sub 'aws.sagemaker.${AWS::Region}.notebook'
+      VpcId: !Ref VPC
+
 Outputs:
   CrossAccountEnvMgmtRoleArn:
     Description: The arn of the cross account role for environment management using AWS Service Catalog
@@ -423,8 +569,20 @@ Outputs:
 
   VpcPublicSubnet1:
     Description: A reference to the public subnet in the 1st Availability Zone
+    Condition: isNotAppStream
     Value: !Ref PublicSubnet1
+
+  PrivateAppStreamSubnet:
+    Description: AppStream subnet
+    Condition: isAppStream
+    Value: !Ref PrivateAppStreamSubnet
+
+  PrivateWorkspaceSubnet:
+    Description: Workspace subnet
+    Condition: isAppStream
+    Value: !Ref PrivateWorkspaceSubnet
 
   EncryptionKeyArn:
     Description: KMS Encryption Key Arn
     Value: !GetAtt [EncryptionKey, Arn]
+

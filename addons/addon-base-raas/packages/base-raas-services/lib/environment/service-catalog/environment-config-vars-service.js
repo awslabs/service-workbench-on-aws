@@ -20,6 +20,7 @@ const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
 const { StudyPolicy } = require('../../helpers/iam/study-policy');
 
 const settingKeys = {
+  enableEgressStore: 'enableEgressStore',
   environmentInstanceFiles: 'environmentInstanceFiles',
 };
 
@@ -45,7 +46,18 @@ class EnvironmentConfigVarsService extends Service {
       'envTypeConfigService',
       'studyService',
       'pluginRegistryService',
+      'auditWriterService',
+      'dataEgressService',
     ]);
+  }
+
+  async audit(requestContext, auditEvent) {
+    const auditWriterService = await this.service('auditWriterService');
+    // Calling "writeAndForget" instead of "write" to allow main call to continue without waiting for audit logging
+    // and not fail main call if audit writing fails for some reason
+    // If the main call also needs to fail in case writing to any audit destination fails then switch to "write" method as follows
+    // return auditWriterService.write(requestContext, auditEvent);
+    return auditWriterService.writeAndForget(requestContext, auditEvent);
   }
 
   // eslint-disable-next-line no-unused-vars
@@ -114,6 +126,10 @@ class EnvironmentConfigVarsService extends Service {
       },
       // { name: 's3Prefixes', desc: 'A JSON array of S3 prefixes based on the associated studies' },
       { name: 'iamPolicyDocument', desc: 'The IAM policy to be associated with the launched environment workstation' },
+      {
+        name: 'egressStoreIamPolicyDocument',
+        desc: 'The IAM policy for launched workstation to access egress store',
+      },
       {
         name: 'environmentInstanceFiles',
         desc:
@@ -211,6 +227,18 @@ class EnvironmentConfigVarsService extends Service {
       memberAccountId: accountId,
     });
 
+    let egressStoreIamPolicyDocument;
+    const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
+    if (enableEgressStore) {
+      const egressStoreMount = await this.getEgressStoreMount(requestContext, environment);
+      s3Mounts.push(egressStoreMount);
+      egressStoreIamPolicyDocument = await this.getEnvEgressStorePolicy(requestContext, {
+        environment,
+        egressStore: egressStoreMount,
+        memberAccountId: accountId,
+      });
+    }
+
     // TODO: If the ami sharing gets moved (because it doesn't contribute to an env var)
     // then move the update local resource policies too.
     // Using the account root provides basically the same level of security because in either
@@ -235,7 +263,7 @@ class EnvironmentConfigVarsService extends Service {
 
     const by = _.get(requestContext, 'principalIdentifier.uid');
     const user = await userService.mustFindUser({ uid: by });
-    return {
+    const result = {
       envId,
       envTypeId,
       envTypeConfigId,
@@ -264,6 +292,12 @@ class EnvironmentConfigVarsService extends Service {
 
       adminKeyPairName,
     };
+
+    if (enableEgressStore) {
+      result.egressStoreIamPolicyDocument = JSON.stringify(egressStoreIamPolicyDocument);
+    }
+
+    return result;
   }
 
   async getEnvRolePolicy(requestContext, { environment, studies, memberAccountId }) {
@@ -279,6 +313,25 @@ class EnvironmentConfigVarsService extends Service {
         policyDoc,
         memberAccountId,
       },
+    });
+
+    const doc = _.get(result, 'policyDoc');
+    return _.isUndefined(doc) ? {} : doc.toPolicyDoc();
+  }
+
+  async getEnvEgressStorePolicy(requestContext, { environment, egressStore, memberAccountId }) {
+    const policyDoc = new StudyPolicy();
+    const pluginRegistryService = await this.service('pluginRegistryService');
+    const payload = {
+      requestContext,
+      container: this.container,
+      environmentScEntity: environment,
+      egressStore,
+      policyDoc,
+      memberAccountId,
+    };
+    const result = await pluginRegistryService.visitPlugins('study-access-strategy', 'provideEnvEgressStorePolicy', {
+      payload,
     });
 
     const doc = _.get(result, 'policyDoc');
@@ -343,6 +396,17 @@ class EnvironmentConfigVarsService extends Service {
     }
 
     return undefined;
+  }
+
+  async getEgressStoreMount(requestContext, environment) {
+    const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
+    if (!enableEgressStore) {
+      throw this.boom.forbidden('Unable to mount Egress store in workspace since this feature is disabled', true);
+    }
+
+    const dataEgressService = await this.service('dataEgressService');
+    const egressStoreMountsInfo = await dataEgressService.createEgressStore(requestContext, environment);
+    return egressStoreMountsInfo;
   }
 }
 module.exports = EnvironmentConfigVarsService;

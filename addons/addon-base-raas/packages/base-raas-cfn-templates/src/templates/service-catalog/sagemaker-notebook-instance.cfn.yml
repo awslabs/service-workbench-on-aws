@@ -36,9 +36,13 @@ Parameters:
   AutoStopIdleTimeInMinutes:
     Type: Number
     Description: Number of idle minutes for auto stop to shutdown the instance (0 to disable auto-stop)
+  EgressStoreIamPolicyDocument:
+    Type: String
+    Description: The IAM policy for launched workstation to access egress store
 
 Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
+  EgressStoreIamPolicyEmpty: !Equals [!Ref EgressStoreIamPolicyDocument, '{}']
 
 Resources:
   SecurityGroup:
@@ -58,7 +62,7 @@ Resources:
       Description: Permission boundary for EC2 instance role
       ManagedPolicyName: !Join ['-', [Ref: Namespace, 'ec2-sagemaker-permission-boundary']]
       PolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Action:
@@ -73,6 +77,11 @@ Resources:
             Action:
               - 'sts:AssumeRole'
             Resource: 'arn:aws:iam::*:role/swb-*'
+          - Effect: Allow
+            Action:
+              - sagemaker:DescribeNotebookInstance
+              - sagemaker:StopNotebookInstance
+            Resource: '*'
   IAMRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -93,6 +102,11 @@ Resources:
           - !Ref 'AWS::NoValue'
           - PolicyName: !Join ['-', [Ref: Namespace, 's3-studydata-policy']]
             PolicyDocument: !Ref IamPolicyDocument
+        - !If
+          - EgressStoreIamPolicyEmpty
+          - !Ref 'AWS::NoValue'
+          - PolicyName: !Join ['-', [Ref: Namespace, 's3-egressstore-policy']]
+            PolicyDocument: !Ref EgressStoreIamPolicyDocument
         - PolicyName: !Join ['-', [Ref: Namespace, 's3-bootstrap-script-policy']]
           PolicyDocument:
             Version: '2012-10-17'
@@ -175,7 +189,7 @@ Resources:
                 chmod a+x /usr/local/bin/autostop.py
                 IDLE_TIME=`expr ${AutoStopIdleTimeInMinutes} \* 60`
                 echo "Starting the SageMaker autostop script in cron"
-                (crontab -l 2>/dev/null; echo "5 * * * * /usr/bin/python /usr/local/bin/autostop.py --time $IDLE_TIME --ignore-connections") | crontab -
+                (crontab -l 2>/dev/null; echo "*/1 * * * * /usr/bin/python /usr/local/bin/autostop.py --time $IDLE_TIME --ignore-connections >> /var/log/autostop.log") | crontab -
               fi
 
 Outputs:

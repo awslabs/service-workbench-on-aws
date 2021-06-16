@@ -176,6 +176,14 @@ class S3Service extends Service {
       })
       .promise();
   }
+
+  async createFolder(bucketName, folderName) {
+    const params = {
+      Bucket: bucketName,
+      Key: folderName,
+    };
+    return this.api.putObject(params).promise();
+  }
 }
 
 module.exports = S3Service;
