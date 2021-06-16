@@ -1,0 +1,13 @@
+{
+  "name": "app-stream-scripts",
+  "version": "1.0.0",
+  "description": "Scripts for intializing AppStream",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start-image-builder": "node start-image-builder.js"
+  },
+  "dependencies": {
+    "@aws-sdk/client-appstream": "^3.18.0"
+  }
+}
