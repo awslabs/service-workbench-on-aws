@@ -11,14 +11,16 @@ const ScEnvironmentEgressStoreDetailStore = BaseStore.named('ScEnvironmentEgress
     const superCleanup = self.cleanup;
 
     return {
-      async doLoad() {},
+      async doLoad() {
+        // make API calls to fetch info
+      },
       cleanup: () => {
         superCleanup();
       },
     };
   })
 
-  .views(self => ({
+  .views(() => ({
     get egressStoreStatus() {
       // TODO: add fetch egress store status from self
       return 'waiting';
