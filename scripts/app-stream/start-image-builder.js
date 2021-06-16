@@ -1,60 +1,95 @@
 
 const { AppStreamClient, DescribeImageBuildersCommand, CreateImageBuilderCommand } = require("@aws-sdk/client-appstream");
+const { DescribeVpcsCommand, EC2Client, DescribeSubnetsCommand} = require("@aws-sdk/client-ec2");
 
-async function run() {
-    const profile = process.argv[2];
-    const region = process.argv[3];
-    console.log(`Starting Image Builder using AWS Profile ${profile} in region ${region}`);
+class StartImageBuilder {
+    constructor(profile, region) {
+        console.log(`Starting Image Builder using AWS Profile ${profile} in region ${region}`);
+        this.appStreamClient = new AppStreamClient({ region, profile});
+        this.ec2Client = new EC2Client({region, profile});
+        this.imageBuilderName = `SWBImageBuilder-${Date.now()}`;
+    }
 
-    const client = new AppStreamClient({ region, profile});
-    const imageBuilderName = `SWBImageBuilder-${Date.now()}`;
-    await createImageBuilder(client, imageBuilderName);
-    await waitForImageBuilderToBeReady(client, imageBuilderName);
+    async run() {
+        try {
+            await this.createImageBuilder();
+            await this.waitForImageBuilderToBeReady();
 
-    const imageBuilderUrl = `https://console.aws.amazon.com/appstream2/home?region=${region}#/images?bottomTab=details&topTab=image-builders`
+            const imageBuilderUrl = `https://console.aws.amazon.com/appstream2/home?region=${region}#/images?bottomTab=details&topTab=image-builders`
 
-    console.log(`You can find your new Image Builder at this address ${imageBuilderUrl}`)
-}
+            console.log(`You can find your new Image Builder at this address ${imageBuilderUrl}`)
+        } catch (e) {
+            process.exit(1);
+        }
+    }
 
-async function createImageBuilder(client, imageBuilderName) {
-    console.log(`Starting image builder with name ${imageBuilderName}`)
-    try {
-        await client.send(
-            new CreateImageBuilderCommand({
-                InstanceType: 'stream.graphics.g4dn.xlarge',
-                Name: imageBuilderName,
-                ImageName: 'AppStream-Graphics-G4dn-WinServer2019-06-01-2021',
-                DisplayName: imageBuilderName,
-                VpcConfig: {
-                    SubnetIds: [
-                        'subnet-13f5b44c'
+    async createImageBuilder() {
+        console.log(`Starting image builder with name ${this.imageBuilderName}`)
+        try {
+            const vpcsResponse = await this.ec2Client.send(
+                new DescribeVpcsCommand({
+                    Filters: [{
+                        Name: 'isDefault',
+                        Values: [true]
+                    }]
+                })
+            );
+            const vpcId = vpcsResponse.Vpcs[0].VpcId;
+            const subnetsResponse = await this.ec2Client.send(
+                new DescribeSubnetsCommand({
+                    Filters: [
+                        {
+                            Name: 'vpc-id',
+                            Values: [vpcId]
+                        }
                     ]
-                },
-                EnableDefaultInternetAccess: true
-                }
+                })
             )
-        );
-    } catch (e) {
-        console.log("Failed to start image builder");
-        throw e;
+
+            const subnetId = subnetsResponse.Subnets[0].SubnetId;
+
+            await this.appStreamClient.send(
+                new CreateImageBuilderCommand({
+                        InstanceType: 'stream.graphics.g4dn.xlarge',
+                        Name: this.imageBuilderName,
+                        ImageName: 'AppStream-Graphics-G4dn-WinServer2019-06-01-2021',
+                        DisplayName: this.imageBuilderName,
+                        VpcConfig: {
+                            SubnetIds: [
+                                subnetId
+                            ]
+                        },
+                        EnableDefaultInternetAccess: true
+                    }
+                )
+            );
+        } catch (e) {
+            console.error("Failed to start image builder", e);
+            throw e;
+        }
     }
+
+    async waitForImageBuilderToBeReady() {
+        try {
+            let imageInRunningState = false;
+            while (!imageInRunningState) {
+                await new Promise(r => setTimeout(r, 5000));
+                const decribeImageBuilderResponse = await this.appStreamClient.send(new DescribeImageBuildersCommand({
+                    Names: [
+                        this.imageBuilderName
+                    ]
+                }));
+                const imageState = decribeImageBuilderResponse.ImageBuilders[0].State;
+                console.log(`Image Builder is in ${imageState} state`)
+                imageInRunningState = imageState === 'RUNNING';
+            }
+        } catch (e) {
+            console.error("Failed to check for Image Builder status", e);
+            throw e;
+        }
+    }
+
 }
 
-async function waitForImageBuilderToBeReady(client, name) {
-    let imageInRunningState = false;
-    while (!imageInRunningState) {
-        await new Promise(r => setTimeout(r, 5000));
-        const decribeImageBuilderResponse = await client.send(new DescribeImageBuildersCommand({
-            Names: [
-                name
-            ]
-        }));
-        const imageState = decribeImageBuilderResponse.ImageBuilders[0].State;
-        console.log(`Image Builder is in ${imageState} state`)
-        imageInRunningState = imageState === 'RUNNING';
-    }
-}
-(async() => {
-    await run();
-})();
-
+const startImageBuilder = new StartImageBuilder(process.argv[2], process.argv[3]);
+startImageBuilder.run();

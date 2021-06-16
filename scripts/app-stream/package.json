@@ -8,6 +8,7 @@
     "start-image-builder": "node start-image-builder.js"
   },
   "dependencies": {
-    "@aws-sdk/client-appstream": "^3.18.0"
+    "@aws-sdk/client-appstream": "^3.18.0",
+    "@aws-sdk/client-ec2": "^3.18.0"
   }
 }
