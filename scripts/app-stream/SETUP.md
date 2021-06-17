@@ -1,10 +1,10 @@
 # Overview
 
-This following guide will show you how to set up an AppStream image with three applications installed: Firefox, Notepad, and Putty. 
+This following guide will show you how to set up an AppStream image with the following applications installed: Firefox, Notepad, PuttyGen, and Putty. 
 
 ### High Level Overview
 1. We launch an AppStream Image Builder instance.
-2. We log into the AppStream Image builder instance and run a script to build an image with Firefox, Putty, PuttyGen, and Notepad.
+2. We log into the AppStream Image builder instance and run a script to build an image with Firefox, PuttyGen, Putty, and Notepad.
 
 
 ### Launching an AppStream Image Builder instance
@@ -15,12 +15,12 @@ npm install
 npm run start-image-builder -- <AWS Profile> <region>
 ```
 Note: Please set up your [AWS Profile](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html) beforehand so that you have permission to launch an AppStream image builder instance in your AWS Account.
-3. Once the Image Builder is launched and ready, click on the URL provided on the terminal console to be taken to the AWS Console.
+3. Once the Image Builder is launched and ready, click on the URL provided in the terminal console. This will take you to the AppStream page on the AWS Console.
 
 ### Building AppStream Image
 ![Image Builder Screenshot](./screenshots/ImageBuilderSelector.png)
 1. On the AppStream page in AWS console, select the AppStream image that was built in the previous step and click Connect. 
-2. This will open a new tab in your browser. When the prompt ask for which user you would like to log in as, choose Administrator. This will take you to a Windows desktop that you can interact with to create your AppStream image. 
+2. This will open a new tab in your browser. When the prompt ask for which user you would like to log in as, choose Administrator. This will take you to a Windows Desktop that you can interact with to create your AppStream image. 
 3. On the Windows desktop, click the `Start` button and type in `Windows Powershell`. Right click the application in the search result, and choose `Run as administrator`
 4. Run the following commands
 ```
