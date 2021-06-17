@@ -92,7 +92,7 @@ describe('AwsAccountsStore', () => {
   });
 
   describe('updateAccount', () => {
-    it('should fail to update account due to validation errors', async () => {
+    it('should try to update the account with updated permissions', async () => {
       const erroredAcct = { id: 'testid', permissionsStatus: 'CURRENT' };
       const newPermRetVal = { newStatus: { testid: 'NEEDSUPDATE' } };
       getAllAccountsPermissionStatus.mockResolvedValue(newPermRetVal);

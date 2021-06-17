@@ -115,6 +115,8 @@ describe('AwsAccountService', () => {
     cfnTemplateService = await container.find('cfnTemplateService');
 
     awsService.getCredentialsForRole.mockImplementation(jest.fn());
+    awsAccountsService.list.mockImplementation(() => [mockAccount]);
+    awsAccountsService.mustFind.mockImplementation(() => mockAccount);
 
     // Skip authorization by default
     service.assertAuthorized = jest.fn();
@@ -157,8 +159,23 @@ describe('AwsAccountService', () => {
 
     it('should try to update the account from NEEDSUPDATE to CURRENT', async () => {
       const expResult = { ...expectedUpdate, permissionStatus: 'CURRENT' };
-      await service.batchCheckAccountPermissions(requestContext, [mockAccount]);
+      await service.batchCheckAccountPermissions(requestContext);
       expect(awsAccountsService.update).toHaveBeenCalledWith(requestContext, expResult);
+    });
+
+    it('should correctly determine that the permissions are out of date', async () => {
+      const mockNewYmlResponse = 'Attribute:\n\t- UpdatedValue #This is a comment';
+      cfnTemplateService.getTemplate.mockImplementationOnce(async () => mockNewYmlResponse);
+      const res = await service.checkAccountPermissions(requestContext, mockAccount.id);
+      expect(res).toEqual('NEEDSUPDATE');
+    });
+
+    it('should correctly ignore comments and whitespace for checking permissions', async () => {
+      const mockNewYmlResponse = '\nAttribute:\n\t- Value #This is a newer comment';
+      cfnTemplateService.getTemplate.mockImplementationOnce(async () => mockNewYmlResponse);
+
+      const res = await service.checkAccountPermissions(requestContext, mockAccount.id);
+      expect(res).toEqual('CURRENT');
     });
 
     it('should correctly set account with undefined cfnStackName to NEEDSONBOARD or NOSTACKNAME', async () => {
@@ -181,7 +198,12 @@ describe('AwsAccountService', () => {
       const expUpdate = { ...expectedUpdate, id: noStackNameMock.id, permissionStatus: 'NOSTACKNAME' };
       const expBadUpdate = { ...expectedUpdate, id: needsOnboardMock.id, permissionStatus: 'NEEDSONBOARD' };
 
-      const res = await service.batchCheckAccountPermissions(requestContext, [needsOnboardMock, noStackNameMock]);
+      awsAccountsService.list.mockImplementationOnce(() => [noStackNameMock, needsOnboardMock]);
+      awsAccountsService.mustFind.mockImplementation(id => {
+        return id === needsOnboardMock.id ? needsOnboardMock : noStackNameMock;
+      });
+
+      const res = await service.batchCheckAccountPermissions(requestContext);
       expect(awsAccountsService.update).toHaveBeenCalledWith(requestContext, expUpdate);
       expect(awsAccountsService.update).not.toHaveBeenCalledWith(requestContext, expBadUpdate);
 
@@ -191,22 +213,6 @@ describe('AwsAccountService', () => {
       expect(res.errors[noStackNameMock.id]).toEqual(
         `Error: Account ${noStackNameMock.accountId} has no CFN stack name specified.`,
       );
-    });
-
-    it('should correctly determine that the permissions are out of date', async () => {
-      const mockNewYmlResponse = 'Attribute:\n\t- UpdatedValue #This is a comment';
-      cfnTemplateService.getTemplate.mockImplementationOnce(async () => mockNewYmlResponse);
-
-      const res = await service.checkAccountPermissions(requestContext, mockAccount);
-      expect(res).toEqual('NEEDSUPDATE');
-    });
-
-    it('should correctly ignore comments and whitespace for checking permissions', async () => {
-      const mockNewYmlResponse = '\nAttribute:\n\t- Value #This is a newer comment';
-      cfnTemplateService.getTemplate.mockImplementationOnce(async () => mockNewYmlResponse);
-
-      const res = await service.checkAccountPermissions(requestContext, mockAccount);
-      expect(res).toEqual('CURRENT');
     });
   });
 

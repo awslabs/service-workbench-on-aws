@@ -44,8 +44,7 @@ async function configure(context) {
     '/permissions',
     wrap(async (req, res) => {
       const requestContext = res.locals.requestContext;
-      const accountsList = await awsAccountsService.list();
-      const result = await awsCfnService.batchCheckAccountPermissions(requestContext, accountsList);
+      const result = await awsCfnService.batchCheckAccountPermissions(requestContext);
       res.status(200).json(result);
     }),
   );
@@ -119,10 +118,7 @@ async function configure(context) {
       const requestContext = res.locals.requestContext;
       const accountId = req.params.id;
 
-      const accountDetails = await awsAccountsService.mustFind(requestContext, { id: accountId });
-      const result = await awsCfnService.checkAccountPermissions(requestContext, {
-        ...accountDetails,
-      });
+      const result = await awsCfnService.checkAccountPermissions(requestContext, accountId);
       res.status(200).json(result);
     }),
   );

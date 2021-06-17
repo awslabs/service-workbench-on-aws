@@ -32,11 +32,10 @@ const statusDisplay = {
 };
 
 // expected props
-// - key (via props)
+// - id (via props)
 // - account (via props)
 // - permissionStatus (via props)
-// - isSelectable (via props)
-// - location (via props)
+// - isSelectable (via props) (currently unused)
 class AccountCard extends React.Component {
   constructor(props) {
     super(props);
@@ -211,12 +210,12 @@ class AccountCard extends React.Component {
 
   renderUpdatePermsButton() {
     const permissionStatus = this.permissionStatus;
-    const buttonArgs =
-      permissionStatus === 'NEEDSUPDATE'
-        ? { message: 'Update Permissions', color: 'orange', onClick: this.handleUpdateAccountPerms }
-        : permissionStatus === 'NOSTACKNAME'
-        ? { message: 'Input Stack Name', color: 'yellow', onClick: this.handleInputCfnStackName }
-        : { message: 'Onboard Account', color: 'purple', onClick: this.handleOnboardAccount };
+    let buttonArgs;
+    if (permissionStatus === 'NEEDSUPDATE')
+      buttonArgs = { message: 'Update Permissions', color: 'orange', onClick: this.handleUpdateAccountPerms };
+    else if (permissionStatus === 'NOSTACKNAME')
+      buttonArgs = { message: 'Input Stack Name', color: 'yellow', onClick: this.handleInputCfnStackName };
+    else buttonArgs = { message: 'Onboard Account', color: 'purple', onClick: this.handleOnboardAccount };
     // This button is only displayed if permissionStatus is NEEDSUPDATE, NEEDSONBOARD, or NOSTACKNAME
     return (
       <Button floated="right" color={buttonArgs.color} onClick={buttonArgs.onClick}>
