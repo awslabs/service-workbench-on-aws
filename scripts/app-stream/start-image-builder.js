@@ -6,6 +6,7 @@ class StartImageBuilder {
     constructor(profile, region) {
         console.log(`Starting Image Builder using AWS Profile ${profile} in region ${region}`);
         this.appStreamClient = new AppStreamClient({ region, profile});
+        this.region = region;
         this.ec2Client = new EC2Client({region, profile});
         this.imageBuilderName = `SWBImageBuilder-${Date.now()}`;
     }
@@ -15,7 +16,7 @@ class StartImageBuilder {
             await this.createImageBuilder();
             await this.waitForImageBuilderToBeReady();
 
-            const imageBuilderUrl = `https://console.aws.amazon.com/appstream2/home?region=${region}#/images?bottomTab=details&topTab=image-builders`
+            const imageBuilderUrl = `https://console.aws.amazon.com/appstream2/home?region=${this.region}#/images?bottomTab=details&topTab=image-builders`
 
             console.log(`You can find your new Image Builder at this address ${imageBuilderUrl}`)
         } catch (e) {
@@ -71,6 +72,7 @@ class StartImageBuilder {
 
     async waitForImageBuilderToBeReady() {
         try {
+            console.log("Waiting for Image Builder to be in RUNNNING state. This can take 5 to 10 minutes");
             let imageInRunningState = false;
             while (!imageInRunningState) {
                 await new Promise(r => setTimeout(r, 5000));
