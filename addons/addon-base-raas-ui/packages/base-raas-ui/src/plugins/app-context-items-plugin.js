@@ -30,6 +30,7 @@ import * as studiesStore from '../models/studies/StudiesStore';
 import * as userRolesStore from '../models/user-roles/UserRolesStore';
 import * as computePlatformsStore from '../models/compute/ComputePlatformsStore';
 import * as scEnvironmentsStore from '../models/environments-sc/ScEnvironmentsStore';
+import * as scEnvironmentEgressStoreDetailStore from '../models/environments-sc/ScEnvironmentEgressStoreDetailStore';
 import * as scEnvironmentCostsStore from '../models/environments-sc/ScEnvironmentCostsStore';
 import * as dataSourceAccountsStore from '../models/data-sources/DataSourceAccountsStore';
 import * as registerStudyWizard from '../models/data-sources/register/RegisterStudyWizard';
@@ -54,6 +55,7 @@ function registerAppContextItems(appContext) {
   userRolesStore.registerContextItems(appContext);
   computePlatformsStore.registerContextItems(appContext);
   scEnvironmentsStore.registerContextItems(appContext);
+  scEnvironmentEgressStoreDetailStore.registerContextItems(appContext);
   scEnvironmentCostsStore.registerContextItems(appContext);
   dataSourceAccountsStore.registerContextItems(appContext);
   registerStudyWizard.registerContextItems(appContext);
