@@ -14,7 +14,7 @@ describe('start-image-builder', () => {
             ec2Mock.reset();
         })
 
-        test('start image builder successfully', async () => {
+        test('start Image Builder successfully', async () => {
             // BUILD
             const startImageBuilder = new StartImageBuilder('default', 'us-east-1', 'default', 'default');
             ec2Mock
@@ -78,25 +78,42 @@ describe('start-image-builder', () => {
             appStreamMock.reset();
         })
 
-        test('AppStream builder transitioned to RUNNING state', async() => {
+        test('Image Builder transitioned to RUNNING state', async() => {
             // BUILD
             const startImageBuilder = new StartImageBuilder('default', 'us-east-1', 'default', 'default');
 
-            appStreamMock
-                .on(DescribeImageBuildersCommand)
-                .resolves({
-                    ImageBuilders: [
-                        {
-                            State: 'RUNNING'
-                        }
-                    ]
-                })
+            appStreamMock.send.onFirstCall().resolves({
+                ImageBuilders: [
+                    {
+                        State: 'PENDING'
+                    }
+                ]
+            });
+
+            appStreamMock.send.onSecondCall().resolves({
+                ImageBuilders: [
+                    {
+                        State: 'RUNNING'
+                    }
+                ]
+            });
 
             // OPERATE
             await startImageBuilder.waitForImageBuilderToBeReady();
 
             // CHECK
-            expect(appStreamMock.calls().length).toEqual(1);
+            expect(appStreamMock.calls().length).toEqual(2);
+        }, 15000)
+
+        test('Image Builder failed to transition to RUNNING state', async () => {
+            // BUILD
+            const startImageBuilder = new StartImageBuilder('default', 'us-east-1', 'default', 'default');
+
+            appStreamMock.rejects('DescribeImageBuilder failed');
+
+            // OPERATE, CHECK
+            await expect(startImageBuilder.waitForImageBuilderToBeReady()).rejects.toEqual(new Error('DescribeImageBuilder failed'));
+
         }, 10000)
 
     })
