@@ -271,6 +271,10 @@ class EnvTypeCandidateService extends Service {
     );
   }
 
+  /**
+   * A private utility method to find a portfolio id from the department store table
+   * @returns {Promise<string>}
+   */
   async getPortfolioId() {
     const [deploymentStore] = await this.service(['deploymentStoreService']);
     let record = await deploymentStore.find({ type: 'default-sc-portfolio', id: 'default-SC-portfolio-1' });
