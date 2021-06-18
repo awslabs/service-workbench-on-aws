@@ -3,7 +3,7 @@ const { AppStreamClient, DescribeImageBuildersCommand, CreateImageBuilderCommand
 const { DescribeVpcsCommand, EC2Client, DescribeSubnetsCommand} = require("@aws-sdk/client-ec2");
 
 
-class StartImageBuilder {
+const StartImageBuilder = class StartImageBuilder {
     constructor(profile, region, imageName, imageSize) {
         if (!profile || !region || !imageName || !imageSize) {
             console.log('Please provide a value for AWS Profile, region, image name, and image size');
@@ -107,5 +107,13 @@ class StartImageBuilder {
 
 }
 
-const startImageBuilder = new StartImageBuilder(process.argv[2], process.argv[3], process.argv[4], process.argv[5]);
-startImageBuilder.run();
+const runCodeAsScript = () => {
+    const startImageBuilder = new StartImageBuilder(process.argv[1], process.argv[2], process.argv[3], process.argv[4]);
+    startImageBuilder.run();
+}
+
+module.exports = {
+    StartImageBuilder,
+    runCodeAsScript
+}
+
