@@ -2,13 +2,20 @@
 const { AppStreamClient, DescribeImageBuildersCommand, CreateImageBuilderCommand } = require("@aws-sdk/client-appstream");
 const { DescribeVpcsCommand, EC2Client, DescribeSubnetsCommand} = require("@aws-sdk/client-ec2");
 
+
 class StartImageBuilder {
-    constructor(profile, region) {
-        console.log(`Starting Image Builder using AWS Profile ${profile} in region ${region}`);
+    constructor(profile, region, imageName, imageSize) {
+        if (!profile || !region || !imageName || !imageSize) {
+            console.log('Please provide a value for AWS Profile, region, image name, and image size');
+            process.exit(1);
+        }
         this.appStreamClient = new AppStreamClient({ region, profile});
         this.region = region;
         this.ec2Client = new EC2Client({region, profile});
         this.imageBuilderName = `SWBImageBuilder-${Date.now()}`;
+        this.imageName = imageName === 'default' ? 'AppStream-WinServer2019-06-01-2021' : imageName;
+        this.imageSize = imageSize === 'default' ? 'stream.standard.medium' : imageSize;
+        console.log(`Starting Image Builder using AWS Profile ${profile} in region ${region} with base image ${this.imageName} and instance type ${this.imageSize}`);
     }
 
     async run() {
@@ -49,11 +56,12 @@ class StartImageBuilder {
 
             const subnetId = subnetsResponse.Subnets[0].SubnetId;
 
+
             await this.appStreamClient.send(
                 new CreateImageBuilderCommand({
-                        InstanceType: 'stream.graphics.g4dn.xlarge',
+                        InstanceType: this.imageSize,
                         Name: this.imageBuilderName,
-                        ImageName: 'AppStream-Graphics-G4dn-WinServer2019-06-01-2021',
+                        ImageName: this.imageName,
                         DisplayName: this.imageBuilderName,
                         VpcConfig: {
                             SubnetIds: [
@@ -72,18 +80,24 @@ class StartImageBuilder {
 
     async waitForImageBuilderToBeReady() {
         try {
-            console.log("Waiting for Image Builder to be in RUNNNING state. This can take 5 to 10 minutes");
-            let imageInRunningState = false;
-            while (!imageInRunningState) {
+            console.log("Waiting for Image Builder to finish starting up. This can take 5 to 10 minutes");
+            let imageInPendingState = true;
+            let imageState = "";
+            while (imageInPendingState) {
                 await new Promise(r => setTimeout(r, 5000));
                 const decribeImageBuilderResponse = await this.appStreamClient.send(new DescribeImageBuildersCommand({
                     Names: [
                         this.imageBuilderName
                     ]
                 }));
-                const imageState = decribeImageBuilderResponse.ImageBuilders[0].State;
+                imageState = decribeImageBuilderResponse.ImageBuilders[0].State;
                 console.log(`Image Builder is in ${imageState} state`)
-                imageInRunningState = imageState === 'RUNNING';
+                imageInPendingState = imageState === 'PENDING';
+            }
+            if (imageState !== 'RUNNING') {
+                console.log(`Image Builder ${this.imageBuilderName} failed to transition to RUNNING state. Image Builder is in ${imageState} state`)
+            } else {
+                console.log(`Image Builder ${this.imageBuilderName} is now in RUNNING state`);
             }
         } catch (e) {
             console.error("Failed to check for Image Builder status", e);
@@ -93,5 +107,5 @@ class StartImageBuilder {
 
 }
 
-const startImageBuilder = new StartImageBuilder(process.argv[2], process.argv[3]);
+const startImageBuilder = new StartImageBuilder(process.argv[2], process.argv[3], process.argv[4], process.argv[5]);
 startImageBuilder.run();
