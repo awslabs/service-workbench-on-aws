@@ -8,11 +8,12 @@ describe('start-image-builder', () => {
 
     const appStreamMock = mockClient(AppStreamClient);
     const ec2Mock = mockClient(EC2Client);
+    beforeEach(() => {
+        appStreamMock.reset();
+        ec2Mock.reset();
+    })
+
     describe('createImageBuilder', () => {
-        beforeEach(() => {
-            appStreamMock.reset();
-            ec2Mock.reset();
-        })
 
         test('start Image Builder successfully', async () => {
             // BUILD
@@ -74,10 +75,6 @@ describe('start-image-builder', () => {
     })
 
     describe('waitForImageBuilderToBeReady', () => {
-        beforeEach(() => {
-            appStreamMock.reset();
-        })
-
         test('Image Builder transitioned to RUNNING state', async() => {
             // BUILD
             const startImageBuilder = new StartImageBuilder('default', 'us-east-1', 'default', 'default');
