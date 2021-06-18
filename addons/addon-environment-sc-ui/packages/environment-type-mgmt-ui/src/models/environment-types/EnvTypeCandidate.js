@@ -23,6 +23,12 @@ const Product = types.model('Product', {
   name: '',
 });
 
+const Metadata = types.model('Metadata', {
+  partnerName: '',
+  knowMore: '',
+  partnerURL: '',
+});
+
 // ====================================================================================================================================
 // ProvisioningArtifact -- Maps to AWS Service Catalog Provisioning Artifact (a.k.a., Version)
 // ====================================================================================================================================
@@ -63,6 +69,7 @@ const EnvTypeCandidate = types
     name: '',
     desc: types.maybeNull(types.optional(types.string, '')),
     isLatest: false,
+    metadata: types.optional(Metadata, {}),
     product: types.optional(Product, {}),
     provisioningArtifact: types.optional(ProvisioningArtifact, {}),
     params: types.optional(types.array(CfnParam), []),
