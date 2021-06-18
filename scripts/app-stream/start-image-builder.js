@@ -84,7 +84,7 @@ const StartImageBuilder = class StartImageBuilder {
             let imageInPendingState = true;
             let imageState = "";
             while (imageInPendingState) {
-                await new Promise(r => setTimeout(r, 5000));
+                // await new Promise(r => setTimeout(r, 5000));
                 const decribeImageBuilderResponse = await this.appStreamClient.send(new DescribeImageBuildersCommand({
                     Names: [
                         this.imageBuilderName

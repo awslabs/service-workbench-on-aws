@@ -5,11 +5,18 @@ const { AppStreamClient, DescribeImageBuildersCommand, CreateImageBuilderCommand
 const {StartImageBuilder} = require('./start-image-builder');
 
 describe('start-image-builder', () => {
+
+    const appStreamMock = mockClient(AppStreamClient);
+    const ec2Mock = mockClient(EC2Client);
     describe('createImageBuilder', () => {
+        beforeEach(() => {
+            appStreamMock.reset();
+            ec2Mock.reset();
+        })
+
         test('start image builder successfully', async () => {
             // BUILD
             const startImageBuilder = new StartImageBuilder('default', 'us-east-1', 'default', 'default');
-            const ec2Mock = mockClient(EC2Client);
             ec2Mock
                 .on(DescribeVpcsCommand)
                 .resolves({
@@ -32,15 +39,12 @@ describe('start-image-builder', () => {
                     }
                 )
 
-
-            const appStreamMock = mockClient(AppStreamClient);
             appStreamMock
                 .on(CreateImageBuilderCommand)
                 .resolves();
 
             // OPERATE
             await startImageBuilder.createImageBuilder();
-
 
             const nameRegEx = /SWBImageBuilder-\d{13}/;
             // CHECK
@@ -67,5 +71,33 @@ describe('start-image-builder', () => {
             await expect(startImageBuilder.createImageBuilder()).rejects.toEqual(new Error('Describe VPCs failed'));
 
         })
+    })
+
+    describe('waitForImageBuilderToBeReady', () => {
+        beforeEach(() => {
+            appStreamMock.reset();
+        })
+
+        test('AppStream builder transitioned to RUNNING state', async() => {
+            // BUILD
+            const startImageBuilder = new StartImageBuilder('default', 'us-east-1', 'default', 'default');
+
+            appStreamMock
+                .on(DescribeImageBuildersCommand)
+                .resolves({
+                    ImageBuilders: [
+                        {
+                            State: 'RUNNING'
+                        }
+                    ]
+                })
+
+            // OPERATE
+            await startImageBuilder.waitForImageBuilderToBeReady();
+
+            // CHECK
+            expect(appStreamMock.calls().length).toEqual(1);
+        }, 10000)
+
     })
 })
