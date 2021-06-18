@@ -80,14 +80,14 @@ class AwsCfnService extends Service {
   }
 
   async checkAccountPermissions(requestContext, accountId) {
-    const awsAccountsService = await this.service('awsAccountsService');
-    const accountEntity = await awsAccountsService.mustFind(requestContext, { id: accountId });
-
     await this.assertAuthorized(
       requestContext,
       { action: 'check-aws-permissions', conditions: [allowIfActive, allowIfAdmin] },
-      { accountEntity },
+      { accountId },
     );
+    const awsAccountsService = await this.service('awsAccountsService');
+    const accountEntity = await awsAccountsService.mustFind(requestContext, { id: accountId });
+
     const [cfnTemplateService] = await this.service(['cfnTemplateService']);
     const expectedTemplate = await cfnTemplateService.getTemplate('onboard-account');
 
@@ -101,13 +101,14 @@ class AwsCfnService extends Service {
   }
 
   async batchCheckAccountPermissions(requestContext, batchSize = 5) {
-    const awsAccountsService = await this.service('awsAccountsService');
-    const accountsList = await awsAccountsService.list();
     await this.assertAuthorized(
       requestContext,
       { action: 'check-aws-permissions-batch', conditions: [allowIfActive, allowIfAdmin] },
-      { accountsList },
+      {},
     );
+
+    const awsAccountsService = await this.service('awsAccountsService');
+    const accountsList = await awsAccountsService.list();
 
     const newStatus = {};
     const errors = {};

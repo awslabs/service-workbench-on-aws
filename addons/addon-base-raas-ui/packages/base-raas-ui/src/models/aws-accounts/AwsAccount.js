@@ -119,7 +119,6 @@ const AwsAccount = types
   .views(self => ({
     // add view methods here
     get permissionStatusDetail() {
-      console.log('IAMHERE');
       // We need to clone the entry so that we don't impact the existing states object
       const entry = _.cloneDeep(_.find(states, ['key', self.permissionStatus]) || _.find(states, ['key', 'UNKNOWN']));
 
