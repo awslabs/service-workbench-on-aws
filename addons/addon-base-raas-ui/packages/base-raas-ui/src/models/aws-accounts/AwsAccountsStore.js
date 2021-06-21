@@ -17,7 +17,13 @@ import _ from 'lodash';
 import { types } from 'mobx-state-tree';
 import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
 
-import { getAwsAccounts, addAwsAccount, createAwsAccount } from '../../helpers/api';
+import {
+  getAwsAccounts,
+  addAwsAccount,
+  createAwsAccount,
+  updateAwsAccount,
+  getAllAccountsPermissionStatus,
+} from '../../helpers/api';
 import { AwsAccount } from './AwsAccount';
 import { BudgetStore } from './BudgetStore';
 import Budget from './Budget';
@@ -26,16 +32,18 @@ const filterNames = {
   ALL: 'All',
   CURRENT: 'Up-to-Date',
   UPDATEME: 'Needs Update',
-  ONBOARDME: 'Needs Onboard',
+  NEW: 'Needs Onboarding',
+  ERRORED: 'Errored',
 };
 
 // A map, with the key being the filter name and the value being the function that will be used to filter the workspace
 // cfnStackName is an empty string if the account hasn't been onboarded yet
 const filters = {
   [filterNames.ALL]: () => true,
-  [filterNames.CURRENT]: account => account.needsPermissionUpdate === false && account.cfnStackName !== '',
-  [filterNames.UPDATEME]: account => account.needsPermissionUpdate === true && account.cfnStackName !== '',
-  [filterNames.ONBOARDME]: account => account.cfnStackName === '',
+  [filterNames.CURRENT]: account => account.cfnStackName !== '' && account.permissionStatus === 'CURRENT',
+  [filterNames.UPDATEME]: account => account.cfnStackName !== '' && account.permissionStatus === 'NEEDSUPDATE',
+  [filterNames.NEW]: account => account.permissionStatus === 'NEEDSONBOARD',
+  [filterNames.ERRORED]: account => account.permissionStatus === 'ERROR' || account.permissionStatus === 'NOSTACKNAME',
 };
 
 // ==================================================================
@@ -55,10 +63,12 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
     return {
       async doLoad() {
         const awsAccounts = (await getAwsAccounts()) || [];
+        const statuses = await getAllAccountsPermissionStatus();
         // We try to preserve existing accounts data and merge the new data instead
         // We could have used self.accounts.replace(), but it will do clear() then merge()
         self.runInAction(() => {
           awsAccounts.forEach(awsAccount => {
+            awsAccount = { ...awsAccount, permissionStatus: statuses.newStatus[awsAccount.id] };
             const awsAccountsModel = AwsAccount.create(awsAccount);
             const previous = self.awsAccounts.get(awsAccountsModel.id);
             if (!previous) {
@@ -87,10 +97,8 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         await createAwsAccount(awsAccount);
       },
 
-      checkPermissions: async () => {
-        // This is a placeholder function that just switches the needsPermissionUpdate to its opposite value
-        // Will be implemented later
-        return undefined;
+      updateAwsAccount: async (awsAccountUUID, updatedAcctInfo) => {
+        await updateAwsAccount(awsAccountUUID, updatedAcctInfo);
       },
 
       getBudgetStore: awsAccountUUID => {
@@ -124,8 +132,9 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         res.externalId = awsAccount.externalId;
         res.vpcId = awsAccount.vpcId;
         res.subnetId = awsAccount.subnetId;
-        res.needsPermissionUpdate = awsAccount.needsPermissionUpdate;
+        res.permissionStatus = awsAccount.permissionStatus;
         res.encryptionKeyArn = awsAccount.encryptionKeyArn;
+        res.cfnStackName = awsAccount.cfnStackName;
         res.updatedAt = awsAccount.updatedAt;
         result.push(res);
       });

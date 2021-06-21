@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-import { getAwsAccounts, addAwsAccount } from '../../../helpers/api';
+import { getAwsAccounts, addAwsAccount, updateAwsAccount, getAllAccountsPermissionStatus } from '../../../helpers/api';
 import { registerContextItems as registerAwsAccountsStore } from '../AwsAccountsStore';
 
 jest.mock('../../../helpers/api');
@@ -34,10 +34,10 @@ describe('AwsAccountsStore', () => {
     encryptionKeyArn: 'AndHeresThePartThatHurtsTheMost',
     createdAt: 'humans cannot ride a ghost :(',
     updatedAt: 'Bye bye, Lil Sebastian',
-    needsPermissionUpdate: false,
+    permissionStatus: 'CURRENT',
     cfnStackName: 'testCfnName',
-    mainRegion: 'aws-region-1',
   };
+  const permRetVal = { newStatus: { mouserat: 'CURRENT' } };
 
   beforeEach(async () => {
     await registerAwsAccountsStore(appContext);
@@ -49,6 +49,7 @@ describe('AwsAccountsStore', () => {
       // BUILD
       getAwsAccounts.mockResolvedValue([]);
       addAwsAccount.mockResolvedValue(newAwsAccount);
+      getAllAccountsPermissionStatus.mockResolvedValue(permRetVal);
       await store.load();
 
       // OPERATE
@@ -64,6 +65,7 @@ describe('AwsAccountsStore', () => {
       // BUILD
       getAwsAccounts.mockResolvedValue([newAwsAccount]);
       addAwsAccount.mockResolvedValue(newAwsAccount);
+      getAllAccountsPermissionStatus.mockResolvedValue(permRetVal);
       await store.load();
 
       // OPERATE
@@ -78,6 +80,7 @@ describe('AwsAccountsStore', () => {
     it('should return the whole list if the filter does not exist', async () => {
       // BUILD
       getAwsAccounts.mockResolvedValue([newAwsAccount]);
+      getAllAccountsPermissionStatus.mockResolvedValue(permRetVal);
       await store.load();
 
       // OPERATE
@@ -88,20 +91,15 @@ describe('AwsAccountsStore', () => {
     });
   });
 
-  describe('checkPermissions', () => {
-    it('should try to check the permissions status (WIP)', async () => {
-      // This implementation will change in the future, this is just a stopgap unit test
-      // It'll be changed when the function is fully implemented
-
-      // BUILD
-      getAwsAccounts.mockResolvedValue([newAwsAccount]);
+  describe('updateAccount', () => {
+    it('should try to update the account with updated permissions', async () => {
+      const erroredAcct = { id: 'testid', permissionsStatus: 'CURRENT' };
+      const newPermRetVal = { newStatus: { testid: 'NEEDSUPDATE' } };
+      getAllAccountsPermissionStatus.mockResolvedValue(newPermRetVal);
       await store.load();
+      await store.updateAwsAccount(erroredAcct.id, erroredAcct);
 
-      // OPERATE
-      await store.checkPermissions();
-
-      // CHECK
-      // Nothing to check yet
+      expect(updateAwsAccount).toHaveBeenCalledWith(erroredAcct.id, erroredAcct);
     });
   });
 });

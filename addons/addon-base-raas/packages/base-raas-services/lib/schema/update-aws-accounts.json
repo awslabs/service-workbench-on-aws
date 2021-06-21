@@ -30,9 +30,6 @@
       "type": "string",
       "maxLength": 255
     },
-    "mainRegion:": {
-      "type": "string"
-    },
     "roleArn": {
       "type": "string",
       "minLength": 10
@@ -57,8 +54,8 @@
       "type": "string",
       "pattern": "^arn:aws:kms:.*$"
     },
-    "needsPermissionUpdate": {
-      "type": "boolean"
+    "permissionStatus": {
+      "type": "string"
     }
   },
   "required": [

@@ -18,24 +18,30 @@ import { decorate, action, computed, runInAction, observable } from 'mobx';
 import { observer } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Header, Segment, Accordion, Icon, Label, Table, Button } from 'semantic-ui-react';
-import TimeAgo from 'react-timeago';
 import c from 'classnames';
 
 import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
 
+const statusDisplay = {
+  CURRENT: { color: 'green', display: 'Up-to-Date' },
+  NEEDSUPDATE: { color: 'orange', display: 'Needs Update' },
+  NEEDSONBOARD: { color: 'purple', display: 'Needs Onboarding' },
+  NOSTACKNAME: { color: 'yellow', display: 'Stack Name Missing' },
+  ERROR: { color: 'red', display: 'Error' },
+  UNKNOWN: { color: 'grey', display: 'Unknown' },
+};
+
 // expected props
-// - key (via props)
+// - id (via props)
 // - account (via props)
-// - needsUpdate (via props)
-// - isSelectable (via props)
-// - location (via props)
+// - permissionStatus (via props)
+// - isSelectable (via props) (currently unused)
 class AccountCard extends React.Component {
   constructor(props) {
     super(props);
     runInAction(() => {
       this.detailsExpanded = false;
       this.isSelected = false;
-      this.statusAt = new Date().toISOString();
     });
   }
 
@@ -47,8 +53,9 @@ class AccountCard extends React.Component {
     return this.props.isSelectable;
   }
 
-  get needsUpdate() {
-    return this.props.needsUpdate;
+  get permissionStatus() {
+    // Possible Values: CURRENT, NEEDSUPDATE, NEEDSONBOARD, ERRORED, NOSTACKNAME
+    return this.props.permissionStatus;
   }
 
   goto(pathname) {
@@ -70,12 +77,24 @@ class AccountCard extends React.Component {
     this.goto(`/aws-accounts/budget/${awsAccountId}`);
   };
 
+  handleOnboardAccount = () => {
+    return undefined;
+  };
+
+  handleUpdateAccountPerms = () => {
+    return undefined;
+  };
+
+  handleInputCfnStackName = () => {
+    return undefined;
+  };
+
   render() {
     const isSelectable = this.isSelectable; // Internal and external guests can't select studies
     const account = this.account;
     const attrs = {};
     const onClickAttr = {};
-    const needsUpdate = this.needsUpdate;
+    const permissionStatus = this.permissionStatus;
 
     if (this.isSelected) attrs.color = 'blue';
     if (isSelectable) onClickAttr.onClick = () => this.handleSelected();
@@ -84,11 +103,14 @@ class AccountCard extends React.Component {
       <Segment clearing padded raised className="mb3" {...attrs}>
         <div className="flex">
           <div className="flex-auto mb1">
-            {this.renderStatus()}
+            {this.renderStatus(permissionStatus)}
             {this.renderBudgetButton()}
             {this.renderHeader(account)}
             {this.renderDescription(account)}
-            {needsUpdate !== false && this.renderUpdatePermsButton()}
+            {(permissionStatus === 'NEEDSUPDATE' ||
+              permissionStatus === 'NEEDSONBOARD' ||
+              permissionStatus === 'NOSTACKNAME') &&
+              this.renderUpdatePermsButton()}
             {this.renderDetailsAccordion(account)}
           </div>
         </div>
@@ -106,8 +128,6 @@ class AccountCard extends React.Component {
     const onClickAttr = {};
     const idReadable = account.accountId.replace(/(.{4})(.{4})/g, '$1-$2-');
     if (isSelectable) onClickAttr.onClick = () => this.handleSelected();
-    const timeLastUpdated = this.account.updatedAt; // this defaults to empty string if not found
-    const cfnStackName = this.account.cfnStackName;
     return (
       <div>
         <Header as="h3" color="blue" className={c('mt2', isSelectable ? 'cursor-pointer' : '')} {...onClickAttr}>
@@ -115,18 +135,6 @@ class AccountCard extends React.Component {
           <Header.Subheader>
             <span className="pt1 fs-8 color-grey">AWS Account #{idReadable}</span>
           </Header.Subheader>
-          {cfnStackName !== '' && timeLastUpdated !== '' && (
-            <Header.Subheader>
-              <span className="fs-8 color-grey mr1">
-                Permissions checked <TimeAgo date={timeLastUpdated} className="mr1" />
-              </span>
-            </Header.Subheader>
-          )}
-          {cfnStackName !== '' && timeLastUpdated === '' && (
-            <Header.Subheader>
-              <span className="fs-8 color-grey mr1">Error checking last permission update time</span>
-            </Header.Subheader>
-          )}
         </Header>
       </div>
     );
@@ -136,15 +144,8 @@ class AccountCard extends React.Component {
     return <div>{account.description}</div>;
   }
 
-  renderStatus() {
-    const needsUpdate = this.needsUpdate;
-    const account = this.account;
-    const state =
-      account.cfnStackName === ''
-        ? { color: 'purple', display: 'Needs Onboard' }
-        : needsUpdate === true
-        ? { color: 'orange', display: 'Needs Update' }
-        : { color: 'green', display: 'Up-to-Date' };
+  renderStatus(status) {
+    const state = statusDisplay[status] || statusDisplay.UNKNOWN;
     return (
       <Label attached="top left" size="mini" color={state.color}>
         {state.display}
@@ -180,6 +181,15 @@ class AccountCard extends React.Component {
                         <Table.Cell>{account[entry]}</Table.Cell>
                       </Table.Row>
                     ))}
+                    <Table.Row key="cfnStackName">
+                      <Table.Cell>Cloudformation Stack Name</Table.Cell>
+                      <Table.Cell>
+                        {account.cfnStackName}
+                        <Button floated="right" color="yellow" size="mini" onClick={this.handleInputCfnStackName}>
+                          Edit CFN Name
+                        </Button>
+                      </Table.Cell>
+                    </Table.Row>
                   </Table.Body>
                 </Table>
               </>
@@ -199,20 +209,16 @@ class AccountCard extends React.Component {
   }
 
   renderUpdatePermsButton() {
-    const needsUpdate = this.needsUpdate;
-    const buttonArgs =
-      needsUpdate === true
-        ? { message: 'Update Permissions', color: 'orange' }
-        : { message: 'Onboard Account', color: 'purple' };
-    // This button is only displayed if needsUpdate is either True or undefined
+    const permissionStatus = this.permissionStatus;
+    let buttonArgs;
+    if (permissionStatus === 'NEEDSUPDATE')
+      buttonArgs = { message: 'Update Permissions', color: 'orange', onClick: this.handleUpdateAccountPerms };
+    else if (permissionStatus === 'NOSTACKNAME')
+      buttonArgs = { message: 'Input Stack Name', color: 'yellow', onClick: this.handleInputCfnStackName };
+    else buttonArgs = { message: 'Onboard Account', color: 'purple', onClick: this.handleOnboardAccount };
+    // This button is only displayed if permissionStatus is NEEDSUPDATE, NEEDSONBOARD, or NOSTACKNAME
     return (
-      <Button
-        floated="right"
-        color={buttonArgs.color}
-        onClick={() => {
-          return null;
-        }}
-      >
+      <Button floated="right" color={buttonArgs.color} onClick={buttonArgs.onClick}>
         {buttonArgs.message}
       </Button>
     );
@@ -227,7 +233,7 @@ decorate(AccountCard, {
   detailsExpanded: observable,
   isSelectable: computed,
   isSelected: observable,
-  needsUpdate: computed,
+  permissionStatus: computed,
 });
 
 export default withRouter(observer(AccountCard));
