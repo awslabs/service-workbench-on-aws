@@ -211,6 +211,7 @@ class CheckLaunchDependency extends StepBase {
       this.state.string('ALB_LOCK'),
     ]);
     const projectId = resolvedVars.projectId;
+    // Update ALB details to DB
     const [albService] = await this.mustFindServices(['albService']);
     const awsAccountId = await albService.findAwsAccountId(requestContext, projectId);
     const albDetails = {

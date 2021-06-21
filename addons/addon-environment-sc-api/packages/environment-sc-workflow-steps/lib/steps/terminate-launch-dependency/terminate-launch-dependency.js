@@ -107,6 +107,9 @@ class TerminateLaunchDependency extends StepBase {
           const deploymentItem = await albService.getAlbDetails(requestContext, projectId);
           const dnsName = JSON.parse(deploymentItem.value).albDnsName;
           await environmentDnsService.deleteRecord('rstudio', envId, dnsName);
+          this.print({
+            msg: 'Route53 record deleted successfully',
+          });
         } catch (error) {
           // Don't fail the termination if record deletion failed
           this.print({
@@ -125,6 +128,9 @@ class TerminateLaunchDependency extends StepBase {
             externalId,
           };
           await albService.deleteListenerRule(requestContext, resolvedVars, ruleArn);
+          this.print({
+            msg: 'Listener rule deleted successfully',
+          });
         } catch (error) {
           // Don't fail the termination if rule deletion failed
           this.print({
@@ -398,7 +404,7 @@ class TerminateLaunchDependency extends StepBase {
       throw new Error(`Error terminating environment. Reason: ALB lock does not exist or expired`);
     }
     this.print({
-      msg: `Dependency Details Updated Successfully`,
+      msg: `ALB deleted and dependency details updated successfully`,
     });
   }
 
