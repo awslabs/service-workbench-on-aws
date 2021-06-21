@@ -77,15 +77,7 @@ class UpdateCfnStackPolicy extends Service {
           })
         ) {
           // compare statements and add target policy in
-          const newPolicy = [
-            ...currentStackPolicyBody.Statement,
-            {
-              Effect: 'Deny',
-              Action: 'Update:Delete',
-              Principal: '*',
-              Resource: 'LogicalResourceId/EgressStore*',
-            },
-          ];
+          const newPolicy = [...currentStackPolicyBody.Statement, egressStoreStackPolicy.Statement[1]];
           await this.cfn
             .setStackPolicy({
               StackName: backendStackName,
