@@ -85,8 +85,15 @@ describe('ALBService', () => {
     albClient = {
       createRule: jest.fn(),
       deleteRule: jest.fn(),
+      describeRules: jest.fn(),
     };
     service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
+  });
+
+  afterEach(() => {
+    // Restore all the mocks crated using spy to original funciton behaviour
+    jest.restoreAllMocks();
+    jest.clearAllMocks();
   });
 
   describe('alb dependent workspace count function', () => {
@@ -359,7 +366,7 @@ describe('ALBService', () => {
       service.getHostname = jest.fn(() => {
         return 'rtsudio-test.example.com';
       });
-      service.calculateRulePriority = jest.fn(() => {
+      jest.spyOn(service, 'calculateRulePriority').mockImplementationOnce(() => {
         return 1;
       });
       await service.createListenerRule(prefix, requestContext, resolvedVars, targetGroupArn);
@@ -383,7 +390,7 @@ describe('ALBService', () => {
       service.getHostname = jest.fn(() => {
         return 'rtsudio-test.example.com';
       });
-      service.calculateRulePriority = jest.fn(() => {
+      jest.spyOn(service, 'calculateRulePriority').mockImplementationOnce(() => {
         return 1;
       });
       const response = await service.createListenerRule(prefix, requestContext, resolvedVars, targetGroupArn);
@@ -402,7 +409,7 @@ describe('ALBService', () => {
       service.getHostname = jest.fn(() => {
         return 'rtsudio-test.example.com';
       });
-      service.calculateRulePriority = jest.fn(() => {
+      jest.spyOn(service, 'calculateRulePriority').mockImplementationOnce(() => {
         return 1;
       });
       try {
@@ -436,6 +443,50 @@ describe('ALBService', () => {
       } catch (err) {
         expect(err.message).toContain('Error deleting rule. Rule deletion failed with message - Rule not found');
       }
+    });
+  });
+
+  describe('calculateRulePriority', () => {
+    it('should fail when describe rule API call throws error', async () => {
+      albClient.describeRules = jest.fn().mockImplementation(() => {
+        throw new Error(`Error calculating rule priority. Rule describe failed with message - Rule not found`);
+      });
+      // service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
+      try {
+        await service.calculateRulePriority({}, {}, '');
+      } catch (err) {
+        expect(err.message).toContain(
+          'Error calculating rule priority. Rule describe failed with message - Rule not found',
+        );
+      }
+    });
+
+    it('should return 1 when only only default rule exists in API response', async () => {
+      albClient.describeRules = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return { Rules: [{ IsDefault: true }] };
+          },
+        };
+      });
+      // service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
+      const response = await service.calculateRulePriority({}, {}, '');
+      expect(response).toEqual(1);
+    });
+
+    it('should maximum priority + 1', async () => {
+      albClient.describeRules = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return {
+              Rules: [{ IsDefault: true }, { IsDefault: false, Priority: 1 }, { IsDefault: false, Priority: 2 }],
+            };
+          },
+        };
+      });
+      // service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
+      const response = await service.calculateRulePriority({}, {}, '');
+      expect(response).toEqual(3);
     });
   });
 });

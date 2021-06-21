@@ -83,10 +83,10 @@ class TerminateLaunchDependency extends StepBase {
     const projectId = environment.projectId;
     const awsAccountId = await albService.findAwsAccountId(requestContext, projectId);
     // Locking the ALB termination to avoid race condiitons on parallel provisioning.
-    // expiresIn is set to 10 minutes. attemptsCount is set to 600 to retry after 1 seconds for 10 minutes
+    // expiresIn is set to 10 minutes. attemptsCount is set to 1200 to retry after 1 seconds for 20 minutes
     const lock = await lockService.tryWriteLock(
-      { id: `alb-update-${awsAccountId}`, expiresIn: 600 },
-      { attemptsCount: 600 },
+      { id: `alb-update-${awsAccountId}`, expiresIn: 1200 },
+      { attemptsCount: 1200 },
     );
     this.print({
       msg: `obtained lock - ${lock}`,
@@ -170,10 +170,13 @@ class TerminateLaunchDependency extends StepBase {
       });
       const albDetails = await albService.getAlbDetails(requestContext, projectId);
       const albRecord = JSON.parse(albDetails.value);
-      // Storing Dependency type so the stack termination can be handled for different dependencies
-      this.state.setKey('DEPENDENCY_TYPE', 'ALB');
-      // eslint-disable-next-line no-return-await
-      return await this.terminateStack(requestContext, projectId, externalId, albRecord.albStackName);
+      // Added additional check if lock exists before staring termination
+      const [albLock] = await Promise.all([this.state.optionalString('ALB_LOCK')]);
+      if (albLock) {
+        // eslint-disable-next-line no-return-await
+        return await this.terminateStack(requestContext, projectId, externalId, albRecord.albStackName);
+      }
+      throw new Error(`Error terminating environment. Reason: ALB lock does not exist or expired`);
     }
     return null;
   }
@@ -196,10 +199,10 @@ class TerminateLaunchDependency extends StepBase {
     this.state.setKey('STACK_ID', stackName);
     return (
       this.wait(5) // check every 5 seconds
-        // keep doing it for 1*1296000 seconds = 15 days
+        // keep doing it for 1*1200 seconds = 20 minutes
         // IMPORTANT: if you change the maxAttempts below or the wait check period of 5 seconds above
         // then make sure to adjust the error message in "reportTimeout" accordingly
-        .maxAttempts(1296000)
+        .maxAttempts(1200)
         .until('shouldResumeWorkflow')
         .thenCall('onSuccessfulCompletion')
         .otherwiseCall('reportTimeout')
@@ -374,23 +377,25 @@ class TerminateLaunchDependency extends StepBase {
    * @returns {Promise<*>}
    */
   async onSuccessfulCompletion() {
-    const [requestContext, projectId, dependencyType] = await Promise.all([
+    const [requestContext, projectId, albLock] = await Promise.all([
       this.payloadOrConfig.object(inPayloadKeys.requestContext),
       this.state.string('PROJECT_ID'),
-      this.state.string('DEPENDENCY_TYPE'),
+      this.state.string('ALB_LOCK'),
     ]);
-    if (dependencyType === 'ALB') {
-      const [albService] = await this.mustFindServices(['albService']);
-      const awsAccountId = await albService.findAwsAccountId(requestContext, projectId);
-      const albDetails = {
-        id: awsAccountId,
-        albStackName: null,
-        albArn: null,
-        listenerArn: null,
-        albDnsName: null,
-        albDependentWorkspacesCount: 0,
-      };
+    const [albService] = await this.mustFindServices(['albService']);
+    const awsAccountId = await albService.findAwsAccountId(requestContext, projectId);
+    const albDetails = {
+      id: awsAccountId,
+      albStackName: null,
+      albArn: null,
+      listenerArn: null,
+      albDnsName: null,
+      albDependentWorkspacesCount: 0,
+    };
+    if (albLock) {
       await albService.saveAlbDetails(awsAccountId, albDetails);
+    } else {
+      throw new Error(`Error terminating environment. Reason: ALB lock does not exist or expired`);
     }
     this.print({
       msg: `Dependency Details Updated Successfully`,
@@ -412,7 +417,7 @@ class TerminateLaunchDependency extends StepBase {
       });
     }
     throw new Error(
-      `Error terminating environment "${envName}" with id "${envId}". The workflow timed-out because the ALB CFT did not terminate within the timeout period of 15 days.`,
+      `Error terminating environment "${envName}" with id "${envId}". The workflow timed-out because the ALB CFT did not terminate within the timeout period of 20 minutes.`,
     );
   }
 
@@ -438,17 +443,17 @@ class TerminateLaunchDependency extends StepBase {
     this.printError(error);
     // Add custom Error message
     error.message = `ALB Termination has failed with the folowing error. \
-        Please contact your administrator. Retry the termination to terminate the workspace. Reason:${error.message}`;
-    const [requestContext, envId, projectId, dependencyType, albLock] = await Promise.all([
+        Please contact your administrator to terminate ALB stack from AWS console. Retry the termination to terminate the workspace. Reason:${error.message}`;
+    const [requestContext, envId, projectId, albLock, stackId] = await Promise.all([
       this.payloadOrConfig.object(inPayloadKeys.requestContext),
       this.payloadOrConfig.string(inPayloadKeys.envId),
       this.state.string('PROJECT_ID'),
-      this.state.optionalString('DEPENDENCY_TYPE'),
       this.state.optionalString('ALB_LOCK'),
+      this.state.optionalString('STACK_ID'),
     ]);
     let record;
-
-    if (dependencyType === 'ALB') {
+    // Updating ALB details to null only if a termination has been triggered
+    if (stackId) {
       const [albService] = await this.mustFindServices(['albService']);
       const awsAccountId = await albService.findAwsAccountId(requestContext, projectId);
       const albDetails = {
@@ -459,20 +464,23 @@ class TerminateLaunchDependency extends StepBase {
         albDnsName: null,
         albDependentWorkspacesCount: 0,
       };
-      await albService.saveAlbDetails(awsAccountId, albDetails);
+      if (albLock) {
+        await albService.saveAlbDetails(awsAccountId, albDetails);
+      } else {
+        throw new Error(`Error terminating environment. Reason: ALB lock does not exist or expired`);
+      }
+      this.print({
+        msg: `Dependency Details Updated Successfully`,
+      });
     }
-    this.print({
-      msg: `Dependency Details Updated Successfully`,
-    });
     // Release ALB lock if exists
     const [pluginRegistryService, lockService] = await this.mustFindServices(['pluginRegistryService', 'lockService']);
     if (albLock) {
       await lockService.releaseWriteLock({ writeToken: albLock });
-      this.print({
-        msg: `ALB lock released successfully`,
-      });
     }
-
+    this.print({
+      msg: `ALB lock released successfully`,
+    });
     // Give all plugins a chance to react (such as updating database etc) to environment creation having failed
     await pluginRegistryService.visitPlugins(pluginConstants.extensionPoint, 'onEnvTerminationFailure', {
       payload: {
