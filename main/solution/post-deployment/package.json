@@ -23,7 +23,7 @@
     "@aws-ee/environment-type-mgmt-services": "workspace:*",
     "@aws-ee/key-pair-mgmt-services": "workspace:*",
     "@aws-ee/user-id-upgrade-post-deployment": "workspace:*",
-    "@aws-ee/egress-store-cfn-stack-policy": "workspace:*",
+    "@aws-ee/cfn-stack-policy": "workspace:*",
     "aws-sdk": "^2.713.0",
     "lodash": "^4.17.21",
     "services": "workspace:*"

@@ -4,4 +4,4 @@ The purpose of this add-on is to apply CFN stacks policy update
 
 ## npm packages
 
-- @aws-ee/egress-store-cfn-stack-policy
+- @aws-ee/cfn-stack-policy

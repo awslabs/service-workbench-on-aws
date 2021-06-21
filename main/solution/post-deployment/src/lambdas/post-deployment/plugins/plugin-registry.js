@@ -31,7 +31,7 @@ const environmentScWfStepsPlugin = require('@aws-ee/environment-sc-workflow-step
 const environmentScWfPlugin = require('@aws-ee/environment-sc-workflows/lib/plugins/workflows-plugin');
 const userIdUpgradeServicesPlugin = require('@aws-ee/user-id-upgrade-post-deployment/lib/plugins/services-plugin');
 const userIdUpgradeStepsPlugin = require('@aws-ee/user-id-upgrade-post-deployment/lib/plugins/steps-plugin');
-const updateCfnStackPolicyStepsPlugin = require('@aws-ee/egress-store-cfn-stack-policy/lib/plugins/steps-plugin');
+const updateCfnStackPolicyStepsPlugin = require('@aws-ee/cfn-stack-policy/lib/plugins/steps-plugin');
 
 const servicesPlugin = require('./services-plugin');
 const stepsPlugin = require('./steps-plugin');
