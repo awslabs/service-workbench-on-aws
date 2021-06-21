@@ -78,11 +78,13 @@ class AccountCard extends React.Component {
   };
 
   handleOnboardAccount = () => {
-    return undefined;
+    const awsAccountId = this.account.id;
+    this.goto(`/aws-accounts/onboard/${awsAccountId}`);
   };
 
   handleUpdateAccountPerms = () => {
-    return undefined;
+    const awsAccountId = this.account.id;
+    this.goto(`/aws-accounts/onboard/${awsAccountId}`);
   };
 
   handleInputCfnStackName = () => {
