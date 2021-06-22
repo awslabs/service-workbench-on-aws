@@ -449,7 +449,7 @@ class TerminateLaunchDependency extends StepBase {
     this.printError(error);
     // Add custom Error message
     error.message = `ALB Termination has failed with the folowing error. \
-        Please contact your administrator to terminate ALB stack from AWS console. Retry the termination to terminate the workspace. Reason:${error.message}`;
+        Please contact your administrator. Retry the termination to terminate the workspace. Reason:${error.message}`;
     const [requestContext, envId, projectId, albLock, stackId] = await Promise.all([
       this.payloadOrConfig.object(inPayloadKeys.requestContext),
       this.payloadOrConfig.string(inPayloadKeys.envId),
