@@ -374,8 +374,8 @@ class ALBService extends Service {
     } catch (e) {
       if (e.message) {
         throw this.boom.unauthorized(
-            `Error 443 port CIDRs Blocks. Rule modify failed with message - ${e.message}`,
-            true,
+          `Error 443 port CIDRs Blocks. Rule modify failed with message - ${e.message}`,
+          true,
         );
       }
       return e.message;
