@@ -389,8 +389,8 @@ describe('TerminateLaunchDependencyStep', () => {
       expect(response).toMatchObject({
         waitDecision: {
           check: { methodName: 'shouldResumeWorkflow', params: '[]' },
-          counter: 1296000,
-          max: 1296000,
+          counter: 1200,
+          max: 1200,
           otherwise: { methodName: 'reportTimeout', params: '[]' },
           seconds: 5,
           thenCall: { methodName: 'onSuccessfulCompletion', params: '[]' },
