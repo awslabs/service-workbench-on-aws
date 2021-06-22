@@ -64,7 +64,7 @@ Read the Service Workbench Deployment Guide provided in the installation. You ca
 npm install -g pnpm
 ```
 
-- **Go:** You also need to install [Go](https://golang.org/doc/install). `Go` is used for creating a multipart S3 downloader tool that is used in AWS Service Catalog EC2 Windows based research environments.
+- **Go:** You also need to install [Go 1.13.7](https://golang.org/doc/install) or later. `Go` is used for creating a multipart S3 downloader tool that is used in AWS Service Catalog EC2 Windows based research environments.
 
 For more information, refer to the **Prerequisites** section of the Service Workbench Deployment Guide.
 
