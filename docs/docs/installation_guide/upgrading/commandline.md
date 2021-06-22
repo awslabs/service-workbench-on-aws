@@ -1,6 +1,6 @@
 ---
-id: upgrading_cli
-title: Upgrade process for command line installations
+id: commandline
+title: Upgrade process for command-line installations
 sidebar_label: Upgrade process for command line installations
 ---
 
@@ -33,7 +33,7 @@ Download the latest source code from GitHub using git clone, as described in Ins
 
 Follow the steps in Configuration settings, where the name of the file comes from the stage name in the bucket name stem.  In the configuration file, configure the settings:
 
-- `awsRegion`: Refer to the Regional code mapping section to verify the full region name for the region code. For example, set awsRegion: us-east-1 for the region code va.
+- `awsRegion`: Refer to the [Regional code mapping](/installation_guide/uninstall) section to verify the full region name for the region code. For example, set awsRegion: us-east-1 for the region code va.
 - `solutionName`: Use the solution name from the bucket name stem (for example: solutionName: sw)
 Upgrading Service Workbench
 
@@ -43,4 +43,4 @@ In the main Service Workbench directory,
 
 `./scripts/environment-deploy.sh ${STAGE_NAME}`
 
-After the upgrade, update each account in Service Workbench as described in the [Post upgrade](/docs/installation_guide/postupgrade) section.
+After the upgrade, update each account in Service Workbench as described in the [Post upgrade](/installation_guide/postupgrade) section.

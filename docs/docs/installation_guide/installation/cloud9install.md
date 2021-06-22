@@ -1,8 +1,10 @@
 ---
-id: cloud9
-title: Installing using Cloud9
+id: cloud9install
+title: Installing Service Workbench using Cloud9
 sidebar_label: Installing using Cloud9
 ---
+
+
 You can install Service Workbench by using AWS Cloud9. This section provides information about the installation procedure for Service Workbench using AWS Cloud9 IDE.
 
 | Section      | Description |
@@ -18,27 +20,33 @@ You can install Service Workbench by using AWS Cloud9. This section provides inf
 
 ### Creating AWS Cloud9 instance
 
-1. <a name="createinst"></a>Go to the AWS Cloud9 product page.
-2. Click the Create environment button.
+<a name="createinst"></a>
+
+1. Go to the AWS Cloud9 product page.
+2. Choose the **Create environment** button.
 3. Enter the name and description for the AWS Cloud9 environment. 
-4. Choose Next step.
-5. For Instance type, choose m5.large (8 GiB + 2 vCPU)
-6. For Platform, choose Amazon Linux 2. 
-7. Choose Next step. 
-8. Review all the changes and choose Create environment.
+4. Choose **Next step**.
+5. For **Instance type**, choose **m5.large (8 GiB + 2 vCPU)**.
+6. For **Platform**, choose **Amazon Linux 2**. 
+7. Choose **Next step**. 
+8. Review all the changes and choose **Create environment**.
 
 ### Modifying the volume
 
-1. <a name="modifyvol"></a>Go the AWS Cloud9 instance in EC2.
-2. For Actions, choose Modify Volume.
-3. For Size, enter 40. 40 GB is the minimum suggested volume size needed for installation.
-4. Choose Modify.
-5. Choose Yes to accept the changes. Refresh your screen to view the modified volume size. In the Linux prompt, type the following to view the disk space:
+<a name="modifyvol"></a>
+
+1. Go the AWS Cloud9 instance in EC2.
+2. For **Actions**, choose **Modify Volume**.
+3. For **Size**, enter 40. 40 GB is the minimum suggested volume size needed for installation.
+4. Choose **Modify**.
+5. Choose **Yes** to accept the changes. Refresh your screen to view the modified volume size. In the Linux prompt, type the following to view the disk space:
      `df –hT`
 
 ### Increasing the partition
 
-<a name="partition"></a>To increase the partition size, type the following command:
+<a name="partition"></a>
+
+To increase the partition size, type the following command:
 
 `sudo growpart /dev/nvme0n1 1`
 
@@ -57,12 +65,15 @@ To install long-term support version, type:
 `nvm install --ltserbium`
 
 ### Installing Node Package Manager
+
 <a name="npm"></a>
 
 `npm install –g pnpm`
 #### Verify the Go version
-go version
-Note: Install everything in one directory.
+
+`go version`
+
+**Note**: Install everything in one directory.
 
 ### Cloning the Git directory
 <a name="git"></a>
@@ -84,6 +95,7 @@ Note: Install everything in one directory.
 4.Save `dev.yml`.<br />
 
 ### Running the script to install Service Workbench
+
 <a name="script"></a>
 
 `scripts/environment-deploy.sh <stage>`
@@ -92,4 +104,3 @@ Example: scripts/environment-deploy.sh dev
 ### Copying CloudFront URL details
 
 Once the installation completes, the following details are displayed on your screen. Note the website URL and the root password. You can use this URL and password to sign in to Service Workbench.
-

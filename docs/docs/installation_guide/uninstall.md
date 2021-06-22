@@ -1,5 +1,5 @@
 ---
-id: uninstalling
+id: uninstall
 title: Uninstalling Service Workbench
 sidebar_label: Uninstalling Service Workbench
 ---
@@ -7,6 +7,7 @@ sidebar_label: Uninstalling Service Workbench
 Follow these guidelines to delete the following for uninstalling Service Workbench:
 
 **CloudFormation stack**
+
 + For Workspaces that are running, manually delete the PVRE role additions before the stack is successfully deleted.
 + Empty every bucket before deleting the stack.
 + The artifacts bucket has to be deleted manually.

@@ -1,9 +1,8 @@
 ---
-id: configuration
+id: conf-settings
 title: Configuration settings
 sidebar_label: Configuration settings
 ---
-
 ### Stage name
 
 A stage name is used to allow multiple Service Workbench deployments from the same account. It represents the name of the configuration files. For limitations in Amazon Simple Storage Service ([Amazon S3](https://aws.amazon.com/s3/)) deployment buckets, the stage name must not be longer than five characters. Buckets are the fundamental containers in Amazon S3 for data storage.
@@ -11,11 +10,11 @@ You can select your own stage name. If you are planning to deploy the solution o
 
 ### Separately deployable components
 
-The Service Workbench code is divided into multiple (currently seven) separately deployable components (SDCs): backend, UI, post-deployment, edge-lambda, infrastructure, machine-images, and prepare-aster-acc. Each SDC has a directory in the location, main/solution. You can run the script either from the root directory or also deploy each SDC separately using individual scripts.  For more information, see  [serverless framework and projects](/docs/installation_guide/components).
+The Service Workbench code is divided into multiple (currently seven) separately deployable components (SDCs): backend, UI, post-deployment, edge-lambda, infrastructure, machine-images, and prepare-aster-acc. Each SDC has a directory in the location, main/solution. You can run the script either from the root directory or also deploy each SDC separately using individual scripts.  For more information, see  [serverless framework and projects](/installation_guide/components).
 
 ### Prepare the main configuration file
 
-You can make a copy of the sample global AWS Config file, name it for your stage, and modify it. The current default values for the main configuration are stored in the default file in the directory, main/config/settings/.defaults.yml. If the stage-named settings file is not available, the values are read from this default file.
+You can make a copy of the sample global AWS Config file, name it for your stage, and modify it. The current default values for the main configuration are stored in the default file in the directory, `main/config/settings/.defaults.yml`. If the stage-named settings file is not available, the values are read from this default file.
 
 To create a custom (stage-named) settings file, in the directory, `main/config/settings`, copy `example.yml` to `<stage>.yml` and edit this new file. Default values are read from `.defaults.yml` unless the values are overridden in this file. Following table describes the default values: 
 

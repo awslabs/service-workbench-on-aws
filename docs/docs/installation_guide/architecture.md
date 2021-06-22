@@ -4,6 +4,7 @@ title: Service Workbench architecture
 sidebar_label: Service Workbench architecture
 ---
 
+import useBaseUrl from '@docusaurus/useBaseUrl';
 
 Service Workbench integrates existing AWS services, such as Amazon CloudFront, AWS Lambda, and AWS Step Functions. Service Workbench enables you to create your own custom templates and share those templates with other organizations. To provide cost transparency, Service Workbench has been integrated with AWS Cost Explorer, AWS Budgets, and AWS Organizations.
 
@@ -27,7 +28,6 @@ Besides provisioning an environment using templates, you can access your Workspa
 
 <img src={useBaseUrl('img/deployment/installation/workspace_management.png')} />
 
-
 ### Cost control
 
 #### Accounts, indexes, and projects
@@ -45,4 +45,3 @@ A dashboard displays a quick overview of the cost your Workspaces or projects ha
 When you create a Workspace from a template, you can choose the Workspace type in addition to multiple environment sizes. An administrator can pre-define these sizes and associate them with users based on individual permissions.
 
 <img src={useBaseUrl('img/deployment/installation/workspace_sizes.png')} />
-

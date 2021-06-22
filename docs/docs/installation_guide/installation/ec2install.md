@@ -1,11 +1,8 @@
 ---
-id: ami
-title: Installation using EC2 instance
+id: ec2install
+title: Installing Service Workbench using EC2 instance
 sidebar_label: Installation using EC2 instance
 ---
-
-
-Installing Service Workbench using EC2 instance
 
 1. Download the Service Workbench on AWS source code using this link and then run the following commands:
 ```
@@ -27,9 +24,9 @@ git clone https://github.com/awslabs/service-workbench-on-aws.git
       `cp example.yml ${STAGE_NAME}.yml`
    
       c. In the newly created conﬁguration ﬁle, uncomment and set values for the following values:<br />
-             - `awsRegion` (for example: `us-east-1` or `eu-west-2`): Ensure that you use the same Region when you are using the AWS Management Console.<br />
-             - `solutionName` (for example: `sw`): The solutionName is used in S3 bucket names so must be S3-compatible.<br />
-             **Note**: Ensure that there is no leading space before the value name.
+       - awsRegion (for example: `us-east-1` or `eu-west-2`): Ensure that you use the same Region when you are using the AWS Management Console.<br />
+       - solutionName (for example: `sw`): The solutionName is used in S3 bucket names so must be S3-compatible.<br />
+       **Note**: Ensure that there is no leading space before the value name.
 
 3. Run the main installation script. This takes up to 15 minutes and can be run in parallel with the next step (installing AMIs).
 `./scripts/environment-deploy.sh ${STAGE_NAME}`

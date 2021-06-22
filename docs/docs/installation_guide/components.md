@@ -1,6 +1,6 @@
 ---
 id: components
-title: Installation components
+title: Service Workbench installation components
 sidebar_label: Installation components
 ---
 

@@ -1,5 +1,5 @@
 ---
-id: upgrading_solutions
+id: solutions
 title: Upgrading AWS solution installation
 sidebar_label: Upgrading AWS solution installation
 ---
@@ -20,4 +20,4 @@ This procedure is for upgrading Service Workbench installations automatically in
 7. Choose **Update environment**, which returns you to the **Build projects** page.
 8. Choose **Start build**.  The project runs for 20-30 minutes.
 9. Test the deployment by visiting the site URL.
-10. Update each account in Service Workbench by following the instructions in [Post upgrade](/docs/installation_guide/postupgrade) section.  
+10. Update each account in Service Workbench by following the instructions in [Post upgrade](/installation_guide/postupgrade) section.  

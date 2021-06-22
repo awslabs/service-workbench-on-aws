@@ -1,10 +1,8 @@
 ---
-id: post_upgrade
+id: postupgrade
 title: Post upgrade
 sidebar_label: Post upgrade
 ---
-
-
 ### Updating accounts
 
 Any new hosting accounts added to Service Workbench must be updated with new permissions.  For this process, you need onboard-account.cfn.yml, which is part of the source-code distribution.
