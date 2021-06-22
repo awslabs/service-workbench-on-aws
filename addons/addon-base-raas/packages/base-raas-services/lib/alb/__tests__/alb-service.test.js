@@ -191,7 +191,15 @@ describe('ALBService', () => {
       }
     });
 
-    it('should pass if the input is valid', async () => {
+    it('should pass and increment count if the input is valid', async () => {
+      const updatedAlbDetails = {
+        id: 'test-id',
+        albStackName: null,
+        albArn: 'arn:test-arn',
+        listenerArn: null,
+        albDnsName: null,
+        albDependentWorkspacesCount: 2,
+      };
       service.getAlbDetails = jest.fn(() => {
         return albDetails;
       });
@@ -203,7 +211,7 @@ describe('ALBService', () => {
       await service.increaseAlbDependentWorkspaceCount({}, 'test-id');
 
       // CHECK
-      expect(service.saveAlbDetails).toHaveBeenCalled();
+      expect(service.saveAlbDetails).toHaveBeenCalledWith(albDetails.id, updatedAlbDetails);
     });
 
     it('should call audit on success', async () => {
@@ -236,7 +244,15 @@ describe('ALBService', () => {
       }
     });
 
-    it('should pass if the input is valid', async () => {
+    it('should pass and decrement count if the input is valid', async () => {
+      const updatedAlbDetails = {
+        id: 'test-id',
+        albStackName: null,
+        albArn: 'arn:test-arn',
+        listenerArn: null,
+        albDnsName: null,
+        albDependentWorkspacesCount: 0,
+      };
       service.getAlbDetails = jest.fn(() => {
         return albDetails;
       });
@@ -248,7 +264,7 @@ describe('ALBService', () => {
       await service.decreaseAlbDependentWorkspaceCount({}, 'test-id');
 
       // CHECK
-      expect(service.saveAlbDetails).toHaveBeenCalled();
+      expect(service.saveAlbDetails).toHaveBeenCalledWith(albDetails.id, updatedAlbDetails);
     });
 
     it('should call audit if the success', async () => {
@@ -359,6 +375,9 @@ describe('ALBService', () => {
       service.getHostname = jest.fn(() => {
         return 'rtsudio-test.example.com';
       });
+      service.calculateRulePriority = jest.fn(() => {
+        return 1;
+      });
       await service.createListenerRule(prefix, requestContext, resolvedVars, targetGroupArn);
       expect(albClient.createRule).toHaveBeenCalled();
     });
@@ -380,7 +399,9 @@ describe('ALBService', () => {
       service.getHostname = jest.fn(() => {
         return 'rtsudio-test.example.com';
       });
-
+      service.calculateRulePriority = jest.fn(() => {
+        return 1;
+      });
       const response = await service.createListenerRule(prefix, requestContext, resolvedVars, targetGroupArn);
       expect(albClient.createRule).toHaveBeenCalled();
       expect(response).toBe(validateARN);
@@ -396,6 +417,9 @@ describe('ALBService', () => {
       });
       service.getHostname = jest.fn(() => {
         return 'rtsudio-test.example.com';
+      });
+      service.calculateRulePriority = jest.fn(() => {
+        return 1;
       });
       try {
         await service.createListenerRule(prefix, requestContext, resolvedVars, targetGroupArn);
@@ -428,6 +452,65 @@ describe('ALBService', () => {
       } catch (err) {
         expect(err.message).toContain('Error deleting rule. Rule deletion failed with message - Rule not found');
       }
+    });
+  });
+
+  describe('modifyRule', () => {
+    it('should pass and return empty object with success', async () => {
+      service.getHostname = jest.fn(() => {
+        return 'rtsudio-test.example.com';
+      });
+      service.findAwsAccountDetails = jest.fn(() => {
+        return {
+          externalId: 'subnet-0a661d9f417ecff3f',
+        };
+      });
+      albClient.modifyRule = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return {};
+          },
+        };
+      });
+      service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
+      const response = await service.modifyRule({}, { cidr: [], projectId: '' });
+      expect(response).toEqual({});
+    });
+    it('should pass when user passed empty cidr value to modify rule', async () => {
+      // the system should validate and replace the default ip "0.0.0.0/0" and execute
+      albClient.modifyRule = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return {};
+          },
+        };
+      });
+      service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
+      await service.modifyRule({}, { cidr: [], projectId: '' });
+      expect(albClient.modifyRule).toHaveBeenCalled();
+    });
+  });
+
+  describe('describeRules', () => {
+    it('should pass and return empty object with success', async () => {
+      service.findAwsAccountDetails = jest.fn(() => {
+        return {
+          externalId: 'subnet-0a661d9f417ecff3f',
+        };
+      });
+      albClient.describeRules = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return {
+              Rules: [{ Conditions: [{ Field: 'source-ip', SourceIpConfig: { Values: ['1'] } }] }],
+            };
+          },
+        };
+      });
+      service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
+      const response = await service.describeRules({}, { cidr: [], projectId: '' });
+      expect(albClient.describeRules).toHaveBeenCalled();
+      expect(response).toEqual(['1']);
     });
   });
 });

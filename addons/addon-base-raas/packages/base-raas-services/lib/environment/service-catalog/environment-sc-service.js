@@ -61,6 +61,7 @@ class EnvironmentScService extends Service {
       'awsAccountsService',
       'indexesService',
       'studyService',
+      'albService',
     ]);
   }
 
@@ -343,8 +344,23 @@ class EnvironmentScService extends Service {
       fetchCidr
     ) {
       const { currentIngressRules } = await this.getSecurityGroupDetails(requestContext, env);
+
+      // Validate the CFT output if RStudio is exist then retrieve the describe rule and inject into the currentIngressRules
+      const { MetaConnection1Type, ListenerRuleARN } = cfnOutputsArrayToObject(env.outputs);
+      if (MetaConnection1Type === 'RStudioV2') {
+        const albService = await this.service('albService');
+        const resolvedVars = { ruleARN: ListenerRuleARN, projectId: env.projectId };
+        const ruleSourceIps = await albService.describeRules(requestContext, resolvedVars);
+        currentIngressRules.map(obj => {
+          if (obj.fromPort === 443) {
+            obj.cidrBlocks = ruleSourceIps;
+          }
+          return obj;
+        });
+      }
       env.cidr = currentIngressRules;
     }
+
     const [toReturn] = await this.augmentWithConnectionInfo(requestContext, [env]);
     return toReturn;
   }
@@ -963,7 +979,6 @@ class EnvironmentScService extends Service {
     // Get protocol-port combinations from the SC CFN stack
     const securityGroupDetails = securityGroupResponse.SecurityGroups[0];
     const workspaceIngressRules = securityGroupDetails.IpPermissions;
-
     // Only send back details of groups configured by the SC CFN stack
     const returnVal = _.map(cfnTemplateIngressRules, cfnRule => {
       const matchingRule = _.find(

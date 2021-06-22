@@ -33,11 +33,9 @@ const inPayloadKeys = {
   productId: 'productId',
 };
 
-// const outPayloadKeys = {
-//     launchConstraintRole: 'launchConstraintRole',
-//     portfolioId: 'portfolioId',
-//     productId: 'productId',
-// };
+const outPayloadKeys = {
+  needsAlb: 'needsAlb',
+};
 
 const settingKeys = {
   envMgmtRoleArn: 'envMgmtRoleArn',
@@ -82,8 +80,25 @@ class CheckLaunchDependency extends StepBase {
       this.payloadOrConfig.string(inPayloadKeys.envTypeId),
       this.payloadOrConfig.string(inPayloadKeys.envTypeConfigId),
     ]);
+    const [albService, lockService, envTypeConfigService] = await this.mustFindServices([
+      'albService',
+      'lockService',
+      'envTypeConfigService',
+    ]);
     const projectId = resolvedVars.projectId;
-    const [envTypeConfigService] = await this.mustFindServices(['envTypeConfigService']);
+    const awsAccountId = await albService.findAwsAccountId(requestContext, projectId);
+    // Locking the ALB provisioing to avoid race condiitons on parallel provisioning.
+    // expiresIn is set to 10 minutes. attemptsCount is set to 600 to retry after 1 seconds for 10 minutes
+    const lock = await lockService.tryWriteLock(
+      { id: `alb-update-${awsAccountId}`, expiresIn: 600 },
+      { attemptsCount: 600 },
+    );
+    this.print({
+      msg: `obtained lock - ${lock}`,
+    });
+    if (_.isUndefined(lock)) throw new Error('Could not obtain a lock');
+    this.state.setKey('ALB_LOCK', lock);
+
     const envTypeConfig = await envTypeConfigService.mustFind(requestContext, envTypeId, { id: envTypeConfigId });
 
     // Create dynamic namespace follows the existing pattern of namespace
@@ -97,6 +112,8 @@ class CheckLaunchDependency extends StepBase {
       MAX_COUNT_ALB_DEPENDENT_WORKSPACES,
     );
     if (needsAlb) {
+      // Sets needsAlb to payload so it can be used to decrease alb workspace count on product failure
+      await this.payload.setKey(outPayloadKeys.needsAlb, needsAlb);
       // eslint-disable-next-line no-return-await
       return await this.provisionAlb(
         requestContext,
@@ -141,8 +158,6 @@ class CheckLaunchDependency extends StepBase {
         resolvedInputParams,
         projectId,
       );
-      // Storing Dependency type so the stack completion can be handled for different dependencies
-      this.state.setKey('DEPENDENCY_TYPE', 'ALB');
       // Create Stack
       // eslint-disable-next-line no-return-await
       return await this.deployStack(requestContext, resolvedVars, stackInput);
@@ -184,26 +199,24 @@ class CheckLaunchDependency extends StepBase {
    * @returns {Promise<>}
    */
   async handleStackCompletion(stackOutputs) {
-    const [requestContext, resolvedVars, stackId, dependencyType] = await Promise.all([
+    const [requestContext, resolvedVars, stackId] = await Promise.all([
       this.payloadOrConfig.object(inPayloadKeys.requestContext),
       this.payloadOrConfig.object(inPayloadKeys.resolvedVars),
       this.state.string('STACK_ID'),
-      this.state.string('DEPENDENCY_TYPE'),
     ]);
     const projectId = resolvedVars.projectId;
+    // Update ALB details to DB
     const [albService] = await this.mustFindServices(['albService']);
     const awsAccountId = await albService.findAwsAccountId(requestContext, projectId);
-    if (dependencyType === 'ALB') {
-      const albDetails = {
-        id: awsAccountId,
-        albStackName: stackId,
-        albArn: _.get(stackOutputs, 'LoadBalancerArn', null),
-        listenerArn: _.get(stackOutputs, 'ListenerArn', null),
-        albDnsName: _.get(stackOutputs, 'ALBDNSName', null),
-        albDependentWorkspacesCount: 0,
-      };
-      await albService.saveAlbDetails(awsAccountId, albDetails);
-    }
+    const albDetails = {
+      id: awsAccountId,
+      albStackName: stackId,
+      albArn: _.get(stackOutputs, 'LoadBalancerArn', null),
+      listenerArn: _.get(stackOutputs, 'ListenerArn', null),
+      albDnsName: _.get(stackOutputs, 'ALBDNSName', null),
+      albDependentWorkspacesCount: 0,
+    };
+    await albService.saveAlbDetails(awsAccountId, albDetails);
     this.print({
       msg: `Dependency Details Updated Successfully`,
     });
@@ -340,6 +353,23 @@ class CheckLaunchDependency extends StepBase {
   }
 
   /**
+   * Method to parse the stack deployment error
+   *
+   * @param requestContext
+   * @param resolvedVars
+   * @param stackId
+   * @returns {Promise<string>}
+   */
+  async getDeploymentError(requestContext, resolvedVars, stackId) {
+    const cfn = await this.getCloudFormationService(requestContext, resolvedVars);
+    const events = await cfn.describeStackEvents({ StackName: stackId }).promise();
+    const failReasons = events.StackEvents.filter(e => failureStatuses.includes(e.ResourceStatus)).map(
+      e => e.ResourceStatusReason || '',
+    );
+    return failReasons.join(' ');
+  }
+
+  /**
    * Method to resolve any variable expressions in the given key value pairs. The expressions may be in keys and/or values.
    *
    * @param keyValuePairs
@@ -381,7 +411,8 @@ class CheckLaunchDependency extends StepBase {
     if (_.includes(failureStatuses, stackInfo.StackStatus)) {
       // If provisioning failed then throw error, any unhandled workflow errors
       // are handled in "onFail" method
-      throw new Error(`ALB Stack operation failed with message: ${stackInfo.StackStatusReason}`);
+      const error = await this.getDeploymentError(requestContext, resolvedVars, stackId);
+      throw new Error(`ALB Stack operation failed with message: ${error}`);
     }
 
     if (_.includes(successStatuses, stackInfo.StackStatus)) {
@@ -411,14 +442,45 @@ class CheckLaunchDependency extends StepBase {
   }
 
   async reportTimeout() {
-    const [stackName, resolvedVars] = await Promise.all([
+    const [stackName, resolvedVars, albLock] = await Promise.all([
       this.state.string('STACK_ID'),
       this.payloadOrConfig.object(inPayloadKeys.resolvedVars),
+      this.state.optionalString('ALB_LOCK'),
     ]);
     const envName = resolvedVars.name;
+    // Release ALB lock if exists
+    if (albLock) {
+      const [lockService] = await this.mustFindServices(['lockService']);
+      await lockService.releaseWriteLock({ writeToken: albLock });
+      this.print({
+        msg: `ALB lock released successfully`,
+      });
+    }
     throw new Error(
       `Error provisioning environment "${envName}". The workflow timed-out because the ALB provisioing stack "${stackName}" did not complete within the timeout period of 15 days.`,
     );
+  }
+
+  async onPass() {
+    // this method is automatically invoked by the workflow engine when the step is completed
+    const [requestContext, resolvedVars, needsAlb, albLock] = await Promise.all([
+      this.payloadOrConfig.object(inPayloadKeys.requestContext),
+      this.payloadOrConfig.object(inPayloadKeys.resolvedVars),
+      this.payloadOrConfig.optionalBoolean(outPayloadKeys.needsAlb, false),
+      this.state.optionalString('ALB_LOCK'),
+    ]);
+    const [albService, lockService] = await this.mustFindServices(['albService', 'lockService']);
+    // Increase ALB dependent workspace count when there is a flag needs ALB
+    if (needsAlb) {
+      await albService.increaseAlbDependentWorkspaceCount(requestContext, resolvedVars.projectId);
+    }
+    // Release ALB lock if exists
+    if (albLock) {
+      await lockService.releaseWriteLock({ writeToken: albLock });
+      this.print({
+        msg: `ALB lock released successfully`,
+      });
+    }
   }
 
   /**
@@ -427,12 +489,20 @@ class CheckLaunchDependency extends StepBase {
    */
   async onFail(error) {
     this.printError(error);
-    const [requestContext, resolvedVars] = await Promise.all([
+    const [requestContext, resolvedVars, albLock] = await Promise.all([
       this.payloadOrConfig.object(inPayloadKeys.requestContext),
       this.payloadOrConfig.object(inPayloadKeys.resolvedVars),
+      this.state.optionalString('ALB_LOCK'),
     ]);
 
-    const [pluginRegistryService] = await this.mustFindServices(['pluginRegistryService']);
+    const [pluginRegistryService, lockService] = await this.mustFindServices(['pluginRegistryService', 'lockService']);
+    // Release ALB lock if exists
+    if (albLock) {
+      await lockService.releaseWriteLock({ writeToken: albLock });
+      this.print({
+        msg: `ALB lock released successfully`,
+      });
+    }
     // Give all plugins a chance to react (such as updating database etc) to environment creation having failed
     await pluginRegistryService.visitPlugins(pluginConstants.extensionPoint, 'onEnvProvisioningFailure', {
       payload: {

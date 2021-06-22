@@ -74,9 +74,25 @@ class TerminateLaunchDependency extends StepBase {
       this.payloadOrConfig.string(inPayloadKeys.externalId),
       this.payloadOrConfig.string(inPayloadKeys.existingEnvironmentStatus),
     ]);
-    const [environmentScService] = await this.mustFindServices(['environmentScService']);
+    const [albService, environmentScService, lockService] = await this.mustFindServices([
+      'albService',
+      'environmentScService',
+      'lockService',
+    ]);
     const environment = await environmentScService.mustFind(requestContext, { id: envId });
     const projectId = environment.projectId;
+    const awsAccountId = await albService.findAwsAccountId(requestContext, projectId);
+    // Locking the ALB termination to avoid race condiitons on parallel provisioning.
+    // expiresIn is set to 10 minutes. attemptsCount is set to 600 to retry after 1 seconds for 10 minutes
+    const lock = await lockService.tryWriteLock(
+      { id: `alb-update-${awsAccountId}`, expiresIn: 600 },
+      { attemptsCount: 600 },
+    );
+    this.print({
+      msg: `obtained lock - ${lock}`,
+    });
+    if (_.isUndefined(lock)) throw new Error('Could not obtain a lock');
+    this.state.setKey('ALB_LOCK', lock);
     // Setting project id to use while polling for status
     this.state.setKey('PROJECT_ID', projectId);
     // convert output array to object. Return {} if no outputs found
@@ -84,13 +100,16 @@ class TerminateLaunchDependency extends StepBase {
     const connectionType = _.get(environmentOutputs, 'MetaConnection1Type', '');
     // Clean up listener rule and Route53 record before deleting ALB and Workspace
     if (connectionType.toLowerCase() === 'rstudiov2') {
-      const [albService, environmentDnsService] = await this.mustFindServices(['albService', 'environmentDnsService']);
+      const [environmentDnsService] = await this.mustFindServices(['environmentDnsService']);
       const albExists = await albService.checkAlbExists(requestContext, projectId);
       if (albExists) {
         try {
           const deploymentItem = await albService.getAlbDetails(requestContext, projectId);
           const dnsName = JSON.parse(deploymentItem.value).albDnsName;
           await environmentDnsService.deleteRecord('rstudio', envId, dnsName);
+          this.print({
+            msg: 'Route53 record deleted successfully',
+          });
         } catch (error) {
           // Don't fail the termination if record deletion failed
           this.print({
@@ -109,6 +128,9 @@ class TerminateLaunchDependency extends StepBase {
             externalId,
           };
           await albService.deleteListenerRule(requestContext, resolvedVars, ruleArn);
+          this.print({
+            msg: 'Listener rule deleted successfully',
+          });
         } catch (error) {
           // Don't fail the termination if rule deletion failed
           this.print({
@@ -124,7 +146,6 @@ class TerminateLaunchDependency extends StepBase {
     if (needsAlb) {
       // Dont decrease count for failed products
       if (!_.includes(['FAILED', 'TERMINATING_FAILED'], existingEnvironmentStatus)) {
-        const [albService] = await this.mustFindServices(['albService']);
         await albService.decreaseAlbDependentWorkspaceCount(requestContext, projectId);
       }
       // eslint-disable-next-line no-return-await
@@ -155,8 +176,6 @@ class TerminateLaunchDependency extends StepBase {
       });
       const albDetails = await albService.getAlbDetails(requestContext, projectId);
       const albRecord = JSON.parse(albDetails.value);
-      // Storing Dependency type so the stack termination can be handled for different dependencies
-      this.state.setKey('DEPENDENCY_TYPE', 'ALB');
       // eslint-disable-next-line no-return-await
       return await this.terminateStack(requestContext, projectId, externalId, albRecord.albStackName);
     }
@@ -323,6 +342,24 @@ class TerminateLaunchDependency extends StepBase {
   }
 
   /**
+   * Method to parse the stack deployment error
+   *
+   * @param requestContext
+   * @param projectId
+   * @param externalId
+   * @param stackId
+   * @returns {Promise<string>}
+   */
+  async getDeploymentError(requestContext, projectId, externalId, stackId) {
+    const cfn = await this.getCloudFormationService(requestContext, projectId, externalId);
+    const events = await cfn.describeStackEvents({ StackName: stackId }).promise();
+    const failReasons = events.StackEvents.filter(e => failureStatuses.includes(e.ResourceStatus)).map(
+      e => e.ResourceStatusReason || '',
+    );
+    return failReasons.join(' ');
+  }
+
+  /**
    * A method to decide when to resume the workflow.
    * This method checks for the status of the ALB being terminated and returns true when the
    * stack has completed successfully. If the stack encountered any errors, the method throws an
@@ -343,7 +380,8 @@ class TerminateLaunchDependency extends StepBase {
     if (_.includes(failureStatuses, stackInfo.StackStatus)) {
       // If termination failed then throw error, any unhandled workflow errors
       // are handled in "onFail" method
-      throw new Error(`ALB Stack termination failed with message: ${stackInfo.StackStatusReason}`);
+      const error = await this.getDeploymentError(requestContext, projectId, externalId, stackId);
+      throw new Error(`ALB Stack termination failed with message: ${error}`);
     }
 
     if (_.includes(successStatuses, stackInfo.StackStatus)) {
@@ -359,37 +397,57 @@ class TerminateLaunchDependency extends StepBase {
    * @returns {Promise<*>}
    */
   async onSuccessfulCompletion() {
-    const [requestContext, projectId, dependencyType] = await Promise.all([
+    const [requestContext, projectId] = await Promise.all([
       this.payloadOrConfig.object(inPayloadKeys.requestContext),
       this.state.string('PROJECT_ID'),
-      this.state.string('DEPENDENCY_TYPE'),
     ]);
-    if (dependencyType === 'ALB') {
-      const [albService] = await this.mustFindServices(['albService']);
-      const awsAccountId = await albService.findAwsAccountId(requestContext, projectId);
-      const albDetails = {
-        id: awsAccountId,
-        albStackName: null,
-        albArn: null,
-        listenerArn: null,
-        albDnsName: null,
-        albDependentWorkspacesCount: 0,
-      };
-      await albService.saveAlbDetails(awsAccountId, albDetails);
-    }
+    // Update ALB record in DB
+    const [albService] = await this.mustFindServices(['albService']);
+    const awsAccountId = await albService.findAwsAccountId(requestContext, projectId);
+    const albDetails = {
+      id: awsAccountId,
+      albStackName: null,
+      albArn: null,
+      listenerArn: null,
+      albDnsName: null,
+      albDependentWorkspacesCount: 0,
+    };
+    await albService.saveAlbDetails(awsAccountId, albDetails);
     this.print({
-      msg: `Dependency Details Updated Successfully`,
+      msg: `ALB deleted and dependency details updated successfully`,
     });
   }
 
   async reportTimeout() {
-    const [envId, envName] = await Promise.all([
+    const [envId, envName, albLock] = await Promise.all([
       this.payloadOrConfig.string(inPayloadKeys.envId),
       this.payloadOrConfig.string(inPayloadKeys.envName),
+      this.state.optionalString('ALB_LOCK'),
     ]);
+    // Release ALB lock if exists
+    if (albLock) {
+      const [lockService] = await this.mustFindServices(['lockService']);
+      await lockService.releaseWriteLock({ writeToken: albLock });
+      this.print({
+        msg: `ALB lock released successfully`,
+      });
+    }
     throw new Error(
       `Error terminating environment "${envName}" with id "${envId}". The workflow timed-out because the ALB CFT did not terminate within the timeout period of 15 days.`,
     );
+  }
+
+  async onPass() {
+    // this method is automatically invoked by the workflow engine when the step is completed
+    const [albLock] = await Promise.all([this.state.optionalString('ALB_LOCK')]);
+    const [lockService] = await this.mustFindServices(['lockService']);
+    // Release ALB lock if exists
+    if (albLock) {
+      await lockService.releaseWriteLock({ writeToken: albLock });
+      this.print({
+        msg: `ALB lock released successfully`,
+      });
+    }
   }
 
   /**
@@ -401,33 +459,38 @@ class TerminateLaunchDependency extends StepBase {
     this.printError(error);
     // Add custom Error message
     error.message = `ALB Termination has failed with the folowing error. \
-        Please contact your administrator. Retry the termination to terminate the workspace. Reason:${error.message}`;
-    const [requestContext, envId, projectId, dependencyType] = await Promise.all([
+        Please contact your administrator. Retry the termination to terminate the workspace. Reason: ${error.message}`;
+    const [requestContext, envId, projectId, albLock] = await Promise.all([
       this.payloadOrConfig.object(inPayloadKeys.requestContext),
       this.payloadOrConfig.string(inPayloadKeys.envId),
       this.state.string('PROJECT_ID'),
-      this.state.optionalString('DEPENDENCY_TYPE'),
+      this.state.optionalString('ALB_LOCK'),
     ]);
     let record;
 
-    if (dependencyType === 'ALB') {
-      const [albService] = await this.mustFindServices(['albService']);
-      const awsAccountId = await albService.findAwsAccountId(requestContext, projectId);
-      const albDetails = {
-        id: awsAccountId,
-        albStackName: null,
-        albArn: null,
-        listenerArn: null,
-        albDnsName: null,
-        albDependentWorkspacesCount: 0,
-      };
-      await albService.saveAlbDetails(awsAccountId, albDetails);
-    }
+    // Update ALB record in DB
+    const [albService] = await this.mustFindServices(['albService']);
+    const awsAccountId = await albService.findAwsAccountId(requestContext, projectId);
+    const albDetails = {
+      id: awsAccountId,
+      albStackName: null,
+      albArn: null,
+      listenerArn: null,
+      albDnsName: null,
+      albDependentWorkspacesCount: 0,
+    };
+    await albService.saveAlbDetails(awsAccountId, albDetails);
     this.print({
       msg: `Dependency Details Updated Successfully`,
     });
-
-    const [pluginRegistryService] = await this.mustFindServices(['pluginRegistryService']);
+    // Release ALB lock if exists
+    const [pluginRegistryService, lockService] = await this.mustFindServices(['pluginRegistryService', 'lockService']);
+    if (albLock) {
+      await lockService.releaseWriteLock({ writeToken: albLock });
+      this.print({
+        msg: `ALB lock released successfully`,
+      });
+    }
 
     // Give all plugins a chance to react (such as updating database etc) to environment creation having failed
     await pluginRegistryService.visitPlugins(pluginConstants.extensionPoint, 'onEnvTerminationFailure', {

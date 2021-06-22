@@ -31,7 +31,6 @@ class ALBService extends Service {
       'deploymentStoreService',
       'awsAccountsService',
       'cfnTemplateService',
-      'environmentScService',
     ]);
   }
 
@@ -177,7 +176,7 @@ class ALBService extends Service {
    */
   async findDeploymentItem({ id }) {
     const [deploymentStore] = await this.service(['deploymentStoreService']);
-    const deploymentItem = await deploymentStore.mustFind({ type: 'account-workspace-details', id });
+    const deploymentItem = await deploymentStore.find({ type: 'account-workspace-details', id });
     return deploymentItem;
   }
 
@@ -195,7 +194,7 @@ class ALBService extends Service {
     const deploymentItem = await this.getAlbDetails(requestContext, resolvedVars.projectId);
     const albRecord = JSON.parse(deploymentItem.value);
     const listenerArn = albRecord.listenerArn;
-    const priority = albRecord.albDependentWorkspacesCount + 1;
+    const priority = await this.calculateRulePriority(requestContext, resolvedVars, albRecord.listenerArn);
     const subdomain = this.getHostname(prefix, resolvedVars.envId);
     const params = {
       ListenerArn: listenerArn,
@@ -287,6 +286,34 @@ class ALBService extends Service {
   }
 
   /**
+   * Method to calculate the priority for the listener rule. The method gets the existing rules prirority
+   * and adds 1 to the maximum value
+   *
+   * @param requestContext
+   * @param resolvedVars
+   * @param listenerArn
+   * @returns {Promise<int>}
+   */
+  async calculateRulePriority(requestContext, resolvedVars, listenerArn) {
+    const params = {
+      ListenerArn: listenerArn,
+    };
+    const albClient = await this.getAlbSdk(requestContext, resolvedVars);
+    let response = null;
+    try {
+      response = await albClient.describeRules(params).promise();
+      const rules = response.Rules;
+      // Returns list of priorities, returns 0 for default rule
+      const priorities = _.map(rules, rule => {
+        return rule.IsDefault ? 0 : _.toInteger(rule.Priority);
+      });
+      return _.max(priorities) + 1;
+    } catch (err) {
+      throw new Error(`Error calculating rule priority. Rule describe failed with message - ${err.message}`);
+    }
+  }
+
+  /**
    * Method to get the hostname for the environment
    *
    * @param prefix
@@ -337,6 +364,80 @@ class ALBService extends Service {
     // If the main call also needs to fail in case writing to any audit destination fails then switch to "write" method as follows
     // return auditWriterService.write(requestContext, auditEvent);
     return auditWriterService.writeAndForget(requestContext, auditEvent);
+  }
+
+  /**
+   * Method to modify rule. The method modify the rule using the ALB SDK client.
+   * Tags are read form the resolvedVars so the billing will happen properly
+   *
+   * @param requestContext
+   * @param resolvedVars
+   * @returns {Promise<D & {$response: Response<D, E>}>}
+   */
+  async modifyRule(requestContext, resolvedVars) {
+    const subdomain = this.getHostname(resolvedVars.prefix, resolvedVars.envId);
+    try {
+      const cidrLen = resolvedVars.cidr.length;
+      // ModifyRule does not accept the empty value to update
+      // so the system should validate the cidr and if it is empty then
+      // replace the default ip "0.0.0.0/0"
+      if (cidrLen === 0) {
+        resolvedVars.cidr = ['0.0.0.0/0'];
+      }
+      const params = {
+        Conditions: [
+          {
+            Field: 'host-header',
+            HostHeaderConfig: {
+              Values: [subdomain],
+            },
+          },
+          {
+            Field: 'source-ip',
+            SourceIpConfig: {
+              Values: resolvedVars.cidr,
+            },
+          },
+        ],
+        RuleArn: resolvedVars.ruleARN,
+      };
+      const { externalId } = await this.findAwsAccountDetails(requestContext, resolvedVars.projectId);
+      resolvedVars.externalId = externalId;
+      const albClient = await this.getAlbSdk(requestContext, resolvedVars);
+      const response = await albClient.modifyRule(params).promise();
+      return response;
+    } catch (e) {
+      if (e.message) throw this.boom.unauthorized(`${e.message}`, true);
+      return e.message;
+    }
+  }
+
+  /**
+   * Method to describe rule. The method describe the rule using the ALB SDK client.
+   * Tags are read form the resolvedVars so the billing will happen properly
+   *
+   * @param requestContext
+   * @param resolvedVars
+   * @returns {Promise<D & {$response: Response<D, E>}>}
+   */
+  async describeRules(requestContext, resolvedVars) {
+    try {
+      const params = {
+        RuleArns: [resolvedVars.ruleARN],
+      };
+      const { externalId } = await this.findAwsAccountDetails(requestContext, resolvedVars.projectId);
+      resolvedVars.externalId = externalId;
+      const albClient = await this.getAlbSdk(requestContext, resolvedVars);
+      const response = await albClient.describeRules(params).promise();
+      const ruleConditions = response.Rules[0].Conditions;
+      const ruleSourceIpConfig = ruleConditions.find(obj => obj.Field === 'source-ip');
+      const { SourceIpConfig } = ruleSourceIpConfig;
+      const sourceIps = SourceIpConfig.Values;
+      return sourceIps;
+    } catch (e) {
+      if (e.message) throw this.boom.unauthorized(`${e.message}`, true);
+      return e.message;
+    }
   }
 }
 
