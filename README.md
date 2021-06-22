@@ -157,7 +157,7 @@ cd -
 ```
 
 ---
-
+For more information, refer to *Service Workbench Installation Guide*.
 
 ## Using Service Workbench
 
