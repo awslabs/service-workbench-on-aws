@@ -96,13 +96,6 @@ class EnvironmentScCidrService extends Service {
 
     const existingEnvironment = await environmentScService.mustFind(requestContext, { id });
 
-    // Validate the CFT output if RStudio is exist then modify the elb rule
-    let {
-      // eslint-disable-next-line prefer-const
-      productName,
-      cloneUpdateRequest,
-    } = await this.modifyELBRule(existingEnvironment, updateRequest, albService, requestContext);
-
     // Check if user is allowed to update cidrs
     await this.assertAuthorized(
       requestContext,
@@ -111,6 +104,13 @@ class EnvironmentScCidrService extends Service {
     );
 
     await lockService.tryWriteLockAndRun({ id: `${id}-CidrUpdate` }, async () => {
+      // Validate the CFT output if RStudio is exist then modify the elb rule
+      let {
+        // eslint-disable-next-line prefer-const
+        productName,
+        cloneUpdateRequest,
+      } = await this.modifyELBRule(existingEnvironment, updateRequest, albService, requestContext);
+
       // Calculate diff and update CIDR ranges in ingress rules
       const { currentIngressRules, securityGroupId } = await environmentScService.getSecurityGroupDetails(
         requestContext,
@@ -132,13 +132,15 @@ class EnvironmentScCidrService extends Service {
       // Not storing the changes in the DB, but since all went well
       // we return the cidr field as part of the env obj
       existingEnvironment.cidr = newCidrList;
+
+      // As we removed the 443 Port CIDRs values for Rstudio during the ingress rule updates.
+      // So once it is done we replace the original values to the existing env.
+      if (productName === 'RStudioV2') {
+        cloneUpdateRequest = JSON.parse(cloneUpdateRequest);
+        existingEnvironment.cidr = cloneUpdateRequest;
+      }
     });
-    // As we removed the 443 Port CIDRs values for Rstudio during the ingress rule updates.
-    // So once it is done we replace the original values to the existing env.
-    if (productName === 'RStudioV2') {
-      cloneUpdateRequest = JSON.parse(cloneUpdateRequest);
-      existingEnvironment.cidr = cloneUpdateRequest;
-    }
+
     // Write audit event
     await this.audit(requestContext, { action: 'update-environment-sc-cidr', body: existingEnvironment });
     return existingEnvironment;

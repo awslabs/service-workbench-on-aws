@@ -349,13 +349,6 @@ class ALBService extends Service {
   async modifyRule(requestContext, resolvedVars) {
     const subdomain = this.getHostname(resolvedVars.prefix, resolvedVars.envId);
     try {
-      const cidrLen = resolvedVars.cidr.length;
-      // ModifyRule does not accept the empty value to update
-      // so the system should validate the cidr and if it is empty then
-      // replace the default ip "0.0.0.0/0"
-      if (cidrLen === 0) {
-        resolvedVars.cidr = ['0.0.0.0/0'];
-      }
       const params = {
         Conditions: [
           {
@@ -379,7 +372,12 @@ class ALBService extends Service {
       const response = await albClient.modifyRule(params).promise();
       return response;
     } catch (e) {
-      if (e.message) throw this.boom.unauthorized(`${e.message}`, true);
+      if (e.message) {
+        throw this.boom.unauthorized(
+            `Error 443 port CIDRs Blocks. Rule modify failed with message - ${e.message}`,
+            true,
+        );
+      }
       return e.message;
     }
   }

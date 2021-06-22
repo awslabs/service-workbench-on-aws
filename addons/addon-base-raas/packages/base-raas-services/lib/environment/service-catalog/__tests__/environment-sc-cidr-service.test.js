@@ -841,4 +841,32 @@ describe('EnvironmentScCidrService', () => {
       expect(service.authorizeSecurityGroupIngress).not.toHaveBeenCalled();
     });
   });
+
+  describe('modifyELBRule', () => {
+    it('should pass and return the product name and cloned update request', async () => {
+      const updateRequest = [
+        { protocol: 'tcp', fromPort: 22, toPort: 22, cidrBlocks: ['0.0.0.0/0'] },
+        { protocol: 'tcp', fromPort: 80, toPort: 80, cidrBlocks: ['0.0.0.0/0'] },
+        { protocol: 'tcp', fromPort: 443, toPort: 443, cidrBlocks: ['0.0.0.0/0', '223.226.19.63/32'] },
+      ];
+      const existingEnvironment = {
+        outputs: [
+          { OutputKey: 'MetaConnection1Type', OutputValue: 'RStudioV2' },
+          { OutputKey: 'ListenerRuleARN', OutputValue: 'ListenerRuleARN' },
+        ],
+      };
+      const responseObj = {
+        productName: 'RStudioV2',
+        cloneUpdateRequest: JSON.stringify(updateRequest),
+      };
+      const albService = {
+        modifyRule: jest.fn(),
+      };
+      albService.modifyRule = jest.fn().mockImplementation(() => {
+        return {};
+      });
+      const response = await service.modifyELBRule(existingEnvironment, updateRequest, albService, {});
+      expect(response).toEqual(responseObj);
+    });
+  });
 });
