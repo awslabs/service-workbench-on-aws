@@ -462,6 +462,65 @@ describe('ALBService', () => {
     });
   });
 
+  describe('modifyRule', () => {
+    it('should pass and return empty object with success', async () => {
+      service.getHostname = jest.fn(() => {
+        return 'rtsudio-test.example.com';
+      });
+      service.findAwsAccountDetails = jest.fn(() => {
+        return {
+          externalId: 'subnet-0a661d9f417ecff3f',
+        };
+      });
+      albClient.modifyRule = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return {};
+          },
+        };
+      });
+      service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
+      const response = await service.modifyRule({}, { cidr: [], projectId: '' });
+      expect(response).toEqual({});
+    });
+    it('should pass when user passed empty cidr value to modify rule', async () => {
+      // the system should validate and replace the default ip "0.0.0.0/0" and execute
+      albClient.modifyRule = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return {};
+          },
+        };
+      });
+      service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
+      await service.modifyRule({}, { cidr: [], projectId: '' });
+      expect(albClient.modifyRule).toHaveBeenCalled();
+    });
+  });
+
+  describe('describeRules', () => {
+    it('should pass and return empty object with success', async () => {
+      service.findAwsAccountDetails = jest.fn(() => {
+        return {
+          externalId: 'subnet-0a661d9f417ecff3f',
+        };
+      });
+      albClient.describeRules = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return {
+              Rules: [{ Conditions: [{ Field: 'source-ip', SourceIpConfig: { Values: ['1'] } }] }],
+            };
+          },
+        };
+      });
+      service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
+      const response = await service.describeRules({}, { cidr: [], projectId: '' });
+      expect(albClient.describeRules).toHaveBeenCalled();
+      expect(response).toEqual(['1']);
+    });
+  });
+
   describe('calculateRulePriority', () => {
     it('should fail when describe rule API call throws error', async () => {
       albClient.describeRules = jest.fn().mockImplementation(() => {
@@ -504,5 +563,5 @@ describe('ALBService', () => {
       const response = await service.calculateRulePriority({}, {}, '');
       expect(response).toEqual(3);
     });
-  });
+  });  
 });

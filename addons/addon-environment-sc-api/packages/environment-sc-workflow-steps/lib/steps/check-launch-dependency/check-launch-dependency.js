@@ -363,6 +363,23 @@ class CheckLaunchDependency extends StepBase {
   }
 
   /**
+   * Method to parse the stack deployment error
+   *
+   * @param requestContext
+   * @param resolvedVars
+   * @param stackId
+   * @returns {Promise<string>}
+   */
+  async getDeploymentError(requestContext, resolvedVars, stackId) {
+    const cfn = await this.getCloudFormationService(requestContext, resolvedVars);
+    const events = await cfn.describeStackEvents({ StackName: stackId }).promise();
+    const failReasons = events.StackEvents.filter(e => failureStatuses.includes(e.ResourceStatus)).map(
+      e => e.ResourceStatusReason || '',
+    );
+    return failReasons.join(' ');
+  }
+
+  /**
    * Method to resolve any variable expressions in the given key value pairs. The expressions may be in keys and/or values.
    *
    * @param keyValuePairs
@@ -404,7 +421,8 @@ class CheckLaunchDependency extends StepBase {
     if (_.includes(failureStatuses, stackInfo.StackStatus)) {
       // If provisioning failed then throw error, any unhandled workflow errors
       // are handled in "onFail" method
-      throw new Error(`ALB Stack operation failed with message: ${stackInfo.StackStatusReason} `);
+      const error = await this.getDeploymentError(requestContext, resolvedVars, stackId);
+      throw new Error(`ALB Stack operation failed with message: ${error}`);
     }
 
     if (_.includes(successStatuses, stackInfo.StackStatus)) {

@@ -347,6 +347,24 @@ class TerminateLaunchDependency extends StepBase {
   }
 
   /**
+   * Method to parse the stack deployment error
+   *
+   * @param requestContext
+   * @param projectId
+   * @param externalId
+   * @param stackId
+   * @returns {Promise<string>}
+   */
+  async getDeploymentError(requestContext, projectId, externalId, stackId) {
+    const cfn = await this.getCloudFormationService(requestContext, projectId, externalId);
+    const events = await cfn.describeStackEvents({ StackName: stackId }).promise();
+    const failReasons = events.StackEvents.filter(e => failureStatuses.includes(e.ResourceStatus)).map(
+      e => e.ResourceStatusReason || '',
+    );
+    return failReasons.join(' ');
+  }
+
+  /**
    * A method to decide when to resume the workflow.
    * This method checks for the status of the ALB being terminated and returns true when the
    * stack has completed successfully. If the stack encountered any errors, the method throws an
@@ -367,7 +385,8 @@ class TerminateLaunchDependency extends StepBase {
     if (_.includes(failureStatuses, stackInfo.StackStatus)) {
       // If termination failed then throw error, any unhandled workflow errors
       // are handled in "onFail" method
-      throw new Error(`ALB Stack termination failed with message: ${stackInfo.StackStatusReason}`);
+      const error = await this.getDeploymentError(requestContext, projectId, externalId, stackId);
+      throw new Error(`ALB Stack termination failed with message: ${error}`);
     }
 
     if (_.includes(successStatuses, stackInfo.StackStatus)) {
