@@ -484,8 +484,14 @@ Resources:
               - !GetAtt [DsAccountsDb, Arn]
               - !GetAtt [RoleAllocationsDb, Arn]
               - !GetAtt [ResourceUsagesDb, Arn]
-              - !GetAtt [EgressStoreDb, Arn]
-              - !Join ['', [!GetAtt [EgressStoreDb, Arn], '/index/*']]
+              - !If
+                - EnableEgressStore
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEgressStore}'
+                - !Ref 'AWS::NoValue'
+              - !If
+                - EnableEgressStore
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEgressStore}/index/*'
+                - !Ref 'AWS::NoValue'
           - Effect: Allow
             Action:
               - ssm:GetParameter
@@ -508,7 +514,10 @@ Resources:
               - 'arn:aws:s3:::${self:custom.settings.environmentsBootstrapBucketName}/*'
               - 'arn:aws:s3:::${self:custom.settings.externalCfnTemplatesBucketName}/*'
               - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}/*'
-              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}/*'
+              - !If
+                - EnableEgressStore
+                - !Sub 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}/*'
+                - !Ref 'AWS::NoValue'
           - Effect: Allow
             Action:
               - s3:ListBucket
@@ -633,8 +642,14 @@ Resources:
               - !GetAtt [DsAccountsDb, Arn]
               - !GetAtt [RoleAllocationsDb, Arn]
               - !GetAtt [ResourceUsagesDb, Arn]
-              - !GetAtt [EgressStoreDb, Arn]
-              - !Join ['', [!GetAtt [EgressStoreDb, Arn], '/index/*']]
+              - !If
+                - EnableEgressStore
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEgressStore}'
+                - !Ref 'AWS::NoValue'
+              - !If
+                - EnableEgressStore
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEgressStore}/index/*'
+                - !Ref 'AWS::NoValue'
           - Effect: Allow
             Action:
               - ssm:GetParameter
@@ -749,7 +764,10 @@ Resources:
               - kms:PutKeyPolicy
             Resource:
               - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
-              - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.egressStoreKmsKeyAlias}'
+              - !If
+                - EnableEgressStore
+                - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.egressStoreKmsKeyAlias}'
+                - !Ref 'AWS::NoValue'
 
   # IAM Role for the workflowLoopRunner Function
   RoleWorkflowLoopRunner:
