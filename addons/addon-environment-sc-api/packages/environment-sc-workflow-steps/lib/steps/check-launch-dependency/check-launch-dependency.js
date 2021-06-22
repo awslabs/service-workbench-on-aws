@@ -88,10 +88,10 @@ class CheckLaunchDependency extends StepBase {
     const projectId = resolvedVars.projectId;
     const awsAccountId = await albService.findAwsAccountId(requestContext, projectId);
     // Locking the ALB provisioing to avoid race condiitons on parallel provisioning.
-    // expiresIn is set to 10 minutes. attemptsCount is set to 600 to retry after 1 seconds for 10 minutes
+    // expiresIn is set to 10 minutes. attemptsCount is set to 1200 to retry after 1 seconds for 20 minutes
     const lock = await lockService.tryWriteLock(
-      { id: `alb-update-${awsAccountId}`, expiresIn: 600 },
-      { attemptsCount: 600 },
+      { id: `alb-update-${awsAccountId}`, expiresIn: 1200 },
+      { attemptsCount: 1200 },
     );
     this.print({
       msg: `obtained lock - ${lock}`,
@@ -159,8 +159,13 @@ class CheckLaunchDependency extends StepBase {
         projectId,
       );
       // Create Stack
-      // eslint-disable-next-line no-return-await
-      return await this.deployStack(requestContext, resolvedVars, stackInput);
+      // Added additional check if lock exists before staring deployment
+      const [albLock] = await Promise.all([this.state.optionalString('ALB_LOCK')]);
+      if (albLock) {
+        // eslint-disable-next-line no-return-await
+        return await this.deployStack(requestContext, resolvedVars, stackInput);
+      }
+      throw new Error(`Error provisioning environment. Reason: ALB lock does not exist or expired`);
     }
     return null;
   }
@@ -180,10 +185,10 @@ class CheckLaunchDependency extends StepBase {
     this.state.setKey('STACK_ID', response.StackId);
     return (
       this.wait(5) // check every 5 seconds
-        // keep doing it for 1*1296000 seconds = 15 days
+        // keep doing it for 1*1200 seconds = 20 minutes
         // IMPORTANT: if you change the maxAttempts below or the wait check period of 5 seconds above
         // then make sure to adjust the error message in "reportTimeout" accordingly
-        .maxAttempts(1296000)
+        .maxAttempts(1200)
         .until('shouldResumeWorkflow')
         .thenCall('onSuccessfulCompletion')
         .otherwiseCall('reportTimeout')
@@ -199,10 +204,11 @@ class CheckLaunchDependency extends StepBase {
    * @returns {Promise<>}
    */
   async handleStackCompletion(stackOutputs) {
-    const [requestContext, resolvedVars, stackId] = await Promise.all([
+    const [requestContext, resolvedVars, stackId, albLock] = await Promise.all([
       this.payloadOrConfig.object(inPayloadKeys.requestContext),
       this.payloadOrConfig.object(inPayloadKeys.resolvedVars),
       this.state.string('STACK_ID'),
+      this.state.string('ALB_LOCK'),
     ]);
     const projectId = resolvedVars.projectId;
     // Update ALB details to DB
@@ -216,7 +222,11 @@ class CheckLaunchDependency extends StepBase {
       albDnsName: _.get(stackOutputs, 'ALBDNSName', null),
       albDependentWorkspacesCount: 0,
     };
-    await albService.saveAlbDetails(awsAccountId, albDetails);
+    if (albLock) {
+      await albService.saveAlbDetails(awsAccountId, albDetails);
+    } else {
+      throw new Error(`Error provisioning environment. Reason: ALB lock does not exist or expired`);
+    }
     this.print({
       msg: `Dependency Details Updated Successfully`,
     });
@@ -457,7 +467,7 @@ class CheckLaunchDependency extends StepBase {
       });
     }
     throw new Error(
-      `Error provisioning environment "${envName}". The workflow timed-out because the ALB provisioing stack "${stackName}" did not complete within the timeout period of 15 days.`,
+      `Error provisioning environment "${envName}".The workflow timed - out because the ALB provisioing stack "${stackName}" did not complete within the timeout period of 15 days.`,
     );
   }
 
@@ -471,16 +481,18 @@ class CheckLaunchDependency extends StepBase {
     ]);
     const [albService, lockService] = await this.mustFindServices(['albService', 'lockService']);
     // Increase ALB dependent workspace count when there is a flag needs ALB
-    if (needsAlb) {
-      await albService.increaseAlbDependentWorkspaceCount(requestContext, resolvedVars.projectId);
+    if (albLock) {
+      if (needsAlb) {
+        await albService.increaseAlbDependentWorkspaceCount(requestContext, resolvedVars.projectId);
+      }
+    } else {
+      throw new Error(`Error provisioning environment. Reason: ALB lock does not exist or expired`);
     }
     // Release ALB lock if exists
-    if (albLock) {
-      await lockService.releaseWriteLock({ writeToken: albLock });
-      this.print({
-        msg: `ALB lock released successfully`,
-      });
-    }
+    await lockService.releaseWriteLock({ writeToken: albLock });
+    this.print({
+      msg: `ALB lock released successfully`,
+    });
   }
 
   /**

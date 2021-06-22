@@ -231,7 +231,12 @@ async function updateEnvOnProvisioningSuccess({
       const environmentDnsService = await container.find('environmentDnsService');
       await environmentDnsService.createRecord('rstudio', envId, dnsName);
       // Create a listener rule
-      const ruleARN = await albService.createListenerRule('rstudio', requestContext, resolvedVars, targetGroupArn);
+      const lockService = await container.find('lockService');
+      let ruleARN;
+      // Locking the rule creation for an ALB, so two rules wont have same priority
+      await lockService.tryWriteLockAndRun({ id: `alb-rule-${deploymentItem.id}` }, async () => {
+        ruleARN = await albService.createListenerRule('rstudio', requestContext, resolvedVars, targetGroupArn);
+      });
       // Save the Rule ARN as an output in DB
       const ruleRecord = {
         Description: 'ARN of the listener rule created by code',
