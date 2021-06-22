@@ -1362,46 +1362,6 @@ importers:
       pretty-quick: ^1.11.1
       source-map-support: ^0.5.16
       toposort: ^2.0.2
-  addons/addon-egress-store-stack-policy/packages/egress-store-stack-policy:
-    dependencies:
-      '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
-      '@aws-ee/base-services-container': 'link:../../../addon-base/packages/services-container'
-      aws-sdk: 2.847.0
-      lodash: 4.17.21
-    devDependencies:
-      '@aws-ee/base-api-handler': 'link:../../../addon-base-rest-api/packages/base-api-handler'
-      '@aws-ee/base-post-deployment': 'link:../../../addon-base-post-deployment/packages/base-post-deployment'
-      eslint: 6.8.0
-      eslint-config-airbnb-base: 14.2.1_dbc45251b359455fcdf3c36391f49b09
-      eslint-config-prettier: 6.15.0_eslint@6.8.0
-      eslint-import-resolver-node: 0.3.4
-      eslint-plugin-import: 2.22.1_eslint@6.8.0
-      eslint-plugin-jest: 22.21.0_eslint@6.8.0
-      eslint-plugin-prettier: 3.1.4_eslint@6.8.0+prettier@1.19.1
-      husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
-      prettier: 1.19.1
-      source-map-support: 0.5.19
-    specifiers:
-      '@aws-ee/base-api-handler': 'workspace:*'
-      '@aws-ee/base-post-deployment': 'workspace:*'
-      '@aws-ee/base-services': 'workspace:*'
-      '@aws-ee/base-services-container': 'workspace:*'
-      aws-sdk: ^2.647.0
-      eslint: ^6.8.0
-      eslint-config-airbnb-base: ^14.0.0
-      eslint-config-prettier: ^6.10.0
-      eslint-import-resolver-node: ^0.3.3
-      eslint-plugin-import: ^2.20.1
-      eslint-plugin-jest: ^22.21.0
-      eslint-plugin-prettier: ^3.1.2
-      husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
-      lodash: ^4.17.21
-      prettier: ^1.19.1
-      source-map-support: ^0.5.16
   addons/addon-environment-sc-api/packages/environment-sc-workflow-steps:
     dependencies:
       '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
@@ -1798,6 +1758,46 @@ importers:
       semantic-ui-react: ^0.88.2
   addons/addon-raas-s3-copy/packages/s3-synchronizer:
     specifiers: {}
+  addons/addon-stack-policy/packages/stack-policy:
+    dependencies:
+      '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
+      '@aws-ee/base-services-container': 'link:../../../addon-base/packages/services-container'
+      aws-sdk: 2.847.0
+      lodash: 4.17.21
+    devDependencies:
+      '@aws-ee/base-api-handler': 'link:../../../addon-base-rest-api/packages/base-api-handler'
+      '@aws-ee/base-post-deployment': 'link:../../../addon-base-post-deployment/packages/base-post-deployment'
+      eslint: 6.8.0
+      eslint-config-airbnb-base: 14.2.1_dbc45251b359455fcdf3c36391f49b09
+      eslint-config-prettier: 6.15.0_eslint@6.8.0
+      eslint-import-resolver-node: 0.3.4
+      eslint-plugin-import: 2.22.1_eslint@6.8.0
+      eslint-plugin-jest: 22.21.0_eslint@6.8.0
+      eslint-plugin-prettier: 3.1.4_eslint@6.8.0+prettier@1.19.1
+      husky: 3.1.0
+      jest: 24.9.0
+      jest-junit: 10.0.0
+      prettier: 1.19.1
+      source-map-support: 0.5.19
+    specifiers:
+      '@aws-ee/base-api-handler': 'workspace:*'
+      '@aws-ee/base-post-deployment': 'workspace:*'
+      '@aws-ee/base-services': 'workspace:*'
+      '@aws-ee/base-services-container': 'workspace:*'
+      aws-sdk: ^2.647.0
+      eslint: ^6.8.0
+      eslint-config-airbnb-base: ^14.0.0
+      eslint-config-prettier: ^6.10.0
+      eslint-import-resolver-node: ^0.3.3
+      eslint-plugin-import: ^2.20.1
+      eslint-plugin-jest: ^22.21.0
+      eslint-plugin-prettier: ^3.1.2
+      husky: ^3.1.0
+      jest: ^24.9.0
+      jest-junit: ^10.0.0
+      lodash: ^4.17.21
+      prettier: ^1.19.1
+      source-map-support: ^0.5.16
   addons/addon-user-id-upgrade/packages/user-id-upgrade-post-deployment:
     dependencies:
       '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
@@ -2203,7 +2203,7 @@ importers:
       '@aws-ee/base-workflow-core': 'link:../../../addons/addon-base-workflow/packages/base-workflow-core'
       '@aws-ee/base-workflow-steps': 'link:../../../addons/addon-base-workflow/packages/base-worklfow-steps'
       '@aws-ee/base-workflow-templates': 'link:../../../addons/addon-base-workflow/packages/base-workflow-templates'
-      '@aws-ee/cfn-stack-policy': 'link:../../../addons/addon-egress-store-stack-policy/packages/egress-store-stack-policy'
+      '@aws-ee/cfn-stack-policy': 'link:../../../addons/addon-stack-policy/packages/stack-policy'
       '@aws-ee/environment-sc-workflow-steps': 'link:../../../addons/addon-environment-sc-api/packages/environment-sc-workflow-steps'
       '@aws-ee/environment-sc-workflows': 'link:../../../addons/addon-environment-sc-api/packages/environment-sc-workflows'
       '@aws-ee/environment-type-mgmt-api': 'link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-api'
@@ -3823,8 +3823,8 @@ packages:
       '@babel/core': ^7.0.0-0
     resolution:
       integrity: sha512-uTWkXkIVtg/JGRSIABdBoMsoIeoHQHPTL0Y2E7xf5Oj7sLqwVsNXOkNk0VJc7vF0IMBsPeikHxFjGe+qmwPtTQ==
-  ? /@babel/plugin-transform-named-capturing-groups-regex/7.12.1_@babel+core@7.9.0
-  : dependencies:
+  /@babel/plugin-transform-named-capturing-groups-regex/7.12.1_@babel+core@7.9.0:
+    dependencies:
       '@babel/core': 7.9.0
       '@babel/helper-create-regexp-features-plugin': 7.12.7_@babel+core@7.9.0
     dev: true
@@ -5901,8 +5901,8 @@ packages:
     dev: true
     resolution:
       integrity: sha512-+iTbntw2IZPb/anVDbypzfQa+ay64MW0Zo8aJ8gZPWMMK6/OubMVb6lUPMagqjOPnmtauXnFCACVl3O7ogjeqQ==
-  ? /@stardust-ui/react-component-event-listener/0.38.0_react-dom@16.13.1+react@16.13.1
-  : dependencies:
+  /@stardust-ui/react-component-event-listener/0.38.0_react-dom@16.13.1+react@16.13.1:
+    dependencies:
       '@babel/runtime': 7.10.3
       prop-types: 15.7.2
       react: 16.13.1
@@ -5913,8 +5913,8 @@ packages:
       react-dom: ^16.8.0
     resolution:
       integrity: sha512-sIP/e0dyOrrlb8K7KWumfMxj/gAifswTBC4o68Aa+C/GA73ccRp/6W1VlHvF/dlOR4KLsA+5SKnhjH36xzPsWg==
-  ? /@stardust-ui/react-component-event-listener/0.38.0_react-dom@16.14.0+react@16.14.0
-  : dependencies:
+  /@stardust-ui/react-component-event-listener/0.38.0_react-dom@16.14.0+react@16.14.0:
+    dependencies:
       '@babel/runtime': 7.10.3
       prop-types: 15.7.2
       react: 16.14.0
@@ -6137,7 +6137,7 @@ packages:
   /@types/chalk/2.2.0:
     dependencies:
       chalk: 4.1.0
-    deprecated: "This is a stub types definition for chalk (https://github.com/chalk/chalk). chalk provides its own type definitions, so you don't need @types/chalk installed!"
+    deprecated: 'This is a stub types definition for chalk (https://github.com/chalk/chalk). chalk provides its own type definitions, so you don''t need @types/chalk installed!'
     dev: true
     resolution:
       integrity: sha512-1zzPV9FDe1I/WHhRkf9SNgqtRJWZqrBWgu7JGveuHmmyR9CnAPCie2N/x+iHrgnpYBIcCJWHBoMRv2TRWktsvw==
