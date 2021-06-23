@@ -103,6 +103,10 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
 
   MasterSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -262,11 +266,13 @@ Resources:
             yarn.nodemanager.vmem-check-enabled: false
         - Classification: spark-defaults
           ConfigurationProperties:
-            spark.hadoop.io.compression.codecs: 'org.apache.hadoop.io.compress.DefaultCodec,is.hail.io.compress.BGzipCodec,org.apache.hadoop.io.compress.GzipCodec'
+            spark.hadoop.io.compression.codecs: 'org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.GzipCodec'
             spark.serializer: 'org.apache.spark.serializer.KryoSerializer'
-            spark.hadoop.parquet.block.size: '1099511627776'
-            spark.sql.files.maxPartitionBytes: '1099511627776'
-            spark.sql.files.openCostInBytes: '1099511627776'
+            # Defaults picked from spark conf
+            # https://github.com/apache/spark/blob/878527d9fae8945d087ec871bb0a5f49b6341939/sql/catalyst/src/main/scala/org/apache/spark/sql/internal/SQLConf.scala#L1322-L1339
+            spark.hadoop.parquet.block.size: '134217728' # 128MB
+            spark.sql.files.maxPartitionBytes: '134217728' # 128 MB
+            spark.sql.files.openCostInBytes: '4194304' # 4 MB
           Configurations: []
       Instances:
         AdditionalMasterSecurityGroups:

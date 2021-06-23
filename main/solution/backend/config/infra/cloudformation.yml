@@ -227,6 +227,9 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: ${self:custom.settings.envTypeConfigsBucketName}
+      LoggingConfiguration:
+        DestinationBucketName: ${self:custom.settings.loggingBucketName}
+        LogFilePrefix: env-type-configs/
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
