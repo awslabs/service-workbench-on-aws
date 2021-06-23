@@ -50,7 +50,11 @@ append_role_to_credentials() {
 
 # Mount S3 buckets
 mounts="$(cat "$CONFIG")"
+echo "Mounts"
+echo $mounts
 num_mounts=$(printf "%s" "$mounts" | jq ". | length" -)
+echo "num_mounts"
+echo $num_mounts
 for ((study_idx=0; study_idx<$num_mounts; study_idx++))
 do
     # Parse bucket/key info
@@ -61,6 +65,7 @@ do
     kms_arn="$(printf "%s" "$mounts" | jq -r ".[$study_idx].kmsArn" -)"
 
     # Mount S3 location if not already mounted
+    region=`curl http://169.254.169.254/latest/meta-data/placement/availability-zone/ | sed 's/.$//'`
     study_dir="${MOUNT_DIR}/${study_id}"
     ps -U "$LOGNAME" -o "command" | egrep -q "goofys .* ${study_dir}$"
     if [ $? -ne 0 ]
@@ -69,7 +74,7 @@ do
         if [ "$s3_role_arn" == "null" ]
         then
             printf 'Mounting internal study "%s" at "%s"\n' "$study_id" "$study_dir"
-            goofys --acl "bucket-owner-full-control" "${s3_bucket}:${s3_prefix}" "$study_dir"
+            goofys --region $region --acl "bucket-owner-full-control" "${s3_bucket}:${s3_prefix}" "$study_dir"
         else
             # make .aws dir if it doesn't already exist and add credentials
             mkdir -p $AWS_CONFIG_DIR
@@ -78,12 +83,12 @@ do
             then
                 printf 'Mounting external study "%s" at "%s" using role "%s" \n' "$study_id" "$study_dir" \
                 "$s3_role_arn"
-                goofys --profile $study_id --acl "bucket-owner-full-control" \
+                goofys --region $region --profile $study_id --acl "bucket-owner-full-control" \
                 "${s3_bucket}:${s3_prefix}" "$study_dir"
             else
                 printf 'Mounting external study "%s" at "%s" using role "%s" and kms arn "%s" \n' "$study_id" "$study_dir" \
                 "$s3_role_arn" "$kms_arn"
-                goofys --profile $study_id --sse-kms $kms_arn --acl "bucket-owner-full-control" \
+                goofys --region $region --profile $study_id --sse-kms $kms_arn --acl "bucket-owner-full-control" \
                 "${s3_bucket}:${s3_prefix}" "$study_dir"
             fi
         fi

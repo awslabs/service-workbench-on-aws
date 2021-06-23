@@ -92,8 +92,9 @@ Parameters:
     Type: String
 
   AppStreamFleetType:
-    Description: The fleet type. Can be ALWAYS_ON or ON_DEMAND
+    Description: The fleet type
     Type: String
+    AllowedValues: [ALWAYS_ON, ON_DEMAND]
     Default: ON_DEMAND
 
 Metadata:
@@ -535,6 +536,7 @@ Resources:
               - 's3:DeleteObjectTagging'
               - 's3:DeleteObjectVersion'
               - 's3:DeleteObjectVersionTagging'
+              - 's3:ListBucket'   # Required in get_bootstrap.sh when running `aws s3 sync`
             Resource:
               - '*'
       RouteTableIds:

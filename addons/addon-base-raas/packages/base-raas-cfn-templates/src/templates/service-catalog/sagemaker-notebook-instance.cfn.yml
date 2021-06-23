@@ -36,13 +36,19 @@ Parameters:
   AutoStopIdleTimeInMinutes:
     Type: Number
     Description: Number of idle minutes for auto stop to shutdown the instance (0 to disable auto-stop)
-  EgressStoreIamPolicyDocument:
+#  EgressStoreIamPolicyDocument:
+#    Type: String
+#    Description: The IAM policy for launched workstation to access egress store
+  IsAppStreamEnabled:
     Type: String
-    Description: The IAM policy for launched workstation to access egress store
+    Description: Boolean for whether workspace should be accessed with AppStream
+    AllowedValues: [true, false]
+
 
 Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
-  EgressStoreIamPolicyEmpty: !Equals [!Ref EgressStoreIamPolicyDocument, '{}']
+#  EgressStoreIamPolicyEmpty: !Equals [!Ref EgressStoreIamPolicyDocument, '{}']
+  AppStreamEnabled: !Equals [!Ref IsAppStreamEnabled, 'true']
 
 Resources:
   SecurityGroup:
@@ -102,11 +108,11 @@ Resources:
           - !Ref 'AWS::NoValue'
           - PolicyName: !Join ['-', [Ref: Namespace, 's3-studydata-policy']]
             PolicyDocument: !Ref IamPolicyDocument
-        - !If
-          - EgressStoreIamPolicyEmpty
-          - !Ref 'AWS::NoValue'
-          - PolicyName: !Join ['-', [Ref: Namespace, 's3-egressstore-policy']]
-            PolicyDocument: !Ref EgressStoreIamPolicyDocument
+#        - !If
+#          - EgressStoreIamPolicyEmpty
+#          - !Ref 'AWS::NoValue'
+#          - PolicyName: !Join ['-', [Ref: Namespace, 's3-egressstore-policy']]
+#            PolicyDocument: !Ref EgressStoreIamPolicyDocument
         - PolicyName: !Join ['-', [Ref: Namespace, 's3-bootstrap-script-policy']]
           PolicyDocument:
             Version: '2012-10-17'
@@ -167,9 +173,15 @@ Resources:
       SubnetId: !Ref Subnet
       SecurityGroupIds:
         - !Ref SecurityGroup
+      DirectInternetAccess:
+        !If
+        - AppStreamEnabled
+        - Disabled
+        - Enabled
       LifecycleConfigName: !GetAtt BasicNotebookInstanceLifecycleConfig.NotebookInstanceLifecycleConfigName
       KmsKeyId: !Ref EncryptionKeyArn
 
+  #TODO: If AppStreamEnabled is false use different folder
   BasicNotebookInstanceLifecycleConfig:
     Type: 'AWS::SageMaker::NotebookInstanceLifecycleConfig'
     Properties:
@@ -180,12 +192,12 @@ Resources:
               # Download and execute bootstrap script
               aws s3 cp "${EnvironmentInstanceFiles}/get_bootstrap.sh" "/tmp"
               chmod 500 "/tmp/get_bootstrap.sh"
-              /tmp/get_bootstrap.sh "${EnvironmentInstanceFiles}" '${S3Mounts}'
+              /tmp/get_bootstrap.sh "${EnvironmentInstanceFiles}/app-stream" '${S3Mounts}'
 
               # Stop Idle Script
               if [ "${AutoStopIdleTimeInMinutes}" != "0" ]; then
                 echo "Fetching the autostop script"
-                curl -L -o /usr/local/bin/autostop.py https://raw.githubusercontent.com/aws-samples/amazon-sagemaker-notebook-instance-lifecycle-config-samples/master/scripts/auto-stop-idle/autostop.py
+                aws s3 cp "${EnvironmentInstanceFiles}/app-stream/autostop.py" "/usr/local/bin"
                 chmod a+x /usr/local/bin/autostop.py
                 IDLE_TIME=`expr ${AutoStopIdleTimeInMinutes} \* 60`
                 echo "Starting the SageMaker autostop script in cron"
