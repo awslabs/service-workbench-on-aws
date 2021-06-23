@@ -34,7 +34,7 @@ const settingKeys = {
 class EnvTypeCandidateService extends Service {
   constructor() {
     super();
-    this.dependency(['aws', 'authorizationService', 'envTypeService']);
+    this.dependency(['aws', 'authorizationService', 'envTypeService', 'deploymentStoreService']);
   }
 
   /**
@@ -269,6 +269,26 @@ class EnvTypeCandidateService extends Service {
       { extensionPoint: 'env-type-candidates-authz', action, conditions },
       ...args,
     );
+  }
+
+  /**
+   * A private utility method to find a portfolio id from the department store table
+   * @returns {Promise<string>}
+   */
+  async getPortfolioId() {
+    const [deploymentStore] = await this.service(['deploymentStoreService']);
+    let record = await deploymentStore.find({ type: 'default-sc-portfolio', id: 'default-SC-portfolio-1' });
+    if (!record) {
+      // The old code had type = 'post-deployment-step', due to this the DB may have record with old type value
+      record = await deploymentStore.find({ type: 'post-deployment-step', id: 'default-SC-portfolio-1' });
+    }
+    const { value } = record;
+    let portfolioId = '';
+    if (value) {
+      const valueData = JSON.parse(value);
+      portfolioId = valueData.portfolioId || '';
+    }
+    return portfolioId;
   }
 }
 module.exports = EnvTypeCandidateService;

@@ -297,6 +297,7 @@ Resources:
                   - s3:CreateBucket
                   - s3:PutBucketPublicAccessBlock
                   - s3:PutBucketTagging
+                  - s3:PutEncryptionConfiguration
                 Resource: 'arn:aws:s3:::sc-*-logbucket-*'
               - Effect: Allow
                 Action:

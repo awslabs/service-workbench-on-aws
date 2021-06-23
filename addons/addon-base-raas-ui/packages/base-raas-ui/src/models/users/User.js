@@ -102,6 +102,10 @@ const User = types
       return _.toLower(self.userType) === 'root';
     },
 
+    get isInternalAuthUser() {
+      return _.toLower(self.authenticationProviderId) === 'internal';
+    },
+
     get isActive() {
       return _.toLower(self.status) === 'active';
     },
