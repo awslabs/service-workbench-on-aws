@@ -176,7 +176,7 @@ class ALBService extends Service {
    */
   async findDeploymentItem({ id }) {
     const [deploymentStore] = await this.service(['deploymentStoreService']);
-    const deploymentItem = await deploymentStore.mustFind({ type: 'account-workspace-details', id });
+    const deploymentItem = await deploymentStore.find({ type: 'account-workspace-details', id });
     return deploymentItem;
   }
 
@@ -194,7 +194,7 @@ class ALBService extends Service {
     const deploymentItem = await this.getAlbDetails(requestContext, resolvedVars.projectId);
     const albRecord = JSON.parse(deploymentItem.value);
     const listenerArn = albRecord.listenerArn;
-    const priority = albRecord.albDependentWorkspacesCount + 1;
+    const priority = await this.calculateRulePriority(requestContext, resolvedVars, albRecord.listenerArn);
     const subdomain = this.getHostname(prefix, resolvedVars.envId);
     const params = {
       ListenerArn: listenerArn,
@@ -283,6 +283,34 @@ class ALBService extends Service {
     const result = await this.saveAlbDetails(deploymentItem.id, albRecord);
     await this.audit(requestContext, { action: 'update-deployment-store', body: result });
     return result;
+  }
+
+  /**
+   * Method to calculate the priority for the listener rule. The method gets the existing rules prirority
+   * and adds 1 to the maximum value
+   *
+   * @param requestContext
+   * @param resolvedVars
+   * @param listenerArn
+   * @returns {Promise<int>}
+   */
+  async calculateRulePriority(requestContext, resolvedVars, listenerArn) {
+    const params = {
+      ListenerArn: listenerArn,
+    };
+    const albClient = await this.getAlbSdk(requestContext, resolvedVars);
+    let response = null;
+    try {
+      response = await albClient.describeRules(params).promise();
+      const rules = response.Rules;
+      // Returns list of priorities, returns 0 for default rule
+      const priorities = _.map(rules, rule => {
+        return rule.IsDefault ? 0 : _.toInteger(rule.Priority);
+      });
+      return _.max(priorities) + 1;
+    } catch (err) {
+      throw new Error(`Error calculating rule priority. Rule describe failed with message - ${err.message}`);
+    }
   }
 
   /**
