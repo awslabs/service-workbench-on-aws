@@ -520,7 +520,7 @@ describe('ALBService', () => {
       expect(response).toEqual(['1']);
     });
   });
-  
+
   describe('calculateRulePriority', () => {
     it('should fail when describe rule API call throws error', async () => {
       albClient.describeRules = jest.fn().mockImplementation(() => {
