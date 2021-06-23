@@ -73,6 +73,11 @@ Resources:
             Action:
               - 'sts:AssumeRole'
             Resource: 'arn:aws:iam::*:role/swb-*'
+          - Effect: Allow
+            Action:
+              - sagemaker:DescribeNotebookInstance
+              - sagemaker:StopNotebookInstance
+            Resource: '*'
   IAMRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -175,7 +180,7 @@ Resources:
                 chmod a+x /usr/local/bin/autostop.py
                 IDLE_TIME=`expr ${AutoStopIdleTimeInMinutes} \* 60`
                 echo "Starting the SageMaker autostop script in cron"
-                (crontab -l 2>/dev/null; echo "5 * * * * /usr/bin/python /usr/local/bin/autostop.py --time $IDLE_TIME --ignore-connections") | crontab -
+                (crontab -l 2>/dev/null; echo "*/1 * * * * /usr/bin/python /usr/local/bin/autostop.py --time $IDLE_TIME --ignore-connections >> /var/log/autostop.log") | crontab -
               fi
 
 Outputs:

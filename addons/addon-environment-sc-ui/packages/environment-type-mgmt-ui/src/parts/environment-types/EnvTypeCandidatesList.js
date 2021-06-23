@@ -52,6 +52,10 @@ class EnvTypeCandidatesList extends Component {
     return this.props.envTypeCandidatesStore;
   }
 
+  get portfolioId() {
+    return this.props.envTypeCandidatesStore.portfolioId;
+  }
+
   render() {
     const store = this.envTypeCandidatesStore;
     let content;
@@ -111,11 +115,13 @@ class EnvTypeCandidatesList extends Component {
         </Header>
         <div>
           <Checkbox
+            className="version-label"
             toggle
             checked={this.showAllVersions}
             onClick={() => this.handleShowAllVersionsToggle()}
             label={this.showAllVersions ? 'All Versions' : 'Latest Versions'}
           />
+          {this.portfolioId && <div className="portfolio-id">Portfolio Id: {this.portfolioId}</div>}
         </div>
       </div>
     );

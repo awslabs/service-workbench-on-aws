@@ -33,7 +33,7 @@ envStatusPollHandler:
   description: Handles status polling for sc environments
   events:
     - schedule:
-        rate: rate(3 minutes)
+        rate: rate(1 minute)
         description: 'Invokes the lambda function that polls and synchronize environment status.'
   environment:
     APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}

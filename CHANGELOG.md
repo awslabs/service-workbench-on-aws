@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.2.0](https://github.com/awslabs/service-workbench-on-aws/compare/v3.1.0...v3.2.0) (2021-06-11)
+
+
+### Features
+
+* Add warning that internal authentication shouldn't be used in production ([#506](https://github.com/awslabs/service-workbench-on-aws/issues/506)) ([1586278](https://github.com/awslabs/service-workbench-on-aws/commit/15862785fb0ade825c251902bd13dea948833c19))
+* Encrypt s3 buckets for EMR log bucket and CICD Artifact bucket ([#508](https://github.com/awslabs/service-workbench-on-aws/issues/508)) ([e86fd06](https://github.com/awslabs/service-workbench-on-aws/commit/e86fd0668aa6971e09491ab090586ce825f51069))
+* study permissions only shown to Study Admin ([#501](https://github.com/awslabs/service-workbench-on-aws/issues/501)) ([f3eaae8](https://github.com/awslabs/service-workbench-on-aws/commit/f3eaae802c838b92fe95deea3dd4a3ac23c89d3b))
+
+
+### Bug Fixes
+
+* add termination status for non-found workspaces ([#502](https://github.com/awslabs/service-workbench-on-aws/issues/502)) ([8c30378](https://github.com/awslabs/service-workbench-on-aws/commit/8c30378dd25c02abd3bb3a250a68eccee3b7bca3))
+* adds 'stopped' filter for workspaces ([960b592](https://github.com/awslabs/service-workbench-on-aws/commit/960b592341b186f09da12307cca138fd0b4fde25))
+* Allow sagemaker to have the proper IAM permission to autostop itself ([#515](https://github.com/awslabs/service-workbench-on-aws/issues/515)) ([32007ed](https://github.com/awslabs/service-workbench-on-aws/commit/32007edb95ee411a0cc4a302c0af247e54d438a0))
+* Corrected Spark defaults to fix read/write functionality from Spark ([#526](https://github.com/awslabs/service-workbench-on-aws/issues/526)) ([f96e1bd](https://github.com/awslabs/service-workbench-on-aws/commit/f96e1bde4f535c79b81490888436c9dfb49045c9))
+* Do not allow users to change root password ([#503](https://github.com/awslabs/service-workbench-on-aws/issues/503)) ([a436f73](https://github.com/awslabs/service-workbench-on-aws/commit/a436f73bcbf8c9c23bed7ebaa11837ca13628ccb))
+* moved notification boxes to avoid blocking the top ribbon. ([#483](https://github.com/awslabs/service-workbench-on-aws/issues/483)) ([5a226d7](https://github.com/awslabs/service-workbench-on-aws/commit/5a226d7a46ccae2d9f741dbeffe24d78e8dad252))
+* react compilation error ([#500](https://github.com/awslabs/service-workbench-on-aws/issues/500)) ([547f2ad](https://github.com/awslabs/service-workbench-on-aws/commit/547f2ad9e1d3abfb61dfecc73268da541f243aad))
+* Redirect non admin users to "/" if they try to access "/users" ([#489](https://github.com/awslabs/service-workbench-on-aws/issues/489)) ([ee3a58e](https://github.com/awslabs/service-workbench-on-aws/commit/ee3a58e864f2f620358a34063afcbb02adde687c))
+
 ## [3.1.0](https://github.com/awslabs/service-workbench-on-aws/compare/v3.0.0...v3.1.0) (2021-05-10)
 
 ### Features

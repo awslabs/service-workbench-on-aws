@@ -227,6 +227,9 @@ Resources:
     Type: AWS::S3::Bucket
     Properties:
       BucketName: ${self:custom.settings.envTypeConfigsBucketName}
+      LoggingConfiguration:
+        DestinationBucketName: ${self:custom.settings.loggingBucketName}
+        LogFilePrefix: env-type-configs/
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
@@ -365,6 +368,7 @@ Resources:
               - !GetAtt [DsAccountsDb, Arn]
               - !GetAtt [RoleAllocationsDb, Arn]
               - !GetAtt [ResourceUsagesDb, Arn]
+              - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbDeploymentStore}'
           - Effect: Allow
             Action:
               - ssm:GetParameter
