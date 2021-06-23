@@ -598,5 +598,5 @@ describe('ALBService', () => {
       const response = await service.calculateRulePriority({}, {}, '');
       expect(response).toEqual(3);
     });
-  });   
+  });
 });
