@@ -9,6 +9,7 @@ provider:
   stackName: ${self:custom.settings.envName}-${self:service}
   deploymentBucket:
     name: ${self:custom.settings.deploymentBucketName}
+    serverSideEncryption: AES256
   stackTags: ${self:custom.tags}
   versionFunctions: false
   # All references beginning with ${self:*, ${opt:*, ${file:*, ${deep:*, and ${cf:* will be resolved by Serverless

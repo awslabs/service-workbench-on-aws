@@ -299,14 +299,18 @@ Resources:
               - ec2:DeleteSubnet
               - ec2:AssociateSubnetCidrBlock
               - ec2:DisassociateSubnetCidrBlock
-            Resource: '*'
+            Resource:
+              - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:vpc/*'
+              - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:subnet/*'
           - Effect: Allow
             Action:
               - ec2:CreateSecurityGroup
               - ec2:DeleteSecurityGroup
               - ec2:AuthorizeSecurityGroupIngress
               - ec2:RevokeSecurityGroupIngress
-            Resource: '*'
+            Resource:
+              - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:vpc/*'
+              - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:security-group/*'
           - Effect: Allow
             Action:
               - elasticloadbalancing:DescribeLoadBalancers
