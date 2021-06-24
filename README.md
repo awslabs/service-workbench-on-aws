@@ -64,7 +64,7 @@ Read the Service Workbench Deployment Guide provided in the installation. You ca
 npm install -g pnpm
 ```
 
-- **Go:** You also need to install [Go](https://golang.org/doc/install). `Go` is used for creating a multipart S3 downloader tool that is used in AWS Service Catalog EC2 Windows based research environments.
+- **Go:** You also need to install [Go 1.13.7](https://golang.org/doc/install) or later. `Go` is used for creating a multipart S3 downloader tool that is used in AWS Service Catalog EC2 Windows based research environments.
 
 For more information, refer to the **Prerequisites** section of the Service Workbench Deployment Guide.
 
@@ -157,7 +157,7 @@ cd -
 ```
 
 ---
-
+For more information, refer to *Service Workbench Installation Guide*.
 
 ## Using Service Workbench
 
@@ -165,6 +165,7 @@ cd -
 
 Once Service Workbench is fully deployed, the console will output the Website URL and Root Password for Service Workbench. You can log in by navigating to the Website URL in any browser, and then using the username 'root' and the Root Password given by the console. Please note that logging as the root user is highly discouraged, and should only be used for initial setup. You can create a new user by clicking the "Users" tab on the left, then "Add Local User". Follow the instructions given to create the user (you can leave the 'Project' field blank for now), then log out of the root account and into your new user account.
 
+Adding a local user should only be done in test environments. We highly recommend using an IDP for prod environments. For more details on how to set up an IDP, please click [here](/docs/docs/user_guide/sidebar/admin/auth/introduction.md)
 ## Linking an existing AWS account
 
 Once in your user account, you'll need to link your AWS account. Navigate to "AWS Accounts" in the left bar, then click the "AWS Accounts" tab. From here, you can create an AWS account, or link an existing one.

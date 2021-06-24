@@ -19,6 +19,7 @@ const uuid = require('uuid/v4');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { ensureCurrentUserOrAdmin } = require('../authorization/assertions');
 const { runAndCatch } = require('../helpers/utils');
+const { isSystem } = require('../authorization/authorization-utils');
 
 const settingKeys = {
   tableName: 'dbPasswords',
@@ -45,10 +46,27 @@ class DbPasswordService extends Service {
     }
   }
 
+  async saveRootPassword(requestContext, { password, uid }) {
+    const username = this.settings.get('rootUserName');
+    if (!isSystem(requestContext)) {
+      throw this.boom.badRequest("'root' password can only be changed by 'system' user", true);
+    }
+    await this.savePasswordHelper(username, password, uid);
+  }
+
   async savePassword(requestContext, { username, password, uid }) {
     // Allow only current user or admin to update (or create) the user's password
     await ensureCurrentUserOrAdmin(requestContext, { uid });
 
+    // Don't allow users to change root user's password
+    if (username === this.settings.get('rootUserName')) {
+      throw this.boom.badRequest("'root' password can not be changed", true);
+    }
+
+    await this.savePasswordHelper(username, password, uid);
+  }
+
+  async savePasswordHelper(username, password, uid) {
     const isValidPassword = await this.passwordMatchesPasswordPolicy(password);
     if (!isValidPassword) {
       throw this.boom.badRequest(

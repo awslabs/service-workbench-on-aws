@@ -1,9 +1,37 @@
 module.exports = {
   serviceWorkbenchSidebar: {
-    ServiceWorkBench: ["introduction"],
+    "Service Workbench Installation Guide": [
+      "installation_guide/overview",
+      "installation_guide/architecture",
+      "installation_guide/components",
+      {
+        "Pre-installation requirements": [
+          "installation_guide/installation/pre-installation/overview",
+          "installation_guide/installation/pre-installation/tool-req",
+          "installation_guide/installation/pre-installation/software-req",
+          "installation_guide/installation/pre-installation/instance-req",
+          "installation_guide/installation/pre-installation/conf-settings",
+          "installation_guide/installation/pre-installation/documentation",
+        ],
+      },
+      {
+        "Installing Service Workbench": [
+          "installation_guide/installation/ami-install",
+          "installation_guide/installation/ec2install",
+          "installation_guide/installation/cloud9install",
+        ],
+      },
+      {
+        "Upgrading Service Workbench": [
+          "installation_guide/upgrading/commandline",
+          "installation_guide/upgrading/solutions",
+        ],
+      },
+      "installation_guide/postupgrade",
+      "installation_guide/uninstall",
+      "installation_guide/troubleshooting",
+    ],
     "Deployment Guide": [
-      "deployment/about_this_guide",
-      "deployment/summary",
       "deployment/deployment_stages",
       {
         "Pre Deployment": [
