@@ -2,11 +2,11 @@ import React from 'react';
 import { decorate, computed, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
+import { Container, Icon, Message } from 'semantic-ui-react';
 
 import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import { isStoreReady, isStoreLoading, isStoreError, stopHeartbeat } from '@aws-ee/base-ui/dist/models/BaseStore';
+import { isStoreReady, isStoreLoading, isStoreError } from '@aws-ee/base-ui/dist/models/BaseStore';
 import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
-import ProgressPlaceHolder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 
 import AwsAccountUpdateContent from './AwsAccountUpdateContent';
 
@@ -14,7 +14,8 @@ import AwsAccountUpdateContent from './AwsAccountUpdateContent';
 // - accountId (via prop)
 // - awsAccountsStore (via injection)
 class AwsAccountUpdatePage extends React.Component {
-  componentDidMount() {
+  constructor(props) {
+    super(props);
     this.awsAccountUUID = (this.props.match.params || {}).id;
     const awsAccountsStore = this.awsAccountsStore;
     if (!isStoreReady(awsAccountsStore)) {
@@ -24,24 +25,12 @@ class AwsAccountUpdatePage extends React.Component {
     if (!isStoreReady(store)) {
       swallowError(store.load());
     }
-    console.log(store);
-    store.startHeartbeat();
-  }
-
-  componentWillUnmount() {
-    const store = this.getAccountStore();
-    stopHeartbeat(store);
   }
 
   get account() {
     const store = this.awsAccountsStore;
     return store.getAwsAccount(this.awsAccountUUID);
   }
-
-  // get awsAccountStore() {
-  //   const accountsStore = this.awsAccountsStore();
-  //   return accountsStore.getAwsAccountStore(this.awsAccountUUID);
-  // }
 
   get awsAccountsStore() {
     return this.props.awsAccountsStore;
@@ -60,7 +49,17 @@ class AwsAccountUpdatePage extends React.Component {
     if (isStoreError(store)) {
       content = <ErrorBox error={store.error} className="p0" />;
     } else if (isStoreLoading(store)) {
-      content = <ProgressPlaceHolder segmentCount={1} />;
+      content = (
+        <Container text className="pt4">
+          <Message icon>
+            <Icon name="circle notched" loading />
+            <Message.Content>
+              <Message.Header>Loading...</Message.Header>
+              Please wait a moment.
+            </Message.Content>
+          </Message>
+        </Container>
+      );
     } else if (isStoreReady(store)) {
       content = this.renderMain();
     } else {
@@ -85,7 +84,6 @@ class AwsAccountUpdatePage extends React.Component {
 decorate(AwsAccountUpdatePage, {
   account: computed,
   awsAccountsStore: computed,
-  // awsAccountStore: computed,
   getAccountStore: action,
 });
 
