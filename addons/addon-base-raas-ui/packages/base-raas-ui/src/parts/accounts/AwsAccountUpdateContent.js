@@ -47,7 +47,6 @@ class AwsAccountUpdateContent extends React.Component {
   constructor(props) {
     super(props);
     this.awsAccountUUID = (this.props.match.params || {}).id;
-    console.log(this.stackInfo);
     runInAction(() => {
       // We want to create a simple one button form
       const account = this.account || {};
@@ -97,9 +96,9 @@ class AwsAccountUpdateContent extends React.Component {
     this.goto('/accounts');
   }
 
-  handleGoBack() {
+  handleGoBack = () => {
     this.goBackToAccountsPage();
-  }
+  };
 
   render() {
     return (
@@ -208,7 +207,7 @@ class AwsAccountUpdateContent extends React.Component {
             <Message className="mr3 mt2 mb2">
               <Message.Header>Attention</Message.Header>
               <p>
-                Ensure that you are logged in to the aws account # <b>{accountId}</b> in the same region as the SWB
+                Ensure that you are logged in to AWS account #<b>{accountId}</b> in the same region as the SWB
                 deployment.
               </p>
             </Message>
@@ -229,8 +228,8 @@ class AwsAccountUpdateContent extends React.Component {
             </div>
           </List.Item>
           <List.Item>
-            While the stack is being provisioned, it is okay to navigate away from this page and come back to the Data
-            Source list page where you can test the connection once the stack is finished deploying.
+            While the stack is being provisioned, it is okay to navigate away from this page and come back to the AWS
+            Accounts list page where you can see the status of your account once the stack is finished deploying.
           </List.Item>
         </List>
       </div>
@@ -348,6 +347,7 @@ decorate(AwsAccountUpdateContent, {
   textSize: computed,
   form: observable,
   handleGoBack: action,
+  gotBackToAccountsPage: action,
 });
 
 export default withRouter(observer(AwsAccountUpdateContent));
