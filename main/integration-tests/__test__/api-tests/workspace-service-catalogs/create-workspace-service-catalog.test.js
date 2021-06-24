@@ -28,11 +28,24 @@ describe('Create workspace-service-catalog scenarios', () => {
   let setup;
   let adminSession;
   let productInfo;
+  let bucketName;
+  let accountId;
 
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
     productInfo = await createDefaultServiceCatalogProduct(setup);
+
+    // We register an account to be used by all the tests in this test suite
+    accountId = setup.gen.accountId();
+    await adminSession.resources.dataSources.accounts.create({ id: accountId });
+
+    // We register a bucket to be used by all the BYOB-related tests in this test suite
+    bucketName = setup.gen.string({ prefix: 'ds-study-test' });
+    await adminSession.resources.dataSources.accounts
+      .account(accountId)
+      .buckets()
+      .create({ name: bucketName });
   });
 
   afterAll(async () => {
@@ -164,6 +177,92 @@ describe('Create workspace-service-catalog scenarios', () => {
         envTypeId: workspaceTypeId,
         envTypeConfigId: configurationId,
       });
+    });
+  });
+  describe('Creating a workspace service catalog environment with studies', () => {
+    it('for EC2Linux', async () => {
+      // const researcher1Session = await setup.createResearcherSession();
+      // Things to do
+      // 1. Create user
+      const admin1Session = await setup.createAdminSession();
+      const username = setup.gen.username();
+      const defaultUser = admin1Session.resources.users.defaults({ username });
+      await expect(admin1Session.resources.users.create(defaultUser)).resolves.toMatchObject({
+        username,
+      });
+      // 2. Assign Project ID to user (assigned by default)
+
+      // 3. Create My Study, Org Study, Data Source study
+      const studyIds = [];
+      let studyId = setup.gen.string({ prefix: `create-study-ray-my-study` });
+      await expect(
+        admin1Session.resources.studies.create({ id: studyId, name: studyId, category: 'My Studies' }),
+      ).resolves.toEqual(
+        expect.objectContaining({
+          id: studyId,
+        }),
+      );
+      studyIds.push(studyId);
+
+      studyId = setup.gen.string({ prefix: `create-study-ray-org-study` });
+      await expect(
+        admin1Session.resources.studies.create({ id: studyId, name: studyId, category: 'Organization' }),
+      ).resolves.toEqual(
+        expect.objectContaining({
+          id: studyId,
+        }),
+      );
+      studyIds.push(studyId);
+
+      // 4. Create workspace with the above studies
+      const workspaceName = setup.gen.string({ prefix: 'workspace-sc-test' });
+
+      const env = await admin1Session.resources.workspaceServiceCatalogs.create({
+        name: workspaceName,
+        envTypeId: setup.defaults.envTypes.ec2Linux.envTypeId,
+        envTypeConfigId: setup.defaults.envTypes.ec2Linux.envTypeConfigId,
+        studyIds,
+        description: 'assignment',
+        projectId: setup.defaults.project.id,
+        cidr: '54.240.196.186/32',
+      });
+      expect(env).toEqual(
+        expect.objectContaining({
+          name: workspaceName,
+          envTypeId: setup.defaults.envTypes.ec2Linux.envTypeId,
+          envTypeConfigId: setup.defaults.envTypes.ec2Linux.envTypeConfigId,
+          studyIds,
+        }),
+      );
+
+      const workflows = await admin1Session.resources.workflows
+        .versions('wf-provision-environment-sc')
+        .version(1)
+        .instances()
+        .get();
+      let result;
+      for (const w of workflows) {
+        if (
+          w.input.envId === env.id &&
+          w.input.envTypeId === env.envTypeId &&
+          w.input.envTypeConfigId === env.envTypeConfigId
+        ) {
+          result = w;
+        }
+      }
+      while (result.wfStatus !== 'done' && result.wfStatus !== 'error') {
+        // look at retry logic
+        await new Promise(r => setTimeout(r, 1000 * 30));
+        const getPromises = await Promise.all([
+          admin1Session.resources.workflows
+            .versions('wf-provision-environment-sc')
+            .version(1)
+            .instances()
+            .instance(result.id)
+            .get(),
+        ]);
+        result = getPromises[0];
+      }
     });
   });
 });
