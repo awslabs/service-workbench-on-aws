@@ -23,8 +23,8 @@ async function configure(context) {
       const id = req.params.id;
       const requestContext = res.locals.requestContext;
       const [dataEgressService] = await context.service(['dataEgressService']);
-      const response = await dataEgressService.terminateEgressStore(requestContext, id);
-      res.status(200).json(response);
+      await dataEgressService.terminateEgressStore(requestContext, id);
+      res.status(200).json({});
     }),
   );
 
