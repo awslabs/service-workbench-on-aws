@@ -23,8 +23,10 @@ import {
   createAwsAccount,
   updateAwsAccount,
   getAllAccountsPermissionStatus,
+  getAccountPermissionCfnTemplate,
 } from '../../helpers/api';
 import { AwsAccount } from './AwsAccount';
+import { AwsAccountStore } from './AwsAccountStore';
 import { BudgetStore } from './BudgetStore';
 import Budget from './Budget';
 
@@ -52,6 +54,7 @@ const filters = {
 const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
   .props({
     awsAccounts: types.optional(types.map(AwsAccount), {}),
+    awsAccountStores: types.optional(types.map(AwsAccountStore), {}),
     budgetStores: types.optional(types.map(BudgetStore), {}),
     tickPeriod: 10 * 1000, // 10 sec
   })
@@ -109,6 +112,22 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
           entry = self.budgetStores.get(awsAccountUUID);
         }
         return entry;
+      },
+
+      getAwsAccountStore(accountId) {
+        let entry = self.awsAccountStores.get(accountId);
+        if (!entry) {
+          // Lazily create the store
+          self.awsAccountStores.set(accountId, AwsAccountStore.create({ accountId }));
+          entry = self.awsAccountStores.get(accountId);
+        }
+
+        return entry;
+      },
+
+      getPermissionsTemplate: async awsAccountUUID => {
+        const template = await getAccountPermissionCfnTemplate(awsAccountUUID);
+        return template;
       },
 
       addBudget: (awsAccountUUID, rawBudget) => {

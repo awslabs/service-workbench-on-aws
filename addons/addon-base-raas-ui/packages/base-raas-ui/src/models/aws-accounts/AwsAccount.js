@@ -16,6 +16,7 @@
 import _ from 'lodash';
 import { types } from 'mobx-state-tree';
 import Budget from './Budget';
+import { AwsStackInfo } from './AwsStackInfo';
 
 const states = [
   {
@@ -90,6 +91,7 @@ const AwsAccount = types
     updatedAt: '',
     updatedBy: '',
     budget: types.optional(Budget, {}),
+    stackInfo: types.optional(AwsStackInfo, {}),
   })
   .actions(self => ({
     setAwsAccounts(rawAwsAccounts) {
@@ -112,6 +114,10 @@ const AwsAccount = types
 
       // Can't use || for needsPermissionUpdate because the value is a Boolean
       // we don't update the other fields because they are being populated by a separate store
+    },
+
+    setStackInfo(stackInfo) {
+      self.stackInfo.setStackInfo(stackInfo);
     },
   }))
 

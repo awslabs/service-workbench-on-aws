@@ -16,15 +16,15 @@
 import { getParent } from 'mobx-state-tree';
 import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
 
-import { getScEnvironment } from '../../helpers/api';
+import { getAccountPermissionCfnTemplate } from '../../helpers/api';
 
 // ==================================================================
-// ScEnvironmentStore
+// AwsAccountStore
 // ==================================================================
-const ScEnvironmentStore = BaseStore.named('ScEnvironmentStore')
+const AwsAccountStore = BaseStore.named('AwsAccountStore')
   .props({
-    envId: '',
-    tickPeriod: 30 * 1000, // 30 seconds
+    accountId: '',
+    tickPeriod: 2 * 60 * 1000, // 2 minutes
   })
 
   .actions(self => {
@@ -33,26 +33,32 @@ const ScEnvironmentStore = BaseStore.named('ScEnvironmentStore')
 
     return {
       async doLoad() {
-        const parent = getParent(self, 2);
-        const rawEnv = await getScEnvironment(self.envId);
-        parent.addScEnvironment(rawEnv);
+        const account = self.account;
+        const stackInfo = await getAccountPermissionCfnTemplate(self.accountId);
+        account.setStackInfo({ id: account.id, template: stackInfo });
       },
 
       cleanup: () => {
+        self.accountId = '';
         superCleanup();
       },
     };
   })
 
   .views(self => ({
-    get scEnvironment() {
+    get account() {
       const parent = getParent(self, 2);
-      const w = parent.getScEnvironment(self.envId);
-      return w;
+      const a = parent.getAwsAccount(self.accountId);
+      return a;
+    },
+
+    get stackInfo() {
+      const account = self.account;
+      return account.stackInfo;
     },
   }));
 
 // Note: Do NOT register this in the global context, if you want to gain access to an instance
-//       use scEnvironmentsStore.getScEnvironmentStore()
+//       use AwsAccountsStore.getAwsAccountStore()
 // eslint-disable-next-line import/prefer-default-export
-export { ScEnvironmentStore };
+export { AwsAccountStore };
