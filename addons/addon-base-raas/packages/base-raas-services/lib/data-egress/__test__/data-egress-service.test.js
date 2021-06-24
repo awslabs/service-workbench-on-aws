@@ -25,7 +25,7 @@ jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
 const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
 const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
 const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
-const DBService = require('@aws-ee/base-services/lib/db-service');
+const DbServiceMock = require('@aws-ee/base-services/lib/db-service');
 const AuditWriterService = require('@aws-ee/base-services/lib/audit/audit-writer-service');
 const S3Service = require('@aws-ee/base-services/lib/s3-service');
 const LockService = require('@aws-ee/base-services/lib/lock/lock-service');
@@ -39,6 +39,8 @@ describe('DataEgressService', () => {
   let aws;
   let environmentScService;
   let s3Service;
+  let lockService;
+  let dbService;
 
   const testS3PolicyFn = () => {
     return {
@@ -80,7 +82,7 @@ describe('DataEgressService', () => {
     container = new ServicesContainer();
     container.register('aws', new AwsService());
     container.register('jsonSchemaValidationService', new JsonSchemaValidationService());
-    container.register('dbService', new DBService());
+    container.register('dbService', new DbServiceMock());
     container.register('auditWriterService', new AuditWriterService());
     container.register('settings', new SettingsServiceMock());
     container.register('s3Service', new S3Service());
@@ -96,6 +98,8 @@ describe('DataEgressService', () => {
     environmentScService = await dataEgressService.service('environmentScService');
     environmentScService.getMemberAccount = jest.fn().mockResolvedValue({ accountId: 'test-accountId' });
     s3Service = await container.find('s3Service');
+    lockService = await container.find('lockService');
+    dbService = await dataEgressService.service('dbService');
   });
 
   afterEach(() => {
@@ -173,7 +177,7 @@ describe('DataEgressService', () => {
         },
       };
 
-      s3Service.createFolder = jest.fn(() => {
+      s3Service.createPath = jest.fn(() => {
         throw new Error();
       });
       const requestContext = {};
@@ -269,14 +273,20 @@ describe('DataEgressService', () => {
         expect(params).toMatchObject({
           KeyId: 'test-egressStoreKmsKeyAliasArn',
         });
-        callback(null, { KeyMetadata: { Arn: 'test-arn' } });
+        callback(null, {
+          KeyMetadata: {
+            Arn: 'test-arn',
+          },
+        });
       });
 
       AWSMock.mock('S3', 'getBucketPolicy', (params, callback) => {
         expect(params).toMatchObject({
           Bucket: 'test-egressStoreBucketName',
         });
-        callback(null, { Policy: JSON.stringify(s3Policy) });
+        callback(null, {
+          Policy: JSON.stringify(s3Policy),
+        });
       });
 
       const putBucketPolicyMock = jest.fn((params, callback) => {
@@ -285,11 +295,156 @@ describe('DataEgressService', () => {
         });
         callback(null, {});
       });
+      // Mock locking so that the putBucketPolicy actually gets called
+      lockService.tryWriteLockAndRun = jest.fn((_params, callback) => callback());
       AWSMock.mock('S3', 'putBucketPolicy', putBucketPolicyMock);
 
       const result = await dataEgressService.createEgressStore(requestContext, rawEnvironment);
       expect(putBucketPolicyMock).toHaveBeenCalledTimes(1);
       expect(result).toStrictEqual(mockEgressStoreInfo);
+    });
+  });
+  describe('delete Egress Store', () => {
+    it('should fail deleting egress store without enable egress store feature', async () => {
+      dataEgressService._settings = {
+        get: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return false;
+          }
+          return undefined;
+        },
+      };
+      const requestContext = {};
+      await expect(dataEgressService.terminateEgressStore(requestContext, 'test-id')).rejects.toThrow(
+        // It is better to check using boom.code instead of just the actual string, unless
+        // there are a few errors with the exact same boom code but different messages.
+        // Note: if you encounter a case where a service is throwing exceptions with the
+        // same code but different messages (to address different scenarios), you might
+        // want to suggest to the service author to use different codes.
+        expect.objectContaining({ boom: true, code: 'forbidden', safe: true }),
+      );
+    });
+
+    it('should fail delete egress store with scanning the DDB table', async () => {
+      dataEgressService._settings = {
+        get: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return true;
+          }
+          if (settingName === 'egressStoreKmsKeyAliasArn') {
+            return 'test-egressStoreKmsKeyAliasArn';
+          }
+          if (settingName === 'egressStoreBucketName') {
+            return 'test-egressStoreBucketName';
+          }
+          return undefined;
+        },
+      };
+
+      dbService.table.scan.mockImplementationOnce(() => {
+        throw new Error();
+      });
+      const requestContext = {};
+      const envId = 'test-id';
+
+      await expect(dataEgressService.terminateEgressStore(requestContext, envId)).rejects.toThrow(
+        // It is better to check using boom.code instead of just the actual string, unless
+        // there are a few errors with the exact same boom code but different messages.
+        // Note: if you encounter a case where a service is throwing exceptions with the
+        // same code but different messages (to address different scenarios), you might
+        // want to suggest to the service author to use different codes.
+        expect.objectContaining({ boom: true, code: 'notFound', safe: true }),
+      );
+    });
+
+    it('should fail delete egress store while egress store is in PROCESSING status', async () => {
+      dataEgressService._settings = {
+        get: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return true;
+          }
+          if (settingName === 'egressStoreKmsKeyAliasArn') {
+            return 'test-egressStoreKmsKeyAliasArn';
+          }
+          if (settingName === 'egressStoreBucketName') {
+            return 'test-egressStoreBucketName';
+          }
+          return undefined;
+        },
+      };
+
+      dbService.table.scan.mockResolvedValue([
+        {
+          status: 'PROCESSING',
+          workspaceId: 'test-workspace-id',
+          s3BucketName: 'test-s3BucketName',
+          s3BucketPath: 'test-s3BucketPath',
+          id: 'test-egress-store-id',
+        },
+      ]);
+      const requestContext = {};
+      const envId = 'test-workspace-id';
+
+      await expect(dataEgressService.terminateEgressStore(requestContext, envId)).rejects.toThrow(
+        // It is better to check using boom.code instead of just the actual string, unless
+        // there are a few errors with the exact same boom code but different messages.
+        // Note: if you encounter a case where a service is throwing exceptions with the
+        // same code but different messages (to address different scenarios), you might
+        // want to suggest to the service author to use different codes.
+        expect.objectContaining({ boom: true, code: 'forbidden', safe: true }),
+      );
+    });
+
+    it('should success delete egress store while egress store is not in PROCESSING status', async () => {
+      const s3Policy = testS3PolicyFn();
+      dataEgressService._settings = {
+        get: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return true;
+          }
+          if (settingName === 'egressStoreKmsKeyAliasArn') {
+            return 'test-egressStoreKmsKeyAliasArn';
+          }
+          if (settingName === 'egressStoreBucketName') {
+            return 'test-egressStoreBucketName';
+          }
+          return undefined;
+        },
+      };
+
+      dbService.table.scan.mockResolvedValue([
+        {
+          status: 'PROCESSED',
+          workspaceId: 'test-workspace-id',
+          s3BucketName: 'test-s3BucketName',
+          s3BucketPath: 'test-s3BucketPath',
+          id: 'test-egress-store-id',
+        },
+      ]);
+      const requestContext = {};
+      const envId = 'test-workspace-id';
+
+      AWSMock.mock('S3', 'getBucketPolicy', (params, callback) => {
+        expect(params).toMatchObject({
+          Bucket: 'test-egressStoreBucketName',
+        });
+        callback(null, {
+          Policy: JSON.stringify(s3Policy),
+        });
+      });
+
+      const putBucketPolicyMock = jest.fn((params, callback) => {
+        expect(params).toMatchObject({
+          Bucket: 'test-egressStoreBucketName',
+        });
+        callback(null, {});
+      });
+      // Mock locking so that the putBucketPolicy actually gets called
+      lockService.tryWriteLockAndRun = jest.fn((_params, callback) => callback());
+      AWSMock.mock('S3', 'putBucketPolicy', putBucketPolicyMock);
+
+      await dataEgressService.terminateEgressStore(requestContext, envId);
+      expect(putBucketPolicyMock).toHaveBeenCalledTimes(1);
     });
   });
 });

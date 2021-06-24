@@ -177,12 +177,36 @@ class S3Service extends Service {
       .promise();
   }
 
-  async createFolder(bucketName, folderName) {
+  async createPath(bucketName, folderName) {
     const params = {
       Bucket: bucketName,
       Key: folderName,
     };
     return this.api.putObject(params).promise();
+  }
+
+  async clearPath(bucketName, dir) {
+    const listParams = {
+      Bucket: bucketName,
+      Prefix: dir,
+    };
+
+    const listedObjects = await this.api.listObjectsV2(listParams).promise();
+
+    if (listedObjects.Contents.length === 0) return;
+
+    const deleteParams = {
+      Bucket: bucketName,
+      Delete: { Objects: [] },
+    };
+
+    listedObjects.Contents.forEach(({ Key }) => {
+      deleteParams.Delete.Objects.push({ Key });
+    });
+
+    await this.api.deleteObjects(deleteParams).promise();
+
+    if (listedObjects.IsTruncated) await this.clearPath(bucketName, dir);
   }
 }
 

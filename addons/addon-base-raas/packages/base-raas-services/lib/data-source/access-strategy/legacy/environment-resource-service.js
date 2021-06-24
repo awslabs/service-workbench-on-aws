@@ -22,10 +22,9 @@ const {
   getStatementParamsFn,
   listStatementParamsFn,
   putStatementParamsFn,
-  addEmptyPrincipalIfNotPresent,
-  getRootArnForAccount,
   addAccountToStatement,
   getRevisedS3Statements,
+  removeAccountFromStatement,
 } = require('../../../helpers/utils');
 
 const { parseS3Arn } = require('../../../helpers/s3-arn');
@@ -291,7 +290,7 @@ class EnvironmentResourceService extends Service {
           study,
           s3BucketName,
           statementParamFunctions,
-          oldStatement => this.removeAccountFromStatement(oldStatement, memberAccountId),
+          oldStatement => removeAccountFromStatement(oldStatement, memberAccountId),
         );
         return revisedStatementsPerStudy;
       }),
@@ -315,7 +314,7 @@ class EnvironmentResourceService extends Service {
   // @private
   async removeFromKmsKeyPolicy(requestContext, memberAccountId) {
     await this.updateKMSPolicy(environmentStatement =>
-      this.removeAccountFromStatement(environmentStatement, memberAccountId),
+      removeAccountFromStatement(environmentStatement, memberAccountId),
     );
 
     // Write audit event
@@ -373,18 +372,6 @@ class EnvironmentResourceService extends Service {
       })
       .filter(study => study.prefix && study.bucket === s3BucketName);
     return filteredStudies;
-  }
-
-  // @private
-  removeAccountFromStatement(oldStatement, memberAccountId) {
-    const principal = getRootArnForAccount(memberAccountId);
-    const statement = addEmptyPrincipalIfNotPresent(oldStatement);
-    if (Array.isArray(statement.Principal.AWS)) {
-      statement.Principal.AWS = statement.Principal.AWS.filter(oldPrincipal => oldPrincipal !== principal);
-    } else if (statement.Principal.AWS === principal) {
-      statement.Principal.AWS = [];
-    }
-    return statement;
   }
 
   // @private

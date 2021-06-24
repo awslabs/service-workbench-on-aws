@@ -11,10 +11,12 @@ import {
   startScEnvironment,
   stopScEnvironment,
   updateScEnvironmentCidrs,
+  deleteEgressStore,
 } from '../../helpers/api';
 import { ScEnvironment } from './ScEnvironment';
 import { ScEnvironmentStore } from './ScEnvironmentStore';
 import { ScEnvConnectionStore } from './ScEnvConnectionStore';
+import { enableEgressStore } from '../../helpers/settings';
 
 const filterNames = {
   ALL: 'all',
@@ -90,6 +92,9 @@ const ScEnvironmentsStore = BaseStore.named('ScEnvironmentsStore')
       },
 
       async terminateScEnvironment(id) {
+        if (enableEgressStore) {
+          await deleteEgressStore(id);
+        }
         await deleteScEnvironment(id);
         const env = self.getScEnvironment(id);
         if (!env) return;
