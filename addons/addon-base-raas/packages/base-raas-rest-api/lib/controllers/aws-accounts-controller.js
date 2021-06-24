@@ -23,6 +23,7 @@ async function configure(context) {
   const awsAccountsService = await context.service('awsAccountsService');
   const awsCfnService = await context.service('awsCfnService');
   const accountService = await context.service('accountService');
+  const cfnTemplateService = await context.service('cfnTemplateService');
 
   // ===============================================================
   //  GET / (mounted to /api/aws-accounts)
@@ -45,6 +46,18 @@ async function configure(context) {
     wrap(async (req, res) => {
       const requestContext = res.locals.requestContext;
       const result = await awsCfnService.batchCheckAccountPermissions(requestContext);
+      res.status(200).json(result);
+    }),
+  );
+
+  // ===============================================================
+  //  GET /:id/get-template (mounted to /api/aws-accounts)
+  // ===============================================================
+  router.get(
+    '/:id/get-template',
+    wrap(async (req, res) => {
+      // This will be implemented fully to incorporate the account-specific differences later
+      const result = await cfnTemplateService.getTemplate('onboard-account');
       res.status(200).json(result);
     }),
   );
