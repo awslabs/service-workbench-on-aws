@@ -50,11 +50,7 @@ append_role_to_credentials() {
 
 # Mount S3 buckets
 mounts="$(cat "$CONFIG")"
-echo "Mounts"
-echo $mounts
 num_mounts=$(printf "%s" "$mounts" | jq ". | length" -)
-echo "num_mounts"
-echo $num_mounts
 for ((study_idx=0; study_idx<$num_mounts; study_idx++))
 do
     # Parse bucket/key info

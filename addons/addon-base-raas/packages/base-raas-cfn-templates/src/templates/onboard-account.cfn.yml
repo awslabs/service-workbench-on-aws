@@ -578,6 +578,27 @@ Resources:
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ec2'
       VpcId: !Ref VPC
 
+  CfnEndpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Condition: isAppStream
+    Properties:
+      SubnetIds:
+        - !Ref PrivateWorkspaceSubnet
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.cloudformation"
+      VpcId: !Ref VPC
+      SecurityGroupIds:
+        - !Ref CfnEndpointSecurityGroup
+
+  CfnEndpointSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: isAppStream
+    Properties:
+      GroupDescription: 'CFN Security Group for interface endpoint'
+      GroupName: 'CFN-SG'
+      VpcId: !Ref VPC
+
     # https://docs.aws.amazon.com/sagemaker/latest/dg/notebook-interface-endpoint.html
   SagemakerNotebookEndpoint:
     Type: 'AWS::EC2::VPCEndpoint'
@@ -736,4 +757,17 @@ Outputs:
     Condition: isAppStream
     Value: !Ref AppStreamStack
 
+  CFNEndpointSG:
+    Description: Security group of CFN endpoint
+    Condition: isAppStream
+    Value: !Ref CfnEndpointSecurityGroup
+    Export:
+      Name: CfnEndpointSecurityGroup #Consider adding namespace as unique identifier
+
+  VPCDefaultSG:
+    Description: Default SG for VPC
+    Condition: isAppStream
+    Value: !GetAtt VPC.DefaultSecurityGroup
+    Export:
+      Name: SwbVPCDefaultSG   #Consider adding namespace as unique identifier
 

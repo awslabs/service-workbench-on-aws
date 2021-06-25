@@ -75,22 +75,27 @@ case "$(env_type)" in
         ;;
     "sagemaker") # Update config and restart Jupyter
         echo "Installing JQ"
-        sudo yum localinstall -y "${FILES_DIR}/offline-packages/sagemaker/jq-1.5-1.2.amzn1.x86_64.rpm"
+#        sudo yum localinstall -y "${FILES_DIR}/offline-packages/sagemaker/jq-1.5-1.2.amzn1.x86_64.rpm"
+        sudo mv "${FILES_DIR}/offline-packages/jq-1.5-linux64" "/usr/local/bin/jq"
+        chmod +x "/usr/local/bin/jq"
+        echo "Finish installing jq"
         ;;
     "ec2-linux") # Add mount script to bash profile
+        echo "Installing ec2-instance-connect"
+        sudo yum localinstall -y "${FILES_DIR}/offline-packages/ec2-linux/ec2-instance-connect-1.1-14.amzn2.noarch.rpm"
+        echo "Finish installing ec2-instance-connect"
+        echo "Installing jq"
+        sudo mv "${FILES_DIR}/offline-packages/jq-1.5-linux64" "/usr/local/bin/jq"
+        chmod +x "/usr/local/bin/jq"
+        echo "Finish installing jq"
         ;;
     "rstudio") # Add mount script to bash profile
         ;;
 esac
 
-#yum install -y jq-1.5    #TODO How to install package locally
-
 echo "Copying Goofys from bootstrap.sh"
 cp "${FILES_DIR}/goofys" /usr/local/bin/goofys
 chmod +x "/usr/local/bin/goofys"
-
-# Install ec2 instance connect agent
-#sudo yum install ec2-instance-connect-1.1   #TODO How to install package locally
 
 # Create S3 mount script and config file
 echo "Mounting S3"
@@ -115,7 +120,9 @@ case "$(env_type)" in
         initctl restart jupyter-server --no-wait
         ;;
     "ec2-linux") # Add mount script to bash profile
-        yum install -y fuse-2.9.2  #TODO How to install package locally
+        echo "Installing fuse"
+        sudo yum localinstall -y "${FILES_DIR}/offline-packages/ec2-linux/fuse-2.9.2-11.amzn2.x86_64.rpm"
+        echo "Finish installing fuse"
         printf "\n# Mount S3 study data\nmount_s3.sh\n\n" >> "/home/ec2-user/.bash_profile"
         ;;
     "rstudio") # Add mount script to bash profile
