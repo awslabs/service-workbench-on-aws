@@ -2103,26 +2103,6 @@ paths:
         '200':
           description: 'Return success update message'
   
-  /api/data-egress/{workspaceId}:
-    delete:
-      tags:
-        - admins
-        - researchers
-        - internal-guests
-      summary: remove egress store associated with specified workspace
-      opertionId: deleteEgressStore
-      description: |
-        Remove specified egress store, remove all objects in specified S3 path and update record in DynamoDb
-      parameters:
-        - name: workspaceId
-        in: path
-        required: true
-        schema:
-          $ref: '#/components/schemas/WorkspaceId'
-      responses: 
-        '200':
-          description: Information regarding to the deletion success or fail
-        
 components:
   securitySchemes:
     bearerAuth:
