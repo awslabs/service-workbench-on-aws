@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.3.0](https://github.com/awslabs/service-workbench-on-aws/compare/v3.2.0...v3.3.0) (2021-06-25)
+
+### Documentation
+
+* Service Workbench installation guide ([#545](https://github.com/awslabs/service-workbench-on-aws/issues/545)) ([2be27d1](https://github.com/awslabs/service-workbench-on-aws/commit/2be27d16da5a4c0405648b220a548415eed47ef7))
 ## [3.2.0](https://github.com/awslabs/service-workbench-on-aws/compare/v3.1.0...v3.2.0) (2021-06-11)
 
 
