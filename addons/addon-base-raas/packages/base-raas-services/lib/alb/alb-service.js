@@ -83,6 +83,7 @@ class ALBService extends Service {
    */
   async getStackCreationInput(requestContext, resolvedVars, resolvedInputParams, projectId) {
     const awsAccountDetails = await this.findAwsAccountDetails(requestContext, projectId);
+    const subnet2 = await this.findSubnet2(requestContext, resolvedVars, awsAccountDetails.vpcId);
     const [cfnTemplateService] = await this.service(['cfnTemplateService']);
     const [template] = await Promise.all([cfnTemplateService.getTemplate('application-load-balancer')]);
     const cfnParams = [];
@@ -91,6 +92,7 @@ class ALBService extends Service {
     const addParam = (key, v) => cfnParams.push({ ParameterKey: key, ParameterValue: v });
     addParam('Namespace', resolvedVars.namespace);
     addParam('Subnet1', awsAccountDetails.subnetId);
+    addParam('Subnet2', subnet2);
     addParam('ACMSSLCertARN', certificateArn.Value);
     addParam('VPC', awsAccountDetails.vpcId);
 
@@ -323,6 +325,56 @@ class ALBService extends Service {
   getHostname(prefix, id) {
     const domainName = this.settings.get(settingKeys.domainName);
     return `${prefix}-${id}.${domainName}`;
+  }
+
+  /**
+   * Method to get the EC2 SDK client for the target aws account
+   *
+   * @param requestContext
+   * @param resolvedVars
+   * @param vpcId
+   * @returns {Promise<string>}
+   */
+  async findSubnet2(requestContext, resolvedVars, vpcId) {
+    const params = {
+      Filters: [
+        {
+          Name: 'vpc-id',
+          Values: [vpcId],
+        },
+        {
+          Name: 'tag:aws:cloudformation:logical-id',
+          Values: ['PublicSubnet2'],
+        },
+      ],
+    };
+    const ec2Client = await this.getEc2Sdk(requestContext, resolvedVars);
+    const response = await ec2Client.describeSubnets(params).promise();
+    const subnetId = _.get(response.Subnets[0], 'SubnetId', null);
+    if (!subnetId) {
+      throw new Error(`Error provisioning environment. Reason: Subnet2 not found for the VPC - ${vpcId}`);
+    }
+    return subnetId;
+  }
+
+  /**
+   * Method to get the EC2 SDK client for the target aws account
+   *
+   * @param requestContext
+   * @param resolvedVars
+   * @returns {Promise<>}
+   */
+  async getEc2Sdk(requestContext, resolvedVars) {
+    const [aws] = await this.service(['aws']);
+    const roleArn = await this.getTargetAccountRoleArn(requestContext, resolvedVars.projectId);
+    const externalId = resolvedVars.externalId;
+    const ec2Client = await aws.getClientSdkForRole({
+      roleArn,
+      clientName: 'EC2',
+      options: { apiVersion: '2015-12-10' },
+      externalId,
+    });
+    return ec2Client;
   }
 
   /**
