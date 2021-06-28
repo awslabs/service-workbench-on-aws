@@ -131,10 +131,6 @@ class EnvironmentConfigVarsService extends Service {
         desc: 'The IAM policy for launched workstation to access egress store',
       },
       {
-        name: 'isAppStreamEnabled',
-        desc: 'Boolean for whether workspace should be accessed with AppStream',
-      },
-      {
         name: 'environmentInstanceFiles',
         desc:
           'An S3 URI (starting with "s3://") that specifies the location of files to be copied to the environment ' +
@@ -300,9 +296,6 @@ class EnvironmentConfigVarsService extends Service {
     if (enableEgressStore) {
       result.egressStoreIamPolicyDocument = JSON.stringify(egressStoreIamPolicyDocument);
     }
-
-    // TODO: Pull SolutionNamespace from config
-    result.SolutionNamespace = '';
 
     return result;
   }

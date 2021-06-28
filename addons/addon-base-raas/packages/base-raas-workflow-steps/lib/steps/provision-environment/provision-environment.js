@@ -141,6 +141,15 @@ class ProvisionEnvironment extends StepBase {
       addParam('AmiId', amiImage);
       addParam('KeyName', keyName);
     }
+
+    if (type === 'ec2-windows' || type === 'ec2-linux') {
+      addParam('SolutionNamespace', this.settings.get('solutionNamespace'));
+    }
+
+    if (type === 'sagemaker') {
+      addParam('IsAppStreamEnabled', this.settings.get('isAppStreamEnabled').toString());
+    }
+
     const cidr = await this.payload.string('cidr');
     addParam('AccessFromCIDRBlock', cidr);
 

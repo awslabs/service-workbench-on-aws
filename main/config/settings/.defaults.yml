@@ -179,3 +179,6 @@ versionDate: '2021-05-11'
 
 # Metadata provided with AWS SDK calls
 customUserAgent: 'AwsLabs/SO0144/${self:custom.settings.versionNumber}'
+
+# Determine whether workspace should be accessible only through AppStream
+isAppStreamEnabled: false
