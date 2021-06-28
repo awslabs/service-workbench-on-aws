@@ -35,13 +35,7 @@ const AwsAccountStore = BaseStore.named('AwsAccountStore')
       async doLoad() {
         const account = self.account;
         const stackInfo = await getAccountPermissionCfnTemplate(self.accountId);
-        const stackObj = {
-          id: account.id,
-          name: account.cfnStackName,
-          accountId: account.accoundId,
-          template: stackInfo,
-        };
-        account.setStackInfo(stackObj);
+        account.setStackInfo(stackInfo);
       },
 
       cleanup: () => {

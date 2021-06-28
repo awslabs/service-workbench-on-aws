@@ -154,6 +154,7 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         res.permissionStatus = awsAccount.permissionStatus;
         res.encryptionKeyArn = awsAccount.encryptionKeyArn;
         res.cfnStackName = awsAccount.cfnStackName;
+        res.cfnStackId = awsAccount.cfnStackId;
         res.updatedAt = awsAccount.updatedAt;
         result.push(res);
       });
