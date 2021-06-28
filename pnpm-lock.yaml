@@ -1758,6 +1758,46 @@ importers:
       semantic-ui-react: ^0.88.2
   addons/addon-raas-s3-copy/packages/s3-synchronizer:
     specifiers: {}
+  addons/addon-stack-policy/packages/stack-policy:
+    dependencies:
+      '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
+      '@aws-ee/base-services-container': 'link:../../../addon-base/packages/services-container'
+      aws-sdk: 2.847.0
+      lodash: 4.17.21
+    devDependencies:
+      '@aws-ee/base-api-handler': 'link:../../../addon-base-rest-api/packages/base-api-handler'
+      '@aws-ee/base-post-deployment': 'link:../../../addon-base-post-deployment/packages/base-post-deployment'
+      eslint: 6.8.0
+      eslint-config-airbnb-base: 14.2.1_dbc45251b359455fcdf3c36391f49b09
+      eslint-config-prettier: 6.15.0_eslint@6.8.0
+      eslint-import-resolver-node: 0.3.4
+      eslint-plugin-import: 2.22.1_eslint@6.8.0
+      eslint-plugin-jest: 22.21.0_eslint@6.8.0
+      eslint-plugin-prettier: 3.1.4_eslint@6.8.0+prettier@1.19.1
+      husky: 3.1.0
+      jest: 24.9.0
+      jest-junit: 10.0.0
+      prettier: 1.19.1
+      source-map-support: 0.5.19
+    specifiers:
+      '@aws-ee/base-api-handler': 'workspace:*'
+      '@aws-ee/base-post-deployment': 'workspace:*'
+      '@aws-ee/base-services': 'workspace:*'
+      '@aws-ee/base-services-container': 'workspace:*'
+      aws-sdk: ^2.647.0
+      eslint: ^6.8.0
+      eslint-config-airbnb-base: ^14.0.0
+      eslint-config-prettier: ^6.10.0
+      eslint-import-resolver-node: ^0.3.3
+      eslint-plugin-import: ^2.20.1
+      eslint-plugin-jest: ^22.21.0
+      eslint-plugin-prettier: ^3.1.2
+      husky: ^3.1.0
+      jest: ^24.9.0
+      jest-junit: ^10.0.0
+      lodash: ^4.17.21
+      prettier: ^1.19.1
+      source-map-support: ^0.5.16
   addons/addon-user-id-upgrade/packages/user-id-upgrade-post-deployment:
     dependencies:
       '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
@@ -2163,6 +2203,7 @@ importers:
       '@aws-ee/base-workflow-core': 'link:../../../addons/addon-base-workflow/packages/base-workflow-core'
       '@aws-ee/base-workflow-steps': 'link:../../../addons/addon-base-workflow/packages/base-worklfow-steps'
       '@aws-ee/base-workflow-templates': 'link:../../../addons/addon-base-workflow/packages/base-workflow-templates'
+      '@aws-ee/cfn-stack-policy': 'link:../../../addons/addon-stack-policy/packages/stack-policy'
       '@aws-ee/environment-sc-workflow-steps': 'link:../../../addons/addon-environment-sc-api/packages/environment-sc-workflow-steps'
       '@aws-ee/environment-sc-workflows': 'link:../../../addons/addon-environment-sc-api/packages/environment-sc-workflows'
       '@aws-ee/environment-type-mgmt-api': 'link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-api'
@@ -2213,6 +2254,7 @@ importers:
       '@aws-ee/base-workflow-core': 'workspace:*'
       '@aws-ee/base-workflow-steps': 'workspace:*'
       '@aws-ee/base-workflow-templates': 'workspace:*'
+      '@aws-ee/cfn-stack-policy': 'workspace:*'
       '@aws-ee/environment-sc-workflow-steps': 'workspace:*'
       '@aws-ee/environment-sc-workflows': 'workspace:*'
       '@aws-ee/environment-type-mgmt-api': 'workspace:*'
@@ -5258,7 +5300,7 @@ packages:
       integrity: sha512-YHlVIjP5nfEyjlrSr8t/YdNfU/1XEt7c5b4OxcXCjyRhjzLYu/rO69/WHPuYcbCWkz8kAeZVZp2N2+IOLLEPGw==
   /@jest/transform/24.9.0:
     dependencies:
-      '@babel/core': 7.9.0
+      '@babel/core': 7.12.9
       '@jest/types': 24.9.0
       babel-plugin-istanbul: 5.2.0
       chalk: 2.4.2
@@ -14922,7 +14964,7 @@ packages:
       integrity: sha512-llnc8vQgYcNqDrqRDXWwMr9i7rS5XFiCwvh6DTP7Jqa2mqpcCBBlpCbn+trkG0KNhPu/h8rzyBkriOtBstvWhw==
   /jest-message-util/24.9.0:
     dependencies:
-      '@babel/code-frame': 7.10.4
+      '@babel/code-frame': 7.12.11
       '@jest/test-result': 24.9.0
       '@jest/types': 24.9.0
       '@types/stack-utils': 1.0.1
@@ -23016,10 +23058,12 @@ packages:
     resolution:
       integrity: sha1-Zyj8BFnEUNeWqZwxg3VpvfZy1yg=
   /uuid/3.3.2:
+    deprecated: 'Please upgrade  to version 7 or higher.  Older versions may use Math.random() in certain circumstances, which is known to be problematic.  See https://v8.dev/blog/math-random for details.'
     hasBin: true
     resolution:
       integrity: sha512-yXJmeNaw3DnnKAOKJE51sL/ZaYfWJRl1pK9dr19YFCu0ObS231AB1/LbqTKRAQ5kw8A90rA6fr4riOUpTZvQZA==
   /uuid/3.4.0:
+    deprecated: 'Please upgrade  to version 7 or higher.  Older versions may use Math.random() in certain circumstances, which is known to be problematic.  See https://v8.dev/blog/math-random for details.'
     hasBin: true
     resolution:
       integrity: sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==
