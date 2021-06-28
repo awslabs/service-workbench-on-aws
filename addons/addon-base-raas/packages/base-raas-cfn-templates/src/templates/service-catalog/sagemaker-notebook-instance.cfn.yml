@@ -192,12 +192,12 @@ Resources:
               # Download and execute bootstrap script
               aws s3 cp "${EnvironmentInstanceFiles}/get_bootstrap.sh" "/tmp"
               chmod 500 "/tmp/get_bootstrap.sh"
-              /tmp/get_bootstrap.sh "${EnvironmentInstanceFiles}/app-stream" '${S3Mounts}'
+              /tmp/get_bootstrap.sh "${EnvironmentInstanceFiles}" '${S3Mounts}'
 
               # Stop Idle Script
               if [ "${AutoStopIdleTimeInMinutes}" != "0" ]; then
                 echo "Fetching the autostop script"
-                aws s3 cp "${EnvironmentInstanceFiles}/app-stream/autostop.py" "/usr/local/bin"
+                aws s3 cp "${EnvironmentInstanceFiles}/autostop.py" "/usr/local/bin"
                 chmod a+x /usr/local/bin/autostop.py
                 IDLE_TIME=`expr ${AutoStopIdleTimeInMinutes} \* 60`
                 echo "Starting the SageMaker autostop script in cron"

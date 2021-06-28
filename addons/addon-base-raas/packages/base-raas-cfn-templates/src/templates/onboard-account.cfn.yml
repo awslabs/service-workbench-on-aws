@@ -762,12 +762,11 @@ Outputs:
     Condition: isAppStream
     Value: !Ref CfnEndpointSecurityGroup
     Export:
-      Name: CfnEndpointSecurityGroup #Consider adding namespace as unique identifier
+      Name: !Join ['', [Ref: Namespace, '-CfnEndpointSecurityGroup']]
 
   VPCDefaultSG:
     Description: Default SG for VPC
     Condition: isAppStream
     Value: !GetAtt VPC.DefaultSecurityGroup
     Export:
-      Name: SwbVPCDefaultSG   #Consider adding namespace as unique identifier
-
+      Name: !Join ['', [Ref: Namespace, '-SwbVPCDefaultSG']]
