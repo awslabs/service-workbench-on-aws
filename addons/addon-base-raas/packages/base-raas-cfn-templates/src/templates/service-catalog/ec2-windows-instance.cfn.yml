@@ -61,13 +61,13 @@ Parameters:
     Type: Number
     Description: Duration in seconds after which to stop the recurring downloads. Value of -1 means keep doing the recurring downloads (sync) indefinitely.
     Default: 30
-#  EgressStoreIamPolicyDocument:
-#    Type: String
-#    Description: The IAM policy for launched workstation to access egress store
+  EgressStoreIamPolicyDocument:
+    Type: String
+    Description: The IAM policy for launched workstation to access egress store
 
 Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
-#  EgressStoreIamPolicyEmpty: !Equals [!Ref EgressStoreIamPolicyDocument, '{}']
+  EgressStoreIamPolicyEmpty: !Equals [!Ref EgressStoreIamPolicyDocument, '{}']
 
 Resources:
   InstanceRolePermissionBoundary:
@@ -110,11 +110,11 @@ Resources:
           - !Ref 'AWS::NoValue'
           - PolicyName: !Join ['-', [Ref: Namespace, 's3-studydata-policy']]
             PolicyDocument: !Ref IamPolicyDocument
-#        - !If
-#          - EgressStoreIamPolicyEmpty
-#          - !Ref 'AWS::NoValue'
-#          - PolicyName: !Join ['-', [Ref: Namespace, 's3-egressstore-policy']]
-#            PolicyDocument: !Ref EgressStoreIamPolicyDocument
+        - !If
+          - EgressStoreIamPolicyEmpty
+          - !Ref 'AWS::NoValue'
+          - PolicyName: !Join ['-', [Ref: Namespace, 's3-egressstore-policy']]
+            PolicyDocument: !Ref EgressStoreIamPolicyDocument
         - PolicyName: !Join ['-', [Ref: Namespace, 's3-bootstrap-script-policy']]
           PolicyDocument:
             Version: '2012-10-17'

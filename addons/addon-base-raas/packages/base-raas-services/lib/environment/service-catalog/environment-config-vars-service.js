@@ -286,7 +286,7 @@ class EnvironmentConfigVarsService extends Service {
 
       s3Mounts: JSON.stringify(s3Mounts),
       iamPolicyDocument: JSON.stringify(iamPolicyDocument),
-      environmentInstanceFiles: this.settings.get(settingKeys.environmentInstanceFiles), // TODO: If isAppStreamEnabled add /app-stream suffix
+      environmentInstanceFiles: this.settings.get(settingKeys.environmentInstanceFiles),
       // s3Prefixes // This variable is no longer relevant it is being removed, the assumption is that
       // this variable has not been used in any of the product templates.
 
@@ -300,8 +300,9 @@ class EnvironmentConfigVarsService extends Service {
     if (enableEgressStore) {
       result.egressStoreIamPolicyDocument = JSON.stringify(egressStoreIamPolicyDocument);
     }
-    // TODO: Pull isAppStreamEnabled from config
-    result.isAppStreamEnabled = false;
+
+    // TODO: Pull SolutionNamespace from config
+    result.SolutionNamespace = '';
 
     return result;
   }
