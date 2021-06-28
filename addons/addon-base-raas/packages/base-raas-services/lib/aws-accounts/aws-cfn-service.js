@@ -15,6 +15,7 @@
 
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
+const crypto = require('crypto');
 // const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
@@ -27,6 +28,60 @@ const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const settingKeys = {
   awsRegion: 'awsRegion',
+  envBootstrapBucket: 'envBootstrapBucketName',
+  apiHandlerRoleArn: 'apiHandlerArn',
+  workflowLoopRunnerRoleArn: 'workflowRoleArn',
+  swbMainAccount: 'mainAcct',
+  stage: 'envName',
+};
+
+const getCreateStackUrl = (cfnTemplateInfo, createParams) => {
+  // see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-create-stacks-quick-create-links.html
+  const { name, region, signedUrl } = cfnTemplateInfo;
+  const { apiHandlerRoleArn, workflowLoopRunnerRoleArn, mainAcct, externalId, namespace } = createParams;
+  const url = [
+    `https://console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/create/review/`,
+    `?templateURL=${encodeURIComponent(signedUrl)}`,
+    `&stackName=${name}`,
+    `&param_Namespace=${namespace}`,
+    `&param_CentralAccountId=${mainAcct}`,
+    `&param_ExternalId=${externalId}`,
+    `&param_ApiHandlerArn=${apiHandlerRoleArn}`,
+    `&param_WorkflowRoleArn=${workflowLoopRunnerRoleArn}`,
+  ].join('');
+
+  // This one takes us directly to the review stage but will require that we access the cloudformation console first
+  // const url = [
+  //   `https://console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/create/review/`,
+  //   `?templateURL=${encodeURIComponent(signedUrl)}`,
+  //   `&stackName=${name}`,
+  // ].join('');
+
+  // This takes us to the create new page:
+  // `https://console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/new`,
+  // Note that this doesn't populate parameters correctly
+
+  return url;
+};
+
+const getUpdateStackUrl = cfnTemplateInfo => {
+  const { stackId, region, signedUrl } = cfnTemplateInfo;
+
+  if (_.isEmpty(stackId)) return undefined;
+
+  const url = [
+    `https://console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/update/template`,
+    `?stackId=${encodeURIComponent(stackId)}`,
+    `&templateURL=${encodeURIComponent(signedUrl)}`,
+  ].join('');
+
+  return url;
+};
+
+const getCfnHomeUrl = cfnTemplateInfo => {
+  const { region } = cfnTemplateInfo;
+
+  return `https://console.aws.amazon.com/cloudformation/home?region=${region}`;
 };
 
 class AwsCfnService extends Service {
@@ -40,6 +95,7 @@ class AwsCfnService extends Service {
       'auditWriterService',
       'cfnTemplateService',
       'awsAccountsService',
+      's3Service',
     ]);
   }
 
@@ -77,6 +133,65 @@ class AwsCfnService extends Service {
     const permissionsTemplateRaw = await cfnApi.getTemplate(params).promise();
 
     return permissionsTemplateRaw.TemplateBody;
+  }
+
+  // This will need to be wrapped into aws-accounts-service once edit functionality is merged
+  async getAndUploadTemplateForAccount(requestContext, accountId) {
+    await this.assertAuthorized(
+      requestContext,
+      { action: 'get-upload-cfn-template', conditions: [allowIfActive, allowIfAdmin] },
+      { accountId },
+    );
+    const cfnTemplateInfo = {};
+    const createParams = {};
+
+    const awsAccountsService = await this.service('awsAccountsService');
+    const cfnTemplateService = await this.service('cfnTemplateService');
+    const s3Service = await this.service('s3Service');
+
+    const account = await awsAccountsService.mustFind(requestContext, { id: accountId });
+    cfnTemplateInfo.template = await cfnTemplateService.getTemplate('onboard-account');
+    cfnTemplateInfo.region = this.settings.get(settingKeys.awsRegion);
+    cfnTemplateInfo.name = account.cfnStackName;
+    cfnTemplateInfo.accountId = account.accountId;
+    cfnTemplateInfo.stackId = account.cfnStackId;
+
+    createParams.mainAcct = this.settings.get(settingKeys.swbMainAccount);
+    createParams.apiHandlerRoleArn = this.settings.get(settingKeys.apiHandlerRoleArn);
+    createParams.workflowLoopRunnerRoleArn = this.settings.get(settingKeys.workflowLoopRunnerRoleArn);
+    createParams.externalId = 'workbench';
+    createParams.namespace = this.settings.get(settingKeys.stage);
+
+    // The id of the template is actually the hash of the of the content of the template
+    const hash = crypto.createHash('sha256');
+    hash.update(cfnTemplateInfo.template);
+    cfnTemplateInfo.id = hash.digest('hex');
+
+    // Upload to S3
+    const bucket = this.settings.get(settingKeys.envBootstrapBucket);
+    const key = `aws-accounts/acct-${account.id}/cfn/region/${cfnTemplateInfo.region}/${cfnTemplateInfo.id}.yml`;
+    await s3Service.api
+      .putObject({
+        Body: cfnTemplateInfo.template,
+        Bucket: bucket,
+        Key: key,
+      })
+      .promise();
+
+    // Sign the url
+    // expireSeconds: 604800 /* seven days */, if we need 7 days, we need to use a real IAM user credentials.
+    const expireSeconds = 12 * 60 * 60; // 12 hours
+    const request = { files: [{ key, bucket }], expireSeconds };
+    const urls = await s3Service.sign(request);
+    const signedUrl = urls[0].signedUrl;
+
+    cfnTemplateInfo.urlExpiry = Date.now() + expireSeconds * 1000;
+    cfnTemplateInfo.signedUrl = signedUrl;
+    cfnTemplateInfo.createStackUrl = getCreateStackUrl(cfnTemplateInfo, createParams);
+    cfnTemplateInfo.updateStackUrl = getUpdateStackUrl(cfnTemplateInfo);
+    cfnTemplateInfo.cfnConsoleUrl = getCfnHomeUrl(cfnTemplateInfo);
+
+    return cfnTemplateInfo;
   }
 
   async checkAccountPermissions(requestContext, accountId) {

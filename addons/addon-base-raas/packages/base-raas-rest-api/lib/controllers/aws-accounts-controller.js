@@ -23,7 +23,6 @@ async function configure(context) {
   const awsAccountsService = await context.service('awsAccountsService');
   const awsCfnService = await context.service('awsCfnService');
   const accountService = await context.service('accountService');
-  const cfnTemplateService = await context.service('cfnTemplateService');
 
   // ===============================================================
   //  GET / (mounted to /api/aws-accounts)
@@ -56,8 +55,9 @@ async function configure(context) {
   router.get(
     '/:id/get-template',
     wrap(async (req, res) => {
-      // This will be implemented fully to incorporate the account-specific differences later
-      const result = await cfnTemplateService.getTemplate('onboard-account');
+      const id = req.params.id;
+      const requestContext = res.locals.requestContext;
+      const result = await awsCfnService.getAndUploadTemplateForAccount(requestContext, id);
       res.status(200).json(result);
     }),
   );

@@ -183,14 +183,9 @@ class AccountCard extends React.Component {
                         <Table.Cell>{account[entry]}</Table.Cell>
                       </Table.Row>
                     ))}
-                    <Table.Row key="cfnStackName">
-                      <Table.Cell>Cloudformation Stack Name</Table.Cell>
-                      <Table.Cell>
-                        {account.cfnStackName}
-                        <Button floated="right" color="yellow" size="mini" onClick={this.handleInputCfnStackName}>
-                          Edit CFN Name
-                        </Button>
-                      </Table.Cell>
+                    <Table.Row key="cfnStackId">
+                      <Table.Cell>Cloudformation Stack ID</Table.Cell>
+                      <Table.Cell>{account.cfnStackId}</Table.Cell>
                     </Table.Row>
                   </Table.Body>
                 </Table>

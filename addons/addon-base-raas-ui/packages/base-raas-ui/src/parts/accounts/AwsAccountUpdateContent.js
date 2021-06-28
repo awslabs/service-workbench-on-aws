@@ -197,7 +197,7 @@ class AwsAccountUpdateContent extends React.Component {
     const textSize = this.textSize;
     const stackInfo = this.stackInfo;
     const { accountId } = account;
-    const { createStackUrl } = stackInfo;
+    const { createStackUrl, region } = stackInfo;
 
     return (
       <div className="animated fadeIn">
@@ -207,8 +207,7 @@ class AwsAccountUpdateContent extends React.Component {
             <Message className="mr3 mt2 mb2">
               <Message.Header>Attention</Message.Header>
               <p>
-                Ensure that you are logged in to AWS account #<b>{accountId}</b> in the same region as the SWB
-                deployment.
+                Ensure that you are logged in to AWS account #<b>{accountId}</b> in region <b>{region}</b>.
               </p>
             </Message>
           </List.Item>
@@ -241,7 +240,7 @@ class AwsAccountUpdateContent extends React.Component {
     const stackInfo = this.stackInfo;
     const textSize = this.textSize;
     const { accountId } = account;
-    const { updateStackUrl, cfnConsoleUrl } = stackInfo;
+    const { updateStackUrl, cfnConsoleUrl, region } = stackInfo;
 
     return (
       <div className="animated fadeIn">
@@ -251,8 +250,7 @@ class AwsAccountUpdateContent extends React.Component {
             <Message className="mr3 mt2 mb2">
               <Message.Header>Attention</Message.Header>
               <p>
-                Ensure that you are logged in to the aws account # <b>{accountId}</b> in the same region as the SWB
-                deployment.
+                Ensure that you are logged in to AWS account #<b>{accountId}</b> in region <b>{region}</b>.
               </p>
             </Message>
           </List.Item>
@@ -296,11 +294,10 @@ class AwsAccountUpdateContent extends React.Component {
     const stackInfo = this.stackInfo;
     const textSize = this.textSize;
     const emailTemplate = update ? account.updateStackEmailTemplate : account.createStackEmailTemplate;
-
     return (
       <div className="animated fadeIn">
         <List ordered size={textSize}>
-          <List.Item>You can use the following email template to send an email to the admin of the account</List.Item>
+          <List.Item>You can use the following email template to send an email to the admin of the account.</List.Item>
           <Form className="mb3">
             <div className="flex justify-between">
               <Header as="h4" className="mb2 mt2">
