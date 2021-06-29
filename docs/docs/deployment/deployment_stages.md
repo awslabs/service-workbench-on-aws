@@ -4,6 +4,8 @@ title: Deployment Stages
 sidebar_label: Deployment Stages
 ---
 
+**Note**: The Service Workbench deployment guide is now replaced by [Service Workbench Installation Guide](/installation_guide/overview). Refer to the new installation guide for installing Service Workbench.
+
 The Service Workbench deployment is categorized into the following stages:
 
 1. [Pre Deployment](deployment/pre_deployment/predeployment)

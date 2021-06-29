@@ -1,9 +1,9 @@
 import React from "react";
-import {Redirect} from '@docusaurus/router';
+import { Redirect } from '@docusaurus/router';
 import useBaseUrl from '@docusaurus/useBaseUrl';
 
 function Home() {
-  return <Redirect to={useBaseUrl('/introduction')} />;
+  return <Redirect to={useBaseUrl('/installation_guide/overview')} />;
 }
 
 export default Home;
