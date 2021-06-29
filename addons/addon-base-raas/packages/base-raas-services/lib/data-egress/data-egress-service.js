@@ -13,7 +13,6 @@
  *  permissions and limitations under the License.
  */
 const _ = require('lodash');
-const uuid = require('uuid/v1');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { isAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
@@ -87,7 +86,7 @@ class DataEgressService extends Service {
     }
 
     // prepare info for ddb and update egress store info
-    const egressStoreId = uuid();
+    const egressStoreId = environment.id;
     const creationTime = new Date().toISOString;
     const dbObject = {
       id: egressStoreId,
