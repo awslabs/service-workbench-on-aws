@@ -32,7 +32,12 @@ const LockService = require('@aws-ee/base-services/lib/lock/lock-service');
 const AWSMock = require('aws-sdk-mock');
 const EnvironmentScService = require('../../environment/service-catalog/environment-sc-service');
 const DataEgressService = require('../data-egress-service');
+const { updateS3BucketPolicy } = require('../../helpers/utils');
 
+jest.mock('../../helpers/utils', () => ({
+  ...jest.requireActual('../../helpers/utils'),
+  updateS3BucketPolicy: jest.fn(),
+}));
 describe('DataEgressService', () => {
   let container;
   let dataEgressService;
@@ -46,16 +51,16 @@ describe('DataEgressService', () => {
     return {
       Statement: [
         {
-          Sid: 'Get:test-id',
+          Sid: 'Get:test-id/',
           Effect: 'Allow',
-          Principal: { AWS: ['arn:aws:iam::test-accountId:root'] },
+          Principal: { AWS: 'arn:aws:iam::test-accountId:root' },
           Action: ['s3:GetObject'],
-          Resource: ['arn:aws:s3:::test-egressStoreBucketNametest-id*'],
+          Resource: ['arn:aws:s3:::test-egressStoreBucketName/test-id/*'],
         },
         {
-          Sid: 'Put:test-id',
+          Sid: 'Put:test-id/',
           Effect: 'Allow',
-          Principal: { AWS: ['arn:aws:iam::test-accountId:root'] },
+          Principal: { AWS: 'arn:aws:iam::test-accountId:root' },
           Action: [
             's3:AbortMultipartUpload',
             's3:ListMultipartUploadParts',
@@ -63,15 +68,15 @@ describe('DataEgressService', () => {
             's3:PutObjectAcl',
             's3:DeleteObject',
           ],
-          Resource: ['arn:aws:s3:::test-egressStoreBucketNametest-id*'],
+          Resource: ['arn:aws:s3:::test-egressStoreBucketName/test-id/*'],
         },
         {
-          Sid: 'List:test-id',
+          Sid: 'List:test-id/',
           Effect: 'Allow',
-          Principal: { AWS: ['arn:aws:iam::test-accountId:root'] },
+          Principal: { AWS: 'arn:aws:iam::test-accountId:root' },
           Action: ['s3:ListBucket'],
           Resource: 'arn:aws:s3:::test-egressStoreBucketName',
-          Condition: { StringLike: { 's3:prefix': ['test-id*'] } },
+          Condition: { StringLike: { 's3:prefix': ['test-id/*'] } },
         },
       ],
     };
@@ -100,6 +105,7 @@ describe('DataEgressService', () => {
     s3Service = await container.find('s3Service');
     lockService = await container.find('lockService');
     dbService = await dataEgressService.service('dbService');
+    dataEgressService.audit = jest.fn();
   });
 
   afterEach(() => {
@@ -300,7 +306,6 @@ describe('DataEgressService', () => {
       AWSMock.mock('S3', 'putBucketPolicy', putBucketPolicyMock);
 
       const result = await dataEgressService.createEgressStore(requestContext, rawEnvironment);
-      expect(putBucketPolicyMock).toHaveBeenCalledTimes(1);
       expect(result).toStrictEqual(mockEgressStoreInfo);
     });
   });
@@ -315,7 +320,7 @@ describe('DataEgressService', () => {
         },
       };
       const requestContext = {};
-      await expect(dataEgressService.terminateEgressStore(requestContext, 'test-id')).rejects.toThrow(
+      await expect(dataEgressService.terminateEgressStore(requestContext, 'test-id/')).rejects.toThrow(
         // It is better to check using boom.code instead of just the actual string, unless
         // there are a few errors with the exact same boom code but different messages.
         // Note: if you encounter a case where a service is throwing exceptions with the
@@ -396,6 +401,7 @@ describe('DataEgressService', () => {
     });
 
     it('should success delete egress store while egress store is not in PROCESSING status', async () => {
+      dataEgressService.removeEgressStoreBucketPolicy = jest.fn();
       const s3Policy = testS3PolicyFn();
       dataEgressService._settings = {
         get: settingName => {
@@ -444,7 +450,85 @@ describe('DataEgressService', () => {
       AWSMock.mock('S3', 'putBucketPolicy', putBucketPolicyMock);
 
       await dataEgressService.terminateEgressStore(requestContext, envId);
-      expect(putBucketPolicyMock).toHaveBeenCalledTimes(1);
+      expect(dataEgressService.removeEgressStoreBucketPolicy).toHaveBeenCalledTimes(1);
+    });
+
+    it('should remove bucket policy', async () => {
+      dataEgressService.getS3BucketAndPolicy = jest.fn().mockResolvedValueOnce({
+        s3BucketName: 'test-egressStoreBucketName',
+        s3Policy: testS3PolicyFn(),
+      });
+      const mockEgressStoreInfo = {
+        id: `egress-store-test-id`,
+        readable: true,
+        writeable: true,
+        kmsArn: 'test-arn',
+        bucket: 'test-egressStoreBucketName',
+        prefix: 'test-id/',
+        envPermission: {
+          read: true,
+          write: true,
+        },
+        status: 'reachable',
+        createdBy: 'test-createdBy',
+        workspaceId: 'test-id',
+        projectId: 'test-projectId',
+        resources: [
+          {
+            arn: ` arn:aws:s3:::test-egressStoreBucketName/test-id/*`,
+          },
+        ],
+      };
+      const mockRevisedStatements = [
+        {
+          Action: ['s3:GetObject'],
+          Effect: 'Allow',
+          Principal: {
+            AWS: [],
+          },
+          Resource: ['arn:aws:s3:::test-egressStoreBucketName/test-id/*'],
+          Sid: 'Get:test-id/',
+        },
+        {
+          Action: [
+            's3:AbortMultipartUpload',
+            's3:ListMultipartUploadParts',
+            's3:PutObject',
+            's3:PutObjectAcl',
+            's3:DeleteObject',
+          ],
+          Effect: 'Allow',
+          Principal: {
+            AWS: [],
+          },
+          Resource: ['arn:aws:s3:::test-egressStoreBucketName/test-id/*'],
+          Sid: 'Put:test-id/',
+        },
+        {
+          Action: ['s3:ListBucket'],
+          Condition: {
+            StringLike: {
+              's3:prefix': ['test-id/*'],
+            },
+          },
+          Effect: 'Allow',
+          Principal: {
+            AWS: [],
+          },
+          Resource: 'arn:aws:s3:::test-egressStoreBucketName',
+          Sid: 'List:test-id/',
+        },
+      ];
+
+      await dataEgressService.removeEgressStoreBucketPolicy({}, mockEgressStoreInfo, 'test-accountId');
+
+      expect(updateS3BucketPolicy).toHaveBeenCalledWith(
+        expect.anything(),
+        'test-egressStoreBucketName',
+        expect.anything(),
+        mockRevisedStatements,
+      );
+      expect(dataEgressService.audit).toHaveBeenCalledTimes(1);
     });
   });
 });

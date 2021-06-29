@@ -16,6 +16,7 @@ const _ = require('lodash');
 const uuid = require('uuid/v1');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const Service = require('@aws-ee/base-services-container/lib/service');
+const { isAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 const createSchema = require('../schema/create-egress-store.json');
 const {
   getStatementParamsFn,
@@ -150,11 +151,11 @@ class DataEgressService extends Service {
 
   async terminateEgressStore(requestContext, environmentId) {
     const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
-    const by = _.get(requestContext, 'principalIdentifier.uid');
+    const curUser = _.get(requestContext, 'principalIdentifier.uid');
     if (!enableEgressStore) {
       throw this.boom.forbidden('Unable to create Egress store since this feature is disabled', true);
     }
-    const s3Service = await this.service('s3Service');
+
     const workspaceId = environmentId;
     let egressStoreScanResult = [];
 
@@ -169,6 +170,15 @@ class DataEgressService extends Service {
       throw this.boom.notFound(`Error in terminating egress store: ${JSON.stringify(error)}`, true);
     }
     const egressStoreInfo = egressStoreScanResult[0];
+    const isEgressStoreOwner = egressStoreInfo.createdBy === curUser;
+    if (!isAdmin(requestContext) && !isEgressStoreOwner) {
+      throw this.boom.forbidden(
+        `You are not authorized to terminate the egress store. Please contact your administrator.`,
+        true,
+      );
+    }
+
+    const s3Service = await this.service('s3Service');
     const egressStoreStatus = egressStoreInfo.status;
 
     if (egressStoreStatus.toUpperCase() === PROCESSING_STATUS_CODE) {
@@ -188,18 +198,18 @@ class DataEgressService extends Service {
         );
       }
       egressStoreInfo.status = TERMINATED_STATUS_CODE;
-      egressStoreInfo.updatedBy = by;
+      egressStoreInfo.updatedBy = curUser;
       egressStoreInfo.updatedAt = new Date().toISOString();
       await runAndCatch(
         async () => {
           return this._updater()
-            .condition('attribute_exists(id)') // yes we need this to ensure the environment does not exist already
+            .condition('attribute_exists(id)') // yes we need this to ensure the egress store does not exist already
             .key({ id: egressStoreInfo.id })
             .item(egressStoreInfo)
             .update();
         },
         async () => {
-          throw this.boom.badRequest(`Egress Store with id "${egressStoreInfo.id}" already exists`, true);
+          throw this.boom.badRequest(`Egress Store with id "${egressStoreInfo.id}" got updating error`, true);
         },
       );
 
@@ -232,6 +242,7 @@ class DataEgressService extends Service {
       await lockService.tryWriteLockAndRun({ id: lockId }, async () => {
         await this.removeEgressStoreBucketPolicy(requestContext, egressStore, memberAccountId);
       });
+      await this.audit(requestContext, { action: 'terminated-egress-store', body: egressStore });
     }
   }
 
