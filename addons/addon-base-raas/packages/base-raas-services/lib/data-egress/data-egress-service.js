@@ -102,18 +102,23 @@ class DataEgressService extends Service {
       updatedBy: by,
       updatedAt: creationTime,
     };
-    await runAndCatch(
-      async () => {
-        return this._updater()
-          .condition('attribute_not_exists(id)') // yes we need this to ensure the environment does not exist already
-          .key({ id: egressStoreId })
-          .item(dbObject)
-          .update();
-      },
-      async () => {
-        throw this.boom.badRequest(`Egress Store with id "${egressStoreId}" already exists`, true);
-      },
-    );
+
+    const lockService = await this.service('lockService');
+    const egressStoreDdbLockId = `egress-store-ddb-access-${egressStoreId}`;
+    await lockService.tryWriteLockAndRun({ id: egressStoreDdbLockId }, async () => {
+      await runAndCatch(
+        async () => {
+          return this._updater()
+            .condition('attribute_not_exists(id)') // yes we need this to ensure the environment does not exist already
+            .key({ id: egressStoreId })
+            .item(dbObject)
+            .update();
+        },
+        async () => {
+          throw this.boom.badRequest(`Egress Store with id "${egressStoreId}" already exists`, true);
+        },
+      );
+    });
 
     const kmsArn = await this.getKmsKeyIdArn();
     // Prepare egress store info for updating S3 bucket policy
@@ -140,9 +145,8 @@ class DataEgressService extends Service {
     };
     const memberAccountId = await this.getMemberAccountId(requestContext, environment.id);
 
-    const lockService = await this.service('lockService');
-    const lockId = `bucket-policy-access-${bucketName}`;
-    await lockService.tryWriteLockAndRun({ id: lockId }, async () => {
+    const bucketPolicyLockId = `bucket-policy-access-${bucketName}`;
+    await lockService.tryWriteLockAndRun({ id: bucketPolicyLockId }, async () => {
       await this.addEgressStoreBucketPolicy(requestContext, egressStore, memberAccountId);
     });
 
@@ -168,6 +172,13 @@ class DataEgressService extends Service {
         });
     } catch (error) {
       throw this.boom.notFound(`Error in terminating egress store: ${JSON.stringify(error)}`, true);
+    }
+
+    if (egressStoreScanResult.length !== 1) {
+      throw this.boom.internalError(
+        `Error in terminating egress store: multiple result fetched from egrss store table`,
+        true,
+      );
     }
     const egressStoreInfo = egressStoreScanResult[0];
     const isEgressStoreOwner = egressStoreInfo.createdBy === curUser;
@@ -197,21 +208,26 @@ class DataEgressService extends Service {
           true,
         );
       }
-      egressStoreInfo.status = TERMINATED_STATUS_CODE;
-      egressStoreInfo.updatedBy = curUser;
-      egressStoreInfo.updatedAt = new Date().toISOString();
-      await runAndCatch(
-        async () => {
-          return this._updater()
-            .condition('attribute_exists(id)') // yes we need this to ensure the egress store does not exist already
-            .key({ id: egressStoreInfo.id })
-            .item(egressStoreInfo)
-            .update();
-        },
-        async () => {
-          throw this.boom.badRequest(`Egress Store with id "${egressStoreInfo.id}" got updating error`, true);
-        },
-      );
+
+      const lockService = await this.service('lockService');
+      const egressStoreDdbLockId = `egress-store-ddb-access-${egressStoreInfo.id}`;
+      await lockService.tryWriteLockAndRun({ id: egressStoreDdbLockId }, async () => {
+        egressStoreInfo.status = TERMINATED_STATUS_CODE;
+        egressStoreInfo.updatedBy = curUser;
+        egressStoreInfo.updatedAt = new Date().toISOString();
+        await runAndCatch(
+          async () => {
+            return this._updater()
+              .condition('attribute_exists(id)') // yes we need this to ensure the egress store does not exist already
+              .key({ id: egressStoreInfo.id })
+              .item(egressStoreInfo)
+              .update();
+          },
+          async () => {
+            throw this.boom.badRequest(`Egress Store with id "${egressStoreInfo.id}" got updating error`, true);
+          },
+        );
+      });
 
       const egressStore = {
         id: `egress-store-${environmentId}`,
@@ -237,7 +253,6 @@ class DataEgressService extends Service {
       // Remove egress store related s3 policy from the s3 bucket
       const memberAccountId = await this.getMemberAccountId(requestContext, environmentId);
 
-      const lockService = await this.service('lockService');
       const lockId = `bucket-policy-access-${egressStoreInfo.s3BucketName}`;
       await lockService.tryWriteLockAndRun({ id: lockId }, async () => {
         await this.removeEgressStoreBucketPolicy(requestContext, egressStore, memberAccountId);
