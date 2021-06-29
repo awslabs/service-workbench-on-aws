@@ -191,7 +191,12 @@ class S3Service extends Service {
       Prefix: dir,
     };
 
-    const listedObjects = await this.api.listObjectsV2(listParams).promise();
+    let listedObjects;
+    try {
+      listedObjects = await this.api.listObjectsV2(listParams).promise();
+    } catch (error) {
+      throw this.boom.badRequest(`S3Service error with listing objects in arn:aws:s3:::${bucketName}/${dir}`, true);
+    }
 
     if (listedObjects.Contents.length === 0) return;
 
@@ -203,10 +208,12 @@ class S3Service extends Service {
     listedObjects.Contents.forEach(({ Key }) => {
       deleteParams.Delete.Objects.push({ Key });
     });
-
-    await this.api.deleteObjects(deleteParams).promise();
-
-    if (listedObjects.IsTruncated) await this.clearPath(bucketName, dir);
+    try {
+      await this.api.deleteObjects(deleteParams).promise();
+      if (listedObjects.IsTruncated) await this.clearPath(bucketName, dir);
+    } catch (error) {
+      throw this.boom.badRequest(`S3Service error with deleting objects in arn:aws:s3:::${bucketName}/${dir}`, true);
+    }
   }
 }
 
