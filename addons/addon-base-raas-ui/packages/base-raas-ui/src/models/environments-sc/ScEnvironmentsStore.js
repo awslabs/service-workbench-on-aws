@@ -1,17 +1,3 @@
-import _ from 'lodash';
-import { values } from 'mobx';
-import { getEnv, types } from 'mobx-state-tree';
-import { consolidateToMap } from '@aws-ee/base-ui/dist/helpers/utils';
-import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
-
-import {
-  getScEnvironments,
-  createScEnvironment,
-  deleteScEnvironment,
-  startScEnvironment,
-  stopScEnvironment,
-  updateScEnvironmentCidrs,
-} from '../../helpers/api';
 /*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -26,6 +12,20 @@ import {
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
+import _ from 'lodash';
+import { values } from 'mobx';
+import { getEnv, types } from 'mobx-state-tree';
+import { consolidateToMap } from '@aws-ee/base-ui/dist/helpers/utils';
+import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
+
+import {
+  getScEnvironments,
+  createScEnvironment,
+  deleteScEnvironment,
+  startScEnvironment,
+  stopScEnvironment,
+  updateScEnvironmentCidrs,
+} from '../../helpers/api';
 
 import { ScEnvironment } from './ScEnvironment';
 import { ScEnvironmentStore } from './ScEnvironmentStore';
