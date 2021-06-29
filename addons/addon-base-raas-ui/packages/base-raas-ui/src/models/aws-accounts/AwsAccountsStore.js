@@ -13,13 +13,38 @@
  *  permissions and limitations under the License.
  */
 
+import _ from 'lodash';
 import { types } from 'mobx-state-tree';
 import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
 
-import { getAwsAccounts, addAwsAccount, createAwsAccount } from '../../helpers/api';
+import {
+  getAwsAccounts,
+  addAwsAccount,
+  createAwsAccount,
+  updateAwsAccount,
+  getAllAccountsPermissionStatus,
+} from '../../helpers/api';
 import { AwsAccount } from './AwsAccount';
 import { BudgetStore } from './BudgetStore';
 import Budget from './Budget';
+
+const filterNames = {
+  ALL: 'All',
+  CURRENT: 'Up-to-Date',
+  UPDATEME: 'Needs Update',
+  NEW: 'Needs Onboarding',
+  ERRORED: 'Errored',
+};
+
+// A map, with the key being the filter name and the value being the function that will be used to filter the workspace
+// cfnStackName is an empty string if the account hasn't been onboarded yet
+const filters = {
+  [filterNames.ALL]: () => true,
+  [filterNames.CURRENT]: account => account.cfnStackName !== '' && account.permissionStatus === 'CURRENT',
+  [filterNames.UPDATEME]: account => account.cfnStackName !== '' && account.permissionStatus === 'NEEDSUPDATE',
+  [filterNames.NEW]: account => account.permissionStatus === 'NEEDSONBOARD',
+  [filterNames.ERRORED]: account => account.permissionStatus === 'ERROR' || account.permissionStatus === 'NOSTACKNAME',
+};
 
 // ==================================================================
 // AwsAccountsStore
@@ -38,10 +63,12 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
     return {
       async doLoad() {
         const awsAccounts = (await getAwsAccounts()) || [];
+        const statuses = await getAllAccountsPermissionStatus();
         // We try to preserve existing accounts data and merge the new data instead
         // We could have used self.accounts.replace(), but it will do clear() then merge()
         self.runInAction(() => {
           awsAccounts.forEach(awsAccount => {
+            awsAccount = { ...awsAccount, permissionStatus: statuses.newStatus[awsAccount.id] };
             const awsAccountsModel = AwsAccount.create(awsAccount);
             const previous = self.awsAccounts.get(awsAccountsModel.id);
             if (!previous) {
@@ -68,6 +95,10 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
 
       createAwsAccount: async awsAccount => {
         await createAwsAccount(awsAccount);
+      },
+
+      updateAwsAccount: async (awsAccountUUID, updatedAcctInfo) => {
+        await updateAwsAccount(awsAccountUUID, updatedAcctInfo);
       },
 
       getBudgetStore: awsAccountUUID => {
@@ -101,7 +132,10 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         res.externalId = awsAccount.externalId;
         res.vpcId = awsAccount.vpcId;
         res.subnetId = awsAccount.subnetId;
+        res.permissionStatus = awsAccount.permissionStatus;
         res.encryptionKeyArn = awsAccount.encryptionKeyArn;
+        res.cfnStackName = awsAccount.cfnStackName;
+        res.updatedAt = awsAccount.updatedAt;
         result.push(res);
       });
       return result;
@@ -135,10 +169,19 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
     getAwsAccount(id) {
       return self.awsAccounts.get(id);
     },
+
+    filtered(filterName) {
+      const filter = filters[filterName] || (() => true);
+      const result = [];
+      self.list.forEach(awsAccount => {
+        if (filter(awsAccount)) result.push(awsAccount);
+      });
+      return _.orderBy(result, [account => account.name.toLowerCase()], ['asc']);
+    },
   }));
 
 function registerContextItems(appContext) {
   appContext.awsAccountsStore = AwsAccountsStore.create({}, appContext);
 }
 
-export { AwsAccountsStore, registerContextItems };
+export { AwsAccountsStore, filterNames, registerContextItems };

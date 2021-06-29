@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-import { getAwsAccounts, addAwsAccount } from '../../../helpers/api';
+import { getAwsAccounts, addAwsAccount, updateAwsAccount, getAllAccountsPermissionStatus } from '../../../helpers/api';
 import { registerContextItems as registerAwsAccountsStore } from '../AwsAccountsStore';
 
 jest.mock('../../../helpers/api');
@@ -34,7 +34,10 @@ describe('AwsAccountsStore', () => {
     encryptionKeyArn: 'AndHeresThePartThatHurtsTheMost',
     createdAt: 'humans cannot ride a ghost :(',
     updatedAt: 'Bye bye, Lil Sebastian',
+    permissionStatus: 'CURRENT',
+    cfnStackName: 'testCfnName',
   };
+  const permRetVal = { newStatus: { mouserat: 'CURRENT' } };
 
   beforeEach(async () => {
     await registerAwsAccountsStore(appContext);
@@ -46,6 +49,7 @@ describe('AwsAccountsStore', () => {
       // BUILD
       getAwsAccounts.mockResolvedValue([]);
       addAwsAccount.mockResolvedValue(newAwsAccount);
+      getAllAccountsPermissionStatus.mockResolvedValue(permRetVal);
       await store.load();
 
       // OPERATE
@@ -61,6 +65,7 @@ describe('AwsAccountsStore', () => {
       // BUILD
       getAwsAccounts.mockResolvedValue([newAwsAccount]);
       addAwsAccount.mockResolvedValue(newAwsAccount);
+      getAllAccountsPermissionStatus.mockResolvedValue(permRetVal);
       await store.load();
 
       // OPERATE
@@ -68,6 +73,33 @@ describe('AwsAccountsStore', () => {
 
       // CHECK
       expect(store.list.length).toBe(1);
+    });
+  });
+
+  describe('filteredList', () => {
+    it('should return the whole list if the filter does not exist', async () => {
+      // BUILD
+      getAwsAccounts.mockResolvedValue([newAwsAccount]);
+      getAllAccountsPermissionStatus.mockResolvedValue(permRetVal);
+      await store.load();
+
+      // OPERATE
+      const retVal = store.filtered('randomfiltername');
+
+      // CHECK
+      expect(retVal).toMatchObject(store.list);
+    });
+  });
+
+  describe('updateAccount', () => {
+    it('should try to update the account with updated permissions', async () => {
+      const erroredAcct = { id: 'testid', permissionsStatus: 'CURRENT' };
+      const newPermRetVal = { newStatus: { testid: 'NEEDSUPDATE' } };
+      getAllAccountsPermissionStatus.mockResolvedValue(newPermRetVal);
+      await store.load();
+      await store.updateAwsAccount(erroredAcct.id, erroredAcct);
+
+      expect(updateAwsAccount).toHaveBeenCalledWith(erroredAcct.id, erroredAcct);
     });
   });
 });

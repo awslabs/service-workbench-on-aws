@@ -28,6 +28,7 @@ const EnvironmentScConnectionService = require('@aws-ee/base-raas-services/lib/e
 const EnvironmentSpotPriceHistoryService = require('@aws-ee/base-raas-services/lib/environment/environment-spot-price-history-service');
 const UserRolesService = require('@aws-ee/base-raas-services/lib/user-roles/user-roles-service');
 const AwsAccountsService = require('@aws-ee/base-raas-services/lib/aws-accounts/aws-accounts-service');
+const AwsCfnService = require('@aws-ee/base-raas-services/lib/aws-accounts/aws-cfn-service');
 const BudgetsService = require('@aws-ee/base-raas-services/lib/budgets/budgets-service');
 const CostsService = require('@aws-ee/base-raas-services/lib/costs/costs-service');
 const CostApiCacheService = require('@aws-ee/base-raas-services/lib/cost-api-cache/cost-api-cache-service');
@@ -89,6 +90,7 @@ async function registerServices(container, pluginRegistry) {
   container.register('environmentScCidrService', new EnvironmentScCidrService());
   container.register('cfnTemplateService', new CfnTemplateService());
   container.register('awsAccountsService', new AwsAccountsService());
+  container.register('awsCfnService', new AwsCfnService());
   container.register('budgetsService', new BudgetsService());
   container.register('costsService', new CostsService());
   container.register('storageGatewayService', new StorageGatewayService());

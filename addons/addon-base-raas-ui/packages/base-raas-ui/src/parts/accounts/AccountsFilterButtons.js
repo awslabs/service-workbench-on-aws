@@ -5,22 +5,21 @@ import { observer } from 'mobx-react';
 import { Button } from 'semantic-ui-react';
 import c from 'classnames';
 
-import { filterNames } from '../../../models/environments-sc/ScEnvironmentsStore';
+import { filterNames } from '../../models/aws-accounts/AwsAccountsStore';
 
 const filterColorMap = {
   [filterNames.ALL]: 'blue',
-  [filterNames.AVAILABLE]: 'green',
-  [filterNames.PENDING]: 'gold',
-  [filterNames.STOPPED]: 'orange',
+  [filterNames.CURRENT]: 'green',
+  [filterNames.UPDATEME]: 'orange',
+  [filterNames.NEW]: 'purple',
   [filterNames.ERRORED]: 'red',
-  [filterNames.TERMINATED]: 'grey',
 };
 
 // expected props
 // - selectedFilter (via prop) the filter name of the currently selected filter
 // - onSelectedFilter (via prop) a fn to be called when a button is selected
 // - className (via prop) optional
-class ScEnvironmentsFilterButtons extends React.Component {
+class AccountsFilterButtons extends React.Component {
   get selectedFilter() {
     return this.props.selectedFilter;
   }
@@ -50,7 +49,7 @@ class ScEnvironmentsFilterButtons extends React.Component {
         <Button.Group floated="right">
           {_.map(_.keys(filterColorMap), name => (
             <Button key={name} {...getAttrs(name)}>
-              {_.startCase(name)}
+              {name}
             </Button>
           ))}
         </Button.Group>
@@ -60,9 +59,9 @@ class ScEnvironmentsFilterButtons extends React.Component {
 }
 
 // see https://medium.com/@mweststrate/mobx-4-better-simpler-faster-smaller-c1fbc08008da
-decorate(ScEnvironmentsFilterButtons, {
+decorate(AccountsFilterButtons, {
   selectedFilter: computed,
   onSelectedFilter: computed,
 });
 
-export default observer(ScEnvironmentsFilterButtons);
+export default observer(AccountsFilterButtons);

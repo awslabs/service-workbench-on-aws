@@ -56,6 +56,19 @@ function createAwsAccount(awsAccount) {
   return httpApiPost('api/aws-accounts/provision', { data: awsAccount });
 }
 
+// Note the accountUUID used here is the 'id' column in dbAwsAccounts table and 'id' attribute in AwsAccount.js, not AWS account id
+function updateAwsAccount(accountUUID, data) {
+  return httpApiPut(`api/aws-accounts/${accountUUID}/update-account`, { data });
+}
+
+function getAccountsPermissionsStatus(accountUUID) {
+  return httpApiGet(`api/aws-accounts/${accountUUID}/permissions`);
+}
+
+function getAllAccountsPermissionStatus() {
+  return httpApiGet(`api/aws-accounts/permissions`);
+}
+
 function addIndex(index) {
   return httpApiPost('api/indexes', { data: index });
 }
@@ -358,6 +371,9 @@ export {
   updateStudyPermissions,
   addAwsAccount,
   createAwsAccount,
+  updateAwsAccount,
+  getAccountsPermissionsStatus,
+  getAllAccountsPermissionStatus,
   getStepTemplates,
   getEnvironments,
   getEnvironment,
