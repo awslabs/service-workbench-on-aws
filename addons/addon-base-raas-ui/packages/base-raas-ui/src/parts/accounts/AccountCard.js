@@ -163,6 +163,7 @@ class AccountCard extends React.Component {
       vpcId: 'VPC ID',
       subnetId: 'Subnet ID',
       encryptionKeyArn: 'Encryption Key ARN',
+      cfnStackId: 'CloudFormation Stack ID',
     };
 
     return (
@@ -183,10 +184,6 @@ class AccountCard extends React.Component {
                         <Table.Cell>{account[entry]}</Table.Cell>
                       </Table.Row>
                     ))}
-                    <Table.Row key="cfnStackId">
-                      <Table.Cell>Cloudformation Stack ID</Table.Cell>
-                      <Table.Cell>{account.cfnStackId}</Table.Cell>
-                    </Table.Row>
                   </Table.Body>
                 </Table>
               </>
