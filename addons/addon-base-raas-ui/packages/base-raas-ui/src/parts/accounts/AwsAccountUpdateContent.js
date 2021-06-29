@@ -57,8 +57,8 @@ class AwsAccountUpdateContent extends React.Component {
         },
         createOrUpdate: {
           extra: {
-            yesLabel: 'Stack Update',
-            noLabel: 'Stack Create',
+            yesLabel: 'Update Onboarded Account',
+            noLabel: 'Onboard New Account',
             yesValue: 'update',
             noValue: 'create',
             showHeader: false,

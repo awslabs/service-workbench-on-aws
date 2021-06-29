@@ -53,6 +53,7 @@ describe('AwsAccountService', () => {
   let awsService = null;
   let awsAccountsService = null;
   let cfnTemplateService = null;
+  let s3Service = null;
 
   const mockAccount = {
     id: 'testid',
@@ -91,6 +92,14 @@ describe('AwsAccountService', () => {
     },
   };
 
+  const mockS3Api = {
+    putObject: () => {
+      return {
+        promise: async () => jest.fn(),
+      };
+    },
+  };
+
   beforeAll(async () => {
     // Initialize services container and register dependencies
     const container = new ServicesContainer();
@@ -113,10 +122,15 @@ describe('AwsAccountService', () => {
     awsAccountsService = await container.find('awsAccountsService');
     awsService = await container.find('aws');
     cfnTemplateService = await container.find('cfnTemplateService');
+    s3Service = await container.find('s3Service');
 
     awsService.getCredentialsForRole.mockImplementation(jest.fn());
     awsAccountsService.list.mockImplementation(() => [mockAccount]);
     awsAccountsService.mustFind.mockImplementation(() => mockAccount);
+    s3Service.api = mockS3Api;
+    s3Service.sign.mockImplementation(async () => {
+      return ['placeholder.url'];
+    });
 
     // Skip authorization by default
     service.assertAuthorized = jest.fn();
@@ -232,6 +246,38 @@ describe('AwsAccountService', () => {
         // CHECK
         expect(err.message).toEqual('User is not authorized');
       }
+    });
+  });
+
+  describe('getAndUploadTemplateForAccount', () => {
+    const requestContext = {};
+
+    it('should fail due to insufficient permissions', async () => {
+      service.assertAuthorized.mockImplementationOnce(() => {
+        throw new Error('User is not authorized');
+      });
+
+      // OPERATE
+      try {
+        await service.getAndUploadTemplateForAccount(requestContext, mockAccount.id);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('User is not authorized');
+      }
+    });
+
+    it('should create a cfn template info object', async () => {
+      awsAccountsService.mustFind.mockImplementation(() => mockAccount);
+      const res = await service.getAndUploadTemplateForAccount(requestContext, mockAccount.id);
+      const expCfnInfo = {
+        accountId: mockAccount.accountId,
+        name: mockAccount.cfnStackName,
+        cfnConsoleUrl: 'https://console.aws.amazon.com/cloudformation/home?region=undefined',
+        template: mockYmlResponse,
+      };
+      expect(res).toMatchObject(expCfnInfo);
+      expect(res.createStackUrl).toBeDefined();
     });
   });
 });
