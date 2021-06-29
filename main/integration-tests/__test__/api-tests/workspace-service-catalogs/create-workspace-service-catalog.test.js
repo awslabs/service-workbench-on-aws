@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 /*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -179,8 +180,8 @@ describe('Create workspace-service-catalog scenarios', () => {
       });
     });
   });
-  describe('Creating a workspace service catalog environment with studies', () => {
-    it('for EC2Linux', async () => {
+  describe('Workspace SC env with studies', () => {
+    it('for EC2Linux should provision correctly', async () => {
       // const researcher1Session = await setup.createResearcherSession();
       // Things to do
       // 1. Create user
@@ -197,21 +198,17 @@ describe('Create workspace-service-catalog scenarios', () => {
       let studyId = setup.gen.string({ prefix: `create-study-ray-my-study` });
       await expect(
         admin1Session.resources.studies.create({ id: studyId, name: studyId, category: 'My Studies' }),
-      ).resolves.toEqual(
-        expect.objectContaining({
-          id: studyId,
-        }),
-      );
+      ).resolves.toMatchObject({
+        id: studyId,
+      });
       studyIds.push(studyId);
 
       studyId = setup.gen.string({ prefix: `create-study-ray-org-study` });
       await expect(
         admin1Session.resources.studies.create({ id: studyId, name: studyId, category: 'Organization' }),
-      ).resolves.toEqual(
-        expect.objectContaining({
-          id: studyId,
-        }),
-      );
+      ).resolves.toMatchObject({
+        id: studyId,
+      });
       studyIds.push(studyId);
 
       // 4. Create workspace with the above studies
@@ -226,14 +223,12 @@ describe('Create workspace-service-catalog scenarios', () => {
         projectId: setup.defaults.project.id,
         cidr: '54.240.196.186/32',
       });
-      expect(env).toEqual(
-        expect.objectContaining({
-          name: workspaceName,
-          envTypeId: setup.defaults.envTypes.ec2Linux.envTypeId,
-          envTypeConfigId: setup.defaults.envTypes.ec2Linux.envTypeConfigId,
-          studyIds,
-        }),
-      );
+      expect(env).toMatchObject({
+        name: workspaceName,
+        envTypeId: setup.defaults.envTypes.ec2Linux.envTypeId,
+        envTypeConfigId: setup.defaults.envTypes.ec2Linux.envTypeConfigId,
+        studyIds,
+      });
 
       const workflows = await admin1Session.resources.workflows
         .versions('wf-provision-environment-sc')
@@ -241,7 +236,7 @@ describe('Create workspace-service-catalog scenarios', () => {
         .instances()
         .get();
       let result;
-      for (const w of workflows) {
+      workflows.forEach(w => {
         if (
           w.input.envId === env.id &&
           w.input.envTypeId === env.envTypeId &&
@@ -249,7 +244,8 @@ describe('Create workspace-service-catalog scenarios', () => {
         ) {
           result = w;
         }
-      }
+      });
+
       while (result.wfStatus !== 'done' && result.wfStatus !== 'error') {
         // look at retry logic
         await new Promise(r => setTimeout(r, 1000 * 30));
