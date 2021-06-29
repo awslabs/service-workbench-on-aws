@@ -183,7 +183,7 @@ class DataEgressService extends Service {
 
     if (egressStoreStatus.toUpperCase() === PROCESSING_STATUS_CODE) {
       throw this.boom.forbidden(
-        `Egress store: ${egressStoreInfo.id} is still in processing, workspce can not be terminated before egress request is processed.`,
+        `Egress store: ${egressStoreInfo.id} is still in processing. The egress store is not terminated and the workspce can not be terminated before egress request is processed.`,
         true,
       );
     } else if (egressStoreStatus.toUpperCase() === PROCESSED_STATUS_CODE) {
