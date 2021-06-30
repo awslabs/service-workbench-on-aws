@@ -56,6 +56,7 @@ const RolesOnlyEnvironmentResourceService = require('@aws-ee/base-raas-services/
 const LegacyEnvironmentResourceService = require('@aws-ee/base-raas-services/lib/data-source/access-strategy/legacy/environment-resource-service');
 const ResourceUsageService = require('@aws-ee/base-raas-services/lib/usage/resource-usage-service');
 const StudyOperationService = require('@aws-ee/base-raas-services/lib/study/study-operation-service');
+const DataEgressService = require('@aws-ee/base-raas-services/lib/data-egress/data-egress-service');
 
 const settingKeys = {
   tablePrefix: 'dbPrefix',
@@ -114,6 +115,7 @@ async function registerServices(container, pluginRegistry) {
   container.register('legacy/environmentResourceService', new LegacyEnvironmentResourceService());
   container.register('resourceUsageService', new ResourceUsageService());
   container.register('studyOperationService', new StudyOperationService());
+  container.register('dataEgressService', new DataEgressService());
 
   // Authorization Services from raas addon
   container.register('raasUserAuthzService', new UserAuthzService());
@@ -152,6 +154,7 @@ function getStaticSettings(existingStaticSettings, settings, pluginRegistry) {
   table('dbDsAccounts', 'DsAccounts');
   table('dbRoleAllocations', 'RoleAllocations');
   table('dbResourceUsages', 'ResourceUsages');
+  table('dbEgressStore', 'EgressStore');
   table('StorageGateway', 'StorageGateway');
 
   return staticSettings;

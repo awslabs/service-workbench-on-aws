@@ -40,6 +40,17 @@ Parameters:
     Type: String
     Default: 10.0.0.0/19
 
+  LaunchConstraintRolePrefix:
+    Description: Role name prefix to use when creating a launch constraint role in the on-boarded account
+    Type: String
+    Default: '*'
+
+  LaunchConstraintPolicyPrefix:
+    Description: Customer managed policy name prefix to use when creating a launch constraint role in the on-boarded account
+    Type: String
+    Default: '*'
+
+  #------------AppStream Parameters Below-------
   # Range from 10.0.32.0 to 10.0.63.255
   AppStreamSubnetCidr:
     Description: Please enter the IP range (CIDR notation) for the the AppStream subnet. This value is only used if AppStream is enabled.
@@ -52,15 +63,38 @@ Parameters:
     Type: String
     Default: 10.0.64.0/19
 
-  LaunchConstraintRolePrefix:
-    Description: Role name prefix to use when creating a launch constraint role in the on-boarded account
-    Type: String
-    Default: '*'
+  AppStreamFleetDesiredInstances:
+    Description: The desired number of streaming instances.
+    Type: Number
+    Default: 2
 
-  LaunchConstraintPolicyPrefix:
-    Description: Customer managed policy name prefix to use when creating a launch constraint role in the on-boarded account
+  AppStreamDisconnectTimeoutSeconds:
+    Description: The amount of time that a streaming session remains active after users disconnect.
+    Type: Number
+    Default: 60
+
+  AppStreamIdleDisconnectTimeoutSeconds:
+    Description: The amount of time that users can be idle (inactive) before they are disconnected from their streaming session
+    Type: Number
+    Default: 600
+
+  AppStreamMaxUserDurationSeconds:
+    Description: The maximum amount of time that a streaming session can remain active, in seconds.
+    Type: Number
+    Default: 86400
+
+  AppStreamImageName:
+    Description: The name of the image used to create the fleet.
     Type: String
-    Default: '*'
+
+  AppStreamInstanceType:
+    Description: The instance type to use when launching fleet instances. List of images available at https://aws.amazon.com/appstream2/pricing/
+    Type: String
+
+  AppStreamFleetType:
+    Description: The fleet type. Can be ALWAYS_ON or ON_DEMAND
+    Type: String
+    Default: ON_DEMAND
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -552,7 +586,100 @@ Resources:
       VpcEndpointType: Interface
       PrivateDnsEnabled: true
       ServiceName: !Sub 'aws.sagemaker.${AWS::Region}.notebook'
+      SecurityGroupIds:
+        - !Ref SageMakerSecurityGroup
       VpcId: !Ref VPC
+
+  SageMakerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: isAppStream
+    Properties:
+      GroupDescription: 'SWB SageMaker Security Group for interface endpoint'
+      GroupName: 'SageMakerSG'
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !Ref AppStreamSecurityGroup
+          IpProtocol: '-1'
+
+  AppStreamSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: isAppStream
+    Properties:
+      GroupDescription: 'SWB AppStream Security Group'
+      GroupName: 'AppStreamSG'
+      VpcId: !Ref VPC
+      SecurityGroupEgress:
+        - CidrIp: 127.0.0.1/32
+          IpProtocol: '-1'
+
+  AppStreamSecurityGroupEgress:
+    Type: AWS::EC2::SecurityGroupEgress
+    Condition: isAppStream
+    Properties:
+      GroupId: !Ref AppStreamSecurityGroup
+      DestinationSecurityGroupId: !Ref SageMakerSecurityGroup
+      Description: 'Allow SageMaker egress from AppStream instances'
+      IpProtocol: '-1'
+
+  SageMakerSecurityGroupIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: isAppStream
+    Properties:
+      GroupId: !Ref SageMakerSecurityGroup
+      SourceSecurityGroupId: !Ref AppStreamSecurityGroup
+      Description: 'Allow AppStream ingress from interface endpoint of SageMaker'
+      IpProtocol: '-1'
+
+  AppStreamFleet:
+    Type: 'AWS::AppStream::Fleet'
+    Condition: isAppStream
+    Properties:
+      ComputeCapacity:
+        DesiredInstances: !Ref AppStreamFleetDesiredInstances
+      Description: 'SWB AppStream Fleet'
+      DisconnectTimeoutInSeconds: !Ref AppStreamDisconnectTimeoutSeconds
+      DisplayName: 'SWB Fleet'
+      EnableDefaultInternetAccess: False
+      FleetType: !Ref AppStreamFleetType
+      IdleDisconnectTimeoutInSeconds: !Ref AppStreamIdleDisconnectTimeoutSeconds
+      ImageName: !Ref AppStreamImageName
+      InstanceType: !Ref AppStreamInstanceType
+      MaxUserDurationInSeconds: !Ref AppStreamMaxUserDurationSeconds
+      Name: 'ServiceWorkbenchFleet'
+      StreamView: 'APP'
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref AppStreamSecurityGroup
+        SubnetIds:
+          - !Ref PrivateAppStreamSubnet
+
+  AppStreamStack:
+    Type: 'AWS::AppStream::Stack'
+    Condition: isAppStream
+    Properties:
+      ApplicationSettings:
+        Enabled: False
+      Description: 'SWB AppStream Stack'
+      DisplayName: 'SWB Stack'
+      Name: 'ServiceWorkbenchStack'
+      UserSettings:
+        - Action: 'CLIPBOARD_COPY_FROM_LOCAL_DEVICE'
+          Permission: 'ENABLED'
+        - Action: 'CLIPBOARD_COPY_TO_LOCAL_DEVICE'
+          Permission: 'DISABLED'
+        - Action: 'FILE_DOWNLOAD'
+          Permission: 'DISABLED'
+        - Action: 'FILE_UPLOAD'
+          Permission: 'DISABLED'
+        - Action: 'PRINTING_TO_LOCAL_DEVICE'
+          Permission: 'DISABLED'
+
+  AppStreamStackFleetAssociation:
+    Type: AWS::AppStream::StackFleetAssociation
+    Condition: isAppStream
+    Properties:
+      FleetName: !Ref AppStreamFleet
+      StackName: !Ref AppStreamStack
 
 Outputs:
   CrossAccountEnvMgmtRoleArn:
@@ -572,6 +699,11 @@ Outputs:
     Condition: isNotAppStream
     Value: !Ref PublicSubnet1
 
+  EncryptionKeyArn:
+    Description: KMS Encryption Key Arn
+    Value: !GetAtt [EncryptionKey, Arn]
+
+  #------------AppStream Output Below-------
   PrivateAppStreamSubnet:
     Description: AppStream subnet
     Condition: isAppStream
@@ -582,7 +714,24 @@ Outputs:
     Condition: isAppStream
     Value: !Ref PrivateWorkspaceSubnet
 
-  EncryptionKeyArn:
-    Description: KMS Encryption Key Arn
-    Value: !GetAtt [EncryptionKey, Arn]
+  AppStreamSecurityGroup:
+    Description: AppStream Security Group
+    Condition: isAppStream
+    Value: !Ref AppStreamSecurityGroup
+
+  SageMakerSecurityGroup:
+    Description: SageMaker Security Group
+    Condition: isAppStream
+    Value: !Ref SageMakerSecurityGroup
+
+  AppStreamFleet:
+    Description: AppStream Fleet
+    Condition: isAppStream
+    Value: !Ref AppStreamFleet
+
+  AppStreamStack:
+    Description: AppStream Stack
+    Condition: isAppStream
+    Value: !Ref AppStreamStack
+
 
