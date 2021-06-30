@@ -17,8 +17,8 @@ importers:
       eslint-plugin-prettier: ^3.1.2
       generate-password: ^1.5.0
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       prettier: ^1.19.1
       source-map-support: ^0.5.16
@@ -38,8 +38,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       source-map-support: 0.5.16
 
@@ -77,8 +77,8 @@ importers:
       eslint-plugin-react-hooks: ^1.7.0
       husky: ^3.1.0
       is-cidr: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       jwt-decode: ^2.2.0
       lodash: ^4.17.21
       mobx: ^5.15.4
@@ -178,8 +178,8 @@ importers:
       eslint-plugin-react: 7.19.0_eslint@6.8.0
       eslint-plugin-react-hooks: 1.7.0_eslint@6.8.0
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
       regenerator-runtime: 0.13.5
@@ -201,8 +201,8 @@ importers:
       eslint-plugin-import: ^2.20.1
       eslint-plugin-jest: ^22.21.0
       eslint-plugin-prettier: ^3.1.2
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       prettier: ^1.19.1
       source-map-support: ^0.5.16
     devDependencies:
@@ -217,8 +217,8 @@ importers:
       eslint-plugin-import: 2.20.2_eslint@6.8.0
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       source-map-support: 0.5.16
 
@@ -236,8 +236,8 @@ importers:
       eslint-plugin-jest: ^22.21.0
       eslint-plugin-prettier: ^3.1.2
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
@@ -257,8 +257,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
@@ -277,8 +277,8 @@ importers:
       eslint-plugin-jest: ^22.21.0
       eslint-plugin-prettier: ^3.1.2
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
@@ -298,8 +298,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
@@ -322,8 +322,8 @@ importers:
       eslint-plugin-prettier: ^3.1.2
       husky: ^3.1.0
       is-cidr: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       js-yaml: ^4.0.0
       lodash: ^4.17.21
       moment: ^2.27.0
@@ -368,8 +368,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
       sinon: 9.0.3
@@ -391,8 +391,8 @@ importers:
       eslint-plugin-jest: ^22.21.0
       eslint-plugin-prettier: ^3.1.2
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
@@ -416,8 +416,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
@@ -434,8 +434,8 @@ importers:
       eslint-plugin-jest: ^22.21.0
       eslint-plugin-prettier: ^3.1.2
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
@@ -455,8 +455,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
@@ -472,8 +472,8 @@ importers:
       eslint-plugin-import: ^2.20.1
       eslint-plugin-jest: ^22.21.0
       eslint-plugin-prettier: ^3.1.2
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       prettier: ^1.19.1
       source-map-support: ^0.5.16
@@ -489,8 +489,8 @@ importers:
       eslint-plugin-import: 2.20.2_eslint@6.8.0
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       source-map-support: 0.5.16
 
@@ -509,8 +509,8 @@ importers:
       eslint-plugin-prettier: ^3.1.2
       express: ^4.17.1
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
@@ -533,8 +533,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
@@ -554,8 +554,8 @@ importers:
       eslint-plugin-prettier: ^3.1.2
       generate-password: ^1.5.0
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       prettier: ^1.19.1
       source-map-support: ^0.5.16
@@ -575,8 +575,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       source-map-support: 0.5.16
 
@@ -595,8 +595,8 @@ importers:
       eslint-plugin-prettier: ^3.1.2
       generate-password: ^1.5.0
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       prettier: ^1.19.1
       source-map-support: ^0.5.16
@@ -616,8 +616,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       source-map-support: 0.5.16
 
@@ -634,8 +634,8 @@ importers:
       eslint-plugin-jest: ^22.21.0
       eslint-plugin-prettier: ^3.1.2
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       prettier: ^1.19.1
       source-map-support: ^0.5.16
@@ -653,8 +653,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       source-map-support: 0.5.16
 
@@ -673,8 +673,8 @@ importers:
       eslint-plugin-jest: ^22.21.0
       eslint-plugin-prettier: ^3.1.2
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       jsonwebtoken: ^8.5.1
       jwk-to-pem: ^2.0.5
       jwt-decode: ^2.2.0
@@ -708,8 +708,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       source-map-support: 0.5.16
 
@@ -740,8 +740,8 @@ importers:
       eslint-plugin-react: ^7.18.3
       eslint-plugin-react-hooks: ^1.7.0
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       jwt-decode: ^2.2.0
       lodash: ^4.17.21
       mobx: ^5.15.4
@@ -825,8 +825,8 @@ importers:
       eslint-plugin-react: 7.19.0_eslint@6.8.0
       eslint-plugin-react-hooks: 1.7.0_eslint@6.8.0
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
       prop-types: 15.7.2
@@ -849,8 +849,8 @@ importers:
       eslint-plugin-jest: ^22.21.0
       eslint-plugin-prettier: ^3.1.2
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
@@ -868,8 +868,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
 
@@ -886,8 +886,8 @@ importers:
       eslint-plugin-jest: ^22.21.0
       eslint-plugin-prettier: ^3.1.2
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
@@ -906,8 +906,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
@@ -936,8 +936,8 @@ importers:
       eslint-plugin-react: ^7.18.3
       eslint-plugin-react-hooks: ^1.7.0
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       jwt-decode: ^2.2.0
       lodash: ^4.17.21
       mobx: ^5.15.4
@@ -1015,8 +1015,8 @@ importers:
       eslint-plugin-react: 7.19.0_eslint@6.8.0
       eslint-plugin-react-hooks: 1.7.0_eslint@6.8.0
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
       prop-types: 15.7.2
@@ -1039,8 +1039,8 @@ importers:
       eslint-plugin-jest: ^22.21.0
       eslint-plugin-prettier: ^3.1.2
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
@@ -1062,8 +1062,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
@@ -1080,8 +1080,8 @@ importers:
       eslint-plugin-jest: ^22.21.0
       eslint-plugin-prettier: ^3.1.2
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
@@ -1101,8 +1101,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
@@ -1119,8 +1119,8 @@ importers:
       eslint-plugin-jest: ^22.21.0
       eslint-plugin-prettier: ^3.1.2
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
@@ -1140,8 +1140,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
@@ -1157,8 +1157,8 @@ importers:
       eslint-plugin-jest: ^22.21.0
       eslint-plugin-prettier: ^3.1.2
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
@@ -1175,8 +1175,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
@@ -1194,8 +1194,8 @@ importers:
       eslint-plugin-prettier: ^3.1.2
       fs-extra: ^8.1.0
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
@@ -1213,8 +1213,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
 
@@ -1231,8 +1231,8 @@ importers:
       eslint-plugin-prettier: ^3.1.2
       fs-extra: ^8.1.0
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
@@ -1250,8 +1250,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
 
@@ -1270,8 +1270,8 @@ importers:
       eslint-plugin-react: ^7.18.3
       eslint-plugin-react-hooks: ^1.7.0
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
       serverless: ^1.63.0
@@ -1290,8 +1290,8 @@ importers:
       eslint-plugin-react: 7.19.0_eslint@6.8.0
       eslint-plugin-react-hooks: 1.7.0_eslint@6.8.0
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
       serverless: 1.67.3
@@ -1312,8 +1312,8 @@ importers:
       eslint-plugin-jest: ^22.21.0
       eslint-plugin-prettier: ^3.1.2
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       jsonwebtoken: ^8.5.1
       jwk-to-pem: ^2.0.5
       jwt-decode: ^2.2.0
@@ -1350,8 +1350,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       source-map-support: 0.5.16
 
@@ -1366,8 +1366,8 @@ importers:
       eslint-plugin-jest: ^22.21.0
       eslint-plugin-prettier: ^3.1.2
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
@@ -1385,8 +1385,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       lodash: 4.17.21
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
@@ -1407,8 +1407,8 @@ importers:
       eslint-plugin-jest: ^22.21.0
       eslint-plugin-prettier: ^3.1.2
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
@@ -1433,8 +1433,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
@@ -1451,8 +1451,8 @@ importers:
       eslint-plugin-jest: ^22.21.0
       eslint-plugin-prettier: ^3.1.2
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
@@ -1472,8 +1472,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
@@ -1490,8 +1490,8 @@ importers:
       eslint-plugin-jest: ^22.21.0
       eslint-plugin-prettier: ^3.1.2
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
@@ -1511,8 +1511,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
@@ -1529,8 +1529,8 @@ importers:
       eslint-plugin-jest: ^22.21.0
       eslint-plugin-prettier: ^3.1.2
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
@@ -1550,8 +1550,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
@@ -1581,8 +1581,8 @@ importers:
       eslint-plugin-react: ^7.18.3
       eslint-plugin-react-hooks: ^1.7.0
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       mobx: ^5.15.4
       mobx-react: ^6.1.7
@@ -1633,8 +1633,8 @@ importers:
       eslint-plugin-react: 7.19.0_eslint@6.8.0
       eslint-plugin-react-hooks: 1.7.0_eslint@6.8.0
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
       regenerator-runtime: 0.13.5
@@ -1651,8 +1651,8 @@ importers:
       eslint-plugin-jest: ^22.21.0
       eslint-plugin-prettier: ^3.1.2
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
@@ -1672,8 +1672,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
@@ -1690,8 +1690,8 @@ importers:
       eslint-plugin-jest: ^22.21.0
       eslint-plugin-prettier: ^3.1.2
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       node-forge: ^0.10.0
       prettier: ^1.19.1
@@ -1713,8 +1713,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
@@ -1740,8 +1740,8 @@ importers:
       eslint-plugin-react: ^7.18.3
       eslint-plugin-react-hooks: ^1.7.0
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       mobx: ^5.15.4
       mobx-react: ^6.1.7
@@ -1789,8 +1789,8 @@ importers:
       eslint-plugin-react: 7.19.0_eslint@6.8.0
       eslint-plugin-react-hooks: 1.7.0_eslint@6.8.0
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
 
@@ -1812,8 +1812,8 @@ importers:
       eslint-plugin-jest: ^22.21.0
       eslint-plugin-prettier: ^3.1.2
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       prettier: ^1.19.1
       source-map-support: ^0.5.16
@@ -1833,8 +1833,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       source-map-support: 0.5.16
 
@@ -1917,7 +1917,7 @@ importers:
       husky: ^3.1.0
       jest: ^26.6.3
       jest-circus: ^26.6.3
-      jest-junit: ^10.0.0
+      jest-junit: ^12.2.0
       js-yaml: ^4.0.0
       lodash: ^4.17.21
       prettier: ^1.19.1
@@ -1949,7 +1949,7 @@ importers:
       husky: 3.1.0
       jest: 26.6.3
       jest-circus: 26.6.3
-      jest-junit: 10.0.0
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
       request: 2.88.2
@@ -1967,8 +1967,8 @@ importers:
       eslint-plugin-jest: ^22.21.0
       eslint-plugin-prettier: ^3.1.2
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
@@ -1988,8 +1988,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
@@ -2007,8 +2007,8 @@ importers:
       eslint-plugin-jest: ^22.21.0
       eslint-plugin-prettier: ^3.1.2
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
@@ -2027,8 +2027,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
@@ -2076,8 +2076,8 @@ importers:
       eslint-plugin-prettier: ^3.1.2
       fsevents: '*'
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       js-yaml: ^3.13.1
       js-yaml-loader: ^1.2.2
       jwt-decode: ^2.2.0
@@ -2144,8 +2144,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       js-yaml-loader: 1.2.2
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
@@ -2236,8 +2236,8 @@ importers:
       eslint-plugin-jest: ^22.21.0
       eslint-plugin-prettier: ^3.1.2
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       js-yaml-loader: ^1.2.2
       lodash: ^4.17.21
       prettier: ^1.19.1
@@ -2286,8 +2286,8 @@ importers:
       eslint-plugin-jest: 22.21.0_eslint@6.8.0
       eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       js-yaml-loader: 1.2.2
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
@@ -2332,8 +2332,8 @@ importers:
       eslint-plugin-react: ^7.21.5
       eslint-plugin-react-hooks: ^2.5.1
       husky: ^3.1.0
-      jest: ^24.9.0
-      jest-junit: ^10.0.0
+      jest: ^26.6.3
+      jest-junit: ^12.2.0
       lodash: ^4.17.21
       mobx: ^5.15.7
       mobx-react: ^6.3.1
@@ -2393,8 +2393,8 @@ importers:
       eslint-plugin-react: 7.21.5_eslint@6.8.0
       eslint-plugin-react-hooks: 2.5.1_eslint@6.8.0
       husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
+      jest: 26.6.3
+      jest-junit: 12.2.0
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
       react-scripts: 3.4.4
@@ -4722,6 +4722,14 @@ packages:
       lodash.once: 4.1.1
     dev: true
 
+  /@dabh/diagnostics/2.0.2:
+    resolution: {integrity: sha512-+A1YivoVDNNVCdfozHSR8v/jyuuLTMXwjWuxPFlFlUapXoGc+Gj9mDlTDDfrwl7rXCl2tNZ0kE8sIBO6YOn96Q==}
+    dependencies:
+      colorspace: 1.1.2
+      enabled: 2.0.0
+      kuler: 2.0.0
+    dev: true
+
   /@emotion/cache/10.0.29:
     resolution: {integrity: sha512-fU2VtSVlHiF27empSbxi1O2JFdNWZO+2NFHfwO0pxgTep6Xa3uGb+3pVKfLww2l/IBGLNEZl5Xf/++A4wAYDYQ==}
     dependencies:
@@ -6215,7 +6223,7 @@ packages:
     resolution: {integrity: sha512-1zzPV9FDe1I/WHhRkf9SNgqtRJWZqrBWgu7JGveuHmmyR9CnAPCie2N/x+iHrgnpYBIcCJWHBoMRv2TRWktsvw==}
     deprecated: This is a stub types definition for chalk (https://github.com/chalk/chalk). chalk provides its own type definitions, so you don't need @types/chalk installed!
     dependencies:
-      chalk: 4.1.0
+      chalk: 2.4.2
     dev: true
 
   /@types/cls-hooked/4.3.3:
@@ -6336,6 +6344,10 @@ packages:
   /@types/node/14.14.10:
     resolution: {integrity: sha512-J32dgx2hw8vXrSbu4ZlVhn1Nm3GbeCFNw2FWL8S5QKucHGY0cyNwjdQdO+KMBZ4wpmC7KhLCiNsdk1RFRIYUQQ==}
 
+  /@types/node/15.12.5:
+    resolution: {integrity: sha512-se3yX7UHv5Bscf8f1ERKvQOD6sTyycH3hdaoozvaLxgUiY5lIGEeH37AD0G0Qi9kPqihPn0HOfd2yaIEN9VwEg==}
+    dev: true
+
   /@types/normalize-package-data/2.4.0:
     resolution: {integrity: sha512-f5j5b/Gf71L+dbqxIpQ4Z2WlmI/mPJ0fOkGGmFgtb6sAu97EPczzbS3/tJKxmcYDj55OX6ssqwDAWOHIYDRDGA==}
     dev: true
@@ -6398,7 +6410,7 @@ packages:
     resolution: {integrity: sha512-/LO7xRVnL3DxJ1WkPGDQrp4VTV1reX9RkC85mJ+Qzykj2Bdw+mG15aAfDahc76HtknjzE16SX/Yddn6MxVbmGQ==}
     dependencies:
       '@types/caseless': 0.12.2
-      '@types/node': 14.14.10
+      '@types/node': 15.12.5
       '@types/tough-cookie': 4.0.0
       form-data: 2.5.1
     dev: true
@@ -8996,11 +9008,18 @@ packages:
       simple-swizzle: 0.2.2
     dev: true
 
+  /color-string/1.5.5:
+    resolution: {integrity: sha512-jgIoum0OfQfq9Whcfc2z/VhCNcmQjWbey6qBX0vqt7YICflUmBCh9E9CiQD5GSJ+Uehixm3NUwHVhqUAWRivZg==}
+    dependencies:
+      color-name: 1.1.4
+      simple-swizzle: 0.2.2
+    dev: true
+
   /color/3.0.0:
     resolution: {integrity: sha512-jCpd5+s0s0t7p3pHQKpnJ0TpQKKdleP71LWcA0aqiljpiuAkOSUFN/dyH8ZwF0hRmFlrIuRhufds1QyEP9EB+w==}
     dependencies:
       color-convert: 1.9.3
-      color-string: 1.5.4
+      color-string: 1.5.5
     dev: true
 
   /color/3.1.3:
@@ -10264,6 +10283,10 @@ packages:
     resolution: {integrity: sha1-082BIh4+pAdCz83lVtTpnpjdxxs=}
     dev: true
 
+  /dijkstrajs/1.0.2:
+    resolution: {integrity: sha512-QV6PMaHTCNmKSeP6QoXhVTw9snc9VD8MulTT0Bd99Pacp4SS1cjcrYPgBPmibqKVtMJJfqC6XvOXgPMEEPH/fg==}
+    dev: true
+
   /dir-glob/2.0.0:
     resolution: {integrity: sha512-37qirFDz8cA5fimp9feo43fSuRo2gHwaIn6dXL8Ber1dGwUosDrGZeCCXq57WnIqE4aQ+u3eQZzsk1yOzhdwag==}
     engines: {node: '>=4'}
@@ -10575,6 +10598,10 @@ packages:
       env-variable: 0.0.6
     dev: true
 
+  /enabled/2.0.0:
+    resolution: {integrity: sha512-AKrN98kuwOzMIdAizXGI86UFBoo26CL21UM763y1h/GMSJ4/OHU9k2YlsmBpyScFo/wbLzWQJBMCW4+IO3/+OQ==}
+    dev: true
+
   /encodeurl/1.0.2:
     resolution: {integrity: sha1-rT/0yG7C0CkyL1oCw6mmBslbP1k=}
     engines: {node: '>= 0.8'}
@@ -10615,6 +10642,25 @@ packages:
       ws: 6.1.4
       xmlhttprequest-ssl: 1.5.5
       yeast: 0.1.2
+    dev: true
+
+  /engine.io-client/3.5.2:
+    resolution: {integrity: sha512-QEqIp+gJ/kMHeUun7f5Vv3bteRHppHH/FMBQX/esFj/fuYfjyUKWGMo3VCvIP/V8bE9KcjHmRZrhIz2Z9oNsDA==}
+    dependencies:
+      component-emitter: 1.3.0
+      component-inherit: 0.0.3
+      debug: 3.1.0
+      engine.io-parser: 2.2.1
+      has-cors: 1.1.0
+      indexof: 0.0.1
+      parseqs: 0.0.6
+      parseuri: 0.0.6
+      ws: 7.4.6
+      xmlhttprequest-ssl: 1.6.3
+      yeast: 0.1.2
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
     dev: true
 
   /engine.io-parser/2.2.1:
@@ -11830,8 +11876,8 @@ packages:
       pend: 1.2.0
     dev: true
 
-  /fecha/4.2.0:
-    resolution: {integrity: sha512-aN3pcx/DSmtyoovUudctc8+6Hl4T+hI9GBBHLjA76jdZl7+b1sgh5g4k+u/GL3dTy1/pnYzKp69FpJ0OicE3Wg==}
+  /fecha/4.2.1:
+    resolution: {integrity: sha512-MMMQ0ludy/nBs1/o0zVOiKTpG7qMbonKUzjJgQFEuvq6INZ1OraKPRAWkBq5vlKLOUMpmNYG1JoN3oDPUQ9m3Q==}
     dev: true
 
   /figgy-pudding/3.5.2:
@@ -12139,6 +12185,10 @@ packages:
       readable-stream: 2.3.7
     dev: true
 
+  /fn.name/1.1.0:
+    resolution: {integrity: sha512-GRnmB5gPyJpAhTQdSZTSp9uaPSvl09KoYcMQtsB9rQoOmzs9dH6ffeccH+Z+cv6P68Hu5bC6JjRh4Ah/mHSNRw==}
+    dev: true
+
   /follow-redirects/1.13.0:
     resolution: {integrity: sha512-aq6gF1BEKje4a9i9+5jimNFIpq4Q1WiwBToeRK5NvZBd/TRsmW8BsJfOEGkr76TbOyPVD3OVDN910EcUNtRYEA==}
     engines: {node: '>=4.0'}
@@ -12198,7 +12248,7 @@ packages:
     dependencies:
       asynckit: 0.4.0
       combined-stream: 1.0.8
-      mime-types: 2.1.27
+      mime-types: 2.1.31
     dev: true
 
   /format/0.2.2:
@@ -14489,14 +14539,13 @@ packages:
       - utf-8-validate
     dev: true
 
-  /jest-junit/10.0.0:
-    resolution: {integrity: sha512-dbOVRyxHprdSpwSAR9/YshLwmnwf+RSl5hf0kCGlhAcEeZY9aRqo4oNmaT0tLC16Zy9D0zekDjWkjHGjXlglaQ==}
-    engines: {node: '>=8.0.0'}
+  /jest-junit/12.2.0:
+    resolution: {integrity: sha512-ecGzF3KEQwLbMP5xMO7wqmgmyZlY/5yWDvgE/vFa+/uIT0KsU5nluf0D2fjIlOKB+tb6DiuSSpZuGpsmwbf7Fw==}
+    engines: {node: '>=10.12.0'}
     dependencies:
-      jest-validate: 24.9.0
-      mkdirp: 0.5.5
+      mkdirp: 1.0.4
       strip-ansi: 5.2.0
-      uuid: 3.4.0
+      uuid: 8.3.2
       xml: 1.0.1
     dev: true
 
@@ -15428,6 +15477,10 @@ packages:
       colornames: 1.1.1
     dev: true
 
+  /kuler/2.0.0:
+    resolution: {integrity: sha512-Xq9nH7KlWZmXAtodXDDRE7vs6DU1gTU8zYDHDiWLSip45Egwq3plLHzPn27NgvzL2r1LMPC1vdqh98sQxtqj4A==}
+    dev: true
+
   /language-subtag-registry/0.3.21:
     resolution: {integrity: sha512-L0IqwlIXjilBVVYKFT37X9Ih11Um5NEl9cbJIuU/SwP/zEEAbBPOnEeeuxVMf45ydWQRDQN3Nqc96OgbH1K+Pg==}
     dev: true
@@ -15787,8 +15840,8 @@ packages:
     dependencies:
       colors: 1.4.0
       fast-safe-stringify: 2.0.7
-      fecha: 4.2.0
-      ms: 2.1.2
+      fecha: 4.2.1
+      ms: 2.1.3
       triple-beam: 1.3.0
     dev: true
 
@@ -16076,6 +16129,11 @@ packages:
     resolution: {integrity: sha512-CkqLUxUk15hofLoLyljJSrukZi8mAtgd+yE5uO4tqRZsdsAJKv0O+rFMhVDRJgozy+yG6md5KwuXhD4ocIoP+w==}
     engines: {node: '>= 0.6'}
 
+  /mime-db/1.48.0:
+    resolution: {integrity: sha512-FM3QwxV+TnZYQ2aRqhlKBMHxk10lTbMt3bBkMAp54ddrNeVSfcQYOOKuGuy3Ddrm38I04If834fOUSq1yzslJQ==}
+    engines: {node: '>= 0.6'}
+    dev: true
+
   /mime-types/2.1.26:
     resolution: {integrity: sha512-01paPWYgLrkqAyrlDorC1uDwl2p3qZT7yl806vW7DvDoxwXi46jsjFbg+WdwotBIk6/MbEhO/dh5aZ5sNj/dWQ==}
     engines: {node: '>= 0.6'}
@@ -16088,6 +16146,13 @@ packages:
     engines: {node: '>= 0.6'}
     dependencies:
       mime-db: 1.44.0
+
+  /mime-types/2.1.31:
+    resolution: {integrity: sha512-XGZnNzm3QvgKxa8dpzyhFTHmpP3l5YNusmne07VUOXxou9CqUqYa/HBy124RqtVh/O2pECas/MOcsDgpilPOPg==}
+    engines: {node: '>= 0.6'}
+    dependencies:
+      mime-db: 1.48.0
+    dev: true
 
   /mime/1.6.0:
     resolution: {integrity: sha512-x0Vn8spI+wuJ1O6S7gnbaQg8Pxh4NNHb7KSINmEWKiPE4RKOplvijn+NkmYmmRgP68mc70j2EbeTFRsrswaQeg==}
@@ -16240,6 +16305,12 @@ packages:
     hasBin: true
     dependencies:
       minimist: 1.2.5
+    dev: true
+
+  /mkdirp/1.0.4:
+    resolution: {integrity: sha512-vVqVZQyf3WLx2Shd0qJ9xuvqgAyKPLAiqITEtqW0oIUjzo3PePDd6fW9iFz30ef7Ysp/oiWqbhszeGWW2T6Gzw==}
+    engines: {node: '>=10'}
+    hasBin: true
     dev: true
 
   /mobx-react-form/2.0.8_mobx@5.15.4:
@@ -16409,6 +16480,10 @@ packages:
 
   /ms/2.1.2:
     resolution: {integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==}
+
+  /ms/2.1.3:
+    resolution: {integrity: sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==}
+    dev: true
 
   /msgpack-lite/0.1.26:
     resolution: {integrity: sha1-3TxQsm8FnyXn7e42REGDWOKprYk=}
@@ -16970,6 +17045,12 @@ packages:
 
   /one-time/0.0.4:
     resolution: {integrity: sha1-+M33eISCb+Tf+T46nMN7HkSAdC4=}
+    dev: true
+
+  /one-time/1.0.0:
+    resolution: {integrity: sha512-5DXOiRKwuSEcQ/l0kGCF6Q3jcADFv5tSmRaJck/OqkVFcOzutB134KRSfF0xDrL39MNnqxbHBbUUcjZIhTgb2g==}
+    dependencies:
+      fn.name: 1.1.0
     dev: true
 
   /onetime/1.1.0:
@@ -19557,7 +19638,7 @@ packages:
     peerDependencies:
       request: ^2.34
     dependencies:
-      lodash: 4.17.21
+      lodash: 4.17.20
       request: 2.88.2
     dev: true
 
@@ -19895,6 +19976,7 @@ packages:
   /sane/4.1.0:
     resolution: {integrity: sha512-hhbzAgTIX8O7SHfp2c8/kREfEn4qO/9q8C9beyY6+tvZ87EpoZ3i1RIEvp27YBswnNbY9mWd6paKVmKbAgLfZA==}
     engines: {node: 6.* || 8.* || >= 10.*}
+    deprecated: some dependency vulnerabilities fixed, support for node < 10 dropped, and newer ECMAScript syntax/features added
     hasBin: true
     dependencies:
       '@cnakazawa/watch': 1.0.4
@@ -20221,16 +20303,18 @@ packages:
     resolution: {integrity: sha512-25jyMEBS9zuewtJw01N2V5CISTPeCCbNgJMveXpRCfUWASt0pYuVqaWBKZt3C7AbHVn75NZQg0XQsy0y9EXjyw==}
     dependencies:
       '@tencent-sdk/capi': 0.2.17
-      dijkstrajs: 1.0.1
+      dijkstrajs: 1.0.2
       dot-qs: 0.2.0
       duplexify: 4.1.1
       end-of-stream: 1.4.4
       https-proxy-agent: 5.0.0
-      socket.io-client: 2.3.1
+      socket.io-client: 2.4.0
       socket.io-stream: 0.9.1
-      winston: 3.2.1
+      winston: 3.3.3
     transitivePeerDependencies:
+      - bufferutil
       - supports-color
+      - utf-8-validate
     dev: true
 
   /serverless-webpack/5.3.1_webpack@4.42.1:
@@ -20623,8 +20707,35 @@ packages:
       to-array: 0.1.4
     dev: true
 
+  /socket.io-client/2.4.0:
+    resolution: {integrity: sha512-M6xhnKQHuuZd4Ba9vltCLT9oa+YvTsP8j9NcEiLElfIg8KeYPyhWOes6x4t+LTAC8enQbE/995AdTem2uNyKKQ==}
+    dependencies:
+      backo2: 1.0.2
+      component-bind: 1.0.0
+      component-emitter: 1.3.0
+      debug: 3.1.0
+      engine.io-client: 3.5.2
+      has-binary2: 1.0.3
+      indexof: 0.0.1
+      parseqs: 0.0.6
+      parseuri: 0.0.6
+      socket.io-parser: 3.3.2
+      to-array: 0.1.4
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+    dev: true
+
   /socket.io-parser/3.3.1:
     resolution: {integrity: sha512-1QLvVAe8dTz+mKmZ07Swxt+LAo4Y1ff50rlyoEx00TQmDFVQYPfcqGvIDJLGaBdhdNCecXtyKpD+EgKGcmmbuQ==}
+    dependencies:
+      component-emitter: 1.3.0
+      debug: 3.1.0
+      isarray: 2.0.1
+    dev: true
+
+  /socket.io-parser/3.3.2:
+    resolution: {integrity: sha512-FJvDBuOALxdCI9qwRrO/Rfp9yfndRtc1jSgVgV8FDraihmSP/MLGD5PEuJrNfjALvcQ+vMDM/33AWOYP/JSjDg==}
     dependencies:
       component-emitter: 1.3.0
       debug: 3.1.0
@@ -22149,6 +22260,7 @@ packages:
 
   /uuid/3.4.0:
     resolution: {integrity: sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==}
+    deprecated: Please upgrade  to version 7 or higher.  Older versions may use Math.random() in certain circumstances, which is known to be problematic.  See https://v8.dev/blog/math-random for details.
     hasBin: true
 
   /uuid/8.2.0:
@@ -22160,7 +22272,6 @@ packages:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
     hasBin: true
     dev: true
-    optional: true
 
   /v8-compile-cache/2.0.3:
     resolution: {integrity: sha512-CNmdbwQMBjwr9Gsmohvm0pbL954tJrNzf6gWL3K+QMQf00PF7ERGrEiLgjuU3mKreLC2MeGhUsNV9ybTbLgd3w==}
@@ -22634,6 +22745,21 @@ packages:
       winston-transport: 4.4.0
     dev: true
 
+  /winston/3.3.3:
+    resolution: {integrity: sha512-oEXTISQnC8VlSAKf1KYSSd7J6IWuRPQqDdo8eoRNaYKLvwSb5+79Z3Yi1lrl6KDpU6/VWaxpakDAtb1oQ4n9aw==}
+    engines: {node: '>= 6.4.0'}
+    dependencies:
+      '@dabh/diagnostics': 2.0.2
+      async: 3.2.0
+      is-stream: 2.0.0
+      logform: 2.2.0
+      one-time: 1.0.0
+      readable-stream: 3.6.0
+      stack-trace: 0.0.10
+      triple-beam: 1.3.0
+      winston-transport: 4.4.0
+    dev: true
+
   /word-wrap/1.2.3:
     resolution: {integrity: sha512-Hz/mrNwitNRh/HUAtM/VT/5VH+ygD6DV7mYKZAtHOrbs8U7lvPS6xf7EJKMF0uW1KJCl0H701g3ZGus+muE5vQ==}
     engines: {node: '>=0.10.0'}
@@ -22893,6 +23019,19 @@ packages:
         optional: true
     dev: true
 
+  /ws/7.4.6:
+    resolution: {integrity: sha512-YmhHDO4MzaDLB+M9ym/mDA5z0naX8j7SIlT8f8z+I0VtzsRbekxEutHSme7NPS2qE8StCYQNUnfWdXta/Yu85A==}
+    engines: {node: '>=8.3.0'}
+    peerDependencies:
+      bufferutil: ^4.0.1
+      utf-8-validate: ^5.0.2
+    peerDependenciesMeta:
+      bufferutil:
+        optional: true
+      utf-8-validate:
+        optional: true
+    dev: true
+
   /x-path/0.0.2:
     resolution: {integrity: sha1-KU0Ha7l6dwbMBwu7Km/YxU32exI=}
     dependencies:
@@ -22927,6 +23066,11 @@ packages:
 
   /xmlhttprequest-ssl/1.5.5:
     resolution: {integrity: sha1-wodrBhaKrcQOV9l+gRkayPQ5iz4=}
+    engines: {node: '>=0.4.0'}
+    dev: true
+
+  /xmlhttprequest-ssl/1.6.3:
+    resolution: {integrity: sha512-3XfeQE/wNkvrIktn2Kf0869fC0BN6UpydVasGIeSm2B1Llihf7/0UfZM+eCkOw3P7bP4+qPgqhm7ZoxuJtFU0Q==}
     engines: {node: '>=0.4.0'}
     dev: true
 
