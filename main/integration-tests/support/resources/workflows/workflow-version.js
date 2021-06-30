@@ -74,6 +74,22 @@ class WorkflowVersion extends Resource {
 
     return triggerInfo;
   }
+
+  // Polls a workflow at an intermittent interval until it has finished running or it has reached the maxCount.
+  async waitUntilComplete(wfInstanceId, interval = 1000, maxCount = 300) {
+    let counter = 0;
+    let results;
+
+    do {
+      await new Promise(r => setTimeout(r, interval));
+      counter += 1;
+      results = await Promise.all([
+        this.instances()
+          .instance(wfInstanceId)
+          .get(),
+      ]);
+    } while (results[0].wfStatus !== 'done' && results[0].wfStatus !== 'error' && counter < maxCount);
+  }
 }
 
 module.exports = WorkflowVersion;

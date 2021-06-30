@@ -14,8 +14,9 @@
  *  permissions and limitations under the License.
  */
 
-const { runSetup } = require('../../../support/setup');
+const _ = require('lodash');
 
+const { runSetup } = require('../../../support/setup');
 const {
   createWorkspaceTypeAndConfiguration,
 } = require('../../../support/complex/create-workspace-type-and-configuration');
@@ -54,132 +55,132 @@ describe('Create workspace-service-catalog scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('Create workspace-service-catalog', () => {
-    it('should fail if user is inactive', async () => {
-      const adminSession2 = await setup.createAdminSession();
-      const workspaceName = setup.gen.string({ prefix: 'workspace-service-catalog-test' });
-      const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(
-        productInfo,
-        adminSession,
-        setup,
-      );
+  // describe('Create workspace-service-catalog', () => {
+  //   it('should fail if user is inactive', async () => {
+  //     const adminSession2 = await setup.createAdminSession();
+  //     const workspaceName = setup.gen.string({ prefix: 'workspace-service-catalog-test' });
+  //     const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(
+  //       productInfo,
+  //       adminSession,
+  //       setup,
+  //     );
 
-      await adminSession2.resources.users.deactivateUser(adminSession2.user);
+  //     await adminSession2.resources.users.deactivateUser(adminSession2.user);
 
-      await expect(
-        adminSession2.resources.workspaceServiceCatalogs.create({
-          name: workspaceName,
-          envTypeId: workspaceTypeId,
-          envTypeConfigId: configurationId,
-        }),
-      ).rejects.toMatchObject({
-        code: errorCode.http.code.unauthorized,
-      });
-    });
+  //     await expect(
+  //       adminSession2.resources.workspaceServiceCatalogs.create({
+  //         name: workspaceName,
+  //         envTypeId: workspaceTypeId,
+  //         envTypeConfigId: configurationId,
+  //       }),
+  //     ).rejects.toMatchObject({
+  //       code: errorCode.http.code.unauthorized,
+  //     });
+  //   });
 
-    it('should fail if user is anonymous', async () => {
-      const anonymousSession = await setup.createAnonymousSession();
-      const workspaceName = setup.gen.string({ prefix: 'workspace-service-catalog-test' });
-      const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(
-        productInfo,
-        adminSession,
-        setup,
-      );
+  //   it('should fail if user is anonymous', async () => {
+  //     const anonymousSession = await setup.createAnonymousSession();
+  //     const workspaceName = setup.gen.string({ prefix: 'workspace-service-catalog-test' });
+  //     const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(
+  //       productInfo,
+  //       adminSession,
+  //       setup,
+  //     );
 
-      await expect(
-        anonymousSession.resources.workspaceServiceCatalogs.create({
-          name: workspaceName,
-          envTypeId: workspaceTypeId,
-          envTypeConfigId: configurationId,
-        }),
-      ).rejects.toMatchObject({
-        code: errorCode.http.code.badImplementation,
-      });
-    });
+  //     await expect(
+  //       anonymousSession.resources.workspaceServiceCatalogs.create({
+  //         name: workspaceName,
+  //         envTypeId: workspaceTypeId,
+  //         envTypeConfigId: configurationId,
+  //       }),
+  //     ).rejects.toMatchObject({
+  //       code: errorCode.http.code.badImplementation,
+  //     });
+  //   });
 
-    it('should fail if user role is not allowed', async () => {
-      const researcherSession = await setup.createResearcherSession();
-      const workspaceName = setup.gen.string({ prefix: 'workspace-service-catalog-test' });
-      const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(
-        productInfo,
-        adminSession,
-        setup,
-      );
+  //   it('should fail if user role is not allowed', async () => {
+  //     const researcherSession = await setup.createResearcherSession();
+  //     const workspaceName = setup.gen.string({ prefix: 'workspace-service-catalog-test' });
+  //     const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(
+  //       productInfo,
+  //       adminSession,
+  //       setup,
+  //     );
 
-      await expect(
-        researcherSession.resources.workspaceServiceCatalogs.create({
-          name: workspaceName,
-          envTypeId: workspaceTypeId,
-          envTypeConfigId: configurationId,
-          invalid: 'data',
-        }),
-      ).rejects.toMatchObject({
-        code: errorCode.http.code.badRequest,
-      });
-    });
+  //     await expect(
+  //       researcherSession.resources.workspaceServiceCatalogs.create({
+  //         name: workspaceName,
+  //         envTypeId: workspaceTypeId,
+  //         envTypeConfigId: configurationId,
+  //         invalid: 'data',
+  //       }),
+  //     ).rejects.toMatchObject({
+  //       code: errorCode.http.code.badRequest,
+  //     });
+  //   });
 
-    it('should fail if input is not valid', async () => {
-      const workspaceName = setup.gen.string({ prefix: 'workspace-service-catalog-test' });
-      const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(
-        productInfo,
-        adminSession,
-        setup,
-      );
+  //   it('should fail if input is not valid', async () => {
+  //     const workspaceName = setup.gen.string({ prefix: 'workspace-service-catalog-test' });
+  //     const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(
+  //       productInfo,
+  //       adminSession,
+  //       setup,
+  //     );
 
-      await expect(
-        adminSession.resources.workspaceServiceCatalogs.create({
-          name: workspaceName,
-          envTypeId: workspaceTypeId,
-          envTypeConfigId: configurationId,
-          invalid: 'data',
-        }),
-      ).rejects.toMatchObject({
-        code: errorCode.http.code.badRequest,
-      });
-    });
+  //     await expect(
+  //       adminSession.resources.workspaceServiceCatalogs.create({
+  //         name: workspaceName,
+  //         envTypeId: workspaceTypeId,
+  //         envTypeConfigId: configurationId,
+  //         invalid: 'data',
+  //       }),
+  //     ).rejects.toMatchObject({
+  //       code: errorCode.http.code.badRequest,
+  //     });
+  //   });
 
-    it('should create the service catalog workspace if admin', async () => {
-      const workspaceName = setup.gen.string({ prefix: 'workspace-service-catalog-test' });
-      const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(
-        productInfo,
-        adminSession,
-        setup,
-      );
+  //   it('should create the service catalog workspace if admin', async () => {
+  //     const workspaceName = setup.gen.string({ prefix: 'workspace-service-catalog-test' });
+  //     const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(
+  //       productInfo,
+  //       adminSession,
+  //       setup,
+  //     );
 
-      await expect(
-        adminSession.resources.workspaceServiceCatalogs.create({
-          name: workspaceName,
-          envTypeId: workspaceTypeId,
-          envTypeConfigId: configurationId,
-        }),
-      ).resolves.toMatchObject({
-        envTypeId: workspaceTypeId,
-        envTypeConfigId: configurationId,
-      });
-    });
+  //     await expect(
+  //       adminSession.resources.workspaceServiceCatalogs.create({
+  //         name: workspaceName,
+  //         envTypeId: workspaceTypeId,
+  //         envTypeConfigId: configurationId,
+  //       }),
+  //     ).resolves.toMatchObject({
+  //       envTypeId: workspaceTypeId,
+  //       envTypeConfigId: configurationId,
+  //     });
+  //   });
 
-    it('should create if user role is allowed', async () => {
-      const researcherSession = await setup.createResearcherSession();
-      const workspaceName = setup.gen.string({ prefix: 'workspace-service-catalog-test' });
-      const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(
-        productInfo,
-        adminSession,
-        setup,
-        ['researcher'],
-      );
+  //   it('should create if user role is allowed', async () => {
+  //     const researcherSession = await setup.createResearcherSession();
+  //     const workspaceName = setup.gen.string({ prefix: 'workspace-service-catalog-test' });
+  //     const { workspaceTypeId, configurationId } = await createWorkspaceTypeAndConfiguration(
+  //       productInfo,
+  //       adminSession,
+  //       setup,
+  //       ['researcher'],
+  //     );
 
-      await expect(
-        researcherSession.resources.workspaceServiceCatalogs.create({
-          name: workspaceName,
-          envTypeId: workspaceTypeId,
-          envTypeConfigId: configurationId,
-        }),
-      ).resolves.toMatchObject({
-        envTypeId: workspaceTypeId,
-        envTypeConfigId: configurationId,
-      });
-    });
-  });
+  //     await expect(
+  //       researcherSession.resources.workspaceServiceCatalogs.create({
+  //         name: workspaceName,
+  //         envTypeId: workspaceTypeId,
+  //         envTypeConfigId: configurationId,
+  //       }),
+  //     ).resolves.toMatchObject({
+  //       envTypeId: workspaceTypeId,
+  //       envTypeConfigId: configurationId,
+  //     });
+  //   });
+  // });
   describe('Workspace SC env with studies', () => {
     it('for EC2Linux should provision correctly', async () => {
       // const researcher1Session = await setup.createResearcherSession();
@@ -235,30 +236,41 @@ describe('Create workspace-service-catalog scenarios', () => {
         .version(1)
         .instances()
         .get();
-      let result;
-      workflows.forEach(w => {
-        if (
-          w.input.envId === env.id &&
-          w.input.envTypeId === env.envTypeId &&
-          w.input.envTypeConfigId === env.envTypeConfigId
-        ) {
-          result = w;
-        }
-      });
-
-      while (result.wfStatus !== 'done' && result.wfStatus !== 'error') {
-        // look at retry logic
-        await new Promise(r => setTimeout(r, 1000 * 30));
-        const getPromises = await Promise.all([
-          admin1Session.resources.workflows
-            .versions('wf-provision-environment-sc')
-            .version(1)
-            .instances()
-            .instance(result.id)
-            .get(),
-        ]);
-        result = getPromises[0];
-      }
+      console.log(env.id);
+      const result = _.filter(workflows, {
+        input: {
+          envId: env.id,
+          envTypeId: env.envTypeId,
+          envTypeConfigId: env.envTypeConfigId,
+        },
+      })[0];
+      // workflows.forEach(w => {
+      //   if (
+      //     w.input.envId === env.id &&
+      //     w.input.envTypeId === env.envTypeId &&
+      //     w.input.envTypeConfigId === env.envTypeConfigId
+      //   ) {
+      //     result = w;
+      //   }
+      // });
+      console.log(result);
+      // while (result.wfStatus !== 'done' && result.wfStatus !== 'error') {
+      //   // look at retry logic
+      //   await new Promise(r => setTimeout(r, 1000 * 30));
+      //   const getPromises = await Promise.all([
+      //     admin1Session.resources.workflows
+      //       .versions('wf-provision-environment-sc')
+      //       .version(1)
+      //       .instances()
+      //       .instance(result.id)
+      //       .get(),
+      //   ]);
+      //   result = getPromises[0];
+      // }
+      await admin1Session.resources.workflows
+        .versions('wf-provision-environment-sc')
+        .version(1)
+        .waitUntilComplete({ instanceId: result.id, interval: 20000, maxCount: 24 });
     });
   });
 });
