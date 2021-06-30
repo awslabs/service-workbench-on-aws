@@ -22,6 +22,8 @@ const { StudyPolicy } = require('../../helpers/iam/study-policy');
 const settingKeys = {
   enableEgressStore: 'enableEgressStore',
   environmentInstanceFiles: 'environmentInstanceFiles',
+  isAppStreamEnabled: 'isAppStreamEnabled',
+  solutionNamespace: 'solutionNamespace',
 };
 
 /**
@@ -283,9 +285,10 @@ class EnvironmentConfigVarsService extends Service {
       s3Mounts: JSON.stringify(s3Mounts),
       iamPolicyDocument: JSON.stringify(iamPolicyDocument),
       environmentInstanceFiles: this.settings.get(settingKeys.environmentInstanceFiles),
+      isAppStreamEnabled: this.settings.get(settingKeys.isAppStreamEnabled),
+      solutionNamespace: this.settings.get(settingKeys.solutionNamespace),
       // s3Prefixes // This variable is no longer relevant it is being removed, the assumption is that
       // this variable has not been used in any of the product templates.
-
       uid: user.uid,
       username: user.username,
       userNamespace: user.ns,
