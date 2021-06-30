@@ -50,7 +50,7 @@ describe('S3Service', () => {
     it('should move object from one place to another', async () => {
       const from = { bucket: 'test-from-bucket', key: 'test-from-key' };
       const to = { bucket: 'test-to-bucket', key: 'test-to-key' };
-      AWSMock.mock('S3', 'copyObject', (params, callback) => {
+      AWSMock.mock('S3', 'copyObject', params => {
         expect(params).toMatchObject({
           Bucket: to.bucket,
           CopySource: `/${from.bucket}/${from.key}`,
@@ -58,7 +58,7 @@ describe('S3Service', () => {
         });
       });
 
-      AWSMock.mock('S3', 'deleteObject', (params, callback) => {
+      AWSMock.mock('S3', 'deleteObject', params => {
         expect(params).toMatchObject({
           Bucket: from.bucket,
           Key: `${from.key}`,
@@ -77,7 +77,7 @@ describe('S3Service', () => {
         });
       });
 
-      AWSMock.mock('S3', 'deleteObjects', (params, callback) => {
+      AWSMock.mock('S3', 'deleteObjects', params => {
         expect(params).toMatchObject({
           Bucket: 'test-bucketName',
           Delete: { Objects: [{ key: 'test-key1' }, { key: 'test-key2' }] },
