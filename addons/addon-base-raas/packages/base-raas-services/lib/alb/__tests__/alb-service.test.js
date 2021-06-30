@@ -474,6 +474,32 @@ describe('ALBService', () => {
 
   describe('modifyRule', () => {
     it('should pass and return empty object with success', async () => {
+      const resolvedVars = {
+        projectId: 'bio-research-vir2',
+        envId: '018bb1e1-6bd3-49d9-b608-051cfb180882',
+        cidr: ['10.0.0.0/32'],
+        prefix: 'rstudio',
+        ruleARN:
+          'arn:aws:elasticloadbalancing:us-west-2:123456789012:listener-rule/app/my-load-balancer/50dc6c495c0c9188/f2f7dc8efc522ab2/9683b2d02a6cabee',
+      };
+      const params = {
+        Conditions: [
+          {
+            Field: 'host-header',
+            HostHeaderConfig: {
+              Values: ['rtsudio-test.example.com'],
+            },
+          },
+          {
+            Field: 'source-ip',
+            SourceIpConfig: {
+              Values: ['10.0.0.0/32'],
+            },
+          },
+        ],
+        RuleArn:
+          'arn:aws:elasticloadbalancing:us-west-2:123456789012:listener-rule/app/my-load-balancer/50dc6c495c0c9188/f2f7dc8efc522ab2/9683b2d02a6cabee',
+      };
       service.getHostname = jest.fn(() => {
         return 'rtsudio-test.example.com';
       });
@@ -490,26 +516,35 @@ describe('ALBService', () => {
         };
       });
       service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
-      const response = await service.modifyRule({}, { cidr: [], projectId: '' });
+      const response = await service.modifyRule({}, resolvedVars);
+      expect(albClient.modifyRule).toHaveBeenCalledWith(params);
       expect(response).toEqual({});
     });
-    it('should pass when user passed empty cidr value to modify rule', async () => {
-      // the system should validate and replace the default ip "0.0.0.0/0" and execute
+
+    it('should fail when user passed empty cidr and return error message', async () => {
+      const resolvedVars = {
+        projectId: 'bio-research-vir2',
+        envId: '018bb1e1-6bd3-49d9-b608-051cfb180882',
+        cidr: [],
+        prefix: 'rstudio',
+        ruleARN:
+          'arn:aws:elasticloadbalancing:us-west-2:123456789012:listener-rule/app/my-load-balancer/50dc6c495c0c9188/f2f7dc8efc522ab2/9683b2d02a6cabee',
+      };
       albClient.modifyRule = jest.fn().mockImplementation(() => {
-        return {
-          promise: () => {
-            return {};
-          },
-        };
+        throw new Error(`Error modify rule. Rule modify failed with message - A condition value cannot be empty`);
       });
-      service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
-      await service.modifyRule({}, { cidr: [], projectId: '' });
-      expect(albClient.modifyRule).toHaveBeenCalled();
+      try {
+        await service.modifyRule({}, resolvedVars);
+      } catch (err) {
+        expect(err.message).toContain(
+          'Error modify rule. Rule modify failed with message - A condition value cannot be empty',
+        );
+      }
     });
   });
 
   describe('describeRules', () => {
-    it('should pass and return empty object with success', async () => {
+    it('should pass and return array of string value with success', async () => {
       service.findAwsAccountDetails = jest.fn(() => {
         return {
           externalId: 'subnet-0a661d9f417ecff3f',
@@ -519,7 +554,7 @@ describe('ALBService', () => {
         return {
           promise: () => {
             return {
-              Rules: [{ Conditions: [{ Field: 'source-ip', SourceIpConfig: { Values: ['1'] } }] }],
+              Rules: [{ Conditions: [{ Field: 'source-ip', SourceIpConfig: { Values: ['10.0.0.0/32'] } }] }],
             };
           },
         };
@@ -527,7 +562,7 @@ describe('ALBService', () => {
       service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
       const response = await service.describeRules({}, { cidr: [], projectId: '' });
       expect(albClient.describeRules).toHaveBeenCalled();
-      expect(response).toEqual(['1']);
+      expect(response).toEqual(['10.0.0.0/32']);
     });
   });
 

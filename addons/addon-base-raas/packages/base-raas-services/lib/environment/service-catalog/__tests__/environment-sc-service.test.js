@@ -69,6 +69,7 @@ const workflowIds = {
 
 describe('EnvironmentSCService', () => {
   let service = null;
+  let albService = null;
   let dbService = null;
   let projectService = null;
   let indexesService = null;
@@ -103,6 +104,7 @@ describe('EnvironmentSCService', () => {
 
     // Get instance of the service we are testing
     service = await container.find('environmentSCService');
+    albService = await container.find('albService');
     dbService = await container.find('dbService');
     projectService = await container.find('projectService');
     indexesService = await container.find('indexesService');
@@ -1425,5 +1427,32 @@ describe('EnvironmentSCService', () => {
     // CHECK
     expect(currentIngressRules).toMatchObject(expectedOutcome);
     expect(securityGroupId).toBeUndefined();
+  });
+
+  describe('describeELBRule', () => {
+    it('should pass and return the product name and cloned update request', async () => {
+      const currentIngressRules = [
+        { protocol: 'tcp', fromPort: 22, toPort: 22, cidrBlocks: ['0.0.0.0/0'] },
+        { protocol: 'tcp', fromPort: 80, toPort: 80, cidrBlocks: ['0.0.0.0/0'] },
+        { protocol: 'tcp', fromPort: 443, toPort: 443, cidrBlocks: [] },
+      ];
+      const responseIngressRules = [
+        { protocol: 'tcp', fromPort: 22, toPort: 22, cidrBlocks: ['0.0.0.0/0'] },
+        { protocol: 'tcp', fromPort: 80, toPort: 80, cidrBlocks: ['0.0.0.0/0'] },
+        { protocol: 'tcp', fromPort: 443, toPort: 443, cidrBlocks: ['0.0.0.0/0', '223.226.19.63/32'] },
+      ];
+      const existingEnvironment = {
+        outputs: [
+          { OutputKey: 'MetaConnection1Type', OutputValue: 'RStudioV2' },
+          { OutputKey: 'ListenerRuleARN', OutputValue: 'ListenerRuleARN' },
+        ],
+        projectId: 'bio-research-vir2',
+      };
+      albService.describeRules = jest.fn().mockImplementation(() => {
+        return ['0.0.0.0/0', '223.226.19.63/32'];
+      });
+      await service.describeELBRule(existingEnvironment, {}, currentIngressRules);
+      expect(responseIngressRules).toEqual(currentIngressRules);
+    });
   });
 });
