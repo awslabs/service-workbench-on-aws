@@ -42,10 +42,10 @@ const filterNames = {
 // cfnStackName is an empty string if the account hasn't been onboarded yet
 const filters = {
   [filterNames.ALL]: () => true,
-  [filterNames.CURRENT]: account => account.cfnStackName !== '' && account.permissionStatus === 'CURRENT',
-  [filterNames.UPDATEME]: account => account.cfnStackName !== '' && account.permissionStatus === 'NEEDSUPDATE',
+  [filterNames.CURRENT]: account => account.permissionStatus === 'CURRENT',
+  [filterNames.UPDATEME]: account => account.permissionStatus === 'NEEDSUPDATE',
   [filterNames.NEW]: account => account.permissionStatus === 'NEEDSONBOARD',
-  [filterNames.ERRORED]: account => account.permissionStatus === 'ERROR' || account.permissionStatus === 'NOSTACKNAME',
+  [filterNames.ERRORED]: account => account.permissionStatus === 'ERROR',
 };
 
 // ==================================================================

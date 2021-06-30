@@ -623,7 +623,7 @@ paths:
       responses:
         '200':
           description: Permissions status information
-  /api/aws-accounts/permissions/{awsAccountUUID}:
+  /api/aws-accounts/{awsAccountUUID}/permissions:
     parameters:
       - name: awsAccountUUID
         in: path
@@ -634,13 +634,33 @@ paths:
       tags:
         - admins
         - AwsAccounts
-      summary: Get status of permissions for a specific AWS account from CFN stack
+      summary: Get status of permissions for a specific AWS account using CFN stack
       operationId: getAwsAccountPermissionsStatus
       description: |
-        Get status of permissions for a specific AWS account from CFN stack
+        Get status of permissions for a specific AWS account using CFN stack
       responses:
         '200':
           description: Permissions status information
+    /api/aws-accounts/{awsAccountUUID}/get-template:
+      parameters:
+        - name: awsAccountUUID
+          in: path
+          required: true
+          schema:
+            $ref: '#/components/schemas/GetAwsAccountPermissionsStatus'
+      get:
+        tags:
+          - admins
+          - AwsAccounts
+        summary: Upload template to S3 and return information necessary to access the template
+        operationId: getAndUploadTemplateForAccount
+        description: |
+          Uploads expected CFN tempalte for AWS accounts to S3, and returns an object containing a 
+          signed URL to access the template (valid for 12 hours by default). Also returns info
+          about the stack to be saved in the backend DB for the AWS account.
+        responses:
+          '200':
+            description: CFN Stack info with S3 signed URL.
   /api/accounts:
     get:
       tags:
@@ -2988,10 +3008,10 @@ components:
           example: 'Test Account Description'
         accountId:
           $ref: '#/components/schemas/AwsAccountId'
-        cfnStackName:
+        cfnStackId:
           type: string
           maxLength: 255
-          example: 'stack-name'
+          example: 'arn:aws:cloudformation::000000000000:region/stack-name'
         roleArn:
           type: string
           minLength: 10
