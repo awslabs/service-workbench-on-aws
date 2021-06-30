@@ -153,6 +153,38 @@ describe('AwsAccountService', () => {
     });
   });
 
+  describe('getAndUploadTemplateForAccount', () => {
+    const requestContext = {};
+
+    it('should fail due to insufficient permissions', async () => {
+      service.assertAuthorized.mockImplementationOnce(() => {
+        throw new Error('User is not authorized');
+      });
+
+      // OPERATE
+      try {
+        await service.getAndUploadTemplateForAccount(requestContext, mockAccount.id);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('User is not authorized');
+      }
+    });
+
+    it('should create a cfn template info object', async () => {
+      awsAccountsService.mustFind.mockImplementation(() => mockAccount);
+      const res = await service.getAndUploadTemplateForAccount(requestContext, mockAccount.id);
+      const expCfnInfo = {
+        accountId: mockAccount.accountId,
+        name: mockAccount.cfnStackName,
+        cfnConsoleUrl: 'https://console.aws.amazon.com/cloudformation/home?region=undefined',
+        template: mockYmlResponse,
+      };
+      expect(res).toMatchObject(expCfnInfo);
+      expect(res.createStackUrl).toBeDefined();
+    });
+  });
+
   describe('checkAccountPermissions', () => {
     const requestContext = {};
 
@@ -192,16 +224,8 @@ describe('AwsAccountService', () => {
       expect(res).toEqual('CURRENT');
     });
 
-    it('should correctly set account with undefined cfnStackName to NEEDSONBOARD or NOSTACKNAME', async () => {
-      // This account should remain the same
-      const needsOnboardMock = {
-        ...mockAccount,
-        id: 'needsOnboard',
-        accountId: 'needsOnboard',
-        cfnStackName: '',
-        permissionStatus: 'NEEDSONBOARD',
-      };
-      // This account's status should change to 'NOSTACKNAME'
+    it('should correctly set account with undefined cfnStackName to NEEDSONBOARD', async () => {
+      // This account's status should change to 'NEEDSONBOARD'
       const noStackNameMock = {
         ...mockAccount,
         id: 'noStackName',
@@ -209,24 +233,17 @@ describe('AwsAccountService', () => {
         cfnStackName: '',
         permissionStatus: 'ERRORED',
       };
-      const expUpdate = { ...expectedUpdate, id: noStackNameMock.id, permissionStatus: 'NOSTACKNAME' };
-      const expBadUpdate = { ...expectedUpdate, id: needsOnboardMock.id, permissionStatus: 'NEEDSONBOARD' };
+      const expUpdate = { ...expectedUpdate, id: noStackNameMock.id, permissionStatus: 'NEEDSONBOARD' };
 
-      awsAccountsService.list.mockImplementationOnce(() => [noStackNameMock, needsOnboardMock]);
-      awsAccountsService.mustFind.mockImplementation(id => {
-        return id === needsOnboardMock.id ? needsOnboardMock : noStackNameMock;
+      awsAccountsService.list.mockImplementationOnce(() => [noStackNameMock]);
+      awsAccountsService.mustFind.mockImplementationOnce(() => {
+        return noStackNameMock;
       });
 
       const res = await service.batchCheckAccountPermissions(requestContext);
       expect(awsAccountsService.update).toHaveBeenCalledWith(requestContext, expUpdate);
-      expect(awsAccountsService.update).not.toHaveBeenCalledWith(requestContext, expBadUpdate);
 
-      expect(res.errors[needsOnboardMock.id]).toEqual(
-        `Error: Account ${needsOnboardMock.accountId} has no CFN stack name specified.`,
-      );
-      expect(res.errors[noStackNameMock.id]).toEqual(
-        `Error: Account ${noStackNameMock.accountId} has no CFN stack name specified.`,
-      );
+      expect(res.errors[noStackNameMock.id]).toEqual(`Account ${noStackNameMock.accountId} needs to be onboarded.`);
     });
   });
 
@@ -246,38 +263,6 @@ describe('AwsAccountService', () => {
         // CHECK
         expect(err.message).toEqual('User is not authorized');
       }
-    });
-  });
-
-  describe('getAndUploadTemplateForAccount', () => {
-    const requestContext = {};
-
-    it('should fail due to insufficient permissions', async () => {
-      service.assertAuthorized.mockImplementationOnce(() => {
-        throw new Error('User is not authorized');
-      });
-
-      // OPERATE
-      try {
-        await service.getAndUploadTemplateForAccount(requestContext, mockAccount.id);
-        expect.hasAssertions();
-      } catch (err) {
-        // CHECK
-        expect(err.message).toEqual('User is not authorized');
-      }
-    });
-
-    it('should create a cfn template info object', async () => {
-      awsAccountsService.mustFind.mockImplementation(() => mockAccount);
-      const res = await service.getAndUploadTemplateForAccount(requestContext, mockAccount.id);
-      const expCfnInfo = {
-        accountId: mockAccount.accountId,
-        name: mockAccount.cfnStackName,
-        cfnConsoleUrl: 'https://console.aws.amazon.com/cloudformation/home?region=undefined',
-        template: mockYmlResponse,
-      };
-      expect(res).toMatchObject(expCfnInfo);
-      expect(res.createStackUrl).toBeDefined();
     });
   });
 });

@@ -26,7 +26,7 @@
       "type": "string",
       "pattern": "^[0-9]{12}$"
     },
-    "cfnStackName": {
+    "cfnStackId": {
       "type": "string",
       "maxLength": 255
     },

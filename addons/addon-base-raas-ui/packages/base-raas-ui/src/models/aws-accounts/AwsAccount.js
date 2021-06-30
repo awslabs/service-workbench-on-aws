@@ -41,13 +41,6 @@ const states = [
     spinner: false,
   },
   {
-    key: 'NOSTACKNAME',
-    display: 'Stack Name Missing',
-    color: 'yellow',
-    tip: "This account's Onboard CloudFormation stack ARN is missing. Please add it in in the 'Details' section.",
-    spinner: false,
-  },
-  {
     key: 'ERROR',
     display: 'Error',
     color: 'red',
@@ -102,7 +95,7 @@ const AwsAccount = types
       self.description = rawAwsAccounts.description || self.description;
       self.accountId = rawAwsAccounts.accountId || rawAwsAccounts.accountId;
       self.externalId = rawAwsAccounts.externalId || self.externalId;
-      self.permissionStatus = rawAwsAccounts.permissionStatus || self.permissionStatus || 'ERROR';
+      self.permissionStatus = rawAwsAccounts.permissionStatus || self.permissionStatus || 'PENDING';
       self.cfnStackName = rawAwsAccounts.cfnStackName || self.cfnStackName;
       self.cfnStackId = rawAwsAccounts.cfnStackId || self.cfnStackId;
       self.roleArn = rawAwsAccounts.roleArn || self.roleArn;

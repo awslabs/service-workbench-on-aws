@@ -26,7 +26,6 @@ const statusDisplay = {
   CURRENT: { color: 'green', display: 'Up-to-Date' },
   NEEDSUPDATE: { color: 'orange', display: 'Needs Update' },
   NEEDSONBOARD: { color: 'purple', display: 'Needs Onboarding' },
-  NOSTACKNAME: { color: 'yellow', display: 'Stack Name Missing' },
   ERROR: { color: 'red', display: 'Error' },
   UNKNOWN: { color: 'grey', display: 'Unknown' },
 };
