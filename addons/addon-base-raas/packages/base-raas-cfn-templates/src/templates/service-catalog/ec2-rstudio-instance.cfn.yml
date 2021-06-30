@@ -6,6 +6,10 @@ Parameters:
   Namespace:
     Type: String
     Description: An environment name that will be prefixed to resource names
+  IsAppStreamEnabled:
+    Type: String
+    AllowedValues: [true, false]
+    Description: Is AppStream enabled for this workspace
   AmiId:
     Type: String
     Description: Amazon Machine Image for the EC2 instance
@@ -46,6 +50,7 @@ Parameters:
 Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
   EgressStoreIamPolicyEmpty: !Equals [!Ref EgressStoreIamPolicyDocument, '{}']
+  AppStreamEnabled: !Equals [!Ref IsAppStreamEnabled, 'true']
 
 Resources:
   InstanceRolePermissionBoundary:

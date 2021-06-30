@@ -146,15 +146,12 @@ class ProvisionEnvironment extends StepBase {
       addParam('SolutionNamespace', this.settings.get('solutionNamespace'));
     }
 
-    if (type === 'sagemaker') {
-      addParam('IsAppStreamEnabled', this.settings.get('isAppStreamEnabled').toString());
-    }
-
     const cidr = await this.payload.string('cidr');
     addParam('AccessFromCIDRBlock', cidr);
 
     if (type !== 'emr') {
       addParam('InstanceType', environment.instanceInfo.size);
+      addParam('IsAppStreamEnabled', this.settings.get('isAppStreamEnabled').toString());
     }
 
     // Add rest of parameters

@@ -9,6 +9,10 @@ Parameters:
   SolutionNamespace:
     Type: String
     Description: Environment name of the solution. It should be the same value as provided in onboard-account.cfn.yml for "Namespace"
+  IsAppStreamEnabled:
+    Type: String
+    AllowedValues: [true, false]
+    Description: Is AppStream enabled for this workspace
   AmiId:
     Type: String
     Description: Amazon Machine Image for the EC2 instance
@@ -46,6 +50,7 @@ Parameters:
 Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
   EgressStoreIamPolicyEmpty: !Equals [!Ref EgressStoreIamPolicyDocument, '{}']
+  AppStreamEnabled: !Equals [!Ref IsAppStreamEnabled, 'true']
 
 Resources:
   InstanceRolePermissionBoundary:
@@ -136,9 +141,12 @@ Resources:
           FromPort: -1
           ToPort: -1
           CidrIp: !Ref AccessFromCIDRBlock
-        - DestinationSecurityGroupId:
-            Fn::ImportValue: !Sub "${SolutionNamespace}-CfnEndpointSecurityGroup"
-          IpProtocol: '-1'
+        - !If
+          - AppStreamEnabled
+          - DestinationSecurityGroupId:
+              Fn::ImportValue: !Sub "${SolutionNamespace}-CfnEndpointSecurityGroup"
+            IpProtocol: '-1'
+          - !Ref "AWS::NoValue"
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 22
@@ -179,7 +187,10 @@ Resources:
           DeviceIndex: '0'
           GroupSet:
             - !Ref SecurityGroup
-            - Fn::ImportValue: !Sub "${SolutionNamespace}-SwbVPCDefaultSG"
+            - !If
+              - AppStreamEnabled
+              - Fn::ImportValue: !Sub "${SolutionNamespace}-SwbVPCDefaultSG"
+              - !Ref "AWS::NoValue"
           SubnetId: !Ref Subnet
       Tags:
         - Key: Name

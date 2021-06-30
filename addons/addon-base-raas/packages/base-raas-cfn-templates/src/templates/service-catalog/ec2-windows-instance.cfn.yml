@@ -9,6 +9,10 @@ Parameters:
   SolutionNamespace:
     Type: String
     Description: Environment name of the solution. It should be the same value as provided in onboard-account.cfn.yml for "Namespace"
+  IsAppStreamEnabled:
+    Type: String
+    AllowedValues: [true, false]
+    Description: Is AppStream enabled for this workspace
   AmiId:
     Type: String
     Description: Amazon Machine Image for the EC2 instance
@@ -68,6 +72,7 @@ Parameters:
 Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
   EgressStoreIamPolicyEmpty: !Equals [!Ref EgressStoreIamPolicyDocument, '{}']
+  AppStreamEnabled: !Equals [!Ref IsAppStreamEnabled, 'true']
 
 Resources:
   InstanceRolePermissionBoundary:
