@@ -16,7 +16,7 @@
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 
-const inputSchema = require('../schema/workflow');
+const inputSchema = require('../schema/workflow.json');
 
 class WorkflowRegistryService extends Service {
   constructor() {

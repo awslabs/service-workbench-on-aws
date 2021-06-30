@@ -15,7 +15,7 @@
 
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
 
-jest.mock('@aws-ee/base-services/lib/iam/iam-service.js');
+jest.mock('@aws-ee/base-services/lib/iam/iam-service');
 jest.mock('@aws-ee/base-services/lib/logger/logger-service');
 const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
 
@@ -35,8 +35,8 @@ const EnvTypeConfigServiceMock = require('@aws-ee/environment-type-mgmt-services
 jest.mock('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
 const PluginRegistryService = require('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
 
-jest.mock('../../environment-authz-service.js');
-const EnvironmentAuthZServiceMock = require('../../environment-authz-service.js');
+jest.mock('../../environment-authz-service');
+const EnvironmentAuthZServiceMock = require('../../environment-authz-service');
 
 jest.mock('../../../aws-accounts/aws-accounts-service');
 const AwsAccountsServiceMock = require('../../../aws-accounts/aws-accounts-service');
@@ -44,8 +44,8 @@ const AwsAccountsServiceMock = require('../../../aws-accounts/aws-accounts-servi
 jest.mock('../../../user/user-service');
 const UserServiceMock = require('../../../user/user-service');
 
-jest.mock('../../environment-ami-service.js');
-const EnvironmentAmiServiceMock = require('../../environment-ami-service.js');
+jest.mock('../../environment-ami-service');
+const EnvironmentAmiServiceMock = require('../../environment-ami-service');
 
 jest.mock('../../../indexes/indexes-service');
 const IndexesServiceMock = require('../../../indexes/indexes-service');

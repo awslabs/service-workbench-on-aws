@@ -21,8 +21,8 @@ const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
 const { isAdmin, isCurrentUser } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 
-const createSchema = require('../../schema/create-environment-sc');
-const updateSchema = require('../../schema/update-environment-sc');
+const createSchema = require('../../schema/create-environment-sc.json');
+const updateSchema = require('../../schema/update-environment-sc.json');
 const environmentScStatus = require('./environent-sc-status-enum');
 const { hasConnections, cfnOutputsArrayToObject } = require('./helpers/connections-util');
 const { hasAccess, accessLevels } = require('../../study/helpers/entities/study-methods');

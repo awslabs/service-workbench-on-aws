@@ -18,7 +18,7 @@
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 
-// const helloMessagesSchema = require('../schema/hello-messages'); // your input schema
+// const helloMessagesSchema = require('../schema/hello-messages.json'); // your input schema
 
 // See ../plugins/services-plugin.js for an example of how to register this service
 class HelloService extends Service {

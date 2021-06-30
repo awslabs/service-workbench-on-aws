@@ -20,7 +20,7 @@ const Service = require('@aws-ee/base-services-container/lib/service');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 
 // const { ensureAdmin } = require('../authorization-assertions/assertions');
-const inputSchema = require('../schema/workflow');
+const inputSchema = require('../schema/workflow.json');
 
 const settingKeys = {
   tableName: 'dbWorkflowDrafts',

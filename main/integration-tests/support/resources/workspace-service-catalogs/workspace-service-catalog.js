@@ -18,7 +18,7 @@ const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const Resource = require('../base/resource');
 const Connections = require('./connections/connections');
-const { deleteWorkspaceServiceCatalog } = require('../../complex/delete-workspace-service-catalog.js');
+const { deleteWorkspaceServiceCatalog } = require('../../complex/delete-workspace-service-catalog');
 
 class WorkspaceServiceCatalog extends Resource {
   constructor({ clientSession, id, parent }) {

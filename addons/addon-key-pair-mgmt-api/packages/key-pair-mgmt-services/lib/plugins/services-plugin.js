@@ -1,4 +1,4 @@
-const KeyPairService = require('../key-pair/key-pair-service.js');
+const KeyPairService = require('../key-pair/key-pair-service');
 
 const settingKeys = {
   tablePrefix: 'dbPrefix',

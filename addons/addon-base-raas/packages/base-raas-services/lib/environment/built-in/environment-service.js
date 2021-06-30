@@ -18,8 +18,8 @@ const uuid = require('uuid/v1');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 
-const createSchema = require('../../schema/create-environment');
-const updateSchema = require('../../schema/update-environment');
+const createSchema = require('../../schema/create-environment.json');
+const updateSchema = require('../../schema/update-environment.json');
 
 const settingKeys = {
   tableName: 'dbEnvironments',
