@@ -43,6 +43,29 @@ describe('S3Service', () => {
     AWSMock.restore();
   });
   describe('S3Service', () => {
+    it('should parse in s3 bucket detail', async () => {
+      const result = await s3Service.parseS3Details('s3://test-bucket/test-prefix');
+      expect(result).toStrictEqual({ s3BucketName: 'test-bucket', s3Key: 'test-prefix' });
+    });
+    it('should move object from one place to another', async () => {
+      const from = { bucket: 'test-from-bucket', key: 'test-from-key' };
+      const to = { bucket: 'test-to-bucket', key: 'test-to-key' };
+      AWSMock.mock('S3', 'copyObject', (params, callback) => {
+        expect(params).toMatchObject({
+          Bucket: to.bucket,
+          CopySource: `/${from.bucket}/${from.key}`,
+          Key: `${to.key}`,
+        });
+      });
+
+      AWSMock.mock('S3', 'deleteObject', (params, callback) => {
+        expect(params).toMatchObject({
+          Bucket: from.bucket,
+          Key: `${from.key}`,
+        });
+      });
+      s3Service.moveObject({ from, to });
+    });
     it('should clear s3 object in certain s3 bucket path', async () => {
       AWSMock.mock('S3', 'listObjectsV2', (params, callback) => {
         expect(params).toMatchObject({
@@ -58,9 +81,6 @@ describe('S3Service', () => {
         expect(params).toMatchObject({
           Bucket: 'test-bucketName',
           Delete: { Objects: [{ key: 'test-key1' }, { key: 'test-key2' }] },
-        });
-        callback(null, {
-          Prefix: [{ key: 'test-key1' }, { key: 'test-key2' }],
         });
       });
       s3Service.clearPath('test-bucketName', 'test-dir');
