@@ -31,6 +31,7 @@ const settingKeys = {
   artifactsBucketName: 'artifactsBucketName',
   launchConstraintRolePrefix: 'launchConstraintRolePrefix',
   launchConstraintPolicyPrefix: 'launchConstraintPolicyPrefix',
+  isAppStreamEnabled: 'isAppStreamEnabled',
 };
 
 class ProvisionAccount extends StepBase {
@@ -107,6 +108,9 @@ class ProvisionAccount extends StepBase {
     const by = _.get(requestContext, 'principalIdentifier.uid');
     const [userService] = await this.mustFindServices(['userService']);
     const user = await userService.mustFindUser({ uid: by });
+
+    // TODO Call AppStream service to get AppStream params, look at onboard-account.cfn.yml for AppStream params that are needed
+    // https://github.com/awslabs/service-workbench-on-aws/blob/ba2a024a20ffce6f5584b4a029e5ae526ca67720/addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/onboard-account.cfn.yml#L53
     const externalId = await this.payload.string('externalId');
     const [workflowRoleArn, apiHandlerArn, callerAccountId] = await Promise.all([
       this.payload.string('workflowRoleArn'),
@@ -132,6 +136,7 @@ class ProvisionAccount extends StepBase {
 
     addParam('LaunchConstraintRolePrefix', this.settings.get(settingKeys.launchConstraintRolePrefix));
     addParam('LaunchConstraintPolicyPrefix', this.settings.get(settingKeys.launchConstraintPolicyPrefix));
+    addParam('EnableAppStream', this.settings.get(settingKeys.isAppStreamEnabled));
 
     const input = {
       StackName: stackName,
