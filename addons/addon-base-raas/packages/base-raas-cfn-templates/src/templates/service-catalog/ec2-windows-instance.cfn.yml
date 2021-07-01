@@ -171,6 +171,12 @@ Resources:
           FromPort: 3389
           ToPort: 3389
           CidrIp: !Ref AccessFromCIDRBlock
+        - !If
+          - AppStreamEnabled
+          - SourceSecurityGroupId:
+              Fn::ImportValue: !Sub "${SolutionNamespace}-SwbAppStreamSG"
+            IpProtocol: '-1'
+          - !Ref "AWS::NoValue"
       Tags:
         - Key: Name
           Value: !Join ['-', [Ref: Namespace, 'ec2-sg']]

@@ -634,6 +634,8 @@ Resources:
       SecurityGroupEgress:
         - CidrIp: 127.0.0.1/32
           IpProtocol: '-1'
+        - DestinationSecurityGroupId: !GetAtt VPC.DefaultSecurityGroup
+          IpProtocol: '-1'
 
   AppStreamSecurityGroupEgress:
     Type: AWS::EC2::SecurityGroupEgress
@@ -741,6 +743,8 @@ Outputs:
     Description: AppStream Security Group
     Condition: isAppStream
     Value: !Ref AppStreamSecurityGroup
+    Export:
+      Name: !Join [ '', [ Ref: Namespace, '-SwbAppStreamSG' ] ]
 
   SageMakerSecurityGroup:
     Description: SageMaker Security Group

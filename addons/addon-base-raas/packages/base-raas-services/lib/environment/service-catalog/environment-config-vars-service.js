@@ -151,6 +151,15 @@ class EnvironmentConfigVarsService extends Service {
         desc:
           'Namespace of the username launching the environment. The userNamespace is derived based on the identity provider which authenticated the user',
       },
+      {
+        name: 'isAppStreamEnabled',
+        desc: 'Is AppStream enabled for this workspace',
+      },
+      {
+        name: 'solutionNamespace',
+        desc:
+          'Environment name of the solution. It should be the same value as provided in onboard-account.cfn.yml for "Namespace"',
+      },
     ];
   }
 

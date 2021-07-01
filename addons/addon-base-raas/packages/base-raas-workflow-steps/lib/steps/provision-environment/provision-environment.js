@@ -142,16 +142,11 @@ class ProvisionEnvironment extends StepBase {
       addParam('KeyName', keyName);
     }
 
-    if (type === 'ec2-windows' || type === 'ec2-linux') {
-      addParam('SolutionNamespace', this.settings.get('solutionNamespace'));
-    }
-
     const cidr = await this.payload.string('cidr');
     addParam('AccessFromCIDRBlock', cidr);
 
     if (type !== 'emr') {
       addParam('InstanceType', environment.instanceInfo.size);
-      addParam('IsAppStreamEnabled', this.settings.get('isAppStreamEnabled').toString());
     }
 
     // Add rest of parameters
