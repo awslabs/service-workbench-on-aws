@@ -44,6 +44,17 @@ describe('UpgradeToUserId', () => {
       CloudFormation,
     };
     service = await container.find('UpdateCfnStackPolicy');
+    service._settings = {
+      get: settingName => {
+        if (settingName === 'enableEgressStore') {
+          return 'true';
+        }
+        if (settingName === 'backendStackName') {
+          return 'backendStackName';
+        }
+        return undefined;
+      },
+    };
   });
 
   describe('Run post deployment step', () => {

@@ -52,7 +52,7 @@ class UpdateCfnStackPolicy extends Service {
 
   async execute() {
     const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
-    if (enableEgressStore) {
+    if (enableEgressStore.toUpperCase() === 'TRUE') {
       try {
         // fetch the current cloudformation stack policy
         const backendStackName = this.settings.get(settingKeys.backendStackName);

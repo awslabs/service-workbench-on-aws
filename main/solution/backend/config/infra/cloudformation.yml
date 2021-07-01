@@ -690,28 +690,39 @@ Resources:
               - 'arn:aws:s3:::${self:custom.settings.studyDataBucketName}'
               - 'arn:aws:s3:::${self:custom.settings.deploymentBucketName}'
               - 'arn:aws:s3:::${self:custom.settings.environmentsBootstrapBucketName}'
+              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}'
           - Effect: 'Allow'
             Action:
               - kms:DescribeKey
               - kms:GetKeyPolicy
               - kms:PutKeyPolicy
+              - kms:GenerateDataKey
+              - kms:Decrypt
+              - kms:Encrypt
+              - kms:ReEncrypt*
             Resource:
               # NOTE: Can't use '!GetAtt StudyDataEncryptionKey.Arn' due to
               #   circular dependency in StudyDataEncryptionKey's KeyPolicy
               - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.studyDataKmsKeyAlias}'
               - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
+              - !If
+                - EnableEgressStore
+                - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.egressStoreKmsKeyAlias}'
+                - !Ref 'AWS::NoValue'
           - Effect: 'Allow'
             Action:
-              - s3:GetObject
-              - s3:PutObject
+              - s3:GetObject*
+              - s3:PutObject*
               - s3:DeleteObject
             Resource:
               - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}/*'
+              - !Sub 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}/*'
           - Effect: 'Allow'
             Action:
               - s3:ListBucket
             Resource:
               - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}'
+              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}'
           - Effect: Allow
             Action: 'sts:AssumeRole'
             Resource:
@@ -740,34 +751,6 @@ Resources:
               - sts:AssumeRole
             Resource:
               - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-prep-raas-master-MasterRole-*'
-          - Effect: Allow
-            Action:
-              - s3:GetObject*
-              - s3:PutObject*
-            Resource:
-              - !Sub 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}/*'
-          - Effect: Allow
-            Action:
-              - s3:ListBucket
-              - s3:GetBucketPolicy
-              - s3:PutBucketPolicy
-            Resource:
-              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}'
-          - Effect: 'Allow'
-            Action:
-              - kms:GenerateDataKey
-              - kms:Decrypt
-              - kms:DescribeKey
-              - kms:Encrypt
-              - kms:ReEncrypt*
-              - kms:GetKeyPolicy
-              - kms:PutKeyPolicy
-            Resource:
-              - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
-              - !If
-                - EnableEgressStore
-                - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.egressStoreKmsKeyAlias}'
-                - !Ref 'AWS::NoValue'
 
   # IAM Role for the workflowLoopRunner Function
   RoleWorkflowLoopRunner:
