@@ -17,7 +17,10 @@ GOOFYS_URL="https://github.com/kahing/goofys/releases/download/v0.21.0/goofys"
 
 # Define a function to determine what type of environment this is (EMR, SageMaker, RStudio, or EC2 Linux)
 env_type() {
-    if [ -d "/usr/share/aws/emr" ]
+    if [ -d "/tmp/rstudiov2/ssl" ]
+    then
+        printf "rstudiov2"
+    elif [ -d "/usr/share/aws/emr" ]
     then
         printf "emr"
     elif [ -d "/home/ec2-user/SageMaker" ]
@@ -85,7 +88,7 @@ generate_ssl_certificate() {
     #Create the request
     openssl req -new -key cert.key -out cert.csr -passin pass:$password \
         -subj "/C=NA/ST=NA/L=NA/O=NA/OU=SWB/CN=$commonname/emailAddress=example.com"
-    openssl x509 -req -days 365 -in cert.csr -signkey cert.key -out cert.pem
+    openssl x509 -req -days 24855 -in cert.csr -signkey cert.key -out cert.pem
     #Move the certificate files to nginx directory
     mkdir -p /tmp/rstudio/generated/nginx/
     sudo mv cert.pem "/etc/nginx/"
@@ -125,6 +128,10 @@ case "$(env_type)" in
         printf "\n# Mount S3 study data\nmount_s3.sh\n\n" >> "/home/ec2-user/.bash_profile"
         ;;
     "rstudio") # Add mount script to bash profile
+        yum install -y fuse-2.9.2
+        printf "\n# Mount S3 study data\nmount_s3.sh\n\n" >> "/home/rstudio-user/.bash_profile"
+        ;;
+    "rstudiov2") # Add mount script to bash profile and generate self signed certificates
         generate_ssl_certificate
         yum install -y fuse-2.9.2
         printf "\n# Mount S3 study data\nmount_s3.sh\n\n" >> "/home/rstudio-user/.bash_profile"

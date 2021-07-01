@@ -301,7 +301,7 @@ class CheckLaunchDependency extends StepBase {
     const uri = url.parse(templateUrl);
     const matches = uri.host.match(ENDPOINT_PATTERN);
     if (!matches) {
-      throw new Error(`Invalid S3 URI: ${uri}`);
+      throw new Error(`Invalid S3 URL: ${templateUrl}`);
     }
     const prefix = matches[1];
     // remove last . from prefix
@@ -467,7 +467,7 @@ class CheckLaunchDependency extends StepBase {
       });
     }
     throw new Error(
-      `Error provisioning environment "${envName}".The workflow timed - out because the ALB provisioing stack "${stackName}" did not complete within the timeout period of 15 days.`,
+      `Error provisioning environment "${envName}".The workflow timed - out because the ALB provisioing stack "${stackName}" did not complete within the timeout period of 20 minutes.`,
     );
   }
 

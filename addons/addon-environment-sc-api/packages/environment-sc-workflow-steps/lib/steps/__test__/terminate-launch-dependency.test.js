@@ -22,6 +22,9 @@ const AlbServiceMock = require('@aws-ee/base-raas-services/lib/alb/alb-service')
 jest.mock('@aws-ee/base-services/lib/lock/lock-service');
 const LockServiceMock = require('@aws-ee/base-services/lib/lock/lock-service');
 
+jest.mock('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
+const PluginRegistryServiceMock = require('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
+
 jest.mock('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-service');
 const EnvironmentScServiceMock = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-service');
 
@@ -35,6 +38,7 @@ describe('TerminateLaunchDependencyStep', () => {
   let lockService = null;
   let environmentScService = null;
   let environmentDnsService = null;
+  let pluginRegistryService = null;
   let cfn;
   const requestContext = {
     principal: {
@@ -70,6 +74,7 @@ describe('TerminateLaunchDependencyStep', () => {
     container.register('lockService', new LockServiceMock());
     container.register('environmentScService', new EnvironmentScServiceMock());
     container.register('environmentDnsService', new EnvironmentDnsServiceMock());
+    container.register('pluginRegistryService', new PluginRegistryServiceMock());
 
     await container.initServices();
 
@@ -78,6 +83,7 @@ describe('TerminateLaunchDependencyStep', () => {
     lockService = await container.find('lockService');
     environmentScService = await container.find('environmentScService');
     environmentDnsService = await container.find('environmentDnsService');
+    pluginRegistryService = await container.find('pluginRegistryService');
 
     step.payloadOrConfig = {
       string: stringInput => {
@@ -85,6 +91,9 @@ describe('TerminateLaunchDependencyStep', () => {
       },
       object: () => {
         return requestContext;
+      },
+      optionalString: stringInput => {
+        return stringInput;
       },
     };
 
@@ -96,6 +105,7 @@ describe('TerminateLaunchDependencyStep', () => {
     step.container = container;
 
     step.print = jest.fn();
+    step.printError = jest.fn();
     step.payload.setKey = jest.fn();
     step.state.setKey = jest.fn();
   });
@@ -110,6 +120,9 @@ describe('TerminateLaunchDependencyStep', () => {
     });
     lockService.tryWriteLock = jest.fn(() => {
       return 'test-lock-id';
+    });
+    lockService.releaseWriteLock = jest.fn(() => {
+      return true;
     });
     step.cfnOutputsArrayToObject = jest.fn(() => {
       return {
@@ -423,6 +436,75 @@ describe('TerminateLaunchDependencyStep', () => {
       };
       await step.onSuccessfulCompletion([]);
       expect(albService.saveAlbDetails).toHaveBeenCalledWith('test-account-id', albDetails);
+    });
+  });
+
+  describe('reportTimeout', () => {
+    it('should throw error when called', async () => {
+      await expect(step.reportTimeout()).rejects.toThrow(
+        'Error terminating environment "envName" with id "envId". The workflow timed-out because the ALB CFT did not terminate within the timeout period of 20 minutes.',
+      );
+    });
+
+    it('should release lock when alb is present', async () => {
+      try {
+        await step.reportTimeout();
+      } catch (err) {
+        // DO Nothing
+      }
+      expect(lockService.releaseWriteLock).toHaveBeenCalled();
+    });
+  });
+
+  describe('onPass', () => {
+    it('should release lock when lock is present', async () => {
+      await step.onPass();
+      expect(lockService.releaseWriteLock).toHaveBeenCalled();
+    });
+
+    it('should not release lock when lock is not present', async () => {
+      jest.spyOn(step.state, 'optionalString').mockImplementationOnce(() => {
+        return '';
+      });
+      await step.onPass();
+      expect(lockService.releaseWriteLock).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('onFail', () => {
+    it('update ALB details to null if stack id present', async () => {
+      await step.onFail({ message: 'Error Message' });
+      const albDetails = {
+        id: 'test-account-id',
+        albStackName: null,
+        albArn: null,
+        listenerArn: null,
+        albDnsName: null,
+        albDependentWorkspacesCount: 0,
+      };
+      expect(albService.saveAlbDetails).toHaveBeenCalledWith('test-account-id', albDetails);
+    });
+
+    it('should not update ALB details to null if stack id is not present', async () => {
+      jest.spyOn(step.state, 'optionalString').mockImplementationOnce(() => {
+        return '';
+      });
+      try {
+        await step.onFail({ message: 'Error Message' });
+      } catch (err) {
+        // DO NOTHING
+      }
+      expect(albService.saveAlbDetails).not.toHaveBeenCalled();
+    });
+
+    it('Should release lock if lock exists', async () => {
+      await step.onFail({ message: 'Error Message' });
+      expect(lockService.releaseWriteLock).toHaveBeenCalled();
+    });
+
+    it('should call visit plugins method', async () => {
+      await step.onFail({ message: 'Error Message' });
+      expect(pluginRegistryService.visitPlugins).toHaveBeenCalled();
     });
   });
 });

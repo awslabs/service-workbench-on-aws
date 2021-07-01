@@ -49,6 +49,7 @@ describe('ALBService', () => {
   let projectService = null;
   let cfnTemplateService = null;
   let albClient = null;
+  let ec2Client = null;
   const albDetails = {
     createdAt: '2021-05-21T13:06:58.216Z',
     id: 'test-id',
@@ -87,7 +88,11 @@ describe('ALBService', () => {
       deleteRule: jest.fn(),
       describeRules: jest.fn(),
     };
+    ec2Client = {
+      describeSubnets: jest.fn(),
+    };
     service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
+    service.getEc2Sdk = jest.fn().mockResolvedValue(ec2Client);
   });
 
   afterEach(() => {
@@ -607,6 +612,48 @@ describe('ALBService', () => {
       // service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
       const response = await service.calculateRulePriority({}, {}, '');
       expect(response).toEqual(3);
+    });
+  });
+
+  describe('findSubnet2', () => {
+    it('should fail when describe subnet API call throws error', async () => {
+      ec2Client.describeSubnets = jest.fn().mockImplementation(() => {
+        throw new Error(`Error describing subnet. VPC does not exist`);
+      });
+      try {
+        await service.findSubnet2({}, {}, '');
+      } catch (err) {
+        expect(err.message).toContain('Error describing subnet. VPC does not exist');
+      }
+    });
+
+    it('should fail when subnet not found', async () => {
+      ec2Client.describeSubnets = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return { Subnets: [] };
+          },
+        };
+      });
+      try {
+        await service.findSubnet2({}, {}, 'test-vpc');
+      } catch (err) {
+        expect(err.message).toContain(
+          'Error provisioning environment. Reason: Subnet2 not found for the VPC - test-vpc',
+        );
+      }
+    });
+
+    it('should return subnet id on success', async () => {
+      ec2Client.describeSubnets = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return { Subnets: [{ SubnetId: 'test-subnet-id' }] };
+          },
+        };
+      });
+      const response = await service.findSubnet2({}, {}, 'test-vpc');
+      expect(response).toEqual('test-subnet-id');
     });
   });
 });
