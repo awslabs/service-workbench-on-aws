@@ -17,8 +17,8 @@ const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 
-const createSchema = require('../schema/create-cost-api-cache.json');
-const updateSchema = require('../schema/update-cost-api-cache.json');
+const createSchema = require('../schema/create-cost-api-cache');
+const updateSchema = require('../schema/update-cost-api-cache');
 
 const settingKeys = {
   tableName: 'dbCostApiCaches',

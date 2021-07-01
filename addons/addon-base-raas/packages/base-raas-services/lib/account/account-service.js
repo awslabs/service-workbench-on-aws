@@ -19,8 +19,8 @@ const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 
 const { isExternalGuest, isExternalResearcher, isInternalGuest } = require('../helpers/is-role');
-const createSchema = require('../schema/create-account.json');
-const updateSchema = require('../schema/update-account.json');
+const createSchema = require('../schema/create-account');
+const updateSchema = require('../schema/update-account');
 
 const settingKeys = {
   tableName: 'dbAccounts',

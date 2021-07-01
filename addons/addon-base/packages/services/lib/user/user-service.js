@@ -18,8 +18,8 @@ const Service = require('@aws-ee/base-services-container/lib/service');
 
 const { runAndCatch, generateId } = require('../helpers/utils');
 const { toUserNamespace } = require('./helpers/user-namespace');
-const createUserJsonSchema = require('../schema/create-user.json');
-const updateUserJsonSchema = require('../schema/update-user.json');
+const createUserJsonSchema = require('../schema/create-user');
+const updateUserJsonSchema = require('../schema/update-user');
 
 const settingKeys = {
   tableName: 'dbUsers',

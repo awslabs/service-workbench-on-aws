@@ -20,8 +20,8 @@ const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/s
 
 const uuid = require('uuid/v1');
 let fetch = require('node-fetch');
-const createStorageGatewaySchema = require('../schema/create-storage-gateway.json');
-const updateStorageGatewaySchema = require('../schema/update-storage-gateway.json');
+const createStorageGatewaySchema = require('../schema/create-storage-gateway');
+const updateStorageGatewaySchema = require('../schema/update-storage-gateway');
 
 // Webpack messes with the fetch function import and it breaks in lambda.
 if (typeof fetch !== 'function' && fetch.default && typeof fetch.default === 'function') {

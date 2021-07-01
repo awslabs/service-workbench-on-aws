@@ -20,10 +20,10 @@ const Service = require('@aws-ee/base-services-container/lib/service');
 const { ensureAdmin } = require('@aws-ee/base-services/lib/authorization/assertions');
 const { runAndCatch, generateId } = require('@aws-ee/base-services/lib/helpers/utils');
 
-const inputSchema = require('../schema/create-workflow-instance.json');
-const changeWorkflowStatusSchema = require('../schema/change-workflow-status.json');
-const changeStepStatusSchema = require('../schema/change-step-status.json');
-const saveStepAttributesSchema = require('../schema/save-step-attributes.json');
+const inputSchema = require('../schema/create-workflow-instance');
+const changeWorkflowStatusSchema = require('../schema/change-workflow-status');
+const changeStepStatusSchema = require('../schema/change-step-status');
+const saveStepAttributesSchema = require('../schema/save-step-attributes');
 
 const settingKeys = {
   tableName: 'dbWorkflowInstances',

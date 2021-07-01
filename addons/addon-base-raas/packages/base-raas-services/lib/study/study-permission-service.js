@@ -24,9 +24,9 @@ const {
   deny,
 } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 
-const createSchema = require('../schema/create-study-permissions.json');
-const updateSchema = require('../schema/update-study-permissions.json');
-const getSchema = require('../schema/get-study-permissions.json');
+const createSchema = require('../schema/create-study-permissions');
+const updateSchema = require('../schema/update-study-permissions');
+const getSchema = require('../schema/get-study-permissions');
 const { isAdmin } = require('../helpers/is-role');
 const { hasPermissions, isAdmin: isStudyAdmin } = require('./helpers/entities/study-permissions-methods');
 const {

@@ -17,7 +17,7 @@ const _ = require('lodash');
 const path = require('path');
 const Service = require('@aws-ee/base-services-container/lib/service');
 
-const moveS3ObjectSchema = require('./schema/move-s3-object.json');
+const moveS3ObjectSchema = require('./schema/move-s3-object');
 
 class S3Service extends Service {
   constructor() {

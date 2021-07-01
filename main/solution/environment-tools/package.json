@@ -11,9 +11,9 @@
     "not op_mini all"
   ],
   "devDependencies": {
+    "@aws-ee/serverless-go-build-tools": "workspace:*",
     "@aws-ee/base-serverless-settings-helper": "workspace:*",
     "@aws-ee/s3-synchronizer": "workspace:*",
-    "@aws-ee/serverless-go-build-tools": "workspace:*",
-    "serverless": "^1.83.3"
+    "serverless": "^1.63.0"
   }
 }

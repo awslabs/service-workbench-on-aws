@@ -25,29 +25,29 @@ const sharePortfolioWithTargetAccYaml = require('../steps/share-portfolio-with-t
 const launchProduct = require('../steps/launch-product/launch-product');
 const launchProductYaml = require('../steps/launch-product/launch-product.yml');
 
-const startEC2 = require('../steps/start-ec2-environment/start-ec2-environment-sc');
+const startEC2 = require('../steps/start-ec2-environment/start-ec2-environment-sc.js');
 const startEC2Yaml = require('../steps/start-ec2-environment/start-ec2-environment-sc.yml');
 
-const stopEC2 = require('../steps/stop-ec2-environment/stop-ec2-environment-sc');
+const stopEC2 = require('../steps/stop-ec2-environment/stop-ec2-environment-sc.js');
 const stopEC2Yaml = require('../steps/stop-ec2-environment/stop-ec2-environment-sc.yml');
 
-const startRStudio = require('../steps/start-rstudio-environment/start-rstudio-environment-sc');
+const startRStudio = require('../steps/start-rstudio-environment/start-rstudio-environment-sc.js');
 const startRStudioYaml = require('../steps/start-rstudio-environment/start-rstudio-environment-sc.yml');
 
 // Stop RStudio is the same as Stop EC2
-const stopRStudio = require('../steps/stop-ec2-environment/stop-ec2-environment-sc');
+const stopRStudio = require('../steps/stop-ec2-environment/stop-ec2-environment-sc.js');
 const stopRStudioYaml = require('../steps/stop-rstudio-environment/stop-rstudio-environment-sc.yml');
 
-const startSageMaker = require('../steps/start-sagemaker-environment/start-sagemaker-environment-sc');
+const startSageMaker = require('../steps/start-sagemaker-environment/start-sagemaker-environment-sc.js');
 const startSageMakerYaml = require('../steps/start-sagemaker-environment/start-sagemaker-environment-sc.yml');
 
-const stopSageMaker = require('../steps/stop-sagemaker-environment/stop-sagemaker-environment-sc');
+const stopSageMaker = require('../steps/stop-sagemaker-environment/stop-sagemaker-environment-sc.js');
 const stopSageMakerYaml = require('../steps/stop-sagemaker-environment/stop-sagemaker-environment-sc.yml');
 
 const terminateProduct = require('../steps/terminate-product/terminate-product');
 const terminateProductYaml = require('../steps/terminate-product/terminate-product.yml');
 
-const preProvisioning = require('../steps/pre-environment-provisioning/pre-environment-provisioning');
+const preProvisioning = require('../steps/pre-environment-provisioning/pre-environment-provisioning.js');
 const preProvisioningYaml = require('../steps/pre-environment-provisioning/pre-environment-provisioning.yml');
 
 const add = (implClass, yaml) => ({ implClass, yaml });

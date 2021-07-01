@@ -16,7 +16,7 @@
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 
-const inputSchema = require('../../schema/step-template.json');
+const inputSchema = require('../../schema/step-template');
 
 class StepRegistryService extends Service {
   constructor() {

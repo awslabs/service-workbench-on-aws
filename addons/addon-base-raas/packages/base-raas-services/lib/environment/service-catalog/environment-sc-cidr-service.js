@@ -17,7 +17,7 @@ const _ = require('lodash');
 const IsCidr = require('is-cidr');
 const Service = require('@aws-ee/base-services-container/lib/service');
 
-const cidrUpdateSchema = require('../../schema/update-environment-sc-cidr.json');
+const cidrUpdateSchema = require('../../schema/update-environment-sc-cidr');
 
 class EnvironmentScCidrService extends Service {
   constructor() {

@@ -26,7 +26,7 @@ const EnvTypeConfigAuthzService = require('@aws-ee/environment-type-mgmt-service
 jest.mock('../../project/project-service');
 const ProjectServiceMock = require('../../project/project-service');
 
-const EnvironmentAuthZService = require('../environment-authz-service');
+const EnvironmentAuthZService = require('../environment-authz-service.js');
 
 describe('EnvironmentAuthzService', () => {
   let service = null;

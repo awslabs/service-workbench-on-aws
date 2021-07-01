@@ -17,7 +17,7 @@
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 
-const metaSchema = require('../schema/trigger-workflow.json');
+const metaSchema = require('../schema/trigger-workflow');
 
 const settingKeys = {
   stateMachineArn: 'smWorkflow',

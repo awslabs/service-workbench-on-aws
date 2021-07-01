@@ -18,7 +18,7 @@ const Service = require('@aws-ee/base-services-container/lib/service');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 
-const registerSchema = require('../schema/register-data-source-bucket.json');
+const registerSchema = require('../schema/register-data-source-bucket');
 const { bucketIdCompositeKey } = require('./helpers/composite-keys');
 const { toBucketEntity, toDbEntity } = require('./helpers/entities/data-source-bucket-methods');
 
