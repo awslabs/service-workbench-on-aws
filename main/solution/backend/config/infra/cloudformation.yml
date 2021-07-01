@@ -615,7 +615,7 @@ Resources:
             Action:
               - s3:GetObject
             Resource:
-              - 'arn:aws:s3:::${self:custom.settings.deploymentBucketName}'
+              - 'arn:aws:s3:::${self:custom.settings.deploymentBucketName}/*'
 
   # IAM Role for the workflowLoopRunner Function
   RoleWorkflowLoopRunner:
