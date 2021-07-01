@@ -59,7 +59,7 @@ class UpdateCfnStackPolicy extends Service {
         const currentStackPolicy = await this.cfn.getStackPolicy({ StackName: backendStackName }).promise();
         const tempStackPolicyBody = currentStackPolicy.StackPolicyBody;
         let isEmptyPolicy = _.isEmpty(tempStackPolicyBody);
-        const currentStackPolicyBody = {};
+        let currentStackPolicyBody = {};
         if (!isEmptyPolicy) {
           currentStackPolicyBody = JSON.parse(tempStackPolicyBody);
         }
