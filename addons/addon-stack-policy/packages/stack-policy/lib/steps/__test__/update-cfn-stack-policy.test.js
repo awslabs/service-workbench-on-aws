@@ -58,7 +58,22 @@ describe('UpgradeToUserId', () => {
   });
 
   describe('Run post deployment step', () => {
-    it('should successful update policy', async () => {
+    it('should successful update policy without stack policy', async () => {
+      service.cfn.getStackPolicy = jest.fn(() => ({
+        promise: () => Promise.resolve({}),
+      }));
+      service.cfn.setStackPolicy = jest.fn(() => ({
+        promise: () => Promise.resolve({}),
+      }));
+      await service.execute();
+      expect(service.cfn.getStackPolicy).toHaveBeenCalledTimes(1);
+      expect(service.cfn.setStackPolicy).toHaveBeenCalledWith({
+        StackName: 'backendStackName',
+        StackPolicyBody:
+          '{"Statement":[{"Effect":"Allow","Action":"Update:*","Principal":"*","Resource":"*"},{"Effect":"Deny","Action":"Update:Delete","Principal":"*","Resource":"LogicalResourceId/EgressStore*"}]}',
+      });
+    });
+    it('should successful update policy with empty stack policy', async () => {
       service.cfn.getStackPolicy = jest.fn(() => ({
         promise: () =>
           Promise.resolve({
