@@ -6,8 +6,8 @@ This package is a Serverless plugin that will build golang code and upload it to
 
 #### Tools
 
-- Node 12
-- Go
+- Node 12.x or later
+- Go 1.13.7 or later
 
 ## Configuration
 
