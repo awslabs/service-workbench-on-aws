@@ -15,7 +15,6 @@
  */
 
 const _ = require('lodash');
-const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const Resource = require('../base/resource');
 const { deleteWorkflowVersion } = require('../../complex/delete-workflow-version');

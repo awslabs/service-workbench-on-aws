@@ -14,8 +14,6 @@
  *  permissions and limitations under the License.
  */
 
-const _ = require('lodash');
-
 const { runSetup } = require('../../../support/setup');
 const {
   createWorkspaceTypeAndConfiguration,
