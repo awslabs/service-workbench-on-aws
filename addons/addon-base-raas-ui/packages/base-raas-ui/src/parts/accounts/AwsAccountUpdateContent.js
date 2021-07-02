@@ -50,7 +50,7 @@ class AwsAccountUpdateContent extends React.Component {
     runInAction(() => {
       // We want to create a simple one button form
       const account = this.account || {};
-      const hasUpdateStackUrl = account.cfnStackName || {};
+      const needsOnboard = account.permissionStatus === 'NEEDSONBOARD' || account.permissionStatus === 'PENDING';
       const fields = {
         managed: {
           value: 'admin',
@@ -63,7 +63,7 @@ class AwsAccountUpdateContent extends React.Component {
             noValue: 'create',
             showHeader: false,
           },
-          value: hasUpdateStackUrl ? 'update' : 'create',
+          value: needsOnboard ? 'create' : 'update',
         },
       };
       this.form = createForm(fields);

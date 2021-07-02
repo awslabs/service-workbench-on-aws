@@ -93,6 +93,7 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
           const addedAwsAccountModel = AwsAccount.create(addedAwsAccount);
           self.awsAccounts.set(addedAwsAccountModel.id, addedAwsAccountModel);
         });
+        return addedAwsAccount;
       },
 
       createAwsAccount: async awsAccount => {

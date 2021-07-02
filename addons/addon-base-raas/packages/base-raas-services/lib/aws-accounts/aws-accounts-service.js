@@ -138,7 +138,9 @@ class AwsAccountsService extends Service {
         Version: '2012-10-17',
         Statement: [...securityStatements, listStatement, getStatement],
       });
-
+      console.log('\n\n\n*******\nI AM HERE\n*******');
+      console.log(Policy);
+      console.log('\n\n\n');
       return s3Client.putBucketPolicy({ Bucket: s3BucketName, Policy }).promise();
     });
   }
@@ -161,7 +163,12 @@ class AwsAccountsService extends Service {
     const id = uuid();
 
     // Prepare the db object
-    const dbObject = this._fromRawToDbObject(rawData, { rev: 0, createdBy: by, updatedBy: by });
+    const dbObject = this._fromRawToDbObject(rawData, {
+      rev: 0,
+      createdBy: by,
+      updatedBy: by,
+      permissionStatus: 'NEEDSONBOARD',
+    });
 
     // Time to save the the db object
     const result = await runAndCatch(

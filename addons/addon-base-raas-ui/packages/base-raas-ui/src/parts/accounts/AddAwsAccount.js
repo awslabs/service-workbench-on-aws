@@ -103,7 +103,7 @@ class AddAwsAccount extends React.Component {
     return (
       <div className="mt3">
         <Button floated="right" color="blue" icon disabled={processing} className="ml2" onClick={this.handleSubmit}>
-          Add AWS Account
+          Onboard AWS Account
         </Button>
         <Button floated="right" disabled={processing} onClick={this.handleCancel}>
           Cancel
@@ -169,11 +169,11 @@ class AddAwsAccount extends React.Component {
       } else {
         // There are no client side validation errors so ask the store to add user (which will make API call to server to add the user)
 
-        await this.props.awsAccountsStore.addAwsAccount(this.awsAccount);
+        const account = await this.props.awsAccountsStore.addAwsAccount(this.awsAccount);
         runInAction(() => {
           this.formProcessing = false;
         });
-        this.goto('/accounts');
+        this.goto(`/aws-accounts/onboard/${account.id}`);
       }
     } catch (error) {
       runInAction(() => {

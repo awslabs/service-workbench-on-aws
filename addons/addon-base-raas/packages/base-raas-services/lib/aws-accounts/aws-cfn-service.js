@@ -196,8 +196,6 @@ class AwsCfnService extends Service {
       const updatedAcct = {
         id: account.id,
         rev: account.rev,
-        roleArn: account.roleArn,
-        externalId: account.externalId,
         cfnStackName: cfnTemplateInfo.name,
       };
       await awsAccountsService.update(requestContext, updatedAcct);
@@ -244,7 +242,11 @@ class AwsCfnService extends Service {
     let errorMsg = '';
 
     const checkPermissions = async account => {
-      if (account.cfnStackName === '') {
+      if (
+        account.cfnStackName === '' ||
+        account.cfnStackName === undefined ||
+        account.permissionStatus === 'NEEDSONBOARD' // Backend workflow should be the only one updating accounts that need to be onboarded
+      ) {
         res = 'NEEDSONBOARD';
         errorMsg = `Account ${account.accountId} needs to be onboarded.`;
       } else {
