@@ -87,6 +87,10 @@ describe('ForceLogout', () => {
       <ForceLogout.wrappedComponent authentication={AuthenticationProviderConfigsStore} app={userAuth} />,
     );
     const component = tempWrapper.instance();
-    expect(component.render()).toEqual(null);
+    expect(component.render()).not.toEqual(null);
+  });
+
+  afterAll(async () => {
+    await setTimeout(() => process.exit(0), 1000);
   });
 });
