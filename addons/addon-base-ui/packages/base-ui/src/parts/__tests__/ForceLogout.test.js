@@ -27,7 +27,7 @@ describe('ForceLogout', () => {
   beforeAll(() => {
     wrapper = shallow(<ForceLogout.wrappedComponent authentication={AuthenticationProviderConfigsStore} app={app} />);
     const component = wrapper.instance();
-    component.state = { tokenActive: false };
+    component.tokenActive = false;
 
     renderModalSnapshot = (
       <>
@@ -64,18 +64,15 @@ describe('ForceLogout', () => {
     expect(ForceLogout.displayName).toBe('inject-with-authentication-app(ForceLogout)');
   });
 
-  it('should make renderModal return null when state is empty or tokenActive is true', () => {
+  it('should make renderModal return null when tokenActive is true', () => {
     const component = wrapper.instance();
-    component.state = {};
-    expect(component.renderModal()).toEqual(null);
-
-    component.state = { tokenActive: true };
+    component.tokenActive = true;
     expect(component.renderModal()).toEqual(null);
   });
 
   it('should make renderModal return modal when tokenActive is false', () => {
     const component = wrapper.instance();
-    component.state = { tokenActive: false };
+    component.tokenActive = false;
     expect(component.renderModal()).toEqual(renderModalSnapshot);
   });
 
