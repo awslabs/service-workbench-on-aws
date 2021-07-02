@@ -90,6 +90,7 @@ class AccountService extends Service {
     // Validate input
     await validationService.ensureValid(rawData, createSchema);
 
+    // TODO: Pull AppStream config from rawData
     const { accountName, accountEmail, masterRoleArn, externalId, description } = rawData;
 
     // Check launch pre-requisites
