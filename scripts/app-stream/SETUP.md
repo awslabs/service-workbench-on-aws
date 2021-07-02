@@ -1,6 +1,6 @@
 # Overview
 
-This following guide will show you how to set up an AppStream image with the following applications installed: Firefox, Notepad, PuttyGen, and Putty. 
+This following guide will show you how to set up an AppStream image with the following applications installed: Firefox, Notepad, PuttyGen, and Putty. AppStream should be built in the **member account**. 
 
 ### High Level Overview
 1. We launch an AppStream Image Builder instance.
@@ -29,7 +29,7 @@ Note: Please set up your [AWS Profile](https://docs.aws.amazon.com/cli/latest/us
 cd ~\Documents
 
 # Pull the Image Builder script from Github
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/awslabs/service-workbench-on-aws/mainline/scripts/app-stream/buildImage.ps1 -OutFile buildImage.ps1
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/awslabs/service-workbench-on-aws/feat-secure-workspace-egress/scripts/app-stream/buildImage.ps1 -OutFile buildImage.ps1
 
 # Execute Image builder script
 .\buildImage.ps1
