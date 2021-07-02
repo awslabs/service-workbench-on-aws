@@ -94,19 +94,19 @@ class Setup {
     const envTypes = await {
       ec2Linux: {
         envTypeId: this.settings.get('ec2LinuxEnvTypeId'),
-        envTypeConfigId: this.settings.get('ec2LinuxConfigId')
+        envTypeConfigId: this.settings.get('ec2LinuxConfigId'),
       },
       ec2Windows: {
         envTypeId: this.settings.get('ec2WindowsEnvTypeId'),
-        envTypeConfigId: this.settings.get('ec2WindowsConfigId')
+        envTypeConfigId: this.settings.get('ec2WindowsConfigId'),
       },
       sagemaker: {
         envTypeId: this.settings.get('sagemakerEnvTypeId'),
-        envTypeConfigId: this.settings.get('sagemakerConfigId')
+        envTypeConfigId: this.settings.get('sagemakerConfigId'),
       },
       emr: {
         envTypeId: this.settings.get('emrEnvTypeId'),
-        envTypeConfigId: this.settings.get('emrConfigId')
+        envTypeConfigId: this.settings.get('emrConfigId'),
       },
     };
 
