@@ -16,7 +16,7 @@
 import { getParent } from 'mobx-state-tree';
 import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
 
-import { getAccountPermissionCfnTemplate } from '../../helpers/api';
+import { getAccountOnboardCfnTemplate } from '../../helpers/api';
 
 // ==================================================================
 // AwsAccountStore
@@ -34,8 +34,13 @@ const AwsAccountStore = BaseStore.named('AwsAccountStore')
     return {
       async doLoad() {
         const account = self.account;
-        const stackInfo = await getAccountPermissionCfnTemplate(self.accountId);
+        const stackInfo = await getAccountOnboardCfnTemplate(self.accountId);
         account.setStackInfo(stackInfo);
+      },
+
+      getOnboardTemplate: async awsAccountUUID => {
+        const template = await getAccountOnboardCfnTemplate(awsAccountUUID);
+        return template;
       },
 
       cleanup: () => {
