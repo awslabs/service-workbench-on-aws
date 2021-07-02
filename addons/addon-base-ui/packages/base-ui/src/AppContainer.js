@@ -58,8 +58,20 @@ class AppContainer extends Component {
       return false; // This will stop lodash from continuing the forEach loop
     });
 
+    plugins = _.reverse(pluginRegistry.getPluginsWithMethod('app-component', 'getForceLogoutComponent') || []);
+    let ForceLogout = () => <></>;
+    // We ask each plugin in reverse order if they have the ForceLogout component
+    _.forEach(plugins, plugin => {
+      const result = plugin.getForceLogoutComponent({ location, appContext: getEnv(app) });
+      if (_.isUndefined(result)) return;
+      ForceLogout = result;
+      // eslint-disable-next-line consistent-return
+      return false; // This will stop lodash from continuing the forEach loop
+    });
+
     return (
       <>
+        <ForceLogout />
         <AutoLogout />
         <App />
       </>
