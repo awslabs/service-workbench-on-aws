@@ -23,7 +23,6 @@ import {
   createAwsAccount,
   updateAwsAccount,
   getAllAccountsPermissionStatus,
-  getAccountPermissionCfnTemplate,
 } from '../../helpers/api';
 import { AwsAccount } from './AwsAccount';
 import { AwsAccountStore } from './AwsAccountStore';
@@ -123,11 +122,6 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         }
 
         return entry;
-      },
-
-      getPermissionsTemplate: async awsAccountUUID => {
-        const template = await getAccountPermissionCfnTemplate(awsAccountUUID);
-        return template;
       },
 
       addBudget: (awsAccountUUID, rawBudget) => {

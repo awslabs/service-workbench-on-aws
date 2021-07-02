@@ -69,7 +69,7 @@ function getAllAccountsPermissionStatus() {
   return httpApiGet(`api/aws-accounts/permissions`);
 }
 
-function getAccountPermissionCfnTemplate(accountUUID) {
+function getAccountOnboardCfnTemplate(accountUUID) {
   return httpApiGet(`api/aws-accounts/${accountUUID}/get-template`);
 }
 
@@ -378,7 +378,7 @@ export {
   updateAwsAccount,
   getAccountsPermissionsStatus,
   getAllAccountsPermissionStatus,
-  getAccountPermissionCfnTemplate,
+  getAccountOnboardCfnTemplate,
   getStepTemplates,
   getEnvironments,
   getEnvironment,

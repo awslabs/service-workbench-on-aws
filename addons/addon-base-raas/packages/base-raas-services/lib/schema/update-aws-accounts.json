@@ -28,7 +28,8 @@
     },
     "cfnStackId": {
       "type": "string",
-      "maxLength": 255
+      "maxLength": 255,
+      "pattern": "^arn:aws:cloudformation:.*$"
     },
     "roleArn": {
       "type": "string",
@@ -36,7 +37,8 @@
     },
     "xAccEnvMgmtRoleArn": {
       "type": "string",
-      "minLength": 10
+      "minLength": 10,
+      "pattern": "^arn:aws:iam::.*$"
     },
     "externalId": {
       "type": "string",
