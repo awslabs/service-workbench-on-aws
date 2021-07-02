@@ -46,9 +46,8 @@ class ForceLogout extends React.Component {
 
   componentDidMount() {
     this.timer = setInterval(() => {
-      const expirationInMins = this.hasTokenExpired();
       // eslint-disable-next-line react/no-unused-state
-      if (expirationInMins > 0) {
+      if (!this.hasTokenExpired()) {
         runInAction(() => {
           this.tokenActive = true;
         });
