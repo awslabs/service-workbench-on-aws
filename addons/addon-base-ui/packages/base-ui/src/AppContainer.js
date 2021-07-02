@@ -33,23 +33,6 @@ class AppContainer extends Component {
     document.querySelector("link[rel='icon']").href = this.props.assets.images.faviconImage;
   }
 
-  getComponent(appComponentMethod) {
-    const { pluginRegistry } = this.props;
-    let plugins = _.reverse(pluginRegistry.getPluginsWithMethod('app-component', 'getAppComponent') || []);
-    plugins = _.reverse(pluginRegistry.getPluginsWithMethod('app-component', appComponentMethod) || []);
-    let component = () => <></>;
-    // We ask each plugin in reverse order if they have the AutoLogout component
-    _.forEach(plugins, plugin => {
-      const result = plugin.getAutoLogoutComponent({ location, appContext: getEnv(app) });
-      if (_.isUndefined(result)) return;
-      component = result;
-      // eslint-disable-next-line consistent-return
-      return false; // This will stop lodash from continuing the forEach loop
-    });
-
-    return component;
-  }
-
   render() {
     const { location, pluginRegistry, app } = this.props;
     let plugins = _.reverse(pluginRegistry.getPluginsWithMethod('app-component', 'getAppComponent') || []);
