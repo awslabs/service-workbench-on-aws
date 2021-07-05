@@ -28,6 +28,9 @@ const PluginRegistryServiceMock = require('@aws-ee/base-services/lib/plugin-regi
 jest.mock('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-service');
 const EnvironmentScServiceMock = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-service');
 
+jest.mock('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-cidr-service');
+const EnvironmentScCidrServiceMock = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-cidr-service');
+
 jest.mock('@aws-ee/base-raas-services/lib/environment/environment-dns-service');
 const EnvironmentDnsServiceMock = require('@aws-ee/base-raas-services/lib/environment/environment-dns-service');
 
@@ -39,6 +42,7 @@ describe('TerminateLaunchDependencyStep', () => {
   let environmentScService = null;
   let environmentDnsService = null;
   let pluginRegistryService = null;
+  let environmentScCidrService = null;
   let cfn;
   const requestContext = {
     principal: {
@@ -75,6 +79,7 @@ describe('TerminateLaunchDependencyStep', () => {
     container.register('environmentScService', new EnvironmentScServiceMock());
     container.register('environmentDnsService', new EnvironmentDnsServiceMock());
     container.register('pluginRegistryService', new PluginRegistryServiceMock());
+    container.register('environmentScCidrService', new EnvironmentScCidrServiceMock());
 
     await container.initServices();
 
@@ -84,6 +89,7 @@ describe('TerminateLaunchDependencyStep', () => {
     environmentScService = await container.find('environmentScService');
     environmentDnsService = await container.find('environmentDnsService');
     pluginRegistryService = await container.find('pluginRegistryService');
+    environmentScCidrService = await container.find('environmentScCidrService');
 
     step.payloadOrConfig = {
       string: stringInput => {
@@ -108,6 +114,7 @@ describe('TerminateLaunchDependencyStep', () => {
     step.printError = jest.fn();
     step.payload.setKey = jest.fn();
     step.state.setKey = jest.fn();
+    environmentScCidrService.revokeIngressRuleWithSecurityGroup = jest.fn();
   });
 
   beforeEach(async () => {
@@ -142,7 +149,7 @@ describe('TerminateLaunchDependencyStep', () => {
       type: 'account-workspace-details',
       updatedAt: '2021-05-31T13:32:15.503Z',
       value:
-        '{"id":"test-id","albStackName":null,"albArn":null,"listenerArn":null,"albDnsName":null,"albDependentWorkspacesCount":1}',
+        '{"id":"test-id","albStackName":null,"albArn":null,"listenerArn":null,"albDnsName":null,"albSecurityGroup":null,"albDependentWorkspacesCount":1}',
     };
     albService.getAlbDetails = jest.fn(() => {
       return albDetails;
@@ -432,6 +439,7 @@ describe('TerminateLaunchDependencyStep', () => {
         albArn: null,
         listenerArn: null,
         albDnsName: null,
+        albSecurityGroup: null,
         albDependentWorkspacesCount: 0,
       };
       await step.onSuccessfulCompletion([]);
@@ -480,6 +488,7 @@ describe('TerminateLaunchDependencyStep', () => {
         albArn: null,
         listenerArn: null,
         albDnsName: null,
+        albSecurityGroup: null,
         albDependentWorkspacesCount: 0,
       };
       expect(albService.saveAlbDetails).toHaveBeenCalledWith('test-account-id', albDetails);

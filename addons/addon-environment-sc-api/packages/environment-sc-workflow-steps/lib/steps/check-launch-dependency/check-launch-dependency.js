@@ -220,6 +220,7 @@ class CheckLaunchDependency extends StepBase {
       albArn: _.get(stackOutputs, 'LoadBalancerArn', null),
       listenerArn: _.get(stackOutputs, 'ListenerArn', null),
       albDnsName: _.get(stackOutputs, 'ALBDNSName', null),
+      albSecurityGroup: _.get(stackOutputs, 'ALBSecurityGroupId', null),
       albDependentWorkspacesCount: 0,
     };
     if (albLock) {

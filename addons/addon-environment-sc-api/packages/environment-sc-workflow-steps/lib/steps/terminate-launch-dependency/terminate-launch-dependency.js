@@ -74,10 +74,11 @@ class TerminateLaunchDependency extends StepBase {
       this.payloadOrConfig.string(inPayloadKeys.externalId),
       this.payloadOrConfig.string(inPayloadKeys.existingEnvironmentStatus),
     ]);
-    const [albService, environmentScService, lockService] = await this.mustFindServices([
+    const [albService, environmentScService, lockService, environmentScCidrService] = await this.mustFindServices([
       'albService',
       'environmentScService',
       'lockService',
+      'environmentScCidrService',
     ]);
     const environment = await environmentScService.mustFind(requestContext, { id: envId });
     const projectId = environment.projectId;
@@ -102,9 +103,9 @@ class TerminateLaunchDependency extends StepBase {
     if (connectionType.toLowerCase() === 'rstudiov2') {
       const [environmentDnsService] = await this.mustFindServices(['environmentDnsService']);
       const albExists = await albService.checkAlbExists(requestContext, projectId);
+      const deploymentItem = await albService.getAlbDetails(requestContext, projectId);
       if (albExists) {
         try {
-          const deploymentItem = await albService.getAlbDetails(requestContext, projectId);
           const dnsName = JSON.parse(deploymentItem.value).albDnsName;
           await environmentDnsService.deleteRecord('rstudio', envId, dnsName);
           this.print({
@@ -114,6 +115,28 @@ class TerminateLaunchDependency extends StepBase {
           // Don't fail the termination if record deletion failed
           this.print({
             msg: `Record deletion failed with error - ${error.message}`,
+          });
+        }
+        // Revoke EC2 security group rule with ALB security group ID
+        try {
+          const albSecurityGroup = JSON.parse(deploymentItem.value).albSecurityGroup;
+          const instanceSecurityGroup = _.get(environmentOutputs, 'InstanceSecurityGroupId', '');
+          const updateRule = {
+            fromPort: 443,
+            toPort: 443,
+            protocol: 'tcp',
+            groupId: albSecurityGroup,
+          };
+          await environmentScCidrService.revokeIngressRuleWithSecurityGroup(
+            requestContext,
+            envId,
+            updateRule,
+            instanceSecurityGroup,
+          );
+        } catch (error) {
+          // Don't fail the termination if revoke fails
+          this.print({
+            msg: `Security group rule revoke failed with error - ${error.message}`,
           });
         }
       }
@@ -415,6 +438,7 @@ class TerminateLaunchDependency extends StepBase {
       albArn: null,
       listenerArn: null,
       albDnsName: null,
+      albSecurityGroup: null,
       albDependentWorkspacesCount: 0,
     };
     if (albLock) {
@@ -487,6 +511,7 @@ class TerminateLaunchDependency extends StepBase {
         albArn: null,
         listenerArn: null,
         albDnsName: null,
+        albSecurityGroup: null,
         albDependentWorkspacesCount: 0,
       };
       if (albLock) {

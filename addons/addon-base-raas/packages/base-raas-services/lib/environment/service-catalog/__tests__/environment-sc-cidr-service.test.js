@@ -869,4 +869,49 @@ describe('EnvironmentScCidrService', () => {
       expect(response).toEqual(responseObj);
     });
   });
+  describe('authorizeIngressRuleWithSecurityGroup', () => {
+    it('should call authorize security group', async () => {
+      service.authorizeSecurityGroupIngress = jest.fn();
+      service.getEc2Client = jest.fn(() => {
+        return {};
+      });
+      await service.authorizeIngressRuleWithSecurityGroup({}, 'envId', {}, 'groupId');
+      expect(service.authorizeSecurityGroupIngress).toHaveBeenCalled();
+    });
+
+    it('should throw error when authorize scurity group fails', async () => {
+      service.authorizeSecurityGroupIngress = jest.fn(() => {
+        throw new Error('Security group update failed');
+      });
+      service.getEc2Client = jest.fn(() => {
+        return {};
+      });
+      await expect(service.authorizeIngressRuleWithSecurityGroup({}, 'envId', {}, 'groupId')).rejects.toThrow(
+        'Instance security group update failed with message - Security group update failed',
+      );
+    });
+  });
+
+  describe('revokeIngressRuleWithSecurityGroup', () => {
+    it('should call revoke security group', async () => {
+      service.revokeSecurityGroupIngress = jest.fn();
+      service.getEc2Client = jest.fn(() => {
+        return {};
+      });
+      await service.revokeIngressRuleWithSecurityGroup({}, 'envId', {}, 'groupId');
+      expect(service.revokeSecurityGroupIngress).toHaveBeenCalled();
+    });
+
+    it('should throw error when authorize scurity group fails', async () => {
+      service.revokeSecurityGroupIngress = jest.fn(() => {
+        throw new Error('Security group update failed');
+      });
+      service.getEc2Client = jest.fn(() => {
+        return {};
+      });
+      await expect(service.revokeIngressRuleWithSecurityGroup({}, 'envId', {}, 'groupId')).rejects.toThrow(
+        'Instance security group update failed with message - Security group update failed',
+      );
+    });
+  });
 });

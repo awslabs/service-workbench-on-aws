@@ -312,6 +312,7 @@ describe('CheckLaunchDependencyStep', () => {
         albArn: null,
         listenerArn: null,
         albDnsName: null,
+        albSecurityGroup: null,
         albDependentWorkspacesCount: 0,
       };
       await step.handleStackCompletion([]);
@@ -327,6 +328,7 @@ describe('CheckLaunchDependencyStep', () => {
         LoadBalancerArn: 'test-alb-arn',
         ListenerArn: 'test-listener-arn',
         ALBDNSName: 'test-dns',
+        ALBSecurityGroupId: 'test-sg',
       };
       const albDetails = {
         id: 'test-account-id',
@@ -334,6 +336,7 @@ describe('CheckLaunchDependencyStep', () => {
         albArn: 'test-alb-arn',
         listenerArn: 'test-listener-arn',
         albDnsName: 'test-dns',
+        albSecurityGroup: 'test-sg',
         albDependentWorkspacesCount: 0,
       };
       await step.handleStackCompletion(output);

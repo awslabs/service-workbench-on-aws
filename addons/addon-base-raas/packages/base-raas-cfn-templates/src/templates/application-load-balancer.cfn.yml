@@ -65,3 +65,6 @@ Outputs:
   ListenerArn:
     Description: ARN of Application Load Balancer Listener
     Value: !Ref ALBListener
+  ALBSecurityGroupId:
+    Description: Security Group of Application Load Balancer Listener
+    Value: !Ref ALBSecurityGroup
