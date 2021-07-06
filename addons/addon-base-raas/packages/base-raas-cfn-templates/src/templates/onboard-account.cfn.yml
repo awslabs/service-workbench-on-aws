@@ -598,6 +598,9 @@ Resources:
       GroupDescription: 'CFN Security Group for interface endpoint'
       GroupName: 'CFN-SG'
       VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !GetAtt VPC.DefaultSecurityGroup
+          IpProtocol: '-1'
 
     # https://docs.aws.amazon.com/sagemaker/latest/dg/notebook-interface-endpoint.html
   SagemakerNotebookEndpoint:
