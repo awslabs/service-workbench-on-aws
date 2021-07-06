@@ -96,13 +96,6 @@ class EnvironmentScCidrService extends Service {
 
     const existingEnvironment = await environmentScService.mustFind(requestContext, { id });
 
-    // Validate the CFT output if RStudio is exist then modify the elb rule
-    let {
-      // eslint-disable-next-line prefer-const
-      productName,
-      cloneUpdateRequest,
-    } = await this.modifyELBRule(existingEnvironment, updateRequest, albService, requestContext);
-
     // Check if user is allowed to update cidrs
     await this.assertAuthorized(
       requestContext,
@@ -147,12 +140,6 @@ class EnvironmentScCidrService extends Service {
         existingEnvironment.cidr = cloneUpdateRequest;
       }
     });
-    // As we removed the 443 Port CIDRs values for Rstudio during the ingress rule updates.
-    // So once it is done we replace the original values to the existing env.
-    if (productName === 'RStudioV2') {
-      cloneUpdateRequest = JSON.parse(cloneUpdateRequest);
-      existingEnvironment.cidr = cloneUpdateRequest;
-    }
     // Write audit event
     await this.audit(requestContext, { action: 'update-environment-sc-cidr', body: existingEnvironment });
     return existingEnvironment;
