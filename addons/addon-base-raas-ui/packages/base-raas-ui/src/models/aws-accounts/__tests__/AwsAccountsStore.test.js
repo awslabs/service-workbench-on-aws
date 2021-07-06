@@ -36,6 +36,7 @@ describe('AwsAccountsStore', () => {
     updatedAt: 'Bye bye, Lil Sebastian',
     permissionStatus: 'CURRENT',
     cfnStackName: 'testCfnName',
+    cfnStackId: '',
   };
   const permRetVal = { newStatus: { mouserat: 'CURRENT' } };
 
@@ -88,6 +89,31 @@ describe('AwsAccountsStore', () => {
 
       // CHECK
       expect(retVal).toMatchObject(store.list);
+    });
+  });
+
+  describe('AWS Account-specific tests', () => {
+    it('should generate the email template for a given AWS account', async () => {
+      // BUILD
+      // getAwsAccounts.mockResolvedValue([newAwsAccount]);
+      // getAllAccountsPermissionStatus.mockResolvedValue(permRetVal);
+      await store.load();
+      await store.addAwsAccount(newAwsAccount);
+
+      // OPERATE
+      const account = store.getAwsAccount(newAwsAccount.id);
+
+      const commonSectionChunk = `We are attempting to update your onboarded AWS account #${account.accountId} in AWS Service Workbench.`;
+      const createChunk = '2 - Click on the following link';
+      const updateChunk = '3 - Click on the following link';
+
+      const createString = account.createStackEmailTemplate;
+      const updateString = account.updateStackEmailTemplate;
+
+      expect(createString).toContain(commonSectionChunk);
+      expect(createString).toContain(createChunk);
+      expect(updateString).toContain(commonSectionChunk);
+      expect(updateString).toContain(updateChunk);
     });
   });
 
