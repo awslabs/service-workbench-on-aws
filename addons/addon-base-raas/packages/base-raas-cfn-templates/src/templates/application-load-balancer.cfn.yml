@@ -10,18 +10,15 @@ Parameters:
     Description: The VPC in which the ALB will reside
     Type: AWS::EC2::VPC::Id
   Subnet1:
-    Description: The VPC subnet in which the ALB will reside
+    Description: The VPC Subnet1 in which the ALB will reside
+    Type: AWS::EC2::Subnet::Id
+  Subnet2:
+    Description: The VPC Subnet2 in which the ALB will reside
     Type: AWS::EC2::Subnet::Id
   ACMSSLCertARN:
     Type: String
     Description: The ARN of the AWS Certificate Manager SSL Certificate to associate with the Load Balancer
 Resources:
-  ALBSubnet:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      CidrBlock: 10.0.32.0/19
-      AvailabilityZone: !Select [1, !GetAZs ]
   ALBListener:
      Type: AWS::ElasticLoadBalancingV2::Listener
      Properties:
@@ -45,7 +42,7 @@ Resources:
       Scheme: internet-facing # or internal
       Subnets:
       - Ref: Subnet1
-      - Ref: ALBSubnet
+      - Ref: Subnet2
       SecurityGroups: 
       - Ref: ALBSecurityGroup
   ALBSecurityGroup:

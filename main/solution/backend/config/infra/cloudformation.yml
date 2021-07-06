@@ -368,6 +368,7 @@ Resources:
               - !GetAtt [DsAccountsDb, Arn]
               - !GetAtt [RoleAllocationsDb, Arn]
               - !GetAtt [ResourceUsagesDb, Arn]
+              - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbDeploymentStore}'
           - Effect: Allow
             Action:
               - ssm:GetParameter

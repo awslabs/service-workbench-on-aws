@@ -140,7 +140,6 @@ class EnvironmentScCidrService extends Service {
         existingEnvironment.cidr = cloneUpdateRequest;
       }
     });
-
     // Write audit event
     await this.audit(requestContext, { action: 'update-environment-sc-cidr', body: existingEnvironment });
     return existingEnvironment;

@@ -303,6 +303,9 @@ describe('ALBService', () => {
       cfnTemplateService.getTemplate.mockImplementationOnce(() => {
         return ['template'];
       });
+      jest.spyOn(service, 'findSubnet2').mockImplementationOnce(() => {
+        return 'test-subnet-2';
+      });
       const apiResponse = {
         StackName: resolvedVars.namespace,
         Parameters: [
@@ -313,6 +316,10 @@ describe('ALBService', () => {
           {
             ParameterKey: 'Subnet1',
             ParameterValue: 'subnet-0a661d9f417ecff3f',
+          },
+          {
+            ParameterKey: 'Subnet2',
+            ParameterValue: 'test-subnet-2',
           },
           {
             ParameterKey: 'ACMSSLCertARN',
@@ -338,6 +345,9 @@ describe('ALBService', () => {
     it('should fail because project id is not valid', async () => {
       projectService.mustFind.mockImplementationOnce(() => {
         throw service.boom.notFound(`project with id "test-id" does not exist`, true);
+      });
+      jest.spyOn(service, 'findSubnet2').mockImplementationOnce(() => {
+        return 'test-subnet';
       });
       try {
         await service.getStackCreationInput({}, resolvedVars, resolvedInputParams, '');

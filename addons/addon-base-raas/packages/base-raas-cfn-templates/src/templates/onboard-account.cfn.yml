@@ -35,6 +35,11 @@ Parameters:
     Type: String
     Default: 10.0.0.0/19
 
+  VpcPublicSubnet2Cidr:
+    Description: Please enter the IP range (CIDR notation) for the public subnet 2 in the 2nd Availability Zone
+    Type: String
+    Default: 10.0.32.0/19
+
   LaunchConstraintRolePrefix:
     Description: Role name prefix to use when creating a launch constraint role in the on-boarded account
     Type: String
@@ -62,6 +67,7 @@ Metadata:
         Parameters:
           - VpcCidr
           - VpcPublicSubnet1Cidr
+          - VpcPublicSubnet2Cidr
 
 Resources:
   # A role used for launching environments using AWS Service Catalog
@@ -403,6 +409,17 @@ Resources:
         - Key: Name
           Value: !Sub ${Namespace} public subnet 1
 
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !GetAZs ]
+      CidrBlock: !Ref VpcPublicSubnet2Cidr
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${Namespace} public subnet 2
+
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Properties:
@@ -424,6 +441,12 @@ Resources:
     Properties:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet1
+
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet2
 
   EncryptionKey:
     Type: AWS::KMS::Key
