@@ -1,0 +1,8 @@
+id: st-aws-stack-check
+v: 1
+title: Check status of AWS Account stack
+desc: |
+  Check status of stack associated with AWS account
+
+skippable: true # this means that if there is an error in a previous step, then this step will be skipped
+hidden: true
