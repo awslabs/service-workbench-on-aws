@@ -344,7 +344,7 @@ class EnvironmentScService extends Service {
       fetchCidr
     ) {
       const { currentIngressRules } = await this.getSecurityGroupDetails(requestContext, env);
-      
+
       // Validate the CFT output if RStudio is exist then retrieve the describe rule and
       // inject into the currentIngressRules
       await this.describeELBRule(env, requestContext, currentIngressRules);
