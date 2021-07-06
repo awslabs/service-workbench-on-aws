@@ -14,6 +14,7 @@
  *  permissions and limitations under the License.
  */
 
+const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
 const { runSetup } = require('../../../support/setup');
 const {
   createWorkspaceTypeAndConfiguration,
@@ -209,7 +210,7 @@ describe('Create workspace-service-catalog scenarios', () => {
         studyIds,
         description: 'assignment',
         projectId: setup.defaults.project.id,
-        cidr: '54.240.196.186/32',
+        cidr: '123.123.123.123/12',
       });
       expect(env).toMatchObject({
         name: workspaceName,
@@ -219,6 +220,7 @@ describe('Create workspace-service-catalog scenarios', () => {
       });
 
       // Poll until workspace is provisioned
+      sleep(2000);
       await admin1Session.resources.workflows
         .versions('wf-provision-environment-sc')
         .version(1)
@@ -226,6 +228,7 @@ describe('Create workspace-service-catalog scenarios', () => {
 
       // Terminate instance
       await admin1Session.resources.workspaceServiceCatalogs.workspaceServiceCatalog(env.id).delete();
+      sleep(2000);
       await admin1Session.resources.workflows
         .versions('wf-terminate-environment-sc')
         .version(1)
