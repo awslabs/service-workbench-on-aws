@@ -57,8 +57,12 @@ class UpdateCfnStackPolicy extends Service {
         // fetch the current cloudformation stack policy
         const backendStackName = this.settings.get(settingKeys.backendStackName);
         const currentStackPolicy = await this.cfn.getStackPolicy({ StackName: backendStackName }).promise();
-        const currentStackPolicyBody = JSON.parse(currentStackPolicy.StackPolicyBody);
-        let isEmptyPolicy = _.isEmpty(currentStackPolicyBody);
+        const tempStackPolicyBody = currentStackPolicy.StackPolicyBody;
+        let isEmptyPolicy = _.isEmpty(tempStackPolicyBody);
+        let currentStackPolicyBody = {};
+        if (!isEmptyPolicy) {
+          currentStackPolicyBody = JSON.parse(tempStackPolicyBody);
+        }
         if (!currentStackPolicyBody.Statement) {
           currentStackPolicyBody.Statement = [];
         }
