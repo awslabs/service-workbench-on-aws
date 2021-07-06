@@ -36,6 +36,7 @@ describe('AwsAccountsStore', () => {
     updatedAt: 'Bye bye, Lil Sebastian',
     permissionStatus: 'CURRENT',
     cfnStackName: 'testCfnName',
+    cfnStackId: '',
   };
   const permRetVal = { newStatus: { mouserat: 'CURRENT' } };
 
