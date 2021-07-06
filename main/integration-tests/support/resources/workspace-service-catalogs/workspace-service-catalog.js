@@ -62,6 +62,14 @@ class WorkspaceServiceCatalog extends Resource {
   }
 
   async cleanup() {
+    const adminSession = await this.setup.defaultAdminSession();
+    // Terminate instance
+    await adminSession.resources.workspaceServiceCatalogs.workspaceServiceCatalog(this.id).delete();
+    sleep(2000);
+    await adminSession.resources.workflows
+      .versions('wf-terminate-environment-sc')
+      .version(1)
+      .findAndPollWorkflow(this.id, 10000, 30);
     await super.cleanup();
     await deleteWorkspaceServiceCatalog({ aws: this.setup.aws, id: this.id });
   }
