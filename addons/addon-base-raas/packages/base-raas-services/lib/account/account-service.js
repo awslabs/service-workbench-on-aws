@@ -26,6 +26,7 @@ const settingKeys = {
   tableName: 'dbAccounts',
   apiHandlerArn: 'apiHandlerArn',
   workflowRoleArn: 'workflowRoleArn',
+  isAppStreamEnabled: 'isAppStreamEnabled',
 };
 
 class AccountService extends Service {
@@ -90,7 +91,34 @@ class AccountService extends Service {
     // Validate input
     await validationService.ensureValid(rawData, createSchema);
 
-    // TODO: Pull AppStream config from rawData
+    let appStreamConfig = {};
+    if (this.settings.isAppStreamEnabled === 'true') {
+      const {
+        appStreamFleetDesiredInstances,
+        appStreamDisconnectTimeoutSeconds,
+        appStreamMaxUserDurationSeconds,
+        appStreamImageName,
+        appStreamInstanceType,
+        appStreamFleetType,
+      } = rawData;
+
+      appStreamConfig = {
+        appStreamFleetDesiredInstances,
+        appStreamDisconnectTimeoutSeconds,
+        appStreamMaxUserDurationSeconds,
+        appStreamImageName,
+        appStreamInstanceType,
+        appStreamFleetType,
+      };
+      if (
+        Object.keys(appStreamConfig).some(key => {
+          return appStreamConfig[key] === undefined;
+        })
+      ) {
+        // TODO: Use more descriptive AppStream error message that includes which param wasn't included
+        throw this.boom.badRequest('Not all required App Stream params are defined', true);
+      }
+    }
     const { accountName, accountEmail, masterRoleArn, externalId, description } = rawData;
 
     // Check launch pre-requisites
@@ -120,11 +148,31 @@ class AccountService extends Service {
       workflowRoleArn,
       apiHandlerArn,
       callerAccountId,
+      ...appStreamConfig,
     };
     await workflowTriggerService.triggerWorkflow(requestContext, { workflowId: 'wf-provision-account' }, input);
 
     // Write audit event
     await this.audit(requestContext, { action: 'provision-account', body: { accountName, accountEmail, description } });
+  }
+
+  async shareAppStreamImageWithMemberAccount(requestContext, memberAccountId, appStreamImageName) {
+    await this.assertAuthorized(requestContext, {
+      action: 'shareAppStreamImageWithMemberAccount',
+      conditions: [allowIfActive, allowIfAdmin],
+    });
+    const aws = await this.service('aws');
+    const appStream = new aws.AppStream({ apiVersion: '2016-12-01' });
+    const params = {
+      ImagePermissions: {
+        allowFleet: true,
+        allowImageBuilder: false,
+      },
+      Name: appStreamImageName,
+      SharedAccountId: memberAccountId,
+    };
+
+    await appStream.updateImagePermissions(params).promise();
   }
 
   async saveAccountToDb(requestContext, rawData, id, status = 'PENDING') {

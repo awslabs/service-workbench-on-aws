@@ -49,28 +49,28 @@ const createAwsAccountAppStreamFormFields = {
     placeholder: 'Number of users that can concurrently access a workspace through AppStream',
     rules: 'required|integer',
   },
-  AppStreamDisconnectTimeoutSeconds: {
+  appStreamDisconnectTimeoutSeconds: {
     label: 'AppStreamDisconnectTimeoutSeconds',
     placeholder: 'The amount of time that a streaming session remains active after users disconnect',
     rules: 'required|integer',
   },
-  AppStreamMaxUserDurationSeconds: {
+  appStreamMaxUserDurationSeconds: {
     label: 'AppStreamMaxUserDurationSeconds',
     placeholder: 'The maximum amount of time that a streaming session can remain active, in seconds',
     rules: 'required|integer',
   },
-  AppStreamImageName: {
+  appStreamImageName: {
     label: 'AppStreamImageName',
     placeholder: 'The name of the image used to create the fleet',
     rules: 'required|string',
   },
-  AppStreamInstanceType: {
+  appStreamInstanceType: {
     label: 'AppStreamInstanceType',
     placeholder:
       'The instance type to use when launching fleet instances. List of images available at https://aws.amazon.com/appstream2/pricing/',
     rules: 'required|string',
   },
-  AppStreamFleetType: {
+  appStreamFleetType: {
     label: 'AppStreamFleetType',
     placeholder: 'The fleet type. Should be either ALWAYS_ON or ON_DEMAND',
     rules: ['required', 'regex:/^ALWAYS_ON|ON_DEMAND$/'],

@@ -98,6 +98,19 @@ class ProvisionAccount extends StepBase {
     await accountService.saveAccountToDb(requestContext, data, accountId);
     // THIS IS NEEDED, we should wait AWS to setup the account, even if we can fetch the account ID
     this.print('start to wait for 5min for AWS getting the account ready.');
+
+    if (this.settings.get(settingKeys.isAppStreamEnabled) === 'true') {
+      return this.wait(60 * 5).thenCall('shareImageWithMemberAccount');
+    }
+    return this.wait(60 * 5).thenCall('deployStack');
+  }
+
+  async shareImageWithMemberAccount() {
+    const [accountService] = await this.mustFindServices(['accountService']);
+    const requestContext = await this.payload.object('requestContext');
+    const accountId = await this.state.string('ACCOUNT_ID');
+    const appStreamImageName = await this.payload.string('appStreamImageName');
+    accountService.shareAppStreamImageWithMemberAccount(requestContext, accountId, appStreamImageName);
     return this.wait(60 * 5).thenCall('deployStack');
   }
 
