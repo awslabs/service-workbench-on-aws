@@ -361,12 +361,13 @@ class EnvironmentScService extends Service {
       const albService = await this.service('albService');
       const resolvedVars = { ruleARN: ListenerRuleARN, projectId: env.projectId };
       const ruleSourceIps = await albService.describeRules(requestContext, resolvedVars);
-      currentIngressRules.map(obj => {
-        if (obj.fromPort === 443) {
-          obj.cidrBlocks = ruleSourceIps;
-        }
-        return obj;
-      });
+      const elbRule = {
+        protocol: 'tcp',
+        fromPort: 443,
+        toPort: 443,
+        cidrBlocks: ruleSourceIps,
+      };
+      currentIngressRules.push(elbRule);
     }
   }
 

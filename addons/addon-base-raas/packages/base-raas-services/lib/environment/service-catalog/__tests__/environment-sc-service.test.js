@@ -1430,11 +1430,10 @@ describe('EnvironmentSCService', () => {
   });
 
   describe('describeELBRule', () => {
-    it('should pass and return the product name and cloned update request', async () => {
+    it('should pass and add alb rule cidr blocks in currentIngressRules', async () => {
       const currentIngressRules = [
         { protocol: 'tcp', fromPort: 22, toPort: 22, cidrBlocks: ['0.0.0.0/0'] },
         { protocol: 'tcp', fromPort: 80, toPort: 80, cidrBlocks: ['0.0.0.0/0'] },
-        { protocol: 'tcp', fromPort: 443, toPort: 443, cidrBlocks: [] },
       ];
       const responseIngressRules = [
         { protocol: 'tcp', fromPort: 22, toPort: 22, cidrBlocks: ['0.0.0.0/0'] },

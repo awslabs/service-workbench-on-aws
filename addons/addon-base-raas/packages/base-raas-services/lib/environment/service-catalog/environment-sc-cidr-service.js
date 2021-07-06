@@ -166,14 +166,10 @@ class EnvironmentScCidrService extends Service {
           envId: existingEnvironment.id,
         };
         await albService.modifyRule(requestContext, resolvedVars);
-        // Removed the original value in 443 Port CIDRs and replace the default values in the updateRequest
-        // because the new RStudio ALB we are not storing 443 Port CIDRs into security group.
-        updateRequest.map(obj => {
-          if (obj.fromPort === 443) {
-            obj.cidrBlocks = ['0.0.0.0/0'];
-          }
-          return obj;
-        });
+        // Removed the 443 Port CIDRs in the updateRequest because the new RStudio are not storing
+        // 443 Port CIDRs into security group.
+        const index = updateRequest.findIndex(x => x.fromPort === 443);
+        delete updateRequest[index];
       }
     }
     return { productName, cloneUpdateRequest };
