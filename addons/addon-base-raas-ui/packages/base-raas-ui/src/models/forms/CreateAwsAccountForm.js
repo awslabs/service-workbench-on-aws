@@ -54,6 +54,12 @@ const createAwsAccountAppStreamFormFields = {
     placeholder: 'The amount of time that a streaming session remains active after users disconnect',
     rules: 'required|integer',
   },
+  appStreamIdleDisconnectTimeoutSeconds: {
+    label: 'AppStreamIdleDisconnectTimeoutSeconds',
+    placeholder:
+      'The amount of time that users can be idle (inactive) before they are disconnected from their streaming session',
+    rules: 'required|integer',
+  },
   appStreamMaxUserDurationSeconds: {
     label: 'AppStreamMaxUserDurationSeconds',
     placeholder: 'The maximum amount of time that a streaming session can remain active, in seconds',

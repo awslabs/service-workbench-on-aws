@@ -97,7 +97,7 @@ class ProvisionAccount extends StepBase {
     this.print(`saving account data into dynamo: ${JSON.stringify(data)}`);
     await accountService.saveAccountToDb(requestContext, data, accountId);
     // THIS IS NEEDED, we should wait AWS to setup the account, even if we can fetch the account ID
-    this.print('start to wait for 5min for AWS getting the account ready.');
+    this.print('start to wait for 5 minutes for AWS getting the account ready.');
 
     if (this.settings.get(settingKeys.isAppStreamEnabled) === 'true') {
       return this.wait(60 * 5).thenCall('shareImageWithMemberAccount');
@@ -110,8 +110,8 @@ class ProvisionAccount extends StepBase {
     const requestContext = await this.payload.object('requestContext');
     const accountId = await this.state.string('ACCOUNT_ID');
     const appStreamImageName = await this.payload.string('appStreamImageName');
-    accountService.shareAppStreamImageWithMemberAccount(requestContext, accountId, appStreamImageName);
-    return this.wait(60 * 5).thenCall('deployStack');
+    await accountService.shareAppStreamImageWithMemberAccount(requestContext, accountId, appStreamImageName);
+    return this.wait(60 * 15).thenCall('deployStack');
   }
 
   async deployStack() {
@@ -122,14 +122,31 @@ class ProvisionAccount extends StepBase {
     const [userService] = await this.mustFindServices(['userService']);
     const user = await userService.mustFindUser({ uid: by });
 
-    // TODO: We need to store AppStream info params in Accounts table and AWSAccount table
-    // TODO Call AppStream service to get AppStream params, look at onboard-account.cfn.yml for AppStream params that are needed
+    // TODO Add AppStream params, look at onboard-account.cfn.yml for AppStream params that are needed
     // https://github.com/awslabs/service-workbench-on-aws/blob/ba2a024a20ffce6f5584b4a029e5ae526ca67720/addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/onboard-account.cfn.yml#L53
     const externalId = await this.payload.string('externalId');
-    const [workflowRoleArn, apiHandlerArn, callerAccountId] = await Promise.all([
+    const [
+      workflowRoleArn,
+      apiHandlerArn,
+      callerAccountId,
+      appStreamFleetDesiredInstances,
+      appStreamDisconnectTimeoutSeconds,
+      appStreamIdleDisconnectTimeoutSeconds,
+      appStreamMaxUserDurationSeconds,
+      appStreamImageName,
+      appStreamInstanceType,
+      appStreamFleetType,
+    ] = await Promise.all([
       this.payload.string('workflowRoleArn'),
       this.payload.string('apiHandlerArn'),
       this.payload.string('callerAccountId'),
+      this.payload.string('appStreamFleetDesiredInstances'),
+      this.payload.string('appStreamDisconnectTimeoutSeconds'),
+      this.payload.string('appStreamIdleDisconnectTimeoutSeconds'),
+      this.payload.string('appStreamMaxUserDurationSeconds'),
+      this.payload.string('appStreamImageName'),
+      this.payload.string('appStreamInstanceType'),
+      this.payload.string('appStreamFleetType'),
     ]);
     // deploy basic stacks to the account just created
     const [cfnTemplateService] = await this.mustFindServices(['cfnTemplateService']);
@@ -147,6 +164,15 @@ class ProvisionAccount extends StepBase {
     // addParam('TrustUserArn', userArn);
     addParam('WorkflowRoleArn', workflowRoleArn);
     addParam('ApiHandlerArn', apiHandlerArn);
+
+    // AppStream
+    addParam('AppStreamFleetDesiredInstances', appStreamFleetDesiredInstances);
+    addParam('AppStreamDisconnectTimeoutSeconds', appStreamDisconnectTimeoutSeconds);
+    addParam('AppStreamIdleDisconnectTimeoutSeconds', appStreamIdleDisconnectTimeoutSeconds);
+    addParam('AppStreamMaxUserDurationSeconds', appStreamMaxUserDurationSeconds);
+    addParam('AppStreamImageName', appStreamImageName);
+    addParam('AppStreamInstanceType', appStreamInstanceType);
+    addParam('AppStreamFleetType', appStreamFleetType);
 
     addParam('LaunchConstraintRolePrefix', this.settings.get(settingKeys.launchConstraintRolePrefix));
     addParam('LaunchConstraintPolicyPrefix', this.settings.get(settingKeys.launchConstraintPolicyPrefix));
@@ -224,11 +250,21 @@ class ProvisionAccount extends StepBase {
           name,
           roleArn: cfnOutputs.CrossAccountExecutionRoleArn,
           xAccEnvMgmtRoleArn: cfnOutputs.CrossAccountEnvMgmtRoleArn,
-          subnetId: cfnOutputs.VpcPublicSubnet1,
           vpcId: cfnOutputs.VPC,
           encryptionKeyArn: cfnOutputs.EncryptionKeyArn,
         };
-        await this.addAwsAccountTable(requestContext, awsAccountData);
+        let additionalAccountData = {};
+        if (this.settings.get(settingKeys.isAppStreamEnabled) === 'true') {
+          additionalAccountData = {
+            privateAppStreamSubnet: cfnOutputs.PrivateAppStreamSubnet,
+            privateWorkspaceSubnet: cfnOutputs.PrivateWorkspaceSubnet,
+          };
+        } else {
+          additionalAccountData = {
+            subnetId: cfnOutputs.VpcPublicSubnet1,
+          };
+        }
+        await this.addAwsAccountTable(requestContext, { ...awsAccountData, ...additionalAccountData });
       }
       return true;
     } // else CFN is still pending

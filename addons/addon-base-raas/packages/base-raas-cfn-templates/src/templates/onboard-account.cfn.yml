@@ -667,7 +667,7 @@ Resources:
       EnableDefaultInternetAccess: False
       FleetType: !Ref AppStreamFleetType
       IdleDisconnectTimeoutInSeconds: !Ref AppStreamIdleDisconnectTimeoutSeconds
-      ImageName: !Ref AppStreamImageName
+      ImageArn: !Sub 'arn:aws:appstream:${AWS::Region}:${CentralAccountId}:image/${AppStreamImageName}'
       InstanceType: !Ref AppStreamInstanceType
       MaxUserDurationInSeconds: !Ref AppStreamMaxUserDurationSeconds
       Name: 'ServiceWorkbenchFleet'

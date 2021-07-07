@@ -71,10 +71,8 @@ async function configure(context) {
     '/provision',
     wrap(async (req, res) => {
       const requestContext = res.locals.requestContext;
-      console.log('ZZZ: Request Context', requestContext);
       const possibleBody = req.body;
-      console.log('ZZZ: Body', possibleBody);
-      // await accountService.provisionAccount(requestContext, possibleBody);
+      await accountService.provisionAccount(requestContext, possibleBody);
 
       res.status(200).json({ message: 'account creating' });
     }),

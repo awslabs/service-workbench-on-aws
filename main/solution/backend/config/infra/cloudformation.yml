@@ -628,7 +628,6 @@ Resources:
               - !GetAtt [ProjectsDb, Arn]
               - !GetAtt [StudyPermissionsDb, Arn]
               - !GetAtt [IndexesDb, Arn]
-              - !GetAtt [ProjectsDb, Arn]
               - !GetAtt [AccountsDb, Arn]
               - !GetAtt [AwsAccountsDb, Arn]
               - !GetAtt [AuthenticationProviderTypesDb, Arn]
@@ -739,7 +738,6 @@ Resources:
               - logs:PutLogEvents
             Resource:
               - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-workflowLoopRunner:*'
-              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-workflowLoopRunner:log-stream:*'
           - Effect: Allow
             Action:
               - xray:PutTraceSegments
@@ -751,6 +749,15 @@ Resources:
               - sts:AssumeRole
             Resource:
               - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-prep-raas-master-MasterRole-*'
+#          - Effect: Allow
+#            Action:
+#              - appstream:UpdateImagePermissions
+#            Resource: "*"
+          - Effect: Allow
+            Action:
+              - appstream:UpdateImagePermissions
+            Resource:
+              - !Sub 'arn:aws:appstream:${AWS::Region}:${AWS::AccountId}:image/FirefoxPuttyNotepad*'
 
   # IAM Role for the workflowLoopRunner Function
   RoleWorkflowLoopRunner:
