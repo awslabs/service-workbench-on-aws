@@ -152,7 +152,6 @@ class AccountService extends Service {
       callerAccountId,
       ...appStreamConfig,
     };
-    console.log('ZZZ: TriggerWorkflow input', input);
     await workflowTriggerService.triggerWorkflow(requestContext, { workflowId: 'wf-provision-account' }, input);
 
     // Write audit event
@@ -160,7 +159,6 @@ class AccountService extends Service {
   }
 
   async shareAppStreamImageWithMemberAccount(requestContext, memberAccountId, appStreamImageName) {
-    console.log('ZZZ: Starting shareAppStreamImageWithMemberAccount');
     await this.assertAuthorized(requestContext, {
       action: 'shareAppStreamImageWithMemberAccount',
       conditions: [allowIfActive, allowIfAdmin],
@@ -176,10 +174,7 @@ class AccountService extends Service {
       SharedAccountId: memberAccountId,
     };
 
-    console.log('ZZZ: shareAppStream params', params);
-
-    const response = await appStream.updateImagePermissions(params).promise();
-    console.log('AppStream update response', response);
+    await appStream.updateImagePermissions(params).promise();
   }
 
   async saveAccountToDb(requestContext, rawData, id, status = 'PENDING') {

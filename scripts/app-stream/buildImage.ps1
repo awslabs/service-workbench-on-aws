@@ -16,5 +16,5 @@ cd "C:\Program Files\Amazon\Photon\ConsoleImageBuilder"
 .\image-assistant.exe add-application --absolute-app-path "C:\Program Files (x86)\Mozilla Firefox\firefox.exe" --display-name Firefox --name Firefox
 
 # Create App
-$ImageName="FirefoxPuttyNotepad_" + $(Get-Date -Format "MM-dd-yyyy-hh-mm-ss")
+$ImageName="ServiceWorkbench_v1_" + $(Get-Date -Format "MM-dd-yyyy-hh-mm-ss")
 .\image-assistant.exe create-image --name $ImageName
