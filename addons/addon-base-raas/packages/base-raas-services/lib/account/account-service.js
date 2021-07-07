@@ -74,8 +74,6 @@ class AccountService extends Service {
   }
 
   async provisionAccount(requestContext, rawData) {
-    console.log('ZZZ: Inside provision account');
-    console.log('ZZZ: rawData', rawData);
     // ensure that the caller has permissions to provision the account
     // Perform default condition checks to make sure the user is active and is admin
     await this.assertAuthorized(

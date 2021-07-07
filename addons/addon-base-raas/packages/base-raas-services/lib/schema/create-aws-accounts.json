@@ -39,6 +39,14 @@
     "encryptionKeyArn": {
       "type": "string",
       "pattern": "^arn:aws:kms:.*$"
+    },
+    "appStreamStackName": {
+      "type": "string",
+      "minLength": 10
+    },
+    "appStreamSecurityGroup": {
+      "type": "string",
+      "pattern": "^sg-[a-f0-9]{17}$"
     }
   },
   "required": ["name", "roleArn", "externalId", "accountId", "vpcId", "subnetId", "encryptionKeyArn"]

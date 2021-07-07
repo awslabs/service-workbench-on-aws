@@ -256,8 +256,9 @@ class ProvisionAccount extends StepBase {
         let additionalAccountData = {};
         if (this.settings.get(settingKeys.isAppStreamEnabled) === 'true') {
           additionalAccountData = {
-            privateAppStreamSubnet: cfnOutputs.PrivateAppStreamSubnet,
-            privateWorkspaceSubnet: cfnOutputs.PrivateWorkspaceSubnet,
+            appStreamStackName: cfnOutputs.AppStreamStackName,
+            appStreamSecurityGroup: cfnOutputs.AppStreamSecurityGroup,
+            subnetId: cfnOutputs.PrivateWorkspaceSubnet,
           };
         } else {
           additionalAccountData = {
