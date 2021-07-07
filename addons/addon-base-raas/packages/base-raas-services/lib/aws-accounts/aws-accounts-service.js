@@ -138,9 +138,6 @@ class AwsAccountsService extends Service {
         Version: '2012-10-17',
         Statement: [...securityStatements, listStatement, getStatement],
       });
-      console.log('\n\n\n*******\nI AM HERE\n*******');
-      console.log(Policy);
-      console.log('\n\n\n');
       return s3Client.putBucketPolicy({ Bucket: s3BucketName, Policy }).promise();
     });
   }

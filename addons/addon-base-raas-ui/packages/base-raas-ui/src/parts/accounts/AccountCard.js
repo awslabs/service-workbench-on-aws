@@ -23,11 +23,12 @@ import c from 'classnames';
 import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
 
 const statusDisplay = {
-  CURRENT: { color: 'green', display: 'Up-to-Date' },
-  NEEDSUPDATE: { color: 'orange', display: 'Needs Update' },
-  NEEDSONBOARD: { color: 'purple', display: 'Needs Onboarding' },
-  ERROR: { color: 'red', display: 'Error' },
-  UNKNOWN: { color: 'grey', display: 'Unknown' },
+  CURRENT: { color: 'green', display: 'Up-to-Date', spinner: false },
+  NEEDSUPDATE: { color: 'orange', display: 'Needs Update', spinner: false },
+  NEEDSONBOARD: { color: 'purple', display: 'Needs Onboarding', spinner: false },
+  ERROR: { color: 'red', display: 'Error', spinner: false },
+  PENDING: { color: 'yellow', display: 'Pending', spinner: true },
+  UNKNOWN: { color: 'grey', display: 'Unknown', spinner: false },
 };
 
 // expected props
@@ -108,11 +109,12 @@ class AccountCard extends React.Component {
             {this.renderBudgetButton()}
             {this.renderHeader(account)}
             {this.renderDescription(account)}
-            {(permissionStatus === 'NEEDSUPDATE' ||
-              permissionStatus === 'NEEDSONBOARD' ||
-              permissionStatus === 'NOSTACKNAME') &&
+            {(permissionStatus === 'NEEDSUPDATE' || permissionStatus === 'NEEDSONBOARD') &&
               this.renderUpdatePermsButton()}
-            {this.renderDetailsAccordion(account)}
+            {!(permissionStatus === 'NEEDSONBOARD' || permissionStatus === 'PENDING') &&
+              this.renderDetailsAccordion(account)}
+            {(permissionStatus === 'NEEDSONBOARD' || permissionStatus === 'PENDING') &&
+              this.renderPendingDetailsAccordion(account)}
           </div>
         </div>
       </Segment>
@@ -149,8 +151,37 @@ class AccountCard extends React.Component {
     const state = statusDisplay[status] || statusDisplay.UNKNOWN;
     return (
       <Label attached="top left" size="mini" color={state.color}>
+        {state.spinner && <Icon name="spinner" loading />}
         {state.display}
       </Label>
+    );
+  }
+
+  renderPendingDetailsAccordion(account) {
+    const expanded = this.detailsExpanded;
+    const onboardMessage = account.permissionStatus === 'NEEDSONBOARD';
+    return (
+      <Accordion className="mt2">
+        <Accordion.Title active={expanded} index={0} onClick={this.handleDetailsExpanded}>
+          <Icon name="dropdown" />
+          <b>Details</b>
+        </Accordion.Title>
+        <Accordion.Content active={expanded}>
+          {expanded && (
+            <div className="mb2">
+              {onboardMessage && (
+                <div>This account needs to be onboarded. Click &quot;Onboard Account&quot; to finish setting up.</div>
+              )}
+              {!onboardMessage && (
+                <div>
+                  Resources for this account are being provisioned. Please wait a few minutes for provisioning to
+                  complete, or click &quot;Re-Onboard&quot; to re-onboard this account.
+                </div>
+              )}
+            </div>
+          )}
+        </Accordion.Content>
+      </Accordion>
     );
   }
 

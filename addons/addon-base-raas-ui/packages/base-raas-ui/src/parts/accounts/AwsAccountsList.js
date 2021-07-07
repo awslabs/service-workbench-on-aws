@@ -138,9 +138,6 @@ class AwsAccountsList extends React.Component {
         <Button className="ml2" color="blue" size="medium" basic onClick={this.handleAddAwsAccount}>
           Add AWS Account
         </Button>
-        <Button className="ml2" color="blue" size="medium" basic onClick={this.handleCheckPermissions}>
-          Update Account Permissions
-        </Button>
       </div>
     );
   }
