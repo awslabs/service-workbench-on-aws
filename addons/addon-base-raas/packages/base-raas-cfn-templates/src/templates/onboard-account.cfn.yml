@@ -117,8 +117,7 @@ Conditions:
   isAppStream: !Equals
     - !Ref EnableAppStream
     - true
-  isNotAppStream:
-    !Not [Condition: isAppStream]
+  isNotAppStream: !Not [Condition: isAppStream]
 Resources:
   # A role used for launching environments using AWS Service Catalog
   # This is the role that code (ApiHandlerLambda and WorkflowLoopRunnerLambda) in central account
@@ -171,6 +170,17 @@ Resources:
                 Action:
                   - cloudformation:GetTemplate
                 Resource: 'arn:aws:cloudformation:*:*:stack/SC-*/*'
+        - PolicyName: appstream-access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - appstream:ListAssociatedFleets
+                  - appStream:CreateStreamingURL
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:appstream:${AWS::Region}:${AWS::AccountId}:stack/*'
+                  - !Sub 'arn:${AWS::Partition}:appstream:${AWS::Region}:${AWS::AccountId}:fleet/*'
         - PolicyName: ssm-access
           PolicyDocument:
             Statement:
@@ -190,6 +200,14 @@ Resources:
                 - s3:GetObject
               Resource:
                 - 'arn:aws:s3:::cf-templates-*/*'
+        - PolicyName: s3-upload-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - s3:PutObject*
+              Resource:
+                - !Sub 'arn:aws:s3:::${Namespace}*/*'
         - PolicyName: sagemaker-access
           PolicyDocument:
             Statement:
@@ -223,7 +241,7 @@ Resources:
     Properties:
       Description: Permission boundary for cross account EnvMgmt role
       PolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Action:
@@ -258,6 +276,12 @@ Resources:
               - iam:DetachRolePolicy
             Resource:
               - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${LaunchConstraintRolePrefix}'
+          - Effect: Allow
+            Action:
+              - appstream:ListAssociatedFleets
+              - appStream:CreateStreamingURL
+            Resource:
+              - '*'
           - Effect: Allow
             Action:
               - iam:CreatePolicy
@@ -470,13 +494,13 @@ Resources:
       AliasName: !Join ['', ['alias/', Ref: Namespace, '-encryption-key']]
       TargetKeyId: !Ref EncryptionKey
 
-#------------AppStream Resources Below-------
+  #------------AppStream Resources Below-------
   PrivateAppStreamSubnet:
     Type: AWS::EC2::Subnet
     Condition: isAppStream
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Select [ 0, !GetAZs  '' ]
+      AvailabilityZone: !Select [0, !GetAZs '']
       CidrBlock: !Ref AppStreamSubnetCidr
       MapPublicIpOnLaunch: false
       Tags:
@@ -488,7 +512,7 @@ Resources:
     Condition: isAppStream
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Select [ 0, !GetAZs  '' ]
+      AvailabilityZone: !Select [0, !GetAZs '']
       CidrBlock: !Ref WorkspaceSubnetCidr
       MapPublicIpOnLaunch: false
       Tags:
@@ -661,7 +685,7 @@ Resources:
         Enabled: False
       Description: 'SWB AppStream Stack'
       DisplayName: 'SWB Stack'
-      Name: 'ServiceWorkbenchStack'
+      Name: !Sub ${Namespace}-Stack
       UserSettings:
         - Action: 'CLIPBOARD_COPY_FROM_LOCAL_DEVICE'
           Permission: 'ENABLED'
@@ -680,6 +704,65 @@ Resources:
     Properties:
       FleetName: !Ref AppStreamFleet
       StackName: !Ref AppStreamStack
+
+  # =============================================================================================
+  # S3 Resources
+  # =============================================================================================
+  # S3 Bucket for the private url shortener
+  WebsiteBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub ${Namespace}-redirects
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      WebsiteConfiguration:
+        IndexDocument: index.html
+        ErrorDocument: index.html
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Status: Enabled
+            ExpirationInDays: 1
+
+  WebsiteBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref WebsiteBucket
+      PolicyDocument:
+        Statement:
+          - Sid: Deny requests that do not use TLS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt WebsiteBucket.Arn, '*']]
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Sid: Deny requests that do not use SigV4 except through either VPC endpoint
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt WebsiteBucket.Arn, '*']]
+            Condition:
+              ForAllValues:StringNotEquals:
+                s3:signatureversion: 'AWS4-HMAC-SHA256'
+                aws:sourceVpce:
+                  - !Ref S3Endpoint
+          - Sid: Give access to requests through either S3 VPC endpoint
+            Effect: Allow
+            Principal: '*'
+            Action: s3:GetObject
+            Resource: !Join ['/', [!GetAtt WebsiteBucket.Arn, '*']]
+            Condition:
+              StringEquals:
+                aws:sourceVpce: # logical OR, see: https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_multi-value-conditions.html
+                  - !Ref S3Endpoint
 
 Outputs:
   CrossAccountEnvMgmtRoleArn:
@@ -733,5 +816,3 @@ Outputs:
     Description: AppStream Stack
     Condition: isAppStream
     Value: !Ref AppStreamStack
-
-

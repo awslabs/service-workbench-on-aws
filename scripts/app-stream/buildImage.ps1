@@ -13,7 +13,28 @@ cd "C:\Program Files\Amazon\Photon\ConsoleImageBuilder"
 
 .\image-assistant.exe add-application --absolute-app-path "C:\Windows\System32\notepad.exe" --display-name Notepad --name Notepad
 
-.\image-assistant.exe add-application --absolute-app-path "C:\Program Files (x86)\Mozilla Firefox\firefox.exe" --display-name Firefox --name Firefox
+$firefoxDistPath = "C:\Program Files (x86)\Mozilla Firefox\distribution"
+If(!(test-path $firefoxDistPath))
+{
+      New-Item -ItemType Directory -Force -Path $firefoxDistPath
+}
+Set-Content -Path "C:\Program Files (x86)\Mozilla Firefox\distribution\policies.json" -Value @"
+{
+    "policies": {
+        "DontCheckDefaultBrowser": true,
+        "DefaultDownloadDirectory": "${home}\\My Files\\Home Folder",
+        "Proxy": {
+            "Mode": "autoConfig",
+            "Locked": true,
+            "AutoConfigURL": "file:///c:/App/proxy-config.pac",
+            "Passthrough": "<local>"
+        }
+    }
+}
+"@
+
+.\image-assistant.exe add-application --absolute-app-path "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" --display-name firefox --name firefox --launch-parameters '-file "C:\App\firefox.ps1" -ExecutionPolicy Bypass'
+
 
 # Create App
 $ImageName="FirefoxPuttyNotepad_" + $(Get-Date -Format "MM-dd-yyyy-hh-mm-ss")
