@@ -141,6 +141,7 @@ class ProvisionEnvironment extends StepBase {
       addParam('AmiId', amiImage);
       addParam('KeyName', keyName);
     }
+
     const cidr = await this.payload.string('cidr');
     addParam('AccessFromCIDRBlock', cidr);
 
