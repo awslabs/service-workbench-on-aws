@@ -177,7 +177,7 @@ describe('TerminateLaunchDependencyStep', () => {
       await expect(step.start()).rejects.toThrow('Could not obtain a lock');
     });
 
-    it('should not delete route53 record and rule if type is not RstudioV2', async () => {
+    it('should not delete route53 record, security group and rule if type is not RstudioV2', async () => {
       const templateOutputs = {
         NeedsALB: { Description: 'Needs ALB', Value: false },
       };
@@ -195,6 +195,7 @@ describe('TerminateLaunchDependencyStep', () => {
       await step.start();
       expect(environmentDnsService.deleteRecord).not.toHaveBeenCalled();
       expect(albService.deleteListenerRule).not.toHaveBeenCalled();
+      expect(environmentScCidrService.revokeIngressRuleWithSecurityGroup).not.toHaveBeenCalled();
     });
 
     it('should call delete route53 record if type is RstudioV2 and alb exists', async () => {
@@ -315,6 +316,48 @@ describe('TerminateLaunchDependencyStep', () => {
       jest.spyOn(step, 'checkAndTerminateAlb').mockImplementationOnce(() => {});
       await step.start();
       expect(step.checkAndTerminateAlb).toHaveBeenCalled();
+    });
+
+    it('should call revoke security group if type is RstudioV2 and alb exists', async () => {
+      const templateOutputs = {
+        NeedsALB: { Description: 'Needs ALB', Value: false },
+      };
+      step.cfnOutputsArrayToObject = jest.fn().mockImplementationOnce(() => {
+        return {
+          MetaConnection1Type: 'rstudiov2',
+          ListenerRuleARN: null,
+        };
+      });
+      albService.checkAlbExists.mockImplementationOnce(() => {
+        return true;
+      });
+      jest.spyOn(step, 'getTemplateOutputs').mockImplementationOnce(() => {
+        return templateOutputs;
+      });
+      environmentDnsService.deleteRecord.mockImplementationOnce(() => {});
+      await step.start();
+      expect(environmentScCidrService.revokeIngressRuleWithSecurityGroup).toHaveBeenCalled();
+    });
+
+    it('should not call revoke security group if type is RstudioV2 and alb not exists', async () => {
+      const templateOutputs = {
+        NeedsALB: { Description: 'Needs ALB', Value: false },
+      };
+      step.cfnOutputsArrayToObject = jest.fn().mockImplementationOnce(() => {
+        return {
+          MetaConnection1Type: 'rstudiov2',
+          ListenerRuleARN: null,
+        };
+      });
+      albService.checkAlbExists.mockImplementationOnce(() => {
+        return false;
+      });
+      jest.spyOn(step, 'getTemplateOutputs').mockImplementationOnce(() => {
+        return templateOutputs;
+      });
+      environmentDnsService.deleteRecord.mockImplementationOnce(() => {});
+      await step.start();
+      expect(environmentScCidrService.revokeIngressRuleWithSecurityGroup).not.toHaveBeenCalled();
     });
   });
 
