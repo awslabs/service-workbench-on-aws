@@ -166,17 +166,57 @@ class EnvironmentScCidrService extends Service {
           envId: existingEnvironment.id,
         };
         await albService.modifyRule(requestContext, resolvedVars);
-        // Removed the original value in 443 Port CIDRs and replace the default values in the updateRequest
-        // because the new RStudio ALB we are not storing 443 Port CIDRs into security group.
-        updateRequest.map(obj => {
-          if (obj.fromPort === 443) {
-            obj.cidrBlocks = ['0.0.0.0/0'];
-          }
-          return obj;
-        });
+        // Removed the 443 Port CIDRs in the updateRequest because the new RStudio are not storing
+        // 443 Port CIDRs into security group.
+        const index = updateRequest.findIndex(x => x.fromPort === 443);
+        delete updateRequest[index];
       }
     }
     return { productName, cloneUpdateRequest };
+  }
+
+  async authorizeIngressRuleWithSecurityGroup(requestContext, envId, updateRule, groupId) {
+    try {
+      const IpPermission = [
+        {
+          FromPort: updateRule.fromPort,
+          ToPort: updateRule.toPort,
+          IpProtocol: updateRule.protocol,
+          UserIdGroupPairs: [
+            {
+              GroupId: updateRule.groupId,
+            },
+          ],
+        },
+      ];
+      const authorizeParams = { GroupId: groupId, IpPermissions: IpPermission };
+      const ec2Client = await this.getEc2Client(requestContext, envId);
+      await this.authorizeSecurityGroupIngress(ec2Client, authorizeParams);
+    } catch (err) {
+      throw new Error(`Instance security group update failed with message - ${err.message}`);
+    }
+  }
+
+  async revokeIngressRuleWithSecurityGroup(requestContext, envId, updateRule, groupId) {
+    try {
+      const IpPermission = [
+        {
+          FromPort: updateRule.fromPort,
+          ToPort: updateRule.toPort,
+          IpProtocol: updateRule.protocol,
+          UserIdGroupPairs: [
+            {
+              GroupId: updateRule.groupId,
+            },
+          ],
+        },
+      ];
+      const revokeParams = { GroupId: groupId, IpPermissions: IpPermission };
+      const ec2Client = await this.getEc2Client(requestContext, envId);
+      await this.revokeSecurityGroupIngress(ec2Client, revokeParams);
+    } catch (err) {
+      throw new Error(`Instance security group update failed with message - ${err.message}`);
+    }
   }
 
   // This method is responsible for generating the IpPermissions object

@@ -869,4 +869,92 @@ describe('EnvironmentScCidrService', () => {
       expect(response).toEqual(responseObj);
     });
   });
+
+  describe('authorizeIngressRuleWithSecurityGroup', () => {
+    it('should call authorize security group', async () => {
+      const updateRule = {
+        fromPort: 443,
+        toPort: 443,
+        protocol: 'tcp',
+        groupId: 'alb-groupId',
+      };
+      const expectedParam = {
+        GroupId: 'instance-groupId',
+        IpPermissions: [
+          {
+            FromPort: 443,
+            ToPort: 443,
+            IpProtocol: 'tcp',
+            UserIdGroupPairs: [
+              {
+                GroupId: 'alb-groupId',
+              },
+            ],
+          },
+        ],
+      };
+      service.authorizeSecurityGroupIngress = jest.fn();
+      service.getEc2Client = jest.fn(() => {
+        return {};
+      });
+      await service.authorizeIngressRuleWithSecurityGroup({}, 'envId', updateRule, 'instance-groupId');
+      expect(service.authorizeSecurityGroupIngress).toHaveBeenCalledWith({}, expectedParam);
+    });
+
+    it('should throw error when authorize scurity group fails', async () => {
+      service.authorizeSecurityGroupIngress = jest.fn(() => {
+        throw new Error('Security group update failed');
+      });
+      service.getEc2Client = jest.fn(() => {
+        return {};
+      });
+      await expect(service.authorizeIngressRuleWithSecurityGroup({}, 'envId', {}, 'groupId')).rejects.toThrow(
+        'Instance security group update failed with message - Security group update failed',
+      );
+    });
+  });
+
+  describe('revokeIngressRuleWithSecurityGroup', () => {
+    it('should call revoke security group', async () => {
+      const updateRule = {
+        fromPort: 443,
+        toPort: 443,
+        protocol: 'tcp',
+        groupId: 'alb-groupId',
+      };
+      const expectedParam = {
+        GroupId: 'instance-groupId',
+        IpPermissions: [
+          {
+            FromPort: 443,
+            ToPort: 443,
+            IpProtocol: 'tcp',
+            UserIdGroupPairs: [
+              {
+                GroupId: 'alb-groupId',
+              },
+            ],
+          },
+        ],
+      };
+      service.revokeSecurityGroupIngress = jest.fn();
+      service.getEc2Client = jest.fn(() => {
+        return {};
+      });
+      await service.revokeIngressRuleWithSecurityGroup({}, 'envId', updateRule, 'instance-groupId');
+      expect(service.revokeSecurityGroupIngress).toHaveBeenCalledWith({}, expectedParam);
+    });
+
+    it('should throw error when authorize scurity group fails', async () => {
+      service.revokeSecurityGroupIngress = jest.fn(() => {
+        throw new Error('Security group update failed');
+      });
+      service.getEc2Client = jest.fn(() => {
+        return {};
+      });
+      await expect(service.revokeIngressRuleWithSecurityGroup({}, 'envId', {}, 'groupId')).rejects.toThrow(
+        'Instance security group update failed with message - Security group update failed',
+      );
+    });
+  });
 });

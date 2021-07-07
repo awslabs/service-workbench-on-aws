@@ -244,6 +244,22 @@ async function updateEnvOnProvisioningSuccess({
         OutputValue: ruleARN,
       };
       outputs.push(ruleRecord);
+      // Create Instance security group ingress rule with ALB security group ID to allow only traffic from ALB
+      const environmentScCidrService = await container.find('environmentScCidrService');
+      const albSecurityGroup = JSON.parse(deploymentItem.value).albSecurityGroup;
+      const instanceSecurityGroup = _.find(outputs, o => o.OutputKey === 'InstanceSecurityGroupId').OutputValue;
+      const updateRule = {
+        fromPort: 443,
+        toPort: 443,
+        protocol: 'tcp',
+        groupId: albSecurityGroup,
+      };
+      await environmentScCidrService.authorizeIngressRuleWithSecurityGroup(
+        requestContext,
+        envId,
+        updateRule,
+        instanceSecurityGroup,
+      );
     }
   }
 

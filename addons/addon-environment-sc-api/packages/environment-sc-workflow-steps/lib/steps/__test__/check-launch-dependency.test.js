@@ -22,6 +22,9 @@ const AlbServiceMock = require('@aws-ee/base-raas-services/lib/alb/alb-service')
 jest.mock('@aws-ee/base-services/lib/lock/lock-service');
 const LockServiceMock = require('@aws-ee/base-services/lib/lock/lock-service');
 
+jest.mock('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
+const PluginRegistryServiceMock = require('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
+
 jest.mock('../../../../environment-type-mgmt-services/lib/environment-type/env-type-config-service.js');
 const EnvTypeConfigServiceMock = require('../../../../environment-type-mgmt-services/lib/environment-type/env-type-config-service.js');
 
@@ -31,12 +34,15 @@ describe('CheckLaunchDependencyStep', () => {
   let albService = null;
   let lockService = null;
   let envTypeConfigService = null;
+  let pluginRegistryService = null;
   let cfn;
   const requestContext = {
     principal: {
       isAdmin: true,
       status: 'active',
     },
+    projectId: 'test-project',
+    name: 'test-env-name',
   };
   const resolvedVars = {
     projectId: 'test-project',
@@ -67,6 +73,7 @@ describe('CheckLaunchDependencyStep', () => {
     container.register('albService', new AlbServiceMock());
     container.register('lockService', new LockServiceMock());
     container.register('envTypeConfigService', new EnvTypeConfigServiceMock());
+    container.register('pluginRegistryService', new PluginRegistryServiceMock());
 
     await container.initServices();
 
@@ -74,6 +81,7 @@ describe('CheckLaunchDependencyStep', () => {
     albService = await container.find('albService');
     lockService = await container.find('lockService');
     envTypeConfigService = await container.find('envTypeConfigService');
+    pluginRegistryService = await container.find('pluginRegistryService');
 
     step.payloadOrConfig = {
       string: stringInput => {
@@ -85,6 +93,9 @@ describe('CheckLaunchDependencyStep', () => {
       object: () => {
         return requestContext;
       },
+      optionalBoolean: () => {
+        return true;
+      },
     };
 
     step.state = {
@@ -95,6 +106,7 @@ describe('CheckLaunchDependencyStep', () => {
     step.container = container;
 
     step.print = jest.fn();
+    step.printError = jest.fn();
     step.payload.setKey = jest.fn();
     step.state.setKey = jest.fn();
   });
@@ -112,6 +124,9 @@ describe('CheckLaunchDependencyStep', () => {
     });
     lockService.tryWriteLock = jest.fn(() => {
       return 'test-lock-id';
+    });
+    lockService.releaseWriteLock = jest.fn(() => {
+      return true;
     });
     step.resolveVarExpressions = jest.fn(() => {
       return [];
@@ -297,6 +312,7 @@ describe('CheckLaunchDependencyStep', () => {
         albArn: null,
         listenerArn: null,
         albDnsName: null,
+        albSecurityGroup: null,
         albDependentWorkspacesCount: 0,
       };
       await step.handleStackCompletion([]);
@@ -312,6 +328,7 @@ describe('CheckLaunchDependencyStep', () => {
         LoadBalancerArn: 'test-alb-arn',
         ListenerArn: 'test-listener-arn',
         ALBDNSName: 'test-dns',
+        ALBSecurityGroupId: 'test-sg',
       };
       const albDetails = {
         id: 'test-account-id',
@@ -319,10 +336,94 @@ describe('CheckLaunchDependencyStep', () => {
         albArn: 'test-alb-arn',
         listenerArn: 'test-listener-arn',
         albDnsName: 'test-dns',
+        albSecurityGroup: 'test-sg',
         albDependentWorkspacesCount: 0,
       };
       await step.handleStackCompletion(output);
       expect(albService.saveAlbDetails).toHaveBeenCalledWith('test-account-id', albDetails);
+    });
+  });
+
+  describe('parseS3DetailsfromUrl', () => {
+    it('should throw error when url is invlalid', async () => {
+      await expect(step.parseS3DetailsfromUrl('https://invalid.example.com')).rejects.toThrow(
+        'https://invalid.example.com',
+      );
+    });
+
+    it('return bucket name and key on success', async () => {
+      const { bucketName, key } = await step.parseS3DetailsfromUrl(
+        'https://gitrstudiocft.s3.amazonaws.com/ec2-rlstudio.yaml',
+      );
+      expect(bucketName).toEqual('gitrstudiocft');
+      expect(key).toEqual('ec2-rlstudio.yaml');
+    });
+  });
+
+  describe('reportTimeout', () => {
+    it('should throw error when called', async () => {
+      await expect(step.reportTimeout()).rejects.toThrow(
+        'Error provisioning environment "test-env-name".The workflow timed - out because the ALB provisioing stack "STACK_ID" did not complete within the timeout period of 20 minutes.',
+      );
+    });
+
+    it('should release lock when alb is present', async () => {
+      try {
+        await step.reportTimeout();
+      } catch (err) {
+        // DO Nothing
+      }
+      expect(lockService.releaseWriteLock).toHaveBeenCalled();
+    });
+  });
+
+  describe('onPass', () => {
+    it('should not increase alb dependent workspace count when needsAlb is false', async () => {
+      jest.spyOn(step.payloadOrConfig, 'optionalBoolean').mockImplementationOnce(() => {
+        return false;
+      });
+      await step.onPass();
+      expect(albService.increaseAlbDependentWorkspaceCount).not.toHaveBeenCalled();
+    });
+
+    it('should increase alb dependent workspace count when needsAlb is true', async () => {
+      await step.onPass();
+      expect(albService.increaseAlbDependentWorkspaceCount).toHaveBeenCalled();
+    });
+
+    it('should release lock when alb is present', async () => {
+      try {
+        await step.onPass();
+      } catch (err) {
+        // DO Nothing
+      }
+      expect(lockService.releaseWriteLock).toHaveBeenCalled();
+    });
+
+    it('should throw error when lock does not exist', async () => {
+      jest.spyOn(step.state, 'optionalString').mockImplementationOnce(() => {
+        return '';
+      });
+      await expect(step.onPass()).rejects.toThrow(
+        'Error provisioning environment. Reason: ALB lock does not exist or expired',
+      );
+    });
+  });
+
+  describe('onFail', () => {
+    it('should call print error function', async () => {
+      await step.onFail('Error message');
+      expect(step.printError).toHaveBeenCalledWith('Error message');
+    });
+
+    it('should release lock when alb is present', async () => {
+      await step.onFail('Error message');
+      expect(lockService.releaseWriteLock).toHaveBeenCalled();
+    });
+
+    it('should call visit plugins method', async () => {
+      await step.onFail('Error message');
+      expect(pluginRegistryService.visitPlugins).toHaveBeenCalled();
     });
   });
 });

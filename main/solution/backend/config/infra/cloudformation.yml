@@ -611,6 +611,11 @@ Resources:
               - s3:GetObject
             Resource:
               - 'arn:aws:s3:::cf-templates-*/*'
+          - Effect: 'Allow'
+            Action:
+              - s3:GetObject
+            Resource:
+              - 'arn:aws:s3:::${self:custom.settings.deploymentBucketName}/*'
 
   # IAM Role for the workflowLoopRunner Function
   RoleWorkflowLoopRunner:
