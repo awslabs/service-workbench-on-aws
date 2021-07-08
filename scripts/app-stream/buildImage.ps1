@@ -33,7 +33,7 @@ Set-Content -Path "C:\Program Files (x86)\Mozilla Firefox\distribution\policies.
 }
 "@
 
-.\image-assistant.exe add-application --absolute-app-path "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" --display-name firefox --name firefox --launch-parameters '-file "C:\App\firefox.ps1" -ExecutionPolicy Bypass'
+.\image-assistant.exe add-application --absolute-app-path "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" --display-name firefox --name firefox --launch-parameters "-file 'C:\App\firefox.ps1' -ExecutionPolicy Bypass"
 
 
 # Create App
