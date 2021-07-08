@@ -39,10 +39,16 @@ Parameters:
   EgressStoreIamPolicyDocument:
     Type: String
     Description: The IAM policy for launched workstation to access egress store
+  IsAppStreamEnabled:
+    Type: String
+    Description: Boolean for whether workspace should be accessed with AppStream
+    AllowedValues: [true, false]
+
 
 Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
   EgressStoreIamPolicyEmpty: !Equals [!Ref EgressStoreIamPolicyDocument, '{}']
+  AppStreamEnabled: !Equals [!Ref IsAppStreamEnabled, 'true']
 
 Resources:
   SecurityGroup:
@@ -167,6 +173,11 @@ Resources:
       SubnetId: !Ref Subnet
       SecurityGroupIds:
         - !Ref SecurityGroup
+      DirectInternetAccess:
+        !If
+        - AppStreamEnabled
+        - Disabled
+        - Enabled
       LifecycleConfigName: !GetAtt BasicNotebookInstanceLifecycleConfig.NotebookInstanceLifecycleConfigName
       KmsKeyId: !Ref EncryptionKeyArn
 
@@ -185,7 +196,7 @@ Resources:
               # Stop Idle Script
               if [ "${AutoStopIdleTimeInMinutes}" != "0" ]; then
                 echo "Fetching the autostop script"
-                curl -L -o /usr/local/bin/autostop.py https://raw.githubusercontent.com/aws-samples/amazon-sagemaker-notebook-instance-lifecycle-config-samples/master/scripts/auto-stop-idle/autostop.py
+                aws s3 cp "${EnvironmentInstanceFiles}/offline-packages/sagemaker/autostop.py" "/usr/local/bin"
                 chmod a+x /usr/local/bin/autostop.py
                 IDLE_TIME=`expr ${AutoStopIdleTimeInMinutes} \* 60`
                 echo "Starting the SageMaker autostop script in cron"

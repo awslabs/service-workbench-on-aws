@@ -72,6 +72,7 @@ describe('EnvironmentSCService', () => {
   let envTypeConfigService = null;
   let environmentAmiService = null;
   let userService = null;
+  let settingsService = null;
 
   beforeEach(async () => {
     const container = new ServicesContainer();
@@ -104,10 +105,23 @@ describe('EnvironmentSCService', () => {
     envTypeConfigService = await container.find('envTypeConfigService');
     environmentAmiService = await container.find('environmentAmiService');
     userService = await container.find('userService');
+    settingsService = await container.find('settings');
 
     // Skip authorization by default
     service.assertAuthorized = jest.fn();
   });
+
+  function mockSettingsService(settings) {
+    settingsService.get = jest.fn(getKey => {
+      let retValue;
+      Object.keys(settings).forEach(key => {
+        if (key === getKey) {
+          retValue = settings[key];
+        }
+      });
+      return retValue;
+    });
+  }
 
   describe('resolveEnvConfigVars', () => {
     it('should fail if any index configuration is missing - AWS Service Catalog Role Arn', async () => {
@@ -272,6 +286,11 @@ describe('EnvironmentSCService', () => {
         return { uid: 'dunderMifflin', username: 'Michael Scott', ns: 'test@example.com' };
       });
 
+      mockSettingsService({
+        environmentInstanceFiles: '{}',
+        isAppStreamEnabled: 'true',
+        solutionNamespace: 'gamma',
+      });
       const expectedResponse = {
         accountId: '123456789012',
         adminKeyPairName: '',
@@ -281,7 +300,7 @@ describe('EnvironmentSCService', () => {
         envId: 'sampleEnvId',
         envTypeConfigId: 'sampleEnvTypeConfigId',
         envTypeId: 'sampleEnvTypeId',
-        environmentInstanceFiles: undefined,
+        environmentInstanceFiles: '{}',
         externalId: 'ExternalId-Test',
         iamPolicyDocument: '{}',
         indexId: 'testIndex',
@@ -295,6 +314,8 @@ describe('EnvironmentSCService', () => {
         username: 'Michael Scott',
         vpcId: 'VpcId-Test',
         xAccEnvMgmtRoleArn: 'xAccEnvMgmtRole-Test',
+        isAppStreamEnabled: 'true',
+        solutionNamespace: 'gamma',
       };
 
       // EXECUTE & CHECK
@@ -303,16 +324,14 @@ describe('EnvironmentSCService', () => {
       ).resolves.toStrictEqual(expectedResponse);
     });
 
-    it('should success for happy path scenario with data egress feature enabled', async () => {
+    it('should succeed for happy path scenario with data egress feature enabled', async () => {
       // BUILD
-      service._settings = {
-        get: settingName => {
-          if (settingName === 'enableEgressStore') {
-            return 'true';
-          }
-          return undefined;
-        },
-      };
+      mockSettingsService({
+        environmentInstanceFiles: '{}',
+        isAppStreamEnabled: 'true',
+        solutionNamespace: 'gamma',
+        enableEgressStore: 'true',
+      });
       const requestContext = 'sampleRequestContext';
       const envId = 'sampleEnvId';
       const envTypeId = 'sampleEnvTypeId';
@@ -368,7 +387,7 @@ describe('EnvironmentSCService', () => {
         envId: 'sampleEnvId',
         envTypeConfigId: 'sampleEnvTypeConfigId',
         envTypeId: 'sampleEnvTypeId',
-        environmentInstanceFiles: undefined,
+        environmentInstanceFiles: '{}',
         externalId: 'ExternalId-Test',
         iamPolicyDocument: '{}',
         indexId: 'testIndex',
@@ -382,6 +401,8 @@ describe('EnvironmentSCService', () => {
         username: 'Michael Scott',
         vpcId: 'VpcId-Test',
         xAccEnvMgmtRoleArn: 'xAccEnvMgmtRole-Test',
+        isAppStreamEnabled: 'true',
+        solutionNamespace: 'gamma',
       };
 
       // EXECUTE & CHECK
