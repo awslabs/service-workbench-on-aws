@@ -314,4 +314,26 @@ describe('UserService', () => {
       expect(service.audit).toHaveBeenCalledWith({}, expect.objectContaining({ action: 'delete-user' }));
     });
   });
+
+  describe('listUsers', () => {
+    it('should list users', async () => {
+      // BUILD
+      dbService.table.scan.mockResolvedValueOnce([
+        {
+          isAdmin: true,
+        },
+      ]);
+      const mockRequestContext = { principal: { isAdmin: true } };
+      // OPERATE
+      const result = await service.listUsers(mockRequestContext, {});
+
+      // CHECK
+      expect(dbService.table.scan).toHaveBeenCalled();
+      expect(result).toEqual([
+        {
+          isAdmin: true,
+        },
+      ]);
+    });
+  });
 });

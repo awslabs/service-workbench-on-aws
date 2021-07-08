@@ -1342,6 +1342,7 @@ importers:
       validatorjs: 3.18.1
     devDependencies:
       '@aws-ee/base-services': 'link:'
+      aws-sdk-mock: 5.1.0
       eslint: 6.8.0
       eslint-config-airbnb-base: 14.1.0_8cdb6d8c18c3319a1365bd5afa0063a3
       eslint-config-prettier: 6.10.1_eslint@6.8.0
@@ -1358,6 +1359,7 @@ importers:
   addons/addon-base/packages/services-container:
     specifiers:
       aws-sdk: ^2.647.0
+      aws-sdk-mock: ^5.1.0
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.0.0
       eslint-config-prettier: ^6.10.0

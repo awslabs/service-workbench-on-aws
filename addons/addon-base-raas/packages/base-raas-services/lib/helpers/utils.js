@@ -150,6 +150,17 @@ async function getRevisedS3Statements(s3Policy, studyEntity, bucket, statementPa
   return revisedStatementsPerStudy;
 }
 
+function removeAccountFromStatement(oldStatement, memberAccountId) {
+  const principal = getRootArnForAccount(memberAccountId);
+  const statement = addEmptyPrincipalIfNotPresent(oldStatement);
+  if (Array.isArray(statement.Principal.AWS)) {
+    statement.Principal.AWS = statement.Principal.AWS.filter(oldPrincipal => oldPrincipal !== principal);
+  } else if (statement.Principal.AWS === principal) {
+    statement.Principal.AWS = [];
+  }
+  return statement;
+}
+
 module.exports = {
   generateId,
   chopRight,
@@ -164,4 +175,5 @@ module.exports = {
   putStatementParamsFn,
   addAccountToStatement,
   getRevisedS3Statements,
+  removeAccountFromStatement,
 };
