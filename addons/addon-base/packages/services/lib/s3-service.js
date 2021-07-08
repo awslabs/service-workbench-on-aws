@@ -215,6 +215,17 @@ class S3Service extends Service {
       throw this.boom.badRequest(`S3Service error with deleting objects in arn:aws:s3:::${bucketName}/${dir}`, true);
     }
   }
+
+  async putObjectTag(bucket, key, tag) {
+    const params = {
+      Bucket: bucket,
+      Key: key,
+      Tagging: {
+        TagSet: [tag],
+      },
+    };
+    await this.api.putObjectTagging(params).promise();
+  }
 }
 
 module.exports = S3Service;

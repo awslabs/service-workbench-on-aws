@@ -308,7 +308,7 @@ describe('EnvironmentSCService', () => {
       service._settings = {
         get: settingName => {
           if (settingName === 'enableEgressStore') {
-            return true;
+            return 'true';
           }
           return undefined;
         },

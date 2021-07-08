@@ -90,8 +90,8 @@
 #fedIdpMetadatas: '["s3://${self:custom.settings.deploymentBucketName}/saml-metadata/datalake-example-idp-metadata.xml"]'
 
 # Enable the Egress Store feature would allow researchers to securely egress data from lockdown Workspace
-# NOTE: Once the enableEgressStore is set to true, the egress store feature will be enabled and can NOT be toggled off.
-# If you toggle the egress store from true to false and redeploy the whole solution, the backend stack deployment shold error out with message:
+# NOTE: Once the enableEgressStore is set to 'true', the egress store feature will be enabled and can NOT be toggled off.
+# If you toggle the egress store from 'true' to 'false' and redeploy the whole solution, the backend stack deployment shold error out with following message:
 # Error validating existing stack policy: Unknown logical id 'LogicalResourceId/EgressStore*' in statement {} - stack policies can only be applied to logical ids referenced in the template
 # Stack policies are applied here: addons/addon-stack-policy/packages/stack-policy/lib/steps/update-cfn-stack-policy.js
-# enableEgressStore: false
+# enableEgressStore: 'false'

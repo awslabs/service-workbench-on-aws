@@ -65,11 +65,35 @@ class DataEgressService extends Service {
     this._scanner = () => dbService.helper.scanner().table(table);
   }
 
+  async getEgressStoreInfo(environmentId) {
+    const workspaceId = environmentId;
+    let egressStoreScanResult = [];
+
+    try {
+      egressStoreScanResult = await this._scanner()
+        .limit(1000)
+        .scan()
+        .then(egressStores => {
+          return egressStores.filter(store => store.workspaceId === workspaceId);
+        });
+    } catch (error) {
+      throw this.boom.notFound(`Error in terminating egress store: ${JSON.stringify(error)}`, true);
+    }
+
+    if (egressStoreScanResult.length !== 1) {
+      throw this.boom.internalError(
+        `Error in terminating egress store: multiple result fetched from egrss store table`,
+        true,
+      );
+    }
+    return egressStoreScanResult[0];
+  }
+
   async createEgressStore(requestContext, environment) {
     const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
     const by = _.get(requestContext, 'principalIdentifier.uid');
 
-    if (!enableEgressStore) {
+    if (!enableEgressStore || enableEgressStore.toUpperCase() !== 'TRUE') {
       throw this.boom.forbidden('Unable to create Egress store since this feature is disabled', true);
     }
 
@@ -155,31 +179,11 @@ class DataEgressService extends Service {
   async terminateEgressStore(requestContext, environmentId) {
     const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
     const curUser = _.get(requestContext, 'principalIdentifier.uid');
-    if (!enableEgressStore) {
-      throw this.boom.forbidden('Unable to create Egress store since this feature is disabled', true);
+    if (!enableEgressStore || enableEgressStore.toUpperCase() !== 'TRUE') {
+      throw this.boom.forbidden('Unable to terminate Egress store since this feature is disabled', true);
     }
 
-    const workspaceId = environmentId;
-    let egressStoreScanResult = [];
-
-    try {
-      egressStoreScanResult = await this._scanner()
-        .limit(1000)
-        .scan()
-        .then(egressStores => {
-          return egressStores.filter(store => store.workspaceId === workspaceId);
-        });
-    } catch (error) {
-      throw this.boom.notFound(`Error in terminating egress store: ${JSON.stringify(error)}`, true);
-    }
-
-    if (egressStoreScanResult.length !== 1) {
-      throw this.boom.internalError(
-        `Error in terminating egress store: multiple result fetched from egrss store table`,
-        true,
-      );
-    }
-    const egressStoreInfo = egressStoreScanResult[0];
+    const egressStoreInfo = await this.getEgressStoreInfo(environmentId);
     const isEgressStoreOwner = egressStoreInfo.createdBy === curUser;
     if (!isAdmin(requestContext) && !isEgressStoreOwner) {
       throw this.boom.forbidden(

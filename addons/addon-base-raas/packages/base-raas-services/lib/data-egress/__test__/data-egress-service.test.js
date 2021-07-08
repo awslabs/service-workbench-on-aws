@@ -117,7 +117,7 @@ describe('DataEgressService', () => {
       dataEgressService._settings = {
         get: settingName => {
           if (settingName === 'enableEgressStore') {
-            return false;
+            return 'false';
           }
           return undefined;
         },
@@ -144,7 +144,7 @@ describe('DataEgressService', () => {
       dataEgressService._settings = {
         get: settingName => {
           if (settingName === 'enableEgressStore') {
-            return true;
+            return 'true';
           }
           return undefined;
         },
@@ -171,7 +171,7 @@ describe('DataEgressService', () => {
       dataEgressService._settings = {
         get: settingName => {
           if (settingName === 'enableEgressStore') {
-            return true;
+            return 'true';
           }
           if (settingName === 'egressStoreKmsKeyAliasArn') {
             return 'test-egressStoreKmsKeyAliasArn';
@@ -222,7 +222,7 @@ describe('DataEgressService', () => {
       dataEgressService._settings = {
         get: settingName => {
           if (settingName === 'enableEgressStore') {
-            return true;
+            return 'true';
           }
           if (settingName === 'egressStoreKmsKeyAliasArn') {
             return 'test-egressStoreKmsKeyAliasArn';
@@ -314,7 +314,7 @@ describe('DataEgressService', () => {
       dataEgressService._settings = {
         get: settingName => {
           if (settingName === 'enableEgressStore') {
-            return false;
+            return 'false';
           }
           return undefined;
         },
@@ -334,7 +334,7 @@ describe('DataEgressService', () => {
       dataEgressService._settings = {
         get: settingName => {
           if (settingName === 'enableEgressStore') {
-            return true;
+            return 'true';
           }
           if (settingName === 'egressStoreKmsKeyAliasArn') {
             return 'test-egressStoreKmsKeyAliasArn';
@@ -366,7 +366,7 @@ describe('DataEgressService', () => {
       dataEgressService._settings = {
         get: settingName => {
           if (settingName === 'enableEgressStore') {
-            return true;
+            return 'true';
           }
           if (settingName === 'egressStoreKmsKeyAliasArn') {
             return 'test-egressStoreKmsKeyAliasArn';
@@ -406,7 +406,7 @@ describe('DataEgressService', () => {
       dataEgressService._settings = {
         get: settingName => {
           if (settingName === 'enableEgressStore') {
-            return true;
+            return 'true';
           }
           if (settingName === 'egressStoreKmsKeyAliasArn') {
             return 'test-egressStoreKmsKeyAliasArn';
