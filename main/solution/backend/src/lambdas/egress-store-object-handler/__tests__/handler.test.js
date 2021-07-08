@@ -47,7 +47,6 @@ describe('handler', () => {
           eventVersion: '2.1',
           eventSource: 'aws:s3',
           awsRegion: 'us-east-1',
-          eventTime: '2021-07-08T14:13:22.468Z',
           eventName: 'ObjectCreated:Put',
           userIdentity: {
             principalId: 'AWS:test:test',
@@ -75,7 +74,6 @@ describe('handler', () => {
     await handlerWithContainer(container, event);
 
     // CHECK
-    // Called 2 times to bulk check DS Account reachability of those in pending/error states
     expect(s3Service.putObjectTag).toHaveBeenCalledTimes(1);
     expect(s3Service.putObjectTag).toHaveBeenCalledWith('test-bucketName', 'test-objectfolder/test-objectKey', {
       Key: 'egressStore',
@@ -91,7 +89,6 @@ describe('handler', () => {
           eventVersion: '2.1',
           eventSource: 'aws:s3',
           awsRegion: 'us-east-1',
-          eventTime: '2021-07-08T14:13:22.468Z',
           eventName: 'ObjectCreated:Put',
           userIdentity: {
             principalId: 'AWS:test:test',
@@ -119,7 +116,6 @@ describe('handler', () => {
     await handlerWithContainer(container, event);
 
     // CHECK
-    // Called 2 times to bulk check DS Account reachability of those in pending/error states
     expect(s3Service.putObjectTag).toHaveBeenCalledTimes(0);
   });
 });
