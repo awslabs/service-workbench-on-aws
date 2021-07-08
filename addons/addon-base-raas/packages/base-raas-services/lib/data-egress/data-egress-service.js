@@ -131,7 +131,7 @@ class DataEgressService extends Service {
       await runAndCatch(
         async () => {
           return this._updater()
-            .condition('attribute_not_exists(id)') // yes we need this to ensure the environment does not exist already
+            .condition('attribute_not_exists(id)') // yes we need this to ensure the egress store does not exist already
             .key({ id: egressStoreId })
             .item(dbObject)
             .update();
@@ -220,7 +220,7 @@ class DataEgressService extends Service {
         await runAndCatch(
           async () => {
             return this._updater()
-              .condition('attribute_exists(id)') // yes we need this to ensure the egress store does not exist already
+              .condition('attribute_exists(id)') // yes we need this to ensure the egress store does exist already
               .key({ id: egressStoreInfo.id })
               .item(egressStoreInfo)
               .update();

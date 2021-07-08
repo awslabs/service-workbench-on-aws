@@ -451,6 +451,23 @@ describe('DataEgressService', () => {
 
       await dataEgressService.terminateEgressStore(requestContext, envId);
       expect(dataEgressService.removeEgressStoreBucketPolicy).toHaveBeenCalledTimes(1);
+      expect(dataEgressService.removeEgressStoreBucketPolicy).toHaveBeenCalledWith(
+        {},
+        {
+          bucket: 'test-s3BucketName',
+          createdBy: undefined,
+          envPermission: { read: true, write: true },
+          id: 'egress-store-test-workspace-id',
+          prefix: 'test-s3BucketPath',
+          projectId: undefined,
+          readable: true,
+          resources: [{ arn: 'arn:aws:s3:::test-s3BucketName/test-workspace-id/' }],
+          status: 'reachable',
+          workspaceId: 'test-workspace-id',
+          writeable: true,
+        },
+        'test-accountId',
+      );
     });
 
     it('should remove bucket policy', async () => {
