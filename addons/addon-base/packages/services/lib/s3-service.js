@@ -224,7 +224,11 @@ class S3Service extends Service {
         TagSet: [tag],
       },
     };
-    await this.api.putObjectTagging(params).promise();
+    try {
+      await this.api.putObjectTagging(params).promise();
+    } catch (error) {
+      throw this.boom.badRequest(`S3Service error with putting tag on object arn:aws:s3:::${bucket}/${key}`, true);
+    }
   }
 }
 
