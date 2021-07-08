@@ -100,16 +100,33 @@ describe('S3Service', () => {
     });
 
     it('should not put object tag', async () => {
-      AWSMock.mock('S3', 'putObjectTagging', callback => {
-        callback(null, new Error());
+      AWSMock.mock('S3', 'putObjectTagging', (params, callback) => {
+        expect(params).toMatchObject({
+          Bucket: 'test-bucketName',
+          Key: 'test-key',
+          Tagging: {
+            TagSet: [{ Key: 'test-key', Value: 'test-value' }],
+          },
+        });
+        callback(new Error(), new Error());
       });
-      await expect(await s3Service.putObjectTag()).rejects.toThrow(
+
+      await expect(
+        s3Service.putObjectTag('test-bucketName', 'test-dir/', {
+          Key: 'test-key',
+          Value: 'test-value',
+        }),
+      ).rejects.toThrow(
         // It is better to check using boom.code instead of just the actual string, unless
         // there are a few errors with the exact same boom code but different messages.
         // Note: if you encounter a case where a service is throwing exceptions with the
         // same code but different messages (to address different scenarios), you might
         // want to suggest to the service author to use different codes.
-        expect.objectContaining({ boom: true, code: 'notFound', safe: true }),
+        expect.objectContaining({
+          boom: true,
+          code: 'badRequest',
+          safe: true,
+        }),
       );
     });
   });
