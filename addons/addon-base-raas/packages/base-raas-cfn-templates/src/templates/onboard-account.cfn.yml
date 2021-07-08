@@ -685,7 +685,7 @@ Resources:
         Enabled: False
       Description: 'SWB AppStream Stack'
       DisplayName: 'SWB Stack'
-      Name: !Sub ${Namespace}-Stack
+      Name: !Sub ${Namespace}-ServiceWorkbenchStack
       UserSettings:
         - Action: 'CLIPBOARD_COPY_FROM_LOCAL_DEVICE'
           Permission: 'ENABLED'

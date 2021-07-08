@@ -3,16 +3,6 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 
 choco install -y putty.install
 
-# Add Applications
-
-cd "C:\Program Files\Amazon\Photon\ConsoleImageBuilder"
-
-.\image-assistant.exe add-application --absolute-app-path "C:\Program Files\PuTTY\putty.exe" --display-name Putty --name Putty
-
-.\image-assistant.exe add-application --absolute-app-path "C:\Program Files\PuTTY\puttygen.exe" --display-name PuttyGen --name PuttyGen
-
-.\image-assistant.exe add-application --absolute-app-path "C:\Windows\System32\notepad.exe" --display-name Notepad --name Notepad
-
 $firefoxDistPath = "C:\Program Files (x86)\Mozilla Firefox\distribution"
 If(!(test-path $firefoxDistPath))
 {
@@ -32,6 +22,23 @@ Set-Content -Path "C:\Program Files (x86)\Mozilla Firefox\distribution\policies.
     }
 }
 "@
+
+$customFirefoxLauncherPath = "C:\App"
+If(!(test-path $customFirefoxLauncherPath))
+{
+      New-Item -ItemType Directory -Force -Path $customFirefoxLauncherPath
+}
+Copy-Item ".\firefox.ps1" -Destination "C:\App\firefox.ps1"
+
+# Add Applications
+
+cd "C:\Program Files\Amazon\Photon\ConsoleImageBuilder"
+
+.\image-assistant.exe add-application --absolute-app-path "C:\Program Files\PuTTY\putty.exe" --display-name Putty --name Putty
+
+.\image-assistant.exe add-application --absolute-app-path "C:\Program Files\PuTTY\puttygen.exe" --display-name PuttyGen --name PuttyGen
+
+.\image-assistant.exe add-application --absolute-app-path "C:\Windows\System32\notepad.exe" --display-name Notepad --name Notepad
 
 .\image-assistant.exe add-application --absolute-app-path "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" --display-name firefox --name firefox --launch-parameters " -file 'C:\App\firefox.ps1' -ExecutionPolicy Bypass"
 
