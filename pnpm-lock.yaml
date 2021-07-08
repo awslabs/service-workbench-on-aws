@@ -1302,6 +1302,7 @@ importers:
       '@aws-ee/base-services-container': workspace:*
       ajv: ^6.11.0
       aws-sdk: ^2.647.0
+      aws-sdk-mock: ^5.1.0
       aws-xray-sdk: ^3.2.0
       cycle: ^1.0.3
       eslint: ^6.8.0
@@ -1359,7 +1360,6 @@ importers:
   addons/addon-base/packages/services-container:
     specifiers:
       aws-sdk: ^2.647.0
-      aws-sdk-mock: ^5.1.0
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.0.0
       eslint-config-prettier: ^6.10.0
@@ -20581,7 +20581,7 @@ packages:
       '@sinonjs/samsam': 5.1.0
       diff: 4.0.2
       nise: 4.0.4
-      supports-color: 7.1.0
+      supports-color: 7.2.0
     dev: true
 
   /sisteransi/1.0.5:
