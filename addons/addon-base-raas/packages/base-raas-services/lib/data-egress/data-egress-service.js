@@ -77,12 +77,11 @@ class DataEgressService extends Service {
           return egressStores.filter(store => store.workspaceId === workspaceId);
         });
     } catch (error) {
-      throw this.boom.notFound(`Error in terminating egress store: ${JSON.stringify(error)}`, true);
+      throw this.boom.notFound(`Error in fetch egress store info: ${JSON.stringify(error)}`, true);
     }
-
     if (egressStoreScanResult.length !== 1) {
       throw this.boom.internalError(
-        `Error in terminating egress store: multiple result fetched from egrss store table`,
+        `Error in getting egress store info: multiple or no result fetched from egrss store table`,
         true,
       );
     }
