@@ -293,6 +293,7 @@ Resources:
               - ec2:DescribeAccountAttributes
               - ec2:CreateTags
               - ec2:DeleteTags
+              - ec2:DescribeInternetGateways
             Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
           - Effect: Allow
             Action:
@@ -350,6 +351,11 @@ Resources:
             Resource:
               - !Sub 'arn:aws:elasticloadbalancing:${AWS::Region}:${AWS::AccountId}:listener/app/analysis-*'
               - !Sub 'arn:aws:elasticloadbalancing:${AWS::Region}:${AWS::AccountId}:listener-rule/app/analysis-*'
+          - Effect: Allow
+            Action:
+              - iam:CreateServiceLinkedRole
+            Resource:
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/elasticloadbalancing.amazonaws.com/AWSServiceRoleForElasticLoadBalancing'
   CrossAccountExecutionRole:
     Type: 'AWS::IAM::Role'
     Properties:
