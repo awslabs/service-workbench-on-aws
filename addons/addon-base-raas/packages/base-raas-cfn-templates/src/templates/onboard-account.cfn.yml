@@ -782,10 +782,3 @@ Outputs:
     Description: Name of the stack created by AppStream
     Condition: isAppStream
     Value: !Sub ${Namespace}-ServiceWorkbenchStack
-
-  VPCDefaultSG:
-    Description: Default SG for VPC
-    Condition: isAppStream
-    Value: !GetAtt VPC.DefaultSecurityGroup
-    Export:
-      Name: !Join ['', [Ref: Namespace, '-SwbVPCDefaultSG']]
