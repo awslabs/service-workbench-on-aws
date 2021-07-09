@@ -114,7 +114,35 @@ class ProvisionAccount extends StepBase {
 
     // Gives user time to go to AppStream on the AWS Console so that AmazonAppStreamServiceAccess can be created
     // More info here: https://docs.aws.amazon.com/appstream2/latest/developerguide/roles-required-for-appstream.html#AmazonAppStreamServiceAccess
-    return this.wait(60 * 15).thenCall('deployStack');
+    // return this.wait(60 * 15).thenCall('deployStack');
+
+    return this.wait(30)
+      .maxAttempts(40)
+      .until('checkAppStreamRolesCreated')
+      .thenCall('deployStack');
+  }
+
+  // Check that user created AmazonAppStreamServiceAccess by navigating to AppStream console
+  // https://docs.aws.amazon.com/appstream2/latest/developerguide/roles-required-for-appstream.html
+  async checkAppStreamRolesCreated() {
+    const [aws] = await this.mustFindServices(['aws']);
+    const { accessKeyId, secretAccessKey, sessionToken } = await this.getNewAWSAccountCredentials();
+    const iam = new aws.sdk.IAM({ accessKeyId, secretAccessKey, sessionToken });
+    try {
+      await iam
+        .getRole({
+          RoleName: 'AmazonAppStreamServiceAccess',
+        })
+        .promise();
+      await iam
+        .getRole({
+          RoleName: 'ApplicationAutoScalingForAmazonAppStreamAccess',
+        })
+        .promise();
+      return true;
+    } catch (e) {
+      return false;
+    }
   }
 
   async deployStack() {
@@ -222,6 +250,8 @@ class ProvisionAccount extends StepBase {
         // create S3 and KMS resources access for newly created account
         await this.updateLocalResourcePolicies();
 
+        await this.startAppStreamFleet(cfnOutputs.AppStreamFleet);
+
         await this.updateAccount({
           status: 'COMPLETED',
           cfnInfo: {
@@ -258,7 +288,8 @@ class ProvisionAccount extends StepBase {
         if (this.settings.get(settingKeys.isAppStreamEnabled) === 'true') {
           additionalAccountData = {
             appStreamStackName: cfnOutputs.AppStreamStackName,
-            appStreamSecurityGroup: cfnOutputs.AppStreamSecurityGroup,
+            appStreamSecurityGroupId: cfnOutputs.AppStreamSecurityGroup,
+            appStreamFleetName: cfnOutputs.AppStreamFleet,
             subnetId: cfnOutputs.PrivateWorkspaceSubnet,
           };
         } else {
@@ -354,7 +385,7 @@ class ProvisionAccount extends StepBase {
     */
   }
 
-  async getCloudFormationService() {
+  async getNewAWSAccountCredentials() {
     const [aws] = await this.mustFindServices(['aws']);
     const credential = await this.getCredentials();
     const [requestContext, ExternalId] = await Promise.all([
@@ -374,7 +405,24 @@ class ProvisionAccount extends StepBase {
         ExternalId,
       })
       .promise();
+    return { accessKeyId, secretAccessKey, sessionToken };
+  }
+
+  async getCloudFormationService() {
+    const [aws] = await this.mustFindServices(['aws']);
+    const { accessKeyId, secretAccessKey, sessionToken } = await this.getNewAWSAccountCredentials();
     return new aws.sdk.CloudFormation({ accessKeyId, secretAccessKey, sessionToken });
+  }
+
+  async startAppStreamFleet(appStreamFleetName) {
+    const [aws] = await this.mustFindServices(['aws']);
+    const { accessKeyId, secretAccessKey, sessionToken } = await this.getNewAWSAccountCredentials();
+    const appStream = new aws.sdk.AppStream({ accessKeyId, secretAccessKey, sessionToken });
+    await appStream
+      .startFleet({
+        Name: appStreamFleetName,
+      })
+      .promise();
   }
 
   async getOrganizationService() {

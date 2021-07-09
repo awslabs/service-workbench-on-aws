@@ -44,7 +44,11 @@
       "type": "string",
       "minLength": 10
     },
-    "appStreamSecurityGroup": {
+    "appStreamFleetName": {
+      "type": "string",
+      "minLength": 10
+    },
+    "appStreamSecurityGroupId": {
       "type": "string",
       "pattern": "^sg-[a-f0-9]{17}$"
     }
