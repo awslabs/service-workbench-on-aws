@@ -92,7 +92,7 @@ class UpdateCfnStackPolicy extends Service {
         this.log.info('Finish updating backend stack policy');
       } catch (error) {
         this.log.info({ error });
-        // throw new Error('Updating CloudFormation Stacks failed. See the previous log message for more details.');
+        throw new Error('Updating CloudFormation Stacks failed. See the previous log message for more details.');
       }
     } else {
       this.log.info('CFN stack policy is not updated');

@@ -759,10 +759,6 @@ Resources:
               - sts:AssumeRole
             Resource:
               - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-prep-raas-master-MasterRole-*'
-#          - Effect: Allow
-#            Action:
-#              - appstream:UpdateImagePermissions
-#            Resource: "*"
           - Effect: Allow
             Action:
               - appstream:UpdateImagePermissions

@@ -112,13 +112,16 @@ class AccountService extends Service {
         appStreamInstanceType,
         appStreamFleetType,
       };
-      if (
-        Object.keys(appStreamConfig).some(key => {
-          return appStreamConfig[key] === undefined;
-        })
-      ) {
-        // TODO: Use more descriptive AppStream error message that includes which param wasn't included
-        throw this.boom.badRequest('Not all required App Stream params are defined', true);
+      const undefinedAppStreamParams = Object.keys(appStreamConfig).filter(key => {
+        return appStreamConfig[key] === undefined;
+      });
+      if (undefinedAppStreamParams.length > 0) {
+        throw this.boom.badRequest(
+          `Not all required App Stream params are defined. These params need to be defined: ${undefinedAppStreamParams.join(
+            ',',
+          )}`,
+          true,
+        );
       }
     }
     const { accountName, accountEmail, masterRoleArn, externalId, description } = rawData;

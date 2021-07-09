@@ -111,6 +111,9 @@ class ProvisionAccount extends StepBase {
     const accountId = await this.state.string('ACCOUNT_ID');
     const appStreamImageName = await this.payload.string('appStreamImageName');
     await accountService.shareAppStreamImageWithMemberAccount(requestContext, accountId, appStreamImageName);
+
+    // Gives user time to go to AppStream on the AWS Console so that AmazonAppStreamServiceAccess can be created
+    // More info here: https://docs.aws.amazon.com/appstream2/latest/developerguide/roles-required-for-appstream.html#AmazonAppStreamServiceAccess
     return this.wait(60 * 15).thenCall('deployStack');
   }
 
@@ -371,7 +374,6 @@ class ProvisionAccount extends StepBase {
         ExternalId,
       })
       .promise();
-
     return new aws.sdk.CloudFormation({ accessKeyId, secretAccessKey, sessionToken });
   }
 
