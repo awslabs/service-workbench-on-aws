@@ -1,3 +1,7 @@
+# echo session context
+Get-ChildItem env:
+$env:APPSTREAM_SESSION_CONTEXT
+
 $environmentInfoStr =  $env:APPSTREAM_SESSION_CONTEXT
 $ec2User = "Administrator"
 if ($env:UserName -match "^ImageBuilderAdmin$") {
@@ -31,5 +35,11 @@ function FindProxyForURL(url, host) {
 "@
         Set-Content -Path C:\App\proxy-config.pac -Value $pacFileContent
         & "C:\Program Files (x86)\Mozilla Firefox\firefox.exe" --kiosk $environmentInfo.url
+        
+        # echo url
+        $environmentInfo.url
     }
 }
+
+# wait for a minute or so
+Start-Sleep -s 60

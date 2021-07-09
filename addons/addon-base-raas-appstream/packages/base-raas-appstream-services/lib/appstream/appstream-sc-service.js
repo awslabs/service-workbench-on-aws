@@ -161,7 +161,7 @@ class AppStreamScService extends Service {
 
     // Stack name and the redirect bucket are both based off the namespace during onboarding.
     // So figure out the namespace and then derive the bucket name
-    const namespace = stackName.slice(0, '-Stack'.length * -1);
+    const namespace = stackName.slice(0, '-ServiceWorkbenchStack'.length * -1);
     const bucket = `${namespace}-redirects`;
     const key = `${environmentId}-${Date.now()}.html`;
 
