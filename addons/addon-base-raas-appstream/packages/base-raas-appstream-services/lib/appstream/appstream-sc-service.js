@@ -14,7 +14,6 @@
  */
 
 const _ = require('lodash');
-const url = require('url');
 const Service = require('@aws-ee/base-services-container/lib/service');
 
 const settingKeys = {
@@ -67,7 +66,11 @@ class AppStreamScService extends Service {
 
     // Find stack
     const { awsAccountId } = await indexesService.mustFind(requestContext, { id: indexId });
-    const { appStreamStackName: stackName, accountId } = await awsAccountsService.mustFind(requestContext, {
+    const {
+      appStreamStackName: stackName,
+      accountId,
+      appStreamFleetName: fleetName,
+    } = await awsAccountsService.mustFind(requestContext, {
       id: awsAccountId,
     });
 
@@ -80,7 +83,7 @@ class AppStreamScService extends Service {
       return {};
     }
 
-    // Find fleet
+    // Verify fleet is associated to appstream stack
     const appStream = await environmentScService.getClientSdkWithEnvMgmtRole(
       requestContext,
       { id: environmentId },
@@ -88,13 +91,9 @@ class AppStreamScService extends Service {
     );
     const { Names: fleetNames } = await appStream.listAssociatedFleets({ StackName: stackName }).promise();
 
-    if (fleetNames.length !== 1) {
-      throw this.boom.badRequest(
-        `expected 1 fleet to be associated with the AppStream stack but found ${fleetNames.length}`,
-      );
+    if (!_.includes(fleetNames, fleetName)) {
+      throw this.boom.badRequest(`Expected fleet ${fleetName} to be associated with the AppStream stack but found`);
     }
-
-    const fleetName = fleetNames[0];
 
     return { stackName, fleetName };
   }
@@ -115,38 +114,14 @@ class AppStreamScService extends Service {
     return `${uid}-${sessionSuffix}`.replace(/[^\w+=,.@-]+/g, '').slice(0, 32);
   }
 
-  async urlForFirefoxWithFinalDestination(requestContext, { environmentId, finalDestination }) {
+  async urlForFirefox(requestContext, { environmentId, finalDestination }) {
     const environmentScService = await this.service('environmentScService');
-
-    // The following will succeed only if the user has permissions to access the specified environment
-    const s3 = await environmentScService.getClientSdkWithEnvMgmtRole(
-      requestContext,
-      { id: environmentId },
-      { clientName: 'S3', options: { signatureVersion: 'v4' } },
-    );
 
     const appStream = await environmentScService.getClientSdkWithEnvMgmtRole(
       requestContext,
       { id: environmentId },
       { clientName: 'AppStream', options: { signatureVersion: 'v4' } },
     );
-
-    // AppStream session context is maximum 1000 chars. So use S3 as a private url shortener.
-    // Note the S3 redirect has a maximum of 2KB, so make a webpage to redirect
-    const body = `
-    <html>
-    <head>
-    <meta http-equiv="refresh" content="0; url=${finalDestination}">
-    </head>
-    <body>
-    <p>Please wait, connecting now...</p>
-    </body>
-    </html>
-    `
-      .split('\n')
-      .filter(x => x)
-      .map(s => s.trimLeft())
-      .join('\n');
 
     const environment = await environmentScService.mustFind(requestContext, { id: environmentId });
 
@@ -159,35 +134,12 @@ class AppStreamScService extends Service {
       return finalDestination;
     }
 
-    // Stack name and the redirect bucket are both based off the namespace during onboarding.
-    // So figure out the namespace and then derive the bucket name
-    const namespace = stackName.slice(0, '-ServiceWorkbenchStack'.length * -1);
-    const bucket = `${namespace}-redirects`;
-    const key = `${environmentId}-${Date.now()}.html`;
-
-    const { Location: location } = await s3
-      .upload({
-        Bucket: bucket,
-        Key: key,
-        Body: body,
-        ContentType: 'text/html',
-      })
-      .promise();
-
-    this.log.debug({ msg: 'Will open the S3 URL in Firefox in AppStream', location });
-
-    const host = urlStr => url.parse(urlStr).host;
-    const sessionContext = { url: location, hosts: [host(location), host(finalDestination)] };
-
-    this.log.debug({ msg: 'AppStream sessionContext', sessionContext });
-
     const result = await appStream
       .createStreamingURL({
         FleetName: fleetName,
         StackName: stackName,
         UserId: this.generateUserId(requestContext, environment),
-        ApplicationId: 'firefox',
-        SessionContext: JSON.stringify(sessionContext),
+        ApplicationId: 'Firefox',
       })
       .promise();
 

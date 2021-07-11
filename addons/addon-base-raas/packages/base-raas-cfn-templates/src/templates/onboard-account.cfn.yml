@@ -705,65 +705,6 @@ Resources:
       FleetName: !Ref AppStreamFleet
       StackName: !Ref AppStreamStack
 
-  # =============================================================================================
-  # S3 Resources
-  # =============================================================================================
-  # S3 Bucket for the private url shortener
-  WebsiteBucket:
-    Type: AWS::S3::Bucket
-    Properties:
-      BucketName: !Sub ${Namespace}-redirects
-      BucketEncryption:
-        ServerSideEncryptionConfiguration:
-          - ServerSideEncryptionByDefault:
-              SSEAlgorithm: AES256
-      WebsiteConfiguration:
-        IndexDocument: index.html
-        ErrorDocument: index.html
-      PublicAccessBlockConfiguration:
-        BlockPublicAcls: true
-        BlockPublicPolicy: true
-        IgnorePublicAcls: true
-        RestrictPublicBuckets: true
-      LifecycleConfiguration:
-        Rules:
-          - Status: Enabled
-            ExpirationInDays: 1
-
-  WebsiteBucketPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      Bucket: !Ref WebsiteBucket
-      PolicyDocument:
-        Statement:
-          - Sid: Deny requests that do not use TLS
-            Effect: Deny
-            Principal: '*'
-            Action: s3:*
-            Resource: !Join ['/', [!GetAtt WebsiteBucket.Arn, '*']]
-            Condition:
-              Bool:
-                aws:SecureTransport: false
-          - Sid: Deny requests that do not use SigV4 except through either VPC endpoint
-            Effect: Deny
-            Principal: '*'
-            Action: s3:*
-            Resource: !Join ['/', [!GetAtt WebsiteBucket.Arn, '*']]
-            Condition:
-              ForAllValues:StringNotEquals:
-                s3:signatureversion: 'AWS4-HMAC-SHA256'
-                aws:sourceVpce:
-                  - !Ref S3Endpoint
-          - Sid: Give access to requests through either S3 VPC endpoint
-            Effect: Allow
-            Principal: '*'
-            Action: s3:GetObject
-            Resource: !Join ['/', [!GetAtt WebsiteBucket.Arn, '*']]
-            Condition:
-              StringEquals:
-                aws:sourceVpce: # logical OR, see: https://docs.aws.amazon.com/IAM/latest/UserGuide/reference_policies_multi-value-conditions.html
-                  - !Ref S3Endpoint
-
 Outputs:
   CrossAccountEnvMgmtRoleArn:
     Description: The arn of the cross account role for environment management using AWS Service Catalog

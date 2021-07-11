@@ -23,9 +23,12 @@ async function createConnectionUrl({ envId, connection }, { requestContext, cont
   // Only wrap via AppStream if the connection.url exists
   let appStreamUrl;
   if (isHttp && connection.url) {
-    log.debug({ msg: `Will stream target connection URL ${connection.url} via AppStream`, connection });
+    log.debug({
+      msg: `Target connection URL ${connection.url} will be made available for pasting into AppStream`,
+      connection,
+    });
     const appStreamScService = await container.find('appStreamScService');
-    appStreamUrl = await appStreamScService.urlForFirefoxWithFinalDestination(requestContext, {
+    appStreamUrl = await appStreamScService.urlForFirefox(requestContext, {
       environmentId: envId,
       finalDestination: connection.url,
     });
@@ -43,8 +46,12 @@ async function createConnectionUrl({ envId, connection }, { requestContext, cont
 
   if (appStreamUrl) {
     connection.scheme = 'https';
+    // Retain the original destination URL so we don't have to trigger another API call
+    connection.appstreamDestinationUrl = connection.url;
+
+    // Now rewrite connection.url to the AppStream streaming URL so it can opened in a new tab
     connection.url = appStreamUrl;
-    log.debug({ msg: `Modified connection to use AppStream URL ${connection.url} via AppStream`, connection });
+    log.debug({ msg: `Modified connection to use AppStream streaming URL ${connection.url}`, connection });
   }
 
   return { envId, connection };
