@@ -52,14 +52,15 @@ To create the account, perform the following actions:
 1. In the Service Workbench console, navigate to '**Accounts → AWS Accounts**' and click **Create AWS Account**.
     *  In **Role ARN**, fill in the **Master Role ARN** copied from the ‘Configure Master Account’ step described above.
     * The email address that you specify here must be unique within the Organization.
-    * The **External ID** by default is the string **workbench**.  See  [IAM](/development/aws_services#IAM) for information on how to configure this to another value.
+    * The **External ID** by default is the string **workbench**.  See  [IAM](/deployment/reference/aws_services#IAM) for information on how to configure this to another value.
 2. After a minute, the following information displays in the **AWS Accounts** tab:
     *  *‘Trying to create accountID: xxx’*
     * A workflow in progress in **Workflows → Provision Account** (see [Workflows](http://swb-documentation.s3-website-us-east-1.amazonaws.com/user_guide/sidebar/admin/workflows/introduction) 
-     _**Note**: If instead you see an error message such as, ‘Stop Internal State Account ID not found’, check that there is an AWS Organization in the console of your **Master** account, if deploying Service Workbench in the **Master** account.  If you are deploying in a **Member** account, check and ensure that you  followed the steps described in [Prepare the Master Account](/deployment/post_deployment/prepare_master_account)._
+
+     _**Note**: If instead you see an error message such as, ‘Stop Internal State Account ID not found’, check that there is an AWS Organization in the console of your **Master** account, if deploying Service Workbench in the **Master** account.  If you are deploying in a **Member** account, check and ensure that you  followed the steps described in [Prepare the Master Account](/deployment/reference/prepare_master_account)._
     * Optionally, in the AWS console, you can inspect the following resources deployed by this script:
         * In AWS CloudFormation, a stack **prep-master** will be running.  It creates the **Master** role and its output is the **Master Role ARN**.
-        * In the AWS Organization, in the **Master** account (see [IAM](/development/aws_services#Organizations)), the new account will display. 
+        * In the AWS Organization, in the **Master** account (see [IAM](/deployment/reference/aws_services#Organizations), the new account will display. 
         * In IAM, the new **Master** role will be created
 3. Once the account is created it will be listed in **AWS Accounts**, see **Figure 2**.
  
