@@ -186,13 +186,13 @@ class ProvisionAccount extends StepBase {
       this.payload.string('workflowRoleArn'),
       this.payload.string('apiHandlerArn'),
       this.payload.string('callerAccountId'),
-      this.payload.string('appStreamFleetDesiredInstances'),
-      this.payload.string('appStreamDisconnectTimeoutSeconds'),
-      this.payload.string('appStreamIdleDisconnectTimeoutSeconds'),
-      this.payload.string('appStreamMaxUserDurationSeconds'),
-      this.payload.string('appStreamImageName'),
-      this.payload.string('appStreamInstanceType'),
-      this.payload.string('appStreamFleetType'),
+      this.payload.optionalString('appStreamFleetDesiredInstances', '0'),
+      this.payload.optionalString('appStreamDisconnectTimeoutSeconds', '0'),
+      this.payload.optionalString('appStreamIdleDisconnectTimeoutSeconds', '0'),
+      this.payload.optionalString('appStreamMaxUserDurationSeconds', '0'),
+      this.payload.optionalString('appStreamImageName'),
+      this.payload.optionalString('appStreamInstanceType'),
+      this.payload.optionalString('appStreamFleetType', 'ON_DEMAND'),
     ]);
     // deploy basic stacks to the account just created
     const [cfnTemplateService] = await this.mustFindServices(['cfnTemplateService']);
@@ -267,13 +267,6 @@ class ProvisionAccount extends StepBase {
         // create S3 and KMS resources access for newly created account
         await this.updateLocalResourcePolicies();
 
-        // Start AppStream Fleet and wait for AppStream fleet to transition to RUNNING state
-        await this.startAppStreamFleet(cfnOutputs.AppStreamFleet);
-        const isAppStreamFleetRunning = await this.checkAppStreamFleetIsRunning(cfnOutputs.AppStreamFleet);
-        if (!isAppStreamFleetRunning) {
-          return false;
-        }
-
         await this.updateAccount({
           status: 'COMPLETED',
           cfnInfo: {
@@ -308,6 +301,13 @@ class ProvisionAccount extends StepBase {
         };
         let additionalAccountData = {};
         if (this.settings.get(settingKeys.isAppStreamEnabled) === 'true') {
+          // Start AppStream Fleet and wait for AppStream fleet to transition to RUNNING state
+          await this.startAppStreamFleet(cfnOutputs.AppStreamFleet);
+          const isAppStreamFleetRunning = await this.checkAppStreamFleetIsRunning(cfnOutputs.AppStreamFleet);
+          if (!isAppStreamFleetRunning) {
+            return false;
+          }
+
           additionalAccountData = {
             appStreamStackName: cfnOutputs.AppStreamStackName,
             appStreamSecurityGroupId: cfnOutputs.AppStreamSecurityGroup,
