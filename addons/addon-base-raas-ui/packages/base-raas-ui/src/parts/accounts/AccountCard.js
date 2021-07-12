@@ -15,7 +15,7 @@
 
 import React from 'react';
 import { decorate, action, computed, runInAction, observable } from 'mobx';
-import { observer } from 'mobx-react';
+import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Header, Segment, Accordion, Icon, Label, Table, Button } from 'semantic-ui-react';
 import c from 'classnames';
@@ -49,13 +49,17 @@ class AccountCard extends React.Component {
     return this.props.account;
   }
 
+  get awsAccountsStore() {
+    return this.props.awsAccountsStore;
+  }
+
   get isSelectable() {
     return this.props.isSelectable;
   }
 
   get permissionStatus() {
     // Possible Values: CURRENT, NEEDSUPDATE, NEEDSONBOARD, ERRORED, NOSTACKNAME
-    return this.props.permissionStatus;
+    return this.account.permissionStatus;
   }
 
   goto(pathname) {
@@ -87,8 +91,10 @@ class AccountCard extends React.Component {
     this.goto(`/aws-accounts/onboard/${awsAccountId}`);
   };
 
-  handleInputCfnStackName = () => {
-    return undefined;
+  handlePendingButton = () => {
+    const accountsStore = this.awsAccountsStore;
+    const accountId = this.account.id;
+    accountsStore.resetPendingAccount(accountId);
   };
 
   render() {
@@ -109,7 +115,9 @@ class AccountCard extends React.Component {
             {this.renderBudgetButton()}
             {this.renderHeader(account)}
             {this.renderDescription(account)}
-            {(permissionStatus === 'NEEDSUPDATE' || permissionStatus === 'NEEDSONBOARD') &&
+            {(permissionStatus === 'NEEDSUPDATE' ||
+              permissionStatus === 'NEEDSONBOARD' ||
+              permissionStatus === 'PENDING') &&
               this.renderUpdatePermsButton()}
             {!(permissionStatus === 'NEEDSONBOARD' || permissionStatus === 'PENDING') &&
               this.renderDetailsAccordion(account)}
@@ -175,7 +183,7 @@ class AccountCard extends React.Component {
               {!onboardMessage && (
                 <div>
                   Resources for this account are being provisioned. Please wait a few minutes for provisioning to
-                  complete, or click &quot;Re-Onboard&quot; to re-onboard this account.
+                  complete, or click &quot;Reset Account&quot; to re-onboard this account.
                 </div>
               )}
             </div>
@@ -237,8 +245,8 @@ class AccountCard extends React.Component {
     let buttonArgs;
     if (permissionStatus === 'NEEDSUPDATE')
       buttonArgs = { message: 'Update Permissions', color: 'orange', onClick: this.handleUpdateAccountPerms };
-    else if (permissionStatus === 'NOSTACKNAME')
-      buttonArgs = { message: 'Input Stack Name', color: 'yellow', onClick: this.handleInputCfnStackName };
+    else if (permissionStatus === 'PENDING')
+      buttonArgs = { message: 'Reset Account', color: 'yellow', onClick: this.handlePendingButton };
     else buttonArgs = { message: 'Onboard Account', color: 'purple', onClick: this.handleOnboardAccount };
     // This button is only displayed if permissionStatus is NEEDSUPDATE, NEEDSONBOARD, or NOSTACKNAME
     return (
@@ -260,4 +268,4 @@ decorate(AccountCard, {
   permissionStatus: computed,
 });
 
-export default withRouter(observer(AccountCard));
+export default inject('awsAccountsStore')(withRouter(observer(AccountCard)));

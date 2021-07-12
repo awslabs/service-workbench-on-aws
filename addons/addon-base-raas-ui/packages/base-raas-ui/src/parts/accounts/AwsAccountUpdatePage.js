@@ -27,6 +27,17 @@ class AwsAccountUpdatePage extends React.Component {
     }
   }
 
+  // componentDidMount() {
+  //   const awsAccountsStore = this.props.awsAccountsStore;
+  //   swallowError(awsAccountsStore.load());
+  //   awsAccountsStore.stopHeartbeat();
+  // }
+
+  // componentWillUnmount() {
+  //   const awsAccountsStore = this.props.awsAccountsStore;
+  //   awsAccountsStore.stopHeartbeat();
+  // }
+
   get account() {
     const store = this.awsAccountsStore;
     return store.getAwsAccount(this.awsAccountUUID);

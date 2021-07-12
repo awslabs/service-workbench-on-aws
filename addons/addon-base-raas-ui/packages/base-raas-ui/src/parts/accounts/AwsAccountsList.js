@@ -67,6 +67,11 @@ class AwsAccountsList extends React.Component {
     return store.list;
   }
 
+  getPendingAccounts() {
+    const store = this.getAwsAccountsStore();
+    return store.hasPendingAccounts();
+  }
+
   renderMain() {
     const awsAccountsStore = this.getAwsAccountsStore();
     const selectedFilter = this.selectedFilter;
@@ -122,7 +127,13 @@ class AwsAccountsList extends React.Component {
     this.selectedFilter = name;
   };
 
+  handleCheckPendingAccounts = () => {
+    const awsAccountsStore = this.getAwsAccountsStore();
+    awsAccountsStore.forceAttemptOnboardAccounts();
+  };
+
   renderHeader() {
+    const hasPendingAccounts = this.getPendingAccounts();
     return (
       <div className="mb3 flex">
         <Header as="h3" className="color-grey mt1 mb0 flex-auto">
@@ -137,6 +148,16 @@ class AwsAccountsList extends React.Component {
         </Button>
         <Button className="ml2" color="blue" size="medium" basic onClick={this.handleAddAwsAccount}>
           Add AWS Account
+        </Button>
+        <Button
+          className="ml2"
+          color="blue"
+          size="medium"
+          disabled={!hasPendingAccounts}
+          basic
+          onClick={this.handleCheckPendingAccounts}
+        >
+          Check Pending Accounts
         </Button>
       </div>
     );

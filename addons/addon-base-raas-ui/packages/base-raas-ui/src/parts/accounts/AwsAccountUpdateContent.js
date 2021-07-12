@@ -15,7 +15,7 @@
 
 import React from 'react';
 import { decorate, computed, runInAction, observable, action } from 'mobx';
-import { observer } from 'mobx-react';
+import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Header, Divider, List, Form, TextArea, Message, Button, Container } from 'semantic-ui-react';
 import TimeAgo from 'react-timeago';
@@ -86,6 +86,10 @@ class AwsAccountUpdateContent extends React.Component {
     return this.props.account;
   }
 
+  get awsAccountsStore() {
+    return this.props.awsAccountsStore;
+  }
+
   goto(pathname) {
     const location = this.props.location;
     const link = createLink({ location, pathname });
@@ -98,6 +102,21 @@ class AwsAccountUpdateContent extends React.Component {
 
   handleGoBack = () => {
     this.goBackToAccountsPage();
+  };
+
+  handleCreateStackClicked = async () => {
+    return undefined;
+    // const accountId = this.account.id;
+    // const accountsStore = this.awsAccountsStore;
+    // const currentAccount = accountsStore.getAwsAccount(accountId);
+
+    // if (currentAccount.permissionStatus === 'NEEDSONBOARD') {
+    //   await accountsStore.updateAwsAccount(currentAccount.id, {
+    //     id: currentAccount.id,
+    //     rev: currentAccount.rev,
+    //     permissionStatus: 'PENDING',
+    //   });
+    // }
   };
 
   render() {
@@ -216,7 +235,14 @@ class AwsAccountUpdateContent extends React.Component {
             CloudFormation console where you can review the stack information and provision it.
             <div className="mb0 flex mt2">
               <div className="flex-auto">
-                <Button fluid as="a" target="_blank" href={createStackUrl} rel="noopener noreferrer">
+                <Button
+                  fluid
+                  as="a"
+                  target="_blank"
+                  href={createStackUrl}
+                  onClick={this.handleCreateStackClicked}
+                  rel="noopener noreferrer"
+                >
                   Create Stack
                 </Button>
                 {this.renderExpires(stackInfo)}
@@ -347,4 +373,4 @@ decorate(AwsAccountUpdateContent, {
   gotBackToAccountsPage: action,
 });
 
-export default withRouter(observer(AwsAccountUpdateContent));
+export default inject('awsAccountsStore')(withRouter(observer(AwsAccountUpdateContent)));

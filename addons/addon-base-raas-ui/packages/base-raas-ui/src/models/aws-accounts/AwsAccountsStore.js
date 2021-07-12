@@ -23,6 +23,7 @@ import {
   createAwsAccount,
   updateAwsAccount,
   getAllAccountsPermissionStatus,
+  attemptOnboardAwsAccounts,
 } from '../../helpers/api';
 import { AwsAccount } from './AwsAccount';
 import { AwsAccountStore } from './AwsAccountStore';
@@ -104,6 +105,20 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         await updateAwsAccount(awsAccountUUID, updatedAcctInfo);
       },
 
+      resetPendingAccount: async awsAccountUUID => {
+        const account = self.awsAccounts.get(awsAccountUUID);
+        if (account.permissionStatus === 'PENDING') {
+          const resetInfo = {
+            id: account.id,
+            rev: account.rev,
+            permissionStatus: 'NEEDSONBOARD',
+          };
+
+          const updatedAcct = await updateAwsAccount(awsAccountUUID, resetInfo);
+          self.awsAccounts.set(updatedAcct.id, updatedAcct);
+        }
+      },
+
       getBudgetStore: awsAccountUUID => {
         let entry = self.budgetStores.get(awsAccountUUID);
         if (!entry) {
@@ -112,6 +127,23 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
           entry = self.budgetStores.get(awsAccountUUID);
         }
         return entry;
+      },
+
+      addBudget: (awsAccountUUID, rawBudget) => {
+        const account = self.awsAccounts.get(awsAccountUUID);
+        account.budget = Budget.create(rawBudget);
+      },
+
+      forceAttemptOnboardAccounts: async () => {
+        await attemptOnboardAwsAccounts();
+      },
+
+      hasPendingAccounts: () => {
+        const pendingAccountIds = _.map(
+          _.filter(self.awsAccounts, acct => acct.permissionStatus === 'PENDING'),
+          'id',
+        );
+        return _.isEmpty(pendingAccountIds);
       },
 
       getAwsAccountStore(accountId) {
@@ -123,11 +155,6 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         }
 
         return entry;
-      },
-
-      addBudget: (awsAccountUUID, rawBudget) => {
-        const account = self.awsAccounts.get(awsAccountUUID);
-        account.budget = Budget.create(rawBudget);
       },
     };
   })

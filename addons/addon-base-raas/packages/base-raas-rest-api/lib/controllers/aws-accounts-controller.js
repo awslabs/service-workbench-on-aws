@@ -50,6 +50,18 @@ async function configure(context) {
   );
 
   // ===============================================================
+  //  GET /onboard (mounted to /api/aws-accounts)
+  // ===============================================================
+  router.get(
+    '/onboard',
+    wrap(async (req, res) => {
+      const requestContext = res.locals.requestContext;
+      const result = await awsCfnService.attemptOnboardAccounts(requestContext);
+      res.status(200).json(result);
+    }),
+  );
+
+  // ===============================================================
   //  GET /:id/get-template (mounted to /api/aws-accounts)
   // ===============================================================
   router.get(

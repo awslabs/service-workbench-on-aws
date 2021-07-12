@@ -96,6 +96,7 @@ class AwsCfnService extends Service {
       'cfnTemplateService',
       'awsAccountsService',
       's3Service',
+      'workflowTriggerService',
     ]);
   }
 
@@ -192,12 +193,13 @@ class AwsCfnService extends Service {
     cfnTemplateInfo.cfnConsoleUrl = getCfnHomeUrl(cfnTemplateInfo);
 
     // If we are onboarding the account for the first time, we have to populate some parameters for checking permissions later
-    if (account.cfnStackName !== cfnTemplateInfo.name || account.xAccEnvMgmtRoleArn === undefined) {
+    if (account.permissionStatus === 'NEEDSONBOARD' || account.permissionStatus === 'PENDING') {
       const updatedAcct = {
         id: account.id,
         rev: account.rev,
         cfnStackName: cfnTemplateInfo.name, // If SWB didn't generate a cfn name, this will be account.cfnStackName
         externalId: 'workbench',
+        permissionStatus: 'PENDING',
         xAccEnvMgmtRoleArn: [
           'arn:aws:iam::',
           account.accountId,
@@ -205,7 +207,6 @@ class AwsCfnService extends Service {
           createParams.namespace,
           '-cross-account-role',
         ].join(''),
-        permissionStatus: account.permissionStatus === 'NEEDSONBOARD' ? 'PENDING' : account.permissionStatus,
       };
       await awsAccountsService.update(requestContext, updatedAcct);
     }
@@ -243,7 +244,7 @@ class AwsCfnService extends Service {
 
     const awsAccountsService = await this.service('awsAccountsService');
     const accountsList = await awsAccountsService.list();
-    const stackOutputs = ['externalId', 'vpcId', 'subnetId', 'encryptionKeyArn', 'cfnStackId', 'roleArn'];
+    // const stackOutputs = ['externalId', 'vpcId', 'subnetId', 'encryptionKeyArn', 'cfnStackId', 'roleArn'];
     const newStatus = {};
     const errors = {};
     const idList = accountsList.forEach(account => account.accountId);
@@ -253,25 +254,16 @@ class AwsCfnService extends Service {
     const checkPermissions = async account => {
       errorMsg = '';
       if (
-        account.cfnStackName === '' ||
-        account.cfnStackName === undefined ||
-        account.permissionStatus === 'NEEDSONBOARD' // We'll explicitly bring the account out of NEEDSONBOARD separately
+        account.permissionStatus === 'NEEDSONBOARD' || // We'll explicitly bring the account out of NEEDSONBOARD separately
+        account.permissionStatus === 'PENDING' // Backend workflow will bring the account out of PENDING
       ) {
-        res = 'NEEDSONBOARD';
+        res = account.permissionsStatus;
         errorMsg = `Account ${account.accountId} needs to be onboarded.`;
       } else {
         try {
           res = await this.checkAccountPermissions(requestContext, account.id);
-          if (
-            _.some(stackOutputs, prop => {
-              return _.isUndefined(account[prop]);
-            })
-          ) {
-            await this.finishOnboardingAccount(requestContext, account.id);
-          }
         } catch (e) {
-          // If the account is pending we're expecting it to error until it completes successfully
-          res = account.permissionStatus === 'PENDING' ? 'PENDING' : 'ERRORED';
+          res = 'ERRORED';
           errorMsg = e.safe // if error is boom error then see if it is safe to propagate its message
             ? `Error checking permissions for account ${account.accountId}. ${e.message}`
             : `Error checking permissions for account ${account.accountId}`;
@@ -325,6 +317,45 @@ class AwsCfnService extends Service {
     }
   }
 
+  async attemptOnboardAccounts(requestContext) {
+    await this.assertAuthorized(
+      requestContext,
+      { action: 'attempt-onboard', conditions: [allowIfActive, allowIfAdmin] },
+      {},
+    );
+
+    const awsAccountsService = await this.service('awsAccountsService');
+    const accounts = await awsAccountsService.list();
+    const pendingAccountIds = _.map(
+      _.filter(accounts, acct => acct.permissionStatus === 'PENDING'),
+      'id',
+    );
+
+    const auditLog = {};
+
+    const processor = async awsAccountId => {
+      try {
+        await this.finishOnboardingAccount(requestContext, awsAccountId);
+        auditLog[awsAccountId] = 'Successfully Onboarded';
+      } catch (e) {
+        auditLog[awsAccountId] = `Account is not ready yet. ${e}`;
+      }
+    };
+
+    // For each account, reach out 10 at a time
+    if (!_.isEmpty(pendingAccountIds)) {
+      await processInBatches(pendingAccountIds, 10, processor);
+    } else {
+      auditLog.status = 'No accounts are pending.';
+    }
+
+    await this.audit(requestContext, {
+      action: 'onboard-aws-accounts',
+      body: auditLog,
+    });
+    return auditLog;
+  }
+
   async finishOnboardingAccount(requestContext, accountId) {
     await this.assertAuthorized(
       requestContext,
@@ -357,16 +388,13 @@ class AwsCfnService extends Service {
     fieldsToUpdate.subnetId = findOutputValue('VpcPublicSubnet1');
     fieldsToUpdate.encryptionKeyArn = findOutputValue('EncryptionKeyArn');
     fieldsToUpdate.roleArn = findOutputValue('CrossAccountEnvMgmtRoleArn');
+    fieldsToUpdate.permissionStatus = 'CURRENT'; // If we just onboarded it's safe to assume the account is up to date
+    // we have to update the permission status or the account will get stuck in PENDING
 
     fieldsToUpdate.id = accountEntity.id;
     fieldsToUpdate.rev = accountEntity.rev;
 
-    // This should be wrapped in a try block a level up anyway, but for some reason it doesn't catch this error
-    try {
-      await awsAccountsService.update(requestContext, fieldsToUpdate);
-    } catch (e) {
-      throw this.boom.badRequest(`Failed to pull outputs from stack.`, true).cause(e);
-    }
+    await awsAccountsService.update(requestContext, fieldsToUpdate);
   }
 
   async assertAuthorized(requestContext, { action, conditions }, ...args) {
