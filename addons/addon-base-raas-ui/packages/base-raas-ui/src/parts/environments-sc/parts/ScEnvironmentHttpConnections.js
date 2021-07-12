@@ -7,7 +7,7 @@ import { Segment, Icon, Button, Header, Table, List } from 'semantic-ui-react';
 
 import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
 
-import { enableEgressStore } from '../../../helpers/settings';
+import { isAppStreamEnabled } from '../../../helpers/settings';
 import ScEnvHttpConnectionExpanded from './ScEnvHttpConnectionExpanded';
 
 const openWindow = (url, windowFeatures) => {
@@ -66,7 +66,7 @@ class ScEnvironmentHttpConnections extends React.Component {
           url = urlObj.url;
 
           // If AppStream is enabled, copy destination URL to clipboard before new tab loads
-          if (enableEgressStore) {
+          if (isAppStreamEnabled) {
             runInAction(() => {
               this.destinationUrl = urlObj.appstreamDestinationUrl;
             });
@@ -111,7 +111,7 @@ class ScEnvironmentHttpConnections extends React.Component {
           <Table.Body>
             {_.map(connections, item => (
               <>
-                {enableEgressStore ? this.renderAppstreamInstructions(item) : <></>}
+                {isAppStreamEnabled ? this.renderAppstreamInstructions(item) : <></>}
                 <Table.Row key={item.id}>
                   <Table.Cell className="clearfix">
                     <Button
