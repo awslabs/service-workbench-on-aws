@@ -12,9 +12,10 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-const uuid = require('uuid/v1');
+const _ = require('lodash');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const Service = require('@aws-ee/base-services-container/lib/service');
+const { isAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 const createSchema = require('../schema/create-egress-store.json');
 const {
   getStatementParamsFn,
@@ -23,6 +24,7 @@ const {
   updateS3BucketPolicy,
   addAccountToStatement,
   getRevisedS3Statements,
+  removeAccountFromStatement,
 } = require('../helpers/utils');
 
 const settingKeys = {
@@ -31,6 +33,11 @@ const settingKeys = {
   egressStoreBucketName: 'egressStoreBucketName',
   egressStoreKmsKeyAliasArn: 'egressStoreKmsKeyAliasArn',
 };
+
+const PROCESSING_STATUS_CODE = 'PROCESSING';
+const PROCESSED_STATUS_CODE = 'PROCESSED';
+const TERMINATED_STATUS_CODE = 'TERMINATED';
+const CREATED_STATUS_CODE = 'CREATED';
 class DataEgressService extends Service {
   constructor() {
     super();
@@ -42,6 +49,7 @@ class DataEgressService extends Service {
       's3Service',
       'lockService',
       'environmentScService',
+      'lockService',
     ]);
   }
 
@@ -59,6 +67,7 @@ class DataEgressService extends Service {
 
   async createEgressStore(requestContext, environment) {
     const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
+    const by = _.get(requestContext, 'principalIdentifier.uid');
 
     if (!enableEgressStore) {
       throw this.boom.forbidden('Unable to create Egress store since this feature is disabled', true);
@@ -71,37 +80,46 @@ class DataEgressService extends Service {
     const folderName = `${environment.id}/`;
 
     try {
-      s3Service.createFolder(bucketName, folderName);
+      s3Service.createPath(bucketName, folderName);
     } catch (error) {
       throw this.boom.badRequest(`Error in creating egress store:${folderName} in bucket: ${bucketName}`, true);
     }
 
     // prepare info for ddb and update egress store info
-    const egressStoreId = uuid();
+    const egressStoreId = environment.id;
+    const creationTime = new Date().toISOString;
     const dbObject = {
       id: egressStoreId,
       egressStoreName: `${environment.name}-egress-store`,
+      createdAt: creationTime,
       createdBy: environment.createdBy,
       workspaceId: environment.id,
       projectId: environment.projectId,
       s3BucketName: bucketName,
       s3BucketPath: folderName,
-      status: 'Created',
+      status: CREATED_STATUS_CODE,
+      updatedBy: by,
+      updatedAt: creationTime,
     };
-    await runAndCatch(
-      async () => {
-        return this._updater()
-          .condition('attribute_not_exists(id)') // yes we need this to ensure the environment does not exist already
-          .key({ id: egressStoreId })
-          .item(dbObject)
-          .update();
-      },
-      async () => {
-        throw this.boom.badRequest(`Egress Store with id "${egressStoreId}" already exists`, true);
-      },
-    );
-    const kmsArn = await this.getKmsKeyIdArn();
 
+    const lockService = await this.service('lockService');
+    const egressStoreDdbLockId = `egress-store-ddb-access-${egressStoreId}`;
+    await lockService.tryWriteLockAndRun({ id: egressStoreDdbLockId }, async () => {
+      await runAndCatch(
+        async () => {
+          return this._updater()
+            .condition('attribute_not_exists(id)') // yes we need this to ensure the environment does not exist already
+            .key({ id: egressStoreId })
+            .item(dbObject)
+            .update();
+        },
+        async () => {
+          throw this.boom.badRequest(`Egress Store with id "${egressStoreId}" already exists`, true);
+        },
+      );
+    });
+
+    const kmsArn = await this.getKmsKeyIdArn();
     // Prepare egress store info for updating S3 bucket policy
     const egressStore = {
       id: `egress-store-${environment.id}`,
@@ -124,13 +142,122 @@ class DataEgressService extends Service {
         },
       ],
     };
+    const memberAccountId = await this.getMemberAccountId(requestContext, environment.id);
 
-    const environmentScService = await this.service('environmentScService');
-    const environmentScEntity = await environmentScService.mustFind(requestContext, { id: environment.id });
-    const memberAccount = await environmentScService.getMemberAccount(requestContext, environmentScEntity);
-    await this.addEgressStoreBucketPolicy(requestContext, egressStore, memberAccount.accountId);
+    const bucketPolicyLockId = `bucket-policy-access-${bucketName}`;
+    await lockService.tryWriteLockAndRun({ id: bucketPolicyLockId }, async () => {
+      await this.addEgressStoreBucketPolicy(requestContext, egressStore, memberAccountId);
+    });
 
     return egressStore;
+  }
+
+  async terminateEgressStore(requestContext, environmentId) {
+    const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
+    const curUser = _.get(requestContext, 'principalIdentifier.uid');
+    if (!enableEgressStore) {
+      throw this.boom.forbidden('Unable to create Egress store since this feature is disabled', true);
+    }
+
+    const workspaceId = environmentId;
+    let egressStoreScanResult = [];
+
+    try {
+      egressStoreScanResult = await this._scanner()
+        .limit(1000)
+        .scan()
+        .then(egressStores => {
+          return egressStores.filter(store => store.workspaceId === workspaceId);
+        });
+    } catch (error) {
+      throw this.boom.notFound(`Error in terminating egress store: ${JSON.stringify(error)}`, true);
+    }
+
+    if (egressStoreScanResult.length !== 1) {
+      throw this.boom.internalError(
+        `Error in terminating egress store: multiple result fetched from egrss store table`,
+        true,
+      );
+    }
+    const egressStoreInfo = egressStoreScanResult[0];
+    const isEgressStoreOwner = egressStoreInfo.createdBy === curUser;
+    if (!isAdmin(requestContext) && !isEgressStoreOwner) {
+      throw this.boom.forbidden(
+        `You are not authorized to terminate the egress store. Please contact your administrator.`,
+        true,
+      );
+    }
+
+    const s3Service = await this.service('s3Service');
+    const egressStoreStatus = egressStoreInfo.status;
+
+    if (egressStoreStatus.toUpperCase() === PROCESSING_STATUS_CODE) {
+      throw this.boom.forbidden(
+        `Egress store: ${egressStoreInfo.id} is still in processing. The egress store is not terminated and the workspce can not be terminated before egress request is processed.`,
+        true,
+      );
+    } else if (egressStoreStatus.toUpperCase() === PROCESSED_STATUS_CODE) {
+      // ONLY terminate the egress store if it has been processed
+
+      try {
+        await s3Service.clearPath(egressStoreInfo.s3BucketName, egressStoreInfo.s3BucketPath);
+      } catch (error) {
+        throw this.boom.badRequest(
+          `Error in deleting egress store:${egressStoreInfo.s3BucketName} in bucket: ${egressStoreInfo.s3BucketPath}`,
+          true,
+        );
+      }
+
+      const lockService = await this.service('lockService');
+      const egressStoreDdbLockId = `egress-store-ddb-access-${egressStoreInfo.id}`;
+      await lockService.tryWriteLockAndRun({ id: egressStoreDdbLockId }, async () => {
+        egressStoreInfo.status = TERMINATED_STATUS_CODE;
+        egressStoreInfo.updatedBy = curUser;
+        egressStoreInfo.updatedAt = new Date().toISOString();
+        await runAndCatch(
+          async () => {
+            return this._updater()
+              .condition('attribute_exists(id)') // yes we need this to ensure the egress store does not exist already
+              .key({ id: egressStoreInfo.id })
+              .item(egressStoreInfo)
+              .update();
+          },
+          async () => {
+            throw this.boom.badRequest(`Egress Store with id "${egressStoreInfo.id}" got updating error`, true);
+          },
+        );
+      });
+
+      const egressStore = {
+        id: `egress-store-${environmentId}`,
+        readable: true,
+        writeable: true,
+        bucket: egressStoreInfo.s3BucketName,
+        prefix: egressStoreInfo.s3BucketPath,
+        envPermission: {
+          read: true,
+          write: true,
+        },
+        status: 'reachable',
+        createdBy: egressStoreInfo.createdBy,
+        workspaceId: environmentId,
+        projectId: egressStoreInfo.projectId,
+        resources: [
+          {
+            arn: `arn:aws:s3:::${egressStoreInfo.s3BucketName}/${environmentId}/`,
+          },
+        ],
+      };
+
+      // Remove egress store related s3 policy from the s3 bucket
+      const memberAccountId = await this.getMemberAccountId(requestContext, environmentId);
+
+      const lockId = `bucket-policy-access-${egressStoreInfo.s3BucketName}`;
+      await lockService.tryWriteLockAndRun({ id: lockId }, async () => {
+        await this.removeEgressStoreBucketPolicy(requestContext, egressStore, memberAccountId);
+      });
+      await this.audit(requestContext, { action: 'terminated-egress-store', body: egressStore });
+    }
   }
 
   async audit(requestContext, auditEvent) {
@@ -209,7 +336,32 @@ class DataEgressService extends Service {
     await updateS3BucketPolicy(s3Client, s3BucketName, s3Policy, revisedStatements);
 
     // Write audit event
-    await this.audit(requestContext, { action: 'add-egress-store-bucket-policy', body: s3Policy });
+    await this.audit(requestContext, { action: 'add-egress-store-to-bucket-policy', body: s3Policy });
+  }
+
+  async removeEgressStoreBucketPolicy(requestContext, egressStore, memberAccountId) {
+    const { s3BucketName, s3Policy } = await this.getS3BucketAndPolicy();
+
+    const statementParamFunctions = [getStatementParamsFn, putStatementParamsFn, listStatementParamsFn];
+    const revisedStatement = await getRevisedS3Statements(
+      s3Policy,
+      egressStore,
+      s3BucketName,
+      statementParamFunctions,
+      oldStatement => removeAccountFromStatement(oldStatement, memberAccountId),
+    );
+
+    const s3Client = await this.getS3();
+    await updateS3BucketPolicy(s3Client, s3BucketName, s3Policy, revisedStatement);
+
+    await this.audit(requestContext, { action: 'remove-egress-store-from-bucket-policy', body: s3Policy });
+  }
+
+  async getMemberAccountId(requestContext, environmentId) {
+    const environmentScService = await this.service('environmentScService');
+    const environmentScEntity = await environmentScService.mustFind(requestContext, { id: environmentId });
+    const memberAccount = await environmentScService.getMemberAccount(requestContext, environmentScEntity);
+    return memberAccount.accountId;
   }
 }
 

@@ -43,6 +43,7 @@ const UserService = require('../user-service');
 
 describe('UserService', () => {
   let service;
+  let dbService;
   beforeEach(async () => {
     // Initialize services container and register dependencies
     const container = new ServicesContainer();
@@ -64,6 +65,7 @@ describe('UserService', () => {
 
     // Get instance of the service we are testing
     service = await container.find('userService');
+    dbService = await container.find('dbService');
 
     // Skip authorization
     service.assertAuthorized = jest.fn();
@@ -311,6 +313,35 @@ describe('UserService', () => {
         // If we get an error after validation, internalError should be thrown
         // Audit event should be logged with details on the failed call
       }
+    });
+  });
+
+  describe('listUser', () => {
+    const uid = 'u-testListUserId';
+    const user1 = {
+      uid,
+      username: 'astark1',
+      email: 'ilovemasks1@example.com',
+      firstName: 'Arya1',
+      lastName: 'Stark1',
+      authenticationProviderId: 'house_stark1',
+      identityProviderId: 'ned1',
+    };
+    const user2 = {
+      uid,
+      username: 'astark2',
+      email: 'ilovemasks2@example.com',
+      firstName: 'Arya2',
+      lastName: 'Stark2',
+      authenticationProviderId: 'house_stark2',
+      identityProviderId: 'ned2',
+    };
+
+    it('should list all users', async () => {
+      // OPERATE
+      dbService.table.scan.mockResolvedValueOnce([user1, user2]);
+      const result = await service.listUsers({ principal: { isAdmin: true } }, {});
+      expect(result).toEqual([user1, user2]);
     });
   });
 });

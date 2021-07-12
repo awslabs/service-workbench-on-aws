@@ -338,8 +338,8 @@ function updateRegisteredAccount(accountId, data) {
   });
 }
 
-function getEgressStore(environmentId) {
-  return httpApiGet(`api/data-egress/${environmentId}`);
+function deleteEgressStore(id) {
+  return httpApiDelete(`api/data-egress/${id}`);
 }
 
 export {
@@ -412,5 +412,5 @@ export {
   registerStudy,
   generateAccountCfnTemplate,
   updateRegisteredAccount,
-  getEgressStore,
+  deleteEgressStore,
 };

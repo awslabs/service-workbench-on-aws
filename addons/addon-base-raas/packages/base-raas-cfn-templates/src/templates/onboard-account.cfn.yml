@@ -92,8 +92,9 @@ Parameters:
     Type: String
 
   AppStreamFleetType:
-    Description: The fleet type. Can be ALWAYS_ON or ON_DEMAND
+    Description: The fleet type
     Type: String
+    AllowedValues: [ALWAYS_ON, ON_DEMAND]
     Default: ON_DEMAND
 
 Metadata:
@@ -559,6 +560,7 @@ Resources:
               - 's3:DeleteObjectTagging'
               - 's3:DeleteObjectVersion'
               - 's3:DeleteObjectVersionTagging'
+              - 's3:ListBucket' # Required in get_bootstrap.sh when running `aws s3 sync`
             Resource:
               - '*'
       RouteTableIds:
@@ -600,6 +602,30 @@ Resources:
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ec2'
       VpcId: !Ref VPC
 
+  CfnEndpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Condition: isAppStream
+    Properties:
+      SubnetIds:
+        - !Ref PrivateWorkspaceSubnet
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.cloudformation'
+      VpcId: !Ref VPC
+      SecurityGroupIds:
+        - !Ref CfnEndpointSecurityGroup
+
+  CfnEndpointSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: isAppStream
+    Properties:
+      GroupDescription: 'CFN Security Group for interface endpoint'
+      GroupName: 'CFN-SG'
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !GetAtt VPC.DefaultSecurityGroup
+          IpProtocol: '-1'
+
     # https://docs.aws.amazon.com/sagemaker/latest/dg/notebook-interface-endpoint.html
   SagemakerNotebookEndpoint:
     Type: 'AWS::EC2::VPCEndpoint'
@@ -634,6 +660,8 @@ Resources:
       VpcId: !Ref VPC
       SecurityGroupEgress:
         - CidrIp: 127.0.0.1/32
+          IpProtocol: '-1'
+        - DestinationSecurityGroupId: !GetAtt VPC.DefaultSecurityGroup
           IpProtocol: '-1'
 
   AppStreamSecurityGroupEgress:
@@ -742,6 +770,8 @@ Outputs:
     Description: AppStream Security Group
     Condition: isAppStream
     Value: !Ref AppStreamSecurityGroup
+    Export:
+      Name: !Join ['', [Ref: Namespace, '-SwbAppStreamSG']]
 
   SageMakerSecurityGroup:
     Description: SageMaker Security Group
@@ -757,3 +787,17 @@ Outputs:
     Description: AppStream Stack
     Condition: isAppStream
     Value: !Ref AppStreamStack
+
+  CFNEndpointSG:
+    Description: Security group of CFN endpoint
+    Condition: isAppStream
+    Value: !Ref CfnEndpointSecurityGroup
+    Export:
+      Name: !Join ['', [Ref: Namespace, '-CfnEndpointSecurityGroup']]
+
+  VPCDefaultSG:
+    Description: Default SG for VPC
+    Condition: isAppStream
+    Value: !GetAtt VPC.DefaultSecurityGroup
+    Export:
+      Name: !Join ['', [Ref: Namespace, '-SwbVPCDefaultSG']]

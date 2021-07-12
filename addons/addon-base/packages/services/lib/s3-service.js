@@ -177,12 +177,43 @@ class S3Service extends Service {
       .promise();
   }
 
-  async createFolder(bucketName, folderName) {
+  async createPath(bucketName, folderName) {
     const params = {
       Bucket: bucketName,
       Key: folderName,
     };
     return this.api.putObject(params).promise();
+  }
+
+  async clearPath(bucketName, dir) {
+    const listParams = {
+      Bucket: bucketName,
+      Prefix: dir,
+    };
+
+    let listedObjects;
+    try {
+      listedObjects = await this.api.listObjectsV2(listParams).promise();
+    } catch (error) {
+      throw this.boom.badRequest(`S3Service error with listing objects in arn:aws:s3:::${bucketName}/${dir}`, true);
+    }
+
+    if (listedObjects.Contents.length === 0) return;
+
+    const deleteParams = {
+      Bucket: bucketName,
+      Delete: { Objects: [] },
+    };
+
+    listedObjects.Contents.forEach(({ Key }) => {
+      deleteParams.Delete.Objects.push({ Key });
+    });
+    try {
+      await this.api.deleteObjects(deleteParams).promise();
+      if (listedObjects.IsTruncated) await this.clearPath(bucketName, dir);
+    } catch (error) {
+      throw this.boom.badRequest(`S3Service error with deleting objects in arn:aws:s3:::${bucketName}/${dir}`, true);
+    }
   }
 }
 
