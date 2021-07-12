@@ -112,37 +112,54 @@ class ProvisionAccount extends StepBase {
     const appStreamImageName = await this.payload.string('appStreamImageName');
     await accountService.shareAppStreamImageWithMemberAccount(requestContext, accountId, appStreamImageName);
 
-    // Gives user time to go to AppStream on the AWS Console so that AmazonAppStreamServiceAccess can be created
-    // More info here: https://docs.aws.amazon.com/appstream2/latest/developerguide/roles-required-for-appstream.html#AmazonAppStreamServiceAccess
-    // return this.wait(60 * 15).thenCall('deployStack');
-
-    return this.wait(30)
-      .maxAttempts(40)
-      .until('checkAppStreamRolesCreated')
-      .thenCall('deployStack');
+    return this.wait(10).thenCall('createAppStreamRoles');
   }
 
-  // Check that user created AmazonAppStreamServiceAccess by navigating to AppStream console
-  // https://docs.aws.amazon.com/appstream2/latest/developerguide/roles-required-for-appstream.html
-  async checkAppStreamRolesCreated() {
+  async createAppStreamRoles() {
     const [aws] = await this.mustFindServices(['aws']);
     const { accessKeyId, secretAccessKey, sessionToken } = await this.getNewAWSAccountCredentials();
     const iam = new aws.sdk.IAM({ accessKeyId, secretAccessKey, sessionToken });
-    try {
-      await iam
-        .getRole({
-          RoleName: 'AmazonAppStreamServiceAccess',
-        })
-        .promise();
-      await iam
-        .getRole({
-          RoleName: 'ApplicationAutoScalingForAmazonAppStreamAccess',
-        })
-        .promise();
-      return true;
-    } catch (e) {
-      return false;
-    }
+    await iam
+      .createRole({
+        RoleName: 'AmazonAppStreamServiceAccess',
+        AssumeRolePolicyDocument:
+          '{"Version": "2012-10-17","Statement": {"Effect": "Allow","Principal": {"Service": "appstream.amazonaws.com"},"Action": "sts:AssumeRole"}}',
+        MaxSessionDuration: 3600,
+        Path: '/service-role/',
+      })
+      .promise();
+
+    await iam
+      .attachRolePolicy({
+        PolicyArn: 'arn:aws:iam::aws:policy/service-role/AmazonAppStreamServiceAccess',
+        RoleName: 'AmazonAppStreamServiceAccess',
+      })
+      .promise();
+
+    await iam
+      .createRole({
+        RoleName: 'ApplicationAutoScalingForAmazonAppStreamAccess',
+        AssumeRolePolicyDocument:
+          '{"Version": "2012-10-17","Statement": {"Effect": "Allow","Principal": {"Service": "appstream.amazonaws.com"},"Action": "sts:AssumeRole"}}',
+        MaxSessionDuration: 3600,
+        Path: '/service-role/',
+      })
+      .promise();
+
+    await iam
+      .attachRolePolicy({
+        PolicyArn: 'arn:aws:iam::aws:policy/service-role/ApplicationAutoScalingForAmazonAppStreamAccess',
+        RoleName: 'ApplicationAutoScalingForAmazonAppStreamAccess',
+      })
+      .promise();
+    await iam
+      .createServiceLinkedRole({
+        AWSServiceName: 'appstream.application-autoscaling.amazonaws.com',
+        Description: 'AppStream service-linked role for application autoscaling',
+      })
+      .promise();
+    // Provide time for internal Amazon customer to create containment score for new account by launching EC2 instance
+    return this.wait(60 * 15).thenCall('deployStack');
   }
 
   async deployStack() {
