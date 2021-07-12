@@ -8,7 +8,7 @@ sidebar_label: Deployment Stages
 
 The Service Workbench deployment is categorized into the following stages:
 
-1. [Pre Deployment](deployment/pre_deployment/predeployment)
+1. [Pre Deployment](/deployment/pre_deployment/pre_deployment/)
 
 2. [Deploying Service Workbench](/deployment/deployment/index)
 

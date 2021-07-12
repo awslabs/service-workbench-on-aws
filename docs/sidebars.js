@@ -31,6 +31,17 @@ module.exports = {
       "installation_guide/uninstall",
       "installation_guide/troubleshooting",
     ],
+    "Service Workbench Configuration Guide": [
+      "configuration_guide/overview",
+      "configuration_guide/workflow",
+      {
+        "Configuring Service Workbench using IdP": [
+          "configuration_guide/activedirectory",
+          "configuration_guide/adfs",
+          "configuration_guide/auth0",
+        ],
+      },
+    ],
     "Deployment Guide": [
       "deployment/deployment_stages",
       {
@@ -54,17 +65,6 @@ module.exports = {
           "deployment/post_deployment/create_admin_user",
           "deployment/post_deployment/import_service_catalog_products",
           "deployment/post_deployment/logs",
-        ],
-      },
-      {
-        Configuration: [
-          {
-            Authentication: [
-              "deployment/configuration/auth/enabling_ad",
-              "deployment/configuration/auth/configuring_auth0",
-              "deployment/configuration/auth/configuring_idp",
-            ],
-          },
         ],
       },
       "deployment/redeployment",
