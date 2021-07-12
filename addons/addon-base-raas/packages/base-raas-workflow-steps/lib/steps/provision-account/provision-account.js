@@ -267,7 +267,12 @@ class ProvisionAccount extends StepBase {
         // create S3 and KMS resources access for newly created account
         await this.updateLocalResourcePolicies();
 
+        // Start AppStream Fleet and wait for AppStream fleet to transition to RUNNING state
         await this.startAppStreamFleet(cfnOutputs.AppStreamFleet);
+        const isAppStreamFleetRunning = await this.checkAppStreamFleetIsRunning(cfnOutputs.AppStreamFleet);
+        if (!isAppStreamFleetRunning) {
+          return false;
+        }
 
         await this.updateAccount({
           status: 'COMPLETED',
@@ -324,6 +329,19 @@ class ProvisionAccount extends StepBase {
   async addAwsAccountTable(requestContext, awsAccountData) {
     const [awsAccountsService] = await this.mustFindServices(['awsAccountsService']);
     await awsAccountsService.create(requestContext, awsAccountData);
+  }
+
+  async checkAppStreamFleetIsRunning(appStreamFleetName) {
+    const [aws] = await this.mustFindServices(['aws']);
+    const { accessKeyId, secretAccessKey, sessionToken } = await this.getNewAWSAccountCredentials();
+    const appStream = new aws.sdk.AppStream({ accessKeyId, secretAccessKey, sessionToken });
+    const response = await appStream
+      .describeFleets({
+        Names: [appStreamFleetName],
+      })
+      .promise();
+    const state = response.Fleets[0].State;
+    return state === 'RUNNING';
   }
 
   async checkAccountCreationCompleted() {
