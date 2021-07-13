@@ -272,7 +272,10 @@ class ProvisionAccount extends StepBase {
           cfnInfo: {
             stackId,
             vpcId: cfnOutputs.VPC,
-            subnetId: cfnOutputs.VpcPublicSubnet1,
+            subnetId:
+              this.settings.get(settingKeys.isAppStreamEnabled) === 'true'
+                ? cfnOutputs.PrivateWorkspaceSubnet
+                : cfnOutputs.VpcPublicSubnet1,
             crossAccountExecutionRoleArn: cfnOutputs.CrossAccountExecutionRoleArn,
             crossAccountEnvMgmtRoleArn: cfnOutputs.CrossAccountEnvMgmtRoleArn,
             encryptionKeyArn: cfnOutputs.EncryptionKeyArn,
