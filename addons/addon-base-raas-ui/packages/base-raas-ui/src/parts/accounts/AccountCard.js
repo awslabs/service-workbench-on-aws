@@ -92,9 +92,11 @@ class AccountCard extends React.Component {
   };
 
   handlePendingButton = () => {
-    const accountsStore = this.awsAccountsStore;
-    const accountId = this.account.id;
-    accountsStore.resetPendingAccount(accountId);
+    // const accountsStore = this.awsAccountsStore;
+    // const accountId = this.account.id;
+    // accountsStore.resetPendingAccount(accountId);
+    const awsAccountId = this.account.id;
+    this.goto(`/aws-accounts/onboard/${awsAccountId}`);
   };
 
   render() {
@@ -183,7 +185,7 @@ class AccountCard extends React.Component {
               {!onboardMessage && (
                 <div>
                   Resources for this account are being provisioned. Please wait a few minutes for provisioning to
-                  complete, or click &quot;Reset Account&quot; to re-onboard this account.
+                  complete, or click &quot;Re-Onboard Account&quot; to re-onboard this account.
                 </div>
               )}
             </div>
@@ -246,7 +248,7 @@ class AccountCard extends React.Component {
     if (permissionStatus === 'NEEDSUPDATE')
       buttonArgs = { message: 'Update Permissions', color: 'orange', onClick: this.handleUpdateAccountPerms };
     else if (permissionStatus === 'PENDING')
-      buttonArgs = { message: 'Reset Account', color: 'yellow', onClick: this.handlePendingButton };
+      buttonArgs = { message: 'Re-Onboard Account', color: 'yellow', onClick: this.handlePendingButton };
     else buttonArgs = { message: 'Onboard Account', color: 'purple', onClick: this.handleOnboardAccount };
     // This button is only displayed if permissionStatus is NEEDSUPDATE, NEEDSONBOARD, or NOSTACKNAME
     return (
