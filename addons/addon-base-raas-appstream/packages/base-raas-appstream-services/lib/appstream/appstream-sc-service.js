@@ -155,9 +155,6 @@ class AppStreamScService extends Service {
       environmentId,
       indexId: environment.indexId,
     });
-    if (!stackName || !fleetName) {
-      throw this.boom.badRequest('Failed to find fleet or stack configuration for AppStream');
-    }
 
     // Create session context
     const environmentKey = environmentScKeypairService.toPrivateKeySsmParamName(environmentId);
