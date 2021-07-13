@@ -257,7 +257,7 @@ class AwsCfnService extends Service {
         account.permissionStatus === 'NEEDSONBOARD' || // We'll explicitly bring the account out of NEEDSONBOARD separately
         account.permissionStatus === 'PENDING' // Backend workflow will bring the account out of PENDING
       ) {
-        res = account.permissionsStatus;
+        res = account.permissionStatus;
         errorMsg = `Account ${account.accountId} needs to be onboarded.`;
       } else {
         try {
