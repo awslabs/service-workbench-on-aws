@@ -7,7 +7,6 @@ import { Segment, Icon, Button, Header, Table, List } from 'semantic-ui-react';
 
 import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
 
-import { isAppStreamEnabled } from '../../../helpers/settings';
 import ScEnvHttpConnectionExpanded from './ScEnvHttpConnectionExpanded';
 
 const openWindow = (url, windowFeatures) => {
@@ -66,7 +65,7 @@ class ScEnvironmentHttpConnections extends React.Component {
           url = urlObj.url;
 
           // If AppStream is enabled, copy destination URL to clipboard before new tab loads
-          if (isAppStreamEnabled) {
+          if (process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true') {
             runInAction(() => {
               this.destinationUrl = urlObj.appstreamDestinationUrl;
             });
@@ -111,7 +110,11 @@ class ScEnvironmentHttpConnections extends React.Component {
           <Table.Body>
             {_.map(connections, item => (
               <>
-                {isAppStreamEnabled ? this.renderAppstreamInstructions(item) : <></>}
+                {process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true' ? (
+                  this.renderAppstreamInstructions(item)
+                ) : (
+                  <></>
+                )}
                 <Table.Row key={item.id}>
                   <Table.Cell className="clearfix">
                     <Button
