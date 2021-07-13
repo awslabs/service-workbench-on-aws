@@ -75,12 +75,9 @@ class AppStreamScService extends Service {
     });
 
     if (!stackName) {
-      // If stackName is not available then this account does not have AppStream stack configured
-      this.log.warn({
-        msg: `AppStream stack is not configured for AWS Account = ${accountId}. Will not serve the workspace environment via AppStream.`,
-        missingAppStreamConfig: true,
-      });
-      return {};
+      throw this.boom.badRequest(
+        `Expected stack ${stackName} to be associated with the account ${accountId} but found`,
+      );
     }
 
     // Verify fleet is associated to appstream stack
@@ -114,7 +111,7 @@ class AppStreamScService extends Service {
     return `${uid}-${sessionSuffix}`.replace(/[^\w+=,.@-]+/g, '').slice(0, 32);
   }
 
-  async urlForFirefox(requestContext, { environmentId, finalDestination }) {
+  async urlForFirefox(requestContext, { environmentId }) {
     const environmentScService = await this.service('environmentScService');
 
     const appStream = await environmentScService.getClientSdkWithEnvMgmtRole(
@@ -129,10 +126,6 @@ class AppStreamScService extends Service {
       environmentId,
       indexId: environment.indexId,
     });
-    if (!stackName || !fleetName) {
-      // return original url as is
-      return finalDestination;
-    }
 
     const result = await appStream
       .createStreamingURL({

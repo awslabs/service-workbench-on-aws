@@ -30,7 +30,6 @@ async function createConnectionUrl({ envId, connection }, { requestContext, cont
     const appStreamScService = await container.find('appStreamScService');
     appStreamUrl = await appStreamScService.urlForFirefox(requestContext, {
       environmentId: envId,
-      finalDestination: connection.url,
     });
   } else if (connection.scheme === 'rdp') {
     log.debug({
