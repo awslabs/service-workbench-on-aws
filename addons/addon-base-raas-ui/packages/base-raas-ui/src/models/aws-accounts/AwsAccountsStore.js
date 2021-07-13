@@ -175,6 +175,7 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         res.subnetId = awsAccount.subnetId;
         res.permissionStatus = awsAccount.permissionStatus;
         res.encryptionKeyArn = awsAccount.encryptionKeyArn;
+        res.onboardStatusRoleArn = awsAccount.onboardStatusRoleArn;
         res.cfnStackName = awsAccount.cfnStackName;
         res.cfnStackId = awsAccount.cfnStackId;
         res.updatedAt = awsAccount.updatedAt;

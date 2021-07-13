@@ -80,6 +80,7 @@ const AwsAccount = types
     vpcId: '',
     subnetId: '',
     encryptionKeyArn: '',
+    onboardStatusRoleArn: '',
     createdAt: '',
     createdBy: '',
     updatedAt: '',
@@ -102,6 +103,7 @@ const AwsAccount = types
       self.vpcId = rawAwsAccounts.vpcId || self.vpcId;
       self.subnetId = rawAwsAccounts.subnetId || self.subnetId;
       self.encryptionKeyArn = rawAwsAccounts.encryptionKeyArn || self.encryptionKeyArn;
+      self.onboardStatusRoleArn = rawAwsAccounts.onboardStatusRoleArn || self.onboardStatusRoleArn;
       self.createdAt = rawAwsAccounts.createdAt || self.createdAt;
       self.updatedAt = rawAwsAccounts.updatedAt || self.updatedAt;
       self.createdBy = rawAwsAccounts.createdBy || self.createdBy;

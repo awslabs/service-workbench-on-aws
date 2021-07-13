@@ -248,9 +248,9 @@ class AccountCard extends React.Component {
     if (permissionStatus === 'NEEDSUPDATE')
       buttonArgs = { message: 'Update Permissions', color: 'orange', onClick: this.handleUpdateAccountPerms };
     else if (permissionStatus === 'PENDING')
-      buttonArgs = { message: 'Re-Onboard Account', color: 'yellow', onClick: this.handlePendingButton };
+      buttonArgs = { message: 'Re-Onboard Account', color: 'red', onClick: this.handlePendingButton };
     else buttonArgs = { message: 'Onboard Account', color: 'purple', onClick: this.handleOnboardAccount };
-    // This button is only displayed if permissionStatus is NEEDSUPDATE, NEEDSONBOARD, or NOSTACKNAME
+    // This button is only displayed if permissionStatus is NEEDSUPDATE, NEEDSONBOARD, or PENDING
     return (
       <Button floated="right" color={buttonArgs.color} onClick={buttonArgs.onClick}>
         {buttonArgs.message}

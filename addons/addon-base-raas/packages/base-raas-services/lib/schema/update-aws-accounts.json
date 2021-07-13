@@ -39,7 +39,7 @@
       "type": "string",
       "minLength": 10
     },
-    "xAccEnvMgmtRoleArn": {
+    "onboardStatusRoleArn": {
       "type": "string",
       "minLength": 10,
       "pattern": "^arn:aws:iam::.*$"

@@ -121,8 +121,8 @@ class AwsCfnService extends Service {
       { accountEntity },
     );
     const region = this.settings.get(settingKeys.awsRegion);
-    const { xAccEnvMgmtRoleArn, cfnStackName, externalId } = accountEntity;
-    const cfnApi = await this.getCfnSdk(xAccEnvMgmtRoleArn, externalId, region);
+    const { onboardStatusRoleArn, cfnStackName, externalId } = accountEntity;
+    const cfnApi = await this.getCfnSdk(onboardStatusRoleArn, externalId, region);
     const params = { StackName: cfnStackName };
     const stacks = await cfnApi.describeStacks(params).promise();
     const stack = _.find(_.get(stacks, 'Stacks', []), item => item.StackName === cfnStackName);
@@ -200,12 +200,12 @@ class AwsCfnService extends Service {
         cfnStackName: cfnTemplateInfo.name, // If SWB didn't generate a cfn name, this will be account.cfnStackName
         externalId: 'workbench',
         permissionStatus: 'PENDING',
-        xAccEnvMgmtRoleArn: [
+        onboardStatusRoleArn: [
           'arn:aws:iam::',
           account.accountId,
           ':role/',
           createParams.namespace,
-          '-cross-account-role',
+          '-cfn-status-role',
         ].join(''),
       };
       await awsAccountsService.update(requestContext, updatedAcct);
@@ -302,11 +302,11 @@ class AwsCfnService extends Service {
   }
 
   // @private
-  async getCfnSdk(xAccEnvMgmtRoleArn, externalId, region) {
+  async getCfnSdk(onboardStatusRoleArn, externalId, region) {
     const aws = await this.service('aws');
     try {
       const cfnClient = await aws.getClientSdkForRole({
-        roleArn: xAccEnvMgmtRoleArn,
+        roleArn: onboardStatusRoleArn,
         externalId,
         clientName: 'CloudFormation',
         options: { region },
@@ -366,8 +366,8 @@ class AwsCfnService extends Service {
     const accountEntity = await awsAccountsService.mustFind(requestContext, { id: accountId });
 
     const region = this.settings.get(settingKeys.awsRegion);
-    const { xAccEnvMgmtRoleArn, cfnStackName, externalId } = accountEntity;
-    const cfnApi = await this.getCfnSdk(xAccEnvMgmtRoleArn, externalId, region);
+    const { onboardStatusRoleArn, cfnStackName, externalId } = accountEntity;
+    const cfnApi = await this.getCfnSdk(onboardStatusRoleArn, externalId, region);
     const params = { StackName: cfnStackName };
     const stacks = await cfnApi.describeStacks(params).promise();
     const stack = _.find(_.get(stacks, 'Stacks', []), item => item.StackName === cfnStackName);
