@@ -670,10 +670,10 @@ Resources:
       EnableDefaultInternetAccess: False
       FleetType: !Ref AppStreamFleetType
       IdleDisconnectTimeoutInSeconds: !Ref AppStreamIdleDisconnectTimeoutSeconds
-      ImageName: !Ref AppStreamImageName
+      ImageArn: !Sub 'arn:aws:appstream:${AWS::Region}:${CentralAccountId}:image/${AppStreamImageName}'
       InstanceType: !Ref AppStreamInstanceType
       MaxUserDurationInSeconds: !Ref AppStreamMaxUserDurationSeconds
-      Name: 'ServiceWorkbenchFleet'
+      Name: !Sub ${Namespace}-ServiceWorkbenchFleet
       StreamView: 'APP'
       VpcConfig:
         SecurityGroupIds:
@@ -689,7 +689,7 @@ Resources:
         Enabled: False
       Description: 'SWB AppStream Stack'
       DisplayName: 'SWB Stack'
-      Name: 'ServiceWorkbenchStack'
+      Name: !Sub ${Namespace}-ServiceWorkbenchStack
       UserSettings:
         - Action: 'CLIPBOARD_COPY_FROM_LOCAL_DEVICE'
           Permission: 'ENABLED'
@@ -777,3 +777,8 @@ Outputs:
     Value: !GetAtt VPC.DefaultSecurityGroup
     Export:
       Name: !Join ['', [Ref: Namespace, '-SwbVPCDefaultSG']]
+
+  AppStreamStackName:
+    Description: Name of the stack created by AppStream
+    Condition: isAppStream
+    Value: !Sub ${Namespace}-ServiceWorkbenchStack
