@@ -30,10 +30,6 @@ async function registerServices(container, _pluginRegistry) {
 }
 
 const plugin = {
-  // getStaticSettings, // not implemented, the default behavior provided by addon-base is sufficient
-  // getLoggingContext, // not implemented, the default behavior provided by addon-base is sufficient
-  // registerSettingsService, // not implemented, the default behavior provided by addon-base is sufficient
-  // registerLoggerService, // not implemented, the default behavior provided by addon-base is sufficient
   registerServices,
 };
 
