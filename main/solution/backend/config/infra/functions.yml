@@ -158,6 +158,7 @@ apiHandler:
     APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
     APP_ROOT_USER_NAME: ${self:custom.settings.rootUserName}
     APP_ENABLE_EGRESS_STORE: ${self:custom.settings.enableEgressStore}
+    APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
     APP_EGRESS_STORE_BUCKET_NAME: ${self:custom.settings.egressStoreBucketName}
 
 workflowLoopRunner:

@@ -31,6 +31,7 @@ const settingKeys = {
   artifactsBucketName: 'artifactsBucketName',
   launchConstraintRolePrefix: 'launchConstraintRolePrefix',
   launchConstraintPolicyPrefix: 'launchConstraintPolicyPrefix',
+  isAppStreamEnabled: 'isAppStreamEnabled',
 };
 
 class ProvisionAccount extends StepBase {
@@ -96,8 +97,69 @@ class ProvisionAccount extends StepBase {
     this.print(`saving account data into dynamo: ${JSON.stringify(data)}`);
     await accountService.saveAccountToDb(requestContext, data, accountId);
     // THIS IS NEEDED, we should wait AWS to setup the account, even if we can fetch the account ID
-    this.print('start to wait for 5min for AWS getting the account ready.');
+    this.print('start to wait for 5 minutes for AWS getting the account ready.');
+
+    if (this.settings.get(settingKeys.isAppStreamEnabled) === 'true') {
+      return this.wait(60 * 5).thenCall('shareImageWithMemberAccount');
+    }
     return this.wait(60 * 5).thenCall('deployStack');
+  }
+
+  async shareImageWithMemberAccount() {
+    const [accountService] = await this.mustFindServices(['accountService']);
+    const requestContext = await this.payload.object('requestContext');
+    const accountId = await this.state.string('ACCOUNT_ID');
+    const appStreamImageName = await this.payload.string('appStreamImageName');
+    await accountService.shareAppStreamImageWithMemberAccount(requestContext, accountId, appStreamImageName);
+
+    return this.wait(10).thenCall('createAppStreamRoles');
+  }
+
+  async createAppStreamRoles() {
+    const [aws] = await this.mustFindServices(['aws']);
+    const { accessKeyId, secretAccessKey, sessionToken } = await this.getNewAWSAccountCredentials();
+    const iam = new aws.sdk.IAM({ accessKeyId, secretAccessKey, sessionToken });
+    await iam
+      .createRole({
+        RoleName: 'AmazonAppStreamServiceAccess',
+        AssumeRolePolicyDocument:
+          '{"Version": "2012-10-17","Statement": {"Effect": "Allow","Principal": {"Service": "appstream.amazonaws.com"},"Action": "sts:AssumeRole"}}',
+        MaxSessionDuration: 3600,
+        Path: '/service-role/',
+      })
+      .promise();
+
+    await iam
+      .attachRolePolicy({
+        PolicyArn: 'arn:aws:iam::aws:policy/service-role/AmazonAppStreamServiceAccess',
+        RoleName: 'AmazonAppStreamServiceAccess',
+      })
+      .promise();
+
+    await iam
+      .createRole({
+        RoleName: 'ApplicationAutoScalingForAmazonAppStreamAccess',
+        AssumeRolePolicyDocument:
+          '{"Version": "2012-10-17","Statement": {"Effect": "Allow","Principal": {"Service": "appstream.amazonaws.com"},"Action": "sts:AssumeRole"}}',
+        MaxSessionDuration: 3600,
+        Path: '/service-role/',
+      })
+      .promise();
+
+    await iam
+      .attachRolePolicy({
+        PolicyArn: 'arn:aws:iam::aws:policy/service-role/ApplicationAutoScalingForAmazonAppStreamAccess',
+        RoleName: 'ApplicationAutoScalingForAmazonAppStreamAccess',
+      })
+      .promise();
+    await iam
+      .createServiceLinkedRole({
+        AWSServiceName: 'appstream.application-autoscaling.amazonaws.com',
+        Description: 'AppStream service-linked role for application autoscaling',
+      })
+      .promise();
+    // Provide time for internal Amazon customer to create containment score for new account by launching EC2 instance
+    return this.wait(60 * 15).thenCall('deployStack');
   }
 
   async deployStack() {
@@ -107,11 +169,30 @@ class ProvisionAccount extends StepBase {
     const by = _.get(requestContext, 'principalIdentifier.uid');
     const [userService] = await this.mustFindServices(['userService']);
     const user = await userService.mustFindUser({ uid: by });
+
     const externalId = await this.payload.string('externalId');
-    const [workflowRoleArn, apiHandlerArn, callerAccountId] = await Promise.all([
+    const [
+      workflowRoleArn,
+      apiHandlerArn,
+      callerAccountId,
+      appStreamFleetDesiredInstances,
+      appStreamDisconnectTimeoutSeconds,
+      appStreamIdleDisconnectTimeoutSeconds,
+      appStreamMaxUserDurationSeconds,
+      appStreamImageName,
+      appStreamInstanceType,
+      appStreamFleetType,
+    ] = await Promise.all([
       this.payload.string('workflowRoleArn'),
       this.payload.string('apiHandlerArn'),
       this.payload.string('callerAccountId'),
+      this.payload.optionalString('appStreamFleetDesiredInstances', '0'),
+      this.payload.optionalString('appStreamDisconnectTimeoutSeconds', '0'),
+      this.payload.optionalString('appStreamIdleDisconnectTimeoutSeconds', '0'),
+      this.payload.optionalString('appStreamMaxUserDurationSeconds', '0'),
+      this.payload.optionalString('appStreamImageName'),
+      this.payload.optionalString('appStreamInstanceType'),
+      this.payload.optionalString('appStreamFleetType', 'ON_DEMAND'),
     ]);
     // deploy basic stacks to the account just created
     const [cfnTemplateService] = await this.mustFindServices(['cfnTemplateService']);
@@ -130,8 +211,18 @@ class ProvisionAccount extends StepBase {
     addParam('WorkflowRoleArn', workflowRoleArn);
     addParam('ApiHandlerArn', apiHandlerArn);
 
+    // AppStream
+    addParam('AppStreamFleetDesiredInstances', appStreamFleetDesiredInstances);
+    addParam('AppStreamDisconnectTimeoutSeconds', appStreamDisconnectTimeoutSeconds);
+    addParam('AppStreamIdleDisconnectTimeoutSeconds', appStreamIdleDisconnectTimeoutSeconds);
+    addParam('AppStreamMaxUserDurationSeconds', appStreamMaxUserDurationSeconds);
+    addParam('AppStreamImageName', appStreamImageName);
+    addParam('AppStreamInstanceType', appStreamInstanceType);
+    addParam('AppStreamFleetType', appStreamFleetType);
+
     addParam('LaunchConstraintRolePrefix', this.settings.get(settingKeys.launchConstraintRolePrefix));
     addParam('LaunchConstraintPolicyPrefix', this.settings.get(settingKeys.launchConstraintPolicyPrefix));
+    addParam('EnableAppStream', this.settings.get(settingKeys.isAppStreamEnabled));
 
     const input = {
       StackName: stackName,
@@ -205,11 +296,30 @@ class ProvisionAccount extends StepBase {
           name,
           roleArn: cfnOutputs.CrossAccountExecutionRoleArn,
           xAccEnvMgmtRoleArn: cfnOutputs.CrossAccountEnvMgmtRoleArn,
-          subnetId: cfnOutputs.VpcPublicSubnet1,
           vpcId: cfnOutputs.VPC,
           encryptionKeyArn: cfnOutputs.EncryptionKeyArn,
         };
-        await this.addAwsAccountTable(requestContext, awsAccountData);
+        let additionalAccountData = {};
+        if (this.settings.get(settingKeys.isAppStreamEnabled) === 'true') {
+          // Start AppStream Fleet and wait for AppStream fleet to transition to RUNNING state
+          await this.startAppStreamFleet(cfnOutputs.AppStreamFleet);
+          const isAppStreamFleetRunning = await this.checkAppStreamFleetIsRunning(cfnOutputs.AppStreamFleet);
+          if (!isAppStreamFleetRunning) {
+            return false;
+          }
+
+          additionalAccountData = {
+            appStreamStackName: cfnOutputs.AppStreamStackName,
+            appStreamSecurityGroupId: cfnOutputs.AppStreamSecurityGroup,
+            appStreamFleetName: cfnOutputs.AppStreamFleet,
+            subnetId: cfnOutputs.PrivateWorkspaceSubnet,
+          };
+        } else {
+          additionalAccountData = {
+            subnetId: cfnOutputs.VpcPublicSubnet1,
+          };
+        }
+        await this.addAwsAccountTable(requestContext, { ...awsAccountData, ...additionalAccountData });
       }
       return true;
     } // else CFN is still pending
@@ -219,6 +329,19 @@ class ProvisionAccount extends StepBase {
   async addAwsAccountTable(requestContext, awsAccountData) {
     const [awsAccountsService] = await this.mustFindServices(['awsAccountsService']);
     await awsAccountsService.create(requestContext, awsAccountData);
+  }
+
+  async checkAppStreamFleetIsRunning(appStreamFleetName) {
+    const [aws] = await this.mustFindServices(['aws']);
+    const { accessKeyId, secretAccessKey, sessionToken } = await this.getNewAWSAccountCredentials();
+    const appStream = new aws.sdk.AppStream({ accessKeyId, secretAccessKey, sessionToken });
+    const response = await appStream
+      .describeFleets({
+        Names: [appStreamFleetName],
+      })
+      .promise();
+    const state = response.Fleets[0].State;
+    return state === 'RUNNING';
   }
 
   async checkAccountCreationCompleted() {
@@ -297,7 +420,7 @@ class ProvisionAccount extends StepBase {
     */
   }
 
-  async getCloudFormationService() {
+  async getNewAWSAccountCredentials() {
     const [aws] = await this.mustFindServices(['aws']);
     const credential = await this.getCredentials();
     const [requestContext, ExternalId] = await Promise.all([
@@ -317,8 +440,24 @@ class ProvisionAccount extends StepBase {
         ExternalId,
       })
       .promise();
+    return { accessKeyId, secretAccessKey, sessionToken };
+  }
 
+  async getCloudFormationService() {
+    const [aws] = await this.mustFindServices(['aws']);
+    const { accessKeyId, secretAccessKey, sessionToken } = await this.getNewAWSAccountCredentials();
     return new aws.sdk.CloudFormation({ accessKeyId, secretAccessKey, sessionToken });
+  }
+
+  async startAppStreamFleet(appStreamFleetName) {
+    const [aws] = await this.mustFindServices(['aws']);
+    const { accessKeyId, secretAccessKey, sessionToken } = await this.getNewAWSAccountCredentials();
+    const appStream = new aws.sdk.AppStream({ accessKeyId, secretAccessKey, sessionToken });
+    await appStream
+      .startFleet({
+        Name: appStreamFleetName,
+      })
+      .promise();
   }
 
   async getOrganizationService() {
