@@ -96,7 +96,6 @@ class AwsCfnService extends Service {
       'cfnTemplateService',
       'awsAccountsService',
       's3Service',
-      'workflowTriggerService',
     ]);
   }
 
@@ -218,6 +217,7 @@ class AwsCfnService extends Service {
       { action: 'check-aws-permissions', conditions: [allowIfActive, allowIfAdmin] },
       { accountId },
     );
+    // see https://github.com/rvedotrc/aws-cloudformation-stack-states for all states
     const PENDING_STATES = [
       'CREATE_IN_PROGRESS',
       'UPDATE_IN_PROGRESS',

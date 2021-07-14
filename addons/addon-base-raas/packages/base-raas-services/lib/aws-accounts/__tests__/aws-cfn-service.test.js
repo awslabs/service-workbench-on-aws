@@ -61,8 +61,8 @@ describe('AwsAccountService', () => {
     roleArn: 'TestRole',
     externalId: 'workbench',
     clientName: 'CloudFormation',
-    xAccEnvMgmtRoleArn: 'otherRole',
-    cfnStackName: 'teststackname',
+    onboardStatusRoleArn: 'otherRole',
+    cfnStackName: 'HAPPY_STACK',
     permissionStatus: 'NEEDSUPDATE',
   };
 
@@ -75,11 +75,50 @@ describe('AwsAccountService', () => {
 
   const mockYmlResponse = 'Attribute:\n\t- Value #This is a comment';
 
+  const mockStackOutputs = [
+    {
+      OutputKey: 'EncryptionKeyArn',
+      OutputValue: 'arn:aws:kms:placeholder',
+      Description: 'KMS Encryption Key Arn',
+    },
+    {
+      OutputKey: 'VPC',
+      OutputValue: 'vpc-placeholder',
+      Description: 'VPC ID',
+    },
+    {
+      OutputKey: 'CrossAccountExecutionRoleArn',
+      OutputValue: 'arn:aws:iam::execution-placeholder',
+      Description: 'The arn of the cross account role.',
+    },
+    {
+      OutputKey: 'VpcPublicSubnet1',
+      OutputValue: 'subnet-placeholder',
+      Description: 'A reference to the public subnet in the 1st Availability Zone',
+    },
+    {
+      OutputKey: 'CrossAccountEnvMgmtRoleArn',
+      OutputValue: 'arn:aws:iam::placeholder',
+      Description: 'The arn of the cross account role for environment management using AWS Service Catalog',
+    },
+  ];
+
   const mockCfnApi = {
     describeStacks: () => {
       return {
         promise: async () => {
-          return { Stacks: [{ StackName: mockAccount.cfnStackName }] };
+          return {
+            Stacks: [
+              {
+                StackName: 'HAPPY_STACK',
+                StackId: 'HAPPY_ID',
+                StackStatus: 'CREATE_COMPLETE',
+                Outputs: mockStackOutputs,
+              },
+              { StackName: 'PENDING_STACK', StackStatus: 'UPDATE_IN_PROGRESS' },
+              { StackName: 'ERRORED_STACK', StackStatus: 'UPDATE_FAILED' },
+            ],
+          };
         },
       };
     },
@@ -224,16 +263,17 @@ describe('AwsAccountService', () => {
       expect(res).toEqual('CURRENT');
     });
 
-    it('should correctly set account with undefined cfnStackName to NEEDSONBOARD', async () => {
-      // This account's status should change to 'NEEDSONBOARD'
+    it('should correctly set account with missing cfnStackName to ERRORED', async () => {
+      // This account's status should change to 'ERRORED'
+      // We shouldn't ever be in a position where the stack name is missing
       const noStackNameMock = {
         ...mockAccount,
         id: 'noStackName',
         accountId: 'noStackName',
         cfnStackName: '',
-        permissionStatus: 'ERRORED',
+        permissionStatus: 'CURRENT',
       };
-      const expUpdate = { ...expectedUpdate, id: noStackNameMock.id, permissionStatus: 'NEEDSONBOARD' };
+      const expUpdate = { ...expectedUpdate, id: noStackNameMock.id, permissionStatus: 'ERRORED' };
 
       awsAccountsService.list.mockImplementationOnce(() => [noStackNameMock]);
       awsAccountsService.mustFind.mockImplementationOnce(() => {
@@ -243,7 +283,51 @@ describe('AwsAccountService', () => {
       const res = await service.batchCheckAccountPermissions(requestContext);
       expect(awsAccountsService.update).toHaveBeenCalledWith(requestContext, expUpdate);
 
-      expect(res.errors[noStackNameMock.id]).toEqual(`Account ${noStackNameMock.accountId} needs to be onboarded.`);
+      expect(res.errors[noStackNameMock.id]).toEqual(
+        `Error checking permissions for account ${noStackNameMock.accountId}. Stack '${noStackNameMock.cfnStackName}' not found`,
+      );
+    });
+
+    it('should return PENDING for pending stacks', async () => {
+      // This account's status should change to 'ERRORED'
+      // We shouldn't ever be in a position where the stack name is missing
+      const pendingStackNameMock = {
+        ...mockAccount,
+        id: 'noStackName',
+        accountId: 'noStackName',
+        cfnStackName: 'PENDING_STACK',
+        permissionStatus: 'CURRENT',
+      };
+      const expUpdate = { ...expectedUpdate, id: pendingStackNameMock.id, permissionStatus: 'PENDING' };
+
+      awsAccountsService.list.mockImplementationOnce(() => [pendingStackNameMock]);
+      awsAccountsService.mustFind.mockImplementationOnce(() => {
+        return pendingStackNameMock;
+      });
+
+      await service.batchCheckAccountPermissions(requestContext);
+      expect(awsAccountsService.update).toHaveBeenCalledWith(requestContext, expUpdate);
+    });
+
+    it('should return ERRORED for errored stacks', async () => {
+      // This account's status should change to 'ERRORED'
+      // We shouldn't ever be in a position where the stack name is missing
+      const erroredStackNameMock = {
+        ...mockAccount,
+        id: 'noStackName',
+        accountId: 'noStackName',
+        cfnStackName: 'ERRORED_STACK',
+        permissionStatus: 'CURRENT',
+      };
+      const expUpdate = { ...expectedUpdate, id: erroredStackNameMock.id, permissionStatus: 'ERRORED' };
+
+      awsAccountsService.list.mockImplementationOnce(() => [erroredStackNameMock]);
+      awsAccountsService.mustFind.mockImplementationOnce(() => {
+        return erroredStackNameMock;
+      });
+
+      await service.batchCheckAccountPermissions(requestContext);
+      expect(awsAccountsService.update).toHaveBeenCalledWith(requestContext, expUpdate);
     });
   });
 
@@ -263,6 +347,83 @@ describe('AwsAccountService', () => {
         // CHECK
         expect(err.message).toEqual('User is not authorized');
       }
+    });
+  });
+
+  describe('onboarding accounts', () => {
+    const requestContext = {};
+
+    it('should fail due to insufficient permissions', async () => {
+      service.assertAuthorized.mockImplementationOnce(() => {
+        throw new Error('User is not authorized');
+      });
+
+      // OPERATE
+      try {
+        await service.attemptOnboardAccounts(requestContext);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('User is not authorized');
+      }
+    });
+
+    it('should handle no accounts pending correctly', async () => {
+      const res = await service.attemptOnboardAccounts(requestContext);
+      expect(res.status).toEqual('No accounts are pending.');
+    });
+
+    it('should correctly handle pending accounts that have pending stacks', async () => {
+      // This account's status should change to 'ERRORED'
+      // We shouldn't ever be in a position where the stack name is missing
+      const pendingAccountMock = {
+        ...mockAccount,
+        id: 'pendingPendingAccount',
+        accountId: 'pendingPendingAccount',
+        cfnStackName: 'PENDING_STACK',
+        permissionStatus: 'PENDING',
+      };
+
+      awsAccountsService.list.mockImplementationOnce(() => [pendingAccountMock]);
+      awsAccountsService.mustFind.mockImplementationOnce(() => {
+        return pendingAccountMock;
+      });
+
+      const res = await service.attemptOnboardAccounts(requestContext);
+      expect(res[pendingAccountMock.id]).toContain('Account is not ready yet.');
+    });
+
+    it('should correctly handle pending accounts that have completed stacks', async () => {
+      // This account's status should change to 'ERRORED'
+      // We shouldn't ever be in a position where the stack name is missing
+      const completedAccountMock = {
+        ...mockAccount,
+        id: 'pendingCompletedAccount',
+        accountId: 'pendingCompletedAccount',
+        cfnStackName: 'HAPPY_STACK',
+        permissionStatus: 'PENDING',
+      };
+
+      const expUpdate = {
+        id: completedAccountMock.id,
+        cfnStackId: 'HAPPY_ID',
+        vpcId: 'vpc-placeholder',
+        subnetId: 'subnet-placeholder',
+        roleArn: 'arn:aws:iam::placeholder',
+        externalId: 'workbench',
+        encryptionKeyArn: 'arn:aws:kms:placeholder',
+        permissionStatus: 'CURRENT',
+        rev: completedAccountMock.rev,
+      };
+
+      awsAccountsService.list.mockImplementationOnce(() => [completedAccountMock]);
+      awsAccountsService.mustFind.mockImplementationOnce(() => {
+        return completedAccountMock;
+      });
+
+      const res = await service.attemptOnboardAccounts(requestContext);
+      expect(res[completedAccountMock.id]).toEqual('Successfully Onboarded');
+      expect(awsAccountsService.update).toHaveBeenCalledWith(requestContext, expUpdate);
     });
   });
 });
