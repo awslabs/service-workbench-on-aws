@@ -238,7 +238,7 @@ class EnvironmentConfigVarsService extends Service {
       memberAccountId: accountId,
     });
 
-    let egressStoreIamPolicyDocument;
+    let egressStoreIamPolicyDocument = {};
     const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
     if (enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE') {
       const egressStoreMount = await this.getEgressStoreMount(requestContext, environment);
