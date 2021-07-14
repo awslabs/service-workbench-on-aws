@@ -92,9 +92,6 @@ class AccountCard extends React.Component {
   };
 
   handlePendingButton = () => {
-    // const accountsStore = this.awsAccountsStore;
-    // const accountId = this.account.id;
-    // accountsStore.resetPendingAccount(accountId);
     const awsAccountId = this.account.id;
     this.goto(`/aws-accounts/onboard/${awsAccountId}`);
   };

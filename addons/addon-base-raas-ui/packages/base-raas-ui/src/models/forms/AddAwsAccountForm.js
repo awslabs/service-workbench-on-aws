@@ -26,16 +26,6 @@ const addAwsAccountFormFields = {
     placeholder: 'Type the 12-digit AWS account ID',
     rules: 'required|string|size:12',
   },
-  // roleArn: {
-  //   label: 'Role Arn',
-  //   placeholder: 'Type Role ARN for launching resources into this AWS account',
-  //   rules: 'required|string|between:10,300',
-  // },
-  // xAccEnvMgmtRoleArn: {
-  //   label: 'AWS Service Catalog Role Arn',
-  //   placeholder: 'Type Role ARN for launching resources into this AWS account using AWS Service Catalog',
-  //   rules: 'required|string|between:10,300',
-  // },
   description: {
     label: 'Description',
     placeholder: 'Type description for this AWS account',

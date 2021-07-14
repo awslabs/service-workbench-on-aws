@@ -104,21 +104,6 @@ class AwsAccountUpdateContent extends React.Component {
     this.goBackToAccountsPage();
   };
 
-  handleCreateStackClicked = async () => {
-    return undefined;
-    // const accountId = this.account.id;
-    // const accountsStore = this.awsAccountsStore;
-    // const currentAccount = accountsStore.getAwsAccount(accountId);
-
-    // if (currentAccount.permissionStatus === 'NEEDSONBOARD') {
-    //   await accountsStore.updateAwsAccount(currentAccount.id, {
-    //     id: currentAccount.id,
-    //     rev: currentAccount.rev,
-    //     permissionStatus: 'PENDING',
-    //   });
-    // }
-  };
-
   render() {
     return (
       <Container className="mt3 animated fadeIn">
@@ -235,14 +220,7 @@ class AwsAccountUpdateContent extends React.Component {
             CloudFormation console where you can review the stack information and provision it.
             <div className="mb0 flex mt2">
               <div className="flex-auto">
-                <Button
-                  fluid
-                  as="a"
-                  target="_blank"
-                  href={createStackUrl}
-                  onClick={this.handleCreateStackClicked}
-                  rel="noopener noreferrer"
-                >
+                <Button fluid as="a" target="_blank" href={createStackUrl} rel="noopener noreferrer">
                   Create Stack
                 </Button>
                 {this.renderExpires(stackInfo)}

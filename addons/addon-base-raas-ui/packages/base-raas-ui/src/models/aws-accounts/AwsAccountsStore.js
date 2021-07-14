@@ -105,20 +105,6 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         await updateAwsAccount(awsAccountUUID, updatedAcctInfo);
       },
 
-      resetPendingAccount: async awsAccountUUID => {
-        const account = self.awsAccounts.get(awsAccountUUID);
-        if (account.permissionStatus === 'PENDING') {
-          const resetInfo = {
-            id: account.id,
-            rev: account.rev,
-            permissionStatus: 'NEEDSONBOARD',
-          };
-
-          const updatedAcct = await updateAwsAccount(awsAccountUUID, resetInfo);
-          self.awsAccounts.set(updatedAcct.id, updatedAcct);
-        }
-      },
-
       getBudgetStore: awsAccountUUID => {
         let entry = self.budgetStores.get(awsAccountUUID);
         if (!entry) {
