@@ -289,7 +289,7 @@ describe('EnvironmentSCService', () => {
       mockSettingsService({
         environmentInstanceFiles: '{}',
         isAppStreamEnabled: 'true',
-        solutionNamespace: 'gamma',
+        solutionNamespace: 'initial-stack-1625689755737',
       });
       const expectedResponse = {
         accountId: '123456789012',
@@ -315,7 +315,7 @@ describe('EnvironmentSCService', () => {
         vpcId: 'VpcId-Test',
         xAccEnvMgmtRoleArn: 'xAccEnvMgmtRole-Test',
         isAppStreamEnabled: 'true',
-        solutionNamespace: 'gamma',
+        solutionNamespace: 'initial-stack-1625689755737',
       };
 
       // EXECUTE & CHECK
@@ -329,7 +329,7 @@ describe('EnvironmentSCService', () => {
       mockSettingsService({
         environmentInstanceFiles: '{}',
         isAppStreamEnabled: 'true',
-        solutionNamespace: 'gamma',
+        solutionNamespace: 'initial-stack-1625689755737',
         enableEgressStore: 'true',
       });
       const requestContext = 'sampleRequestContext';
@@ -402,7 +402,7 @@ describe('EnvironmentSCService', () => {
         vpcId: 'VpcId-Test',
         xAccEnvMgmtRoleArn: 'xAccEnvMgmtRole-Test',
         isAppStreamEnabled: 'true',
-        solutionNamespace: 'gamma',
+        solutionNamespace: 'initial-stack-1625689755737',
       };
 
       // EXECUTE & CHECK
