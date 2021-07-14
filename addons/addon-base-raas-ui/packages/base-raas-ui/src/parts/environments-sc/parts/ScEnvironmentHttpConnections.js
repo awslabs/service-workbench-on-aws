@@ -155,7 +155,7 @@ class ScEnvironmentHttpConnections extends React.Component {
       <>
         <Table.Row key={`${item.id}__2`}>
           <Table.Cell className="clearfix">
-            <b>Connection instructions for your {item.id} AppStream workspace:</b>
+            <b>Connection instructions for your AppStream workspace:</b>
             <List bulleted>
               <List.Item className="flex" key={`${item.id}_list_1`}>
                 Step 1: Click the Connect button to start an AppStream session

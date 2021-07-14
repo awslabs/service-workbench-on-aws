@@ -131,56 +131,69 @@ class ScEnvironmentRdpConnectionRow extends React.Component {
     const moreThanOne = _.size(interfaces) > 1;
 
     return (
-      <Table.Row key={`${item.id}__2`}>
-        <Table.Cell className="p3">
-          <b>
-            Your Windows workspace can be accessed via an RDP client by using the DNS host name and credentials defined
-            below.
-          </b>
-          <List bulleted>
-            <List.Item>
-              The IP Address or DNS of the instance.{' '}
-              {moreThanOne ? 'Ask your administrator if you are not sure which one to use:' : ''}
-              <List>
-                {_.map(interfaces, network => (
-                  <List.Item key={network.value} className="flex">
-                    {this.renderHostLabel(network)}
-                    <CopyToClipboard text={network.value} />
+      <>
+        <Table.Row key={`${item.id}__2`}>
+          <Table.Cell className="p3">
+            <b>
+              Your Windows workspace can be accessed via an RDP client by using the DNS host name and credentials
+              defined below.
+            </b>
+            <List bulleted>
+              {process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true' ? (
+                <></>
+              ) : (
+                <List.Item>
+                  The IP Address or DNS of the instance.{' '}
+                  {moreThanOne ? 'Ask your administrator if you are not sure which one to use:' : ''}
+                  <List>
+                    {_.map(interfaces, network => (
+                      <List.Item key={network.value} className="flex">
+                        {this.renderHostLabel(network)}
+                        <CopyToClipboard text={network.value} />
+                      </List.Item>
+                    ))}
+                  </List>
+                </List.Item>
+              )}
+              <List.Item>
+                The username and password:
+                <List>
+                  <List.Item className="flex">
+                    {this.renderUsernameLabel(username)}
+                    <CopyToClipboard text={username} />
                   </List.Item>
-                ))}
-              </List>
-            </List.Item>
-            <List.Item>
-              The username and password:
-              <List>
-                <List.Item className="flex">
-                  {this.renderUsernameLabel(username)}
-                  <CopyToClipboard text={username} />
-                </List.Item>
-                <List.Item className="flex">
-                  {this.renderPasswordLabel(password)}
-                  <Button className="ml2" basic size="mini" onClick={this.toggleShowPassword}>
-                    {showPassword ? 'Hide' : 'Show'}
-                  </Button>
-                  <CopyToClipboard text={password} />
-                </List.Item>
-              </List>
-            </List.Item>
-          </List>
-          <div className="mt3">
-            Additional information about connecting via RDP can be found in the documentation below:
-          </div>
-          <List bulleted>
-            <List.Item
-              href="https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/connecting_to_windows_instance.html#connect-rdp"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Connect to Your Windows Instance
-            </List.Item>
-          </List>
-        </Table.Cell>
-      </Table.Row>
+                  <List.Item className="flex">
+                    {this.renderPasswordLabel(password)}
+                    <Button className="ml2" basic size="mini" onClick={this.toggleShowPassword}>
+                      {showPassword ? 'Hide' : 'Show'}
+                    </Button>
+                    <CopyToClipboard text={password} />
+                  </List.Item>
+                </List>
+              </List.Item>
+            </List>
+            <div className="mt3">
+              Additional information about connecting via RDP can be found in the documentation below:
+            </div>
+            <List bulleted>
+              <List.Item
+                href="https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/connecting_to_windows_instance.html#connect-rdp"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Connect to Your Windows Instance
+              </List.Item>
+            </List>
+          </Table.Cell>
+        </Table.Row>
+        <Table.Row>
+          <Table.Cell>
+            <Button primary size="mini" onClick={this.handleActivate} loading={this.processingSendKey} floated="right">
+              Connect
+            </Button>
+          </Table.Cell>
+        </Table.Row>
+      </>
     );
   }
 

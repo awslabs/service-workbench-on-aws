@@ -19,24 +19,33 @@ async function createConnectionUrl({ envId, connection }, { requestContext, cont
   const log = await container.find('log');
   // Only wraps web urls via app stream (i.e., scheme = 'http' or 'https' or no scheme)
   const isHttp = connection.scheme === 'http' || connection.scheme === 'https' || _.isEmpty(connection.scheme);
+  const appStreamScService = await container.find('appStreamScService');
 
   // Only wrap via AppStream if the connection.url exists
   let appStreamUrl;
   if (isHttp && connection.url) {
     log.debug({
-      msg: `Target connection URL ${connection.url} will be made available for pasting into AppStream`,
+      msg: `Target connection URL ${connection.url} will be accessible via AppStream URL`,
       connection,
     });
-    const appStreamScService = await container.find('appStreamScService');
-    appStreamUrl = await appStreamScService.urlForFirefox(requestContext, {
+    appStreamUrl = await appStreamScService.getStreamingUrl(requestContext, {
       environmentId: envId,
+      applicationId: 'Firefox',
+    });
+  } else if (connection.scheme === 'ssh') {
+    log.debug({
+      msg: `Target instance ${connection.instanceId} will be available for SSH connection via AppStream URL`,
+      connection,
+    });
+    appStreamUrl = await appStreamScService.getStreamingUrl(requestContext, {
+      environmentId: envId,
+      applicationId: 'Notepad',
     });
   } else if (connection.scheme === 'rdp') {
     log.debug({
       msg: `Will stream target RDP connection for instance ${connection.instanceId} via AppStream`,
       connection,
     });
-    const appStreamScService = await container.find('appStreamScService');
     appStreamUrl = await appStreamScService.urlForRemoteDesktop(requestContext, {
       environmentId: envId,
       instanceId: connection.instanceId,
@@ -44,11 +53,10 @@ async function createConnectionUrl({ envId, connection }, { requestContext, cont
   }
 
   if (appStreamUrl) {
-    connection.scheme = 'https';
     // Retain the original destination URL so we don't have to trigger another API call
     connection.appstreamDestinationUrl = connection.url;
 
-    // Now rewrite connection.url to the AppStream streaming URL so it can opened in a new tab
+    // Now rewrite connection.url to the AppStream streaming URL so it can be opened in a new tab
     connection.url = appStreamUrl;
     log.debug({ msg: `Modified connection to use AppStream streaming URL ${connection.url}`, connection });
   }

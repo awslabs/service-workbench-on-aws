@@ -18,6 +18,7 @@ const Service = require('@aws-ee/base-services-container/lib/service');
 
 const settingKeys = {
   appStreamImageName: 'appStreamImageName',
+  isAppStreamEnabled: 'isAppStreamEnabled',
 };
 
 class AppStreamScService extends Service {
@@ -77,6 +78,7 @@ class AppStreamScService extends Service {
     if (!stackName) {
       throw this.boom.badRequest(
         `Expected stack ${stackName} to be associated with the account ${accountId} but found`,
+        true,
       );
     }
 
@@ -89,7 +91,10 @@ class AppStreamScService extends Service {
     const { Names: fleetNames } = await appStream.listAssociatedFleets({ StackName: stackName }).promise();
 
     if (!_.includes(fleetNames, fleetName)) {
-      throw this.boom.badRequest(`Expected fleet ${fleetName} to be associated with the AppStream stack but found`);
+      throw this.boom.badRequest(
+        `Expected fleet ${fleetName} to be associated with the AppStream stack but found`,
+        true,
+      );
     }
 
     return { stackName, fleetName };
@@ -111,7 +116,10 @@ class AppStreamScService extends Service {
     return `${uid}-${sessionSuffix}`.replace(/[^\w+=,.@-]+/g, '').slice(0, 32);
   }
 
-  async urlForFirefox(requestContext, { environmentId }) {
+  async getStreamingUrl(requestContext, { environmentId, applicationId }) {
+    const isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
+    if (!isAppStreamEnabled) return undefined;
+
     const environmentScService = await this.service('environmentScService');
 
     const appStream = await environmentScService.getClientSdkWithEnvMgmtRole(
@@ -132,7 +140,7 @@ class AppStreamScService extends Service {
         FleetName: fleetName,
         StackName: stackName,
         UserId: this.generateUserId(requestContext, environment),
-        ApplicationId: 'Firefox',
+        ApplicationId: applicationId,
       })
       .promise();
 
@@ -143,6 +151,9 @@ class AppStreamScService extends Service {
   }
 
   async urlForRemoteDesktop(requestContext, { environmentId, instanceId }) {
+    const isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
+    if (!isAppStreamEnabled) return undefined;
+
     const [environmentScKeypairService, environmentScService] = await this.service([
       'environmentScKeypairService',
       'environmentScService',

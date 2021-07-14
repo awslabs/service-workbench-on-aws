@@ -86,8 +86,13 @@ class ScEnvironmentSshConnectionRow extends React.Component {
     this.processingSendKey = true;
     try {
       const result = await store.sendSshKey(connectionId, keyId);
+      let urlObj;
+
       runInAction(() => {
         this.networkInterfaces = _.get(result, 'networkInterfaces');
+        if (process.env.REACT_APP_IS_APP_STREAM_ENABLED) {
+          this.appStreamUrl = urlObj.url;
+        }
       });
     } catch (error) {
       displayError(error);
