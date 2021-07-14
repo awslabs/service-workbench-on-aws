@@ -249,6 +249,7 @@ class EnvironmentConfigVarsService extends Service {
       });
     }
 
+    // eslint-disable-next-line no-template-curly-in-string
     const isAdminKeyPairRequired = !!_.find(envTypeConfig.params, p => p.value === '${adminKeyPairName}');
     let adminKeyPairName = '';
     if (isAdminKeyPairRequired) {
