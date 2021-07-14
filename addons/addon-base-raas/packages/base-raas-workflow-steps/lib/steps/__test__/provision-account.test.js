@@ -14,11 +14,9 @@
  */
 
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
-const AWSMock = require('aws-sdk-mock');
 const WorkflowPayload = require('@aws-ee/workflow-engine/lib/workflow-payload');
 const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
 const SettingsService = require('@aws-ee/base-services/lib/settings/env-settings-service');
-// const AccountService = require('@aws-ee/base-raas-services/lib/account/account-service');
 const ProvisionAccount = require('../provision-account/provision-account');
 
 describe('ProvisionAccount', () => {
@@ -68,9 +66,6 @@ describe('ProvisionAccount', () => {
         return requestContext;
       },
     };
-  });
-  afterEach(() => {
-    AWSMock.restore();
   });
 
   describe('saveAccountToDb', () => {
@@ -171,6 +166,7 @@ describe('ProvisionAccount', () => {
       };
       step.getCloudFormationService = jest.fn().mockReturnValue(cfn);
     });
+
     it('AppStream: false', async () => {
       step.settings = {
         get: key => {
@@ -264,6 +260,73 @@ describe('ProvisionAccount', () => {
   });
 
   describe('checkCfnCompleted', () => {
+    it('AppStream: false', async () => {
+      step.settings = {
+        get: key => {
+          if (key === 'isAppStreamEnabled') {
+            return 'false';
+          }
+          throw new Error('Unexpected key');
+        },
+      };
+
+      const describeStacks = jest.fn().mockReturnValue({
+        promise: jest.fn().mockReturnValue({
+          Stacks: [
+            {
+              StackStatus: 'CREATE_COMPLETE',
+              Outputs: [
+                { OutputKey: 'VPC', OutputValue: 'vpc-123' },
+                { OutputKey: 'VpcPublicSubnet1', OutputValue: 'public-subnet-1' },
+                { OutputKey: 'CrossAccountExecutionRoleArn', OutputValue: 'execution-role-arn-1' },
+                { OutputKey: 'CrossAccountEnvMgmtRoleArn', OutputValue: 'env-mgmt-role-arn-1' },
+                { OutputKey: 'EncryptionKeyArn', OutputValue: 'encryption-key-arn-1' },
+              ],
+            },
+          ],
+        }),
+      });
+      const cfn = {
+        describeStacks,
+      };
+      step.getCloudFormationService = jest.fn().mockReturnValue(cfn);
+
+      step.state = {
+        setKey: jest.fn(),
+        ...step.payload,
+      };
+      step.updateLocalResourcePolicies = jest.fn();
+      step.updateAccount = jest.fn();
+      step.addAwsAccountTable = jest.fn();
+      await expect(step.checkCfnCompleted()).resolves.toEqual(true);
+
+      expect(step.updateAccount).toHaveBeenCalledWith({
+        status: 'COMPLETED',
+        cfnInfo: {
+          crossAccountEnvMgmtRoleArn: 'env-mgmt-role-arn-1',
+          crossAccountExecutionRoleArn: 'execution-role-arn-1',
+          encryptionKeyArn: 'encryption-key-arn-1',
+          stackId: 'STATE_STACK_ID',
+          subnetId: 'public-subnet-1',
+          vpcId: 'vpc-123',
+        },
+      });
+      expect(step.addAwsAccountTable).toHaveBeenCalledWith(
+        { principalIdentifier: { uid: 'u-daffyduck' } },
+        {
+          accountId: 'ACCOUNT_ID',
+          description: 'description',
+          externalId: 'externalId',
+          name: 'accountName',
+          roleArn: 'execution-role-arn-1',
+          xAccEnvMgmtRoleArn: 'env-mgmt-role-arn-1',
+          vpcId: 'vpc-123',
+          encryptionKeyArn: 'encryption-key-arn-1',
+          subnetId: 'public-subnet-1',
+        },
+      );
+    });
+
     it('AppStream: true', async () => {
       step.settings = {
         get: key => {
@@ -339,71 +402,5 @@ describe('ProvisionAccount', () => {
         },
       );
     });
-  });
-
-  it('AppStream: false', async () => {
-    step.settings = {
-      get: key => {
-        if (key === 'isAppStreamEnabled') {
-          return 'false';
-        }
-        throw new Error('Unexpected key');
-      },
-    };
-    const describeStacks = jest.fn().mockReturnValue({
-      promise: jest.fn().mockReturnValue({
-        Stacks: [
-          {
-            StackStatus: 'CREATE_COMPLETE',
-            Outputs: [
-              { OutputKey: 'VPC', OutputValue: 'vpc-123' },
-              { OutputKey: 'VpcPublicSubnet1', OutputValue: 'public-subnet-1' },
-              { OutputKey: 'CrossAccountExecutionRoleArn', OutputValue: 'execution-role-arn-1' },
-              { OutputKey: 'CrossAccountEnvMgmtRoleArn', OutputValue: 'env-mgmt-role-arn-1' },
-              { OutputKey: 'EncryptionKeyArn', OutputValue: 'encryption-key-arn-1' },
-            ],
-          },
-        ],
-      }),
-    });
-    const cfn = {
-      describeStacks,
-    };
-    step.getCloudFormationService = jest.fn().mockReturnValue(cfn);
-
-    step.state = {
-      setKey: jest.fn(),
-      ...step.payload,
-    };
-    step.updateLocalResourcePolicies = jest.fn();
-    step.updateAccount = jest.fn();
-    step.addAwsAccountTable = jest.fn();
-    await expect(step.checkCfnCompleted()).resolves.toEqual(true);
-
-    expect(step.updateAccount).toHaveBeenCalledWith({
-      status: 'COMPLETED',
-      cfnInfo: {
-        crossAccountEnvMgmtRoleArn: 'env-mgmt-role-arn-1',
-        crossAccountExecutionRoleArn: 'execution-role-arn-1',
-        encryptionKeyArn: 'encryption-key-arn-1',
-        stackId: 'STATE_STACK_ID',
-        subnetId: 'public-subnet-1',
-        vpcId: 'vpc-123',
-      },
-    });
-    expect(step.addAwsAccountTable).toHaveBeenCalledWith(
-      { principalIdentifier: { uid: 'u-daffyduck' } },
-      {
-        accountId: 'ACCOUNT_ID',
-        description: 'description',
-        externalId: 'externalId',
-        name: 'accountName',
-        roleArn: 'execution-role-arn-1',
-        xAccEnvMgmtRoleArn: 'env-mgmt-role-arn-1',
-        vpcId: 'vpc-123',
-        encryptionKeyArn: 'encryption-key-arn-1',
-        subnetId: 'public-subnet-1',
-      },
-    );
   });
 });
