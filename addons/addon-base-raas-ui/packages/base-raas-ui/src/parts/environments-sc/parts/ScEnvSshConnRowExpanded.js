@@ -3,15 +3,9 @@ import React from 'react';
 import { decorate, action, runInAction, observable, computed } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
-import { Table, List, Segment, Label, Grid, Button } from 'semantic-ui-react';
-
-import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
+import { Table, List, Segment, Label, Grid } from 'semantic-ui-react';
 
 import CopyToClipboard from '../../helpers/CopyToClipboard';
-
-const openWindow = (url, windowFeatures) => {
-  return window.open(url, '_blank', windowFeatures);
-};
 
 // expected props
 // networkInterfaces (via props)
@@ -27,7 +21,6 @@ class ScEnvSshConnRowExpanded extends React.Component {
       this.countDown = undefined;
       this.intervalId = undefined;
       this.expired = false;
-      this.processingId = '';
     });
   }
 
@@ -55,14 +48,6 @@ class ScEnvSshConnRowExpanded extends React.Component {
 
   get connectionId() {
     return this.props.connectionId;
-  }
-
-  get envsStore() {
-    return this.props.scEnvironmentsStore;
-  }
-
-  getConnectionStore() {
-    return this.envsStore.getScEnvConnectionStore(this.environment.id);
   }
 
   componentDidMount() {
@@ -98,34 +83,6 @@ class ScEnvSshConnRowExpanded extends React.Component {
       });
     }, 1000);
   };
-
-  handleConnect = () =>
-    action(async () => {
-      try {
-        const connectionId = this.connectionId;
-        const store = this.getConnectionStore();
-        let urlObj;
-        if (process.env.REACT_APP_IS_APP_STREAM_ENABLED) {
-          urlObj = await store.createConnectionUrl(connectionId);
-        }
-        const appStreamUrl = urlObj.url;
-        if (appStreamUrl) {
-          // We use noopener and noreferrer for good practices https://developer.mozilla.org/en-US/docs/Web/API/Window/open#noopener
-          openWindow(appStreamUrl, 'noopener,noreferrer');
-          const newTab = openWindow('about:blank');
-          newTab.location = appStreamUrl;
-        } else {
-          throw Error('AppStream URL was not returned by the API');
-        }
-        this.processingId = connectionId;
-      } catch (error) {
-        displayError(error);
-      } finally {
-        runInAction(() => {
-          this.processingId = '';
-        });
-      }
-    });
 
   render() {
     const connectionId = this.connectionId;
@@ -168,10 +125,6 @@ class ScEnvSshConnRowExpanded extends React.Component {
   renderAppStreamInfo() {
     const interfaces = this.networkInterfaces;
     const moreThanOne = _.size(interfaces) > 1;
-    const connectionId = this.connectionId;
-    const processingId = this.processingId;
-    const isDisabled = id => processingId !== id && !_.isEmpty(processingId);
-    const isLoading = id => processingId === id;
 
     return (
       <div>
@@ -209,16 +162,6 @@ class ScEnvSshConnRowExpanded extends React.Component {
             Connecting from Windows via Putty
           </List.Item>
         </List>
-        <Button
-          floated="right"
-          size="mini"
-          primary
-          disabled={isDisabled(connectionId)}
-          loading={isLoading(connectionId)}
-          onClick={this.handleConnect(connectionId)}
-        >
-          Connect
-        </Button>
       </div>
     );
   }
@@ -303,17 +246,14 @@ class ScEnvSshConnRowExpanded extends React.Component {
 
 // see https://medium.com/@mweststrate/mobx-4-better-simpler-faster-smaller-c1fbc08008da
 decorate(ScEnvSshConnRowExpanded, {
-  envsStore: computed,
-  appStreamUrl: computed,
   networkInterfaces: computed,
   keyName: computed,
   connectionId: computed,
   intervalId: observable,
   countDown: observable,
-  processingId: observable,
   expired: observable,
   startCountDown: action,
   clearInterval: action,
 });
 
-export default inject('scEnvironmentsStore')(withRouter(observer(ScEnvSshConnRowExpanded)));
+export default inject()(withRouter(observer(ScEnvSshConnRowExpanded)));

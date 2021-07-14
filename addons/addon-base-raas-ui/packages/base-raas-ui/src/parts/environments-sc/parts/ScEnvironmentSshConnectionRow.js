@@ -9,6 +9,10 @@ import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
 
 import ScEnvSshConnRowExpanded from './ScEnvSshConnRowExpanded';
 
+const openWindow = (url, windowFeatures) => {
+  return window.open(url, '_blank', windowFeatures);
+};
+
 // expected props
 // - scEnvironment (via prop)
 // - connectionId (via prop)
@@ -26,6 +30,7 @@ class ScEnvironmentSshConnectionRow extends React.Component {
       this.processingSendKey = false;
       // We default the selected key (if any) to the first latest active key
       this.selectedKeyId = key.id;
+      this.appStreamUrl = undefined;
     });
   }
 
@@ -87,6 +92,9 @@ class ScEnvironmentSshConnectionRow extends React.Component {
     try {
       const result = await store.sendSshKey(connectionId, keyId);
       let urlObj;
+      if (process.env.REACT_APP_IS_APP_STREAM_ENABLED) {
+        urlObj = await store.createConnectionUrl(connectionId);
+      }
 
       runInAction(() => {
         this.networkInterfaces = _.get(result, 'networkInterfaces');
@@ -102,6 +110,34 @@ class ScEnvironmentSshConnectionRow extends React.Component {
       });
     }
   };
+
+  handleConnect = () =>
+    action(async () => {
+      try {
+        const connectionId = this.connectionId;
+        const store = this.getConnectionStore();
+        let urlObj;
+        if (process.env.REACT_APP_IS_APP_STREAM_ENABLED) {
+          urlObj = await store.createConnectionUrl(connectionId);
+        }
+        const appStreamUrl = urlObj.url;
+        if (appStreamUrl) {
+          // We use noopener and noreferrer for good practices https://developer.mozilla.org/en-US/docs/Web/API/Window/open#noopener
+          openWindow(appStreamUrl, 'noopener,noreferrer');
+          const newTab = openWindow('about:blank');
+          newTab.location = appStreamUrl;
+        } else {
+          throw Error('AppStream URL was not returned by the API');
+        }
+        this.processingId = connectionId;
+      } catch (error) {
+        displayError(error);
+      } finally {
+        runInAction(() => {
+          this.processingId = '';
+        });
+      }
+    });
 
   handleKeyChange = (e, data) => {
     const value = _.get(data, 'value');
@@ -119,6 +155,7 @@ class ScEnvironmentSshConnectionRow extends React.Component {
     const options = this.keyPairOptions;
     const selectedKeyId = this.selectedKeyId;
     const selectedKeyName = this.selectedKeyName;
+
     const rows = [
       <Table.Row key={item.id}>
         <Table.Cell>
@@ -160,7 +197,20 @@ class ScEnvironmentSshConnectionRow extends React.Component {
           networkInterfaces={networkInterfaces}
           keyName={selectedKeyName}
           connectionId={item.id}
+          appStreamUrl={this.appStreamUrl}
         />,
+      );
+    }
+
+    if (process.env.REACT_APP_IS_APP_STREAM_ENABLED) {
+      rows.push(
+        <Table.Row key={`${item.id}__2`}>
+          <Table.Cell>
+            <Button floated="right" size="mini" primary onClick={this.handleConnect(item.id)}>
+              Connect
+            </Button>
+          </Table.Cell>
+        </Table.Row>,
       );
     }
 
@@ -181,6 +231,7 @@ decorate(ScEnvironmentSshConnectionRow, {
   selectedKeyId: observable,
   networkInterfaces: observable,
   processingSendKey: observable,
+  appStreamUrl: observable,
   handleActivate: action,
   handleKeyChange: action,
 });

@@ -39,7 +39,7 @@ async function createConnectionUrl({ envId, connection }, { requestContext, cont
     });
     appStreamUrl = await appStreamScService.getStreamingUrl(requestContext, {
       environmentId: envId,
-      applicationId: 'Notepad',
+      applicationId: 'EC2Linux',
     });
   } else if (connection.scheme === 'rdp') {
     log.debug({

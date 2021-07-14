@@ -15,6 +15,8 @@ cd "C:\Program Files\Amazon\Photon\ConsoleImageBuilder"
 
 .\image-assistant.exe add-application --absolute-app-path "C:\Program Files (x86)\Mozilla Firefox\firefox.exe" --display-name Firefox --name Firefox
 
+.\image-assistant.exe add-application --absolute-app-path "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" --display-name EC2Linux --name EC2Linux --launch-parameters " -file \`"C:\App\ec2linux.ps1\`" -ExecutionPolicy Bypass"
+
 # Create App
 $ImageName="ServiceWorkbench_v1_" + $(Get-Date -Format "MM-dd-yyyy-hh-mm-ss")
 .\image-assistant.exe create-image --name $ImageName
