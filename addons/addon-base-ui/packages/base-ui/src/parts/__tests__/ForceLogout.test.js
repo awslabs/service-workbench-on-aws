@@ -28,7 +28,6 @@ describe('ForceLogout', () => {
     wrapper = shallow(<ForceLogout.wrappedComponent authentication={AuthenticationProviderConfigsStore} app={app} />);
     const component = wrapper.instance();
     component.tokenActive = false;
-
     renderModalSnapshot = (
       <>
         <Modal open={component.modalOpen} closeOnEscape={false} closeOnDimmerClick={false} centered={false}>
@@ -87,10 +86,12 @@ describe('ForceLogout', () => {
       <ForceLogout.wrappedComponent authentication={AuthenticationProviderConfigsStore} app={userAuth} />,
     );
     const component = tempWrapper.instance();
-    expect(component.render()).not.toEqual(null);
+    expect(component.render()).toEqual(null);
+    clearInterval(component.timer);
   });
 
   afterAll(async () => {
-    await setTimeout(() => process.exit(0), 1000);
+    const component = wrapper.instance();
+    clearInterval(component.timer);
   });
 });
