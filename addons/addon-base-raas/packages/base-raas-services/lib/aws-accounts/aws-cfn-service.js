@@ -131,12 +131,12 @@ class AwsCfnService extends Service {
       throw this.boom.notFound(`Stack '${cfnStackName}' not found`, true);
     }
 
+    const stackStatus = stack.StackStatus;
     const permissionsTemplateRaw = await cfnApi.getTemplate(params).promise();
 
-    return permissionsTemplateRaw.TemplateBody;
+    return { permString: permissionsTemplateRaw.TemplateBody, stackStatus };
   }
 
-  // This will need to be wrapped into aws-accounts-service once edit functionality is merged
   async getAndUploadTemplateForAccount(requestContext, accountId) {
     await this.assertAuthorized(
       requestContext,
@@ -193,23 +193,21 @@ class AwsCfnService extends Service {
     cfnTemplateInfo.cfnConsoleUrl = getCfnHomeUrl(cfnTemplateInfo);
 
     // If we are onboarding the account for the first time, we have to populate some parameters for checking permissions later
-    if (account.permissionStatus === 'NEEDSONBOARD' || account.permissionStatus === 'PENDING') {
-      const updatedAcct = {
-        id: account.id,
-        rev: account.rev,
-        cfnStackName: cfnTemplateInfo.name, // If SWB didn't generate a cfn name, this will be account.cfnStackName
-        externalId: 'workbench',
-        permissionStatus: 'PENDING',
-        onboardStatusRoleArn: [
-          'arn:aws:iam::',
-          account.accountId,
-          ':role/',
-          createParams.namespace,
-          '-cfn-status-role',
-        ].join(''),
-      };
-      await awsAccountsService.update(requestContext, updatedAcct);
-    }
+    const updatedAcct = {
+      id: account.id,
+      rev: account.rev,
+      cfnStackName: cfnTemplateInfo.name, // If SWB didn't generate a cfn name, this will be account.cfnStackName
+      externalId: 'workbench',
+      permissionStatus: 'PENDING',
+      onboardStatusRoleArn: [
+        'arn:aws:iam::',
+        account.accountId,
+        ':role/',
+        createParams.namespace,
+        '-cfn-status-role',
+      ].join(''),
+    };
+    await awsAccountsService.update(requestContext, updatedAcct);
 
     return cfnTemplateInfo;
   }
@@ -220,6 +218,15 @@ class AwsCfnService extends Service {
       { action: 'check-aws-permissions', conditions: [allowIfActive, allowIfAdmin] },
       { accountId },
     );
+    const PENDING_STATES = [
+      'CREATE_IN_PROGRESS',
+      'UPDATE_IN_PROGRESS',
+      'UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS',
+      'UPDATE_ROLLBACK_IN_PROGRESS',
+      'REVIEW_IN_PROGRESS',
+    ];
+    const COMPLETE_STATES = ['CREATE_COMPLETE', 'UPDATE_COMPLETE', 'UPDATE_ROLLBACK_COMPLETE'];
+    const FAILED_STATES = ['CREATE_FAILED', 'UPDATE_FAILED', 'ROLLBACK_FAILED'];
     const awsAccountsService = await this.service('awsAccountsService');
     const accountEntity = await awsAccountsService.mustFind(requestContext, { id: accountId });
 
@@ -227,12 +234,27 @@ class AwsCfnService extends Service {
     const expectedTemplate = await cfnTemplateService.getTemplate('onboard-account');
 
     // whitespace and comments removed before comparison
-    const curPermissions = await this.getStackTemplate(requestContext, accountEntity);
-    const trimmedCurPermString = curPermissions.replace(/#.*/g, '').replace(/\s+/g, '');
-    const trimmedExpPermString = expectedTemplate.replace(/#.*/g, '').replace(/\s+/g, '');
+    const stackTemplate = await this.getStackTemplate(requestContext, accountEntity);
+    const stackStatus = stackTemplate.stackStatus;
 
-    // still hash values
-    return trimmedExpPermString !== trimmedCurPermString ? 'NEEDSUPDATE' : 'CURRENT';
+    // some statuses we can determine based on stack status
+    if (PENDING_STATES.includes(stackStatus)) {
+      return 'PENDING';
+    }
+    if (FAILED_STATES.includes(stackStatus)) {
+      return 'ERRORED';
+    }
+    if (COMPLETE_STATES.includes(stackStatus)) {
+      const curPermissions = stackTemplate.permString;
+      const trimmedCurPermString = curPermissions.replace(/#.*/g, '').replace(/\s+/g, '');
+      const trimmedExpPermString = expectedTemplate.replace(/#.*/g, '').replace(/\s+/g, '');
+
+      // still hash values
+      return trimmedExpPermString !== trimmedCurPermString ? 'NEEDSUPDATE' : 'CURRENT';
+    }
+
+    // we should never make it here unless something really goes wrong
+    return 'UNKNOWN';
   }
 
   async batchCheckAccountPermissions(requestContext, batchSize = 5) {
@@ -254,7 +276,7 @@ class AwsCfnService extends Service {
     const checkPermissions = async account => {
       errorMsg = '';
       if (
-        account.permissionStatus === 'NEEDSONBOARD' || // We'll explicitly bring the account out of NEEDSONBOARD separately
+        account.permissionStatus === 'NEEDSONBOARD' ||
         account.permissionStatus === 'PENDING' // Backend workflow will bring the account out of PENDING
       ) {
         res = account.permissionStatus;
@@ -362,6 +384,13 @@ class AwsCfnService extends Service {
       { action: 'check-aws-permissions', conditions: [allowIfActive, allowIfAdmin] },
       { accountId },
     );
+    const PENDING_STATES = [
+      'CREATE_IN_PROGRESS',
+      'UPDATE_IN_PROGRESS',
+      'UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS',
+      'UPDATE_ROLLBACK_IN_PROGRESS',
+      'REVIEW_IN_PROGRESS',
+    ];
     const awsAccountsService = await this.service('awsAccountsService');
     const accountEntity = await awsAccountsService.mustFind(requestContext, { id: accountId });
 
@@ -374,6 +403,10 @@ class AwsCfnService extends Service {
 
     if (_.isEmpty(stack)) {
       throw this.boom.notFound(`Stack '${cfnStackName}' not found`, true);
+    }
+
+    if (PENDING_STATES.includes(stack.StackStatus)) {
+      throw this.boom.badRequest(`Stack '${cfnStackName}' is still pending.`, true);
     }
 
     const fieldsToUpdate = {};

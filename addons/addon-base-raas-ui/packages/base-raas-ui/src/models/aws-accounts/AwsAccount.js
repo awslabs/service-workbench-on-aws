@@ -41,7 +41,7 @@ const states = [
     spinner: false,
   },
   {
-    key: 'ERROR',
+    key: 'ERRORED',
     display: 'Error',
     color: 'red',
     tip: 'The account encountered an error while checking IAM role permissions.',

@@ -26,7 +26,7 @@ const statusDisplay = {
   CURRENT: { color: 'green', display: 'Up-to-Date', spinner: false },
   NEEDSUPDATE: { color: 'orange', display: 'Needs Update', spinner: false },
   NEEDSONBOARD: { color: 'purple', display: 'Needs Onboarding', spinner: false },
-  ERROR: { color: 'red', display: 'Error', spinner: false },
+  ERRORED: { color: 'red', display: 'Error', spinner: false },
   PENDING: { color: 'yellow', display: 'Pending', spinner: true },
   UNKNOWN: { color: 'grey', display: 'Unknown', spinner: false },
 };
@@ -117,10 +117,7 @@ class AccountCard extends React.Component {
             {this.renderBudgetButton()}
             {this.renderHeader(account)}
             {this.renderDescription(account)}
-            {(permissionStatus === 'NEEDSUPDATE' ||
-              permissionStatus === 'NEEDSONBOARD' ||
-              permissionStatus === 'PENDING') &&
-              this.renderUpdatePermsButton()}
+            {permissionStatus !== 'CURRENT' && this.renderUpdatePermsButton()}
             {!(permissionStatus === 'NEEDSONBOARD' || permissionStatus === 'PENDING') &&
               this.renderDetailsAccordion(account)}
             {(permissionStatus === 'NEEDSONBOARD' || permissionStatus === 'PENDING') &&
@@ -184,8 +181,9 @@ class AccountCard extends React.Component {
               )}
               {!onboardMessage && (
                 <div>
-                  Resources for this account are being provisioned. Please wait a few minutes for provisioning to
-                  complete, or click &quot;Re-Onboard Account&quot; to re-onboard this account.
+                  Service Workbench is waiting for the CFN stack to complete. Please wait a few minutes for provisioning
+                  to complete. If you did not create a CFN stack for this account, click click &quot;Re-Onboard
+                  Account&quot; to return to the account onboarding page.
                 </div>
               )}
             </div>
@@ -197,6 +195,7 @@ class AccountCard extends React.Component {
 
   renderDetailsAccordion(account) {
     const expanded = this.detailsExpanded;
+    const errored = account.permissionStatus === 'ERRORED';
     const rowKeyVal = {
       roleArn: 'Role ARN',
       externalId: 'External ID',
@@ -213,6 +212,12 @@ class AccountCard extends React.Component {
           <b>Details</b>
         </Accordion.Title>
         <Accordion.Content active={expanded}>
+          {expanded && errored && (
+            <div className="mb2">
+              Something went wrong while trying to check the CFN stack associated with this account. Please check the
+              CFN stack in the AWS Management Console for more information.
+            </div>
+          )}
           {expanded && (
             <div className="mb2">
               <>
@@ -245,7 +250,7 @@ class AccountCard extends React.Component {
   renderUpdatePermsButton() {
     const permissionStatus = this.permissionStatus;
     let buttonArgs;
-    if (permissionStatus === 'NEEDSUPDATE')
+    if (permissionStatus === 'NEEDSUPDATE' || permissionStatus === 'ERRORED' || permissionStatus === 'UNKNOWN')
       buttonArgs = { message: 'Update Permissions', color: 'orange', onClick: this.handleUpdateAccountPerms };
     else if (permissionStatus === 'PENDING')
       buttonArgs = { message: 'Re-Onboard Account', color: 'red', onClick: this.handlePendingButton };

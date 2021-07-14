@@ -45,7 +45,7 @@ const filters = {
   [filterNames.CURRENT]: account => account.permissionStatus === 'CURRENT',
   [filterNames.UPDATEME]: account => account.permissionStatus === 'NEEDSUPDATE',
   [filterNames.NEW]: account => account.permissionStatus === 'NEEDSONBOARD',
-  [filterNames.ERRORED]: account => account.permissionStatus === 'ERROR',
+  [filterNames.ERRORED]: account => account.permissionStatus === 'ERRORED',
 };
 
 // ==================================================================

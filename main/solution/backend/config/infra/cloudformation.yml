@@ -430,6 +430,7 @@ Resources:
               - 'arn:aws:iam::*:role/analysis-*'
               - !Sub 'arn:aws:iam::*:role/*-cross-account-role' # This is required since when users onboard the main account as a member account, the onboard CFN stack would also reside there
               - !Sub 'arn:aws:iam::*:role/*-xacc-env-mgmt'
+              - 'arn:aws:iam::*:role/*-cfn-status-role'
           - Effect: Allow
             Action:
               - logs:CreateLogGroup
@@ -775,11 +776,8 @@ Resources:
             Resource:
               - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-awsAccountOnboardingHandler:*'
           - Effect: Allow
-            Action: cloudformation:DescribeStacks
-            Resource: !Sub 'arn:aws:cloudformation:${AWS::Region}:*:stack/SWB-Onboard-*'
-          - Effect: Allow
             Action: 'sts:AssumeRole'
-            Resource: 'arn:aws:iam::*:role/*-cross-account-role'
+            Resource: 'arn:aws:iam::*:role/*-cfn-status-role'
 
   #IAM Role for the awsAccountOnboardingHandler Function
   RoleAwsAccountOnboardingHandler:
