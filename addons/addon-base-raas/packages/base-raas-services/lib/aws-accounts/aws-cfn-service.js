@@ -233,7 +233,6 @@ class AwsCfnService extends Service {
     const [cfnTemplateService] = await this.service(['cfnTemplateService']);
     const expectedTemplate = await cfnTemplateService.getTemplate('onboard-account');
 
-    // whitespace and comments removed before comparison
     const stackTemplate = await this.getStackTemplate(requestContext, accountEntity);
     const stackStatus = stackTemplate.stackStatus;
 
@@ -246,6 +245,7 @@ class AwsCfnService extends Service {
     }
     if (COMPLETE_STATES.includes(stackStatus)) {
       const curPermissions = stackTemplate.permString;
+      // whitespace and comments removed before comparison
       const trimmedCurPermString = curPermissions.replace(/#.*/g, '').replace(/\s+/g, '');
       const trimmedExpPermString = expectedTemplate.replace(/#.*/g, '').replace(/\s+/g, '');
 
@@ -423,7 +423,6 @@ class AwsCfnService extends Service {
     fieldsToUpdate.roleArn = findOutputValue('CrossAccountEnvMgmtRoleArn');
     fieldsToUpdate.permissionStatus = 'CURRENT'; // If we just onboarded it's safe to assume the account is up to date
     // we have to update the permission status or the account will get stuck in PENDING
-
     fieldsToUpdate.id = accountEntity.id;
     fieldsToUpdate.rev = accountEntity.rev;
 

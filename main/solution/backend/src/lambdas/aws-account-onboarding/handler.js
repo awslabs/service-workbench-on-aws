@@ -31,6 +31,9 @@ const handlerWithContainer = async container => {
   const awsCfnService = await container.find('awsCfnService');
   const userContext = getSystemRequestContext();
 
+  // Check permission status of all accounts
+  await awsCfnService.batchCheckAccountPermissions(userContext);
+
   // Attempt to onboard all accounts
   await awsCfnService.attemptOnboardAccounts(userContext);
 };
