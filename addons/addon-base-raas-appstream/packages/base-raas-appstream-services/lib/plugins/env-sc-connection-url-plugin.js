@@ -44,7 +44,6 @@ async function createConnectionUrl({ envId, connection }, { requestContext, cont
   }
 
   if (appStreamUrl) {
-    connection.scheme = 'https';
     // Retain the original destination URL so we don't have to trigger another API call
     connection.appstreamDestinationUrl = connection.url;
 
