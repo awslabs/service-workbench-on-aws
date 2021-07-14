@@ -50,6 +50,7 @@ class EnvironmentConfigVarsService extends Service {
       'pluginRegistryService',
       'auditWriterService',
       'dataEgressService',
+      'accountService',
     ]);
   }
 
@@ -295,7 +296,7 @@ class EnvironmentConfigVarsService extends Service {
       iamPolicyDocument: JSON.stringify(iamPolicyDocument),
       environmentInstanceFiles: this.settings.get(settingKeys.environmentInstanceFiles),
       isAppStreamEnabled: this.settings.get(settingKeys.isAppStreamEnabled),
-      solutionNamespace: this.settings.get(settingKeys.solutionNamespace),
+      solutionNamespace: await this.getSolutionNamespace(requestContext, externalId, accountId),
       // s3Prefixes // This variable is no longer relevant it is being removed, the assumption is that
       // this variable has not been used in any of the product templates.
       uid: user.uid,
@@ -311,6 +312,55 @@ class EnvironmentConfigVarsService extends Service {
 
     return result;
   }
+
+  // async getNewAWSAccountCredentials(requestContext, externalId) {
+  //   const [aws] = await this.mustFindServices(['aws']);
+  //   const credential = await this.getCredentials();
+  //   // const [requestContext, ExternalId] = await Promise.all([
+  //   //   this.payload.object('requestContext'),
+  //   //   this.payload.string('externalId'),
+  //   // ]);
+  //   const accountId = await this.state.string('ACCOUNT_ID');
+  //   // TODO: pass user customized role name, for now it's fixed as OrganizationAccountAccessRole
+  //   const RoleArn = `arn:aws:iam::${accountId}:role/OrganizationAccountAccessRole`;
+  //   const sts = new aws.sdk.STS(credential);
+  //   const {
+  //     Credentials: { AccessKeyId: accessKeyId, SecretAccessKey: secretAccessKey, SessionToken: sessionToken },
+  //   } = await sts
+  //     .assumeRole({
+  //       RoleArn,
+  //       RoleSessionName: `RaaS-${requestContext.principalIdentifier.uid}-CfnRole`,
+  //       ExternalId: externalId,
+  //     })
+  //     .promise();
+  //   return { accessKeyId, secretAccessKey, sessionToken };
+  // }
+  //
+  // async getCloudFormationService(requestContext, externalId) {
+  //   const [aws] = await this.mustFindServices(['aws']);
+  //   const { accessKeyId, secretAccessKey, sessionToken } = await this.getNewAWSAccountCredentials(
+  //     requestContext,
+  //     externalId,
+  //   );
+  //   return new aws.sdk.CloudFormation({ accessKeyId, secretAccessKey, sessionToken });
+  // }
+  //
+
+  async getSolutionNamespace(requestContext, externalId, accountId) {
+    const [accountService] = await this.service(['accountService']);
+    console.log('accountId', accountId);
+    const { stackId } = await accountService.mustFind(requestContext, { id: accountId });
+    console.log('stackId', stackId);
+    return stackId.match(/\d{12}:stack\/(.+)\//)[1];
+  }
+
+  // getCfnOutputs(stackInfo) {
+  //   const details = {};
+  //   stackInfo.Outputs.forEach(option => {
+  //     _.set(details, option.OutputKey, option.OutputValue);
+  //   });
+  //   return details;
+  // }
 
   async getEnvRolePolicy(requestContext, { environment, studies, memberAccountId }) {
     const policyDoc = new StudyPolicy();
