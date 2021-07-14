@@ -85,5 +85,93 @@ describe('S3Service', () => {
       });
       s3Service.clearPath('test-bucketName', 'test-dir');
     });
+
+    it('should not list s3 object during deleting objects in certain s3 bucket path', async () => {
+      AWSMock.mock('S3', 'deleteObjects', (params, callback) => {
+        expect(params).toMatchObject({
+          Bucket: 'test-bucketName',
+          Prefix: 'test-dir',
+        });
+        callback(callback(new Error(), new Error()));
+      });
+      await expect(s3Service.clearPath('test-bucketName', 'test-dir')).rejects.toThrow(
+        // It is better to check using boom.code instead of just the actual string, unless
+        // there are a few errors with the exact same boom code but different messages.
+        // Note: if you encounter a case where a service is throwing exceptions with the
+        // same code but different messages (to address different scenarios), you might
+        // want to suggest to the service author to use different codes.
+        expect.objectContaining({
+          boom: true,
+          code: 'badRequest',
+          safe: true,
+        }),
+      );
+    });
+
+    it('should not clear s3 object in certain s3 bucket path', async () => {
+      AWSMock.mock('S3', 'listObjectsV2', (params, callback) => {
+        expect(params).toMatchObject({
+          Bucket: 'test-bucketName',
+          Prefix: 'test-dir',
+        });
+        callback(callback(new Error(), new Error()));
+      });
+      await expect(s3Service.clearPath('test-bucketName', 'test-dir')).rejects.toThrow(
+        // It is better to check using boom.code instead of just the actual string, unless
+        // there are a few errors with the exact same boom code but different messages.
+        // Note: if you encounter a case where a service is throwing exceptions with the
+        // same code but different messages (to address different scenarios), you might
+        // want to suggest to the service author to use different codes.
+        expect.objectContaining({
+          boom: true,
+          code: 'badRequest',
+          safe: true,
+        }),
+      );
+    });
+
+    it('should put object tag', async () => {
+      AWSMock.mock('S3', 'putObjectTagging', params => {
+        expect(params).toMatchObject({
+          Bucket: 'test-bucketName',
+          Key: 'test-key',
+          Tagging: {
+            TagSet: [{ Key: 'test-key', Value: 'test-value' }],
+          },
+        });
+      });
+      s3Service.putObjectTag('test-bucketName', 'test-dir/', { Key: 'test-key', Value: 'test-value' });
+    });
+
+    it('should not put object tag', async () => {
+      AWSMock.mock('S3', 'putObjectTagging', (params, callback) => {
+        expect(params).toMatchObject({
+          Bucket: 'test-bucketName',
+          Key: 'test-key',
+          Tagging: {
+            TagSet: [{ Key: 'test-key', Value: 'test-value' }],
+          },
+        });
+        callback(new Error(), new Error());
+      });
+
+      await expect(
+        s3Service.putObjectTag('test-bucketName', 'test-dir/', {
+          Key: 'test-key',
+          Value: 'test-value',
+        }),
+      ).rejects.toThrow(
+        // It is better to check using boom.code instead of just the actual string, unless
+        // there are a few errors with the exact same boom code but different messages.
+        // Note: if you encounter a case where a service is throwing exceptions with the
+        // same code but different messages (to address different scenarios), you might
+        // want to suggest to the service author to use different codes.
+        expect.objectContaining({
+          boom: true,
+          code: 'badRequest',
+          safe: true,
+        }),
+      );
+    });
   });
 });

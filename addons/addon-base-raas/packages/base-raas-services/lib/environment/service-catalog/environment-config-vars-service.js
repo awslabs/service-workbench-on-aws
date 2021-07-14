@@ -238,9 +238,9 @@ class EnvironmentConfigVarsService extends Service {
       memberAccountId: accountId,
     });
 
-    let egressStoreIamPolicyDocument;
+    let egressStoreIamPolicyDocument = {};
     const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
-    if (enableEgressStore) {
+    if (enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE') {
       const egressStoreMount = await this.getEgressStoreMount(requestContext, environment);
       s3Mounts.push(egressStoreMount);
       egressStoreIamPolicyDocument = await this.getEnvEgressStorePolicy(requestContext, {
@@ -305,7 +305,7 @@ class EnvironmentConfigVarsService extends Service {
       adminKeyPairName,
     };
 
-    if (enableEgressStore) {
+    if (enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE') {
       result.egressStoreIamPolicyDocument = JSON.stringify(egressStoreIamPolicyDocument);
     }
 
@@ -412,7 +412,7 @@ class EnvironmentConfigVarsService extends Service {
 
   async getEgressStoreMount(requestContext, environment) {
     const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
-    if (!enableEgressStore) {
+    if (!enableEgressStore || enableEgressStore.toUpperCase() !== 'TRUE') {
       throw this.boom.forbidden('Unable to mount Egress store in workspace since this feature is disabled', true);
     }
 
