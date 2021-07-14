@@ -3,6 +3,14 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 
 choco install -y putty.install
 
+$customFirefoxLauncherPath = "C:\App"
+If(!(test-path $customFirefoxLauncherPath))
+{
+      New-Item -ItemType Directory -Force -Path $customFirefoxLauncherPath
+}
+
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/awslabs/service-workbench-on-aws/feat-appstream-ui/scripts/app-stream/ec2linux.ps1 -OutFile 'C:\App\ec2linux.ps1'
+
 # Add Applications
 
 cd "C:\Program Files\Amazon\Photon\ConsoleImageBuilder"
@@ -15,7 +23,7 @@ cd "C:\Program Files\Amazon\Photon\ConsoleImageBuilder"
 
 .\image-assistant.exe add-application --absolute-app-path "C:\Program Files (x86)\Mozilla Firefox\firefox.exe" --display-name Firefox --name Firefox
 
-.\image-assistant.exe add-application --absolute-app-path "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" --display-name EC2Linux --name EC2Linux --launch-parameters " -file \`"C:\App\ec2linux.ps1\`" -ExecutionPolicy Bypass"
+.\image-assistant.exe add-application --absolute-app-path "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" --display-name EC2Linux --name EC2Linux --launch-parameters " -file \`"C:\Windows\System32\ec2linux.ps1\`" -ExecutionPolicy Bypass"
 
 # Create App
 $ImageName="ServiceWorkbench_v1_" + $(Get-Date -Format "MM-dd-yyyy-hh-mm-ss")
