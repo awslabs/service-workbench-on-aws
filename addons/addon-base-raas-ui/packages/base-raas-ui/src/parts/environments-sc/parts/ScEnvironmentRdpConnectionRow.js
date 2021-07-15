@@ -9,6 +9,10 @@ import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
 
 import CopyToClipboard from '../../helpers/CopyToClipboard';
 
+const openWindow = (url, windowFeatures) => {
+  return window.open(url, '_blank', windowFeatures);
+};
+
 // expected props
 // - scEnvironment (via prop)
 // - connectionId (via prop)
@@ -24,7 +28,12 @@ class ScEnvironmentRdpConnectionRow extends React.Component {
       this.processingGetInfo = false;
       // Should the password be shown
       this.showPassword = false;
+      this.processingId = undefined;
     });
+  }
+
+  get isAppStreamEnabled() {
+    return process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true';
   }
 
   get environment() {
@@ -70,6 +79,30 @@ class ScEnvironmentRdpConnectionRow extends React.Component {
 
     return result;
   }
+
+  handleConnect = id =>
+    action(async () => {
+      try {
+        const store = this.getConnectionStore();
+        const urlObj = await store.createConnectionUrl(id);
+        const appStreamUrl = urlObj.url;
+        if (appStreamUrl) {
+          const newTab = openWindow('about:blank');
+          newTab.location = appStreamUrl;
+        } else {
+          throw Error('AppStream URL was not returned by the API');
+        }
+        runInAction(() => {
+          this.processingId = id;
+        });
+      } catch (error) {
+        displayError(error);
+      } finally {
+        runInAction(() => {
+          this.processingId = '';
+        });
+      }
+    });
 
   handleGetInfo = async () => {
     const store = this.getConnectionStore();
@@ -128,59 +161,79 @@ class ScEnvironmentRdpConnectionRow extends React.Component {
     const username = 'Administrator';
     const password = windowsRdpInfo.password;
     const showPassword = this.showPassword;
+    const connectionId = this.connectionId;
     const moreThanOne = _.size(interfaces) > 1;
 
     return (
-      <Table.Row key={`${item.id}__2`}>
-        <Table.Cell className="p3">
-          <b>
-            Your Windows workspace can be accessed via an RDP client by using the DNS host name and credentials defined
-            below.
-          </b>
-          <List bulleted>
-            <List.Item>
-              The IP Address or DNS of the instance.{' '}
-              {moreThanOne ? 'Ask your administrator if you are not sure which one to use:' : ''}
-              <List>
-                {_.map(interfaces, network => (
-                  <List.Item key={network.value} className="flex">
-                    {this.renderHostLabel(network)}
-                    <CopyToClipboard text={network.value} />
+      <>
+        <Table.Row key={`${item.id}__2`}>
+          <Table.Cell className="p3">
+            <b>
+              Your Windows workspace can be accessed via an RDP client by using the DNS host name and credentials
+              defined below.
+            </b>
+            <List bulleted>
+              {this.isAppStreamEnabled ? (
+                <>
+                  <List.Item>Click the &apos;Connect&apos; button to navigate to the AppStream instance</List.Item>
+                </>
+              ) : (
+                <List.Item>
+                  The IP Address or DNS of the instance.{' '}
+                  {moreThanOne ? 'Ask your administrator if you are not sure which one to use:' : ''}
+                  <List>
+                    {_.map(interfaces, network => (
+                      <List.Item key={network.value} className="flex">
+                        {this.renderHostLabel(network)}
+                        <CopyToClipboard text={network.value} />
+                      </List.Item>
+                    ))}
+                  </List>
+                </List.Item>
+              )}
+
+              <List.Item>
+                The username and password:
+                <List>
+                  <List.Item className="flex">
+                    {this.renderUsernameLabel(username)}
+                    <CopyToClipboard text={username} />
                   </List.Item>
-                ))}
-              </List>
-            </List.Item>
-            <List.Item>
-              The username and password:
-              <List>
-                <List.Item className="flex">
-                  {this.renderUsernameLabel(username)}
-                  <CopyToClipboard text={username} />
-                </List.Item>
-                <List.Item className="flex">
-                  {this.renderPasswordLabel(password)}
-                  <Button className="ml2" basic size="mini" onClick={this.toggleShowPassword}>
-                    {showPassword ? 'Hide' : 'Show'}
-                  </Button>
-                  <CopyToClipboard text={password} />
-                </List.Item>
-              </List>
-            </List.Item>
-          </List>
-          <div className="mt3">
-            Additional information about connecting via RDP can be found in the documentation below:
-          </div>
-          <List bulleted>
-            <List.Item
-              href="https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/connecting_to_windows_instance.html#connect-rdp"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Connect to Your Windows Instance
-            </List.Item>
-          </List>
-        </Table.Cell>
-      </Table.Row>
+                  <List.Item className="flex">
+                    {this.renderPasswordLabel(password)}
+                    <Button className="ml2" basic size="mini" onClick={this.toggleShowPassword}>
+                      {showPassword ? 'Hide' : 'Show'}
+                    </Button>
+                    <CopyToClipboard text={password} />
+                  </List.Item>
+                </List>
+              </List.Item>
+            </List>
+            <div className="mt3">
+              Additional information about connecting via RDP can be found in the documentation below:
+            </div>
+            <List bulleted>
+              <List.Item
+                href="https://docs.aws.amazon.com/AWSEC2/latest/WindowsGuide/connecting_to_windows_instance.html#connect-rdp"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Connect to Your Windows Instance
+              </List.Item>
+            </List>
+          </Table.Cell>
+        </Table.Row>
+
+        {this.isAppStreamEnabled && windowsRdpInfo && (
+          <Table.Row>
+            <Table.Cell>
+              <Button primary size="mini" onClick={this.handleConnect(connectionId)} floated="right">
+                Connect
+              </Button>
+            </Table.Cell>
+          </Table.Row>
+        )}
+      </>
     );
   }
 
@@ -223,6 +276,7 @@ decorate(ScEnvironmentRdpConnectionRow, {
   connection: computed,
   connectionId: computed,
   networkInterfaces: computed,
+  processingId: observable,
   windowsRdpInfo: observable,
   processingGetInfo: observable,
   showPassword: observable,

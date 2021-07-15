@@ -3,6 +3,8 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 
 choco install -y putty.install
 
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/awslabs/service-workbench-on-aws/mainline/scripts/app-stream/ec2linux.ps1 -OutFile 'C:\Users\Public\Documents\EC2Linux.ps1'
+
 # Prepare remote desktop script with arguments
 Set-Content C:\Users\public\Documents\MicrosoftRemoteDesktop.ps1 "mstsc /f /v:`"`$env:APPSTREAM_SESSION_CONTEXT`":3389"
 
@@ -17,6 +19,10 @@ cd "C:\Program Files\Amazon\Photon\ConsoleImageBuilder"
 .\image-assistant.exe add-application --absolute-app-path "C:\Windows\System32\notepad.exe" --display-name Notepad --name Notepad
 
 .\image-assistant.exe add-application --absolute-app-path "C:\Program Files (x86)\Mozilla Firefox\firefox.exe" --display-name Firefox --name Firefox
+
+.\image-assistant.exe add-application --absolute-app-path "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" `
+--display-name EC2Linux --name EC2Linux `
+--launch-parameters '`"-File "C:\Users\Public\Documents\EC2Linux.ps1" -ExecutionPolicy Bypass`"'
 
 .\image-assistant.exe add-application --absolute-app-path "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" `
 --display-name MicrosoftRemoteDesktop --name MicrosoftRemoteDesktop `

@@ -3,11 +3,11 @@ import React from 'react';
 import { decorate, computed, action, runInAction, observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
-import { Segment, Icon, Button, Header, Table, List } from 'semantic-ui-react';
+import { Segment, Icon, Button, Header, Grid, Table, List } from 'semantic-ui-react';
 
 import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
 
-import ScEnvHttpConnectionExpanded from './ScEnvHttpConnectionExpanded';
+import CopyToClipboard from '../../helpers/CopyToClipboard';
 
 const openWindow = (url, windowFeatures) => {
   return window.open(url, '_blank', windowFeatures);
@@ -22,9 +22,16 @@ class ScEnvironmentHttpConnections extends React.Component {
     runInAction(() => {
       // The id of the connection that is being processed
       this.processingId = '';
+      this.appStreamGeneratingId = '';
+      this.appStreamConnectingId = '';
       this.destinationUrl = undefined;
+      this.streamingUrl = undefined;
       this.timeout = 10;
     });
+  }
+
+  get isAppStreamEnabled() {
+    return process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true';
   }
 
   get environment() {
@@ -55,7 +62,10 @@ class ScEnvironmentHttpConnections extends React.Component {
       const connectInfo = _.find(connections, ['id', id]) || {};
       let url = connectInfo.url;
 
-      this.processingId = id;
+      runInAction(() => {
+        this.processingId = id;
+      });
+
       try {
         if (url) {
           // We use noopener and noreferrer for good practices https://developer.mozilla.org/en-US/docs/Web/API/Window/open#noopener
@@ -64,17 +74,7 @@ class ScEnvironmentHttpConnections extends React.Component {
           const urlObj = await store.createConnectionUrl(id);
           url = urlObj.url;
 
-          // If AppStream is enabled, copy destination URL to clipboard before new tab loads
-          if (process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true') {
-            runInAction(() => {
-              this.destinationUrl = urlObj.appstreamDestinationUrl;
-            });
-            // Allow users time to copy the destination URL
-            setTimeout(() => {
-              const newTab = openWindow('about:blank');
-              newTab.location = url;
-            }, this.timeout * 1000);
-          } else {
+          if (url) {
             const newTab = openWindow('about:blank');
             newTab.location = url;
           }
@@ -88,84 +88,177 @@ class ScEnvironmentHttpConnections extends React.Component {
       }
     });
 
+  handleAppStreamConnect = (url, id) =>
+    action(async () => {
+      try {
+        runInAction(() => {
+          this.appStreamConnectingId = id;
+        });
+        if (url) {
+          const newTab = openWindow('about:blank');
+          newTab.location = url;
+        }
+      } catch (error) {
+        displayError(error);
+      } finally {
+        runInAction(() => {
+          this.appStreamConnectingId = '';
+        });
+      }
+    });
+
+  handleGenerateAppStreamUrl = id =>
+    action(async () => {
+      const store = this.getConnectionStore();
+      runInAction(() => {
+        this.appStreamGeneratingId = id;
+      });
+      try {
+        const urlObj = await store.createConnectionUrl(id);
+        runInAction(() => {
+          this.destinationUrl = urlObj.appstreamDestinationUrl;
+          this.streamingUrl = urlObj.url;
+        });
+      } catch (error) {
+        displayError(error);
+      } finally {
+        runInAction(() => {
+          this.appStreamGeneratingId = '';
+        });
+      }
+    });
+
   render() {
     const env = this.environment;
     const state = env.state;
     const canConnect = state.canConnect;
     const connections = this.connections;
-    const destinationUrl = this.destinationUrl;
-    const processingId = this.processingId;
-    const isDisabled = id => processingId !== id && !_.isEmpty(processingId);
-    const isLoading = id => processingId === id;
     if (!canConnect) return null;
 
     return (
       <div className="mt2 mb2">
         <Table celled>
           <Table.Header>
-            <Table.Row>
+            <Table.Row key={env.id}>
               <Table.HeaderCell colSpan="1">HTTP Connections</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
-          <Table.Body>
-            {_.map(connections, item => (
+          <Table.Body>{this.renderBody(connections)}</Table.Body>
+        </Table>
+      </div>
+    );
+  }
+
+  renderAppStreamBody(connections) {
+    const appStreamGeneratingId = this.appStreamGeneratingId;
+    const streamingUrl = this.streamingUrl;
+    const destinationUrl = this.destinationUrl;
+    const isDisabled = id => appStreamGeneratingId !== id && !_.isEmpty(appStreamGeneratingId);
+    const isLoading = id => appStreamGeneratingId === id;
+
+    return (
+      <>
+        {_.map(connections, item => (
+          <>
+            {this.renderAppstreamInstructions(item)}
+            <Table.Row key={item.id}>
+              <Table.Cell className="clearfix">
+                <Button
+                  floated="right"
+                  size="mini"
+                  primary
+                  disabled={isDisabled(item.id)}
+                  loading={isLoading(item.id)}
+                  onClick={this.handleGenerateAppStreamUrl(item.id)}
+                >
+                  Generate URL
+                </Button>
+
+                <div className="mt1">{item.name || 'Generate'}</div>
+              </Table.Cell>
+            </Table.Row>
+
+            {destinationUrl && (
               <>
-                {process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true' ? (
-                  this.renderAppstreamInstructions(item)
-                ) : (
-                  <></>
-                )}
-                <Table.Row key={item.id}>
-                  <Table.Cell className="clearfix">
+                <Table.Row key={`${item.id}_destination`} className="fadeIn animated">
+                  <Table.Cell colSpan="3" className="p3">
+                    <Grid columns={2} stackable key={`${item.id}__2`}>
+                      <Grid.Row stretched>
+                        <Grid.Column width={12}>
+                          <div>
+                            Click on this icon to copy the workspace destination URL:
+                            <CopyToClipboard text={destinationUrl} />
+                          </div>
+                        </Grid.Column>
+                      </Grid.Row>
+                    </Grid>
+                  </Table.Cell>
+                </Table.Row>
+
+                <Table.Row key={`${item.id}__3`}>
+                  <Table.Cell>
                     <Button
                       floated="right"
                       size="mini"
                       primary
-                      disabled={isDisabled(item.id)}
-                      loading={isLoading(item.id)}
-                      onClick={this.handleConnect(item.id)}
+                      onClick={this.handleAppStreamConnect(streamingUrl, item.id)}
                     >
                       Connect
                     </Button>
-
-                    <div className="mt1">{item.name || 'Connect'}</div>
                   </Table.Cell>
                 </Table.Row>
-                {destinationUrl ? (
-                  <ScEnvHttpConnectionExpanded
-                    key={`${item.id}_destination`}
-                    destinationUrl={destinationUrl}
-                    keyName={`${item.id}_destinationUrl`}
-                    connectionId={item.id}
-                    timeout={this.timeout}
-                  />
-                ) : (
-                  <></>
-                )}
               </>
-            ))}
-          </Table.Body>
-        </Table>
-      </div>
+            )}
+          </>
+        ))}
+      </>
+    );
+  }
+
+  renderBody(connections) {
+    if (this.isAppStreamEnabled) {
+      return this.renderAppStreamBody(connections);
+    }
+
+    const processingId = this.processingId;
+    const isDisabled = id => processingId !== id && !_.isEmpty(processingId);
+    const isLoading = id => processingId === id;
+    return (
+      <>
+        {_.map(connections, item => (
+          <>
+            <Table.Row key={item.id}>
+              <Table.Cell className="clearfix">
+                <Button
+                  floated="right"
+                  size="mini"
+                  primary
+                  disabled={isDisabled(item.id)}
+                  loading={isLoading(item.id)}
+                  onClick={this.handleConnect(item.id)}
+                >
+                  Connect
+                </Button>
+
+                <div className="mt1">{item.name || 'Connect'}</div>
+              </Table.Cell>
+            </Table.Row>
+          </>
+        ))}
+      </>
     );
   }
 
   renderAppstreamInstructions(item) {
     return (
       <>
-        <Table.Row key={`${item.id}__2`}>
+        <Table.Row key={`${item.id}__4`}>
           <Table.Cell className="clearfix">
-            <b>Connection instructions for your {item.id} AppStream workspace:</b>
+            <b>Connection instructions for your AppStream workspace:</b>
             <List bulleted>
-              <List.Item className="flex" key={`${item.id}_list_1`}>
-                Step 1: Click the Connect button to start an AppStream session
-              </List.Item>
-              <List.Item className="flex" key={`${item.id}_list_2`}>
-                Step 2: Copy the destination URL that becomes available below
-              </List.Item>
-              <List.Item className="flex" key={`${item.id}_list_3`}>
-                Step 3: Paste (Ctrl + V) this destination URL in the new AppStream FireFox tab
-              </List.Item>
+              <List.Item>Click the &apos;Generate URL&apos; button to start an AppStream Firefox session</List.Item>
+              <List.Item>Copy the destination URL that becomes available below</List.Item>
+              <List.Item>Paste (Ctrl + V) this destination URL in the new AppStream FireFox tab</List.Item>
             </List>
           </Table.Cell>
         </Table.Row>
@@ -192,7 +285,10 @@ decorate(ScEnvironmentHttpConnections, {
   environment: computed,
   connections: computed,
   processingId: observable,
+  appStreamGeneratingId: observable,
+  appStreamConnectingId: observable,
   destinationUrl: observable,
+  streamingUrl: observable,
 });
 
 export default inject('scEnvironmentsStore')(withRouter(observer(ScEnvironmentHttpConnections)));
