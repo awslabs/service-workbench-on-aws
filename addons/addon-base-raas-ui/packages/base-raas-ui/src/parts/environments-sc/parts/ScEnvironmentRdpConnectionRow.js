@@ -91,7 +91,9 @@ class ScEnvironmentRdpConnectionRow extends React.Component {
         } else {
           throw Error('AppStream URL was not returned by the API');
         }
-        this.processingId = id;
+        runInAction(() => {
+          this.processingId = id;
+        });
       } catch (error) {
         displayError(error);
       } finally {
