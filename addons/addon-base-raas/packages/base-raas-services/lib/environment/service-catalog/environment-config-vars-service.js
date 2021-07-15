@@ -23,7 +23,6 @@ const settingKeys = {
   enableEgressStore: 'enableEgressStore',
   environmentInstanceFiles: 'environmentInstanceFiles',
   isAppStreamEnabled: 'isAppStreamEnabled',
-  solutionNamespace: 'solutionNamespace',
 };
 
 /**
@@ -50,6 +49,7 @@ class EnvironmentConfigVarsService extends Service {
       'pluginRegistryService',
       'auditWriterService',
       'dataEgressService',
+      'accountService',
     ]);
   }
 
@@ -157,8 +157,7 @@ class EnvironmentConfigVarsService extends Service {
       },
       {
         name: 'solutionNamespace',
-        desc:
-          'Environment name of the solution. It should be the same value as provided in onboard-account.cfn.yml for "Namespace"',
+        desc: 'The namespace value provided when onboarding the Member account',
       },
     ];
   }
@@ -238,9 +237,9 @@ class EnvironmentConfigVarsService extends Service {
       memberAccountId: accountId,
     });
 
-    let egressStoreIamPolicyDocument;
+    let egressStoreIamPolicyDocument = {};
     const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
-    if (enableEgressStore) {
+    if (enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE') {
       const egressStoreMount = await this.getEgressStoreMount(requestContext, environment);
       s3Mounts.push(egressStoreMount);
       egressStoreIamPolicyDocument = await this.getEnvEgressStorePolicy(requestContext, {
@@ -250,21 +249,6 @@ class EnvironmentConfigVarsService extends Service {
       });
     }
 
-    // TODO: If the ami sharing gets moved (because it doesn't contribute to an env var)
-    // then move the update local resource policies too.
-    // Using the account root provides basically the same level of security because in either
-    // case we have to trust that the member account hasn't altered the role's assume role policy to allow other
-    // principals assume it
-    // if (s3Prefixes.length > 0) {
-    //   await environmentMountService.addRoleArnToLocalResourcePolicies(`arn:aws:iam::${accountId}:root`, s3Prefixes);
-    // }
-
-    // Check if the environment being launched needs an admin key-pair to be created in the target account
-    // If the configuration being used has any parameter that uses the "adminKeyPairName" variable then it means
-    // we need to provision that key in the target account and provide the name of the generated key as the
-    // "adminKeyPairName" variable
-    // Disabling "no-template-curly-in-string" lint rule because we need to compare with the string literal "${adminKeyPairName}"
-    // i.e., without any string interpolation
     // eslint-disable-next-line no-template-curly-in-string
     const isAdminKeyPairRequired = !!_.find(envTypeConfig.params, p => p.value === '${adminKeyPairName}');
     let adminKeyPairName = '';
@@ -295,7 +279,7 @@ class EnvironmentConfigVarsService extends Service {
       iamPolicyDocument: JSON.stringify(iamPolicyDocument),
       environmentInstanceFiles: this.settings.get(settingKeys.environmentInstanceFiles),
       isAppStreamEnabled: this.settings.get(settingKeys.isAppStreamEnabled),
-      solutionNamespace: this.settings.get(settingKeys.solutionNamespace),
+      solutionNamespace: await this.getSolutionNamespace(requestContext, externalId, accountId),
       // s3Prefixes // This variable is no longer relevant it is being removed, the assumption is that
       // this variable has not been used in any of the product templates.
       uid: user.uid,
@@ -305,11 +289,17 @@ class EnvironmentConfigVarsService extends Service {
       adminKeyPairName,
     };
 
-    if (enableEgressStore) {
+    if (enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE') {
       result.egressStoreIamPolicyDocument = JSON.stringify(egressStoreIamPolicyDocument);
     }
 
     return result;
+  }
+
+  async getSolutionNamespace(requestContext, externalId, accountId) {
+    const [accountService] = await this.service(['accountService']);
+    const { stackId } = await accountService.mustFind(requestContext, { id: accountId });
+    return stackId.match(/\d{12}:stack\/(.+)\//)[1];
   }
 
   async getEnvRolePolicy(requestContext, { environment, studies, memberAccountId }) {
@@ -412,7 +402,7 @@ class EnvironmentConfigVarsService extends Service {
 
   async getEgressStoreMount(requestContext, environment) {
     const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
-    if (!enableEgressStore) {
+    if (!enableEgressStore || enableEgressStore.toUpperCase() !== 'TRUE') {
       throw this.boom.forbidden('Unable to mount Egress store in workspace since this feature is disabled', true);
     }
 

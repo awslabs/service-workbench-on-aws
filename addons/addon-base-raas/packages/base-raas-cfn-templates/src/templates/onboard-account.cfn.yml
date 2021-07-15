@@ -118,8 +118,7 @@ Conditions:
   isAppStream: !Equals
     - !Ref EnableAppStream
     - true
-  isNotAppStream:
-    !Not [Condition: isAppStream]
+  isNotAppStream: !Not [Condition: isAppStream]
 Resources:
   # A role used for launching environments using AWS Service Catalog
   # This is the role that code (ApiHandlerLambda and WorkflowLoopRunnerLambda) in central account
@@ -172,6 +171,17 @@ Resources:
                 Action:
                   - cloudformation:GetTemplate
                 Resource: 'arn:aws:cloudformation:*:*:stack/SC-*/*'
+        - PolicyName: appstream-access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - appstream:ListAssociatedFleets
+                  - appStream:CreateStreamingURL
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:appstream:${AWS::Region}:${AWS::AccountId}:stack/*'
+                  - !Sub 'arn:${AWS::Partition}:appstream:${AWS::Region}:${AWS::AccountId}:fleet/*'
         - PolicyName: ssm-access
           PolicyDocument:
             Statement:
@@ -191,6 +201,14 @@ Resources:
                 - s3:GetObject
               Resource:
                 - 'arn:aws:s3:::cf-templates-*/*'
+        - PolicyName: s3-upload-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - s3:PutObject*
+              Resource:
+                - !Sub 'arn:aws:s3:::${Namespace}*/*'
         - PolicyName: sagemaker-access
           PolicyDocument:
             Statement:
@@ -224,7 +242,7 @@ Resources:
     Properties:
       Description: Permission boundary for cross account EnvMgmt role
       PolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Action:
@@ -259,6 +277,12 @@ Resources:
               - iam:DetachRolePolicy
             Resource:
               - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${LaunchConstraintRolePrefix}'
+          - Effect: Allow
+            Action:
+              - appstream:ListAssociatedFleets
+              - appStream:CreateStreamingURL
+            Resource:
+              - '*'
           - Effect: Allow
             Action:
               - iam:CreatePolicy
@@ -471,13 +495,13 @@ Resources:
       AliasName: !Join ['', ['alias/', Ref: Namespace, '-encryption-key']]
       TargetKeyId: !Ref EncryptionKey
 
-#------------AppStream Resources Below-------
+  #------------AppStream Resources Below-------
   PrivateAppStreamSubnet:
     Type: AWS::EC2::Subnet
     Condition: isAppStream
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Select [ 0, !GetAZs  '' ]
+      AvailabilityZone: !Select [0, !GetAZs '']
       CidrBlock: !Ref AppStreamSubnetCidr
       MapPublicIpOnLaunch: false
       Tags:
@@ -489,7 +513,7 @@ Resources:
     Condition: isAppStream
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Select [ 0, !GetAZs  '' ]
+      AvailabilityZone: !Select [0, !GetAZs '']
       CidrBlock: !Ref WorkspaceSubnetCidr
       MapPublicIpOnLaunch: false
       Tags:
@@ -536,7 +560,7 @@ Resources:
               - 's3:DeleteObjectTagging'
               - 's3:DeleteObjectVersion'
               - 's3:DeleteObjectVersionTagging'
-              - 's3:ListBucket'   # Required in get_bootstrap.sh when running `aws s3 sync`
+              - 's3:ListBucket' # Required in get_bootstrap.sh when running `aws s3 sync`
             Resource:
               - '*'
       RouteTableIds:
@@ -586,7 +610,7 @@ Resources:
         - !Ref PrivateWorkspaceSubnet
       VpcEndpointType: Interface
       PrivateDnsEnabled: true
-      ServiceName: !Sub "com.amazonaws.${AWS::Region}.cloudformation"
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.cloudformation'
       VpcId: !Ref VPC
       SecurityGroupIds:
         - !Ref CfnEndpointSecurityGroup
@@ -747,7 +771,7 @@ Outputs:
     Condition: isAppStream
     Value: !Ref AppStreamSecurityGroup
     Export:
-      Name: !Join [ '', [ Ref: Namespace, '-SwbAppStreamSG' ] ]
+      Name: !Join ['', [Ref: Namespace, '-SwbAppStreamSG']]
 
   SageMakerSecurityGroup:
     Description: SageMaker Security Group

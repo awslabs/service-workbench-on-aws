@@ -31,7 +31,7 @@ const ScEnvConnectionStore = BaseStore.named('ScEnvConnectionStore')
 
       async createConnectionUrl(connectionId) {
         const urlObj = await createScEnvironmentConnectionUrl(self.envId, connectionId);
-        return _.get(urlObj, 'url');
+        return urlObj;
       },
 
       async sendSshKey(connectionId, keyPairId) {
