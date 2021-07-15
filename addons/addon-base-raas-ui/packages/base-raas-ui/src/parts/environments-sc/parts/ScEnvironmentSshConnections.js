@@ -86,7 +86,9 @@ class ScEnvironmentSshConnections extends React.Component {
         <List bulleted>
           <List.Item>Select your SSH key below. You must have downloaded this already.</List.Item>
           <List.Item>Paste the key&apos;s contents into AppStream Notepad in .PEM format</List.Item>
-          <List.Item>Save the file in the Downloads folder in .PEM format named like &apos;KeyName.pem&apos;</List.Item>
+          <List.Item>
+            Save the file in the Downloads folder in .PEM format named like &quot;KeyName.pem&quot; (with quotes)
+          </List.Item>
           <List.Item>Open PuttyGen in AppStream and convert your private PEM key to PPK format</List.Item>
           <List.Item>Enter the PPK file and private IP address in Putty to SSH into EC2</List.Item>
           <List.Item>Delete this file once EC2 connection is established</List.Item>
