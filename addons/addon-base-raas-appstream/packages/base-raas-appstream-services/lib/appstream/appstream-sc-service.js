@@ -18,7 +18,6 @@ const Service = require('@aws-ee/base-services-container/lib/service');
 
 const settingKeys = {
   appStreamImageName: 'appStreamImageName',
-  isAppStreamEnabled: 'isAppStreamEnabled',
 };
 
 class AppStreamScService extends Service {
@@ -116,9 +115,6 @@ class AppStreamScService extends Service {
   }
 
   async getStreamingUrl(requestContext, { environmentId, applicationId }) {
-    const isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
-    if (isAppStreamEnabled !== 'true') return undefined;
-
     const environmentScService = await this.service('environmentScService');
 
     const appStream = await environmentScService.getClientSdkWithEnvMgmtRole(
@@ -150,9 +146,6 @@ class AppStreamScService extends Service {
   }
 
   async urlForRemoteDesktop(requestContext, { environmentId, instanceId }) {
-    const isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
-    if (isAppStreamEnabled !== 'true') return undefined;
-
     const environmentScService = await this.service('environmentScService');
     const environment = await environmentScService.mustFind(requestContext, { id: environmentId });
 

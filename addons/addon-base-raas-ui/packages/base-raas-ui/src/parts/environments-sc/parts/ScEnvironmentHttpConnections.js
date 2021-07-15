@@ -3,7 +3,7 @@ import React from 'react';
 import { decorate, computed, action, runInAction, observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
-import { Segment, Icon, Button, Header, Grid, Table, List } from 'semantic-ui-react';
+import { Segment, Icon, Button, Header, Table, List } from 'semantic-ui-react';
 
 import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
 
@@ -137,6 +137,7 @@ class ScEnvironmentHttpConnections extends React.Component {
 
     return (
       <div className="mt2 mb2">
+        {this.renderAppstreamInstructions(_.first(connections))}
         <Table celled>
           <Table.Header>
             <Table.Row key={env.id}>
@@ -153,22 +154,22 @@ class ScEnvironmentHttpConnections extends React.Component {
     const appStreamGeneratingId = this.appStreamGeneratingId;
     const streamingUrl = this.streamingUrl;
     const destinationUrl = this.destinationUrl;
-    const isDisabled = id => appStreamGeneratingId !== id && !_.isEmpty(appStreamGeneratingId);
-    const isLoading = id => appStreamGeneratingId === id;
+    const appStreamConnectingId = this.appStreamConnectingId;
+    const isDisabled = (id1, id2) => id2 !== id1 && !_.isEmpty(id2);
+    const isLoading = (id1, id2) => id2 === id1;
 
     return (
       <>
         {_.map(connections, item => (
           <>
-            {this.renderAppstreamInstructions(item)}
             <Table.Row key={item.id}>
               <Table.Cell className="clearfix">
                 <Button
                   floated="right"
                   size="mini"
                   primary
-                  disabled={isDisabled(item.id)}
-                  loading={isLoading(item.id)}
+                  disabled={isDisabled(item.id, appStreamGeneratingId)}
+                  loading={isLoading(item.id, appStreamGeneratingId)}
                   onClick={this.handleGenerateAppStreamUrl(item.id)}
                 >
                   Generate URL
@@ -179,35 +180,24 @@ class ScEnvironmentHttpConnections extends React.Component {
             </Table.Row>
 
             {destinationUrl && (
-              <>
-                <Table.Row key={`${item.id}_destination`} className="fadeIn animated">
-                  <Table.Cell colSpan="3" className="p3">
-                    <Grid columns={2} stackable key={`${item.id}__2`}>
-                      <Grid.Row stretched>
-                        <Grid.Column width={12}>
-                          <div>
-                            Click on this icon to copy the workspace destination URL:
-                            <CopyToClipboard text={destinationUrl} />
-                          </div>
-                        </Grid.Column>
-                      </Grid.Row>
-                    </Grid>
-                  </Table.Cell>
-                </Table.Row>
-
-                <Table.Row key={`${item.id}__3`}>
-                  <Table.Cell>
-                    <Button
-                      floated="right"
-                      size="mini"
-                      primary
-                      onClick={this.handleAppStreamConnect(streamingUrl, item.id)}
-                    >
-                      Connect
-                    </Button>
-                  </Table.Cell>
-                </Table.Row>
-              </>
+              <Table.Row key={`${item.id}_destination`} className="fadeIn animated">
+                <Table.Cell colSpan="3" className="p3">
+                  <div>
+                    Click on this icon to copy the workspace destination URL:
+                    <CopyToClipboard text={destinationUrl} />
+                  </div>
+                  <Button
+                    floated="right"
+                    size="mini"
+                    primary
+                    disabled={isDisabled(item.id, appStreamConnectingId)}
+                    loading={isLoading(item.id, appStreamConnectingId)}
+                    onClick={this.handleAppStreamConnect(streamingUrl, item.id)}
+                  >
+                    Connect
+                  </Button>
+                </Table.Cell>
+              </Table.Row>
             )}
           </>
         ))}
@@ -251,18 +241,16 @@ class ScEnvironmentHttpConnections extends React.Component {
 
   renderAppstreamInstructions(item) {
     return (
-      <>
-        <Table.Row key={`${item.id}__4`}>
-          <Table.Cell className="clearfix">
-            <b>Connection instructions for your AppStream workspace:</b>
-            <List bulleted>
-              <List.Item>Click the &apos;Generate URL&apos; button to start an AppStream Firefox session</List.Item>
-              <List.Item>Copy the destination URL that becomes available below</List.Item>
-              <List.Item>Paste (Ctrl + V) this destination URL in the new AppStream FireFox tab</List.Item>
-            </List>
-          </Table.Cell>
-        </Table.Row>
-      </>
+      this.isAppStreamEnabled && (
+        <Segment key={`${item.id}__4`} className="clearfix">
+          <b>Connection instructions for your AppStream workspace:</b>
+          <List bulleted>
+            <List.Item>Click the &quot;Generate URL&quot; button to create the designation instance URL</List.Item>
+            <List.Item>Copy the destination URL that becomes available below</List.Item>
+            <List.Item>Hit &quot;Connect&quot;. Paste the URL in the new AppStream FireFox tab</List.Item>
+          </List>
+        </Segment>
+      )
     );
   }
 

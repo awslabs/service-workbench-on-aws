@@ -15,11 +15,24 @@
 
 const _ = require('lodash');
 
+const settingKeys = {
+  isAppStreamEnabled: 'isAppStreamEnabled',
+};
+
 async function createConnectionUrl({ envId, connection }, { requestContext, container }) {
   const log = await container.find('log');
   // Only wraps web urls via app stream (i.e., scheme = 'http' or 'https' or no scheme)
   const isHttp = connection.scheme === 'http' || connection.scheme === 'https' || _.isEmpty(connection.scheme);
   const appStreamScService = await container.find('appStreamScService');
+  const settings = await container.find('settings');
+  const isAppStreamEnabled = settings.optionalBoolean(settingKeys.isAppStreamEnabled, false);
+
+  // This plugin will only contribute to URL creation when AppStream is enabled
+  // Since this plugin is also called upon during listConnections cycle
+  // it will only be triggered during the URL creation API call
+  if (!isAppStreamEnabled || connection.operation === 'list') {
+    return { envId, connection };
+  }
 
   // Only wrap via AppStream if the connection.url exists
   let appStreamUrl;

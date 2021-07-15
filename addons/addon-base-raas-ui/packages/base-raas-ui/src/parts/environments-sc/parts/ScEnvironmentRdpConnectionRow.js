@@ -108,9 +108,11 @@ class ScEnvironmentRdpConnectionRow extends React.Component {
     const store = this.getConnectionStore();
     const connectionId = this.connectionId;
 
-    this.windowsRdpInfo = undefined;
-    this.showPassword = false;
-    this.processingGetInfo = true;
+    runInAction(() => {
+      this.windowsRdpInfo = undefined;
+      this.showPassword = false;
+      this.processingGetInfo = true;
+    });
 
     try {
       const result = await store.getWindowsRdpInfo(connectionId);
@@ -173,11 +175,7 @@ class ScEnvironmentRdpConnectionRow extends React.Component {
               defined below.
             </b>
             <List bulleted>
-              {this.isAppStreamEnabled ? (
-                <>
-                  <List.Item>Click the &apos;Connect&apos; button to navigate to the AppStream instance</List.Item>
-                </>
-              ) : (
+              {!this.isAppStreamEnabled && (
                 <List.Item>
                   The IP Address or DNS of the instance.{' '}
                   {moreThanOne ? 'Ask your administrator if you are not sure which one to use:' : ''}
@@ -227,7 +225,14 @@ class ScEnvironmentRdpConnectionRow extends React.Component {
         {this.isAppStreamEnabled && windowsRdpInfo && (
           <Table.Row>
             <Table.Cell>
-              <Button primary size="mini" onClick={this.handleConnect(connectionId)} floated="right">
+              <Button
+                primary
+                size="mini"
+                onClick={this.handleConnect(connectionId)}
+                floated="right"
+                disabled={this.processingId}
+                loading={this.processingId}
+              >
                 Connect
               </Button>
             </Table.Cell>
