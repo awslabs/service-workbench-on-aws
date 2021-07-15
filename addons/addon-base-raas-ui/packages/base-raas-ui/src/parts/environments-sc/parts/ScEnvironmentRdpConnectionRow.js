@@ -227,7 +227,14 @@ class ScEnvironmentRdpConnectionRow extends React.Component {
         {this.isAppStreamEnabled && windowsRdpInfo && (
           <Table.Row>
             <Table.Cell>
-              <Button primary size="mini" onClick={this.handleConnect(connectionId)} floated="right">
+              <Button
+                primary
+                size="mini"
+                onClick={this.handleConnect(connectionId)}
+                floated="right"
+                disabled={this.processingId}
+                loading={this.processingId}
+              >
                 Connect
               </Button>
             </Table.Cell>

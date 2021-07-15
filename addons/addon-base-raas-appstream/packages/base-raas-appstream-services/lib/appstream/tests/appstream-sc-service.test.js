@@ -44,6 +44,7 @@ const AppStreamScService = require('../appstream-sc-service');
 describe('AppStreamScService', () => {
   let service = null;
   let environmentScService = null;
+  let settings = null;
 
   beforeAll(async () => {
     const container = new ServicesContainer();
@@ -64,11 +65,17 @@ describe('AppStreamScService', () => {
     // Get instance of the service we are testing
     service = await container.find('appStreamScService');
     environmentScService = await container.find('environmentScService');
+
+    // Mock return for settings get
+    settings = await container.find('settings');
   });
 
   beforeEach(async () => {
     const aws = await service.service('aws');
     AWSMock.setSDKInstance(aws.sdk);
+    settings.get = jest.fn(() => {
+      return 'true';
+    });
   });
 
   afterEach(() => {
