@@ -27,7 +27,10 @@ async function createConnectionUrl({ envId, connection }, { requestContext, cont
   const settings = await container.find('settings');
   const isAppStreamEnabled = settings.optionalBoolean(settingKeys.isAppStreamEnabled, false);
 
-  if (!isAppStreamEnabled || _.includes(connection.url, 'appstream2.us-east-1.aws.amazon.com')) {
+  // This plugin will only contribute to URL creation when AppStream is enabled
+  // Since this plugin is also called upon during listConnections cycle
+  // it will only be triggered during the URL creation API call
+  if (!isAppStreamEnabled || connection.operation === 'list') {
     return { envId, connection };
   }
 

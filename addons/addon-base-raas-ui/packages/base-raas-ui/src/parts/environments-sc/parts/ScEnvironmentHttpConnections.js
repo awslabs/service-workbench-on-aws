@@ -3,7 +3,7 @@ import React from 'react';
 import { decorate, computed, action, runInAction, observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
-import { Segment, Icon, Button, Header, Grid, Table, List } from 'semantic-ui-react';
+import { Segment, Icon, Button, Header, Table, List } from 'semantic-ui-react';
 
 import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
 
@@ -154,8 +154,9 @@ class ScEnvironmentHttpConnections extends React.Component {
     const appStreamGeneratingId = this.appStreamGeneratingId;
     const streamingUrl = this.streamingUrl;
     const destinationUrl = this.destinationUrl;
-    const isDisabled = id => appStreamGeneratingId !== id && !_.isEmpty(appStreamGeneratingId);
-    const isLoading = id => appStreamGeneratingId === id;
+    const appStreamConnectingId = this.appStreamConnectingId;
+    const isDisabled = (id1, id2) => id2 !== id1 && !_.isEmpty(id2);
+    const isLoading = (id1, id2) => id2 === id1;
 
     return (
       <>
@@ -167,8 +168,8 @@ class ScEnvironmentHttpConnections extends React.Component {
                   floated="right"
                   size="mini"
                   primary
-                  disabled={isDisabled(item.id)}
-                  loading={isLoading(item.id)}
+                  disabled={isDisabled(item.id, appStreamGeneratingId)}
+                  loading={isLoading(item.id, appStreamGeneratingId)}
                   onClick={this.handleGenerateAppStreamUrl(item.id)}
                 >
                   Generate URL
@@ -181,26 +182,20 @@ class ScEnvironmentHttpConnections extends React.Component {
             {destinationUrl && (
               <Table.Row key={`${item.id}_destination`} className="fadeIn animated">
                 <Table.Cell colSpan="3" className="p3">
-                  <Grid columns={2} stackable key={`${item.id}__2`}>
-                    <Grid.Row stretched>
-                      <Grid.Column width={12}>
-                        <div>
-                          Click on this icon to copy the workspace destination URL:
-                          <CopyToClipboard text={destinationUrl} />
-                        </div>
-                      </Grid.Column>
-                      <Grid.Column width={4}>
-                        <Button
-                          floated="right"
-                          size="mini"
-                          primary
-                          onClick={this.handleAppStreamConnect(streamingUrl, item.id)}
-                        >
-                          Connect
-                        </Button>
-                      </Grid.Column>
-                    </Grid.Row>
-                  </Grid>
+                  <div>
+                    Click on this icon to copy the workspace destination URL:
+                    <CopyToClipboard text={destinationUrl} />
+                  </div>
+                  <Button
+                    floated="right"
+                    size="mini"
+                    primary
+                    disabled={isDisabled(item.id, appStreamConnectingId)}
+                    loading={isLoading(item.id, appStreamConnectingId)}
+                    onClick={this.handleAppStreamConnect(streamingUrl, item.id)}
+                  >
+                    Connect
+                  </Button>
                 </Table.Cell>
               </Table.Row>
             )}

@@ -108,9 +108,11 @@ class ScEnvironmentRdpConnectionRow extends React.Component {
     const store = this.getConnectionStore();
     const connectionId = this.connectionId;
 
-    this.windowsRdpInfo = undefined;
-    this.showPassword = false;
-    this.processingGetInfo = true;
+    runInAction(() => {
+      this.windowsRdpInfo = undefined;
+      this.showPassword = false;
+      this.processingGetInfo = true;
+    });
 
     try {
       const result = await store.getWindowsRdpInfo(connectionId);

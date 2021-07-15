@@ -91,6 +91,9 @@ class EnvironmentScConnectionService extends Service {
     // Give plugins chance to adjust the connection (such as connection url etc)
     const adjustedConnections = await Promise.all(
       _.map(result, async connection => {
+        // This is done so that plugins know it was called during list connections cycle
+        connection.operation = 'list';
+
         const pluginsResult = await pluginRegistryService.visitPlugins(
           'env-sc-connection-url',
           'createConnectionUrl',
@@ -161,6 +164,8 @@ class EnvironmentScConnectionService extends Service {
       connection.url = await this.getRStudioUrl(requestContext, envId, connection);
     }
 
+    // This is done so that plugins know it was called during create URL cycle
+    connection.operation = 'create';
     // Give plugins chance to adjust the connection (such as connection url etc)
     const result = await pluginRegistryService.visitPlugins(
       'env-sc-connection-url',
