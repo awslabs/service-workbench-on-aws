@@ -114,6 +114,7 @@ class ScEnvironmentSshConnections extends React.Component {
               <List.Item>Enter the private IP address in Putty and select SSH connection type</List.Item>
               <List.Item>In the Category pane, expand Connection, expand SSH, and then choose Auth</List.Item>
               <List.Item>Browse and select your PPK file for authentication. Click Open</List.Item>
+              <List.Item>When prompted to enter username, enter &quot;ec2-user&quot;</List.Item>
             </List>
           </List.Item>
           <List.Item>Delete your PEM and PPK files once EC2 connection is established</List.Item>
