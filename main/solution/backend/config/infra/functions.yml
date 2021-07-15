@@ -193,7 +193,6 @@ workflowLoopRunner:
     APP_EGRESS_STORE_BUCKET_NAME: ${self:custom.settings.egressStoreBucketName}
     APP_EGRESS_STORE_KMS_KEY_ALIAS_ARN: ${self:custom.settings.egressStoreKmsKeyAliasArn}
     APP_EGRESS_STORE_KMS_POLICY_WORKSPACE_SID: ${self:custom.settings.egressStoreKmsPolicyWorkspaceSid}
-    APP_SOLUTION_NAMESPACE: ${self:custom.settings.envName}
     APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
 
 egressStoreObjectsHandler:
