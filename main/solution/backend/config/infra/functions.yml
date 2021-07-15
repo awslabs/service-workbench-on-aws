@@ -194,16 +194,3 @@ workflowLoopRunner:
     APP_EGRESS_STORE_KMS_KEY_ALIAS_ARN: ${self:custom.settings.egressStoreKmsKeyAliasArn}
     APP_EGRESS_STORE_KMS_POLICY_WORKSPACE_SID: ${self:custom.settings.egressStoreKmsPolicyWorkspaceSid}
     APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
-
-egressStoreObjectsHandler:
-  role: RoleEgressStoreObjectsHandler
-  handler: src/lambdas/egress-store-object-handler/handler.handler
-  description: Handles attaching tags to s3 object created in egress store bucket
-  tags: ${self:custom.tags}
-  events:
-    - s3:
-        bucket: ${self:custom.settings.egressStoreBucketName}
-        event: s3:ObjectCreated:*
-        existing: true
-  environment:
-    APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
