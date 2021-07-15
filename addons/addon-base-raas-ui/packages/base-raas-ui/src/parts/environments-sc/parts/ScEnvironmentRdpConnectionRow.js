@@ -173,11 +173,7 @@ class ScEnvironmentRdpConnectionRow extends React.Component {
               defined below.
             </b>
             <List bulleted>
-              {this.isAppStreamEnabled ? (
-                <>
-                  <List.Item>Click the &apos;Connect&apos; button to navigate to the AppStream instance</List.Item>
-                </>
-              ) : (
+              {!this.isAppStreamEnabled && (
                 <List.Item>
                   The IP Address or DNS of the instance.{' '}
                   {moreThanOne ? 'Ask your administrator if you are not sure which one to use:' : ''}

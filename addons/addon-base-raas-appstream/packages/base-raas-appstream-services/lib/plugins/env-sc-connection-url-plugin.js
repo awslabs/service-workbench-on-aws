@@ -15,11 +15,21 @@
 
 const _ = require('lodash');
 
+const settingKeys = {
+  isAppStreamEnabled: 'isAppStreamEnabled',
+};
+
 async function createConnectionUrl({ envId, connection }, { requestContext, container }) {
   const log = await container.find('log');
   // Only wraps web urls via app stream (i.e., scheme = 'http' or 'https' or no scheme)
   const isHttp = connection.scheme === 'http' || connection.scheme === 'https' || _.isEmpty(connection.scheme);
   const appStreamScService = await container.find('appStreamScService');
+  const settings = await container.find('settings');
+  const isAppStreamEnabled = settings.optionalBoolean(settingKeys.isAppStreamEnabled, false);
+
+  if (!isAppStreamEnabled || _.includes(connection.url, 'appstream2.us-east-1.aws.amazon.com')) {
+    return { envId, connection };
+  }
 
   // Only wrap via AppStream if the connection.url exists
   let appStreamUrl;
