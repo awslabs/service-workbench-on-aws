@@ -16,12 +16,17 @@ import CopyToClipboard from '../../helpers/CopyToClipboard';
 class ScEnvSshConnRowExpanded extends React.Component {
   constructor(props) {
     super(props);
+
     runInAction(() => {
       // The count down value
       this.countDown = undefined;
       this.intervalId = undefined;
       this.expired = false;
     });
+  }
+
+  get isAppStreamEnabled() {
+    return process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true';
   }
 
   get networkInterfaces() {
@@ -95,19 +100,19 @@ class ScEnvSshConnRowExpanded extends React.Component {
         <Table.Cell colSpan="3" className="p3">
           <Grid columns={2} stackable>
             <Grid.Row stretched>
-              {process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true' ? (
+              {this.isAppStreamEnabled ? (
                 <Grid.Column width={12}>{this.renderAppStreamInfo()}</Grid.Column>
               ) : (
                 <Grid.Column width={12}>{this.renderInfo()}</Grid.Column>
               )}
               <Grid.Column width={4}>
                 <Segment className="flex items-center">
-                  <div className="w-100 overflow-hidden">{this.renderCountDown()}</div>
+                  <div className="w-100">{this.renderCountDown()}</div>
                 </Segment>
               </Grid.Column>
             </Grid.Row>
           </Grid>
-          {process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true' ? (
+          {this.isAppStreamEnabled ? (
             <></>
           ) : (
             <div className="mt3">

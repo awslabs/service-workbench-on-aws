@@ -3,7 +3,7 @@ import React from 'react';
 import { decorate, computed, action, runInAction, observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
-import { Button, Table, Dropdown } from 'semantic-ui-react';
+import { Button, Table, Dropdown, Grid } from 'semantic-ui-react';
 
 import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
 
@@ -32,6 +32,10 @@ class ScEnvironmentSshConnectionRow extends React.Component {
       this.selectedKeyId = key.id;
       this.appStreamUrl = undefined;
     });
+  }
+
+  get isAppStreamEnabled() {
+    return process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true';
   }
 
   get environment() {
@@ -91,16 +95,9 @@ class ScEnvironmentSshConnectionRow extends React.Component {
     this.processingSendKey = true;
     try {
       const result = await store.sendSshKey(connectionId, keyId);
-      let urlObj;
-      if (process.env.REACT_APP_IS_APP_STREAM_ENABLED) {
-        urlObj = await store.createConnectionUrl(connectionId);
-      }
 
       runInAction(() => {
         this.networkInterfaces = _.get(result, 'networkInterfaces');
-        if (process.env.REACT_APP_IS_APP_STREAM_ENABLED) {
-          this.appStreamUrl = urlObj.url;
-        }
       });
     } catch (error) {
       displayError(error);
@@ -116,10 +113,7 @@ class ScEnvironmentSshConnectionRow extends React.Component {
       try {
         const connectionId = this.connectionId;
         const store = this.getConnectionStore();
-        let urlObj;
-        if (process.env.REACT_APP_IS_APP_STREAM_ENABLED) {
-          urlObj = await store.createConnectionUrl(connectionId);
-        }
+        const urlObj = await store.createConnectionUrl(connectionId);
         const appStreamUrl = urlObj.url;
         if (appStreamUrl) {
           // We use noopener and noreferrer for good practices https://developer.mozilla.org/en-US/docs/Web/API/Window/open#noopener
@@ -202,13 +196,15 @@ class ScEnvironmentSshConnectionRow extends React.Component {
       );
     }
 
-    if (process.env.REACT_APP_IS_APP_STREAM_ENABLED) {
+    if (this.isAppStreamEnabled && !_.isUndefined(networkInterfaces)) {
       rows.push(
         <Table.Row key={`${item.id}__2`}>
           <Table.Cell>
-            <Button floated="right" size="mini" primary onClick={this.handleConnect(item.id)}>
-              Connect
-            </Button>
+            <Grid.Column width={12}>
+              <Button floated="right" size="mini" primary onClick={this.handleConnect(item.id)}>
+                Connect
+              </Button>
+            </Grid.Column>
           </Table.Cell>
         </Table.Row>,
       );
