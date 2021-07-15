@@ -23,6 +23,7 @@ class ScEnvironmentHttpConnections extends React.Component {
       // The id of the connection that is being processed
       this.processingId = '';
       this.appStreamGeneratingId = '';
+      this.appStreamConnectingId = '';
       this.destinationUrl = undefined;
       this.streamingUrl = undefined;
       this.timeout = 10;
@@ -285,6 +286,7 @@ decorate(ScEnvironmentHttpConnections, {
   connections: computed,
   processingId: observable,
   appStreamGeneratingId: observable,
+  appStreamConnectingId: observable,
   destinationUrl: observable,
   streamingUrl: observable,
 });

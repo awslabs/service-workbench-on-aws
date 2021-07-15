@@ -28,6 +28,7 @@ class ScEnvironmentRdpConnectionRow extends React.Component {
       this.processingGetInfo = false;
       // Should the password be shown
       this.showPassword = false;
+      this.processingId = undefined;
     });
   }
 
@@ -275,6 +276,7 @@ decorate(ScEnvironmentRdpConnectionRow, {
   connection: computed,
   connectionId: computed,
   networkInterfaces: computed,
+  processingId: observable,
   windowsRdpInfo: observable,
   processingGetInfo: observable,
   showPassword: observable,
