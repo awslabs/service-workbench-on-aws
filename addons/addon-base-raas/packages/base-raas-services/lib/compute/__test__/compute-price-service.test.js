@@ -25,12 +25,16 @@ const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-sett
 // jest.mock('@aws-ee/base-services/lib/json-schema-validation-service');
 const JsonSchemaValidationServiceMock = require('@aws-ee/base-services/lib/json-schema-validation-service');
 
-jest.mock('../compute-price-service.js');
+const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
+const AWSMock = require('aws-sdk-mock');
+
+jest.mock('../compute-platform-service');
 const ComputePriceService = require('../compute-price-service.js');
 const ComputePlatformService = require('../compute-platform-service');
 
 describe('ComputePlatformService', () => {
   let service;
+  let aws;
 
   beforeEach(async () => {
     // Initialize services container and register dependencies
@@ -41,20 +45,61 @@ describe('ComputePlatformService', () => {
     container.register('settings', new SettingsServiceMock());
     container.register('computePriceService', new ComputePriceService());
     container.register('computePlatformService', new ComputePlatformService());
+    container.register('aws', new AwsService());
     await container.initServices();
 
     // Get instance of the service we are testing
-    service = await container.find('computePlatformService');
+    service = await container.find('computePriceService');
+    aws = await service.service('aws');
+    AWSMock.setSDKInstance(aws.sdk);
   });
 
-  describe('computePlatformService', () => {
-    it('should list empty configurations', async () => {
+  afterEach(() => {
+    AWSMock.restore();
+  });
+
+  describe('ComputePriceService', () => {
+    it('should calculate price info', async () => {
       // BUILD
-      const uid = 'u-currentUserId';
-      const requestContext = { principalIdentifier: { uid } };
+      service._settings = {
+        get: settingName => {
+          if (settingName === 'awsRegion') {
+            return 'test-awsRegion';
+          }
+          return undefined;
+        },
+      };
+      const mockComputeConfiguration = { type: 'test-type', priceInfo: {} };
 
       // OPERATE
-      const result = await service.listConfigurations(requestContext, { platformId: '', includePrice: false });
+      const result = await service.calculatePriceInfo(mockComputeConfiguration);
+
+      // CHECK
+      expect(result).toEqual({ region: 'test-awsRegion' });
+    });
+
+    it('should get empty spot price history', async () => {
+      // BUILD
+      service._settings = {
+        get: settingName => {
+          if (settingName === 'awsRegion') {
+            return 'test-awsRegion';
+          }
+          return undefined;
+        },
+      };
+
+      const mockcE2Type = 'mockcE2Type';
+      AWSMock.mock('EC2', 'describeSpotPriceHistory', (params, callback) => {
+        expect(params).toMatchObject({
+          InstanceTypes: [mockcE2Type],
+          ProductDescriptions: ['Linux/UNIX'],
+        });
+        callback(null, { SpotPriceHistory: [] });
+      });
+
+      // OPERATE
+      const result = await service.getSpotPriceHistory(mockcE2Type, 'us-east-1');
 
       // CHECK
       expect(result).toEqual([]);
