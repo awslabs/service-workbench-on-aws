@@ -36,12 +36,11 @@ class AppStreamScService extends Service {
 
   async init() {
     await super.init();
-    const aws = await this.service('aws');
-    this.appStream = new aws.sdk.AppStream();
   }
 
   async shareAppStreamImageWithAccount(requestContext, accountId) {
-    const result = await this.appStream
+    const appStream = await this.getAppStream();
+    const result = await appStream
       .updateImagePermissions({
         ImagePermissions: {
           allowFleet: true,
@@ -154,11 +153,7 @@ class AppStreamScService extends Service {
     const isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
     if (isAppStreamEnabled !== 'true') return undefined;
 
-    const [environmentScKeypairService, environmentScService] = await this.service([
-      'environmentScKeypairService',
-      'environmentScService',
-    ]);
-
+    const environmentScService = await this.service('environmentScService');
     const environment = await environmentScService.mustFind(requestContext, { id: environmentId });
 
     // Get stack and fleet
@@ -167,16 +162,22 @@ class AppStreamScService extends Service {
       indexId: environment.indexId,
     });
 
-    // Create session context
-    const environmentKey = environmentScKeypairService.toPrivateKeySsmParamName(environmentId);
-    const sessionContext = { environmentKey, instanceId };
-
     // Generate AppStream URL
     const appStream = await environmentScService.getClientSdkWithEnvMgmtRole(
       requestContext,
       { id: environmentId },
       { clientName: 'AppStream', options: { signatureVersion: 'v4' } },
     );
+    const ec2 = await environmentScService.getClientSdkWithEnvMgmtRole(
+      requestContext,
+      { id: environmentId },
+      { clientName: 'EC2', options: { apiVersion: '2016-11-15' } },
+    );
+    const data = await ec2.describeInstances({ InstanceIds: [instanceId] }).promise();
+    const instanceInfo = _.get(data, 'Reservations[0].Instances[0]');
+    const networkInterfaces = _.get(instanceInfo, 'NetworkInterfaces') || [];
+    const privateIp = _.get(networkInterfaces[0], 'PrivateIpAddress');
+
     const userId = this.generateUserId(requestContext, environment);
     this.log.info({ msg: `Creating AppStream URL`, appStreamSessionUid: userId });
     const result = await appStream
@@ -184,8 +185,8 @@ class AppStreamScService extends Service {
         FleetName: fleetName,
         StackName: stackName,
         UserId: userId,
-        ApplicationId: 'remote-desktop',
-        SessionContext: JSON.stringify(sessionContext),
+        ApplicationId: 'MicrosoftRemoteDesktop',
+        SessionContext: privateIp,
       })
       .promise();
 
@@ -202,6 +203,16 @@ class AppStreamScService extends Service {
     // If the main call also needs to fail in case writing to any audit destination fails then switch to "write" method as follows
     // return auditWriterService.write(requestContext, auditEvent);
     return auditWriterService.writeAndForget(requestContext, auditEvent);
+  }
+
+  async getAWS() {
+    const aws = await this.service('aws');
+    return aws;
+  }
+
+  async getAppStream() {
+    const aws = await this.getAWS();
+    return new aws.sdk.AppStream();
   }
 }
 

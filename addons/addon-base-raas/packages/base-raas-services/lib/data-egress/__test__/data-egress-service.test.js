@@ -117,7 +117,7 @@ describe('DataEgressService', () => {
       dataEgressService._settings = {
         get: settingName => {
           if (settingName === 'enableEgressStore') {
-            return false;
+            return 'false';
           }
           return undefined;
         },
@@ -144,7 +144,7 @@ describe('DataEgressService', () => {
       dataEgressService._settings = {
         get: settingName => {
           if (settingName === 'enableEgressStore') {
-            return true;
+            return 'true';
           }
           return undefined;
         },
@@ -171,7 +171,7 @@ describe('DataEgressService', () => {
       dataEgressService._settings = {
         get: settingName => {
           if (settingName === 'enableEgressStore') {
-            return true;
+            return 'true';
           }
           if (settingName === 'egressStoreKmsKeyAliasArn') {
             return 'test-egressStoreKmsKeyAliasArn';
@@ -222,7 +222,7 @@ describe('DataEgressService', () => {
       dataEgressService._settings = {
         get: settingName => {
           if (settingName === 'enableEgressStore') {
-            return true;
+            return 'true';
           }
           if (settingName === 'egressStoreKmsKeyAliasArn') {
             return 'test-egressStoreKmsKeyAliasArn';
@@ -314,7 +314,7 @@ describe('DataEgressService', () => {
       dataEgressService._settings = {
         get: settingName => {
           if (settingName === 'enableEgressStore') {
-            return false;
+            return 'false';
           }
           return undefined;
         },
@@ -334,7 +334,7 @@ describe('DataEgressService', () => {
       dataEgressService._settings = {
         get: settingName => {
           if (settingName === 'enableEgressStore') {
-            return true;
+            return 'true';
           }
           if (settingName === 'egressStoreKmsKeyAliasArn') {
             return 'test-egressStoreKmsKeyAliasArn';
@@ -366,7 +366,7 @@ describe('DataEgressService', () => {
       dataEgressService._settings = {
         get: settingName => {
           if (settingName === 'enableEgressStore') {
-            return true;
+            return 'true';
           }
           if (settingName === 'egressStoreKmsKeyAliasArn') {
             return 'test-egressStoreKmsKeyAliasArn';
@@ -378,7 +378,7 @@ describe('DataEgressService', () => {
         },
       };
 
-      dbService.table.scan.mockResolvedValue([
+      dbService.table.scan.mockResolvedValueOnce([
         {
           status: 'PROCESSING',
           workspaceId: 'test-workspace-id',
@@ -406,7 +406,7 @@ describe('DataEgressService', () => {
       dataEgressService._settings = {
         get: settingName => {
           if (settingName === 'enableEgressStore') {
-            return true;
+            return 'true';
           }
           if (settingName === 'egressStoreKmsKeyAliasArn') {
             return 'test-egressStoreKmsKeyAliasArn';
@@ -418,7 +418,7 @@ describe('DataEgressService', () => {
         },
       };
 
-      dbService.table.scan.mockResolvedValue([
+      dbService.table.scan.mockResolvedValueOnce([
         {
           status: 'PROCESSED',
           workspaceId: 'test-workspace-id',
@@ -451,6 +451,23 @@ describe('DataEgressService', () => {
 
       await dataEgressService.terminateEgressStore(requestContext, envId);
       expect(dataEgressService.removeEgressStoreBucketPolicy).toHaveBeenCalledTimes(1);
+      expect(dataEgressService.removeEgressStoreBucketPolicy).toHaveBeenCalledWith(
+        {},
+        {
+          bucket: 'test-s3BucketName',
+          createdBy: undefined,
+          envPermission: { read: true, write: true },
+          id: 'egress-store-test-workspace-id',
+          prefix: 'test-s3BucketPath',
+          projectId: undefined,
+          readable: true,
+          resources: [{ arn: 'arn:aws:s3:::test-s3BucketName/test-workspace-id/' }],
+          status: 'reachable',
+          workspaceId: 'test-workspace-id',
+          writeable: true,
+        },
+        'test-accountId',
+      );
     });
 
     it('should remove bucket policy', async () => {
@@ -529,6 +546,36 @@ describe('DataEgressService', () => {
         mockRevisedStatements,
       );
       expect(dataEgressService.audit).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('Get Egress Store info', () => {
+    it('should get egress store info', async () => {
+      dbService.table.scan.mockResolvedValue([
+        {
+          workspaceId: 'test-egress-store-id',
+        },
+      ]);
+
+      const result = await dataEgressService.getEgressStoreInfo('test-egress-store-id');
+      expect(result).toStrictEqual({
+        workspaceId: 'test-egress-store-id',
+      });
+    });
+
+    it('should error out egress store info', async () => {
+      dbService.table.scan.mockImplementationOnce(() => {
+        throw new Error();
+      });
+
+      await expect(dataEgressService.getEgressStoreInfo()).rejects.toThrow(
+        // It is better to check using boom.code instead of just the actual string, unless
+        // there are a few errors with the exact same boom code but different messages.
+        // Note: if you encounter a case where a service is throwing exceptions with the
+        // same code but different messages (to address different scenarios), you might
+        // want to suggest to the service author to use different codes.
+        expect.objectContaining({ boom: true, code: 'notFound', safe: true }),
+      );
     });
   });
 });

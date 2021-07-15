@@ -8,7 +8,7 @@ Parameters:
     Description: An environment name that will be prefixed to resource names
   SolutionNamespace:
     Type: String
-    Description: Environment name of the solution. It should be the same value as provided in onboard-account.cfn.yml for "Namespace"
+    Description: The namespace value provided when onboarding the Member account
   IsAppStreamEnabled:
     Type: String
     AllowedValues: [true, false]

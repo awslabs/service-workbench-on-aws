@@ -49,12 +49,13 @@ class ScEnvironmentButtons extends React.Component {
   };
 
   getEgressStoreDetailsStore = () => {
-    if (enableEgressStore) return this.props.scEnvironmentEgressStoreDetailStore;
+    if (enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE')
+      return this.props.scEnvironmentEgressStoreDetailStore;
     return null;
   };
 
   handleTerminate = async () => {
-    if (enableEgressStore) {
+    if (enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE') {
       const egressStoreDetailsStore = this.getEgressStoreDetailsStore();
       const isDataEgressing =
         egressStoreDetailsStore.egressStoreStatus.toLowerCase() === EGRESSING_STATUS_CODE.toLowerCase();
@@ -217,21 +218,26 @@ class ScEnvironmentButtons extends React.Component {
               Edit CIDRs
             </Button>
           )}
-          {enableEgressStore && state.canTerminate && !state.key.includes('FAILED') && (
-            <Button
-              floated="left"
-              basic
-              size="mini"
-              className="mt1 mb1 ml2"
-              toggle
-              active={egressStoreButtonActive}
-              onClick={this.handleEgressStoreToggle}
-            >
-              Egress Store
-            </Button>
-          )}
+          {enableEgressStore &&
+            enableEgressStore.toUpperCase() === 'TRUE' &&
+            state.canTerminate &&
+            !state.key.includes('FAILED') && (
+              <Button
+                floated="left"
+                basic
+                size="mini"
+                className="mt1 mb1 ml2"
+                toggle
+                active={egressStoreButtonActive}
+                onClick={this.handleEgressStoreToggle}
+              >
+                Egress Store
+              </Button>
+            )}
         </div>
-        {enableEgressStore && egressStoreButtonActive && <ScEnvironmentEgressStoreDetail scEnvironment={env} />}
+        {enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE' && egressStoreButtonActive && (
+          <ScEnvironmentEgressStoreDetail scEnvironment={env} />
+        )}
         {canConnect && connectionsButtonActive && <ScEnvironmentConnections scEnvironment={env} />}
         {editCidrButtonActive && <ScEnvironmentUpdateCidrs scEnvironment={env} onCancel={this.handleCidrEditToggle} />}
       </>
@@ -257,7 +263,7 @@ decorate(ScEnvironmentButtons, {
 // eslint-disable-next-line import/no-mutable-exports
 let exportable = inject('scEnvironmentsStore')(withRouter(observer(ScEnvironmentButtons)));
 
-if (enableEgressStore) {
+if (enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE') {
   exportable = inject(
     'scEnvironmentsStore',
     'scEnvironmentEgressStoreDetailStore',
