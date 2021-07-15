@@ -29,6 +29,10 @@ class ScEnvironmentHttpConnections extends React.Component {
     });
   }
 
+  get isAppStreamEnabled() {
+    return process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true';
+  }
+
   get environment() {
     return this.props.scEnvironment;
   }
@@ -134,7 +138,7 @@ class ScEnvironmentHttpConnections extends React.Component {
       <div className="mt2 mb2">
         <Table celled>
           <Table.Header>
-            <Table.Row>
+            <Table.Row key={env.id}>
               <Table.HeaderCell colSpan="1">HTTP Connections</Table.HeaderCell>
             </Table.Row>
           </Table.Header>
@@ -145,11 +149,11 @@ class ScEnvironmentHttpConnections extends React.Component {
   }
 
   renderAppStreamBody(connections) {
-    const processingId = this.processingId;
+    const appStreamGeneratingId = this.appStreamGeneratingId;
     const streamingUrl = this.streamingUrl;
     const destinationUrl = this.destinationUrl;
-    const isDisabled = id => processingId !== id && !_.isEmpty(processingId);
-    const isLoading = id => processingId === id;
+    const isDisabled = id => appStreamGeneratingId !== id && !_.isEmpty(appStreamGeneratingId);
+    const isLoading = id => appStreamGeneratingId === id;
 
     return (
       <>
@@ -177,7 +181,7 @@ class ScEnvironmentHttpConnections extends React.Component {
               <>
                 <Table.Row key={`${item.id}_destination`} className="fadeIn animated">
                   <Table.Cell colSpan="3" className="p3">
-                    <Grid columns={2} stackable>
+                    <Grid columns={2} stackable key={`${item.id}__2`}>
                       <Grid.Row stretched>
                         <Grid.Column width={12}>
                           <div>
@@ -190,7 +194,7 @@ class ScEnvironmentHttpConnections extends React.Component {
                   </Table.Cell>
                 </Table.Row>
 
-                <Table.Row key={`${item.id}__2`}>
+                <Table.Row key={`${item.id}__3`}>
                   <Table.Cell>
                     <Button
                       floated="right"
@@ -213,7 +217,7 @@ class ScEnvironmentHttpConnections extends React.Component {
   }
 
   renderBody(connections) {
-    if (process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true') {
+    if (this.isAppStreamEnabled) {
       return this.renderAppStreamBody(connections);
     }
 
@@ -250,19 +254,13 @@ class ScEnvironmentHttpConnections extends React.Component {
   renderAppstreamInstructions(item) {
     return (
       <>
-        <Table.Row key={`${item.id}__2`}>
+        <Table.Row key={`${item.id}__4`}>
           <Table.Cell className="clearfix">
             <b>Connection instructions for your AppStream workspace:</b>
             <List bulleted>
-              <List.Item className="flex" key={`${item.id}_list_1`}>
-                Step 1: Click the Connect button to start an AppStream session
-              </List.Item>
-              <List.Item className="flex" key={`${item.id}_list_2`}>
-                Step 2: Copy the destination URL that becomes available below
-              </List.Item>
-              <List.Item className="flex" key={`${item.id}_list_3`}>
-                Step 3: Paste (Ctrl + V) this destination URL in the new AppStream FireFox tab
-              </List.Item>
+              <List.Item>Click the &apos;Generate URL&apos; button to start an AppStream Firefox session</List.Item>
+              <List.Item>Copy the destination URL that becomes available below</List.Item>
+              <List.Item>Paste (Ctrl + V) this destination URL in the new AppStream FireFox tab</List.Item>
             </List>
           </Table.Cell>
         </Table.Row>

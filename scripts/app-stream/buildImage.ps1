@@ -3,7 +3,7 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 
 choco install -y putty.install
 
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/awslabs/service-workbench-on-aws/appstream-connection-updates/scripts/app-stream/ec2linux.ps1 -OutFile 'C:\Users\Public\Documents\EC2Linux.ps1'
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/awslabs/service-workbench-on-aws/feat-appstream-ui/scripts/app-stream/ec2linux.ps1 -OutFile 'C:\Users\Public\Documents\EC2Linux.ps1'
 
 # Add Applications
 

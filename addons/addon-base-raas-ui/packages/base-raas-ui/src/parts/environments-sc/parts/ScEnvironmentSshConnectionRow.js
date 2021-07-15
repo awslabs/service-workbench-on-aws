@@ -3,7 +3,7 @@ import React from 'react';
 import { decorate, computed, action, runInAction, observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
-import { Button, Table, Dropdown, Grid } from 'semantic-ui-react';
+import { Button, Table, Dropdown } from 'semantic-ui-react';
 
 import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
 
@@ -191,7 +191,6 @@ class ScEnvironmentSshConnectionRow extends React.Component {
           networkInterfaces={networkInterfaces}
           keyName={selectedKeyName}
           connectionId={item.id}
-          appStreamUrl={this.appStreamUrl}
         />,
       );
     }
@@ -199,12 +198,10 @@ class ScEnvironmentSshConnectionRow extends React.Component {
     if (this.isAppStreamEnabled && !_.isUndefined(networkInterfaces)) {
       rows.push(
         <Table.Row key={`${item.id}__2`}>
-          <Table.Cell>
-            <Grid.Column width={12}>
-              <Button floated="right" size="mini" primary onClick={this.handleConnect(item.id)}>
-                Connect
-              </Button>
-            </Grid.Column>
+          <Table.Cell className="flex">
+            <Button floated="left" size="mini" primary onClick={this.handleConnect}>
+              Connect
+            </Button>
           </Table.Cell>
         </Table.Row>,
       );

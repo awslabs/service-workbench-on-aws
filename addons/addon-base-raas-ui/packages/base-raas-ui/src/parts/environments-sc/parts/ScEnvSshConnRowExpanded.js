@@ -11,7 +11,6 @@ import CopyToClipboard from '../../helpers/CopyToClipboard';
 // networkInterfaces (via props)
 // keyName (via props)
 // connectionId (via props)
-// appStreamUrl (via props)
 // environment (via props)
 class ScEnvSshConnRowExpanded extends React.Component {
   constructor(props) {
@@ -35,7 +34,7 @@ class ScEnvSshConnRowExpanded extends React.Component {
 
     const result = [];
     _.forEach(entries, item => {
-      if (item.publicDnsName && process.env.REACT_APP_IS_APP_STREAM_ENABLED !== 'true')
+      if (item.publicDnsName && !this.isAppStreamEnabled)
         result.push({ value: item.publicDnsName, type: 'dns', scope: 'public', info: 'Public' });
       if (item.privateIp) result.push({ value: item.privateIp, type: 'ip', scope: 'private', info: 'Private' });
     });
@@ -147,15 +146,11 @@ class ScEnvSshConnRowExpanded extends React.Component {
               ))}
             </List>
           </List.Item>
-          <List.Item>
-            You downloaded the private key when you created the SSH key. Save this key&apos;s content into
-            AppStream&apos;s Notepad application in .PEM format
-          </List.Item>
+          <List.Item>Click the &apos;Connect&apos; button below to navigate to the AppStream instance</List.Item>
+          <List.Item>You downloaded the private key when you created the SSH key.</List.Item>
+          <List.Item>Save this key&apos;s content into AppStream&apos;s Notepad application in .PEM format</List.Item>
           <List.Item>Open PuttyGen in AppStream and convert your private PEM key to PPK format</List.Item>
-          <List.Item>
-            With the PPK file from above step and private IP address given by SWB to connect with their instance use
-            Putty to connect to the instance
-          </List.Item>
+          <List.Item>Enter the PPK file and private IP address details in Putty to connect to EC2</List.Item>
         </List>
         <div className="mt3">More information on connecting to your Linux instance from Windows OS:</div>
         <List bulleted>

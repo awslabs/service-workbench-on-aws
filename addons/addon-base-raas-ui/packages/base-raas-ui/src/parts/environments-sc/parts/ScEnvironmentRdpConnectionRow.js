@@ -9,6 +9,10 @@ import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
 
 import CopyToClipboard from '../../helpers/CopyToClipboard';
 
+const openWindow = (url, windowFeatures) => {
+  return window.open(url, '_blank', windowFeatures);
+};
+
 // expected props
 // - scEnvironment (via prop)
 // - connectionId (via prop)
@@ -25,6 +29,10 @@ class ScEnvironmentRdpConnectionRow extends React.Component {
       // Should the password be shown
       this.showPassword = false;
     });
+  }
+
+  get isAppStreamEnabled() {
+    return process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true';
   }
 
   get environment() {
@@ -70,6 +78,31 @@ class ScEnvironmentRdpConnectionRow extends React.Component {
 
     return result;
   }
+
+  handleConnect = () =>
+    action(async () => {
+      try {
+        const connectionId = this.connectionId;
+        const store = this.getConnectionStore();
+        const urlObj = await store.createConnectionUrl(connectionId);
+        const appStreamUrl = urlObj.url;
+        if (appStreamUrl) {
+          // We use noopener and noreferrer for good practices https://developer.mozilla.org/en-US/docs/Web/API/Window/open#noopener
+          openWindow(appStreamUrl, 'noopener,noreferrer');
+          const newTab = openWindow('about:blank');
+          newTab.location = appStreamUrl;
+        } else {
+          throw Error('AppStream URL was not returned by the API');
+        }
+        this.processingId = connectionId;
+      } catch (error) {
+        displayError(error);
+      } finally {
+        runInAction(() => {
+          this.processingId = '';
+        });
+      }
+    });
 
   handleGetInfo = async () => {
     const store = this.getConnectionStore();
@@ -139,8 +172,10 @@ class ScEnvironmentRdpConnectionRow extends React.Component {
               defined below.
             </b>
             <List bulleted>
-              {process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true' ? (
-                <></>
+              {this.isAppStreamEnabled ? (
+                <>
+                  <List.Item>Click the &apos;Connect&apos; button to navigate to the AppStream instance</List.Item>
+                </>
               ) : (
                 <List.Item>
                   The IP Address or DNS of the instance.{' '}
@@ -155,6 +190,7 @@ class ScEnvironmentRdpConnectionRow extends React.Component {
                   </List>
                 </List.Item>
               )}
+
               <List.Item>
                 The username and password:
                 <List>
@@ -186,13 +222,18 @@ class ScEnvironmentRdpConnectionRow extends React.Component {
             </List>
           </Table.Cell>
         </Table.Row>
-        <Table.Row>
-          <Table.Cell>
-            <Button primary size="mini" onClick={this.handleActivate} loading={this.processingSendKey} floated="right">
-              Connect
-            </Button>
-          </Table.Cell>
-        </Table.Row>
+
+        {this.isAppStreamEnabled && windowsRdpInfo ? (
+          <Table.Row>
+            <Table.Cell>
+              <Button primary size="mini" onClick={this.handleConnect} floated="right">
+                Connect
+              </Button>
+            </Table.Cell>
+          </Table.Row>
+        ) : (
+          <></>
+        )}
       </>
     );
   }

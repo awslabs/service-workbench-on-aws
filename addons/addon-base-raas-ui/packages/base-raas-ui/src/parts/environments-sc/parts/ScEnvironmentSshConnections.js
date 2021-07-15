@@ -114,7 +114,9 @@ class ScEnvironmentSshConnections extends React.Component {
           </Table.Header>
           <Table.Body>
             {_.map(connections, item => (
-              <ScEnvironmentSshConnectionRow key={item.id} scEnvironment={env} connectionId={item.id} />
+              <>
+                <ScEnvironmentSshConnectionRow key={item.id} scEnvironment={env} connectionId={item.id} />
+              </>
             ))}
           </Table.Body>
         </Table>
