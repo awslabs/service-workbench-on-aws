@@ -104,5 +104,45 @@ describe('ComputePlatformService', () => {
       // CHECK
       expect(result).toEqual([]);
     });
+
+    it('should compute emr price', async () => {
+      // BUILD
+      service._settings = {
+        get: settingName => {
+          if (settingName === 'awsRegion') {
+            return 'test-awsRegion';
+          }
+          return undefined;
+        },
+      };
+
+      const mockConfiguration = {
+        priceInfo: { timeUnit: 'hour', type: 'spot' },
+        params: {
+          immutable: {
+            emr: {
+              workerInstanceSize: 'test-workerInstanceSize',
+              workerInstanceCount: 'test-workerInstanceCount',
+              workerInstanceOnDemandPrice: 'test-workerInstanceOnDemandPrice',
+              masterInstanceOnDemandPrice: 'masterInstanceOnDemandPrice',
+            },
+          },
+        },
+      };
+      service.getSpotPriceHistory = jest.fn();
+
+      // OPERATE
+      const result = await service.computeEmrPrice(mockConfiguration);
+
+      // CHECK
+      expect(result).toEqual({
+        region: 'test-awsRegion',
+        spotBidMultiplier: undefined,
+        spotBidPrice: 'test-workerInstanceOnDemandPrice',
+        timeUnit: 'hour',
+        type: 'spot',
+        value: 'masterInstanceOnDemandPriceNaN',
+      });
+    });
   });
 });
