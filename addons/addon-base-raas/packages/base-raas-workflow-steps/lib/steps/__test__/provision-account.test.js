@@ -17,7 +17,6 @@ const ServicesContainer = require('@aws-ee/base-services-container/lib/services-
 const WorkflowPayload = require('@aws-ee/workflow-engine/lib/workflow-payload');
 const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
 const SettingsService = require('@aws-ee/base-services/lib/settings/env-settings-service');
-const AWSMock = require('aws-sdk-mock');
 const ProvisionAccount = require('../provision-account/provision-account');
 
 describe('ProvisionAccount', () => {
