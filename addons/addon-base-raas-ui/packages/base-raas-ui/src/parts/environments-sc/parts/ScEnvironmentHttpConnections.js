@@ -177,7 +177,7 @@ class ScEnvironmentHttpConnections extends React.Component {
               </Table.Cell>
             </Table.Row>
 
-            {destinationUrl ? (
+            {destinationUrl && (
               <>
                 <Table.Row key={`${item.id}_destination`} className="fadeIn animated">
                   <Table.Cell colSpan="3" className="p3">
@@ -207,8 +207,6 @@ class ScEnvironmentHttpConnections extends React.Component {
                   </Table.Cell>
                 </Table.Row>
               </>
-            ) : (
-              <></>
             )}
           </>
         ))}
@@ -222,7 +220,6 @@ class ScEnvironmentHttpConnections extends React.Component {
     }
 
     const processingId = this.processingId;
-
     const isDisabled = id => processingId !== id && !_.isEmpty(processingId);
     const isLoading = id => processingId === id;
     return (

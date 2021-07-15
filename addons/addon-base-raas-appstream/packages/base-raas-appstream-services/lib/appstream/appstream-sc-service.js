@@ -118,7 +118,7 @@ class AppStreamScService extends Service {
 
   async getStreamingUrl(requestContext, { environmentId, applicationId }) {
     const isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
-    if (!isAppStreamEnabled) return undefined;
+    if (isAppStreamEnabled !== 'true') return undefined;
 
     const environmentScService = await this.service('environmentScService');
 
@@ -152,7 +152,7 @@ class AppStreamScService extends Service {
 
   async urlForRemoteDesktop(requestContext, { environmentId, instanceId }) {
     const isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
-    if (!isAppStreamEnabled) return undefined;
+    if (isAppStreamEnabled !== 'true') return undefined;
 
     const [environmentScKeypairService, environmentScService] = await this.service([
       'environmentScKeypairService',

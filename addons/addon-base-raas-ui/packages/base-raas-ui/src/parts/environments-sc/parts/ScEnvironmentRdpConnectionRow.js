@@ -79,22 +79,19 @@ class ScEnvironmentRdpConnectionRow extends React.Component {
     return result;
   }
 
-  handleConnect = () =>
+  handleConnect = id =>
     action(async () => {
       try {
-        const connectionId = this.connectionId;
         const store = this.getConnectionStore();
-        const urlObj = await store.createConnectionUrl(connectionId);
+        const urlObj = await store.createConnectionUrl(id);
         const appStreamUrl = urlObj.url;
         if (appStreamUrl) {
-          // We use noopener and noreferrer for good practices https://developer.mozilla.org/en-US/docs/Web/API/Window/open#noopener
-          openWindow(appStreamUrl, 'noopener,noreferrer');
           const newTab = openWindow('about:blank');
           newTab.location = appStreamUrl;
         } else {
           throw Error('AppStream URL was not returned by the API');
         }
-        this.processingId = connectionId;
+        this.processingId = id;
       } catch (error) {
         displayError(error);
       } finally {
@@ -161,6 +158,7 @@ class ScEnvironmentRdpConnectionRow extends React.Component {
     const username = 'Administrator';
     const password = windowsRdpInfo.password;
     const showPassword = this.showPassword;
+    const connectionId = this.connectionId;
     const moreThanOne = _.size(interfaces) > 1;
 
     return (
@@ -223,16 +221,14 @@ class ScEnvironmentRdpConnectionRow extends React.Component {
           </Table.Cell>
         </Table.Row>
 
-        {this.isAppStreamEnabled && windowsRdpInfo ? (
+        {this.isAppStreamEnabled && windowsRdpInfo && (
           <Table.Row>
             <Table.Cell>
-              <Button primary size="mini" onClick={this.handleConnect} floated="right">
+              <Button primary size="mini" onClick={this.handleConnect(connectionId)} floated="right">
                 Connect
               </Button>
             </Table.Cell>
           </Table.Row>
-        ) : (
-          <></>
         )}
       </>
     );

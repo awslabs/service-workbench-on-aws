@@ -3,9 +3,15 @@ import React from 'react';
 import { decorate, action, runInAction, observable, computed } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
-import { Table, List, Segment, Label, Grid } from 'semantic-ui-react';
+import { Table, List, Segment, Label, Grid, Button } from 'semantic-ui-react';
+
+import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
 
 import CopyToClipboard from '../../helpers/CopyToClipboard';
+
+const openWindow = (url, windowFeatures) => {
+  return window.open(url, '_blank', windowFeatures);
+};
 
 // expected props
 // networkInterfaces (via props)
@@ -21,6 +27,7 @@ class ScEnvSshConnRowExpanded extends React.Component {
       this.countDown = undefined;
       this.intervalId = undefined;
       this.expired = false;
+      this.processingId = undefined;
     });
   }
 
@@ -50,8 +57,16 @@ class ScEnvSshConnRowExpanded extends React.Component {
     return this.props.keyName;
   }
 
+  get envsStore() {
+    return this.props.scEnvironmentsStore;
+  }
+
   get connectionId() {
     return this.props.connectionId;
+  }
+
+  getConnectionStore() {
+    return this.envsStore.getScEnvConnectionStore(this.environment.id);
   }
 
   componentDidMount() {
@@ -70,6 +85,31 @@ class ScEnvSshConnRowExpanded extends React.Component {
     this.countDown = undefined;
     this.expired = false;
   }
+
+  handleConnect = id =>
+    action(async () => {
+      try {
+        runInAction(() => {
+          this.processingId = id;
+        });
+        const store = this.getConnectionStore();
+        const urlObj = await store.createConnectionUrl(id);
+        const appStreamUrl = urlObj.url;
+        if (appStreamUrl) {
+          const newTab = openWindow('about:blank');
+          newTab.location = appStreamUrl;
+        } else {
+          throw Error('AppStream URL was not returned by the API');
+        }
+        this.processingId = id;
+      } catch (error) {
+        displayError(error);
+      } finally {
+        runInAction(() => {
+          this.processingId = undefined;
+        });
+      }
+    });
 
   startCountDown = () => {
     if (!_.isUndefined(this.intervalId)) return;
@@ -111,9 +151,7 @@ class ScEnvSshConnRowExpanded extends React.Component {
               </Grid.Column>
             </Grid.Row>
           </Grid>
-          {this.isAppStreamEnabled ? (
-            <></>
-          ) : (
+          {!this.isAppStreamEnabled && (
             <div className="mt3">
               Example:
               <Segment className="mt2">
@@ -128,41 +166,35 @@ class ScEnvSshConnRowExpanded extends React.Component {
 
   renderAppStreamInfo() {
     const interfaces = this.networkInterfaces;
-    const moreThanOne = _.size(interfaces) > 1;
+    const network = interfaces[0];
+    const connectionId = this.connectionId;
 
     return (
-      <div>
-        <b>Connection instructions for your AppStream workspace:</b>
+      <Segment>
         <List bulleted>
           <List.Item>
-            The IP Address or DNS of the instance.{' '}
-            {moreThanOne ? 'Ask your administrator if you are not sure which one to use:' : ''}
-            <List>
-              {_.map(interfaces, network => (
-                <List.Item key={network.value} className="flex">
-                  {this.renderHostLabel(network)}
-                  <CopyToClipboard text={network.value} />
-                </List.Item>
-              ))}
+            The Private IP Address to be used:{' '}
+            <List bulleted>
+              <List.Item key={network.value} className="flex">
+                {this.renderHostLabel(network)}
+                <CopyToClipboard text={network.value} />
+              </List.Item>
             </List>
           </List.Item>
-          <List.Item>Click the &apos;Connect&apos; button below to navigate to the AppStream instance</List.Item>
-          <List.Item>You downloaded the private key when you created the SSH key.</List.Item>
-          <List.Item>Save this key&apos;s content into AppStream&apos;s Notepad application in .PEM format</List.Item>
-          <List.Item>Open PuttyGen in AppStream and convert your private PEM key to PPK format</List.Item>
-          <List.Item>Enter the PPK file and private IP address details in Putty to connect to EC2</List.Item>
         </List>
-        <div className="mt3">More information on connecting to your Linux instance from Windows OS:</div>
-        <List bulleted>
-          <List.Item
-            href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/putty.html"
-            target="_blank"
-            rel="noopener noreferrer"
+        {this.isAppStreamEnabled && (
+          <Button
+            size="mini"
+            floated="left"
+            primary
+            onClick={this.handleConnect(connectionId)}
+            disabled={this.processingId}
+            loading={this.processingId}
           >
-            Connecting from Windows via Putty
-          </List.Item>
-        </List>
-      </div>
+            Connect
+          </Button>
+        )}
+      </Segment>
     );
   }
 
@@ -248,10 +280,12 @@ class ScEnvSshConnRowExpanded extends React.Component {
 decorate(ScEnvSshConnRowExpanded, {
   networkInterfaces: computed,
   keyName: computed,
+  envsStore: computed,
   connectionId: computed,
   intervalId: observable,
   countDown: observable,
   expired: observable,
+  processingId: observable,
   startCountDown: action,
   clearInterval: action,
 });
