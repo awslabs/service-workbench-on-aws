@@ -17,6 +17,7 @@ const ServicesContainer = require('@aws-ee/base-services-container/lib/services-
 const WorkflowPayload = require('@aws-ee/workflow-engine/lib/workflow-payload');
 const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
 const SettingsService = require('@aws-ee/base-services/lib/settings/env-settings-service');
+const AWSMock = require('aws-sdk-mock');
 const ProvisionAccount = require('../provision-account/provision-account');
 
 describe('ProvisionAccount', () => {
@@ -81,17 +82,7 @@ describe('ProvisionAccount', () => {
         return null;
       });
 
-      const describeAccount = jest.fn().mockReturnValue({
-        promise: jest.fn().mockReturnValue({
-          Account: {
-            Arn: 'abc123',
-          },
-        }),
-      });
-      const organization = {
-        describeAccount,
-      };
-      step.getOrganizationService = jest.fn().mockReturnValue(organization);
+      step.describeAccount = jest.fn();
 
       step.state = {
         setKey: jest.fn(),
@@ -100,6 +91,7 @@ describe('ProvisionAccount', () => {
     });
 
     it('AppStream: false', async () => {
+      // BUILD
       step.settings = {
         get: key => {
           if (key === 'isAppStreamEnabled') {
@@ -108,7 +100,11 @@ describe('ProvisionAccount', () => {
           throw new Error('Unexpected key');
         },
       };
+
+      // OPERATE
       const response = await step.saveAccountToDb();
+
+      // CHECK
       expect(response).toMatchObject({
         waitDecision: {
           seconds: 300,
@@ -119,6 +115,7 @@ describe('ProvisionAccount', () => {
     });
 
     it('AppStream: true', async () => {
+      // BUILD
       step.settings = {
         get: key => {
           if (key === 'isAppStreamEnabled') {
@@ -127,7 +124,11 @@ describe('ProvisionAccount', () => {
           throw new Error('Unexpected key');
         },
       };
+
+      // OPERATE
       const response = await step.saveAccountToDb();
+
+      // CHECK
       expect(response).toMatchObject({
         waitDecision: {
           seconds: 300,
@@ -168,6 +169,7 @@ describe('ProvisionAccount', () => {
     });
 
     it('AppStream: false', async () => {
+      // BUILD
       step.settings = {
         get: key => {
           if (key === 'isAppStreamEnabled') {
@@ -204,7 +206,11 @@ describe('ProvisionAccount', () => {
         ...step.payload,
       };
       step.updateAccount = jest.fn;
+
+      // OPERATE
       const response = await step.deployStack();
+
+      // CHECK
       expect(response).toMatchObject({
         waitDecision: {
           seconds: 20,
@@ -216,6 +222,7 @@ describe('ProvisionAccount', () => {
     });
 
     it('AppStream: true', async () => {
+      // BUILD
       step.settings = {
         get: key => {
           if (key === 'isAppStreamEnabled') {
@@ -247,7 +254,11 @@ describe('ProvisionAccount', () => {
         ...step.payload,
       };
       step.updateAccount = jest.fn;
+
+      // OPERATE
       const response = await step.deployStack();
+
+      // CHECK
       expect(response).toMatchObject({
         waitDecision: {
           seconds: 20,
@@ -261,6 +272,7 @@ describe('ProvisionAccount', () => {
 
   describe('checkCfnCompleted', () => {
     it('AppStream: false', async () => {
+      // BUILD
       step.settings = {
         get: key => {
           if (key === 'isAppStreamEnabled') {
@@ -298,8 +310,11 @@ describe('ProvisionAccount', () => {
       step.updateLocalResourcePolicies = jest.fn();
       step.updateAccount = jest.fn();
       step.addAwsAccountTable = jest.fn();
+
+      // OPERATE
       await expect(step.checkCfnCompleted()).resolves.toEqual(true);
 
+      // CHECK
       expect(step.updateAccount).toHaveBeenCalledWith({
         status: 'COMPLETED',
         cfnInfo: {
@@ -328,6 +343,7 @@ describe('ProvisionAccount', () => {
     });
 
     it('AppStream: true', async () => {
+      // BUILD
       step.settings = {
         get: key => {
           if (key === 'isAppStreamEnabled') {
@@ -369,8 +385,11 @@ describe('ProvisionAccount', () => {
       step.addAwsAccountTable = jest.fn();
       step.startAppStreamFleet = jest.fn();
       step.checkAppStreamFleetIsRunning = jest.fn().mockReturnValue(true);
+
+      // OPERATE
       await expect(step.checkCfnCompleted()).resolves.toEqual(true);
 
+      // CHECK
       expect(step.startAppStreamFleet).toHaveBeenCalled();
       expect(step.checkAppStreamFleetIsRunning).toHaveBeenCalled();
       expect(step.updateAccount).toHaveBeenCalledWith({
@@ -402,5 +421,103 @@ describe('ProvisionAccount', () => {
         },
       );
     });
+  });
+
+  it('shareImageWithMemberAccount', async () => {
+    // BUILD
+    step.payload = {
+      string: stringInput => {
+        if (stringInput === 'appStreamImageName') {
+          return 'appStImage-123';
+        }
+        if (stringInput === 'ACCOUNT_ID') {
+          return '123456789012';
+        }
+        throw Error('Key not found', stringInput);
+      },
+      object: () => {
+        return requestContext;
+      },
+    };
+    step.state = {
+      setKey: jest.fn(),
+      ...step.payload,
+    };
+
+    const accountService = {
+      saveAccountToDb: jest.fn(),
+    };
+    accountService.shareAppStreamImageWithMemberAccount = jest.fn();
+    step.mustFindServices = jest.fn().mockImplementation(async services => {
+      if (services[0] === 'accountService') {
+        return Promise.resolve([accountService]);
+      }
+      return null;
+    });
+
+    // OPERATE
+    const response = await step.shareImageWithMemberAccount();
+
+    // CHECK
+    expect(response).toMatchObject({
+      waitDecision: {
+        seconds: 10,
+        thenCall: { methodName: 'createAppStreamRoles', params: '[]' },
+        type: 'wait',
+      },
+    });
+  });
+
+  it('createAppStreamRoles', async () => {
+    step.getNewAWSAccountCredentials = jest.fn().mockReturnValue({
+      accessKeyId: 'accessKeyAbc',
+      secretAccessKey: 'secretKeyAbc',
+      sessionToken: 'abc',
+    });
+
+    const createRolePromise = jest.fn();
+    const attachRolePolicyPromise = jest.fn();
+    const createServiceLinkedRolePromise = jest.fn();
+    const iam = {
+      createRole: jest.fn().mockReturnValue({
+        promise: createRolePromise,
+      }),
+      attachRolePolicy: jest.fn().mockReturnValue({
+        promise: attachRolePolicyPromise,
+      }),
+      createServiceLinkedRole: jest.fn().mockReturnValue({
+        promise: createServiceLinkedRolePromise,
+      }),
+    };
+    const aws = {
+      sdk: {
+        IAM: jest.fn().mockImplementation(() => {
+          return iam;
+        }),
+      },
+    };
+
+    step.mustFindServices = jest.fn().mockImplementation(async services => {
+      if (services[0] === 'aws') {
+        return Promise.resolve([aws]);
+      }
+      return null;
+    });
+
+    // OPERATE
+    const response = await step.createAppStreamRoles();
+
+    // CHECK
+    expect(response).toMatchObject({
+      waitDecision: {
+        seconds: 60 * 15,
+        thenCall: { methodName: 'deployStack', params: '[]' },
+        type: 'wait',
+      },
+    });
+
+    expect(createRolePromise).toHaveBeenCalledTimes(2);
+    expect(attachRolePolicyPromise).toHaveBeenCalledTimes(2);
+    expect(createServiceLinkedRolePromise).toHaveBeenCalledTimes(1);
   });
 });
