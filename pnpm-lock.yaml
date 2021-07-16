@@ -2169,7 +2169,6 @@ importers:
       serverless: 1.67.3
       serverless-deployment-bucket: 1.1.1
       serverless-offline: 5.12.1_serverless@1.67.3
-      serverless-plugin-ifelse: 1.0.7
       serverless-s3-sync: 1.12.0
       serverless-webpack: 5.3.1_webpack@4.42.1
       source-map-support: 0.5.16
@@ -2234,7 +2233,6 @@ importers:
       serverless: ^1.63.0
       serverless-deployment-bucket: ^1.1.0
       serverless-offline: ^5.12.1
-      serverless-plugin-ifelse: ^1.0.7
       serverless-s3-sync: ^1.12.0
       serverless-webpack: ^5.3.1
       services: 'workspace:*'
@@ -2329,6 +2327,7 @@ importers:
       pretty-quick: 1.11.1_prettier@1.19.1
       serverless: 1.67.3
       serverless-deployment-bucket: 1.1.1
+      serverless-plugin-ifelse: 1.0.7
       serverless-s3-sync: 1.12.0
       serverless-webpack: 5.3.4_webpack@4.42.1
       source-map-support: 0.5.16
@@ -2379,6 +2378,7 @@ importers:
       pretty-quick: ^1.11.1
       serverless: ^1.63.0
       serverless-deployment-bucket: ^1.1.0
+      serverless-plugin-ifelse: ^1.0.7
       serverless-s3-sync: ^1.10.2
       serverless-webpack: ^5.3.3
       services: 'workspace:*'
