@@ -74,10 +74,7 @@ class AppStreamScService extends Service {
     });
 
     if (!stackName) {
-      throw this.boom.badRequest(
-        `Expected stack ${stackName} to be associated with the account ${accountId} but found`,
-        true,
-      );
+      throw this.boom.badRequest(`No AppStream stack is associated with the account ${accountId}`, true);
     }
 
     // Verify fleet is associated to appstream stack
@@ -90,7 +87,7 @@ class AppStreamScService extends Service {
 
     if (!_.includes(fleetNames, fleetName)) {
       throw this.boom.badRequest(
-        `Expected fleet ${fleetName} to be associated with the AppStream stack but found`,
+        `AppStream Fleet ${fleetName} is not associated with the AppStream stack ${stackName}`,
         true,
       );
     }
