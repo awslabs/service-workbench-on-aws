@@ -127,14 +127,20 @@ class AppStreamScService extends Service {
       indexId: environment.indexId,
     });
 
-    const result = await appStream
-      .createStreamingURL({
-        FleetName: fleetName,
-        StackName: stackName,
-        UserId: this.generateUserId(requestContext, environment),
-        ApplicationId: applicationId,
-      })
-      .promise();
+    let result = {};
+
+    try {
+      result = await appStream
+        .createStreamingURL({
+          FleetName: fleetName,
+          StackName: stackName,
+          UserId: this.generateUserId(requestContext, environment),
+          ApplicationId: applicationId,
+        })
+        .promise();
+    } catch (err) {
+      throw this.boom.badRequest('There was an error generating AppStream URL', true);
+    }
 
     // Write audit event
     await this.audit(requestContext, { action: 'appstream-firefox-app-url-requested', body: { environmentId } });
@@ -170,15 +176,21 @@ class AppStreamScService extends Service {
 
     const userId = this.generateUserId(requestContext, environment);
     this.log.info({ msg: `Creating AppStream URL`, appStreamSessionUid: userId });
-    const result = await appStream
-      .createStreamingURL({
-        FleetName: fleetName,
-        StackName: stackName,
-        UserId: userId,
-        ApplicationId: 'MicrosoftRemoteDesktop',
-        SessionContext: privateIp,
-      })
-      .promise();
+
+    let result = {};
+    try {
+      result = await appStream
+        .createStreamingURL({
+          FleetName: fleetName,
+          StackName: stackName,
+          UserId: userId,
+          ApplicationId: 'MicrosoftRemoteDesktop',
+          SessionContext: privateIp,
+        })
+        .promise();
+    } catch (err) {
+      throw this.boom.badRequest('There was an error generating AppStream URL', true);
+    }
 
     // Write audit event
     await this.audit(requestContext, { action: 'appstream-remote-desktop-app-url-requested', body: { environmentId } });

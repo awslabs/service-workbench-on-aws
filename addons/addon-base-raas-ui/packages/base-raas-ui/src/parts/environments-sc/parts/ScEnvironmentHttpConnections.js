@@ -182,10 +182,8 @@ class ScEnvironmentHttpConnections extends React.Component {
             {destinationUrl && (
               <Table.Row key={`${item.id}_destination`} className="fadeIn animated">
                 <Table.Cell colSpan="3" className="p3">
-                  <div>
-                    Click on this icon to copy the workspace destination URL:
-                    <CopyToClipboard text={destinationUrl} />
-                  </div>
+                  Click on this icon to copy the workspace destination URL:
+                  <CopyToClipboard text={destinationUrl} />
                   <Button
                     floated="right"
                     size="mini"
