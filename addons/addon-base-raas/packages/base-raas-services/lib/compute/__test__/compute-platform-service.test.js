@@ -47,7 +47,7 @@ describe('ComputePlatformService', () => {
     service = await container.find('computePlatformService');
   });
 
-  describe('create', () => {
+  describe('computePlatformService', () => {
     it('should list empty configurations', async () => {
       // BUILD
       const uid = 'u-currentUserId';

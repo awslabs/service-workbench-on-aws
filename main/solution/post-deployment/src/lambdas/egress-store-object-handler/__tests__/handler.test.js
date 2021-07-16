@@ -16,31 +16,38 @@
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
 const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
 const S3Service = require('@aws-ee/base-services/lib/s3-service');
+const DataEgressService = require('@aws-ee/base-raas-services/lib/data-egress/data-egress-service');
 const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
 
 jest.mock('@aws-ee/base-services/lib/s3-service');
 jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
 jest.mock('@aws-ee/base-services/lib/logger/logger-service');
+jest.mock('@aws-ee/base-raas-services/lib/data-egress/data-egress-service');
 
 const { handlerWithContainer } = require('../handler');
 
 describe('handler', () => {
   let s3Service;
   let container;
+  let dataEgressService;
 
   beforeEach(async () => {
     container = new ServicesContainer();
     container.register('settings', new SettingsServiceMock());
     container.register('s3Service', new S3Service());
+    container.register('dataEgressService', new DataEgressService());
     container.register('log', new Logger());
     await container.initServices();
 
     s3Service = await container.find('s3Service');
+    dataEgressService = await container.find('dataEgressService');
   });
 
   it('should trigger s3 service to put tag on object', async () => {
     // BUILD
     s3Service.putObjectTag = jest.fn();
+    dataEgressService.getEgressStoreInfo = jest.fn().mockResolvedValue({ isAbleToSubmitEgressRequest: true });
+    dataEgressService.enableEgressStoreSubmission = jest.fn();
     const event = {
       Records: [
         {
@@ -83,6 +90,8 @@ describe('handler', () => {
 
   it('should not trigger s3 service to put tag on folder', async () => {
     s3Service.putObjectTag = jest.fn();
+    dataEgressService.getEgressStoreInfo = jest.fn().mockResolvedValue({ isAbleToSubmitEgressRequest: true });
+    dataEgressService.enableEgressStoreSubmission = jest.fn();
     const event = {
       Records: [
         {

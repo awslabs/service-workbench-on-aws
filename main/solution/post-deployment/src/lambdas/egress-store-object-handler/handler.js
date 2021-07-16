@@ -27,16 +27,26 @@ const handler = async event => {
 };
 
 const handlerWithContainer = async (container, event) => {
+  // put tag action under condition of if this is a create object action
+  const isPutEvent = event.Records[0].eventName.startsWith('ObjectCreated:Put');
   const bucketName = event.Records[0].s3.bucket.name;
   const objectKey = decodeURIComponent(event.Records[0].s3.object.key.replace(/\+/g, ' '));
   const objectPath = objectKey.split('/');
-  const tag = {
-    Key: 'egressStore',
-    Value: objectPath[0],
-  };
-  if (objectPath[1] && objectPath[1].length !== 0) {
-    const s3Service = await container.find('s3Service');
-    await s3Service.putObjectTag(bucketName, objectKey, tag);
+  const egressStoreId = objectPath[0];
+  if (isPutEvent) {
+    const tag = {
+      Key: 'egressStore',
+      Value: egressStoreId,
+    };
+    if (objectPath[1] && objectPath[1].length !== 0) {
+      const s3Service = await container.find('s3Service');
+      await s3Service.putObjectTag(bucketName, objectKey, tag);
+    }
+  }
+  const dataEgressService = await container.find('dataEgressService');
+  const egressStoreInfo = await dataEgressService.getEgressStoreInfo(egressStoreId);
+  if (!egressStoreInfo.isAbleToSubmitEgressRequest) {
+    await dataEgressService.enableEgressStoreSubmission(egressStoreInfo);
   }
 };
 

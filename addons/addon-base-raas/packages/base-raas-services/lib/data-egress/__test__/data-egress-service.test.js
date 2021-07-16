@@ -46,6 +46,7 @@ describe('DataEgressService', () => {
   let s3Service;
   let lockService;
   let dbService;
+  let auditWriterService;
 
   const testS3PolicyFn = () => {
     return {
@@ -105,7 +106,7 @@ describe('DataEgressService', () => {
     s3Service = await container.find('s3Service');
     lockService = await container.find('lockService');
     dbService = await dataEgressService.service('dbService');
-    dataEgressService.audit = jest.fn();
+    auditWriterService = await container.find('auditWriterService');
   });
 
   afterEach(() => {
@@ -475,6 +476,7 @@ describe('DataEgressService', () => {
         s3BucketName: 'test-egressStoreBucketName',
         s3Policy: testS3PolicyFn(),
       });
+      dataEgressService.audit = jest.fn();
       const mockEgressStoreInfo = {
         id: `egress-store-test-id`,
         readable: true,
@@ -576,6 +578,39 @@ describe('DataEgressService', () => {
         // want to suggest to the service author to use different codes.
         expect.objectContaining({ boom: true, code: 'notFound', safe: true }),
       );
+    });
+  });
+  describe('should audit', () => {
+    it('should audit', async () => {
+      const mockRC = {};
+      const mockAuditEvent = '';
+
+      await dataEgressService.audit(mockRC, mockAuditEvent);
+      expect(auditWriterService.writeAndForget).toHaveBeenCalledWith(mockRC, mockAuditEvent);
+    });
+  });
+
+  describe('should get S3 Bucket And Policy', () => {
+    it('should get S3 Bucket And Policy', async () => {
+      dataEgressService._settings = {
+        get: settingName => {
+          if (settingName === 'egressStoreBucketName') {
+            return 'test-egressStoreBucketName';
+          }
+          return undefined;
+        },
+      };
+      AWSMock.mock('S3', 'getBucketPolicy', (params, callback) => {
+        expect(params).toMatchObject({
+          Bucket: 'test-egressStoreBucketName',
+        });
+        callback(null, {
+          Policy: JSON.stringify({}),
+        });
+      });
+
+      const result = await dataEgressService.getS3BucketAndPolicy();
+      expect(result).toStrictEqual({ s3BucketName: 'test-egressStoreBucketName', s3Policy: { Statement: [] } });
     });
   });
 });

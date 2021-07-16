@@ -6,6 +6,8 @@
   "author": "Amazon Web Services",
   "license": "Apache-2.0",
   "dependencies": {
+    "@aws-ee/base-api-handler": "workspace:*",
+    "@aws-ee/base-raas-cfn-templates": "workspace:*",
     "@aws-ee/base-post-deployment": "workspace:*",
     "@aws-ee/base-raas-post-deployment": "workspace:*",
     "@aws-ee/base-raas-rest-api": "workspace:*",
@@ -14,6 +16,7 @@
     "@aws-ee/base-raas-workflows": "workspace:*",
     "@aws-ee/base-services": "workspace:*",
     "@aws-ee/base-services-container": "workspace:*",
+    "@aws-ee/base-workflow-api": "workspace:*",
     "@aws-ee/base-workflow-core": "workspace:*",
     "@aws-ee/base-workflow-steps": "workspace:*",
     "@aws-ee/base-workflow-templates": "workspace:*",
