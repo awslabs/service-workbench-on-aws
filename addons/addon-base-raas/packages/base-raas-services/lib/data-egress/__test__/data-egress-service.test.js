@@ -578,4 +578,289 @@ describe('DataEgressService', () => {
       );
     });
   });
+
+  describe('Notify egress info', () => {
+    it('should prepare egress store snapshots', async () => {
+      dataEgressService._settings = {
+        get: settingName => {
+          if (settingName === 'egressNotificationBucketName') {
+            return 'test-egressNotificationBucketName';
+          }
+          return undefined;
+        },
+      };
+      s3Service.listObjects = jest.fn().mockResolvedValue([{ key1: 'key1' }, { key2: 'key2' }]);
+      s3Service.putObject = jest.fn();
+      const mockInfo = {
+        id: 'test-id',
+        s3BucketName: 'test-s3BucketName',
+        s3BucketPath: 'test-s3BucketPath',
+        ver: '0',
+        egressStoreName: 'test-egressStoreName',
+      };
+      const result = await dataEgressService.prepareEgressStoreSnapshot(mockInfo);
+      expect(result).toStrictEqual({
+        bucket: 'test-egressNotificationBucketName',
+        key: 'test-id/test-egressStoreName-ver0',
+      });
+    });
+    it('should error when list s3 object error in preparing egress store snapshots', async () => {
+      dataEgressService._settings = {
+        get: settingName => {
+          if (settingName === 'egressNotificationBucketName') {
+            return 'test-egressNotificationBucketName';
+          }
+          return undefined;
+        },
+      };
+      s3Service.listObjects = jest.fn().mockImplementationOnce(() => {
+        throw new Error();
+      });
+      s3Service.putObject = jest.fn();
+      const mockInfo = {
+        id: 'test-id',
+        s3BucketName: 'test-s3BucketName',
+        s3BucketPath: 'test-s3BucketPath',
+        ver: '0',
+        egressStoreName: 'test-egressStoreName',
+      };
+
+      await expect(dataEgressService.prepareEgressStoreSnapshot(mockInfo)).rejects.toThrow(
+        // It is better to check using boom.code instead of just the actual string, unless
+        // there are a few errors with the exact same boom code but different messages.
+        // Note: if you encounter a case where a service is throwing exceptions with the
+        // same code but different messages (to address different scenarios), you might
+        // want to suggest to the service author to use different codes.
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
+
+    it('should error when put object error in preparing egress store snapshots', async () => {
+      dataEgressService._settings = {
+        get: settingName => {
+          if (settingName === 'egressNotificationBucketName') {
+            return 'test-egressNotificationBucketName';
+          }
+          return undefined;
+        },
+      };
+      s3Service.listObjects = jest.fn();
+      s3Service.putObject = jest.fn().mockImplementationOnce(() => {
+        throw new Error();
+      });
+      const mockInfo = {
+        id: 'test-id',
+        s3BucketName: 'test-s3BucketName',
+        s3BucketPath: 'test-s3BucketPath',
+        ver: '0',
+        egressStoreName: 'test-egressStoreName',
+      };
+
+      await expect(dataEgressService.prepareEgressStoreSnapshot(mockInfo)).rejects.toThrow(
+        // It is better to check using boom.code instead of just the actual string, unless
+        // there are a few errors with the exact same boom code but different messages.
+        // Note: if you encounter a case where a service is throwing exceptions with the
+        // same code but different messages (to address different scenarios), you might
+        // want to suggest to the service author to use different codes.
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
+
+    it('should not notify SNS if egress feature is not enabled', async () => {
+      dataEgressService._settings = {
+        get: settingName => {
+          if (settingName === 'egressNotificationBucketName') {
+            return 'test-egressNotificationBucketName';
+          }
+          if (settingName === 'enableEgressStore') {
+            return 'false';
+          }
+          return undefined;
+        },
+      };
+      await expect(dataEgressService.notifySNS({}, '')).rejects.toThrow(
+        // It is better to check using boom.code instead of just the actual string, unless
+        // there are a few errors with the exact same boom code but different messages.
+        // Note: if you encounter a case where a service is throwing exceptions with the
+        // same code but different messages (to address different scenarios), you might
+        // want to suggest to the service author to use different codes.
+        expect.objectContaining({ boom: true, code: 'forbidden', safe: true }),
+      );
+    });
+
+    it('should not notify SNS if the egress store is not qulified to submit egress request', async () => {
+      dataEgressService._settings = {
+        get: settingName => {
+          if (settingName === 'egressNotificationBucketName') {
+            return 'test-egressNotificationBucketName';
+          }
+          if (settingName === 'enableEgressStore') {
+            return 'true';
+          }
+          return undefined;
+        },
+      };
+      const mockEgressStoreInfo = {
+        id: 'id',
+        egressStoreName: 'egressStoreName',
+        createdAt: 'createdAt',
+        createdBy: 'createdBy',
+        workspaceId: 'workspaceId',
+        projectId: 'projectId',
+        s3BucketName: 's3BucketName',
+        s3BucketPath: 's3BucketPath',
+        status: 'status',
+        updatedBy: 'updatedBy',
+        updatedAt: 'updatedAt',
+        ver: 'ver',
+        isAbleToSubmitEgressRequest: false,
+      };
+      dbService.table.scan.mockResolvedValue([mockEgressStoreInfo]);
+
+      await expect(dataEgressService.notifySNS({}, 'workspaceId')).rejects.toThrow(
+        // It is better to check using boom.code instead of just the actual string, unless
+        // there are a few errors with the exact same boom code but different messages.
+        // Note: if you encounter a case where a service is throwing exceptions with the
+        // same code but different messages (to address different scenarios), you might
+        // want to suggest to the service author to use different codes.
+        expect.objectContaining({ boom: true, code: 'badRequest', safe: true }),
+      );
+    });
+
+    it('should not notify SNS if user is not authorized', async () => {
+      dataEgressService._settings = {
+        get: settingName => {
+          if (settingName === 'egressNotificationBucketName') {
+            return 'test-egressNotificationBucketName';
+          }
+          if (settingName === 'enableEgressStore') {
+            return 'true';
+          }
+          return undefined;
+        },
+      };
+
+      const mockEgressStoreInfo = {
+        id: 'id',
+        egressStoreName: 'egressStoreName',
+        createdAt: 'createdAt',
+        createdBy: 'createdBy',
+        workspaceId: 'workspaceId',
+        projectId: 'projectId',
+        s3BucketName: 's3BucketName',
+        s3BucketPath: 's3BucketPath',
+        status: 'status',
+        updatedBy: 'updatedBy',
+        updatedAt: 'updatedAt',
+        ver: 'ver',
+        isAbleToSubmitEgressRequest: true,
+      };
+      dbService.table.scan.mockResolvedValue([mockEgressStoreInfo]);
+      const mockRequestContext = { principalIdentifier: { uid: 'test-createdBy' } };
+      await expect(dataEgressService.notifySNS(mockRequestContext, 'workspaceId')).rejects.toThrow(
+        // It is better to check using boom.code instead of just the actual string, unless
+        // there are a few errors with the exact same boom code but different messages.
+        // Note: if you encounter a case where a service is throwing exceptions with the
+        // same code but different messages (to address different scenarios), you might
+        // want to suggest to the service author to use different codes.
+        expect.objectContaining({ boom: true, code: 'forbidden', safe: true }),
+      );
+    });
+
+    it('should notify SNS', async () => {
+      dataEgressService._settings = {
+        get: settingName => {
+          if (settingName === 'egressNotificationBucketName') {
+            return 'test-egressNotificationBucketName';
+          }
+          if (settingName === 'enableEgressStore') {
+            return 'true';
+          }
+          if (settingName === 'egressNotificationSnsTopicArn') {
+            return 'test-egressNotificationSnsTopicArn';
+          }
+          return undefined;
+        },
+      };
+
+      const mockEgressStoreInfo = {
+        id: 'id',
+        egressStoreName: 'egressStoreName',
+        createdAt: 'createdAt',
+        createdBy: 'createdBy',
+        workspaceId: 'workspaceId',
+        projectId: 'projectId',
+        s3BucketName: 's3BucketName',
+        s3BucketPath: 's3BucketPath',
+        status: 'status',
+        updatedBy: 'updatedBy',
+        updatedAt: 'updatedAt',
+        ver: 'ver',
+        isAbleToSubmitEgressRequest: true,
+      };
+      dbService.table.scan.mockResolvedValue([mockEgressStoreInfo]);
+      const mockRequestContext = { principalIdentifier: { uid: 'createdBy' } };
+      dataEgressService.lockAndUpdate = jest.fn();
+      dataEgressService.publishMessage = jest.fn();
+
+      await dataEgressService.notifySNS(mockRequestContext, 'workspaceId');
+      expect(dataEgressService.audit).toHaveBeenCalledTimes(1);
+      expect(dataEgressService.audit).toHaveBeenCalledWith(
+        { principalIdentifier: { uid: 'createdBy' } },
+        {
+          action: 'trigger-egress-notification-process',
+          body: {
+            createdAt: 'createdAt',
+            createdBy: 'createdBy',
+            egressStoreName: 'egressStoreName',
+            egressStoreObjectListLocation: 'arn:aws:s3:::test-egressNotificationBucketName/id/egressStoreName-verNaN',
+            id: 'id',
+            projectId: 'projectId',
+            s3BucketName: 's3BucketName',
+            s3BucketPath: 's3BucketPath',
+            status: 'PENDING',
+            updatedAt: expect.anything(),
+            updatedBy: 'createdBy',
+            ver: NaN,
+            workspaceId: 'workspaceId',
+          },
+        },
+      );
+    });
+    it('should publish message', async () => {
+      dataEgressService._settings = {
+        get: settingName => {
+          if (settingName === 'egressNotificationBucketName') {
+            return 'test-egressNotificationBucketName';
+          }
+          if (settingName === 'enableEgressStore') {
+            return 'true';
+          }
+          if (settingName === 'egressNotificationSnsTopicArn') {
+            return 'test-egressNotificationSnsTopicArn';
+          }
+          return undefined;
+        },
+      };
+
+      AWSMock.mock('SNS', 'publish', (params, callback) => {
+        expect(params).toMatchObject({
+          Message: 'test-Message',
+          TopicArn: 'test-egressNotificationSnsTopicArn',
+        });
+        callback(null, {});
+      });
+
+      await dataEgressService.publishMessage('test-Message');
+    });
+
+    it('should enable egress submission flag', async () => {
+      dataEgressService.lockAndUpdate = jest.fn();
+      await dataEgressService.enableEgressStoreSubmission({ id: 'test-id' });
+      expect(dataEgressService.lockAndUpdate).toHaveBeenCalledWith('egress-store-ddb-access-test-id', 'test-id', {
+        id: 'test-id',
+        isAbleToSubmitEgressRequest: true,
+      });
+    });
+  });
 });

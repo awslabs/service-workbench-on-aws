@@ -1,6 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 import _ from 'lodash';
 import { types, applySnapshot } from 'mobx-state-tree';
+import { EgressStoreDetail } from './EgressStoreDetail';
 
 // 'COMPLETED', 'PENDING', 'TAINTED', 'FAILED', 'TERMINATING', 'TERMINATED', 'TERMINATING_FAILED', 'UNKNOWN'
 // Note: 'UNKNOWN' is not something that is returned from the server, it is here to catch any other status
@@ -152,6 +153,7 @@ const ScEnvironment = types
     studyIds: types.frozen([]),
     cidr: types.frozen([]),
     outputs: types.frozen([]),
+    egressStoreDetails: types.optional(types.maybe(EgressStoreDetail), {}),
   })
   .actions(self => ({
     setScEnvironment(rawEnvironment) {
@@ -166,6 +168,9 @@ const ScEnvironment = types
     },
     setConnections(connections) {
       self.connections = connections;
+    },
+    setEgressStoreDetails(egressStoreDetails) {
+      self.egressStoreDetails = egressStoreDetails;
     },
   }))
 

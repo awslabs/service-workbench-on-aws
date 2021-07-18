@@ -8,9 +8,14 @@ async function configure(context) {
   //  GET /:id (mounted to /api/data-egress/:id)
   // ===============================================================
   router.get(
-    '/',
-    wrap(async () => {
-      // TODO: use actual data-egress-service to fetch egress store info
+    '/:id',
+    wrap(async (req, res) => {
+      const id = req.params.id;
+      const requestContext = res.locals.requestContext;
+
+      const [dataEgressService] = await context.service(['dataEgressService']);
+      const result = await dataEgressService.list(requestContext, id);
+      res.status(200).json(result);
     }),
   );
 
@@ -25,6 +30,20 @@ async function configure(context) {
       const [dataEgressService] = await context.service(['dataEgressService']);
       await dataEgressService.terminateEgressStore(requestContext, id);
       res.status(200).json({});
+    }),
+  );
+
+  // ===============================================================
+  //  POST (mounted to /api/data-egress/notify
+  // ===============================================================
+  router.post(
+    '/notify',
+    wrap(async (req, res) => {
+      const requestContext = res.locals.requestContext;
+      const id = req.body.id;
+      const [dataEgressService] = await context.service(['dataEgressService']);
+      const result = await dataEgressService.notifySNS(requestContext, id);
+      res.status(200).json(result);
     }),
   );
 

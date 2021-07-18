@@ -32,7 +32,7 @@ class ScEnvironmentEgressStoreDetail extends React.Component {
     super(props);
     runInAction(() => {
       // A flag to indicate if egress request for this egress store is already submitted
-      this.egressStoreRequestSubmitted = this.getEgressStoreDetailStore().egressStoreStatus === 'submitted';
+      this.egressStoreRequestSubmitted = this.getEgressStoreDetailStore().isAbleToSubmitEgressRequest === 'submitted';
     });
   }
 
@@ -43,14 +43,23 @@ class ScEnvironmentEgressStoreDetail extends React.Component {
     }
   }
 
+  get environment() {
+    return this.props.scEnvironment;
+  }
+
+  get envsStore() {
+    return this.props.scEnvironmentsStore;
+  }
+
   getEgressStoreDetailStore() {
-    return this.props.scEnvironmentEgressStoreDetailStore;
+    return this.envsStore.getScEnvironmentEgressStoreDetailStore(this.environment.id);
   }
 
   handleSubmitEgressRequest = () => {
     runInAction(() => {
+      const egressStoreDetailStore = this.getEgressStoreDetailStore();
+      egressStoreDetailStore.egressNotifySns(this.environment.id);
       this.egressStoreRequestSubmitted = !this.egressStoreRequestSubmitted;
-      // TODO: invoke store action to actually submit the request
     });
   };
 
@@ -180,4 +189,4 @@ decorate(ScEnvironmentEgressStoreDetail, {
   handleSubmitEgressRequest: action,
 });
 
-export default inject('scEnvironmentEgressStoreDetailStore')(withRouter(observer(ScEnvironmentEgressStoreDetail)));
+export default inject('scEnvironmentsStore')(withRouter(observer(ScEnvironmentEgressStoreDetail)));

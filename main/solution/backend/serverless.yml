@@ -129,6 +129,7 @@ resources:
               - Effect: Allow
                 Action:
                   - s3:Create*
+                  - s3:Delete*
                 Resource: 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}'
   - extensions:
       # Add custom permission boundary to role serverless uses for creating Cloudwatch publishing role

@@ -191,7 +191,7 @@ class S3Service extends Service {
       Prefix: dir,
     };
 
-    let listedObjects;
+    let listedObjects = [];
     try {
       listedObjects = await this.api.listObjectsV2(listParams).promise();
     } catch (error) {
@@ -229,6 +229,52 @@ class S3Service extends Service {
     } catch (error) {
       throw this.boom.badRequest(`S3Service error with putting tag on object arn:aws:s3:::${bucket}/${key}`, true);
     }
+  }
+
+  async putObject(params) {
+    try {
+      await this.api.putObject(params).promise();
+    } catch (error) {
+      throw this.boom.badRequest(
+        `S3Service error with putting object to bukcet: ${params.Bucket} with key: ${params.Key}`,
+        true,
+      );
+    }
+  }
+
+  async listAllObjects({ Bucket, Prefix }) {
+    // repeatedly calling AWS list objects because it only returns 1000 objects
+    let list = [];
+    let shouldContinue = true;
+    let nextContinuationToken = null;
+    do {
+      const res = await this.api // eslint-disable-line no-await-in-loop
+        .listObjectsV2({
+          Bucket,
+          Prefix,
+          ContinuationToken: nextContinuationToken || undefined,
+        })
+        .promise();
+      list = [...list, ...res.Contents];
+
+      if (!res.IsTruncated) {
+        shouldContinue = false;
+        nextContinuationToken = null;
+      } else {
+        nextContinuationToken = res.NextContinuationToken;
+      }
+    } while (shouldContinue);
+    return list;
+  }
+
+  async getLatestObjectVersion({ Bucket, Prefix }) {
+    const params = {
+      Bucket,
+      Prefix,
+    };
+    const versionList = await this.api.listObjectVersions(params).promise();
+    const latestObjs = _.filter(versionList.Versions, ['IsLatest', true]);
+    return latestObjs[0];
   }
 }
 

@@ -173,5 +173,55 @@ describe('S3Service', () => {
         }),
       );
     });
+
+    it('should successfully put object', async () => {
+      AWSMock.mock('S3', 'putObject', params => {
+        expect(params).toMatchObject({
+          Bucket: 'test-bucketName',
+          Key: 'test-key',
+          Body: 'test-body',
+          ContentType: 'application/json',
+        });
+      });
+
+      s3Service.putObject({
+        Bucket: 'test-bucketName',
+        Key: 'test-key',
+        Body: 'test-body',
+        ContentType: 'application/json',
+      });
+    });
+
+    it('should not put object', async () => {
+      AWSMock.mock('S3', 'putObject', (params, callback) => {
+        expect(params).toMatchObject({
+          Bucket: 'test-bucketName',
+          Key: 'test-key',
+          Body: 'test-body',
+          ContentType: 'application/json',
+        });
+        callback(new Error(), new Error());
+      });
+
+      await expect(
+        s3Service.putObject({
+          Bucket: 'test-bucketName',
+          Key: 'test-key',
+          Body: 'test-body',
+          ContentType: 'application/json',
+        }),
+      ).rejects.toThrow(
+        // It is better to check using boom.code instead of just the actual string, unless
+        // there are a few errors with the exact same boom code but different messages.
+        // Note: if you encounter a case where a service is throwing exceptions with the
+        // same code but different messages (to address different scenarios), you might
+        // want to suggest to the service author to use different codes.
+        expect.objectContaining({
+          boom: true,
+          code: 'badRequest',
+          safe: true,
+        }),
+      );
+    });
   });
 });

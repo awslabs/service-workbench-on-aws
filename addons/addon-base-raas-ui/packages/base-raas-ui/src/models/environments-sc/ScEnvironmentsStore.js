@@ -12,10 +12,12 @@ import {
   stopScEnvironment,
   updateScEnvironmentCidrs,
   deleteEgressStore,
+  egressNotifySns,
 } from '../../helpers/api';
 import { ScEnvironment } from './ScEnvironment';
 import { ScEnvironmentStore } from './ScEnvironmentStore';
 import { ScEnvConnectionStore } from './ScEnvConnectionStore';
+import { ScEnvironmentEgressStoreDetailStore } from './ScEnvironmentEgressStoreDetailStore';
 import { enableEgressStore } from '../../helpers/settings';
 
 const filterNames = {
@@ -50,6 +52,7 @@ const ScEnvironmentsStore = BaseStore.named('ScEnvironmentsStore')
     environments: types.optional(types.map(ScEnvironment), {}),
     environmentStores: types.optional(types.map(ScEnvironmentStore), {}),
     connectionStores: types.optional(types.map(ScEnvConnectionStore), {}),
+    egressStoreDetailStore: types.optional(types.map(ScEnvironmentEgressStoreDetailStore), {}),
     tickPeriod: 30 * 1000, // 30 seconds
   })
 
@@ -135,6 +138,22 @@ const ScEnvironmentsStore = BaseStore.named('ScEnvironmentsStore')
         }
 
         return entry;
+      },
+
+      getScEnvironmentEgressStoreDetailStore(envId) {
+        let entry = self.egressStoreDetailStore.get(envId);
+        if (!entry) {
+          // Lazily create the store
+          self.egressStoreDetailStore.set(envId, ScEnvironmentEgressStoreDetailStore.create({ envId }));
+          entry = self.egressStoreDetailStore.get(envId);
+        }
+        return entry;
+      },
+
+      async egressNotifySns(id) {
+        if (enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE') {
+          await egressNotifySns(id);
+        }
       },
 
       cleanup: () => {
