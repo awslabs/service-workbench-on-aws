@@ -844,6 +844,7 @@ describe('DataEgressService', () => {
           if (settingName === 'egressNotificationSnsTopicArn') {
             return 'test-egressNotificationSnsTopicArn';
           }
+          return null;
         },
       };
       AWSMock.mock('SNS', 'publish', (params, callback) => {
@@ -884,6 +885,7 @@ describe('DataEgressService', () => {
           if (settingName === 'egressStoreBucketName') {
             return 'test-egressStoreBucketName';
           }
+          return null;
         },
       };
       AWSMock.mock('S3', 'getBucketPolicy', (params, callback) => {
