@@ -33,9 +33,6 @@ const handlerWithContainer = async container => {
 
   // Check permission status of all accounts
   await awsCfnService.batchCheckAccountPermissions(userContext);
-
-  // Attempt to onboard all accounts
-  await awsCfnService.attemptOnboardAccounts(userContext);
 };
 
 // eslint-disable-next-line import/prefer-default-export

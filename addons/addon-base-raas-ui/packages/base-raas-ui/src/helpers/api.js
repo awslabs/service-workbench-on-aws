@@ -73,10 +73,6 @@ function getAccountOnboardCfnTemplate(accountUUID) {
   return httpApiGet(`api/aws-accounts/${accountUUID}/get-template`);
 }
 
-function attemptOnboardAwsAccounts() {
-  return httpApiGet('api/aws-accounts/onboard');
-}
-
 function addIndex(index) {
   return httpApiPost('api/indexes', { data: index });
 }
@@ -383,7 +379,6 @@ export {
   getAccountsPermissionsStatus,
   getAllAccountsPermissionStatus,
   getAccountOnboardCfnTemplate,
-  attemptOnboardAwsAccounts,
   getStepTemplates,
   getEnvironments,
   getEnvironment,

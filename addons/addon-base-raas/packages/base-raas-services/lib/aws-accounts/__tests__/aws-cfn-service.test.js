@@ -283,7 +283,7 @@ describe('AwsAccountService', () => {
       const res = await service.batchCheckAccountPermissions(requestContext);
       expect(awsAccountsService.update).toHaveBeenCalledWith(requestContext, expUpdate);
 
-      expect(res.errors[noStackNameMock.id]).toEqual(
+      expect(res.statusInfo[noStackNameMock.id]).toEqual(
         `Error checking permissions for account ${noStackNameMock.accountId}. Stack '${noStackNameMock.cfnStackName}' not found`,
       );
     });
@@ -360,7 +360,7 @@ describe('AwsAccountService', () => {
 
       // OPERATE
       try {
-        await service.attemptOnboardAccounts(requestContext);
+        await service.checkPendingAccounts(requestContext);
         expect.hasAssertions();
       } catch (err) {
         // CHECK
@@ -369,8 +369,9 @@ describe('AwsAccountService', () => {
     });
 
     it('should handle no accounts pending correctly', async () => {
-      const res = await service.attemptOnboardAccounts(requestContext);
-      expect(res.status).toEqual('No accounts are pending.');
+      const res = await service.checkPendingAccounts(requestContext);
+      expect(res.auditLog).toEqual({});
+      expect(res.newStatus).toEqual({});
     });
 
     it('should correctly handle pending accounts that have pending stacks', async () => {
@@ -389,8 +390,9 @@ describe('AwsAccountService', () => {
         return pendingAccountMock;
       });
 
-      const res = await service.attemptOnboardAccounts(requestContext);
-      expect(res[pendingAccountMock.id]).toContain('Account is not ready yet.');
+      const res = await service.checkPendingAccounts(requestContext);
+      expect(res.auditLog[pendingAccountMock.id]).toContain('Account is not ready yet.');
+      expect(res.newStatus[pendingAccountMock.id]).toEqual('PENDING');
     });
 
     it('should correctly handle pending accounts that have completed stacks', async () => {
@@ -421,8 +423,9 @@ describe('AwsAccountService', () => {
         return completedAccountMock;
       });
 
-      const res = await service.attemptOnboardAccounts(requestContext);
-      expect(res[completedAccountMock.id]).toEqual('Successfully Onboarded');
+      const res = await service.checkPendingAccounts(requestContext);
+      expect(res.auditLog[completedAccountMock.id]).toEqual('Successfully Onboarded');
+      expect(res.newStatus[completedAccountMock.id]).toEqual('CURRENT');
       expect(awsAccountsService.update).toHaveBeenCalledWith(requestContext, expUpdate);
     });
   });

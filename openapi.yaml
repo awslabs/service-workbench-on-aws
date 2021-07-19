@@ -661,18 +661,6 @@ paths:
       responses:
         '200':
           description: CFN Stack info with S3 signed URL.
-  /api/aws-accounts/onboard:
-    get:
-      tags:
-        - admins
-        - AwsAccounts
-      summary: attempt to onboard any accounts in PENDING status
-      operationId: attemptOnboardAccounts
-      description: |
-        Attempts to onboard any accounts in the PENDING status
-      responses:
-        '200':
-          description: status of PENDING accounts ('Successfully Onboarded' or still provisioning)
   /api/accounts:
     get:
       tags:

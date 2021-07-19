@@ -23,7 +23,6 @@ import {
   createAwsAccount,
   updateAwsAccount,
   getAllAccountsPermissionStatus,
-  attemptOnboardAwsAccounts,
 } from '../../helpers/api';
 import { AwsAccount } from './AwsAccount';
 import { AwsAccountStore } from './AwsAccountStore';
@@ -120,8 +119,8 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         account.budget = Budget.create(rawBudget);
       },
 
-      forceAttemptOnboardAccounts: async () => {
-        await attemptOnboardAwsAccounts();
+      forceCheckAccountPermissions: async () => {
+        await getAllAccountsPermissionStatus();
       },
 
       hasPendingAccounts: () => {

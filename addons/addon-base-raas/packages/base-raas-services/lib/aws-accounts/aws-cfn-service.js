@@ -313,15 +313,20 @@ class AwsCfnService extends Service {
 
     // Check permissions in parallel in the specified batches
     await processInBatches(accountsList, batchSize, checkPermissions);
+
+    // Attempt to onboard any pending accounts
+    const pendingRes = await this.checkPendingAccounts();
+    const finalStatus = { ...newStatus, ...pendingRes.newStatus };
+    const statusInfo = { ...errors, ...pendingRes.auditLog };
     await this.audit(requestContext, {
       action: 'check-aws-permissions-batch',
       body: {
         totalAccounts: _.size(accountsList),
         usersChecked: idList,
-        errors,
+        statusMsgs: statusInfo,
       },
     });
-    return { newStatus, errors };
+    return { finalStatus, statusInfo };
   }
 
   // @private
@@ -340,10 +345,10 @@ class AwsCfnService extends Service {
     }
   }
 
-  async attemptOnboardAccounts(requestContext) {
+  async checkPendingAccounts(requestContext) {
     await this.assertAuthorized(
       requestContext,
-      { action: 'attempt-onboard', conditions: [allowIfActive, allowIfAdmin] },
+      { action: 'check-pending', conditions: [allowIfActive, allowIfAdmin] },
       {},
     );
 
@@ -355,28 +360,25 @@ class AwsCfnService extends Service {
     );
 
     const auditLog = {};
+    const newStatus = {};
 
     const processor = async awsAccountId => {
       try {
         await this.finishOnboardingAccount(requestContext, awsAccountId);
         auditLog[awsAccountId] = 'Successfully Onboarded';
+        newStatus[awsAccountId] = 'CURRENT';
       } catch (e) {
         auditLog[awsAccountId] = `Account is not ready yet. ${e}`;
+        newStatus[awsAccountId] = 'PENDING';
       }
     };
 
     // For each account, reach out 10 at a time
     if (!_.isEmpty(pendingAccountIds)) {
       await processInBatches(pendingAccountIds, 10, processor);
-    } else {
-      auditLog.status = 'No accounts are pending.';
     }
 
-    await this.audit(requestContext, {
-      action: 'onboard-aws-accounts',
-      body: auditLog,
-    });
-    return auditLog;
+    return { auditLog, newStatus };
   }
 
   async finishOnboardingAccount(requestContext, accountId) {

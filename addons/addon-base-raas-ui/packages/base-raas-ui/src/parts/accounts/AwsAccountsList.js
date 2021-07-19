@@ -127,9 +127,9 @@ class AwsAccountsList extends React.Component {
     this.selectedFilter = name;
   };
 
-  handleCheckPendingAccounts = () => {
+  handleCheckAccountStatus = () => {
     const awsAccountsStore = this.getAwsAccountsStore();
-    awsAccountsStore.forceAttemptOnboardAccounts();
+    awsAccountsStore.forceCheckAccountPermissions();
   };
 
   renderHeader() {
@@ -157,7 +157,7 @@ class AwsAccountsList extends React.Component {
           basic
           onClick={this.handleCheckPendingAccounts}
         >
-          Check Pending Accounts
+          Refresh Account Status
         </Button>
       </div>
     );
