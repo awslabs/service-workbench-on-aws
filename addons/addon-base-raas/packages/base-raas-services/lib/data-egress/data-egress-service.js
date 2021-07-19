@@ -297,7 +297,7 @@ class DataEgressService extends Service {
       result = result.slice(0, 100);
     }
 
-    return { objectList: result, isAbleToSubmitEgressRequest: egressStoreInfo.egressStoreInfo };
+    return { objectList: result, isAbleToSubmitEgressRequest: egressStoreInfo.isAbleToSubmitEgressRequest };
   }
 
   bytesToSize(bytes) {

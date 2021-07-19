@@ -901,4 +901,167 @@ describe('DataEgressService', () => {
       expect(result).toStrictEqual({ s3BucketName: 'test-egressStoreBucketName', s3Policy: { Statement: [] } });
     });
   });
+
+  describe('should transform from byte to size', () => {
+    it('should return in Byte', async () => {
+      const result = dataEgressService.bytesToSize(100);
+      expect(result).toStrictEqual('100 Bytes');
+    });
+
+    it('should return in KB', async () => {
+      const result = dataEgressService.bytesToSize(10000);
+      expect(result).toStrictEqual('10 KB');
+    });
+
+    it('should return in MB', async () => {
+      const result = dataEgressService.bytesToSize(10000000);
+      expect(result).toStrictEqual('10 MB');
+    });
+
+    it('should return in GB', async () => {
+      const result = dataEgressService.bytesToSize(10000000000);
+      expect(result).toStrictEqual('9 GB');
+    });
+
+    it('should return in TB', async () => {
+      const result = dataEgressService.bytesToSize(10000000000000);
+      expect(result).toStrictEqual('9 TB');
+    });
+  });
+
+  describe('should get Egress Store objects', () => {
+    it('should get Egress Store objects', async () => {
+      dataEgressService._settings = {
+        get: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return 'true';
+          }
+          return null;
+        },
+      };
+      const mockEgressStoreInfo = {
+        id: 'id',
+        egressStoreName: 'egressStoreName',
+        createdAt: 'createdAt',
+        createdBy: 'createdBy',
+        workspaceId: 'workspaceId',
+        projectId: 'projectId',
+        s3BucketName: 's3BucketName',
+        s3BucketPath: 's3BucketPath',
+        status: 'status',
+        updatedBy: 'updatedBy',
+        updatedAt: 'updatedAt',
+        ver: 'ver',
+        isAbleToSubmitEgressRequest: false,
+      };
+      const mockRequestContext = { principalIdentifier: { uid: 'createdBy' } };
+      dataEgressService.getEgressStoreInfo = jest.fn().mockResolvedValueOnce(mockEgressStoreInfo);
+      s3Service.listAllObjects = jest.fn().mockResolvedValueOnce([
+        { LastModified: new Date(), Size: 2, Key: 'test/test2' },
+        { LastModified: new Date(), Size: 3, Key: 'test/test1' },
+      ]);
+
+      const result = await dataEgressService.getEgressStore(mockRequestContext, 'test-environmentId');
+      expect(result).toStrictEqual({
+        isAbleToSubmitEgressRequest: false,
+        objectList: [
+          {
+            Key: 'test2',
+            LastModified: expect.anything(),
+            Size: '2 Bytes',
+            projectId: 'projectId',
+            workspaceId: 'workspaceId',
+          },
+          {
+            Key: 'test1',
+            LastModified: expect.anything(),
+            Size: '3 Bytes',
+            projectId: 'projectId',
+            workspaceId: 'workspaceId',
+          },
+        ],
+      });
+    });
+    it('should error out without enable egress feature', async () => {
+      dataEgressService._settings = {
+        get: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return 'false';
+          }
+          return null;
+        },
+      };
+      const mockEgressStoreInfo = {
+        id: 'id',
+        egressStoreName: 'egressStoreName',
+        createdAt: 'createdAt',
+        createdBy: 'createdBy',
+        workspaceId: 'workspaceId',
+        projectId: 'projectId',
+        s3BucketName: 's3BucketName',
+        s3BucketPath: 's3BucketPath',
+        status: 'status',
+        updatedBy: 'updatedBy',
+        updatedAt: 'updatedAt',
+        ver: 'ver',
+        isAbleToSubmitEgressRequest: false,
+      };
+      const mockRequestContext = { principalIdentifier: { uid: 'createdBy' } };
+      dataEgressService.getEgressStoreInfo = jest.fn().mockResolvedValueOnce(mockEgressStoreInfo);
+      s3Service.listAllObjects = jest.fn().mockResolvedValueOnce([
+        { LastModified: new Date(), Size: 2, Key: 'test/test2' },
+        { LastModified: new Date(), Size: 3, Key: 'test/test1' },
+      ]);
+
+      await expect(dataEgressService.getEgressStore(mockRequestContext, 'test-environmentId')).rejects.toThrow(
+        // It is better to check using boom.code instead of just the actual string, unless
+        // there are a few errors with the exact same boom code but different messages.
+        // Note: if you encounter a case where a service is throwing exceptions with the
+        // same code but different messages (to address different scenarios), you might
+        // want to suggest to the service author to use different codes.
+        expect.objectContaining({ boom: true, code: 'forbidden', safe: true }),
+      );
+    });
+
+    it('should error out with unauthorized user', async () => {
+      dataEgressService._settings = {
+        get: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return 'true';
+          }
+          return null;
+        },
+      };
+      const mockEgressStoreInfo = {
+        id: 'id',
+        egressStoreName: 'egressStoreName',
+        createdAt: 'createdAt',
+        createdBy: 'createdBy',
+        workspaceId: 'workspaceId',
+        projectId: 'projectId',
+        s3BucketName: 's3BucketName',
+        s3BucketPath: 's3BucketPath',
+        status: 'status',
+        updatedBy: 'updatedBy',
+        updatedAt: 'updatedAt',
+        ver: 'ver',
+        isAbleToSubmitEgressRequest: false,
+      };
+      const mockRequestContext = { principalIdentifier: { uid: 'test-createdBy' } };
+      dataEgressService.getEgressStoreInfo = jest.fn().mockResolvedValueOnce(mockEgressStoreInfo);
+      s3Service.listAllObjects = jest.fn().mockResolvedValueOnce([
+        { LastModified: new Date(), Size: 2, Key: 'test/test2' },
+        { LastModified: new Date(), Size: 3, Key: 'test/test1' },
+      ]);
+
+      await expect(dataEgressService.getEgressStore(mockRequestContext, 'test-environmentId')).rejects.toThrow(
+        // It is better to check using boom.code instead of just the actual string, unless
+        // there are a few errors with the exact same boom code but different messages.
+        // Note: if you encounter a case where a service is throwing exceptions with the
+        // same code but different messages (to address different scenarios), you might
+        // want to suggest to the service author to use different codes.
+        expect.objectContaining({ boom: true, code: 'forbidden', safe: true }),
+      );
+    });
+  });
 });
