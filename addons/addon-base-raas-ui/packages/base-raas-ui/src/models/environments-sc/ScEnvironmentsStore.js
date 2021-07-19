@@ -12,7 +12,6 @@ import {
   stopScEnvironment,
   updateScEnvironmentCidrs,
   deleteEgressStore,
-  egressNotifySns,
 } from '../../helpers/api';
 import { ScEnvironment } from './ScEnvironment';
 import { ScEnvironmentStore } from './ScEnvironmentStore';
@@ -148,12 +147,6 @@ const ScEnvironmentsStore = BaseStore.named('ScEnvironmentsStore')
           entry = self.egressStoreDetailStore.get(envId);
         }
         return entry;
-      },
-
-      async egressNotifySns(id) {
-        if (enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE') {
-          await egressNotifySns(id);
-        }
       },
 
       cleanup: () => {
