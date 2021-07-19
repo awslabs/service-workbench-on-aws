@@ -14,6 +14,7 @@ import {
 } from '@aws-ee/base-ui/dist/models/BaseStore';
 import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
 import ProgressPlaceHolder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+
 class ScEnvironmentEgressStoreDetail extends React.Component {
   constructor(props) {
     super(props);

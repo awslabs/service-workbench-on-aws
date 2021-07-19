@@ -82,8 +82,6 @@ class UpdateCfnStackPolicy extends Service {
         ) {
           // compare statements and add target policy in
           const newPolicy = [...currentStackPolicyBody.Statement, egressStoreStackPolicy.Statement[1]];
-          this.log.info('zhaxan-test');
-          this.log.info(JSON.stringify(newPolicy));
           await this.cfn
             .setStackPolicy({
               StackName: backendStackName,
