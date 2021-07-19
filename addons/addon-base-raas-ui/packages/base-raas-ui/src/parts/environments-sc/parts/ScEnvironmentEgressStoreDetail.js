@@ -15,17 +15,6 @@ import {
 } from '@aws-ee/base-ui/dist/models/BaseStore';
 import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
 import ProgressPlaceHolder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
-
-const tempData = [
-  {
-    objectName: 'test-objectName',
-    projectId: 'test-Project',
-    workspaceId: 'workspaceId',
-    workspaceOwner: ['test-workspaceOwner1', 'test-workspaceOwner2'],
-    study: ['study1', 'study2'],
-    egressStatus: 'egressStatus',
-  },
-];
 class ScEnvironmentEgressStoreDetail extends React.Component {
   constructor(props) {
     super(props);
