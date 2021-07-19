@@ -16,7 +16,6 @@ import {
 import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
 import ProgressPlaceHolder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 
-// TODO: remove tempData
 const tempData = [
   {
     objectName: 'test-objectName',
@@ -32,7 +31,7 @@ class ScEnvironmentEgressStoreDetail extends React.Component {
     super(props);
     runInAction(() => {
       // A flag to indicate if egress request for this egress store is already submitted
-      this.egressStoreRequestSubmitted = this.getEgressStoreDetailStore().isAbleToSubmitEgressRequest === 'submitted';
+      this.egressStoreRequestSubmitted = this.getEgressStoreDetailStore().isAbleToSubmitEgressRequest;
     });
   }
 
@@ -59,7 +58,7 @@ class ScEnvironmentEgressStoreDetail extends React.Component {
     runInAction(() => {
       const egressStoreDetailStore = this.getEgressStoreDetailStore();
       egressStoreDetailStore.egressNotifySns(this.environment.id);
-      this.egressStoreRequestSubmitted = !this.egressStoreRequestSubmitted;
+      this.isAbleToSubmitEgressRequest = !this.isAbleToSubmitEgressRequest;
     });
   };
 
@@ -107,12 +106,13 @@ class ScEnvironmentEgressStoreDetail extends React.Component {
 
   renderEgressStoreTable() {
     const pageSize = 5;
-    const showPagination = tempData.length > pageSize;
-    const egressStoreRequestSubmitted = this.egressStoreRequestSubmitted;
+    const data = this.getEgressStoreDetailStore().list;
+    const showPagination = data.length > pageSize;
+    const isAbleToSubmitEgressRequest = this.isAbleToSubmitEgressRequest;
     return (
       <Segment placeholder className="mt2 mb2">
         <ReactTable
-          data={tempData}
+          data={data}
           defaultSorted={[{ id: 'objectName', desc: true }]}
           showPagination={showPagination}
           defaultPageSize={pageSize}
@@ -126,7 +126,12 @@ class ScEnvironmentEgressStoreDetail extends React.Component {
           columns={[
             {
               Header: 'Name',
-              accessor: 'objectName',
+              accessor: 'Key',
+              width: 100,
+            },
+            {
+              Header: 'ETag',
+              accessor: 'ETag',
               width: 100,
             },
             {
@@ -140,26 +145,18 @@ class ScEnvironmentEgressStoreDetail extends React.Component {
               width: 100,
             },
             {
-              Header: 'Workspace Owner',
-              width: 150,
-              style: { whiteSpace: 'unset' },
-              Cell: row => {
-                const object = row.original;
-                return object.workspaceOwner.join(', ') || '<<none>>';
-              },
+              Header: 'LastModified',
+              accessor: 'LastModified',
+              width: 100,
             },
             {
-              Header: 'Studies',
-              width: 150,
-              style: { whiteSpace: 'unset' },
-              Cell: row => {
-                const object = row.original;
-                return object.study.join(', ') || '<<none>>';
-              },
+              Header: 'Size',
+              accessor: 'Size',
+              width: 100,
             },
             {
-              Header: 'Egress Status',
-              accessor: 'egressStatus',
+              Header: 'StorageClass',
+              accessor: 'StorageClass',
               width: 100,
             },
           ]}
@@ -173,9 +170,9 @@ class ScEnvironmentEgressStoreDetail extends React.Component {
             toggle
             active
             onClick={this.handleSubmitEgressRequest}
-            disabled={egressStoreRequestSubmitted}
+            disabled={!isAbleToSubmitEgressRequest}
           >
-            {!egressStoreRequestSubmitted ? 'Submit Egress Request' : 'Egress Request submitted'}
+            {isAbleToSubmitEgressRequest ? 'Submit Egress Request' : 'Egress Request submitted'}
           </Button>
         </div>
       </Segment>

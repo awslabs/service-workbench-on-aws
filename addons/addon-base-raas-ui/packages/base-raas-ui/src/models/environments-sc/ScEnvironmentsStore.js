@@ -160,6 +160,7 @@ const ScEnvironmentsStore = BaseStore.named('ScEnvironmentsStore')
         self.environments.clear();
         self.environmentStores.clear();
         self.connectionStores.clear();
+        self.egressStoreDetailStore.clear();
         superCleanup();
       },
     };

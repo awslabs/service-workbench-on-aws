@@ -259,7 +259,7 @@ class DataEgressService extends Service {
     }
   }
 
-  async list(requestContext, environmentId) {
+  async getEgressStore(requestContext, environmentId) {
     const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
     if (!enableEgressStore || enableEgressStore.toUpperCase() !== 'TRUE') {
       throw this.boom.forbidden('Unable to list objects in egress store since this feature is disabled', true);
@@ -280,15 +280,31 @@ class DataEgressService extends Service {
       Prefix: egressStoreInfo.s3BucketPath,
     });
     objectList.sort((a, b) => {
-      return new Date(b.LastModified) - new Date(a.LastModified);
+      return new Date(a.LastModified) - new Date(b.LastModified);
     });
-    _.map(objectList, async obj => {
+    const result = [];
+    _.forEach(objectList, obj => {
       obj.projectId = egressStoreInfo.projectId;
       obj.workspaceId = egressStoreInfo.workspaceId;
-      return obj;
+      obj.Size = this.bytesToSize(obj.Size);
+      const newKey = obj.Key.split('/');
+      if (newKey[1]) {
+        obj.Key = newKey[1];
+        result.push(obj);
+      }
     });
+    if (result.length > 100) {
+      result = result.slice(0, 100);
+    }
 
-    return { objectList };
+    return { objectList: result, isAbleToSubmitEgressRequest: egressStoreInfo.egressStoreInfo };
+  }
+
+  bytesToSize(bytes) {
+    var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    if (bytes == 0) return '0 Byte';
+    var i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+    return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
   }
 
   async prepareEgressStoreSnapshot(requestContext, egressStoreInfo) {
