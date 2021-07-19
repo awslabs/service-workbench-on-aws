@@ -62,6 +62,9 @@ const EnvironmentSCKeyPairServiceMock = require('../environment-sc-keypair-servi
 jest.mock('../../../data-egress/data-egress-service.js');
 const DataEgressService = require('../../../data-egress/data-egress-service.js');
 
+jest.mock('../../../account/account-service.js');
+const AccountService = require('../../../account/account-service.js');
+
 const EnvironmentConfigVarsService = require('../environment-config-vars-service');
 
 describe('EnvironmentSCService', () => {
@@ -73,6 +76,7 @@ describe('EnvironmentSCService', () => {
   let environmentAmiService = null;
   let userService = null;
   let settingsService = null;
+  let accountService = null;
 
   beforeEach(async () => {
     const container = new ServicesContainer();
@@ -92,6 +96,7 @@ describe('EnvironmentSCService', () => {
     container.register('environmentScKeypairService', new EnvironmentSCKeyPairServiceMock());
     container.register('studyService', new StudyServiceMock());
     container.register('dataEgressService', new DataEgressService());
+    container.register('accountService', new AccountService());
     await container.initServices();
 
     // suppress expected console errors
@@ -106,7 +111,14 @@ describe('EnvironmentSCService', () => {
     environmentAmiService = await container.find('environmentAmiService');
     userService = await container.find('userService');
     settingsService = await container.find('settings');
+    accountService = await container.find('accountService');
 
+    accountService.mustFind = jest.fn(() => {
+      return Promise.resolve({
+        stackId:
+          'arn:aws:cloudformation:eu-west-1:123456789012:stack/initial-stack-1625689755737/ff9a0dc0-df61-11eb-8b32-024312ba26d9',
+      });
+    });
     // Skip authorization by default
     service.assertAuthorized = jest.fn();
   });
@@ -289,7 +301,7 @@ describe('EnvironmentSCService', () => {
       mockSettingsService({
         environmentInstanceFiles: '{}',
         isAppStreamEnabled: 'true',
-        solutionNamespace: 'gamma',
+        solutionNamespace: 'initial-stack-1625689755737',
       });
       const expectedResponse = {
         accountId: '123456789012',
@@ -315,7 +327,7 @@ describe('EnvironmentSCService', () => {
         vpcId: 'VpcId-Test',
         xAccEnvMgmtRoleArn: 'xAccEnvMgmtRole-Test',
         isAppStreamEnabled: 'true',
-        solutionNamespace: 'gamma',
+        solutionNamespace: 'initial-stack-1625689755737',
       };
 
       // EXECUTE & CHECK
@@ -329,7 +341,7 @@ describe('EnvironmentSCService', () => {
       mockSettingsService({
         environmentInstanceFiles: '{}',
         isAppStreamEnabled: 'true',
-        solutionNamespace: 'gamma',
+        solutionNamespace: 'initial-stack-1625689755737',
         enableEgressStore: 'true',
       });
       const requestContext = 'sampleRequestContext';
@@ -402,7 +414,7 @@ describe('EnvironmentSCService', () => {
         vpcId: 'VpcId-Test',
         xAccEnvMgmtRoleArn: 'xAccEnvMgmtRole-Test',
         isAppStreamEnabled: 'true',
-        solutionNamespace: 'gamma',
+        solutionNamespace: 'initial-stack-1625689755737',
       };
 
       // EXECUTE & CHECK

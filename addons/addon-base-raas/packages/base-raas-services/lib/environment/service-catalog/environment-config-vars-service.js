@@ -23,7 +23,6 @@ const settingKeys = {
   enableEgressStore: 'enableEgressStore',
   environmentInstanceFiles: 'environmentInstanceFiles',
   isAppStreamEnabled: 'isAppStreamEnabled',
-  solutionNamespace: 'solutionNamespace',
 };
 
 /**
@@ -50,6 +49,7 @@ class EnvironmentConfigVarsService extends Service {
       'pluginRegistryService',
       'auditWriterService',
       'dataEgressService',
+      'accountService',
     ]);
   }
 
@@ -157,8 +157,7 @@ class EnvironmentConfigVarsService extends Service {
       },
       {
         name: 'solutionNamespace',
-        desc:
-          'Environment name of the solution. It should be the same value as provided in onboard-account.cfn.yml for "Namespace"',
+        desc: 'The namespace value provided when onboarding the Member account',
       },
     ];
   }
@@ -238,7 +237,7 @@ class EnvironmentConfigVarsService extends Service {
       memberAccountId: accountId,
     });
 
-    let egressStoreIamPolicyDocument;
+    let egressStoreIamPolicyDocument = {};
     const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
     if (enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE') {
       const egressStoreMount = await this.getEgressStoreMount(requestContext, environment);
@@ -295,7 +294,7 @@ class EnvironmentConfigVarsService extends Service {
       iamPolicyDocument: JSON.stringify(iamPolicyDocument),
       environmentInstanceFiles: this.settings.get(settingKeys.environmentInstanceFiles),
       isAppStreamEnabled: this.settings.get(settingKeys.isAppStreamEnabled),
-      solutionNamespace: this.settings.get(settingKeys.solutionNamespace),
+      solutionNamespace: await this.getSolutionNamespace(requestContext, externalId, accountId),
       // s3Prefixes // This variable is no longer relevant it is being removed, the assumption is that
       // this variable has not been used in any of the product templates.
       uid: user.uid,
@@ -310,6 +309,12 @@ class EnvironmentConfigVarsService extends Service {
     }
 
     return result;
+  }
+
+  async getSolutionNamespace(requestContext, externalId, accountId) {
+    const [accountService] = await this.service(['accountService']);
+    const { stackId } = await accountService.mustFind(requestContext, { id: accountId });
+    return stackId.match(/\d{12}:stack\/(.+)\//)[1];
   }
 
   async getEnvRolePolicy(requestContext, { environment, studies, memberAccountId }) {

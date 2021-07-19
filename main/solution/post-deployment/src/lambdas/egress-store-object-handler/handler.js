@@ -44,7 +44,6 @@ const handlerWithContainer = async (container, event) => {
     }
   }
   const dataEgressService = await container.find('dataEgressService');
-  // use dataEgressService to get current status of the store
   const egressStoreInfo = await dataEgressService.getEgressStoreInfo(egressStoreId);
   if (!egressStoreInfo.isAbleToSubmitEgressRequest) {
     await dataEgressService.enableEgressStoreSubmission(egressStoreInfo);

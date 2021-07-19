@@ -301,7 +301,6 @@ Resources:
             Principal:
               AWS:
                 - !GetAtt [RoleWorkflowLoopRunner, Arn]
-                - !GetAtt [RoleEgressStoreObjectsHandler, Arn]
             Action:
               - kms:GenerateDataKey
               - kms:Decrypt
@@ -419,57 +418,6 @@ Resources:
   # =============================================================================================
   # IAM Roles
   # =============================================================================================
-
-  # IAM Role for the egressStoreObjectHandler function
-  RoleEgressStoreObjectsHandler:
-    Type: 'AWS::IAM::Role'
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: lambda.amazonaws.com
-            Action: 'sts:AssumeRole'
-      ManagedPolicyArns:
-        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-      Policies:
-        - PolicyName: s3-access-policy
-          PolicyDocument:
-            Statement:
-              - Effect: Allow
-                Action:
-                  - s3:PutObjectTagging
-                  - s3:PutObjectVersionTagging
-                Resource:
-                  - !Sub 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}/*'
-        - PolicyName: cloudwatch-access-policy
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - logs:CreateLogGroup
-                - logs:CreateLogStream
-                - logs:PutLogEvents
-              Resource:
-                - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-*:*'
-                - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-*:log-stream:*'
-        - PolicyName: ddb-access-policy
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - dynamodb:DeleteItem
-                - dynamodb:GetItem
-                - dynamodb:BatchGetItem
-                - dynamodb:PutItem
-                - dynamodb:Query
-                - dynamodb:Scan
-                - dynamodb:UpdateItem
-              Resource:
-                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEgressStore}'
-                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEgressStore}/index/*'
-                - !GetAtt [LocksDb, Arn]
 
   # IAM Role for the authenticationLayerHandler Function
   RoleAuthenticationLayerHandler:
@@ -723,7 +671,6 @@ Resources:
               - !GetAtt [ProjectsDb, Arn]
               - !GetAtt [StudyPermissionsDb, Arn]
               - !GetAtt [IndexesDb, Arn]
-              - !GetAtt [ProjectsDb, Arn]
               - !GetAtt [AccountsDb, Arn]
               - !GetAtt [AwsAccountsDb, Arn]
               - !GetAtt [AuthenticationProviderTypesDb, Arn]
@@ -834,7 +781,6 @@ Resources:
               - logs:PutLogEvents
             Resource:
               - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-workflowLoopRunner:*'
-              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-workflowLoopRunner:log-stream:*'
           - Effect: Allow
             Action:
               - xray:PutTraceSegments
@@ -846,6 +792,11 @@ Resources:
               - sts:AssumeRole
             Resource:
               - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-prep-raas-master-MasterRole-*'
+          - Effect: Allow
+            Action:
+              - appstream:UpdateImagePermissions
+            Resource:
+              - !Sub 'arn:aws:appstream:${AWS::Region}:${AWS::AccountId}:image/ServiceWorkbench*'
 
   # IAM Role for the workflowLoopRunner Function
   RoleWorkflowLoopRunner:
@@ -2108,9 +2059,6 @@ Outputs:
     Value: !GetAtt RoleDataSourceReachabilityHandler.Arn
   EnvMgmtRoleArn:
     Value: !GetAtt RoleEnvMgmt.Arn
-  EgressStoreObjectsHandlerRoleArn:
-    Value: !GetAtt RoleEgressStoreObjectsHandler.Arn
-    Condition: EnableEgressStore
   EgressNotificationTopicArn:
     Value: !Ref EgressNotificationTopic
     Condition: EnableEgressStore
