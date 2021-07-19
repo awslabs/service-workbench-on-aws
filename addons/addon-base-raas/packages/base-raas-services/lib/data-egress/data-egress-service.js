@@ -307,7 +307,7 @@ class DataEgressService extends Service {
     return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
   }
 
-  async prepareEgressStoreSnapshot(requestContext, egressStoreInfo) {
+  async prepareEgressStoreSnapshot(egressStoreInfo) {
     const s3Service = await this.service('s3Service');
     const egressNotificationBucketName = this.settings.get(settingKeys.egressNotificationBucketName);
     const curVersion = parseInt(egressStoreInfo.ver, 10);
@@ -323,7 +323,6 @@ class DataEgressService extends Service {
             Bucket: egressStoreInfo.s3BucketName,
             Prefix: obj.Key,
           });
-          await this.audit(requestContext, { action: 'test3', body: latestVersion });
           obj.VersionId = latestVersion.VersionId;
           obj.Owner = latestVersion.Owner;
           return obj;
@@ -342,7 +341,6 @@ class DataEgressService extends Service {
         true,
       );
     }
-
     return { bucket: egressNotificationBucketName, key };
   }
 
@@ -367,7 +365,7 @@ class DataEgressService extends Service {
         true,
       );
     }
-    const egressStoreObjectList = await this.prepareEgressStoreSnapshot(requestContext, egressStoreInfo);
+    const egressStoreObjectList = await this.prepareEgressStoreSnapshot(egressStoreInfo);
 
     // update dynamodb info
     const egressStoreDdbLockId = `egress-store-ddb-access-${egressStoreInfo.id}`;

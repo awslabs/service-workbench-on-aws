@@ -262,11 +262,4 @@ decorate(ScEnvironmentButtons, {
 
 // eslint-disable-next-line import/no-mutable-exports
 const exportable = inject('scEnvironmentsStore')(withRouter(observer(ScEnvironmentButtons)));
-
-// if (enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE') {
-//   exportable = inject(
-//     'scEnvironmentsStore',
-//     'scEnvironmentEgressStoreDetailStore',
-//   )(withRouter(observer(ScEnvironmentButtons)));
-// }
 export default exportable;

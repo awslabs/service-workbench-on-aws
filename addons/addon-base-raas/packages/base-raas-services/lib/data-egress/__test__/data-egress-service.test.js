@@ -603,7 +603,7 @@ describe('DataEgressService', () => {
       const result = await dataEgressService.prepareEgressStoreSnapshot(mockInfo);
       expect(result).toStrictEqual({
         bucket: 'test-egressNotificationBucketName',
-        key: 'test-id/test-egressStoreName-ver0',
+        key: 'test-id/test-egressStoreName-ver0.json',
       });
     });
     it('should error when list s3 object error in preparing egress store snapshots', async () => {
@@ -615,7 +615,7 @@ describe('DataEgressService', () => {
           return undefined;
         },
       };
-      s3Service.listObjects = jest.fn().mockImplementationOnce(() => {
+      s3Service.listAllObjects = jest.fn().mockImplementationOnce(() => {
         throw new Error();
       });
       s3Service.putObject = jest.fn();
@@ -770,6 +770,7 @@ describe('DataEgressService', () => {
     });
 
     it('should notify SNS', async () => {
+      dataEgressService.audit = jest.fn();
       dataEgressService._settings = {
         get: settingName => {
           if (settingName === 'egressNotificationBucketName') {
@@ -812,19 +813,21 @@ describe('DataEgressService', () => {
         {
           action: 'trigger-egress-notification-process',
           body: {
-            createdAt: 'createdAt',
-            createdBy: 'createdBy',
-            egressStoreName: 'egressStoreName',
-            egressStoreObjectListLocation: 'arn:aws:s3:::test-egressNotificationBucketName/id/egressStoreName-verNaN',
-            id: 'id',
-            projectId: 'projectId',
-            s3BucketName: 's3BucketName',
-            s3BucketPath: 's3BucketPath',
+            created_at: 'createdAt',
+            created_by: 'createdBy',
+            egress_store_id: 'id',
+            egress_store_name: 'egressStoreName',
+            egressStoreObjectListLocation:
+              'arn:aws:s3:::test-egressNotificationBucketName/id/egressStoreName-verNaN.json',
+            id: expect.anything(),
+            project_id: 'projectId',
+            s3_bucketname: 's3BucketName',
+            s3_bucketpath: 's3BucketPath',
             status: 'PENDING',
-            updatedAt: expect.anything(),
-            updatedBy: 'createdBy',
+            updated_at: expect.anything(),
+            updated_by: 'createdBy',
             ver: NaN,
-            workspaceId: 'workspaceId',
+            workspace_id: 'workspaceId',
           },
         },
       );
@@ -841,8 +844,8 @@ describe('DataEgressService', () => {
           if (settingName === 'egressNotificationSnsTopicArn') {
             return 'test-egressNotificationSnsTopicArn';
           }
-        }
-      }
+        },
+      };
       AWSMock.mock('SNS', 'publish', (params, callback) => {
         expect(params).toMatchObject({
           Message: 'test-Message',
@@ -881,7 +884,9 @@ describe('DataEgressService', () => {
           if (settingName === 'egressStoreBucketName') {
             return 'test-egressStoreBucketName';
           }
-           AWSMock.mock('S3', 'getBucketPolicy', (params, callback) => {
+        },
+      };
+      AWSMock.mock('S3', 'getBucketPolicy', (params, callback) => {
         expect(params).toMatchObject({
           Bucket: 'test-egressStoreBucketName',
         });
@@ -892,12 +897,6 @@ describe('DataEgressService', () => {
 
       const result = await dataEgressService.getS3BucketAndPolicy();
       expect(result).toStrictEqual({ s3BucketName: 'test-egressStoreBucketName', s3Policy: { Statement: [] } });
-          return undefined;
-        },
-      };
-
-      
-     
     });
   });
 });
