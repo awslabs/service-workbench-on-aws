@@ -764,13 +764,6 @@ Resources:
               - !Join ['', [!GetAtt [AwsAccountsDb, Arn], '/index/*']]
           - Effect: Allow
             Action:
-              - dynamodb:GetItem
-            Resource: !GetAtt [WorkflowsDb, Arn]
-          - Effect: Allow
-            Action: dynamodb:UpdateItem
-            Resource: !GetAtt [WorkflowInstancesDb, Arn]
-          - Effect: Allow
-            Action:
               - logs:CreateLogGroup
               - logs:CreateLogStream
             Resource:

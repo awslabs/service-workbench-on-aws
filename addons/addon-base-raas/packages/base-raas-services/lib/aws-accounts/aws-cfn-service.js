@@ -35,6 +35,17 @@ const settingKeys = {
   stage: 'envName',
 };
 
+// see https://github.com/rvedotrc/aws-cloudformation-stack-states for all states
+const PENDING_STATES = [
+  'CREATE_IN_PROGRESS',
+  'UPDATE_IN_PROGRESS',
+  'UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS',
+  'UPDATE_ROLLBACK_IN_PROGRESS',
+  'REVIEW_IN_PROGRESS',
+];
+const COMPLETE_STATES = ['CREATE_COMPLETE', 'UPDATE_COMPLETE', 'UPDATE_ROLLBACK_COMPLETE'];
+const FAILED_STATES = ['CREATE_FAILED', 'UPDATE_FAILED', 'ROLLBACK_FAILED'];
+
 const getCreateStackUrl = (cfnTemplateInfo, createParams) => {
   // see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-create-stacks-quick-create-links.html
   const { name, region, signedUrl } = cfnTemplateInfo;
@@ -217,16 +228,7 @@ class AwsCfnService extends Service {
       { action: 'check-aws-permissions', conditions: [allowIfActive, allowIfAdmin] },
       { accountId },
     );
-    // see https://github.com/rvedotrc/aws-cloudformation-stack-states for all states
-    const PENDING_STATES = [
-      'CREATE_IN_PROGRESS',
-      'UPDATE_IN_PROGRESS',
-      'UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS',
-      'UPDATE_ROLLBACK_IN_PROGRESS',
-      'REVIEW_IN_PROGRESS',
-    ];
-    const COMPLETE_STATES = ['CREATE_COMPLETE', 'UPDATE_COMPLETE', 'UPDATE_ROLLBACK_COMPLETE'];
-    const FAILED_STATES = ['CREATE_FAILED', 'UPDATE_FAILED', 'ROLLBACK_FAILED'];
+
     const awsAccountsService = await this.service('awsAccountsService');
     const accountEntity = await awsAccountsService.mustFind(requestContext, { id: accountId });
 
@@ -280,7 +282,6 @@ class AwsCfnService extends Service {
         account.permissionStatus === 'PENDING' // Backend workflow will bring the account out of PENDING
       ) {
         res = account.permissionStatus;
-        errorMsg = `Account ${account.accountId} needs to be onboarded.`;
       } else {
         try {
           res = await this.checkAccountPermissions(requestContext, account.id);
@@ -384,13 +385,7 @@ class AwsCfnService extends Service {
       { action: 'check-aws-permissions', conditions: [allowIfActive, allowIfAdmin] },
       { accountId },
     );
-    const PENDING_STATES = [
-      'CREATE_IN_PROGRESS',
-      'UPDATE_IN_PROGRESS',
-      'UPDATE_ROLLBACK_COMPLETE_CLEANUP_IN_PROGRESS',
-      'UPDATE_ROLLBACK_IN_PROGRESS',
-      'REVIEW_IN_PROGRESS',
-    ];
+
     const awsAccountsService = await this.service('awsAccountsService');
     const accountEntity = await awsAccountsService.mustFind(requestContext, { id: accountId });
 

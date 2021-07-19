@@ -287,11 +287,6 @@ Resources:
               - ssm:GetParameter
             Resource:
               - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/*'
-          - Effect: Allow
-            Action:
-              - cloudformation:DescribeStacks
-              - cloudformation:GetTemplate
-            Resource: !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/SWB-*'
 
   CrossAccountExecutionRole:
     Type: 'AWS::IAM::Role'
@@ -328,8 +323,6 @@ Resources:
             Principal:
               AWS:
                 - !Join [':', ['arn:aws:iam:', Ref: CentralAccountId, 'root']]
-                - !Ref ApiHandlerArn
-                - !Ref WorkflowRoleArn
             Action:
               - 'sts:AssumeRole'
             Condition:
