@@ -4,7 +4,6 @@ import { decorate, action, observable, runInAction } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Segment, Icon, Header, Button } from 'semantic-ui-react';
-
 import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
 import {
   isStoreLoading,
