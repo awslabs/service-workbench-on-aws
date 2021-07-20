@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: Service-Workbench-on-AWS Research-Account
+Description: This stack provisions resources necessary to use this AWS account with Service Workbench.
 
 Parameters:
   Namespace:
