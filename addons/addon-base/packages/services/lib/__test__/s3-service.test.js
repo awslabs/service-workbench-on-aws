@@ -223,5 +223,33 @@ describe('S3Service', () => {
         }),
       );
     });
+
+    it('should successfully list all object', async () => {
+      AWSMock.mock('S3', 'listObjectsV2', params => {
+        expect(params).toMatchObject({
+          Bucket: 'test-bucketName',
+          Prefix: 'test-Prefix',
+        });
+      });
+
+      const result = s3Service.listAllObjects({
+        Bucket: 'test-bucketName',
+        Prefix: 'test-Prefix',
+      });
+    });
+
+    it('should successfully get object version', async () => {
+      AWSMock.mock('S3', 'listObjectVersions', params => {
+        expect(params).toMatchObject({
+          Bucket: 'test-bucketName',
+          Prefix: 'test-Prefix',
+        });
+      });
+
+      const result = s3Service.getLatestObjectVersion({
+        Bucket: 'test-bucketName',
+        Prefix: 'test-Prefix',
+      });
+    });
   });
 });
