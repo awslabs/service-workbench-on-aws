@@ -233,7 +233,7 @@ class AwsCfnService extends Service {
     const accountEntity = await awsAccountsService.mustFind(requestContext, { id: accountId });
 
     // Special case handling for accounts upgrading to this feature
-    if (accountEntity.cfnStackName === '') {
+    if (accountEntity.cfnStackName === '' || accountEntity.cfnStackName === undefined) {
       return 'UNKNOWN';
     }
 

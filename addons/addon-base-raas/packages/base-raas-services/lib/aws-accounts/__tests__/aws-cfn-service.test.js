@@ -63,7 +63,7 @@ describe('AwsAccountService', () => {
     clientName: 'CloudFormation',
     onboardStatusRoleArn: 'otherRole',
     cfnStackName: 'HAPPY_STACK',
-    permissionStatus: 'NEEDSUPDATE',
+    permissionStatus: 'NEEDS_UPDATE',
   };
 
   const expectedUpdate = {
@@ -242,7 +242,7 @@ describe('AwsAccountService', () => {
       }
     });
 
-    it('should try to update the account from NEEDSUPDATE to CURRENT', async () => {
+    it('should try to update the account from NEEDS_UPDATE to CURRENT', async () => {
       const expResult = { ...expectedUpdate, permissionStatus: 'CURRENT' };
       await service.batchCheckAccountPermissions(requestContext);
       expect(awsAccountsService.update).toHaveBeenCalledWith(requestContext, expResult);
@@ -252,7 +252,7 @@ describe('AwsAccountService', () => {
       const mockNewYmlResponse = 'Attribute:\n\t- UpdatedValue #This is a comment';
       cfnTemplateService.getTemplate.mockImplementationOnce(async () => mockNewYmlResponse);
       const res = await service.checkAccountPermissions(requestContext, mockAccount.id);
-      expect(res).toEqual('NEEDSUPDATE');
+      expect(res).toEqual('NEEDS_UPDATE');
     });
 
     it('should correctly ignore comments and whitespace for checking permissions', async () => {
@@ -263,7 +263,7 @@ describe('AwsAccountService', () => {
       expect(res).toEqual('CURRENT');
     });
 
-    it('should correctly set account with missing cfnStackName to ERRORED', async () => {
+    it('should correctly set account with missing cfnStackName to UNKNOWN', async () => {
       // This account's status should change to 'ERRORED'
       // We shouldn't ever be in a position where the stack name is missing
       const noStackNameMock = {
@@ -273,7 +273,7 @@ describe('AwsAccountService', () => {
         cfnStackName: '',
         permissionStatus: 'CURRENT',
       };
-      const expUpdate = { ...expectedUpdate, id: noStackNameMock.id, permissionStatus: 'ERRORED' };
+      const expUpdate = { ...expectedUpdate, id: noStackNameMock.id, permissionStatus: 'UNKNOWN' };
 
       awsAccountsService.list.mockImplementationOnce(() => [noStackNameMock]);
       awsAccountsService.mustFind.mockImplementationOnce(() => {
@@ -283,9 +283,7 @@ describe('AwsAccountService', () => {
       const res = await service.batchCheckAccountPermissions(requestContext);
       expect(awsAccountsService.update).toHaveBeenCalledWith(requestContext, expUpdate);
 
-      expect(res.statusInfo[noStackNameMock.id]).toEqual(
-        `Error checking permissions for account ${noStackNameMock.accountId}. Stack '${noStackNameMock.cfnStackName}' not found`,
-      );
+      expect(res.finalStatus[noStackNameMock.id]).toEqual(`UNKNOWN`);
     });
 
     it('should return PENDING for pending stacks', async () => {
@@ -352,22 +350,6 @@ describe('AwsAccountService', () => {
 
   describe('onboarding accounts', () => {
     const requestContext = {};
-
-    it('should fail due to insufficient permissions', async () => {
-      service.assertAuthorized.mockImplementationOnce(() => {
-        throw new Error('User is not authorized');
-      });
-
-      // OPERATE
-      try {
-        await service.checkPendingAccounts(requestContext);
-        expect.hasAssertions();
-      } catch (err) {
-        // CHECK
-        expect(err.message).toEqual('User is not authorized');
-      }
-    });
-
     it('should handle no accounts pending correctly', async () => {
       const res = await service.checkPendingAccounts(requestContext);
       expect(res.auditLog).toEqual({});
@@ -375,8 +357,6 @@ describe('AwsAccountService', () => {
     });
 
     it('should correctly handle pending accounts that have pending stacks', async () => {
-      // This account's status should change to 'ERRORED'
-      // We shouldn't ever be in a position where the stack name is missing
       const pendingAccountMock = {
         ...mockAccount,
         id: 'pendingPendingAccount',
@@ -396,8 +376,7 @@ describe('AwsAccountService', () => {
     });
 
     it('should correctly handle pending accounts that have completed stacks', async () => {
-      // This account's status should change to 'ERRORED'
-      // We shouldn't ever be in a position where the stack name is missing
+      // This account's status should change to 'CURRENT'
       const completedAccountMock = {
         ...mockAccount,
         id: 'pendingCompletedAccount',
@@ -411,7 +390,8 @@ describe('AwsAccountService', () => {
         cfnStackId: 'HAPPY_ID',
         vpcId: 'vpc-placeholder',
         subnetId: 'subnet-placeholder',
-        roleArn: 'arn:aws:iam::placeholder',
+        roleArn: 'arn:aws:iam::execution-placeholder',
+        xAccEnvMgmtRoleArn: 'arn:aws:iam::placeholder',
         externalId: 'workbench',
         encryptionKeyArn: 'arn:aws:kms:placeholder',
         permissionStatus: 'CURRENT',
