@@ -243,9 +243,9 @@ class AccountCard extends React.Component {
   renderUpdatePermsButton() {
     const permissionStatus = this.permissionStatus;
     let buttonArgs;
-    if (permissionStatus === 'NEEDS_UPDATE' || permissionStatus === 'ERRORED' || permissionStatus === 'UNKNOWN')
+    if (permissionStatus === 'NEEDS_UPDATE' || permissionStatus === 'ERRORED')
       buttonArgs = { message: 'Update Permissions', color: 'orange', onClick: this.handleUpdateAccountPerms };
-    else if (permissionStatus === 'PENDING')
+    else if (permissionStatus === 'PENDING' || permissionStatus === 'UNKNOWN')
       buttonArgs = { message: 'Re-Onboard Account', color: 'red', onClick: this.handlePendingButton };
     else buttonArgs = { message: 'Onboard Account', color: 'purple', onClick: this.handleOnboardAccount };
     // This button is only displayed if permissionStatus is NEEDS_UPDATE, NEEDS_ONBOARD, or PENDING
