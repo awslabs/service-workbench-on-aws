@@ -24,9 +24,9 @@ describe('Launch new workspaces', () => {
 
   const workspaceConfigs = Cypress.env('workspaces');
   const workspaceTypes = [
+    { EC2Windows: workspaceConfigs.windows },
     { Sagemaker: workspaceConfigs.sagemaker },
     { EC2Linux: workspaceConfigs.ec2 },
-    { EC2Windows: workspaceConfigs.windows },
   ];
 
   const navigateToWorkspaces = () => {
@@ -52,35 +52,25 @@ describe('Launch new workspaces', () => {
   };
 
   it('should launch AppStream instructions correctly', async () => {
-    const provisionedWorkspaces = [];
-
     // Trigger all workspace-type provisioning
     _.map(workspaceTypes, workspaceConfig => {
       const workspaceName = Object.keys(workspaceConfig)[0];
-      const provisionedWorkspaceName = launchWorkspace(workspaceConfig[workspaceName], workspaceName);
-      provisionedWorkspaces.push(provisionedWorkspaceName);
+      launchWorkspace(workspaceConfig[workspaceName], workspaceName);
     });
 
     // Click on Connections to verify instructions are present
-    _.map(provisionedWorkspaces, provisionedWorkspace => {
-      checkAppstreamInstructions(provisionedWorkspace);
-    });
+    checkAppstreamInstructions();
   });
 
-  const checkAppstreamInstructions = workspaceName => {
+  const checkAppstreamInstructions = () => {
     navigateToWorkspaces();
 
-    // Check that the workspace you created got provisioned successfully
-    // The Connections component only loads up for workspaces in AVAILABLE state and ready to connect
-    cy.contains(workspaceName)
-      .parent()
-      .get('button')
-      .contains('Connections', { timeout: 900000 })
-      .click();
+    cy.contains('PENDING', { timeout: 900000 }).should('not.be.visible');
+    cy.get('[data-testid=connections]').click({ multiple: true });
 
-    cy.contains(workspaceName)
-      .parent()
-      .get('[data-testid=appstream-instructions]');
+    cy.get('[data-testid=appstream-instructions-http]').should('be.visible');
+    cy.get('[data-testid=appstream-instructions-rdp]').should('be.visible');
+    cy.get('[data-testid=appstream-instructions-ssh]').should('be.visible');
   };
 
   const launchWorkspace = (workspaceParam, workspaceType) => {
