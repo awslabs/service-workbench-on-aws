@@ -155,7 +155,7 @@ class AwsAccountsList extends React.Component {
           size="medium"
           disabled={!hasPendingAccounts}
           basic
-          onClick={this.handleCheckPendingAccounts}
+          onClick={this.handleCheckAccountStatus}
         >
           Refresh Account Status
         </Button>

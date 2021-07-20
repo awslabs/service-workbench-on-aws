@@ -315,7 +315,7 @@ class AwsCfnService extends Service {
     await processInBatches(accountsList, batchSize, checkPermissions);
 
     // Attempt to onboard any pending accounts
-    const pendingRes = await this.checkPendingAccounts();
+    const pendingRes = await this.checkPendingAccounts(requestContext);
     const finalStatus = { ...newStatus, ...pendingRes.newStatus };
     const statusInfo = { ...errors, ...pendingRes.auditLog };
     await this.audit(requestContext, {
@@ -346,12 +346,6 @@ class AwsCfnService extends Service {
   }
 
   async checkPendingAccounts(requestContext) {
-    await this.assertAuthorized(
-      requestContext,
-      { action: 'check-pending', conditions: [allowIfActive, allowIfAdmin] },
-      {},
-    );
-
     const awsAccountsService = await this.service('awsAccountsService');
     const accounts = await awsAccountsService.list();
     const pendingAccountIds = _.map(
@@ -382,12 +376,6 @@ class AwsCfnService extends Service {
   }
 
   async finishOnboardingAccount(requestContext, accountId) {
-    await this.assertAuthorized(
-      requestContext,
-      { action: 'check-aws-permissions', conditions: [allowIfActive, allowIfAdmin] },
-      { accountId },
-    );
-
     const awsAccountsService = await this.service('awsAccountsService');
     const accountEntity = await awsAccountsService.mustFind(requestContext, { id: accountId });
 

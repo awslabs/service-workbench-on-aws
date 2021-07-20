@@ -65,12 +65,11 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
     return {
       async doLoad() {
         const awsAccounts = (await getAwsAccounts()) || [];
-        const statuses = await getAllAccountsPermissionStatus();
         // We try to preserve existing accounts data and merge the new data instead
         // We could have used self.accounts.replace(), but it will do clear() then merge()
         self.runInAction(() => {
           awsAccounts.forEach(awsAccount => {
-            awsAccount = { ...awsAccount, permissionStatus: statuses.newStatus[awsAccount.id] };
+            awsAccount = { ...awsAccount };
             const awsAccountsModel = AwsAccount.create(awsAccount);
             const previous = self.awsAccounts.get(awsAccountsModel.id);
             if (!previous) {
