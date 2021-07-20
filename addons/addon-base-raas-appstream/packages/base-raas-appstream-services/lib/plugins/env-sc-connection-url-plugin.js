@@ -23,6 +23,8 @@ async function createConnectionUrl({ envId, connection }, { requestContext, cont
   const log = await container.find('log');
   // Only wraps web urls via app stream (i.e., scheme = 'http' or 'https' or no scheme)
   const isHttp = connection.scheme === 'http' || connection.scheme === 'https' || _.isEmpty(connection.scheme);
+  const isSsh = connection.scheme === 'ssh';
+  const isRdp = connection.scheme === 'rdp';
   const appStreamScService = await container.find('appStreamScService');
   const settings = await container.find('settings');
   const isAppStreamEnabled = settings.optionalBoolean(settingKeys.isAppStreamEnabled, false);
@@ -45,7 +47,7 @@ async function createConnectionUrl({ envId, connection }, { requestContext, cont
       environmentId: envId,
       applicationId: 'Firefox',
     });
-  } else if (connection.scheme === 'ssh') {
+  } else if (isSsh) {
     log.debug({
       msg: `Target instance ${connection.instanceId} will be available for SSH connection via AppStream URL`,
       connection,
@@ -54,7 +56,7 @@ async function createConnectionUrl({ envId, connection }, { requestContext, cont
       environmentId: envId,
       applicationId: 'EC2Linux',
     });
-  } else if (connection.scheme === 'rdp') {
+  } else if (isRdp) {
     log.debug({
       msg: `Will stream target RDP connection for instance ${connection.instanceId} via AppStream`,
       connection,
