@@ -15,6 +15,7 @@
 
 import App from '../App';
 import AutoLogout from '../parts/AutoLogout';
+import ForceLogout from '../parts/ForceLogout';
 
 // eslint-disable-next-line no-unused-vars
 function getAppComponent({ location, appContext }) {
@@ -26,9 +27,15 @@ function getAutoLogoutComponent({ location, appContext }) {
   return AutoLogout;
 }
 
+// eslint-disable-next-line no-unused-vars
+function getForceLogoutComponent({ location, appContext }) {
+  return ForceLogout;
+}
+
 const plugin = {
   getAppComponent,
   getAutoLogoutComponent,
+  getForceLogoutComponent,
 };
 
 export default plugin;
