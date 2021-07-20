@@ -27,14 +27,14 @@ const states = [
     spinner: false,
   },
   {
-    key: 'NEEDSUPDATE',
+    key: 'NEEDS_UPDATE',
     display: 'Needs Update',
     color: 'orange',
     tip: 'This account needs updated IAM Role permissions. Some functionalities may not work until update.',
     spinner: false,
   },
   {
-    key: 'NEEDSONBOARD',
+    key: 'NEEDS_ONBOARD',
     display: 'Needs Onboarding',
     color: 'purple',
     tip: 'This account needs to be onboarded to SWB before it can be used.',
@@ -96,7 +96,7 @@ const AwsAccount = types
       self.description = rawAwsAccounts.description || self.description;
       self.accountId = rawAwsAccounts.accountId || rawAwsAccounts.accountId;
       self.externalId = rawAwsAccounts.externalId || self.externalId;
-      self.permissionStatus = rawAwsAccounts.permissionStatus || self.permissionStatus || 'NEEDSONBOARD';
+      self.permissionStatus = rawAwsAccounts.permissionStatus || self.permissionStatus || 'UNKNOWN';
       self.cfnStackName = rawAwsAccounts.cfnStackName || self.cfnStackName;
       self.cfnStackId = rawAwsAccounts.cfnStackId || self.cfnStackId;
       self.roleArn = rawAwsAccounts.roleArn || self.roleArn;

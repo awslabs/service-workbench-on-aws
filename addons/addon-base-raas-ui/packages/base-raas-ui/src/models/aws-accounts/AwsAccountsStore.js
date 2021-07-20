@@ -42,8 +42,8 @@ const filterNames = {
 const filters = {
   [filterNames.ALL]: () => true,
   [filterNames.CURRENT]: account => account.permissionStatus === 'CURRENT',
-  [filterNames.UPDATEME]: account => account.permissionStatus === 'NEEDSUPDATE',
-  [filterNames.NEW]: account => account.permissionStatus === 'NEEDSONBOARD',
+  [filterNames.UPDATEME]: account => account.permissionStatus === 'NEEDS_UPDATE',
+  [filterNames.NEW]: account => account.permissionStatus === 'NEEDS_ONBOARD',
   [filterNames.ERRORED]: account => account.permissionStatus === 'ERRORED',
 };
 

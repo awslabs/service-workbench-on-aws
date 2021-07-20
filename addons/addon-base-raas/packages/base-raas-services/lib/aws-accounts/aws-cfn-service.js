@@ -232,6 +232,11 @@ class AwsCfnService extends Service {
     const awsAccountsService = await this.service('awsAccountsService');
     const accountEntity = await awsAccountsService.mustFind(requestContext, { id: accountId });
 
+    // Special case handling for accounts upgrading to this feature
+    if (accountEntity.cfnStackName === '') {
+      return 'UNKNOWN';
+    }
+
     const [cfnTemplateService] = await this.service(['cfnTemplateService']);
     const expectedTemplate = await cfnTemplateService.getTemplate('onboard-account');
 
@@ -252,7 +257,7 @@ class AwsCfnService extends Service {
       const trimmedExpPermString = expectedTemplate.replace(/#.*/g, '').replace(/\s+/g, '');
 
       // still hash values
-      return trimmedExpPermString !== trimmedCurPermString ? 'NEEDSUPDATE' : 'CURRENT';
+      return trimmedExpPermString !== trimmedCurPermString ? 'NEEDS_UPDATE' : 'CURRENT';
     }
 
     // we should never make it here unless something really goes wrong
@@ -268,7 +273,7 @@ class AwsCfnService extends Service {
 
     const awsAccountsService = await this.service('awsAccountsService');
     const accountsList = await awsAccountsService.list();
-    // const stackOutputs = ['externalId', 'vpcId', 'subnetId', 'encryptionKeyArn', 'cfnStackId', 'roleArn'];
+
     const newStatus = {};
     const errors = {};
     const idList = accountsList.forEach(account => account.accountId);
@@ -278,8 +283,8 @@ class AwsCfnService extends Service {
     const checkPermissions = async account => {
       errorMsg = '';
       if (
-        account.permissionStatus === 'NEEDSONBOARD' ||
-        account.permissionStatus === 'PENDING' // Backend workflow will bring the account out of PENDING
+        account.permissionStatus === 'NEEDS_ONBOARD' ||
+        account.permissionStatus === 'PENDING' // Backend lambda will bring the account out of PENDING
       ) {
         res = account.permissionStatus;
       } else {
@@ -405,7 +410,8 @@ class AwsCfnService extends Service {
     fieldsToUpdate.vpcId = findOutputValue('VPC');
     fieldsToUpdate.subnetId = findOutputValue('VpcPublicSubnet1');
     fieldsToUpdate.encryptionKeyArn = findOutputValue('EncryptionKeyArn');
-    fieldsToUpdate.roleArn = findOutputValue('CrossAccountEnvMgmtRoleArn');
+    fieldsToUpdate.roleArn = findOutputValue('CrossAccountExecutionRoleArn');
+    fieldsToUpdate.xAccEnvMgmtRoleArn = findOutputValue('CrossAccountEnvMgmtRoleArn');
     fieldsToUpdate.permissionStatus = 'CURRENT'; // If we just onboarded it's safe to assume the account is up to date
     // we have to update the permission status or the account will get stuck in PENDING
     fieldsToUpdate.id = accountEntity.id;

@@ -50,7 +50,7 @@ class AwsAccountUpdateContent extends React.Component {
     runInAction(() => {
       // We want to create a simple one button form
       const account = this.account || {};
-      const needsOnboard = account.permissionStatus === 'NEEDSONBOARD' || account.permissionStatus === 'PENDING';
+      const needsOnboard = account.permissionStatus === 'NEEDS_ONBOARD' || account.permissionStatus === 'PENDING';
       const fields = {
         managed: {
           value: 'admin',
