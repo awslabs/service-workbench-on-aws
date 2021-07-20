@@ -174,7 +174,7 @@ class AccountCard extends React.Component {
           {isExpanded && (
             <div className="mb2">
               {shouldShowOnboardMessage
-                ? 'This account needs to be onboarded. Click &quot;Onboard Account&quot; to finish setting up.'
+                ? "This account needs to be onboarded. Click 'Onboard Account' to finish setting up."
                 : `Service Workbench is waiting for the CFN stack to complete. 
                 Please wait a few minutes for provisioning to complete. 
                 If you did not create a CFN stack for this account, click
