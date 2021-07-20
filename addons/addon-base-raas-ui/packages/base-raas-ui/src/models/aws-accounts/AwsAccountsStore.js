@@ -123,11 +123,7 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
       },
 
       hasPendingAccounts: () => {
-        const pendingAccountIds = _.map(
-          _.filter(self.awsAccounts, acct => acct.permissionStatus === 'PENDING'),
-          'id',
-        );
-        return _.isEmpty(pendingAccountIds);
+        return !_.isEmpty(_.filter(self.awsAccounts, acct => acct.permissionStatus === 'PENDING'));
       },
 
       getAwsAccountStore(accountId) {

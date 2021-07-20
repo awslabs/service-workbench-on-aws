@@ -44,7 +44,7 @@ async function configure(context) {
     '/permissions',
     wrap(async (req, res) => {
       const requestContext = res.locals.requestContext;
-      const result = await awsCfnService.batchCheckAccountPermissions(requestContext);
+      const result = await awsCfnService.batchCheckAndUpdateAccountPermissions(requestContext);
       res.status(200).json(result);
     }),
   );

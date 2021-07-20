@@ -18,7 +18,7 @@ const Service = require('@aws-ee/base-services-container/lib/service');
 const crypto = require('crypto');
 
 const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
-const { processInBatches, randomString } = require('@aws-ee/base-services/lib/helpers/utils');
+const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
 
 // const { generateId } = require('../helpers/utils');
 
@@ -163,7 +163,7 @@ class AwsCfnService extends Service {
     const account = await awsAccountsService.mustFind(requestContext, { id: accountId });
     cfnTemplateInfo.template = await cfnTemplateService.getTemplate('onboard-account');
     cfnTemplateInfo.region = this.settings.get(settingKeys.awsRegion);
-    cfnTemplateInfo.name = account.cfnStackName || ['initial-stack-', randomString(20)].join('');
+    cfnTemplateInfo.name = account.cfnStackName || `initial-stack-${new Date().getTime()}`;
     cfnTemplateInfo.accountId = account.accountId;
     cfnTemplateInfo.stackId = account.cfnStackId;
 
@@ -264,7 +264,7 @@ class AwsCfnService extends Service {
     return 'UNKNOWN';
   }
 
-  async batchCheckAccountPermissions(requestContext, batchSize = 5) {
+  async batchCheckAndUpdateAccountPermissions(requestContext, batchSize = 5) {
     await this.assertAuthorized(
       requestContext,
       { action: 'check-aws-permissions-batch', conditions: [allowIfActive, allowIfAdmin] },
@@ -361,7 +361,7 @@ class AwsCfnService extends Service {
     const auditLog = {};
     const newStatus = {};
 
-    const processor = async awsAccountId => {
+    const onboardAccount = async awsAccountId => {
       try {
         await this.finishOnboardingAccount(requestContext, awsAccountId);
         auditLog[awsAccountId] = 'Successfully Onboarded';
@@ -374,7 +374,7 @@ class AwsCfnService extends Service {
 
     // For each account, reach out 10 at a time
     if (!_.isEmpty(pendingAccountIds)) {
-      await processInBatches(pendingAccountIds, 10, processor);
+      await processInBatches(pendingAccountIds, 10, onboardAccount);
     }
 
     return { auditLog, newStatus };

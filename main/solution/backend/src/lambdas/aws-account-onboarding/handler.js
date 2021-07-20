@@ -32,7 +32,7 @@ const handlerWithContainer = async container => {
   const userContext = getSystemRequestContext();
 
   // Check permission status of all accounts
-  await awsCfnService.batchCheckAccountPermissions(userContext);
+  await awsCfnService.batchCheckAndUpdateAccountPermissions(userContext);
 };
 
 // eslint-disable-next-line import/prefer-default-export

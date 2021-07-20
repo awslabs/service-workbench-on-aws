@@ -58,7 +58,7 @@ class AccountCard extends React.Component {
   }
 
   get permissionStatus() {
-    // Possible Values: CURRENT, NEEDS_UPDATE, NEEDS_ONBOARD, ERRORED, NOSTACKNAME
+    // Possible Values: CURRENT, NEEDS_UPDATE, NEEDS_ONBOARD, ERRORED
     return this.account.permissionStatus;
   }
 

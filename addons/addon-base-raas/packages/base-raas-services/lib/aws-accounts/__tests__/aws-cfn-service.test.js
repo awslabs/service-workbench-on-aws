@@ -244,7 +244,7 @@ describe('AwsAccountService', () => {
 
     it('should try to update the account from NEEDS_UPDATE to CURRENT', async () => {
       const expResult = { ...expectedUpdate, permissionStatus: 'CURRENT' };
-      await service.batchCheckAccountPermissions(requestContext);
+      await service.batchCheckAndUpdateAccountPermissions(requestContext);
       expect(awsAccountsService.update).toHaveBeenCalledWith(requestContext, expResult);
     });
 
@@ -280,7 +280,7 @@ describe('AwsAccountService', () => {
         return noStackNameMock;
       });
 
-      const res = await service.batchCheckAccountPermissions(requestContext);
+      const res = await service.batchCheckAndUpdateAccountPermissions(requestContext);
       expect(awsAccountsService.update).toHaveBeenCalledWith(requestContext, expUpdate);
 
       expect(res.finalStatus[noStackNameMock.id]).toEqual(`UNKNOWN`);
@@ -303,7 +303,7 @@ describe('AwsAccountService', () => {
         return pendingStackNameMock;
       });
 
-      await service.batchCheckAccountPermissions(requestContext);
+      await service.batchCheckAndUpdateAccountPermissions(requestContext);
       expect(awsAccountsService.update).toHaveBeenCalledWith(requestContext, expUpdate);
     });
 
@@ -324,7 +324,7 @@ describe('AwsAccountService', () => {
         return erroredStackNameMock;
       });
 
-      await service.batchCheckAccountPermissions(requestContext);
+      await service.batchCheckAndUpdateAccountPermissions(requestContext);
       expect(awsAccountsService.update).toHaveBeenCalledWith(requestContext, expUpdate);
     });
   });
