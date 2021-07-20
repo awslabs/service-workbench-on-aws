@@ -27,21 +27,21 @@ const states = [
     spinner: false,
   },
   {
-    key: 'NEEDSUPDATE',
+    key: 'NEEDS_UPDATE',
     display: 'Needs Update',
     color: 'orange',
     tip: 'This account needs updated IAM Role permissions. Some functionalities may not work until update.',
     spinner: false,
   },
   {
-    key: 'NEEDSONBOARD',
+    key: 'NEEDS_ONBOARD',
     display: 'Needs Onboarding',
     color: 'purple',
     tip: 'This account needs to be onboarded to SWB before it can be used.',
     spinner: false,
   },
   {
-    key: 'ERROR',
+    key: 'ERRORED',
     display: 'Error',
     color: 'red',
     tip: 'The account encountered an error while checking IAM role permissions.',
@@ -80,6 +80,7 @@ const AwsAccount = types
     vpcId: '',
     subnetId: '',
     encryptionKeyArn: '',
+    onboardStatusRoleArn: '',
     createdAt: '',
     createdBy: '',
     updatedAt: '',
@@ -95,13 +96,14 @@ const AwsAccount = types
       self.description = rawAwsAccounts.description || self.description;
       self.accountId = rawAwsAccounts.accountId || rawAwsAccounts.accountId;
       self.externalId = rawAwsAccounts.externalId || self.externalId;
-      self.permissionStatus = rawAwsAccounts.permissionStatus || self.permissionStatus || 'PENDING';
+      self.permissionStatus = rawAwsAccounts.permissionStatus || self.permissionStatus || 'UNKNOWN';
       self.cfnStackName = rawAwsAccounts.cfnStackName || self.cfnStackName;
       self.cfnStackId = rawAwsAccounts.cfnStackId || self.cfnStackId;
       self.roleArn = rawAwsAccounts.roleArn || self.roleArn;
       self.vpcId = rawAwsAccounts.vpcId || self.vpcId;
       self.subnetId = rawAwsAccounts.subnetId || self.subnetId;
       self.encryptionKeyArn = rawAwsAccounts.encryptionKeyArn || self.encryptionKeyArn;
+      self.onboardStatusRoleArn = rawAwsAccounts.onboardStatusRoleArn || self.onboardStatusRoleArn;
       self.createdAt = rawAwsAccounts.createdAt || self.createdAt;
       self.updatedAt = rawAwsAccounts.updatedAt || self.updatedAt;
       self.createdBy = rawAwsAccounts.createdBy || self.createdBy;

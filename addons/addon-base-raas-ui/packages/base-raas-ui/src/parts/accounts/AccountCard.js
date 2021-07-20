@@ -15,7 +15,7 @@
 
 import React from 'react';
 import { decorate, action, computed, runInAction, observable } from 'mobx';
-import { observer } from 'mobx-react';
+import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Header, Segment, Accordion, Icon, Label, Table, Button } from 'semantic-ui-react';
 import c from 'classnames';
@@ -23,11 +23,12 @@ import c from 'classnames';
 import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
 
 const statusDisplay = {
-  CURRENT: { color: 'green', display: 'Up-to-Date' },
-  NEEDSUPDATE: { color: 'orange', display: 'Needs Update' },
-  NEEDSONBOARD: { color: 'purple', display: 'Needs Onboarding' },
-  ERROR: { color: 'red', display: 'Error' },
-  UNKNOWN: { color: 'grey', display: 'Unknown' },
+  CURRENT: { color: 'green', display: 'Up-to-Date', spinner: false },
+  NEEDS_UPDATE: { color: 'orange', display: 'Needs Update', spinner: false },
+  NEEDS_ONBOARD: { color: 'purple', display: 'Needs Onboarding', spinner: false },
+  ERRORED: { color: 'red', display: 'Error', spinner: false },
+  PENDING: { color: 'yellow', display: 'Pending', spinner: true },
+  UNKNOWN: { color: 'grey', display: 'Unknown', spinner: false },
 };
 
 // expected props
@@ -48,13 +49,17 @@ class AccountCard extends React.Component {
     return this.props.account;
   }
 
+  get awsAccountsStore() {
+    return this.props.awsAccountsStore;
+  }
+
   get isSelectable() {
     return this.props.isSelectable;
   }
 
   get permissionStatus() {
-    // Possible Values: CURRENT, NEEDSUPDATE, NEEDSONBOARD, ERRORED, NOSTACKNAME
-    return this.props.permissionStatus;
+    // Possible Values: CURRENT, NEEDS_UPDATE, NEEDS_ONBOARD, ERRORED
+    return this.account.permissionStatus;
   }
 
   goto(pathname) {
@@ -86,8 +91,9 @@ class AccountCard extends React.Component {
     this.goto(`/aws-accounts/onboard/${awsAccountId}`);
   };
 
-  handleInputCfnStackName = () => {
-    return undefined;
+  handlePendingButton = () => {
+    const awsAccountId = this.account.id;
+    this.goto(`/aws-accounts/onboard/${awsAccountId}`);
   };
 
   render() {
@@ -108,11 +114,11 @@ class AccountCard extends React.Component {
             {this.renderBudgetButton()}
             {this.renderHeader(account)}
             {this.renderDescription(account)}
-            {(permissionStatus === 'NEEDSUPDATE' ||
-              permissionStatus === 'NEEDSONBOARD' ||
-              permissionStatus === 'NOSTACKNAME') &&
-              this.renderUpdatePermsButton()}
-            {this.renderDetailsAccordion(account)}
+            {permissionStatus !== 'CURRENT' && this.renderUpdatePermsButton()}
+            {!(permissionStatus === 'NEEDS_ONBOARD' || permissionStatus === 'PENDING') &&
+              this.renderDetailsAccordion(account)}
+            {(permissionStatus === 'NEEDS_ONBOARD' || permissionStatus === 'PENDING') &&
+              this.renderPendingDetailsAccordion(account)}
           </div>
         </div>
       </Segment>
@@ -149,13 +155,40 @@ class AccountCard extends React.Component {
     const state = statusDisplay[status] || statusDisplay.UNKNOWN;
     return (
       <Label attached="top left" size="mini" color={state.color}>
+        {state.spinner && <Icon name="spinner" loading />}
         {state.display}
       </Label>
     );
   }
 
+  renderPendingDetailsAccordion(account) {
+    const isExpanded = this.detailsExpanded;
+    const shouldShowOnboardMessage = account.permissionStatus === 'NEEDS_ONBOARD';
+    return (
+      <Accordion className="mt2">
+        <Accordion.Title active={isExpanded} index={0} onClick={this.handleDetailsExpanded}>
+          <Icon name="dropdown" />
+          <b>Details</b>
+        </Accordion.Title>
+        <Accordion.Content active={isExpanded}>
+          {isExpanded && (
+            <div className="mb2">
+              {shouldShowOnboardMessage
+                ? "This account needs to be onboarded. Click 'Onboard Account' to finish setting up."
+                : `Service Workbench is waiting for the CFN stack to complete. 
+                Please wait a few minutes for provisioning to complete. 
+                If you did not create a CFN stack for this account, click
+                 &quot;Re-Onboard Account&quot; to return to the account onboarding page.`}
+            </div>
+          )}
+        </Accordion.Content>
+      </Accordion>
+    );
+  }
+
   renderDetailsAccordion(account) {
-    const expanded = this.detailsExpanded;
+    const isExpanded = this.detailsExpanded;
+    const errored = account.permissionStatus === 'ERRORED';
     const rowKeyVal = {
       roleArn: 'Role ARN',
       externalId: 'External ID',
@@ -167,12 +200,18 @@ class AccountCard extends React.Component {
 
     return (
       <Accordion className="mt2">
-        <Accordion.Title active={expanded} index={0} onClick={this.handleDetailsExpanded}>
+        <Accordion.Title active={isExpanded} index={0} onClick={this.handleDetailsExpanded}>
           <Icon name="dropdown" />
           <b>Details</b>
         </Accordion.Title>
-        <Accordion.Content active={expanded}>
-          {expanded && (
+        <Accordion.Content active={isExpanded}>
+          {isExpanded && errored && (
+            <div className="mb2">
+              Something went wrong while trying to check the CFN stack associated with this account. Please check the
+              CFN stack in the AWS Management Console for more information.
+            </div>
+          )}
+          {isExpanded && (
             <div className="mb2">
               <>
                 <Table striped>
@@ -204,12 +243,12 @@ class AccountCard extends React.Component {
   renderUpdatePermsButton() {
     const permissionStatus = this.permissionStatus;
     let buttonArgs;
-    if (permissionStatus === 'NEEDSUPDATE')
+    if (permissionStatus === 'NEEDS_UPDATE' || permissionStatus === 'ERRORED')
       buttonArgs = { message: 'Update Permissions', color: 'orange', onClick: this.handleUpdateAccountPerms };
-    else if (permissionStatus === 'NOSTACKNAME')
-      buttonArgs = { message: 'Input Stack Name', color: 'yellow', onClick: this.handleInputCfnStackName };
+    else if (permissionStatus === 'PENDING' || permissionStatus === 'UNKNOWN')
+      buttonArgs = { message: 'Re-Onboard Account', color: 'red', onClick: this.handlePendingButton };
     else buttonArgs = { message: 'Onboard Account', color: 'purple', onClick: this.handleOnboardAccount };
-    // This button is only displayed if permissionStatus is NEEDSUPDATE, NEEDSONBOARD, or NOSTACKNAME
+    // This button is only displayed if permissionStatus is NEEDS_UPDATE, NEEDS_ONBOARD, or PENDING
     return (
       <Button floated="right" color={buttonArgs.color} onClick={buttonArgs.onClick}>
         {buttonArgs.message}
@@ -229,4 +268,4 @@ decorate(AccountCard, {
   permissionStatus: computed,
 });
 
-export default withRouter(observer(AccountCard));
+export default inject('awsAccountsStore')(withRouter(observer(AccountCard)));

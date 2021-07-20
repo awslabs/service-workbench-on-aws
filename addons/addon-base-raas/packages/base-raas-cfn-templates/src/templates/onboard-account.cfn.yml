@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: Service-Workbench-on-AWS Research-Account
+Description: This stack provisions resources necessary to use this AWS account with Service Workbench.
 
 Parameters:
   Namespace:
@@ -287,11 +287,6 @@ Resources:
               - ssm:GetParameter
             Resource:
               - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/*'
-          - Effect: Allow
-            Action:
-              - cloudformation:DescribeStacks
-              - cloudformation:GetTemplate
-            Resource: !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/SWB-*'
 
   CrossAccountExecutionRole:
     Type: 'AWS::IAM::Role'
@@ -315,6 +310,42 @@ Resources:
       ManagedPolicyArns:
         - !Ref PolicyCrossAccountExecution
       PermissionsBoundary: !Ref PolicyCrossAccountExecution
+
+  CfnStatusRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Join ['-', [Ref: Namespace, 'cfn-status-role']]
+      Path: '/'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              AWS:
+                - !Join [':', ['arn:aws:iam:', Ref: CentralAccountId, 'root']]
+            Action:
+              - 'sts:AssumeRole'
+            Condition:
+              StringEquals:
+                sts:ExternalId: !Ref ExternalId
+      ManagedPolicyArns:
+        - !Ref PolicyCfnStatus
+      PermissionsBoundary: !Ref PolicyCfnStatus
+  
+  PolicyCfnStatus:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Allows main account to onboard and check status of aws accounts
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - cloudformation:DescribeStacks
+              - cloudformation:GetTemplate
+            Resource: !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/initial-stack*'
+
+
 
   # VPC for launching EMR clusters into
   # Just one AZ as we're aiming for transient low-cost clusters rather than HA

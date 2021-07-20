@@ -69,6 +69,20 @@ dataSourceReachabilityDailyHandler:
     APP_SM_WORKFLOW: ${self:custom.settings.workflowStateMachineArn}
     APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
 
+awsAccountOnboardingHandler:
+  handler: src/lambdas/aws-account-onboarding/handler.handler
+  role: RoleAwsAccountOnboardingHandler
+  tags: ${self:custom.tags}
+  timeout: 900 # in seconds, default is 6
+  description: Attempts to onboard any pending AWS accounts
+  events:
+    - schedule:
+        rate: rate(1 minute) # Setting this to be the same as the dataSourceReachabilityHandler
+        description: 'Invokes the lambda function that polls CFN stacks and onboarding any pending accounts.'
+  environment:
+    APP_SM_WORKFLOW: ${self:custom.settings.workflowStateMachineArn}
+    APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
+
 apiHandler:
   timeout: 30 # in seconds, default is 6
   handler: src/lambdas/api-handler/handler.handler

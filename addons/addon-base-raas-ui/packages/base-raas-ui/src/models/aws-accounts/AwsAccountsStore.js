@@ -42,9 +42,9 @@ const filterNames = {
 const filters = {
   [filterNames.ALL]: () => true,
   [filterNames.CURRENT]: account => account.permissionStatus === 'CURRENT',
-  [filterNames.UPDATEME]: account => account.permissionStatus === 'NEEDSUPDATE',
-  [filterNames.NEW]: account => account.permissionStatus === 'NEEDSONBOARD',
-  [filterNames.ERRORED]: account => account.permissionStatus === 'ERROR',
+  [filterNames.UPDATEME]: account => account.permissionStatus === 'NEEDS_UPDATE',
+  [filterNames.NEW]: account => account.permissionStatus === 'NEEDS_ONBOARD',
+  [filterNames.ERRORED]: account => account.permissionStatus === 'ERRORED',
 };
 
 // ==================================================================
@@ -65,12 +65,11 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
     return {
       async doLoad() {
         const awsAccounts = (await getAwsAccounts()) || [];
-        const statuses = await getAllAccountsPermissionStatus();
         // We try to preserve existing accounts data and merge the new data instead
         // We could have used self.accounts.replace(), but it will do clear() then merge()
         self.runInAction(() => {
           awsAccounts.forEach(awsAccount => {
-            awsAccount = { ...awsAccount, permissionStatus: statuses.newStatus[awsAccount.id] };
+            awsAccount = { ...awsAccount };
             const awsAccountsModel = AwsAccount.create(awsAccount);
             const previous = self.awsAccounts.get(awsAccountsModel.id);
             if (!previous) {
@@ -93,6 +92,7 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
           const addedAwsAccountModel = AwsAccount.create(addedAwsAccount);
           self.awsAccounts.set(addedAwsAccountModel.id, addedAwsAccountModel);
         });
+        return addedAwsAccount;
       },
 
       createAwsAccount: async awsAccount => {
@@ -113,6 +113,19 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         return entry;
       },
 
+      addBudget: (awsAccountUUID, rawBudget) => {
+        const account = self.awsAccounts.get(awsAccountUUID);
+        account.budget = Budget.create(rawBudget);
+      },
+
+      forceCheckAccountPermissions: async () => {
+        await getAllAccountsPermissionStatus();
+      },
+
+      hasPendingAccounts: () => {
+        return !_.isEmpty(_.filter(self.awsAccounts, acct => acct.permissionStatus === 'PENDING'));
+      },
+
       getAwsAccountStore(accountId) {
         let entry = self.awsAccountStores.get(accountId);
         if (!entry) {
@@ -122,11 +135,6 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         }
 
         return entry;
-      },
-
-      addBudget: (awsAccountUUID, rawBudget) => {
-        const account = self.awsAccounts.get(awsAccountUUID);
-        account.budget = Budget.create(rawBudget);
       },
     };
   })
@@ -147,6 +155,7 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         res.subnetId = awsAccount.subnetId;
         res.permissionStatus = awsAccount.permissionStatus;
         res.encryptionKeyArn = awsAccount.encryptionKeyArn;
+        res.onboardStatusRoleArn = awsAccount.onboardStatusRoleArn;
         res.cfnStackName = awsAccount.cfnStackName;
         res.cfnStackId = awsAccount.cfnStackId;
         res.updatedAt = awsAccount.updatedAt;

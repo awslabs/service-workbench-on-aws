@@ -15,7 +15,7 @@
 
 import React from 'react';
 import { decorate, computed, runInAction, observable, action } from 'mobx';
-import { observer } from 'mobx-react';
+import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Header, Divider, List, Form, TextArea, Message, Button, Container } from 'semantic-ui-react';
 import TimeAgo from 'react-timeago';
@@ -50,7 +50,7 @@ class AwsAccountUpdateContent extends React.Component {
     runInAction(() => {
       // We want to create a simple one button form
       const account = this.account || {};
-      const hasUpdateStackUrl = account.cfnStackName || {};
+      const needsOnboard = account.permissionStatus === 'NEEDS_ONBOARD' || account.permissionStatus === 'PENDING';
       const fields = {
         managed: {
           value: 'admin',
@@ -63,7 +63,7 @@ class AwsAccountUpdateContent extends React.Component {
             noValue: 'create',
             showHeader: false,
           },
-          value: hasUpdateStackUrl ? 'update' : 'create',
+          value: needsOnboard ? 'create' : 'update',
         },
       };
       this.form = createForm(fields);
@@ -84,6 +84,10 @@ class AwsAccountUpdateContent extends React.Component {
 
   get account() {
     return this.props.account;
+  }
+
+  get awsAccountsStore() {
+    return this.props.awsAccountsStore;
   }
 
   goto(pathname) {
@@ -347,4 +351,4 @@ decorate(AwsAccountUpdateContent, {
   gotBackToAccountsPage: action,
 });
 
-export default withRouter(observer(AwsAccountUpdateContent));
+export default inject('awsAccountsStore')(withRouter(observer(AwsAccountUpdateContent)));

@@ -122,6 +122,11 @@ class AwsAccountsList extends React.Component {
     this.selectedFilter = name;
   };
 
+  handleCheckAccountStatus = () => {
+    const awsAccountsStore = this.getAwsAccountsStore();
+    awsAccountsStore.forceCheckAccountPermissions();
+  };
+
   renderHeader() {
     return (
       <div className="mb3 flex">
@@ -138,8 +143,8 @@ class AwsAccountsList extends React.Component {
         <Button className="ml2" color="blue" size="medium" basic onClick={this.handleAddAwsAccount}>
           Add AWS Account
         </Button>
-        <Button className="ml2" color="blue" size="medium" basic onClick={this.handleCheckPermissions}>
-          Update Account Permissions
+        <Button className="ml2" color="blue" size="medium" basic onClick={this.handleCheckAccountStatus}>
+          Refresh Account Status
         </Button>
       </div>
     );

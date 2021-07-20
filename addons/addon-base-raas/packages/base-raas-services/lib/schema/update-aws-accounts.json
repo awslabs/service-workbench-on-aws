@@ -31,14 +31,22 @@
       "maxLength": 255,
       "pattern": "^arn:aws:cloudformation:.*$"
     },
+    "cfnStackName": {
+      "type": "string",
+      "maxLength": 2048
+    },
     "roleArn": {
       "type": "string",
       "minLength": 10
     },
-    "xAccEnvMgmtRoleArn": {
+    "onboardStatusRoleArn": {
       "type": "string",
       "minLength": 10,
       "pattern": "^arn:aws:iam::.*$"
+    },
+    "xAccEnvMgmtRoleArn": {
+      "type": "string",
+      "minLength": 10
     },
     "externalId": {
       "type": "string",
@@ -62,8 +70,6 @@
   },
   "required": [
     "id",
-    "rev",
-    "roleArn",
-    "externalId"
+    "rev"
   ]
 }
