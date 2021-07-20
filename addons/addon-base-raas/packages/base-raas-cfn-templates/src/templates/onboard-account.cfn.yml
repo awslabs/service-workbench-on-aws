@@ -343,7 +343,7 @@ Resources:
             Action:
               - cloudformation:DescribeStacks
               - cloudformation:GetTemplate
-            Resource: !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/SWB-*'
+            Resource: !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/initial-stack*'
 
 
 

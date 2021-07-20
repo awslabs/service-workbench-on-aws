@@ -163,7 +163,7 @@ class AwsCfnService extends Service {
     const account = await awsAccountsService.mustFind(requestContext, { id: accountId });
     cfnTemplateInfo.template = await cfnTemplateService.getTemplate('onboard-account');
     cfnTemplateInfo.region = this.settings.get(settingKeys.awsRegion);
-    cfnTemplateInfo.name = account.cfnStackName || ['SWB-Onboard-', randomString(20)].join('');
+    cfnTemplateInfo.name = account.cfnStackName || ['initial-stack-', randomString(20)].join('');
     cfnTemplateInfo.accountId = account.accountId;
     cfnTemplateInfo.stackId = account.cfnStackId;
 

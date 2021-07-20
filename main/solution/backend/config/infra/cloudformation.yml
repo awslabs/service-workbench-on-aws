@@ -764,8 +764,10 @@ Resources:
               - !Join ['', [!GetAtt [AwsAccountsDb, Arn], '/index/*']]
           - Effect: Allow
             Action:
-              - logs:CreateLogGroup
               - logs:CreateLogStream
+              - logs:DescribeLogStreams
+              - logs:PutLogEvents
+              - logs:CreateLogGroup
             Resource:
               - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-awsAccountOnboardingHandler:*'
           - Effect: Allow
