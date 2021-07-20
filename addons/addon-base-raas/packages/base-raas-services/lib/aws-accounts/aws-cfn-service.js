@@ -320,7 +320,7 @@ class AwsCfnService extends Service {
     await processInBatches(accountsList, batchSize, checkPermissions);
 
     // Attempt to onboard any pending accounts
-    const pendingRes = await this.checkPendingAccounts(requestContext);
+    const pendingRes = await this.onboardPendingAccounts(requestContext);
     const finalStatus = { ...newStatus, ...pendingRes.newStatus };
     const statusInfo = { ...errors, ...pendingRes.auditLog };
     await this.audit(requestContext, {
@@ -350,7 +350,7 @@ class AwsCfnService extends Service {
     }
   }
 
-  async checkPendingAccounts(requestContext) {
+  async onboardPendingAccounts(requestContext) {
     const awsAccountsService = await this.service('awsAccountsService');
     const accounts = await awsAccountsService.list();
     const pendingAccountIds = _.map(

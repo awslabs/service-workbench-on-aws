@@ -351,7 +351,7 @@ describe('AwsAccountService', () => {
   describe('onboarding accounts', () => {
     const requestContext = {};
     it('should handle no accounts pending correctly', async () => {
-      const res = await service.checkPendingAccounts(requestContext);
+      const res = await service.onboardPendingAccounts(requestContext);
       expect(res.auditLog).toEqual({});
       expect(res.newStatus).toEqual({});
     });
@@ -370,7 +370,7 @@ describe('AwsAccountService', () => {
         return pendingAccountMock;
       });
 
-      const res = await service.checkPendingAccounts(requestContext);
+      const res = await service.onboardPendingAccounts(requestContext);
       expect(res.auditLog[pendingAccountMock.id]).toContain('Account is not ready yet.');
       expect(res.newStatus[pendingAccountMock.id]).toEqual('PENDING');
     });
@@ -403,7 +403,7 @@ describe('AwsAccountService', () => {
         return completedAccountMock;
       });
 
-      const res = await service.checkPendingAccounts(requestContext);
+      const res = await service.onboardPendingAccounts(requestContext);
       expect(res.auditLog[completedAccountMock.id]).toEqual('Successfully Onboarded');
       expect(res.newStatus[completedAccountMock.id]).toEqual('CURRENT');
       expect(awsAccountsService.update).toHaveBeenCalledWith(requestContext, expUpdate);
