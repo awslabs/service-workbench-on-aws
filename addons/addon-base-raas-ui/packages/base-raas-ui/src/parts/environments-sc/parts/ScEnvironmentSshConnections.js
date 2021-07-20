@@ -81,7 +81,7 @@ class ScEnvironmentSshConnections extends React.Component {
 
   renderAppStreamInfo() {
     return (
-      <Segment>
+      <Segment data-testid="appstream-instructions">
         <b>Connection instructions for your AppStream workspace:</b>
         <List bulleted>
           <List.Item>Select your SSH key below. Click &quot;Use this SSH key&quot; below</List.Item>

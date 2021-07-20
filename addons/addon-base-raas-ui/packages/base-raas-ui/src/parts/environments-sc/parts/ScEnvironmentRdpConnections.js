@@ -47,7 +47,7 @@ class ScEnvironmentRdpConnections extends React.Component {
   renderAppstreamInstructions(item) {
     return (
       this.isAppStreamEnabled && (
-        <Segment key={`${item.id}__4`} className="clearfix">
+        <Segment key={`${item.id}__4`} className="clearfix" data-testid="appstream-instructions">
           <b>Connection instructions for your AppStream workspace:</b>
           <List bulleted>
             <List.Item>Click the &quot;Get Password&quot; button to retrieve user credentials for RDP</List.Item>
