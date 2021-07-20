@@ -249,6 +249,21 @@ class EnvironmentConfigVarsService extends Service {
       });
     }
 
+    // TODO: If the ami sharing gets moved (because it doesn't contribute to an env var)
+    // then move the update local resource policies too.
+    // Using the account root provides basically the same level of security because in either
+    // case we have to trust that the member account hasn't altered the role's assume role policy to allow other
+    // principals assume it
+    // if (s3Prefixes.length > 0) {
+    //   await environmentMountService.addRoleArnToLocalResourcePolicies(`arn:aws:iam::${accountId}:root`, s3Prefixes);
+    // }
+
+    // Check if the environment being launched needs an admin key-pair to be created in the target account
+    // If the configuration being used has any parameter that uses the "adminKeyPairName" variable then it means
+    // we need to provision that key in the target account and provide the name of the generated key as the
+    // "adminKeyPairName" variable
+    // Disabling "no-template-curly-in-string" lint rule because we need to compare with the string literal "${adminKeyPairName}"
+    // i.e., without any string interpolation
     // eslint-disable-next-line no-template-curly-in-string
     const isAdminKeyPairRequired = !!_.find(envTypeConfig.params, p => p.value === '${adminKeyPairName}');
     let adminKeyPairName = '';
