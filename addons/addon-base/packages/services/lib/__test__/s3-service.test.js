@@ -232,7 +232,7 @@ describe('S3Service', () => {
         });
       });
 
-      const result = s3Service.listAllObjects({
+      s3Service.listAllObjects({
         Bucket: 'test-bucketName',
         Prefix: 'test-Prefix',
       });
@@ -246,7 +246,7 @@ describe('S3Service', () => {
         });
       });
 
-      const result = s3Service.getLatestObjectVersion({
+      s3Service.getLatestObjectVersion({
         Bucket: 'test-bucketName',
         Prefix: 'test-Prefix',
       });
