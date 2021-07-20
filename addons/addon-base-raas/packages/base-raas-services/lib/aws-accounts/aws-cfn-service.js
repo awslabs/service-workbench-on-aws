@@ -171,7 +171,7 @@ class AwsCfnService extends Service {
     createParams.apiHandlerRoleArn = this.settings.get(settingKeys.apiHandlerRoleArn);
     createParams.workflowLoopRunnerRoleArn = this.settings.get(settingKeys.workflowLoopRunnerRoleArn);
     createParams.externalId = 'workbench';
-    createParams.namespace = this.settings.get(settingKeys.stage);
+    createParams.namespace = cfnTemplateInfo.name;
 
     // The id of the template is actually the hash of the of the content of the template
     const hash = crypto.createHash('sha256');
