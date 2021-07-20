@@ -1,9 +1,48 @@
 module.exports = {
   serviceWorkbenchSidebar: {
-    ServiceWorkBench: ["introduction"],
+    "Service Workbench Installation Guide": [
+      "installation_guide/overview",
+      "installation_guide/architecture",
+      "installation_guide/components",
+      {
+        "Pre-installation requirements": [
+          "installation_guide/installation/pre-installation/overview",
+          "installation_guide/installation/pre-installation/tool-req",
+          "installation_guide/installation/pre-installation/software-req",
+          "installation_guide/installation/pre-installation/instance-req",
+          "installation_guide/installation/pre-installation/conf-settings",
+          "installation_guide/installation/pre-installation/documentation",
+        ],
+      },
+      {
+        "Installing Service Workbench": [
+          "installation_guide/installation/ami-install",
+          "installation_guide/installation/ec2install",
+          "installation_guide/installation/cloud9install",
+        ],
+      },
+      {
+        "Upgrading Service Workbench": [
+          "installation_guide/upgrading/commandline",
+          "installation_guide/upgrading/solutions",
+        ],
+      },
+      "installation_guide/postupgrade",
+      "installation_guide/uninstall",
+      "installation_guide/troubleshooting",
+    ],
+    "Service Workbench Configuration Guide": [
+      "configuration_guide/overview",
+      "configuration_guide/workflow",
+      {
+        "Configuring Service Workbench using IdP": [
+          "configuration_guide/activedirectory",
+          "configuration_guide/adfs",
+          "configuration_guide/auth0",
+        ],
+      },
+    ],
     "Deployment Guide": [
-      "deployment/about_this_guide",
-      "deployment/summary",
       "deployment/deployment_stages",
       {
         "Pre Deployment": [
@@ -26,17 +65,6 @@ module.exports = {
           "deployment/post_deployment/create_admin_user",
           "deployment/post_deployment/import_service_catalog_products",
           "deployment/post_deployment/logs",
-        ],
-      },
-      {
-        Configuration: [
-          {
-            Authentication: [
-              "deployment/configuration/auth/enabling_ad",
-              "deployment/configuration/auth/configuring_auth0",
-              "deployment/configuration/auth/configuring_idp",
-            ],
-          },
         ],
       },
       "deployment/redeployment",
