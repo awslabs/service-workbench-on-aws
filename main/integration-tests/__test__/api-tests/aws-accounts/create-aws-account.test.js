@@ -54,11 +54,9 @@ describe('Create AWS Account scenarios', () => {
       const genParams = { prefix: 'create-aws-account-test-req-fields' };
       const requestBody = {
         name: setup.gen.string(genParams),
-        roleArn: setup.gen.string(genParams),
-        externalId: setup.gen.string(genParams),
 
         // Other required params are:
-        // accountId,vpcId,subnetId,encryptionKeyArn
+        // accountId,description
       };
 
       await expect(admin2Session.resources.awsAccounts.create(requestBody)).rejects.toMatchObject({
