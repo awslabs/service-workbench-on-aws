@@ -248,8 +248,6 @@ class S3Service extends Service {
     let shouldContinue = true;
     let nextContinuationToken = null;
     do {
-      console.log('here');
-      console.log(await this.api.listObjectsV2());
       const res = await this.api // eslint-disable-line no-await-in-loop
         .listObjectsV2({
           Bucket,
@@ -257,7 +255,6 @@ class S3Service extends Service {
           ContinuationToken: nextContinuationToken || undefined,
         })
         .promise();
-      console.log('here2');
       list = [...list, ...res.Contents];
 
       if (!res.IsTruncated) {
