@@ -33,6 +33,7 @@ const settingKeys = {
   workflowLoopRunnerRoleArn: 'workflowRoleArn',
   swbMainAccount: 'mainAcct',
   stage: 'envName',
+  isAppStreamEnabled: 'isAppStreamEnabled',
 };
 
 // see https://github.com/rvedotrc/aws-cloudformation-stack-states for all states
@@ -49,7 +50,21 @@ const FAILED_STATES = ['CREATE_FAILED', 'UPDATE_FAILED', 'ROLLBACK_FAILED'];
 const getCreateStackUrl = (cfnTemplateInfo, createParams) => {
   // see https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/cfn-console-create-stacks-quick-create-links.html
   const { name, region, signedUrl } = cfnTemplateInfo;
-  const { apiHandlerRoleArn, workflowLoopRunnerRoleArn, mainAcct, externalId, namespace } = createParams;
+  const {
+    apiHandlerRoleArn,
+    workflowLoopRunnerRoleArn,
+    mainAcct,
+    externalId,
+    namespace,
+    appStreamFleetType,
+    appStreamDisconnectTimeoutSeconds,
+    appStreamFleetDesiredInstances,
+    appStreamIdleDisconnectTimeoutSeconds,
+    appStreamImageName,
+    appStreamInstanceType,
+    appStreamMaxUserDurationSeconds,
+    enableAppStream,
+  } = createParams;
   const url = [
     `https://console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/create/review/`,
     `?templateURL=${encodeURIComponent(signedUrl)}`,
@@ -59,6 +74,14 @@ const getCreateStackUrl = (cfnTemplateInfo, createParams) => {
     `&param_ExternalId=${externalId}`,
     `&param_ApiHandlerArn=${apiHandlerRoleArn}`,
     `&param_WorkflowRoleArn=${workflowLoopRunnerRoleArn}`,
+    `&param_AppStreamFleetType=${appStreamFleetType}`,
+    `&param_AppStreamDisconnectTimeoutSeconds=${appStreamDisconnectTimeoutSeconds || '60'}`,
+    `&param_AppStreamFleetDesiredInstances=${appStreamFleetDesiredInstances || '2'}`,
+    `&param_AppStreamIdleDisconnectTimeoutSeconds=${appStreamIdleDisconnectTimeoutSeconds || '600'}`,
+    `&param_AppStreamImageName=${appStreamImageName || ''}`,
+    `&param_AppStreamInstanceType=${appStreamInstanceType || ''}`,
+    `&param_AppStreamMaxUserDurationSeconds=${appStreamMaxUserDurationSeconds || '86400'}`,
+    `&param_EnableAppStream=${enableAppStream || 'false'}`,
   ].join('');
 
   // This one takes us directly to the review stage but will require that we access the cloudformation console first
@@ -166,10 +189,18 @@ class AwsCfnService extends Service {
     cfnTemplateInfo.name = account.cfnStackName || `initial-stack-${new Date().getTime()}`;
     cfnTemplateInfo.accountId = account.accountId;
     cfnTemplateInfo.stackId = account.cfnStackId;
+    createParams.appStreamFleetType = account.appStreamFleetType;
+    createParams.appStreamDisconnectTimeoutSeconds = account.appStreamDisconnectTimeoutSeconds;
+    createParams.appStreamFleetDesiredInstances = account.appStreamFleetDesiredInstances;
+    createParams.appStreamIdleDisconnectTimeoutSeconds = account.appStreamIdleDisconnectTimeoutSeconds;
+    createParams.appStreamImageName = account.appStreamImageName;
+    createParams.appStreamInstanceType = account.appStreamInstanceType;
+    createParams.appStreamMaxUserDurationSeconds = account.appStreamMaxUserDurationSeconds;
 
     createParams.mainAcct = this.settings.get(settingKeys.swbMainAccount);
     createParams.apiHandlerRoleArn = this.settings.get(settingKeys.apiHandlerRoleArn);
     createParams.workflowLoopRunnerRoleArn = this.settings.get(settingKeys.workflowLoopRunnerRoleArn);
+    createParams.enableAppStream = this.settings.get(settingKeys.isAppStreamEnabled);
     createParams.externalId = 'workbench';
     createParams.namespace = cfnTemplateInfo.name;
 

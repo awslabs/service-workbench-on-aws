@@ -15,18 +15,39 @@
       "accountId": {
         "type": "string",
         "pattern": "^[0-9]{12}$"
-    },
-    "appStreamStackName": {
-      "type": "string",
-      "minLength": 10
-    },
-    "appStreamFleetName": {
-      "type": "string",
-      "minLength": 10
-    },
-    "appStreamSecurityGroupId": {
-      "type": "string",
-      "pattern": "^sg-[a-f0-9]{17}$"
+      },
+      "appStreamStackName": {
+        "type": "string",
+        "minLength": 10
+      },
+      "appStreamFleetName": {
+        "type": "string",
+        "minLength": 10
+      },
+      "appStreamSecurityGroupId": {
+        "type": "string",
+        "pattern": "^sg-[a-f0-9]{17}$"
+      },
+      "appStreamFleetDesiredInstances": {
+        "type": "string"
+      },
+      "appStreamIdleDisconnectTimeoutSeconds": {
+        "type": "string"
+      },
+      "appStreamDisconnectTimeoutSeconds": {
+        "type": "string"
+      },
+      "appStreamMaxUserDurationSeconds": {
+        "type": "string"
+      },
+      "appStreamImageName": {
+        "type": "string"
+      },
+      "appStreamInstanceType": {
+        "type": "string"
+      },
+      "appStreamFleetType": {
+        "type": "string"
       }
     },
     "required": ["name", "accountId"]
