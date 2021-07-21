@@ -4,8 +4,8 @@ module.exports = {
   url: "https://your-docusaurus-test-site.com",
   baseUrl: "/",
   favicon: "img/favicon.ico",
-  organizationName: "aws", // Usually your GitHub org/user name.
-  projectName: "docusaurus", // Usually your repo name.
+  organizationName: "awslabs", // Usually your GitHub org/user name.
+  projectName: "Service Workbench on AWS", // Usually your repo name.
   themeConfig: {
     navbar: {
       title: "Home",
@@ -14,28 +14,11 @@ module.exports = {
       style: "dark",
       links: [
         {
-          title: "Docs",
+          title: "Documentation",
           items: [
             {
-              label: "Style Guide",
-              to: "docs/doc1",
-            },
-            {
-              label: "Second Doc",
-              to: "docs/doc2",
-            },
-          ],
-        },
-        {
-          title: "Community",
-          items: [
-            {
-              label: "Stack Overflow",
-              href: "https://stackoverflow.com/questions/tagged/docusaurus",
-            },
-            {
-              label: "Discord",
-              href: "https://discordapp.com/invite/docusaurus",
+              label: "AWS Documentation",
+              to: "https://docs.aws.amazon.com/",
             },
           ],
         },
@@ -43,21 +26,13 @@ module.exports = {
           title: "Social",
           items: [
             {
-              label: "Blog",
-              to: "blog",
-            },
-            {
-              label: "GitHub",
-              href: "https://github.com/facebook/docusaurus",
-            },
-            {
-              label: "Twitter",
-              href: "https://twitter.com/docusaurus",
+              label: "Service Workbench Blog",
+              href: "https://aws.amazon.com/government-education/research-and-technical-computing/service-workbench/",
             },
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+      copyright: `Copyright © ${new Date().getFullYear()} Amazon Web Services, Inc. or its affiliates. All rights reserved.`,
     },
   },
   presets: [
@@ -67,7 +42,7 @@ module.exports = {
         docs: {
           routeBasePath: "/",
           sidebarPath: require.resolve("./sidebars.js"),
-          editUrl: "https://github.com/awslabs/go-research-on-aws/website/",
+          editUrl: "https://github.com/awslabs/service-workbench-on-aws",
         },
         theme: {
           disableDarkMode: true, // Not working yet

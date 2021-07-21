@@ -42,39 +42,22 @@ module.exports = {
         ],
       },
     ],
-    "Deployment Guide": [
-      "deployment/deployment_stages",
-      {
-        "Pre Deployment": [
-          "deployment/pre_deployment/pre_deployment",
-          "deployment/pre_deployment/accounts",
-          "deployment/pre_deployment/prereq_commands",
-          "deployment/pre_deployment/deployment_instance",
-          "deployment/pre_deployment/source_code",
-          "deployment/pre_deployment/configuration",
-        ],
-      },
-      "deployment/deployment/index",
-      {
-        "Post Deployment": [
-          "deployment/post_deployment/index",
-          "deployment/post_deployment/account_structure",
-          // "deployment/post_deployment/cost_explorer",
-          "deployment/post_deployment/aws_accounts",
-          "deployment/post_deployment/create_index_project",
-          "deployment/post_deployment/create_admin_user",
-          "deployment/post_deployment/import_service_catalog_products",
-          "deployment/post_deployment/logs",
-        ],
-      },
+    "Service Workbench Administrator's Guide": [
+      "deployment/post_deployment/index",
+      "deployment/post_deployment/account_structure",
+      // "deployment/post_deployment/cost_explorer",
+      "deployment/post_deployment/aws_accounts",
+      "deployment/post_deployment/create_index_project",
+      "deployment/post_deployment/create_admin_user",
+      "deployment/post_deployment/import_service_catalog_products",
+      "deployment/post_deployment/logs",
       "deployment/redeployment",
-      {
-        Reference: [
-          "deployment/reference/iam_role",
-          "deployment/reference/aws_services",
-          "deployment/reference/prepare_master_account"
-        ],
-      },
+    ],
+
+    Reference: [
+      "deployment/reference/iam_role",
+      "deployment/reference/aws_services",
+      "deployment/reference/prepare_master_account"
     ],
     "User Guide": [
       "user_guide/account_structure",
