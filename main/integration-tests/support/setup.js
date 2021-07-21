@@ -110,6 +110,9 @@ class Setup {
       },
     };
 
+    const externalId = await this.settings.get('externalId');
+    const bucketName = await this.settings.get('bucketName');
+
     const stepTemplate = await adminSession.resources.stepTemplates
       .versions('st-obtain-write-lock')
       .version(1)
@@ -117,7 +120,16 @@ class Setup {
 
     const workflowTemplateId = 'wt-empty';
 
-    return { project, index, awsAccount, stepTemplate, workflowTemplateId, envTypes };
+    return {
+      project,
+      index,
+      awsAccount,
+      stepTemplate,
+      workflowTemplateId,
+      envTypes,
+      externalId,
+      bucketName,
+    };
   }
 
   async createAdminSession() {

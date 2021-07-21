@@ -170,19 +170,8 @@ describe('Create workspace-service-catalog scenarios', () => {
   });
   describe('Workspace SC env with studies', () => {
     it('for EC2Linux should provision correctly', async () => {
-      // const researcher1Session = await setup.createResearcherSession();
-
-      // 1. Create user
       const admin1Session = await setup.createAdminSession();
-      const username = setup.gen.username();
-      const defaultUser = admin1Session.resources.users.defaults({ username });
 
-      await expect(admin1Session.resources.users.create(defaultUser)).resolves.toMatchObject({
-        username,
-      });
-      // 2. Assign Project ID to user (assigned by default)
-
-      // 3. Create My Study, Org Study
       const studyIds = [];
       let studyId = setup.gen.string({ prefix: `create-study-ray-my-study` });
       await expect(
@@ -200,9 +189,7 @@ describe('Create workspace-service-catalog scenarios', () => {
       });
       studyIds.push(studyId);
 
-      // 4. Create workspace with the above studies
       const workspaceName = setup.gen.string({ prefix: 'workspace-sc-test' });
-
       const env = await admin1Session.resources.workspaceServiceCatalogs.create({
         name: workspaceName,
         envTypeId: setup.defaults.envTypes.ec2Linux.envTypeId,
@@ -220,7 +207,7 @@ describe('Create workspace-service-catalog scenarios', () => {
       });
 
       // Poll until workspace is provisioned
-      sleep(2000);
+      await sleep(2000);
       await admin1Session.resources.workflows
         .versions('wf-provision-environment-sc')
         .version(1)
