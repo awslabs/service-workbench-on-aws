@@ -29,6 +29,7 @@ const { hasAccess, accessLevels } = require('../../study/helpers/entities/study-
 
 const settingKeys = {
   tableName: 'dbEnvironmentsSc',
+  isAppStreamEnabled: 'isAppStreamEnabled',
 };
 const workflowIds = {
   create: 'wf-provision-environment-sc',
@@ -85,7 +86,7 @@ class EnvironmentScService extends Service {
     // The following will result in checking permissions by calling the condition function "this._allowAuthorized" first
     await this.assertAuthorized(requestContext, { action: 'list-sc', conditions: [this._allowAuthorized] });
 
-    const envs = await this._scanner()
+    let envs = await this._scanner()
       .limit(limit)
       .scan()
       .then(environments => {
@@ -95,7 +96,22 @@ class EnvironmentScService extends Service {
         return environments.filter(env => isCurrentUser(requestContext, { uid: env.createdBy }));
       });
 
+    envs = await this.filterAppStreamProjectEnvs(requestContext, envs);
+
     return this.augmentWithConnectionInfo(requestContext, envs);
+  }
+
+  async filterAppStreamProjectEnvs(requestContext, envs) {
+    const isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
+    if (!isAppStreamEnabled) return envs;
+
+    const envsToFilter = _.cloneDeep(envs);
+
+    const projectService = await this.service('projectService');
+    const appStreamProjects = await projectService.list(requestContext, { fields: ['id', 'indexId'] });
+    const appStreamProjectIds = _.map(appStreamProjects, proj => proj.id);
+
+    return _.filter(envsToFilter, env => _.includes(appStreamProjectIds, env.projectId));
   }
 
   async pollAndSyncWsStatus(requestContext) {
@@ -384,6 +400,9 @@ class EnvironmentScService extends Service {
     // const { name, envTypeId, envTypeConfigId, description, projectId, cidr, studyIds } = environment
     const { envTypeId, envTypeConfigId, projectId } = environment;
 
+    // If AppStream is enabled, this will verify requested project account has AppStream information
+    await this.checkAppStreamConfig(requestContext, projectId);
+
     // Lets find the index id, by looking at the project and then get the index id
     const { indexId } = await projectService.mustFind(requestContext, { id: projectId, fields: ['indexId'] });
 
@@ -440,6 +459,18 @@ class EnvironmentScService extends Service {
     }
 
     return dbResult;
+  }
+
+  async checkAppStreamConfig(requestContext, projectId) {
+    const isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
+    if (!isAppStreamEnabled) return;
+
+    const projectService = await this.service('projectService');
+    const appStreamProjects = await projectService.list(requestContext, { fields: ['id', 'indexId'] });
+    const appStreamProjectIds = _.map(appStreamProjects, proj => proj.id);
+
+    if (!_.includes(appStreamProjectIds, projectId))
+      throw this.boom.badRequest('Please select an AppStream-configured project', true);
   }
 
   async update(requestContext, environment, ipAllowListAction = {}) {

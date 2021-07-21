@@ -25,6 +25,7 @@ import ScEnvironmentsFilterButtons from './parts/ScEnvironmentsFilterButtons';
 // expected props
 // - scEnvironmentsStore (via injection)
 // - envTypesStore (via injection)
+// - projectsStore (via injection)
 class ScEnvironmentsList extends React.Component {
   constructor(props) {
     super(props);
@@ -33,6 +34,7 @@ class ScEnvironmentsList extends React.Component {
       const name = storage.getItem(key) || filterNames.ALL;
       storage.setItem(key, name);
       this.selectedFilter = name;
+      this.provisionDisabled = false;
     });
   }
 
@@ -53,12 +55,27 @@ class ScEnvironmentsList extends React.Component {
     store.stopHeartbeat();
   }
 
+  get isAppStreamEnabled() {
+    return process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true';
+  }
+
   get envTypesStore() {
     return this.props.envTypesStore;
   }
 
   get envsStore() {
     return this.props.scEnvironmentsStore;
+  }
+
+  getProjectsStore() {
+    const store = this.props.projectsStore;
+    store.load();
+    return store;
+  }
+
+  getProjects() {
+    const store = this.getProjectsStore();
+    return store.list;
   }
 
   handleCreateEnvironment = event => {
@@ -144,6 +161,12 @@ class ScEnvironmentsList extends React.Component {
   }
 
   renderTitle() {
+    const projects = this.getProjects();
+
+    runInAction(() => {
+      if (this.isAppStreamEnabled && _.isEmpty(projects)) this.provisionDisabled = true;
+    });
+
     return (
       <div className="mb3 flex">
         <Header as="h3" className="color-grey mt1 mb0 flex-auto">
@@ -155,6 +178,7 @@ class ScEnvironmentsList extends React.Component {
             data-testid="create-workspace"
             color="blue"
             size="medium"
+            disabled={this.provisionDisabled}
             basic
             onClick={this.handleCreateEnvironment}
           >
@@ -176,10 +200,15 @@ class ScEnvironmentsList extends React.Component {
 // see https://medium.com/@mweststrate/mobx-4-better-simpler-faster-smaller-c1fbc08008da
 decorate(ScEnvironmentsList, {
   selectedFilter: observable,
+  provisionDisabled: observable,
   envsStore: computed,
   envTypesStore: computed,
   handleCreateEnvironment: action,
   handleSelectedFilter: action,
 });
 
-export default inject('scEnvironmentsStore', 'envTypesStore')(withRouter(observer(ScEnvironmentsList)));
+export default inject(
+  'scEnvironmentsStore',
+  'projectsStore',
+  'envTypesStore',
+)(withRouter(observer(ScEnvironmentsList)));

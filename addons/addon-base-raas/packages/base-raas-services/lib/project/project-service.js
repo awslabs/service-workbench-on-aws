@@ -25,6 +25,7 @@ const updateSchema = require('../schema/update-project');
 const settingKeys = {
   tableName: 'dbProjects',
   environmentTableName: 'dbEnvironments',
+  isAppStreamEnabled: 'isAppStreamEnabled',
 };
 
 class ProjectService extends Service {
@@ -36,6 +37,8 @@ class ProjectService extends Service {
       'dbService',
       'auditWriterService',
       'userService',
+      'awsAccountsService',
+      'indexesService',
     ]);
   }
 
@@ -212,10 +215,43 @@ class ProjectService extends Service {
     // Future task: only return projects that the user has been associated with unless the user is an admin
 
     // Remember doing a scan is not a good idea if you billions of rows
-    return this._scanner()
+    let projects = await this._scanner()
       .limit(1000)
       .projection(fields)
       .scan();
+
+    projects = await this.filterAppStreamProjects(requestContext, projects);
+
+    return projects;
+  }
+
+  async filterAppStreamProjects(requestContext, projects) {
+    try {
+      const isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
+      if (!isAppStreamEnabled) return projects;
+
+      const projectsToFilter = _.cloneDeep(projects);
+
+      const [awsAccountsService, indexesService] = await this.service(['awsAccountsService', 'indexesService']);
+      const accounts = await awsAccountsService.list(requestContext, {
+        fields: ['id', 'appStreamFleetName', 'appStreamSecurityGroupId', 'appStreamStackName'],
+      });
+      const accountsWithAppStream = _.filter(
+        accounts,
+        account =>
+          !_.isUndefined(account.appStreamFleetName) &&
+          !_.isUndefined(account.appStreamSecurityGroupId) &&
+          !_.isUndefined(account.appStreamStackName),
+      );
+      const accountIdsWithAppStream = _.map(accountsWithAppStream, account => account.id);
+      const indexes = await indexesService.list(requestContext, { fieldsToGet: ['id', 'awsAccountId'] });
+      const indexesWithAppStream = _.filter(indexes, index => _.includes(accountIdsWithAppStream, index.awsAccountId));
+      const indexIdsWithAppStream = _.map(indexesWithAppStream, index => index.id);
+
+      return _.filter(projectsToFilter, project => _.includes(indexIdsWithAppStream, project.indexId));
+    } catch (err) {
+      throw this.boom.badRequest(`There was an error filtering AppStream projects: ${err}`, true);
+    }
   }
 
   /**
