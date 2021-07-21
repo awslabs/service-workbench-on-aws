@@ -1,44 +1,20 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "type": "object",
-  "additionalProperties": false,
-  "properties": {
-    "name": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 100
-    },
-    "description": {
-      "type": "string",
-      "maxLength": 2048
-    },
-    "accountId": {
-      "type": "string",
-      "pattern": "^[0-9]{12}$"
-    },
-    "roleArn": {
-      "type": "string",
-      "minLength": 10
-    },
-    "xAccEnvMgmtRoleArn": {
-      "type": "string",
-      "minLength": 10
-    },
-    "externalId": {
-      "type": "string",
-      "minLength": 1
-    },
-    "vpcId": {
-      "type": "string",
-      "pattern": "^vpc-[a-f0-9]{8,17}$"
-    },
-    "subnetId": {
-      "type": "string",
-      "pattern": "^subnet-[a-f0-9]{8,17}$"
-    },
-    "encryptionKeyArn": {
-      "type": "string",
-      "pattern": "^arn:aws:kms:.*$"
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "name": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "description": {
+        "type": "string",
+        "maxLength": 2048
+      },
+      "accountId": {
+        "type": "string",
+        "pattern": "^[0-9]{12}$"
     },
     "appStreamStackName": {
       "type": "string",
@@ -51,7 +27,8 @@
     "appStreamSecurityGroupId": {
       "type": "string",
       "pattern": "^sg-[a-f0-9]{17}$"
-    }
-  },
-  "required": ["name", "roleArn", "externalId", "accountId", "vpcId", "subnetId", "encryptionKeyArn"]
-}
+      }
+    },
+    "required": ["name", "accountId"]
+  }
+  

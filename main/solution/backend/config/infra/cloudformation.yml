@@ -558,6 +558,7 @@ Resources:
               - 'arn:aws:iam::*:role/analysis-*'
               - !Sub 'arn:aws:iam::*:role/*-cross-account-role' # This is required since when users onboard the main account as a member account, the onboard CFN stack would also reside there
               - !Sub 'arn:aws:iam::*:role/*-xacc-env-mgmt'
+              - 'arn:aws:iam::*:role/*-cfn-status-role'
           - Effect: Allow
             Action:
               - logs:CreateLogGroup
@@ -904,6 +905,49 @@ Resources:
       ManagedPolicyArns:
         - !Ref PolicyDataSourceReachabilityHandler
       PermissionsBoundary: !Ref PolicyDataSourceReachabilityHandler
+  
+  PolicyAwsAccountOnboardingHandler:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Grant CloudFormation access to check CFN stack status and ddb access to onboard accounts
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:UpdateItem
+            Resource:
+              - !GetAtt [AwsAccountsDb, Arn]
+              - !Join ['', [!GetAtt [AwsAccountsDb, Arn], '/index/*']]
+          - Effect: Allow
+            Action:
+              - logs:CreateLogStream
+              - logs:DescribeLogStreams
+              - logs:PutLogEvents
+              - logs:CreateLogGroup
+            Resource:
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-awsAccountOnboardingHandler:*'
+          - Effect: Allow
+            Action: 'sts:AssumeRole'
+            Resource: 'arn:aws:iam::*:role/*-cfn-status-role'
+
+  #IAM Role for the awsAccountOnboardingHandler Function
+  RoleAwsAccountOnboardingHandler:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - !Ref PolicyAwsAccountOnboardingHandler
+      PermissionsBoundary: !Ref PolicyAwsAccountOnboardingHandler
 
   # An environment management role giving AWS Service Catalog Permissions
   # This is the role that the Admin users share their AWS Service Catalog products/portfolios with.
