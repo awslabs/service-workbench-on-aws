@@ -45,7 +45,6 @@ module.exports = {
     "Service Workbench Administrator's Guide": [
       "deployment/post_deployment/index",
       "deployment/post_deployment/account_structure",
-      // "deployment/post_deployment/cost_explorer",
       "deployment/post_deployment/aws_accounts",
       "deployment/post_deployment/create_index_project",
       "deployment/post_deployment/create_admin_user",
