@@ -17,7 +17,7 @@ import React from 'react';
 import { decorate, computed, runInAction, observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
-import { Header, Divider, List, Form, TextArea, Message, Button, Container } from 'semantic-ui-react';
+import { Header, Divider, List, Checkbox, Form, Icon, TextArea, Message, Button, Container } from 'semantic-ui-react';
 import TimeAgo from 'react-timeago';
 
 import YesNo from '@aws-ee/base-ui/dist/parts/helpers/fields/YesNo';
@@ -50,7 +50,12 @@ class AwsAccountUpdateContent extends React.Component {
     runInAction(() => {
       // We want to create a simple one button form
       const account = this.account || {};
-      const needsOnboard = account.permissionStatus === 'NEEDS_ONBOARD' || account.permissionStatus === 'PENDING';
+      this.willShowWarning = account.permissionStatus !== 'NEEDS_ONBOARD';
+      this.warningAcknowledged = !this.willShowWarning; // Only set to false if the user will have to acknowledge warning later
+      const needsOnboard =
+        account.permissionStatus === 'NEEDS_ONBOARD' ||
+        account.permissionStatus === 'PENDING' ||
+        account.permissionStatus === 'UNKNOWN';
       const fields = {
         managed: {
           value: 'admin',
@@ -102,6 +107,10 @@ class AwsAccountUpdateContent extends React.Component {
 
   handleGoBack = () => {
     this.goBackToAccountsPage();
+  };
+
+  handleClickAcknowledgement = (e, { checked }) => {
+    this.warningAcknowledged = checked;
   };
 
   render() {
@@ -200,6 +209,8 @@ class AwsAccountUpdateContent extends React.Component {
     const account = this.account;
     const textSize = this.textSize;
     const stackInfo = this.stackInfo;
+    const willShowWarning = this.willShowWarning;
+    const warningAcknowledged = this.warningAcknowledged;
     const { accountId } = account;
     const { createStackUrl, region } = stackInfo;
 
@@ -220,13 +231,44 @@ class AwsAccountUpdateContent extends React.Component {
             CloudFormation console where you can review the stack information and provision it.
             <div className="mb0 flex mt2">
               <div className="flex-auto">
-                <Button fluid as="a" target="_blank" href={createStackUrl} rel="noopener noreferrer">
+                {willShowWarning && (
+                  <Message warning>
+                    <Message.Header>Caution!</Message.Header>
+                    <p>
+                      Be advised that deploying a new CFN stack may cause any workspaces associated with this account in
+                      SWB to become unusable. To proceed, please acknowledge the warning below.
+                    </p>
+                  </Message>
+                )}
+                {willShowWarning && (
+                  <Checkbox
+                    label="I am aware that re-onboarding this account may render workspaces associated with this account to become unusable."
+                    onClick={this.handleClickAcknowledgement}
+                  />
+                )}
+              </div>
+            </div>
+            <div className="mb0 flex mt2">
+              <div className="flex-auto">
+                <Button
+                  fluid
+                  as="a"
+                  target="_blank"
+                  href={createStackUrl}
+                  disabled={!warningAcknowledged}
+                  rel="noopener noreferrer"
+                >
                   Create Stack
                 </Button>
                 {this.renderExpires(stackInfo)}
               </div>
+              <div className="mt1 p0">{warningAcknowledged && <CopyToClipboard text={createStackUrl} />}</div>
               <div className="mt1 p0">
-                <CopyToClipboard text={createStackUrl} />
+                {!warningAcknowledged && (
+                  <div className="ml2 mt1">
+                    <Icon name="copy outline" disabled />
+                  </div>
+                )}
               </div>
             </div>
           </List.Item>
@@ -349,6 +391,8 @@ decorate(AwsAccountUpdateContent, {
   form: observable,
   handleGoBack: action,
   gotBackToAccountsPage: action,
+  handleClickAcknowledgement: action,
+  warningAcknowledged: observable,
 });
 
 export default inject('awsAccountsStore')(withRouter(observer(AwsAccountUpdateContent)));
