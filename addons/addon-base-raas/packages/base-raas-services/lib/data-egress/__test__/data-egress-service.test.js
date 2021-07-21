@@ -603,7 +603,7 @@ describe('DataEgressService', () => {
       const result = await dataEgressService.prepareEgressStoreSnapshot(mockInfo);
       expect(result).toStrictEqual({
         bucket: 'test-egressNotificationBucketName',
-        key: 'test-id/test-egressStoreName-ver0.json',
+        key: 'test-id/test-egressStoreName-ver1.json',
       });
     });
     it('should error when list s3 object error in preparing egress store snapshots', async () => {
@@ -798,7 +798,7 @@ describe('DataEgressService', () => {
         status: 'status',
         updatedBy: 'updatedBy',
         updatedAt: 'updatedAt',
-        ver: 'ver',
+        ver: 0,
         isAbleToSubmitEgressRequest: true,
       };
       dbService.table.scan.mockResolvedValue([mockEgressStoreInfo]);
@@ -818,7 +818,7 @@ describe('DataEgressService', () => {
             egress_store_id: 'id',
             egress_store_name: 'egressStoreName',
             egressStoreObjectListLocation:
-              'arn:aws:s3:::test-egressNotificationBucketName/id/egressStoreName-verNaN.json',
+              'arn:aws:s3:::test-egressNotificationBucketName/id/egressStoreName-ver1.json',
             id: expect.anything(),
             project_id: 'projectId',
             s3_bucketname: 's3BucketName',
@@ -826,7 +826,7 @@ describe('DataEgressService', () => {
             status: 'PENDING',
             updated_at: expect.anything(),
             updated_by: 'createdBy',
-            ver: NaN,
+            ver: 1,
             workspace_id: 'workspaceId',
           },
         },

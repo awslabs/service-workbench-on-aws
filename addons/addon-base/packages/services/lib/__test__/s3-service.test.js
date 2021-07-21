@@ -44,7 +44,7 @@ describe('S3Service', () => {
   });
   describe('S3Service', () => {
     it('should parse in s3 bucket detail', async () => {
-      const result = await s3Service.parseS3Details('s3://test-bucket/test-prefix');
+      const result = s3Service.parseS3Details('s3://test-bucket/test-prefix');
       expect(result).toStrictEqual({ s3BucketName: 'test-bucket', s3Key: 'test-prefix' });
     });
     it('should move object from one place to another', async () => {
@@ -224,7 +224,7 @@ describe('S3Service', () => {
       );
     });
 
-    it('should successfully list all object', async () => {
+    it('should successfully list all object without Truncated', async () => {
       AWSMock.mock('S3', 'listObjectsV2', params => {
         expect(params).toMatchObject({
           Bucket: 'test-bucketName',
@@ -232,6 +232,24 @@ describe('S3Service', () => {
         });
       });
 
+      s3Service.listAllObjects({
+        Bucket: 'test-bucketName',
+        Prefix: 'test-Prefix',
+      });
+    });
+
+    it('should successfully list all object with Truncated', async () => {
+      AWSMock.mock('S3', 'listObjectsV2', (params, callback) => {
+        expect(params).toMatchObject({
+          Bucket: 'test-bucketName',
+          Prefix: 'test-dir',
+        });
+        callback({
+          Contents: [{ key: 'test-key1' }, { key: 'test-key2' }],
+          IsTruncated: true,
+          NextContinuationToken: 'test-NextContinuationToken',
+        });
+      });
       s3Service.listAllObjects({
         Bucket: 'test-bucketName',
         Prefix: 'test-Prefix',

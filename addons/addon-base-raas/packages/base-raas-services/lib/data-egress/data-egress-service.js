@@ -301,16 +301,17 @@ class DataEgressService extends Service {
   }
 
   bytesToSize(bytes) {
-    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB'];
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
     if (bytes === 0) return '0 Byte';
-    const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)), 10);
+    let i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)), 10); // parseInt(string, radix) string: The value to parse. radix: An integer between 2 and 36 that represents the radix of the string.
+    i = i <= 5 ? i : 5;
     return `${Math.round(bytes / 1024 ** i, 2)} ${sizes[i]}`;
   }
 
   async prepareEgressStoreSnapshot(egressStoreInfo) {
     const s3Service = await this.service('s3Service');
     const egressNotificationBucketName = this.settings.get(settingKeys.egressNotificationBucketName);
-    const curVersion = parseInt(egressStoreInfo.ver, 10);
+    const curVersion = parseInt(egressStoreInfo.ver, 10) + 1; // parseInt(string, radix) string: The value to parse. radix: An integer between 2 and 36 that represents the radix of the string.
     const key = `${egressStoreInfo.id}/${egressStoreInfo.egressStoreName}-ver${curVersion}.json`;
     try {
       const objectList = await s3Service.listAllObjects({
@@ -376,8 +377,7 @@ class DataEgressService extends Service {
     egressStoreInfo.updatedAt = new Date().toISOString();
     egressStoreInfo.isAbleToSubmitEgressRequest = false;
     egressStoreInfo.egressStoreObjectListLocation = `arn:aws:s3:::${egressStoreObjectList.bucket}/${egressStoreObjectList.key}`;
-    const curVersion = parseInt(egressStoreInfo.ver, 10);
-    egressStoreInfo.ver = curVersion + 1;
+    egressStoreInfo.ver = parseInt(egressStoreInfo.ver, 10) + 1; // parseInt(string, radix) string: The value to parse. radix: An integer between 2 and 36 that represents the radix of the string.
     await this.lockAndUpdate(egressStoreDdbLockId, egressStoreInfo.id, egressStoreInfo);
 
     const message = {
