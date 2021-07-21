@@ -190,9 +190,6 @@ dbRoleAllocations: ${self:custom.settings.dbPrefix}-RoleAllocations
 # DynamoDB table name for Resource usages
 dbResourceUsages: ${self:custom.settings.dbPrefix}-ResourceUsages
 
-# DynamoDB table name for Egress Store
-dbEgressStore: ${self:custom.settings.dbPrefix}-EgressStore
-
 # DynamoDB table global secondary index name for the "WorkspaceIdIndex" field
 dbEgressStoreWorkspaceIdIndex: WorkspaceIdIndex
 
@@ -290,9 +287,6 @@ dbTableKeyPairs: ${self:custom.settings.dbPrefix}-DbKeyPairs
 # The S3 bucket name to be used to store egress store data
 egressStoreBucketName: ${self:custom.settings.globalNamespace}-egress-store
 
-# The S3 bucket name to be used to store egress store data
-egressNotificationBucketName: ${self:custom.settings.globalNamespace}-egress-notification-bucket
-
 # The alias used for the KMS key created to encrypt/decrypt egress store
 egressStoreKmsKeyAlias: ${self:custom.settings.globalNamespace}/s3/egressstore
 
@@ -305,10 +299,4 @@ egressStoreKmsPolicyWorkspaceSid: Allow workspace environments to CRUD egress da
 
 # The name of the IAM role created for the Lambda egressStoreObjectsHandler
 egressStoreObjectHandlerRoleName: ${self:custom.settings.namespace}-EgressStoreObject
-
-# The name of the IAM role created for the Lambda egressStoreObjectsHandler
-egressNotificationTopicName: ${self:custom.settings.namespace}-EgressTopic
-
-# The ARN of egress notification topic
-egressNotificationSnsTopicArn: arn:aws:sns:${self:custom.settings.awsRegion}:${self:custom.settings.awsAccountInfo.awsAccountId}:${self:custom.settings.egressNotificationTopicName}
 # =========================================================================================================
