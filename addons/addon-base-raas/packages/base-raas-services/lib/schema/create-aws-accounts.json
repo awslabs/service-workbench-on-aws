@@ -3,44 +3,73 @@
     "type": "object",
     "additionalProperties": false,
     "properties": {
-        "name": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 100
-        },
-        "description": {
-            "type": "string",
-            "maxLength": 2048
-        },
-        "accountId": {
-            "type": "string",
-            "pattern": "^[0-9]{12}$"
-        },
-        "roleArn": {
-            "type": "string",
-            "minLength": 10
-        },
-        "xAccEnvMgmtRoleArn": {
-            "type": "string",
-            "minLength": 10
-        },
-        "externalId": {
-            "type": "string",
-            "minLength": 1
-        },
-        "vpcId": {
-            "type": "string",
-            "pattern": "^vpc-[a-f0-9]{8,17}$"
-        },
-        "subnetId": {
-            "type": "string",
-            "pattern": "^subnet-[a-f0-9]{8,17}$"
-        },
-        "encryptionKeyArn": {
-            "type": "string",
-            "pattern": "^arn:aws:kms:.*$"
-        }
+      "id": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100,
+        "pattern": "^[A-Za-z0-9-_ ]+$"
+      },
+      "rev": {
+        "type": "number",
+        "minimum": 0
+      },
+      "name": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "description": {
+        "type": "string",
+        "maxLength": 2048
+      },
+      "accountId": {
+        "type": "string",
+        "pattern": "^[0-9]{12}$"
+      },
+      "cfnStackId": {
+        "type": "string",
+        "maxLength": 255,
+        "pattern": "^arn:aws:cloudformation:.*$"
+      },
+      "cfnStackName": {
+        "type": "string",
+        "maxLength": 2048
+      },
+      "roleArn": {
+        "type": "string",
+        "minLength": 10
+      },
+      "onboardStatusRoleArn": {
+        "type": "string",
+        "minLength": 10,
+        "pattern": "^arn:aws:iam::.*$"
+      },
+      "xAccEnvMgmtRoleArn": {
+        "type": "string",
+        "minLength": 10
+      },
+      "externalId": {
+        "type": "string",
+        "minLength": 1
+      },
+      "vpcId": {
+        "type": "string",
+        "pattern": "^vpc-[a-f0-9]{8,17}$"
+      },
+      "subnetId": {
+        "type": "string",
+        "pattern": "^subnet-[a-f0-9]{8,17}$"
+      },
+      "encryptionKeyArn": {
+        "type": "string",
+        "pattern": "^arn:aws:kms:.*$"
+      },
+      "permissionStatus": {
+        "type": "string"
+      }
     },
-    "required": ["name", "accountId"]
+    "required": [
+      "accountId",
+      "name"
+    ]
   }
-  
