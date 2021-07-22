@@ -15,13 +15,13 @@
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
 
 // Mocked services
-jest.mock('@aws-ee/base-services/lib/db-service');
 jest.mock('@aws-ee/base-services/lib/audit/audit-writer-service');
-jest.mock('@aws-ee/base-services/lib/s3-service');
+jest.mock('@aws-ee/base-services/lib/db-service');
 jest.mock('@aws-ee/base-services/lib/lock/lock-service');
-jest.mock('../../environment/service-catalog/environment-sc-service');
 jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
+jest.mock('../../environment/service-catalog/environment-sc-service');
 
+const AWSMock = require('aws-sdk-mock');
 const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
 const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
 const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
@@ -29,7 +29,6 @@ const DbServiceMock = require('@aws-ee/base-services/lib/db-service');
 const AuditWriterService = require('@aws-ee/base-services/lib/audit/audit-writer-service');
 const S3Service = require('@aws-ee/base-services/lib/s3-service');
 const LockService = require('@aws-ee/base-services/lib/lock/lock-service');
-const AWSMock = require('aws-sdk-mock');
 const EnvironmentScService = require('../../environment/service-catalog/environment-sc-service');
 const DataEgressService = require('../data-egress-service');
 const { updateS3BucketPolicy } = require('../../helpers/utils');
@@ -39,7 +38,6 @@ jest.mock('../../helpers/utils', () => ({
   updateS3BucketPolicy: jest.fn(),
 }));
 describe('DataEgressService', () => {
-  let container;
   let dataEgressService;
   let aws;
   let environmentScService;
@@ -85,7 +83,7 @@ describe('DataEgressService', () => {
 
   beforeEach(async () => {
     // Initialize services container and register dependencies
-    container = new ServicesContainer();
+    const container = new ServicesContainer();
     container.register('aws', new AwsService());
     container.register('jsonSchemaValidationService', new JsonSchemaValidationService());
     container.register('dbService', new DbServiceMock());
@@ -147,9 +145,22 @@ describe('DataEgressService', () => {
           if (settingName === 'enableEgressStore') {
             return 'true';
           }
+          if (settingName === 'egressStoreKmsKeyAliasArn') {
+            return 'test-egressStoreKmsKeyAliasArn';
+          }
           return undefined;
         },
       };
+      AWSMock.mock('KMS', 'describeKey', (params, callback) => {
+        expect(params).toMatchObject({
+          KeyId: 'test-egressStoreKmsKeyAliasArn',
+        });
+        callback(null, {
+          KeyMetadata: {
+            Arn: 'test-arn',
+          },
+        });
+      });
       const requestContext = {};
       const rawEnvironment = {
         id: 'test-id',
@@ -431,6 +442,21 @@ describe('DataEgressService', () => {
       const requestContext = {};
       const envId = 'test-workspace-id';
 
+      AWSMock.mock('S3', 'listObjectsV2', (params, callback) => {
+        expect(params).toMatchObject({
+          Bucket: 'test-s3BucketName',
+        });
+        callback(null, {
+          Contents: [],
+        });
+      });
+      AWSMock.mock('S3', 'deleteObjects', (params, callback) => {
+        expect(params).toMatchObject({
+          Bucket: 'test-s3BucketName',
+        });
+        callback(null, {});
+      });
+
       AWSMock.mock('S3', 'getBucketPolicy', (params, callback) => {
         expect(params).toMatchObject({
           Bucket: 'test-egressStoreBucketName',
@@ -591,8 +617,27 @@ describe('DataEgressService', () => {
           return undefined;
         },
       };
-      s3Service.listObjects = jest.fn().mockResolvedValue([{ key1: 'key1' }, { key2: 'key2' }]);
-      s3Service.putObject = jest.fn();
+      AWSMock.mock('S3', 'listObjectsV2', (params, callback) => {
+        expect(params).toMatchObject({
+          Bucket: 'test-s3BucketName',
+        });
+        callback(null, { Contents: [{ key1: 'key1' }, { key2: 'key2' }] });
+      });
+
+      AWSMock.mock('S3', 'listObjectVersions', (params, callback) => {
+        expect(params).toMatchObject({
+          Bucket: 'test-s3BucketName',
+        });
+        callback(null, { Versions: [{ IsLatest: true }] });
+      });
+
+      AWSMock.mock('S3', 'putObject', (params, callback) => {
+        expect(params).toMatchObject({
+          Bucket: 'test-egressNotificationBucketName',
+        });
+        callback(null, {});
+      });
+
       const mockInfo = {
         id: 'test-id',
         s3BucketName: 'test-s3BucketName',
@@ -615,8 +660,12 @@ describe('DataEgressService', () => {
           return undefined;
         },
       };
-      s3Service.listAllObjects = jest.fn().mockImplementationOnce(() => {
-        throw new Error();
+
+      AWSMock.mock('S3', 'listObjectsV2', (params, callback) => {
+        expect(params).toMatchObject({
+          Bucket: 'test-s3BucketName',
+        });
+        callback(new Error(), {});
       });
       s3Service.putObject = jest.fn();
       const mockInfo = {
@@ -646,9 +695,11 @@ describe('DataEgressService', () => {
           return undefined;
         },
       };
-      s3Service.listObjects = jest.fn();
-      s3Service.putObject = jest.fn().mockImplementationOnce(() => {
-        throw new Error();
+      AWSMock.mock('S3', 'listObjectsV2', (params, callback) => {
+        expect(params).toMatchObject({
+          Bucket: 'test-s3BucketName',
+        });
+        callback(new Error(), {});
       });
       const mockInfo = {
         id: 'test-id',
@@ -801,6 +852,28 @@ describe('DataEgressService', () => {
         ver: 0,
         isAbleToSubmitEgressRequest: true,
       };
+
+      AWSMock.mock('S3', 'listObjectsV2', (params, callback) => {
+        expect(params).toMatchObject({
+          Bucket: 's3BucketName',
+        });
+        callback(null, { Contents: [] });
+      });
+
+      AWSMock.mock('S3', 'listObjectVersions', (params, callback) => {
+        expect(params).toMatchObject({
+          Bucket: 's3BucketName',
+        });
+        callback(null, { Versions: [{ IsLatest: true }] });
+      });
+
+      AWSMock.mock('S3', 'putObject', (params, callback) => {
+        expect(params).toMatchObject({
+          Bucket: 'test-egressNotificationBucketName',
+        });
+        callback(null, {});
+      });
+
       dbService.table.scan.mockResolvedValue([mockEgressStoreInfo]);
       const mockRequestContext = { principalIdentifier: { uid: 'createdBy' } };
       dataEgressService.lockAndUpdate = jest.fn();

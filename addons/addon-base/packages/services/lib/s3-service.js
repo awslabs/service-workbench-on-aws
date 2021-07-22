@@ -27,12 +27,21 @@ class S3Service extends Service {
 
   async init() {
     await super.init();
+  }
+
+  async getAWS() {
     const aws = await this.service('aws');
-    this.api = new aws.sdk.S3({ signatureVersion: 'v4' });
+    return aws;
+  }
+
+  async getS3() {
+    const aws = await this.getAWS();
+    return new aws.sdk.S3({ signatureVersion: 'v4' });
   }
 
   // files = [ {bucket, key}, {bucket, key} ]
   async sign({ files = [], expireSeconds = 120 } = {}) {
+    const s3Client = await this.getS3();
     const signIt = (bucket, key) => {
       return new Promise((resolve, reject) => {
         const params = {
@@ -40,7 +49,7 @@ class S3Service extends Service {
           Key: key,
           Expires: expireSeconds,
         };
-        this.api.getSignedUrl('getObject', params, (err, url) => {
+        s3Client.getSignedUrl('getObject', params, (err, url) => {
           if (err) return reject(err);
           return resolve(url);
         });
@@ -58,6 +67,7 @@ class S3Service extends Service {
   }
 
   async listObjects({ bucket, prefix }) {
+    const s3Client = await this.getS3();
     const params = {
       Bucket: bucket,
       MaxKeys: 980,
@@ -67,7 +77,7 @@ class S3Service extends Service {
     const result = [];
     let data;
     do {
-      data = await this.api.listObjectsV2(params).promise(); // eslint-disable-line no-await-in-loop
+      data = await s3Client.listObjectsV2(params).promise(); // eslint-disable-line no-await-in-loop
       params.ContinuationToken = data.NextContinuationToken;
       const prefixSlash = _.endsWith(prefix, '/') ? prefix : `${prefix}/`;
 
@@ -116,6 +126,7 @@ class S3Service extends Service {
    * @returns {Promise<boolean>} A promise that resolves to a flag indicating whether the specified s3 location exists or not
    */
   async doesS3LocationExist(s3Location) {
+    const s3Client = await this.getS3();
     const { s3BucketName, s3Key } = this.parseS3Details(_.trim(s3Location));
     try {
       if (s3Key && s3Key !== '/') {
@@ -123,7 +134,7 @@ class S3Service extends Service {
         // prefix specified by the s3Key exists
         // For example, if the s3Location is s3://some-bucket-name/some-object-key then make sure the
         // object or prefix with key "some-object-key" exists in the bucket "some-bucket-name"
-        const listingResult = await this.api
+        const listingResult = await s3Client
           .listObjectsV2({
             Bucket: s3BucketName,
             Prefix: s3Key,
@@ -136,7 +147,7 @@ class S3Service extends Service {
       // specified bucket exists
       // For example, if the s3Location is "s3://some-bucket-name" or ""s3://some-bucket-name/" then make sure the
       // bucket named "some-bucket-name" exists
-      const bucket = await this.api.headBucket({ Bucket: s3BucketName }).promise();
+      const bucket = await s3Client.headBucket({ Bucket: s3BucketName }).promise();
       return !_.isNil(bucket);
     } catch (err) {
       if (err.code === 'NotFound' || err.code === 'NoSuchBucket' || err.code === 'NoSuchKey') {
@@ -150,6 +161,7 @@ class S3Service extends Service {
 
   // Moves the object by first copying it to the new destination then deleting it from the source
   async moveObject(rawData) {
+    const s3Client = await this.getS3();
     const [validationService] = await this.service(['jsonSchemaValidationService']);
 
     // Validate input
@@ -163,12 +175,13 @@ class S3Service extends Service {
       Key: `${to.key}`,
     };
 
-    await this.api.copyObject(copyParams).promise();
-    await this.api.deleteObject({ Bucket: from.bucket, Key: `${from.key}` }).promise();
+    await s3Client.copyObject(copyParams).promise();
+    await s3Client.deleteObject({ Bucket: from.bucket, Key: `${from.key}` }).promise();
   }
 
   async streamToS3(bucket, toKey, inputStream) {
-    return this.api
+    const s3Client = await this.getS3();
+    return await s3Client
       .upload({
         Bucket: bucket,
         Key: toKey,
@@ -178,14 +191,16 @@ class S3Service extends Service {
   }
 
   async createPath(bucketName, folderName) {
+    const s3Client = await this.getS3();
     const params = {
       Bucket: bucketName,
       Key: folderName,
     };
-    return this.api.putObject(params).promise();
+    return await s3Client.putObject(params).promise();
   }
 
   async clearPath(bucketName, dir) {
+    const s3Client = await this.getS3();
     const listParams = {
       Bucket: bucketName,
       Prefix: dir,
@@ -193,7 +208,7 @@ class S3Service extends Service {
 
     let listedObjects = [];
     try {
-      listedObjects = await this.api.listObjectsV2(listParams).promise();
+      listedObjects = await s3Client.listObjectsV2(listParams).promise();
     } catch (error) {
       throw this.boom.badRequest(`S3Service error with listing objects in arn:aws:s3:::${bucketName}/${dir}`, true);
     }
@@ -209,7 +224,7 @@ class S3Service extends Service {
       deleteParams.Delete.Objects.push({ Key });
     });
     try {
-      await this.api.deleteObjects(deleteParams).promise();
+      await s3Client.deleteObjects(deleteParams).promise();
       if (listedObjects.IsTruncated) await this.clearPath(bucketName, dir);
     } catch (error) {
       throw this.boom.badRequest(`S3Service error with deleting objects in arn:aws:s3:::${bucketName}/${dir}`, true);
@@ -217,6 +232,7 @@ class S3Service extends Service {
   }
 
   async putObjectTag(bucket, key, tag) {
+    const s3Client = await this.getS3();
     const params = {
       Bucket: bucket,
       Key: key,
@@ -225,15 +241,16 @@ class S3Service extends Service {
       },
     };
     try {
-      await this.api.putObjectTagging(params).promise();
+      await s3Client.putObjectTagging(params).promise();
     } catch (error) {
       throw this.boom.badRequest(`S3Service error with putting tag on object arn:aws:s3:::${bucket}/${key}`, true);
     }
   }
 
   async putObject(params) {
+    const s3Client = await this.getS3();
     try {
-      await this.api.putObject(params).promise();
+      await s3Client.putObject(params).promise();
     } catch (error) {
       throw this.boom.badRequest(
         `S3Service error with putting object to bukcet: ${params.Bucket} with key: ${params.Key}`,
@@ -243,12 +260,13 @@ class S3Service extends Service {
   }
 
   async listAllObjects({ Bucket, Prefix }) {
+    const s3Client = await this.getS3();
     // repeatedly calling AWS list objects because it only returns 1000 objects
     let list = [];
     let shouldContinue = true;
     let nextContinuationToken = null;
     do {
-      const res = await this.api // eslint-disable-line no-await-in-loop
+      const res = await s3Client // eslint-disable-line no-await-in-loop
         .listObjectsV2({
           Bucket,
           Prefix,
@@ -268,11 +286,12 @@ class S3Service extends Service {
   }
 
   async getLatestObjectVersion({ Bucket, Prefix }) {
+    const s3Client = await this.getS3();
     const params = {
       Bucket,
       Prefix,
     };
-    const versionList = await this.api.listObjectVersions(params).promise();
+    const versionList = await s3Client.listObjectVersions(params).promise();
     const latestObjs = _.filter(versionList.Versions, ['IsLatest', true]);
     return latestObjs[0];
   }

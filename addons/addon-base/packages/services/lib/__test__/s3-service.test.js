@@ -242,18 +242,32 @@ describe('S3Service', () => {
       AWSMock.mock('S3', 'listObjectsV2', (params, callback) => {
         expect(params).toMatchObject({
           Bucket: 'test-bucketName',
-          Prefix: 'test-dir',
+          Prefix: 'test-Prefix',
         });
-        callback({
-          Contents: [{ key: 'test-key1' }, { key: 'test-key2' }],
-          IsTruncated: true,
-          NextContinuationToken: 'test-NextContinuationToken',
-        });
+        if (params.ContinuationToken) {
+          callback(null, {
+            Contents: [{ key: 'test-key3' }, { key: 'test-key4' }],
+            IsTruncated: false,
+            NextContinuationToken: 'test-NextContinuationToken',
+          });
+        } else {
+          callback(null, {
+            Contents: [{ key: 'test-key1' }, { key: 'test-key2' }],
+            IsTruncated: true,
+            NextContinuationToken: 'test-NextContinuationToken',
+          });
+        }
       });
-      s3Service.listAllObjects({
+      const result = await s3Service.listAllObjects({
         Bucket: 'test-bucketName',
         Prefix: 'test-Prefix',
       });
+      expect(result).toStrictEqual([
+        { key: 'test-key1' },
+        { key: 'test-key2' },
+        { key: 'test-key3' },
+        { key: 'test-key4' },
+      ]);
     });
 
     it('should successfully get object version', async () => {

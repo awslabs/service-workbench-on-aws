@@ -52,7 +52,6 @@ class DataEgressService extends Service {
       'dbService',
       'auditWriterService',
       's3Service',
-      'lockService',
       'environmentScService',
       'lockService',
     ]);
