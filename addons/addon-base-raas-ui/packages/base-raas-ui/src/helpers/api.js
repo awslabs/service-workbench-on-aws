@@ -58,7 +58,7 @@ function createAwsAccount(awsAccount) {
 
 // Note the accountUUID used here is the 'id' column in dbAwsAccounts table and 'id' attribute in AwsAccount.js, not AWS account id
 function updateAwsAccount(accountUUID, data) {
-  return httpApiPut(`api/aws-accounts/${accountUUID}/update-account`, { data });
+  return httpApiPut(`api/aws-accounts/${accountUUID}/update`, { data });
 }
 
 function getAccountsPermissionsStatus(accountUUID) {

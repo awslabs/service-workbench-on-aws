@@ -4,43 +4,43 @@
     "additionalProperties": false,
     "properties": {
         "name": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 100
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
         },
         "description": {
-          "type": "string",
-          "maxLength": 2048
+            "type": "string",
+            "maxLength": 2048
         },
         "accountId": {
-          "type": "string",
-          "pattern": "^[0-9]{12}$"
+            "type": "string",
+            "pattern": "^[0-9]{12}$"
         },
         "roleArn": {
-          "type": "string",
-          "minLength": 10
+            "type": "string",
+            "minLength": 10
         },
         "xAccEnvMgmtRoleArn": {
-          "type": "string",
-          "minLength": 10
+            "type": "string",
+            "minLength": 10
         },
         "externalId": {
-          "type": "string",
-          "minLength": 1
+            "type": "string",
+            "minLength": 1
         },
         "vpcId": {
-          "type": "string",
-          "pattern": "^vpc-[a-f0-9]{8,17}$"
+            "type": "string",
+            "pattern": "^vpc-[a-f0-9]{8,17}$"
         },
         "subnetId": {
-          "type": "string",
-          "pattern": "^subnet-[a-f0-9]{8,17}$"
+            "type": "string",
+            "pattern": "^subnet-[a-f0-9]{8,17}$"
         },
         "encryptionKeyArn": {
-          "type": "string",
-          "pattern": "^arn:aws:kms:.*$"
+            "type": "string",
+            "pattern": "^arn:aws:kms:.*$"
         }
-      },
+    },
     "required": ["name", "accountId"]
   }
   

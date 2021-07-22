@@ -29,22 +29,22 @@ describe('AWS Account Permissions scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('Individual AWS Account Permission Check', () => {
+  describe('Template Check and Upload for AWS Account Check', () => {
     it('should fail if user is inactive', async () => {
       const admin2Session = await setup.createAdminSession();
       await adminSession.resources.users.deactivateUser(admin2Session.user);
 
       await expect(
-        admin2Session.resources.awsAccounts.getPermissionsForAccount(setup.defaults.awsAccount.id),
+        admin2Session.resources.awsAccounts.getAndUploadTemplateForAccount(setup.defaults.awsAccount.id),
       ).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });
 
-    it('should fail if non-admin attempts to get permissions for an AWS Account', async () => {
+    it('should fail if non-admin attempts to get CFN template for AWS Account', async () => {
       const researcherSession = await setup.createResearcherSession();
       await expect(
-        researcherSession.resources.awsAccounts.getPermissionsForAccount(setup.defaults.awsAccount.id),
+        researcherSession.resources.awsAccounts.getAndUploadTemplateForAccount(setup.defaults.awsAccount.id),
       ).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
@@ -53,7 +53,7 @@ describe('AWS Account Permissions scenarios', () => {
     it('should fail for anonymous user', async () => {
       const anonymousSession = await setup.createAnonymousSession();
       await expect(
-        anonymousSession.resources.awsAccounts.getPermissionsForAccount(setup.defaults.awsAccount.id),
+        anonymousSession.resources.awsAccounts.getAndUploadTemplateForAccount(setup.defaults.awsAccount.id),
       ).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
@@ -61,9 +61,10 @@ describe('AWS Account Permissions scenarios', () => {
 
     it('should succeed for active admin', async () => {
       const admin2Session = await setup.createAdminSession();
-      const states = ['CURRENT', 'NEEDS_UPDATE', 'NEEDS_ONBOARD', 'PENDING', 'ERRORED', 'UNKNOWN'];
-      const res = await admin2Session.resources.awsAccounts.getPermissionsForAccount(setup.defaults.awsAccount.id);
-      await expect(states).toContain(res);
+
+      await expect(
+        admin2Session.resources.awsAccounts.getAndUploadTemplateForAccount(setup.defaults.awsAccount.id),
+      ).resolves.toHaveProperty('cfnConsoleUrl');
     });
   });
 });

@@ -257,6 +257,7 @@ class AwsAccountUpdateContent extends React.Component {
                   href={createStackUrl}
                   disabled={!warningAcknowledged}
                   rel="noopener noreferrer"
+                  color="blue"
                 >
                   Create Stack
                 </Button>
@@ -316,7 +317,7 @@ class AwsAccountUpdateContent extends React.Component {
             CloudFormation console where you can review the stack information and provision it.
             <div className="mb0 flex mt2">
               <div className="flex-auto">
-                <Button fluid as="a" target="_blank" href={updateStackUrl} rel="noopener noreferrer">
+                <Button fluid as="a" target="_blank" href={updateStackUrl} color="blue" rel="noopener noreferrer">
                   Update Stack
                 </Button>
                 {this.renderExpires(stackInfo)}

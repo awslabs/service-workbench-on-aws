@@ -29,41 +29,35 @@ describe('AWS Account Permissions scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('Individual AWS Account Permission Check', () => {
-    it('should fail if user is inactive', async () => {
+  describe('Batch AWS Accounts permissions check', () => {
+    it('should fail if admin is inactive', async () => {
       const admin2Session = await setup.createAdminSession();
       await adminSession.resources.users.deactivateUser(admin2Session.user);
 
-      await expect(
-        admin2Session.resources.awsAccounts.getPermissionsForAccount(setup.defaults.awsAccount.id),
-      ).rejects.toMatchObject({
+      await expect(admin2Session.resources.awsAccounts.bulkPermissionsCheck()).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });
 
-    it('should fail if non-admin attempts to get permissions for an AWS Account', async () => {
+    it('should fail if non-admin user is trying to check permissions', async () => {
       const researcherSession = await setup.createResearcherSession();
-      await expect(
-        researcherSession.resources.awsAccounts.getPermissionsForAccount(setup.defaults.awsAccount.id),
-      ).rejects.toMatchObject({
+      await expect(researcherSession.resources.awsAccounts.bulkPermissionsCheck()).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
+        // code: errorCode.http.code.badImplementation,
       });
     });
 
     it('should fail for anonymous user', async () => {
       const anonymousSession = await setup.createAnonymousSession();
-      await expect(
-        anonymousSession.resources.awsAccounts.getPermissionsForAccount(setup.defaults.awsAccount.id),
-      ).rejects.toMatchObject({
+      await expect(anonymousSession.resources.awsAccounts.bulkPermissionsCheck()).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });
 
     it('should succeed for active admin', async () => {
       const admin2Session = await setup.createAdminSession();
-      const states = ['CURRENT', 'NEEDS_UPDATE', 'NEEDS_ONBOARD', 'PENDING', 'ERRORED', 'UNKNOWN'];
-      const res = await admin2Session.resources.awsAccounts.getPermissionsForAccount(setup.defaults.awsAccount.id);
-      await expect(states).toContain(res);
+
+      await expect(admin2Session.resources.awsAccounts.bulkPermissionsCheck()).resolves.toHaveProperty('finalStatus');
     });
   });
 });

@@ -91,10 +91,10 @@ async function configure(context) {
   );
 
   // ===============================================================
-  //  PUT /:id/update-account (mounted to /api/aws-accounts)
+  //  PUT /:id/update (mounted to /api/aws-accounts)
   // ===============================================================
   router.put(
-    '/:id/update-account',
+    '/:id/update',
     wrap(async (req, res) => {
       const requestContext = res.locals.requestContext;
       const id = req.params.id;
