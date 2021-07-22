@@ -108,7 +108,8 @@ class EnvironmentScService extends Service {
     const envsToFilter = _.cloneDeep(envs);
 
     const projectService = await this.service('projectService');
-    const appStreamProjects = await projectService.list(requestContext, { fields: ['id', 'indexId'] });
+    const projects = await projectService.list(requestContext);
+    const appStreamProjects = _.filter(projects, proj => proj.isAppStreamConfigured);
     const appStreamProjectIds = _.map(appStreamProjects, proj => proj.id);
 
     return _.filter(envsToFilter, env => _.includes(appStreamProjectIds, env.projectId));
@@ -400,11 +401,17 @@ class EnvironmentScService extends Service {
     // const { name, envTypeId, envTypeConfigId, description, projectId, cidr, studyIds } = environment
     const { envTypeId, envTypeConfigId, projectId } = environment;
 
-    // If AppStream is enabled, this will verify requested project account has AppStream information
-    await this.checkAppStreamConfig(requestContext, projectId);
-
     // Lets find the index id, by looking at the project and then get the index id
-    const { indexId } = await projectService.mustFind(requestContext, { id: projectId, fields: ['indexId'] });
+    // The isAppStreamConfigured attribute value will be returned by project service. No other fields needed to be added
+    const { indexId, isAppStreamConfigured } = await projectService.mustFind(requestContext, {
+      id: projectId,
+      fields: ['indexId'],
+    });
+
+    // If the AppStream feature is enabled, verify the project linked to the environment has it configured
+    const isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
+    if (isAppStreamEnabled && !isAppStreamConfigured)
+      throw this.boom.badRequest('Please select an AppStream-configured project', true);
 
     // Save environment to db and trigger the workflow
     const by = _.get(requestContext, 'principalIdentifier.uid');
@@ -459,18 +466,6 @@ class EnvironmentScService extends Service {
     }
 
     return dbResult;
-  }
-
-  async checkAppStreamConfig(requestContext, projectId) {
-    const isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
-    if (!isAppStreamEnabled) return;
-
-    const projectService = await this.service('projectService');
-    const appStreamProjects = await projectService.list(requestContext, { fields: ['id', 'indexId'] });
-    const appStreamProjectIds = _.map(appStreamProjects, proj => proj.id);
-
-    if (!_.includes(appStreamProjectIds, projectId))
-      throw this.boom.badRequest('Please select an AppStream-configured project', true);
   }
 
   async update(requestContext, environment, ipAllowListAction = {}) {

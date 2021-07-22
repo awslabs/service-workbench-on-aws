@@ -47,6 +47,7 @@ class ProjectService extends Service {
     const [dbService] = await this.service(['dbService']);
     const table = this.settings.get(settingKeys.tableName);
     this.userService = await this.service('userService');
+    this.isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
 
     this._getter = () => dbService.helper.getter().table(table);
     this._updater = () => dbService.helper.updater().table(table);
@@ -63,10 +64,14 @@ class ProjectService extends Service {
 
     // Future task: return undefined if the user is not associated with this project, unless they are admin
 
-    const result = await this._getter()
+    let result = await this._getter()
       .key({ id })
       .projection(fields)
       .get();
+
+    if (this.isAppStreamEnabled) {
+      result = this.verifyAppStreamConfig(requestContext, result);
+    }
 
     return this._fromDbToDataObject(result);
   }
@@ -220,18 +225,14 @@ class ProjectService extends Service {
       .projection(fields)
       .scan();
 
-    projects = await this.filterAppStreamProjects(requestContext, projects);
-
+    if (this.isAppStreamEnabled) {
+      projects = await this.verifyAppStreamConfig(requestContext, projects);
+    }
     return projects;
   }
 
-  async filterAppStreamProjects(requestContext, projects) {
+  async verifyAppStreamConfig(requestContext, input) {
     try {
-      const isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
-      if (!isAppStreamEnabled) return projects;
-
-      const projectsToFilter = _.cloneDeep(projects);
-
       const [awsAccountsService, indexesService] = await this.service(['awsAccountsService', 'indexesService']);
       const accounts = await awsAccountsService.list(requestContext, {
         fields: ['id', 'appStreamFleetName', 'appStreamSecurityGroupId', 'appStreamStackName'],
@@ -248,7 +249,16 @@ class ProjectService extends Service {
       const indexesWithAppStream = _.filter(indexes, index => _.includes(accountIdsWithAppStream, index.awsAccountId));
       const indexIdsWithAppStream = _.map(indexesWithAppStream, index => index.id);
 
-      return _.filter(projectsToFilter, project => _.includes(indexIdsWithAppStream, project.indexId));
+      if (_.isArray(input)) {
+        return _.map(input, project => {
+          project.isAppStreamConfigured = _.includes(indexIdsWithAppStream, project.indexId);
+          return project;
+        });
+      }
+
+      const project = input;
+      project.isAppStreamConfigured = _.includes(indexIdsWithAppStream, project.indexId);
+      return project;
     } catch (err) {
       throw this.boom.badRequest(`There was an error filtering AppStream projects: ${err}`, true);
     }

@@ -67,15 +67,15 @@ class ScEnvironmentsList extends React.Component {
     return this.props.scEnvironmentsStore;
   }
 
+  getProjects() {
+    const store = this.getProjectsStore();
+    return store.list;
+  }
+
   getProjectsStore() {
     const store = this.props.projectsStore;
     store.load();
     return store;
-  }
-
-  getProjects() {
-    const store = this.getProjectsStore();
-    return store.list;
   }
 
   handleCreateEnvironment = event => {
@@ -162,9 +162,10 @@ class ScEnvironmentsList extends React.Component {
 
   renderTitle() {
     const projects = this.getProjects();
+    const appStreamProjects = _.filter(projects, proj => proj.isAppStreamConfigured);
 
     runInAction(() => {
-      if (this.isAppStreamEnabled && _.isEmpty(projects)) this.provisionDisabled = true;
+      if (this.isAppStreamEnabled && _.isEmpty(appStreamProjects)) this.provisionDisabled = true;
     });
 
     return (
