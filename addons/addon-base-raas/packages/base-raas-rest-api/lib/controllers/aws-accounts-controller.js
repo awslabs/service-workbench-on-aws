@@ -94,7 +94,7 @@ async function configure(context) {
   //  PUT /:id/update (mounted to /api/aws-accounts)
   // ===============================================================
   router.put(
-    '/:id/update',
+    '/:id',
     wrap(async (req, res) => {
       const requestContext = res.locals.requestContext;
       const id = req.params.id;

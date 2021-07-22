@@ -55,24 +55,27 @@ describe('AWS Account Permissions scenarios', () => {
       });
     });
 
-    // it('should fail for non-admins', async () => {
-    //   const researcherSession = await setup.createResearcherSession();
-    //   await expect(
-    //     researcherSession.resources.awsAccounts
-    //       .awsAccount(accountId)
-    //       .update({ rev: 0, id: accountId, description: 'test' }),
-    //   ).rejects.toMatchObject({
-    //     code: errorCode.http.code.forbidden,
-    //   });
-    // });
+    it('should fail for non-admins', async () => {
+      const researcherSession = await setup.createResearcherSession();
+      await expect(
+        researcherSession.resources.awsAccounts
+          .awsAccount(accountId)
+          .update({ rev: 0, id: accountId, description: 'test' }),
+      ).rejects.toMatchObject({
+        code: errorCode.http.code.forbidden,
+      });
+    });
 
-    // it('should update other user successfully for admin', async () => {
-    //   await expect(
-    //     adminSession.resources.awsAccounts.awsAccount(accountId).update({ rev: 0, id: accountId, description: 'test' }),
-    //   ).resolves.toMatchObject({
-    //     id: accountId,
-    //     description: 'test',
-    //   });
-    // });
+    it('should update aws account successfully for admin', async () => {
+      const account = await adminSession.resources.awsAccounts.awsAccount(accountId).get();
+      await expect(
+        adminSession.resources.awsAccounts
+          .awsAccount(accountId)
+          .update({ rev: account.rev, id: accountId, description: 'test' }),
+      ).resolves.toMatchObject({
+        id: accountId,
+        description: 'test',
+      });
+    });
   });
 });
