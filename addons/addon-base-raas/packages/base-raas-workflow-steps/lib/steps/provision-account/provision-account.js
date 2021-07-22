@@ -106,11 +106,11 @@ class ProvisionAccount extends StepBase {
   }
 
   async shareImageWithMemberAccount() {
-    const [accountService] = await this.mustFindServices(['accountService']);
+    const [appStreamScService] = await this.mustFindServices(['appStreamScService']);
     const requestContext = await this.payload.object('requestContext');
     const accountId = await this.state.string('ACCOUNT_ID');
     const appStreamImageName = await this.payload.string('appStreamImageName');
-    await accountService.shareAppStreamImageWithMemberAccount(requestContext, accountId, appStreamImageName);
+    await appStreamScService.shareAppStreamImageWithAccount(requestContext, accountId, appStreamImageName);
 
     return this.wait(10).thenCall('createAppStreamRoles');
   }
@@ -158,7 +158,7 @@ class ProvisionAccount extends StepBase {
         Description: 'AppStream service-linked role for application autoscaling',
       })
       .promise();
-    // Provide time for internal Amazon customer to create containment score for new account by launching EC2 instance
+    // Provide time for internal Amazon customer to create containment score for new account by launching an EC2 instance
     return this.wait(60 * 15).thenCall('deployStack');
   }
 

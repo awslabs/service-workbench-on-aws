@@ -421,6 +421,7 @@ class AwsCfnService extends Service {
     const params = { StackName: cfnStackName };
     const stacks = await cfnApi.describeStacks(params).promise();
     const stack = _.find(_.get(stacks, 'Stacks', []), item => item.StackName === cfnStackName);
+    console.log('stack', stack);
 
     if (_.isEmpty(stack)) {
       throw this.boom.notFound(`Stack '${cfnStackName}' not found`, true);
@@ -439,7 +440,6 @@ class AwsCfnService extends Service {
     fieldsToUpdate.cfnStackId = stack.StackId;
     fieldsToUpdate.externalId = accountEntity.externalId || 'workbench';
     fieldsToUpdate.vpcId = findOutputValue('VPC');
-    fieldsToUpdate.subnetId = findOutputValue('VpcPublicSubnet1');
     fieldsToUpdate.encryptionKeyArn = findOutputValue('EncryptionKeyArn');
     fieldsToUpdate.roleArn = findOutputValue('CrossAccountExecutionRoleArn');
     fieldsToUpdate.xAccEnvMgmtRoleArn = findOutputValue('CrossAccountEnvMgmtRoleArn');
@@ -448,7 +448,20 @@ class AwsCfnService extends Service {
     fieldsToUpdate.id = accountEntity.id;
     fieldsToUpdate.rev = accountEntity.rev;
 
+    console.log('before settings');
+    if (this.settings.get(settingKeys.isAppStreamEnabled) === 'true') {
+      fieldsToUpdate.subnetId = findOutputValue('PrivateWorkspaceSubnet');
+      fieldsToUpdate.appStreamStackName = findOutputValue('AppStreamStackName');
+      fieldsToUpdate.appStreamFleetName = findOutputValue('AppStreamFleet');
+      fieldsToUpdate.appStreamSecurityGroupId = findOutputValue('AppStreamSecurityGroup');
+    } else {
+      fieldsToUpdate.subnetId = findOutputValue('VpcPublicSubnet1');
+    }
+
+    console.log('fieldsToUpdate', fieldsToUpdate);
     await awsAccountsService.update(requestContext, fieldsToUpdate);
+
+    // TODO Start AppStream fleet
   }
 
   async assertAuthorized(requestContext, { action, conditions }, ...args) {

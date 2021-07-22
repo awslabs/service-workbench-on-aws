@@ -16,6 +16,30 @@
         "type": "string",
         "pattern": "^[0-9]{12}$"
       },
+      "roleArn": {
+        "type": "string",
+        "minLength": 10
+      },
+      "xAccEnvMgmtRoleArn": {
+        "type": "string",
+        "minLength": 10
+      },
+      "externalId": {
+        "type": "string",
+        "minLength": 1
+      },
+      "vpcId": {
+        "type": "string",
+        "pattern": "^vpc-[a-f0-9]{8,17}$"
+      },
+      "subnetId": {
+        "type": "string",
+        "pattern": "^subnet-[a-f0-9]{8,17}$"
+      },
+      "encryptionKeyArn": {
+        "type": "string",
+        "pattern": "^arn:aws:kms:.*$"
+      },
       "appStreamStackName": {
         "type": "string",
         "minLength": 10

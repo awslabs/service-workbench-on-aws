@@ -82,6 +82,7 @@ awsAccountOnboardingHandler:
   environment:
     APP_SM_WORKFLOW: ${self:custom.settings.workflowStateMachineArn}
     APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
+    APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
 
 apiHandler:
   timeout: 30 # in seconds, default is 6

@@ -203,6 +203,7 @@ class AwsAccountUpdateContent extends React.Component {
     const { accountId } = account;
     const { createStackUrl, region } = stackInfo;
 
+    // TODO: If AppStream enabled tell user to log into AppStream on the console first, and click "Get Started", then click "Skip"
     return (
       <div className="animated fadeIn">
         <List ordered size={textSize}>
@@ -236,6 +237,16 @@ class AwsAccountUpdateContent extends React.Component {
           </List.Item>
         </List>
       </div>
+    );
+  }
+
+  renderAppStreamInstructions() {
+    return (
+      <List.Item>
+        If you have not access AppStream from the console yet, you will need to do so. This will enable AppStream for
+        your account. Go to AppStream 2.0 services, and click &quotGet Started&quot. This will take you to a screen
+        asking if you want to try out some templates. At this screen click next
+      </List.Item>
     );
   }
 

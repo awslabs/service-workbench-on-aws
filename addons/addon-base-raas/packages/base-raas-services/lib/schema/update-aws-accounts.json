@@ -66,6 +66,15 @@
     },
     "permissionStatus": {
       "type": "string"
+    },
+    "appStreamStackName": {
+      "type": "string"
+    },
+    "appStreamFleetName": {
+      "type": "string"
+    },
+    "appStreamSecurityGroupId": {
+      "type": "string"
     }
   },
   "required": [

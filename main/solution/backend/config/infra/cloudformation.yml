@@ -583,6 +583,11 @@ Resources:
             Resource:
               - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}'
               - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}/*'
+          - Effect: Allow
+            Action:
+              - appstream:UpdateImagePermissions
+            Resource:
+              - !Sub 'arn:aws:appstream:${AWS::Region}:${AWS::AccountId}:image/ServiceWorkbench*'
   # IAM Role for the apiHandler Function
   RoleApiHandler:
     Type: 'AWS::IAM::Role'

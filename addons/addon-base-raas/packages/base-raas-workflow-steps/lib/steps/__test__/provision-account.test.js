@@ -446,7 +446,6 @@ describe('ProvisionAccount', () => {
     const accountService = {
       saveAccountToDb: jest.fn(),
     };
-    accountService.shareAppStreamImageWithMemberAccount = jest.fn();
     step.mustFindServices = jest.fn().mockImplementation(async services => {
       if (services[0] === 'accountService') {
         return Promise.resolve([accountService]);
