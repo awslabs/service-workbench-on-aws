@@ -145,6 +145,7 @@ class AwsAccountsService extends Service {
   }
 
   async create(requestContext, rawData) {
+    console.log('ZZZ: Inside create of aws-account-service');
     // ensure that the caller has permissions to create the account
     // Perform default condition checks to make sure the user is active and is admin
     await this.assertAuthorized(
@@ -154,16 +155,15 @@ class AwsAccountsService extends Service {
     );
 
     // Validate input
-    console.log('ZZZ: rawData', rawData);
-    await validationService.ensureValid(rawData, createSchema);
     const [validationService] = await this.service(['jsonSchemaValidationService']);
-    console.log('ZZZ: After validation');
+    await validationService.ensureValid(rawData, createSchema);
 
     // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
     const by = _.get(requestContext, 'principalIdentifier.uid');
     const id = uuid();
 
     // Prepare the db object
+    // TODO: If we're deploying a new SWB instance to a new account, it doesn't need to be ONBOARD
     const dbObject = this._fromRawToDbObject(rawData, {
       rev: 0,
       createdBy: by,
@@ -171,15 +171,12 @@ class AwsAccountsService extends Service {
       permissionStatus: 'NEEDS_ONBOARD',
     });
 
-    if (this.settings.get(settingKeys.isAppStreamEnabled) === 'true') {
+    // Only try to shareAppStreamImage with member account if AppStream is enabled and appStreamImageName is provided
+    if (this.settings.get(settingKeys.isAppStreamEnabled) === 'true' && rawData.appStreamImageName !== undefined) {
       const appStreamImageName = rawData.appStreamImageName;
       const accountId = rawData.accountId;
       await this.shareAppStreamImageWithMemberAccount(requestContext, accountId, appStreamImageName);
     }
-
-    console.log('ZZZ:dbObject', dbObject);
-
-    // TODO how do we create the AppStream access role????
 
     // Time to save the the db object
     const result = await runAndCatch(

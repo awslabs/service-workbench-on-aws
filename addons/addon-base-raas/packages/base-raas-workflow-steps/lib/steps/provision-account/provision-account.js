@@ -159,7 +159,7 @@ class ProvisionAccount extends StepBase {
       })
       .promise();
     // Provide time for internal Amazon customer to create containment score for new account by launching an EC2 instance
-    return this.wait(60 * 15).thenCall('deployStack');
+    return this.wait(60 * 10).thenCall('deployStack');
   }
 
   async deployStack() {
@@ -308,6 +308,7 @@ class ProvisionAccount extends StepBase {
           await this.startAppStreamFleet(cfnOutputs.AppStreamFleet);
           const isAppStreamFleetRunning = await this.checkAppStreamFleetIsRunning(cfnOutputs.AppStreamFleet);
           if (!isAppStreamFleetRunning) {
+            this.print('Waiting for AppStream fleet to start');
             return false;
           }
 
@@ -322,6 +323,7 @@ class ProvisionAccount extends StepBase {
             subnetId: cfnOutputs.VpcPublicSubnet1,
           };
         }
+        console.log('Adding to table');
         await this.addAwsAccountTable(requestContext, { ...awsAccountData, ...additionalAccountData });
       }
       return true;

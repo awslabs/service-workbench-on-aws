@@ -216,6 +216,7 @@ class AwsAccountUpdateContent extends React.Component {
               </p>
             </Message>
           </List.Item>
+          {process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true' && this.renderAppStreamInstructions()}
           <List.Item>
             Click on the <b>Create Stack</b> button, this opens a separate browser tab and takes you to the
             CloudFormation console where you can review the stack information and provision it.
@@ -241,11 +242,14 @@ class AwsAccountUpdateContent extends React.Component {
   }
 
   renderAppStreamInstructions() {
+    {
+      /* eslint-disable-next-line react/no-unescaped-entities */
+    }
     return (
       <List.Item>
         If you have not access AppStream from the console yet, you will need to do so. This will enable AppStream for
-        your account. Go to AppStream 2.0 services, and click &quotGet Started&quot. This will take you to a screen
-        asking if you want to try out some templates. At this screen click next
+        your account. Go to AppStream 2.0 services, and click &apos;Get Started&apos;. This will take you to a screen
+        asking if you want to try out some templates. At this screen click &apos;Next&apos;
       </List.Item>
     );
   }
