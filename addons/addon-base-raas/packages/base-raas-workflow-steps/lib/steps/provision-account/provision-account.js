@@ -209,7 +209,7 @@ class ProvisionAccount extends StepBase {
           vpcId: cfnOutputs.VPC,
           encryptionKeyArn: cfnOutputs.EncryptionKeyArn,
           onboardStatusRoleArn: cfnOutputs.OnboardStatusRoleArn,
-          cfnStackName: stackId,
+          cfnStackName: stackInfo.StackName,
           cfnStackId: stackInfo.StackId,
           permissionStatus: 'CURRENT',
         };
