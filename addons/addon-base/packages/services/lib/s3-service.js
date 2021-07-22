@@ -181,7 +181,7 @@ class S3Service extends Service {
 
   async streamToS3(bucket, toKey, inputStream) {
     const s3Client = await this.getS3();
-    return await s3Client
+    return s3Client
       .upload({
         Bucket: bucket,
         Key: toKey,
@@ -196,7 +196,7 @@ class S3Service extends Service {
       Bucket: bucketName,
       Key: folderName,
     };
-    return await s3Client.putObject(params).promise();
+    return s3Client.putObject(params).promise();
   }
 
   async clearPath(bucketName, dir) {
