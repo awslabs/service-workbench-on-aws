@@ -208,6 +208,10 @@ class ProvisionAccount extends StepBase {
           subnetId: cfnOutputs.VpcPublicSubnet1,
           vpcId: cfnOutputs.VPC,
           encryptionKeyArn: cfnOutputs.EncryptionKeyArn,
+          onboardStatusRoleArn: cfnOutputs.OnboardStatusRoleArn,
+          cfnStackName: stackId,
+          cfnStackId: stackInfo.StackId,
+          permissionStatus: 'CURRENT',
         };
         await this.addAwsAccountTable(requestContext, awsAccountData);
       }

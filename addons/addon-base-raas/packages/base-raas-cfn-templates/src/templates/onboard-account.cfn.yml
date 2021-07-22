@@ -464,3 +464,7 @@ Outputs:
   EncryptionKeyArn:
     Description: KMS Encryption Key Arn
     Value: !GetAtt [EncryptionKey, Arn]
+
+  OnboardStatusRoleArn:
+    Description: The arn of the role SWB uses to check permissions status
+    Value: !GetAtt [CfnStatusRole, Arn]
