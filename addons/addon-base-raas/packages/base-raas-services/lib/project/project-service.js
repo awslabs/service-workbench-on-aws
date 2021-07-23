@@ -17,8 +17,9 @@ const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
+const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
 
-const { isExternalGuest, isExternalResearcher, isInternalGuest } = require('../helpers/is-role');
+const { isExternalGuest, isExternalResearcher, isInternalGuest, isAdmin, isSystem } = require('../helpers/is-role');
 const createSchema = require('../schema/create-project');
 const updateSchema = require('../schema/update-project');
 
@@ -62,7 +63,13 @@ class ProjectService extends Service {
 
     if (restrict) return undefined;
 
-    // Future task: return undefined if the user is not associated with this project, unless they are admin
+    // Throw unauthorized error if the user is not associated with this project, unless they are admin
+    if (
+      !isAdmin(requestContext) &&
+      !isSystem(requestContext) &&
+      !(await this.verifyUserProjectAssociation(_.get(requestContext, 'principalIdentifier.uid'), id))
+    )
+      throw this.boom.forbidden(`You're not authorized to access project "${id}"`, true);
 
     let result = await this._getter()
       .key({ id })
@@ -70,7 +77,7 @@ class ProjectService extends Service {
       .get();
 
     if (this.isAppStreamEnabled) {
-      result = this.verifyAppStreamConfig(requestContext, result);
+      result = this.verifyAppStreamConfig(result);
     }
 
     return this._fromDbToDataObject(result);
@@ -217,8 +224,6 @@ class ProjectService extends Service {
 
     if (restrict) return [];
 
-    // Future task: only return projects that the user has been associated with unless the user is an admin
-
     // Remember doing a scan is not a good idea if you billions of rows
     let projects = await this._scanner()
       .limit(1000)
@@ -226,28 +231,53 @@ class ProjectService extends Service {
       .scan();
 
     if (this.isAppStreamEnabled) {
-      projects = await this.verifyAppStreamConfig(requestContext, projects);
+      projects = await this.verifyAppStreamConfig(projects);
     }
-    return projects;
+
+    // Only return projects that the user has been associated with unless user is an admin
+    if (isAdmin(requestContext) || isSystem(requestContext)) return projects;
+
+    const by = _.get(requestContext, 'principalIdentifier.uid');
+    const retVal = await Promise.all(
+      _.map(projects, async proj => {
+        if (await this.verifyUserProjectAssociation(by, proj.id)) return proj;
+        return undefined;
+      }),
+    );
+    return _.filter(retVal, val => !_.isUndefined(val));
   }
 
-  async verifyAppStreamConfig(requestContext, input) {
+  /**
+   * Returns the same object type as the input with an added isAppStreamConfigured boolean flag for each project entity
+   *
+   * IMPORTANT: The system context is used instead of the user's request context.
+   * This is because non-admin users do not have access to resources like indexes and awsAccounts,
+   * which are required for config verification. No other information from these resources are made available to non-admins
+   *
+   * @param input The Project entity, or list of Project entities
+   */
+  async verifyAppStreamConfig(input) {
     try {
+      const systemContext = getSystemRequestContext();
       const [awsAccountsService, indexesService] = await this.service(['awsAccountsService', 'indexesService']);
-      const accounts = await awsAccountsService.list(requestContext, {
+      const accounts = await awsAccountsService.list(systemContext, {
         fields: ['id', 'appStreamFleetName', 'appStreamSecurityGroupId', 'appStreamStackName'],
       });
-      const accountsWithAppStream = _.filter(
-        accounts,
-        account =>
-          !_.isUndefined(account.appStreamFleetName) &&
-          !_.isUndefined(account.appStreamSecurityGroupId) &&
-          !_.isUndefined(account.appStreamStackName),
+      const indexes = await indexesService.list(systemContext, { fieldsToGet: ['id', 'awsAccountId'] });
+      const accountIdsWithAppStream = _.map(
+        _.filter(
+          accounts,
+          account =>
+            !_.isUndefined(account.appStreamFleetName) &&
+            !_.isUndefined(account.appStreamSecurityGroupId) &&
+            !_.isUndefined(account.appStreamStackName),
+        ),
+        'id',
       );
-      const accountIdsWithAppStream = _.map(accountsWithAppStream, account => account.id);
-      const indexes = await indexesService.list(requestContext, { fieldsToGet: ['id', 'awsAccountId'] });
-      const indexesWithAppStream = _.filter(indexes, index => _.includes(accountIdsWithAppStream, index.awsAccountId));
-      const indexIdsWithAppStream = _.map(indexesWithAppStream, index => index.id);
+      const indexIdsWithAppStream = _.map(
+        _.filter(indexes, index => _.includes(accountIdsWithAppStream, index.awsAccountId)),
+        'id',
+      );
 
       if (_.isArray(input)) {
         return _.map(input, project => {

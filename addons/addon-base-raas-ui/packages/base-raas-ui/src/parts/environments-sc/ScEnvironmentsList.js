@@ -95,6 +95,12 @@ class ScEnvironmentsList extends React.Component {
   render() {
     const store = this.envsStore;
     let content = null;
+    const projects = this.getProjects();
+    const appStreamProjects = _.filter(projects, proj => proj.isAppStreamConfigured);
+
+    runInAction(() => {
+      if (this.isAppStreamEnabled && _.isEmpty(appStreamProjects)) this.provisionDisabled = true;
+    });
 
     if (isStoreError(store)) {
       content = <ErrorBox error={store.error} className="p0" />;
@@ -111,8 +117,26 @@ class ScEnvironmentsList extends React.Component {
     return (
       <Container className="mt3 animated fadeIn">
         {this.renderTitle()}
+        {this.provisionDisabled && this.renderMissingAppStreamConfig()}
         {content}
       </Container>
+    );
+  }
+
+  renderMissingAppStreamConfig() {
+    return (
+      <>
+        <Segment placeholder className="mt2">
+          <Header icon className="color-grey">
+            <Icon name="lock" />
+            Missing association with AppStream projects
+            <Header.Subheader>
+              Since your projects are not associated to an AppStream-configured account, creating a new workspace is
+              disabled. Please contact your administrator.
+            </Header.Subheader>
+          </Header>
+        </Segment>
+      </>
     );
   }
 
@@ -161,13 +185,6 @@ class ScEnvironmentsList extends React.Component {
   }
 
   renderTitle() {
-    const projects = this.getProjects();
-    const appStreamProjects = _.filter(projects, proj => proj.isAppStreamConfigured);
-
-    runInAction(() => {
-      if (this.isAppStreamEnabled && _.isEmpty(appStreamProjects)) this.provisionDisabled = true;
-    });
-
     return (
       <div className="mb3 flex">
         <Header as="h3" className="color-grey mt1 mb0 flex-auto">
