@@ -13,6 +13,7 @@
  *  permissions and limitations under the License.
  */
 const _ = require('lodash');
+const uuid = require('uuid');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { isAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
@@ -31,13 +32,17 @@ const settingKeys = {
   tableName: 'dbEgressStore',
   enableEgressStore: 'enableEgressStore',
   egressStoreBucketName: 'egressStoreBucketName',
+  egressNotificationBucketName: 'egressNotificationBucketName',
   egressStoreKmsKeyAliasArn: 'egressStoreKmsKeyAliasArn',
+  egressNotificationSnsTopicArn: 'egressNotificationSnsTopicArn',
 };
 
 const PROCESSING_STATUS_CODE = 'PROCESSING';
 const PROCESSED_STATUS_CODE = 'PROCESSED';
 const TERMINATED_STATUS_CODE = 'TERMINATED';
 const CREATED_STATUS_CODE = 'CREATED';
+// use pending status code when egress request is send to Data Manager
+const PENDING_STATUS_CODE = 'PENDING';
 class DataEgressService extends Service {
   constructor() {
     super();
@@ -47,7 +52,6 @@ class DataEgressService extends Service {
       'dbService',
       'auditWriterService',
       's3Service',
-      'lockService',
       'environmentScService',
       'lockService',
     ]);
@@ -123,6 +127,9 @@ class DataEgressService extends Service {
       status: CREATED_STATUS_CODE,
       updatedBy: by,
       updatedAt: creationTime,
+      ver: 0,
+      isAbleToSubmitEgressRequest: false,
+      egressStoreObjectListLocation: null,
     };
 
     const lockService = await this.service('lockService');
@@ -213,23 +220,11 @@ class DataEgressService extends Service {
 
       const lockService = await this.service('lockService');
       const egressStoreDdbLockId = `egress-store-ddb-access-${egressStoreInfo.id}`;
-      await lockService.tryWriteLockAndRun({ id: egressStoreDdbLockId }, async () => {
-        egressStoreInfo.status = TERMINATED_STATUS_CODE;
-        egressStoreInfo.updatedBy = curUser;
-        egressStoreInfo.updatedAt = new Date().toISOString();
-        await runAndCatch(
-          async () => {
-            return this._updater()
-              .condition('attribute_exists(id)') // yes we need this to ensure the egress store does exist already
-              .key({ id: egressStoreInfo.id })
-              .item(egressStoreInfo)
-              .update();
-          },
-          async () => {
-            throw this.boom.badRequest(`Egress Store with id "${egressStoreInfo.id}" got updating error`, true);
-          },
-        );
-      });
+      egressStoreInfo.status = TERMINATED_STATUS_CODE;
+      egressStoreInfo.updatedBy = curUser;
+      egressStoreInfo.updatedAt = new Date().toISOString();
+      egressStoreInfo.isAbleToSubmitEgressRequest = false;
+      await this.lockAndUpdate(egressStoreDdbLockId, egressStoreInfo.id, egressStoreInfo);
 
       const egressStore = {
         id: `egress-store-${environmentId}`,
@@ -261,6 +256,156 @@ class DataEgressService extends Service {
       });
       await this.audit(requestContext, { action: 'terminated-egress-store', body: egressStore });
     }
+  }
+
+  async getEgressStore(requestContext, environmentId) {
+    const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
+    if (!enableEgressStore || enableEgressStore.toUpperCase() !== 'TRUE') {
+      throw this.boom.forbidden('Unable to list objects in egress store since this feature is disabled', true);
+    }
+    const curUser = _.get(requestContext, 'principalIdentifier.uid');
+    const egressStoreInfo = await this.getEgressStoreInfo(environmentId);
+    const isEgressStoreOwner = egressStoreInfo.createdBy === curUser;
+    if (!isAdmin(requestContext) && !isEgressStoreOwner) {
+      throw this.boom.forbidden(
+        `You are not authorized to perform egress store list. Please contact your administrator for more information.`,
+        true,
+      );
+    }
+    const s3Service = await this.service('s3Service');
+    // always fetch all the objects and sort and return top 100
+    const objectList = await s3Service.listAllObjects({
+      Bucket: egressStoreInfo.s3BucketName,
+      Prefix: egressStoreInfo.s3BucketPath,
+    });
+    objectList.sort((a, b) => {
+      return new Date(a.LastModified) - new Date(b.LastModified);
+    });
+    let result = [];
+    _.forEach(objectList, obj => {
+      obj.projectId = egressStoreInfo.projectId;
+      obj.workspaceId = egressStoreInfo.workspaceId;
+      obj.Size = this.bytesToSize(obj.Size);
+      const newKey = obj.Key.split('/');
+      if (newKey[1]) {
+        obj.Key = newKey[1];
+        result.push(obj);
+      }
+    });
+    if (result.length > 100) {
+      result = result.slice(0, 100);
+    }
+
+    return { objectList: result, isAbleToSubmitEgressRequest: egressStoreInfo.isAbleToSubmitEgressRequest };
+  }
+
+  bytesToSize(bytes) {
+    const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB'];
+    if (bytes === 0) return '0 Byte';
+    let i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)), 10); // parseInt(string, radix) string: The value to parse. radix: An integer between 2 and 36 that represents the radix of the string.
+    i = i <= 5 ? i : 5;
+    return `${Math.round(bytes / 1024 ** i, 2)} ${sizes[i]}`;
+  }
+
+  async prepareEgressStoreSnapshot(egressStoreInfo) {
+    const s3Service = await this.service('s3Service');
+    const egressNotificationBucketName = this.settings.get(settingKeys.egressNotificationBucketName);
+    const curVersion = parseInt(egressStoreInfo.ver, 10) + 1; // parseInt(string, radix) string: The value to parse. radix: An integer between 2 and 36 that represents the radix of the string.
+    const key = `${egressStoreInfo.id}/${egressStoreInfo.egressStoreName}-ver${curVersion}.json`;
+    try {
+      const objectList = await s3Service.listAllObjects({
+        Bucket: egressStoreInfo.s3BucketName,
+        Prefix: egressStoreInfo.s3BucketPath,
+      });
+      await Promise.all(
+        _.map(objectList, async obj => {
+          const latestVersion = await s3Service.getLatestObjectVersion({
+            Bucket: egressStoreInfo.s3BucketName,
+            Prefix: obj.Key,
+          });
+          obj.VersionId = latestVersion.VersionId;
+          obj.Owner = latestVersion.Owner;
+          return obj;
+        }),
+      );
+      const params = {
+        Bucket: egressNotificationBucketName,
+        Key: key,
+        Body: JSON.stringify({ objects: objectList }),
+        ContentType: 'application/json',
+      };
+      await s3Service.putObject(params);
+    } catch (error) {
+      throw this.boom.badRequest(
+        `Error in preparing EgressStoreSnapshot, bucket:${egressNotificationBucketName}, key: ${key}`,
+        true,
+      );
+    }
+    return { bucket: egressNotificationBucketName, key };
+  }
+
+  async notifySNS(requestContext, environmentId) {
+    const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
+    const curUser = _.get(requestContext, 'principalIdentifier.uid');
+    if (!enableEgressStore || enableEgressStore.toUpperCase() !== 'TRUE') {
+      throw this.boom.forbidden('Unable to create Egress store since this feature is disabled', true);
+    }
+
+    const egressStoreInfo = await this.getEgressStoreInfo(environmentId);
+    if (!egressStoreInfo.isAbleToSubmitEgressRequest) {
+      throw this.boom.badRequest(
+        `Egress Store:${egressStoreInfo.id} is not ready for egress. Please contact your administrator for more information.`,
+        true,
+      );
+    }
+    const isEgressStoreOwner = egressStoreInfo.createdBy === curUser;
+    if (!isAdmin(requestContext) && !isEgressStoreOwner) {
+      throw this.boom.forbidden(
+        `You are not authorized to submit egress request. Please contact your administrator for more information.`,
+        true,
+      );
+    }
+    const egressStoreObjectList = await this.prepareEgressStoreSnapshot(egressStoreInfo);
+
+    // update dynamodb info
+    const egressStoreDdbLockId = `egress-store-ddb-access-${egressStoreInfo.id}`;
+    if (egressStoreInfo.status.toUpperCase() !== PENDING_STATUS_CODE) {
+      egressStoreInfo.status = PENDING_STATUS_CODE;
+    }
+    egressStoreInfo.updatedBy = curUser;
+    egressStoreInfo.updatedAt = new Date().toISOString();
+    egressStoreInfo.isAbleToSubmitEgressRequest = false;
+    egressStoreInfo.egressStoreObjectListLocation = `arn:aws:s3:::${egressStoreObjectList.bucket}/${egressStoreObjectList.key}`;
+    egressStoreInfo.ver = parseInt(egressStoreInfo.ver, 10) + 1; // parseInt(string, radix) string: The value to parse. radix: An integer between 2 and 36 that represents the radix of the string.
+    await this.lockAndUpdate(egressStoreDdbLockId, egressStoreInfo.id, egressStoreInfo);
+
+    const message = {
+      egressStoreObjectListLocation: `arn:aws:s3:::${egressStoreObjectList.bucket}/${egressStoreObjectList.key}`,
+      id: uuid.v4(),
+      egress_store_id: egressStoreInfo.id,
+      egress_store_name: egressStoreInfo.egressStoreName,
+      created_at: egressStoreInfo.createdAt,
+      created_by: egressStoreInfo.createdBy,
+      workspace_id: egressStoreInfo.workspaceId,
+      project_id: egressStoreInfo.projectId,
+      s3_bucketname: egressStoreInfo.s3BucketName,
+      s3_bucketpath: egressStoreInfo.s3BucketPath,
+      status: egressStoreInfo.status,
+      updated_by: egressStoreInfo.updatedBy,
+      updated_at: egressStoreInfo.updatedAt,
+      ver: egressStoreInfo.ver,
+    };
+
+    // publish the message to SNS
+    try {
+      await this.publishMessage(JSON.stringify(message));
+    } catch (error) {
+      throw this.boom.badRequest(`Unable to publish message for egress store: ${egressStoreInfo.id}`, true);
+    }
+
+    // Write audit
+    await this.audit(requestContext, { action: 'trigger-egress-notification-process', body: message });
+    return message;
   }
 
   async audit(requestContext, auditEvent) {
@@ -301,6 +446,14 @@ class DataEgressService extends Service {
   async getS3() {
     const aws = await this.getAWS();
     return new aws.sdk.S3();
+  }
+
+  async publishMessage(message) {
+    const aws = await this.getAWS();
+    const snsService = new aws.sdk.SNS();
+    const topicArn = this.settings.get(settingKeys.egressNotificationSnsTopicArn);
+    const params = { Message: message, TopicArn: topicArn };
+    await snsService.publish(params).promise();
   }
 
   async getS3BucketAndPolicy() {
@@ -365,6 +518,30 @@ class DataEgressService extends Service {
     const environmentScEntity = await environmentScService.mustFind(requestContext, { id: environmentId });
     const memberAccount = await environmentScService.getMemberAccount(requestContext, environmentScEntity);
     return memberAccount.accountId;
+  }
+
+  async lockAndUpdate(lockId, dbKey, dbObject) {
+    const lockService = await this.service('lockService');
+    await lockService.tryWriteLockAndRun({ id: lockId }, async () => {
+      await runAndCatch(
+        async () => {
+          return this._updater()
+            .condition('attribute_exists(id)') // yes we need this to ensure the egress store does exist already
+            .key({ id: dbKey })
+            .item(dbObject)
+            .update();
+        },
+        async () => {
+          throw this.boom.badRequest(`Egress Store with id "${dbKey}" got updating error`, true);
+        },
+      );
+    });
+  }
+
+  async enableEgressStoreSubmission(egressStoreInfo) {
+    const egressStoreDdbLockId = `egress-store-ddb-access-${egressStoreInfo.id}`;
+    egressStoreInfo.isAbleToSubmitEgressRequest = true;
+    await this.lockAndUpdate(egressStoreDdbLockId, egressStoreInfo.id, egressStoreInfo);
   }
 }
 

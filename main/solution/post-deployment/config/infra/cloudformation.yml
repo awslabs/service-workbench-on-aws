@@ -36,7 +36,23 @@ Resources:
               Resource:
                 - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-*:*'
                 - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-*:log-stream:*'
-
+        - PolicyName: ddb-access-policy
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - dynamodb:DeleteItem
+                - dynamodb:GetItem
+                - dynamodb:BatchGetItem
+                - dynamodb:PutItem
+                - dynamodb:Query
+                - dynamodb:Scan
+                - dynamodb:UpdateItem
+              Resource:
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEgressStore}'
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEgressStore}/index/*'
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbLocks}'
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbLocks}/index/*'
   # IAM Role for the postDeployment Function
   RolePostDeploymentLambda:
     Type: 'AWS::IAM::Role'

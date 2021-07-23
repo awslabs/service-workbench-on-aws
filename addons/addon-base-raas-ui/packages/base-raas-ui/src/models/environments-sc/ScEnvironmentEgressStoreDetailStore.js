@@ -1,34 +1,67 @@
 import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
+import { getParent, types } from 'mobx-state-tree';
+import { egressNotifySns, getEgressStore } from '../../helpers/api';
+import { enableEgressStore } from '../../helpers/settings';
 
+const S3Object = types.model('S3Object', {
+  ETag: '',
+  Key: '',
+  LastModified: '',
+  Size: '',
+  StorageClass: '',
+  projectId: '',
+  workspaceId: '',
+});
+
+const egressStoreInfo = types.model('EgressStoreInfo', {
+  objectList: types.optional(types.array(S3Object), []),
+  isAbleToSubmitEgressRequest: types.optional(types.boolean, false),
+});
 // ==================================================================
 // ScEnvironmentEgressStoreDetailStore
 // ==================================================================
 const ScEnvironmentEgressStoreDetailStore = BaseStore.named('ScEnvironmentEgressStoreDetailStore')
-  .props({})
+  .props({
+    envId: '',
+    tickPeriod: 30 * 1000, // 30 seconds,
+    egressStoreDetails: types.optional(types.maybe(egressStoreInfo), {}),
+  })
 
   .actions(self => {
-    // TODO: add actions for getting egress store and init the store
     const superCleanup = self.cleanup;
 
     return {
       async doLoad() {
-        // make API calls to fetch info
+        const raw = await getEgressStore(self.envId);
+        self.runInAction(() => {
+          self.egressStoreDetails = raw;
+        });
       },
+
+      async egressNotifySns(id) {
+        if (enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE') {
+          await egressNotifySns(id);
+        }
+      },
+
       cleanup: () => {
         superCleanup();
       },
     };
   })
-
-  .views(() => ({
-    get egressStoreStatus() {
-      // TODO: add fetch egress store status from self
-      return 'waiting';
+  .views(self => ({
+    get scEnvironment() {
+      const parent = getParent(self, 2);
+      const w = parent.getScEnvironment(self.envId);
+      return w;
+    },
+    get list() {
+      return self.egressStoreDetails.objectList;
+    },
+    get isAbleToSubmitEgressRequest() {
+      return self.egressStoreDetails.isAbleToSubmitEgressRequest;
     },
   }));
 
-function registerContextItems(appContext) {
-  appContext.scEnvironmentEgressStoreDetailStore = ScEnvironmentEgressStoreDetailStore.create({}, appContext);
-}
 // eslint-disable-next-line import/prefer-default-export
-export { ScEnvironmentEgressStoreDetailStore, registerContextItems };
+export { ScEnvironmentEgressStoreDetailStore };
