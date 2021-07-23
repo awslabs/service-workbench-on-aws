@@ -301,6 +301,10 @@ class ProvisionAccount extends StepBase {
           xAccEnvMgmtRoleArn: cfnOutputs.CrossAccountEnvMgmtRoleArn,
           vpcId: cfnOutputs.VPC,
           encryptionKeyArn: cfnOutputs.EncryptionKeyArn,
+          onboardStatusRoleArn: cfnOutputs.OnboardStatusRoleArn,
+          cfnStackName: stackInfo.StackName,
+          cfnStackId: stackInfo.StackId,
+          permissionStatus: 'CURRENT',
         };
         let additionalAccountData = {};
         if (this.settings.get(settingKeys.isAppStreamEnabled) === 'true') {

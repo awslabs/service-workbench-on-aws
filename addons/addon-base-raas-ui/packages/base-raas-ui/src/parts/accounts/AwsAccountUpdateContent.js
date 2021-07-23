@@ -216,7 +216,7 @@ class AwsAccountUpdateContent extends React.Component {
               </p>
             </Message>
           </List.Item>
-          {process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true' && this.renderAppStreamInstructions()}
+          {process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true' && this.renderEnableFirstUseAppStreamInstructions()}
           <List.Item>
             Click on the <b>Create Stack</b> button, this opens a separate browser tab and takes you to the
             CloudFormation console where you can review the stack information and provision it.
@@ -236,20 +236,27 @@ class AwsAccountUpdateContent extends React.Component {
             While the stack is being provisioned, it is okay to navigate away from this page and come back to the AWS
             Accounts list page where you can see the status of your account once the stack is finished deploying.
           </List.Item>
+          {process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true' && this.renderStartAppStreamInstructions()}
         </List>
       </div>
     );
   }
 
-  renderAppStreamInstructions() {
-    {
-      /* eslint-disable-next-line react/no-unescaped-entities */
-    }
+  renderEnableFirstUseAppStreamInstructions() {
     return (
       <List.Item>
         If you have not access AppStream from the console yet, you will need to do so. This will enable AppStream for
         your account. Go to AppStream 2.0 services, and click &apos;Get Started&apos;. This will take you to a screen
         asking if you want to try out some templates. At this screen click &apos;Next&apos;
+      </List.Item>
+    );
+  }
+
+  renderStartAppStreamInstructions() {
+    return (
+      <List.Item>
+        After the Cloudformation Stack has been created, go to AppStream on the console, then go to Fleet,then click on
+        the newly created fleet and Start the fleet.
       </List.Item>
     );
   }

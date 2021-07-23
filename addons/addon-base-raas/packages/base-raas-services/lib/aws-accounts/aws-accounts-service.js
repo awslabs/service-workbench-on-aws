@@ -168,7 +168,7 @@ class AwsAccountsService extends Service {
       rev: 0,
       createdBy: by,
       updatedBy: by,
-      permissionStatus: 'NEEDS_ONBOARD',
+      permissionStatus: rawData.permissionStatus || 'NEEDS_ONBOARD',
     });
 
     // Only try to shareAppStreamImage with member account if AppStream is enabled and appStreamImageName is provided
@@ -193,9 +193,6 @@ class AwsAccountsService extends Service {
     );
 
     await this.updateEnvironmentInstanceFilesBucketPolicy();
-
-    // TODO: If AppStream enabled share AppStream image with member account?
-    // This might not be possible as we don't have the proper creds to do that at this point
 
     // Write audit event
     await this.audit(requestContext, { action: 'create-aws-account', body: result });
