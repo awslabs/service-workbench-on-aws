@@ -69,6 +69,7 @@ class EnvironmentScService extends Service {
     await super.init();
     const [dbService, environmentAuthzService] = await this.service(['dbService', 'environmentAuthzService']);
     const table = this.settings.get(settingKeys.tableName);
+    this.isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
 
     this._getter = () => dbService.helper.getter().table(table);
     this._query = () => dbService.helper.query().table(table);
@@ -96,23 +97,22 @@ class EnvironmentScService extends Service {
         return environments.filter(env => isCurrentUser(requestContext, { uid: env.createdBy }));
       });
 
-    envs = await this.filterAppStreamProjectEnvs(requestContext, envs);
+    if (this.isAppStreamEnabled) {
+      envs = await this.filterAppStreamProjectEnvs(requestContext, envs);
+    }
 
     return this.augmentWithConnectionInfo(requestContext, envs);
   }
 
   async filterAppStreamProjectEnvs(requestContext, envs) {
-    const isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
-    if (!isAppStreamEnabled) return envs;
-
-    const envsToFilter = _.cloneDeep(envs);
-
     const projectService = await this.service('projectService');
     const projects = await projectService.list(requestContext);
-    const appStreamProjects = _.filter(projects, proj => proj.isAppStreamConfigured);
-    const appStreamProjectIds = _.map(appStreamProjects, proj => proj.id);
+    const appStreamProjectIds = _.map(
+      _.filter(projects, proj => proj.isAppStreamConfigured),
+      'id',
+    );
 
-    return _.filter(envsToFilter, env => _.includes(appStreamProjectIds, env.projectId));
+    return _.filter(envs, env => _.includes(appStreamProjectIds, env.projectId));
   }
 
   async pollAndSyncWsStatus(requestContext) {
@@ -409,8 +409,7 @@ class EnvironmentScService extends Service {
     });
 
     // If the AppStream feature is enabled, verify the project linked to the environment has it configured
-    const isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
-    if (isAppStreamEnabled && !isAppStreamConfigured)
+    if (this.isAppStreamEnabled && !isAppStreamConfigured)
       throw this.boom.badRequest('Please select an AppStream-configured project', true);
 
     // Save environment to db and trigger the workflow

@@ -51,6 +51,12 @@ Cypress.Commands.add('login', role => {
       email: Cypress.env('researcherEmail'),
       password: Cypress.env('researcherPassword'),
     };
+  }
+  if (role === 'restrictedResearcher') {
+    loginInfo = {
+      email: Cypress.env('restrictedResearcherEmail'),
+      password: Cypress.env('restrictedResearcherPassword'),
+    };
   } else if (role === 'admin') {
     loginInfo = {
       email: Cypress.env('adminEmail'),

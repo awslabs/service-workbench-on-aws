@@ -96,10 +96,13 @@ class ScEnvironmentsList extends React.Component {
     const store = this.envsStore;
     let content = null;
     const projects = this.getProjects();
-    const appStreamProjects = _.filter(projects, proj => proj.isAppStreamConfigured);
+    const appStreamProjectIds = _.map(
+      _.filter(projects, proj => proj.isAppStreamConfigured),
+      'id',
+    );
 
     runInAction(() => {
-      if (this.isAppStreamEnabled && _.isEmpty(appStreamProjects)) this.provisionDisabled = true;
+      if (this.isAppStreamEnabled && _.isEmpty(appStreamProjectIds)) this.provisionDisabled = true;
     });
 
     if (isStoreError(store)) {
@@ -109,7 +112,7 @@ class ScEnvironmentsList extends React.Component {
     } else if (isStoreEmpty(store)) {
       content = this.renderEmpty();
     } else if (isStoreNotEmpty(store)) {
-      content = this.renderMain();
+      content = this.renderMain(appStreamProjectIds);
     } else {
       content = null;
     }
@@ -140,10 +143,11 @@ class ScEnvironmentsList extends React.Component {
     );
   }
 
-  renderMain() {
+  renderMain(appStreamProjectIds) {
     const store = this.envsStore;
     const selectedFilter = this.selectedFilter;
-    const list = store.filtered(selectedFilter);
+    let list = store.filtered(selectedFilter);
+    list = this.isAppStreamEnabled ? _.filter(list, env => _.includes(appStreamProjectIds, env.projectId)) : list;
     const isEmpty = _.isEmpty(list);
 
     return (
