@@ -1000,6 +1000,16 @@ describe('DataEgressService', () => {
       const result = dataEgressService.bytesToSize(10000000000000);
       expect(result).toStrictEqual('9 TB');
     });
+
+    it('should return in PB', async () => {
+      const result = dataEgressService.bytesToSize(10000000000000000);
+      expect(result).toStrictEqual('9 PB');
+    });
+
+    it('should only return in PB for objects larger than 1024 PB', async () => {
+      const result = dataEgressService.bytesToSize(10000000000000000000);
+      expect(result).toStrictEqual('8882 PB');
+    });
   });
 
   describe('should get Egress Store objects', () => {

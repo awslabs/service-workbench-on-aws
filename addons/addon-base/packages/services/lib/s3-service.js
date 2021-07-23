@@ -201,26 +201,16 @@ class S3Service extends Service {
 
   async clearPath(bucketName, dir) {
     const s3Client = await this.getS3();
-    const listParams = {
-      Bucket: bucketName,
-      Prefix: dir,
-    };
+    const listedObjects = await this.listAllObjects({ Bucket: bucketName, Prefix: dir });
 
-    let listedObjects = [];
-    try {
-      listedObjects = await s3Client.listObjectsV2(listParams).promise();
-    } catch (error) {
-      throw this.boom.badRequest(`S3Service error with listing objects in arn:aws:s3:::${bucketName}/${dir}`, true);
-    }
-
-    if (listedObjects.Contents.length === 0) return;
+    if (listedObjects.length === 0) return;
 
     const deleteParams = {
       Bucket: bucketName,
       Delete: { Objects: [] },
     };
 
-    listedObjects.Contents.forEach(({ Key }) => {
+    listedObjects.forEach(({ Key }) => {
       deleteParams.Delete.Objects.push({ Key });
     });
     try {
