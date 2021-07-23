@@ -41,7 +41,6 @@ describe('List study scenarios', () => {
   afterAll(async () => {
     await setup.cleanup();
   });
-
   describe('Getting all studies of a category', () => {
     it('should return empty list if category is not defined', async () => {
       const researcherSession = await setup.createResearcherSession();

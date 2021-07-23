@@ -1,3 +1,4 @@
+/* eslint-disable no-template-curly-in-string */
 /*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *

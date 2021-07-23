@@ -15,12 +15,12 @@
 
 const _ = require('lodash');
 
-const CloudFormation = require('./services/cloudformation.js');
-const ParameterStore = require('./services/parameter-store.js');
+const CloudFormation = require('./services/cloudformation');
+const ParameterStore = require('./services/parameter-store');
 const DynamoDb = require('./services/dynamodb');
 const S3 = require('./services/s3');
-const ServiceCatalog = require('./services/service-catalog.js');
-const StepFunctions = require('./services/step-functions.js');
+const ServiceCatalog = require('./services/service-catalog');
+const StepFunctions = require('./services/step-functions');
 
 /**
  * The function assumes the specified role and constructs an instance of the specified AWS client SDK with the

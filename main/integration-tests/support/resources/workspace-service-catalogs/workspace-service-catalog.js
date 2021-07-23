@@ -18,7 +18,7 @@ const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const Resource = require('../base/resource');
 const Connections = require('./connections/connections');
-const { deleteWorkspaceServiceCatalog } = require('../../complex/delete-workspace-service-catalog.js');
+const { deleteWorkspaceServiceCatalog } = require('../../complex/delete-workspace-service-catalog');
 
 class WorkspaceServiceCatalog extends Resource {
   constructor({ clientSession, id, parent }) {
@@ -62,6 +62,14 @@ class WorkspaceServiceCatalog extends Resource {
   }
 
   async cleanup() {
+    const adminSession = await this.setup.defaultAdminSession();
+    // Terminate instance
+    await adminSession.resources.workspaceServiceCatalogs.workspaceServiceCatalog(this.id).delete();
+    await sleep(2000);
+    await adminSession.resources.workflows
+      .versions('wf-terminate-environment-sc')
+      .version(1)
+      .findAndPollWorkflow(this.id, 10000, 35);
     await super.cleanup();
     await deleteWorkspaceServiceCatalog({ aws: this.setup.aws, id: this.id });
   }
