@@ -164,7 +164,7 @@ class AwsAccountsService extends Service {
       rev: 0,
       createdBy: by,
       updatedBy: by,
-      permissionStatus: 'NEEDS_ONBOARD',
+      permissionStatus: rawData.permissionStatus || 'NEEDS_ONBOARD',
     });
 
     // Time to save the the db object
