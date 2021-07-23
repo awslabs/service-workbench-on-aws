@@ -274,8 +274,9 @@ class AwsAccountUpdateContent extends React.Component {
             </div>
           </List.Item>
           <List.Item>
-            While the stack is being provisioned, it is okay to navigate away from this page and come back to the AWS
-            Accounts list page where you can see the status of your account once the stack is finished deploying.
+            After creating the CFN stack, SWB will wait for the stack to finish deploying and then onboard your account.
+            During this time, it is safe to navigate away from this page and/or leave SWB. You can check the status of
+            your account at any time in the AWS Accounts list page.
           </List.Item>
         </List>
       </div>
@@ -328,8 +329,9 @@ class AwsAccountUpdateContent extends React.Component {
             </div>
           </List.Item>
           <List.Item>
-            While the stack is being provisioned, it is okay to navigate away from this page and come back to the Data
-            Source list page where you can test the connection once the stack is finished deploying.
+            After initiating the update, SWB will monitor stack completion progress and automatically update your
+            account status in SWB. During this time, it is safe to navigate away from this page and/or leave SWB. You
+            can check the status of your account at any time in the AWS Accounts list page.
           </List.Item>
         </List>
       </div>
