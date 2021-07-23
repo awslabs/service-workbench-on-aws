@@ -3,6 +3,16 @@
     "type": "object",
     "additionalProperties": false,
     "properties": {
+      "id": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100,
+        "pattern": "^[A-Za-z0-9-_ ]+$"
+      },
+      "rev": {
+        "type": "number",
+        "minimum": 0
+      },
       "name": {
         "type": "string",
         "minLength": 1,
@@ -91,6 +101,8 @@
         "type": "string"
       }
     },
-    "required": ["name", "accountId"]
+    "required": [
+      "accountId",
+      "name"
+    ]
   }
-  
