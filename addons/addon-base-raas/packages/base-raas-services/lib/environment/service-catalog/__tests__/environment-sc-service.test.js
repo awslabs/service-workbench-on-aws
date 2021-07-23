@@ -1239,6 +1239,44 @@ describe('EnvironmentSCService', () => {
     });
   });
 
+  describe('filterAppStreamProjectEnvs function', () => {
+    it('should filter out envs by AppStream config', async () => {
+      // BUILD
+      const requestContext = {
+        principal: {
+          isExternalUser: true,
+        },
+      };
+      const envs = [
+        {
+          id: 'env-1',
+          projectId: 'proj-1',
+        },
+        {
+          id: 'env-2',
+          projectId: 'proj-2',
+        },
+      ];
+      const projects = [
+        { id: 'proj-1', isAppStreamConfigured: true },
+        { id: 'proj-2', isAppStreamConfigured: false },
+      ];
+      projectService.list = jest.fn(() => projects);
+      const expected = [
+        {
+          id: 'env-1',
+          projectId: 'proj-1',
+        },
+      ];
+
+      // OPERATE
+      const retVal = await service.filterAppStreamProjectEnvs(requestContext, envs);
+
+      // CHECK
+      expect(retVal).toEqual(expected);
+    });
+  });
+
   describe('getSecurityGroupDetails function', () => {
     it('should send filtered security group rules as expected', async () => {
       // BUILD

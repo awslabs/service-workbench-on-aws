@@ -122,3 +122,23 @@ describe('Launch new workspaces', () => {
     return workspaceName;
   };
 });
+
+describe('Verify workspace creation button disabled', () => {
+  before(() => {
+    // We use the restricted researcher credentials for this test.
+    // This user should not be assigned to a project with AppStream configuration
+    cy.login('restrictedResearcher');
+    navigateToWorkspaces();
+  });
+
+  const navigateToWorkspaces = () => {
+    cy.get('.left.menu')
+      .contains('Workspaces')
+      .click();
+    cy.get('[data-testid=workspaces]');
+  };
+
+  it('should launch show create workspace button as disabled', () => {
+    cy.get('button[data-testid=create-workspace]').should('be.disabled');
+  });
+});

@@ -6,6 +6,8 @@
   "env": {
     "researcherEmail": "thingut+researcher@amazon.com",
     "researcherPassword": "abcd1234",
+    "restrictedResearcherEmail": "dummyResearcher@amazon.com",
+    "restrictedResearcherPassword": "abcd1234",
     "isCognitoEnabled": false,
     "workspaces": {
       "sagemaker": {

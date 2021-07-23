@@ -30,6 +30,7 @@ const Project = types
     updatedAt: '',
     updatedBy: '',
     projectAdmins: types.optional(types.array(types.string), []),
+    isAppStreamConfigured: types.optional(types.boolean, false),
   })
   .actions(self => ({
     setProject(rawProject) {
