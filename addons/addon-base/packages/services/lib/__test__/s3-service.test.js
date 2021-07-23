@@ -211,17 +211,23 @@ describe('S3Service', () => {
     });
 
     it('should successfully list all object without Truncated', async () => {
-      AWSMock.mock('S3', 'listObjectsV2', params => {
+      AWSMock.mock('S3', 'listObjectsV2', (params, callback) => {
         expect(params).toMatchObject({
           Bucket: 'test-bucketName',
           Prefix: 'test-Prefix',
         });
+        callback(null, {
+          Contents: [{ key: 'test-key1' }, { key: 'test-key2' }],
+          IsTruncated: false,
+          NextContinuationToken: 'test-NextContinuationToken',
+        });
       });
 
-      s3Service.listAllObjects({
+      const result = await s3Service.listAllObjects({
         Bucket: 'test-bucketName',
         Prefix: 'test-Prefix',
       });
+      expect(result).toStrictEqual([{ key: 'test-key1' }, { key: 'test-key2' }]);
     });
 
     it('should successfully list all object with Truncated', async () => {
