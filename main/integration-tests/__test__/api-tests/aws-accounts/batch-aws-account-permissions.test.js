@@ -43,7 +43,6 @@ describe('AWS Account Permissions scenarios', () => {
       const researcherSession = await setup.createResearcherSession();
       await expect(researcherSession.resources.awsAccounts.bulkPermissionsCheck()).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
-        // code: errorCode.http.code.badImplementation,
       });
     });
 

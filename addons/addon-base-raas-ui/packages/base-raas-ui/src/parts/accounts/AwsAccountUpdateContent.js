@@ -50,8 +50,8 @@ class AwsAccountUpdateContent extends React.Component {
     runInAction(() => {
       // We want to create a simple one button form
       const account = this.account || {};
-      this.willShowWarning = account.permissionStatus !== 'NEEDS_ONBOARD';
-      this.warningAcknowledged = !this.willShowWarning; // Only set to false if the user will have to acknowledge warning later
+      this.shouldShowWarning = account.permissionStatus !== 'NEEDS_ONBOARD';
+      this.warningAcknowledged = false;
       const needsOnboard =
         account.permissionStatus === 'NEEDS_ONBOARD' ||
         account.permissionStatus === 'PENDING' ||
@@ -209,7 +209,7 @@ class AwsAccountUpdateContent extends React.Component {
     const account = this.account;
     const textSize = this.textSize;
     const stackInfo = this.stackInfo;
-    const willShowWarning = this.willShowWarning;
+    const shouldShowWarning = this.shouldShowWarning;
     const warningAcknowledged = this.warningAcknowledged;
     const { accountId } = account;
     const { createStackUrl, region } = stackInfo;
@@ -231,7 +231,7 @@ class AwsAccountUpdateContent extends React.Component {
             CloudFormation console where you can review the stack information and provision it.
             <div className="mb0 flex mt2">
               <div className="flex-auto">
-                {willShowWarning && (
+                {shouldShowWarning && (
                   <Message warning>
                     <Message.Header>Caution!</Message.Header>
                     <p>
@@ -240,7 +240,7 @@ class AwsAccountUpdateContent extends React.Component {
                     </p>
                   </Message>
                 )}
-                {willShowWarning && (
+                {shouldShowWarning && (
                   <Checkbox
                     label="I am aware that re-onboarding this account may render workspaces associated with this account to become unusable."
                     onClick={this.handleClickAcknowledgement}
@@ -255,7 +255,7 @@ class AwsAccountUpdateContent extends React.Component {
                   as="a"
                   target="_blank"
                   href={createStackUrl}
-                  disabled={!warningAcknowledged}
+                  disabled={shouldShowWarning && !warningAcknowledged}
                   rel="noopener noreferrer"
                   color="blue"
                 >
