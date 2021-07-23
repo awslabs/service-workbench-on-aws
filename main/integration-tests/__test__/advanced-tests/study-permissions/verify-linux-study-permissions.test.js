@@ -105,7 +105,7 @@ describe('EC2 Linux scenarios', () => {
     });
 
     it('should propagate for BYOB Study', async () => {
-      const externalStudy = 'test-3';
+      const externalStudy = setup.defaults.externalStudy;
       const workspaceName = setup.gen.string({ prefix: 'workspace-sc-test' });
       await adminSession.resources.studies.study(externalStudy).propagatePermission(admin2Session, ['readwrite'], []);
 

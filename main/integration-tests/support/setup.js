@@ -112,6 +112,7 @@ class Setup {
 
     const externalId = await this.settings.get('externalId');
     const bucketName = await this.settings.get('bucketName');
+    const externalStudy = await this.settings.get('externalStudy');
 
     const stepTemplate = await adminSession.resources.stepTemplates
       .versions('st-obtain-write-lock')
@@ -129,6 +130,7 @@ class Setup {
       envTypes,
       externalId,
       bucketName,
+      externalStudy,
     };
   }
 

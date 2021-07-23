@@ -62,3 +62,5 @@ localApiEndpoint: http://localhost:4000
 # accountId: ""
 # Provide the name of the external bucket for Data Source studies
 # bucketName: ""
+# Provide the name of the external Data Source study
+# externalStudy: ""
