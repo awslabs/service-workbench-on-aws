@@ -342,6 +342,16 @@ function deleteEgressStore(id) {
   return httpApiDelete(`api/data-egress/${id}`);
 }
 
+function egressNotifySns(id) {
+  return httpApiPost(`api/data-egress/notify`, {
+    data: { id },
+  });
+}
+
+function getEgressStore(id) {
+  return httpApiGet(`api/data-egress/${id}`);
+}
+
 export {
   addIndex,
   addUsers,
@@ -413,4 +423,6 @@ export {
   generateAccountCfnTemplate,
   updateRegisteredAccount,
   deleteEgressStore,
+  egressNotifySns,
+  getEgressStore,
 };

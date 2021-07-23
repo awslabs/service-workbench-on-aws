@@ -44,7 +44,7 @@ describe('S3Service', () => {
   });
   describe('S3Service', () => {
     it('should parse in s3 bucket detail', async () => {
-      const result = await s3Service.parseS3Details('s3://test-bucket/test-prefix');
+      const result = s3Service.parseS3Details('s3://test-bucket/test-prefix');
       expect(result).toStrictEqual({ s3BucketName: 'test-bucket', s3Key: 'test-prefix' });
     });
     it('should move object from one place to another', async () => {
@@ -66,50 +66,36 @@ describe('S3Service', () => {
       });
       s3Service.moveObject({ from, to });
     });
-    it('should clear s3 object in certain s3 bucket path', async () => {
-      AWSMock.mock('S3', 'listObjectsV2', (params, callback) => {
+
+    it('should clear s3 object in certain s3 bucket path without Truncated in listing objects', async () => {
+      AWSMock.mock('S3', 'deleteObjects', params => {
         expect(params).toMatchObject({
           Bucket: 'test-bucketName',
-          Prefix: 'test-dir',
-        });
-        callback(null, {
-          Prefix: [{ key: 'test-key1' }, { key: 'test-key2' }],
+          Delete: { Objects: [{ Key: 'test-key1' }, { Key: 'test-key2' }] },
         });
       });
+      s3Service.clearPath('test-bucketName', 'test-dir');
+    });
+    it('should clear s3 object in certain s3 bucket path with Truncated in listing objects', async () => {
+      s3Service.listAllObjects = jest
+        .fn()
+        .mockReturnValue([{ Key: 'test-key1' }, { Key: 'test-key2' }, { Key: 'test-key3' }, { Key: 'test-key4' }]);
 
       AWSMock.mock('S3', 'deleteObjects', params => {
         expect(params).toMatchObject({
           Bucket: 'test-bucketName',
-          Delete: { Objects: [{ key: 'test-key1' }, { key: 'test-key2' }] },
+          Delete: { Objects: [{ Key: 'test-key1' }, { Key: 'test-key2' }, { Key: 'test-key3' }, { Key: 'test-key4' }] },
         });
       });
       s3Service.clearPath('test-bucketName', 'test-dir');
     });
 
     it('should not list s3 object during deleting objects in certain s3 bucket path', async () => {
-      AWSMock.mock('S3', 'deleteObjects', (params, callback) => {
-        expect(params).toMatchObject({
-          Bucket: 'test-bucketName',
-          Prefix: 'test-dir',
-        });
-        callback(callback(new Error(), new Error()));
-      });
-      await expect(s3Service.clearPath('test-bucketName', 'test-dir')).rejects.toThrow(
-        // It is better to check using boom.code instead of just the actual string, unless
-        // there are a few errors with the exact same boom code but different messages.
-        // Note: if you encounter a case where a service is throwing exceptions with the
-        // same code but different messages (to address different scenarios), you might
-        // want to suggest to the service author to use different codes.
-        expect.objectContaining({
-          boom: true,
-          code: 'badRequest',
-          safe: true,
-        }),
-      );
-    });
+      s3Service.listAllObjects = jest
+        .fn()
+        .mockReturnValue([{ Key: 'test-key1' }, { Key: 'test-key2' }, { Key: 'test-key3' }, { Key: 'test-key4' }]);
 
-    it('should not clear s3 object in certain s3 bucket path', async () => {
-      AWSMock.mock('S3', 'listObjectsV2', (params, callback) => {
+      AWSMock.mock('S3', 'deleteObjects', (params, callback) => {
         expect(params).toMatchObject({
           Bucket: 'test-bucketName',
           Prefix: 'test-dir',
@@ -172,6 +158,122 @@ describe('S3Service', () => {
           safe: true,
         }),
       );
+    });
+
+    it('should successfully put object', async () => {
+      AWSMock.mock('S3', 'putObject', params => {
+        expect(params).toMatchObject({
+          Bucket: 'test-bucketName',
+          Key: 'test-key',
+          Body: 'test-body',
+          ContentType: 'application/json',
+        });
+      });
+
+      s3Service.putObject({
+        Bucket: 'test-bucketName',
+        Key: 'test-key',
+        Body: 'test-body',
+        ContentType: 'application/json',
+      });
+    });
+
+    it('should not put object', async () => {
+      AWSMock.mock('S3', 'putObject', (params, callback) => {
+        expect(params).toMatchObject({
+          Bucket: 'test-bucketName',
+          Key: 'test-key',
+          Body: 'test-body',
+          ContentType: 'application/json',
+        });
+        callback(new Error(), new Error());
+      });
+
+      await expect(
+        s3Service.putObject({
+          Bucket: 'test-bucketName',
+          Key: 'test-key',
+          Body: 'test-body',
+          ContentType: 'application/json',
+        }),
+      ).rejects.toThrow(
+        // It is better to check using boom.code instead of just the actual string, unless
+        // there are a few errors with the exact same boom code but different messages.
+        // Note: if you encounter a case where a service is throwing exceptions with the
+        // same code but different messages (to address different scenarios), you might
+        // want to suggest to the service author to use different codes.
+        expect.objectContaining({
+          boom: true,
+          code: 'badRequest',
+          safe: true,
+        }),
+      );
+    });
+
+    it('should successfully list all object without Truncated', async () => {
+      AWSMock.mock('S3', 'listObjectsV2', (params, callback) => {
+        expect(params).toMatchObject({
+          Bucket: 'test-bucketName',
+          Prefix: 'test-Prefix',
+        });
+        callback(null, {
+          Contents: [{ key: 'test-key1' }, { key: 'test-key2' }],
+          IsTruncated: false,
+          NextContinuationToken: 'test-NextContinuationToken',
+        });
+      });
+
+      const result = await s3Service.listAllObjects({
+        Bucket: 'test-bucketName',
+        Prefix: 'test-Prefix',
+      });
+      expect(result).toStrictEqual([{ key: 'test-key1' }, { key: 'test-key2' }]);
+    });
+
+    it('should successfully list all object with Truncated', async () => {
+      AWSMock.mock('S3', 'listObjectsV2', (params, callback) => {
+        expect(params).toMatchObject({
+          Bucket: 'test-bucketName',
+          Prefix: 'test-Prefix',
+        });
+        if (params.ContinuationToken) {
+          callback(null, {
+            Contents: [{ key: 'test-key3' }, { key: 'test-key4' }],
+            IsTruncated: false,
+            NextContinuationToken: 'test-NextContinuationToken',
+          });
+        } else {
+          callback(null, {
+            Contents: [{ key: 'test-key1' }, { key: 'test-key2' }],
+            IsTruncated: true,
+            NextContinuationToken: 'test-NextContinuationToken',
+          });
+        }
+      });
+      const result = await s3Service.listAllObjects({
+        Bucket: 'test-bucketName',
+        Prefix: 'test-Prefix',
+      });
+      expect(result).toStrictEqual([
+        { key: 'test-key1' },
+        { key: 'test-key2' },
+        { key: 'test-key3' },
+        { key: 'test-key4' },
+      ]);
+    });
+
+    it('should successfully get object version', async () => {
+      AWSMock.mock('S3', 'listObjectVersions', params => {
+        expect(params).toMatchObject({
+          Bucket: 'test-bucketName',
+          Prefix: 'test-Prefix',
+        });
+      });
+
+      s3Service.getLatestObjectVersion({
+        Bucket: 'test-bucketName',
+        Prefix: 'test-Prefix',
+      });
     });
   });
 });

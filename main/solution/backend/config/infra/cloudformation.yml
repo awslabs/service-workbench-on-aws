@@ -355,6 +355,40 @@ Resources:
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
 
+  EgressNotificationBucket:
+    Condition: EnableEgressStore
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ${self:custom.settings.egressNotificationBucketName}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: !GetAtt EgressStoreEncryptionKey.Arn
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
+      LoggingConfiguration:
+        DestinationBucketName: ${self:custom.settings.loggingBucketName}
+        LogFilePrefix: egressNotificationBucket/
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins:
+              - ${self:custom.settings.websiteUrl}
+              - !If
+                - IsDev
+                - http://localhost:3000
+                - !Ref 'AWS::NoValue'
+            AllowedMethods:
+              - POST
+            ExposedHeaders:
+              - ETag
+      PublicAccessBlockConfiguration: # Block all public access configuration for the S3 bucket
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
   EgressStoreBucketPolicy:
     Condition: EnableEgressStore
     Type: AWS::S3::BucketPolicy
@@ -509,24 +543,28 @@ Resources:
               - s3:ListMultipartUploadParts
               - s3:PutObject*
               - s3:DeleteObject*
+              - s3:List*
+              - s3:PutLifecycleConfiguration
             Resource:
               - 'arn:aws:s3:::${self:custom.settings.studyDataBucketName}/*'
               - 'arn:aws:s3:::${self:custom.settings.environmentsBootstrapBucketName}/*'
               - 'arn:aws:s3:::${self:custom.settings.externalCfnTemplatesBucketName}/*'
               - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}/*'
-              - !If
-                - EnableEgressStore
-                - !Sub 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}/*'
-                - !Ref 'AWS::NoValue'
+              - 'arn:aws:s3:::${self:custom.settings.egressNotificationBucketName}'
+              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}/*'
+              - 'arn:aws:s3:::${self:custom.settings.egressNotificationBucketName}/*'
           - Effect: Allow
             Action:
               - s3:ListBucket
               - s3:GetBucketPolicy
               - s3:PutBucketPolicy
+              - s3:ListBucketVersions
             Resource:
               - 'arn:aws:s3:::${self:custom.settings.studyDataBucketName}'
               - 'arn:aws:s3:::${self:custom.settings.environmentsBootstrapBucketName}'
               - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}'
+              - 'arn:aws:s3:::${self:custom.settings.egressNotificationBucketName}'
+              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}'
           - Effect: Allow
             Action:
               - kms:GenerateDataKey
@@ -574,14 +612,9 @@ Resources:
               - '*'
           - Effect: Allow
             Action:
-              - s3:List*
-              - s3:GetBucketPolicy
-              - s3:PutBucketPolicy
-              - s3:DeleteObject*
-              - s3:PutLifecycleConfiguration
+              - sns:Publish
             Resource:
-              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}'
-              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}/*'
+              - !Sub 'arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${self:custom.settings.egressNotificationTopicName}'
   # IAM Role for the apiHandler Function
   RoleApiHandler:
     Type: 'AWS::IAM::Role'
@@ -1568,6 +1601,17 @@ Resources:
             ProjectionType: 'ALL'
 
   # =============================================================================================
+  # SNS
+  # =============================================================================================
+  EgressNotificationTopic:
+    Condition: EnableEgressStore
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: ${self:custom.settings.egressNotificationTopicName}
+      KmsMasterKeyId: !Ref EgressStoreEncryptionKey
+      TopicName: ${self:custom.settings.egressNotificationTopicName}
+
+  # =============================================================================================
   # DEPRECATED -- Dynamo DB
   # =============================================================================================
 
@@ -2015,3 +2059,6 @@ Outputs:
     Value: !GetAtt RoleDataSourceReachabilityHandler.Arn
   EnvMgmtRoleArn:
     Value: !GetAtt RoleEnvMgmt.Arn
+  EgressNotificationTopicArn:
+    Value: !Ref EgressNotificationTopic
+    Condition: EnableEgressStore

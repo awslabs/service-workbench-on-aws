@@ -190,9 +190,6 @@ dbRoleAllocations: ${self:custom.settings.dbPrefix}-RoleAllocations
 # DynamoDB table name for Resource usages
 dbResourceUsages: ${self:custom.settings.dbPrefix}-ResourceUsages
 
-# DynamoDB table name for Egress Store
-dbEgressStore: ${self:custom.settings.dbPrefix}-EgressStore
-
 # DynamoDB table global secondary index name for the "WorkspaceIdIndex" field
 dbEgressStoreWorkspaceIdIndex: WorkspaceIdIndex
 
