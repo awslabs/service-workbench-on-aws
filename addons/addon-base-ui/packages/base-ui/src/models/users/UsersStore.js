@@ -142,7 +142,6 @@ const UsersStore = BaseStore.named('UsersStore')
             if (userSnapshot) {
               result.push(User.create(userSnapshot));
             }
-            // result.push(User.create(getSnapshot(userIdentifier)));
           }
         }
       });
