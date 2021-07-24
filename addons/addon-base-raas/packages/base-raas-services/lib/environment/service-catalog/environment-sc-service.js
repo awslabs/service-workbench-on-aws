@@ -448,7 +448,9 @@ class EnvironmentScService extends Service {
       'jsonSchemaValidationService',
       'storageGatewayService',
     ]);
+    console.log('ZZZ: Before validation, env', environment);
     await validationService.ensureValid(_.omit(environment, ['studyRoles']), updateSchema);
+    console.log('ZZZ: after validation');
 
     // Retrieve the existing environment, this is required for authorization below
     const existingEnvironment = await this.mustFind(requestContext, { id: environment.id });
