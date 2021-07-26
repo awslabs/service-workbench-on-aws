@@ -68,6 +68,7 @@ describe('EnvironmentScConnectionService', () => {
   let service = null;
   let envDnsService = null;
   let jwtService = null;
+  let envScService = null;
 
   beforeEach(async () => {
     const container = new ServicesContainer();
@@ -89,6 +90,12 @@ describe('EnvironmentScConnectionService', () => {
 
     // Get instance of the service we are testing
     service = await container.find('environmentScConnectionService');
+
+    envScService = await container.find('environmentScService');
+    envScService.mustFind = jest.fn(() => {
+      return { projectId: 'sampleProjectId' };
+    });
+    envScService.verifyAppStreamConfig = jest.fn();
 
     envDnsService = await container.find('environmentDnsService');
     jwtService = await container.find('jwtService');
