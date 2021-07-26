@@ -27,6 +27,7 @@ class S3Service extends Service {
 
   async init() {
     await super.init();
+    this.api = await this.getAWS();
   }
 
   async getAWS() {
