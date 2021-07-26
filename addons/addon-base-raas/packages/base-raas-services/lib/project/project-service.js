@@ -77,7 +77,7 @@ class ProjectService extends Service {
       .get();
 
     if (this.isAppStreamEnabled) {
-      result = this.updateWithAppStreamConfig(result);
+      result = await this.updateWithAppStreamConfig(result);
     }
 
     return this._fromDbToDataObject(result);
