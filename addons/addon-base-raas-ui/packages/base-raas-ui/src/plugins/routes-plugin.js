@@ -55,6 +55,7 @@ function registerRoutes(routesMap, { location, appContext }) {
     ['/users', withAuth(User)],
     ['/indexes/add', withAuth(AddIndex)],
     ['/aws-accounts/add', withAuth(AddAwsAccount)],
+    ['/aws-accounts/update/:id/rev/:rev', withAuth(AddAwsAccount)],
     ['/aws-accounts/create', withAuth(CreateAwsAccount)],
     ['/aws-accounts/budget/:id', withAuth(UpdateBudget)],
     ['/aws-accounts/onboard/:id', withAuth(AwsAccountUpdatePage)],

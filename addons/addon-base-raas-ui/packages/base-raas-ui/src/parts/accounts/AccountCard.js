@@ -49,6 +49,10 @@ class AccountCard extends React.Component {
     return this.props.account;
   }
 
+  get isAppStreamEnabled() {
+    return process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true';
+  }
+
   get awsAccountsStore() {
     return this.props.awsAccountsStore;
   }
@@ -77,28 +81,36 @@ class AccountCard extends React.Component {
   };
 
   handleBudgetButton = () => {
-    const awsAccountId = this.account.id;
-    this.goto(`/aws-accounts/budget/${awsAccountId}`);
+    const awsAccountUUID = this.account.id;
+    this.goto(`/aws-accounts/budget/${awsAccountUUID}`);
   };
 
   handleOnboardAccount = () => {
-    const awsAccountId = this.account.id;
-    this.goto(`/aws-accounts/onboard/${awsAccountId}`);
+    this.goToNextPage();
   };
 
   handleUpdateAccountPerms = () => {
-    const awsAccountId = this.account.id;
-    this.goto(`/aws-accounts/onboard/${awsAccountId}`);
+    this.goToNextPage();
   };
 
   handlePendingButton = () => {
-    const awsAccountId = this.account.id;
-    this.goto(`/aws-accounts/onboard/${awsAccountId}`);
+    this.goToNextPage();
   };
+
+  goToNextPage() {
+    if (this.isAppStreamEnabled && !this.account.isAppStreamConfigured) {
+      const awsAccountId = this.account.id;
+      this.goto(`/aws-accounts/update/${awsAccountId}/rev/${this.account.rev}`);
+    } else {
+      const awsAccountUUID = this.account.id;
+      this.goto(`/aws-accounts/onboard/${awsAccountUUID}`);
+    }
+  }
 
   render() {
     const isSelectable = this.isSelectable; // Internal and external guests can't select studies
     const account = this.account;
+    console.log('account', account);
     const attrs = {};
     const onClickAttr = {};
     const permissionStatus = this.permissionStatus;

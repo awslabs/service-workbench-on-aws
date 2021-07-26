@@ -214,7 +214,6 @@ class AwsAccountUpdateContent extends React.Component {
     const { accountId } = account;
     const { createStackUrl, region } = stackInfo;
 
-    // TODO: If AppStream enabled tell user to log into AppStream on the console first, and click "Get Started", then click "Skip"
     return (
       <div className="animated fadeIn">
         <List ordered size={textSize}>
@@ -250,6 +249,7 @@ class AwsAccountUpdateContent extends React.Component {
                 )}
               </div>
             </div>
+            {/*  TODO: If createStackUrl doesn't have AppStreamImageName, or AppStreamInstanceType then fill it out in the next screen */}
             <div className="mb0 flex mt2">
               <div className="flex-auto">
                 <Button

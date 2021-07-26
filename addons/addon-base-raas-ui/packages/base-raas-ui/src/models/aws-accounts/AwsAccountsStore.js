@@ -159,6 +159,8 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         res.cfnStackName = awsAccount.cfnStackName;
         res.cfnStackId = awsAccount.cfnStackId;
         res.updatedAt = awsAccount.updatedAt;
+        res.isAppStreamConfigured = awsAccount.isAppStreamConfigured;
+        res.rev = awsAccount.rev;
         result.push(res);
       });
       return result;

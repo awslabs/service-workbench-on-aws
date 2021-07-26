@@ -31,6 +31,10 @@ import {
 } from '../../models/forms/AddAwsAccountForm';
 
 class AddAwsAccount extends React.Component {
+  PAGE_TYPE_UPDATE = 'UPDATE';
+
+  PAGE_TYPE_ADD = 'ADD';
+
   constructor(props) {
     super(props);
     this.state = {
@@ -44,10 +48,15 @@ class AddAwsAccount extends React.Component {
       this.formProcessing = false;
       this.validationErrors = new Map();
       this.awsAccount = {};
+      this.awsAccountUUID = (this.props.match.params || {}).id;
+      this.rev = (this.props.match.params || {}).rev;
+      this.pageType = this.awsAccountUUID ? this.PAGE_TYPE_UPDATE : this.PAGE_TYPE_ADD;
     });
 
-    console.log('hello');
-    let fields = getBaseAddAwsAccountFormFields();
+    let fields = {};
+    if (this.pageType === this.PAGE_TYPE_ADD) {
+      fields = getBaseAddAwsAccountFormFields();
+    }
     if (process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true') {
       fields = { ...fields, ...getAddAwsAccountAppStreamFormFields() };
     }
@@ -59,7 +68,7 @@ class AddAwsAccount extends React.Component {
     return (
       <div className="mt2 animated fadeIn">
         <Header as="h2" icon textAlign="center" className="mt3" color="grey">
-          Add AWS Account
+          {this.pageType === this.PAGE_TYPE_ADD ? 'Add' : 'Update'} AWS Account
         </Header>
         <div className="mt3 ml3 mr3 animated fadeIn">{this.renderAddAwsAccountForm()}</div>
       </div>
@@ -170,20 +179,29 @@ class AddAwsAccount extends React.Component {
     try {
       // Perform client side validations first
       const validationResult = await validate(this.awsAccount, this.addAwsAccountFormFields);
+      console.log('validationResult', validationResult);
       // if there are any client side validation errors then do not attempt to make API call
       if (validationResult.fails()) {
         runInAction(() => {
           this.validationErrors = validationResult.errors;
           this.formProcessing = false;
         });
-      } else {
+      } else if (this.pageType === this.PAGE_TYPE_ADD) {
         // There are no client side validation errors so ask the store to add user (which will make API call to server to add the user)
-
         const account = await this.props.awsAccountsStore.addAwsAccount(this.awsAccount);
         runInAction(() => {
           this.formProcessing = false;
         });
         this.goto(`/aws-accounts/onboard/${account.id}`);
+      } else {
+        await this.props.awsAccountsStore.updateAwsAccount(this.awsAccountUUID, {
+          ...this.awsAccount,
+          rev: Number(this.rev),
+        });
+        runInAction(() => {
+          this.formProcessing = false;
+        });
+        this.goto(`/aws-accounts/onboard/${this.awsAccountUUID}`);
       }
     } catch (error) {
       runInAction(() => {

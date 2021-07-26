@@ -87,6 +87,8 @@ const AwsAccount = types
     updatedBy: '',
     budget: types.optional(Budget, {}),
     stackInfo: types.optional(AwsStackInfo, {}),
+    isAppStreamConfigured: false,
+    appStreamStackName: '',
   })
   .actions(self => ({
     setAwsAccounts(rawAwsAccounts) {
@@ -108,6 +110,8 @@ const AwsAccount = types
       self.updatedAt = rawAwsAccounts.updatedAt || self.updatedAt;
       self.createdBy = rawAwsAccounts.createdBy || self.createdBy;
       self.updatedBy = rawAwsAccounts.updatedBy || self.updatedBy;
+      self.isAppStreamConfigured = rawAwsAccounts.appStreamStackName !== undefined;
+      self.rev = rawAwsAccounts.rev || 0;
 
       // Can't use || for needsPermissionUpdate because the value is a Boolean
       // we don't update the other fields because they are being populated by a separate store

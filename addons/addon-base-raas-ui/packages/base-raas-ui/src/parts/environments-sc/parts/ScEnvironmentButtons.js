@@ -32,7 +32,6 @@ class ScEnvironmentButtons extends React.Component {
       this.editCidrButtonActive = false;
       // A flag to indicate if the egressStore button is active
       this.egressStoreButtonActive = false;
-      console.log('enableEgressStore', enableEgressStore);
     });
   }
 
