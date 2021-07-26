@@ -77,7 +77,7 @@ class ProjectService extends Service {
       .get();
 
     if (this.isAppStreamEnabled) {
-      result = this.verifyAppStreamConfig(result);
+      result = this.updateWithAppStreamConfig(result);
     }
 
     return this._fromDbToDataObject(result);
@@ -231,7 +231,7 @@ class ProjectService extends Service {
       .scan();
 
     if (this.isAppStreamEnabled) {
-      projects = await this.verifyAppStreamConfig(projects);
+      projects = await this.updateWithAppStreamConfig(projects);
     }
 
     // Only return projects that the user has been associated with unless user is an admin
@@ -256,7 +256,7 @@ class ProjectService extends Service {
    *
    * @param input The Project entity, or list of Project entities
    */
-  async verifyAppStreamConfig(input) {
+  async updateWithAppStreamConfig(input) {
     try {
       const systemContext = getSystemRequestContext();
       const [awsAccountsService, indexesService] = await this.service(['awsAccountsService', 'indexesService']);

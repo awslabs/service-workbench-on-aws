@@ -196,7 +196,7 @@ describe('ProjectService', () => {
     });
   });
 
-  describe('verifyAppStreamConfig', () => {
+  describe('updateWithAppStreamConfig', () => {
     it('should return list of projects with appropriate isAppStreamConfigured bool', async () => {
       // BUILD
       const input = [
@@ -250,7 +250,7 @@ describe('ProjectService', () => {
       ];
 
       // EXECUTE
-      const retVal = await service.verifyAppStreamConfig(input);
+      const retVal = await service.updateWithAppStreamConfig(input);
 
       // CHECK
       await expect(retVal).toEqual(expectedRetVal);
@@ -292,7 +292,7 @@ describe('ProjectService', () => {
       };
 
       // EXECUTE
-      const retVal = await service.verifyAppStreamConfig(input);
+      const retVal = await service.updateWithAppStreamConfig(input);
 
       // CHECK
       await expect(retVal).toEqual(expectedRetVal);
@@ -334,7 +334,7 @@ describe('ProjectService', () => {
       };
 
       // EXECUTE
-      const retVal = await service.verifyAppStreamConfig(input);
+      const retVal = await service.updateWithAppStreamConfig(input);
 
       // CHECK
       await expect(retVal).toEqual(expectedRetVal);

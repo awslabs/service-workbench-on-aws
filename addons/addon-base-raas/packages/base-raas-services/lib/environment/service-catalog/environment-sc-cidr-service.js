@@ -101,6 +101,9 @@ class EnvironmentScCidrService extends Service {
       { ...existingEnvironment, updateRequest },
     );
 
+    // Verify environment is linked to an AppStream project when application has AppStream enabled
+    await environmentScService.verifyAppStreamConfig(requestContext, id);
+
     await lockService.tryWriteLockAndRun({ id: `${id}-CidrUpdate` }, async () => {
       // Calculate diff and update CIDR ranges in ingress rules
       const { currentIngressRules, securityGroupId } = await environmentScService.getSecurityGroupDetails(
