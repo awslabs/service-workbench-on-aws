@@ -29,6 +29,7 @@ const { hasAccess, accessLevels } = require('../../study/helpers/entities/study-
 
 const settingKeys = {
   tableName: 'dbEnvironmentsSc',
+  isAppStreamEnabled: 'isAppStreamEnabled',
 };
 const workflowIds = {
   create: 'wf-provision-environment-sc',
@@ -68,6 +69,7 @@ class EnvironmentScService extends Service {
     await super.init();
     const [dbService, environmentAuthzService] = await this.service(['dbService', 'environmentAuthzService']);
     const table = this.settings.get(settingKeys.tableName);
+    this.isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
 
     this._getter = () => dbService.helper.getter().table(table);
     this._query = () => dbService.helper.query().table(table);
@@ -85,7 +87,7 @@ class EnvironmentScService extends Service {
     // The following will result in checking permissions by calling the condition function "this._allowAuthorized" first
     await this.assertAuthorized(requestContext, { action: 'list-sc', conditions: [this._allowAuthorized] });
 
-    const envs = await this._scanner()
+    let envs = await this._scanner()
       .limit(limit)
       .scan()
       .then(environments => {
@@ -95,7 +97,22 @@ class EnvironmentScService extends Service {
         return environments.filter(env => isCurrentUser(requestContext, { uid: env.createdBy }));
       });
 
+    if (this.isAppStreamEnabled) {
+      envs = await this.filterAppStreamProjectEnvs(requestContext, envs);
+    }
+
     return this.augmentWithConnectionInfo(requestContext, envs);
+  }
+
+  async filterAppStreamProjectEnvs(requestContext, envs) {
+    const projectService = await this.service('projectService');
+    const projects = await projectService.list(requestContext);
+    const appStreamProjectIds = _.map(
+      _.filter(projects, proj => proj.isAppStreamConfigured),
+      'id',
+    );
+
+    return _.filter(envs, env => _.includes(appStreamProjectIds, env.projectId));
   }
 
   async pollAndSyncWsStatus(requestContext) {
@@ -327,6 +344,9 @@ class EnvironmentScService extends Service {
       await this.assertAuthorized(requestContext, { action: 'get-sc', conditions: [this._allowAuthorized] }, result);
     }
 
+    // Verify environment is linked to an AppStream project when application has AppStream enabled
+    await this.verifyAppStreamConfig(requestContext, id);
+
     const env = this._fromDbToDataObject(result);
 
     // We only check for the ingress rules of a successfully provisioned environment not in failure state
@@ -385,7 +405,15 @@ class EnvironmentScService extends Service {
     const { envTypeId, envTypeConfigId, projectId } = environment;
 
     // Lets find the index id, by looking at the project and then get the index id
-    const { indexId } = await projectService.mustFind(requestContext, { id: projectId, fields: ['indexId'] });
+    // The isAppStreamConfigured attribute value will be returned by project service. No other fields needed to be added
+    const { indexId, isAppStreamConfigured } = await projectService.mustFind(requestContext, {
+      id: projectId,
+      fields: ['indexId'],
+    });
+
+    // If the AppStream feature is enabled, verify the project linked to the environment has it configured
+    if (this.isAppStreamEnabled && !isAppStreamConfigured)
+      throw this.boom.badRequest('Please select an AppStream-configured project', true);
 
     // Save environment to db and trigger the workflow
     const by = _.get(requestContext, 'principalIdentifier.uid');
@@ -442,6 +470,21 @@ class EnvironmentScService extends Service {
     return dbResult;
   }
 
+  async verifyAppStreamConfig(requestContext, envId) {
+    // If the AppStream feature is enabled, verify the project linked to the environment has it configured
+    if (this.isAppStreamEnabled) {
+      const { projectId } = await this.mustFind(requestContext, { id: envId });
+      const projectService = await this.service('projectService');
+      // The isAppStreamConfigured attribute value will be returned by project service. indexId field is enough for filtering
+      const { isAppStreamConfigured } = await projectService.mustFind(requestContext, {
+        id: projectId,
+        fields: ['indexId'],
+      });
+      if (!isAppStreamConfigured)
+        throw this.boom.badRequest('Please select an environment with an AppStream-configured project', true);
+    }
+  }
+
   async update(requestContext, environment, ipAllowListAction = {}) {
     // Validate input
     const [validationService, storageGatewayService] = await this.service([
@@ -460,6 +503,9 @@ class EnvironmentScService extends Service {
       { action: 'update-sc', conditions: [this._allowAuthorized] },
       existingEnvironment,
     );
+
+    // Verify environment is linked to an AppStream project when application has AppStream enabled
+    await this.verifyAppStreamConfig(requestContext, existingEnvironment.id);
 
     const by = _.get(requestContext, 'principalIdentifier.uid');
     const { id, rev } = environment;
@@ -612,6 +658,9 @@ class EnvironmentScService extends Service {
       { action: 'update-sc', conditions: [this._allowAuthorized] },
       existingEnvironment,
     );
+
+    // Verify environment is linked to an AppStream project when application has AppStream enabled
+    await this.verifyAppStreamConfig(requestContext, existingEnvironment.id);
 
     const { status, outputs, projectId } = existingEnvironment;
 
@@ -850,6 +899,9 @@ class EnvironmentScService extends Service {
       { action: 'delete-sc', conditions: [this._allowAuthorized] },
       existingEnvironment,
     );
+
+    // Verify environment is linked to an AppStream project when application has AppStream enabled
+    await this.verifyAppStreamConfig(requestContext, existingEnvironment.id);
 
     await this.update(requestContext, {
       id,
