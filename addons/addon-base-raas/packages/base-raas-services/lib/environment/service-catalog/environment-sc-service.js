@@ -344,9 +344,6 @@ class EnvironmentScService extends Service {
       await this.assertAuthorized(requestContext, { action: 'get-sc', conditions: [this._allowAuthorized] }, result);
     }
 
-    // Verify environment is linked to an AppStream project when application has AppStream enabled
-    await this.verifyAppStreamConfig(requestContext, id);
-
     const env = this._fromDbToDataObject(result);
 
     // We only check for the ingress rules of a successfully provisioned environment not in failure state
@@ -470,10 +467,9 @@ class EnvironmentScService extends Service {
     return dbResult;
   }
 
-  async verifyAppStreamConfig(requestContext, envId) {
+  async verifyAppStreamConfig(requestContext, projectId) {
     // If the AppStream feature is enabled, verify the project linked to the environment has it configured
     if (this.isAppStreamEnabled) {
-      const { projectId } = await this.mustFind(requestContext, { id: envId });
       const projectService = await this.service('projectService');
       // The isAppStreamConfigured attribute value will be returned by project service. indexId field is enough for filtering
       const { isAppStreamConfigured } = await projectService.mustFind(requestContext, {
@@ -505,7 +501,7 @@ class EnvironmentScService extends Service {
     );
 
     // Verify environment is linked to an AppStream project when application has AppStream enabled
-    await this.verifyAppStreamConfig(requestContext, existingEnvironment.id);
+    await this.verifyAppStreamConfig(requestContext, existingEnvironment.projectId);
 
     const by = _.get(requestContext, 'principalIdentifier.uid');
     const { id, rev } = environment;
@@ -658,9 +654,6 @@ class EnvironmentScService extends Service {
       { action: 'update-sc', conditions: [this._allowAuthorized] },
       existingEnvironment,
     );
-
-    // Verify environment is linked to an AppStream project when application has AppStream enabled
-    await this.verifyAppStreamConfig(requestContext, existingEnvironment.id);
 
     const { status, outputs, projectId } = existingEnvironment;
 
@@ -899,9 +892,6 @@ class EnvironmentScService extends Service {
       { action: 'delete-sc', conditions: [this._allowAuthorized] },
       existingEnvironment,
     );
-
-    // Verify environment is linked to an AppStream project when application has AppStream enabled
-    await this.verifyAppStreamConfig(requestContext, existingEnvironment.id);
 
     await this.update(requestContext, {
       id,
