@@ -59,8 +59,10 @@ class StudyPermissionsTable extends React.Component {
     // Set users who currently have permission to the study as the selected users
     this.study.userTypes.forEach(userType => {
       this.selectedUserIds[userType] = this.permissionsStore.studyPermissions[`${userType}Users`];
-    });
 
+      // determine staleUserIds
+      this.staleUserIds[userType] = getStaleUsers(this.selectedUserIds[userType], this.usersStore);
+    });
     // Show edit dropdowns via observable
     this.editModeOn = true;
   };
@@ -69,6 +71,7 @@ class StudyPermissionsTable extends React.Component {
     this.editModeOn = false;
     this.isProcessing = false;
     this.selectedUserIds = {};
+    this.staleUserIds = {};
   };
 
   submitUpdate = async () => {
@@ -78,7 +81,7 @@ class StudyPermissionsTable extends React.Component {
 
     // Perform update
     try {
-      await this.permissionsStore.update(this.selectedUserIds);
+      await this.permissionsStore.update(this.selectedUserIds, this.staleUserIds);
       displaySuccess('Update Succeeded');
       runInAction(() => {
         this.resetForm();
@@ -195,13 +198,28 @@ class StudyPermissionsTable extends React.Component {
   }
 }
 
+function getStaleUsers(selectedUserIds, usersStore) {
+  const userIdentifiers = _.map(selectedUserIds, uid => ({ uid }));
+  const users = usersStore.asUserObjects(userIdentifiers);
+  const userIdDict = Object.assign({}, ...users.map(user => ({ [user.id]: user })));
+  const invalidUserIds = [];
+  selectedUserIds.forEach(userId => {
+    if (!(userId in userIdDict)) {
+      invalidUserIds.push(userId);
+    }
+  });
+  return invalidUserIds;
+}
+
 decorate(StudyPermissionsTable, {
   editModeOn: observable,
   isProcessing: observable,
   selectedUserIds: observable,
+  staleUserIds: observable,
 
   enableEditMode: action,
   resetForm: action,
   submitUpdate: action,
 });
 export default inject('userStore', 'usersStore')(observer(StudyPermissionsTable));
+export { getStaleUsers };

@@ -339,7 +339,9 @@ class StudyPermissionService extends Service {
 
       applyUpdateRequest(studyPermissionsEntity, updateRequest);
 
-      const userIds = getImpactedUsers(updateRequest);
+      // impacted users for update are only those users who are being added. Don't validate if users being removed
+      // exist or not since their permissions are being removed
+      const userIds = _.map(updateRequest.usersToAdd, item => item.uid);
       if (_.size(userIds) > 100) {
         // To protect against a large number
         throw this.boom.badRequest('You can only change permissions for up to 100 users', true);
