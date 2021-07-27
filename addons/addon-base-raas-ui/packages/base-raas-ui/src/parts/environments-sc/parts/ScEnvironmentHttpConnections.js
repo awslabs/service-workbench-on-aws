@@ -182,10 +182,8 @@ class ScEnvironmentHttpConnections extends React.Component {
             {destinationUrl && (
               <Table.Row key={`${item.id}_destination`} className="fadeIn animated">
                 <Table.Cell colSpan="3" className="p3">
-                  <div>
-                    Click on this icon to copy the workspace destination URL:
-                    <CopyToClipboard text={destinationUrl} />
-                  </div>
+                  Click here to copy the destination URL:
+                  <CopyToClipboard text={destinationUrl} />
                   <Button
                     floated="right"
                     size="mini"
@@ -242,12 +240,12 @@ class ScEnvironmentHttpConnections extends React.Component {
   renderAppstreamInstructions(item) {
     return (
       this.isAppStreamEnabled && (
-        <Segment key={`${item.id}__4`} className="clearfix">
+        <Segment key={`${item.id}__4`} className="clearfix" data-testid="appstream-instructions-http">
           <b>Connection instructions for your AppStream workspace:</b>
           <List bulleted>
-            <List.Item>Click the &quot;Generate URL&quot; button to create the designation instance URL</List.Item>
-            <List.Item>Copy the destination URL that becomes available below</List.Item>
-            <List.Item>Hit &quot;Connect&quot;. Paste the URL in the new AppStream FireFox tab</List.Item>
+            <List.Item>Click the &quot;Generate URL&quot; button to create the destination URL</List.Item>
+            <List.Item>Copy the URL and hit &quot;Connect&quot;. </List.Item>
+            <List.Item>Paste the URL in the new AppStream FireFox tab</List.Item>
           </List>
         </Segment>
       )

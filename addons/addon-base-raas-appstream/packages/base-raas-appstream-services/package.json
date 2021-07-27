@@ -6,10 +6,10 @@
   "author": "Amazon Web Services",
   "license": "Apache-2.0",
   "dependencies": {
+    "@aws-ee/base-raas-services": "workspace:*",
     "@aws-ee/base-services": "workspace:*",
     "@aws-ee/base-services-container": "workspace:*",
-    "@aws-ee/base-raas-services": "workspace:*",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "uuid": "^3.4.0"
   },
   "devDependencies": {

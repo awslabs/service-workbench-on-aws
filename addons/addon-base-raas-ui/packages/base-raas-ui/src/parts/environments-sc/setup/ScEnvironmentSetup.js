@@ -198,7 +198,7 @@ class ScEnvironmentSetup extends React.Component {
             <Icon name="lock" />
             Missing association with projects
             <Header.Subheader>
-              You currently do not have permissions to use any projects for the workspace. please contact your
+              You currently do not have permissions to use any projects for the workspace. Please contact your
               administrator.
             </Header.Subheader>
           </Header>

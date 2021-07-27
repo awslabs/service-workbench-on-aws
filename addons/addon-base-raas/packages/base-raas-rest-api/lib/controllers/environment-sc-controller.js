@@ -30,6 +30,7 @@ async function configure(context) {
 
       const [environmentScService] = await context.service(['environmentScService']);
       const result = await environmentScService.mustFind(requestContext, { id });
+      await environmentScService.verifyAppStreamConfig(requestContext, result.projectId);
       res.status(200).json(result);
     }),
   );

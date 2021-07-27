@@ -145,6 +145,10 @@ class EnvironmentScConnectionService extends Service {
       return connection;
     }
 
+    // Verify environment is linked to an AppStream project when application has AppStream enabled
+    const { projectId } = await environmentScService.mustFind(requestContext, { id: envId });
+    await environmentScService.verifyAppStreamConfig(requestContext, projectId);
+
     if (_.toLower(_.get(connection, 'type', '')) === 'sagemaker') {
       const sagemaker = await environmentScService.getClientSdkWithEnvMgmtRole(
         requestContext,
@@ -237,6 +241,10 @@ class EnvironmentScConnectionService extends Service {
     // Validate input
     await validationService.ensureValid(sshConnectionInfo, sshConnectionInfoSchema);
 
+    // Verify environment is linked to an AppStream project when application has AppStream enabled
+    const { projectId } = await environmentScService.mustFind(requestContext, { id: envId });
+    await environmentScService.verifyAppStreamConfig(requestContext, projectId);
+
     // The following will succeed only if the user has permissions to access the specified environment
     const connection = await this.mustFindConnection(requestContext, envId, connectionId);
 
@@ -305,6 +313,10 @@ class EnvironmentScConnectionService extends Service {
       'environmentScService',
       'environmentScKeypairService',
     ]);
+
+    // Verify environment is linked to an AppStream project when application has AppStream enabled
+    const { projectId } = await environmentScService.mustFind(requestContext, { id: envId });
+    await environmentScService.verifyAppStreamConfig(requestContext, projectId);
 
     // The following will succeed only if the user has permissions to access the specified environment
     // and connection

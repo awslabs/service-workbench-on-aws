@@ -32,11 +32,19 @@ const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-sett
 jest.mock('@aws-ee/base-services/lib/user/user-service');
 const UserServiceMock = require('@aws-ee/base-services/lib/user/user-service');
 
+jest.mock('../../aws-accounts/aws-accounts-service');
+const AwsAccountsServiceMock = require('../../aws-accounts/aws-accounts-service');
+
+jest.mock('../../indexes/indexes-service');
+const IndexesServiceMock = require('../../indexes/indexes-service');
+
 const ProjectService = require('../project-service');
 
 describe('ProjectService', () => {
   let service = null;
   let dbService = null;
+  let indexesService = null;
+  let awsAccountsService = null;
   beforeAll(async () => {
     // Initialize services container and register dependencies
     const container = new ServicesContainer();
@@ -47,12 +55,16 @@ describe('ProjectService', () => {
     container.register('auditWriterService', new AuditServiceMock());
     container.register('settings', new SettingsServiceMock());
     container.register('userService', new UserServiceMock());
+    container.register('awsAccountsService', new AwsAccountsServiceMock());
+    container.register('indexesService', new IndexesServiceMock());
 
     await container.initServices();
 
     // Get instance of the service we are testing
     service = await container.find('projectService');
     dbService = await container.find('dbService');
+    indexesService = await container.find('indexesService');
+    awsAccountsService = await container.find('awsAccountsService');
 
     // Skip authorization
     service.assertAuthorized = jest.fn();
@@ -124,6 +136,30 @@ describe('ProjectService', () => {
     });
   });
 
+  it('should fail if rev is empty', async () => {
+    const project = {
+      id: 'my-new-project',
+      description: 'Some relevant description',
+      indexId: '123',
+      // empty rev should cause error
+    };
+
+    try {
+      await service.update({}, project);
+      expect.hasAssertions();
+    } catch (err) {
+      expect(err.payload).toBeDefined();
+      const error = err.payload.validationErrors[0];
+      expect(error).toMatchObject({
+        keyword: 'required',
+        dataPath: '',
+        schemaPath: '#/required',
+        params: { missingProperty: 'rev' },
+        message: "should have required property 'rev'",
+      });
+    }
+  });
+
   describe('update', () => {
     it('should NOT fail for all required properties present', async () => {
       const project = {
@@ -160,28 +196,149 @@ describe('ProjectService', () => {
     });
   });
 
-  it('should fail if rev is empty', async () => {
-    const project = {
-      id: 'my-new-project',
-      description: 'Some relevant description',
-      indexId: '123',
-      // empty rev should cause error
-    };
-
-    try {
-      await service.update({}, project);
-      expect.hasAssertions();
-    } catch (err) {
-      expect(err.payload).toBeDefined();
-      const error = err.payload.validationErrors[0];
-      expect(error).toMatchObject({
-        keyword: 'required',
-        dataPath: '',
-        schemaPath: '#/required',
-        params: { missingProperty: 'rev' },
-        message: "should have required property 'rev'",
+  describe('updateWithAppStreamConfig', () => {
+    it('should return list of projects with appropriate isAppStreamConfigured bool', async () => {
+      // BUILD
+      const input = [
+        {
+          id: 'my-appstream-project',
+          description: 'Some relevant description',
+          indexId: 'index-1',
+          rev: 1,
+        },
+        {
+          id: 'my-non-appstream-project',
+          description: 'Some relevant description',
+          indexId: 'index-2',
+          rev: 1,
+        },
+      ];
+      awsAccountsService.list = jest.fn(() => {
+        return [
+          {
+            id: 'awsAccountId-1',
+            appStreamFleetName: 'sampleAppStreamFleetName',
+            appStreamSecurityGroupId: 'sampleAppStreamSecurityGroupId',
+            appStreamStackName: 'sampleAppStreamStackName',
+          },
+          { id: 'awsAccountId-2' },
+          { id: 'awsAccountId-3' },
+        ];
       });
-    }
+      indexesService.list = jest.fn(() => {
+        return [
+          { id: 'index-1', awsAccountId: 'awsAccountId-1' },
+          { id: 'index-2', awsAccountId: 'awsAccountId-2' },
+          { id: 'index-3', awsAccountId: 'awsAccountId-3' },
+        ];
+      });
+      const expectedRetVal = [
+        {
+          id: 'my-appstream-project',
+          description: 'Some relevant description',
+          indexId: 'index-1',
+          rev: 1,
+          isAppStreamConfigured: true,
+        },
+        {
+          id: 'my-non-appstream-project',
+          description: 'Some relevant description',
+          indexId: 'index-2',
+          rev: 1,
+          isAppStreamConfigured: false,
+        },
+      ];
+
+      // EXECUTE
+      const retVal = await service.updateWithAppStreamConfig(input);
+
+      // CHECK
+      await expect(retVal).toEqual(expectedRetVal);
+    });
+
+    it('should return project with appropriate isAppStreamConfigured bool', async () => {
+      // BUILD
+      const input = {
+        id: 'my-appstream-project',
+        description: 'Some relevant description',
+        indexId: 'index-1',
+        rev: 1,
+      };
+      awsAccountsService.list = jest.fn(() => {
+        return [
+          {
+            id: 'awsAccountId-1',
+            appStreamFleetName: 'sampleAppStreamFleetName',
+            appStreamSecurityGroupId: 'sampleAppStreamSecurityGroupId',
+            appStreamStackName: 'sampleAppStreamStackName',
+          },
+          { id: 'awsAccountId-2' },
+          { id: 'awsAccountId-3' },
+        ];
+      });
+      indexesService.list = jest.fn(() => {
+        return [
+          { id: 'index-1', awsAccountId: 'awsAccountId-1' },
+          { id: 'index-2', awsAccountId: 'awsAccountId-2' },
+          { id: 'index-3', awsAccountId: 'awsAccountId-3' },
+        ];
+      });
+      const expectedRetVal = {
+        id: 'my-appstream-project',
+        description: 'Some relevant description',
+        indexId: 'index-1',
+        rev: 1,
+        isAppStreamConfigured: true,
+      };
+
+      // EXECUTE
+      const retVal = await service.updateWithAppStreamConfig(input);
+
+      // CHECK
+      await expect(retVal).toEqual(expectedRetVal);
+    });
+
+    it('should return project with unset isAppStreamConfigured for incomplete AppStream configuration', async () => {
+      // BUILD
+      const input = {
+        id: 'my-appstream-project',
+        description: 'Some relevant description',
+        indexId: 'index-1',
+        rev: 1,
+      };
+      awsAccountsService.list = jest.fn(() => {
+        return [
+          {
+            id: 'awsAccountId-1',
+            appStreamFleetName: 'sampleAppStreamFleetName',
+            appStreamSecurityGroupId: 'sampleAppStreamSecurityGroupId',
+            // appStreamStackName: 'sampleAppStreamStackName', // missing config
+          },
+          { id: 'awsAccountId-2' },
+          { id: 'awsAccountId-3' },
+        ];
+      });
+      indexesService.list = jest.fn(() => {
+        return [
+          { id: 'index-1', awsAccountId: 'awsAccountId-1' },
+          { id: 'index-2', awsAccountId: 'awsAccountId-2' },
+          { id: 'index-3', awsAccountId: 'awsAccountId-3' },
+        ];
+      });
+      const expectedRetVal = {
+        id: 'my-appstream-project',
+        description: 'Some relevant description',
+        indexId: 'index-1',
+        rev: 1,
+        isAppStreamConfigured: false,
+      };
+
+      // EXECUTE
+      const retVal = await service.updateWithAppStreamConfig(input);
+
+      // CHECK
+      await expect(retVal).toEqual(expectedRetVal);
+    });
   });
 
   describe('delete', () => {
