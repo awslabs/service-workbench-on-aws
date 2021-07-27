@@ -199,7 +199,7 @@ class DataEgressService extends Service {
         action: 'terminated-egress-store',
         body: 'No egress store found to be terminated',
       });
-      return;
+      return null;
     }
     const isEgressStoreOwner = egressStoreInfo.createdBy === curUser;
     if (!isAdmin(requestContext) && !isEgressStoreOwner) {
