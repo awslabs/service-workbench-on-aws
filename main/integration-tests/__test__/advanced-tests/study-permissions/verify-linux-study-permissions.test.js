@@ -36,6 +36,8 @@ describe('EC2 Linux scenarios', () => {
 
   afterAll(async () => {
     await setup.cleanup();
+    adminSession.cleanup();
+    admin2Session.cleanup();
   });
 
   describe('Updates to mounted study permissions', () => {
@@ -154,6 +156,7 @@ describe('EC2 Linux scenarios', () => {
       expect(output.stderr).toEqual(expect.stringMatching(/reading directory .: Permission denied/));
 
       await ssh.dispose();
+      // Removes user permission
       await adminSession.resources.studies.study(externalStudy).propagatePermission(admin2Session, [], ['readonly']);
     });
   });

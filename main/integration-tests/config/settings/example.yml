@@ -58,9 +58,5 @@ localApiEndpoint: http://localhost:4000
 # Provide the id of a configuration for an imported EMR environment
 # emrLinuxConfigId: ""
 
-# Provide the id of the AWS account for Data Source studies
-# accountId: ""
-# Provide the name of the external bucket for Data Source studies
-# bucketName: ""
 # Provide the name of the external Data Source study
 # externalStudy: ""
