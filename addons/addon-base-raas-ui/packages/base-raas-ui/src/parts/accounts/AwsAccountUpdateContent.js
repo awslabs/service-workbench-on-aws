@@ -249,7 +249,6 @@ class AwsAccountUpdateContent extends React.Component {
                 )}
               </div>
             </div>
-            {/*  TODO: If createStackUrl doesn't have AppStreamImageName, or AppStreamInstanceType then fill it out in the next screen */}
             <div className="mb0 flex mt2">
               <div className="flex-auto">
                 <Button

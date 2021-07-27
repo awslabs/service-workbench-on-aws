@@ -65,10 +65,6 @@ class AccountCard extends React.Component {
     return this.props.isSelectable;
   }
 
-  get shouldPermButtonBeDisabled() {
-    return this.appStreamStatusMismatch && this.props.hasActiveEnv;
-  }
-
   get permissionStatus() {
     // Possible Values: CURRENT, NEEDS_UPDATE, NEEDS_ONBOARD, ERRORED
     return this.account.permissionStatus;
@@ -106,11 +102,11 @@ class AccountCard extends React.Component {
   };
 
   goToNextPage() {
+    const awsAccountUUID = this.account.id;
+    // If the account needs to be upgraded to support AppStream we need to Update the account with AppStream specific settings, for example: AppStreamImageName
     if (this.appStreamStatusMismatch) {
-      const awsAccountId = this.account.id;
-      this.goto(`/aws-accounts/update/${awsAccountId}/rev/${this.account.rev}`);
+      this.goto(`/aws-accounts/update/${awsAccountUUID}/rev/${this.account.rev}`);
     } else {
-      const awsAccountUUID = this.account.id;
       this.goto(`/aws-accounts/onboard/${awsAccountUUID}`);
     }
   }
@@ -298,7 +294,6 @@ decorate(AccountCard, {
   isSelectable: computed,
   isSelected: observable,
   permissionStatus: computed,
-  shouldPermButtonBeDisabled: computed,
 });
 
 export default inject('awsAccountsStore')(withRouter(observer(AccountCard)));

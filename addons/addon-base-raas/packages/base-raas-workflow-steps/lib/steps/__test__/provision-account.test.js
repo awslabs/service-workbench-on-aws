@@ -438,14 +438,6 @@ describe('ProvisionAccount', () => {
 
   it('shareImageWithMemberAccount', async () => {
     // BUILD
-
-    // step.mustFindServices = jest.fn().mockImplementation(async services => {
-    //   if (services[0] === 'appStreamScService') {
-    //     return Promise.resolve([appStreamScService]);
-    //   }
-    //   // return null;
-    // });
-
     step.payload = {
       string: stringInput => {
         if (stringInput === 'appStreamImageName') {

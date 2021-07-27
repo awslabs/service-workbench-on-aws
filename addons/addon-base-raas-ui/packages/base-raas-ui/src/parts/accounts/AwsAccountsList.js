@@ -125,7 +125,7 @@ class AwsAccountsList extends React.Component {
                 account={account}
                 permissionStatus={account.permissionStatus}
                 isSelectable
-                hasActiveEnv={this.awsAccountIdsOfActiveEnvs.includes(account.id)}
+                hasActiveEnv={this.awsAccountIdsOfActiveEnvs.includes(account.id)} // This allows us to prevent an account from being upgraded to support AppStream if the account has active envs
               />
             ))}
           </div>
