@@ -57,10 +57,8 @@ class ReadEnvironmentInfo extends StepBase {
         },
       });
 
-      console.log('ZZZ: Before resolvedVars');
       const resolvedVars = result ? result.resolvedVars : initialResolvedVars;
 
-      console.log('ZZZ: After resolved vars', resolvedVars);
       // This puts the key/value pair in the payload object for other steps to use
       await this.payload.setKey(outPayloadKeys.resolvedVars, resolvedVars);
     } catch (error) {

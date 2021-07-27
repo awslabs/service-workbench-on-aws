@@ -299,8 +299,8 @@ class AwsAccountUpdateContent extends React.Component {
   renderStartAppStreamInstructions() {
     return (
       <List.Item>
-        After the Cloudformation Stack has been created, go to AppStream on the console, then go to Fleet,then click on
-        the newly created fleet and Start the fleet.
+        After the Cloudformation Stack has been created, go to AppStream on the AWS console. Go to Fleet and then click
+        on the newly created fleet. Choose Action&gt;Start to start the fleet.
       </List.Item>
     );
   }

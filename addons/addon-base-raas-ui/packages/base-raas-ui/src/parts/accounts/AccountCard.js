@@ -53,12 +53,20 @@ class AccountCard extends React.Component {
     return process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true';
   }
 
+  get appStreamStatusMismatch() {
+    return this.isAppStreamEnabled && !this.account.isAppStreamConfigured;
+  }
+
   get awsAccountsStore() {
     return this.props.awsAccountsStore;
   }
 
   get isSelectable() {
     return this.props.isSelectable;
+  }
+
+  get permButtonDisabled() {
+    return this.appStreamStatusMismatch && this.props.hasActiveEnv;
   }
 
   get permissionStatus() {
@@ -98,7 +106,7 @@ class AccountCard extends React.Component {
   };
 
   goToNextPage() {
-    if (this.isAppStreamEnabled && !this.account.isAppStreamConfigured) {
+    if (this.appStreamStatusMismatch) {
       const awsAccountId = this.account.id;
       this.goto(`/aws-accounts/update/${awsAccountId}/rev/${this.account.rev}`);
     } else {
@@ -110,7 +118,6 @@ class AccountCard extends React.Component {
   render() {
     const isSelectable = this.isSelectable; // Internal and external guests can't select studies
     const account = this.account;
-    console.log('account', account);
     const attrs = {};
     const onClickAttr = {};
     const permissionStatus = this.permissionStatus;
@@ -256,13 +263,31 @@ class AccountCard extends React.Component {
     const permissionStatus = this.permissionStatus;
     let buttonArgs;
     if (permissionStatus === 'NEEDS_UPDATE' || permissionStatus === 'ERRORED')
-      buttonArgs = { message: 'Update Permissions', color: 'orange', onClick: this.handleUpdateAccountPerms };
+      buttonArgs = {
+        message: 'Update Permissions',
+        color: 'orange',
+        onClick: this.handleUpdateAccountPerms,
+      };
     else if (permissionStatus === 'PENDING' || permissionStatus === 'UNKNOWN')
-      buttonArgs = { message: 'Re-Onboard Account', color: 'red', onClick: this.handlePendingButton };
-    else buttonArgs = { message: 'Onboard Account', color: 'purple', onClick: this.handleOnboardAccount };
-    // This button is only displayed if permissionStatus is NEEDS_UPDATE, NEEDS_ONBOARD, or PENDING
+      buttonArgs = {
+        message: 'Re-Onboard Account',
+        color: 'red',
+        onClick: this.handlePendingButton,
+      };
+    else
+      buttonArgs = {
+        message: 'Onboard Account',
+        color: 'purple',
+        onClick: this.handleOnboardAccount,
+      };
+
     return (
-      <Button floated="right" color={buttonArgs.color} onClick={buttonArgs.onClick}>
+      <Button
+        floated="right"
+        color={buttonArgs.color}
+        onClick={buttonArgs.onClick}
+        disabled={this.appStreamStatusMismatch && this.props.hasActiveEnv}
+      >
         {buttonArgs.message}
       </Button>
     );
@@ -278,6 +303,7 @@ decorate(AccountCard, {
   isSelectable: computed,
   isSelected: observable,
   permissionStatus: computed,
+  permButtonDisabled: computed,
 });
 
 export default inject('awsAccountsStore')(withRouter(observer(AccountCard)));

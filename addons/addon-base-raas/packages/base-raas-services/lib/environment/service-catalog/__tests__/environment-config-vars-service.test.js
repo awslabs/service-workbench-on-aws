@@ -106,7 +106,7 @@ describe('EnvironmentSCService', () => {
     environmentAmiService = await container.find('environmentAmiService');
     userService = await container.find('userService');
     settingsService = await container.find('settings');
-    awsAccountsService = await container.find('accountService');
+    awsAccountsService = await container.find('awsAccountsService');
 
     awsAccountsService.mustFind = jest.fn(() => {
       return Promise.resolve({
@@ -280,6 +280,8 @@ describe('EnvironmentSCService', () => {
           vpcId: 'VpcId-Test',
           subnetId: 'SubnetId-Test',
           encryptionKeyArn: 'UltraSecureEncryptionKey',
+          cfnStackId:
+            'arn:aws:cloudformation:eu-west-1:123456789012:stack/initial-stack-1625689755737/ff9a0dc0-df61-11eb-8b32-024312ba26d9',
         };
       });
 
@@ -367,6 +369,8 @@ describe('EnvironmentSCService', () => {
           vpcId: 'VpcId-Test',
           subnetId: 'SubnetId-Test',
           encryptionKeyArn: 'UltraSecureEncryptionKey',
+          cfnStackId:
+            'arn:aws:cloudformation:eu-west-1:123456789012:stack/initial-stack-1625689755737/ff9a0dc0-df61-11eb-8b32-024312ba26d9',
         };
       });
 

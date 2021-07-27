@@ -58,7 +58,7 @@ describe('AwsAccountsStore', () => {
       await store.addAwsAccount(newAwsAccount);
 
       // CHECK
-      expect(newAwsAccount).toMatchObject(store.list[0]);
+      expect({ ...newAwsAccount, isAppStreamConfigured: false }).toMatchObject(store.list[0]);
       // some properties are dropped when added, so this makes sure store.list[0]
       //      is a subset of newAwsAccount
     });
