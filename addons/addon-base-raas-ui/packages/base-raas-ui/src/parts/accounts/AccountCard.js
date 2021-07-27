@@ -142,11 +142,6 @@ class AccountCard extends React.Component {
         </div>
       </Segment>
     );
-
-    // Checkbox will be added to this segment when functionality for edit/delete users is added
-    // <div className="mr2" {...onClickAttr}>
-    //   {isSelectable && <Checkbox checked={this.isSelected} style={{ marginTop: '31px' }} />}
-    // </div>
   }
 
   renderHeader(account) {
@@ -286,7 +281,7 @@ class AccountCard extends React.Component {
         floated="right"
         color={buttonArgs.color}
         onClick={buttonArgs.onClick}
-        disabled={this.appStreamStatusMismatch && this.props.hasActiveEnv}
+        disabled={this.appStreamStatusMismatch && this.props.hasActiveEnv} // Don't allow a user to update an account if they're upgrading to enable AppStream and the account still has active envs
       >
         {buttonArgs.message}
       </Button>

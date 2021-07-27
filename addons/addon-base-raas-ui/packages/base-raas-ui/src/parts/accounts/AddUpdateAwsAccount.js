@@ -25,12 +25,12 @@ import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
 import validate from '@aws-ee/base-ui/dist/models/forms/Validate';
 
 import {
-  getBaseAddAwsAccountFormFields,
-  getAddAwsAccountAppStreamFormFields,
-  getAddAwsAccountForm,
-} from '../../models/forms/AddAwsAccountForm';
+  getBaseAddUpdateAwsAccountFormFields,
+  getAddUpdateAwsAccountAppStreamFormFields,
+  getAddUpdateAwsAccountForm,
+} from '../../models/forms/AddUpdateAwsAccountForm';
 
-class AddAwsAccount extends React.Component {
+class AddUpdateAwsAccount extends React.Component {
   PAGE_TYPE_UPDATE = 'UPDATE';
 
   PAGE_TYPE_ADD = 'ADD';
@@ -55,12 +55,12 @@ class AddAwsAccount extends React.Component {
 
     let fields = {};
     if (this.pageType === this.PAGE_TYPE_ADD) {
-      fields = getBaseAddAwsAccountFormFields();
+      fields = getBaseAddUpdateAwsAccountFormFields();
     }
     if (process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true') {
-      fields = { ...fields, ...getAddAwsAccountAppStreamFormFields() };
+      fields = { ...fields, ...getAddUpdateAwsAccountAppStreamFormFields() };
     }
-    this.form = getAddAwsAccountForm(fields);
+    this.form = getAddUpdateAwsAccountForm(fields);
     this.addAwsAccountFormFields = fields;
   }
 
@@ -179,29 +179,28 @@ class AddAwsAccount extends React.Component {
     try {
       // Perform client side validations first
       const validationResult = await validate(this.awsAccount, this.addAwsAccountFormFields);
-      console.log('validationResult', validationResult);
       // if there are any client side validation errors then do not attempt to make API call
       if (validationResult.fails()) {
         runInAction(() => {
           this.validationErrors = validationResult.errors;
           this.formProcessing = false;
         });
-      } else if (this.pageType === this.PAGE_TYPE_ADD) {
-        // There are no client side validation errors so ask the store to add user (which will make API call to server to add the user)
-        const account = await this.props.awsAccountsStore.addAwsAccount(this.awsAccount);
-        runInAction(() => {
-          this.formProcessing = false;
-        });
-        this.goto(`/aws-accounts/onboard/${account.id}`);
       } else {
-        await this.props.awsAccountsStore.updateAwsAccount(this.awsAccountUUID, {
-          ...this.awsAccount,
-          rev: Number(this.rev),
-        });
+        let id = '';
+        if (this.pageType === this.PAGE_TYPE_ADD) {
+          const account = await this.props.awsAccountsStore.addAwsAccount(this.awsAccount);
+          id = account.id;
+        } else {
+          await this.props.awsAccountsStore.updateAwsAccount(this.awsAccountUUID, {
+            ...this.awsAccount,
+            rev: Number(this.rev),
+          });
+          id = this.awsAccountUUID;
+        }
         runInAction(() => {
           this.formProcessing = false;
         });
-        this.goto(`/aws-accounts/onboard/${this.awsAccountUUID}`);
+        this.goto(`/aws-accounts/onboard/${id}`);
       }
     } catch (error) {
       runInAction(() => {
@@ -217,9 +216,9 @@ class AddAwsAccount extends React.Component {
 }
 
 // see https://medium.com/@mweststrate/mobx-4-better-simpler-faster-smaller-c1fbc08008da
-decorate(AddAwsAccount, {
+decorate(AddUpdateAwsAccount, {
   formProcessing: observable,
   user: observable,
   validationErrors: observable,
 });
-export default inject('usersStore', 'awsAccountsStore')(withRouter(observer(AddAwsAccount)));
+export default inject('usersStore', 'awsAccountsStore')(withRouter(observer(AddUpdateAwsAccount)));

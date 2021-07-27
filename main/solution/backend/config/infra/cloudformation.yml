@@ -470,64 +470,62 @@ Resources:
         Statement:
           - Effect: Allow
             Action:
-              - dynamodb:*
-#              - dynamodb:DeleteItem
-#              - dynamodb:GetItem
-#              - dynamodb:BatchGetItem
-#              - dynamodb:PutItem
-#              - dynamodb:Query
-#              - dynamodb:Scan
-#              - dynamodb:UpdateItem
-            Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
-#            Resource:
-#              - !GetAtt [AuthenticationProviderTypesDb, Arn]
-#              - !GetAtt [AuthenticationProviderConfigsDb, Arn]
-#              - !GetAtt [RevokedTokensDb, Arn]
-#              - !GetAtt [UsersDb, Arn]
-#              - !Sub '${UsersDb.Arn}/index/*'
-#              - !GetAtt [PasswordsDb, Arn]
-#              - !GetAtt [LocksDb, Arn]
-#              - !GetAtt [StudiesDb, Arn]
-#              - !GetAtt [StudyPermissionsDb, Arn]
-#              - !Join ['', [!GetAtt [StudiesDb, Arn], '/index/*']]
-#              - !GetAtt [StepTemplatesDb, Arn]
-#              - !GetAtt [WorkflowTemplatesDb, Arn]
-#              - !GetAtt [WorkflowTemplateDraftsDb, Arn]
-#              - !Join ['', [!GetAtt [WorkflowTemplateDraftsDb, Arn], '/index/*']]
-#              - !GetAtt [WorkflowsDb, Arn]
-#              - !GetAtt [WorkflowDraftsDb, Arn]
-#              - !Join ['', [!GetAtt [WorkflowDraftsDb, Arn], '/index/*']]
-#              - !GetAtt [WorkflowInstancesDb, Arn]
-#              - !Join ['', [!GetAtt [WorkflowInstancesDb, Arn], '/index/*']]
-#              - !GetAtt [WfAssignmentsDb, Arn]
-#              - !Join ['', [!GetAtt [WfAssignmentsDb, Arn], '/index/*']]
-#              - !GetAtt [StudiesDb, Arn]
-#              - !GetAtt [StudyPermissionsDb, Arn]
-#              - !Join ['', [!GetAtt [StudiesDb, Arn], '/index/*']]
-#              - !GetAtt [EnvironmentsDb, Arn]
-#              - !GetAtt [EnvironmentsScDb, Arn]
-#              - !Join ['', [!GetAtt [EnvironmentsScDb, Arn], '/index/*']]
-#              - !GetAtt [EnvironmentsTypesDb, Arn]
-#              - !GetAtt [UserRolesDb, Arn]
-#              - !GetAtt [AwsAccountsDb, Arn]
-#              - !GetAtt [IndexesDb, Arn]
-#              - !GetAtt [CostApiCachesDb, Arn]
-#              - !GetAtt [ProjectsDb, Arn]
-#              - !GetAtt [AccountsDb, Arn]
-#              - !GetAtt [KeyPairsDb, Arn]
-#              - !Join ['', [!GetAtt [KeyPairsDb, Arn], '/index/*']]
-#              - !GetAtt [StorageGatewayDb, Arn]
-#              - !GetAtt [DsAccountsDb, Arn]
-#              - !GetAtt [RoleAllocationsDb, Arn]
-#              - !GetAtt [ResourceUsagesDb, Arn]
-#              - !If
-#                - EnableEgressStore
-#                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEgressStore}'
-#                - !Ref 'AWS::NoValue'
-#              - !If
-#                - EnableEgressStore
-#                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEgressStore}/index/*'
-#                - !Ref 'AWS::NoValue'
+              - dynamodb:DeleteItem
+              - dynamodb:GetItem
+              - dynamodb:BatchGetItem
+              - dynamodb:PutItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:UpdateItem
+            Resource:
+              - !GetAtt [AuthenticationProviderTypesDb, Arn]
+              - !GetAtt [AuthenticationProviderConfigsDb, Arn]
+              - !GetAtt [RevokedTokensDb, Arn]
+              - !GetAtt [UsersDb, Arn]
+              - !Sub '${UsersDb.Arn}/index/*'
+              - !GetAtt [PasswordsDb, Arn]
+              - !GetAtt [LocksDb, Arn]
+              - !GetAtt [StudiesDb, Arn]
+              - !GetAtt [StudyPermissionsDb, Arn]
+              - !Join ['', [!GetAtt [StudiesDb, Arn], '/index/*']]
+              - !GetAtt [StepTemplatesDb, Arn]
+              - !GetAtt [WorkflowTemplatesDb, Arn]
+              - !GetAtt [WorkflowTemplateDraftsDb, Arn]
+              - !Join ['', [!GetAtt [WorkflowTemplateDraftsDb, Arn], '/index/*']]
+              - !GetAtt [WorkflowsDb, Arn]
+              - !GetAtt [WorkflowDraftsDb, Arn]
+              - !Join ['', [!GetAtt [WorkflowDraftsDb, Arn], '/index/*']]
+              - !GetAtt [WorkflowInstancesDb, Arn]
+              - !Join ['', [!GetAtt [WorkflowInstancesDb, Arn], '/index/*']]
+              - !GetAtt [WfAssignmentsDb, Arn]
+              - !Join ['', [!GetAtt [WfAssignmentsDb, Arn], '/index/*']]
+              - !GetAtt [StudiesDb, Arn]
+              - !GetAtt [StudyPermissionsDb, Arn]
+              - !Join ['', [!GetAtt [StudiesDb, Arn], '/index/*']]
+              - !GetAtt [EnvironmentsDb, Arn]
+              - !GetAtt [EnvironmentsScDb, Arn]
+              - !Join ['', [!GetAtt [EnvironmentsScDb, Arn], '/index/*']]
+              - !GetAtt [EnvironmentsTypesDb, Arn]
+              - !GetAtt [UserRolesDb, Arn]
+              - !GetAtt [AwsAccountsDb, Arn]
+              - !GetAtt [IndexesDb, Arn]
+              - !GetAtt [CostApiCachesDb, Arn]
+              - !GetAtt [ProjectsDb, Arn]
+              - !GetAtt [AccountsDb, Arn]
+              - !GetAtt [KeyPairsDb, Arn]
+              - !Join ['', [!GetAtt [KeyPairsDb, Arn], '/index/*']]
+              - !GetAtt [StorageGatewayDb, Arn]
+              - !GetAtt [DsAccountsDb, Arn]
+              - !GetAtt [RoleAllocationsDb, Arn]
+              - !GetAtt [ResourceUsagesDb, Arn]
+              - !If
+                - EnableEgressStore
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEgressStore}'
+                - !Ref 'AWS::NoValue'
+              - !If
+                - EnableEgressStore
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEgressStore}/index/*'
+                - !Ref 'AWS::NoValue'
           - Effect: Allow
             Action:
               - ssm:GetParameter

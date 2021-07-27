@@ -162,7 +162,6 @@ class AwsAccountsService extends Service {
     const id = uuid();
 
     // Prepare the db object
-    // TODO: If we're deploying a new SWB instance to a new account, it doesn't need to be ONBOARD
     const dbObject = this._fromRawToDbObject(rawData, {
       rev: 0,
       createdBy: by,

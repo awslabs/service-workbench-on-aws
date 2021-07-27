@@ -38,7 +38,7 @@ class AwsAccountsList extends React.Component {
       // and value as flag indicating whether to show the editor for the user
       this.mapOfUsersBeingEdited = {};
       this.selectedFilter = 'All'; // case-sensitive, see AwsAccountsStore.js for options
-      this.awsAccountIdOfActiveEnvs = [];
+      this.awsAccountIdsOfActiveEnvs = [];
     });
   }
 
@@ -49,20 +49,21 @@ class AwsAccountsList extends React.Component {
     swallowError(awsAccountsStore.load());
     accountsStore.startHeartbeat();
     awsAccountsStore.startHeartbeat();
-    const awsAccountIdOfActiveEnvs = await this.getActiveEnvironmentsByAccount();
-    // awsAccountIdOfActiveEnvs.push('369f61d0-d2c4-11eb-b290-e34487c36493');
+    const awsAccountIdOfActiveEnvs = await this.getAccountsWithActiveEnvironments();
     runInAction(() => {
-      this.awsAccountIdOfActiveEnvs = awsAccountIdOfActiveEnvs;
+      this.awsAccountIdsOfActiveEnvs = awsAccountIdOfActiveEnvs;
     });
   }
 
-  async getActiveEnvironmentsByAccount() {
+  /**
+   * @return List of account ids of all accounts with active environments
+   */
+  async getAccountsWithActiveEnvironments() {
     const scEnvironmentStore = this.props.scEnvironmentsStore;
     const indexesStore = this.props.indexesStore;
     const projectsStore = this.props.projectsStore;
 
     await Promise.all([scEnvironmentStore.doLoad(), indexesStore.doLoad(), projectsStore.doLoad()]);
-    // await scEnvironmentStore.doLoad();
     const envs = scEnvironmentStore.list;
 
     const activeEnvs = envs.filter(env => {
@@ -82,10 +83,9 @@ class AwsAccountsList extends React.Component {
       projectIdToAwsAccountId[project.id] = indexIdToAwsAccountId[project.indexId];
     });
 
-    const awsAccountIdOfActiveEnvs = Object.keys(projectToActiveEnvs).map(projectId => {
+    return Object.keys(projectToActiveEnvs).map(projectId => {
       return projectIdToAwsAccountId[projectId];
     });
-    return awsAccountIdOfActiveEnvs;
   }
 
   componentWillUnmount() {
@@ -125,7 +125,7 @@ class AwsAccountsList extends React.Component {
                 account={account}
                 permissionStatus={account.permissionStatus}
                 isSelectable
-                hasActiveEnv={this.awsAccountIdOfActiveEnvs.includes(account.id)}
+                hasActiveEnv={this.awsAccountIdsOfActiveEnvs.includes(account.id)}
               />
             ))}
           </div>
@@ -253,7 +253,7 @@ class AwsAccountsList extends React.Component {
 decorate(AwsAccountsList, {
   mapOfUsersBeingEdited: observable,
   selectedFilter: observable,
-  awsAccountIdOfActiveEnvs: observable,
+  awsAccountIdsOfActiveEnvs: observable,
   handleSelectedFilter: action,
 });
 
