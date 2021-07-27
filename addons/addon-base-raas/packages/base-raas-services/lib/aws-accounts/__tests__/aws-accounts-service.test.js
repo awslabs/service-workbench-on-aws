@@ -38,10 +38,10 @@ const LockServiceMock = require('@aws-ee/base-services/lib/lock/lock-service');
 jest.mock('@aws-ee/base-services/lib/s3-service');
 const S3ServiceMock = require('@aws-ee/base-services/lib/s3-service');
 
-const AwsAccountService = require('../aws-accounts-service');
-
 jest.mock('@aws-ee/base-services/lib/aws/aws-service');
 const AwsServiceMock = require('@aws-ee/base-services/lib/aws/aws-service');
+
+const AwsAccountService = require('../aws-accounts-service');
 
 describe('AwsAccountService', () => {
   let service = null;

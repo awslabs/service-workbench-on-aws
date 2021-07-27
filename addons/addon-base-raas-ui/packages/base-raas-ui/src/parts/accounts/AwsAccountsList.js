@@ -17,7 +17,7 @@ import React from 'react';
 import _ from 'lodash';
 import { Button, Container, Header, Icon, Label, Message, Segment } from 'semantic-ui-react';
 import { withRouter } from 'react-router-dom';
-import { decorate, observable, runInAction, action, computed } from 'mobx';
+import { decorate, observable, runInAction, action } from 'mobx';
 import { inject, observer } from 'mobx-react';
 
 import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';

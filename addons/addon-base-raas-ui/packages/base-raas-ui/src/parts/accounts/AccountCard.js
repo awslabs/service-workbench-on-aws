@@ -65,7 +65,7 @@ class AccountCard extends React.Component {
     return this.props.isSelectable;
   }
 
-  get permButtonDisabled() {
+  get shouldPermButtonBeDisabled() {
     return this.appStreamStatusMismatch && this.props.hasActiveEnv;
   }
 
@@ -303,7 +303,7 @@ decorate(AccountCard, {
   isSelectable: computed,
   isSelected: observable,
   permissionStatus: computed,
-  permButtonDisabled: computed,
+  shouldPermButtonBeDisabled: computed,
 });
 
 export default inject('awsAccountsStore')(withRouter(observer(AccountCard)));

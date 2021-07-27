@@ -48,9 +48,7 @@ class AddAwsAccount extends React.Component {
       this.formProcessing = false;
       this.validationErrors = new Map();
       this.awsAccount = {};
-      // this.awsAccountUUID = (this.props.match.params || {}).id;
       this.awsAccountUUID = _.get(this.props, 'match.params.id', undefined);
-      // this.rev = (this.props.match.params || {}).rev;
       this.rev = _.get(this.props, 'match.params.rev', undefined);
       this.pageType = this.awsAccountUUID ? this.PAGE_TYPE_UPDATE : this.PAGE_TYPE_ADD;
     });
