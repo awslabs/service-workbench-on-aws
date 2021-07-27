@@ -347,7 +347,7 @@ class InputStep extends React.Component {
 
   renderStudyField({ field }) {
     const myStudies = field.$('category').value === 'My Studies';
-    const enableEgressStoreFeature = enableEgressStore.toUpperCase() === 'TRUE' ? true : false;
+    const enableEgressStoreFeature = enableEgressStore.toUpperCase() === 'TRUE';
 
     return (
       <Segment key={field.key} clearing className="mt3 p3">
