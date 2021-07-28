@@ -28,6 +28,8 @@ import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
 import AccountCard from './AccountCard';
 import AccountsFilterButtons from './AccountsFilterButtons';
 
+const { getAccountIdsOfActiveEnvironments } = require('./AccountUtils');
+
 class AwsAccountsList extends React.Component {
   constructor(props) {
     super(props);
@@ -50,6 +52,7 @@ class AwsAccountsList extends React.Component {
     accountsStore.startHeartbeat();
     awsAccountsStore.startHeartbeat();
     const awsAccountIdOfActiveEnvs = await this.getAccountsWithActiveEnvironments();
+    console.log('awsAccountIdOfActiveEnvs', awsAccountIdOfActiveEnvs);
     runInAction(() => {
       this.awsAccountIdsOfActiveEnvs = awsAccountIdOfActiveEnvs;
     });
@@ -64,29 +67,11 @@ class AwsAccountsList extends React.Component {
     const projectsStore = this.props.projectsStore;
 
     await Promise.all([scEnvironmentStore.doLoad(), indexesStore.doLoad(), projectsStore.doLoad()]);
-    const envs = scEnvironmentStore.list;
-
-    const nonActivateStates = ['FAILED', 'TERMINATED', 'UNKNOWN'];
-    const activeEnvs = envs.filter(env => {
-      return !nonActivateStates.includes(env.status);
-    });
-    const projectToActiveEnvs = _.groupBy(activeEnvs, 'projectId');
-
+    const scEnvs = scEnvironmentStore.list;
     const indexes = indexesStore.list;
-    const indexIdToAwsAccountId = {};
-    indexes.forEach(index => {
-      indexIdToAwsAccountId[index.id] = index.awsAccountId;
-    });
-
     const projects = projectsStore.list;
-    const projectIdToAwsAccountId = {};
-    projects.forEach(project => {
-      projectIdToAwsAccountId[project.id] = indexIdToAwsAccountId[project.indexId];
-    });
 
-    return Object.keys(projectToActiveEnvs).map(projectId => {
-      return projectIdToAwsAccountId[projectId];
-    });
+    return getAccountIdsOfActiveEnvironments(scEnvs, projects, indexes);
   }
 
   componentWillUnmount() {
