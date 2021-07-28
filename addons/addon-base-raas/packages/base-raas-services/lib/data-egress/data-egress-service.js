@@ -267,6 +267,7 @@ class DataEgressService extends Service {
       });
       await this.audit(requestContext, { action: 'terminated-egress-store', body: egressStore });
     }
+    return egressStoreInfo;
   }
 
   async getEgressStore(requestContext, environmentId) {
