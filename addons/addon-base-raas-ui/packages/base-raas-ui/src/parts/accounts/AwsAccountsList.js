@@ -66,8 +66,9 @@ class AwsAccountsList extends React.Component {
     await Promise.all([scEnvironmentStore.doLoad(), indexesStore.doLoad(), projectsStore.doLoad()]);
     const envs = scEnvironmentStore.list;
 
+    const nonActivateStates = ['FAILED', 'TERMINATED', 'UNKNOWN'];
     const activeEnvs = envs.filter(env => {
-      return env.status === 'COMPLETED';
+      return !nonActivateStates.includes(env.status);
     });
     const projectToActiveEnvs = _.groupBy(activeEnvs, 'projectId');
 
