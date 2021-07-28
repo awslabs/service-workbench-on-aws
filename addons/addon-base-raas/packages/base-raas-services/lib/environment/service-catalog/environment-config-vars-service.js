@@ -315,7 +315,7 @@ class EnvironmentConfigVarsService extends Service {
   }
 
   async getSolutionNamespace(requestContext, awsAccountId) {
-    const [awsAccountsService] = await this.service(['awsAccountsService']);
+    const awsAccountsService = await this.service('awsAccountsService');
     const { cfnStackId } = await awsAccountsService.mustFind(requestContext, { id: awsAccountId });
     return cfnStackId.match(/\d{12}:stack\/(.+)\//)[1];
   }

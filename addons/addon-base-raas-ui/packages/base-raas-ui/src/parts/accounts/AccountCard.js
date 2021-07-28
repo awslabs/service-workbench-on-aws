@@ -22,6 +22,10 @@ import c from 'classnames';
 
 import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
 
+import { displayWarning } from '@aws-ee/base-ui/dist/helpers/notification';
+
+const { getAccountIdsOfActiveEnvironments } = require('./AccountUtils');
+
 const statusDisplay = {
   CURRENT: { color: 'green', display: 'Up-to-Date', spinner: false },
   NEEDS_UPDATE: { color: 'orange', display: 'Needs Update', spinner: false },
@@ -42,6 +46,7 @@ class AccountCard extends React.Component {
     runInAction(() => {
       this.detailsExpanded = false;
       this.isSelected = false;
+      this.permButtonLoading = false;
     });
   }
 
@@ -89,19 +94,7 @@ class AccountCard extends React.Component {
     this.goto(`/aws-accounts/budget/${awsAccountUUID}`);
   };
 
-  handleOnboardAccount = () => {
-    this.goToNextPage();
-  };
-
-  handleUpdateAccountPerms = () => {
-    this.goToNextPage();
-  };
-
-  handlePendingButton = () => {
-    this.goToNextPage();
-  };
-
-  goToNextPage() {
+  handleUpdatePermission() {
     const awsAccountUUID = this.account.id;
     // If the account needs to be upgraded to support AppStream we need to Update the account with AppStream specific settings, for example: AppStreamImageName
     if (this.appStreamStatusMismatch) {
@@ -250,6 +243,33 @@ class AccountCard extends React.Component {
     );
   }
 
+  async checkForActiveAccounts() {
+    runInAction(() => {
+      this.permButtonLoading = true;
+    });
+    const scEnvironmentStore = this.props.scEnvironmentsStore;
+    const indexesStore = this.props.indexesStore;
+    const projectsStore = this.props.projectsStore;
+
+    await Promise.all([scEnvironmentStore.doLoad(), indexesStore.doLoad(), projectsStore.doLoad()]);
+    const scEnvs = scEnvironmentStore.list;
+    const indexes = indexesStore.list;
+    const projects = projectsStore.list;
+
+    const accountHasActiveEnv = getAccountIdsOfActiveEnvironments(scEnvs, projects, indexes).includes(
+      this.props.account.id,
+    );
+    runInAction(() => {
+      this.permButtonLoading = false;
+    });
+
+    if (accountHasActiveEnv) {
+      displayWarning('Please terminate all workspaces in this account before upgrading the account');
+    } else {
+      this.handleUpdatePermission();
+    }
+  }
+
   renderUpdatePermsButton() {
     const permissionStatus = this.permissionStatus;
     let buttonArgs;
@@ -257,28 +277,28 @@ class AccountCard extends React.Component {
       buttonArgs = {
         message: 'Update Permissions',
         color: 'orange',
-        onClick: this.handleUpdateAccountPerms,
       };
     else if (permissionStatus === 'PENDING' || permissionStatus === 'UNKNOWN')
       buttonArgs = {
         message: 'Re-Onboard Account',
         color: 'red',
-        onClick: this.handlePendingButton,
       };
     else
       buttonArgs = {
         message: 'Onboard Account',
         color: 'purple',
-        onClick: this.handleOnboardAccount,
       };
 
+    buttonArgs.onClick = async () => {
+      if (this.appStreamStatusMismatch) {
+        await this.checkForActiveAccounts();
+      } else {
+        this.handleUpdatePermission();
+      }
+    };
+
     return (
-      <Button
-        floated="right"
-        color={buttonArgs.color}
-        onClick={buttonArgs.onClick}
-        disabled={this.appStreamStatusMismatch && this.props.hasActiveEnv} // Don't allow a user to update an account if they're upgrading to enable AppStream and the account still has active envs
-      >
+      <Button floated="right" color={buttonArgs.color} onClick={buttonArgs.onClick} loading={this.permButtonLoading}>
         {buttonArgs.message}
       </Button>
     );
@@ -294,6 +314,12 @@ decorate(AccountCard, {
   isSelectable: computed,
   isSelected: observable,
   permissionStatus: computed,
+  permButtonLoading: observable,
 });
 
-export default inject('awsAccountsStore')(withRouter(observer(AccountCard)));
+export default inject(
+  'awsAccountsStore',
+  'scEnvironmentsStore',
+  'indexesStore',
+  'projectsStore',
+)(withRouter(observer(AccountCard)));

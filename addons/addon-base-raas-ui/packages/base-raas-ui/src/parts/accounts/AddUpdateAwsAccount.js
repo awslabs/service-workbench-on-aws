@@ -61,7 +61,7 @@ class AddUpdateAwsAccount extends React.Component {
       fields = { ...fields, ...getAddUpdateAwsAccountAppStreamFormFields() };
     }
     this.form = getAddUpdateAwsAccountForm(fields);
-    this.addAwsAccountFormFields = fields;
+    this.addUpdateAwsAccountFormFields = fields;
   }
 
   render() {
@@ -83,7 +83,7 @@ class AddUpdateAwsAccount extends React.Component {
 
   renderAddAwsAccountForm() {
     const processing = this.formProcessing;
-    const fields = this.addAwsAccountFormFields;
+    const fields = this.addUpdateAwsAccountFormFields;
     const toEditableInput = (attributeName, type = 'text') => {
       const handleChange = action(event => {
         event.preventDefault();
@@ -132,7 +132,7 @@ class AddUpdateAwsAccount extends React.Component {
   }
 
   renderField(name, component) {
-    const fields = this.addAwsAccountFormFields;
+    const fields = this.addUpdateAwsAccountFormFields;
     const explain = fields[name].explain;
     const label = fields[name].label;
     const hasExplain = !_.isEmpty(explain);
@@ -178,7 +178,7 @@ class AddUpdateAwsAccount extends React.Component {
     this.formProcessing = true;
     try {
       // Perform client side validations first
-      const validationResult = await validate(this.awsAccount, this.addAwsAccountFormFields);
+      const validationResult = await validate(this.awsAccount, this.addUpdateAwsAccountFormFields);
       // if there are any client side validation errors then do not attempt to make API call
       if (validationResult.fails()) {
         runInAction(() => {

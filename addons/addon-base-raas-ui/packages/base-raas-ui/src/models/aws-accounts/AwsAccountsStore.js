@@ -159,7 +159,13 @@ const AwsAccountsStore = BaseStore.named('AwsAccountsStore')
         res.cfnStackName = awsAccount.cfnStackName;
         res.cfnStackId = awsAccount.cfnStackId;
         res.updatedAt = awsAccount.updatedAt;
-        res.isAppStreamConfigured = awsAccount.isAppStreamConfigured;
+        res.appStreamStackName = awsAccount.appStreamStackName;
+        res.appStreamFleetName = awsAccount.appStreamFleetName;
+        res.appStreamSecurityGroupId = awsAccount.appStreamSecurityGroupId;
+        res.isAppStreamConfigured =
+          !_.isUndefined(awsAccount.appStreamStackName) &&
+          !_.isUndefined(awsAccount.appStreamFleetName) &&
+          !_.isUndefined(awsAccount.appStreamSecurityGroupId);
         res.rev = awsAccount.rev;
         result.push(res);
       });

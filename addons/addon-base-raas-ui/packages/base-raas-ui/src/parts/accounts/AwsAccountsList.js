@@ -28,8 +28,6 @@ import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
 import AccountCard from './AccountCard';
 import AccountsFilterButtons from './AccountsFilterButtons';
 
-const { getAccountIdsOfActiveEnvironments } = require('./AccountUtils');
-
 class AwsAccountsList extends React.Component {
   constructor(props) {
     super(props);
@@ -51,27 +49,6 @@ class AwsAccountsList extends React.Component {
     swallowError(awsAccountsStore.load());
     accountsStore.startHeartbeat();
     awsAccountsStore.startHeartbeat();
-    const awsAccountIdOfActiveEnvs = await this.getAccountsWithActiveEnvironments();
-    console.log('awsAccountIdOfActiveEnvs', awsAccountIdOfActiveEnvs);
-    runInAction(() => {
-      this.awsAccountIdsOfActiveEnvs = awsAccountIdOfActiveEnvs;
-    });
-  }
-
-  /**
-   * @return List of account ids of all accounts with active environments
-   */
-  async getAccountsWithActiveEnvironments() {
-    const scEnvironmentStore = this.props.scEnvironmentsStore;
-    const indexesStore = this.props.indexesStore;
-    const projectsStore = this.props.projectsStore;
-
-    await Promise.all([scEnvironmentStore.doLoad(), indexesStore.doLoad(), projectsStore.doLoad()]);
-    const scEnvs = scEnvironmentStore.list;
-    const indexes = indexesStore.list;
-    const projects = projectsStore.list;
-
-    return getAccountIdsOfActiveEnvironments(scEnvs, projects, indexes);
   }
 
   componentWillUnmount() {
@@ -111,7 +88,6 @@ class AwsAccountsList extends React.Component {
                 account={account}
                 permissionStatus={account.permissionStatus}
                 isSelectable
-                hasActiveEnv={this.awsAccountIdsOfActiveEnvs.includes(account.id)} // This allows us to prevent an account from being upgraded to support AppStream if the account has active envs
               />
             ))}
           </div>
@@ -243,10 +219,4 @@ decorate(AwsAccountsList, {
   handleSelectedFilter: action,
 });
 
-export default inject(
-  'awsAccountsStore',
-  'accountsStore',
-  'scEnvironmentsStore',
-  'indexesStore',
-  'projectsStore',
-)(withRouter(observer(AwsAccountsList)));
+export default inject('awsAccountsStore', 'accountsStore')(withRouter(observer(AwsAccountsList)));
