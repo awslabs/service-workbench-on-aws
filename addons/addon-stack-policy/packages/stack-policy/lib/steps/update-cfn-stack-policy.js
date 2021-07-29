@@ -22,7 +22,7 @@ const settingKeys = {
   isAppStreamEnabled: 'isAppStreamEnabled',
 };
 
-const baseStackPolicy = {
+const baseAllowStatement = {
   Effect: 'Allow',
   Action: 'Update:*',
   Principal: '*',
@@ -69,14 +69,13 @@ class UpdateCfnStackPolicy extends Service {
     try {
       // fetch the current cloudformation stack policy
       const backendStackName = this.settings.get(settingKeys.backendStackName);
-      const currentStackPolicy = await this.cfn.getStackPolicy({ StackName: backendStackName }).promise();
-      const currentStackPolicyBody = currentStackPolicy.StackPolicyBody;
-
-      let isEmptyPolicy = _.isEmpty(currentStackPolicyBody);
+      const existingStackPolicy = await this.cfn.getStackPolicy({ StackName: backendStackName }).promise();
+      const existingStackPolicyBody = existingStackPolicy.StackPolicyBody;
+      let isEmptyPolicy = _.isEmpty(existingStackPolicyBody);
       let finalPolicyBody = {};
 
       if (!isEmptyPolicy) {
-        finalPolicyBody = JSON.parse(currentStackPolicyBody);
+        finalPolicyBody = JSON.parse(existingStackPolicyBody);
       }
 
       if (!finalPolicyBody.Statement) {
@@ -87,7 +86,7 @@ class UpdateCfnStackPolicy extends Service {
 
       if (isEmptyPolicy) {
         // At least one of the features, AppStream or EgressStore, is enabled
-        finalPolicyBody.Statement.push(baseStackPolicy);
+        finalPolicyBody.Statement.push(baseAllowStatement);
         if (isEgressStoreEnabled) finalPolicyBody.Statement.push(egressStoreStatement);
         if (isAppStreamEnabled) finalPolicyBody.Statement.push(appStreamStatement);
 
@@ -117,6 +116,12 @@ class UpdateCfnStackPolicy extends Service {
           })
         )
           finalPolicyBody.Statement.push(appStreamStatement);
+
+        // Before making the update call, lets check if this is the same as the existing policy
+        if (_.isEqual(finalPolicyBody, JSON.parse(existingStackPolicyBody))) {
+          this.log.info('Backend stack policy up to date. No changes needed.');
+          return;
+        }
 
         await this.cfn
           .setStackPolicy({

@@ -16,6 +16,7 @@
 
 /* eslint-disable max-classes-per-file */
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
+const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
 const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
 
 jest.mock('@aws-ee/base-services/lib/aws/aws-service');
@@ -29,6 +30,7 @@ describe('UpdateCfnStackPolicy', () => {
   let service;
   let aws;
   let container;
+  let settings;
   beforeEach(async () => {
     // Initialize services container and register dependencies
     container = new ServicesContainer();
@@ -36,6 +38,7 @@ describe('UpdateCfnStackPolicy', () => {
     container.register('log', new Logger());
     container.register('aws', new AwsServiceMock());
     container.register('UpdateCfnStackPolicy', new UpdateCfnStackPolicy());
+    container.register('settings', new SettingsServiceMock());
     console.info = jest.fn;
 
     await container.initServices();
@@ -44,36 +47,60 @@ describe('UpdateCfnStackPolicy', () => {
       CloudFormation,
     };
     service = await container.find('UpdateCfnStackPolicy');
-    service._settings = {
-      get: settingName => {
-        if (settingName === 'enableEgressStore') {
-          return 'true';
-        }
-        if (settingName === 'backendStackName') {
-          return 'backendStackName';
-        }
-        return undefined;
-      },
-    };
+    settings = await container.find('settings');
+    settings.get = jest.fn(key => {
+      if (key === 'isAppStreamEnabled') {
+        return true;
+      }
+      if (key === 'enableEgressStore') {
+        return 'true';
+      }
+      if (key === 'backendStackName') {
+        return 'backendStackName';
+      }
+      return undefined;
+    });
   });
 
   describe('Run post deployment step', () => {
-    it('should successful update policy without stack policy', async () => {
+    it('should successfully update policy without stack policy', async () => {
       service.cfn.getStackPolicy = jest.fn(() => ({
         promise: () => Promise.resolve({}),
       }));
       service.cfn.setStackPolicy = jest.fn(() => ({
         promise: () => Promise.resolve({}),
       }));
+      const expected = {
+        Statement: [
+          {
+            Effect: 'Allow',
+            Action: 'Update:*',
+            Principal: '*',
+            Resource: '*',
+          },
+          {
+            Effect: 'Deny',
+            Action: 'Update:Delete',
+            Principal: '*',
+            Resource: 'LogicalResourceId/EgressStore*',
+          },
+          {
+            Effect: 'Deny',
+            Action: 'Update:Delete',
+            Principal: '*',
+            Resource: 'LogicalResourceId/AppStream*',
+          },
+        ],
+      };
       await service.execute();
       expect(service.cfn.getStackPolicy).toHaveBeenCalledTimes(1);
       expect(service.cfn.setStackPolicy).toHaveBeenCalledWith({
         StackName: 'backendStackName',
-        StackPolicyBody:
-          '{"Statement":[{"Effect":"Allow","Action":"Update:*","Principal":"*","Resource":"*"},{"Effect":"Deny","Action":"Update:Delete","Principal":"*","Resource":"LogicalResourceId/EgressStore*"}]}',
+        StackPolicyBody: JSON.stringify(expected),
       });
     });
-    it('should successful update policy with empty stack policy', async () => {
+
+    it('should successfully update policy with empty stack policy', async () => {
       service.cfn.getStackPolicy = jest.fn(() => ({
         promise: () =>
           Promise.resolve({
@@ -83,25 +110,227 @@ describe('UpdateCfnStackPolicy', () => {
       service.cfn.setStackPolicy = jest.fn(() => ({
         promise: () => Promise.resolve({}),
       }));
+      const expected = {
+        Statement: [
+          {
+            Effect: 'Allow',
+            Action: 'Update:*',
+            Principal: '*',
+            Resource: '*',
+          },
+          {
+            Effect: 'Deny',
+            Action: 'Update:Delete',
+            Principal: '*',
+            Resource: 'LogicalResourceId/EgressStore*',
+          },
+          {
+            Effect: 'Deny',
+            Action: 'Update:Delete',
+            Principal: '*',
+            Resource: 'LogicalResourceId/AppStream*',
+          },
+        ],
+      };
       await service.execute();
       expect(service.cfn.getStackPolicy).toHaveBeenCalledTimes(1);
       expect(service.cfn.setStackPolicy).toHaveBeenCalledWith({
         StackName: 'backendStackName',
-        StackPolicyBody:
-          '{"Statement":[{"Effect":"Allow","Action":"Update:*","Principal":"*","Resource":"*"},{"Effect":"Deny","Action":"Update:Delete","Principal":"*","Resource":"LogicalResourceId/EgressStore*"}]}',
+        StackPolicyBody: JSON.stringify(expected),
       });
     });
 
-    it('should successful update policy with existing statement', async () => {
+    it('should successfully update policy with existing statement', async () => {
       service.cfn.getStackPolicy = jest.fn(() => ({
         promise: () =>
           Promise.resolve({
             StackPolicyBody: JSON.stringify({
-              Effect: 'Allow',
-              Action: 'Update:*',
-              Principal: '*',
-              Resource: '*',
+              Statement: [
+                {
+                  Effect: 'Allow',
+                  Action: 'Update:*',
+                  Principal: '*',
+                  Resource: '*',
+                },
+              ],
             }),
+          }),
+      }));
+      service.cfn.setStackPolicy = jest.fn(() => ({
+        promise: () => Promise.resolve({}),
+      }));
+      const expected = {
+        Statement: [
+          {
+            Effect: 'Allow',
+            Action: 'Update:*',
+            Principal: '*',
+            Resource: '*',
+          },
+          {
+            Effect: 'Deny',
+            Action: 'Update:Delete',
+            Principal: '*',
+            Resource: 'LogicalResourceId/EgressStore*',
+          },
+          {
+            Effect: 'Deny',
+            Action: 'Update:Delete',
+            Principal: '*',
+            Resource: 'LogicalResourceId/AppStream*',
+          },
+        ],
+      };
+
+      await service.execute();
+      expect(service.cfn.getStackPolicy).toHaveBeenCalledTimes(1);
+      expect(service.cfn.setStackPolicy).toHaveBeenCalledWith({
+        StackName: 'backendStackName',
+        StackPolicyBody: JSON.stringify(expected),
+      });
+    });
+
+    it('should successfully update policy when appstream is enabled after egress', async () => {
+      const originalPolicy = {
+        Statement: [
+          {
+            Effect: 'Allow',
+            Action: 'Update:*',
+            Principal: '*',
+            Resource: '*',
+          },
+          {
+            Effect: 'Deny',
+            Action: 'Update:Delete',
+            Principal: '*',
+            Resource: 'LogicalResourceId/EgressStore*',
+          },
+        ],
+      };
+      service.cfn.getStackPolicy = jest.fn(() => ({
+        promise: () =>
+          Promise.resolve({
+            StackPolicyBody: JSON.stringify(originalPolicy),
+          }),
+      }));
+      service.cfn.setStackPolicy = jest.fn(() => ({
+        promise: () => Promise.resolve({}),
+      }));
+      const expected = {
+        Statement: [
+          {
+            Effect: 'Allow',
+            Action: 'Update:*',
+            Principal: '*',
+            Resource: '*',
+          },
+          {
+            Effect: 'Deny',
+            Action: 'Update:Delete',
+            Principal: '*',
+            Resource: 'LogicalResourceId/EgressStore*',
+          },
+          {
+            Effect: 'Deny',
+            Action: 'Update:Delete',
+            Principal: '*',
+            Resource: 'LogicalResourceId/AppStream*',
+          },
+        ],
+      };
+
+      await service.execute();
+      expect(service.cfn.getStackPolicy).toHaveBeenCalledTimes(1);
+      expect(service.cfn.setStackPolicy).toHaveBeenCalledWith({
+        StackName: 'backendStackName',
+        StackPolicyBody: JSON.stringify(expected),
+      });
+    });
+
+    it('should successfully update policy when egress is enabled after appstream', async () => {
+      const originalPolicy = {
+        Statement: [
+          {
+            Effect: 'Allow',
+            Action: 'Update:*',
+            Principal: '*',
+            Resource: '*',
+          },
+          {
+            Effect: 'Deny',
+            Action: 'Update:Delete',
+            Principal: '*',
+            Resource: 'LogicalResourceId/AppStream*',
+          },
+        ],
+      };
+      service.cfn.getStackPolicy = jest.fn(() => ({
+        promise: () =>
+          Promise.resolve({
+            StackPolicyBody: JSON.stringify(originalPolicy),
+          }),
+      }));
+      service.cfn.setStackPolicy = jest.fn(() => ({
+        promise: () => Promise.resolve({}),
+      }));
+      const expected = {
+        Statement: [
+          {
+            Effect: 'Allow',
+            Action: 'Update:*',
+            Principal: '*',
+            Resource: '*',
+          },
+          {
+            Effect: 'Deny',
+            Action: 'Update:Delete',
+            Principal: '*',
+            Resource: 'LogicalResourceId/AppStream*',
+          },
+          {
+            Effect: 'Deny',
+            Action: 'Update:Delete',
+            Principal: '*',
+            Resource: 'LogicalResourceId/EgressStore*',
+          },
+        ],
+      };
+
+      await service.execute();
+      expect(service.cfn.getStackPolicy).toHaveBeenCalledTimes(1);
+      expect(service.cfn.setStackPolicy).toHaveBeenCalledWith({
+        StackName: 'backendStackName',
+        StackPolicyBody: JSON.stringify(expected),
+      });
+    });
+
+    it('should not update policy when no new changes are made', async () => {
+      const originalPolicy = {
+        Statement: [
+          {
+            Effect: 'Allow',
+            Action: 'Update:*',
+            Principal: '*',
+            Resource: '*',
+          },
+          {
+            Effect: 'Deny',
+            Action: 'Update:Delete',
+            Principal: '*',
+            Resource: 'LogicalResourceId/EgressStore*',
+          },
+          {
+            Effect: 'Deny',
+            Action: 'Update:Delete',
+            Principal: '*',
+            Resource: 'LogicalResourceId/AppStream*',
+          },
+        ],
+      };
+      service.cfn.getStackPolicy = jest.fn(() => ({
+        promise: () =>
+          Promise.resolve({
+            StackPolicyBody: JSON.stringify(originalPolicy),
           }),
       }));
       service.cfn.setStackPolicy = jest.fn(() => ({
@@ -110,11 +339,7 @@ describe('UpdateCfnStackPolicy', () => {
 
       await service.execute();
       expect(service.cfn.getStackPolicy).toHaveBeenCalledTimes(1);
-      expect(service.cfn.setStackPolicy).toHaveBeenCalledWith({
-        StackName: 'backendStackName',
-        StackPolicyBody:
-          '{"Statement":[{"Effect":"Allow","Action":"Update:*","Principal":"*","Resource":"*"},{"Effect":"Deny","Action":"Update:Delete","Principal":"*","Resource":"LogicalResourceId/EgressStore*"}]}',
-      });
+      expect(service.cfn.setStackPolicy).not.toHaveBeenCalled();
     });
   });
 });
