@@ -19,23 +19,28 @@ const Service = require('@aws-ee/base-services-container/lib/service');
 const settingKeys = {
   backendStackName: 'backendStackName',
   enableEgressStore: 'enableEgressStore',
+  isAppStreamEnabled: 'isAppStreamEnabled',
 };
 
-const egressStoreStackPolicy = {
-  Statement: [
-    {
-      Effect: 'Allow',
-      Action: 'Update:*',
-      Principal: '*',
-      Resource: '*',
-    },
-    {
-      Effect: 'Deny',
-      Action: 'Update:Delete',
-      Principal: '*',
-      Resource: 'LogicalResourceId/EgressStore*',
-    },
-  ],
+const baseStackPolicy = {
+  Effect: 'Allow',
+  Action: 'Update:*',
+  Principal: '*',
+  Resource: '*',
+};
+
+const egressStoreStatement = {
+  Effect: 'Deny',
+  Action: 'Update:Delete',
+  Principal: '*',
+  Resource: 'LogicalResourceId/EgressStore*',
+};
+
+const appStreamStatement = {
+  Effect: 'Deny',
+  Action: 'Update:Delete',
+  Principal: '*',
+  Resource: 'LogicalResourceId/AppStream*',
 };
 
 class UpdateCfnStackPolicy extends Service {
@@ -52,50 +57,78 @@ class UpdateCfnStackPolicy extends Service {
 
   async execute() {
     const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
-    if (enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE') {
-      try {
-        // fetch the current cloudformation stack policy
-        const backendStackName = this.settings.get(settingKeys.backendStackName);
-        const currentStackPolicy = await this.cfn.getStackPolicy({ StackName: backendStackName }).promise();
-        const tempStackPolicyBody = currentStackPolicy.StackPolicyBody;
-        let isEmptyPolicy = _.isEmpty(tempStackPolicyBody);
-        let currentStackPolicyBody = {};
-        if (!isEmptyPolicy) {
-          currentStackPolicyBody = JSON.parse(tempStackPolicyBody);
-        }
-        if (!currentStackPolicyBody.Statement) {
-          currentStackPolicyBody.Statement = [];
-        }
-        isEmptyPolicy = isEmptyPolicy || currentStackPolicyBody.Statement.length === 0;
+    const isEgressStoreEnabled = enableEgressStore ? enableEgressStore.toUpperCase() === 'TRUE' : false;
+    const isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
 
-        if (isEmptyPolicy) {
-          await this.cfn
-            .setStackPolicy({
-              StackName: backendStackName,
-              StackPolicyBody: JSON.stringify(egressStoreStackPolicy),
-            })
-            .promise();
-        } else if (
-          !_.find(currentStackPolicyBody.Statement, {
+    if (!isEgressStoreEnabled && !isAppStreamEnabled) {
+      this.log.info('CFN stack policy is not updated');
+      return;
+    }
+
+    // When code reaches here, either AppStream or EgressStore is enabled
+    try {
+      // fetch the current cloudformation stack policy
+      const backendStackName = this.settings.get(settingKeys.backendStackName);
+      const currentStackPolicy = await this.cfn.getStackPolicy({ StackName: backendStackName }).promise();
+      const currentStackPolicyBody = currentStackPolicy.StackPolicyBody;
+
+      let isEmptyPolicy = _.isEmpty(currentStackPolicyBody);
+      let finalPolicyBody = {};
+
+      if (!isEmptyPolicy) {
+        finalPolicyBody = JSON.parse(currentStackPolicyBody);
+      }
+
+      if (!finalPolicyBody.Statement) {
+        finalPolicyBody.Statement = [];
+      }
+
+      isEmptyPolicy = isEmptyPolicy || finalPolicyBody.Statement.length === 0;
+
+      if (isEmptyPolicy) {
+        // At least one of the features, AppStream or EgressStore, is enabled
+        finalPolicyBody.Statement.push(baseStackPolicy);
+        if (isEgressStoreEnabled) finalPolicyBody.Statement.push(egressStoreStatement);
+        if (isAppStreamEnabled) finalPolicyBody.Statement.push(appStreamStatement);
+
+        await this.cfn
+          .setStackPolicy({
+            StackName: backendStackName,
+            StackPolicyBody: JSON.stringify(finalPolicyBody),
+          })
+          .promise();
+      } else {
+        // If EgressStore was enabled during this installation round
+        // and statement corresponding to EgressStore was not found, add it
+        if (
+          isEgressStoreEnabled &&
+          !_.find(finalPolicyBody.Statement, {
             Resource: 'LogicalResourceId/EgressStore*',
           })
-        ) {
-          // compare statements and add target policy in
-          const newPolicy = [...currentStackPolicyBody.Statement, egressStoreStackPolicy.Statement[1]];
-          await this.cfn
-            .setStackPolicy({
-              StackName: backendStackName,
-              StackPolicyBody: JSON.stringify(newPolicy),
-            })
-            .promise();
-        }
-        this.log.info('Finish updating backend stack policy');
-      } catch (error) {
-        this.log.info({ error });
-        throw new Error('Updating CloudFormation Stacks failed. See the previous log message for more details.');
+        )
+          finalPolicyBody.Statement.push(egressStoreStatement);
+
+        // If AppStream was enabled during this installation round
+        // and statement corresponding to AppStream was not found, add it
+        if (
+          isAppStreamEnabled &&
+          !_.find(finalPolicyBody.Statement, {
+            Resource: 'LogicalResourceId/AppStream*',
+          })
+        )
+          finalPolicyBody.Statement.push(appStreamStatement);
+
+        await this.cfn
+          .setStackPolicy({
+            StackName: backendStackName,
+            StackPolicyBody: JSON.stringify(finalPolicyBody),
+          })
+          .promise();
       }
-    } else {
-      this.log.info('CFN stack policy is not updated');
+      this.log.info('Finished updating backend stack policy');
+    } catch (error) {
+      this.log.info({ error });
+      throw new Error('Updating CloudFormation Stacks failed. See the previous log message for more details.');
     }
   }
 }

@@ -25,7 +25,7 @@ const UpdateCfnStackPolicy = require('../update-cfn-stack-policy');
 const CloudFormation = require('./__fixtures__/cloudformation');
 const registerSettings = require('./__fixtures__/settings');
 
-describe('UpgradeToUserId', () => {
+describe('UpdateCfnStackPolicy', () => {
   let service;
   let aws;
   let container;

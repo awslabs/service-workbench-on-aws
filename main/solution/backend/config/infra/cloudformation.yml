@@ -1,8 +1,22 @@
 Conditions:
   IsDev: !Equals ['${self:custom.settings.envType}', 'dev']
   EnableEgressStore: !Equals ['${self:custom.settings.enableEgressStore}', 'true']
+  AppStreamEnabled: !Equals ['${self:custom.settings.isAppStreamEnabled}', true]
 
 Resources:
+  # =============================================================================================
+  # SSM
+  # =============================================================================================
+
+  # This parameter is created for its LogicalID. This is leveraged to ensure user cannot
+  # deploy SWB with AppStream disabled once it has been activated
+  AppStreamEnabled:
+    Condition: AppStreamEnabled
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Value: '${self:custom.settings.isAppStreamEnabled}'
+
   # =============================================================================================
   # S3
   # =============================================================================================
