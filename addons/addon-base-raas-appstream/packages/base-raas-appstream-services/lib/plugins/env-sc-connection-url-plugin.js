@@ -26,6 +26,7 @@ async function createConnectionUrl({ envId, connection }, { requestContext, cont
   const isSsh = connection.scheme === 'ssh';
   const isRdp = connection.scheme === 'rdp';
   const appStreamScService = await container.find('appStreamScService');
+  const environmentScConnectionService = await container.find('environmentScConnectionService');
   const settings = await container.find('settings');
   const isAppStreamEnabled = settings.optionalBoolean(settingKeys.isAppStreamEnabled, false);
 
@@ -34,6 +35,10 @@ async function createConnectionUrl({ envId, connection }, { requestContext, cont
   // it will only be triggered during the URL creation API call
   if (!isAppStreamEnabled || connection.operation === 'list') {
     return { envId, connection };
+  }
+
+  if (_.toLower(_.get(connection, 'type', '')) === 'sagemaker') {
+    connection.url = await environmentScConnectionService.createPrivateSageMakerUrl(requestContext, envId, connection);
   }
 
   // Only wrap via AppStream if the connection.url exists
