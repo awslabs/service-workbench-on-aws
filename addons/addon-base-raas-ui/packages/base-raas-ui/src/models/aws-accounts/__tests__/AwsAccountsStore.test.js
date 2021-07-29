@@ -47,7 +47,7 @@ describe('AwsAccountsStore', () => {
   });
 
   describe('addAwsAccount', () => {
-    it('should add a new Aws Account successfully', async () => {
+    it('should successfully add a new Aws Account without AppStream configured', async () => {
       // BUILD
       getAwsAccounts.mockResolvedValue([]);
       addAwsAccount.mockResolvedValue(newAwsAccount);
@@ -57,10 +57,41 @@ describe('AwsAccountsStore', () => {
       // OPERATE
       await store.addAwsAccount(newAwsAccount);
 
+      const expectedAwsAccount = {
+        ...newAwsAccount,
+        isAppStreamConfigured: false,
+        appStreamFleetName: undefined,
+        appStreamSecurityGroupId: undefined,
+        appStreamStackName: undefined,
+      };
+      delete expectedAwsAccount.createdAt;
       // CHECK
-      expect({ ...newAwsAccount, isAppStreamConfigured: false }).toMatchObject(store.list[0]);
-      // some properties are dropped when added, so this makes sure store.list[0]
-      //      is a subset of newAwsAccount
+      expect(store.list[0]).toMatchObject(expectedAwsAccount);
+    });
+
+    it('should successfully add a new Aws Account with AppStream configured', async () => {
+      // BUILD
+      getAwsAccounts.mockResolvedValue([]);
+      const appStreamFleetName = 'fleet1';
+      const appStreamSecurityGroupId = 'sg1';
+      const appStreamStackName = 'stack1';
+      const appStreamConfiguredAwsAccount = {
+        ...newAwsAccount,
+        appStreamFleetName,
+        appStreamSecurityGroupId,
+        appStreamStackName,
+      };
+      addAwsAccount.mockResolvedValue(appStreamConfiguredAwsAccount);
+      getAllAccountsPermissionStatus.mockResolvedValue(permRetVal);
+      await store.load();
+
+      // OPERATE
+      await store.addAwsAccount(appStreamConfiguredAwsAccount);
+
+      // CHECK
+      const expectedAwsAccount = { ...appStreamConfiguredAwsAccount, isAppStreamConfigured: true };
+      delete expectedAwsAccount.createdAt;
+      expect(store.list[0]).toMatchObject(expectedAwsAccount);
     });
 
     it('should not add an Aws Account', async () => {
