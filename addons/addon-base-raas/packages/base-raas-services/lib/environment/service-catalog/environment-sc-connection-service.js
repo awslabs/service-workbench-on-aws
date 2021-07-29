@@ -19,7 +19,7 @@ const crypto = require('crypto');
 const NodeRSA = require('node-rsa');
 const querystring = require('querystring');
 const Service = require('@aws-ee/base-services-container/lib/service');
-const { retry, sleep, linearInterval } = require('@aws-ee/base-services/lib/helpers/utils');
+const { retry, linearInterval } = require('@aws-ee/base-services/lib/helpers/utils');
 const sshConnectionInfoSchema = require('../../schema/ssh-connection-info-sc');
 const { connectionScheme } = require('./environment-sc-connection-enum');
 const { cfnOutputsToConnections } = require('./helpers/connections-util');
@@ -386,8 +386,6 @@ class EnvironmentScConnectionService extends Service {
       );
       const currentPolicyResponse = await this.getCurrentRolePolicy(iam, connection);
       await this.updateRoleToIncludeCurrentIP(iam, connection, currentPolicyResponse);
-      // wait for permission to propagate before using the role
-      await sleep(2000);
       const createPresignedURLFn = async () => {
         const stsEnvMgmt = await environmentScService.getClientSdkWithEnvMgmtRole(
           requestContext,
