@@ -41,7 +41,7 @@ In the [AWS Management Console](https://aws.amazon.com/console/?nc2=type_a), nav
 
 ### Creating a new Account
 
-This will create a new **Member** AWS account in the Organization, whose billing will go to the **Master** account of the Organization. See **Figure 1**.
+This will create a new **Member** AWS account in the Organization, whose billing will go to the **Master** account of the Organization. 
 
 <img src={useBaseUrl('img/deployment/post_deployment/create_account_00.jpg')} />
 
@@ -66,104 +66,135 @@ To create the account, perform the following actions:
  
 <img src={useBaseUrl('img/deployment/post_deployment/create_account_02.jpg')} />
 
-_**Figure 2: AWS Accounts with New Account**_
+_**Figure 2: AWS accounts with new account**_
 
 
 ## Add  AWS  Account
 
-Adding an existing AWS account enables Service Workbench to launch research Workspaces into it. The existing account is reponsible for billing.
+Adding an existing AWS account enables Service Workbench to launch research Workspaces into it. The existing account is responsible for billing.
 
-### Gather Role ARNs
-
-This step is run in the **Main** account, the account where you have deployed Service Workbench.  See [Prepare SDC Configuration Files](/deployment/pre_deployment/configuration#Prepare_SDC_Configuration_Files) for information on how to specify the correct profile.
-
-1. Run the following command in the `main/solution/backend` folder:
-
-```{.sh}
-    pnpx sls info --verbose --stage <stagename>
-```
-
-The output will contain similar lines to the following:
-
-```{.sh}
-    Stack Outputs
-    AuthenticationLayerHandlerRoleArn: arn:aws:iam::0000:role/stage-va-sw-backend-RoleAuthenticationLayerHan-F00
-    EnvMgmtRoleArn: arn:aws:iam::0000:role/stage-va-sw-EnvMgmt
-    ApiHandlerRoleArn: arn:aws:iam::0000:role/stage-va-sw-ApiHandler
-    WorkflowLoopRunnerRoleArn: arn:aws:iam::0000:role/stage-va-sw-WorkflowLoopRunner
-    OpenDataScrapeHandlerRoleArn: arn:aws:iam::0000:role/stage-va-sw-backend-RoleOpenDataScrapeHandler-F00
-    ServiceEndpoint: https://f00.execute-api.us-east-1.amazonaws.com/demo
-    ServerlessDeploymentBucketName: 0000-stage-va-sw-artifacts
-```
-
-2. Copy the values for **ApiHandlerRoleArn** and **WorkflowLoopRunnerRoleArn**.
-
-### Prepare the Existing AWS Account
-
-This step prepares the existing AWS account that you wish to add to Service Workench by running an onboarding template.
-
-1. In the [AWS Management Console](https://aws.amazon.com/console/?nc2=type_a), navigate to '**Amazon CloudFormation**'.
-2. Create a new stack in CloudFormation.  Select *Upload a template file* and locate the template file `addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/onboard-account.cfn.yml` from the source code.
-3. On the next screen 'Specify stack details' enter the following values from **Table 3**:
-
-
-Field                        | Value                      
----------------------------- | ------------------------------------------------
-Namespace                    | Short string (eg: stage name)                  
-CentralAccountId             | Service Workbench Main account ID                  
-ExternalId                   | As specified (default: **workbench**)
-VpcCidr                      | Retain default (10.0.0.0/16) 
-VpcPublicSubnet1Cidr         | Retain default (10.0.0.0/19)                  
-ApiHandlerArn                | **ApiHandlerRoleArn** value from above        
-LaunchConstraintPolicyPrefix | Retain default (*)                            
-LaunchConstraintRolePrefix   | Retain default (*)                            
-WorkflowRoleArn              | **WorkflowLoopRunnerRoleArn** value from above
-
-_**Table 3: Stack Details**_
-
-4. Deploy the stack.
-5. After the stack has deployed, view the output, which will contain values similar to the following in **Table 4**:
-
-|             Key              |                          Value                          |
--------------------------------|---------------------------------------------------------
-| CrossAccountEnvMgmtRoleArn   | arn:aws:iam::0000:role/sw-stage-xacc-env-mgmt      |
-| CrossAccountExecutionRoleArn | arn:aws:iam::0000:role/sw-stage-cross-account-role |
-| EncryptionKeyArn             | arn:aws:kms:us-east-2:0000:key/f00-f00-f00              |
-| VPC                          | vpc-f00f00                                              |
-| VpcPublicSubnet1             | subnet-f00f00                                           |
-
-_**Table 4: Stack Output**_
-
-6. Copy the values down for the next step.
-
-### Adding the Account in Service Workbench
+### Adding the account in Service Workbench
 
 This step is run in the Service Workbench administrator interface and uses values from the previous step.
 
-1. In the Service Workbench administrative interface, click the **AWS Accounts** tab. See **Figure 3**.
+1. Sign in to the AWS Management Console for the corresponding account in a separate tab.
+
+2. In the Service Workbench administrative interface, click the **AWS Accounts** tab. 
 
 <img src={useBaseUrl('img/deployment/post_deployment/create_account_01.jpg')} />
 
-_**Figure 3: Add AWS Account**_
+_**Figure 3: Add AWS account**_
 
-2.  Click **Add AWS Account**. Enter the account information from the following **Table 5**:
+3.  Choose **Add AWS Account**. Enter the account information from the following table:
 
 |             Field            |                 Value                  |
 |------------------------------|----------------------------------------|
 | Account Name                 | As desired                             |
 | AWS Account ID               | 12-digit ID of imported account        |
-| Role ARN                     | **CrossAccountExecutionRoleArn** value |
-| AWS Service Catalog Role Arn | **CrossAccountEnvMgmtRoleArn** value   |
-| External ID                  | As specified (default: **workbench**)  |
 | Description                  | As desired                             |
-| VPC ID                       | **VPC** value                          |
-| Subnet ID                    | **VpcPublicSubnet1** value             |
-| KMS Encryption Key ARN       | **EncryptionKeyArn** value             |
 
-_**Table 5: AWS Account Information**_
 
-3. Once the account is added it will be listed in **AWS Accounts**, see **Figure 4**.
+_**Table : AWS Account Information**_
 
-<img src={useBaseUrl('img/deployment/post_deployment/create_account_02.jpg')} />
+4. Choose **Onboard AWS Account**.
 
-_**Figure 4: AWS Accounts with New Account**_
+<img src={useBaseUrl('img/deployment/post_deployment/onboard-aws-account.png')} />
+
+_**Figure 4: AWS accounts with new account**_
+
+5. The **Onboard AWS Account** page displays the CloudFormation stack name and the AWS account details.
+
+<img src={useBaseUrl('img/deployment/post_deployment/onboard-aws-account1.png')} />
+
+_**Figure 5: Displaying the CloudFormation stack name**_
+
+6. Choose **Create Stack**.
+7. The **Quick create stack** page appears and it displays the template URL, stack name and parameters. 
+
+<img src={useBaseUrl('img/deployment/post_deployment/quick-create-stack.png')} />
+
+_**Figure 6: Creating the stack**_
+
+8. Select **I acknowledge that AWS CloudFormation might create IAM resources with custom names**.
+
+<img src={useBaseUrl('img/deployment/post_deployment/acknowledge.png')} />
+
+_**Figure 7: Acknowlegement screen**_
+
+9. Choose **Create stack**.
+
+10. Once the account is added it will be listed in AWS Accounts. When the associated cloudformation stack finishes provisioning, the account displays as **Up-to-Date**.
+
+<img src={useBaseUrl('img/deployment/post_deployment/new_account1.jpg')} />
+
+_**Figure 8: AWS accounts with new account**_
+### Updating a previously onboarded account
+
+When new versions of Service Workbench are launched, it might be necessary to change the resources Service Workbench uses to access onboarded accounts. The AWS Accounts page displays information on which accounts are up-to-date, and which need to be updated. 
+
+For accounts that need to be updated, follow these steps:
+
+1. Sign in to the AWS Management Console for the corresponding account in a separate tab.
+2. On the **AWS Accounts** tab, choose **Update Permissions**.
+
+<img src={useBaseUrl('img/deployment/post_deployment/update-perm.png')} />
+
+_**Figure 9: Update permissions for AWS account**_
+
+3. The **Onboarding AWS Accounts** page appears. Choose **Update Stack**.
+
+<img src={useBaseUrl('img/deployment/post_deployment/update-perm1.png')} />
+
+_**Figure 10: Stack Details**_
+
+4. The following windows appear in the AWS CloudFormation console:
+     a. **Update stack**
+     b. **Specify stack details**
+     c. **Configure stack options**
+     d.	**Review**
+     Choose **Next** on every page.
+
+<img src={useBaseUrl('img/deployment/post_deployment/update-perm2.png')} />
+
+_**Figure 11: Review account details**_
+
+5. Select **I acknowledge that AWS CloudFormation might create IAM resources with custom names**.
+
+<img src={useBaseUrl('img/deployment/post_deployment/acknowledge1.png')} />
+
+_**Figure 12: Acknowledgement window**_
+
+6. Choose **Update Stack**. No inputs are necessary on any page, although you can observe what changes will be introduced by looking at the ChangeSet displayed on the final page.
+7. You can observe the state of the account from Service Workbench in the **AWS Accounts** page. For this account, Service Workbench detects that the account’s CloudFormation stack is updating, and switches the account into the Pending state. When the stack finishes updating, the account displays as **Up-to-Date**.
+
+### Updating accounts onboarded prior to July 31, 2021
+
+1. Sign in to the AWS Management Console for the corresponding account in a separate tab.
+2. On the **AWS Accounts** tab, choose **Re-onboard account**.
+
+ <img src={useBaseUrl('img/deployment/post_deployment/reonboard1.png')} />
+
+_**Figure 13: Onboarding an account**_
+
+3.	The **Onboarding AWS Accounts** page appears. Choose **Onboard New Account**.
+4.	Select the checkbox to acknowledge the warning message.
+
+<img src={useBaseUrl('img/deployment/post_deployment/reonboard2.png')} />
+
+_**Figure 14: Acknowledging the warning message**_
+ 
+5.	Choose **Create Stack**.
+6.	The **Quick create** stack page appears and it displays the template URL, stack name and parameters. 
+
+ <img src={useBaseUrl('img/deployment/post_deployment/reonboard3.png')} />
+
+_**Figure 15: Creating the stack**_
+
+7.	Select **I acknowledge that AWS CloudFormation might create IAM resources with custom names**.
+
+ <img src={useBaseUrl('img/deployment/post_deployment/acknowledge2.png')} />
+
+_**Figure 16: Acknowledgement window**_
+
+8.	Choose **Create stack**.
+9.	Once the account is added it will be listed in AWS Accounts. When the associated cloudformation stack finishes provisioning, the account displays as Up-to-Date.
