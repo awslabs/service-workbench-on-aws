@@ -76,7 +76,8 @@ class LaunchProduct extends StepBase {
     const { targetScClient, targetAccRoleArn } = await this.getScClientAndRoleForTargetAcc(resolvedVars);
 
     // const envName = `${resolvedVars.name || envType.name}`;
-    const stackName = `analysis-${Date.now()}`;
+    const datetime = Date.now();
+    const stackName = `analysis-${datetime}`;
 
     // Set "namespace" as the stack name
     // The variable is claimed to be provided as one of the available variables to be used in variable expressions
@@ -90,7 +91,9 @@ class LaunchProduct extends StepBase {
 
     // Read input params specified in the environment type configuration
     // The params may include variable expressions, resolve the expressions by using the resolveVars
-    const resolvedInputParams = await this.resolveVarExpressions(envTypeConfig.params, resolvedVars);
+    const resolvedInputParamsRaw = await this.resolveVarExpressions(envTypeConfig.params, resolvedVars);
+    // Additional layer to check the namespace is valid and unique
+    const resolvedInputParams = await this.checkNamespace(resolvedInputParamsRaw, datetime);
     // Read tags specified in the environment type configuration
     // The tags may include variable expressions, resolve the expressions by using the resolveVars
     const resolvedTags = await this.resolveVarExpressions(envTypeConfig.tags, resolvedVars);
@@ -355,6 +358,34 @@ class LaunchProduct extends StepBase {
       );
     }
     return result.LaunchPathSummaries[0];
+  }
+
+  /**
+   * Method to check if the resolved input parameter contained a static namespace param. If so, this method augments the
+   * namespace to begin with 'analysis-' for permissions purposes (if it does not already start with that) and to end with 
+   * a unique datetime string so Cloudformation doesn't make create duplicate stacks on seperate deployments of the same
+   * workspace configuration. 
+   * 
+   * @param resolvedInputParams 
+   * @param datetime 
+   * @returns {Promise<{Value: string, Key: string}[]>}
+   */
+  async checkNamespace(resolvedInputParams, datetime){
+    const namespaceIndex = resolvedInputParams.findIndex(element => element.Key === 'Namespace');
+    let namespaceParam = resolvedInputParams[namespaceIndex].Value;
+
+    // Check to make sure the resolved namespace variable begins with 'analysis-' so our templates will allow it
+    if(!namespaceParam.startsWith('analysis-')){
+      namespaceParam = 'analysis-' + namespaceParam;
+    }
+
+    // Check to make sure the resolved namespace variable ends with a unique datetime string so it will be unique for each deployment of a configuration with a static namespace
+    if(namespaceParam.split('-').pop() !== datetime.toString()){
+      namespaceParam += '-' + Date.now();
+    }
+
+    resolvedInputParams[namespaceIndex].Value = namespaceParam;
+    return resolvedInputParams;
   }
 }
 
