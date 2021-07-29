@@ -3,6 +3,9 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: Service-Workbench-on-AWS SageMaker-Jupyter
 
 Parameters:
+  SolutionNamespace:
+    Type: String
+    Description: The namespace value provided when onboarding the Member account
   Namespace:
     Type: String
     Description: An environment name that will be prefixed to resource names
@@ -44,7 +47,6 @@ Parameters:
     Description: Boolean for whether workspace should be accessed with AppStream
     AllowedValues: [true, false]
 
-
 Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
   EgressStoreIamPolicyEmpty: !Equals [!Ref EgressStoreIamPolicyDocument, '{}']
@@ -62,6 +64,21 @@ Resources:
           FromPort: 443
           ToPort: 443
           CidrIp: !Ref AccessFromCIDRBlock
+
+  PreSignedURLBoundary:
+    Type: AWS::IAM::ManagedPolicy
+    Condition: AppStreamEnabled
+    Properties:
+      Description: Permission boundary for creating PreSignedURL
+      ManagedPolicyName: !Join ['-', [Ref: Namespace, 'presigned-url-permission-boundary']]
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - sagemaker:CreatePresignedNotebookInstanceUrl
+            Resource: !Ref BasicNotebookInstance
+
   InstanceRolePermissionBoundary:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -88,6 +105,37 @@ Resources:
               - sagemaker:DescribeNotebookInstance
               - sagemaker:StopNotebookInstance
             Resource: '*'
+
+  IAMRoleSageMakerURL:
+    Type: 'AWS::IAM::Role'
+    Condition: AppStreamEnabled
+    Properties:
+      RoleName: !Join ['-', [Ref: Namespace, 'presigned-url-sagemaker-notebook-role']]
+      Path: '/'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: presigned-url-access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              Effect: Allow
+              Action:
+                - sagemaker:CreatePresignedNotebookInstanceUrl
+              Resource:
+                - !Ref BasicNotebookInstance
+              Condition:
+                StringEquals:
+                  aws:SourceVpce:
+                    Fn::ImportValue: !Sub "${SolutionNamespace}-SageMakerVPCE"
+      PermissionsBoundary: !Ref PreSignedURLBoundary
+
   IAMRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -254,3 +302,22 @@ Outputs:
   MetaConnectionScheme:
     Description: Protocol for connection 1
     Value: https
+
+  MetaConnectionNotebookArn:
+    Description: SageMaker Notebook Arn
+    Value: !Ref BasicNotebookInstance
+
+  MetaConnectionRoleArn:
+    Description: IAM Role to use for creating presigned URL
+    Condition: AppStreamEnabled
+    Value: !GetAtt IAMRoleSageMakerURL.Arn
+
+  MetaConnectionRole:
+    Description: IAM Role name to use for creating presigned URL
+    Condition: AppStreamEnabled
+    Value: !Ref IAMRoleSageMakerURL
+
+  MetaConnectionPolicy:
+    Description: Inline policy name that has use for creating presigned URL
+    Condition: AppStreamEnabled
+    Value: presigned-url-access
