@@ -267,20 +267,6 @@ class ProvisionAccount extends StepBase {
         // create S3 and KMS resources access for newly created account
         await this.updateLocalResourcePolicies();
 
-        await this.updateAccount({
-          status: 'COMPLETED',
-          cfnInfo: {
-            stackId,
-            vpcId: cfnOutputs.VPC,
-            subnetId:
-              this.settings.get(settingKeys.isAppStreamEnabled) === 'true'
-                ? cfnOutputs.PrivateWorkspaceSubnet
-                : cfnOutputs.VpcPublicSubnet1,
-            crossAccountExecutionRoleArn: cfnOutputs.CrossAccountExecutionRoleArn,
-            crossAccountEnvMgmtRoleArn: cfnOutputs.CrossAccountEnvMgmtRoleArn,
-            encryptionKeyArn: cfnOutputs.EncryptionKeyArn,
-          },
-        });
         // TODO: after the account is deployed and all useful info is fetched,
         // try to update aws account table, it might be able to skip that table with all info already
         // exsiting in the account table instead of aws-account table. but for now, update the info to aws-account
@@ -290,7 +276,6 @@ class ProvisionAccount extends StepBase {
           this.payload.string('externalId'),
           this.payload.string('accountName'),
         ]);
-        this.print('saving account info into aws account table');
         const accountId = await this.state.string('ACCOUNT_ID');
         const awsAccountData = {
           accountId,
@@ -327,8 +312,24 @@ class ProvisionAccount extends StepBase {
             subnetId: cfnOutputs.VpcPublicSubnet1,
           };
         }
-        console.log('Adding to table');
+
+        this.print('saving account info into aws account table');
         await this.addAwsAccountTable(requestContext, { ...awsAccountData, ...additionalAccountData });
+
+        await this.updateAccount({
+          status: 'COMPLETED',
+          cfnInfo: {
+            stackId,
+            vpcId: cfnOutputs.VPC,
+            subnetId:
+              this.settings.get(settingKeys.isAppStreamEnabled) === 'true'
+                ? cfnOutputs.PrivateWorkspaceSubnet
+                : cfnOutputs.VpcPublicSubnet1,
+            crossAccountExecutionRoleArn: cfnOutputs.CrossAccountExecutionRoleArn,
+            crossAccountEnvMgmtRoleArn: cfnOutputs.CrossAccountEnvMgmtRoleArn,
+            encryptionKeyArn: cfnOutputs.EncryptionKeyArn,
+          },
+        });
       }
       return true;
     } // else CFN is still pending

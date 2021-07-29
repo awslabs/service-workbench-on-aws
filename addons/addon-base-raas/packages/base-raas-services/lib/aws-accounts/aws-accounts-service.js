@@ -145,7 +145,6 @@ class AwsAccountsService extends Service {
   }
 
   async create(requestContext, rawData) {
-    console.log('ZZZ: Inside create of aws-account-service');
     // ensure that the caller has permissions to create the account
     // Perform default condition checks to make sure the user is active and is admin
     await this.assertAuthorized(
@@ -163,7 +162,6 @@ class AwsAccountsService extends Service {
     const id = uuid();
 
     // Prepare the db object
-    // TODO: If we're deploying a new SWB instance to a new account, it doesn't need to be ONBOARD
     const dbObject = this._fromRawToDbObject(rawData, {
       rev: 0,
       createdBy: by,

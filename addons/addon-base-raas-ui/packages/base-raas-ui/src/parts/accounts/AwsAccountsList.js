@@ -38,10 +38,11 @@ class AwsAccountsList extends React.Component {
       // and value as flag indicating whether to show the editor for the user
       this.mapOfUsersBeingEdited = {};
       this.selectedFilter = 'All'; // case-sensitive, see AwsAccountsStore.js for options
+      this.awsAccountIdsOfActiveEnvs = [];
     });
   }
 
-  componentDidMount() {
+  async componentDidMount() {
     const accountsStore = this.props.accountsStore;
     const awsAccountsStore = this.props.awsAccountsStore;
     swallowError(accountsStore.load());
@@ -214,6 +215,7 @@ class AwsAccountsList extends React.Component {
 decorate(AwsAccountsList, {
   mapOfUsersBeingEdited: observable,
   selectedFilter: observable,
+  awsAccountIdsOfActiveEnvs: observable,
   handleSelectedFilter: action,
 });
 
