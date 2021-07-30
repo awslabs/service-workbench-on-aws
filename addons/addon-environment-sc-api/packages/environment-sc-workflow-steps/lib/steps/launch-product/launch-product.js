@@ -91,6 +91,8 @@ class LaunchProduct extends StepBase {
 
     // Read input params specified in the environment type configuration
     // The params may include variable expressions, resolve the expressions by using the resolveVars
+    // By doing this resolution, we might overwrite the dynamic, unique value defined above with a static name 
+    // that would not be unique between deployments of the same workspace configuration
     const resolvedInputParamsRaw = await this.resolveVarExpressions(envTypeConfig.params, resolvedVars);
     // Additional layer to check the namespace is valid and unique
     const resolvedInputParams = await this.checkNamespace(resolvedInputParamsRaw, datetime);
@@ -381,7 +383,7 @@ class LaunchProduct extends StepBase {
 
     // Check to make sure the resolved namespace variable ends with a unique datetime string so it will be unique for each deployment of a configuration with a static namespace
     if(namespaceParam.split('-').pop() !== datetime.toString()){
-      namespaceParam += '-' + Date.now();
+      namespaceParam += '-' + datetime;
     }
 
     resolvedInputParams[namespaceIndex].Value = namespaceParam;
