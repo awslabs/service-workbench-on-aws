@@ -15,7 +15,7 @@
 
 import { createForm } from '../../helpers/form';
 
-const addBaseAwsAccountFormFields = {
+const addUpdateBaseAwsAccountFormFields = {
   name: {
     label: 'Account Name',
     placeholder: 'Type the name of this account',
@@ -33,7 +33,7 @@ const addBaseAwsAccountFormFields = {
   },
 };
 
-const addAwsAccountAppStreamFormFields = {
+const addUpdateAwsAccountAppStreamFormFields = {
   appStreamFleetDesiredInstances: {
     label: 'AppStream Fleet Desired Instance',
     placeholder: 'Number of users that can concurrently access a workspace through AppStream',
@@ -73,16 +73,16 @@ const addAwsAccountAppStreamFormFields = {
   },
 };
 
-function getBaseAddAwsAccountFormFields() {
-  return addBaseAwsAccountFormFields;
+function getBaseAddUpdateAwsAccountFormFields() {
+  return addUpdateBaseAwsAccountFormFields;
 }
 
-function getAddAwsAccountAppStreamFormFields() {
-  return addAwsAccountAppStreamFormFields;
+function getAddUpdateAwsAccountAppStreamFormFields() {
+  return addUpdateAwsAccountAppStreamFormFields;
 }
 
-function getAddAwsAccountForm(fields) {
+function getAddUpdateAwsAccountForm(fields) {
   return createForm(fields);
 }
 
-export { getBaseAddAwsAccountFormFields, getAddAwsAccountAppStreamFormFields, getAddAwsAccountForm };
+export { getBaseAddUpdateAwsAccountFormFields, getAddUpdateAwsAccountAppStreamFormFields, getAddUpdateAwsAccountForm };

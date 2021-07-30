@@ -49,7 +49,6 @@ class EnvironmentConfigVarsService extends Service {
       'pluginRegistryService',
       'auditWriterService',
       'dataEgressService',
-      'accountService',
     ]);
   }
 
@@ -273,6 +272,9 @@ class EnvironmentConfigVarsService extends Service {
 
     const by = _.get(requestContext, 'principalIdentifier.uid');
     const user = await userService.mustFindUser({ uid: by });
+
+    // This value is a string
+    const isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
     const result = {
       envId,
       envTypeId,
@@ -293,8 +295,9 @@ class EnvironmentConfigVarsService extends Service {
       s3Mounts: JSON.stringify(s3Mounts),
       iamPolicyDocument: JSON.stringify(iamPolicyDocument),
       environmentInstanceFiles: this.settings.get(settingKeys.environmentInstanceFiles),
-      isAppStreamEnabled: this.settings.get(settingKeys.isAppStreamEnabled),
-      solutionNamespace: await this.getSolutionNamespace(requestContext, externalId, accountId),
+      isAppStreamEnabled,
+      solutionNamespace:
+        isAppStreamEnabled === 'true' ? await this.getSolutionNamespace(requestContext, awsAccountId) : '',
       // s3Prefixes // This variable is no longer relevant it is being removed, the assumption is that
       // this variable has not been used in any of the product templates.
       uid: user.uid,
@@ -311,10 +314,10 @@ class EnvironmentConfigVarsService extends Service {
     return result;
   }
 
-  async getSolutionNamespace(requestContext, externalId, accountId) {
-    const [accountService] = await this.service(['accountService']);
-    const { stackId } = await accountService.mustFind(requestContext, { id: accountId });
-    return stackId.match(/\d{12}:stack\/(.+)\//)[1];
+  async getSolutionNamespace(requestContext, awsAccountId) {
+    const awsAccountsService = await this.service('awsAccountsService');
+    const { cfnStackId } = await awsAccountsService.mustFind(requestContext, { id: awsAccountId });
+    return cfnStackId.match(/\d{12}:stack\/(.+)\//)[1];
   }
 
   async getEnvRolePolicy(requestContext, { environment, studies, memberAccountId }) {

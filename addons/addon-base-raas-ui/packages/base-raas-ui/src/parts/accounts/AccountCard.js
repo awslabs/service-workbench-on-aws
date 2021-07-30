@@ -22,6 +22,10 @@ import c from 'classnames';
 
 import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
 
+import { displayWarning } from '@aws-ee/base-ui/dist/helpers/notification';
+
+const { getAccountIdsOfActiveEnvironments } = require('./AccountUtils');
+
 const statusDisplay = {
   CURRENT: { color: 'green', display: 'Up-to-Date', spinner: false },
   NEEDS_UPDATE: { color: 'orange', display: 'Needs Update', spinner: false },
@@ -42,11 +46,20 @@ class AccountCard extends React.Component {
     runInAction(() => {
       this.detailsExpanded = false;
       this.isSelected = false;
+      this.permButtonLoading = false;
     });
   }
 
   get account() {
     return this.props.account;
+  }
+
+  get isAppStreamEnabled() {
+    return process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true';
+  }
+
+  get appStreamStatusMismatch() {
+    return this.isAppStreamEnabled && !this.account.isAppStreamConfigured;
   }
 
   get awsAccountsStore() {
@@ -77,24 +90,19 @@ class AccountCard extends React.Component {
   };
 
   handleBudgetButton = () => {
-    const awsAccountId = this.account.id;
-    this.goto(`/aws-accounts/budget/${awsAccountId}`);
+    const awsAccountUUID = this.account.id;
+    this.goto(`/aws-accounts/budget/${awsAccountUUID}`);
   };
 
-  handleOnboardAccount = () => {
-    const awsAccountId = this.account.id;
-    this.goto(`/aws-accounts/onboard/${awsAccountId}`);
-  };
-
-  handleUpdateAccountPerms = () => {
-    const awsAccountId = this.account.id;
-    this.goto(`/aws-accounts/onboard/${awsAccountId}`);
-  };
-
-  handlePendingButton = () => {
-    const awsAccountId = this.account.id;
-    this.goto(`/aws-accounts/onboard/${awsAccountId}`);
-  };
+  handleUpdatePermission() {
+    const awsAccountUUID = this.account.id;
+    // If the account needs to be upgraded to support AppStream we need to Update the account with AppStream specific settings, for example: AppStreamImageName
+    if (this.appStreamStatusMismatch) {
+      this.goto(`/aws-accounts/update/${awsAccountUUID}/rev/${this.account.rev}`);
+    } else {
+      this.goto(`/aws-accounts/onboard/${awsAccountUUID}`);
+    }
+  }
 
   render() {
     const isSelectable = this.isSelectable; // Internal and external guests can't select studies
@@ -123,11 +131,6 @@ class AccountCard extends React.Component {
         </div>
       </Segment>
     );
-
-    // Checkbox will be added to this segment when functionality for edit/delete users is added
-    // <div className="mr2" {...onClickAttr}>
-    //   {isSelectable && <Checkbox checked={this.isSelected} style={{ marginTop: '31px' }} />}
-    // </div>
   }
 
   renderHeader(account) {
@@ -240,17 +243,62 @@ class AccountCard extends React.Component {
     );
   }
 
+  async checkForActiveAccounts() {
+    runInAction(() => {
+      this.permButtonLoading = true;
+    });
+    const scEnvironmentStore = this.props.scEnvironmentsStore;
+    const indexesStore = this.props.indexesStore;
+    const projectsStore = this.props.projectsStore;
+
+    await Promise.all([scEnvironmentStore.doLoad(), indexesStore.doLoad(), projectsStore.doLoad()]);
+    const scEnvs = scEnvironmentStore.list;
+    const indexes = indexesStore.list;
+    const projects = projectsStore.list;
+
+    const accountHasActiveEnv = getAccountIdsOfActiveEnvironments(scEnvs, projects, indexes).includes(
+      this.props.account.id,
+    );
+    runInAction(() => {
+      this.permButtonLoading = false;
+    });
+
+    if (accountHasActiveEnv) {
+      displayWarning('Please terminate all workspaces in this account before upgrading the account');
+    } else {
+      this.handleUpdatePermission();
+    }
+  }
+
   renderUpdatePermsButton() {
     const permissionStatus = this.permissionStatus;
     let buttonArgs;
     if (permissionStatus === 'NEEDS_UPDATE' || permissionStatus === 'ERRORED')
-      buttonArgs = { message: 'Update Permissions', color: 'orange', onClick: this.handleUpdateAccountPerms };
+      buttonArgs = {
+        message: 'Update Permissions',
+        color: 'orange',
+      };
     else if (permissionStatus === 'PENDING' || permissionStatus === 'UNKNOWN')
-      buttonArgs = { message: 'Re-Onboard Account', color: 'red', onClick: this.handlePendingButton };
-    else buttonArgs = { message: 'Onboard Account', color: 'purple', onClick: this.handleOnboardAccount };
-    // This button is only displayed if permissionStatus is NEEDS_UPDATE, NEEDS_ONBOARD, or PENDING
+      buttonArgs = {
+        message: 'Re-Onboard Account',
+        color: 'red',
+      };
+    else
+      buttonArgs = {
+        message: 'Onboard Account',
+        color: 'purple',
+      };
+
+    buttonArgs.onClick = async () => {
+      if (this.appStreamStatusMismatch) {
+        await this.checkForActiveAccounts();
+      } else {
+        this.handleUpdatePermission();
+      }
+    };
+
     return (
-      <Button floated="right" color={buttonArgs.color} onClick={buttonArgs.onClick}>
+      <Button floated="right" color={buttonArgs.color} onClick={buttonArgs.onClick} loading={this.permButtonLoading}>
         {buttonArgs.message}
       </Button>
     );
@@ -266,6 +314,12 @@ decorate(AccountCard, {
   isSelectable: computed,
   isSelected: observable,
   permissionStatus: computed,
+  permButtonLoading: observable,
 });
 
-export default inject('awsAccountsStore')(withRouter(observer(AccountCard)));
+export default inject(
+  'awsAccountsStore',
+  'scEnvironmentsStore',
+  'indexesStore',
+  'projectsStore',
+)(withRouter(observer(AccountCard)));

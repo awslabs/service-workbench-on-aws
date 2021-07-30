@@ -74,7 +74,7 @@ const getCreateStackUrl = (cfnTemplateInfo, createParams) => {
     `&param_ExternalId=${externalId}`,
     `&param_ApiHandlerArn=${apiHandlerRoleArn}`,
     `&param_WorkflowRoleArn=${workflowLoopRunnerRoleArn}`,
-    `&param_AppStreamFleetType=${appStreamFleetType}`,
+    `&param_AppStreamFleetType=${appStreamFleetType || 'ON_DEMAND'}`,
     `&param_AppStreamDisconnectTimeoutSeconds=${appStreamDisconnectTimeoutSeconds || '60'}`,
     `&param_AppStreamFleetDesiredInstances=${appStreamFleetDesiredInstances || '2'}`,
     `&param_AppStreamIdleDisconnectTimeoutSeconds=${appStreamIdleDisconnectTimeoutSeconds || '600'}`,
@@ -421,7 +421,6 @@ class AwsCfnService extends Service {
     const params = { StackName: cfnStackName };
     const stacks = await cfnApi.describeStacks(params).promise();
     const stack = _.find(_.get(stacks, 'Stacks', []), item => item.StackName === cfnStackName);
-    console.log('stack', stack);
 
     if (_.isEmpty(stack)) {
       throw this.boom.notFound(`Stack '${cfnStackName}' not found`, true);
@@ -448,7 +447,6 @@ class AwsCfnService extends Service {
     fieldsToUpdate.id = accountEntity.id;
     fieldsToUpdate.rev = accountEntity.rev;
 
-    console.log('before settings');
     if (this.settings.get(settingKeys.isAppStreamEnabled) === 'true') {
       fieldsToUpdate.subnetId = findOutputValue('PrivateWorkspaceSubnet');
       fieldsToUpdate.appStreamStackName = findOutputValue('AppStreamStackName');
@@ -458,7 +456,6 @@ class AwsCfnService extends Service {
       fieldsToUpdate.subnetId = findOutputValue('VpcPublicSubnet1');
     }
 
-    console.log('fieldsToUpdate', fieldsToUpdate);
     await awsAccountsService.update(requestContext, fieldsToUpdate);
 
     // TODO Start AppStream fleet

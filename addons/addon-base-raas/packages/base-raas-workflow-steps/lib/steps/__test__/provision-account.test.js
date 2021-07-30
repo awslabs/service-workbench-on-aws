@@ -286,12 +286,15 @@ describe('ProvisionAccount', () => {
           Stacks: [
             {
               StackStatus: 'CREATE_COMPLETE',
+              StackName: 'stack-abc',
+              StackId: 'id-123',
               Outputs: [
                 { OutputKey: 'VPC', OutputValue: 'vpc-123' },
                 { OutputKey: 'VpcPublicSubnet1', OutputValue: 'public-subnet-1' },
                 { OutputKey: 'CrossAccountExecutionRoleArn', OutputValue: 'execution-role-arn-1' },
                 { OutputKey: 'CrossAccountEnvMgmtRoleArn', OutputValue: 'env-mgmt-role-arn-1' },
                 { OutputKey: 'EncryptionKeyArn', OutputValue: 'encryption-key-arn-1' },
+                { OutputKey: 'OnboardStatusRoleArn', OutputValue: 'arn-onboard-1234' },
               ],
             },
           ],
@@ -329,9 +332,13 @@ describe('ProvisionAccount', () => {
         { principalIdentifier: { uid: 'u-daffyduck' } },
         {
           accountId: 'ACCOUNT_ID',
+          cfnStackName: 'stack-abc',
+          cfnStackId: 'id-123',
           description: 'description',
           externalId: 'externalId',
           name: 'accountName',
+          onboardStatusRoleArn: 'arn-onboard-1234',
+          permissionStatus: 'CURRENT',
           roleArn: 'execution-role-arn-1',
           xAccEnvMgmtRoleArn: 'env-mgmt-role-arn-1',
           vpcId: 'vpc-123',
@@ -356,6 +363,8 @@ describe('ProvisionAccount', () => {
           Stacks: [
             {
               StackStatus: 'CREATE_COMPLETE',
+              StackName: 'stack-abc',
+              StackId: 'id-123',
               Outputs: [
                 { OutputKey: 'VPC', OutputValue: 'vpc-123' },
                 { OutputKey: 'PrivateWorkspaceSubnet', OutputValue: 'appStr-subnet-1' },
@@ -365,6 +374,7 @@ describe('ProvisionAccount', () => {
                 { OutputKey: 'AppStreamStackName', OutputValue: 'appStr-stack-1' },
                 { OutputKey: 'AppStreamSecurityGroup', OutputValue: 'appStr-sg-1' },
                 { OutputKey: 'AppStreamFleet', OutputValue: 'appStr-fl-1' },
+                { OutputKey: 'OnboardStatusRoleArn', OutputValue: 'arn-onboard-1234' },
               ],
             },
           ],
@@ -406,9 +416,13 @@ describe('ProvisionAccount', () => {
         { principalIdentifier: { uid: 'u-daffyduck' } },
         {
           accountId: 'ACCOUNT_ID',
+          cfnStackName: 'stack-abc',
+          cfnStackId: 'id-123',
           description: 'description',
           externalId: 'externalId',
           name: 'accountName',
+          onboardStatusRoleArn: 'arn-onboard-1234',
+          permissionStatus: 'CURRENT',
           roleArn: 'execution-role-arn-1',
           xAccEnvMgmtRoleArn: 'env-mgmt-role-arn-1',
           vpcId: 'vpc-123',
@@ -443,12 +457,12 @@ describe('ProvisionAccount', () => {
       ...step.payload,
     };
 
-    const accountService = {
-      saveAccountToDb: jest.fn(),
+    const appStreamScService = {
+      shareAppStreamImageWithAccount: jest.fn(),
     };
     step.mustFindServices = jest.fn().mockImplementation(async services => {
-      if (services[0] === 'accountService') {
-        return Promise.resolve([accountService]);
+      if (services[0] === 'appStreamScService') {
+        return Promise.resolve([appStreamScService]);
       }
       return null;
     });
@@ -508,7 +522,7 @@ describe('ProvisionAccount', () => {
     // CHECK
     expect(response).toMatchObject({
       waitDecision: {
-        seconds: 60 * 15,
+        seconds: 60 * 10,
         thenCall: { methodName: 'deployStack', params: '[]' },
         type: 'wait',
       },
