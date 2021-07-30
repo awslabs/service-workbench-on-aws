@@ -38,6 +38,7 @@ isLocal: false
 
 # Set this to the API endpoint if different than the following
 localApiEndpoint: http://localhost:4000
+
 # Provide the id of the available EC2-Linux Service Catalog product
 # ec2LinuxEnvTypeId: "prod-sampleEC2Linux-pa-sampleEC2Linux"
 # Provide the id of a configuration for an imported EC2-Linux environment
