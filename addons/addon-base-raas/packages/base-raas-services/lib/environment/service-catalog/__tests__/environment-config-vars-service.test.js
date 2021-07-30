@@ -62,9 +62,6 @@ const EnvironmentSCKeyPairServiceMock = require('../environment-sc-keypair-servi
 jest.mock('../../../data-egress/data-egress-service.js');
 const DataEgressService = require('../../../data-egress/data-egress-service.js');
 
-jest.mock('../../../account/account-service.js');
-const AccountService = require('../../../account/account-service.js');
-
 const EnvironmentConfigVarsService = require('../environment-config-vars-service');
 
 describe('EnvironmentSCService', () => {
@@ -76,7 +73,6 @@ describe('EnvironmentSCService', () => {
   let environmentAmiService = null;
   let userService = null;
   let settingsService = null;
-  let accountService = null;
 
   beforeEach(async () => {
     const container = new ServicesContainer();
@@ -96,7 +92,6 @@ describe('EnvironmentSCService', () => {
     container.register('environmentScKeypairService', new EnvironmentSCKeyPairServiceMock());
     container.register('studyService', new StudyServiceMock());
     container.register('dataEgressService', new DataEgressService());
-    container.register('accountService', new AccountService());
     await container.initServices();
 
     // suppress expected console errors
@@ -111,11 +106,11 @@ describe('EnvironmentSCService', () => {
     environmentAmiService = await container.find('environmentAmiService');
     userService = await container.find('userService');
     settingsService = await container.find('settings');
-    accountService = await container.find('accountService');
+    awsAccountsService = await container.find('awsAccountsService');
 
-    accountService.mustFind = jest.fn(() => {
+    awsAccountsService.mustFind = jest.fn(() => {
       return Promise.resolve({
-        stackId:
+        cfnStackId:
           'arn:aws:cloudformation:eu-west-1:123456789012:stack/initial-stack-1625689755737/ff9a0dc0-df61-11eb-8b32-024312ba26d9',
       });
     });
@@ -285,6 +280,8 @@ describe('EnvironmentSCService', () => {
           vpcId: 'VpcId-Test',
           subnetId: 'SubnetId-Test',
           encryptionKeyArn: 'UltraSecureEncryptionKey',
+          cfnStackId:
+            'arn:aws:cloudformation:eu-west-1:123456789012:stack/initial-stack-1625689755737/ff9a0dc0-df61-11eb-8b32-024312ba26d9',
         };
       });
 
@@ -372,6 +369,8 @@ describe('EnvironmentSCService', () => {
           vpcId: 'VpcId-Test',
           subnetId: 'SubnetId-Test',
           encryptionKeyArn: 'UltraSecureEncryptionKey',
+          cfnStackId:
+            'arn:aws:cloudformation:eu-west-1:123456789012:stack/initial-stack-1625689755737/ff9a0dc0-df61-11eb-8b32-024312ba26d9',
         };
       });
 

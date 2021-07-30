@@ -308,12 +308,14 @@ describe('EnvTypeService', () => {
         params: [
           {
             key: 'vpcId',
+            // eslint-disable-next-line no-template-curly-in-string
             value: '${vpcId}',
           },
         ],
         tags: [
           {
             key: 'customTag',
+            // eslint-disable-next-line no-template-curly-in-string
             value: '${indexId}',
           },
         ],
