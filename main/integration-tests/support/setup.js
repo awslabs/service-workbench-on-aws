@@ -110,7 +110,7 @@ class Setup {
       },
     };
 
-    const externalStudy = await this.settings.get('externalStudy');
+    const byobStudy = await this.settings.get('byobStudy');
 
     const stepTemplate = await adminSession.resources.stepTemplates
       .versions('st-obtain-write-lock')
@@ -126,7 +126,7 @@ class Setup {
       stepTemplate,
       workflowTemplateId,
       envTypes,
-      externalStudy,
+      byobStudy,
     };
   }
 
