@@ -161,25 +161,6 @@ class AccountService extends Service {
     await this.audit(requestContext, { action: 'provision-account', body: { accountName, accountEmail, description } });
   }
 
-  async shareAppStreamImageWithMemberAccount(requestContext, memberAccountId, appStreamImageName) {
-    await this.assertAuthorized(requestContext, {
-      action: 'shareAppStreamImageWithMemberAccount',
-      conditions: [allowIfActive, allowIfAdmin],
-    });
-    const aws = await this.service('aws');
-    const appStream = await new aws.sdk.AppStream({ apiVersion: '2016-12-01' });
-    const params = {
-      ImagePermissions: {
-        allowFleet: true,
-        allowImageBuilder: false,
-      },
-      Name: appStreamImageName,
-      SharedAccountId: memberAccountId,
-    };
-
-    await appStream.updateImagePermissions(params).promise();
-  }
-
   async saveAccountToDb(requestContext, rawData, id, status = 'PENDING') {
     // For now, we assume that 'createdBy' and 'updatedBy' are always users and not groups
     const by = _.get(requestContext, 'principalIdentifier.uid');

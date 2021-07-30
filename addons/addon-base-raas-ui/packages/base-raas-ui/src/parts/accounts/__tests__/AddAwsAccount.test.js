@@ -59,14 +59,11 @@ describe('AddAwsAccount', () => {
     component.awsAccount = {
       name: 'MyResearchProjectAccount',
       accountId: '012345678910',
-      roleArn: 'arn:aws:iam/*',
-      externalId: '123',
       description: 'This is my research project account',
-      vpcId: 'vpc-abc-123456',
-      subnetId: 'vpc-abc-subnet-123456',
-      encryptionKeyArn: 'arn:aws:kms/*',
-      xAccEnvMgmtRoleArn: 'example-arn',
     };
+    awsAccountsStore.addAwsAccount.mockImplementationOnce(() => {
+      return { ...component.awsAccount, id: 'mockID' };
+    });
 
     // Submit form
     await component.handleSubmit();
@@ -74,7 +71,7 @@ describe('AddAwsAccount', () => {
     // Verify account gets created
     expect(awsAccountsStore.addAwsAccount).toHaveBeenCalledWith(component.awsAccount);
     // And user gets redirected to the accounts page
-    expect(component.goto).toHaveBeenCalledWith('/accounts');
+    expect(component.goto).toHaveBeenCalledWith('/aws-accounts/onboard/mockID');
   });
 
   it('should not create an account if required fields are not provided', async () => {
@@ -90,17 +87,6 @@ describe('AddAwsAccount', () => {
     // Verify errors are set
     expect(component.validationErrors.errors).toBeDefined();
     const fieldsWithError = Object.keys(component.validationErrors.errors);
-    expect(fieldsWithError).toEqual(
-      expect.arrayContaining([
-        'name',
-        'accountId',
-        'roleArn',
-        'externalId',
-        'description',
-        'vpcId',
-        'subnetId',
-        'encryptionKeyArn',
-      ]),
-    );
+    expect(fieldsWithError).toEqual(expect.arrayContaining(['name', 'accountId', 'description']));
   });
 });

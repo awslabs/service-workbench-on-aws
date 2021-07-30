@@ -15,7 +15,7 @@
 
 import { createForm } from '../../helpers/form';
 
-const addAwsAccountFormFields = {
+const addBaseAwsAccountFormFields = {
   name: {
     label: 'Account Name',
     placeholder: 'Type the name of this account',
@@ -26,49 +26,63 @@ const addAwsAccountFormFields = {
     placeholder: 'Type the 12-digit AWS account ID',
     rules: 'required|string|size:12',
   },
-  roleArn: {
-    label: 'Role Arn',
-    placeholder: 'Type Role ARN for launching resources into this AWS account',
-    rules: 'required|string|between:10,300',
-  },
-  xAccEnvMgmtRoleArn: {
-    label: 'AWS Service Catalog Role Arn',
-    placeholder: 'Type Role ARN for launching resources into this AWS account using AWS Service Catalog',
-    rules: 'required|string|between:10,300',
-  },
-  externalId: {
-    label: 'External ID',
-    placeholder: 'Type external ID for this AWS account',
-    rules: 'required|string|between:1,300',
-  },
   description: {
     label: 'Description',
     placeholder: 'Type description for this AWS account',
     rules: 'required|string',
   },
-  vpcId: {
-    label: 'VPC ID',
-    placeholder: 'Type the ID of the VPC where EMR clusters will be launched',
-    rules: 'required|string|min:12|max:21',
+};
+
+const addAwsAccountAppStreamFormFields = {
+  appStreamFleetDesiredInstances: {
+    label: 'AppStream Fleet Desired Instance',
+    placeholder: 'Number of users that can concurrently access a workspace through AppStream',
+    rules: 'required|integer',
   },
-  subnetId: {
-    label: 'Subnet ID',
-    placeholder: 'Type the ID of the subnet where the EMR clusters will be launched',
-    rules: 'required|string|min:15|max:24',
+  appStreamDisconnectTimeoutSeconds: {
+    label: 'AppStreamDisconnectTimeoutSeconds',
+    placeholder: 'The amount of time that a streaming session remains active after users disconnect',
+    rules: 'required|integer',
   },
-  encryptionKeyArn: {
-    label: 'KMS Encryption Key ARN',
-    placeholder: 'Type the KMS Encryption Key ARN to use for this AWS account',
-    rules: 'required|string|between:1,100',
+  appStreamIdleDisconnectTimeoutSeconds: {
+    label: 'AppStreamIdleDisconnectTimeoutSeconds',
+    placeholder:
+      'The amount of time that users can be idle (inactive) before they are disconnected from their streaming session',
+    rules: 'required|integer',
+  },
+  appStreamMaxUserDurationSeconds: {
+    label: 'AppStreamMaxUserDurationSeconds',
+    placeholder: 'The maximum amount of time that a streaming session can remain active, in seconds',
+    rules: 'required|integer',
+  },
+  appStreamImageName: {
+    label: 'AppStreamImageName',
+    placeholder: 'The name of the image used to create the fleet',
+    rules: 'required|string',
+  },
+  appStreamInstanceType: {
+    label: 'AppStreamInstanceType',
+    placeholder:
+      'The instance type to use when launching fleet instances. List of images available at https://aws.amazon.com/appstream2/pricing/',
+    rules: 'required|string',
+  },
+  appStreamFleetType: {
+    label: 'AppStreamFleetType',
+    placeholder: 'The fleet type. Should be either ALWAYS_ON or ON_DEMAND',
+    rules: ['required', 'regex:/^ALWAYS_ON|ON_DEMAND$/'],
   },
 };
 
-function getAddAwsAccountFormFields() {
-  return addAwsAccountFormFields;
+function getBaseAddAwsAccountFormFields() {
+  return addBaseAwsAccountFormFields;
 }
 
-function getAddAwsAccountForm() {
-  return createForm(addAwsAccountFormFields);
+function getAddAwsAccountAppStreamFormFields() {
+  return addAwsAccountAppStreamFormFields;
 }
 
-export { getAddAwsAccountFormFields, getAddAwsAccountForm };
+function getAddAwsAccountForm(fields) {
+  return createForm(fields);
+}
+
+export { getBaseAddAwsAccountFormFields, getAddAwsAccountAppStreamFormFields, getAddAwsAccountForm };

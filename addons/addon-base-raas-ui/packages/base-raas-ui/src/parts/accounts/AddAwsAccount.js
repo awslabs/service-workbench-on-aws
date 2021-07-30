@@ -24,7 +24,11 @@ import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
 import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
 import validate from '@aws-ee/base-ui/dist/models/forms/Validate';
 
-import { getAddAwsAccountForm, getAddAwsAccountFormFields } from '../../models/forms/AddAwsAccountForm';
+import {
+  getBaseAddAwsAccountFormFields,
+  getAddAwsAccountAppStreamFormFields,
+  getAddAwsAccountForm,
+} from '../../models/forms/AddAwsAccountForm';
 
 class AddAwsAccount extends React.Component {
   constructor(props) {
@@ -41,8 +45,14 @@ class AddAwsAccount extends React.Component {
       this.validationErrors = new Map();
       this.awsAccount = {};
     });
-    this.form = getAddAwsAccountForm();
-    this.addAwsAccountFormFields = getAddAwsAccountFormFields();
+
+    console.log('hello');
+    let fields = getBaseAddAwsAccountFormFields();
+    if (process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true') {
+      fields = { ...fields, ...getAddAwsAccountAppStreamFormFields() };
+    }
+    this.form = getAddAwsAccountForm(fields);
+    this.addAwsAccountFormFields = fields;
   }
 
   render() {
@@ -103,7 +113,7 @@ class AddAwsAccount extends React.Component {
     return (
       <div className="mt3">
         <Button floated="right" color="blue" icon disabled={processing} className="ml2" onClick={this.handleSubmit}>
-          Add AWS Account
+          Onboard AWS Account
         </Button>
         <Button floated="right" disabled={processing} onClick={this.handleCancel}>
           Cancel
@@ -169,11 +179,11 @@ class AddAwsAccount extends React.Component {
       } else {
         // There are no client side validation errors so ask the store to add user (which will make API call to server to add the user)
 
-        await this.props.awsAccountsStore.addAwsAccount(this.awsAccount);
+        const account = await this.props.awsAccountsStore.addAwsAccount(this.awsAccount);
         runInAction(() => {
           this.formProcessing = false;
         });
-        this.goto('/accounts');
+        this.goto(`/aws-accounts/onboard/${account.id}`);
       }
     } catch (error) {
       runInAction(() => {

@@ -14,17 +14,19 @@
  */
 
 import React from 'react';
-import { Button, Container, Header, Icon, Label, Message } from 'semantic-ui-react';
+import _ from 'lodash';
+import { Button, Container, Header, Icon, Label, Message, Segment } from 'semantic-ui-react';
 import { withRouter } from 'react-router-dom';
-import { decorate, observable, runInAction } from 'mobx';
+import { decorate, observable, runInAction, action } from 'mobx';
 import { inject, observer } from 'mobx-react';
-import ReactTable from 'react-table';
 
 import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
 import { isStoreError, isStoreLoading } from '@aws-ee/base-ui/dist/models/BaseStore';
 import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
 import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
+import AccountCard from './AccountCard';
+import AccountsFilterButtons from './AccountsFilterButtons';
 
 class AwsAccountsList extends React.Component {
   constructor(props) {
@@ -35,6 +37,7 @@ class AwsAccountsList extends React.Component {
       // Each key in the object below has key as user's unique id (i.e., uid)
       // and value as flag indicating whether to show the editor for the user
       this.mapOfUsersBeingEdited = {};
+      this.selectedFilter = 'All'; // case-sensitive, see AwsAccountsStore.js for options
     });
   }
 
@@ -65,66 +68,38 @@ class AwsAccountsList extends React.Component {
   }
 
   renderMain() {
-    const awsAccountsData = this.getAwsAccounts();
-    const pageSize = 5;
-    const showPagination = awsAccountsData.length > pageSize;
+    const awsAccountsStore = this.getAwsAccountsStore();
+    const selectedFilter = this.selectedFilter;
+    const awsAccountsData = awsAccountsStore.filtered(selectedFilter);
+    const isEmpty = _.isEmpty(awsAccountsData);
     return (
-      <div>
-        <ReactTable
-          data={awsAccountsData}
-          showPagination={showPagination}
-          defaultPageSize={pageSize}
-          className="-striped -highlight"
-          filterable
-          defaultFilterMethod={(filter, row) => {
-            const columnValue = String(row[filter.id]).toLowerCase();
-            const filterValue = filter.value.toLowerCase();
-            return columnValue.indexOf(filterValue) >= 0;
-          }}
-          columns={[
-            {
-              Header: 'Account Name',
-              accessor: 'name',
-            },
-            {
-              Header: 'AWS Account ID',
-              accessor: 'accountId',
-            },
-            {
-              Header: 'Description',
-              accessor: 'description',
-            },
-            {
-              Header: 'Role ARN',
-              accessor: 'roleArn',
-            },
-            {
-              Header: 'External ID',
-              accessor: 'externalId',
-            },
-            {
-              Header: 'VPC ID',
-              accessor: 'vpcId',
-            },
-            {
-              Header: 'Subnet ID',
-              accessor: 'subnetId',
-            },
-            {
-              Header: 'Encryption Key Arn',
-              accessor: 'encryptionKeyArn',
-            },
-            {
-              Header: 'Budget Configuration',
-              filterable: false,
-              Cell: observer(cell => (
-                <Button primary compact size="mini" onClick={() => this.handleBudgetConfiguration(cell.original.id)}>
-                  Budget Detail
-                </Button>
-              )),
-            },
-          ]}
+      <div data-testid="awsaccounts">
+        <AccountsFilterButtons
+          selectedFilter={selectedFilter}
+          onSelectedFilter={this.handleSelectedFilter}
+          className="mb3"
         />
+        {!isEmpty && (
+          <div className="mt3 mr0 ml0">
+            {awsAccountsData.map(account => (
+              <AccountCard
+                key={account.accountId}
+                account={account}
+                permissionStatus={account.permissionStatus}
+                isSelectable
+              />
+            ))}
+          </div>
+        )}
+        {isEmpty && (
+          <Segment placeholder>
+            <Header icon className="color-grey">
+              <Icon name="user x" />
+              No accounts matching the selected filter.
+              <Header.Subheader>Select &apos;All&apos; to view all accounts</Header.Subheader>
+            </Header>
+          </Segment>
+        )}
       </div>
     );
   }
@@ -143,9 +118,14 @@ class AwsAccountsList extends React.Component {
     this.goto('/aws-accounts/create');
   };
 
-  handleBudgetConfiguration(awsAccountId) {
-    this.goto(`/aws-accounts/budget/${awsAccountId}`);
-  }
+  handleSelectedFilter = name => {
+    this.selectedFilter = name;
+  };
+
+  handleCheckAccountStatus = () => {
+    const awsAccountsStore = this.getAwsAccountsStore();
+    awsAccountsStore.forceCheckAccountPermissions();
+  };
 
   renderHeader() {
     return (
@@ -162,6 +142,9 @@ class AwsAccountsList extends React.Component {
         </Button>
         <Button className="ml2" color="blue" size="medium" basic onClick={this.handleAddAwsAccount}>
           Add AWS Account
+        </Button>
+        <Button className="ml2" color="blue" size="medium" basic onClick={this.handleCheckAccountStatus}>
+          Refresh Account Status
         </Button>
       </div>
     );
@@ -230,6 +213,8 @@ class AwsAccountsList extends React.Component {
 // see https://medium.com/@mweststrate/mobx-4-better-simpler-faster-smaller-c1fbc08008da
 decorate(AwsAccountsList, {
   mapOfUsersBeingEdited: observable,
+  selectedFilter: observable,
+  handleSelectedFilter: action,
 });
 
 export default inject('awsAccountsStore', 'accountsStore')(withRouter(observer(AwsAccountsList)));
