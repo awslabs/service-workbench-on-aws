@@ -20,12 +20,12 @@ class ScEnvironmentEgressStoreDetail extends React.Component {
     super(props);
     runInAction(() => {
       // A flag to indicate if egress request for this egress store is already submitted
-      this.egressStoreRequestSubmitted = this.getEgressStoreDetailStore().isAbleToSubmitEgressRequest;
+      this.isAbleToSubmitEgressRequest = false;
     });
   }
 
   componentDidMount() {
-    const store = this.getEgressStoreDetailStore();
+    const store = this.egressStoreDetailStore;
     if (!isStoreReady(store)) {
       swallowError(store.load());
     }
@@ -39,20 +39,20 @@ class ScEnvironmentEgressStoreDetail extends React.Component {
     return this.props.scEnvironmentsStore;
   }
 
-  getEgressStoreDetailStore() {
+  get egressStoreDetailStore() {
     return this.envsStore.getScEnvironmentEgressStoreDetailStore(this.environment.id);
   }
 
   handleSubmitEgressRequest = () => {
     runInAction(() => {
-      const egressStoreDetailStore = this.getEgressStoreDetailStore();
+      const egressStoreDetailStore = this.egressStoreDetailStore;
       egressStoreDetailStore.egressNotifySns(this.environment.id);
-      this.isAbleToSubmitEgressRequest = !this.isAbleToSubmitEgressRequest;
+      this.isAbleToSubmitEgressRequest = false;
     });
   };
 
   render() {
-    const store = this.getEgressStoreDetailStore();
+    const store = this.egressStoreDetailStore;
     let content = null;
 
     if (isStoreError(store)) {
@@ -95,9 +95,9 @@ class ScEnvironmentEgressStoreDetail extends React.Component {
 
   renderEgressStoreTable() {
     const pageSize = 5;
-    const data = this.getEgressStoreDetailStore().list;
+    const data = this.egressStoreDetailStore.list;
     const showPagination = data.length > pageSize;
-    const isAbleToSubmitEgressRequest = this.isAbleToSubmitEgressRequest;
+    const isAbleToSubmitEgressRequest = this.egressStoreDetailStore.isAbleToSubmitEgressRequest;
     return (
       <Segment placeholder className="mt2 mb2">
         <ReactTable
@@ -173,6 +173,7 @@ class ScEnvironmentEgressStoreDetail extends React.Component {
 decorate(ScEnvironmentEgressStoreDetail, {
   egressStoreRequestSubmitted: observable,
   handleSubmitEgressRequest: action,
+  isAbleToSubmitEgressRequest: observable,
 });
 
 export default inject('scEnvironmentsStore')(withRouter(observer(ScEnvironmentEgressStoreDetail)));
