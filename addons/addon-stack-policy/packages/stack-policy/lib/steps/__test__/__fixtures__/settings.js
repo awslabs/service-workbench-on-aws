@@ -18,6 +18,7 @@ const { registerServices } = require('@aws-ee/base-services/lib/utils/services-r
 const keys = {
   enableegressstore: 'enableegressstore',
   backendStackName: 'backendStackName',
+  isAppStreamEnabled: 'isAppStreamEnabled',
 };
 
 const extensionPoints = {

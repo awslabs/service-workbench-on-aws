@@ -28,6 +28,9 @@ const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-sett
 jest.mock('../../appstream/appstream-sc-service');
 const AppStreamScService = require('../../appstream/appstream-sc-service');
 
+jest.mock('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-connection-service');
+const EnvironmentScConnectionServiceMock = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-connection-service');
+
 const plugin = require('../env-sc-connection-url-plugin');
 
 // Tested Functions: create, update, delete
@@ -35,6 +38,7 @@ describe('envScConnectionUrlPlugin', () => {
   let container;
   let appStreamScService;
   let settings;
+  let environmentScConnectionService;
   beforeEach(async () => {
     // Initialize services container and register dependencies
     container = new ServicesContainer();
@@ -42,10 +46,12 @@ describe('envScConnectionUrlPlugin', () => {
     container.register('appStreamScService', new AppStreamScService());
     container.register('settings', new SettingsServiceMock());
     container.register('log', new Logger());
+    container.register('environmentScConnectionService', new EnvironmentScConnectionServiceMock());
 
     await container.initServices();
     settings = await container.find('settings');
     appStreamScService = await container.find('appStreamScService');
+    environmentScConnectionService = await container.find('environmentScConnectionService');
   });
 
   describe('createConnectionUrl', () => {
@@ -99,6 +105,48 @@ describe('envScConnectionUrlPlugin', () => {
       expect(appStreamScService.urlForRemoteDesktop).toHaveBeenCalledTimes(0);
     });
 
+    it('should return AppStream URL with private SageMaker URL when connection type is SageMaker', async () => {
+      // BUILD
+      const destinationUrl = 'originalPublicDestinationUrl';
+      let connection = { scheme: 'http', operation: 'create', url: destinationUrl, type: 'SageMaker' };
+      const envId = 'sampleEnvId';
+      settings.optionalBoolean = jest.fn(() => {
+        return true;
+      });
+      environmentScConnectionService.createPrivateSageMakerUrl = jest.fn(() => {
+        return 'newPrivateUrl';
+      });
+      const streamingUrl = 'sampleAppStreamUrl';
+      appStreamScService.getStreamingUrl = jest.fn(() => {
+        return streamingUrl;
+      });
+
+      // OPERATE
+      const retVal = await plugin.createConnectionUrl({ envId, connection }, { requestContext, container });
+
+      connection = {
+        scheme: 'http',
+        operation: 'create',
+        url: streamingUrl,
+        type: 'SageMaker',
+        appstreamDestinationUrl: 'newPrivateUrl',
+      };
+
+      // TEST
+      expect(retVal).toStrictEqual({ envId, connection });
+      expect(environmentScConnectionService.createPrivateSageMakerUrl).toHaveBeenCalledTimes(1);
+      expect(environmentScConnectionService.createPrivateSageMakerUrl).toHaveBeenCalledWith(
+        requestContext,
+        envId,
+        connection,
+      );
+      expect(appStreamScService.getStreamingUrl).toHaveBeenCalledTimes(1);
+      expect(appStreamScService.getStreamingUrl).toHaveBeenCalledWith(requestContext, {
+        environmentId: envId,
+        applicationId: 'Firefox',
+      });
+    });
+
     it('should return AppStream URL with connection info for HTTP create', async () => {
       // BUILD
       const destinationUrl = 'destinationUrl';
@@ -124,6 +172,7 @@ describe('envScConnectionUrlPlugin', () => {
 
       // TEST
       expect(retVal).toStrictEqual({ envId, connection });
+      expect(environmentScConnectionService.createPrivateSageMakerUrl).not.toHaveBeenCalled();
       expect(appStreamScService.getStreamingUrl).toHaveBeenCalledTimes(1);
       expect(appStreamScService.getStreamingUrl).toHaveBeenCalledWith(requestContext, {
         environmentId: envId,

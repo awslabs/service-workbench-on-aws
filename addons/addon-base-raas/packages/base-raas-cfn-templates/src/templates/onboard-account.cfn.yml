@@ -209,6 +209,14 @@ Resources:
                 - s3:PutObject*
               Resource:
                 - !Sub 'arn:aws:s3:::${Namespace}*/*'
+        - PolicyName: sts-assume-create-presign
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - sts:AssumeRole
+              Resource:
+                - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/*presigned-url-sagemaker-notebook-role'
         - PolicyName: sagemaker-access
           PolicyDocument:
             Statement:
@@ -235,6 +243,7 @@ Resources:
                   - iam:DetachRolePolicy
                 Resource:
                   - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${LaunchConstraintRolePrefix}LaunchConstraint'
+                  - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/*presigned-url-sagemaker-notebook-role'
       PermissionsBoundary: !Ref CrossAccountEnvMgmtPermissionsBoundary
 
   CrossAccountEnvMgmtPermissionsBoundary:
@@ -244,6 +253,11 @@ Resources:
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
+          - Effect: Allow
+            Action:
+              - sts:AssumeRole
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/*presigned-url-sagemaker-notebook-role'
           - Effect: Allow
             Action:
               - s3:*
@@ -277,6 +291,7 @@ Resources:
               - iam:DetachRolePolicy
             Resource:
               - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${LaunchConstraintRolePrefix}'
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/*presigned-url-sagemaker-notebook-role'
           - Effect: Allow
             Action:
               - appstream:ListAssociatedFleets
@@ -846,3 +861,10 @@ Outputs:
     Description: Name of the stack created by AppStream
     Condition: isAppStream
     Value: !Sub ${Namespace}-ServiceWorkbenchStack
+
+  SageMakerVPCE:
+    Description: SageMaker interface endpoint
+    Condition: isAppStream
+    Value: !Ref SagemakerNotebookEndpoint
+    Export:
+      Name: !Join ['', [Ref: Namespace, '-SageMakerVPCE']]
