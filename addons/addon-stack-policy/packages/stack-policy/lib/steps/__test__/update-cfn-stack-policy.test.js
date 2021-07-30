@@ -63,7 +63,7 @@ describe('UpdateCfnStackPolicy', () => {
   });
 
   describe('Run post deployment step', () => {
-    it('should successfully update policy without stack policy', async () => {
+    it('should successfully update policy when old stack policy does not exist', async () => {
       service.cfn.getStackPolicy = jest.fn(() => ({
         promise: () => Promise.resolve({}),
       }));
@@ -100,7 +100,7 @@ describe('UpdateCfnStackPolicy', () => {
       });
     });
 
-    it('should successfully update policy with empty stack policy', async () => {
+    it('should successfully update policy when old stack policy is empty', async () => {
       service.cfn.getStackPolicy = jest.fn(() => ({
         promise: () =>
           Promise.resolve({
@@ -140,7 +140,7 @@ describe('UpdateCfnStackPolicy', () => {
       });
     });
 
-    it('should successfully update policy with existing statement', async () => {
+    it('should successfully update policy when old stack policy is not empty', async () => {
       service.cfn.getStackPolicy = jest.fn(() => ({
         promise: () =>
           Promise.resolve({
@@ -339,6 +339,148 @@ describe('UpdateCfnStackPolicy', () => {
 
       await service.execute();
       expect(service.cfn.getStackPolicy).toHaveBeenCalledTimes(1);
+      expect(service.cfn.setStackPolicy).not.toHaveBeenCalled();
+    });
+
+    it('should not update policy when AppStream was disabled, but both features were previously enabled', async () => {
+      const originalPolicy = {
+        Statement: [
+          {
+            Effect: 'Allow',
+            Action: 'Update:*',
+            Principal: '*',
+            Resource: '*',
+          },
+          {
+            Effect: 'Deny',
+            Action: 'Update:Delete',
+            Principal: '*',
+            Resource: 'LogicalResourceId/EgressStore*',
+          },
+          {
+            Effect: 'Deny',
+            Action: 'Update:Delete',
+            Principal: '*',
+            Resource: 'LogicalResourceId/AppStream*',
+          },
+        ],
+      };
+      settings.get = jest.fn(key => {
+        if (key === 'isAppStreamEnabled') {
+          return false;
+        }
+        if (key === 'enableEgressStore') {
+          return 'true';
+        }
+        if (key === 'backendStackName') {
+          return 'backendStackName';
+        }
+        return undefined;
+      });
+      service.cfn.getStackPolicy = jest.fn(() => ({
+        promise: () =>
+          Promise.resolve({
+            StackPolicyBody: JSON.stringify(originalPolicy),
+          }),
+      }));
+      service.cfn.setStackPolicy = jest.fn(() => ({
+        promise: () => Promise.resolve({}),
+      }));
+
+      await service.execute();
+      expect(service.cfn.getStackPolicy).toHaveBeenCalledTimes(1);
+      expect(service.cfn.setStackPolicy).not.toHaveBeenCalled();
+    });
+
+    it('should not update policy when Egress was disabled, but both features were previously enabled', async () => {
+      const originalPolicy = {
+        Statement: [
+          {
+            Effect: 'Allow',
+            Action: 'Update:*',
+            Principal: '*',
+            Resource: '*',
+          },
+          {
+            Effect: 'Deny',
+            Action: 'Update:Delete',
+            Principal: '*',
+            Resource: 'LogicalResourceId/EgressStore*',
+          },
+          {
+            Effect: 'Deny',
+            Action: 'Update:Delete',
+            Principal: '*',
+            Resource: 'LogicalResourceId/AppStream*',
+          },
+        ],
+      };
+      settings.get = jest.fn(key => {
+        if (key === 'isAppStreamEnabled') {
+          return true;
+        }
+        if (key === 'enableEgressStore') {
+          return 'false';
+        }
+        if (key === 'backendStackName') {
+          return 'backendStackName';
+        }
+        return undefined;
+      });
+      service.cfn.getStackPolicy = jest.fn(() => ({
+        promise: () =>
+          Promise.resolve({
+            StackPolicyBody: JSON.stringify(originalPolicy),
+          }),
+      }));
+      service.cfn.setStackPolicy = jest.fn(() => ({
+        promise: () => Promise.resolve({}),
+      }));
+
+      await service.execute();
+      expect(service.cfn.getStackPolicy).toHaveBeenCalledTimes(1);
+      expect(service.cfn.setStackPolicy).not.toHaveBeenCalled();
+    });
+
+    it('should not update policy when Egress was disabled, but it was previously enabled', async () => {
+      settings.get = jest.fn(key => {
+        if (key === 'isAppStreamEnabled') {
+          return false;
+        }
+        if (key === 'enableEgressStore') {
+          return 'false';
+        }
+        if (key === 'backendStackName') {
+          return 'backendStackName';
+        }
+        return undefined;
+      });
+      service.cfn.getStackPolicy = jest.fn();
+      service.cfn.setStackPolicy = jest.fn();
+
+      await service.execute();
+      expect(service.cfn.getStackPolicy).not.toHaveBeenCalled();
+      expect(service.cfn.setStackPolicy).not.toHaveBeenCalled();
+    });
+
+    it('should not update policy when AppStream was disabled, but it was previously enabled', async () => {
+      settings.get = jest.fn(key => {
+        if (key === 'isAppStreamEnabled') {
+          return false;
+        }
+        if (key === 'enableEgressStore') {
+          return 'false';
+        }
+        if (key === 'backendStackName') {
+          return 'backendStackName';
+        }
+        return undefined;
+      });
+      service.cfn.getStackPolicy = jest.fn();
+      service.cfn.setStackPolicy = jest.fn();
+
+      await service.execute();
+      expect(service.cfn.getStackPolicy).not.toHaveBeenCalled();
       expect(service.cfn.setStackPolicy).not.toHaveBeenCalled();
     });
   });

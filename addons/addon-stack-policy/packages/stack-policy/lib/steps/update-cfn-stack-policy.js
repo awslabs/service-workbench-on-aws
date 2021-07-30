@@ -61,7 +61,7 @@ class UpdateCfnStackPolicy extends Service {
     const isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
 
     if (!isEgressStoreEnabled && !isAppStreamEnabled) {
-      this.log.info('CFN stack policy is not updated');
+      this.log.info('AppStream and EgressStore disabled. CFN stack policy does not need updates');
       return;
     }
 
@@ -85,7 +85,6 @@ class UpdateCfnStackPolicy extends Service {
       isEmptyPolicy = isEmptyPolicy || finalPolicyBody.Statement.length === 0;
 
       if (isEmptyPolicy) {
-        // At least one of the features, AppStream or EgressStore, is enabled
         finalPolicyBody.Statement.push(baseAllowStatement);
         if (isEgressStoreEnabled) finalPolicyBody.Statement.push(egressStoreStatement);
         if (isAppStreamEnabled) finalPolicyBody.Statement.push(appStreamStatement);
