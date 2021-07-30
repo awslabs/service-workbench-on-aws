@@ -135,7 +135,7 @@ When new versions of Service Workbench are launched, it might be necessary to ch
 For accounts that need to be updated, follow these steps:
 
 1. Sign in to the AWS Management Console for the corresponding account in a separate tab.
-2. On the **AWS Accounts** tab, choose **Update Permissions**.
+2. On the **AWS Accounts** tab, choose **Update Permissions** for the account you want to update.
 
 <img src={useBaseUrl('img/deployment/post_deployment/update-perm.png')} />
 
