@@ -159,12 +159,7 @@ describe('AwsAccountService', () => {
   describe('create', () => {
     const awsAccount = {
       name: 'my-aws-account',
-      externalId: '012345678998',
-      roleArn: 'arn:aws:iam::role/AccountRole',
       accountId: '012345678998',
-      vpcId: 'vpc-abcdef123',
-      subnetId: 'subnet-abcdef123',
-      encryptionKeyArn: 'arn:aws:kms::key/someKey',
     };
 
     it('should fail if user is not allowed to create account', async () => {

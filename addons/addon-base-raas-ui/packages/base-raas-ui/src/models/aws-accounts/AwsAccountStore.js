@@ -13,24 +13,18 @@
  *  permissions and limitations under the License.
  */
 
-import _ from 'lodash';
 import { getParent } from 'mobx-state-tree';
 import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
 
-import {
-  getScEnvironmentConnections,
-  sendSshKey,
-  getWindowsRpInfo,
-  createScEnvironmentConnectionUrl,
-} from '../../helpers/api';
+import { getAccountOnboardCfnTemplate } from '../../helpers/api';
 
 // ==================================================================
-// ScEnvConnectionStore
+// AwsAccountStore
 // ==================================================================
-const ScEnvConnectionStore = BaseStore.named('ScEnvConnectionStore')
+const AwsAccountStore = BaseStore.named('AwsAccountStore')
   .props({
-    envId: '',
-    tickPeriod: 30 * 1000, // 30 seconds
+    accountId: '',
+    tickPeriod: 2 * 60 * 1000, // 2 minutes
   })
 
   .actions(self => {
@@ -39,42 +33,37 @@ const ScEnvConnectionStore = BaseStore.named('ScEnvConnectionStore')
 
     return {
       async doLoad() {
-        const env = self.scEnvironment;
-        const raw = await getScEnvironmentConnections(self.envId);
-        env.setConnections(raw);
+        const account = self.account;
+        const stackInfo = await getAccountOnboardCfnTemplate(self.accountId);
+        account.setStackInfo(stackInfo);
       },
 
-      async createConnectionUrl(connectionId) {
-        const urlObj = await createScEnvironmentConnectionUrl(self.envId, connectionId);
-        return urlObj;
-      },
-
-      async sendSshKey(connectionId, keyPairId) {
-        return sendSshKey(self.envId, connectionId, keyPairId);
-      },
-
-      async getWindowsRdpInfo(connectionId) {
-        return getWindowsRpInfo(self.envId, connectionId);
+      getOnboardTemplate: async awsAccountUUID => {
+        const template = await getAccountOnboardCfnTemplate(awsAccountUUID);
+        return template;
       },
 
       cleanup: () => {
+        self.accountId = '';
         superCleanup();
       },
     };
   })
 
   .views(self => ({
-    get scEnvironment() {
+    get account() {
       const parent = getParent(self, 2);
-      const w = parent.getScEnvironment(self.envId);
-      return w;
+      const a = parent.getAwsAccount(self.accountId);
+      return a;
     },
-    get empty() {
-      return _.isEmpty(self.scEnvironment.connections);
+
+    get stackInfo() {
+      const account = self.account;
+      return account.stackInfo;
     },
   }));
 
 // Note: Do NOT register this in the global context, if you want to gain access to an instance
-//       use scEnvironmentsStore.getScEnvConnectionStore()
+//       use AwsAccountsStore.getAwsAccountStore()
 // eslint-disable-next-line import/prefer-default-export
-export { ScEnvConnectionStore };
+export { AwsAccountStore };

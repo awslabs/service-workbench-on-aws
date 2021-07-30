@@ -101,7 +101,7 @@ describe('AppStreamScService', () => {
       settings.get = jest.fn(input => input);
 
       // OPERATE
-      const retVal = await service.shareAppStreamImageWithAccount(requestContext, accountId);
+      const retVal = await service.shareAppStreamImageWithAccount(requestContext, accountId, 'appStreamImageName');
 
       // ASSERT
       expect(retVal).toEqual({});

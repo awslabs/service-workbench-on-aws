@@ -16,10 +16,6 @@
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 
-const settingKeys = {
-  appStreamImageName: 'appStreamImageName',
-};
-
 class AppStreamScService extends Service {
   constructor() {
     super();
@@ -37,7 +33,7 @@ class AppStreamScService extends Service {
     await super.init();
   }
 
-  async shareAppStreamImageWithAccount(requestContext, accountId) {
+  async shareAppStreamImageWithAccount(requestContext, accountId, appStreamImageName) {
     const appStream = await this.getAppStream();
     const result = await appStream
       .updateImagePermissions({
@@ -45,7 +41,7 @@ class AppStreamScService extends Service {
           allowFleet: true,
           allowImageBuilder: false,
         },
-        Name: this.settings.get(settingKeys.appStreamImageName),
+        Name: appStreamImageName,
         SharedAccountId: accountId,
       })
       .promise();

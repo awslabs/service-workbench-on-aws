@@ -16,7 +16,7 @@
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
 
-describe('Create AWS Account scenarios', () => {
+describe('AWS Account Permissions scenarios', () => {
   let setup;
   let adminSession;
 
@@ -29,47 +29,34 @@ describe('Create AWS Account scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('Creating an AWS Account', () => {
+  describe('Batch AWS Accounts permissions check', () => {
     it('should fail if admin is inactive', async () => {
-      const testAwsAccountId = setup.gen.string({ prefix: `create-aws-account-test-inactive-admin` });
       const admin2Session = await setup.createAdminSession();
       await adminSession.resources.users.deactivateUser(admin2Session.user);
 
-      await expect(admin2Session.resources.awsAccounts.create(testAwsAccountId)).rejects.toMatchObject({
+      await expect(admin2Session.resources.awsAccounts.bulkPermissionsCheck()).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });
 
-    it('should fail if non-admin user is trying to create AWS Account', async () => {
-      const testAwsAccountId = setup.gen.string({ prefix: `create-aws-account-test-non-admin` });
+    it('should fail if non-admin user is trying to check permissions', async () => {
       const researcherSession = await setup.createResearcherSession();
-
-      await expect(researcherSession.resources.awsAccounts.create(testAwsAccountId)).rejects.toMatchObject({
+      await expect(researcherSession.resources.awsAccounts.bulkPermissionsCheck()).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
     });
 
-    it('should fail if the body does not contain required fields', async () => {
-      const admin2Session = await setup.createAdminSession();
-      const genParams = { prefix: 'create-aws-account-test-req-fields' };
-      const requestBody = {
-        name: setup.gen.string(genParams),
-
-        // Other required params are:
-        // accountId,description
-      };
-
-      await expect(admin2Session.resources.awsAccounts.create(requestBody)).rejects.toMatchObject({
-        code: errorCode.http.code.badRequest,
+    it('should fail for anonymous user', async () => {
+      const anonymousSession = await setup.createAnonymousSession();
+      await expect(anonymousSession.resources.awsAccounts.bulkPermissionsCheck()).rejects.toMatchObject({
+        code: errorCode.http.code.badImplementation,
       });
     });
 
-    it('should fail for anonymous user', async () => {
-      const testAwsAccountId = setup.gen.string({ prefix: `create-aws-account-test-anon-user` });
-      const anonymousSession = await setup.createAnonymousSession();
-      await expect(anonymousSession.resources.awsAccounts.create(testAwsAccountId)).rejects.toMatchObject({
-        code: errorCode.http.code.badImplementation,
-      });
+    it('should succeed for active admin', async () => {
+      const admin2Session = await setup.createAdminSession();
+
+      await expect(admin2Session.resources.awsAccounts.bulkPermissionsCheck()).resolves.toHaveProperty('finalStatus');
     });
   });
 });

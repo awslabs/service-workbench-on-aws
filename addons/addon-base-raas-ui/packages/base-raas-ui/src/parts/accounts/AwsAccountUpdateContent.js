@@ -14,17 +14,18 @@
  */
 
 import React from 'react';
-import { decorate, computed, runInAction, observable } from 'mobx';
+import { decorate, computed, runInAction, observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
-import { Header, Divider, List, Form, TextArea, Message, Button } from 'semantic-ui-react';
+import { Header, Divider, List, Checkbox, Form, Icon, TextArea, Message, Button, Container } from 'semantic-ui-react';
 import TimeAgo from 'react-timeago';
 
 import YesNo from '@aws-ee/base-ui/dist/parts/helpers/fields/YesNo';
 import SelectionButtons from '@aws-ee/base-ui/dist/parts/helpers/fields/SelectionButtons';
+import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
 
-import CopyToClipboard from '../../helpers/CopyToClipboard';
-import { createForm } from '../../../helpers/form';
+import CopyToClipboard from '../helpers/CopyToClipboard';
+import { createForm } from '../../helpers/form';
 
 const adminOptions = [
   {
@@ -37,41 +38,45 @@ const adminOptions = [
   },
 ];
 
+// Example: http://localhost:3000/aws-accounts/onboard/39ef39d0-ba3e-11eb-8d52-c973518136fb
+
 // expected props
-// - account (via prop)
-// - largeText (via prop) default to false
-class AccountCfnPanel extends React.Component {
+// - awsAccountId (pass in from AwsAccountList cell click)
+// - awsAccountsStore (from injection)
+class AwsAccountUpdateContent extends React.Component {
   constructor(props) {
     super(props);
+    this.awsAccountUUID = (this.props.match.params || {}).id;
     runInAction(() => {
       // We want to create a simple one button form
-      const account = props.account || {};
-      const { hasUpdateStackUrl } = account.stackInfo || {};
+      const account = this.account || {};
+      this.shouldShowWarning = account.permissionStatus !== 'NEEDS_ONBOARD';
+      this.warningAcknowledged = false;
+      const needsOnboard =
+        account.permissionStatus === 'NEEDS_ONBOARD' ||
+        account.permissionStatus === 'PENDING' ||
+        account.permissionStatus === 'UNKNOWN';
       const fields = {
         managed: {
           value: 'admin',
         },
         createOrUpdate: {
           extra: {
-            yesLabel: 'Stack Create',
-            noLabel: 'Stack Update',
-            yesValue: 'create',
-            noValue: 'update',
+            yesLabel: 'Update Onboarded Account',
+            noLabel: 'Onboard New Account',
+            yesValue: 'update',
+            noValue: 'create',
             showHeader: false,
           },
-          value: hasUpdateStackUrl ? 'update' : 'create',
+          value: needsOnboard ? 'create' : 'update',
         },
       };
       this.form = createForm(fields);
     });
   }
 
-  get account() {
-    return this.props.account || {};
-  }
-
   get stackInfo() {
-    return this.account.stackInfo || {};
+    return this.account.stackInfo;
   }
 
   get largeText() {
@@ -82,8 +87,50 @@ class AccountCfnPanel extends React.Component {
     return this.largeText ? 'large' : 'medium';
   }
 
+  get account() {
+    return this.props.account;
+  }
+
+  get awsAccountsStore() {
+    return this.props.awsAccountsStore;
+  }
+
+  goto(pathname) {
+    const location = this.props.location;
+    const link = createLink({ location, pathname });
+    this.props.history.push(link);
+  }
+
+  goBackToAccountsPage() {
+    this.goto('/accounts');
+  }
+
+  handleGoBack = () => {
+    this.goBackToAccountsPage();
+  };
+
+  handleClickAcknowledgement = (e, { checked }) => {
+    this.warningAcknowledged = checked;
+  };
+
   render() {
-    const { id } = this.account;
+    return (
+      <Container className="mt3 animated fadeIn">
+        <div className="mt2 animated fadeIn">
+          <Header as="h2" icon textAlign="center" className="mt3" color="grey">
+            Onboard AWS Account
+          </Header>
+          <div className="mt3 ml3 mr3 animated fadeIn">{this.renderMain()}</div>
+          <div className="mt3">
+            <Button floated="right" onClick={this.handleGoBack} color="orange" content="Go Back" />
+          </div>
+        </div>
+      </Container>
+    );
+  }
+
+  renderMain() {
+    const { accountId } = this.account;
     const form = this.form;
     const field = form.$('managed');
 
@@ -94,7 +141,7 @@ class AccountCfnPanel extends React.Component {
           <Divider />
           <div className="flex justify-between">
             <Header as="h4" className="mb0 mt1 flex-auto">
-              AWS Account # {id}
+              AWS Account # {accountId}
             </Header>
             <SelectionButtons field={field} options={adminOptions} show="buttonsOnly" className="mb0" />
           </div>
@@ -162,9 +209,12 @@ class AccountCfnPanel extends React.Component {
     const account = this.account;
     const textSize = this.textSize;
     const stackInfo = this.stackInfo;
-    const { id, mainRegion } = account;
-    const { createStackUrl } = stackInfo;
+    const shouldShowWarning = this.shouldShowWarning;
+    const warningAcknowledged = this.warningAcknowledged;
+    const { accountId } = account;
+    const { createStackUrl, region } = stackInfo;
 
+    // TODO: If AppStream enabled tell user to log into AppStream on the console first, and click "Get Started", then click "Skip"
     return (
       <div className="animated fadeIn">
         <List ordered size={textSize}>
@@ -173,31 +223,85 @@ class AccountCfnPanel extends React.Component {
             <Message className="mr3 mt2 mb2">
               <Message.Header>Attention</Message.Header>
               <p>
-                Ensure that you are logged in to the aws account # <b>{id}</b> and region <b>{mainRegion}</b>
+                Ensure that you are logged in to AWS account #<b>{accountId}</b> in region <b>{region}</b>.
               </p>
             </Message>
           </List.Item>
+          {process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true' && this.renderEnableFirstUseAppStreamInstructions()}
           <List.Item>
             Click on the <b>Create Stack</b> button, this opens a separate browser tab and takes you to the
             CloudFormation console where you can review the stack information and provision it.
             <div className="mb0 flex mt2">
               <div className="flex-auto">
-                <Button fluid as="a" target="_blank" href={createStackUrl} color="blue" rel="noopener noreferrer">
+                {shouldShowWarning && (
+                  <Message warning>
+                    <Message.Header>Caution!</Message.Header>
+                    <p>
+                      Be advised that deploying a new CFN stack may cause any workspaces associated with this account in
+                      SWB to become unusable. To proceed, please acknowledge the warning below.
+                    </p>
+                  </Message>
+                )}
+                {shouldShowWarning && (
+                  <Checkbox
+                    label="I am aware that re-onboarding this account may render workspaces associated with this account to become unusable."
+                    onClick={this.handleClickAcknowledgement}
+                  />
+                )}
+              </div>
+            </div>
+            <div className="mb0 flex mt2">
+              <div className="flex-auto">
+                <Button
+                  fluid
+                  as="a"
+                  target="_blank"
+                  href={createStackUrl}
+                  disabled={shouldShowWarning && !warningAcknowledged}
+                  rel="noopener noreferrer"
+                  color="blue"
+                >
                   Create Stack
                 </Button>
                 {this.renderExpires(stackInfo)}
               </div>
+              <div className="mt1 p0">{warningAcknowledged && <CopyToClipboard text={createStackUrl} />}</div>
               <div className="mt1 p0">
-                <CopyToClipboard text={createStackUrl} />
+                {!warningAcknowledged && (
+                  <div className="ml2 mt1">
+                    <Icon name="copy outline" disabled />
+                  </div>
+                )}
               </div>
             </div>
           </List.Item>
           <List.Item>
-            While the stack is being provisioned, it is okay to navigate away from this page and come back to the Data
-            Source list page where you can test the connection once the stack is finished deploying.
+            After creating the CFN stack, SWB will wait for the stack to finish deploying and then onboard your account.
+            During this time, it is safe to navigate away from this page and/or leave SWB. You can check the status of
+            your account at any time in the AWS Accounts list page.
           </List.Item>
+          {process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true' && this.renderStartAppStreamInstructions()}
         </List>
       </div>
+    );
+  }
+
+  renderEnableFirstUseAppStreamInstructions() {
+    return (
+      <List.Item>
+        If you have not access AppStream from the console yet, you will need to do so. This will enable AppStream for
+        your account. Go to AppStream 2.0 services, and click &apos;Get Started&apos;. This will take you to a screen
+        asking if you want to try out some templates. At this screen click &apos;Next&apos;
+      </List.Item>
+    );
+  }
+
+  renderStartAppStreamInstructions() {
+    return (
+      <List.Item>
+        After the Cloudformation Stack has been created, go to AppStream on the console, then go to Fleet,then click on
+        the newly created fleet and Start the fleet.
+      </List.Item>
     );
   }
 
@@ -205,8 +309,8 @@ class AccountCfnPanel extends React.Component {
     const account = this.account;
     const stackInfo = this.stackInfo;
     const textSize = this.textSize;
-    const { id, mainRegion } = account;
-    const { updateStackUrl, cfnConsoleUrl } = stackInfo;
+    const { accountId } = account;
+    const { updateStackUrl, cfnConsoleUrl, region } = stackInfo;
 
     return (
       <div className="animated fadeIn">
@@ -216,7 +320,7 @@ class AccountCfnPanel extends React.Component {
             <Message className="mr3 mt2 mb2">
               <Message.Header>Attention</Message.Header>
               <p>
-                Ensure that you are logged in to the aws account # <b>{id}</b> and region <b>{mainRegion}</b>
+                Ensure that you are logged in to AWS account #<b>{accountId}</b> in region <b>{region}</b>.
               </p>
             </Message>
           </List.Item>
@@ -247,8 +351,9 @@ class AccountCfnPanel extends React.Component {
             </div>
           </List.Item>
           <List.Item>
-            While the stack is being provisioned, it is okay to navigate away from this page and come back to the Data
-            Source list page where you can test the connection once the stack is finished deploying.
+            After initiating the update, SWB will monitor stack completion progress and automatically update your
+            account status in SWB. During this time, it is safe to navigate away from this page and/or leave SWB. You
+            can check the status of your account at any time in the AWS Accounts list page.
           </List.Item>
         </List>
       </div>
@@ -260,11 +365,10 @@ class AccountCfnPanel extends React.Component {
     const stackInfo = this.stackInfo;
     const textSize = this.textSize;
     const emailTemplate = update ? account.updateStackEmailTemplate : account.createStackEmailTemplate;
-
     return (
       <div className="animated fadeIn">
         <List ordered size={textSize}>
-          <List.Item>You can use the following email template to send an email to the admin of the account</List.Item>
+          <List.Item>You can use the following email template to send an email to the admin of the account.</List.Item>
           <Form className="mb3">
             <div className="flex justify-between">
               <Header as="h4" className="mb2 mt2">
@@ -306,12 +410,14 @@ class AccountCfnPanel extends React.Component {
 }
 
 // see https://medium.com/@mweststrate/mobx-4-better-simpler-faster-smaller-c1fbc08008da
-decorate(AccountCfnPanel, {
-  account: computed,
-  stackInfo: computed,
+decorate(AwsAccountUpdateContent, {
   largeText: computed,
   textSize: computed,
   form: observable,
+  handleGoBack: action,
+  gotBackToAccountsPage: action,
+  handleClickAcknowledgement: action,
+  warningAcknowledged: observable,
 });
 
-export default inject()(withRouter(observer(AccountCfnPanel)));
+export default inject('awsAccountsStore')(withRouter(observer(AwsAccountUpdateContent)));

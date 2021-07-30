@@ -27,6 +27,7 @@ const updateSchema = require('../schema/update-aws-accounts');
 const settingKeys = {
   tableName: 'dbAwsAccounts',
   environmentInstanceFiles: 'environmentInstanceFiles',
+  isAppStreamEnabled: 'isAppStreamEnabled',
 };
 
 class AwsAccountsService extends Service {
@@ -39,6 +40,7 @@ class AwsAccountsService extends Service {
       'lockService',
       's3Service',
       'auditWriterService',
+      'aws',
     ]);
   }
 
@@ -138,12 +140,12 @@ class AwsAccountsService extends Service {
         Version: '2012-10-17',
         Statement: [...securityStatements, listStatement, getStatement],
       });
-
       return s3Client.putBucketPolicy({ Bucket: s3BucketName, Policy }).promise();
     });
   }
 
   async create(requestContext, rawData) {
+    console.log('ZZZ: Inside create of aws-account-service');
     // ensure that the caller has permissions to create the account
     // Perform default condition checks to make sure the user is active and is admin
     await this.assertAuthorized(
@@ -161,7 +163,20 @@ class AwsAccountsService extends Service {
     const id = uuid();
 
     // Prepare the db object
-    const dbObject = this._fromRawToDbObject(rawData, { rev: 0, createdBy: by, updatedBy: by });
+    // TODO: If we're deploying a new SWB instance to a new account, it doesn't need to be ONBOARD
+    const dbObject = this._fromRawToDbObject(rawData, {
+      rev: 0,
+      createdBy: by,
+      updatedBy: by,
+      permissionStatus: rawData.permissionStatus || 'NEEDS_ONBOARD',
+    });
+
+    // Only try to shareAppStreamImage with member account if AppStream is enabled and appStreamImageName is provided
+    if (this.settings.get(settingKeys.isAppStreamEnabled) === 'true' && rawData.appStreamImageName !== undefined) {
+      const appStreamImageName = rawData.appStreamImageName;
+      const accountId = rawData.accountId;
+      await this.shareAppStreamImageWithMemberAccount(requestContext, accountId, appStreamImageName);
+    }
 
     // Time to save the the db object
     const result = await runAndCatch(
@@ -183,6 +198,27 @@ class AwsAccountsService extends Service {
     await this.audit(requestContext, { action: 'create-aws-account', body: result });
 
     return result;
+  }
+
+  // We're creating our own private method here instead of using appstream-sc-service because of a circular dependency between
+  // aws-account-service and appstream-sc-service
+  async shareAppStreamImageWithMemberAccount(requestContext, memberAccountId, appStreamImageName) {
+    await this.assertAuthorized(requestContext, {
+      action: 'shareAppStreamImageWithMemberAccount',
+      conditions: [allowIfActive, allowIfAdmin],
+    });
+    const aws = await this.service('aws');
+    const appStream = await new aws.sdk.AppStream({ apiVersion: '2016-12-01' });
+    const params = {
+      ImagePermissions: {
+        allowFleet: true,
+        allowImageBuilder: false,
+      },
+      Name: appStreamImageName,
+      SharedAccountId: memberAccountId,
+    };
+
+    await appStream.updateImagePermissions(params).promise();
   }
 
   async ensureExternalAccount(requestContext, rawData) {
