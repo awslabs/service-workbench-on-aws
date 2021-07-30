@@ -22,32 +22,33 @@
   },
   "dependencies": {
     "@aws-ee/base-services": "workspace:*",
-    "aws-sdk": "^2.847.0",
+    "aws-sdk": "^2.936.0",
     "axios": "^0.21.1",
     "chance": "^1.1.7",
     "fs-extra": "^9.1.0",
-    "js-yaml": "^4.0.0",
+    "js-yaml": "^4.1.0",
     "lodash": "^4.17.21",
+    "node-ssh": "^11.1.1",
     "services": "workspace:*",
-    "yargs-parser": "^20.2.5"
+    "yargs-parser": "^20.2.9"
   },
   "devDependencies": {
     "eslint": "^6.8.0",
-    "eslint-config-airbnb": "^18.0.1",
-    "eslint-config-airbnb-base": "^14.0.0",
-    "eslint-config-prettier": "^6.10.0",
-    "eslint-import-resolver-node": "^0.3.3",
-    "eslint-plugin-import": "^2.20.1",
-    "eslint-plugin-jest": "^23.7.0",
-    "eslint-plugin-jsx-a11y": "^6.2.3",
-    "eslint-plugin-prettier": "^3.1.2",
+    "eslint-config-airbnb": "^18.2.1",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-config-prettier": "^6.15.0",
+    "eslint-import-resolver-node": "^0.3.4",
+    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-jest": "^23.20.0",
+    "eslint-plugin-jsx-a11y": "^6.4.1",
+    "eslint-plugin-prettier": "^3.4.0",
     "husky": "^3.1.0",
     "jest": "^26.6.3",
     "jest-circus": "^26.6.3",
     "jest-junit": "^10.0.0",
     "prettier": "^1.19.1",
     "pretty-quick": "^1.11.1",
-    "request": "^2.88.0",
-    "request-promise-native": "^1.0.8"
+    "request": "^2.88.2",
+    "request-promise-native": "^1.0.9"
   }
 }

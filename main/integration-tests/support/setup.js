@@ -91,6 +91,27 @@ class Setup {
     const awsAccountId = index.awsAccountId;
     const awsAccount = await adminSession.resources.awsAccounts.awsAccount(awsAccountId).get();
 
+    const envTypes = await {
+      ec2Linux: {
+        envTypeId: this.settings.get('ec2LinuxEnvTypeId'),
+        envTypeConfigId: this.settings.get('ec2LinuxConfigId'),
+      },
+      ec2Windows: {
+        envTypeId: this.settings.get('ec2WindowsEnvTypeId'),
+        envTypeConfigId: this.settings.get('ec2WindowsConfigId'),
+      },
+      sagemaker: {
+        envTypeId: this.settings.get('sagemakerEnvTypeId'),
+        envTypeConfigId: this.settings.get('sagemakerConfigId'),
+      },
+      emr: {
+        envTypeId: this.settings.get('emrEnvTypeId'),
+        envTypeConfigId: this.settings.get('emrConfigId'),
+      },
+    };
+
+    const byobStudy = await this.settings.get('byobStudy');
+
     const stepTemplate = await adminSession.resources.stepTemplates
       .versions('st-obtain-write-lock')
       .version(1)
@@ -98,7 +119,15 @@ class Setup {
 
     const workflowTemplateId = 'wt-empty';
 
-    return { project, index, awsAccount, stepTemplate, workflowTemplateId };
+    return {
+      project,
+      index,
+      awsAccount,
+      stepTemplate,
+      workflowTemplateId,
+      envTypes,
+      byobStudy,
+    };
   }
 
   async createAdminSession() {
