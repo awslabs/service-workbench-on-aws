@@ -88,7 +88,12 @@
       "minLength": 1,
       "maxLength": 2048
     },
-    "hasConnections": { "type": "boolean" }
+    "hasConnections": { "type": "boolean" },
+    "studyRoles": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": true
+    }
   },
   "required": [
     "projectId",
