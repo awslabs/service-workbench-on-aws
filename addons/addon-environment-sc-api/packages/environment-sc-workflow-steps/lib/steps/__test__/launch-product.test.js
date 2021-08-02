@@ -33,25 +33,6 @@ describe('LaunchProduct', ()=> {
     // })
 
     describe('checkNamespace', () => {
-        // it('Static name should be transformed to start with analysis- and end with number string and be unique between calls', async () => {
-        //     // Build 
-        //     const resolvedInputParams = [{Key: 'Namespace', Value: 'staticname'}];
-        //     const resolvedInputParams2 = [{Key: 'Namespace', Value: 'staticname'}];
-        //     const datetime = Date.now();
-        //     const datetime2 = Date.now();
-        //     const originalNamespace = resolvedInputParams[0].Value;
-        //     // const originalNamespace2 = resolvedInputParams2[0].Value;
-    
-        //     // Operate
-        //     const { afterNamespace, index } = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
-        //     const { afterNamespace2, index2 } = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams2, datetime2);
-    
-        //     // Check
-        //     await expect(afterNamespace.startsWith('analysis-')).toBeTruthy();
-        //     await expect(afterNamespace).not.toBe(afterNamespace2);
-        //     await expect(afterNamespace).toBe('analysis-' + originalNamespace + `-${datetime}`);
-        // });
-
         it('Static name should be transformed to start with analysis- and end with number string and be unique between calls', async () => {
             // Build 
             const resolvedInputParams = [{Key: 'Namespace', Value: 'staticname'}];
@@ -59,19 +40,14 @@ describe('LaunchProduct', ()=> {
             const resolvedInputParams2 = [{Key: 'Namespace', Value: 'staticname'}];
             const datetime2 = Date.now() + 1;
             const originalNamespace = resolvedInputParams[0].Value;
-            // const originalNamespace2 = resolvedInputParams2[0].Value;
     
             // Operate
-            const after = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
-            const after2 = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams2, datetime2);
+            const {namespaceParam, namespaceIndex } = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
+            const {namespaceParam2, namespaceIndex2 } = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams2, datetime2);
     
             // Check
-            const afterNamespace = after[0];
-            const afterNamespace2 = after2[0];
-            await expect(afterNamespace.startsWith('analysis-')).toBeTruthy();
-            await expect(afterNamespace).toBe
-            await expect(afterNamespace).not.toBe(afterNamespace2);
-            await expect(afterNamespace).toBe('analysis-' + originalNamespace + `-${datetime}`);
+            await expect(namespaceParam).not.toBe(namespaceParam2);
+            await expect(namespaceParam).toBe('analysis-' + originalNamespace + `-${datetime}`);
         });
     
         it('Static name that begins with analysis- should be transformed to end with number string and be unique between calls', async () => {
@@ -83,16 +59,12 @@ describe('LaunchProduct', ()=> {
             const originalNamespace = resolvedInputParams[0].Value;
     
             // Operate
-            const after = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
-            const after2 = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams2, datetime2);
+            const { namespaceParam, namespaceIndex } = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
+            const { namespaceParam2, namespaceIndex2 } = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams2, datetime2);
     
             // Check
-            const afterNamespace = after[0];
-            const afterNamespace2 = after2[0];
-            // await expect(after[0]).toBe(resolvedInputParams);
-            await expect(afterNamespace).not.toBe(afterNamespace2);
-            await expect(afterNamespace).toBe(originalNamespace + `-${datetime}`);
-            // await expect(after[0].Value).toBe(resolvedInputParams[0].Value);
+            await expect(namespaceParam).not.toBe(namespaceParam2);
+            await expect(namespaceParam).toBe(originalNamespace + `-${datetime}`);
         });
     
         it('Dynamic name should not be altered', async () => {
@@ -101,12 +73,10 @@ describe('LaunchProduct', ()=> {
             const resolvedInputParams = [{Key: 'Namespace', Value: `analysis-${datetime}`}];
     
             // Operate
-            const after = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
+            const { namespaceParam, namespaceIndex } = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
     
             // Check
-            const afterNamespace = after[0];
-            const afterIndex = after[1]
-            await expect(afterNamespace).toBe(resolvedInputParams[afterIndex].Value);
+            await expect(namespaceParam).toBe(resolvedInputParams[namespaceIndex].Value);
         });
     
         it('Static name that ends with a number sequence should be transformed to start with analysis- and end with number string that is unique and be unique between calls', async () => {
@@ -118,15 +88,12 @@ describe('LaunchProduct', ()=> {
             const originalNamespace = resolvedInputParams[0].Value;
     
             // Operate
-            const after = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
-            const after2 = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams2, datetime2);
+            const { namespaceParam, namespaceIndex } = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
+            const { namespaceParam2, namespaceIndex2 } = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams2, datetime2);
     
             // Check
-            const afterNamespace = after[0];
-            const afterNamespace2 = after2[0];
-            await expect(afterNamespace.startsWith('analysis-')).toBeTruthy();
-            await expect(afterNamespace).not.toBe(afterNamespace2);
-            await expect(afterNamespace).toBe('analysis-' + originalNamespace + `-${datetime}`);
+            await expect(namespaceParam).not.toBe(namespaceParam2);
+            await expect(namespaceParam).toBe('analysis-' + originalNamespace + `-${datetime}`);
         });
 
         it('Static name that ends with a datetime string should be transformed to start with analysis-', async () => {
@@ -136,12 +103,11 @@ describe('LaunchProduct', ()=> {
             const originalNamespace = resolvedInputParams[0].Value;
     
             // Operate
-            const after = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
+            const { namespaceParam, namespaceIndex } = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
     
             // Check
-            const afterNamespace = after[0];
-            await expect(afterNamespace.startsWith('analysis-')).toBeTruthy();
-            await expect(afterNamespace).toBe('analysis-' + originalNamespace);
+            // const afterNamespace = after[0];
+            await expect(namespaceParam).toBe('analysis-' + originalNamespace);
         });
 
         it('getNamespaceAndIndexIfNecessary does not change the original resolvedInputParams array when the namespace is static', async () => {
@@ -150,12 +116,12 @@ describe('LaunchProduct', ()=> {
             const resolvedInputParams = [{Key: 'Namespace', Value: 'staticname'}];
 
             // Operate
-            const after = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
+            const { namespaceParam, namespaceIndex } = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
 
             // Check
-            const afterNamespace = after[0];
-            const afterIndex = after[1];
-            await expect(afterNamespace).not.toBe(resolvedInputParams[afterIndex]);
+            // const afterNamespace = after[0];
+            // const afterIndex = after[1];
+            await expect(namespaceParam).not.toBe(resolvedInputParams[namespaceIndex]);
         })
     })
 })

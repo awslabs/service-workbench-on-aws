@@ -96,8 +96,8 @@ class LaunchProduct extends StepBase {
     const resolvedInputParams = await this.resolveVarExpressions(envTypeConfig.params, resolvedVars);
     // Additional layer to check the namespace is valid and unique. If not, make new namespace from
     // static and get index of namespace param to change
-    const newNamespaceInformation = await this.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
-    resolvedInputParams[newNamespaceInformation[1]].Value = newNamespaceInformation[0];
+    const { namespaceParam, namespaceIndex } = await this.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
+    resolvedInputParams[namespaceIndex].Value = namespaceParam;
     // Read tags specified in the environment type configuration
     // The tags may include variable expressions, resolve the expressions by using the resolveVars
     const resolvedTags = await this.resolveVarExpressions(envTypeConfig.tags, resolvedVars);
@@ -376,7 +376,6 @@ class LaunchProduct extends StepBase {
   async getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime){
     const namespaceIndex = resolvedInputParams.findIndex(element => element.Key === 'Namespace');
     let namespaceParam = resolvedInputParams[namespaceIndex].Value;
-    console.log(namespaceParam);
 
     // Check to make sure the resolved namespace variable begins with 'analysis-' so our templates will allow it
     if(!namespaceParam.startsWith('analysis-')){
@@ -387,10 +386,8 @@ class LaunchProduct extends StepBase {
     if(namespaceParam.split('-').pop() !== datetime.toString()){
       namespaceParam += '-' + datetime;
     }
-    console.log(datetime);
 
-    console.log(namespaceParam);
-    return [namespaceParam, namespaceIndex];
+    return { namespaceParam, namespaceIndex };
   }
 }
 
