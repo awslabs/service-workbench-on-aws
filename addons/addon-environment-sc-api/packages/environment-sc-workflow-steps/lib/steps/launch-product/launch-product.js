@@ -93,9 +93,11 @@ class LaunchProduct extends StepBase {
     // The params may include variable expressions, resolve the expressions by using the resolveVars
     // By doing this resolution, we might overwrite the dynamic, unique value defined above with a static name 
     // that would not be unique between deployments of the same workspace configuration
-    const resolvedInputParamsRaw = await this.resolveVarExpressions(envTypeConfig.params, resolvedVars);
-    // Additional layer to check the namespace is valid and unique
-    const resolvedInputParams = await this.checkNamespace(resolvedInputParamsRaw, datetime);
+    const resolvedInputParams = await this.resolveVarExpressions(envTypeConfig.params, resolvedVars);
+    // Additional layer to check the namespace is valid and unique. If not, make new namespace from
+    // static and get index of namespace param to change
+    const newNamespaceInformation = await this.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
+    resolvedInputParams[newNamespaceInformation[1]].Value = newNamespaceInformation[0];
     // Read tags specified in the environment type configuration
     // The tags may include variable expressions, resolve the expressions by using the resolveVars
     const resolvedTags = await this.resolveVarExpressions(envTypeConfig.tags, resolvedVars);
@@ -363,18 +365,18 @@ class LaunchProduct extends StepBase {
   }
 
   /**
-   * Method to check if the resolved input parameter contained a static namespace param. If so, this method augments the
-   * namespace to begin with 'analysis-' for permissions purposes (if it does not already start with that) and to end with 
-   * a unique datetime string so Cloudformation doesn't make create duplicate stacks on seperate deployments of the same
-   * workspace configuration. 
+   * Check if the resolved input parameter contains a static namespace param. If so, augments the namespace to begin with 
+   * 'analysis-' for permissions purposes (if it does not already start with that) and to end with a unique datetime string 
+   * so Cloudformation doesn't create duplicate stacks for separate workspaces.
    * 
    * @param resolvedInputParams 
    * @param datetime 
-   * @returns {Promise<{Value: string, Key: string}[]>}
+   * @returns {Promise<{namespaceParam:string, namespaceIndex:string}[]>}
    */
-  async checkNamespace(resolvedInputParams, datetime){
+  async getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime){
     const namespaceIndex = resolvedInputParams.findIndex(element => element.Key === 'Namespace');
     let namespaceParam = resolvedInputParams[namespaceIndex].Value;
+    console.log(namespaceParam);
 
     // Check to make sure the resolved namespace variable begins with 'analysis-' so our templates will allow it
     if(!namespaceParam.startsWith('analysis-')){
@@ -385,9 +387,10 @@ class LaunchProduct extends StepBase {
     if(namespaceParam.split('-').pop() !== datetime.toString()){
       namespaceParam += '-' + datetime;
     }
+    console.log(datetime);
 
-    resolvedInputParams[namespaceIndex].Value = namespaceParam;
-    return resolvedInputParams;
+    console.log(namespaceParam);
+    return [namespaceParam, namespaceIndex];
   }
 }
 
