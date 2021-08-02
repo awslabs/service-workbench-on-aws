@@ -106,7 +106,6 @@ describe('LaunchProduct', ()=> {
             const { namespaceParam, namespaceIndex } = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
     
             // Check
-            // const afterNamespace = after[0];
             await expect(namespaceParam).toBe('analysis-' + originalNamespace);
         });
 
@@ -119,8 +118,6 @@ describe('LaunchProduct', ()=> {
             const { namespaceParam, namespaceIndex } = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
 
             // Check
-            // const afterNamespace = after[0];
-            // const afterIndex = after[1];
             await expect(namespaceParam).not.toBe(resolvedInputParams[namespaceIndex]);
         })
     })
