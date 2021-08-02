@@ -5,6 +5,7 @@ import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Segment, Icon, Header, Button } from 'semantic-ui-react';
 import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
+import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
 import {
   isStoreLoading,
   isStoreEmpty,
@@ -20,7 +21,7 @@ class ScEnvironmentEgressStoreDetail extends React.Component {
     super(props);
     runInAction(() => {
       // A flag to indicate if egress request for this egress store is already submitted
-      this.isAbleToSubmitEgressRequest = false;
+      this.isAbleToSubmitEgressRequest = true;
     });
   }
 
@@ -43,12 +44,19 @@ class ScEnvironmentEgressStoreDetail extends React.Component {
     return this.envsStore.getScEnvironmentEgressStoreDetailStore(this.environment.id);
   }
 
-  handleSubmitEgressRequest = () => {
-    runInAction(() => {
-      const egressStoreDetailStore = this.egressStoreDetailStore;
-      egressStoreDetailStore.egressNotifySns(this.environment.id);
-      this.isAbleToSubmitEgressRequest = false;
-    });
+  handleSubmitEgressRequest = async () => {
+    const egressStoreDetailStore = this.egressStoreDetailStore;
+    try {
+      runInAction(() => {
+        this.isAbleToSubmitEgressRequest = false;
+      });
+      await egressStoreDetailStore.egressNotifySns(this.environment.id);
+    } catch (error) {
+      displayError(error);
+      runInAction(() => {
+        this.isAbleToSubmitEgressRequest = false;
+      });
+    }
   };
 
   render() {
@@ -97,7 +105,7 @@ class ScEnvironmentEgressStoreDetail extends React.Component {
     const pageSize = 5;
     const data = this.egressStoreDetailStore.list;
     const showPagination = data.length > pageSize;
-    const isAbleToSubmitEgressRequest = this.egressStoreDetailStore.isAbleToSubmitEgressRequest;
+    const isAbleToSubmitEgressRequest = this.isAbleToSubmitEgressRequest;
     return (
       <Segment placeholder className="mt2 mb2">
         <ReactTable
