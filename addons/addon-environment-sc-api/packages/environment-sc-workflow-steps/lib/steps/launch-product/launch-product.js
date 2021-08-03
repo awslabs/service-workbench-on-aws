@@ -373,7 +373,7 @@ class LaunchProduct extends StepBase {
    * @param datetime 
    * @returns {Promise<{namespaceParam:string, namespaceIndex:string}[]>}
    */
-  async getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime){
+  getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime){
     const namespaceIndex = resolvedInputParams.findIndex(element => element.Key === 'Namespace');
     let namespaceParam = resolvedInputParams[namespaceIndex].Value;
 
