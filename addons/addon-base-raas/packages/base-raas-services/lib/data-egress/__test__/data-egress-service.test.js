@@ -376,7 +376,6 @@ describe('DataEgressService', () => {
 
     it('should return null while no result returned from getEgressStoreInfo method', async () => {
       dataEgressService.removeEgressStoreBucketPolicy = jest.fn();
-      const s3Policy = testS3PolicyFn();
       dataEgressService._settings = {
         get: settingName => {
           if (settingName === 'enableEgressStore') {
