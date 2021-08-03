@@ -36,12 +36,12 @@ describe('LaunchProduct', ()=> {
             const originalNamespace = resolvedInputParams[0].Value;
     
             // Operate
-            const {namespaceParam, namespaceIndex } = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
-            const {namespaceParam2, namespaceIndex2 } = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams2, datetime2);
+            const {namespaceParam, namespaceIndex } = lp.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
+            const {namespaceParam2, namespaceIndex2 } = lp.getNamespaceAndIndexIfNecessary(resolvedInputParams2, datetime2);
     
             // Check
-            await expect(namespaceParam).not.toBe(namespaceParam2);
-            await expect(namespaceParam).toBe(`analysis-${originalNamespace}-${datetime}`);
+            expect(namespaceParam).not.toBe(namespaceParam2);
+            expect(namespaceParam).toBe(`analysis-${originalNamespace}-${datetime}`);
         });
     
         it('Static name that begins with analysis- should be transformed to end with number string and be unique between calls', async () => {
@@ -53,12 +53,12 @@ describe('LaunchProduct', ()=> {
             const originalNamespace = resolvedInputParams[0].Value;
     
             // Operate
-            const { namespaceParam, namespaceIndex } = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
-            const { namespaceParam2, namespaceIndex2 } = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams2, datetime2);
+            const { namespaceParam, namespaceIndex } = lp.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
+            const { namespaceParam2, namespaceIndex2 } = lp.getNamespaceAndIndexIfNecessary(resolvedInputParams2, datetime2);
     
             // Check
-            await expect(namespaceParam).not.toBe(namespaceParam2);
-            await expect(namespaceParam).toBe(`${originalNamespace}-${datetime}`);
+            expect(namespaceParam).not.toBe(namespaceParam2);
+            expect(namespaceParam).toBe(`${originalNamespace}-${datetime}`);
         });
     
         it('Dynamic name should not be altered', async () => {
@@ -67,10 +67,10 @@ describe('LaunchProduct', ()=> {
             const resolvedInputParams = [{Key: 'Namespace', Value: `analysis-${datetime}`}];
     
             // Operate
-            const { namespaceParam, namespaceIndex } = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
+            const { namespaceParam, namespaceIndex } = lp.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
     
             // Check
-            await expect(namespaceParam).toBe(resolvedInputParams[namespaceIndex].Value);
+            expect(namespaceParam).toBe(resolvedInputParams[namespaceIndex].Value);
         });
     
         it('Static name that ends with a number sequence should be transformed to start with analysis- and end with number string that is unique and be unique between calls', async () => {
@@ -82,12 +82,12 @@ describe('LaunchProduct', ()=> {
             const originalNamespace = resolvedInputParams[0].Value;
     
             // Operate
-            const { namespaceParam, namespaceIndex } = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
-            const { namespaceParam2, namespaceIndex2 } = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams2, datetime2);
+            const { namespaceParam, namespaceIndex } = lp.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
+            const { namespaceParam2, namespaceIndex2 } = lp.getNamespaceAndIndexIfNecessary(resolvedInputParams2, datetime2);
     
             // Check
-            await expect(namespaceParam).not.toBe(namespaceParam2);
-            await expect(namespaceParam).toBe(`analysis-${originalNamespace}-${datetime}`);
+            expect(namespaceParam).not.toBe(namespaceParam2);
+            expect(namespaceParam).toBe(`analysis-${originalNamespace}-${datetime}`);
         });
 
         it('Static name that ends with a datetime string should be transformed to start with analysis-', async () => {
@@ -97,10 +97,10 @@ describe('LaunchProduct', ()=> {
             const originalNamespace = resolvedInputParams[0].Value;
     
             // Operate
-            const { namespaceParam, namespaceIndex } = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
+            const { namespaceParam, namespaceIndex } = lp.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
     
             // Check
-            await expect(namespaceParam).toBe(`analysis-${originalNamespace}`);
+            expect(namespaceParam).toBe(`analysis-${originalNamespace}`);
         });
 
         it('getNamespaceAndIndexIfNecessary does not change the original resolvedInputParams array when the namespace is static', async () => {
@@ -109,10 +109,10 @@ describe('LaunchProduct', ()=> {
             const resolvedInputParams = [{Key: 'Namespace', Value: 'staticname'}];
 
             // Operate
-            const { namespaceParam, namespaceIndex } = await lp.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
+            const { namespaceParam, namespaceIndex } = lp.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
 
             // Check
-            await expect(namespaceParam).not.toBe(resolvedInputParams[namespaceIndex]);
+            expect(namespaceParam).not.toBe(resolvedInputParams[namespaceIndex]);
         })
     })
 })

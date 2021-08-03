@@ -96,7 +96,7 @@ class LaunchProduct extends StepBase {
     const resolvedInputParams = await this.resolveVarExpressions(envTypeConfig.params, resolvedVars);
     // Additional layer to check the namespace is valid and unique. If not, make new namespace from
     // static and get index of namespace param to change
-    const { namespaceParam, namespaceIndex } = await this.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
+    const { namespaceParam, namespaceIndex } = this.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
     resolvedInputParams[namespaceIndex].Value = namespaceParam;
     // Read tags specified in the environment type configuration
     // The tags may include variable expressions, resolve the expressions by using the resolveVars
@@ -371,7 +371,7 @@ class LaunchProduct extends StepBase {
    * 
    * @param resolvedInputParams 
    * @param datetime 
-   * @returns {Promise<{namespaceParam:string, namespaceIndex:string}[]>}
+   * @returns {namespaceParam:string, namespaceIndex:string}
    */
   getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime){
     const namespaceIndex = resolvedInputParams.findIndex(element => element.Key === 'Namespace');
