@@ -54,6 +54,8 @@ Increase the file system inside the partition
 
 `sudo xfs_growfs –d /`
 
+For more information on partitioning, read [Moving an environment and resizing/encrypting Amazon EBS volumes](https://docs.aws.amazon.com/cloud9/latest/user-guide/move-environment.html#move-environment-resize)
+
 #### Verifying the file size
 
 To verify the file size, type:
@@ -62,7 +64,7 @@ To verify the file size, type:
 
 Type `node --version`
 To install long-term support version, type:
-`nvm install --ltserbium`
+`nvm install lts/erbium`
 
 ### Installing Node Package Manager
 
