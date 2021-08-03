@@ -374,6 +374,32 @@ describe('DataEgressService', () => {
       );
     });
 
+    it('should return null while no result returned from getEgressStoreInfo method', async () => {
+      dataEgressService.removeEgressStoreBucketPolicy = jest.fn();
+      const s3Policy = testS3PolicyFn();
+      dataEgressService._settings = {
+        get: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return 'true';
+          }
+          if (settingName === 'egressStoreKmsKeyAliasArn') {
+            return 'test-egressStoreKmsKeyAliasArn';
+          }
+          if (settingName === 'egressStoreBucketName') {
+            return 'test-egressStoreBucketName';
+          }
+          return undefined;
+        },
+      };
+
+      dbService.table.scan.mockResolvedValue([]);
+      const requestContext = {};
+      const envId = 'test-id';
+
+      const result = await dataEgressService.terminateEgressStore(requestContext, envId);
+      expect(result).toStrictEqual(null);
+    });
+
     it('should fail delete egress store while egress store is in PROCESSING status', async () => {
       dataEgressService._settings = {
         get: settingName => {
@@ -604,6 +630,13 @@ describe('DataEgressService', () => {
         // want to suggest to the service author to use different codes.
         expect.objectContaining({ boom: true, code: 'notFound', safe: true }),
       );
+    });
+
+    it('should error out without finding egress store info', async () => {
+      dbService.table.scan.mockResolvedValue([]);
+
+      const result = await dataEgressService.getEgressStoreInfo('test-egress-store-id');
+      expect(result).toStrictEqual(null);
     });
   });
 
