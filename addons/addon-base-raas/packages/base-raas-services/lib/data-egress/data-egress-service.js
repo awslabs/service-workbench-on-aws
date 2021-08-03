@@ -83,9 +83,13 @@ class DataEgressService extends Service {
     } catch (error) {
       throw this.boom.notFound(`Error in fetch egress store info: ${JSON.stringify(error)}`, true);
     }
+
+    if (egressStoreScanResult.length === 0) {
+      return null;
+    }
     if (egressStoreScanResult.length !== 1) {
       throw this.boom.internalError(
-        `Error in getting egress store info: multiple or no result fetched from egrss store table`,
+        `Error in getting egress store info: multiple results fetched from egrss store table`,
         true,
       );
     }
@@ -190,6 +194,13 @@ class DataEgressService extends Service {
     }
 
     const egressStoreInfo = await this.getEgressStoreInfo(environmentId);
+    if (!egressStoreInfo) {
+      await this.audit(requestContext, {
+        action: 'terminated-egress-store',
+        body: 'No egress store found to be terminated',
+      });
+      return null;
+    }
     const isEgressStoreOwner = egressStoreInfo.createdBy === curUser;
     if (!isAdmin(requestContext) && !isEgressStoreOwner) {
       throw this.boom.forbidden(
@@ -256,6 +267,7 @@ class DataEgressService extends Service {
       });
       await this.audit(requestContext, { action: 'terminated-egress-store', body: egressStore });
     }
+    return egressStoreInfo;
   }
 
   async getEgressStore(requestContext, environmentId) {

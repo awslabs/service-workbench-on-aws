@@ -5,6 +5,7 @@ import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Segment, Icon, Header, Button } from 'semantic-ui-react';
 import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
+import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
 import {
   isStoreLoading,
   isStoreEmpty,
@@ -20,12 +21,12 @@ class ScEnvironmentEgressStoreDetail extends React.Component {
     super(props);
     runInAction(() => {
       // A flag to indicate if egress request for this egress store is already submitted
-      this.egressStoreRequestSubmitted = this.getEgressStoreDetailStore().isAbleToSubmitEgressRequest;
+      this.isAbleToSubmitEgressRequest = true;
     });
   }
 
   componentDidMount() {
-    const store = this.getEgressStoreDetailStore();
+    const store = this.egressStoreDetailStore;
     if (!isStoreReady(store)) {
       swallowError(store.load());
     }
@@ -39,20 +40,27 @@ class ScEnvironmentEgressStoreDetail extends React.Component {
     return this.props.scEnvironmentsStore;
   }
 
-  getEgressStoreDetailStore() {
+  get egressStoreDetailStore() {
     return this.envsStore.getScEnvironmentEgressStoreDetailStore(this.environment.id);
   }
 
-  handleSubmitEgressRequest = () => {
-    runInAction(() => {
-      const egressStoreDetailStore = this.getEgressStoreDetailStore();
-      egressStoreDetailStore.egressNotifySns(this.environment.id);
-      this.isAbleToSubmitEgressRequest = !this.isAbleToSubmitEgressRequest;
-    });
+  handleSubmitEgressRequest = async () => {
+    const egressStoreDetailStore = this.egressStoreDetailStore;
+    try {
+      runInAction(() => {
+        this.isAbleToSubmitEgressRequest = false;
+      });
+      await egressStoreDetailStore.egressNotifySns(this.environment.id);
+    } catch (error) {
+      displayError(error);
+      runInAction(() => {
+        this.isAbleToSubmitEgressRequest = false;
+      });
+    }
   };
 
   render() {
-    const store = this.getEgressStoreDetailStore();
+    const store = this.egressStoreDetailStore;
     let content = null;
 
     if (isStoreError(store)) {
@@ -95,7 +103,7 @@ class ScEnvironmentEgressStoreDetail extends React.Component {
 
   renderEgressStoreTable() {
     const pageSize = 5;
-    const data = this.getEgressStoreDetailStore().list;
+    const data = this.egressStoreDetailStore.list;
     const showPagination = data.length > pageSize;
     const isAbleToSubmitEgressRequest = this.isAbleToSubmitEgressRequest;
     return (
@@ -173,6 +181,7 @@ class ScEnvironmentEgressStoreDetail extends React.Component {
 decorate(ScEnvironmentEgressStoreDetail, {
   egressStoreRequestSubmitted: observable,
   handleSubmitEgressRequest: action,
+  isAbleToSubmitEgressRequest: observable,
 });
 
 export default inject('scEnvironmentsStore')(withRouter(observer(ScEnvironmentEgressStoreDetail)));
