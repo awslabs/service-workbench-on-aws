@@ -24,6 +24,7 @@ const {
   deleteDefaultServiceCatalogProduct,
 } = require('../../../support/complex/default-integration-test-product');
 const errorCode = require('../../../support/utils/error-code');
+const { getIdToken } = require('../../../support/utils/id-token');
 
 describe('Create workspace-service-catalog scenarios', () => {
   let setup;
@@ -32,6 +33,15 @@ describe('Create workspace-service-catalog scenarios', () => {
 
   beforeAll(async () => {
     setup = await runSetup();
+
+    const content = setup.settings.content;
+    setup.settings.content.adminIdToken = await getIdToken({
+      username: content.username,
+      password: content.password,
+      apiEndpoint: content.apiEndpoint,
+      authenticationProviderId: content.authenticationProviderId,
+    });
+
     adminSession = await setup.defaultAdminSession();
     productInfo = await createDefaultServiceCatalogProduct(setup);
     jest.retryTimes(1);
