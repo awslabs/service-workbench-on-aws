@@ -15,7 +15,6 @@
  */
 
 const _ = require('lodash');
-const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const Resource = require('../base/resource');
 const { deleteWorkflowVersion } = require('../../complex/delete-workflow-version');
@@ -56,23 +55,35 @@ class WorkflowVersion extends Resource {
   // Triggers the workflow and pulls the the status of the workflow every second and only returns if the status is done
   // or until maxSecondsCount is reached. Default maxSecondsCount is 5 minutes.
   async triggerAndWait(body = {}, maxSecondsCount = 300) {
-    let counter = 0;
-    let status;
     const triggerInfo = await this.trigger(body);
     const instanceId = _.get(triggerInfo, 'instance.id');
-
-    do {
-      await sleep(1000);
-      counter += 1;
-
-      const instance = await this.instances()
-        .instance(instanceId)
-        .get();
-
-      status = instance.wfStatus;
-    } while (status !== 'done' && counter < maxSecondsCount);
-
+    await this.waitUntilComplete(instanceId, 1000, maxSecondsCount);
     return triggerInfo;
+  }
+
+  // Polls a workflow at an intermittent interval until it has completed, failed, or it has reached the maxIntervalCount.
+  async waitUntilComplete(wfInstanceId, interval = 1000, maxIntervalCount = 300) {
+    let counter = 0;
+    let result;
+    do {
+      await new Promise(r => setTimeout(r, interval));
+      counter += 1;
+      result = await this.instances()
+        .instance(wfInstanceId)
+        .get();
+    } while (result.wfStatus !== 'done' && result.wfStatus !== 'error' && counter < maxIntervalCount);
+    if (result.wfStatus === 'error' || counter === maxIntervalCount) {
+      throw new Error('Workflow failed to complete');
+    }
+  }
+
+  // Finds a workflow for an environment and polls
+  async findAndPollWorkflow(envId, interval, maxCount) {
+    const workflows = await this.instances().get();
+    const foundWf = _.filter(workflows, wf => {
+      return wf.input.envId === envId;
+    })[0];
+    await this.waitUntilComplete(foundWf.id, interval, maxCount);
   }
 }
 
