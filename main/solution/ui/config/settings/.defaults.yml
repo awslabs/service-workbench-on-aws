@@ -22,7 +22,7 @@ brandMainTitle: 'Service Workbench on AWS (${self:custom.settings.envName}/${sel
 brandLoginTitle: 'Service Workbench'
 brandLoginSubtitle: 'Service Workbench on AWS (${self:custom.settings.envName}/${self:custom.settings.awsRegion})'
 
-versionAndDate:  'Version ${self:custom.settings.versionNumber} (${self:custom.settings.versionDate})'
+versionAndDate: 'Version ${self:custom.settings.versionNumber} (${self:custom.settings.versionDate})'
 
 # After how many minutes should the auto logout dialog be displayed? once displayed the user has 1 minute to dismiss
 # the dialog, otherwise they will be automatically logged out
