@@ -47,7 +47,7 @@ Activate the necessary cost allocation tags in the **AWS Billing & Cost Manageme
  
 <img src={useBaseUrl('img/deployment/installation/cost_atags2.png')} />
 
-**Note**: There may be a delay after enabling the AWS Cost Explorer before these tags are visible. 
+**Note**: There might be a delay after enabling the AWS Cost Explorer before these tags are visible. 
 
 If you have enabled Cost Explorer, but you do not see these tags through the AWS Console, you can still proceed with the installation.  Check later (it could be up to 24 hours after enabling Cost Explorer) and enable the tags for cost reporting to function correctly in Service Workbench.
 
