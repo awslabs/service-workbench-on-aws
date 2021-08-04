@@ -43,11 +43,11 @@ Activate the necessary cost allocation tags in the **AWS Billing & Cost Manageme
 
 <img src={useBaseUrl('img/deployment/installation/cost_atags1.png')} /> 
 
-3. Under AWS-generated cost allocation tags, choose the **createdBy**, **Env**, and **Proj** tags.
+3. Under User-defined cost allocation tags, choose **createdBy**, **Env**, and **Proj** tags.
  
 <img src={useBaseUrl('img/deployment/installation/cost_atags2.png')} />
 
-**Note**: There may be a delay after enabling the AWS Cost Explorer before these tags are available. 
+**Note**: There may be a delay after enabling the AWS Cost Explorer before these tags are visible. 
 
 If you have enabled Cost Explorer, but you do not see these tags through the AWS Console, you can still proceed with the installation.  Check later (it could be up to 24 hours after enabling Cost Explorer) and enable the tags for cost reporting to function correctly in Service Workbench.
 
