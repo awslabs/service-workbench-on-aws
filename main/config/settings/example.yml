@@ -95,3 +95,6 @@
 # Error validating existing stack policy: Unknown logical id 'LogicalResourceId/EgressStore*' in statement {} - stack policies can only be applied to logical ids referenced in the template
 # Stack policies are applied here: addons/addon-stack-policy/packages/stack-policy/lib/steps/update-cfn-stack-policy.js
 # enableEgressStore: 'false'
+
+# Determine whether workspace should be accessible only through AppStream
+# isAppStreamEnabled: false
