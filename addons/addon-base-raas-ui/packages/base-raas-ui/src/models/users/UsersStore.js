@@ -158,7 +158,17 @@ const UsersStore = BaseStore.named('UsersStore')
           if (user) {
             result.push(user);
           } else {
-            result.push(User.create(getSnapshot(userIdentifier)));
+            let userSnapshot;
+            try {
+              userSnapshot = getSnapshot(userIdentifier);
+            } catch (error) {
+              // Note that user might be already deleted. In order to prevent UI from crashing log the error instead
+              // and not add it to User list
+              console.log(`User ${userIdentifier.uid} doesn't exist`, error);
+            }
+            if (userSnapshot) {
+              result.push(User.create(userSnapshot));
+            }
           } // this could happen in the employee is no longer active or with the company
         }
       });

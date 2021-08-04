@@ -40,13 +40,13 @@ To create the AWS Account, perform the following actions:
 2.	Specify the following details:
 –	In ‘**Role ARN**’, fill in the **Master Role ARN** copied from the previous step. 
 –	The **email address** that you specify here must be unique within the AWS Organization.
-–	The **External ID** by default is the string workbench. See [IAM Role](/docs/deployment/reference/iam_role) for information on how to configure this to another value.
+–	The **External ID** by default is the string workbench. See [IAM Role](/deployment/reference/iam_role) for information on how to configure this to another value.
 
 After a minute, the following information displays in the ‘**AWS Accounts**’ tab:
 –	“_Trying to create accountID: xxx_”. 
 –	A workflow is in progress in ‘**Workflows > Provision Account**’ (see the sidebar's ‘Accounts’ page.)
 
-_**Note**: If instead you see an error message such as, “Stop Internal State Account ID not found”, check the AWS Organization in the console of your **Master** account. As described in [prerequisites](/docs/deployment/pre_deployment/prequisites), your account must not belong to an existing AWS Organization. You must either have an existing AWS Organization or be able to create a new AWS Organization._
+_**Note**: If instead you see an error message such as, “Stop Internal State Account ID not found”, check the AWS Organization in the console of your **Master** account. Your account must not belong to an existing AWS Organization. You must either have an existing AWS Organization or be able to create a new AWS Organization._
 1.	Optionally, in the AWS console, you can inspect the following resources deployed by this script: 
 –	In AWS CloudFormation, a stack prep-master will be running. It creates the **Master** role and its output is the **Master Role ARN**.
 –	In AWS Organization, the new account will display in the **Master** account
