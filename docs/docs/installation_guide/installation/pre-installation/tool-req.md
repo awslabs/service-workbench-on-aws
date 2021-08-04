@@ -17,6 +17,9 @@ Main account is the AWS account where Service Workbench is deployed.
 ### Enabling AWS Cost Explorer
 
 In order to see the actual cost in dashboards and Workspaces, you must set up a master account in AWS Cost Explorer. The master account holds the AWS Organization that creates member accounts. 
+
+**Note**: You can enable AWS Cost Explorer even after installing Service Workbench. 
+
 To enable AWS Cost Explorer in the account into which you will be deploying Service Workbench on AWS, follow these steps:
 
 1. From the account drop-down, choose **My Billing Dashboard**.
