@@ -21,7 +21,6 @@ const { getIdToken } = require('../../../support/utils/id-token');
 describe('EC2 Linux scenarios', () => {
   let setup;
   let ssh;
-
   async function newToken() {
     const content = setup.settings.content;
     setup.settings.content.adminIdToken = await getIdToken({
