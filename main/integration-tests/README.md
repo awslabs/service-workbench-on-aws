@@ -2,7 +2,7 @@
 
 ## Intro
 
-The integration-tests package is for running API tests against all SWB APIs.
+The integration-tests package is used for running API tests against all SWB APIs.
 These tests can run against local and dev environments during development.
 They can also be configured to run automatically as part of a GitHub workflow or CI/CD pipeline.
 Advanced integration tests involve interacting with a provisioned workspace, and require additional setup.
@@ -23,17 +23,17 @@ To run integration tests, the following resources need to be created in advance:
 
 #### Resources for Advanced Tests
 
-- **Environment Type:** Import each specific Service Catalog Product as an Environment Type
+- **Environment Type:** Import each specific Service Catalog product as an environment type.
 
-- **Environment Configuration:** Create a configuration for every corresponding environment type that was created
+- **Environment Configuration:** Create a configuration for every corresponding environment type that was created.
 
-- **Data Source Study:** If testing BYOB studies, create an external BYOB study on the deployment with Read & Write Access
+- **Data Source Study:** If testing BYOB studies, create an external BYOB study on the deployment with read and write access.
 
 #### Resources to create through AWS Console:
 
 - **Test Administrator password:** Create an AWS Parameter Store record to store Test Administrator password. Pick a parameter name of your choice. Use 'SecureString' for parameter type 'text' for data type.(**Note the parameter name**)
 
-- **Cost Explorer:** Turn on Cost Explorer service, activate tags 'Env', 'Proj' anc 'createdBy'.
+- **Cost Explorer:** Enable Cost Explorer service and activate the 'Env', 'Proj' and 'createdBy' tags.
 
 ### Config File
 
@@ -41,11 +41,11 @@ Once test resources are created, create a config file `main/integration-tests/co
 Use the same `<STAGE>` name as the main config file in `/main/config/settings`.
 
 Use Test Admin username, projectId, and Parameter Store name noted from the [Test Resources](#test-resources) section for field username, passwordPath and projectId in the config file.
-Use the same config values used in `/main/config/settings` for fields awsRegion, awsProfile, solutionName, envName, ane envType.
+Use the same config values used in `/main/config/settings` for the fields awsRegion, awsProfile, solutionName, envName, and envType.
 
-For each `{workspaceType}EnvTypeId` and `{workspacetype}ConfigId`, use the ids for the specific Environment Type and Environment Configuration created as Test Resources.
+For each `{workspaceType}EnvTypeId` and `{workspacetype}ConfigId`, use the IDs for the specific environment type and environment configuration created as test resources.
 
-For `byobStudy`, provide the id for the external Data Source study.
+For `byobStudy`, supply the ID for the external data source study.
 
 **Note**
 
@@ -63,7 +63,7 @@ Note: Integration tests will create resources in the environment they are execut
   - set `isBuildServer` to `false`
   - set `isLocal` to `false`
 
-##### run all integration tests from the root directory with:
+##### Run all integration tests from the root directory with:
 
 ```bash
 $ scripts/run-integration-tests.sh <STAGE>
