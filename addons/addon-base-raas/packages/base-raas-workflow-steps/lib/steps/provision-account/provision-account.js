@@ -99,7 +99,7 @@ class ProvisionAccount extends StepBase {
     // THIS IS NEEDED, we should wait AWS to setup the account, even if we can fetch the account ID
     this.print('start to wait for 5 minutes for AWS getting the account ready.');
 
-    if (this.settings.optionalBoolean(settingKeys.isAppStreamEnabled, false)) {
+    if (this.settings.getBoolean(settingKeys.isAppStreamEnabled)) {
       return this.wait(60 * 5).thenCall('shareImageWithMemberAccount');
     }
     return this.wait(60 * 5).thenCall('deployStack');
@@ -292,7 +292,7 @@ class ProvisionAccount extends StepBase {
           permissionStatus: 'CURRENT',
         };
         let additionalAccountData = {};
-        if (this.settings.optionalBoolean(settingKeys.isAppStreamEnabled, false)) {
+        if (this.settings.getBoolean(settingKeys.isAppStreamEnabled)) {
           // Start AppStream Fleet and wait for AppStream fleet to transition to RUNNING state
           await this.startAppStreamFleet(cfnOutputs.AppStreamFleet);
           const isAppStreamFleetRunning = await this.checkAppStreamFleetIsRunning(cfnOutputs.AppStreamFleet);
@@ -321,7 +321,7 @@ class ProvisionAccount extends StepBase {
           cfnInfo: {
             stackId,
             vpcId: cfnOutputs.VPC,
-            subnetId: this.settings.optionalBoolean(settingKeys.isAppStreamEnabled, false)
+            subnetId: this.settings.getBoolean(settingKeys.isAppStreamEnabled)
               ? cfnOutputs.PrivateWorkspaceSubnet
               : cfnOutputs.VpcPublicSubnet1,
             crossAccountExecutionRoleArn: cfnOutputs.CrossAccountExecutionRoleArn,

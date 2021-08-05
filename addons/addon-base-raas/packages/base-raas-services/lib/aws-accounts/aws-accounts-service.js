@@ -170,10 +170,7 @@ class AwsAccountsService extends Service {
     });
 
     // Only try to shareAppStreamImage with member account if AppStream is enabled and appStreamImageName is provided
-    if (
-      this.settings.optionalBoolean(settingKeys.isAppStreamEnabled, false) &&
-      rawData.appStreamImageName !== undefined
-    ) {
+    if (this.settings.getBoolean(settingKeys.isAppStreamEnabled) && rawData.appStreamImageName !== undefined) {
       const appStreamImageName = rawData.appStreamImageName;
       const accountId = rawData.accountId;
       await this.shareAppStreamImageWithMemberAccount(requestContext, accountId, appStreamImageName);
