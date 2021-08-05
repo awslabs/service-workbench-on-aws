@@ -447,7 +447,7 @@ class AwsCfnService extends Service {
     fieldsToUpdate.id = accountEntity.id;
     fieldsToUpdate.rev = accountEntity.rev;
 
-    if (this.settings.get(settingKeys.isAppStreamEnabled) === 'true') {
+    if (this.settings.getBoolean(settingKeys.isAppStreamEnabled)) {
       fieldsToUpdate.subnetId = findOutputValue('PrivateWorkspaceSubnet');
       fieldsToUpdate.appStreamStackName = findOutputValue('AppStreamStackName');
       fieldsToUpdate.appStreamFleetName = findOutputValue('AppStreamFleet');

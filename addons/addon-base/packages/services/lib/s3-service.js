@@ -244,7 +244,7 @@ class S3Service extends Service {
       await s3Client.putObject(params).promise();
     } catch (error) {
       throw this.boom.badRequest(
-        `S3Service error with putting object to bukcet: ${params.Bucket} with key: ${params.Key}`,
+        `S3Service error with putting object to bucket: ${params.Bucket} with key: ${params.Key}`,
         true,
       );
     }
