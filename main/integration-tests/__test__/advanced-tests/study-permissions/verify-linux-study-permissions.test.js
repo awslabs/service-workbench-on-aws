@@ -13,7 +13,6 @@
  *  permissions and limitations under the License.
  */
 const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
-const { beforeEach } = require('jest-circus');
 const { NodeSSH } = require('node-ssh');
 const { mountStudies, readWrite } = require('../../../support/complex/run-shell-command');
 const { runSetup } = require('../../../support/setup');
@@ -21,23 +20,9 @@ const { getIdToken } = require('../../../support/utils/id-token');
 
 describe('EC2 Linux scenarios', () => {
   let setup;
-  let adminSession;
-  let admin2Session;
-  let keyPair;
   let ssh;
 
-  beforeAll(async () => {
-    setup = await runSetup();
-    ssh = new NodeSSH();
-
-    adminSession = await setup.createAdminSession();
-    admin2Session = await setup.createAdminSession();
-    jest.retryTimes(0);
-
-    keyPair = await admin2Session.resources.keyPairs.create();
-  });
-
-  beforeEach(async () => {
+  async function newToken() {
     const content = setup.settings.content;
     setup.settings.content.adminIdToken = await getIdToken({
       username: content.username,
@@ -45,15 +30,29 @@ describe('EC2 Linux scenarios', () => {
       apiEndpoint: content.apiEndpoint,
       authenticationProviderId: content.authenticationProviderId,
     });
+    console.log(setup.settings.content.adminIdToken);
+  }
+  async function testSetup() {
+    const adminSession = await setup.createAdminSession();
+    const admin2Session = await setup.createAdminSession();
+    await newToken();
+    const keyPair = await admin2Session.resources.keyPairs.create();
+    return { adminSession, admin2Session, keyPair };
+  }
+
+  beforeAll(async () => {
+    setup = await runSetup();
+    ssh = new NodeSSH();
+    jest.retryTimes(0);
   });
   afterAll(async () => {
+    await newToken();
     await setup.cleanup();
-    adminSession.cleanup();
-    admin2Session.cleanup();
   });
 
   describe('Updates to mounted study permissions', () => {
     it('should propagate for Org Study', async () => {
+      const { adminSession, admin2Session, keyPair } = await testSetup();
       const studyId = setup.gen.string({ prefix: `create-org-study-test` });
       await adminSession.resources.studies.create({ id: studyId, name: studyId, category: 'Organization' });
       await adminSession.resources.studies
@@ -116,9 +115,12 @@ describe('EC2 Linux scenarios', () => {
       expect(output.stderr).toEqual(expect.stringMatching(/reading directory .: Permission denied/));
 
       await ssh.dispose();
+      await newToken();
+      await setup.cleanup();
     });
 
     it('should propagate for BYOB Study', async () => {
+      const { adminSession, admin2Session, keyPair } = await testSetup();
       const externalStudy = setup.defaults.byobStudy;
       const workspaceName = setup.gen.string({ prefix: 'workspace-sc-test' });
       await adminSession.resources.studies.study(externalStudy).propagatePermission(admin2Session, ['readwrite'], []);
@@ -170,11 +172,14 @@ describe('EC2 Linux scenarios', () => {
       await ssh.dispose();
       // Removes user permission
       await adminSession.resources.studies.study(externalStudy).propagatePermission(admin2Session, [], ['readonly']);
+      await newToken();
+      await setup.cleanup();
     });
   });
 
   describe('Confirm study permissions', () => {
     it('should pass for My Study', async () => {
+      const { adminSession, admin2Session, keyPair } = await testSetup();
       const studyId = setup.gen.string({ prefix: `create-my-study-test` });
       await admin2Session.resources.studies.create({ id: studyId, name: studyId, category: 'My Studies' });
 
@@ -211,6 +216,8 @@ describe('EC2 Linux scenarios', () => {
 
       const output = await mountStudies(ssh, studyId);
       expect(output.stdout).toEqual(expect.stringMatching(/output.txt/));
+      await newToken();
+      await setup.cleanup();
     });
   });
 });
