@@ -225,10 +225,12 @@ class ScEnvironmentRdpConnectionRow extends React.Component {
                 Connect to Your Windows Instance
               </List.Item>
             </List>
-            <div className="mt3">
-              In your browser, please allow popups for this domain so we can open the AppStream page in a new tab for
-              you
-            </div>
+            {this.isAppStreamEnabled && (
+              <div className="mt3">
+                In your browser, please allow popups for this domain so we can open the AppStream page in a new tab for
+                you
+              </div>
+            )}
           </Table.Cell>
         </Table.Row>
 
