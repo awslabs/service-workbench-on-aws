@@ -99,7 +99,7 @@ class ProvisionAccount extends StepBase {
     // THIS IS NEEDED, we should wait AWS to setup the account, even if we can fetch the account ID
     this.print('start to wait for 5 minutes for AWS getting the account ready.');
 
-    if (this.settings.get(settingKeys.isAppStreamEnabled) === 'true') {
+    if (this.settings.optionalBoolean(settingKeys.isAppStreamEnabled, false)) {
       return this.wait(60 * 5).thenCall('shareImageWithMemberAccount');
     }
     return this.wait(60 * 5).thenCall('deployStack');
@@ -292,7 +292,7 @@ class ProvisionAccount extends StepBase {
           permissionStatus: 'CURRENT',
         };
         let additionalAccountData = {};
-        if (this.settings.get(settingKeys.isAppStreamEnabled) === 'true') {
+        if (this.settings.optionalBoolean(settingKeys.isAppStreamEnabled, false)) {
           // Start AppStream Fleet and wait for AppStream fleet to transition to RUNNING state
           await this.startAppStreamFleet(cfnOutputs.AppStreamFleet);
           const isAppStreamFleetRunning = await this.checkAppStreamFleetIsRunning(cfnOutputs.AppStreamFleet);
@@ -321,10 +321,9 @@ class ProvisionAccount extends StepBase {
           cfnInfo: {
             stackId,
             vpcId: cfnOutputs.VPC,
-            subnetId:
-              this.settings.get(settingKeys.isAppStreamEnabled) === 'true'
-                ? cfnOutputs.PrivateWorkspaceSubnet
-                : cfnOutputs.VpcPublicSubnet1,
+            subnetId: this.settings.optionalBoolean(settingKeys.isAppStreamEnabled, false)
+              ? cfnOutputs.PrivateWorkspaceSubnet
+              : cfnOutputs.VpcPublicSubnet1,
             crossAccountExecutionRoleArn: cfnOutputs.CrossAccountExecutionRoleArn,
             crossAccountEnvMgmtRoleArn: cfnOutputs.CrossAccountEnvMgmtRoleArn,
             encryptionKeyArn: cfnOutputs.EncryptionKeyArn,

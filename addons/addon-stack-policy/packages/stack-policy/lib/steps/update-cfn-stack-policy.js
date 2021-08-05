@@ -58,7 +58,7 @@ class UpdateCfnStackPolicy extends Service {
   async execute() {
     const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
     const isEgressStoreEnabled = enableEgressStore ? enableEgressStore.toUpperCase() === 'TRUE' : false;
-    const isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
+    const isAppStreamEnabled = this.settings.optionalBoolean(settingKeys.isAppStreamEnabled, false);
 
     if (!isEgressStoreEnabled && !isAppStreamEnabled) {
       this.log.info('AppStream and EgressStore disabled. CFN stack policy does not need updates');

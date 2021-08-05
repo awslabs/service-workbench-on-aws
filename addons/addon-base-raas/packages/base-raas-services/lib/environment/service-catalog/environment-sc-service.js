@@ -69,7 +69,7 @@ class EnvironmentScService extends Service {
     await super.init();
     const [dbService, environmentAuthzService] = await this.service(['dbService', 'environmentAuthzService']);
     const table = this.settings.get(settingKeys.tableName);
-    this.isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled) === 'true';
+    this.isAppStreamEnabled = this.settings.optionalBoolean(settingKeys.isAppStreamEnabled, false);
 
     this._getter = () => dbService.helper.getter().table(table);
     this._query = () => dbService.helper.query().table(table);

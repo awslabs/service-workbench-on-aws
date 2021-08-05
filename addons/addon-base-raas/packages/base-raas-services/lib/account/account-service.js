@@ -92,7 +92,7 @@ class AccountService extends Service {
     await validationService.ensureValid(rawData, createSchema);
 
     let appStreamConfig = {};
-    if (this.settings.get(settingKeys.isAppStreamEnabled) === 'true') {
+    if (this.settings.optionalBoolean(settingKeys.isAppStreamEnabled, false)) {
       const {
         appStreamFleetDesiredInstances,
         appStreamDisconnectTimeoutSeconds,
