@@ -181,9 +181,9 @@ describe('accountService', () => {
         delete inputMissingAppStreamData.appStreamImageName;
         delete inputMissingAppStreamData.appStreamInstanceType;
 
-        settingsService.get = jest.fn(key => {
+        settingsService.getBoolean = jest.fn(key => {
           if (key === 'isAppStreamEnabled') {
-            return 'true';
+            return true;
           }
           return undefined;
         });
