@@ -71,11 +71,11 @@ describe('EnvironmentScCidrService', () => {
     lockService = await container.find('lockService');
     environmentScService = await container.find('environmentScService');
     settings = await container.find('settings');
-    settings.optionalBoolean = jest.fn(key => {
+    settings.getBoolean = jest.fn(key => {
       if (key === 'isAppStreamEnabled') {
         return false;
       }
-      return undefined;
+      throw Error(`${key} not found`);
     });
 
     // Skip authorization by default
@@ -89,11 +89,11 @@ describe('EnvironmentScCidrService', () => {
   describe('Validation checks', () => {
     it('should fail validation check since AppStream is enabled', async () => {
       // BUILD
-      settings.optionalBoolean = jest.fn(key => {
+      settings.getBoolean = jest.fn(key => {
         if (key === 'isAppStreamEnabled') {
           return true;
         }
-        return undefined;
+        throw Error(`${key} not found`);
       });
       const requestContext = {};
       const params = {
@@ -115,8 +115,8 @@ describe('EnvironmentScCidrService', () => {
       } catch (err) {
         expect(service.boom.is(err, 'badRequest')).toBe(true);
         expect(err.message).toContain('CIDR operation unavailable when AppStream is enabled');
-        expect(settings.optionalBoolean).toHaveBeenCalledTimes(1);
-        expect(settings.optionalBoolean).toHaveBeenCalledWith('isAppStreamEnabled', false);
+        expect(settings.getBoolean).toHaveBeenCalledTimes(1);
+        expect(settings.getBoolean).toHaveBeenCalledWith('isAppStreamEnabled');
       }
     });
 

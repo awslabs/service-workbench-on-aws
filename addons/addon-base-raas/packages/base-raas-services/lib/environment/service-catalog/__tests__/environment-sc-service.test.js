@@ -123,22 +123,22 @@ describe('EnvironmentSCService', () => {
       return { roleArn: 'cfnExecutionRole', externalId: 'roleExternalId' };
     });
     service._fromRawToDbObject = jest.fn(x => x);
-    settings.optionalBoolean = jest.fn((key, defaultBoolean) => {
+    settings.getBoolean = jest.fn(key => {
       if (key === 'isAppStreamEnabled') {
         return false;
       }
-      return defaultBoolean;
+      throw Error(`${key} not found`);
     });
   });
 
   describe('create function', () => {
     it('should fail create since CIDR info is included when AppStream is enabled', async () => {
       // BUILD
-      settings.optionalBoolean = jest.fn((key, defaultBoolean) => {
+      settings.getBoolean = jest.fn(key => {
         if (key === 'isAppStreamEnabled') {
           return true;
         }
-        return defaultBoolean;
+        throw Error(`${key} not found`);
       });
       const requestContext = {
         principal: {
@@ -159,18 +159,18 @@ describe('EnvironmentSCService', () => {
       } catch (err) {
         expect(service.boom.is(err, 'badRequest')).toBe(true);
         expect(err.message).toBe('Cannot specify CIDR when AppStream is enabled');
-        expect(settings.optionalBoolean).toHaveBeenCalledTimes(1);
-        expect(settings.optionalBoolean).toHaveBeenCalledWith('isAppStreamEnabled', false);
+        expect(settings.getBoolean).toHaveBeenCalledTimes(1);
+        expect(settings.getBoolean).toHaveBeenCalledWith('isAppStreamEnabled');
       }
     });
 
     it('should succeed create if environment has undefined cidr and AppStream is enabled', async () => {
       // BUILD
-      settings.optionalBoolean = jest.fn((key, defaultBoolean) => {
+      settings.getBoolean = jest.fn(key => {
         if (key === 'isAppStreamEnabled') {
           return true;
         }
-        return defaultBoolean;
+        throw Error(`${key} not found`);
       });
       projectService.mustFind = jest.fn(() => {
         return { indexId: 'testIndex', isAppStreamConfigured: true };
@@ -198,9 +198,9 @@ describe('EnvironmentSCService', () => {
         expect.objectContaining({ action: 'create-environment-sc' }),
       );
       expect(wfService.triggerWorkflow).toHaveBeenCalled();
-      expect(settings.optionalBoolean).toHaveBeenCalledTimes(2);
+      expect(settings.getBoolean).toHaveBeenCalledTimes(2);
       expect(projectService.mustFind).toHaveBeenCalledTimes(1);
-      expect(settings.optionalBoolean).toHaveBeenCalledWith('isAppStreamEnabled', false);
+      expect(settings.getBoolean).toHaveBeenCalledWith('isAppStreamEnabled');
       expect('cidr' in newEnv).toBe(false);
     });
 
@@ -390,11 +390,11 @@ describe('EnvironmentSCService', () => {
 
     it('verify error is thrown when AppStream is enabled and fetchCidr is true', async () => {
       // BUILD
-      settings.optionalBoolean = jest.fn((key, defaultBoolean) => {
+      settings.getBoolean = jest.fn(key => {
         if (key === 'isAppStreamEnabled') {
           return true;
         }
-        return defaultBoolean;
+        throw Error(`${key} not found`);
       });
       const uid = 'u-12345';
       const requestContext = { principalIdentifier: { uid } };
@@ -423,18 +423,18 @@ describe('EnvironmentSCService', () => {
         expect(service.boom.is(err, 'badRequest')).toBe(true);
         expect(err.message).toBe('CIDR operation unavailable when AppStream is enabled');
         expect(service.getSecurityGroupDetails).not.toHaveBeenCalled();
-        expect(settings.optionalBoolean).toHaveBeenCalledTimes(1);
-        expect(settings.optionalBoolean).toHaveBeenCalledWith('isAppStreamEnabled', false);
+        expect(settings.getBoolean).toHaveBeenCalledTimes(1);
+        expect(settings.getBoolean).toHaveBeenCalledWith('isAppStreamEnabled');
       }
     });
 
     it('verify getSecurityGroupDetails not called when AppStream is enabled and fetchCidr is undefined', async () => {
       // BUILD
-      settings.optionalBoolean = jest.fn((key, defaultBoolean) => {
+      settings.getBoolean = jest.fn(key => {
         if (key === 'isAppStreamEnabled') {
           return true;
         }
-        return defaultBoolean;
+        throw Error(`${key} not found`);
       });
       const uid = 'u-12345';
       const requestContext = { principalIdentifier: { uid } };
@@ -464,8 +464,8 @@ describe('EnvironmentSCService', () => {
         expect.objectContaining({ action: 'get-sc', conditions: [service._allowAuthorized] }),
         env,
       );
-      expect(settings.optionalBoolean).toHaveBeenCalledTimes(1);
-      expect(settings.optionalBoolean).toHaveBeenCalledWith('isAppStreamEnabled', false);
+      expect(settings.getBoolean).toHaveBeenCalledTimes(1);
+      expect(settings.getBoolean).toHaveBeenCalledWith('isAppStreamEnabled');
     });
 
     it('verify getSecurityGroupDetails not called when fetchCidr is false', async () => {

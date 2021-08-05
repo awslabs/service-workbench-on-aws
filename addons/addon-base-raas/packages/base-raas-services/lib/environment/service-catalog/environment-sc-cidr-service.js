@@ -46,7 +46,7 @@ class EnvironmentScCidrService extends Service {
   }
 
   checkRequest(updateRequest) {
-    const isAppStreamEnabled = this.settings.optionalBoolean(settingKeys.isAppStreamEnabled, false);
+    const isAppStreamEnabled = this.settings.getBoolean(settingKeys.isAppStreamEnabled);
     if (isAppStreamEnabled) {
       throw this.boom.badRequest(`CIDR operation unavailable when AppStream is enabled`, true);
     }

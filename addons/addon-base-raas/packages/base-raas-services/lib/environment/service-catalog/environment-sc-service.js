@@ -1041,7 +1041,7 @@ class EnvironmentScService extends Service {
   }
 
   isAppStreamEnabled() {
-    return this.settings.optionalBoolean(settingKeys.isAppStreamEnabled, false);
+    return this.settings.getBoolean(settingKeys.isAppStreamEnabled);
   }
 
   /**
