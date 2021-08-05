@@ -48,7 +48,7 @@ class ProjectService extends Service {
     const [dbService] = await this.service(['dbService']);
     const table = this.settings.get(settingKeys.tableName);
     this.userService = await this.service('userService');
-    this.isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled) === 'true';
+    this.isAppStreamEnabled = this.settings.getBoolean(settingKeys.isAppStreamEnabled);
 
     this._getter = () => dbService.helper.getter().table(table);
     this._updater = () => dbService.helper.updater().table(table);

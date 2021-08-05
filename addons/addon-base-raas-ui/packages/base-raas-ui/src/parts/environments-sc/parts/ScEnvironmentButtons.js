@@ -12,7 +12,7 @@ import ScEnvironmentUpdateCidrs from './ScEnvironmentUpdateCidrs';
 import { enableEgressStore } from '../../../helpers/settings';
 import ScEnvironmentEgressStoreDetail from './ScEnvironmentEgressStoreDetail';
 
-const EGRESSING_STATUS_CODE = 'egressing';
+const PROCESSING_STATUS_CODE = 'PROCESSING';
 const WORKSPACE_TERMINATION_ERROR_MESSAGE =
   'Termination is NOT allowed. Your data transfer from egress store is still in progress. Please contact your Data Manager to confirm the data is transferred before you try to terminate the workspace again.';
 
@@ -57,16 +57,23 @@ class ScEnvironmentButtons extends React.Component {
   handleTerminate = async () => {
     if (enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE') {
       const egressStoreDetailsStore = this.getEgressStoreDetailsStore();
-      const isDataEgressing =
-        egressStoreDetailsStore.egressStoreStatus.toLowerCase() === EGRESSING_STATUS_CODE.toLowerCase();
-      if (!isDataEgressing) {
+      if (!egressStoreDetailsStore) {
         await this.handleAction(async () => {
           const store = this.envsStore;
           await store.terminateScEnvironment(this.environment.id);
         });
       } else {
-        // Do not allow user to terminate workspace if the data egressing is in process
-        displayError(WORKSPACE_TERMINATION_ERROR_MESSAGE);
+        const isDataEgressing =
+          egressStoreDetailsStore.egressStoreStatus.toLowerCase() === PROCESSING_STATUS_CODE.toLowerCase();
+        if (!isDataEgressing) {
+          await this.handleAction(async () => {
+            const store = this.envsStore;
+            await store.terminateScEnvironment(this.environment.id);
+          });
+        } else {
+          // Do not allow user to terminate workspace if the data egressing is in process
+          displayError(WORKSPACE_TERMINATION_ERROR_MESSAGE);
+        }
       }
     } else {
       await this.handleAction(async () => {

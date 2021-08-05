@@ -92,9 +92,9 @@ describe('ProvisionAccount', () => {
     it('AppStream: false', async () => {
       // BUILD
       step.settings = {
-        get: key => {
+        getBoolean: key => {
           if (key === 'isAppStreamEnabled') {
-            return 'false';
+            return false;
           }
           throw new Error('Unexpected key');
         },
@@ -116,9 +116,9 @@ describe('ProvisionAccount', () => {
     it('AppStream: true', async () => {
       // BUILD
       step.settings = {
-        get: key => {
+        getBoolean: key => {
           if (key === 'isAppStreamEnabled') {
-            return 'true';
+            return true;
           }
           throw new Error('Unexpected key');
         },
@@ -273,9 +273,9 @@ describe('ProvisionAccount', () => {
     it('AppStream: false', async () => {
       // BUILD
       step.settings = {
-        get: key => {
+        getBoolean: key => {
           if (key === 'isAppStreamEnabled') {
-            return 'false';
+            return false;
           }
           throw new Error('Unexpected key');
         },
@@ -351,9 +351,9 @@ describe('ProvisionAccount', () => {
     it('AppStream: true', async () => {
       // BUILD
       step.settings = {
-        get: key => {
+        getBoolean: key => {
           if (key === 'isAppStreamEnabled') {
-            return 'true';
+            return true;
           }
           throw new Error('Unexpected key');
         },
