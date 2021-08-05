@@ -25,8 +25,19 @@ describe('Get workflow instances scenarios', () => {
   let workflow;
   let instanceId;
 
+  async function newToken() {
+    const content = setup.settings.content;
+    setup.settings.content.adminIdToken = await getIdToken({
+      username: content.username,
+      password: content.password,
+      apiEndpoint: content.apiEndpoint,
+      authenticationProviderId: content.authenticationProviderId,
+    });
+  }
+
   beforeAll(async () => {
     setup = await runSetup();
+    await newToken();
 
     const content = setup.settings.content;
     setup.settings.content.adminIdToken = await getIdToken({
@@ -51,6 +62,7 @@ describe('Get workflow instances scenarios', () => {
   });
 
   afterAll(async () => {
+    await newToken();
     await setup.cleanup();
   });
 

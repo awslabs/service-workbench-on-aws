@@ -30,10 +30,7 @@ describe('Create workspace-service-catalog scenarios', () => {
   let setup;
   let adminSession;
   let productInfo;
-
-  beforeAll(async () => {
-    setup = await runSetup();
-
+  async function newToken() {
     const content = setup.settings.content;
     setup.settings.content.adminIdToken = await getIdToken({
       username: content.username,
@@ -41,6 +38,10 @@ describe('Create workspace-service-catalog scenarios', () => {
       apiEndpoint: content.apiEndpoint,
       authenticationProviderId: content.authenticationProviderId,
     });
+  }
+  beforeAll(async () => {
+    setup = await runSetup();
+    await newToken();
 
     adminSession = await setup.defaultAdminSession();
     productInfo = await createDefaultServiceCatalogProduct(setup);
@@ -49,6 +50,7 @@ describe('Create workspace-service-catalog scenarios', () => {
 
   afterAll(async () => {
     await deleteDefaultServiceCatalogProduct(setup, productInfo);
+    await newToken();
     await setup.cleanup();
   });
 
@@ -222,6 +224,8 @@ describe('Create workspace-service-catalog scenarios', () => {
         .versions('wf-provision-environment-sc')
         .version(1)
         .findAndPollWorkflow(env.id, 10000, 48);
+      await newToken();
+      await setup.cleanup();
     });
   });
 });
