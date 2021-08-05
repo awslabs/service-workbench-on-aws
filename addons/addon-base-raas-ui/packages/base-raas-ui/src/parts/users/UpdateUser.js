@@ -149,18 +149,6 @@ class UpdateUser extends React.Component {
       disabled: this.processing,
     });
 
-    const deleteButton =
-      // TODO: deletion actions should be confirmed by user first
-      this.view === 'detail'
-        ? makeButton({
-            label: 'Delete',
-            floated: 'right',
-            color: 'red',
-            onClick: this.handleDeleteClick,
-            disabled: currentUser.isRootUser || this.processing,
-          })
-        : '';
-
     const activeButton =
       this.props.user.status === 'pending' || this.props.user.status === 'inactive'
         ? makeButton({
@@ -191,7 +179,6 @@ class UpdateUser extends React.Component {
       <div className="mt4 mb4">
         <Modal.Actions>
           {cancelButton}
-          {deleteButton}
           {deactiveButton}
           {activeButton}
           {editButton}
@@ -378,19 +365,6 @@ class UpdateUser extends React.Component {
     } catch (error) {
       displayError(error);
     }
-  };
-
-  handleDeleteClick = async () => {
-    try {
-      this.processing = true;
-      await this.usersStore.deleteUser(this.getCurrentUser());
-    } catch (error) {
-      displayError(error);
-    }
-    runInAction(() => {
-      this.processing = false;
-    });
-    this.handleClose();
   };
 
   handleApproveDisapproveClick = async status => {

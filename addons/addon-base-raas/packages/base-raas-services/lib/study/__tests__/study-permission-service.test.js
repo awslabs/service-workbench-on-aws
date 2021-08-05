@@ -42,6 +42,7 @@ const { getEmptyUserPermissions } = require('../helpers/entities/user-permission
 describe('StudyPermissionService', () => {
   let service;
   let dbService;
+  let lockService;
 
   beforeEach(async () => {
     // Initialize services container and register dependencies
@@ -62,6 +63,7 @@ describe('StudyPermissionService', () => {
 
     service = await container.find('studyPermissionService');
     dbService = await container.find('dbService');
+    lockService = await container.find('lockService');
   });
 
   describe('findStudyPermissions', () => {
@@ -601,6 +603,73 @@ describe('StudyPermissionService', () => {
         // CHECK
         expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
+    });
+
+    it('should fail since the user id to add belongs to usersToAdd and fails assertValidUsers', async () => {
+      // BUILD
+      const uid = 'u-admin1';
+      const requestContext = {
+        principalIdentifier: { uid },
+        principal: { userRole: 'researcher', status: 'active' },
+      };
+      const studyEntity = {
+        id: 'study1',
+      };
+      const updateRequest = {
+        usersToAdd: [{ uid: 'uid-1', permissionLevel: 'readonly' }],
+        usersToRemove: [{ uid: 'uid-2', permissionLevel: 'readwrite' }],
+      };
+      lockService.tryWriteLockAndRun = jest.fn((params, callback) => callback());
+      service.findStudyPermissions = jest.fn().mockImplementationOnce(() => {
+        return {
+          adminUsers: ['u-admin1'],
+          readonlyUsers: [],
+          readwriteUsers: ['uid-2'],
+          writeonlyUsers: [],
+        };
+      });
+      service.assertValidUsers = jest.fn().mockImplementationOnce(() => {
+        throw Error('Invalid Users');
+      });
+      // OPERATE
+      await expect(service.update(requestContext, studyEntity, updateRequest)).rejects.toThrow(
+        // CHECK
+        expect.objectContaining({ message: 'Invalid Users' }),
+      );
+      expect(service.findStudyPermissions).toHaveBeenCalledWith(requestContext, studyEntity);
+      expect(service.findStudyPermissions).toHaveBeenCalledTimes(1);
+      expect(service.assertValidUsers).toHaveBeenCalledWith(['uid-1']);
+      expect(service.assertValidUsers).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not fail assertValidUsers check since invalid user is part of usersToRemove', async () => {
+      // BUILD
+      const uid = 'u-admin1';
+      const requestContext = {
+        principalIdentifier: { uid },
+        principal: { userRole: 'researcher', status: 'active' },
+      };
+      const studyEntity = {
+        id: 'study1',
+      };
+      const updateRequest = {
+        usersToAdd: [{ uid: 'uid-1', permissionLevel: 'readonly' }],
+        usersToRemove: [{ uid: 'uid-2', permissionLevel: 'readwrite' }],
+      };
+      lockService.tryWriteLockAndRun = jest.fn((params, callback) => callback());
+      service.findStudyPermissions = jest.fn().mockImplementationOnce(() => {
+        return {
+          adminUsers: ['u-admin1'],
+          readonlyUsers: [],
+          readwriteUsers: [],
+          writeonlyUsers: [],
+        };
+      });
+      service.assertValidUsers = jest.fn().mockImplementationOnce(() => {});
+      // OPERATE
+      await service.update(requestContext, studyEntity, updateRequest);
+      expect(service.findStudyPermissions).toHaveBeenCalledWith(requestContext, studyEntity);
+      expect(service.assertValidUsers).toHaveBeenCalledWith(['uid-1']);
     });
   });
 });

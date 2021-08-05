@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 /*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -13,8 +14,8 @@
  *  permissions and limitations under the License.
  */
 
+// const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
 const { runSetup } = require('../../../support/setup');
-
 const {
   createWorkspaceTypeAndConfiguration,
 } = require('../../../support/complex/create-workspace-type-and-configuration');
@@ -33,6 +34,7 @@ describe('Create workspace-service-catalog scenarios', () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
     productInfo = await createDefaultServiceCatalogProduct(setup);
+    jest.retryTimes(1);
   });
 
   afterAll(async () => {

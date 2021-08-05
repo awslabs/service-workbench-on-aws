@@ -35,6 +35,7 @@ domainName: host.domain.toplevel
 certificateArn: <ARN>
 ```
 **Note**: The current implementation assumes that DNS is handled elsewhere. A future improvement will automatically handle creation of the cert and Route 53 entries.
+**Note**: This is an optional step during Service Workbench installation.
 
 ### Namespace
 
@@ -47,6 +48,8 @@ The names of many deployed resources include a namespace string such as `mystage
 ### Prepare SDC configuration files
 
 Each SDC has a `config/settings` directory, where you can place customized settings. Settings files are named after the stage name `<mystagename.yml>`. Some of the SDC settings directories contain an `example.yml` file that may be copied and renamed as a settings file for that SDC. Otherwise, a default file `.defaults.yml` in that directory is read and used regardless of the stage name.
+
+**Note**: This is an optional step during Service Workbench installation.
 
 ### Accessing the Service Workbench source code
 
