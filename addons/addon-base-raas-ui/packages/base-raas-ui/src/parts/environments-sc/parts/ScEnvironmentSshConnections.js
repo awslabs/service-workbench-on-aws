@@ -129,6 +129,9 @@ class ScEnvironmentSshConnections extends React.Component {
             Connecting from Windows via Putty
           </List.Item>
         </List>
+        <div className="mt3">
+          In your browser, please allow popups for this domain so we can open the AppStream page in a new tab for you
+        </div>
       </Segment>
     );
   }

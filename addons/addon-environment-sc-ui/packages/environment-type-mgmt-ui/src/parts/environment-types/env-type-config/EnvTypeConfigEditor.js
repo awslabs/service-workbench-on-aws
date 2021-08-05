@@ -80,6 +80,7 @@ class EnvTypeConfigEditor extends React.Component {
     });
   }
 
+  // TODO: For config, if AppStream is not enabled, don't show AppStream related configs
   componentDidMount() {
     swallowError(this.stores.load());
   }
