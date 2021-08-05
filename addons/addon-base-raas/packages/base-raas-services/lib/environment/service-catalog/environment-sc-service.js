@@ -69,7 +69,6 @@ class EnvironmentScService extends Service {
     await super.init();
     const [dbService, environmentAuthzService] = await this.service(['dbService', 'environmentAuthzService']);
     const table = this.settings.get(settingKeys.tableName);
-    this.isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled) === 'true';
 
     this._getter = () => dbService.helper.getter().table(table);
     this._query = () => dbService.helper.query().table(table);
@@ -97,7 +96,7 @@ class EnvironmentScService extends Service {
         return environments.filter(env => isCurrentUser(requestContext, { uid: env.createdBy }));
       });
 
-    if (this.isAppStreamEnabled) {
+    if (this.isAppStreamEnabled()) {
       envs = await this.filterAppStreamProjectEnvs(requestContext, envs);
     }
 
@@ -328,7 +327,13 @@ class EnvironmentScService extends Service {
     return _.filter(envs, env => !_.includes(filterStatus, env.status) && !env.status.includes('FAILED'));
   }
 
-  async find(requestContext, { id, fields = [], fetchCidr = true }) {
+  async find(requestContext, { id, fields = [], fetchCidr }) {
+    // Define fetchCidr flag based on isAppStreamEnabled config rather than defaulting it to true
+    const isAppStreamEnabled = this.isAppStreamEnabled();
+    const computedFetchCidr = fetchCidr === undefined ? !isAppStreamEnabled : fetchCidr;
+    if (computedFetchCidr && isAppStreamEnabled) {
+      throw this.boom.badRequest(`CIDR operation unavailable when AppStream is enabled`, true);
+    }
     // Make sure 'createdBy' is always returned as that's required for authorizing the 'get' action
     // If empty "fields" is specified then it means the caller is asking for all fields. No need to append 'createdBy'
     // in that case.
@@ -357,7 +362,7 @@ class EnvironmentScService extends Service {
         ],
         env.status,
       ) &&
-      fetchCidr
+      computedFetchCidr
     ) {
       const { currentIngressRules } = await this.getSecurityGroupDetails(requestContext, env);
       env.cidr = currentIngressRules;
@@ -366,7 +371,7 @@ class EnvironmentScService extends Service {
     return toReturn;
   }
 
-  async mustFind(requestContext, { id, fields = [], fetchCidr = true }) {
+  async mustFind(requestContext, { id, fields = [], fetchCidr }) {
     const result = await this.find(requestContext, { id, fields, fetchCidr });
     if (!result) throw this.boom.notFound(`environment with id "${id}" does not exist`, true);
     return result;
@@ -390,6 +395,14 @@ class EnvironmentScService extends Service {
     // Validate input
     await validationService.ensureValid(environment, createSchema);
 
+    // If the AppStream feature is enabled, verify that update request doesn't include a cidr
+    if (this.isAppStreamEnabled()) {
+      if (environment.cidr) {
+        throw this.boom.badRequest('Cannot specify CIDR when AppStream is enabled', true);
+      }
+      delete environment.cidr;
+    }
+
     // Make sure the user has permissions to create the environment
     // The following will result in checking permissions by calling the condition function "this._allowAuthorized" first
     await this.assertAuthorized(
@@ -409,7 +422,7 @@ class EnvironmentScService extends Service {
     });
 
     // If the AppStream feature is enabled, verify the project linked to the environment has it configured
-    if (this.isAppStreamEnabled && !isAppStreamConfigured)
+    if (this.isAppStreamEnabled() && !isAppStreamConfigured)
       throw this.boom.badRequest('Please select an AppStream-configured project', true);
 
     // Save environment to db and trigger the workflow
@@ -469,7 +482,7 @@ class EnvironmentScService extends Service {
 
   async verifyAppStreamConfig(requestContext, projectId) {
     // If the AppStream feature is enabled, verify the project linked to the environment has it configured
-    if (this.isAppStreamEnabled) {
+    if (this.isAppStreamEnabled()) {
       const projectService = await this.service('projectService');
       // The isAppStreamConfigured attribute value will be returned by project service. indexId field is enough for filtering
       const { isAppStreamConfigured } = await projectService.mustFind(requestContext, {
@@ -1025,6 +1038,10 @@ class EnvironmentScService extends Service {
     });
 
     return { currentIngressRules: returnVal, securityGroupId };
+  }
+
+  isAppStreamEnabled() {
+    return this.settings.optionalBoolean(settingKeys.isAppStreamEnabled, false);
   }
 
   /**

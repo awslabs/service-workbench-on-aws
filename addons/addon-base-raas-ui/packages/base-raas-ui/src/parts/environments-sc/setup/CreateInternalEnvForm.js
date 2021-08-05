@@ -28,7 +28,7 @@ class CreateInternalEnvForm extends React.Component {
     runInAction(() => {
       this.form = getCreateInternalEnvForm({
         projectIdOptions: this.getProjectIdOptions(),
-        cidr: this.props.defaultCidr,
+        cidr: this.isAppStreamEnabled ? undefined : this.props.defaultCidr,
       });
     });
   }
@@ -148,7 +148,7 @@ class CreateInternalEnvForm extends React.Component {
 
   renderForm() {
     const form = this.form;
-    const askForCidr = !_.isUndefined(this.props.defaultCidr);
+    const askForCidr = !_.isUndefined(this.props.defaultCidr) && !this.isAppStreamEnabled;
     const configurations = this.configurations;
 
     // we show the AppStream configuration warning when the feature is enabled,

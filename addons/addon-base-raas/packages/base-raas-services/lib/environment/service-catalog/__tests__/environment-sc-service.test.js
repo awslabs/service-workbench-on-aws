@@ -73,6 +73,7 @@ describe('EnvironmentSCService', () => {
   let awsAccountsService = null;
   let aws = null;
   let storageGatewayService = null;
+  let settings = null;
   const error = { code: 'ConditionalCheckFailedException' };
   beforeEach(async () => {
     const container = new ServicesContainer();
@@ -106,6 +107,7 @@ describe('EnvironmentSCService', () => {
     wfService = await container.find('workflowTriggerService');
     aws = await container.find('aws');
     storageGatewayService = await container.find('storageGatewayService');
+    settings = await container.find('settings');
 
     // Skip authorization by default
     service.assertAuthorized = jest.fn();
@@ -121,9 +123,87 @@ describe('EnvironmentSCService', () => {
       return { roleArn: 'cfnExecutionRole', externalId: 'roleExternalId' };
     });
     service._fromRawToDbObject = jest.fn(x => x);
+    settings.optionalBoolean = jest.fn((key, defaultBoolean) => {
+      if (key === 'isAppStreamEnabled') {
+        return false;
+      }
+      return defaultBoolean;
+    });
   });
 
   describe('create function', () => {
+    it('should fail create since CIDR info is included when AppStream is enabled', async () => {
+      // BUILD
+      settings.optionalBoolean = jest.fn((key, defaultBoolean) => {
+        if (key === 'isAppStreamEnabled') {
+          return true;
+        }
+        return defaultBoolean;
+      });
+      const requestContext = {
+        principal: {
+          isExternalUser: false,
+        },
+      };
+      const newEnv = {
+        name: 'exampleName',
+        envTypeId: 'exampleETI',
+        envTypeConfigId: 'exampleETCI',
+        cidr: '0.0.0.0/32',
+      };
+
+      // OPERATE
+      try {
+        await service.create(requestContext, newEnv);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(service.boom.is(err, 'badRequest')).toBe(true);
+        expect(err.message).toBe('Cannot specify CIDR when AppStream is enabled');
+        expect(settings.optionalBoolean).toHaveBeenCalledTimes(1);
+        expect(settings.optionalBoolean).toHaveBeenCalledWith('isAppStreamEnabled', false);
+      }
+    });
+
+    it('should succeed create if environment has undefined cidr and AppStream is enabled', async () => {
+      // BUILD
+      settings.optionalBoolean = jest.fn((key, defaultBoolean) => {
+        if (key === 'isAppStreamEnabled') {
+          return true;
+        }
+        return defaultBoolean;
+      });
+      projectService.mustFind = jest.fn(() => {
+        return { indexId: 'testIndex', isAppStreamConfigured: true };
+      });
+      const requestContext = {
+        principal: {
+          isExternalUser: false,
+        },
+      };
+      const newEnv = {
+        name: 'exampleName',
+        envTypeId: 'exampleETI',
+        envTypeConfigId: 'exampleETCI',
+        cidr: undefined,
+      };
+      service.audit = jest.fn();
+      wfService.triggerWorkflow = jest.fn();
+
+      // OPERATE
+      await service.create(requestContext, newEnv);
+
+      // CHECK
+      expect(service.audit).toHaveBeenCalledWith(
+        requestContext,
+        expect.objectContaining({ action: 'create-environment-sc' }),
+      );
+      expect(wfService.triggerWorkflow).toHaveBeenCalled();
+      expect(settings.optionalBoolean).toHaveBeenCalledTimes(2);
+      expect(projectService.mustFind).toHaveBeenCalledTimes(1);
+      expect(settings.optionalBoolean).toHaveBeenCalledWith('isAppStreamEnabled', false);
+      expect('cidr' in newEnv).toBe(false);
+    });
+
     it('should fail because the user is external', async () => {
       // BUILD
       const requestContext = {
@@ -280,7 +360,7 @@ describe('EnvironmentSCService', () => {
       await service.mustFind(requestContext, { id: 'oldId' });
 
       // CHECK
-      expect(service.find).toHaveBeenCalledWith(requestContext, { id: 'oldId', fields: [], fetchCidr: true });
+      expect(service.find).toHaveBeenCalledWith(requestContext, { id: 'oldId', fields: [] });
     });
 
     it('verify mustFind with fetchCidr', async () => {
@@ -306,6 +386,86 @@ describe('EnvironmentSCService', () => {
 
       // CHECK
       expect(service.find).toHaveBeenCalledWith(requestContext, { id: 'oldId', fields: [], fetchCidr: false });
+    });
+
+    it('verify error is thrown when AppStream is enabled and fetchCidr is true', async () => {
+      // BUILD
+      settings.optionalBoolean = jest.fn((key, defaultBoolean) => {
+        if (key === 'isAppStreamEnabled') {
+          return true;
+        }
+        return defaultBoolean;
+      });
+      const uid = 'u-12345';
+      const requestContext = { principalIdentifier: { uid } };
+
+      const env = {
+        status: 'COMPLETED',
+        id: 'oldId',
+        name: 'exampleName',
+        envTypeId: 'exampleETI',
+        envTypeConfigId: 'exampleETCI',
+        updatedBy: {
+          username: 'user',
+        },
+        studyIds: ['study1', 'study2'],
+      };
+      service.audit = jest.fn();
+      service.getSecurityGroupDetails = jest.fn();
+      dbService.table.get.mockReturnValueOnce(env);
+
+      // OPERATE
+      try {
+        await service.find(requestContext, { id: 'oldId', fetchCidr: true });
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(service.boom.is(err, 'badRequest')).toBe(true);
+        expect(err.message).toBe('CIDR operation unavailable when AppStream is enabled');
+        expect(service.getSecurityGroupDetails).not.toHaveBeenCalled();
+        expect(settings.optionalBoolean).toHaveBeenCalledTimes(1);
+        expect(settings.optionalBoolean).toHaveBeenCalledWith('isAppStreamEnabled', false);
+      }
+    });
+
+    it('verify getSecurityGroupDetails not called when AppStream is enabled and fetchCidr is undefined', async () => {
+      // BUILD
+      settings.optionalBoolean = jest.fn((key, defaultBoolean) => {
+        if (key === 'isAppStreamEnabled') {
+          return true;
+        }
+        return defaultBoolean;
+      });
+      const uid = 'u-12345';
+      const requestContext = { principalIdentifier: { uid } };
+
+      const env = {
+        status: 'COMPLETED',
+        id: 'oldId',
+        name: 'exampleName',
+        envTypeId: 'exampleETI',
+        envTypeConfigId: 'exampleETCI',
+        updatedBy: {
+          username: 'user',
+        },
+        studyIds: ['study1', 'study2'],
+      };
+      service.audit = jest.fn();
+      service.getSecurityGroupDetails = jest.fn();
+      dbService.table.get.mockReturnValueOnce(env);
+
+      // OPERATE
+      await service.find(requestContext, { id: 'oldId' });
+
+      // CHECK
+      expect(service.getSecurityGroupDetails).not.toHaveBeenCalled();
+      expect(service.assertAuthorized).toHaveBeenCalledWith(
+        requestContext,
+        expect.objectContaining({ action: 'get-sc', conditions: [service._allowAuthorized] }),
+        env,
+      );
+      expect(settings.optionalBoolean).toHaveBeenCalledTimes(1);
+      expect(settings.optionalBoolean).toHaveBeenCalledWith('isAppStreamEnabled', false);
     });
 
     it('verify getSecurityGroupDetails not called when fetchCidr is false', async () => {

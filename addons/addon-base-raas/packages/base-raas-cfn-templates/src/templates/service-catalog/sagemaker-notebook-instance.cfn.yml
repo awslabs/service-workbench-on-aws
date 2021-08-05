@@ -21,7 +21,8 @@ Parameters:
     Type: AWS::EC2::Subnet::Id
   AccessFromCIDRBlock:
     Type: String
-    Description: The CIDR used to access sagemaker.
+    Description: The CIDR used to access sagemaker. This parameter is only required when AppStream is disabled
+    Default: 10.0.0.0/19
   S3Mounts:
     Type: String
     Description: A JSON array of objects with name, bucket and prefix properties used to mount data
@@ -60,6 +61,9 @@ Resources:
       VpcId:
         Ref: VPC
       SecurityGroupIngress:
+        !If
+        - AppStreamEnabled
+        - !Ref 'AWS::NoValue'
         - IpProtocol: tcp
           FromPort: 443
           ToPort: 443
