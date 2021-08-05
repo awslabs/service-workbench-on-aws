@@ -30,7 +30,6 @@ describe('EC2 Linux scenarios', () => {
       apiEndpoint: content.apiEndpoint,
       authenticationProviderId: content.authenticationProviderId,
     });
-    console.log(setup.settings.content.adminIdToken);
   }
   async function testSetup() {
     const adminSession = await setup.createAdminSession();
