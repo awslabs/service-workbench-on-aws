@@ -1438,6 +1438,91 @@ describe('EnvironmentSCService', () => {
   });
 
   describe('getSecurityGroupDetails function', () => {
+    it('should send filtered security group rules as expected for AppStream template', async () => {
+      // BUILD
+      const requestContext = {};
+      const stackArn = 'sampleCloudFormationStackArn';
+      const environment = {
+        outputs: [{ OutputKey: 'CloudformationStackARN', OutputValue: `<AwsAccountRoot>/${stackArn}` }],
+        status: 'COMPLETED',
+      };
+      const origSecurityGroupId = 'sampleSecurityGroupId';
+      const stackResources = {
+        StackResourceSummaries: [{ LogicalResourceId: 'SecurityGroup', PhysicalResourceId: origSecurityGroupId }],
+      };
+      const templateDetails = {
+        TemplateBody: YAML.dump({
+          Resources: {
+            SecurityGroup: {
+              Properties: {
+                SecurityGroupIngress: [
+                  {
+                    'Fn::If': [
+                      'AppStreamEnabled',
+                      {
+                        CidrIp: {
+                          Ref: 'AccessFromCIDRBlock',
+                        },
+                        IpProtocol: 'tcp',
+                        FromPort: 1,
+                        ToPort: 1,
+                      },
+                      {
+                        IpProtocol: 'tcp',
+                        FromPort: 123,
+                        ToPort: 123,
+                        CidrIp: {
+                          Ref: 'AccessFromCIDRBlock',
+                        },
+                      },
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+        }),
+      };
+      const workspaceIngressRules = [
+        {
+          IpProtocol: 'tcp',
+          FromPort: 123,
+          ToPort: 123,
+          IpRanges: [{ CidrIp: '123.123.123.123/32' }],
+        },
+        {
+          IpProtocol: 'tcp',
+          FromPort: 1,
+          ToPort: 1,
+          IpRanges: [{ CidrIp: '123.123.123.123/32' }],
+        },
+      ];
+      service.getCfnDetails = jest.fn(() => {
+        return { stackResources, templateDetails };
+      });
+      service.getWorkspaceSecurityGroup = jest.fn(() => {
+        return { securityGroupResponse: { SecurityGroups: [{ IpPermissions: workspaceIngressRules }] } };
+      });
+      const expectedOutcome = [
+        {
+          protocol: 'tcp',
+          fromPort: 123,
+          toPort: 123,
+          cidrBlocks: ['123.123.123.123/32'],
+        },
+      ];
+
+      // OPERATE
+      const { currentIngressRules, securityGroupId } = await service.getSecurityGroupDetails(
+        requestContext,
+        environment,
+      );
+
+      // CHECK
+      expect(currentIngressRules).toMatchObject(expectedOutcome);
+      expect(securityGroupId).toEqual(origSecurityGroupId);
+    });
+
     it('should send filtered security group rules as expected', async () => {
       // BUILD
       const requestContext = {};

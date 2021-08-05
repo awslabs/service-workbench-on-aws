@@ -61,13 +61,13 @@ Resources:
       VpcId:
         Ref: VPC
       SecurityGroupIngress:
-        !If
-        - AppStreamEnabled
-        - !Ref 'AWS::NoValue'
-        - IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
-          CidrIp: !Ref AccessFromCIDRBlock
+        - !If
+          - AppStreamEnabled
+          - !Ref "AWS::NoValue"
+          - IpProtocol: tcp
+            FromPort: 443
+            ToPort: 443
+            CidrIp: !Ref AccessFromCIDRBlock
 
   PreSignedURLBoundary:
     Type: AWS::IAM::ManagedPolicy

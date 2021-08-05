@@ -1020,19 +1020,23 @@ class EnvironmentScService extends Service {
 
     // Only send back details of groups configured by the SC CFN stack
     const returnVal = _.map(cfnTemplateIngressRules, cfnRule => {
+      let ruleToUse = cfnRule;
+      if ('Fn::If' in cfnRule && cfnRule['Fn::If'][0] === 'AppStreamEnabled') {
+        ruleToUse = cfnRule['Fn::If'][2];
+      }
       const matchingRule = _.find(
         workspaceIngressRules,
         workspaceRule =>
-          cfnRule.FromPort === workspaceRule.FromPort &&
-          cfnRule.ToPort === workspaceRule.ToPort &&
-          cfnRule.IpProtocol === workspaceRule.IpProtocol,
+          ruleToUse.FromPort === workspaceRule.FromPort &&
+          ruleToUse.ToPort === workspaceRule.ToPort &&
+          ruleToUse.IpProtocol === workspaceRule.IpProtocol,
       );
       const currentCidrRanges = matchingRule ? _.map(matchingRule.IpRanges, ipRange => ipRange.CidrIp) : [];
 
       return {
-        fromPort: cfnRule.FromPort,
-        toPort: cfnRule.ToPort,
-        protocol: cfnRule.IpProtocol,
+        fromPort: ruleToUse.FromPort,
+        toPort: ruleToUse.ToPort,
+        protocol: ruleToUse.IpProtocol,
         cidrBlocks: currentCidrRanges,
       };
     });
