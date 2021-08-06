@@ -46,13 +46,14 @@ const createBaseAwsAccountFormFields = {
 const createAwsAccountAppStreamFormFields = {
   appStreamFleetDesiredInstances: {
     label: 'AppStream Fleet Desired Instance',
-    placeholder: 'Number of users that can concurrently access a workspace through AppStream',
+    placeholder:
+      'Maximum number of concurrently running AppStream sessions. Each researcher uses one AppStream session when viewing a workspace',
     rules: 'required|integer',
   },
   appStreamDisconnectTimeoutSeconds: {
     label: 'AppStreamDisconnectTimeoutSeconds',
-    placeholder: 'The amount of time that a streaming session remains active after users disconnect',
-    rules: 'required|integer',
+    placeholder: 'The amount of time that a streaming session remains active after users disconnect.  (Minimum of 60)',
+    rules: ['required', 'integer', 'min:60'],
   },
   appStreamIdleDisconnectTimeoutSeconds: {
     label: 'AppStreamIdleDisconnectTimeoutSeconds',
