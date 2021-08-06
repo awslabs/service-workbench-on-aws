@@ -33,15 +33,18 @@ import { createForm } from '@aws-ee/base-ui/dist/helpers/form';
  * @param existingParamValues Array containing key/value pairs for existing values for the params. Has the shape [{key,value}]
  */
 function getCfnParamsForm(cfnParams, existingParamValues) {
+  const isAppStreamEnabled = process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true';
   const fields = {};
   _.forEach(cfnParams, ({ ParameterKey, Description, DefaultValue }) => {
     const existingValue = _.get(_.find(existingParamValues, { key: ParameterKey }), 'value') || DefaultValue;
-    fields[ParameterKey] = {
-      label: ParameterKey,
-      extra: { explain: Description },
-      value: existingValue,
-      rules: 'required',
-    };
+    if (!isAppStreamEnabled || (isAppStreamEnabled && !(ParameterKey === 'AccessFromCIDRBlock'))) {
+      fields[ParameterKey] = {
+        label: ParameterKey,
+        extra: { explain: Description },
+        value: existingValue,
+        rules: 'required',
+      };
+    }
   });
   return createForm(fields);
 }
