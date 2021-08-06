@@ -40,7 +40,6 @@ class InputParamsStep extends BaseEnvTypeConfigStep {
         // Create and save the cfn params form outside of the component (in session store)
         // to make sure the form values are not wiped out on unmount
         // without this if the user clicks next and then previous all entered values will be wiped
-
         cfnParamsForm = getCfnParamsForm(cfnParams, existingParamValues);
         sessionStore.set(key, cfnParamsForm);
       }

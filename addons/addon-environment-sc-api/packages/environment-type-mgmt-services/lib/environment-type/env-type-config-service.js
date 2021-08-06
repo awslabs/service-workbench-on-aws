@@ -248,17 +248,17 @@ class EnvTypeConfigService extends Service {
       value: isAppStreamEnabled.toString(),
     });
     let params = [...updatedConfig.params];
-    if (!isAppStreamEnabled) {
+    if (isAppStreamEnabled) {
+      params.push({
+        key: 'AccessFromCIDRBlock',
+        value: '',
+      });
+    } else {
       params = [
         ...params,
         { key: 'EgressStoreIamPolicyDocument', value: '{}' },
         { key: 'SolutionNamespace', value: '' },
       ];
-    } else {
-      params.push({
-        key: 'AccessFromCIDRBlock',
-        value: '',
-      });
     }
     updatedConfig.params = params;
     // Make sure the specified configuration has params mapping specified for
