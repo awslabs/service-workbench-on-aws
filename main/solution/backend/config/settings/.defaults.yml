@@ -295,7 +295,7 @@ egressStoreKmsKeyAliasArn: arn:aws:kms:${self:custom.settings.awsRegion}:${self:
 
 # The statement ID in the generated KMS key's key policy that controls which workspaces
 #   can decrypt data in the egress store data bucket
-egressStoreKmsPolicyWorkspaceSid: Allow workspace environments to CRUD egress data
+egressStoreKmsPolicyWorkspaceSid: Allow workspace environments to access egress data
 
 # The name of the IAM role created for the Lambda egressStoreObjectsHandler
 egressStoreObjectHandlerRoleName: ${self:custom.settings.namespace}-EgressStoreObject
