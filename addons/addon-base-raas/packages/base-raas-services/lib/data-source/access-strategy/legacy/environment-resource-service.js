@@ -34,6 +34,10 @@ const settingKeys = {
   studyDataBucketName: 'studyDataBucketName',
   studyDataKmsKeyArn: 'studyDataKmsKeyArn',
   studyDataKmsPolicyWorkspaceSid: 'studyDataKmsPolicyWorkspaceSid',
+  enableEgressStore: 'enableEgressStore',
+  egressStoreBucketName: 'egressStoreBucketName',
+  egressStoreKmsKeyArn: 'egressStoreKmsKeyArn',
+  egressStoreKmsPolicyWorkspaceSid: 'egressStoreKmsPolicyWorkspaceSid',
 };
 
 /**
@@ -307,6 +311,13 @@ class EnvironmentResourceService extends Service {
   async addToKmsKeyPolicy(requestContext, memberAccountId) {
     await this.updateKMSPolicy(environmentStatement => addAccountToStatement(environmentStatement, memberAccountId));
 
+    const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
+    if (enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE') {
+      await this.updateEgressKMSPolicy(environmentStatement =>
+        addAccountToStatement(environmentStatement, memberAccountId),
+      );
+    }
+
     // Write audit event
     await this.audit(requestContext, { action: 'add-to-KmsKey-policy', body: memberAccountId });
   }
@@ -316,6 +327,13 @@ class EnvironmentResourceService extends Service {
     await this.updateKMSPolicy(environmentStatement =>
       removeAccountFromStatement(environmentStatement, memberAccountId),
     );
+
+    const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
+    if (enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE') {
+      await this.updateEgressKMSPolicy(environmentStatement =>
+        removeAccountFromStatement(environmentStatement, memberAccountId),
+      );
+    }
 
     // Write audit event
     await this.audit(requestContext, { action: 'add-to-KmsKey-policy', body: memberAccountId });
@@ -387,6 +405,47 @@ class EnvironmentResourceService extends Service {
 
     // Get statement
     const sid = this.settings.get(settingKeys.studyDataKmsPolicyWorkspaceSid);
+    if (!kmsPolicy.Statement) {
+      kmsPolicy.Statement = [];
+    }
+    let environmentStatement = kmsPolicy.Statement.find(statement => statement.Sid === sid);
+    if (!environmentStatement) {
+      // Create new statement if it doesn't already exist
+      environmentStatement = {
+        Sid: sid,
+        Effect: 'Allow',
+        Principal: { AWS: [] },
+        Action: ['kms:Encrypt', 'kms:Decrypt', 'kms:ReEncrypt*', 'kms:GenerateDataKey*', 'kms:DescribeKey'],
+        Resource: '*', // Only refers to this key since it's a resource policy
+      };
+    }
+
+    // Update policy
+    environmentStatement = await updateStatementFn(environmentStatement);
+
+    // remove the old statement from KMS policy
+    kmsPolicy.Statement = kmsPolicy.Statement.filter(statement => statement.Sid !== sid);
+
+    // add the revised statement if it contains principals (otherwise leave it out)
+    if (environmentStatement.Principal.AWS.length > 0) {
+      kmsPolicy.Statement.push(environmentStatement);
+    }
+    await kmsClient.putKeyPolicy({ KeyId: keyId, PolicyName: 'default', Policy: JSON.stringify(kmsPolicy) }).promise();
+  }
+
+  // @private
+  async updateEgressKMSPolicy(updateStatementFn) {
+    const kmsClient = await this.getKMS();
+    const kmsKeyAlias = this.settings.get(settingKeys.egressStoreKmsKeyArn);
+    const keyId = (await kmsClient.describeKey({ KeyId: kmsKeyAlias }).promise()).KeyMetadata.KeyId;
+
+    // Get existing policy
+    const kmsPolicy = JSON.parse(
+      (await kmsClient.getKeyPolicy({ KeyId: keyId, PolicyName: 'default' }).promise()).Policy,
+    );
+
+    // Get statement
+    const sid = this.settings.get(settingKeys.egressStoreKmsPolicyWorkspaceSid);
     if (!kmsPolicy.Statement) {
       kmsPolicy.Statement = [];
     }
