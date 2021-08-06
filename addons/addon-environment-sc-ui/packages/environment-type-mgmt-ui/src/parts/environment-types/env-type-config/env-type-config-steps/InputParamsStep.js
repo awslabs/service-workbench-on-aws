@@ -36,7 +36,6 @@ class InputParamsStep extends BaseEnvTypeConfigStep {
       const keyPrefix = this.props.wizardTempStoreKeyPrefix;
       const key = `${keyPrefix}-InputParamsStep`;
       let cfnParamsForm = sessionStore.get(key);
-      console.log('cfnParamsForm before', cfnParamsForm);
       if (!cfnParamsForm) {
         // Create and save the cfn params form outside of the component (in session store)
         // to make sure the form values are not wiped out on unmount
@@ -47,7 +46,6 @@ class InputParamsStep extends BaseEnvTypeConfigStep {
         sessionStore.set(key, cfnParamsForm);
       }
 
-      console.log('cfnParamsForm before', cfnParamsForm);
       this.cfnParamsForm = cfnParamsForm;
     });
   }
@@ -99,7 +97,6 @@ class InputParamsStep extends BaseEnvTypeConfigStep {
     const fields = [];
     form.each(field => fields.push(field));
     // TODO: For config, if AppStream is not enabled, don't show AppStream related configs
-    console.log('fields', fields);
     return _.map(fields, field => {
       // if custom literal value was entered instead of selecting from available config vars then field's value may not
       // be in the available options so adding an option for field.value (without this custom drop down values will not
