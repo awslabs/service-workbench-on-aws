@@ -3,7 +3,7 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 
 choco install -y putty.install
 
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/nguyen102/service-workbench-on-aws/tre-bugfixes/scripts/app-stream/ec2linux.ps1 -OutFile 'C:\Users\Public\Documents\EC2Linux.ps1'
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/awslabs/service-workbench-on-aws/feat-secure-workspace-egress/scripts/app-stream/ec2linux.ps1 -OutFile 'C:\Users\Public\Documents\EC2Linux.ps1'
 
 # Prepare remote desktop script with arguments
 Set-Content C:\Users\public\Documents\MicrosoftRemoteDesktop.ps1 "mstsc /f /v:`"`$env:APPSTREAM_SESSION_CONTEXT`":3389"

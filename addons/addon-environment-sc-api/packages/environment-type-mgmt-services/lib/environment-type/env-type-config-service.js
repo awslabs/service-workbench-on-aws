@@ -247,14 +247,20 @@ class EnvTypeConfigService extends Service {
       key: 'IsAppStreamEnabled',
       value: isAppStreamEnabled.toString(),
     });
+    let params = [...updatedConfig.params];
     if (!isAppStreamEnabled) {
-      const params = [
-        ...updatedConfig.params,
+      params = [
+        ...params,
         { key: 'EgressStoreIamPolicyDocument', value: '{}' },
         { key: 'SolutionNamespace', value: '' },
       ];
-      updatedConfig.params = params;
+    } else {
+      params.push({
+        key: 'AccessFromCIDRBlock',
+        value: '',
+      });
     }
+    updatedConfig.params = params;
     // Make sure the specified configuration has params mapping specified for
     // all non-default CFN input params for the given env type
     await this.assertNoMissingParams(envType, updatedConfig);

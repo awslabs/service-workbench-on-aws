@@ -41,7 +41,6 @@ class InputParamsStep extends BaseEnvTypeConfigStep {
         // to make sure the form values are not wiped out on unmount
         // without this if the user clicks next and then previous all entered values will be wiped
 
-        // TODO: cfnParams get set here
         cfnParamsForm = getCfnParamsForm(cfnParams, existingParamValues);
         sessionStore.set(key, cfnParamsForm);
       }
@@ -96,7 +95,6 @@ class InputParamsStep extends BaseEnvTypeConfigStep {
 
     const fields = [];
     form.each(field => fields.push(field));
-    // TODO: For config, if AppStream is not enabled, don't show AppStream related configs
     return _.map(fields, field => {
       // if custom literal value was entered instead of selecting from available config vars then field's value may not
       // be in the available options so adding an option for field.value (without this custom drop down values will not
