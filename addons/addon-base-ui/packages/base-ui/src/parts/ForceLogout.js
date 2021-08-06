@@ -66,7 +66,7 @@ class ForceLogout extends React.Component {
 
   clearInterval() {
     if (!_.isUndefined(this.intervalId)) {
-      clearInterval();
+      clearInterval(this.intervalId);
       this.intervalId = undefined;
     }
     this.tokenActive = true;
