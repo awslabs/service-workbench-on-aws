@@ -73,7 +73,6 @@ class WorkflowVersion extends Resource {
         .get();
     } while (result.wfStatus !== 'done' && result.wfStatus !== 'error' && counter < maxIntervalCount);
     if (result.wfStatus === 'error' || counter === maxIntervalCount) {
-      console.log(result);
       throw new Error('Workflow failed to complete');
     }
   }

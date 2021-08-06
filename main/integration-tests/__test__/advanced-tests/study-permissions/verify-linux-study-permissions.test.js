@@ -21,6 +21,7 @@ const { getIdToken } = require('../../../support/utils/id-token');
 describe('EC2 Linux scenarios', () => {
   let setup;
   let ssh;
+  // Obtains new global token to prevent mid-test expiration
   async function newToken() {
     const content = setup.settings.content;
     setup.settings.content.adminIdToken = await getIdToken({
@@ -91,7 +92,6 @@ describe('EC2 Linux scenarios', () => {
       // Mount studies
       let output;
       output = await mountStudies(ssh, studyId);
-      // console.log(`STDOUT:\n${output.stdout}\n\nSTDERR:\n${output.stderr}`);
 
       // Readwrite permission level
       output = await readWrite(ssh, studyId);
