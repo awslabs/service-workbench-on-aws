@@ -17,6 +17,7 @@ const _ = require('lodash');
 
 const { runSetup } = require('../../../support/setup');
 const errorCode = require('../../../support/utils/error-code');
+const { getIdToken } = require('../../../support/utils/id-token');
 
 describe('Get workflow instances scenarios', () => {
   let setup;
@@ -24,8 +25,20 @@ describe('Get workflow instances scenarios', () => {
   let workflow;
   let instanceId;
 
+  async function newToken() {
+    const content = setup.settings.content;
+    setup.settings.content.adminIdToken = await getIdToken({
+      username: content.username,
+      password: content.password,
+      apiEndpoint: content.apiEndpoint,
+      authenticationProviderId: content.authenticationProviderId,
+    });
+  }
+
   beforeAll(async () => {
     setup = await runSetup();
+    await newToken();
+
     adminSession = await setup.defaultAdminSession();
     const workflowId = setup.gen.string({ prefix: 'get-wf-instances-test' });
     workflow = await adminSession.resources.workflows.versions(workflowId).create();
@@ -41,6 +54,7 @@ describe('Get workflow instances scenarios', () => {
   });
 
   afterAll(async () => {
+    await newToken();
     await setup.cleanup();
   });
 
