@@ -9,7 +9,7 @@ import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
 
 import ScEnvironmentConnections from './ScEnvironmentConnections';
 import ScEnvironmentUpdateCidrs from './ScEnvironmentUpdateCidrs';
-import { enableEgressStore } from '../../../helpers/settings';
+import { enableEgressStore, isAppStreamEnabled } from '../../../helpers/settings';
 import ScEnvironmentEgressStoreDetail from './ScEnvironmentEgressStoreDetail';
 
 const PROCESSING_STATUS_CODE = 'PROCESSING';
@@ -212,7 +212,7 @@ class ScEnvironmentButtons extends React.Component {
               View Detail
             </Button>
           )}
-          {state.canTerminate && !state.key.includes('FAILED') && (
+          {!isAppStreamEnabled && state.canTerminate && !state.key.includes('FAILED') && (
             <Button
               floated="left"
               basic

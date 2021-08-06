@@ -51,12 +51,14 @@ function getCfnParamsForm(cfnParams, existingParamValues) {
   const fields = {};
   filteredCfnParams.forEach(({ ParameterKey, Description, DefaultValue }) => {
     const existingValue = _.get(_.find(existingParamValues, { key: ParameterKey }), 'value') || DefaultValue;
-    fields[ParameterKey] = {
-      label: ParameterKey,
-      extra: { explain: Description },
-      value: existingValue,
-      rules: 'required',
-    };
+    if (!isAppStreamEnabled || (isAppStreamEnabled && !(ParameterKey === 'AccessFromCIDRBlock'))) {
+      fields[ParameterKey] = {
+        label: ParameterKey,
+        extra: { explain: Description },
+        value: existingValue,
+        rules: 'required',
+      };
+    }
   });
   return createForm(fields);
 }

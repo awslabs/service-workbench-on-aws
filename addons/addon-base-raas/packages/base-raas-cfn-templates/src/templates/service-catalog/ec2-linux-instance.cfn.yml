@@ -23,6 +23,7 @@ Parameters:
   AccessFromCIDRBlock:
     Type: String
     Description: The CIDR used to access the ec2 instances.
+    Default: 10.0.0.0/19
   S3Mounts:
     Type: String
     Description: A JSON array of objects with name, bucket, and prefix properties used to mount data
@@ -137,10 +138,13 @@ Resources:
           FromPort: 0
           ToPort: 65535
           CidrIp: 0.0.0.0/0
-        - IpProtocol: icmp
-          FromPort: -1
-          ToPort: -1
-          CidrIp: !Ref AccessFromCIDRBlock
+        - !If
+          - AppStreamEnabled
+          - !Ref "AWS::NoValue"
+          - IpProtocol: icmp
+            FromPort: -1
+            ToPort: -1
+            CidrIp: !Ref AccessFromCIDRBlock
         - !If
           - AppStreamEnabled
           - DestinationSecurityGroupId:
@@ -148,24 +152,29 @@ Resources:
             IpProtocol: '-1'
           - !Ref "AWS::NoValue"
       SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
-          CidrIp: !Ref AccessFromCIDRBlock
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: !Ref AccessFromCIDRBlock
-        - IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
-          CidrIp: !Ref AccessFromCIDRBlock
         - !If
           - AppStreamEnabled
           - SourceSecurityGroupId:
               Fn::ImportValue: !Sub "${SolutionNamespace}-SwbAppStreamSG"
             IpProtocol: '-1'
+          - IpProtocol: tcp
+            FromPort: 22
+            ToPort: 22
+            CidrIp: !Ref AccessFromCIDRBlock
+        - !If
+          - AppStreamEnabled
           - !Ref "AWS::NoValue"
+          - IpProtocol: tcp
+            FromPort: 80
+            ToPort: 80
+            CidrIp: !Ref AccessFromCIDRBlock
+        - !If
+          - AppStreamEnabled
+          - !Ref "AWS::NoValue"
+          - IpProtocol: tcp
+            FromPort: 443
+            ToPort: 443
+            CidrIp: !Ref AccessFromCIDRBlock
       Tags:
         - Key: Name
           Value: !Join ['-', [Ref: Namespace, 'ec2-sg']]
