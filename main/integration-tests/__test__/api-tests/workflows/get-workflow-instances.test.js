@@ -39,14 +39,6 @@ describe('Get workflow instances scenarios', () => {
     setup = await runSetup();
     await newToken();
 
-    const content = setup.settings.content;
-    setup.settings.content.adminIdToken = await getIdToken({
-      username: content.username,
-      password: content.password,
-      apiEndpoint: content.apiEndpoint,
-      authenticationProviderId: content.authenticationProviderId,
-    });
-
     adminSession = await setup.defaultAdminSession();
     const workflowId = setup.gen.string({ prefix: 'get-wf-instances-test' });
     workflow = await adminSession.resources.workflows.versions(workflowId).create();
