@@ -14,7 +14,7 @@
  *  permissions and limitations under the License.
  */
 
-// const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
+const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
 const { runSetup } = require('../../../support/setup');
 const {
   createWorkspaceTypeAndConfiguration,
@@ -24,14 +24,25 @@ const {
   deleteDefaultServiceCatalogProduct,
 } = require('../../../support/complex/default-integration-test-product');
 const errorCode = require('../../../support/utils/error-code');
+const { getIdToken } = require('../../../support/utils/id-token');
 
 describe('Create workspace-service-catalog scenarios', () => {
   let setup;
   let adminSession;
   let productInfo;
-
+  async function newToken() {
+    const content = setup.settings.content;
+    setup.settings.content.adminIdToken = await getIdToken({
+      username: content.username,
+      password: content.password,
+      apiEndpoint: content.apiEndpoint,
+      authenticationProviderId: content.authenticationProviderId,
+    });
+  }
   beforeAll(async () => {
     setup = await runSetup();
+    await newToken();
+
     adminSession = await setup.defaultAdminSession();
     productInfo = await createDefaultServiceCatalogProduct(setup);
     jest.retryTimes(1);
@@ -39,6 +50,7 @@ describe('Create workspace-service-catalog scenarios', () => {
 
   afterAll(async () => {
     await deleteDefaultServiceCatalogProduct(setup, productInfo);
+    await newToken();
     await setup.cleanup();
   });
 
@@ -166,6 +178,54 @@ describe('Create workspace-service-catalog scenarios', () => {
         envTypeId: workspaceTypeId,
         envTypeConfigId: configurationId,
       });
+    });
+  });
+  describe('Workspace SC env with studies', () => {
+    it('for EC2Linux should provision correctly', async () => {
+      const admin1Session = await setup.createAdminSession();
+
+      const studyIds = [];
+      let studyId = setup.gen.string({ prefix: `create-study-ray-my-study` });
+      await expect(
+        admin1Session.resources.studies.create({ id: studyId, name: studyId, category: 'My Studies' }),
+      ).resolves.toMatchObject({
+        id: studyId,
+      });
+      studyIds.push(studyId);
+
+      studyId = setup.gen.string({ prefix: `create-study-ray-org-study` });
+      await expect(
+        admin1Session.resources.studies.create({ id: studyId, name: studyId, category: 'Organization' }),
+      ).resolves.toMatchObject({
+        id: studyId,
+      });
+      studyIds.push(studyId);
+
+      const workspaceName = setup.gen.string({ prefix: 'workspace-sc-test' });
+      const env = await admin1Session.resources.workspaceServiceCatalogs.create({
+        name: workspaceName,
+        envTypeId: setup.defaults.envTypes.ec2Linux.envTypeId,
+        envTypeConfigId: setup.defaults.envTypes.ec2Linux.envTypeConfigId,
+        studyIds,
+        description: 'assignment',
+        projectId: setup.defaults.project.id,
+        cidr: '123.123.123.123/12',
+      });
+      expect(env).toMatchObject({
+        name: workspaceName,
+        envTypeId: setup.defaults.envTypes.ec2Linux.envTypeId,
+        envTypeConfigId: setup.defaults.envTypes.ec2Linux.envTypeConfigId,
+        studyIds,
+      });
+
+      // Poll until workspace is provisioned
+      await sleep(2000);
+      await admin1Session.resources.workflows
+        .versions('wf-provision-environment-sc')
+        .version(1)
+        .findAndPollWorkflow(env.id, 10000, 48);
+      await newToken();
+      await setup.cleanup();
     });
   });
 });
