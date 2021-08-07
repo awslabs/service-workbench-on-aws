@@ -305,6 +305,7 @@ describe('EnvironmentSCService', () => {
         adminKeyPairName: '',
         cidr: '192.168.xx.yy',
         description: 'env-desc',
+        egressStoreIamPolicyDocument: '{}',
         encryptionKeyArn: 'UltraSecureEncryptionKey',
         envId: 'sampleEnvId',
         envTypeConfigId: 'sampleEnvTypeConfigId',
