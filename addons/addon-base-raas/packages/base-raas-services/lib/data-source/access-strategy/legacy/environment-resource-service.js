@@ -35,7 +35,6 @@ const settingKeys = {
   studyDataKmsKeyArn: 'studyDataKmsKeyArn',
   studyDataKmsPolicyWorkspaceSid: 'studyDataKmsPolicyWorkspaceSid',
   enableEgressStore: 'enableEgressStore',
-  egressStoreBucketName: 'egressStoreBucketName',
   egressStoreKmsKeyArn: 'egressStoreKmsKeyArn',
   egressStoreKmsPolicyWorkspaceSid: 'egressStoreKmsPolicyWorkspaceSid',
 };
@@ -310,16 +309,18 @@ class EnvironmentResourceService extends Service {
   // @private
   async addToKmsKeyPolicy(requestContext, memberAccountId) {
     await this.updateKMSPolicy(environmentStatement => addAccountToStatement(environmentStatement, memberAccountId));
+    await this.addToEgressKmsKeyPolicy(memberAccountId);
+    // Write audit event
+    await this.audit(requestContext, { action: 'add-to-KmsKey-policy', body: memberAccountId });
+  }
 
+  async addToEgressKmsKeyPolicy(memberAccountId) {
     const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
     if (enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE') {
       await this.updateEgressKMSPolicy(environmentStatement =>
         addAccountToStatement(environmentStatement, memberAccountId),
       );
     }
-
-    // Write audit event
-    await this.audit(requestContext, { action: 'add-to-KmsKey-policy', body: memberAccountId });
   }
 
   // @private

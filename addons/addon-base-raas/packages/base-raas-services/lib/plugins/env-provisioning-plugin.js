@@ -68,12 +68,22 @@ async function getStudies({ requestContext, container, envId }) {
  */
 async function preProvisioning({ requestContext, container, envId }) {
   const { environmentScEntity, studies } = await getStudies({ requestContext, container, envId });
-
-  if (_.isEmpty(studies)) return { requestContext, container, envId };
-
   const environmentScService = await container.find('environmentScService');
   const memberAccount = await environmentScService.getMemberAccount(requestContext, environmentScEntity);
   const pluginRegistryService = await container.find('pluginRegistryService');
+
+  if (_.isEmpty(studies)) {
+    await pluginRegistryService.visitPlugins('study-access-strategy', 'allocateEnvEgressResourcesOnly', {
+      payload: {
+        requestContext,
+        container,
+        environmentScEntity,
+        studies,
+        memberAccountId: memberAccount.accountId,
+      },
+    });
+    return { requestContext, container, envId };
+  }
 
   await pluginRegistryService.visitPlugins('study-access-strategy', 'allocateEnvStudyResources', {
     payload: {
