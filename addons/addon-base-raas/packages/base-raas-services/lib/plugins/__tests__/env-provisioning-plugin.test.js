@@ -56,12 +56,36 @@ describe('envProvisioningPlugin', () => {
   });
 
   describe('preProvisioning', () => {
-    it('should do nothing if there is no study to be linked', async () => {
+    it('should invoke kms update for egress store if there is no study to be linked', async () => {
+      // BUILD
+      environmentScService.mustFind = jest.fn().mockResolvedValueOnce({ id: 'env-id' });
+      environmentScService.getStudies = jest.fn().mockResolvedValueOnce([]);
+      environmentScService.getMemberAccount = jest.fn().mockResolvedValueOnce({ accountId: '1234567' });
+      pluginRegistryService.visitPlugins = jest.fn();
+
       // OPERATE
       await plugin.onEnvPreProvisioning({ requestContext, container, envId: 'some-env-id' });
       // TEST
-      expect(environmentScService.getMemberAccount).not.toHaveBeenCalled();
-      expect(pluginRegistryService.visitPlugins).not.toHaveBeenCalled();
+      expect(environmentScService.getMemberAccount).toHaveBeenCalledWith(requestContext, { id: 'env-id' });
+      expect(pluginRegistryService.visitPlugins).toHaveBeenCalledWith(
+        'study-access-strategy',
+        'updateKMSPolicyForEgress',
+        {
+          payload: expect.objectContaining({
+            environmentScEntity: {
+              id: 'env-id',
+            },
+            memberAccountId: '1234567',
+            requestContext: {
+              principal: {
+                isAdmin: true,
+                status: 'active',
+              },
+            },
+            studies: [],
+          }),
+        },
+      );
     });
 
     it('visit plugins with correct parameters if there is study to be linked', async () => {
