@@ -51,8 +51,15 @@ async function updateS3BucketPolicy(s3Client, s3BucketName, s3Policy, revisedSta
       s3Policy.Statement.push(statement);
     }
   });
+  try {
+    await s3Client.putBucketPolicy({ Bucket: s3BucketName, Policy: JSON.stringify(s3Policy) }).promise();
+  } catch (error) {
+    throw this.boom.badRequest(
+      `Error in putting bucket policy: ${JSON.stringify(s3Policy)} into bucket: ${bucketName}`,
+      true,
+    );
+  }
   // Update S3 bucket policy
-  await s3Client.putBucketPolicy({ Bucket: s3BucketName, Policy: JSON.stringify(s3Policy) }).promise();
 }
 
 function createAllowStatement(statementId, actions, resource, condition) {
