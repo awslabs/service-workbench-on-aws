@@ -57,7 +57,7 @@ async function updateS3BucketPolicy(s3Client, s3BucketName, s3Policy, revisedSta
     throw this.boom.badRequest(
       `Failed updating  bucket policy: ${JSON.stringify(
         s3Policy,
-      )} for bucket: ${bucketName}. Check if original bucket policy is too large`,
+      )} for bucket: ${s3BucketName}. Check if original bucket policy is too large`,
       true,
     );
   }
