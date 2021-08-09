@@ -87,11 +87,11 @@ describe('ForceLogout', () => {
     );
     const component = tempWrapper.instance();
     expect(component.render()).toEqual(null);
-    clearInterval(component.timer);
+    clearInterval(component.intervalId);
   });
 
   afterAll(async () => {
     const component = wrapper.instance();
-    clearInterval(component.timer);
+    clearInterval(component.intervalId);
   });
 });
