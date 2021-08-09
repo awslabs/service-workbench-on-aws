@@ -28,7 +28,6 @@ describe('ForceLogout', () => {
     wrapper = shallow(<ForceLogout.wrappedComponent authentication={AuthenticationProviderConfigsStore} app={app} />);
     const component = wrapper.instance();
     component.tokenActive = false;
-    component.intervalId = undefined;
     renderModalSnapshot = (
       <>
         <Modal open={component.modalOpen} closeOnEscape={false} closeOnDimmerClick={false} centered={false}>
@@ -67,7 +66,6 @@ describe('ForceLogout', () => {
   it('should make renderModal return null when tokenActive is true', () => {
     const component = wrapper.instance();
     component.tokenActive = true;
-    component.intervalId = jest.fn();
     expect(component.renderModal()).toEqual(null);
   });
 
@@ -89,10 +87,11 @@ describe('ForceLogout', () => {
     );
     const component = tempWrapper.instance();
     expect(component.render()).toEqual(null);
-    clearInterval();
+    clearInterval(component.intervalId);
   });
 
   afterAll(async () => {
-    clearInterval();
+    const component = wrapper.instance();
+    clearInterval(component.intervalId);
   });
 });
