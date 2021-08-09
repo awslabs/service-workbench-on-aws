@@ -261,7 +261,7 @@ class EnvironmentResourceService extends Service {
     return s3Mounts;
   }
 
-  async allocateEgressResourcesOnly(requestContext, { studies: allStudies, memberAccountId }) {
+  async updateKMSPolicyForEgress(requestContext, { studies: allStudies, memberAccountId }) {
     // Legacy access strategy is only applicable for studies that have resources attributes
     const kmsKeyAlias = this.settings.get(settingKeys.egressStoreKmsKeyArn);
     const studies = _.filter(allStudies, study => !_.isEmpty(study.resources));

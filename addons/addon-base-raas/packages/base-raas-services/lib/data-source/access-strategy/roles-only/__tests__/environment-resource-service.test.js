@@ -245,7 +245,7 @@ describe('EnvironmentResourceService', () => {
     service.addToEgressKmsKeyPolicy = jest.fn();
     service.audit = jest.fn();
 
-    await service.allocateEgressResourcesOnly(requestContext, { studies, memberAccountId });
+    await service.updateKMSPolicyForEgress(requestContext, { studies, memberAccountId });
 
     expect(service.addToEgressKmsKeyPolicy).toHaveBeenCalledTimes(1);
     expect(service.addToEgressKmsKeyPolicy).toHaveBeenCalledWith(memberAccountId);

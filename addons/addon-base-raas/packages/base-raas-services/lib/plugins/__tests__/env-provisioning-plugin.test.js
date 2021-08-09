@@ -69,7 +69,7 @@ describe('envProvisioningPlugin', () => {
       expect(environmentScService.getMemberAccount).toHaveBeenCalledWith(requestContext, { id: 'env-id' });
       expect(pluginRegistryService.visitPlugins).toHaveBeenCalledWith(
         'study-access-strategy',
-        'allocateEnvEgressResourcesOnly',
+        'updateKMSPolicyForEgress',
         {
           payload: expect.objectContaining({
             environmentScEntity: {

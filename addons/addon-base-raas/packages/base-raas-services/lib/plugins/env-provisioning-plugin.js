@@ -73,7 +73,7 @@ async function preProvisioning({ requestContext, container, envId }) {
   const pluginRegistryService = await container.find('pluginRegistryService');
 
   if (_.isEmpty(studies)) {
-    await pluginRegistryService.visitPlugins('study-access-strategy', 'allocateEnvEgressResourcesOnly', {
+    await pluginRegistryService.visitPlugins('study-access-strategy', 'updateKMSPolicyForEgress', {
       payload: {
         requestContext,
         container,

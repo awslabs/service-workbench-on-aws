@@ -81,11 +81,11 @@ async function allocateEnvStudyResources(payload) {
   return payload;
 }
 
-async function allocateEnvEgressResourcesOnly(payload) {
+async function updateKMSPolicyForEgress(payload) {
   const { requestContext, container, environmentScEntity, studies, memberAccountId } = payload;
 
   const resourceService = await container.find('roles-only/environmentResourceService');
-  await resourceService.allocateEgressResourcesOnly(requestContext, { environmentScEntity, studies, memberAccountId });
+  await resourceService.updateKMSPolicyForEgress(requestContext, { environmentScEntity, studies, memberAccountId });
 
   return payload;
 }
@@ -156,7 +156,7 @@ const plugin = {
   onStudyRegistration,
   provideAccountCfnTemplate,
   allocateEnvStudyResources,
-  allocateEnvEgressResourcesOnly,
+  updateKMSPolicyForEgress,
   deallocateEnvStudyResources,
   provideEnvRolePolicy,
   provideStudyMount,
