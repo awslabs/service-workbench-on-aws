@@ -75,7 +75,14 @@ class GoBuildTools {
     });
   }
 
-  // From: https://stackoverflow.com/questions/12042534/node-js-synchronous-prompt/46700053#46700053
+  /**
+   * Wrapper method for asynchronous readline call. Allows utilization of await later for a 
+   * synchronous prompt and response user experience.
+   * From: https://stackoverflow.com/questions/12042534/node-js-synchronous-prompt/46700053#46700053
+   * 
+   * @param message 
+   * @returns Promise of the resolved answer from user
+   */
   async readLineAsync(message) {
     return new Promise(resolve => {
       readline.question(message, answer => {
@@ -119,7 +126,7 @@ class GoBuildTools {
           // If Windows workspaces are not desired, log another warning and do not fail build
           this.cli.warn(
             messagePrefix,
-            'Any Windows workspaces deployed will not function properly. You have been warned.',
+            'Any Windows workspaces deployed will not function properly until Go is installed and SWB is redeployed. You have been warned.',
           );
           validAnswer = true;
           readline.close();
