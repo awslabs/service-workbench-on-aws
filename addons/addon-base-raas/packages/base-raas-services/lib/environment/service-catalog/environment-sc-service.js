@@ -1041,7 +1041,9 @@ class EnvironmentScService extends Service {
       };
     });
 
-    return { currentIngressRules: returnVal, securityGroupId };
+    const nonEmptyCidrRanges = _.filter(returnVal, cidr => !_.isEmpty(cidr.cidrBlocks));
+
+    return { currentIngressRules: nonEmptyCidrRanges, securityGroupId };
   }
 
   isAppStreamEnabled() {
