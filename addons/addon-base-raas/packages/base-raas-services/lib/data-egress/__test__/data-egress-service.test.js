@@ -522,6 +522,92 @@ describe('DataEgressService', () => {
       );
     });
 
+    it('should successfully delete egress store while egress store is not touched since created', async () => {
+      dataEgressService.removeEgressStoreBucketPolicy = jest.fn();
+      const s3Policy = testS3PolicyFn();
+      dataEgressService._settings = {
+        get: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return 'true';
+          }
+          if (settingName === 'egressStoreKmsKeyAliasArn') {
+            return 'test-egressStoreKmsKeyAliasArn';
+          }
+          if (settingName === 'egressStoreBucketName') {
+            return 'test-egressStoreBucketName';
+          }
+          return undefined;
+        },
+      };
+
+      dbService.table.scan.mockResolvedValueOnce([
+        {
+          status: 'CREATED',
+          workspaceId: 'test-workspace-id',
+          s3BucketName: 'test-s3BucketName',
+          s3BucketPath: 'test-s3BucketPath',
+          id: 'test-egress-store-id',
+          isAbleToSubmitEgressRequest: false,
+        },
+      ]);
+      const requestContext = {};
+      const envId = 'test-workspace-id';
+
+      AWSMock.mock('S3', 'listObjectsV2', (params, callback) => {
+        expect(params).toMatchObject({
+          Bucket: 'test-s3BucketName',
+        });
+        callback(null, {
+          Contents: [],
+        });
+      });
+      AWSMock.mock('S3', 'deleteObjects', (params, callback) => {
+        expect(params).toMatchObject({
+          Bucket: 'test-s3BucketName',
+        });
+        callback(null, {});
+      });
+
+      AWSMock.mock('S3', 'getBucketPolicy', (params, callback) => {
+        expect(params).toMatchObject({
+          Bucket: 'test-egressStoreBucketName',
+        });
+        callback(null, {
+          Policy: JSON.stringify(s3Policy),
+        });
+      });
+
+      const putBucketPolicyMock = jest.fn((params, callback) => {
+        expect(params).toMatchObject({
+          Bucket: 'test-egressStoreBucketName',
+        });
+        callback(null, {});
+      });
+      // Mock locking so that the putBucketPolicy actually gets called
+      lockService.tryWriteLockAndRun = jest.fn((_params, callback) => callback());
+      AWSMock.mock('S3', 'putBucketPolicy', putBucketPolicyMock);
+
+      await dataEgressService.terminateEgressStore(requestContext, envId);
+      expect(dataEgressService.removeEgressStoreBucketPolicy).toHaveBeenCalledTimes(1);
+      expect(dataEgressService.removeEgressStoreBucketPolicy).toHaveBeenCalledWith(
+        {},
+        {
+          bucket: 'test-s3BucketName',
+          createdBy: undefined,
+          envPermission: { read: true, write: true },
+          id: 'egress-store-test-workspace-id',
+          prefix: 'test-s3BucketPath',
+          projectId: undefined,
+          readable: true,
+          resources: [{ arn: 'arn:aws:s3:::test-s3BucketName/test-workspace-id/' }],
+          status: 'reachable',
+          workspaceId: 'test-workspace-id',
+          writeable: true,
+        },
+        'test-accountId',
+      );
+    });
+
     it('should remove bucket policy', async () => {
       dataEgressService.getS3BucketAndPolicy = jest.fn().mockResolvedValueOnce({
         s3BucketName: 'test-egressStoreBucketName',
