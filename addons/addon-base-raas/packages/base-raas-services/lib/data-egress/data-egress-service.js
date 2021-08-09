@@ -220,7 +220,7 @@ class DataEgressService extends Service {
         true,
       );
     } else if (egressStoreStatus.toUpperCase() === PROCESSED_STATUS_CODE || isEgressStoreNotTouched) {
-      // ONLY terminate the egress store if it has been processed or the egress store is not touched when trying to terminate the egress store
+      // ONLY terminate the egress store if it has been processed or the egress store is empty
 
       try {
         await s3Service.clearPath(egressStoreInfo.s3BucketName, egressStoreInfo.s3BucketPath);
@@ -267,7 +267,10 @@ class DataEgressService extends Service {
       await lockService.tryWriteLockAndRun({ id: lockId }, async () => {
         await this.removeEgressStoreBucketPolicy(requestContext, egressStore, memberAccountId);
       });
-      await this.audit(requestContext, { action: 'terminated-egress-store', body: egressStore });
+      await this.audit(requestContext, {
+        action: 'terminated-egress-store',
+        body: egressStore,
+      });
     }
     return egressStoreInfo;
   }

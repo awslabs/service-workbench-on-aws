@@ -522,7 +522,7 @@ describe('DataEgressService', () => {
       );
     });
 
-    it('should success delete egress store while egress store is not touched since created', async () => {
+    it('should successfully delete egress store while egress store is not touched since created', async () => {
       dataEgressService.removeEgressStoreBucketPolicy = jest.fn();
       const s3Policy = testS3PolicyFn();
       dataEgressService._settings = {
