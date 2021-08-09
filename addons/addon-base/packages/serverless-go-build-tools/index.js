@@ -76,11 +76,11 @@ class GoBuildTools {
   }
 
   /**
-   * Wrapper method for asynchronous readline call. Allows utilization of await later for a 
+   * Wrapper method for asynchronous readline call. Allows utilization of await later for a
    * synchronous prompt and response user experience.
    * From: https://stackoverflow.com/questions/12042534/node-js-synchronous-prompt/46700053#46700053
-   * 
-   * @param message 
+   *
+   * @param message
    * @returns Promise of the resolved answer from user
    */
   async readLineAsync(message) {
