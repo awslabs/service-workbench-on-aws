@@ -174,9 +174,15 @@ class GoBuildTools {
               });
               return output;
             } catch (error) {
-              // Don't fail the build if the user doesn't have go installed
+              // If the error status is 127, it is due to a missing shell command
+              if (error.status === 127) {
+                // Don't fail the build if the user doesn't have Go installed (error was handled above)
+                this.cli.warn(messagePrefix, `Error building ${output}: ${error}`);
+                return null;
+              }
+              // If the build errored for another reason, fail build as something is wrong
               this.cli.warn(messagePrefix, `Error building ${output}: ${error}`);
-              return null;
+              throw new Error(error);
             }
             // Remove any build errors from the successfulBuilds array
           }).filter(x => x);
