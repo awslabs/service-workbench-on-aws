@@ -23,7 +23,7 @@ import TimeAgo from 'react-timeago';
 import YesNo from '@aws-ee/base-ui/dist/parts/helpers/fields/YesNo';
 import SelectionButtons from '@aws-ee/base-ui/dist/parts/helpers/fields/SelectionButtons';
 import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
-
+import { isAppStreamEnabled } from '../../helpers/settings';
 import CopyToClipboard from '../helpers/CopyToClipboard';
 import { createForm } from '../../helpers/form';
 
@@ -52,6 +52,8 @@ class AwsAccountUpdateContent extends React.Component {
       const account = this.account || {};
       this.shouldShowWarning = account.permissionStatus !== 'NEEDS_ONBOARD';
       this.warningAcknowledged = false;
+      this.accessAppStreamAcknowledged = false;
+      this.startedAppStreamFleetAcknowledged = false;
       const needsOnboard =
         account.permissionStatus === 'NEEDS_ONBOARD' ||
         account.permissionStatus === 'PENDING' ||
@@ -113,7 +115,20 @@ class AwsAccountUpdateContent extends React.Component {
     this.warningAcknowledged = checked;
   };
 
+  handleAccessAppStreamAcknowledgment = (e, { checked }) => {
+    this.accessAppStreamAcknowledged = checked;
+  };
+
+  handleStartedAppStreamFleetAcknowledgment = (e, { checked }) => {
+    this.startedAppStreamFleetAcknowledged = checked;
+  };
+
   render() {
+    let shouldDisableDoneButton = this.shouldShowWarning && !this.warningAcknowledged;
+    if (isAppStreamEnabled) {
+      shouldDisableDoneButton =
+        shouldDisableDoneButton || !this.accessAppStreamAcknowledged || !this.startedAppStreamFleetAcknowledged;
+    }
     return (
       <Container className="mt3 animated fadeIn">
         <div className="mt2 animated fadeIn">
@@ -122,7 +137,13 @@ class AwsAccountUpdateContent extends React.Component {
           </Header>
           <div className="mt3 ml3 mr3 animated fadeIn">{this.renderMain()}</div>
           <div className="mt3">
-            <Button floated="right" onClick={this.handleGoBack} color="orange" content="Go Back" />
+            <Button
+              disabled={shouldDisableDoneButton}
+              floated="right"
+              onClick={this.handleGoBack}
+              color="blue"
+              content="Done"
+            />
           </div>
         </div>
       </Container>
@@ -214,6 +235,11 @@ class AwsAccountUpdateContent extends React.Component {
     const { accountId } = account;
     const { createStackUrl, region } = stackInfo;
 
+    let shouldDisableCreateStackButton = shouldShowWarning && !warningAcknowledged;
+    if (isAppStreamEnabled) {
+      shouldDisableCreateStackButton = shouldDisableCreateStackButton || !this.accessAppStreamAcknowledged;
+    }
+
     return (
       <div className="animated fadeIn">
         <List ordered size={textSize}>
@@ -226,7 +252,7 @@ class AwsAccountUpdateContent extends React.Component {
               </p>
             </Message>
           </List.Item>
-          {process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true' && this.renderEnableFirstUseAppStreamInstructions()}
+          {isAppStreamEnabled && this.renderEnableFirstUseAppStreamInstructions()}
           <List.Item>
             Click on the <b>Create Stack</b> button, this opens a separate browser tab and takes you to the
             CloudFormation console where you can review the stack information and provision it.
@@ -256,7 +282,7 @@ class AwsAccountUpdateContent extends React.Component {
                   as="a"
                   target="_blank"
                   href={createStackUrl}
-                  disabled={shouldShowWarning && !warningAcknowledged}
+                  disabled={shouldDisableCreateStackButton}
                   rel="noopener noreferrer"
                   color="blue"
                 >
@@ -274,12 +300,15 @@ class AwsAccountUpdateContent extends React.Component {
               </div>
             </div>
           </List.Item>
-          <List.Item>
-            After creating the CFN stack, SWB will wait for the stack to finish deploying and then onboard your account.
-            During this time, it is safe to navigate away from this page and/or leave SWB. You can check the status of
-            your account at any time in the AWS Accounts list page.
-          </List.Item>
-          {process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true' && this.renderStartAppStreamInstructions()}
+          {isAppStreamEnabled ? (
+            this.renderStartAppStreamInstructions()
+          ) : (
+            <List.Item>
+              After creating the CFN stack, SWB will wait for the stack to finish deploying and then onboard your
+              account. You can click the &quot;Done&quot; button below to be taken back to the Accounts page while you
+              wait.
+            </List.Item>
+          )}
         </List>
       </div>
     );
@@ -291,6 +320,14 @@ class AwsAccountUpdateContent extends React.Component {
         If you have not access AppStream from the console yet, you will need to do so. This will enable AppStream for
         your account. Go to AppStream 2.0 services, and click &apos;Get Started&apos;. This will take you to a screen
         asking if you want to try out some templates. At this screen click &apos;Next&apos;
+        <div className="mt2 mb2">
+          <b>
+            <Checkbox
+              label="I have accessed AppStream in the AWS Console"
+              onClick={this.handleAccessAppStreamAcknowledgment}
+            />
+          </b>
+        </div>
       </List.Item>
     );
   }
@@ -300,6 +337,14 @@ class AwsAccountUpdateContent extends React.Component {
       <List.Item>
         After the Cloudformation Stack has been created, go to AppStream on the AWS console. Go to Fleet and then click
         on the newly created fleet. Choose Action&gt;Start to start the fleet.
+        <div className="mt2 mb2">
+          <b>
+            <Checkbox
+              label="I have started the AppStream fleet"
+              onClick={this.handleStartedAppStreamFleetAcknowledgment}
+            />
+          </b>
+        </div>
       </List.Item>
     );
   }
@@ -417,6 +462,10 @@ decorate(AwsAccountUpdateContent, {
   gotBackToAccountsPage: action,
   handleClickAcknowledgement: action,
   warningAcknowledged: observable,
+  handleAccessAppStreamAcknowledgment: action,
+  accessAppStreamAcknowledged: observable,
+  handleStartedAppStreamFleetAcknowledgment: action,
+  startedAppStreamFleetAcknowledged: observable,
 });
 
 export default inject('awsAccountsStore')(withRouter(observer(AwsAccountUpdateContent)));
