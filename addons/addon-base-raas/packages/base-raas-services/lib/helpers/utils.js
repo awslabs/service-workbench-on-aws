@@ -118,11 +118,16 @@ const putStatementParamsFn = (bucket, prefix) => {
     statementId: `Put:${prefix}`,
     resource: [`arn:aws:s3:::${bucket}/${prefix}*`],
     actions: [
+      's3:GetObject',
+      's3:GetObjectVersion',
+      's3:GetObjectTagging',
       's3:AbortMultipartUpload',
       's3:ListMultipartUploadParts',
       's3:PutObject',
       's3:PutObjectAcl',
+      's3:PutObjectTagging',
       's3:DeleteObject',
+      's3:DeleteObjectVersion',
     ],
   };
 };
