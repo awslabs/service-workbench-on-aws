@@ -13,6 +13,7 @@
  *  permissions and limitations under the License.
  */
 
+/* eslint-disable no-template-curly-in-string */
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { isAllow, allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
@@ -249,10 +250,16 @@ class EnvTypeConfigService extends Service {
     });
     let params = [...updatedConfig.params];
     if (isAppStreamEnabled) {
-      params.push({
-        key: 'AccessFromCIDRBlock',
-        value: '',
-      });
+      params = [
+        ...params,
+        {
+          key: 'AccessFromCIDRBlock',
+          value: '',
+        },
+        // Let's automatically fill in these values for the customer
+        { key: 'EgressStoreIamPolicyDocument', value: '${egressStoreIamPolicyDocument}' },
+        { key: 'SolutionNamespace', value: '${solutionNamespace}' },
+      ];
     } else {
       params = [
         ...params,

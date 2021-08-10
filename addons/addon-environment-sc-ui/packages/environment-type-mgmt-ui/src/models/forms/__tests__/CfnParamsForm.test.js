@@ -131,4 +131,49 @@ describe('CfnParamsForm', () => {
     expect(formMock.createForm).toHaveBeenCalledTimes(1);
     expect(formMock.createForm).toHaveBeenCalledWith(fieldsWithCidr);
   });
+
+  describe('should not return these fields if present in the CFN template: IsAppStreamEnabled, EgressStoreIamPolicyDocument, SolutionNamespace', () => {
+    const isAppStreamEnabledParam = {
+      ParameterKey: 'IsAppStreamEnabled',
+      Description: 'Enable AppStream',
+      DefaultValue: 'false',
+    };
+
+    const egressStoreIamPolicyDocumentParam = {
+      ParameterKey: 'EgressStoreIamPolicyDocument',
+      Description: 'Policy for egress store',
+    };
+
+    const solutionNamespaceParam = {
+      ParameterKey: 'SolutionNamespace',
+      Description: 'Namespace provided when onboarding your account',
+    };
+    it('AppStream Enabled', () => {
+      process.env.REACT_APP_IS_APP_STREAM_ENABLED = true;
+      runTest();
+    });
+
+    it('AppStream Disabled', () => {
+      process.env.REACT_APP_IS_APP_STREAM_ENABLED = false;
+      runTest();
+    });
+
+    function runTest() {
+      // BUILD
+      const params = [
+        ...defaultParams,
+        isAppStreamEnabledParam,
+        egressStoreIamPolicyDocumentParam,
+        solutionNamespaceParam,
+      ];
+      const fields = JSON.parse(JSON.stringify(defaultFields));
+      // OPERATE
+      const returnedForm = getCfnParamsForm(params, []);
+
+      // CHECK
+      expect(returnedForm).toBe(expectedForm);
+      expect(formMock.createForm).toHaveBeenCalledTimes(1);
+      expect(formMock.createForm).toHaveBeenCalledWith(fields);
+    }
+  });
 });

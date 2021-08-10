@@ -86,7 +86,7 @@ describe('EnvTypeService', () => {
       if (settingKey === 'isAppStreamEnabled') {
         return true;
       }
-      return undefined;
+      throw Error(`${settingKey} not found`);
     });
   });
 
