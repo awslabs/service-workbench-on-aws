@@ -25,11 +25,13 @@ Note: Please set up your [AWS Profile](https://docs.aws.amazon.com/cli/latest/us
 2. This will open a new tab in your browser. When the prompt ask for which user you would like to log in as, choose Administrator. This will take you to a Windows Desktop that you can interact with to create your AppStream image. 
 3. On the Windows desktop, click the `Start` button and type in `Windows Powershell`. Right click the application in the search result, and choose `Run as administrator`
 4. Run the following commands
+
+TODO: Change `feat-secure-workspace-egress` to `mainline` for the url when merging feat branch back to mainline 
 ```
 cd ~\Documents
 
 # Pull the Image Builder script from Github
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/awslabs/service-workbench-on-aws/mainline/scripts/app-stream/buildImage.ps1 -OutFile buildImage.ps1
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/awslabs/service-workbench-on-aws/feat-secure-workspace-egress/scripts/app-stream/buildImage.ps1 -OutFile buildImage.ps1
 
 # Execute Image builder script
 .\buildImage.ps1

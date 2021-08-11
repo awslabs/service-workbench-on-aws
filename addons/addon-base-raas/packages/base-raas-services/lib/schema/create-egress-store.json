@@ -100,7 +100,6 @@
     "rev",
     "inWorkflow",
     "status",
-    "cidr",
     "createdAt",
     "updatedBy",
     "createdBy",

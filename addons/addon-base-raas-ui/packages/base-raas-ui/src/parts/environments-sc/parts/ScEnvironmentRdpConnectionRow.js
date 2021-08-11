@@ -26,6 +26,8 @@ class ScEnvironmentRdpConnectionRow extends React.Component {
       this.windowsRdpInfo = undefined;
       // A flag to indicate if we are in the process of getting the windows rdp info
       this.processingGetInfo = false;
+      // A flag to indicate if we're getting the connection url
+      this.processingGetConnection = false;
       // Should the password be shown
       this.showPassword = false;
       this.processingId = undefined;
@@ -83,6 +85,9 @@ class ScEnvironmentRdpConnectionRow extends React.Component {
   handleConnect = id =>
     action(async () => {
       try {
+        runInAction(() => {
+          this.processingGetConnection = true;
+        });
         const store = this.getConnectionStore();
         const urlObj = await store.createConnectionUrl(id);
         const appStreamUrl = urlObj.url;
@@ -93,6 +98,7 @@ class ScEnvironmentRdpConnectionRow extends React.Component {
           throw Error('AppStream URL was not returned by the API');
         }
         runInAction(() => {
+          this.processingGetConnection = false;
           this.processingId = id;
         });
       } catch (error) {
@@ -219,6 +225,12 @@ class ScEnvironmentRdpConnectionRow extends React.Component {
                 Connect to Your Windows Instance
               </List.Item>
             </List>
+            {this.isAppStreamEnabled && (
+              <div className="mt3">
+                In your browser, please allow popups for this domain so we can open the AppStream page in a new tab for
+                you
+              </div>
+            )}
           </Table.Cell>
         </Table.Row>
 
@@ -231,7 +243,7 @@ class ScEnvironmentRdpConnectionRow extends React.Component {
                 onClick={this.handleConnect(connectionId)}
                 floated="right"
                 disabled={this.processingId}
-                loading={this.processingId}
+                loading={this.processingGetConnection}
               >
                 Connect
               </Button>
@@ -284,6 +296,7 @@ decorate(ScEnvironmentRdpConnectionRow, {
   processingId: observable,
   windowsRdpInfo: observable,
   processingGetInfo: observable,
+  processingGetConnection: observable,
   showPassword: observable,
   handleGetInfo: action,
   toggleShowPassword: action,

@@ -62,6 +62,7 @@ describe('EnvTypeService', () => {
     service = await container.find('envTypeConfigService');
     envTypeService = await container.find('envTypeService');
     s3Service = await container.find('s3Service');
+    const settingsService = await container.find('settings');
 
     // skip authorization
     service.assertAuthorized = jest.fn();
@@ -80,6 +81,13 @@ describe('EnvTypeService', () => {
       putObject: jest.fn().mockReturnThis(),
       promise: jest.fn().mockReturnThis(),
     };
+
+    settingsService.getBoolean = jest.fn(settingKey => {
+      if (settingKey === 'isAppStreamEnabled') {
+        return true;
+      }
+      throw Error(`${settingKey} not found`);
+    });
   });
 
   describe('list function', () => {

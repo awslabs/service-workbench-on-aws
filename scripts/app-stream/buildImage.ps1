@@ -3,7 +3,8 @@ Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManage
 
 choco install -y putty.install
 
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/awslabs/service-workbench-on-aws/mainline/scripts/app-stream/ec2linux.ps1 -OutFile 'C:\Users\Public\Documents\EC2Linux.ps1'
+# TODO: Change `feat-secure-workspace-egress` to `mainline` for the url when merging feat branch back to mainline
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/awslabs/service-workbench-on-aws/feat-secure-workspace-egress/scripts/app-stream/ec2linux.ps1 -OutFile 'C:\Users\Public\Documents\EC2Linux.ps1'
 
 # Prepare remote desktop script with arguments
 Set-Content C:\Users\public\Documents\MicrosoftRemoteDesktop.ps1 "mstsc /f /v:`"`$env:APPSTREAM_SESSION_CONTEXT`":3389"

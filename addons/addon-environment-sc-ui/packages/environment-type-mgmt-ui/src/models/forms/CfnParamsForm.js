@@ -34,17 +34,25 @@ import { createForm } from '@aws-ee/base-ui/dist/helpers/form';
  */
 function getCfnParamsForm(cfnParams, existingParamValues) {
   const isAppStreamEnabled = process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true';
+  const keysToFilterOut = ['IsAppStreamEnabled', 'EgressStoreIamPolicyDocument', 'SolutionNamespace'];
+  if (isAppStreamEnabled) {
+    keysToFilterOut.push('AccessFromCIDRBlock');
+  }
+  const filteredCfnParams = cfnParams.filter(cfnParam => {
+    const { ParameterKey } = cfnParam;
+    // Include keys that are not in keysToFilterOut array
+    return !keysToFilterOut.includes(ParameterKey);
+  });
+
   const fields = {};
-  _.forEach(cfnParams, ({ ParameterKey, Description, DefaultValue }) => {
+  filteredCfnParams.forEach(({ ParameterKey, Description, DefaultValue }) => {
     const existingValue = _.get(_.find(existingParamValues, { key: ParameterKey }), 'value') || DefaultValue;
-    if (!isAppStreamEnabled || (isAppStreamEnabled && !(ParameterKey === 'AccessFromCIDRBlock'))) {
-      fields[ParameterKey] = {
-        label: ParameterKey,
-        extra: { explain: Description },
-        value: existingValue,
-        rules: 'required',
-      };
-    }
+    fields[ParameterKey] = {
+      label: ParameterKey,
+      extra: { explain: Description },
+      value: existingValue,
+      rules: 'required',
+    };
   });
   return createForm(fields);
 }

@@ -307,9 +307,7 @@ class EnvironmentConfigVarsService extends Service {
       adminKeyPairName,
     };
 
-    if (enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE') {
-      result.egressStoreIamPolicyDocument = JSON.stringify(egressStoreIamPolicyDocument);
-    }
+    result.egressStoreIamPolicyDocument = JSON.stringify(egressStoreIamPolicyDocument);
 
     return result;
   }

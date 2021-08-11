@@ -246,6 +246,10 @@ class ScEnvironmentHttpConnections extends React.Component {
             <List.Item>Click the &quot;Generate URL&quot; button to create the destination URL</List.Item>
             <List.Item>Copy the URL and hit &quot;Connect&quot;. </List.Item>
             <List.Item>Paste the URL in the new AppStream FireFox tab</List.Item>
+            <List.Item>
+              In your browser, please allow popups for this domain so we can open the AppStream page in a new tab for
+              you
+            </List.Item>
           </List>
         </Segment>
       )
