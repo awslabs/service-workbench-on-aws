@@ -1018,7 +1018,7 @@ describe('DataEgressService', () => {
             created_by: 'createdBy',
             egress_store_id: 'id',
             egress_store_name: 'egressStoreName',
-            egressStoreObjectListLocation:
+            egress_store_object_list_location:
               'arn:aws:s3:::test-egressNotificationBucketName/id/egressStoreName-ver1.json',
             id: expect.anything(),
             project_id: 'projectId',

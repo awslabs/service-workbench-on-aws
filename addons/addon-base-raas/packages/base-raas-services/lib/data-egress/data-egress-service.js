@@ -371,7 +371,7 @@ class DataEgressService extends Service {
     const egressStoreInfo = await this.getEgressStoreInfo(environmentId);
     if (!egressStoreInfo.isAbleToSubmitEgressRequest) {
       throw this.boom.badRequest(
-        `Egress Store:${egressStoreInfo.id} is not ready for egress. Please contact your administrator for more information.`,
+        `There are no updates in egress Store:${egressStoreInfo.id} and egress request submission is currently disabled. To submit another egress request, please update egress store objects. For more information, please contact Administrator.`,
         true,
       );
     }
@@ -397,7 +397,7 @@ class DataEgressService extends Service {
     await this.lockAndUpdate(egressStoreDdbLockId, egressStoreInfo.id, egressStoreInfo);
 
     const message = {
-      egressStoreObjectListLocation: `arn:aws:s3:::${egressStoreObjectList.bucket}/${egressStoreObjectList.key}`,
+      egress_store_object_list_location: `arn:aws:s3:::${egressStoreObjectList.bucket}/${egressStoreObjectList.key}`,
       id: uuid.v4(),
       egress_store_id: egressStoreInfo.id,
       egress_store_name: egressStoreInfo.egressStoreName,
