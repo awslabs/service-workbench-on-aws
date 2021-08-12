@@ -1,0 +1,23 @@
+**/.class
+**/.DS_Store
+**/coverage
+**/node_modules
+
+**/npm-debug.log
+**/pnpm-debug.log
+
+# Serverless directories
+.serverless
+
+# Webpack generated directories
+.webpack
+
+# VisualStudioCode.gitignore
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# IntelliJ Idea Module Files
+*.iml
