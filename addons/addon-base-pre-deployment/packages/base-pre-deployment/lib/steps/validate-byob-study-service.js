@@ -13,6 +13,7 @@
  *  permissions and limitations under the License.
  */
 
+const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 
 const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
@@ -22,6 +23,7 @@ const settingKeys = {
   backendStackName: 'backendStackName',
 };
 
+/* eslint max-classes-per-file: ["error", 2] */
 class ValidationError extends Error {
   constructor(code = '', message = '') {
     // Pass remaining arguments (including vendor specific ones) to parent constructor
@@ -33,7 +35,6 @@ class ValidationError extends Error {
     this.date = new Date();
   }
 }
-
 class ValidateByobStudyService extends Service {
   constructor() {
     super();
@@ -52,17 +53,16 @@ class ValidateByobStudyService extends Service {
     // check if backendstack exists
     const backendStackDetail = await this.getBackendStack();
 
-    if (backendStackDetail.length === 0) {
-      // backend stack dose not exist yet, return
-      return;
-    } else if (backendStackDetail.length > 1) {
+    if (backendStackDetail.length > 1) {
       // multiple backend stack found, which is not right, throw error
       throw new Error('Multiple backend stack found');
-    } else {
+    } else if (backendStackDetail.length === 1) {
       // proceed if there is existing backend stack
       const requestContext = getSystemRequestContext();
       const accountList = await dataSourceAccountService.list(requestContext);
       const accountIdList = _.map(accountList, 'id');
+      /* eslint-disable no-await-in-loop */
+      /* eslint-disable no-restricted-syntax */
       for (const accountId of accountIdList) {
         const studyInfoList = await studyService.listStudiesForAccount(requestContext, { accountId });
         this.log.info(studyInfoList);
@@ -103,11 +103,10 @@ class ValidateByobStudyService extends Service {
           'This is First time deployment, backend stack dose not exist yet, no need to validate BYOB Studies',
         );
         return [];
-      } else {
-        throw new Error(
-          `Error in pre-deployment validate BYOB study, can not describe backend stack: ${backendStackName}, message: ${err.message}`,
-        );
       }
+      throw new Error(
+        `Error in pre-deployment validate BYOB study, can not describe backend stack: ${backendStackName}, message: ${err.message}`,
+      );
     }
 
     return result.Stacks;
