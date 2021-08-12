@@ -427,7 +427,7 @@ Resources:
       ManagedPolicyArns:
         - !Ref PolicyCfnStatus
       PermissionsBoundary: !Ref PolicyCfnStatus
-  
+
   PolicyCfnStatus:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -440,8 +440,6 @@ Resources:
               - cloudformation:DescribeStacks
               - cloudformation:GetTemplate
             Resource: !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/initial-stack*'
-
-
 
   # VPC for launching EMR clusters into
   # Just one AZ as we're aiming for transient low-cost clusters rather than HA
@@ -805,11 +803,11 @@ Outputs:
   EncryptionKeyArn:
     Description: KMS Encryption Key Arn
     Value: !GetAtt [EncryptionKey, Arn]
-  
+
   OnboardStatusRoleArn:
     Description: The arn of the role SWB uses to check permissions status
     Value: !GetAtt [CfnStatusRole, Arn]
-    
+
   #------------AppStream Output Below-------
   PrivateAppStreamSubnet:
     Description: AppStream subnet

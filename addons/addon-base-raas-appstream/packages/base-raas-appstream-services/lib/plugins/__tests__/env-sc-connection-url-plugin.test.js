@@ -25,11 +25,11 @@ const PluginRegistryService = require('@aws-ee/base-services/lib/plugin-registry
 jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
 const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
 
-jest.mock('../../appstream/appstream-sc-service');
-const AppStreamScService = require('../../appstream/appstream-sc-service');
-
 jest.mock('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-connection-service');
 const EnvironmentScConnectionServiceMock = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-connection-service');
+
+jest.mock('../../appstream/appstream-sc-service');
+const AppStreamScService = require('../../appstream/appstream-sc-service');
 
 const plugin = require('../env-sc-connection-url-plugin');
 

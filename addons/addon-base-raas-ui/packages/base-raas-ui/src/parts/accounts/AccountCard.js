@@ -19,10 +19,9 @@ import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Header, Segment, Accordion, Icon, Label, Table, Button } from 'semantic-ui-react';
 import c from 'classnames';
-
 import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
-
 import { displayWarning } from '@aws-ee/base-ui/dist/helpers/notification';
+import { isAppStreamEnabled } from '../../helpers/settings';
 
 const { getAccountIdsOfActiveEnvironments } = require('./AccountUtils');
 
@@ -54,12 +53,8 @@ class AccountCard extends React.Component {
     return this.props.account;
   }
 
-  get isAppStreamEnabled() {
-    return process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true';
-  }
-
   get appStreamStatusMismatch() {
-    return this.isAppStreamEnabled && !this.account.isAppStreamConfigured;
+    return isAppStreamEnabled && !this.account.isAppStreamConfigured;
   }
 
   get awsAccountsStore() {
@@ -181,7 +176,7 @@ class AccountCard extends React.Component {
                 : `Service Workbench is waiting for the CFN stack to complete. 
                 Please wait a few minutes for provisioning to complete. 
                 If you did not create a CFN stack for this account, click
-                 &quot;Re-Onboard Account&quot; to return to the account onboarding page.`}
+                 "Re-Onboard Account" to return to the account onboarding page.`}
             </div>
           )}
         </Accordion.Content>

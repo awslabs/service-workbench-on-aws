@@ -562,8 +562,8 @@ Resources:
               - 'arn:aws:iam::*:role/SC-*'
               - 'arn:aws:iam::*:role/swb-*'
               - 'arn:aws:iam::*:role/analysis-*'
-              - !Sub 'arn:aws:iam::*:role/*-cross-account-role' # This is required since when users onboard the main account as a member account, the onboard CFN stack would also reside there
-              - !Sub 'arn:aws:iam::*:role/*-xacc-env-mgmt'
+              - 'arn:aws:iam::*:role/*-cross-account-role' # This is required since when users onboard the main account as a member account, the onboard CFN stack would also reside there
+              - 'arn:aws:iam::*:role/*-xacc-env-mgmt'
               - 'arn:aws:iam::*:role/*-cfn-status-role'
           - Effect: Allow
             Action:
@@ -746,8 +746,9 @@ Resources:
               - 'arn:aws:iam::*:role/SC-*'
               - 'arn:aws:iam::*:role/analysis-*'
               - 'arn:aws:iam::*:role/swb-*'
-              - !Sub 'arn:aws:iam::*:role/*-cross-account-role' # This is required since when users onboard the main account as a member account, the onboard CFN stack would also reside there
-              - !Sub 'arn:aws:iam::*:role/*-xacc-env-mgmt'
+              - 'arn:aws:iam::*:role/*-cross-account-role' # This is required since when users onboard the main account as a member account, the onboard CFN stack would also reside there
+              - 'arn:aws:iam::*:role/*-xacc-env-mgmt'
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-prep-raas-master-MasterRole-*'
           - Effect: Allow
             Action:
               - logs:CreateLogGroup
@@ -761,11 +762,6 @@ Resources:
               - xray:PutTelemetryRecords
             Resource:
               - '*'
-          - Effect: Allow
-            Action:
-              - sts:AssumeRole
-            Resource:
-              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-prep-raas-master-MasterRole-*'
           - Effect: Allow
             Action:
               - appstream:UpdateImagePermissions
@@ -911,7 +907,7 @@ Resources:
       ManagedPolicyArns:
         - !Ref PolicyDataSourceReachabilityHandler
       PermissionsBoundary: !Ref PolicyDataSourceReachabilityHandler
-  
+
   PolicyAwsAccountOnboardingHandler:
     Type: AWS::IAM::ManagedPolicy
     Properties:

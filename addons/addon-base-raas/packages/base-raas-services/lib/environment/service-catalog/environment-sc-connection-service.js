@@ -92,10 +92,13 @@ class EnvironmentScConnectionService extends Service {
       'pluginRegistryService',
     ]);
     // The following will succeed only if the user has permissions to access the specified environment
-    const env = await environmentScService.mustFind(requestContext, { id: envId });
+    const { outputs, projectId } = await environmentScService.mustFind(requestContext, { id: envId });
+
+    // Verify environment is linked to an AppStream project when application has AppStream enabled
+    await environmentScService.verifyAppStreamConfig(requestContext, projectId);
 
     // TODO: Handle case when connection is about an auto scaling group instead of specific instance
-    const result = await cfnOutputsToConnections(env.outputs);
+    const result = await cfnOutputsToConnections(outputs);
 
     // Give plugins chance to adjust the connection (such as connection url etc)
     const adjustedConnections = await Promise.all(

@@ -112,7 +112,7 @@ class ScEnvironmentsList extends React.Component {
     } else if (isStoreEmpty(store)) {
       content = this.renderEmpty();
     } else if (isStoreNotEmpty(store)) {
-      content = this.renderMain(appStreamProjectIds);
+      content = this.renderMain();
     } else {
       content = null;
     }
@@ -143,11 +143,10 @@ class ScEnvironmentsList extends React.Component {
     );
   }
 
-  renderMain(appStreamProjectIds) {
+  renderMain() {
     const store = this.envsStore;
     const selectedFilter = this.selectedFilter;
-    let list = store.filtered(selectedFilter);
-    list = this.isAppStreamEnabled ? _.filter(list, env => _.includes(appStreamProjectIds, env.projectId)) : list;
+    const list = store.filtered(selectedFilter);
     const isEmpty = _.isEmpty(list);
 
     return (
