@@ -371,7 +371,7 @@ class DataEgressService extends Service {
     const egressStoreInfo = await this.getEgressStoreInfo(environmentId);
     if (!egressStoreInfo.isAbleToSubmitEgressRequest) {
       throw this.boom.badRequest(
-        `There is no updates in egress Store:${egressStoreInfo.id} and egress request submission is currently disabled. To submit another egress request, please update egress store objects. For more information, please contact Administrator.`,
+        `There are no updates in egress Store:${egressStoreInfo.id} and egress request submission is currently disabled. To submit another egress request, please update egress store objects. For more information, please contact Administrator.`,
         true,
       );
     }
