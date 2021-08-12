@@ -29,5 +29,8 @@
   "dependencies": {
     "aws-sdk": "^2.708.0",
     "yargs": "^15.3.1"
+  },
+  "resolutions": {
+    "path-parse": "^1.0.7"
   }
 }
