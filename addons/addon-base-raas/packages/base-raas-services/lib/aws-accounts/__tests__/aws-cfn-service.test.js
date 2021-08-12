@@ -41,6 +41,9 @@ const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
 jest.mock('@aws-ee/base-services/lib/aws/aws-service');
 const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
 
+jest.mock('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
+const PluginRegistryService = require('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
+
 jest.mock('../aws-accounts-service');
 const AwsAccountsServiceMock = require('../aws-accounts-service');
 
@@ -152,6 +155,7 @@ describe('AwsAccountService', () => {
     container.register('cfnTemplateService', new CfnTemplateMock());
     container.register('aws', new AwsService());
     container.register('log', new Logger());
+    container.register('pluginRegistryService', new PluginRegistryService());
     container.register('awsAccountsService', new AwsAccountsServiceMock());
     container.register('awsCfnService', new AwsCfnService());
     await container.initServices();
