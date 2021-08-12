@@ -1,0 +1,18 @@
+# The stack name of the 'backend' serverless service
+backendStackName: ${self:custom.settings.namespace}-backend
+# ================================ DB Settings ===========================================
+
+# DynamoDB table name for Studies
+dbStudies: ${self:custom.settings.dbPrefix}-Studies
+
+# DynamoDB table global secondary index name for the "category" field
+dbStudiesCategoryIndex: CategoryIndex
+
+# The name of the S3 bucket used to store uploaded study data
+studyDataBucketName: ${self:custom.settings.globalNamespace}-studydata
+
+# DynamoDB table global secondary index name for the "accountId" field
+dbStudiesAccountIdIndex: AccountIdIndex
+
+# DynamoDB table name for Data source accounts
+dbDsAccounts: ${self:custom.settings.dbPrefix}-DsAccounts

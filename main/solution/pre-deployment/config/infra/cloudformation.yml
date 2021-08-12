@@ -1,0 +1,50 @@
+Resources:
+  # =============================================================================================
+  # IAM Roles
+  # =============================================================================================
+  # IAM Role for the preDeployment Function
+  RolePreDeploymentLambda:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - arn:aws:iam::aws:policy/AmazonCognitoPowerUser
+      Policies:
+        - PolicyName: db-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - dynamodb:GetItem
+                - dynamodb:DeleteItem
+                - dynamodb:PutItem
+                - dynamodb:UpdateItem
+                - dynamodb:Query
+                - dynamodb:Scan
+              Resource:
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbStudies}'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbStudies}/*'
+                - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbDsAccounts}'
+        - PolicyName: cloudformation-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - cloudformation:DescribeStacks
+              Resource:
+                - !Sub arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${self:custom.settings.backendStackName}
+                - !Sub arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${self:custom.settings.backendStackName}/*
+
+# =============================================================================================
+# Outputs
+# =============================================================================================
+Outputs:
+  PreDeploymentRoleArn:
+    Value: !GetAtt RolePreDeploymentLambda.Arn
