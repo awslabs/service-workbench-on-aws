@@ -40,6 +40,7 @@ class AwsAccountsService extends Service {
       'lockService',
       's3Service',
       'auditWriterService',
+      'pluginRegistryService',
       'aws',
     ]);
   }
@@ -261,6 +262,28 @@ class AwsAccountsService extends Service {
     return result;
   }
 
+  async checkActiveNonAppStreamEnvs(requestContext, awsAccountId) {
+    if (!this.settings.getBoolean(settingKeys.isAppStreamEnabled)) return;
+
+    const pluginRegistryService = await this.service('pluginRegistryService');
+    const activeNonAppStreamEnvs = await pluginRegistryService.visitPlugins(
+      'aws-account-mgmt',
+      'getActiveNonAppStreamEnvs',
+      {
+        payload: {
+          awsAccountId,
+        },
+      },
+      { requestContext, container: this.container },
+    );
+
+    if (!_.isEmpty(activeNonAppStreamEnvs))
+      throw this.boom.badRequest(
+        'This account has active non-AppStream environments. Please terminate them and retry this operation',
+        true,
+      );
+  }
+
   async update(requestContext, rawData) {
     // ensure that the caller has permissions to update the account
     // Perform default condition checks to make sure the user is active and is admin
@@ -277,6 +300,9 @@ class AwsAccountsService extends Service {
     // For now, we assume that 'updatedBy' is always a user and not a group
     const by = _.get(requestContext, 'principalIdentifier.uid');
     const { id, rev } = rawData;
+
+    // Verify active Non-AppStream environments do not exist
+    await this.checkActiveNonAppStreamEnvs(requestContext, id);
 
     // Prepare the db object
     const dbObject = _.omit(this._fromRawToDbObject(rawData, { updatedBy: by }), ['rev']);

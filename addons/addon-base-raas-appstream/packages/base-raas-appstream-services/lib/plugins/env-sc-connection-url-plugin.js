@@ -28,7 +28,7 @@ async function createConnectionUrl({ envId, connection }, { requestContext, cont
   const appStreamScService = await container.find('appStreamScService');
   const environmentScConnectionService = await container.find('environmentScConnectionService');
   const settings = await container.find('settings');
-  const isAppStreamEnabled = settings.optionalBoolean(settingKeys.isAppStreamEnabled, false);
+  const isAppStreamEnabled = settings.getBoolean(settingKeys.isAppStreamEnabled);
 
   // This plugin will only contribute to URL creation when AppStream is enabled
   // Since this plugin is also called upon during listConnections cycle

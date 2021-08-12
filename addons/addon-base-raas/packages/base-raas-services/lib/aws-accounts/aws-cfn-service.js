@@ -127,6 +127,7 @@ class AwsCfnService extends Service {
       'jsonSchemaValidationService',
       'authorizationService',
       'auditWriterService',
+      'pluginRegistryService',
       'cfnTemplateService',
       'awsAccountsService',
       's3Service',
@@ -182,6 +183,9 @@ class AwsCfnService extends Service {
     const awsAccountsService = await this.service('awsAccountsService');
     const cfnTemplateService = await this.service('cfnTemplateService');
     const s3Service = await this.service('s3Service');
+
+    // Verify active Non-AppStream environments do not exist
+    await awsAccountsService.checkActiveNonAppStreamEnvs(requestContext, accountId);
 
     const account = await awsAccountsService.mustFind(requestContext, { id: accountId });
     cfnTemplateInfo.template = await cfnTemplateService.getTemplate('onboard-account');
