@@ -30,7 +30,7 @@ const IndexesServiceMock = require('@aws-ee/base-raas-services/lib/indexes/index
 
 const plugin = require('../aws-account-mgmt-plugin');
 
-// Tested Functions: getActiveNonAppStreamEnvs
+// CHECKed Functions: getActiveNonAppStreamEnvs
 describe('awsAccountMgmtPlugin', () => {
   let container;
   let settings;
@@ -63,7 +63,7 @@ describe('awsAccountMgmtPlugin', () => {
       // OPERATE
       const retVal = await plugin.getActiveNonAppStreamEnvs({ awsAccountId }, { requestContext, container });
 
-      // TEST
+      // CHECK
       expect(retVal).toEqual(expected);
     });
 
@@ -96,7 +96,7 @@ describe('awsAccountMgmtPlugin', () => {
       // OPERATE
       const retVal = await plugin.getActiveNonAppStreamEnvs({ awsAccountId }, { requestContext, container });
 
-      // TEST
+      // CHECK
       expect(retVal).toEqual(expected);
     });
 
@@ -128,7 +128,7 @@ describe('awsAccountMgmtPlugin', () => {
       // OPERATE
       const retVal = await plugin.getActiveNonAppStreamEnvs({ awsAccountId }, { requestContext, container });
 
-      // TEST
+      // CHECK
       expect(retVal).toEqual(expected);
     });
 
@@ -158,7 +158,7 @@ describe('awsAccountMgmtPlugin', () => {
       // OPERATE
       const retVal = await plugin.getActiveNonAppStreamEnvs({ awsAccountId }, { requestContext, container });
 
-      // TEST
+      // CHECK
       expect(retVal).toEqual(expected);
     });
   });
