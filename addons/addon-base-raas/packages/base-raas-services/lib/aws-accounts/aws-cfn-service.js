@@ -185,7 +185,7 @@ class AwsCfnService extends Service {
     const s3Service = await this.service('s3Service');
 
     // Verify active Non-AppStream environments do not exist
-    await awsAccountsService.checkActiveNonAppStreamEnvs(requestContext, accountId);
+    await awsAccountsService.checkForActiveNonAppStreamEnvs(requestContext, accountId);
 
     const account = await awsAccountsService.mustFind(requestContext, { id: accountId });
     cfnTemplateInfo.template = await cfnTemplateService.getTemplate('onboard-account');

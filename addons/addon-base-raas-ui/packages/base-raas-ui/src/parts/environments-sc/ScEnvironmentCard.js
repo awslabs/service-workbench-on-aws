@@ -15,14 +15,9 @@ import ScEnvironmentCost from './parts/ScEnvironmentCost';
 // expected props
 // - scEnvironment (via prop)
 // - envTypesStore (via injection)
-// - indexesStore (via injection)
 class ScEnvironmentCard extends React.Component {
   get envTypesStore() {
     return this.props.envTypesStore;
-  }
-
-  get indexesStore() {
-    return this.props.indexesStore;
   }
 
   get environment() {
@@ -40,15 +35,13 @@ class ScEnvironmentCard extends React.Component {
   render() {
     const env = this.environment;
     const state = env.state;
-    const indexesStore = this.indexesStore;
-    const indexes = indexesStore.getIndexes();
 
     return (
       <>
         {this.renderStatus(state)}
         {this.renderTitle(env)}
         {this.renderError(env)}
-        {this.renderWarning(env, indexes)}
+        {this.renderWarning(env)}
         <Divider className="mt1 mb1" />
         {this.renderButtons(env)}
         <Divider className="mt1" />
@@ -135,7 +128,7 @@ class ScEnvironmentCard extends React.Component {
         <Message
           icon="warning"
           header="Non-AppStream workspace found"
-          content="Please terminate this workspace to avoid AppStream configuration issues for its hosting account"
+          content="Please terminate this workspace as soon as possible. This workspace is not supported by AppStream."
         />
       );
     }
@@ -161,4 +154,4 @@ decorate(ScEnvironmentCard, {
   envType: computed,
 });
 
-export default inject('envTypesStore', 'indexesStore')(withRouter(observer(ScEnvironmentCard)));
+export default inject('envTypesStore')(withRouter(observer(ScEnvironmentCard)));

@@ -1399,7 +1399,7 @@ describe('EnvironmentSCService', () => {
     });
   });
 
-  describe('markAppStreamConfig function', () => {
+  describe('markAppStreamConfigured function', () => {
     it('should mark envs by AppStream config', async () => {
       // BUILD
       const requestContext = {
@@ -1436,7 +1436,7 @@ describe('EnvironmentSCService', () => {
       ];
 
       // OPERATE
-      const retVal = await service.markAppStreamConfig(requestContext, envs);
+      const retVal = await service.markAppStreamConfigured(requestContext, envs);
 
       // CHECK
       expect(retVal).toEqual(expected);

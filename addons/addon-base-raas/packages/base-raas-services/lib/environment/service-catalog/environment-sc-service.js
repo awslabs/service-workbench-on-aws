@@ -97,13 +97,13 @@ class EnvironmentScService extends Service {
       });
 
     if (this.isAppStreamEnabled()) {
-      envs = await this.markAppStreamConfig(requestContext, envs);
+      envs = await this.markAppStreamConfigured(requestContext, envs);
     }
 
     return this.augmentWithConnectionInfo(requestContext, envs);
   }
 
-  async markAppStreamConfig(requestContext, envs) {
+  async markAppStreamConfigured(requestContext, envs) {
     const projectService = await this.service('projectService');
     const projects = await projectService.list(requestContext);
     const appStreamProjectIds = _.map(

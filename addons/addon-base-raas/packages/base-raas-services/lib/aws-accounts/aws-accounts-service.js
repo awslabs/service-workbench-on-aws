@@ -262,7 +262,7 @@ class AwsAccountsService extends Service {
     return result;
   }
 
-  async checkActiveNonAppStreamEnvs(requestContext, awsAccountId) {
+  async checkForActiveNonAppStreamEnvs(requestContext, awsAccountId) {
     if (!this.settings.getBoolean(settingKeys.isAppStreamEnabled)) return;
 
     const pluginRegistryService = await this.service('pluginRegistryService');
@@ -302,7 +302,7 @@ class AwsAccountsService extends Service {
     const { id, rev } = rawData;
 
     // Verify active Non-AppStream environments do not exist
-    await this.checkActiveNonAppStreamEnvs(requestContext, id);
+    await this.checkForActiveNonAppStreamEnvs(requestContext, id);
 
     // Prepare the db object
     const dbObject = _.omit(this._fromRawToDbObject(rawData, { updatedBy: by }), ['rev']);
