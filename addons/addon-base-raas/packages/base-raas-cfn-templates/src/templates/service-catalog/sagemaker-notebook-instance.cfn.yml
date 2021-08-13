@@ -225,6 +225,10 @@ Resources:
       SubnetId: !Ref Subnet
       SecurityGroupIds:
         - !Ref SecurityGroup
+        - !If
+          - AppStreamEnabled
+          - Fn::ImportValue: !Sub "${SolutionNamespace}-SwbVPCDefaultSG"
+          - !Ref "AWS::NoValue"
       DirectInternetAccess:
         !If
         - AppStreamEnabled

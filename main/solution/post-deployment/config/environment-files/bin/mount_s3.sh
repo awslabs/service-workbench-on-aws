@@ -48,6 +48,13 @@ append_role_to_credentials() {
     fi
 }
 
+# Use STS regional endpoint instead of global one. This allows external studies to connect with local interface endpoint
+# if it exists. Refer https://docs.aws.amazon.com/sdkref/latest/guide/setting-global-sts_regional_endpoints.html
+region=`curl http://169.254.169.254/latest/meta-data/placement/availability-zone/ | sed 's/.$//'`
+export AWS_STS_REGIONAL_ENDPOINTS=regional
+export AWS_DEFAULT_REGION=$region
+export AWS_SDK_LOAD_CONFIG=1
+
 # Mount S3 buckets
 mounts="$(cat "$CONFIG")"
 num_mounts=$(printf "%s" "$mounts" | jq ". | length" -)
@@ -61,7 +68,6 @@ do
     kms_arn="$(printf "%s" "$mounts" | jq -r ".[$study_idx].kmsArn" -)"
 
     # Mount S3 location if not already mounted
-    region=`curl http://169.254.169.254/latest/meta-data/placement/availability-zone/ | sed 's/.$//'`
     study_dir="${MOUNT_DIR}/${study_id}"
     ps -U "$LOGNAME" -o "command" | egrep -q "goofys .* ${study_dir}$"
     if [ $? -ne 0 ]
