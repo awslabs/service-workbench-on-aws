@@ -1399,8 +1399,8 @@ describe('EnvironmentSCService', () => {
     });
   });
 
-  describe('filterAppStreamProjectEnvs function', () => {
-    it('should filter out envs by AppStream config', async () => {
+  describe('markAppStreamConfigured function', () => {
+    it('should mark envs by AppStream config', async () => {
       // BUILD
       const requestContext = {
         principal: {
@@ -1426,11 +1426,17 @@ describe('EnvironmentSCService', () => {
         {
           id: 'env-1',
           projectId: 'proj-1',
+          isAppStreamConfigured: true,
+        },
+        {
+          id: 'env-2',
+          projectId: 'proj-2',
+          isAppStreamConfigured: false,
         },
       ];
 
       // OPERATE
-      const retVal = await service.filterAppStreamProjectEnvs(requestContext, envs);
+      const retVal = await service.markAppStreamConfigured(requestContext, envs);
 
       // CHECK
       expect(retVal).toEqual(expected);

@@ -25,15 +25,15 @@ const PluginRegistryService = require('@aws-ee/base-services/lib/plugin-registry
 jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
 const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
 
-jest.mock('../../appstream/appstream-sc-service');
-const AppStreamScService = require('../../appstream/appstream-sc-service');
-
 jest.mock('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-connection-service');
 const EnvironmentScConnectionServiceMock = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-connection-service');
 
+jest.mock('../../appstream/appstream-sc-service');
+const AppStreamScService = require('../../appstream/appstream-sc-service');
+
 const plugin = require('../env-sc-connection-url-plugin');
 
-// Tested Functions: create, update, delete
+// Tested Functions: createConnectionUrl
 describe('envScConnectionUrlPlugin', () => {
   let container;
   let appStreamScService;
@@ -60,7 +60,7 @@ describe('envScConnectionUrlPlugin', () => {
       // BUILD
       const connection = { scheme: 'http', operation: 'create' };
       const envId = 'sampleEnvId';
-      settings.optionalBoolean = jest.fn(() => {
+      settings.getBoolean = jest.fn(() => {
         return false;
       });
 
@@ -75,7 +75,7 @@ describe('envScConnectionUrlPlugin', () => {
       // BUILD
       const connection = { scheme: 'http', operation: 'list' };
       const envId = 'sampleEnvId';
-      settings.optionalBoolean = jest.fn(() => {
+      settings.getBoolean = jest.fn(() => {
         return true;
       });
 
@@ -90,7 +90,7 @@ describe('envScConnectionUrlPlugin', () => {
       // BUILD
       const connection = { scheme: 'random', operation: 'create' };
       const envId = 'sampleEnvId';
-      settings.optionalBoolean = jest.fn(() => {
+      settings.getBoolean = jest.fn(() => {
         return true;
       });
       appStreamScService.getStreamingUrl = jest.fn();
@@ -110,7 +110,7 @@ describe('envScConnectionUrlPlugin', () => {
       const destinationUrl = 'originalPublicDestinationUrl';
       let connection = { scheme: 'http', operation: 'create', url: destinationUrl, type: 'SageMaker' };
       const envId = 'sampleEnvId';
-      settings.optionalBoolean = jest.fn(() => {
+      settings.getBoolean = jest.fn(() => {
         return true;
       });
       environmentScConnectionService.createPrivateSageMakerUrl = jest.fn(() => {
@@ -152,7 +152,7 @@ describe('envScConnectionUrlPlugin', () => {
       const destinationUrl = 'destinationUrl';
       let connection = { scheme: 'http', operation: 'create', url: destinationUrl };
       const envId = 'sampleEnvId';
-      settings.optionalBoolean = jest.fn(() => {
+      settings.getBoolean = jest.fn(() => {
         return true;
       });
       const streamingUrl = 'sampleAppStreamUrl';
@@ -185,7 +185,7 @@ describe('envScConnectionUrlPlugin', () => {
       const destinationUrl = 'destinationUrl';
       let connection = { scheme: 'ssh', operation: 'create', url: destinationUrl };
       const envId = 'sampleEnvId';
-      settings.optionalBoolean = jest.fn(() => {
+      settings.getBoolean = jest.fn(() => {
         return true;
       });
       const streamingUrl = 'sampleAppStreamUrl';
@@ -216,7 +216,7 @@ describe('envScConnectionUrlPlugin', () => {
       // BUILD
       let connection = { scheme: 'rdp', operation: 'create', instanceId: 'sampleInstanceId' };
       const envId = 'sampleEnvId';
-      settings.optionalBoolean = jest.fn(() => {
+      settings.getBoolean = jest.fn(() => {
         return true;
       });
       const streamingUrl = 'sampleAppStreamUrl';

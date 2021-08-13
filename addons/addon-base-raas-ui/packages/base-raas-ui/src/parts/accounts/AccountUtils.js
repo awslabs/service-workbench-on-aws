@@ -1,9 +1,9 @@
 import _ from 'lodash';
 
 function getAccountIdsOfActiveEnvironments(scEnvs, projects, indexes) {
-  const nonActivateStates = ['FAILED', 'TERMINATED', 'UNKNOWN'];
+  const nonActiveStates = ['FAILED', 'TERMINATED', 'UNKNOWN'];
   const activeEnvs = scEnvs.filter(env => {
-    return !nonActivateStates.includes(env.status);
+    return !nonActiveStates.includes(env.status);
   });
   const projectToActiveEnvs = _.groupBy(activeEnvs, 'projectId');
 

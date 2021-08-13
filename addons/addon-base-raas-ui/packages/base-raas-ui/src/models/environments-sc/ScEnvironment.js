@@ -167,6 +167,7 @@ const ScEnvironment = types
     studyIds: types.frozen([]),
     cidr: types.frozen([]),
     outputs: types.frozen([]),
+    isAppStreamConfigured: types.optional(types.boolean, false),
   })
   .actions(self => ({
     setScEnvironment(rawEnvironment) {

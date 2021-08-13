@@ -34,6 +34,7 @@ const legacyStrategyPlugin = require('@aws-ee/base-raas-services/lib/plugins/leg
 const baseRaasAppstreamServicesPlugin = require('@aws-ee/base-raas-appstream-rest-api/lib/plugins/services-plugin');
 const baseRaasAppstreamEnvTypeVarsPlugin = require('@aws-ee/base-raas-appstream-services/lib/plugins/env-sc-provisioning-plugin');
 const baseRaasAppStreamConnectionUrlPlugin = require('@aws-ee/base-raas-appstream-services/lib/plugins/env-sc-connection-url-plugin');
+const baseRaasAppStreamAwsAccountMgmtPlugin = require('@aws-ee/base-raas-appstream-services/lib/plugins/aws-account-mgmt-plugin');
 
 const routesPlugin = require('./routes-plugin');
 
@@ -72,6 +73,7 @@ const extensionPoints = {
 
   'schema': [baseRaasSchemaPlugin],
   'env-sc-connection-url': [baseRaasAppStreamConnectionUrlPlugin],
+  'aws-account-mgmt': [baseRaasAppStreamAwsAccountMgmtPlugin],
   'study-access-strategy': [legacyStrategyPlugin, rolesOnlyStrategyPlugin],
 };
 

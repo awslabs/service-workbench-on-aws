@@ -97,13 +97,13 @@ class EnvironmentScService extends Service {
       });
 
     if (this.isAppStreamEnabled()) {
-      envs = await this.filterAppStreamProjectEnvs(requestContext, envs);
+      envs = await this.markAppStreamConfigured(requestContext, envs);
     }
 
     return this.augmentWithConnectionInfo(requestContext, envs);
   }
 
-  async filterAppStreamProjectEnvs(requestContext, envs) {
+  async markAppStreamConfigured(requestContext, envs) {
     const projectService = await this.service('projectService');
     const projects = await projectService.list(requestContext);
     const appStreamProjectIds = _.map(
@@ -111,7 +111,10 @@ class EnvironmentScService extends Service {
       'id',
     );
 
-    return _.filter(envs, env => _.includes(appStreamProjectIds, env.projectId));
+    return _.map(envs, env => {
+      env.isAppStreamConfigured = _.includes(appStreamProjectIds, env.projectId);
+      return env;
+    });
   }
 
   async pollAndSyncWsStatus(requestContext) {
@@ -513,9 +516,6 @@ class EnvironmentScService extends Service {
       existingEnvironment,
     );
 
-    // Verify environment is linked to an AppStream project when application has AppStream enabled
-    await this.verifyAppStreamConfig(requestContext, existingEnvironment.projectId);
-
     const by = _.get(requestContext, 'principalIdentifier.uid');
     const { id, rev } = environment;
 
@@ -669,6 +669,9 @@ class EnvironmentScService extends Service {
     );
 
     const { status, outputs, projectId } = existingEnvironment;
+
+    // Verify environment is linked to an AppStream project when application has AppStream enabled
+    await this.verifyAppStreamConfig(requestContext, projectId);
 
     // expected environment run state based on operation
     let expectedStatus;
