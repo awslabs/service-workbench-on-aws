@@ -198,7 +198,7 @@ class ScEnvironmentButtons extends React.Component {
             1. AppStream is not enabled and environment can be connected to
             2. AppStream is enabled, environment is linked to an AppStream-configured account, and environment can be connected to 
           */}
-          {canConnect && !(isAppStreamEnabled && !env.isAppStreamConfigured) && (
+          {canConnect && (!isAppStreamEnabled || env.isAppStreamConfigured) && (
             <Button
               floated="left"
               basic

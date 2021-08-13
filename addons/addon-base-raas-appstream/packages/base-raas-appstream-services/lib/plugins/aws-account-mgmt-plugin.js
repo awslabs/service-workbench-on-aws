@@ -23,7 +23,7 @@ const settingKeys = {
  * Returns a list of active non-AppStream environments linked to a given AWS Account ID
  * This check is only performed when the deployment has AppStream enabled,
  * and is triggered if the user attempts to update the AWS account using SWB APIs.
- * A similar check is performed on the UI components as well.
+ * A similar check is performed on the UI components (AccountUtils) as well.
  */
 async function getActiveNonAppStreamEnvs({ awsAccountId }, { requestContext, container }) {
   const settings = await container.find('settings');

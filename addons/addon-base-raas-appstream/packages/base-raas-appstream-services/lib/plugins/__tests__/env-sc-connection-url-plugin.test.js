@@ -33,7 +33,7 @@ const AppStreamScService = require('../../appstream/appstream-sc-service');
 
 const plugin = require('../env-sc-connection-url-plugin');
 
-// Tested Functions: create, update, delete
+// Tested Functions: createConnectionUrl
 describe('envScConnectionUrlPlugin', () => {
   let container;
   let appStreamScService;

@@ -51,6 +51,8 @@ describe('AwsAccountService', () => {
   let dbService = null;
   let s3Service = null;
   let lockService = null;
+  let pluginService = null;
+  let settingsService = null;
   beforeEach(async () => {
     // Initialize services container and register dependencies
     const container = new ServicesContainer();
@@ -71,6 +73,8 @@ describe('AwsAccountService', () => {
     dbService = await container.find('dbService');
     s3Service = await container.find('s3Service');
     lockService = await container.find('lockService');
+    pluginService = await container.find('pluginRegistryService');
+    settingsService = await container.find('settings');
 
     // Skip authorization by default
     service.assertAuthorized = jest.fn();
@@ -371,6 +375,58 @@ describe('AwsAccountService', () => {
           action: 'update-aws-account',
         }),
       );
+    });
+  });
+
+  describe('checkForActiveNonAppStreamEnvs', () => {
+    it('should not throw error if plugin returns empty array', async () => {
+      // BUILD
+      const requestContext = {};
+      settingsService.getBoolean = jest.fn(() => {
+        return true;
+      });
+      pluginService.visitPlugins = jest.fn(() => {
+        return [];
+      });
+      const awsAccountId = 'sampleAwsAccountId';
+
+      // OPERATE & CHECK
+      await service.checkForActiveNonAppStreamEnvs(requestContext, awsAccountId);
+    });
+
+    it('should not throw error if AppStream is disabled', async () => {
+      // BUILD
+      const requestContext = {};
+      settingsService.getBoolean = jest.fn(() => {
+        return false;
+      });
+      const awsAccountId = 'sampleAwsAccountId';
+
+      // OPERATE & CHECK
+      await service.checkForActiveNonAppStreamEnvs(requestContext, awsAccountId);
+    });
+
+    it('should throw error if AppStream is enabled and plugin returns non-empty array', async () => {
+      // BUILD
+      const requestContext = {};
+      settingsService.getBoolean = jest.fn(() => {
+        return true;
+      });
+      pluginService.visitPlugins = jest.fn(() => {
+        return [{ id: 'env1' }];
+      });
+      const awsAccountId = 'sampleAwsAccountId';
+
+      // OPERATE
+      try {
+        await service.checkForActiveNonAppStreamEnvs(requestContext, awsAccountId);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual(
+          'This account has active non-AppStream environments. Please terminate them and retry this operation',
+        );
+      }
     });
   });
 });
