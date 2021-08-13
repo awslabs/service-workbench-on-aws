@@ -29,6 +29,7 @@ class ForceLogout extends React.Component {
     super(props);
     runInAction(() => {
       this.tokenActive = true;
+      this.intervalId = undefined;
     });
   }
 
@@ -45,21 +46,31 @@ class ForceLogout extends React.Component {
   }
 
   componentDidMount() {
-    this.timer = setInterval(() => {
-      runInAction(() => {
-        this.tokenActive = !this.hasTokenExpired();
-      });
-    }, 1000);
+    runInAction(() => {
+      this.intervalId = setInterval(() => {
+        runInAction(() => {
+          this.tokenActive = !this.hasTokenExpired();
+        });
+      }, 1000);
+    });
   }
 
   componentWillUnmount() {
-    clearInterval(this.timer);
+    clearInterval();
   }
 
   doLogout = async () => {
-    clearInterval(this.timer);
+    clearInterval();
     return this.authentication.logout({ autoLogout: true });
   };
+
+  clearInterval() {
+    if (!_.isUndefined(this.intervalId)) {
+      clearInterval(this.intervalId);
+      this.intervalId = undefined;
+    }
+    this.tokenActive = true;
+  }
 
   hasTokenExpired = () => {
     try {
@@ -111,6 +122,7 @@ decorate(ForceLogout, {
   authentication: computed,
   modalOpen: computed,
   tokenActive: observable,
+  intervalId: observable,
   doLogout: action,
   handleLogout: action,
   clearInterval: action,

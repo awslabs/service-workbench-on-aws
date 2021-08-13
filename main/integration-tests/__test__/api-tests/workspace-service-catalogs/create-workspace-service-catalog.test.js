@@ -1,3 +1,4 @@
+/* eslint-disable no-await-in-loop */
 /*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -14,7 +15,6 @@
  */
 
 const { runSetup } = require('../../../support/setup');
-
 const {
   createWorkspaceTypeAndConfiguration,
 } = require('../../../support/complex/create-workspace-type-and-configuration');
@@ -28,11 +28,12 @@ describe('Create workspace-service-catalog scenarios', () => {
   let setup;
   let adminSession;
   let productInfo;
-
   beforeAll(async () => {
     setup = await runSetup();
+
     adminSession = await setup.defaultAdminSession();
     productInfo = await createDefaultServiceCatalogProduct(setup);
+    jest.retryTimes(1);
   });
 
   afterAll(async () => {

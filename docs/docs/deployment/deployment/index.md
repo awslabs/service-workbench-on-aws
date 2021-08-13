@@ -29,12 +29,13 @@ _**Note**: You can create your own machine image if you do not wish to use the o
 To deploy the machine images SDC, follow the steps outlined in the readme file located in `main/solution/machine-images/README.md`. Additionally, perform the following actions: 
 
 1.	Install Packer 1.6.0 by using [pkenv](https://github.com/iamhsa/pkenv). Packer 1.6.0 creates a custom AMI that is uploaded to the Service Workbench deployment.
-2.	Fetch the package with `curl` or `wget`, unzip the package, and copy it to the `directory /usr/local/bin`. 
-3.	Change directory to `/main/solution/machine-images`. 
-4.	Run the command below. The command takes approximately 15 minutes to complete: 
+2.	Change directory to `/main/solution/machine-images`. 
+3.	Run the command below. The command takes approximately 15 minutes to complete: 
 ```
-`pnpx sls build-image -s <mystage>`
+pnpx sls build-image -s <mystage>
 ```
+- ** If the above command does not work, you might have to fetch the custom AMI package created in step 1 with `curl` or `wget`, unzip the package, and copy it to the `directory /usr/local/bin`. Resume from step 2.**
+
 For examples of how to build a custom AMI, refer to the following scripts:
 
 –	`config/infra/packer-ec2-<platform>-workspace.json`

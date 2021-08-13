@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [3.3.1](https://github.com/awslabs/service-workbench-on-aws/compare/v3.3.0...v3.3.1) (2021-07-26)
+
+
+### Bug Fixes
+
+* application version number ([#573](https://github.com/awslabs/service-workbench-on-aws/issues/573)) ([fada154](https://github.com/awslabs/service-workbench-on-aws/commit/fada154f0cee6d38722f30446b71ebbde32cb6fb))
+* Clear timer in ForceLogout.test.js to allow tests to end ([#570](https://github.com/awslabs/service-workbench-on-aws/issues/570)) ([4871e0f](https://github.com/awslabs/service-workbench-on-aws/commit/4871e0f885a5051b4542c37f72abb9d67f281dce))
+* Remove delete user feature from UI and handle study permissions which have stale users ([#595](https://github.com/awslabs/service-workbench-on-aws/issues/595)) ([8be3f90](https://github.com/awslabs/service-workbench-on-aws/commit/8be3f902eea97f53c70373e3e19fb359005ad7f4))
+
+
+### Chore
+
+* **deps:** bump all dependencies ([#556](https://github.com/awslabs/service-workbench-on-aws/issues/556)) ([46e26af](https://github.com/awslabs/service-workbench-on-aws/commit/46e26af8f7cb34daeb134b7cd732775ad4e61ec4))
+
+
+### Documentation
+
+* Added details found needed while onboarding ([#593](https://github.com/awslabs/service-workbench-on-aws/issues/593)) ([d375785](https://github.com/awslabs/service-workbench-on-aws/commit/d375785fe5b42f70a2e371b985fd2d5a0dd734bd))
+* IDP configuration guide ([#569](https://github.com/awslabs/service-workbench-on-aws/issues/569)) ([406c656](https://github.com/awslabs/service-workbench-on-aws/commit/406c656948993474a9c60889e4f8548fa8b0c108))
+
 ## [3.3.0](https://github.com/awslabs/service-workbench-on-aws/compare/v3.2.0...v3.3.0) (2021-06-25)
 
 ### Documentation

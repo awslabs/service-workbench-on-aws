@@ -38,3 +38,25 @@ isLocal: false
 
 # Set this to the API endpoint if different than the following
 localApiEndpoint: http://localhost:4000
+# Provide the id of the available EC2-Linux Service Catalog product
+# ec2LinuxEnvTypeId: "prod-sampleEC2Linux-pa-sampleEC2Linux"
+# Provide the id of a configuration for an imported EC2-Linux environment
+# ec2LinuxConfigId: ""
+
+# Provide the id of the available EC2-Windows Service Catalog product
+# ec2WindowsEnvTypeId: "prod-sampleEC2Windows-pa-sampleEC2Windows"
+# Provide the id of a configuration for an imported EC2-Windows environment
+# ec2WindowsConfigId: ""
+
+# Provide the id of the available SageMaker Service Catalog product
+# sagemakerEnvTypeId: "prod-sampleSageMaker-pa-sampleSageMaker"
+# Provide the id of a configuration for an imported SageMaker environment
+# sagemakerConfigId: ""
+
+# Provide the id of the available EMR Service Catalog product
+# emrEnvTypeId: "prod-sampleEMR-pa-sampleEMR"
+# Provide the id of a configuration for an imported EMR environment
+# emrConfigId: ""
+
+# Provide the id of the external BYOB Data Source study
+# byobStudy: ""
