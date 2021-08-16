@@ -8,7 +8,16 @@ pushd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null
 [[ ${UTIL_SOURCED-no} != yes && -f ./util.sh ]] && source ./util.sh
 popd > /dev/null
 
-ENV_NAME=$@
+PARAMETERS=$@
+PARAMETER_ARRAY=($PARAMETERS)
+ENV_NAME=${PARAMETER_ARRAY[0]}
+APPSTREAM_ENABLED=${PARAMETER_ARRAY[1]}
+
+if [ "$APPSTREAM_ENABLED" == "AppStream" ]; then
+  echo "Testing with AppStream Enabled"
+else
+  echo "Testing with AppStream Disabled"
+fi
 CONFIG_S3_PATH="s3://$DEPLOYMENT_BUCKET/integration-test/$ENV_NAME.yml"
 CONFIG_TARGET_PATH="$INT_TEST_DIR/config/settings/$ENV_NAME.yml"
 
@@ -31,7 +40,12 @@ if [ "$TEST_CONFIG_EXISTS" == true ]; then
     # shellcheck disable=SC1091
 
     printf "\n\nExecuting integration tests against env %s\n" "$ENV_NAME"
-    pnpm run intTest --recursive --if-present -- --stage="$ENV_NAME"
+
+    if [ "$APPSTREAM_ENABLED" == "AppStream" ]; then
+      pnpm run intTest-AppStream-Enabled --recursive --if-present -- --stage="$ENV_NAME"
+    else
+      pnpm run intTest-AppStream-Disabled --recursive --if-present -- --stage="$ENV_NAME"
+    fi
 else
     # Create empty report file
     mkdir -p main/integration-tests/.build/test
