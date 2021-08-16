@@ -10,6 +10,7 @@
     "cypress:open:dev": "cypress open -C cypress.dev.json",
     "cypress:run-tests:local": "cypress run -C cypress.local.json",
     "cypress:run-tests:dev": "cypress run -C cypress.dev.json",
+    "cypress:run-tests:dev:appstream-enabled": "cypress run -C cypress.dev.json --spec cypress/integration/{common,appstream-enabled}/*",
     "cypress:run-tests:github": "cypress run -C cypress.github.json"
   },
   "husky": {
