@@ -68,7 +68,7 @@ $ scripts/run-integration-tests.sh <STAGE>
 Run specific test suites under `main/integration-tests` with: 
 
 ```bash
-$ pnpm intTest __test__/api-tests/<your test suite file> -- --stage=<STAGE>
+$ pnpm intTestSpecific __test__/api-tests/<your test suite file> -- --stage=<STAGE>
 # IMPORTANT: notice the additional '-- ' in front of the '--stage='
 ```
 
