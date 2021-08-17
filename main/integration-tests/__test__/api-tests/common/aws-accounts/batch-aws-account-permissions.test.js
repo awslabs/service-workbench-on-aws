@@ -13,8 +13,8 @@
  *  permissions and limitations under the License.
  */
 
-const { runSetup } = require('../../../support/setup');
-const errorCode = require('../../../support/utils/error-code');
+const { runSetup } = require('../../../../support/setup');
+const errorCode = require('../../../../support/utils/error-code');
 
 describe('AWS Account Permissions scenarios', () => {
   let setup;
@@ -29,32 +29,26 @@ describe('AWS Account Permissions scenarios', () => {
     await setup.cleanup();
   });
 
-  describe('Template Check and Upload for AWS Account Check', () => {
-    it('should fail if user is inactive', async () => {
+  describe('Batch AWS Accounts permissions check', () => {
+    it('should fail if admin is inactive', async () => {
       const admin2Session = await setup.createAdminSession();
       await adminSession.resources.users.deactivateUser(admin2Session.user);
 
-      await expect(
-        admin2Session.resources.awsAccounts.getAndUploadTemplateForAccount(setup.defaults.awsAccount.id),
-      ).rejects.toMatchObject({
+      await expect(admin2Session.resources.awsAccounts.bulkPermissionsCheck()).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
     });
 
-    it('should fail if non-admin attempts to get CFN template for AWS Account', async () => {
+    it('should fail if non-admin user is trying to check permissions', async () => {
       const researcherSession = await setup.createResearcherSession();
-      await expect(
-        researcherSession.resources.awsAccounts.getAndUploadTemplateForAccount(setup.defaults.awsAccount.id),
-      ).rejects.toMatchObject({
+      await expect(researcherSession.resources.awsAccounts.bulkPermissionsCheck()).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
     });
 
     it('should fail for anonymous user', async () => {
       const anonymousSession = await setup.createAnonymousSession();
-      await expect(
-        anonymousSession.resources.awsAccounts.getAndUploadTemplateForAccount(setup.defaults.awsAccount.id),
-      ).rejects.toMatchObject({
+      await expect(anonymousSession.resources.awsAccounts.bulkPermissionsCheck()).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });
@@ -62,9 +56,7 @@ describe('AWS Account Permissions scenarios', () => {
     it('should succeed for active admin', async () => {
       const admin2Session = await setup.createAdminSession();
 
-      await expect(
-        admin2Session.resources.awsAccounts.getAndUploadTemplateForAccount(setup.defaults.awsAccount.id),
-      ).resolves.toHaveProperty('cfnConsoleUrl');
+      await expect(admin2Session.resources.awsAccounts.bulkPermissionsCheck()).resolves.toHaveProperty('finalStatus');
     });
   });
 });

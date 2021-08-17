@@ -13,8 +13,8 @@
  *  permissions and limitations under the License.
  */
 
-const { runSetup } = require('../../../support/setup');
-const errorCode = require('../../../support/utils/error-code');
+const { runSetup } = require('../../../../support/setup');
+const errorCode = require('../../../../support/utils/error-code');
 
 describe('AWS Account Permissions scenarios', () => {
   let setup;
