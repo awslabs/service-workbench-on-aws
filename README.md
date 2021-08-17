@@ -14,8 +14,17 @@ Service Workbench integrates existing AWS services, such as Amazon CloudFront, A
 
 There are three types of Studies available in Service Workbench: My Studies, Organizational Studies and Open Data. Once you have created a Study you can upload files to it. Organizational Studies can be shared with other members in the organization. Owners of a study can amend the permissions of the study to grant access to other users. Once you have found the study or studies in which you are interested to perform research, you can deploy a workspace to attach the data to and conduct your research. 
 
-![Architecture](docs/docs/images/SWBArchitecture.png)
+### Main account
 
+This is the account where Service Workbench infrastructure is deployed.
+
+![Architecture](docs/docs/images/main_account.png)
+
+### Hosting account
+
+This is the account where compute resources are deployed.
+
+![Architecture](docs/docs/images/hosting_account.png)
 
 ## Service Workbench components
 
