@@ -18,13 +18,13 @@ There are three types of Studies available in Service Workbench: My Studies, Org
 
 This is the account where Service Workbench infrastructure is deployed.
 
-![Architecture](docs/docs/images/main_account.png)
+![Architecture1](docs/docs/images/main_account.png)
 
 ### Hosting account
 
 This is the account where compute resources are deployed.
 
-![Architecture](docs/docs/images/hosting_account.png)
+![Architecture2](docs/docs/images/hosting_account.png)
 
 ## Service Workbench components
 
