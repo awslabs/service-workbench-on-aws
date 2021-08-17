@@ -14,7 +14,6 @@
  */
 
 const { runSetup } = require('../../../../support/setup');
-const errorCode = require('../../../../support/utils/error-code');
 
 describe('Register data source study scenarios', () => {
   let setup;
@@ -43,108 +42,6 @@ describe('Register data source study scenarios', () => {
   });
 
   describe('Registering a data source study', () => {
-    it('should fail for anonymous user', async () => {
-      const anonymousSession = await setup.createAnonymousSession();
-      const id = setup.gen.string({ prefix: 'ds-study-id-test' });
-      const study = {
-        id,
-        adminUsers: [adminSession.user.uid],
-      };
-
-      await expect(
-        anonymousSession.resources.dataSources.accounts
-          .account(accountId)
-          .buckets()
-          .bucket(bucketName)
-          .studies()
-          .create(study),
-      ).rejects.toMatchObject({
-        code: errorCode.http.code.badImplementation,
-      });
-    });
-
-    it('should fail for inactive user', async () => {
-      const researcherSession = await setup.createResearcherSession();
-      const id = setup.gen.string({ prefix: 'ds-study-id-test' });
-      const study = {
-        id,
-        adminUsers: [researcherSession.user.uid],
-      };
-
-      await adminSession.resources.users.deactivateUser(researcherSession.user);
-
-      await expect(
-        researcherSession.resources.dataSources.accounts
-          .account(accountId)
-          .buckets()
-          .bucket(bucketName)
-          .studies()
-          .create(study),
-      ).rejects.toMatchObject({
-        code: errorCode.http.code.unauthorized,
-      });
-    });
-
-    it('should fail for internal guest', async () => {
-      const guestSession = await setup.createUserSession({ userRole: 'internal-guest', projectId: [] });
-      const id = setup.gen.string({ prefix: 'ds-study-id-test' });
-      const study = {
-        id,
-        adminUsers: [guestSession.user.uid],
-      };
-
-      await expect(
-        guestSession.resources.dataSources.accounts
-          .account(accountId)
-          .buckets()
-          .bucket(bucketName)
-          .studies()
-          .create(study),
-      ).rejects.toMatchObject({
-        code: errorCode.http.code.forbidden,
-      });
-    });
-
-    it('should fail for external guest', async () => {
-      const guestSession = await setup.createUserSession({ userRole: 'guest', projectId: [] });
-      const id = setup.gen.string({ prefix: 'ds-study-id-test' });
-      const study = {
-        id,
-        adminUsers: [guestSession.user.uid],
-      };
-
-      await expect(
-        guestSession.resources.dataSources.accounts
-          .account(accountId)
-          .buckets()
-          .bucket(bucketName)
-          .studies()
-          .create(study),
-      ).rejects.toMatchObject({
-        code: errorCode.http.code.forbidden,
-      });
-    });
-
-    it('should fail for researcher', async () => {
-      const researcherSession = await setup.createResearcherSession();
-      const id = setup.gen.string({ prefix: 'ds-study-id-test' });
-      const study = {
-        id,
-        adminUsers: [researcherSession.user.uid],
-      };
-
-      await expect(
-        researcherSession.resources.dataSources.accounts
-          .account(accountId)
-          .buckets()
-          .bucket(bucketName)
-          .studies()
-          .create(study),
-      ).rejects.toMatchObject({
-        code: errorCode.http.code.forbidden,
-      });
-    });
-
     it('should return study registration information if admin', async () => {
       const admin2Session = await setup.createAdminSession();
       const id = setup.gen.string({ prefix: 'ds-study-id-test' });
