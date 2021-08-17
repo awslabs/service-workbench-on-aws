@@ -54,12 +54,12 @@ async function updateS3BucketPolicy(s3Client, s3BucketName, s3Policy, revisedSta
   try {
     await s3Client.putBucketPolicy({ Bucket: s3BucketName, Policy: JSON.stringify(s3Policy) }).promise();
   } catch (error) {
-    throw this.boom.badRequest(
-      `Failed updating  bucket policy: ${JSON.stringify(
+    console.error(
+      `Failed updating bucket policy: ${JSON.stringify(
         s3Policy,
       )} for bucket: ${s3BucketName}. Check if original bucket policy is too large`,
-      true,
     );
+    console.error(error);
   }
   // Update S3 bucket policy
 }
