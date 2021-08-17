@@ -44,7 +44,7 @@ if [ "$TEST_CONFIG_EXISTS" == true ]; then
     if [ "$APPSTREAM_ENABLED" == "AppStream" ]; then
       pnpm run intTest-AppStream-Enabled --recursive --if-present -- --stage="$ENV_NAME"
     else
-      pnpm run intTest-AppStream-Disabled --recursive --if-present -- --stage="$ENV_NAME"
+      pnpm run intTest --recursive --if-present -- --stage="$ENV_NAME"
     fi
 else
     # Create empty report file
