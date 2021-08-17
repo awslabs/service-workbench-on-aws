@@ -1,4 +1,3 @@
-
 /*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -35,7 +34,6 @@ describe('Create workspace-service-catalog scenarios', () => {
 
     adminSession = await setup.defaultAdminSession();
     productInfo = await createDefaultServiceCatalogProduct(setup);
-
   });
 
   afterAll(async () => {
