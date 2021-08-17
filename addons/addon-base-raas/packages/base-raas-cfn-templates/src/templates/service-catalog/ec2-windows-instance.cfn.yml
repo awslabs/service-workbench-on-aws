@@ -351,6 +351,11 @@ Resources:
           $startS3SyncScriptContent = @'
           # enable AWS_SDK_LOAD_CONFIG to 1. This will allow S3 session to use .aws/profile and .aws/credentials file
           $env:AWS_SDK_LOAD_CONFIG = 1
+          # Use STS regional endpoint instead of global one. This allows external studies to connect with local interface endpoint if it exists.
+          # Refer https://docs.aws.amazon.com/sdkref/latest/guide/setting-global-sts_regional_endpoints.html
+          $env:AWS_STS_REGIONAL_ENDPOINTS = "regional"
+          $env:AWS_DEFAULT_REGION = "${AWS::Region}"
+
           $defaultS3Mounts = '${S3Mounts}' | ConvertTo-Json
 
           $arguments = "-defaultS3Mounts=$defaultS3Mounts -destination=d:\ -region=${AWS::Region} -recurringDownloads=${RecurringDownloads} -downloadInterval=${DownloadInterval} -stopRecurringDownloadsAfter=${StopRecurringDownloadsAfter}"
