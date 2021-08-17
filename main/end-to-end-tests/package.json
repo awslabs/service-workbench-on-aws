@@ -8,14 +8,11 @@
   "scripts": {
     "cypress:open:local": "cypress open -C cypress.local.json",
     "cypress:open:dev": "cypress open -C cypress.dev.json",
-    "cypress:run-tests:local": "cypress run -C cypress.local.json",
-    "cypress:run-tests:local:appstream-disabled": "cypress run -C cypress.local.json --spec cypress/integration/{common,appstream-disabled}/*",
+    "cypress:run-tests:local": "cypress run -C cypress.local.json --spec cypress/integration/{common,appstream-disabled}/*",
     "cypress:run-tests:local:appstream-enabled": "cypress run -C cypress.local.json --spec cypress/integration/{common,appstream-enabled}/*",
-    "cypress:run-tests:dev": "cypress run -C cypress.dev.json",
-    "cypress:run-tests:dev:appstream-disabled": "cypress run -C cypress.dev.json --spec cypress/integration/{common,appstream-disabled}/*",
+    "cypress:run-tests:dev": "cypress run -C cypress.dev.json --spec cypress/integration/{common,appstream-disabled}/*",
     "cypress:run-tests:dev:appstream-enabled": "cypress run -C cypress.dev.json --spec cypress/integration/{common,appstream-enabled}/*",
-    "cypress:run-tests:github": "cypress run -C cypress.github.json",
-    "cypress:run-tests:github:appstream-disabled": "cypress run -C cypress.github.json --spec cypress/integration/{common,appstream-disabled}/*",
+    "cypress:run-tests:github": "cypress run -C cypress.github.json --spec cypress/integration/{common,appstream-disabled}/*",
     "cypress:run-tests:github:appstream-enabled": "cypress run -C cypress.github.json --spec cypress/integration/{common,appstream-enabled}/*"
   },
   "husky": {
