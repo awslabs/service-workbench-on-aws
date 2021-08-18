@@ -5,7 +5,10 @@ import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Header, Label, Popup, Icon, Divider, Message, Table, Grid, Segment } from 'semantic-ui-react';
 import TimeAgo from 'react-timeago';
-import { niceNumber } from '@aws-ee/base-ui/dist/helpers/utils';
+import { niceNumber, swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
+import { isStoreLoading, isStoreNotEmpty, isStoreError } from '@aws-ee/base-ui/dist/models/BaseStore';
+import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
+import ProgressPlaceHolder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 
 import By from '../helpers/By';
 import ScEnvironmentButtons from './parts/ScEnvironmentButtons';
@@ -31,7 +34,48 @@ class ScEnvironmentCard extends React.Component {
     return envType;
   }
 
+  getEnvTypeConfigsStore() {
+    const configsStore = this.envTypesStore.getEnvTypeConfigsStore(this.environment.envTypeId);
+    return configsStore;
+  }
+
+  getConfiguration(envTypeConfigId) {
+    const configsStore = this.getEnvTypeConfigsStore();
+    const config = configsStore.getEnvTypeConfig(envTypeConfigId);
+    return config;
+  }
+
+  getInstanceTypeFromConfigParams(config) {
+    const configParams = Object.entries(config.params);
+    const instanceTypeElement = _.findIndex(configParams, param => Object.entries(param[1])[0][1] === 'InstanceType');
+    const instanceType = Object.entries(configParams[instanceTypeElement][1])[1][1];
+
+    return instanceType;
+  }
+
+  componentDidMount() {
+    const configsStore = this.getEnvTypeConfigsStore();
+    swallowError(configsStore.load());
+  }
+
   render() {
+    const configsStore = this.getEnvTypeConfigsStore();
+    let content = null;
+
+    if (isStoreError(configsStore)) {
+      content = <ErrorBox error={configsStore.error} className="p0" />;
+    } else if (isStoreLoading(configsStore)) {
+      content = <ProgressPlaceHolder segmentCount={3} />;
+    } else if (isStoreNotEmpty(configsStore)) {
+      content = this.renderMain();
+    } else {
+      content = null;
+    }
+
+    return content;
+  }
+
+  renderMain() {
     const env = this.environment;
     const state = env.state;
 
@@ -64,6 +108,10 @@ class ScEnvironmentCard extends React.Component {
     const studyCount = _.size(_.get(env, 'studyIds', []));
     const envType = this.envType || {};
 
+    const config = this.getConfiguration(this.environment.envTypeConfigId);
+    const configName = config.name;
+    const instanceType = this.getInstanceTypeFromConfigParams(config);
+
     const renderRow = (key, value) => (
       <Table.Row>
         <Table.Cell width={5}>{key}</Table.Cell>
@@ -80,6 +128,8 @@ class ScEnvironmentCard extends React.Component {
           {renderRow('Studies', studyCount === 0 ? 'No studies linked to this workspace' : niceNumber(studyCount))}
           {renderRow('Project', _.isEmpty(env.projectId) ? 'N/A' : env.projectId)}
           {renderRow('Workspace Type', envType.name)}
+          {renderRow('Configuration Name', configName)}
+          {renderRow('Instance Type', instanceType)}
         </Table.Body>
       </Table>
     );
