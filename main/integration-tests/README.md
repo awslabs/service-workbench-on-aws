@@ -55,9 +55,9 @@ Note: Integration tests will create resources in the environment they are execut
  
 ##### run all integration tests from the root directory with: 
 
-Run AppStream tests
+Run AppStream tests. AppStream and Egress should be enabled in the testing environment
 ```bash
-$ scripts/run-integration-tests.sh <STAGE> AppStream
+$ scripts/run-integration-tests.sh <STAGE> AppStreamEgress
 ```
 
 Run non AppStream tests

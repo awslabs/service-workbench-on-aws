@@ -11,12 +11,12 @@ popd > /dev/null
 PARAMETERS=$@
 PARAMETER_ARRAY=($PARAMETERS)
 ENV_NAME=${PARAMETER_ARRAY[0]}
-APPSTREAM_ENABLED=${PARAMETER_ARRAY[1]}
+APPSTREAM_EGRESS_ENABLED=${PARAMETER_ARRAY[1]}
 
-if [ "$APPSTREAM_ENABLED" == "AppStream" ]; then
-  echo "Testing with AppStream Enabled"
+if [ "$APPSTREAM_EGRESS_ENABLED" == "AppStreamEgress" ]; then
+  echo "Testing with AppStream and Secure Egress Enabled"
 else
-  echo "Testing with AppStream Disabled"
+  echo "Testing with AppStream and Secure Egress Disabled"
 fi
 CONFIG_S3_PATH="s3://$DEPLOYMENT_BUCKET/integration-test/$ENV_NAME.yml"
 CONFIG_TARGET_PATH="$INT_TEST_DIR/config/settings/$ENV_NAME.yml"
@@ -41,8 +41,8 @@ if [ "$TEST_CONFIG_EXISTS" == true ]; then
 
     printf "\n\nExecuting integration tests against env %s\n" "$ENV_NAME"
 
-    if [ "$APPSTREAM_ENABLED" == "AppStream" ]; then
-      pnpm run intTest-AppStream-Enabled --recursive --if-present -- --stage="$ENV_NAME"
+    if [ "$APPSTREAM_EGRESS_ENABLED" == "AppStreamEgress" ]; then
+      pnpm run intTestAppStreamEgressEnabled --recursive --if-present -- --stage="$ENV_NAME"
     else
       pnpm run intTest --recursive --if-present -- --stage="$ENV_NAME"
     fi
