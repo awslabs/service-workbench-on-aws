@@ -87,6 +87,7 @@ class SelectConfigurationCards extends React.Component {
                 </div>
                 <Divider />
                 {this.renderEstimatedCostInfo(config)}
+                {this.renderInstanceType(config)}
               </Card.Description>
             </Card.Content>
           </Card>
@@ -112,6 +113,35 @@ class SelectConfigurationCards extends React.Component {
         </div>
       );
     }
+
+    return content;
+  }
+
+  getInstanceTypeFromConfigParams(config) {
+    const configParams = Object.entries(config.params);
+    configParams.forEach(param => console.log(Object.entries(param[1])[0][1]));
+    const instanceTypeElement = _.findIndex(configParams, param => {
+      const key = Object.entries(param[1])[0][1];
+      return key === 'InstanceType' || key === 'MasterInstanceType';
+    });
+    let instanceType;
+    // If no instance type param found
+    if (instanceTypeElement >= 0) {
+      instanceType = Object.entries(configParams[instanceTypeElement][1])[1][1];
+    } else {
+      instanceType = 'Not available';
+    }
+
+    return instanceType;
+  }
+
+  renderInstanceType(config) {
+    const content = (
+      <div className="flex p1">
+        <div className="bold flex-auto">Instance Type</div>
+        <div className="pr1">{this.getInstanceTypeFromConfigParams(config)}</div>
+      </div>
+    );
 
     return content;
   }

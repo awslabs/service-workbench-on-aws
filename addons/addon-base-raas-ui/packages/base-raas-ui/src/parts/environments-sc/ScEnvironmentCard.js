@@ -47,8 +47,18 @@ class ScEnvironmentCard extends React.Component {
 
   getInstanceTypeFromConfigParams(config) {
     const configParams = Object.entries(config.params);
-    const instanceTypeElement = _.findIndex(configParams, param => Object.entries(param[1])[0][1] === 'InstanceType');
-    const instanceType = Object.entries(configParams[instanceTypeElement][1])[1][1];
+    configParams.forEach(param => console.log(Object.entries(param[1])[0][1]));
+    const instanceTypeElement = _.findIndex(configParams, param => {
+      const key = Object.entries(param[1])[0][1];
+      return key === 'InstanceType' || key === 'MasterInstanceType';
+    });
+    let instanceType;
+    // If no instance type param found
+    if (instanceTypeElement >= 0) {
+      instanceType = Object.entries(configParams[instanceTypeElement][1])[1][1];
+    } else {
+      instanceType = 'Not available';
+    }
 
     return instanceType;
   }
