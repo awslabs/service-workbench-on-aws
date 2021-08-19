@@ -42,7 +42,7 @@ if [ "$TEST_CONFIG_EXISTS" == true ]; then
     printf "\n\nExecuting integration tests against env %s\n" "$ENV_NAME"
 
     if [ "$APPSTREAM_ENABLED" == "AppStream" ]; then
-      pnpm run intTest-AppStream-Enabled --recursive --if-present -- --stage="$ENV_NAME"
+      pnpm run intTestAppStreamEgressEnabled --recursive --if-present -- --stage="$ENV_NAME"
     else
       pnpm run intTest --recursive --if-present -- --stage="$ENV_NAME"
     fi
