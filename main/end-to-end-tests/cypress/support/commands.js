@@ -75,3 +75,11 @@ Cypress.Commands.add('login', role => {
   cy.get("button[data-testid='login']").click();
   cy.get("div[data-testid='page-title'] div").contains('Dashboard');
 });
+
+// Workspaces
+Cypress.Commands.add('navigateToWorkspaces', () => {
+  cy.get('.left.menu')
+    .contains('Workspaces')
+    .click();
+  cy.get('[data-testid=workspaces]');
+});

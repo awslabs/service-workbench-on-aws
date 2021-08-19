@@ -12,6 +12,7 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
+
 import { terminatePreExistingWorkspaces, launchWorkspace, navigateToWorkspaces } from '../../support/workspace-util';
 
 describe('Launch a new workspace', () => {
@@ -27,9 +28,7 @@ describe('Launch a new workspace', () => {
     launchWorkspace(sagemaker, 'Sagemaker');
   });
 
-  it('should launch a new ec2 workspace correctly', () => {
-    const workspaces = Cypress.env('workspaces');
-    const ec2 = workspaces.ec2;
-    launchWorkspace(ec2, 'EC2');
-  });
+  const testConnectionToSagemaker = () => {
+    console.log('hello');
+  };
 });
