@@ -350,10 +350,14 @@ class AwsCfnService extends Service {
         try {
           await awsAccountsService.update(requestContext, updatedAcct);
         } catch (e) {
-          errorMsg = e.safe // if error is boom error then see if it is safe to propagate its message
-            ? `Error updating permissions for account ${account.accountId}. ${e.message}`
-            : `Error updating permissions for account ${account.accountId}`;
-          this.log.error(errorMsg);
+          this.log.error(e.message);
+          // Status check can only proceed if the error is related to active non-AppStream envs
+          if (
+            e.message !==
+            'This account has active non-AppStream environments. Please terminate them and retry this operation'
+          ) {
+            throw e;
+          }
         }
       }
     };
