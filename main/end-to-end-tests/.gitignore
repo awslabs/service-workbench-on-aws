@@ -3,5 +3,5 @@ cypress/screenshots
 cypress.env.json
 
 cypress.dev.json
-cypress.dev.appstream.json
+cypress.dev.appstream-egress.json
 fixtures/example.json
