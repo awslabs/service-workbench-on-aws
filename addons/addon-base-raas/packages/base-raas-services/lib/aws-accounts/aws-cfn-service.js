@@ -347,7 +347,14 @@ class AwsCfnService extends Service {
           externalId: account.externalId,
           permissionStatus: res,
         };
-        await awsAccountsService.update(requestContext, updatedAcct);
+        try {
+          await awsAccountsService.update(requestContext, updatedAcct);
+        } catch (e) {
+          errorMsg = e.safe // if error is boom error then see if it is safe to propagate its message
+            ? `Error updating permissions for account ${account.accountId}. ${e.message}`
+            : `Error updating permissions for account ${account.accountId}`;
+          this.log.error(errorMsg);
+        }
       }
     };
 
