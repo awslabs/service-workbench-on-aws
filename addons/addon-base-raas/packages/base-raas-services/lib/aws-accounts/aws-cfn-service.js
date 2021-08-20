@@ -347,7 +347,18 @@ class AwsCfnService extends Service {
           externalId: account.externalId,
           permissionStatus: res,
         };
-        await awsAccountsService.update(requestContext, updatedAcct);
+        try {
+          await awsAccountsService.update(requestContext, updatedAcct);
+        } catch (e) {
+          this.log.error(e.message);
+          // Status check can only proceed if the error is related to active non-AppStream envs
+          if (
+            e.message !==
+            'This account has active non-AppStream environments. Please terminate them and retry this operation'
+          ) {
+            throw e;
+          }
+        }
       }
     };
 
