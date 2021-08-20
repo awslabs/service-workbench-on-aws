@@ -27,6 +27,7 @@ describe('studies', () => {
       .contains('Permissions')
       .click();
   };
+
   it('should only allow Study Admin to access study permissions', () => {
     cy.login('researcher');
 

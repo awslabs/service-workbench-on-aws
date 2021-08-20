@@ -14,7 +14,7 @@
  */
 import { terminatePreExistingWorkspaces, launchWorkspace, navigateToWorkspaces } from '../../support/workspace-util';
 
-describe('Launch a new workspace', () => {
+describe('Launch new workspaces', () => {
   before(() => {
     cy.login('researcher');
     navigateToWorkspaces();
