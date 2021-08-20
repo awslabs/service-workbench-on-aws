@@ -207,6 +207,7 @@ class ScEnvironmentButtons extends React.Component {
               toggle
               active={connectionsButtonActive}
               onClick={this.handleToggle}
+              data-testid="sc-environment-connection-button"
             >
               Connections
             </Button>

@@ -23,9 +23,9 @@
     }
   },
   "devDependencies": {
+    "clipboardy": "^2.3.0",
     "cypress": "^4.12.1",
     "eslint": "^6.8.0",
-    "lodash": "^4.17.21",
     "eslint-config-airbnb": "^18.0.1",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-config-prettier": "^6.10.0",
@@ -35,7 +35,9 @@
     "eslint-plugin-jsx-a11y": "^6.2.3",
     "eslint-plugin-prettier": "^3.1.2",
     "husky": "^3.1.0",
+    "lodash": "^4.17.21",
     "prettier": "^1.19.1",
-    "pretty-quick": "^1.11.1"
+    "pretty-quick": "^1.11.1",
+    "tcp-ping": "^0.1.1"
   }
 }

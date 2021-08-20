@@ -143,6 +143,7 @@ class ScEnvironmentSshConnectionRow extends React.Component {
             onClick={this.handleActivate}
             disabled={emptyKeys}
             loading={this.processingSendKey}
+            data-testid="use-ssh-key-button"
           >
             Use this SSH Key
           </Button>

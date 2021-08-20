@@ -192,6 +192,7 @@ class ScEnvSshConnRowExpanded extends React.Component {
             onClick={this.handleConnect(connectionId)}
             disabled={this.processingId}
             loading={this.processingId}
+            data-testid="connect-to-workspace-button"
           >
             Connect
           </Button>
@@ -268,12 +269,14 @@ class ScEnvSshConnRowExpanded extends React.Component {
 
   renderHostLabel(network) {
     return (
-      <Label>
-        Host
-        <Label.Detail>
-          {network.value} <span className="fs-7 pl1">({network.info})</span>
-        </Label.Detail>
-      </Label>
+      <div>
+        <Label>
+          Host
+          <Label.Detail>
+            <span data-testid="host-ip">{network.value}</span> <span className="fs-7 pl1">({network.info})</span>
+          </Label.Detail>
+        </Label>
+      </div>
     );
   }
 }

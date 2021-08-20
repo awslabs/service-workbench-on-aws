@@ -60,6 +60,8 @@ function launchWorkspace(workspaceParam, workspaceType) {
   cy.contains(workspaceName)
     .parent()
     .contains('PENDING', { timeout: 600000 });
+
+  return workspaceName;
 }
 
 function navigateToWorkspaces() {
