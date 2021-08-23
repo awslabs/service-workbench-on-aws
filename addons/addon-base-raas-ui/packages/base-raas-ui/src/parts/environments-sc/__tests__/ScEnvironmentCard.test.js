@@ -73,10 +73,6 @@ describe('ScEnvironmentCard', () => {
     displayErrorMock.displayError = jest.fn(x => x);
   });
 
-  it('should print', async () => {
-    console.log('Did not break');
-  });
-
   it('should get env type configs store', async () => {
     // BUILD
 
