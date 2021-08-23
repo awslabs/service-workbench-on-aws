@@ -119,7 +119,6 @@ class SelectConfigurationCards extends React.Component {
 
   getInstanceTypeFromConfigParams(config) {
     const configParams = Object.entries(config.params);
-    configParams.forEach(param => console.log(Object.entries(param[1])[0][1]));
     const instanceTypeElement = _.findIndex(configParams, param => {
       const key = Object.entries(param[1])[0][1];
       return key === 'InstanceType' || key === 'MasterInstanceType';
