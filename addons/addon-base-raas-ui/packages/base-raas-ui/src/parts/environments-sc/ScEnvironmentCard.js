@@ -132,7 +132,7 @@ class ScEnvironmentCard extends React.Component {
     );
 
     return (
-      <Table definition>
+      <Table data-testid="detail-table" definition>
         <Table.Body>
           {renderRow('Owner', <By uid={env.createdBy} skipPrefix />)}
           {renderRow('Studies', studyCount === 0 ? 'No studies linked to this workspace' : niceNumber(studyCount))}

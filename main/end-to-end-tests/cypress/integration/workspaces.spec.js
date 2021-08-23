@@ -54,6 +54,49 @@ describe('Launch a new sagemaker workspace', () => {
     launchWorkspace(ec2, 'EC2');
   });
 
+  it('should contain Configuration Name in Workspace Details Table', () => {
+    // const workspaces = Cypress.env('workspaces');
+    navigateToWorkspaces();
+    cy.get('[data-testid=workspaces]')
+      .get('[data-testid=detail-table]')
+      .contains('Configuration Name');
+  });
+
+  it('should contain Instance Type in Workspace Details Table', () => {
+    // const workspaces = Cypress.env('workspaces');
+    navigateToWorkspaces();
+    cy.get('[data-testid=workspaces]')
+      .get('[data-testid=detail-table]')
+      .contains('Instance Type');
+  });
+
+  it('should contain Instance Type in Workspace Configuration Selection Card for EMR', () => {
+    const workspaces = Cypress.env('workspaces');
+    const workspaceParam = workspaces.emr;
+
+    checkInstanceTypeInSelectionCard(workspaceParam);
+
+    exitConfiguration();
+  });
+
+  it('should contain Instance Type in Workspace Configuration Selection Card for EC2', () => {
+    const workspaces = Cypress.env('workspaces');
+    const workspaceParam = workspaces.ec2;
+
+    checkInstanceTypeInSelectionCard(workspaceParam);
+
+    exitConfiguration();
+  });
+
+  it('should contain Instance Type in Workspace Configuration Selection Card for Sagemaker', () => {
+    const workspaces = Cypress.env('workspaces');
+    const workspaceParam = workspaces.sagemaker;
+
+    checkInstanceTypeInSelectionCard(workspaceParam);
+
+    exitConfiguration();
+  });
+
   const launchWorkspace = (workspaceParam, workspaceType) => {
     navigateToWorkspaces();
 
@@ -101,5 +144,40 @@ describe('Launch a new sagemaker workspace', () => {
     cy.contains(workspaceName)
       .parent()
       .contains('PENDING', { timeout: 600000 });
+  };
+
+  const checkInstanceTypeInSelectionCard = workspaceParam => {
+    navigateToConfigurationCard(workspaceParam);
+
+    cy.get('[data-testid=configuration-card]').contains('Instance Type');
+  };
+
+  const navigateToConfigurationCard = workspaceParam => {
+    navigateToWorkspaces();
+
+    cy.get('[data-testid=workspaces]');
+
+    // Click create new workspace button
+    cy.get('button[data-testid=create-workspace]').click({ force: true });
+
+    // Select the type of environment you want to launch
+    cy.get('[data-testid=env-type-card]')
+      .contains(workspaceParam.workspaceTypeName)
+      .click();
+
+    // Click next
+    cy.get('button')
+      .contains('Next')
+      .click();
+  };
+
+  const exitConfiguration = () => {
+    cy.get('button')
+      .contains('Previous')
+      .click();
+
+    cy.get('button')
+      .contains('Previous')
+      .click();
   };
 });
