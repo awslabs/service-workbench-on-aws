@@ -15,19 +15,23 @@
 
 import React from 'react';
 import { shallow } from 'enzyme';
-// import { types } from 'mobx-state-tree';
+import { types } from 'mobx-state-tree';
 
 // Mock buttons to avoid error
-jest.mock('../parts/ScEnvironmentButtons');
-const displayScEnvironmentButtons = require('../parts/ScEnvironmentButtons');
+jest.mock('../parts/ScEnvironmentButtons', () => ({
+  __ScEnvironmentButtons: true,
+}));
+// eslint-disable-next-line import/first
+import {} from '../parts/ScEnvironmentButtons';
 
-const ScEnvironmentCard = require('../ScEnvironmentCard');
-// import ScEnvironmentCard from '../ScEnvironmentCard';
+// const ScEnvironmentCard = require('../ScEnvironmentCard');
+// eslint-disable-next-line import/first
+import ScEnvironmentCard from '../ScEnvironmentCard';
 
 jest.mock('@aws-ee/base-ui/dist/helpers/notification');
 const displayErrorMock = require('@aws-ee/base-ui/dist/helpers/notification');
 
-const environment = {
+const scEnvironment = {
   id: 'id',
   rev: 2,
   status: 'active',
@@ -47,13 +51,15 @@ const environment = {
   cidr: [],
   outputs: [],
 };
-// const KeyValuePair = types.model('KeyValuePair', {
-//   key: '',
-//   value: '',
-// });
+const KeyValuePair = types.model('KeyValuePair', {
+  key: '',
+  value: '',
+});
 
-const environmentsStore = {
-  getEnvTypeConfigsStore: jest.fn(),
+const envTypesStore = {
+  getEnvTypeConfigsStore: jest.fn(() => envTypesStore),
+  load: jest.fn(),
+  getEnvTypeConfig: jest.fn(),
 };
 
 describe('ScEnvironmentCard', () => {
@@ -62,7 +68,7 @@ describe('ScEnvironmentCard', () => {
   beforeEach(() => {
     // render component
     wrapper = shallow(
-      <ScEnvironmentCard.WrappedComponent scEnvironment={environment} envTypesStore={environmentsStore} />,
+      <ScEnvironmentCard.WrappedComponent scEnvironment={scEnvironment} envTypesStore={envTypesStore} />,
     );
 
     // get instance of component
@@ -76,61 +82,62 @@ describe('ScEnvironmentCard', () => {
     console.log('Did not break');
   });
 
-//   it('should get env type configs store', async () => {
-//     // BUILD
+  it('should get env type configs store', async () => {
+    // BUILD
 
-//     // OPERATE
-//     component.getEnvTypeConfigsStore();
+    // OPERATE
+    component.getEnvTypeConfigsStore();
 
-//     // CHECK
-//     expect(environmentsStore.getEnvTypeConfigsStore).toHaveBeenCalledWith(environment.envTypeId);
-//   });
+    // CHECK
+    expect(envTypesStore.getEnvTypeConfigsStore).toHaveBeenCalledWith(scEnvironment.envTypeId);
+  });
 
-//   it('should get configuration', async () => {
-//     // BUILD
-//     // const configsStore =
-//     // component.getEnvTypeConfigsStore.mockImplementation(() => {
+  it('should get configuration', async () => {
+    // BUILD
+    // const configsStore =
+    // component.getEnvTypeConfigsStore.mockImplementation(() => {
 
-//     // })
+    // })
 
-//     // OPERATE
-//     component.getConfiguration(environment.envTypeConfigId);
+    // OPERATE
+    component.getConfiguration(scEnvironment.envTypeConfigId);
 
-//     // CHECK
-//     expect(component.getEnvTypeConfigsStore).toHaveBeenCalled();
-//     expect(component.getEnvTypeConfigsStore.getEnvTypeConfig).toHaveBeenCalledWith(environment.envTypeConfigId);
-//   });
+    // CHECK
+    expect(component.getEnvTypeConfigsStore).toHaveBeenCalled();
+    expect(component.getEnvTypeConfigsStore.getEnvTypeConfig).toHaveBeenCalledWith(scEnvironment.envTypeConfigId);
+  });
 
-//   it('should get instance type from config params', async () => {
-//     // BUILD
-//     const config = new Proxy([new KeyValuePair('InstanceType', 't3.large')]);
+  it('should get instance type from config params', async () => {
+    // BUILD
+    const object = Object(types.optional(types.array(KeyValuePair), [{ key: 'InstanceType', value: 't3.large' }]));
+    const config = new Proxy(object);
 
-//     // OPERATE
-//     const instanceType = component.getInstanceTypeFromConfigParams(config);
+    // OPERATE
+    const instanceType = component.getInstanceTypeFromConfigParams(config);
 
-//     // CHECK
-//     expect(instanceType).not.toBe('Not available');
-//   });
+    // CHECK
+    expect(instanceType).not.toBe('Not available');
+  });
 
-//   it('should display something graceful when no InstanceType param in config params', async () => {
-//     // BUILD
-//     const config = new Proxy([new KeyValuePair('name', 'name')]);
+  it('should display something graceful when no InstanceType param in config params', async () => {
+    // BUILD
+    const config = new Proxy([KeyValuePair('name', 'name')]);
 
-//     // OPERATE
-//     const instanceType = component.getInstanceTypeFromConfigParams(config);
+    // OPERATE
+    const instanceType = component.getInstanceTypeFromConfigParams(config);
 
-//     // CHECK
-//     expect(instanceType).toBe('Not available');
-//   });
+    // CHECK
+    expect(instanceType).toBe('Not available');
+  });
 
-//   it('should render detail table properly', async () => {
-//     // BUILD
+  it('should render detail table properly', async () => {
+    // BUILD
 
-//     // OPERATE
-//     component.renderDetailTable(environment);
+    // OPERATE
+    component.renderDetailTable(scEnvironment);
 
-//     // CHECK
-//     expect(component.getConfiguration).toHaveBeenCalledWith(environment.envTypeConfigId);
-//     expect(component.getInstanceTypeFromConfigParams).toHaveBeenCalled();
-//   });
+    // CHECK
+    expect(component.getConfiguration).toHaveBeenCalledWith(scEnvironment.envTypeConfigId);
+    expect(component.getInstanceTypeFromConfigParams).toHaveBeenCalled();
+  });
 });
