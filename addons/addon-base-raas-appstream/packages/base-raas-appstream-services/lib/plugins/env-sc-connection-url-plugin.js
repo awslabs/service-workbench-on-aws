@@ -73,13 +73,11 @@ async function createConnectionUrl({ envId, connection }, { requestContext, cont
   }
 
   if (appStreamUrl) {
-    console.log('ZZZ: AppStreamUrl', appStreamUrl);
     // Retain the original destination URL so we don't have to trigger another API call
     connection.appstreamDestinationUrl = connection.url;
 
     // Now rewrite connection.url to the AppStream streaming URL so it can be opened in a new tab
     connection.url = appStreamUrl;
-    console.log('ZZZ: Connection', connection);
     log.debug({ msg: `Modified connection to use AppStream streaming URL ${connection.url}`, connection });
   }
 

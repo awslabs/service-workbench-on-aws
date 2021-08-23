@@ -7,14 +7,21 @@
     "isCognitoEnabled": false,
     "workspaces": {
       "sagemaker": {
-        "workspaceTypeName": "SageMaker Notebook-v1",
-        "configuration": "sagemaker-e2e",
-        "projectId": "e2eTestProject"
+        "workspaceTypeName": "SageMaker Notebook-v2",
+        "configuration": "AppStream-SageMaker",
+        "projectId": "TRE-Project"
       },
       "ec2": {
-        "workspaceTypeName": "EC2 Linux-v1",
-        "configuration": "ec2-linux-e2e",
-        "projectId": "e2eTestProject"
+        "linux": {
+          "workspaceTypeName": "EC2 Linux-v2",
+          "configuration": "AppStream-Linux",
+          "projectId": "TRE-Project"
+        },
+        "windows": {
+          "workspaceTypeName": "EC2 Windows-v2",
+          "configuration": "AppStream-Windows",
+          "projectId": "TRE-Project"
+        }
       }
     },
     "studies": {

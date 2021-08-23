@@ -158,12 +158,6 @@ class ScEnvironmentHttpConnections extends React.Component {
     const isDisabled = (id1, id2) => id2 !== id1 && !_.isEmpty(id2);
     const isLoading = (id1, id2) => id2 === id1;
 
-    // const destinationUrlStyle = {
-    //   visibility: 'hidden',
-    //   width: '1px',
-    //   display: 'inline-block',
-    // };
-
     // Content is hidden from customer, because content is only needed for E2E tests
     const destinationUrlStyle = {
       display: 'none',

@@ -22,28 +22,23 @@ describe('Launch new workspaces', () => {
     terminatePreExistingWorkspaces();
   });
 
+  let expectedNumberOfNewlyOpenBrowserWindows = 0;
+
   it('should launch Sagemaker, Linux, and Windows successfully', () => {
     const workspaces = Cypress.env('workspaces');
     const sagemakerWorkspaceName = launchWorkspace(workspaces.sagemaker, 'Sagemaker');
     const linuxWorkspaceName = launchWorkspace(workspaces.ec2.linux, 'Linux');
     const windowsWorkspaceName = launchWorkspace(workspaces.ec2.windows, 'Windows');
 
-    // Check Sagemaker
     checkSagemaker(sagemakerWorkspaceName);
-    // checkSagemaker('CypressTestSagemakerWorkspace-276');
-
-    // Check Linux
     checkLinux(linuxWorkspaceName);
-    // checkLinux('CypressTestLinuxWorkspace-73');
-
-    // Check Windows
     checkWindows(windowsWorkspaceName);
-    // checkWindows('CypressTestWindowsWorkspace-244');
 
-    // New windows should be opened three times, once for each workspace
+    // Each time we click the "Connect" button on a workspace, it should open a new browser window connected to an AppStream instance.
+    // Let's check the expected number of new browser windows are opened
     cy.window()
       .its('open')
-      .should('have.callCount', 3);
+      .should('have.callCount', expectedNumberOfNewlyOpenBrowserWindows);
   });
 
   function checkWindows(workspaceName) {
@@ -59,6 +54,7 @@ describe('Launch new workspaces', () => {
       .parent()
       .find('[data-testid=connect-to-workspace-button]')
       .click();
+    expectedNumberOfNewlyOpenBrowserWindows += 1;
   }
   function checkLinux(workspaceName) {
     checkWorkspaceAvailableAndClickConnectionsButton(workspaceName);
@@ -82,7 +78,9 @@ describe('Launch new workspaces', () => {
       .parent()
       .find('[data-testid=connect-to-workspace-button]')
       .click();
+    expectedNumberOfNewlyOpenBrowserWindows += 1;
   }
+
   function checkSagemaker(workspaceName) {
     checkWorkspaceAvailableAndClickConnectionsButton(workspaceName);
     cy.contains(workspaceName)
@@ -102,6 +100,7 @@ describe('Launch new workspaces', () => {
       .parent()
       .find('[data-testid=connect-to-workspace-button]')
       .click();
+    expectedNumberOfNewlyOpenBrowserWindows += 1;
   }
 
   function checkWorkspaceAvailableAndClickConnectionsButton(workspaceName) {
