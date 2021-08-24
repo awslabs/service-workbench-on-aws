@@ -117,28 +117,28 @@ class SelectConfigurationCards extends React.Component {
     return content;
   }
 
-  getInstanceTypeFromConfigParams(config) {
-    const configParams = Object.entries(config.params);
-    const instanceTypeElement = _.findIndex(configParams, param => {
-      const key = Object.entries(param[1])[0][1];
-      return key === 'InstanceType' || key === 'MasterInstanceType';
-    });
-    let instanceType;
-    // If no instance type param found
-    if (instanceTypeElement >= 0) {
-      instanceType = Object.entries(configParams[instanceTypeElement][1])[1][1];
-    } else {
-      instanceType = 'Not available';
-    }
+  // getInstanceTypeFromConfigParams(config) {
+  //   const configParams = Object.entries(config.params);
+  //   const instanceTypeElement = _.findIndex(configParams, param => {
+  //     const key = Object.entries(param[1])[0][1];
+  //     return key === 'InstanceType' || key === 'MasterInstanceType';
+  //   });
+  //   let instanceType;
+  //   // If no instance type param found
+  //   if (instanceTypeElement >= 0) {
+  //     instanceType = Object.entries(configParams[instanceTypeElement][1])[1][1];
+  //   } else {
+  //     instanceType = 'Not available';
+  //   }
 
-    return instanceType;
-  }
+  //   return instanceType;
+  // }
 
   renderInstanceType(config) {
     const content = (
       <div className="flex p1">
         <div className="bold flex-auto">Instance Type</div>
-        <div className="pr1">{this.getInstanceTypeFromConfigParams(config)}</div>
+        <div className="pr1">{config.instanceType}</div>
       </div>
     );
 
