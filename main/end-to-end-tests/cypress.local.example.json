@@ -17,6 +17,11 @@
         "workspaceTypeName": "ec2-linux-instances",
         "configuration": "ec2-instance",
         "projectId": "GalCrossAccountProject"
+      },
+      "emr": {
+        "workspaceTypeName": "emr-instances",
+        "configuration": "emr-instance",
+        "projectId": "GalCrossAccountProject"
       }
     },
     "studies": {

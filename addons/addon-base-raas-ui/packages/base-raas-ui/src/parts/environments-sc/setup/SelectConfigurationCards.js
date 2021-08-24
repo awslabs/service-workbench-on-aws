@@ -87,6 +87,7 @@ class SelectConfigurationCards extends React.Component {
                 </div>
                 <Divider />
                 {this.renderEstimatedCostInfo(config)}
+                {this.renderInstanceType(config)}
               </Card.Description>
             </Card.Content>
           </Card>
@@ -112,6 +113,17 @@ class SelectConfigurationCards extends React.Component {
         </div>
       );
     }
+
+    return content;
+  }
+
+  renderInstanceType(config) {
+    const content = (
+      <div className="flex p1">
+        <div className="bold flex-auto">Instance Type</div>
+        <div className="pr1">{config.instanceType}</div>
+      </div>
+    );
 
     return content;
   }
