@@ -14,6 +14,8 @@ To run the E2E tests, you will need the following items:
 - A project set up for that researcher that can launch EC2 workspaces and Sagemaker workspaces
 - A configured EC2 workspace
 - A configured Sagemaker workspace
+- An organization study in which the researcher has Admin permission to
+- An organization study in which the research doesn't have Admin permission to
 
 Once you've confirmed that you have the items above setup, you can create a `cypress.dev.json` and a `cypress.local.json` file with the configurations needed for your tests. You can use `cypress.json` as a template for your new configuration files. An example file is included as `cypress.local.example.json`
 
