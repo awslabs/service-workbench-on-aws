@@ -262,16 +262,6 @@ class EnvironmentResourceService extends Service {
     // return auditWriterService.write(requestContext, auditEvent);
     return auditWriterService.writeAndForget(requestContext, auditEvent);
   }
-
-  async getKMS() {
-    const aws = await this.getAWS();
-    return new aws.sdk.KMS();
-  }
-
-  async getAWS() {
-    const aws = await this.service('aws');
-    return aws;
-  }
 }
 
 module.exports = EnvironmentResourceService;
