@@ -32,6 +32,7 @@ describe('EnvTypeConfig', () => {
 
     // CHECK
     expect(instanceType).not.toBe('Not available');
+    expect(instanceType).toBe('t3.large');
   });
 
   it('should get master instance type from config params for EMR', async () => {
@@ -50,6 +51,7 @@ describe('EnvTypeConfig', () => {
 
     // CHECK
     expect(instanceType).not.toBe('Not available');
+    expect(instanceType).toBe('t3.large');
   });
 
   it('should display something graceful when no InstanceType param in config params', async () => {

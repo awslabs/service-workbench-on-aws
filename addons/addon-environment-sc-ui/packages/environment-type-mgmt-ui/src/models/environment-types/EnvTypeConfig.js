@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-import _ from 'lodash';
+import { toJS } from 'mobx';
 import { types, applySnapshot, getEnv } from 'mobx-state-tree';
 
 const KeyValuePair = types.model('KeyValuePair', {
@@ -61,29 +61,14 @@ const EnvTypeConfig = types
     },
     get instanceType() {
       const params = self.params;
-      // Make a array of arrays out of the params elements
-      // Each sub-array is a key-value pair for each parameter
-      const configParams = Object.entries(params);
-
-      // find the index of the parameter whose key is InstanceType or MasterInstanceType (for EMR)
-      // param[1] gets the object with the useful parameter information
-      // Object.entries(param[1]) makes the useful information ennumerable in an array
-      // Object.entries(param[1])[0] gets a key-value pair where key = "key" and value = the key name for that parameter
-      // Object.entries(param[1])[0][1] gets the name of the parameter
-      const instanceTypeElement = _.findIndex(configParams, param => {
-        const key = Object.entries(param[1])[0][1];
+      const paramsAsJson = toJS(params);
+      const instanceTypeIndex = paramsAsJson.findIndex(({ key }) => {
         return key === 'InstanceType' || key === 'MasterInstanceType';
       });
-      let instanceType;
-      if (instanceTypeElement >= 0) {
-        // the second [1] gets the key-value pair where key = "value" and value = the instance type string
-        instanceType = Object.entries(configParams[instanceTypeElement][1])[1][1];
-      } else {
-        // If no instance type param found
-        instanceType = 'Not available';
+      if (instanceTypeIndex < 0) {
+        return 'Not available';
       }
-
-      return instanceType;
+      return paramsAsJson[instanceTypeIndex].value;
     },
   }));
 
