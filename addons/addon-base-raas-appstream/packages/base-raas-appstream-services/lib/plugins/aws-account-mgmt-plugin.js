@@ -37,7 +37,7 @@ async function getActiveNonAppStreamEnvs(payload) {
 
   const indexes = await indexesService.list(requestContext);
   const indexesOfInterest = _.filter(indexes, index => index.awsAccountId === awsAccountId);
-  if (_.isEmpty(indexesIdsOfInterest)) return [];
+  if (_.isEmpty(indexesOfInterest)) return [];
   const indexesIdsOfInterest = _.map(indexesOfInterest, index => {
     return index.id;
   });
