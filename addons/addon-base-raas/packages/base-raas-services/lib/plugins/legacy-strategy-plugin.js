@@ -81,11 +81,31 @@ async function provideStudyMount(payload) {
   return { ...payload, s3Mounts: updatedS3Mounts };
 }
 
+async function updateKMSPolicyForEgress(payload) {
+  const { requestContext, container, environmentScEntity, memberAccountId } = payload;
+
+  const resourceService = await container.find('legacy/environmentResourceService');
+  await resourceService.addEgressKmsKeyPolicy(requestContext, { environmentScEntity, memberAccountId });
+
+  return payload;
+}
+
+async function removeKMSPolicyForEgress(payload) {
+  const { requestContext, container, environmentScEntity, memberAccountId } = payload;
+
+  const resourceService = await container.find('legacy/environmentResourceService');
+  await resourceService.removeEgressKmsKeyPolicy(requestContext, { environmentScEntity, memberAccountId });
+
+  return payload;
+}
+
 const plugin = {
   allocateEnvStudyResources,
   deallocateEnvStudyResources,
   provideEnvRolePolicy,
   provideStudyMount,
+  updateKMSPolicyForEgress,
+  removeKMSPolicyForEgress,
 };
 
 module.exports = plugin;

@@ -72,16 +72,16 @@ async function preProvisioning({ requestContext, container, envId }) {
   const memberAccount = await environmentScService.getMemberAccount(requestContext, environmentScEntity);
   const pluginRegistryService = await container.find('pluginRegistryService');
 
+  await pluginRegistryService.visitPlugins('study-access-strategy', 'updateKMSPolicyForEgress', {
+    payload: {
+      requestContext,
+      container,
+      environmentScEntity,
+      memberAccountId: memberAccount.accountId,
+    },
+  });
+
   if (_.isEmpty(studies)) {
-    await pluginRegistryService.visitPlugins('study-access-strategy', 'updateKMSPolicyForEgress', {
-      payload: {
-        requestContext,
-        container,
-        environmentScEntity,
-        studies,
-        memberAccountId: memberAccount.accountId,
-      },
-    });
     return { requestContext, container, envId };
   }
 
@@ -115,10 +115,23 @@ async function preProvisioningFailure({ requestContext, container, envId, status
 
   // Call study access strategy plugins to deallocate any resources
   const { environmentScEntity, studies } = await getStudies({ requestContext, container, envId });
-  if (_.isEmpty(studies)) return { requestContext, container, envId, status, error };
-
   const memberAccount = await environmentScService.getMemberAccount(requestContext, environmentScEntity);
   const pluginRegistryService = await container.find('pluginRegistryService');
+
+  const removeKmsResult = await pluginRegistryService.visitPlugins(
+    'study-access-strategy',
+    'removeKMSPolicyForEgress',
+    {
+      payload: {
+        requestContext,
+        container,
+        environmentScEntity,
+        memberAccountId: memberAccount.accountId,
+      },
+      continueOnError: true,
+    },
+  );
+  if (_.isEmpty(studies)) return { requestContext, container, envId, status, error };
 
   const result = await pluginRegistryService.visitPlugins('study-access-strategy', 'deallocateEnvStudyResources', {
     payload: {
@@ -131,8 +144,10 @@ async function preProvisioningFailure({ requestContext, container, envId, status
     continueOnError: true,
   });
 
-  if (!_.isEmpty(result.pluginErrors)) {
-    const messages = _.map(result.pluginErrors, err => err.message);
+  if (!_.isEmpty(result.pluginErrors) || !_.isEmpty(removeKmsResult.pluginErrors)) {
+    const messages1 = _.map(result.pluginErrors, err => err.message);
+    const messages2 = _.map(removeKmsResult.pluginErrors, err => err.message);
+    const messages = messages1.concat(messages2);
     throw pluginRegistryService.boom.badRequest(messages.join(', '), true);
   }
 
@@ -275,10 +290,23 @@ async function updateEnvOnProvisioningFailure({
 
   // Call study access strategy plugins to deallocate any resources
   const { environmentScEntity, studies } = await getStudies({ requestContext, container, envId });
-  if (_.isEmpty(studies)) return payload;
-
   const memberAccount = await environmentScService.getMemberAccount(requestContext, environmentScEntity);
   const pluginRegistryService = await container.find('pluginRegistryService');
+
+  const removeKmsResult = await pluginRegistryService.visitPlugins(
+    'study-access-strategy',
+    'removeKMSPolicyForEgress',
+    {
+      payload: {
+        requestContext,
+        container,
+        environmentScEntity,
+        memberAccountId: memberAccount.accountId,
+      },
+      continueOnError: true,
+    },
+  );
+  if (_.isEmpty(studies)) return payload;
 
   const result = await pluginRegistryService.visitPlugins('study-access-strategy', 'deallocateEnvStudyResources', {
     payload: {
@@ -291,8 +319,10 @@ async function updateEnvOnProvisioningFailure({
     continueOnError: true,
   });
 
-  if (!_.isEmpty(result.pluginErrors)) {
-    const messages = _.map(result.pluginErrors, err => err.message);
+  if (!_.isEmpty(result.pluginErrors) || !_.isEmpty(removeKmsResult.pluginErrors)) {
+    const messages1 = _.map(result.pluginErrors, err => err.message);
+    const messages2 = _.map(removeKmsResult.pluginErrors, err => err.message);
+    const messages = messages1.concat(messages2);
     throw pluginRegistryService.boom.badRequest(messages.join(', '), true);
   }
 
@@ -349,10 +379,24 @@ async function updateEnvOnTerminationSuccess({ requestContext, container, status
   const { environmentScEntity, studies } = await getStudies({ requestContext, container, envId });
 
   let deallocationResult = {};
-  if (!_.isEmpty(studies)) {
-    const memberAccount = await environmentScService.getMemberAccount(requestContext, environmentScEntity);
-    const pluginRegistryService = await container.find('pluginRegistryService');
+  const memberAccount = await environmentScService.getMemberAccount(requestContext, environmentScEntity);
+  const pluginRegistryService = await container.find('pluginRegistryService');
 
+  const removeKmsResult = await pluginRegistryService.visitPlugins(
+    'study-access-strategy',
+    'removeKMSPolicyForEgress',
+    {
+      payload: {
+        requestContext,
+        container,
+        environmentScEntity,
+        memberAccountId: memberAccount.accountId,
+      },
+      continueOnError: true,
+    },
+  );
+
+  if (!_.isEmpty(studies)) {
     deallocationResult = await pluginRegistryService.visitPlugins(
       'study-access-strategy',
       'deallocateEnvStudyResources',
@@ -378,9 +422,11 @@ async function updateEnvOnTerminationSuccess({ requestContext, container, status
   await environmentScKeypairService.delete(requestContext, envId);
 
   // If we encountered an error earlier while calling the study access strategy plugins, then throw an exception
-  if (!_.isEmpty(deallocationResult.pluginErrors)) {
-    const messages = _.map(deallocationResult.pluginErrors, err => err.message);
-    throw deallocationResult.boom.badRequest(messages.join(', '), true);
+  if (!_.isEmpty(deallocationResult.pluginErrors) || !_.isEmpty(removeKmsResult.pluginErrors)) {
+    const messages1 = _.map(deallocationResult.pluginErrors, err => err.message);
+    const messages2 = _.map(removeKmsResult.pluginErrors, err => err.message);
+    const messages = messages1.concat(messages2);
+    throw pluginRegistryService.boom.badRequest(messages.join(', '), true);
   }
 
   return payload;
@@ -437,10 +483,23 @@ async function updateEnvOnTerminationFailure({ requestContext, container, status
 
   // Call study access strategy plugins to deallocate any resources
   const { environmentScEntity, studies } = await getStudies({ requestContext, container, envId });
-  if (_.isEmpty(studies)) return payload;
-
   const memberAccount = await environmentScService.getMemberAccount(requestContext, environmentScEntity);
   const pluginRegistryService = await container.find('pluginRegistryService');
+  const removeKmsResult = await pluginRegistryService.visitPlugins(
+    'study-access-strategy',
+    'removeKMSPolicyForEgress',
+    {
+      payload: {
+        requestContext,
+        container,
+        environmentScEntity,
+        memberAccountId: memberAccount.accountId,
+      },
+      continueOnError: true,
+    },
+  );
+
+  if (_.isEmpty(studies)) return payload;
 
   const result = await pluginRegistryService.visitPlugins('study-access-strategy', 'deallocateEnvStudyResources', {
     payload: {
@@ -453,8 +512,10 @@ async function updateEnvOnTerminationFailure({ requestContext, container, status
     continueOnError: true,
   });
 
-  if (!_.isEmpty(result.pluginErrors)) {
-    const messages = _.map(result.pluginErrors, err => err.message);
+  if (!_.isEmpty(result.pluginErrors) || !_.isEmpty(removeKmsResult.pluginErrors)) {
+    const messages1 = _.map(result.pluginErrors, err => err.message);
+    const messages2 = _.map(removeKmsResult.pluginErrors, err => err.message);
+    const messages = messages1.concat(messages2);
     throw pluginRegistryService.boom.badRequest(messages.join(', '), true);
   }
 

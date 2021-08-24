@@ -82,7 +82,6 @@ describe('envProvisioningPlugin', () => {
                 status: 'active',
               },
             },
-            studies: [],
           }),
         },
       );
@@ -130,7 +129,7 @@ describe('envProvisioningPlugin', () => {
         .mockResolvedValueOnce({ id: 'env-id' });
       environmentScService.getStudies = jest.fn().mockResolvedValueOnce(['study1', 'study2']);
       environmentScService.getMemberAccount = jest.fn().mockResolvedValueOnce({ accountId: '1234567' });
-      pluginRegistryService.visitPlugins = jest.fn().mockResolvedValueOnce({});
+      pluginRegistryService.visitPlugins = jest.fn().mockResolvedValue({});
       // OPERATE
       await plugin.onEnvPreProvisioningFailure({
         requestContext,
@@ -181,7 +180,7 @@ describe('envProvisioningPlugin', () => {
         .mockResolvedValueOnce({ id: 'env-id' });
       environmentScService.getStudies = jest.fn().mockResolvedValueOnce(['study1', 'study2']);
       environmentScService.getMemberAccount = jest.fn().mockResolvedValueOnce({ accountId: '1234567' });
-      pluginRegistryService.visitPlugins = jest.fn().mockResolvedValueOnce({
+      pluginRegistryService.visitPlugins = jest.fn().mockResolvedValue({
         pluginErrors: [{ message: 'first-plugin-error' }, { message: 'second-plugin-error' }],
       });
       pluginRegistryService.boom = {
@@ -199,7 +198,7 @@ describe('envProvisioningPlugin', () => {
         });
         expect.hasAssertions();
       } catch (err) {
-        expect(err).toEqual('first-plugin-error, second-plugin-error');
+        expect(err).toEqual('first-plugin-error, second-plugin-error, first-plugin-error, second-plugin-error');
       }
       // TEST
       expect(environmentScService.getMemberAccount).toHaveBeenCalledWith(requestContext, { id: 'env-id' });
@@ -225,7 +224,7 @@ describe('envProvisioningPlugin', () => {
         },
       );
       expect(pluginRegistryService.boom.badRequest).toHaveBeenCalledWith(
-        'first-plugin-error, second-plugin-error',
+        'first-plugin-error, second-plugin-error, first-plugin-error, second-plugin-error',
         true,
       );
       expect(environmentScService.update).toHaveBeenCalledWith(
@@ -328,7 +327,7 @@ describe('envProvisioningPlugin', () => {
           { OutputKey: 'Ec2WorkspaceDnsName', OutputValue: 'some-dns-name' },
         ],
       });
-      pluginRegistryService.visitPlugins = jest.fn().mockResolvedValueOnce({});
+      pluginRegistryService.visitPlugins = jest.fn().mockResolvedValue({});
 
       // OPERATE
       await plugin.onEnvTerminationSuccess({
@@ -396,7 +395,7 @@ describe('envProvisioningPlugin', () => {
           { OutputKey: 'Ec2WorkspaceInstanceId', OutputValue: 'some-ec2-instance-id' },
         ],
       });
-      pluginRegistryService.visitPlugins = jest.fn().mockResolvedValueOnce({});
+      pluginRegistryService.visitPlugins = jest.fn().mockResolvedValue({});
       environmentScService.getClientSdkWithEnvMgmtRole = jest.fn().mockResolvedValueOnce({
         deleteParameter: jest.fn().mockReturnThis(),
         promise: jest.fn().mockReturnThis(),
@@ -470,7 +469,7 @@ describe('envProvisioningPlugin', () => {
           { OutputKey: 'Ec2WorkspaceDnsName', OutputValue: 'some-dns-name' },
         ],
       });
-      pluginRegistryService.visitPlugins = jest.fn().mockResolvedValueOnce({});
+      pluginRegistryService.visitPlugins = jest.fn().mockResolvedValue({});
 
       // OPERATE
       await plugin.onEnvTerminationFailure({

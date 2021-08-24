@@ -82,10 +82,19 @@ async function allocateEnvStudyResources(payload) {
 }
 
 async function updateKMSPolicyForEgress(payload) {
-  const { requestContext, container, environmentScEntity, studies, memberAccountId } = payload;
+  const { requestContext, container, environmentScEntity, memberAccountId } = payload;
 
-  const resourceService = await container.find('roles-only/environmentResourceService');
-  await resourceService.updateKMSPolicyForEgress(requestContext, { environmentScEntity, studies, memberAccountId });
+  const resourceService = await container.find('legacy/environmentResourceService');
+  await resourceService.addEgressKmsKeyPolicy(requestContext, { environmentScEntity, memberAccountId });
+
+  return payload;
+}
+
+async function removeKMSPolicyForEgress(payload) {
+  const { requestContext, container, environmentScEntity, memberAccountId } = payload;
+
+  const resourceService = await container.find('legacy/environmentResourceService');
+  await resourceService.removeEgressKmsKeyPolicy(requestContext, { environmentScEntity, memberAccountId });
 
   return payload;
 }
@@ -157,6 +166,7 @@ const plugin = {
   provideAccountCfnTemplate,
   allocateEnvStudyResources,
   updateKMSPolicyForEgress,
+  removeKMSPolicyForEgress,
   deallocateEnvStudyResources,
   provideEnvRolePolicy,
   provideStudyMount,

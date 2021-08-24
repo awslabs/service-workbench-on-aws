@@ -309,17 +309,64 @@ class EnvironmentResourceService extends Service {
   // @private
   async addToKmsKeyPolicy(requestContext, memberAccountId) {
     await this.updateKMSPolicy(environmentStatement => addAccountToStatement(environmentStatement, memberAccountId));
-    await this.addToEgressKmsKeyPolicy(memberAccountId);
     // Write audit event
     await this.audit(requestContext, { action: 'add-to-KmsKey-policy', body: memberAccountId });
   }
 
-  async addToEgressKmsKeyPolicy(memberAccountId) {
+  async addEgressKmsKeyPolicy(requestContext, { environmentScEntity, memberAccountId }) {
     const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
     if (enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE') {
-      await this.updateEgressKMSPolicy(environmentStatement =>
-        addAccountToStatement(environmentStatement, memberAccountId),
-      );
+      const kmsKeyAlias = this.settings.get(settingKeys.egressStoreKmsKeyArn);
+      const lockService = await this.service('lockService');
+      const lockId = `kms-policy-access-${kmsKeyAlias}`;
+      const usageService = await this.service('resourceUsageService');
+
+      await lockService.tryWriteLockAndRun({ id: lockId }, async () => {
+        const usage = await usageService.addUsage(requestContext, {
+          resource: `legacy-access-member-account-${memberAccountId}`,
+          setName: memberAccountId,
+          item: environmentScEntity.id,
+        });
+        if (_.size(usage.items) >= 1) {
+          await this.updateEgressKMSPolicy(environmentStatement =>
+            addAccountToStatement(environmentStatement, memberAccountId),
+          );
+        }
+      });
+
+      await this.audit(requestContext, {
+        action: 'add-egress-kms-policy',
+        body: kmsKeyAlias,
+      });
+    }
+  }
+
+  async removeEgressKmsKeyPolicy(requestContext, { environmentScEntity, memberAccountId }) {
+    const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
+    if (enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE') {
+      const kmsKeyAlias = this.settings.get(settingKeys.egressStoreKmsKeyArn);
+      const lockService = await this.service('lockService');
+      const lockId = `kms-policy-access-${kmsKeyAlias}`;
+      const usageService = await this.service('resourceUsageService');
+
+      await lockService.tryWriteLockAndRun({ id: lockId }, async () => {
+        const usage = await usageService.removeUsage(requestContext, {
+          resource: `legacy-access-member-account-${memberAccountId}`,
+          setName: memberAccountId,
+          item: environmentScEntity.id,
+        });
+
+        if (_.isEmpty(usage.items)) {
+          await this.updateEgressKMSPolicy(environmentStatement =>
+            removeAccountFromStatement(environmentStatement, memberAccountId),
+          );
+        }
+      });
+
+      await this.audit(requestContext, {
+        action: 'remove-egress-kms-policy',
+        body: kmsKeyAlias,
+      });
     }
   }
 
@@ -328,14 +375,6 @@ class EnvironmentResourceService extends Service {
     await this.updateKMSPolicy(environmentStatement =>
       removeAccountFromStatement(environmentStatement, memberAccountId),
     );
-
-    const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
-    if (enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE') {
-      await this.updateEgressKMSPolicy(environmentStatement =>
-        removeAccountFromStatement(environmentStatement, memberAccountId),
-      );
-    }
-
     // Write audit event
     await this.audit(requestContext, { action: 'add-to-KmsKey-policy', body: memberAccountId });
   }
