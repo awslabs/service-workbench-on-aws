@@ -52,10 +52,10 @@ class ScEnvironmentCard extends React.Component {
       return key === 'InstanceType' || key === 'MasterInstanceType';
     });
     let instanceType;
-    // If no instance type param found
     if (instanceTypeElement >= 0) {
       instanceType = Object.entries(configParams[instanceTypeElement][1])[1][1];
     } else {
+      // If no instance type param found
       instanceType = 'Not available';
     }
 
@@ -119,7 +119,8 @@ class ScEnvironmentCard extends React.Component {
 
     const config = this.getConfiguration(this.environment.envTypeConfigId);
     const configName = config.name;
-    const instanceType = this.getInstanceTypeFromConfigParams(config);
+    // const instanceType = this.getInstanceTypeFromConfigParams(config);
+    const instanceType = config.instanceType;
 
     const renderRow = (key, value) => (
       <Table.Row>
@@ -131,7 +132,7 @@ class ScEnvironmentCard extends React.Component {
     );
 
     return (
-      <Table data-testid="detail-table" definition>
+      <Table data-testid="environment-card-details-table" definition>
         <Table.Body>
           {renderRow('Owner', <By uid={env.createdBy} skipPrefix />)}
           {renderRow('Studies', studyCount === 0 ? 'No studies linked to this workspace' : niceNumber(studyCount))}

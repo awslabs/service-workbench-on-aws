@@ -74,9 +74,7 @@ describe('ScEnvironmentCard', () => {
   });
 
   it('should get env type configs store', async () => {
-    // BUILD
-
-    // OPERATE
+    // BUILD, OPERATE
     component.getEnvTypeConfigsStore();
 
     // CHECK

@@ -45,56 +45,22 @@ describe('Launch a new sagemaker workspace', () => {
   it('should launch a new sagemaker workspace correctly', () => {
     const workspaces = Cypress.env('workspaces');
     const sagemaker = workspaces.sagemaker;
-    launchWorkspace(sagemaker, 'Sagemaker');
+    const workspaceName = launchWorkspace(sagemaker, 'Sagemaker');
+    checkDetailsTable(workspaceName);
   });
 
   it('should launch a new ec2 workspace correctly', () => {
     const workspaces = Cypress.env('workspaces');
     const ec2 = workspaces.ec2;
-    launchWorkspace(ec2, 'EC2');
+    const workspaceName = launchWorkspace(ec2, 'EC2');
+    checkDetailsTable(workspaceName);
   });
 
-  it('should contain Configuration Name in Workspace Details Table', () => {
-    // const workspaces = Cypress.env('workspaces');
-    navigateToWorkspaces();
-    cy.get('[data-testid=workspaces]')
-      .get('[data-testid=detail-table]')
-      .contains('Configuration Name');
-  });
-
-  it('should contain Instance Type in Workspace Details Table', () => {
-    // const workspaces = Cypress.env('workspaces');
-    navigateToWorkspaces();
-    cy.get('[data-testid=workspaces]')
-      .get('[data-testid=detail-table]')
-      .contains('Instance Type');
-  });
-
-  it('should contain Instance Type in Workspace Configuration Selection Card for EMR', () => {
+  it('should launch a new emr workspace correctly', () => {
     const workspaces = Cypress.env('workspaces');
-    const workspaceParam = workspaces.emr;
-
-    checkInstanceTypeInSelectionCard(workspaceParam);
-
-    exitConfiguration();
-  });
-
-  it('should contain Instance Type in Workspace Configuration Selection Card for EC2', () => {
-    const workspaces = Cypress.env('workspaces');
-    const workspaceParam = workspaces.ec2;
-
-    checkInstanceTypeInSelectionCard(workspaceParam);
-
-    exitConfiguration();
-  });
-
-  it('should contain Instance Type in Workspace Configuration Selection Card for Sagemaker', () => {
-    const workspaces = Cypress.env('workspaces');
-    const workspaceParam = workspaces.sagemaker;
-
-    checkInstanceTypeInSelectionCard(workspaceParam);
-
-    exitConfiguration();
+    const emr = workspaces.emr;
+    const workspaceName = launchWorkspace(emr, 'EMR');
+    checkDetailsTable(workspaceName);
   });
 
   const launchWorkspace = (workspaceParam, workspaceType) => {
@@ -132,6 +98,9 @@ describe('Launch a new sagemaker workspace', () => {
       .contains(workspaceParam.configuration)
       .click();
 
+    // Make sure the instance type information is being displayed on the card
+    cy.get('[data-testid=configuration-card]').contains('Instance Type');
+
     // Specify name for workspace
     cy.get('[data-testid=description-text-area]').type(`Cypress description-${randomNumber}`);
 
@@ -144,40 +113,20 @@ describe('Launch a new sagemaker workspace', () => {
     cy.contains(workspaceName)
       .parent()
       .contains('PENDING', { timeout: 600000 });
+
+    return workspaceName;
   };
 
-  const checkInstanceTypeInSelectionCard = workspaceParam => {
-    navigateToConfigurationCard(workspaceParam);
-
-    cy.get('[data-testid=configuration-card]').contains('Instance Type');
-  };
-
-  const navigateToConfigurationCard = workspaceParam => {
+  const checkDetailsTable = workspaceName => {
     navigateToWorkspaces();
+    cy.contains(workspaceName)
+      .parent()
+      .get('[data-testid=environment-card-details-table]')
+      .contains('Configuration Name');
 
-    cy.get('[data-testid=workspaces]');
-
-    // Click create new workspace button
-    cy.get('button[data-testid=create-workspace]').click({ force: true });
-
-    // Select the type of environment you want to launch
-    cy.get('[data-testid=env-type-card]')
-      .contains(workspaceParam.workspaceTypeName)
-      .click();
-
-    // Click next
-    cy.get('button')
-      .contains('Next')
-      .click();
-  };
-
-  const exitConfiguration = () => {
-    cy.get('button')
-      .contains('Previous')
-      .click();
-
-    cy.get('button')
-      .contains('Previous')
-      .click();
+    cy.contains(workspaceName)
+      .parent()
+      .get('[data-testid=environment-card-details-table]')
+      .contains('Instance Type');
   };
 });
