@@ -270,11 +270,8 @@ class AwsAccountsService extends Service {
       'aws-account-mgmt',
       'getActiveNonAppStreamEnvs',
       {
-        payload: {
-          awsAccountId,
-        },
+        payload: { requestContext, container: this.container, awsAccountId },
       },
-      { requestContext, container: this.container },
     );
 
     if (!_.isEmpty(activeNonAppStreamEnvs))

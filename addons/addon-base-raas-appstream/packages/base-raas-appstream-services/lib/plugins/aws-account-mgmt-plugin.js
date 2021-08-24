@@ -25,7 +25,8 @@ const settingKeys = {
  * and is triggered if the user attempts to update the AWS account using SWB APIs.
  * A similar check is performed on the UI components (AccountUtils) as well.
  */
-async function getActiveNonAppStreamEnvs({ awsAccountId }, { requestContext, container }) {
+async function getActiveNonAppStreamEnvs(payload) {
+  const { awsAccountId, requestContext, container } = payload;
   const settings = await container.find('settings');
   const isAppStreamEnabled = settings.getBoolean(settingKeys.isAppStreamEnabled);
   if (!isAppStreamEnabled) return [];
@@ -35,19 +36,24 @@ async function getActiveNonAppStreamEnvs({ awsAccountId }, { requestContext, con
   const indexesService = await container.find('indexesService');
 
   const indexes = await indexesService.list(requestContext);
-  const indexesIdsOfInterest = _.map(
-    _.filter(indexes, index => index.awsAccountId === awsAccountId),
-    'id',
-  );
+  const indexesOfInterest = _.filter(indexes, index => index.awsAccountId === awsAccountId);
+  if (_.isEmpty(indexesIdsOfInterest)) return [];
+  const indexesIdsOfInterest = _.map(indexesOfInterest, index => {
+    return index.id;
+  });
 
   const scEnvs = await environmentScService.list(requestContext);
-  const retVal = _.filter(
+  const scEnvsOfInterest = _.filter(
     scEnvs,
     scEnv =>
       _.includes(indexesIdsOfInterest, scEnv.indexId) &&
       !scEnv.isAppStreamConfigured &&
       !_.includes(nonActiveStates, scEnv.status),
   );
+  if (_.isEmpty(scEnvsOfInterest)) return [];
+  const retVal = _.map(scEnvsOfInterest, scEnv => {
+    return scEnv.id;
+  });
 
   return retVal;
 }
