@@ -56,6 +56,7 @@ describe('Launch new workspaces', () => {
       .click();
     expectedNumberOfNewlyOpenBrowserWindows += 1;
   }
+
   function checkLinux(workspaceName) {
     checkWorkspaceAvailableAndClickConnectionsButton(workspaceName);
     cy.contains(workspaceName)
