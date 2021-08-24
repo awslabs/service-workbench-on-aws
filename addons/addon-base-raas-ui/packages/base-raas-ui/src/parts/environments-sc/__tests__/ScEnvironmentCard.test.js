@@ -92,37 +92,4 @@ describe('ScEnvironmentCard', () => {
     expect(spyOnConfigsStore).toHaveBeenCalled();
     expect(envTypesStore.getEnvTypeConfig).toHaveBeenCalledWith(scEnvironment.envTypeConfigId);
   });
-
-  it('should get instance type from config params', async () => {
-    // BUILD
-    const config = { params: [{ key: 'InstanceType', value: 't3.large' }] };
-
-    // OPERATE
-    const instanceType = component.getInstanceTypeFromConfigParams(config);
-
-    // CHECK
-    expect(instanceType).not.toBe('Not available');
-  });
-
-  it('should get master instance type from config params for EMR', async () => {
-    // BUILD
-    const config = { params: [{ key: 'MasterInstanceType', value: 't3.large' }] };
-
-    // OPERATE
-    const instanceType = component.getInstanceTypeFromConfigParams(config);
-
-    // CHECK
-    expect(instanceType).not.toBe('Not available');
-  });
-
-  it('should display something graceful when no InstanceType param in config params', async () => {
-    // BUILD
-    const config = { params: [{ key: 'name', value: 'name' }] };
-
-    // OPERATE
-    const instanceType = component.getInstanceTypeFromConfigParams(config);
-
-    // CHECK
-    expect(instanceType).toBe('Not available');
-  });
 });

@@ -45,23 +45,6 @@ class ScEnvironmentCard extends React.Component {
     return config;
   }
 
-  getInstanceTypeFromConfigParams(config) {
-    const configParams = Object.entries(config.params);
-    const instanceTypeElement = _.findIndex(configParams, param => {
-      const key = Object.entries(param[1])[0][1];
-      return key === 'InstanceType' || key === 'MasterInstanceType';
-    });
-    let instanceType;
-    if (instanceTypeElement >= 0) {
-      instanceType = Object.entries(configParams[instanceTypeElement][1])[1][1];
-    } else {
-      // If no instance type param found
-      instanceType = 'Not available';
-    }
-
-    return instanceType;
-  }
-
   componentDidMount() {
     const configsStore = this.getEnvTypeConfigsStore();
     swallowError(configsStore.load());
@@ -119,7 +102,6 @@ class ScEnvironmentCard extends React.Component {
 
     const config = this.getConfiguration(this.environment.envTypeConfigId);
     const configName = config.name;
-    // const instanceType = this.getInstanceTypeFromConfigParams(config);
     const instanceType = config.instanceType;
 
     const renderRow = (key, value) => (
