@@ -65,14 +65,17 @@ describe('Create URL scenarios', () => {
         headers,
       });
 
+      let redirectUrl;
       try {
         await axiosClient.get(connectionUrlResponse.url, {
           withCredentials: true,
         });
       } catch (e) {
-        // CHECK
-        expect(e.request.res.responseUrl).toContain(redirectStreamingUrl);
+        redirectUrl = e.request.res.responseUrl;
       }
+
+      // CHECK
+      expect(redirectUrl).toContain(redirectStreamingUrl);
     });
 
     // Simplify repetitive Jest test cases with it.each here
@@ -129,14 +132,17 @@ describe('Create URL scenarios', () => {
         headers,
       });
 
+      let redirectUrl;
       try {
         await axiosClient.get(connectionUrlResponse.url, {
           withCredentials: true,
         });
       } catch (e) {
-        // CHECK
-        expect(e.request.res.responseUrl).toContain(testContext.redirectStreamingUrl);
+        redirectUrl = e.request.res.responseUrl;
       }
+
+      // CHECK
+      expect(redirectUrl).toContain(testContext.redirectStreamingUrl);
     });
   });
 });
