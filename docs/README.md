@@ -5,7 +5,7 @@
 + Service Workbench [source code](https://github.com/awslabs/service-workbench-on-aws/tags) must be downloaded on your local machine. For information on downloading the Service Workbench source code, read [Service Workbench Installation Guide](/docs/Service_Workbench_Installation_Guide.pdf).
 + Go to the **docs** directory under Service Workbench folder.
 
-You can download the PDF versions of other guides using the links provide in the main Service Workbench [Readme](https://github.com/awslabs/service-workbench-on-aws/blob/mainline/README.md).
+You can download the PDF versions of other guides using the links provided [here](https://github.com/awslabs/service-workbench-on-aws/blob/mainline/README.md).
 
 **Important**: *Do not click and open the help pages directly from the **docs** folder. These are configured to open only from the Docusaurus site.*
 
