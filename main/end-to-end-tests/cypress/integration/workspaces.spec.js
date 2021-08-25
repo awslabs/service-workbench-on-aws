@@ -45,13 +45,22 @@ describe('Launch a new sagemaker workspace', () => {
   it('should launch a new sagemaker workspace correctly', () => {
     const workspaces = Cypress.env('workspaces');
     const sagemaker = workspaces.sagemaker;
-    launchWorkspace(sagemaker, 'Sagemaker');
+    const workspaceName = launchWorkspace(sagemaker, 'Sagemaker');
+    checkDetailsTable(workspaceName);
   });
 
   it('should launch a new ec2 workspace correctly', () => {
     const workspaces = Cypress.env('workspaces');
     const ec2 = workspaces.ec2;
-    launchWorkspace(ec2, 'EC2');
+    const workspaceName = launchWorkspace(ec2, 'EC2');
+    checkDetailsTable(workspaceName);
+  });
+
+  it('should launch a new emr workspace correctly', () => {
+    const workspaces = Cypress.env('workspaces');
+    const emr = workspaces.emr;
+    const workspaceName = launchWorkspace(emr, 'EMR');
+    checkDetailsTable(workspaceName);
   });
 
   const launchWorkspace = (workspaceParam, workspaceType) => {
@@ -89,6 +98,9 @@ describe('Launch a new sagemaker workspace', () => {
       .contains(workspaceParam.configuration)
       .click();
 
+    // Make sure the instance type information is being displayed on the card
+    cy.get('[data-testid=configuration-card]').contains('Instance Type');
+
     // Specify name for workspace
     cy.get('[data-testid=description-text-area]').type(`Cypress description-${randomNumber}`);
 
@@ -101,5 +113,20 @@ describe('Launch a new sagemaker workspace', () => {
     cy.contains(workspaceName)
       .parent()
       .contains('PENDING', { timeout: 600000 });
+
+    return workspaceName;
+  };
+
+  const checkDetailsTable = workspaceName => {
+    navigateToWorkspaces();
+    cy.contains(workspaceName)
+      .parent()
+      .get('[data-testid=environment-card-details-table]')
+      .contains('Configuration Name');
+
+    cy.contains(workspaceName)
+      .parent()
+      .get('[data-testid=environment-card-details-table]')
+      .contains('Instance Type');
   };
 });
