@@ -66,7 +66,7 @@ Service Workbench documentation can be accessed in the PDF format or by using th
 
 ### Documentation PDFs
 
-You can download the PDF versions if you do not have Service Workbench locally installed on your machine. Click the following links to download user guides:
+You can download the PDF versions if you do not have Service Workbench locally installed on your machine. Click the following links to download:
 
 + [Service Workbench Installation Guide](/docs/Service_Workbench_Installation_Guide.pdf)
 + [Service Workbench Configuration Guide](/docs/Service_Workbench_Configuration_Guide.pdf)

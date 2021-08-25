@@ -3,7 +3,7 @@
 ### Prerequisites
 
 + Service Workbench must be installed on your local machine. For information on installing Service Workbench, read [Service Workbench Installation Guide](/docs/Service_Workbench_Installation_Guide.pdf).
-+ Switch to the **docs** directory under Service Workbench installation.
++ Go to the **docs** directory under Service Workbench installation.
 
 You can download the PDF versions of other guides using the links provide in the main Service Workbench [Readme](https://github.com/awslabs/service-workbench-on-aws/blob/mainline/README.md).
 
