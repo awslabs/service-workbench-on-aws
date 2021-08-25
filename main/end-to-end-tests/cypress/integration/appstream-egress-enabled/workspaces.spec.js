@@ -64,15 +64,17 @@ describe('Launch new workspaces', () => {
       .find('[data-testid=use-ssh-key-button]')
       .click();
 
+    // Check we can not access the Linux url from the internet.  Note Linux url is different from AppStream Url. To access Linux
+    // we would do it through the AppStream Url
     cy.contains(workspaceName)
       .parent()
       .find('[data-testid=host-ip]')
       .invoke('text')
       .then(ipAddress => {
         const port = 22;
-        cy.exec(`node checkConnection.js ${ipAddress} ${port}`)
-          .its('stdout')
-          .should('equal', 'false');
+        cy.exec(`node checkConnection.js ${ipAddress} ${port}`, { failOnNonZeroExit: false })
+          .its('code')
+          .should('equal', 1);
       });
 
     cy.contains(workspaceName)
@@ -89,6 +91,8 @@ describe('Launch new workspaces', () => {
       .find('[data-testid=sc-environment-generate-url-button]', { timeout: 60000 })
       .click();
 
+    // Check we can not access Sagemaker url from the internet. Note Sagemaker url is different from AppStream Url. To access Sagemaker
+    // we would do it through the AppStream Url
     cy.get('[data-testid=destination-url]')
       .invoke('text')
       .then(url => {
@@ -120,7 +124,7 @@ describe('Launch new workspaces', () => {
   it('checkConnection should work correctly', () => {
     // 8.8.8.8 is Google's DNS server
     cy.exec(`node checkConnection.js 8.8.8.8 443`)
-      .its('stdout')
-      .should('equal', 'true');
+      .its('code')
+      .should('equal', 0);
   });
 });
