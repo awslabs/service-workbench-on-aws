@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-const fetch = require('node-fetch');
+const axios = require('axios').default;
 const { runSetup } = require('../../../../../support/setup');
 
 describe('Create URL scenarios', () => {
@@ -32,7 +32,8 @@ describe('Create URL scenarios', () => {
   // These tests assume workspaces have already been created in the SWB environment
   // TODO: Create a new workspace during these tests, and terminate once done (dependent on GALI-1093)
   describe('Create AppStream URL', () => {
-    it('should return AppStream URL SageMaker', async () => {
+    it('should return AppStream URL: SageMaker', async () => {
+      // BUILD
       const envId = '36f22de5-fefb-4f62-8ab4-e99ac4387ad4';
       const connectionId = 'id-0';
       const applicationName = 'Firefox';
@@ -40,19 +41,38 @@ describe('Create URL scenarios', () => {
       const preAuthStreamingUrl = 'https://appstream2.us-east-1.aws.amazon.com/authenticate?parameters=';
       const redirectStreamingUrl = `appstream2.us-east-1.aws.amazon.com/#/streaming/?reference=fleet%2Finitial-stack-1629237287942-ServiceWorkbenchFleet&app=${applicationName}`;
 
-      const retVal = await adminSession.resources.workspaceServiceCatalogs
+      // OPERATE
+      const connectionUrlResponse = await adminSession.resources.workspaceServiceCatalogs
         .workspaceServiceCatalog(envId)
         .connections()
         .connection(connectionId)
         .createUrl();
 
-      const response = await fetch(retVal.url);
-      const redirectResponse = response[Object.getOwnPropertySymbols(response)[1]];
+      // CHECK
+      expect(connectionUrlResponse.appstreamDestinationUrl).toContain(sagemakerUrlPrefix);
+      expect(connectionUrlResponse.id).toEqual(connectionId);
+      expect(connectionUrlResponse.url).toContain(preAuthStreamingUrl);
 
-      expect(retVal.appstreamDestinationUrl).toContain(sagemakerUrlPrefix);
-      expect(retVal.id).toEqual(connectionId);
-      expect(retVal.url).toContain(preAuthStreamingUrl);
-      expect(redirectResponse.url).toContain(redirectStreamingUrl);
+      const token = connectionUrlResponse.url.split('parameters=')[1];
+      const headers = {
+        Authority: 'appstream2.us-east-1.aws.amazon.com',
+        Authorization: token,
+      };
+
+      // OPERATE
+      const axiosClient = axios.create({
+        baseURL: connectionUrlResponse.url,
+        headers,
+      });
+
+      try {
+        await axiosClient.get(connectionUrlResponse.url, {
+          withCredentials: true,
+        });
+      } catch (e) {
+        // CHECK
+        expect(e.request.res.responseUrl).toContain(redirectStreamingUrl);
+      }
     });
 
     // Simplify repetitive Jest test cases with it.each here
@@ -83,21 +103,40 @@ describe('Create URL scenarios', () => {
       ],
     ];
 
-    it.each(testContexts)('should return AppStream URL %s', async (_, testContext) => {
-      const retVal = await adminSession.resources.workspaceServiceCatalogs
+    it.each(testContexts)('should return AppStream URL: %s', async (_, testContext) => {
+      // OPERATE
+      const connectionUrlResponse = await adminSession.resources.workspaceServiceCatalogs
         .workspaceServiceCatalog(testContext.envId)
         .connections()
         .connection(testContext.connectionId)
         .createUrl();
 
-      const response = await fetch(retVal.url);
-      const redirectResponse = response[Object.getOwnPropertySymbols(response)[1]];
+      // CHECK
+      expect(connectionUrlResponse.scheme).toContain(testContext.expected.scheme);
+      expect(connectionUrlResponse.name).toContain(testContext.expected.name);
+      expect(connectionUrlResponse.id).toEqual(testContext.connectionId);
+      expect(connectionUrlResponse.url).toContain(testContext.preAuthStreamingUrl);
 
-      expect(retVal.scheme).toContain(testContext.expected.scheme);
-      expect(retVal.name).toContain(testContext.expected.name);
-      expect(retVal.id).toEqual(testContext.connectionId);
-      expect(retVal.url).toContain(testContext.preAuthStreamingUrl);
-      expect(redirectResponse.url).toContain(`${testContext.redirectStreamingUrl}${testContext.applicationName}`);
+      const token = connectionUrlResponse.url.split('parameters=')[1];
+      const headers = {
+        Authority: 'appstream2.us-east-1.aws.amazon.com',
+        Authorization: token,
+      };
+
+      // OPERATE
+      const axiosClient = axios.create({
+        baseURL: connectionUrlResponse.url,
+        headers,
+      });
+
+      try {
+        await axiosClient.get(connectionUrlResponse.url, {
+          withCredentials: true,
+        });
+      } catch (e) {
+        // CHECK
+        expect(e.request.res.responseUrl).toContain(testContext.redirectStreamingUrl);
+      }
     });
   });
 });
