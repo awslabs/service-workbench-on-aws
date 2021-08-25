@@ -60,9 +60,22 @@ The solution also includes a Continuous Integration/Continuous Delivery feature:
 
 # Installing Service Workbench
 
-## Accessing documentation using Docusaurus
+## Accessing Service Workbench Documentation
 
-Read the Service Workbench Deployment Guide provided in the installation. You can now also launch the Service Workbench docusaurus website. Please follow the steps in docs/README.md
+Service Workbench documentation can be accessed in the PDF format or by using the Docusaurus website. 
+
+### Documentation PDFs
+
+You can download the PDF versions if you do not have Service Workbench locally installed on your machine. Click the following links to download user guides:
+
++ [Service Workbench Installation Guide](/docs/Service_Workbench_Installation_Guide.pdf)
++ [Service Workbench Configuration Guide](/docs/Service_Workbench_Configuration_Guide.pdf)
+
+**Note**: *Service Workbench Post Deployment Guide is currently accessible through Docusaurus and its PDF version will be available soon!*
+
+### Accessing Documentation using Docusaurus
+
+Docusaurus is a static website. You first need to install Service Workbench on your local machine before accessing the documentation using Docusaurus. After installing Service Workbench, you need to install Docusaurus as well so that you can launch the help site. For steps on how to install Docusaurus using local installation, read the [Documentation Readme](/docs/README.md).
 
 ## Software requirements
 
@@ -174,7 +187,7 @@ For more information, refer to *Service Workbench Installation Guide*.
 
 Once Service Workbench is fully deployed, the console will output the Website URL and Root Password for Service Workbench. You can log in by navigating to the Website URL in any browser, and then using the username 'root' and the Root Password given by the console. Please note that logging as the root user is highly discouraged, and should only be used for initial setup. You can create a new user by clicking the "Users" tab on the left, then "Add Local User". Follow the instructions given to create the user (you can leave the 'Project' field blank for now), then log out of the root account and into your new user account.
 
-Adding a local user should only be done in test environments. We highly recommend using an IDP for prod environments. For more details on how to set up an IDP, please click [here](/docs/docs/user_guide/sidebar/admin/auth/introduction.md)
+Adding a local user should only be done in test environments. We highly recommend using an IDP for prod environments. For more details on how to set up an IDP, click [here](/docs/docs/user_guide/sidebar/admin/auth/introduction.md)
 ## Linking an existing AWS account
 
 Once in your user account, you'll need to link your AWS account. Navigate to "AWS Accounts" in the left bar, then click the "AWS Accounts" tab. From here, you can create an AWS account, or link an existing one.
