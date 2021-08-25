@@ -75,7 +75,7 @@ You can download the PDF versions if you do not have Service Workbench locally i
 
 ### Accessing Documentation using Docusaurus
 
-Docusaurus is a static website. You first need to install Service Workbench on your local machine before accessing the documentation using Docusaurus. After installing Service Workbench, you need to install Docusaurus as well so that you can launch the help site. For steps on how to install Docusaurus using local installation, read the [Documentation Readme](/docs/README.md).
+You first need to install Service Workbench on your local machine before accessing the documentation using Docusaurus. After installing Service Workbench, you need to install Docusaurus as well so that you can launch the help site. For steps on how to install Docusaurus using local installation, read the [Documentation Readme](/docs/README.md).
 
 ## Software requirements
 
