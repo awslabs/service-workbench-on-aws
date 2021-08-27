@@ -30,9 +30,9 @@ class BasicInfoStep extends BaseEnvTypeConfigStep {
 
     return (
       <>
-        {!isUpdating && <Input field={idField} disabled={processing} />}
-        <Input field={nameField} disabled={processing} />
-        <TextArea field={descField} disabled={processing} />
+        {!isUpdating && <Input dataTestId="configidinput" field={idField} disabled={processing} />}
+        <Input dataTestId="confignameinput" field={nameField} disabled={processing} />
+        <TextArea dataTestId="configdescinput" field={descField} disabled={processing} />
         <TextArea field={estimatedCostInfoField} disabled={processing} />
       </>
     );

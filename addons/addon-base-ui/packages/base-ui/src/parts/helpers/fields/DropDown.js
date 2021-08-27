@@ -63,6 +63,39 @@ class DropDown extends React.Component {
     this.optionsInState = _.concat({ text: data.value, value: data.value }, this.optionsInState);
   };
 
+  /**
+   * Uses the dropdown options to extract the placeholder variable values for the parameters when configuring
+   * a new workspace configuration.
+   * @param currentValue: holds the current value of the dropdown
+   * @param dropdownOptions: holds the options given in the droopdown
+   * @param field: the current field to find a defautl variable for
+   * @returns either the same currentValue or the variable value default to be displayed
+   */
+  getDefaultValue(currentValue, dropdownOptions, field) {
+    // if there is not a current value and there are valid dropdown options and the field is valid
+    if (currentValue === '' && dropdownOptions[0].key !== undefined && field.key !== undefined) {
+      // first element has no values
+      const currentValueIndex = dropdownOptions.slice(1).findIndex(option => {
+        const currentKeyOriginal = option.key;
+        const currentKey = currentKeyOriginal.charAt(0).toUpperCase() + currentKeyOriginal.slice(1);
+        const fieldKey = field.key;
+        return (
+          currentKey === fieldKey ||
+          (fieldKey.toLowerCase().includes(currentKeyOriginal) && currentKeyOriginal !== 'name') ||
+          currentKeyOriginal.slice(0, -2) === fieldKey.toLowerCase() ||
+          currentKeyOriginal === `admin${fieldKey.slice(0, 3)}Pair${fieldKey.slice(-4)}`
+        );
+      });
+      // if no value was found
+      if (currentValueIndex < 0) {
+        return '';
+      }
+      // offset of one because we sliced the first element out in our search
+      return dropdownOptions[currentValueIndex + 1].value;
+    }
+    return currentValue;
+  }
+
   render() {
     const {
       field,
@@ -119,7 +152,7 @@ class DropDown extends React.Component {
 
     const attrs = {
       id,
-      value,
+      value: this.getDefaultValue(value, mergeOptions, field),
 
       // applicable only when allowAdditions = true
       onAddItem: this.onAddItem,
