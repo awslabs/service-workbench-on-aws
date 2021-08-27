@@ -21,6 +21,7 @@ const Component = observer(
         content="Copy"
         trigger={
           <CopyToClipboard
+            data-testid="copy-to-clipboard-button"
             className={c(className)}
             text={text}
             style={{ cursor: 'pointer' }}
