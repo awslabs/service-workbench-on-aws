@@ -207,6 +207,23 @@ describe('AwsAccountService', () => {
       expect(dbService.table.update).toHaveBeenCalled();
     });
 
+    it('should save awsAccount if it has hostedzone', async () => {
+      // BUILD
+      const requestContext = {};
+      awsAccount.route53HostedZone = 'HOSTEDZONE123';
+      service.updateEnvironmentInstanceFilesBucketPolicy = jest.fn();
+      uuidMock.mockReturnValueOnce('abc-123-456');
+
+      // OPERATE
+      await service.create(requestContext, awsAccount);
+
+      // CHECK
+      expect(dbService.table.condition).toHaveBeenCalledWith('attribute_not_exists(id)');
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'abc-123-456' });
+      expect(dbService.table.item).toHaveBeenCalledWith(expect.objectContaining(awsAccount));
+      expect(dbService.table.update).toHaveBeenCalled();
+    });
+
     it('should update the bucket policy', async () => {
       // BUILD
       const requestContext = {};
@@ -347,6 +364,21 @@ describe('AwsAccountService', () => {
 
     it('should update awsAccount in the database', async () => {
       // BUILD
+      const requestContext = { username: 'oneUser' };
+      service.updateEnvironmentInstanceFilesBucketPolicy = jest.fn();
+
+      // OPERATE
+      await service.update(requestContext, awsAccount);
+
+      // CHECK
+      expect(dbService.table.condition).toHaveBeenCalledWith('attribute_exists(id)');
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'xyz' });
+      expect(dbService.table.update).toHaveBeenCalled();
+    });
+
+    it('should update awsAccount with HostedZone', async () => {
+      // BUILD
+      awsAccount.route53HostedZone = 'HOSTEDZONE123';
       const requestContext = { username: 'oneUser' };
       service.updateEnvironmentInstanceFilesBucketPolicy = jest.fn();
 

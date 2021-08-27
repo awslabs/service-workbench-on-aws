@@ -34,6 +34,7 @@ const settingKeys = {
   swbMainAccount: 'mainAcct',
   stage: 'envName',
   isAppStreamEnabled: 'isAppStreamEnabled',
+  domainName: 'domainName',
 };
 
 // see https://github.com/rvedotrc/aws-cloudformation-stack-states for all states
@@ -64,6 +65,7 @@ const getCreateStackUrl = (cfnTemplateInfo, createParams) => {
     appStreamInstanceType,
     appStreamMaxUserDurationSeconds,
     enableAppStream,
+    domainName,
   } = createParams;
   const url = [
     `https://console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/create/review/`,
@@ -82,6 +84,7 @@ const getCreateStackUrl = (cfnTemplateInfo, createParams) => {
     `&param_AppStreamInstanceType=${appStreamInstanceType || ''}`,
     `&param_AppStreamMaxUserDurationSeconds=${appStreamMaxUserDurationSeconds || '86400'}`,
     `&param_EnableAppStream=${enableAppStream || 'false'}`,
+    `&param_DomainName=${domainName || ''}`,
   ].join('');
 
   // This one takes us directly to the review stage but will require that we access the cloudformation console first
@@ -205,7 +208,8 @@ class AwsCfnService extends Service {
     createParams.apiHandlerRoleArn = this.settings.get(settingKeys.apiHandlerRoleArn);
     createParams.workflowLoopRunnerRoleArn = this.settings.get(settingKeys.workflowLoopRunnerRoleArn);
     createParams.enableAppStream = this.settings.get(settingKeys.isAppStreamEnabled);
-    createParams.externalId = 'workbench';
+    createParams.domainName = this.settings.optional(settingKeys.domainName, '');
+    createParams.externalId = account.externalId;
     createParams.namespace = cfnTemplateInfo.name;
 
     // The id of the template is actually the hash of the of the content of the template
@@ -242,7 +246,7 @@ class AwsCfnService extends Service {
       id: account.id,
       rev: account.rev,
       cfnStackName: cfnTemplateInfo.name, // If SWB didn't generate a cfn name, this will be account.cfnStackName
-      externalId: 'workbench',
+      externalId: account.externalId,
       permissionStatus: 'PENDING',
       onboardStatusRoleArn: [
         'arn:aws:iam::',
@@ -456,6 +460,9 @@ class AwsCfnService extends Service {
       fieldsToUpdate.appStreamStackName = findOutputValue('AppStreamStackName');
       fieldsToUpdate.appStreamFleetName = findOutputValue('AppStreamFleet');
       fieldsToUpdate.appStreamSecurityGroupId = findOutputValue('AppStreamSecurityGroup');
+      if (this.settings.optional(settingKeys.domainName, '') !== '') {
+        fieldsToUpdate.route53HostedZone = findOutputValue('Route53HostedZone');
+      }
     } else {
       fieldsToUpdate.subnetId = findOutputValue('VpcPublicSubnet1');
     }
