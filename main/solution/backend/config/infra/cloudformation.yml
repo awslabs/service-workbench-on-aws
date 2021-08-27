@@ -923,7 +923,11 @@ Resources:
               - dynamodb:UpdateItem
             Resource:
               - !GetAtt [AwsAccountsDb, Arn]
+              - !GetAtt [IndexesDb, Arn]
+              - !GetAtt [ProjectsDb, Arn]
+              - !GetAtt [EnvironmentsScDb, Arn]
               - !Join ['', [!GetAtt [AwsAccountsDb, Arn], '/index/*']]
+              - !Join ['', [!GetAtt [EnvironmentsScDb, Arn], '/index/*']]
           - Effect: Allow
             Action:
               - logs:CreateLogStream
