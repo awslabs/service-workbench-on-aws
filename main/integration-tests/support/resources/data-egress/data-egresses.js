@@ -13,7 +13,6 @@
  *  permissions and limitations under the License.
  */
 
-const _ = require('lodash');
 const CollectionResource = require('../base/collection-resource');
 const DataEgress = require('./data-egress');
 const DataEgressNotify = require('./data-egress-notify');
