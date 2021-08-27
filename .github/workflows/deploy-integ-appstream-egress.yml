@@ -42,7 +42,7 @@ jobs:
         run: ./scripts/build-all-packages.sh
       - name: Deploy
         env:
-          STAGE_NAME: e2etestAppStreamEgress
+          STAGE_NAME: tre
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_APPSTREAM_EGRESS}}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_APPSTREAM_EGRESS }}
         run: |
@@ -71,7 +71,7 @@ jobs:
         working-directory: ./
         env:
           DEPLOYMENT_BUCKET: ${{ secrets.DEPLOYMENT_BUCKET_APPSTREAM_EGRESS}}
-          STAGE_NAME: e2etestAppStreamEgress
+          STAGE_NAME: tre
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_APPSTREAM_EGRESS }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_APPSTREAM_EGRESS }}
           aws-region: us-east-1
