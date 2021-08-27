@@ -56,7 +56,7 @@ describe('Create URL scenarios', () => {
         status: 'PENDING',
         workspace_id: 'ea8e5286-45ca-402a-8c98-7d4495f646e2',
       };
-      // set isAbleToSubmitEgressRequest flag
+      // set isAbleToSubmitEgressRequest flag to true
       await adminSession.resources.dataEgresses.notify().activateEgressRequest(nonEmptyEgressEnvId);
 
       // OPERATE
