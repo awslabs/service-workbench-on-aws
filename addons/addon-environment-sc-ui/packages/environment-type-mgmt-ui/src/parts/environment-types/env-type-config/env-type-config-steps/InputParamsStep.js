@@ -104,6 +104,7 @@ class InputParamsStep extends BaseEnvTypeConfigStep {
       );
       return (
         <DropDown
+          dataTestId={field.key}
           key={field.key}
           field={field}
           options={options}
