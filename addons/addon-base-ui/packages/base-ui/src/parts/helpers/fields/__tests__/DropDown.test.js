@@ -59,7 +59,7 @@ describe('DropDown', () => {
       component = wrapper.instance();
 
       // OPERATE
-      const defaultValue = component.getDefaultValue('', options, field);
+      const defaultValue = component.getDefaultValue('', field);
 
       // CHECK
       expect(defaultValue).toBe('${encryptionKeyArn}');
@@ -74,7 +74,7 @@ describe('DropDown', () => {
       component = wrapper.instance();
 
       // OPERATE
-      const defaultValue = component.getDefaultValue('', options, field);
+      const defaultValue = component.getDefaultValue('', field);
 
       // CHECK
       expect(defaultValue).toBe('${iamPolicyDocument}');
@@ -89,7 +89,7 @@ describe('DropDown', () => {
       component = wrapper.instance();
 
       // OPERATE
-      const defaultValue = component.getDefaultValue('', options, field);
+      const defaultValue = component.getDefaultValue('', field);
 
       // CHECK
       expect(defaultValue).toBe('${cidr}');
@@ -104,7 +104,7 @@ describe('DropDown', () => {
       component = wrapper.instance();
 
       // OPERATE
-      const defaultValue = component.getDefaultValue('', options, field);
+      const defaultValue = component.getDefaultValue('', field);
 
       // CHECK
       expect(defaultValue).toBe('${vpcId}');
@@ -119,7 +119,7 @@ describe('DropDown', () => {
       component = wrapper.instance();
 
       // OPERATE
-      const defaultValue = component.getDefaultValue('', options, field);
+      const defaultValue = component.getDefaultValue('', field);
 
       // CHECK
       expect(defaultValue).toBe('${environmentInstanceFiles}');
@@ -134,7 +134,7 @@ describe('DropDown', () => {
       component = wrapper.instance();
 
       // OPERATE
-      const defaultValue = component.getDefaultValue('', options, field);
+      const defaultValue = component.getDefaultValue('', field);
 
       // CHECK
       expect(defaultValue).toBe('${subnetId}');
@@ -149,7 +149,7 @@ describe('DropDown', () => {
       component = wrapper.instance();
 
       // OPERATE
-      const defaultValue = component.getDefaultValue('', options, field);
+      const defaultValue = component.getDefaultValue('', field);
 
       // CHECK
       expect(defaultValue).toBe('${s3Mounts}');
@@ -164,7 +164,7 @@ describe('DropDown', () => {
       component = wrapper.instance();
 
       // OPERATE
-      const defaultValue = component.getDefaultValue('', options, field);
+      const defaultValue = component.getDefaultValue('', field);
 
       // CHECK
       expect(defaultValue).toBe('${namespace}');
@@ -179,7 +179,7 @@ describe('DropDown', () => {
       component = wrapper.instance();
 
       // OPERATE
-      const defaultValue = component.getDefaultValue('', options, field);
+      const defaultValue = component.getDefaultValue('', field);
 
       // CHECK
       expect(defaultValue).toBe('${adminKeyPairName}');
@@ -195,7 +195,7 @@ describe('DropDown', () => {
       const myNamespace = 'myNamespace';
 
       // OPERATE
-      const defaultValue = component.getDefaultValue(myNamespace, options, field);
+      const defaultValue = component.getDefaultValue(myNamespace, field);
 
       // CHECK
       expect(defaultValue).not.toBe('${namespace}');
@@ -212,7 +212,7 @@ describe('DropDown', () => {
       const someValue = 'someValue';
 
       // OPERATE
-      const defaultValue = component.getDefaultValue(someValue, options, field);
+      const defaultValue = component.getDefaultValue(someValue, field);
 
       // CHECK
       expect(defaultValue).toBe(someValue);
@@ -228,7 +228,7 @@ describe('DropDown', () => {
       const someValue = '';
 
       // OPERATE
-      const defaultValue = component.getDefaultValue(someValue, options, field);
+      const defaultValue = component.getDefaultValue(someValue, field);
 
       // CHECK
       expect(defaultValue).toBe(someValue);
@@ -247,7 +247,7 @@ describe('DropDown', () => {
       const someValue = 'someValue';
 
       // OPERATE
-      const defaultValue = component.getDefaultValue(someValue, options, field);
+      const defaultValue = component.getDefaultValue(someValue, field);
 
       // CHECK
       expect(defaultValue).toBe(someValue);
@@ -262,7 +262,7 @@ describe('DropDown', () => {
       const someValue = 'someValue';
 
       // OPERATE
-      const defaultValue = component.getDefaultValue(someValue, options, field);
+      const defaultValue = component.getDefaultValue(someValue, field);
 
       // CHECK
       expect(defaultValue).toBe(someValue);
@@ -276,7 +276,7 @@ describe('DropDown', () => {
       const someValue = 'someValue';
 
       // OPERATE
-      const defaultValue = component.getDefaultValue(someValue, options, field);
+      const defaultValue = component.getDefaultValue(someValue, field);
 
       // CHECK
       expect(defaultValue).toBe(someValue);
