@@ -84,7 +84,7 @@ class DropDown extends React.Component {
       EnvironmentInstanceFiles: '${environmentInstanceFiles}',
       Subnet: '${subnetId}',
     };
-    // if there is not a current value and the field is a key in the above dict
+    // if current value is empty and the field is a key in the above dict
     if (currentValue === '' && field.key in fieldToVariableMap) {
       return fieldToVariableMap[field.key];
     }
