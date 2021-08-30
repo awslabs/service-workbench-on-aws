@@ -714,7 +714,7 @@ Resources:
 
   SSMEndpoint:
     Type: 'AWS::EC2::VPCEndpoint'
-    Condition: isAppStream
+    Condition: isAppStreamAndCustomDomain
     Properties:
       SubnetIds:
         - !Ref PrivateWorkspaceSubnet
