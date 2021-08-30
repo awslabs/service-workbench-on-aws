@@ -68,11 +68,10 @@ class DropDown extends React.Component {
    * Uses the dropdown options to extract the placeholder variable values for the parameters when configuring
    * a new workspace configuration.
    * @param currentValue: holds the current value of the dropdown
-   * @param dropdownOptions: holds the options given in the dropdown
    * @param field: the current field to find a default variable for
    * @returns either the same currentValue or the variable value default to be displayed
    */
-  getDefaultValue(currentValue, dropdownOptions, field) {
+  getDefaultValue(currentValue, field) {
     // Make a dict of the field values to the proper variables
     const fieldToVariableMap = {
       EncryptionKeyArn: '${encryptionKeyArn}',
@@ -148,7 +147,7 @@ class DropDown extends React.Component {
 
     const attrs = {
       id,
-      value: this.getDefaultValue(value, mergeOptions, field),
+      value: this.getDefaultValue(value, field),
 
       // applicable only when allowAdditions = true
       onAddItem: this.onAddItem,
