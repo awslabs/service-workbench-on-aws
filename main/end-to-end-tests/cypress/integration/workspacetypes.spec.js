@@ -16,7 +16,7 @@
 
 describe('Check that variables prepopulate when making a new configuration', () => {
   before(() => {
-    cy.login('researcher');
+    cy.login('admin');
     navigateToWorkspaceTypes();
   });
 

@@ -1,3 +1,4 @@
+/* eslint-disable no-template-curly-in-string */
 /*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -67,31 +68,26 @@ class DropDown extends React.Component {
    * Uses the dropdown options to extract the placeholder variable values for the parameters when configuring
    * a new workspace configuration.
    * @param currentValue: holds the current value of the dropdown
-   * @param dropdownOptions: holds the options given in the droopdown
-   * @param field: the current field to find a defautl variable for
+   * @param dropdownOptions: holds the options given in the dropdown
+   * @param field: the current field to find a default variable for
    * @returns either the same currentValue or the variable value default to be displayed
    */
   getDefaultValue(currentValue, dropdownOptions, field) {
-    // if there is not a current value and there are valid dropdown options and the field is valid
-    if (currentValue === '' && dropdownOptions[0].key !== undefined && field.key !== undefined) {
-      // first element has no values
-      const currentValueIndex = dropdownOptions.slice(1).findIndex(option => {
-        const currentKeyOriginal = option.key;
-        const currentKey = currentKeyOriginal.charAt(0).toUpperCase() + currentKeyOriginal.slice(1);
-        const fieldKey = field.key;
-        return (
-          currentKey === fieldKey ||
-          (fieldKey.toLowerCase().includes(currentKeyOriginal) && currentKeyOriginal !== 'name') ||
-          currentKeyOriginal.slice(0, -2) === fieldKey.toLowerCase() ||
-          currentKeyOriginal === `admin${fieldKey.slice(0, 3)}Pair${fieldKey.slice(-4)}`
-        );
-      });
-      // if no value was found
-      if (currentValueIndex < 0) {
-        return '';
-      }
-      // offset of one because we sliced the first element out in our search
-      return dropdownOptions[currentValueIndex + 1].value;
+    // Make a dict of the field values to the proper variables
+    const fieldToVariableMap = {
+      EncryptionKeyArn: '${encryptionKeyArn}',
+      VPC: '${vpcId}',
+      AccessFromCIDRBlock: '${cidr}',
+      S3Mounts: '${s3Mounts}',
+      Namespace: '${namespace}',
+      KeyName: '${adminKeyPairName}',
+      IamPolicyDocument: '${iamPolicyDocument}',
+      EnvironmentInstanceFiles: '${environmentInstanceFiles}',
+      Subnet: '${subnetId}',
+    };
+    // if there is not a current value and the field is a key in the above dict
+    if (currentValue === '' && field.key in fieldToVariableMap) {
+      return fieldToVariableMap[field.key];
     }
     return currentValue;
   }
