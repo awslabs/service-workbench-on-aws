@@ -28,6 +28,11 @@ describe('Launch a workspace', () => {
   };
 
   const terminatePrexistingWorkspaces = () => {
+    // Wait until the workspaces information renders
+    //  If there are workspaces, the cards will contain the word "Workspace" in the details table ("Workspace Type" in full)
+    //  If there are not any workspaces, the displayed message is "No research workspaces"
+    //  Both cases will be caught with this contains as it is case insensitive and doesn't match whole words
+    cy.get('[data-testid=workspaces]').contains('workspace', { matchCase: false });
     cy.get('#root').then($body => {
       if ($body.find('[data-testid=sc-env-terminate]').length > 0) {
         cy.get('#root')
