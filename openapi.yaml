@@ -264,7 +264,9 @@ paths:
       summary: Delete a User
       operationId: DeleteUser
       description: |
-        Delete a User
+        Delete a User. Note that this API doesn't check for outstanding resources like studies, environments, projects
+        etc. the user might have permissions to. Take caution while using this API since those resources might stop
+        functioning as expected. Consider using update API instead and change 'state' to 'inactive'.
       responses:
         '200':
           description: User deleted

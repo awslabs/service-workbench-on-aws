@@ -34,6 +34,7 @@ describe('Create workspace-service-catalog scenarios', () => {
 
     adminSession = await setup.defaultAdminSession();
     productInfo = await createDefaultServiceCatalogProduct(setup);
+    jest.retryTimes(1);
   });
 
   afterAll(async () => {

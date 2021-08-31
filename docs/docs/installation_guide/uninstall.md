@@ -32,6 +32,15 @@ Go to CloudWatch console, then select and delete the log groups. Alternatively, 
 
 If you used AWS Cloud9 to deploy Service Workbench, you can delete this environment.
 
+**Using the uninstall script**
+
+Use the following script to uninstall Service Workbench:
+
+```
+https://github.com/awslabs/service-workbench-on-aws/blob/mainline/scripts/environment-delete.sh 
+```
+
+
 **Regional code mapping**
 
 Region code mapping is defined in the `main/config/settings/.defaults.yml` file.
