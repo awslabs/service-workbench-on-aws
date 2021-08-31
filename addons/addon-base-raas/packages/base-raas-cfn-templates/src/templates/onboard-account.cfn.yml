@@ -160,9 +160,7 @@ Resources:
                 - ec2:DescribeInstances
                 - ec2:DescribeSecurityGroups
                 - ec2:RevokeSecurityGroupIngress
-#                - ec2:RevokeSecurityGroupEgress
                 - ec2:AuthorizeSecurityGroupIngress
-#                - ec2:AuthorizeSecurityGroupEgress
                 - ec2-instance-connect:SendSSHPublicKey
               Resource: '*'
         - PolicyName: cfn-access
