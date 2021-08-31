@@ -96,6 +96,9 @@
     },
     "appStreamFleetType": {
       "type": "string"
+    },
+    "route53HostedZone": {
+      "type": "string"
     }
   },
   "required": [

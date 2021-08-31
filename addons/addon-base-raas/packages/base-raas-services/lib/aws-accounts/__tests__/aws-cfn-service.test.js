@@ -57,12 +57,13 @@ describe('AwsAccountService', () => {
   let awsAccountsService = null;
   let cfnTemplateService = null;
   let s3Service = null;
+  let settings = null;
 
   const mockAccount = {
     id: 'testid',
     rev: 5,
     roleArn: 'TestRole',
-    externalId: 'workbench',
+    externalId: 'test-externalid',
     clientName: 'CloudFormation',
     onboardStatusRoleArn: 'otherRole',
     cfnStackName: 'HAPPY_STACK',
@@ -103,6 +104,31 @@ describe('AwsAccountService', () => {
       OutputKey: 'CrossAccountEnvMgmtRoleArn',
       OutputValue: 'arn:aws:iam::placeholder',
       Description: 'The arn of the cross account role for environment management using AWS Service Catalog',
+    },
+    {
+      OutputKey: 'PrivateWorkspaceSubnet',
+      OutputValue: 'subnet-private',
+      Description: 'Private Workspace Subnet',
+    },
+    {
+      OutputKey: 'AppStreamStackName',
+      OutputValue: 'appstream-stack',
+      Description: 'AppStream Stack Name',
+    },
+    {
+      OutputKey: 'AppStreamFleet',
+      OutputValue: 'appstream-fleet',
+      Description: 'AppStream Fleet',
+    },
+    {
+      OutputKey: 'AppStreamSecurityGroup',
+      OutputValue: 'sg-appstream',
+      Description: 'Security Group AppStream',
+    },
+    {
+      OutputKey: 'Route53HostedZone',
+      OutputValue: 'HOSTEDZONE123',
+      Description: 'Route53 HostedZone',
     },
   ];
 
@@ -166,6 +192,7 @@ describe('AwsAccountService', () => {
     awsService = await container.find('aws');
     cfnTemplateService = await container.find('cfnTemplateService');
     s3Service = await container.find('s3Service');
+    settings = await container.find('settings');
 
     awsService.getCredentialsForRole.mockImplementation(jest.fn());
     awsAccountsService.list.mockImplementation(() => [mockAccount]);
@@ -216,6 +243,12 @@ describe('AwsAccountService', () => {
 
     it('should create a cfn template info object', async () => {
       awsAccountsService.mustFind.mockImplementation(() => mockAccount);
+      settings.optional = jest.fn((key, defaultVal) => {
+        if (key === 'domainName') {
+          return defaultVal;
+        }
+        throw Error(`${key} not found`);
+      });
       const res = await service.getAndUploadTemplateForAccount(requestContext, mockAccount.id);
       const expCfnInfo = {
         accountId: mockAccount.accountId,
@@ -225,6 +258,54 @@ describe('AwsAccountService', () => {
       };
       expect(res).toMatchObject(expCfnInfo);
       expect(res.createStackUrl).toBeDefined();
+      expect(res.createStackUrl).toBe(
+        'https://console.aws.amazon.com/cloudformation/home?region=undefined#/stacks/create/review/?' +
+          'templateURL=undefined&stackName=HAPPY_STACK&param_Namespace=HAPPY_STACK&' +
+          'param_CentralAccountId=undefined&param_ExternalId=test-externalid&param_ApiHandlerArn=undefined&' +
+          'param_WorkflowRoleArn=undefined&param_AppStreamFleetType=ON_DEMAND&' +
+          'param_AppStreamDisconnectTimeoutSeconds=60&param_AppStreamFleetDesiredInstances=2&' +
+          'param_AppStreamIdleDisconnectTimeoutSeconds=600&param_AppStreamImageName=&' +
+          'param_AppStreamInstanceType=&param_AppStreamMaxUserDurationSeconds=86400&' +
+          'param_EnableAppStream=false&param_DomainName=',
+      );
+    });
+
+    it('cfn template with domain', async () => {
+      awsAccountsService.mustFind.mockImplementation(() => mockAccount);
+      settings.optional = jest.fn((key, _) => {
+        if (key === 'domainName') {
+          return 'testdomain.aws';
+        }
+        throw Error(`${key} not found`);
+      });
+      const res = await service.getAndUploadTemplateForAccount(requestContext, mockAccount.id);
+      const expCfnInfo = {
+        accountId: mockAccount.accountId,
+        name: mockAccount.cfnStackName,
+        cfnConsoleUrl: 'https://console.aws.amazon.com/cloudformation/home?region=undefined',
+        template: mockYmlResponse,
+      };
+      const update = {
+        cfnStackName: 'HAPPY_STACK',
+        externalId: 'test-externalid',
+        id: 'testid',
+        onboardStatusRoleArn: 'arn:aws:iam:::role/HAPPY_STACK-cfn-status-role',
+        permissionStatus: 'PENDING',
+        rev: 5,
+      };
+      expect(res).toMatchObject(expCfnInfo);
+      expect(res.createStackUrl).toBeDefined();
+      expect(res.createStackUrl).toBe(
+        'https://console.aws.amazon.com/cloudformation/home?region=undefined#/stacks/create/review/?' +
+          'templateURL=undefined&stackName=HAPPY_STACK&param_Namespace=HAPPY_STACK&' +
+          'param_CentralAccountId=undefined&param_ExternalId=test-externalid&param_ApiHandlerArn=undefined&' +
+          'param_WorkflowRoleArn=undefined&param_AppStreamFleetType=ON_DEMAND&' +
+          'param_AppStreamDisconnectTimeoutSeconds=60&param_AppStreamFleetDesiredInstances=2&' +
+          'param_AppStreamIdleDisconnectTimeoutSeconds=600&param_AppStreamImageName=&' +
+          'param_AppStreamInstanceType=&param_AppStreamMaxUserDurationSeconds=86400&' +
+          'param_EnableAppStream=false&param_DomainName=testdomain.aws',
+      );
+      expect(awsAccountsService.update).toHaveBeenCalledWith(requestContext, update);
     });
   });
 
@@ -396,10 +477,61 @@ describe('AwsAccountService', () => {
         subnetId: 'subnet-placeholder',
         roleArn: 'arn:aws:iam::execution-placeholder',
         xAccEnvMgmtRoleArn: 'arn:aws:iam::placeholder',
-        externalId: 'workbench',
+        externalId: 'test-externalid',
         encryptionKeyArn: 'arn:aws:kms:placeholder',
         permissionStatus: 'CURRENT',
         rev: completedAccountMock.rev,
+      };
+
+      awsAccountsService.list.mockImplementationOnce(() => [completedAccountMock]);
+      awsAccountsService.mustFind.mockImplementationOnce(() => {
+        return completedAccountMock;
+      });
+
+      const res = await service.onboardPendingAccounts(requestContext);
+      expect(res.auditLog[completedAccountMock.id]).toEqual('Successfully Onboarded');
+      expect(res.newStatus[completedAccountMock.id]).toEqual('CURRENT');
+      expect(awsAccountsService.update).toHaveBeenCalledWith(requestContext, expUpdate);
+    });
+
+    it('should correctly handle pending accounts that have completed with AppStream', async () => {
+      settings.getBoolean = jest.fn(key => {
+        if (key === 'isAppStreamEnabled') {
+          return true;
+        }
+        throw Error(`${key} not found`);
+      });
+      settings.optional = jest.fn((key, _) => {
+        if (key === 'domainName') {
+          return 'testdomain.aws';
+        }
+        throw Error(`${key} not found`);
+      });
+
+      // This account's status should change to 'CURRENT'
+      const completedAccountMock = {
+        ...mockAccount,
+        id: 'pendingCompletedAccount',
+        accountId: 'pendingCompletedAccount',
+        cfnStackName: 'HAPPY_STACK',
+        permissionStatus: 'PENDING',
+      };
+
+      const expUpdate = {
+        id: completedAccountMock.id,
+        cfnStackId: 'HAPPY_ID',
+        vpcId: 'vpc-placeholder',
+        roleArn: 'arn:aws:iam::execution-placeholder',
+        xAccEnvMgmtRoleArn: 'arn:aws:iam::placeholder',
+        externalId: 'test-externalid',
+        encryptionKeyArn: 'arn:aws:kms:placeholder',
+        permissionStatus: 'CURRENT',
+        rev: completedAccountMock.rev,
+        appStreamFleetName: 'appstream-fleet',
+        appStreamSecurityGroupId: 'sg-appstream',
+        appStreamStackName: 'appstream-stack',
+        route53HostedZone: 'HOSTEDZONE123',
+        subnetId: 'subnet-private',
       };
 
       awsAccountsService.list.mockImplementationOnce(() => [completedAccountMock]);
