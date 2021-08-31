@@ -22,6 +22,7 @@ const baseRaasUserAuthzPlugin = require('@aws-ee/base-raas-services/lib/user/use
 const baseRaasSchemaPlugin = require('@aws-ee/base-raas-services/lib/plugins/schema-plugin');
 const environmentTypeServicesPlugin = require('@aws-ee/environment-type-mgmt-services/lib/plugins/services-plugin');
 const keyPairServicesPlugin = require('@aws-ee/key-pair-mgmt-services/lib/plugins/services-plugin');
+const baseRaasAppStreamAwsAccountMgmtPlugin = require('@aws-ee/base-raas-appstream-services/lib/plugins/aws-account-mgmt-plugin');
 
 const servicesPlugin = require('services/lib/plugins/services-plugin');
 
@@ -45,6 +46,7 @@ const extensionPoints = {
   'aws-account-authz': [], // No plugins at this point. All aws-account authz is happening inline in 'aws-account-service'
   'cost-authz': [], // No plugins at this point. All cost authz is happening inline in 'costs-service'
   'schema': [baseRaasSchemaPlugin],
+  'aws-account-mgmt': [baseRaasAppStreamAwsAccountMgmtPlugin],
 };
 
 async function getPlugins(extensionPoint) {

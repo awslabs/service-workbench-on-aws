@@ -32,6 +32,7 @@ const settingKeys = {
   launchConstraintRolePrefix: 'launchConstraintRolePrefix',
   launchConstraintPolicyPrefix: 'launchConstraintPolicyPrefix',
   isAppStreamEnabled: 'isAppStreamEnabled',
+  domainName: 'domainName',
 };
 
 class ProvisionAccount extends StepBase {
@@ -223,6 +224,7 @@ class ProvisionAccount extends StepBase {
     addParam('LaunchConstraintRolePrefix', this.settings.get(settingKeys.launchConstraintRolePrefix));
     addParam('LaunchConstraintPolicyPrefix', this.settings.get(settingKeys.launchConstraintPolicyPrefix));
     addParam('EnableAppStream', this.settings.get(settingKeys.isAppStreamEnabled));
+    addParam('DomainName', this.settings.optional(settingKeys.domainName, ''));
 
     const input = {
       StackName: stackName,
@@ -306,7 +308,12 @@ class ProvisionAccount extends StepBase {
             appStreamSecurityGroupId: cfnOutputs.AppStreamSecurityGroup,
             appStreamFleetName: cfnOutputs.AppStreamFleet,
             subnetId: cfnOutputs.PrivateWorkspaceSubnet,
+            route53HostedZone: cfnOutputs.Route53HostedZone,
           };
+
+          if (this.settings.optional(settingKeys.domainName, '') !== '') {
+            additionalAccountData.route53HostedZone = cfnOutputs.Route53HostedZone;
+          }
         } else {
           additionalAccountData = {
             subnetId: cfnOutputs.VpcPublicSubnet1,

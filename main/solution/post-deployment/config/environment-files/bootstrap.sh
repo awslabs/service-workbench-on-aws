@@ -88,6 +88,12 @@ case "$(env_type)" in
         echo "Finish installing jq"
         ;;
     "rstudio") # Add mount script to bash profile
+        export PATH="/usr/local/bin:$PATH"
+        set-password
+        echo "Installing jq"
+        cp "${FILES_DIR}/offline-packages/jq-1.5-linux64" "/usr/local/bin/jq"
+        chmod +x "/usr/local/bin/jq"
+        echo "Finish installing jq"
         ;;
 esac
 
@@ -124,7 +130,9 @@ case "$(env_type)" in
         printf "\n# Mount S3 study data\nmount_s3.sh\n\n" >> "/home/ec2-user/.bash_profile"
         ;;
     "rstudio") # Add mount script to bash profile
-        yum install -y fuse-2.9.2 #TODO Need to install package locally
+        echo "Installing fuse"
+        sudo yum localinstall -y "${FILES_DIR}/offline-packages/ec2-linux/fuse-2.9.2-11.amzn2.x86_64.rpm"
+        echo "Finish installing fuse"
         printf "\n# Mount S3 study data\nmount_s3.sh\n\n" >> "/home/rstudio-user/.bash_profile"
         ;;
 esac

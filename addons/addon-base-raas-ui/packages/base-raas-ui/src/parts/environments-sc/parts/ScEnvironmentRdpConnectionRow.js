@@ -146,7 +146,14 @@ class ScEnvironmentRdpConnectionRow extends React.Component {
     const rows = [
       <Table.Row key={item.id}>
         <Table.Cell className="clearfix">
-          <Button floated="right" size="mini" primary loading={processing} onClick={this.handleGetInfo}>
+          <Button
+            data-testid="get-password-button"
+            floated="right"
+            size="mini"
+            primary
+            loading={processing}
+            onClick={this.handleGetInfo}
+          >
             Get Password
           </Button>
 
@@ -244,6 +251,7 @@ class ScEnvironmentRdpConnectionRow extends React.Component {
                 floated="right"
                 disabled={this.processingId}
                 loading={this.processingGetConnection}
+                data-testid="connect-to-workspace-button"
               >
                 Connect
               </Button>

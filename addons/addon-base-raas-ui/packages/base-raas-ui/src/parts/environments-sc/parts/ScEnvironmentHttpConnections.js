@@ -158,6 +158,10 @@ class ScEnvironmentHttpConnections extends React.Component {
     const isDisabled = (id1, id2) => id2 !== id1 && !_.isEmpty(id2);
     const isLoading = (id1, id2) => id2 === id1;
 
+    // Content is hidden from customer, because content is only needed for E2E tests
+    const destinationUrlStyle = {
+      display: 'none',
+    };
     return (
       <>
         {_.map(connections, item => (
@@ -171,6 +175,7 @@ class ScEnvironmentHttpConnections extends React.Component {
                   disabled={isDisabled(item.id, appStreamGeneratingId)}
                   loading={isLoading(item.id, appStreamGeneratingId)}
                   onClick={this.handleGenerateAppStreamUrl(item.id)}
+                  data-testid="sc-environment-generate-url-button"
                 >
                   Generate URL
                 </Button>
@@ -184,6 +189,9 @@ class ScEnvironmentHttpConnections extends React.Component {
                 <Table.Cell colSpan="3" className="p3">
                   Click here to copy the destination URL:
                   <CopyToClipboard text={destinationUrl} />
+                  <span data-testid="destination-url" style={destinationUrlStyle}>
+                    {destinationUrl}
+                  </span>
                   <Button
                     floated="right"
                     size="mini"
@@ -191,6 +199,7 @@ class ScEnvironmentHttpConnections extends React.Component {
                     disabled={isDisabled(item.id, appStreamConnectingId)}
                     loading={isLoading(item.id, appStreamConnectingId)}
                     onClick={this.handleAppStreamConnect(streamingUrl, item.id)}
+                    data-testid="connect-to-workspace-button"
                   >
                     Connect
                   </Button>

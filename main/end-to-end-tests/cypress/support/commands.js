@@ -66,9 +66,19 @@ Cypress.Commands.add('login', role => {
   const isCognitoEnabled = Cypress.env('isCognitoEnabled');
 
   if (isCognitoEnabled) {
-    cy.visit('/?internal');
+    cy.visit('/?internal', {
+      // Allows us to check for window open event
+      onBeforeLoad(window) {
+        cy.stub(window, 'open');
+      },
+    });
   } else {
-    cy.visit('/');
+    cy.visit('/', {
+      onBeforeLoad(window) {
+        // Allows us to check for window open event
+        cy.stub(window, 'open');
+      },
+    });
   }
   cy.get("div[data-testid='username'] input").type(loginInfo.email);
   cy.get("div[data-testid='password'] input").type(loginInfo.password);

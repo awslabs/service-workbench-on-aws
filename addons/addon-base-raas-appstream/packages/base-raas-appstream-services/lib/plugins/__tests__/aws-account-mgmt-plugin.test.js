@@ -61,7 +61,7 @@ describe('awsAccountMgmtPlugin', () => {
       const expected = [];
 
       // OPERATE
-      const retVal = await plugin.getActiveNonAppStreamEnvs({ awsAccountId }, { requestContext, container });
+      const retVal = await plugin.getActiveNonAppStreamEnvs({ awsAccountId, requestContext, container });
 
       // CHECK
       expect(retVal).toEqual(expected);
@@ -91,10 +91,10 @@ describe('awsAccountMgmtPlugin', () => {
         return indexes;
       });
 
-      const expected = [{ id: 'env2', indexId: 'index1', isAppStreamConfigured: false, status: 'COMPLETED' }];
+      const expected = ['env2'];
 
       // OPERATE
-      const retVal = await plugin.getActiveNonAppStreamEnvs({ awsAccountId }, { requestContext, container });
+      const retVal = await plugin.getActiveNonAppStreamEnvs({ awsAccountId, requestContext, container });
 
       // CHECK
       expect(retVal).toEqual(expected);
@@ -126,7 +126,7 @@ describe('awsAccountMgmtPlugin', () => {
       const expected = [];
 
       // OPERATE
-      const retVal = await plugin.getActiveNonAppStreamEnvs({ awsAccountId }, { requestContext, container });
+      const retVal = await plugin.getActiveNonAppStreamEnvs({ awsAccountId, requestContext, container });
 
       // CHECK
       expect(retVal).toEqual(expected);
@@ -156,7 +156,7 @@ describe('awsAccountMgmtPlugin', () => {
       const expected = [];
 
       // OPERATE
-      const retVal = await plugin.getActiveNonAppStreamEnvs({ awsAccountId }, { requestContext, container });
+      const retVal = await plugin.getActiveNonAppStreamEnvs({ awsAccountId, requestContext, container });
 
       // CHECK
       expect(retVal).toEqual(expected);

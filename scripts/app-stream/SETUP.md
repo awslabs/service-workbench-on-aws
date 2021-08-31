@@ -6,6 +6,9 @@ This following guide will show you how to set up an AppStream image with the fol
 1. We launch an AppStream Image Builder instance.
 2. We log into the AppStream Image builder instance and run a script to build an image with Firefox, PuttyGen, Putty, and Notepad.
 
+### Pre-requisite
+
+If you haven't navigated to AWS AppStream in your main account via the AWS Management Console, please do so first. Click "Get Started" on the screen and then click "Next". This activates AppStream in your main account, following which you could proceed with the commands in `SETUP.md` file.
 
 ### Launching an AppStream Image Builder instance
 1. Navigate to `scripts/app-stream` directory

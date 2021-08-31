@@ -83,6 +83,9 @@
       "appStreamFleetType": {
         "type": "string"
       },
+      "route53HostedZone": {
+        "type": "string"
+      },
       "onboardStatusRoleArn": {
         "type": "string",
         "minLength": 10,

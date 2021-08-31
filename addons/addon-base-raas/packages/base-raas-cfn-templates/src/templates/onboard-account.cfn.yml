@@ -97,6 +97,11 @@ Parameters:
     AllowedValues: [ALWAYS_ON, ON_DEMAND]
     Default: ON_DEMAND
 
+  DomainName:
+    Description: Optional custom Domain name to be created in Route53
+    Type: String
+    Default: ''
+
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
@@ -119,7 +124,20 @@ Conditions:
     - !Ref EnableAppStream
     - true
   isNotAppStream: !Not [Condition: isAppStream]
+  isAppStreamAndCustomDomain: !And
+    - !Not [!Equals [!Ref "DomainName", ""]]
+    - !Condition isAppStream
+
 Resources:
+  Route53HostedZone:
+    Type: AWS::Route53::HostedZone
+    Condition: isAppStreamAndCustomDomain
+    Properties:
+      Name: !Ref DomainName
+      VPCs:
+        - VPCId: !Ref VPC
+          VPCRegion: !Ref "AWS::Region"
+
   # A role used for launching environments using AWS Service Catalog
   # This is the role that code (ApiHandlerLambda and WorkflowLoopRunnerLambda) in central account
   # assumes before performing any AWS Service Catalog interactions in this account (the on-boarded account)
@@ -244,6 +262,17 @@ Resources:
                 Resource:
                   - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${LaunchConstraintRolePrefix}LaunchConstraint'
                   - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/*presigned-url-sagemaker-notebook-role'
+        - !If
+          - isAppStreamAndCustomDomain
+          - PolicyName: route53-access
+            PolicyDocument:
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - route53:ChangeResourceRecordSets
+                  Resource:
+                    - !Sub 'arn:aws:route53:::hostedzone/${Route53HostedZone}'
+          - !Ref 'AWS::NoValue'
       PermissionsBoundary: !Ref CrossAccountEnvMgmtPermissionsBoundary
 
   CrossAccountEnvMgmtPermissionsBoundary:
@@ -317,6 +346,14 @@ Resources:
               - iam:ListRoles
               - iam:ListUsers
             Resource: '*' # These non-mutating IAM actions cover the permissions in managed policy AWSServiceCatalogAdminFullAccess
+          - !If
+            - isAppStreamAndCustomDomain
+            - Effect: Allow
+              Action:
+                - route53:ChangeResourceRecordSets
+              Resource:
+                - !Sub 'arn:aws:route53:::hostedzone/${Route53HostedZone}'
+            - !Ref 'AWS::NoValue'
 
   PolicyCrossAccountExecution:
     Type: AWS::IAM::ManagedPolicy
@@ -675,6 +712,17 @@ Resources:
         - SourceSecurityGroupId: !GetAtt VPC.DefaultSecurityGroup
           IpProtocol: '-1'
 
+  SSMEndpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Condition: isAppStreamAndCustomDomain
+    Properties:
+      SubnetIds:
+        - !Ref PrivateWorkspaceSubnet
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ssm'
+      VpcId: !Ref VPC
+
     # https://docs.aws.amazon.com/sagemaker/latest/dg/notebook-interface-endpoint.html
   SagemakerNotebookEndpoint:
     Type: 'AWS::EC2::VPCEndpoint'
@@ -866,3 +914,8 @@ Outputs:
     Value: !Ref SagemakerNotebookEndpoint
     Export:
       Name: !Join ['', [Ref: Namespace, '-SageMakerVPCE']]
+
+  Route53HostedZone:
+    Description: Route53 hosted zone
+    Condition: isAppStreamAndCustomDomain
+    Value: !Ref Route53HostedZone
