@@ -182,6 +182,12 @@ describe('ProvisionAccount', () => {
           }
           throw new Error('Unexpected key');
         },
+        optional: key => {
+          if (key === 'domainName') {
+            return '';
+          }
+          throw new Error('Unexpected key');
+        },
       };
       step.payload = {
         string: stringInput => {
@@ -232,6 +238,12 @@ describe('ProvisionAccount', () => {
           }
           if (key === 'launchConstraintPolicyPrefix') {
             return '*';
+          }
+          throw new Error('Unexpected key');
+        },
+        optional: key => {
+          if (key === 'domainName') {
+            return '';
           }
           throw new Error('Unexpected key');
         },
@@ -348,12 +360,113 @@ describe('ProvisionAccount', () => {
       );
     });
 
+    it('AppStream and Domain: true', async () => {
+      // BUILD
+      step.settings = {
+        getBoolean: key => {
+          if (key === 'isAppStreamEnabled') {
+            return true;
+          }
+          throw new Error('Unexpected key');
+        },
+        optional: key => {
+          if (key === 'domainName') {
+            return 'aws.dev';
+          }
+          throw new Error('Unexpected key');
+        },
+      };
+      const describeStacks = jest.fn().mockReturnValue({
+        promise: jest.fn().mockReturnValue({
+          Stacks: [
+            {
+              StackStatus: 'CREATE_COMPLETE',
+              StackName: 'stack-abc',
+              StackId: 'id-123',
+              Outputs: [
+                { OutputKey: 'VPC', OutputValue: 'vpc-123' },
+                { OutputKey: 'PrivateWorkspaceSubnet', OutputValue: 'appStr-subnet-1' },
+                { OutputKey: 'CrossAccountExecutionRoleArn', OutputValue: 'execution-role-arn-1' },
+                { OutputKey: 'CrossAccountEnvMgmtRoleArn', OutputValue: 'env-mgmt-role-arn-1' },
+                { OutputKey: 'EncryptionKeyArn', OutputValue: 'encryption-key-arn-1' },
+                { OutputKey: 'AppStreamStackName', OutputValue: 'appStr-stack-1' },
+                { OutputKey: 'AppStreamSecurityGroup', OutputValue: 'appStr-sg-1' },
+                { OutputKey: 'AppStreamFleet', OutputValue: 'appStr-fl-1' },
+                { OutputKey: 'OnboardStatusRoleArn', OutputValue: 'arn-onboard-1234' },
+                { OutputKey: 'Route53HostedZone', OutputValue: 'HOSTEDZONE123' },
+              ],
+            },
+          ],
+        }),
+      });
+      const cfn = {
+        describeStacks,
+      };
+      step.getCloudFormationService = jest.fn().mockReturnValue(cfn);
+
+      step.state = {
+        setKey: jest.fn(),
+        ...step.payload,
+      };
+      step.updateLocalResourcePolicies = jest.fn();
+      step.updateAccount = jest.fn();
+      step.addAwsAccountTable = jest.fn();
+      step.startAppStreamFleet = jest.fn();
+      step.checkAppStreamFleetIsRunning = jest.fn().mockReturnValue(true);
+
+      // OPERATE
+      await expect(step.checkCfnCompleted()).resolves.toEqual(true);
+
+      // CHECK
+      expect(step.startAppStreamFleet).toHaveBeenCalled();
+      expect(step.checkAppStreamFleetIsRunning).toHaveBeenCalled();
+      expect(step.updateAccount).toHaveBeenCalledWith({
+        status: 'COMPLETED',
+        cfnInfo: {
+          crossAccountEnvMgmtRoleArn: 'env-mgmt-role-arn-1',
+          crossAccountExecutionRoleArn: 'execution-role-arn-1',
+          encryptionKeyArn: 'encryption-key-arn-1',
+          stackId: 'STATE_STACK_ID',
+          subnetId: 'appStr-subnet-1',
+          vpcId: 'vpc-123',
+        },
+      });
+      expect(step.addAwsAccountTable).toHaveBeenCalledWith(
+        { principalIdentifier: { uid: 'u-daffyduck' } },
+        {
+          accountId: 'ACCOUNT_ID',
+          cfnStackName: 'stack-abc',
+          cfnStackId: 'id-123',
+          description: 'description',
+          externalId: 'externalId',
+          name: 'accountName',
+          onboardStatusRoleArn: 'arn-onboard-1234',
+          permissionStatus: 'CURRENT',
+          roleArn: 'execution-role-arn-1',
+          xAccEnvMgmtRoleArn: 'env-mgmt-role-arn-1',
+          vpcId: 'vpc-123',
+          encryptionKeyArn: 'encryption-key-arn-1',
+          appStreamStackName: 'appStr-stack-1',
+          appStreamSecurityGroupId: 'appStr-sg-1',
+          appStreamFleetName: 'appStr-fl-1',
+          subnetId: 'appStr-subnet-1',
+          route53HostedZone: 'HOSTEDZONE123',
+        },
+      );
+    });
+
     it('AppStream: true', async () => {
       // BUILD
       step.settings = {
         getBoolean: key => {
           if (key === 'isAppStreamEnabled') {
             return true;
+          }
+          throw new Error('Unexpected key');
+        },
+        optional: key => {
+          if (key === 'domainName') {
+            return '';
           }
           throw new Error('Unexpected key');
         },

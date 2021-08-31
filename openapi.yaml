@@ -2965,6 +2965,8 @@ components:
         description:
           type: string
           example: 'My test account'
+        route53HostedZone:
+          type: string
     UpdateAwsAccount:
       required:
         - id
@@ -3010,6 +3012,8 @@ components:
           $ref: '#/components/schemas/SubnetId'
         encryptionKeyArn:
           $ref: '#/components/schemas/EncryptionKeyArn'
+        route53HostedZone:
+          type: string
     UpdateAccountRequest:
       required:
         - id
