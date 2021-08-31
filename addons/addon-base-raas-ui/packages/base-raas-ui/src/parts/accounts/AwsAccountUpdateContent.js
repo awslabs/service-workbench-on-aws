@@ -124,10 +124,16 @@ class AwsAccountUpdateContent extends React.Component {
   };
 
   render() {
+    const { isUpdateStep } = this.getStep();
     let shouldDisableDoneButton = this.shouldShowWarning && !this.warningAcknowledged;
     if (isAppStreamEnabled) {
-      shouldDisableDoneButton =
-        shouldDisableDoneButton || !this.accessAppStreamAcknowledged || !this.startedAppStreamFleetAcknowledged;
+      // No acknowledgements is necessary if we're just updating the preexisting AppStream account
+      if (isUpdateStep) {
+        shouldDisableDoneButton = false;
+      } else {
+        shouldDisableDoneButton =
+          shouldDisableDoneButton || !this.accessAppStreamAcknowledged || !this.startedAppStreamFleetAcknowledged;
+      }
     }
     return (
       <Container className="mt3 animated fadeIn">
@@ -202,14 +208,20 @@ class AwsAccountUpdateContent extends React.Component {
     );
   }
 
-  renderSteps() {
+  getStep() {
     // We need to determine if this is for creating the stack or updating the stack
     const form = this.form;
     const stackInfo = this.stackInfo;
     const { hasUpdateStackUrl } = stackInfo;
     const field = form.$('createOrUpdate');
-    const update = field.value === 'update';
+    const isUpdateStep = field.value === 'update';
     const hasAdminAccess = form.$('managed').value === 'admin';
+
+    return { isUpdateStep, hasAdminAccess, hasUpdateStackUrl, field };
+  }
+
+  renderSteps() {
+    const { isUpdateStep, hasAdminAccess, hasUpdateStackUrl, field } = this.getStep();
 
     return (
       <>
@@ -219,9 +231,9 @@ class AwsAccountUpdateContent extends React.Component {
           </Header>
           {hasUpdateStackUrl && <YesNo field={field} className="mb0 mt0" />}
         </div>
-        {!update && hasAdminAccess && this.renderCreateSteps()}
-        {update && hasAdminAccess && this.renderUpdateSteps()}
-        {!hasAdminAccess && this.renderEmailTemplate(update)}
+        {!isUpdateStep && hasAdminAccess && this.renderCreateSteps()}
+        {isUpdateStep && hasAdminAccess && this.renderUpdateSteps()}
+        {!hasAdminAccess && this.renderEmailTemplate(isUpdateStep)}
       </>
     );
   }

@@ -37,6 +37,7 @@ envStatusPollHandler:
         description: 'Invokes the lambda function that polls and synchronize environment status.'
   environment:
     APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
+    APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
 
 dataSourceReachabilityHandler:
   handler: src/lambdas/data-source-reachability/handler.handler

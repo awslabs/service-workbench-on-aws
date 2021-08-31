@@ -68,7 +68,13 @@ Resources:
             FromPort: 443
             ToPort: 443
             CidrIp: !Ref AccessFromCIDRBlock
-
+      SecurityGroupEgress:
+        - !If
+          - AppStreamEnabled
+          - DestinationSecurityGroupId:
+              Fn::ImportValue: !Sub "${SolutionNamespace}-SageMakerApiSecurityGroup"
+            IpProtocol: '-1'
+          - !Ref "AWS::NoValue"
   PreSignedURLBoundary:
     Type: AWS::IAM::ManagedPolicy
     Condition: AppStreamEnabled
