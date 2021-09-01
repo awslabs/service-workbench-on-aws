@@ -64,7 +64,7 @@ describe('Check that variables prepopulate when making a new configuration', () 
     cy.contains('Configurations').click();
 
     // Add new configuration
-    cy.get('[data-testid=addconfigbutton]')
+    cy.get('button')
       .contains('Add Configuration')
       .click();
 
