@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-describe('Launch a workspace', () => {
+describe('Launch a new sagemaker workspace', () => {
   before(() => {
     cy.login('researcher');
     navigateToWorkspaces();

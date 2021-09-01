@@ -50,7 +50,6 @@ class EnvTypeCard extends Component {
 
     const defaultMgmtActions = [
       <Button
-        data-testid={`editbutton-${envType.name}`}
         key="env-type-mgmt-action-edit"
         basic
         color="blue"
@@ -95,7 +94,7 @@ class EnvTypeCard extends Component {
     );
 
     return (
-      <Card data-testid="envtypecard" key={`et-${envType.id}`} raised className="mb3">
+      <Card key={`et-${envType.id}`} raised className="mb3">
         <Card.Content>
           <Header as="h4">{envType.name}</Header>
           <Card.Meta className="flex">

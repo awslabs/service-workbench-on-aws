@@ -168,7 +168,7 @@ class ConfigStep extends React.Component {
     return (
       <div className="mt3">
         <div className="right-align">
-          <Button data-testid="cancelbutton" basic color="grey" onClick={onCancel}>
+          <Button basic color="grey" onClick={onCancel}>
             Cancel
           </Button>
           <Button className="ml2" primary content="Done" disabled={processing} onClick={this.onNext} />

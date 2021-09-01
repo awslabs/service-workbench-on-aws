@@ -165,7 +165,6 @@ class EnvTypeEditor extends React.Component {
       case 'configurations':
         return (
           <ConfigStep
-            data-testid="configstep"
             envType={this.envType}
             envTypeConfigsStore={this.getEnvTypeConfigsStore()}
             wizardModel={this.wizardModel}
