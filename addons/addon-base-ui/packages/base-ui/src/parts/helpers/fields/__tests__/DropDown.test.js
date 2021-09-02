@@ -18,32 +18,7 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import DropDown from '../DropDown';
 
-const options = [
-  { key: 'awsRegion', value: '${awsRegion}', text: '${awsRegion}' },
-  { key: 'namespace', value: '${namespace}', text: '${namespace}' },
-  { key: 'envId', value: '${envId}', text: '${envId}' },
-  { key: 'envTypeId', value: '${envTypeId}', text: '${envTypeId}' },
-  { key: 'envTypeConfigId', value: '${envTypeConfigId}', text: '${envTypeConfigId}' },
-  { key: 'name', value: '${name}', text: '${name}' },
-  { key: 'description', value: '${description}', text: '${description}' },
-  { key: 'adminKeyPairName', value: '${adminKeyPairName}', text: '${adminKeyPairName}' },
-  { key: 'accountId', value: '${accountId}', text: '${accountId}' },
-  { key: 'projectId', value: '${projectId}', text: '${projectId}' },
-  { key: 'indexId', value: '${indexId}', text: '${indexId}' },
-  { key: 'cidr', value: '${cidr}', text: '${cidr}' },
-  { key: 'vpcId', value: '${vpcId}', text: '${vpcId}' },
-  { key: 'subnetId', value: '${subnetId}', text: '${subnetId}' },
-  { key: 'encryptionKeyArn', value: '${encryptionKeyArn}', text: '${encryptionKeyArn}' },
-  { key: 'xAccEnvMgmtRoleArn', value: '${xAccEnvMgmtRoleArn}', text: '${xAccEnvMgmtRoleArn}' },
-  { key: 'externalId', value: '${externalId}', text: '${externalId}' },
-  { key: 'studyIds', value: '${studyIds}', text: '${studyIds}' },
-  { key: 's3Mounts', value: '${s3Mounts}', text: '${s3Mounts}' },
-  { key: 'iamPolicyDocument', value: '${iamPolicyDocument}', text: '${iamPolicyDocument}' },
-  { key: 'environmentInstanceFiles', value: '${environmentInstanceFiles}', text: '${environmentInstanceFiles}' },
-  { key: 'uid', value: '${uid}', text: '${uid}' },
-  { key: 'username', value: '${username}', text: '${username}' },
-  { key: 'userNamespace', value: '${userNamespace}', text: '${userNamespace}' },
-];
+const options = [];
 
 describe('DropDown', () => {
   let wrapper = null;
@@ -52,7 +27,12 @@ describe('DropDown', () => {
   describe('getDefaultValue', () => {
     it('should get Encyption Key ARN', () => {
       // BUILD
-      const field = { key: 'EncryptionKeyArn', value: 'encryptionkeyarn' };
+      const field = {
+        key: 'EncryptionKeyArn',
+        value: 'encryptionkeyarn',
+        sync: jest.fn(() => true),
+        validate: jest.fn(() => true),
+      };
       wrapper = shallow(
         <DropDown key={field.key} field options={options} disabled search selection fluid allowAdditions clearable />,
       );
@@ -67,7 +47,12 @@ describe('DropDown', () => {
 
     it('should get IAM Policy Document', () => {
       // BUILD
-      const field = { key: 'IamPolicyDocument', value: 'iampolicydocument' };
+      const field = {
+        key: 'IamPolicyDocument',
+        value: 'iampolicydocument',
+        sync: jest.fn(() => true),
+        validate: jest.fn(() => true),
+      };
       wrapper = shallow(
         <DropDown key={field.key} field options={options} disabled search selection fluid allowAdditions clearable />,
       );
@@ -82,7 +67,12 @@ describe('DropDown', () => {
 
     it('should get Access From CIDR Block', () => {
       // BUILD
-      const field = { key: 'AccessFromCIDRBlock', value: 'accessfromcidrblock' };
+      const field = {
+        key: 'AccessFromCIDRBlock',
+        value: 'accessfromcidrblock',
+        sync: jest.fn(() => true),
+        validate: jest.fn(() => true),
+      };
       wrapper = shallow(
         <DropDown key={field.key} field options={options} disabled search selection fluid allowAdditions clearable />,
       );
@@ -97,7 +87,7 @@ describe('DropDown', () => {
 
     it('should get VPC', () => {
       // BUILD
-      const field = { key: 'VPC', value: 'vpc' };
+      const field = { key: 'VPC', value: 'vpc', sync: jest.fn(() => true), validate: jest.fn(() => true) };
       wrapper = shallow(
         <DropDown key={field.key} field options={options} disabled search selection fluid allowAdditions clearable />,
       );
@@ -112,7 +102,12 @@ describe('DropDown', () => {
 
     it('should get Environment Instance Files', () => {
       // BUILD
-      const field = { key: 'EnvironmentInstanceFiles', value: 'environmentinstancefiles' };
+      const field = {
+        key: 'EnvironmentInstanceFiles',
+        value: 'environmentinstancefiles',
+        sync: jest.fn(() => true),
+        validate: jest.fn(() => true),
+      };
       wrapper = shallow(
         <DropDown key={field.key} field options={options} disabled search selection fluid allowAdditions clearable />,
       );
@@ -127,7 +122,7 @@ describe('DropDown', () => {
 
     it('should get Subnet', () => {
       // BUILD
-      const field = { key: 'Subnet', value: 'subnet' };
+      const field = { key: 'Subnet', value: 'subnet', sync: jest.fn(() => true), validate: jest.fn(() => true) };
       wrapper = shallow(
         <DropDown key={field.key} field options={options} disabled search selection fluid allowAdditions clearable />,
       );
@@ -142,7 +137,7 @@ describe('DropDown', () => {
 
     it('should get S3 Mounts', () => {
       // BUILD
-      const field = { key: 'S3Mounts', value: 's3mounts' };
+      const field = { key: 'S3Mounts', value: 's3mounts', sync: jest.fn(() => true), validate: jest.fn(() => true) };
       wrapper = shallow(
         <DropDown key={field.key} field options={options} disabled search selection fluid allowAdditions clearable />,
       );
@@ -157,7 +152,7 @@ describe('DropDown', () => {
 
     it('should get Namespace', () => {
       // BUILD
-      const field = { key: 'Namespace', value: 'namespace' };
+      const field = { key: 'Namespace', value: 'namespace', sync: jest.fn(() => true), validate: jest.fn(() => true) };
       wrapper = shallow(
         <DropDown key={field.key} field options={options} disabled search selection fluid allowAdditions clearable />,
       );
@@ -172,7 +167,7 @@ describe('DropDown', () => {
 
     it('should get KeyName', () => {
       // BUILD
-      const field = { key: 'KeyName', value: 'keyname' };
+      const field = { key: 'KeyName', value: 'keyname', sync: jest.fn(() => true), validate: jest.fn(() => true) };
       wrapper = shallow(
         <DropDown key={field.key} field options={options} disabled search selection fluid allowAdditions clearable />,
       );
@@ -187,7 +182,7 @@ describe('DropDown', () => {
 
     it('should not change a custom Namespace', () => {
       // BUILD
-      const field = { key: 'Namespace', value: 'namespace' };
+      const field = { key: 'Namespace', value: 'namespace', sync: jest.fn(() => true), validate: jest.fn(() => true) };
       wrapper = shallow(
         <DropDown key={field.key} field options={options} disabled search selection fluid allowAdditions clearable />,
       );
@@ -202,75 +197,14 @@ describe('DropDown', () => {
       expect(defaultValue).toBe(myNamespace);
     });
 
-    it('should not prepopulate when the field has no key attribute', () => {
-      // the method would try to do things to undefined variables if there is no key attribute
-      // in the field
-      // BUILD
-      const field = { name: 'someField', value: 'someFieldValue' };
-      wrapper = shallow(<DropDown field options={options} disabled search selection fluid allowAdditions clearable />);
-      component = wrapper.instance();
-      const someValue = 'someValue';
-
-      // OPERATE
-      const defaultValue = component.getDefaultValue(someValue, field);
-
-      // CHECK
-      expect(defaultValue).toBe(someValue);
-    });
-
-    it('should not prepopulate when the field has no key attribute even though value passed is empty', () => {
-      // the method would try to do things to undefined variables if there is no key attribute
-      // in the field
-      // BUILD
-      const field = { name: 'someField', value: 'someFieldValue' };
-      wrapper = shallow(<DropDown field options={options} disabled search selection fluid allowAdditions clearable />);
-      component = wrapper.instance();
-      const someValue = '';
-
-      // OPERATE
-      const defaultValue = component.getDefaultValue(someValue, field);
-
-      // CHECK
-      expect(defaultValue).toBe(someValue);
-    });
-
-    it('should not prepopulate when the options has no key attribute', () => {
-      // the method would try to do things to undefined variables if there is no key attribute
-      // in the options list's elements
-      // BUILD
-      const field = { key: 'someKey', value: 'someFieldValue' };
-      const noKeyOption = [{ name: 'someField' }];
-      wrapper = shallow(
-        <DropDown field options={noKeyOption} disabled search selection fluid allowAdditions clearable />,
-      );
-      component = wrapper.instance();
-      const someValue = 'someValue';
-
-      // OPERATE
-      const defaultValue = component.getDefaultValue(someValue, field);
-
-      // CHECK
-      expect(defaultValue).toBe(someValue);
-    });
-
-    it('should not prepopulate when the options is empty', () => {
-      // BUILD
-      const field = { key: 'someKey', value: 'someFieldValue' };
-      // const noKeyOption = [{ name: 'someField' }];
-      wrapper = shallow(<DropDown field options={[]} disabled search selection fluid allowAdditions clearable />);
-      component = wrapper.instance();
-      const someValue = 'someValue';
-
-      // OPERATE
-      const defaultValue = component.getDefaultValue(someValue, field);
-
-      // CHECK
-      expect(defaultValue).toBe(someValue);
-    });
-
     it('should not prepopulate when the field has a key that does not match the option (i.e. not the config setup)', () => {
       // BUILD
-      const field = { key: 'someKey', value: 'someFieldValue' };
+      const field = {
+        key: 'someKey',
+        value: 'someFieldValue',
+        sync: jest.fn(() => true),
+        validate: jest.fn(() => true),
+      };
       wrapper = shallow(<DropDown field options={options} disabled search selection fluid allowAdditions clearable />);
       component = wrapper.instance();
       const someValue = 'someValue';
