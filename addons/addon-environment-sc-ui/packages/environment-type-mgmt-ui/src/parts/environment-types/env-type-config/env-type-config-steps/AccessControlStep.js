@@ -35,7 +35,7 @@ class AccessControlStep extends BaseEnvTypeConfigStep {
     return (
       <>
         <DropDown
-          dataTestId="allowdropdown"
+          dataTestId="allow-dropdown"
           field={allowRoleIdsField}
           options={userRoleOptions}
           selection
