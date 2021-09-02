@@ -95,7 +95,7 @@ class EnvTypeCard extends Component {
     );
 
     return (
-      <Card data-testid="envtypecard" key={`et-${envType.id}`} raised className="mb3">
+      <Card data-testid="env-type-card" key={`et-${envType.id}`} raised className="mb3">
         <Card.Content>
           <Header as="h4">{envType.name}</Header>
           <Card.Meta className="flex">

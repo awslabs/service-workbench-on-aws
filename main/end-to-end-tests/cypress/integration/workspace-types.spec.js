@@ -53,7 +53,7 @@ describe('Check that variables prepopulate when making a new configuration', () 
   const checkPrepopVariables = (workspaceParam, workspaceType) => {
     navigateToWorkspaceTypes();
     // Get env type card and click edit for the right card
-    cy.get('[data-testid=envtypecard]')
+    cy.get('[data-testid=env-type-card]')
       .contains(workspaceParam.workspaceTypeName)
       .parent()
       .parent()
@@ -91,7 +91,7 @@ describe('Check that variables prepopulate when making a new configuration', () 
       .click();
 
     // Make sure the correct variables have the correct default values for the current workspace type
-    if (workspaceType !== 'Sagemaker' && workspaceType !== 'EC2 Linux') {
+    if (workspaceType === 'EMR' || workspaceType === 'EC2 Windows') {
       cy.get('[data-testid=KeyName]').contains('${adminKeyPairName}');
     }
     cy.get('[data-testid=EncryptionKeyArn]').contains('${encryptionKeyArn}');
