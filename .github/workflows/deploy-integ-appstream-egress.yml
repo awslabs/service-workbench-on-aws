@@ -94,7 +94,7 @@ jobs:
         run: pnpm install
         working-directory: main/end-to-end-tests
       - name: Run cypress test
-        run: pnpm run cypress:run-tests:github:appstream-egress-enabled
+        run: pnpm run cypress:run-tests:github:appstream-egress-enabled-enabled
         working-directory: main/end-to-end-tests
         env:
           # Env parameters for cypress tests need header 'CYPRESS_' or 'cypress_'
