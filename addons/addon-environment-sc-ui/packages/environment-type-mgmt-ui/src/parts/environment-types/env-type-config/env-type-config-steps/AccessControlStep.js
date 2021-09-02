@@ -34,7 +34,15 @@ class AccessControlStep extends BaseEnvTypeConfigStep {
     );
     return (
       <>
-        <DropDown field={allowRoleIdsField} options={userRoleOptions} selection multiple fluid disabled={processing} />
+        <DropDown
+          dataTestId="allow-dropdown"
+          field={allowRoleIdsField}
+          options={userRoleOptions}
+          selection
+          multiple
+          fluid
+          disabled={processing}
+        />
         <DropDown field={denyRoleIdsField} options={userRoleOptions} selection multiple fluid disabled={processing} />
       </>
     );
