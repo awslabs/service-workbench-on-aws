@@ -335,6 +335,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - ec2:AuthorizeSecurityGroupIngress
+                  - ec2:AuthorizeSecurityGroupEgress
                   - ec2:RevokeSecurityGroupEgress
                   - ec2:CreateSecurityGroup
                   - ec2:DeleteSecurityGroup

@@ -737,6 +737,30 @@ Resources:
         - !Ref SageMakerSecurityGroup
       VpcId: !Ref VPC
 
+  SagemakerApiEndpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Condition: isAppStream
+    Properties:
+      SubnetIds:
+        - !Ref PrivateWorkspaceSubnet
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.sagemaker.api"
+      VpcId: !Ref VPC
+      SecurityGroupIds:
+        - !Ref SagemakerApiEndpointSecurityGroup
+
+  SagemakerApiEndpointSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: isAppStream
+    Properties:
+      GroupDescription: 'Sagemaker Api Endpoint Security Group for interface endpoint'
+      GroupName: 'Sagemaker-API-SG'
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !GetAtt VPC.DefaultSecurityGroup
+          IpProtocol: '-1'
+
   SageMakerSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Condition: isAppStream
@@ -914,6 +938,13 @@ Outputs:
     Value: !Ref SagemakerNotebookEndpoint
     Export:
       Name: !Join ['', [Ref: Namespace, '-SageMakerVPCE']]
+
+  SageMakerApiSG:
+    Description: SageMaker API SG
+    Condition: isAppStream
+    Value: !Ref SagemakerApiEndpointSecurityGroup
+    Export:
+      Name: !Join ['', [Ref: Namespace, '-SageMakerApiSecurityGroup']]
 
   Route53HostedZone:
     Description: Route53 hosted zone
