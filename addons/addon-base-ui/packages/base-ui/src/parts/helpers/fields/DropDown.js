@@ -86,7 +86,16 @@ class DropDown extends React.Component {
     };
     // if current value is empty and the field is a key in the above dict
     if (currentValue === '' && field.key in fieldToVariableMap) {
-      return fieldToVariableMap[field.key];
+      const defaultValue = fieldToVariableMap[field.key];
+      // Save default value in state (logic of onChange without needing trigger)
+      // Extract sync from field
+      const { sync } = field;
+      // Save value
+      sync(defaultValue);
+      // Validate state
+      field.validate({ showErrors: true });
+      // return so default value is displayed
+      return defaultValue;
     }
     return currentValue;
   }

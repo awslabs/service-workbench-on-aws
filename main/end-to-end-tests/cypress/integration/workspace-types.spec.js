@@ -53,7 +53,7 @@ describe('Check that variables prepopulate when making a new configuration', () 
   const checkPrepopVariables = (workspaceParam, workspaceType) => {
     navigateToWorkspaceTypes();
     // Get env type card and click edit for the right card
-    cy.get('[data-testid=envtypecard]')
+    cy.get('[data-testid=env-type-card]')
       .contains(workspaceParam.workspaceTypeName)
       .parent()
       .parent()
@@ -64,14 +64,14 @@ describe('Check that variables prepopulate when making a new configuration', () 
     cy.contains('Configurations').click();
 
     // Add new configuration
-    cy.get('[data-testid=addconfigbutton]')
+    cy.get('[data-testid=add-config-button]')
       .contains('Add Configuration')
       .click();
 
     // Input dummy values in necessary fields
-    cy.get('[data-testid=configidinput]').type('test');
-    cy.get('[data-testid=confignameinput]').type('test');
-    cy.get('[data-testid=configdescinput]').type('test');
+    cy.get('[data-testid=config-id-input]').type('test');
+    cy.get('[data-testid=config-name-input]').type('test');
+    cy.get('[data-testid=config-desc-input]').type('test');
 
     // Click Next
     cy.get('button')
@@ -79,7 +79,7 @@ describe('Check that variables prepopulate when making a new configuration', () 
       .click();
 
     // Select admin from dropdown (could be any valid value--just can't be blank)
-    cy.get('[data-testid=allowdropdown]')
+    cy.get('[data-testid=allow-dropdown]')
       .click()
       .find('.item')
       .contains('admin')
@@ -91,7 +91,7 @@ describe('Check that variables prepopulate when making a new configuration', () 
       .click();
 
     // Make sure the correct variables have the correct default values for the current workspace type
-    if (workspaceType !== 'Sagemaker' && workspaceType !== 'EC2 Linux') {
+    if (workspaceType === 'EMR' || workspaceType === 'EC2 Windows') {
       cy.get('[data-testid=KeyName]').contains('${adminKeyPairName}');
     }
     cy.get('[data-testid=EncryptionKeyArn]').contains('${encryptionKeyArn}');
@@ -104,10 +104,10 @@ describe('Check that variables prepopulate when making a new configuration', () 
     cy.get('[data-testid=Subnet]').contains('${subnetId}');
 
     // Back out of the configuration so no resources are made so this test is repeatable
-    cy.get('button[data-testid=cancelbutton]')
+    cy.get('button[data-testid=cancel-button]')
       .contains('Cancel')
       .click();
-    cy.get('button[data-testid=cancelbutton]')
+    cy.get('button[data-testid=cancel-button]')
       .contains('Cancel')
       .click();
   };
