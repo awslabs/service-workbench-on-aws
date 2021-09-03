@@ -19,12 +19,12 @@ const setupAws = require('../../support/setupAws');
 // eslint-disable-next-line no-undef
 const { hostingAccountStackName } = __settings__;
 
-describe('Subnets', () => {
+describe('Route tables', () => {
   beforeAll(async () => {
     await setupAws();
   });
 
-  it('should have no internet gateways', async () => {
+  it('should not point to any internet gateways', async () => {
     const cloudformation = new AWS.CloudFormation();
     const ec2 = new AWS.EC2();
 
@@ -50,6 +50,7 @@ describe('Subnets', () => {
       })
       .promise();
 
+    // TODO: Find all route tables
     // Get Route Table created for Private Workspace subnet
     const workspaceRouteTableId = stackResources.StackResources.find(resource => {
       return resource.LogicalResourceId === 'PrivateWorkspaceRouteTable';
@@ -65,11 +66,10 @@ describe('Subnets', () => {
       })
       .promise();
     expect(workspaceRouteTableResponse.RouteTables.length).toEqual(1);
-    const workspaceRouteTable = workspaceRouteTableResponse.RouteTables[0];
 
     // Check no route tables points to an Internet Gateway
     checkRouteTableDoesNotHaveIGW(routeTablesForDefaultVpcResponse.RouteTables);
-    checkRouteTableDoesNotHaveIGW([workspaceRouteTable]);
+    checkRouteTableDoesNotHaveIGW(workspaceRouteTableResponse.RouteTables);
   });
 
   function checkRouteTableDoesNotHaveIGW(routeTables) {
