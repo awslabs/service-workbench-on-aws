@@ -49,7 +49,7 @@ describe('Security groups', () => {
       });
     });
 
-    // No inbound rule cidr should allow access from every IP address
+    // Check SG does not allow inbound access from all IP addresses
     expect(
       cidrIpsOfInboundRules.filter(cidr => {
         return cidr === '0.0.0.0/0';

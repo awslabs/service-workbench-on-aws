@@ -52,7 +52,7 @@ describe('Route tables', () => {
       })
       .promise();
 
-    // Check no route tables points to an Internet Gateway
+    // Check that no route tables point to an Internet Gateway
     checkRouteTableDoesNotHaveIGW(routeTablesForDefaultVpcResponse.RouteTables);
     checkRouteTableDoesNotHaveIGW(workspaceRouteTableResponse.RouteTables);
   });

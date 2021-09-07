@@ -9,7 +9,7 @@ async function setupAws() {
   AWS.config.credentials = new AWS.SharedIniFileCredentials({ profile: awsProfile });
   AWS.config.region = awsRegion;
 
-  // Assume hosting account credentials
+  // Assume credentials of hosting account
   const sts = new AWS.STS({ apiVersion: '2011-06-15' });
   const roleArn = `arn:aws:iam::${hostingAccountId}:role/${hostingAccountStackName}-infrastructure-test-role`;
   const params = {
