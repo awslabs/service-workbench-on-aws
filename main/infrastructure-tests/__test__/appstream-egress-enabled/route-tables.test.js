@@ -50,22 +50,22 @@ describe('Route tables', () => {
       })
       .promise();
 
-    // TODO: Find all route tables
-    // Get Route Table created for Private Workspace subnet
-    const workspaceRouteTableId = stackResources.StackResources.find(resource => {
-      return resource.LogicalResourceId === 'PrivateWorkspaceRouteTable';
-    }).PhysicalResourceId;
+    // Get Route Tables created by the stack
+    const routeTableIds = stackResources.StackResources.filter(resource => {
+      return resource.ResourceType === 'AWS::EC2::RouteTable';
+    }).map(rtb => {
+      return rtb.PhysicalResourceId;
+    });
     const workspaceRouteTableResponse = await ec2
       .describeRouteTables({
         Filters: [
           {
             Name: 'route-table-id',
-            Values: [workspaceRouteTableId],
+            Values: routeTableIds,
           },
         ],
       })
       .promise();
-    expect(workspaceRouteTableResponse.RouteTables.length).toEqual(1);
 
     // Check no route tables points to an Internet Gateway
     checkRouteTableDoesNotHaveIGW(routeTablesForDefaultVpcResponse.RouteTables);
