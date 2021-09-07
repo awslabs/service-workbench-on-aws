@@ -478,6 +478,7 @@ Resources:
               - cloudformation:GetTemplate
             Resource: !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/initial-stack*'
 
+  # This role is used by `infrastructure-tests`
   InfrastructureTestRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -966,7 +967,6 @@ Outputs:
     Value: !GetAtt VPC.DefaultSecurityGroup
     Export:
       Name: !Join ['', [Ref: Namespace, '-SwbVPCDefaultSG']]
-
 
   AppStreamStackName:
     Description: Name of the stack created by AppStream

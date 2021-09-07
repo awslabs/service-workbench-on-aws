@@ -19,9 +19,6 @@ const fs = require('fs-extra');
 const yaml = require('js-yaml');
 const parse = require('yargs-parser');
 
-const AWS = require('aws-sdk');
-
-let settings;
 async function init() {
   const parsedArgs = parse(process.argv);
 
@@ -29,17 +26,17 @@ async function init() {
   const stage = parsedArgs.stage || parsedArgs.s || process.env.STAGE;
   if (_.isEmpty(stage)) {
     throw new Error(
-      'No "stage" argument was passed. Please pass the stage name via the command line.\nThe "stage" is your yaml configuration file name (without .yml).\nExample: $ pnpm intTest -- --stage=<stage name>\n',
+      'No "stage" argument was passed. Please pass the stage name via the command line.\nThe "stage" is your yaml configuration file name (without .yml).\nExample: $ pnpm testAppStreamEgressEnabled -- --stage=<stage name>\n',
     );
   }
   // Using the stage name, we can now load the configuration settings yaml file
   const yamlFile = path.join(__dirname, `./config/settings/${stage}.yml`);
-  settings = yaml.load(await fs.readFile(yamlFile, 'utf8'));
+  return yaml.load(await fs.readFile(yamlFile, 'utf8'));
 }
 
 // async function that returns the configuration
 module.exports = async () => {
-  await init();
+  const settings = await init();
   return {
     rootDir: __dirname,
     verbose: false,

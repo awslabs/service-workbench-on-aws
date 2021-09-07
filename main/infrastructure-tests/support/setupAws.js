@@ -1,8 +1,11 @@
 const AWS = require('aws-sdk');
 
+// Setup AWS SDK to assume credentials of hosting account
 async function setupAws() {
   // eslint-disable-next-line no-undef
   const { awsProfile, awsRegion, envName, externalId, hostingAccountId, hostingAccountStackName } = __settings__;
+
+  // Get main account credentials
   AWS.config.credentials = new AWS.SharedIniFileCredentials({ profile: awsProfile });
   AWS.config.region = awsRegion;
 
