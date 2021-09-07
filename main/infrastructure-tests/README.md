@@ -8,6 +8,6 @@ Create a `config` file at `main/infrastructures-tests/config/settings/<STAGE>.ym
 an example.
 
 # Running tests
-After the config file is created, you can run the command below in this directory to start your tests.
+After the config file is created, you can run the command below in `main/infrastructures-tests/` directory to start your tests.
 
 `pnpm run testAppStreamEgressEnabled -- --stage=<STAGE>`

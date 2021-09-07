@@ -12,11 +12,10 @@ solutionName:
 envName:
 
 # Make sure that the envType matches the one you are using in /main/config/settings
-# Make sure that you are not trying to run tests against your production environment
 envType: dev
 
 # Account id of hosting account that you would like to run infrastructure tests on
-hostingAccountId: <12 Digits Account Number>
+hostingAccountId: <12 Digits AWS Account Number>
 
 # The name of the Cloudformation stack that SWB created for the hosting account
 # E.g: initial-stack-1628108240381
