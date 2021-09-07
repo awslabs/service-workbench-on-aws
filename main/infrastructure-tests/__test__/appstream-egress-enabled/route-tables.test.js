@@ -15,9 +15,7 @@
 
 const AWS = require('aws-sdk');
 const setupAws = require('../../support/setupAws');
-
-// eslint-disable-next-line no-undef
-const { hostingAccountStackName } = __settings__;
+const { getCFStackResources, getStackResourcesByType } = require('../../support/utilities');
 
 describe('Route tables', () => {
   beforeAll(async () => {
@@ -25,37 +23,24 @@ describe('Route tables', () => {
   });
 
   it('should not point to any internet gateways', async () => {
-    const cloudformation = new AWS.CloudFormation();
+    const stackResources = await getCFStackResources();
     const ec2 = new AWS.EC2();
 
-    // Look at resources created by CF Stack
-    const stackResources = await cloudformation
-      .describeStackResources({
-        StackName: hostingAccountStackName,
-      })
-      .promise();
-
     // Grab Route tables created for AppStream VPC
-    const vpcId = stackResources.StackResources.find(resource => {
-      return resource.LogicalResourceId === 'VPC';
-    }).PhysicalResourceId;
+    const vpcId = await getStackResourcesByType('VPC', stackResources);
     const routeTablesForDefaultVpcResponse = await ec2
       .describeRouteTables({
         Filters: [
           {
             Name: 'vpc-id',
-            Values: [vpcId],
+            Values: vpcId,
           },
         ],
       })
       .promise();
 
     // Get Route Tables created by the stack
-    const routeTableIds = stackResources.StackResources.filter(resource => {
-      return resource.ResourceType === 'AWS::EC2::RouteTable';
-    }).map(rtb => {
-      return rtb.PhysicalResourceId;
-    });
+    const routeTableIds = await getStackResourcesByType('AWS::EC2::RouteTable', stackResources);
     const workspaceRouteTableResponse = await ec2
       .describeRouteTables({
         Filters: [

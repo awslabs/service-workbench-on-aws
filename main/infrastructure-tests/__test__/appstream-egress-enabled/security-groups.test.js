@@ -15,7 +15,7 @@
 
 const AWS = require('aws-sdk');
 const setupAws = require('../../support/setupAws');
-const { getCFStackResources, getStackResourcesByType } = require('../../support/utilities');
+const { getStackResourcesByType } = require('../../support/utilities');
 
 describe('Security groups', () => {
   beforeAll(async () => {
@@ -26,7 +26,7 @@ describe('Security groups', () => {
     const ec2 = new AWS.EC2();
 
     // Get all Security Group resources
-    const sgIds = getStackResourcesByType('AWS::EC2::SecurityGroup');
+    const sgIds = await getStackResourcesByType('AWS::EC2::SecurityGroup');
 
     // Get details about each Security Group
     const securityGroupsResponse = await ec2
@@ -48,8 +48,6 @@ describe('Security groups', () => {
         });
       });
     });
-
-    console.log('cidrIpsOfInboundRules', cidrIpsOfInboundRules);
 
     // No inbound rule cidr should allow access from every IP address
     expect(

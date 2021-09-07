@@ -1,4 +1,5 @@
 const AWS = require('aws-sdk');
+const _ = require('lodash');
 
 async function getCFStackResources() {
   // eslint-disable-next-line no-undef
@@ -11,9 +12,13 @@ async function getCFStackResources() {
     .promise();
 }
 
-async function getStackResourcesByType(resourceType) {
-  const stackResources = await getCFStackResources();
-  return stackResources.StackResources.filter(resource => {
+async function getStackResourcesByType(resourceType, stackResources = {}) {
+  let resources = { ...stackResources };
+  if (_.isEmpty(resources)) {
+    resources = await getCFStackResources();
+  }
+
+  return resources.StackResources.filter(resource => {
     return resource.ResourceType === resourceType;
   }).map(sgResource => {
     return sgResource.PhysicalResourceId;
