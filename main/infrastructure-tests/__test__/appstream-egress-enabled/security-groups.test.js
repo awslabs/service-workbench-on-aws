@@ -15,9 +15,7 @@
 
 const AWS = require('aws-sdk');
 const setupAws = require('../../support/setupAws');
-
-// eslint-disable-next-line no-undef
-const { hostingAccountStackName } = __settings__;
+const { getCFStackResources, getStackResourcesByType } = require('../../support/utilities');
 
 describe('Security groups', () => {
   beforeAll(async () => {
@@ -25,22 +23,10 @@ describe('Security groups', () => {
   });
 
   it('should have least privilege', async () => {
-    const cloudformation = new AWS.CloudFormation();
     const ec2 = new AWS.EC2();
 
-    // Look at resources created by CF Stack
-    const stackResources = await cloudformation
-      .describeStackResources({
-        StackName: hostingAccountStackName,
-      })
-      .promise();
-
     // Get all Security Group resources
-    const sgIds = stackResources.StackResources.filter(resource => {
-      return resource.ResourceType === 'AWS::EC2::SecurityGroup';
-    }).map(sgResource => {
-      return sgResource.PhysicalResourceId;
-    });
+    const sgIds = getStackResourcesByType('AWS::EC2::SecurityGroup');
 
     // Get details about each Security Group
     const securityGroupsResponse = await ec2

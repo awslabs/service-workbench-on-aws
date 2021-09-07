@@ -102,6 +102,11 @@ module.exports = async () => {
     notify: false,
     testEnvironment: 'node',
     testTimeout: 60 * 60 * 1000,
+    // testPathIgnorePatterns: [],
+
+    // Configure JUnit reporter as CodeBuild currently only supports JUnit or Cucumber reports
+    // See https://docs.aws.amazon.com/codebuild/latest/userguide/test-reporting.html
+    reporters: ['default', ['jest-junit', { suiteName: 'jest tests', outputDirectory: './.build/test' }]],
     globals: {
       __settings__: settings,
     },
