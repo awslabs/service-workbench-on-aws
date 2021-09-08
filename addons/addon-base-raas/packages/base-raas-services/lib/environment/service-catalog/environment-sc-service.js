@@ -104,6 +104,7 @@ class EnvironmentScService extends Service {
     let envs = await this._scanner({ fields: ['id', 'indexId', 'status', 'outputs'] })
       // Verified with EC2 support team that EC2 describe instances API can take 10K instanceIds without issue
       .limit(10000)
+      .strong()
       .scan();
     envs = _.filter(
       envs,
@@ -116,6 +117,7 @@ class EnvironmentScService extends Service {
     const indexesGroups = _.groupBy(indexes, index => index.awsAccountId);
     const envGroups = _.groupBy(envs, env => env.indexId);
     const accounts = await awsAccountsService.list(requestContext);
+    this.log.info('envGroups', JSON.stringify(envGroups, null, 2));
     const pollAndSyncPromises = accounts.map(account =>
       this.pollAndSyncWsStatusForAccount(requestContext, account, indexesGroups, envGroups),
     );
@@ -226,13 +228,25 @@ class EnvironmentScService extends Service {
     };
     const sagemakerRealtimeStatus = await this.pollSageMakerRealtimeStatus(roleArn, externalId);
     const sagemakerUpdated = {};
-    _.forEach(sagemakerInstances, async (existingEnvRecord, key) => {
+    const sagemakerKeys = Object.keys(sagemakerInstances);
+    for (let i = 0; i < sagemakerKeys.length; i += 1) {
+      const key = sagemakerKeys[i];
+      const existingEnvRecord = sagemakerInstances[key];
       const expectedDDBStatus = SageMakerStatusMap[sagemakerRealtimeStatus[key]];
+      // eslint-disable-next-line no-await-in-loop
       const updateStatusResult = await this.updateStatus(requestContext, existingEnvRecord, expectedDDBStatus);
       if (updateStatusResult) {
         sagemakerUpdated[key] = updateStatusResult;
       }
-    });
+    }
+
+    // _.forEach(sagemakerInstances, async (existingEnvRecord, key) => {
+    //   const expectedDDBStatus = SageMakerStatusMap[sagemakerRealtimeStatus[key]];
+    //   const updateStatusResult = await this.updateStatus(requestContext, existingEnvRecord, expectedDDBStatus);
+    //   if (updateStatusResult) {
+    //     sagemakerUpdated[key] = updateStatusResult;
+    //   }
+    // });
     return sagemakerUpdated;
   }
 
@@ -463,6 +477,8 @@ class EnvironmentScService extends Service {
 
     const by = _.get(requestContext, 'principalIdentifier.uid');
     const { id, rev } = environment;
+    this.log.info('ZZZ: Rev number', rev);
+    this.log.info('ZZZ: ExistingEnv', existingEnvironment);
 
     // Prepare the db object
     const dbObject = _.omit(this._fromRawToDbObject(environment, { updatedBy: by }), ['rev', 'studyRoles']);
