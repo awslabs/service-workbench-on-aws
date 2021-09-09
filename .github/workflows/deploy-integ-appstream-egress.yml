@@ -48,6 +48,30 @@ jobs:
         run: |
           cp ./main/end-to-end-tests/e2eGitHubConfig.AppStreamEgress.yml ./main/config/settings/${STAGE_NAME}.yml
           ./scripts/environment-deploy.sh ${STAGE_NAME}
+  infrastructure-test:
+    name: Infrastructure test
+    runs-on: ubuntu-18.04
+#    needs: deploy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Install pnpm and system libraries
+        run: npm install -g pnpm
+      - name: Install dependencies
+        run: pnpm install
+        working-directory: main/infrastructure-tests
+      - name: Run infrastructure tests
+        run: pnpm run testAppStreamEgressEnabled -- --stage=github
+        working-directory: ./main/infrastructure-tests
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_APPSTREAM_EGRESS }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_APPSTREAM_EGRESS }}
+          INFRA_TESTS_HOSTING_ACCOUNT_ID: ${{ secrets.INFRA_TESTS_HOSTING_ACCOUNT_ID }}
+          INFRA_TESTS_HOSTING_ACCOUNT_STACK_NAME: ${{ secrets.INFRA_TESTS_HOSTING_ACCOUNT_STACK_NAME }}
   integration-test:
     name: Integration test
     runs-on: ubuntu-18.04

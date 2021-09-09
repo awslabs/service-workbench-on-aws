@@ -1,12 +1,13 @@
 const AWS = require('aws-sdk');
-
+const { getSettings } = require('./utilities');
 // Setup AWS SDK to assume credentials of hosting account
 async function setupAws() {
-  // eslint-disable-next-line no-undef
-  const { awsProfile, awsRegion, envName, externalId, hostingAccountId, hostingAccountStackName } = __settings__;
-
+  const { awsProfile, awsRegion, envName, externalId, hostingAccountId, hostingAccountStackName } = getSettings();
   // Get main account credentials
-  AWS.config.credentials = new AWS.SharedIniFileCredentials({ profile: awsProfile });
+  // For github actions the AWS creds are provided through environment variables, for local dev environments it's provided through awsProfile
+  if (awsProfile) {
+    AWS.config.credentials = new AWS.SharedIniFileCredentials({ profile: awsProfile });
+  }
   AWS.config.region = awsRegion;
 
   // Assume credentials of hosting account

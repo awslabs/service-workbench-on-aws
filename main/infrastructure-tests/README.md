@@ -1,5 +1,4 @@
 # Infrastructure Tests for SWB
-
 This test suite checks if the hosting account Cloudformation stack is set up with the correct security settings. Tests were added 
 to ensure that if AppStream and Egress are enabled, the stack does not have subnets and security group with internet connectivity.
 
