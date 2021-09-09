@@ -1,9 +1,6 @@
 # The AWS region where the service workbench application is deployed
 awsRegion: eu-west-1
 
-# AWS profile to use for deployment. You must provide this value if isBuildServer = false
-awsProfile: default
-
 # Make sure that the solutionName matches the one you are using in /main/config/settings
 solutionName: sw
 
