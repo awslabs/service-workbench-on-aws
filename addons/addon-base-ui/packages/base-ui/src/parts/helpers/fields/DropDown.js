@@ -1,3 +1,4 @@
+/* eslint-disable no-template-curly-in-string */
 /*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -63,6 +64,42 @@ class DropDown extends React.Component {
     this.optionsInState = _.concat({ text: data.value, value: data.value }, this.optionsInState);
   };
 
+  /**
+   * Uses the dropdown options to extract the placeholder variable values for the parameters when configuring
+   * a new workspace configuration.
+   * @param currentValue: holds the current value of the dropdown
+   * @param field: the current field to find a default variable for
+   * @returns either the same currentValue or the variable value default to be displayed
+   */
+  getDefaultValue(currentValue, field) {
+    // Make a dict of the field values to the proper variables
+    const fieldToVariableMap = {
+      EncryptionKeyArn: '${encryptionKeyArn}',
+      VPC: '${vpcId}',
+      AccessFromCIDRBlock: '${cidr}',
+      S3Mounts: '${s3Mounts}',
+      Namespace: '${namespace}',
+      KeyName: '${adminKeyPairName}',
+      IamPolicyDocument: '${iamPolicyDocument}',
+      EnvironmentInstanceFiles: '${environmentInstanceFiles}',
+      Subnet: '${subnetId}',
+    };
+    // if current value is empty and the field is a key in the above dict
+    if (currentValue === '' && field.key in fieldToVariableMap) {
+      const defaultValue = fieldToVariableMap[field.key];
+      // Save default value in state (logic of onChange without needing trigger)
+      // Extract sync from field
+      const { sync } = field;
+      // Save value
+      sync(defaultValue);
+      // Validate state
+      field.validate({ showErrors: true });
+      // return so default value is displayed
+      return defaultValue;
+    }
+    return currentValue;
+  }
+
   render() {
     const {
       field,
@@ -119,7 +156,7 @@ class DropDown extends React.Component {
 
     const attrs = {
       id,
-      value,
+      value: this.getDefaultValue(value, field),
 
       // applicable only when allowAdditions = true
       onAddItem: this.onAddItem,
