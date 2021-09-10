@@ -104,6 +104,7 @@ class EnvironmentScService extends Service {
     let envs = await this._scanner({ fields: ['id', 'indexId', 'status', 'outputs'] })
       // Verified with EC2 support team that EC2 describe instances API can take 10K instanceIds without issue
       .limit(10000)
+      .strong()
       .scan();
     envs = _.filter(
       envs,
@@ -183,14 +184,9 @@ class EnvironmentScService extends Service {
       'terminated': 'TERMINATED',
     };
     const ec2RealtimeStatus = await this.pollEc2RealtimeStatus(roleArn, externalId, ec2Instances);
-    const ec2Updated = {};
-    _.forEach(ec2Instances, async (existingEnvRecord, ec2InstanceId) => {
-      const expectedDDBStatus = EC2StatusMap[ec2RealtimeStatus[ec2InstanceId]];
-      const updateStatusResult = await this.updateStatus(requestContext, existingEnvRecord, expectedDDBStatus);
-      if (updateStatusResult) {
-        ec2Updated[ec2InstanceId] = updateStatusResult;
-      }
-    });
+
+    const ec2Updated = await this.updateAllStatuses(ec2Instances, EC2StatusMap, ec2RealtimeStatus, requestContext);
+
     return ec2Updated;
   }
 
@@ -225,15 +221,32 @@ class EnvironmentScService extends Service {
       Failed: 'FAILED',
     };
     const sagemakerRealtimeStatus = await this.pollSageMakerRealtimeStatus(roleArn, externalId);
-    const sagemakerUpdated = {};
-    _.forEach(sagemakerInstances, async (existingEnvRecord, key) => {
-      const expectedDDBStatus = SageMakerStatusMap[sagemakerRealtimeStatus[key]];
-      const updateStatusResult = await this.updateStatus(requestContext, existingEnvRecord, expectedDDBStatus);
-      if (updateStatusResult) {
-        sagemakerUpdated[key] = updateStatusResult;
-      }
-    });
+
+    const sagemakerUpdated = await this.updateAllStatuses(
+      sagemakerInstances,
+      SageMakerStatusMap,
+      sagemakerRealtimeStatus,
+      requestContext,
+    );
+
     return sagemakerUpdated;
+  }
+
+  async updateAllStatuses(instancesList, statusMap, realtimeStatus, requestContext) {
+    const updated = {};
+    const keys = Object.keys(instancesList);
+    await Promise.all(
+      keys.map(async key => {
+        const existingEnvRecord = instancesList[key];
+        const expectedDDBStatus = statusMap[realtimeStatus[key]];
+        const updateStatusResult = await this.updateStatus(requestContext, existingEnvRecord, expectedDDBStatus);
+        if (updateStatusResult) {
+          updated[key] = updateStatusResult;
+        }
+      }),
+    );
+
+    return updated;
   }
 
   async pollSageMakerRealtimeStatus(roleArn, externalId) {

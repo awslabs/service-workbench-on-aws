@@ -1479,4 +1479,111 @@ Quisque egestas, eros nec feugiat venenatis, lorem turpis placerat tortor, ullam
     expect(currentIngressRules).toMatchObject(expectedOutcome);
     expect(securityGroupId).toBeUndefined();
   });
+
+  describe('pollAndSyncSageMakerStatus function', () => {
+    const roleArn = 'roleArn';
+    const externalId = 'externalId';
+    const requestContext = {};
+
+    it('should finish updating before returning', async () => {
+      // BUILD
+      const sagemakerInstances = { 'notebook-instance-name': {} };
+      service.pollSageMakerRealtimeStatus = jest.fn(() => {
+        return { 'notebook-instance-name': 'InService' };
+      });
+      service.updateStatus = jest.fn(async () => {
+        // sleep
+        await new Promise(r => setTimeout(r, 1000));
+        // return some non falsey value
+        return 'Updated';
+      });
+
+      // OPERATE
+      const sagemakerUpdated = await service.pollAndSyncSageMakerStatus(
+        roleArn,
+        externalId,
+        sagemakerInstances,
+        requestContext,
+      );
+
+      // CHECK
+      await expect(sagemakerUpdated).toEqual({ 'notebook-instance-name': 'Updated' });
+    });
+
+    it('should finish update all records that need it before returning', async () => {
+      // BUILD
+      const sagemakerInstances = { 'notebook-instance-name': {}, 'notebook-instance-name-1': {} };
+      service.pollSageMakerRealtimeStatus = jest.fn(() => {
+        return { 'notebook-instance-name': 'InService', 'notebook-instance-name-1': 'InService' };
+      });
+      service.updateStatus = jest.fn(async () => {
+        // sleep
+        await new Promise(r => setTimeout(r, 1000));
+        // return some non falsey value
+        return 'Updated';
+      });
+
+      // OPERATE
+      const sagemakerUpdated = await service.pollAndSyncSageMakerStatus(
+        roleArn,
+        externalId,
+        sagemakerInstances,
+        requestContext,
+      );
+
+      // CHECK
+      await expect(sagemakerUpdated).toEqual({
+        'notebook-instance-name': 'Updated',
+        'notebook-instance-name-1': 'Updated',
+      });
+      await expect(Object.keys(sagemakerUpdated).length).toEqual(Object.keys(sagemakerInstances).length);
+    });
+  });
+
+  describe('pollAndSyncEC2Status function', () => {
+    const roleArn = 'roleArn';
+    const externalId = 'externalId';
+    const requestContext = {};
+
+    it('should finish updating before returning', async () => {
+      // BUILD
+      const ec2Instances = { 'instance-name': {} };
+      service.pollEc2RealtimeStatus = jest.fn(() => {
+        return { 'instance-name': 'running' };
+      });
+      service.updateStatus = jest.fn(async () => {
+        // sleep
+        await new Promise(r => setTimeout(r, 1000));
+        // return some non falsey value
+        return 'Updated';
+      });
+
+      // OPERATE
+      const ec2Updated = await service.pollAndSyncEc2Status(roleArn, externalId, ec2Instances, requestContext);
+
+      // CHECK
+      await expect(ec2Updated).toEqual({ 'instance-name': 'Updated' });
+    });
+
+    it('should finish update all records that need it before returning', async () => {
+      // BUILD
+      const ec2Instances = { 'instance-name': {}, 'instance-name-1': {} };
+      service.pollEc2RealtimeStatus = jest.fn(() => {
+        return { 'instance-name': 'running', 'instance-name-1': 'running' };
+      });
+      service.updateStatus = jest.fn(async () => {
+        // sleep
+        await new Promise(r => setTimeout(r, 1000));
+        // return some non falsey value
+        return 'Updated';
+      });
+
+      // OPERATE
+      const ec2Updated = await service.pollAndSyncEc2Status(roleArn, externalId, ec2Instances, requestContext);
+
+      // CHECK
+      await expect(ec2Updated).toEqual({ 'instance-name': 'Updated', 'instance-name-1': 'Updated' });
+      await expect(Object.keys(ec2Updated).length).toEqual(Object.keys(ec2Instances).length);
+    });
+  });
 });
