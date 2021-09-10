@@ -1436,7 +1436,7 @@ describe('EnvironmentSCService', () => {
       });
       service.updateStatus = jest.fn(async () => {
         // sleep
-        await new Promise(r => setTimeout(r, 4000));
+        await new Promise(r => setTimeout(r, 1000));
         // return some non falsey value
         return 'Updated';
       });
@@ -1496,7 +1496,7 @@ describe('EnvironmentSCService', () => {
       });
       service.updateStatus = jest.fn(async () => {
         // sleep
-        await new Promise(r => setTimeout(r, 4000));
+        await new Promise(r => setTimeout(r, 1000));
         // return some non falsey value
         return 'Updated';
       });
