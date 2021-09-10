@@ -1481,4 +1481,53 @@ describe('EnvironmentSCService', () => {
       await expect(Object.keys(sagemakerUpdated).length).toEqual(Object.keys(sagemakerInstances).length);
     });
   });
+
+  describe('pollAndSyncEC2Status', () => {
+    const roleArn = 'roleArn';
+    const externalId = 'externalId';
+    const requestContext = {};
+
+    const empty = {};
+
+    it('should finish updating before returning', async () => {
+      // BUILD
+      const ec2Instances = { 'instance-name': {} };
+      service.pollEc2RealtimeStatus = jest.fn(() => {
+        return { 'instance-name': 'running' };
+      });
+      service.updateStatus = jest.fn(async () => {
+        // sleep
+        await new Promise(r => setTimeout(r, 4000));
+        // return some non falsey value
+        return 'Updated';
+      });
+
+      // OPERATE
+      const ec2Updated = await service.pollAndSyncEc2Status(roleArn, externalId, ec2Instances, requestContext);
+
+      // CHECK
+      await expect(ec2Updated).not.toEqual(empty);
+    });
+
+    it('should finish update all records that need it before returning', async () => {
+      // BUILD
+      const ec2Instances = { 'instance-name': {}, 'instance-name-1': {} };
+      service.pollEc2RealtimeStatus = jest.fn(() => {
+        return { 'instance-name': 'running', 'instance-name-1': 'running' };
+      });
+      service.updateStatus = jest.fn(async () => {
+        // sleep
+        await new Promise(r => setTimeout(r, 4000));
+        // return some non falsey value
+        return 'Updated';
+      });
+
+      // OPERATE
+      const ec2Updated = await service.pollAndSyncEc2Status(roleArn, externalId, ec2Instances, requestContext);
+
+      // CHECK
+      await expect(ec2Updated).not.toEqual(empty);
+      await expect(Object.keys(ec2Updated).length).toEqual(Object.keys(ec2Instances).length);
+    });
+  });
 });
