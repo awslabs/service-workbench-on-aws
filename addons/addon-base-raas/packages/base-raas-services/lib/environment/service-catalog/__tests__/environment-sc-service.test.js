@@ -1422,4 +1422,63 @@ describe('EnvironmentSCService', () => {
     expect(currentIngressRules).toMatchObject(expectedOutcome);
     expect(securityGroupId).toBeUndefined();
   });
+
+  describe('pollAndSyncSageMakerStatus', () => {
+    const roleArn = 'roleArn';
+    const externalId = 'externalId';
+    const requestContext = {};
+
+    const empty = {};
+
+    it('should finish updating before returning', async () => {
+      // BUILD
+      const sagemakerInstances = { 'notebook-instance-name': {} };
+      service.pollSageMakerRealtimeStatus = jest.fn(() => {
+        return { 'notebook-instance-name': 'InService' };
+      });
+      service.updateStatus = jest.fn(async () => {
+        // sleep
+        await new Promise(r => setTimeout(r, 4000));
+        // return some non falsey value
+        return 'Updated';
+      });
+
+      // OPERATE
+      const sagemakerUpdated = await service.pollAndSyncSageMakerStatus(
+        roleArn,
+        externalId,
+        sagemakerInstances,
+        requestContext,
+      );
+
+      // CHECK
+      await expect(sagemakerUpdated).not.toEqual(empty);
+    });
+
+    it('should finish update all records that need it before returning', async () => {
+      // BUILD
+      const sagemakerInstances = { 'notebook-instance-name': {}, 'notebook-instance-name-1': {} };
+      service.pollSageMakerRealtimeStatus = jest.fn(() => {
+        return { 'notebook-instance-name': 'InService', 'notebook-instance-name-1': 'InService' };
+      });
+      service.updateStatus = jest.fn(async () => {
+        // sleep
+        await new Promise(r => setTimeout(r, 4000));
+        // return some non falsey value
+        return 'Updated';
+      });
+
+      // OPERATE
+      const sagemakerUpdated = await service.pollAndSyncSageMakerStatus(
+        roleArn,
+        externalId,
+        sagemakerInstances,
+        requestContext,
+      );
+
+      // CHECK
+      await expect(sagemakerUpdated).not.toEqual(empty);
+      await expect(Object.keys(sagemakerUpdated).length).toEqual(Object.keys(sagemakerInstances).length);
+    });
+  });
 });

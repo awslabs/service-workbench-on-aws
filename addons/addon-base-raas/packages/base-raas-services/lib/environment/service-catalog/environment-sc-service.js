@@ -104,6 +104,7 @@ class EnvironmentScService extends Service {
     let envs = await this._scanner({ fields: ['id', 'indexId', 'status', 'outputs'] })
       // Verified with EC2 support team that EC2 describe instances API can take 10K instanceIds without issue
       .limit(10000)
+      .strong()
       .scan();
     envs = _.filter(
       envs,
@@ -226,13 +227,19 @@ class EnvironmentScService extends Service {
     };
     const sagemakerRealtimeStatus = await this.pollSageMakerRealtimeStatus(roleArn, externalId);
     const sagemakerUpdated = {};
-    _.forEach(sagemakerInstances, async (existingEnvRecord, key) => {
-      const expectedDDBStatus = SageMakerStatusMap[sagemakerRealtimeStatus[key]];
-      const updateStatusResult = await this.updateStatus(requestContext, existingEnvRecord, expectedDDBStatus);
-      if (updateStatusResult) {
-        sagemakerUpdated[key] = updateStatusResult;
-      }
-    });
+
+    const sagemakerKeys = Object.keys(sagemakerInstances);
+    await Promise.all(
+      sagemakerKeys.map(async key => {
+        const existingEnvRecord = sagemakerInstances[key];
+        const expectedDDBStatus = SageMakerStatusMap[sagemakerRealtimeStatus[key]];
+        const updateStatusResult = await this.updateStatus(requestContext, existingEnvRecord, expectedDDBStatus);
+        if (updateStatusResult) {
+          sagemakerUpdated[key] = updateStatusResult;
+        }
+      }),
+    );
+
     return sagemakerUpdated;
   }
 
