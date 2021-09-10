@@ -461,6 +461,13 @@ class EnvironmentScService extends Service {
       'jsonSchemaValidationService',
       'storageGatewayService',
     ]);
+
+    // error messages from upstream can potentially be huge and we don't want them to fail validation or
+    // overflow DDB, so we truncate them.
+    if (environment.error && environment.error.length > 2048) {
+      environment.error = `${environment.error.substring(0, 2037)}<TRUNCATED>`;
+    }
+
     await validationService.ensureValid(_.omit(environment, ['studyRoles']), updateSchema);
 
     // Retrieve the existing environment, this is required for authorization below
