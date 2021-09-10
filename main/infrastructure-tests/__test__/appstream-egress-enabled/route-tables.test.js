@@ -28,7 +28,7 @@ describe('Route tables', () => {
 
     // Grab Route tables created for AppStream VPC
     const vpcId = await getStackResourcesByType('VPC', stackResources);
-    const routeTablesForDefaultVpcResponse = await ec2
+    const routeTablesForAppStreamVpcResponse = await ec2
       .describeRouteTables({
         Filters: [
           {
@@ -53,7 +53,7 @@ describe('Route tables', () => {
       .promise();
 
     // Check that no route tables point to an Internet Gateway
-    checkRouteTableDoesNotHaveIGW(routeTablesForDefaultVpcResponse.RouteTables);
+    checkRouteTableDoesNotHaveIGW(routeTablesForAppStreamVpcResponse.RouteTables);
     checkRouteTableDoesNotHaveIGW(workspaceRouteTableResponse.RouteTables);
   });
 
