@@ -23,5 +23,3 @@ hostingAccountStackName:
 
 # ExternalId set for the trust relationship of the assumed role in the hosting account. By default it's `workbench`
 externalId: workbench
-
-
