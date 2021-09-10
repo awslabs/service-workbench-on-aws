@@ -70,6 +70,7 @@ You can download the PDF versions if you do not have Service Workbench locally i
 
 + [Service Workbench Installation Guide](/docs/Service_Workbench_Installation_Guide.pdf)
 + [Service Workbench Configuration Guide](/docs/Service_Workbench_Configuration_Guide.pdf)
++ [Service Workbench Post Deployment Guide](/docs/Service_Workbench_Post_Deployment_Guide.pdf)
 
 **Note**: *Service Workbench Post Deployment Guide is currently accessible through Docusaurus and its PDF version will be available soon!*
 
