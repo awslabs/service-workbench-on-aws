@@ -27,7 +27,7 @@ const handler = async () => {
   const environmentScService = await container.find('environmentScService');
   const userContext = getSystemRequestContext();
   const updatedEnvData = await environmentScService.pollAndSyncWsStatus(userContext);
-  return { statusCode: 200, body: updatedEnvData };
+  return { statusCode: 200, body: JSON.stringify(updatedEnvData) };
 };
 
 // eslint-disable-next-line import/prefer-default-export
