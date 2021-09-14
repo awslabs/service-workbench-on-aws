@@ -111,10 +111,13 @@ class DataEgressService extends Service {
     const folderName = `${environment.id}/`;
 
     try {
+      // Where s3 folder gets created
       s3Service.createPath(bucketName, folderName);
     } catch (error) {
       throw this.boom.badRequest(`Error in creating egress store:${folderName} in bucket: ${bucketName}`, true);
     }
+
+    const roleArn = await this.createMainAccountEgressStoreRole(requestContext, environment.id);
 
     // prepare info for ddb and update egress store info
     const egressStoreId = environment.id;
@@ -134,6 +137,7 @@ class DataEgressService extends Service {
       ver: 0,
       isAbleToSubmitEgressRequest: false,
       egressStoreObjectListLocation: null,
+      roleArn,
     };
 
     const lockService = await this.service('lockService');
@@ -175,6 +179,7 @@ class DataEgressService extends Service {
           arn: `arn:aws:s3:::${bucketName}/${environment.id}/`,
         },
       ],
+      roleArn,
     };
     const memberAccountId = await this.getMemberAccountId(requestContext, environment.id);
 
@@ -231,6 +236,7 @@ class DataEgressService extends Service {
         );
       }
 
+      // TODO: Delete created egress role and policy (swb-main-study-<egress-store-id> and egress-study-<study-id>)
       const lockService = await this.service('lockService');
       const egressStoreDdbLockId = `egress-store-ddb-access-${egressStoreInfo.id}`;
       egressStoreInfo.status = TERMINATED_STATUS_CODE;
@@ -535,6 +541,97 @@ class DataEgressService extends Service {
     const environmentScEntity = await environmentScService.mustFind(requestContext, { id: environmentId });
     const memberAccount = await environmentScService.getMemberAccount(requestContext, environmentScEntity);
     return memberAccount.accountId;
+  }
+
+  async createMainAccountEgressStoreRole(requestContext, environmentId) {
+    const egressStoreBucketName = this.settings.get('egressStoreBucketName');
+    const aws = await this.service('aws');
+    const kmsArn = await this.getKmsKeyIdArn();
+
+    const memberAccountId = await this.getMemberAccountId(requestContext, environmentId);
+
+    const roleName = `swb-main-study-${environmentId}`;
+    const iam = new aws.sdk.IAM();
+    const createRoleResponse = await iam
+      .createRole({
+        AssumeRolePolicyDocument: JSON.stringify({
+          Version: '2012-10-17',
+          Statement: [
+            {
+              Effect: 'Allow',
+              Principal: {
+                AWS: `arn:aws:iam::${memberAccountId}:root`, // member AccountId
+              },
+              Action: 'sts:AssumeRole',
+            },
+          ],
+        }),
+        Path: '/',
+        RoleName: roleName,
+      })
+      .promise();
+
+    const permissionPolicy = {
+      Version: '2012-10-17',
+      Statement: [
+        {
+          Sid: 'S3StudyReadAccess',
+          Effect: 'Allow',
+          Action: [
+            's3:GetObject',
+            's3:GetObjectVersion',
+            's3:GetObjectTagging',
+            's3:AbortMultipartUpload',
+            's3:ListMultipartUploadParts',
+            's3:PutObject',
+            's3:PutObjectAcl',
+            's3:PutObjectTagging',
+            's3:DeleteObject',
+            's3:DeleteObjectVersion',
+          ],
+          Resource: `arn:aws:s3:::${egressStoreBucketName}/${environmentId}`,
+        },
+        {
+          Sid: 'S3StudyList',
+          Effect: 'Allow',
+          Action: ['s3:ListBucket', 's3:ListBucketVersions'],
+          Resource: `arn:aws:s3:::${egressStoreBucketName}`,
+          Condition: {
+            StringLike: {
+              's3:prefix': `${environmentId}/*`,
+            },
+          },
+        },
+        {
+          Sid: 'studyKMSAccess',
+          Action: ['kms:Decrypt', 'kms:DescribeKey', 'kms:Encrypt', 'kms:GenerateDataKey', 'kms:ReEncrypt*'],
+          Effect: 'Allow',
+          Resource: kmsArn,
+        },
+      ],
+    };
+
+    const createPolicyResponse = await iam
+      .createPolicy({
+        PolicyName: `egress-study-${environmentId}`,
+        PolicyDocument: JSON.stringify(permissionPolicy),
+      })
+      .promise();
+
+    await iam
+      .attachRolePolicy({
+        RoleName: roleName,
+        PolicyArn: createPolicyResponse.Policy.Arn,
+      })
+      .promise();
+    await iam
+      .putRolePermissionsBoundary({
+        RoleName: roleName,
+        PermissionsBoundary: createPolicyResponse.Policy.Arn,
+      })
+      .promise();
+
+    return createRoleResponse.Role.Arn;
   }
 
   async lockAndUpdate(lockId, dbKey, dbObject) {

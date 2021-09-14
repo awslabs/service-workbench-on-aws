@@ -46,6 +46,7 @@ class EnvironmentResourceService extends Service {
     ]);
   }
 
+  // TODO: Look here
   /**
    * Allocates all the necessary AWS resources to allow access to the studies. This includes acquiring the necessary
    * filesystem roles, as needed.

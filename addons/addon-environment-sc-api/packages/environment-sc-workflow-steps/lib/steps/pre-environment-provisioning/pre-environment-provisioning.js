@@ -40,6 +40,7 @@ class PreEnvironmentProvisioning extends StepBase {
 
     const [pluginRegistryService] = await this.mustFindServices(['pluginRegistryService']);
 
+    // TODO: Look here
     try {
       await pluginRegistryService.visitPlugins(pluginConstants.extensionPoint, 'onEnvPreProvisioning', {
         payload: {

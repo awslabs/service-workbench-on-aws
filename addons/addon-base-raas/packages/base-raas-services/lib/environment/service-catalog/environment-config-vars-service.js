@@ -38,6 +38,7 @@ class EnvironmentConfigVarsService extends Service {
   constructor() {
     super();
     this.dependency([
+      'aws',
       'userService',
       'environmentScService',
       'environmentScKeypairService',
@@ -189,15 +190,22 @@ class EnvironmentConfigVarsService extends Service {
     const {
       xAccEnvMgmtRoleArn,
       externalId,
-      accountId,
+      accountId: memberAccountId,
       vpcId,
       subnetId,
       encryptionKeyArn,
     } = await awsAccountsService.mustFind(requestContext, { id: awsAccountId });
 
     // Check launch pre-requisites
-    if (!(xAccEnvMgmtRoleArn && externalId && accountId && vpcId && subnetId && encryptionKeyArn)) {
-      const cause = this.getConfigError(xAccEnvMgmtRoleArn, externalId, accountId, vpcId, subnetId, encryptionKeyArn);
+    if (!(xAccEnvMgmtRoleArn && externalId && memberAccountId && vpcId && subnetId && encryptionKeyArn)) {
+      const cause = this.getConfigError(
+        xAccEnvMgmtRoleArn,
+        externalId,
+        memberAccountId,
+        vpcId,
+        subnetId,
+        encryptionKeyArn,
+      );
       throw this.boom.badRequest(`Index "${indexId}" has not been correctly configured: missing ${cause}.`, true);
     }
 
@@ -218,7 +226,7 @@ class EnvironmentConfigVarsService extends Service {
       // Share AMIs with the target account (process in batches of 5 at a time)
       // if there are more than 5
       await processInBatches(amisToShare, 5, async imageId => {
-        return environmentAmiService.ensurePermissions({ imageId, accountId });
+        return environmentAmiService.ensurePermissions({ imageId, accountId: memberAccountId });
       });
     }
 
@@ -227,13 +235,13 @@ class EnvironmentConfigVarsService extends Service {
     const iamPolicyDocument = await this.getEnvRolePolicy(requestContext, {
       environment,
       studies,
-      memberAccountId: accountId,
+      memberAccountId,
     });
 
     const s3Mounts = await this.getS3Mounts(requestContext, {
       environment,
       studies,
-      memberAccountId: accountId,
+      memberAccountId,
     });
 
     let egressStoreIamPolicyDocument = {};
@@ -244,7 +252,7 @@ class EnvironmentConfigVarsService extends Service {
       egressStoreIamPolicyDocument = await this.getEnvEgressStorePolicy(requestContext, {
         environment,
         egressStore: egressStoreMount,
-        memberAccountId: accountId,
+        memberAccountId,
       });
     }
 
@@ -281,7 +289,7 @@ class EnvironmentConfigVarsService extends Service {
       envTypeConfigId,
       name,
       description,
-      accountId,
+      accountId: memberAccountId,
       projectId,
       indexId,
       studyIds,

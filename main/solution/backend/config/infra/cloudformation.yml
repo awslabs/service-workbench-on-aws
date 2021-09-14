@@ -623,49 +623,8 @@ Resources:
               - dynamodb:Scan
               - dynamodb:UpdateItem
             Resource:
-              - !GetAtt [PasswordsDb, Arn]
-              - !GetAtt [UsersDb, Arn]
-              - !GetAtt [LocksDb, Arn]
-              - !GetAtt [StepTemplatesDb, Arn]
-              - !GetAtt [WorkflowTemplatesDb, Arn]
-              - !GetAtt [WorkflowTemplateDraftsDb, Arn]
-              - !Join ['', [!GetAtt [WorkflowTemplateDraftsDb, Arn], '/index/*']]
-              - !GetAtt [WorkflowsDb, Arn]
-              - !GetAtt [WorkflowDraftsDb, Arn]
-              - !Join ['', [!GetAtt [WorkflowDraftsDb, Arn], '/index/*']]
-              - !GetAtt [WorkflowInstancesDb, Arn]
-              - !Join ['', [!GetAtt [WorkflowInstancesDb, Arn], '/index/*']]
-              - !GetAtt [WfAssignmentsDb, Arn]
-              - !Join ['', [!GetAtt [WfAssignmentsDb, Arn], '/index/*']]
-              - !GetAtt [EnvironmentsDb, Arn]
-              - !GetAtt [EnvironmentsScDb, Arn]
-              - !Join ['', [!GetAtt [EnvironmentsScDb, Arn], '/index/*']]
-              - !GetAtt [EnvironmentsTypesDb, Arn]
-              - !GetAtt [StudiesDb, Arn]
-              - !GetAtt [ProjectsDb, Arn]
-              - !GetAtt [StudyPermissionsDb, Arn]
-              - !GetAtt [IndexesDb, Arn]
-              - !GetAtt [AccountsDb, Arn]
-              - !GetAtt [AwsAccountsDb, Arn]
-              - !GetAtt [AuthenticationProviderTypesDb, Arn]
-              - !GetAtt [AuthenticationProviderConfigsDb, Arn]
-              - !GetAtt [RevokedTokensDb, Arn]
-              - !Join ['', [!GetAtt [StudiesDb, Arn], '/index/*']]
-              - !GetAtt [IndexesDb, Arn]
-              - !GetAtt [CostApiCachesDb, Arn]
-              - !GetAtt [UserRolesDb, Arn]
-              - !GetAtt [StorageGatewayDb, Arn]
-              - !GetAtt [DsAccountsDb, Arn]
-              - !GetAtt [RoleAllocationsDb, Arn]
-              - !GetAtt [ResourceUsagesDb, Arn]
-              - !If
-                - EnableEgressStore
-                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEgressStore}'
-                - !Ref 'AWS::NoValue'
-              - !If
-                - EnableEgressStore
-                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEgressStore}/index/*'
-                - !Ref 'AWS::NoValue'
+              - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbPrefix}-*'
+              - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbPrefix}-*/index/*'
           - Effect: Allow
             Action:
               - ssm:GetParameter
@@ -767,6 +726,19 @@ Resources:
               - appstream:UpdateImagePermissions
             Resource:
               - !Sub 'arn:aws:appstream:${AWS::Region}:${AWS::AccountId}:image/ServiceWorkbench*'
+          - Effect: Allow
+            Action:
+              - iam:CreateRole
+              - iam:AttachRolePolicy
+              - iam:PutRolePermissionsBoundary
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/swb-main-study-*'
+                #TODO: Add condition of a permissionBoundary as a requirement
+          - Effect: Allow
+            Action:
+              - iam:CreatePolicy
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/egress-study-*'
 
   # IAM Role for the workflowLoopRunner Function
   RoleWorkflowLoopRunner:

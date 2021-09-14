@@ -81,6 +81,7 @@ async function allocateEnvStudyResources(payload) {
   return payload;
 }
 
+// TODO: Look here
 async function updateKMSPolicyForEgress(payload) {
   const { requestContext, container, environmentScEntity, studies, memberAccountId } = payload;
 
