@@ -605,6 +605,63 @@ describe('EnvironmentSCService', () => {
       expect(storageGatewayService.updateStudyFileMountIPAllowList).not.toHaveBeenCalled();
     });
 
+    it('should truncate excessively long error messages and succeed to update', async () => {
+      // BUILD
+      const requestContext = {
+        principalIdentifier: {
+          username: 'uname',
+          ns: 'user.ns',
+        },
+      };
+
+      const oldEnv = {
+        id: 'oldId',
+        name: 'exampleName',
+        envTypeId: 'exampleETI',
+        envTypeConfigId: 'exampleETCI',
+        updatedBy: {
+          username: 'user',
+        },
+        studyIds: ['study-id-1', 'study-id-2'],
+      };
+
+      const newEnv = {
+        id: oldEnv.id,
+        rev: 2,
+        error: `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer luctus posuere elit, at consectetur odio consequat in. Maecenas ullamcorper vehicula quam, vel eleifend dolor rhoncus sed. In lacinia nibh eu ex ultrices scelerisque. Fusce molestie urna a velit sagittis facilisis. Donec massa ligula, faucibus eget euismod vitae, vestibulum sit amet erat. Quisque ut felis condimentum urna dictum mollis at ut odio. Vestibulum lacinia scelerisque felis, ac maximus risus porta vel. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae;
+
+Morbi vitae ligula elementum, malesuada nisi sed, feugiat ex. Fusce laoreet massa congue pretium aliquet. Fusce porta dui dui, eu suscipit quam finibus eget. In sem erat, lacinia vel tellus eget, lacinia vulputate mauris. Integer consectetur ornare eros. Aliquam erat volutpat. Sed dapibus pharetra velit sit amet fermentum. Nulla dictum placerat risus, quis vulputate tortor.
+
+Proin non tortor turpis. Suspendisse rhoncus, massa id pharetra sodales, mi nulla condimentum tellus, id sagittis erat sapien nec orci. Ut sodales nibh vestibulum purus vestibulum pharetra. Proin eleifend tempor massa ac dapibus. Vivamus dapibus maximus quam. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae; Nulla sit amet turpis risus. Quisque mollis blandit ligula, at pellentesque risus venenatis nec. Aenean placerat, est at aliquam blandit, ex est hendrerit magna, id porta tellus libero sit amet velit. Curabitur ut dui feugiat, placerat felis vitae, cursus purus. Cras et aliquam elit. Ut molestie, erat ac semper tempor, magna velit consectetur neque, non posuere nibh nunc vitae sem. Nulla ornare dui eget nunc hendrerit fringilla. Suspendisse quis luctus arcu. Ut ultrices, orci vel luctus pulvinar, ligula libero porttitor sapien, a lacinia dolor nulla sit amet lacus. Etiam tellus dolor, porta egestas quam eu, auctor pharetra felis.
+
+Cras consequat nulla in sapien ullamcorper, nec luctus mi dapibus. Suspendisse varius velit at elit interdum lobortis. Aliquam eget libero sapien. Aliquam convallis arcu id nunc posuere, quis cursus turpis fringilla. Duis volutpat purus eu quam blandit, et suscipit lacus rutrum. Mauris vel metus blandit, hendrerit metus vel, pretium lacus. Praesent fermentum lobortis quam, in facilisis eros dapibus at. Mauris faucibus tellus bibendum, molestie justo id, tempor risus. Quisque pharetra nibh nisl, ut efficitur magna porttitor nec. Vivamus at sodales nibh.
+
+Curabitur quis leo nec justo consectetur condimentum in a turpis. Aenean sagittis orci et metus convallis, sit amet pharetra tellus ornare. Proin vestibulum, turpis at efficitur sagittis, sapien justo iaculis nulla, ac fermentum nisl justo sed enim. Nulla fringilla sem nulla, sit amet elementum arcu cursus et. Donec et dolor at mauris sollicitudin sodales. Donec laoreet lorem leo, a sagittis purus dignissim ut. Aliquam vestibulum, quam sed aliquet tempus, purus orci dictum orci, nec euismod felis velit et nunc. Aliquam pellentesque mauris at turpis suscipit, quis tristique nulla dignissim. Ut non semper sapien, nec pellentesque sem.
+
+Proin ac commodo lacus. Mauris semper ligula in mauris aliquet imperdiet. Donec id augue sit amet nisl aliquam consectetur eu convallis metus. Sed in nisi eget tortor venenatis mollis hendrerit nec nisi. Sed ac ullamcorper orci. Vivamus risus quam, pharetra ac facilisis at, vestibulum vitae lacus. Nulla eu velit ut nibh lacinia dapibus commodo ac tortor. Phasellus condimentum tellus et eros vulputate, et elementum orci varius.
+
+Vivamus blandit eu leo sit amet volutpat. Vestibulum id velit tellus. Quisque non ligula id ipsum ultrices maximus vel in leo. Nullam vestibulum nec ipsum at hendrerit. Suspendisse sit amet pretium sem, in condimentum leo. Sed nunc ex, pellentesque et vehicula efficitur, interdum non felis. In pretium sem vitae malesuada euismod. Phasellus pulvinar ex dolor, in pellentesque nunc consequat convallis.
+
+Aliquam ullamcorper gravida luctus. Nulla magna arcu, semper at vulputate id, consequat eu dui. Aenean mollis sapien sit amet nisi ultricies congue. Fusce sed enim facilisis, vehicula neque ut, eleifend justo. Morbi feugiat, erat a hendrerit porttitor, nibh massa scelerisque risus, non pulvinar lectus diam a arcu. Sed ut commodo risus, sit amet tristique velit. In velit dui, condimentum at justo et, malesuada lobortis magna. In ornare, tortor et suscipit feugiat, mi sem feugiat augue, eu vestibulum magna nulla ut ex. Sed feugiat libero ex, a molestie nisi commodo id. Nunc a neque id orci semper suscipit. In hac habitasse platea dictumst.
+
+Quisque egestas, eros nec feugiat venenatis, lorem turpis placerat tortor, ullamcorper accumsan massa augue id mi. Ut consequat ornare elit. Interdum et malesuada fames ac ante ipsum primis in faucibus. Donec leo nulla, cursus vel ex quis, suscipit dictum eros. Phasellus vitae iaculis nunc. Duis semper eros at sem rutrum luctus egestas non tortor. Donec maximus lorem viverra, gravida nunc vel.`,
+      };
+      service.audit = jest.fn();
+      service.mustFind = jest.fn().mockResolvedValueOnce(oldEnv);
+
+      // OPERATE
+      await service.update(requestContext, newEnv);
+
+      // CHECK
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: newEnv.id });
+      expect(dbService.table.update).toHaveBeenCalled();
+      expect(service.audit).toHaveBeenCalledWith(
+        requestContext,
+        expect.objectContaining({ action: 'update-environment-sc' }),
+      );
+      expect(storageGatewayService.updateStudyFileMountIPAllowList).not.toHaveBeenCalled();
+    });
+
     it('should call updateStudyFileMountIPAllowList to update IP when needed', async () => {
       // BUILD
       const requestContext = {
@@ -1421,5 +1478,112 @@ describe('EnvironmentSCService', () => {
     // CHECK
     expect(currentIngressRules).toMatchObject(expectedOutcome);
     expect(securityGroupId).toBeUndefined();
+  });
+
+  describe('pollAndSyncSageMakerStatus function', () => {
+    const roleArn = 'roleArn';
+    const externalId = 'externalId';
+    const requestContext = {};
+
+    it('should finish updating before returning', async () => {
+      // BUILD
+      const sagemakerInstances = { 'notebook-instance-name': {} };
+      service.pollSageMakerRealtimeStatus = jest.fn(() => {
+        return { 'notebook-instance-name': 'InService' };
+      });
+      service.updateStatus = jest.fn(async () => {
+        // sleep
+        await new Promise(r => setTimeout(r, 1000));
+        // return some non falsey value
+        return 'Updated';
+      });
+
+      // OPERATE
+      const sagemakerUpdated = await service.pollAndSyncSageMakerStatus(
+        roleArn,
+        externalId,
+        sagemakerInstances,
+        requestContext,
+      );
+
+      // CHECK
+      await expect(sagemakerUpdated).toEqual({ 'notebook-instance-name': 'Updated' });
+    });
+
+    it('should finish update all records that need it before returning', async () => {
+      // BUILD
+      const sagemakerInstances = { 'notebook-instance-name': {}, 'notebook-instance-name-1': {} };
+      service.pollSageMakerRealtimeStatus = jest.fn(() => {
+        return { 'notebook-instance-name': 'InService', 'notebook-instance-name-1': 'InService' };
+      });
+      service.updateStatus = jest.fn(async () => {
+        // sleep
+        await new Promise(r => setTimeout(r, 1000));
+        // return some non falsey value
+        return 'Updated';
+      });
+
+      // OPERATE
+      const sagemakerUpdated = await service.pollAndSyncSageMakerStatus(
+        roleArn,
+        externalId,
+        sagemakerInstances,
+        requestContext,
+      );
+
+      // CHECK
+      await expect(sagemakerUpdated).toEqual({
+        'notebook-instance-name': 'Updated',
+        'notebook-instance-name-1': 'Updated',
+      });
+      await expect(Object.keys(sagemakerUpdated).length).toEqual(Object.keys(sagemakerInstances).length);
+    });
+  });
+
+  describe('pollAndSyncEC2Status function', () => {
+    const roleArn = 'roleArn';
+    const externalId = 'externalId';
+    const requestContext = {};
+
+    it('should finish updating before returning', async () => {
+      // BUILD
+      const ec2Instances = { 'instance-name': {} };
+      service.pollEc2RealtimeStatus = jest.fn(() => {
+        return { 'instance-name': 'running' };
+      });
+      service.updateStatus = jest.fn(async () => {
+        // sleep
+        await new Promise(r => setTimeout(r, 1000));
+        // return some non falsey value
+        return 'Updated';
+      });
+
+      // OPERATE
+      const ec2Updated = await service.pollAndSyncEc2Status(roleArn, externalId, ec2Instances, requestContext);
+
+      // CHECK
+      await expect(ec2Updated).toEqual({ 'instance-name': 'Updated' });
+    });
+
+    it('should finish update all records that need it before returning', async () => {
+      // BUILD
+      const ec2Instances = { 'instance-name': {}, 'instance-name-1': {} };
+      service.pollEc2RealtimeStatus = jest.fn(() => {
+        return { 'instance-name': 'running', 'instance-name-1': 'running' };
+      });
+      service.updateStatus = jest.fn(async () => {
+        // sleep
+        await new Promise(r => setTimeout(r, 1000));
+        // return some non falsey value
+        return 'Updated';
+      });
+
+      // OPERATE
+      const ec2Updated = await service.pollAndSyncEc2Status(roleArn, externalId, ec2Instances, requestContext);
+
+      // CHECK
+      await expect(ec2Updated).toEqual({ 'instance-name': 'Updated', 'instance-name-1': 'Updated' });
+      await expect(Object.keys(ec2Updated).length).toEqual(Object.keys(ec2Instances).length);
+    });
   });
 });
