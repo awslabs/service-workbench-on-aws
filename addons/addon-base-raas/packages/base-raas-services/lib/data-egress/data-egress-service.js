@@ -547,11 +547,11 @@ class DataEgressService extends Service {
   }
 
   getMainAccountEgressStoreRole(egressStoreId) {
-    return `swb-main-study-${egressStoreId}`;
+    return `study-${egressStoreId}`;
   }
 
   getMainAccountEgressStoreRolePolicyName(egressStoreId) {
-    return `egress-study-${egressStoreId}`;
+    return `study-${egressStoreId}`;
   }
 
   /**
