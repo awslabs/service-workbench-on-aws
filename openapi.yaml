@@ -257,19 +257,6 @@ paths:
       responses:
         '200':
           description: User updated
-    delete:
-      tags:
-        - admins
-        - User
-      summary: Delete a User
-      operationId: DeleteUser
-      description: |
-        Delete a User. Note that this API doesn't check for outstanding resources like studies, environments, projects
-        etc. the user might have permissions to. Take caution while using this API since those resources might stop
-        functioning as expected. Consider using update API instead and change 'state' to 'inactive'.
-      responses:
-        '200':
-          description: User deleted
   /api/users/{userId}/password:
     put:
       tags:
@@ -444,17 +431,6 @@ paths:
       responses:
         '200':
           description: Project updated
-    delete:
-      tags:
-        - admins
-        - Project
-      summary: Delete a Project
-      operationId: DeleteProject
-      description: |
-        Delete a Project
-      responses:
-        '200':
-          description: Project deleted
   /api/indexes:
     get:
       tags:
