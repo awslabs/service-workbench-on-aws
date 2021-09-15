@@ -111,7 +111,6 @@ class DataEgressService extends Service {
     const folderName = `${environment.id}/`;
 
     try {
-      // Where s3 folder gets created
       s3Service.createPath(bucketName, folderName);
     } catch (error) {
       throw this.boom.badRequest(`Error in creating egress store:${folderName} in bucket: ${bucketName}`, true);
@@ -234,7 +233,6 @@ class DataEgressService extends Service {
           true,
         );
       }
-      // TODO: Delete created egress role and policy (swb-main-study-<egress-store-id> and egress-study-<study-id>)
       await this.deleteMainAccountEgressStoreRole(egressStoreInfo.id);
 
       const lockService = await this.service('lockService');
@@ -556,14 +554,18 @@ class DataEgressService extends Service {
     return `egress-study-${egressStoreId}`;
   }
 
+  /**
+   * Create the main account IAM Role  and Policy to allow a workspace on the member account to access
+   * the egress store S3 bucket
+   * @param requestContext
+   * @param egressStoreId
+   * @returns role Arn
+   */
   async createMainAccountEgressStoreRole(requestContext, egressStoreId) {
     const egressStoreBucketName = this.settings.get('egressStoreBucketName');
     const kmsArn = await this.getKmsKeyIdArn();
-
     const memberAccountId = await this.getMemberAccountId(requestContext, egressStoreId);
-
-    const roleName = this.getMainAccountEgressStoreRole(egressStoreId);
-
+    const mainAccountRoleName = this.getMainAccountEgressStoreRole(egressStoreId);
     const permissionPolicy = {
       Version: '2012-10-17',
       Statement: [
@@ -603,6 +605,7 @@ class DataEgressService extends Service {
         },
       ],
     };
+
     const iam = await this.getIAM();
     const createPolicyResponse = await iam
       .createPolicy({
@@ -619,31 +622,24 @@ class DataEgressService extends Service {
             {
               Effect: 'Allow',
               Principal: {
-                AWS: `arn:aws:iam::${memberAccountId}:root`, // member AccountId
+                AWS: `arn:aws:iam::${memberAccountId}:root`,
               },
               Action: 'sts:AssumeRole',
             },
           ],
         }),
         Path: '/',
-        RoleName: roleName,
+        RoleName: mainAccountRoleName,
         PermissionsBoundary: createPolicyResponse.Policy.Arn,
       })
       .promise();
 
     await iam
       .attachRolePolicy({
-        RoleName: roleName,
+        RoleName: mainAccountRoleName,
         PolicyArn: createPolicyResponse.Policy.Arn,
       })
       .promise();
-
-    // await iam
-    //   .putRolePermissionsBoundary({
-    //     RoleName: roleName,
-    //     PermissionsBoundary: createPolicyResponse.Policy.Arn,
-    //   })
-    //   .promise();
 
     return createRoleResponse.Role.Arn;
   }

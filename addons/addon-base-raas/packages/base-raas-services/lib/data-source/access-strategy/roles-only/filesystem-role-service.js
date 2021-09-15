@@ -117,7 +117,6 @@ class FilesystemRoleService extends Service {
     return result;
   }
 
-  // TODO: Look here
   /**
    * Call this method to allocate a filesystem role entity for the given study. This method is smart
    * enough to reuse an existing filesystem role entity if there is one already for the same study.
@@ -425,7 +424,6 @@ class FilesystemRoleService extends Service {
     const iamClient = await this.getIamClient(fsRoleEntity.appRoleArn, _.get(fsRoleEntity.studies, '[0].id', ''));
     const trustPolicyDoc = toTrustPolicyDoc(fsRoleEntity);
 
-    // TODO: NOTE: PERMISSION BOUNDARY NEEDED
     let params = {
       AssumeRolePolicyDocument: JSON.stringify(trustPolicyDoc),
       RoleName: name,
