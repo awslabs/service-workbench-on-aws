@@ -595,12 +595,12 @@ Resources:
               - iam:DeleteRole
               - iam:DetachRolePolicy
             Resource:
-              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/swb-main-study-*'
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/study-*'
           - Effect: Allow
             Action:
               - iam:DeletePolicy
             Resource:
-              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/egress-study-*'
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/study-*'
   # IAM Role for the apiHandler Function
   RoleApiHandler:
     Type: 'AWS::IAM::Role'
@@ -742,20 +742,20 @@ Resources:
             Action:
               - iam:CreateRole
             Resource:
-              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/swb-main-study-*'
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/study-*'
             Condition:
               StringLike:
-                iam:PermissionsBoundary: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/egress-study-*'
+                iam:PermissionsBoundary: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/study-*'
           - Effect: Allow
             Action:
               - iam:AttachRolePolicy
             Resource:
-              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/swb-main-study-*'
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/study-*'
           - Effect: Allow
             Action:
               - iam:CreatePolicy
             Resource:
-              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/egress-study-*'
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/study-*'
 
   # IAM Role for the workflowLoopRunner Function
   RoleWorkflowLoopRunner:
