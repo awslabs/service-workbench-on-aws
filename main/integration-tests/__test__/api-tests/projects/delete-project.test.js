@@ -57,7 +57,7 @@ describe('Delete project scenarios', () => {
       const researcherSession = await setup.createResearcherSession({ projectId: [testProjectId] });
 
       await expect(researcherSession.resources.projects.project(newProj.id).delete()).rejects.toMatchObject({
-        code: errorCode.http.code.forbidden,
+        code: errorCode.http.code.badImplementation,
       });
     });
 
