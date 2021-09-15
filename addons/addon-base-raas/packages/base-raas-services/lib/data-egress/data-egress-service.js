@@ -117,10 +117,10 @@ class DataEgressService extends Service {
       throw this.boom.badRequest(`Error in creating egress store:${folderName} in bucket: ${bucketName}`, true);
     }
 
-    const roleArn = await this.createMainAccountEgressStoreRole(requestContext, environment.id);
+    const egressStoreId = environment.id;
+    const roleArn = await this.createMainAccountEgressStoreRole(requestContext, egressStoreId);
 
     // prepare info for ddb and update egress store info
-    const egressStoreId = environment.id;
     const creationTime = new Date().toISOString;
     const dbObject = {
       id: egressStoreId,
@@ -213,7 +213,6 @@ class DataEgressService extends Service {
         true,
       );
     }
-
     const s3Service = await this.service('s3Service');
     const egressStoreStatus = egressStoreInfo.status;
     const isEgressStoreNotTouched =
@@ -235,8 +234,9 @@ class DataEgressService extends Service {
           true,
         );
       }
-
       // TODO: Delete created egress role and policy (swb-main-study-<egress-store-id> and egress-study-<study-id>)
+      await this.deleteMainAccountEgressStoreRole(egressStoreInfo.id);
+
       const lockService = await this.service('lockService');
       const egressStoreDdbLockId = `egress-store-ddb-access-${egressStoreInfo.id}`;
       egressStoreInfo.status = TERMINATED_STATUS_CODE;
@@ -461,6 +461,11 @@ class DataEgressService extends Service {
     return new aws.sdk.KMS();
   }
 
+  async getIAM() {
+    const aws = await this.getAWS();
+    return new aws.sdk.IAM();
+  }
+
   async getAWS() {
     const aws = await this.service('aws');
     return aws;
@@ -543,33 +548,21 @@ class DataEgressService extends Service {
     return memberAccount.accountId;
   }
 
-  async createMainAccountEgressStoreRole(requestContext, environmentId) {
+  getMainAccountEgressStoreRole(egressStoreId) {
+    return `swb-main-study-${egressStoreId}`;
+  }
+
+  getMainAccountEgressStoreRolePolicyName(egressStoreId) {
+    return `egress-study-${egressStoreId}`;
+  }
+
+  async createMainAccountEgressStoreRole(requestContext, egressStoreId) {
     const egressStoreBucketName = this.settings.get('egressStoreBucketName');
-    const aws = await this.service('aws');
     const kmsArn = await this.getKmsKeyIdArn();
 
-    const memberAccountId = await this.getMemberAccountId(requestContext, environmentId);
+    const memberAccountId = await this.getMemberAccountId(requestContext, egressStoreId);
 
-    const roleName = `swb-main-study-${environmentId}`;
-    const iam = new aws.sdk.IAM();
-    const createRoleResponse = await iam
-      .createRole({
-        AssumeRolePolicyDocument: JSON.stringify({
-          Version: '2012-10-17',
-          Statement: [
-            {
-              Effect: 'Allow',
-              Principal: {
-                AWS: `arn:aws:iam::${memberAccountId}:root`, // member AccountId
-              },
-              Action: 'sts:AssumeRole',
-            },
-          ],
-        }),
-        Path: '/',
-        RoleName: roleName,
-      })
-      .promise();
+    const roleName = this.getMainAccountEgressStoreRole(egressStoreId);
 
     const permissionPolicy = {
       Version: '2012-10-17',
@@ -589,7 +582,7 @@ class DataEgressService extends Service {
             's3:DeleteObject',
             's3:DeleteObjectVersion',
           ],
-          Resource: `arn:aws:s3:::${egressStoreBucketName}/${environmentId}`,
+          Resource: `arn:aws:s3:::${egressStoreBucketName}/${egressStoreId}`,
         },
         {
           Sid: 'S3StudyList',
@@ -598,7 +591,7 @@ class DataEgressService extends Service {
           Resource: `arn:aws:s3:::${egressStoreBucketName}`,
           Condition: {
             StringLike: {
-              's3:prefix': `${environmentId}/*`,
+              's3:prefix': `${egressStoreId}/*`,
             },
           },
         },
@@ -610,11 +603,31 @@ class DataEgressService extends Service {
         },
       ],
     };
-
+    const iam = await this.getIAM();
     const createPolicyResponse = await iam
       .createPolicy({
-        PolicyName: `egress-study-${environmentId}`,
+        PolicyName: this.getMainAccountEgressStoreRolePolicyName(egressStoreId),
         PolicyDocument: JSON.stringify(permissionPolicy),
+      })
+      .promise();
+
+    const createRoleResponse = await iam
+      .createRole({
+        AssumeRolePolicyDocument: JSON.stringify({
+          Version: '2012-10-17',
+          Statement: [
+            {
+              Effect: 'Allow',
+              Principal: {
+                AWS: `arn:aws:iam::${memberAccountId}:root`, // member AccountId
+              },
+              Action: 'sts:AssumeRole',
+            },
+          ],
+        }),
+        Path: '/',
+        RoleName: roleName,
+        PermissionsBoundary: createPolicyResponse.Policy.Arn,
       })
       .promise();
 
@@ -624,14 +637,29 @@ class DataEgressService extends Service {
         PolicyArn: createPolicyResponse.Policy.Arn,
       })
       .promise();
-    await iam
-      .putRolePermissionsBoundary({
-        RoleName: roleName,
-        PermissionsBoundary: createPolicyResponse.Policy.Arn,
-      })
-      .promise();
+
+    // await iam
+    //   .putRolePermissionsBoundary({
+    //     RoleName: roleName,
+    //     PermissionsBoundary: createPolicyResponse.Policy.Arn,
+    //   })
+    //   .promise();
 
     return createRoleResponse.Role.Arn;
+  }
+
+  async deleteMainAccountEgressStoreRole(egressStoreId) {
+    const iam = await this.getIAM();
+    const policyArn = (await iam.getRole({ RoleName: this.getMainAccountEgressStoreRole(egressStoreId) }).promise())
+      .Role.PermissionsBoundary.PermissionsBoundaryArn;
+    await iam
+      .detachRolePolicy({
+        RoleName: this.getMainAccountEgressStoreRole(egressStoreId),
+        PolicyArn: policyArn,
+      })
+      .promise();
+    await iam.deleteRole({ RoleName: this.getMainAccountEgressStoreRole(egressStoreId) }).promise();
+    await iam.deletePolicy({ PolicyArn: policyArn }).promise();
   }
 
   async lockAndUpdate(lockId, dbKey, dbObject) {

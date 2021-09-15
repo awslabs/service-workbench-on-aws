@@ -589,6 +589,18 @@ Resources:
               - appstream:UpdateImagePermissions
             Resource:
               - !Sub 'arn:aws:appstream:${AWS::Region}:${AWS::AccountId}:image/ServiceWorkbench*'
+          - Effect: Allow
+            Action:
+              - iam:GetRole
+              - iam:DeleteRole
+              - iam:DetachRolePolicy
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/swb-main-study-*'
+          - Effect: Allow
+            Action:
+              - iam:DeletePolicy
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/egress-study-*'
   # IAM Role for the apiHandler Function
   RoleApiHandler:
     Type: 'AWS::IAM::Role'
@@ -729,11 +741,16 @@ Resources:
           - Effect: Allow
             Action:
               - iam:CreateRole
-              - iam:AttachRolePolicy
-              - iam:PutRolePermissionsBoundary
             Resource:
               - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/swb-main-study-*'
-                #TODO: Add condition of a permissionBoundary as a requirement
+            Condition:
+              StringLike:
+                iam:PermissionsBoundary: !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/egress-study-*'
+          - Effect: Allow
+            Action:
+              - iam:AttachRolePolicy
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/swb-main-study-*'
           - Effect: Allow
             Action:
               - iam:CreatePolicy
