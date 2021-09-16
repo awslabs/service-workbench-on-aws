@@ -127,4 +127,44 @@ describe('handler', () => {
     // CHECK
     expect(s3Service.putObjectTag).toHaveBeenCalledTimes(0);
   });
+
+  it('should not enable store egress submission on empty folder', async () => {
+    s3Service.putObjectTag = jest.fn();
+    dataEgressService.getEgressStoreInfo = jest.fn().mockResolvedValue({ isAbleToSubmitEgressRequest: false });
+    dataEgressService.enableEgressStoreSubmission = jest.fn();
+    const event = {
+      Records: [
+        {
+          eventVersion: '2.1',
+          eventSource: 'aws:s3',
+          awsRegion: 'us-east-1',
+          eventName: 'ObjectCreated:Put',
+          userIdentity: {
+            principalId: 'AWS:test:test',
+          },
+          s3: {
+            s3SchemaVersion: '1.0',
+            configurationId: 'test-configurationId',
+            bucket: {
+              name: 'test-bucketName',
+              ownerIdentity: {
+                principalId: 'test-principalId',
+              },
+              arn: 'arn:aws:s3:::test-bucketName',
+            },
+            object: {
+              key: encodeURIComponent('test-objectfolder/'),
+              size: 0,
+            },
+          },
+        },
+      ],
+    };
+
+    // EXECUTE
+    await handlerWithContainer(container, event);
+
+    // CHECK
+    expect(dataEgressService.enableEgressStoreSubmission).toHaveBeenCalledTimes(0);
+  });
 });

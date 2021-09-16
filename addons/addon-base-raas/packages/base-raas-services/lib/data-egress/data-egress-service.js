@@ -27,6 +27,7 @@ const {
   getRevisedS3Statements,
   removeAccountFromStatement,
 } = require('../helpers/utils');
+const { StudyPolicy } = require('../helpers/iam/study-policy');
 
 const settingKeys = {
   tableName: 'dbEgressStore',
@@ -566,45 +567,21 @@ class DataEgressService extends Service {
     const kmsArn = await this.getKmsKeyIdArn();
     const memberAccountId = await this.getMemberAccountId(requestContext, egressStoreId);
     const mainAccountRoleName = this.getMainAccountEgressStoreRole(egressStoreId);
-    const permissionPolicy = {
-      Version: '2012-10-17',
-      Statement: [
-        {
-          Sid: 'S3StudyReadAccess',
-          Effect: 'Allow',
-          Action: [
-            's3:GetObject',
-            's3:GetObjectVersion',
-            's3:GetObjectTagging',
-            's3:AbortMultipartUpload',
-            's3:ListMultipartUploadParts',
-            's3:PutObject',
-            's3:PutObjectAcl',
-            's3:PutObjectTagging',
-            's3:DeleteObject',
-            's3:DeleteObjectVersion',
-          ],
-          Resource: `arn:aws:s3:::${egressStoreBucketName}/${egressStoreId}`,
-        },
-        {
-          Sid: 'S3StudyList',
-          Effect: 'Allow',
-          Action: ['s3:ListBucket', 's3:ListBucketVersions'],
-          Resource: `arn:aws:s3:::${egressStoreBucketName}`,
-          Condition: {
-            StringLike: {
-              's3:prefix': `${egressStoreId}/*`,
-            },
-          },
-        },
-        {
-          Sid: 'studyKMSAccess',
-          Action: ['kms:Decrypt', 'kms:DescribeKey', 'kms:Encrypt', 'kms:GenerateDataKey', 'kms:ReEncrypt*'],
-          Effect: 'Allow',
-          Resource: kmsArn,
-        },
-      ],
+    const permissionBoundaryArn = this.settings.get('permissionBoundaryPolicyStudyBucketArn');
+
+    const egressStudyPolicy = new StudyPolicy();
+
+    const study = {
+      bucket: egressStoreBucketName,
+      folder: [egressStoreId],
+      permission: {
+        read: true,
+        write: true,
+      },
+      kmsArn,
     };
+    egressStudyPolicy.addStudy(study);
+    const permissionPolicy = egressStudyPolicy.toPolicyDoc();
 
     const iam = await this.getIAM();
     const createPolicyResponse = await iam
@@ -630,7 +607,7 @@ class DataEgressService extends Service {
         }),
         Path: '/',
         RoleName: mainAccountRoleName,
-        PermissionsBoundary: createPolicyResponse.Policy.Arn,
+        PermissionsBoundary: permissionBoundaryArn,
       })
       .promise();
 
@@ -646,16 +623,30 @@ class DataEgressService extends Service {
 
   async deleteMainAccountEgressStoreRole(egressStoreId) {
     const iam = await this.getIAM();
-    const policyArn = (await iam.getRole({ RoleName: this.getMainAccountEgressStoreRole(egressStoreId) }).promise())
-      .Role.PermissionsBoundary.PermissionsBoundaryArn;
-    await iam
-      .detachRolePolicy({
+    const listRolePoliciesResponse = await iam
+      .listAttachedRolePolicies({
         RoleName: this.getMainAccountEgressStoreRole(egressStoreId),
-        PolicyArn: policyArn,
       })
       .promise();
+    const policyArns = listRolePoliciesResponse.AttachedPolicies.map(policy => {
+      return policy.PolicyArn;
+    });
+    await Promise.all(
+      policyArns.map(arn => {
+        return iam
+          .detachRolePolicy({
+            RoleName: this.getMainAccountEgressStoreRole(egressStoreId),
+            PolicyArn: arn,
+          })
+          .promise();
+      }),
+    );
     await iam.deleteRole({ RoleName: this.getMainAccountEgressStoreRole(egressStoreId) }).promise();
-    await iam.deletePolicy({ PolicyArn: policyArn }).promise();
+    await Promise.all(
+      policyArns.map(arn => {
+        return iam.deletePolicy({ PolicyArn: arn }).promise();
+      }),
+    );
   }
 
   async lockAndUpdate(lockId, dbKey, dbObject) {
