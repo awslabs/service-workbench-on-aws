@@ -391,9 +391,9 @@ describe('studyService', () => {
     it('should fail due to egress store feautre is enabled and access type is readwrite', async () => {
       // BUILD
       service._settings = {
-        get: settingName => {
+        getBoolean: settingName => {
           if (settingName === 'enableEgressStore') {
-            return 'true';
+            return true;
           }
           return undefined;
         },

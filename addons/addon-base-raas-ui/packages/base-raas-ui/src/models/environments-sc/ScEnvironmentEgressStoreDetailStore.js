@@ -39,7 +39,7 @@ const ScEnvironmentEgressStoreDetailStore = BaseStore.named('ScEnvironmentEgress
       },
 
       async egressNotifySns(id) {
-        if (enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE') {
+        if (enableEgressStore) {
           await egressNotifySns(id);
         }
       },

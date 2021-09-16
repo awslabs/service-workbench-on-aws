@@ -1,6 +1,6 @@
 Conditions:
   IsDev: !Equals ['${self:custom.settings.envType}', 'dev']
-  EnableEgressStore: !Equals ['${self:custom.settings.enableEgressStore}', 'true']
+  EnableEgressStore: !Equals ['${self:custom.settings.enableEgressStore}', true]
   AppStreamEnabled: !Equals ['${self:custom.settings.isAppStreamEnabled}', true]
 
 Resources:

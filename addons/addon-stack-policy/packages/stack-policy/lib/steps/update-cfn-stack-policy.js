@@ -56,8 +56,8 @@ class UpdateCfnStackPolicy extends Service {
   }
 
   async execute() {
-    const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
-    const isEgressStoreEnabled = enableEgressStore ? enableEgressStore.toUpperCase() === 'TRUE' : false;
+    const enableEgressStore = this.settings.getBoolean(settingKeys.enableEgressStore);
+    const isEgressStoreEnabled = enableEgressStore;
     const isAppStreamEnabled = this.settings.getBoolean(settingKeys.isAppStreamEnabled);
 
     if (!isEgressStoreEnabled && !isAppStreamEnabled) {

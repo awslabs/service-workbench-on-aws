@@ -315,8 +315,8 @@ class EnvironmentResourceService extends Service {
   }
 
   async addToEgressKmsKeyPolicy(memberAccountId) {
-    const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
-    if (enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE') {
+    const enableEgressStore = this.settings.getBoolean(settingKeys.enableEgressStore);
+    if (enableEgressStore) {
       await this.updateEgressKMSPolicy(environmentStatement =>
         addAccountToStatement(environmentStatement, memberAccountId),
       );
@@ -329,8 +329,8 @@ class EnvironmentResourceService extends Service {
       removeAccountFromStatement(environmentStatement, memberAccountId),
     );
 
-    const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
-    if (enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE') {
+    const enableEgressStore = this.settings.getBoolean(settingKeys.enableEgressStore);
+    if (enableEgressStore) {
       await this.updateEgressKMSPolicy(environmentStatement =>
         removeAccountFromStatement(environmentStatement, memberAccountId),
       );

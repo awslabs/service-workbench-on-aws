@@ -494,6 +494,23 @@ describe('EnvironmentResourceService', () => {
 
   describe('addToKmsKeyPolicy', () => {
     it('add new principal to KMS policy with no principals', async () => {
+      environmentResourceService._settings = {
+        get: settingName => {
+          if (settingName === 'studyDataKmsPolicyWorkspaceSid') {
+            return 'KMS Policy';
+          }
+          if (settingName === 'studyDataKmsKeyArn') {
+            return 'studyKmsKeyAlias';
+          }
+          return undefined;
+        },
+        getBoolean: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return false;
+          }
+          return undefined;
+        },
+      };
       AWSMock.mock('KMS', 'describeKey', (params, callback) => {
         expect(params).toMatchObject({
           KeyId: 'studyKmsKeyAlias',
@@ -545,9 +562,6 @@ describe('EnvironmentResourceService', () => {
           if (settingName === 'studyDataKmsKeyArn') {
             return 'studyKmsKeyAlias';
           }
-          if (settingName === 'enableEgressStore') {
-            return 'true';
-          }
           if (settingName === 'egressStoreBucketName') {
             return 'test-egressStoreBucketName';
           }
@@ -556,6 +570,12 @@ describe('EnvironmentResourceService', () => {
           }
           if (settingName === 'egressStoreKmsPolicyWorkspaceSid') {
             return 'test-egressStoreKmsPolicyWorkspaceSid';
+          }
+          return undefined;
+        },
+        getBoolean: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return true;
           }
           return undefined;
         },
@@ -604,9 +624,6 @@ describe('EnvironmentResourceService', () => {
           if (settingName === 'studyDataKmsKeyArn') {
             return 'studyKmsKeyAlias';
           }
-          if (settingName === 'enableEgressStore') {
-            return 'true';
-          }
           if (settingName === 'egressStoreBucketName') {
             return 'test-egressStoreBucketName';
           }
@@ -615,6 +632,12 @@ describe('EnvironmentResourceService', () => {
           }
           if (settingName === 'egressStoreKmsPolicyWorkspaceSid') {
             return 'test-egressStoreKmsPolicyWorkspaceSid';
+          }
+          return undefined;
+        },
+        getBoolean: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return true;
           }
           return undefined;
         },
@@ -638,6 +661,23 @@ describe('EnvironmentResourceService', () => {
     });
 
     it('add new principal to KMS policy with multiple principals', async () => {
+      environmentResourceService._settings = {
+        get: settingName => {
+          if (settingName === 'studyDataKmsPolicyWorkspaceSid') {
+            return 'KMS Policy';
+          }
+          if (settingName === 'studyDataKmsKeyArn') {
+            return 'studyKmsKeyAlias';
+          }
+          return undefined;
+        },
+        getBoolean: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return false;
+          }
+          return undefined;
+        },
+      };
       const oldKMSPolicy = {
         Statement: [
           {
@@ -693,6 +733,23 @@ describe('EnvironmentResourceService', () => {
 
   describe('removeFromKmsKeyPolicy', () => {
     it('remove last left principal from KMS policy', async () => {
+      environmentResourceService._settings = {
+        get: settingName => {
+          if (settingName === 'studyDataKmsPolicyWorkspaceSid') {
+            return 'KMS Policy';
+          }
+          if (settingName === 'studyDataKmsKeyArn') {
+            return 'studyKmsKeyAlias';
+          }
+          return undefined;
+        },
+        getBoolean: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return false;
+          }
+          return undefined;
+        },
+      };
       const oldKMSPolicy = {
         Statement: [
           {
@@ -746,9 +803,6 @@ describe('EnvironmentResourceService', () => {
           if (settingName === 'studyDataKmsKeyArn') {
             return 'studyKmsKeyAlias';
           }
-          if (settingName === 'enableEgressStore') {
-            return 'true';
-          }
           if (settingName === 'egressStoreBucketName') {
             return 'test-egressStoreBucketName';
           }
@@ -757,6 +811,12 @@ describe('EnvironmentResourceService', () => {
           }
           if (settingName === 'egressStoreKmsPolicyWorkspaceSid') {
             return 'test-egressStoreKmsPolicyWorkspaceSid';
+          }
+          return undefined;
+        },
+        getBoolean: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return true;
           }
           return undefined;
         },
@@ -800,6 +860,20 @@ describe('EnvironmentResourceService', () => {
     });
 
     it('remove one principal from KMS policy with multiple principals', async () => {
+      environmentResourceService._settings = {
+        get: settingName => {
+          if (settingName === 'studyDataKmsKeyArn') {
+            return 'studyKmsKeyAlias';
+          }
+          return undefined;
+        },
+        getBoolean: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return false;
+          }
+          return undefined;
+        },
+      };
       const oldKMSPolicy = {
         Statement: [
           {
