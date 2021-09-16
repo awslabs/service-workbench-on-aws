@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [3.4.0](https://github.com/awslabs/service-workbench-on-aws/compare/v3.3.1...v3.4.0) (2021-09-16)
+
+
+### Features
+
+* display Configuration Name and Instance Type on Workspace details card ([#669](https://github.com/awslabs/service-workbench-on-aws/issues/669)) ([f0fa819](https://github.com/awslabs/service-workbench-on-aws/commit/f0fa8191a22c33c9b669d56764cac676e6a1aaaa))
+* Pre-populate variable values in input section of new workspace configuration ([#680](https://github.com/awslabs/service-workbench-on-aws/issues/680)) ([8ce51b2](https://github.com/awslabs/service-workbench-on-aws/commit/8ce51b200148108ac869e1a8ae26286b65c94cc1))
+
+
+### Bug Fixes
+
+* add label to stop timeout during e2e test ([#688](https://github.com/awslabs/service-workbench-on-aws/issues/688)) ([ff0b4cc](https://github.com/awslabs/service-workbench-on-aws/commit/ff0b4ccbb8349df7262469411bf23729be174621))
+* add method to get new token for adv tests ([#638](https://github.com/awslabs/service-workbench-on-aws/issues/638)) ([01a87b1](https://github.com/awslabs/service-workbench-on-aws/commit/01a87b1d314f114e21cdc32008070d8c40e1a504))
+* delete empty test file ([#622](https://github.com/awslabs/service-workbench-on-aws/issues/622)) ([466b3d1](https://github.com/awslabs/service-workbench-on-aws/commit/466b3d1452b57969c5bbee15638209d7c96d3d81))
+* emr config ([#619](https://github.com/awslabs/service-workbench-on-aws/issues/619)) ([2e22acc](https://github.com/awslabs/service-workbench-on-aws/commit/2e22acc808876558a41ddd43d24ed2abf9577dd4))
+* end2end test terminated existing ws ([#685](https://github.com/awslabs/service-workbench-on-aws/issues/685)) ([9c74ac7](https://github.com/awslabs/service-workbench-on-aws/commit/9c74ac794aa75b4292291b9fa2f3768bed76eb81))
+* github cypress setup ([#686](https://github.com/awslabs/service-workbench-on-aws/issues/686)) ([23f6d03](https://github.com/awslabs/service-workbench-on-aws/commit/23f6d0366f1b82eb569fe9fc363f47248d6e9011))
+* go bug during deployment is handled ([#641](https://github.com/awslabs/service-workbench-on-aws/issues/641)) ([4c21a30](https://github.com/awslabs/service-workbench-on-aws/commit/4c21a305943f8c3b8436a0f4f534594ca5425ad4))
+* integ tests ([#711](https://github.com/awslabs/service-workbench-on-aws/issues/711)) ([a9d0138](https://github.com/awslabs/service-workbench-on-aws/commit/a9d01380395002ad952615ccccca2513bd8e40b1))
+* no sagemaker autostop or EC2 stop lag ([#703](https://github.com/awslabs/service-workbench-on-aws/issues/703)) ([8cb199b](https://github.com/awslabs/service-workbench-on-aws/commit/8cb199b8093f5e799d2d87c228930a4929ebebb7))
+* properly handle very long error messages on env update ([#705](https://github.com/awslabs/service-workbench-on-aws/issues/705)) ([d920abd](https://github.com/awslabs/service-workbench-on-aws/commit/d920abd8666eaf905810680aec24428e8ce46124))
+* remove tests blocking pipeline ([#648](https://github.com/awslabs/service-workbench-on-aws/issues/648)) ([d28c2c4](https://github.com/awslabs/service-workbench-on-aws/commit/d28c2c465731ca62ba9d9c2e1ec631e10f9b01a2))
+* remove workspace test that polls workflow ([#631](https://github.com/awslabs/service-workbench-on-aws/issues/631)) ([f11272d](https://github.com/awslabs/service-workbench-on-aws/commit/f11272d3e5e175cedaa017c3c811118d3e97932f))
+* reset ForceLogout component upon relogin ([#640](https://github.com/awslabs/service-workbench-on-aws/issues/640)) ([5c2aaee](https://github.com/awslabs/service-workbench-on-aws/commit/5c2aaee79428c3d4e2bceb115b77a6eb477a6add))
+* revert the changes to prepopulate configuration variables ([#690](https://github.com/awslabs/service-workbench-on-aws/issues/690)) ([db3e9be](https://github.com/awslabs/service-workbench-on-aws/commit/db3e9be8ffd9ba8dd2e1bb7796187fe4790f3acd))
+* save the config variables when they are pre-populated ([#693](https://github.com/awslabs/service-workbench-on-aws/issues/693)) ([b73dbba](https://github.com/awslabs/service-workbench-on-aws/commit/b73dbbaf510bba2a46304b10af120f35d25145c9))
+* static namespace bug fix ([#615](https://github.com/awslabs/service-workbench-on-aws/issues/615)) ([bacb469](https://github.com/awslabs/service-workbench-on-aws/commit/bacb469d048601cc73f10a3d7145197fbeae8c62))
+* Static namespace fix linted ([#629](https://github.com/awslabs/service-workbench-on-aws/issues/629)) ([f81a04f](https://github.com/awslabs/service-workbench-on-aws/commit/f81a04f777601060c4f741781918374aef0dba25))
+* sync UI and API func ([#709](https://github.com/awslabs/service-workbench-on-aws/issues/709)) ([a188b3c](https://github.com/awslabs/service-workbench-on-aws/commit/a188b3c918bea677acf5115cec006f50782e83bb))
+* update int test readme to include adv test info ([#634](https://github.com/awslabs/service-workbench-on-aws/issues/634)) ([5453f5e](https://github.com/awslabs/service-workbench-on-aws/commit/5453f5e133672bc137bb61d5c3b8bf097152a851))
+
 ### [3.3.1](https://github.com/awslabs/service-workbench-on-aws/compare/v3.3.0...v3.3.1) (2021-07-26)
 
 
