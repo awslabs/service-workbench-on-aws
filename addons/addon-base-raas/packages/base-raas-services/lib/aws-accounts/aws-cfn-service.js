@@ -456,7 +456,7 @@ class AwsCfnService extends Service {
     };
 
     fieldsToUpdate.cfnStackId = stack.StackId;
-    fieldsToUpdate.externalId = accountEntity.externalId || 'workbench';
+    fieldsToUpdate.externalId = accountEntity.externalId;
     fieldsToUpdate.vpcId = findOutputValue('VPC');
     fieldsToUpdate.encryptionKeyArn = findOutputValue('EncryptionKeyArn');
     fieldsToUpdate.roleArn = findOutputValue('CrossAccountExecutionRoleArn');
