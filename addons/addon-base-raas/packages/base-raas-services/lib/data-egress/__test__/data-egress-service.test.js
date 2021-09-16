@@ -558,14 +558,15 @@ describe('DataEgressService', () => {
 
     function mockDeleteEgressStoreRole(egressStoreId) {
       const policyArn = 'test-PermissionBoundaryArn';
-      AWSMock.mock('IAM', 'getRole', (params, callback) => {
+      AWSMock.mock('IAM', 'listAttachedRolePolicies', (params, callback) => {
         expect(params.RoleName).toEqual(`study-${egressStoreId}`);
         callback(null, {
-          Role: {
-            PermissionsBoundary: {
-              PermissionsBoundaryArn: policyArn,
+          AttachedPolicies: [
+            {
+              PolicyName: 'test-PermissionBoundaryName',
+              PolicyArn: policyArn,
             },
-          },
+          ],
         });
       });
       AWSMock.mock('IAM', 'detachRolePolicy', (params, callback) => {
