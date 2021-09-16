@@ -191,6 +191,53 @@ describe('AwsAccountService', () => {
       }
     });
 
+    it('should not share appstream image if member account is same as main account', async () => {
+      // BUILD
+      const requestContext = {};
+      service.updateEnvironmentInstanceFilesBucketPolicy = jest.fn();
+      uuidMock.mockReturnValueOnce('abc-123-456');
+      settingsService.get = jest.fn(() => {
+        return awsAccount.accountId;
+      });
+      service.shareAppStreamImageWithMemberAccount = jest.fn();
+
+      // OPERATE
+      await service.create(requestContext, awsAccount);
+
+      // CHECK
+      expect(service.shareAppStreamImageWithMemberAccount).not.toHaveBeenCalled();
+    });
+
+    it('should share appstream image if member account is different than main account', async () => {
+      // BUILD
+      const requestContext = {};
+      service.updateEnvironmentInstanceFilesBucketPolicy = jest.fn();
+      uuidMock.mockReturnValueOnce('abc-123-456');
+      const mainAccountId = '0987654321';
+      settingsService.get = jest.fn(() => {
+        return mainAccountId;
+      });
+      settingsService.getBoolean = jest.fn(() => {
+        return true;
+      });
+      service.shareAppStreamImageWithMemberAccount = jest.fn();
+      const appstreamAwsAccount = {
+        name: 'my-aws-account',
+        accountId: '012345678998',
+        appStreamImageName: 'sampleAppStreamImageName',
+      };
+
+      // OPERATE
+      await service.create(requestContext, appstreamAwsAccount);
+
+      // CHECK
+      expect(service.shareAppStreamImageWithMemberAccount).toHaveBeenCalledWith(
+        requestContext,
+        appstreamAwsAccount.accountId,
+        appstreamAwsAccount.appStreamImageName,
+      );
+    });
+
     it('should save awsAccount in the database with a new uuid', async () => {
       // BUILD
       const requestContext = {};
