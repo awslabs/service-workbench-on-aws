@@ -28,6 +28,7 @@ const settingKeys = {
   tableName: 'dbAwsAccounts',
   environmentInstanceFiles: 'environmentInstanceFiles',
   isAppStreamEnabled: 'isAppStreamEnabled',
+  swbMainAccount: 'mainAcct',
 };
 
 class AwsAccountsService extends Service {
@@ -171,9 +172,15 @@ class AwsAccountsService extends Service {
     });
 
     // Only try to shareAppStreamImage with member account if AppStream is enabled and appStreamImageName is provided
-    if (this.settings.getBoolean(settingKeys.isAppStreamEnabled) && rawData.appStreamImageName !== undefined) {
+    // and also that the main account ID is not equal to the member account being added
+    const mainAccountId = this.settings.get(settingKeys.swbMainAccount);
+    const accountId = rawData.accountId;
+    if (
+      this.settings.getBoolean(settingKeys.isAppStreamEnabled) &&
+      rawData.appStreamImageName !== undefined &&
+      mainAccountId !== accountId
+    ) {
       const appStreamImageName = rawData.appStreamImageName;
-      const accountId = rawData.accountId;
       await this.shareAppStreamImageWithMemberAccount(requestContext, accountId, appStreamImageName);
     }
 
