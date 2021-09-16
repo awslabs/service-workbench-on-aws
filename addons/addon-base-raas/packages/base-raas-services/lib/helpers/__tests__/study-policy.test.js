@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const { StudyPolicy } = require('../iam/study-policy');
 
 describe('study-policy', () => {
