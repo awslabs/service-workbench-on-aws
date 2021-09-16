@@ -21,7 +21,6 @@ All notable changes to this project will be documented in this file. See [standa
 * properly handle very long error messages on env update ([#705](https://github.com/awslabs/service-workbench-on-aws/issues/705)) ([d920abd](https://github.com/awslabs/service-workbench-on-aws/commit/d920abd8666eaf905810680aec24428e8ce46124))
 * reset ForceLogout component upon relogin ([#640](https://github.com/awslabs/service-workbench-on-aws/issues/640)) ([5c2aaee](https://github.com/awslabs/service-workbench-on-aws/commit/5c2aaee79428c3d4e2bceb115b77a6eb477a6add))
 * static namespace bug fix ([#615](https://github.com/awslabs/service-workbench-on-aws/issues/615)) ([bacb469](https://github.com/awslabs/service-workbench-on-aws/commit/bacb469d048601cc73f10a3d7145197fbeae8c62))
-* Static namespace fix linted ([#629](https://github.com/awslabs/service-workbench-on-aws/issues/629)) ([f81a04f](https://github.com/awslabs/service-workbench-on-aws/commit/f81a04f777601060c4f741781918374aef0dba25))
 * sync UI and API func ([#709](https://github.com/awslabs/service-workbench-on-aws/issues/709)) ([a188b3c](https://github.com/awslabs/service-workbench-on-aws/commit/a188b3c918bea677acf5115cec006f50782e83bb))
 * update int test readme to include adv test info ([#634](https://github.com/awslabs/service-workbench-on-aws/issues/634)) ([5453f5e](https://github.com/awslabs/service-workbench-on-aws/commit/5453f5e133672bc137bb61d5c3b8bf097152a851))
 
