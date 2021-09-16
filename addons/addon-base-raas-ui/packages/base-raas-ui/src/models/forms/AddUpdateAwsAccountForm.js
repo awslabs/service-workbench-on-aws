@@ -31,6 +31,11 @@ const addUpdateBaseAwsAccountFormFields = {
     placeholder: 'Type description for this AWS account',
     rules: 'required|string',
   },
+  externalId: {
+    label: 'External ID',
+    placeholder: 'Type external ID for this AWS account',
+    rules: 'required|string|between:1,300',
+  },
 };
 
 const addUpdateAwsAccountAppStreamFormFields = {
