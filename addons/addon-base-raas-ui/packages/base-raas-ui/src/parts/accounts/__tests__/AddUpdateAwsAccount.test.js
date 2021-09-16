@@ -62,6 +62,7 @@ describe('AddAwsAccount', () => {
       name: 'MyResearchProjectAccount',
       accountId: '012345678910',
       description: 'This is my research project account',
+      externalId: 'sampleExternalId',
     };
     awsAccountsStore.addAwsAccount.mockImplementationOnce(() => {
       return { ...component.awsAccount, id: 'mockID' };
