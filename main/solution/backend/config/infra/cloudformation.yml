@@ -740,14 +740,17 @@ Resources:
               - appstream:UpdateImagePermissions
             Resource:
               - !Sub 'arn:aws:appstream:${AWS::Region}:${AWS::AccountId}:image/ServiceWorkbench*'
-          - Effect: Allow
-            Action:
-              - iam:CreateRole
-            Resource:
-              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/study-*'
-            Condition:
-              StringEquals:
-                iam:PermissionsBoundary: !Ref PermissionBoundaryPolicyStudyBucket
+          - !If
+            - EnableEgressStore
+            - Effect: Allow
+              Action:
+                - iam:CreateRole
+              Condition:
+                StringEquals:
+                  iam:PermissionsBoundary: !Ref PermissionBoundaryPolicyStudyBucket
+              Resource:
+                - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/study-*'
+            - !Ref 'AWS::NoValue'
           - Effect: Allow
             Action:
               - iam:AttachRolePolicy
@@ -761,6 +764,7 @@ Resources:
 
   PermissionBoundaryPolicyStudyBucket:
     Type: AWS::IAM::ManagedPolicy
+    Condition: EnableEgressStore
     Properties:
       Description: Permission boundary for study bucket
       ManagedPolicyName: '${self:custom.settings.permissionBoundaryPolicyStudyBucket}'
