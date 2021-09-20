@@ -582,7 +582,16 @@ describe('DataEgressService', () => {
         callback();
       });
     }
-    it('should successfully delete egress store while egress store is not touched since created', async () => {
+
+    it('should successfully delete egress store that is in CREATED state: deleteEgressStoreInCreatedStateTest = true', async () => {
+      await deleteEgressStoreInCreatedStateTest(true);
+    });
+
+    it('should successfully delete egress store that is in CREATED state: deleteEgressStoreInCreatedStateTest = false', async () => {
+      await deleteEgressStoreInCreatedStateTest(false);
+    });
+
+    async function deleteEgressStoreInCreatedStateTest(isAbleToSubmitEgressRequest) {
       dataEgressService.removeEgressStoreBucketPolicy = jest.fn();
       const s3Policy = testS3PolicyFn();
       dataEgressService._settings = {
@@ -608,7 +617,7 @@ describe('DataEgressService', () => {
           s3BucketName: 'test-s3BucketName',
           s3BucketPath: 'test-s3BucketPath',
           id: egressStoreId,
-          isAbleToSubmitEgressRequest: false,
+          isAbleToSubmitEgressRequest,
         },
       ]);
       const requestContext = {};
@@ -668,7 +677,7 @@ describe('DataEgressService', () => {
         },
         'test-accountId',
       );
-    });
+    }
 
     it('should remove bucket policy', async () => {
       dataEgressService.getS3BucketAndPolicy = jest.fn().mockResolvedValueOnce({
