@@ -215,17 +215,13 @@ class DataEgressService extends Service {
     }
     const s3Service = await this.service('s3Service');
     const egressStoreStatus = egressStoreInfo.status;
-    const isEgressStoreNotTouched =
-      egressStoreStatus.toUpperCase() === CREATED_STATUS_CODE && egressStoreInfo.isAbleToSubmitEgressRequest === false;
 
     if (egressStoreStatus.toUpperCase() === PROCESSING_STATUS_CODE) {
       throw this.boom.forbidden(
-        `Egress store: ${egressStoreInfo.id} is still in processing. The egress store is not terminated and the workspce can not be terminated before egress request is processed.`,
+        `Egress store: ${egressStoreInfo.id} is still in processing. The egress store is not terminated and the workspace can not be terminated before egress request is processed.`,
         true,
       );
-    } else if (egressStoreStatus.toUpperCase() === PROCESSED_STATUS_CODE || isEgressStoreNotTouched) {
-      // ONLY terminate the egress store if it has been processed or the egress store is empty
-
+    } else if ([PROCESSED_STATUS_CODE, CREATED_STATUS_CODE].includes(egressStoreStatus.toUpperCase())) {
       try {
         await s3Service.clearPath(egressStoreInfo.s3BucketName, egressStoreInfo.s3BucketPath);
       } catch (error) {
