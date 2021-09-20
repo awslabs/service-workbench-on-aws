@@ -204,7 +204,7 @@ egressNotificationTopicName: ${self:custom.settings.namespace}-EgressTopic
 # =========================================================================================================
 
 # Determine whether workspace should be accessible only through AppStream
-# NOTE: Once the isAppStremEnabled is set to true, the AppStrem feature will be enabled and can NOT be toggled off.
+# NOTE: Once the isAppStreamEnabled is set to true, the AppStream feature will be enabled and can NOT be toggled off.
 # If you toggle the AppStream feature from true to false and redeploy the whole solution, the backend stack deployment shold error out with following message:
 # Error validating existing stack policy: Unknown logical id 'LogicalResourceId/AppStream*' in statement {} - stack policies can only be applied to logical ids referenced in the template
 # Stack policies are applied here: addons/addon-stack-policy/packages/stack-policy/lib/steps/update-cfn-stack-policy.js
