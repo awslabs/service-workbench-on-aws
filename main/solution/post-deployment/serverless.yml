@@ -65,7 +65,7 @@ custom:
       bucketPrefix: service-catalog-products/
       localDir: ../../../addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/service-catalog
   serverlessIfElse:
-    - If: '"${self:custom.settings.enableEgressStore}" == "false"'
+    - If: '"${file(./bool-to-str.js)}" == "false"'
       Exclude:
         - functions.egressStoreObjectsHandler
 

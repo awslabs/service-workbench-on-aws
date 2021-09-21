@@ -49,13 +49,12 @@ class ScEnvironmentButtons extends React.Component {
   };
 
   getEgressStoreDetailsStore = () => {
-    if (enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE')
-      return this.props.scEnvironmentEgressStoreDetailStore;
+    if (enableEgressStore) return this.props.scEnvironmentEgressStoreDetailStore;
     return null;
   };
 
   handleTerminate = async () => {
-    if (enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE') {
+    if (enableEgressStore) {
       const egressStoreDetailsStore = this.getEgressStoreDetailsStore();
       if (!egressStoreDetailsStore) {
         await this.handleAction(async () => {
@@ -230,26 +229,21 @@ class ScEnvironmentButtons extends React.Component {
               Edit CIDRs
             </Button>
           )}
-          {enableEgressStore &&
-            enableEgressStore.toUpperCase() === 'TRUE' &&
-            state.canTerminate &&
-            !state.key.includes('FAILED') && (
-              <Button
-                floated="left"
-                basic
-                size="mini"
-                className="mt1 mb1 ml2"
-                toggle
-                active={egressStoreButtonActive}
-                onClick={this.handleEgressStoreToggle}
-              >
-                Egress Store
-              </Button>
-            )}
+          {enableEgressStore && state.canTerminate && !state.key.includes('FAILED') && (
+            <Button
+              floated="left"
+              basic
+              size="mini"
+              className="mt1 mb1 ml2"
+              toggle
+              active={egressStoreButtonActive}
+              onClick={this.handleEgressStoreToggle}
+            >
+              Egress Store
+            </Button>
+          )}
         </div>
-        {enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE' && egressStoreButtonActive && (
-          <ScEnvironmentEgressStoreDetail scEnvironment={env} />
-        )}
+        {enableEgressStore && egressStoreButtonActive && <ScEnvironmentEgressStoreDetail scEnvironment={env} />}
         {canConnect && connectionsButtonActive && <ScEnvironmentConnections scEnvironment={env} />}
         {editCidrButtonActive && <ScEnvironmentUpdateCidrs scEnvironment={env} onCancel={this.handleCidrEditToggle} />}
       </>

@@ -189,6 +189,12 @@ describe('EnvironmentResourceService', () => {
         }
         return undefined;
       },
+      getBoolean: settingName => {
+        if (settingName === 'enableEgressStore') {
+          return false;
+        }
+        return undefined;
+      },
     };
   });
 
@@ -545,9 +551,6 @@ describe('EnvironmentResourceService', () => {
           if (settingName === 'studyDataKmsKeyArn') {
             return 'studyKmsKeyAlias';
           }
-          if (settingName === 'enableEgressStore') {
-            return 'true';
-          }
           if (settingName === 'egressStoreBucketName') {
             return 'test-egressStoreBucketName';
           }
@@ -556,6 +559,12 @@ describe('EnvironmentResourceService', () => {
           }
           if (settingName === 'egressStoreKmsPolicyWorkspaceSid') {
             return 'test-egressStoreKmsPolicyWorkspaceSid';
+          }
+          return undefined;
+        },
+        getBoolean: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return true;
           }
           return undefined;
         },
@@ -604,9 +613,6 @@ describe('EnvironmentResourceService', () => {
           if (settingName === 'studyDataKmsKeyArn') {
             return 'studyKmsKeyAlias';
           }
-          if (settingName === 'enableEgressStore') {
-            return 'true';
-          }
           if (settingName === 'egressStoreBucketName') {
             return 'test-egressStoreBucketName';
           }
@@ -615,6 +621,12 @@ describe('EnvironmentResourceService', () => {
           }
           if (settingName === 'egressStoreKmsPolicyWorkspaceSid') {
             return 'test-egressStoreKmsPolicyWorkspaceSid';
+          }
+          return undefined;
+        },
+        getBoolean: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return true;
           }
           return undefined;
         },
@@ -746,9 +758,6 @@ describe('EnvironmentResourceService', () => {
           if (settingName === 'studyDataKmsKeyArn') {
             return 'studyKmsKeyAlias';
           }
-          if (settingName === 'enableEgressStore') {
-            return 'true';
-          }
           if (settingName === 'egressStoreBucketName') {
             return 'test-egressStoreBucketName';
           }
@@ -757,6 +766,12 @@ describe('EnvironmentResourceService', () => {
           }
           if (settingName === 'egressStoreKmsPolicyWorkspaceSid') {
             return 'test-egressStoreKmsPolicyWorkspaceSid';
+          }
+          return undefined;
+        },
+        getBoolean: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return true;
           }
           return undefined;
         },

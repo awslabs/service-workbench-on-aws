@@ -119,9 +119,9 @@ describe('DataEgressService', () => {
   describe('create Egress Store', () => {
     it('should fail creating egress store without enable egress store feature', async () => {
       dataEgressService._settings = {
-        get: settingName => {
+        getBoolean: settingName => {
           if (settingName === 'enableEgressStore') {
-            return 'false';
+            return false;
           }
           return undefined;
         },
@@ -146,9 +146,9 @@ describe('DataEgressService', () => {
 
     it('should fail creating egress store with wrong schema', async () => {
       dataEgressService._settings = {
-        get: settingName => {
+        getBoolean: settingName => {
           if (settingName === 'enableEgressStore') {
-            return 'true';
+            return true;
           }
           if (settingName === 'egressStoreKmsKeyAliasArn') {
             return 'test-egressStoreKmsKeyAliasArn';
@@ -187,14 +187,17 @@ describe('DataEgressService', () => {
     it('should fail creating with create s3 path fail', async () => {
       dataEgressService._settings = {
         get: settingName => {
-          if (settingName === 'enableEgressStore') {
-            return 'true';
-          }
           if (settingName === 'egressStoreKmsKeyAliasArn') {
             return 'test-egressStoreKmsKeyAliasArn';
           }
           if (settingName === 'egressStoreBucketName') {
             return 'test-egressStoreBucketName';
+          }
+          return undefined;
+        },
+        getBoolean: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return true;
           }
           return undefined;
         },
@@ -238,14 +241,17 @@ describe('DataEgressService', () => {
       const s3Policy = testS3PolicyFn();
       dataEgressService._settings = {
         get: settingName => {
-          if (settingName === 'enableEgressStore') {
-            return 'true';
-          }
           if (settingName === 'egressStoreKmsKeyAliasArn') {
             return 'test-egressStoreKmsKeyAliasArn';
           }
           if (settingName === 'egressStoreBucketName') {
             return 'test-egressStoreBucketName';
+          }
+          return undefined;
+        },
+        getBoolean: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return true;
           }
           return undefined;
         },
@@ -329,9 +335,9 @@ describe('DataEgressService', () => {
   describe('delete Egress Store', () => {
     it('should fail deleting egress store without enable egress store feature', async () => {
       dataEgressService._settings = {
-        get: settingName => {
+        getBoolean: settingName => {
           if (settingName === 'enableEgressStore') {
-            return 'false';
+            return false;
           }
           return undefined;
         },
@@ -350,14 +356,17 @@ describe('DataEgressService', () => {
     it('should fail delete egress store with scanning the DDB table', async () => {
       dataEgressService._settings = {
         get: settingName => {
-          if (settingName === 'enableEgressStore') {
-            return 'true';
-          }
           if (settingName === 'egressStoreKmsKeyAliasArn') {
             return 'test-egressStoreKmsKeyAliasArn';
           }
           if (settingName === 'egressStoreBucketName') {
             return 'test-egressStoreBucketName';
+          }
+          return undefined;
+        },
+        getBoolean: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return true;
           }
           return undefined;
         },
@@ -383,14 +392,17 @@ describe('DataEgressService', () => {
       dataEgressService.removeEgressStoreBucketPolicy = jest.fn();
       dataEgressService._settings = {
         get: settingName => {
-          if (settingName === 'enableEgressStore') {
-            return 'true';
-          }
           if (settingName === 'egressStoreKmsKeyAliasArn') {
             return 'test-egressStoreKmsKeyAliasArn';
           }
           if (settingName === 'egressStoreBucketName') {
             return 'test-egressStoreBucketName';
+          }
+          return undefined;
+        },
+        getBoolean: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return true;
           }
           return undefined;
         },
@@ -407,14 +419,17 @@ describe('DataEgressService', () => {
     it('should fail delete egress store while egress store is in PROCESSING status', async () => {
       dataEgressService._settings = {
         get: settingName => {
-          if (settingName === 'enableEgressStore') {
-            return 'true';
-          }
           if (settingName === 'egressStoreKmsKeyAliasArn') {
             return 'test-egressStoreKmsKeyAliasArn';
           }
           if (settingName === 'egressStoreBucketName') {
             return 'test-egressStoreBucketName';
+          }
+          return undefined;
+        },
+        getBoolean: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return true;
           }
           return undefined;
         },
@@ -447,14 +462,17 @@ describe('DataEgressService', () => {
       const s3Policy = testS3PolicyFn();
       dataEgressService._settings = {
         get: settingName => {
-          if (settingName === 'enableEgressStore') {
-            return 'true';
-          }
           if (settingName === 'egressStoreKmsKeyAliasArn') {
             return 'test-egressStoreKmsKeyAliasArn';
           }
           if (settingName === 'egressStoreBucketName') {
             return 'test-egressStoreBucketName';
+          }
+          return undefined;
+        },
+        getBoolean: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return true;
           }
           return undefined;
         },
@@ -532,14 +550,17 @@ describe('DataEgressService', () => {
       const s3Policy = testS3PolicyFn();
       dataEgressService._settings = {
         get: settingName => {
-          if (settingName === 'enableEgressStore') {
-            return 'true';
-          }
           if (settingName === 'egressStoreKmsKeyAliasArn') {
             return 'test-egressStoreKmsKeyAliasArn';
           }
           if (settingName === 'egressStoreBucketName') {
             return 'test-egressStoreBucketName';
+          }
+          return undefined;
+        },
+        getBoolean: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return true;
           }
           return undefined;
         },
@@ -853,8 +874,11 @@ describe('DataEgressService', () => {
           if (settingName === 'egressNotificationBucketName') {
             return 'test-egressNotificationBucketName';
           }
+          return undefined;
+        },
+        getBoolean: settingName => {
           if (settingName === 'enableEgressStore') {
-            return 'false';
+            return false;
           }
           return undefined;
         },
@@ -875,8 +899,11 @@ describe('DataEgressService', () => {
           if (settingName === 'egressNotificationBucketName') {
             return 'test-egressNotificationBucketName';
           }
+          return undefined;
+        },
+        getBoolean: settingName => {
           if (settingName === 'enableEgressStore') {
-            return 'true';
+            return true;
           }
           return undefined;
         },
@@ -914,8 +941,11 @@ describe('DataEgressService', () => {
           if (settingName === 'egressNotificationBucketName') {
             return 'test-egressNotificationBucketName';
           }
+          return undefined;
+        },
+        getBoolean: settingName => {
           if (settingName === 'enableEgressStore') {
-            return 'true';
+            return true;
           }
           return undefined;
         },
@@ -955,11 +985,14 @@ describe('DataEgressService', () => {
           if (settingName === 'egressNotificationBucketName') {
             return 'test-egressNotificationBucketName';
           }
-          if (settingName === 'enableEgressStore') {
-            return 'true';
-          }
           if (settingName === 'egressNotificationSnsTopicArn') {
             return 'test-egressNotificationSnsTopicArn';
+          }
+          return undefined;
+        },
+        getBoolean: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return true;
           }
           return undefined;
         },
@@ -1039,11 +1072,14 @@ describe('DataEgressService', () => {
           if (settingName === 'egressNotificationBucketName') {
             return 'test-egressNotificationBucketName';
           }
-          if (settingName === 'enableEgressStore') {
-            return 'true';
-          }
           if (settingName === 'egressNotificationSnsTopicArn') {
             return 'test-egressNotificationSnsTopicArn';
+          }
+          return null;
+        },
+        getBoolean: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return true;
           }
           return null;
         },
@@ -1143,9 +1179,9 @@ describe('DataEgressService', () => {
   describe('should get Egress Store objects', () => {
     it('should get Egress Store objects', async () => {
       dataEgressService._settings = {
-        get: settingName => {
+        getBoolean: settingName => {
           if (settingName === 'enableEgressStore') {
-            return 'true';
+            return true;
           }
           return null;
         },
@@ -1195,9 +1231,9 @@ describe('DataEgressService', () => {
     });
     it('should error out without enable egress feature', async () => {
       dataEgressService._settings = {
-        get: settingName => {
+        getBoolean: settingName => {
           if (settingName === 'enableEgressStore') {
-            return 'false';
+            return false;
           }
           return null;
         },
@@ -1236,9 +1272,9 @@ describe('DataEgressService', () => {
 
     it('should error out with unauthorized user', async () => {
       dataEgressService._settings = {
-        get: settingName => {
+        getBoolean: settingName => {
           if (settingName === 'enableEgressStore') {
-            return 'true';
+            return true;
           }
           return null;
         },

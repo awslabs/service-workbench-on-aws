@@ -45,8 +45,8 @@ class ValidateByobStudyService extends Service {
     const [dataSourceAccountService, studyService] = await this.service(['dataSourceAccountService', 'studyService']);
 
     // try {
-    const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
-    if (!enableEgressStore || enableEgressStore.toUpperCase() !== 'TRUE') {
+    const enableEgressStore = this.settings.getBoolean(settingKeys.enableEgressStore);
+    if (!enableEgressStore) {
       this.log.info('Egress feature is not enabled, no need to validate BYOB Study access types.');
       return;
     }

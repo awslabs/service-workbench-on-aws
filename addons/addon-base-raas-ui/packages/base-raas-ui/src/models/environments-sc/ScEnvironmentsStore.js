@@ -109,7 +109,7 @@ const ScEnvironmentsStore = BaseStore.named('ScEnvironmentsStore')
       },
 
       async terminateScEnvironment(id) {
-        if (enableEgressStore && enableEgressStore.toUpperCase() === 'TRUE') {
+        if (enableEgressStore) {
           await deleteEgressStore(id);
         }
         await deleteScEnvironment(id);

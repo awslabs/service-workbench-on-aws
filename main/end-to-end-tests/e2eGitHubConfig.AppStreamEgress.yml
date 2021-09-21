@@ -4,4 +4,4 @@ solutionName: swb
 envType: secure
 createServiceCatalogPortfolio: true
 isAppStreamEnabled: true
-enableEgressStore: 'true'
+enableEgressStore: true

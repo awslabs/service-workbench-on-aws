@@ -221,14 +221,17 @@ describe('EnvironmentResourceService', () => {
   it('allocates egress resources only', async () => {
     service._settings = {
       get: settingName => {
-        if (settingName === 'enableEgressStore') {
-          return 'true';
-        }
         if (settingName === 'egressStoreKmsKeyArn') {
           return 'test-egressStoreKmsKeyArn';
         }
         if (settingName === 'egressStoreKmsPolicyWorkspaceSid') {
           return 'test-egressStoreKmsPolicyWorkspaceSid';
+        }
+        return undefined;
+      },
+      getBoolean: settingName => {
+        if (settingName === 'enableEgressStore') {
+          return true;
         }
         return undefined;
       },
@@ -254,14 +257,17 @@ describe('EnvironmentResourceService', () => {
   it('should update Egress KMS Policy', async () => {
     service._settings = {
       get: settingName => {
-        if (settingName === 'enableEgressStore') {
-          return 'true';
-        }
         if (settingName === 'egressStoreKmsKeyArn') {
           return 'test-egressStoreKmsKeyArn';
         }
         if (settingName === 'egressStoreKmsPolicyWorkspaceSid') {
           return 'test-egressStoreKmsPolicyWorkspaceSid';
+        }
+        return undefined;
+      },
+      getBoolean: settingName => {
+        if (settingName === 'enableEgressStore') {
+          return true;
         }
         return undefined;
       },

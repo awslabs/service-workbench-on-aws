@@ -97,10 +97,10 @@ class DataEgressService extends Service {
   }
 
   async createEgressStore(requestContext, environment) {
-    const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
+    const enableEgressStore = this.settings.getBoolean(settingKeys.enableEgressStore);
     const by = _.get(requestContext, 'principalIdentifier.uid');
 
-    if (!enableEgressStore || enableEgressStore.toUpperCase() !== 'TRUE') {
+    if (!enableEgressStore) {
       throw this.boom.forbidden('Unable to create Egress store since this feature is disabled', true);
     }
 
@@ -187,9 +187,9 @@ class DataEgressService extends Service {
   }
 
   async terminateEgressStore(requestContext, environmentId) {
-    const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
+    const enableEgressStore = this.settings.getBoolean(settingKeys.enableEgressStore);
     const curUser = _.get(requestContext, 'principalIdentifier.uid');
-    if (!enableEgressStore || enableEgressStore.toUpperCase() !== 'TRUE') {
+    if (!enableEgressStore) {
       throw this.boom.forbidden('Unable to terminate Egress store since this feature is disabled', true);
     }
 
@@ -276,8 +276,8 @@ class DataEgressService extends Service {
   }
 
   async getEgressStore(requestContext, environmentId) {
-    const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
-    if (!enableEgressStore || enableEgressStore.toUpperCase() !== 'TRUE') {
+    const enableEgressStore = this.settings.getBoolean(settingKeys.enableEgressStore);
+    if (!enableEgressStore) {
       throw this.boom.forbidden('Unable to list objects in egress store since this feature is disabled', true);
     }
     const curUser = _.get(requestContext, 'principalIdentifier.uid');
@@ -362,9 +362,9 @@ class DataEgressService extends Service {
   }
 
   async notifySNS(requestContext, environmentId) {
-    const enableEgressStore = this.settings.get(settingKeys.enableEgressStore);
+    const enableEgressStore = this.settings.getBoolean(settingKeys.enableEgressStore);
     const curUser = _.get(requestContext, 'principalIdentifier.uid');
-    if (!enableEgressStore || enableEgressStore.toUpperCase() !== 'TRUE') {
+    if (!enableEgressStore) {
       throw this.boom.forbidden('Unable to create Egress store since this feature is disabled', true);
     }
 

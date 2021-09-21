@@ -49,15 +49,15 @@ describe('UpdateCfnStackPolicy', () => {
     service = await container.find('UpdateCfnStackPolicy');
     settings = await container.find('settings');
     settings.get = jest.fn(key => {
-      if (key === 'enableEgressStore') {
-        return 'true';
-      }
       if (key === 'backendStackName') {
         return 'backendStackName';
       }
       return undefined;
     });
     settings.getBoolean = jest.fn(key => {
+      if (key === 'enableEgressStore') {
+        return true;
+      }
       if (key === 'isAppStreamEnabled') {
         return true;
       }
@@ -369,15 +369,15 @@ describe('UpdateCfnStackPolicy', () => {
         ],
       };
       settings.get = jest.fn(key => {
-        if (key === 'enableEgressStore') {
-          return 'true';
-        }
         if (key === 'backendStackName') {
           return 'backendStackName';
         }
         return undefined;
       });
       settings.getBoolean = jest.fn(key => {
+        if (key === 'enableEgressStore') {
+          return true;
+        }
         if (key === 'isAppStreamEnabled') {
           return false;
         }
@@ -422,15 +422,15 @@ describe('UpdateCfnStackPolicy', () => {
         ],
       };
       settings.get = jest.fn(key => {
-        if (key === 'enableEgressStore') {
-          return 'false';
-        }
         if (key === 'backendStackName') {
           return 'backendStackName';
         }
         return undefined;
       });
       settings.getBoolean = jest.fn(key => {
+        if (key === 'enableEgressStore') {
+          return false;
+        }
         if (key === 'isAppStreamEnabled') {
           return true;
         }
@@ -453,15 +453,15 @@ describe('UpdateCfnStackPolicy', () => {
 
     it('should not update policy when Egress was disabled, but it was previously enabled', async () => {
       settings.get = jest.fn(key => {
-        if (key === 'enableEgressStore') {
-          return 'false';
-        }
         if (key === 'backendStackName') {
           return 'backendStackName';
         }
         return undefined;
       });
       settings.getBoolean = jest.fn(key => {
+        if (key === 'enableEgressStore') {
+          return false;
+        }
         if (key === 'isAppStreamEnabled') {
           return false;
         }
@@ -477,15 +477,15 @@ describe('UpdateCfnStackPolicy', () => {
 
     it('should not update policy when AppStream was disabled, but it was previously enabled', async () => {
       settings.get = jest.fn(key => {
-        if (key === 'enableEgressStore') {
-          return 'false';
-        }
         if (key === 'backendStackName') {
           return 'backendStackName';
         }
         return undefined;
       });
       settings.getBoolean = jest.fn(key => {
+        if (key === 'enableEgressStore') {
+          return false;
+        }
         if (key === 'isAppStreamEnabled') {
           return false;
         }

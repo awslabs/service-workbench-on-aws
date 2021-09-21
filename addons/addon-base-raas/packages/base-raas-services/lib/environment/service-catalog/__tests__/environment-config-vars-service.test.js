@@ -128,6 +128,15 @@ describe('EnvironmentSCService', () => {
       });
       return retValue;
     });
+    settingsService.getBoolean = jest.fn(getKey => {
+      let retValue;
+      Object.keys(settings).forEach(key => {
+        if (key === getKey) {
+          retValue = settings[key];
+        }
+      });
+      return retValue;
+    });
   }
 
   describe('resolveEnvConfigVars', () => {
@@ -340,7 +349,7 @@ describe('EnvironmentSCService', () => {
         environmentInstanceFiles: '{}',
         isAppStreamEnabled: 'true',
         solutionNamespace: 'initial-stack-1625689755737',
-        enableEgressStore: 'true',
+        enableEgressStore: true,
       });
       const requestContext = 'sampleRequestContext';
       const envId = 'sampleEnvId';
