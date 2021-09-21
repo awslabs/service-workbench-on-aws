@@ -38,6 +38,7 @@ class EnvironmentConfigVarsService extends Service {
   constructor() {
     super();
     this.dependency([
+      'aws',
       'userService',
       'environmentScService',
       'environmentScKeypairService',
@@ -227,13 +228,13 @@ class EnvironmentConfigVarsService extends Service {
     const iamPolicyDocument = await this.getEnvRolePolicy(requestContext, {
       environment,
       studies,
-      memberAccountId: accountId,
+      accountId,
     });
 
     const s3Mounts = await this.getS3Mounts(requestContext, {
       environment,
       studies,
-      memberAccountId: accountId,
+      accountId,
     });
 
     let egressStoreIamPolicyDocument = {};
@@ -244,7 +245,7 @@ class EnvironmentConfigVarsService extends Service {
       egressStoreIamPolicyDocument = await this.getEnvEgressStorePolicy(requestContext, {
         environment,
         egressStore: egressStoreMount,
-        memberAccountId: accountId,
+        accountId,
       });
     }
 

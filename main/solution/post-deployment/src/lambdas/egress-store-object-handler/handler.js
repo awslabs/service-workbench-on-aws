@@ -45,9 +45,21 @@ const handlerWithContainer = async (container, event) => {
   }
   const dataEgressService = await container.find('dataEgressService');
   const egressStoreInfo = await dataEgressService.getEgressStoreInfo(egressStoreId);
-  if (!egressStoreInfo.isAbleToSubmitEgressRequest) {
+  if (!egressStoreInfo.isAbleToSubmitEgressRequest && S3FileWasAdded(event.Records)) {
     await dataEgressService.enableEgressStoreSubmission(egressStoreInfo);
   }
+};
+
+const S3FileWasAdded = records => {
+  let fileWasAdded = false;
+  records.forEach(record => {
+    // Sometimes an S3 Put event is created for a file path/folder being created, but no actual file was placed in the bucket.
+    // In that scenario the file object size is 0
+    if (record.s3.object.size > 0) {
+      fileWasAdded = true;
+    }
+  });
+  return fileWasAdded;
 };
 
 // eslint-disable-next-line import/prefer-default-export

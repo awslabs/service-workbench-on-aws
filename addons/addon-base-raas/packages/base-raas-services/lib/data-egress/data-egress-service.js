@@ -27,6 +27,7 @@ const {
   getRevisedS3Statements,
   removeAccountFromStatement,
 } = require('../helpers/utils');
+const { StudyPolicy } = require('../helpers/iam/study-policy');
 
 const settingKeys = {
   tableName: 'dbEgressStore',
@@ -116,8 +117,10 @@ class DataEgressService extends Service {
       throw this.boom.badRequest(`Error in creating egress store:${folderName} in bucket: ${bucketName}`, true);
     }
 
-    // prepare info for ddb and update egress store info
     const egressStoreId = environment.id;
+    const roleArn = await this.createMainAccountEgressStoreRole(requestContext, egressStoreId);
+
+    // prepare info for ddb and update egress store info
     const creationTime = new Date().toISOString;
     const dbObject = {
       id: egressStoreId,
@@ -134,6 +137,7 @@ class DataEgressService extends Service {
       ver: 0,
       isAbleToSubmitEgressRequest: false,
       egressStoreObjectListLocation: null,
+      roleArn,
     };
 
     const lockService = await this.service('lockService');
@@ -175,6 +179,7 @@ class DataEgressService extends Service {
           arn: `arn:aws:s3:::${bucketName}/${environment.id}/`,
         },
       ],
+      roleArn,
     };
     const memberAccountId = await this.getMemberAccountId(requestContext, environment.id);
 
@@ -208,20 +213,15 @@ class DataEgressService extends Service {
         true,
       );
     }
-
     const s3Service = await this.service('s3Service');
     const egressStoreStatus = egressStoreInfo.status;
-    const isEgressStoreNotTouched =
-      egressStoreStatus.toUpperCase() === CREATED_STATUS_CODE && egressStoreInfo.isAbleToSubmitEgressRequest === false;
 
     if (egressStoreStatus.toUpperCase() === PROCESSING_STATUS_CODE) {
       throw this.boom.forbidden(
-        `Egress store: ${egressStoreInfo.id} is still in processing. The egress store is not terminated and the workspce can not be terminated before egress request is processed.`,
+        `Egress store: ${egressStoreInfo.id} is still in processing. The egress store is not terminated and the workspace can not be terminated before egress request is processed.`,
         true,
       );
-    } else if (egressStoreStatus.toUpperCase() === PROCESSED_STATUS_CODE || isEgressStoreNotTouched) {
-      // ONLY terminate the egress store if it has been processed or the egress store is empty
-
+    } else if ([PROCESSED_STATUS_CODE, CREATED_STATUS_CODE].includes(egressStoreStatus.toUpperCase())) {
       try {
         await s3Service.clearPath(egressStoreInfo.s3BucketName, egressStoreInfo.s3BucketPath);
       } catch (error) {
@@ -230,6 +230,7 @@ class DataEgressService extends Service {
           true,
         );
       }
+      await this.deleteMainAccountEgressStoreRole(egressStoreInfo.id);
 
       const lockService = await this.service('lockService');
       const egressStoreDdbLockId = `egress-store-ddb-access-${egressStoreInfo.id}`;
@@ -455,6 +456,11 @@ class DataEgressService extends Service {
     return new aws.sdk.KMS();
   }
 
+  async getIAM() {
+    const aws = await this.getAWS();
+    return new aws.sdk.IAM();
+  }
+
   async getAWS() {
     const aws = await this.service('aws');
     return aws;
@@ -535,6 +541,108 @@ class DataEgressService extends Service {
     const environmentScEntity = await environmentScService.mustFind(requestContext, { id: environmentId });
     const memberAccount = await environmentScService.getMemberAccount(requestContext, environmentScEntity);
     return memberAccount.accountId;
+  }
+
+  getMainAccountEgressStoreRole(egressStoreId) {
+    return `study-${egressStoreId}`;
+  }
+
+  getMainAccountEgressStoreRolePolicyName(egressStoreId) {
+    return `study-${egressStoreId}`;
+  }
+
+  /**
+   * Create the main account IAM Role  and Policy to allow a workspace on the member account to access
+   * the egress store S3 bucket
+   * @param requestContext
+   * @param egressStoreId
+   * @returns role Arn
+   */
+  async createMainAccountEgressStoreRole(requestContext, egressStoreId) {
+    const egressStoreBucketName = this.settings.get('egressStoreBucketName');
+    const kmsArn = await this.getKmsKeyIdArn();
+    const memberAccountId = await this.getMemberAccountId(requestContext, egressStoreId);
+    const mainAccountRoleName = this.getMainAccountEgressStoreRole(egressStoreId);
+    const permissionBoundaryArn = this.settings.get('permissionBoundaryPolicyStudyBucketArn');
+
+    const egressStudyPolicy = new StudyPolicy();
+
+    const study = {
+      bucket: egressStoreBucketName,
+      folder: [egressStoreId],
+      permission: {
+        read: true,
+        write: true,
+      },
+      kmsArn,
+    };
+    egressStudyPolicy.addStudy(study);
+    const permissionPolicy = egressStudyPolicy.toPolicyDoc();
+
+    const iam = await this.getIAM();
+    const createPolicyResponse = await iam
+      .createPolicy({
+        PolicyName: this.getMainAccountEgressStoreRolePolicyName(egressStoreId),
+        PolicyDocument: JSON.stringify(permissionPolicy),
+      })
+      .promise();
+
+    const createRoleResponse = await iam
+      .createRole({
+        AssumeRolePolicyDocument: JSON.stringify({
+          Version: '2012-10-17',
+          Statement: [
+            {
+              Effect: 'Allow',
+              Principal: {
+                AWS: `arn:aws:iam::${memberAccountId}:root`,
+              },
+              Action: 'sts:AssumeRole',
+            },
+          ],
+        }),
+        Path: '/',
+        RoleName: mainAccountRoleName,
+        PermissionsBoundary: permissionBoundaryArn,
+      })
+      .promise();
+
+    await iam
+      .attachRolePolicy({
+        RoleName: mainAccountRoleName,
+        PolicyArn: createPolicyResponse.Policy.Arn,
+      })
+      .promise();
+
+    return createRoleResponse.Role.Arn;
+  }
+
+  async deleteMainAccountEgressStoreRole(egressStoreId) {
+    const iam = await this.getIAM();
+    const listRolePoliciesResponse = await iam
+      .listAttachedRolePolicies({
+        RoleName: this.getMainAccountEgressStoreRole(egressStoreId),
+      })
+      .promise();
+    const policyArns = listRolePoliciesResponse.AttachedPolicies.map(policy => {
+      return policy.PolicyArn;
+    });
+    await Promise.all(
+      policyArns.map(arn => {
+        return iam
+          .detachRolePolicy({
+            RoleName: this.getMainAccountEgressStoreRole(egressStoreId),
+            PolicyArn: arn,
+          })
+          .promise();
+      }),
+    );
+    await iam.deleteRole({ RoleName: this.getMainAccountEgressStoreRole(egressStoreId) }).promise();
+    await Promise.all(
+      policyArns.map(arn => {
+        return iam.deletePolicy({ PolicyArn: arn }).promise();
+      }),
+    );
   }
 
   async lockAndUpdate(lockId, dbKey, dbObject) {
