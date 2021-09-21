@@ -44,19 +44,29 @@ localApiEndpoint: http://localhost:4000
 # ec2LinuxConfigId: ""
 
 # Provide the id of the available EC2-Windows Service Catalog product
-# ec2WindowsEnvTypeId: "prod-sampleEC2Windows-pa-sampleEC2Windows"
+#ec2WindowsEnvTypeId: "prod-sampleEC2Windows-pa-sampleEC2Windows"
 # Provide the id of a configuration for an imported EC2-Windows environment
-# ec2WindowsConfigId: ""
+#ec2WindowsConfigId: ""
 
 # Provide the id of the available SageMaker Service Catalog product
-# sagemakerEnvTypeId: "prod-sampleSageMaker-pa-sampleSageMaker"
+#sagemakerEnvTypeId: "prod-sampleSageMaker-pa-sampleSageMaker"
 # Provide the id of a configuration for an imported SageMaker environment
-# sagemakerConfigId: ""
+#sagemakerConfigId: ""
 
 # Provide the id of the available EMR Service Catalog product
-# emrEnvTypeId: "prod-sampleEMR-pa-sampleEMR"
+#emrEnvTypeId: "prod-sampleEMR-pa-sampleEMR"
 # Provide the id of a configuration for an imported EMR environment
-# emrConfigId: ""
+#emrConfigId: ""
 
 # Provide the id of the external BYOB Data Source study
-# byobStudy: ""
+#byobStudy: ""
+
+# ------- CONFIG VALUES BELOW ONLY REQUIRED FOR TESTS IN "appstream-egress-enabled" FOLDER ------
+# Provide the id of a Sagemaker workspace actively running in SWB
+#sagemakerEnvId: ""
+
+# Provide the id of a Linux workspace actively running in SWB
+#linuxEnvId: ""
+
+# Provide the id of a Windows workspace actively running in SWB
+#windowsEnvId: ""
