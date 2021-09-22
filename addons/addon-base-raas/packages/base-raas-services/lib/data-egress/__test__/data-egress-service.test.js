@@ -317,7 +317,7 @@ describe('DataEgressService', () => {
 
       const createPolicyArn = 'test-policy-arn';
       AWSMock.mock('IAM', 'createPolicy', (params, callback) => {
-        expect(params.PolicyName).toEqual(`study-${environmentId}`);
+        expect(params.PolicyName).toEqual(`swb-study-${environmentId}`);
         callback(null, {
           Policy: {
             Arn: createPolicyArn,
@@ -325,7 +325,7 @@ describe('DataEgressService', () => {
         });
       });
       AWSMock.mock('IAM', 'createRole', (params, callback) => {
-        expect(params.RoleName).toEqual(`study-${environmentId}`);
+        expect(params.RoleName).toEqual(`swb-study-${environmentId}`);
         callback(null, {
           Role: {
             Arn: roleArn,
@@ -334,7 +334,7 @@ describe('DataEgressService', () => {
       });
       AWSMock.mock('IAM', 'attachRolePolicy', (params, callback) => {
         expect(params).toMatchObject({
-          RoleName: `study-${environmentId}`,
+          RoleName: `swb-study-${environmentId}`,
           PolicyArn: createPolicyArn,
         });
         callback();
@@ -559,7 +559,7 @@ describe('DataEgressService', () => {
     function mockDeleteEgressStoreRole(egressStoreId) {
       const policyArn = 'test-PermissionBoundaryArn';
       AWSMock.mock('IAM', 'listAttachedRolePolicies', (params, callback) => {
-        expect(params.RoleName).toEqual(`study-${egressStoreId}`);
+        expect(params.RoleName).toEqual(`swb-study-${egressStoreId}`);
         callback(null, {
           AttachedPolicies: [
             {
@@ -570,11 +570,11 @@ describe('DataEgressService', () => {
         });
       });
       AWSMock.mock('IAM', 'detachRolePolicy', (params, callback) => {
-        expect(params).toMatchObject({ RoleName: `study-${egressStoreId}`, PolicyArn: policyArn });
+        expect(params).toMatchObject({ RoleName: `swb-study-${egressStoreId}`, PolicyArn: policyArn });
         callback();
       });
       AWSMock.mock('IAM', 'deleteRole', (params, callback) => {
-        expect(params).toMatchObject({ RoleName: `study-${egressStoreId}` });
+        expect(params).toMatchObject({ RoleName: `swb-study-${egressStoreId}` });
         callback();
       });
       AWSMock.mock('IAM', 'deletePolicy', (params, callback) => {

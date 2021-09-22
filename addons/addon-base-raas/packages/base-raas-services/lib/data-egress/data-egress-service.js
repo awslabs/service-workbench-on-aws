@@ -18,15 +18,6 @@ const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { isAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 const createSchema = require('../schema/create-egress-store.json');
-const {
-  getStatementParamsFn,
-  listStatementParamsFn,
-  putStatementParamsFn,
-  updateS3BucketPolicy,
-  addAccountToStatement,
-  getRevisedS3Statements,
-  removeAccountFromStatement,
-} = require('../helpers/utils');
 const { StudyPolicy } = require('../helpers/iam/study-policy');
 
 const settingKeys = {
@@ -158,7 +149,7 @@ class DataEgressService extends Service {
     });
 
     const kmsArn = await this.getKmsKeyIdArn();
-    // Prepare egress store info for updating S3 bucket policy
+    // Prepare egress store info for returning status
     const egressStore = {
       id: `egress-store-${environment.id}`,
       readable: true,
@@ -181,12 +172,6 @@ class DataEgressService extends Service {
       ],
       roleArn,
     };
-    const memberAccountId = await this.getMemberAccountId(requestContext, environment.id);
-
-    const bucketPolicyLockId = `bucket-policy-access-${bucketName}`;
-    await lockService.tryWriteLockAndRun({ id: bucketPolicyLockId }, async () => {
-      await this.addEgressStoreBucketPolicy(requestContext, egressStore, memberAccountId);
-    });
 
     return egressStore;
   }
@@ -232,46 +217,12 @@ class DataEgressService extends Service {
       }
       await this.deleteMainAccountEgressStoreRole(egressStoreInfo.id);
 
-      const lockService = await this.service('lockService');
       const egressStoreDdbLockId = `egress-store-ddb-access-${egressStoreInfo.id}`;
       egressStoreInfo.status = TERMINATED_STATUS_CODE;
       egressStoreInfo.updatedBy = curUser;
       egressStoreInfo.updatedAt = new Date().toISOString();
       egressStoreInfo.isAbleToSubmitEgressRequest = false;
       await this.lockAndUpdate(egressStoreDdbLockId, egressStoreInfo.id, egressStoreInfo);
-
-      const egressStore = {
-        id: `egress-store-${environmentId}`,
-        readable: true,
-        writeable: true,
-        bucket: egressStoreInfo.s3BucketName,
-        prefix: egressStoreInfo.s3BucketPath,
-        envPermission: {
-          read: true,
-          write: true,
-        },
-        status: 'reachable',
-        createdBy: egressStoreInfo.createdBy,
-        workspaceId: environmentId,
-        projectId: egressStoreInfo.projectId,
-        resources: [
-          {
-            arn: `arn:aws:s3:::${egressStoreInfo.s3BucketName}/${environmentId}/`,
-          },
-        ],
-      };
-
-      // Remove egress store related s3 policy from the s3 bucket
-      const memberAccountId = await this.getMemberAccountId(requestContext, environmentId);
-
-      const lockId = `bucket-policy-access-${egressStoreInfo.s3BucketName}`;
-      await lockService.tryWriteLockAndRun({ id: lockId }, async () => {
-        await this.removeEgressStoreBucketPolicy(requestContext, egressStore, memberAccountId);
-      });
-      await this.audit(requestContext, {
-        action: 'terminated-egress-store',
-        body: egressStore,
-      });
     }
     return egressStoreInfo;
   }
@@ -370,16 +321,17 @@ class DataEgressService extends Service {
     }
 
     const egressStoreInfo = await this.getEgressStoreInfo(environmentId);
-    if (!egressStoreInfo.isAbleToSubmitEgressRequest) {
-      throw this.boom.badRequest(
-        `There are no updates in egress Store:${egressStoreInfo.id} and egress request submission is currently disabled. To submit another egress request, please update egress store objects. For more information, please contact Administrator.`,
-        true,
-      );
-    }
     const isEgressStoreOwner = egressStoreInfo.createdBy === curUser;
     if (!isAdmin(requestContext) && !isEgressStoreOwner) {
       throw this.boom.forbidden(
         `You are not authorized to submit egress request. Please contact your administrator for more information.`,
+        true,
+      );
+    }
+
+    if (!egressStoreInfo.isAbleToSubmitEgressRequest) {
+      throw this.boom.badRequest(
+        `There are no updates in egress Store:${egressStoreInfo.id} and egress request submission is currently disabled. To submit another egress request, please update egress store objects. For more information, please contact Administrator.`,
         true,
       );
     }
@@ -479,63 +431,6 @@ class DataEgressService extends Service {
     await snsService.publish(params).promise();
   }
 
-  async getS3BucketAndPolicy() {
-    const s3BucketName = this.settings.get(settingKeys.egressStoreBucketName);
-    const s3Client = await this.getS3();
-    const s3Policy = JSON.parse((await s3Client.getBucketPolicy({ Bucket: s3BucketName }).promise()).Policy);
-    if (!s3Policy.Statement) {
-      s3Policy.Statement = [];
-    }
-    return { s3BucketName, s3Policy };
-  }
-
-  async addEgressStoreBucketPolicy(requestContext, egressStore, memberAccountId) {
-    const { s3BucketName, s3Policy } = await this.getS3BucketAndPolicy();
-
-    const statementParamFunctions = [];
-    if (egressStore.envPermission.read) {
-      statementParamFunctions.push(getStatementParamsFn);
-    }
-    if (egressStore.envPermission.write) {
-      statementParamFunctions.push(putStatementParamsFn);
-    }
-    if (egressStore.envPermission.read || egressStore.envPermission.write) {
-      statementParamFunctions.push(listStatementParamsFn);
-    }
-    const revisedStatements = await getRevisedS3Statements(
-      s3Policy,
-      egressStore,
-      s3BucketName,
-      statementParamFunctions,
-      oldStatement => addAccountToStatement(oldStatement, memberAccountId),
-    );
-
-    const s3Client = await this.getS3();
-
-    await updateS3BucketPolicy(s3Client, s3BucketName, s3Policy, revisedStatements);
-
-    // Write audit event
-    await this.audit(requestContext, { action: 'add-egress-store-to-bucket-policy', body: s3Policy });
-  }
-
-  async removeEgressStoreBucketPolicy(requestContext, egressStore, memberAccountId) {
-    const { s3BucketName, s3Policy } = await this.getS3BucketAndPolicy();
-
-    const statementParamFunctions = [getStatementParamsFn, putStatementParamsFn, listStatementParamsFn];
-    const revisedStatement = await getRevisedS3Statements(
-      s3Policy,
-      egressStore,
-      s3BucketName,
-      statementParamFunctions,
-      oldStatement => removeAccountFromStatement(oldStatement, memberAccountId),
-    );
-
-    const s3Client = await this.getS3();
-    await updateS3BucketPolicy(s3Client, s3BucketName, s3Policy, revisedStatement);
-
-    await this.audit(requestContext, { action: 'remove-egress-store-from-bucket-policy', body: s3Policy });
-  }
-
   async getMemberAccountId(requestContext, environmentId) {
     const environmentScService = await this.service('environmentScService');
     const environmentScEntity = await environmentScService.mustFind(requestContext, { id: environmentId });
@@ -544,11 +439,11 @@ class DataEgressService extends Service {
   }
 
   getMainAccountEgressStoreRole(egressStoreId) {
-    return `study-${egressStoreId}`;
+    return `swb-study-${egressStoreId}`;
   }
 
   getMainAccountEgressStoreRolePolicyName(egressStoreId) {
-    return `study-${egressStoreId}`;
+    return `swb-study-${egressStoreId}`;
   }
 
   /**
