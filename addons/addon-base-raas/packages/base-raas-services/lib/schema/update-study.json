@@ -34,6 +34,9 @@
       "maxLength": 2048,
       "pattern": "^(arn:aws[a-zA-Z-]*:iam::[0-9]{12}:role[/]{1}[a-zA-Z0-9-]+)$"
     },
+    "tags": {
+      "type": "array"
+    },
     "resources": {
       "type": "array",
       "items": [

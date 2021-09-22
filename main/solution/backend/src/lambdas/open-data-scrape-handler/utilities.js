@@ -23,13 +23,13 @@ function normalizeKeys(obj) {
   }, {});
 }
 
-function basicProjection({ id, sha, name, description, resources, studyCategory }) {
+function basicProjection({ id, tags, name, description, resources, studyCategory }) {
   return {
     id,
     name,
     description,
     category: studyCategory,
-    sha,
+    tags,
     resources: resources.map(({ arn }) => ({ arn })),
   };
 }
