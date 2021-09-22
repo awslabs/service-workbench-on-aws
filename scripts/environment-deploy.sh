@@ -62,7 +62,10 @@ versionNumber="$(echo $versionLine | grep -o "[0-9]\.[0-9]\.[0-9]\|Beta" | head 
 # Get version date (or generate if beta)
 if [ "$versionNumber" == "Beta" ]
 then
-    versionDate="$(date +'%Y-%m-%d')"
+    # versionDate="$(date +'%Y-%m-%d')"
+    # instead of showing a date in the beta condition, show the latest release version
+    latestReleaseVersion="$(cat CHANGELOG.md | grep -o "[0-9]\.[0-9]\.[0-9]" | head -n 1)"
+    versionDate="Latest Release Version: $latestReleaseVersion"
 else
     versionDate="$(echo $versionLine | grep -o "[0-9][0-9][0-9][0-9]\-[0-9][0-9]\-[0-9][0-9]")"
 fi
@@ -76,12 +79,12 @@ then
     then
         # Yes-->Are they different from above?
         oldVersionNumber="$(cat "$FILE" | grep -o "[0-9]\.[0-9]\.[0-9]\|Beta" | head -n 1)"
-        oldVersionDate="$(cat "$FILE" | grep -o "[0-9][0-9][0-9][0-9]\-[0-9][0-9]\-[0-9][0-9]")"
+        oldVersionDate="$(cat "$FILE" | grep -o "[0-9][0-9][0-9][0-9]\-[0-9][0-9]\-[0-9][0-9]\|Latest Release Version: [0-9]\.[0-9]\.[0-9]")"
         if ([ "$oldVersionNumber" != "$versionNumber" ]) || ([ "$oldVersionDate" != "$versionDate" ])
         then
             # Yes-->Replace new with old
-            sed -i -e "s/versionNumber: '$oldVersionNumber/versionNumber: '$versionNumber/" $FILE
-            sed -i -e "s/versionDate: '$oldVersionDate/versionDate: '$versionDate/" $FILE
+            sed -i '' "s/versionNumber: '$oldVersionNumber/versionNumber: '$versionNumber/" $FILE
+            sed -i '' "s/versionDate: '$oldVersionDate/versionDate: '$versionDate/" $FILE
         fi
     else
         # No-->Append new
