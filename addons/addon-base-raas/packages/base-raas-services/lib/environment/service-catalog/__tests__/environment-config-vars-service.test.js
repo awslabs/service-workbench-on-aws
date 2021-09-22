@@ -64,6 +64,11 @@ const DataEgressService = require('../../../data-egress/data-egress-service.js')
 
 const EnvironmentConfigVarsService = require('../environment-config-vars-service');
 
+const createAdminContext = ({ uid = 'uid-admin' } = {}) => ({
+  principalIdentifier: { uid },
+  principal: { isAdmin: true, userRole: 'admin', status: 'active' },
+});
+
 describe('EnvironmentSCService', () => {
   let service = null;
   let environmentScService = null;
@@ -73,6 +78,7 @@ describe('EnvironmentSCService', () => {
   let environmentAmiService = null;
   let userService = null;
   let settingsService = null;
+  let dataEgressService = null;
 
   beforeEach(async () => {
     const container = new ServicesContainer();
@@ -99,6 +105,7 @@ describe('EnvironmentSCService', () => {
 
     // Get instance of the service we are testing
     service = await container.find('environmentConfigVarsService');
+    dataEgressService = await container.find('dataEgressService');
     environmentScService = await container.find('environmentScService');
     indexesService = await container.find('indexesService');
     awsAccountsService = await container.find('awsAccountsService');
@@ -342,7 +349,7 @@ describe('EnvironmentSCService', () => {
         solutionNamespace: 'initial-stack-1625689755737',
         enableEgressStore: 'true',
       });
-      const requestContext = 'sampleRequestContext';
+      const requestContext = createAdminContext();
       const envId = 'sampleEnvId';
       const envTypeId = 'sampleEnvTypeId';
       const envTypeConfigId = 'sampleEnvTypeConfigId';
@@ -375,6 +382,10 @@ describe('EnvironmentSCService', () => {
         };
       });
 
+      dataEgressService.getEgressStoreInfo = jest.fn(() => {
+        return { createdBy: 'sampleUserUid', roleArn: 'sampleMainAcctRoleArn' };
+      });
+
       envTypeConfigService.mustFind = jest.fn(() => {
         return { params: [{ value: 'ami-1234567890' }, { value: 'ami-0987654321' }] };
       });
@@ -390,7 +401,8 @@ describe('EnvironmentSCService', () => {
       });
 
       const expectedResponse = {
-        egressStoreIamPolicyDocument: '{}',
+        egressStoreIamPolicyDocument:
+          '{"Version":"2012-10-17","Statement":[{"Sid":"studyAssumeRoles","Action":["sts:AssumeRole"],"Effect":"Allow","Resource":["sampleMainAcctRoleArn"]}]}',
         accountId: '123456789012',
         adminKeyPairName: '',
         cidr: '192.168.xx.yy',

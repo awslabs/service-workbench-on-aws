@@ -344,7 +344,7 @@ class EnvironmentConfigVarsService extends Service {
     const isEgressStoreOwner = egressStoreInfo.createdBy === curUser;
     if (!isAdmin(requestContext) && !isEgressStoreOwner) {
       throw this.boom.forbidden(
-        `You are not authorized to terminate the egress store. Please contact your administrator.`,
+        `You are not authorized to access the attached egress store. Please contact your administrator.`,
         true,
       );
     }
