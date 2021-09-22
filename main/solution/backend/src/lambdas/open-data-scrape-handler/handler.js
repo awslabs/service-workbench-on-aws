@@ -26,7 +26,10 @@ const initHandler = (async () => {
   await container.initServices();
   const studyService = await container.find('studyService');
   const log = await container.find('log');
-  return newHandler({ studyService, log });
+  const aws = await container.find('aws');
+  const settings = await container.find('settings');
+  const openDataTagFilters = (await settings.get('openDataTagFilters')).split(',');
+  return newHandler({ aws, studyService, openDataTagFilters, log });
 })();
 
 // eslint-disable-next-line import/prefer-default-export

@@ -277,3 +277,5 @@ dbTableStudyPermissions: ${self:custom.settings.dbPrefix}-DbStudyPermissions
 
 # DynamoDB table name for KeyPairs
 dbTableKeyPairs: ${self:custom.settings.dbPrefix}-DbKeyPairs
+
+openDataTagFilters: 'genetic,genomic,life sciences,whole genome sequencing,STRIDES,cancer,population genetics,COVID-19,health,neuroimaging,neuroscience,cell biology,cell imaging,bioinformatics'

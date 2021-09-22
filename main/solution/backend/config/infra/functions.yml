@@ -19,6 +19,7 @@ openDataScrapeHandler:
     APP_DB_STUDIES_ACCOUNTID_INDEX: ${self:custom.settings.dbStudiesAccountIdIndex}
     APP_STUDY_DATA_BUCKET_NAME: ${self:custom.settings.studyDataBucketName}
     APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
+    APP_OPEN_DATA_TAG_FILTERS: ${self:custom.settings.openDataTagFilters}
 
   events:
     - schedule:
