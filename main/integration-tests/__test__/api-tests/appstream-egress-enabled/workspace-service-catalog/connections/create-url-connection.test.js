@@ -34,7 +34,7 @@ describe('Create URL scenarios', () => {
   describe('Create AppStream URL', () => {
     it('should return AppStream URL: SageMaker', async () => {
       // BUILD
-      const envId = '36f22de5-fefb-4f62-8ab4-e99ac4387ad4';
+      const envId = setup.defaults.sagemakerEnvId;
       const connectionId = 'id-0';
       const applicationName = 'Firefox';
       const sagemakerUrlPrefix = 'https://basicnotebookinstance';
@@ -83,7 +83,7 @@ describe('Create URL scenarios', () => {
       [
         'Windows',
         {
-          envId: '5360d995-fa4b-44eb-b67d-a0586886e1a3',
+          envIdPath: 'windowsEnvId',
           connectionId: 'id-1',
           applicationName: 'MicrosoftRemoteDesktop',
           preAuthStreamingUrl: 'https://appstream2.us-east-1.aws.amazon.com/authenticate?parameters=',
@@ -95,7 +95,7 @@ describe('Create URL scenarios', () => {
       [
         'EC2 Linux',
         {
-          envId: '4ceb23c8-c80c-4ded-b948-c63b21ba5c72',
+          envIdPath: 'linuxEnvId',
           connectionId: 'id-1',
           applicationName: 'EC2Linux',
           preAuthStreamingUrl: 'https://appstream2.us-east-1.aws.amazon.com/authenticate?parameters=',
@@ -109,7 +109,7 @@ describe('Create URL scenarios', () => {
     it.each(testContexts)('should return AppStream URL: %s', async (_, testContext) => {
       // OPERATE
       const connectionUrlResponse = await adminSession.resources.workspaceServiceCatalogs
-        .workspaceServiceCatalog(testContext.envId)
+        .workspaceServiceCatalog(setup.defaults[testContext.envIdPath])
         .connections()
         .connection(testContext.connectionId)
         .createUrl();

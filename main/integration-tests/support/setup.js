@@ -127,7 +127,16 @@ class Setup {
       workflowTemplateId,
       envTypes,
       byobStudy,
+      ...(await this.getConfigForAppStreamEnabledTests()),
     };
+  }
+
+  async getConfigForAppStreamEnabledTests() {
+    const sagemakerEnvId = await this.settings.optional('sagemakerEnvId', '');
+    const linuxEnvId = await this.settings.optional('linuxEnvId', '');
+    const windowsEnvId = await this.settings.optional('windowsEnvId');
+
+    return { sagemakerEnvId, linuxEnvId, windowsEnvId };
   }
 
   async createAdminSession() {
