@@ -63,6 +63,7 @@ describe('studyService', () => {
   let dbService = null;
   let projectService = null;
   let studyPermissionService = null;
+  let settingsService = null;
   const error = { code: 'ConditionalCheckFailedException' };
   beforeEach(async () => {
     const container = new ServicesContainer();
@@ -87,6 +88,7 @@ describe('studyService', () => {
     dbService = await container.find('dbService');
     projectService = await container.find('projectService');
     studyPermissionService = await container.find('studyPermissionService');
+    settingsService = await container.find('settings');
   });
 
   describe('getStudyPermissions', () => {
@@ -1198,6 +1200,51 @@ describe('studyService', () => {
       const retVal = service._getStudyAccessMap(permissions);
       // CHECK
       expect(retVal).toEqual(expectedVal);
+    });
+    describe('Open Data', () => {
+      const biologyStudy = {
+        rev: 0,
+        resources: [
+          {
+            arn: 'arn:aws:s3:::gatk-test-data',
+          },
+        ],
+        updatedAt: '2021-09-23T19:59:28.078Z',
+        category: 'Open Data',
+        createdAt: '2021-09-23T19:59:28.078Z',
+        updatedBy: '_system_',
+        description: 'Sample description',
+        id: 'gatk-test-data',
+        createdBy: '_system_',
+        name: 'GATK Test Data',
+        tags: ['biology'],
+      };
+      beforeEach(() => {
+        dbService.table.query.mockResolvedValueOnce([biologyStudy]);
+      });
+
+      it('should show biology study since openDataFilterTags include biology', async () => {
+        settingsService.get = jest.fn().mockImplementation(args => {
+          if (args === 'openDataTagFilters') {
+            return 'genomics,biology';
+          }
+          return '';
+        });
+
+        const response = await service.list({}, 'Open Data');
+        expect(response).toEqual([{ ...biologyStudy, status: 'reachable' }]);
+      });
+      it('should NOT show biology study since openDataFilterTags DOES NOT include biology', async () => {
+        settingsService.get = jest.fn().mockImplementation(args => {
+          if (args === 'openDataTagFilters') {
+            return 'genomics';
+          }
+          return '';
+        });
+
+        const response = await service.list({}, 'Open Data');
+        expect(response).toEqual([]);
+      });
     });
   });
 

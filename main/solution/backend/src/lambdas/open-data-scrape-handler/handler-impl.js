@@ -35,13 +35,11 @@ const consoleLogger = {
 
 const studyCategory = 'Open Data';
 
-async function fetchOpenData(aws, studyService, openDataTagFilters, log) {
-  const simplifiedStudyData = await getOpenDataMetadata(aws, openDataTagFilters, log);
-  return saveOpenData(log, simplifiedStudyData, studyService);
-}
-
-const newHandler = async ({ aws, studyService, openDataTagFilters, log = consoleLogger } = {}) => {
-  return async () => fetchOpenData(aws, studyService, openDataTagFilters, log);
+const newHandler = async ({ S3, studyService, openDataTagFilters, log = consoleLogger } = {}) => {
+  return async () => {
+    const simplifiedStudyData = await getOpenDataMetadata(S3, openDataTagFilters, log);
+    return saveOpenData(log, simplifiedStudyData, studyService);
+  };
 };
 
 async function saveOpenData(log, simplified, studyService) {
@@ -68,8 +66,7 @@ async function saveOpenData(log, simplified, studyService) {
   return simplified;
 }
 
-async function getOpenDataMetadata(aws, requiredTags, log) {
-  const S3 = new aws.sdk.S3();
+async function getOpenDataMetadata(S3, openDataTagFilters, log) {
   const getObjResponse = await S3.getObject({
     Bucket: 'registry.opendata.aws',
     Key: 'roda/ndjson/index.ndjson',
@@ -85,11 +82,11 @@ async function getOpenDataMetadata(aws, requiredTags, log) {
       return normalizeKeys({ ...md, id: md.Slug });
     });
 
-  log.info(`Filtering for ${requiredTags} tags and resources with valid ARNs`);
+  log.info(`Filtering for ${openDataTagFilters} tags and resources with valid ARNs`);
   const validS3Arn = new RegExp(/^arn:aws:s3:.*:.*:.+$/);
   const filtered = allMetaData.filter(({ tags, resources }) => {
     return (
-      requiredTags.some(filterTag => tags.includes(filterTag)) &&
+      openDataTagFilters.some(filterTag => tags.includes(filterTag)) &&
       resources.every(resource => {
         return resource.type === 'S3 Bucket' && validS3Arn.test(resource.arn);
       })
@@ -102,7 +99,7 @@ async function getOpenDataMetadata(aws, requiredTags, log) {
 }
 
 module.exports = {
-  fetchOpenData,
+  getOpenDataMetadata,
   newHandler,
   saveOpenData,
 };
