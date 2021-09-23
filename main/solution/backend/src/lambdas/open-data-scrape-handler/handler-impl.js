@@ -14,7 +14,7 @@
  */
 
 //
-// 1. Get Open Source metadata
+// 1. Get Open Data metadata
 // 2. Filter for the desired tags
 // 3. Write to study-service
 //

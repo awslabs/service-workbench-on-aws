@@ -179,3 +179,5 @@ versionDate: '2021-09-16'
 
 # Metadata provided with AWS SDK calls
 customUserAgent: 'AwsLabs/SO0144/${self:custom.settings.versionNumber}'
+
+openDataTagFilters: 'genetic,genomic,life sciences,whole genome sequencing,STRIDES,cancer,population genetics,COVID-19,health,neuroimaging,neuroscience,cell biology,cell imaging,bioinformatics'
