@@ -749,18 +749,18 @@ Resources:
                 StringEquals:
                   iam:PermissionsBoundary: !Ref PermissionBoundaryPolicyStudyBucket
               Resource:
-                - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/study-*'
+                - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/swb-study-*'
             - !Ref 'AWS::NoValue'
           - Effect: Allow
             Action:
               - iam:AttachRolePolicy
             Resource:
-              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/study-*'
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/swb-study-*'
           - Effect: Allow
             Action:
               - iam:CreatePolicy
             Resource:
-              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/study-*'
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/swb-study-*'
 
   PermissionBoundaryPolicyStudyBucket:
     Type: AWS::IAM::ManagedPolicy
