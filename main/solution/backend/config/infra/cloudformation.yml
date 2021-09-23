@@ -596,12 +596,12 @@ Resources:
               - iam:DetachRolePolicy
               - iam:ListAttachedRolePolicies
             Resource:
-              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/study-*'
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/swb-study-*'
           - Effect: Allow
             Action:
               - iam:DeletePolicy
             Resource:
-              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/study-*'
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/swb-study-*'
   # IAM Role for the apiHandler Function
   RoleApiHandler:
     Type: 'AWS::IAM::Role'
