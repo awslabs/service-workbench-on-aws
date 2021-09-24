@@ -31,12 +31,17 @@ const S3Service = require('@aws-ee/base-services/lib/s3-service');
 const LockService = require('@aws-ee/base-services/lib/lock/lock-service');
 const EnvironmentScService = require('../../environment/service-catalog/environment-sc-service');
 const DataEgressService = require('../data-egress-service');
-const { updateS3BucketPolicy } = require('../../helpers/utils');
 
 jest.mock('../../helpers/utils', () => ({
   ...jest.requireActual('../../helpers/utils'),
   updateS3BucketPolicy: jest.fn(),
 }));
+
+const createAdminContext = ({ uid = 'uid-admin' } = {}) => ({
+  principalIdentifier: { uid },
+  principal: { isAdmin: true, userRole: 'admin', status: 'active' },
+});
+
 describe('DataEgressService', () => {
   let dataEgressService;
   let aws;
@@ -317,7 +322,7 @@ describe('DataEgressService', () => {
 
       const createPolicyArn = 'test-policy-arn';
       AWSMock.mock('IAM', 'createPolicy', (params, callback) => {
-        expect(params.PolicyName).toEqual(`study-${environmentId}`);
+        expect(params.PolicyName).toEqual(`swb-study-${environmentId}`);
         callback(null, {
           Policy: {
             Arn: createPolicyArn,
@@ -325,7 +330,7 @@ describe('DataEgressService', () => {
         });
       });
       AWSMock.mock('IAM', 'createRole', (params, callback) => {
-        expect(params.RoleName).toEqual(`study-${environmentId}`);
+        expect(params.RoleName).toEqual(`swb-study-${environmentId}`);
         callback(null, {
           Role: {
             Arn: roleArn,
@@ -334,7 +339,7 @@ describe('DataEgressService', () => {
       });
       AWSMock.mock('IAM', 'attachRolePolicy', (params, callback) => {
         expect(params).toMatchObject({
-          RoleName: `study-${environmentId}`,
+          RoleName: `swb-study-${environmentId}`,
           PolicyArn: createPolicyArn,
         });
         callback();
@@ -407,7 +412,6 @@ describe('DataEgressService', () => {
     });
 
     it('should return null while no result returned from getEgressStoreInfo method', async () => {
-      dataEgressService.removeEgressStoreBucketPolicy = jest.fn();
       dataEgressService._settings = {
         get: settingName => {
           if (settingName === 'enableEgressStore') {
@@ -470,7 +474,6 @@ describe('DataEgressService', () => {
     });
 
     it('should success delete egress store while egress store is not in PROCESSING status', async () => {
-      dataEgressService.removeEgressStoreBucketPolicy = jest.fn();
       const s3Policy = testS3PolicyFn();
       dataEgressService._settings = {
         get: settingName => {
@@ -536,30 +539,12 @@ describe('DataEgressService', () => {
       mockDeleteEgressStoreRole(egressStoreId);
 
       await dataEgressService.terminateEgressStore(requestContext, envId);
-      expect(dataEgressService.removeEgressStoreBucketPolicy).toHaveBeenCalledTimes(1);
-      expect(dataEgressService.removeEgressStoreBucketPolicy).toHaveBeenCalledWith(
-        {},
-        {
-          bucket: 'test-s3BucketName',
-          createdBy: undefined,
-          envPermission: { read: true, write: true },
-          id: 'egress-store-test-workspace-id',
-          prefix: 'test-s3BucketPath',
-          projectId: undefined,
-          readable: true,
-          resources: [{ arn: 'arn:aws:s3:::test-s3BucketName/test-workspace-id/' }],
-          status: 'reachable',
-          workspaceId: 'test-workspace-id',
-          writeable: true,
-        },
-        'test-accountId',
-      );
     });
 
     function mockDeleteEgressStoreRole(egressStoreId) {
       const policyArn = 'test-PermissionBoundaryArn';
       AWSMock.mock('IAM', 'listAttachedRolePolicies', (params, callback) => {
-        expect(params.RoleName).toEqual(`study-${egressStoreId}`);
+        expect(params.RoleName).toEqual(`swb-study-${egressStoreId}`);
         callback(null, {
           AttachedPolicies: [
             {
@@ -570,11 +555,11 @@ describe('DataEgressService', () => {
         });
       });
       AWSMock.mock('IAM', 'detachRolePolicy', (params, callback) => {
-        expect(params).toMatchObject({ RoleName: `study-${egressStoreId}`, PolicyArn: policyArn });
+        expect(params).toMatchObject({ RoleName: `swb-study-${egressStoreId}`, PolicyArn: policyArn });
         callback();
       });
       AWSMock.mock('IAM', 'deleteRole', (params, callback) => {
-        expect(params).toMatchObject({ RoleName: `study-${egressStoreId}` });
+        expect(params).toMatchObject({ RoleName: `swb-study-${egressStoreId}` });
         callback();
       });
       AWSMock.mock('IAM', 'deletePolicy', (params, callback) => {
@@ -592,7 +577,6 @@ describe('DataEgressService', () => {
     });
 
     async function deleteEgressStoreInCreatedStateTest(isAbleToSubmitEgressRequest) {
-      dataEgressService.removeEgressStoreBucketPolicy = jest.fn();
       const s3Policy = testS3PolicyFn();
       dataEgressService._settings = {
         get: settingName => {
@@ -659,109 +643,7 @@ describe('DataEgressService', () => {
       mockDeleteEgressStoreRole(egressStoreId);
 
       await dataEgressService.terminateEgressStore(requestContext, envId);
-      expect(dataEgressService.removeEgressStoreBucketPolicy).toHaveBeenCalledTimes(1);
-      expect(dataEgressService.removeEgressStoreBucketPolicy).toHaveBeenCalledWith(
-        {},
-        {
-          bucket: 'test-s3BucketName',
-          createdBy: undefined,
-          envPermission: { read: true, write: true },
-          id: 'egress-store-test-workspace-id',
-          prefix: 'test-s3BucketPath',
-          projectId: undefined,
-          readable: true,
-          resources: [{ arn: 'arn:aws:s3:::test-s3BucketName/test-workspace-id/' }],
-          status: 'reachable',
-          workspaceId: 'test-workspace-id',
-          writeable: true,
-        },
-        'test-accountId',
-      );
     }
-
-    it('should remove bucket policy', async () => {
-      dataEgressService.getS3BucketAndPolicy = jest.fn().mockResolvedValueOnce({
-        s3BucketName: 'test-egressStoreBucketName',
-        s3Policy: testS3PolicyFn(),
-      });
-      dataEgressService.audit = jest.fn();
-      const mockEgressStoreInfo = {
-        id: `egress-store-test-id`,
-        readable: true,
-        writeable: true,
-        kmsArn: 'test-arn',
-        bucket: 'test-egressStoreBucketName',
-        prefix: 'test-id/',
-        envPermission: {
-          read: true,
-          write: true,
-        },
-        status: 'reachable',
-        createdBy: 'test-createdBy',
-        workspaceId: 'test-id',
-        projectId: 'test-projectId',
-        resources: [
-          {
-            arn: ` arn:aws:s3:::test-egressStoreBucketName/test-id/*`,
-          },
-        ],
-      };
-      const mockRevisedStatements = [
-        {
-          Action: ['s3:GetObject'],
-          Effect: 'Allow',
-          Principal: {
-            AWS: [],
-          },
-          Resource: ['arn:aws:s3:::test-egressStoreBucketName/test-id/*'],
-          Sid: 'Get:test-id/',
-        },
-        {
-          Action: [
-            's3:GetObject',
-            's3:GetObjectVersion',
-            's3:GetObjectTagging',
-            's3:AbortMultipartUpload',
-            's3:ListMultipartUploadParts',
-            's3:PutObject',
-            's3:PutObjectAcl',
-            's3:PutObjectTagging',
-            's3:DeleteObject',
-            's3:DeleteObjectVersion',
-          ],
-          Effect: 'Allow',
-          Principal: {
-            AWS: [],
-          },
-          Resource: ['arn:aws:s3:::test-egressStoreBucketName/test-id/*'],
-          Sid: 'Put:test-id/',
-        },
-        {
-          Action: ['s3:ListBucket'],
-          Condition: {
-            StringLike: {
-              's3:prefix': ['test-id/*'],
-            },
-          },
-          Effect: 'Allow',
-          Principal: {
-            AWS: [],
-          },
-          Resource: 'arn:aws:s3:::test-egressStoreBucketName',
-          Sid: 'List:test-id/',
-        },
-      ];
-
-      await dataEgressService.removeEgressStoreBucketPolicy({}, mockEgressStoreInfo, 'test-accountId');
-
-      expect(updateS3BucketPolicy).toHaveBeenCalledWith(
-        expect.anything(),
-        'test-egressStoreBucketName',
-        expect.anything(),
-        mockRevisedStatements,
-      );
-      expect(dataEgressService.audit).toHaveBeenCalledTimes(1);
-    });
   });
 
   describe('Get Egress Store info', () => {
@@ -935,7 +817,7 @@ describe('DataEgressService', () => {
       );
     });
 
-    it('should not notify SNS if the egress store is not qulified to submit egress request', async () => {
+    it('should not notify SNS if the egress store is not qualified to submit egress request', async () => {
       dataEgressService._settings = {
         get: settingName => {
           if (settingName === 'egressNotificationBucketName') {
@@ -947,6 +829,7 @@ describe('DataEgressService', () => {
           return undefined;
         },
       };
+      const requestContext = createAdminContext();
       const mockEgressStoreInfo = {
         id: 'id',
         egressStoreName: 'egressStoreName',
@@ -964,7 +847,7 @@ describe('DataEgressService', () => {
       };
       dbService.table.scan.mockResolvedValue([mockEgressStoreInfo]);
 
-      await expect(dataEgressService.notifySNS({}, 'workspaceId')).rejects.toThrow(
+      await expect(dataEgressService.notifySNS(requestContext, 'workspaceId')).rejects.toThrow(
         // It is better to check using boom.code instead of just the actual string, unless
         // there are a few errors with the exact same boom code but different messages.
         // Note: if you encounter a case where a service is throwing exceptions with the
@@ -1142,30 +1025,6 @@ describe('DataEgressService', () => {
 
       await dataEgressService.audit(mockRC, mockAuditEvent);
       expect(auditWriterService.writeAndForget).toHaveBeenCalledWith(mockRC, mockAuditEvent);
-    });
-  });
-
-  describe('should get S3 Bucket And Policy', () => {
-    it('should get S3 Bucket And Policy', async () => {
-      dataEgressService._settings = {
-        get: settingName => {
-          if (settingName === 'egressStoreBucketName') {
-            return 'test-egressStoreBucketName';
-          }
-          return null;
-        },
-      };
-      AWSMock.mock('S3', 'getBucketPolicy', (params, callback) => {
-        expect(params).toMatchObject({
-          Bucket: 'test-egressStoreBucketName',
-        });
-        callback(null, {
-          Policy: JSON.stringify({}),
-        });
-      });
-
-      const result = await dataEgressService.getS3BucketAndPolicy();
-      expect(result).toStrictEqual({ s3BucketName: 'test-egressStoreBucketName', s3Policy: { Statement: [] } });
     });
   });
 
