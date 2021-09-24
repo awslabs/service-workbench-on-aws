@@ -5,8 +5,9 @@
 
 name: Deploy & Integration Test
 on:
-  pull_request:
-    types: [review_requested, ready_for_review, draft]
+  push:
+    branches:
+      - develop
 jobs:
   pre-deployment-check:
     name: Pre deployment check
