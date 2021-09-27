@@ -15,9 +15,12 @@ else
     git checkout develop
     # Add Beta header to changelog
     echo "Need to add to changelog"
+    # Get latest release number
+    latestReleaseVersion="$(cat CHANGELOG.md | grep -o "[0-9]\.[0-9]\.[0-9]" | head -n 1)"
     # Create ed file
     echo "5i
 ## Beta
+[This deployment is in beta. Click here to see changes since ${latestReleaseVersion}.](https://github.com/maghirardelli/service-workbench-on-aws-github-actions/compare/v${latestReleaseVersion}...mainline)
 
 .
 w
