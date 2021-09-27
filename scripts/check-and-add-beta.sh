@@ -20,7 +20,7 @@ else
     # Create ed file
     echo "5i
 ## Beta
-[This deployment is in beta. Click here to see changes since ${latestReleaseVersion}.](https://github.com/maghirardelli/service-workbench-on-aws-github-actions/compare/v${latestReleaseVersion}...mainline)
+[This branch is in beta. Click here to see changes since ${latestReleaseVersion}.](https://github.com/maghirardelli/service-workbench-on-aws-github-actions/compare/v${latestReleaseVersion}...mainline)
 
 .
 w
