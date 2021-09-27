@@ -143,3 +143,17 @@ jobs:
           branch: mainline
         env:
           GITHUB_TOKEN: ${{ secrets.MERGE_TOKEN }}
+  check-beta-in-changelog:
+    name: Check Beta status
+    # Trigger to check and add Beta header if the latest commit isn't a release from standard-version or the last Add Beta
+    # workflow run
+    if: "!contains(github.event.head_commit.message, 'chore(release):') && !contains(github.event.head_commit.message, 'Add Beta')"
+    needs: merge-develop-to-mainline
+    runs-on: ubuntu-18.04
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.MERGE_TOKEN }}
+          fetch-depth: 0
+      - name: Check if Beta is present and add if not
+        run: ./scripts/check-and-add-beta.sh
