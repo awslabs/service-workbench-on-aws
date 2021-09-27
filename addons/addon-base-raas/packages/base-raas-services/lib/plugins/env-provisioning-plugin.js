@@ -76,19 +76,6 @@ async function preProvisioning({ requestContext, container, envId }) {
   const memberAccount = await environmentScService.getMemberAccount(requestContext, environmentScEntity);
   const pluginRegistryService = await container.find('pluginRegistryService');
 
-  if (_.isEmpty(studies)) {
-    await pluginRegistryService.visitPlugins('study-access-strategy', 'updateKMSPolicyForEgress', {
-      payload: {
-        requestContext,
-        container,
-        environmentScEntity,
-        studies,
-        memberAccountId: memberAccount.accountId,
-      },
-    });
-    return { requestContext, container, envId };
-  }
-
   await pluginRegistryService.visitPlugins('study-access-strategy', 'allocateEnvStudyResources', {
     payload: {
       requestContext,
