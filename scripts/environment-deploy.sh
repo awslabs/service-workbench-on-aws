@@ -54,16 +54,15 @@ $EXEC sls invoke -f postDeployment -l -s "$STAGE"
 popd > /dev/null
 
 # Get the first header (not Changelog) in CHANGELOG.md
-versionLine="$(cat CHANGELOG.md | grep -m 1 "[0-9]\.[0-9]\.[0-9]\|Beta")"
+versionLine="$(cat CHANGELOG.md | grep -m 1 "[0-9]\+\.[0-9]\+\.[0-9]\+\|Beta")"
 
 # Get version number
-versionNumber="$(echo $versionLine | grep -o "[0-9]\.[0-9]\.[0-9]\|Beta" | head -n 1)"
+versionNumber="$(echo $versionLine | grep -o "[0-9]\+\.[0-9]\+\.[0-9]\+\|Beta" | head -n 1)"
 
 # Get version date (or generate if beta)
 if [ "$versionNumber" == "Beta" ]
 then
-    # instead of showing a date in the beta condition, show the latest release version
-    latestReleaseVersion="$(cat CHANGELOG.md | grep -o "[0-9]\.[0-9]\.[0-9]" | head -n 1)"
+    latestReleaseVersion="$(cat CHANGELOG.md | grep -o "[0-9]\+\.[0-9]\+\.[0-9]\+" | head -n 1)"
     versionDate="Latest Release Version: $latestReleaseVersion"
 else
     versionDate="$(echo $versionLine | grep -o "[0-9][0-9][0-9][0-9]\-[0-9][0-9]\-[0-9][0-9]")"
@@ -77,13 +76,13 @@ then
     if (cat "$FILE" | grep -q "versionDate") && (cat "$FILE" | grep -q "versionNumber")
     then
         # Yes-->Are they different from above?
-        oldVersionNumber="$(cat "$FILE" | grep -o "[0-9]\.[0-9]\.[0-9]\|Beta" | head -n 1)"
+        oldVersionNumber="$(cat "$FILE" | grep -o "[0-9]\+\.[0-9]\+\.[0-9]\+\|Beta" | head -n 1)"
         oldVersionDate="$(cat "$FILE" | grep -o "[0-9][0-9][0-9][0-9]\-[0-9][0-9]\-[0-9][0-9]\|Latest Release Version: [0-9]\.[0-9]\.[0-9]")"
         if ([ "$oldVersionNumber" != "$versionNumber" ]) || ([ "$oldVersionDate" != "$versionDate" ])
         then
             # Yes-->Replace new with old
-            sed -i '' "s/versionNumber: '$oldVersionNumber/versionNumber: '$versionNumber/" $FILE
-            sed -i '' "s/versionDate: '$oldVersionDate/versionDate: '$versionDate/" $FILE
+            sed -i -e "s/versionNumber: '$oldVersionNumber/versionNumber: '$versionNumber/" $FILE
+            sed -i -e "s/versionDate: '$oldVersionDate/versionDate: '$versionDate/" $FILE
         fi
     else
         # No-->Append new
