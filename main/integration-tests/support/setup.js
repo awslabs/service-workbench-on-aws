@@ -73,7 +73,7 @@ class Setup {
 
     // If isLocal = false, we get the api endpoint from the backend stack outputs
     if (this.settings.get('isLocal')) {
-      apiEndpoint = settingsStore.get('localApiEndpoint');
+      apiEndpoint = this.settings.get('localApiEndpoint');
     } else {
       const cloudformation = await this.aws.services.cloudFormation();
       const stackName = this.aws.settings.get('backendStackName');
@@ -108,7 +108,7 @@ class Setup {
 
     // If previous token expired, we need to create a new id token for the default admin
     if (tokenExpired) {
-      idToken = await getNewAdminIdToken();
+      idToken = await this.getNewAdminIdToken();
       this.settings.set('adminIdToken', idToken);
     }
 
