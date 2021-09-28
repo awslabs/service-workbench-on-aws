@@ -171,11 +171,5 @@ auditQldbName: ${self:custom.settings.namespace}-audit
 # Override and disable this setting if you wish to create your portfolio manually
 createServiceCatalogPortfolio: true
 
-# Version number of current release
-versionNumber: '3.4.0'
-
-# Release date of current release
-versionDate: '2021-09-16'
-
 # Metadata provided with AWS SDK calls
 customUserAgent: 'AwsLabs/SO0144/${self:custom.settings.versionNumber}'
