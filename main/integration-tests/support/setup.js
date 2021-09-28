@@ -112,7 +112,6 @@ class Setup {
       this.settings.set('adminIdToken', idToken);
     }
 
-    // In the future, we can check if the token expired and if so, we can create a new one
     const session = await getClientSession({ idToken, setup: this });
     this.sessions.push(session);
     this.defaultAdminSessionInstance = session;
