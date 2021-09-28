@@ -80,8 +80,9 @@ describe('EC2 Linux scenarios', () => {
       output = await mountStudies(ssh, studyId);
 
       // Readwrite permission level
-      output = await readWrite(ssh, studyId);
-      expect(output.stdout).toEqual(expect.stringMatching(/ec2-user 20/));
+      const numberOfBytes = 20;
+      output = await readWrite(ssh, studyId, numberOfBytes);
+      expect(output.stdout).toContain(`ec2-user ${numberOfBytes}`);
 
       // Admin permission level
       await adminSession.resources.studies.study(studyId).propagatePermission(admin2Session, ['admin'], ['readwrite']);
@@ -139,11 +140,11 @@ describe('EC2 Linux scenarios', () => {
       // Mount studies
       let output;
       output = await mountStudies(ssh, externalStudy);
-      // console.log(`STDOUT:\n${output.stdout}\n\nSTDERR:\n${output.stderr}`);
 
       // Readwrite permission level
-      output = await readWrite(ssh, externalStudy);
-      expect(output.stdout).toEqual(expect.stringMatching(/ec2-user 20/));
+      const numberOfBytes = 20;
+      output = await readWrite(ssh, externalStudy, numberOfBytes);
+      expect(output.stdout).toContain(`ec2-user ${numberOfBytes}`);
 
       // Readonly permission level
       await adminSession.resources.studies

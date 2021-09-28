@@ -100,8 +100,13 @@ class Setup {
     let idToken = this.settings.get('adminIdToken');
     const decodedIdToken = jwtDecode(idToken);
     const expiresAt = _.get(decodedIdToken, 'exp', 0) * 1000;
-    // Check if the last admin id token is expired
-    const tokenExpired = (expiresAt - Date.now()) / 60 / 1000 < 0;
+
+    // Assume the default admin session is shared between all test cases in a given test suite (ie. test file),
+    // so it has to stay active throughout the test suite duration.
+    // Therefore the buffer time (in minutes) should be the longest time taken by any single test suite
+    // If the current token has less than the buffer minutes remaining, we create a new one.
+    const bufferInMinutes = 10;
+    const tokenExpired = (expiresAt - Date.now()) / 60 / 1000 < bufferInMinutes;
 
     // Only create a new client session if we haven't done that already or if the token has expired
     if (this.defaultAdminSessionInstance && !tokenExpired) return this.defaultAdminSessionInstance;
