@@ -1509,6 +1509,8 @@ Quisque egestas, eros nec feugiat venenatis, lorem turpis placerat tortor, ullam
       });
       await service.describeELBRule(existingEnvironment, {}, currentIngressRules);
       expect(responseIngressRules).toEqual(currentIngressRules);
+    });
+  });
   describe('pollAndSyncSageMakerStatus function', () => {
     const roleArn = 'roleArn';
     const externalId = 'externalId';
