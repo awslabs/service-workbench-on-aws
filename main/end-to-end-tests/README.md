@@ -12,6 +12,8 @@ To run the E2E tests, you will need the following items:
 - Username and password of an admin for the Service Workbench environment
 - Username and password of a researcher for the Service Workbench environment
 - A project set up for that researcher that can launch EC2 workspaces and Sagemaker workspaces
+	- Within that project, a study where the researcher is admin
+	- Within that project, a study where the researcher is not an admin
 - A configured EC2 workspace
 - A configured Sagemaker workspace
 

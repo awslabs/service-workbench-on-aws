@@ -15,6 +15,7 @@
  */
 
 const _ = require('lodash');
+const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const Resource = require('../base/resource');
 const StudyPermissions = require('./study-permissions');
@@ -54,6 +55,27 @@ class Study extends Resource {
   }
 
   // ************************ Helpers methods ************************
+  async propagatePermission(session, addPerm, deletePerm) {
+    const usersToAdd = [];
+    const usersToRemove = [];
+    addPerm.forEach(elem => {
+      usersToAdd.push({
+        uid: session.user.uid,
+        permissionLevel: elem,
+      });
+    });
+    deletePerm.forEach(elem => {
+      usersToRemove.push({
+        uid: session.user.uid,
+        permissionLevel: elem,
+      });
+    });
+    await this.permissions().update({
+      usersToAdd,
+      usersToRemove,
+    });
+    await sleep(60 * 1000);
+  }
 }
 
 module.exports = Study;

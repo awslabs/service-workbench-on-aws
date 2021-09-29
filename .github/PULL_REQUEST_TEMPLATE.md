@@ -13,6 +13,7 @@ Checklist:
 - [ ] Is this change also required on the AWS Solution version?
 - [ ] Have you updated openapi.yaml if you made updates to API definition (including add, delete or update parameter and request data schema)?
 - [ ] If you had to run manual tests, have you considered automating those tests by adding them to [end-to-end tests](../main/end-to-end-tests/README.md)?
+- [ ] If you are updating the changelog and vending out a new release, have you updated versionNumber and versionDate in [.defaults.yml](../main/config/settings/.defaults.yml)
 
 <!-- For major releases please provide internal ticket id -->
 
