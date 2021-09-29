@@ -16,9 +16,14 @@ async function mountStudies(ssh, studyId) {
   const output = await ssh.execCommand(`source ~/.bash_profile && cd ~/studies/${studyId} && touch output.txt && ls`);
   return output;
 }
-async function readWrite(ssh, studyId) {
+
+// This method aides in the advanced integration test to check study permission levels on workspaces
+// by performing the following operations:
+// 1. Reads the contents of the study folder (verifies read priveleges)
+// 2. Writes random content into a new file in that study folder, and lists to confirm file can be viewed (verifies write priveleges)
+async function readWrite(ssh, studyId, numberOfBytes = 20) {
   const output = await ssh.execCommand(
-    `cd ~/studies/${studyId} && ls -l && head -c 20 </dev/urandom >output.txt && ls -l`,
+    `cd ~/studies/${studyId} && ls -l && head -c ${numberOfBytes} </dev/urandom >output.txt && ls -l`,
   );
   return output;
 }

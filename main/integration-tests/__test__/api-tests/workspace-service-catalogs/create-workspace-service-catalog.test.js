@@ -211,7 +211,8 @@ describe('Create workspace-service-catalog scenarios', () => {
       await admin1Session.resources.workflows
         .versions('wf-provision-environment-sc')
         .version(1)
-        .findAndPollWorkflow(env.id, 10000, 48);
+        .findAndPollWorkflow(env.id, 10000, 60);
+      await setup.cleanup();
     });
   });
 });
