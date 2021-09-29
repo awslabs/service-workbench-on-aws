@@ -4,7 +4,7 @@
 sudo yum install -y gcc-7.3.* gcc-gfortran-7.3.* gcc-c++-7.3.*
 sudo yum install -y java-1.8.0-openjdk-devel-1.8.0.*
 sudo yum install -y readline-devel-6.2 zlib-devel-1.2.* bzip2-devel-1.0.* xz-devel-5.2.* pcre-devel-8.32
-sudo yum install -y libcurl-devel-7.61.* libpng-devel-1.5.* cairo-devel-1.15.* pango-devel-1.42.*
+sudo yum install -y libcurl-devel-7.76.1 libpng-devel-1.5.* cairo-devel-1.15.* pango-devel-1.42.*
 sudo yum install -y xorg-x11-server-devel-1.20.* libX11-devel-1.6.* libXt-devel-1.1.*
 
 # Install R from source (https://docs.rstudio.com/resources/install-r-source/)
