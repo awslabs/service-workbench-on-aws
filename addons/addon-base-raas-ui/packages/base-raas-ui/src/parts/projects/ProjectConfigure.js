@@ -16,7 +16,7 @@
 import React from 'react';
 import { observer } from 'mobx-react';
 import { decorate, observable, action, runInAction, computed } from 'mobx';
-import { Button, Dimmer, Header, Loader, Table, Label, Dropdown, Segment, Modal, Confirm } from 'semantic-ui-react';
+import { Button, Dimmer, Header, Loader, Table, Label, Dropdown, Segment, Modal } from 'semantic-ui-react';
 import _ from 'lodash';
 import { displayError, displaySuccess } from '@aws-ee/base-ui/dist/helpers/notification';
 import Stores from '@aws-ee/base-ui/dist/models/Stores';
@@ -40,7 +40,6 @@ class ProjectConfigure extends React.Component {
       };
       this.formProcessing = false;
       this.modalOpen = false;
-      this.confirmDeleteOpen = false;
       this.view = 'detail';
     });
     this.form = getAddProjectForm();
@@ -63,7 +62,6 @@ class ProjectConfigure extends React.Component {
   cleanUp() {
     runInAction(() => {
       this.modalOpen = false;
-      this.confirmDeleteOpen = false;
     });
   }
 
@@ -79,7 +77,6 @@ class ProjectConfigure extends React.Component {
       };
       this.formProcessing = false;
       this.modalOpen = false;
-      this.confirmDeleteOpen = false;
       this.view = 'detail';
       this.modalOpen = true;
     });
@@ -87,18 +84,6 @@ class ProjectConfigure extends React.Component {
 
   handleModalClose = () => {
     this.cleanUp();
-  };
-
-  handleDeleteConfirmOpen = () => {
-    runInAction(() => {
-      this.confirmDeleteOpen = true;
-    });
-  };
-
-  handleDeleteConfirmClose = () => {
-    runInAction(() => {
-      this.confirmDeleteOpen = false;
-    });
   };
 
   renderDetailView() {
@@ -258,27 +243,6 @@ class ProjectConfigure extends React.Component {
     }
   });
 
-  handleClickDeleteButton = action(async () => {
-    runInAction(() => {
-      this.confirmDeleteOpen = false;
-      this.formProcessing = true;
-    });
-    try {
-      const store = this.getStore();
-      await store.deleteProject(this.currentProject.id);
-      await store.load();
-      runInAction(async () => {
-        this.formProcessing = false;
-      });
-      this.cleanUp();
-    } catch (error) {
-      runInAction(() => {
-        this.formProcessing = false;
-      });
-      displayError(error);
-    }
-  });
-
   renderButtons() {
     const processing = this.formProcessing;
 
@@ -290,33 +254,9 @@ class ProjectConfigure extends React.Component {
       );
     };
 
-    const makeConfirmDeleteButton = ({ label = 'Delete', color = 'red', floated = 'right' } = {}) => {
-      return (
-        <div>
-          <Button
-            color={color}
-            floated={floated}
-            disabled={processing}
-            className="ml2"
-            onClick={this.handleDeleteConfirmOpen}
-          >
-            {label}
-          </Button>
-          <Confirm
-            open={this.confirmDeleteOpen}
-            content="Are you sure you want to delete this project?"
-            onCancel={this.handleDeleteConfirmClose}
-            onConfirm={this.handleClickDeleteButton}
-          />
-        </div>
-      );
-    };
-
     const editButton = this.view === 'detail' ? makeButton({ label: 'Edit', onClick: this.handleClickEditButton }) : '';
 
     const saveButton = this.view === 'edit' ? makeButton({ label: 'Save', onClick: this.handleClickSubmitButton }) : '';
-
-    const deleteButton = this.view === 'detail' ? makeConfirmDeleteButton() : '';
 
     const cancelButton = makeButton({
       label: 'Cancel',
@@ -329,7 +269,6 @@ class ProjectConfigure extends React.Component {
       <div className="mt3 mb3">
         <Modal.Actions>
           {cancelButton}
-          {deleteButton}
           {saveButton}
           {editButton}
         </Modal.Actions>
@@ -414,7 +353,6 @@ class ProjectConfigure extends React.Component {
 decorate(ProjectConfigure, {
   formProcessing: observable,
   modalOpen: observable,
-  confirmDeleteOpen: observable,
   view: observable,
   updateProject: observable,
 

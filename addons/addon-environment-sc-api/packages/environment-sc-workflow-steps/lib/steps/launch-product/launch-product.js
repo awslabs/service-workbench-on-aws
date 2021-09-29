@@ -93,13 +93,13 @@ class LaunchProduct extends StepBase {
 
     // Read input params specified in the environment type configuration
     // The params may include variable expressions, resolve the expressions by using the resolveVars
-    // By doing this resolution, we might overwrite the dynamic, unique value defined above with a static name 
+    // By doing this resolution, we might overwrite the dynamic, unique value defined above with a static name
     // that would not be unique between deployments of the same workspace configuration
     const resolvedInputParams = await this.resolveVarExpressions(envTypeConfig.params, resolvedVars);
     // Additional layer to check the namespace is valid and unique. If not, make new namespace from
     // static and get index of namespace param to change
     const { namespaceParam, namespaceIndex } = this.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
-    resolvedInputParams[namespaceIndex].Value = namespaceParam;
+    if (namespaceIndex >= 0) resolvedInputParams[namespaceIndex].Value = namespaceParam;
     // Read tags specified in the environment type configuration
     // The tags may include variable expressions, resolve the expressions by using the resolveVars
     const resolvedTags = await this.resolveVarExpressions(envTypeConfig.tags, resolvedVars);
@@ -378,26 +378,26 @@ class LaunchProduct extends StepBase {
   }
 
   /**
-   * Check if the resolved input parameter contains a static namespace param. If so, augments the namespace to begin with 
-   * 'analysis-' for permissions purposes (if it does not already start with that) and to end with a unique datetime string 
+   * Check if the resolved input parameter contains a static namespace param. If so, augments the namespace to begin with
+   * 'analysis-' for permissions purposes (if it does not already start with that) and to end with a unique datetime string
    * so Cloudformation doesn't create duplicate stacks for separate workspaces.
-   * 
-   * @param resolvedInputParams 
-   * @param datetime 
+   *
+   * @param resolvedInputParams
+   * @param datetime
    * @returns {namespaceParam:string, namespaceIndex:string}
    */
-  getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime){
+  getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime) {
     const namespaceIndex = resolvedInputParams.findIndex(element => element.Key === 'Namespace');
-    let namespaceParam = resolvedInputParams[namespaceIndex].Value;
+    let namespaceParam = namespaceIndex < 0 ? '' : resolvedInputParams[namespaceIndex].Value;
 
     // Check to make sure the resolved namespace variable begins with 'analysis-' so our templates will allow it
-    if(!namespaceParam.startsWith('analysis-')){
-      namespaceParam = 'analysis-' + namespaceParam;
+    if (!namespaceParam.startsWith('analysis-')) {
+      namespaceParam = `analysis-${namespaceParam}`;
     }
 
     // Check to make sure the resolved namespace variable ends with a unique datetime string so it will be unique for each deployment of a configuration with a static namespace
-    if(namespaceParam.split('-').pop() !== datetime.toString()){
-      namespaceParam += '-' + datetime;
+    if (namespaceParam.split('-').pop() !== datetime.toString()) {
+      namespaceParam += `-${datetime}`;
     }
 
     return { namespaceParam, namespaceIndex };

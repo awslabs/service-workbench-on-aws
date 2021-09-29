@@ -42,19 +42,9 @@ module.exports = {
         ],
       },
     ],
-    "Deployment Guide": [
-      "deployment/deployment_stages",
-      {
-        "Pre Deployment": [
-          "deployment/pre_deployment/pre_deployment",
-          "deployment/pre_deployment/accounts",
-          "deployment/pre_deployment/prereq_commands",
-          "deployment/pre_deployment/deployment_instance",
-          "deployment/pre_deployment/source_code",
-          "deployment/pre_deployment/configuration",
-        ],
-      },
-      "deployment/deployment/index",
+    "Service Workbench Post Deployment Guide": [
+
+
       {
         "Post Deployment": [
           "deployment/post_deployment/index",
@@ -76,7 +66,7 @@ module.exports = {
         ],
       },
     ],
-    "User Guide": [
+    "Service Workbench User Guide": [
       "user_guide/account_structure",
       "user_guide/introduction",
       {

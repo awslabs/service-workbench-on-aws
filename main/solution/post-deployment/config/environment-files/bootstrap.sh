@@ -13,7 +13,7 @@ S3_MOUNTS="$1"
 
 # Get directory in which this script is stored and define URL from which to download goofys
 FILES_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-GOOFYS_URL="https://github.com/kahing/goofys/releases/download/v0.21.0/goofys"
+GOOFYS_URL="https://github.com/kahing/goofys/releases/download/v0.24.0/goofys"
 
 # Define a function to determine what type of environment this is (EMR, SageMaker, RStudio, or EC2 Linux)
 env_type() {

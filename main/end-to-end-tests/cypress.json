@@ -19,6 +19,16 @@
         "workspaceTypeName": "<NAME OF EC2 WORKSPACE TYPE>",
         "configuration": "<EC2 WORKSPACE CONFIGURATION>",
         "projectId": "<PROJECT TO LAUNCH EC2 WORKSPACE IN>"
+      },
+      "emr": {
+        "workspaceTypeName": "<NAME OF EMR WORKSPACE TYPE>",
+        "configuration": "<EMR WORKSPACE CONFIGURATION>",
+        "projectId": "<PROJECT TO LAUNCH EMR WORKSPACE IN>"
+      },
+      "ec2windows": {
+        "workspaceTypeName": "<NAME OF EC2 WINDOWS WORKSPACE TYPE>",
+        "configuration": "<EC2 WINDOWS WORKSPACE CONFIGURATION>",
+        "projectId": "<PROJECT TO LAUNCH EC2 WINDOWS WORKSPACE IN>"
       }
     },
     "studies": {
