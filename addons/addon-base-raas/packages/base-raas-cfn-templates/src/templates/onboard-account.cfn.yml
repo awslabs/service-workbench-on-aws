@@ -355,6 +355,21 @@ Resources:
                 - !Sub 'arn:aws:route53:::hostedzone/${Route53HostedZone}'
             - !Ref 'AWS::NoValue'
 
+  DummyPolicyToTriggerUpdate:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Dummy Policy To Trigger Updates. Will be removed once account update is verified in pen test
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - cloudformation:CreateStack
+              - cloudformation:DeleteStack
+              - cloudformation:DescribeStacks
+              - cloudformation:DescribeStackEvents
+            Resource: !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/SC-*'
+
   PolicyCrossAccountExecution:
     Type: AWS::IAM::ManagedPolicy
     Properties:
