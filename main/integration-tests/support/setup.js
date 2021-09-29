@@ -18,6 +18,7 @@
 
 const _ = require('lodash');
 const jwtDecode = require('jwt-decode');
+const { retry } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const Settings = require('./utils/settings');
 const { getIdToken } = require('./utils/id-token');
@@ -261,10 +262,17 @@ class Setup {
  * Use this function to gain access to a setup instance that is initialized and ready to be used.
  */
 async function runSetup() {
-  const setupInstance = new Setup();
-  await setupInstance.init();
+  const tryCreateSetup = async () => {
+    const setupInstance = new Setup();
+    await setupInstance.init();
 
-  return setupInstance;
+    if (!setupInstance) throw Error('Setup instance did not initialize');
+    return setupInstance;
+  };
+
+  // Retry 3 times using an exponential interval
+  const setup = await retry(tryCreateSetup, 3);
+  return setup;
 }
 
 module.exports = { runSetup };
