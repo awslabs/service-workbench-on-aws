@@ -174,4 +174,5 @@ createServiceCatalogPortfolio: true
 # Metadata provided with AWS SDK calls
 customUserAgent: 'AwsLabs/SO0144/${self:custom.settings.versionNumber}'
 
+# Available tags: https://github.com/awslabs/open-data-registry/blob/main/tags.yaml
 openDataTagFilters: 'genetic,genomic,life sciences,whole genome sequencing,STRIDES,cancer,population genetics,COVID-19,health,neuroimaging,neuroscience,cell biology,cell imaging,bioinformatics'
