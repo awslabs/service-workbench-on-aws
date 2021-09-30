@@ -393,6 +393,11 @@ class EnvironmentScService extends Service {
       { action: 'create-sc', conditions: [this._allowAuthorized] },
       environment,
     );
+    const invalidOpenDataStudyIds = await this.getInvalidOpenDataStudyIds(requestContext, environment);
+
+    if (invalidOpenDataStudyIds.length > 0) {
+      throw this.boom.badRequest(`Invalid open data studies. IDs: ${invalidOpenDataStudyIds}`, true);
+    }
 
     // const { name, envTypeId, envTypeConfigId, description, projectId, cidr, studyIds } = environment
     const { envTypeId, envTypeConfigId, projectId } = environment;
@@ -453,6 +458,32 @@ class EnvironmentScService extends Service {
     }
 
     return dbResult;
+  }
+
+  // Check 'Open Data' studies being attached are allowed. Users might pass in 'Open Data' studies that are in
+  // DDB but have since been filtered out by 'openDataTagFilters'
+  async getInvalidOpenDataStudyIds(requestContext, environment) {
+    const studyService = await this.service('studyService');
+    const studies = await Promise.all(
+      environment.studyIds.map(studyId => {
+        return studyService.mustFind(requestContext, studyId);
+      }),
+    );
+    const openDataStudies = studies.filter(study => {
+      return study.category === 'Open Data';
+    });
+
+    const allowedOpenDataStudyIds = (await studyService.list(requestContext, 'Open Data')).map(study => {
+      return study.id;
+    });
+
+    return openDataStudies
+      .filter(study => {
+        return !allowedOpenDataStudyIds.includes(study.id);
+      })
+      .map(study => {
+        return study.id;
+      });
   }
 
   async update(requestContext, environment, ipAllowListAction = {}) {

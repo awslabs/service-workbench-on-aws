@@ -404,7 +404,7 @@ describe('studyService', () => {
             arn: 'arn:aws:s3:::study1',
           },
         ],
-        sha: '19d5b9c735712185ca1c691143e458a7aa2b7f69',
+        tags: ['genomic'],
         category: 'Open Data',
       };
       dbService.table.update.mockResolvedValueOnce(studyData);
@@ -424,10 +424,10 @@ describe('studyService', () => {
             arn: 'arn:aws:s3:::study1',
           },
         ],
-        sha: '19d5b9z735712185ca1c691143t458a7aa2b7f69',
+        tags: ['genomic'],
         category: 'Open Data',
+        invalidAttribute: 'abc',
       };
-
       // OPERATE
       try {
         await service.create(systemContext, studyData);
@@ -840,27 +840,6 @@ describe('studyService', () => {
         expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
-    it('should fail since the given study sha is invalid', async () => {
-      // BUILD
-      const uid = 'u-currentUserId';
-      const requestContext = {
-        principalIdentifier: { uid },
-        principal: { userRole: 'researcher', status: 'active' },
-      };
-      const dataIpt = {
-        id: 'id',
-        name: 'name',
-        category: 'Organization',
-        description: 'desc',
-        sha: 'fake',
-        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
-      };
-      // OPERATE
-      await expect(service.create(requestContext, dataIpt)).rejects.toThrow(
-        // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
-      );
-    });
   });
 
   describe('update', () => {
@@ -876,8 +855,8 @@ describe('studyService', () => {
             arn: 'arn:aws:s3:::study1',
           },
         ],
-        sha: '19d5b9c735712185ca1c691143e458a7aa2b7f69',
         rev: 0,
+        tags: ['genomic'],
       };
       dbService.table.update.mockResolvedValueOnce(studyData);
       service.getStudyPermissions = jest.fn().mockResolvedValueOnce({
@@ -902,8 +881,9 @@ describe('studyService', () => {
             arn: 'arn:aws:s3:::study1',
           },
         ],
-        sha: '19d5b9z735712185ca1c691143t458a7aa2b7f69',
         rev: 0,
+        tags: ['genomic'],
+        invalidAttribute: 'abc',
       };
 
       // OPERATE
@@ -945,26 +925,6 @@ describe('studyService', () => {
         id: 'id',
         name: '<hack>',
         description: 'desc',
-        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
-      };
-      // OPERATE
-      await expect(service.update(requestContext, dataIpt)).rejects.toThrow(
-        // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
-      );
-    });
-    it('should fail since the given sha is invalid', async () => {
-      // BUILD
-      const uid = 'u-currentUserId';
-      const requestContext = {
-        principalIdentifier: { uid },
-        principal: { userRole: 'researcher', status: 'active' },
-      };
-      const dataIpt = {
-        id: 'id',
-        name: 'name',
-        description: 'desc',
-        sha: 'fake',
         resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
       };
       // OPERATE
