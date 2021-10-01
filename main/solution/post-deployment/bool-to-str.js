@@ -4,7 +4,9 @@
 
 module.exports = async serverless => {
   // Get params details from serverless.yml
-  const enableEgressStore = serverless.service.custom.settings.enableEgressStore;
+  // eslint-disable-next-line global-require
+  const settings = await require('./config/settings/.settings').merged(serverless);
+  const enableEgressStore = settings.enableEgressStore;
 
   // Must be explicitly equal to true and not just a "truthy" value
   return enableEgressStore === true ? 'true' : 'false';
