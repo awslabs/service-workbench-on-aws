@@ -12,205 +12,194 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-// const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
-// const { beforeEach } = require('jest-circus');
-// const { NodeSSH } = require('node-ssh');
-// const { mountStudies, readWrite } = require('../../../support/complex/run-shell-command');
-// const { runSetup } = require('../../../support/setup');
-// const { getIdToken } = require('../../../support/utils/id-token');
+const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
+const { NodeSSH } = require('node-ssh');
+const { mountStudies, readWrite } = require('../../../support/complex/run-shell-command');
+const { runSetup } = require('../../../support/setup');
 
-// describe('EC2 Linux scenarios', () => {
-//   let setup;
-//   let adminSession;
-//   let admin2Session;
-//   let keyPair;
-//   let ssh;
+describe('EC2 Linux scenarios', () => {
+  let setup;
+  let ssh;
+  async function testSetup() {
+    const adminSession = await setup.createAdminSession();
+    const admin2Session = await setup.createAdminSession();
+    const keyPair = await admin2Session.resources.keyPairs.create();
+    return { adminSession, admin2Session, keyPair };
+  }
 
-//   beforeAll(async () => {
-//     setup = await runSetup();
-//     ssh = new NodeSSH();
+  beforeAll(async () => {
+    setup = await runSetup();
+    ssh = new NodeSSH();
+  });
+  afterAll(async () => {
+    await setup.cleanup();
+  });
 
-//     adminSession = await setup.createAdminSession();
-//     admin2Session = await setup.createAdminSession();
-//     jest.retryTimes(0);
+  describe('Updates to mounted study permissions', () => {
+    it('should propagate for Org Study', async () => {
+      const { adminSession, admin2Session, keyPair } = await testSetup();
+      const studyId = setup.gen.string({ prefix: `create-org-study-test` });
+      await adminSession.resources.studies.create({ id: studyId, name: studyId, category: 'Organization' });
+      await adminSession.resources.studies
+        .study(studyId)
+        .propagatePermission(admin2Session, ['admin', 'readwrite'], []);
 
-//     keyPair = await admin2Session.resources.keyPairs.create();
-//   });
+      const workspaceName = setup.gen.string({ prefix: 'workspace-sc-test' });
 
-//   beforeEach(async () => {
-//     const content = setup.settings.content;
-//     setup.settings.content.adminIdToken = await getIdToken({
-//       username: content.username,
-//       password: content.password,
-//       apiEndpoint: content.apiEndpoint,
-//       authenticationProviderId: content.authenticationProviderId,
-//     });
-//   });
-//   afterAll(async () => {
-//     await setup.cleanup();
-//     adminSession.cleanup();
-//     admin2Session.cleanup();
-//   });
+      const env = await admin2Session.resources.workspaceServiceCatalogs.create({
+        name: workspaceName,
+        envTypeId: setup.defaults.envTypes.ec2Linux.envTypeId,
+        envTypeConfigId: setup.defaults.envTypes.ec2Linux.envTypeConfigId,
+        studyIds: [studyId],
+        description: 'test',
+        projectId: setup.defaults.project.id,
+        cidr: '0.0.0.0/0',
+      });
+      // Poll until workspace is provisioned
+      await sleep(2000);
+      await adminSession.resources.workflows
+        .versions('wf-provision-environment-sc')
+        .version(1)
+        .findAndPollWorkflow(env.id, 10000, 60);
 
-//   describe('Updates to mounted study permissions', () => {
-//     it('should propagate for Org Study', async () => {
-//       const studyId = setup.gen.string({ prefix: `create-org-study-test` });
-//       await adminSession.resources.studies.create({ id: studyId, name: studyId, category: 'Organization' });
-//       await adminSession.resources.studies
-//         .study(studyId)
-//         .propagatePermission(admin2Session, ['admin', 'readwrite'], []);
+      // Connect to workspace
+      const networkInfo = await admin2Session.resources.workspaceServiceCatalogs
+        .workspaceServiceCatalog(env.id) // env.id
+        .connections()
+        .connection('id-1')
+        .sendSshPublicKey({ keyPairId: keyPair.id });
 
-//       const workspaceName = setup.gen.string({ prefix: 'workspace-sc-test' });
+      await ssh.connect({
+        host: networkInfo.networkInterfaces[0].publicDnsName,
+        username: 'ec2-user',
+        privateKey: keyPair.privateKey,
+      });
 
-//       const env = await admin2Session.resources.workspaceServiceCatalogs.create({
-//         name: workspaceName,
-//         envTypeId: setup.defaults.envTypes.ec2Linux.envTypeId,
-//         envTypeConfigId: setup.defaults.envTypes.ec2Linux.envTypeConfigId,
-//         studyIds: [studyId],
-//         description: 'test',
-//         projectId: setup.defaults.project.id,
-//         cidr: '0.0.0.0/0',
-//       });
-//       // Poll until workspace is provisioned
-//       await sleep(2000);
-//       await adminSession.resources.workflows
-//         .versions('wf-provision-environment-sc')
-//         .version(1)
-//         .findAndPollWorkflow(env.id, 10000, 48);
+      // Mount studies
+      let output;
+      output = await mountStudies(ssh, studyId);
 
-//       // Connect to workspace
-//       const networkInfo = await admin2Session.resources.workspaceServiceCatalogs
-//         .workspaceServiceCatalog(env.id) // env.id
-//         .connections()
-//         .connection('id-1')
-//         .sendSshPublicKey({ keyPairId: keyPair.id });
+      // Readwrite permission level
+      const numberOfBytes = 20;
+      output = await readWrite(ssh, studyId, numberOfBytes);
+      expect(output.stdout).toContain(`ec2-user ${numberOfBytes}`);
 
-//       await ssh.connect({
-//         host: networkInfo.networkInterfaces[0].publicDnsName,
-//         username: 'ec2-user',
-//         privateKey: keyPair.privateKey,
-//       });
+      // Admin permission level
+      await adminSession.resources.studies.study(studyId).propagatePermission(admin2Session, ['admin'], ['readwrite']);
+      output = await readWrite(ssh, studyId);
+      expect(output.stderr).toEqual(expect.stringMatching(/write error: Permission denied/));
 
-//       // Mount studies
-//       let output;
-//       output = await mountStudies(ssh, studyId);
-//       // console.log(`STDOUT:\n${output.stdout}\n\nSTDERR:\n${output.stderr}`);
+      // Readonly permission level
+      await adminSession.resources.studies.study(studyId).propagatePermission(admin2Session, ['readonly'], ['admin']);
+      output = await readWrite(ssh, studyId);
+      expect(output.stderr).toEqual(expect.stringMatching(/write error: Permission denied/));
 
-//       // Readwrite permission level
-//       output = await readWrite(ssh, studyId);
-//       expect(output.stdout).toEqual(expect.stringMatching(/ec2-user 20/));
+      // None permission level
+      await adminSession.resources.studies.study(studyId).propagatePermission(admin2Session, [], ['readonly']);
+      output = await readWrite(ssh, studyId);
+      expect(output.stderr).toEqual(expect.stringMatching(/reading directory .: Permission denied/));
 
-//       // Admin permission level
-//       await adminSession.resources.studies.study(studyId).propagatePermission(admin2Session, ['admin'], ['readwrite']);
-//       output = await readWrite(ssh, studyId);
-//       expect(output.stderr).toEqual(expect.stringMatching(/write error: Permission denied/));
+      await ssh.dispose();
+      await setup.cleanup();
+    });
 
-//       // Readonly permission level
-//       await adminSession.resources.studies.study(studyId).propagatePermission(admin2Session, ['readonly'], ['admin']);
-//       output = await readWrite(ssh, studyId);
-//       expect(output.stderr).toEqual(expect.stringMatching(/write error: Permission denied/));
+    it('should propagate for BYOB Study', async () => {
+      const { adminSession, admin2Session, keyPair } = await testSetup();
+      const externalStudy = setup.defaults.byobStudy;
+      const workspaceName = setup.gen.string({ prefix: 'workspace-sc-test' });
+      await adminSession.resources.studies.study(externalStudy).propagatePermission(admin2Session, ['readwrite'], []);
 
-//       // None permission level
-//       await adminSession.resources.studies.study(studyId).propagatePermission(admin2Session, [], ['readonly']);
-//       output = await readWrite(ssh, studyId);
-//       expect(output.stderr).toEqual(expect.stringMatching(/reading directory .: Permission denied/));
+      const env = await admin2Session.resources.workspaceServiceCatalogs.create({
+        name: workspaceName,
+        envTypeId: setup.defaults.envTypes.ec2Linux.envTypeId,
+        envTypeConfigId: setup.defaults.envTypes.ec2Linux.envTypeConfigId,
+        studyIds: [externalStudy],
+        description: 'test',
+        projectId: setup.defaults.project.id,
+        cidr: '0.0.0.0/0',
+      });
+      // Poll until workspace is provisioned
+      await sleep(2000);
+      await adminSession.resources.workflows
+        .versions('wf-provision-environment-sc')
+        .version(1)
+        .findAndPollWorkflow(env.id, 10000, 60);
+      // Connect to workspace
+      const networkInfo = await admin2Session.resources.workspaceServiceCatalogs
+        .workspaceServiceCatalog(env.id) // env.id
+        .connections()
+        .connection('id-1')
+        .sendSshPublicKey({ keyPairId: keyPair.id });
 
-//       await ssh.dispose();
-//     });
+      await ssh.connect({
+        host: networkInfo.networkInterfaces[0].publicDnsName,
+        username: 'ec2-user',
+        privateKey: keyPair.privateKey,
+      });
 
-//     it('should propagate for BYOB Study', async () => {
-//       const externalStudy = setup.defaults.byobStudy;
-//       const workspaceName = setup.gen.string({ prefix: 'workspace-sc-test' });
-//       await adminSession.resources.studies.study(externalStudy).propagatePermission(admin2Session, ['readwrite'], []);
+      // Mount studies
+      let output;
+      output = await mountStudies(ssh, externalStudy);
 
-//       const env = await admin2Session.resources.workspaceServiceCatalogs.create({
-//         name: workspaceName,
-//         envTypeId: setup.defaults.envTypes.ec2Linux.envTypeId,
-//         envTypeConfigId: setup.defaults.envTypes.ec2Linux.envTypeConfigId,
-//         studyIds: [externalStudy],
-//         description: 'test',
-//         projectId: setup.defaults.project.id,
-//         cidr: '0.0.0.0/0',
-//       });
-//       // Poll until workspace is provisioned
-//       await sleep(2000);
-//       await adminSession.resources.workflows
-//         .versions('wf-provision-environment-sc')
-//         .version(1)
-//         .findAndPollWorkflow(env.id, 10000, 48);
-//       // Connect to workspace
-//       const networkInfo = await admin2Session.resources.workspaceServiceCatalogs
-//         .workspaceServiceCatalog(env.id) // env.id
-//         .connections()
-//         .connection('id-1')
-//         .sendSshPublicKey({ keyPairId: keyPair.id });
+      // Readwrite permission level
+      const numberOfBytes = 20;
+      output = await readWrite(ssh, externalStudy, numberOfBytes);
+      expect(output.stdout).toContain(`ec2-user ${numberOfBytes}`);
 
-//       await ssh.connect({
-//         host: networkInfo.networkInterfaces[0].publicDnsName,
-//         username: 'ec2-user',
-//         privateKey: keyPair.privateKey,
-//       });
+      // Readonly permission level
+      await adminSession.resources.studies
+        .study(externalStudy)
+        .propagatePermission(admin2Session, ['readonly'], ['readwrite']);
+      output = await readWrite(ssh, externalStudy);
+      expect(output.stderr).toEqual(expect.stringMatching(/reading directory .: Permission denied/));
 
-//       // Mount studies
-//       let output;
-//       output = await mountStudies(ssh, externalStudy);
-//       // console.log(`STDOUT:\n${output.stdout}\n\nSTDERR:\n${output.stderr}`);
+      await ssh.dispose();
+      // Removes user permission
+      await adminSession.resources.studies.study(externalStudy).propagatePermission(admin2Session, [], ['readonly']);
+      await setup.cleanup();
+    });
+  });
 
-//       // Readwrite permission level
-//       output = await readWrite(ssh, externalStudy);
-//       expect(output.stdout).toEqual(expect.stringMatching(/ec2-user 20/));
+  describe('Confirm study permissions', () => {
+    it('should pass for My Study', async () => {
+      const { adminSession, admin2Session, keyPair } = await testSetup();
+      const studyId = setup.gen.string({ prefix: `create-my-study-test` });
+      await admin2Session.resources.studies.create({ id: studyId, name: studyId, category: 'My Studies' });
 
-//       // Readonly permission level
-//       await adminSession.resources.studies
-//         .study(externalStudy)
-//         .propagatePermission(admin2Session, ['readonly'], ['readwrite']);
-//       output = await readWrite(ssh, externalStudy);
-//       expect(output.stderr).toEqual(expect.stringMatching(/reading directory .: Permission denied/));
+      const workspaceName = setup.gen.string({ prefix: 'workspace-sc-test' });
+      const env = await admin2Session.resources.workspaceServiceCatalogs.create({
+        name: workspaceName,
+        envTypeId: setup.defaults.envTypes.ec2Linux.envTypeId,
+        envTypeConfigId: setup.defaults.envTypes.ec2Linux.envTypeConfigId,
+        studyIds: [studyId],
+        description: 'test',
+        projectId: setup.defaults.project.id,
+        cidr: '0.0.0.0/0',
+      });
 
-//       await ssh.dispose();
-//       // Removes user permission
-//       await adminSession.resources.studies.study(externalStudy).propagatePermission(admin2Session, [], ['readonly']);
-//     });
-//   });
+      // Poll until workspace is provisioned
+      await sleep(2000);
+      await adminSession.resources.workflows
+        .versions('wf-provision-environment-sc')
+        .version(1)
+        .findAndPollWorkflow(env.id, 10000, 60);
 
-//   describe('Confirm study permissions', () => {
-//     it('should pass for My Study', async () => {
-//       const studyId = setup.gen.string({ prefix: `create-my-study-test` });
-//       await admin2Session.resources.studies.create({ id: studyId, name: studyId, category: 'My Studies' });
+      // Connect to workspace
+      const networkInfo = await admin2Session.resources.workspaceServiceCatalogs
+        .workspaceServiceCatalog(env.id) // env.id
+        .connections()
+        .connection('id-1')
+        .sendSshPublicKey({ keyPairId: keyPair.id });
 
-//       const workspaceName = setup.gen.string({ prefix: 'workspace-sc-test' });
-//       const env = await admin2Session.resources.workspaceServiceCatalogs.create({
-//         name: workspaceName,
-//         envTypeId: setup.defaults.envTypes.ec2Linux.envTypeId,
-//         envTypeConfigId: setup.defaults.envTypes.ec2Linux.envTypeConfigId,
-//         studyIds: [studyId],
-//         description: 'test',
-//         projectId: setup.defaults.project.id,
-//         cidr: '0.0.0.0/0',
-//       });
+      await ssh.connect({
+        host: networkInfo.networkInterfaces[0].publicDnsName,
+        username: 'ec2-user',
+        privateKey: keyPair.privateKey,
+      });
 
-//       // Poll until workspace is provisioned
-//       await sleep(2000);
-//       await adminSession.resources.workflows
-//         .versions('wf-provision-environment-sc')
-//         .version(1)
-//         .findAndPollWorkflow(env.id, 10000, 48);
-
-//       // Connect to workspace
-//       const networkInfo = await admin2Session.resources.workspaceServiceCatalogs
-//         .workspaceServiceCatalog(env.id) // env.id
-//         .connections()
-//         .connection('id-1')
-//         .sendSshPublicKey({ keyPairId: keyPair.id });
-
-//       await ssh.connect({
-//         host: networkInfo.networkInterfaces[0].publicDnsName,
-//         username: 'ec2-user',
-//         privateKey: keyPair.privateKey,
-//       });
-
-//       const output = await mountStudies(ssh, studyId);
-//       expect(output.stdout).toEqual(expect.stringMatching(/output.txt/));
-//     });
-//   });
-// });
+      const output = await mountStudies(ssh, studyId);
+      expect(output.stdout).toEqual(expect.stringMatching(/output.txt/));
+      await setup.cleanup();
+    });
+  });
+});
