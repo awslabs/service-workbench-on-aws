@@ -3407,7 +3407,7 @@ components:
           {"arn": "arn:aws:s3:::123456789101-studydata/studies/Organization/org-study-2/"}
           ]
           items:
-            type: object'
+            type: object
             additionalProperties: false
             properties:
               arn:
