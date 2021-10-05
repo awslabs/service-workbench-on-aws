@@ -27,30 +27,35 @@ describe('Check that variables prepopulate when making a new configuration', () 
   };
 
   it('should have the proper variables prepopulated-EMR', () => {
-    const workspaces = Cypress.env('workspaces');
-    const emr = workspaces.emr;
-    checkPrepopVariables(emr, 'EMR');
+    const isAppStreamEnabled = Cypress.env('isAppStreamEnabled');
+    // AppStream enabled env does not support EMR (10/7/21)
+    if (!isAppStreamEnabled) {
+      const workspaces = Cypress.env('workspaces');
+      const emr = workspaces.emr;
+      checkPrepopVariables(emr, 'EMR');
+    }
   });
 
   it('should have the proper variables prepopulated-EC2 Linux', () => {
     const workspaces = Cypress.env('workspaces');
-    const ec2 = workspaces.ec2;
+    const ec2 = workspaces.ec2.linux;
     checkPrepopVariables(ec2, 'EC2 Linux');
   });
 
   it('should have the proper variables prepopulated-Sagemaker', () => {
     const workspaces = Cypress.env('workspaces');
-    const ec2 = workspaces.ec2;
+    const ec2 = workspaces.sagemaker;
     checkPrepopVariables(ec2, 'Sagemaker');
   });
 
   it('should have the proper variables prepopulated-EC2 Windows', () => {
     const workspaces = Cypress.env('workspaces');
-    const ec2windows = workspaces.ec2windows;
+    const ec2windows = workspaces.ec2.windows;
     checkPrepopVariables(ec2windows, 'EC2 Windows');
   });
 
   const checkPrepopVariables = (workspaceParam, workspaceType) => {
+    const isAppStreamEnabled = Cypress.env('isAppStreamEnabled');
     navigateToWorkspaceTypes();
     // Get env type card and click edit for the right card
     cy.get('[data-testid=env-type-card]')
@@ -96,7 +101,10 @@ describe('Check that variables prepopulate when making a new configuration', () 
     }
     cy.get('[data-testid=EncryptionKeyArn]').contains('${encryptionKeyArn}');
     cy.get('[data-testid=VPC]').contains('${vpcId}');
-    cy.get('[data-testid=AccessFromCIDRBlock]').contains('${cidr}');
+    // AppStream enabled env does not support CIDR
+    if (!isAppStreamEnabled) {
+      cy.get('[data-testid=AccessFromCIDRBlock]').contains('${cidr}');
+    }
     cy.get('[data-testid=S3Mounts]').contains('${s3Mounts}');
     cy.get('[data-testid=Namespace]').contains('${namespace}');
     cy.get('[data-testid=IamPolicyDocument]').contains('${iamPolicyDocument}');
