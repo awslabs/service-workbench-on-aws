@@ -213,20 +213,18 @@ Resources:
             Encrypted: true
             KmsKeyId: !Ref EncryptionKeyArn
       NetworkInterfaces:
+        - DeviceIndex: '0'
+          GroupSet:
+            - !Ref SecurityGroup
+            - !If
+              - AppStreamEnabled
+              - Fn::ImportValue: !Sub "${SolutionNamespace}-SwbVPCDefaultSG"
+              - !Ref "AWS::NoValue"
+          SubnetId: !Ref Subnet
         - !If
           - AppStreamEnabled
-          -
-            DeviceIndex: '0'
-            GroupSet:
-              - !Ref SecurityGroup
-              - Fn::ImportValue: !Sub "${SolutionNamespace}-SwbVPCDefaultSG"
-            SubnetId: !Ref Subnet
-          -
-            AssociatePublicIpAddress: 'true'
-            DeviceIndex: '0'
-            GroupSet:
-              - !Ref SecurityGroup
-            SubnetId: !Ref Subnet
+          - AssociatePublicIpAddress: false
+          - AssociatePublicIpAddress: true
       Tags:
         - Key: Name
           Value: !Join ['-', [Ref: Namespace, 'ec2-rstudio']]
