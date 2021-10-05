@@ -199,7 +199,8 @@ Resources:
             Encrypted: true
             KmsKeyId: !Ref EncryptionKeyArn
       NetworkInterfaces:
-        - DeviceIndex: '0'
+        - AssociatePublicIpAddress: !If [ AppStreamEnabled, 'false', 'true' ]
+          DeviceIndex: '0'
           GroupSet:
             - !Ref SecurityGroup
             - !If
@@ -207,10 +208,6 @@ Resources:
               - Fn::ImportValue: !Sub "${SolutionNamespace}-SwbVPCDefaultSG"
               - !Ref "AWS::NoValue"
           SubnetId: !Ref Subnet
-        - !If
-          - AppStreamEnabled
-          - AssociatePublicIpAddress: false
-          - AssociatePublicIpAddress: true
       Tags:
         - Key: Name
           Value: !Join ['-', [Ref: Namespace, 'ec2-linux']]
