@@ -55,6 +55,7 @@ Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
   EgressStoreIamPolicyEmpty: !Equals [!Ref EgressStoreIamPolicyDocument, '{}']
   AppStreamEnabled: !Equals [!Ref IsAppStreamEnabled, 'true']
+  AppStreamDisabled: !Equals [!Ref IsAppStreamEnabled, 'false']
 
 Resources:
   InstanceRolePermissionBoundary:
@@ -212,15 +213,20 @@ Resources:
             Encrypted: true
             KmsKeyId: !Ref EncryptionKeyArn
       NetworkInterfaces:
-        - AssociatePublicIpAddress: 'true'
-          DeviceIndex: '0'
-          GroupSet:
-            - !Ref SecurityGroup
-            - !If
-              - AppStreamEnabled
+        - !If
+          - AppStreamEnabled
+          -
+            DeviceIndex: '0'
+            GroupSet:
+              - !Ref SecurityGroup
               - Fn::ImportValue: !Sub "${SolutionNamespace}-SwbVPCDefaultSG"
-              - !Ref "AWS::NoValue"
-          SubnetId: !Ref Subnet
+            SubnetId: !Ref Subnet
+          -
+            AssociatePublicIpAddress: 'true'
+            DeviceIndex: '0'
+            GroupSet:
+              - !Ref SecurityGroup
+            SubnetId: !Ref Subnet
       Tags:
         - Key: Name
           Value: !Join ['-', [Ref: Namespace, 'ec2-rstudio']]
@@ -244,10 +250,11 @@ Outputs:
 
   Ec2WorkspacePublicIp:
     Description: Public IP address of the EC2 workspace instance
+    Condition: AppStreamDisabled
     Value: !GetAtt [EC2Instance, PublicIp]
 
   Ec2WorkspacePrivateIp:
-    Description: Public IP address of the EC2 workspace instance
+    Description: Private IP address of the EC2 workspace instance
     Value: !GetAtt [EC2Instance, PrivateIp]
 
   Ec2WorkspaceInstanceId:
