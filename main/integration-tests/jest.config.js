@@ -34,7 +34,7 @@ async function init() {
   const parsedArgs = parse(process.argv);
 
   // Get the stage argument either from the command line args or from the process environment variables
-  const stage = parsedArgs.stage || parsedArgs.s || process.env.STAGE || 'tre';
+  const stage = parsedArgs.stage || parsedArgs.s || process.env.STAGE;
   if (_.isEmpty(stage)) {
     throw new Error(
       'No "stage" argument was passed. Please pass the stage name via the command line.\nThe "stage" is your yaml configuration file name (without .yml).\nExample: $ pnpm intTest -- --stage=<stage name>\n',
@@ -82,6 +82,7 @@ async function init() {
   const ssm = await aws.services.parameterStore();
   const passwordPath = settingsStore.get('passwordPath');
   const password = await ssm.getParameter(passwordPath);
+
   const adminIdToken = await getIdToken({
     username: settingsStore.get('username'),
     password,
