@@ -73,25 +73,6 @@ describe('envProvisioningPlugin', () => {
       await plugin.onEnvPreProvisioning({ requestContext, container, envId: 'some-env-id' });
       // TEST
       expect(environmentScService.getMemberAccount).toHaveBeenCalledWith(requestContext, { id: 'env-id' });
-      expect(pluginRegistryService.visitPlugins).toHaveBeenCalledWith(
-        'study-access-strategy',
-        'updateKMSPolicyForEgress',
-        {
-          payload: expect.objectContaining({
-            environmentScEntity: {
-              id: 'env-id',
-            },
-            memberAccountId: '1234567',
-            requestContext: {
-              principal: {
-                isAdmin: true,
-                status: 'active',
-              },
-            },
-            studies: [],
-          }),
-        },
-      );
     });
 
     it('visit plugins with correct parameters if there is study to be linked', async () => {

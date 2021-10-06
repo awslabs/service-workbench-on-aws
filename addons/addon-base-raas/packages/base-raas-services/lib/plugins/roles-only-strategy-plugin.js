@@ -81,15 +81,6 @@ async function allocateEnvStudyResources(payload) {
   return payload;
 }
 
-async function updateKMSPolicyForEgress(payload) {
-  const { requestContext, container, environmentScEntity, studies, memberAccountId } = payload;
-
-  const resourceService = await container.find('roles-only/environmentResourceService');
-  await resourceService.updateKMSPolicyForEgress(requestContext, { environmentScEntity, studies, memberAccountId });
-
-  return payload;
-}
-
 /**
  * A plugin method to implement any specific logic for the 'roles-only' access logic when a environment
  * is terminated or failed provisioning. This method simply delegates to the roles-only/EnvironmentResourceService
@@ -156,7 +147,6 @@ const plugin = {
   onStudyRegistration,
   provideAccountCfnTemplate,
   allocateEnvStudyResources,
-  updateKMSPolicyForEgress,
   deallocateEnvStudyResources,
   provideEnvRolePolicy,
   provideStudyMount,
