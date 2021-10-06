@@ -8,7 +8,7 @@
   "dependencies": {
     "@aws-ee/base-services": "workspace:*",
     "@aws-ee/base-services-container": "workspace:*",
-    "aws-sdk": "^2.647.0",
+    "aws-sdk": "^2.1000.0",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
