@@ -52,6 +52,7 @@ Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
   EgressStoreIamPolicyEmpty: !Equals [!Ref EgressStoreIamPolicyDocument, '{}']
   AppStreamEnabled: !Equals [!Ref IsAppStreamEnabled, 'true']
+  AppStreamDisabled: !Equals [!Ref IsAppStreamEnabled, 'false']
 
 Resources:
   InstanceRolePermissionBoundary:
@@ -198,7 +199,7 @@ Resources:
             Encrypted: true
             KmsKeyId: !Ref EncryptionKeyArn
       NetworkInterfaces:
-        - AssociatePublicIpAddress: 'true'
+        - AssociatePublicIpAddress: !If [ AppStreamEnabled, 'false', 'true' ]
           DeviceIndex: '0'
           GroupSet:
             - !Ref SecurityGroup
@@ -230,6 +231,7 @@ Outputs:
 
   Ec2WorkspacePublicIp:
     Description: Public IP address of the EC2 workspace instance
+    Condition: AppStreamDisabled
     Value: !GetAtt [EC2Instance, PublicIp]
 
   Ec2WorkspaceInstanceId:
