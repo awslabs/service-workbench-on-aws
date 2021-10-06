@@ -22,7 +22,7 @@
     }
   },
   "dependencies": {
-    "aws-sdk": "^2.936.0",
+    "aws-sdk": "^2.1000.0",
     "js-yaml": "^4.1.0",
     "lodash": "^4.17.21",
     "yargs-parser": "^20.2.9",
