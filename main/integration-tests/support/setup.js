@@ -118,7 +118,6 @@ class Setup {
       this.settings.set('adminIdToken', idToken);
     }
 
-
     const session = await getClientSession({ idToken, setup: this });
     this.sessions.push(session);
     this.defaultAdminSessionInstance = session;
@@ -165,7 +164,10 @@ class Setup {
 
     const workflowTemplateId = 'wt-empty';
 
+    const isAppStreamEnabled = await this.settings.get('isAppStreamEnabled');
+
     return {
+      isAppStreamEnabled,
       project,
       index,
       awsAccount,

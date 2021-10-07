@@ -206,7 +206,6 @@ class EnvironmentScService extends Service {
 
     const ec2Updated = await this.updateAllStatuses(ec2Instances, EC2StatusMap, ec2RealtimeStatus, requestContext);
 
-
     return ec2Updated;
   }
 
@@ -520,11 +519,13 @@ class EnvironmentScService extends Service {
   // DDB but have since been filtered out by 'openDataTagFilters'
   async getInvalidOpenDataStudyIds(requestContext, environment) {
     const studyService = await this.service('studyService');
-    const studies = await Promise.all(
-      environment.studyIds.map(studyId => {
-        return studyService.mustFind(requestContext, studyId);
-      }),
-    );
+    const studies = environment.studyIds
+      ? await Promise.all(
+          environment.studyIds.map(studyId => {
+            return studyService.mustFind(requestContext, studyId);
+          }),
+        )
+      : [];
     const openDataStudies = studies.filter(study => {
       return study.category === 'Open Data';
     });

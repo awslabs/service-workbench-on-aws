@@ -17,7 +17,6 @@
 const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
 const { runSetup } = require('../../../../support/setup');
 
-
 const {
   createWorkspaceTypeAndConfiguration,
 } = require('../../../../support/complex/create-workspace-type-and-configuration');
@@ -193,7 +192,7 @@ describe('Create workspace-service-catalog scenarios', () => {
       studyIds.push(studyId);
 
       const workspaceName = setup.gen.string({ prefix: 'workspace-sc-test' });
-      const env = await admin1Session.resources.workspaceServiceCatalogs.create({
+      const body = {
         name: workspaceName,
         envTypeId: setup.defaults.envTypes.ec2Linux.envTypeId,
         envTypeConfigId: setup.defaults.envTypes.ec2Linux.envTypeConfigId,
@@ -201,7 +200,12 @@ describe('Create workspace-service-catalog scenarios', () => {
         description: 'assignment',
         projectId: setup.defaults.project.id,
         cidr: '123.123.123.123/12',
-      });
+      };
+      // AppStream enabled environments does not support CIDR
+      if (setup.defaults.isAppStreamEnabled) {
+        delete body.cidr;
+      }
+      const env = await admin1Session.resources.workspaceServiceCatalogs.create(body);
       expect(env).toMatchObject({
         name: workspaceName,
         envTypeId: setup.defaults.envTypes.ec2Linux.envTypeId,
