@@ -83,45 +83,4 @@ describe('ProjectConfigure', () => {
     expect(store.updateProject).toHaveBeenCalledWith(newProject);
     expect(notificationMock.displayError).toHaveBeenCalledWith(error);
   });
-
-  it('should delete the project', async () => {
-    // BUILD
-    const store = {
-      deleteProject: jest.fn(),
-      load: jest.fn(),
-    };
-    component.getStore = jest.fn(() => {
-      return store;
-    });
-
-    // OPERATE
-    await component.handleClickDeleteButton();
-
-    // CHECK
-    expect(store.deleteProject).toHaveBeenCalledWith(project.id);
-    expect(notificationMock.displayError).not.toHaveBeenCalled();
-  });
-
-  it('should fail to delete the project', async () => {
-    // BUILD
-    const error = {
-      message: 'failed to update',
-    };
-    const store = {
-      deleteProject: jest.fn(() => {
-        throw error;
-      }),
-      load: jest.fn(),
-    };
-    component.getStore = jest.fn(() => {
-      return store;
-    });
-
-    // OPERATE
-    await component.handleClickDeleteButton();
-
-    // CHECK
-    expect(store.deleteProject).toHaveBeenCalledWith(project.id);
-    expect(notificationMock.displayError).toHaveBeenCalledWith(error);
-  });
 });

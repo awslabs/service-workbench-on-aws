@@ -880,6 +880,14 @@ Resources:
                   - dynamodb:GetItem
                 Resource:
                   - !GetAtt [StudyPermissionsDb, Arn]
+        - PolicyName: s3-access
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource:
+                  - 'arn:aws:s3:::registry.opendata.aws/*'
 
   PolicyDataSourceReachabilityHandler:
     Type: AWS::IAM::ManagedPolicy

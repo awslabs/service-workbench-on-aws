@@ -77,7 +77,7 @@ class ConfigStep extends React.Component {
                   Configurations are predefined set of Input Parameter values for the AWS Service Catalog Product. The
                   configurations are presented as preset options when launching workspaces of this type.
                 </p>
-                <Button basic color="blue" onClick={this.showEnvTypeConfigDialog}>
+                <Button data-testid="add-config-button" basic color="blue" onClick={this.showEnvTypeConfigDialog}>
                   Add Configuration
                 </Button>
               </Header.Subheader>
@@ -99,7 +99,14 @@ class ConfigStep extends React.Component {
       <>
         <Segment basic>
           {!this.shouldShowEnvTypeConfigDialog && (
-            <Button className="ml3" basic color="blue" floated="right" onClick={this.showEnvTypeConfigDialog}>
+            <Button
+              data-testid="add-config-button"
+              className="ml3"
+              basic
+              color="blue"
+              floated="right"
+              onClick={this.showEnvTypeConfigDialog}
+            >
               Add Configuration
             </Button>
           )}
@@ -168,7 +175,7 @@ class ConfigStep extends React.Component {
     return (
       <div className="mt3">
         <div className="right-align">
-          <Button basic color="grey" onClick={onCancel}>
+          <Button data-testid="cancel-button" basic color="grey" onClick={onCancel}>
             Cancel
           </Button>
           <Button className="ml2" primary content="Done" disabled={processing} onClick={this.onNext} />

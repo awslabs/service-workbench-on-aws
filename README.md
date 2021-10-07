@@ -14,8 +14,17 @@ Service Workbench integrates existing AWS services, such as Amazon CloudFront, A
 
 There are three types of Studies available in Service Workbench: My Studies, Organizational Studies and Open Data. Once you have created a Study you can upload files to it. Organizational Studies can be shared with other members in the organization. Owners of a study can amend the permissions of the study to grant access to other users. Once you have found the study or studies in which you are interested to perform research, you can deploy a workspace to attach the data to and conduct your research. 
 
-![Architecture](docs/docs/images/SWBArchitecture.png)
+### Main account
 
+This is the account where Service Workbench infrastructure is deployed.
+
+![Architecture1](docs/docs/images/main_account.png)
+
+### Hosting account
+
+This is the account where compute resources are deployed.
+
+![Architecture2](docs/docs/images/hosting_account.png)
 
 ## Service Workbench components
 
@@ -51,9 +60,22 @@ The solution also includes a Continuous Integration/Continuous Delivery feature:
 
 # Installing Service Workbench
 
-## Accessing documentation using Docusaurus
+## Accessing Service Workbench Documentation
 
-Read the Service Workbench Deployment Guide provided in the installation. You can now also launch the Service Workbench docusaurus website. Please follow the steps in docs/README.md
+Service Workbench documentation can be accessed in the PDF format or by using the Docusaurus website. 
+
+### Documentation PDFs
+
+You can download the PDF versions if you do not have Service Workbench locally installed on your machine. Click the following links to download:
+
++ [Service Workbench Installation Guide](/docs/Service_Workbench_Installation_Guide.pdf)
++ [Service Workbench Configuration Guide](/docs/Service_Workbench_Configuration_Guide.pdf)
++ [Service Workbench Post Deployment Guide](/docs/Service_Workbench_Post_Deployment_Guide.pdf)
++ [Service Workbench User's Guide](/docs/Service_Workbench_User_Guide.pdf)
+
+### Accessing Documentation using Docusaurus
+
+You first need to download the Service Workbench [source code](https://github.com/awslabs/service-workbench-on-aws/tags) on your local machine before accessing the documentation using Docusaurus. After downloading the source, you need to install Docusaurus so that you can launch the help site. For steps on how to install Docusaurus locally, read the [Documentation Readme](/docs/README.md).
 
 ## Software requirements
 
@@ -165,7 +187,7 @@ For more information, refer to *Service Workbench Installation Guide*.
 
 Once Service Workbench is fully deployed, the console will output the Website URL and Root Password for Service Workbench. You can log in by navigating to the Website URL in any browser, and then using the username 'root' and the Root Password given by the console. Please note that logging as the root user is highly discouraged, and should only be used for initial setup. You can create a new user by clicking the "Users" tab on the left, then "Add Local User". Follow the instructions given to create the user (you can leave the 'Project' field blank for now), then log out of the root account and into your new user account.
 
-Adding a local user should only be done in test environments. We highly recommend using an IDP for prod environments. For more details on how to set up an IDP, please click [here](/docs/docs/user_guide/sidebar/admin/auth/introduction.md)
+Adding a local user should only be done in test environments. We highly recommend using an IDP for prod environments. For more details on how to set up an IDP, click [here](/docs/docs/user_guide/sidebar/admin/auth/introduction.md)
 ## Linking an existing AWS account
 
 Once in your user account, you'll need to link your AWS account. Navigate to "AWS Accounts" in the left bar, then click the "AWS Accounts" tab. From here, you can create an AWS account, or link an existing one.

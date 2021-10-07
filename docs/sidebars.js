@@ -42,19 +42,48 @@ module.exports = {
         ],
       },
     ],
-    "Deployment Guide": [
-      "deployment/deployment_stages",
+
       {
-        "Pre Deployment": [
-          "deployment/pre_deployment/pre_deployment",
-          "deployment/pre_deployment/accounts",
-          "deployment/pre_deployment/prereq_commands",
-          "deployment/pre_deployment/deployment_instance",
-          "deployment/pre_deployment/source_code",
-          "deployment/pre_deployment/configuration",
+        "Pre-installation requirements": [
+          "installation_guide/installation/pre-installation/overview",
+          "installation_guide/installation/pre-installation/tool-req",
+          "installation_guide/installation/pre-installation/software-req",
+          "installation_guide/installation/pre-installation/instance-req",
+          "installation_guide/installation/pre-installation/conf-settings",
+          "installation_guide/installation/pre-installation/documentation",
         ],
       },
-      "deployment/deployment/index",
+      {
+        "Installing Service Workbench": [
+          "installation_guide/installation/ami-install",
+          "installation_guide/installation/ec2install",
+          "installation_guide/installation/cloud9install",
+        ],
+      },
+      {
+        "Upgrading Service Workbench": [
+          "installation_guide/upgrading/commandline",
+          "installation_guide/upgrading/solutions",
+        ],
+      },
+      "installation_guide/postupgrade",
+      "installation_guide/uninstall",
+      "installation_guide/troubleshooting",
+    ],
+    "Service Workbench Configuration Guide": [
+      "configuration_guide/overview",
+      "configuration_guide/workflow",
+      {
+        "Configuring Service Workbench using IdP": [
+          "configuration_guide/activedirectory",
+          "configuration_guide/adfs",
+          "configuration_guide/auth0",
+        ],
+      },
+    ],
+    "Service Workbench Post Deployment Guide": [
+
+
       {
         "Post Deployment": [
           "deployment/post_deployment/index",
@@ -67,6 +96,7 @@ module.exports = {
           "deployment/post_deployment/logs",
         ],
       },
+
       "deployment/redeployment",
       {
         Reference: [
@@ -76,7 +106,7 @@ module.exports = {
         ],
       },
     ],
-    "User Guide": [
+    "Service Workbench User Guide": [
       "user_guide/account_structure",
       "user_guide/introduction",
       {

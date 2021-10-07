@@ -17,6 +17,8 @@
  */
 
 const _ = require('lodash');
+const jwtDecode = require('jwt-decode');
+const { retry } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const Settings = require('./utils/settings');
 const { getIdToken } = require('./utils/id-token');
@@ -67,12 +69,56 @@ class Setup {
     jest.retryTimes(3);
   }
 
-  async defaultAdminSession() {
-    // Only create a new client session if we haven't done that already
-    if (this.defaultAdminSessionInstance) return this.defaultAdminSessionInstance;
+  async getNewAdminIdToken() {
+    let apiEndpoint;
 
-    const idToken = this.settings.get('adminIdToken');
-    // In the future, we can check if the token expired and if so, we can create a new one
+    // If isLocal = false, we get the api endpoint from the backend stack outputs
+    if (this.settings.get('isLocal')) {
+      apiEndpoint = this.settings.get('localApiEndpoint');
+    } else {
+      const cloudformation = await this.aws.services.cloudFormation();
+      const stackName = this.aws.settings.get('backendStackName');
+      apiEndpoint = await cloudformation.getStackOutputValue(stackName, 'ServiceEndpoint');
+      if (_.isEmpty(apiEndpoint)) throw new Error(`No API Endpoint value defined in stack ${stackName}`);
+    }
+
+    // Get the admin password from parameter store
+    const ssm = await this.aws.services.parameterStore();
+    const passwordPath = this.settings.get('passwordPath');
+    const password = await ssm.getParameter(passwordPath);
+
+    const adminIdToken = await getIdToken({
+      username: this.settings.get('username'),
+      password,
+      apiEndpoint,
+      authenticationProviderId: this.settings.get('authenticationProviderId'),
+    });
+
+    return adminIdToken;
+  }
+
+  async defaultAdminSession() {
+    let idToken = this.settings.get('adminIdToken');
+    const decodedIdToken = jwtDecode(idToken);
+    const expiresAt = _.get(decodedIdToken, 'exp', 0) * 1000;
+
+    // Assume the default admin session is shared between all test cases in a given test suite (ie. test file),
+    // so it has to stay active throughout the test suite duration.
+    // Therefore the buffer time (in minutes) should be the longest time taken by any single test suite
+    // If the current token has less than the buffer minutes remaining, we create a new one.
+    const bufferInMinutes = 10;
+    const tokenExpired = (expiresAt - Date.now()) / 60 / 1000 < bufferInMinutes;
+
+    // Only create a new client session if we haven't done that already or if the token has expired
+    if (this.defaultAdminSessionInstance && !tokenExpired) return this.defaultAdminSessionInstance;
+
+    // If previous token expired, we need to create a new id token for the default admin
+    if (tokenExpired) {
+      idToken = await this.getNewAdminIdToken();
+      this.settings.set('adminIdToken', idToken);
+    }
+
+
     const session = await getClientSession({ idToken, setup: this });
     this.sessions.push(session);
     this.defaultAdminSessionInstance = session;
@@ -226,10 +272,17 @@ class Setup {
  * Use this function to gain access to a setup instance that is initialized and ready to be used.
  */
 async function runSetup() {
-  const setupInstance = new Setup();
-  await setupInstance.init();
+  const tryCreateSetup = async () => {
+    const setupInstance = new Setup();
+    await setupInstance.init();
 
-  return setupInstance;
+    if (!setupInstance) throw Error('Setup instance did not initialize');
+    return setupInstance;
+  };
+
+  // Retry 3 times using an exponential interval
+  const setup = await retry(tryCreateSetup, 3);
+  return setup;
 }
 
 module.exports = { runSetup };

@@ -4,10 +4,10 @@ title: Account Structure
 sidebar_label: Account Structure
 ---
 
-Service Workbench uses _three_ types of accounts. You will see these account names throughout the _Service Workbench Deployment Guide_. 
+Service Workbench uses _three_ types of accounts. You will see these account names throughout the documentation. 
 - **Main**: The account from which Service Workbench is deployed. Will be billed for all AWS usage charges in this deployment.
 - **Master**: Holds the AWS Organization which creates Member accounts.
-- **Member**: User accounts created within Service Workbench for individuals.
+- **Hosting**: User accounts created within Service Workbench for individuals.
 
 Read the following files in the source code documentation to learn more about the different types of AWS accounts within Service Workbench: 
 
