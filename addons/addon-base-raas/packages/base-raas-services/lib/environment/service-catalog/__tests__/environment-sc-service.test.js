@@ -190,6 +190,8 @@ describe('EnvironmentSCService', () => {
       };
       service.audit = jest.fn();
       wfService.triggerWorkflow = jest.fn();
+      // Mock API to return 0 Open Data Studies from DDB
+      studyService.list = jest.fn().mockResolvedValue([]);
 
       // OPERATE
       await service.create(requestContext, newEnv);
