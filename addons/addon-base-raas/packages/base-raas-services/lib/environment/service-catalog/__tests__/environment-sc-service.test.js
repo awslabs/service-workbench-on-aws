@@ -1819,12 +1819,12 @@ Quisque egestas, eros nec feugiat venenatis, lorem turpis placerat tortor, ullam
       expect(currentIngressRules).toMatchObject(expectedOutcome);
       expect(securityGroupId).toBeUndefined();
     });
+  });
 
   describe('pollAndSyncSageMakerStatus function', () => {
     const roleArn = 'roleArn';
     const externalId = 'externalId';
     const requestContext = {};
-
     it('should finish updating before returning', async () => {
       // BUILD
       const sagemakerInstances = { 'notebook-instance-name': {} };

@@ -19,7 +19,6 @@ const Service = require('@aws-ee/base-services-container/lib/service');
 const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
 const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
 
-
 /**
  * This service is responsible for allocating and de-allocating AWS resources for the environment so that
  * the environment can access what it needs, such as studies. This service implements the roles only
@@ -255,9 +254,6 @@ class EnvironmentResourceService extends Service {
 
     return s3Mounts;
   }
-
-
-
 
   async audit(requestContext, auditEvent) {
     const auditWriterService = await this.service('auditWriterService');

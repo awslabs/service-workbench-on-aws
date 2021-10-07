@@ -217,19 +217,4 @@ describe('EnvironmentResourceService', () => {
     expect(fsRoleService.deallocateRole).toHaveBeenCalledTimes(1);
     expect(envService.updateStudyRoles).toHaveBeenCalledTimes(1);
   });
-
-      getBoolean: settingName => {
-        if (settingName === 'enableEgressStore') {
-          return true;
-        }
-        return undefined;
-      },
-
-        }
-        return undefined;
-      },
-      getBoolean: settingName => {
-        if (settingName === 'enableEgressStore') {
-          return true;
-
 });
