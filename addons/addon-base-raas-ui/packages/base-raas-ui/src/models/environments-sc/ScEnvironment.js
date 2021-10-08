@@ -154,6 +154,7 @@ const ScEnvironment = types
     rev: types.maybe(types.number),
     status: '',
     description: '',
+    envTypeConfigId: '',
     name: '',
     projectId: '',
     envTypeId: '',

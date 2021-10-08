@@ -14,11 +14,13 @@
  */
 
 //
-// 1. Get and parse yaml files from aws open data
+// 1. Get Open Data metadata
 // 2. Filter for the desired tags
 // 3. Write to study-service
 //
 const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
+const _ = require('lodash');
+const { normalizeKeys, basicProjection } = require('./utilities');
 
 const consoleLogger = {
   info(...args) {
@@ -31,179 +33,13 @@ const consoleLogger = {
   },
 };
 
-const _ = require('lodash');
-let fetch = require('node-fetch');
-const yaml = require('js-yaml');
-
 const studyCategory = 'Open Data';
 
-// Webpack messes with the fetch function import and it breaks in lambda.
-if (typeof fetch !== 'function' && fetch.default && typeof fetch.default === 'function') {
-  fetch = fetch.default;
-}
-
-const newHandler = async ({ studyService, log = consoleLogger } = {}) => {
-  const scrape = {
-    githubApiUrl: 'https://api.github.com',
-    rawGithubUrl: 'https://raw.githubusercontent.com',
-    owner: 'awslabs',
-    repository: 'open-data-registry',
-    ref: 'main',
-    subtree: 'datasets',
-    filterTags: [
-      'genetic',
-      'genomic',
-      'life sciences',
-      'whole genome sequencing',
-      'STRIDES',
-      'cancer',
-      'population genetics',
-      'COVID-19',
-      'health',
-      'neuroimaging',
-      'neuroscience',
-      'cell biology',
-      'cell imaging',
-      'bioinformatics',
-    ],
+const newHandler = async ({ S3, studyService, openDataTagFilters, log = consoleLogger } = {}) => {
+  return async () => {
+    const simplifiedStudyData = await getOpenDataMetadata(S3, openDataTagFilters, log);
+    return saveOpenData(log, simplifiedStudyData, studyService);
   };
-
-  function normalizeValue(value) {
-    if (_.isArray(value)) {
-      return value.map(normalizeValue);
-    }
-    if (_.isObject(value)) {
-      return normalizeKeys(value);
-    }
-    return value;
-  }
-
-  function normalizeKeys(obj) {
-    const normalized = Object.entries(obj).reduce((result, [key, value]) => {
-      // lowercase the first letter of the words in the key, unless the whole word is uppercase
-      // in which case lowercase the entire word
-      const normalizedKey = key
-        .split(' ')
-        .map(word => (/^[A-Z]*$/.test(word) ? word.toLowerCase() : `${word.slice(0, 1).toLowerCase()}${word.slice(1)}`))
-        .join(' ');
-      const normalizedValue = normalizeValue(value);
-      return { ...result, [normalizedKey]: normalizedValue };
-    }, {});
-
-    return normalized;
-  }
-
-  async function fetchDatasetFiles() {
-    const { githubApiUrl, rawGithubUrl, owner, repository, ref, subtree } = scrape;
-
-    log.info(`Fetching ${owner}/${repository}/${ref}/${subtree} file list`);
-    const refResponse = await fetch(`${githubApiUrl}/repos/${owner}/${repository}/git/refs/heads/${ref}`);
-
-    if (!refResponse.ok) {
-      throw new Error('Failed to fetch git refs');
-    }
-
-    const {
-      object: { url: commitUrl },
-    } = await refResponse.json();
-
-    const commitResponse = await fetch(commitUrl);
-
-    if (!commitResponse.ok) {
-      throw new Error('Failed to fetch git commit');
-    }
-
-    const {
-      tree: { url: treeUrl },
-    } = await commitResponse.json();
-
-    const baseTreeResponse = await fetch(treeUrl);
-
-    if (!baseTreeResponse.ok) {
-      throw new Error('Failed to fetch base git tree');
-    }
-
-    const { tree: baseTree } = await baseTreeResponse.json();
-
-    // The tree is an array of entries like:
-    // {
-    //   path: 'datasets',
-    //   mode: '040000',
-    //   type: 'tree',
-    //   sha: '82e29cc3cd11cdfedfbcfc756d132414f95dc8c2',
-    //   url:
-    //    'https://api.github.com/repos/awslabs/open-data-registry/git/trees/82e29cc3cd11cdfedfbcfc756d132414f95dc8c2'
-    // }
-    // Find and list the datasets tree, fetching all content
-    const datasetsDir = baseTree.find(({ path: p }) => p === subtree);
-
-    if (!(datasetsDir && datasetsDir.url)) {
-      throw new Error('Failed to find the datasets directory');
-    }
-
-    const datasetsTreeResponse = await fetch(datasetsDir.url);
-
-    if (!datasetsTreeResponse.ok) {
-      throw new Error('Failed to fetch datasets git tree');
-    }
-
-    const { tree } = await datasetsTreeResponse.json();
-
-    const blobs = tree.filter(({ type }) => type === 'blob');
-
-    const rawContentUrls = blobs.map(({ path, sha }) => ({
-      id: path.replace('.yaml', ''),
-      sha,
-      url: `${rawGithubUrl}/${owner}/${repository}/${ref}/${subtree}/${path}`,
-    }));
-
-    return rawContentUrls;
-  }
-
-  async function fetchFile({ url, id, sha }) {
-    const res = await fetch(url);
-
-    if (!res.ok) {
-      throw new Error(`Failed to fetch ${url}`);
-    }
-
-    const text = await res.text();
-
-    const doc = yaml.safeLoad(text, { filename: url });
-
-    return normalizeKeys({ ...doc, id, sha });
-  }
-
-  function basicProjection({ id, sha, name, description, resources }) {
-    return {
-      id,
-      name,
-      description,
-      category: studyCategory,
-      sha,
-      resources: resources.map(({ arn }) => ({ arn })),
-    };
-  }
-
-  return async () => fetchAndSaveOpenData(fetchDatasetFiles, scrape, log, fetchFile, basicProjection, studyService);
-};
-
-const fetchOpenData = async ({ fileUrls, requiredTags, log, fetchFile }) => {
-  log.info(`Fetching ${fileUrls.length} metadata files`);
-  const metadata = await Promise.all(fileUrls.map(fetchFile));
-
-  log.info(`Filtering for ${requiredTags} tags and resources with valid ARNs`);
-  const validS3Arn = new RegExp(/^arn:aws:s3:.*:.*:.+$/);
-  const filtered = metadata.filter(({ tags, resources }) => {
-    return (
-      requiredTags.some(filterTag => tags.includes(filterTag)) &&
-      resources.every(resource => {
-        return resource.type === 'S3 Bucket' && validS3Arn.test(resource.arn);
-      })
-    );
-  });
-
-  return filtered;
 };
 
 async function saveOpenData(log, simplified, studyService) {
@@ -230,17 +66,40 @@ async function saveOpenData(log, simplified, studyService) {
   return simplified;
 }
 
-const fetchAndSaveOpenData = async (fetchDatasetFiles, scrape, log, fetchFile, basicProjection, studyService) => {
-  const fileUrls = await fetchDatasetFiles();
-  const openData = await fetchOpenData({ fileUrls, requiredTags: scrape.filterTags, log, fetchFile });
+async function getOpenDataMetadata(S3, openDataTagFilters, log) {
+  const getObjResponse = await S3.getObject({
+    Bucket: 'registry.opendata.aws',
+    Key: 'roda/ndjson/index.ndjson',
+  }).promise();
 
-  const simplifiedStudyData = openData.map(basicProjection);
+  const allMetaData = getObjResponse.Body.toString('utf-8')
+    .split('\n')
+    .filter(metadata => {
+      return metadata !== '';
+    })
+    .map(metadata => {
+      const md = JSON.parse(metadata);
+      return normalizeKeys({ ...md, id: md.Slug });
+    });
 
-  return saveOpenData(log, simplifiedStudyData, studyService);
-};
+  log.info(`Filtering for ${openDataTagFilters} tags and resources with valid ARNs`);
+  const validS3Arn = new RegExp(/^arn:aws:s3:.*:.*:.+$/);
+  const filtered = allMetaData.filter(({ tags, resources }) => {
+    return (
+      openDataTagFilters.some(filterTag => tags.includes(filterTag)) &&
+      resources.every(resource => {
+        return resource.type === 'S3 Bucket' && validS3Arn.test(resource.arn);
+      })
+    );
+  });
+
+  return filtered.map(metadata => {
+    return basicProjection({ ...metadata, studyCategory });
+  });
+}
 
 module.exports = {
-  fetchOpenData,
+  getOpenDataMetadata,
   newHandler,
   saveOpenData,
 };

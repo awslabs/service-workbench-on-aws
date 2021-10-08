@@ -23,6 +23,7 @@ custom:
     Name: ${self:custom.settings.envName}-${self:service}
   deploymentBucket:
     policy: ${self:custom.settings.deploymentBucketPolicy}
+    blockPublicAccess: true
 
 resources:
   - Description: Service-Workbench-on-AWS ${self:custom.settings.version} ${self:custom.settings.solutionName} ${self:custom.settings.envName} Infrastructure

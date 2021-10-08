@@ -19,7 +19,7 @@ To run integration tests, the following resources need to be created in advance:
 - **Test Administrator:** Create an internal admin-role user for running integration tests. (**Note the username and password**)
 
 
-
+- **Test Project:** Create a default project for running integration tests. (**Note the projectId**)
 
 - **AWS Budget:** Create a budget for the AWS account associated with the Test Project.
 
@@ -30,6 +30,7 @@ To run integration tests, the following resources need to be created in advance:
 - **Environment Configuration:** Create a configuration for every corresponding environment type that was created.
 
 - **Data Source Study:** If testing BYOB studies, create an external BYOB study on the deployment with read and write access.
+
 
 #### Resources to create through AWS Console:
 
