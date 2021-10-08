@@ -75,6 +75,13 @@ Resources:
               Fn::ImportValue: !Sub "${SolutionNamespace}-SageMakerApiSecurityGroup"
             IpProtocol: '-1'
           - !Ref "AWS::NoValue"
+        - !If
+          - AppStreamEnabled
+          - IpProtocol: tcp
+            FromPort: 0
+            ToPort: 65535
+            CidrIp: 0.0.0.0/0
+          - !Ref "AWS::NoValue"
   PreSignedURLBoundary:
     Type: AWS::IAM::ManagedPolicy
     Condition: AppStreamEnabled
@@ -233,7 +240,7 @@ Resources:
         - !Ref SecurityGroup
         - !If
           - AppStreamEnabled
-          - Fn::ImportValue: !Sub "${SolutionNamespace}-SwbVPCDefaultSG"
+          - Fn::ImportValue: !Sub "${SolutionNamespace}-EnvironmentSG"
           - !Ref "AWS::NoValue"
       DirectInternetAccess:
         !If
