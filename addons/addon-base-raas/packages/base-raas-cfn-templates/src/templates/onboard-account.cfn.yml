@@ -1002,7 +1002,7 @@ Outputs:
       Name: !Join ['', [Ref: Namespace, '-InterfaceEndpointSG']]
 
   WorkspaceSG:
-    Description: Default SG for VPC
+    Description: Security Group for AppStream instances to connect with environments, and for environments to connect with interface endpoints
     Condition: isAppStream
     Value: !Ref WorkspaceSecurityGroup
     Export:
