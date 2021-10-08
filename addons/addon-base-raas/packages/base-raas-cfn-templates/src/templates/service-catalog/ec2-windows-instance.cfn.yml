@@ -168,18 +168,10 @@ Resources:
             FromPort: -1
             ToPort: -1
             CidrIp: !Ref AccessFromCIDRBlock
-        - !If
-          - AppStreamEnabled
-          - DestinationSecurityGroupId:
-              Fn::ImportValue: !Sub "${SolutionNamespace}-CfnEndpointSecurityGroup"
-            IpProtocol: '-1'
-          - !Ref "AWS::NoValue"
       SecurityGroupIngress:
         - !If
           - AppStreamEnabled
-          - SourceSecurityGroupId:
-              Fn::ImportValue: !Sub "${SolutionNamespace}-SwbAppStreamSG"
-            IpProtocol: '-1'
+          - !Ref "AWS::NoValue"
           - IpProtocol: tcp
             FromPort: 3389
             ToPort: 3389
@@ -272,7 +264,7 @@ Resources:
             - !Ref SecurityGroup
             - !If
               - AppStreamEnabled
-              - Fn::ImportValue: !Sub "${SolutionNamespace}-SwbVPCDefaultSG"
+              - Fn::ImportValue: !Sub "${SolutionNamespace}-WorkspaceSG"
               - !Ref "AWS::NoValue"
           SubnetId: !Ref Subnet
       Tags:

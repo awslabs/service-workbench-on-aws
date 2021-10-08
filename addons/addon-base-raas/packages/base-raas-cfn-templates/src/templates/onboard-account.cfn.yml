@@ -706,6 +706,8 @@ Resources:
       VpcEndpointType: Interface
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.kms'
       VpcId: !Ref VPC
+      SecurityGroupIds:
+        - !Ref InterfaceEndpointSecurityGroup
 
   STSEndpoint:
     Type: 'AWS::EC2::VPCEndpoint'
@@ -717,6 +719,8 @@ Resources:
       PrivateDnsEnabled: true
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.sts'
       VpcId: !Ref VPC
+      SecurityGroupIds:
+        - !Ref InterfaceEndpointSecurityGroup
 
   EC2Endpoint:
     Type: 'AWS::EC2::VPCEndpoint'
@@ -728,6 +732,8 @@ Resources:
       PrivateDnsEnabled: true
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ec2'
       VpcId: !Ref VPC
+      SecurityGroupIds:
+        - !Ref InterfaceEndpointSecurityGroup
 
   CfnEndpoint:
     Type: 'AWS::EC2::VPCEndpoint'
@@ -740,18 +746,50 @@ Resources:
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.cloudformation'
       VpcId: !Ref VPC
       SecurityGroupIds:
-        - !Ref CfnEndpointSecurityGroup
+        - !Ref InterfaceEndpointSecurityGroup
 
-  CfnEndpointSecurityGroup:
+  WorkspaceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Condition: isAppStream
     Properties:
-      GroupDescription: 'CFN Security Group for interface endpoint'
-      GroupName: 'CFN-SG'
+      GroupDescription: 'Security Group for AppStream instances to connect with environments, and for environments to connect with interface endpoints'
+      GroupName: 'Workspace-SG'
       VpcId: !Ref VPC
-      SecurityGroupIngress:
-        - SourceSecurityGroupId: !GetAtt VPC.DefaultSecurityGroup
-          IpProtocol: '-1'
+
+  WorkspaceSecurityGroupIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: isAppStream
+    Properties:
+      GroupId: !Ref WorkspaceSecurityGroup
+      SourceSecurityGroupId: !Ref AppStreamSecurityGroup
+      Description: 'Allow AppStream ingress from environments'
+      IpProtocol: '-1'
+
+  WorkspaceSecurityGroupEgress:
+    Type: AWS::EC2::SecurityGroupEgress
+    Condition: isAppStream
+    Properties:
+      GroupId: !Ref WorkspaceSecurityGroup
+      DestinationSecurityGroupId: !Ref InterfaceEndpointSecurityGroup
+      Description: 'Allow Interface Endpoint egress from environments'
+      IpProtocol: '-1'
+
+  InterfaceEndpointSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: isAppStream
+    Properties:
+      GroupDescription: 'Security Group for interface endpoints'
+      GroupName: 'Interface-Endpoint-SG'
+      VpcId: !Ref VPC
+
+  InterfaceEndpointSecurityGroupIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: isAppStream
+    Properties:
+      GroupId: !Ref InterfaceEndpointSecurityGroup
+      SourceSecurityGroupId: !Ref WorkspaceSecurityGroup
+      Description: 'Allow environment ingress from interface endpoints'
+      IpProtocol: '-1'
 
   SSMEndpoint:
     Type: 'AWS::EC2::VPCEndpoint'
@@ -763,6 +801,8 @@ Resources:
       PrivateDnsEnabled: true
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ssm'
       VpcId: !Ref VPC
+      SecurityGroupIds:
+        - !Ref InterfaceEndpointSecurityGroup
 
     # https://docs.aws.amazon.com/sagemaker/latest/dg/notebook-interface-endpoint.html
   SagemakerNotebookEndpoint:
@@ -799,7 +839,7 @@ Resources:
       GroupName: 'Sagemaker-API-SG'
       VpcId: !Ref VPC
       SecurityGroupIngress:
-        - SourceSecurityGroupId: !GetAtt VPC.DefaultSecurityGroup
+        - SourceSecurityGroupId: !Ref WorkspaceSecurityGroup
           IpProtocol: '-1'
 
   SageMakerSecurityGroup:
@@ -823,7 +863,7 @@ Resources:
       SecurityGroupEgress:
         - CidrIp: 127.0.0.1/32
           IpProtocol: '-1'
-        - DestinationSecurityGroupId: !GetAtt VPC.DefaultSecurityGroup
+        - DestinationSecurityGroupId: !Ref WorkspaceSecurityGroup
           IpProtocol: '-1'
 
   AppStreamSecurityGroupEgress:
@@ -954,19 +994,19 @@ Outputs:
     Condition: isAppStream
     Value: !Ref AppStreamStack
 
-  CFNEndpointSG:
-    Description: Security group of CFN endpoint
+  InterfaceEndpointSG:
+    Description: Security group of Interface endpoints
     Condition: isAppStream
-    Value: !Ref CfnEndpointSecurityGroup
+    Value: !Ref InterfaceEndpointSecurityGroup
     Export:
-      Name: !Join ['', [Ref: Namespace, '-CfnEndpointSecurityGroup']]
+      Name: !Join ['', [Ref: Namespace, '-InterfaceEndpointSG']]
 
-  VPCDefaultSG:
-    Description: Default SG for VPC
+  WorkspaceSG:
+    Description: Security Group for AppStream instances to connect with environments, and for environments to connect with interface endpoints
     Condition: isAppStream
-    Value: !GetAtt VPC.DefaultSecurityGroup
+    Value: !Ref WorkspaceSecurityGroup
     Export:
-      Name: !Join ['', [Ref: Namespace, '-SwbVPCDefaultSG']]
+      Name: !Join ['', [Ref: Namespace, '-WorkspaceSG']]
 
   AppStreamStackName:
     Description: Name of the stack created by AppStream
