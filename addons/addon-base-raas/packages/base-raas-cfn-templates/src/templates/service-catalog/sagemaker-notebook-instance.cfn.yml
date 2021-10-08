@@ -240,7 +240,7 @@ Resources:
         - !Ref SecurityGroup
         - !If
           - AppStreamEnabled
-          - Fn::ImportValue: !Sub "${SolutionNamespace}-EnvironmentSG"
+          - Fn::ImportValue: !Sub "${SolutionNamespace}-WorkspaceSG"
           - !Ref "AWS::NoValue"
       DirectInternetAccess:
         !If

@@ -748,28 +748,28 @@ Resources:
       SecurityGroupIds:
         - !Ref InterfaceEndpointSecurityGroup
 
-  EnvironmentSecurityGroup:
+  WorkspaceSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Condition: isAppStream
     Properties:
       GroupDescription: 'Security Group for AppStream instances to connect with environments, and for environments to connect with interface endpoints'
-      GroupName: 'Environment-SG'
+      GroupName: 'Workspace-SG'
       VpcId: !Ref VPC
 
-  EnvironmentSecurityGroupIngress:
+  WorkspaceSecurityGroupIngress:
     Type: AWS::EC2::SecurityGroupIngress
     Condition: isAppStream
     Properties:
-      GroupId: !Ref EnvironmentSecurityGroup
+      GroupId: !Ref WorkspaceSecurityGroup
       SourceSecurityGroupId: !Ref AppStreamSecurityGroup
       Description: 'Allow AppStream ingress from environments'
       IpProtocol: '-1'
 
-  EnvironmentSecurityGroupEgress:
+  WorkspaceSecurityGroupEgress:
     Type: AWS::EC2::SecurityGroupEgress
     Condition: isAppStream
     Properties:
-      GroupId: !Ref EnvironmentSecurityGroup
+      GroupId: !Ref WorkspaceSecurityGroup
       DestinationSecurityGroupId: !Ref InterfaceEndpointSecurityGroup
       Description: 'Allow Interface Endpoint egress from environments'
       IpProtocol: '-1'
@@ -787,7 +787,7 @@ Resources:
     Condition: isAppStream
     Properties:
       GroupId: !Ref InterfaceEndpointSecurityGroup
-      SourceSecurityGroupId: !Ref EnvironmentSecurityGroup
+      SourceSecurityGroupId: !Ref WorkspaceSecurityGroup
       Description: 'Allow environment ingress from interface endpoints'
       IpProtocol: '-1'
 
@@ -839,7 +839,7 @@ Resources:
       GroupName: 'Sagemaker-API-SG'
       VpcId: !Ref VPC
       SecurityGroupIngress:
-        - SourceSecurityGroupId: !Ref EnvironmentSecurityGroup
+        - SourceSecurityGroupId: !Ref WorkspaceSecurityGroup
           IpProtocol: '-1'
 
   SageMakerSecurityGroup:
@@ -863,7 +863,7 @@ Resources:
       SecurityGroupEgress:
         - CidrIp: 127.0.0.1/32
           IpProtocol: '-1'
-        - DestinationSecurityGroupId: !Ref EnvironmentSecurityGroup
+        - DestinationSecurityGroupId: !Ref WorkspaceSecurityGroup
           IpProtocol: '-1'
 
   AppStreamSecurityGroupEgress:
@@ -1001,12 +1001,12 @@ Outputs:
     Export:
       Name: !Join ['', [Ref: Namespace, '-InterfaceEndpointSG']]
 
-  EnvironmentSG:
+  WorkspaceSG:
     Description: Default SG for VPC
     Condition: isAppStream
-    Value: !Ref EnvironmentSecurityGroup
+    Value: !Ref WorkspaceSecurityGroup
     Export:
-      Name: !Join ['', [Ref: Namespace, '-EnvironmentSG']]
+      Name: !Join ['', [Ref: Namespace, '-WorkspaceSG']]
 
   AppStreamStackName:
     Description: Name of the stack created by AppStream
