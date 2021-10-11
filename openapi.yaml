@@ -257,10 +257,19 @@ paths:
       responses:
         '200':
           description: User updated
-
-
-
-
+    delete:
+      tags:
+        - admins
+        - User
+      summary: Delete a User
+      operationId: DeleteUser
+      description: |
+        Delete a User. Note that this API doesn't check for outstanding resources like studies, environments, projects
+        etc. the user might have permissions to. Take caution while using this API since those resources might stop
+        functioning as expected. Consider using update API instead and change 'state' to 'inactive'.
+      responses:
+        '200':
+          description: User deleted
   /api/users/{userId}/password:
     put:
       tags:
@@ -435,7 +444,17 @@ paths:
       responses:
         '200':
           description: Project updated
-
+    delete:
+      tags:
+        - admins
+        - Project
+      summary: Delete a Project
+      operationId: DeleteProject
+      description: |
+        Delete a Project
+      responses:
+        '200':
+          description: Project deleted
   /api/indexes:
     get:
       tags:
@@ -2911,7 +2930,6 @@ components:
         - name
         - description
         - accountId
-
       type: object
       properties:
         name:
@@ -2925,7 +2943,6 @@ components:
           example: 'Test Account Description'
         accountId:
           $ref: '#/components/schemas/AwsAccountId'
-
     ProvisionAccountRequest:
       required:
         - accountName
@@ -3448,10 +3465,10 @@ components:
         uploadLocationEnabled:
           type: boolean
           example: false
-        tags:
-          type: array
-          description: tags is only used for open data studies
-          example: ['genetic','genomic', 'life sciences']
+        sha:
+          type: string
+          maxLength: 64
+          description: sha is only used for open data study in system originated update, external request should leave this field empty
         resources:
           type: array
           example: [
@@ -3494,10 +3511,10 @@ components:
           type: string
           maxLength: 2048
           example: 'An org study to test a few things'
-        tags:
-          type: array
-          description: tags is only used for open data studies
-          example: ['genetic','genomic', 'life sciences']
+        sha:
+          type: string
+          maxLength: 64
+          description: sha is only used for open data study in system originated update, external request should leave this field empty
         appRoleArn:
           type: string
           maxLength: 2048

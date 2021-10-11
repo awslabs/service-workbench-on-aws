@@ -12,13 +12,13 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-import { terminateWorkspaces, launchWorkspace, navigateToWorkspaces } from '../../support/workspace-util';
+import { terminatePreExistingWorkspaces, launchWorkspace, navigateToWorkspaces } from '../../support/workspace-util';
 
 describe('Launch new workspaces', () => {
   before(() => {
     cy.login('researcher');
     navigateToWorkspaces();
-    terminateWorkspaces();
+    terminatePreExistingWorkspaces();
   });
 
   it('should launch a new sagemaker workspace correctly', () => {

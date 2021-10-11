@@ -14,7 +14,6 @@
  */
 
 const _ = require('lodash');
-const { deleteProject } = require('../../complex/delete-project');
 
 const Resource = require('../base/resource');
 
@@ -32,7 +31,7 @@ class Project extends Resource {
 
   async cleanup() {
     if (this.id === this.setup.defaults.project.id) return;
-    await deleteProject({ aws: this.setup.aws, id: this.id });
+    await super.cleanup();
   }
 
   // ************************ Helpers methods ************************

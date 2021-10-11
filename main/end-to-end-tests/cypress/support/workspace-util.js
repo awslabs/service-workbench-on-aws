@@ -13,12 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-function terminateWorkspaces() {
-  // Wait until the workspaces information renders
-  //  If there are workspaces, the cards will contain the word "Workspace" in the details table ("Workspace Type" in full)
-  //  If there are not any workspaces, the displayed message is "No research workspaces"
-  //  Both cases will be caught with this contains as it is case insensitive and doesn't match whole words
-  cy.get('[data-testid=workspaces]').contains('CypressTest', { matchCase: false });
+function terminatePreExistingWorkspaces() {
   cy.get('#root').then($body => {
     if ($body.find('[data-testid=sc-env-terminate]').length > 0) {
       cy.get('#root')
@@ -68,9 +63,6 @@ function launchWorkspace(workspaceParam, workspaceType) {
     .contains(workspaceParam.configuration)
     .click();
 
-  // Make sure the instance type information is being displayed on the card
-  cy.get('[data-testid=configuration-card]').contains('Instance Type');
-
   // Specify name for workspace
   cy.get('[data-testid=description-text-area]').type(`Cypress description-${randomNumber}`);
 
@@ -94,21 +86,8 @@ function navigateToWorkspaces() {
   cy.get('[data-testid=workspaces]');
 }
 
-function checkDetailsTable(workspaceName) {
-  navigateToWorkspaces();
-  cy.contains(workspaceName)
-    .parent()
-    .get('[data-testid=environment-card-details-table]')
-    .contains('Configuration Name');
-
-  cy.contains(workspaceName)
-    .parent()
-    .get('[data-testid=environment-card-details-table]')
-    .contains('Instance Type');
-}
 module.exports = {
-  terminateWorkspaces,
+  terminatePreExistingWorkspaces,
   launchWorkspace,
   navigateToWorkspaces,
-  checkDetailsTable,
 };

@@ -25,7 +25,7 @@ describe('LaunchProduct', () => {
     workflowPayload: new WorkflowPayload({ meta, input, workflowInstance: { steps: [] } }),
   });
 
-  describe('getNamespaceAndIndexIfNecessary', () => {
+  describe('checkNamespace', () => {
     it('Static name should be transformed to start with analysis- and end with number string and be unique between calls', async () => {
       // Build
       const resolvedInputParams = [{ Key: 'Namespace', Value: 'staticname' }];
@@ -112,18 +112,6 @@ describe('LaunchProduct', () => {
 
       // Check
       expect(namespaceParam).not.toBe(resolvedInputParams[namespaceIndex]);
-    });
-
-    it('There is no namespace parameter', async () => {
-      // Build
-      const datetime = Date.now();
-      const resolvedInputParams = [{ Key: 'SomeParam', Value: 'somevalue' }];
-
-      // Operate
-      const { namespaceIndex } = lp.getNamespaceAndIndexIfNecessary(resolvedInputParams, datetime);
-
-      // Check
-      expect(namespaceIndex).toEqual(-1);
     });
   });
 });

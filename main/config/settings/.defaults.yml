@@ -171,16 +171,18 @@ auditQldbName: ${self:custom.settings.namespace}-audit
 # Override and disable this setting if you wish to create your portfolio manually
 createServiceCatalogPortfolio: true
 
+# Version number of current release
+versionNumber: '3.3.1'
+
+# Release date of current release
+versionDate: '2021-07-26'
+
 # Metadata provided with AWS SDK calls
 customUserAgent: 'AwsLabs/SO0144/${self:custom.settings.versionNumber}'
 
-# Available tags: https://github.com/awslabs/open-data-registry/blob/main/tags.yaml
-# Note: If an Open Data study is already mounted to a workspace, and new openDataTagFilters is set that does not include the mounted study, that mounted study will not be automatically unmounted from the workspace
-# The filters will only prevent new workspaces from being mounted with Open Data studies that do not have atleast one of these tags
-openDataTagFilters: 'genetic,genomic,life sciences,whole genome sequencing,STRIDES,cancer,population genetics,COVID-19,health,neuroimaging,neuroscience,cell biology,cell imaging,bioinformatics'
-
 # ================================ Data Egress Feature Settings ===========================================
 # NOTE: Following properties are ONLY allowed to change for the initial deployment. It's NOT recommended to change the following properties if you have enabled data egress feature.
+
 # Enable the Egress Store feature would allow researchers to securely egress data from lockdown Workspace
 # NOTE: Once the enableEgressStore is set to true, the egress store feature will be enabled and can NOT be toggled off.
 # If you toggle the egress store from true to false and redeploy the whole solution, the backend stack deployment shold error out with following message:

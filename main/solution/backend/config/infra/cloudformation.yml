@@ -589,19 +589,6 @@ Resources:
               - appstream:UpdateImagePermissions
             Resource:
               - !Sub 'arn:aws:appstream:${AWS::Region}:${AWS::AccountId}:image/ServiceWorkbench*'
-          - Effect: Allow
-            Action:
-              - iam:GetRole
-              - iam:DeleteRole
-              - iam:DetachRolePolicy
-              - iam:ListAttachedRolePolicies
-            Resource:
-              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/swb-study-*'
-          - Effect: Allow
-            Action:
-              - iam:DeletePolicy
-            Resource:
-              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/swb-study-*'
   # IAM Role for the apiHandler Function
   RoleApiHandler:
     Type: 'AWS::IAM::Role'
@@ -621,7 +608,6 @@ Resources:
 
   PolicyWorkflowLoopRunner:
     Type: AWS::IAM::ManagedPolicy
-    DependsOn: PermissionBoundaryPolicyStudyBucket
     Properties:
       Description: Allows main account to create resources required for SWB backend functionality
       PolicyDocument:
@@ -637,8 +623,49 @@ Resources:
               - dynamodb:Scan
               - dynamodb:UpdateItem
             Resource:
-              - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbPrefix}-*'
-              - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbPrefix}-*/index/*'
+              - !GetAtt [PasswordsDb, Arn]
+              - !GetAtt [UsersDb, Arn]
+              - !GetAtt [LocksDb, Arn]
+              - !GetAtt [StepTemplatesDb, Arn]
+              - !GetAtt [WorkflowTemplatesDb, Arn]
+              - !GetAtt [WorkflowTemplateDraftsDb, Arn]
+              - !Join ['', [!GetAtt [WorkflowTemplateDraftsDb, Arn], '/index/*']]
+              - !GetAtt [WorkflowsDb, Arn]
+              - !GetAtt [WorkflowDraftsDb, Arn]
+              - !Join ['', [!GetAtt [WorkflowDraftsDb, Arn], '/index/*']]
+              - !GetAtt [WorkflowInstancesDb, Arn]
+              - !Join ['', [!GetAtt [WorkflowInstancesDb, Arn], '/index/*']]
+              - !GetAtt [WfAssignmentsDb, Arn]
+              - !Join ['', [!GetAtt [WfAssignmentsDb, Arn], '/index/*']]
+              - !GetAtt [EnvironmentsDb, Arn]
+              - !GetAtt [EnvironmentsScDb, Arn]
+              - !Join ['', [!GetAtt [EnvironmentsScDb, Arn], '/index/*']]
+              - !GetAtt [EnvironmentsTypesDb, Arn]
+              - !GetAtt [StudiesDb, Arn]
+              - !GetAtt [ProjectsDb, Arn]
+              - !GetAtt [StudyPermissionsDb, Arn]
+              - !GetAtt [IndexesDb, Arn]
+              - !GetAtt [AccountsDb, Arn]
+              - !GetAtt [AwsAccountsDb, Arn]
+              - !GetAtt [AuthenticationProviderTypesDb, Arn]
+              - !GetAtt [AuthenticationProviderConfigsDb, Arn]
+              - !GetAtt [RevokedTokensDb, Arn]
+              - !Join ['', [!GetAtt [StudiesDb, Arn], '/index/*']]
+              - !GetAtt [IndexesDb, Arn]
+              - !GetAtt [CostApiCachesDb, Arn]
+              - !GetAtt [UserRolesDb, Arn]
+              - !GetAtt [StorageGatewayDb, Arn]
+              - !GetAtt [DsAccountsDb, Arn]
+              - !GetAtt [RoleAllocationsDb, Arn]
+              - !GetAtt [ResourceUsagesDb, Arn]
+              - !If
+                - EnableEgressStore
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEgressStore}'
+                - !Ref 'AWS::NoValue'
+              - !If
+                - EnableEgressStore
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEgressStore}/index/*'
+                - !Ref 'AWS::NoValue'
           - Effect: Allow
             Action:
               - ssm:GetParameter
@@ -740,73 +767,6 @@ Resources:
               - appstream:UpdateImagePermissions
             Resource:
               - !Sub 'arn:aws:appstream:${AWS::Region}:${AWS::AccountId}:image/ServiceWorkbench*'
-          - !If
-            - EnableEgressStore
-            - Effect: Allow
-              Action:
-                - iam:CreateRole
-              Condition:
-                StringEquals:
-                  iam:PermissionsBoundary: !Ref PermissionBoundaryPolicyStudyBucket
-              Resource:
-                - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/swb-study-*'
-            - !Ref 'AWS::NoValue'
-          - Effect: Allow
-            Action:
-              - iam:AttachRolePolicy
-            Resource:
-              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/swb-study-*'
-          - Effect: Allow
-            Action:
-              - iam:CreatePolicy
-            Resource:
-              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/swb-study-*'
-
-  PermissionBoundaryPolicyStudyBucket:
-    Type: AWS::IAM::ManagedPolicy
-    Condition: EnableEgressStore
-    Properties:
-      Description: Permission boundary for study bucket
-      ManagedPolicyName: '${self:custom.settings.permissionBoundaryPolicyStudyBucket}'
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Action:
-              - s3:GetObject
-              - s3:GetObjectTagging
-              - s3:GetObjectTorrent
-              - s3:GetObjectVersion
-              - s3:GetObjectVersionTagging
-              - s3:GetObjectVersionTorrent
-              - s3:AbortMultipartUpload
-              - s3:ListMultipartUploadParts
-              - s3:PutObject
-              - s3:PutObjectAcl
-              - s3:PutObjectTagging
-              - s3:PutObjectVersionTagging
-              - s3:DeleteObject
-              - s3:DeleteObjectTagging
-              - s3:DeleteObjectVersion
-              - s3:DeleteObjectVersionTagging
-            Resource:
-              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}/*'
-          - Effect: Allow
-            Action:
-              - s3:ListBucket
-              - s3:ListBucketVersions
-            Resource:
-              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}'
-          - Effect: Allow
-            Action:
-              - kms:Decrypt
-              - kms:DescribeKey
-              - kms:Encrypt
-              - kms:GenerateDataKey*
-              - kms:ReEncrypt*
-            Resource:
-              # Can't use EgressStoreEncryptionKey due to circular dependency
-              - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
 
   # IAM Role for the workflowLoopRunner Function
   RoleWorkflowLoopRunner:
@@ -880,14 +840,6 @@ Resources:
                   - dynamodb:GetItem
                 Resource:
                   - !GetAtt [StudyPermissionsDb, Arn]
-        - PolicyName: s3-access
-          PolicyDocument:
-            Statement:
-              - Effect: Allow
-                Action:
-                  - s3:GetObject
-                Resource:
-                  - 'arn:aws:s3:::registry.opendata.aws/*'
 
   PolicyDataSourceReachabilityHandler:
     Type: AWS::IAM::ManagedPolicy

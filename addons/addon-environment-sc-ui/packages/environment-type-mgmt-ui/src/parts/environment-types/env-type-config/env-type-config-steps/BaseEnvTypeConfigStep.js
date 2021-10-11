@@ -67,7 +67,7 @@ class BaseEnvTypeConfigStep extends React.Component {
             onClick={this.props.onPrevious}
           />
         )}
-        <Button data-testid="cancel-button" basic color="grey" disabled={processing} onClick={onCancel} floated="left">
+        <Button basic color="grey" disabled={processing} onClick={onCancel} floated="left">
           Cancel
         </Button>
       </div>

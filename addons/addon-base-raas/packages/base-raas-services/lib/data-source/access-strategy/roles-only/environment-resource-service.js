@@ -19,12 +19,18 @@ const Service = require('@aws-ee/base-services-container/lib/service');
 const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
 const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
 
+const { addAccountToStatement } = require('../../../helpers/utils');
+
 /**
  * This service is responsible for allocating and de-allocating AWS resources for the environment so that
  * the environment can access what it needs, such as studies. This service implements the roles only
  * study access strategy.
  */
-
+const settingKeys = {
+  enableEgressStore: 'enableEgressStore',
+  egressStoreKmsKeyArn: 'egressStoreKmsKeyArn',
+  egressStoreKmsPolicyWorkspaceSid: 'egressStoreKmsPolicyWorkspaceSid',
+};
 class EnvironmentResourceService extends Service {
   constructor() {
     super();
@@ -253,6 +259,71 @@ class EnvironmentResourceService extends Service {
     });
 
     return s3Mounts;
+  }
+
+  async updateKMSPolicyForEgress(requestContext, { studies: allStudies, memberAccountId }) {
+    // Legacy access strategy is only applicable for studies that have resources attributes
+    const kmsKeyAlias = this.settings.get(settingKeys.egressStoreKmsKeyArn);
+    const studies = _.filter(allStudies, study => !_.isEmpty(study.resources));
+    const lockService = await this.service('lockService');
+    const lockId = `kms-policy-access-${kmsKeyAlias}`;
+
+    if (_.isEmpty(studies)) {
+      await lockService.tryWriteLockAndRun({ id: lockId }, async () => {
+        await this.addToEgressKmsKeyPolicy(memberAccountId);
+      });
+      return;
+    }
+    await this.audit(requestContext, { action: 'add-to-egress-kms-policy', body: kmsKeyAlias });
+  }
+
+  async addToEgressKmsKeyPolicy(memberAccountId) {
+    const enableEgressStore = this.settings.getBoolean(settingKeys.enableEgressStore);
+    if (enableEgressStore) {
+      await this.updateEgressKMSPolicy(environmentStatement =>
+        addAccountToStatement(environmentStatement, memberAccountId),
+      );
+    }
+  }
+
+  async updateEgressKMSPolicy(updateStatementFn) {
+    const kmsClient = await this.getKMS();
+    const kmsKeyAlias = this.settings.get(settingKeys.egressStoreKmsKeyArn);
+    const keyId = (await kmsClient.describeKey({ KeyId: kmsKeyAlias }).promise()).KeyMetadata.KeyId;
+
+    // Get existing policy
+    const kmsPolicy = JSON.parse(
+      (await kmsClient.getKeyPolicy({ KeyId: keyId, PolicyName: 'default' }).promise()).Policy,
+    );
+
+    // Get statement
+    const sid = this.settings.get(settingKeys.egressStoreKmsPolicyWorkspaceSid);
+    if (!kmsPolicy.Statement) {
+      kmsPolicy.Statement = [];
+    }
+    let environmentStatement = kmsPolicy.Statement.find(statement => statement.Sid === sid);
+    if (!environmentStatement) {
+      // Create new statement if it doesn't already exist
+      environmentStatement = {
+        Sid: sid,
+        Effect: 'Allow',
+        Principal: { AWS: [] },
+        Action: ['kms:Encrypt', 'kms:Decrypt', 'kms:ReEncrypt*', 'kms:GenerateDataKey*', 'kms:DescribeKey'],
+        Resource: '*', // Only refers to this key since it's a resource policy
+      };
+    }
+
+    // Update policy
+    environmentStatement = await updateStatementFn(environmentStatement);
+
+    // remove the old statement from KMS policy
+    kmsPolicy.Statement = kmsPolicy.Statement.filter(statement => statement.Sid !== sid);
+
+    // add the revised statement if it contains principals (otherwise leave it out)
+    if (environmentStatement.Principal.AWS.length > 0) {
+      kmsPolicy.Statement.push(environmentStatement);
+    }
+    await kmsClient.putKeyPolicy({ KeyId: keyId, PolicyName: 'default', Policy: JSON.stringify(kmsPolicy) }).promise();
   }
 
   async audit(requestContext, auditEvent) {

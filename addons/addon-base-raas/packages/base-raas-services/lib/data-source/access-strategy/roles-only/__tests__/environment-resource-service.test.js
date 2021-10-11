@@ -217,4 +217,97 @@ describe('EnvironmentResourceService', () => {
     expect(fsRoleService.deallocateRole).toHaveBeenCalledTimes(1);
     expect(envService.updateStudyRoles).toHaveBeenCalledTimes(1);
   });
+
+  it('allocates egress resources only', async () => {
+    service._settings = {
+      get: settingName => {
+        if (settingName === 'egressStoreKmsKeyArn') {
+          return 'test-egressStoreKmsKeyArn';
+        }
+        if (settingName === 'egressStoreKmsPolicyWorkspaceSid') {
+          return 'test-egressStoreKmsPolicyWorkspaceSid';
+        }
+        return undefined;
+      },
+      getBoolean: settingName => {
+        if (settingName === 'enableEgressStore') {
+          return true;
+        }
+        return undefined;
+      },
+    };
+    const requestContext = createAdminContext();
+    const study = createStudy();
+    const studies = [study];
+    const memberAccountId = '1234';
+
+    lockService.tryWriteLockAndRun = jest.fn((_id, fn) => {
+      return fn();
+    });
+
+    service.addToEgressKmsKeyPolicy = jest.fn();
+    service.audit = jest.fn();
+
+    await service.updateKMSPolicyForEgress(requestContext, { studies, memberAccountId });
+
+    expect(service.addToEgressKmsKeyPolicy).toHaveBeenCalledTimes(1);
+    expect(service.addToEgressKmsKeyPolicy).toHaveBeenCalledWith(memberAccountId);
+  });
+
+  it('should update Egress KMS Policy', async () => {
+    service._settings = {
+      get: settingName => {
+        if (settingName === 'egressStoreKmsKeyArn') {
+          return 'test-egressStoreKmsKeyArn';
+        }
+        if (settingName === 'egressStoreKmsPolicyWorkspaceSid') {
+          return 'test-egressStoreKmsPolicyWorkspaceSid';
+        }
+        return undefined;
+      },
+      getBoolean: settingName => {
+        if (settingName === 'enableEgressStore') {
+          return true;
+        }
+        return undefined;
+      },
+    };
+    AWSMock.mock('KMS', 'describeKey', (params, callback) => {
+      expect(params).toMatchObject({
+        KeyId: 'test-egressStoreKmsKeyArn',
+      });
+      callback(null, { KeyMetadata: { KeyId: 'kmsStudyKeyId' } });
+    });
+    AWSMock.mock('KMS', 'getKeyPolicy', (params, callback) => {
+      expect(params).toMatchObject({
+        KeyId: 'kmsStudyKeyId',
+        PolicyName: 'default',
+      });
+      callback(null, { Policy: '{}' });
+    });
+    const expectedKMSPolicy = {
+      Statement: [
+        {
+          Sid: 'test-egressStoreKmsPolicyWorkspaceSid',
+          Effect: 'Allow',
+          Principal: {
+            AWS: ['arn:aws:iam::accountId1:root'],
+          },
+          Action: ['kms:Encrypt', 'kms:Decrypt', 'kms:ReEncrypt*', 'kms:GenerateDataKey*', 'kms:DescribeKey'],
+          Resource: '*',
+        },
+      ],
+    };
+    const putKeyPolicyMock = jest.fn((params, callback) => {
+      expect(params).toMatchObject({
+        KeyId: 'kmsStudyKeyId',
+        PolicyName: 'default',
+        Policy: JSON.stringify(expectedKMSPolicy),
+      });
+      callback(null, {});
+    });
+    AWSMock.mock('KMS', 'putKeyPolicy', putKeyPolicyMock);
+    await service.addToEgressKmsKeyPolicy('accountId1');
+    expect(putKeyPolicyMock).toHaveBeenCalledTimes(1);
+  });
 });

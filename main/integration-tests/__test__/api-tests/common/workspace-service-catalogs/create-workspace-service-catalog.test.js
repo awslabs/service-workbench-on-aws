@@ -1,4 +1,3 @@
-/* eslint-disable no-await-in-loop */
 /*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -14,7 +13,6 @@
  *  permissions and limitations under the License.
  */
 
-const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
 const { runSetup } = require('../../../../support/setup');
 
 const {
@@ -168,58 +166,6 @@ describe('Create workspace-service-catalog scenarios', () => {
         envTypeId: workspaceTypeId,
         envTypeConfigId: configurationId,
       });
-    });
-  });
-  describe('Workspace SC env with studies', () => {
-    it('for EC2Linux should provision correctly', async () => {
-      const admin1Session = await setup.createAdminSession();
-
-      const studyIds = [];
-      let studyId = setup.gen.string({ prefix: `create-study-ray-my-study` });
-      await expect(
-        admin1Session.resources.studies.create({ id: studyId, name: studyId, category: 'My Studies' }),
-      ).resolves.toMatchObject({
-        id: studyId,
-      });
-      studyIds.push(studyId);
-
-      studyId = setup.gen.string({ prefix: `create-study-ray-org-study` });
-      await expect(
-        admin1Session.resources.studies.create({ id: studyId, name: studyId, category: 'Organization' }),
-      ).resolves.toMatchObject({
-        id: studyId,
-      });
-      studyIds.push(studyId);
-
-      const workspaceName = setup.gen.string({ prefix: 'workspace-sc-test' });
-      const body = {
-        name: workspaceName,
-        envTypeId: setup.defaults.envTypes.ec2Linux.envTypeId,
-        envTypeConfigId: setup.defaults.envTypes.ec2Linux.envTypeConfigId,
-        studyIds,
-        description: 'assignment',
-        projectId: setup.defaults.project.id,
-        cidr: '123.123.123.123/12',
-      };
-      // AppStream enabled environments does not support CIDR
-      if (setup.defaults.isAppStreamEnabled) {
-        delete body.cidr;
-      }
-      const env = await admin1Session.resources.workspaceServiceCatalogs.create(body);
-      expect(env).toMatchObject({
-        name: workspaceName,
-        envTypeId: setup.defaults.envTypes.ec2Linux.envTypeId,
-        envTypeConfigId: setup.defaults.envTypes.ec2Linux.envTypeConfigId,
-        studyIds,
-      });
-
-      // Poll until workspace is provisioned
-      await sleep(2000);
-      await admin1Session.resources.workflows
-        .versions('wf-provision-environment-sc')
-        .version(1)
-        .findAndPollWorkflow(env.id, 10000, 60);
-      await setup.cleanup();
     });
   });
 });

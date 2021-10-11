@@ -13,21 +13,13 @@
  *  permissions and limitations under the License.
  */
 
-import {
-  terminateWorkspaces,
-  launchWorkspace,
-  navigateToWorkspaces,
-  checkDetailsTable,
-} from '../../support/workspace-util';
+import { terminatePreExistingWorkspaces, launchWorkspace, navigateToWorkspaces } from '../../support/workspace-util';
 
 describe('Launch new workspaces', () => {
   before(() => {
     cy.login('researcher');
     navigateToWorkspaces();
-    terminateWorkspaces();
-  });
-  after(() => {
-    terminateWorkspaces();
+    terminatePreExistingWorkspaces();
   });
 
   let expectedNumberOfNewlyOpenBrowserWindows = 0;
@@ -50,7 +42,6 @@ describe('Launch new workspaces', () => {
   });
 
   function checkWindows(workspaceName) {
-    checkDetailsTable(workspaceName);
     checkWorkspaceAvailableAndClickConnectionsButton(workspaceName);
     cy.contains(workspaceName)
       .parent()
@@ -67,7 +58,6 @@ describe('Launch new workspaces', () => {
   }
 
   function checkLinux(workspaceName) {
-    checkDetailsTable(workspaceName);
     checkWorkspaceAvailableAndClickConnectionsButton(workspaceName);
     cy.contains(workspaceName)
       .parent()
@@ -95,7 +85,6 @@ describe('Launch new workspaces', () => {
   }
 
   function checkSagemaker(workspaceName) {
-    checkDetailsTable(workspaceName);
     checkWorkspaceAvailableAndClickConnectionsButton(workspaceName);
     cy.contains(workspaceName)
       .parent()

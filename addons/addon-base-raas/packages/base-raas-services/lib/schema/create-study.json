@@ -32,8 +32,11 @@
     "uploadLocationEnabled": {
       "type": "boolean"
     },
-    "tags": {
-      "type": "array"
+    "sha": {
+      "type": "string",
+      "maxLength": 64,
+      "pattern": "^([A-Fa-f0-9]{40})$",
+      "description": "A unique identifier for Open Data in MD5 hash, hexadecimal"
     },
     "resources": {
       "type": "array",

@@ -13,7 +13,6 @@
  *  permissions and limitations under the License.
  */
 
-import { toJS } from 'mobx';
 import { types, applySnapshot, getEnv } from 'mobx-state-tree';
 
 const KeyValuePair = types.model('KeyValuePair', {
@@ -58,17 +57,6 @@ const EnvTypeConfig = types
     get estimatedCostInfoHtml() {
       const showdown = getEnv(self).showdown;
       return showdown.convert(self.estimatedCostInfo);
-    },
-    get instanceType() {
-      const params = self.params;
-      const paramsAsJson = toJS(params);
-      const instanceTypeIndex = paramsAsJson.findIndex(({ key }) => {
-        return key === 'InstanceType' || key === 'MasterInstanceType';
-      });
-      if (instanceTypeIndex < 0) {
-        return 'Not available';
-      }
-      return paramsAsJson[instanceTypeIndex].value;
     },
   }));
 

@@ -4,7 +4,6 @@
   "viewportHeight": 1000,
   "video": false,
   "env": {
-    "isAppStreamEnabled": false,
     "isCognitoEnabled": false,
     "workspaces": {
       "sagemaker": {
@@ -13,20 +12,8 @@
         "projectId": "e2eTestProject"
       },
       "ec2": {
-        "windows": {
-          "workspaceTypeName": "EC2 Windows-v3",
-          "configuration": "ec2-windows-e2e",
-          "projectId": "e2eTestProject"
-        },
-        "linux": {
-          "workspaceTypeName": "EC2 Linux-v1",
-          "configuration": "ec2-linux-e2e",
-          "projectId": "e2eTestProject"
-        }
-      },
-      "emr": {
-        "workspaceTypeName": "EMR-v5",
-        "configuration": "emr-e2e",
+        "workspaceTypeName": "EC2 Linux-v1",
+        "configuration": "ec2-linux-e2e",
         "projectId": "e2eTestProject"
       }
     },

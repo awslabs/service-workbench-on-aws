@@ -16,7 +16,6 @@
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
-const { isAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 
 const { StudyPolicy } = require('../../helpers/iam/study-policy');
 
@@ -39,7 +38,6 @@ class EnvironmentConfigVarsService extends Service {
   constructor() {
     super();
     this.dependency([
-      'aws',
       'userService',
       'environmentScService',
       'environmentScKeypairService',
@@ -229,13 +227,13 @@ class EnvironmentConfigVarsService extends Service {
     const iamPolicyDocument = await this.getEnvRolePolicy(requestContext, {
       environment,
       studies,
-      accountId,
+      memberAccountId: accountId,
     });
 
     const s3Mounts = await this.getS3Mounts(requestContext, {
       environment,
       studies,
-      accountId,
+      memberAccountId: accountId,
     });
 
     let egressStoreIamPolicyDocument = {};
@@ -244,7 +242,9 @@ class EnvironmentConfigVarsService extends Service {
       const egressStoreMount = await this.getEgressStoreMount(requestContext, environment);
       s3Mounts.push(egressStoreMount);
       egressStoreIamPolicyDocument = await this.getEnvEgressStorePolicy(requestContext, {
-        environmentId: envId,
+        environment,
+        egressStore: egressStoreMount,
+        memberAccountId: accountId,
       });
     }
 
@@ -337,23 +337,23 @@ class EnvironmentConfigVarsService extends Service {
     return _.isUndefined(doc) ? {} : doc.toPolicyDoc();
   }
 
-  async getEnvEgressStorePolicy(requestContext, { environmentId }) {
-    const curUser = _.get(requestContext, 'principalIdentifier.uid');
-    const dataEgressService = await this.service('dataEgressService');
-    const egressStoreInfo = await dataEgressService.getEgressStoreInfo(environmentId);
-    const isEgressStoreOwner = egressStoreInfo.createdBy === curUser;
-    if (!isAdmin(requestContext) && !isEgressStoreOwner) {
-      throw this.boom.forbidden(
-        `You are not authorized to access the attached egress store. Please contact your administrator.`,
-        true,
-      );
-    }
-
-    // Create a policy with just the AssumeRole statement for the new role created in the main account
+  async getEnvEgressStorePolicy(requestContext, { environment, egressStore, memberAccountId }) {
     const policyDoc = new StudyPolicy();
-    policyDoc.roleArns = [egressStoreInfo.roleArn];
+    const pluginRegistryService = await this.service('pluginRegistryService');
+    const payload = {
+      requestContext,
+      container: this.container,
+      environmentScEntity: environment,
+      egressStore,
+      policyDoc,
+      memberAccountId,
+    };
+    const result = await pluginRegistryService.visitPlugins('study-access-strategy', 'provideEnvEgressStorePolicy', {
+      payload,
+    });
 
-    return policyDoc.toPolicyDoc();
+    const doc = _.get(result, 'policyDoc');
+    return _.isUndefined(doc) ? {} : doc.toPolicyDoc();
   }
 
   async getS3Mounts(requestContext, { environment, studies, memberAccountId }) {

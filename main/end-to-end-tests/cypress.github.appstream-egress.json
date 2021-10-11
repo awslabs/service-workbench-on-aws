@@ -4,7 +4,6 @@
   "viewportHeight": 1000,
   "video": false,
   "env": {
-    "isAppStreamEnabled": true,
     "isCognitoEnabled": false,
     "workspaces": {
       "sagemaker": {
