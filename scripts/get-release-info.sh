@@ -7,6 +7,8 @@ pushd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null
 [[ $UTIL_SOURCED != yes && -f ./util.sh ]] && source ./util.sh
 popd > /dev/null
 
+STAGE="$1"
+
 # Dynamically set versionNumber and versionDate
 # Get the first header (not Changelog) in CHANGELOG.md
 versionLine="$(cat CHANGELOG.md | grep -m 1 "[0-9]\+\.[0-9]\+\.[0-9]\+\|Beta")"
@@ -25,7 +27,6 @@ fi
 
 # Is there a stage.yml file?
 FILE="main/config/settings/$STAGE.yml"
-echo $FILE
 if [ -f "$FILE" ]
 then
     # Yes-->Is there a versionDate and versionNumber key?
