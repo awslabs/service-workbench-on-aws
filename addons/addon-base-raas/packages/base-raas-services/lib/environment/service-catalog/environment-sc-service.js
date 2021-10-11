@@ -123,6 +123,7 @@ class EnvironmentScService extends Service {
     let envs = await this._scanner({ fields: ['id', 'indexId', 'status', 'outputs'] })
       // Verified with EC2 support team that EC2 describe instances API can take 10K instanceIds without issue
       .limit(10000)
+      .strong()
       .scan();
     envs = _.filter(
       envs,
@@ -202,14 +203,9 @@ class EnvironmentScService extends Service {
       'terminated': 'TERMINATED',
     };
     const ec2RealtimeStatus = await this.pollEc2RealtimeStatus(roleArn, externalId, ec2Instances);
-    const ec2Updated = {};
-    _.forEach(ec2Instances, async (existingEnvRecord, ec2InstanceId) => {
-      const expectedDDBStatus = EC2StatusMap[ec2RealtimeStatus[ec2InstanceId]];
-      const updateStatusResult = await this.updateStatus(requestContext, existingEnvRecord, expectedDDBStatus);
-      if (updateStatusResult) {
-        ec2Updated[ec2InstanceId] = updateStatusResult;
-      }
-    });
+
+    const ec2Updated = await this.updateAllStatuses(ec2Instances, EC2StatusMap, ec2RealtimeStatus, requestContext);
+
     return ec2Updated;
   }
 
@@ -244,15 +240,32 @@ class EnvironmentScService extends Service {
       Failed: 'FAILED',
     };
     const sagemakerRealtimeStatus = await this.pollSageMakerRealtimeStatus(roleArn, externalId);
-    const sagemakerUpdated = {};
-    _.forEach(sagemakerInstances, async (existingEnvRecord, key) => {
-      const expectedDDBStatus = SageMakerStatusMap[sagemakerRealtimeStatus[key]];
-      const updateStatusResult = await this.updateStatus(requestContext, existingEnvRecord, expectedDDBStatus);
-      if (updateStatusResult) {
-        sagemakerUpdated[key] = updateStatusResult;
-      }
-    });
+
+    const sagemakerUpdated = await this.updateAllStatuses(
+      sagemakerInstances,
+      SageMakerStatusMap,
+      sagemakerRealtimeStatus,
+      requestContext,
+    );
+
     return sagemakerUpdated;
+  }
+
+  async updateAllStatuses(instancesList, statusMap, realtimeStatus, requestContext) {
+    const updated = {};
+    const keys = Object.keys(instancesList);
+    await Promise.all(
+      keys.map(async key => {
+        const existingEnvRecord = instancesList[key];
+        const expectedDDBStatus = statusMap[realtimeStatus[key]];
+        const updateStatusResult = await this.updateStatus(requestContext, existingEnvRecord, expectedDDBStatus);
+        if (updateStatusResult) {
+          updated[key] = updateStatusResult;
+        }
+      }),
+    );
+
+    return updated;
   }
 
   async pollSageMakerRealtimeStatus(roleArn, externalId) {
@@ -413,6 +426,11 @@ class EnvironmentScService extends Service {
       { action: 'create-sc', conditions: [this._allowAuthorized] },
       environment,
     );
+    const invalidOpenDataStudyIds = await this.getInvalidOpenDataStudyIds(requestContext, environment);
+
+    if (invalidOpenDataStudyIds.length > 0) {
+      throw this.boom.badRequest(`Invalid open data studies. IDs: ${invalidOpenDataStudyIds}`, true);
+    }
 
     // const { name, envTypeId, envTypeConfigId, description, projectId, cidr, studyIds } = environment
     const { envTypeId, envTypeConfigId, projectId } = environment;
@@ -497,12 +515,47 @@ class EnvironmentScService extends Service {
     }
   }
 
+  // Check 'Open Data' studies being attached are allowed. Users might pass in 'Open Data' studies that are in
+  // DDB but have since been filtered out by 'openDataTagFilters'
+  async getInvalidOpenDataStudyIds(requestContext, environment) {
+    const studyService = await this.service('studyService');
+    const studies = environment.studyIds
+      ? await Promise.all(
+          environment.studyIds.map(studyId => {
+            return studyService.mustFind(requestContext, studyId);
+          }),
+        )
+      : [];
+    const openDataStudies = studies.filter(study => {
+      return study.category === 'Open Data';
+    });
+
+    const allowedOpenDataStudyIds = (await studyService.list(requestContext, 'Open Data')).map(study => {
+      return study.id;
+    });
+
+    return openDataStudies
+      .filter(study => {
+        return !allowedOpenDataStudyIds.includes(study.id);
+      })
+      .map(study => {
+        return study.id;
+      });
+  }
+
   async update(requestContext, environment, ipAllowListAction = {}) {
     // Validate input
     const [validationService, storageGatewayService] = await this.service([
       'jsonSchemaValidationService',
       'storageGatewayService',
     ]);
+
+    // error messages from upstream can potentially be huge and we don't want them to fail validation or
+    // overflow DDB, so we truncate them.
+    if (environment.error && environment.error.length > 2048) {
+      environment.error = `${environment.error.substring(0, 2037)}<TRUNCATED>`;
+    }
+
     await validationService.ensureValid(_.omit(environment, ['studyRoles']), updateSchema);
 
     // Retrieve the existing environment, this is required for authorization below

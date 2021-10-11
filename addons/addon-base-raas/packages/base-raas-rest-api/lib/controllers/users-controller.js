@@ -94,17 +94,17 @@ async function configure(context) {
   // ===============================================================
   //  DELETE /:uid (mounted to /api/users)
   // ===============================================================
-  router.delete(
-    '/:uid',
-    wrap(async (req, res) => {
-      const requestContext = res.locals.requestContext;
-      const { uid } = req.params;
-      const deletedUser = await userService.deleteUser(requestContext, {
-        uid,
-      });
-      res.status(200).json({ message: `user ${deletedUser.username} deleted` });
-    }),
-  );
+  // router.delete(
+  //   '/:uid',
+  //   wrap(async (req, res) => {
+  //     const requestContext = res.locals.requestContext;
+  //     const { uid } = req.params;
+  //     const deletedUser = await userService.deleteUser(requestContext, {
+  //       uid,
+  //     });
+  //     res.status(200).json({ message: `user ${deletedUser.username} deleted` });
+  //   }),
+  // );
 
   return router;
 }

@@ -281,6 +281,8 @@ dbTableStudyPermissions: ${self:custom.settings.dbPrefix}-DbStudyPermissions
 # DynamoDB table name for KeyPairs
 dbTableKeyPairs: ${self:custom.settings.dbPrefix}-DbKeyPairs
 
+permissionBoundaryPolicyStudyBucket: ${self:custom.settings.namespace}-PermissionBoundaryPolicyStudyBucket
+
 # ================================ Data Egress Feature Settings ===========================================
 # NOTE: Following properties are ONLY allowed to change for the initial deployment. It's NOT recommended to change the following properties if you have enabled data egress feature.
 
