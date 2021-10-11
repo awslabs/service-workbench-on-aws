@@ -72,7 +72,7 @@ class TerminateProduct extends StepBase {
 
     const enableEgressStore = this.settings.getBoolean(settingKeys.enableEgressStore);
     if (enableEgressStore) {
-      const [dataEgressService] = await this.mustFindServices(['dataEgressService']);
+      const dataEgressService = await this.mustFindServices('dataEgressService');
       await dataEgressService.deleteMainAccountEgressStoreRole(envId);
     }
 
