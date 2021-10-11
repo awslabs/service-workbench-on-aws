@@ -63,29 +63,20 @@ class DataEgressService extends Service {
 
   async getEgressStoreInfo(environmentId) {
     const workspaceId = environmentId;
-    let egressStoreScanResult = [];
+    let egressStoreResult;
 
     try {
-      egressStoreScanResult = await this._scanner()
-        .limit(1000)
-        .scan()
-        .then(egressStores => {
-          return egressStores.filter(store => store.workspaceId === workspaceId);
-        });
+      egressStoreResult = await this._getter()
+        .key({ id: workspaceId })
+        .get();
     } catch (error) {
       throw this.boom.notFound(`Error in fetch egress store info: ${JSON.stringify(error)}`, true);
     }
 
-    if (egressStoreScanResult.length === 0) {
+    if (!egressStoreResult) {
       return null;
     }
-    if (egressStoreScanResult.length !== 1) {
-      throw this.boom.internalError(
-        `Error in getting egress store info: multiple results fetched from egrss store table`,
-        true,
-      );
-    }
-    return egressStoreScanResult[0];
+    return egressStoreResult;
   }
 
   async createEgressStore(requestContext, environment) {
