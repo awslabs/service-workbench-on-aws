@@ -3347,10 +3347,10 @@ components:
         uploadLocationEnabled:
           type: boolean
           example: false
-        sha:
-          type: string
-          maxLength: 64
-          description: sha is only used for open data study in system originated update, external request should leave this field empty
+        tags:
+          type: array
+          description: tags is only used for open data studies
+          example: ['genetic','genomic', 'life sciences']
         resources:
           type: array
           example: [
@@ -3393,10 +3393,10 @@ components:
           type: string
           maxLength: 2048
           example: 'An org study to test a few things'
-        sha:
-          type: string
-          maxLength: 64
-          description: sha is only used for open data study in system originated update, external request should leave this field empty
+        tags:
+          type: array
+          description: tags is only used for open data studies
+          example: ['genetic','genomic', 'life sciences']
         appRoleArn:
           type: string
           maxLength: 2048
