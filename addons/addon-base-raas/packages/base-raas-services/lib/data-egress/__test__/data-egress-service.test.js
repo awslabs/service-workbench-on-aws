@@ -404,7 +404,7 @@ describe('DataEgressService', () => {
         },
       };
 
-      dbService.table.scan.mockImplementationOnce(() => {
+      dbService.table.get.mockImplementationOnce(() => {
         throw new Error();
       });
       const requestContext = {};
@@ -439,7 +439,7 @@ describe('DataEgressService', () => {
         },
       };
 
-      dbService.table.scan.mockResolvedValue([]);
+      dbService.table.get.mockResolvedValue();
       const requestContext = {};
       const envId = 'test-id';
 
@@ -466,15 +466,13 @@ describe('DataEgressService', () => {
         },
       };
 
-      dbService.table.scan.mockResolvedValueOnce([
-        {
-          status: 'PROCESSING',
-          workspaceId: 'test-workspace-id',
-          s3BucketName: 'test-s3BucketName',
-          s3BucketPath: 'test-s3BucketPath',
-          id: 'test-egress-store-id',
-        },
-      ]);
+      dbService.table.get.mockResolvedValueOnce({
+        status: 'PROCESSING',
+        workspaceId: 'test-workspace-id',
+        s3BucketName: 'test-s3BucketName',
+        s3BucketPath: 'test-s3BucketPath',
+        id: 'test-egress-store-id',
+      });
       const requestContext = {};
       const envId = 'test-workspace-id';
 
@@ -509,15 +507,13 @@ describe('DataEgressService', () => {
       };
 
       const egressStoreId = 'test-egress-store-id';
-      dbService.table.scan.mockResolvedValueOnce([
-        {
-          status: 'PROCESSED',
-          workspaceId: 'test-workspace-id',
-          s3BucketName: 'test-s3BucketName',
-          s3BucketPath: 'test-s3BucketPath',
-          id: egressStoreId,
-        },
-      ]);
+      dbService.table.get.mockResolvedValueOnce({
+        status: 'PROCESSED',
+        workspaceId: 'test-workspace-id',
+        s3BucketName: 'test-s3BucketName',
+        s3BucketPath: 'test-s3BucketPath',
+        id: egressStoreId,
+      });
       const requestContext = {};
       const envId = 'test-workspace-id';
 
@@ -615,16 +611,14 @@ describe('DataEgressService', () => {
       };
 
       const egressStoreId = 'test-egress-store-id';
-      dbService.table.scan.mockResolvedValueOnce([
-        {
-          status: 'CREATED',
-          workspaceId: 'test-workspace-id',
-          s3BucketName: 'test-s3BucketName',
-          s3BucketPath: 'test-s3BucketPath',
-          id: egressStoreId,
-          isAbleToSubmitEgressRequest,
-        },
-      ]);
+      dbService.table.get.mockResolvedValueOnce({
+        status: 'CREATED',
+        workspaceId: 'test-workspace-id',
+        s3BucketName: 'test-s3BucketName',
+        s3BucketPath: 'test-s3BucketPath',
+        id: egressStoreId,
+        isAbleToSubmitEgressRequest,
+      });
       const requestContext = {};
       const envId = 'test-workspace-id';
 
@@ -669,11 +663,7 @@ describe('DataEgressService', () => {
 
   describe('Get Egress Store info', () => {
     it('should get egress store info', async () => {
-      dbService.table.scan.mockResolvedValue([
-        {
-          workspaceId: 'test-egress-store-id',
-        },
-      ]);
+      dbService.table.get.mockResolvedValue({ workspaceId: 'test-egress-store-id' });
 
       const result = await dataEgressService.getEgressStoreInfo('test-egress-store-id');
       expect(result).toStrictEqual({
@@ -682,7 +672,7 @@ describe('DataEgressService', () => {
     });
 
     it('should error out egress store info', async () => {
-      dbService.table.scan.mockImplementationOnce(() => {
+      dbService.table.get.mockImplementationOnce(() => {
         throw new Error();
       });
 
@@ -697,7 +687,7 @@ describe('DataEgressService', () => {
     });
 
     it('should error out without finding egress store info', async () => {
-      dbService.table.scan.mockResolvedValue([]);
+      dbService.table.get.mockResolvedValue();
 
       const result = await dataEgressService.getEgressStoreInfo('test-egress-store-id');
       expect(result).toStrictEqual(null);
@@ -872,7 +862,7 @@ describe('DataEgressService', () => {
         ver: 'ver',
         isAbleToSubmitEgressRequest: false,
       };
-      dbService.table.scan.mockResolvedValue([mockEgressStoreInfo]);
+      dbService.table.get.mockResolvedValue(mockEgressStoreInfo);
 
       await expect(dataEgressService.notifySNS(requestContext, 'workspaceId')).rejects.toThrow(
         // It is better to check using boom.code instead of just the actual string, unless
@@ -915,7 +905,7 @@ describe('DataEgressService', () => {
         ver: 'ver',
         isAbleToSubmitEgressRequest: true,
       };
-      dbService.table.scan.mockResolvedValue([mockEgressStoreInfo]);
+      dbService.table.get.mockResolvedValue(mockEgressStoreInfo);
       const mockRequestContext = { principalIdentifier: { uid: 'test-createdBy' } };
       await expect(dataEgressService.notifySNS(mockRequestContext, 'workspaceId')).rejects.toThrow(
         // It is better to check using boom.code instead of just the actual string, unless
@@ -984,7 +974,7 @@ describe('DataEgressService', () => {
         callback(null, {});
       });
 
-      dbService.table.scan.mockResolvedValue([mockEgressStoreInfo]);
+      dbService.table.get.mockResolvedValue(mockEgressStoreInfo);
       const mockRequestContext = { principalIdentifier: { uid: 'createdBy' } };
       dataEgressService.lockAndUpdate = jest.fn();
       dataEgressService.publishMessage = jest.fn();
