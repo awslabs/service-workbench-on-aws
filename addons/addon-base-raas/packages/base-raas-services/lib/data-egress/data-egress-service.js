@@ -206,7 +206,6 @@ class DataEgressService extends Service {
           true,
         );
       }
-      await this.deleteMainAccountEgressStoreRole(egressStoreInfo.id);
 
       const egressStoreDdbLockId = `egress-store-ddb-access-${egressStoreInfo.id}`;
       egressStoreInfo.status = TERMINATED_STATUS_CODE;

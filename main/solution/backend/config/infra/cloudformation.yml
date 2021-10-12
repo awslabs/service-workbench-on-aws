@@ -589,19 +589,6 @@ Resources:
               - appstream:UpdateImagePermissions
             Resource:
               - !Sub 'arn:aws:appstream:${AWS::Region}:${AWS::AccountId}:image/ServiceWorkbench*'
-          - Effect: Allow
-            Action:
-              - iam:GetRole
-              - iam:DeleteRole
-              - iam:DetachRolePolicy
-              - iam:ListAttachedRolePolicies
-            Resource:
-              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/swb-study-*'
-          - Effect: Allow
-            Action:
-              - iam:DeletePolicy
-            Resource:
-              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/swb-study-*'
   # IAM Role for the apiHandler Function
   RoleApiHandler:
     Type: 'AWS::IAM::Role'
@@ -754,11 +741,15 @@ Resources:
           - Effect: Allow
             Action:
               - iam:AttachRolePolicy
+              - iam:DeleteRole
+              - iam:DetachRolePolicy
+              - iam:ListAttachedRolePolicies
             Resource:
               - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/swb-study-*'
           - Effect: Allow
             Action:
               - iam:CreatePolicy
+              - iam:DeletePolicy
             Resource:
               - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/swb-study-*'
 

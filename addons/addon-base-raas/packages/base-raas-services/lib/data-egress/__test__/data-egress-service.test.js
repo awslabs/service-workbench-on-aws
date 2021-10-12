@@ -550,37 +550,8 @@ describe('DataEgressService', () => {
       lockService.tryWriteLockAndRun = jest.fn((_params, callback) => callback());
       AWSMock.mock('S3', 'putBucketPolicy', putBucketPolicyMock);
 
-      mockDeleteEgressStoreRole(egressStoreId);
-
       await dataEgressService.terminateEgressStore(requestContext, envId);
     });
-
-    function mockDeleteEgressStoreRole(egressStoreId) {
-      const policyArn = 'test-PermissionBoundaryArn';
-      AWSMock.mock('IAM', 'listAttachedRolePolicies', (params, callback) => {
-        expect(params.RoleName).toEqual(`swb-study-${egressStoreId}`);
-        callback(null, {
-          AttachedPolicies: [
-            {
-              PolicyName: 'test-PermissionBoundaryName',
-              PolicyArn: policyArn,
-            },
-          ],
-        });
-      });
-      AWSMock.mock('IAM', 'detachRolePolicy', (params, callback) => {
-        expect(params).toMatchObject({ RoleName: `swb-study-${egressStoreId}`, PolicyArn: policyArn });
-        callback();
-      });
-      AWSMock.mock('IAM', 'deleteRole', (params, callback) => {
-        expect(params).toMatchObject({ RoleName: `swb-study-${egressStoreId}` });
-        callback();
-      });
-      AWSMock.mock('IAM', 'deletePolicy', (params, callback) => {
-        expect(params).toMatchObject({ PolicyArn: policyArn });
-        callback();
-      });
-    }
 
     it('should successfully delete egress store that is in CREATED state: deleteEgressStoreInCreatedStateTest = true', async () => {
       await deleteEgressStoreInCreatedStateTest(true);
@@ -655,7 +626,6 @@ describe('DataEgressService', () => {
       // Mock locking so that the putBucketPolicy actually gets called
       lockService.tryWriteLockAndRun = jest.fn((_params, callback) => callback());
       AWSMock.mock('S3', 'putBucketPolicy', putBucketPolicyMock);
-      mockDeleteEgressStoreRole(egressStoreId);
 
       await dataEgressService.terminateEgressStore(requestContext, envId);
     }
@@ -1225,5 +1195,38 @@ describe('DataEgressService', () => {
         expect.objectContaining({ boom: true, code: 'forbidden', safe: true }),
       );
     });
+  });
+
+  it('should successfully delete egress store role', async () => {
+    // BUILD
+    const policyArn = 'test-PermissionBoundaryArn';
+    AWSMock.mock('IAM', 'listAttachedRolePolicies', (params, callback) => {
+      expect(params.RoleName).toEqual(`swb-study-${egressStoreId}`);
+      callback(null, {
+        AttachedPolicies: [
+          {
+            PolicyName: 'test-PermissionBoundaryName',
+            PolicyArn: policyArn,
+          },
+        ],
+      });
+    });
+    AWSMock.mock('IAM', 'detachRolePolicy', (params, callback) => {
+      expect(params).toMatchObject({ RoleName: `swb-study-${egressStoreId}`, PolicyArn: policyArn });
+      callback();
+    });
+    AWSMock.mock('IAM', 'deleteRole', (params, callback) => {
+      expect(params).toMatchObject({ RoleName: `swb-study-${egressStoreId}` });
+      callback();
+    });
+    AWSMock.mock('IAM', 'deletePolicy', (params, callback) => {
+      expect(params).toMatchObject({ PolicyArn: policyArn });
+      callback();
+    });
+
+    const egressStoreId = 'abc';
+
+    // OPERATE and CHECK
+    await expect(dataEgressService.deleteMainAccountEgressStoreRole(egressStoreId)).resolves.toBeUndefined();
   });
 });
