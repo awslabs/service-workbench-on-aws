@@ -60,7 +60,7 @@ describe('TerminateProduct', () => {
       await tp.start();
 
       // CHECK
-      expect(deleteMainAccountEgressStoreRole).toHaveBeenCalledTimes(0);
+      expect(deleteMainAccountEgressStoreRole).not.toHaveBeenCalled();
     });
 
     function mockDataEgressService(deleteMainAccountEgressStoreRole) {
