@@ -12,8 +12,7 @@ critical_vul_threshold=0
 printf "\nHigh vulnerabilities threshold set at $high_vul_threshold\n"
 echo "Critical vulnerabilities threshold set at $critical_vul_threshold"
 
-# if (($high_vul > $high_vul_threshold)) || (($critical_vul > $critical_vul_threshold)); then
-if (($high_vul > 10)) || (($critical_vul > 10)); then
+if (($high_vul > $high_vul_threshold)) || (($critical_vul > $critical_vul_threshold)); then
   echo "Number of security vulnerabilities exceeded threshold"
   echo "High vulnerabilities detected: $high_vul"
   echo "Critical vulnerabilities detected: $critical_vul"
