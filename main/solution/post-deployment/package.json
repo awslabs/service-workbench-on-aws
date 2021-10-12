@@ -6,6 +6,8 @@
   "author": "Amazon Web Services",
   "license": "Apache-2.0",
   "dependencies": {
+    "@aws-ee/base-api-handler": "workspace:*",
+    "@aws-ee/base-raas-cfn-templates": "workspace:*",
     "@aws-ee/base-post-deployment": "workspace:*",
     "@aws-ee/base-raas-post-deployment": "workspace:*",
     "@aws-ee/base-raas-rest-api": "workspace:*",
@@ -14,6 +16,7 @@
     "@aws-ee/base-raas-workflows": "workspace:*",
     "@aws-ee/base-services": "workspace:*",
     "@aws-ee/base-services-container": "workspace:*",
+    "@aws-ee/base-workflow-api": "workspace:*",
     "@aws-ee/base-workflow-core": "workspace:*",
     "@aws-ee/base-workflow-steps": "workspace:*",
     "@aws-ee/base-workflow-templates": "workspace:*",
@@ -23,7 +26,8 @@
     "@aws-ee/environment-type-mgmt-services": "workspace:*",
     "@aws-ee/key-pair-mgmt-services": "workspace:*",
     "@aws-ee/user-id-upgrade-post-deployment": "workspace:*",
-    "aws-sdk": "^2.713.0",
+    "aws-sdk": "^2.1000.0",
+    "@aws-ee/cfn-stack-policy": "workspace:*",
     "lodash": "^4.17.21",
     "services": "workspace:*"
   },
@@ -53,7 +57,8 @@
     "serverless-s3-sync": "^1.10.2",
     "serverless-webpack": "^5.3.3",
     "source-map-support": "^0.5.16",
-    "webpack": "^4.41.5"
+    "webpack": "^4.41.5",
+    "serverless-plugin-ifelse": "^1.0.7"
   },
   "scripts": {
     "coverage": "NODE_ENV=test jest --config jest.config.js --passWithNoTests --verbose --collectCoverage --watchAll=false --coverage && codecov --disable=gcov",

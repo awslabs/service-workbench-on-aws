@@ -27,6 +27,7 @@ jest.mock('../../../data-source-bucket-service');
 jest.mock('../application-role-service');
 jest.mock('../filesystem-role-service');
 
+const AWSMock = require('aws-sdk-mock');
 const Aws = require('@aws-ee/base-services/lib/aws/aws-service');
 const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
 const LockService = require('@aws-ee/base-services/lib/lock/lock-service');
@@ -86,6 +87,7 @@ describe('EnvironmentResourceService', () => {
   let lockService;
   let fsRoleService;
   let envService;
+  let aws;
 
   beforeEach(async () => {
     // Initialize services container and register dependencies
@@ -112,6 +114,12 @@ describe('EnvironmentResourceService', () => {
     lockService = await container.find('lockService');
     fsRoleService = await container.find('roles-only/filesystemRoleService');
     envService = await container.find('environmentScService');
+    aws = await service.service('aws');
+    AWSMock.setSDKInstance(aws.sdk);
+  });
+
+  afterEach(() => {
+    AWSMock.restore();
   });
 
   it('provides env role policy', async () => {

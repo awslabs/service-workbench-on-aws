@@ -19,6 +19,13 @@ const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
 const crypto = require('crypto');
 
 // Mocked dependencies
+const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
+
+const AWSMock = require('aws-sdk-mock');
+
+jest.mock('@aws-ee/base-services/lib/lock/lock-service');
+const LockServiceMock = require('@aws-ee/base-services/lib/lock/lock-service');
+
 jest.mock('@aws-ee/base-api-services/lib/jwt-service');
 const JwtService = require('@aws-ee/base-api-services/lib/jwt-service');
 
@@ -68,9 +75,12 @@ describe('EnvironmentScConnectionService', () => {
   let service = null;
   let envDnsService = null;
   let jwtService = null;
+  let envScService = null;
+  let lockService = null;
 
   beforeEach(async () => {
     const container = new ServicesContainer();
+    container.register('aws', new AwsService());
     container.register('jsonSchemaValidationService', new JsonSchemaValidationService());
     container.register('jwtService', new JwtService());
     container.register('log', new Logger());
@@ -82,6 +92,7 @@ describe('EnvironmentScConnectionService', () => {
     container.register('environmentScKeypairService', new EnvironmentScKeyPairServiceMock());
     container.register('environmentScService', new EnvironmentSCServiceMock());
     container.register('environmentScConnectionService', new EnvironmentScConnectionService());
+    container.register('lockService', new LockServiceMock());
     await container.initServices();
 
     // suppress expected console errors
@@ -90,8 +101,381 @@ describe('EnvironmentScConnectionService', () => {
     // Get instance of the service we are testing
     service = await container.find('environmentScConnectionService');
 
+    envScService = await container.find('environmentScService');
+    envScService.mustFind = jest.fn(() => {
+      return { projectId: 'sampleProjectId' };
+    });
+    envScService.verifyAppStreamConfig = jest.fn();
+
     envDnsService = await container.find('environmentDnsService');
     jwtService = await container.find('jwtService');
+
+    const aws = await service.service('aws');
+    AWSMock.setSDKInstance(aws.sdk);
+    lockService = await container.find('lockService');
+  });
+
+  afterEach(async () => {
+    AWSMock.restore();
+  });
+
+  describe('updateRoleToIncludeCurrentIP', () => {
+    it('should update successfully with new statement when existing policy has one statement', async () => {
+      const connection = {
+        url: 'www.example.com',
+        type: 'SageMaker',
+        role: 'presigned-role',
+        roleArn: 'arn:aws:iam:us-west-2:111111111111:role/presigned-role',
+        notebookArn: 'arn:aws:sagemaker:us-west-2:111111111111:notebook-instance/basicnotebookinstance-testnotebook',
+        policy: 'presigned-url-access',
+        info: 'notebook-instance-name',
+      };
+      const iamMock = {};
+      const existingPolicy = {
+        Statement: {
+          Effect: 'Allow',
+          Action: 'sagemaker:CreatePresignedNotebookInstanceUrl',
+          Resource: connection.notebookArn,
+          Condition: {
+            StringEquals: {
+              'aws:SourceVpce': 'vpce-12345',
+            },
+          },
+        },
+      };
+      const newPolicy = {
+        Statement: [
+          {
+            Effect: 'Allow',
+            Action: 'sagemaker:CreatePresignedNotebookInstanceUrl',
+            Resource: connection.notebookArn,
+            Condition: {
+              StringEquals: {
+                'aws:SourceVpce': 'vpce-12345',
+              },
+            },
+          },
+          {
+            Effect: 'Allow',
+            Action: 'sagemaker:CreatePresignedNotebookInstanceUrl',
+            Resource: connection.notebookArn,
+            Condition: {
+              IpAddress: {
+                'aws:SourceIp': expect.any(String),
+              },
+            },
+          },
+        ],
+      };
+      iamMock.putRolePolicy = jest.fn(() => {
+        return {
+          promise: () => {},
+        };
+      });
+
+      // OPERATE
+      await service.updateRoleToIncludeCurrentIP(iamMock, connection, {
+        RoleName: 'presigned-role',
+        PolicyName: 'presigned-url-access',
+        PolicyDocument: JSON.stringify(existingPolicy),
+      });
+
+      // CHECK
+      expect(iamMock.putRolePolicy).toHaveBeenCalledTimes(1);
+      expect(iamMock.putRolePolicy.mock.calls[0][0]).toEqual(
+        expect.objectContaining({
+          RoleName: 'presigned-role',
+          PolicyName: 'presigned-url-access',
+        }),
+      );
+      expect(JSON.parse(iamMock.putRolePolicy.mock.calls[0][0].PolicyDocument)).toEqual(newPolicy);
+    });
+  });
+
+  describe('create private SageMaker URL', () => {
+    it('should fail since connection type is not SageMaker', async () => {
+      lockService.tryWriteLockAndRun = jest.fn((id, func) => {
+        return func();
+      });
+      const connection = {
+        url: 'www.example.com',
+        type: 'NotSageMaker',
+      };
+      const requestContext = { principal: { isAdmin: true, status: 'active' } };
+      try {
+        // OPERATE
+        await await service.createPrivateSageMakerUrl(requestContext, 'envId1', connection);
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Cannot generate presigned URL for non-sagemaker connection NotSageMaker');
+      }
+    });
+
+    it('should restore original policy incase of an error', async () => {
+      // BUILD
+      lockService.tryWriteLockAndRun = jest.fn((id, func) => {
+        return func();
+      });
+      const connection = {
+        url: 'www.example.com',
+        type: 'SageMaker',
+        role: 'presigned-role',
+        roleArn: 'arn:aws:iam:us-west-2:111111111111:role/presigned-role',
+        notebookArn: 'arn:aws:sagemaker:us-west-2:111111111111:notebook-instance/basicnotebookinstance-testnotebook',
+        policy: 'presigned-url-access',
+        info: 'notebook-instance-name',
+      };
+      const requestContext = { principal: { isAdmin: true, status: 'active' } };
+      const iamMock = {};
+      const stsMock = {};
+      const existingPolicy = {
+        Statement: [
+          {
+            Effect: 'Allow',
+            Action: 'sagemaker:CreatePresignedNotebookInstanceUrl',
+            Resource: connection.notebookArn,
+            Condition: {
+              StringEquals: {
+                'aws:SourceVpce': 'vpce-12345',
+              },
+            },
+          },
+        ],
+      };
+      const newPolicy = {
+        Statement: [
+          {
+            Effect: 'Allow',
+            Action: 'sagemaker:CreatePresignedNotebookInstanceUrl',
+            Resource: connection.notebookArn,
+            Condition: {
+              StringEquals: {
+                'aws:SourceVpce': 'vpce-12345',
+              },
+            },
+          },
+          {
+            Effect: 'Allow',
+            Action: 'sagemaker:CreatePresignedNotebookInstanceUrl',
+            Resource: connection.notebookArn,
+            Condition: {
+              IpAddress: {
+                'aws:SourceIp': expect.any(String),
+              },
+            },
+          },
+        ],
+      };
+      iamMock.getRolePolicy = jest.fn(() => {
+        return {
+          promise: () => {
+            return {
+              RoleName: 'presigned-role',
+              PolicyName: 'presigned-url-access',
+              PolicyDocument: JSON.stringify(existingPolicy),
+            };
+          },
+        };
+      });
+      iamMock.putRolePolicy = jest.fn(() => {
+        return {
+          promise: () => {},
+        };
+      });
+      stsMock.assumeRole = jest.fn(() => {
+        throw Error('Cannot assume role');
+      });
+      envScService.getClientSdkWithEnvMgmtRole = jest.fn((context, id, client) => {
+        if (client.clientName === 'IAM') {
+          return iamMock;
+        }
+        if (client.clientName === 'STS') {
+          return stsMock;
+        }
+        return undefined;
+      });
+
+      // OPERATE
+      try {
+        // OPERATE
+        await await service.createPrivateSageMakerUrl(requestContext, 'envId1', connection, 1);
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Could not generate presigned URL');
+      }
+
+      // CHECK
+      expect(iamMock.getRolePolicy).toHaveBeenCalledTimes(1);
+      expect(iamMock.getRolePolicy).toHaveBeenCalledWith({
+        RoleName: connection.role,
+        PolicyName: connection.policy,
+      });
+      expect(iamMock.putRolePolicy).toHaveBeenCalledTimes(2);
+      expect(iamMock.putRolePolicy.mock.calls[0][0]).toEqual(
+        expect.objectContaining({
+          RoleName: 'presigned-role',
+          PolicyName: 'presigned-url-access',
+        }),
+      );
+      expect(iamMock.putRolePolicy.mock.calls[1][0]).toEqual(
+        expect.objectContaining({
+          RoleName: 'presigned-role',
+          PolicyName: 'presigned-url-access',
+        }),
+      );
+      expect(JSON.parse(iamMock.putRolePolicy.mock.calls[0][0].PolicyDocument)).toEqual(newPolicy);
+      expect(JSON.parse(iamMock.putRolePolicy.mock.calls[1][0].PolicyDocument)).toEqual(existingPolicy);
+      expect(stsMock.assumeRole).toHaveBeenCalledTimes(1);
+      expect(stsMock.assumeRole).toHaveBeenCalledWith({
+        RoleArn: connection.roleArn,
+        RoleSessionName: `create-presigned-url`,
+      });
+      expect(lockService.tryWriteLockAndRun).toHaveBeenCalledTimes(1);
+      expect(lockService.tryWriteLockAndRun.mock.calls[0][0]).toEqual({
+        id: `envId1presign`,
+      });
+      expect(envScService.getClientSdkWithEnvMgmtRole).toHaveBeenCalledTimes(2);
+    });
+
+    it('should return private SageMaker URL', async () => {
+      // BUILD
+      lockService.tryWriteLockAndRun = jest.fn((id, func) => {
+        return func();
+      });
+      const connection = {
+        url: 'www.example.com',
+        type: 'SageMaker',
+        role: 'presigned-role',
+        roleArn: 'arn:aws:iam:us-west-2:111111111111:role/presigned-role',
+        notebookArn: 'arn:aws:sagemaker:us-west-2:111111111111:notebook-instance/basicnotebookinstance-testnotebook',
+        policy: 'presigned-url-access',
+        info: 'notebook-instance-name',
+      };
+      const requestContext = { principal: { isAdmin: true, status: 'active' } };
+      const iamMock = {};
+      const stsMock = {};
+      const existingPolicy = {
+        Statement: [
+          {
+            Effect: 'Allow',
+            Action: 'sagemaker:CreatePresignedNotebookInstanceUrl',
+            Resource: connection.notebookArn,
+            Condition: {
+              StringEquals: {
+                'aws:SourceVpce': 'vpce-12345',
+              },
+            },
+          },
+        ],
+      };
+      const newPolicy = {
+        Statement: [
+          {
+            Effect: 'Allow',
+            Action: 'sagemaker:CreatePresignedNotebookInstanceUrl',
+            Resource: connection.notebookArn,
+            Condition: {
+              StringEquals: {
+                'aws:SourceVpce': 'vpce-12345',
+              },
+            },
+          },
+          {
+            Effect: 'Allow',
+            Action: 'sagemaker:CreatePresignedNotebookInstanceUrl',
+            Resource: connection.notebookArn,
+            Condition: {
+              IpAddress: {
+                'aws:SourceIp': expect.any(String),
+              },
+            },
+          },
+        ],
+      };
+      iamMock.getRolePolicy = jest.fn(() => {
+        return {
+          promise: () => {
+            return {
+              RoleName: 'presigned-role',
+              PolicyName: 'presigned-url-access',
+              PolicyDocument: JSON.stringify(existingPolicy),
+            };
+          },
+        };
+      });
+      iamMock.putRolePolicy = jest.fn(() => {
+        return {
+          promise: () => {},
+        };
+      });
+      stsMock.assumeRole = jest.fn(() => {
+        return {
+          promise: () => {
+            return {
+              Credentials: {
+                AccessKeyId: 'accessKeyId',
+                SecretAccessKey: 'secretAccessKey',
+                SessionToken: 'sessionToken',
+              },
+            };
+          },
+        };
+      });
+      envScService.getClientSdkWithEnvMgmtRole = jest.fn((context, id, client) => {
+        if (client.clientName === 'IAM') {
+          return iamMock;
+        }
+        if (client.clientName === 'STS') {
+          return stsMock;
+        }
+        return undefined;
+      });
+      const expectedPrivateUrl = 'https://sagemaker.amazonaws.com/private';
+      AWSMock.mock('SageMaker', 'createPresignedNotebookInstanceUrl', (params, callback) => {
+        expect(params).toMatchObject(
+          expect.objectContaining({
+            NotebookInstanceName: connection.info,
+          }),
+        );
+        callback(null, { AuthorizedUrl: expectedPrivateUrl });
+      });
+
+      // OPERATE
+      const returnedPrivateUrl = await service.createPrivateSageMakerUrl(requestContext, 'envId1', connection);
+
+      // CHECK
+      expect(returnedPrivateUrl).toBe(expectedPrivateUrl);
+      expect(iamMock.getRolePolicy).toHaveBeenCalledTimes(1);
+      expect(iamMock.getRolePolicy).toHaveBeenCalledWith({
+        RoleName: connection.role,
+        PolicyName: connection.policy,
+      });
+      expect(iamMock.putRolePolicy).toHaveBeenCalledTimes(2);
+      expect(iamMock.putRolePolicy.mock.calls[0][0]).toEqual(
+        expect.objectContaining({
+          RoleName: 'presigned-role',
+          PolicyName: 'presigned-url-access',
+        }),
+      );
+      expect(iamMock.putRolePolicy.mock.calls[1][0]).toEqual(
+        expect.objectContaining({
+          RoleName: 'presigned-role',
+          PolicyName: 'presigned-url-access',
+        }),
+      );
+      expect(JSON.parse(iamMock.putRolePolicy.mock.calls[0][0].PolicyDocument)).toEqual(newPolicy);
+      expect(JSON.parse(iamMock.putRolePolicy.mock.calls[1][0].PolicyDocument)).toEqual(existingPolicy);
+      expect(stsMock.assumeRole).toHaveBeenCalledTimes(1);
+      expect(stsMock.assumeRole).toHaveBeenCalledWith({
+        RoleArn: connection.roleArn,
+        RoleSessionName: `create-presigned-url`,
+      });
+      expect(lockService.tryWriteLockAndRun).toHaveBeenCalledTimes(1);
+      expect(lockService.tryWriteLockAndRun.mock.calls[0][0]).toEqual({
+        id: `envId1presign`,
+      });
+      expect(envScService.getClientSdkWithEnvMgmtRole).toHaveBeenCalledTimes(2);
+    });
   });
 
   describe('create connection', () => {

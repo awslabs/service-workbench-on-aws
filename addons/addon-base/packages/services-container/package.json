@@ -6,11 +6,11 @@
   "author": "aws-ee",
   "license": "Apache-2.0",
   "dependencies": {
-    "aws-sdk": "^2.647.0",
+    "aws-sdk": "^2.1000.0",
     "toposort": "^2.0.2"
   },
   "peerDependencies": {
-    "aws-sdk": "^2.647.0",
+    "aws-sdk": "^2.1000.0",
     "lodash": "*"
   },
   "devDependencies": {

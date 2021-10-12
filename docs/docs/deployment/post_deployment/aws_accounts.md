@@ -39,6 +39,7 @@ Every user is linked to an account through a project and an index, so at least o
 
 ### Prerequisites
 
+
 Before creating an AWS account from Service Workbench, configure an existing AWS account to be the organizational account for Service Workbench (steps outlined in [Preparing the organizational account](/deployment/reference/prepare_master_account) above). When Service Workbench creates new AWS accounts, billing for those accounts is applicable to the organizational account.
 
 ### Creating a new Account
@@ -68,6 +69,7 @@ To create an account:
 3.	Once the account is created, it is listed in AWS Accounts.
 
 
+
 ## Add AWS Account
 
 Adding an existing AWS account enables Service Workbench to launch research workspaces. The existing account alignment (standalone or associated to an an organization) determines the billing responsibility.
@@ -95,13 +97,16 @@ _**Figure: Specify account details**_
  
 <img src={useBaseUrl('img/deployment/post_deployment/onboardacc.png')} />
 
+
 _**Figure: Onboard AWS account**_
 
 ### If AppStream is enabled
 
+
 If you have chosen to enable AppStream for your installation, there are additional values required when onboarding a hosting account.
 
 <img src={useBaseUrl('img/deployment/post_deployment/appstream1.png')} />
+
 
 _**Figure: Add account when AppStream is enabled**_
 
@@ -113,6 +118,7 @@ _**Figure: Add account when AppStream is enabled**_
 
 _**Figure: Add account when AppStream is enabled (contd..)**_
 
+
 + **AppStreamMaxUserDurationSeconds**:  The maximum amount of time for an AppStream session.
 + **AppStreamImageName**: The exact image name produced when you follow the instructions to build your AppStream image.
 + **AppStreamInstanceType**: The instance type for your AppStream fleet.  Note that these instance types are unique to AppStream.  A complete list and specifications for valid instance types is available at https://aws.amazon.com/appstream2/pricing/ 
@@ -120,11 +126,14 @@ _**Figure: Add account when AppStream is enabled (contd..)**_
 
 **Note**:  If you needed to change these values later, you can do so through the AWS Console of the hosting account without negative impact to Service Workbench.
 
+
 Once these options are specified, choosing **Onboard Account** displays the **Onboard AWS Account** screen.  The same choice of admin vs. no admin access applies, but there are several important pre-requisites to complete before proceeding.
+
 
 ## Prepare your account for AppStream
 
 AWS AppStream service limits may block resource creation in a new AWS account, or an account that has not yet hosted AppStream resources.  The following actions will best prepare the hosting account.
+
 
 1. **Required**: Go to AppStream 2.0 services (AWS Console), and choose Get Started. This will take you to a screen asking if you want to try out some templates. At this screen choose Next. This will only need to be done once for the account (it activates a role required for AppStream to be initiated).
 2. **Recommended**: Launch at least one EC2 instance (size of instance and duration of run prior to termination do not matter), as this establishes the base compute service limits.
@@ -141,9 +150,11 @@ After proceeding from the Onboard AWS Account Screen, you will be returned to th
 + **Pending** : The account onboarding process is ongoing.  If a hosting account remains in pending status beyond 30 minute, it is likely that there is an issue onboarding the account. Check the CloudFormation stack in the hosting account.
 
 
+
 ## Setting up an AppStream Image
 
 ### Overview
+
 
 This section describes the procedure of setting up an AppStream image with the following applications installed: Firefox, Notepad, PuttyGen, and Putty. AppStream should be built in the member account. To do this:
 

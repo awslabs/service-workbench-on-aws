@@ -63,6 +63,7 @@ describe('studyService', () => {
   let dbService = null;
   let projectService = null;
   let studyPermissionService = null;
+  let settingsService = null;
   const error = { code: 'ConditionalCheckFailedException' };
   beforeEach(async () => {
     const container = new ServicesContainer();
@@ -87,6 +88,7 @@ describe('studyService', () => {
     dbService = await container.find('dbService');
     projectService = await container.find('projectService');
     studyPermissionService = await container.find('studyPermissionService');
+    settingsService = await container.find('settings');
   });
 
   describe('getStudyPermissions', () => {
@@ -387,6 +389,47 @@ describe('studyService', () => {
         expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
+
+    it('should fail due to egress store feautre is enabled and access type is readwrite', async () => {
+      // BUILD
+      service._settings = {
+        getBoolean: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return true;
+          }
+          return undefined;
+        },
+      };
+      const uid = 'u-currentUserId';
+      const requestContext = {
+        principalIdentifier: { uid },
+        principal: { isAdmin: true, userRole: 'admin', status: 'active' },
+      };
+      const accountEntity = {};
+      const bucketEntity = {};
+      const rawStudyEntity = {
+        id: 'study-1',
+        name: 'study-1',
+        category: 'Organization',
+        description: 'valid',
+        projectId: 'project1',
+        folder: 'folder',
+        kmsArn: 'arn:aws:kms:us-east-1:123456789101:key/2e3c97b6-8bb3-4cf8-bc77-d56ebf84test',
+        kmsScope: 'bucket',
+        adminUsers: ['admin'],
+        accessType: 'readwrite',
+      };
+      // OPERATE
+      await expect(service.register(requestContext, accountEntity, bucketEntity, rawStudyEntity)).rejects.toThrow(
+        // CHECK
+        expect.objectContaining({
+          boom: true,
+          code: 'forbidden',
+          safe: true,
+          message: 'Only READ access type is allowed when egress data feature is enabled',
+        }),
+      );
+    });
   });
 
   describe('create', () => {
@@ -402,7 +445,7 @@ describe('studyService', () => {
             arn: 'arn:aws:s3:::study1',
           },
         ],
-        sha: '19d5b9c735712185ca1c691143e458a7aa2b7f69',
+        tags: ['genomic'],
         category: 'Open Data',
       };
       dbService.table.update.mockResolvedValueOnce(studyData);
@@ -422,10 +465,10 @@ describe('studyService', () => {
             arn: 'arn:aws:s3:::study1',
           },
         ],
-        sha: '19d5b9z735712185ca1c691143t458a7aa2b7f69',
+        tags: ['genomic'],
         category: 'Open Data',
+        invalidAttribute: 'abc',
       };
-
       // OPERATE
       try {
         await service.create(systemContext, studyData);
@@ -838,27 +881,6 @@ describe('studyService', () => {
         expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
-    it('should fail since the given study sha is invalid', async () => {
-      // BUILD
-      const uid = 'u-currentUserId';
-      const requestContext = {
-        principalIdentifier: { uid },
-        principal: { userRole: 'researcher', status: 'active' },
-      };
-      const dataIpt = {
-        id: 'id',
-        name: 'name',
-        category: 'Organization',
-        description: 'desc',
-        sha: 'fake',
-        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
-      };
-      // OPERATE
-      await expect(service.create(requestContext, dataIpt)).rejects.toThrow(
-        // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
-      );
-    });
   });
 
   describe('update', () => {
@@ -874,8 +896,8 @@ describe('studyService', () => {
             arn: 'arn:aws:s3:::study1',
           },
         ],
-        sha: '19d5b9c735712185ca1c691143e458a7aa2b7f69',
         rev: 0,
+        tags: ['genomic'],
       };
       dbService.table.update.mockResolvedValueOnce(studyData);
       service.getStudyPermissions = jest.fn().mockResolvedValueOnce({
@@ -900,8 +922,9 @@ describe('studyService', () => {
             arn: 'arn:aws:s3:::study1',
           },
         ],
-        sha: '19d5b9z735712185ca1c691143t458a7aa2b7f69',
         rev: 0,
+        tags: ['genomic'],
+        invalidAttribute: 'abc',
       };
 
       // OPERATE
@@ -943,26 +966,6 @@ describe('studyService', () => {
         id: 'id',
         name: '<hack>',
         description: 'desc',
-        resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
-      };
-      // OPERATE
-      await expect(service.update(requestContext, dataIpt)).rejects.toThrow(
-        // CHECK
-        expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
-      );
-    });
-    it('should fail since the given sha is invalid', async () => {
-      // BUILD
-      const uid = 'u-currentUserId';
-      const requestContext = {
-        principalIdentifier: { uid },
-        principal: { userRole: 'researcher', status: 'active' },
-      };
-      const dataIpt = {
-        id: 'id',
-        name: 'name',
-        description: 'desc',
-        sha: 'fake',
         resources: [{ arn: 'arn:aws:s3:::someRandomStudyArn' }],
       };
       // OPERATE
@@ -1198,6 +1201,51 @@ describe('studyService', () => {
       const retVal = service._getStudyAccessMap(permissions);
       // CHECK
       expect(retVal).toEqual(expectedVal);
+    });
+    describe('Open Data', () => {
+      const biologyStudy = {
+        rev: 0,
+        resources: [
+          {
+            arn: 'arn:aws:s3:::gatk-test-data',
+          },
+        ],
+        updatedAt: '2021-09-23T19:59:28.078Z',
+        category: 'Open Data',
+        createdAt: '2021-09-23T19:59:28.078Z',
+        updatedBy: '_system_',
+        description: 'Sample description',
+        id: 'gatk-test-data',
+        createdBy: '_system_',
+        name: 'GATK Test Data',
+        tags: ['biology'],
+      };
+      beforeEach(() => {
+        dbService.table.query.mockResolvedValueOnce([biologyStudy]);
+      });
+
+      it('should show biology study since openDataFilterTags include biology', async () => {
+        settingsService.get = jest.fn().mockImplementation(args => {
+          if (args === 'openDataTagFilters') {
+            return 'genomics,biology';
+          }
+          return '';
+        });
+
+        const response = await service.list({}, 'Open Data');
+        expect(response).toEqual([{ ...biologyStudy, status: 'reachable' }]);
+      });
+      it('should NOT show biology study since openDataFilterTags DOES NOT include biology', async () => {
+        settingsService.get = jest.fn().mockImplementation(args => {
+          if (args === 'openDataTagFilters') {
+            return 'genomics';
+          }
+          return '';
+        });
+
+        const response = await service.list({}, 'Open Data');
+        expect(response).toEqual([]);
+      });
     });
   });
 

@@ -10,6 +10,7 @@ import { isStoreLoading, isStoreNotEmpty, isStoreError } from '@aws-ee/base-ui/d
 import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
 import ProgressPlaceHolder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 
+import { isAppStreamEnabled } from '../../helpers/settings';
 import By from '../helpers/By';
 import ScEnvironmentButtons from './parts/ScEnvironmentButtons';
 import ScEnvironmentCost from './parts/ScEnvironmentCost';
@@ -76,6 +77,7 @@ class ScEnvironmentCard extends React.Component {
         {this.renderStatus(state)}
         {this.renderTitle(env)}
         {this.renderError(env)}
+        {this.renderWarning(env)}
         <Divider className="mt1 mb1" />
         {this.renderButtons(env)}
         <Divider className="mt1" />
@@ -160,6 +162,20 @@ class ScEnvironmentCard extends React.Component {
         </Header.Subheader>
       </Header>
     );
+  }
+
+  renderWarning(env) {
+    if (isAppStreamEnabled && !env.isAppStreamConfigured && env.state.canTerminate) {
+      return (
+        <Message
+          icon="warning"
+          header="Non-AppStream workspace found"
+          content="Please terminate this workspace as soon as possible. This workspace is not supported by AppStream."
+        />
+      );
+    }
+
+    return null;
   }
 
   renderError(env) {

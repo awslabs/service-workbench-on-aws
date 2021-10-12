@@ -41,6 +41,7 @@ const settingKeys = {
   categoryIndexName: 'dbStudiesCategoryIndex',
   accountIdIndexName: 'dbStudiesAccountIdIndex',
   studyDataBucketName: 'studyDataBucketName',
+  enableEgressStore: 'enableEgressStore',
 };
 
 class StudyService extends Service {
@@ -189,6 +190,15 @@ class StudyService extends Service {
 
     // Validate input
     await validationService.ensureValid(rawStudyEntity, registerSchema);
+
+    const enableEgressStore = this.settings.getBoolean(settingKeys.enableEgressStore);
+
+    if (enableEgressStore) {
+      const accessType = rawStudyEntity.accessType;
+      if (accessType === 'readwrite') {
+        throw this.boom.forbidden('Only READ access type is allowed when egress data feature is enabled', true);
+      }
+    }
 
     let studyPermissionEntity = {
       adminUsers: rawStudyEntity.adminUsers,
@@ -497,17 +507,22 @@ class StudyService extends Service {
   }
 
   async list(requestContext, category, fields = []) {
+    const openDataTagFilters = await this.settings.get('openDataTagFilters').split(',');
     // Get studies allowed for user
     let result = [];
     switch (category) {
       case 'Open Data':
         // Readable by all
-        result = await this._query()
-          .index(this.categoryIndex)
-          .key('category', category)
-          .limit(1000)
-          .projection(fields)
-          .query();
+        result = (
+          await this._query()
+            .index(this.categoryIndex)
+            .key('category', category)
+            .limit(1000)
+            .projection(fields)
+            .query()
+        ).filter(study => {
+          return openDataTagFilters.some(filterTag => study.tags.includes(filterTag));
+        });
         break;
 
       default: {

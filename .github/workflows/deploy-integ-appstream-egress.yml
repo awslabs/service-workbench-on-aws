@@ -1,0 +1,130 @@
+#
+#  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#  SPDX-License-Identifier: Apache-2.0
+#
+
+name: Deploy & Integration Test (AppStream and Egress Enabled)
+on:
+  push:
+    branches:
+      - feat-secure-workspace-egress
+jobs:
+  pre-deployment-check:
+    name: Pre deployment check
+    runs-on: ubuntu-18.04
+    timeout-minutes: 10
+    steps:
+      - name: "Block Concurrent Deployments"
+        uses: softprops/turnstyle@v1
+        with:
+          poll-interval-seconds: 10
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  deploy:
+    name: Deploy to AppStream Dev
+    runs-on: ubuntu-18.04
+    needs: pre-deployment-check
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - uses: actions/setup-go@v2
+        with:
+          go-version: 1.13
+      - name: Install pnpm
+        run: npm install -g pnpm
+      - name: Install dependencies
+        run: ./scripts/install.sh
+      - name: Build all packages
+        run: ./scripts/build-all-packages.sh
+      - name: Deploy
+        env:
+          STAGE_NAME: tre
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_APPSTREAM_EGRESS}}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_APPSTREAM_EGRESS }}
+        run: |
+          cp ./main/end-to-end-tests/e2eGitHubConfig.AppStreamEgress.yml ./main/config/settings/${STAGE_NAME}.yml
+          ./scripts/environment-deploy.sh ${STAGE_NAME}
+  infrastructure-test:
+    name: Infrastructure test
+    runs-on: ubuntu-18.04
+    needs: deploy
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Install pnpm and system libraries
+        run: npm install -g pnpm
+      - name: Install dependencies
+        run: pnpm install
+        working-directory: main/infrastructure-tests
+      - name: Run infrastructure tests
+        run: pnpm run testAppStreamEgressEnabled -- --stage=github
+        working-directory: ./main/infrastructure-tests
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_APPSTREAM_EGRESS }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_APPSTREAM_EGRESS }}
+          INFRA_TESTS_HOSTING_ACCOUNT_ID: ${{ secrets.INFRA_TESTS_HOSTING_ACCOUNT_ID }}
+          INFRA_TESTS_HOSTING_ACCOUNT_STACK_NAME: ${{ secrets.INFRA_TESTS_HOSTING_ACCOUNT_STACK_NAME }}
+  integration-test:
+    name: Integration test
+    runs-on: ubuntu-18.04
+    needs: infrastructure-test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Install pnpm and system libraries
+        run: |
+          npm install -g pnpm
+          sudo apt-get install libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth xvfb
+      - name: Install dependencies
+        run: pnpm install
+        working-directory: main/integration-tests
+      - name: Run integration tests
+        run: ./scripts/run-integration-tests.sh ${STAGE_NAME} AppStreamEgress
+        working-directory: ./
+        env:
+          DEPLOYMENT_BUCKET: ${{ secrets.DEPLOYMENT_BUCKET_APPSTREAM_EGRESS}}
+          STAGE_NAME: tre
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_APPSTREAM_EGRESS }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_APPSTREAM_EGRESS }}
+          aws-region: us-east-1
+  cypress-test:
+    name: Cypress test
+    runs-on: ubuntu-18.04
+    needs: integration-test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Install pnpm and system libraries
+        run: |
+          npm install -g pnpm
+          sudo apt-get install libgtk2.0-0 libgtk-3-0 libgbm-dev libnotify-dev libgconf-2-4 libnss3 libxss1 libasound2 libxtst6 xauth xvfb
+      - name: Install dependencies
+        run: pnpm install
+        working-directory: main/end-to-end-tests
+      - name: Run cypress test
+        run: pnpm run cypress:run-tests:github:appstream-egress-enabled
+        working-directory: main/end-to-end-tests
+        env:
+          # Env parameters for cypress tests need header 'CYPRESS_' or 'cypress_'
+          # Cypress will strip the header and pass it to the tests
+          CYPRESS_BASE_URL: ${{ secrets.CYPRESS_BASE_URL_APPSTREAM_EGRESS}}
+          CYPRESS_researcherEmail: ${{ secrets.CYPRESS_RESEARCHER_EMAIL_APPSTREAM_EGRESS}}
+          CYPRESS_researcherPassword: ${{ secrets.CYPRESS_RESEARCHER_PASSWORD_APPSTREAM_EGRESS}}
+          CYPRESS_adminEmail: ${{ secrets.CYPRESS_ADMIN_EMAIL_APPSTREAM_EGRESS}}
+          CYPRESS_adminPassword: ${{ secrets.CYPRESS_ADMIN_PASSWORD_APPSTREAM_EGRESS}}

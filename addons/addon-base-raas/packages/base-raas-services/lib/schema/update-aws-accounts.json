@@ -26,9 +26,23 @@
       "type": "string",
       "pattern": "^[0-9]{12}$"
     },
+    "cfnStackId": {
+      "type": "string",
+      "maxLength": 255,
+      "pattern": "^arn:aws:cloudformation:.*$"
+    },
+    "cfnStackName": {
+      "type": "string",
+      "maxLength": 2048
+    },
     "roleArn": {
       "type": "string",
       "minLength": 10
+    },
+    "onboardStatusRoleArn": {
+      "type": "string",
+      "minLength": 10,
+      "pattern": "^arn:aws:iam::.*$"
     },
     "xAccEnvMgmtRoleArn": {
       "type": "string",
@@ -49,7 +63,46 @@
     "encryptionKeyArn": {
       "type": "string",
       "pattern": "^arn:aws:kms:.*$"
+    },
+    "permissionStatus": {
+      "type": "string"
+    },
+    "appStreamStackName": {
+      "type": "string"
+    },
+    "appStreamFleetName": {
+      "type": "string"
+    },
+    "appStreamSecurityGroupId": {
+      "type": "string"
+    },
+    "appStreamFleetDesiredInstances": {
+      "type": "string"
+    },
+    "appStreamIdleDisconnectTimeoutSeconds": {
+      "type": "string"
+    },
+    "appStreamDisconnectTimeoutSeconds": {
+      "type": "string"
+    },
+    "appStreamMaxUserDurationSeconds": {
+      "type": "string"
+    },
+    "appStreamImageName": {
+      "type": "string"
+    },
+    "appStreamInstanceType": {
+      "type": "string"
+    },
+    "appStreamFleetType": {
+      "type": "string"
+    },
+    "route53HostedZone": {
+      "type": "string"
     }
   },
-  "required": ["id", "rev", "roleArn", "externalId"]
+  "required": [
+    "id",
+    "rev"
+  ]
 }

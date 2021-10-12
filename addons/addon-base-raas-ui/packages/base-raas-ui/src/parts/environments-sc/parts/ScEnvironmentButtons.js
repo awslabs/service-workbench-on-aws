@@ -9,6 +9,12 @@ import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
 
 import ScEnvironmentConnections from './ScEnvironmentConnections';
 import ScEnvironmentUpdateCidrs from './ScEnvironmentUpdateCidrs';
+import { enableEgressStore, isAppStreamEnabled } from '../../../helpers/settings';
+import ScEnvironmentEgressStoreDetail from './ScEnvironmentEgressStoreDetail';
+
+const PROCESSING_STATUS_CODE = 'PROCESSING';
+const WORKSPACE_TERMINATION_ERROR_MESSAGE =
+  'Termination is NOT allowed. Your data transfer from egress store is still in progress. Please contact your Data Manager to confirm the data is transferred before you try to terminate the workspace again.';
 
 // expected props
 // - scEnvironment (via prop)
@@ -24,6 +30,8 @@ class ScEnvironmentButtons extends React.Component {
       this.connectionsButtonActive = false;
       // A flag to indicate if the cidr edit button is active
       this.editCidrButtonActive = false;
+      // A flag to indicate if the egressStore button is active
+      this.egressStoreButtonActive = false;
     });
   }
 
@@ -40,11 +48,38 @@ class ScEnvironmentButtons extends React.Component {
     goto(`/workspaces/id/${this.environment.id}`);
   };
 
+  getEgressStoreDetailsStore = () => {
+    if (enableEgressStore) return this.props.scEnvironmentEgressStoreDetailStore;
+    return null;
+  };
+
   handleTerminate = async () => {
-    await this.handleAction(async () => {
-      const store = this.envsStore;
-      await store.terminateScEnvironment(this.environment.id);
-    });
+    if (enableEgressStore) {
+      const egressStoreDetailsStore = this.getEgressStoreDetailsStore();
+      if (!egressStoreDetailsStore) {
+        await this.handleAction(async () => {
+          const store = this.envsStore;
+          await store.terminateScEnvironment(this.environment.id);
+        });
+      } else {
+        const isDataEgressing =
+          egressStoreDetailsStore.egressStoreStatus.toLowerCase() === PROCESSING_STATUS_CODE.toLowerCase();
+        if (!isDataEgressing) {
+          await this.handleAction(async () => {
+            const store = this.envsStore;
+            await store.terminateScEnvironment(this.environment.id);
+          });
+        } else {
+          // Do not allow user to terminate workspace if the data egressing is in process
+          displayError(WORKSPACE_TERMINATION_ERROR_MESSAGE);
+        }
+      }
+    } else {
+      await this.handleAction(async () => {
+        const store = this.envsStore;
+        await store.terminateScEnvironment(this.environment.id);
+      });
+    }
   };
 
   handleStop = async () => {
@@ -86,12 +121,17 @@ class ScEnvironmentButtons extends React.Component {
     this.editCidrButtonActive = !this.editCidrButtonActive;
   };
 
+  handleEgressStoreToggle = () => {
+    this.egressStoreButtonActive = !this.egressStoreButtonActive;
+  };
+
   render() {
     const env = this.environment;
     const state = env.state;
     const processing = this.processing;
     const showDetailButton = this.props.showDetailButton;
     const connectionsButtonActive = this.connectionsButtonActive;
+    const egressStoreButtonActive = this.egressStoreButtonActive;
     const editCidrButtonActive = this.editCidrButtonActive;
     const canConnect = state.canConnect;
     const canStart = state.canStart && this.canChangeState();
@@ -153,7 +193,11 @@ class ScEnvironmentButtons extends React.Component {
             </Button>
           )}
 
-          {canConnect && (
+          {/* Only let users connect to the environment if either of these conditions is true:
+            1. AppStream is not enabled and environment can be connected to
+            2. AppStream is enabled, environment is linked to an AppStream-configured account, and environment can be connected to 
+          */}
+          {canConnect && (!isAppStreamEnabled || env.isAppStreamConfigured) && (
             <Button
               floated="left"
               basic
@@ -162,6 +206,7 @@ class ScEnvironmentButtons extends React.Component {
               toggle
               active={connectionsButtonActive}
               onClick={this.handleToggle}
+              data-testid="sc-environment-connection-button"
             >
               Connections
             </Button>
@@ -171,7 +216,7 @@ class ScEnvironmentButtons extends React.Component {
               View Detail
             </Button>
           )}
-          {state.canTerminate && !state.key.includes('FAILED') && (
+          {!isAppStreamEnabled && state.canTerminate && !state.key.includes('FAILED') && (
             <Button
               floated="left"
               basic
@@ -184,7 +229,21 @@ class ScEnvironmentButtons extends React.Component {
               Edit CIDRs
             </Button>
           )}
+          {enableEgressStore && state.canTerminate && !state.key.includes('FAILED') && (
+            <Button
+              floated="left"
+              basic
+              size="mini"
+              className="mt1 mb1 ml2"
+              toggle
+              active={egressStoreButtonActive}
+              onClick={this.handleEgressStoreToggle}
+            >
+              Egress Store
+            </Button>
+          )}
         </div>
+        {enableEgressStore && egressStoreButtonActive && <ScEnvironmentEgressStoreDetail scEnvironment={env} />}
         {canConnect && connectionsButtonActive && <ScEnvironmentConnections scEnvironment={env} />}
         {editCidrButtonActive && <ScEnvironmentUpdateCidrs scEnvironment={env} onCancel={this.handleCidrEditToggle} />}
       </>
@@ -198,11 +257,15 @@ decorate(ScEnvironmentButtons, {
   environment: computed,
   processing: observable,
   connectionsButtonActive: observable,
+  egressStoreButtonActive: observable,
   editCidrButtonActive: observable,
   handleViewDetail: action,
   handleAction: action,
   handleToggle: action,
   handleCidrEditToggle: action,
+  handleEgressStoreToggle: action,
 });
 
-export default inject('scEnvironmentsStore')(withRouter(observer(ScEnvironmentButtons)));
+// eslint-disable-next-line import/no-mutable-exports
+const exportable = inject('scEnvironmentsStore')(withRouter(observer(ScEnvironmentButtons)));
+export default exportable;

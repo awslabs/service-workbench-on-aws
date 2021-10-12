@@ -7,6 +7,7 @@ These tests can run against local and dev environments during development.
 They can also be configured to run automatically as part of a GitHub workflow or CI/CD pipeline.
 Advanced integration tests involve interacting with a provisioned workspace, and require additional setup.
 
+
 ## Prerequisites
 
 ### Test Resources
@@ -16,6 +17,7 @@ To run integration tests, the following resources need to be created in advance:
 #### Resources to create through SWB UI:
 
 - **Test Administrator:** Create an internal admin-role user for running integration tests. (**Note the username and password**)
+
 
 - **Test Project:** Create a default project for running integration tests. (**Note the projectId**)
 
@@ -28,6 +30,7 @@ To run integration tests, the following resources need to be created in advance:
 - **Environment Configuration:** Create a configuration for every corresponding environment type that was created.
 
 - **Data Source Study:** If testing BYOB studies, create an external BYOB study on the deployment with read and write access.
+
 
 #### Resources to create through AWS Console:
 
@@ -47,6 +50,7 @@ For each `{workspaceType}EnvTypeId` and `{workspacetype}ConfigId`, use the IDs f
 
 For `byobStudy`, supply the ID for the external data source study.
 
+
 **Note**
 
 This file is unique from other `<STAGE>.yml` files under other SDCs. It does not gather serverless settings passed on from the hierarchies above (eg. from `main/config/settings/.defaults.yml`)
@@ -65,6 +69,12 @@ Note: Integration tests will create resources in the environment they are execut
 
 ##### Run all integration tests from the root directory with:
 
+Run AppStream tests. AppStream and Egress should be enabled in the testing environment
+```bash
+$ scripts/run-integration-tests.sh <STAGE> AppStreamEgress
+```
+
+Run non AppStream tests
 ```bash
 $ scripts/run-integration-tests.sh <STAGE>
 ```
@@ -72,7 +82,7 @@ $ scripts/run-integration-tests.sh <STAGE>
 Run specific test suites under `main/integration-tests` with:
 
 ```bash
-$ pnpm intTest __test__/api-tests/<your test suite file> -- --stage=<STAGE>
+$ pnpm intTestSpecific __test__/api-tests/<your test suite file> -- --stage=<STAGE>
 # IMPORTANT: notice the additional '-- ' in front of the '--stage='
 ```
 

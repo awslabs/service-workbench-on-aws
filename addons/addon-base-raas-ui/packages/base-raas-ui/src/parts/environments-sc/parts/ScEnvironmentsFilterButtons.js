@@ -10,7 +10,7 @@ import { filterNames } from '../../../models/environments-sc/ScEnvironmentsStore
 const filterColorMap = {
   [filterNames.ALL]: 'blue',
   [filterNames.AVAILABLE]: 'green',
-  [filterNames.PENDING]: 'gold',
+  [filterNames.PENDING]: 'yellow',
   [filterNames.STOPPED]: 'orange',
   [filterNames.ERRORED]: 'red',
   [filterNames.TERMINATED]: 'grey',

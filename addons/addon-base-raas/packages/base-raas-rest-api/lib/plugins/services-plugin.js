@@ -28,6 +28,7 @@ const EnvironmentScConnectionService = require('@aws-ee/base-raas-services/lib/e
 const EnvironmentSpotPriceHistoryService = require('@aws-ee/base-raas-services/lib/environment/environment-spot-price-history-service');
 const UserRolesService = require('@aws-ee/base-raas-services/lib/user-roles/user-roles-service');
 const AwsAccountsService = require('@aws-ee/base-raas-services/lib/aws-accounts/aws-accounts-service');
+const AwsCfnService = require('@aws-ee/base-raas-services/lib/aws-accounts/aws-cfn-service');
 const BudgetsService = require('@aws-ee/base-raas-services/lib/budgets/budgets-service');
 const CostsService = require('@aws-ee/base-raas-services/lib/costs/costs-service');
 const CostApiCacheService = require('@aws-ee/base-raas-services/lib/cost-api-cache/cost-api-cache-service');
@@ -56,6 +57,7 @@ const RolesOnlyEnvironmentResourceService = require('@aws-ee/base-raas-services/
 const LegacyEnvironmentResourceService = require('@aws-ee/base-raas-services/lib/data-source/access-strategy/legacy/environment-resource-service');
 const ResourceUsageService = require('@aws-ee/base-raas-services/lib/usage/resource-usage-service');
 const StudyOperationService = require('@aws-ee/base-raas-services/lib/study/study-operation-service');
+const DataEgressService = require('@aws-ee/base-raas-services/lib/data-egress/data-egress-service');
 
 const settingKeys = {
   tablePrefix: 'dbPrefix',
@@ -89,6 +91,7 @@ async function registerServices(container, pluginRegistry) {
   container.register('environmentScCidrService', new EnvironmentScCidrService());
   container.register('cfnTemplateService', new CfnTemplateService());
   container.register('awsAccountsService', new AwsAccountsService());
+  container.register('awsCfnService', new AwsCfnService());
   container.register('budgetsService', new BudgetsService());
   container.register('costsService', new CostsService());
   container.register('storageGatewayService', new StorageGatewayService());
@@ -114,6 +117,7 @@ async function registerServices(container, pluginRegistry) {
   container.register('legacy/environmentResourceService', new LegacyEnvironmentResourceService());
   container.register('resourceUsageService', new ResourceUsageService());
   container.register('studyOperationService', new StudyOperationService());
+  container.register('dataEgressService', new DataEgressService());
 
   // Authorization Services from raas addon
   container.register('raasUserAuthzService', new UserAuthzService());
@@ -152,6 +156,7 @@ function getStaticSettings(existingStaticSettings, settings, pluginRegistry) {
   table('dbDsAccounts', 'DsAccounts');
   table('dbRoleAllocations', 'RoleAllocations');
   table('dbResourceUsages', 'ResourceUsages');
+  table('dbEgressStore', 'EgressStore');
   table('StorageGateway', 'StorageGateway');
 
   return staticSettings;

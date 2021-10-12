@@ -16,6 +16,10 @@
 const _ = require('lodash');
 const StepBase = require('@aws-ee/base-workflow-core/lib/workflow/helpers/step-base');
 
+const settingKeys = {
+  isAppStreamEnabled: 'isAppStreamEnabled',
+};
+
 class StartRStudioEnvironmentSc extends StepBase {
   async start() {
     const environmentId = await this.payload.string('environmentId');
@@ -163,8 +167,10 @@ class StartRStudioEnvironmentSc extends StepBase {
 
   async updateCnameRecords(envId, oldDnsName, newDnsName) {
     const environmentDnsService = await this.mustFindServices('environmentDnsService');
-    await environmentDnsService.deleteRecord('rstudio', envId, oldDnsName);
-    await environmentDnsService.createRecord('rstudio', envId, newDnsName);
+    if (!this.settings.getBoolean(settingKeys.isAppStreamEnabled)) {
+      await environmentDnsService.deleteRecord('rstudio', envId, oldDnsName);
+      await environmentDnsService.createRecord('rstudio', envId, newDnsName);
+    }
   }
 
   async updateEnvironment(updatedAttributes, ipAllowListAction = {}) {

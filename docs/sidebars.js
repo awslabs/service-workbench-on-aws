@@ -42,6 +42,45 @@ module.exports = {
         ],
       },
     ],
+
+      {
+        "Pre-installation requirements": [
+          "installation_guide/installation/pre-installation/overview",
+          "installation_guide/installation/pre-installation/tool-req",
+          "installation_guide/installation/pre-installation/software-req",
+          "installation_guide/installation/pre-installation/instance-req",
+          "installation_guide/installation/pre-installation/conf-settings",
+          "installation_guide/installation/pre-installation/documentation",
+        ],
+      },
+      {
+        "Installing Service Workbench": [
+          "installation_guide/installation/ami-install",
+          "installation_guide/installation/ec2install",
+          "installation_guide/installation/cloud9install",
+        ],
+      },
+      {
+        "Upgrading Service Workbench": [
+          "installation_guide/upgrading/commandline",
+          "installation_guide/upgrading/solutions",
+        ],
+      },
+      "installation_guide/postupgrade",
+      "installation_guide/uninstall",
+      "installation_guide/troubleshooting",
+    ],
+    "Service Workbench Configuration Guide": [
+      "configuration_guide/overview",
+      "configuration_guide/workflow",
+      {
+        "Configuring Service Workbench using IdP": [
+          "configuration_guide/activedirectory",
+          "configuration_guide/adfs",
+          "configuration_guide/auth0",
+        ],
+      },
+    ],
     "Service Workbench Post Deployment Guide": [
 
 
@@ -57,6 +96,7 @@ module.exports = {
           "deployment/post_deployment/logs",
         ],
       },
+
       "deployment/redeployment",
       {
         Reference: [

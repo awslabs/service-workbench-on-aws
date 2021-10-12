@@ -86,6 +86,7 @@ class ScEnvironmentSshConnectionRow extends React.Component {
     this.processingSendKey = true;
     try {
       const result = await store.sendSshKey(connectionId, keyId);
+
       runInAction(() => {
         this.networkInterfaces = _.get(result, 'networkInterfaces');
       });
@@ -114,6 +115,7 @@ class ScEnvironmentSshConnectionRow extends React.Component {
     const options = this.keyPairOptions;
     const selectedKeyId = this.selectedKeyId;
     const selectedKeyName = this.selectedKeyName;
+
     const rows = [
       <Table.Row key={item.id}>
         <Table.Cell>
@@ -141,6 +143,7 @@ class ScEnvironmentSshConnectionRow extends React.Component {
             onClick={this.handleActivate}
             disabled={emptyKeys}
             loading={this.processingSendKey}
+            data-testid="use-ssh-key-button"
           >
             Use this SSH Key
           </Button>
@@ -155,6 +158,8 @@ class ScEnvironmentSshConnectionRow extends React.Component {
           networkInterfaces={networkInterfaces}
           keyName={selectedKeyName}
           connectionId={item.id}
+          scEnvironmentsStore={this.envsStore}
+          scEnvironment={this.environment}
         />,
       );
     }
