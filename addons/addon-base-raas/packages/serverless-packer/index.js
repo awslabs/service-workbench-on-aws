@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-const execSync = require('child_process').execSync;
+const execFileSync = require('child_process').execFileSync;
 
 const fs = require('fs');
 const _ = require('lodash');
@@ -123,7 +123,7 @@ class ServerlessPackerPlugin {
     this.serverless.cli.log('Adding versionNumber and versionDate to stage file');
 
     try {
-      execSync(`cd ../../../ && ./scripts/get-release-info.sh ${stageName}`);
+      execFileSync('./scripts/get-release-info.sh', [stageName], { cwd: '../../../' });
     } catch (err) {
       throw new Error(`Error adding versionNumber and versionDate to stage file: ${err}`);
     }
