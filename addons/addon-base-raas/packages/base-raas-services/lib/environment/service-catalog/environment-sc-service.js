@@ -426,11 +426,6 @@ class EnvironmentScService extends Service {
       { action: 'create-sc', conditions: [this._allowAuthorized] },
       environment,
     );
-    const invalidOpenDataStudyIds = await this.getInvalidOpenDataStudyIds(requestContext, environment);
-
-    if (invalidOpenDataStudyIds.length > 0) {
-      throw this.boom.badRequest(`Invalid open data studies. IDs: ${invalidOpenDataStudyIds}`, true);
-    }
 
     // const { name, envTypeId, envTypeConfigId, description, projectId, cidr, studyIds } = environment
     const { envTypeId, envTypeConfigId, projectId } = environment;

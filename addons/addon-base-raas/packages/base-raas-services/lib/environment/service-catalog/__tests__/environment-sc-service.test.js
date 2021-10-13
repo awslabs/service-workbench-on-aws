@@ -74,7 +74,6 @@ describe('EnvironmentSCService', () => {
   let aws = null;
   let storageGatewayService = null;
   let settings = null;
-  let studyService = null;
   const error = { code: 'ConditionalCheckFailedException' };
   beforeEach(async () => {
     const container = new ServicesContainer();
@@ -109,7 +108,6 @@ describe('EnvironmentSCService', () => {
     aws = await container.find('aws');
     storageGatewayService = await container.find('storageGatewayService');
     settings = await container.find('settings');
-    studyService = await container.find('studyService');
 
     // Skip authorization by default
     service.assertAuthorized = jest.fn();
@@ -190,8 +188,6 @@ describe('EnvironmentSCService', () => {
       };
       service.audit = jest.fn();
       wfService.triggerWorkflow = jest.fn();
-      // Mock API to return 0 Open Data Studies from DDB
-      studyService.list = jest.fn().mockResolvedValue([]);
 
       // OPERATE
       await service.create(requestContext, newEnv);
@@ -267,8 +263,6 @@ describe('EnvironmentSCService', () => {
       dbService.table.update.mockImplementationOnce(() => {
         throw error;
       });
-      service.getInvalidOpenDataStudyIds = jest.fn().mockResolvedValue([]);
-
       // OPERATE
       try {
         await service.create(requestContext, newEnv);
@@ -300,7 +294,6 @@ describe('EnvironmentSCService', () => {
       });
       // don't want to test update in the create() tests
       service.update = jest.fn();
-      service.getInvalidOpenDataStudyIds = jest.fn().mockResolvedValue([]);
 
       // OPERATE
       try {
@@ -314,31 +307,6 @@ describe('EnvironmentSCService', () => {
         expect(service.boom.is(err, 'internalError')).toBe(true);
         expect(err.message).toContain(`Error triggering ${workflowIds.create} workflow`);
         expect(service.update).toHaveBeenCalled();
-      }
-    });
-
-    it('should fail because creating a workspace with an invalid Open Data study', async () => {
-      // BUILD
-      const requestContext = {
-        principal: {
-          isExternalUser: false,
-        },
-      };
-      const newEnv = {
-        name: 'exampleName',
-        envTypeId: 'exampleETI',
-        envTypeConfigId: 'exampleETCI',
-      };
-      service.getInvalidOpenDataStudyIds = jest.fn().mockResolvedValue(['abc']);
-
-      // OPERATE
-      try {
-        await service.create(requestContext, newEnv);
-        expect.hasAssertions();
-      } catch (err) {
-        // CHECK
-        expect(service.boom.is(err, 'badRequest')).toBe(true);
-        expect(err.message).toContain('Invalid open data studies. IDs: abc');
       }
     });
 
@@ -356,7 +324,6 @@ describe('EnvironmentSCService', () => {
       };
       service.audit = jest.fn();
       wfService.triggerWorkflow = jest.fn();
-      service.getInvalidOpenDataStudyIds = jest.fn().mockResolvedValue([]);
 
       // OPERATE
       await service.create(requestContext, newEnv);
@@ -1926,65 +1893,6 @@ Quisque egestas, eros nec feugiat venenatis, lorem turpis placerat tortor, ullam
       // CHECK
       await expect(ec2Updated).toEqual({ 'instance-name': 'Updated', 'instance-name-1': 'Updated' });
       await expect(Object.keys(ec2Updated).length).toEqual(Object.keys(ec2Instances).length);
-    });
-  });
-
-  describe('getInvalidOpenDataStudyIds', () => {
-    const requestContext = {
-      principal: {
-        isExternalUser: false,
-      },
-    };
-    const environment = {
-      studyIds: ['OpenData-1'],
-    };
-    beforeEach(() => {
-      studyService.mustFind = jest.fn().mockResolvedValue({
-        id: 'OpenData-1',
-        name: 'This is Open Data Study 1',
-        tags: ['genomic'],
-        category: 'Open Data',
-      });
-    });
-    it('should find invalid Open Data study', async () => {
-      // BUILD
-      // List of valid studies
-      studyService.list = jest.fn().mockResolvedValue([
-        {
-          id: 'OpenData-2',
-          name: 'This is Open Data Study 1',
-          tags: ['genomic'],
-          category: 'Open Data',
-        },
-      ]);
-
-      // OPERATE
-      // Attach study 'OpenData-1' to workspace
-      const invalidOpenDataStudyIds = await service.getInvalidOpenDataStudyIds(requestContext, environment);
-
-      // CHECK
-      // Valid study includes 'OpenData-2' but not 'OpenData-1' therefore OpenData-1 is an invalid study
-      expect(invalidOpenDataStudyIds).toEqual(['OpenData-1']);
-    });
-
-    it('should NOT find invalid Open Data study', async () => {
-      // BUILD
-      // List of valid studies
-      studyService.list = jest.fn().mockResolvedValue([
-        {
-          id: 'OpenData-1',
-          name: 'This is Open Data Study 1',
-          tags: ['genomic'],
-          category: 'Open Data',
-        },
-      ]);
-
-      // OPERATE
-      const invalidOpenDataStudyIds = await service.getInvalidOpenDataStudyIds(requestContext, environment);
-
-      // CHECK
-      // Valid study includes 'OpenData-1' therefore there are no invalid studies
-      expect(invalidOpenDataStudyIds).toEqual([]);
     });
   });
 });

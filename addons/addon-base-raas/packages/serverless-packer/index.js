@@ -13,6 +13,8 @@
  *  permissions and limitations under the License.
  */
 
+const execFileSync = require('child_process').execFileSync;
+
 const fs = require('fs');
 const _ = require('lodash');
 const { runCommand } = require('./lib/utils/command.js');
@@ -23,6 +25,10 @@ class ServerlessPackerPlugin {
   constructor(serverless, options) {
     this.serverless = serverless;
     this.options = options;
+
+    // Add the version information to the stage file if it is not already there
+    // This is for the case when machine images are build before the environment is deployed
+    this.addVersionInfo(this.options.stage);
 
     this.commands = {
       'build-image': {
@@ -111,6 +117,16 @@ class ServerlessPackerPlugin {
       varArgs.push(`${key}=${value}`);
     });
     return varArgs;
+  }
+
+  async addVersionInfo(stageName) {
+    this.serverless.cli.log('Adding versionNumber and versionDate to stage file');
+
+    try {
+      execFileSync('./scripts/get-release-info.sh', [stageName], { cwd: '../../../' });
+    } catch (err) {
+      throw new Error(`Error adding versionNumber and versionDate to stage file: ${err}`);
+    }
   }
 }
 

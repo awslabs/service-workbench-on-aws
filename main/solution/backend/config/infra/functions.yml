@@ -20,7 +20,6 @@ openDataScrapeHandler:
     APP_STUDY_DATA_BUCKET_NAME: ${self:custom.settings.studyDataBucketName}
     APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
     APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
-    APP_OPEN_DATA_TAG_FILTERS: ${self:custom.settings.openDataTagFilters}
 
   events:
     - schedule:
@@ -177,7 +176,6 @@ apiHandler:
     APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
     APP_ROOT_USER_NAME: ${self:custom.settings.rootUserName}
     APP_ENABLE_EGRESS_STORE: ${self:custom.settings.enableEgressStore}
-    APP_OPEN_DATA_TAG_FILTERS: ${self:custom.settings.openDataTagFilters}
     APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
     APP_EGRESS_STORE_BUCKET_NAME: ${self:custom.settings.egressStoreBucketName}
     APP_EGRESS_NOTIFICATION_BUCKET_NAME: ${self:custom.settings.egressNotificationBucketName}
