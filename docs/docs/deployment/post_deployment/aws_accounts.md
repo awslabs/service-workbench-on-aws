@@ -22,7 +22,7 @@ _**Important:** If you do not need to create new AWS accounts from within Servic
 After logging in as the root user for the first time, go to the **Accounts** page. 
 
 <img src={useBaseUrl('img/deployment/post_deployment/navbar.png')} />
- 
+
 **Figure: Service Workbench navigation bar**
 
 Service Workbench uses AWS accounts on this page for launching research workspaces. You can add existing AWS accounts or create new ones on the **Accounts** tab.
