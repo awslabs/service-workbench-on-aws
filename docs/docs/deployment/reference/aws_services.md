@@ -19,7 +19,7 @@ Service Workbench creates several roles in your account. The role `<namespace>-p
 
 ***Figure 32: AWS IAM Trust Relationships Tab***
 
-An [external ID](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user_externalid.html)is associated with the role. The External ID is an identifying string that is provided once a role is created. In order for the trusted entity (your Main account) to assume its role in the management Account, it must supply this external ID. Providing the external ID of establishes a revocable relationship between the trusted entity and the management account.
+An [external ID](https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_create_for-user_externalid.html)is associated with the role. The External ID is an identifying string that is provided once a role is created. In order for the trusted entity (your Main account) to assume its role in the management account, it must supply this external ID. Providing the external ID of establishes a revocable relationship between the trusted entity and the management account.
 
 In the current Service Workbench deployment, the External ID is configured as a default value in the following string workbench: 
 
