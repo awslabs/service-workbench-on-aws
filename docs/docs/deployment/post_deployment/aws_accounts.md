@@ -203,7 +203,7 @@ _**Figure: Create an AppStream image**_
      \cd ~\Documents
 
      # Pull the Image Builder script from Github
-     Invoke-WebRequest -Uri https://raw.githubusercontent.com/awslabs/service-workbench-on-aws/feat-secure-workspace-egress/scripts/app-stream/buildImage.ps1 -OutFile buildImage.ps1
+     Invoke-WebRequest -Uri https://raw.githubusercontent.com/awslabs/service-workbench-on-aws/mainline/scripts/app-stream/buildImage.ps1 -OutFile buildImage.ps1
 
      # Execute Image builder script
      .\buildImage.ps1
