@@ -12,9 +12,14 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-import { terminateWorkspaces, launchWorkspace, navigateToWorkspaces } from '../../support/workspace-util';
+import {
+  terminateWorkspaces,
+  launchWorkspace,
+  navigateToWorkspaces,
+  checkDetailsTable,
+} from '../../support/workspace-util';
 
-describe('Launch new workspaces', () => {
+describe('Launch a workspace', () => {
   before(() => {
     cy.login('researcher');
     navigateToWorkspaces();
@@ -24,12 +29,28 @@ describe('Launch new workspaces', () => {
   it('should launch a new sagemaker workspace correctly', () => {
     const workspaces = Cypress.env('workspaces');
     const sagemaker = workspaces.sagemaker;
-    launchWorkspace(sagemaker, 'Sagemaker');
+    const workspaceName = launchWorkspace(sagemaker, 'Sagemaker');
+    checkDetailsTable(workspaceName);
   });
 
-  it('should launch a new ec2 workspace correctly', () => {
+  it('should launch a new ec2 Linux workspace correctly', () => {
     const workspaces = Cypress.env('workspaces');
     const ec2 = workspaces.ec2;
-    launchWorkspace(ec2, 'EC2');
+    const workspaceName = launchWorkspace(ec2.linux, 'Linux');
+    checkDetailsTable(workspaceName);
+  });
+
+  it('should launch a new ec2 Windows workspace correctly', () => {
+    const workspaces = Cypress.env('workspaces');
+    const ec2 = workspaces.ec2;
+    const workspaceName = launchWorkspace(ec2.windows, 'Windows');
+    checkDetailsTable(workspaceName);
+  });
+
+  it('should launch a new emr workspace correctly', () => {
+    const workspaces = Cypress.env('workspaces');
+    const emr = workspaces.emr;
+    const workspaceName = launchWorkspace(emr, 'EMR');
+    checkDetailsTable(workspaceName);
   });
 });
