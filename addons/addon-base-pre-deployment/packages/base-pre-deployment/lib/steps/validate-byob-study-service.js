@@ -100,7 +100,7 @@ class ValidateByobStudyService extends Service {
     } catch (err) {
       if (err.code === 'ValidationError' && err.statusCode === 400) {
         this.log.info(
-          'This is First time deployment, backend stack dose not exist yet, no need to validate BYOB Studies',
+          'This is First time deployment, backend stack does not exist yet, no need to validate BYOB Studies',
         );
         return [];
       }
