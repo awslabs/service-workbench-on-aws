@@ -392,6 +392,59 @@ describe('AwsAccountService', () => {
       encryptionKeyArn: 'arn:aws:kms::key/someKey',
     };
 
+    beforeEach(() => {
+      // Mocking main account to have the same ID as the member account being updated
+      settingsService.get = jest.fn(param => {
+        if (param === 'mainAcct') {
+          return awsAccount.accountId;
+        }
+        throw new Error(`settings.get for param ${param} is not mocked`);
+      });
+      settingsService.getBoolean = jest.fn(param => {
+        if (param === 'isAppStreamEnabled') {
+          return true;
+        }
+        throw new Error(`settings.getBoolean for param ${param} is not mocked`);
+      });
+      service.mustFind = jest.fn((requestContext, param) => {
+        if (param.id === awsAccount.id) {
+          return awsAccount;
+        }
+        throw new Error(`service.mustFind for param ${param} is not mocked`);
+      });
+    });
+
+    it('should not share appstream image if member account is same as main account', async () => {
+      // BUILD
+      const requestContext = { username: 'oneUser' };
+      service.shareAppStreamImageWithMemberAccount = jest.fn();
+
+      // OPERATE
+      await service.update(requestContext, { ...awsAccount, appStreamImageName: 'app-st-1' });
+
+      // CHECK
+      expect(service.shareAppStreamImageWithMemberAccount).not.toHaveBeenCalled();
+    });
+
+    it('should share appstream image if member account is different from main account', async () => {
+      // BUILD
+      service.mustFind = jest.fn().mockImplementation((requestContext, param) => {
+        if (param.id === awsAccount.id) {
+          return '111';
+        }
+        throw new Error(`mustFind for param ${param} is not mocked`);
+      });
+
+      const requestContext = { username: 'oneUser' };
+      service.shareAppStreamImageWithMemberAccount = jest.fn();
+
+      // OPERATE
+      await service.update(requestContext, { ...awsAccount, appStreamImageName: 'app-st-1' });
+
+      // CHECK
+      expect(service.shareAppStreamImageWithMemberAccount).toHaveBeenCalledTimes(1);
+    });
+
     it('should fail if user is not allowed to update account', async () => {
       // BUILD
       const requestContext = {};

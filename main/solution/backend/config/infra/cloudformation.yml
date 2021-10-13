@@ -608,7 +608,6 @@ Resources:
 
   PolicyWorkflowLoopRunner:
     Type: AWS::IAM::ManagedPolicy
-    DependsOn: PermissionBoundaryPolicyStudyBucket
     Properties:
       Description: Allows main account to create resources required for SWB backend functionality
       PolicyDocument:

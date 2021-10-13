@@ -171,16 +171,9 @@ class AwsAccountsService extends Service {
       permissionStatus: rawData.permissionStatus || 'NEEDS_ONBOARD',
     });
 
-    // Only try to shareAppStreamImage with member account if AppStream is enabled and appStreamImageName is provided
-    // and also that the main account ID is not equal to the member account being added
-    const mainAccountId = this.settings.get(settingKeys.swbMainAccount);
     const accountId = rawData.accountId;
-    if (
-      this.settings.getBoolean(settingKeys.isAppStreamEnabled) &&
-      rawData.appStreamImageName !== undefined &&
-      mainAccountId !== accountId
-    ) {
-      const appStreamImageName = rawData.appStreamImageName;
+    const appStreamImageName = rawData.appStreamImageName;
+    if (this.shouldShareAppStreamImageWithMemberAccount(accountId, appStreamImageName)) {
       await this.shareAppStreamImageWithMemberAccount(requestContext, accountId, appStreamImageName);
     }
 
@@ -204,6 +197,17 @@ class AwsAccountsService extends Service {
     await this.audit(requestContext, { action: 'create-aws-account', body: result });
 
     return result;
+  }
+
+  shouldShareAppStreamImageWithMemberAccount(accountId, appStreamImageName) {
+    // Only try to shareAppStreamImage with member account if AppStream is enabled and appStreamImageName is provided
+    // and also that the main account ID is not equal to the member account being added
+    const mainAccountId = this.settings.get(settingKeys.swbMainAccount);
+    return (
+      this.settings.getBoolean(settingKeys.isAppStreamEnabled) &&
+      appStreamImageName !== undefined &&
+      mainAccountId !== accountId
+    );
   }
 
   // We're creating our own private method here instead of using appstream-sc-service because of a circular dependency between
@@ -307,6 +311,13 @@ class AwsAccountsService extends Service {
 
     // Verify active Non-AppStream environments do not exist
     await this.checkForActiveNonAppStreamEnvs(requestContext, id);
+
+    const awsAccount = await this.mustFind(requestContext, { id });
+    const accountId = awsAccount.accountId;
+    const appStreamImageName = rawData.appStreamImageName;
+    if (this.shouldShareAppStreamImageWithMemberAccount(accountId, appStreamImageName)) {
+      await this.shareAppStreamImageWithMemberAccount(requestContext, accountId, appStreamImageName);
+    }
 
     // Prepare the db object
     const dbObject = _.omit(this._fromRawToDbObject(rawData, { updatedBy: by }), ['rev']);
