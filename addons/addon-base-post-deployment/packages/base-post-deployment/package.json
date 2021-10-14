@@ -2,7 +2,7 @@
   "name": "@aws-ee/base-post-deployment",
   "version": "1.0.0",
   "private": true,
-  "description": "A library containing base set of post-deployment steps to be run with solutions based on <TODO-NAME> addons",
+  "description": "A library containing base set of post-deployment steps",
   "author": "Amazon Web Services",
   "license": "Apache-2.0",
   "dependencies": {
