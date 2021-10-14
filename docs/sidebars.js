@@ -42,7 +42,8 @@ module.exports = {
         ],
       },
     ],
-
+    "Deployment Guide": [
+      "deployment/deployment_stages",
       {
         "Pre-installation requirements": [
           "installation_guide/installation/pre-installation/overview",
@@ -82,8 +83,6 @@ module.exports = {
       },
     ],
     "Service Workbench Post Deployment Guide": [
-
-
       {
         "Post Deployment": [
           "deployment/post_deployment/index",
