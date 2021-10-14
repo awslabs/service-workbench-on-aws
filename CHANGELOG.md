@@ -2,8 +2,23 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## Beta
-[This release is in beta. Click here to see changes since 3.4.0.](https://github.com/awslabs/service-workbench-on-aws/compare/v3.4.0...mainline)
+## [3.5.0](https://github.com/awslabs/service-workbench-on-aws/compare/v3.4.0...v3.5.0) (2021-10-14)
+
+
+### Features
+
+* dynamic version number from CHANGELOG and automation of Beta versioning ([#716](https://github.com/awslabs/service-workbench-on-aws/issues/716)) ([5887170](https://github.com/awslabs/service-workbench-on-aws/commit/5887170b4c4af548ea39f2ce7b9c856bc7e9f887))
+
+
+### Bug Fixes
+
+* build ami version bug ([#738](https://github.com/awslabs/service-workbench-on-aws/issues/738)) ([a39b3b4](https://github.com/awslabs/service-workbench-on-aws/commit/a39b3b4b945254f71b27fe3bdcdda8f819f32069))
+* bypass develop protection when adding beta ([#725](https://github.com/awslabs/service-workbench-on-aws/issues/725)) ([fe4c0ff](https://github.com/awslabs/service-workbench-on-aws/commit/fe4c0ffa774e7e418928af11a4bb24e57f55786a))
+* downgrade node-ssh version to fix integ tests ([#744](https://github.com/awslabs/service-workbench-on-aws/issues/744)) ([f5ce251](https://github.com/awslabs/service-workbench-on-aws/commit/f5ce251ea110ae73ba34aabe3b6c6032df9901a2))
+* integ test setup flakiness fix ([#727](https://github.com/awslabs/service-workbench-on-aws/issues/727)) ([65ea43d](https://github.com/awslabs/service-workbench-on-aws/commit/65ea43daa7430e3bffd60f1563194a035413d765))
+* namespace code works with configs with no namespace param ([#717](https://github.com/awslabs/service-workbench-on-aws/issues/717)) ([72c9fe3](https://github.com/awslabs/service-workbench-on-aws/commit/72c9fe39b6c60713546b4d7aae20ae1caca7a526))
+* Update libcurl-devel package for RStudio to correct version ([#726](https://github.com/awslabs/service-workbench-on-aws/issues/726)) ([04bb82c](https://github.com/awslabs/service-workbench-on-aws/commit/04bb82c3e3303447e46abc97b306aa31632cc8d6))
+* version number before backend deployment ([#724](https://github.com/awslabs/service-workbench-on-aws/issues/724)) ([6d545dd](https://github.com/awslabs/service-workbench-on-aws/commit/6d545dd1d709359fa8f8907e334eef3a65acc0d4))
 
 ## [3.4.0](https://github.com/awslabs/service-workbench-on-aws/compare/v3.3.1...v3.4.0) (2021-09-16)
 
