@@ -70,36 +70,70 @@ EOF
 }
 
 # Install dependencies
-yum install -y jq-1.5
-curl -LSs -o "/usr/local/bin/goofys" "$GOOFYS_URL"
+case "$(env_type)" in
+    "emr") # Update config and restart Jupyter
+        ;;
+    "sagemaker") # Update config and restart Jupyter
+        echo "Installing JQ"
+        sudo mv "${FILES_DIR}/offline-packages/jq-1.5-linux64" "/usr/local/bin/jq"
+        chmod +x "/usr/local/bin/jq"
+        echo "Finish installing jq"
+        ;;
+    "ec2-linux") # Add mount script to bash profile
+        echo "Installing ec2-instance-connect"
+        sudo yum localinstall -y "${FILES_DIR}/offline-packages/ec2-linux/ec2-instance-connect-1.1-14.amzn2.noarch.rpm"
+        echo "Finish installing ec2-instance-connect"
+        echo "Installing jq"
+        sudo mv "${FILES_DIR}/offline-packages/jq-1.5-linux64" "/usr/local/bin/jq"
+        chmod +x "/usr/local/bin/jq"
+        echo "Finish installing jq"
+        ;;
+    "rstudio") # Add mount script to bash profile
+        export PATH="/usr/local/bin:$PATH"
+        set-password
+        echo "Installing jq"
+        cp "${FILES_DIR}/offline-packages/jq-1.5-linux64" "/usr/local/bin/jq"
+        chmod +x "/usr/local/bin/jq"
+        echo "Finish installing jq"
+        ;;
+esac
+
+echo "Copying Goofys from bootstrap.sh"
+cp "${FILES_DIR}/offline-packages/goofys" /usr/local/bin/goofys
 chmod +x "/usr/local/bin/goofys"
 
-# Install ec2 instance connect agent
-sudo yum install ec2-instance-connect-1.1
-
 # Create S3 mount script and config file
+echo "Mounting S3"
 chmod +x "${FILES_DIR}/bin/mount_s3.sh"
 ln -s "${FILES_DIR}/bin/mount_s3.sh" "/usr/local/bin/mount_s3.sh"
 printf "%s" "$S3_MOUNTS" > "/usr/local/etc/s3-mounts.json"
+echo "Finish mounting S3"
 
 # Apply updates to environments based on environment type
 case "$(env_type)" in
     "emr") # Update config and restart Jupyter
-        yum install -y fuse-2.9.4
+        yum install -y fuse-2.9.4   # As of 6/27/21 EMR has not been migrated to be air gapped
         update_jupyter_config "/opt/hail-on-AWS-spot-instances/src/jupyter_notebook_config.py"
         sudo -u hadoop PATH=$PATH:/usr/local/bin /opt/hail-on-AWS-spot-instances/src/jupyter_run.sh
         ;;
     "sagemaker") # Update config and restart Jupyter
-        yum install -y fuse-2.9.4
+        echo "Installing fuse"
+        cd "${FILES_DIR}/offline-packages/sagemaker/fuse-2.9.4"
+        sudo yum --disablerepo=* localinstall -y *.rpm
+        echo "Finish installing fuse"
         update_jupyter_config "/home/ec2-user/.jupyter/jupyter_notebook_config.py"
         initctl restart jupyter-server --no-wait
         ;;
     "ec2-linux") # Add mount script to bash profile
-        yum install -y fuse-2.9.2
+        echo "Installing fuse"
+        sudo yum localinstall -y "${FILES_DIR}/offline-packages/ec2-linux/fuse-2.9.2-11.amzn2.x86_64.rpm"
+        echo "Finish installing fuse"
         printf "\n# Mount S3 study data\nmount_s3.sh\n\n" >> "/home/ec2-user/.bash_profile"
         ;;
     "rstudio") # Add mount script to bash profile
-        yum install -y fuse-2.9.2
+        echo "Installing fuse"
+        sudo yum localinstall -y "${FILES_DIR}/offline-packages/ec2-linux/fuse-2.9.2-11.amzn2.x86_64.rpm"
+        echo "Finish installing fuse"
         printf "\n# Mount S3 study data\nmount_s3.sh\n\n" >> "/home/rstudio-user/.bash_profile"
         ;;
 esac

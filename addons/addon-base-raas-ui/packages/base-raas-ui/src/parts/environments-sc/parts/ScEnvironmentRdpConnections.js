@@ -3,7 +3,7 @@ import React from 'react';
 import { decorate, computed } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
-import { Segment, Icon, Header, Table } from 'semantic-ui-react';
+import { Segment, Icon, Header, Table, List } from 'semantic-ui-react';
 
 import ScEnvironmentRdpConnectionRow from './ScEnvironmentRdpConnectionRow';
 
@@ -20,6 +20,10 @@ class ScEnvironmentRdpConnections extends React.Component {
     const connections = this.environment.getConnections(item => item.scheme === 'rdp');
 
     return connections;
+  }
+
+  get isAppStreamEnabled() {
+    return process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true';
   }
 
   render() {
@@ -40,12 +44,30 @@ class ScEnvironmentRdpConnections extends React.Component {
     return <div className="fadeIn animated">{content}</div>;
   }
 
+  renderAppstreamInstructions(item) {
+    return (
+      this.isAppStreamEnabled && (
+        <Segment key={`${item.id}__4`} className="clearfix" data-testid="appstream-instructions-rdp">
+          <b>Connection instructions for your AppStream workspace:</b>
+          <List bulleted>
+            <List.Item>Click the &quot;Get Password&quot; button to retrieve user credentials for RDP</List.Item>
+            <List.Item>Copy credential information and Hit &quot;Connect&quot;</List.Item>
+            <List.Item>
+              A new AppStream session window will open with RDP login page. Paste the copied credentials
+            </List.Item>
+          </List>
+        </Segment>
+      )
+    );
+  }
+
   renderConnections() {
     const env = this.environment;
     const connections = this.connections;
 
     return (
       <div className="mt2 mb2 fadeIn animated">
+        {this.renderAppstreamInstructions(_.first(connections))}
         <Table celled>
           <Table.Header>
             <Table.Row>

@@ -1,7 +1,7 @@
 ---
 id: link_aws_account
-title: Create or Add an AWS Account
-sidebar_label: Create or Add an AWS Account
+title: Create or add an AWS Account
+sidebar_label: Create or add an AWS Account
 ---
 
 import useBaseUrl from '@docusaurus/useBaseUrl';

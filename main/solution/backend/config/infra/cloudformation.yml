@@ -1,7 +1,22 @@
 Conditions:
   IsDev: !Equals ['${self:custom.settings.envType}', 'dev']
+  EnableEgressStore: !Equals ['${self:custom.settings.enableEgressStore}', true]
+  AppStreamEnabled: !Equals ['${self:custom.settings.isAppStreamEnabled}', true]
 
 Resources:
+  # =============================================================================================
+  # SSM
+  # =============================================================================================
+
+  # This parameter is created for its LogicalID. This is leveraged to ensure user cannot
+  # deploy SWB with AppStream disabled once it has been activated
+  AppStreamEnabled:
+    Condition: AppStreamEnabled
+    Type: AWS::SSM::Parameter
+    Properties:
+      Type: String
+      Value: '${self:custom.settings.isAppStreamEnabled}'
+
   # =============================================================================================
   # S3
   # =============================================================================================
@@ -265,6 +280,155 @@ Resources:
               StringNotEquals:
                 s3:signatureversion: 'AWS4-HMAC-SHA256'
 
+  EgressStoreEncryptionKey:
+    Condition: EnableEgressStore
+    Type: AWS::KMS::Key
+    Properties:
+      Description: >-
+        Master key used to encrypt objects stored in the
+        ${self:custom.settings.egressStoreBucketName} bucket
+      KeyPolicy:
+        Version: '2012-10-17'
+        Id: egress-store-kms-policy
+        Statement:
+          - Sid: Allow root
+            Effect: Allow
+            Principal:
+              AWS:
+                - !Sub 'arn:aws:iam::${AWS::AccountId}:root'
+            Action:
+              - 'kms:*'
+            Resource: '*'
+          - Sid: Allow API access to create object and update policy for new workspaces
+            Effect: Allow
+            Principal:
+              AWS:
+                - !GetAtt [RoleApiHandler, Arn]
+            Action:
+              - kms:GenerateDataKey
+              - kms:DescribeKey
+              - kms:GetKeyPolicy
+              - kms:PutKeyPolicy
+            Resource: '*'
+          - Sid: Allow workflows to update key policy for new workspaces
+            Effect: Allow
+            Principal:
+              AWS:
+                - !GetAtt [RoleWorkflowLoopRunner, Arn]
+            Action:
+              - kms:GenerateDataKey
+              - kms:Decrypt
+              - kms:DescribeKey
+              - kms:Encrypt
+              - kms:ReEncrypt*
+              - kms:GetKeyPolicy
+              - kms:PutKeyPolicy
+            Resource: '*'
+
+  EgressStoreEncryptionKeyAlias:
+    Condition: EnableEgressStore
+    Type: AWS::KMS::Alias
+    Properties:
+      AliasName: alias/${self:custom.settings.egressStoreKmsKeyAlias}
+      TargetKeyId: !Ref EgressStoreEncryptionKey
+
+  # S3 bucket used to store egress data from workspace
+  EgressStoreBucket:
+    Condition: EnableEgressStore
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ${self:custom.settings.egressStoreBucketName}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: !GetAtt EgressStoreEncryptionKey.Arn
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
+      LoggingConfiguration:
+        DestinationBucketName: ${self:custom.settings.loggingBucketName}
+        LogFilePrefix: egressStore/
+      VersioningConfiguration:
+        Status: Enabled
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins:
+              - ${self:custom.settings.websiteUrl}
+              - !If
+                - IsDev
+                - http://localhost:3000
+                - !Ref 'AWS::NoValue'
+            AllowedMethods:
+              - POST
+            ExposedHeaders:
+              - ETag
+      PublicAccessBlockConfiguration: # Block all public access configuration for the S3 bucket
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  EgressNotificationBucket:
+    Condition: EnableEgressStore
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: ${self:custom.settings.egressNotificationBucketName}
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: !GetAtt EgressStoreEncryptionKey.Arn
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerPreferred
+      LoggingConfiguration:
+        DestinationBucketName: ${self:custom.settings.loggingBucketName}
+        LogFilePrefix: egressNotificationBucket/
+      CorsConfiguration:
+        CorsRules:
+          - AllowedOrigins:
+              - ${self:custom.settings.websiteUrl}
+              - !If
+                - IsDev
+                - http://localhost:3000
+                - !Ref 'AWS::NoValue'
+            AllowedMethods:
+              - POST
+            ExposedHeaders:
+              - ETag
+      PublicAccessBlockConfiguration: # Block all public access configuration for the S3 bucket
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
+  EgressStoreBucketPolicy:
+    Condition: EnableEgressStore
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref EgressStoreBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Id: PutObjectPolicy
+        Statement:
+          - Sid: Deny requests that do not use TLS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt EgressStoreBucket.Arn, '*']]
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Sid: Deny requests that do not use SigV4
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt EgressStoreBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:signatureversion: 'AWS4-HMAC-SHA256'
+
   # =============================================================================================
   # IAM Roles
   # =============================================================================================
@@ -328,46 +492,8 @@ Resources:
               - dynamodb:Scan
               - dynamodb:UpdateItem
             Resource:
-              - !GetAtt [AuthenticationProviderTypesDb, Arn]
-              - !GetAtt [AuthenticationProviderConfigsDb, Arn]
-              - !GetAtt [RevokedTokensDb, Arn]
-              - !GetAtt [UsersDb, Arn]
-              - !Sub '${UsersDb.Arn}/index/*'
-              - !GetAtt [PasswordsDb, Arn]
-              - !GetAtt [LocksDb, Arn]
-              - !GetAtt [StudiesDb, Arn]
-              - !GetAtt [StudyPermissionsDb, Arn]
-              - !Join ['', [!GetAtt [StudiesDb, Arn], '/index/*']]
-              - !GetAtt [StepTemplatesDb, Arn]
-              - !GetAtt [WorkflowTemplatesDb, Arn]
-              - !GetAtt [WorkflowTemplateDraftsDb, Arn]
-              - !Join ['', [!GetAtt [WorkflowTemplateDraftsDb, Arn], '/index/*']]
-              - !GetAtt [WorkflowsDb, Arn]
-              - !GetAtt [WorkflowDraftsDb, Arn]
-              - !Join ['', [!GetAtt [WorkflowDraftsDb, Arn], '/index/*']]
-              - !GetAtt [WorkflowInstancesDb, Arn]
-              - !Join ['', [!GetAtt [WorkflowInstancesDb, Arn], '/index/*']]
-              - !GetAtt [WfAssignmentsDb, Arn]
-              - !Join ['', [!GetAtt [WfAssignmentsDb, Arn], '/index/*']]
-              - !GetAtt [StudiesDb, Arn]
-              - !GetAtt [StudyPermissionsDb, Arn]
-              - !Join ['', [!GetAtt [StudiesDb, Arn], '/index/*']]
-              - !GetAtt [EnvironmentsDb, Arn]
-              - !GetAtt [EnvironmentsScDb, Arn]
-              - !Join ['', [!GetAtt [EnvironmentsScDb, Arn], '/index/*']]
-              - !GetAtt [EnvironmentsTypesDb, Arn]
-              - !GetAtt [UserRolesDb, Arn]
-              - !GetAtt [AwsAccountsDb, Arn]
-              - !GetAtt [IndexesDb, Arn]
-              - !GetAtt [CostApiCachesDb, Arn]
-              - !GetAtt [ProjectsDb, Arn]
-              - !GetAtt [AccountsDb, Arn]
-              - !GetAtt [KeyPairsDb, Arn]
-              - !Join ['', [!GetAtt [KeyPairsDb, Arn], '/index/*']]
-              - !GetAtt [StorageGatewayDb, Arn]
-              - !GetAtt [DsAccountsDb, Arn]
-              - !GetAtt [RoleAllocationsDb, Arn]
-              - !GetAtt [ResourceUsagesDb, Arn]
+              - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbPrefix}-*'
+              - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbPrefix}-*/index/*'
           - Effect: Allow
             Action:
               - ssm:GetParameter
@@ -385,20 +511,28 @@ Resources:
               - s3:ListMultipartUploadParts
               - s3:PutObject*
               - s3:DeleteObject*
+              - s3:List*
+              - s3:PutLifecycleConfiguration
             Resource:
               - 'arn:aws:s3:::${self:custom.settings.studyDataBucketName}/*'
               - 'arn:aws:s3:::${self:custom.settings.environmentsBootstrapBucketName}/*'
               - 'arn:aws:s3:::${self:custom.settings.externalCfnTemplatesBucketName}/*'
               - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}/*'
+              - 'arn:aws:s3:::${self:custom.settings.egressNotificationBucketName}'
+              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}/*'
+              - 'arn:aws:s3:::${self:custom.settings.egressNotificationBucketName}/*'
           - Effect: Allow
             Action:
               - s3:ListBucket
               - s3:GetBucketPolicy
               - s3:PutBucketPolicy
+              - s3:ListBucketVersions
             Resource:
               - 'arn:aws:s3:::${self:custom.settings.studyDataBucketName}'
               - 'arn:aws:s3:::${self:custom.settings.environmentsBootstrapBucketName}'
               - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}'
+              - 'arn:aws:s3:::${self:custom.settings.egressNotificationBucketName}'
+              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}'
           - Effect: Allow
             Action:
               - kms:GenerateDataKey
@@ -428,8 +562,9 @@ Resources:
               - 'arn:aws:iam::*:role/SC-*'
               - 'arn:aws:iam::*:role/swb-*'
               - 'arn:aws:iam::*:role/analysis-*'
-              - !Sub 'arn:aws:iam::*:role/*-cross-account-role' # This is required since when users onboard the main account as a member account, the onboard CFN stack would also reside there
-              - !Sub 'arn:aws:iam::*:role/*-xacc-env-mgmt'
+              - 'arn:aws:iam::*:role/*-cross-account-role' # This is required since when users onboard the main account as a member account, the onboard CFN stack would also reside there
+              - 'arn:aws:iam::*:role/*-xacc-env-mgmt'
+              - 'arn:aws:iam::*:role/*-cfn-status-role'
           - Effect: Allow
             Action:
               - logs:CreateLogGroup
@@ -444,6 +579,16 @@ Resources:
               - xray:PutTelemetryRecords
             Resource:
               - '*'
+          - Effect: Allow
+            Action:
+              - sns:Publish
+            Resource:
+              - !Sub 'arn:aws:sns:${AWS::Region}:${AWS::AccountId}:${self:custom.settings.egressNotificationTopicName}'
+          - Effect: Allow
+            Action:
+              - appstream:UpdateImagePermissions
+            Resource:
+              - !Sub 'arn:aws:appstream:${AWS::Region}:${AWS::AccountId}:image/ServiceWorkbench*'
   # IAM Role for the apiHandler Function
   RoleApiHandler:
     Type: 'AWS::IAM::Role'
@@ -478,42 +623,8 @@ Resources:
               - dynamodb:Scan
               - dynamodb:UpdateItem
             Resource:
-              - !GetAtt [PasswordsDb, Arn]
-              - !GetAtt [UsersDb, Arn]
-              - !GetAtt [LocksDb, Arn]
-              - !GetAtt [StepTemplatesDb, Arn]
-              - !GetAtt [WorkflowTemplatesDb, Arn]
-              - !GetAtt [WorkflowTemplateDraftsDb, Arn]
-              - !Join ['', [!GetAtt [WorkflowTemplateDraftsDb, Arn], '/index/*']]
-              - !GetAtt [WorkflowsDb, Arn]
-              - !GetAtt [WorkflowDraftsDb, Arn]
-              - !Join ['', [!GetAtt [WorkflowDraftsDb, Arn], '/index/*']]
-              - !GetAtt [WorkflowInstancesDb, Arn]
-              - !Join ['', [!GetAtt [WorkflowInstancesDb, Arn], '/index/*']]
-              - !GetAtt [WfAssignmentsDb, Arn]
-              - !Join ['', [!GetAtt [WfAssignmentsDb, Arn], '/index/*']]
-              - !GetAtt [EnvironmentsDb, Arn]
-              - !GetAtt [EnvironmentsScDb, Arn]
-              - !Join ['', [!GetAtt [EnvironmentsScDb, Arn], '/index/*']]
-              - !GetAtt [EnvironmentsTypesDb, Arn]
-              - !GetAtt [StudiesDb, Arn]
-              - !GetAtt [ProjectsDb, Arn]
-              - !GetAtt [StudyPermissionsDb, Arn]
-              - !GetAtt [IndexesDb, Arn]
-              - !GetAtt [ProjectsDb, Arn]
-              - !GetAtt [AccountsDb, Arn]
-              - !GetAtt [AwsAccountsDb, Arn]
-              - !GetAtt [AuthenticationProviderTypesDb, Arn]
-              - !GetAtt [AuthenticationProviderConfigsDb, Arn]
-              - !GetAtt [RevokedTokensDb, Arn]
-              - !Join ['', [!GetAtt [StudiesDb, Arn], '/index/*']]
-              - !GetAtt [IndexesDb, Arn]
-              - !GetAtt [CostApiCachesDb, Arn]
-              - !GetAtt [UserRolesDb, Arn]
-              - !GetAtt [StorageGatewayDb, Arn]
-              - !GetAtt [DsAccountsDb, Arn]
-              - !GetAtt [RoleAllocationsDb, Arn]
-              - !GetAtt [ResourceUsagesDb, Arn]
+              - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbPrefix}-*'
+              - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbPrefix}-*/index/*'
           - Effect: Allow
             Action:
               - ssm:GetParameter
@@ -554,28 +665,39 @@ Resources:
               - 'arn:aws:s3:::${self:custom.settings.studyDataBucketName}'
               - 'arn:aws:s3:::${self:custom.settings.deploymentBucketName}'
               - 'arn:aws:s3:::${self:custom.settings.environmentsBootstrapBucketName}'
+              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}'
           - Effect: 'Allow'
             Action:
               - kms:DescribeKey
               - kms:GetKeyPolicy
               - kms:PutKeyPolicy
+              - kms:GenerateDataKey
+              - kms:Decrypt
+              - kms:Encrypt
+              - kms:ReEncrypt*
             Resource:
               # NOTE: Can't use '!GetAtt StudyDataEncryptionKey.Arn' due to
               #   circular dependency in StudyDataEncryptionKey's KeyPolicy
               - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.studyDataKmsKeyAlias}'
               - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
+              - !If
+                - EnableEgressStore
+                - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.egressStoreKmsKeyAlias}'
+                - !Ref 'AWS::NoValue'
           - Effect: 'Allow'
             Action:
-              - s3:GetObject
-              - s3:PutObject
+              - s3:GetObject*
+              - s3:PutObject*
               - s3:DeleteObject
             Resource:
               - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}/*'
+              - !Sub 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}/*'
           - Effect: 'Allow'
             Action:
               - s3:ListBucket
             Resource:
               - 'arn:aws:s3:::${self:custom.settings.envTypeConfigsBucketName}'
+              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}'
           - Effect: Allow
             Action: 'sts:AssumeRole'
             Resource:
@@ -583,8 +705,9 @@ Resources:
               - 'arn:aws:iam::*:role/SC-*'
               - 'arn:aws:iam::*:role/analysis-*'
               - 'arn:aws:iam::*:role/swb-*'
-              - !Sub 'arn:aws:iam::*:role/*-cross-account-role' # This is required since when users onboard the main account as a member account, the onboard CFN stack would also reside there
-              - !Sub 'arn:aws:iam::*:role/*-xacc-env-mgmt'
+              - 'arn:aws:iam::*:role/*-cross-account-role' # This is required since when users onboard the main account as a member account, the onboard CFN stack would also reside there
+              - 'arn:aws:iam::*:role/*-xacc-env-mgmt'
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-prep-raas-master-MasterRole-*'
           - Effect: Allow
             Action:
               - logs:CreateLogGroup
@@ -592,7 +715,6 @@ Resources:
               - logs:PutLogEvents
             Resource:
               - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-workflowLoopRunner:*'
-              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-workflowLoopRunner:log-stream:*'
           - Effect: Allow
             Action:
               - xray:PutTraceSegments
@@ -601,9 +723,80 @@ Resources:
               - '*'
           - Effect: Allow
             Action:
-              - sts:AssumeRole
+              - appstream:UpdateImagePermissions
             Resource:
-              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-prep-raas-master-MasterRole-*'
+              - !Sub 'arn:aws:appstream:${AWS::Region}:${AWS::AccountId}:image/ServiceWorkbench*'
+          - !If
+            - EnableEgressStore
+            - Effect: Allow
+              Action:
+                - iam:CreateRole
+              Condition:
+                StringEquals:
+                  iam:PermissionsBoundary: !Ref PermissionBoundaryPolicyStudyBucket
+              Resource:
+                - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/swb-study-*'
+            - !Ref 'AWS::NoValue'
+          - Effect: Allow
+            Action:
+              - iam:AttachRolePolicy
+              - iam:DeleteRole
+              - iam:DetachRolePolicy
+              - iam:ListAttachedRolePolicies
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/swb-study-*'
+          - Effect: Allow
+            Action:
+              - iam:CreatePolicy
+              - iam:DeletePolicy
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/swb-study-*'
+
+  PermissionBoundaryPolicyStudyBucket:
+    Type: AWS::IAM::ManagedPolicy
+    Condition: EnableEgressStore
+    Properties:
+      Description: Permission boundary for study bucket
+      ManagedPolicyName: '${self:custom.settings.permissionBoundaryPolicyStudyBucket}'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - s3:GetObject
+              - s3:GetObjectTagging
+              - s3:GetObjectTorrent
+              - s3:GetObjectVersion
+              - s3:GetObjectVersionTagging
+              - s3:GetObjectVersionTorrent
+              - s3:AbortMultipartUpload
+              - s3:ListMultipartUploadParts
+              - s3:PutObject
+              - s3:PutObjectAcl
+              - s3:PutObjectTagging
+              - s3:PutObjectVersionTagging
+              - s3:DeleteObject
+              - s3:DeleteObjectTagging
+              - s3:DeleteObjectVersion
+              - s3:DeleteObjectVersionTagging
+            Resource:
+              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}/*'
+          - Effect: Allow
+            Action:
+              - s3:ListBucket
+              - s3:ListBucketVersions
+            Resource:
+              - 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}'
+          - Effect: Allow
+            Action:
+              - kms:Decrypt
+              - kms:DescribeKey
+              - kms:Encrypt
+              - kms:GenerateDataKey*
+              - kms:ReEncrypt*
+            Resource:
+              # Can't use EgressStoreEncryptionKey due to circular dependency
+              - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
 
   # IAM Role for the workflowLoopRunner Function
   RoleWorkflowLoopRunner:
@@ -744,6 +937,53 @@ Resources:
       ManagedPolicyArns:
         - !Ref PolicyDataSourceReachabilityHandler
       PermissionsBoundary: !Ref PolicyDataSourceReachabilityHandler
+
+  PolicyAwsAccountOnboardingHandler:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Grant CloudFormation access to check CFN stack status and ddb access to onboard accounts
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - dynamodb:GetItem
+              - dynamodb:Query
+              - dynamodb:Scan
+              - dynamodb:UpdateItem
+            Resource:
+              - !GetAtt [AwsAccountsDb, Arn]
+              - !GetAtt [IndexesDb, Arn]
+              - !GetAtt [ProjectsDb, Arn]
+              - !GetAtt [EnvironmentsScDb, Arn]
+              - !Join ['', [!GetAtt [AwsAccountsDb, Arn], '/index/*']]
+              - !Join ['', [!GetAtt [EnvironmentsScDb, Arn], '/index/*']]
+          - Effect: Allow
+            Action:
+              - logs:CreateLogStream
+              - logs:DescribeLogStreams
+              - logs:PutLogEvents
+              - logs:CreateLogGroup
+            Resource:
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/*-awsAccountOnboardingHandler:*'
+          - Effect: Allow
+            Action: 'sts:AssumeRole'
+            Resource: 'arn:aws:iam::*:role/*-cfn-status-role'
+
+  #IAM Role for the awsAccountOnboardingHandler Function
+  RoleAwsAccountOnboardingHandler:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - !Ref PolicyAwsAccountOnboardingHandler
+      PermissionsBoundary: !Ref PolicyAwsAccountOnboardingHandler
 
   # An environment management role giving AWS Service Catalog Permissions
   # This is the role that the Admin users share their AWS Service Catalog products/portfolios with.
@@ -1385,6 +1625,39 @@ Resources:
           KeyType: 'RANGE'
       BillingMode: PAY_PER_REQUEST
 
+  EgressStoreDb:
+    Condition: EnableEgressStore
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: ${self:custom.settings.dbEgressStore}
+      AttributeDefinitions:
+        - AttributeName: 'id'
+          AttributeType: 'S'
+        - AttributeName: 'workspaceId'
+          AttributeType: 'S'
+      KeySchema:
+        - AttributeName: 'id'
+          KeyType: 'HASH'
+      BillingMode: PAY_PER_REQUEST
+      GlobalSecondaryIndexes:
+        - IndexName: ${self:custom.settings.dbEgressStoreWorkspaceIdIndex}
+          KeySchema:
+            - AttributeName: 'workspaceId'
+              KeyType: 'HASH'
+          Projection:
+            ProjectionType: 'ALL'
+
+  # =============================================================================================
+  # SNS
+  # =============================================================================================
+  EgressNotificationTopic:
+    Condition: EnableEgressStore
+    Type: AWS::SNS::Topic
+    Properties:
+      DisplayName: ${self:custom.settings.egressNotificationTopicName}
+      KmsMasterKeyId: !Ref EgressStoreEncryptionKey
+      TopicName: ${self:custom.settings.egressNotificationTopicName}
+
   # =============================================================================================
   # DEPRECATED -- Dynamo DB
   # =============================================================================================
@@ -1833,3 +2106,6 @@ Outputs:
     Value: !GetAtt RoleDataSourceReachabilityHandler.Arn
   EnvMgmtRoleArn:
     Value: !GetAtt RoleEnvMgmt.Arn
+  EgressNotificationTopicArn:
+    Value: !Ref EgressNotificationTopic
+    Condition: EnableEgressStore

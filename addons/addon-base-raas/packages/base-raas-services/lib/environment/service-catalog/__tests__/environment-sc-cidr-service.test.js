@@ -46,6 +46,7 @@ describe('EnvironmentScCidrService', () => {
   let service = null;
   let environmentScService = null;
   let lockService = null;
+  let settings = null;
 
   beforeEach(async () => {
     const container = new ServicesContainer();
@@ -69,6 +70,13 @@ describe('EnvironmentScCidrService', () => {
     service = await container.find('environmentScCidrService');
     lockService = await container.find('lockService');
     environmentScService = await container.find('environmentScService');
+    settings = await container.find('settings');
+    settings.getBoolean = jest.fn(key => {
+      if (key === 'isAppStreamEnabled') {
+        return false;
+      }
+      throw Error(`${key} not found`);
+    });
 
     // Skip authorization by default
     service.assertAuthorized = jest.fn();
@@ -79,6 +87,39 @@ describe('EnvironmentScCidrService', () => {
   });
 
   describe('Validation checks', () => {
+    it('should fail validation check since AppStream is enabled', async () => {
+      // BUILD
+      settings.getBoolean = jest.fn(key => {
+        if (key === 'isAppStreamEnabled') {
+          return true;
+        }
+        throw Error(`${key} not found`);
+      });
+      const requestContext = {};
+      const params = {
+        id: 'testId',
+        updateRequest: [
+          {
+            protocol: 'tcp',
+            fromPort: 123,
+            toPort: 123,
+            cidrBlocks: ['123.123.123.123/32'],
+          },
+        ],
+      };
+
+      // OPERATE
+      try {
+        await service.update(requestContext, params);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(service.boom.is(err, 'badRequest')).toBe(true);
+        expect(err.message).toContain('CIDR operation unavailable when AppStream is enabled');
+        expect(settings.getBoolean).toHaveBeenCalledTimes(1);
+        expect(settings.getBoolean).toHaveBeenCalledWith('isAppStreamEnabled');
+      }
+    });
+
     it('should fail because the updateRequest contains additional properties', async () => {
       // BUILD
       const params = {

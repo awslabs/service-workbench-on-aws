@@ -2,14 +2,14 @@
   "name": "@aws-ee/base-post-deployment",
   "version": "1.0.0",
   "private": true,
-  "description": "A library containing base set of post-deployment steps to be run with solutions based on <TODO-NAME> addons",
+  "description": "A library containing base set of post-deployment steps",
   "author": "Amazon Web Services",
   "license": "Apache-2.0",
   "dependencies": {
     "@aws-ee/base-api-services": "workspace:*",
     "@aws-ee/base-services": "workspace:*",
     "@aws-ee/base-services-container": "workspace:*",
-    "aws-sdk": "^2.647.0",
+    "aws-sdk": "^2.1000.0",
     "generate-password": "^1.5.0",
     "lodash": "^4.17.21"
   },

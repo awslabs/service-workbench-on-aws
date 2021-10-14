@@ -19,6 +19,10 @@ const Service = require('@aws-ee/base-services-container/lib/service');
 
 const cidrUpdateSchema = require('../../schema/update-environment-sc-cidr');
 
+const settingKeys = {
+  isAppStreamEnabled: 'isAppStreamEnabled',
+};
+
 class EnvironmentScCidrService extends Service {
   constructor() {
     super();
@@ -42,6 +46,10 @@ class EnvironmentScCidrService extends Service {
   }
 
   checkRequest(updateRequest) {
+    const isAppStreamEnabled = this.settings.getBoolean(settingKeys.isAppStreamEnabled);
+    if (isAppStreamEnabled) {
+      throw this.boom.badRequest(`CIDR operation unavailable when AppStream is enabled`, true);
+    }
     const erroneousInputs = [];
     const ipv6Format = [];
     const protPortCombos = {};
@@ -100,6 +108,9 @@ class EnvironmentScCidrService extends Service {
       { action: 'update-sc', conditions: [this._allowAuthorized] },
       { ...existingEnvironment, updateRequest },
     );
+
+    // Verify environment is linked to an AppStream project when application has AppStream enabled
+    await environmentScService.verifyAppStreamConfig(requestContext, existingEnvironment.projectId);
 
     await lockService.tryWriteLockAndRun({ id: `${id}-CidrUpdate` }, async () => {
       // Calculate diff and update CIDR ranges in ingress rules

@@ -1,0 +1,65 @@
+# For full config options, see docs.serverless.com
+# Note that most settings in here come from config/settings/*.yaml
+service: ${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-preDeployment
+
+package:
+  individually: true
+  excludeDevDependencies: true
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  region: ${self:custom.settings.awsRegion}
+  profile: ${self:custom.settings.awsProfile}
+  stackName: ${self:custom.settings.envName}-${self:service}
+  deploymentBucket:
+    name: ${self:custom.settings.deploymentBucketName}
+    serverSideEncryption: AES256
+  stackTags: ${self:custom.tags}
+  versionFunctions: false # see https://medium.com/@mayconbordin/lessons-learned-building-a-large-serverless-project-on-aws-74d40f5b0b46
+  # All references beginning with ${self:*, ${opt:*, ${file:*, ${deep:*, and ${cf:* will be resolved by Serverless
+  # All other ${* references will be resolved by CloudFormation
+  # See https://forum.serverless.com/t/getting-handle-accountid-in-serverless-config/946/11 and
+  # See https://github.com/serverless/serverless/issues/5011
+  variableSyntax: '\$\{((((self|opt|deep|cf):)|file)((?!\$\{).)+?)}'
+  environment:
+    APP_ENV_TYPE: ${self:custom.settings.envType}
+    APP_ENV_NAME: ${self:custom.settings.envName}
+    APP_AWS_REGION: ${self:custom.settings.awsRegion}
+    APP_SOLUTION_NAME: ${self:custom.settings.solutionName}
+    APP_DB_PREFIX: ${self:custom.settings.dbPrefix}
+
+custom:
+  settings: ${file(./config/settings/.settings.js):merged}
+  tags:
+    Name: ${self:custom.settings.envName}-${self:service}
+  deploymentBucket:
+    policy: ${self:custom.settings.deploymentBucketPolicy}
+  webpack:
+    webpackConfig: ./config/build/webpack.config.js
+    packager: pnpm
+    keepOutputDirectory: true
+    excludeFiles: src/**/*.test.js
+  backendTools:
+    environmentOverrides: # when running locally
+      provider:
+        APP_AWS_REGION: ${self:custom.settings.awsRegion} # this is needed for local development
+        APP_AWS_PROFILE: ${self:custom.settings.awsProfile} # this is needed for local development
+        APP_USE_AWS_PROFILE: ${self:custom.settings.useAwsProfile}
+        IS_OFFLINE: true
+        APP_LOCAL_ROLE_AUTO_ADJUST_TRUST: ${self:custom.settings.localRoleAutoAdjustTrust} # Auto adjust trust policy of the lambda execution role to allow assumeRole from local machine
+      lambdas:
+        preDeployment:
+          environment:
+            APP_LOCAL_ROLE_ARN: ${cfnOutput('PreDeploymentRoleArn')} # When running locally, run under this role
+
+functions: ${file(./config/infra/functions.yml)}
+
+resources:
+  - Description: Service-Workbench-on-AWS ${self:custom.settings.version} ${self:custom.settings.solutionName} ${self:custom.settings.envName} Pre-Deployment
+  - ${file(./config/infra/cloudformation.yml)}
+
+plugins:
+  - serverless-webpack
+  - serverless-deployment-bucket
+  - '@aws-ee/base-serverless-backend-tools'

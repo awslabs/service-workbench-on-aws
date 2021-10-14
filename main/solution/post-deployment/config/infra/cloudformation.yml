@@ -2,7 +2,57 @@ Resources:
   # =============================================================================================
   # IAM Roles
   # =============================================================================================
-
+  # IAM Role for the egressStoreObjectHandler function
+  RoleEgressStoreObjectsHandler:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: s3-access-policy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObjectTagging
+                  - s3:PutObjectVersionTagging
+                Resource:
+                  - !Sub 'arn:aws:s3:::${self:custom.settings.egressStoreBucketName}/*'
+        - PolicyName: cloudwatch-access-policy
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource:
+                - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-*:*'
+                - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-backend-${self:custom.settings.envName}-*:log-stream:*'
+        - PolicyName: ddb-access-policy
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - dynamodb:DeleteItem
+                - dynamodb:GetItem
+                - dynamodb:BatchGetItem
+                - dynamodb:PutItem
+                - dynamodb:Query
+                - dynamodb:Scan
+                - dynamodb:UpdateItem
+              Resource:
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEgressStore}'
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbEgressStore}/index/*'
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbLocks}'
+                - !Sub 'arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbLocks}/index/*'
   # IAM Role for the postDeployment Function
   RolePostDeploymentLambda:
     Type: 'AWS::IAM::Role'
@@ -200,6 +250,16 @@ Resources:
                 - !Sub arn:${AWS::Partition}:servicecatalog:${AWS::Region}:${AWS::AccountId}:*/*
                 - !Sub arn:${AWS::Partition}:catalog:${AWS::Region}:${AWS::AccountId}:portfolio/*
                 - !Sub arn:${AWS::Partition}:catalog:${AWS::Region}:${AWS::AccountId}:product/*
+        - PolicyName: cloudformation-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - cloudformation:GetStackPolicy
+                - cloudformation:SetStackPolicy
+              Resource:
+                - !Sub arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${self:custom.settings.backendStackName}
+                - !Sub arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${self:custom.settings.backendStackName}/*
 
   ServiceCatalogLaunchConstraintRole:
     Type: AWS::IAM::Role
@@ -275,6 +335,7 @@ Resources:
               - Effect: Allow
                 Action:
                   - ec2:AuthorizeSecurityGroupIngress
+                  - ec2:AuthorizeSecurityGroupEgress
                   - ec2:RevokeSecurityGroupEgress
                   - ec2:CreateSecurityGroup
                   - ec2:DeleteSecurityGroup
@@ -420,3 +481,5 @@ Resources:
 Outputs:
   PostDeploymentRoleArn:
     Value: !GetAtt RolePostDeploymentLambda.Arn
+  EgressStoreObjectsHandlerRoleArn:
+    Value: !GetAtt RoleEgressStoreObjectsHandler.Arn

@@ -31,6 +31,10 @@ const keyPairRoutesPlugin = require('@aws-ee/key-pair-mgmt-api/lib/plugins/route
 const keyPairServicesPlugin = require('@aws-ee/key-pair-mgmt-services/lib/plugins/services-plugin');
 const rolesOnlyStrategyPlugin = require('@aws-ee/base-raas-services/lib/plugins/roles-only-strategy-plugin');
 const legacyStrategyPlugin = require('@aws-ee/base-raas-services/lib/plugins/legacy-strategy-plugin');
+const baseRaasAppstreamServicesPlugin = require('@aws-ee/base-raas-appstream-rest-api/lib/plugins/services-plugin');
+const baseRaasAppstreamEnvTypeVarsPlugin = require('@aws-ee/base-raas-appstream-services/lib/plugins/env-sc-provisioning-plugin');
+const baseRaasAppStreamConnectionUrlPlugin = require('@aws-ee/base-raas-appstream-services/lib/plugins/env-sc-connection-url-plugin');
+const baseRaasAppStreamAwsAccountMgmtPlugin = require('@aws-ee/base-raas-appstream-services/lib/plugins/aws-account-mgmt-plugin');
 
 const routesPlugin = require('./routes-plugin');
 
@@ -38,6 +42,7 @@ const extensionPoints = {
   'service': [
     baseServicesPlugin,
     baseWfServicesPlugin,
+    baseRaasAppstreamServicesPlugin,
     bassRaasServicesPlugin,
     environmentTypeServicesPlugin,
     keyPairServicesPlugin,
@@ -54,7 +59,7 @@ const extensionPoints = {
   'audit': [baseAuditPlugin],
   'authentication-provider-type': [], // No plugins at this point. The built in authentication provider types are registered by "addon-base-rest-api/packages/services/lib/authentication-providers/authentication-provider-type-service.js" service
   'cfn-templates': [baseRaasCfnTemplatesPlugin],
-  'env-provisioning': [bassRaasEnvTypeVarsPlugin], // Plugins to participate in providing list of "Environment Type Configuration Variables". See "addons/addon-environment-sc-api/README.md" to understand what "Environment Type Configuration Variables" are
+  'env-provisioning': [bassRaasEnvTypeVarsPlugin, baseRaasAppstreamEnvTypeVarsPlugin], // Plugins to participate in providing list of "Environment Type Configuration Variables". See "addons/addon-environment-sc-api/README.md" to understand what "Environment Type Configuration Variables" are
 
   'user-authz': [baseRaasUserAuthzPlugin],
   'user-role-management-authz': [], // No plugins at this point. All user-role-management authz is happening inline in 'user-roles-service'
@@ -67,7 +72,8 @@ const extensionPoints = {
   'approval-authz': [], // No plugins at this point. All approval authz is happening inline in 'approval-service'
 
   'schema': [baseRaasSchemaPlugin],
-  'env-sc-connection-url': [],
+  'env-sc-connection-url': [baseRaasAppStreamConnectionUrlPlugin],
+  'aws-account-mgmt': [baseRaasAppStreamAwsAccountMgmtPlugin],
   'study-access-strategy': [legacyStrategyPlugin, rolesOnlyStrategyPlugin],
 };
 

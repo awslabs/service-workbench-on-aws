@@ -25,8 +25,9 @@ import StudiesPage from '../parts/studies/StudiesPage';
 import StudyEnvironmentSetup from '../parts/studies/StudyEnvironmentSetup';
 import EnvironmentsList from '../parts/environments/EnvironmentsList';
 import EnvironmentDetailPage from '../parts/environments/EnvironmentDetailPage';
-import AddAwsAccount from '../parts/accounts/AddAwsAccount';
+import AddUpdateAwsAccount from '../parts/accounts/AddUpdateAwsAccount';
 import CreateAwsAccount from '../parts/accounts/CreateAwsAccount';
+import AwsAccountUpdatePage from '../parts/accounts/AwsAccountUpdatePage';
 import UpdateBudget from '../parts/accounts/UpdateBudget';
 import EnvironmentSetup from '../parts/environments/EnvironmentSetup';
 import AddProject from '../parts/projects/AddProject';
@@ -53,9 +54,11 @@ function registerRoutes(routesMap, { location, appContext }) {
     ['/users/add', withAuth(AddUser)],
     ['/users', withAuth(User)],
     ['/indexes/add', withAuth(AddIndex)],
-    ['/aws-accounts/add', withAuth(AddAwsAccount)],
+    ['/aws-accounts/add', withAuth(AddUpdateAwsAccount)],
+    ['/aws-accounts/update/:id/rev/:rev', withAuth(AddUpdateAwsAccount)],
     ['/aws-accounts/create', withAuth(CreateAwsAccount)],
     ['/aws-accounts/budget/:id', withAuth(UpdateBudget)],
+    ['/aws-accounts/onboard/:id', withAuth(AwsAccountUpdatePage)],
     ['/accounts', withAuth(Accounts)],
     ['/dashboard', withAuth(Dashboard)],
     ['/studies/setup-workspace/type/:envTypeId', withAuth(StudyEnvironmentSetup)],

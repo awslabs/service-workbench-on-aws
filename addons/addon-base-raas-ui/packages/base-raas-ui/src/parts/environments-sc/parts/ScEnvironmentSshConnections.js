@@ -1,9 +1,23 @@
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License").
+ *  You may not use this file except in compliance with the License.
+ *  A copy of the License is located at
+ *
+ *  http://aws.amazon.com/apache2.0
+ *
+ *  or in the "license" file accompanying this file. This file is distributed
+ *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ *  express or implied. See the License for the specific language governing
+ *  permissions and limitations under the License.
+ */
 import _ from 'lodash';
 import React from 'react';
 import { decorate, computed, action, runInAction, observable } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
-import { Segment, Icon, Button, Header, Table, Message } from 'semantic-ui-react';
+import { Segment, Icon, Button, Header, Table, Message, List } from 'semantic-ui-react';
 
 import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
 import { isStoreLoading, isStoreError, isStoreReady } from '@aws-ee/base-ui/dist/models/BaseStore';
@@ -30,6 +44,10 @@ class ScEnvironmentSshConnections extends React.Component {
     if (!isStoreReady(store)) {
       swallowError(store.load());
     }
+  }
+
+  get isAppStreamEnabled() {
+    return process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true';
   }
 
   get environment() {
@@ -75,6 +93,63 @@ class ScEnvironmentSshConnections extends React.Component {
     return <div className="fadeIn animated">{content}</div>;
   }
 
+  renderAppStreamInfo() {
+    return (
+      <Segment data-testid="appstream-instructions-ssh">
+        <b>Connection instructions for your AppStream workspace:</b>
+        <List bulleted>
+          <List.Item>Select your SSH key below. Click &quot;Use this SSH key&quot; below</List.Item>
+          <List.Item>A private IP will be displayed. This will be used for Putty connection</List.Item>
+          <List.Item>Click &quot;Connect&quot; to open an AppStream session window</List.Item>
+          <List.Item>
+            Copy your private SSH key to AppStream
+            <List bulleted>
+              <List.Item>You must have downloaded the selected SSH key during creating it</List.Item>
+              <List.Item>Paste your SSH key&apos;s contents into Notepad in AppStream</List.Item>
+              <List.Item>
+                Save the file in the Downloads folder named like &quot;<i>KeyName</i>.pem&quot; (with quotes)
+              </List.Item>
+            </List>
+          </List.Item>
+          <List.Item>
+            Convert your private key to PPK format.
+            <List bulleted>
+              <List.Item>
+                PuttyGen will already be open in AppStream window. Click &quot;Load&quot; and select your PEM file
+              </List.Item>
+              <List.Item>
+                Click on &quot;Save private key&quot;. Click &quot;Yes&quot; to save without passphrase{' '}
+              </List.Item>
+            </List>
+          </List.Item>
+          <List.Item>
+            Use PPK file in Putty
+            <List bulleted>
+              <List.Item>Enter the private IP address in Putty and select SSH connection type</List.Item>
+              <List.Item>In the Category pane, expand Connection, expand SSH, and then choose Auth</List.Item>
+              <List.Item>Browse and select your PPK file for authentication. Click Open</List.Item>
+              <List.Item>When prompted to enter username, enter &quot;ec2-user&quot;</List.Item>
+            </List>
+          </List.Item>
+          <List.Item>Delete your PEM and PPK files once EC2 connection is established</List.Item>
+        </List>
+        <div className="mt3">More information on connecting to your Linux instance from Windows OS:</div>
+        <List bulleted>
+          <List.Item
+            href="https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/putty.html"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Connecting from Windows via Putty
+          </List.Item>
+        </List>
+        <div className="mt3">
+          In your browser, please allow popups for this domain so we can open the AppStream page in a new tab for you
+        </div>
+      </Segment>
+    );
+  }
+
   renderConnections() {
     const env = this.environment;
     const showCreateKey = this.showCreateKey;
@@ -86,6 +161,7 @@ class ScEnvironmentSshConnections extends React.Component {
 
     return (
       <div className="mt2 mb2 fadeIn animated">
+        {this.isAppStreamEnabled && this.renderAppStreamInfo()}
         {empty && (
           <Message warning>
             <Message.Header>Attention!</Message.Header>
@@ -114,7 +190,9 @@ class ScEnvironmentSshConnections extends React.Component {
           </Table.Header>
           <Table.Body>
             {_.map(connections, item => (
-              <ScEnvironmentSshConnectionRow key={item.id} scEnvironment={env} connectionId={item.id} />
+              <>
+                <ScEnvironmentSshConnectionRow key={item.id} scEnvironment={env} connectionId={item.id} />
+              </>
             ))}
           </Table.Body>
         </Table>

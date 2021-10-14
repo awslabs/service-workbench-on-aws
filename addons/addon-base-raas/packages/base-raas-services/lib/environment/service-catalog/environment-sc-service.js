@@ -29,6 +29,7 @@ const { hasAccess, accessLevels } = require('../../study/helpers/entities/study-
 
 const settingKeys = {
   tableName: 'dbEnvironmentsSc',
+  isAppStreamEnabled: 'isAppStreamEnabled',
 };
 const workflowIds = {
   create: 'wf-provision-environment-sc',
@@ -85,7 +86,7 @@ class EnvironmentScService extends Service {
     // The following will result in checking permissions by calling the condition function "this._allowAuthorized" first
     await this.assertAuthorized(requestContext, { action: 'list-sc', conditions: [this._allowAuthorized] });
 
-    const envs = await this._scanner()
+    let envs = await this._scanner()
       .limit(limit)
       .scan()
       .then(environments => {
@@ -95,7 +96,25 @@ class EnvironmentScService extends Service {
         return environments.filter(env => isCurrentUser(requestContext, { uid: env.createdBy }));
       });
 
+    if (this.isAppStreamEnabled()) {
+      envs = await this.markAppStreamConfigured(requestContext, envs);
+    }
+
     return this.augmentWithConnectionInfo(requestContext, envs);
+  }
+
+  async markAppStreamConfigured(requestContext, envs) {
+    const projectService = await this.service('projectService');
+    const projects = await projectService.list(requestContext);
+    const appStreamProjectIds = _.map(
+      _.filter(projects, proj => proj.isAppStreamConfigured),
+      'id',
+    );
+
+    return _.map(envs, env => {
+      env.isAppStreamConfigured = _.includes(appStreamProjectIds, env.projectId);
+      return env;
+    });
   }
 
   async pollAndSyncWsStatus(requestContext) {
@@ -324,7 +343,13 @@ class EnvironmentScService extends Service {
     return _.filter(envs, env => !_.includes(filterStatus, env.status) && !env.status.includes('FAILED'));
   }
 
-  async find(requestContext, { id, fields = [], fetchCidr = true }) {
+  async find(requestContext, { id, fields = [], fetchCidr }) {
+    // Define fetchCidr flag based on isAppStreamEnabled config rather than defaulting it to true
+    const isAppStreamEnabled = this.isAppStreamEnabled();
+    const computedFetchCidr = fetchCidr === undefined ? !isAppStreamEnabled : fetchCidr;
+    if (computedFetchCidr && isAppStreamEnabled) {
+      throw this.boom.badRequest(`CIDR operation unavailable when AppStream is enabled`, true);
+    }
     // Make sure 'createdBy' is always returned as that's required for authorizing the 'get' action
     // If empty "fields" is specified then it means the caller is asking for all fields. No need to append 'createdBy'
     // in that case.
@@ -353,7 +378,7 @@ class EnvironmentScService extends Service {
         ],
         env.status,
       ) &&
-      fetchCidr
+      computedFetchCidr
     ) {
       const { currentIngressRules } = await this.getSecurityGroupDetails(requestContext, env);
       env.cidr = currentIngressRules;
@@ -362,7 +387,7 @@ class EnvironmentScService extends Service {
     return toReturn;
   }
 
-  async mustFind(requestContext, { id, fields = [], fetchCidr = true }) {
+  async mustFind(requestContext, { id, fields = [], fetchCidr }) {
     const result = await this.find(requestContext, { id, fields, fetchCidr });
     if (!result) throw this.boom.notFound(`environment with id "${id}" does not exist`, true);
     return result;
@@ -386,6 +411,14 @@ class EnvironmentScService extends Service {
     // Validate input
     await validationService.ensureValid(environment, createSchema);
 
+    // If the AppStream feature is enabled, verify that update request doesn't include a cidr
+    if (this.isAppStreamEnabled()) {
+      if (environment.cidr) {
+        throw this.boom.badRequest('Cannot specify CIDR when AppStream is enabled', true);
+      }
+      delete environment.cidr;
+    }
+
     // Make sure the user has permissions to create the environment
     // The following will result in checking permissions by calling the condition function "this._allowAuthorized" first
     await this.assertAuthorized(
@@ -398,7 +431,15 @@ class EnvironmentScService extends Service {
     const { envTypeId, envTypeConfigId, projectId } = environment;
 
     // Lets find the index id, by looking at the project and then get the index id
-    const { indexId } = await projectService.mustFind(requestContext, { id: projectId, fields: ['indexId'] });
+    // The isAppStreamConfigured attribute value will be returned by project service. No other fields needed to be added
+    const { indexId, isAppStreamConfigured } = await projectService.mustFind(requestContext, {
+      id: projectId,
+      fields: ['indexId'],
+    });
+
+    // If the AppStream feature is enabled, verify the project linked to the environment has it configured
+    if (this.isAppStreamEnabled() && !isAppStreamConfigured)
+      throw this.boom.badRequest('Please select an AppStream-configured project', true);
 
     // Save environment to db and trigger the workflow
     const by = _.get(requestContext, 'principalIdentifier.uid');
@@ -453,6 +494,48 @@ class EnvironmentScService extends Service {
     }
 
     return dbResult;
+  }
+
+  async verifyAppStreamConfig(requestContext, projectId) {
+    // If the AppStream feature is enabled, verify the project linked to the environment has it configured
+    if (this.isAppStreamEnabled()) {
+      const projectService = await this.service('projectService');
+      // The isAppStreamConfigured attribute value will be returned by project service. indexId field is enough for filtering
+      const { isAppStreamConfigured } = await projectService.mustFind(requestContext, {
+        id: projectId,
+        fields: ['indexId'],
+      });
+      if (!isAppStreamConfigured)
+        throw this.boom.badRequest('Please select an environment with an AppStream-configured project', true);
+    }
+  }
+
+  // Check 'Open Data' studies being attached are allowed. Users might pass in 'Open Data' studies that are in
+  // DDB but have since been filtered out by 'openDataTagFilters'
+  async getInvalidOpenDataStudyIds(requestContext, environment) {
+    const studyService = await this.service('studyService');
+    const studies = environment.studyIds
+      ? await Promise.all(
+          environment.studyIds.map(studyId => {
+            return studyService.mustFind(requestContext, studyId);
+          }),
+        )
+      : [];
+    const openDataStudies = studies.filter(study => {
+      return study.category === 'Open Data';
+    });
+
+    const allowedOpenDataStudyIds = (await studyService.list(requestContext, 'Open Data')).map(study => {
+      return study.id;
+    });
+
+    return openDataStudies
+      .filter(study => {
+        return !allowedOpenDataStudyIds.includes(study.id);
+      })
+      .map(study => {
+        return study.id;
+      });
   }
 
   async update(requestContext, environment, ipAllowListAction = {}) {
@@ -634,6 +717,9 @@ class EnvironmentScService extends Service {
     );
 
     const { status, outputs, projectId } = existingEnvironment;
+
+    // Verify environment is linked to an AppStream project when application has AppStream enabled
+    await this.verifyAppStreamConfig(requestContext, projectId);
 
     // expected environment run state based on operation
     let expectedStatus;
@@ -985,24 +1071,34 @@ class EnvironmentScService extends Service {
 
     // Only send back details of groups configured by the SC CFN stack
     const returnVal = _.map(cfnTemplateIngressRules, cfnRule => {
+      let ruleToUse = cfnRule;
+      if ('Fn::If' in cfnRule && cfnRule['Fn::If'][0] === 'AppStreamEnabled') {
+        ruleToUse = cfnRule['Fn::If'][2];
+      }
       const matchingRule = _.find(
         workspaceIngressRules,
         workspaceRule =>
-          cfnRule.FromPort === workspaceRule.FromPort &&
-          cfnRule.ToPort === workspaceRule.ToPort &&
-          cfnRule.IpProtocol === workspaceRule.IpProtocol,
+          ruleToUse.FromPort === workspaceRule.FromPort &&
+          ruleToUse.ToPort === workspaceRule.ToPort &&
+          ruleToUse.IpProtocol === workspaceRule.IpProtocol,
       );
       const currentCidrRanges = matchingRule ? _.map(matchingRule.IpRanges, ipRange => ipRange.CidrIp) : [];
 
       return {
-        fromPort: cfnRule.FromPort,
-        toPort: cfnRule.ToPort,
-        protocol: cfnRule.IpProtocol,
+        fromPort: ruleToUse.FromPort,
+        toPort: ruleToUse.ToPort,
+        protocol: ruleToUse.IpProtocol,
         cidrBlocks: currentCidrRanges,
       };
     });
 
-    return { currentIngressRules: returnVal, securityGroupId };
+    const nonEmptyCidrRanges = _.filter(returnVal, cidr => !_.isEmpty(cidr.cidrBlocks));
+
+    return { currentIngressRules: nonEmptyCidrRanges, securityGroupId };
+  }
+
+  isAppStreamEnabled() {
+    return this.settings.getBoolean(settingKeys.isAppStreamEnabled);
   }
 
   /**

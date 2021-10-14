@@ -24,7 +24,11 @@ import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
 import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
 import validate from '@aws-ee/base-ui/dist/models/forms/Validate';
 
-import { getCreateAwsAccountForm, getCreateAwsAccountFormFields } from '../../models/forms/CreateAwsAccountForm';
+import {
+  getCreateAwsAccountForm,
+  getCreateBaseAwsAccountFormFields,
+  getCreateAwsAccountAppStreamFormFields,
+} from '../../models/forms/CreateAwsAccountForm';
 
 class CreateAwsAccount extends React.Component {
   constructor(props) {
@@ -34,8 +38,13 @@ class CreateAwsAccount extends React.Component {
       this.validationErrors = new Map();
       this.awsAccount = {};
     });
-    this.form = getCreateAwsAccountForm();
-    this.createAwsAccountFormFields = getCreateAwsAccountFormFields();
+
+    let fields = getCreateBaseAwsAccountFormFields();
+    if (process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true') {
+      fields = { ...fields, ...getCreateAwsAccountAppStreamFormFields() };
+    }
+    this.form = getCreateAwsAccountForm(fields);
+    this.createAwsAccountFormFields = fields;
   }
 
   render() {

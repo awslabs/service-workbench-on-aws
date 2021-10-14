@@ -257,6 +257,10 @@ paths:
       responses:
         '200':
           description: User updated
+
+
+
+
   /api/users/{userId}/password:
     put:
       tags:
@@ -431,6 +435,7 @@ paths:
       responses:
         '200':
           description: Project updated
+
   /api/indexes:
     get:
       tags:
@@ -553,6 +558,23 @@ paths:
       responses:
         '200':
           description: AWS Account information
+    put:
+      tags:
+        - admins
+        - AwsAccounts
+      summary: Update an existing AWS Account
+      operationId: UpdateAwsAccount
+      description: |
+        Update an existing AWS Account's details in the backend DB
+      requestBody:
+        description: Updated AWS Account information
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAwsAccount'
+      responses:
+        '200':
+          description: AWS Account updated
   /api/aws-accounts/provision:
     post:
       tags:
@@ -571,6 +593,56 @@ paths:
       responses:
         '200':
           description: AWS Account provisioning started
+  /api/aws-accounts/permissions:
+    get:
+      tags:
+        - admins
+        - AwsAccounts
+      summary: Get status of permissions for all AWS accounts from CFN stacks
+      operationId: getAllAwsAccountsPermissionsStatus
+      description: |
+        Get status of permissions for all AWS accounts from CFN stacks
+      responses:
+        '200':
+          description: Permissions status information
+  /api/aws-accounts/{awsAccountUUID}/permissions:
+    parameters:
+      - name: awsAccountUUID
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GetAwsAccountPermissionsStatus'
+    get:
+      tags:
+        - admins
+        - AwsAccounts
+      summary: Get status of permissions for a specific AWS account using CFN stack
+      operationId: getAwsAccountPermissionsStatus
+      description: |
+        Get status of permissions for a specific AWS account using CFN stack
+      responses:
+        '200':
+          description: Permissions status information
+  /api/aws-accounts/{awsAccountUUID}/get-template:
+    parameters:
+      - name: awsAccountUUID
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/GetAwsAccountPermissionsStatus'
+    get:
+      tags:
+        - admins
+        - AwsAccounts
+      summary: Upload template to S3 and return information necessary to access the template
+      operationId: getAndUploadTemplateForAccount
+      description: |
+        Uploads expected CFN tempalte for AWS accounts to S3, and returns an object containing a 
+        signed URL to access the template (valid for 12 hours by default). Also returns info
+        about the stack to be saved in the backend DB for the AWS account.
+      responses:
+        '200':
+          description: CFN Stack info with S3 signed URL.
   /api/accounts:
     get:
       tags:
@@ -2080,6 +2152,7 @@ paths:
       responses:
         '200':
           description: 'Return success update message'
+  
 components:
   securitySchemes:
     bearerAuth:
@@ -2838,12 +2911,7 @@ components:
         - name
         - description
         - accountId
-        - roleArn
-        - xAccEnvMgmtRoleArn
-        - externalId
-        - vpcId
-        - subnetId
-        - encryptionKeyArn
+
       type: object
       properties:
         name:
@@ -2857,24 +2925,7 @@ components:
           example: 'Test Account Description'
         accountId:
           $ref: '#/components/schemas/AwsAccountId'
-        roleArn:
-          type: string
-          minLength: 10
-          example: 'arn:aws:iam::000000000000:role/role-arn'
-        xAccEnvMgmtRoleArn:
-          type: string
-          minLength: 10
-          example: 'arn:aws:iam::000000000000:role/role-arn'
-        externalId:
-          type: string
-          minLength: 1
-          example: 'ExternalId'
-        vpcId:
-          $ref: '#/components/schemas/VpcId'
-        subnetId:
-          $ref: '#/components/schemas/SubnetId'
-        encryptionKeyArn:
-          $ref: '#/components/schemas/EncryptionKeyArn'
+
     ProvisionAccountRequest:
       required:
         - accountName
@@ -2899,6 +2950,55 @@ components:
         description:
           type: string
           example: 'My test account'
+        route53HostedZone:
+          type: string
+    UpdateAwsAccount:
+      required:
+        - id
+        - rev
+      type: object
+      properties:
+        id:
+          type: string
+          example: 12345678-abcd-abcd-1234-123456789abc
+        rev:
+          type: number
+          example: 12 
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: 'TestAccount'
+        description:
+          type: string
+          maxLength: 2048
+          example: 'Test Account Description'
+        accountId:
+          $ref: '#/components/schemas/AwsAccountId'
+        cfnStackId:
+          type: string
+          maxLength: 255
+          example: 'arn:aws:cloudformation::000000000000:region/stack-name'
+        roleArn:
+          type: string
+          minLength: 10
+          example: 'arn:aws:iam::000000000000:role/role-arn'
+        onboardStatusRoleArn:
+          type: string
+          minLength: 10
+          example: 'arn:aws:iam::000000000000:role/role-arn'
+        externalId:
+          type: string
+          minLength: 1
+          example: 'ExternalId'
+        vpcId:
+          $ref: '#/components/schemas/VpcId'
+        subnetId:
+          $ref: '#/components/schemas/SubnetId'
+        encryptionKeyArn:
+          $ref: '#/components/schemas/EncryptionKeyArn'
+        route53HostedZone:
+          type: string
     UpdateAccountRequest:
       required:
         - id
@@ -3303,6 +3403,7 @@ components:
           type: string
           pattern: '^(?:([0-9]{1,3}\.){3}[0-9]{1,3}(\/([0-9]|[1-2][0-9]|3[0-2]))?)?$'
           example: '192.255.255.255/32'
+          description: optional field only to be specified if AppStream feature is disabled
         studyIds:
           type: array
           example: ['test_study1']
