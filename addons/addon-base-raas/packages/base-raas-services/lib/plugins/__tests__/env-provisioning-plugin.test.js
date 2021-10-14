@@ -71,7 +71,7 @@ describe('envProvisioningPlugin', () => {
 
       // OPERATE
       await plugin.onEnvPreProvisioning({ requestContext, container, envId: 'some-env-id' });
-      // TEST
+      // CHECK
       expect(environmentScService.getMemberAccount).toHaveBeenCalledWith(requestContext, { id: 'env-id' });
     });
 
@@ -84,7 +84,7 @@ describe('envProvisioningPlugin', () => {
 
       // OPERATE
       await plugin.onEnvPreProvisioning({ requestContext, container, envId: 'some-env-id' });
-      // TEST
+      // CHECK
       expect(environmentScService.getMemberAccount).toHaveBeenCalledWith(requestContext, { id: 'env-id' });
       expect(pluginRegistryService.visitPlugins).toHaveBeenCalledWith(
         'study-access-strategy',
@@ -126,7 +126,7 @@ describe('envProvisioningPlugin', () => {
         status: 'FAILED',
         error: { message: 'Preprovisioning fail message' },
       });
-      // TEST
+      // CHECK
       expect(environmentScService.getMemberAccount).toHaveBeenCalledWith(requestContext, { id: 'env-id' });
       expect(pluginRegistryService.visitPlugins).toHaveBeenCalledWith(
         'study-access-strategy',
@@ -188,7 +188,7 @@ describe('envProvisioningPlugin', () => {
       } catch (err) {
         expect(err).toEqual('first-plugin-error, second-plugin-error');
       }
-      // TEST
+      // CHECK
       expect(environmentScService.getMemberAccount).toHaveBeenCalledWith(requestContext, { id: 'env-id' });
       expect(pluginRegistryService.visitPlugins).toHaveBeenCalledWith(
         'study-access-strategy',
@@ -240,7 +240,7 @@ describe('envProvisioningPlugin', () => {
         outputs: [],
         provisionedProductId: 'provisioned-product-id',
       });
-      // TEST
+      // CHECK
       expect(environmentScService.update).toHaveBeenCalledWith(
         {
           principal: {
@@ -280,7 +280,7 @@ describe('envProvisioningPlugin', () => {
         ],
         provisionedProductId: 'provisioned-product-id',
       });
-      // TEST
+      // CHECK
       expect(environmentScService.update).toHaveBeenCalledWith(
         {
           principal: {
@@ -326,7 +326,7 @@ describe('envProvisioningPlugin', () => {
         ],
         provisionedProductId: 'provisioned-product-id',
       });
-      // TEST
+      // CHECK
       expect(environmentScService.update).toHaveBeenCalledWith(
         {
           principal: {
@@ -385,7 +385,7 @@ describe('envProvisioningPlugin', () => {
         envId: 'env-id',
         record: {},
       });
-      // TEST
+      // CHECK
       expect(environmentScService.update).toHaveBeenCalledWith(
         {
           principal: {
@@ -464,7 +464,7 @@ describe('envProvisioningPlugin', () => {
         envId: 'env-id',
         record: {},
       });
-      // TEST
+      // CHECK
       expect(environmentDnsService.deleteRecord).toHaveBeenCalledWith('rstudio', 'env-id', 'some-dns-name');
       expect(environmentScService.update).toHaveBeenCalledWith(
         {
@@ -546,7 +546,7 @@ describe('envProvisioningPlugin', () => {
         envId: 'env-id',
         record: {},
       });
-      // TEST
+      // CHECK
       expect(environmentDnsService.deletePrivateRecord).toHaveBeenCalledWith(
         requestContext,
         'rstudio',
@@ -621,7 +621,7 @@ describe('envProvisioningPlugin', () => {
         error: { message: 'error in termination' },
         record: {},
       });
-      // TEST
+      // CHECK
       expect(environmentScService.update).toHaveBeenCalledWith(
         {
           principal: {

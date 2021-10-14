@@ -67,7 +67,7 @@ describe('envScConnectionUrlPlugin', () => {
       // OPERATE
       const retVal = await plugin.createConnectionUrl({ envId, connection }, { requestContext, container });
 
-      // TEST
+      // CHECK
       expect(retVal).toEqual({ envId, connection });
     });
 
@@ -82,7 +82,7 @@ describe('envScConnectionUrlPlugin', () => {
       // OPERATE
       const retVal = await plugin.createConnectionUrl({ envId, connection }, { requestContext, container });
 
-      // TEST
+      // CHECK
       expect(retVal).toEqual({ envId, connection });
     });
 
@@ -99,7 +99,7 @@ describe('envScConnectionUrlPlugin', () => {
       // OPERATE
       const retVal = await plugin.createConnectionUrl({ envId, connection }, { requestContext, container });
 
-      // TEST
+      // CHECK
       expect(retVal).toEqual({ envId, connection });
       expect(appStreamScService.getStreamingUrl).toHaveBeenCalledTimes(0);
       expect(appStreamScService.urlForRemoteDesktop).toHaveBeenCalledTimes(0);
@@ -132,7 +132,7 @@ describe('envScConnectionUrlPlugin', () => {
         appstreamDestinationUrl: 'newPrivateUrl',
       };
 
-      // TEST
+      // CHECK
       expect(retVal).toStrictEqual({ envId, connection });
       expect(environmentScConnectionService.createPrivateSageMakerUrl).toHaveBeenCalledTimes(1);
       expect(environmentScConnectionService.createPrivateSageMakerUrl).toHaveBeenCalledWith(
@@ -170,7 +170,7 @@ describe('envScConnectionUrlPlugin', () => {
         appstreamDestinationUrl: destinationUrl,
       };
 
-      // TEST
+      // CHECK
       expect(retVal).toStrictEqual({ envId, connection });
       expect(environmentScConnectionService.createPrivateSageMakerUrl).not.toHaveBeenCalled();
       expect(appStreamScService.getStreamingUrl).toHaveBeenCalledTimes(1);
@@ -203,7 +203,7 @@ describe('envScConnectionUrlPlugin', () => {
         appstreamDestinationUrl: destinationUrl,
       };
 
-      // TEST
+      // CHECK
       expect(retVal).toStrictEqual({ envId, connection });
       expect(appStreamScService.getStreamingUrl).toHaveBeenCalledTimes(1);
       expect(appStreamScService.getStreamingUrl).toHaveBeenCalledWith(requestContext, {
@@ -235,7 +235,7 @@ describe('envScConnectionUrlPlugin', () => {
         instanceId: 'sampleInstanceId',
       };
 
-      // TEST
+      // CHECK
       expect(retVal).toStrictEqual({ envId, connection });
       expect(appStreamScService.urlForRemoteDesktop).toHaveBeenCalledTimes(1);
       expect(appStreamScService.urlForRemoteDesktop).toHaveBeenCalledWith(requestContext, {
