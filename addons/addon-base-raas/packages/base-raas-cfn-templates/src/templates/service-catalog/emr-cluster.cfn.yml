@@ -33,6 +33,15 @@ Parameters:
   KeyName:
     Description: SSH key pair to use for EMR node login
     Type: AWS::EC2::KeyPair::KeyName
+  SolutionNamespace:
+    Type: String
+    Description: The namespace value provided when onboarding the Member account
+    Default: ''
+  IsAppStreamEnabled:
+    Type: String
+    AllowedValues: [true, false]
+    Description: Is AppStream enabled for this workspace
+    Default: 'false'
   VPC:
     Description: VPC for EMR nodes.
     Type: AWS::EC2::VPC::Id

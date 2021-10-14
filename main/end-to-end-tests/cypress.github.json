@@ -25,7 +25,7 @@
         }
       },
       "emr": {
-        "workspaceTypeName": "EMR-v6",
+        "workspaceTypeName": "EMR-v7",
         "configuration": "emr-e2e",
         "projectId": "e2eTestProject"
       }
