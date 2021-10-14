@@ -2,6 +2,55 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## [4.0.0](https://github.com/awslabs/service-workbench-on-aws/compare/v4.0.0...v3.5.0) (2021-10-14)
+
+### Features
+
+* Egress, Secured Workspaces (AppStream) and Account update wizard ([#750](https://github.com/awslabs/service-workbench-on-aws/issues/750)) ([b990924](https://github.com/awslabs/service-workbench-on-aws/commit/b99092458c7ee11f9b7540f7d1bbf898dd90744f)) 
+
+Service Workbench is incrementing a major release version to bring attention to three new features.
+
+#### 1. Member account onboarding improvement
+
+The Service Workbench member account onboarding process is changed to be more in line with the Bring Your Own Bucket (BYOB) process. The general intent is that the process to onboard an account in support of hosting data should be the same as onboarding an account in support of hosting researcher workspace compute. Twelve points of context switching and manual data entry have been eliminated with the new process.
+
+This change applies to all updated installations, and can be applied to those installations that have already onboarded member accounts.
+
+To learn more about the new process, refer to the updated [instructions](https://github.com/awslabs/service-workbench-on-aws/blob/mainline/docs/Service_Workbench_Post_Deployment_Guide.pdf) in the Service Workbench Post Deployment guide.
+
+**Important Notes:**
+
+* If you have already onboarded a member account for your Service Workbench installation, and this account has active or stopped workspaces, the safest course would be to terminate all workspaces prior to the update. We did test a scenario with active and stopped workspaces and observed no impact during testing, but because this update is a major release, we recommend the safest course.
+* Any member accounts that were onboarded prior to this update will need to be updated through the Service Workbench user interface, and you will be prompted to do so when visiting the new “Accounts” page in Service Workbench. This update is necessary because there is a new capability that will check to see if the member and main account code versions are in sync, and provide a visual indicator if not, allowing you a clear indication of update.
+
+
+#### 2. Enabling secure desktop
+
+Introduction of [AppStream 2.0](https://aws.amazon.com/appstream2/) as an access point for Service Workbench workspaces. With this enabled, researchers will not be able to egress the data from their Service Workbench workspaces to their client machine, and Service Workbench workspaces will not have access to the internet.
+
+Core networking changes within the member account will move researcher workspaces to the private subnets, and the method of connecting to a researcher workspace changes. Restricting access by public IP is no longer available, and the layer of security per workspace that replaces IP restriction is outlined in connection instructions in the Service Workbench workspace UI.  
+
+This feature is disabled by default upon install. To enable this feature, change the feature flag `isAppStreamEnabled` in the [configuration file](https://github.com/awslabs/service-workbench-on-aws/blob/mainline/main/config/settings/.defaults.yml#L204) to `true`.
+
+**Important Notes:**
+
+* *Once this feature is enabled for a Service Workbench installation, it cannot be disabled without deleting the installation and reinstalling.* This is because there are core networking changes for workspaces that cannot be reverted.
+* If you have an existing installation without the feature flag enabled, and want to activate this feature flag, terminate all workspaces prior to activating the flag.
+* AppStream service use does incur additional cost and we recommend you review the cost impact prior to configuring your AppStream fleet: https://aws.amazon.com/appstream2/pricing/
+* Because the Service Workbench workspaces do not have internet connectivity, [VPC endpoints](https://docs.aws.amazon.com/vpc/latest/privatelink/vpc-endpoints.html) are introduced for all AWS services that the workspaces use (such as S3, EC2, and AppStream).
+* Significant updates to the post deployment configuration instructions when this feature is enabled are outlined [here](https://github.com/awslabs/service-workbench-on-aws/blob/mainline/docs/Service_Workbench_Post_Deployment_Guide.pdf) 
+
+#### 3. Enabling secure egress
+
+As a compliment to the Secure Desktop functionality, this feature provides a mount point per workspace (that is only accessible from that workspace) for a researcher to stage data that they wish to take out of the Service Workbench installation. Once the data is put to this location (called the Egress Store), the researcher can choose the *Submit Egress Request* button and a message is generated to a SNS Topic (https://aws.amazon.com/sns/) containing the metadata for their egress request.
+
+Like the Secure Desktop feature, this feature is also disabled by default upon install. To enable this feature, you must change the feature flag `enableEgressStore` in the [configuration file](https://github.com/awslabs/service-workbench-on-aws/blob/mainline/main/config/settings/.defaults.yml#L184) to `true`. Note that this feature flag is independent from the Secure Desktop feature flag, but if it is activated by itself, there is nothing preventing the researcher from copying data to their local client (thus outside the egress store).
+
+**Important Notes:**
+
+* Currently, the message goes to the SNS topic - but there is not subscriber added to the topic. It is your responsibility to subscribe to the topic, and to act on the Egress Store data source with elevated permissions through the AWS Management Console.
+* When this feature is enabled, the Bring Your Own Buckets (BYOB) data sources are only allowed to be read only. This is because a BYOB data source can live in a different AWS account (unlike MyStudy and Organizational Study that live in the main Service Workbench main account). Allowing write to a BYOB data source would be uncontrolled egress. 
+
 ## [3.5.0](https://github.com/awslabs/service-workbench-on-aws/compare/v3.4.0...v3.5.0) (2021-10-14)
 
 
