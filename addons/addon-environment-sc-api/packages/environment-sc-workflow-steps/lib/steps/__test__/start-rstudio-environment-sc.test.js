@@ -165,4 +165,44 @@ describe('StartRStudioEnvironmentStep', () => {
       });
     });
   });
+
+  describe('updateCnameRecords', () => {
+    it('delete/create called when AppStream is disabled', async () => {
+      const environmentDnsService = {};
+      environmentDnsService.deleteRecord = jest.fn();
+      environmentDnsService.createRecord = jest.fn();
+      step.mustFindServices = () => environmentDnsService;
+      step.settings = {
+        getBoolean: key => {
+          if (key === 'isAppStreamEnabled') {
+            return false;
+          }
+          throw new Error('Unexpected key');
+        },
+      };
+      await step.updateCnameRecords('testEnv', 'old.dns', 'new.dns');
+      expect(environmentDnsService.deleteRecord).toHaveBeenCalledTimes(1);
+      expect(environmentDnsService.createRecord).toHaveBeenCalledTimes(1);
+      expect(environmentDnsService.deleteRecord).toHaveBeenCalledWith('rstudio', 'testEnv', 'old.dns');
+      expect(environmentDnsService.createRecord).toHaveBeenCalledWith('rstudio', 'testEnv', 'new.dns');
+    });
+
+    it('delete/create not called when AppStream is enabled', async () => {
+      const environmentDnsService = {};
+      environmentDnsService.deleteRecord = jest.fn();
+      environmentDnsService.createRecord = jest.fn();
+      step.mustFindServices = () => environmentDnsService;
+      step.settings = {
+        getBoolean: key => {
+          if (key === 'isAppStreamEnabled') {
+            return true;
+          }
+          throw new Error('Unexpected key');
+        },
+      };
+      await step.updateCnameRecords('testEnv', 'old.dns', 'new.dns');
+      expect(environmentDnsService.deleteRecord).not.toHaveBeenCalled();
+      expect(environmentDnsService.createRecord).not.toHaveBeenCalled();
+    });
+  });
 });

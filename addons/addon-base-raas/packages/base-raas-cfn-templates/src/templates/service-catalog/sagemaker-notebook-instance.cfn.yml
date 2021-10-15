@@ -3,6 +3,9 @@ AWSTemplateFormatVersion: 2010-09-09
 Description: Service-Workbench-on-AWS SageMaker-Jupyter
 
 Parameters:
+  SolutionNamespace:
+    Type: String
+    Description: The namespace value provided when onboarding the Member account
   Namespace:
     Type: String
     Description: An environment name that will be prefixed to resource names
@@ -18,7 +21,8 @@ Parameters:
     Type: AWS::EC2::Subnet::Id
   AccessFromCIDRBlock:
     Type: String
-    Description: The CIDR used to access sagemaker.
+    Description: The CIDR used to access sagemaker. This parameter is only required when AppStream is disabled
+    Default: 10.0.0.0/19
   S3Mounts:
     Type: String
     Description: A JSON array of objects with name, bucket and prefix properties used to mount data
@@ -36,9 +40,18 @@ Parameters:
   AutoStopIdleTimeInMinutes:
     Type: Number
     Description: Number of idle minutes for auto stop to shutdown the instance (0 to disable auto-stop)
+  EgressStoreIamPolicyDocument:
+    Type: String
+    Description: The IAM policy for launched workstation to access egress store
+  IsAppStreamEnabled:
+    Type: String
+    Description: Boolean for whether workspace should be accessed with AppStream
+    AllowedValues: [true, false]
 
 Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
+  EgressStoreIamPolicyEmpty: !Equals [!Ref EgressStoreIamPolicyDocument, '{}']
+  AppStreamEnabled: !Equals [!Ref IsAppStreamEnabled, 'true']
 
 Resources:
   SecurityGroup:
@@ -48,17 +61,48 @@ Resources:
       VpcId:
         Ref: VPC
       SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
-          CidrIp: !Ref AccessFromCIDRBlock
+        - !If
+          - AppStreamEnabled
+          - !Ref "AWS::NoValue"
+          - IpProtocol: tcp
+            FromPort: 443
+            ToPort: 443
+            CidrIp: !Ref AccessFromCIDRBlock
+      SecurityGroupEgress:
+        - !If
+          - AppStreamEnabled
+          - DestinationSecurityGroupId:
+              Fn::ImportValue: !Sub "${SolutionNamespace}-SageMakerApiSecurityGroup"
+            IpProtocol: '-1'
+          - !Ref "AWS::NoValue"
+        - !If
+          - AppStreamEnabled
+          - IpProtocol: tcp
+            FromPort: 0
+            ToPort: 65535
+            CidrIp: 0.0.0.0/0
+          - !Ref "AWS::NoValue"
+  PreSignedURLBoundary:
+    Type: AWS::IAM::ManagedPolicy
+    Condition: AppStreamEnabled
+    Properties:
+      Description: Permission boundary for creating PreSignedURL
+      ManagedPolicyName: !Join ['-', [Ref: Namespace, 'presigned-url-permission-boundary']]
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - sagemaker:CreatePresignedNotebookInstanceUrl
+            Resource: !Ref BasicNotebookInstance
+
   InstanceRolePermissionBoundary:
     Type: AWS::IAM::ManagedPolicy
     Properties:
       Description: Permission boundary for EC2 instance role
       ManagedPolicyName: !Join ['-', [Ref: Namespace, 'ec2-sagemaker-permission-boundary']]
       PolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Action:
@@ -78,6 +122,37 @@ Resources:
               - sagemaker:DescribeNotebookInstance
               - sagemaker:StopNotebookInstance
             Resource: '*'
+
+  IAMRoleSageMakerURL:
+    Type: 'AWS::IAM::Role'
+    Condition: AppStreamEnabled
+    Properties:
+      RoleName: !Join ['-', [Ref: Namespace, 'presigned-url-sagemaker-notebook-role']]
+      Path: '/'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              AWS: !Sub arn:aws:iam::${AWS::AccountId}:root
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: presigned-url-access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              Effect: Allow
+              Action:
+                - sagemaker:CreatePresignedNotebookInstanceUrl
+              Resource:
+                - !Ref BasicNotebookInstance
+              Condition:
+                StringEquals:
+                  aws:SourceVpce:
+                    Fn::ImportValue: !Sub "${SolutionNamespace}-SageMakerVPCE"
+      PermissionsBoundary: !Ref PreSignedURLBoundary
+
   IAMRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -98,6 +173,11 @@ Resources:
           - !Ref 'AWS::NoValue'
           - PolicyName: !Join ['-', [Ref: Namespace, 's3-studydata-policy']]
             PolicyDocument: !Ref IamPolicyDocument
+        - !If
+          - EgressStoreIamPolicyEmpty
+          - !Ref 'AWS::NoValue'
+          - PolicyName: !Join ['-', [Ref: Namespace, 's3-egressstore-policy']]
+            PolicyDocument: !Ref EgressStoreIamPolicyDocument
         - PolicyName: !Join ['-', [Ref: Namespace, 's3-bootstrap-script-policy']]
           PolicyDocument:
             Version: '2012-10-17'
@@ -158,6 +238,15 @@ Resources:
       SubnetId: !Ref Subnet
       SecurityGroupIds:
         - !Ref SecurityGroup
+        - !If
+          - AppStreamEnabled
+          - Fn::ImportValue: !Sub "${SolutionNamespace}-WorkspaceSG"
+          - !Ref "AWS::NoValue"
+      DirectInternetAccess:
+        !If
+        - AppStreamEnabled
+        - Disabled
+        - Enabled
       LifecycleConfigName: !GetAtt BasicNotebookInstanceLifecycleConfig.NotebookInstanceLifecycleConfigName
       KmsKeyId: !Ref EncryptionKeyArn
 
@@ -176,7 +265,7 @@ Resources:
               # Stop Idle Script
               if [ "${AutoStopIdleTimeInMinutes}" != "0" ]; then
                 echo "Fetching the autostop script"
-                curl -L -o /usr/local/bin/autostop.py https://raw.githubusercontent.com/aws-samples/amazon-sagemaker-notebook-instance-lifecycle-config-samples/master/scripts/auto-stop-idle/autostop.py
+                aws s3 cp "${EnvironmentInstanceFiles}/offline-packages/sagemaker/autostop.py" "/usr/local/bin"
                 chmod a+x /usr/local/bin/autostop.py
                 IDLE_TIME=`expr ${AutoStopIdleTimeInMinutes} \* 60`
                 echo "Starting the SageMaker autostop script in cron"
@@ -234,3 +323,22 @@ Outputs:
   MetaConnectionScheme:
     Description: Protocol for connection 1
     Value: https
+
+  MetaConnectionNotebookArn:
+    Description: SageMaker Notebook Arn
+    Value: !Ref BasicNotebookInstance
+
+  MetaConnectionRoleArn:
+    Description: IAM Role to use for creating presigned URL
+    Condition: AppStreamEnabled
+    Value: !GetAtt IAMRoleSageMakerURL.Arn
+
+  MetaConnectionRole:
+    Description: IAM Role name to use for creating presigned URL
+    Condition: AppStreamEnabled
+    Value: !Ref IAMRoleSageMakerURL
+
+  MetaConnectionPolicy:
+    Description: Inline policy name that has use for creating presigned URL
+    Condition: AppStreamEnabled
+    Value: presigned-url-access

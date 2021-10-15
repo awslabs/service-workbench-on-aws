@@ -48,6 +48,7 @@ class AwsAccounts extends CollectionResource {
       vpcId: gen.string({ prefix: 'aws-account-test' }),
       subnetId: gen.string({ prefix: 'aws-account-test' }),
       encryptionKeyArn: gen.string({ prefix: 'aws-account-test' }),
+      onboardStatusRoleArn: gen.string({ prefix: 'aws-account-test' }),
       ...awsAccount,
     };
   }
@@ -67,6 +68,18 @@ class AwsAccounts extends CollectionResource {
 
     if (_.isEmpty(awsAccount)) throw new Error(`AWS Account with id: "${awsAccountId}" is not found`);
     return awsAccount;
+  }
+
+  async bulkPermissionsCheck() {
+    return this.doCall(async () => this.axiosClient.get(`${this.api}/permissions`));
+  }
+
+  async getPermissionsForAccount(awsAccountId) {
+    return this.doCall(async () => this.axiosClient.get(`${this.api}/${awsAccountId}/permissions`));
+  }
+
+  async getAndUploadTemplateForAccount(awsAccountId) {
+    return this.doCall(async () => this.axiosClient.get(`${this.api}/${awsAccountId}/get-template`));
   }
 
   provision(body) {

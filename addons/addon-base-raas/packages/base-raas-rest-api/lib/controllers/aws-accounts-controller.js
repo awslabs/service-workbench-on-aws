@@ -21,6 +21,7 @@ async function configure(context) {
   // const boom = context.boom;
 
   const awsAccountsService = await context.service('awsAccountsService');
+  const awsCfnService = await context.service('awsCfnService');
   const accountService = await context.service('accountService');
 
   // ===============================================================
@@ -33,6 +34,31 @@ async function configure(context) {
 
       const awsAccounts = await awsAccountsService.list(requestContext);
       res.status(200).json(awsAccounts);
+    }),
+  );
+
+  // ===============================================================
+  //  GET /permissions (mounted to /api/aws-accounts)
+  // ===============================================================
+  router.get(
+    '/permissions',
+    wrap(async (req, res) => {
+      const requestContext = res.locals.requestContext;
+      const result = await awsCfnService.batchCheckAndUpdateAccountPermissions(requestContext);
+      res.status(200).json(result);
+    }),
+  );
+
+  // ===============================================================
+  //  GET /:id/get-template (mounted to /api/aws-accounts)
+  // ===============================================================
+  router.get(
+    '/:id/get-template',
+    wrap(async (req, res) => {
+      const id = req.params.id;
+      const requestContext = res.locals.requestContext;
+      const result = await awsCfnService.getAndUploadTemplateForAccount(requestContext, id);
+      res.status(200).json(result);
     }),
   );
 
@@ -65,7 +91,25 @@ async function configure(context) {
   );
 
   // ===============================================================
-  //  POST / (mounted to /api/aws-accounts)
+  //  PUT /:id/update (mounted to /api/aws-accounts)
+  // ===============================================================
+  router.put(
+    '/:id',
+    wrap(async (req, res) => {
+      const requestContext = res.locals.requestContext;
+      const id = req.params.id;
+      const acctInBody = req.body || {};
+      const awsAccount = await awsAccountsService.update(requestContext, {
+        ...acctInBody,
+        id,
+      });
+
+      res.status(200).json(awsAccount);
+    }),
+  );
+
+  // ===============================================================
+  //  POST /provision (mounted to /api/aws-accounts)
   // ===============================================================
   router.post(
     '/provision',
@@ -75,6 +119,20 @@ async function configure(context) {
       await accountService.provisionAccount(requestContext, possibleBody);
 
       res.status(200).json({ message: 'account creating' });
+    }),
+  );
+
+  // ===============================================================
+  //  GET /:id/permissions (mounted to /api/aws-accounts)
+  // ===============================================================
+  router.get(
+    '/:id/permissions',
+    wrap(async (req, res) => {
+      const requestContext = res.locals.requestContext;
+      const accountId = req.params.id;
+
+      const result = await awsCfnService.checkAccountPermissions(requestContext, accountId);
+      res.status(200).json(result);
     }),
   );
 

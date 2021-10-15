@@ -73,6 +73,7 @@ describe('EnvironmentSCService', () => {
   let awsAccountsService = null;
   let aws = null;
   let storageGatewayService = null;
+  let settings = null;
   const error = { code: 'ConditionalCheckFailedException' };
   beforeEach(async () => {
     const container = new ServicesContainer();
@@ -106,6 +107,7 @@ describe('EnvironmentSCService', () => {
     wfService = await container.find('workflowTriggerService');
     aws = await container.find('aws');
     storageGatewayService = await container.find('storageGatewayService');
+    settings = await container.find('settings');
 
     // Skip authorization by default
     service.assertAuthorized = jest.fn();
@@ -121,9 +123,87 @@ describe('EnvironmentSCService', () => {
       return { roleArn: 'cfnExecutionRole', externalId: 'roleExternalId' };
     });
     service._fromRawToDbObject = jest.fn(x => x);
+    settings.getBoolean = jest.fn(key => {
+      if (key === 'isAppStreamEnabled') {
+        return false;
+      }
+      throw Error(`${key} not found`);
+    });
   });
 
   describe('create function', () => {
+    it('should fail create since CIDR info is included when AppStream is enabled', async () => {
+      // BUILD
+      settings.getBoolean = jest.fn(key => {
+        if (key === 'isAppStreamEnabled') {
+          return true;
+        }
+        throw Error(`${key} not found`);
+      });
+      const requestContext = {
+        principal: {
+          isExternalUser: false,
+        },
+      };
+      const newEnv = {
+        name: 'exampleName',
+        envTypeId: 'exampleETI',
+        envTypeConfigId: 'exampleETCI',
+        cidr: '0.0.0.0/32',
+      };
+
+      // OPERATE
+      try {
+        await service.create(requestContext, newEnv);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(service.boom.is(err, 'badRequest')).toBe(true);
+        expect(err.message).toBe('Cannot specify CIDR when AppStream is enabled');
+        expect(settings.getBoolean).toHaveBeenCalledTimes(1);
+        expect(settings.getBoolean).toHaveBeenCalledWith('isAppStreamEnabled');
+      }
+    });
+
+    it('should succeed create if environment has undefined cidr and AppStream is enabled', async () => {
+      // BUILD
+      settings.getBoolean = jest.fn(key => {
+        if (key === 'isAppStreamEnabled') {
+          return true;
+        }
+        throw Error(`${key} not found`);
+      });
+      projectService.mustFind = jest.fn(() => {
+        return { indexId: 'testIndex', isAppStreamConfigured: true };
+      });
+      const requestContext = {
+        principal: {
+          isExternalUser: false,
+        },
+      };
+      const newEnv = {
+        name: 'exampleName',
+        envTypeId: 'exampleETI',
+        envTypeConfigId: 'exampleETCI',
+        cidr: undefined,
+      };
+      service.audit = jest.fn();
+      wfService.triggerWorkflow = jest.fn();
+
+      // OPERATE
+      await service.create(requestContext, newEnv);
+
+      // CHECK
+      expect(service.audit).toHaveBeenCalledWith(
+        requestContext,
+        expect.objectContaining({ action: 'create-environment-sc' }),
+      );
+      expect(wfService.triggerWorkflow).toHaveBeenCalled();
+      expect(settings.getBoolean).toHaveBeenCalledTimes(2);
+      expect(projectService.mustFind).toHaveBeenCalledTimes(1);
+      expect(settings.getBoolean).toHaveBeenCalledWith('isAppStreamEnabled');
+      expect('cidr' in newEnv).toBe(false);
+    });
+
     it('should fail because the user is external', async () => {
       // BUILD
       const requestContext = {
@@ -280,7 +360,7 @@ describe('EnvironmentSCService', () => {
       await service.mustFind(requestContext, { id: 'oldId' });
 
       // CHECK
-      expect(service.find).toHaveBeenCalledWith(requestContext, { id: 'oldId', fields: [], fetchCidr: true });
+      expect(service.find).toHaveBeenCalledWith(requestContext, { id: 'oldId', fields: [] });
     });
 
     it('verify mustFind with fetchCidr', async () => {
@@ -306,6 +386,86 @@ describe('EnvironmentSCService', () => {
 
       // CHECK
       expect(service.find).toHaveBeenCalledWith(requestContext, { id: 'oldId', fields: [], fetchCidr: false });
+    });
+
+    it('verify error is thrown when AppStream is enabled and fetchCidr is true', async () => {
+      // BUILD
+      settings.getBoolean = jest.fn(key => {
+        if (key === 'isAppStreamEnabled') {
+          return true;
+        }
+        throw Error(`${key} not found`);
+      });
+      const uid = 'u-12345';
+      const requestContext = { principalIdentifier: { uid } };
+
+      const env = {
+        status: 'COMPLETED',
+        id: 'oldId',
+        name: 'exampleName',
+        envTypeId: 'exampleETI',
+        envTypeConfigId: 'exampleETCI',
+        updatedBy: {
+          username: 'user',
+        },
+        studyIds: ['study1', 'study2'],
+      };
+      service.audit = jest.fn();
+      service.getSecurityGroupDetails = jest.fn();
+      dbService.table.get.mockReturnValueOnce(env);
+
+      // OPERATE
+      try {
+        await service.find(requestContext, { id: 'oldId', fetchCidr: true });
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(service.boom.is(err, 'badRequest')).toBe(true);
+        expect(err.message).toBe('CIDR operation unavailable when AppStream is enabled');
+        expect(service.getSecurityGroupDetails).not.toHaveBeenCalled();
+        expect(settings.getBoolean).toHaveBeenCalledTimes(1);
+        expect(settings.getBoolean).toHaveBeenCalledWith('isAppStreamEnabled');
+      }
+    });
+
+    it('verify getSecurityGroupDetails not called when AppStream is enabled and fetchCidr is undefined', async () => {
+      // BUILD
+      settings.getBoolean = jest.fn(key => {
+        if (key === 'isAppStreamEnabled') {
+          return true;
+        }
+        throw Error(`${key} not found`);
+      });
+      const uid = 'u-12345';
+      const requestContext = { principalIdentifier: { uid } };
+
+      const env = {
+        status: 'COMPLETED',
+        id: 'oldId',
+        name: 'exampleName',
+        envTypeId: 'exampleETI',
+        envTypeConfigId: 'exampleETCI',
+        updatedBy: {
+          username: 'user',
+        },
+        studyIds: ['study1', 'study2'],
+      };
+      service.audit = jest.fn();
+      service.getSecurityGroupDetails = jest.fn();
+      dbService.table.get.mockReturnValueOnce(env);
+
+      // OPERATE
+      await service.find(requestContext, { id: 'oldId' });
+
+      // CHECK
+      expect(service.getSecurityGroupDetails).not.toHaveBeenCalled();
+      expect(service.assertAuthorized).toHaveBeenCalledWith(
+        requestContext,
+        expect.objectContaining({ action: 'get-sc', conditions: [service._allowAuthorized] }),
+        env,
+      );
+      expect(settings.getBoolean).toHaveBeenCalledTimes(1);
+      expect(settings.getBoolean).toHaveBeenCalledWith('isAppStreamEnabled');
     });
 
     it('verify getSecurityGroupDetails not called when fetchCidr is false', async () => {
@@ -1296,7 +1456,150 @@ Quisque egestas, eros nec feugiat venenatis, lorem turpis placerat tortor, ullam
     });
   });
 
+  describe('markAppStreamConfigured function', () => {
+    it('should mark envs by AppStream config', async () => {
+      // BUILD
+      const requestContext = {
+        principal: {
+          isExternalUser: true,
+        },
+      };
+      const envs = [
+        {
+          id: 'env-1',
+          projectId: 'proj-1',
+        },
+        {
+          id: 'env-2',
+          projectId: 'proj-2',
+        },
+      ];
+      const projects = [
+        { id: 'proj-1', isAppStreamConfigured: true },
+        { id: 'proj-2', isAppStreamConfigured: false },
+      ];
+      projectService.list = jest.fn(() => projects);
+      const expected = [
+        {
+          id: 'env-1',
+          projectId: 'proj-1',
+          isAppStreamConfigured: true,
+        },
+        {
+          id: 'env-2',
+          projectId: 'proj-2',
+          isAppStreamConfigured: false,
+        },
+      ];
+
+      // OPERATE
+      const retVal = await service.markAppStreamConfigured(requestContext, envs);
+
+      // CHECK
+      expect(retVal).toEqual(expected);
+    });
+  });
+
   describe('getSecurityGroupDetails function', () => {
+    it('should send filtered security group rules as expected for AppStream template', async () => {
+      // BUILD
+      const requestContext = {};
+      const stackArn = 'sampleCloudFormationStackArn';
+      const environment = {
+        outputs: [{ OutputKey: 'CloudformationStackARN', OutputValue: `<AwsAccountRoot>/${stackArn}` }],
+        status: 'COMPLETED',
+      };
+      const origSecurityGroupId = 'sampleSecurityGroupId';
+      const stackResources = {
+        StackResourceSummaries: [{ LogicalResourceId: 'SecurityGroup', PhysicalResourceId: origSecurityGroupId }],
+      };
+      const templateDetails = {
+        TemplateBody: YAML.dump({
+          Resources: {
+            SecurityGroup: {
+              Properties: {
+                SecurityGroupIngress: [
+                  {
+                    'Fn::If': [
+                      'AppStreamEnabled',
+                      {
+                        CidrIp: {
+                          Ref: 'AccessFromCIDRBlock',
+                        },
+                        IpProtocol: 'tcp',
+                        FromPort: 1,
+                        ToPort: 1,
+                      },
+                      {
+                        IpProtocol: 'tcp',
+                        FromPort: 123,
+                        ToPort: 123,
+                        CidrIp: {
+                          Ref: 'AccessFromCIDRBlock',
+                        },
+                      },
+                    ],
+                  },
+                  {
+                    'Fn::If': [
+                      'AppStreamEnabled',
+                      {
+                        CidrIp: {
+                          Ref: 'AccessFromCIDRBlock',
+                        },
+                        IpProtocol: 'tcp',
+                        FromPort: 10,
+                        ToPort: 10,
+                      },
+                      { Ref: 'AWS::NoValue' },
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+        }),
+      };
+      const workspaceIngressRules = [
+        {
+          IpProtocol: 'tcp',
+          FromPort: 123,
+          ToPort: 123,
+          IpRanges: [{ CidrIp: '123.123.123.123/32' }],
+        },
+        {
+          IpProtocol: 'tcp',
+          FromPort: 1,
+          ToPort: 1,
+          IpRanges: [{ CidrIp: '123.123.123.123/32' }],
+        },
+      ];
+      service.getCfnDetails = jest.fn(() => {
+        return { stackResources, templateDetails };
+      });
+      service.getWorkspaceSecurityGroup = jest.fn(() => {
+        return { securityGroupResponse: { SecurityGroups: [{ IpPermissions: workspaceIngressRules }] } };
+      });
+      const expectedOutcome = [
+        {
+          protocol: 'tcp',
+          fromPort: 123,
+          toPort: 123,
+          cidrBlocks: ['123.123.123.123/32'],
+        },
+      ];
+
+      // OPERATE
+      const { currentIngressRules, securityGroupId } = await service.getSecurityGroupDetails(
+        requestContext,
+        environment,
+      );
+
+      // CHECK
+      expect(currentIngressRules).toMatchObject(expectedOutcome);
+      expect(securityGroupId).toEqual(origSecurityGroupId);
+    });
+
     it('should send filtered security group rules as expected', async () => {
       // BUILD
       const requestContext = {};
@@ -1308,6 +1611,77 @@ Quisque egestas, eros nec feugiat venenatis, lorem turpis placerat tortor, ullam
       const origSecurityGroupId = 'sampleSecurityGroupId';
       const stackResources = {
         StackResourceSummaries: [{ LogicalResourceId: 'SecurityGroup', PhysicalResourceId: origSecurityGroupId }],
+      };
+      const templateDetails = {
+        TemplateBody: YAML.dump({
+          Resources: {
+            SecurityGroup: {
+              Properties: {
+                SecurityGroupIngress: [
+                  {
+                    IpProtocol: 'tcp',
+                    FromPort: 123,
+                    ToPort: 123,
+                  },
+                  { Ref: 'AWS::NoValue' },
+                ],
+              },
+            },
+          },
+        }),
+      };
+      const workspaceIngressRules = [
+        {
+          IpProtocol: 'tcp',
+          FromPort: 123,
+          ToPort: 123,
+          IpRanges: [{ CidrIp: '123.123.123.123/32' }],
+        },
+        {
+          IpProtocol: 'tcp',
+          FromPort: 1,
+          ToPort: 1,
+          IpRanges: [{ CidrIp: '123.123.123.123/32' }],
+        },
+      ];
+      service.getCfnDetails = jest.fn(() => {
+        return { stackResources, templateDetails };
+      });
+      service.getWorkspaceSecurityGroup = jest.fn(() => {
+        return { securityGroupResponse: { SecurityGroups: [{ IpPermissions: workspaceIngressRules }] } };
+      });
+      const expectedOutcome = [
+        {
+          protocol: 'tcp',
+          fromPort: 123,
+          toPort: 123,
+          cidrBlocks: ['123.123.123.123/32'],
+        },
+      ];
+
+      // OPERATE
+      const { currentIngressRules, securityGroupId } = await service.getSecurityGroupDetails(
+        requestContext,
+        environment,
+      );
+
+      // CHECK
+      expect(currentIngressRules).toMatchObject(expectedOutcome);
+      expect(securityGroupId).toEqual(origSecurityGroupId);
+    });
+
+    it('should send filtered security group rules as expected for EMR', async () => {
+      // BUILD
+      const requestContext = {};
+      const stackArn = 'sampleCloudFormationStackArn';
+      const environment = {
+        outputs: [{ OutputKey: 'CloudformationStackARN', OutputValue: `<AwsAccountRoot>/${stackArn}` }],
+        status: 'COMPLETED',
+      };
+      const origSecurityGroupId = 'sampleSecurityGroupId';
+      // EMR's security group logical ID is different than the rest of the workspace-types
+      const stackResources = {
+        StackResourceSummaries: [{ LogicalResourceId: 'MasterSecurityGroup', PhysicalResourceId: origSecurityGroupId }],
       };
       const templateDetails = {
         TemplateBody: YAML.dump({
@@ -1365,126 +1739,61 @@ Quisque egestas, eros nec feugiat venenatis, lorem turpis placerat tortor, ullam
       expect(currentIngressRules).toMatchObject(expectedOutcome);
       expect(securityGroupId).toEqual(origSecurityGroupId);
     });
-  });
 
-  it('should send filtered security group rules as expected for EMR', async () => {
-    // BUILD
-    const requestContext = {};
-    const stackArn = 'sampleCloudFormationStackArn';
-    const environment = {
-      outputs: [{ OutputKey: 'CloudformationStackARN', OutputValue: `<AwsAccountRoot>/${stackArn}` }],
-      status: 'COMPLETED',
-    };
-    const origSecurityGroupId = 'sampleSecurityGroupId';
-    // EMR's security group logical ID is different than the rest of the workspace-types
-    const stackResources = {
-      StackResourceSummaries: [{ LogicalResourceId: 'MasterSecurityGroup', PhysicalResourceId: origSecurityGroupId }],
-    };
-    const templateDetails = {
-      TemplateBody: YAML.dump({
-        Resources: {
-          SecurityGroup: {
-            Properties: {
-              SecurityGroupIngress: [
-                {
-                  IpProtocol: 'tcp',
-                  FromPort: 123,
-                  ToPort: 123,
-                },
-              ],
-            },
-          },
+    it('should send empty array for ingress rules if no security group was found', async () => {
+      // BUILD
+      const requestContext = {};
+      const stackArn = 'sampleCloudFormationStackArn';
+      const environment = {
+        outputs: [{ OutputKey: 'CloudformationStackARN', OutputValue: `<AwsAccountRoot>/${stackArn}` }],
+        status: 'COMPLETED',
+      };
+      const stackResources = {
+        StackResourceSummaries: [],
+      };
+      const templateDetails = {
+        TemplateBody: YAML.dump({
+          Resources: {}, // Resources does not contain SecurityGroup or MasterSecurityGroup
+        }),
+      };
+      const workspaceIngressRules = [
+        {
+          IpProtocol: 'tcp',
+          FromPort: 123,
+          ToPort: 123,
+          IpRanges: [{ CidrIp: '123.123.123.123/32' }],
         },
-      }),
-    };
-    const workspaceIngressRules = [
-      {
-        IpProtocol: 'tcp',
-        FromPort: 123,
-        ToPort: 123,
-        IpRanges: [{ CidrIp: '123.123.123.123/32' }],
-      },
-      {
-        IpProtocol: 'tcp',
-        FromPort: 1,
-        ToPort: 1,
-        IpRanges: [{ CidrIp: '123.123.123.123/32' }],
-      },
-    ];
-    service.getCfnDetails = jest.fn(() => {
-      return { stackResources, templateDetails };
+        {
+          IpProtocol: 'tcp',
+          FromPort: 1,
+          ToPort: 1,
+          IpRanges: [{ CidrIp: '123.123.123.123/32' }],
+        },
+      ];
+      service.getCfnDetails = jest.fn(() => {
+        return { stackResources, templateDetails };
+      });
+      service.getWorkspaceSecurityGroup = jest.fn(() => {
+        return { securityGroupResponse: { SecurityGroups: [{ IpPermissions: workspaceIngressRules }] } };
+      });
+      const expectedOutcome = [];
+
+      // OPERATE
+      const { currentIngressRules, securityGroupId } = await service.getSecurityGroupDetails(
+        requestContext,
+        environment,
+      );
+
+      // CHECK
+      expect(currentIngressRules).toMatchObject(expectedOutcome);
+      expect(securityGroupId).toBeUndefined();
     });
-    service.getWorkspaceSecurityGroup = jest.fn(() => {
-      return { securityGroupResponse: { SecurityGroups: [{ IpPermissions: workspaceIngressRules }] } };
-    });
-    const expectedOutcome = [
-      {
-        protocol: 'tcp',
-        fromPort: 123,
-        toPort: 123,
-        cidrBlocks: ['123.123.123.123/32'],
-      },
-    ];
-
-    // OPERATE
-    const { currentIngressRules, securityGroupId } = await service.getSecurityGroupDetails(requestContext, environment);
-
-    // CHECK
-    expect(currentIngressRules).toMatchObject(expectedOutcome);
-    expect(securityGroupId).toEqual(origSecurityGroupId);
-  });
-
-  it('should send empty array for ingress rules if no security group was found', async () => {
-    // BUILD
-    const requestContext = {};
-    const stackArn = 'sampleCloudFormationStackArn';
-    const environment = {
-      outputs: [{ OutputKey: 'CloudformationStackARN', OutputValue: `<AwsAccountRoot>/${stackArn}` }],
-      status: 'COMPLETED',
-    };
-    const stackResources = {
-      StackResourceSummaries: [],
-    };
-    const templateDetails = {
-      TemplateBody: YAML.dump({
-        Resources: {}, // Resources does not contain SecurityGroup or MasterSecurityGroup
-      }),
-    };
-    const workspaceIngressRules = [
-      {
-        IpProtocol: 'tcp',
-        FromPort: 123,
-        ToPort: 123,
-        IpRanges: [{ CidrIp: '123.123.123.123/32' }],
-      },
-      {
-        IpProtocol: 'tcp',
-        FromPort: 1,
-        ToPort: 1,
-        IpRanges: [{ CidrIp: '123.123.123.123/32' }],
-      },
-    ];
-    service.getCfnDetails = jest.fn(() => {
-      return { stackResources, templateDetails };
-    });
-    service.getWorkspaceSecurityGroup = jest.fn(() => {
-      return { securityGroupResponse: { SecurityGroups: [{ IpPermissions: workspaceIngressRules }] } };
-    });
-    const expectedOutcome = [];
-
-    // OPERATE
-    const { currentIngressRules, securityGroupId } = await service.getSecurityGroupDetails(requestContext, environment);
-
-    // CHECK
-    expect(currentIngressRules).toMatchObject(expectedOutcome);
-    expect(securityGroupId).toBeUndefined();
   });
 
   describe('pollAndSyncSageMakerStatus function', () => {
     const roleArn = 'roleArn';
     const externalId = 'externalId';
     const requestContext = {};
-
     it('should finish updating before returning', async () => {
       // BUILD
       const sagemakerInstances = { 'notebook-instance-name': {} };

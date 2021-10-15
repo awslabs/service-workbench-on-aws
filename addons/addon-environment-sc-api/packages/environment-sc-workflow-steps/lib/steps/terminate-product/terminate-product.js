@@ -33,6 +33,7 @@ const inPayloadKeys = {
 };
 const settingKeys = {
   envMgmtRoleArn: 'envMgmtRoleArn',
+  enableEgressStore: 'enableEgressStore',
 };
 
 const pluginConstants = {
@@ -51,8 +52,9 @@ class TerminateProduct extends StepBase {
   }
 
   async start() {
-    const [provisionedProductId] = await Promise.all([
+    const [provisionedProductId, envId] = await Promise.all([
       this.payloadOrConfig.optionalString(inPayloadKeys.provisionedProductId, ''),
+      this.payloadOrConfig.string(inPayloadKeys.envId),
     ]);
 
     if (provisionedProductId) {
@@ -66,6 +68,12 @@ class TerminateProduct extends StepBase {
         })
         .promise();
       this.state.setKey('RECORD_ID', recordDetail.RecordId);
+    }
+
+    const enableEgressStore = this.settings.getBoolean(settingKeys.enableEgressStore);
+    if (enableEgressStore) {
+      const dataEgressService = await this.mustFindServices('dataEgressService');
+      await dataEgressService.deleteMainAccountEgressStoreRole(envId);
     }
 
     return (

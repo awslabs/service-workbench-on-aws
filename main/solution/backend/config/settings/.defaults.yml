@@ -190,6 +190,9 @@ dbRoleAllocations: ${self:custom.settings.dbPrefix}-RoleAllocations
 # DynamoDB table name for Resource usages
 dbResourceUsages: ${self:custom.settings.dbPrefix}-ResourceUsages
 
+# DynamoDB table global secondary index name for the "WorkspaceIdIndex" field
+dbEgressStoreWorkspaceIdIndex: WorkspaceIdIndex
+
 # ================================ DB Settings - Depreciated ===========================================
 
 # DynamoDB table name for supported authentication provider types
@@ -277,3 +280,25 @@ dbTableStudyPermissions: ${self:custom.settings.dbPrefix}-DbStudyPermissions
 
 # DynamoDB table name for KeyPairs
 dbTableKeyPairs: ${self:custom.settings.dbPrefix}-DbKeyPairs
+
+permissionBoundaryPolicyStudyBucket: ${self:custom.settings.namespace}-PermissionBoundaryPolicyStudyBucket
+
+# ================================ Data Egress Feature Settings ===========================================
+# NOTE: Following properties are ONLY allowed to change for the initial deployment. It's NOT recommended to change the following properties if you have enabled data egress feature.
+
+# The S3 bucket name to be used to store egress store data
+egressStoreBucketName: ${self:custom.settings.globalNamespace}-egress-store
+
+# The alias used for the KMS key created to encrypt/decrypt egress store
+egressStoreKmsKeyAlias: ${self:custom.settings.globalNamespace}/s3/egressstore
+
+# The arn of the egress store KMS Key alias
+egressStoreKmsKeyAliasArn: arn:aws:kms:${self:custom.settings.awsRegion}:${self:custom.settings.awsAccountInfo.awsAccountId}:alias/${self:custom.settings.egressStoreKmsKeyAlias}
+
+# The statement ID in the generated KMS key's key policy that controls which workspaces
+#   can decrypt data in the egress store data bucket
+egressStoreKmsPolicyWorkspaceSid: Allow workspace environments to access egress data
+
+# The name of the IAM role created for the Lambda egressStoreObjectsHandler
+egressStoreObjectHandlerRoleName: ${self:custom.settings.namespace}-EgressStoreObject
+# =========================================================================================================

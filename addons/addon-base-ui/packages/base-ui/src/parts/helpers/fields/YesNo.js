@@ -31,51 +31,55 @@ import ErrorPointer from './ErrorPointer';
 // The following props are to support existing React Semantic UI props:
 // - disabled (via props), default to false
 // - size (via props), default to small
-const Component = observer(({ field, disabled = false, size = 'small', className = 'mb4', onClick }) => {
-  const { id, value, sync, error = '', extra = {} } = field;
-  const { yesLabel = 'Yes', noLabel = 'No', yesValue = true, noValue = false, showHeader = true } = extra;
-  const hasError = !_.isEmpty(error); // IMPORTANT do NOT use field.hasError
-  const isDisabled = field.disabled || disabled;
-  const disabledClass = isDisabled ? 'disabled' : '';
-  const errorClass = hasError ? 'error' : '';
-  const yesSelected = value === yesValue;
-  const noSelected = value === noValue;
-  const handleClick = toAssign => event => {
-    event.preventDefault();
-    event.stopPropagation();
-    sync(toAssign);
-    field.validate({ showErrors: true });
-    if (onClick) onClick(toAssign, field);
-  };
+const Component = observer(
+  ({ field, disabled = false, size = 'small', className = 'mb4', onClick, disabledLabel = '' }) => {
+    const { id, value, sync, error = '', extra = {} } = field;
+    const { yesLabel = 'Yes', noLabel = 'No', yesValue = true, noValue = false, showHeader = true } = extra;
+    const hasError = !_.isEmpty(error); // IMPORTANT do NOT use field.hasError
+    const isDisabled = field.disabled || disabled;
+    const yesDisabled = disabledLabel.toUpperCase() === 'YES';
+    const noDisabled = disabledLabel.toUpperCase() === 'NO';
+    const disabledClass = isDisabled ? 'disabled' : '';
+    const errorClass = hasError ? 'error' : '';
+    const yesSelected = value === yesValue;
+    const noSelected = value === noValue;
+    const handleClick = toAssign => event => {
+      event.preventDefault();
+      event.stopPropagation();
+      sync(toAssign);
+      field.validate({ showErrors: true });
+      if (onClick) onClick(toAssign, field);
+    };
 
-  const yesAttributes = {
-    onClick: handleClick(yesValue),
-    disabled: isDisabled,
-  };
-  const noAttributes = {
-    onClick: handleClick(noValue),
-    disabled: isDisabled,
-  };
+    const yesAttributes = {
+      onClick: handleClick(yesValue),
+      disabled: isDisabled || yesDisabled,
+    };
+    const noAttributes = {
+      onClick: handleClick(noValue),
+      disabled: isDisabled || noDisabled,
+    };
 
-  if (yesSelected) yesAttributes.color = 'teal';
-  if (noSelected) noAttributes.color = 'teal';
+    if (yesSelected) yesAttributes.color = 'teal';
+    if (noSelected) noAttributes.color = 'teal';
 
-  return (
-    <div className={c(className, errorClass, disabledClass)}>
-      <div className="flex flex-wrap mb1">
-        {showHeader && <Header field={field} className="mt1 mb0 mr2" />}
-        <div>
-          <Button.Group id={id} size={size}>
-            <Button {...yesAttributes}>{yesLabel}</Button>
-            <Button.Or />
-            <Button {...noAttributes}>{noLabel}</Button>
-          </Button.Group>
+    return (
+      <div className={c(className, errorClass, disabledClass)}>
+        <div className="flex flex-wrap mb1">
+          {showHeader && <Header field={field} className="mt1 mb0 mr2" />}
+          <div>
+            <Button.Group id={id} size={size}>
+              <Button {...yesAttributes}>{yesLabel}</Button>
+              <Button.Or />
+              <Button {...noAttributes}>{noLabel}</Button>
+            </Button.Group>
+          </div>
         </div>
+        <Description field={field} />
+        <ErrorPointer field={field} />
       </div>
-      <Description field={field} />
-      <ErrorPointer field={field} />
-    </div>
-  );
-});
+    );
+  },
+);
 
 export default Component;

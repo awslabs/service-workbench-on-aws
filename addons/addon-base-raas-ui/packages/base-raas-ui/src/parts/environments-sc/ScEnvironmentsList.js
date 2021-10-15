@@ -1,3 +1,17 @@
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License").
+ *  You may not use this file except in compliance with the License.
+ *  A copy of the License is located at
+ *
+ *  http://aws.amazon.com/apache2.0
+ *
+ *  or in the "license" file accompanying this file. This file is distributed
+ *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ *  express or implied. See the License for the specific language governing
+ *  permissions and limitations under the License.
+ */
 import React from 'react';
 import _ from 'lodash';
 import { decorate, computed, action, observable, runInAction } from 'mobx';
@@ -25,6 +39,7 @@ import ScEnvironmentsFilterButtons from './parts/ScEnvironmentsFilterButtons';
 // expected props
 // - scEnvironmentsStore (via injection)
 // - envTypesStore (via injection)
+// - projectsStore (via injection)
 class ScEnvironmentsList extends React.Component {
   constructor(props) {
     super(props);
@@ -33,6 +48,7 @@ class ScEnvironmentsList extends React.Component {
       const name = storage.getItem(key) || filterNames.ALL;
       storage.setItem(key, name);
       this.selectedFilter = name;
+      this.provisionDisabled = false;
     });
   }
 
@@ -53,12 +69,27 @@ class ScEnvironmentsList extends React.Component {
     store.stopHeartbeat();
   }
 
+  get isAppStreamEnabled() {
+    return process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true';
+  }
+
   get envTypesStore() {
     return this.props.envTypesStore;
   }
 
   get envsStore() {
     return this.props.scEnvironmentsStore;
+  }
+
+  getProjects() {
+    const store = this.getProjectsStore();
+    return store.list;
+  }
+
+  getProjectsStore() {
+    const store = this.props.projectsStore;
+    store.load();
+    return store;
   }
 
   handleCreateEnvironment = event => {
@@ -78,6 +109,15 @@ class ScEnvironmentsList extends React.Component {
   render() {
     const store = this.envsStore;
     let content = null;
+    const projects = this.getProjects();
+    const appStreamProjectIds = _.map(
+      _.filter(projects, proj => proj.isAppStreamConfigured),
+      'id',
+    );
+
+    runInAction(() => {
+      if (this.isAppStreamEnabled && _.isEmpty(appStreamProjectIds)) this.provisionDisabled = true;
+    });
 
     if (isStoreError(store)) {
       content = <ErrorBox error={store.error} className="p0" />;
@@ -94,8 +134,26 @@ class ScEnvironmentsList extends React.Component {
     return (
       <Container className="mt3 animated fadeIn">
         {this.renderTitle()}
+        {this.provisionDisabled && this.renderMissingAppStreamConfig()}
         {content}
       </Container>
+    );
+  }
+
+  renderMissingAppStreamConfig() {
+    return (
+      <>
+        <Segment placeholder className="mt2">
+          <Header icon className="color-grey">
+            <Icon name="lock" />
+            Missing association with AppStream projects
+            <Header.Subheader>
+              Since your projects are not associated to an AppStream-configured account, creating a new workspace is
+              disabled. Please contact your administrator.
+            </Header.Subheader>
+          </Header>
+        </Segment>
+      </>
     );
   }
 
@@ -155,6 +213,7 @@ class ScEnvironmentsList extends React.Component {
             data-testid="create-workspace"
             color="blue"
             size="medium"
+            disabled={this.provisionDisabled}
             basic
             onClick={this.handleCreateEnvironment}
           >
@@ -176,10 +235,15 @@ class ScEnvironmentsList extends React.Component {
 // see https://medium.com/@mweststrate/mobx-4-better-simpler-faster-smaller-c1fbc08008da
 decorate(ScEnvironmentsList, {
   selectedFilter: observable,
+  provisionDisabled: observable,
   envsStore: computed,
   envTypesStore: computed,
   handleCreateEnvironment: action,
   handleSelectedFilter: action,
 });
 
-export default inject('scEnvironmentsStore', 'envTypesStore')(withRouter(observer(ScEnvironmentsList)));
+export default inject(
+  'scEnvironmentsStore',
+  'projectsStore',
+  'envTypesStore',
+)(withRouter(observer(ScEnvironmentsList)));

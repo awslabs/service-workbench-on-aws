@@ -17,6 +17,27 @@
     },
     "description": {
       "type": "string"
+    },
+    "appStreamFleetDesiredInstances": {
+      "type": "string"
+    },
+    "appStreamIdleDisconnectTimeoutSeconds": {
+      "type": "string"
+    },
+    "appStreamDisconnectTimeoutSeconds": {
+      "type": "string"
+    },
+    "appStreamMaxUserDurationSeconds": {
+      "type": "string"
+    },
+    "appStreamImageName": {
+      "type": "string"
+    },
+    "appStreamInstanceType": {
+      "type": "string"
+    },
+    "appStreamFleetType": {
+      "type": "string"
     }
   },
   "required": ["accountName", "accountEmail", "masterRoleArn", "externalId"]

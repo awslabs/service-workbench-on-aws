@@ -15,6 +15,10 @@
 
 const _ = require('lodash');
 
+const settingKeys = {
+  isAppStreamEnabled: 'isAppStreamEnabled',
+};
+
 /**
  * A plugin method to contribute to the list of available variables for usage in variable expressions in
  * Environment Type Configurations. This plugin method just provides metadata about the variables such as list of
@@ -68,9 +72,6 @@ async function getStudies({ requestContext, container, envId }) {
  */
 async function preProvisioning({ requestContext, container, envId }) {
   const { environmentScEntity, studies } = await getStudies({ requestContext, container, envId });
-
-  if (_.isEmpty(studies)) return { requestContext, container, envId };
-
   const environmentScService = await container.find('environmentScService');
   const memberAccount = await environmentScService.getMemberAccount(requestContext, environmentScEntity);
   const pluginRegistryService = await container.find('pluginRegistryService');
@@ -208,7 +209,10 @@ async function updateEnvOnProvisioningSuccess({
   const environmentScService = await container.find('environmentScService');
   const envId = resolvedVars.envId;
 
-  const existingEnvRecord = await environmentScService.mustFind(requestContext, { id: envId, fields: ['rev'] });
+  const existingEnvRecord = await environmentScService.mustFind(requestContext, {
+    id: envId,
+    fields: ['rev', 'indexId'],
+  });
 
   // Create DNS record for RStudio workspaces
   const connectionType = _.find(outputs, o => o.OutputKey === 'MetaConnection1Type');
@@ -216,9 +220,16 @@ async function updateEnvOnProvisioningSuccess({
   if (connectionType) {
     connectionTypeValue = connectionType.OutputValue;
     if (connectionTypeValue.toLowerCase() === 'rstudio') {
-      const dnsName = _.find(outputs, o => o.OutputKey === 'Ec2WorkspaceDnsName').OutputValue;
       const environmentDnsService = await container.find('environmentDnsService');
-      await environmentDnsService.createRecord('rstudio', envId, dnsName);
+      const settings = await container.find('settings');
+      if (settings.getBoolean(settingKeys.isAppStreamEnabled)) {
+        const privateIp = _.find(outputs, o => o.OutputKey === 'Ec2WorkspacePrivateIp').OutputValue;
+        const hostedZoneId = await getHostedZone(requestContext, environmentScService, existingEnvRecord);
+        await environmentDnsService.createPrivateRecord(requestContext, 'rstudio', envId, privateIp, hostedZoneId);
+      } else {
+        const dnsName = _.find(outputs, o => o.OutputKey === 'Ec2WorkspaceDnsName').OutputValue;
+        await environmentDnsService.createRecord('rstudio', envId, dnsName);
+      }
     }
   }
 
@@ -319,7 +330,7 @@ async function updateEnvOnTerminationSuccess({ requestContext, container, status
 
   const existingEnvRecord = await environmentScService.mustFind(requestContext, {
     id: envId,
-    fields: ['rev', 'outputs'],
+    fields: ['rev', 'outputs', 'indexId'],
   });
 
   log.debug({ msg: `Updating environment record after successful termination`, envId });
@@ -360,7 +371,7 @@ async function updateEnvOnTerminationSuccess({ requestContext, container, status
   }
 
   // Delete DNS record for RStudio workspaces
-  await rstudioCleanup(requestContext, updatedEnvironment, container);
+  await rstudioCleanup(requestContext, updatedEnvironment, container, existingEnvRecord);
 
   // --- Cleanup - EC2 KeyPairs (the main admin key created specifically for this environment for SSH or RDP) from other account
   log.debug({ msg: `Cleaning up admin key pairs`, envId });
@@ -379,17 +390,30 @@ async function updateEnvOnTerminationSuccess({ requestContext, container, status
 // This method checks if the environment being terminated is an RStudio.
 // If yes, this will delete the CNAME record in Route 53 service and the
 // SSM public kay parameter created during environment's provisioning
-async function rstudioCleanup(requestContext, updatedEnvironment, container) {
+async function rstudioCleanup(requestContext, updatedEnvironment, container, existingEnvRecord) {
   const connectionType = _.find(updatedEnvironment.outputs, o => o.OutputKey === 'MetaConnection1Type');
   let connectionTypeValue;
   if (connectionType) {
     connectionTypeValue = connectionType.OutputValue;
     if (connectionTypeValue.toLowerCase() === 'rstudio') {
-      const dnsName = _.find(updatedEnvironment.outputs, x => x.OutputKey === 'Ec2WorkspaceDnsName').OutputValue;
       const instanceId = _.find(updatedEnvironment.outputs, x => x.OutputKey === 'Ec2WorkspaceInstanceId').OutputValue;
       const environmentDnsService = await container.find('environmentDnsService');
       const environmentScService = await container.find('environmentScService');
-      await environmentDnsService.deleteRecord('rstudio', updatedEnvironment.id, dnsName);
+      const settings = await container.find('settings');
+      if (settings.getBoolean(settingKeys.isAppStreamEnabled)) {
+        const privateIp = _.find(updatedEnvironment.outputs, o => o.OutputKey === 'Ec2WorkspacePrivateIp').OutputValue;
+        const hostedZoneId = await getHostedZone(requestContext, environmentScService, existingEnvRecord);
+        await environmentDnsService.deletePrivateRecord(
+          requestContext,
+          'rstudio',
+          updatedEnvironment.id,
+          privateIp,
+          hostedZoneId,
+        );
+      } else {
+        const dnsName = _.find(updatedEnvironment.outputs, x => x.OutputKey === 'Ec2WorkspaceDnsName').OutputValue;
+        await environmentDnsService.deleteRecord('rstudio', updatedEnvironment.id, dnsName);
+      }
 
       const ssm = await environmentScService.getClientSdkWithEnvMgmtRole(
         requestContext,
@@ -407,6 +431,11 @@ async function rstudioCleanup(requestContext, updatedEnvironment, container) {
         });
     }
   }
+}
+
+async function getHostedZone(requestContext, environmentScService, existingEnvRecord) {
+  const memberAccount = await environmentScService.getMemberAccount(requestContext, existingEnvRecord);
+  return memberAccount.route53HostedZone;
 }
 
 // The "terminate-product' workflow call "onEnvTerminationFailure" in case of any errors

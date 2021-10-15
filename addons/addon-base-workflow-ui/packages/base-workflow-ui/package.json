@@ -6,7 +6,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "@aws-ee/base-ui": "workspace:*",
-    "aws-sdk": "^2.647.0",
+    "aws-sdk": "^2.1000.0",
     "chart.js": "^2.9.4",
     "classnames": "^2.2.6",
     "jwt-decode": "^2.2.0",
