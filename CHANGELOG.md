@@ -2,8 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## Beta
-[This release is in beta. Click here to see changes since 4.0.0.](https://github.com/awslabs/service-workbench-on-aws/compare/v4.0.0...mainline)
+### [4.0.1](https://github.com/awslabs/service-workbench-on-aws/compare/v4.0.0...v4.0.1) (2021-10-15)
+
+Notes: We recommend to apply this patch as soon as possible if you use [CICD](https://github.com/awslabs/service-workbench-on-aws/blob/mainline/main/cicd/cicd-source/README.md) component
+
+### Bug Fixes
+
+* remove test target from infrastructure tests as it is reserved for unit tests ([#756](https://github.com/awslabs/service-workbench-on-aws/issues/756)) ([4adb965](https://github.com/awslabs/service-workbench-on-aws/commit/4adb965d6b74d8354eea4b036aa3510749b067fd))
 
 ## [4.0.0](https://github.com/awslabs/service-workbench-on-aws/compare/v4.0.0...v3.5.0) (2021-10-14)
 
