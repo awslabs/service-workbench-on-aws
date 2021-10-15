@@ -7,7 +7,6 @@
   "license": "Apache-2.0",
   "scripts": {
     "testSpecific": "NODE_ENV=test jest --config jest.config.js --passWithNoTests --verbose",
-    "test": "NODE_ENV=test jest --config jest.config.js --passWithNoTests --verbose  --testPathPattern='./__test__/(common|appstream-egress-disabled)'",
     "testAppStreamEgressEnabled": "NODE_ENV=test jest --config jest.config.js --passWithNoTests --verbose  --testPathPattern='./__test__/(common|appstream-egress-enabled)'",
     "lint": "pnpm run lint:eslint && pnpm run lint:prettier",
     "lint:eslint": "eslint --ignore-path .gitignore . ",
