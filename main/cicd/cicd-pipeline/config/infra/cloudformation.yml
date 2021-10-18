@@ -10,6 +10,7 @@ Conditions:
     - !Equals ['${self:custom.settings.sourceAccountId}', '']
   CreateStagingEnv: !Equals ['${self:custom.settings.createStagingEnv}', true]
   RunTestsAgainstTargetEnv: !Equals ['${self:custom.settings.runTestsAgainstTargetEnv}', true]
+  DeleteTargetEnv: !Equals ['${self:custom.settings.deleteAfterInstall}', true]
   AddManualApproval: !Equals ['${self:custom.settings.requireManualApproval}', true]
   SubscribeNotificationEmail: !Not
     - !Equals ['${self:custom.settings.emailForNotifications}', '']
@@ -20,8 +21,7 @@ Resources:
     Type: AWS::SNS::Topic
     Properties: !If
       - SubscribeNotificationEmail
-      -
-        Subscription:
+      - Subscription:
           - Endpoint: ${self:custom.settings.emailForNotifications}
             Protocol: email
         KmsMasterKeyId: alias/aws/sns
@@ -194,6 +194,7 @@ Resources:
                   - !GetAtt TestStgEnvProject.Arn
                   - !GetAtt TargetEnvDeployProject.Arn
                   - !GetAtt TestTargetEnvProject.Arn
+                  - !GetAtt DeleteTargetEnvProject.Arn
               - !If
                 - UseCodeCommit
                 - Action:
@@ -229,7 +230,7 @@ Resources:
           - Action:
               - iam:PassRole
             Effect: Allow
-            Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-cicd-pipeline-AppDeployerRole-*'
+            Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*'
           - Action:
               - iam:CreatePolicy
               - iam:GetPolicy
@@ -533,6 +534,23 @@ Resources:
                 InputArtifacts:
                   - Name: SourceArtifact
           - !Ref AWS::NoValue
+        # Add a stage for integration testing against target env if the RunTestsAgainstTargetEnv condition is true
+        - !If
+          - DeleteTargetEnv
+          - Name: Delete-Target-Env-${self:custom.settings.envName}
+            Actions:
+              - Name: Delete-Target-Env
+                RunOrder: 1
+                ActionTypeId:
+                  Category: Build
+                  Owner: AWS
+                  Provider: CodeBuild
+                  Version: '1'
+                Configuration:
+                  ProjectName: !Ref DeleteTargetEnvProject
+                InputArtifacts:
+                  - Name: SourceArtifact
+          - !Ref AWS::NoValue
 
   # A CodeBuild project to deploy solution to the staging environment before deploying it to target env
   # Create this CodeBuild project only if the condition CreateStagingEnv is set to true
@@ -626,6 +644,33 @@ Resources:
       Source:
         Type: CODEPIPELINE
         BuildSpec: main/cicd/cicd-pipeline/config/buildspec/buildspec-int-tests.yml
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Type: LINUX_CONTAINER
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:2.0
+        EnvironmentVariables:
+          - Name: DEPLOYMENT_BUCKET
+            Value: ${self:provider.deploymentBucket}
+          - Name: ENV_NAME
+            Value: ${self:custom.settings.envName}
+      ServiceRole: !GetAtt AppDeployerRole.Arn
+      Cache:
+        # Use local caching to cache dirs specified in buildspec.yml (i.e., the node_modules dirs)
+        # See https://docs.aws.amazon.com/codebuild/latest/userguide/build-caching.html for various build caching options
+        Type: LOCAL
+        Modes:
+          - LOCAL_SOURCE_CACHE
+          - LOCAL_CUSTOM_CACHE
+
+  # A CodeBuild project to test target environment solution
+  DeleteTargetEnvProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: main/cicd/cicd-pipeline/config/buildspec/buildspec-uninstall.yml
       Environment:
         ComputeType: BUILD_GENERAL1_LARGE
         Type: LINUX_CONTAINER
