@@ -21,7 +21,8 @@ phases:
       - printf "\n\n"
   build:
     commands:
-      - ./scripts/run-integration-tests.sh "$ENV_NAME"
+#      - ./scripts/run-integration-tests.sh "$ENV_NAME"
+      - printf "Hello world"
       - printf "\n\n"
 
 reports:
