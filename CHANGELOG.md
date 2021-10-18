@@ -2,6 +2,9 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+## Beta
+[This release is in beta. Click here to see changes since 4.0.1.](https://github.com/awslabs/service-workbench-on-aws/compare/v4.0.1...mainline)
+
 ### [4.0.1](https://github.com/awslabs/service-workbench-on-aws/compare/v4.0.0...v4.0.1) (2021-10-15)
 
 Notes: We recommend to apply this patch as soon as possible if you use [CICD](https://github.com/awslabs/service-workbench-on-aws/blob/mainline/main/cicd/cicd-source/README.md) component
