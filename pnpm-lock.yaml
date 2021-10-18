@@ -1,9 +1,9 @@
 importers:
   addons/addon-base-post-deployment/packages/base-post-deployment:
     dependencies:
-      '@aws-ee/base-api-services': link:../../../addon-base-rest-api/packages/services
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      '@aws-ee/base-api-services': 'link:../../../addon-base-rest-api/packages/services'
+      '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
+      '@aws-ee/base-services-container': 'link:../../../addon-base/packages/services-container'
       aws-sdk: 2.1001.0
       generate-password: 1.5.1
       lodash: 4.17.21
@@ -21,9 +21,9 @@ importers:
       prettier: 1.19.1
       source-map-support: 0.5.16
     specifiers:
-      '@aws-ee/base-api-services': workspace:*
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@aws-ee/base-api-services': 'workspace:*'
+      '@aws-ee/base-services': 'workspace:*'
+      '@aws-ee/base-services-container': 'workspace:*'
       aws-sdk: ^2.1000.0
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.0.0
@@ -41,9 +41,9 @@ importers:
       source-map-support: ^0.5.16
   addons/addon-base-pre-deployment/packages/base-pre-deployment:
     dependencies:
-      '@aws-ee/base-api-services': link:../../../addon-base-rest-api/packages/services
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      '@aws-ee/base-api-services': 'link:../../../addon-base-rest-api/packages/services'
+      '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
+      '@aws-ee/base-services-container': 'link:../../../addon-base/packages/services-container'
       aws-sdk: 2.1001.0
       generate-password: 1.5.1
       lodash: 4.17.21
@@ -61,9 +61,9 @@ importers:
       prettier: 1.19.1
       source-map-support: 0.5.19
     specifiers:
-      '@aws-ee/base-api-services': workspace:*
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@aws-ee/base-api-services': 'workspace:*'
+      '@aws-ee/base-services': 'workspace:*'
+      '@aws-ee/base-services-container': 'workspace:*'
       aws-sdk: ^2.1000.0
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.0.0
@@ -81,10 +81,10 @@ importers:
       source-map-support: ^0.5.16
   addons/addon-base-raas-appstream/packages/base-raas-appstream-rest-api:
     dependencies:
-      '@aws-ee/base-controllers': link:../../../addon-base-rest-api/packages/base-controllers
-      '@aws-ee/base-raas-appstream-services': link:../base-raas-appstream-services
-      '@aws-ee/base-raas-services': link:../../../addon-base-raas/packages/base-raas-services
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
+      '@aws-ee/base-controllers': 'link:../../../addon-base-rest-api/packages/base-controllers'
+      '@aws-ee/base-raas-appstream-services': 'link:../base-raas-appstream-services'
+      '@aws-ee/base-raas-services': 'link:../../../addon-base-raas/packages/base-raas-services'
+      '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
       lodash: 4.17.21
     devDependencies:
       eslint: 6.8.0
@@ -101,10 +101,10 @@ importers:
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.19
     specifiers:
-      '@aws-ee/base-controllers': workspace:*
-      '@aws-ee/base-raas-appstream-services': workspace:*
-      '@aws-ee/base-raas-services': workspace:*
-      '@aws-ee/base-services': workspace:*
+      '@aws-ee/base-controllers': 'workspace:*'
+      '@aws-ee/base-raas-appstream-services': 'workspace:*'
+      '@aws-ee/base-raas-services': 'workspace:*'
+      '@aws-ee/base-services': 'workspace:*'
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.1.0
       eslint-config-prettier: ^6.10.0
@@ -121,9 +121,9 @@ importers:
       source-map-support: ^0.5.16
   addons/addon-base-raas-appstream/packages/base-raas-appstream-services:
     dependencies:
-      '@aws-ee/base-raas-services': link:../../../addon-base-raas/packages/base-raas-services
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      '@aws-ee/base-raas-services': 'link:../../../addon-base-raas/packages/base-raas-services'
+      '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
+      '@aws-ee/base-services-container': 'link:../../../addon-base/packages/services-container'
       lodash: 4.17.21
       uuid: 3.4.0
     devDependencies:
@@ -142,9 +142,9 @@ importers:
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.19
     specifiers:
-      '@aws-ee/base-raas-services': workspace:*
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@aws-ee/base-raas-services': 'workspace:*'
+      '@aws-ee/base-services': 'workspace:*'
+      '@aws-ee/base-services-container': 'workspace:*'
       aws-sdk-mock: ^5.1.0
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.1.0
@@ -164,9 +164,9 @@ importers:
   addons/addon-base-raas-ui/packages/base-raas-ui:
     dependencies:
       '@auth0/auth0-spa-js': 1.6.5
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-ui': link:../../../addon-base-ui/packages/base-ui
-      '@aws-ee/key-pair-mgmt-ui': link:../../../addon-key-pair-mgmt-ui/packages/key-pair-mgmt-ui
+      '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
+      '@aws-ee/base-ui': 'link:../../../addon-base-ui/packages/base-ui'
+      '@aws-ee/key-pair-mgmt-ui': 'link:../../../addon-key-pair-mgmt-ui/packages/key-pair-mgmt-ui'
       aws-sdk: 2.1001.0
       chart.js: 2.9.4
       classnames: 2.2.6
@@ -233,12 +233,12 @@ importers:
       serverless: 1.67.3
       serverless-deployment-bucket: 1.1.1
       typescript: 3.8.3
-      webpack: 4.41.2
+      webpack: 4.41.2_webpack@4.41.2
     specifiers:
       '@auth0/auth0-spa-js': ^1.2.3
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-ui': workspace:*
-      '@aws-ee/key-pair-mgmt-ui': workspace:*
+      '@aws-ee/base-services': 'workspace:*'
+      '@aws-ee/base-ui': 'workspace:*'
+      '@aws-ee/key-pair-mgmt-ui': 'workspace:*'
       '@babel/cli': ^7.8.4
       '@babel/core': ^7.8.6
       '@babel/plugin-proposal-class-properties': ^7.8.3
@@ -340,9 +340,9 @@ importers:
       source-map-support: ^0.5.16
   addons/addon-base-raas/packages/base-raas-post-deployment:
     dependencies:
-      '@aws-ee/base-raas-services': link:../base-raas-services
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      '@aws-ee/base-raas-services': 'link:../base-raas-services'
+      '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
+      '@aws-ee/base-services-container': 'link:../../../addon-base/packages/services-container'
       lodash: 4.17.21
     devDependencies:
       eslint: 6.8.0
@@ -360,9 +360,9 @@ importers:
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
     specifiers:
-      '@aws-ee/base-raas-services': workspace:*
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@aws-ee/base-raas-services': 'workspace:*'
+      '@aws-ee/base-services': 'workspace:*'
+      '@aws-ee/base-services-container': 'workspace:*'
       eslint: ^6.8.0
       eslint-config-airbnb: ^18.1.0
       eslint-config-airbnb-base: ^14.1.0
@@ -380,10 +380,10 @@ importers:
       source-map-support: ^0.5.16
   addons/addon-base-raas/packages/base-raas-rest-api:
     dependencies:
-      '@aws-ee/base-api-services': link:../../../addon-base-rest-api/packages/services
-      '@aws-ee/base-controllers': link:../../../addon-base-rest-api/packages/base-controllers
-      '@aws-ee/base-raas-services': link:../base-raas-services
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
+      '@aws-ee/base-api-services': 'link:../../../addon-base-rest-api/packages/services'
+      '@aws-ee/base-controllers': 'link:../../../addon-base-rest-api/packages/base-controllers'
+      '@aws-ee/base-raas-services': 'link:../base-raas-services'
+      '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
       lodash: 4.17.21
     devDependencies:
       eslint: 6.8.0
@@ -400,10 +400,10 @@ importers:
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
     specifiers:
-      '@aws-ee/base-api-services': workspace:*
-      '@aws-ee/base-controllers': workspace:*
-      '@aws-ee/base-raas-services': workspace:*
-      '@aws-ee/base-services': workspace:*
+      '@aws-ee/base-api-services': 'workspace:*'
+      '@aws-ee/base-controllers': 'workspace:*'
+      '@aws-ee/base-raas-services': 'workspace:*'
+      '@aws-ee/base-services': 'workspace:*'
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.1.0
       eslint-config-prettier: ^6.10.0
@@ -420,10 +420,10 @@ importers:
       source-map-support: ^0.5.16
   addons/addon-base-raas/packages/base-raas-services:
     dependencies:
-      '@aws-ee/base-api-services': link:../../../addon-base-rest-api/packages/services
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
-      '@aws-ee/key-pair-mgmt-services': link:../../../addon-key-pair-mgmt-api/packages/key-pair-mgmt-services
+      '@aws-ee/base-api-services': 'link:../../../addon-base-rest-api/packages/services'
+      '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
+      '@aws-ee/base-services-container': 'link:../../../addon-base/packages/services-container'
+      '@aws-ee/key-pair-mgmt-services': 'link:../../../addon-key-pair-mgmt-api/packages/key-pair-mgmt-services'
       is-cidr: 3.1.0
       js-yaml: 4.0.0
       lodash: 4.17.21
@@ -437,8 +437,8 @@ importers:
       uuid: 3.4.0
       xml: 1.0.1
     devDependencies:
-      '@aws-ee/base-workflow-core': link:../../../addon-base-workflow/packages/base-workflow-core
-      '@aws-ee/environment-type-mgmt-services': link:../../../addon-environment-sc-api/packages/environment-type-mgmt-services
+      '@aws-ee/base-workflow-core': 'link:../../../addon-base-workflow/packages/base-workflow-core'
+      '@aws-ee/environment-type-mgmt-services': 'link:../../../addon-environment-sc-api/packages/environment-type-mgmt-services'
       aws-sdk-mock: 5.1.0
       eslint: 6.8.0
       eslint-config-airbnb-base: 14.1.0_8cdb6d8c18c3319a1365bd5afa0063a3
@@ -455,12 +455,12 @@ importers:
       sinon: 9.0.3
       source-map-support: 0.5.16
     specifiers:
-      '@aws-ee/base-api-services': workspace:*
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
-      '@aws-ee/base-workflow-core': workspace:*
-      '@aws-ee/environment-type-mgmt-services': workspace:*
-      '@aws-ee/key-pair-mgmt-services': workspace:*
+      '@aws-ee/base-api-services': 'workspace:*'
+      '@aws-ee/base-services': 'workspace:*'
+      '@aws-ee/base-services-container': 'workspace:*'
+      '@aws-ee/base-workflow-core': 'workspace:*'
+      '@aws-ee/environment-type-mgmt-services': 'workspace:*'
+      '@aws-ee/key-pair-mgmt-services': 'workspace:*'
       aws-sdk-mock: ^5.1.0
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.1.0
@@ -490,13 +490,13 @@ importers:
       xml: ^1.0.1
   addons/addon-base-raas/packages/base-raas-workflow-steps:
     dependencies:
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-workflow-core': link:../../../addon-base-workflow/packages/base-workflow-core
+      '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
+      '@aws-ee/base-workflow-core': 'link:../../../addon-base-workflow/packages/base-workflow-core'
       lodash: 4.17.21
       slugify: 1.4.0
     devDependencies:
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
-      '@aws-ee/workflow-engine': link:../../../addon-base-workflow/packages/workflow-engine
+      '@aws-ee/base-services-container': 'link:../../../addon-base/packages/services-container'
+      '@aws-ee/workflow-engine': 'link:../../../addon-base-workflow/packages/workflow-engine'
       aws-sdk-mock: 5.1.0
       eslint: 6.8.0
       eslint-config-airbnb: 18.1.0_8cdb6d8c18c3319a1365bd5afa0063a3
@@ -513,10 +513,10 @@ importers:
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
     specifiers:
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
-      '@aws-ee/base-workflow-core': workspace:*
-      '@aws-ee/workflow-engine': workspace:*
+      '@aws-ee/base-services': 'workspace:*'
+      '@aws-ee/base-services-container': 'workspace:*'
+      '@aws-ee/base-workflow-core': 'workspace:*'
+      '@aws-ee/workflow-engine': 'workspace:*'
       aws-sdk-mock: ^5.1.0
       eslint: ^6.8.0
       eslint-config-airbnb: ^18.1.0
@@ -536,7 +536,7 @@ importers:
       source-map-support: ^0.5.16
   addons/addon-base-raas/packages/base-raas-workflows:
     dependencies:
-      '@aws-ee/base-workflow-core': link:../../../addon-base-workflow/packages/base-workflow-core
+      '@aws-ee/base-workflow-core': 'link:../../../addon-base-workflow/packages/base-workflow-core'
       lodash: 4.17.21
       slugify: 1.4.0
     devDependencies:
@@ -555,7 +555,7 @@ importers:
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
     specifiers:
-      '@aws-ee/base-workflow-core': workspace:*
+      '@aws-ee/base-workflow-core': 'workspace:*'
       eslint: ^6.8.0
       eslint-config-airbnb: ^18.1.0
       eslint-config-airbnb-base: ^14.1.0
@@ -606,7 +606,7 @@ importers:
       source-map-support: ^0.5.16
   addons/addon-base-rest-api/packages/api-handler-factory:
     dependencies:
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      '@aws-ee/base-services-container': 'link:../../../addon-base/packages/services-container'
       body-parser: 1.19.0
       compression: 1.7.4
       cors: 2.8.5
@@ -628,7 +628,7 @@ importers:
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
     specifiers:
-      '@aws-ee/base-services-container': workspace:*
+      '@aws-ee/base-services-container': 'workspace:*'
       body-parser: ^1.19.0
       compression: ^1.7.4
       cors: ^2.8.5
@@ -650,9 +650,9 @@ importers:
       source-map-support: ^0.5.16
   addons/addon-base-rest-api/packages/base-api-handler:
     dependencies:
-      '@aws-ee/base-api-services': link:../services
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      '@aws-ee/base-api-services': 'link:../services'
+      '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
+      '@aws-ee/base-services-container': 'link:../../../addon-base/packages/services-container'
       aws-sdk: 2.1001.0
       generate-password: 1.5.1
       lodash: 4.17.21
@@ -670,9 +670,9 @@ importers:
       prettier: 1.19.1
       source-map-support: 0.5.16
     specifiers:
-      '@aws-ee/base-api-services': workspace:*
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@aws-ee/base-api-services': 'workspace:*'
+      '@aws-ee/base-services': 'workspace:*'
+      '@aws-ee/base-services-container': 'workspace:*'
       aws-sdk: ^2.1000.0
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.0.0
@@ -690,9 +690,9 @@ importers:
       source-map-support: ^0.5.16
   addons/addon-base-rest-api/packages/base-authn-handler:
     dependencies:
-      '@aws-ee/base-api-services': link:../services
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      '@aws-ee/base-api-services': 'link:../services'
+      '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
+      '@aws-ee/base-services-container': 'link:../../../addon-base/packages/services-container'
       aws-sdk: 2.1001.0
       generate-password: 1.5.1
       lodash: 4.17.21
@@ -710,9 +710,9 @@ importers:
       prettier: 1.19.1
       source-map-support: 0.5.16
     specifiers:
-      '@aws-ee/base-api-services': workspace:*
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@aws-ee/base-api-services': 'workspace:*'
+      '@aws-ee/base-services': 'workspace:*'
+      '@aws-ee/base-services-container': 'workspace:*'
       aws-sdk: ^2.1000.0
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.0.0
@@ -730,9 +730,9 @@ importers:
       source-map-support: ^0.5.16
   addons/addon-base-rest-api/packages/base-controllers:
     dependencies:
-      '@aws-ee/base-api-services': link:../services
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      '@aws-ee/base-api-services': 'link:../services'
+      '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
+      '@aws-ee/base-services-container': 'link:../../../addon-base/packages/services-container'
       lodash: 4.17.21
     devDependencies:
       eslint: 6.8.0
@@ -748,9 +748,9 @@ importers:
       prettier: 1.19.1
       source-map-support: 0.5.16
     specifiers:
-      '@aws-ee/base-api-services': workspace:*
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@aws-ee/base-api-services': 'workspace:*'
+      '@aws-ee/base-services': 'workspace:*'
+      '@aws-ee/base-services-container': 'workspace:*'
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.0.0
       eslint-config-prettier: ^6.10.0
@@ -766,8 +766,8 @@ importers:
       source-map-support: ^0.5.16
   addons/addon-base-rest-api/packages/services:
     dependencies:
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
+      '@aws-ee/base-services-container': 'link:../../../addon-base/packages/services-container'
       ajv: 6.12.0
       aws-sdk: 2.1001.0
       jsonwebtoken: 8.5.1
@@ -793,8 +793,8 @@ importers:
       prettier: 1.19.1
       source-map-support: 0.5.16
     specifiers:
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@aws-ee/base-services': 'workspace:*'
+      '@aws-ee/base-services-container': 'workspace:*'
       ajv: ^6.11.0
       aws-sdk: ^2.1000.0
       aws-sdk-mock: ^5.1.0
@@ -848,8 +848,8 @@ importers:
       typeface-lato: 0.0.75
       validatorjs: 3.18.1
     devDependencies:
-      '@aws-ee/base-serverless-settings-helper': link:../../../addon-base/packages/serverless-settings-helper
-      '@aws-ee/base-serverless-ui-tools': link:../serverless-ui-tools
+      '@aws-ee/base-serverless-settings-helper': 'link:../../../addon-base/packages/serverless-settings-helper'
+      '@aws-ee/base-serverless-ui-tools': 'link:../serverless-ui-tools'
       '@babel/cli': 7.8.4_@babel+core@7.9.0
       '@babel/core': 7.9.0
       '@babel/plugin-proposal-class-properties': 7.8.3_@babel+core@7.9.0
@@ -879,10 +879,10 @@ importers:
       serverless: 1.67.3
       serverless-deployment-bucket: 1.1.1
       typescript: 3.8.3
-      webpack: 4.41.2
+      webpack: 4.41.2_webpack@4.41.2
     specifiers:
-      '@aws-ee/base-serverless-settings-helper': workspace:*
-      '@aws-ee/base-serverless-ui-tools': workspace:*
+      '@aws-ee/base-serverless-settings-helper': 'workspace:*'
+      '@aws-ee/base-serverless-ui-tools': 'workspace:*'
       '@babel/cli': ^7.8.4
       '@babel/core': ^7.8.6
       '@babel/plugin-proposal-class-properties': ^7.8.3
@@ -978,8 +978,8 @@ importers:
       pretty-quick: ^1.11.1
   addons/addon-base-workflow-api/packages/base-worklfow-api:
     dependencies:
-      '@aws-ee/base-controllers': link:../../../addon-base-rest-api/packages/base-controllers
-      '@aws-ee/base-workflow-core': link:../../../addon-base-workflow/packages/base-workflow-core
+      '@aws-ee/base-controllers': 'link:../../../addon-base-rest-api/packages/base-controllers'
+      '@aws-ee/base-workflow-core': 'link:../../../addon-base-workflow/packages/base-workflow-core'
       lodash: 4.17.21
     devDependencies:
       eslint: 6.8.0
@@ -997,8 +997,8 @@ importers:
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
     specifiers:
-      '@aws-ee/base-controllers': workspace:*
-      '@aws-ee/base-workflow-core': workspace:*
+      '@aws-ee/base-controllers': 'workspace:*'
+      '@aws-ee/base-workflow-core': 'workspace:*'
       eslint: ^6.8.0
       eslint-config-airbnb: ^18.1.0
       eslint-config-airbnb-base: ^14.1.0
@@ -1016,7 +1016,7 @@ importers:
       source-map-support: ^0.5.16
   addons/addon-base-workflow-ui/packages/base-workflow-ui:
     dependencies:
-      '@aws-ee/base-ui': link:../../../addon-base-ui/packages/base-ui
+      '@aws-ee/base-ui': 'link:../../../addon-base-ui/packages/base-ui'
       aws-sdk: 2.1001.0
       chart.js: 2.9.4
       classnames: 2.2.6
@@ -1070,9 +1070,9 @@ importers:
       serverless: 1.67.3
       serverless-deployment-bucket: 1.1.1
       typescript: 3.8.3
-      webpack: 4.41.2
+      webpack: 4.41.2_webpack@4.41.2
     specifiers:
-      '@aws-ee/base-ui': workspace:*
+      '@aws-ee/base-ui': 'workspace:*'
       '@babel/cli': ^7.8.4
       '@babel/core': ^7.8.6
       '@babel/plugin-proposal-class-properties': ^7.8.3
@@ -1128,9 +1128,9 @@ importers:
       webpack: 4.41.2
   addons/addon-base-workflow/packages/base-workflow-core:
     dependencies:
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
-      '@aws-ee/workflow-engine': link:../workflow-engine
+      '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
+      '@aws-ee/base-services-container': 'link:../../../addon-base/packages/services-container'
+      '@aws-ee/workflow-engine': 'link:../workflow-engine'
       lodash: 4.17.21
       slugify: 1.4.0
     devDependencies:
@@ -1149,9 +1149,9 @@ importers:
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
     specifiers:
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
-      '@aws-ee/workflow-engine': workspace:*
+      '@aws-ee/base-services': 'workspace:*'
+      '@aws-ee/base-services-container': 'workspace:*'
+      '@aws-ee/workflow-engine': 'workspace:*'
       eslint: ^6.8.0
       eslint-config-airbnb: ^18.1.0
       eslint-config-airbnb-base: ^14.1.0
@@ -1170,7 +1170,7 @@ importers:
       source-map-support: ^0.5.16
   addons/addon-base-workflow/packages/base-workflow-templates:
     dependencies:
-      '@aws-ee/base-workflow-core': link:../base-workflow-core
+      '@aws-ee/base-workflow-core': 'link:../base-workflow-core'
       lodash: 4.17.21
       slugify: 1.4.0
     devDependencies:
@@ -1189,7 +1189,7 @@ importers:
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
     specifiers:
-      '@aws-ee/base-workflow-core': workspace:*
+      '@aws-ee/base-workflow-core': 'workspace:*'
       eslint: ^6.8.0
       eslint-config-airbnb: ^18.1.0
       eslint-config-airbnb-base: ^14.1.0
@@ -1208,7 +1208,7 @@ importers:
       source-map-support: ^0.5.16
   addons/addon-base-workflow/packages/base-worklfow-steps:
     dependencies:
-      '@aws-ee/base-workflow-core': link:../base-workflow-core
+      '@aws-ee/base-workflow-core': 'link:../base-workflow-core'
       lodash: 4.17.21
       slugify: 1.4.0
     devDependencies:
@@ -1227,7 +1227,7 @@ importers:
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
     specifiers:
-      '@aws-ee/base-workflow-core': workspace:*
+      '@aws-ee/base-workflow-core': 'workspace:*'
       eslint: ^6.8.0
       eslint-config-airbnb: ^18.1.0
       eslint-config-airbnb-base: ^14.1.0
@@ -1392,7 +1392,7 @@ importers:
       serverless: ^1.63.0
   addons/addon-base/packages/services:
     dependencies:
-      '@aws-ee/base-services-container': link:../services-container
+      '@aws-ee/base-services-container': 'link:../services-container'
       ajv: 6.12.0
       aws-sdk: 2.1001.0
       aws-xray-sdk: 3.2.0
@@ -1422,8 +1422,8 @@ importers:
       prettier: 1.19.1
       source-map-support: 0.5.16
     specifiers:
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@aws-ee/base-services': 'workspace:*'
+      '@aws-ee/base-services-container': 'workspace:*'
       ajv: ^6.11.0
       aws-sdk: ^2.1000.0
       aws-sdk-mock: ^5.1.0
@@ -1488,14 +1488,14 @@ importers:
       toposort: ^2.0.2
   addons/addon-environment-sc-api/packages/environment-sc-workflow-steps:
     dependencies:
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-workflow-core': link:../../../addon-base-workflow/packages/base-workflow-core
-      '@aws-ee/environment-type-mgmt-services': link:../environment-type-mgmt-services
+      '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
+      '@aws-ee/base-workflow-core': 'link:../../../addon-base-workflow/packages/base-workflow-core'
+      '@aws-ee/environment-type-mgmt-services': 'link:../environment-type-mgmt-services'
       lodash: 4.17.21
       slugify: 1.4.0
       uuid: 8.2.0
     devDependencies:
-      '@aws-ee/workflow-engine': link:../../../addon-base-workflow/packages/workflow-engine
+      '@aws-ee/workflow-engine': 'link:../../../addon-base-workflow/packages/workflow-engine'
       eslint: 6.8.0
       eslint-config-airbnb: 18.1.0_8cdb6d8c18c3319a1365bd5afa0063a3
       eslint-config-airbnb-base: 14.1.0_8cdb6d8c18c3319a1365bd5afa0063a3
@@ -1511,10 +1511,10 @@ importers:
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
     specifiers:
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-workflow-core': workspace:*
-      '@aws-ee/environment-type-mgmt-services': workspace:*
-      '@aws-ee/workflow-engine': workspace:*
+      '@aws-ee/base-services': 'workspace:*'
+      '@aws-ee/base-workflow-core': 'workspace:*'
+      '@aws-ee/environment-type-mgmt-services': 'workspace:*'
+      '@aws-ee/workflow-engine': 'workspace:*'
       eslint: ^6.8.0
       eslint-config-airbnb: ^18.1.0
       eslint-config-airbnb-base: ^14.1.0
@@ -1534,7 +1534,7 @@ importers:
       uuid: ^8.2.0
   addons/addon-environment-sc-api/packages/environment-sc-workflows:
     dependencies:
-      '@aws-ee/base-workflow-core': link:../../../addon-base-workflow/packages/base-workflow-core
+      '@aws-ee/base-workflow-core': 'link:../../../addon-base-workflow/packages/base-workflow-core'
       lodash: 4.17.21
       slugify: 1.4.0
     devDependencies:
@@ -1553,7 +1553,7 @@ importers:
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
     specifiers:
-      '@aws-ee/base-workflow-core': workspace:*
+      '@aws-ee/base-workflow-core': 'workspace:*'
       eslint: ^6.8.0
       eslint-config-airbnb: ^18.1.0
       eslint-config-airbnb-base: ^14.1.0
@@ -1572,8 +1572,8 @@ importers:
       source-map-support: ^0.5.16
   addons/addon-environment-sc-api/packages/environment-type-mgmt-api:
     dependencies:
-      '@aws-ee/base-controllers': link:../../../addon-base-rest-api/packages/base-controllers
-      '@aws-ee/environment-type-mgmt-services': link:../environment-type-mgmt-services
+      '@aws-ee/base-controllers': 'link:../../../addon-base-rest-api/packages/base-controllers'
+      '@aws-ee/environment-type-mgmt-services': 'link:../environment-type-mgmt-services'
       lodash: 4.17.21
       uuid: 3.4.0
     devDependencies:
@@ -1591,8 +1591,8 @@ importers:
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
     specifiers:
-      '@aws-ee/base-controllers': workspace:*
-      '@aws-ee/environment-type-mgmt-services': workspace:*
+      '@aws-ee/base-controllers': 'workspace:*'
+      '@aws-ee/environment-type-mgmt-services': 'workspace:*'
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.1.0
       eslint-config-prettier: ^6.10.0
@@ -1610,8 +1610,8 @@ importers:
       uuid: ^3.4.0
   addons/addon-environment-sc-api/packages/environment-type-mgmt-services:
     dependencies:
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
+      '@aws-ee/base-services-container': 'link:../../../addon-base/packages/services-container'
       lodash: 4.17.21
       uuid: 3.4.0
     devDependencies:
@@ -1629,8 +1629,8 @@ importers:
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
     specifiers:
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@aws-ee/base-services': 'workspace:*'
+      '@aws-ee/base-services-container': 'workspace:*'
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.1.0
       eslint-config-prettier: ^6.10.0
@@ -1648,7 +1648,7 @@ importers:
       uuid: ^3.4.0
   addons/addon-environment-sc-ui/packages/environment-type-mgmt-ui:
     dependencies:
-      '@aws-ee/base-ui': link:../../../addon-base-ui/packages/base-ui
+      '@aws-ee/base-ui': 'link:../../../addon-base-ui/packages/base-ui'
       lodash: 4.17.21
       mobx: 5.15.4
       mobx-react: 6.2.2_mobx@5.15.4+react@16.13.1
@@ -1689,7 +1689,7 @@ importers:
       pretty-quick: 1.11.1_prettier@1.19.1
       regenerator-runtime: 0.13.5
     specifiers:
-      '@aws-ee/base-ui': workspace:*
+      '@aws-ee/base-ui': 'workspace:*'
       '@babel/cli': ^7.8.4
       '@babel/core': ^7.8.6
       '@babel/plugin-proposal-class-properties': ^7.8.3
@@ -1730,8 +1730,8 @@ importers:
       semantic-ui-react: ^0.88.2
   addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-api:
     dependencies:
-      '@aws-ee/base-controllers': link:../../../addon-base-rest-api/packages/base-controllers
-      '@aws-ee/key-pair-mgmt-services': link:../key-pair-mgmt-services
+      '@aws-ee/base-controllers': 'link:../../../addon-base-rest-api/packages/base-controllers'
+      '@aws-ee/key-pair-mgmt-services': 'link:../key-pair-mgmt-services'
       lodash: 4.17.21
       uuid: 3.4.0
     devDependencies:
@@ -1749,8 +1749,8 @@ importers:
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
     specifiers:
-      '@aws-ee/base-controllers': workspace:*
-      '@aws-ee/key-pair-mgmt-services': workspace:*
+      '@aws-ee/base-controllers': 'workspace:*'
+      '@aws-ee/key-pair-mgmt-services': 'workspace:*'
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.1.0
       eslint-config-prettier: ^6.10.0
@@ -1768,8 +1768,8 @@ importers:
       uuid: ^3.4.0
   addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-services:
     dependencies:
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
+      '@aws-ee/base-services-container': 'link:../../../addon-base/packages/services-container'
       lodash: 4.17.21
       node-forge: 0.10.0
       uuid: 3.4.0
@@ -1788,8 +1788,8 @@ importers:
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
     specifiers:
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@aws-ee/base-services': 'workspace:*'
+      '@aws-ee/base-services-container': 'workspace:*'
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.1.0
       eslint-config-prettier: ^6.10.0
@@ -1808,7 +1808,7 @@ importers:
       uuid: ^3.4.0
   addons/addon-key-pair-mgmt-ui/packages/key-pair-mgmt-ui:
     dependencies:
-      '@aws-ee/base-ui': link:../../../addon-base-ui/packages/base-ui
+      '@aws-ee/base-ui': 'link:../../../addon-base-ui/packages/base-ui'
       lodash: 4.17.21
       mobx: 5.15.4
       mobx-react: 6.2.2_mobx@5.15.4+react@16.13.1
@@ -1845,7 +1845,7 @@ importers:
       prettier: 1.19.1
       pretty-quick: 1.11.1_prettier@1.19.1
     specifiers:
-      '@aws-ee/base-ui': workspace:*
+      '@aws-ee/base-ui': 'workspace:*'
       '@babel/cli': ^7.8.4
       '@babel/core': ^7.8.6
       '@babel/plugin-proposal-class-properties': ^7.8.3
@@ -1884,13 +1884,13 @@ importers:
     specifiers: {}
   addons/addon-stack-policy/packages/stack-policy:
     dependencies:
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
+      '@aws-ee/base-services-container': 'link:../../../addon-base/packages/services-container'
       aws-sdk: 2.847.0
       lodash: 4.17.21
     devDependencies:
-      '@aws-ee/base-api-handler': link:../../../addon-base-rest-api/packages/base-api-handler
-      '@aws-ee/base-post-deployment': link:../../../addon-base-post-deployment/packages/base-post-deployment
+      '@aws-ee/base-api-handler': 'link:../../../addon-base-rest-api/packages/base-api-handler'
+      '@aws-ee/base-post-deployment': 'link:../../../addon-base-post-deployment/packages/base-post-deployment'
       eslint: 6.8.0
       eslint-config-airbnb-base: 14.2.1_dbc45251b359455fcdf3c36391f49b09
       eslint-config-prettier: 6.15.0_eslint@6.8.0
@@ -1904,10 +1904,10 @@ importers:
       prettier: 1.19.1
       source-map-support: 0.5.19
     specifiers:
-      '@aws-ee/base-api-handler': workspace:*
-      '@aws-ee/base-post-deployment': workspace:*
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@aws-ee/base-api-handler': 'workspace:*'
+      '@aws-ee/base-post-deployment': 'workspace:*'
+      '@aws-ee/base-services': 'workspace:*'
+      '@aws-ee/base-services-container': 'workspace:*'
       aws-sdk: ^2.647.0
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.0.0
@@ -1924,13 +1924,13 @@ importers:
       source-map-support: ^0.5.16
   addons/addon-user-id-upgrade/packages/user-id-upgrade-post-deployment:
     dependencies:
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      '@aws-ee/base-services': 'link:../../../addon-base/packages/services'
+      '@aws-ee/base-services-container': 'link:../../../addon-base/packages/services-container'
       aws-sdk: 2.1001.0
       lodash: 4.17.21
     devDependencies:
-      '@aws-ee/base-api-handler': link:../../../addon-base-rest-api/packages/base-api-handler
-      '@aws-ee/base-post-deployment': link:../../../addon-base-post-deployment/packages/base-post-deployment
+      '@aws-ee/base-api-handler': 'link:../../../addon-base-rest-api/packages/base-api-handler'
+      '@aws-ee/base-post-deployment': 'link:../../../addon-base-post-deployment/packages/base-post-deployment'
       eslint: 6.8.0
       eslint-config-airbnb-base: 14.1.0_8cdb6d8c18c3319a1365bd5afa0063a3
       eslint-config-prettier: 6.10.1_eslint@6.8.0
@@ -1944,10 +1944,10 @@ importers:
       prettier: 1.19.1
       source-map-support: 0.5.16
     specifiers:
-      '@aws-ee/base-api-handler': workspace:*
-      '@aws-ee/base-post-deployment': workspace:*
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@aws-ee/base-api-handler': 'workspace:*'
+      '@aws-ee/base-post-deployment': 'workspace:*'
+      '@aws-ee/base-services': 'workspace:*'
+      '@aws-ee/base-services-container': 'workspace:*'
       aws-sdk: ^2.1000.0
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.0.0
@@ -1964,28 +1964,28 @@ importers:
       source-map-support: ^0.5.16
   main/cicd/cicd-pipeline:
     devDependencies:
-      '@aws-ee/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
+      '@aws-ee/base-serverless-settings-helper': 'link:../../../addons/addon-base/packages/serverless-settings-helper'
       serverless: 1.67.3
       serverless-deployment-bucket: 1.1.1
       serverless-hooks-plugin: 1.1.0
     optionalDependencies:
       fsevents: 2.1.2
     specifiers:
-      '@aws-ee/base-serverless-settings-helper': workspace:*
+      '@aws-ee/base-serverless-settings-helper': 'workspace:*'
       fsevents: '*'
       serverless: ^1.63.0
       serverless-deployment-bucket: ^1.1.0
       serverless-hooks-plugin: ^1.1.0
   main/cicd/cicd-source:
     devDependencies:
-      '@aws-ee/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
+      '@aws-ee/base-serverless-settings-helper': 'link:../../../addons/addon-base/packages/serverless-settings-helper'
       aws-sdk: 2.1001.0
       serverless: 1.67.3
       serverless-deployment-bucket: 1.1.1
     optionalDependencies:
       fsevents: 2.1.2
     specifiers:
-      '@aws-ee/base-serverless-settings-helper': workspace:*
+      '@aws-ee/base-serverless-settings-helper': 'workspace:*'
       aws-sdk: ^2.1000.0
       fsevents: '*'
       serverless: ^1.63.0
@@ -2069,7 +2069,7 @@ importers:
       yargs-parser: ^20.2.9
   main/integration-tests:
     dependencies:
-      '@aws-ee/base-services': link:../../addons/addon-base/packages/services
+      '@aws-ee/base-services': 'link:../../addons/addon-base/packages/services'
       aws-sdk: 2.1001.0
       axios: 0.21.4
       chance: 1.1.7
@@ -2077,8 +2077,8 @@ importers:
       js-yaml: 4.1.0
       jwt-decode: 2.2.0
       lodash: 4.17.21
-      node-ssh: 11.1.1
-      services: link:../packages/services
+      node-ssh: 12.0.0
+      services: 'link:../packages/services'
       yargs-parser: 20.2.9
     devDependencies:
       eslint: 6.8.0
@@ -2099,7 +2099,7 @@ importers:
       request: 2.88.2
       request-promise-native: 1.0.9_request@2.88.2
     specifiers:
-      '@aws-ee/base-services': workspace:*
+      '@aws-ee/base-services': 'workspace:*'
       aws-sdk: ^2.1000.0
       axios: ^0.21.2
       chance: ^1.1.7
@@ -2120,18 +2120,18 @@ importers:
       js-yaml: ^4.1.0
       jwt-decode: ^2.2.0
       lodash: ^4.17.21
-      node-ssh: ^11.1.1
+      node-ssh: ^12.0.0
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
       request: ^2.88.2
       request-promise-native: ^1.0.9
-      services: workspace:*
+      services: 'workspace:*'
       yargs-parser: ^20.2.9
   main/packages/controllers:
     dependencies:
-      '@aws-ee/base-controllers': link:../../../addons/addon-base-rest-api/packages/base-controllers
+      '@aws-ee/base-controllers': 'link:../../../addons/addon-base-rest-api/packages/base-controllers'
       lodash: 4.17.21
-      services: link:../services
+      services: 'link:../services'
     devDependencies:
       eslint: 6.8.0
       eslint-config-airbnb: 18.1.0_8cdb6d8c18c3319a1365bd5afa0063a3
@@ -2148,7 +2148,7 @@ importers:
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
     specifiers:
-      '@aws-ee/base-controllers': workspace:*
+      '@aws-ee/base-controllers': 'workspace:*'
       eslint: ^6.8.0
       eslint-config-airbnb: ^18.1.0
       eslint-config-airbnb-base: ^14.1.0
@@ -2163,12 +2163,12 @@ importers:
       lodash: ^4.17.21
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
-      services: workspace:*
+      services: 'workspace:*'
       source-map-support: ^0.5.16
   main/packages/services:
     dependencies:
-      '@aws-ee/base-services': link:../../../addons/addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addons/addon-base/packages/services-container
+      '@aws-ee/base-services': 'link:../../../addons/addon-base/packages/services'
+      '@aws-ee/base-services-container': 'link:../../../addons/addon-base/packages/services-container'
       lodash: 4.17.21
     devDependencies:
       eslint: 6.8.0
@@ -2186,8 +2186,8 @@ importers:
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
     specifiers:
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@aws-ee/base-services': 'workspace:*'
+      '@aws-ee/base-services-container': 'workspace:*'
       eslint: ^6.8.0
       eslint-config-airbnb: ^18.1.0
       eslint-config-airbnb-base: ^14.1.0
@@ -2205,39 +2205,39 @@ importers:
       source-map-support: ^0.5.16
   main/solution/backend:
     dependencies:
-      '@aws-ee/base-api-handler': link:../../../addons/addon-base-rest-api/packages/base-api-handler
-      '@aws-ee/base-api-handler-factory': link:../../../addons/addon-base-rest-api/packages/api-handler-factory
-      '@aws-ee/base-api-services': link:../../../addons/addon-base-rest-api/packages/services
-      '@aws-ee/base-authn-handler': link:../../../addons/addon-base-rest-api/packages/base-authn-handler
-      '@aws-ee/base-controllers': link:../../../addons/addon-base-rest-api/packages/base-controllers
-      '@aws-ee/base-raas-appstream-rest-api': link:../../../addons/addon-base-raas-appstream/packages/base-raas-appstream-rest-api
-      '@aws-ee/base-raas-appstream-services': link:../../../addons/addon-base-raas-appstream/packages/base-raas-appstream-services
-      '@aws-ee/base-raas-cfn-templates': link:../../../addons/addon-base-raas/packages/base-raas-cfn-templates
-      '@aws-ee/base-raas-rest-api': link:../../../addons/addon-base-raas/packages/base-raas-rest-api
-      '@aws-ee/base-raas-services': link:../../../addons/addon-base-raas/packages/base-raas-services
-      '@aws-ee/base-raas-workflow-steps': link:../../../addons/addon-base-raas/packages/base-raas-workflow-steps
-      '@aws-ee/base-raas-workflows': link:../../../addons/addon-base-raas/packages/base-raas-workflows
-      '@aws-ee/base-services': link:../../../addons/addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addons/addon-base/packages/services-container
-      '@aws-ee/base-workflow-api': link:../../../addons/addon-base-workflow-api/packages/base-worklfow-api
-      '@aws-ee/base-workflow-core': link:../../../addons/addon-base-workflow/packages/base-workflow-core
-      '@aws-ee/base-workflow-steps': link:../../../addons/addon-base-workflow/packages/base-worklfow-steps
-      '@aws-ee/environment-sc-workflow-steps': link:../../../addons/addon-environment-sc-api/packages/environment-sc-workflow-steps
-      '@aws-ee/environment-sc-workflows': link:../../../addons/addon-environment-sc-api/packages/environment-sc-workflows
-      '@aws-ee/environment-type-mgmt-api': link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-api
-      '@aws-ee/environment-type-mgmt-services': link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-services
-      '@aws-ee/key-pair-mgmt-api': link:../../../addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-api
-      '@aws-ee/key-pair-mgmt-services': link:../../../addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-services
+      '@aws-ee/base-api-handler': 'link:../../../addons/addon-base-rest-api/packages/base-api-handler'
+      '@aws-ee/base-api-handler-factory': 'link:../../../addons/addon-base-rest-api/packages/api-handler-factory'
+      '@aws-ee/base-api-services': 'link:../../../addons/addon-base-rest-api/packages/services'
+      '@aws-ee/base-authn-handler': 'link:../../../addons/addon-base-rest-api/packages/base-authn-handler'
+      '@aws-ee/base-controllers': 'link:../../../addons/addon-base-rest-api/packages/base-controllers'
+      '@aws-ee/base-raas-appstream-rest-api': 'link:../../../addons/addon-base-raas-appstream/packages/base-raas-appstream-rest-api'
+      '@aws-ee/base-raas-appstream-services': 'link:../../../addons/addon-base-raas-appstream/packages/base-raas-appstream-services'
+      '@aws-ee/base-raas-cfn-templates': 'link:../../../addons/addon-base-raas/packages/base-raas-cfn-templates'
+      '@aws-ee/base-raas-rest-api': 'link:../../../addons/addon-base-raas/packages/base-raas-rest-api'
+      '@aws-ee/base-raas-services': 'link:../../../addons/addon-base-raas/packages/base-raas-services'
+      '@aws-ee/base-raas-workflow-steps': 'link:../../../addons/addon-base-raas/packages/base-raas-workflow-steps'
+      '@aws-ee/base-raas-workflows': 'link:../../../addons/addon-base-raas/packages/base-raas-workflows'
+      '@aws-ee/base-services': 'link:../../../addons/addon-base/packages/services'
+      '@aws-ee/base-services-container': 'link:../../../addons/addon-base/packages/services-container'
+      '@aws-ee/base-workflow-api': 'link:../../../addons/addon-base-workflow-api/packages/base-worklfow-api'
+      '@aws-ee/base-workflow-core': 'link:../../../addons/addon-base-workflow/packages/base-workflow-core'
+      '@aws-ee/base-workflow-steps': 'link:../../../addons/addon-base-workflow/packages/base-worklfow-steps'
+      '@aws-ee/environment-sc-workflow-steps': 'link:../../../addons/addon-environment-sc-api/packages/environment-sc-workflow-steps'
+      '@aws-ee/environment-sc-workflows': 'link:../../../addons/addon-environment-sc-api/packages/environment-sc-workflows'
+      '@aws-ee/environment-type-mgmt-api': 'link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-api'
+      '@aws-ee/environment-type-mgmt-services': 'link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-services'
+      '@aws-ee/key-pair-mgmt-api': 'link:../../../addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-api'
+      '@aws-ee/key-pair-mgmt-services': 'link:../../../addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-services'
       aws-sdk: 2.1001.0
-      controllers: link:../../packages/controllers
+      controllers: 'link:../../packages/controllers'
       js-yaml: 3.13.1
       jwt-decode: 2.2.0
       lodash: 4.17.21
       node-fetch: 2.6.0
-      services: link:../../packages/services
+      services: 'link:../../packages/services'
     devDependencies:
-      '@aws-ee/base-serverless-backend-tools': link:../../../addons/addon-base/packages/serverless-backend-tools
-      '@aws-ee/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
+      '@aws-ee/base-serverless-backend-tools': 'link:../../../addons/addon-base/packages/serverless-backend-tools'
+      '@aws-ee/base-serverless-settings-helper': 'link:../../../addons/addon-base/packages/serverless-settings-helper'
       '@babel/core': 7.9.0
       '@babel/plugin-transform-runtime': 7.9.0_@babel+core@7.9.0
       '@babel/preset-env': 7.9.5_@babel+core@7.9.0
@@ -2264,37 +2264,37 @@ importers:
       serverless-s3-sync: 1.12.0
       serverless-webpack: 5.3.1_webpack@4.42.1
       source-map-support: 0.5.16
-      webpack: 4.42.1
+      webpack: 4.42.1_webpack@4.42.1
       webpack-cli: 3.3.11_webpack@4.42.1
       webpack-node-externals: 1.7.2
     optionalDependencies:
       fsevents: 2.1.2
     specifiers:
-      '@aws-ee/base-api-handler': workspace:*
-      '@aws-ee/base-api-handler-factory': workspace:*
-      '@aws-ee/base-api-services': workspace:*
-      '@aws-ee/base-authn-handler': workspace:*
-      '@aws-ee/base-controllers': workspace:*
-      '@aws-ee/base-raas-appstream-rest-api': workspace:*
-      '@aws-ee/base-raas-appstream-services': workspace:*
-      '@aws-ee/base-raas-cfn-templates': workspace:*
-      '@aws-ee/base-raas-rest-api': workspace:*
-      '@aws-ee/base-raas-services': workspace:*
-      '@aws-ee/base-raas-workflow-steps': workspace:*
-      '@aws-ee/base-raas-workflows': workspace:*
-      '@aws-ee/base-serverless-backend-tools': workspace:*
-      '@aws-ee/base-serverless-settings-helper': workspace:*
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
-      '@aws-ee/base-workflow-api': workspace:*
-      '@aws-ee/base-workflow-core': workspace:*
-      '@aws-ee/base-workflow-steps': workspace:*
-      '@aws-ee/environment-sc-workflow-steps': workspace:*
-      '@aws-ee/environment-sc-workflows': workspace:*
-      '@aws-ee/environment-type-mgmt-api': workspace:*
-      '@aws-ee/environment-type-mgmt-services': workspace:*
-      '@aws-ee/key-pair-mgmt-api': workspace:*
-      '@aws-ee/key-pair-mgmt-services': workspace:*
+      '@aws-ee/base-api-handler': 'workspace:*'
+      '@aws-ee/base-api-handler-factory': 'workspace:*'
+      '@aws-ee/base-api-services': 'workspace:*'
+      '@aws-ee/base-authn-handler': 'workspace:*'
+      '@aws-ee/base-controllers': 'workspace:*'
+      '@aws-ee/base-raas-appstream-rest-api': 'workspace:*'
+      '@aws-ee/base-raas-appstream-services': 'workspace:*'
+      '@aws-ee/base-raas-cfn-templates': 'workspace:*'
+      '@aws-ee/base-raas-rest-api': 'workspace:*'
+      '@aws-ee/base-raas-services': 'workspace:*'
+      '@aws-ee/base-raas-workflow-steps': 'workspace:*'
+      '@aws-ee/base-raas-workflows': 'workspace:*'
+      '@aws-ee/base-serverless-backend-tools': 'workspace:*'
+      '@aws-ee/base-serverless-settings-helper': 'workspace:*'
+      '@aws-ee/base-services': 'workspace:*'
+      '@aws-ee/base-services-container': 'workspace:*'
+      '@aws-ee/base-workflow-api': 'workspace:*'
+      '@aws-ee/base-workflow-core': 'workspace:*'
+      '@aws-ee/base-workflow-steps': 'workspace:*'
+      '@aws-ee/environment-sc-workflow-steps': 'workspace:*'
+      '@aws-ee/environment-sc-workflows': 'workspace:*'
+      '@aws-ee/environment-type-mgmt-api': 'workspace:*'
+      '@aws-ee/environment-type-mgmt-services': 'workspace:*'
+      '@aws-ee/key-pair-mgmt-api': 'workspace:*'
+      '@aws-ee/key-pair-mgmt-services': 'workspace:*'
       '@babel/core': ^7.8.4
       '@babel/plugin-transform-runtime': ^7.8.3
       '@babel/preset-env': ^7.8.4
@@ -2302,7 +2302,7 @@ importers:
       babel-jest: ^24.9.0
       babel-loader: ^8.0.6
       babel-plugin-source-map-support: ^2.1.1
-      controllers: workspace:*
+      controllers: 'workspace:*'
       copy-webpack-plugin: ^5.1.1
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.0.0
@@ -2327,78 +2327,78 @@ importers:
       serverless-offline: ^5.12.1
       serverless-s3-sync: ^1.12.0
       serverless-webpack: ^5.3.1
-      services: workspace:*
+      services: 'workspace:*'
       source-map-support: ^0.5.16
       webpack: ^4.41.5
       webpack-cli: ^3.3.10
       webpack-node-externals: ^1.7.2
   main/solution/edge-lambda:
     devDependencies:
-      '@aws-ee/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
+      '@aws-ee/base-serverless-settings-helper': 'link:../../../addons/addon-base/packages/serverless-settings-helper'
       serverless: 1.67.3
       serverless-deployment-bucket: 1.5.1
     specifiers:
-      '@aws-ee/base-serverless-settings-helper': workspace:*
+      '@aws-ee/base-serverless-settings-helper': 'workspace:*'
       serverless: ^1.63.0
       serverless-deployment-bucket: ^1.5.1
   main/solution/environment-tools:
     devDependencies:
-      '@aws-ee/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
-      '@aws-ee/s3-synchronizer': link:../../../addons/addon-raas-s3-copy/packages/s3-synchronizer
-      '@aws-ee/serverless-go-build-tools': link:../../../addons/addon-base/packages/serverless-go-build-tools
+      '@aws-ee/base-serverless-settings-helper': 'link:../../../addons/addon-base/packages/serverless-settings-helper'
+      '@aws-ee/s3-synchronizer': 'link:../../../addons/addon-raas-s3-copy/packages/s3-synchronizer'
+      '@aws-ee/serverless-go-build-tools': 'link:../../../addons/addon-base/packages/serverless-go-build-tools'
       serverless: 1.67.3
     specifiers:
-      '@aws-ee/base-serverless-settings-helper': workspace:*
-      '@aws-ee/s3-synchronizer': workspace:*
-      '@aws-ee/serverless-go-build-tools': workspace:*
+      '@aws-ee/base-serverless-settings-helper': 'workspace:*'
+      '@aws-ee/s3-synchronizer': 'workspace:*'
+      '@aws-ee/serverless-go-build-tools': 'workspace:*'
       serverless: ^1.63.0
   main/solution/infrastructure:
     devDependencies:
-      '@aws-ee/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
+      '@aws-ee/base-serverless-settings-helper': 'link:../../../addons/addon-base/packages/serverless-settings-helper'
       serverless: 1.67.3
       serverless-deployment-bucket: 1.5.1
     specifiers:
-      '@aws-ee/base-serverless-settings-helper': workspace:*
+      '@aws-ee/base-serverless-settings-helper': 'workspace:*'
       serverless: ^1.63.0
       serverless-deployment-bucket: ^1.5.1
   main/solution/machine-images:
     devDependencies:
-      '@aws-ee/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
-      '@aws-ee/serverless-packer': link:../../../addons/addon-base-raas/packages/serverless-packer
+      '@aws-ee/base-serverless-settings-helper': 'link:../../../addons/addon-base/packages/serverless-settings-helper'
+      '@aws-ee/serverless-packer': 'link:../../../addons/addon-base-raas/packages/serverless-packer'
       serverless: 1.67.3
     specifiers:
-      '@aws-ee/base-serverless-settings-helper': workspace:*
-      '@aws-ee/serverless-packer': workspace:*
+      '@aws-ee/base-serverless-settings-helper': 'workspace:*'
+      '@aws-ee/serverless-packer': 'workspace:*'
       serverless: ^1.63.0
   main/solution/post-deployment:
     dependencies:
-      '@aws-ee/base-api-handler': link:../../../addons/addon-base-rest-api/packages/base-api-handler
-      '@aws-ee/base-post-deployment': link:../../../addons/addon-base-post-deployment/packages/base-post-deployment
-      '@aws-ee/base-raas-cfn-templates': link:../../../addons/addon-base-raas/packages/base-raas-cfn-templates
-      '@aws-ee/base-raas-post-deployment': link:../../../addons/addon-base-raas/packages/base-raas-post-deployment
-      '@aws-ee/base-raas-rest-api': link:../../../addons/addon-base-raas/packages/base-raas-rest-api
-      '@aws-ee/base-raas-services': link:../../../addons/addon-base-raas/packages/base-raas-services
-      '@aws-ee/base-raas-workflow-steps': link:../../../addons/addon-base-raas/packages/base-raas-workflow-steps
-      '@aws-ee/base-raas-workflows': link:../../../addons/addon-base-raas/packages/base-raas-workflows
-      '@aws-ee/base-services': link:../../../addons/addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addons/addon-base/packages/services-container
-      '@aws-ee/base-workflow-api': link:../../../addons/addon-base-workflow-api/packages/base-worklfow-api
-      '@aws-ee/base-workflow-core': link:../../../addons/addon-base-workflow/packages/base-workflow-core
-      '@aws-ee/base-workflow-steps': link:../../../addons/addon-base-workflow/packages/base-worklfow-steps
-      '@aws-ee/base-workflow-templates': link:../../../addons/addon-base-workflow/packages/base-workflow-templates
-      '@aws-ee/cfn-stack-policy': link:../../../addons/addon-stack-policy/packages/stack-policy
-      '@aws-ee/environment-sc-workflow-steps': link:../../../addons/addon-environment-sc-api/packages/environment-sc-workflow-steps
-      '@aws-ee/environment-sc-workflows': link:../../../addons/addon-environment-sc-api/packages/environment-sc-workflows
-      '@aws-ee/environment-type-mgmt-api': link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-api
-      '@aws-ee/environment-type-mgmt-services': link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-services
-      '@aws-ee/key-pair-mgmt-services': link:../../../addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-services
-      '@aws-ee/user-id-upgrade-post-deployment': link:../../../addons/addon-user-id-upgrade/packages/user-id-upgrade-post-deployment
+      '@aws-ee/base-api-handler': 'link:../../../addons/addon-base-rest-api/packages/base-api-handler'
+      '@aws-ee/base-post-deployment': 'link:../../../addons/addon-base-post-deployment/packages/base-post-deployment'
+      '@aws-ee/base-raas-cfn-templates': 'link:../../../addons/addon-base-raas/packages/base-raas-cfn-templates'
+      '@aws-ee/base-raas-post-deployment': 'link:../../../addons/addon-base-raas/packages/base-raas-post-deployment'
+      '@aws-ee/base-raas-rest-api': 'link:../../../addons/addon-base-raas/packages/base-raas-rest-api'
+      '@aws-ee/base-raas-services': 'link:../../../addons/addon-base-raas/packages/base-raas-services'
+      '@aws-ee/base-raas-workflow-steps': 'link:../../../addons/addon-base-raas/packages/base-raas-workflow-steps'
+      '@aws-ee/base-raas-workflows': 'link:../../../addons/addon-base-raas/packages/base-raas-workflows'
+      '@aws-ee/base-services': 'link:../../../addons/addon-base/packages/services'
+      '@aws-ee/base-services-container': 'link:../../../addons/addon-base/packages/services-container'
+      '@aws-ee/base-workflow-api': 'link:../../../addons/addon-base-workflow-api/packages/base-worklfow-api'
+      '@aws-ee/base-workflow-core': 'link:../../../addons/addon-base-workflow/packages/base-workflow-core'
+      '@aws-ee/base-workflow-steps': 'link:../../../addons/addon-base-workflow/packages/base-worklfow-steps'
+      '@aws-ee/base-workflow-templates': 'link:../../../addons/addon-base-workflow/packages/base-workflow-templates'
+      '@aws-ee/cfn-stack-policy': 'link:../../../addons/addon-stack-policy/packages/stack-policy'
+      '@aws-ee/environment-sc-workflow-steps': 'link:../../../addons/addon-environment-sc-api/packages/environment-sc-workflow-steps'
+      '@aws-ee/environment-sc-workflows': 'link:../../../addons/addon-environment-sc-api/packages/environment-sc-workflows'
+      '@aws-ee/environment-type-mgmt-api': 'link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-api'
+      '@aws-ee/environment-type-mgmt-services': 'link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-services'
+      '@aws-ee/key-pair-mgmt-services': 'link:../../../addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-services'
+      '@aws-ee/user-id-upgrade-post-deployment': 'link:../../../addons/addon-user-id-upgrade/packages/user-id-upgrade-post-deployment'
       aws-sdk: 2.1001.0
       lodash: 4.17.21
-      services: link:../../packages/services
+      services: 'link:../../packages/services'
     devDependencies:
-      '@aws-ee/base-serverless-backend-tools': link:../../../addons/addon-base/packages/serverless-backend-tools
-      '@aws-ee/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
+      '@aws-ee/base-serverless-backend-tools': 'link:../../../addons/addon-base/packages/serverless-backend-tools'
+      '@aws-ee/base-serverless-settings-helper': 'link:../../../addons/addon-base/packages/serverless-settings-helper'
       '@babel/core': 7.9.0
       '@babel/preset-env': 7.9.5_@babel+core@7.9.0
       babel-loader: 8.1.0_@babel+core@7.9.0+webpack@4.42.1
@@ -2423,31 +2423,31 @@ importers:
       serverless-s3-sync: 1.12.0
       serverless-webpack: 5.3.4_webpack@4.42.1
       source-map-support: 0.5.16
-      webpack: 4.42.1
+      webpack: 4.42.1_webpack@4.42.1
     specifiers:
-      '@aws-ee/base-api-handler': workspace:*
-      '@aws-ee/base-post-deployment': workspace:*
-      '@aws-ee/base-raas-cfn-templates': workspace:*
-      '@aws-ee/base-raas-post-deployment': workspace:*
-      '@aws-ee/base-raas-rest-api': workspace:*
-      '@aws-ee/base-raas-services': workspace:*
-      '@aws-ee/base-raas-workflow-steps': workspace:*
-      '@aws-ee/base-raas-workflows': workspace:*
-      '@aws-ee/base-serverless-backend-tools': workspace:*
-      '@aws-ee/base-serverless-settings-helper': workspace:*
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
-      '@aws-ee/base-workflow-api': workspace:*
-      '@aws-ee/base-workflow-core': workspace:*
-      '@aws-ee/base-workflow-steps': workspace:*
-      '@aws-ee/base-workflow-templates': workspace:*
-      '@aws-ee/cfn-stack-policy': workspace:*
-      '@aws-ee/environment-sc-workflow-steps': workspace:*
-      '@aws-ee/environment-sc-workflows': workspace:*
-      '@aws-ee/environment-type-mgmt-api': workspace:*
-      '@aws-ee/environment-type-mgmt-services': workspace:*
-      '@aws-ee/key-pair-mgmt-services': workspace:*
-      '@aws-ee/user-id-upgrade-post-deployment': workspace:*
+      '@aws-ee/base-api-handler': 'workspace:*'
+      '@aws-ee/base-post-deployment': 'workspace:*'
+      '@aws-ee/base-raas-cfn-templates': 'workspace:*'
+      '@aws-ee/base-raas-post-deployment': 'workspace:*'
+      '@aws-ee/base-raas-rest-api': 'workspace:*'
+      '@aws-ee/base-raas-services': 'workspace:*'
+      '@aws-ee/base-raas-workflow-steps': 'workspace:*'
+      '@aws-ee/base-raas-workflows': 'workspace:*'
+      '@aws-ee/base-serverless-backend-tools': 'workspace:*'
+      '@aws-ee/base-serverless-settings-helper': 'workspace:*'
+      '@aws-ee/base-services': 'workspace:*'
+      '@aws-ee/base-services-container': 'workspace:*'
+      '@aws-ee/base-workflow-api': 'workspace:*'
+      '@aws-ee/base-workflow-core': 'workspace:*'
+      '@aws-ee/base-workflow-steps': 'workspace:*'
+      '@aws-ee/base-workflow-templates': 'workspace:*'
+      '@aws-ee/cfn-stack-policy': 'workspace:*'
+      '@aws-ee/environment-sc-workflow-steps': 'workspace:*'
+      '@aws-ee/environment-sc-workflows': 'workspace:*'
+      '@aws-ee/environment-type-mgmt-api': 'workspace:*'
+      '@aws-ee/environment-type-mgmt-services': 'workspace:*'
+      '@aws-ee/key-pair-mgmt-services': 'workspace:*'
+      '@aws-ee/user-id-upgrade-post-deployment': 'workspace:*'
       '@babel/core': ^7.8.4
       '@babel/preset-env': ^7.8.4
       aws-sdk: ^2.1000.0
@@ -2473,26 +2473,26 @@ importers:
       serverless-plugin-ifelse: ^1.0.7
       serverless-s3-sync: ^1.10.2
       serverless-webpack: ^5.3.3
-      services: workspace:*
+      services: 'workspace:*'
       source-map-support: ^0.5.16
       webpack: ^4.41.5
   main/solution/pre-deployment:
     dependencies:
-      '@aws-ee/base-pre-deployment': link:../../../addons/addon-base-pre-deployment/packages/base-pre-deployment
-      '@aws-ee/base-raas-post-deployment': link:../../../addons/addon-base-raas/packages/base-raas-post-deployment
-      '@aws-ee/base-raas-rest-api': link:../../../addons/addon-base-raas/packages/base-raas-rest-api
-      '@aws-ee/base-raas-services': link:../../../addons/addon-base-raas/packages/base-raas-services
-      '@aws-ee/base-services': link:../../../addons/addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addons/addon-base/packages/services-container
-      '@aws-ee/base-workflow-core': link:../../../addons/addon-base-workflow/packages/base-workflow-core
-      '@aws-ee/environment-type-mgmt-services': link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-services
-      '@aws-ee/key-pair-mgmt-services': link:../../../addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-services
+      '@aws-ee/base-pre-deployment': 'link:../../../addons/addon-base-pre-deployment/packages/base-pre-deployment'
+      '@aws-ee/base-raas-post-deployment': 'link:../../../addons/addon-base-raas/packages/base-raas-post-deployment'
+      '@aws-ee/base-raas-rest-api': 'link:../../../addons/addon-base-raas/packages/base-raas-rest-api'
+      '@aws-ee/base-raas-services': 'link:../../../addons/addon-base-raas/packages/base-raas-services'
+      '@aws-ee/base-services': 'link:../../../addons/addon-base/packages/services'
+      '@aws-ee/base-services-container': 'link:../../../addons/addon-base/packages/services-container'
+      '@aws-ee/base-workflow-core': 'link:../../../addons/addon-base-workflow/packages/base-workflow-core'
+      '@aws-ee/environment-type-mgmt-services': 'link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-services'
+      '@aws-ee/key-pair-mgmt-services': 'link:../../../addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-services'
       aws-sdk: 2.1001.0
       lodash: 4.17.21
-      services: link:../../packages/services
+      services: 'link:../../packages/services'
     devDependencies:
-      '@aws-ee/base-serverless-backend-tools': link:../../../addons/addon-base/packages/serverless-backend-tools
-      '@aws-ee/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
+      '@aws-ee/base-serverless-backend-tools': 'link:../../../addons/addon-base/packages/serverless-backend-tools'
+      '@aws-ee/base-serverless-settings-helper': 'link:../../../addons/addon-base/packages/serverless-settings-helper'
       '@babel/core': 7.12.9
       '@babel/preset-env': 7.12.7_@babel+core@7.12.9
       babel-loader: 8.1.0_dd01e8cbc2bbf2b3fa238148aaaef39d
@@ -2517,19 +2517,19 @@ importers:
       serverless-s3-sync: 1.12.0
       serverless-webpack: 5.3.4_webpack@4.42.1
       source-map-support: 0.5.19
-      webpack: 4.42.1
+      webpack: 4.42.1_webpack@4.42.1
     specifiers:
-      '@aws-ee/base-pre-deployment': workspace:*
-      '@aws-ee/base-raas-post-deployment': workspace:*
-      '@aws-ee/base-raas-rest-api': workspace:*
-      '@aws-ee/base-raas-services': workspace:*
-      '@aws-ee/base-serverless-backend-tools': workspace:*
-      '@aws-ee/base-serverless-settings-helper': workspace:*
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
-      '@aws-ee/base-workflow-core': workspace:*
-      '@aws-ee/environment-type-mgmt-services': workspace:*
-      '@aws-ee/key-pair-mgmt-services': workspace:*
+      '@aws-ee/base-pre-deployment': 'workspace:*'
+      '@aws-ee/base-raas-post-deployment': 'workspace:*'
+      '@aws-ee/base-raas-rest-api': 'workspace:*'
+      '@aws-ee/base-raas-services': 'workspace:*'
+      '@aws-ee/base-serverless-backend-tools': 'workspace:*'
+      '@aws-ee/base-serverless-settings-helper': 'workspace:*'
+      '@aws-ee/base-services': 'workspace:*'
+      '@aws-ee/base-services-container': 'workspace:*'
+      '@aws-ee/base-workflow-core': 'workspace:*'
+      '@aws-ee/environment-type-mgmt-services': 'workspace:*'
+      '@aws-ee/key-pair-mgmt-services': 'workspace:*'
       '@babel/core': ^7.8.4
       '@babel/preset-env': ^7.8.4
       aws-sdk: ^2.1000.0
@@ -2555,25 +2555,25 @@ importers:
       serverless-plugin-ifelse: ^1.0.7
       serverless-s3-sync: ^1.10.2
       serverless-webpack: ^5.3.3
-      services: workspace:*
+      services: 'workspace:*'
       source-map-support: ^0.5.16
       webpack: ^4.41.5
   main/solution/prepare-master-acc:
     devDependencies:
-      '@aws-ee/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
+      '@aws-ee/base-serverless-settings-helper': 'link:../../../addons/addon-base/packages/serverless-settings-helper'
       serverless: 1.67.3
       serverless-deployment-bucket: 1.1.1
     specifiers:
-      '@aws-ee/base-serverless-settings-helper': workspace:*
+      '@aws-ee/base-serverless-settings-helper': 'workspace:*'
       serverless: ^1.63.0
       serverless-deployment-bucket: ^1.1.0
   main/solution/ui:
     dependencies:
-      '@aws-ee/base-raas-ui': link:../../../addons/addon-base-raas-ui/packages/base-raas-ui
-      '@aws-ee/base-ui': link:../../../addons/addon-base-ui/packages/base-ui
-      '@aws-ee/base-workflow-ui': link:../../../addons/addon-base-workflow-ui/packages/base-workflow-ui
-      '@aws-ee/environment-type-mgmt-ui': link:../../../addons/addon-environment-sc-ui/packages/environment-type-mgmt-ui
-      '@aws-ee/key-pair-mgmt-ui': link:../../../addons/addon-key-pair-mgmt-ui/packages/key-pair-mgmt-ui
+      '@aws-ee/base-raas-ui': 'link:../../../addons/addon-base-raas-ui/packages/base-raas-ui'
+      '@aws-ee/base-ui': 'link:../../../addons/addon-base-ui/packages/base-ui'
+      '@aws-ee/base-workflow-ui': 'link:../../../addons/addon-base-workflow-ui/packages/base-workflow-ui'
+      '@aws-ee/environment-type-mgmt-ui': 'link:../../../addons/addon-environment-sc-ui/packages/environment-type-mgmt-ui'
+      '@aws-ee/key-pair-mgmt-ui': 'link:../../../addons/addon-key-pair-mgmt-ui/packages/key-pair-mgmt-ui'
       animate.css: 3.7.0
       aws-sdk: 2.1001.0
       classnames: 2.2.6
@@ -2593,8 +2593,8 @@ importers:
       typeface-lato: 0.0.75
       uuid: 3.4.0
     devDependencies:
-      '@aws-ee/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
-      '@aws-ee/base-serverless-ui-tools': link:../../../addons/addon-base-ui/packages/serverless-ui-tools
+      '@aws-ee/base-serverless-settings-helper': 'link:../../../addons/addon-base/packages/serverless-settings-helper'
+      '@aws-ee/base-serverless-ui-tools': 'link:../../../addons/addon-base-ui/packages/serverless-ui-tools'
       babel-eslint: 10.1.0_eslint@6.8.0
       eslint: 6.8.0
       eslint-config-airbnb: 18.2.1_89debf8fda32fbe99f1ba8ab582a8be5
@@ -2615,13 +2615,13 @@ importers:
       serverless: 1.83.2
       serverless-deployment-bucket: 1.3.0
     specifiers:
-      '@aws-ee/base-raas-ui': workspace:*
-      '@aws-ee/base-serverless-settings-helper': workspace:*
-      '@aws-ee/base-serverless-ui-tools': workspace:*
-      '@aws-ee/base-ui': workspace:*
-      '@aws-ee/base-workflow-ui': workspace:*
-      '@aws-ee/environment-type-mgmt-ui': workspace:*
-      '@aws-ee/key-pair-mgmt-ui': workspace:*
+      '@aws-ee/base-raas-ui': 'workspace:*'
+      '@aws-ee/base-serverless-settings-helper': 'workspace:*'
+      '@aws-ee/base-serverless-ui-tools': 'workspace:*'
+      '@aws-ee/base-ui': 'workspace:*'
+      '@aws-ee/base-workflow-ui': 'workspace:*'
+      '@aws-ee/environment-type-mgmt-ui': 'workspace:*'
+      '@aws-ee/key-pair-mgmt-ui': 'workspace:*'
       animate.css: 3.7.0
       aws-sdk: ^2.1000.0
       babel-eslint: ^10.1.0
@@ -2659,7 +2659,7 @@ importers:
       toastr: ^2.1.4
       typeface-lato: 0.0.75
       uuid: ^3.4.0
-lockfileVersion: 5.2
+lockfileVersion: 5.1
 packages:
   /2-thenable/1.0.0:
     dependencies:
@@ -5930,7 +5930,7 @@ packages:
       jest-haste-map: 24.9.0
       jest-message-util: 24.9.0
       jest-regex-util: 24.9.0
-      jest-resolve: 24.9.0
+      jest-resolve: 24.9.0_jest-resolve@24.9.0
       jest-resolve-dependencies: 24.9.0
       jest-runner: 24.9.0
       jest-runtime: 24.9.0
@@ -5966,7 +5966,7 @@ packages:
       jest-haste-map: 26.6.2
       jest-message-util: 26.6.2
       jest-regex-util: 26.0.0
-      jest-resolve: 26.6.2
+      jest-resolve: 26.6.2_jest-resolve@26.6.2
       jest-resolve-dependencies: 26.6.3
       jest-runner: 26.6.3
       jest-runtime: 26.6.3
@@ -6054,7 +6054,7 @@ packages:
       istanbul-lib-source-maps: 3.0.6
       istanbul-reports: 2.2.7
       jest-haste-map: 24.9.0
-      jest-resolve: 24.9.0
+      jest-resolve: 24.9.0_jest-resolve@24.9.0
       jest-runtime: 24.9.0
       jest-util: 24.9.0
       jest-worker: 24.9.0
@@ -6085,7 +6085,7 @@ packages:
       istanbul-lib-source-maps: 4.0.0
       istanbul-reports: 3.0.2
       jest-haste-map: 26.6.2
-      jest-resolve: 26.6.2
+      jest-resolve: 26.6.2_jest-resolve@26.6.2
       jest-util: 26.6.2
       jest-worker: 26.6.2
       slash: 3.0.0
@@ -7003,7 +7003,7 @@ packages:
   /@types/chalk/2.2.0:
     dependencies:
       chalk: 4.1.0
-    deprecated: This is a stub types definition for chalk (https://github.com/chalk/chalk). chalk provides its own type definitions, so you don't need @types/chalk installed!
+    deprecated: 'This is a stub types definition for chalk (https://github.com/chalk/chalk). chalk provides its own type definitions, so you don''t need @types/chalk installed!'
     dev: true
     resolution:
       integrity: sha512-1zzPV9FDe1I/WHhRkf9SNgqtRJWZqrBWgu7JGveuHmmyR9CnAPCie2N/x+iHrgnpYBIcCJWHBoMRv2TRWktsvw==
@@ -8476,7 +8476,7 @@ packages:
   /axios/0.19.2:
     dependencies:
       follow-redirects: 1.5.10
-    deprecated: Critical security vulnerability fixed in v0.21.1. For more information, see https://github.com/axios/axios/pull/3410
+    deprecated: 'Critical security vulnerability fixed in v0.21.1. For more information, see https://github.com/axios/axios/pull/3410'
     dev: true
     resolution:
       integrity: sha512-fjgm5MvRHLhx+osE2xoekY70AhARk3a6hkN+3Io1jc00jtquGvxYlKlsFUhmUET0V5te6CcZI7lcv2Ym61mjHA==
@@ -8598,7 +8598,7 @@ packages:
       mkdirp: 0.5.5
       pify: 4.0.1
       schema-utils: 2.7.1
-      webpack: 4.41.2
+      webpack: 4.41.2_webpack@4.41.2
     dev: true
     engines:
       node: '>= 6.9'
@@ -8615,7 +8615,7 @@ packages:
       mkdirp: 0.5.5
       pify: 4.0.1
       schema-utils: 2.7.1
-      webpack: 4.42.0
+      webpack: 4.42.0_webpack@4.42.0
     dev: true
     engines:
       node: '>= 6.9'
@@ -8632,7 +8632,7 @@ packages:
       mkdirp: 0.5.5
       pify: 4.0.1
       schema-utils: 2.7.1
-      webpack: 4.42.1
+      webpack: 4.42.1_webpack@4.42.1
     dev: true
     engines:
       node: '>= 6.9'
@@ -8649,7 +8649,7 @@ packages:
       mkdirp: 0.5.5
       pify: 4.0.1
       schema-utils: 2.7.1
-      webpack: 4.42.1
+      webpack: 4.42.1_webpack@4.42.1
     dev: true
     engines:
       node: '>= 6.9'
@@ -10207,7 +10207,7 @@ packages:
       p-limit: 2.3.0
       schema-utils: 1.0.0
       serialize-javascript: 2.1.2
-      webpack: 4.42.1
+      webpack: 4.42.1_webpack@4.42.1
       webpack-log: 2.0.0
     dev: true
     engines:
@@ -10236,13 +10236,13 @@ packages:
     resolution:
       integrity: sha512-fRjhg3NeouotRoIV0L1FdchA6CK7ZD+lyINyMoz19SyV+ROpC4noS1xItWHFtwZdlqfMfVPJEyEGdfri2bD1pA==
   /core-js/2.6.11:
-    deprecated: core-js@<3 is no longer maintained and not recommended for usage due to the number of issues. Please, upgrade your dependencies to the actual version of core-js@3.
+    deprecated: 'core-js@<3 is no longer maintained and not recommended for usage due to the number of issues. Please, upgrade your dependencies to the actual version of core-js@3.'
     dev: false
     requiresBuild: true
     resolution:
       integrity: sha512-5wjnpaT/3dV+XB4borEsnAYQchn00XSgTAWKDkEqv+K8KevjbzmofK6hfJ9TZIlpj2N0xQpazy7PiRQiWHqzWg==
   /core-js/2.6.12:
-    deprecated: core-js@<3 is no longer maintained and not recommended for usage due to the number of issues. Please, upgrade your dependencies to the actual version of core-js@3.
+    deprecated: 'core-js@<3 is no longer maintained and not recommended for usage due to the number of issues. Please, upgrade your dependencies to the actual version of core-js@3.'
     dev: true
     requiresBuild: true
     resolution:
@@ -10290,6 +10290,16 @@ packages:
       node: '>=8'
     resolution:
       integrity: sha512-xb3ZL6+L8b9JLLCx3ZdoZy4+2ECphCMo2PwqgP1tlfVq6M6YReyzBJtvWWtbDSpNr9hn96pkCiZqUcFEc+54Qg==
+  /cpu-features/0.0.2:
+    dependencies:
+      nan: 2.15.0
+    dev: false
+    engines:
+      node: '>=8.0.0'
+    optional: true
+    requiresBuild: true
+    resolution:
+      integrity: sha512-/2yieBqvMcRj8McNzkycjW2v3OIUOibBfd2dLEJ0nWts8NobAxwiyw9phVNS6oDL8x8tz9F7uNVFEVpJncQpeA==
   /crc/3.8.0:
     dependencies:
       buffer: 5.7.1
@@ -10486,7 +10496,7 @@ packages:
       postcss-modules-values: 3.0.0
       postcss-value-parser: 4.1.0
       schema-utils: 2.7.1
-      webpack: 4.42.0
+      webpack: 4.42.0_webpack@4.42.0
     dev: true
     engines:
       node: '>= 8.9.0'
@@ -10742,7 +10752,7 @@ packages:
       is-ci: 2.0.0
       is-installed-globally: 0.3.2
       lazy-ass: 1.6.0
-      listr: 0.14.3
+      listr: 0.14.3_listr@0.14.3
       lodash: 4.17.21
       log-symbols: 3.0.0
       minimist: 1.2.5
@@ -12164,7 +12174,7 @@ packages:
       loader-utils: 1.4.0
       object-hash: 2.0.3
       schema-utils: 2.7.1
-      webpack: 4.42.0
+      webpack: 4.42.0_webpack@4.42.0
     deprecated: This loader has been deprecated. Please use eslint-webpack-plugin
     dev: true
     engines:
@@ -13073,7 +13083,7 @@ packages:
     dependencies:
       loader-utils: 1.4.0
       schema-utils: 2.7.1
-      webpack: 4.42.0
+      webpack: 4.42.0_webpack@4.42.0
     dev: true
     engines:
       node: '>= 8.9.0'
@@ -13334,7 +13344,7 @@ packages:
   /flat/5.0.0:
     dependencies:
       is-buffer: 2.0.4
-    deprecated: Fixed a prototype pollution security issue in 5.0.0, please upgrade to ^5.0.1.
+    deprecated: 'Fixed a prototype pollution security issue in 5.0.0, please upgrade to ^5.0.1.'
     dev: true
     hasBin: true
     resolution:
@@ -14327,7 +14337,7 @@ packages:
       pretty-error: 2.1.2
       tapable: 1.1.3
       util.promisify: 1.0.0
-      webpack: 4.42.0
+      webpack: 4.42.0_webpack@4.42.0
     dev: true
     engines:
       node: '>=6.9'
@@ -15337,7 +15347,6 @@ packages:
     resolution:
       integrity: sha1-EtSj3U5o4Lec6428hBc66A2RykQ=
   /is-stream/2.0.0:
-    dev: true
     engines:
       node: '>=8'
     resolution:
@@ -15684,7 +15693,7 @@ packages:
       jest-get-type: 24.9.0
       jest-jasmine2: 24.9.0
       jest-regex-util: 24.9.0
-      jest-resolve: 24.9.0
+      jest-resolve: 24.9.0_jest-resolve@24.9.0
       jest-util: 24.9.0
       jest-validate: 24.9.0
       micromatch: 3.1.10
@@ -15710,7 +15719,7 @@ packages:
       jest-get-type: 26.3.0
       jest-jasmine2: 26.6.3
       jest-regex-util: 26.0.0
-      jest-resolve: 26.6.2
+      jest-resolve: 26.6.2_jest-resolve@26.6.2
       jest-util: 26.6.2
       jest-validate: 26.6.2
       micromatch: 4.0.2
@@ -16054,7 +16063,7 @@ packages:
       integrity: sha512-YyFjePHHp1LzpzYcmgqkJ0nm0gg/lJx2aZFzFy1S6eUqNjXsOqTK10zNRff2dNfssgokjkG65OlWNcIlgd3zew==
   /jest-pnp-resolver/1.2.2_jest-resolve@24.9.0:
     dependencies:
-      jest-resolve: 24.9.0
+      jest-resolve: 24.9.0_jest-resolve@24.9.0
     dev: true
     engines:
       node: '>=6'
@@ -16067,7 +16076,7 @@ packages:
       integrity: sha512-olV41bKSMm8BdnuMsewT4jqlZ8+3TCARAXjZGT9jcoSnrfUnRCqnMoF9XEeoWjbzObpqF9dRhHQj0Xb9QdF6/w==
   /jest-pnp-resolver/1.2.2_jest-resolve@26.6.2:
     dependencies:
-      jest-resolve: 26.6.2
+      jest-resolve: 26.6.2_jest-resolve@26.6.2
     dev: true
     engines:
       node: '>=6'
@@ -16110,7 +16119,7 @@ packages:
       node: '>= 10.14.2'
     resolution:
       integrity: sha512-pVwUjJkxbhe4RY8QEWzN3vns2kqyuldKpxlxJlzEYfKSvY6/bMvxoFrYYzUO1Gx28yKWN37qyV7rIoIp2h8fTg==
-  /jest-resolve/24.9.0:
+  /jest-resolve/24.9.0_jest-resolve@24.9.0:
     dependencies:
       '@jest/types': 24.9.0
       browser-resolve: 1.11.3
@@ -16120,9 +16129,11 @@ packages:
     dev: true
     engines:
       node: '>= 6'
+    peerDependencies:
+      jest-resolve: '*'
     resolution:
       integrity: sha512-TaLeLVL1l08YFZAt3zaPtjiVvyy4oSA6CRe+0AFPPVX3Q/VI0giIWWoAvoS5L96vj9Dqxj4fB5p2qrHCmTU/MQ==
-  /jest-resolve/26.6.2:
+  /jest-resolve/26.6.2_jest-resolve@26.6.2:
     dependencies:
       '@jest/types': 26.6.2
       chalk: 4.1.0
@@ -16135,6 +16146,8 @@ packages:
     dev: true
     engines:
       node: '>= 10.14.2'
+    peerDependencies:
+      jest-resolve: '*'
     resolution:
       integrity: sha512-sOxsZOq25mT1wRsfHcbtkInS+Ek7Q8jCHUB0ZUTP0tc/c41QHriU/NunqMfCUWsL4H3MHpvQD4QR9kSYhS7UvQ==
   /jest-runner/24.9.0:
@@ -16152,7 +16165,7 @@ packages:
       jest-jasmine2: 24.9.0
       jest-leak-detector: 24.9.0
       jest-message-util: 24.9.0
-      jest-resolve: 24.9.0
+      jest-resolve: 24.9.0_jest-resolve@24.9.0
       jest-runtime: 24.9.0
       jest-util: 24.9.0
       jest-worker: 24.9.0
@@ -16179,7 +16192,7 @@ packages:
       jest-haste-map: 26.6.2
       jest-leak-detector: 26.6.2
       jest-message-util: 26.6.2
-      jest-resolve: 26.6.2
+      jest-resolve: 26.6.2_jest-resolve@26.6.2
       jest-runtime: 26.6.3
       jest-util: 26.6.2
       jest-worker: 26.6.2
@@ -16207,7 +16220,7 @@ packages:
       jest-message-util: 24.9.0
       jest-mock: 24.9.0
       jest-regex-util: 24.9.0
-      jest-resolve: 24.9.0
+      jest-resolve: 24.9.0_jest-resolve@24.9.0
       jest-snapshot: 24.9.0
       jest-util: 24.9.0
       jest-validate: 24.9.0
@@ -16243,7 +16256,7 @@ packages:
       jest-message-util: 26.6.2
       jest-mock: 26.6.2
       jest-regex-util: 26.0.0
-      jest-resolve: 26.6.2
+      jest-resolve: 26.6.2_jest-resolve@26.6.2
       jest-snapshot: 26.6.2
       jest-util: 26.6.2
       jest-validate: 26.6.2
@@ -16281,7 +16294,7 @@ packages:
       jest-get-type: 24.9.0
       jest-matcher-utils: 24.9.0
       jest-message-util: 24.9.0
-      jest-resolve: 24.9.0
+      jest-resolve: 24.9.0_jest-resolve@24.9.0
       mkdirp: 0.5.5
       natural-compare: 1.4.0
       pretty-format: 24.9.0
@@ -16305,7 +16318,7 @@ packages:
       jest-haste-map: 26.6.2
       jest-matcher-utils: 26.6.2
       jest-message-util: 26.6.2
-      jest-resolve: 26.6.2
+      jest-resolve: 26.6.2_jest-resolve@26.6.2
       natural-compare: 1.4.0
       pretty-format: 26.6.2
       semver: 7.3.4
@@ -17052,7 +17065,7 @@ packages:
       elegant-spinner: 1.0.1
       figures: 1.7.0
       indent-string: 3.2.0
-      listr: 0.14.3
+      listr: 0.14.3_listr@0.14.3
       log-symbols: 1.0.2
       log-update: 2.3.0
       strip-ansi: 3.0.1
@@ -17074,7 +17087,7 @@ packages:
       node: '>=4'
     resolution:
       integrity: sha512-04PDPqSlsqIOaaaGZ+41vq5FejI9auqTInicFRndCBgE3bXG8D6W1I+mWhk+1nqbHmyhla/6BUrd5OSiHwKRXw==
-  /listr/0.14.3:
+  /listr/0.14.3_listr@0.14.3:
     dependencies:
       '@samverschueren/stream-to-observable': 0.3.1_rxjs@6.5.5
       is-observable: 1.1.0
@@ -17088,6 +17101,8 @@ packages:
     dev: true
     engines:
       node: '>=6'
+    peerDependencies:
+      listr: '*'
     resolution:
       integrity: sha512-RmAl7su35BFd/xoMamRjpIE4j3v+L28o8CT5YhAXQJm1fD+1l9ngXY8JAQRJ+tFK2i5njvi0iRUKV09vPwA0iA==
   /load-json-file/2.0.0:
@@ -17709,7 +17724,7 @@ packages:
       loader-utils: 1.4.0
       normalize-url: 1.9.1
       schema-utils: 1.0.0
-      webpack: 4.42.0
+      webpack: 4.42.0_webpack@4.42.0
       webpack-sources: 1.4.3
     dev: true
     engines:
@@ -18030,6 +18045,11 @@ packages:
     optional: true
     resolution:
       integrity: sha512-M2ufzIiINKCuDfBSAUr1vWQ+vuVcA9kqx8JJUsbQi6yf1uGRyb7HfpdfUr5qLXf3B/t8dPvcjhKMmlfnP47EzQ==
+  /nan/2.15.0:
+    dev: false
+    optional: true
+    resolution:
+      integrity: sha512-8ZtvEnA2c5aYCZYd1cvgdnU6cqwixRoYg70xPLWUws5ORTa/lnw+u4amixRS/Ac5U5mQVgp9pnlSUnbNWFaWZQ==
   /nanoid/2.1.11:
     dev: true
     resolution:
@@ -18272,18 +18292,19 @@ packages:
       node: '>=6.0'
     resolution:
       integrity: sha512-hPs/QMe6zS94f5+jG3kk9E7TNm4P2SulrKiLWMzKszBfNZvL/V6wseHlTd7IvfW0NZWqPtK3+9yYNr+3USGteA==
-  /node-ssh/11.1.1:
+  /node-ssh/12.0.0:
     dependencies:
+      is-stream: 2.0.0
       make-dir: 3.1.0
       sb-promise-queue: 2.1.0
       sb-scandir: 3.1.0
       shell-escape: 0.2.0
-      ssh2: 0.8.9
+      ssh2: 1.5.0
     dev: false
     engines:
-      node: '>= 8'
+      node: '>= 10'
     resolution:
-      integrity: sha512-B3Tb3t54nCj2PyA8vnUMeH19Z2hybJzg5n4t9mRCOTfVGwGlJrv0frDjhPjisTAg3JplJiSxzfImOTMvFPkraQ==
+      integrity: sha512-kIE4pePn1ZIkce9l4Jdz+nUGkQW08Kp/6cMDr61tnsEipWmTZJxGxpXYFl5uFYRBjswWVkRA+yu8tqvKFqIA/Q==
   /nofilter/1.0.3:
     dev: true
     engines:
@@ -18679,7 +18700,7 @@ packages:
     dependencies:
       cssnano: 4.1.10
       last-call-webpack-plugin: 3.0.0
-      webpack: 4.42.0
+      webpack: 4.42.0_webpack@4.42.0
     dev: true
     peerDependencies:
       webpack: ^4.0.0
@@ -19271,7 +19292,7 @@ packages:
     resolution:
       integrity: sha512-7Wjy+9E3WwLOEL30D+m8TSTF7qJJUJLONBnwQp0518siuMxUQUbgZwssaFX+QKlZkjHZcw/IpZCt/H0srrntSg==
   /popper.js/1.16.1:
-    deprecated: You can find the new Popper v2 at @popperjs/core, this package is dedicated to the legacy v1
+    deprecated: 'You can find the new Popper v2 at @popperjs/core, this package is dedicated to the legacy v1'
     dev: false
     resolution:
       integrity: sha512-Wb4p1J4zyFTbM+u6WuO4XstYx4Ky9Cewe4DWrel7B0w6VVICvPwdOpotjzcf6eD8TsckVnIMNONQyPIUFOUbCQ==
@@ -20857,7 +20878,7 @@ packages:
       identity-obj-proxy: 3.0.0
       jest: 24.9.0
       jest-environment-jsdom-fourteen: 1.0.1
-      jest-resolve: 24.9.0
+      jest-resolve: 24.9.0_jest-resolve@24.9.0
       jest-watch-typeahead: 0.4.2
       mini-css-extract-plugin: 0.9.0_webpack@4.42.0
       optimize-css-assets-webpack-plugin: 5.0.3_webpack@4.42.0
@@ -20877,7 +20898,7 @@ packages:
       terser-webpack-plugin: 2.3.8_webpack@4.42.0
       ts-pnp: 1.1.6
       url-loader: 2.3.0_file-loader@4.3.0+webpack@4.42.0
-      webpack: 4.42.0
+      webpack: 4.42.0_webpack@4.42.0
       webpack-dev-server: 3.11.0_webpack@4.42.0
       webpack-manifest-plugin: 2.2.0_webpack@4.42.0
       workbox-webpack-plugin: 4.3.1_webpack@4.42.0
@@ -21431,7 +21452,7 @@ packages:
       request-promise-core: 1.1.4_request@2.88.2
       stealthy-require: 1.1.1
       tough-cookie: 2.5.0
-    deprecated: request-promise-native has been deprecated because it extends the now deprecated request package, see https://github.com/request/request/issues/3142
+    deprecated: 'request-promise-native has been deprecated because it extends the now deprecated request package, see https://github.com/request/request/issues/3142'
     dev: true
     engines:
       node: '>=0.12.0'
@@ -21461,7 +21482,7 @@ packages:
       tough-cookie: 2.5.0
       tunnel-agent: 0.6.0
       uuid: 3.4.0
-    deprecated: request has been deprecated, see https://github.com/request/request/issues/3142
+    deprecated: 'request has been deprecated, see https://github.com/request/request/issues/3142'
     engines:
       node: '>= 6'
     resolution:
@@ -21571,7 +21592,7 @@ packages:
     resolution:
       integrity: sha512-QEb4A76c8Mi7I3xNKXlRKQSlLBwjUV/ULFMP+G7n3/7tJZ8MG5wsZ3ucxP1Jz8Vevn6fnJsxDx9cIls+utGzPQ==
   /resolve-url/0.2.1:
-    deprecated: https://github.com/lydell/resolve-url#deprecated
+    deprecated: 'https://github.com/lydell/resolve-url#deprecated'
     dev: true
     resolution:
       integrity: sha1-LGN/53yJOv0qZj/iGqkIAGjiBSo=
@@ -21788,7 +21809,7 @@ packages:
       micromatch: 3.1.10
       minimist: 1.2.5
       walker: 1.0.7
-    deprecated: some dependency vulnerabilities fixed, support for node < 10 dropped, and newer ECMAScript syntax/features added
+    deprecated: 'some dependency vulnerabilities fixed, support for node < 10 dropped, and newer ECMAScript syntax/features added'
     dev: true
     engines:
       node: 6.* || 8.* || >= 10.*
@@ -21806,7 +21827,7 @@ packages:
       neo-async: 2.6.2
       schema-utils: 2.7.1
       semver: 6.3.0
-      webpack: 4.42.0
+      webpack: 4.42.0_webpack@4.42.0
     dev: true
     engines:
       node: '>= 8.9.0'
@@ -22150,7 +22171,7 @@ packages:
       lodash: 4.17.21
       semver: 5.7.1
       ts-node: 3.3.0
-      webpack: 4.42.1
+      webpack: 4.42.1_webpack@4.42.1
     dev: true
     peerDependencies:
       webpack: '>= 3.0.0 < 6'
@@ -22166,7 +22187,7 @@ packages:
       lodash: 4.17.21
       semver: 6.3.0
       ts-node: 8.10.2
-      webpack: 4.42.1
+      webpack: 4.42.1_webpack@4.42.1
     dev: true
     peerDependencies:
       webpack: '>= 3.0.0 < 6'
@@ -22737,24 +22758,19 @@ packages:
     dev: true
     resolution:
       integrity: sha512-/0d2YTn8ZFVpIPAU230S9ZLF8WDkSSRWvh/UOLM7zzvkCchum1TtouRgyV8OfgOaYilSGU4lSSqzwBXJVlAwUw==
-  /ssh2-streams/0.4.10:
+  /ssh2/1.5.0:
     dependencies:
       asn1: 0.2.4
       bcrypt-pbkdf: 1.0.2
-      streamsearch: 0.1.2
     dev: false
     engines:
-      node: '>=5.2.0'
+      node: '>=10.16.0'
+    optionalDependencies:
+      cpu-features: 0.0.2
+      nan: 2.15.0
+    requiresBuild: true
     resolution:
-      integrity: sha512-8pnlMjvnIZJvmTzUIIA5nT4jr2ZWNNVHwyXfMGdRJbug9TpI3kd99ffglgfSWqujVv/0gxwMsDn9j9RVst8yhQ==
-  /ssh2/0.8.9:
-    dependencies:
-      ssh2-streams: 0.4.10
-    dev: false
-    engines:
-      node: '>=5.2.0'
-    resolution:
-      integrity: sha512-GmoNPxWDMkVpMFa9LVVzQZHF6EW3WKmBwL+4/GeILf2hFmix5Isxm7Amamo8o7bHiU0tC+wXsGcUXOxp8ChPaw==
+      integrity: sha512-iUmRkhH9KGeszQwDW7YyyqjsMTf4z+0o48Cp4xOwlY5LjtbIAvyd3fwnsoUZW/hXmTCRA3yt7S/Jb9uVjErVlA==
   /sshpk/1.16.1:
     dependencies:
       asn1: 0.2.4
@@ -22888,12 +22904,6 @@ packages:
     dev: true
     resolution:
       integrity: sha512-pSi/SZZDbSA5l3YYjSmJadCoD74/qSe79r9ZVR21lD4bpf+khn5Umi6AlfJrD8I0KQfGSqm/7Yp48dmithM+Vw==
-  /streamsearch/0.1.2:
-    dev: false
-    engines:
-      node: '>=0.8.0'
-    resolution:
-      integrity: sha1-gIudDlb8Jz2Am6VzOOkpkZoanxo=
   /streamsink/1.2.0:
     dev: true
     resolution:
@@ -23360,7 +23370,7 @@ packages:
       serialize-javascript: 2.1.2
       source-map: 0.6.1
       terser: 4.6.11
-      webpack: 4.41.2
+      webpack: 4.41.2_webpack@4.41.2
       webpack-sources: 1.4.3
       worker-farm: 1.7.0
     dev: true
@@ -23379,7 +23389,7 @@ packages:
       serialize-javascript: 4.0.0
       source-map: 0.6.1
       terser: 4.8.0
-      webpack: 4.42.0
+      webpack: 4.42.0_webpack@4.42.0
       webpack-sources: 1.4.3
       worker-farm: 1.7.0
     dev: true
@@ -23398,7 +23408,7 @@ packages:
       serialize-javascript: 4.0.0
       source-map: 0.6.1
       terser: 4.8.0
-      webpack: 4.42.1
+      webpack: 4.42.1_webpack@4.42.1
       webpack-sources: 1.4.3
       worker-farm: 1.7.0
     dev: true
@@ -23418,7 +23428,7 @@ packages:
       serialize-javascript: 4.0.0
       source-map: 0.6.1
       terser: 4.8.0
-      webpack: 4.42.0
+      webpack: 4.42.0_webpack@4.42.0
       webpack-sources: 1.4.3
     dev: true
     engines:
@@ -24099,7 +24109,7 @@ packages:
     resolution:
       integrity: sha512-s/UIq9ap4JPZ7H1EB5ULo/aOUbWqfDi7FKzMC2Nz+0Si8GiT1rIEaprt8hy3Vy2Ex2aJPpOQv4P4DuOZ+K1c6w==
   /urix/0.1.0:
-    deprecated: Please see https://github.com/lydell/urix#deprecated
+    deprecated: 'Please see https://github.com/lydell/urix#deprecated'
     dev: true
     resolution:
       integrity: sha1-2pN/emLiH+wf0Y1Js1wpNQZ6bHI=
@@ -24109,7 +24119,7 @@ packages:
       loader-utils: 1.4.0
       mime: 2.4.6
       schema-utils: 2.7.1
-      webpack: 4.42.0
+      webpack: 4.42.0_webpack@4.42.0
     dev: true
     engines:
       node: '>= 8.9.0'
@@ -24237,12 +24247,12 @@ packages:
     resolution:
       integrity: sha1-Zyj8BFnEUNeWqZwxg3VpvfZy1yg=
   /uuid/3.3.2:
-    deprecated: Please upgrade  to version 7 or higher.  Older versions may use Math.random() in certain circumstances, which is known to be problematic.  See https://v8.dev/blog/math-random for details.
+    deprecated: 'Please upgrade  to version 7 or higher.  Older versions may use Math.random() in certain circumstances, which is known to be problematic.  See https://v8.dev/blog/math-random for details.'
     hasBin: true
     resolution:
       integrity: sha512-yXJmeNaw3DnnKAOKJE51sL/ZaYfWJRl1pK9dr19YFCu0ObS231AB1/LbqTKRAQ5kw8A90rA6fr4riOUpTZvQZA==
   /uuid/3.4.0:
-    deprecated: Please upgrade  to version 7 or higher.  Older versions may use Math.random() in certain circumstances, which is known to be problematic.  See https://v8.dev/blog/math-random for details.
+    deprecated: 'Please upgrade  to version 7 or higher.  Older versions may use Math.random() in certain circumstances, which is known to be problematic.  See https://v8.dev/blog/math-random for details.'
     hasBin: true
     resolution:
       integrity: sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==
@@ -24428,7 +24438,7 @@ packages:
       loader-utils: 1.2.3
       supports-color: 6.1.0
       v8-compile-cache: 2.0.3
-      webpack: 4.42.1
+      webpack: 4.42.1_webpack@4.42.1
       yargs: 13.2.4
     dev: true
     engines:
@@ -24444,7 +24454,7 @@ packages:
       mime: 2.4.6
       mkdirp: 0.5.5
       range-parser: 1.2.1
-      webpack: 4.42.0
+      webpack: 4.42.0_webpack@4.42.0
       webpack-log: 2.0.0
     dev: true
     engines:
@@ -24484,7 +24494,7 @@ packages:
       strip-ansi: 3.0.1
       supports-color: 6.1.0
       url: 0.11.0
-      webpack: 4.42.0
+      webpack: 4.42.0_webpack@4.42.0
       webpack-dev-middleware: 3.7.2_webpack@4.42.0
       webpack-log: 2.0.0
       ws: 6.2.1
@@ -24516,7 +24526,7 @@ packages:
       lodash: 4.17.21
       object.entries: 1.1.3
       tapable: 1.1.3
-      webpack: 4.42.0
+      webpack: 4.42.0_webpack@4.42.0
     dev: true
     engines:
       node: '>=6.11.5'
@@ -24535,7 +24545,7 @@ packages:
     dev: true
     resolution:
       integrity: sha512-lgTS3Xhv1lCOKo7SA5TjKXMjpSM4sBjNV5+q2bqesbSPs5FjGmU6jjtBSkX9b4qW87vDIsCIlUPOEhbZrMdjeQ==
-  /webpack/4.41.2:
+  /webpack/4.41.2_webpack@4.41.2:
     dependencies:
       '@webassemblyjs/ast': 1.8.5
       '@webassemblyjs/helper-module-context': 1.8.5
@@ -24564,9 +24574,11 @@ packages:
     engines:
       node: '>=6.11.5'
     hasBin: true
+    peerDependencies:
+      webpack: '*'
     resolution:
       integrity: sha512-Zhw69edTGfbz9/8JJoyRQ/pq8FYUoY0diOXqW0T6yhgdhCv6wr0hra5DwwWexNRns2Z2+gsnrNcbe9hbGBgk/A==
-  /webpack/4.42.0:
+  /webpack/4.42.0_webpack@4.42.0:
     dependencies:
       '@webassemblyjs/ast': 1.8.5
       '@webassemblyjs/helper-module-context': 1.8.5
@@ -24595,9 +24607,11 @@ packages:
     engines:
       node: '>=6.11.5'
     hasBin: true
+    peerDependencies:
+      webpack: '*'
     resolution:
       integrity: sha512-EzJRHvwQyBiYrYqhyjW9AqM90dE4+s1/XtCfn7uWg6cS72zH+2VPFAlsnW0+W0cDi0XRjNKUMoJtpSi50+Ph6w==
-  /webpack/4.42.1:
+  /webpack/4.42.1_webpack@4.42.1:
     dependencies:
       '@webassemblyjs/ast': 1.9.0
       '@webassemblyjs/helper-module-context': 1.9.0
@@ -24626,6 +24640,8 @@ packages:
     engines:
       node: '>=6.11.5'
     hasBin: true
+    peerDependencies:
+      webpack: '*'
     resolution:
       integrity: sha512-SGfYMigqEfdGchGhFFJ9KyRpQKnipvEvjc1TwrXEPCM6H5Wywu10ka8o3KGrMzSMxMQKt8aCHUFh5DaQ9UmyRg==
   /websocket-driver/0.6.5:
@@ -24898,7 +24914,7 @@ packages:
     dependencies:
       '@babel/runtime': 7.12.5
       json-stable-stringify: 1.0.1
-      webpack: 4.42.0
+      webpack: 4.42.0_webpack@4.42.0
       workbox-build: 4.3.1
     dev: true
     engines:
