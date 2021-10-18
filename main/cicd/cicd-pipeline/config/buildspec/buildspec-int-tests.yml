@@ -25,12 +25,12 @@ phases:
       - printf "Hello world"
       - printf "\n\n"
 
-reports:
-  integrationTests:
-    files:
-      - 'main/integration-tests/.build/test/junit.xml'
-    discard-paths: yes
-    file-format: JunitXml
+#reports:
+#  integrationTests:
+#    files:
+#      - 'main/integration-tests/.build/test/junit.xml'
+#    discard-paths: yes
+#    file-format: JunitXml
 
 cache:
   paths:
