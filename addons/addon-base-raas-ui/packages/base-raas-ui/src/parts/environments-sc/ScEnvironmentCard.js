@@ -117,8 +117,6 @@ class ScEnvironmentCard extends React.Component {
     const envType = this.envType || {};
 
     const config = this.getConfiguration(this.environment.envTypeConfigId);
-    const configName = config.name;
-    const instanceType = config.instanceType;
 
     const renderRow = (key, value) => (
       <Table.Row>
@@ -136,8 +134,8 @@ class ScEnvironmentCard extends React.Component {
           {renderRow('Studies', studyCount === 0 ? 'No studies linked to this workspace' : niceNumber(studyCount))}
           {renderRow('Project', _.isEmpty(env.projectId) ? 'N/A' : env.projectId)}
           {renderRow('Workspace Type', envType.name)}
-          {renderRow('Configuration Name', configName)}
-          {renderRow('Instance Type', instanceType)}
+          {renderRow('Configuration Name', config !== undefined ? config.name : 'Unavailable')}
+          {renderRow('Instance Type', config !== undefined ? config.instanceType : 'Unavailable')}
         </Table.Body>
       </Table>
     );
