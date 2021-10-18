@@ -49,12 +49,13 @@ const scEnvironment = {
   studyIds: [],
   cidr: [],
   outputs: [],
+  instanceType: 'instance type',
 };
 
 const envTypesStore = {
   getEnvTypeConfigsStore: jest.fn(() => envTypesStore),
   load: jest.fn(),
-  getEnvTypeConfig: jest.fn(),
+  getEnvTypeConfig: jest.fn(envTypeConfigId => (envTypeConfigId !== 1 ? scEnvironment : undefined)),
 };
 
 describe('ScEnvironmentCard', () => {
@@ -86,10 +87,27 @@ describe('ScEnvironmentCard', () => {
     const spyOnConfigsStore = jest.spyOn(component, 'getEnvTypeConfigsStore');
 
     // OPERATE
-    component.getConfiguration(scEnvironment.envTypeConfigId);
+    const config = component.getConfiguration(scEnvironment.envTypeConfigId);
+    console.log(config);
 
     // CHECK
     expect(spyOnConfigsStore).toHaveBeenCalled();
     expect(envTypesStore.getEnvTypeConfig).toHaveBeenCalledWith(scEnvironment.envTypeConfigId);
+    expect(config.name).toBeDefined();
+    expect(config.instanceType).toBeDefined();
+  });
+
+  it('should get undefined configuration', async () => {
+    // BUILD
+    const spyOnConfigsStore = jest.spyOn(component, 'getEnvTypeConfigsStore');
+
+    // OPERATE
+    const config = component.getConfiguration(1);
+    console.log(config);
+
+    // CHECK
+    expect(spyOnConfigsStore).toHaveBeenCalled();
+    expect(envTypesStore.getEnvTypeConfig).toHaveBeenCalledWith(1);
+    expect(config).toBeUndefined();
   });
 });
