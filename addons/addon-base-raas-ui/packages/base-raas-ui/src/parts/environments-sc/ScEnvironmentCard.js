@@ -57,6 +57,9 @@ class ScEnvironmentCard extends React.Component {
   getConfiguration(envTypeConfigId) {
     const configsStore = this.getEnvTypeConfigsStore();
     const config = configsStore.getEnvTypeConfig(envTypeConfigId);
+    if (config === undefined) {
+      return { name: 'Unavailable', instanceType: 'Unavailable' };
+    }
     return config;
   }
 
