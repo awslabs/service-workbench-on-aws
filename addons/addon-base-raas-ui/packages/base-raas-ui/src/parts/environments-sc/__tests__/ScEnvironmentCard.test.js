@@ -35,7 +35,7 @@ const scEnvironment = {
   rev: 2,
   status: 'active',
   description: 'sample description',
-  envTypeConfigId: 'env type config id',
+  envTypeConfigId: 'existingConfigId',
   name: 'name',
   projectId: 'project id',
   envTypeId: 'env type id',
@@ -49,13 +49,17 @@ const scEnvironment = {
   studyIds: [],
   cidr: [],
   outputs: [],
-  instanceType: 'instance type',
+};
+
+const scEnvConfig = {
+  name: 'name',
+  instanceType: 'instanceType',
 };
 
 const envTypesStore = {
   getEnvTypeConfigsStore: jest.fn(() => envTypesStore),
   load: jest.fn(),
-  getEnvTypeConfig: jest.fn(envTypeConfigId => (envTypeConfigId !== 1 ? scEnvironment : undefined)),
+  getEnvTypeConfig: jest.fn(envTypeConfigId => (envTypeConfigId === 'existingConfigId' ? scEnvConfig : undefined)),
 };
 
 describe('ScEnvironmentCard', () => {
@@ -88,13 +92,13 @@ describe('ScEnvironmentCard', () => {
 
     // OPERATE
     const config = component.getConfiguration(scEnvironment.envTypeConfigId);
-    console.log(config);
 
     // CHECK
     expect(spyOnConfigsStore).toHaveBeenCalled();
     expect(envTypesStore.getEnvTypeConfig).toHaveBeenCalledWith(scEnvironment.envTypeConfigId);
     expect(config.name).toBeDefined();
     expect(config.instanceType).toBeDefined();
+    expect(config).toEqual(scEnvConfig);
   });
 
   it('should get undefined configuration', async () => {
@@ -102,12 +106,11 @@ describe('ScEnvironmentCard', () => {
     const spyOnConfigsStore = jest.spyOn(component, 'getEnvTypeConfigsStore');
 
     // OPERATE
-    const config = component.getConfiguration(1);
-    console.log(config);
+    const config = component.getConfiguration('deletedConfigId');
 
     // CHECK
     expect(spyOnConfigsStore).toHaveBeenCalled();
-    expect(envTypesStore.getEnvTypeConfig).toHaveBeenCalledWith(1);
+    expect(envTypesStore.getEnvTypeConfig).toHaveBeenCalledWith('deletedConfigId');
     expect(config).toBeUndefined();
   });
 });
