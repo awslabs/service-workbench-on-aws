@@ -1,0 +1,25 @@
+name: CodePipeline Test
+on:
+  push:
+    branches:
+      - cicd-notification
+jobs:
+  wait-for-check:
+    name: Wait for check
+    runs-on: ubuntu-18.04
+    steps:
+      - name: Wait for CodePipeline to succeed
+        uses: fountainhead/action-wait-for-check@v1.0.0
+        id: wait-for-codepipeline
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          checkName: CodePipeline
+
+  merge-develop-to-mainline:
+    name: Merge develop to mainline
+    runs-on: ubuntu-18.04
+    needs: wait-for-check
+    steps:
+      - name: Merge to mainline
+        run: |
+          echo "Merging to mainline"
