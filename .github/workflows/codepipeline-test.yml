@@ -30,8 +30,12 @@ jobs:
         uses: "WyriHaximus/github-action-wait-for-status@v2"
         with:
             checkInterval: 20
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       - name: Error message on failure
         if: steps.wait-for-status-checks.outputs.status != 'success'
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         run: |
           echo "CodePipeline step failed so we do not move to next step. Return with 'false'"
           false
