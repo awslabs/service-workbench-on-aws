@@ -21,25 +21,53 @@ jobs:
 #        run: |
 #          echo "CodePipeline step failed so we do not move to next step
 #          false #Fail this command so the next step doesn't run
-  wait-for-status:
-    name: Wait for status
+#  wait-for-status:
+#    name: Wait for status
+#    runs-on: ubuntu-18.04
+#    steps:
+#      - name: Wait for status checks
+#        id: wait-for-status-checks
+#        uses: "WyriHaximus/github-action-wait-for-status@v1.4"
+#        with:
+#            ignoreActions: wait-for-status
+#            checkInterval: 60
+#        env:
+#          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+#      - name: Error message on failure
+#        if: steps.wait-for-status-checks.outputs.status != 'success'
+#        env:
+#          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+#        run: |
+#          echo "CodePipeline step failed so we do not move to next step. Return with 'false'"
+#          false
+  check-gh-status:
+    name: Check Github Status
     runs-on: ubuntu-18.04
     steps:
-      - name: Wait for status checks
-        id: wait-for-status-checks
-        uses: "WyriHaximus/github-action-wait-for-status@v1.4"
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
         with:
-            ignoreActions: wait-for-status
-            checkInterval: 20
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-      - name: Error message on failure
-        if: steps.wait-for-status-checks.outputs.status != 'success'
-        env:
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          node-version: 12
+      - name: Wait until CodePipeline status is shown
         run: |
-          echo "CodePipeline step failed so we do not move to next step. Return with 'false'"
-          false
+          iteration=100
+          status=""
+          while [[ $iteration -le 10 &&  "$status" != "success" && "$status" != "failure" ]]; do
+              echo "$iteration"
+              iteration=$(($iteration + 1))
+              sleep 30
+              response=$(curl --request GET \
+          --url https://api.github.com/repos/${{ env.GITHUB_REPOSITORY }}/commits/{{ env.GITHUB_SHA }} \
+          --header 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+          --header 'content-type: application/json')
+              echo $response
+              status=$(node parseStatus.js "$response")
+              echo "$status"
+          done
+        working-directory: .github/workflows
+
   merge-develop-to-mainline:
     name: Merge develop to mainline
     runs-on: ubuntu-18.04
