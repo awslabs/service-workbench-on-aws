@@ -22,7 +22,6 @@ phases:
   build:
     commands:
 #      - ./scripts/run-integration-tests.sh "$ENV_NAME"
-      - printf "Hello world 1"
       - printf "\n\n"
 
 #reports:

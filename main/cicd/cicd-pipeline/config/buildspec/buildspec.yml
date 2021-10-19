@@ -23,67 +23,66 @@ phases:
       - printf "\n\n"
   build:
     commands:
-      echo "Hello world"
-#      - echo "Running static code analysis"
-#      - ./scripts/run-static-code-analysis.sh
-#      - printf "\n\n"
-#
-#      - echo "Running unit tests"
-#      - ./scripts/run-unit-tests.sh
-#      - printf "\n\n"
+      - echo "Running static code analysis"
+      - ./scripts/run-static-code-analysis.sh
+      - printf "\n\n"
 
-#      - echo "Building and deploying $ENV_NAME"
-#      - ./scripts/environment-deploy.sh "$ENV_NAME"
-#      - printf "\n\n"
+      - echo "Running unit tests"
+      - ./scripts/run-unit-tests.sh
+      - printf "\n\n"
 
-#reports:
-#  servicesContainerTests:
-#    files:
-#      - 'addons/addon-base/packages/services-container/.build/test/junit.xml'
-#    discard-paths: yes
-#    file-format: JunitXml
-#
-#  servicesTests:
-#    files:
-#      - 'addons/addon-base/packages/services/.build/test/junit.xml'
-#    discard-paths: yes
-#    file-format: JunitXml
-#
-#  settingsHelperTests:
-#    files:
-#      - 'addons/addon-base/packages/serverless-settings-helper/.build/test/junit.xml'
-#    discard-paths: yes
-#    file-format: JunitXml
-#
-#  backendToolsTests:
-#    files:
-#      - 'addons/addon-base/packages/serverless-backend-tools/.build/test/junit.xml'
-#    discard-paths: yes
-#    file-format: JunitXml
-#
-#  apiHandlerTests:
-#    files:
-#      - 'addons/addon-base-rest-api/packages/api-handler-factory/.build/test/junit.xml'
-#    discard-paths: yes
-#    file-format: JunitXml
-#
-#  uiToolsTests:
-#    files:
-#      - 'addons/addon-base-ui/packages/serverless-ui-tools/.build/test/junit.xml'
-#    discard-paths: yes
-#    file-format: JunitXml
-#
-#  backendTests:
-#    files:
-#      - 'main/solution/backend/.build/test/junit.xml'
-#    discard-paths: yes
-#    file-format: JunitXml
-#
-#  postDeploymentTests:
-#    files:
-#      - 'main/solution/post-deployment/.build/test/junit.xml'
-#    discard-paths: yes
-#    file-format: JunitXml
+      - echo "Building and deploying $ENV_NAME"
+      - ./scripts/environment-deploy.sh "$ENV_NAME"
+      - printf "\n\n"
+
+
+  servicesContainerTests:
+    files:
+      - 'addons/addon-base/packages/services-container/.build/test/junit.xml'
+    discard-paths: yes
+    file-format: JunitXml
+
+  servicesTests:
+    files:
+      - 'addons/addon-base/packages/services/.build/test/junit.xml'
+    discard-paths: yes
+    file-format: JunitXml
+
+  settingsHelperTests:
+    files:
+      - 'addons/addon-base/packages/serverless-settings-helper/.build/test/junit.xml'
+    discard-paths: yes
+    file-format: JunitXml
+
+  backendToolsTests:
+    files:
+      - 'addons/addon-base/packages/serverless-backend-tools/.build/test/junit.xml'
+    discard-paths: yes
+    file-format: JunitXml
+
+  apiHandlerTests:
+    files:
+      - 'addons/addon-base-rest-api/packages/api-handler-factory/.build/test/junit.xml'
+    discard-paths: yes
+    file-format: JunitXml
+
+  uiToolsTests:
+    files:
+      - 'addons/addon-base-ui/packages/serverless-ui-tools/.build/test/junit.xml'
+    discard-paths: yes
+    file-format: JunitXml
+
+  backendTests:
+    files:
+      - 'main/solution/backend/.build/test/junit.xml'
+    discard-paths: yes
+    file-format: JunitXml
+
+  postDeploymentTests:
+    files:
+      - 'main/solution/post-deployment/.build/test/junit.xml'
+    discard-paths: yes
+    file-format: JunitXml
 
 cache:
   paths:
