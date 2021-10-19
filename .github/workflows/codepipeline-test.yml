@@ -52,7 +52,7 @@ jobs:
           node-version: 12
       - name: Wait until CodePipeline status is shown
         run: |
-          iteration=100
+          iteration=0
           status=""
           while [[ $iteration -le 10 &&  "$status" != "success" && "$status" != "failure" ]]; do
               echo "$iteration"
