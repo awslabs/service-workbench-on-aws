@@ -14,11 +14,18 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           checkName: CodePipeline
+          timeoutSeconds: 7200
+          intervalSeconds: 30
+      - name: Error message on failure
+        if: steps.wait-for-codepipeline.outputs.conclusion != 'success'
+        run: |
+          echo "CodePipeline step failed so we do not move to next step
+          false #Fail this command so the next step doesn't run
 
   merge-develop-to-mainline:
     name: Merge develop to mainline
     runs-on: ubuntu-18.04
-    needs: wait-for-check
+    needs: [ wait-for-check ]
     steps:
       - name: Merge to mainline
         run: |

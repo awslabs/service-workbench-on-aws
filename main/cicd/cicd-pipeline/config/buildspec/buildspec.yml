@@ -23,13 +23,13 @@ phases:
       - printf "\n\n"
   build:
     commands:
-      - echo "Running static code analysis"
-      - ./scripts/run-static-code-analysis.sh
-      - printf "\n\n"
-
-      - echo "Running unit tests"
-      - ./scripts/run-unit-tests.sh
-      - printf "\n\n"
+#      - echo "Running static code analysis"
+#      - ./scripts/run-static-code-analysis.sh
+#      - printf "\n\n"
+#
+#      - echo "Running unit tests"
+#      - ./scripts/run-unit-tests.sh
+#      - printf "\n\n"
 
 #      - echo "Building and deploying $ENV_NAME"
 #      - ./scripts/environment-deploy.sh "$ENV_NAME"
