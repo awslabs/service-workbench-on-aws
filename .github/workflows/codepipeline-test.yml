@@ -20,7 +20,7 @@ jobs:
           totalWaitTimeInSeconds=3600
           iteration=0
           status=""
-          while [[ $((iteration * waitTimePerLoopInSeconds)) -le 30 &&  "$status" != "success" && "$status" != "error" ]]; do
+          while [[ $((iteration * waitTimePerLoopInSeconds)) -le "$totalWaitTimeInSeconds" &&  "$status" != "success" && "$status" != "error" ]]; do
               echo "$iteration" iterations
               iteration=$(($iteration + 1))
               sleep "$waitTimePerLoopInSeconds"
