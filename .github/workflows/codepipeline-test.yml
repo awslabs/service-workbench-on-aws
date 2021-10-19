@@ -27,7 +27,7 @@ jobs:
     steps:
       - name: Wait for status checks
         id: wait-for-status-checks
-        uses: "WyriHaximus/github-action-wait-for-status@v2"
+        uses: "WyriHaximus/github-action-wait-for-status@v1.4"
         with:
             checkInterval: 20
         env:
