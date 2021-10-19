@@ -23,6 +23,7 @@ phases:
       - printf "\n\n"
   build:
     commands:
+      echo "Hello world"
 #      - echo "Running static code analysis"
 #      - ./scripts/run-static-code-analysis.sh
 #      - printf "\n\n"
@@ -35,7 +36,7 @@ phases:
 #      - ./scripts/environment-deploy.sh "$ENV_NAME"
 #      - printf "\n\n"
 
-reports:
+#reports:
 #  servicesContainerTests:
 #    files:
 #      - 'addons/addon-base/packages/services-container/.build/test/junit.xml'
