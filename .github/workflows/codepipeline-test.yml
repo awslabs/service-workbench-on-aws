@@ -71,7 +71,7 @@ jobs:
   merge-develop-to-mainline:
     name: Merge develop to mainline
     runs-on: ubuntu-18.04
-    needs: [ wait-for-status ]
+    needs: [ check-gh-status ]
     steps:
       - name: Merge to mainline
         run: |
