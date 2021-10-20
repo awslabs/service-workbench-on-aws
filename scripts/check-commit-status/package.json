@@ -1,0 +1,14 @@
+{
+  "name": "check-commit-status",
+  "version": "1.0.0",
+  "description": "This is to be ran in Github workflow and will wait for the status of the 'CodePipeline' check",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@octokit/rest": "^18.12.0"
+  }
+}
