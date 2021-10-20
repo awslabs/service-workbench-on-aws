@@ -32,9 +32,9 @@ phases:
       - ./scripts/run-unit-tests.sh
       - printf "\n\n"
 
-      - echo "Building and deploying $ENV_NAME"
-      - ./scripts/environment-deploy.sh "$ENV_NAME"
-      - printf "\n\n"
+#      - echo "Building and deploying $ENV_NAME"
+#      - ./scripts/environment-deploy.sh "$ENV_NAME"
+#      - printf "\n\n"
 
 reports:
   servicesContainerTests:
