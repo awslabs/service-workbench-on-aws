@@ -95,7 +95,7 @@ class CheckLaunchDependency extends StepBase {
     const needsAlb = _.get(templateOutputs.NeedsALB, 'Value', false);
     if (!needsAlb) return null;
 
-    // Locking the ALB provisioning to avoid race condiitons on parallel provisioning.
+    // Locking the ALB provisioning to avoid race conditions on parallel provisioning.
     // expiresIn is set to 10 minutes. attemptsCount is set to 1200 to retry after 1 seconds for 20 minutes
     const awsAccountId = await albService.findAwsAccountId(requestContext, projectId);
     const lock = await lockService.tryWriteLock(

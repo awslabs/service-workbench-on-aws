@@ -162,7 +162,7 @@ class TerminateLaunchDependency extends StepBase {
     if (!needsAlb) return null;
 
     const awsAccountId = await albService.findAwsAccountId(requestContext, projectId);
-    // Locking the ALB termination to avoid race condiitons on parallel provisioning.
+    // Locking the ALB termination to avoid race conditions on parallel provisioning.
     // expiresIn is set to 10 minutes. attemptsCount is set to 1200 to retry after 1 seconds for 20 minutes
     const lock = await lockService.tryWriteLock(
       { id: `alb-update-${awsAccountId}`, expiresIn: 1200 },
