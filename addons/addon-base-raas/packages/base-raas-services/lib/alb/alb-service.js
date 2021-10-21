@@ -47,7 +47,7 @@ class ALBService extends Service {
    */
   async albDependentWorkspacesCount(requestContext, projectId) {
     const deploymentItem = await this.getAlbDetails(requestContext, projectId);
-    if (deploymentItem) {
+    if (!_.isEmpty(deploymentItem) && !_.isEmpty(deploymentItem.value)) {
       const albRecord = JSON.parse(deploymentItem.value);
       return albRecord.albDependentWorkspacesCount;
     }
@@ -64,9 +64,10 @@ class ALBService extends Service {
    */
   async checkAlbExists(requestContext, projectId) {
     const deploymentItem = await this.getAlbDetails(requestContext, projectId);
-    if (deploymentItem) {
+    if (!_.isEmpty(deploymentItem) && !_.isEmpty(deploymentItem.value)) {
       const albRecord = JSON.parse(deploymentItem.value);
-      return !!_.get(albRecord, 'albArn', null);
+      const albArn = _.get(albRecord, 'albArn', null);
+      return !_.isEmpty(albArn);
     }
     return false;
   }
@@ -227,6 +228,10 @@ class ALBService extends Service {
     let response = null;
     try {
       response = await albClient.createRule(params).promise();
+
+      // Get current rule count on ALB and set it in DB
+      const albRules = await albClient.describeRules({ ListenerArn: listenerArn }).promise();
+      await this.updateAlbDependentWorkspaceCount(requestContext, resolvedVars.projectId, albRules.Rules.length);
     } catch (err) {
       throw new Error(`Error creating rule. Rule creation failed with message - ${err.message}`);
     }
@@ -235,20 +240,28 @@ class ALBService extends Service {
 
   /**
    * Method to delete listener rule. The method deletes rule using the ALB SDK client.
+   * Since this needs to reflect the up-to-date rule count on the ALB,
+   * ultimate environment termination status is not relevant
    *
    * @param requestContext
    * @param resolvedVars
    * @param ruleArn
+   * @param listenerArn
    * @returns {Promise<>}
    */
-  async deleteListenerRule(requestContext, resolvedVars, ruleArn) {
+  async deleteListenerRule(requestContext, resolvedVars, ruleArn, listenerArn) {
     const params = {
       RuleArn: ruleArn,
     };
     const albClient = await this.getAlbSdk(requestContext, resolvedVars);
     let response = null;
     try {
+      // Check if rule exists, only then perform deletion
       response = await albClient.deleteRule(params).promise();
+
+      // Get current rule count on ALB and set it in DB
+      const albRules = await albClient.describeRules({ ListenerArn: listenerArn }).promise();
+      await this.updateAlbDependentWorkspaceCount(requestContext, resolvedVars.projectId, albRules.Rules.length);
     } catch (err) {
       throw new Error(`Error deleting rule. Rule deletion failed with message - ${err.message}`);
     }
@@ -256,35 +269,21 @@ class ALBService extends Service {
   }
 
   /**
-   * Method to increase the count of alb dependent workspaces in database
+   * Method to update the count of alb dependent workspaces in database
+   * Rules limit per load balancer (not counting default rules): 100
+   * One default rule exists for the ALB for port 443, so subtracting that to form workspace count
    *
    * @param requestContext
    * @param projectId
    * @returns {Promise<>}
    */
-  async increaseAlbDependentWorkspaceCount(requestContext, projectId) {
+  async updateAlbDependentWorkspaceCount(requestContext, projectId, currRuleCount) {
+    const awsAccountId = await this.findAwsAccountId(requestContext, projectId);
     const deploymentItem = await this.getAlbDetails(requestContext, projectId);
     const albRecord = JSON.parse(deploymentItem.value);
-    albRecord.albDependentWorkspacesCount += 1;
+    albRecord.albDependentWorkspacesCount = currRuleCount - 1;
     const result = await this.saveAlbDetails(deploymentItem.id, albRecord);
-    await this.audit(requestContext, { action: 'update-deployment-store', body: result });
-    return result;
-  }
-
-  /**
-   * Method to decrease the count of alb dependent workspaces in database
-   *
-   * @param requestContext
-   * @param projectId
-   * @returns {Promise<>}
-   */
-  async decreaseAlbDependentWorkspaceCount(requestContext, projectId) {
-    const deploymentItem = await this.getAlbDetails(requestContext, projectId);
-    const albRecord = JSON.parse(deploymentItem.value);
-    albRecord.albDependentWorkspacesCount -= 1;
-    const result = await this.saveAlbDetails(deploymentItem.id, albRecord);
-    await this.audit(requestContext, { action: 'update-deployment-store', body: result });
-    return result;
+    await this.audit(requestContext, { action: `update-alb-count-account-${awsAccountId}`, body: result });
   }
 
   /**

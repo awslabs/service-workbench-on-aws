@@ -276,7 +276,7 @@ async function updateEnvOnProvisioningSuccess({
   return { requestContext, container, resolvedVars, status, outputs, provisionedProductId };
 }
 
-// This step calls "onEnvOnProvisioningFailure" in case of any errors.
+// This step calls "onEnvProvisioningFailure" in case of any errors.
 async function updateEnvOnProvisioningFailure({
   requestContext,
   container,

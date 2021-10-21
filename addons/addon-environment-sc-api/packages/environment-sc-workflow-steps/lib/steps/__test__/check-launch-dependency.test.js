@@ -378,19 +378,6 @@ describe('CheckLaunchDependencyStep', () => {
   });
 
   describe('onPass', () => {
-    it('should not increase alb dependent workspace count when needsAlb is false', async () => {
-      jest.spyOn(step.payloadOrConfig, 'optionalBoolean').mockImplementationOnce(() => {
-        return false;
-      });
-      await step.onPass();
-      expect(albService.increaseAlbDependentWorkspaceCount).not.toHaveBeenCalled();
-    });
-
-    it('should increase alb dependent workspace count when needsAlb is true', async () => {
-      await step.onPass();
-      expect(albService.increaseAlbDependentWorkspaceCount).toHaveBeenCalled();
-    });
-
     it('should release lock when alb is present', async () => {
       try {
         await step.onPass();

@@ -86,9 +86,18 @@ class CheckLaunchDependency extends StepBase {
       'envTypeConfigService',
     ]);
     const projectId = resolvedVars.projectId;
-    const awsAccountId = await albService.findAwsAccountId(requestContext, projectId);
-    // Locking the ALB provisioing to avoid race condiitons on parallel provisioning.
+    const envTypeConfig = await envTypeConfigService.mustFind(requestContext, envTypeId, { id: envTypeConfigId });
+
+    // Create dynamic namespace follows the existing pattern of namespace
+    resolvedVars.namespace = `analysis-${Date.now()}`;
+    const resolvedInputParams = await this.resolveVarExpressions(envTypeConfig.params, resolvedVars);
+    const templateOutputs = await this.getTemplateOutputs(requestContext, envTypeId);
+    const needsAlb = _.get(templateOutputs.NeedsALB, 'Value', false);
+    if (!needsAlb) return null;
+
+    // Locking the ALB provisioning to avoid race conditions on parallel provisioning.
     // expiresIn is set to 10 minutes. attemptsCount is set to 1200 to retry after 1 seconds for 20 minutes
+    const awsAccountId = await albService.findAwsAccountId(requestContext, projectId);
     const lock = await lockService.tryWriteLock(
       { id: `alb-update-${awsAccountId}`, expiresIn: 1200 },
       { attemptsCount: 1200 },
@@ -99,35 +108,20 @@ class CheckLaunchDependency extends StepBase {
     if (_.isUndefined(lock)) throw new Error('Could not obtain a lock');
     this.state.setKey('ALB_LOCK', lock);
 
-    const envTypeConfig = await envTypeConfigService.mustFind(requestContext, envTypeId, { id: envTypeConfigId });
-
-    // Create dynamic namespace follows the existing pattern of namespace
-    resolvedVars.namespace = `analysis-${Date.now()}`;
-    const resolvedInputParams = await this.resolveVarExpressions(envTypeConfig.params, resolvedVars);
-    const templateOutputs = await this.getTemplateOutputs(requestContext, envTypeId);
-    const needsAlb = _.get(templateOutputs.NeedsALB, 'Value', false);
     const maxAlbWorkspacesCount = _.get(
       templateOutputs.MaxCountALBDependentWorkspaces,
       'Value',
       MAX_COUNT_ALB_DEPENDENT_WORKSPACES,
     );
-    if (needsAlb) {
-      // Sets needsAlb to payload so it can be used to decrease alb workspace count on product failure
-      await this.payload.setKey(outPayloadKeys.needsAlb, needsAlb);
-      // eslint-disable-next-line no-return-await
-      return await this.provisionAlb(
-        requestContext,
-        resolvedVars,
-        projectId,
-        resolvedInputParams,
-        maxAlbWorkspacesCount,
-      );
-    }
-    return null;
+
+    // Sets needsAlb to payload so it can be used to decrease alb workspace count on product failure
+    await this.payload.setKey(outPayloadKeys.needsAlb, needsAlb);
+    // eslint-disable-next-line no-return-await
+    return await this.provisionAlb(requestContext, resolvedVars, projectId, resolvedInputParams, maxAlbWorkspacesCount);
   }
 
   /**
-   * Method to provision ALB. The method checks if the max count of ALB possible exists and
+   * Method to provision ALB. The method checks if the max count of workspaces possible exist and
    * checks if there is an ALB aready exists for the AWS account and provisions if not exists.
    *
    * @param requestContext
@@ -474,26 +468,15 @@ class CheckLaunchDependency extends StepBase {
 
   async onPass() {
     // this method is automatically invoked by the workflow engine when the step is completed
-    const [requestContext, resolvedVars, needsAlb, albLock] = await Promise.all([
-      this.payloadOrConfig.object(inPayloadKeys.requestContext),
-      this.payloadOrConfig.object(inPayloadKeys.resolvedVars),
-      this.payloadOrConfig.optionalBoolean(outPayloadKeys.needsAlb, false),
-      this.state.optionalString('ALB_LOCK'),
-    ]);
-    const [albService, lockService] = await this.mustFindServices(['albService', 'lockService']);
-    // Increase ALB dependent workspace count when there is a flag needs ALB
-    if (albLock) {
-      if (needsAlb) {
-        await albService.increaseAlbDependentWorkspaceCount(requestContext, resolvedVars.projectId);
-      }
-    } else {
-      throw new Error(`Error provisioning environment. Reason: ALB lock does not exist or expired`);
-    }
+    const [albLock] = await Promise.all([this.state.optionalString('ALB_LOCK')]);
+    const [lockService] = await this.mustFindServices(['lockService']);
     // Release ALB lock if exists
-    await lockService.releaseWriteLock({ writeToken: albLock });
-    this.print({
-      msg: `ALB lock released successfully`,
-    });
+    if (albLock) {
+      await lockService.releaseWriteLock({ writeToken: albLock });
+      this.print({
+        msg: `ALB lock released successfully`,
+      });
+    }
   }
 
   /**
