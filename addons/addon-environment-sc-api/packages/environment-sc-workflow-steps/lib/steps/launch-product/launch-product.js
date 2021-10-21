@@ -244,7 +244,7 @@ class LaunchProduct extends StepBase {
   async onFail(error) {
     this.printError(error);
 
-    const [requestContext, resolvedVars, portfolioId, productId, provisionedProductId, needsAlb] = await Promise.all([
+    const [requestContext, resolvedVars, portfolioId, productId, provisionedProductId] = await Promise.all([
       this.payloadOrConfig.object(inPayloadKeys.requestContext),
       this.payloadOrConfig.object(inPayloadKeys.resolvedVars),
       this.payloadOrConfig.string(inPayloadKeys.portfolioId),
@@ -252,17 +252,7 @@ class LaunchProduct extends StepBase {
 
       // Using optionalString because PROVISIONED_PRODUCT_ID may not have been set in the state if failure occurred before calling provisionProduct
       this.state.optionalString('PROVISIONED_PRODUCT_ID', ''),
-      this.payloadOrConfig.optionalBoolean(inPayloadKeys.needsAlb, false),
     ]);
-
-    // Decrease the alb dependent workspaces count if product provisioning fails
-    if (needsAlb) {
-      const [albService, lockService] = await this.mustFindServices(['albService', 'lockService']);
-      const awsAccountId = await albService.findAwsAccountId(requestContext, resolvedVars.projectId);
-      await lockService.tryWriteLockAndRun({ id: `alb-update-${awsAccountId}` }, async () => {
-        await albService.decreaseAlbDependentWorkspaceCount(requestContext, resolvedVars.projectId);
-      });
-    }
 
     const targetAwsAccountId = this.getTargetAccountRoleArn(resolvedVars);
     this.print({

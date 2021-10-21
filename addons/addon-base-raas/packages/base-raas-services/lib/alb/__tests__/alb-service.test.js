@@ -189,28 +189,31 @@ describe('ALBService', () => {
     });
   });
 
-  describe('increase alb dependent workspace count function', () => {
+  describe('update alb dependent workspace count function', () => {
     it('should fail because project id is not valid', async () => {
       projectService.mustFind.mockImplementationOnce(() => {
         throw service.boom.notFound(`project with id "test-id" does not exist`, true);
       });
       // OPERATE
       try {
-        await service.increaseAlbDependentWorkspaceCount({}, 'test-id');
+        await service.updateAlbDependentWorkspaceCount({}, 'test-id', 3);
       } catch (err) {
         // CHECK
         expect(err.message).toEqual('project with id "test-id" does not exist');
       }
     });
 
-    it('should pass and increment count if the input is valid', async () => {
+    it('should pass and update count if the input is valid', async () => {
+      service.findAwsAccountId = jest.fn(() => {
+        return 'sampleAwsAccountId';
+      });
       const updatedAlbDetails = {
         id: 'test-id',
         albStackName: null,
         albArn: 'arn:test-arn',
         listenerArn: null,
         albDnsName: null,
-        albDependentWorkspacesCount: 2,
+        albDependentWorkspacesCount: 1,
       };
       service.getAlbDetails = jest.fn(() => {
         return albDetails;
@@ -220,13 +223,17 @@ describe('ALBService', () => {
       });
       service.audit = jest.fn();
       // OPERATE
-      await service.increaseAlbDependentWorkspaceCount({}, 'test-id');
+      const totalRules = 2; // including one default rule
+      await service.updateAlbDependentWorkspaceCount({}, 'test-id', totalRules);
 
       // CHECK
       expect(service.saveAlbDetails).toHaveBeenCalledWith(albDetails.id, updatedAlbDetails);
     });
 
     it('should call audit on success', async () => {
+      service.findAwsAccountId = jest.fn(() => {
+        return 'sampleAwsAccountId';
+      });
       service.getAlbDetails = jest.fn(() => {
         return albDetails;
       });
@@ -235,63 +242,13 @@ describe('ALBService', () => {
       });
       service.audit = jest.fn();
       // OPERATE
-      await service.increaseAlbDependentWorkspaceCount({}, 'test-id');
+      await service.updateAlbDependentWorkspaceCount({}, 'test-id', 1);
 
       // CHECK
-      expect(service.audit).toHaveBeenCalledWith({}, { action: 'update-deployment-store', body: { id: 'id-alb' } });
-    });
-  });
-
-  describe('decrease alb dependent workspace count function', () => {
-    it('should fail because project id is not valid', async () => {
-      projectService.mustFind.mockImplementationOnce(() => {
-        throw service.boom.notFound(`project with id "test-id" does not exist`, true);
-      });
-      // OPERATE
-      try {
-        await service.decreaseAlbDependentWorkspaceCount({}, 'test-id');
-      } catch (err) {
-        // CHECK
-        expect(err.message).toEqual('project with id "test-id" does not exist');
-      }
-    });
-
-    it('should pass and decrement count if the input is valid', async () => {
-      const updatedAlbDetails = {
-        id: 'test-id',
-        albStackName: null,
-        albArn: 'arn:test-arn',
-        listenerArn: null,
-        albDnsName: null,
-        albDependentWorkspacesCount: 0,
-      };
-      service.getAlbDetails = jest.fn(() => {
-        return albDetails;
-      });
-      service.saveAlbDetails = jest.fn(() => {
-        return { id: 'id-alb' };
-      });
-      service.audit = jest.fn();
-      // OPERATE
-      await service.decreaseAlbDependentWorkspaceCount({}, 'test-id');
-
-      // CHECK
-      expect(service.saveAlbDetails).toHaveBeenCalledWith(albDetails.id, updatedAlbDetails);
-    });
-
-    it('should call audit if the success', async () => {
-      service.getAlbDetails = jest.fn(() => {
-        return albDetails;
-      });
-      service.saveAlbDetails = jest.fn(() => {
-        return { id: 'id-alb' };
-      });
-      service.audit = jest.fn();
-      // OPERATE
-      await service.decreaseAlbDependentWorkspaceCount({}, 'test-id');
-
-      // CHECK
-      expect(service.audit).toHaveBeenCalledWith({}, { action: 'update-deployment-store', body: { id: 'id-alb' } });
+      expect(service.audit).toHaveBeenCalledWith(
+        {},
+        { action: 'update-alb-count-account-sampleAwsAccountId', body: { id: 'id-alb' } },
+      );
     });
   });
 
@@ -379,10 +336,29 @@ describe('ALBService', () => {
         },
       ],
     };
+    const describeAPIResponse = {
+      Rules: [
+        {
+          RuleArn:
+            'arn:aws:elasticloadbalancing:us-west-2:123456789012:listener-rule/app/my-load-balancer/50dc6c495c0c9188/f2f7dc8efc522ab2/9683b2d02a6cabee',
+        },
+      ],
+    };
     const targetGroupArn =
       'rn:aws:elasticloadbalancing:us-east-2:977461429431:targetgroup/devrgsaas-sg/f4c2a2df084e5df4';
 
     it('should pass if system is trying to create listener rule', async () => {
+      service.findAwsAccountId = jest.fn(() => {
+        return 'sampleAwsAccountId';
+      });
+      service.updateAlbDependentWorkspaceCount = jest.fn();
+      albClient.describeRules = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return describeAPIResponse;
+          },
+        };
+      });
       albClient.createRule = jest.fn().mockImplementation(() => {
         return {
           promise: () => {
@@ -405,8 +381,19 @@ describe('ALBService', () => {
     });
 
     it('should pass and return the arn with success', async () => {
+      service.findAwsAccountId = jest.fn(() => {
+        return 'sampleAwsAccountId';
+      });
+      service.updateAlbDependentWorkspaceCount = jest.fn();
       const validateARN =
         'arn:aws:elasticloadbalancing:us-west-2:123456789012:listener-rule/app/my-load-balancer/50dc6c495c0c9188/f2f7dc8efc522ab2/9683b2d02a6cabee';
+      albClient.describeRules = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return describeAPIResponse;
+          },
+        };
+      });
       albClient.createRule = jest.fn().mockImplementation(() => {
         return {
           promise: () => {
@@ -430,6 +417,17 @@ describe('ALBService', () => {
     });
 
     it('should fail when create rule API call throws error', async () => {
+      service.findAwsAccountId = jest.fn(() => {
+        return 'sampleAwsAccountId';
+      });
+      service.updateAlbDependentWorkspaceCount = jest.fn();
+      albClient.describeRules = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return describeAPIResponse;
+          },
+        };
+      });
       albClient.createRule = jest.fn().mockImplementation(() => {
         throw new Error(`Error creating rule. Rule creation failed with message - Too many rules`);
       });
@@ -452,7 +450,26 @@ describe('ALBService', () => {
   });
 
   describe('deleteListenerRule', () => {
+    const describeAPIResponse = {
+      Rules: [
+        {
+          RuleArn:
+            'arn:aws:elasticloadbalancing:us-west-2:123456789012:listener-rule/app/my-load-balancer/50dc6c495c0c9188/f2f7dc8efc522ab2/9683b2d02a6cabee',
+        },
+      ],
+    };
     it('should pass and return empty object with success', async () => {
+      service.findAwsAccountId = jest.fn(() => {
+        return 'sampleAwsAccountId';
+      });
+      service.updateAlbDependentWorkspaceCount = jest.fn();
+      albClient.describeRules = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return describeAPIResponse;
+          },
+        };
+      });
       albClient.deleteRule = jest.fn().mockImplementation(() => {
         return {
           promise: () => {
@@ -461,16 +478,27 @@ describe('ALBService', () => {
         };
       });
       service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
-      const response = await service.deleteListenerRule({}, {}, '');
+      const response = await service.deleteListenerRule({}, {}, '', 'sampleListenerArn');
       expect(response).toEqual({});
     });
 
     it('should fail when delete rule API call throws error', async () => {
+      service.findAwsAccountId = jest.fn(() => {
+        return 'sampleAwsAccountId';
+      });
+      service.updateAlbDependentWorkspaceCount = jest.fn();
+      albClient.describeRules = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return describeAPIResponse;
+          },
+        };
+      });
       albClient.deleteRule = jest.fn().mockImplementation(() => {
         throw new Error(`Error deleting rule. Rule deletion failed with message - Rule not found`);
       });
       try {
-        await service.deleteListenerRule({}, {}, '');
+        await service.deleteListenerRule({}, {}, '', 'sampleListenerArn');
       } catch (err) {
         expect(err.message).toContain('Error deleting rule. Rule deletion failed with message - Rule not found');
       }
