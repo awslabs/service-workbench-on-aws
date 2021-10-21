@@ -2,7 +2,7 @@ const { Octokit } = require("@octokit/rest");
 
 async function run(args) {
     // https://docs.github.com/en/actions/learn-github-actions/contexts#github-context
-    // repository = `{owner}/{repoName}
+    // repository format is `{owner}/{repoName}`
     const [gitHubToken, repository, sha] = args;
     const commitStatusToCheckFor = 'CodePipeline';
     const [owner, repo] = repository.split('/');
