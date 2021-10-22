@@ -28,8 +28,7 @@ phases:
       # 2. y/n for CICD Pipeline removal: We do not delete CodePipeline while running the pipeline, so we pass "n"
       # 3. y/n for CICD Source removal: We do not delete CodePipeline source while running the pipeline, so we pass "n"
       # 4. y/n for Artifact bucket removal: This bucket contains important metadata files needed for subsequent pipeline runs, so we pass "n"
-      # 4. y/n for SSM parameter removal: Parameters are obsolete once environment is removed, so we pass "y"
-      - printf "$ENV_NAME\nn\n\nn\nn\ny" > test.txt
+      - printf "$ENV_NAME\nn\nn\nn" > test.txt
       - cat test.txt | ./scripts/environment-delete.sh "$ENV_NAME"
 
 cache:

@@ -137,7 +137,7 @@ function getCfLambdaAssociations() {
         rm temp_cf_config.json
         printf "\nCloudFront separated from Edge Lambda function.\n"
         local edgeLambdaARN=$(jq -r '.Items[0].LambdaFunctionARN' <<<$currentAssociations)
-        __funcName=$(grep -o "$STAGE-[^:]*\b" <<<$edgeLambdaARN)
+        __funcName="$(grep -o "$STAGE-[^:]*\b" <<<$edgeLambdaARN)"
     else
         printf "\nNo need to update config. currentAssociations: $currentAssociations"
     fi
@@ -231,27 +231,17 @@ function removeSsmParams() {
 
     set +e
 
-    local ASK_CONFIRMATION=$1
-
     local solutionName=$(cat "$CONFIG_DIR/settings/$STAGE.yml" "$CONFIG_DIR/settings/.defaults.yml" | grep '^solutionName:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
     local regionName=$(cat "$CONFIG_DIR/settings/$STAGE.yml" "$CONFIG_DIR/settings/.defaults.yml" | grep '^awsRegion:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
 
     printf "\n\n\n---- SSM Parameters"
     local paramNames=("/$STAGE/$solutionName/jwt/secret" "/$STAGE/$solutionName/user/root/password")
 
-    local _confirmation="y"
-
-    if [[ "$ASK_CONFIRMATION" != "DONT_ASK_CONFIRMATION" && "$_confirmation" == "y" ]]; then
-        printf "\nRemove params "${paramNames}" ? (y/n): "
-        read -r _confirmation
-    fi
-
     for param in "${paramNames[@]}"; do
-        if [[ "$_confirmation" == "y" ]]; then
-            set +e
-            aws ssm delete-parameter --name $param > /dev/null
-            set -e
-        fi
+        set +e
+        printf "\nDeleting param $param"
+        aws ssm delete-parameter --name $param > /dev/null
+        set -e
     done
 
     set -e
@@ -360,7 +350,7 @@ buckets=("artifacts")
 emptyS3BucketsFromNames "DELETE_AFTER_EMPTYING" "ASK_CONFIRMATION" ${buckets[@]}
 
 # -- SSM parameters
-removeSsmParams "ASK_CONFIRMATION"
+removeSsmParams
 
 # -- Lambda@edge associations in Cloudfront (if Cloudfront has not been deleted yet)
 printf "\n\n\n--- Edge Lambda Associations in Cloudfront Distribution\n"
