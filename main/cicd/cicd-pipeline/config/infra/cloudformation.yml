@@ -640,6 +640,8 @@ Resources:
   TargetEnvDeployProject:
     Type: AWS::CodeBuild::Project
     Properties:
+      QueuedTimeoutInMinutes: 180
+      TimeoutInMinutes: 90
       Artifacts:
         Type: CODEPIPELINE
       Source:
@@ -758,6 +760,8 @@ Resources:
         Type: LINUX_CONTAINER
         Image: aws/codebuild/amazonlinux2-x86_64-standard:2.0
       ServiceRole: !GetAtt AppDeployerRole.Arn
+      QueuedTimeoutInMinutes: 180
+      TimeoutInMinutes: 90
       Cache:
         # Use local caching to cache dirs specified in buildspec.yml (i.e., the node_modules dirs)
         # See https://docs.aws.amazon.com/codebuild/latest/userguide/build-caching.html for various build caching options

@@ -143,7 +143,7 @@ function getCfLambdaAssociations() {
     fi
 
     # Return-like statement
-    eval $edgeLambdafunctionName=$__funcName
+    echo "$__funcName"
     set -e
 }
 
@@ -322,8 +322,7 @@ removeStack "Pre-Deployment" "$SOLUTION_DIR/pre-deployment" "DONT_ASK_CONFIRMATI
 
 # -- Infrastructure stack
 printf "\n\n\n--- Infrastructure stack"
-set edgeLambdafunctionName=""
-getCfLambdaAssociations edgeLambdafunctionName
+edgeLambdaFunctionName=$(getCfLambdaAssociations)
 buckets=("website" "logging")
 removeStack "Infrastructure" "$SOLUTION_DIR/infrastructure" "DONT_ASK_CONFIRMATION" ${buckets[@]}
 
@@ -354,8 +353,7 @@ removeSsmParams
 
 # -- Lambda@edge associations in Cloudfront (if Cloudfront has not been deleted yet)
 printf "\n\n\n--- Edge Lambda Associations in Cloudfront Distribution\n"
-removeCfLambdaAssociations $edgeLambdafunctionName
-unset edgeLambdafunctionName
+removeCfLambdaAssociations $edgeLambdaFunctionName
 
 printf "\n\n*******************************************************************"
 printf "\n*****     ----- ENVIRONMENT DELETED SUCCESSFULLY  🎉!! -----     *****"
