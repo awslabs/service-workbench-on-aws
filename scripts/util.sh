@@ -29,7 +29,7 @@ popd > /dev/null
 
 function init_package_manager() {
   PACKAGE_MANAGER=pnpm
-  if ! command -v $PACKAGE_MANAGER; then
+    if ! command -v $PACKAGE_MANAGER &> /dev/null; then
     npm install -g pnpm@5.18.9
   fi
   case "$PACKAGE_MANAGER" in
@@ -60,7 +60,7 @@ function install_dependencies() {
   init_package_manager
 
   # Install
-  pushd "$SOLUTION_DIR"
+  pushd "$SOLUTION_DIR" &> /dev/null
   [[ -n "$INSTALL_RECURSIVE" ]] && $INSTALL_RECURSIVE
   popd
 }
