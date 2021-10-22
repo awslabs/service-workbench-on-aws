@@ -358,6 +358,19 @@ Resources:
             Resource:
               - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-cicd-pipeline-AppDeployerRole-*'
               - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.namespace}-cicd-pipeline-PolicyAppDeployer-*'
+          - Effect: 'Allow'
+            Action:
+              - servicecatalog:CreateProduct
+              - servicecatalog:AssociateProductWithPortfolio
+              - servicecatalog:DisassociateProductFromPortfolio
+              - servicecatalog:CreateConstraint
+              - servicecatalog:DeleteConstraint
+              - servicecatalog:DeleteProduct
+            Resource:
+              - !Sub 'arn:aws:servicecatalog:${AWS::Region}:${AWS::AccountId}:*'
+              - !Sub 'arn:aws:servicecatalog:${AWS::Region}:${AWS::AccountId}:*/*'
+              - !Sub 'arn:aws:catalog:${AWS::Region}:${AWS::AccountId}:portfolio/*'
+              - !Sub 'arn:aws:catalog:${AWS::Region}:${AWS::AccountId}:product/*'
 
   AppDeployerRole:
     Type: AWS::IAM::Role
