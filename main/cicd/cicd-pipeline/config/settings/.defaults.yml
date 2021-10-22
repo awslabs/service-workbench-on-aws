@@ -42,3 +42,7 @@ runTestsAgainstTargetEnv: true
 # Name of the staging environment to run the integration tests against.
 # This setting is ignored when createStagingEnv is not true.
 stgEnvName: ${self:custom.settings.envName}stg
+
+# WARNING: Setting this to true deletes the installed Service Workbench environment at the end of the pipeline
+# This can be used for testing the fresh install and uninstall experience of the product using CodePipeline
+deleteAfterInstall: false
