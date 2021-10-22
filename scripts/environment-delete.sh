@@ -97,6 +97,15 @@ function shouldStackBeRemoved() {
 }
 
 function removeCfLambdaAssociations() {
+    set +e # Avoid interrupting this script in case of an exception
+    local lambdaFunctionName=$1
+    if [[ "$functionName" != "" ]]; then
+        aws lambda delete-function --function-name $lambdaFunctionName
+    fi
+    set -e
+}
+
+function getCfLambdaAssociations() {
 
     set +e # Avoid interrupting this script in case of an exception
 
@@ -119,6 +128,7 @@ function removeCfLambdaAssociations() {
     currentAssociations=$(jq '.DefaultCacheBehavior.LambdaFunctionAssociations' <<<$distributionConfig)
     jsonString='{ "Quantity": 0 }'
     noAssociations=$(jq '.' <<<$jsonString)
+    local __funcName=""
 
     if [[ "$currentAssociations" != "$jsonString" ]]; then
         # Update Cloudfront Distribution
@@ -127,13 +137,13 @@ function removeCfLambdaAssociations() {
         rm temp_cf_config.json
         printf "\nCloudFront separated from Edge Lambda function.\n"
         local edgeLambdaARN=$(jq -r '.Items[0].LambdaFunctionARN' <<<$currentAssociations)
-        local functionName=$(grep -o "$STAGE-[^:]*\b" <<<$edgeLambdaARN)
-
-        aws lambda delete-function --function-name $functionName
+        __funcName=$(grep -o "$STAGE-[^:]*\b" <<<$edgeLambdaARN)
     else
         printf "\nNo need to update config. currentAssociations: $currentAssociations"
     fi
 
+    # Return-like statement
+    eval $edgeLambdafunctionName=$__funcName
     set -e
 }
 
@@ -230,16 +240,16 @@ function removeSsmParams() {
     local paramNames=("/$STAGE/$solutionName/jwt/secret" "/$STAGE/$solutionName/user/root/password")
 
     local _confirmation="y"
+
+    if [[ "$ASK_CONFIRMATION" != "DONT_ASK_CONFIRMATION" && "$_confirmation" == "y" ]]; then
+        printf "\nRemove params "${paramNames}" ? (y/n): "
+        read -r _confirmation
+    fi
+
     for param in "${paramNames[@]}"; do
-
-        if [[ "$ASK_CONFIRMATION" != "DONT_ASK_CONFIRMATION" && "$_confirmation" == "y" ]]; then
-            printf "\nRemove param $param ? (y/n): "
-            read -r _confirmation
-        fi
-
         if [[ "$_confirmation" == "y" ]]; then
             set +e
-            aws ssm delete-parameter --name $param --region $regionName > /dev/null
+            aws ssm delete-parameter --name $param > /dev/null
             set -e
         fi
     done
@@ -256,22 +266,27 @@ function removeServiceCatalogPortfolio() {
     local portfolioId=$(aws dynamodb get-item --table-name "$STAGE-$aws_region_shortname-$solutionName-DeploymentStore" --key '{"type": {"S": "default-sc-portfolio"}, "id": {"S": "default-SC-portfolio-1"}}' --output text | grep -o 'port-[^"]*\b')
 
     if [[ "$portfolioId" != "" ]]; then
-        local constraintIds=$(aws servicecatalog list-constraints-for-portfolio --portfolio-id "$portfolioId" --query "ConstraintDetails[].ConstraintId")
-        local productIds=$(aws servicecatalog list-constraints-for-portfolio --portfolio-id "$portfolioId" --query "ConstraintDetails[].ProductId")
-        local principals=$(aws servicecatalog list-principals-for-portfolio --portfolio-id "$portfolioId" --query "Principals[].PrincipalARN")
-
+        local constraintIds=$(aws servicecatalog list-constraints-for-portfolio --portfolio-id "$portfolioId" --query "ConstraintDetails[].ConstraintId" --output text)
+        constraintIds=(`echo ${constraintIds}`)
+        local productIds=$(aws servicecatalog list-constraints-for-portfolio --portfolio-id "$portfolioId" --query "ConstraintDetails[].ProductId" --output text)
+        productIds=(`echo ${productIds}`)
+        local principals=$(aws servicecatalog list-principals-for-portfolio --portfolio-id "$portfolioId" --query "Principals[].PrincipalARN" --output text)
+        principals=(`echo ${principals}`)
+        
         for constraint in "${constraintIds[@]}"; do
-            aws servicecatalog delete-constraint --id $constraint
+            aws servicecatalog delete-constraint --id $constraint > /dev/null
         done
 
-        for product in "${productIds[@]}"; do
-            aws servicecatalog disassociate-product-from-portfolio --product-id $product --portfolio-id $portfolioId
-            aws servicecatalog delete-product --id $product
+        for product in ${productIds[@]}; do
+            aws servicecatalog disassociate-product-from-portfolio --product-id $product --portfolio-id $portfolioId > /dev/null
+            aws servicecatalog delete-product --id $product > /dev/null
         done
 
-        for principal in "${principals[@]}"; do
-            aws servicecatalog disassociate-principal-from-portfolio --portfolio-id $portfolioId --principal-arn $principal
+        for principal in ${principals[@]}; do
+            aws servicecatalog disassociate-principal-from-portfolio --portfolio-id $portfolioId --principal-arn $principal > /dev/null
         done
+
+        aws servicecatalog delete-portfolio --id $portfolioId > /dev/null
     fi
     
     set -e
@@ -315,12 +330,10 @@ removeStack "Backend" "$SOLUTION_DIR/backend" "DONT_ASK_CONFIRMATION" ${buckets[
 printf "\n\n\n--- Pre-Deployment stack\n"
 removeStack "Pre-Deployment" "$SOLUTION_DIR/pre-deployment" "DONT_ASK_CONFIRMATION"
 
-# -- Lambda@edge associations in Cloudfront (if Cloudfront has not been deleted yet)
-printf "\n\n\n--- Edge Lambda Associations in Cloudfront Distribution\n"
-removeCfLambdaAssociations
-
 # -- Infrastructure stack
 printf "\n\n\n--- Infrastructure stack"
+set edgeLambdafunctionName=""
+getCfLambdaAssociations edgeLambdafunctionName
 buckets=("website" "logging")
 removeStack "Infrastructure" "$SOLUTION_DIR/infrastructure" "DONT_ASK_CONFIRMATION" ${buckets[@]}
 
@@ -348,6 +361,11 @@ emptyS3BucketsFromNames "DELETE_AFTER_EMPTYING" "ASK_CONFIRMATION" ${buckets[@]}
 
 # -- SSM parameters
 removeSsmParams "ASK_CONFIRMATION"
+
+# -- Lambda@edge associations in Cloudfront (if Cloudfront has not been deleted yet)
+printf "\n\n\n--- Edge Lambda Associations in Cloudfront Distribution\n"
+removeCfLambdaAssociations $edgeLambdafunctionName
+unset edgeLambdafunctionName
 
 printf "\n\n*******************************************************************"
 printf "\n*****     ----- ENVIRONMENT DELETED SUCCESSFULLY  🎉!! -----     *****"

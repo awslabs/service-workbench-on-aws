@@ -321,6 +321,7 @@ Resources:
               Action:
                 - servicecatalog:ListPrincipalsForPortfolio
                 - servicecatalog:DeleteProduct
+                - servicecatalog:DeletePortfolio
                 - servicecatalog:DisassociatePrincipalFromPortfolio
               Resource:
                 - !Sub 'arn:aws:catalog:${AWS::Region}:${AWS::AccountId}:portfolio/*'
