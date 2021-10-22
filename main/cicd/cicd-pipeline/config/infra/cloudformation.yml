@@ -359,7 +359,7 @@ Resources:
               - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-cicd-pipeline-AppDeployerRole-*'
               - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.namespace}-cicd-pipeline-PolicyAppDeployer-*'
           - !If
-            - CreateStagingEnv
+            - RunTestsAgainstTargetEnv
             - Effect: 'Allow'
               Action:
                 - servicecatalog:CreateProduct
