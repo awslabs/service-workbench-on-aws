@@ -51,5 +51,5 @@ deleteAfterInstall: false
 # It adds a delay of 60min before installation step to prevent multiple pipeline triggers clashing into each other
 # For eg.
 #   Commit #1 is in the deletion step of pipeline run #1
-#   Commit #2 with the same stage name is trying install the product's resources already being deleted by run #1
+#   Commit #2 with the same stage name is trying to install the product's resources that are already being deleted by run #1
 preventCollision: true
