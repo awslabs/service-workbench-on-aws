@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [4.0.2](https://github.com/awslabs/service-workbench-on-aws/compare/v4.0.1...v4.0.2) (2021-10-19)
+
+
+### Bug Fixes
+
+* add coverage for undef config case ([#761](https://github.com/awslabs/service-workbench-on-aws/issues/761)) ([a3f3f09](https://github.com/awslabs/service-workbench-on-aws/commit/a3f3f09fef9dd70f3b97f9abc88e2c88c28d8181))
+* AppDeployer needs perms to create new env ([#762](https://github.com/awslabs/service-workbench-on-aws/issues/762)) ([fe75f8b](https://github.com/awslabs/service-workbench-on-aws/commit/fe75f8be3580bb094ff4042f10ed1159f8ef3346))
+* display unavailable after config deletion ([#760](https://github.com/awslabs/service-workbench-on-aws/issues/760)) ([9c1daa4](https://github.com/awslabs/service-workbench-on-aws/commit/9c1daa489cee438bed849cf425ce7f3a6dd258f9))
+
 ### [4.0.1](https://github.com/awslabs/service-workbench-on-aws/compare/v4.0.0...v4.0.1) (2021-10-15)
 
 Notes: We recommend to apply this patch as soon as possible if you use [CICD](https://github.com/awslabs/service-workbench-on-aws/blob/mainline/main/cicd/cicd-source/README.md) component

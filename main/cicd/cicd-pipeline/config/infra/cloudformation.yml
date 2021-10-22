@@ -20,8 +20,7 @@ Resources:
     Type: AWS::SNS::Topic
     Properties: !If
       - SubscribeNotificationEmail
-      -
-        Subscription:
+      - Subscription:
           - Endpoint: ${self:custom.settings.emailForNotifications}
             Protocol: email
         KmsMasterKeyId: alias/aws/sns
@@ -229,7 +228,7 @@ Resources:
           - Action:
               - iam:PassRole
             Effect: Allow
-            Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-cicd-pipeline-AppDeployerRole-*'
+            Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*'
           - Action:
               - iam:CreatePolicy
               - iam:GetPolicy
