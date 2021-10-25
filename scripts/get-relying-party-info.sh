@@ -12,12 +12,12 @@ init_package_manager
 # Return value of given key from config file
 # Display error message and exit non-zero unless key-value is uncommented and value is non-zero in length
 function get_config_value() {
-  local config_file=$CONFIG_DIR/settings/$STAGE.yml
-  local config_value=$(grep -i "^\s*${1}" $config_file | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
+  local config_value=$(grep -i "^\s*${1}" $2 | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
   if [ -z "${config_value}" ]; then
-    echo "ERROR: Required value '${1}' is missing, commented out, or undefined in configuration file $config_file" 1>&2
+    echo "ERROR: Required value '${1}' is missing, commented out, or undefined in configuration file" 1>&2
     exit 1
   fi
+  echo "Read configuration value: ${1} = ${config_value}" 1>&2
   echo $config_value
 }
 
@@ -25,13 +25,22 @@ function get_config_value() {
 #  Displays human friendly summary message containing information required to configure Relying Party Trust in ADFS
 ##
 function get_rp_info() {
-  local aws_profile=$(get_config_value 'awsProfile')
-  local aws_region=$(get_config_value 'awsRegion')
-  local solution_name=$(get_config_value 'solutionName')
+  local config_file=$CONFIG_DIR/settings/$STAGE.yml
+  if [ ! -f $config_file ]; then
+    echo "ERROR: Configuration file does not exist: ${config_file}" 1>&2
+    exit 1
+  else
+    echo "Using configuration file: ${config_file}"
+  fi
+
+  local aws_profile=$(get_config_value 'awsProfile' $config_file)
+  local aws_region=$(get_config_value 'awsRegion' $config_file)
+  local solution_name=$(get_config_value 'solutionName' $config_file)
 
   # Exit if any of these config values were not set
   for var in solution_name aws_region aws_profile; do
     if [ ! ${!var} ]; then
+      echo "Configuration value ${var} not defined: Exiting" 1>&2
       exit
     fi
   done
