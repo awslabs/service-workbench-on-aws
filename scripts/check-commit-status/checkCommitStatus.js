@@ -6,9 +6,10 @@ async function run(args) {
     const [gitHubToken, repository, sha] = args;
     const commitStatusToCheckFor = 'CodePipeline';
     const [owner, repo] = repository.split('/');
+    console.log(`Checking ${commitStatusToCheckFor} status for commit ${sha}`)
 
     let latestStatus = "";
-    let iteration = 0;
+    const startTime = (new Date()).getTime();
     let waitTimePerApiCallInSeconds = 30;
     const totalWaitTimeInSeconds = 7200;
 
@@ -16,7 +17,8 @@ async function run(args) {
         auth: gitHubToken,
     });
 
-    while (!['success', 'error'].includes(latestStatus) && (iteration * waitTimePerApiCallInSeconds) < totalWaitTimeInSeconds) {
+    let waitedForInSeconds = 0;
+    while (!['success', 'error'].includes(latestStatus) &&  waitedForInSeconds < totalWaitTimeInSeconds) {
         // Latest commit status is at the top of the list
         // https://docs.github.com/en/rest/reference/repos#list-commit-statuses-for-a-reference
         const response = await octokit.rest.repos.listCommitStatusesForRef({owner, repo, ref: sha});
@@ -25,8 +27,9 @@ async function run(args) {
             latestStatus = commitStatuses[0].state;
         }
         await new Promise(resolve => setTimeout(resolve, waitTimePerApiCallInSeconds * 1000));
-        iteration++;
-        console.log('Iteration', iteration);
+        const currentTime = (new Date()).getTime();
+        waitedForInSeconds = Math.floor((currentTime - startTime) / 1000);
+        console.log(`Waited for ${waitedForInSeconds} seconds`);
     }
     if (latestStatus === 'success') {
         process.exit(0);
