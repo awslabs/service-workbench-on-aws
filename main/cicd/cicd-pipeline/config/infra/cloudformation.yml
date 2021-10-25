@@ -727,6 +727,7 @@ Resources:
           - Name: ENV_NAME
             Value: ${self:custom.settings.envName}
       ServiceRole: !GetAtt AppDeployerRole.Arn
+      QueuedTimeoutInMinutes: 60
       Cache:
         # Use local caching to cache dirs specified in buildspec.yml (i.e., the node_modules dirs)
         # See https://docs.aws.amazon.com/codebuild/latest/userguide/build-caching.html for various build caching options
