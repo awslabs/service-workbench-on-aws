@@ -67,9 +67,6 @@ jobs:
         uses: actions/checkout@v2
       - name: Run Git Secret
         run: git secrets --scan
-      - name: Print remediation message if git secret scan found a leaked secret
+      - name: Print remediation message
         if: failure()
-        run: echo "Check if creds was leaked. If yes, invalidate cred and create a new PR"
-
-
-
+        run: echo "Check if creds was leaked. If yes, revoke the credentials and create a new PR"
