@@ -120,6 +120,25 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+
+  LogBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref LogBucket
+      PolicyDocument:
+        Statement:
+          - Sid: Deny requests that do not use HTTPS/TLS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource:
+              - !Join ['/', [!GetAtt LogBucket.Arn, '*']]
+              - !GetAtt LogBucket.Arn
+            Condition:
+              Bool:
+                aws:SecureTransport: false
 
   MasterSecurityGroup:
     Type: AWS::EC2::SecurityGroup

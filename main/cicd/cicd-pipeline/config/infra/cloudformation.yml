@@ -140,6 +140,16 @@ Resources:
                   - UseCodeCommit
                   - ${self:custom.settings.sourceRoleArn}
                   - !Ref AWS::NoValue
+          - Sid: Deny requests that do not use HTTPS/TLS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource:
+              - !Join ['/', [!GetAtt AppArtifactBucket.Arn, '*']]
+              - !GetAtt AppArtifactBucket.Arn
+            Condition:
+              Bool:
+                aws:SecureTransport: false
 
   # The AWS IAM role to be assumed by the AWS CodePipeline.
   # The role specified in each stage is assumed for that specific stage in the pipeline.
