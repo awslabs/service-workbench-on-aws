@@ -48,7 +48,7 @@ jobs:
         run: bash <(curl -s https://codecov.io/bash) -f ./coverage/coverage-final.json
   scan-for-secrets:
     name: Scan for secrets
-    runs-on: ubuntu-18.04
+    runs-on: ubuntu-latest
     steps:
       - name: Install Git Secret
         run: |
