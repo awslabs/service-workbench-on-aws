@@ -101,7 +101,7 @@ describe('WorkflowDraftService', () => {
     it('Invalid workflow draft id: longer than 100 char', () => {
       expect(
         workflowDraftService.isWorkFlowDraftIdValid(
-          'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+          'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
         ),
       ).toEqual(false);
     });
