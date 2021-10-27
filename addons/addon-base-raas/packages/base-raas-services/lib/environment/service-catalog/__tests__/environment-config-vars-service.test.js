@@ -59,7 +59,15 @@ const EnvironmentSCServiceMock = require('../environment-sc-service');
 jest.mock('../environment-sc-keypair-service');
 const EnvironmentSCKeyPairServiceMock = require('../environment-sc-keypair-service');
 
+jest.mock('../../../data-egress/data-egress-service.js');
+const DataEgressService = require('../../../data-egress/data-egress-service.js');
+
 const EnvironmentConfigVarsService = require('../environment-config-vars-service');
+
+const createAdminContext = ({ uid = 'uid-admin' } = {}) => ({
+  principalIdentifier: { uid },
+  principal: { isAdmin: true, userRole: 'admin', status: 'active' },
+});
 
 describe('EnvironmentSCService', () => {
   let service = null;
@@ -69,6 +77,8 @@ describe('EnvironmentSCService', () => {
   let envTypeConfigService = null;
   let environmentAmiService = null;
   let userService = null;
+  let settingsService = null;
+  let dataEgressService = null;
 
   beforeEach(async () => {
     const container = new ServicesContainer();
@@ -87,6 +97,7 @@ describe('EnvironmentSCService', () => {
     container.register('environmentScService', new EnvironmentSCServiceMock());
     container.register('environmentScKeypairService', new EnvironmentSCKeyPairServiceMock());
     container.register('studyService', new StudyServiceMock());
+    container.register('dataEgressService', new DataEgressService());
     await container.initServices();
 
     // suppress expected console errors
@@ -94,16 +105,46 @@ describe('EnvironmentSCService', () => {
 
     // Get instance of the service we are testing
     service = await container.find('environmentConfigVarsService');
+    dataEgressService = await container.find('dataEgressService');
     environmentScService = await container.find('environmentScService');
     indexesService = await container.find('indexesService');
     awsAccountsService = await container.find('awsAccountsService');
     envTypeConfigService = await container.find('envTypeConfigService');
     environmentAmiService = await container.find('environmentAmiService');
     userService = await container.find('userService');
+    settingsService = await container.find('settings');
+    awsAccountsService = await container.find('awsAccountsService');
 
+    awsAccountsService.mustFind = jest.fn(() => {
+      return Promise.resolve({
+        cfnStackId:
+          'arn:aws:cloudformation:eu-west-1:123456789012:stack/initial-stack-1625689755737/ff9a0dc0-df61-11eb-8b32-024312ba26d9',
+      });
+    });
     // Skip authorization by default
     service.assertAuthorized = jest.fn();
   });
+
+  function mockSettingsService(settings) {
+    settingsService.get = jest.fn(getKey => {
+      let retValue;
+      Object.keys(settings).forEach(key => {
+        if (key === getKey) {
+          retValue = settings[key];
+        }
+      });
+      return retValue;
+    });
+    settingsService.getBoolean = jest.fn(getKey => {
+      let retValue;
+      Object.keys(settings).forEach(key => {
+        if (key === getKey) {
+          retValue = settings[key];
+        }
+      });
+      return retValue;
+    });
+  }
 
   describe('resolveEnvConfigVars', () => {
     it('should fail if any index configuration is missing - AWS Service Catalog Role Arn', async () => {
@@ -255,6 +296,8 @@ describe('EnvironmentSCService', () => {
           vpcId: 'VpcId-Test',
           subnetId: 'SubnetId-Test',
           encryptionKeyArn: 'UltraSecureEncryptionKey',
+          cfnStackId:
+            'arn:aws:cloudformation:eu-west-1:123456789012:stack/initial-stack-1625689755737/ff9a0dc0-df61-11eb-8b32-024312ba26d9',
         };
       });
 
@@ -268,16 +311,22 @@ describe('EnvironmentSCService', () => {
         return { uid: 'dunderMifflin', username: 'Michael Scott', ns: 'test@example.com' };
       });
 
+      mockSettingsService({
+        environmentInstanceFiles: '{}',
+        isAppStreamEnabled: 'true',
+        solutionNamespace: 'initial-stack-1625689755737',
+      });
       const expectedResponse = {
         accountId: '123456789012',
         adminKeyPairName: '',
         cidr: '192.168.xx.yy',
         description: 'env-desc',
+        egressStoreIamPolicyDocument: '{}',
         encryptionKeyArn: 'UltraSecureEncryptionKey',
         envId: 'sampleEnvId',
         envTypeConfigId: 'sampleEnvTypeConfigId',
         envTypeId: 'sampleEnvTypeId',
-        environmentInstanceFiles: undefined,
+        environmentInstanceFiles: '{}',
         externalId: 'ExternalId-Test',
         iamPolicyDocument: '{}',
         indexId: 'testIndex',
@@ -291,6 +340,102 @@ describe('EnvironmentSCService', () => {
         username: 'Michael Scott',
         vpcId: 'VpcId-Test',
         xAccEnvMgmtRoleArn: 'xAccEnvMgmtRole-Test',
+        isAppStreamEnabled: 'true',
+        solutionNamespace: 'initial-stack-1625689755737',
+      };
+
+      // EXECUTE & CHECK
+      await expect(
+        service.resolveEnvConfigVars(requestContext, { envId, envTypeId, envTypeConfigId }),
+      ).resolves.toStrictEqual(expectedResponse);
+    });
+
+    it('should succeed for happy path scenario with data egress feature enabled', async () => {
+      // BUILD
+      mockSettingsService({
+        environmentInstanceFiles: '{}',
+        isAppStreamEnabled: 'true',
+        solutionNamespace: 'initial-stack-1625689755737',
+        enableEgressStore: true,
+      });
+      const requestContext = createAdminContext();
+      const envId = 'sampleEnvId';
+      const envTypeId = 'sampleEnvTypeId';
+      const envTypeConfigId = 'sampleEnvTypeConfigId';
+
+      environmentScService.mustFind = jest.fn(() => {
+        return {
+          name: 'environment-1',
+          description: 'env-desc',
+          projectId: 'testProj',
+          indexId: 'testIndex',
+          cidr: '192.168.xx.yy',
+          studyIds: ['study-1', 'study-2'],
+        };
+      });
+
+      indexesService.mustFind = jest.fn(() => {
+        return { awsAccountId: '123456789012' };
+      });
+
+      awsAccountsService.mustFind = jest.fn(() => {
+        return {
+          xAccEnvMgmtRoleArn: 'xAccEnvMgmtRole-Test',
+          externalId: 'ExternalId-Test',
+          accountId: '123456789012',
+          vpcId: 'VpcId-Test',
+          subnetId: 'SubnetId-Test',
+          encryptionKeyArn: 'UltraSecureEncryptionKey',
+          cfnStackId:
+            'arn:aws:cloudformation:eu-west-1:123456789012:stack/initial-stack-1625689755737/ff9a0dc0-df61-11eb-8b32-024312ba26d9',
+        };
+      });
+
+      dataEgressService.getEgressStoreInfo = jest.fn(() => {
+        return { createdBy: 'sampleUserUid', roleArn: 'sampleMainAcctRoleArn' };
+      });
+
+      envTypeConfigService.mustFind = jest.fn(() => {
+        return { params: [{ value: 'ami-1234567890' }, { value: 'ami-0987654321' }] };
+      });
+
+      environmentAmiService.ensurePermissions = jest.fn();
+
+      userService.mustFindUser = jest.fn(() => {
+        return { uid: 'dunderMifflin', username: 'Michael Scott', ns: 'test@example.com' };
+      });
+
+      service.getEgressStoreMount = jest.fn(() => {
+        return {};
+      });
+
+      const expectedResponse = {
+        egressStoreIamPolicyDocument:
+          '{"Version":"2012-10-17","Statement":[{"Sid":"studyAssumeRoles","Action":["sts:AssumeRole"],"Effect":"Allow","Resource":["sampleMainAcctRoleArn"]}]}',
+        accountId: '123456789012',
+        adminKeyPairName: '',
+        cidr: '192.168.xx.yy',
+        description: 'env-desc',
+        encryptionKeyArn: 'UltraSecureEncryptionKey',
+        envId: 'sampleEnvId',
+        envTypeConfigId: 'sampleEnvTypeConfigId',
+        envTypeId: 'sampleEnvTypeId',
+        environmentInstanceFiles: '{}',
+        externalId: 'ExternalId-Test',
+        iamPolicyDocument: '{}',
+        indexId: 'testIndex',
+        name: 'environment-1',
+        projectId: 'testProj',
+        s3Mounts: '[{}]',
+        studyIds: ['study-1', 'study-2'],
+        subnetId: 'SubnetId-Test',
+        uid: 'dunderMifflin',
+        userNamespace: 'test@example.com',
+        username: 'Michael Scott',
+        vpcId: 'VpcId-Test',
+        xAccEnvMgmtRoleArn: 'xAccEnvMgmtRole-Test',
+        isAppStreamEnabled: 'true',
+        solutionNamespace: 'initial-stack-1625689755737',
       };
 
       // EXECUTE & CHECK

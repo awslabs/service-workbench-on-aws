@@ -24,6 +24,7 @@ const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
  * the environment can access what it needs, such as studies. This service implements the roles only
  * study access strategy.
  */
+
 class EnvironmentResourceService extends Service {
   constructor() {
     super();
@@ -202,6 +203,18 @@ class EnvironmentResourceService extends Service {
     return policyDoc;
   }
 
+  async provideEnvEgressStorePolicy(requestContext, { policyDoc, egressStore, environmentScEntity }) {
+    const roleArn = _.get(environmentScEntity, 'studyRoles', {})[egressStore.id];
+    policyDoc.addStudyRole(roleArn);
+    policyDoc.addStudy({
+      bucket: egressStore.bucket,
+      kmsArn: egressStore.kmsArn,
+      resources: egressStore.resources,
+      permission: egressStore.envPermission,
+    });
+    return policyDoc;
+  }
+
   /**
    * Populate s3 mount information that is going to be passed to the user data of the compute instance. This s3 mount
    * information is then used by the mount script that runs on the compute instance. It is important to keep in mind
@@ -249,6 +262,16 @@ class EnvironmentResourceService extends Service {
     // If the main call also needs to fail in case writing to any audit destination fails then switch to "write" method as follows
     // return auditWriterService.write(requestContext, auditEvent);
     return auditWriterService.writeAndForget(requestContext, auditEvent);
+  }
+
+  async getKMS() {
+    const aws = await this.getAWS();
+    return new aws.sdk.KMS();
+  }
+
+  async getAWS() {
+    const aws = await this.service('aws');
+    return aws;
   }
 }
 

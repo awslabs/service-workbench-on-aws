@@ -33,6 +33,15 @@ Parameters:
   KeyName:
     Description: SSH key pair to use for EMR node login
     Type: AWS::EC2::KeyPair::KeyName
+  SolutionNamespace:
+    Type: String
+    Description: The namespace value provided when onboarding the Member account
+    Default: ''
+  IsAppStreamEnabled:
+    Type: String
+    AllowedValues: [true, false]
+    Description: Is AppStream enabled for this workspace
+    Default: 'false'
   VPC:
     Description: VPC for EMR nodes.
     Type: AWS::EC2::VPC::Id
@@ -87,10 +96,14 @@ Parameters:
   EncryptionKeyArn:
     Type: String
     Description: The ARN of the KMS encryption Key used to encrypt data in the cluster
+  EgressStoreIamPolicyDocument:
+    Type: String
+    Description: The IAM policy for launched workstation to access egress store
 
 Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
   IsOnDemandCondition: !Equals [!Ref Market, ON_DEMAND]
+  EgressStoreIamPolicyEmpty: !Equals [!Ref EgressStoreIamPolicyDocument, '{}']
 
 Resources:
   # TODO: Use one bucket for EMR logs per account, so shift deployment to account on-boarding and pass here as param
@@ -134,7 +147,7 @@ Resources:
       Description: Permission boundary for EC2 instance role
       ManagedPolicyName: !Join ['-', [Ref: Namespace, 'emr-permission-boundary']]
       PolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Action:
@@ -169,6 +182,11 @@ Resources:
           - !Ref 'AWS::NoValue'
           - PolicyName: !Join ['-', [Ref: Namespace, 's3-studydata-policy']]
             PolicyDocument: !Ref IamPolicyDocument
+        - !If
+          - EgressStoreIamPolicyEmpty
+          - !Ref 'AWS::NoValue'
+          - PolicyName: !Join ['-', [Ref: Namespace, 's3-egressstore-policy']]
+            PolicyDocument: !Ref EgressStoreIamPolicyDocument
         - PolicyName: !Join ['-', [Ref: Namespace, 's3-bootstrap-script-policy']]
           PolicyDocument:
             Version: '2012-10-17'

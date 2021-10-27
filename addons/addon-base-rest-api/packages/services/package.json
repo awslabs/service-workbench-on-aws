@@ -9,7 +9,7 @@
     "@aws-ee/base-services-container": "workspace:*",
     "@aws-ee/base-services": "workspace:*",
     "ajv": "^6.11.0",
-    "aws-sdk": "^2.647.0",
+    "aws-sdk": "^2.1000.0",
     "jsonwebtoken": "^8.5.1",
     "jwk-to-pem": "^2.0.5",
     "jwt-decode": "^2.2.0",

@@ -6,6 +6,13 @@ Parameters:
   Namespace:
     Type: String
     Description: An environment name that will be prefixed to resource names
+  SolutionNamespace:
+    Type: String
+    Description: The namespace value provided when onboarding the Member account
+  IsAppStreamEnabled:
+    Type: String
+    AllowedValues: [true, false]
+    Description: Is AppStream enabled for this workspace
   AmiId:
     Type: String
     Description: Amazon Machine Image for the EC2 instance
@@ -19,6 +26,7 @@ Parameters:
   AccessFromCIDRBlock:
     Type: String
     Description: The CIDR used to access the ec2 instances.
+    Default: 10.0.0.0/19
   S3Mounts:
     Type: String
     Description: A JSON array of objects with name, bucket, and prefix properties used to mount data
@@ -39,9 +47,15 @@ Parameters:
   EncryptionKeyArn:
     Type: String
     Description: The ARN of the KMS encryption Key used to encrypt data in the instance
+  EgressStoreIamPolicyDocument:
+    Type: String
+    Description: The IAM policy for launched workstation to access egress store
 
 Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
+  EgressStoreIamPolicyEmpty: !Equals [!Ref EgressStoreIamPolicyDocument, '{}']
+  AppStreamEnabled: !Equals [!Ref IsAppStreamEnabled, 'true']
+  AppStreamDisabled: !Equals [!Ref IsAppStreamEnabled, 'false']
 
 Resources:
   InstanceRolePermissionBoundary:
@@ -50,7 +64,7 @@ Resources:
       Description: Permission boundary for EC2 instance role
       ManagedPolicyName: !Join ['-', [Ref: Namespace, 'ec2-rstudio-permission-boundary']]
       PolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Action:
@@ -85,6 +99,11 @@ Resources:
           - !Ref 'AWS::NoValue'
           - PolicyName: !Join ['-', [Ref: Namespace, 's3-studydata-policy']]
             PolicyDocument: !Ref IamPolicyDocument
+        - !If
+          - EgressStoreIamPolicyEmpty
+          - !Ref 'AWS::NoValue'
+          - PolicyName: !Join ['-', [Ref: Namespace, 's3-egressstore-policy']]
+            PolicyDocument: !Ref EgressStoreIamPolicyDocument
         - PolicyName: !Join ['-', [Ref: Namespace, 's3-bootstrap-script-policy']]
           PolicyDocument:
             Version: '2012-10-17'
@@ -133,23 +152,35 @@ Resources:
           FromPort: 0
           ToPort: 65535
           CidrIp: 0.0.0.0/0
-        - IpProtocol: icmp
-          FromPort: -1
-          ToPort: -1
-          CidrIp: !Ref AccessFromCIDRBlock
+        - !If
+          - AppStreamEnabled
+          - !Ref "AWS::NoValue"
+          - IpProtocol: icmp
+            FromPort: -1
+            ToPort: -1
+            CidrIp: !Ref AccessFromCIDRBlock
       SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
-          CidrIp: !Ref AccessFromCIDRBlock
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: !Ref AccessFromCIDRBlock
-        - IpProtocol: tcp
-          FromPort: 443
-          ToPort: 443
-          CidrIp: !Ref AccessFromCIDRBlock
+        - !If
+          - AppStreamEnabled
+          - !Ref "AWS::NoValue"
+          - IpProtocol: tcp
+            FromPort: 22
+            ToPort: 22
+            CidrIp: !Ref AccessFromCIDRBlock
+        - !If
+          - AppStreamEnabled
+          - !Ref "AWS::NoValue"
+          - IpProtocol: tcp
+            FromPort: 80
+            ToPort: 80
+            CidrIp: !Ref AccessFromCIDRBlock
+        - !If
+          - AppStreamEnabled
+          - !Ref "AWS::NoValue"
+          - IpProtocol: tcp
+            FromPort: 443
+            ToPort: 443
+            CidrIp: !Ref AccessFromCIDRBlock
       Tags:
         - Key: Name
           Value: !Join ['-', [Ref: Namespace, 'ec2-sg']]
@@ -174,10 +205,14 @@ Resources:
             Encrypted: true
             KmsKeyId: !Ref EncryptionKeyArn
       NetworkInterfaces:
-        - AssociatePublicIpAddress: 'true'
+        - AssociatePublicIpAddress: !If [ AppStreamEnabled, 'false', 'true' ]
           DeviceIndex: '0'
           GroupSet:
             - !Ref SecurityGroup
+            - !If
+              - AppStreamEnabled
+              - Fn::ImportValue: !Sub "${SolutionNamespace}-WorkspaceSG"
+              - !Ref "AWS::NoValue"
           SubnetId: !Ref Subnet
       Tags:
         - Key: Name
@@ -202,7 +237,12 @@ Outputs:
 
   Ec2WorkspacePublicIp:
     Description: Public IP address of the EC2 workspace instance
+    Condition: AppStreamDisabled
     Value: !GetAtt [EC2Instance, PublicIp]
+
+  Ec2WorkspacePrivateIp:
+    Description: Private IP address of the EC2 workspace instance
+    Value: !GetAtt [EC2Instance, PrivateIp]
 
   Ec2WorkspaceInstanceId:
     Description: Instance Id for the EC2 workspace instance

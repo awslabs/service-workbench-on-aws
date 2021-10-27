@@ -38,6 +38,12 @@ const LockServiceMock = require('@aws-ee/base-services/lib/lock/lock-service');
 jest.mock('@aws-ee/base-services/lib/s3-service');
 const S3ServiceMock = require('@aws-ee/base-services/lib/s3-service');
 
+jest.mock('@aws-ee/base-services/lib/aws/aws-service');
+const AwsServiceMock = require('@aws-ee/base-services/lib/aws/aws-service');
+
+jest.mock('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
+const PluginRegistryService = require('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
+
 const AwsAccountService = require('../aws-accounts-service');
 
 describe('AwsAccountService', () => {
@@ -45,6 +51,8 @@ describe('AwsAccountService', () => {
   let dbService = null;
   let s3Service = null;
   let lockService = null;
+  let pluginService = null;
+  let settingsService = null;
   beforeEach(async () => {
     // Initialize services container and register dependencies
     const container = new ServicesContainer();
@@ -55,7 +63,9 @@ describe('AwsAccountService', () => {
     container.register('settings', new SettingsServiceMock());
     container.register('lockService', new LockServiceMock());
     container.register('s3Service', new S3ServiceMock());
+    container.register('pluginRegistryService', new PluginRegistryService());
     container.register('awsAccountService', new AwsAccountService());
+    container.register('aws', new AwsServiceMock());
     await container.initServices();
 
     // Get instance of the service we are testing
@@ -63,6 +73,8 @@ describe('AwsAccountService', () => {
     dbService = await container.find('dbService');
     s3Service = await container.find('s3Service');
     lockService = await container.find('lockService');
+    pluginService = await container.find('pluginRegistryService');
+    settingsService = await container.find('settings');
 
     // Skip authorization by default
     service.assertAuthorized = jest.fn();
@@ -159,12 +171,7 @@ describe('AwsAccountService', () => {
   describe('create', () => {
     const awsAccount = {
       name: 'my-aws-account',
-      externalId: '012345678998',
-      roleArn: 'arn:aws:iam::role/AccountRole',
       accountId: '012345678998',
-      vpcId: 'vpc-abcdef123',
-      subnetId: 'subnet-abcdef123',
-      encryptionKeyArn: 'arn:aws:kms::key/someKey',
     };
 
     it('should fail if user is not allowed to create account', async () => {
@@ -184,9 +191,73 @@ describe('AwsAccountService', () => {
       }
     });
 
+    it('should not share appstream image if member account is same as main account', async () => {
+      // BUILD
+      const requestContext = {};
+      service.updateEnvironmentInstanceFilesBucketPolicy = jest.fn();
+      uuidMock.mockReturnValueOnce('abc-123-456');
+      settingsService.get = jest.fn(() => {
+        return awsAccount.accountId;
+      });
+      service.shareAppStreamImageWithMemberAccount = jest.fn();
+
+      // OPERATE
+      await service.create(requestContext, awsAccount);
+
+      // CHECK
+      expect(service.shareAppStreamImageWithMemberAccount).not.toHaveBeenCalled();
+    });
+
+    it('should share appstream image if member account is different than main account', async () => {
+      // BUILD
+      const requestContext = {};
+      service.updateEnvironmentInstanceFilesBucketPolicy = jest.fn();
+      uuidMock.mockReturnValueOnce('abc-123-456');
+      const mainAccountId = '0987654321';
+      settingsService.get = jest.fn(() => {
+        return mainAccountId;
+      });
+      settingsService.getBoolean = jest.fn(() => {
+        return true;
+      });
+      service.shareAppStreamImageWithMemberAccount = jest.fn();
+      const appstreamAwsAccount = {
+        name: 'my-aws-account',
+        accountId: '012345678998',
+        appStreamImageName: 'sampleAppStreamImageName',
+      };
+
+      // OPERATE
+      await service.create(requestContext, appstreamAwsAccount);
+
+      // CHECK
+      expect(service.shareAppStreamImageWithMemberAccount).toHaveBeenCalledWith(
+        requestContext,
+        appstreamAwsAccount.accountId,
+        appstreamAwsAccount.appStreamImageName,
+      );
+    });
+
     it('should save awsAccount in the database with a new uuid', async () => {
       // BUILD
       const requestContext = {};
+      service.updateEnvironmentInstanceFilesBucketPolicy = jest.fn();
+      uuidMock.mockReturnValueOnce('abc-123-456');
+
+      // OPERATE
+      await service.create(requestContext, awsAccount);
+
+      // CHECK
+      expect(dbService.table.condition).toHaveBeenCalledWith('attribute_not_exists(id)');
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'abc-123-456' });
+      expect(dbService.table.item).toHaveBeenCalledWith(expect.objectContaining(awsAccount));
+      expect(dbService.table.update).toHaveBeenCalled();
+    });
+
+    it('should save awsAccount if it has hostedzone', async () => {
+      // BUILD
+      const requestContext = {};
+      awsAccount.route53HostedZone = 'HOSTEDZONE123';
       service.updateEnvironmentInstanceFilesBucketPolicy = jest.fn();
       uuidMock.mockReturnValueOnce('abc-123-456');
 
@@ -321,6 +392,59 @@ describe('AwsAccountService', () => {
       encryptionKeyArn: 'arn:aws:kms::key/someKey',
     };
 
+    beforeEach(() => {
+      // Mocking main account to have the same ID as the member account being updated
+      settingsService.get = jest.fn(param => {
+        if (param === 'mainAcct') {
+          return awsAccount.accountId;
+        }
+        throw new Error(`settings.get for param ${param} is not mocked`);
+      });
+      settingsService.getBoolean = jest.fn(param => {
+        if (param === 'isAppStreamEnabled') {
+          return true;
+        }
+        throw new Error(`settings.getBoolean for param ${param} is not mocked`);
+      });
+      service.mustFind = jest.fn((requestContext, param) => {
+        if (param.id === awsAccount.id) {
+          return awsAccount;
+        }
+        throw new Error(`service.mustFind for param ${param} is not mocked`);
+      });
+    });
+
+    it('should not share appstream image if member account is same as main account', async () => {
+      // BUILD
+      const requestContext = { username: 'oneUser' };
+      service.shareAppStreamImageWithMemberAccount = jest.fn();
+
+      // OPERATE
+      await service.update(requestContext, { ...awsAccount, appStreamImageName: 'app-st-1' });
+
+      // CHECK
+      expect(service.shareAppStreamImageWithMemberAccount).not.toHaveBeenCalled();
+    });
+
+    it('should share appstream image if member account is different from main account', async () => {
+      // BUILD
+      service.mustFind = jest.fn().mockImplementation((requestContext, param) => {
+        if (param.id === awsAccount.id) {
+          return '111';
+        }
+        throw new Error(`mustFind for param ${param} is not mocked`);
+      });
+
+      const requestContext = { username: 'oneUser' };
+      service.shareAppStreamImageWithMemberAccount = jest.fn();
+
+      // OPERATE
+      await service.update(requestContext, { ...awsAccount, appStreamImageName: 'app-st-1' });
+
+      // CHECK
+      expect(service.shareAppStreamImageWithMemberAccount).toHaveBeenCalledTimes(1);
+    });
+
     it('should fail if user is not allowed to update account', async () => {
       // BUILD
       const requestContext = {};
@@ -352,6 +476,21 @@ describe('AwsAccountService', () => {
       expect(dbService.table.update).toHaveBeenCalled();
     });
 
+    it('should update awsAccount with HostedZone', async () => {
+      // BUILD
+      awsAccount.route53HostedZone = 'HOSTEDZONE123';
+      const requestContext = { username: 'oneUser' };
+      service.updateEnvironmentInstanceFilesBucketPolicy = jest.fn();
+
+      // OPERATE
+      await service.update(requestContext, awsAccount);
+
+      // CHECK
+      expect(dbService.table.condition).toHaveBeenCalledWith('attribute_exists(id)');
+      expect(dbService.table.key).toHaveBeenCalledWith({ id: 'xyz' });
+      expect(dbService.table.update).toHaveBeenCalled();
+    });
+
     it('should save an audit record', async () => {
       // BUILD
       const requestContext = {};
@@ -368,6 +507,58 @@ describe('AwsAccountService', () => {
           action: 'update-aws-account',
         }),
       );
+    });
+  });
+
+  describe('checkForActiveNonAppStreamEnvs', () => {
+    it('should not throw error if plugin returns empty array', async () => {
+      // BUILD
+      const requestContext = {};
+      settingsService.getBoolean = jest.fn(() => {
+        return true;
+      });
+      pluginService.visitPlugins = jest.fn(() => {
+        return [];
+      });
+      const awsAccountId = 'sampleAwsAccountId';
+
+      // OPERATE & CHECK
+      await service.checkForActiveNonAppStreamEnvs(requestContext, awsAccountId);
+    });
+
+    it('should not throw error if AppStream is disabled', async () => {
+      // BUILD
+      const requestContext = {};
+      settingsService.getBoolean = jest.fn(() => {
+        return false;
+      });
+      const awsAccountId = 'sampleAwsAccountId';
+
+      // OPERATE & CHECK
+      await service.checkForActiveNonAppStreamEnvs(requestContext, awsAccountId);
+    });
+
+    it('should throw error if AppStream is enabled and plugin returns non-empty array', async () => {
+      // BUILD
+      const requestContext = {};
+      settingsService.getBoolean = jest.fn(() => {
+        return true;
+      });
+      pluginService.visitPlugins = jest.fn(() => {
+        return [{ id: 'env1' }];
+      });
+      const awsAccountId = 'sampleAwsAccountId';
+
+      // OPERATE
+      try {
+        await service.checkForActiveNonAppStreamEnvs(requestContext, awsAccountId);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual(
+          'This account has active non-AppStream environments. Please terminate them and retry this operation',
+        );
+      }
     });
   });
 });

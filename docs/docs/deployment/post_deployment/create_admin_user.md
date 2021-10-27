@@ -1,7 +1,7 @@
 ---
 id: create_admin_user
-title: Create an Administrator User
-sidebar_label: Create an Administrator User
+title: Create an administrator user
+sidebar_label: Create an administrator user
 ---
 
 import useBaseUrl from '@docusaurus/useBaseUrl';
@@ -10,15 +10,15 @@ Once you create an [Account](/deployment/post_deployment/link_aws_account) and a
 
 <img src={useBaseUrl('img/deployment/post_deployment/create_user_00.jpg')} />
 
-_**Figure 7: Create an Administrator**_ 
+_**Figure: Create an administrator**_ 
 
 
 _**Note**: A root user account will already be created, however, you must not routinely use the root user account._ 
 
-For testing purposes, you can create a local user by clicking  ‘**Add Local User**’. Assign the user the administrator’s role, and associate the user with the **Project** you created, and set the status to ‘**Active**’. See **Figure 8**.
+For testing purposes, you can create a local user by choosing  **Add Local User**. Assign the user the administrator’s role, and associate the user with the **Project** you created, and set the status to **Active**. 
 
 <img src={useBaseUrl('img/deployment/post_deployment/create_user_01.jpg')} />
 
-_**Figure 8: Add Local User**_
+_**Figure: Add local user**_
 
-**In prod environments we highly recommend using an IDP. For more details, click [here](../../user_guide/sidebar/admin/auth/introduction.md)**
+In production environments we highly recommend using an IDP. For more details, refer to the *Service Workbench Configuration Guide*.

@@ -7,7 +7,7 @@
   "license": "Apache-2.0",
   "devDependencies": {
     "@aws-ee/base-serverless-settings-helper": "workspace:*",
-    "aws-sdk": "^2.647.0",
+    "aws-sdk": "^2.1000.0",
     "serverless": "^1.63.0",
     "serverless-deployment-bucket": "^1.1.0"
   },

@@ -13,6 +13,7 @@
  *  permissions and limitations under the License.
  */
 
+/* eslint-disable no-template-curly-in-string */
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { isAllow, allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
@@ -24,6 +25,7 @@ const updateEnvTypeConfigSchema = createEnvTypeConfigSchema;
 const settingKeys = {
   envTypeConfigsBucketName: 'envTypeConfigsBucketName',
   envTypeConfigsPrefix: 'envTypeConfigsPrefix',
+  isAppStreamEnabled: 'isAppStreamEnabled',
 };
 
 /**
@@ -136,14 +138,14 @@ class EnvTypeConfigService extends Service {
 
     // Make sure the specified configuration has params mapping specified for
     // all non-default CFN input params for the given env type
-    await this.assertNoMissingParams(requestContext, envType, config);
+    const updatedConfig = await this.checkAndUpdateParams(envType, config);
 
     // Make sure the config with the same id for the same env type does not exist already
     const existingConfigs = await this.getConfigsFromS3(envTypeId);
-    const existingConfig = _.find(existingConfigs, { id: config.id });
+    const existingConfig = _.find(existingConfigs, { id: updatedConfig.id });
     if (existingConfig) {
       throw this.boom.badRequest(
-        `The environment type configuration with id "${config.id}" for environment type "${envTypeId}" already exists`,
+        `The environment type configuration with id "${updatedConfig.id}" for environment type "${envTypeId}" already exists`,
         true,
       );
     }
@@ -152,7 +154,7 @@ class EnvTypeConfigService extends Service {
     const by = _.get(requestContext, 'principalIdentifier.uid');
     const { bucket, key } = await this.getS3Coordinates(envType.id);
     const now = new Date().toISOString();
-    const configToSave = this.fromRawToS3Object(config, {
+    const configToSave = this.fromRawToS3Object(updatedConfig, {
       createdBy: by,
       updatedBy: by,
       createdAt: now,
@@ -208,11 +210,9 @@ class EnvTypeConfigService extends Service {
     }
 
     // Merge given config with the existing config before updating
-    const configToUpdate = { ...existingConfig, ...config };
+    let configToUpdate = { ...existingConfig, ...config };
 
-    // Make sure the specified configuration has params mapping specified for
-    // all non-default CFN input params for the given env type
-    await this.assertNoMissingParams(requestContext, envType, configToUpdate);
+    configToUpdate = await this.checkAndUpdateParams(envType, configToUpdate);
 
     // Everything is good so far, time to save the given configuration to S3 now
     const by = _.get(requestContext, 'principalIdentifier.uid');
@@ -239,6 +239,39 @@ class EnvTypeConfigService extends Service {
     await this.audit(requestContext, { action: 'update-environment-type-config', body: savedConfig });
 
     return savedConfig;
+  }
+
+  async checkAndUpdateParams(envType, config) {
+    const isAppStreamEnabled = this.settings.getBoolean(settingKeys.isAppStreamEnabled);
+    const updatedConfig = { ...config };
+    updatedConfig.params.push({
+      key: 'IsAppStreamEnabled',
+      value: isAppStreamEnabled.toString(),
+    });
+    let params = [...updatedConfig.params];
+    if (isAppStreamEnabled) {
+      params = [
+        ...params,
+        {
+          key: 'AccessFromCIDRBlock',
+          value: '',
+        },
+        // Let's automatically fill in these values for the customer
+        { key: 'EgressStoreIamPolicyDocument', value: '${egressStoreIamPolicyDocument}' },
+        { key: 'SolutionNamespace', value: '${solutionNamespace}' },
+      ];
+    } else {
+      params = [
+        ...params,
+        { key: 'EgressStoreIamPolicyDocument', value: '{}' },
+        { key: 'SolutionNamespace', value: '' },
+      ];
+    }
+    updatedConfig.params = params;
+    // Make sure the specified configuration has params mapping specified for
+    // all non-default CFN input params for the given env type
+    await this.assertNoMissingParams(envType, updatedConfig);
+    return updatedConfig;
   }
 
   async delete(requestContext, envTypeId, configId) {
@@ -338,7 +371,7 @@ class EnvTypeConfigService extends Service {
     }
   }
 
-  async assertNoMissingParams(requestContext, envType, config) {
+  async assertNoMissingParams(envType, config) {
     // Make sure the specified configuration is complete and provides mapping
     // for all non-default CFN input parameters
     const cfnInputParams = envType.params || [];

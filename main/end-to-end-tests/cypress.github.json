@@ -4,26 +4,29 @@
   "viewportHeight": 1000,
   "video": false,
   "env": {
+    "isAppStreamEnabled": false,
     "isCognitoEnabled": false,
     "workspaces": {
       "sagemaker": {
-        "workspaceTypeName": "SageMaker Notebook-v1",
+        "workspaceTypeName": "SageMaker Notebook-v4",
         "configuration": "sagemaker-e2e",
         "projectId": "e2eTestProject"
       },
       "ec2": {
-        "workspaceTypeName": "EC2 Linux-v1",
-        "configuration": "ec2-linux-e2e",
-        "projectId": "e2eTestProject"
+        "windows": {
+          "workspaceTypeName": "EC2 Windows-v4",
+          "configuration": "ec2-windows-e2e",
+          "projectId": "e2eTestProject"
+        },
+        "linux": {
+          "workspaceTypeName": "EC2 Linux-v3",
+          "configuration": "ec2-linux-e2e",
+          "projectId": "e2eTestProject"
+        }
       },
       "emr": {
-        "workspaceTypeName": "EMR-v5",
+        "workspaceTypeName": "EMR-v7",
         "configuration": "emr-e2e",
-        "projectId": "e2eTestProject"
-      },
-      "ec2windows": {
-        "workspaceTypeName": "EC2 Windows-v3",
-        "configuration": "ec2-windows-e2e",
         "projectId": "e2eTestProject"
       }
     },
