@@ -1,6 +1,9 @@
 # Set this to true, if this configuration file is for the CI/CD pipeline build server, otherwise leave it false
 isBuildServer: false
 
+# Set to true if the test environment has AppStream enabled
+isAppStreamEnabled: false
+
 # The AWS region where the service workbench application is deployed
 awsRegion: us-east-1
 
@@ -60,3 +63,12 @@ emrConfigId: "sampleEMRConfigName"
 
 # Provide the id of the external BYOB Data Source study
 byobStudy: "sampleByobStudyName"
+# ------- CONFIG VALUES BELOW ONLY REQUIRED FOR TESTS IN "appstream-egress-enabled" FOLDER ------
+# Provide the id of a Sagemaker workspace actively running in SWB
+#sagemakerEnvId: ""
+
+# Provide the id of a Linux workspace actively running in SWB
+#linuxEnvId: ""
+
+# Provide the id of a Windows workspace actively running in SWB
+#windowsEnvId: ""

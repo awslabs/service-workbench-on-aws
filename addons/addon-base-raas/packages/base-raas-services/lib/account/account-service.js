@@ -26,6 +26,7 @@ const settingKeys = {
   tableName: 'dbAccounts',
   apiHandlerArn: 'apiHandlerArn',
   workflowRoleArn: 'workflowRoleArn',
+  isAppStreamEnabled: 'isAppStreamEnabled',
 };
 
 class AccountService extends Service {
@@ -90,6 +91,39 @@ class AccountService extends Service {
     // Validate input
     await validationService.ensureValid(rawData, createSchema);
 
+    let appStreamConfig = {};
+    if (this.settings.getBoolean(settingKeys.isAppStreamEnabled)) {
+      const {
+        appStreamFleetDesiredInstances,
+        appStreamDisconnectTimeoutSeconds,
+        appStreamIdleDisconnectTimeoutSeconds,
+        appStreamMaxUserDurationSeconds,
+        appStreamImageName,
+        appStreamInstanceType,
+        appStreamFleetType,
+      } = rawData;
+
+      appStreamConfig = {
+        appStreamFleetDesiredInstances,
+        appStreamDisconnectTimeoutSeconds,
+        appStreamIdleDisconnectTimeoutSeconds,
+        appStreamMaxUserDurationSeconds,
+        appStreamImageName,
+        appStreamInstanceType,
+        appStreamFleetType,
+      };
+      const undefinedAppStreamParams = Object.keys(appStreamConfig).filter(key => {
+        return appStreamConfig[key] === undefined;
+      });
+      if (undefinedAppStreamParams.length > 0) {
+        throw this.boom.badRequest(
+          `Not all required App Stream params are defined. These params need to be defined: ${undefinedAppStreamParams.join(
+            ',',
+          )}`,
+          true,
+        );
+      }
+    }
     const { accountName, accountEmail, masterRoleArn, externalId, description } = rawData;
 
     // Check launch pre-requisites
@@ -119,6 +153,7 @@ class AccountService extends Service {
       workflowRoleArn,
       apiHandlerArn,
       callerAccountId,
+      ...appStreamConfig,
     };
     await workflowTriggerService.triggerWorkflow(requestContext, { workflowId: 'wf-provision-account' }, input);
 

@@ -3,23 +3,36 @@ import React from 'react';
 import { decorate, action, runInAction, observable, computed } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
-import { Table, List, Segment, Label, Grid } from 'semantic-ui-react';
+import { Table, List, Segment, Label, Grid, Button } from 'semantic-ui-react';
+
+import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
 
 import CopyToClipboard from '../../helpers/CopyToClipboard';
+
+const openWindow = (url, windowFeatures) => {
+  return window.open(url, '_blank', windowFeatures);
+};
 
 // expected props
 // networkInterfaces (via props)
 // keyName (via props)
 // connectionId (via props)
+// environment (via props)
 class ScEnvSshConnRowExpanded extends React.Component {
   constructor(props) {
     super(props);
+
     runInAction(() => {
       // The count down value
       this.countDown = undefined;
       this.intervalId = undefined;
       this.expired = false;
+      this.processingId = undefined;
     });
+  }
+
+  get isAppStreamEnabled() {
+    return process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true';
   }
 
   get networkInterfaces() {
@@ -28,19 +41,32 @@ class ScEnvSshConnRowExpanded extends React.Component {
 
     const result = [];
     _.forEach(entries, item => {
-      if (item.publicDnsName) result.push({ value: item.publicDnsName, type: 'dns', scope: 'public', info: 'Public' });
+      if (item.publicDnsName && !this.isAppStreamEnabled)
+        result.push({ value: item.publicDnsName, type: 'dns', scope: 'public', info: 'Public' });
       if (item.privateIp) result.push({ value: item.privateIp, type: 'ip', scope: 'private', info: 'Private' });
     });
 
     return result;
   }
 
+  get environment() {
+    return this.props.scEnvironment;
+  }
+
   get keyName() {
     return this.props.keyName;
   }
 
+  get envsStore() {
+    return this.props.scEnvironmentsStore;
+  }
+
   get connectionId() {
     return this.props.connectionId;
+  }
+
+  getConnectionStore() {
+    return this.envsStore.getScEnvConnectionStore(this.environment.id);
   }
 
   componentDidMount() {
@@ -59,6 +85,33 @@ class ScEnvSshConnRowExpanded extends React.Component {
     this.countDown = undefined;
     this.expired = false;
   }
+
+  handleConnect = id =>
+    action(async () => {
+      try {
+        runInAction(() => {
+          this.processingId = id;
+        });
+        const store = this.getConnectionStore();
+        const urlObj = await store.createConnectionUrl(id);
+        const appStreamUrl = urlObj.url;
+        if (appStreamUrl) {
+          const newTab = openWindow('about:blank');
+          newTab.location = appStreamUrl;
+        } else {
+          throw Error('AppStream URL was not returned by the API');
+        }
+        runInAction(() => {
+          this.processingId = id;
+        });
+      } catch (error) {
+        displayError(error);
+      } finally {
+        runInAction(() => {
+          this.processingId = undefined;
+        });
+      }
+    });
 
   startCountDown = () => {
     if (!_.isUndefined(this.intervalId)) return;
@@ -88,22 +141,63 @@ class ScEnvSshConnRowExpanded extends React.Component {
         <Table.Cell colSpan="3" className="p3">
           <Grid columns={2} stackable>
             <Grid.Row stretched>
-              <Grid.Column width={12}>{this.renderInfo()}</Grid.Column>
+              {this.isAppStreamEnabled ? (
+                <Grid.Column width={12}>{this.renderAppStreamInfo()}</Grid.Column>
+              ) : (
+                <Grid.Column width={12}>{this.renderInfo()}</Grid.Column>
+              )}
               <Grid.Column width={4}>
                 <Segment className="flex items-center">
-                  <div className="w-100 overflow-hidden">{this.renderCountDown()}</div>
+                  <div className="w-100">{this.renderCountDown()}</div>
                 </Segment>
               </Grid.Column>
             </Grid.Row>
           </Grid>
-          <div className="mt3">
-            Example:
-            <Segment className="mt2">
-              {example} <CopyToClipboard text={example} className="ml2 mt0" />
-            </Segment>
-          </div>
+          {!this.isAppStreamEnabled && (
+            <div className="mt3">
+              Example:
+              <Segment className="mt2">
+                {example} <CopyToClipboard text={example} className="ml2 mt0" />
+              </Segment>
+            </div>
+          )}
         </Table.Cell>
       </Table.Row>
+    );
+  }
+
+  renderAppStreamInfo() {
+    const interfaces = this.networkInterfaces;
+    const network = interfaces[0];
+    const connectionId = this.connectionId;
+
+    return (
+      <Segment>
+        <List bulleted>
+          <List.Item>
+            The Private IP Address to be used:{' '}
+            <List bulleted>
+              <List.Item key={network.value} className="flex">
+                {this.renderHostLabel(network)}
+                <CopyToClipboard text={network.value} />
+              </List.Item>
+            </List>
+          </List.Item>
+        </List>
+        {this.isAppStreamEnabled && (
+          <Button
+            size="mini"
+            floated="left"
+            primary
+            onClick={this.handleConnect(connectionId)}
+            disabled={this.processingId}
+            loading={this.processingId}
+            data-testid="connect-to-workspace-button"
+          >
+            Connect
+          </Button>
+        )}
+      </Segment>
     );
   }
 
@@ -175,12 +269,14 @@ class ScEnvSshConnRowExpanded extends React.Component {
 
   renderHostLabel(network) {
     return (
-      <Label>
-        Host
-        <Label.Detail>
-          {network.value} <span className="fs-7 pl1">({network.info})</span>
-        </Label.Detail>
-      </Label>
+      <div>
+        <Label>
+          Host
+          <Label.Detail>
+            <span data-testid="host-ip">{network.value}</span> <span className="fs-7 pl1">({network.info})</span>
+          </Label.Detail>
+        </Label>
+      </div>
     );
   }
 }
@@ -189,10 +285,12 @@ class ScEnvSshConnRowExpanded extends React.Component {
 decorate(ScEnvSshConnRowExpanded, {
   networkInterfaces: computed,
   keyName: computed,
+  envsStore: computed,
   connectionId: computed,
   intervalId: observable,
   countDown: observable,
   expired: observable,
+  processingId: observable,
   startCountDown: action,
   clearInterval: action,
 });

@@ -82,7 +82,6 @@ custom:
         dataSourceReachabilityDailyHandler:
           environment:
             APP_LOCAL_ROLE_ARN: ${cfnOutput('DataSourceReachabilityHandlerRoleArn')} # Use same role arn as the one above (used for more frequent cron lambda)
-
   s3Sync:
     - bucketName: ${self:custom.settings.externalCfnTemplatesBucketName} # required
       localDir: ../../../addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/external
@@ -123,8 +122,6 @@ resources:
       IamRoleCustomResourcesLambdaExecution:
         Properties:
           PermissionsBoundary: !Ref ServerlessLogsBoundary
-
-
 
 plugins:
   - serverless-webpack

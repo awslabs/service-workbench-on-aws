@@ -1,10 +1,10 @@
 ---
 id: logs
-title: Viewing logs
-sidebar_label: Viewing Service Workbench Logs
+title: Viewing Service Workbench logs
+sidebar_label: Viewing Service Workbench logs
 ---
 
-### Viewing Service Workbench logs in CloudWatch ###
+### Viewing Service Workbench logs in Amazon CloudWatch ###
 Service Workbench has API Gateway access logging enabled. The logs are available in CloudWatch at the ```/aws/api-gateway/<name of your API>``` log group:
 
 
@@ -31,7 +31,7 @@ Following is the format of the access logs:
 ```
 Lambda logs are also available in CloudWatch with the default log group names ```/aws/lambda/<lambda function name>```.
 
-### Metrics ###
+### Available metrics ###
 
 The default metrics for Lambda and API Gateway are available in CloudWatch. For the full list of available metrics, see:
 

@@ -34,3 +34,26 @@ postDeployment:
     APP_LAUNCH_CONSTRAINT_ROLE_NAME: ${self:custom.settings.launchConstraintRoleName}
     APP_ENV_MGMT_ROLE_ARN: ${self:custom.settings.envMgmtRoleArn}
     APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
+    APP_ENABLE_EGRESS_STORE: ${self:custom.settings.enableEgressStore}
+    APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
+
+egressStoreObjectsHandler:
+  role: RoleEgressStoreObjectsHandler
+  handler: src/lambdas/egress-store-object-handler/handler.handler
+  description: Handles attaching tags to s3 object created in egress store bucket
+  tags: ${self:custom.tags}
+  events:
+    - s3:
+        bucket: ${self:custom.settings.egressStoreBucketName}
+        event: s3:ObjectCreated:*
+        existing: true
+    - s3:
+        bucket: ${self:custom.settings.egressStoreBucketName}
+        event: s3:ObjectRemoved:*
+        existing: true
+  environment:
+    APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
+    APP_ENABLE_EGRESS_STORE: ${self:custom.settings.enableEgressStore}
+    APP_EGRESS_STORE_BUCKET_NAME: ${self:custom.settings.egressStoreBucketName}
+    APP_EGRESS_NOTIFICATION_BUCKET_NAME: ${self:custom.settings.egressNotificationBucketName}
+    APP_EGRESS_NOTIFICATION_SNS_TOPIC_ARN: ${self:custom.settings.egressNotificationSnsTopicArn}

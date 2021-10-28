@@ -32,6 +32,7 @@ import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
 import { regionOptions } from '../../../models/constants/aws-regions';
 import { encryptionOptions } from '../../../models/constants/bucket';
 import { getRegisterStudyForm } from '../../../models/forms/RegisterStudyForm';
+import { enableEgressStore } from '../../../helpers/settings';
 
 const fieldRuleKey = (container, name) => `${container.key}-${name}`;
 
@@ -346,6 +347,7 @@ class InputStep extends React.Component {
 
   renderStudyField({ field }) {
     const myStudies = field.$('category').value === 'My Studies';
+    const enableEgressStoreFeature = enableEgressStore;
 
     return (
       <Segment key={field.key} clearing className="mt3 p3">
@@ -373,7 +375,11 @@ class InputStep extends React.Component {
         <div className="clearfix">
           <div className="mb3 mt0 col col-6 pr2">
             <YesNo field={field.$('category')} className="mt3 mb3" onClick={this.handleStudyTypeChange(field)} />
-            <YesNo field={field.$('accessType')} className="mt2 mb2" />
+            {enableEgressStoreFeature ? (
+              <YesNo field={field.$('accessType')} className="mt2 mb2" disabledLabel="No" />
+            ) : (
+              <YesNo field={field.$('accessType')} className="mt2 mb2" />
+            )}
           </div>
           <TextArea field={field.$('description')} className="mb3 mt0 col col-6 pl2" />
         </div>

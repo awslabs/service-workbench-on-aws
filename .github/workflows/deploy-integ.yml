@@ -104,10 +104,26 @@ jobs:
           CYPRESS_researcherPassword: ${{ secrets.CYPRESS_RESEARCHER_PASSWORD}}
           CYPRESS_adminEmail: ${{ secrets.CYPRESS_ADMIN_EMAIL}}
           CYPRESS_adminPassword: ${{ secrets.CYPRESS_ADMIN_PASSWORD}}
+  check-codepipeline-status:
+    name: Check Github Status
+    runs-on: ubuntu-18.04
+    needs: cypress-test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Wait until CodePipeline status is shown
+        run: |
+          npm install
+          node checkCommitStatus.js ${{ secrets.GITHUB_TOKEN }} ${{ github.repository }} ${{ github.sha }}
+        working-directory: scripts/check-commit-status
   merge-develop-to-mainline:
     name: Merge develop to mainline
     runs-on: ubuntu-18.04
-    needs: cypress-test
+    needs: check-codepipeline-status
     steps:
       - uses: actions/checkout@v2
         with:
