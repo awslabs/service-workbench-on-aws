@@ -116,6 +116,8 @@ Resources:
         Rules:
           - ExpirationInDays: 365 # Delete old artifacts from S3 after 1 year to save costs
             Status: Enabled
+      VersioningConfiguration:
+        Status: Enabled
 
   # The artifacts bucket S3 policy to allow CodePipeline's source stage to upload artifacts
   AppArtifactBucketPolicy:
