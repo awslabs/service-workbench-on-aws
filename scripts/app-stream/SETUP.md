@@ -1,6 +1,6 @@
 # Overview
 
-This following guide will show you how to set up an AppStream image with the following applications installed: Firefox, Notepad, PuttyGen, and Putty. AppStream should be built in the **member account**. 
+This following guide will show you how to set up an AppStream image with the following applications installed: Firefox, Notepad, PuttyGen, and Putty. AppStream should be built in the **main account**. 
 
 ### High Level Overview
 1. We launch an AppStream Image Builder instance.

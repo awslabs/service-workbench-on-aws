@@ -156,7 +156,7 @@ After proceeding from the Onboard AWS Account Screen, you will be returned to th
 ### Overview
 
 
-This section describes the procedure of setting up an AppStream image with the following applications installed: Firefox, Notepad, PuttyGen, and Putty. AppStream should be built in the member account. To do this:
+This section describes the procedure of setting up an AppStream image with the following applications installed: Firefox, Notepad, PuttyGen, and Putty. AppStream should be built in the main account. To do this:
 
 + Launch an AppStream Image Builder instance.
 + Log in to the AppStream Image builder instance and run a script to build an image with Firefox, PuttyGen, Putty, and Notepad.
