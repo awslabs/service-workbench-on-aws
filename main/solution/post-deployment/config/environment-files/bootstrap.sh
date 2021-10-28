@@ -125,6 +125,14 @@ case "$(env_type)" in
         chmod +x "/usr/local/bin/jq"
         echo "Finish installing jq"
         ;;
+    "rstudiov2") # Add mount script to bash profile
+        export PATH="/usr/local/bin:$PATH"
+        set-password
+        echo "Installing jq"
+        cp "${FILES_DIR}/offline-packages/jq-1.5-linux64" "/usr/local/bin/jq"
+        chmod +x "/usr/local/bin/jq"
+        echo "Finish installing jq"
+        ;;
 esac
 
 echo "Copying Goofys from bootstrap.sh"
@@ -166,8 +174,11 @@ case "$(env_type)" in
         printf "\n# Mount S3 study data\nmount_s3.sh\n\n" >> "/home/rstudio-user/.bash_profile"
         ;;
     "rstudiov2") # Add mount script to bash profile and generate self signed certificates
+        echo "Generate SSL certs"
         generate_ssl_certificate
+        echo "Installing fuse"
         yum install -y fuse-2.9.2
+        echo "Finish installing fuse"
         printf "\n# Mount S3 study data\nmount_s3.sh\n\n" >> "/home/rstudio-user/.bash_profile"
         ;;
 esac
