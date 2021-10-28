@@ -4,6 +4,7 @@ title: Software requirements
 sidebar_label: Software requirements
 ---
 
+Click the following links below to download and install the software as appropriate for your installation environment:
 
 | Software      | Functions |
 | ----------- | ----------- |
