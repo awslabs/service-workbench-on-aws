@@ -274,14 +274,20 @@ class CheckLaunchDependency extends StepBase {
    * @returns {Promise<string>}
    */
   async getS3Object(bucketName, key) {
-    const [aws] = await this.mustFindServices(['aws']);
-    const s3Client = new aws.sdk.S3();
-    const params = {
-      Bucket: bucketName,
-      Key: key,
-    };
-    const data = await s3Client.getObject(params).promise();
-    return data.Body.toString('utf-8');
+    try {
+      const [aws] = await this.mustFindServices(['aws']);
+      const s3Client = new aws.sdk.S3();
+      const params = {
+        Bucket: bucketName,
+        Key: key,
+      };
+      const data = await s3Client.getObject(params).promise();
+      return data.Body.toString('utf-8');
+    } catch (e) {
+      throw new Error(
+        `Error encountered while trying to read product template from S3: ${e}. Bucket: ${bucketName}, key: ${key}`,
+      );
+    }
   }
 
   /**
