@@ -253,30 +253,30 @@ function removeServiceCatalogPortfolio() {
     local aws_region="$(cat $CONFIG_DIR/settings/$STAGE.yml | grep 'awsRegion:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
     local aws_region_shortname=$(cat $CONFIG_DIR/settings/.defaults.yml | grep \'$aws_region\' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015' | tr -d "'")
     local solutionName=$(cat "$CONFIG_DIR/settings/$STAGE.yml" "$CONFIG_DIR/settings/.defaults.yml" | grep '^solutionName:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
-    local portfolioId=$(aws dynamodb get-item --table-name "$STAGE-$aws_region_shortname-$solutionName-DeploymentStore" --key '{"type": {"S": "default-sc-portfolio"}, "id": {"S": "default-SC-portfolio-1"}}' --output text | grep -o 'port-[^"]*\b')
-
+    local portfolioId=$(aws dynamodb get-item --region $aws_region --table-name "$STAGE-$aws_region_shortname-$solutionName-DeploymentStore" --key '{"type": {"S": "default-sc-portfolio"}, "id": {"S": "default-SC-portfolio-1"}}' --output text | grep -o 'port-[^"]*\b')
+    
     if [[ "$portfolioId" != "" ]]; then
-        local constraintIds=$(aws servicecatalog list-constraints-for-portfolio --portfolio-id "$portfolioId" --query "ConstraintDetails[].ConstraintId" --output text)
+        local constraintIds=$(aws servicecatalog list-constraints-for-portfolio --region $aws_region --portfolio-id "$portfolioId" --query "ConstraintDetails[].ConstraintId" --output text)
         constraintIds=(`echo ${constraintIds}`)
-        local productIds=$(aws servicecatalog list-constraints-for-portfolio --portfolio-id "$portfolioId" --query "ConstraintDetails[].ProductId" --output text)
+        local productIds=$(aws servicecatalog list-constraints-for-portfolio --region $aws_region --portfolio-id "$portfolioId" --query "ConstraintDetails[].ProductId" --output text)
         productIds=(`echo ${productIds}`)
-        local principals=$(aws servicecatalog list-principals-for-portfolio --portfolio-id "$portfolioId" --query "Principals[].PrincipalARN" --output text)
+        local principals=$(aws servicecatalog list-principals-for-portfolio --region $aws_region --portfolio-id "$portfolioId" --query "Principals[].PrincipalARN" --output text)
         principals=(`echo ${principals}`)
         
         for constraint in "${constraintIds[@]}"; do
-            aws servicecatalog delete-constraint --id $constraint > /dev/null
+            aws servicecatalog --region $aws_region delete-constraint --id $constraint > /dev/null
         done
 
         for product in ${productIds[@]}; do
-            aws servicecatalog disassociate-product-from-portfolio --product-id $product --portfolio-id $portfolioId > /dev/null
-            aws servicecatalog delete-product --id $product > /dev/null
+            aws servicecatalog --region $aws_region disassociate-product-from-portfolio --product-id $product --portfolio-id $portfolioId > /dev/null
+            aws servicecatalog --region $aws_region delete-product --id $product > /dev/null
         done
 
         for principal in ${principals[@]}; do
-            aws servicecatalog disassociate-principal-from-portfolio --portfolio-id $portfolioId --principal-arn $principal > /dev/null
+            aws servicecatalog --region $aws_region disassociate-principal-from-portfolio --portfolio-id $portfolioId --principal-arn $principal > /dev/null
         done
 
-        aws servicecatalog delete-portfolio --id $portfolioId > /dev/null
+        aws servicecatalog --region $aws_region delete-portfolio --id $portfolioId > /dev/null
     fi
     
     set -e
