@@ -13,8 +13,14 @@
  *  permissions and limitations under the License.
  */
 
+jest.mock('@aws-ee/base-services/lib/aws/aws-service');
+const AwsServiceMock = require('@aws-ee/base-services/lib/aws/aws-service');
+
 const WorkflowPayload = require('@aws-ee/workflow-engine/lib/workflow-payload');
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
+
+jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
+const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
 
 jest.mock('@aws-ee/base-raas-services/lib/alb/alb-service');
 const AlbServiceMock = require('@aws-ee/base-raas-services/lib/alb/alb-service');
@@ -34,6 +40,9 @@ const EnvironmentScCidrServiceMock = require('@aws-ee/base-raas-services/lib/env
 jest.mock('@aws-ee/base-raas-services/lib/environment/environment-dns-service');
 const EnvironmentDnsServiceMock = require('@aws-ee/base-raas-services/lib/environment/environment-dns-service');
 
+jest.mock('../../../../environment-type-mgmt-services/lib/environment-type/env-type-service.js');
+const EnvTypeServiceMock = require('../../../../environment-type-mgmt-services/lib/environment-type/env-type-service.js');
+
 const TerminateLaunchDependency = require('../terminate-launch-dependency/terminate-launch-dependency');
 
 describe('TerminateLaunchDependencyStep', () => {
@@ -44,6 +53,7 @@ describe('TerminateLaunchDependencyStep', () => {
   let pluginRegistryService = null;
   let environmentScCidrService = null;
   let cfn;
+
   const requestContext = {
     principal: {
       isAdmin: true,
@@ -74,11 +84,14 @@ describe('TerminateLaunchDependencyStep', () => {
 
   beforeAll(async () => {
     container = new ServicesContainer();
+    container.register('aws', new AwsServiceMock());
     container.register('albService', new AlbServiceMock());
     container.register('lockService', new LockServiceMock());
     container.register('environmentScService', new EnvironmentScServiceMock());
     container.register('environmentDnsService', new EnvironmentDnsServiceMock());
     container.register('pluginRegistryService', new PluginRegistryServiceMock());
+    container.register('settings', new SettingsServiceMock());
+    container.register('envTypeService', new EnvTypeServiceMock());
     container.register('environmentScCidrService', new EnvironmentScCidrServiceMock());
 
     await container.initServices();
@@ -90,6 +103,14 @@ describe('TerminateLaunchDependencyStep', () => {
     environmentDnsService = await container.find('environmentDnsService');
     pluginRegistryService = await container.find('pluginRegistryService');
     environmentScCidrService = await container.find('environmentScCidrService');
+
+    step.describeArtifact = jest.fn(() => {
+      return { artifactInfo: { TemplateUrl: 'sampleTemplateURL' } };
+    });
+
+    step.parseS3DetailsfromUrl = jest.fn(() => {
+      return { bucketName: 'sampleBucketName', key: 'sampleKey' };
+    });
 
     step.payloadOrConfig = {
       string: stringInput => {
@@ -131,6 +152,8 @@ describe('TerminateLaunchDependencyStep', () => {
     lockService.releaseWriteLock = jest.fn(() => {
       return true;
     });
+    // Mock locking so that the putBucketPolicy actually gets called
+    lockService.tryWriteLockAndRun = jest.fn((params, callback) => callback());
     step.cfnOutputsArrayToObject = jest.fn(() => {
       return {
         MetaConnection1Type: 'rstudio',
@@ -157,7 +180,7 @@ describe('TerminateLaunchDependencyStep', () => {
   });
 
   afterEach(() => {
-    // Restore all the mocks crated using spy to original funciton behaviour
+    // Restore all the mocks created using spy to original function behaviour
     jest.restoreAllMocks();
     jest.clearAllMocks();
   });
@@ -166,6 +189,9 @@ describe('TerminateLaunchDependencyStep', () => {
     it('should throw error when aws account id retrival fails', async () => {
       albService.findAwsAccountId.mockImplementationOnce(() => {
         throw new Error('project with id "test-project" does not exist');
+      });
+      step.getTemplateOutputs = jest.fn(() => {
+        return { NeedsALB: { Value: true } };
       });
       await expect(step.start()).rejects.toThrow('project with id "test-project" does not exist');
     });

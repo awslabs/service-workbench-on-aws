@@ -1,0 +1,14 @@
+preDeployment:
+  handler: src/lambdas/pre-deployment/handler.handler
+  role: RolePreDeploymentLambda
+  tags: ${self:custom.tags}
+  description: The Pre Deployment handler that executes pre deployment tasks
+  timeout: 900 # 15 min timeout
+  environment:
+    APP_BACKEND_STACK_NAME: ${self:custom.settings.backendStackName}
+    APP_NAMESPACE: ${self:custom.settings.namespace}
+    APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
+    APP_ENABLE_EGRESS_STORE: ${self:custom.settings.enableEgressStore}
+    APP_DB_STUDIES_CATEGORY_INDEX: ${self:custom.settings.dbStudiesCategoryIndex}
+    APP_DB_STUDIES_ACCOUNTID_INDEX: ${self:custom.settings.dbStudiesAccountIdIndex}
+    APP_STUDY_DATA_BUCKET_NAME: ${self:custom.settings.studyDataBucketName}

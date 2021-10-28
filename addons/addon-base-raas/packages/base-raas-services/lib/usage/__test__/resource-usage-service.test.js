@@ -57,7 +57,7 @@ describe('IndexesService', () => {
         setName: 'set-name',
         item: 'newItem',
       });
-      // TEST
+      // CHECK
       expect(result).toEqual({
         resource: 'resource-name',
         setName: 'set-name',
@@ -75,7 +75,7 @@ describe('IndexesService', () => {
         setName: 'set-name',
         item: 'newItem',
       });
-      // TEST
+      // CHECK
       expect(result).toEqual({
         resource: 'resource-name',
         setName: 'set-name',
@@ -93,7 +93,7 @@ describe('IndexesService', () => {
         setName: 'set-name',
         item: 'existItem',
       });
-      // TEST
+      // CHECK
       expect(result).toEqual({
         resource: 'resource-name',
         setName: 'set-name',
@@ -114,7 +114,7 @@ describe('IndexesService', () => {
         setName: 'set-name',
         item: 'existItem',
       });
-      // TEST
+      // CHECK
       expect(result).toEqual({
         resource: 'resource-name',
         setName: 'set-name',
@@ -133,7 +133,7 @@ describe('IndexesService', () => {
         setName: 'set-name',
         item: 'existItem',
       });
-      // TEST
+      // CHECK
       expect(result).toEqual({
         resource: 'resource-name',
         setName: 'set-name',
@@ -154,7 +154,7 @@ describe('IndexesService', () => {
       const result = await service.getResourceUsage(requestContext, {
         resource: 'resource-name',
       });
-      // TEST
+      // CHECK
       expect(result).toEqual({
         setName1: ['item1', 'item2'],
         setName2: ['item3', 'item4'],
@@ -169,7 +169,7 @@ describe('IndexesService', () => {
         resource: 'resource-name',
         setName: 'setName1',
       });
-      // TEST
+      // CHECK
       expect(dbService.table.sortKey).toHaveBeenCalled();
       expect(result).toEqual({
         setName1: ['item1', 'item2'],

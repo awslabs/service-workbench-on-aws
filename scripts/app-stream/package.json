@@ -1,0 +1,19 @@
+{
+  "name": "app-stream-scripts",
+  "version": "1.0.0",
+  "description": "Scripts for intializing AppStream",
+  "main": "index.js",
+  "license": "MIT",
+  "scripts": {
+    "start-image-builder": "node -e \"require('./start-image-builder.js').runCodeAsScript()\"",
+    "test": "jest --silent"
+  },
+  "dependencies": {
+    "@aws-sdk/client-appstream": "^3.18.0",
+    "@aws-sdk/client-ec2": "^3.18.0"
+  },
+  "devDependencies": {
+    "aws-sdk-client-mock": "^0.5.2",
+    "jest": "^27.0.4"
+  }
+}

@@ -12,13 +12,14 @@ openDataScrapeHandler:
   handler: src/lambdas/open-data-scrape-handler/handler.handler
   role: RoleOpenDataScrapeHandler
   tags: ${self:custom.tags}
-  timeout: 30  # in seconds, default is 6. this function usually finishes in 10secs, setting it to 30 just to be safe
+  timeout: 30 # in seconds, default is 6. this function usually finishes in 10secs, setting it to 30 just to be safe
   description: Handles scraping the metadata from the AWS open data registry.
   environment:
     APP_DB_STUDIES_CATEGORY_INDEX: ${self:custom.settings.dbStudiesCategoryIndex}
     APP_DB_STUDIES_ACCOUNTID_INDEX: ${self:custom.settings.dbStudiesAccountIdIndex}
     APP_STUDY_DATA_BUCKET_NAME: ${self:custom.settings.studyDataBucketName}
     APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
+    APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
 
   events:
     - schedule:
@@ -37,6 +38,7 @@ envStatusPollHandler:
         description: 'Invokes the lambda function that polls and synchronize environment status.'
   environment:
     APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
+    APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
 
 dataSourceReachabilityHandler:
   handler: src/lambdas/data-source-reachability/handler.handler
@@ -68,6 +70,22 @@ dataSourceReachabilityDailyHandler:
   environment:
     APP_SM_WORKFLOW: ${self:custom.settings.workflowStateMachineArn}
     APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
+
+awsAccountOnboardingHandler:
+  handler: src/lambdas/aws-account-onboarding/handler.handler
+  role: RoleAwsAccountOnboardingHandler
+  tags: ${self:custom.tags}
+  timeout: 900 # in seconds, default is 6
+  description: Attempts to onboard any pending AWS accounts
+  events:
+    - schedule:
+        rate: rate(1 minute) # Setting this to be the same as the dataSourceReachabilityHandler
+        description: 'Invokes the lambda function that polls CFN stacks and onboarding any pending accounts.'
+  environment:
+    APP_SM_WORKFLOW: ${self:custom.settings.workflowStateMachineArn}
+    APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
+    APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
+    APP_DOMAIN_NAME: ${self:custom.settings.domainName}
 
 apiHandler:
   timeout: 30 # in seconds, default is 6
@@ -157,6 +175,11 @@ apiHandler:
     APP_ENV_BOOTSTRAP_BUCKET_NAME: ${self:custom.settings.environmentsBootstrapBucketName}
     APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
     APP_ROOT_USER_NAME: ${self:custom.settings.rootUserName}
+    APP_ENABLE_EGRESS_STORE: ${self:custom.settings.enableEgressStore}
+    APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
+    APP_EGRESS_STORE_BUCKET_NAME: ${self:custom.settings.egressStoreBucketName}
+    APP_EGRESS_NOTIFICATION_BUCKET_NAME: ${self:custom.settings.egressNotificationBucketName}
+    APP_EGRESS_NOTIFICATION_SNS_TOPIC_ARN: ${self:custom.settings.egressNotificationSnsTopicArn}
 
 workflowLoopRunner:
   handler: src/lambdas/workflow-loop-runner/handler.handler
@@ -186,3 +209,10 @@ workflowLoopRunner:
     APP_DOMAIN_NAME: ${self:custom.settings.domainName}
     APP_ENV_BOOTSTRAP_BUCKET_NAME: ${self:custom.settings.environmentsBootstrapBucketName}
     APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
+    APP_ENABLE_EGRESS_STORE: ${self:custom.settings.enableEgressStore}
+    APP_EGRESS_STORE_BUCKET_NAME: ${self:custom.settings.egressStoreBucketName}
+    APP_EGRESS_STORE_KMS_KEY_ALIAS_ARN: ${self:custom.settings.egressStoreKmsKeyAliasArn}
+    APP_EGRESS_STORE_KMS_KEY_ARN: !Sub arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.egressStoreKmsKeyAlias}
+    APP_EGRESS_STORE_KMS_POLICY_WORKSPACE_SID: ${self:custom.settings.egressStoreKmsPolicyWorkspaceSid}
+    APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
+    APP_PERMISSION_BOUNDARY_POLICY_STUDY_BUCKET_ARN: !Sub arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.permissionBoundaryPolicyStudyBucket}

@@ -182,7 +182,7 @@ class AccountCfnPanel extends React.Component {
             CloudFormation console where you can review the stack information and provision it.
             <div className="mb0 flex mt2">
               <div className="flex-auto">
-                <Button fluid as="a" target="_blank" href={createStackUrl} rel="noopener noreferrer">
+                <Button fluid as="a" target="_blank" href={createStackUrl} color="blue" rel="noopener noreferrer">
                   Create Stack
                 </Button>
                 {this.renderExpires(stackInfo)}
@@ -236,7 +236,7 @@ class AccountCfnPanel extends React.Component {
             CloudFormation console where you can review the stack information and provision it.
             <div className="mb0 flex mt2">
               <div className="flex-auto">
-                <Button fluid as="a" target="_blank" href={updateStackUrl} rel="noopener noreferrer">
+                <Button fluid as="a" target="_blank" href={updateStackUrl} color="blue" rel="noopener noreferrer">
                   Update Stack
                 </Button>
                 {this.renderExpires(stackInfo)}

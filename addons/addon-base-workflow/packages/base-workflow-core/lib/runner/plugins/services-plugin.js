@@ -104,6 +104,7 @@ function getStaticSettings(existingStaticSettings, settings, pluginRegistry) {
   table('dbWorkflows', 'Workflows');
   table('dbWorkflowInstances', 'WorkflowInstances');
   table('dbWfAssignments', 'WfAssignments');
+  table('dbEgressStore', 'EgressStore');
 
   return staticSettings;
 }

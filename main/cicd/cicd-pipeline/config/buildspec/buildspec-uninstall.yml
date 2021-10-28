@@ -1,0 +1,41 @@
+version: 0.2
+
+phases:
+  install:
+    # See supported runtimes at https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-available.html
+    runtime-versions:
+      nodejs: 12
+
+  pre_build:
+    commands:
+      - echo "Installing dependencies"
+      - ./scripts/install.sh
+      - printf "\n\n"
+      # Need to build all packages explicitly here.
+      # This is required because somehow the "pnpm run build" script in "prepare" hook does not work in AWS CodeBuild
+      # The "prepare" hook script is executed fine but the "build" script referenced in "prepare" does not execute
+      - echo "Building packages"
+      - ./scripts/build-all-packages.sh
+      - printf "\n\n"
+      - echo "Downloading environment config"
+      - ./scripts/download-env-config.sh "$DEPLOYMENT_BUCKET" "$ENV_NAME"
+      - printf "\n\n"
+  build:
+    commands:
+      - echo "Deleting environment $ENV_NAME"
+      # We're passing 5 inputs on the terminal
+      # 1. Stage name: To confirm the environment removal
+      # 2. y/n for CICD Pipeline removal: We do not delete CodePipeline while running the pipeline, so we pass "n"
+      # 3. y/n for CICD Source removal: We do not delete CodePipeline source while running the pipeline, so we pass "n"
+      # 4. y/n for Artifact bucket removal: This bucket contains important metadata files needed for subsequent pipeline runs, so we pass "n"
+      - printf "$ENV_NAME\nn\nn\nn" > test.txt
+      - cat test.txt | ./scripts/environment-delete.sh "$ENV_NAME"
+
+cache:
+  paths:
+    - node_modules/
+    - addons/*/packages/*/node_modules/
+    - main/solution/*/node_modules/
+    - main/cicd/*/node_modules/
+    - main/integration-tests/node_modules/
+    - main/packages/*/node_modules

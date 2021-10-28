@@ -1,3 +1,17 @@
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License").
+ *  You may not use this file except in compliance with the License.
+ *  A copy of the License is located at
+ *
+ *  http://aws.amazon.com/apache2.0
+ *
+ *  or in the "license" file accompanying this file. This file is distributed
+ *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ *  express or implied. See the License for the specific language governing
+ *  permissions and limitations under the License.
+ */
 import _ from 'lodash';
 import React from 'react';
 import { decorate, computed, action, runInAction, observable } from 'mobx';
@@ -86,6 +100,7 @@ class ScEnvironmentSshConnectionRow extends React.Component {
     this.processingSendKey = true;
     try {
       const result = await store.sendSshKey(connectionId, keyId);
+
       runInAction(() => {
         this.networkInterfaces = _.get(result, 'networkInterfaces');
       });
@@ -114,6 +129,7 @@ class ScEnvironmentSshConnectionRow extends React.Component {
     const options = this.keyPairOptions;
     const selectedKeyId = this.selectedKeyId;
     const selectedKeyName = this.selectedKeyName;
+
     const rows = [
       <Table.Row key={item.id}>
         <Table.Cell>
@@ -141,6 +157,7 @@ class ScEnvironmentSshConnectionRow extends React.Component {
             onClick={this.handleActivate}
             disabled={emptyKeys}
             loading={this.processingSendKey}
+            data-testid="use-ssh-key-button"
           >
             Use this SSH Key
           </Button>
@@ -155,6 +172,8 @@ class ScEnvironmentSshConnectionRow extends React.Component {
           networkInterfaces={networkInterfaces}
           keyName={selectedKeyName}
           connectionId={item.id}
+          scEnvironmentsStore={this.envsStore}
+          scEnvironment={this.environment}
         />,
       );
     }

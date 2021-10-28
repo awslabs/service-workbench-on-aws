@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-import { getAwsAccounts, addAwsAccount } from '../../../helpers/api';
+import { getAwsAccounts, addAwsAccount, updateAwsAccount, getAllAccountsPermissionStatus } from '../../../helpers/api';
 import { registerContextItems as registerAwsAccountsStore } from '../AwsAccountsStore';
 
 jest.mock('../../../helpers/api');
@@ -34,7 +34,12 @@ describe('AwsAccountsStore', () => {
     encryptionKeyArn: 'AndHeresThePartThatHurtsTheMost',
     createdAt: 'humans cannot ride a ghost :(',
     updatedAt: 'Bye bye, Lil Sebastian',
+    permissionStatus: 'CURRENT',
+    cfnStackName: 'testCfnName',
+    cfnStackId: '',
+    onboardStatusRoleArn: 'placeholder-arn',
   };
+  const permRetVal = { newStatus: { mouserat: 'CURRENT' } };
 
   beforeEach(async () => {
     await registerAwsAccountsStore(appContext);
@@ -42,25 +47,58 @@ describe('AwsAccountsStore', () => {
   });
 
   describe('addAwsAccount', () => {
-    it('should add a new Aws Account successfully', async () => {
+    it('should successfully add a new Aws Account without AppStream configured', async () => {
       // BUILD
       getAwsAccounts.mockResolvedValue([]);
       addAwsAccount.mockResolvedValue(newAwsAccount);
+      getAllAccountsPermissionStatus.mockResolvedValue(permRetVal);
       await store.load();
 
       // OPERATE
       await store.addAwsAccount(newAwsAccount);
 
+      const expectedAwsAccount = {
+        ...newAwsAccount,
+        isAppStreamConfigured: false,
+        appStreamFleetName: undefined,
+        appStreamSecurityGroupId: undefined,
+        appStreamStackName: undefined,
+      };
+      delete expectedAwsAccount.createdAt;
       // CHECK
-      expect(newAwsAccount).toMatchObject(store.list[0]);
-      // some properties are dropped when added, so this makes sure store.list[0]
-      //      is a subset of newAwsAccount
+      expect(store.list[0]).toMatchObject(expectedAwsAccount);
+    });
+
+    it('should successfully add a new Aws Account with AppStream configured', async () => {
+      // BUILD
+      getAwsAccounts.mockResolvedValue([]);
+      const appStreamFleetName = 'fleet1';
+      const appStreamSecurityGroupId = 'sg1';
+      const appStreamStackName = 'stack1';
+      const appStreamConfiguredAwsAccount = {
+        ...newAwsAccount,
+        appStreamFleetName,
+        appStreamSecurityGroupId,
+        appStreamStackName,
+      };
+      addAwsAccount.mockResolvedValue(appStreamConfiguredAwsAccount);
+      getAllAccountsPermissionStatus.mockResolvedValue(permRetVal);
+      await store.load();
+
+      // OPERATE
+      await store.addAwsAccount(appStreamConfiguredAwsAccount);
+
+      // CHECK
+      const expectedAwsAccount = { ...appStreamConfiguredAwsAccount, isAppStreamConfigured: true };
+      delete expectedAwsAccount.createdAt;
+      expect(store.list[0]).toMatchObject(expectedAwsAccount);
     });
 
     it('should not add an Aws Account', async () => {
       // BUILD
       getAwsAccounts.mockResolvedValue([newAwsAccount]);
       addAwsAccount.mockResolvedValue(newAwsAccount);
+      getAllAccountsPermissionStatus.mockResolvedValue(permRetVal);
       await store.load();
 
       // OPERATE
@@ -68,6 +106,58 @@ describe('AwsAccountsStore', () => {
 
       // CHECK
       expect(store.list.length).toBe(1);
+    });
+  });
+
+  describe('filteredList', () => {
+    it('should return the whole list if the filter does not exist', async () => {
+      // BUILD
+      getAwsAccounts.mockResolvedValue([newAwsAccount]);
+      getAllAccountsPermissionStatus.mockResolvedValue(permRetVal);
+      await store.load();
+
+      // OPERATE
+      const retVal = store.filtered('randomfiltername');
+
+      // CHECK
+      expect(retVal).toMatchObject(store.list);
+    });
+  });
+
+  describe('AWS Account-specific tests', () => {
+    it('should generate the email template for a given AWS account', async () => {
+      // BUILD
+      // getAwsAccounts.mockResolvedValue([newAwsAccount]);
+      // getAllAccountsPermissionStatus.mockResolvedValue(permRetVal);
+      await store.load();
+      await store.addAwsAccount(newAwsAccount);
+
+      // OPERATE
+      const account = store.getAwsAccount(newAwsAccount.id);
+
+      const commonSectionChunk = `We are attempting to update your onboarded AWS account #${account.accountId} in AWS Service Workbench.`;
+      const createChunk = '2 - Click on the following link';
+      const updateChunk = '3 - Click on the following link';
+
+      const createString = account.createStackEmailTemplate;
+      const updateString = account.updateStackEmailTemplate;
+
+      expect(createString).toContain(commonSectionChunk);
+      expect(createString).toContain(createChunk);
+      expect(updateString).toContain(commonSectionChunk);
+      expect(updateString).toContain(updateChunk);
+    });
+  });
+
+  describe('updateAccount', () => {
+    it('should try to update the account with updated permissions', async () => {
+      const erroredAcct = { id: 'testid', permissionsStatus: 'CURRENT' };
+      const newPermRetVal = { newStatus: { testid: 'NEEDS_UPDATE' } };
+      getAllAccountsPermissionStatus.mockResolvedValue(newPermRetVal);
+      await store.load();
+      await store.updateAwsAccount(erroredAcct.id, erroredAcct);
+
+      expect(updateAwsAccount).toHaveBeenCalledWith(erroredAcct.id, erroredAcct);
     });
   });
 });

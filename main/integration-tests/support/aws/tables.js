@@ -27,6 +27,7 @@ async function getTableNames() {
     'awsAccounts',
     'costApiCaches',
     'deploymentStore',
+    'egressStore',
     'environments',
     'environmentsSc',
     'environmentTypes',
