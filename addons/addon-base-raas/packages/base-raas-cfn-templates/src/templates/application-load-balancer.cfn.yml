@@ -48,11 +48,7 @@ Resources:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
       Name: !Ref Namespace
-      Scheme:
-        - !If
-          - AppStreamEnabled
-          - 'internal'
-          - 'internet-facing'
+      Scheme: !If [AppStreamEnabled, 'internal', 'internet-facing']
       Subnets:
         - Ref: Subnet1
         - Ref: Subnet2

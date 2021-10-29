@@ -242,9 +242,8 @@ async function updateEnvOnProvisioningSuccess({
       const environmentDnsService = await container.find('environmentDnsService');
       const settings = await container.find('settings');
       if (settings.getBoolean(settingKeys.isAppStreamEnabled)) {
-        const privateIp = _.find(outputs, o => o.OutputKey === 'Ec2WorkspacePrivateIp').OutputValue;
         const hostedZoneId = await getHostedZone(requestContext, environmentScService, existingEnvRecord);
-        await environmentDnsService.createPrivateRecord(requestContext, 'rstudio', envId, privateIp, hostedZoneId);
+        await environmentDnsService.createPrivateRecord(requestContext, 'rstudio', envId, dnsName, hostedZoneId);
       } else {
         await environmentDnsService.createRecord('rstudio', envId, dnsName);
       }

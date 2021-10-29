@@ -18,6 +18,7 @@ const Service = require('@aws-ee/base-services-container/lib/service');
 
 const settingKeys = {
   domainName: 'domainName',
+  isAppStreamEnabled: 'isAppStreamEnabled',
 };
 
 class ALBService extends Service {
@@ -201,6 +202,7 @@ class ALBService extends Service {
    * @returns {Promise<string>}
    */
   async createListenerRule(prefix, requestContext, resolvedVars, targetGroupArn) {
+    const isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
     const deploymentItem = await this.getAlbDetails(requestContext, resolvedVars.projectId);
     const albRecord = JSON.parse(deploymentItem.value);
     const listenerArn = albRecord.listenerArn;
@@ -215,20 +217,29 @@ class ALBService extends Service {
           Type: 'forward',
         },
       ],
-      Conditions: [
-        {
-          Field: 'host-header',
-          HostHeaderConfig: {
-            Values: [subdomain],
-          },
-        },
-        {
-          Field: 'source-ip',
-          SourceIpConfig: {
-            Values: [resolvedVars.cidr],
-          },
-        },
-      ],
+      Conditions: isAppStreamEnabled
+        ? [
+            {
+              Field: 'host-header',
+              HostHeaderConfig: {
+                Values: [subdomain],
+              },
+            },
+          ]
+        : [
+            {
+              Field: 'host-header',
+              HostHeaderConfig: {
+                Values: [subdomain],
+              },
+            },
+            {
+              Field: 'source-ip',
+              SourceIpConfig: {
+                Values: [resolvedVars.cidr],
+              },
+            },
+          ],
       Tags: resolvedVars.tags,
     };
     const albClient = await this.getAlbSdk(requestContext, resolvedVars);
@@ -454,22 +465,32 @@ class ALBService extends Service {
    */
   async modifyRule(requestContext, resolvedVars) {
     const subdomain = this.getHostname(resolvedVars.prefix, resolvedVars.envId);
+    const isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
     try {
       const params = {
-        Conditions: [
-          {
-            Field: 'host-header',
-            HostHeaderConfig: {
-              Values: [subdomain],
-            },
-          },
-          {
-            Field: 'source-ip',
-            SourceIpConfig: {
-              Values: resolvedVars.cidr,
-            },
-          },
-        ],
+        Conditions: isAppStreamEnabled
+          ? [
+              {
+                Field: 'host-header',
+                HostHeaderConfig: {
+                  Values: [subdomain],
+                },
+              },
+            ]
+          : [
+              {
+                Field: 'host-header',
+                HostHeaderConfig: {
+                  Values: [subdomain],
+                },
+              },
+              {
+                Field: 'source-ip',
+                SourceIpConfig: {
+                  Values: [resolvedVars.cidr],
+                },
+              },
+            ],
         RuleArn: resolvedVars.ruleARN,
       };
       const { externalId } = await this.findAwsAccountDetails(requestContext, resolvedVars.projectId);

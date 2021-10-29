@@ -93,11 +93,23 @@ class TerminateLaunchDependency extends StepBase {
       const albExists = await albService.checkAlbExists(requestContext, projectId);
       const deploymentItem = await albService.getAlbDetails(requestContext, projectId);
       const deploymentValue = JSON.parse(deploymentItem.value);
+      const dnsName = deploymentValue.albDnsName;
 
       if (albExists) {
         try {
-          const dnsName = deploymentValue.albDnsName;
-          await environmentDnsService.deleteRecord('rstudio', envId, dnsName);
+          const isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
+          if (isAppStreamEnabled) {
+            const memberAccount = await environmentScService.getMemberAccount(requestContext, environment);
+            await environmentDnsService.deletePrivateRecord(
+              requestContext,
+              'rstudio',
+              envId,
+              dnsName,
+              memberAccount.route53HostedZone,
+            );
+          } else {
+            await environmentDnsService.deleteRecord('rstudio', envId, dnsName);
+          }
           this.print({
             msg: 'Route53 record deleted successfully',
           });
