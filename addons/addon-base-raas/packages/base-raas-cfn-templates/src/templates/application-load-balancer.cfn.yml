@@ -51,8 +51,8 @@ Resources:
       Scheme:
         - !If
           - AppStreamEnabled
-          - internal
-          - internet-facing
+          - 'internal'
+          - 'internet-facing'
       Subnets:
         - Ref: Subnet1
         - Ref: Subnet2
