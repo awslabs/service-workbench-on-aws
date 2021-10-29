@@ -253,7 +253,10 @@ describe('ALBService', () => {
   });
 
   describe('getStackCreationInput', () => {
-    const resolvedInputParams = [{ Key: 'ACMSSLCertARN', Value: 'Value' }];
+    const resolvedInputParams = [
+      { Key: 'ACMSSLCertARN', Value: 'Value' },
+      { Key: 'IsAppStreamEnabled', Value: 'false' },
+    ];
     const resolvedVars = { namespace: 'namespace' };
     it('should pass and return the stack creation input with success', async () => {
       service.findAwsAccountDetails = jest.fn(() => {
@@ -290,6 +293,10 @@ describe('ALBService', () => {
           {
             ParameterKey: 'VPC',
             ParameterValue: 'vpc-096b034133955abba',
+          },
+          {
+            ParameterKey: 'IsAppStreamEnabled',
+            ParameterValue: 'false',
           },
         ],
         TemplateBody: ['template'],
@@ -649,7 +656,7 @@ describe('ALBService', () => {
         throw new Error(`Error describing subnet. VPC does not exist`);
       });
       try {
-        await service.findSubnet2({}, {}, '');
+        await service.findSubnet2({}, {}, '', 'true');
       } catch (err) {
         expect(err.message).toContain('Error describing subnet. VPC does not exist');
       }
@@ -664,7 +671,7 @@ describe('ALBService', () => {
         };
       });
       try {
-        await service.findSubnet2({}, {}, 'test-vpc');
+        await service.findSubnet2({}, {}, 'test-vpc', 'false');
       } catch (err) {
         expect(err.message).toContain(
           'Error provisioning environment. Reason: Subnet2 not found for the VPC - test-vpc',
@@ -680,7 +687,7 @@ describe('ALBService', () => {
           },
         };
       });
-      const response = await service.findSubnet2({}, {}, 'test-vpc');
+      const response = await service.findSubnet2({}, {}, 'test-vpc', true);
       expect(response).toEqual('test-subnet-id');
     });
   });

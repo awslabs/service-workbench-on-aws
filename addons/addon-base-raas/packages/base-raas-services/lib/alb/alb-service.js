@@ -84,11 +84,17 @@ class ALBService extends Service {
    */
   async getStackCreationInput(requestContext, resolvedVars, resolvedInputParams, projectId) {
     const awsAccountDetails = await this.findAwsAccountDetails(requestContext, projectId);
-    const subnet2 = await this.findSubnet2(requestContext, resolvedVars, awsAccountDetails.vpcId);
     const [cfnTemplateService] = await this.service(['cfnTemplateService']);
     const [template] = await Promise.all([cfnTemplateService.getTemplate('application-load-balancer')]);
     const cfnParams = [];
     const certificateArn = _.find(resolvedInputParams, o => o.Key === 'ACMSSLCertARN');
+    const isAppStreamEnabled = _.find(resolvedInputParams, o => o.Key === 'IsAppStreamEnabled');
+    const subnet2 = await this.findSubnet2(
+      requestContext,
+      resolvedVars,
+      awsAccountDetails.vpcId,
+      isAppStreamEnabled.Value,
+    );
 
     const addParam = (key, v) => cfnParams.push({ ParameterKey: key, ParameterValue: v });
     addParam('Namespace', resolvedVars.namespace);
@@ -96,6 +102,7 @@ class ALBService extends Service {
     addParam('Subnet2', subnet2);
     addParam('ACMSSLCertARN', certificateArn.Value);
     addParam('VPC', awsAccountDetails.vpcId);
+    addParam('IsAppStreamEnabled', isAppStreamEnabled.Value);
 
     const input = {
       StackName: resolvedVars.namespace,
@@ -327,26 +334,46 @@ class ALBService extends Service {
   }
 
   /**
-   * Method to get the EC2 SDK client for the target aws account
+   * Method to get the second subnet ID
+   * For an ALB - You must specify subnets from at least two Availability Zones.
    *
    * @param requestContext
    * @param resolvedVars
    * @param vpcId
+   * @param appStreamEnabled
    * @returns {Promise<string>}
    */
-  async findSubnet2(requestContext, resolvedVars, vpcId) {
-    const params = {
-      Filters: [
-        {
-          Name: 'vpc-id',
-          Values: [vpcId],
-        },
-        {
-          Name: 'tag:aws:cloudformation:logical-id',
-          Values: ['PublicSubnet2'],
-        },
-      ],
-    };
+  async findSubnet2(requestContext, resolvedVars, vpcId, appStreamEnabled) {
+    const isAppStreamEnabled = appStreamEnabled === 'true';
+    let params;
+    if (isAppStreamEnabled) {
+      params = {
+        Filters: [
+          {
+            Name: 'vpc-id',
+            Values: [vpcId],
+          },
+          {
+            Name: 'tag:aws:cloudformation:logical-id',
+            Values: ['PrivateWorkspaceSubnet2'],
+          },
+        ],
+      };
+    } else {
+      params = {
+        Filters: [
+          {
+            Name: 'vpc-id',
+            Values: [vpcId],
+          },
+          {
+            Name: 'tag:aws:cloudformation:logical-id',
+            Values: ['PublicSubnet2'],
+          },
+        ],
+      };
+    }
+
     const ec2Client = await this.getEc2Sdk(requestContext, resolvedVars);
     const response = await ec2Client.describeSubnets(params).promise();
     const subnetId = _.get(response.Subnets[0], 'SubnetId', null);

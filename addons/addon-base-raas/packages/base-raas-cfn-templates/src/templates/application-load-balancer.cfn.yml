@@ -18,41 +18,57 @@ Parameters:
   ACMSSLCertARN:
     Type: String
     Description: The ARN of the AWS Certificate Manager SSL Certificate to associate with the Load Balancer
+  IsAppStreamEnabled:
+    Type: String
+    AllowedValues: [true, false]
+    Description: Is AppStream enabled for this workspace
+
+Conditions:
+  AppStreamEnabled: !Equals [!Ref IsAppStreamEnabled, 'true']
+  AppStreamDisabled: !Equals [!Ref IsAppStreamEnabled, 'false']
+
 Resources:
   ALBListener:
-     Type: AWS::ElasticLoadBalancingV2::Listener
-     Properties:
-       DefaultActions:
-         - Type: fixed-response
-           FixedResponseConfig:
-             ContentType: "text/plain"
-             MessageBody: "Forbidden"
-             StatusCode: "403"
-       LoadBalancerArn:
-           Ref: ApplicationLoadBalancer
-       Port: 443
-       Protocol: HTTPS
-       SslPolicy: ELBSecurityPolicy-2016-08
-       Certificates: 
-          - CertificateArn: !Ref ACMSSLCertARN
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: fixed-response
+          FixedResponseConfig:
+            ContentType: 'text/plain'
+            MessageBody: 'Forbidden'
+            StatusCode: '403'
+      LoadBalancerArn:
+        Ref: ApplicationLoadBalancer
+      Port: 443
+      Protocol: HTTPS
+      SslPolicy: ELBSecurityPolicy-2016-08
+      Certificates:
+        - CertificateArn: !Ref ACMSSLCertARN
   ApplicationLoadBalancer:
     Type: AWS::ElasticLoadBalancingV2::LoadBalancer
     Properties:
       Name: !Ref Namespace
-      Scheme: internet-facing # or internal
+      Scheme:
+        - !If
+          - AppStreamEnabled
+          - internal
+          - internet-facing
       Subnets:
-      - Ref: Subnet1
-      - Ref: Subnet2
-      SecurityGroups: 
-      - Ref: ALBSecurityGroup
+        - Ref: Subnet1
+        - Ref: Subnet2
+      SecurityGroups:
+        - Ref: ALBSecurityGroup
   ALBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       SecurityGroupIngress:
-        - CidrIp: "0.0.0.0/0"
-          FromPort: 443
-          ToPort: 443
-          IpProtocol: tcp
+        - !If
+          - AppStreamEnabled
+          - !Ref 'AWS::NoValue'
+          - CidrIp: '0.0.0.0/0'
+            FromPort: 443
+            ToPort: 443
+            IpProtocol: tcp
       GroupDescription: ALB SecurityGroup
       VpcId: !Ref VPC
 Outputs:

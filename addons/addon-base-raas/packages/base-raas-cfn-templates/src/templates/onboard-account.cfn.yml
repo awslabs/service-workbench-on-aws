@@ -40,7 +40,7 @@ Parameters:
     Type: String
     Default: 10.0.0.0/19
 
-  VpcPublicSubnet2Cidr:
+  PublicSubnet2Cidr:
     Description: Please enter the IP range (CIDR notation) for the public subnet 2 in the 2nd Availability Zone
     Type: String
     Default: 10.0.32.0/19
@@ -67,6 +67,12 @@ Parameters:
     Description: Please enter the IP range (CIDR notation) for the Workspace subnet. This value is only used if AppStream is enabled.
     Type: String
     Default: 10.0.64.0/19
+  
+  # Range from 10.0.96.0 to 10.0.127.255
+  WorkspaceSubnet2Cidr:
+    Description: Please enter the IP range (CIDR notation) for the Workspace subnet 2. This value is only used if AppStream is enabled.
+    Type: String
+    Default: 10.0.96.0/19
 
   AppStreamFleetDesiredInstances:
     Description: The desired number of streaming instances.
@@ -123,9 +129,9 @@ Metadata:
           default: Deployment Configuration
         Parameters:
           - VpcCidr
-          - VpcPublicSubnet1Cidr
-          - VpcPublicSubnet2Cidr
           - PublicSubnetCidr
+          - PublicSubnet2Cidr
+
 Conditions:
   isAppStream: !Equals
     - !Ref EnableAppStream
@@ -629,10 +635,11 @@ Resources:
 
   PublicSubnet2:
     Type: AWS::EC2::Subnet
+    Condition: isNotAppStream
     Properties:
       VpcId: !Ref VPC
       AvailabilityZone: !Select [1, !GetAZs ]
-      CidrBlock: !Ref VpcPublicSubnet2Cidr
+      CidrBlock: !Ref PublicSubnet2Cidr
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
@@ -665,6 +672,7 @@ Resources:
 
   PublicSubnet2RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: isNotAppStream
     Properties:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet2
@@ -732,6 +740,19 @@ Resources:
       Tags:
         - Key: Name
           Value: Private Workspace Subnet
+  
+  # For an ALB - You must specify subnets from at least two Availability Zones.
+  PrivateWorkspaceSubnet2:
+    Type: AWS::EC2::Subnet
+    Condition: isAppStreamAndCustomDomain
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !GetAZs '']
+      CidrBlock: !Ref WorkspaceSubnet2Cidr
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: Private Workspace Subnet 2
 
   PrivateWorkspaceRouteTable:
     Type: 'AWS::EC2::RouteTable'
@@ -788,6 +809,10 @@ Resources:
     Properties:
       SubnetIds:
         - !Ref PrivateWorkspaceSubnet
+        - !If
+          - isAppStreamAndCustomDomain
+          - !Ref PrivateWorkspaceSubnet2
+          - !Ref 'AWS::NoValue'
       PrivateDnsEnabled: true
       VpcEndpointType: Interface
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.kms'
@@ -801,6 +826,10 @@ Resources:
     Properties:
       SubnetIds:
         - !Ref PrivateWorkspaceSubnet
+        - !If
+          - isAppStreamAndCustomDomain
+          - !Ref PrivateWorkspaceSubnet2
+          - !Ref 'AWS::NoValue'
       VpcEndpointType: Interface
       PrivateDnsEnabled: true
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.sts'
@@ -814,6 +843,10 @@ Resources:
     Properties:
       SubnetIds:
         - !Ref PrivateWorkspaceSubnet
+        - !If
+          - isAppStreamAndCustomDomain
+          - !Ref PrivateWorkspaceSubnet2
+          - !Ref 'AWS::NoValue'
       VpcEndpointType: Interface
       PrivateDnsEnabled: true
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ec2'
@@ -827,6 +860,10 @@ Resources:
     Properties:
       SubnetIds:
         - !Ref PrivateWorkspaceSubnet
+        - !If
+          - isAppStreamAndCustomDomain
+          - !Ref PrivateWorkspaceSubnet2
+          - !Ref 'AWS::NoValue'
       VpcEndpointType: Interface
       PrivateDnsEnabled: true
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.cloudformation'
@@ -883,6 +920,10 @@ Resources:
     Properties:
       SubnetIds:
         - !Ref PrivateWorkspaceSubnet
+        - !If
+          - isAppStreamAndCustomDomain
+          - !Ref PrivateWorkspaceSubnet2
+          - !Ref 'AWS::NoValue'
       VpcEndpointType: Interface
       PrivateDnsEnabled: true
       ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ssm'
@@ -1057,6 +1098,11 @@ Outputs:
     Description: Workspace subnet
     Condition: isAppStream
     Value: !Ref PrivateWorkspaceSubnet
+  
+  PrivateWorkspaceSubnet2:
+    Description: Second subnet for ALB
+    Condition: isAppStreamAndCustomDomain
+    Value: !Ref PrivateWorkspaceSubnet2
 
   AppStreamSecurityGroup:
     Description: AppStream Security Group
