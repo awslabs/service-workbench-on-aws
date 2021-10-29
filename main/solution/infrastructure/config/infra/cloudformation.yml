@@ -34,11 +34,13 @@ Resources:
       Bucket: !Ref LoggingBucket
       PolicyDocument:
         Statement:
-          - Sid: Deny requests that do not use TLS
+          - Sid: Deny requests that do not use TLS/HTTPS
             Effect: Deny
             Principal: '*'
             Action: s3:*
-            Resource: !Join ['/', [!GetAtt LoggingBucket.Arn, '*']]
+            Resource:
+              - !Join ['/', [!GetAtt LoggingBucket.Arn, '*']]
+              - !GetAtt LoggingBucket.Arn
             Condition:
               Bool:
                 aws:SecureTransport: false
@@ -85,11 +87,13 @@ Resources:
               AWS: !Join ['', ['arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ', !Ref 'CloudFrontOAI']]
             Resource:
               - !Join ['', ['arn:aws:s3:::', !Ref 'WebsiteBucket', '/*']]
-          - Sid: Deny requests that do not use TLS
+          - Sid: Deny requests that do not use TLS/HTTPS
             Effect: Deny
             Principal: '*'
             Action: s3:*
-            Resource: !Join ['/', [!GetAtt WebsiteBucket.Arn, '*']]
+            Resource:
+              - !Join ['/', [!GetAtt WebsiteBucket.Arn, '*']]
+              - !GetAtt WebsiteBucket.Arn
             Condition:
               Bool:
                 aws:SecureTransport: false
