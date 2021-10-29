@@ -171,6 +171,8 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
 
   ExternalCfnTemplatesBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -210,6 +212,8 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
 
   EnvironmentsBootstrapBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -254,6 +258,8 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
 
   EnvTypeConfigsBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -402,6 +408,8 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
 
   EgressStoreBucketPolicy:
     Condition: EnableEgressStore
