@@ -176,7 +176,7 @@ This section describes the procedure of setting up an AppStream image with the f
      -- <AWS Profile> <region> <Base image name> <instance size>
 
      # Example: npm run start-image-builder -- default us-east-1 
-     AppStream-WinServer2019-06-01-2021 stream.standard.medium
+     AppStream-WinServer2019-10-08-2021 stream.standard.medium
 
      # If preferred you can choose the default base image name and instance size by running this command: 
 
