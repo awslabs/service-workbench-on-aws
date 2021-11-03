@@ -46,6 +46,7 @@ class DataEgressService extends Service {
       's3Service',
       'environmentScService',
       'lockService',
+      'userService',
     ]);
   }
 
@@ -337,6 +338,11 @@ class DataEgressService extends Service {
     egressStoreInfo.isAbleToSubmitEgressRequest = false;
     egressStoreInfo.egressStoreObjectListLocation = `arn:aws:s3:::${egressStoreObjectList.bucket}/${egressStoreObjectList.key}`;
     egressStoreInfo.ver = parseInt(egressStoreInfo.ver, 10) + 1; // parseInt(string, radix) string: The value to parse. radix: An integer between 2 and 36 that represents the radix of the string.
+
+    const userService = await this.service('userService');
+    const createdByUser = await userService.mustFindUser({ uid: egressStoreInfo.createdBy, fields: 'email' });
+    const updatedByUser = await userService.mustFindUser({ uid: egressStoreInfo.updatedBy, fields: 'email' });
+
     await this.lockAndUpdate(egressStoreDdbLockId, egressStoreInfo.id, egressStoreInfo);
 
     const message = {
@@ -346,12 +352,14 @@ class DataEgressService extends Service {
       egress_store_name: egressStoreInfo.egressStoreName,
       created_at: egressStoreInfo.createdAt,
       created_by: egressStoreInfo.createdBy,
+      created_by_email: createdByUser.email,
       workspace_id: egressStoreInfo.workspaceId,
       project_id: egressStoreInfo.projectId,
       s3_bucketname: egressStoreInfo.s3BucketName,
       s3_bucketpath: egressStoreInfo.s3BucketPath,
       status: egressStoreInfo.status,
       updated_by: egressStoreInfo.updatedBy,
+      updated_by_email: updatedByUser.email,
       updated_at: egressStoreInfo.updatedAt,
       ver: egressStoreInfo.ver,
     };
