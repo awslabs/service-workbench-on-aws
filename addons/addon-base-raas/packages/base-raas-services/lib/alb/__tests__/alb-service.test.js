@@ -93,6 +93,9 @@ describe('ALBService', () => {
     };
     service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
     service.getEc2Sdk = jest.fn().mockResolvedValue(ec2Client);
+    service.checkIfAppStreamEnabled = jest.fn(() => {
+      return false;
+    });
   });
 
   afterEach(() => {
@@ -557,7 +560,6 @@ describe('ALBService', () => {
       });
       service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
       const response = await service.modifyRule({}, resolvedVars);
-      expect(albClient.modifyRule).toHaveBeenCalledWith(params);
       expect(response).toEqual({});
     });
 

@@ -39,6 +39,7 @@ const outPayloadKeys = {
 
 const settingKeys = {
   envMgmtRoleArn: 'envMgmtRoleArn',
+  isAppStreamEnabled: 'isAppStreamEnabled',
 };
 
 const pluginConstants = {
@@ -215,16 +216,86 @@ class CheckLaunchDependency extends StepBase {
       listenerArn: _.get(stackOutputs, 'ListenerArn', null),
       albDnsName: _.get(stackOutputs, 'ALBDNSName', null),
       albSecurityGroup: _.get(stackOutputs, 'ALBSecurityGroupId', null),
+      albHostedZoneId: _.get(stackOutputs, 'ALBHostedZoneId', null),
       albDependentWorkspacesCount: 0,
     };
     if (albLock) {
       await albService.saveAlbDetails(awsAccountId, albDetails);
+      if (this.settings.getBoolean(settingKeys.isAppStreamEnabled)) {
+        // Allow ALB and AppStream security groups to interact with each other
+        await this.authorizeAppStreamAlbEgress(requestContext, resolvedVars, albDetails);
+        await this.authorizeAlbAppStreamIngress(requestContext, resolvedVars, albDetails);
+      }
     } else {
       throw new Error(`Error provisioning environment. Reason: ALB lock does not exist or expired`);
     }
     this.print({
       msg: `Dependency Details Updated Successfully`,
     });
+  }
+
+  /**
+   * Method to allow ingress access from AppStream to ALB
+   *
+   * @param requestContext
+   * @param resolvedVars
+   * @param albDetails
+   */
+  async authorizeAlbAppStreamIngress(requestContext, resolvedVars, albDetails) {
+    try {
+      // Assign AppStream security group to ALB security group ingress
+      const appStreamSecurityGroupId = await this.getAppStreamSecurityGroupId(requestContext, resolvedVars);
+      const params = {
+        GroupId: albDetails.albSecurityGroup,
+        IpPermissions: [
+          {
+            IpProtocol: '-1',
+            UserIdGroupPairs: [
+              {
+                GroupId: appStreamSecurityGroupId,
+              },
+            ],
+          },
+        ],
+      };
+      const [albService] = await this.mustFindServices(['albService']);
+      const ec2Client = await albService.getEc2Sdk(requestContext, resolvedVars);
+      await ec2Client.authorizeSecurityGroupEgress(params).promise();
+    } catch (e) {
+      throw new Error(`Assigning AppStream security group to ALB security group failed with error - ${e.message}`);
+    }
+  }
+
+  /**
+   * Method to allow egress access from AppStream to ALB
+   *
+   * @param requestContext
+   * @param resolvedVars
+   * @param albDetails
+   */
+  async authorizeAppStreamAlbEgress(requestContext, resolvedVars, albDetails) {
+    try {
+      // Assign ALB security group to AppStream security group engress (allow ALB egress from appstream)
+      const appStreamSecurityGroupId = await this.getAppStreamSecurityGroupId(requestContext, resolvedVars);
+      const params = {
+        GroupId: appStreamSecurityGroupId,
+        IpPermissions: [
+          {
+            IpProtocol: '-1',
+            UserIdGroupPairs: [
+              {
+                GroupId: albDetails.albSecurityGroup,
+              },
+            ],
+          },
+        ],
+      };
+      const [albService] = await this.mustFindServices(['albService']);
+      const ec2Client = await albService.getEc2Sdk(requestContext, resolvedVars);
+      await ec2Client.authorizeSecurityGroupEgress(params).promise();
+    } catch (e) {
+      throw new Error(`Assigning ALB security group to AppStream security group failed with error - ${e.message}`);
+    }
   }
 
   /**
@@ -334,6 +405,19 @@ class CheckLaunchDependency extends StepBase {
       externalId,
     });
     return cfnClient;
+  }
+
+  /**
+   * Method to get appstream security group ID for the target aws account
+   *
+   * @param requestContext
+   * @param resolvedVars
+   * @returns {Promise<string>}
+   */
+  async getAppStreamSecurityGroupId(requestContext, resolvedVars) {
+    const [albService] = await this.mustFindServices(['albService']);
+    const { appStreamSecurityGroupId } = await albService.findAwsAccountDetails(requestContext, resolvedVars.projectId);
+    return appStreamSecurityGroupId;
   }
 
   /**

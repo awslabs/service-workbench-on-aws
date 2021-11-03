@@ -137,6 +137,7 @@ Conditions:
     - !Ref EnableAppStream
     - true
   isNotAppStream: !Not [Condition: isAppStream]
+  hasCustomDomain: !Not [!Equals [!Ref "DomainName", ""]]
   isAppStreamAndCustomDomain: !And
     - !Not [!Equals [!Ref "DomainName", ""]]
     - !Condition isAppStream
@@ -190,8 +191,8 @@ Resources:
                 - ec2:DescribeImages
                 - ec2:DescribeInstances
                 - ec2:DescribeSecurityGroups
-                - ec2:RevokeSecurityGroupIngress
-                - ec2:AuthorizeSecurityGroupIngress
+                - ec2:RevokeSecurityGroup*
+                - ec2:AuthorizeSecurityGroup*
                 - ec2-instance-connect:SendSSHPublicKey
               Resource: '*'
         - PolicyName: cfn-access
@@ -453,8 +454,8 @@ Resources:
             Action:
               - ec2:CreateSecurityGroup
               - ec2:DeleteSecurityGroup
-              - ec2:AuthorizeSecurityGroupIngress
-              - ec2:RevokeSecurityGroupIngress
+              - ec2:AuthorizeSecurityGroup*
+              - ec2:RevokeSecurityGroup*
             Resource:
               - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:vpc/*'
               - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:security-group/*'
@@ -992,7 +993,7 @@ Resources:
           IpProtocol: '-1'
         - DestinationSecurityGroupId: !Ref WorkspaceSecurityGroup
           IpProtocol: '-1'
-
+  
   AppStreamSecurityGroupEgress:
     Type: AWS::EC2::SecurityGroupEgress
     Condition: isAppStream
@@ -1115,7 +1116,7 @@ Outputs:
     Description: SageMaker Security Group
     Condition: isAppStream
     Value: !Ref SageMakerSecurityGroup
-
+  
   AppStreamFleet:
     Description: AppStream Fleet
     Condition: isAppStream

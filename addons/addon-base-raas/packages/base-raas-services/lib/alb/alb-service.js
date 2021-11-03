@@ -191,6 +191,10 @@ class ALBService extends Service {
     return deploymentItem;
   }
 
+  async checkIfAppStreamEnabled() {
+    return this.settings.get(settingKeys.isAppStreamEnabled);
+  }
+
   /**
    * Method to create listener rule. The method creates rule using the ALB SDK client.
    * Tags are read form the resolvedVars so the billing will happen properly
@@ -202,7 +206,7 @@ class ALBService extends Service {
    * @returns {Promise<string>}
    */
   async createListenerRule(prefix, requestContext, resolvedVars, targetGroupArn) {
-    const isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
+    const isAppStreamEnabled = this.checkIfAppStreamEnabled();
     const deploymentItem = await this.getAlbDetails(requestContext, resolvedVars.projectId);
     const albRecord = JSON.parse(deploymentItem.value);
     const listenerArn = albRecord.listenerArn;
@@ -465,7 +469,7 @@ class ALBService extends Service {
    */
   async modifyRule(requestContext, resolvedVars) {
     const subdomain = this.getHostname(resolvedVars.prefix, resolvedVars.envId);
-    const isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
+    const isAppStreamEnabled = this.checkIfAppStreamEnabled();
     try {
       const params = {
         Conditions: isAppStreamEnabled
