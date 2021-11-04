@@ -191,7 +191,7 @@ class ALBService extends Service {
     return deploymentItem;
   }
 
-  async checkIfAppStreamEnabled() {
+  checkIfAppStreamEnabled() {
     return this.settings.get(settingKeys.isAppStreamEnabled);
   }
 
@@ -436,6 +436,20 @@ class ALBService extends Service {
       externalId,
     });
     return albClient;
+  }
+
+  /**
+   * Method to get the ALB HostedZone ID for the target aws account
+   *
+   * @param requestContext
+   * @param resolvedVars
+   * @returns {Promise<>}
+   */
+  async getAlbHostedZoneID(requestContext, resolvedVars, albArn) {
+    const albClient = await this.getAlbSdk(requestContext, resolvedVars);
+    const params = { LoadBalancerArns: [albArn] };
+    const response = await albClient.describeLoadBalancers(params).promise();
+    return response.LoadBalancers[0].CanonicalHostedZoneId;
   }
 
   /**

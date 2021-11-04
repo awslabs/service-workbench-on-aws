@@ -244,11 +244,16 @@ async function updateEnvOnProvisioningSuccess({
       const settings = await container.find('settings');
       if (settings.getBoolean(settingKeys.isAppStreamEnabled)) {
         const hostedZoneId = await getHostedZone(requestContext, environmentScService, existingEnvRecord);
+        const albHostedZoneId = await albService.getAlbHostedZoneID(
+          requestContext,
+          resolvedVars,
+          deploymentValue.albArn,
+        );
         await environmentDnsService.createPrivateRecordForDNS(
           requestContext,
           'rstudio',
           envId,
-          deploymentValue.albHostedZoneId,
+          albHostedZoneId,
           dnsName,
           hostedZoneId,
         );

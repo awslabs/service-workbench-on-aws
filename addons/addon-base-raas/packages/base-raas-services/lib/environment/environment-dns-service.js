@@ -107,7 +107,7 @@ class EnvironmentDnsService extends Service {
               Type: 'A',
               AliasTarget: {
                 HostedZoneId: albHostedZoneId,
-                DNSName: recordValue,
+                DNSName: `dualstack.${recordValue}`,
                 EvaluateTargetHealth: false,
               },
             },

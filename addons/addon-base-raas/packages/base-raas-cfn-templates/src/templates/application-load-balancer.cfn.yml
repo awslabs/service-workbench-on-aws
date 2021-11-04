@@ -74,9 +74,6 @@ Outputs:
   ALBDNSName:
     Description: DNS Name of Application Load Balancer
     Value: !GetAtt ApplicationLoadBalancer.DNSName
-  ALBHostedZoneId:
-    Description: Hosted Zone ID of Application Load Balancer
-    Value: !GetAtt ApplicationLoadBalancer.HostedZoneId
   ListenerArn:
     Description: ARN of Application Load Balancer Listener
     Value: !Ref ALBListener

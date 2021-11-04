@@ -133,6 +133,12 @@ class CheckLaunchDependency extends StepBase {
    * @returns {Promise<>}
    */
   async provisionAlb(requestContext, resolvedVars, projectId, resolvedInputParams, maxAlbWorkspacesCount) {
+    // Added additional check if lock exists before staring deployment
+    const [albLock] = await Promise.all([this.state.optionalString('ALB_LOCK')]);
+    if (!albLock) {
+      throw new Error(`Error provisioning environment. Reason: ALB lock does not exist or expired`);
+    }
+
     const [albService] = await this.mustFindServices(['albService']);
     const count = await albService.albDependentWorkspacesCount(requestContext, projectId);
     const albExists = await albService.checkAlbExists(requestContext, projectId);
@@ -154,14 +160,10 @@ class CheckLaunchDependency extends StepBase {
         projectId,
       );
       // Create Stack
-      // Added additional check if lock exists before staring deployment
-      const [albLock] = await Promise.all([this.state.optionalString('ALB_LOCK')]);
-      if (albLock) {
-        // eslint-disable-next-line no-return-await
-        return await this.deployStack(requestContext, resolvedVars, stackInput);
-      }
-      throw new Error(`Error provisioning environment. Reason: ALB lock does not exist or expired`);
+      // eslint-disable-next-line no-return-await
+      return await this.deployStack(requestContext, resolvedVars, stackInput);
     }
+
     return null;
   }
 
@@ -219,16 +221,16 @@ class CheckLaunchDependency extends StepBase {
       albHostedZoneId: _.get(stackOutputs, 'ALBHostedZoneId', null),
       albDependentWorkspacesCount: 0,
     };
-    if (albLock) {
-      await albService.saveAlbDetails(awsAccountId, albDetails);
-      if (this.settings.getBoolean(settingKeys.isAppStreamEnabled)) {
-        // Allow ALB and AppStream security groups to interact with each other
-        await this.authorizeAppStreamAlbEgress(requestContext, resolvedVars, albDetails);
-        await this.authorizeAlbAppStreamIngress(requestContext, resolvedVars, albDetails);
-      }
-    } else {
+    if (!albLock) {
       throw new Error(`Error provisioning environment. Reason: ALB lock does not exist or expired`);
     }
+    await albService.saveAlbDetails(awsAccountId, albDetails);
+    if (this.settings.getBoolean(settingKeys.isAppStreamEnabled)) {
+      // Allow ALB and AppStream security groups to interact with each other
+      await this.authorizeAppStreamAlbEgress(requestContext, resolvedVars, albDetails);
+      await this.authorizeAlbAppStreamIngress(requestContext, resolvedVars, albDetails);
+    }
+
     this.print({
       msg: `Dependency Details Updated Successfully`,
     });
@@ -260,9 +262,11 @@ class CheckLaunchDependency extends StepBase {
       };
       const [albService] = await this.mustFindServices(['albService']);
       const ec2Client = await albService.getEc2Sdk(requestContext, resolvedVars);
-      await ec2Client.authorizeSecurityGroupEgress(params).promise();
+      await ec2Client.authorizeSecurityGroupIngress(params).promise();
     } catch (e) {
-      throw new Error(`Assigning AppStream security group to ALB security group failed with error - ${e.message}`);
+      throw new Error(
+        `Assigning AppStream security group to ALB security group ingress failed with error - ${e.message}`,
+      );
     }
   }
 
@@ -294,7 +298,9 @@ class CheckLaunchDependency extends StepBase {
       const ec2Client = await albService.getEc2Sdk(requestContext, resolvedVars);
       await ec2Client.authorizeSecurityGroupEgress(params).promise();
     } catch (e) {
-      throw new Error(`Assigning ALB security group to AppStream security group failed with error - ${e.message}`);
+      throw new Error(
+        `Assigning ALB security group to AppStream security group egress failed with error - ${e.message}`,
+      );
     }
   }
 

@@ -288,9 +288,11 @@ class TerminateLaunchDependency extends StepBase {
       };
       const [albService] = await this.mustFindServices(['albService']);
       const ec2Client = await albService.getEc2Sdk(requestContext, resolvedVars);
-      await ec2Client.revokeSecurityGroupEgress(params).promise();
+      await ec2Client.revokeSecurityGroupIngress(params).promise();
     } catch (e) {
-      throw new Error(`Revoking AppStream security group from ALB security group failed with error - ${e.message}`);
+      throw new Error(
+        `Revoking AppStream security group from ALB security group ingress failed with error - ${e.message}`,
+      );
     }
   }
 
@@ -321,7 +323,9 @@ class TerminateLaunchDependency extends StepBase {
       const ec2Client = await albService.getEc2Sdk(requestContext, resolvedVars);
       await ec2Client.revokeSecurityGroupEgress(params).promise();
     } catch (e) {
-      throw new Error(`Revoking ALB security group from AppStream security group failed with error - ${e.message}`);
+      throw new Error(
+        `Revoking ALB security group from AppStream security group egress failed with error - ${e.message}`,
+      );
     }
   }
 
