@@ -85,6 +85,13 @@ class TerminateLaunchDependency extends StepBase {
 
     // Setting project id to use while polling for status
     this.state.setKey('PROJECT_ID', projectId);
+
+    // creating resolvedvars object with the necessary Metadata
+    const resolvedVars = {
+      projectId,
+      externalId,
+    };
+
     // convert output array to object. Return {} if no outputs found
     const environmentOutputs = await this.cfnOutputsArrayToObject(_.get(environment, 'outputs', []));
     const connectionType = _.get(environmentOutputs, 'MetaConnection1Type', '');
@@ -101,12 +108,16 @@ class TerminateLaunchDependency extends StepBase {
           const isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
           if (isAppStreamEnabled) {
             const memberAccount = await environmentScService.getMemberAccount(requestContext, environment);
+            const albHostedZoneId = await albService.getAlbHostedZoneID(
+              requestContext,
+              resolvedVars,
+              deploymentValue.albArn,
+            );
             await environmentDnsService.deletePrivateRecordForDNS(
               requestContext,
               'rstudio',
               envId,
-              dnsName,
-              deploymentValue.albHostedZoneId,
+              albHostedZoneId,
               dnsName,
               memberAccount.route53HostedZone,
             );
@@ -150,11 +161,6 @@ class TerminateLaunchDependency extends StepBase {
       // Termination should not be affected in such scenarios
       if (!_.isEmpty(ruleArn)) {
         try {
-          // creating resolvedvars object with the necessary Metadata
-          const resolvedVars = {
-            projectId,
-            externalId,
-          };
           await lockService.tryWriteLockAndRun({ id: `alb-rule-${deploymentItem.id}` }, async () => {
             const listenerArn = deploymentValue.listenerArn;
             await albService.deleteListenerRule(requestContext, resolvedVars, ruleArn, listenerArn);
