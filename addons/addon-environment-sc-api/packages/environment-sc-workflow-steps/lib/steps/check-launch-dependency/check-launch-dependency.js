@@ -228,46 +228,11 @@ class CheckLaunchDependency extends StepBase {
     if (this.settings.getBoolean(settingKeys.isAppStreamEnabled)) {
       // Allow ALB and AppStream security groups to interact with each other
       await this.authorizeAppStreamAlbEgress(requestContext, resolvedVars, albDetails);
-      await this.authorizeAlbAppStreamIngress(requestContext, resolvedVars, albDetails);
     }
 
     this.print({
       msg: `Dependency Details Updated Successfully`,
     });
-  }
-
-  /**
-   * Method to allow ingress access from AppStream to ALB
-   *
-   * @param requestContext
-   * @param resolvedVars
-   * @param albDetails
-   */
-  async authorizeAlbAppStreamIngress(requestContext, resolvedVars, albDetails) {
-    try {
-      // Assign AppStream security group to ALB security group ingress
-      const appStreamSecurityGroupId = await this.getAppStreamSecurityGroupId(requestContext, resolvedVars);
-      const params = {
-        GroupId: albDetails.albSecurityGroup,
-        IpPermissions: [
-          {
-            IpProtocol: '-1',
-            UserIdGroupPairs: [
-              {
-                GroupId: appStreamSecurityGroupId,
-              },
-            ],
-          },
-        ],
-      };
-      const [albService] = await this.mustFindServices(['albService']);
-      const ec2Client = await albService.getEc2Sdk(requestContext, resolvedVars);
-      await ec2Client.authorizeSecurityGroupIngress(params).promise();
-    } catch (e) {
-      throw new Error(
-        `Assigning AppStream security group to ALB security group ingress failed with error - ${e.message}`,
-      );
-    }
   }
 
   /**

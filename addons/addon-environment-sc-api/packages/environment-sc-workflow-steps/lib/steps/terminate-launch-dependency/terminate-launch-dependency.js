@@ -246,7 +246,6 @@ class TerminateLaunchDependency extends StepBase {
         externalId,
       };
       await this.revokeAppStreamAlbEgress(requestContext, resolvedVars, albDetails);
-      await this.revokeAlbAppStreamIngress(requestContext, resolvedVars, albDetails);
     }
 
     const stackName = albDetails.albStackName;
@@ -267,39 +266,6 @@ class TerminateLaunchDependency extends StepBase {
         .otherwiseCall('reportTimeout')
       // if anything fails, the "onFail" is called
     );
-  }
-
-  /**
-   * Method to revoke ingress access from AppStream to ALB
-   *
-   * @param requestContext
-   * @param resolvedVars
-   * @param albDetails
-   */
-  async revokeAlbAppStreamIngress(requestContext, resolvedVars, albDetails) {
-    try {
-      const appStreamSecurityGroupId = await this.getAppStreamSecurityGroupId(requestContext, resolvedVars);
-      const params = {
-        GroupId: albDetails.albSecurityGroup,
-        IpPermissions: [
-          {
-            IpProtocol: '-1',
-            UserIdGroupPairs: [
-              {
-                GroupId: appStreamSecurityGroupId,
-              },
-            ],
-          },
-        ],
-      };
-      const [albService] = await this.mustFindServices(['albService']);
-      const ec2Client = await albService.getEc2Sdk(requestContext, resolvedVars);
-      await ec2Client.revokeSecurityGroupIngress(params).promise();
-    } catch (e) {
-      throw new Error(
-        `Revoking AppStream security group from ALB security group ingress failed with error - ${e.message}`,
-      );
-    }
   }
 
   /**

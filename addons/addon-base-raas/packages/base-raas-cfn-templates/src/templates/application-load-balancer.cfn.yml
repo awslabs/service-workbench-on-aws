@@ -22,6 +22,9 @@ Parameters:
     Type: String
     AllowedValues: [true, false]
     Description: Is AppStream enabled for this workspace
+  AppStreamSG:
+    Type: String
+    Description: AppStream Security Group ID
 
 Conditions:
   AppStreamEnabled: !Equals [!Ref IsAppStreamEnabled, 'true']
@@ -60,7 +63,8 @@ Resources:
       SecurityGroupIngress:
         - !If
           - AppStreamEnabled
-          - !Ref 'AWS::NoValue'
+          - SourceSecurityGroupId: !Ref AppStreamSG
+            IpProtocol: '-1'
           - CidrIp: '0.0.0.0/0'
             FromPort: 443
             ToPort: 443

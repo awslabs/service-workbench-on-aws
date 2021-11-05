@@ -104,6 +104,7 @@ class ALBService extends Service {
     addParam('ACMSSLCertARN', certificateArn.Value);
     addParam('VPC', awsAccountDetails.vpcId);
     addParam('IsAppStreamEnabled', isAppStreamEnabled.Value);
+    addParam('AppStreamSG', awsAccountDetails.appStreamSecurityGroupId);
 
     const input = {
       StackName: resolvedVars.namespace,
