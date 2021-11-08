@@ -90,21 +90,18 @@ class ALBService extends Service {
     const cfnParams = [];
     const certificateArn = _.find(resolvedInputParams, o => o.Key === 'ACMSSLCertARN');
     const isAppStreamEnabled = _.find(resolvedInputParams, o => o.Key === 'IsAppStreamEnabled');
-    const subnet2 = await this.findSubnet2(
-      requestContext,
-      resolvedVars,
-      awsAccountDetails.vpcId,
-      isAppStreamEnabled.Value,
-    );
 
     const addParam = (key, v) => cfnParams.push({ ParameterKey: key, ParameterValue: v });
     addParam('Namespace', resolvedVars.namespace);
-    addParam('Subnet1', awsAccountDetails.subnetId);
-    addParam('Subnet2', subnet2);
     addParam('ACMSSLCertARN', certificateArn.Value);
     addParam('VPC', awsAccountDetails.vpcId);
     addParam('IsAppStreamEnabled', isAppStreamEnabled.Value);
-    addParam('AppStreamSG', awsAccountDetails.appStreamSecurityGroupId);
+    addParam(
+      'AppStreamSG',
+      _.isUndefined(awsAccountDetails.appStreamSecurityGroupId)
+        ? 'AppStreamNotConfigured'
+        : awsAccountDetails.appStreamSecurityGroupId,
+    );
 
     const input = {
       StackName: resolvedVars.namespace,
@@ -347,56 +344,6 @@ class ALBService extends Service {
   getHostname(prefix, id) {
     const domainName = this.settings.get(settingKeys.domainName);
     return `${prefix}-${id}.${domainName}`;
-  }
-
-  /**
-   * Method to get the second subnet ID
-   * For an ALB - You must specify subnets from at least two Availability Zones.
-   *
-   * @param requestContext
-   * @param resolvedVars
-   * @param vpcId
-   * @param appStreamEnabled
-   * @returns {Promise<string>}
-   */
-  async findSubnet2(requestContext, resolvedVars, vpcId, appStreamEnabled) {
-    const isAppStreamEnabled = appStreamEnabled === 'true';
-    let params;
-    if (isAppStreamEnabled) {
-      params = {
-        Filters: [
-          {
-            Name: 'vpc-id',
-            Values: [vpcId],
-          },
-          {
-            Name: 'tag:aws:cloudformation:logical-id',
-            Values: ['PrivateWorkspaceSubnet2'],
-          },
-        ],
-      };
-    } else {
-      params = {
-        Filters: [
-          {
-            Name: 'vpc-id',
-            Values: [vpcId],
-          },
-          {
-            Name: 'tag:aws:cloudformation:logical-id',
-            Values: ['PublicSubnet2'],
-          },
-        ],
-      };
-    }
-
-    const ec2Client = await this.getEc2Sdk(requestContext, resolvedVars);
-    const response = await ec2Client.describeSubnets(params).promise();
-    const subnetId = _.get(response.Subnets[0], 'SubnetId', null);
-    if (!subnetId) {
-      throw new Error(`Error provisioning environment. Reason: Subnet2 not found for the VPC - ${vpcId}`);
-    }
-    return subnetId;
   }
 
   /**
