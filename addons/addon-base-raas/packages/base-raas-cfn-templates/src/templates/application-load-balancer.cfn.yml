@@ -75,29 +75,6 @@ Resources:
         - Key: Name
           Value: !Sub ${Namespace} ALB public subnet 2
 
-  # PublicRouteTable:
-  #   Type: AWS::EC2::RouteTable
-  #   Condition: AppStreamDisabled
-  #   Properties:
-  #     VpcId: !Ref VPC
-  #     Tags:
-  #       - Key: Name
-  #         Value: !Sub ${Namespace} public routes
-
-  # PublicSubnet1RouteTableAssociation:
-  #   Type: AWS::EC2::SubnetRouteTableAssociation
-  #   Condition: AppStreamDisabled
-  #   Properties:
-  #     RouteTableId: !Ref PublicRouteTable
-  #     SubnetId: !Ref PublicSubnet1
-
-  # PublicSubnet2RouteTableAssociation:
-  #   Type: AWS::EC2::SubnetRouteTableAssociation
-  #   Condition: AppStreamDisabled
-  #   Properties:
-  #     RouteTableId: !Ref PublicRouteTable
-  #     SubnetId: !Ref PublicSubnet2
-
   PrivateSubnet1:
     Type: AWS::EC2::Subnet
     Condition: AppStreamEnabled

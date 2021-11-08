@@ -244,7 +244,7 @@ class CheckLaunchDependency extends StepBase {
    */
   async authorizeAppStreamAlbEgress(requestContext, resolvedVars, albDetails) {
     try {
-      // Assign ALB security group to AppStream security group engress (allow ALB egress from appstream)
+      // Assign ALB security group to AppStream security group egress (allow ALB egress from appstream)
       const appStreamSecurityGroupId = await this.getAppStreamSecurityGroupId(requestContext, resolvedVars);
       const params = {
         GroupId: appStreamSecurityGroupId,
