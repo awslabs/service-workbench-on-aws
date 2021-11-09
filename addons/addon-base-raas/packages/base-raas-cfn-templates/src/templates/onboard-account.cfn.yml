@@ -415,6 +415,7 @@ Resources:
               - ec2:DescribeInstances
               - ec2:DescribeRouteTables
               - ec2:AssociateRouteTable
+              - ec2:DisassociateRouteTable
             Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
           - Effect: Allow
             Action:
