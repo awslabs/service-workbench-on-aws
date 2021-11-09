@@ -225,9 +225,11 @@ Outputs:
     Value: !Ref WebsiteCloudFront
 
   HostedZoneId:
-    Condition: UseCustomDomain
     Description: Id of the hosted zone created when a custom domain is used
     Value: !If
-      - UseHostedZoneId
-      - ${self:custom.settings.hostedZoneId}
-      - !Ref HostedZone
+      - UseCustomDomain
+      - !If
+        - UseHostedZoneId
+        - ${self:custom.settings.hostedZoneId}
+        - !Ref HostedZone
+      - 'CustomDomainNotSet'
