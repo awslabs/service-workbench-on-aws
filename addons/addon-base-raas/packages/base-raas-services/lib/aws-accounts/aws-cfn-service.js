@@ -476,8 +476,8 @@ class AwsCfnService extends Service {
       }
     } else {
       fieldsToUpdate.subnetId = findOutputValue('VpcPublicSubnet1');
+      fieldsToUpdate.publicRouteTableId = findOutputValue('PublicRouteTableId');
     }
-
     await awsAccountsService.update(requestContext, fieldsToUpdate);
 
     // TODO Start AppStream fleet

@@ -225,48 +225,10 @@ class CheckLaunchDependency extends StepBase {
       throw new Error(`Error provisioning environment. Reason: ALB lock does not exist or expired`);
     }
     await albService.saveAlbDetails(awsAccountId, albDetails);
-    if (this.settings.getBoolean(settingKeys.isAppStreamEnabled)) {
-      // Allow ALB and AppStream security groups to interact with each other
-      await this.authorizeAppStreamAlbEgress(requestContext, resolvedVars, albDetails);
-    }
 
     this.print({
       msg: `Dependency Details Updated Successfully`,
     });
-  }
-
-  /**
-   * Method to allow egress access from AppStream to ALB
-   *
-   * @param requestContext
-   * @param resolvedVars
-   * @param albDetails
-   */
-  async authorizeAppStreamAlbEgress(requestContext, resolvedVars, albDetails) {
-    try {
-      // Assign ALB security group to AppStream security group egress (allow ALB egress from appstream)
-      const appStreamSecurityGroupId = await this.getAppStreamSecurityGroupId(requestContext, resolvedVars);
-      const params = {
-        GroupId: appStreamSecurityGroupId,
-        IpPermissions: [
-          {
-            IpProtocol: '-1',
-            UserIdGroupPairs: [
-              {
-                GroupId: albDetails.albSecurityGroup,
-              },
-            ],
-          },
-        ],
-      };
-      const [albService] = await this.mustFindServices(['albService']);
-      const ec2Client = await albService.getEc2Sdk(requestContext, resolvedVars);
-      await ec2Client.authorizeSecurityGroupEgress(params).promise();
-    } catch (e) {
-      throw new Error(
-        `Assigning ALB security group to AppStream security group egress failed with error - ${e.message}`,
-      );
-    }
   }
 
   /**

@@ -67,6 +67,9 @@
     "permissionStatus": {
       "type": "string"
     },
+    "publicRouteTableId": {
+      "type": "string"
+    },
     "appStreamStackName": {
       "type": "string"
     },

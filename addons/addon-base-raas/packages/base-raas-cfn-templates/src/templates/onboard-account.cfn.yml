@@ -413,6 +413,8 @@ Resources:
             Action:
               - ec2:DescribeInstanceStatus
               - ec2:DescribeInstances
+              - ec2:DescribeRouteTables
+              - ec2:AssociateRouteTable
             Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
           - Effect: Allow
             Action:
@@ -435,6 +437,7 @@ Resources:
             Action:
               - ec2:CreateSubnet
               - ec2:DeleteSubnet
+              - ec2:ModifySubnetAttribute
               - ec2:AssociateSubnetCidrBlock
               - ec2:DisassociateSubnetCidrBlock
             Resource:
@@ -1028,6 +1031,10 @@ Outputs:
   OnboardStatusRoleArn:
     Description: The arn of the role SWB uses to check permissions status
     Value: !GetAtt [CfnStatusRole, Arn]
+
+  PublicRouteTableId:
+    Description: The public route table assigned to the workspace VPC
+    Value: !Ref PublicRouteTable
 
   #------------AppStream Output Below-------
   PrivateAppStreamSubnet:

@@ -271,23 +271,12 @@ describe('ALBService', () => {
       cfnTemplateService.getTemplate.mockImplementationOnce(() => {
         return ['template'];
       });
-      jest.spyOn(service, 'findSubnet2').mockImplementationOnce(() => {
-        return 'test-subnet-2';
-      });
       const apiResponse = {
         StackName: resolvedVars.namespace,
         Parameters: [
           {
             ParameterKey: 'Namespace',
             ParameterValue: 'namespace',
-          },
-          {
-            ParameterKey: 'Subnet1',
-            ParameterValue: 'subnet-0a661d9f417ecff3f',
-          },
-          {
-            ParameterKey: 'Subnet2',
-            ParameterValue: 'test-subnet-2',
           },
           {
             ParameterKey: 'ACMSSLCertARN',
@@ -300,6 +289,14 @@ describe('ALBService', () => {
           {
             ParameterKey: 'IsAppStreamEnabled',
             ParameterValue: 'false',
+          },
+          {
+            ParameterKey: 'AppStreamSG',
+            ParameterValue: 'AppStreamNotConfigured',
+          },
+          {
+            ParameterKey: 'PublicRouteTableId',
+            ParameterValue: undefined,
           },
         ],
         TemplateBody: ['template'],
@@ -317,9 +314,6 @@ describe('ALBService', () => {
     it('should fail because project id is not valid', async () => {
       projectService.mustFind.mockImplementationOnce(() => {
         throw service.boom.notFound(`project with id "test-id" does not exist`, true);
-      });
-      jest.spyOn(service, 'findSubnet2').mockImplementationOnce(() => {
-        return 'test-subnet';
       });
       try {
         await service.getStackCreationInput({}, resolvedVars, resolvedInputParams, '');
@@ -631,48 +625,6 @@ describe('ALBService', () => {
       // service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
       const response = await service.calculateRulePriority({}, {}, '');
       expect(response).toEqual(3);
-    });
-  });
-
-  describe('findSubnet2', () => {
-    it('should fail when describe subnet API call throws error', async () => {
-      ec2Client.describeSubnets = jest.fn().mockImplementation(() => {
-        throw new Error(`Error describing subnet. VPC does not exist`);
-      });
-      try {
-        await service.findSubnet2({}, {}, '', 'true');
-      } catch (err) {
-        expect(err.message).toContain('Error describing subnet. VPC does not exist');
-      }
-    });
-
-    it('should fail when subnet not found', async () => {
-      ec2Client.describeSubnets = jest.fn().mockImplementation(() => {
-        return {
-          promise: () => {
-            return { Subnets: [] };
-          },
-        };
-      });
-      try {
-        await service.findSubnet2({}, {}, 'test-vpc', 'false');
-      } catch (err) {
-        expect(err.message).toContain(
-          'Error provisioning environment. Reason: Subnet2 not found for the VPC - test-vpc',
-        );
-      }
-    });
-
-    it('should return subnet id on success', async () => {
-      ec2Client.describeSubnets = jest.fn().mockImplementation(() => {
-        return {
-          promise: () => {
-            return { Subnets: [{ SubnetId: 'test-subnet-id' }] };
-          },
-        };
-      });
-      const response = await service.findSubnet2({}, {}, 'test-vpc', true);
-      expect(response).toEqual('test-subnet-id');
     });
   });
 });

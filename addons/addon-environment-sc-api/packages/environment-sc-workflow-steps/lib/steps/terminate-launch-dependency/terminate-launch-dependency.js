@@ -105,7 +105,7 @@ class TerminateLaunchDependency extends StepBase {
 
       if (albExists) {
         try {
-          const isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
+          const isAppStreamEnabled = this.settings.getBoolean(settingKeys.isAppStreamEnabled);
           if (isAppStreamEnabled) {
             const memberAccount = await environmentScService.getMemberAccount(requestContext, environment);
             const albHostedZoneId = await albService.getAlbHostedZoneID(
@@ -238,16 +238,6 @@ class TerminateLaunchDependency extends StepBase {
    * @returns {Promise<>}
    */
   async terminateStack(requestContext, projectId, externalId, albDetails) {
-    // Before we perform ALB stack deletion, we need to remove SG association with AppStream if it exists
-    if (this.settings.getBoolean(settingKeys.isAppStreamEnabled)) {
-      // creating resolvedvars object with the necessary Metadata
-      const resolvedVars = {
-        projectId,
-        externalId,
-      };
-      await this.revokeAppStreamAlbEgress(requestContext, resolvedVars, albDetails);
-    }
-
     const stackName = albDetails.albStackName;
     const cfn = await this.getCloudFormationService(requestContext, projectId, externalId);
     const params = {
@@ -266,39 +256,6 @@ class TerminateLaunchDependency extends StepBase {
         .otherwiseCall('reportTimeout')
       // if anything fails, the "onFail" is called
     );
-  }
-
-  /**
-   * Method to revoke egress access from AppStream to ALB
-   *
-   * @param requestContext
-   * @param resolvedVars
-   * @param albDetails
-   */
-  async revokeAppStreamAlbEgress(requestContext, resolvedVars, albDetails) {
-    try {
-      const appStreamSecurityGroupId = await this.getAppStreamSecurityGroupId(requestContext, resolvedVars);
-      const params = {
-        GroupId: appStreamSecurityGroupId,
-        IpPermissions: [
-          {
-            IpProtocol: '-1',
-            UserIdGroupPairs: [
-              {
-                GroupId: albDetails.albSecurityGroup,
-              },
-            ],
-          },
-        ],
-      };
-      const [albService] = await this.mustFindServices(['albService']);
-      const ec2Client = await albService.getEc2Sdk(requestContext, resolvedVars);
-      await ec2Client.revokeSecurityGroupEgress(params).promise();
-    } catch (e) {
-      throw new Error(
-        `Revoking ALB security group from AppStream security group egress failed with error - ${e.message}`,
-      );
-    }
   }
 
   /**

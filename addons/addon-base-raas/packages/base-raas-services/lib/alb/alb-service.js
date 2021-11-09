@@ -102,6 +102,10 @@ class ALBService extends Service {
         ? 'AppStreamNotConfigured'
         : awsAccountDetails.appStreamSecurityGroupId,
     );
+    addParam(
+      'PublicRouteTableId',
+      _.isUndefined(awsAccountDetails.appStreamSecurityGroupId) ? awsAccountDetails.publicRouteTableId : 'N/A',
+    );
 
     const input = {
       StackName: resolvedVars.namespace,
@@ -190,7 +194,7 @@ class ALBService extends Service {
   }
 
   checkIfAppStreamEnabled() {
-    return this.settings.get(settingKeys.isAppStreamEnabled);
+    return this.settings.getBoolean(settingKeys.isAppStreamEnabled);
   }
 
   /**
@@ -210,40 +214,54 @@ class ALBService extends Service {
     const listenerArn = albRecord.listenerArn;
     const priority = await this.calculateRulePriority(requestContext, resolvedVars, albRecord.listenerArn);
     const subdomain = this.getHostname(prefix, resolvedVars.envId);
-    const params = {
-      ListenerArn: listenerArn,
-      Priority: priority,
-      Actions: [
-        {
-          TargetGroupArn: targetGroupArn,
-          Type: 'forward',
-        },
-      ],
-      Conditions: isAppStreamEnabled
-        ? [
-            {
-              Field: 'host-header',
-              HostHeaderConfig: {
-                Values: [subdomain],
-              },
+    let params;
+    if (isAppStreamEnabled) {
+      params = {
+        ListenerArn: listenerArn,
+        Priority: priority,
+        Actions: [
+          {
+            TargetGroupArn: targetGroupArn,
+            Type: 'forward',
+          },
+        ],
+        Conditions: [
+          {
+            Field: 'host-header',
+            HostHeaderConfig: {
+              Values: [subdomain],
             },
-          ]
-        : [
-            {
-              Field: 'host-header',
-              HostHeaderConfig: {
-                Values: [subdomain],
-              },
+          },
+        ],
+        Tags: resolvedVars.tags,
+      };
+    } else {
+      params = {
+        ListenerArn: listenerArn,
+        Priority: priority,
+        Actions: [
+          {
+            TargetGroupArn: targetGroupArn,
+            Type: 'forward',
+          },
+        ],
+        Conditions: [
+          {
+            Field: 'host-header',
+            HostHeaderConfig: {
+              Values: [subdomain],
             },
-            {
-              Field: 'source-ip',
-              SourceIpConfig: {
-                Values: [resolvedVars.cidr],
-              },
+          },
+          {
+            Field: 'source-ip',
+            SourceIpConfig: {
+              Values: [resolvedVars.cidr],
             },
-          ],
-      Tags: resolvedVars.tags,
-    };
+          },
+        ],
+        Tags: resolvedVars.tags,
+      };
+    }
     const albClient = await this.getAlbSdk(requestContext, resolvedVars);
     let response = null;
     try {
@@ -433,32 +451,38 @@ class ALBService extends Service {
     const subdomain = this.getHostname(resolvedVars.prefix, resolvedVars.envId);
     const isAppStreamEnabled = this.checkIfAppStreamEnabled();
     try {
-      const params = {
-        Conditions: isAppStreamEnabled
-          ? [
-              {
-                Field: 'host-header',
-                HostHeaderConfig: {
-                  Values: [subdomain],
-                },
+      let params;
+      if (isAppStreamEnabled) {
+        params = {
+          Conditions: [
+            {
+              Field: 'host-header',
+              HostHeaderConfig: {
+                Values: [subdomain],
               },
-            ]
-          : [
-              {
-                Field: 'host-header',
-                HostHeaderConfig: {
-                  Values: [subdomain],
-                },
+            },
+          ],
+          RuleArn: resolvedVars.ruleARN,
+        };
+      } else {
+        params = {
+          Conditions: [
+            {
+              Field: 'host-header',
+              HostHeaderConfig: {
+                Values: [subdomain],
               },
-              {
-                Field: 'source-ip',
-                SourceIpConfig: {
-                  Values: [resolvedVars.cidr],
-                },
+            },
+            {
+              Field: 'source-ip',
+              SourceIpConfig: {
+                Values: resolvedVars.cidr,
               },
-            ],
-        RuleArn: resolvedVars.ruleARN,
-      };
+            },
+          ],
+          RuleArn: resolvedVars.ruleARN,
+        };
+      }
       const { externalId } = await this.findAwsAccountDetails(requestContext, resolvedVars.projectId);
       resolvedVars.externalId = externalId;
       const albClient = await this.getAlbSdk(requestContext, resolvedVars);

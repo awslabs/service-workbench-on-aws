@@ -19,7 +19,9 @@ Parameters:
   AppStreamSG:
     Type: String
     Description: AppStream Security Group ID
-    Default: AppStream Security Group
+  PublicRouteTableId:
+    Type: String
+    Description: Public Route Table ID
 
   # For an ALB - You must specify subnets from at least two Availability Zones.
   # AWS recommends Availability Zone subnet for your load balancer to have a CIDR block with at least a /27 bitmask
@@ -74,6 +76,29 @@ Resources:
       Tags:
         - Key: Name
           Value: !Sub ${Namespace} ALB public subnet 2
+
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: AppStreamDisabled
+    Properties:
+      RouteTableId: !Ref PublicRouteTableId
+      SubnetId: !Ref PublicSubnet1
+
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: AppStreamDisabled
+    Properties:
+      RouteTableId: !Ref PublicRouteTableId
+      SubnetId: !Ref PublicSubnet2
+
+  AppStreamSecurityGroupEgress:
+    Type: AWS::EC2::SecurityGroupEgress
+    Condition: AppStreamEnabled
+    Properties:
+      GroupId: !Ref AppStreamSG
+      DestinationSecurityGroupId: !Ref ALBSecurityGroup
+      Description: 'Allow AppStream egress to ALB'
+      IpProtocol: '-1'
 
   PrivateSubnet1:
     Type: AWS::EC2::Subnet
