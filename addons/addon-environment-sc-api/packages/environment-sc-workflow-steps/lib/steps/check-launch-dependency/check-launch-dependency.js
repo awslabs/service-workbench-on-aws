@@ -80,11 +80,10 @@ class CheckLaunchDependency extends StepBase {
       this.payloadOrConfig.string(inPayloadKeys.envTypeId),
       this.payloadOrConfig.string(inPayloadKeys.envTypeConfigId),
     ]);
-    const [albService, lockService, envTypeConfigService, environmentScService] = await this.mustFindServices([
+    const [albService, lockService, envTypeConfigService] = await this.mustFindServices([
       'albService',
       'lockService',
       'envTypeConfigService',
-      'environmentScService',
     ]);
     const projectId = resolvedVars.projectId;
     const envTypeConfig = await envTypeConfigService.mustFind(requestContext, envTypeId, { id: envTypeConfigId });
@@ -118,15 +117,6 @@ class CheckLaunchDependency extends StepBase {
     // Sets needsAlb to payload so it can be used to decrease alb workspace count on product failure
     await this.payload.setKey(outPayloadKeys.needsAlb, needsAlb);
 
-    // console.log('ZZZ: resolvedVars', resolvedVars);
-    // const envId = resolvedVars.envId;
-    // const env = await environmentScService.mustFind(requestContext, {
-    //   id: envId,
-    // });
-    // env.needsALB = needsAlb;
-    //
-    // console.log('ZZZ: update env with needsALB', env);
-    // await environmentScService.update(requestContext, env);
     // eslint-disable-next-line no-return-await
     return await this.provisionAlb(requestContext, resolvedVars, projectId, resolvedInputParams, maxAlbWorkspacesCount);
   }
