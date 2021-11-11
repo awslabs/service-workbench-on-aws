@@ -256,16 +256,75 @@ describe('ALBService', () => {
   });
 
   describe('getStackCreationInput', () => {
-    const resolvedInputParams = [
-      { Key: 'ACMSSLCertARN', Value: 'Value' },
-      { Key: 'IsAppStreamEnabled', Value: 'false' },
-    ];
     const resolvedVars = { namespace: 'namespace' };
-    it('should pass and return the stack creation input with success', async () => {
+
+    it('should pass and return the stack creation input with success for AppStream', async () => {
+      service.checkIfAppStreamEnabled = jest.fn(() => {
+        return true;
+      });
+      const resolvedInputParams = [
+        { Key: 'ACMSSLCertARN', Value: 'Value' },
+        { Key: 'IsAppStreamEnabled', Value: 'true' },
+      ];
       service.findAwsAccountDetails = jest.fn(() => {
         return {
           subnetId: 'subnet-0a661d9f417ecff3f',
           vpcId: 'vpc-096b034133955abba',
+          appStreamSecurityGroupId: 'sampleAppStreamSgId',
+        };
+      });
+      cfnTemplateService.getTemplate.mockImplementationOnce(() => {
+        return ['template'];
+      });
+      const apiResponse = {
+        StackName: resolvedVars.namespace,
+        Parameters: [
+          {
+            ParameterKey: 'Namespace',
+            ParameterValue: 'namespace',
+          },
+          {
+            ParameterKey: 'ACMSSLCertARN',
+            ParameterValue: 'Value',
+          },
+          {
+            ParameterKey: 'VPC',
+            ParameterValue: 'vpc-096b034133955abba',
+          },
+          {
+            ParameterKey: 'IsAppStreamEnabled',
+            ParameterValue: 'true',
+          },
+          {
+            ParameterKey: 'AppStreamSG',
+            ParameterValue: 'sampleAppStreamSgId',
+          },
+          {
+            ParameterKey: 'PublicRouteTableId',
+            ParameterValue: 'N/A',
+          },
+        ],
+        TemplateBody: ['template'],
+        Tags: [
+          {
+            Key: 'Description',
+            Value: 'Created by SWB for the AWS account',
+          },
+        ],
+      };
+      const response = await service.getStackCreationInput({}, resolvedVars, resolvedInputParams, 'project_id');
+      expect(response).toEqual(apiResponse);
+    });
+    it('should pass and return the stack creation input with success', async () => {
+      const resolvedInputParams = [
+        { Key: 'ACMSSLCertARN', Value: 'Value' },
+        { Key: 'IsAppStreamEnabled', Value: 'false' },
+      ];
+      service.findAwsAccountDetails = jest.fn(() => {
+        return {
+          subnetId: 'subnet-0a661d9f417ecff3f',
+          vpcId: 'vpc-096b034133955abba',
+          publicRouteTableId: 'rtb-sampleRouteTableId',
         };
       });
       cfnTemplateService.getTemplate.mockImplementationOnce(() => {
@@ -296,7 +355,7 @@ describe('ALBService', () => {
           },
           {
             ParameterKey: 'PublicRouteTableId',
-            ParameterValue: undefined,
+            ParameterValue: 'rtb-sampleRouteTableId',
           },
         ],
         TemplateBody: ['template'],
@@ -312,6 +371,10 @@ describe('ALBService', () => {
     });
 
     it('should fail because project id is not valid', async () => {
+      const resolvedInputParams = [
+        { Key: 'ACMSSLCertARN', Value: 'Value' },
+        { Key: 'IsAppStreamEnabled', Value: 'false' },
+      ];
       projectService.mustFind.mockImplementationOnce(() => {
         throw service.boom.notFound(`project with id "test-id" does not exist`, true);
       });
@@ -351,10 +414,34 @@ describe('ALBService', () => {
     const targetGroupArn =
       'rn:aws:elasticloadbalancing:us-east-2:977461429431:targetgroup/devrgsaas-sg/f4c2a2df084e5df4';
 
-    it('should pass if system is trying to create listener rule', async () => {
+    it('should pass if system is trying to create listener rule for AppStream', async () => {
+      service.checkIfAppStreamEnabled = jest.fn(() => {
+        return true;
+      });
       service.findAwsAccountId = jest.fn(() => {
         return 'sampleAwsAccountId';
       });
+      const subdomain = 'rtsudio-test.example.com';
+      const priority = 1;
+      const params = {
+        ListenerArn: JSON.parse(albDetails.value).listenerArn,
+        Priority: priority,
+        Actions: [
+          {
+            TargetGroupArn: targetGroupArn,
+            Type: 'forward',
+          },
+        ],
+        Conditions: [
+          {
+            Field: 'host-header',
+            HostHeaderConfig: {
+              Values: [subdomain],
+            },
+          },
+        ],
+        Tags: resolvedVars.tags,
+      };
       service.updateAlbDependentWorkspaceCount = jest.fn();
       albClient.describeRules = jest.fn().mockImplementation(() => {
         return {
@@ -375,12 +462,74 @@ describe('ALBService', () => {
         return albDetails;
       });
       service.getHostname = jest.fn(() => {
-        return 'rtsudio-test.example.com';
+        return subdomain;
       });
       jest.spyOn(service, 'calculateRulePriority').mockImplementationOnce(() => {
-        return 1;
+        return priority;
       });
       await service.createListenerRule(prefix, requestContext, resolvedVars, targetGroupArn);
+      expect(albClient.createRule).toHaveBeenCalledWith(params);
+      expect(albClient.createRule).toHaveBeenCalled();
+    });
+
+    it('should pass if system is trying to create listener rulefor non-AppStream', async () => {
+      service.findAwsAccountId = jest.fn(() => {
+        return 'sampleAwsAccountId';
+      });
+      service.updateAlbDependentWorkspaceCount = jest.fn();
+      const subdomain = 'rtsudio-test.example.com';
+      const priority = 1;
+      const params = {
+        ListenerArn: JSON.parse(albDetails.value).listenerArn,
+        Priority: priority,
+        Actions: [
+          {
+            TargetGroupArn: targetGroupArn,
+            Type: 'forward',
+          },
+        ],
+        Conditions: [
+          {
+            Field: 'host-header',
+            HostHeaderConfig: {
+              Values: [subdomain],
+            },
+          },
+          {
+            Field: 'source-ip',
+            SourceIpConfig: {
+              Values: [resolvedVars.cidr],
+            },
+          },
+        ],
+        Tags: resolvedVars.tags,
+      };
+      albClient.describeRules = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return describeAPIResponse;
+          },
+        };
+      });
+      albClient.createRule = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return createAPIResponse;
+          },
+        };
+      });
+      service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
+      service.getAlbDetails = jest.fn(() => {
+        return albDetails;
+      });
+      service.getHostname = jest.fn(() => {
+        return subdomain;
+      });
+      jest.spyOn(service, 'calculateRulePriority').mockImplementationOnce(() => {
+        return priority;
+      });
+      await service.createListenerRule(prefix, requestContext, resolvedVars, targetGroupArn);
+      expect(albClient.createRule).toHaveBeenCalledWith(params);
       expect(albClient.createRule).toHaveBeenCalled();
     });
 
@@ -510,17 +659,31 @@ describe('ALBService', () => {
   });
 
   describe('modifyRule', () => {
-    it('should pass and return empty object with success', async () => {
+    it('should pass for AppStream', async () => {
+      service.checkIfAppStreamEnabled = jest.fn(() => {
+        return true;
+      });
       const resolvedVars = {
         projectId: 'bio-research-vir2',
         envId: '018bb1e1-6bd3-49d9-b608-051cfb180882',
-        cidr: ['10.0.0.0/32'],
         prefix: 'rstudio',
         ruleARN:
           'arn:aws:elasticloadbalancing:us-west-2:123456789012:listener-rule/app/my-load-balancer/50dc6c495c0c9188/f2f7dc8efc522ab2/9683b2d02a6cabee',
       };
+      const subdomain = 'rtsudio-test.example.com';
+      const params = {
+        Conditions: [
+          {
+            Field: 'host-header',
+            HostHeaderConfig: {
+              Values: [subdomain],
+            },
+          },
+        ],
+        RuleArn: resolvedVars.ruleARN,
+      };
       service.getHostname = jest.fn(() => {
-        return 'rtsudio-test.example.com';
+        return subdomain;
       });
       service.findAwsAccountDetails = jest.fn(() => {
         return {
@@ -536,6 +699,55 @@ describe('ALBService', () => {
       });
       service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
       const response = await service.modifyRule({}, resolvedVars);
+      expect(albClient.modifyRule).toHaveBeenCalledWith(params);
+      expect(response).toEqual({});
+    });
+
+    it('should pass for non-AppStream', async () => {
+      const resolvedVars = {
+        projectId: 'bio-research-vir2',
+        envId: '018bb1e1-6bd3-49d9-b608-051cfb180882',
+        cidr: ['10.0.0.0/32'],
+        prefix: 'rstudio',
+        ruleARN:
+          'arn:aws:elasticloadbalancing:us-west-2:123456789012:listener-rule/app/my-load-balancer/50dc6c495c0c9188/f2f7dc8efc522ab2/9683b2d02a6cabee',
+      };
+      const subdomain = 'rtsudio-test.example.com';
+      const params = {
+        Conditions: [
+          {
+            Field: 'host-header',
+            HostHeaderConfig: {
+              Values: [subdomain],
+            },
+          },
+          {
+            Field: 'source-ip',
+            SourceIpConfig: {
+              Values: resolvedVars.cidr,
+            },
+          },
+        ],
+        RuleArn: resolvedVars.ruleARN,
+      };
+      service.getHostname = jest.fn(() => {
+        return subdomain;
+      });
+      service.findAwsAccountDetails = jest.fn(() => {
+        return {
+          externalId: 'subnet-0a661d9f417ecff3f',
+        };
+      });
+      albClient.modifyRule = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return {};
+          },
+        };
+      });
+      service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
+      const response = await service.modifyRule({}, resolvedVars);
+      expect(albClient.modifyRule).toHaveBeenCalledWith(params);
       expect(response).toEqual({});
     });
 

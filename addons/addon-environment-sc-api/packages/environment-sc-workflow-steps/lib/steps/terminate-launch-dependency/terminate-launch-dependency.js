@@ -105,7 +105,7 @@ class TerminateLaunchDependency extends StepBase {
 
       if (albExists) {
         try {
-          const isAppStreamEnabled = this.settings.getBoolean(settingKeys.isAppStreamEnabled);
+          const isAppStreamEnabled = this.checkIfAppStreamEnabled();
           if (isAppStreamEnabled) {
             const memberAccount = await environmentScService.getMemberAccount(requestContext, environment);
             const albHostedZoneId = await albService.getAlbHostedZoneID(
@@ -124,6 +124,7 @@ class TerminateLaunchDependency extends StepBase {
           } else {
             await environmentDnsService.deleteRecord('rstudio', envId, dnsName);
           }
+
           this.print({
             msg: 'Route53 record deleted successfully',
           });
@@ -197,6 +198,10 @@ class TerminateLaunchDependency extends StepBase {
 
     // eslint-disable-next-line no-return-await
     return await this.checkAndTerminateAlb(requestContext, projectId, externalId);
+  }
+
+  checkIfAppStreamEnabled() {
+    return this.settings.getBoolean(settingKeys.isAppStreamEnabled);
   }
 
   /**
