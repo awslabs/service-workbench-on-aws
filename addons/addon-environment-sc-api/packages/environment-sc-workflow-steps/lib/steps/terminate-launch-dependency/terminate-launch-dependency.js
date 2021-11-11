@@ -187,25 +187,41 @@ class TerminateLaunchDependency extends StepBase {
    * @returns {Promise<>}
    */
   async checkAndTerminateAlb(requestContext, projectId, externalId) {
-    const [albService, environmentScService] = await this.mustFindServices(['albService', 'environmentScService']);
+    const [albService, environmentScService, envTypeService] = await this.mustFindServices([
+      'albService',
+      'environmentScService',
+      'envTypeService',
+    ]);
     const count = await albService.albDependentWorkspacesCount(requestContext, projectId);
     const albExists = await albService.checkAlbExists(requestContext, projectId);
     // TODO: Check no pending instances
     const envs = await environmentScService.list(requestContext);
-    const pendingALBEnvs = envs.filter(env => {
-      const outputs = env.outputs;
-      if (outputs) {
-        const needsALB = outputs.find(output => {
-          return output.OutputKey === 'NeedsALB';
-        });
-        if (needsALB && env.status === environmentStatusEnum.PENDING) {
-          return needsALB.OutputValue === 'true';
-        }
+    const pendingEnvTypeIds = envs
+      .filter(env => {
+        return env.status === environmentStatusEnum.PENDING;
+      })
+      .map(env => {
+        return env.envTypeId;
+      });
+    console.log('ZZZ: pendingEnvTypeIds', pendingEnvTypeIds);
+    const envTypeOfPendingEnvs = await Promise.all(
+      pendingEnvTypeIds.map(envTypeId => {
+        return envTypeService.mustFind(requestContext, { id: envTypeId });
+      }),
+    );
+    console.log('ZZZ: envTypeOfPendingEnvs', envTypeOfPendingEnvs);
+    const pendingEnvWithSSLCert = envTypeOfPendingEnvs.some(envType => {
+      if (envType.params) {
+        const hasCert =
+          envType.params.find(param => {
+            return param.ParameterKey === 'ACMSSLCertARN';
+          }) !== undefined;
+        return hasCert;
       }
       return false;
     });
-    console.log('ZZZ: PendingAlbEnvs', pendingALBEnvs);
-    if (count === 0 && albExists && pendingALBEnvs.length === 0) {
+    console.log('ZZZ: pendingEnvWithSSLCert', pendingEnvWithSSLCert);
+    if (count === 0 && albExists && !pendingEnvWithSSLCert) {
       this.print({
         msg: 'Last ALB Dependent workspace is being terminated. Terminating ALB',
       });
