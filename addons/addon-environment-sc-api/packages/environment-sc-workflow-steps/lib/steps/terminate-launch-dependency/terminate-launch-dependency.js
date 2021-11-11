@@ -187,10 +187,25 @@ class TerminateLaunchDependency extends StepBase {
    * @returns {Promise<>}
    */
   async checkAndTerminateAlb(requestContext, projectId, externalId) {
-    const [albService] = await this.mustFindServices(['albService']);
+    const [albService, environmentScService] = await this.mustFindServices(['albService', 'environmentScService']);
     const count = await albService.albDependentWorkspacesCount(requestContext, projectId);
     const albExists = await albService.checkAlbExists(requestContext, projectId);
-    if (count === 0 && albExists) {
+    // TODO: Check no pending instances
+    const envs = await environmentScService.list(requestContext);
+    const pendingALBEnvs = envs.filter(env => {
+      const outputs = env.outputs;
+      if (outputs) {
+        const needsALB = outputs.find(output => {
+          return output.OutputKey === 'NeedsALB';
+        });
+        if (needsALB && env.status === environmentStatusEnum.PENDING) {
+          return needsALB.OutputValue === 'true';
+        }
+      }
+      return false;
+    });
+    console.log('ZZZ: PendingAlbEnvs', pendingALBEnvs);
+    if (count === 0 && albExists && pendingALBEnvs.length === 0) {
       this.print({
         msg: 'Last ALB Dependent workspace is being terminated. Terminating ALB',
       });
