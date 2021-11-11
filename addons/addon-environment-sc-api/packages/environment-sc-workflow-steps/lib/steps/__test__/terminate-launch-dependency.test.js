@@ -166,9 +166,6 @@ describe('TerminateLaunchDependencyStep', () => {
         envTypeId: 'test-env-type-id',
       };
     });
-    // environmentScService.list = jest.fn(() => {
-    //   return [];
-    // });
     const albDetails = {
       createdAt: '2021-05-21T13:06:58.216Z',
       id: 'test-id',
@@ -644,7 +641,7 @@ describe('TerminateLaunchDependencyStep', () => {
             inWorkflow: 'true',
             status: 'PENDING',
             createdAt: '2021-11-11T05:47:39.178Z',
-            cidr: '74.96.182.135/32',
+            cidr: '0.0.0.0/0',
             updatedBy: 'u-zBpBkLuXjdDbdUAHalfY7',
             createdBy: 'u-zBpBkLuXjdDbdUAHalfY7',
             name: 'rstudio-6',
@@ -661,9 +658,9 @@ describe('TerminateLaunchDependencyStep', () => {
       const envTypeService = {};
       envTypeService.mustFind = jest.fn(() =>
         Promise.resolve({
-          id: 'prod-n52qqfqv6bmya-pa-7udayuv3syfo6',
+          id: 'prod-xyz',
           product: {
-            productId: 'prod-xyz',
+            productId: 'prod-n52qqfqv6bmya',
           },
           rev: 1,
           status: 'approved',
@@ -707,7 +704,7 @@ describe('TerminateLaunchDependencyStep', () => {
             inWorkflow: 'true',
             status: 'PENDING',
             createdAt: '2021-11-11T05:47:39.178Z',
-            cidr: '74.96.182.135/32',
+            cidr: '0.0.0.0/32',
             updatedBy: 'u-zBpBkLuXjdDbdUAHalfY7',
             createdBy: 'u-zBpBkLuXjdDbdUAHalfY7',
             name: 'rstudio-6',
@@ -724,9 +721,9 @@ describe('TerminateLaunchDependencyStep', () => {
       const envTypeService = {};
       envTypeService.mustFind = jest.fn(() =>
         Promise.resolve({
-          id: 'prod-n52qqfqv6bmya-pa-7udayuv3syfo6',
+          id: 'prod-xyz',
           product: {
-            productId: 'prod-xyz',
+            productId: 'prod-n52qqfqv6bmya',
           },
           rev: 1,
           status: 'approved',

@@ -116,7 +116,6 @@ class CheckLaunchDependency extends StepBase {
 
     // Sets needsAlb to payload so it can be used to decrease alb workspace count on product failure
     await this.payload.setKey(outPayloadKeys.needsAlb, needsAlb);
-
     // eslint-disable-next-line no-return-await
     return await this.provisionAlb(requestContext, resolvedVars, projectId, resolvedInputParams, maxAlbWorkspacesCount);
   }
