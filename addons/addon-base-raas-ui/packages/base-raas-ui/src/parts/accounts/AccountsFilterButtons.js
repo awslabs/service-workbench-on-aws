@@ -11,6 +11,7 @@ const filterColorMap = {
   [filterNames.ALL]: 'blue',
   [filterNames.CURRENT]: 'green',
   [filterNames.UPDATEME]: 'orange',
+  [filterNames.PENDING]: 'yellow',
   [filterNames.NEW]: 'purple',
   [filterNames.ERRORED]: 'red',
 };
