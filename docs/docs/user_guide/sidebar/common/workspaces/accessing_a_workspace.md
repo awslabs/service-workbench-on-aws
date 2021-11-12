@@ -67,7 +67,7 @@ Please be aware of the following limitations specific to EC2 Windows Workspace T
 
 ### Connect to RStudio
 
-You can connect to RStudio workspace type by using the templates and readme file provided in the AWS [partner’s repository](https://github.com/RLOpenCatalyst/Service_Workbench_Templates). For more information about new RStudio enhancements, refer to the [Create RStudio ALB workspace](/deployment/post_deployment/aws_accounts#creating-rstudio-alb-workspace) section of *Service Workbench Post Deployment Guide*.
+You can connect to RStudio workspace type by using the template and AMI provided in AWS [partner’s repository](https://github.com/RLOpenCatalyst/Service_Workbench_Templates). For more information about new RStudio enhancements, refer to the [Create RStudio ALB workspace](/deployment/post_deployment/aws_accounts#creating-rstudio-alb-workspace) section of *Service Workbench Post Deployment Guide*.
 
 ### Start and Stop workspace
 

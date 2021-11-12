@@ -215,7 +215,7 @@ _**Figure: Create an AppStream image**_
 
 ### Accessing RStudio workspace
 
-You can access the RStudio workspace type by using the templates and readme file provided in AWS partner's [repository](https://github.com/RLOpenCatalyst/Service_Workbench_Templates). RStudio legacy and RStudio ALB both use custom domain names. You can define custom domain name in `/main/config/settings/<stage.yml>`.  
+You can access the RStudio workspace type by using the template and AMI provided in AWS partner's [repository](https://github.com/RLOpenCatalyst/Service_Workbench_Templates). RStudio legacy and RStudio ALB both use custom domain names. You can define custom domain name in `/main/config/settings/<stage.yml>`.  
 
 **Important**: The legacy RStudio workspace type will be deprecated soon in a future release.
 
