@@ -187,10 +187,19 @@ class TerminateLaunchDependency extends StepBase {
    * @returns {Promise<>}
    */
   async checkAndTerminateAlb(requestContext, projectId, externalId) {
-    const [albService] = await this.mustFindServices(['albService']);
+    const [albService, environmentScService, envTypeService] = await this.mustFindServices([
+      'albService',
+      'environmentScService',
+      'envTypeService',
+    ]);
     const count = await albService.albDependentWorkspacesCount(requestContext, projectId);
     const albExists = await albService.checkAlbExists(requestContext, projectId);
-    if (count === 0 && albExists) {
+    const pendingEnvWithSSLCert = await this.checkPendingEnvWithSSLCert(
+      environmentScService,
+      envTypeService,
+      requestContext,
+    );
+    if (count === 0 && albExists && !pendingEnvWithSSLCert) {
       this.print({
         msg: 'Last ALB Dependent workspace is being terminated. Terminating ALB',
       });
@@ -205,6 +214,33 @@ class TerminateLaunchDependency extends StepBase {
       throw new Error(`Error terminating environment. Reason: ALB lock does not exist or expired`);
     }
     return null;
+  }
+
+  async checkPendingEnvWithSSLCert(environmentScService, envTypeService, requestContext) {
+    const envs = await environmentScService.list(requestContext);
+    const pendingEnvTypeIds = envs
+      .filter(env => {
+        return env.status === environmentStatusEnum.PENDING;
+      })
+      .map(env => {
+        return env.envTypeId;
+      });
+    const envTypeOfPendingEnvs = await Promise.all(
+      pendingEnvTypeIds.map(envTypeId => {
+        return envTypeService.mustFind(requestContext, { id: envTypeId });
+      }),
+    );
+    const response = envTypeOfPendingEnvs.some(envType => {
+      if (envType.params) {
+        return (
+          envType.params.find(param => {
+            return param.ParameterKey === 'ACMSSLCertARN';
+          }) !== undefined
+        );
+      }
+      return false;
+    });
+    return response;
   }
 
   /**
