@@ -390,11 +390,11 @@ describe('TerminateLaunchDependencyStep', () => {
   describe('checkAndTerminateAlb', () => {
     let origCheckPendingEnvWithSSLCertFn;
     beforeAll(() => {
-      origCheckPendingEnvWithSSLCertFn = step.checkPendingEnvWithSSLCert;
-      step.checkPendingEnvWithSSLCert = jest.fn(() => Promise.resolve(true));
+      origCheckPendingEnvWithSSLCertFn = step.checkAccountHasPendingEnvWithSSLCert;
+      step.checkAccountHasPendingEnvWithSSLCert = jest.fn(() => Promise.resolve(true));
     });
     afterAll(() => {
-      step.checkPendingEnvWithSSLCert = origCheckPendingEnvWithSSLCertFn;
+      step.checkAccountHasPendingEnvWithSSLCert = origCheckPendingEnvWithSSLCertFn;
     });
     it('should throw error when project is not valid', async () => {
       albService.albDependentWorkspacesCount.mockImplementationOnce(() => {
@@ -416,7 +416,6 @@ describe('TerminateLaunchDependencyStep', () => {
       await step.checkAndTerminateAlb('test-project-id', 'test-external-id');
       // CHECK
       expect(step.terminateStack).not.toHaveBeenCalled();
-      jest.clearAllMocks();
     });
 
     it('should skip alb termination when alb does not exist', async () => {
@@ -440,7 +439,7 @@ describe('TerminateLaunchDependencyStep', () => {
       albService.checkAlbExists.mockImplementationOnce(() => {
         return true;
       });
-      step.checkPendingEnvWithSSLCert = jest.fn(() => Promise.resolve(true));
+      step.checkAccountHasPendingEnvWithSSLCert = jest.fn(() => Promise.resolve(true));
 
       jest.spyOn(step, 'terminateStack').mockImplementationOnce(() => {});
 
@@ -624,9 +623,9 @@ describe('TerminateLaunchDependencyStep', () => {
       envTypeService.mustFind = jest.fn(() => Promise.resolve({}));
 
       // OPERATE, CHECK
-      await expect(step.checkPendingEnvWithSSLCert(envScService, envTypeService, requestContext)).resolves.toEqual(
-        false,
-      );
+      await expect(
+        step.checkAccountHasPendingEnvWithSSLCert(envScService, envTypeService, requestContext),
+      ).resolves.toEqual(false);
     });
 
     it('should return false since there are NO pending environment with SSL cert', async () => {
@@ -687,9 +686,9 @@ describe('TerminateLaunchDependencyStep', () => {
       );
 
       // OPERATE, CHECK
-      await expect(step.checkPendingEnvWithSSLCert(envScService, envTypeService, requestContext)).resolves.toEqual(
-        false,
-      );
+      await expect(
+        step.checkAccountHasPendingEnvWithSSLCert(envScService, envTypeService, requestContext),
+      ).resolves.toEqual(false);
     });
 
     it('should return true since there are pending environment with SSL cert', async () => {
@@ -750,9 +749,9 @@ describe('TerminateLaunchDependencyStep', () => {
       );
 
       // OPERATE, CHECK
-      await expect(step.checkPendingEnvWithSSLCert(envScService, envTypeService, requestContext)).resolves.toEqual(
-        true,
-      );
+      await expect(
+        step.checkAccountHasPendingEnvWithSSLCert(envScService, envTypeService, requestContext),
+      ).resolves.toEqual(true);
     });
   });
 });

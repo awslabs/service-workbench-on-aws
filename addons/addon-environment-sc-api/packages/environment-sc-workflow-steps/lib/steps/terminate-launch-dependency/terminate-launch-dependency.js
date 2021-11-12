@@ -194,12 +194,14 @@ class TerminateLaunchDependency extends StepBase {
     ]);
     const count = await albService.albDependentWorkspacesCount(requestContext, projectId);
     const albExists = await albService.checkAlbExists(requestContext, projectId);
-    const pendingEnvWithSSLCert = await this.checkPendingEnvWithSSLCert(
+    const accountHasPendingEnvWithSSLCert = await this.checkAccountHasPendingEnvWithSSLCert(
       environmentScService,
       envTypeService,
       requestContext,
     );
-    if (count === 0 && albExists && !pendingEnvWithSSLCert) {
+
+    // If there is a PENDING instance that requires ALB, do not terminate ALB
+    if (count === 0 && albExists && !accountHasPendingEnvWithSSLCert) {
       this.print({
         msg: 'Last ALB Dependent workspace is being terminated. Terminating ALB',
       });
@@ -216,7 +218,7 @@ class TerminateLaunchDependency extends StepBase {
     return null;
   }
 
-  async checkPendingEnvWithSSLCert(environmentScService, envTypeService, requestContext) {
+  async checkAccountHasPendingEnvWithSSLCert(environmentScService, envTypeService, requestContext) {
     const envs = await environmentScService.list(requestContext);
     const pendingEnvTypeIds = envs
       .filter(env => {
@@ -230,7 +232,7 @@ class TerminateLaunchDependency extends StepBase {
         return envTypeService.mustFind(requestContext, { id: envTypeId });
       }),
     );
-    const response = envTypeOfPendingEnvs.some(envType => {
+    return envTypeOfPendingEnvs.some(envType => {
       if (envType.params) {
         return (
           envType.params.find(param => {
@@ -240,7 +242,6 @@ class TerminateLaunchDependency extends StepBase {
       }
       return false;
     });
-    return response;
   }
 
   /**
