@@ -388,6 +388,14 @@ describe('TerminateLaunchDependencyStep', () => {
   });
 
   describe('checkAndTerminateAlb', () => {
+    let origCheckPendingEnvWithSSLCertFn;
+    beforeAll(() => {
+      origCheckPendingEnvWithSSLCertFn = step.checkPendingEnvWithSSLCert;
+      step.checkPendingEnvWithSSLCert = jest.fn(() => Promise.resolve(true));
+    });
+    afterAll(() => {
+      step.checkPendingEnvWithSSLCert = origCheckPendingEnvWithSSLCertFn;
+    });
     it('should throw error when project is not valid', async () => {
       albService.albDependentWorkspacesCount.mockImplementationOnce(() => {
         throw new Error('project with id "test-project" does not exist');
@@ -408,6 +416,7 @@ describe('TerminateLaunchDependencyStep', () => {
       await step.checkAndTerminateAlb('test-project-id', 'test-external-id');
       // CHECK
       expect(step.terminateStack).not.toHaveBeenCalled();
+      jest.clearAllMocks();
     });
 
     it('should skip alb termination when alb does not exist', async () => {
@@ -419,6 +428,25 @@ describe('TerminateLaunchDependencyStep', () => {
       });
       jest.spyOn(step, 'terminateStack').mockImplementationOnce(() => {});
       await step.checkAndTerminateAlb('test-project-id', 'test-external-id');
+      // CHECK
+      expect(step.terminateStack).not.toHaveBeenCalled();
+    });
+
+    it('should not call alb termination when there are pending env with SSL Cert', async () => {
+      // BUILD
+      albService.albDependentWorkspacesCount.mockImplementationOnce(() => {
+        return 0;
+      });
+      albService.checkAlbExists.mockImplementationOnce(() => {
+        return true;
+      });
+      step.checkPendingEnvWithSSLCert = jest.fn(() => Promise.resolve(true));
+
+      jest.spyOn(step, 'terminateStack').mockImplementationOnce(() => {});
+
+      // OPERATE
+      await step.checkAndTerminateAlb('test-project-id', 'test-external-id');
+
       // CHECK
       expect(step.terminateStack).not.toHaveBeenCalled();
     });
@@ -583,6 +611,148 @@ describe('TerminateLaunchDependencyStep', () => {
     it('should call visit plugins method', async () => {
       await step.onFail({ message: 'Error Message' });
       expect(pluginRegistryService.visitPlugins).toHaveBeenCalled();
+    });
+  });
+
+  describe('checkPendingEnvWithSSLCert', () => {
+    it('should return false since there are no pending environment', async () => {
+      // BUILD
+      const envScService = {};
+      envScService.list = jest.fn(() => Promise.resolve([]));
+
+      const envTypeService = {};
+      envTypeService.mustFind = jest.fn(() => Promise.resolve({}));
+
+      // OPERATE, CHECK
+      await expect(step.checkPendingEnvWithSSLCert(envScService, envTypeService, requestContext)).resolves.toEqual(
+        false,
+      );
+    });
+
+    it('should return false since there are NO pending environment with SSL cert', async () => {
+      // BUILD
+      const envScService = {};
+      envScService.list = jest.fn(() =>
+        Promise.resolve([
+          {
+            id: 'abc',
+            rev: 0,
+            projectId: 'proj-123',
+            inWorkflow: 'true',
+            status: 'PENDING',
+            createdAt: '2021-11-11T05:47:39.178Z',
+            cidr: '0.0.0.0/0',
+            updatedBy: 'u-zBpBkLuXjdDbdUAHalfY7',
+            createdBy: 'u-zBpBkLuXjdDbdUAHalfY7',
+            name: 'rstudio-6',
+            studyIds: [],
+            updatedAt: '2021-11-11T05:47:39.178Z',
+            indexId: 'index-123',
+            description: 'RStudio service workspace',
+            envTypeConfigId: 'config-1',
+            envTypeId: 'prod-xyz',
+          },
+        ]),
+      );
+
+      const envTypeService = {};
+      envTypeService.mustFind = jest.fn(() =>
+        Promise.resolve({
+          id: 'prod-xyz',
+          product: {
+            productId: 'prod-n52qqfqv6bmya',
+          },
+          rev: 1,
+          status: 'approved',
+          createdAt: '2021-11-09T18:06:56.944Z',
+          updatedBy: 'u-zBpBkLuXjdDbdUAHalfY7',
+          createdBy: 'u-zBpBkLuXjdDbdUAHalfY7',
+          name: 'Sample Workspace Type',
+          desc: '',
+          provisioningArtifact: {
+            id: 'pa-7udayuv3syfo6',
+          },
+          params: [
+            {
+              IsNoEcho: false,
+              ParameterConstraints: {
+                AllowedValues: [],
+              },
+              ParameterType: 'String',
+              Description: 'The ARN of the KMS encryption Key used to encrypt data in the instance',
+              ParameterKey: 'EncryptionKeyArn',
+            },
+          ],
+        }),
+      );
+
+      // OPERATE, CHECK
+      await expect(step.checkPendingEnvWithSSLCert(envScService, envTypeService, requestContext)).resolves.toEqual(
+        false,
+      );
+    });
+
+    it('should return true since there are pending environment with SSL cert', async () => {
+      // BUILD
+      const envScService = {};
+      envScService.list = jest.fn(() =>
+        Promise.resolve([
+          {
+            id: 'abc',
+            rev: 0,
+            projectId: 'proj-123',
+            inWorkflow: 'true',
+            status: 'PENDING',
+            createdAt: '2021-11-11T05:47:39.178Z',
+            cidr: '0.0.0.0/32',
+            updatedBy: 'u-zBpBkLuXjdDbdUAHalfY7',
+            createdBy: 'u-zBpBkLuXjdDbdUAHalfY7',
+            name: 'rstudio-6',
+            studyIds: [],
+            updatedAt: '2021-11-11T05:47:39.178Z',
+            indexId: 'index-123',
+            description: 'RStudio service workspace',
+            envTypeConfigId: 'config-1',
+            envTypeId: 'prod-xyz',
+          },
+        ]),
+      );
+
+      const envTypeService = {};
+      envTypeService.mustFind = jest.fn(() =>
+        Promise.resolve({
+          id: 'prod-xyz',
+          product: {
+            productId: 'prod-n52qqfqv6bmya',
+          },
+          rev: 1,
+          status: 'approved',
+          createdAt: '2021-11-09T18:06:56.944Z',
+          updatedBy: 'u-zBpBkLuXjdDbdUAHalfY7',
+          createdBy: 'u-zBpBkLuXjdDbdUAHalfY7',
+          name: 'Sample Workspace Type',
+          desc: '',
+          provisioningArtifact: {
+            id: 'pa-7udayuv3syfo6',
+          },
+          params: [
+            {
+              IsNoEcho: false,
+              ParameterConstraints: {
+                AllowedValues: [],
+              },
+              ParameterType: 'String',
+              Description: 'The ARN of the AWS Certificate Manager SSL Certificate to associate with the Load Balancer',
+              ParameterKey: 'ACMSSLCertARN',
+            },
+          ],
+        }),
+      );
+
+      // OPERATE, CHECK
+      await expect(step.checkPendingEnvWithSSLCert(envScService, envTypeService, requestContext)).resolves.toEqual(
+        true,
+      );
     });
   });
 });
