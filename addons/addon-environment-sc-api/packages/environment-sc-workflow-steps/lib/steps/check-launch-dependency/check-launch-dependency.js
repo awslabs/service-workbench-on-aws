@@ -92,6 +92,11 @@ class CheckLaunchDependency extends StepBase {
     resolvedVars.namespace = `analysis-${Date.now()}`;
     const resolvedInputParams = await this.resolveVarExpressions(envTypeConfig.params, resolvedVars);
     const templateOutputs = await this.getTemplateOutputs(requestContext, envTypeId);
+
+    const metaConnection1Type = _.get(templateOutputs.MetaConnection1Type, 'Value');
+    if (!_.isUndefined(metaConnection1Type) && metaConnection1Type.toLowerCase() === 'rstudio')
+      throw new Error('Deprecated version of RStudio detected. Please use RStudioV2.');
+
     const needsAlb = _.get(templateOutputs.NeedsALB, 'Value', false);
     if (!needsAlb) return null;
 

@@ -92,6 +92,7 @@ class ScEnvironmentCard extends React.Component {
         {this.renderTitle(env)}
         {this.renderError(env)}
         {this.renderWarning(env)}
+        {this.renderLegacyRStudioWarning(env)}
         <Divider className="mt1 mb1" />
         {this.renderButtons(env)}
         <Divider className="mt1" />
@@ -174,6 +175,21 @@ class ScEnvironmentCard extends React.Component {
         </Header.Subheader>
       </Header>
     );
+  }
+
+  renderLegacyRStudioWarning(env) {
+    const metaConnection1Type = env.outputs.find(obj => obj.OutputKey === 'MetaConnection1Type');
+    if (metaConnection1Type && metaConnection1Type.OutputValue.toLowerCase() === 'rstudio' && env.state.canTerminate) {
+      return (
+        <Message
+          icon="warning"
+          header="Legacy RStudio environment found"
+          content="Please terminate this workspace as soon as possible. Support for this environment type has been deprecated. Please use RStudioV2 instead."
+        />
+      );
+    }
+
+    return null;
   }
 
   renderWarning(env) {
