@@ -166,4 +166,29 @@ _**Table 5: AWS Account Information**_
 
 <img src={useBaseUrl('img/deployment/post_deployment/create_account_02.jpg')} />
 
-_**Figure 4: AWS Accounts with New Account**_
+     # Execute Image builder script
+     .\buildImage.ps1
+     ```
+6.	At this point, the Image builder builds your image and the `Failed to reserve a session` message is displayed. 
+7.	Log in to AppStream on the console and wait till the AppStream image is built.
+
+## Creating RStudio ALB workspace 
+
+### Accessing RStudio workspace
+
+You can access the RStudio workspace type by using the templates and readme file provided in AWS partner's [repository](https://github.com/RLOpenCatalyst/Service_Workbench_Templates). RStudio legacy and RStudio ALB both use custom domain names. You can define custom domain name in `/main/config/settings/<stage.yml>`.  
+
+**Important**: The legacy RStudio workspace type will be deprecated soon in a future release.
+
+### Application load balancing for RStudio ALB workspace
+
+When you create RStudio Application Load Balancer (ALB) workspace, an ALB is created that can host upto 100 workspaces per hosting account. Per workspace, you can have upto 4 CIDR blocks (IP ranges) for port 443 only. This is updated in the hosting accounts. If there are no ALBs for that hosting account and you have created the very first workspace, then ALB will be created for the first time and it will be common for every workspace that you create subsequently. Once you terminate all the workspaces and you terminate the last workspace for that hosting account, the ALB is deleted. An ALB is created for minimum one active workspace.
+
+<img src={useBaseUrl('img/deployment/post_deployment/ALB-1.png')} />
+
+Each workspace type corresponds to one listener rule and there can be 100 such rules. In each rule, users can specify the IP ranges that user wants to allowlist. You can specify only upto 4 IP ranges per listener rule. For more information about ALB, refer to [Application Load Balancer](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html).
+
+### Limitations
+
+1. With RStudio ALB implementation, you can create only upto 100 workspaces per hosting account.
+2. Per workspace, you can specify only upto 4 CIDR blocks for port 443.
