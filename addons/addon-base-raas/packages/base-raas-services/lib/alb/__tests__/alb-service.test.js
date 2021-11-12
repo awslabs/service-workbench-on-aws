@@ -801,7 +801,6 @@ describe('ALBService', () => {
       albClient.describeRules = jest.fn().mockImplementation(() => {
         throw new Error(`Error calculating rule priority. Rule describe failed with message - Rule not found`);
       });
-      // service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
       try {
         await service.calculateRulePriority({}, {}, '');
       } catch (err) {
@@ -819,7 +818,6 @@ describe('ALBService', () => {
           },
         };
       });
-      // service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
       const response = await service.calculateRulePriority({}, {}, '');
       expect(response).toEqual(1);
     });
@@ -834,9 +832,23 @@ describe('ALBService', () => {
           },
         };
       });
-      // service.getAlbSdk = jest.fn().mockResolvedValue(albClient);
       const response = await service.calculateRulePriority({}, {}, '');
       expect(response).toEqual(3);
+    });
+  });
+
+  describe('getAlbHostedZoneID', () => {
+    it('should provide ALB hosted zone ID', async () => {
+      const albHostedZoneId = 'sampleAlbHostedZoneId';
+      albClient.describeLoadBalancers = jest.fn().mockImplementation(() => {
+        return {
+          promise: () => {
+            return { LoadBalancers: [{ CanonicalHostedZoneId: albHostedZoneId }] };
+          },
+        };
+      });
+      const response = await service.getAlbHostedZoneID({}, {}, '');
+      expect(response).toEqual(albHostedZoneId);
     });
   });
 });
