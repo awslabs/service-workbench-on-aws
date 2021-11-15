@@ -7,7 +7,7 @@ name: Deploy & Integration Test (AppStream and Egress Enabled)
 on:
   push:
     branches:
-      - feat-secure-workspace-egress
+      - develop
 jobs:
   pre-deployment-check:
     name: Pre deployment check
