@@ -28,7 +28,7 @@ const UserService = require('@aws-ee/base-services/lib/user/user-service');
 const DbPasswordService = require('@aws-ee/base-services/lib/db-password/db-password-service');
 const AuthenticationProviderTypeService = require('@aws-ee/base-api-services/lib/authentication-providers/authentication-provider-type-service');
 const AuthenticationProviderConfigService = require('@aws-ee/base-api-services/lib/authentication-providers/authentication-provider-config-service');
-const registerBuiltInAuthProvisioners = require('@aws-ee/base-api-services/lib/authentication-providers/register-built-in-provisioner-services.js');
+const registerBuiltInAuthProvisioners = require('@aws-ee/base-api-services/lib/authentication-providers/register-built-in-provisioner-services');
 
 const DeploymentStoreService = require('../deployment-store-service');
 

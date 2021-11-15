@@ -17,7 +17,10 @@ GOOFYS_URL="https://github.com/kahing/goofys/releases/download/v0.24.0/goofys"
 
 # Define a function to determine what type of environment this is (EMR, SageMaker, RStudio, or EC2 Linux)
 env_type() {
-    if [ -d "/usr/share/aws/emr" ]
+    if [ -d "/tmp/rstudiov2/ssl" ]
+    then
+        printf "rstudiov2"
+    elif [ -d "/usr/share/aws/emr" ]
     then
         printf "emr"
     elif [ -d "/home/ec2-user/SageMaker" ]
@@ -69,6 +72,32 @@ update_jupyter_config() {
 EOF
 }
 
+# Define a function to generate self signed certificate
+generate_ssl_certificate() {
+    commonname=$(uname -n)
+    password=dummypassword
+
+    mkdir -p /tmp/rstudio/ssl
+    chmod 700 /tmp/rstudio/ssl
+    cd /tmp/rstudio/ssl
+
+    #Generate a key
+    openssl genrsa -des3 -passout pass:$password -out cert.key 2048
+    #Remove passphrase from the key. Comment the line out to keep the passphrase
+    openssl rsa -in cert.key -passin pass:$password -out cert.key
+    #Create the request
+    openssl req -new -key cert.key -out cert.csr -passin pass:$password \
+        -subj "/C=NA/ST=NA/L=NA/O=NA/OU=SWB/CN=$commonname/emailAddress=example.com"
+    openssl x509 -req -days 24855 -in cert.csr -signkey cert.key -out cert.pem
+    #Move the certificate files to nginx directory
+    mkdir -p /tmp/rstudio/generated/nginx/
+    sudo mv cert.pem "/etc/nginx/"
+    sudo mv cert.key "/etc/nginx/"
+    sudo systemctl restart nginx
+    cd "../../.."
+    sudo rm -rf "/tmp/rstudio"
+}
+
 # Install dependencies
 case "$(env_type)" in
     "emr") # Update config and restart Jupyter
@@ -89,6 +118,14 @@ case "$(env_type)" in
         echo "Finish installing jq"
         ;;
     "rstudio") # Add mount script to bash profile
+        export PATH="/usr/local/bin:$PATH"
+        set-password
+        echo "Installing jq"
+        cp "${FILES_DIR}/offline-packages/jq-1.5-linux64" "/usr/local/bin/jq"
+        chmod +x "/usr/local/bin/jq"
+        echo "Finish installing jq"
+        ;;
+    "rstudiov2") # Add mount script to bash profile
         export PATH="/usr/local/bin:$PATH"
         set-password
         echo "Installing jq"
@@ -133,6 +170,14 @@ case "$(env_type)" in
     "rstudio") # Add mount script to bash profile
         echo "Installing fuse"
         sudo yum localinstall -y "${FILES_DIR}/offline-packages/ec2-linux/fuse-2.9.2-11.amzn2.x86_64.rpm"
+        echo "Finish installing fuse"
+        printf "\n# Mount S3 study data\nmount_s3.sh\n\n" >> "/home/rstudio-user/.bash_profile"
+        ;;
+    "rstudiov2") # Add mount script to bash profile and generate self signed certificates
+        echo "Generate SSL certs"
+        generate_ssl_certificate
+        echo "Installing fuse"
+        yum install -y fuse-2.9.2
         echo "Finish installing fuse"
         printf "\n# Mount S3 study data\nmount_s3.sh\n\n" >> "/home/rstudio-user/.bash_profile"
         ;;

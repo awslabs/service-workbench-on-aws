@@ -257,10 +257,6 @@ paths:
       responses:
         '200':
           description: User updated
-
-
-
-
   /api/users/{userId}/password:
     put:
       tags:
@@ -435,7 +431,6 @@ paths:
       responses:
         '200':
           description: Project updated
-
   /api/indexes:
     get:
       tags:
@@ -893,7 +888,7 @@ paths:
               - 'latest'
       responses:
         '200':
-          description: Array of workspace type candidates that fits the query filters. Default return latest not imported workspace type candidates.
+          description: Object containing the default Service Catalog portfolio ID, and an array of workspace type candidates that fits the query filters (by default this array contains latest not imported workspace type candidates).
   /api/workspace-types:
     get:
       tags:
