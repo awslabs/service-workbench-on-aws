@@ -36,6 +36,7 @@ const inPayloadKeys = {
 
 const settingKeys = {
   envMgmtRoleArn: 'envMgmtRoleArn',
+  isAppStreamEnabled: 'isAppStreamEnabled',
 };
 
 const pluginConstants = {
@@ -84,6 +85,13 @@ class TerminateLaunchDependency extends StepBase {
 
     // Setting project id to use while polling for status
     this.state.setKey('PROJECT_ID', projectId);
+
+    // creating resolvedvars object with the necessary Metadata
+    const resolvedVars = {
+      projectId,
+      externalId,
+    };
+
     // convert output array to object. Return {} if no outputs found
     const environmentOutputs = await this.cfnOutputsArrayToObject(_.get(environment, 'outputs', []));
     const connectionType = _.get(environmentOutputs, 'MetaConnection1Type', '');
@@ -93,11 +101,30 @@ class TerminateLaunchDependency extends StepBase {
       const albExists = await albService.checkAlbExists(requestContext, projectId);
       const deploymentItem = await albService.getAlbDetails(requestContext, projectId);
       const deploymentValue = JSON.parse(deploymentItem.value);
+      const dnsName = deploymentValue.albDnsName;
 
       if (albExists) {
         try {
-          const dnsName = deploymentValue.albDnsName;
-          await environmentDnsService.deleteRecord('rstudio', envId, dnsName);
+          const isAppStreamEnabled = this.checkIfAppStreamEnabled();
+          if (isAppStreamEnabled) {
+            const memberAccount = await environmentScService.getMemberAccount(requestContext, environment);
+            const albHostedZoneId = await albService.getAlbHostedZoneID(
+              requestContext,
+              resolvedVars,
+              deploymentValue.albArn,
+            );
+            await environmentDnsService.deletePrivateRecordForDNS(
+              requestContext,
+              'rstudio',
+              envId,
+              albHostedZoneId,
+              dnsName,
+              memberAccount.route53HostedZone,
+            );
+          } else {
+            await environmentDnsService.deleteRecord('rstudio', envId, dnsName);
+          }
+
           this.print({
             msg: 'Route53 record deleted successfully',
           });
@@ -135,11 +162,6 @@ class TerminateLaunchDependency extends StepBase {
       // Termination should not be affected in such scenarios
       if (!_.isEmpty(ruleArn)) {
         try {
-          // creating resolvedvars object with the necessary Metadata
-          const resolvedVars = {
-            projectId,
-            externalId,
-          };
           await lockService.tryWriteLockAndRun({ id: `alb-rule-${deploymentItem.id}` }, async () => {
             const listenerArn = deploymentValue.listenerArn;
             await albService.deleteListenerRule(requestContext, resolvedVars, ruleArn, listenerArn);
@@ -178,6 +200,10 @@ class TerminateLaunchDependency extends StepBase {
     return await this.checkAndTerminateAlb(requestContext, projectId, externalId);
   }
 
+  checkIfAppStreamEnabled() {
+    return this.settings.getBoolean(settingKeys.isAppStreamEnabled);
+  }
+
   /**
    * Method to check and terminate ALB if the environment is the last ALB dependent environment
    *
@@ -209,7 +235,7 @@ class TerminateLaunchDependency extends StepBase {
       const [albLock] = await Promise.all([this.state.optionalString('ALB_LOCK')]);
       if (albLock) {
         // eslint-disable-next-line no-return-await
-        return await this.terminateStack(requestContext, projectId, externalId, albRecord.albStackName);
+        return await this.terminateStack(requestContext, projectId, externalId, albRecord);
       }
       throw new Error(`Error terminating environment. Reason: ALB lock does not exist or expired`);
     }
@@ -249,10 +275,11 @@ class TerminateLaunchDependency extends StepBase {
    * @param requestContext
    * @param projectId
    * @param externalId
-   * @param stackName
+   * @param albDetails
    * @returns {Promise<>}
    */
-  async terminateStack(requestContext, projectId, externalId, stackName) {
+  async terminateStack(requestContext, projectId, externalId, albDetails) {
+    const stackName = albDetails.albStackName;
     const cfn = await this.getCloudFormationService(requestContext, projectId, externalId);
     const params = {
       StackName: stackName,
@@ -295,6 +322,19 @@ class TerminateLaunchDependency extends StepBase {
       externalId,
     });
     return cfnClient;
+  }
+
+  /**
+   * Method to get appstream security group ID for the target aws account
+   *
+   * @param requestContext
+   * @param resolvedVars
+   * @returns {Promise<string>}
+   */
+  async getAppStreamSecurityGroupId(requestContext, resolvedVars) {
+    const [albService] = await this.mustFindServices(['albService']);
+    const { appStreamSecurityGroupId } = await albService.findAwsAccountDetails(requestContext, resolvedVars.projectId);
+    return appStreamSecurityGroupId;
   }
 
   /**

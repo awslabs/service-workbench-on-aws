@@ -40,11 +40,6 @@ Parameters:
     Type: String
     Default: 10.0.0.0/19
 
-  VpcPublicSubnet2Cidr:
-    Description: Please enter the IP range (CIDR notation) for the public subnet 2 in the 2nd Availability Zone
-    Type: String
-    Default: 10.0.32.0/19
-
   LaunchConstraintRolePrefix:
     Description: Role name prefix to use when creating a launch constraint role in the on-boarded account
     Type: String
@@ -67,7 +62,7 @@ Parameters:
     Description: Please enter the IP range (CIDR notation) for the Workspace subnet. This value is only used if AppStream is enabled.
     Type: String
     Default: 10.0.64.0/19
-
+  
   AppStreamFleetDesiredInstances:
     Description: The desired number of streaming instances.
     Type: Number
@@ -107,6 +102,8 @@ Parameters:
     Type: String
     Default: ''
 
+  # Note: While adding additional CIDRs/Subnets ensure they don't overlap with those used by RStudio ALB (10.0.96.0 to 10.0.97.255)
+
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
@@ -123,14 +120,14 @@ Metadata:
           default: Deployment Configuration
         Parameters:
           - VpcCidr
-          - VpcPublicSubnet1Cidr
-          - VpcPublicSubnet2Cidr
           - PublicSubnetCidr
+          
 Conditions:
   isAppStream: !Equals
     - !Ref EnableAppStream
     - true
   isNotAppStream: !Not [Condition: isAppStream]
+  hasCustomDomain: !Not [!Equals [!Ref "DomainName", ""]]
   isAppStreamAndCustomDomain: !And
     - !Not [!Equals [!Ref "DomainName", ""]]
     - !Condition isAppStream
@@ -184,8 +181,8 @@ Resources:
                 - ec2:DescribeImages
                 - ec2:DescribeInstances
                 - ec2:DescribeSecurityGroups
-                - ec2:RevokeSecurityGroupIngress
-                - ec2:AuthorizeSecurityGroupIngress
+                - ec2:RevokeSecurityGroup*
+                - ec2:AuthorizeSecurityGroup*
                 - ec2-instance-connect:SendSSHPublicKey
               Resource: '*'
         - PolicyName: cfn-access
@@ -416,6 +413,9 @@ Resources:
             Action:
               - ec2:DescribeInstanceStatus
               - ec2:DescribeInstances
+              - ec2:DescribeRouteTables
+              - ec2:AssociateRouteTable
+              - ec2:DisassociateRouteTable
             Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
           - Effect: Allow
             Action:
@@ -438,6 +438,7 @@ Resources:
             Action:
               - ec2:CreateSubnet
               - ec2:DeleteSubnet
+              - ec2:ModifySubnetAttribute
               - ec2:AssociateSubnetCidrBlock
               - ec2:DisassociateSubnetCidrBlock
             Resource:
@@ -447,8 +448,8 @@ Resources:
             Action:
               - ec2:CreateSecurityGroup
               - ec2:DeleteSecurityGroup
-              - ec2:AuthorizeSecurityGroupIngress
-              - ec2:RevokeSecurityGroupIngress
+              - ec2:AuthorizeSecurityGroup*
+              - ec2:RevokeSecurityGroup*
             Resource:
               - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:vpc/*'
               - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:security-group/*'
@@ -627,17 +628,6 @@ Resources:
         - Key: Name
           Value: !Sub ${Namespace} public subnet 1
 
-  PublicSubnet2:
-    Type: AWS::EC2::Subnet
-    Properties:
-      VpcId: !Ref VPC
-      AvailabilityZone: !Select [1, !GetAZs ]
-      CidrBlock: !Ref VpcPublicSubnet2Cidr
-      MapPublicIpOnLaunch: true
-      Tags:
-        - Key: Name
-          Value: !Sub ${Namespace} public subnet 2
-
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Condition: isNotAppStream
@@ -662,12 +652,6 @@ Resources:
     Properties:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet1
-
-  PublicSubnet2RouteTableAssociation:
-    Type: AWS::EC2::SubnetRouteTableAssociation
-    Properties:
-      RouteTableId: !Ref PublicRouteTable
-      SubnetId: !Ref PublicSubnet2
 
   EncryptionKey:
     Type: AWS::KMS::Key
@@ -732,6 +716,8 @@ Resources:
       Tags:
         - Key: Name
           Value: Private Workspace Subnet
+  
+  
 
   PrivateWorkspaceRouteTable:
     Type: 'AWS::EC2::RouteTable'
@@ -951,7 +937,7 @@ Resources:
           IpProtocol: '-1'
         - DestinationSecurityGroupId: !Ref WorkspaceSecurityGroup
           IpProtocol: '-1'
-
+  
   AppStreamSecurityGroupEgress:
     Type: AWS::EC2::SecurityGroupEgress
     Condition: isAppStream
@@ -1047,6 +1033,10 @@ Outputs:
     Description: The arn of the role SWB uses to check permissions status
     Value: !GetAtt [CfnStatusRole, Arn]
 
+  PublicRouteTableId:
+    Description: The public route table assigned to the workspace VPC
+    Value: !Ref PublicRouteTable
+
   #------------AppStream Output Below-------
   PrivateAppStreamSubnet:
     Description: AppStream subnet
@@ -1057,7 +1047,7 @@ Outputs:
     Description: Workspace subnet
     Condition: isAppStream
     Value: !Ref PrivateWorkspaceSubnet
-
+  
   AppStreamSecurityGroup:
     Description: AppStream Security Group
     Condition: isAppStream
@@ -1069,7 +1059,7 @@ Outputs:
     Description: SageMaker Security Group
     Condition: isAppStream
     Value: !Ref SageMakerSecurityGroup
-
+  
   AppStreamFleet:
     Description: AppStream Fleet
     Condition: isAppStream

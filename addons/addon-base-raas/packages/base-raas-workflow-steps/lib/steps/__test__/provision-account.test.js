@@ -307,6 +307,7 @@ describe('ProvisionAccount', () => {
                 { OutputKey: 'CrossAccountEnvMgmtRoleArn', OutputValue: 'env-mgmt-role-arn-1' },
                 { OutputKey: 'EncryptionKeyArn', OutputValue: 'encryption-key-arn-1' },
                 { OutputKey: 'OnboardStatusRoleArn', OutputValue: 'arn-onboard-1234' },
+                { OutputKey: 'PublicRouteTableId', OutputValue: 'rtb-12345' },
               ],
             },
           ],
@@ -356,6 +357,7 @@ describe('ProvisionAccount', () => {
           vpcId: 'vpc-123',
           encryptionKeyArn: 'encryption-key-arn-1',
           subnetId: 'public-subnet-1',
+          publicRouteTableId: 'rtb-12345',
         },
       );
     });

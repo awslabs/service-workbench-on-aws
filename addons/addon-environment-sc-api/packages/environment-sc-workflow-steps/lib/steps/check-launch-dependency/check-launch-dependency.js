@@ -39,6 +39,7 @@ const outPayloadKeys = {
 
 const settingKeys = {
   envMgmtRoleArn: 'envMgmtRoleArn',
+  isAppStreamEnabled: 'isAppStreamEnabled',
 };
 
 const pluginConstants = {
@@ -132,6 +133,12 @@ class CheckLaunchDependency extends StepBase {
    * @returns {Promise<>}
    */
   async provisionAlb(requestContext, resolvedVars, projectId, resolvedInputParams, maxAlbWorkspacesCount) {
+    // Added additional check if lock exists before staring deployment
+    const [albLock] = await Promise.all([this.state.optionalString('ALB_LOCK')]);
+    if (!albLock) {
+      throw new Error(`Error provisioning environment. Reason: ALB lock does not exist or expired`);
+    }
+
     const [albService] = await this.mustFindServices(['albService']);
     const count = await albService.albDependentWorkspacesCount(requestContext, projectId);
     const albExists = await albService.checkAlbExists(requestContext, projectId);
@@ -153,14 +160,10 @@ class CheckLaunchDependency extends StepBase {
         projectId,
       );
       // Create Stack
-      // Added additional check if lock exists before staring deployment
-      const [albLock] = await Promise.all([this.state.optionalString('ALB_LOCK')]);
-      if (albLock) {
-        // eslint-disable-next-line no-return-await
-        return await this.deployStack(requestContext, resolvedVars, stackInput);
-      }
-      throw new Error(`Error provisioning environment. Reason: ALB lock does not exist or expired`);
+      // eslint-disable-next-line no-return-await
+      return await this.deployStack(requestContext, resolvedVars, stackInput);
     }
+
     return null;
   }
 
@@ -215,13 +218,14 @@ class CheckLaunchDependency extends StepBase {
       listenerArn: _.get(stackOutputs, 'ListenerArn', null),
       albDnsName: _.get(stackOutputs, 'ALBDNSName', null),
       albSecurityGroup: _.get(stackOutputs, 'ALBSecurityGroupId', null),
+      albHostedZoneId: _.get(stackOutputs, 'ALBHostedZoneId', null),
       albDependentWorkspacesCount: 0,
     };
-    if (albLock) {
-      await albService.saveAlbDetails(awsAccountId, albDetails);
-    } else {
+    if (!albLock) {
       throw new Error(`Error provisioning environment. Reason: ALB lock does not exist or expired`);
     }
+    await albService.saveAlbDetails(awsAccountId, albDetails);
+
     this.print({
       msg: `Dependency Details Updated Successfully`,
     });
@@ -334,6 +338,19 @@ class CheckLaunchDependency extends StepBase {
       externalId,
     });
     return cfnClient;
+  }
+
+  /**
+   * Method to get appstream security group ID for the target aws account
+   *
+   * @param requestContext
+   * @param resolvedVars
+   * @returns {Promise<string>}
+   */
+  async getAppStreamSecurityGroupId(requestContext, resolvedVars) {
+    const [albService] = await this.mustFindServices(['albService']);
+    const { appStreamSecurityGroupId } = await albService.findAwsAccountDetails(requestContext, resolvedVars.projectId);
+    return appStreamSecurityGroupId;
   }
 
   /**

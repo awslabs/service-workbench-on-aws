@@ -143,6 +143,9 @@ describe('TerminateLaunchDependencyStep', () => {
       deleteStack: jest.fn(),
     };
     step.getCloudFormationService = jest.fn().mockResolvedValue(cfn);
+    step.checkIfAppStreamEnabled = jest.fn(() => {
+      return false;
+    });
     albService.findAwsAccountId = jest.fn(() => {
       return 'test-account-id';
     });
@@ -152,7 +155,7 @@ describe('TerminateLaunchDependencyStep', () => {
     lockService.releaseWriteLock = jest.fn(() => {
       return true;
     });
-    // Mock locking so that the putBucketPolicy actually gets called
+    // Mock locking so that the fn() actually gets called
     lockService.tryWriteLockAndRun = jest.fn((params, callback) => callback());
     step.cfnOutputsArrayToObject = jest.fn(() => {
       return {
@@ -224,7 +227,40 @@ describe('TerminateLaunchDependencyStep', () => {
       expect(environmentScCidrService.revokeIngressRuleWithSecurityGroup).not.toHaveBeenCalled();
     });
 
+    it('should call delete private route53 record if type is RstudioV2 and alb exists for AppStream', async () => {
+      step.checkIfAppStreamEnabled = jest.fn(() => {
+        return true;
+      });
+      const templateOutputs = {
+        NeedsALB: { Description: 'Needs ALB', Value: false },
+      };
+      step.cfnOutputsArrayToObject = jest.fn().mockImplementationOnce(() => {
+        return {
+          MetaConnection1Type: 'rstudiov2',
+          ListenerRuleARN: null,
+        };
+      });
+      environmentScService.getMemberAccount = jest.fn().mockImplementationOnce(() => {
+        return {
+          route53HostedZone: 'sampleRoute53HostedZone',
+        };
+      });
+      albService.checkAlbExists.mockImplementationOnce(() => {
+        return true;
+      });
+      albService.getAlbHostedZoneID = jest.fn();
+      jest.spyOn(step, 'getTemplateOutputs').mockImplementationOnce(() => {
+        return templateOutputs;
+      });
+      environmentDnsService.deletePrivateRecordForDNS = jest.fn();
+      albService.checkAndTerminateAlb = jest.fn();
+      await step.start();
+      expect(environmentDnsService.deleteRecord).not.toHaveBeenCalled();
+      expect(environmentDnsService.deletePrivateRecordForDNS).toHaveBeenCalled();
+    });
+
     it('should call delete route53 record if type is RstudioV2 and alb exists', async () => {
+      step.setting = { getBoolean: jest.fn(() => false) };
       const templateOutputs = {
         NeedsALB: { Description: 'Needs ALB', Value: false },
       };
@@ -471,7 +507,7 @@ describe('TerminateLaunchDependencyStep', () => {
         throw new Error('project with id "test-project" does not exist');
       });
       await expect(
-        step.terminateStack(requestContext, 'test-project-id', 'test-external-id', 'test-stack-name'),
+        step.terminateStack(requestContext, 'test-project-id', 'test-external-id', { albStackName: 'test-stack-id' }),
       ).rejects.toThrow('project with id "test-project" does not exist');
     });
 
@@ -482,7 +518,9 @@ describe('TerminateLaunchDependencyStep', () => {
         };
       });
       step.getCloudFormationService = jest.fn().mockResolvedValue(cfn);
-      await step.terminateStack(requestContext, 'test-project-id', 'test-external-id', 'test-stack-id');
+      await step.terminateStack(requestContext, 'test-project-id', 'test-external-id', {
+        albStackName: 'test-stack-id',
+      });
       // CHECK
       expect(cfn.deleteStack).toHaveBeenCalled();
       expect(step.state.setKey).toHaveBeenCalledWith('STACK_ID', 'test-stack-id');
@@ -496,12 +534,9 @@ describe('TerminateLaunchDependencyStep', () => {
       });
       step.getCloudFormationService = jest.fn().mockResolvedValue(cfn);
       // OPERATE
-      const response = await step.terminateStack(
-        requestContext,
-        'test-project-id',
-        'test-external-id',
-        'test-stack-id',
-      );
+      const response = await step.terminateStack(requestContext, 'test-project-id', 'test-external-id', {
+        albStackName: 'test-stack-id',
+      });
       // CHECK
       expect(response).toMatchObject({
         waitDecision: {
