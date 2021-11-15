@@ -41,6 +41,7 @@ To learn more about the new process, refer to the updated [instructions](https:/
 **Important Notes:**
 
 * If you have already onboarded a member account for your Service Workbench installation, and this account has active or stopped workspaces, the safest course would be to terminate all workspaces prior to the update. We did test a scenario with active and stopped workspaces and observed no impact during testing, but because this update is a major release, we recommend the safest course.
+* After updating the member account, delete the old workspace types and import the new workspace types. This is needed because the old workspace types may not work correctly with Service Workbench 4.0.0.
 * Any member accounts that were onboarded prior to this update will need to be updated through the Service Workbench user interface, and you will be prompted to do so when visiting the new “Accounts” page in Service Workbench. This update is necessary because there is a new capability that will check to see if the member and main account code versions are in sync, and provide a visual indicator if not, allowing you a clear indication of update.
 
 
