@@ -236,15 +236,27 @@ async function updateEnvOnProvisioningSuccess({
       if (!deploymentItem) {
         throw new Error(`Error provisioning environment. Reason: No ALB found for this AWS account`);
       }
-      const dnsName = JSON.parse(deploymentItem.value).albDnsName;
+      const deploymentValue = JSON.parse(deploymentItem.value);
+      const dnsName = deploymentValue.albDnsName;
       const targetGroupArn = _.find(outputs, o => o.OutputKey === 'TargetGroupARN').OutputValue;
       // Create DNS record for RStudio workspaces
       const environmentDnsService = await container.find('environmentDnsService');
       const settings = await container.find('settings');
       if (settings.getBoolean(settingKeys.isAppStreamEnabled)) {
-        const privateIp = _.find(outputs, o => o.OutputKey === 'Ec2WorkspacePrivateIp').OutputValue;
         const hostedZoneId = await getHostedZone(requestContext, environmentScService, existingEnvRecord);
-        await environmentDnsService.createPrivateRecord(requestContext, 'rstudio', envId, privateIp, hostedZoneId);
+        const albHostedZoneId = await albService.getAlbHostedZoneID(
+          requestContext,
+          resolvedVars,
+          deploymentValue.albArn,
+        );
+        await environmentDnsService.createPrivateRecordForDNS(
+          requestContext,
+          'rstudio',
+          envId,
+          albHostedZoneId,
+          dnsName,
+          hostedZoneId,
+        );
       } else {
         await environmentDnsService.createRecord('rstudio', envId, dnsName);
       }

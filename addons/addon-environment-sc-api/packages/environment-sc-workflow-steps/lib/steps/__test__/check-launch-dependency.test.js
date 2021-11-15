@@ -337,6 +337,7 @@ describe('CheckLaunchDependencyStep', () => {
         albArn: null,
         listenerArn: null,
         albDnsName: null,
+        albHostedZoneId: null,
         albSecurityGroup: null,
         albDependentWorkspacesCount: 0,
       };
@@ -344,6 +345,34 @@ describe('CheckLaunchDependencyStep', () => {
       expect(albService.saveAlbDetails).toHaveBeenCalledWith('test-account-id', albDetails);
     });
 
+    it('should update alb details with output values for AppStream', async () => {
+      albService.findAwsAccountId.mockImplementationOnce(() => {
+        return 'test-account-id';
+      });
+      albService.getAlbHostedZoneId = jest.fn(() => {
+        return 'albHostedZoneId';
+      });
+      jest.spyOn(albService, 'saveAlbDetails').mockImplementationOnce(() => {});
+      const output = {
+        LoadBalancerArn: 'test-alb-arn',
+        ListenerArn: 'test-listener-arn',
+        ALBDNSName: 'test-dns',
+        ALBSecurityGroupId: 'test-sg',
+        ALBHostedZoneId: 'albHostedZoneId',
+      };
+      const albDetails = {
+        id: 'test-account-id',
+        albStackName: 'STACK_ID',
+        albArn: 'test-alb-arn',
+        listenerArn: 'test-listener-arn',
+        albDnsName: 'test-dns',
+        albHostedZoneId: 'albHostedZoneId',
+        albSecurityGroup: 'test-sg',
+        albDependentWorkspacesCount: 0,
+      };
+      await step.handleStackCompletion(output);
+      expect(albService.saveAlbDetails).toHaveBeenCalledWith('test-account-id', albDetails);
+    });
     it('should update alb details with output values', async () => {
       albService.findAwsAccountId.mockImplementationOnce(() => {
         return 'test-account-id';
@@ -361,6 +390,7 @@ describe('CheckLaunchDependencyStep', () => {
         albArn: 'test-alb-arn',
         listenerArn: 'test-listener-arn',
         albDnsName: 'test-dns',
+        albHostedZoneId: null,
         albSecurityGroup: 'test-sg',
         albDependentWorkspacesCount: 0,
       };
