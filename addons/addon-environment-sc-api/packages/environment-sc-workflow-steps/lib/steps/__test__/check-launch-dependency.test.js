@@ -13,11 +13,17 @@
  *  permissions and limitations under the License.
  */
 
+jest.mock('@aws-ee/base-services/lib/aws/aws-service');
+const AwsServiceMock = require('@aws-ee/base-services/lib/aws/aws-service');
+
 const WorkflowPayload = require('@aws-ee/workflow-engine/lib/workflow-payload');
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
 
 jest.mock('@aws-ee/base-raas-services/lib/alb/alb-service');
 const AlbServiceMock = require('@aws-ee/base-raas-services/lib/alb/alb-service');
+
+jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
+const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
 
 jest.mock('@aws-ee/base-services/lib/lock/lock-service');
 const LockServiceMock = require('@aws-ee/base-services/lib/lock/lock-service');
@@ -28,6 +34,9 @@ const PluginRegistryServiceMock = require('@aws-ee/base-services/lib/plugin-regi
 jest.mock('../../../../environment-type-mgmt-services/lib/environment-type/env-type-config-service.js');
 const EnvTypeConfigServiceMock = require('../../../../environment-type-mgmt-services/lib/environment-type/env-type-config-service.js');
 
+jest.mock('../../../../environment-type-mgmt-services/lib/environment-type/env-type-service.js');
+const EnvTypeServiceMock = require('../../../../environment-type-mgmt-services/lib/environment-type/env-type-service.js');
+
 const CheckLaunchDependency = require('../check-launch-dependency/check-launch-dependency');
 
 describe('CheckLaunchDependencyStep', () => {
@@ -36,6 +45,7 @@ describe('CheckLaunchDependencyStep', () => {
   let envTypeConfigService = null;
   let pluginRegistryService = null;
   let cfn;
+
   const requestContext = {
     principal: {
       isAdmin: true,
@@ -70,9 +80,12 @@ describe('CheckLaunchDependencyStep', () => {
 
   beforeAll(async () => {
     container = new ServicesContainer();
+    container.register('aws', new AwsServiceMock());
     container.register('albService', new AlbServiceMock());
     container.register('lockService', new LockServiceMock());
     container.register('envTypeConfigService', new EnvTypeConfigServiceMock());
+    container.register('envTypeService', new EnvTypeServiceMock());
+    container.register('settings', new SettingsServiceMock());
     container.register('pluginRegistryService', new PluginRegistryServiceMock());
 
     await container.initServices();
@@ -131,6 +144,11 @@ describe('CheckLaunchDependencyStep', () => {
     step.resolveVarExpressions = jest.fn(() => {
       return [];
     });
+    step.describeArtifact = jest.fn(() => {
+      return { artifactInfo: { TemplateUrl: 'sampleTemplateURL' } };
+    });
+    // Mock locking so that the putBucketPolicy actually gets called
+    lockService.tryWriteLockAndRun = jest.fn((params, callback) => callback());
   });
 
   afterEach(() => {
@@ -143,6 +161,9 @@ describe('CheckLaunchDependencyStep', () => {
     it('should throw error when aws account id retrival fails', async () => {
       albService.findAwsAccountId.mockImplementationOnce(() => {
         throw new Error('project with id "test-project" does not exist');
+      });
+      step.getTemplateOutputs = jest.fn(() => {
+        return { NeedsALB: { Value: true } };
       });
       await expect(step.start()).rejects.toThrow('project with id "test-project" does not exist');
     });
@@ -298,6 +319,10 @@ describe('CheckLaunchDependencyStep', () => {
       albService.findAwsAccountId.mockImplementationOnce(() => {
         throw new Error('project with id "test-project" does not exist');
       });
+
+      step.getTemplateOutputs = jest.fn(() => {
+        return { NeedsALB: true };
+      });
       await expect(step.handleStackCompletion([])).rejects.toThrow('project with id "test-project" does not exist');
     });
 
@@ -312,6 +337,7 @@ describe('CheckLaunchDependencyStep', () => {
         albArn: null,
         listenerArn: null,
         albDnsName: null,
+        albHostedZoneId: null,
         albSecurityGroup: null,
         albDependentWorkspacesCount: 0,
       };
@@ -319,6 +345,34 @@ describe('CheckLaunchDependencyStep', () => {
       expect(albService.saveAlbDetails).toHaveBeenCalledWith('test-account-id', albDetails);
     });
 
+    it('should update alb details with output values for AppStream', async () => {
+      albService.findAwsAccountId.mockImplementationOnce(() => {
+        return 'test-account-id';
+      });
+      albService.getAlbHostedZoneId = jest.fn(() => {
+        return 'albHostedZoneId';
+      });
+      jest.spyOn(albService, 'saveAlbDetails').mockImplementationOnce(() => {});
+      const output = {
+        LoadBalancerArn: 'test-alb-arn',
+        ListenerArn: 'test-listener-arn',
+        ALBDNSName: 'test-dns',
+        ALBSecurityGroupId: 'test-sg',
+        ALBHostedZoneId: 'albHostedZoneId',
+      };
+      const albDetails = {
+        id: 'test-account-id',
+        albStackName: 'STACK_ID',
+        albArn: 'test-alb-arn',
+        listenerArn: 'test-listener-arn',
+        albDnsName: 'test-dns',
+        albHostedZoneId: 'albHostedZoneId',
+        albSecurityGroup: 'test-sg',
+        albDependentWorkspacesCount: 0,
+      };
+      await step.handleStackCompletion(output);
+      expect(albService.saveAlbDetails).toHaveBeenCalledWith('test-account-id', albDetails);
+    });
     it('should update alb details with output values', async () => {
       albService.findAwsAccountId.mockImplementationOnce(() => {
         return 'test-account-id';
@@ -336,6 +390,7 @@ describe('CheckLaunchDependencyStep', () => {
         albArn: 'test-alb-arn',
         listenerArn: 'test-listener-arn',
         albDnsName: 'test-dns',
+        albHostedZoneId: null,
         albSecurityGroup: 'test-sg',
         albDependentWorkspacesCount: 0,
       };
@@ -378,19 +433,6 @@ describe('CheckLaunchDependencyStep', () => {
   });
 
   describe('onPass', () => {
-    it('should not increase alb dependent workspace count when needsAlb is false', async () => {
-      jest.spyOn(step.payloadOrConfig, 'optionalBoolean').mockImplementationOnce(() => {
-        return false;
-      });
-      await step.onPass();
-      expect(albService.increaseAlbDependentWorkspaceCount).not.toHaveBeenCalled();
-    });
-
-    it('should increase alb dependent workspace count when needsAlb is true', async () => {
-      await step.onPass();
-      expect(albService.increaseAlbDependentWorkspaceCount).toHaveBeenCalled();
-    });
-
     it('should release lock when alb is present', async () => {
       try {
         await step.onPass();
@@ -398,15 +440,6 @@ describe('CheckLaunchDependencyStep', () => {
         // DO Nothing
       }
       expect(lockService.releaseWriteLock).toHaveBeenCalled();
-    });
-
-    it('should throw error when lock does not exist', async () => {
-      jest.spyOn(step.state, 'optionalString').mockImplementationOnce(() => {
-        return '';
-      });
-      await expect(step.onPass()).rejects.toThrow(
-        'Error provisioning environment. Reason: ALB lock does not exist or expired',
-      );
     });
   });
 

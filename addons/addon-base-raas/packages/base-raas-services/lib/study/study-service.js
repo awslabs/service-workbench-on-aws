@@ -41,6 +41,7 @@ const settingKeys = {
   categoryIndexName: 'dbStudiesCategoryIndex',
   accountIdIndexName: 'dbStudiesAccountIdIndex',
   studyDataBucketName: 'studyDataBucketName',
+  enableEgressStore: 'enableEgressStore',
 };
 
 class StudyService extends Service {
@@ -189,6 +190,15 @@ class StudyService extends Service {
 
     // Validate input
     await validationService.ensureValid(rawStudyEntity, registerSchema);
+
+    const enableEgressStore = this.settings.getBoolean(settingKeys.enableEgressStore);
+
+    if (enableEgressStore) {
+      const accessType = rawStudyEntity.accessType;
+      if (accessType === 'readwrite') {
+        throw this.boom.forbidden('Only READ access type is allowed when egress data feature is enabled', true);
+      }
+    }
 
     let studyPermissionEntity = {
       adminUsers: rawStudyEntity.adminUsers,

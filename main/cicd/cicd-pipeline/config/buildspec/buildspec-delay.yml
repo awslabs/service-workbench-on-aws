@@ -1,0 +1,20 @@
+version: 0.2
+
+phases:
+  install:
+    # See supported runtimes at https://docs.aws.amazon.com/codebuild/latest/userguide/build-env-ref-available.html
+    runtime-versions:
+      nodejs: 12
+
+  build:
+    commands:
+      - ./scripts/prevent-collision.sh
+
+cache:
+  paths:
+    - node_modules/
+    - addons/*/packages/*/node_modules/
+    - main/solution/*/node_modules/
+    - main/cicd/*/node_modules/
+    - main/integration-tests/node_modules/
+    - main/packages/*/node_modules

@@ -1,0 +1,48 @@
+{
+  "chromeWebSecurity": true,
+  "viewportWidth": 1400,
+  "viewportHeight": 1000,
+  "video": true,
+  "env": {
+    "isAppStreamEnabled": true,
+    "researcherEmail": "<EMAIL ACCOUNT OF PREMADE RESEARCHER>",
+    "researcherPassword": "<RESEARCHER ACCOUNT PASSWORD>",
+    "adminEmail": "<EMAIL ACCOUNT OF PREMADE ADMIN>",
+    "adminPassword": "<ADMIN ACCOUNT PASSWORD>",
+    "isCognitoEnabled": false,
+    "workspaces": {
+      "sagemaker": {
+        "workspaceTypeName": "<NAME OF SAGEMAKER WORKSPACE TYPE>",
+        "configuration": "<SAGEMAKER WORKSPACE CONFIGURATION>",
+        "projectId": "<PROJECT TO LAUNCH SAGEMAKER WORKSPACE IN>"
+      },
+      "ec2": {
+        "linux": {
+          "workspaceTypeName": "<NAME OF LINUX EC2 WORKSPACE TYPE>",
+          "configuration": "<EC2 LINUX WORKSPACE CONFIGURATION>",
+          "projectId": "<PROJECT TO LAUNCH EC2 WORKSPACE IN>"
+        },
+        "windows": {
+          "workspaceTypeName": "<NAME OF EC2 WINDOWS WORKSPACE TYPE>",
+          "configuration": "<EC2 WINDOWS WORKSPACE CONFIGURATION>",
+          "projectId": "<PROJECT TO LAUNCH EC2 WORKSPACE IN>"
+        }
+      }
+    },
+    "studies": {
+      "organizations": [
+        {
+          "name": "<STUDY IN WHICH RESEARCHER ACCOUNT IS STUDY ADMIN>",
+          "researcherIsAdmin": true
+        },
+        {
+          "name": "<STUDY IN WHICH RESEARCHER ACCOUNT IS NOT STUDY ADMIN>",
+          "researcherIsAdmin": false
+        }
+      ]
+    }
+  },
+  "defaultCommandTimeout": 20000,
+  "watchForFileChanges": false,
+  "baseUrl": "<URL OF UI TO TEST>"
+}

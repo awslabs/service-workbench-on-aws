@@ -18,6 +18,7 @@ const Service = require('@aws-ee/base-services-container/lib/service');
 
 const settingKeys = {
   domainName: 'domainName',
+  isAppStreamEnabled: 'isAppStreamEnabled',
 };
 
 class ALBService extends Service {
@@ -47,7 +48,7 @@ class ALBService extends Service {
    */
   async albDependentWorkspacesCount(requestContext, projectId) {
     const deploymentItem = await this.getAlbDetails(requestContext, projectId);
-    if (deploymentItem) {
+    if (!_.isEmpty(deploymentItem) && !_.isEmpty(deploymentItem.value)) {
       const albRecord = JSON.parse(deploymentItem.value);
       return albRecord.albDependentWorkspacesCount;
     }
@@ -64,9 +65,10 @@ class ALBService extends Service {
    */
   async checkAlbExists(requestContext, projectId) {
     const deploymentItem = await this.getAlbDetails(requestContext, projectId);
-    if (deploymentItem) {
+    if (!_.isEmpty(deploymentItem) && !_.isEmpty(deploymentItem.value)) {
       const albRecord = JSON.parse(deploymentItem.value);
-      return !!_.get(albRecord, 'albArn', null);
+      const albArn = _.get(albRecord, 'albArn', null);
+      return !_.isEmpty(albArn);
     }
     return false;
   }
@@ -83,18 +85,27 @@ class ALBService extends Service {
    */
   async getStackCreationInput(requestContext, resolvedVars, resolvedInputParams, projectId) {
     const awsAccountDetails = await this.findAwsAccountDetails(requestContext, projectId);
-    const subnet2 = await this.findSubnet2(requestContext, resolvedVars, awsAccountDetails.vpcId);
     const [cfnTemplateService] = await this.service(['cfnTemplateService']);
     const [template] = await Promise.all([cfnTemplateService.getTemplate('application-load-balancer')]);
     const cfnParams = [];
     const certificateArn = _.find(resolvedInputParams, o => o.Key === 'ACMSSLCertARN');
+    const isAppStreamEnabled = _.find(resolvedInputParams, o => o.Key === 'IsAppStreamEnabled');
 
     const addParam = (key, v) => cfnParams.push({ ParameterKey: key, ParameterValue: v });
     addParam('Namespace', resolvedVars.namespace);
-    addParam('Subnet1', awsAccountDetails.subnetId);
-    addParam('Subnet2', subnet2);
     addParam('ACMSSLCertARN', certificateArn.Value);
     addParam('VPC', awsAccountDetails.vpcId);
+    addParam('IsAppStreamEnabled', isAppStreamEnabled.Value);
+    addParam(
+      'AppStreamSG',
+      _.isUndefined(awsAccountDetails.appStreamSecurityGroupId)
+        ? 'AppStreamNotConfigured'
+        : awsAccountDetails.appStreamSecurityGroupId,
+    );
+    addParam(
+      'PublicRouteTableId',
+      _.isUndefined(awsAccountDetails.appStreamSecurityGroupId) ? awsAccountDetails.publicRouteTableId : 'N/A',
+    );
 
     const input = {
       StackName: resolvedVars.namespace,
@@ -182,6 +193,10 @@ class ALBService extends Service {
     return deploymentItem;
   }
 
+  checkIfAppStreamEnabled() {
+    return this.settings.getBoolean(settingKeys.isAppStreamEnabled);
+  }
+
   /**
    * Method to create listener rule. The method creates rule using the ALB SDK client.
    * Tags are read form the resolvedVars so the billing will happen properly
@@ -193,40 +208,68 @@ class ALBService extends Service {
    * @returns {Promise<string>}
    */
   async createListenerRule(prefix, requestContext, resolvedVars, targetGroupArn) {
+    const isAppStreamEnabled = this.checkIfAppStreamEnabled();
     const deploymentItem = await this.getAlbDetails(requestContext, resolvedVars.projectId);
     const albRecord = JSON.parse(deploymentItem.value);
     const listenerArn = albRecord.listenerArn;
     const priority = await this.calculateRulePriority(requestContext, resolvedVars, albRecord.listenerArn);
     const subdomain = this.getHostname(prefix, resolvedVars.envId);
-    const params = {
-      ListenerArn: listenerArn,
-      Priority: priority,
-      Actions: [
-        {
-          TargetGroupArn: targetGroupArn,
-          Type: 'forward',
-        },
-      ],
-      Conditions: [
-        {
-          Field: 'host-header',
-          HostHeaderConfig: {
-            Values: [subdomain],
+    let params;
+    if (isAppStreamEnabled) {
+      params = {
+        ListenerArn: listenerArn,
+        Priority: priority,
+        Actions: [
+          {
+            TargetGroupArn: targetGroupArn,
+            Type: 'forward',
           },
-        },
-        {
-          Field: 'source-ip',
-          SourceIpConfig: {
-            Values: [resolvedVars.cidr],
+        ],
+        Conditions: [
+          {
+            Field: 'host-header',
+            HostHeaderConfig: {
+              Values: [subdomain],
+            },
           },
-        },
-      ],
-      Tags: resolvedVars.tags,
-    };
+        ],
+        Tags: resolvedVars.tags,
+      };
+    } else {
+      params = {
+        ListenerArn: listenerArn,
+        Priority: priority,
+        Actions: [
+          {
+            TargetGroupArn: targetGroupArn,
+            Type: 'forward',
+          },
+        ],
+        Conditions: [
+          {
+            Field: 'host-header',
+            HostHeaderConfig: {
+              Values: [subdomain],
+            },
+          },
+          {
+            Field: 'source-ip',
+            SourceIpConfig: {
+              Values: [resolvedVars.cidr],
+            },
+          },
+        ],
+        Tags: resolvedVars.tags,
+      };
+    }
     const albClient = await this.getAlbSdk(requestContext, resolvedVars);
     let response = null;
     try {
       response = await albClient.createRule(params).promise();
+
+      // Get current rule count on ALB and set it in DB
+      const albRules = await albClient.describeRules({ ListenerArn: listenerArn }).promise();
+      await this.updateAlbDependentWorkspaceCount(requestContext, resolvedVars.projectId, albRules.Rules.length);
     } catch (err) {
       throw new Error(`Error creating rule. Rule creation failed with message - ${err.message}`);
     }
@@ -235,20 +278,28 @@ class ALBService extends Service {
 
   /**
    * Method to delete listener rule. The method deletes rule using the ALB SDK client.
+   * Since this needs to reflect the up-to-date rule count on the ALB,
+   * ultimate environment termination status is not relevant
    *
    * @param requestContext
    * @param resolvedVars
    * @param ruleArn
+   * @param listenerArn
    * @returns {Promise<>}
    */
-  async deleteListenerRule(requestContext, resolvedVars, ruleArn) {
+  async deleteListenerRule(requestContext, resolvedVars, ruleArn, listenerArn) {
     const params = {
       RuleArn: ruleArn,
     };
     const albClient = await this.getAlbSdk(requestContext, resolvedVars);
     let response = null;
     try {
+      // Check if rule exists, only then perform deletion
       response = await albClient.deleteRule(params).promise();
+
+      // Get current rule count on ALB and set it in DB
+      const albRules = await albClient.describeRules({ ListenerArn: listenerArn }).promise();
+      await this.updateAlbDependentWorkspaceCount(requestContext, resolvedVars.projectId, albRules.Rules.length);
     } catch (err) {
       throw new Error(`Error deleting rule. Rule deletion failed with message - ${err.message}`);
     }
@@ -256,35 +307,21 @@ class ALBService extends Service {
   }
 
   /**
-   * Method to increase the count of alb dependent workspaces in database
+   * Method to update the count of alb dependent workspaces in database
+   * Rules limit per load balancer (not counting default rules): 100
+   * One default rule exists for the ALB for port 443, so subtracting that to form workspace count
    *
    * @param requestContext
    * @param projectId
    * @returns {Promise<>}
    */
-  async increaseAlbDependentWorkspaceCount(requestContext, projectId) {
+  async updateAlbDependentWorkspaceCount(requestContext, projectId, currRuleCount) {
+    const awsAccountId = await this.findAwsAccountId(requestContext, projectId);
     const deploymentItem = await this.getAlbDetails(requestContext, projectId);
     const albRecord = JSON.parse(deploymentItem.value);
-    albRecord.albDependentWorkspacesCount += 1;
+    albRecord.albDependentWorkspacesCount = currRuleCount - 1;
     const result = await this.saveAlbDetails(deploymentItem.id, albRecord);
-    await this.audit(requestContext, { action: 'update-deployment-store', body: result });
-    return result;
-  }
-
-  /**
-   * Method to decrease the count of alb dependent workspaces in database
-   *
-   * @param requestContext
-   * @param projectId
-   * @returns {Promise<>}
-   */
-  async decreaseAlbDependentWorkspaceCount(requestContext, projectId) {
-    const deploymentItem = await this.getAlbDetails(requestContext, projectId);
-    const albRecord = JSON.parse(deploymentItem.value);
-    albRecord.albDependentWorkspacesCount -= 1;
-    const result = await this.saveAlbDetails(deploymentItem.id, albRecord);
-    await this.audit(requestContext, { action: 'update-deployment-store', body: result });
-    return result;
+    await this.audit(requestContext, { action: `update-alb-count-account-${awsAccountId}`, body: result });
   }
 
   /**
@@ -332,36 +369,6 @@ class ALBService extends Service {
    *
    * @param requestContext
    * @param resolvedVars
-   * @param vpcId
-   * @returns {Promise<string>}
-   */
-  async findSubnet2(requestContext, resolvedVars, vpcId) {
-    const params = {
-      Filters: [
-        {
-          Name: 'vpc-id',
-          Values: [vpcId],
-        },
-        {
-          Name: 'tag:aws:cloudformation:logical-id',
-          Values: ['PublicSubnet2'],
-        },
-      ],
-    };
-    const ec2Client = await this.getEc2Sdk(requestContext, resolvedVars);
-    const response = await ec2Client.describeSubnets(params).promise();
-    const subnetId = _.get(response.Subnets[0], 'SubnetId', null);
-    if (!subnetId) {
-      throw new Error(`Error provisioning environment. Reason: Subnet2 not found for the VPC - ${vpcId}`);
-    }
-    return subnetId;
-  }
-
-  /**
-   * Method to get the EC2 SDK client for the target aws account
-   *
-   * @param requestContext
-   * @param resolvedVars
    * @returns {Promise<>}
    */
   async getEc2Sdk(requestContext, resolvedVars) {
@@ -398,6 +405,20 @@ class ALBService extends Service {
   }
 
   /**
+   * Method to get the ALB HostedZone ID for the target aws account
+   *
+   * @param requestContext
+   * @param resolvedVars
+   * @returns {Promise<>}
+   */
+  async getAlbHostedZoneID(requestContext, resolvedVars, albArn) {
+    const albClient = await this.getAlbSdk(requestContext, resolvedVars);
+    const params = { LoadBalancerArns: [albArn] };
+    const response = await albClient.describeLoadBalancers(params).promise();
+    return response.LoadBalancers[0].CanonicalHostedZoneId;
+  }
+
+  /**
    * Method to get role arn for the target aws account
    *
    * @param requestContext
@@ -428,24 +449,40 @@ class ALBService extends Service {
    */
   async modifyRule(requestContext, resolvedVars) {
     const subdomain = this.getHostname(resolvedVars.prefix, resolvedVars.envId);
+    const isAppStreamEnabled = this.checkIfAppStreamEnabled();
     try {
-      const params = {
-        Conditions: [
-          {
-            Field: 'host-header',
-            HostHeaderConfig: {
-              Values: [subdomain],
+      let params;
+      if (isAppStreamEnabled) {
+        params = {
+          Conditions: [
+            {
+              Field: 'host-header',
+              HostHeaderConfig: {
+                Values: [subdomain],
+              },
             },
-          },
-          {
-            Field: 'source-ip',
-            SourceIpConfig: {
-              Values: resolvedVars.cidr,
+          ],
+          RuleArn: resolvedVars.ruleARN,
+        };
+      } else {
+        params = {
+          Conditions: [
+            {
+              Field: 'host-header',
+              HostHeaderConfig: {
+                Values: [subdomain],
+              },
             },
-          },
-        ],
-        RuleArn: resolvedVars.ruleARN,
-      };
+            {
+              Field: 'source-ip',
+              SourceIpConfig: {
+                Values: resolvedVars.cidr,
+              },
+            },
+          ],
+          RuleArn: resolvedVars.ruleARN,
+        };
+      }
       const { externalId } = await this.findAwsAccountDetails(requestContext, resolvedVars.projectId);
       resolvedVars.externalId = externalId;
       const albClient = await this.getAlbSdk(requestContext, resolvedVars);

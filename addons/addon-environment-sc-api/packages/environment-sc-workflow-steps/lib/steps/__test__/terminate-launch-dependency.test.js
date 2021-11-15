@@ -13,8 +13,14 @@
  *  permissions and limitations under the License.
  */
 
+jest.mock('@aws-ee/base-services/lib/aws/aws-service');
+const AwsServiceMock = require('@aws-ee/base-services/lib/aws/aws-service');
+
 const WorkflowPayload = require('@aws-ee/workflow-engine/lib/workflow-payload');
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
+
+jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
+const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
 
 jest.mock('@aws-ee/base-raas-services/lib/alb/alb-service');
 const AlbServiceMock = require('@aws-ee/base-raas-services/lib/alb/alb-service');
@@ -34,6 +40,9 @@ const EnvironmentScCidrServiceMock = require('@aws-ee/base-raas-services/lib/env
 jest.mock('@aws-ee/base-raas-services/lib/environment/environment-dns-service');
 const EnvironmentDnsServiceMock = require('@aws-ee/base-raas-services/lib/environment/environment-dns-service');
 
+jest.mock('../../../../environment-type-mgmt-services/lib/environment-type/env-type-service.js');
+const EnvTypeServiceMock = require('../../../../environment-type-mgmt-services/lib/environment-type/env-type-service.js');
+
 const TerminateLaunchDependency = require('../terminate-launch-dependency/terminate-launch-dependency');
 
 describe('TerminateLaunchDependencyStep', () => {
@@ -44,6 +53,7 @@ describe('TerminateLaunchDependencyStep', () => {
   let pluginRegistryService = null;
   let environmentScCidrService = null;
   let cfn;
+
   const requestContext = {
     principal: {
       isAdmin: true,
@@ -74,11 +84,14 @@ describe('TerminateLaunchDependencyStep', () => {
 
   beforeAll(async () => {
     container = new ServicesContainer();
+    container.register('aws', new AwsServiceMock());
     container.register('albService', new AlbServiceMock());
     container.register('lockService', new LockServiceMock());
     container.register('environmentScService', new EnvironmentScServiceMock());
     container.register('environmentDnsService', new EnvironmentDnsServiceMock());
     container.register('pluginRegistryService', new PluginRegistryServiceMock());
+    container.register('settings', new SettingsServiceMock());
+    container.register('envTypeService', new EnvTypeServiceMock());
     container.register('environmentScCidrService', new EnvironmentScCidrServiceMock());
 
     await container.initServices();
@@ -90,6 +103,14 @@ describe('TerminateLaunchDependencyStep', () => {
     environmentDnsService = await container.find('environmentDnsService');
     pluginRegistryService = await container.find('pluginRegistryService');
     environmentScCidrService = await container.find('environmentScCidrService');
+
+    step.describeArtifact = jest.fn(() => {
+      return { artifactInfo: { TemplateUrl: 'sampleTemplateURL' } };
+    });
+
+    step.parseS3DetailsfromUrl = jest.fn(() => {
+      return { bucketName: 'sampleBucketName', key: 'sampleKey' };
+    });
 
     step.payloadOrConfig = {
       string: stringInput => {
@@ -122,6 +143,9 @@ describe('TerminateLaunchDependencyStep', () => {
       deleteStack: jest.fn(),
     };
     step.getCloudFormationService = jest.fn().mockResolvedValue(cfn);
+    step.checkIfAppStreamEnabled = jest.fn(() => {
+      return false;
+    });
     albService.findAwsAccountId = jest.fn(() => {
       return 'test-account-id';
     });
@@ -131,6 +155,8 @@ describe('TerminateLaunchDependencyStep', () => {
     lockService.releaseWriteLock = jest.fn(() => {
       return true;
     });
+    // Mock locking so that the fn() actually gets called
+    lockService.tryWriteLockAndRun = jest.fn((params, callback) => callback());
     step.cfnOutputsArrayToObject = jest.fn(() => {
       return {
         MetaConnection1Type: 'rstudio',
@@ -157,7 +183,7 @@ describe('TerminateLaunchDependencyStep', () => {
   });
 
   afterEach(() => {
-    // Restore all the mocks crated using spy to original funciton behaviour
+    // Restore all the mocks created using spy to original function behaviour
     jest.restoreAllMocks();
     jest.clearAllMocks();
   });
@@ -166,6 +192,9 @@ describe('TerminateLaunchDependencyStep', () => {
     it('should throw error when aws account id retrival fails', async () => {
       albService.findAwsAccountId.mockImplementationOnce(() => {
         throw new Error('project with id "test-project" does not exist');
+      });
+      step.getTemplateOutputs = jest.fn(() => {
+        return { NeedsALB: { Value: true } };
       });
       await expect(step.start()).rejects.toThrow('project with id "test-project" does not exist');
     });
@@ -198,7 +227,40 @@ describe('TerminateLaunchDependencyStep', () => {
       expect(environmentScCidrService.revokeIngressRuleWithSecurityGroup).not.toHaveBeenCalled();
     });
 
+    it('should call delete private route53 record if type is RstudioV2 and alb exists for AppStream', async () => {
+      step.checkIfAppStreamEnabled = jest.fn(() => {
+        return true;
+      });
+      const templateOutputs = {
+        NeedsALB: { Description: 'Needs ALB', Value: false },
+      };
+      step.cfnOutputsArrayToObject = jest.fn().mockImplementationOnce(() => {
+        return {
+          MetaConnection1Type: 'rstudiov2',
+          ListenerRuleARN: null,
+        };
+      });
+      environmentScService.getMemberAccount = jest.fn().mockImplementationOnce(() => {
+        return {
+          route53HostedZone: 'sampleRoute53HostedZone',
+        };
+      });
+      albService.checkAlbExists.mockImplementationOnce(() => {
+        return true;
+      });
+      albService.getAlbHostedZoneID = jest.fn();
+      jest.spyOn(step, 'getTemplateOutputs').mockImplementationOnce(() => {
+        return templateOutputs;
+      });
+      environmentDnsService.deletePrivateRecordForDNS = jest.fn();
+      albService.checkAndTerminateAlb = jest.fn();
+      await step.start();
+      expect(environmentDnsService.deleteRecord).not.toHaveBeenCalled();
+      expect(environmentDnsService.deletePrivateRecordForDNS).toHaveBeenCalled();
+    });
+
     it('should call delete route53 record if type is RstudioV2 and alb exists', async () => {
+      step.setting = { getBoolean: jest.fn(() => false) };
       const templateOutputs = {
         NeedsALB: { Description: 'Needs ALB', Value: false },
       };
@@ -362,6 +424,14 @@ describe('TerminateLaunchDependencyStep', () => {
   });
 
   describe('checkAndTerminateAlb', () => {
+    let origCheckPendingEnvWithSSLCertFn;
+    beforeAll(() => {
+      origCheckPendingEnvWithSSLCertFn = step.checkPendingEnvWithSSLCert;
+      step.checkPendingEnvWithSSLCert = jest.fn(() => Promise.resolve(true));
+    });
+    afterAll(() => {
+      step.checkPendingEnvWithSSLCert = origCheckPendingEnvWithSSLCertFn;
+    });
     it('should throw error when project is not valid', async () => {
       albService.albDependentWorkspacesCount.mockImplementationOnce(() => {
         throw new Error('project with id "test-project" does not exist');
@@ -382,6 +452,7 @@ describe('TerminateLaunchDependencyStep', () => {
       await step.checkAndTerminateAlb('test-project-id', 'test-external-id');
       // CHECK
       expect(step.terminateStack).not.toHaveBeenCalled();
+      jest.clearAllMocks();
     });
 
     it('should skip alb termination when alb does not exist', async () => {
@@ -393,6 +464,25 @@ describe('TerminateLaunchDependencyStep', () => {
       });
       jest.spyOn(step, 'terminateStack').mockImplementationOnce(() => {});
       await step.checkAndTerminateAlb('test-project-id', 'test-external-id');
+      // CHECK
+      expect(step.terminateStack).not.toHaveBeenCalled();
+    });
+
+    it('should not call alb termination when there are pending env with SSL Cert', async () => {
+      // BUILD
+      albService.albDependentWorkspacesCount.mockImplementationOnce(() => {
+        return 0;
+      });
+      albService.checkAlbExists.mockImplementationOnce(() => {
+        return true;
+      });
+      step.checkPendingEnvWithSSLCert = jest.fn(() => Promise.resolve(true));
+
+      jest.spyOn(step, 'terminateStack').mockImplementationOnce(() => {});
+
+      // OPERATE
+      await step.checkAndTerminateAlb('test-project-id', 'test-external-id');
+
       // CHECK
       expect(step.terminateStack).not.toHaveBeenCalled();
     });
@@ -417,7 +507,7 @@ describe('TerminateLaunchDependencyStep', () => {
         throw new Error('project with id "test-project" does not exist');
       });
       await expect(
-        step.terminateStack(requestContext, 'test-project-id', 'test-external-id', 'test-stack-name'),
+        step.terminateStack(requestContext, 'test-project-id', 'test-external-id', { albStackName: 'test-stack-id' }),
       ).rejects.toThrow('project with id "test-project" does not exist');
     });
 
@@ -428,7 +518,9 @@ describe('TerminateLaunchDependencyStep', () => {
         };
       });
       step.getCloudFormationService = jest.fn().mockResolvedValue(cfn);
-      await step.terminateStack(requestContext, 'test-project-id', 'test-external-id', 'test-stack-id');
+      await step.terminateStack(requestContext, 'test-project-id', 'test-external-id', {
+        albStackName: 'test-stack-id',
+      });
       // CHECK
       expect(cfn.deleteStack).toHaveBeenCalled();
       expect(step.state.setKey).toHaveBeenCalledWith('STACK_ID', 'test-stack-id');
@@ -442,12 +534,9 @@ describe('TerminateLaunchDependencyStep', () => {
       });
       step.getCloudFormationService = jest.fn().mockResolvedValue(cfn);
       // OPERATE
-      const response = await step.terminateStack(
-        requestContext,
-        'test-project-id',
-        'test-external-id',
-        'test-stack-id',
-      );
+      const response = await step.terminateStack(requestContext, 'test-project-id', 'test-external-id', {
+        albStackName: 'test-stack-id',
+      });
       // CHECK
       expect(response).toMatchObject({
         waitDecision: {
@@ -557,6 +646,148 @@ describe('TerminateLaunchDependencyStep', () => {
     it('should call visit plugins method', async () => {
       await step.onFail({ message: 'Error Message' });
       expect(pluginRegistryService.visitPlugins).toHaveBeenCalled();
+    });
+  });
+
+  describe('checkPendingEnvWithSSLCert', () => {
+    it('should return false since there are no pending environment', async () => {
+      // BUILD
+      const envScService = {};
+      envScService.list = jest.fn(() => Promise.resolve([]));
+
+      const envTypeService = {};
+      envTypeService.mustFind = jest.fn(() => Promise.resolve({}));
+
+      // OPERATE, CHECK
+      await expect(step.checkPendingEnvWithSSLCert(envScService, envTypeService, requestContext)).resolves.toEqual(
+        false,
+      );
+    });
+
+    it('should return false since there are NO pending environment with SSL cert', async () => {
+      // BUILD
+      const envScService = {};
+      envScService.list = jest.fn(() =>
+        Promise.resolve([
+          {
+            id: 'abc',
+            rev: 0,
+            projectId: 'proj-123',
+            inWorkflow: 'true',
+            status: 'PENDING',
+            createdAt: '2021-11-11T05:47:39.178Z',
+            cidr: '0.0.0.0/0',
+            updatedBy: 'u-zBpBkLuXjdDbdUAHalfY7',
+            createdBy: 'u-zBpBkLuXjdDbdUAHalfY7',
+            name: 'rstudio-6',
+            studyIds: [],
+            updatedAt: '2021-11-11T05:47:39.178Z',
+            indexId: 'index-123',
+            description: 'RStudio service workspace',
+            envTypeConfigId: 'config-1',
+            envTypeId: 'prod-xyz',
+          },
+        ]),
+      );
+
+      const envTypeService = {};
+      envTypeService.mustFind = jest.fn(() =>
+        Promise.resolve({
+          id: 'prod-xyz',
+          product: {
+            productId: 'prod-n52qqfqv6bmya',
+          },
+          rev: 1,
+          status: 'approved',
+          createdAt: '2021-11-09T18:06:56.944Z',
+          updatedBy: 'u-zBpBkLuXjdDbdUAHalfY7',
+          createdBy: 'u-zBpBkLuXjdDbdUAHalfY7',
+          name: 'Sample Workspace Type',
+          desc: '',
+          provisioningArtifact: {
+            id: 'pa-7udayuv3syfo6',
+          },
+          params: [
+            {
+              IsNoEcho: false,
+              ParameterConstraints: {
+                AllowedValues: [],
+              },
+              ParameterType: 'String',
+              Description: 'The ARN of the KMS encryption Key used to encrypt data in the instance',
+              ParameterKey: 'EncryptionKeyArn',
+            },
+          ],
+        }),
+      );
+
+      // OPERATE, CHECK
+      await expect(step.checkPendingEnvWithSSLCert(envScService, envTypeService, requestContext)).resolves.toEqual(
+        false,
+      );
+    });
+
+    it('should return true since there are pending environment with SSL cert', async () => {
+      // BUILD
+      const envScService = {};
+      envScService.list = jest.fn(() =>
+        Promise.resolve([
+          {
+            id: 'abc',
+            rev: 0,
+            projectId: 'proj-123',
+            inWorkflow: 'true',
+            status: 'PENDING',
+            createdAt: '2021-11-11T05:47:39.178Z',
+            cidr: '0.0.0.0/32',
+            updatedBy: 'u-zBpBkLuXjdDbdUAHalfY7',
+            createdBy: 'u-zBpBkLuXjdDbdUAHalfY7',
+            name: 'rstudio-6',
+            studyIds: [],
+            updatedAt: '2021-11-11T05:47:39.178Z',
+            indexId: 'index-123',
+            description: 'RStudio service workspace',
+            envTypeConfigId: 'config-1',
+            envTypeId: 'prod-xyz',
+          },
+        ]),
+      );
+
+      const envTypeService = {};
+      envTypeService.mustFind = jest.fn(() =>
+        Promise.resolve({
+          id: 'prod-xyz',
+          product: {
+            productId: 'prod-n52qqfqv6bmya',
+          },
+          rev: 1,
+          status: 'approved',
+          createdAt: '2021-11-09T18:06:56.944Z',
+          updatedBy: 'u-zBpBkLuXjdDbdUAHalfY7',
+          createdBy: 'u-zBpBkLuXjdDbdUAHalfY7',
+          name: 'Sample Workspace Type',
+          desc: '',
+          provisioningArtifact: {
+            id: 'pa-7udayuv3syfo6',
+          },
+          params: [
+            {
+              IsNoEcho: false,
+              ParameterConstraints: {
+                AllowedValues: [],
+              },
+              ParameterType: 'String',
+              Description: 'The ARN of the AWS Certificate Manager SSL Certificate to associate with the Load Balancer',
+              ParameterKey: 'ACMSSLCertARN',
+            },
+          ],
+        }),
+      );
+
+      // OPERATE, CHECK
+      await expect(step.checkPendingEnvWithSSLCert(envScService, envTypeService, requestContext)).resolves.toEqual(
+        true,
+      );
     });
   });
 });

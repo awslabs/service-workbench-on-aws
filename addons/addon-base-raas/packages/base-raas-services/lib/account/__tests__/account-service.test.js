@@ -40,6 +40,7 @@ const AccountService = require('../account-service');
 // Tested Methods: provisionAccount, update, delete
 describe('accountService', () => {
   let service = null;
+  let settingsService = null;
   let dbService = null;
   let wfService = null;
   const error = { code: 'ConditionalCheckFailedException' };
@@ -56,6 +57,7 @@ describe('accountService', () => {
     await container.initServices();
 
     service = await container.find('accountService');
+    settingsService = await container.find('settings');
     dbService = await container.find('dbService');
     wfService = await container.find('workflowTriggerService');
     service.assertAuthorized = jest.fn();
@@ -71,42 +73,7 @@ describe('accountService', () => {
   });
 
   describe('provisionAccount tests', () => {
-    it('should fail to create account with no credentials', async () => {
-      // BUILD
-      // OPERATE
-      try {
-        await service.provisionAccount({}, {});
-        expect.hasAssertions();
-      } catch (err) {
-        // CHECK
-        expect(err.message).toEqual('Input has validation errors');
-      }
-    });
-
-    it('should fail to create account with partial credentials', async () => {
-      // BUILD
-      const dataMissing = {
-        accountName: 'Winston Bishop',
-        accountEmail: 'beanbagchair@example.com',
-        masterRoleArn: '',
-        externalId: '',
-        description: '',
-      };
-
-      // OPERATE
-      try {
-        await service.provisionAccount({}, dataMissing);
-        expect.hasAssertions();
-      } catch (err) {
-        // CHECK
-        expect(err.message).toEqual(
-          'Creating AWS account process has not been correctly configured: missing AWS account ID, VPC ID and VPC Subnet ID.',
-        );
-      }
-    });
-
-    it('should successfully try to provision an account with full credentials', async () => {
-      // BUILD
+    describe('crendentials', () => {
       const iptData = {
         accountName: "Who's that girl?",
         accountEmail: 'itsjest@example.com',
@@ -114,44 +81,168 @@ describe('accountService', () => {
         externalId: '837 Traction Ave',
         description: 'A classic nodejs-lodash mess-around',
       };
-      const outputData = {
+
+      it('should fail to create account with no credentials', async () => {
+        // BUILD
+        // OPERATE
+        try {
+          await service.provisionAccount({}, {});
+          expect.hasAssertions();
+        } catch (err) {
+          // CHECK
+          expect(err.message).toEqual('Input has validation errors');
+        }
+      });
+
+      it('should fail to create account with partial credentials', async () => {
+        // BUILD
+        const inputDataMissing = {
+          ...iptData,
+          masterRoleArn: '',
+          externalId: '',
+          description: '',
+        };
+
+        // OPERATE
+        try {
+          await service.provisionAccount({}, inputDataMissing);
+          expect.hasAssertions();
+        } catch (err) {
+          // CHECK
+          expect(err.message).toEqual(
+            'Creating AWS account process has not been correctly configured: missing AWS account ID, VPC ID and VPC Subnet ID.',
+          );
+        }
+      });
+
+      it('should successfully try to provision an account with full credentials', async () => {
+        // BUILD
+        const fullIptData = { ...iptData };
+        const outputData = {
+          accountName: "Who's that girl?",
+          accountEmail: 'itsjest@example.com',
+          masterRoleArn: 'reagan :/',
+          externalId: '837 Traction Ave',
+          description: 'A classic nodejs-lodash mess-around',
+          callerAccountId: '111111111111',
+        };
+        service.audit = jest.fn();
+        wfService.triggerWorkflow = jest.fn();
+        AWSMock.mock('STS', 'getCallerIdentity', {
+          UserId: 'Jeet',
+          Account: '111111111111',
+          Arn: 'arn:aws:sts::111111111111:assumed-role/Jeet/Jeet',
+        });
+
+        // OPERATE
+        await service.provisionAccount({}, fullIptData);
+
+        // CHECK
+        expect(wfService.triggerWorkflow).toHaveBeenCalledWith(
+          {},
+          {
+            workflowId: 'wf-provision-account',
+          },
+          expect.objectContaining(outputData),
+        );
+        expect(service.audit).toHaveBeenCalledWith(
+          {},
+          {
+            action: 'provision-account',
+            body: {
+              accountName: "Who's that girl?",
+              accountEmail: 'itsjest@example.com',
+              description: 'A classic nodejs-lodash mess-around',
+            },
+          },
+        );
+      });
+    });
+    describe('AppStream', () => {
+      const iptData = {
         accountName: "Who's that girl?",
         accountEmail: 'itsjest@example.com',
         masterRoleArn: 'reagan :/',
         externalId: '837 Traction Ave',
         description: 'A classic nodejs-lodash mess-around',
-        callerAccountId: '111111111111',
+        appStreamFleetDesiredInstances: '2',
+        appStreamDisconnectTimeoutSeconds: '60',
+        appStreamIdleDisconnectTimeoutSeconds: '600',
+        appStreamMaxUserDurationSeconds: '86400',
+        appStreamImageName: 'SWB_v1',
+        appStreamInstanceType: 'stream.standard.medium',
+        appStreamFleetType: 'ALWAYS_ON',
       };
-      service.audit = jest.fn();
-      wfService.triggerWorkflow = jest.fn();
-      AWSMock.mock('STS', 'getCallerIdentity', {
-        UserId: 'Jeet',
-        Account: '111111111111',
-        Arn: 'arn:aws:sts::111111111111:assumed-role/Jeet/Jeet',
+      it('should fail to create account without required AppStream params', async () => {
+        // BUILD
+        const inputMissingAppStreamData = {
+          ...iptData,
+        };
+        delete inputMissingAppStreamData.appStreamImageName;
+        delete inputMissingAppStreamData.appStreamInstanceType;
+
+        settingsService.getBoolean = jest.fn(key => {
+          if (key === 'isAppStreamEnabled') {
+            return true;
+          }
+          return undefined;
+        });
+
+        // OPERATE && CHECK
+        await expect(service.provisionAccount({}, inputMissingAppStreamData)).rejects.toThrow(
+          'Not all required App Stream params are defined. These params need to be defined: appStreamImageName,appStreamInstanceType',
+        );
       });
 
-      // OPERATE
-      await service.provisionAccount({}, iptData);
+      it('should successfully try to provision an account with full all provided AppStream params', async () => {
+        // BUILD
+        const inputFullData = { ...iptData };
+        const outputData = {
+          accountName: "Who's that girl?",
+          accountEmail: 'itsjest@example.com',
+          masterRoleArn: 'reagan :/',
+          externalId: '837 Traction Ave',
+          description: 'A classic nodejs-lodash mess-around',
+          callerAccountId: '111111111111',
+        };
+        service.audit = jest.fn();
+        wfService.triggerWorkflow = jest.fn();
+        AWSMock.mock('STS', 'getCallerIdentity', {
+          UserId: 'Jeet',
+          Account: '111111111111',
+          Arn: 'arn:aws:sts::111111111111:assumed-role/Jeet/Jeet',
+        });
 
-      // CHECK
-      expect(wfService.triggerWorkflow).toHaveBeenCalledWith(
-        {},
-        {
-          workflowId: 'wf-provision-account',
-        },
-        expect.objectContaining(outputData),
-      );
-      expect(service.audit).toHaveBeenCalledWith(
-        {},
-        {
-          action: 'provision-account',
-          body: {
-            accountName: "Who's that girl?",
-            accountEmail: 'itsjest@example.com',
-            description: 'A classic nodejs-lodash mess-around',
+        settingsService.get = jest.fn(key => {
+          if (key === 'isAppStreamEnabled') {
+            return 'true';
+          }
+          return undefined;
+        });
+
+        // OPERATE
+        await service.provisionAccount({}, inputFullData);
+
+        // CHECK
+        expect(wfService.triggerWorkflow).toHaveBeenCalledWith(
+          {},
+          {
+            workflowId: 'wf-provision-account',
           },
-        },
-      );
+          expect.objectContaining(outputData),
+        );
+        expect(service.audit).toHaveBeenCalledWith(
+          {},
+          {
+            action: 'provision-account',
+            body: {
+              accountName: "Who's that girl?",
+              accountEmail: 'itsjest@example.com',
+              description: 'A classic nodejs-lodash mess-around',
+            },
+          },
+        );
+      });
     });
   });
 

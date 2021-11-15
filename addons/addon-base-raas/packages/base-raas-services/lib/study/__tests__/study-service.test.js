@@ -387,6 +387,47 @@ describe('studyService', () => {
         expect.objectContaining({ boom: true, code: 'badRequest', safe: true, message: 'Input has validation errors' }),
       );
     });
+
+    it('should fail due to egress store feautre is enabled and access type is readwrite', async () => {
+      // BUILD
+      service._settings = {
+        getBoolean: settingName => {
+          if (settingName === 'enableEgressStore') {
+            return true;
+          }
+          return undefined;
+        },
+      };
+      const uid = 'u-currentUserId';
+      const requestContext = {
+        principalIdentifier: { uid },
+        principal: { isAdmin: true, userRole: 'admin', status: 'active' },
+      };
+      const accountEntity = {};
+      const bucketEntity = {};
+      const rawStudyEntity = {
+        id: 'study-1',
+        name: 'study-1',
+        category: 'Organization',
+        description: 'valid',
+        projectId: 'project1',
+        folder: 'folder',
+        kmsArn: 'arn:aws:kms:us-east-1:123456789101:key/2e3c97b6-8bb3-4cf8-bc77-d56ebf84test',
+        kmsScope: 'bucket',
+        adminUsers: ['admin'],
+        accessType: 'readwrite',
+      };
+      // OPERATE
+      await expect(service.register(requestContext, accountEntity, bucketEntity, rawStudyEntity)).rejects.toThrow(
+        // CHECK
+        expect.objectContaining({
+          boom: true,
+          code: 'forbidden',
+          safe: true,
+          message: 'Only READ access type is allowed when egress data feature is enabled',
+        }),
+      );
+    });
   });
 
   describe('create', () => {

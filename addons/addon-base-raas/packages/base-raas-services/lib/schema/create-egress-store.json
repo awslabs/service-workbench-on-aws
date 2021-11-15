@@ -1,0 +1,116 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "projectId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100,
+      "pattern": "^[A-Za-z0-9-_]+$"
+    },
+    "rev": {
+      "type": "number",
+      "minimum": 0
+    },
+    "inWorkflow": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048,
+      "description": "Mark true for environment in workflow to exclude it from status poll and sync"
+    },
+    "status": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "cidr": {
+      "type": "string",
+      "pattern": "^(?:([0-9]{1,3}\\.){3}[0-9]{1,3}(\\/([0-9]|[1-2][0-9]|3[0-2]))?)?$"
+    },
+    "createdAt": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "updatedBy": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "createdBy": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "studyIds": {
+      "type": "array",
+      "items": [
+        {
+          "type": "string",
+          "minLength": 1
+        }
+      ]
+    },
+    "updatedAt": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "indexId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200,
+      "pattern": "^[A-Za-z0-9-_ ]+$"
+    },
+    "envTypeConfigId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "envTypeId": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2048
+    },
+    "hasConnections": { "type": "boolean" },
+    "studyRoles": {
+      "type": "object",
+      "properties": {},
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "projectId",
+    "rev",
+    "inWorkflow",
+    "status",
+    "createdAt",
+    "updatedBy",
+    "createdBy",
+    "name",
+    "studyIds",
+    "updatedAt",
+    "indexId",
+    "description",
+    "id",
+    "envTypeConfigId",
+    "envTypeId",
+    "hasConnections"
+  ]
+}

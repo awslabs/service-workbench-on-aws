@@ -36,6 +36,7 @@ const inPayloadKeys = {
 
 const settingKeys = {
   envMgmtRoleArn: 'envMgmtRoleArn',
+  isAppStreamEnabled: 'isAppStreamEnabled',
 };
 
 const pluginConstants = {
@@ -68,11 +69,10 @@ class TerminateLaunchDependency extends StepBase {
   }
 
   async start() {
-    const [requestContext, envId, externalId, existingEnvironmentStatus] = await Promise.all([
+    const [requestContext, envId, externalId] = await Promise.all([
       this.payloadOrConfig.object(inPayloadKeys.requestContext),
       this.payloadOrConfig.string(inPayloadKeys.envId),
       this.payloadOrConfig.string(inPayloadKeys.externalId),
-      this.payloadOrConfig.string(inPayloadKeys.existingEnvironmentStatus),
     ]);
     const [albService, environmentScService, lockService, environmentScCidrService] = await this.mustFindServices([
       'albService',
@@ -82,20 +82,16 @@ class TerminateLaunchDependency extends StepBase {
     ]);
     const environment = await environmentScService.mustFind(requestContext, { id: envId });
     const projectId = environment.projectId;
-    const awsAccountId = await albService.findAwsAccountId(requestContext, projectId);
-    // Locking the ALB termination to avoid race condiitons on parallel provisioning.
-    // expiresIn is set to 10 minutes. attemptsCount is set to 1200 to retry after 1 seconds for 20 minutes
-    const lock = await lockService.tryWriteLock(
-      { id: `alb-update-${awsAccountId}`, expiresIn: 1200 },
-      { attemptsCount: 1200 },
-    );
-    this.print({
-      msg: `obtained lock - ${lock}`,
-    });
-    if (_.isUndefined(lock)) throw new Error('Could not obtain a lock');
-    this.state.setKey('ALB_LOCK', lock);
+
     // Setting project id to use while polling for status
     this.state.setKey('PROJECT_ID', projectId);
+
+    // creating resolvedvars object with the necessary Metadata
+    const resolvedVars = {
+      projectId,
+      externalId,
+    };
+
     // convert output array to object. Return {} if no outputs found
     const environmentOutputs = await this.cfnOutputsArrayToObject(_.get(environment, 'outputs', []));
     const connectionType = _.get(environmentOutputs, 'MetaConnection1Type', '');
@@ -104,10 +100,31 @@ class TerminateLaunchDependency extends StepBase {
       const [environmentDnsService] = await this.mustFindServices(['environmentDnsService']);
       const albExists = await albService.checkAlbExists(requestContext, projectId);
       const deploymentItem = await albService.getAlbDetails(requestContext, projectId);
+      const deploymentValue = JSON.parse(deploymentItem.value);
+      const dnsName = deploymentValue.albDnsName;
+
       if (albExists) {
         try {
-          const dnsName = JSON.parse(deploymentItem.value).albDnsName;
-          await environmentDnsService.deleteRecord('rstudio', envId, dnsName);
+          const isAppStreamEnabled = this.checkIfAppStreamEnabled();
+          if (isAppStreamEnabled) {
+            const memberAccount = await environmentScService.getMemberAccount(requestContext, environment);
+            const albHostedZoneId = await albService.getAlbHostedZoneID(
+              requestContext,
+              resolvedVars,
+              deploymentValue.albArn,
+            );
+            await environmentDnsService.deletePrivateRecordForDNS(
+              requestContext,
+              'rstudio',
+              envId,
+              albHostedZoneId,
+              dnsName,
+              memberAccount.route53HostedZone,
+            );
+          } else {
+            await environmentDnsService.deleteRecord('rstudio', envId, dnsName);
+          }
+
           this.print({
             msg: 'Route53 record deleted successfully',
           });
@@ -119,7 +136,7 @@ class TerminateLaunchDependency extends StepBase {
         }
         // Revoke EC2 security group rule with ALB security group ID
         try {
-          const albSecurityGroup = JSON.parse(deploymentItem.value).albSecurityGroup;
+          const albSecurityGroup = deploymentValue.albSecurityGroup;
           const instanceSecurityGroup = _.get(environmentOutputs, 'InstanceSecurityGroupId', '');
           const updateRule = {
             fromPort: 443,
@@ -143,14 +160,12 @@ class TerminateLaunchDependency extends StepBase {
       const ruleArn = _.get(environmentOutputs, 'ListenerRuleARN', null);
       // Skipping rule deletion for the cases where the product provisioing failed before creating rule
       // Termination should not be affected in such scenarios
-      if (ruleArn) {
+      if (!_.isEmpty(ruleArn)) {
         try {
-          // creating resolvedvars object with the necessary Metadata
-          const resolvedVars = {
-            projectId,
-            externalId,
-          };
-          await albService.deleteListenerRule(requestContext, resolvedVars, ruleArn);
+          await lockService.tryWriteLockAndRun({ id: `alb-rule-${deploymentItem.id}` }, async () => {
+            const listenerArn = deploymentValue.listenerArn;
+            await albService.deleteListenerRule(requestContext, resolvedVars, ruleArn, listenerArn);
+          });
           this.print({
             msg: 'Listener rule deleted successfully',
           });
@@ -166,19 +181,27 @@ class TerminateLaunchDependency extends StepBase {
     // Because failed products will not have outputs stored
     const templateOutputs = await this.getTemplateOutputs(requestContext, environment.envTypeId);
     const needsAlb = _.get(templateOutputs.NeedsALB, 'Value', false);
-    if (needsAlb) {
-      // Dont decrease count for failed products
-      if (!_.includes(['FAILED', 'TERMINATING_FAILED'], existingEnvironmentStatus)) {
-        await albService.decreaseAlbDependentWorkspaceCount(requestContext, projectId);
-      }
-      // eslint-disable-next-line no-return-await
-      return await this.checkAndTerminateAlb(requestContext, projectId, externalId);
-    }
-    this.print({
-      msg: `Needs ALB Flag does not exists, skipping ALB termination`,
-    });
+    if (!needsAlb) return null;
 
-    return null;
+    const awsAccountId = await albService.findAwsAccountId(requestContext, projectId);
+    // Locking the ALB termination to avoid race conditions on parallel provisioning.
+    // expiresIn is set to 10 minutes. attemptsCount is set to 1200 to retry after 1 seconds for 20 minutes
+    const lock = await lockService.tryWriteLock(
+      { id: `alb-update-${awsAccountId}`, expiresIn: 1200 },
+      { attemptsCount: 1200 },
+    );
+    if (_.isUndefined(lock)) throw new Error('Could not obtain a lock');
+    this.print({
+      msg: `obtained lock - ${lock}`,
+    });
+    this.state.setKey('ALB_LOCK', lock);
+
+    // eslint-disable-next-line no-return-await
+    return await this.checkAndTerminateAlb(requestContext, projectId, externalId);
+  }
+
+  checkIfAppStreamEnabled() {
+    return this.settings.getBoolean(settingKeys.isAppStreamEnabled);
   }
 
   /**
@@ -190,10 +213,19 @@ class TerminateLaunchDependency extends StepBase {
    * @returns {Promise<>}
    */
   async checkAndTerminateAlb(requestContext, projectId, externalId) {
-    const [albService] = await this.mustFindServices(['albService']);
+    const [albService, environmentScService, envTypeService] = await this.mustFindServices([
+      'albService',
+      'environmentScService',
+      'envTypeService',
+    ]);
     const count = await albService.albDependentWorkspacesCount(requestContext, projectId);
     const albExists = await albService.checkAlbExists(requestContext, projectId);
-    if (count <= 0 && albExists) {
+    const pendingEnvWithSSLCert = await this.checkPendingEnvWithSSLCert(
+      environmentScService,
+      envTypeService,
+      requestContext,
+    );
+    if (count === 0 && albExists && !pendingEnvWithSSLCert) {
       this.print({
         msg: 'Last ALB Dependent workspace is being terminated. Terminating ALB',
       });
@@ -203,11 +235,38 @@ class TerminateLaunchDependency extends StepBase {
       const [albLock] = await Promise.all([this.state.optionalString('ALB_LOCK')]);
       if (albLock) {
         // eslint-disable-next-line no-return-await
-        return await this.terminateStack(requestContext, projectId, externalId, albRecord.albStackName);
+        return await this.terminateStack(requestContext, projectId, externalId, albRecord);
       }
       throw new Error(`Error terminating environment. Reason: ALB lock does not exist or expired`);
     }
     return null;
+  }
+
+  async checkPendingEnvWithSSLCert(environmentScService, envTypeService, requestContext) {
+    const envs = await environmentScService.list(requestContext);
+    const pendingEnvTypeIds = envs
+      .filter(env => {
+        return env.status === environmentStatusEnum.PENDING;
+      })
+      .map(env => {
+        return env.envTypeId;
+      });
+    const envTypeOfPendingEnvs = await Promise.all(
+      pendingEnvTypeIds.map(envTypeId => {
+        return envTypeService.mustFind(requestContext, { id: envTypeId });
+      }),
+    );
+    const response = envTypeOfPendingEnvs.some(envType => {
+      if (envType.params) {
+        return (
+          envType.params.find(param => {
+            return param.ParameterKey === 'ACMSSLCertARN';
+          }) !== undefined
+        );
+      }
+      return false;
+    });
+    return response;
   }
 
   /**
@@ -216,10 +275,11 @@ class TerminateLaunchDependency extends StepBase {
    * @param requestContext
    * @param projectId
    * @param externalId
-   * @param stackName
+   * @param albDetails
    * @returns {Promise<>}
    */
-  async terminateStack(requestContext, projectId, externalId, stackName) {
+  async terminateStack(requestContext, projectId, externalId, albDetails) {
+    const stackName = albDetails.albStackName;
     const cfn = await this.getCloudFormationService(requestContext, projectId, externalId);
     const params = {
       StackName: stackName,
@@ -262,6 +322,19 @@ class TerminateLaunchDependency extends StepBase {
       externalId,
     });
     return cfnClient;
+  }
+
+  /**
+   * Method to get appstream security group ID for the target aws account
+   *
+   * @param requestContext
+   * @param resolvedVars
+   * @returns {Promise<string>}
+   */
+  async getAppStreamSecurityGroupId(requestContext, resolvedVars) {
+    const [albService] = await this.mustFindServices(['albService']);
+    const { appStreamSecurityGroupId } = await albService.findAwsAccountDetails(requestContext, resolvedVars.projectId);
+    return appStreamSecurityGroupId;
   }
 
   /**
@@ -324,14 +397,20 @@ class TerminateLaunchDependency extends StepBase {
    * @returns {Promise<string>}
    */
   async getS3Object(bucketName, key) {
-    const [aws] = await this.mustFindServices(['aws']);
-    const s3Client = new aws.sdk.S3();
-    const params = {
-      Bucket: bucketName,
-      Key: key,
-    };
-    const data = await s3Client.getObject(params).promise();
-    return data.Body.toString('utf-8');
+    try {
+      const [aws] = await this.mustFindServices(['aws']);
+      const s3Client = new aws.sdk.S3();
+      const params = {
+        Bucket: bucketName,
+        Key: key,
+      };
+      const data = await s3Client.getObject(params).promise();
+      return data.Body.toString('utf-8');
+    } catch (e) {
+      throw new Error(
+        `Error encountered while trying to read product template from S3: ${e}. Bucket: ${bucketName}, key: ${key}`,
+      );
+    }
   }
 
   /**

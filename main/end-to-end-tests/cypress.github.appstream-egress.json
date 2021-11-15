@@ -1,0 +1,43 @@
+{
+  "chromeWebSecurity": true,
+  "viewportWidth": 1400,
+  "viewportHeight": 1000,
+  "video": false,
+  "env": {
+    "isAppStreamEnabled": true,
+    "isCognitoEnabled": false,
+    "workspaces": {
+      "sagemaker": {
+        "workspaceTypeName": "SageMaker Notebook-v2",
+        "configuration": "AppStream-SageMaker",
+        "projectId": "TRE-Project"
+      },
+      "ec2": {
+        "linux": {
+          "workspaceTypeName": "EC2 Linux-v2",
+          "configuration": "AppStream-Linux",
+          "projectId": "TRE-Project"
+        },
+        "windows": {
+          "workspaceTypeName": "EC2 Windows-v2",
+          "configuration": "AppStream-Windows",
+          "projectId": "TRE-Project"
+        }
+      }
+    },
+    "studies": {
+      "organizations": [
+        {
+          "name": "org-study-1",
+          "researcherIsAdmin": true
+        },
+        {
+          "name": "org-study-2",
+          "researcherIsAdmin": false
+        }
+      ]
+    }
+  },
+  "defaultCommandTimeout": 90000,
+  "watchForFileChanges": false
+}

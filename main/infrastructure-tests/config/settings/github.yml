@@ -1,0 +1,15 @@
+# The AWS region where the service workbench application is deployed
+awsRegion: us-east-1
+
+# Make sure that the solutionName matches the one you are using in /main/config/settings
+solutionName: sw
+
+# Required. Usually, this is the same as the stage name that you used when you deployed the service
+# workbench application
+envName: tre
+
+# Make sure that the envType matches the one you are using in /main/config/settings
+envType: secure
+
+# ExternalId set for the trust relationship of the assumed role in the hosting account. By default it's `workbench`
+externalId: workbench

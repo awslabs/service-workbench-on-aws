@@ -27,6 +27,8 @@ const updateSchema = require('../schema/update-aws-accounts');
 const settingKeys = {
   tableName: 'dbAwsAccounts',
   environmentInstanceFiles: 'environmentInstanceFiles',
+  isAppStreamEnabled: 'isAppStreamEnabled',
+  swbMainAccount: 'mainAcct',
 };
 
 class AwsAccountsService extends Service {
@@ -39,6 +41,8 @@ class AwsAccountsService extends Service {
       'lockService',
       's3Service',
       'auditWriterService',
+      'pluginRegistryService',
+      'aws',
     ]);
   }
 
@@ -138,7 +142,6 @@ class AwsAccountsService extends Service {
         Version: '2012-10-17',
         Statement: [...securityStatements, listStatement, getStatement],
       });
-
       return s3Client.putBucketPolicy({ Bucket: s3BucketName, Policy }).promise();
     });
   }
@@ -161,7 +164,18 @@ class AwsAccountsService extends Service {
     const id = uuid();
 
     // Prepare the db object
-    const dbObject = this._fromRawToDbObject(rawData, { rev: 0, createdBy: by, updatedBy: by });
+    const dbObject = this._fromRawToDbObject(rawData, {
+      rev: 0,
+      createdBy: by,
+      updatedBy: by,
+      permissionStatus: rawData.permissionStatus || 'NEEDS_ONBOARD',
+    });
+
+    const accountId = rawData.accountId;
+    const appStreamImageName = rawData.appStreamImageName;
+    if (this.shouldShareAppStreamImageWithMemberAccount(accountId, appStreamImageName)) {
+      await this.shareAppStreamImageWithMemberAccount(requestContext, accountId, appStreamImageName);
+    }
 
     // Time to save the the db object
     const result = await runAndCatch(
@@ -183,6 +197,38 @@ class AwsAccountsService extends Service {
     await this.audit(requestContext, { action: 'create-aws-account', body: result });
 
     return result;
+  }
+
+  shouldShareAppStreamImageWithMemberAccount(accountId, appStreamImageName) {
+    // Only try to shareAppStreamImage with member account if AppStream is enabled and appStreamImageName is provided
+    // and also that the main account ID is not equal to the member account being added
+    const mainAccountId = this.settings.get(settingKeys.swbMainAccount);
+    return (
+      this.settings.getBoolean(settingKeys.isAppStreamEnabled) &&
+      appStreamImageName !== undefined &&
+      mainAccountId !== accountId
+    );
+  }
+
+  // We're creating our own private method here instead of using appstream-sc-service because of a circular dependency between
+  // aws-account-service and appstream-sc-service
+  async shareAppStreamImageWithMemberAccount(requestContext, memberAccountId, appStreamImageName) {
+    await this.assertAuthorized(requestContext, {
+      action: 'shareAppStreamImageWithMemberAccount',
+      conditions: [allowIfActive, allowIfAdmin],
+    });
+    const aws = await this.service('aws');
+    const appStream = await new aws.sdk.AppStream({ apiVersion: '2016-12-01' });
+    const params = {
+      ImagePermissions: {
+        allowFleet: true,
+        allowImageBuilder: false,
+      },
+      Name: appStreamImageName,
+      SharedAccountId: memberAccountId,
+    };
+
+    await appStream.updateImagePermissions(params).promise();
   }
 
   async ensureExternalAccount(requestContext, rawData) {
@@ -227,6 +273,25 @@ class AwsAccountsService extends Service {
     return result;
   }
 
+  async checkForActiveNonAppStreamEnvs(requestContext, awsAccountId) {
+    if (!this.settings.getBoolean(settingKeys.isAppStreamEnabled)) return;
+
+    const pluginRegistryService = await this.service('pluginRegistryService');
+    const activeNonAppStreamEnvs = await pluginRegistryService.visitPlugins(
+      'aws-account-mgmt',
+      'getActiveNonAppStreamEnvs',
+      {
+        payload: { requestContext, container: this.container, awsAccountId },
+      },
+    );
+
+    if (!_.isEmpty(activeNonAppStreamEnvs))
+      throw this.boom.badRequest(
+        'This account has active non-AppStream environments. Please terminate them and retry this operation',
+        true,
+      );
+  }
+
   async update(requestContext, rawData) {
     // ensure that the caller has permissions to update the account
     // Perform default condition checks to make sure the user is active and is admin
@@ -243,6 +308,16 @@ class AwsAccountsService extends Service {
     // For now, we assume that 'updatedBy' is always a user and not a group
     const by = _.get(requestContext, 'principalIdentifier.uid');
     const { id, rev } = rawData;
+
+    // Verify active Non-AppStream environments do not exist
+    await this.checkForActiveNonAppStreamEnvs(requestContext, id);
+
+    const awsAccount = await this.mustFind(requestContext, { id });
+    const accountId = awsAccount.accountId;
+    const appStreamImageName = rawData.appStreamImageName;
+    if (this.shouldShareAppStreamImageWithMemberAccount(accountId, appStreamImageName)) {
+      await this.shareAppStreamImageWithMemberAccount(requestContext, accountId, appStreamImageName);
+    }
 
     // Prepare the db object
     const dbObject = _.omit(this._fromRawToDbObject(rawData, { updatedBy: by }), ['rev']);

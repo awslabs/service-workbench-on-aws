@@ -2,6 +2,12 @@ Conditions:
   IsDev: !Equals ['${self:custom.settings.envType}', 'dev']
   UseCustomDomain: !Not
     - !Equals ['${self:custom.settings.domainName}', '']
+  UseHostedZoneId: !Not
+    - !Equals ['${self:custom.settings.hostedZoneId}', '']
+  CustomDomainWithoutHostedZoneId: !And
+    - !Not
+      - !Equals ['${self:custom.settings.domainName}', '']
+    - !Equals ['${self:custom.settings.hostedZoneId}', '']
 
 Description: (SO0144) Service Workbench on AWS Solution
 
@@ -168,7 +174,7 @@ Resources:
 
   HostedZone:
     Type: AWS::Route53::HostedZone
-    Condition: UseCustomDomain
+    Condition: CustomDomainWithoutHostedZoneId
     DeletionPolicy: Retain
     Properties:
       Name: ${self:custom.settings.domainName}
@@ -177,7 +183,12 @@ Resources:
     Type: AWS::Route53::RecordSetGroup
     Condition: UseCustomDomain
     Properties:
-      HostedZoneId: !Ref HostedZone
+      # Blank hosted zone ID in stage file creates a new one
+      # This is to ensure backwards compatibility
+      HostedZoneId: !If
+        - UseHostedZoneId
+        - ${self:custom.settings.hostedZoneId}
+        - !Ref HostedZone
       RecordSets:
         - Name: ${self:custom.settings.domainName}
           Type: A
@@ -206,8 +217,9 @@ Outputs:
     Value: !Ref WebsiteCloudFront
 
   HostedZoneId:
+    Condition: UseCustomDomain
     Description: Id of the hosted zone created when a custom domain is used
     Value: !If
-      - UseCustomDomain
+      - UseHostedZoneId
+      - ${self:custom.settings.hostedZoneId}
       - !Ref HostedZone
-      - 'NotSetAsCustomDomainDisabled'
