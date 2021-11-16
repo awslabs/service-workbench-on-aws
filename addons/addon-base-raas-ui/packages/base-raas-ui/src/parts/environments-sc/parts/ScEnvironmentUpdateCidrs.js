@@ -187,8 +187,8 @@ class ScEnvironmentUpdateCidrs extends React.Component {
 
     const validateMaxRStudioCidr = () => {
       let status = false;
-      const eEnvOutputs = this.environment.outputs;
-      const metaConnection1Type = eEnvOutputs.find(obj => obj.OutputKey === 'MetaConnection1Type');
+      const envOutputs = this.environment.outputs;
+      const metaConnection1Type = envOutputs.find(obj => obj.OutputKey === 'MetaConnection1Type');
       if (metaConnection1Type) {
         const productName = metaConnection1Type.OutputValue;
         if (productName === 'RStudioV2') {
