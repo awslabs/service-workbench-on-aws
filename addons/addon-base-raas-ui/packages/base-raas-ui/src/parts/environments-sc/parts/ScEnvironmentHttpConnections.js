@@ -247,6 +247,7 @@ class ScEnvironmentHttpConnections extends React.Component {
                   disabled={isDisabled(item.id)}
                   loading={isLoading(item.id)}
                   onClick={this.handleConnect(item.id)}
+                  data-testid="connect-to-workspace-button"
                 >
                   Connect
                 </Button>
