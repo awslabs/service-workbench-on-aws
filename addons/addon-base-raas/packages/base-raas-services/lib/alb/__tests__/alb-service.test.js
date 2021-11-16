@@ -818,7 +818,6 @@ describe('ALBService', () => {
           },
         };
       });
-
       const response = await service.calculateRulePriority({}, {}, '');
       expect(response).toEqual(1);
     });
@@ -833,7 +832,6 @@ describe('ALBService', () => {
           },
         };
       });
-
       const response = await service.calculateRulePriority({}, {}, '');
       expect(response).toEqual(3);
     });
