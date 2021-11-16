@@ -194,81 +194,83 @@ describe('EnvironmentDnsService', () => {
     });
   });
 
-  it('should call changeResourceRecordSetsPrivateALB', async () => {
-    // BUILD
-    const requestContext = { principalIdentifier: { uid: 'u-testuser' } };
-    environmentScService.getClientSdkWithEnvMgmtRole = jest.fn(() => {
-      return {};
+  describe('Test changePrivateRecordSetALB', () => {
+    it('should call changeResourceRecordSetsPrivateALB', async () => {
+      // BUILD
+      const requestContext = { principalIdentifier: { uid: 'u-testuser' } };
+      environmentScService.getClientSdkWithEnvMgmtRole = jest.fn(() => {
+        return {};
+      });
+
+      service.changeResourceRecordSetsPrivateALB = jest.fn();
+
+      // OPERATE
+      await service.changePrivateRecordSetALB(
+        requestContext,
+        'ACTION',
+        'rstudio',
+        'test-id',
+        'sampleHostedZoneId',
+        'samplealbHostedZoneId',
+        'sampleRecordValue',
+      );
+
+      // CHECK
+      expect(service.changeResourceRecordSetsPrivateALB).toHaveBeenCalledTimes(1);
+      expect(service.changeResourceRecordSetsPrivateALB).toHaveBeenCalledWith(
+        {},
+        'sampleHostedZoneId',
+        'ACTION',
+        `rstudio-test-id.test.aws`,
+        'samplealbHostedZoneId',
+        'sampleRecordValue',
+      );
     });
-
-    service.changeResourceRecordSetsPrivateALB = jest.fn();
-
-    // OPERATE
-    await service.changePrivateRecordSetALB(
-      requestContext,
-      'ACTION',
-      'rstudio',
-      'test-id',
-      'sampleHostedZoneId',
-      'samplealbHostedZoneId',
-      'sampleRecordValue',
-    );
-
-    // CHECK
-    expect(service.changeResourceRecordSetsPrivateALB).toHaveBeenCalledTimes(1);
-    expect(service.changeResourceRecordSetsPrivateALB).toHaveBeenCalledWith(
-      {},
-      'sampleHostedZoneId',
-      'ACTION',
-      `rstudio-test-id.test.aws`,
-      'samplealbHostedZoneId',
-      'sampleRecordValue',
-    );
   });
-});
 
-describe('Test changeResourceRecordSetsPrivateALB', () => {
-  it('should call changeResourceRecordSets', async () => {
-    // BUILD
-    const route53Client = jest.fn();
-    route53Client.changeResourceRecordSets = jest.fn(() => {
-      return {
-        promise: jest.fn(),
-      };
-    });
+  describe('Test changeResourceRecordSetsPrivateALB', () => {
+    it('should call changeResourceRecordSets', async () => {
+      // BUILD
+      const route53Client = jest.fn();
+      route53Client.changeResourceRecordSets = jest.fn(() => {
+        return {
+          promise: jest.fn(),
+        };
+      });
 
-    const params = {
-      HostedZoneId: 'sampleHostedZoneId',
-      ChangeBatch: {
-        Changes: [
-          {
-            Action: 'ACTION',
-            ResourceRecordSet: {
-              Name: 'rstudio-test-id.test.aws',
-              Type: 'A',
-              AliasTarget: {
-                HostedZoneId: 'samplealbHostedZoneId',
-                DNSName: 'dualstack.sampleRecordValue',
-                EvaluateTargetHealth: false,
+      const params = {
+        HostedZoneId: 'sampleHostedZoneId',
+        ChangeBatch: {
+          Changes: [
+            {
+              Action: 'ACTION',
+              ResourceRecordSet: {
+                Name: 'rstudio-test-id.test.aws',
+                Type: 'A',
+                AliasTarget: {
+                  HostedZoneId: 'samplealbHostedZoneId',
+                  DNSName: 'dualstack.sampleRecordValue',
+                  EvaluateTargetHealth: false,
+                },
               },
             },
-          },
-        ],
-      },
-    };
+          ],
+        },
+      };
 
-    // OPERATE
-    await service.changeResourceRecordSetsPrivateALB(
-      route53Client,
-      'sampleHostedZoneId',
-      'ACTION',
-      'rstudio-test-id.test.aws',
-      'samplealbHostedZoneId',
-      'sampleRecordValue',
-    );
+      // OPERATE
+      await service.changeResourceRecordSetsPrivateALB(
+        route53Client,
+        'sampleHostedZoneId',
+        'ACTION',
+        'rstudio-test-id.test.aws',
+        'samplealbHostedZoneId',
+        'sampleRecordValue',
+      );
 
-    // CHECK
-    expect(route53Client.changeResourceRecordSets).toHaveBeenCalledTimes(1);
-    expect(route53Client.changeResourceRecordSets).toHaveBeenCalledWith(params);
+      // CHECK
+      expect(route53Client.changeResourceRecordSets).toHaveBeenCalledTimes(1);
+      expect(route53Client.changeResourceRecordSets).toHaveBeenCalledWith(params);
+    });
   });
 });
