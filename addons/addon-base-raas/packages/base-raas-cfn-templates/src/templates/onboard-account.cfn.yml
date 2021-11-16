@@ -1034,6 +1034,7 @@ Outputs:
     Value: !GetAtt [CfnStatusRole, Arn]
 
   PublicRouteTableId:
+    Condition: isNotAppStream
     Description: The public route table assigned to the workspace VPC
     Value: !Ref PublicRouteTable
 
