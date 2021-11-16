@@ -106,7 +106,7 @@ class Setup {
     // so it has to stay active throughout the test suite duration.
     // Therefore the buffer time (in minutes) should be the longest time taken by any single test suite
     // If the current token has less than the buffer minutes remaining, we create a new one.
-    const bufferInMinutes = 10;
+    const bufferInMinutes = 25;
     const tokenExpired = (expiresAt - Date.now()) / 60 / 1000 < bufferInMinutes;
 
     // Only create a new client session if we haven't done that already or if the token has expired
@@ -152,6 +152,10 @@ class Setup {
       emr: {
         envTypeId: this.settings.get('emrEnvTypeId'),
         envTypeConfigId: this.settings.get('emrConfigId'),
+      },
+      rstudio: {
+        envTypeId: this.settings.get('rstudioServerId'),
+        envTypeConfigId: this.settings.get('rstudioServerConfigId'),
       },
     };
 

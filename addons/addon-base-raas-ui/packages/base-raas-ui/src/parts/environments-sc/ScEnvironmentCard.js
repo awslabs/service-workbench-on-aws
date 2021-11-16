@@ -119,6 +119,7 @@ class ScEnvironmentCard extends React.Component {
 
     const config = this.getConfiguration(this.environment.envTypeConfigId);
 
+
     const renderRow = (key, value) => (
       <Table.Row>
         <Table.Cell width={5}>{key}</Table.Cell>

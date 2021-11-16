@@ -101,11 +101,7 @@ describe('AwsAccountService', () => {
       Description: 'A reference to the public subnet in the 1st Availability Zone',
     },
     {
-      OutputKey: 'PublicRouteTableId',
-      OutputValue: 'rtd-samplePublicRouteTableId',
-      Description: 'The public route table assigned to the workspace VPC',
-    },
-    {
+
       OutputKey: 'CrossAccountEnvMgmtRoleArn',
       OutputValue: 'arn:aws:iam::placeholder',
       Description: 'The arn of the cross account role for environment management using AWS Service Catalog',
@@ -486,7 +482,7 @@ describe('AwsAccountService', () => {
         encryptionKeyArn: 'arn:aws:kms:placeholder',
         permissionStatus: 'CURRENT',
         rev: completedAccountMock.rev,
-        publicRouteTableId: 'rtd-samplePublicRouteTableId',
+
       };
 
       awsAccountsService.list.mockImplementationOnce(() => [completedAccountMock]);

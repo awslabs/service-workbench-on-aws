@@ -55,13 +55,14 @@ class WorkspaceServiceCatalog extends Resource {
 
   async cidr(body) {
     const api = `${this.api}/cidr`;
-    const response = await this.doCall(async () => this.axiosClient.put(api, body, {}));
+    const response = await this.doCall(async () => this.axiosClient.post(api, body, { timeout: 60000 }));
 
     await sleep(this.deflakeDelay());
     return response;
   }
 
   async cleanup() {
+    // Comeback to look at deleting from DDB
     const adminSession = await this.setup.defaultAdminSession();
     // Terminate instance
     await adminSession.resources.workspaceServiceCatalogs.workspaceServiceCatalog(this.id).delete();

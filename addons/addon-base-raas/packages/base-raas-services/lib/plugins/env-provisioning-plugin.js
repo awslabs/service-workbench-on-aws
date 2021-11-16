@@ -72,6 +72,7 @@ async function getStudies({ requestContext, container, envId }) {
  */
 async function preProvisioning({ requestContext, container, envId }) {
   const { environmentScEntity, studies } = await getStudies({ requestContext, container, envId });
+
   const environmentScService = await container.find('environmentScService');
   const memberAccount = await environmentScService.getMemberAccount(requestContext, environmentScEntity);
   const pluginRegistryService = await container.find('pluginRegistryService');
@@ -220,6 +221,7 @@ async function updateEnvOnProvisioningSuccess({
   if (connectionType) {
     connectionTypeValue = connectionType.OutputValue;
     if (connectionTypeValue.toLowerCase() === 'rstudio') {
+
       const environmentDnsService = await container.find('environmentDnsService');
       const settings = await container.find('settings');
       if (settings.getBoolean(settingKeys.isAppStreamEnabled)) {

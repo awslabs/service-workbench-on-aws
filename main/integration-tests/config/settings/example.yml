@@ -61,6 +61,9 @@ emrEnvTypeId: "prod-sampleEMR-pa-sampleEMR"
 # Provide the id of a configuration for an imported EMR environment
 emrConfigId: "sampleEMRConfigName"
 
+rstudioServerId: "prod-sampleRStudio-pa-sampleRstudio"
+rstudioServerConfigId: "sampleRStudioConfigName"
+
 # Provide the id of the external BYOB Data Source study
 byobStudy: "sampleByobStudyName"
 # ------- CONFIG VALUES BELOW ONLY REQUIRED FOR TESTS IN "appstream-egress-enabled" FOLDER ------

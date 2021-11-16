@@ -17,6 +17,7 @@ Every user is linked to an **Account** through a **Project** and an **Index**, s
 _**Important:** If you do not need to create new AWS accounts from within Service Workbench, then skip to the next section, 'Add AWS Account' section below._
 
 
+
 ## Create or add compute hosting accounts
 
 After logging in as the root user for the first time, go to the **Accounts** page. 
@@ -30,6 +31,8 @@ Service Workbench uses AWS accounts on this page for launching research workspac
 + **Create AWS Account**: Creates a new AWS account using AWS Organizations.  Note that [Preparing the organizational account](/deployment/reference/prepare_master_account) steps outlined above are a pre-requisite should you require this capability.
 
 + **Add AWS Account**: Associates an existing AWS account for purposes of hosting compute resources.  This account can be responsible for its own billing.
+
+
 
 Every user is linked to an account through a project and an index, so at least one account must be created or added before associating the first user to a project.
 
@@ -67,6 +70,7 @@ To create an account:
          - In AWS Organizations, in the organizational account (see IAM), the new account displays. 
          - In IAM, the new master role is created.
 3.	Once the account is created, it is listed in AWS Accounts.
+
 
 
 
@@ -188,11 +192,14 @@ This section describes the procedure of setting up an AppStream image with the f
 3. Once the Image Builder is launched and ready, choose the URL provided in the terminal console. This opens the AppStream page on the AWS Management Console.
 
 
+
 ### Building AppStream image
 
 <img src={useBaseUrl('img/deployment/post_deployment/buildappstream.png')} />
 
+
 _**Figure: Create an AppStream image**_
+
 
 1. On the AppStream page in the console, choose the AppStream image that was built in the previous step and choose **Connect**.
 2. This opens a new tab in your browser. When prompted, log in as administrator. This opens the Windows Desktop that you can interact with to create your AppStream image.
@@ -222,6 +229,7 @@ You can access the RStudio workspace type by using the template and AMI provided
 ### Application load balancing for RStudio ALB workspace
 
 When you create RStudio Application Load Balancer (ALB) workspace, an ALB is created that can host upto 100 workspaces per hosting account. Per workspace, you can have upto 4 CIDR blocks (IP ranges) for port 443 only. This is updated in the hosting accounts. If there are no ALBs for that hosting account and you have created the very first workspace, then ALB will be created for the first time and it will be common for every workspace that you create subsequently. Once you terminate all the workspaces and you terminate the last workspace for that hosting account, the ALB is deleted. An ALB is created for minimum one active workspace.
+
 
 <img src={useBaseUrl('img/deployment/post_deployment/ALB-1.png')} />
 

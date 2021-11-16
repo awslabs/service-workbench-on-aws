@@ -167,6 +167,7 @@ class ScEnvironmentHttpConnections extends React.Component {
     const state = env.state;
     const canConnect = state.canConnect;
     const connections = this.connections;
+
     if (!canConnect) return null;
 
     return (

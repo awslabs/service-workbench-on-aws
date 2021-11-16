@@ -114,6 +114,7 @@ class CheckLaunchDependency extends StepBase {
     if (_.isUndefined(lock)) throw new Error('Could not obtain a lock');
     this.state.setKey('ALB_LOCK', lock);
 
+
     const maxAlbWorkspacesCount = _.get(
       templateOutputs.MaxCountALBDependentWorkspaces,
       'Value',
