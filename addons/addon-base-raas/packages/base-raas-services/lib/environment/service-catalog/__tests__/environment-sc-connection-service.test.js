@@ -204,7 +204,7 @@ describe('EnvironmentScConnectionService', () => {
       const requestContext = { principal: { isAdmin: true, status: 'active' } };
       try {
         // OPERATE
-        await await service.createPrivateSageMakerUrl(requestContext, 'envId1', connection);
+        await service.createPrivateSageMakerUrl(requestContext, 'envId1', connection);
       } catch (err) {
         // CHECK
         expect(err.message).toEqual('Cannot generate presigned URL for non-sagemaker connection NotSageMaker');
@@ -298,7 +298,7 @@ describe('EnvironmentScConnectionService', () => {
       // OPERATE
       try {
         // OPERATE
-        await await service.createPrivateSageMakerUrl(requestContext, 'envId1', connection, 1);
+        await service.createPrivateSageMakerUrl(requestContext, 'envId1', connection, 1);
       } catch (err) {
         // CHECK
         expect(err.message).toEqual('Could not generate presigned URL');
@@ -557,7 +557,7 @@ describe('EnvironmentScConnectionService', () => {
   describe('RStudio credential encryption', () => {
     it('should pass', async () => {
       // BUILD
-      const connection = { type: 'RStudio', instanceId: 'sampleInstanceId' };
+      const connection = { type: 'RStudioV2', instanceId: 'sampleInstanceId' };
       service.mustFindConnection = jest.fn(() => connection);
       service.getRstudioPublicKey = jest.fn().mockResolvedValue('123:SAMPLEPUBLICKEYHASH');
       envDnsService.getHostname = jest.fn(() => `rstudio-${connection.instanceId}.example.com`);
@@ -605,6 +605,22 @@ jM0re//6SUWx/9VfBLN+6Ul8wcqGR2uCmK/PJpzWYxz0IzhnyA==
         credBuff,
       );
       expect(decryptedCreds.toString('utf8')).toBe(credentials);
+    });
+
+    it('should not pass for legacy RStudio', async () => {
+      // BUILD
+      const connection = { type: 'RStudio', instanceId: 'sampleInstanceId' };
+      service.mustFindConnection = jest.fn(() => connection);
+
+      // OPERATE & CHECK
+      await expect(service.createConnectionUrl({}, 'sampleEnvId', connection)).rejects.toThrow(
+        expect.objectContaining({
+          boom: true,
+          code: 'badRequest',
+          safe: true,
+          message: 'Support for this version of RStudio has been deprecated. Please use RStudioV2 environment type',
+        }),
+      );
     });
   });
 });

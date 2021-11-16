@@ -89,7 +89,7 @@ class ScEnvironmentHttpConnections extends React.Component {
           url = urlObj.url;
 
           if (url) {
-            if (connectInfo.type.toLowerCase() === 'rstudiov2' || connectInfo.type.toLowerCase() === 'rstudio') {
+            if (connectInfo.type.toLowerCase() === 'rstudiov2') {
               const rstudioUrl = url.split('?v=')[0];
               const token = url.split('auth-do-sign-in?')[1];
               const tokenKey = 'v';
