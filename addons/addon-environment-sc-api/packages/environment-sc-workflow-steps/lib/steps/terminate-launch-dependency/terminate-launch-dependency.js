@@ -73,7 +73,6 @@ class TerminateLaunchDependency extends StepBase {
       this.payloadOrConfig.object(inPayloadKeys.requestContext),
       this.payloadOrConfig.string(inPayloadKeys.envId),
       this.payloadOrConfig.string(inPayloadKeys.externalId),
-
     ]);
     const [albService, environmentScService, lockService, environmentScCidrService] = await this.mustFindServices([
       'albService',
@@ -167,8 +166,6 @@ class TerminateLaunchDependency extends StepBase {
             const listenerArn = deploymentValue.listenerArn;
             await albService.deleteListenerRule(requestContext, resolvedVars, ruleArn, listenerArn);
           });
-
-
           this.print({
             msg: 'Listener rule deleted successfully',
           });
@@ -203,10 +200,6 @@ class TerminateLaunchDependency extends StepBase {
     return await this.checkAndTerminateAlb(requestContext, projectId, externalId);
   }
 
-
-
-
-
   checkIfAppStreamEnabled() {
     return this.settings.getBoolean(settingKeys.isAppStreamEnabled);
   }
@@ -233,7 +226,6 @@ class TerminateLaunchDependency extends StepBase {
       requestContext,
     );
     if (count === 0 && albExists && !pendingEnvWithSSLCert) {
-
       this.print({
         msg: 'Last ALB Dependent workspace is being terminated. Terminating ALB',
       });

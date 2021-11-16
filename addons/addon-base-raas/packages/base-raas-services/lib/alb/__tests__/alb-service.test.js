@@ -256,7 +256,6 @@ describe('ALBService', () => {
   });
 
   describe('getStackCreationInput', () => {
-
     const resolvedVars = { namespace: 'namespace' };
 
     it('should pass and return the stack creation input with success for AppStream', async () => {
@@ -277,7 +276,6 @@ describe('ALBService', () => {
       cfnTemplateService.getTemplate.mockImplementationOnce(() => {
         return ['template'];
       });
-
       const apiResponse = {
         StackName: resolvedVars.namespace,
         Parameters: [
@@ -380,7 +378,6 @@ describe('ALBService', () => {
       projectService.mustFind.mockImplementationOnce(() => {
         throw service.boom.notFound(`project with id "test-id" does not exist`, true);
       });
-
       try {
         await service.getStackCreationInput({}, resolvedVars, resolvedInputParams, '');
       } catch (err) {
@@ -804,7 +801,6 @@ describe('ALBService', () => {
       albClient.describeRules = jest.fn().mockImplementation(() => {
         throw new Error(`Error calculating rule priority. Rule describe failed with message - Rule not found`);
       });
-
       try {
         await service.calculateRulePriority({}, {}, '');
       } catch (err) {

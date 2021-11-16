@@ -269,7 +269,6 @@ class ProvisionAccount extends StepBase {
         // create S3 and KMS resources access for newly created account
         await this.updateLocalResourcePolicies();
 
-
         // TODO: after the account is deployed and all useful info is fetched,
         // try to update aws account table, it might be able to skip that table with all info already
         // exsiting in the account table instead of aws-account table. but for now, update the info to aws-account
@@ -279,7 +278,6 @@ class ProvisionAccount extends StepBase {
           this.payload.string('externalId'),
           this.payload.string('accountName'),
         ]);
-
         const accountId = await this.state.string('ACCOUNT_ID');
         const awsAccountData = {
           accountId,
@@ -288,7 +286,6 @@ class ProvisionAccount extends StepBase {
           name,
           roleArn: cfnOutputs.CrossAccountExecutionRoleArn,
           xAccEnvMgmtRoleArn: cfnOutputs.CrossAccountEnvMgmtRoleArn,
-
           vpcId: cfnOutputs.VPC,
           encryptionKeyArn: cfnOutputs.EncryptionKeyArn,
           onboardStatusRoleArn: cfnOutputs.OnboardStatusRoleArn,
@@ -340,7 +337,6 @@ class ProvisionAccount extends StepBase {
             encryptionKeyArn: cfnOutputs.EncryptionKeyArn,
           },
         });
-
       }
       return true;
     } // else CFN is still pending
@@ -382,7 +378,7 @@ class ProvisionAccount extends StepBase {
     /* response example:
       data = {
         CreateAccountStatus: {
-        AccountId: "333333333333", 
+        AccountId: "111111111111",
         Id: "car-exampleaccountcreationrequestid", 
         State: "SUCCEEDED"
         }

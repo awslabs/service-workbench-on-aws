@@ -98,10 +98,8 @@ class EnvironmentScCidrService extends Service {
       'albService',
     ]);
 
-    console.log('before validation');
     // Validate input
     await validationService.ensureValid(updateRequest, cidrUpdateSchema);
-    console.log('after validation');
     this.checkRequest(updateRequest);
 
     const existingEnvironment = await environmentScService.mustFind(requestContext, { id });

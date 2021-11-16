@@ -40,7 +40,6 @@ Parameters:
     Type: String
     Default: 10.0.0.0/19
 
-
   LaunchConstraintRolePrefix:
     Description: Role name prefix to use when creating a launch constraint role in the on-boarded account
     Type: String
@@ -629,7 +628,6 @@ Resources:
         - Key: Name
           Value: !Sub ${Namespace} public subnet 1
 
-
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
     Condition: isNotAppStream
@@ -654,7 +652,6 @@ Resources:
     Properties:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet1
-
 
   EncryptionKey:
     Type: AWS::KMS::Key
