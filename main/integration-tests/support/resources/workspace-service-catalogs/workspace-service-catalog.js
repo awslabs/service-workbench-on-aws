@@ -55,7 +55,7 @@ class WorkspaceServiceCatalog extends Resource {
 
   async cidr(body) {
     const api = `${this.api}/cidr`;
-    const response = await this.doCall(async () => this.axiosClient.post(api, body, { timeout: 60000 }));
+    const response = await this.doCall(async () => this.axiosClient.post(api, body, {}));
 
     await sleep(this.deflakeDelay());
     return response;
