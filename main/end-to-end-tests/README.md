@@ -19,6 +19,7 @@ To run the E2E tests, you will need the following items:
 - A configured EC2 Windows workspace
 - A configured EMR workspace
 - A configured RStudio Server workspace
+- An SSH Key pair created *by the researcher user*
 
 Once you've confirmed that you have the items above setup, you can create a `cypress.dev.json` and a `cypress.local.json` file with the configurations needed for your tests. You can use `cypress.json` as a template for your new configuration files. An example file is included as `cypress.local.example.json`
 
