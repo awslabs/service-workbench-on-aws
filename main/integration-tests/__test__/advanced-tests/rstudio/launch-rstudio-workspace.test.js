@@ -25,7 +25,6 @@ describe('Launch and terminate RStudio instance', () => {
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
-    await checkAllRstudioWorkspaceIsTerminated();
   });
 
   afterAll(async () => {
@@ -45,9 +44,11 @@ describe('Launch and terminate RStudio instance', () => {
     }
   }
   it('should launch a RStudio instance', async () => {
-    console.log('Launching workspace');
+    // Putting checkAllRstudioWorkspaceIsTerminated check here, because putting this check in `beforeAll` will not stop executing the test if the check does fail
+    // https://github.com/facebook/jest/issues/2713
+    await checkAllRstudioWorkspaceIsTerminated();
     const workspaceName = setup.gen.string({ prefix: 'launch-studio-workspace-test' });
-    const env = await adminSession.resources.workspaceServiceCatalogs.create({
+    const createWorkspaceBody = {
       name: workspaceName,
       envTypeId: setup.defaults.envTypes.rstudio.envTypeId,
       envTypeConfigId: setup.defaults.envTypes.rstudio.envTypeConfigId,
@@ -55,7 +56,11 @@ describe('Launch and terminate RStudio instance', () => {
       description: 'test',
       projectId: setup.defaults.project.id,
       cidr: '0.0.0.0/0',
-    });
+    };
+    if (setup.defaults.isAppStreamEnabled) {
+      delete createWorkspaceBody.cidr;
+    }
+    const env = await adminSession.resources.workspaceServiceCatalogs.create(createWorkspaceBody);
 
     // Poll until workspace is provisioned
     await sleep(2000);
@@ -64,10 +69,8 @@ describe('Launch and terminate RStudio instance', () => {
       .version(1)
       .findAndPollWorkflow(env.id, 10000, 90);
 
-    console.log('envId', env.id);
     // AppStream enabled environment does not support CIDR
     if (!setup.defaults.isAppStreamEnabled) {
-      console.log('Checking CIDR');
       const cidrs = {
         cidr: [
           {
@@ -95,7 +98,6 @@ describe('Launch and terminate RStudio instance', () => {
       ).resolves.toBeDefined();
     }
 
-    console.log('Checking URL');
     // Check can make preauthorized URL
     const rstudioServerUrlResponse = await adminSession.resources.workspaceServiceCatalogs
       .workspaceServiceCatalog(env.id)
@@ -103,17 +105,23 @@ describe('Launch and terminate RStudio instance', () => {
       .connection('id-1')
       .createUrl();
     expect(rstudioServerUrlResponse.url).toBeDefined();
-    console.log('rstudioServerUrlResponse', rstudioServerUrlResponse);
+    if (setup.defaults.isAppStreamEnabled) {
+      expect(rstudioServerUrlResponse.appstreamDestinationUrl).toBeDefined();
+    }
 
     // VERIFY active workspaces are associated with unexpired TLSv1.2 certs
     // By default Axios verify that the domain's SSL cert is valid. If we're able to get a response from the domain it means the domain's cert is valid
     // Getting a 403 response code is expected because our client's IP address is not whitelisted to access the RStudio server
-    const url = rstudioServerUrlResponse.url;
-    console.log('workspace url', url);
-    await expect(axios.get(url)).rejects.toThrow('Request failed with status code 403');
+    if (!setup.defaults.isAppStreamEnabled) {
+      const url = rstudioServerUrlResponse.url;
+      await expect(axios.get(url)).rejects.toThrow('Request failed with status code 403');
+    } else {
+      // If AppStream is enabled, we should not be able to access the RStudio url from the internet
+      const url = rstudioServerUrlResponse.appstreamDestinationUrl;
+      await expect(axios.get(url)).rejects.toThrow(/getaddrinfo ENOTFOUND .*/);
+    }
 
     // Terminate workspace
-    console.log('terminate workspace');
     await adminSession.resources.workspaceServiceCatalogs.workspaceServiceCatalog(env.id).delete();
 
     // Poll until workspace is terminated
@@ -124,7 +132,6 @@ describe('Launch and terminate RStudio instance', () => {
       .findAndPollWorkflow(env.id, 10000, 35);
 
     const envState = await adminSession.resources.workspaceServiceCatalogs.workspaceServiceCatalog(env.id).get();
-    console.log('check workspace terminated');
     expect(envState.status).toEqual('TERMINATED');
     await deleteWorkspaceServiceCatalog({ aws: setup.aws, id: env.id });
   });
