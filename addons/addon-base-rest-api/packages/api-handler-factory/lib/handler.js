@@ -54,6 +54,16 @@ function handlerFactory({ registerServices, registerRoutes }) {
     // register routes
     await registerRoutes(appContext, apiRouter);
 
+    // Implement HSTS before any other controller (https://www.maxivanov.io/http-strict-transport-security/)
+    // max-age = 63072000 which is 1 year
+    // includeSubDomains to protect subdomains of the site with HSTS as well (recommended)
+    app.use((req, res, next) => {
+      if (req.secure) {
+        res.setHeader('Strict-Transport-Security', 'max-age=63072000; includeSubDomains');
+      }
+      next();
+    });
+
     // setup CORS, compression and body parser
     const isDev = settingsService.get('envType') === 'dev';
     let allowList = settingsService.optionalObject('corsAllowList', []);

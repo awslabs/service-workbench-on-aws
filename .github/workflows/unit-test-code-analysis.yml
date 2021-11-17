@@ -46,3 +46,27 @@ jobs:
           pnpm run coverage --recursive --if-present --stream
       - name: CodeCov
         run: bash <(curl -s https://codecov.io/bash) -f ./coverage/coverage-final.json
+  scan-for-secrets:
+    name: Scan for secrets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Git Secret
+        run: |
+          cd ~
+          git clone https://github.com/awslabs/git-secrets.git && cd git-secrets
+          sudo make install
+          git secrets --register-aws --global
+          # Prevent leakage of internal tools
+          git secrets --add '[aA]pollo|[bB]razil|[cC]oral|[oO]din' --global
+          git secrets --add 'tt\.amazon\.com|issues\.amazon\.com|cr\.amazon\.com' --global
+          # Prevent leakage of aws-iso
+          git secrets --add 'ic\.gov|sgov\.gov' --global
+          git secrets --add 'us-iso|aws-iso' --global
+          git secrets --add 'smil\.mil' --global
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Run Git Secret
+        run: git secrets --scan
+      - name: Print remediation message
+        if: failure()
+        run: echo "Check if creds was leaked. If yes, revoke the credentials and create a new PR"

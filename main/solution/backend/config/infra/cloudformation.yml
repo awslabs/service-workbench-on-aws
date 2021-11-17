@@ -171,6 +171,8 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
 
   ExternalCfnTemplatesBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -179,11 +181,13 @@ Resources:
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
-          - Sid: Deny requests that do not use TLS
+          - Sid: Deny requests that do not use TLS/HTTPS
             Effect: Deny
             Principal: '*'
             Action: s3:*
-            Resource: !Join ['/', [!GetAtt ExternalCfnTemplatesBucket.Arn, '*']]
+            Resource:
+              - !Join ['/', [!GetAtt ExternalCfnTemplatesBucket.Arn, '*']]
+              - !GetAtt ExternalCfnTemplatesBucket.Arn
             Condition:
               Bool:
                 aws:SecureTransport: false
@@ -210,6 +214,8 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
 
   EnvironmentsBootstrapBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -254,6 +260,8 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
 
   EnvTypeConfigsBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -263,11 +271,13 @@ Resources:
         Version: '2012-10-17'
         Id: PutObjectPolicy
         Statement:
-          - Sid: Deny requests that do not use TLS
+          - Sid: Deny requests that do not use TLS/HTTPS
             Effect: Deny
             Principal: '*'
             Action: s3:*
-            Resource: !Join ['/', [!GetAtt EnvTypeConfigsBucket.Arn, '*']]
+            Resource:
+              - !Join ['/', [!GetAtt EnvTypeConfigsBucket.Arn, '*']]
+              - !GetAtt EnvTypeConfigsBucket.Arn
             Condition:
               Bool:
                 aws:SecureTransport: false
@@ -402,6 +412,8 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
 
   EgressStoreBucketPolicy:
     Condition: EnableEgressStore
@@ -412,11 +424,13 @@ Resources:
         Version: '2012-10-17'
         Id: PutObjectPolicy
         Statement:
-          - Sid: Deny requests that do not use TLS
+          - Sid: Deny requests that do not use TLS/HTTPS
             Effect: Deny
             Principal: '*'
             Action: s3:*
-            Resource: !Join ['/', [!GetAtt EgressStoreBucket.Arn, '*']]
+            Resource:
+              - !Join ['/', [!GetAtt EgressStoreBucket.Arn, '*']]
+              - !GetAtt EgressStoreBucket.Arn
             Condition:
               Bool:
                 aws:SecureTransport: false
@@ -425,6 +439,34 @@ Resources:
             Principal: '*'
             Action: s3:*
             Resource: !Join ['/', [!GetAtt EgressStoreBucket.Arn, '*']]
+            Condition:
+              StringNotEquals:
+                s3:signatureversion: 'AWS4-HMAC-SHA256'
+
+  EgressNotificationBucketPolicy:
+    Condition: EnableEgressStore
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref EgressNotificationBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Id: PutObjectPolicy
+        Statement:
+          - Sid: Deny requests that do not use TLS/HTTPS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource:
+              - !Join ['/', [!GetAtt EgressNotificationBucket.Arn, '*']]
+              - !GetAtt EgressNotificationBucket.Arn
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+          - Sid: Deny requests that do not use SigV4
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource: !Join ['/', [!GetAtt EgressNotificationBucket.Arn, '*']]
             Condition:
               StringNotEquals:
                 s3:signatureversion: 'AWS4-HMAC-SHA256'
@@ -723,7 +765,7 @@ Resources:
               - '*'
           - Effect: Allow
             Action:
-              - sts:AssumeRole
+              - appstream:UpdateImagePermissions
             Resource:
               - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-prep-raas-master-MasterRole-*'
           - Effect: 'Allow'
