@@ -62,7 +62,6 @@ class WorkspaceServiceCatalog extends Resource {
   }
 
   async cleanup() {
-    // Comeback to look at deleting from DDB
     const adminSession = await this.setup.defaultAdminSession();
     // Terminate instance
     await adminSession.resources.workspaceServiceCatalogs.workspaceServiceCatalog(this.id).delete();
