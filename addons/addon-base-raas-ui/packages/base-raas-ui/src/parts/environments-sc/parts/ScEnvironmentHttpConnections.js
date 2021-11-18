@@ -98,6 +98,7 @@ class ScEnvironmentHttpConnections extends React.Component {
               mapForm.target = 'Map';
               mapForm.method = 'POST';
               mapForm.action = rstudioUrl;
+              mapForm.style.display = 'none';
 
               const mapInput = document.createElement('input');
               mapInput.name = tokenKey;
