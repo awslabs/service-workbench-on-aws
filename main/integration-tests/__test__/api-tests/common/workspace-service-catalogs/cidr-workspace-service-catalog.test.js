@@ -41,6 +41,28 @@ describe('Cidr workspace-service-catalog scenarios', () => {
   });
 
   describe('Cidr workspace-service-catalog', () => {
+    const cidrs = {
+      cidr: [
+        {
+          protocol: 'tcp',
+          fromPort: 22,
+          toPort: 22,
+          cidrBlocks: ['0.0.0.0/32'],
+        },
+        {
+          protocol: 'tcp',
+          fromPort: 80,
+          toPort: 80,
+          cidrBlocks: ['0.0.0.0/32'],
+        },
+        {
+          protocol: 'tcp',
+          fromPort: 443,
+          toPort: 443,
+          cidrBlocks: ['0.0.0.0/32'],
+        },
+      ],
+    };
     it('should fail if user is inactive', async () => {
       const adminSession2 = await setup.createAdminSession();
       const workspaceName = setup.gen.string({ prefix: 'workspace-service-catalog-test' });
@@ -57,8 +79,6 @@ describe('Cidr workspace-service-catalog scenarios', () => {
         envTypeId: workspaceTypeId,
         envTypeConfigId: configurationId,
       });
-
-      const cidrs = [{ fromPort: 10, toPort: 20, protocol: 'http', cidrBlocks: ['0.0.0.0/32'] }];
 
       await expect(
         adminSession2.resources.workspaceServiceCatalogs.workspaceServiceCatalog(response.id).cidr(cidrs),
@@ -81,8 +101,6 @@ describe('Cidr workspace-service-catalog scenarios', () => {
         envTypeId: workspaceTypeId,
         envTypeConfigId: configurationId,
       });
-
-      const cidrs = [{ fromPort: 10, toPort: 20, protocol: 'http', cidrBlocks: ['0.0.0.0/32'] }];
 
       await expect(
         anonymousSession.resources.workspaceServiceCatalogs.workspaceServiceCatalog(response.id).cidr(cidrs),

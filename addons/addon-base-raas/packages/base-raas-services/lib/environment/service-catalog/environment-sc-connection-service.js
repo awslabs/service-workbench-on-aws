@@ -176,7 +176,10 @@ class EnvironmentScConnectionService extends Service {
       connection.url = _.get(sageMakerResponse, 'AuthorizedUrl');
     }
 
-    if (_.toLower(_.get(connection, 'type', '')) === 'rstudio') {
+    if (
+      _.toLower(_.get(connection, 'type', '')) === 'rstudio' ||
+      _.toLower(_.get(connection, 'type', '')) === 'rstudiov2'
+    ) {
       connection.url = await this.getRStudioUrl(requestContext, envId, connection);
     }
 
@@ -199,6 +202,12 @@ class EnvironmentScConnectionService extends Service {
   }
 
   async getRStudioUrl(requestContext, id, connection) {
+    if (_.toLower(_.get(connection, 'type', '')) === 'rstudio')
+      throw this.boom.badRequest(
+        'Support for this version of RStudio has been deprecated. Please use RStudioV2 environment type',
+        true,
+      );
+
     const environmentDnsService = await this.service('environmentDnsService');
     const rstudioDomainName = environmentDnsService.getHostname('rstudio', id);
     const rstudioSignInUrl = `https://${rstudioDomainName}/auth-do-sign-in`;

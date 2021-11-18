@@ -230,6 +230,66 @@ async function updateEnvOnProvisioningSuccess({
         const dnsName = _.find(outputs, o => o.OutputKey === 'Ec2WorkspaceDnsName').OutputValue;
         await environmentDnsService.createRecord('rstudio', envId, dnsName);
       }
+    } else if (connectionTypeValue.toLowerCase() === 'rstudiov2') {
+      const albService = await container.find('albService');
+      const deploymentItem = await albService.getAlbDetails(requestContext, resolvedVars.projectId);
+      if (!deploymentItem) {
+        throw new Error(`Error provisioning environment. Reason: No ALB found for this AWS account`);
+      }
+      const deploymentValue = JSON.parse(deploymentItem.value);
+      const dnsName = deploymentValue.albDnsName;
+      const targetGroupArn = _.find(outputs, o => o.OutputKey === 'TargetGroupARN').OutputValue;
+      // Create DNS record for RStudio workspaces
+      const environmentDnsService = await container.find('environmentDnsService');
+      const settings = await container.find('settings');
+      if (settings.getBoolean(settingKeys.isAppStreamEnabled)) {
+        const hostedZoneId = await getHostedZone(requestContext, environmentScService, existingEnvRecord);
+        const albHostedZoneId = await albService.getAlbHostedZoneID(
+          requestContext,
+          resolvedVars,
+          deploymentValue.albArn,
+        );
+        await environmentDnsService.createPrivateRecordForDNS(
+          requestContext,
+          'rstudio',
+          envId,
+          albHostedZoneId,
+          dnsName,
+          hostedZoneId,
+        );
+      } else {
+        await environmentDnsService.createRecord('rstudio', envId, dnsName);
+      }
+      // Create a listener rule
+      const lockService = await container.find('lockService');
+      let ruleARN;
+      // Locking the rule creation for an ALB, so two rules wont have same priority
+      await lockService.tryWriteLockAndRun({ id: `alb-rule-${deploymentItem.id}` }, async () => {
+        ruleARN = await albService.createListenerRule('rstudio', requestContext, resolvedVars, targetGroupArn);
+      });
+      // Save the Rule ARN as an output in DB
+      const ruleRecord = {
+        Description: 'ARN of the listener rule created by code',
+        OutputKey: 'ListenerRuleARN',
+        OutputValue: ruleARN,
+      };
+      outputs.push(ruleRecord);
+      // Create Instance security group ingress rule with ALB security group ID to allow only traffic from ALB
+      const environmentScCidrService = await container.find('environmentScCidrService');
+      const albSecurityGroup = JSON.parse(deploymentItem.value).albSecurityGroup;
+      const instanceSecurityGroup = _.find(outputs, o => o.OutputKey === 'InstanceSecurityGroupId').OutputValue;
+      const updateRule = {
+        fromPort: 443,
+        toPort: 443,
+        protocol: 'tcp',
+        groupId: albSecurityGroup,
+      };
+      await environmentScCidrService.authorizeIngressRuleWithSecurityGroup(
+        requestContext,
+        envId,
+        updateRule,
+        instanceSecurityGroup,
+      );
     }
   }
 
@@ -246,7 +306,7 @@ async function updateEnvOnProvisioningSuccess({
   return { requestContext, container, resolvedVars, status, outputs, provisionedProductId };
 }
 
-// This step calls "onEnvOnProvisioningFailure" in case of any errors.
+// This step calls "onEnvProvisioningFailure" in case of any errors.
 async function updateEnvOnProvisioningFailure({
   requestContext,
   container,
@@ -395,26 +455,29 @@ async function rstudioCleanup(requestContext, updatedEnvironment, container, exi
   let connectionTypeValue;
   if (connectionType) {
     connectionTypeValue = connectionType.OutputValue;
-    if (connectionTypeValue.toLowerCase() === 'rstudio') {
-      const instanceId = _.find(updatedEnvironment.outputs, x => x.OutputKey === 'Ec2WorkspaceInstanceId').OutputValue;
+    if (connectionTypeValue.toLowerCase() === 'rstudio' || connectionTypeValue.toLowerCase() === 'rstudiov2') {
       const environmentDnsService = await container.find('environmentDnsService');
+      const instanceId = _.find(updatedEnvironment.outputs, x => x.OutputKey === 'Ec2WorkspaceInstanceId').OutputValue;
       const environmentScService = await container.find('environmentScService');
-      const settings = await container.find('settings');
-      if (settings.getBoolean(settingKeys.isAppStreamEnabled)) {
-        const privateIp = _.find(updatedEnvironment.outputs, o => o.OutputKey === 'Ec2WorkspacePrivateIp').OutputValue;
-        const hostedZoneId = await getHostedZone(requestContext, environmentScService, existingEnvRecord);
-        await environmentDnsService.deletePrivateRecord(
-          requestContext,
-          'rstudio',
-          updatedEnvironment.id,
-          privateIp,
-          hostedZoneId,
-        );
-      } else {
-        const dnsName = _.find(updatedEnvironment.outputs, x => x.OutputKey === 'Ec2WorkspaceDnsName').OutputValue;
-        await environmentDnsService.deleteRecord('rstudio', updatedEnvironment.id, dnsName);
+      // Delete Route53 record for Rstudio. For RstudioV2 the record will be deleted in dependency check step
+      if (connectionTypeValue.toLowerCase() === 'rstudio') {
+        const settings = await container.find('settings');
+        if (settings.getBoolean(settingKeys.isAppStreamEnabled)) {
+          const privateIp = _.find(updatedEnvironment.outputs, o => o.OutputKey === 'Ec2WorkspacePrivateIp')
+            .OutputValue;
+          const hostedZoneId = await getHostedZone(requestContext, environmentScService, existingEnvRecord);
+          await environmentDnsService.deletePrivateRecord(
+            requestContext,
+            'rstudio',
+            updatedEnvironment.id,
+            privateIp,
+            hostedZoneId,
+          );
+        } else {
+          const dnsName = _.find(updatedEnvironment.outputs, x => x.OutputKey === 'Ec2WorkspaceDnsName').OutputValue;
+          await environmentDnsService.deleteRecord('rstudio', updatedEnvironment.id, dnsName);
+        }
       }
-
       const ssm = await environmentScService.getClientSdkWithEnvMgmtRole(
         requestContext,
         { id: updatedEnvironment.id },

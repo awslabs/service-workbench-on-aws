@@ -71,6 +71,7 @@ class ScEnvironmentUpdateCidrs extends React.Component {
       return this.stores.ready;
     }, sideEffect);
     sideEffect(this.stores.ready);
+    this.validateMaxCidrs = false;
   }
 
   componentDidMount() {
@@ -184,6 +185,19 @@ class ScEnvironmentUpdateCidrs extends React.Component {
       return invalidCidrFound;
     };
 
+    const validateMaxRStudioCidr = () => {
+      let status = false;
+      const envOutputs = this.environment.outputs;
+      const metaConnection1Type = envOutputs.find(obj => obj.OutputKey === 'MetaConnection1Type');
+      if (metaConnection1Type) {
+        const productName = metaConnection1Type.OutputValue;
+        if (productName === 'RStudioV2') {
+          status = this.validateMaxCidrs;
+        }
+      }
+      return status;
+    };
+
     return (
       <Segment clearing className="p3 mb3">
         {fields.value.length === 0 && (
@@ -217,13 +231,22 @@ class ScEnvironmentUpdateCidrs extends React.Component {
                   content="One or more options entered are not valid IPv4 CIDR blocks. Please enter CIDR blocks in the format: '255.255.255.255/32'"
                 />
               )}
+              {validateMaxRStudioCidr() && (
+                <Message
+                  negative
+                  className="mb4"
+                  icon="warning"
+                  header="Maximum limit CIDR reached"
+                  content="You can set maximum number of 4 IPv4 CIDR in this blocks"
+                />
+              )}
               <Button
                 className="ml2"
                 size="mini"
                 floated="right"
                 color="blue"
                 icon
-                disabled={processing || anyInvalidCidr()}
+                disabled={processing || anyInvalidCidr() || validateMaxRStudioCidr()}
                 type="submit"
               >
                 Submit
@@ -260,6 +283,24 @@ class ScEnvironmentUpdateCidrs extends React.Component {
       return _.some(this.ingressRules[index].cidrBlocks, cidr => IsCidr(cidr) !== 4);
     };
 
+    const validateMaxRStudioCidr = () => {
+      this.validateMaxCidrs = false;
+      const eEnvOutputs = this.environment.outputs;
+      const metaConnection1Type = eEnvOutputs.find(obj => obj.OutputKey === 'MetaConnection1Type');
+      if (metaConnection1Type) {
+        const productName = metaConnection1Type.OutputValue;
+        const fromPort = field.value.fromPort;
+        if (productName === 'RStudioV2' && fromPort === 443) {
+          const cidrBlocks = field.value.cidrBlocks;
+          const cidrLen = cidrBlocks.length;
+          if (cidrLen > 4) {
+            this.validateMaxCidrs = true;
+          }
+        }
+      }
+      return this.validateMaxCidrs;
+    };
+
     // If you're using this component for reference:
     // The dropdown cell in this table is using the semantic-ui-react properties to display warnings and errors
     // These validation mechanisms have already been implemented in the built-in Form component which are better suited for such scenarios
@@ -275,7 +316,7 @@ class ScEnvironmentUpdateCidrs extends React.Component {
         <Table.Cell>
           <Input disabled field={field.$('toPort')} />
         </Table.Cell>
-        <Table.Cell warning={anyWideCidr()} error={anyInvalidCidr()}>
+        <Table.Cell warning={anyWideCidr()} error={(anyInvalidCidr(), validateMaxRStudioCidr())}>
           <Dropdown
             field={field.$('cidrBlocks')}
             allowAdditions
@@ -307,7 +348,6 @@ decorate(ScEnvironmentUpdateCidrs, {
   environment: computed,
   envsStore: computed,
   clientInformationStore: computed,
-
   ingressRules: observable,
   form: observable,
   handleSave: action,

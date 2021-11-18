@@ -63,7 +63,7 @@ Resources:
       SecurityGroupIngress:
         - !If
           - AppStreamEnabled
-          - !Ref "AWS::NoValue"
+          - !Ref 'AWS::NoValue'
           - IpProtocol: tcp
             FromPort: 443
             ToPort: 443
@@ -72,16 +72,16 @@ Resources:
         - !If
           - AppStreamEnabled
           - DestinationSecurityGroupId:
-              Fn::ImportValue: !Sub "${SolutionNamespace}-SageMakerApiSecurityGroup"
+              Fn::ImportValue: !Sub '${SolutionNamespace}-SageMakerApiSecurityGroup'
             IpProtocol: '-1'
-          - !Ref "AWS::NoValue"
+          - !Ref 'AWS::NoValue'
         - !If
           - AppStreamEnabled
           - IpProtocol: tcp
             FromPort: 0
             ToPort: 65535
             CidrIp: 0.0.0.0/0
-          - !Ref "AWS::NoValue"
+          - !Ref 'AWS::NoValue'
   PreSignedURLBoundary:
     Type: AWS::IAM::ManagedPolicy
     Condition: AppStreamEnabled
@@ -150,7 +150,7 @@ Resources:
               Condition:
                 StringEquals:
                   aws:SourceVpce:
-                    Fn::ImportValue: !Sub "${SolutionNamespace}-SageMakerVPCE"
+                    Fn::ImportValue: !Sub '${SolutionNamespace}-SageMakerVPCE'
       PermissionsBoundary: !Ref PreSignedURLBoundary
 
   IAMRole:
@@ -240,10 +240,9 @@ Resources:
         - !Ref SecurityGroup
         - !If
           - AppStreamEnabled
-          - Fn::ImportValue: !Sub "${SolutionNamespace}-WorkspaceSG"
-          - !Ref "AWS::NoValue"
-      DirectInternetAccess:
-        !If
+          - Fn::ImportValue: !Sub '${SolutionNamespace}-WorkspaceSG'
+          - !Ref 'AWS::NoValue'
+      DirectInternetAccess: !If
         - AppStreamEnabled
         - Disabled
         - Enabled

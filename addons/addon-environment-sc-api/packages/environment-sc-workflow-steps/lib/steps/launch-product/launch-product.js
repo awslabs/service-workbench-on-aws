@@ -28,6 +28,7 @@ const inPayloadKeys = {
   resolvedVars: 'resolvedVars',
   portfolioId: 'portfolioId',
   productId: 'productId',
+  needsAlb: 'needsAlb',
 };
 const settingKeys = {
   envMgmtRoleArn: 'envMgmtRoleArn',
@@ -56,6 +57,7 @@ class LaunchProduct extends StepBase {
       [inPayloadKeys.productId]: 'string',
       [inPayloadKeys.envTypeId]: 'string',
       [inPayloadKeys.envTypeConfigId]: 'string',
+      [inPayloadKeys.needsAlb]: 'boolean',
     };
   }
 
@@ -106,6 +108,8 @@ class LaunchProduct extends StepBase {
     const defaultTags = await this.getDefaultTags(requestContext, resolvedVars);
     // union and deduplicate to get effective tags to apply
     const effectiveTags = _.unionBy(resolvedTags, defaultTags, 'Key');
+    // Adding tags to resolved vars so that the tags can be used on listener rule creation
+    resolvedVars.tags = effectiveTags;
 
     // Get launch path for provisioning the product
     const launchPath = await this.getLaunchPath(targetScClient, productId, targetAccRoleArn);
@@ -279,8 +283,7 @@ class LaunchProduct extends StepBase {
     ]);
     const envName = resolvedVars.name;
     throw new Error(
-      `Error provisioning environment "${envName}". The workflow timed-out because the stack "${stackName}" did not ` +
-        `complete within the timeout period of 15 days.`,
+      `Error provisioning environment "${envName}". The workflow timed-out because the stack "${stackName}" did not complete within the timeout period of 15 days.`,
     );
   }
 
