@@ -378,7 +378,7 @@ class ProvisionAccount extends StepBase {
     /* response example:
       data = {
         CreateAccountStatus: {
-        AccountId: "333333333333", 
+        AccountId: "333333333333",
         Id: "car-exampleaccountcreationrequestid", 
         State: "SUCCEEDED"
         }
