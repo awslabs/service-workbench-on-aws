@@ -23,6 +23,11 @@
           "configuration": "AppStream-Windows",
           "projectId": "TRE-Project"
         }
+      },
+      "rstudioServer": {
+        "workspaceTypeName": "RStudio-Server-ALB-v1",
+        "configuration": "RStudio-Server-ALB-TRE",
+        "projectId": "TRE-Project"
       }
     },
     "studies": {

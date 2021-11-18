@@ -27,6 +27,11 @@
           "configuration": "<EC2 WINDOWS WORKSPACE CONFIGURATION>",
           "projectId": "<PROJECT TO LAUNCH EC2 WORKSPACE IN>"
         }
+      },
+      "rstudioServer": {
+        "workspaceTypeName": "<NAME OF RSTUDIO SERVER WORKSPACE TYPE>",
+        "configuration": "<RSTUDIO SERVER WORKSPACE CONFIGURATION>",
+        "projectId": "<PROJECT TO LAUNCH RSTUDIO SERVER WORKSPACE IN>"
       }
     },
     "studies": {

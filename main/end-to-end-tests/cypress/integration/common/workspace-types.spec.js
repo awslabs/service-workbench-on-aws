@@ -26,6 +26,10 @@ describe('Check that variables prepopulate when making a new configuration', () 
       .click();
   };
 
+  it('should display a portfolio id', () => {
+    cy.get('[data-testid=portfolio-id]').contains('Portfolio Id: ');
+  });
+
   it('should have the proper variables prepopulated-EMR', () => {
     const isAppStreamEnabled = Cypress.env('isAppStreamEnabled');
     // AppStream enabled env does not support EMR (10/7/21)
@@ -52,6 +56,12 @@ describe('Check that variables prepopulate when making a new configuration', () 
     const workspaces = Cypress.env('workspaces');
     const ec2windows = workspaces.ec2.windows;
     checkPrepopVariables(ec2windows, 'EC2 Windows');
+  });
+
+  it('should have the proper variables prepopulated-Rstudio Server', () => {
+    const workspaces = Cypress.env('workspaces');
+    const rstudioServer = workspaces.rstudioServer;
+    checkPrepopVariables(rstudioServer, 'RStudio Server');
   });
 
   const checkPrepopVariables = (workspaceParam, workspaceType) => {
@@ -96,7 +106,7 @@ describe('Check that variables prepopulate when making a new configuration', () 
       .click();
 
     // Make sure the correct variables have the correct default values for the current workspace type
-    if (workspaceType === 'EMR' || workspaceType === 'EC2 Windows') {
+    if (workspaceType === 'EMR' || workspaceType === 'EC2 Windows' || workspaceType === 'RStudio Server') {
       cy.get('[data-testid=KeyName]').contains('${adminKeyPairName}');
     }
     cy.get('[data-testid=EncryptionKeyArn]').contains('${encryptionKeyArn}');

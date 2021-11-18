@@ -121,7 +121,11 @@ class EnvTypeCandidatesList extends Component {
             onClick={() => this.handleShowAllVersionsToggle()}
             label={this.showAllVersions ? 'All Versions' : 'Latest Versions'}
           />
-          {this.portfolioId && <div className="portfolio-id">Portfolio Id: {this.portfolioId}</div>}
+          {this.portfolioId && (
+            <div data-testid="portfolio-id" className="portfolio-id">
+              Portfolio Id: {this.portfolioId}
+            </div>
+          )}
         </div>
       </div>
     );
