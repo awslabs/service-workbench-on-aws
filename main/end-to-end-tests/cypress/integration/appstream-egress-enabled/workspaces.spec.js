@@ -33,7 +33,7 @@ describe('Launch new workspaces', () => {
 
   let expectedNumberOfNewlyOpenBrowserWindows = 0;
 
-  it('should launch Sagemaker, Linux, Windows, adn RStudio workspaces successfully', () => {
+  it('should launch Sagemaker, Linux, Windows, and RStudio workspaces successfully', () => {
     const workspaces = Cypress.env('workspaces');
     const sagemakerWorkspaceName = launchWorkspace(workspaces.sagemaker, 'Sagemaker');
     const linuxWorkspaceName = launchWorkspace(workspaces.ec2.linux, 'Linux');
@@ -120,6 +120,12 @@ describe('Launch new workspaces', () => {
       .find('[data-testid=connect-to-workspace-button]')
       .click();
     expectedNumberOfNewlyOpenBrowserWindows += 1;
+
+    // Close the connections tab so the rstudio test is clean
+    cy.contains(workspaceName)
+      .parent()
+      .find('[data-testid=sc-environment-connection-button]')
+      .click();
   }
 
   function checkRstudio(workspaceName) {
@@ -130,15 +136,15 @@ describe('Launch new workspaces', () => {
       .find('[data-testid=sc-environment-generate-url-button]', { timeout: 60000 })
       .click();
 
-    // Check we can not access Rstudio server url from the internet. Note rstudio server url is different from AppStream Url.
-    // To access Rstudio server we would do it through the AppStream Url
+    // Try to access the rstudio server url via command line curl and should get an error that the server was not found
     cy.get('[data-testid=destination-url]')
       .invoke('text')
-      .then(url => {
-        cy.request({ url, failOnStatusCode: false }).then(response => {
-          expect(response.status).to.equal(403);
-        });
-      });
+      .then(url =>
+        cy
+          .exec(`curl "${url}"`, { failOnNonZeroExit: false })
+          .its('stderr')
+          .should('contain', 'Could not resolve host'),
+      );
 
     cy.contains(workspaceName)
       .parent()

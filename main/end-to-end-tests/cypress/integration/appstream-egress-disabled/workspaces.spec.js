@@ -17,7 +17,6 @@ import {
   launchWorkspace,
   navigateToWorkspaces,
   checkDetailsTable,
-  checkWorkspaceAvailableAndClickConnectionsButton,
 } from '../../support/workspace-util';
 
 describe('Launch a workspace', () => {
@@ -61,28 +60,5 @@ describe('Launch a workspace', () => {
     const emr = workspaces.emr;
     const workspaceName = launchWorkspace(emr, 'EMR');
     checkDetailsTable(workspaceName);
-  });
-
-  it('should have opened a new tab for the RStudio Server when you click Connect', () => {
-    // Need to login at the beginning so the stub is initialized directly before we use to monitor the new tab opening
-    cy.login('researcher');
-    navigateToWorkspaces();
-    // Check that the RStudio Server workspace is in available status
-    checkWorkspaceAvailableAndClickConnectionsButton('CypressTestRStudio-ServerWorkspace-');
-    // Click connect
-    cy.contains('CypressTestRStudio-ServerWorkspace-')
-      .parent()
-      .find('[data-testid=connect-to-workspace-button]')
-      .click();
-    // Each time we click the "Connect" button on a workspace, it should open a new browser window connected to the RStudio server instance.
-    // Let's check the expected number of new browser windows are opened
-    cy.window()
-      .its('open')
-      .should('be.called');
-    // Click connect
-    cy.contains('CypressTestRStudio-ServerWorkspace-')
-      .parent()
-      .find('[data-testid=connect-to-workspace-button]')
-      .click();
   });
 });
