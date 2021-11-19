@@ -46,6 +46,9 @@ describe('Launch and terminate RStudio instance', () => {
 
   // eslint-disable-next-line jest/expect-expect
   it('should launch a RStudio instance', async () => {
+    if (setup.defaults.envTypes.rstudio.envTypeId === 'N/A') {
+      return;
+    }
     // Putting checkAllRstudioWorkspaceIsTerminated check here, because putting this check in `beforeAll` will not stop executing the test if the check does fail
     // https://github.com/facebook/jest/issues/2713
     await checkAllRstudioWorkspaceIsTerminated();
