@@ -7,6 +7,14 @@ All notable changes to this project will be documented in this file. See [standa
 
 ### Features
 
+* Implementation for RstudioV2 (backed by ALB) feature ([#807](https://github.com/awslabs/service-workbench-on-aws/pull/807)) ([ed2e7dc](https://github.com/awslabs/service-workbench-on-aws/commit/ed2e7dc60a35a12a8f14f55964ade66a88e38298)). In this release, RStudio ALB workspace type is provided with the following new features:
+
+  + Compatibility with TRE (AppStream and Egress) features. See [Prepare your account for AppStream](https://github.com/awslabs/service-workbench-on-aws/blob/mainline/docs/docs/deployment/post_deployment/aws_accounts.md#prepare-your-account-for-appstream).
+  + New input parameter **ACMSSLCertARN** has been introduced in the RStudio workspace type template. The template is created by the scripts provided in AWS partner’s repository. **ACMSSLCertARN** corresponds to the certificates of the custom domain present in the hosting account. 
+  + The **AmiID** parameter value can be retrieved by creating a new AMI using the scripts provided in AWS [partner’s repository](https://github.com/RLOpenCatalyst/Service_Workbench_Templates).
+  + A common [Application Load Balancer](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html) (ALB) has been provided in the hosting account. See [Application load balancing for RStudio ALB workspace](https://github.com/awslabs/service-workbench-on-aws/blob/mainline/docs/docs/deployment/post_deployment/aws_accounts.md#application-load-balancing-for-rstudio-alb-workspace).
+  + Allows you to leverage the automatic certificate refresh feature from [AWS Certificate Manager](https://docs.aws.amazon.com/acm/latest/userguide/acm-overview.html) (ACM). As a result, you need not manually import the certificates into your main account ACM or hosting account ACM. 
+
 * Add pending filter tab under AWS Accounts page ([#786](https://github.com/awslabs/service-workbench-on-aws/issues/786)) ([831da13](https://github.com/awslabs/service-workbench-on-aws/commit/831da13e4df32d3da67101f9065c109351f9b38c))
 * Add user's email to JSON response of egress request ([#771](https://github.com/awslabs/service-workbench-on-aws/issues/771)) ([e3c6c22](https://github.com/awslabs/service-workbench-on-aws/commit/e3c6c225f45d482b7a6b25e8fea0437a90ae0828))
 
