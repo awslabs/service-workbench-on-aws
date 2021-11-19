@@ -60,6 +60,9 @@ describe('Launch and terminate RStudio instance', () => {
       await checkCIDR(envId);
     }
 
+    // Allow 90 seconds for EC2 to initialize and create SSM parameters
+    await sleep(90 * 1000);
+
     const rstudioServerUrlResponse = await checkConnectionUrlCanBeCreated(envId);
     await checkConnectionUrlNetworkConnectivity(rstudioServerUrlResponse);
     await checkWorkspaceCanBeTerminatedCorrectly(envId);
