@@ -22,7 +22,8 @@ Resources:
     Type: AWS::SNS::Topic
     Properties: !If
       - SubscribeNotificationEmail
-      - Subscription:
+      -
+        Subscription:
           - Endpoint: ${self:custom.settings.emailForNotifications}
             Protocol: email
         KmsMasterKeyId: alias/aws/sns

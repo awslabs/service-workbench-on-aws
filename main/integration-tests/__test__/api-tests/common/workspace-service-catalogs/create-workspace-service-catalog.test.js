@@ -30,7 +30,6 @@ describe('Create workspace-service-catalog scenarios', () => {
   let setup;
   let adminSession;
   let productInfo;
-
   beforeAll(async () => {
     setup = await runSetup();
 

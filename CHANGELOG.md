@@ -2,8 +2,39 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## Beta
-[This release is in beta. Click here to see changes since 4.0.2.](https://github.com/awslabs/service-workbench-on-aws/compare/v4.0.2...mainline)
+## [4.1.0](https://github.com/awslabs/service-workbench-on-aws/compare/v4.0.2...v4.1.0) (2021-11-19)
+
+
+### Features
+
+* Implementation for RstudioV2 (backed by ALB) feature ([#807](https://github.com/awslabs/service-workbench-on-aws/pull/807)) ([ed2e7dc](https://github.com/awslabs/service-workbench-on-aws/commit/ed2e7dc60a35a12a8f14f55964ade66a88e38298)). In this release, RStudio ALB workspace type is provided with the following new features:
+
+  + Compatibility with TRE (AppStream and Egress) features. See [Prepare your account for AppStream](https://github.com/awslabs/service-workbench-on-aws/blob/mainline/docs/docs/deployment/post_deployment/aws_accounts.md#prepare-your-account-for-appstream).
+  + New input parameter **ACMSSLCertARN** has been introduced in the RStudio workspace type template. The template is created by the scripts provided in AWS partner’s repository. **ACMSSLCertARN** corresponds to the certificates of the custom domain present in the hosting account. 
+  + The **AmiID** parameter value can be retrieved by creating a new AMI using the scripts provided in AWS [partner’s repository](https://github.com/RLOpenCatalyst/Service_Workbench_Templates).
+  + A common [Application Load Balancer](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html) (ALB) has been provided in the hosting account. See [Application load balancing for RStudio ALB workspace](https://github.com/awslabs/service-workbench-on-aws/blob/mainline/docs/docs/deployment/post_deployment/aws_accounts.md#application-load-balancing-for-rstudio-alb-workspace).
+  + Allows you to leverage the automatic certificate refresh feature from [AWS Certificate Manager](https://docs.aws.amazon.com/acm/latest/userguide/acm-overview.html) (ACM). As a result, you need not manually import the certificates into your main account ACM or hosting account ACM. 
+  + Note: With this release, the support for legacy RStudio workspace type has been deprecated. Please terminate legacy RStudio environment instances, if you have any.
+
+* Add pending filter tab under AWS Accounts page ([#786](https://github.com/awslabs/service-workbench-on-aws/issues/786)) ([831da13](https://github.com/awslabs/service-workbench-on-aws/commit/831da13e4df32d3da67101f9065c109351f9b38c))
+* Add user's email to JSON response of egress request ([#771](https://github.com/awslabs/service-workbench-on-aws/issues/771)) ([e3c6c22](https://github.com/awslabs/service-workbench-on-aws/commit/e3c6c225f45d482b7a6b25e8fea0437a90ae0828))
+
+
+### Bug Fixes
+
+* Add WorkflowDraftId validation on backend ([#777](https://github.com/awslabs/service-workbench-on-aws/issues/777)) ([f240d81](https://github.com/awslabs/service-workbench-on-aws/commit/f240d813906d48fe135360f767de5df62f138d99))
+* default hosted zone in infra ([#794](https://github.com/awslabs/service-workbench-on-aws/issues/794)) ([0967129](https://github.com/awslabs/service-workbench-on-aws/commit/096712990b12692dcb725961dab94494bfc2d58e))
+* default image builder update ([#781](https://github.com/awslabs/service-workbench-on-aws/issues/781)) ([6398830](https://github.com/awslabs/service-workbench-on-aws/commit/639883074d634ba5533358cf42d841d7984609a5))
+* enable versioning ([#780](https://github.com/awslabs/service-workbench-on-aws/issues/780)) ([380a938](https://github.com/awslabs/service-workbench-on-aws/commit/380a9382a3d76872212723a06c3e21455c4467f3))
+* hsts header ([#790](https://github.com/awslabs/service-workbench-on-aws/issues/790)) ([66f79f2](https://github.com/awslabs/service-workbench-on-aws/commit/66f79f2264f2850a79311dea647718354cb7bde3))
+* more secure traffic policy ([#782](https://github.com/awslabs/service-workbench-on-aws/issues/782)) ([9264b6a](https://github.com/awslabs/service-workbench-on-aws/commit/9264b6a7ea78fdfb0cc9e943c967d7034a70b223))
+* moving advanced integ tests in non-TRE folder ([#772](https://github.com/awslabs/service-workbench-on-aws/issues/772)) ([b10f4b0](https://github.com/awslabs/service-workbench-on-aws/commit/b10f4b0bb8253f68a3e434b5d2e3c22655eaa153))
+* prevent duplicate hosted zone creation ([#789](https://github.com/awslabs/service-workbench-on-aws/issues/789)) ([ac72b90](https://github.com/awslabs/service-workbench-on-aws/commit/ac72b9000ccdf06ac17f542ada80f6745c58246a))
+* remove custom domain condition infra cfn ([#817](https://github.com/awslabs/service-workbench-on-aws/issues/817)) ([33b53da](https://github.com/awslabs/service-workbench-on-aws/commit/33b53da9a2793b5823bc979301468500d4f01289))
+* run TRE tests for develop merge ([#802](https://github.com/awslabs/service-workbench-on-aws/issues/802)) ([c6e04ca](https://github.com/awslabs/service-workbench-on-aws/commit/c6e04ca2f41becd03865ca9fd0bc59afff8f288c))
+* sc portfolio deletion correction ([#779](https://github.com/awslabs/service-workbench-on-aws/issues/779)) ([6e4d67b](https://github.com/awslabs/service-workbench-on-aws/commit/6e4d67ba19b9dd423aeb0f04b8d5c8350c3c8726))
+* script permissions ([#793](https://github.com/awslabs/service-workbench-on-aws/issues/793)) ([5b404f0](https://github.com/awslabs/service-workbench-on-aws/commit/5b404f002ebe877179c80ec904201cdc2acf909b))
+* update GH action to use custom domain ([#791](https://github.com/awslabs/service-workbench-on-aws/issues/791)) ([b2fdfcb](https://github.com/awslabs/service-workbench-on-aws/commit/b2fdfcbdee10a00f9d0f1de485798d8e3694974e))
 
 ### [4.0.2](https://github.com/awslabs/service-workbench-on-aws/compare/v4.0.1...v4.0.2) (2021-10-19)
 

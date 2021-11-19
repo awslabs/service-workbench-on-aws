@@ -8,21 +8,26 @@
     "isCognitoEnabled": false,
     "workspaces": {
       "sagemaker": {
-        "workspaceTypeName": "SageMaker Notebook-v2",
+        "workspaceTypeName": "SageMaker Notebook-v5",
         "configuration": "AppStream-SageMaker",
         "projectId": "TRE-Project"
       },
       "ec2": {
         "linux": {
-          "workspaceTypeName": "EC2 Linux-v2",
+          "workspaceTypeName": "EC2 Linux-v4",
           "configuration": "AppStream-Linux",
           "projectId": "TRE-Project"
         },
         "windows": {
-          "workspaceTypeName": "EC2 Windows-v2",
+          "workspaceTypeName": "EC2 Windows-v4",
           "configuration": "AppStream-Windows",
           "projectId": "TRE-Project"
         }
+      },
+      "rstudioServer": {
+        "workspaceTypeName": "RStudio-Server-ALB-v1",
+        "configuration": "RStudio-Server-ALB-TRE",
+        "projectId": "TRE-Project"
       }
     },
     "studies": {

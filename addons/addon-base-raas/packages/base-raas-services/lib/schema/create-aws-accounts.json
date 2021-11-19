@@ -46,6 +46,9 @@
         "type": "string",
         "pattern": "^subnet-[a-f0-9]{8,17}$"
       },
+      "publicRouteTableId": {
+        "type": "string"
+      },
       "encryptionKeyArn": {
         "type": "string",
         "pattern": "^arn:aws:kms:.*$"

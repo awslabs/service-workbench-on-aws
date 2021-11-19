@@ -34,7 +34,7 @@ as an environment type.
 ### Environment Type Candidates APIs
 (uses AWS Service Catalog -- interacts after assuming the EnvMgmtRole that gets created via CloudFormation template)
 
-**GET /api/workspace-type-candidates**: Lists various environment type candidates. By default, it returns only "not-imported" environment type candidates i.e., the environment type candidates that are accessible via the EngMgmtRole but not yet imported. Takes optional "status" query string parameter to return environment type candidates with specific status. Valid values for status param are "\*" (include all env type candidates), or "not-imported" (or a comma separated value). Similarly, by default the API returns only the latest versions of AWS Service Catalog Products as environment type candidates. To include all versions an optional query string parameter "version" can be passed. Value values are "\*" or "latest".
+**GET /api/workspace-type-candidates**: Lists various environment type candidates. By default, it returns only "not-imported" environment type candidates i.e., the environment type candidates that are accessible via the EngMgmtRole but not yet imported. Takes optional "status" query string parameter to return environment type candidates with specific status. Valid values for status param are "\*" (include all env type candidates), or "not-imported" (or a comma separated value). Similarly, by default the API returns only the latest versions of AWS Service Catalog Products as environment type candidates. To include all versions an optional query string parameter "version" can be passed. Value values are "\*" or "latest". Also, incorporated the portfolio id in the response object.
 
 ### Environment Type APIs
 (uses DynamoDB for persistence)

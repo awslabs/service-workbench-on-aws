@@ -89,8 +89,28 @@ class ScEnvironmentHttpConnections extends React.Component {
           url = urlObj.url;
 
           if (url) {
-            const newTab = openWindow('about:blank');
-            newTab.location = url;
+            if (connectInfo.type.toLowerCase() === 'rstudiov2') {
+              const rstudioUrl = url.split('?v=')[0];
+              const token = url.split('auth-do-sign-in?')[1];
+              const tokenKey = 'v';
+              const tokenVal = token.split('v=')[1];
+              const mapForm = document.createElement('form');
+              mapForm.target = 'Map';
+              mapForm.method = 'POST';
+              mapForm.action = rstudioUrl;
+              mapForm.style.display = 'none';
+
+              const mapInput = document.createElement('input');
+              mapInput.name = tokenKey;
+              mapInput.value = decodeURIComponent(tokenVal);
+              mapForm.appendChild(mapInput);
+
+              document.body.appendChild(mapForm);
+              mapForm.submit();
+            } else {
+              const newTab = openWindow('about:blank');
+              newTab.location = url;
+            }
           }
         }
       } catch (error) {
@@ -247,6 +267,7 @@ class ScEnvironmentHttpConnections extends React.Component {
                   disabled={isDisabled(item.id)}
                   loading={isLoading(item.id)}
                   onClick={this.handleConnect(item.id)}
+                  data-testid="connect-to-workspace-button"
                 >
                   Connect
                 </Button>

@@ -26,6 +26,14 @@ describe('Launch a workspace', () => {
     terminateWorkspaces();
   });
 
+  // Do RStudio create first as we need to test when this becomes available as well
+  it('should launch a new RStudio Server workspace correctly', () => {
+    const workspaces = Cypress.env('workspaces');
+    const rstudioServer = workspaces.rstudioServer;
+    const workspaceName = launchWorkspace(rstudioServer, 'RStudio-Server');
+    checkDetailsTable(workspaceName);
+  });
+
   it('should launch a new sagemaker workspace correctly', () => {
     const workspaces = Cypress.env('workspaces');
     const sagemaker = workspaces.sagemaker;

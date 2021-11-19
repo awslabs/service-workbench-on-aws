@@ -17,7 +17,7 @@ import React from 'react';
 import { decorate, computed } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
-import { Header, Label, Popup, Icon, Divider, Message, Table, Grid, Segment } from 'semantic-ui-react';
+import { Header, Label, Popup, Icon, Divider, Message, Table, Grid, Segment, List } from 'semantic-ui-react';
 import TimeAgo from 'react-timeago';
 import { niceNumber, swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
 import { isStoreLoading, isStoreNotEmpty, isStoreError } from '@aws-ee/base-ui/dist/models/BaseStore';
@@ -92,6 +92,7 @@ class ScEnvironmentCard extends React.Component {
         {this.renderTitle(env)}
         {this.renderError(env)}
         {this.renderWarning(env)}
+        {this.renderLegacyRStudioWarning(env)}
         <Divider className="mt1 mb1" />
         {this.renderButtons(env)}
         <Divider className="mt1" />
@@ -174,6 +175,35 @@ class ScEnvironmentCard extends React.Component {
         </Header.Subheader>
       </Header>
     );
+  }
+
+  renderLegacyRStudioWarning(env) {
+    const metaConnection1Type = env.outputs.find(obj => obj.OutputKey === 'MetaConnection1Type');
+    if (metaConnection1Type && metaConnection1Type.OutputValue.toLowerCase() === 'rstudio' && env.state.canTerminate) {
+      return (
+        <>
+          <Message
+            icon="warning"
+            header="Legacy RStudio environment found"
+            content="Please terminate this workspace as soon as possible. Support for this environment type has been deprecated. Please use RStudioV2 instead."
+          />
+          <div className="mt3">
+            For more information, refer to the Create RStudio ALB workspace section of our Post Deployment Guide:
+          </div>
+          <List bulleted>
+            <List.Item
+              href="https://github.com/awslabs/service-workbench-on-aws/blob/mainline/docs/Service_Workbench_Post_Deployment_Guide.pdf"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Post Deployment Guide
+            </List.Item>
+          </List>
+        </>
+      );
+    }
+
+    return null;
   }
 
   renderWarning(env) {

@@ -43,6 +43,12 @@ describe('EnvironmentDnsService', () => {
     service = await container.find('environmentDnsService');
     environmentScService = await container.find('environmentScService');
     settings = await container.find('settings');
+    settings.get = jest.fn(key => {
+      if (key === 'domainName') {
+        return 'test.aws';
+      }
+      throw Error(`${key} not found`);
+    });
   });
 
   describe('Test changePrivateRecordSet', () => {
@@ -52,12 +58,6 @@ describe('EnvironmentDnsService', () => {
       service.changeResourceRecordSets = jest.fn();
       environmentScService.getClientSdkWithEnvMgmtRole = jest.fn(() => {
         return route53Client;
-      });
-      settings.get = jest.fn(key => {
-        if (key === 'domainName') {
-          return 'test.aws';
-        }
-        throw Error(`${key} not found`);
       });
       await service.changePrivateRecordSet(requestContext, 'CREATE', 'rstudio', 'test-id', '10.1.1.1', 'HOSTEDZONE123');
       expect(service.changeResourceRecordSets).toHaveBeenCalledWith(
@@ -127,6 +127,56 @@ describe('EnvironmentDnsService', () => {
     });
   });
 
+  describe('Test createPrivateRecordForDNS', () => {
+    it('should call changePrivateRecordSetALB', async () => {
+      const requestContext = { principalIdentifier: { uid: 'u-testuser' } };
+      service.changePrivateRecordSetALB = jest.fn();
+      await service.createPrivateRecordForDNS(
+        requestContext,
+        'rstudio',
+        'test-id',
+        'sampleAlbHostedZoneId',
+        'sampleAlbDnsName',
+        'HOSTEDZONE123',
+      );
+      expect(service.changePrivateRecordSetALB).toHaveBeenCalledTimes(1);
+      expect(service.changePrivateRecordSetALB).toHaveBeenCalledWith(
+        requestContext,
+        'CREATE',
+        'rstudio',
+        'test-id',
+        'HOSTEDZONE123',
+        'sampleAlbHostedZoneId',
+        'sampleAlbDnsName',
+      );
+    });
+  });
+
+  describe('Test deletePrivateRecordForDNS', () => {
+    it('should call changePrivateRecordSetALB', async () => {
+      const requestContext = { principalIdentifier: { uid: 'u-testuser' } };
+      service.changePrivateRecordSetALB = jest.fn();
+      await service.deletePrivateRecordForDNS(
+        requestContext,
+        'rstudio',
+        'test-id',
+        'sampleAlbHostedZoneId',
+        'sampleAlbDnsName',
+        'HOSTEDZONE123',
+      );
+      expect(service.changePrivateRecordSetALB).toHaveBeenCalledTimes(1);
+      expect(service.changePrivateRecordSetALB).toHaveBeenCalledWith(
+        requestContext,
+        'DELETE',
+        'rstudio',
+        'test-id',
+        'HOSTEDZONE123',
+        'sampleAlbHostedZoneId',
+        'sampleAlbDnsName',
+      );
+    });
+  });
+
   describe('Test deletePrivateRecord', () => {
     it('should call changePrivateRecordSet', async () => {
       const requestContext = { principalIdentifier: { uid: 'u-testuser' } };
@@ -141,6 +191,86 @@ describe('EnvironmentDnsService', () => {
         '10.1.1.1',
         'HOSTEDZONE123',
       );
+    });
+  });
+
+  describe('Test changePrivateRecordSetALB', () => {
+    it('should call changeResourceRecordSetsPrivateALB', async () => {
+      // BUILD
+      const requestContext = { principalIdentifier: { uid: 'u-testuser' } };
+      environmentScService.getClientSdkWithEnvMgmtRole = jest.fn(() => {
+        return {};
+      });
+
+      service.changeResourceRecordSetsPrivateALB = jest.fn();
+
+      // OPERATE
+      await service.changePrivateRecordSetALB(
+        requestContext,
+        'ACTION',
+        'rstudio',
+        'test-id',
+        'sampleHostedZoneId',
+        'samplealbHostedZoneId',
+        'sampleRecordValue',
+      );
+
+      // CHECK
+      expect(service.changeResourceRecordSetsPrivateALB).toHaveBeenCalledTimes(1);
+      expect(service.changeResourceRecordSetsPrivateALB).toHaveBeenCalledWith(
+        {},
+        'sampleHostedZoneId',
+        'ACTION',
+        `rstudio-test-id.test.aws`,
+        'samplealbHostedZoneId',
+        'sampleRecordValue',
+      );
+    });
+  });
+
+  describe('Test changeResourceRecordSetsPrivateALB', () => {
+    it('should call changeResourceRecordSets', async () => {
+      // BUILD
+      const route53Client = jest.fn();
+      route53Client.changeResourceRecordSets = jest.fn(() => {
+        return {
+          promise: jest.fn(),
+        };
+      });
+
+      const params = {
+        HostedZoneId: 'sampleHostedZoneId',
+        ChangeBatch: {
+          Changes: [
+            {
+              Action: 'ACTION',
+              ResourceRecordSet: {
+                Name: 'rstudio-test-id.test.aws',
+                Type: 'A',
+                AliasTarget: {
+                  HostedZoneId: 'samplealbHostedZoneId',
+                  DNSName: 'dualstack.sampleRecordValue',
+                  EvaluateTargetHealth: false,
+                },
+              },
+            },
+          ],
+        },
+      };
+
+      // OPERATE
+      await service.changeResourceRecordSetsPrivateALB(
+        route53Client,
+        'sampleHostedZoneId',
+        'ACTION',
+        'rstudio-test-id.test.aws',
+        'samplealbHostedZoneId',
+        'sampleRecordValue',
+      );
+
+      // CHECK
+      expect(route53Client.changeResourceRecordSets).toHaveBeenCalledTimes(1);
+      expect(route53Client.changeResourceRecordSets).toHaveBeenCalledWith(params);
     });
   });
 });
