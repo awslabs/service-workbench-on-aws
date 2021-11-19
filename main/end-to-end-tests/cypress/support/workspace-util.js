@@ -117,10 +117,17 @@ function checkWorkspaceAvailableAndClickConnectionsButton(workspaceName) {
     .click();
 }
 
+function checkWorkspaceAvailable(workspaceName) {
+  cy.contains(workspaceName)
+    .parent()
+    .contains('AVAILABLE', { timeout: 1000000 });
+}
+
 module.exports = {
   terminateWorkspaces,
   launchWorkspace,
   navigateToWorkspaces,
   checkDetailsTable,
   checkWorkspaceAvailableAndClickConnectionsButton,
+  checkWorkspaceAvailable,
 };
