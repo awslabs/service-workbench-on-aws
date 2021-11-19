@@ -28,7 +28,7 @@ describe('Launch and terminate RStudio instance', () => {
   });
 
   afterAll(async () => {
-    // await setup.cleanup();
+    await setup.cleanup();
   });
 
   async function checkAllRstudioWorkspaceIsTerminated() {
@@ -51,7 +51,6 @@ describe('Launch and terminate RStudio instance', () => {
     await checkAllRstudioWorkspaceIsTerminated();
 
     const envId = await launchRStudioWorkspace();
-    // const envId = 'f7cb0f78-3fd2-4351-bea0-b6a05096c2c5';
 
     // For installations without AppStream enabled, check that workspace CIDR can be changed
     if (!setup.defaults.isAppStreamEnabled) {
