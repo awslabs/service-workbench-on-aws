@@ -15,8 +15,8 @@
 
 const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
 const axios = require('axios').default;
-const { runSetup } = require('../../../support/setup');
-const { deleteWorkspaceServiceCatalog } = require('../../../support/complex/delete-workspace-service-catalog');
+const { runSetup } = require('../../../../../support/setup');
+const { deleteWorkspaceServiceCatalog } = require('../../../../../support/complex/delete-workspace-service-catalog');
 
 describe('Launch and terminate RStudio instance', () => {
   let setup;
