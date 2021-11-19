@@ -15,8 +15,8 @@
 
 const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
 const axios = require('axios').default;
-const { runSetup } = require('../../../support/setup');
-const { deleteWorkspaceServiceCatalog } = require('../../../support/complex/delete-workspace-service-catalog');
+const { runSetup } = require('../../../../../support/setup');
+const { deleteWorkspaceServiceCatalog } = require('../../../../../support/complex/delete-workspace-service-catalog');
 
 describe('Launch and terminate RStudio instance', () => {
   let setup;
@@ -28,7 +28,7 @@ describe('Launch and terminate RStudio instance', () => {
   });
 
   afterAll(async () => {
-    // await setup.cleanup();
+    await setup.cleanup();
   });
 
   async function checkAllRstudioWorkspaceIsTerminated() {
@@ -46,12 +46,14 @@ describe('Launch and terminate RStudio instance', () => {
 
   // eslint-disable-next-line jest/expect-expect
   it('should launch a RStudio instance', async () => {
+    if (setup.defaults.envTypes.rstudio.envTypeId === 'N/A') {
+      return;
+    }
     // Putting checkAllRstudioWorkspaceIsTerminated check here, because putting this check in `beforeAll` will not stop executing the test if the check does fail
     // https://github.com/facebook/jest/issues/2713
     await checkAllRstudioWorkspaceIsTerminated();
 
     const envId = await launchRStudioWorkspace();
-    // const envId = 'f7cb0f78-3fd2-4351-bea0-b6a05096c2c5';
 
     // For installations without AppStream enabled, check that workspace CIDR can be changed
     if (!setup.defaults.isAppStreamEnabled) {
