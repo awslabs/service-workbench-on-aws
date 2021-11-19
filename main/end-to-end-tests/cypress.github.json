@@ -28,6 +28,11 @@
         "workspaceTypeName": "EMR-v7",
         "configuration": "emr-e2e",
         "projectId": "e2eTestProject"
+      },
+      "rstudioServer": {
+        "workspaceTypeName": "RStudio-Server-ALB-v2",
+        "configuration": "RStudio-Server-ALB-v2",
+        "projectId": "e2eTestProject"
       }
     },
     "studies": {
