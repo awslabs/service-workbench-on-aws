@@ -71,6 +71,8 @@ describe('Delete workspace-service-catalog scenarios', () => {
       ).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
+
+      dummyWorkspacesToDelete.push(response.id);
     });
 
     it('should fail if user is anonymous', async () => {
@@ -93,6 +95,8 @@ describe('Delete workspace-service-catalog scenarios', () => {
       ).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
+
+      dummyWorkspacesToDelete.push(response.id);
     });
 
     it('should fail if user is not owner of workspace', async () => {
@@ -115,6 +119,8 @@ describe('Delete workspace-service-catalog scenarios', () => {
       ).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
+
+      dummyWorkspacesToDelete.push(response.id);
     });
 
     it('should delete if user is admin', async () => {
@@ -157,6 +163,8 @@ describe('Delete workspace-service-catalog scenarios', () => {
       await expect(
         researcherSession.resources.workspaceServiceCatalogs.workspaceServiceCatalog(response.id).delete(),
       ).resolves.toEqual({});
+
+      dummyWorkspacesToDelete.push(response.id);
     });
   });
 });
