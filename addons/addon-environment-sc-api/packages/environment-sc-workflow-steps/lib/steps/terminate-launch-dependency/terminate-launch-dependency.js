@@ -95,7 +95,6 @@ class TerminateLaunchDependency extends StepBase {
     // convert output array to object. Return {} if no outputs found
     const environmentOutputs = await this.cfnOutputsArrayToObject(_.get(environment, 'outputs', []));
     const connectionType = _.get(environmentOutputs, 'MetaConnection1Type', '');
-    let templateOutputs = {};
     // Clean up listener rule and Route53 record before deleting ALB and Workspace
     if (connectionType.toLowerCase() === 'rstudiov2') {
       const [environmentDnsService] = await this.mustFindServices(['environmentDnsService']);
@@ -177,10 +176,10 @@ class TerminateLaunchDependency extends StepBase {
           });
         }
       }
-      // Get Template outputs to check NeedsALB flag. Not reading template outputs from DB
-      // Because failed products will not have outputs stored
-      templateOutputs = await this.getTemplateOutputs(requestContext, environment.envTypeId);
     }
+    // Get Template outputs to check NeedsALB flag. Not reading template outputs from DB
+    // Because failed products will not have outputs stored
+    const templateOutputs = await this.getTemplateOutputs(requestContext, environment.envTypeId);
     const needsAlb = _.get(templateOutputs.NeedsALB, 'Value', false);
     if (!needsAlb) return null;
 
