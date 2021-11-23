@@ -13,6 +13,7 @@
  *  permissions and limitations under the License.
  */
 
+const _ = require('lodash');
 const { runSetup } = require('../../../../support/setup');
 
 const {
@@ -22,12 +23,14 @@ const {
   createDefaultServiceCatalogProduct,
   deleteDefaultServiceCatalogProduct,
 } = require('../../../../support/complex/default-integration-test-product');
+const { deleteWorkspaceServiceCatalog } = require('../../../../support/complex/delete-workspace-service-catalog');
 const errorCode = require('../../../../support/utils/error-code');
 
 describe('Delete workspace-service-catalog scenarios', () => {
   let setup;
   let adminSession;
   let productInfo;
+  let dummyWorkspacesToDelete;
 
   beforeAll(async () => {
     setup = await runSetup();
@@ -37,6 +40,11 @@ describe('Delete workspace-service-catalog scenarios', () => {
 
   afterAll(async () => {
     await deleteDefaultServiceCatalogProduct(setup, productInfo);
+    await Promise.all(
+      _.map(dummyWorkspacesToDelete, async envId => {
+        await deleteWorkspaceServiceCatalog({ aws: setup.aws, id: envId });
+      }),
+    );
     await setup.cleanup();
   });
 
@@ -126,6 +134,8 @@ describe('Delete workspace-service-catalog scenarios', () => {
       await expect(
         adminSession.resources.workspaceServiceCatalogs.workspaceServiceCatalog(response.id).delete(),
       ).resolves.toEqual({});
+
+      dummyWorkspacesToDelete.push(response.id);
     });
 
     it('should delete if user is owner of workspace', async () => {

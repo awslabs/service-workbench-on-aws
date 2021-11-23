@@ -13,6 +13,7 @@
  *  permissions and limitations under the License.
  */
 
+const _ = require('lodash');
 const { runSetup } = require('../../../../support/setup');
 const errorCode = require('../../../../support/utils/error-code');
 
@@ -23,11 +24,13 @@ const {
   createDefaultServiceCatalogProduct,
   deleteDefaultServiceCatalogProduct,
 } = require('../../../../support/complex/default-integration-test-product');
+const { deleteWorkspaceServiceCatalog } = require('../../../../support/complex/delete-workspace-service-catalog');
 
 describe('Cidr workspace-service-catalog scenarios', () => {
   let setup;
   let adminSession;
   let productInfo;
+  let dummyWorkspacesToDelete;
 
   beforeAll(async () => {
     setup = await runSetup();
@@ -37,6 +40,11 @@ describe('Cidr workspace-service-catalog scenarios', () => {
 
   afterAll(async () => {
     await deleteDefaultServiceCatalogProduct(setup, productInfo);
+    await Promise.all(
+      _.map(dummyWorkspacesToDelete, async envId => {
+        await deleteWorkspaceServiceCatalog({ aws: setup.aws, id: envId });
+      }),
+    );
     await setup.cleanup();
   });
 
@@ -85,6 +93,8 @@ describe('Cidr workspace-service-catalog scenarios', () => {
       ).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
+
+      dummyWorkspacesToDelete.push(response.id);
     });
 
     it('should fail if user is anonymous', async () => {
@@ -107,6 +117,8 @@ describe('Cidr workspace-service-catalog scenarios', () => {
       ).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
+
+      dummyWorkspacesToDelete.push(response.id);
     });
   });
 });
