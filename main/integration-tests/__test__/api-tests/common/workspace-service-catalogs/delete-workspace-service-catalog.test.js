@@ -30,7 +30,7 @@ describe('Delete workspace-service-catalog scenarios', () => {
   let setup;
   let adminSession;
   let productInfo;
-  let dummyWorkspacesToDelete;
+  const dummyWorkspacesToDelete = [];
 
   beforeAll(async () => {
     setup = await runSetup();
