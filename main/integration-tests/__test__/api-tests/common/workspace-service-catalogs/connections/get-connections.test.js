@@ -13,6 +13,7 @@
  *  permissions and limitations under the License.
  */
 
+const _ = require('lodash');
 const { runSetup } = require('../../../../../support/setup');
 const errorCode = require('../../../../../support/utils/error-code');
 
@@ -23,11 +24,13 @@ const {
   createDefaultServiceCatalogProduct,
   deleteDefaultServiceCatalogProduct,
 } = require('../../../../../support/complex/default-integration-test-product');
+const { deleteWorkspaceServiceCatalog } = require('../../../../../support/complex/delete-workspace-service-catalog');
 
 describe('Get connections scenario', () => {
   let setup;
   let adminSession;
   let productInfo;
+  const dummyWorkspacesToDelete = [];
 
   beforeAll(async () => {
     setup = await runSetup();
@@ -37,6 +40,11 @@ describe('Get connections scenario', () => {
 
   afterAll(async () => {
     await deleteDefaultServiceCatalogProduct(setup, productInfo);
+    await Promise.all(
+      _.map(dummyWorkspacesToDelete, async envId => {
+        await deleteWorkspaceServiceCatalog({ aws: setup.aws, id: envId });
+      }),
+    );
     await setup.cleanup();
   });
 
@@ -66,6 +74,8 @@ describe('Get connections scenario', () => {
       ).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
+
+      dummyWorkspacesToDelete.push(response.id);
     });
 
     it('should fail if user is anonymous', async () => {
@@ -91,6 +101,8 @@ describe('Get connections scenario', () => {
       ).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
+
+      dummyWorkspacesToDelete.push(response.id);
     });
   });
 });
