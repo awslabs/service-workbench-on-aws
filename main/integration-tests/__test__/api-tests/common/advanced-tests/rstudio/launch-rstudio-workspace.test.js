@@ -15,8 +15,8 @@
 
 const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
 const axios = require('axios').default;
-const { runSetup } = require('../../../support/setup');
-const { deleteWorkspaceServiceCatalog } = require('../../../support/complex/delete-workspace-service-catalog');
+const { runSetup } = require('../../../../../support/setup');
+const { deleteWorkspaceServiceCatalog } = require('../../../../../support/complex/delete-workspace-service-catalog');
 
 describe('Launch and terminate RStudio instance', () => {
   let setup;
@@ -28,17 +28,35 @@ describe('Launch and terminate RStudio instance', () => {
   });
 
   afterAll(async () => {
-    // await setup.cleanup();
+    await setup.cleanup();
   });
 
   async function checkAllRstudioWorkspaceIsTerminated() {
-    const response = await adminSession.resources.workspaceServiceCatalogs.get();
-    const workspaces = response.filter(workspace => {
-      return (
-        workspace.envTypeId === setup.defaults.envTypes.rstudio.envTypeId &&
-        !['TERMINATED', 'FAILED'].includes(workspace.status)
-      );
+    console.log('Check all RStudio Workspaces are terminated');
+    let response = await adminSession.resources.workspaceServiceCatalogs.get();
+    const rstudioEnvTypeId = setup.defaults.envTypes.rstudio.envTypeId;
+    let workspaces = response.filter(workspace => {
+      return workspace.envTypeId === rstudioEnvTypeId && !['TERMINATED', 'FAILED'].includes(workspace.status);
     });
+    const maxWaitTimeInSeconds = 600;
+    const startTime = Date.now();
+    while (Date.now() - startTime <= maxWaitTimeInSeconds * 1000 && workspaces.length > 0) {
+      // Sleep for 10 seconds
+      // eslint-disable-next-line no-await-in-loop
+      await new Promise(r => setTimeout(r, 10000));
+      // eslint-disable-next-line no-await-in-loop
+      response = await adminSession.resources.workspaceServiceCatalogs.get();
+      workspaces = response.filter(workspace => {
+        return workspace.envTypeId === rstudioEnvTypeId && !['TERMINATED', 'FAILED'].includes(workspace.status);
+      });
+
+      console.log(
+        'Workspaces that are not terminated. Ids: ',
+        workspaces.map(workspace => {
+          return workspace.id;
+        }),
+      );
+    }
     if (workspaces.length > 0) {
       throw new Error('All RStudio workspaces should be terminated or failed');
     }
@@ -46,17 +64,22 @@ describe('Launch and terminate RStudio instance', () => {
 
   // eslint-disable-next-line jest/expect-expect
   it('should launch a RStudio instance', async () => {
+    if (setup.defaults.envTypes.rstudio.envTypeId === 'N/A') {
+      return;
+    }
     // Putting checkAllRstudioWorkspaceIsTerminated check here, because putting this check in `beforeAll` will not stop executing the test if the check does fail
     // https://github.com/facebook/jest/issues/2713
     await checkAllRstudioWorkspaceIsTerminated();
 
     const envId = await launchRStudioWorkspace();
-    // const envId = 'f7cb0f78-3fd2-4351-bea0-b6a05096c2c5';
 
     // For installations without AppStream enabled, check that workspace CIDR can be changed
     if (!setup.defaults.isAppStreamEnabled) {
       await checkCIDR(envId);
     }
+
+    // Allow 90 seconds for EC2 to initialize and create SSM parameters
+    await sleep(90 * 1000);
 
     const rstudioServerUrlResponse = await checkConnectionUrlCanBeCreated(envId);
     await checkConnectionUrlNetworkConnectivity(rstudioServerUrlResponse);
@@ -64,6 +87,7 @@ describe('Launch and terminate RStudio instance', () => {
   });
 
   async function launchRStudioWorkspace() {
+    console.log('Launch RStudio Workspace');
     const workspaceName = setup.gen.string({ prefix: 'launch-studio-workspace-test' });
     const createWorkspaceBody = {
       name: workspaceName,
@@ -86,6 +110,7 @@ describe('Launch and terminate RStudio instance', () => {
   }
 
   async function checkCIDR(envId) {
+    console.log('Check CIDR');
     const cidrs = {
       cidr: [
         {
@@ -114,6 +139,7 @@ describe('Launch and terminate RStudio instance', () => {
   }
 
   async function checkWorkspaceCanBeTerminatedCorrectly(envId) {
+    console.log('Check workspace can be terminated correctly');
     await adminSession.resources.workspaceServiceCatalogs.workspaceServiceCatalog(envId).delete();
     await sleep(2000);
     await adminSession.resources.workflows
@@ -129,6 +155,7 @@ describe('Launch and terminate RStudio instance', () => {
   }
 
   async function checkConnectionUrlCanBeCreated(envId) {
+    console.log('Check Connection URL can be created');
     const rstudioServerUrlResponse = await adminSession.resources.workspaceServiceCatalogs
       .workspaceServiceCatalog(envId)
       .connections()
@@ -143,6 +170,7 @@ describe('Launch and terminate RStudio instance', () => {
   }
 
   async function checkConnectionUrlNetworkConnectivity(rstudioServerUrlResponse) {
+    console.log('Check Connection URL network connectivity');
     if (!setup.defaults.isAppStreamEnabled) {
       // VERIFY active workspaces are associated with unexpired TLSv1.2 certs
       // By default Axios verify that the domain's SSL cert is valid. If we're able to get a response from the domain it means the domain's cert is valid
