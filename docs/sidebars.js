@@ -19,6 +19,7 @@ module.exports = {
           "installation_guide/installation/ami-install",
           "installation_guide/installation/ec2install",
           "installation_guide/installation/cloud9install",
+          "installation_guide/installation/rstudio",
         ],
       },
       {
@@ -59,6 +60,7 @@ module.exports = {
           "installation_guide/installation/ami-install",
           "installation_guide/installation/ec2install",
           "installation_guide/installation/cloud9install",
+          "installation_guide/installation/rstudio",
         ],
       },
       {
