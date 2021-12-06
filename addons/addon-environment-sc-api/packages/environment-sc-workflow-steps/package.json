@@ -9,9 +9,12 @@
     "@aws-ee/base-services": "workspace:*",
     "@aws-ee/base-workflow-core": "workspace:*",
     "@aws-ee/environment-type-mgmt-services": "workspace:*",
+    "@aws-ee/base-raas-services": "workspace:*",
+    "@aws-ee/base-services-container": "workspace:*",
     "lodash": "^4.17.21",
     "slugify": "^1.4.0",
-    "uuid": "^8.2.0"
+    "uuid": "^8.2.0",
+    "js-yaml": "^4.0.0"
   },
   "devDependencies": {
     "@aws-ee/workflow-engine": "workspace:*",

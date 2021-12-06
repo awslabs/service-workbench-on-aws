@@ -13,6 +13,7 @@
  *  permissions and limitations under the License.
  */
 
+const _ = require('lodash');
 const { runSetup } = require('../../../../support/setup');
 const errorCode = require('../../../../support/utils/error-code');
 
@@ -23,11 +24,13 @@ const {
   createDefaultServiceCatalogProduct,
   deleteDefaultServiceCatalogProduct,
 } = require('../../../../support/complex/default-integration-test-product');
+const { deleteWorkspaceServiceCatalog } = require('../../../../support/complex/delete-workspace-service-catalog');
 
 describe('Cidr workspace-service-catalog scenarios', () => {
   let setup;
   let adminSession;
   let productInfo;
+  const dummyWorkspacesToDelete = [];
 
   beforeAll(async () => {
     setup = await runSetup();
@@ -37,10 +40,37 @@ describe('Cidr workspace-service-catalog scenarios', () => {
 
   afterAll(async () => {
     await deleteDefaultServiceCatalogProduct(setup, productInfo);
+    await Promise.all(
+      _.map(dummyWorkspacesToDelete, async envId => {
+        await deleteWorkspaceServiceCatalog({ aws: setup.aws, id: envId });
+      }),
+    );
     await setup.cleanup();
   });
 
   describe('Cidr workspace-service-catalog', () => {
+    const cidrs = {
+      cidr: [
+        {
+          protocol: 'tcp',
+          fromPort: 22,
+          toPort: 22,
+          cidrBlocks: ['0.0.0.0/32'],
+        },
+        {
+          protocol: 'tcp',
+          fromPort: 80,
+          toPort: 80,
+          cidrBlocks: ['0.0.0.0/32'],
+        },
+        {
+          protocol: 'tcp',
+          fromPort: 443,
+          toPort: 443,
+          cidrBlocks: ['0.0.0.0/32'],
+        },
+      ],
+    };
     it('should fail if user is inactive', async () => {
       const adminSession2 = await setup.createAdminSession();
       const workspaceName = setup.gen.string({ prefix: 'workspace-service-catalog-test' });
@@ -58,13 +88,13 @@ describe('Cidr workspace-service-catalog scenarios', () => {
         envTypeConfigId: configurationId,
       });
 
-      const cidrs = [{ fromPort: 10, toPort: 20, protocol: 'http', cidrBlocks: ['0.0.0.0/32'] }];
-
       await expect(
         adminSession2.resources.workspaceServiceCatalogs.workspaceServiceCatalog(response.id).cidr(cidrs),
       ).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
+
+      dummyWorkspacesToDelete.push(response.id);
     });
 
     it('should fail if user is anonymous', async () => {
@@ -82,13 +112,13 @@ describe('Cidr workspace-service-catalog scenarios', () => {
         envTypeConfigId: configurationId,
       });
 
-      const cidrs = [{ fromPort: 10, toPort: 20, protocol: 'http', cidrBlocks: ['0.0.0.0/32'] }];
-
       await expect(
         anonymousSession.resources.workspaceServiceCatalogs.workspaceServiceCatalog(response.id).cidr(cidrs),
       ).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
+
+      dummyWorkspacesToDelete.push(response.id);
     });
   });
 });

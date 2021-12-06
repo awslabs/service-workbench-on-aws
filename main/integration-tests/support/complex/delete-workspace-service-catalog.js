@@ -41,7 +41,12 @@ async function deleteWorkspaceServiceCatalog({ aws, id = '' }) {
       return;
     }
 
-    if (item.status === 'FAILED' || item.status === 'TERMINATED' || tryCount === 10) {
+    if (
+      item.status === 'FAILED' ||
+      item.status === 'TERMINATED' ||
+      item.status === 'TERMINATING_FAILED' ||
+      tryCount === 10
+    ) {
       await db.tables.environmentsSc
         .deleter()
         .key({ id })

@@ -7,7 +7,6 @@ These tests can run against local and dev environments during development.
 They can also be configured to run automatically as part of a GitHub workflow or CI/CD pipeline.
 Advanced integration tests involve interacting with a provisioned workspace, and require additional setup.
 
-
 ## Prerequisites
 
 ### Test Resources
@@ -49,7 +48,6 @@ Use the same config values used in `/main/config/settings` for the fields awsReg
 For each `{workspaceType}EnvTypeId` and `{workspacetype}ConfigId`, use the IDs for the specific environment type and environment configuration created as test resources.
 
 For `byobStudy`, supply the ID for the external data source study.
-
 
 **Note**
 

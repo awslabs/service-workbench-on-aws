@@ -42,6 +42,24 @@ class EnvironmentDnsService extends Service {
     await this.changeResourceRecordSets(route53Client, hostedZoneId, action, subdomain, 'A', privateIp);
   }
 
+  async changePrivateRecordSetALB(requestContext, action, prefix, id, hostedZoneId, albHostedZoneId, recordValue) {
+    const environmentScService = await this.service('environmentScService');
+    const route53Client = await environmentScService.getClientSdkWithEnvMgmtRole(
+      requestContext,
+      { id },
+      { clientName: 'Route53', options: { apiVersion: '2017-07-24' } },
+    );
+    const subdomain = this.getHostname(prefix, id);
+    await this.changeResourceRecordSetsPrivateALB(
+      route53Client,
+      hostedZoneId,
+      action,
+      subdomain,
+      albHostedZoneId,
+      recordValue,
+    );
+  }
+
   async changeRecordSet(action, prefix, id, publicDnsName) {
     const aws = await this.service('aws');
     const route53Client = new aws.sdk.Route53();
@@ -68,6 +86,60 @@ class EnvironmentDnsService extends Service {
       },
     };
     await route53Client.changeResourceRecordSets(params).promise();
+  }
+
+  async changeResourceRecordSetsPrivateALB(
+    route53Client,
+    hostedZoneId,
+    action,
+    subdomain,
+    albHostedZoneId,
+    recordValue,
+  ) {
+    const params = {
+      HostedZoneId: hostedZoneId,
+      ChangeBatch: {
+        Changes: [
+          {
+            Action: action,
+            ResourceRecordSet: {
+              Name: subdomain,
+              Type: 'A',
+              AliasTarget: {
+                HostedZoneId: albHostedZoneId,
+                DNSName: `dualstack.${recordValue}`,
+                EvaluateTargetHealth: false,
+              },
+            },
+          },
+        ],
+      },
+    };
+    await route53Client.changeResourceRecordSets(params).promise();
+  }
+
+  async createPrivateRecordForDNS(requestContext, prefix, id, albHostedZoneId, albDnsName, hostedZoneId) {
+    await this.changePrivateRecordSetALB(
+      requestContext,
+      'CREATE',
+      prefix,
+      id,
+      hostedZoneId,
+      albHostedZoneId,
+      albDnsName,
+    );
+  }
+
+  async deletePrivateRecordForDNS(requestContext, prefix, id, albHostedZoneId, albDnsName, hostedZoneId) {
+    await this.changePrivateRecordSetALB(
+      requestContext,
+      'DELETE',
+      prefix,
+      id,
+      hostedZoneId,
+      albHostedZoneId,
+      albDnsName,
+    );
   }
 
   async createPrivateRecord(requestContext, prefix, id, privateIp, hostedZoneId) {

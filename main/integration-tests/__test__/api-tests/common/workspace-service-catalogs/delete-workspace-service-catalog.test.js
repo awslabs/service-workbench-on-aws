@@ -13,6 +13,7 @@
  *  permissions and limitations under the License.
  */
 
+const _ = require('lodash');
 const { runSetup } = require('../../../../support/setup');
 
 const {
@@ -22,12 +23,14 @@ const {
   createDefaultServiceCatalogProduct,
   deleteDefaultServiceCatalogProduct,
 } = require('../../../../support/complex/default-integration-test-product');
+const { deleteWorkspaceServiceCatalog } = require('../../../../support/complex/delete-workspace-service-catalog');
 const errorCode = require('../../../../support/utils/error-code');
 
 describe('Delete workspace-service-catalog scenarios', () => {
   let setup;
   let adminSession;
   let productInfo;
+  const dummyWorkspacesToDelete = [];
 
   beforeAll(async () => {
     setup = await runSetup();
@@ -37,6 +40,11 @@ describe('Delete workspace-service-catalog scenarios', () => {
 
   afterAll(async () => {
     await deleteDefaultServiceCatalogProduct(setup, productInfo);
+    await Promise.all(
+      _.map(dummyWorkspacesToDelete, async envId => {
+        await deleteWorkspaceServiceCatalog({ aws: setup.aws, id: envId });
+      }),
+    );
     await setup.cleanup();
   });
 
@@ -63,6 +71,8 @@ describe('Delete workspace-service-catalog scenarios', () => {
       ).rejects.toMatchObject({
         code: errorCode.http.code.unauthorized,
       });
+
+      dummyWorkspacesToDelete.push(response.id);
     });
 
     it('should fail if user is anonymous', async () => {
@@ -85,6 +95,8 @@ describe('Delete workspace-service-catalog scenarios', () => {
       ).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
+
+      dummyWorkspacesToDelete.push(response.id);
     });
 
     it('should fail if user is not owner of workspace', async () => {
@@ -107,6 +119,8 @@ describe('Delete workspace-service-catalog scenarios', () => {
       ).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
+
+      dummyWorkspacesToDelete.push(response.id);
     });
 
     it('should delete if user is admin', async () => {
@@ -126,6 +140,8 @@ describe('Delete workspace-service-catalog scenarios', () => {
       await expect(
         adminSession.resources.workspaceServiceCatalogs.workspaceServiceCatalog(response.id).delete(),
       ).resolves.toEqual({});
+
+      dummyWorkspacesToDelete.push(response.id);
     });
 
     it('should delete if user is owner of workspace', async () => {
@@ -147,6 +163,8 @@ describe('Delete workspace-service-catalog scenarios', () => {
       await expect(
         researcherSession.resources.workspaceServiceCatalogs.workspaceServiceCatalog(response.id).delete(),
       ).resolves.toEqual({});
+
+      dummyWorkspacesToDelete.push(response.id);
     });
   });
 });

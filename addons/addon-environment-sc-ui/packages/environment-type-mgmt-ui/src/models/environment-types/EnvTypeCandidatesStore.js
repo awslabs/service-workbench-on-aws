@@ -36,7 +36,9 @@ const EnvTypeCandidatesStore = BaseStore.named('EnvTypeCandidatesStore')
 
     return {
       async doLoad() {
-        const envTypeCandidates = (await getAllEnvTypeCandidatesNotImported()) || [];
+        const workTypeCandidateRes = (await getAllEnvTypeCandidatesNotImported()) || {};
+        const envTypeCandidates = workTypeCandidateRes.list || [];
+        self.portfolioId = workTypeCandidateRes.portfolioId || '';
         self.runInAction(() => {
           consolidateToMap(self.envTypeCandidates, envTypeCandidates, (exiting, newItem) => {
             exiting.setEnvTypeCandidate(newItem);

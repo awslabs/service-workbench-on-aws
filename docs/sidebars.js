@@ -95,13 +95,12 @@ module.exports = {
           "deployment/post_deployment/logs",
         ],
       },
-
       "deployment/redeployment",
       {
         Reference: [
           "deployment/reference/iam_role",
           "deployment/reference/aws_services",
-          "deployment/reference/prepare_master_account"
+          "deployment/reference/prepare_master_account",
         ],
       },
     ],
@@ -191,8 +190,6 @@ module.exports = {
       "best_practices/cicd",
       "best_practices/rotating_jwt_token",
     ],
-    "Development Guide": [
-      "development/introduction"
-    ],
+    "Development Guide": ["development/introduction"],
   },
 };

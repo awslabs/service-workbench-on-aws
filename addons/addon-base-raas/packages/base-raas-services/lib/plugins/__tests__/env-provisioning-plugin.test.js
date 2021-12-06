@@ -22,12 +22,21 @@ const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
 jest.mock('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
 const PluginRegistryService = require('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
 
+jest.mock('@aws-ee/base-services/lib/lock/lock-service');
+const LockService = require('@aws-ee/base-services/lib/lock/lock-service');
+
 jest.mock('../../environment/service-catalog/environment-sc-service');
 const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
 const EnvironmentScService = require('../../environment/service-catalog/environment-sc-service');
 
+jest.mock('../../environment/service-catalog/environment-sc-cidr-service');
+const EnvironmentScCidrService = require('../../environment/service-catalog/environment-sc-service');
+
 jest.mock('../../environment/environment-dns-service');
 const EnvironmentDNSService = require('../../environment/environment-dns-service');
+
+jest.mock('../../alb/alb-service');
+const AlbService = require('../../alb/alb-service');
 
 jest.mock('../../environment/service-catalog/environment-sc-keypair-service');
 const EnvironmentSCKeyPairService = require('../../environment/service-catalog/environment-sc-keypair-service');
@@ -41,15 +50,21 @@ describe('envProvisioningPlugin', () => {
   let container;
   const requestContext = { principal: { isAdmin: true, status: 'active' } };
   let environmentScService;
+  let environmentScCidrService;
   let pluginRegistryService;
   let environmentDnsService;
+  let albService;
+  let lockService;
   let settings;
   beforeEach(async () => {
     // Initialize services container and register dependencies
     container = new ServicesContainer();
     container.register('environmentScService', new EnvironmentScService());
+    container.register('environmentScCidrService', new EnvironmentScCidrService());
     container.register('pluginRegistryService', new PluginRegistryService());
     container.register('environmentDnsService', new EnvironmentDNSService());
+    container.register('albService', new AlbService());
+    container.register('lockService', new LockService());
     container.register('environmentScKeypairService', new EnvironmentSCKeyPairService());
     container.register('log', new Logger());
     container.register('settings', new SettingsServiceMock());
@@ -59,6 +74,10 @@ describe('envProvisioningPlugin', () => {
     environmentScService = await container.find('environmentScService');
     pluginRegistryService = await container.find('pluginRegistryService');
     environmentDnsService = await container.find('environmentDnsService');
+    environmentScCidrService = await container.find('environmentScCidrService');
+    albService = await container.find('albService');
+    lockService = await container.find('lockService');
+    lockService.tryWriteLockAndRun = jest.fn((params, callback) => callback());
   });
 
   describe('preProvisioning', () => {
@@ -301,6 +320,155 @@ describe('envProvisioningPlugin', () => {
         },
       );
       expect(environmentDnsService.createRecord).toHaveBeenCalledWith('rstudio', 'env-id', 'some-dns-name');
+    });
+
+    it('should create environmentDNS record if it is RStudioV2 environment', async () => {
+      // BUILD
+      environmentScService.mustFind = jest.fn().mockResolvedValueOnce({ id: 'env-id' });
+      settings.getBoolean = jest.fn(key => {
+        if (key === 'isAppStreamEnabled') {
+          return false;
+        }
+        throw Error(`${key} not found`);
+      });
+      const albDetails = {
+        createdAt: '2021-05-21T13:06:58.216Z',
+        id: 'test-id',
+        type: 'account-workspace-details',
+        updatedAt: '2021-05-31T13:32:15.503Z',
+        value:
+          '{"id":"test-id","albStackName":null,"albArn":"arn:test-arn","listenerArn":"alb-listener-arn","albDnsName":"albDNSName","albDependentWorkspacesCount":1}',
+      };
+      albService.getAlbDetails = jest.fn(() => {
+        return albDetails;
+      });
+      albService.createListenerRule = jest.fn(() => {
+        return 'alb-listener-rule-arn';
+      });
+      environmentScCidrService.authorizeIngressRuleWithSecurityGroup = jest.fn();
+      // OPERATE
+      await plugin.onEnvProvisioningSuccess({
+        requestContext,
+        container,
+        resolvedVars: { envId: 'env-id' },
+        status: 'SUCCEED',
+        outputs: [
+          { OutputKey: 'MetaConnection1Type', OutputValue: 'RStudioV2' },
+          { OutputKey: 'Ec2WorkspaceDnsName', OutputValue: 'some-dns-name' },
+          { OutputKey: 'TargetGroupARN', OutputValue: 'some-target-group-arn' },
+          { OutputKey: 'InstanceSecurityGroupId', OutputValue: 'some-security-group-id' },
+        ],
+        provisionedProductId: 'provisioned-product-id',
+      });
+      // CHECK
+      expect(environmentScService.update).toHaveBeenCalledWith(
+        {
+          principal: {
+            isAdmin: true,
+            status: 'active',
+          },
+        },
+        {
+          id: 'env-id',
+          rev: 0,
+          status: 'SUCCEED',
+          inWorkflow: 'false',
+          outputs: [
+            { OutputKey: 'MetaConnection1Type', OutputValue: 'RStudioV2' },
+            { OutputKey: 'Ec2WorkspaceDnsName', OutputValue: 'some-dns-name' },
+            { OutputKey: 'TargetGroupARN', OutputValue: 'some-target-group-arn' },
+            { OutputKey: 'InstanceSecurityGroupId', OutputValue: 'some-security-group-id' },
+            {
+              OutputKey: 'ListenerRuleARN',
+              Description: 'ARN of the listener rule created by code',
+              OutputValue: 'alb-listener-rule-arn',
+            },
+          ],
+          provisionedProductId: 'provisioned-product-id',
+        },
+      );
+      expect(environmentDnsService.createRecord).toHaveBeenCalledWith('rstudio', 'env-id', 'albDNSName');
+    });
+
+    it('should create environmentDNS record if it is RStudioV2 AppStream environment', async () => {
+      // BUILD
+      environmentScService.getMemberAccount = jest
+        .fn()
+        .mockResolvedValueOnce({ route53HostedZone: 'route53HostedZone' });
+      environmentScService.mustFind = jest.fn().mockResolvedValueOnce({ id: 'env-id' });
+      settings.getBoolean = jest.fn(key => {
+        if (key === 'isAppStreamEnabled') {
+          return true;
+        }
+        throw Error(`${key} not found`);
+      });
+      const albDetails = {
+        createdAt: '2021-05-21T13:06:58.216Z',
+        id: 'test-id',
+        type: 'account-workspace-details',
+        updatedAt: '2021-05-31T13:32:15.503Z',
+        value:
+          '{"id":"test-id","albStackName":null,"albArn":"arn:test-arn","listenerArn":"alb-listener-arn","albDnsName":"albDNSName","albDependentWorkspacesCount":1}',
+      };
+      albService.getAlbHostedZoneID = jest.fn(() => {
+        return 'albHostedZoneId';
+      });
+      albService.getAlbDetails = jest.fn(() => {
+        return albDetails;
+      });
+      albService.createListenerRule = jest.fn(() => {
+        return 'alb-listener-rule-arn';
+      });
+      environmentScCidrService.authorizeIngressRuleWithSecurityGroup = jest.fn();
+      // OPERATE
+      await plugin.onEnvProvisioningSuccess({
+        requestContext,
+        container,
+        resolvedVars: { envId: 'env-id' },
+        status: 'SUCCEED',
+        outputs: [
+          { OutputKey: 'MetaConnection1Type', OutputValue: 'RStudioV2' },
+          { OutputKey: 'Ec2WorkspaceDnsName', OutputValue: 'some-dns-name' },
+          { OutputKey: 'TargetGroupARN', OutputValue: 'some-target-group-arn' },
+          { OutputKey: 'InstanceSecurityGroupId', OutputValue: 'some-security-group-id' },
+        ],
+        provisionedProductId: 'provisioned-product-id',
+      });
+      // CHECK
+      expect(environmentScService.update).toHaveBeenCalledWith(
+        {
+          principal: {
+            isAdmin: true,
+            status: 'active',
+          },
+        },
+        {
+          id: 'env-id',
+          rev: 0,
+          status: 'SUCCEED',
+          inWorkflow: 'false',
+          outputs: [
+            { OutputKey: 'MetaConnection1Type', OutputValue: 'RStudioV2' },
+            { OutputKey: 'Ec2WorkspaceDnsName', OutputValue: 'some-dns-name' },
+            { OutputKey: 'TargetGroupARN', OutputValue: 'some-target-group-arn' },
+            { OutputKey: 'InstanceSecurityGroupId', OutputValue: 'some-security-group-id' },
+            {
+              OutputKey: 'ListenerRuleARN',
+              Description: 'ARN of the listener rule created by code',
+              OutputValue: 'alb-listener-rule-arn',
+            },
+          ],
+          provisionedProductId: 'provisioned-product-id',
+        },
+      );
+      expect(environmentDnsService.createPrivateRecordForDNS).toHaveBeenCalledWith(
+        requestContext,
+        'rstudio',
+        'env-id',
+        'albHostedZoneId',
+        'albDNSName',
+        'route53HostedZone',
+      );
     });
 
     it('should create private DNS record if it is RStudio environment when AppStream enabled', async () => {

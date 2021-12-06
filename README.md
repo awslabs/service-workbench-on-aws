@@ -228,7 +228,7 @@ Pre-requisites: Before creating a workspace, you must setup Service Catalog. Ref
 4.	Your workspace may take some time to launch. Once it is up and running, you can connect to it by choosing Connect. For more details, see the following documentation pages:
      + AWS SageMaker: Service Workbench takes care of provisioning the workspace for you, so you can jump straight to working with SageMaker Notebooks. For more information, see the [SageMaker Getting Started Guide](https://docs.aws.amazon.com/sagemaker/latest/dg/gs-console.html) (you can jump straight to Step 4).
      + AWS ElasticMapReduce (EMR): Service Workbench takes care of setting up the EMR instance for you, so you can jump straight to working with EMR Notebooks. For more information on using EMR Notebooks, see [Using EMR Notebooks](https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-managed-notebooks.html). **Note:** A password may be required to access the EMR Notebooks. By default, this password is 'go-research-on-aws' (without the quotes).
-     + RStudio: See the [RStudio Server Documentation](https://support.rstudio.com/hc/en-us/sections/200150693-RStudio-Server) for assistance.
+     + RStudio: You can connect to RStudio workspace type by using the template and AMI provided in AWS partner's [repository](https://github.com/RLOpenCatalyst/Service_Workbench_Templates). For more information, refer to the [Create RStudio ALB workspace](/deployment/post_deployment/aws_accounts#creating-rstudio-alb-workspace) section of *Service Workbench Post Deployment Guide*.
      + AWS Elastic Compute Cloud (EC2): EC2 instances are essentially Virtual Machines in the cloud. For more information, see the [EC2 Documentation](https://aws.amazon.com/ec2/).
 
 ## Create a Study

@@ -14,6 +14,7 @@
  *  permissions and limitations under the License.
  */
 
+const _ = require('lodash');
 const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
 const { runSetup } = require('../../../../support/setup');
 
@@ -24,13 +25,14 @@ const {
   createDefaultServiceCatalogProduct,
   deleteDefaultServiceCatalogProduct,
 } = require('../../../../support/complex/default-integration-test-product');
+const { deleteWorkspaceServiceCatalog } = require('../../../../support/complex/delete-workspace-service-catalog');
 const errorCode = require('../../../../support/utils/error-code');
 
 describe('Create workspace-service-catalog scenarios', () => {
   let setup;
   let adminSession;
   let productInfo;
-
+  const dummyWorkspacesToDelete = [];
   beforeAll(async () => {
     setup = await runSetup();
 
@@ -41,6 +43,11 @@ describe('Create workspace-service-catalog scenarios', () => {
 
   afterAll(async () => {
     await deleteDefaultServiceCatalogProduct(setup, productInfo);
+    await Promise.all(
+      _.map(dummyWorkspacesToDelete, async envId => {
+        await deleteWorkspaceServiceCatalog({ aws: setup.aws, id: envId });
+      }),
+    );
     await setup.cleanup();
   });
 
@@ -136,16 +143,18 @@ describe('Create workspace-service-catalog scenarios', () => {
         setup,
       );
 
-      await expect(
-        adminSession.resources.workspaceServiceCatalogs.create({
-          name: workspaceName,
-          envTypeId: workspaceTypeId,
-          envTypeConfigId: configurationId,
-        }),
-      ).resolves.toMatchObject({
+      const response = await adminSession.resources.workspaceServiceCatalogs.create({
+        name: workspaceName,
         envTypeId: workspaceTypeId,
         envTypeConfigId: configurationId,
       });
+
+      expect(response).toMatchObject({
+        envTypeId: workspaceTypeId,
+        envTypeConfigId: configurationId,
+      });
+
+      dummyWorkspacesToDelete.push(response.id);
     });
 
     it('should create if user role is allowed', async () => {
@@ -158,16 +167,18 @@ describe('Create workspace-service-catalog scenarios', () => {
         ['researcher'],
       );
 
-      await expect(
-        researcherSession.resources.workspaceServiceCatalogs.create({
-          name: workspaceName,
-          envTypeId: workspaceTypeId,
-          envTypeConfigId: configurationId,
-        }),
-      ).resolves.toMatchObject({
+      const response = await researcherSession.resources.workspaceServiceCatalogs.create({
+        name: workspaceName,
         envTypeId: workspaceTypeId,
         envTypeConfigId: configurationId,
       });
+
+      await expect(response).toMatchObject({
+        envTypeId: workspaceTypeId,
+        envTypeConfigId: configurationId,
+      });
+
+      dummyWorkspacesToDelete.push(response.id);
     });
   });
   describe('Workspace SC env with studies', () => {

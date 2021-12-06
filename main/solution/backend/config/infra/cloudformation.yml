@@ -767,6 +767,17 @@ Resources:
             Action:
               - appstream:UpdateImagePermissions
             Resource:
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-prep-raas-master-MasterRole-*'
+          - Effect: 'Allow'
+            Action:
+              - s3:GetObject
+            Resource:
+              - 'arn:aws:s3:::cf-templates-*/*'
+              - 'arn:aws:s3:::${self:custom.settings.deploymentBucketName}/*'
+          - Effect: Allow
+            Action:
+              - appstream:UpdateImagePermissions
+            Resource:
               - !Sub 'arn:aws:appstream:${AWS::Region}:${AWS::AccountId}:image/ServiceWorkbench*'
           - !If
             - EnableEgressStore
