@@ -19,7 +19,7 @@ const Service = require('@aws-ee/base-services-container/lib/service');
 const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const { buildTaggingXml } = require('../helpers/aws-tags');
-const { isInternalResearcher, isAdmin, isSystem } = require('../helpers/is-role');
+const { isAdmin, isSystem } = require('../helpers/is-role');
 const { normalizeStudyFolder } = require('../helpers/utils');
 const {
   isOpenData,
