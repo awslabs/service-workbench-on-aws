@@ -284,8 +284,8 @@ class StudyService extends Service {
   }
 
   async create(requestContext, rawStudyEntity) {
-    if (!(isInternalResearcher(requestContext) || isAdmin(requestContext))) {
-      throw this.boom.forbidden('Only admin and internal researcher are authorized to create studies.', true);
+    if (!isAdmin(requestContext)) {
+      throw this.boom.forbidden('Only admin are authorized to create studies.', true);
     }
     if (isOpenData(rawStudyEntity) && !isSystem(requestContext)) {
       throw this.boom.forbidden('Only the system can create Open Data studies.', true);

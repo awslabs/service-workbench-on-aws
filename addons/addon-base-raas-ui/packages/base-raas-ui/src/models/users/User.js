@@ -181,8 +181,9 @@ const User = types
       const external = self.isExternalUser; // Either external guest or external user
       const externalGuest = self.isExternalGuest;
       const internalGuest = self.isInternalGuest;
+      const isAdmin = self.isAdmin;
 
-      const canCreateStudy = active && !external && !internalGuest;
+      const canCreateStudy = active && isAdmin && !external && !internalGuest;
       const canCreateWorkspace = active && !externalGuest && !internalGuest;
       const canSelectStudy = active && !externalGuest && !internalGuest;
       const canViewDashboard = active && !external && !internalGuest;
