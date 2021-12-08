@@ -554,7 +554,7 @@ describe('EnvironmentScCidrService', () => {
         await service.update(requestContext, params);
         expect.hasAssertions();
       } catch (err) {
-        expect(err.message).toEqual('The update request contains ports outside the allowed range 0-65535');
+        expect(err.message).toEqual('Input has validation errors');
       }
 
       params = {
@@ -573,7 +573,7 @@ describe('EnvironmentScCidrService', () => {
         await service.update(requestContext, params);
         expect.hasAssertions();
       } catch (err) {
-        expect(err.message).toEqual('The update request contains ports outside the allowed range 0-65535');
+        expect(err.message).toEqual('Input has validation errors');
       }
     });
 
