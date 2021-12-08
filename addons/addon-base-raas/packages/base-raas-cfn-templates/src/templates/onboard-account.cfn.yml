@@ -62,7 +62,7 @@ Parameters:
     Description: Please enter the IP range (CIDR notation) for the Workspace subnet. This value is only used if AppStream is enabled.
     Type: String
     Default: 10.0.64.0/19
-  
+
   AppStreamFleetDesiredInstances:
     Description: The desired number of streaming instances.
     Type: Number
@@ -121,7 +121,7 @@ Metadata:
         Parameters:
           - VpcCidr
           - PublicSubnetCidr
-          
+
 Conditions:
   isAppStream: !Equals
     - !Ref EnableAppStream
@@ -372,8 +372,9 @@ Resources:
               - cloudformation:DeleteStack
               - cloudformation:DescribeStacks
               - cloudformation:DescribeStackEvents
-            Resource: !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/SC-*'
-            Resource: !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/analysis-*' # ALB stack used this pattern
+            Resource:
+              - !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/SC-*'
+              - !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/analysis-*' # ALB stack used this pattern
           - Effect: Allow
             Action:
               - sagemaker:CreatePresignedNotebookInstanceUrl
@@ -621,7 +622,7 @@ Resources:
     Condition: isNotAppStream
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Select [0, !GetAZs ]
+      AvailabilityZone: !Select [0, !GetAZs '' ]
       CidrBlock: !Ref PublicSubnetCidr
       MapPublicIpOnLaunch: true
       Tags:
@@ -716,8 +717,8 @@ Resources:
       Tags:
         - Key: Name
           Value: Private Workspace Subnet
-  
-  
+
+
 
   PrivateWorkspaceRouteTable:
     Type: 'AWS::EC2::RouteTable'
@@ -937,7 +938,7 @@ Resources:
           IpProtocol: '-1'
         - DestinationSecurityGroupId: !Ref WorkspaceSecurityGroup
           IpProtocol: '-1'
-  
+
   AppStreamSecurityGroupEgress:
     Type: AWS::EC2::SecurityGroupEgress
     Condition: isAppStream
@@ -1048,7 +1049,7 @@ Outputs:
     Description: Workspace subnet
     Condition: isAppStream
     Value: !Ref PrivateWorkspaceSubnet
-  
+
   AppStreamSecurityGroup:
     Description: AppStream Security Group
     Condition: isAppStream
@@ -1060,7 +1061,7 @@ Outputs:
     Description: SageMaker Security Group
     Condition: isAppStream
     Value: !Ref SageMakerSecurityGroup
-  
+
   AppStreamFleet:
     Description: AppStream Fleet
     Condition: isAppStream
