@@ -58,7 +58,7 @@ describe('Launch and terminate RStudio instance', () => {
       );
 
       const workspacesInAvailableState = response.filter(workspace => {
-        return workspace.envTypeId === rstudioEnvTypeId && !['AVAILABLE'].includes(workspace.status);
+        return workspace.envTypeId === rstudioEnvTypeId && workspace.status === 'AVAILABLE';
       });
       for (let i = 0; i < workspacesInAvailableState.length; i += 1) {
         console.log(`Terminating ${workspacesInAvailableState[i].id}`);
