@@ -56,6 +56,17 @@ describe('Launch and terminate RStudio instance', () => {
           return workspace.id;
         }),
       );
+
+      const workspacesInAvailableState = response.filter(workspace => {
+        return workspace.envTypeId === rstudioEnvTypeId && !['AVAILABLE'].includes(workspace.status);
+      });
+      for (let i = 0; i < workspacesInAvailableState.length; i += 1) {
+        console.log(`Terminating ${workspacesInAvailableState[i].id}`);
+        // eslint-disable-next-line no-await-in-loop
+        await adminSession.resources.workspaceServiceCatalogs
+          .workspaceServiceCatalog(workspacesInAvailableState[i].id)
+          .delete();
+      }
     }
     if (workspaces.length > 0) {
       throw new Error('All RStudio workspaces should be terminated or failed');
