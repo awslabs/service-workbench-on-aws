@@ -54,6 +54,14 @@ class EnvironmentScCidrService extends Service {
     const erroneousInputs = [];
     const ipv6Format = [];
     const protPortCombos = {};
+    if (
+      _.some(
+        updateRequest,
+        rule => rule.fromPort < 0 || rule.fromPort > 65535 || rule.toPort < 0 || rule.toPort > 65535,
+      )
+    ) {
+      throw this.boom.badRequest('The update request contains ports outside the allowed range 0-65535', true);
+    }
     _.map(updateRequest, rule => {
       _.forEach(rule.cidrBlocks, cidrBlock => {
         if (IsCidr(cidrBlock) === 0) erroneousInputs.push(cidrBlock);
