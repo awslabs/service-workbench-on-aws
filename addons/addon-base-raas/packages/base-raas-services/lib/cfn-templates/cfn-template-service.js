@@ -55,10 +55,7 @@ class CfnTemplateService extends Service {
   async getTemplate(name) {
     const entry = _.find(this.store, ['key', name]);
     const isAppStreamEnabled = await this.settings.get(settingKeys.isAppStreamEnabled);
-    console.log('ZZZ: isAppStream enabled', isAppStreamEnabled);
-    console.log('ZZZ: name', name);
     if (isAppStreamEnabled === 'false' && name === 'onboard-account' && entry) {
-      console.log('ZZZ: inside if statement');
       const doc = yamlParse(entry.value);
       delete doc.Resources.AppStreamFleet;
       delete doc.Resources.AppStreamStack;
@@ -68,7 +65,6 @@ class CfnTemplateService extends Service {
 
       const onboardYaml = new YAML.Document();
       onboardYaml.contents = doc;
-      console.log('ZZZ: New Onboard', onboardYaml.toString());
       return onboardYaml.toString();
     }
     return entry ? entry.value : undefined;
