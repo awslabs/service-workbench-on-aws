@@ -1,4 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
+# NOTE: When making changes to this template, check if changes need to be made to `addons/addon-base-raas/packages/base-raas-services/lib/cfn-templates/cfn-template-service.js` as well for removing AppStream specific resources
 
 Description: This stack provisions resources necessary to use this AWS account with Service Workbench.
 
