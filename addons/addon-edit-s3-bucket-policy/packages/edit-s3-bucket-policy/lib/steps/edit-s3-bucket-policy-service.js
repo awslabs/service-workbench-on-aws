@@ -90,7 +90,6 @@ class EditS3BucketPolicyService extends Service {
 
       if (_.isUndefined(oldStatement)) {
         this.log.info(`No Statement found`);
-        return;
       } else {
         // Update policy if there was a change
         s3Policy.Statement.push(oldStatement);

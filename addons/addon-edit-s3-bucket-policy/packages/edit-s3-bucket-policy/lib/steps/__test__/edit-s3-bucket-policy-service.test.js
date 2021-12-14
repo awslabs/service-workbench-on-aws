@@ -30,7 +30,6 @@ const registerSettings = require('./__fixtures__/settings');
 
 describe('EditS3BucketPolicyService', () => {
   let service;
-  let s3Service;
   let lockService;
   let container;
   let settings;
@@ -46,7 +45,6 @@ describe('EditS3BucketPolicyService', () => {
     console.info = jest.fn;
 
     await container.initServices();
-    s3Service = await container.find('s3Service');
     lockService = await container.find('lockService');
     service = await container.find('EditS3BucketPolicyService');
     settings = await container.find('settings');
