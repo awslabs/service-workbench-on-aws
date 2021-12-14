@@ -209,6 +209,18 @@ class EnvironmentMountService extends Service {
             ],
             Resource: [`arn:aws:s3:::${s3BucketName}/${prefix}*`],
           };
+          const secureTransportStatement = {
+            Sid: 'Deny requests that do not use TLS/HTTPS',
+            Effect: 'Deny',
+            Principal: '*',
+            Action: 's3:*',
+            Resource: [`arn:aws:s3:::${s3BucketName}/*`, `arn:aws:s3:::${s3BucketName}`],
+            Condition: {
+              Bool: {
+                'aws:SecureTransport': 'false',
+              },
+            },
+          };
 
           // Pull out existing statements if available
           statements.forEach(statement => {
@@ -230,7 +242,7 @@ class EnvironmentMountService extends Service {
           s3Policy.Statement = s3Policy.Statement.filter(
             statement => ![listSid, getSid, putSid].includes(statement.Sid),
           );
-          [listStatement, getStatement, putStatement].forEach(statement => {
+          [listStatement, getStatement, putStatement, secureTransportStatement].forEach(statement => {
             // Only add updated statement if it contains principals (otherwise leave it out)
             if (statement.Principal.AWS.length > 0) {
               s3Policy.Statement.push(statement);

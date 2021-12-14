@@ -26,6 +26,7 @@
     "@aws-ee/environment-type-mgmt-services": "workspace:*",
     "@aws-ee/key-pair-mgmt-services": "workspace:*",
     "@aws-ee/user-id-upgrade-post-deployment": "workspace:*",
+    "@aws-ee/edit-s3-bucket-policy": "workspace:*",
     "aws-sdk": "^2.1000.0",
     "@aws-ee/cfn-stack-policy": "workspace:*",
     "lodash": "^4.17.21",
