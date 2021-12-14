@@ -46,6 +46,7 @@ globalNamespace: ${self:custom.settings.awsAccountInfo.awsAccountId}-${self:cust
 deploymentBucketName: ${self:custom.settings.globalNamespace}-artifacts
 
 # Bucket policy for the deployment bucket.
+# THIS IS A DYNAMIC BUCKET POLICY DO NOT EDIT ANYTHING HERE--USE EDIT-S3-BUCKET-POLICY-SERVICE
 deploymentBucketPolicy:
   {
     'Version': '2008-10-17',
