@@ -18,6 +18,8 @@ provider:
   variableSyntax: '\$\{((((self|opt|deep|cf):)|file)((?!\$\{).)+?)}'
 
 custom:
+  deploymentBucket:
+    versioning: true
   settings: ${file(./config/settings/.settings.js):merged}
   tags:
     Name: ${self:custom.settings.envName}-${self:service}

@@ -24,6 +24,7 @@ custom:
     Name: ${self:custom.settings.envName}-${self:service}
   deploymentBucket:
     blockPublicAccess: true
+    versioning: true
 
 resources:
   - Description: Service-Workbench-on-AWS ${self:custom.settings.version} ${self:custom.settings.solutionName} ${self:custom.settings.envName} Edge-Lambda

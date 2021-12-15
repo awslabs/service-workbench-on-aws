@@ -43,6 +43,7 @@ custom:
     Name: ${self:custom.settings.envName}-${self:service}
   deploymentBucket:
     policy: ${self:custom.settings.deploymentBucketPolicy}
+    versioning: true
   serverless-offline:
     port: 4000
   webpack:
