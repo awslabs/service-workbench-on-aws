@@ -535,6 +535,48 @@ describe('EnvironmentScCidrService', () => {
       }
     });
 
+    it('should not call anything since request has invalid port numbers', async () => {
+      // BUILD
+      const requestContext = {};
+      let params = {
+        id: 'testId',
+        updateRequest: [
+          {
+            protocol: 'tcp',
+            fromPort: 65536,
+            toPort: 65536,
+            cidrBlocks: ['123.123.123.123/32'],
+          },
+        ],
+      };
+      // OPERATE
+      try {
+        await service.update(requestContext, params);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(err.message).toEqual('Input has validation errors');
+      }
+
+      params = {
+        id: 'testId',
+        updateRequest: [
+          {
+            protocol: 'tcp',
+            fromPort: -10,
+            toPort: -10,
+            cidrBlocks: ['123.123.123.123/32'],
+          },
+        ],
+      };
+      // OPERATE
+      try {
+        await service.update(requestContext, params);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(err.message).toEqual('Input has validation errors');
+      }
+    });
+
     it('should throw the exception as expected during internal errors for revoke', async () => {
       // BUILD
       const requestContext = {};
