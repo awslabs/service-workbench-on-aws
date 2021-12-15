@@ -114,6 +114,7 @@ Resources:
       Description: >-
         Master key used to encrypt objects stored in the
         ${self:custom.settings.studyDataBucketName} bucket
+      EnableKeyRotation: true
       KeyPolicy:
         Version: '2012-10-17'
         Id: study-data-kms-policy
@@ -299,6 +300,7 @@ Resources:
       Description: >-
         Master key used to encrypt objects stored in the
         ${self:custom.settings.egressStoreBucketName} bucket
+      EnableKeyRotation: true
       KeyPolicy:
         Version: '2012-10-17'
         Id: egress-store-kms-policy
