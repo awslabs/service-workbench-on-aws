@@ -56,20 +56,25 @@ describe('Launch and terminate RStudio instance', () => {
           return workspace.id;
         }),
       );
-      const workspacesInAvailableState = response.filter(workspace => {
-        return workspace.envTypeId === rstudioEnvTypeId && workspace.status === 'COMPLETED';
-      });
-      console.log('COMPLETED (Available) workspaces', workspacesInAvailableState);
-      for (let i = 0; i < workspacesInAvailableState.length; i += 1) {
-        console.log(`Terminating ${workspacesInAvailableState[i].id}`);
-        // eslint-disable-next-line no-await-in-loop
-        await adminSession.resources.workspaceServiceCatalogs
-          .workspaceServiceCatalog(workspacesInAvailableState[i].id)
-          .delete();
-      }
     }
     if (workspaces.length > 0) {
       throw new Error('All RStudio workspaces should be terminated or failed');
+    }
+  }
+
+  async function terminateAllRStudioWorkspacesInCompletedState() {
+    const response = await adminSession.resources.workspaceServiceCatalogs.get();
+    const rstudioEnvTypeId = setup.defaults.envTypes.rstudio.envTypeId;
+    const workspacesInAvailableState = response.filter(workspace => {
+      return workspace.envTypeId === rstudioEnvTypeId && workspace.status === 'COMPLETED';
+    });
+    console.log('COMPLETED (Available) workspaces', workspacesInAvailableState);
+    for (let i = 0; i < workspacesInAvailableState.length; i += 1) {
+      console.log(`Terminating ${workspacesInAvailableState[i].id}`);
+      // eslint-disable-next-line no-await-in-loop
+      await adminSession.resources.workspaceServiceCatalogs
+        .workspaceServiceCatalog(workspacesInAvailableState[i].id)
+        .delete();
     }
   }
 
@@ -78,6 +83,7 @@ describe('Launch and terminate RStudio instance', () => {
     if (setup.defaults.envTypes.rstudio.envTypeId === 'N/A') {
       return;
     }
+    await terminateAllRStudioWorkspacesInCompletedState();
     // Putting checkAllRstudioWorkspaceIsTerminated check here, because putting this check in `beforeAll` will not stop executing the test if the check does fail
     // https://github.com/facebook/jest/issues/2713
     await checkAllRstudioWorkspaceIsTerminated();
