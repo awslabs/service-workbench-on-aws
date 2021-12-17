@@ -6,10 +6,14 @@
       "type": "object",
       "properties": {
         "fromPort": {
-          "type": "integer"
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
         },
         "toPort": {
-          "type": "integer"
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 65535
         },
         "protocol": {
           "type": "string"
