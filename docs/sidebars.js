@@ -89,7 +89,9 @@ module.exports = {
         "Post Deployment": [
           "deployment/post_deployment/index",
           "deployment/post_deployment/account_structure",
+          "deployment/reference/prepare_master_account",
           // "deployment/post_deployment/cost_explorer",
+          "deployment/post_deployment/appstream",
           "deployment/post_deployment/aws_accounts",
           "deployment/post_deployment/create_index_project",
           "deployment/post_deployment/create_admin_user",
