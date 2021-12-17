@@ -51,7 +51,7 @@ For more information on partitioning, read [Moving an environment and resizing/e
 
 ### Install Packer
 
-A packer is used to build AMIs. For steps on packer installation, refer to the [README](https://github.com/awslabs/service-workbench-on-aws/blob/b20208099d5acf51816ee4efd5b5bb3bf6d22fc8/addons/addon-base-raas/packages/serverless-packer/README.md).
+Packer is used to build AMIs. For steps on packer installation, refer to the [README](https://github.com/awslabs/service-workbench-on-aws/blob/b20208099d5acf51816ee4efd5b5bb3bf6d22fc8/addons/addon-base-raas/packages/serverless-packer/README.md).
 
 
 #### Verifying the file size
