@@ -59,7 +59,7 @@ describe('Launch and terminate RStudio instance', () => {
       const workspacesInAvailableState = response.filter(workspace => {
         return workspace.envTypeId === rstudioEnvTypeId && workspace.status === 'COMPLETED';
       });
-      console.log('Available workspaces', workspacesInAvailableState);
+      console.log('COMPLETED (Available) workspaces', workspacesInAvailableState);
       for (let i = 0; i < workspacesInAvailableState.length; i += 1) {
         console.log(`Terminating ${workspacesInAvailableState[i].id}`);
         // eslint-disable-next-line no-await-in-loop
@@ -201,7 +201,7 @@ describe('Launch and terminate RStudio instance', () => {
         .connection('id-1')
         .createUrl();
     } catch (e) {
-      console.log('Failed to get RStudio URL, trying again', e);
+      console.log('Failed to get RStudio URL', e);
     }
     return {};
   }
