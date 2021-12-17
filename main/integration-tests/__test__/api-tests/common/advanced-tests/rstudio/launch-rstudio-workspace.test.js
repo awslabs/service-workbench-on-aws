@@ -56,10 +56,10 @@ describe('Launch and terminate RStudio instance', () => {
           return workspace.id;
         }),
       );
-
       const workspacesInAvailableState = response.filter(workspace => {
-        return workspace.envTypeId === rstudioEnvTypeId && workspace.status === 'AVAILABLE';
+        return workspace.envTypeId === rstudioEnvTypeId && workspace.status === 'COMPLETED';
       });
+      console.log('Available workspaces', workspacesInAvailableState);
       for (let i = 0; i < workspacesInAvailableState.length; i += 1) {
         console.log(`Terminating ${workspacesInAvailableState[i].id}`);
         // eslint-disable-next-line no-await-in-loop
@@ -88,9 +88,6 @@ describe('Launch and terminate RStudio instance', () => {
     if (!setup.defaults.isAppStreamEnabled) {
       await checkCIDR(envId);
     }
-
-    // Allow 180 seconds for EC2 to initialize and create SSM parameters
-    await sleep(180 * 1000);
 
     const rstudioServerUrlResponse = await checkConnectionUrlCanBeCreated(envId);
     await checkConnectionUrlNetworkConnectivity(rstudioServerUrlResponse);
@@ -167,17 +164,46 @@ describe('Launch and terminate RStudio instance', () => {
 
   async function checkConnectionUrlCanBeCreated(envId) {
     console.log('Check Connection URL can be created');
-    const rstudioServerUrlResponse = await adminSession.resources.workspaceServiceCatalogs
-      .workspaceServiceCatalog(envId)
-      .connections()
-      .connection('id-1')
-      .createUrl();
-    expect(rstudioServerUrlResponse.url).toBeDefined();
-    if (setup.defaults.isAppStreamEnabled) {
-      expect(rstudioServerUrlResponse.appstreamDestinationUrl).toBeDefined();
+    // Wait for a maximum of 360 seconds for RStudio Connection URL
+    const maxWaitTimeInSeconds = 360;
+    const startTime = Date.now();
+    await sleep(90 * 1000);
+
+    const isUrlDefined = urlResponse => {
+      if (setup.defaults.isAppStreamEnabled) {
+        return urlResponse.appstreamDestinationUrl !== undefined;
+      }
+      return urlResponse.url !== undefined;
+    };
+
+    let rstudioServerUrlResponse = {};
+    rstudioServerUrlResponse = await getRStudioConnectionUrl(envId);
+    while (Date.now() - startTime <= maxWaitTimeInSeconds * 1000 && !isUrlDefined(rstudioServerUrlResponse)) {
+      // eslint-disable-next-line no-await-in-loop
+      await sleep(90 * 1000);
+      console.log('rstudioServerUrlResponse', rstudioServerUrlResponse);
+      console.log('Sleeping for 90 seconds and trying to get RStudio Connection URL again');
+      // eslint-disable-next-line no-await-in-loop
+      rstudioServerUrlResponse = await getRStudioConnectionUrl(envId);
     }
 
+    expect(isUrlDefined(rstudioServerUrlResponse)).toBeTruthy();
+
     return rstudioServerUrlResponse;
+  }
+
+  async function getRStudioConnectionUrl(envId) {
+    try {
+      // eslint-disable-next-line no-await-in-loop
+      return adminSession.resources.workspaceServiceCatalogs
+        .workspaceServiceCatalog(envId)
+        .connections()
+        .connection('id-1')
+        .createUrl();
+    } catch (e) {
+      console.log('Failed to get RStudio URL, trying again', e);
+    }
+    return {};
   }
 
   async function checkConnectionUrlNetworkConnectivity(rstudioServerUrlResponse) {
