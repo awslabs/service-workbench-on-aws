@@ -58,7 +58,7 @@ The pipeline stops upon failure of any stage and notifies user via configured SN
   
   * Create a settings file in `cicd/cicd-source/config/settings` for the environment for which you want to create the 
   CI/CD pipeline. For example, to create the CI/CD pipeline for `dev` environment, create `dev.yml` file in 
-  `cicd/cicd-source/config/settings/`. You can create the settings file by copying the sample `demo.yml` file. 
+  `cicd/cicd-source/config/settings/`. You can create the settings file by copying the sample `example-codecommit.yml` file. 
   Please adjust the settings as per your environment. Read inline comments in the file for information about each 
   setting.
   
@@ -79,9 +79,11 @@ The pipeline stops upon failure of any stage and notifies user via configured SN
 
   * Create a settings file in `cicd/cicd-pipeline/config/settings` for the environment for which you want to create the 
   CI/CD pipeline. For example, to create the CI/CD pipeline for `dev` environment, create `dev.yml` file in 
-  `cicd/cicd-pipeline/config/settings/`. You can create the settings file by copying the sample `demo.yml` file. 
+  `cicd/cicd-pipeline/config/settings/`. You can create the settings file by copying the sample `example-codecommit.yml` file. 
   Please adjust the settings as per your environment. Read inline comments in the file for information about each 
   setting.
+
+  * Edit the settings file in `main/config/settings` for the environment. Comment out the line that states the `awsProfile`.
    
   * Deploy the `cicd-pipeline` stack.
   ```bash

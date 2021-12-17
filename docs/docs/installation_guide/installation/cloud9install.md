@@ -33,14 +33,7 @@ You can install Service Workbench by using AWS Cloud9. This section provides inf
 
 ### Modifying the volume
 
-<a name="modifyvol"></a>
-
-1. Go the AWS Cloud9 instance in EC2.
-2. For **Actions**, choose **Modify Volume**.
-3. For **Size**, enter 40. 40 GB is the minimum suggested volume size needed for installation.
-4. Choose **Modify**.
-5. Choose **Yes** to accept the changes. Refresh your screen to view the modified volume size. In the Linux prompt, type the following to view the disk space:
-     `df –hT`
+For information on modifying the volume, refer to [Resize an Amazon EBS volume used by an environment](https://docs.aws.amazon.com/cloud9/latest/user-guide/move-environment.html#move-environment-resize).
 
 ### Increasing the partition
 
@@ -56,6 +49,11 @@ Increase the file system inside the partition
 
 For more information on partitioning, read [Moving an environment and resizing/encrypting Amazon EBS volumes](https://docs.aws.amazon.com/cloud9/latest/user-guide/move-environment.html#move-environment-resize)
 
+### Install Packer
+
+Packer is used to build AMIs. For steps on packer installation, refer to the [README](https://github.com/awslabs/service-workbench-on-aws/blob/b20208099d5acf51816ee4efd5b5bb3bf6d22fc8/addons/addon-base-raas/packages/serverless-packer/README.md).
+
+
 #### Verifying the file size
 
 To verify the file size, type:
@@ -63,7 +61,9 @@ To verify the file size, type:
 #### Check the node version installed
 
 Type `node --version`
-To install long-term support version, type:
+
+To install long-term support version, enter:
+
 `nvm install lts/erbium`
 
 ### Installing Node Package Manager
