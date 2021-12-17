@@ -24,6 +24,7 @@ describe('Launch and terminate RStudio instance', () => {
 
   beforeEach(async () => {
     await terminateAllRStudioWorkspacesInCompletedState();
+    await checkAllRstudioWorkspaceIsTerminated();
   });
 
   beforeAll(async () => {
@@ -87,9 +88,6 @@ describe('Launch and terminate RStudio instance', () => {
     if (setup.defaults.envTypes.rstudio.envTypeId === 'N/A') {
       return;
     }
-    // Putting checkAllRstudioWorkspaceIsTerminated check here, because putting this check in `beforeAll` will not stop executing the test if the check does fail
-    // https://github.com/facebook/jest/issues/2713
-    await checkAllRstudioWorkspaceIsTerminated();
 
     const envId = await launchRStudioWorkspace();
 
