@@ -33,11 +33,15 @@ describe('Launch a workspace', () => {
     _.forEach(workspaceNames, workspaceName => {
       checkWorkspaceAvailable(workspaceName);
     });
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(3000);
     terminateWorkspaces();
   });
 
   // Do RStudio create first as we need to test when this becomes available as well
   it('should launch a new RStudio Server workspace correctly', () => {
+    // eslint-disable-next-line cypress/no-unnecessary-waiting
+    cy.wait(3000);
     const workspaces = Cypress.env('workspaces');
     const rstudioServer = workspaces.rstudioServer;
     const workspaceName = launchWorkspace(rstudioServer, 'RStudio-Server');
