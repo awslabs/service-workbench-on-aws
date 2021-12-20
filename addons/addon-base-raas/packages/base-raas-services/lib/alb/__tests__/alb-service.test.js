@@ -42,6 +42,9 @@ const CfnTemplateServiceMock = require('../../cfn-templates/cfn-template-service
 jest.mock('../../environment/service-catalog/environment-sc-service');
 const EnvironmentScServiceMock = require('../../environment/service-catalog/environment-sc-service');
 
+jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
+const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
+
 const ALBService = require('../alb-service');
 
 describe('ALBService', () => {
@@ -50,6 +53,7 @@ describe('ALBService', () => {
   let cfnTemplateService = null;
   let albClient = null;
   let ec2Client = null;
+  let settings;
   const albDetails = {
     createdAt: '2021-05-21T13:06:58.216Z',
     id: 'test-id',
@@ -71,6 +75,7 @@ describe('ALBService', () => {
     container.register('cfnTemplateService', new CfnTemplateServiceMock());
     container.register('environmentScService', new EnvironmentScServiceMock());
     container.register('auditWriterService', new AuditServiceMock());
+    container.register('settings', new SettingsServiceMock());
 
     await container.initServices();
 
@@ -78,6 +83,9 @@ describe('ALBService', () => {
     service = await container.find('albService');
     projectService = await container.find('projectService');
     cfnTemplateService = await container.find('cfnTemplateService');
+    settings = await container.find('settings');
+    settings.get = jest.fn(() => 'samplelogbucket');
+
     // Skip authorization
     service.assertAuthorized = jest.fn();
   });
@@ -303,6 +311,10 @@ describe('ALBService', () => {
             ParameterKey: 'PublicRouteTableId',
             ParameterValue: 'N/A',
           },
+          {
+            ParameterKey: 'LoggingBucket',
+            ParameterValue: 'samplelogbucket',
+          },
         ],
         TemplateBody: ['template'],
         Tags: [
@@ -356,6 +368,10 @@ describe('ALBService', () => {
           {
             ParameterKey: 'PublicRouteTableId',
             ParameterValue: 'rtb-sampleRouteTableId',
+          },
+          {
+            ParameterKey: 'LoggingBucket',
+            ParameterValue: 'samplelogbucket',
           },
         ],
         TemplateBody: ['template'],
