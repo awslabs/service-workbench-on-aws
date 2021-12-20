@@ -24,6 +24,9 @@ const AwsServiceMock = require('@aws-ee/base-services/lib/aws/aws-service');
 jest.mock('@aws-ee/base-services/lib/audit/audit-writer-service');
 const AuditServiceMock = require('@aws-ee/base-services/lib/audit/audit-writer-service');
 
+jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
+const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
+
 jest.mock('../../indexes/indexes-service');
 const IndexServiceMock = require('../../indexes/indexes-service');
 
@@ -41,9 +44,6 @@ const CfnTemplateServiceMock = require('../../cfn-templates/cfn-template-service
 
 jest.mock('../../environment/service-catalog/environment-sc-service');
 const EnvironmentScServiceMock = require('../../environment/service-catalog/environment-sc-service');
-
-jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
-const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
 
 const ALBService = require('../alb-service');
 
