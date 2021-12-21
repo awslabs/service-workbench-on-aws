@@ -460,6 +460,7 @@ Resources:
               - elasticloadbalancing:DescribeRules
               - elasticloadbalancing:AddTags
               - elasticloadbalancing:RemoveTags
+              - elasticloadbalancing:ModifyLoadBalancerAttributes
             Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
           - Effect: Allow
             Action:

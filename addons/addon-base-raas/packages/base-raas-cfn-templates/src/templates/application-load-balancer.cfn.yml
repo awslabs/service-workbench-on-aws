@@ -22,6 +22,9 @@ Parameters:
   PublicRouteTableId:
     Type: String
     Description: Public Route Table ID
+  LoggingBucket:
+    Type: String
+    Description: Bucket for ELB Logs
 
   # For an ALB - You must specify subnets from at least two Availability Zones.
   # AWS recommends Availability Zone subnet for your load balancer to have a CIDR block with at least a /27 bitmask
@@ -150,6 +153,13 @@ Resources:
         !If [AppStreamEnabled, [!Ref PrivateSubnet1, !Ref PrivateSubnet2], [!Ref PublicSubnet1, !Ref PublicSubnet2]]
       SecurityGroups:
         - Ref: ALBSecurityGroup
+      LoadBalancerAttributes:
+        - Key: 'access_logs.s3.enabled'
+          Value: 'true'
+        - Key: 'access_logs.s3.bucket'
+          Value: !Ref LoggingBucket
+        - Key: 'access_logs.s3.prefix'
+          Value: 'elb'
 
   ALBSecurityGroup:
     Type: AWS::EC2::SecurityGroup
