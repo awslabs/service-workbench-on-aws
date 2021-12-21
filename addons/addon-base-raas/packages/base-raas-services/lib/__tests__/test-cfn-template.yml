@@ -1,0 +1,86 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: This stack provisions resources necessary to use this AWS account with Service Workbench.
+
+Parameters:
+  EnableAppStream:
+    Type: String
+    AllowedValues: [true, false]
+    Description: Onboard this account to support AppStream
+
+Resources:
+  Route53HostedZone:
+    Type: AWS::Route53::HostedZone
+    Condition: isAppStreamAndCustomDomain
+    Properties:
+      Name: !Ref DomainName
+      VPCs:
+        - VPCId: !Ref VPC
+          VPCRegion: !Ref "AWS::Region"
+
+  AppStreamFleet:
+    Type: 'AWS::AppStream::Fleet'
+    Condition: isAppStream
+    Properties:
+      ComputeCapacity:
+        DesiredInstances: !Ref AppStreamFleetDesiredInstances
+      Description: 'SWB AppStream Fleet'
+      DisconnectTimeoutInSeconds: !Ref AppStreamDisconnectTimeoutSeconds
+      DisplayName: 'SWB Fleet'
+      EnableDefaultInternetAccess: False
+      FleetType: !Ref AppStreamFleetType
+      IdleDisconnectTimeoutInSeconds: !Ref AppStreamIdleDisconnectTimeoutSeconds
+      ImageArn: !Sub 'arn:aws:appstream:${AWS::Region}:${CentralAccountId}:image/${AppStreamImageName}'
+      InstanceType: !Ref AppStreamInstanceType
+      MaxUserDurationInSeconds: !Ref AppStreamMaxUserDurationSeconds
+      Name: !Sub ${Namespace}-ServiceWorkbenchFleet
+      StreamView: 'APP'
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref AppStreamSecurityGroup
+        SubnetIds:
+          - !Ref PrivateAppStreamSubnet
+
+  AppStreamStack:
+    Type: 'AWS::AppStream::Stack'
+    Condition: isAppStream
+    Properties:
+      ApplicationSettings:
+        Enabled: False
+      Description: 'SWB AppStream Stack'
+      DisplayName: 'SWB Stack'
+      Name: !Sub ${Namespace}-ServiceWorkbenchStack
+      UserSettings:
+        - Action: 'CLIPBOARD_COPY_FROM_LOCAL_DEVICE'
+          Permission: 'ENABLED'
+        - Action: 'CLIPBOARD_COPY_TO_LOCAL_DEVICE'
+          Permission: 'DISABLED'
+        - Action: 'FILE_DOWNLOAD'
+          Permission: 'DISABLED'
+        - Action: 'FILE_UPLOAD'
+          Permission: 'DISABLED'
+        - Action: 'PRINTING_TO_LOCAL_DEVICE'
+          Permission: 'DISABLED'
+
+  AppStreamStackFleetAssociation:
+    Type: AWS::AppStream::StackFleetAssociation
+    Condition: isAppStream
+    Properties:
+      FleetName: !Ref AppStreamFleet
+      StackName: !Ref AppStreamStack
+
+Outputs:
+  CrossAccountEnvMgmtRoleArn:
+    Description: The arn of the cross account role for environment management using AWS Service Catalog
+    Value: !GetAtt [CrossAccountRoleEnvMgmt, Arn]
+
+  #------------AppStream Output Below-------
+  AppStreamFleet:
+    Description: AppStream Fleet
+    Condition: isAppStream
+    Value: !Ref AppStreamFleet
+
+  AppStreamStack:
+    Description: AppStream Stack
+    Condition: isAppStream
+    Value: !Ref AppStreamStack
