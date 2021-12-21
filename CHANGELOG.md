@@ -3,7 +3,24 @@
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
 ## Beta
-[This release is in beta. Click here to see changes since 4.1.0.](https://github.com/awslabs/service-workbench-on-aws/compare/v4.1.0...mainline)
+[This release is in beta. Click here to see changes since 4.1.1.](https://github.com/awslabs/service-workbench-on-aws/compare/v4.1.1...mainline)
+
+### [4.1.1](https://github.com/awslabs/service-workbench-on-aws/compare/v4.1.0...v4.1.1) (2021-12-13)
+
+
+### Bug Fixes
+
+* Add wait time for terminated RStudio instances in launch-rstudio-workspace test ([#826](https://github.com/awslabs/service-workbench-on-aws/issues/826)) ([ea93a8c](https://github.com/awslabs/service-workbench-on-aws/commit/ea93a8cb23c69da9fe2508bdf681e5bc4db0e870))
+* allow RStudio EC2 to initialize ([#821](https://github.com/awslabs/service-workbench-on-aws/issues/821)) ([5a3590a](https://github.com/awslabs/service-workbench-on-aws/commit/5a3590a004ee5fdbc56401418df150742d28f32d))
+* Change build-image CLI argument to files ([#825](https://github.com/awslabs/service-workbench-on-aws/issues/825)) ([7506895](https://github.com/awslabs/service-workbench-on-aws/commit/75068952eef2b00a33e6cb3652d7ed2039809643))
+* cidr port range check ([#829](https://github.com/awslabs/service-workbench-on-aws/issues/829)) ([dbfa431](https://github.com/awslabs/service-workbench-on-aws/commit/dbfa431cf0a06f577841c3b499ea181a7ae955a5))
+* delete verify linux tests from common folder ([#822](https://github.com/awslabs/service-workbench-on-aws/issues/822)) ([aff1d5c](https://github.com/awslabs/service-workbench-on-aws/commit/aff1d5c5ec4464560a6c5c9c572617112d5c079b))
+* EMR launch failure because of bucket policy ([#824](https://github.com/awslabs/service-workbench-on-aws/issues/824)) ([99bb319](https://github.com/awslabs/service-workbench-on-aws/commit/99bb319a49c1b1f1584b31d708cc7b74f6f28749))
+* terminate workspaces after e2e tests in non tre environment ([#820](https://github.com/awslabs/service-workbench-on-aws/issues/820)) ([bb9e457](https://github.com/awslabs/service-workbench-on-aws/commit/bb9e45701f77e192dfcbb3815c90cfeeae341105))
+* Updates to RStudio Integration tests ([#818](https://github.com/awslabs/service-workbench-on-aws/issues/818)) ([eb879fe](https://github.com/awslabs/service-workbench-on-aws/commit/eb879fe0d57e0874dd75bfc1d0550a1bf407f791))
+
+### Documentation
+* rstudio doc updates ([#827](https://github.com/awslabs/service-workbench-on-aws/pull/827)) ([772617f](https://github.com/awslabs/service-workbench-on-aws/commit/772617f1888a25fd91b884121d98f23612a28f48))
 
 ## [4.1.0](https://github.com/awslabs/service-workbench-on-aws/compare/v4.0.2...v4.1.0) (2021-11-19)
 

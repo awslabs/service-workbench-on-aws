@@ -22,8 +22,7 @@ Resources:
     Type: AWS::SNS::Topic
     Properties: !If
       - SubscribeNotificationEmail
-      -
-        Subscription:
+      - Subscription:
           - Endpoint: ${self:custom.settings.emailForNotifications}
             Protocol: email
         KmsMasterKeyId: alias/aws/sns
@@ -117,8 +116,6 @@ Resources:
         Rules:
           - ExpirationInDays: 365 # Delete old artifacts from S3 after 1 year to save costs
             Status: Enabled
-      VersioningConfiguration:
-        Status: Enabled
 
   # The artifacts bucket S3 policy to allow CodePipeline's source stage to upload artifacts
   AppArtifactBucketPolicy:
@@ -378,6 +375,7 @@ Resources:
               - kms:TagResource
               - kms:UntagResource
               - kms:GetKeyPolicy
+              - kms:EnableKeyRotation
             Resource:
               - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/*${self:custom.settings.namespace}*'
               - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
