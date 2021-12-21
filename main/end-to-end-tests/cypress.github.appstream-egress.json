@@ -1,0 +1,48 @@
+{
+  "chromeWebSecurity": true,
+  "viewportWidth": 1400,
+  "viewportHeight": 1000,
+  "video": false,
+  "env": {
+    "isAppStreamEnabled": true,
+    "isCognitoEnabled": false,
+    "workspaces": {
+      "sagemaker": {
+        "workspaceTypeName": "SageMaker Notebook-v5",
+        "configuration": "AppStream-SageMaker",
+        "projectId": "TRE-Project"
+      },
+      "ec2": {
+        "linux": {
+          "workspaceTypeName": "EC2 Linux-v4",
+          "configuration": "AppStream-Linux",
+          "projectId": "TRE-Project"
+        },
+        "windows": {
+          "workspaceTypeName": "EC2 Windows-v4",
+          "configuration": "AppStream-Windows",
+          "projectId": "TRE-Project"
+        }
+      },
+      "rstudioServer": {
+        "workspaceTypeName": "RStudio-Server-ALB-v1",
+        "configuration": "RStudio-Server-ALB-TRE",
+        "projectId": "TRE-Project"
+      }
+    },
+    "studies": {
+      "organizations": [
+        {
+          "name": "org-study-1",
+          "researcherIsAdmin": true
+        },
+        {
+          "name": "org-study-2",
+          "researcherIsAdmin": false
+        }
+      ]
+    }
+  },
+  "defaultCommandTimeout": 90000,
+  "watchForFileChanges": false
+}

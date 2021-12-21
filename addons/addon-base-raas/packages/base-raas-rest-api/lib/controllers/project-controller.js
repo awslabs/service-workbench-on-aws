@@ -87,16 +87,16 @@ async function configure(context) {
   // ===============================================================
   //  DELETE /:id (mounted to /api/projects)
   // ===============================================================
-  router.delete(
-    '/:id',
-    wrap(async (req, res) => {
-      const id = req.params.id;
-      const requestContext = res.locals.requestContext;
+  // router.delete(
+  //   '/:id',
+  //   wrap(async (req, res) => {
+  //     const id = req.params.id;
+  //     const requestContext = res.locals.requestContext;
 
-      await projectService.delete(requestContext, { id });
-      res.status(200).json({});
-    }),
-  );
+  //     await projectService.delete(requestContext, { id });
+  //     res.status(200).json({});
+  //   }),
+  // );
 
   return router;
 }

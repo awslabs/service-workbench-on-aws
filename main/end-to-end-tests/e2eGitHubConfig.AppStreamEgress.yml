@@ -1,0 +1,7 @@
+# Config value for GitHub actions deployment
+awsRegion: us-east-1
+solutionName: swb
+envType: secure
+createServiceCatalogPortfolio: true
+isAppStreamEnabled: true
+enableEgressStore: true

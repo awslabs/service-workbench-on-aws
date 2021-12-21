@@ -1,7 +1,7 @@
 ---
 id: aws_accounts
-title: Create or Add Accounts
-sidebar_label: Create or Add Accounts
+title: Create or add accounts
+sidebar_label: Create or add accounts
 ---
 
 import useBaseUrl from '@docusaurus/useBaseUrl';
@@ -16,153 +16,138 @@ Every user is linked to an **Account** through a **Project** and an **Index**, s
 
 _**Important:** If you do not need to create new AWS accounts from within Service Workbench, then skip to the next section, 'Add AWS Account' section below._
 
-## Create  AWS  Account
+
+## Create or add compute hosting accounts
+
+After logging in as the root user for the first time, go to the **Accounts** page. 
+
+<img src={useBaseUrl('img/deployment/post_deployment/navbar.png')} />
+
+**Figure: Service Workbench navigation bar**
+
+Service Workbench uses AWS accounts on this page for launching research workspaces. You can add existing AWS accounts or create new ones on the **Accounts** tab.
+
++ **Create AWS Account**: Creates a new AWS account using AWS Organizations.  Note that [Preparing the organizational account](/deployment/reference/prepare_master_account) steps outlined above are a pre-requisite should you require this capability.
+
++ **Add AWS Account**: Associates an existing AWS account for purposes of hosting compute resources.  This account can be responsible for its own billing.
+
+Every user is linked to an account through a project and an index, so at least one account must be created or added before associating the first user to a project.
+
+**Note**: If you do not need to create new AWS accounts from within Service Workbench, then skip to Add AWS Account section.
+
+## Create AWS Account
 
 ### Prerequisites
-Before creating an AWS account from Service Workbench, some prequisites must be met:
-* Configure an existing AWS account to be the **Master** account for Service Workbench. When Service Workbench creates new AWS accounts, billing for those accounts will go to the **Master** account.
-* Ensure the **Master** account has AWS Organizations enabled.
 
 
-### Configure Master Account
-To configure the **Master** account: 
-
-1. Read the file: `main/solution/prepare-master-acc/README.md`. 
-2. Change directory to the **root folder** and run the command below. This command will take about 8 minutes to execute.
-```scripts/master-account-deploy.sh <stage>```
-The output of this command includes a **Master Role ARN** for the the next step.
-
-For additional details on configuring an account to be the Master Account, see [Prepare the Master Account](/deployment/reference/prepare_master_account) in the 'Reference' section.
-
-
-### AWS Organizations
-In the [AWS Management Console](https://aws.amazon.com/console/?nc2=type_a), navigate to '**AWS Organizations**' to ensure that an Organization exists for the **Master** account. If it does not, then you will need to create a new one. There is no configuration to set; Service Workbench will create a new account in the AWS Organization for this deployment, named after the **Stage Name** used at deployment.
-
+Before creating an AWS account from Service Workbench, configure an existing AWS account to be the organizational account for Service Workbench (steps outlined in [Preparing the organizational account](/deployment/reference/prepare_master_account) above). When Service Workbench creates new AWS accounts, billing for those accounts is applicable to the organizational account.
 
 ### Creating a new Account
-
-This will create a new **Member** AWS account in the Organization, whose billing will go to the **Master** account of the Organization. See **Figure 1**.
-
-<img src={useBaseUrl('img/deployment/post_deployment/create_account_00.jpg')} />
-
-_**Figure 1: Create AWS Account**_
-
-To create the account, perform the following actions:
-
-1. In the Service Workbench console, navigate to '**Accounts → AWS Accounts**' and click **Create AWS Account**.
-    *  In **Role ARN**, fill in the **Master Role ARN** copied from the ‘Configure Master Account’ step described above.
-    * The email address that you specify here must be unique within the Organization.
-    * The **External ID** by default is the string **workbench**.  See  [IAM](/development/aws_services#IAM) for information on how to configure this to another value.
-2. After a minute, the following information displays in the **AWS Accounts** tab:
-    *  *‘Trying to create accountID: xxx’*
-    * A workflow in progress in **Workflows → Provision Account** (see [Workflows](http://swb-documentation.s3-website-us-east-1.amazonaws.com/user_guide/sidebar/admin/workflows/introduction) 
-     _**Note**: If instead you see an error message such as, ‘Stop Internal State Account ID not found’, check that there is an AWS Organization in the console of your **Master** account, if deploying Service Workbench in the **Master** account.  If you are deploying in a **Member** account, check and ensure that you  followed the steps described in [Prepare the Master Account](/deployment/post_deployment/prepare_master_account)._
-    * Optionally, in the AWS console, you can inspect the following resources deployed by this script:
-        * In AWS CloudFormation, a stack **prep-master** will be running.  It creates the **Master** role and its output is the **Master Role ARN**.
-        * In the AWS Organization, in the **Master** account (see [IAM](/development/aws_services#Organizations)), the new account will display. 
-        * In IAM, the new **Master** role will be created
-3. Once the account is created it will be listed in **AWS Accounts**, see **Figure 2**.
+This creates a new hosting AWS account in the organization, whose billing goes to the organizational account. 
  
-<img src={useBaseUrl('img/deployment/post_deployment/create_account_02.jpg')} />
+<img src={useBaseUrl('img/deployment/post_deployment/newacc1.png')} />
 
-_**Figure 2: AWS Accounts with New Account**_
+_**Figure: Create a new hosting account**_
 
+To create an account:
 
-## Add  AWS  Account
+1. In the Service Workbench console, choose **AWS Accounts** and then choose **Create AWS Account**.
 
-Adding an existing AWS account enables Service Workbench to launch research Workspaces into it. The existing account is reponsible for billing.
+     + In **Role ARN**, enter the **Master Role ARN** copied from the [Preparing the organizational account](/deployment/reference/prepare_master_account) steps.
+     + The email address that you specify here must be unique within the organization.
+     + The External ID is workbench by default. See [IAM](/deployment/reference/aws_services#Organizations) for information on how to configure this to another value.
+2. During processing, the following information displays in the **AWS Accounts** tab:
+     + ‘Trying to create accountID: xxx’
+     + A workflow in progress in **Workflows > Provision Account** (see [Workflows](http://swb-documentation.s3-website-us-east-1.amazonaws.com/user_guide/sidebar/admin/workflows/introduction)
 
-### Gather Role ARNs
+     **Note**: If instead you see an error message such as, `Stop Internal State Account ID not found`, check that there is an AWS Organization in the console of your organizational account, if deploying Service Workbench in the organizational account. If you are deploying in a member account, check and ensure that you followed the steps described in [Preparing the organizational account](/deployment/reference/prepare_master_account).
 
-This step is run in the **Main** account, the account where you have deployed Service Workbench.  See [Prepare SDC Configuration Files](/deployment/pre_deployment/configuration#Prepare_SDC_Configuration_Files) for information on how to specify the correct profile.
-
-1. Run the following command in the `main/solution/backend` folder:
-
-```{.sh}
-    pnpx sls info --verbose --stage <stagename>
-```
-
-The output will contain similar lines to the following:
-
-```{.sh}
-    Stack Outputs
-    AuthenticationLayerHandlerRoleArn: arn:aws:iam::0000:role/stage-va-sw-backend-RoleAuthenticationLayerHan-F00
-    EnvMgmtRoleArn: arn:aws:iam::0000:role/stage-va-sw-EnvMgmt
-    ApiHandlerRoleArn: arn:aws:iam::0000:role/stage-va-sw-ApiHandler
-    WorkflowLoopRunnerRoleArn: arn:aws:iam::0000:role/stage-va-sw-WorkflowLoopRunner
-    OpenDataScrapeHandlerRoleArn: arn:aws:iam::0000:role/stage-va-sw-backend-RoleOpenDataScrapeHandler-F00
-    ServiceEndpoint: https://f00.execute-api.us-east-1.amazonaws.com/demo
-    ServerlessDeploymentBucketName: 0000-stage-va-sw-artifacts
-```
-
-2. Copy the values for **ApiHandlerRoleArn** and **WorkflowLoopRunnerRoleArn**.
-
-### Prepare the Existing AWS Account
-
-This step prepares the existing AWS account that you wish to add to Service Workench by running an onboarding template.
-
-1. In the [AWS Management Console](https://aws.amazon.com/console/?nc2=type_a), navigate to '**Amazon CloudFormation**'.
-2. Create a new stack in CloudFormation.  Select *Upload a template file* and locate the template file `addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/onboard-account.cfn.yml` from the source code.
-3. On the next screen 'Specify stack details' enter the following values from **Table 3**:
+     + Optionally, in the console, you can inspect the following resources deployed by this script.
+         - In AWS CloudFormation, a stack prep-master is running. It creates the master role and its output is the master role ARN.
+         - In AWS Organizations, in the organizational account (see IAM), the new account displays. 
+         - In IAM, the new master role is created.
+3.	Once the account is created, it is listed in AWS Accounts.
 
 
-Field                        | Value                      
----------------------------- | ------------------------------------------------
-Namespace                    | Short string (eg: stage name)                  
-CentralAccountId             | Service Workbench Main account ID                  
-ExternalId                   | As specified (default: **workbench**)
-VpcCidr                      | Retain default (10.0.0.0/16) 
-VpcPublicSubnet1Cidr         | Retain default (10.0.0.0/19)                  
-ApiHandlerArn                | **ApiHandlerRoleArn** value from above        
-LaunchConstraintPolicyPrefix | Retain default (*)                            
-LaunchConstraintRolePrefix   | Retain default (*)                            
-WorkflowRoleArn              | **WorkflowLoopRunnerRoleArn** value from above
 
-_**Table 3: Stack Details**_
+## Add AWS Account
 
-4. Deploy the stack.
-5. After the stack has deployed, view the output, which will contain values similar to the following in **Table 4**:
+Adding an existing AWS account enables Service Workbench to launch research workspaces. The existing account alignment (standalone or associated to an an organization) determines the billing responsibility.
 
-|             Key              |                          Value                          |
--------------------------------|---------------------------------------------------------
-| CrossAccountEnvMgmtRoleArn   | arn:aws:iam::0000:role/sw-stage-xacc-env-mgmt      |
-| CrossAccountExecutionRoleArn | arn:aws:iam::0000:role/sw-stage-cross-account-role |
-| EncryptionKeyArn             | arn:aws:kms:us-east-2:0000:key/f00-f00-f00              |
-| VPC                          | vpc-f00f00                                              |
-| VpcPublicSubnet1             | subnet-f00f00                                           |
+1.	On the **Accounts** Page, choose **AWS Accounts**, and then choose **Add AWS Account**.
 
-_**Table 4: Stack Output**_
+     <img src={useBaseUrl('img/deployment/post_deployment/addacc1.png')} /> 
+ 
+     _**Figure: Add an existing account**_
 
-6. Copy the values down for the next step.
+2.	Create and run the AWS CloudFormation template.
 
-### Adding the Account in Service Workbench
+### If AppStream is not enabled
 
-This step is run in the Service Workbench administrator interface and uses values from the previous step.
++ Enter the **Account Name**, **Account ID** (12-digit AWS account ID for the account you wish to add), and **Description**.
 
-1. In the Service Workbench administrative interface, click the **AWS Accounts** tab. See **Figure 3**.
+<img src={useBaseUrl('img/deployment/post_deployment/addacc2.png')} />
 
-<img src={useBaseUrl('img/deployment/post_deployment/create_account_01.jpg')} />
+_**Figure: Specify account details**_
 
-_**Figure 3: Add AWS Account**_
++ The **Onboard AWS Account** screen is displayed, where you can select either of the following options:
 
-2.  Click **Add AWS Account**. Enter the account information from the following **Table 5**:
+     - **I have admin access** : You have administrator-level access to the hosting account that is being onboarded.  Selecting this and then proceeding launches the CloudFormation template within the hosting account.  Note that you need to be logged into the AWS account console for the hosting account when selecting this option and proceeding.
+     - **I do not have admin access** : The CloudFormation template is generated and you can then share the template to be run by the party that does have administrator access in the AWS account that you are onboarding.
+ 
+<img src={useBaseUrl('img/deployment/post_deployment/onboardacc.png')} />
 
-|             Field            |                 Value                  |
-|------------------------------|----------------------------------------|
-| Account Name                 | As desired                             |
-| AWS Account ID               | 12-digit ID of imported account        |
-| Role ARN                     | **CrossAccountExecutionRoleArn** value |
-| AWS Service Catalog Role Arn | **CrossAccountEnvMgmtRoleArn** value   |
-| External ID                  | As specified (default: **workbench**)  |
-| Description                  | As desired                             |
-| VPC ID                       | **VPC** value                          |
-| Subnet ID                    | **VpcPublicSubnet1** value             |
-| KMS Encryption Key ARN       | **EncryptionKeyArn** value             |
 
-_**Table 5: AWS Account Information**_
+_**Figure: Onboard AWS account**_
 
-3. Once the account is added it will be listed in **AWS Accounts**, see **Figure 4**.
+### If AppStream is enabled
 
-<img src={useBaseUrl('img/deployment/post_deployment/create_account_02.jpg')} />
 
-_**Figure 4: AWS Accounts with New Account**_
+If you have chosen to enable AppStream for your installation, there are additional values required when onboarding a hosting account.
+
+<img src={useBaseUrl('img/deployment/post_deployment/appstream1.png')} />
+
+
+_**Figure: Add account when AppStream is enabled**_
+
++ **AppStream Fleet Desired Instance**: The maximum number of concurrently running AppStream sessions allowed.  If you set this to 5, that would mean that five workspaces can be viewed concurrently.
++ **AppStreamDisconnectTimeoutSeconds**: With a minimum of 60 seconds, this is the amount between a researcher disconnection from a session (Manual Stop, Auto Stop, or Terminate) and the release of the AppStream instance that is supporting that session.
++ **AppStreamIdleDisconnectTimeoutSeconds**: The amount of time that an AppStream session idle time (meaning no activity within the session) before the AppStream instance disconnects.
+ 
+<img src={useBaseUrl('img/deployment/post_deployment/appstream2.png')} />
+
+_**Figure: Add account when AppStream is enabled (contd..)**_
+
+
++ **AppStreamMaxUserDurationSeconds**:  The maximum amount of time for an AppStream session.
++ **AppStreamImageName**: The exact image name produced when you follow the instructions to build your AppStream image.
++ **AppStreamInstanceType**: The instance type for your AppStream fleet.  Note that these instance types are unique to AppStream.  A complete list and specifications for valid instance types is available at https://aws.amazon.com/appstream2/pricing/ 
++ **AppStreamFleetType**: `ALWAYS_ON` ensures that the desired number of instances remain available at all times.  `ON_DEMAND` only runs the instances when required.  It is a cost versus convenience choice.
+
+**Note**:  If you needed to change these values later, you can do so through the AWS Console of the hosting account without negative impact to Service Workbench.
+
+
+Once these options are specified, choosing **Onboard Account** displays the **Onboard AWS Account** screen.  The same choice of admin vs. no admin access applies, but there are several important pre-requisites to complete before proceeding.
+
+
+
+## Creating RStudio ALB workspace 
+
+### Accessing RStudio workspace
+
+You can access the RStudio workspace type by using the template and AMI provided in AWS partner's [repository](https://github.com/RLOpenCatalyst/Service_Workbench_Templates). RStudio legacy and RStudio ALB both use custom domain names. You can define custom domain name in `/main/config/settings/<stage.yml>`.  
+
+**Important**: The legacy RStudio workspace type will be deprecated soon in a future release.
+
+### Application load balancing for RStudio ALB workspace
+
+When you create RStudio Application Load Balancer (ALB) workspace, an ALB is created that can host upto 100 workspaces per hosting account. Per workspace, you can have upto 4 CIDR blocks (IP ranges) for port 443 only. This is updated in the hosting accounts. If there are no ALBs for that hosting account and you have created the very first workspace, then ALB will be created for the first time and it will be common for every workspace that you create subsequently. Once you terminate all the workspaces and you terminate the last workspace for that hosting account, the ALB is deleted. An ALB is created for minimum one active workspace.
+
+<img src={useBaseUrl('img/deployment/post_deployment/ALB-1.png')} />
+
+Each workspace type corresponds to one listener rule and there can be 100 such rules. In each rule, users can specify the IP ranges that user wants to allowlist. You can specify only upto 4 IP ranges per listener rule. For more information about ALB, refer to [Application Load Balancer](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/introduction.html).
+
+### Limitations
+
+1. With RStudio ALB implementation, you can create only upto 100 workspaces per hosting account.
+2. Per workspace, you can specify only upto 4 CIDR blocks for port 443.

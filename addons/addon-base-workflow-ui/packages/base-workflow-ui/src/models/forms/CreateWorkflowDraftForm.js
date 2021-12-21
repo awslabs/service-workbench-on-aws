@@ -37,7 +37,7 @@ const createWorkflowDraftFields = [
     placeholder: 'Type a unique id for this workflow',
     extra: {
       explain: `This is a required field and the number of characters must be between 3 and 100 and no spaces. Only
-    alpha-numeric characters and dashes are allowed. Once a draft is created you can not change the workflow id.`,
+    alpha-numeric characters, dashes, and underscores are allowed. Once a draft is created you can not change the workflow id.`,
     },
     rules: 'required|string|between:3,100|alpha_dash',
   },

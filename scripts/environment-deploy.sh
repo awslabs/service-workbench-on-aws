@@ -6,6 +6,9 @@ pushd "$(dirname "${BASH_SOURCE[0]}")" > /dev/null
 [[ $UTIL_SOURCED != yes && -f ./util.sh ]] && source ./util.sh
 popd > /dev/null
 
+# Add the version information to the stage file
+./scripts/get-release-info.sh "$STAGE"
+
 # Install
 install_dependencies "$@"
 
@@ -41,6 +44,15 @@ function goComponentDeploy() {
 
 disableStats "infrastructure"
 componentDeploy "infrastructure" "Infrastructure"
+componentDeploy "pre-deployment" "Pre-Deployment"
+
+# We now need to invoke the pre deployment lambda (we can do this locally)
+#$EXEC sls invoke local -f preDeployment -s $STAGE
+printf "\nInvoking pre-deployment steps\n\n"
+pushd "$SOLUTION_DIR/pre-deployment" > /dev/null
+$EXEC sls invoke -f preDeployment -s "$STAGE"
+popd > /dev/null
+
 componentDeploy "backend" "Backend"
 componentDeploy "edge-lambda" "Edge-Lambda"
 componentDeploy "post-deployment" "Post-Deployment"

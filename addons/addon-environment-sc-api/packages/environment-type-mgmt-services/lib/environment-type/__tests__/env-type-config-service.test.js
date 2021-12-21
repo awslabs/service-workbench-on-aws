@@ -1,3 +1,4 @@
+/* eslint-disable no-template-curly-in-string */
 /*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
@@ -62,6 +63,7 @@ describe('EnvTypeService', () => {
     service = await container.find('envTypeConfigService');
     envTypeService = await container.find('envTypeService');
     s3Service = await container.find('s3Service');
+    const settingsService = await container.find('settings');
 
     // skip authorization
     service.assertAuthorized = jest.fn();
@@ -80,6 +82,13 @@ describe('EnvTypeService', () => {
       putObject: jest.fn().mockReturnThis(),
       promise: jest.fn().mockReturnThis(),
     };
+
+    settingsService.getBoolean = jest.fn(settingKey => {
+      if (settingKey === 'isAppStreamEnabled') {
+        return true;
+      }
+      throw Error(`${settingKey} not found`);
+    });
   });
 
   describe('list function', () => {
@@ -215,15 +224,108 @@ describe('EnvTypeService', () => {
       }
     });
 
+    it('should pass desc is free-form', async () => {
+      // BUILD
+      const newConfig = {
+        id: 'iFindYourLackOfFaith',
+        name: 'disturbing',
+        desc: '<stuff>',
+        estimatedCostInfo: 'costs alot',
+        allowRoleIds: ['1234'],
+        denyRoleIds: ['1234'],
+        params: [
+          {
+            key: 'someProperty',
+            value: 'someValue',
+          },
+        ],
+      };
+
+      const envType = {
+        id: newConfig.id,
+        name: 'anakin',
+        params: [
+          {
+            ParameterKey: 'someProperty',
+            ParameterType: 'String',
+          },
+        ],
+      };
+      envTypeService.mustFind.mockImplementationOnce(() => envType);
+      service.audit = jest.fn();
+
+      // OPERATE
+      await service.create({}, envType.id, newConfig);
+
+      // CHECK
+      expect(s3Service.api.putObject).toHaveBeenCalled();
+      expect(service.audit).toHaveBeenCalledWith(
+        {},
+        expect.objectContaining({ action: 'create-environment-type-config' }),
+      );
+    });
+    it('should pass estimatedCostInfo is free-form', async () => {
+      // BUILD
+      const newConfig = {
+        id: 'iFindYourLackOfFaith',
+        name: 'disturbing',
+        desc: 'stuff',
+        estimatedCostInfo: '<costs alot>',
+        allowRoleIds: ['1234'],
+        denyRoleIds: ['1234'],
+        params: [
+          {
+            key: 'someProperty',
+            value: 'someValue',
+          },
+        ],
+      };
+
+      const envType = {
+        id: newConfig.id,
+        name: 'anakin',
+        params: [
+          {
+            ParameterKey: 'someProperty',
+            ParameterType: 'String',
+          },
+        ],
+      };
+      envTypeService.mustFind.mockImplementationOnce(() => envType);
+      service.audit = jest.fn();
+
+      // OPERATE
+      await service.create({}, envType.id, newConfig);
+
+      // CHECK
+      expect(s3Service.api.putObject).toHaveBeenCalled();
+      expect(service.audit).toHaveBeenCalledWith(
+        {},
+        expect.objectContaining({ action: 'create-environment-type-config' }),
+      );
+    });
+
     it('should succeed to create a config for the envType', async () => {
       // BUILD
       const newConfig = {
         id: 'iFindYourLackOfFaith',
         name: 'disturbing',
+        desc: 'stuff',
+        estimatedCostInfo: 'costs alot',
+        allowRoleIds: ['1234'],
+        denyRoleIds: ['1234'],
         params: [
           {
-            key: 'someProperty',
-            value: 'someValue',
+            key: 'vpcId',
+            // eslint-disable-next-line no-template-curly-in-string
+            value: '${vpcId}',
+          },
+        ],
+        tags: [
+          {
+            key: 'customTag',
+            // eslint-disable-next-line no-template-curly-in-string
+            value: '${indexId}',
           },
         ],
       };
@@ -232,7 +334,7 @@ describe('EnvTypeService', () => {
         name: 'anakin',
         params: [
           {
-            ParameterKey: 'someProperty',
+            ParameterKey: 'vpcId',
             ParameterType: 'String',
           },
         ],

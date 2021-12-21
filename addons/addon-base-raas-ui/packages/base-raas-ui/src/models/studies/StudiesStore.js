@@ -85,6 +85,7 @@ const StudiesStore = BaseStore.named('StudiesStore')
 
       cleanup: () => {
         self.studies.clear();
+        self.studyStores.clear();
         superCleanup();
       },
     };
@@ -121,6 +122,21 @@ function registerContextItems(appContext) {
     [categories.myStudies.id]: StudiesStore.create({ category: categories.myStudies.name }),
     [categories.organization.id]: StudiesStore.create({ category: categories.organization.name }),
     [categories.openData.id]: StudiesStore.create({ category: categories.openData.name }),
+  };
+
+  appContext.cleanupMap = {
+    // This method is going to be automatically called when the logout is invoked
+    cleanup: () => {
+      _.forEach(appContext.studiesStoresMap, obj => {
+        if (_.isFunction(obj.cleanup)) {
+          try {
+            obj.cleanup();
+          } catch (error) {
+            console.error(error);
+          }
+        }
+      });
+    },
   };
 }
 

@@ -11,7 +11,8 @@ type s3Mount struct {
 	Bucket    *string `json:"bucket,omitempty"`
 	Prefix    *string `json:"prefix,omitempty"`
 	Writeable *bool   `json:"writeable,omitempty"`
-	KmsKeyId  *string `json:"kmsKeyId,omitempty"`
+	KmsArn    *string `json:"kmsArn,omitempty"`
+	RoleArn   *string `json:"roleArn,omitempty"`
 }
 
 func mountToString(mount *s3Mount) string {

@@ -35,6 +35,7 @@ custom:
     Name: ${self:custom.settings.envName}-${self:service}
   deploymentBucket:
     policy: ${self:custom.settings.deploymentBucketPolicy}
+    versioning: true
   webpack:
     webpackConfig: ./config/build/webpack.config.js
     packager: pnpm
@@ -64,6 +65,11 @@ custom:
     - bucketName: ${self:custom.settings.deploymentBucketName}
       bucketPrefix: service-catalog-products/
       localDir: ../../../addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/service-catalog
+  serverlessIfElse:
+    - If: '"${file(./bool-to-str.js)}" == "false"'
+      Exclude:
+        - functions.egressStoreObjectsHandler
+
 functions: ${file(./config/infra/functions.yml)}
 
 resources:
@@ -74,4 +80,5 @@ plugins:
   - serverless-webpack
   - serverless-deployment-bucket
   - serverless-s3-sync
+  - serverless-plugin-ifelse
   - '@aws-ee/base-serverless-backend-tools'

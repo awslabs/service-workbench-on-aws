@@ -21,6 +21,7 @@ const {
   allowIfActive,
   allowIfAdmin,
   allowIfRoot,
+  allowIfSystem,
   allowIfCurrentUserOrAdmin,
   allow,
   deny,
@@ -48,7 +49,7 @@ class UserAuthzService extends Service {
   }
 
   // Protected methods
-  async authorizeCreate(requestContext, { action }) {
+  async authorizeCreate(requestContext, { action }, user) {
     // Make sure the caller is active
     let permissionSoFar = await allowIfActive(requestContext, { action });
     if (isDeny(permissionSoFar)) return permissionSoFar; // return if denying
@@ -56,6 +57,12 @@ class UserAuthzService extends Service {
     // Only admins can create users by default
     permissionSoFar = await allowIfAdmin(requestContext, { action });
     if (isDeny(permissionSoFar)) return permissionSoFar; // return if denying
+
+    // Only system can create root user
+    if (_.get(user, 'userType') === 'root') {
+      permissionSoFar = await allowIfSystem(requestContext, { action });
+      if (isDeny(permissionSoFar)) return permissionSoFar;
+    }
 
     // If code reached here then allow this call
     return allow();

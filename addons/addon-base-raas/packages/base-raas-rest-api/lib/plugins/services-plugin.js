@@ -28,6 +28,7 @@ const EnvironmentScConnectionService = require('@aws-ee/base-raas-services/lib/e
 const EnvironmentSpotPriceHistoryService = require('@aws-ee/base-raas-services/lib/environment/environment-spot-price-history-service');
 const UserRolesService = require('@aws-ee/base-raas-services/lib/user-roles/user-roles-service');
 const AwsAccountsService = require('@aws-ee/base-raas-services/lib/aws-accounts/aws-accounts-service');
+const AwsCfnService = require('@aws-ee/base-raas-services/lib/aws-accounts/aws-cfn-service');
 const BudgetsService = require('@aws-ee/base-raas-services/lib/budgets/budgets-service');
 const CostsService = require('@aws-ee/base-raas-services/lib/costs/costs-service');
 const CostApiCacheService = require('@aws-ee/base-raas-services/lib/cost-api-cache/cost-api-cache-service');
@@ -46,6 +47,19 @@ const JwtService = require('@aws-ee/base-api-services/lib/jwt-service');
 const EnvironmentScService = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-service');
 const EnvironmentConfigVarsService = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-config-vars-service');
 const EnvironmentScKeypairService = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-keypair-service');
+const DeploymentStoreService = require('@aws-ee/base-post-deployment/lib/deployment-store-service');
+const AlbService = require('@aws-ee/base-raas-services/lib/alb/alb-service');
+const DataSourceRegistrationService = require('@aws-ee/base-raas-services/lib/data-source/data-source-registration-service');
+const DataSourceReachabilityService = require('@aws-ee/base-raas-services/lib/data-source/data-source-reachability-service');
+const DataSourceAccountService = require('@aws-ee/base-raas-services/lib/data-source/data-source-account-service');
+const DataSourceBucketService = require('@aws-ee/base-raas-services/lib/data-source/data-source-bucket-service');
+const ApplicationRoleService = require('@aws-ee/base-raas-services/lib/data-source/access-strategy/roles-only/application-role-service');
+const FilesystemRoleService = require('@aws-ee/base-raas-services/lib/data-source/access-strategy/roles-only/filesystem-role-service');
+const RolesOnlyEnvironmentResourceService = require('@aws-ee/base-raas-services/lib/data-source/access-strategy/roles-only/environment-resource-service');
+const LegacyEnvironmentResourceService = require('@aws-ee/base-raas-services/lib/data-source/access-strategy/legacy/environment-resource-service');
+const ResourceUsageService = require('@aws-ee/base-raas-services/lib/usage/resource-usage-service');
+const StudyOperationService = require('@aws-ee/base-raas-services/lib/study/study-operation-service');
+const DataEgressService = require('@aws-ee/base-raas-services/lib/data-egress/data-egress-service');
 
 const settingKeys = {
   tablePrefix: 'dbPrefix',
@@ -79,6 +93,7 @@ async function registerServices(container, pluginRegistry) {
   container.register('environmentScCidrService', new EnvironmentScCidrService());
   container.register('cfnTemplateService', new CfnTemplateService());
   container.register('awsAccountsService', new AwsAccountsService());
+  container.register('awsCfnService', new AwsCfnService());
   container.register('budgetsService', new BudgetsService());
   container.register('costsService', new CostsService());
   container.register('storageGatewayService', new StorageGatewayService());
@@ -94,6 +109,19 @@ async function registerServices(container, pluginRegistry) {
   container.register('environmentScKeypairService', new EnvironmentScKeypairService());
   container.register('pluginRegistryService', new PluginRegistryService(pluginRegistry), { lazy: false });
   container.register('jwtService', new JwtService());
+  container.register('deploymentStoreService', new DeploymentStoreService());
+  container.register('albService', new AlbService());
+  container.register('dataSourceRegistrationService', new DataSourceRegistrationService());
+  container.register('dataSourceReachabilityService', new DataSourceReachabilityService());
+  container.register('dataSourceAccountService', new DataSourceAccountService());
+  container.register('dataSourceBucketService', new DataSourceBucketService());
+  container.register('roles-only/applicationRoleService', new ApplicationRoleService());
+  container.register('roles-only/filesystemRoleService', new FilesystemRoleService());
+  container.register('roles-only/environmentResourceService', new RolesOnlyEnvironmentResourceService());
+  container.register('legacy/environmentResourceService', new LegacyEnvironmentResourceService());
+  container.register('resourceUsageService', new ResourceUsageService());
+  container.register('studyOperationService', new StudyOperationService());
+  container.register('dataEgressService', new DataEgressService());
 
   // Authorization Services from raas addon
   container.register('raasUserAuthzService', new UserAuthzService());
@@ -129,7 +157,12 @@ function getStaticSettings(existingStaticSettings, settings, pluginRegistry) {
   table('dbAccounts', 'Accounts');
   table('dbProjects', 'Projects');
   table('dbStudyPermissions', 'StudyPermissions');
+  table('dbDsAccounts', 'DsAccounts');
+  table('dbRoleAllocations', 'RoleAllocations');
+  table('dbResourceUsages', 'ResourceUsages');
+  table('dbEgressStore', 'EgressStore');
   table('StorageGateway', 'StorageGateway');
+  table('dbDeploymentStore', 'DeploymentStore');
 
   return staticSettings;
 }

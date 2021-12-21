@@ -16,6 +16,10 @@
 const _ = require('lodash');
 const StepBase = require('@aws-ee/base-workflow-core/lib/workflow/helpers/step-base');
 
+const settingKeys = {
+  isAppStreamEnabled: 'isAppStreamEnabled',
+};
+
 class StartRStudioEnvironmentSc extends StepBase {
   async start() {
     const environmentId = await this.payload.string('environmentId');
@@ -153,7 +157,15 @@ class StartRStudioEnvironmentSc extends StepBase {
     this.updateOutputValue(outputs, 'Ec2WorkspaceDnsName', newDnsName);
 
     const envId = await this.state.string('STATE_ENVIRONMENT_ID');
-    await this.updateCnameRecords(envId, oldDnsName, newDnsName);
+    // Update CNAME record for older version of Rstudio
+    const connectionType = _.find(outputs, o => o.OutputKey === 'MetaConnection1Type');
+    let connectionTypeValue;
+    if (connectionType) {
+      connectionTypeValue = connectionType.OutputValue;
+      if (connectionTypeValue.toLowerCase() === 'rstudio') {
+        await this.updateCnameRecords(envId, oldDnsName, newDnsName);
+      }
+    }
 
     return this.updateEnvironment(
       { status: 'COMPLETED', outputs, inWorkflow: 'false' },
@@ -163,8 +175,10 @@ class StartRStudioEnvironmentSc extends StepBase {
 
   async updateCnameRecords(envId, oldDnsName, newDnsName) {
     const environmentDnsService = await this.mustFindServices('environmentDnsService');
-    await environmentDnsService.deleteRecord('rstudio', envId, oldDnsName);
-    await environmentDnsService.createRecord('rstudio', envId, newDnsName);
+    if (!this.settings.getBoolean(settingKeys.isAppStreamEnabled)) {
+      await environmentDnsService.deleteRecord('rstudio', envId, oldDnsName);
+      await environmentDnsService.createRecord('rstudio', envId, newDnsName);
+    }
   }
 
   async updateEnvironment(updatedAttributes, ipAllowListAction = {}) {

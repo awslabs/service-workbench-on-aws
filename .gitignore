@@ -1,5 +1,6 @@
 **/.class
 **/.DS_Store
+**/coverage
 **/node_modules
 **/npm-debug.log
 **/pnpm-debug.log
@@ -8,7 +9,7 @@
 .build
 docs/build
 
-# https://github.com/github/gitignore/blob/master/Global/VisualStudioCode.gitignore
+# VisualStudioCode.gitignore
 .vscode/*
 !.vscode/*.example.json
 !.vscode/settings.json
@@ -31,3 +32,7 @@ docs/build
 */*/*/config/settings/*.yml
 !*/*/*/config/settings/.defaults.yml
 !*/*/*/config/settings/example*.yml
+!main/infrastructure-tests/config/settings/github.yml
+
+# rStudio specific
+source/ServiceWorkbenchOnAWS/main/solution/machine-images/config/infra/files/rstudio/*

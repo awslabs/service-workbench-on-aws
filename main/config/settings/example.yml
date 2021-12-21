@@ -88,3 +88,17 @@
 # If you do not want to connect to Active Directory then leave this setting as its default.
 # TODO: Remove saml-metadata/datalake-example-idp-metadata.xml file and replace this setting to use sample file
 #fedIdpMetadatas: '["s3://${self:custom.settings.deploymentBucketName}/saml-metadata/datalake-example-idp-metadata.xml"]'
+
+# Enable the Egress Store feature would allow researchers to securely egress data from lockdown Workspace
+# NOTE: Once the enableEgressStore is set to true, the egress store feature will be enabled and can NOT be toggled off.
+# If you toggle the egress store from true to false and redeploy the whole solution, the backend stack deployment should error out with following message:
+# Error validating existing stack policy: Unknown logical id 'LogicalResourceId/EgressStore*' in statement {} - stack policies can only be applied to logical ids referenced in the template
+# Stack policies are applied here: addons/addon-stack-policy/packages/stack-policy/lib/steps/update-cfn-stack-policy.js
+#enableEgressStore: false
+
+# Determine whether workspace should be accessible only through AppStream
+# NOTE: Once the isAppStremEnabled is set to true, the AppStrem feature will be enabled and can NOT be toggled off.
+# If you toggle the AppStream feature from true to false and redeploy the whole solution, the backend stack deployment should error out with following message:
+# Error validating existing stack policy: Unknown logical id 'LogicalResourceId/AppStream*' in statement {} - stack policies can only be applied to logical ids referenced in the template
+# Stack policies are applied here: addons/addon-stack-policy/packages/stack-policy/lib/steps/update-cfn-stack-policy.js
+#isAppStreamEnabled: false

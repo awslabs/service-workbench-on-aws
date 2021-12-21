@@ -58,6 +58,12 @@ class WorkflowDraftService extends Service {
     const by = _.get(requestContext, 'principalIdentifier.uid');
 
     const now = new Date().toISOString();
+    if (!this.isWorkFlowDraftIdValid(workflowIdRaw)) {
+      throw this.boom.badRequest(
+        `Workflow id "${workflowIdRaw}" is not valid. The number of characters must be between 3 and 100 and no spaces. Only alpha-numeric characters, dashes, and underscores are allowed.`,
+        true,
+      );
+    }
     const workflowId = slugify(_.kebabCase(_.startsWith(workflowIdRaw, 'wf-') ? workflowIdRaw : `wf-${workflowIdRaw}`));
     const draftId = `${by}_${workflowId}_${workflowVer}`;
     const draft = {
@@ -145,6 +151,12 @@ class WorkflowDraftService extends Service {
     await this.audit(requestContext, { action: 'create-workflow-draft', body: result });
 
     return result;
+  }
+
+  isWorkFlowDraftIdValid(id) {
+    // The number of characters must be between 3 and 100 and no spaces. Only alpha-numeric characters, dashes, and underscores are allowed.
+    const regExp = /^[\d\w-]{3,100}$/;
+    return regExp.test(id);
   }
 
   async updateDraft(requestContext, draft = {}) {

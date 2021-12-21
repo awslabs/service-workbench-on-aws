@@ -1,8 +1,13 @@
 AWSTemplateFormatVersion: 2010-09-09
 
-Description: Service-Workbench-on-AWS Research-Account
+Description: This stack provisions resources necessary to use this AWS account with Service Workbench.
 
 Parameters:
+  EnableAppStream:
+    Type: String
+    AllowedValues: [true, false]
+    Description: Onboard this account to support AppStream
+
   Namespace:
     Type: String
     Description: An environment name that will be prefixed to resource names
@@ -29,9 +34,9 @@ Parameters:
     Description: The arn of workflowRunner role
 
   # Generous subnet allocation of 8192 addresses (ie room for a few concurrent EMR clusters)
-  # ending at 10.0.31.255
-  VpcPublicSubnet1Cidr:
-    Description: Please enter the IP range (CIDR notation) for the public subnet in the 1st Availability Zone
+  # Range from 10.0.0.0 to 10.0.31.255
+  PublicSubnetCidr:
+    Description: Please enter the IP range (CIDR notation) for the public subnet. This value is only required if AppStream is disabled.
     Type: String
     Default: 10.0.0.0/19
 
@@ -44,6 +49,60 @@ Parameters:
     Description: Customer managed policy name prefix to use when creating a launch constraint role in the on-boarded account
     Type: String
     Default: '*'
+
+  #------------AppStream Parameters Below-------
+  # Range from 10.0.32.0 to 10.0.63.255
+  AppStreamSubnetCidr:
+    Description: Please enter the IP range (CIDR notation) for the the AppStream subnet. This value is only used if AppStream is enabled.
+    Type: String
+    Default: 10.0.32.0/19
+
+  # Range from 10.0.64.0 to 10.0.95.255
+  WorkspaceSubnetCidr:
+    Description: Please enter the IP range (CIDR notation) for the Workspace subnet. This value is only used if AppStream is enabled.
+    Type: String
+    Default: 10.0.64.0/19
+  
+  AppStreamFleetDesiredInstances:
+    Description: The desired number of streaming instances.
+    Type: Number
+    Default: 2
+
+  AppStreamDisconnectTimeoutSeconds:
+    Description: The amount of time that a streaming session remains active after users disconnect.
+    Type: Number
+    Default: 60
+
+  AppStreamIdleDisconnectTimeoutSeconds:
+    Description: The amount of time that users can be idle (inactive) before they are disconnected from their streaming session
+    Type: Number
+    Default: 600
+
+  AppStreamMaxUserDurationSeconds:
+    Description: The maximum amount of time that a streaming session can remain active, in seconds.
+    Type: Number
+    Default: 86400
+
+  AppStreamImageName:
+    Description: The name of the image used to create the fleet.
+    Type: String
+
+  AppStreamInstanceType:
+    Description: The instance type to use when launching fleet instances. List of images available at https://aws.amazon.com/appstream2/pricing/
+    Type: String
+
+  AppStreamFleetType:
+    Description: The fleet type
+    Type: String
+    AllowedValues: [ALWAYS_ON, ON_DEMAND]
+    Default: ON_DEMAND
+
+  DomainName:
+    Description: Optional custom Domain name to be created in Route53
+    Type: String
+    Default: ''
+
+  # Note: While adding additional CIDRs/Subnets ensure they don't overlap with those used by RStudio ALB (10.0.96.0 to 10.0.97.255)
 
 Metadata:
   AWS::CloudFormation::Interface:
@@ -61,14 +120,33 @@ Metadata:
           default: Deployment Configuration
         Parameters:
           - VpcCidr
-          - VpcPublicSubnet1Cidr
+          - PublicSubnetCidr
+          
+Conditions:
+  isAppStream: !Equals
+    - !Ref EnableAppStream
+    - true
+  isNotAppStream: !Not [Condition: isAppStream]
+  hasCustomDomain: !Not [!Equals [!Ref "DomainName", ""]]
+  isAppStreamAndCustomDomain: !And
+    - !Not [!Equals [!Ref "DomainName", ""]]
+    - !Condition isAppStream
 
 Resources:
+  Route53HostedZone:
+    Type: AWS::Route53::HostedZone
+    Condition: isAppStreamAndCustomDomain
+    Properties:
+      Name: !Ref DomainName
+      VPCs:
+        - VPCId: !Ref VPC
+          VPCRegion: !Ref "AWS::Region"
+
   # A role used for launching environments using AWS Service Catalog
   # This is the role that code (ApiHandlerLambda and WorkflowLoopRunnerLambda) in central account
   # assumes before performing any AWS Service Catalog interactions in this account (the on-boarded account)
   # for launching environments.
-  # Equivalent role for central account is created by "main/solution/backend/config/infra/cloudformation.yml"
+  # Equivalent role for central account is created by 'main/solution/backend/config/infra/cloudformation.yml'
   CrossAccountRoleEnvMgmt:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -103,8 +181,8 @@ Resources:
                 - ec2:DescribeImages
                 - ec2:DescribeInstances
                 - ec2:DescribeSecurityGroups
-                - ec2:RevokeSecurityGroupIngress
-                - ec2:AuthorizeSecurityGroupIngress
+                - ec2:RevokeSecurityGroup*
+                - ec2:AuthorizeSecurityGroup*
                 - ec2-instance-connect:SendSSHPublicKey
               Resource: '*'
         - PolicyName: cfn-access
@@ -113,9 +191,19 @@ Resources:
             Statement:
               - Effect: Allow
                 Action:
-                  - cloudformation:ListStackResources
                   - cloudformation:GetTemplate
-                Resource: '*'
+                Resource: 'arn:aws:cloudformation:*:*:stack/SC-*/*'
+        - PolicyName: appstream-access
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - appstream:ListAssociatedFleets
+                  - appStream:CreateStreamingURL
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:appstream:${AWS::Region}:${AWS::AccountId}:stack/*'
+                  - !Sub 'arn:${AWS::Partition}:appstream:${AWS::Region}:${AWS::AccountId}:fleet/*'
         - PolicyName: ssm-access
           PolicyDocument:
             Statement:
@@ -125,34 +213,45 @@ Resources:
                 - ssm:GetParameter
                 - ssm:GetParameters
                 - ssm:DeleteParameter
-              Resource: '*'
-        - PolicyName: cost-explorer-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - ce:*
-              Resource: '*'
+              Resource:
+                - !Sub 'arn:aws:ssm:*:${AWS::AccountId}:parameter/*/sc-environments/*'
         - PolicyName: s3-access
           PolicyDocument:
             Statement:
               Effect: Allow
               Action:
-                - s3:*
-              Resource: '*'
+                - s3:GetObject
+              Resource:
+                - 'arn:aws:s3:::cf-templates-*/*'
+        - PolicyName: s3-upload-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - s3:PutObject*
+              Resource:
+                - !Sub 'arn:aws:s3:::${Namespace}*/*'
+        - PolicyName: sts-assume-create-presign
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - sts:AssumeRole
+              Resource:
+                - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/*presigned-url-sagemaker-notebook-role'
         - PolicyName: sagemaker-access
           PolicyDocument:
             Statement:
               Effect: Allow
               Action:
-                - sagemaker:*
+                - sagemaker:CreatePresignedNotebookInstanceUrl
+                - sagemaker:ListNotebookInstances
               Resource: '*'
         - PolicyName: iam-role-access
           PolicyDocument:
             Statement:
               - Effect: Allow
                 Action:
-                  - iam:GetRole
                   - iam:CreateRole
                   - iam:TagRole
                   - iam:GetRolePolicy
@@ -165,19 +264,233 @@ Resources:
                   - iam:AttachRolePolicy
                   - iam:DetachRolePolicy
                 Resource:
-                  - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${LaunchConstraintRolePrefix}'
-              - Effect: Allow
-                Action:
-                  - iam:CreatePolicy
-                  - iam:GetPolicy
-                  - iam:GetPolicyVersion
-                  - iam:ListPolicyVersions
-                  - iam:DeletePolicy
-                  - iam:DeletePolicyVersion
-                Resource:
-                  - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/${LaunchConstraintPolicyPrefix}'
+                  - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${LaunchConstraintRolePrefix}LaunchConstraint'
+                  - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/*presigned-url-sagemaker-notebook-role'
+        - !If
+          - isAppStreamAndCustomDomain
+          - PolicyName: route53-access
+            PolicyDocument:
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - route53:ChangeResourceRecordSets
+                  Resource:
+                    - !Sub 'arn:aws:route53:::hostedzone/${Route53HostedZone}'
+          - !Ref 'AWS::NoValue'
+      PermissionsBoundary: !Ref CrossAccountEnvMgmtPermissionsBoundary
 
-  # TODO lock these permissions down further
+  CrossAccountEnvMgmtPermissionsBoundary:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Permission boundary for cross account EnvMgmt role
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - sts:AssumeRole
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/*presigned-url-sagemaker-notebook-role'
+          - Effect: Allow
+            Action:
+              - s3:*
+              - cloudformation:*
+              - sagemaker:*
+              - ec2:*
+              - ssm:*
+              - config:*
+              - servicecatalog:*
+              - ec2-instance-connect:*
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - iam:PassRole
+            Resource: '*'
+            Condition:
+              StringEquals:
+                iam:PassedToService: 'servicecatalog.amazonaws.com'
+          - Effect: Allow
+            Action:
+              - iam:CreateRole
+              - iam:TagRole
+              - iam:GetRolePolicy
+              - iam:PutRolePolicy
+              - iam:DeleteRolePolicy
+              - iam:ListRolePolicies
+              - iam:ListAttachedRolePolicies
+              - iam:UpdateAssumeRolePolicy
+              - iam:UpdateRoleDescription
+              - iam:AttachRolePolicy
+              - iam:DetachRolePolicy
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${LaunchConstraintRolePrefix}'
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/*presigned-url-sagemaker-notebook-role'
+          - Effect: Allow
+            Action:
+              - appstream:ListAssociatedFleets
+              - appStream:CreateStreamingURL
+            Resource:
+              - '*'
+          - Effect: Allow
+            Action:
+              - iam:CreatePolicy
+              - iam:GetPolicy
+              - iam:GetPolicyVersion
+              - iam:ListPolicyVersions
+              - iam:DeletePolicy
+              - iam:DeletePolicyVersion
+            Resource:
+              - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:policy/${LaunchConstraintPolicyPrefix}'
+          - Effect: Allow
+            Action:
+              - iam:GetGroup
+              - iam:GetRole
+              - iam:GetUser
+              - iam:ListGroups
+              - iam:ListRoles
+              - iam:ListUsers
+            Resource: '*' # These non-mutating IAM actions cover the permissions in managed policy AWSServiceCatalogAdminFullAccess
+          - !If
+            - isAppStreamAndCustomDomain
+            - Effect: Allow
+              Action:
+                - route53:ChangeResourceRecordSets
+              Resource:
+                - !Sub 'arn:aws:route53:::hostedzone/${Route53HostedZone}'
+            - !Ref 'AWS::NoValue'
+
+  PolicyCrossAccountExecution:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Allows main account to perform critical analytics on workspaces provisioned in member accounts
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - cloudformation:CreateStack
+              - cloudformation:DeleteStack
+              - cloudformation:DescribeStacks
+              - cloudformation:DescribeStackEvents
+            Resource: !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/SC-*'
+            Resource: !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/analysis-*' # ALB stack used this pattern
+          - Effect: Allow
+            Action:
+              - sagemaker:CreatePresignedNotebookInstanceUrl
+              - sagemaker:StartNotebookInstance
+              - sagemaker:StopNotebookInstance
+              - sagemaker:DescribeNotebookInstance
+            Resource: !Sub 'arn:aws:sagemaker:${AWS::Region}:${AWS::AccountId}:notebook-instance/basicnotebookinstance-*'
+          - Effect: Allow
+            Action:
+              - sagemaker:ListNotebookInstances
+            Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
+          - Effect: Allow
+            Action:
+              - iam:GetRole
+              - iam:TagRole
+              - iam:GetRolePolicy
+              - iam:DeleteRolePolicy
+              - iam:DeleteRole
+              - iam:PassRole
+              - iam:PutRolePolicy
+            Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/analysis-*'
+          - Effect: Allow
+            Action:
+              - ce:GetCostAndUsage
+            Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
+          - Effect: Allow
+            Action:
+              - budgets:ViewBudget
+              - budgets:ModifyBudget
+            Resource: !Sub 'arn:aws:budgets::${AWS::AccountId}:budget/service-workbench-system-generated*'
+          - Effect: Allow
+            Action:
+              - ec2:StartInstances
+              - ec2:StopInstances
+            Resource: !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:instance/*'
+          - Effect: Allow
+            Action:
+              - ec2:DescribeInstanceStatus
+              - ec2:DescribeInstances
+              - ec2:DescribeRouteTables
+              - ec2:AssociateRouteTable
+              - ec2:DisassociateRouteTable
+            Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
+          - Effect: Allow
+            Action:
+              - ec2:DescribeSubnets
+              - ec2:DescribeVpcs
+              - ec2:DescribeNetworkInterfaces
+              - ec2:DescribeSecurityGroups
+              - ec2:DescribeAvailabilityZones
+              - ec2:DescribeAccountAttributes
+              - ec2:CreateTags
+              - ec2:DeleteTags
+              - ec2:DescribeInternetGateways
+            Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
+          - Effect: Allow
+            Action:
+              - ssm:GetParameter
+            Resource:
+              - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/*'
+          - Effect: Allow
+            Action:
+              - ec2:CreateSubnet
+              - ec2:DeleteSubnet
+              - ec2:ModifySubnetAttribute
+              - ec2:AssociateSubnetCidrBlock
+              - ec2:DisassociateSubnetCidrBlock
+            Resource:
+              - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:vpc/*'
+              - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:subnet/*'
+          - Effect: Allow
+            Action:
+              - ec2:CreateSecurityGroup
+              - ec2:DeleteSecurityGroup
+              - ec2:AuthorizeSecurityGroup*
+              - ec2:RevokeSecurityGroup*
+            Resource:
+              - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:vpc/*'
+              - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:security-group/*'
+          - Effect: Allow
+            Action:
+              - elasticloadbalancing:DescribeLoadBalancers
+              - elasticloadbalancing:DescribeListeners
+              - elasticloadbalancing:DescribeRules
+              - elasticloadbalancing:AddTags
+              - elasticloadbalancing:RemoveTags
+            Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
+          - Effect: Allow
+            Action:
+              - elasticloadbalancing:CreateLoadBalancer
+              - elasticloadbalancing:DeleteLoadBalancer
+              - elasticloadbalancing:SetSecurityGroups
+              - elasticloadbalancing:SetSubnets
+            Resource:
+              - !Sub 'arn:aws:elasticloadbalancing:${AWS::Region}:${AWS::AccountId}:loadbalancer/app/analysis-*'
+          - Effect: Allow
+            Action:
+              - elasticloadbalancing:CreateListener
+              - elasticloadbalancing:DeleteListener
+              - elasticloadbalancing:AddListenerCertificates
+              - elasticloadbalancing:RemoveListenerCertificates
+            Resource:
+              - !Sub 'arn:aws:elasticloadbalancing:${AWS::Region}:${AWS::AccountId}:loadbalancer/app/analysis-*'
+              - !Sub 'arn:aws:elasticloadbalancing:${AWS::Region}:${AWS::AccountId}:listener/app/analysis-*'
+          - Effect: Allow
+            Action:
+              - elasticloadbalancing:CreateRule
+              - elasticloadbalancing:DeleteRule
+              - elasticloadbalancing:ModifyRule
+            Resource:
+              - !Sub 'arn:aws:elasticloadbalancing:${AWS::Region}:${AWS::AccountId}:listener/app/analysis-*'
+              - !Sub 'arn:aws:elasticloadbalancing:${AWS::Region}:${AWS::AccountId}:listener-rule/app/analysis-*'
+          - Effect: Allow
+            Action:
+              - iam:CreateServiceLinkedRole
+            Resource:
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/elasticloadbalancing.amazonaws.com/AWSServiceRoleForElasticLoadBalancing'
   CrossAccountExecutionRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -197,120 +510,84 @@ Resources:
             Condition:
               StringEquals:
                 sts:ExternalId: !Ref ExternalId
-      Policies:
-        - PolicyName: cfn-access
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action:
-                  - cloudformation:CreateStack
-                  - cloudformation:DeleteStack
-                  - cloudformation:DescribeStacks
-                  - cloudformation:DescribeStackEvents
-                Resource: '*'
-        - PolicyName: sagemaker-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - sagemaker:*
-              Resource: '*'
-        - PolicyName: iam-role-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - iam:GetRole
-                - iam:CreateRole
-                - iam:TagRole
-                - iam:GetRolePolicy
-                - iam:PutRolePolicy
-                - iam:DeleteRolePolicy
-                - iam:DeleteRole
-                - iam:PassRole
-              Resource:
-                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/analysis-*'
-        - PolicyName: iam-instance-profile-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - iam:AddRoleToInstanceProfile
-                - iam:CreateInstanceProfile
-                - iam:GetInstanceProfile
-                - iam:DeleteInstanceProfile
-                - iam:RemoveRoleFromInstanceProfile
-              Resource:
-                - !Sub 'arn:aws:iam::${AWS::AccountId}:instance-profile/analysis-*'
-        - PolicyName: iam-role-service-policy-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - iam:AttachRolePolicy
-                - iam:DetachRolePolicy
-              Resource:
-                - !Sub 'arn:aws:iam::${AWS::AccountId}:role/analysis-*'
-              Condition:
-                ArnLike:
-                  iam:PolicyARN: arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole
-        - PolicyName: iam-service-linked-role-create-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - iam:CreateServiceLinkedRole
-                - iam:PutRolePolicy
-              Resource: arn:aws:iam::*:role/aws-service-role/elasticmapreduce.amazonaws.com*/AWSServiceRoleForEMRCleanup*
-              Condition:
-                StringLike:
-                  iam:AWSServiceName:
-                    - elasticmapreduce.amazonaws.com
-                    - elasticmapreduce.amazonaws.com.cn
-        - PolicyName: cost-explorer-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - ce:*
-              Resource: '*'
-        - PolicyName: budget-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - budgets:ViewBudget
-                - budgets:ModifyBudget
-              Resource: '*'
-        - PolicyName: s3-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - s3:*
-              Resource: '*'
-        - PolicyName: ec2-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - ec2:*
-              Resource: '*'
-        - PolicyName: ssm-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - ssm:*
-              Resource: '*'
-        - PolicyName: emr-access
-          PolicyDocument:
-            Statement:
-              Effect: Allow
-              Action:
-                - elasticmapreduce:*
-              Resource: '*'
+      ManagedPolicyArns:
+        - !Ref PolicyCrossAccountExecution
+      PermissionsBoundary: !Ref PolicyCrossAccountExecution
+
+  CfnStatusRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Join ['-', [Ref: Namespace, 'cfn-status-role']]
+      Path: '/'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              AWS:
+                - !Join [':', ['arn:aws:iam:', Ref: CentralAccountId, 'root']]
+            Action:
+              - 'sts:AssumeRole'
+            Condition:
+              StringEquals:
+                sts:ExternalId: !Ref ExternalId
+      ManagedPolicyArns:
+        - !Ref PolicyCfnStatus
+      PermissionsBoundary: !Ref PolicyCfnStatus
+
+  PolicyCfnStatus:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Allows main account to onboard and check status of aws accounts
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - cloudformation:DescribeStacks
+              - cloudformation:GetTemplate
+            Resource: !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/initial-stack*'
+
+  # This role is used by `infrastructure-tests`
+  InfrastructureTestRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Join ['-', [Ref: Namespace, 'infrastructure-test-role']]
+      Path: '/'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              AWS:
+                - !Join [':', ['arn:aws:iam:', Ref: CentralAccountId, 'root']]
+            Action:
+              - 'sts:AssumeRole'
+            Condition:
+              StringEquals:
+                sts:ExternalId: !Ref ExternalId
+      ManagedPolicyArns:
+        - !Ref PolicyInfrastructureTest
+      PermissionsBoundary: !Ref PolicyInfrastructureTest
+
+  PolicyInfrastructureTest:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Allows infrastructure tests to access hosting acccount CFN resources
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - cloudformation:DescribeStacks
+              - cloudformation:DescribeStackResources
+            Resource: !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/initial-stack*'
+          - Effect: Allow
+            Action:
+              - ec2:DescribeSubnets
+              - ec2:DescribeSecurityGroups
+              - ec2:DescribeRouteTables
+            Resource: '*'
 
   # VPC for launching EMR clusters into
   # Just one AZ as we're aiming for transient low-cost clusters rather than HA
@@ -326,6 +603,7 @@ Resources:
 
   InternetGateway:
     Type: AWS::EC2::InternetGateway
+    Condition: isNotAppStream
     Properties:
       Tags:
         - Key: Name
@@ -333,16 +611,18 @@ Resources:
 
   InternetGatewayAttachment:
     Type: AWS::EC2::VPCGatewayAttachment
+    Condition: isNotAppStream
     Properties:
       InternetGatewayId: !Ref InternetGateway
       VpcId: !Ref VPC
 
   PublicSubnet1:
     Type: AWS::EC2::Subnet
+    Condition: isNotAppStream
     Properties:
       VpcId: !Ref VPC
       AvailabilityZone: !Select [0, !GetAZs ]
-      CidrBlock: !Ref VpcPublicSubnet1Cidr
+      CidrBlock: !Ref PublicSubnetCidr
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
@@ -350,6 +630,7 @@ Resources:
 
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
+    Condition: isNotAppStream
     Properties:
       VpcId: !Ref VPC
       Tags:
@@ -358,6 +639,7 @@ Resources:
 
   DefaultPublicRoute:
     Type: AWS::EC2::Route
+    Condition: isNotAppStream
     DependsOn: InternetGatewayAttachment
     Properties:
       RouteTableId: !Ref PublicRouteTable
@@ -366,6 +648,7 @@ Resources:
 
   PublicSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: isNotAppStream
     Properties:
       RouteTableId: !Ref PublicRouteTable
       SubnetId: !Ref PublicSubnet1
@@ -409,6 +692,321 @@ Resources:
       AliasName: !Join ['', ['alias/', Ref: Namespace, '-encryption-key']]
       TargetKeyId: !Ref EncryptionKey
 
+  #------------AppStream Resources Below-------
+  PrivateAppStreamSubnet:
+    Type: AWS::EC2::Subnet
+    Condition: isAppStream
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs '']
+      CidrBlock: !Ref AppStreamSubnetCidr
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: Private AppStream Subnet
+
+  PrivateWorkspaceSubnet:
+    Type: AWS::EC2::Subnet
+    Condition: isAppStream
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs '']
+      CidrBlock: !Ref WorkspaceSubnetCidr
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: Private Workspace Subnet
+  
+  
+
+  PrivateWorkspaceRouteTable:
+    Type: 'AWS::EC2::RouteTable'
+    Condition: isAppStream
+    Properties:
+      VpcId: !Ref VPC
+
+  WorkspaceSubnetAssociationRouteTable:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Condition: isAppStream
+    Properties:
+      SubnetId: !Ref PrivateWorkspaceSubnet
+      RouteTableId: !Ref PrivateWorkspaceRouteTable
+
+    # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-ec2-vpcendpoint.html
+  S3Endpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Condition: isAppStream
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal: '*'
+            Action:
+              - 's3:GetObject'
+              - 's3:GetObjectTagging'
+              - 's3:GetObjectTorrent'
+              - 's3:GetObjectVersion'
+              - 's3:GetObjectVersionTagging'
+              - 's3:GetObjectVersionTorrent'
+              - 's3:AbortMultipartUpload'
+              - 's3:ListMultipartUploadParts'
+              - 's3:PutObject'
+              - 's3:PutObjectAcl'
+              - 's3:PutObjectTagging'
+              - 's3:PutObjectVersionTagging'
+              - 's3:DeleteObject'
+              - 's3:DeleteObjectTagging'
+              - 's3:DeleteObjectVersion'
+              - 's3:DeleteObjectVersionTagging'
+              - 's3:ListBucket' # Required in get_bootstrap.sh when running `aws s3 sync`
+            Resource:
+              - '*'
+      RouteTableIds:
+        - !Ref PrivateWorkspaceRouteTable
+      VpcEndpointType: Gateway
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
+      VpcId: !Ref VPC
+
+  KMSEndpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Condition: isAppStream
+    Properties:
+      SubnetIds:
+        - !Ref PrivateWorkspaceSubnet
+      PrivateDnsEnabled: true
+      VpcEndpointType: Interface
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.kms'
+      VpcId: !Ref VPC
+      SecurityGroupIds:
+        - !Ref InterfaceEndpointSecurityGroup
+
+  STSEndpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Condition: isAppStream
+    Properties:
+      SubnetIds:
+        - !Ref PrivateWorkspaceSubnet
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.sts'
+      VpcId: !Ref VPC
+      SecurityGroupIds:
+        - !Ref InterfaceEndpointSecurityGroup
+
+  EC2Endpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Condition: isAppStream
+    Properties:
+      SubnetIds:
+        - !Ref PrivateWorkspaceSubnet
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ec2'
+      VpcId: !Ref VPC
+      SecurityGroupIds:
+        - !Ref InterfaceEndpointSecurityGroup
+
+  CfnEndpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Condition: isAppStream
+    Properties:
+      SubnetIds:
+        - !Ref PrivateWorkspaceSubnet
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.cloudformation'
+      VpcId: !Ref VPC
+      SecurityGroupIds:
+        - !Ref InterfaceEndpointSecurityGroup
+
+  WorkspaceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: isAppStream
+    Properties:
+      GroupDescription: 'Security Group for AppStream instances to connect with environments, and for environments to connect with interface endpoints'
+      GroupName: 'Workspace-SG'
+      VpcId: !Ref VPC
+
+  WorkspaceSecurityGroupIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: isAppStream
+    Properties:
+      GroupId: !Ref WorkspaceSecurityGroup
+      SourceSecurityGroupId: !Ref AppStreamSecurityGroup
+      Description: 'Allow AppStream ingress from environments'
+      IpProtocol: '-1'
+
+  WorkspaceSecurityGroupEgress:
+    Type: AWS::EC2::SecurityGroupEgress
+    Condition: isAppStream
+    Properties:
+      GroupId: !Ref WorkspaceSecurityGroup
+      DestinationSecurityGroupId: !Ref InterfaceEndpointSecurityGroup
+      Description: 'Allow Interface Endpoint egress from environments'
+      IpProtocol: '-1'
+
+  InterfaceEndpointSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: isAppStream
+    Properties:
+      GroupDescription: 'Security Group for interface endpoints'
+      GroupName: 'Interface-Endpoint-SG'
+      VpcId: !Ref VPC
+
+  InterfaceEndpointSecurityGroupIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: isAppStream
+    Properties:
+      GroupId: !Ref InterfaceEndpointSecurityGroup
+      SourceSecurityGroupId: !Ref WorkspaceSecurityGroup
+      Description: 'Allow environment ingress from interface endpoints'
+      IpProtocol: '-1'
+
+  SSMEndpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Condition: isAppStreamAndCustomDomain
+    Properties:
+      SubnetIds:
+        - !Ref PrivateWorkspaceSubnet
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.ssm'
+      VpcId: !Ref VPC
+      SecurityGroupIds:
+        - !Ref InterfaceEndpointSecurityGroup
+
+    # https://docs.aws.amazon.com/sagemaker/latest/dg/notebook-interface-endpoint.html
+  SagemakerNotebookEndpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Condition: isAppStream
+    Properties:
+      SubnetIds:
+        - !Ref PrivateAppStreamSubnet
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      ServiceName: !Sub 'aws.sagemaker.${AWS::Region}.notebook'
+      SecurityGroupIds:
+        - !Ref SageMakerSecurityGroup
+      VpcId: !Ref VPC
+
+  SagemakerApiEndpoint:
+    Type: 'AWS::EC2::VPCEndpoint'
+    Condition: isAppStream
+    Properties:
+      SubnetIds:
+        - !Ref PrivateWorkspaceSubnet
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      ServiceName: !Sub "com.amazonaws.${AWS::Region}.sagemaker.api"
+      VpcId: !Ref VPC
+      SecurityGroupIds:
+        - !Ref SagemakerApiEndpointSecurityGroup
+
+  SagemakerApiEndpointSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: isAppStream
+    Properties:
+      GroupDescription: 'Sagemaker Api Endpoint Security Group for interface endpoint'
+      GroupName: 'Sagemaker-API-SG'
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !Ref WorkspaceSecurityGroup
+          IpProtocol: '-1'
+
+  SageMakerSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: isAppStream
+    Properties:
+      GroupDescription: 'SWB SageMaker Security Group for interface endpoint'
+      GroupName: 'SageMakerSG'
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - SourceSecurityGroupId: !Ref AppStreamSecurityGroup
+          IpProtocol: '-1'
+
+  AppStreamSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: isAppStream
+    Properties:
+      GroupDescription: 'SWB AppStream Security Group'
+      GroupName: 'AppStreamSG'
+      VpcId: !Ref VPC
+      SecurityGroupEgress:
+        - CidrIp: 127.0.0.1/32
+          IpProtocol: '-1'
+        - DestinationSecurityGroupId: !Ref WorkspaceSecurityGroup
+          IpProtocol: '-1'
+  
+  AppStreamSecurityGroupEgress:
+    Type: AWS::EC2::SecurityGroupEgress
+    Condition: isAppStream
+    Properties:
+      GroupId: !Ref AppStreamSecurityGroup
+      DestinationSecurityGroupId: !Ref SageMakerSecurityGroup
+      Description: 'Allow SageMaker egress from AppStream instances'
+      IpProtocol: '-1'
+
+  SageMakerSecurityGroupIngress:
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: isAppStream
+    Properties:
+      GroupId: !Ref SageMakerSecurityGroup
+      SourceSecurityGroupId: !Ref AppStreamSecurityGroup
+      Description: 'Allow AppStream ingress from interface endpoint of SageMaker'
+      IpProtocol: '-1'
+
+  AppStreamFleet:
+    Type: 'AWS::AppStream::Fleet'
+    Condition: isAppStream
+    Properties:
+      ComputeCapacity:
+        DesiredInstances: !Ref AppStreamFleetDesiredInstances
+      Description: 'SWB AppStream Fleet'
+      DisconnectTimeoutInSeconds: !Ref AppStreamDisconnectTimeoutSeconds
+      DisplayName: 'SWB Fleet'
+      EnableDefaultInternetAccess: False
+      FleetType: !Ref AppStreamFleetType
+      IdleDisconnectTimeoutInSeconds: !Ref AppStreamIdleDisconnectTimeoutSeconds
+      ImageArn: !Sub 'arn:aws:appstream:${AWS::Region}:${CentralAccountId}:image/${AppStreamImageName}'
+      InstanceType: !Ref AppStreamInstanceType
+      MaxUserDurationInSeconds: !Ref AppStreamMaxUserDurationSeconds
+      Name: !Sub ${Namespace}-ServiceWorkbenchFleet
+      StreamView: 'APP'
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref AppStreamSecurityGroup
+        SubnetIds:
+          - !Ref PrivateAppStreamSubnet
+
+  AppStreamStack:
+    Type: 'AWS::AppStream::Stack'
+    Condition: isAppStream
+    Properties:
+      ApplicationSettings:
+        Enabled: False
+      Description: 'SWB AppStream Stack'
+      DisplayName: 'SWB Stack'
+      Name: !Sub ${Namespace}-ServiceWorkbenchStack
+      UserSettings:
+        - Action: 'CLIPBOARD_COPY_FROM_LOCAL_DEVICE'
+          Permission: 'ENABLED'
+        - Action: 'CLIPBOARD_COPY_TO_LOCAL_DEVICE'
+          Permission: 'DISABLED'
+        - Action: 'FILE_DOWNLOAD'
+          Permission: 'DISABLED'
+        - Action: 'FILE_UPLOAD'
+          Permission: 'DISABLED'
+        - Action: 'PRINTING_TO_LOCAL_DEVICE'
+          Permission: 'DISABLED'
+
+  AppStreamStackFleetAssociation:
+    Type: AWS::AppStream::StackFleetAssociation
+    Condition: isAppStream
+    Properties:
+      FleetName: !Ref AppStreamFleet
+      StackName: !Ref AppStreamStack
+
 Outputs:
   CrossAccountEnvMgmtRoleArn:
     Description: The arn of the cross account role for environment management using AWS Service Catalog
@@ -424,8 +1022,89 @@ Outputs:
 
   VpcPublicSubnet1:
     Description: A reference to the public subnet in the 1st Availability Zone
+    Condition: isNotAppStream
     Value: !Ref PublicSubnet1
 
   EncryptionKeyArn:
     Description: KMS Encryption Key Arn
     Value: !GetAtt [EncryptionKey, Arn]
+
+  OnboardStatusRoleArn:
+    Description: The arn of the role SWB uses to check permissions status
+    Value: !GetAtt [CfnStatusRole, Arn]
+
+  PublicRouteTableId:
+    Condition: isNotAppStream
+    Description: The public route table assigned to the workspace VPC
+    Value: !Ref PublicRouteTable
+
+  #------------AppStream Output Below-------
+  PrivateAppStreamSubnet:
+    Description: AppStream subnet
+    Condition: isAppStream
+    Value: !Ref PrivateAppStreamSubnet
+
+  PrivateWorkspaceSubnet:
+    Description: Workspace subnet
+    Condition: isAppStream
+    Value: !Ref PrivateWorkspaceSubnet
+  
+  AppStreamSecurityGroup:
+    Description: AppStream Security Group
+    Condition: isAppStream
+    Value: !Ref AppStreamSecurityGroup
+    Export:
+      Name: !Join ['', [Ref: Namespace, '-SwbAppStreamSG']]
+
+  SageMakerSecurityGroup:
+    Description: SageMaker Security Group
+    Condition: isAppStream
+    Value: !Ref SageMakerSecurityGroup
+  
+  AppStreamFleet:
+    Description: AppStream Fleet
+    Condition: isAppStream
+    Value: !Ref AppStreamFleet
+
+  AppStreamStack:
+    Description: AppStream Stack
+    Condition: isAppStream
+    Value: !Ref AppStreamStack
+
+  InterfaceEndpointSG:
+    Description: Security group of Interface endpoints
+    Condition: isAppStream
+    Value: !Ref InterfaceEndpointSecurityGroup
+    Export:
+      Name: !Join ['', [Ref: Namespace, '-InterfaceEndpointSG']]
+
+  WorkspaceSG:
+    Description: Security Group for AppStream instances to connect with environments, and for environments to connect with interface endpoints
+    Condition: isAppStream
+    Value: !Ref WorkspaceSecurityGroup
+    Export:
+      Name: !Join ['', [Ref: Namespace, '-WorkspaceSG']]
+
+  AppStreamStackName:
+    Description: Name of the stack created by AppStream
+    Condition: isAppStream
+    Value: !Sub ${Namespace}-ServiceWorkbenchStack
+
+  SageMakerVPCE:
+    Description: SageMaker interface endpoint
+    Condition: isAppStream
+    Value: !Ref SagemakerNotebookEndpoint
+    Export:
+      Name: !Join ['', [Ref: Namespace, '-SageMakerVPCE']]
+
+  SageMakerApiSG:
+    Description: SageMaker API SG
+    Condition: isAppStream
+    Value: !Ref SagemakerApiEndpointSecurityGroup
+    Export:
+      Name: !Join ['', [Ref: Namespace, '-SageMakerApiSecurityGroup']]
+
+  Route53HostedZone:
+    Description: Route53 hosted zone
+    Condition: isAppStreamAndCustomDomain
+    Value: !Ref Route53HostedZone

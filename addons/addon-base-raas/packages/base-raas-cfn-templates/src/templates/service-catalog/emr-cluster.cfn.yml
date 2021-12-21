@@ -33,6 +33,15 @@ Parameters:
   KeyName:
     Description: SSH key pair to use for EMR node login
     Type: AWS::EC2::KeyPair::KeyName
+  SolutionNamespace:
+    Type: String
+    Description: The namespace value provided when onboarding the Member account
+    Default: ''
+  IsAppStreamEnabled:
+    Type: String
+    AllowedValues: [true, false]
+    Description: Is AppStream enabled for this workspace
+    Default: 'false'
   VPC:
     Description: VPC for EMR nodes.
     Type: AWS::EC2::VPC::Id
@@ -87,10 +96,14 @@ Parameters:
   EncryptionKeyArn:
     Type: String
     Description: The ARN of the KMS encryption Key used to encrypt data in the cluster
+  EgressStoreIamPolicyDocument:
+    Type: String
+    Description: The IAM policy for launched workstation to access egress store
 
 Conditions:
   IamPolicyEmpty: !Equals [!Ref IamPolicyDocument, '{}']
   IsOnDemandCondition: !Equals [!Ref Market, ON_DEMAND]
+  EgressStoreIamPolicyEmpty: !Equals [!Ref EgressStoreIamPolicyDocument, '{}']
 
 Resources:
   # TODO: Use one bucket for EMR logs per account, so shift deployment to account on-boarding and pass here as param
@@ -103,6 +116,30 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+
+  LogBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref LogBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: Deny requests that do not use TLS/HTTPS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource:
+              - !Join ['/', [!GetAtt LogBucket.Arn, '*']]
+              - !GetAtt LogBucket.Arn
+            Condition:
+              Bool:
+                aws:SecureTransport: false
 
   MasterSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -124,6 +161,27 @@ Resources:
         - Ref: Ec2Role
     Type: AWS::IAM::InstanceProfile
 
+  InstanceRolePermissionBoundary:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Permission boundary for EC2 instance role
+      ManagedPolicyName: !Join ['-', [Ref: Namespace, 'emr-permission-boundary']]
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 's3:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'kms:*'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'sts:AssumeRole'
+            Resource: 'arn:aws:iam::*:role/swb-*'
+
   Ec2Role:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -144,6 +202,11 @@ Resources:
           - !Ref 'AWS::NoValue'
           - PolicyName: !Join ['-', [Ref: Namespace, 's3-studydata-policy']]
             PolicyDocument: !Ref IamPolicyDocument
+        - !If
+          - EgressStoreIamPolicyEmpty
+          - !Ref 'AWS::NoValue'
+          - PolicyName: !Join ['-', [Ref: Namespace, 's3-egressstore-policy']]
+            PolicyDocument: !Ref EgressStoreIamPolicyDocument
         - PolicyName: !Join ['-', [Ref: Namespace, 's3-bootstrap-script-policy']]
           PolicyDocument:
             Version: '2012-10-17'
@@ -151,7 +214,7 @@ Resources:
               - Effect: 'Allow'
                 Action: 's3:GetObject'
                 Resource:
-                  - 'arn:aws:s3:::us-east-1.elasticmapreduce/bootstrap-actions/run-if'
+                  - !Sub 'arn:aws:s3:::${AWS::Region}.elasticmapreduce/bootstrap-actions/run-if'
                   - !Sub
                     - 'arn:aws:s3:::${S3Location}/*'
                     # Remove "s3://" prefix from EnvironmentInstanceFiles
@@ -166,6 +229,7 @@ Resources:
                     s3:prefix: !Sub
                       - '${S3Prefix}/*'
                       - S3Prefix: !Select [3, !Split ['/', !Ref EnvironmentInstanceFiles]]
+      PermissionsBoundary: !Ref InstanceRolePermissionBoundary
 
   ServiceRole:
     Type: AWS::IAM::Role
@@ -182,6 +246,7 @@ Resources:
         Version: '2012-10-17'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole
+      PermissionsBoundary: arn:aws:iam::aws:policy/service-role/AmazonElasticMapReduceRole
 
   EmrSecurityConfiguration:
     Type: AWS::EMR::SecurityConfiguration
@@ -218,7 +283,7 @@ Resources:
       BootstrapActions:
         - Name: Run-Python-Jupyter
           ScriptBootstrapAction:
-            Path: s3://us-east-1.elasticmapreduce/bootstrap-actions/run-if
+            Path: !Sub 's3://${AWS::Region}.elasticmapreduce/bootstrap-actions/run-if'
             Args:
               - 'instance.isMaster=true'
               - '/opt/hail-on-AWS-spot-instances/src/jupyter_run.sh'
@@ -239,11 +304,13 @@ Resources:
             yarn.nodemanager.vmem-check-enabled: false
         - Classification: spark-defaults
           ConfigurationProperties:
-            spark.hadoop.io.compression.codecs: 'org.apache.hadoop.io.compress.DefaultCodec,is.hail.io.compress.BGzipCodec,org.apache.hadoop.io.compress.GzipCodec'
+            spark.hadoop.io.compression.codecs: 'org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.GzipCodec'
             spark.serializer: 'org.apache.spark.serializer.KryoSerializer'
-            spark.hadoop.parquet.block.size: '1099511627776'
-            spark.sql.files.maxPartitionBytes: '1099511627776'
-            spark.sql.files.openCostInBytes: '1099511627776'
+            # Defaults picked from spark conf
+            # https://github.com/apache/spark/blob/878527d9fae8945d087ec871bb0a5f49b6341939/sql/catalyst/src/main/scala/org/apache/spark/sql/internal/SQLConf.scala#L1322-L1339
+            spark.hadoop.parquet.block.size: '134217728' # 128MB
+            spark.sql.files.maxPartitionBytes: '134217728' # 128 MB
+            spark.sql.files.openCostInBytes: '4194304' # 4 MB
           Configurations: []
       Instances:
         AdditionalMasterSecurityGroups:

@@ -37,11 +37,11 @@ function getAwsAccountBudget(accountUUID) {
 }
 
 function createAwsAccountBudget(budgetConfiguration) {
-  return httpApiPut(`api/budgets/aws-account`, { data: budgetConfiguration });
+  return httpApiPost(`api/budgets/aws-account`, { data: budgetConfiguration });
 }
 
 function updateAwsAccountBudget(budgetConfiguration) {
-  return httpApiPost(`api/budgets/aws-account`, { data: budgetConfiguration });
+  return httpApiPut(`api/budgets/aws-account`, { data: budgetConfiguration });
 }
 
 function addUsers(users) {
@@ -54,6 +54,23 @@ function addAwsAccount(awsAccount) {
 
 function createAwsAccount(awsAccount) {
   return httpApiPost('api/aws-accounts/provision', { data: awsAccount });
+}
+
+// Note the accountUUID used here is the 'id' column in dbAwsAccounts table and 'id' attribute in AwsAccount.js, not AWS account id
+function updateAwsAccount(accountUUID, data) {
+  return httpApiPut(`api/aws-accounts/${accountUUID}`, { data });
+}
+
+function getAccountsPermissionsStatus(accountUUID) {
+  return httpApiGet(`api/aws-accounts/${accountUUID}/permissions`);
+}
+
+function getAllAccountsPermissionStatus() {
+  return httpApiGet(`api/aws-accounts/permissions`);
+}
+
+function getAccountOnboardCfnTemplate(accountUUID) {
+  return httpApiGet(`api/aws-accounts/${accountUUID}/get-template`);
 }
 
 function addIndex(index) {
@@ -288,7 +305,69 @@ function getWindowsRpInfo(envId, connectionId) {
   return httpApiGet(`api/workspaces/service-catalog/${envId}/connections/${connectionId}/windows-rdp-info`);
 }
 
-// API Functions Insertion Point (do not change this text, it is being used by hygen cli)
+function getDataSourceAccounts() {
+  return httpApiGet(`api/data-sources/accounts/`);
+}
+
+function getDataSourceStudies(accountId) {
+  return httpApiGet(`api/data-sources/accounts/${accountId}/studies`);
+}
+
+function checkAccountReachability(accountId) {
+  return httpApiPost('api/data-sources/accounts/ops/reachability', {
+    data: { id: accountId, type: 'dsAccount' },
+  });
+}
+
+function checkStudyReachability(studyId) {
+  return httpApiPost('api/data-sources/accounts/ops/reachability', {
+    data: { id: studyId, type: 'study' },
+  });
+}
+
+function registerAccount(account) {
+  return httpApiPost('api/data-sources/accounts', {
+    data: account,
+  });
+}
+
+function registerBucket(accountId, bucket) {
+  return httpApiPost(`api/data-sources/accounts/${accountId}/buckets`, {
+    data: bucket,
+  });
+}
+
+function registerStudy(accountId, bucketName, study) {
+  return httpApiPost(`api/data-sources/accounts/${accountId}/buckets/${bucketName}/studies`, {
+    data: study,
+  });
+}
+
+function generateAccountCfnTemplate(accountId) {
+  return httpApiPost(`api/data-sources/accounts/${accountId}/cfn`, {
+    data: {},
+  });
+}
+
+function updateRegisteredAccount(accountId, data) {
+  return httpApiPut(`api/data-sources/accounts/${accountId}`, {
+    data,
+  });
+}
+
+function deleteEgressStore(id) {
+  return httpApiDelete(`api/data-egress/${id}`);
+}
+
+function egressNotifySns(id) {
+  return httpApiPost(`api/data-egress/notify`, {
+    data: { id },
+  });
+}
+
+function getEgressStore(id) {
+  return httpApiGet(`api/data-egress/${id}`);
+}
 
 export {
   addIndex,
@@ -310,6 +389,10 @@ export {
   updateStudyPermissions,
   addAwsAccount,
   createAwsAccount,
+  updateAwsAccount,
+  getAccountsPermissionsStatus,
+  getAllAccountsPermissionStatus,
+  getAccountOnboardCfnTemplate,
   getStepTemplates,
   getEnvironments,
   getEnvironment,
@@ -351,4 +434,16 @@ export {
   updateScEnvironmentCidrs,
   sendSshKey,
   getWindowsRpInfo,
+  getDataSourceAccounts,
+  getDataSourceStudies,
+  checkStudyReachability,
+  checkAccountReachability,
+  registerAccount,
+  registerBucket,
+  registerStudy,
+  generateAccountCfnTemplate,
+  updateRegisteredAccount,
+  deleteEgressStore,
+  egressNotifySns,
+  getEgressStore,
 };

@@ -35,11 +35,6 @@ const productsToCreate = [
   // },
   // DO NOT DELETE ANY ITEMS IN THIS LIST (else, you'll lose auto-create/update functionality for them)
   {
-    filename: 'ec2-rstudio-instance',
-    displayName: 'EC2 RStudio',
-    description: `* An EC2 RStudio instance with HTTPS access`,
-  },
-  {
     filename: 'ec2-linux-instance',
     displayName: 'EC2 Linux',
     description: `* An EC2 Linux instance with SSH access \n* Secure compute in the cloud`,

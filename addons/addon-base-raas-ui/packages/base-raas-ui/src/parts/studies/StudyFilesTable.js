@@ -19,7 +19,7 @@ import { observer } from 'mobx-react';
 import { Table, Segment, Header, Icon } from 'semantic-ui-react';
 
 import { formatBytes, swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import { isStoreError, isStoreLoading, isStoreEmpty } from '@aws-ee/base-ui/dist/models/BaseStore';
+import { isStoreError, isStoreLoading, isStoreEmpty, stopHeartbeat } from '@aws-ee/base-ui/dist/models/BaseStore';
 import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
 
@@ -39,7 +39,7 @@ class StudyFilesTable extends React.Component {
   }
 
   componentWillUnmount() {
-    this.filesStore.stopHeartbeat();
+    stopHeartbeat(this.filesStore);
   }
 
   render() {

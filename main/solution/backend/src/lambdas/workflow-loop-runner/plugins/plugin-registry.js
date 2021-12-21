@@ -28,6 +28,10 @@ const keyPairServicesPlugin = require('@aws-ee/key-pair-mgmt-services/lib/plugin
 const environmentScWfStepsPlugin = require('@aws-ee/environment-sc-workflow-steps/lib/plugins/workflow-steps-plugin');
 const environmentScWfPlugin = require('@aws-ee/environment-sc-workflows/lib/plugins/workflows-plugin');
 const bassRaasEnvTypeVarsPlugin = require('@aws-ee/base-raas-services/lib/plugins/env-provisioning-plugin');
+const rolesOnlyStrategyPlugin = require('@aws-ee/base-raas-services/lib/plugins/roles-only-strategy-plugin');
+const legacyStrategyPlugin = require('@aws-ee/base-raas-services/lib/plugins/legacy-strategy-plugin');
+const baseRaasAppstreamServicesPlugin = require('@aws-ee/base-raas-appstream-rest-api/lib/plugins/services-plugin');
+const baseRaasAppstreamEnvTypeVarsPlugin = require('@aws-ee/base-raas-appstream-services/lib/plugins/env-sc-provisioning-plugin');
 
 const servicesPlugin = require('services/lib/plugins/services-plugin');
 
@@ -36,6 +40,7 @@ const extensionPoints = {
     baseServicesPlugin,
     baseWfServicesPlugin,
     baseRaasServicesPlugin,
+    baseRaasAppstreamServicesPlugin,
     environmentTypeServicesPlugin,
     keyPairServicesPlugin,
     servicesPlugin,
@@ -46,7 +51,7 @@ const extensionPoints = {
   'workflows': [baseRaasWorkflowsPlugin, environmentScWfPlugin],
   'workflow-assignments': [],
   'cfn-templates': [baseRaasCfnTemplatesPlugin],
-  'env-provisioning': [bassRaasEnvTypeVarsPlugin], // Plugins to participate in resolving list of "Environment Type Configuration Variables". See "addons/addon-environment-sc-api/README.md" to understand what "Environment Type Configuration Variables" are
+  'env-provisioning': [bassRaasEnvTypeVarsPlugin, baseRaasAppstreamEnvTypeVarsPlugin], // Plugins to participate in resolving list of "Environment Type Configuration Variables". See "addons/addon-environment-sc-api/README.md" to understand what "Environment Type Configuration Variables" are
 
   // --- Authorization Plugins ---/
 
@@ -60,6 +65,7 @@ const extensionPoints = {
   'cost-authz': [], // No plugins at this point. All cost authz is happening inline in 'costs-service'
 
   'schema': [baseRaasSchemaPlugin],
+  'study-access-strategy': [legacyStrategyPlugin, rolesOnlyStrategyPlugin],
 };
 
 async function getPlugins(extensionPoint) {

@@ -16,6 +16,15 @@
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
+const { isAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
+
+const { StudyPolicy } = require('../../helpers/iam/study-policy');
+
+const settingKeys = {
+  enableEgressStore: 'enableEgressStore',
+  environmentInstanceFiles: 'environmentInstanceFiles',
+  isAppStreamEnabled: 'isAppStreamEnabled',
+};
 
 /**
  * Creation of Environment Type Configuration requires specifying mapping between AWS CloudFormation Input Parameters
@@ -30,6 +39,7 @@ class EnvironmentConfigVarsService extends Service {
   constructor() {
     super();
     this.dependency([
+      'aws',
       'userService',
       'environmentScService',
       'environmentScKeypairService',
@@ -37,8 +47,20 @@ class EnvironmentConfigVarsService extends Service {
       'awsAccountsService',
       'environmentAmiService',
       'envTypeConfigService',
-      'environmentMountService',
+      'studyService',
+      'pluginRegistryService',
+      'auditWriterService',
+      'dataEgressService',
     ]);
+  }
+
+  async audit(requestContext, auditEvent) {
+    const auditWriterService = await this.service('auditWriterService');
+    // Calling "writeAndForget" instead of "write" to allow main call to continue without waiting for audit logging
+    // and not fail main call if audit writing fails for some reason
+    // If the main call also needs to fail in case writing to any audit destination fails then switch to "write" method as follows
+    // return auditWriterService.write(requestContext, auditEvent);
+    return auditWriterService.writeAndForget(requestContext, auditEvent);
   }
 
   // eslint-disable-next-line no-unused-vars
@@ -105,8 +127,12 @@ class EnvironmentConfigVarsService extends Service {
         desc:
           'A JSON array of objects with name, bucket and prefix properties used to mount data from S3 based on the associated studies',
       },
-      { name: 's3Prefixes', desc: 'A JSON array of S3 prefixes based on the associated studies' },
+      // { name: 's3Prefixes', desc: 'A JSON array of S3 prefixes based on the associated studies' },
       { name: 'iamPolicyDocument', desc: 'The IAM policy to be associated with the launched environment workstation' },
+      {
+        name: 'egressStoreIamPolicyDocument',
+        desc: 'The IAM policy for launched workstation to access egress store',
+      },
       {
         name: 'environmentInstanceFiles',
         desc:
@@ -126,6 +152,14 @@ class EnvironmentConfigVarsService extends Service {
         desc:
           'Namespace of the username launching the environment. The userNamespace is derived based on the identity provider which authenticated the user',
       },
+      {
+        name: 'isAppStreamEnabled',
+        desc: 'Is AppStream enabled for this workspace',
+      },
+      {
+        name: 'solutionNamespace',
+        desc: 'The namespace value provided when onboarding the Member account',
+      },
     ];
   }
 
@@ -138,7 +172,6 @@ class EnvironmentConfigVarsService extends Service {
       awsAccountsService,
       environmentAmiService,
       envTypeConfigService,
-      environmentMountService,
     ] = await this.service([
       'userService',
       'environmentScService',
@@ -147,7 +180,6 @@ class EnvironmentConfigVarsService extends Service {
       'awsAccountsService',
       'environmentAmiService',
       'envTypeConfigService',
-      'environmentMountService',
     ]);
     const environment = await environmentScService.mustFind(requestContext, { id: envId });
 
@@ -192,21 +224,38 @@ class EnvironmentConfigVarsService extends Service {
       });
     }
 
-    const {
-      s3Mounts,
-      iamPolicyDocument,
-      environmentInstanceFiles,
-      s3Prefixes,
-    } = await environmentMountService.getStudyAccessInfo(requestContext, studyIds, environment.createdAt);
+    const studies = await environmentScService.getStudies(requestContext, environment);
+
+    const iamPolicyDocument = await this.getEnvRolePolicy(requestContext, {
+      environment,
+      studies,
+      accountId,
+    });
+
+    const s3Mounts = await this.getS3Mounts(requestContext, {
+      environment,
+      studies,
+      accountId,
+    });
+
+    let egressStoreIamPolicyDocument = {};
+    const enableEgressStore = this.settings.getBoolean(settingKeys.enableEgressStore);
+    if (enableEgressStore) {
+      const egressStoreMount = await this.getEgressStoreMount(requestContext, environment);
+      s3Mounts.push(egressStoreMount);
+      egressStoreIamPolicyDocument = await this.getEnvEgressStorePolicy(requestContext, {
+        environmentId: envId,
+      });
+    }
 
     // TODO: If the ami sharing gets moved (because it doesn't contribute to an env var)
     // then move the update local resource policies too.
     // Using the account root provides basically the same level of security because in either
     // case we have to trust that the member account hasn't altered the role's assume role policy to allow other
     // principals assume it
-    if (s3Prefixes.length > 0) {
-      await environmentMountService.addRoleArnToLocalResourcePolicies(`arn:aws:iam::${accountId}:root`, s3Prefixes);
-    }
+    // if (s3Prefixes.length > 0) {
+    //   await environmentMountService.addRoleArnToLocalResourcePolicies(`arn:aws:iam::${accountId}:root`, s3Prefixes);
+    // }
 
     // Check if the environment being launched needs an admin key-pair to be created in the target account
     // If the configuration being used has any parameter that uses the "adminKeyPairName" variable then it means
@@ -223,7 +272,10 @@ class EnvironmentConfigVarsService extends Service {
 
     const by = _.get(requestContext, 'principalIdentifier.uid');
     const user = await userService.mustFindUser({ uid: by });
-    return {
+
+    // This value is a string
+    const isAppStreamEnabled = this.settings.get(settingKeys.isAppStreamEnabled);
+    const result = {
       envId,
       envTypeId,
       envTypeConfigId,
@@ -240,17 +292,86 @@ class EnvironmentConfigVarsService extends Service {
       xAccEnvMgmtRoleArn,
       externalId,
 
-      s3Mounts,
-      iamPolicyDocument,
-      environmentInstanceFiles,
-      s3Prefixes,
-
+      s3Mounts: JSON.stringify(s3Mounts),
+      iamPolicyDocument: JSON.stringify(iamPolicyDocument),
+      environmentInstanceFiles: this.settings.get(settingKeys.environmentInstanceFiles),
+      isAppStreamEnabled,
+      solutionNamespace:
+        isAppStreamEnabled === 'true' ? await this.getSolutionNamespace(requestContext, awsAccountId) : '',
+      // s3Prefixes // This variable is no longer relevant it is being removed, the assumption is that
+      // this variable has not been used in any of the product templates.
       uid: user.uid,
       username: user.username,
       userNamespace: user.ns,
 
       adminKeyPairName,
     };
+
+    result.egressStoreIamPolicyDocument = JSON.stringify(egressStoreIamPolicyDocument);
+
+    return result;
+  }
+
+  async getSolutionNamespace(requestContext, awsAccountId) {
+    const awsAccountsService = await this.service('awsAccountsService');
+    const { cfnStackId } = await awsAccountsService.mustFind(requestContext, { id: awsAccountId });
+    return cfnStackId.match(/\d{12}:stack\/(.+)\//)[1];
+  }
+
+  async getEnvRolePolicy(requestContext, { environment, studies, memberAccountId }) {
+    const policyDoc = new StudyPolicy();
+    const pluginRegistryService = await this.service('pluginRegistryService');
+
+    const result = await pluginRegistryService.visitPlugins('study-access-strategy', 'provideEnvRolePolicy', {
+      payload: {
+        requestContext,
+        container: this.container,
+        environmentScEntity: environment,
+        studies,
+        policyDoc,
+        memberAccountId,
+      },
+    });
+
+    const doc = _.get(result, 'policyDoc');
+    return _.isUndefined(doc) ? {} : doc.toPolicyDoc();
+  }
+
+  async getEnvEgressStorePolicy(requestContext, { environmentId }) {
+    const curUser = _.get(requestContext, 'principalIdentifier.uid');
+    const dataEgressService = await this.service('dataEgressService');
+    const egressStoreInfo = await dataEgressService.getEgressStoreInfo(environmentId);
+    const isEgressStoreOwner = egressStoreInfo.createdBy === curUser;
+    if (!isAdmin(requestContext) && !isEgressStoreOwner) {
+      throw this.boom.forbidden(
+        `You are not authorized to access the attached egress store. Please contact your administrator.`,
+        true,
+      );
+    }
+
+    // Create a policy with just the AssumeRole statement for the new role created in the main account
+    const policyDoc = new StudyPolicy();
+    policyDoc.roleArns = [egressStoreInfo.roleArn];
+
+    return policyDoc.toPolicyDoc();
+  }
+
+  async getS3Mounts(requestContext, { environment, studies, memberAccountId }) {
+    const s3Mounts = [];
+    const pluginRegistryService = await this.service('pluginRegistryService');
+
+    const result = await pluginRegistryService.visitPlugins('study-access-strategy', 'provideStudyMount', {
+      payload: {
+        requestContext,
+        container: this.container,
+        environmentScEntity: environment,
+        studies,
+        s3Mounts,
+        memberAccountId,
+      },
+    });
+
+    return _.get(result, 's3Mounts', []);
   }
 
   async getDefaultTags(requestContext, resolvedVars) {
@@ -293,6 +414,17 @@ class EnvironmentConfigVarsService extends Service {
     }
 
     return undefined;
+  }
+
+  async getEgressStoreMount(requestContext, environment) {
+    const enableEgressStore = this.settings.getBoolean(settingKeys.enableEgressStore);
+    if (!enableEgressStore) {
+      throw this.boom.forbidden('Unable to mount Egress store in workspace since this feature is disabled', true);
+    }
+
+    const dataEgressService = await this.service('dataEgressService');
+    const egressStoreMountsInfo = await dataEgressService.createEgressStore(requestContext, environment);
+    return egressStoreMountsInfo;
   }
 }
 module.exports = EnvironmentConfigVarsService;

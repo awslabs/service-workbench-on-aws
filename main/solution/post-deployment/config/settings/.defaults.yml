@@ -152,6 +152,9 @@ dbStudies: ${self:custom.settings.dbPrefix}-Studies
 # DynamoDB table global secondary index name for the "category" field
 dbStudiesCategoryIndex: CategoryIndex
 
+# DynamoDB table global secondary index name for the "accountId" field
+dbStudiesAccountIdIndex: AccountIdIndex
+
 # DynamoDB table name for Environments
 dbEnvironments: ${self:custom.settings.dbPrefix}-Environments
 
@@ -279,3 +282,10 @@ dbTableKeyPairs: ${self:custom.settings.dbPrefix}-DbKeyPairs
 # ================================ Env Settings ===========================================
 
 envMgmtRoleArn: ${cf:${self:custom.settings.backendStackName}.EnvMgmtRoleArn}
+
+# ================================ Data Egress Feature Settings ===========================================
+# NOTE: Following properties are ONLY allowed to change for the initial deployment. It's NOT recommended to change the following properties if you have enabled data egress feature.
+
+# The S3 bucket name to be used to store egress store data
+egressStoreBucketName: ${self:custom.settings.globalNamespace}-egress-store
+# =========================================================================================================

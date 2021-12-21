@@ -14,13 +14,20 @@
  */
 
 const _ = require('lodash');
+let fetch = require('node-fetch');
 const crypto = require('crypto');
+const NodeRSA = require('node-rsa');
 const querystring = require('querystring');
-const rstudioEncryptor = require('@aws-ee/base-services/lib/helpers/rstudio-encryptor');
 const Service = require('@aws-ee/base-services-container/lib/service');
+const { retry, linearInterval } = require('@aws-ee/base-services/lib/helpers/utils');
 const sshConnectionInfoSchema = require('../../schema/ssh-connection-info-sc');
 const { connectionScheme } = require('./environment-sc-connection-enum');
 const { cfnOutputsToConnections } = require('./helpers/connections-util');
+
+// Webpack messes with the fetch function import and it breaks in lambda.
+if (typeof fetch !== 'function' && fetch.default && typeof fetch.default === 'function') {
+  fetch = fetch.default;
+}
 
 class EnvironmentScConnectionService extends Service {
   constructor() {
@@ -34,6 +41,8 @@ class EnvironmentScConnectionService extends Service {
       'keyPairService',
       'auditWriterService',
       'pluginRegistryService',
+      'lockService',
+      'aws',
     ]);
   }
 
@@ -83,14 +92,20 @@ class EnvironmentScConnectionService extends Service {
       'pluginRegistryService',
     ]);
     // The following will succeed only if the user has permissions to access the specified environment
-    const env = await environmentScService.mustFind(requestContext, { id: envId });
+    const { outputs, projectId } = await environmentScService.mustFind(requestContext, { id: envId });
+
+    // Verify environment is linked to an AppStream project when application has AppStream enabled
+    await environmentScService.verifyAppStreamConfig(requestContext, projectId);
 
     // TODO: Handle case when connection is about an auto scaling group instead of specific instance
-    const result = await cfnOutputsToConnections(env.outputs);
+    const result = await cfnOutputsToConnections(outputs);
 
     // Give plugins chance to adjust the connection (such as connection url etc)
     const adjustedConnections = await Promise.all(
       _.map(result, async connection => {
+        // This is done so that plugins know it was called during list connections cycle
+        connection.operation = 'list';
+
         const pluginsResult = await pluginRegistryService.visitPlugins(
           'env-sc-connection-url',
           'createConnectionUrl',
@@ -142,6 +157,10 @@ class EnvironmentScConnectionService extends Service {
       return connection;
     }
 
+    // Verify environment is linked to an AppStream project when application has AppStream enabled
+    const { projectId } = await environmentScService.mustFind(requestContext, { id: envId });
+    await environmentScService.verifyAppStreamConfig(requestContext, projectId);
+
     if (_.toLower(_.get(connection, 'type', '')) === 'sagemaker') {
       const sagemaker = await environmentScService.getClientSdkWithEnvMgmtRole(
         requestContext,
@@ -157,10 +176,15 @@ class EnvironmentScConnectionService extends Service {
       connection.url = _.get(sageMakerResponse, 'AuthorizedUrl');
     }
 
-    if (_.toLower(_.get(connection, 'type', '')) === 'rstudio') {
+    if (
+      _.toLower(_.get(connection, 'type', '')) === 'rstudio' ||
+      _.toLower(_.get(connection, 'type', '')) === 'rstudiov2'
+    ) {
       connection.url = await this.getRStudioUrl(requestContext, envId, connection);
     }
 
+    // This is done so that plugins know it was called during create URL cycle
+    connection.operation = 'create';
     // Give plugins chance to adjust the connection (such as connection url etc)
     const result = await pluginRegistryService.visitPlugins(
       'env-sc-connection-url',
@@ -178,6 +202,12 @@ class EnvironmentScConnectionService extends Service {
   }
 
   async getRStudioUrl(requestContext, id, connection) {
+    if (_.toLower(_.get(connection, 'type', '')) === 'rstudio')
+      throw this.boom.badRequest(
+        'Support for this version of RStudio has been deprecated. Please use RStudioV2 environment type',
+        true,
+      );
+
     const environmentDnsService = await this.service('environmentDnsService');
     const rstudioDomainName = environmentDnsService.getHostname('rstudio', id);
     const rstudioSignInUrl = `https://${rstudioDomainName}/auth-do-sign-in`;
@@ -190,7 +220,16 @@ class EnvironmentScConnectionService extends Service {
     const credentials = `${username}\n${password}`;
     const publicKey = await this.getRstudioPublicKey(requestContext, instanceId, id);
     const [exponent, modulus] = publicKey.split(':', 2);
-    const params = { v: rstudioEncryptor.encrypt(credentials, exponent, modulus) };
+    const exponentBuffer = Buffer.from(exponent, 'hex');
+    const modulusBuffer = Buffer.from(modulus, 'hex');
+    const key = new NodeRSA();
+    const publicKeyObject = key.importKey({ n: modulusBuffer, e: exponentBuffer }, 'components-public');
+    const payloadBuffer = Buffer.from(credentials);
+    const result = crypto.publicEncrypt(
+      { key: publicKeyObject.exportKey('public'), padding: crypto.constants.RSA_PKCS1_PADDING },
+      payloadBuffer,
+    );
+    const params = { v: result.toString('base64') };
     const authorizedUrl = `${rstudioSignInUrl}?${querystring.encode(params)}`;
     return authorizedUrl;
   }
@@ -222,6 +261,10 @@ class EnvironmentScConnectionService extends Service {
 
     // Validate input
     await validationService.ensureValid(sshConnectionInfo, sshConnectionInfoSchema);
+
+    // Verify environment is linked to an AppStream project when application has AppStream enabled
+    const { projectId } = await environmentScService.mustFind(requestContext, { id: envId });
+    await environmentScService.verifyAppStreamConfig(requestContext, projectId);
 
     // The following will succeed only if the user has permissions to access the specified environment
     const connection = await this.mustFindConnection(requestContext, envId, connectionId);
@@ -292,6 +335,10 @@ class EnvironmentScConnectionService extends Service {
       'environmentScKeypairService',
     ]);
 
+    // Verify environment is linked to an AppStream project when application has AppStream enabled
+    const { projectId } = await environmentScService.mustFind(requestContext, { id: envId });
+    await environmentScService.verifyAppStreamConfig(requestContext, projectId);
+
     // The following will succeed only if the user has permissions to access the specified environment
     // and connection
     const connection = await this.mustFindConnection(requestContext, envId, connectionId);
@@ -332,6 +379,120 @@ class EnvironmentScConnectionService extends Service {
     const instanceInfo = _.get(data, 'Reservations[0].Instances[0]');
 
     return { password, networkInterfaces: this.toNetworkInterfaces(instanceInfo) };
+  }
+
+  async createPrivateSageMakerUrl(requestContext, envId, connection, presign_retries = 10) {
+    const lockService = await this.service('lockService');
+    const signedURL = await lockService.tryWriteLockAndRun({ id: `${envId}presign` }, async () => {
+      if (!(_.toLower(_.get(connection, 'type', '')) === 'sagemaker')) {
+        throw this.boom.badRequest(
+          `Cannot generate presigned URL for non-sagemaker connection ${connection.type}`,
+          true,
+        );
+      }
+      const environmentScService = await this.service('environmentScService');
+      const iam = await environmentScService.getClientSdkWithEnvMgmtRole(
+        requestContext,
+        { id: envId },
+        { clientName: 'IAM', options: { apiVersion: '2017-07-24' } },
+      );
+      const currentPolicyResponse = await this.getCurrentRolePolicy(iam, connection);
+      await this.updateRoleToIncludeCurrentIP(iam, connection, currentPolicyResponse);
+      const createPresignedURLFn = async () => {
+        const stsEnvMgmt = await environmentScService.getClientSdkWithEnvMgmtRole(
+          requestContext,
+          { id: envId },
+          { clientName: 'STS', options: { apiVersion: '2017-07-24' } },
+        );
+        const sageMakerResponse = await this.createPresignedURL(stsEnvMgmt, connection);
+        return sageMakerResponse;
+      };
+      try {
+        // Give sufficient number of retries to create presigned URL.
+        // This is needed because IAM role takes a while to propagate
+        // call with a linear strategy where we wait 2 seconds between retries
+        // This makes it 20 seconds with default of 10 retries
+        const sageMakerResponse = await retry(createPresignedURLFn, presign_retries, () => linearInterval(1, 2000));
+        return _.get(sageMakerResponse, 'AuthorizedUrl');
+      } catch (error) {
+        throw this.boom.internalError(`Could not generate presigned URL`, true).cause(error);
+      } finally {
+        // restore the original policy document. This ensures that caller IP address which was responsible for
+        // creating the presigned URL doesn't have access
+        const oldPolicyDocument = decodeURIComponent(currentPolicyResponse.PolicyDocument);
+        await this.putRolePolicy(iam, connection, oldPolicyDocument);
+      }
+    });
+    return signedURL;
+  }
+
+  async getCurrentRolePolicy(iam, connection) {
+    const currentPolicyResponse = await iam
+      .getRolePolicy({
+        RoleName: connection.role,
+        PolicyName: connection.policy,
+      })
+      .promise();
+    return currentPolicyResponse;
+  }
+
+  async updateRoleToIncludeCurrentIP(iam, connection, currentPolicyResponse) {
+    // Construct new statement which will allow the caller IP address permission to generate the presigned URL
+    const currentIpAddress = await fetch('http://checkip.amazonaws.com/').then(function(res) {
+      return res.text();
+    });
+    const newStatement = {
+      Effect: 'Allow',
+      Action: 'sagemaker:CreatePresignedNotebookInstanceUrl',
+      Resource: `${connection.notebookArn}`,
+      Condition: {
+        IpAddress: {
+          'aws:SourceIp': `${currentIpAddress.trim()}/32`,
+        },
+      },
+    };
+    const policyToUpdate = JSON.parse(decodeURIComponent(currentPolicyResponse.PolicyDocument));
+    let policyToUpdateStatement = policyToUpdate.Statement;
+    if (_.isArray(policyToUpdateStatement)) {
+      policyToUpdateStatement.push(newStatement);
+    } else {
+      policyToUpdateStatement = [policyToUpdateStatement, newStatement];
+      policyToUpdate.Statement = policyToUpdateStatement;
+    }
+    await this.putRolePolicy(iam, connection, JSON.stringify(policyToUpdate));
+  }
+
+  async putRolePolicy(iam, connection, policyDocument) {
+    const putRolePolicyParams = {
+      RoleName: connection.role,
+      PolicyName: connection.policy,
+      PolicyDocument: policyDocument,
+    };
+    await iam.putRolePolicy(putRolePolicyParams).promise();
+  }
+
+  async createPresignedURL(stsEnvMgmt, connection) {
+    const {
+      Credentials: { AccessKeyId: accessKeyId, SecretAccessKey: secretAccessKey, SessionToken: sessionToken },
+    } = await stsEnvMgmt
+      .assumeRole({
+        RoleArn: connection.roleArn,
+        RoleSessionName: `create-presigned-url`,
+      })
+      .promise();
+    const aws = await this.getAWS();
+    const sagemaker = new aws.sdk.SageMaker({ accessKeyId, secretAccessKey, sessionToken });
+    const params = {
+      NotebookInstanceName: connection.info,
+    };
+    const sageMakerResponse = await sagemaker.createPresignedNotebookInstanceUrl(params).promise();
+    return sageMakerResponse;
+  }
+
+  // Getter for AWS method to make mocking easier in unit tests
+  async getAWS() {
+    const aws = await this.service('aws');
+    return aws;
   }
 
   async audit(requestContext, auditEvent) {

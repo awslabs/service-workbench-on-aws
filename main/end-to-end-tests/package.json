@@ -6,11 +6,16 @@
   "author": "Amazon Web Services",
   "license": "Apache-2.0",
   "scripts": {
-    "cypress:open:local": "cypress open -C cypress.local.json",
+    "cypress:open:local": "CYPRESS_BASE_URL=http://localhost:3000 cypress open -C cypress.dev.json",
     "cypress:open:dev": "cypress open -C cypress.dev.json",
-    "cypress:run-tests:local": "cypress run -C cypress.local.json",
-    "cypress:run-tests:dev": "cypress run -C cypress.dev.json",
-    "cypress:run-tests:github": "cypress run -C cypress.github.json"
+    "cypress:run-tests:local": "CYPRESS_BASE_URL=http://localhost:3000 cypress run -C cypress.dev.json --spec cypress/integration/common/*,cypress/integration/appstream-egress-disabled/*",
+    "cypress:run-tests:dev": "cypress run -C cypress.dev.json --spec cypress/integration/common/*,cypress/integration/appstream-egress-disabled/*",
+    "cypress:run-tests:github": "cypress run -C cypress.github.json --spec cypress/integration/common/*,cypress/integration/appstream-egress-disabled/*",
+    "cypress:open:local:appstream-egress-enabled": "CYPRESS_BASE_URL=http://localhost:3000 cypress open -C cypress.dev.appstream-egress.json",
+    "cypress:open:dev:appstream-egress-enabled": "cypress open -C cypress.dev.appstream-egress.json",
+    "cypress:run-tests:local:appstream-egress-enabled": "CYPRESS_BASE_URL=http://localhost:3000 cypress run -C cypress.dev.appstream-egress.json --spec cypress/integration/common/*,cypress/integration/appstream-egress-enabled/*",
+    "cypress:run-tests:dev:appstream-egress-enabled": "cypress run -C cypress.dev.appstream-egress.json --spec cypress/integration/common/*,cypress/integration/appstream-egress-enabled/*",
+    "cypress:run-tests:github:appstream-egress-enabled": "cypress run -C cypress.github.appstream-egress.json --spec cypress/integration/common/*,cypress/integration/appstream-egress-enabled/*"
   },
   "husky": {
     "hooks": {
@@ -18,8 +23,10 @@
     }
   },
   "devDependencies": {
+    "clipboardy": "^2.3.0",
     "cypress": "^4.12.1",
     "eslint": "^6.8.0",
+
     "eslint-config-airbnb": "^18.0.1",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-config-prettier": "^6.10.0",
@@ -29,7 +36,9 @@
     "eslint-plugin-jsx-a11y": "^6.2.3",
     "eslint-plugin-prettier": "^3.1.2",
     "husky": "^3.1.0",
+    "lodash": "^4.17.21",
     "prettier": "^1.19.1",
-    "pretty-quick": "^1.11.1"
+    "pretty-quick": "^1.11.1",
+    "tcp-ping": "^0.1.1"
   }
 }

@@ -1,3 +1,17 @@
+/*
+ *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+ *
+ *  Licensed under the Apache License, Version 2.0 (the "License").
+ *  You may not use this file except in compliance with the License.
+ *  A copy of the License is located at
+ *
+ *  http://aws.amazon.com/apache2.0
+ *
+ *  or in the "license" file accompanying this file. This file is distributed
+ *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either
+ *  express or implied. See the License for the specific language governing
+ *  permissions and limitations under the License.
+ */
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
 const { paginatedList, processSequentially } = require('../helpers/utils');
@@ -155,6 +169,16 @@ class IamService extends Service {
         RoleName: roleName,
         PolicyName: policyName,
         PolicyDocument: policyDoc,
+      })
+      .promise();
+  }
+
+  async deleteRolePolicy(roleName, policyName, iamClient) {
+    const iamSdk = iamClient || this.api;
+    await iamSdk
+      .deleteRolePolicy({
+        RoleName: roleName,
+        PolicyName: policyName,
       })
       .promise();
   }

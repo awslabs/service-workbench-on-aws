@@ -9,9 +9,12 @@
     "@aws-ee/base-services": "workspace:*",
     "@aws-ee/base-workflow-core": "workspace:*",
     "@aws-ee/environment-type-mgmt-services": "workspace:*",
-    "lodash": "^4.17.15",
+    "@aws-ee/base-raas-services": "workspace:*",
+    "@aws-ee/base-services-container": "workspace:*",
+    "lodash": "^4.17.21",
     "slugify": "^1.4.0",
-    "uuid": "^8.2.0"
+    "uuid": "^8.2.0",
+    "js-yaml": "^4.0.0"
   },
   "devDependencies": {
     "@aws-ee/workflow-engine": "workspace:*",
@@ -31,6 +34,7 @@
     "source-map-support": "^0.5.16"
   },
   "scripts": {
+    "coverage": "NODE_ENV=test jest --config jest.config.js --passWithNoTests --verbose --collectCoverage --watchAll=false --coverage && codecov --disable=gcov",
     "test": "NODE_ENV=test jest --config jest.config.js --passWithNoTests",
     "test:watch": "NODE_ENV=test jest --config jest.config.js  --passWithNoTests --watchAll",
     "lint": "pnpm run lint:eslint && pnpm run lint:prettier",

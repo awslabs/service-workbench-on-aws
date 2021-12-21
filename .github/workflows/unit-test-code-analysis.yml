@@ -1,0 +1,72 @@
+#
+#  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+#  SPDX-License-Identifier: Apache-2.0
+#
+
+name: Unit Tests & Code Analysis
+on:
+  pull_request:
+    branches:
+      - develop
+      - "feat-*"
+jobs:
+  static-code-analysis-and-unit-test:
+    name: Unit Tests & Code Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 2
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: 12
+      - name: Cache Node.js dependencies
+        uses: actions/cache@v2
+        with:
+          path: ~/.pnpm-store
+          key: ${{ runner.os }}-pnpm-${{ hashFiles('**/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-
+            ${{ runner.os }}-
+      - name: Install Node.js dependencies
+        run: |
+          npm install -g pnpm
+          npm install -g codecov
+          pnpm recursive install --unsafe-perm --stream
+      - name: Check dependencies for vulnerabilities
+        run: |
+          ./scripts/check-dependency-vulnerabilities.sh
+      - name: Run static code analysis & linting tests
+        run: |
+          ./scripts/run-static-code-analysis.sh --stream
+      - name: Run unit tests
+        run: |
+          pnpm run coverage --recursive --if-present --stream
+      - name: CodeCov
+        run: bash <(curl -s https://codecov.io/bash) -f ./coverage/coverage-final.json
+  scan-for-secrets:
+    name: Scan for secrets
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Git Secret
+        run: |
+          cd ~
+          git clone https://github.com/awslabs/git-secrets.git && cd git-secrets
+          sudo make install
+          git secrets --register-aws --global
+          # Prevent leakage of internal tools
+          git secrets --add '[aA]pollo|[bB]razil|[cC]oral|[oO]din' --global
+          git secrets --add 'tt\.amazon\.com|issues\.amazon\.com|cr\.amazon\.com' --global
+          # Prevent leakage of aws-iso
+          git secrets --add 'ic\.gov|sgov\.gov' --global
+          git secrets --add 'us-iso|aws-iso' --global
+          git secrets --add 'smil\.mil' --global
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Run Git Secret
+        run: git secrets --scan
+      - name: Print remediation message
+        if: failure()
+        run: echo "Check if creds was leaked. If yes, revoke the credentials and create a new PR"

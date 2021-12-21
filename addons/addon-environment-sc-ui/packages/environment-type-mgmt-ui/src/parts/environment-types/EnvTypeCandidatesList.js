@@ -52,6 +52,10 @@ class EnvTypeCandidatesList extends Component {
     return this.props.envTypeCandidatesStore;
   }
 
+  get portfolioId() {
+    return this.props.envTypeCandidatesStore.portfolioId;
+  }
+
   render() {
     const store = this.envTypeCandidatesStore;
     let content;
@@ -111,11 +115,17 @@ class EnvTypeCandidatesList extends Component {
         </Header>
         <div>
           <Checkbox
+            className="version-label"
             toggle
             checked={this.showAllVersions}
             onClick={() => this.handleShowAllVersionsToggle()}
             label={this.showAllVersions ? 'All Versions' : 'Latest Versions'}
           />
+          {this.portfolioId && (
+            <div data-testid="portfolio-id" className="portfolio-id">
+              Portfolio Id: {this.portfolioId}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -169,7 +179,32 @@ class EnvTypeCandidatesList extends Component {
                 </div>
               </Card.Description>
             </Card.Content>
+            {envTypeCandidate.metadata.knowMore && (
+              <div className="pl-link">
+                <div className="ui medium circular label">
+                  <i aria-hidden="true" className="info icon pl-link-i" />
+                </div>
+                <a
+                  rel="noopener noreferrer"
+                  className="pl-link-km"
+                  href={envTypeCandidate.metadata.knowMore}
+                  target="_blank"
+                >
+                  Know More
+                </a>
+              </div>
+            )}
             <Card.Content extra>
+              {envTypeCandidate.metadata.partnerName && (
+                <a
+                  rel="noopener noreferrer"
+                  className="partner-label"
+                  href={envTypeCandidate.metadata.partnerURL}
+                  target="_blank"
+                >
+                  Provided by {envTypeCandidate.metadata.partnerName}
+                </a>
+              )}
               <Button
                 basic
                 icon

@@ -67,18 +67,7 @@ Please be aware of the following limitations specific to EC2 Windows Workspace T
 
 ### Connect to RStudio
 
-Since RStudio currently requires a custom domain name, please configure the same by following the steps in `main/solution/machine-images/README.md`.
-
-1. The EC2 instance backing this workspace must be in the **Ready** state. Also make sure its security group allows your IP HTTPS access to it.
-2. Click on the connections button and hit **Connect**.
-3. The selected studies will show up as mounted directories in the RStudio. These study directories will contain files uploaded to the corresponding study. Any files uploaded to the study from the Service Workbench will automatically appear in the mounted study directories after a short delay.
-
-> Notes:
->
-> 1. If you're provisioning an RStudio instance with studies selected, these studies will only get mounted on your instance once you click on the RStudio workspace's "Terminal" tab.
-> 2. If you started a previously stopped RStudio instance (manually or automatically) and connect to it, you might see an error dialog box saying the session closed abruptly. Although this typically does not affect your data, it is recommended to quit your session from within your RStudio workspace before stopping the instance through SWB.
-> 3. The auto-stop feature is enabled by default and configured to 1 hour. For configuring a different auto-stop timeout, please assign the MAX_IDLE_MINUTES value accordingly in `main/solution/machine-images/config/infra/files/rstudio/check-idle` and redeploy the machine-images SDC.
-> 4. To disable auto-stop, assign the value 0 to MAX_IDLE_MINUTES and redploy machine-images SDC.
+You can connect to RStudio workspace type by using the template and AMI provided in AWS [partner’s repository](https://github.com/RLOpenCatalyst/Service_Workbench_Templates). For more information about new RStudio enhancements, refer to the [Create RStudio ALB workspace](/deployment/post_deployment/aws_accounts#creating-rstudio-alb-workspace) section of *Service Workbench Post Deployment Guide*.
 
 ### Start and Stop workspace
 

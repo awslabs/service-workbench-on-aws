@@ -12,6 +12,7 @@
 # }, ...]
 CONFIG="/usr/local/etc/s3-mounts.json"
 MOUNT_DIR="${HOME}/studies"
+AWS_CONFIG_DIR="${HOME}/.aws"
 
 # Exit if CONFIG doesn't exist or is 0 bytes
 [ ! -s "$CONFIG" ] && exit 0
@@ -32,6 +33,28 @@ env_type() {
     fi
 }
 
+# Add roleArn for a study to credentials file if not present already
+append_role_to_credentials() {
+    study_id=$1
+    role_arn=$2
+    credentials_file=$AWS_CONFIG_DIR/credentials
+    if ! grep -q "\[$study_id\]" $AWS_CONFIG_DIR/credentials &>/dev/null
+    then
+      # append role for this study since it doesn't already exist in the file
+      echo "[$study_id]" >> $credentials_file
+      echo "role_arn = $role_arn" >> $credentials_file
+      echo "credential_source = Ec2InstanceMetadata" >> $credentials_file
+      echo "" >> $credentials_file
+    fi
+}
+
+# Use STS regional endpoint instead of global one. This allows external studies to connect with local interface endpoint
+# if it exists. Refer https://docs.aws.amazon.com/sdkref/latest/guide/setting-global-sts_regional_endpoints.html
+region=`curl http://169.254.169.254/latest/meta-data/placement/availability-zone/ | sed 's/.$//'`
+export AWS_STS_REGIONAL_ENDPOINTS=regional
+export AWS_DEFAULT_REGION=$region
+export AWS_SDK_LOAD_CONFIG=1
+
 # Mount S3 buckets
 mounts="$(cat "$CONFIG")"
 num_mounts=$(printf "%s" "$mounts" | jq ". | length" -)
@@ -41,15 +64,43 @@ do
     study_id="$(printf "%s" "$mounts" | jq -r ".[$study_idx].id" -)"
     s3_bucket="$(printf "%s" "$mounts" | jq -r ".[$study_idx].bucket" -)"
     s3_prefix="$(printf "%s" "$mounts" | jq -r ".[$study_idx].prefix" -)"
+    s3_role_arn="$(printf "%s" "$mounts" | jq -r ".[$study_idx].roleArn" -)"
+    kms_arn="$(printf "%s" "$mounts" | jq -r ".[$study_idx].kmsArn" -)"
 
     # Mount S3 location if not already mounted
     study_dir="${MOUNT_DIR}/${study_id}"
     ps -U "$LOGNAME" -o "command" | egrep -q "goofys .* ${study_dir}$"
     if [ $? -ne 0 ]
     then
-        printf 'Mounting study "%s" at "%s"\n' "$study_id" "$study_dir"
         mkdir -p "$study_dir"
-        goofys --acl "bucket-owner-full-control" "${s3_bucket}:${s3_prefix}" "$study_dir"
+        if [ "$s3_role_arn" == "null" ]
+        then
+            printf 'Mounting internal study "%s" at "%s"\n' "$study_id" "$study_dir"
+            goofys --region $region --acl "bucket-owner-full-control" "${s3_bucket}:${s3_prefix}" "$study_dir"
+        else
+            bucket_region="$(printf "%s" "$mounts" | jq -r ".[$study_idx].region" -)"
+            # BYOB studies have a region specified, but in case it isn't use the default region
+            if [[ $bucket_region == "null" ]]; then
+              printf 'Bucket region is not specified. Defaulting to "%s" for mounting \n' "$region"
+              bucket_region=$region
+            fi;
+
+            # make .aws dir if it doesn't already exist and add credentials
+            mkdir -p $AWS_CONFIG_DIR
+            append_role_to_credentials $study_id $s3_role_arn
+            if [ "$kms_arn" == "null" ]
+            then
+                printf 'Mounting external study "%s" at "%s" using role "%s" and region "%s" \n' "$study_id" "$study_dir" \
+                "$s3_role_arn" "$bucket_region"
+                goofys --region $bucket_region --profile $study_id --acl "bucket-owner-full-control" \
+                "${s3_bucket}:${s3_prefix}" "$study_dir"
+            else
+                printf 'Mounting external study "%s" at "%s" using role "%s", kms arn "%s" and region "%s" \n' "$study_id" "$study_dir" \
+                "$s3_role_arn" "$kms_arn" "$bucket_region"
+                goofys --region $bucket_region --profile $study_id --sse-kms $kms_arn --acl "bucket-owner-full-control" \
+                "${s3_bucket}:${s3_prefix}" "$study_dir"
+            fi
+        fi
     fi
 done
 

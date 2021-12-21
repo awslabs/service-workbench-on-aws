@@ -1,41 +1,102 @@
 module.exports = {
   serviceWorkbenchSidebar: {
-    ServiceWorkBench: ["introduction"],    
-    "Deployment Guide": [
-      "deployment/about_this_guide",
-      "deployment/summary",
-      "deployment/deployment_stages",      
+    "Service Workbench Installation Guide": [
+      "installation_guide/overview",
+      "installation_guide/architecture",
+      "installation_guide/components",
       {
-        "Pre Deployment": [
-          "deployment/pre_deployment/pre_deployment",
-	  "deployment/pre_deployment/accounts",
-          "deployment/pre_deployment/prereq_commands",
-          "deployment/pre_deployment/deployment_instance",
-          "deployment/pre_deployment/source_code",
-          "deployment/pre_deployment/configuration",
+        "Pre-installation requirements": [
+          "installation_guide/installation/pre-installation/overview",
+          "installation_guide/installation/pre-installation/tool-req",
+          "installation_guide/installation/pre-installation/software-req",
+          "installation_guide/installation/pre-installation/instance-req",
+          "installation_guide/installation/pre-installation/conf-settings",
+          "installation_guide/installation/pre-installation/documentation",
         ],
       },
-      "deployment/deployment/index",
+      {
+        "Installing Service Workbench": [
+          "installation_guide/installation/ami-install",
+          "installation_guide/installation/ec2install",
+          "installation_guide/installation/cloud9install",
+          "installation_guide/installation/rstudio",
+        ],
+      },
+      {
+        "Upgrading Service Workbench": [
+          "installation_guide/upgrading/commandline",
+          "installation_guide/upgrading/solutions",
+        ],
+      },
+      "installation_guide/postupgrade",
+      "installation_guide/uninstall",
+      "installation_guide/troubleshooting",
+    ],
+    "Service Workbench Configuration Guide": [
+      "configuration_guide/overview",
+      "configuration_guide/workflow",
+      {
+        "Configuring Service Workbench using IdP": [
+          "configuration_guide/activedirectory",
+          "configuration_guide/adfs",
+          "configuration_guide/auth0",
+        ],
+      },
+    ],
+    "Deployment Guide": [
+      "deployment/deployment_stages",
+      {
+        "Pre-installation requirements": [
+          "installation_guide/installation/pre-installation/overview",
+          "installation_guide/installation/pre-installation/tool-req",
+          "installation_guide/installation/pre-installation/software-req",
+          "installation_guide/installation/pre-installation/instance-req",
+          "installation_guide/installation/pre-installation/conf-settings",
+          "installation_guide/installation/pre-installation/documentation",
+        ],
+      },
+      {
+        "Installing Service Workbench": [
+          "installation_guide/installation/ami-install",
+          "installation_guide/installation/ec2install",
+          "installation_guide/installation/cloud9install",
+          "installation_guide/installation/rstudio",
+        ],
+      },
+      {
+        "Upgrading Service Workbench": [
+          "installation_guide/upgrading/commandline",
+          "installation_guide/upgrading/solutions",
+        ],
+      },
+      "installation_guide/postupgrade",
+      "installation_guide/uninstall",
+      "installation_guide/troubleshooting",
+    ],
+    "Service Workbench Configuration Guide": [
+      "configuration_guide/overview",
+      "configuration_guide/workflow",
+      {
+        "Configuring Service Workbench using IdP": [
+          "configuration_guide/activedirectory",
+          "configuration_guide/adfs",
+          "configuration_guide/auth0",
+        ],
+      },
+    ],
+    "Service Workbench Post Deployment Guide": [
       {
         "Post Deployment": [
           "deployment/post_deployment/index",
           "deployment/post_deployment/account_structure",
+          "deployment/reference/prepare_master_account",
           // "deployment/post_deployment/cost_explorer",
+          "deployment/post_deployment/appstream",
           "deployment/post_deployment/aws_accounts",
           "deployment/post_deployment/create_index_project",
           "deployment/post_deployment/create_admin_user",
           "deployment/post_deployment/import_service_catalog_products",
-        ],
-      },
-      {
-        Configuration: [
-          {
-            Authentication: [
-              "deployment/configuration/auth/enabling_ad",
-              "deployment/configuration/auth/configuring_auth0",
-              "deployment/configuration/auth/configuring_idp",
-            ],
-          },
+          "deployment/post_deployment/logs",
         ],
       },
       "deployment/redeployment",
@@ -43,11 +104,11 @@ module.exports = {
         Reference: [
           "deployment/reference/iam_role",
           "deployment/reference/aws_services",
-          "deployment/reference/prepare_master_account"
+          "deployment/reference/prepare_master_account",
         ],
       },
     ],
-    "User Guide": [
+    "Service Workbench User Guide": [
       "user_guide/account_structure",
       "user_guide/introduction",
       {
@@ -59,7 +120,8 @@ module.exports = {
                 Studies: [
                   "user_guide/sidebar/common/studies/introduction",
                   "user_guide/sidebar/common/studies/creating_a_study",
-                  "user_guide/sidebar/common/studies/uploading_files",
+                  "user_guide/sidebar/common/studies/data_sources",
+                  "user_guide/sidebar/common/studies/studies_page",
                   "user_guide/sidebar/common/studies/sharing_a_study",
                 ],
                 Workspaces: [
@@ -108,8 +170,9 @@ module.exports = {
                 Studies: [
                   "user_guide/sidebar/common/studies/introduction",
                   "user_guide/sidebar/common/studies/creating_a_study",
-                  "user_guide/sidebar/common/studies/uploading_files",
+                  "user_guide/sidebar/common/studies/studies_page",
                   "user_guide/sidebar/common/studies/sharing_a_study",
+                  "user_guide/sidebar/common/studies/data_sources",
                 ],
                 Workspaces: [
                   "user_guide/sidebar/common/workspaces/introduction",
@@ -131,8 +194,6 @@ module.exports = {
       "best_practices/cicd",
       "best_practices/rotating_jwt_token",
     ],
-    "Development Guide": [
-      "development/introduction"
-    ],
+    "Development Guide": ["development/introduction"],
   },
 };

@@ -9,6 +9,7 @@ provider:
   stackName: ${self:custom.settings.envName}-${self:service}
   deploymentBucket:
     name: ${self:custom.settings.deploymentBucketName}
+    serverSideEncryption: AES256
   stackTags: ${self:custom.tags}
   versionFunctions: false
   # All references beginning with ${self:*, ${opt:*, ${file:*, ${deep:*, and ${cf:* will be resolved by Serverless
@@ -21,6 +22,9 @@ custom:
   settings: ${file(./config/settings/.settings.js):merged}
   tags:
     Name: ${self:custom.settings.envName}-${self:service}
+  deploymentBucket:
+    blockPublicAccess: true
+    versioning: true
 
 resources:
   - Description: Service-Workbench-on-AWS ${self:custom.settings.version} ${self:custom.settings.solutionName} ${self:custom.settings.envName} Edge-Lambda
