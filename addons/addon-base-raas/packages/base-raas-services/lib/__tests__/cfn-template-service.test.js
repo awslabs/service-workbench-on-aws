@@ -17,9 +17,6 @@ const ServicesContainer = require('@aws-ee/base-services-container/lib/services-
 const fs = require('fs');
 const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
 
-// const PluginRegistryService = require('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
-// jest.mock('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
-
 const { yamlParse } = require('yaml-cfn');
 const CfnTemplateService = require('../cfn-templates/cfn-template-service');
 
@@ -52,6 +49,8 @@ describe('cfn-template-service', () => {
 
   describe('getTemplate', () => {
     it('should remove AppStream resources if AppStream is not enabled', async () => {
+      // BUILD
+      // Disable AppStream
       settings.get = jest.fn(key => {
         if (key === 'isAppStreamEnabled') {
           return 'false';
@@ -61,7 +60,10 @@ describe('cfn-template-service', () => {
 
       await service.add({ name: 'onboard-account', yaml: onboardAccount });
 
+      // OPERATE
       const updatedTemplate = await service.getTemplate('onboard-account');
+
+      // CHECK
       expect(updatedTemplate).toBeDefined();
 
       const parsedYaml = yamlParse(updatedTemplate);
@@ -76,6 +78,8 @@ describe('cfn-template-service', () => {
     });
 
     it('should NOT remove AppStream resources if AppStream is enabled', async () => {
+      // BUILD
+      // Enable AppStream
       settings.get = jest.fn(key => {
         if (key === 'isAppStreamEnabled') {
           return 'true';
@@ -83,8 +87,10 @@ describe('cfn-template-service', () => {
         throw new Error(`Unexpected setting: ${key}`);
       });
 
+      // OPERATE
       await service.add({ name: 'onboard-account', yaml: onboardAccount });
 
+      // CHECK
       const updatedTemplate = await service.getTemplate('onboard-account');
       expect(updatedTemplate).toBeDefined();
       expect(updatedTemplate).toEqual(onboardAccount);
