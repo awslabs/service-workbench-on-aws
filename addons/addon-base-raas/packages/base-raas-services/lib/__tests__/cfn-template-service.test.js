@@ -28,7 +28,7 @@ describe('cfn-template-service', () => {
   let onboardAccount = null;
   let settings = null;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     const pluginRegistryService = {
       getPlugins: jest.fn(() => {
         return [];
@@ -74,28 +74,29 @@ describe('cfn-template-service', () => {
       expect(parsedYaml.Outputs.AppStreamFleet).toBeUndefined();
       expect(parsedYaml.Outputs.AppStreamStack).toBeUndefined();
     });
-  });
-  it('should NOT remove AppStream resources if AppStream is enabled', async () => {
-    settings.get = jest.fn(key => {
-      if (key === 'isAppStreamEnabled') {
-        return 'true';
-      }
-      throw new Error(`Unexpected setting: ${key}`);
+
+    it('should NOT remove AppStream resources if AppStream is enabled', async () => {
+      settings.get = jest.fn(key => {
+        if (key === 'isAppStreamEnabled') {
+          return 'true';
+        }
+        throw new Error(`Unexpected setting: ${key}`);
+      });
+
+      await service.add({ name: 'onboard-account', yaml: onboardAccount });
+
+      const updatedTemplate = await service.getTemplate('onboard-account');
+      expect(updatedTemplate).toBeDefined();
+      expect(updatedTemplate).toEqual(onboardAccount);
+
+      // All resources should be available
+      const parsedYaml = yamlParse(updatedTemplate);
+      expect(parsedYaml.Resources.Route53HostedZone).toBeDefined();
+      expect(parsedYaml.Resources.AppStreamFleet).toBeDefined();
+      expect(parsedYaml.Resources.AppStreamStack).toBeDefined();
+      expect(parsedYaml.Resources.AppStreamStackFleetAssociation).toBeDefined();
+      expect(parsedYaml.Outputs.AppStreamFleet).toBeDefined();
+      expect(parsedYaml.Outputs.AppStreamStack).toBeDefined();
     });
-
-    await service.add({ name: 'onboard-account', yaml: onboardAccount });
-
-    const updatedTemplate = await service.getTemplate('onboard-account');
-    expect(updatedTemplate).toBeDefined();
-    expect(updatedTemplate).toEqual(onboardAccount);
-
-    // All resources should be available
-    const parsedYaml = yamlParse(updatedTemplate);
-    expect(parsedYaml.Resources.Route53HostedZone).toBeDefined();
-    expect(parsedYaml.Resources.AppStreamFleet).toBeDefined();
-    expect(parsedYaml.Resources.AppStreamStack).toBeDefined();
-    expect(parsedYaml.Resources.AppStreamStackFleetAssociation).toBeDefined();
-    expect(parsedYaml.Outputs.AppStreamFleet).toBeDefined();
-    expect(parsedYaml.Outputs.AppStreamStack).toBeDefined();
   });
 });
