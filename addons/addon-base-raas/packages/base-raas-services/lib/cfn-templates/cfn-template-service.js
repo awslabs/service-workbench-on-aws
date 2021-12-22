@@ -54,8 +54,8 @@ class CfnTemplateService extends Service {
 
   async getTemplate(name) {
     const entry = _.find(this.store, ['key', name]);
-    const isAppStreamEnabled = await this.settings.get(settingKeys.isAppStreamEnabled);
-    if (isAppStreamEnabled === 'false' && name === 'onboard-account' && entry) {
+    const isAppStreamEnabled = await this.settings.getBoolean(settingKeys.isAppStreamEnabled);
+    if (!isAppStreamEnabled && name === 'onboard-account' && entry) {
       const doc = yamlParse(entry.value);
       delete doc.Resources.AppStreamFleet;
       delete doc.Resources.AppStreamStack;

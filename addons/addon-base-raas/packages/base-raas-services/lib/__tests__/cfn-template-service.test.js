@@ -51,9 +51,9 @@ describe('cfn-template-service', () => {
     it('should remove AppStream resources if AppStream is not enabled', async () => {
       // BUILD
       // Disable AppStream
-      settings.get = jest.fn(key => {
+      settings.getBoolean = jest.fn(key => {
         if (key === 'isAppStreamEnabled') {
-          return 'false';
+          return false;
         }
         throw new Error(`Unexpected setting: ${key}`);
       });
@@ -80,9 +80,9 @@ describe('cfn-template-service', () => {
     it('should NOT remove AppStream resources if AppStream is enabled', async () => {
       // BUILD
       // Enable AppStream
-      settings.get = jest.fn(key => {
+      settings.getBoolean = jest.fn(key => {
         if (key === 'isAppStreamEnabled') {
-          return 'true';
+          return true;
         }
         throw new Error(`Unexpected setting: ${key}`);
       });
