@@ -19,6 +19,7 @@ const Service = require('@aws-ee/base-services-container/lib/service');
 const settingKeys = {
   domainName: 'domainName',
   isAppStreamEnabled: 'isAppStreamEnabled',
+  loggingBucketName: 'loggingBucketName',
 };
 
 class ALBService extends Service {
@@ -106,6 +107,7 @@ class ALBService extends Service {
       'PublicRouteTableId',
       _.isUndefined(awsAccountDetails.appStreamSecurityGroupId) ? awsAccountDetails.publicRouteTableId : 'N/A',
     );
+    addParam('LoggingBucket', this.settings.get(settingKeys.loggingBucketName));
 
     const input = {
       StackName: resolvedVars.namespace,
