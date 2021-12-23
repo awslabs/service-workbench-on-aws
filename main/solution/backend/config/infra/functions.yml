@@ -216,3 +216,4 @@ workflowLoopRunner:
     APP_EGRESS_STORE_KMS_POLICY_WORKSPACE_SID: ${self:custom.settings.egressStoreKmsPolicyWorkspaceSid}
     APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
     APP_PERMISSION_BOUNDARY_POLICY_STUDY_BUCKET_ARN: !Sub arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.permissionBoundaryPolicyStudyBucket}
+    APP_LOGGING_BUCKET_NAME: ${self:custom.settings.loggingBucketName}
