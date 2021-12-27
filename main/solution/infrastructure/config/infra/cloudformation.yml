@@ -11,6 +11,59 @@ Conditions:
 
 Description: (SO0144) Service Workbench on AWS Solution
 
+Mappings:
+  ELBAccountIDMapping:
+    us-east-1:
+      Id: '127311923021'
+    us-east-2:
+      Id: '033677994240'
+    us-west-1:
+      Id: '027434742980'
+    us-west-2:
+      Id: '797873946194'
+    af-south-1:
+      Id: '098369216593'
+    ca-central-1:
+      Id: '985666609251'
+    eu-central-1:
+      Id: '054676820928'
+    eu-west-1:
+      Id: '156460612806'
+    eu-west-2:
+      Id: '652711504416'
+    eu-south-1:
+      Id: '635631232127'
+    eu-west-3:
+      Id: '009996457667'
+    eu-north-1:
+      Id: '897822967062'
+    ap-east-1:
+      Id: '754344448648'
+    ap-northeast-1:
+      Id: '582318560864'
+    ap-northeast-2:
+      Id: '600734575887'
+    ap-northeast-3:
+      Id: '383597477331'
+    ap-southeast-1:
+      Id: '114774131450'
+    ap-southeast-2:
+      Id: '783225319266'
+    ap-south-1:
+      Id: '718504428378'
+    me-south-1:
+      Id: '076674570225'
+    sa-east-1:
+      Id: '507241528517'
+    us-gov-west-1:
+      Id: '048591011584'
+    us-gov-east-1:
+      Id: '190560391635'
+    cn-north-1:
+      Id: '638102146993'
+    cn-northwest-1:
+      Id: '037604701340'
+
 Resources:
   # =============================================================================================
   # S3 Buckets
@@ -58,6 +111,27 @@ Resources:
             Condition:
               StringNotEquals:
                 s3:signatureversion: 'AWS4-HMAC-SHA256'
+          - Sid: ELB Logging permissions
+            Effect: Allow
+            Principal:
+              AWS: !Join ['', ['arn:aws:iam::', !FindInMap [ELBAccountIDMapping, !Ref 'AWS::Region', Id], ':root']]
+            Action: s3:PutObject
+            Resource: !Join ['', ['arn:aws:s3:::', !Ref LoggingBucket, '/elb/AWSLogs/*/*']]
+          - Sid: ELB Logging permissions
+            Effect: Allow
+            Principal:
+              Service: delivery.logs.amazonaws.com
+            Action: s3:PutObject
+            Resource: !Join ['', ['arn:aws:s3:::', !Ref LoggingBucket, '/elb/AWSLogs/*/*']]
+            Condition:
+              StringEquals:
+                s3:x-amz-acl: bucket-owner-full-control
+          - Sid: ELB Logging permissions
+            Effect: Allow
+            Principal:
+              Service: delivery.logs.amazonaws.com
+            Action: s3:GetBucketAcl
+            Resource: !Join ['', ['arn:aws:s3:::', !Ref LoggingBucket]]
 
   # S3 Bucket for the static website
   WebsiteBucket:
