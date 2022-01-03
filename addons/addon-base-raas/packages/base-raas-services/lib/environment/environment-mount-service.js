@@ -250,6 +250,14 @@ class EnvironmentMountService extends Service {
     ]);
   }
 
+  /**
+   * Helper method to generate the default statements to be used to update the S3 policy.
+   *
+   * @param {String} s3BucketName - name of the bucket that these statements apply to
+   * @param {String} prefix - S3 prefix to apply to these statements
+   * @returns {Array<String>} - the generic list statement, read statement, and write statement as well as the security
+   *                            statement to require TLS/HTTPS traffic
+   */
   getAllStatements(s3BucketName, prefix) {
     const listSid = `List:${prefix}`;
     const getSid = `Get:${prefix}`;
