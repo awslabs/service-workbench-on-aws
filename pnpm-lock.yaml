@@ -1527,6 +1527,47 @@ importers:
       pretty-quick: 1.11.1_prettier@1.19.1
       source-map-support: 0.5.16
 
+  addons/addon-edit-s3-bucket-policy/packages/edit-s3-bucket-policy:
+    specifiers:
+      '@aws-ee/base-api-handler': workspace:*
+      '@aws-ee/base-post-deployment': workspace:*
+      '@aws-ee/base-services': workspace:*
+      '@aws-ee/base-services-container': workspace:*
+      aws-sdk: ^2.647.0
+      eslint: ^6.8.0
+      eslint-config-airbnb-base: ^14.0.0
+      eslint-config-prettier: ^6.10.0
+      eslint-import-resolver-node: ^0.3.3
+      eslint-plugin-import: ^2.20.1
+      eslint-plugin-jest: ^22.21.0
+      eslint-plugin-prettier: ^3.1.2
+      husky: ^3.1.0
+      jest: ^24.9.0
+      jest-junit: ^10.0.0
+      lodash: ^4.17.21
+      prettier: ^1.19.1
+      source-map-support: ^0.5.16
+    dependencies:
+      '@aws-ee/base-services': link:../../../addon-base/packages/services
+      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      aws-sdk: 2.1015.0
+      lodash: 4.17.21
+    devDependencies:
+      '@aws-ee/base-api-handler': link:../../../addon-base-rest-api/packages/base-api-handler
+      '@aws-ee/base-post-deployment': link:../../../addon-base-post-deployment/packages/base-post-deployment
+      eslint: 6.8.0
+      eslint-config-airbnb-base: 14.2.1_3d9516f15116c38f3750ecaf3d966000
+      eslint-config-prettier: 6.15.0_eslint@6.8.0
+      eslint-import-resolver-node: 0.3.4
+      eslint-plugin-import: 2.23.4_eslint@6.8.0
+      eslint-plugin-jest: 22.21.0_eslint@6.8.0
+      eslint-plugin-prettier: 3.4.0_b77cd85fda941e232840dc83bf6b7690
+      husky: 3.1.0
+      jest: 24.9.0
+      jest-junit: 10.0.0
+      prettier: 1.19.1
+      source-map-support: 0.5.19
+
   addons/addon-environment-sc-api/packages/environment-sc-workflow-steps:
     specifiers:
       '@aws-ee/base-raas-services': workspace:*
@@ -2459,6 +2500,7 @@ importers:
       '@aws-ee/base-workflow-steps': workspace:*
       '@aws-ee/base-workflow-templates': workspace:*
       '@aws-ee/cfn-stack-policy': workspace:*
+      '@aws-ee/edit-s3-bucket-policy': workspace:*
       '@aws-ee/environment-sc-workflow-steps': workspace:*
       '@aws-ee/environment-sc-workflows': workspace:*
       '@aws-ee/environment-type-mgmt-api': workspace:*
@@ -2509,6 +2551,7 @@ importers:
       '@aws-ee/base-workflow-steps': link:../../../addons/addon-base-workflow/packages/base-worklfow-steps
       '@aws-ee/base-workflow-templates': link:../../../addons/addon-base-workflow/packages/base-workflow-templates
       '@aws-ee/cfn-stack-policy': link:../../../addons/addon-stack-policy/packages/stack-policy
+      '@aws-ee/edit-s3-bucket-policy': link:../../../addons/addon-edit-s3-bucket-policy/packages/edit-s3-bucket-policy
       '@aws-ee/environment-sc-workflow-steps': link:../../../addons/addon-environment-sc-api/packages/environment-sc-workflow-steps
       '@aws-ee/environment-sc-workflows': link:../../../addons/addon-environment-sc-api/packages/environment-sc-workflows
       '@aws-ee/environment-type-mgmt-api': link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-api
@@ -8328,9 +8371,9 @@ packages:
     resolution: {integrity: sha512-4470Xi3GAPAjZqFcljX2xzckv1qeKPizoNkiS0+O4IoPR2ZNpcjE0pkhdihlDouK+x6QOast26B4Q/O9DJnwSg==}
     engines: {node: '>= 0.4'}
     dependencies:
-      call-bind: 1.0.0
+      call-bind: 1.0.2
       define-properties: 1.1.3
-      es-abstract: 1.18.0-next.1
+      es-abstract: 1.18.3
     dev: true
 
   /array.prototype.flatmap/1.2.4:
@@ -12134,7 +12177,7 @@ packages:
     resolution: {integrity: sha512-ogtf+5AB/O+nM6DIeBUNr2fuT7ot9Qg/1harBfBtaP13ekEWFQEEMP94BCB7zaNW3gyY+8SHYF00rnqYwXKWOA==}
     dependencies:
       debug: 2.6.9
-      resolve: 1.19.0
+      resolve: 1.20.0
     dev: true
 
   /eslint-loader/3.0.3_eslint@6.8.0+webpack@4.42.0:
