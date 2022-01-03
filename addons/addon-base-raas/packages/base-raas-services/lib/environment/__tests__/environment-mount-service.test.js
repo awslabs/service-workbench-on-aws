@@ -68,7 +68,7 @@ describe('EnvironmentMountService', () => {
   });
 
   describe('getAllStatements helper method', () => {
-    it('should return listStatement, getStatement, putStatement, and secureTransportStatement', async () => {
+    it('should return listStatement, getStatement, and putStatement', async () => {
       // BUILD
       const s3BucketName = 'somebucket';
       const s3Prefix = 'someprefix';
@@ -104,18 +104,6 @@ describe('EnvironmentMountService', () => {
             's3:DeleteObject',
           ],
           Resource: [`arn:aws:s3:::${s3BucketName}/${s3Prefix}*`],
-        },
-        {
-          Sid: 'Deny requests that do not use TLS/HTTPS',
-          Effect: 'Deny',
-          Principal: '*',
-          Action: 's3:*',
-          Resource: [`arn:aws:s3:::${s3BucketName}/*`, `arn:aws:s3:::${s3BucketName}`],
-          Condition: {
-            Bool: {
-              'aws:SecureTransport': 'false',
-            },
-          },
         },
       ];
 

@@ -171,10 +171,9 @@ class EnvironmentMountService extends Service {
         const statements = s3Policy.Statement;
         s3Prefixes.forEach(prefix => {
           // eslint-disable-next-line prefer-const
-          let [listStatement, getStatement, putStatement, secureTransportStatement] = this.getAllStatements(
-            s3BucketName,
-            prefix,
-          );
+          let allStatements = this.getAllStatements(s3BucketName, prefix);
+          // eslint-disable-next-line no-unused-vars
+          let [listStatement, getStatement, putStatement] = allStatements;
           const listSid = `List:${prefix}`;
           const getSid = `Get:${prefix}`;
           const putSid = `Put:${prefix}`;
@@ -199,7 +198,7 @@ class EnvironmentMountService extends Service {
           s3Policy.Statement = s3Policy.Statement.filter(
             statement => ![listSid, getSid, putSid].includes(statement.Sid),
           );
-          [listStatement, getStatement, putStatement, secureTransportStatement].forEach(statement => {
+          allStatements.forEach(statement => {
             // Only add updated statement if it contains principals (otherwise leave it out)
             if (statement.Principal.AWS.length > 0) {
               s3Policy.Statement.push(statement);
@@ -298,21 +297,8 @@ class EnvironmentMountService extends Service {
       ],
       Resource: [`arn:aws:s3:::${s3BucketName}/${prefix}*`],
     };
-    // Secure Transport statement
-    const secureTransportStatement = {
-      Sid: 'Deny requests that do not use TLS/HTTPS',
-      Effect: 'Deny',
-      Principal: '*',
-      Action: 's3:*',
-      Resource: [`arn:aws:s3:::${s3BucketName}/*`, `arn:aws:s3:::${s3BucketName}`],
-      Condition: {
-        Bool: {
-          'aws:SecureTransport': 'false',
-        },
-      },
-    };
 
-    return [listStatement, getStatement, putStatement, secureTransportStatement];
+    return [listStatement, getStatement, putStatement];
   }
 
   /**
