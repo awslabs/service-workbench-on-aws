@@ -3,7 +3,18 @@
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
 ## Beta
-[This release is in beta. Click here to see changes since 4.1.1.](https://github.com/awslabs/service-workbench-on-aws/compare/v4.1.1...mainline)
+[This release is in beta. Click here to see changes since 4.1.2.](https://github.com/awslabs/service-workbench-on-aws/compare/v4.1.2...mainline)
+
+### [4.1.2](https://github.com/awslabs/service-workbench-on-aws/compare/v4.1.1...v4.1.2) (2021-12-27)
+
+
+### Bug Fixes
+
+*  Terminate preexistin Rstudio instances in launch-rstudio test ([#830](https://github.com/awslabs/service-workbench-on-aws/issues/830)) ([e44e77c](https://github.com/awslabs/service-workbench-on-aws/commit/e44e77c9c57860033d500cf5582592098562550f))
+* add key rotation ([#834](https://github.com/awslabs/service-workbench-on-aws/issues/834)) ([46bfa83](https://github.com/awslabs/service-workbench-on-aws/commit/46bfa830eaa3f029b4f73990771d25b867fe55f3))
+* add kms permission to work with cicd pipeline ([#836](https://github.com/awslabs/service-workbench-on-aws/issues/836)) ([9ecd9ee](https://github.com/awslabs/service-workbench-on-aws/commit/9ecd9eee67518138adef302a8d4045c1653e0f08))
+* elb logging on ([#843](https://github.com/awslabs/service-workbench-on-aws/issues/843)) ([163b411](https://github.com/awslabs/service-workbench-on-aws/commit/163b411530e60286835362ba35a46bf164c71ca8))
+* Update EMR release label for log4j vulnerability ([#845](https://github.com/awslabs/service-workbench-on-aws/issues/845)) ([8b93e11](https://github.com/awslabs/service-workbench-on-aws/commit/8b93e11ee29c5de2272acedf718da0835db8bd15))
 
 ### [4.1.1](https://github.com/awslabs/service-workbench-on-aws/compare/v4.1.0...v4.1.1) (2021-12-13)
 
