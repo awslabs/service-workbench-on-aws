@@ -53,11 +53,15 @@ deploymentBucketPolicy:
     'Statement':
       [
         {
-          'Sid': 'Deny requests that do not use TLS',
+          'Sid': 'Deny requests that do not use TLS/HTTPS',
           'Effect': 'Deny',
           'Principal': '*',
           'Action': 's3:*',
-          'Resource': 'arn:aws:s3:::${self:custom.settings.deploymentBucketName}/*',
+          'Resource':
+            [
+              'arn:aws:s3:::${self:custom.settings.deploymentBucketName}/*',
+              'arn:aws:s3:::${self:custom.settings.deploymentBucketName}',
+            ],
           'Condition': { 'Bool': { 'aws:SecureTransport': 'false' } },
         },
         {

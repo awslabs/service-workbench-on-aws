@@ -67,6 +67,67 @@ describe('EnvironmentMountService', () => {
     iamService = await container.find('iamService');
   });
 
+  describe('getAllStatements helper method', () => {
+    it('should return listStatement, getStatement, putStatement, and secureTransportStatement', async () => {
+      // BUILD
+      const s3BucketName = 'somebucket';
+      const s3Prefix = 'someprefix';
+      const expectedStatements = [
+        {
+          Sid: `List:${s3Prefix}`,
+          Effect: 'Allow',
+          Principal: { AWS: [] },
+          Action: 's3:ListBucket',
+          Resource: `arn:aws:s3:::${s3BucketName}`,
+          Condition: {
+            StringLike: {
+              's3:prefix': [`${s3Prefix}*`],
+            },
+          },
+        },
+        {
+          Sid: `Get:${s3Prefix}`,
+          Effect: 'Allow',
+          Principal: { AWS: [] },
+          Action: ['s3:GetObject'],
+          Resource: [`arn:aws:s3:::${s3BucketName}/${s3Prefix}*`],
+        },
+        {
+          Sid: `Put:${s3Prefix}`,
+          Effect: 'Allow',
+          Principal: { AWS: [] },
+          Action: [
+            's3:AbortMultipartUpload',
+            's3:ListMultipartUploadParts',
+            's3:PutObject',
+            's3:PutObjectAcl',
+            's3:DeleteObject',
+          ],
+          Resource: [`arn:aws:s3:::${s3BucketName}/${s3Prefix}*`],
+        },
+        {
+          Sid: 'Deny requests that do not use TLS/HTTPS',
+          Effect: 'Deny',
+          Principal: '*',
+          Action: 's3:*',
+          Resource: [`arn:aws:s3:::${s3BucketName}/*`, `arn:aws:s3:::${s3BucketName}`],
+          Condition: {
+            Bool: {
+              'aws:SecureTransport': 'false',
+            },
+          },
+        },
+      ];
+
+      // OPERATE
+      // eslint-disable-next-line prefer-const
+      let allStatements = service.getAllStatements(s3BucketName, s3Prefix);
+
+      // CHECK
+      expect(allStatements).toEqual(expectedStatements);
+    });
+  });
+
   describe('Update paths', () => {
     it('should call nothing if all are admin changes', async () => {
       // BUILD

@@ -170,57 +170,14 @@ class EnvironmentMountService extends Service {
         // Get statements for listing and reading study data, respectively
         const statements = s3Policy.Statement;
         s3Prefixes.forEach(prefix => {
+          // eslint-disable-next-line prefer-const
+          let [listStatement, getStatement, putStatement, secureTransportStatement] = this.getAllStatements(
+            s3BucketName,
+            prefix,
+          );
           const listSid = `List:${prefix}`;
           const getSid = `Get:${prefix}`;
           const putSid = `Put:${prefix}`;
-
-          // Define default statements to be used if we can't find existing ones
-          let listStatement = {
-            Sid: listSid,
-            Effect: 'Allow',
-            Principal: { AWS: [] },
-            Action: 's3:ListBucket',
-            Resource: `arn:aws:s3:::${s3BucketName}`,
-            Condition: {
-              StringLike: {
-                's3:prefix': [`${prefix}*`],
-              },
-            },
-          };
-          // Read Permission
-          let getStatement = {
-            Sid: getSid,
-            Effect: 'Allow',
-            Principal: { AWS: [] },
-            Action: ['s3:GetObject'],
-            Resource: [`arn:aws:s3:::${s3BucketName}/${prefix}*`],
-          };
-          // Write Permission
-          let putStatement = {
-            Sid: putSid,
-            Effect: 'Allow',
-            Principal: { AWS: [] },
-            Action: [
-              's3:AbortMultipartUpload',
-              's3:ListMultipartUploadParts',
-              's3:PutObject',
-              's3:PutObjectAcl',
-              's3:DeleteObject',
-            ],
-            Resource: [`arn:aws:s3:::${s3BucketName}/${prefix}*`],
-          };
-          const secureTransportStatement = {
-            Sid: 'Deny requests that do not use TLS/HTTPS',
-            Effect: 'Deny',
-            Principal: '*',
-            Action: 's3:*',
-            Resource: [`arn:aws:s3:::${s3BucketName}/*`, `arn:aws:s3:::${s3BucketName}`],
-            Condition: {
-              Bool: {
-                'aws:SecureTransport': 'false',
-              },
-            },
-          };
 
           // Pull out existing statements if available
           statements.forEach(statement => {
@@ -291,6 +248,63 @@ class EnvironmentMountService extends Service {
           .promise();
       }),
     ]);
+  }
+
+  getAllStatements(s3BucketName, prefix) {
+    const listSid = `List:${prefix}`;
+    const getSid = `Get:${prefix}`;
+    const putSid = `Put:${prefix}`;
+
+    // Define default statements to be used if we can't find existing ones
+    const listStatement = {
+      Sid: listSid,
+      Effect: 'Allow',
+      Principal: { AWS: [] },
+      Action: 's3:ListBucket',
+      Resource: `arn:aws:s3:::${s3BucketName}`,
+      Condition: {
+        StringLike: {
+          's3:prefix': [`${prefix}*`],
+        },
+      },
+    };
+    // Read Permission
+    const getStatement = {
+      Sid: getSid,
+      Effect: 'Allow',
+      Principal: { AWS: [] },
+      Action: ['s3:GetObject'],
+      Resource: [`arn:aws:s3:::${s3BucketName}/${prefix}*`],
+    };
+    // Write Permission
+    const putStatement = {
+      Sid: putSid,
+      Effect: 'Allow',
+      Principal: { AWS: [] },
+      Action: [
+        's3:AbortMultipartUpload',
+        's3:ListMultipartUploadParts',
+        's3:PutObject',
+        's3:PutObjectAcl',
+        's3:DeleteObject',
+      ],
+      Resource: [`arn:aws:s3:::${s3BucketName}/${prefix}*`],
+    };
+    // Secure Transport statement
+    const secureTransportStatement = {
+      Sid: 'Deny requests that do not use TLS/HTTPS',
+      Effect: 'Deny',
+      Principal: '*',
+      Action: 's3:*',
+      Resource: [`arn:aws:s3:::${s3BucketName}/*`, `arn:aws:s3:::${s3BucketName}`],
+      Condition: {
+        Bool: {
+          'aws:SecureTransport': 'false',
+        },
+      },
+    };
+
+    return [listStatement, getStatement, putStatement, secureTransportStatement];
   }
 
   /**

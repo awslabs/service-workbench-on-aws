@@ -58,7 +58,6 @@ class EditS3BucketPolicyService extends Service {
     await this.lockService.tryWriteLockAndRun({ id: s3LockKey }, async () => {
       // Get existing policy
       const s3Policy = JSON.parse((await this.s3Client.getBucketPolicy({ Bucket: s3BucketName }).promise()).Policy);
-      this.log.info(s3Policy);
 
       if (_.isEmpty(s3Policy)) {
         this.log.info(`No policy attached to ${s3BucketName}.`);
@@ -67,32 +66,26 @@ class EditS3BucketPolicyService extends Service {
 
       // Get statements
       const statements = s3Policy.Statement;
-      let oldStatement;
+      let newStatements;
 
       if (replacePattern === 'HTTPS') {
-        // Get TLS statement and remove from policy object
+        // Get TLS statement
         const tlsStatement = oldStatementSid;
-        statements.forEach((statement, index, object) => {
-          if (statement.Sid === tlsStatement) {
-            this.log.info(`Found statement ${tlsStatement}. Removing.`);
-            oldStatement = statement;
-            object.splice(index, 1);
-
-            // Edit old statement id and replace resource
-            oldStatement.Sid = newStatementSid;
-            this.log.info(`Found statement ${tlsStatement}. Replacing.`);
-            oldStatement.Resource = [oldStatement.Resource, oldStatement.Resource.split('/')[0]];
-          }
-        });
+        // Edit the TLS statement if found
+        newStatements = statements.map(statement =>
+          statement.Sid === tlsStatement
+            ? { ...statement, Sid: newStatementSid, Resource: [statement.Resource, statement.Resource.split('/')[0]] }
+            : { ...statement },
+        );
       }
 
       // Add other replacement patterns here
 
-      if (_.isUndefined(oldStatement)) {
+      if (_.isEqual(newStatements, statements)) {
         this.log.info(`No Statement found`);
       } else {
         // Update policy if there was a change
-        s3Policy.Statement.push(oldStatement);
+        s3Policy.Statement = newStatements;
         try {
           await this.s3Client.putBucketPolicy({ Bucket: s3BucketName, Policy: JSON.stringify(s3Policy) }).promise();
         } catch (error) {
