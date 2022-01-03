@@ -67,9 +67,15 @@ describe('cfn-template-service', () => {
       expect(updatedTemplate).toBeDefined();
 
       const parsedYaml = yamlParse(updatedTemplate);
-      expect(parsedYaml.Resources.Route53HostedZone).toBeDefined();
+      expect(parsedYaml.Resources.PolicyCfnStatus).toBeDefined();
+      expect(parsedYaml.Outputs.CrossAccountEnvMgmtRoleArn).toBeDefined();
+      expect(parsedYaml.Resources.CrossAccountRoleEnvMgmt.Properties.Policies.length).toEqual(1);
+      expect(
+        parsedYaml.Resources.CrossAccountEnvMgmtPermissionsBoundary.Properties.PolicyDocument.Statement.length,
+      ).toEqual(1);
 
       // AppStream resources and outputs should not be defined
+      expect(parsedYaml.Resources.Route53HostedZone).toBeUndefined();
       expect(parsedYaml.Resources.AppStreamFleet).toBeUndefined();
       expect(parsedYaml.Resources.AppStreamStack).toBeUndefined();
       expect(parsedYaml.Resources.AppStreamStackFleetAssociation).toBeUndefined();
@@ -97,10 +103,16 @@ describe('cfn-template-service', () => {
 
       // All resources should be available
       const parsedYaml = yamlParse(updatedTemplate);
+      expect(parsedYaml.Resources.CrossAccountRoleEnvMgmt.Properties.Policies.length).toEqual(2);
+      expect(
+        parsedYaml.Resources.CrossAccountEnvMgmtPermissionsBoundary.Properties.PolicyDocument.Statement.length,
+      ).toEqual(2);
+      expect(parsedYaml.Resources.PolicyCfnStatus).toBeDefined();
       expect(parsedYaml.Resources.Route53HostedZone).toBeDefined();
       expect(parsedYaml.Resources.AppStreamFleet).toBeDefined();
       expect(parsedYaml.Resources.AppStreamStack).toBeDefined();
       expect(parsedYaml.Resources.AppStreamStackFleetAssociation).toBeDefined();
+      expect(parsedYaml.Outputs.CrossAccountEnvMgmtRoleArn).toBeDefined();
       expect(parsedYaml.Outputs.AppStreamFleet).toBeDefined();
       expect(parsedYaml.Outputs.AppStreamStack).toBeDefined();
     });

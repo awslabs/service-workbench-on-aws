@@ -18,6 +18,95 @@ Resources:
         - VPCId: !Ref VPC
           VPCRegion: !Ref "AWS::Region"
 
+  CrossAccountRoleEnvMgmt:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Join ['-', [Ref: Namespace, 'xacc-env-mgmt']]
+      Path: '/'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              AWS:
+                - !Join [':', ['arn:aws:iam:', Ref: CentralAccountId, 'root']]
+                - !Ref ApiHandlerArn
+                - !Ref WorkflowRoleArn
+            Action:
+              - 'sts:AssumeRole'
+            Condition:
+              StringEquals:
+                sts:ExternalId: !Ref ExternalId
+      Policies:
+        - PolicyName: iam-role-access
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - iam:CreateRole
+                  - iam:TagRole
+                  - iam:GetRolePolicy
+                  - iam:PutRolePolicy
+                  - iam:DeleteRolePolicy
+                  - iam:ListRolePolicies
+                  - iam:ListAttachedRolePolicies
+                  - iam:UpdateAssumeRolePolicy
+                  - iam:UpdateRoleDescription
+                  - iam:AttachRolePolicy
+                  - iam:DetachRolePolicy
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${LaunchConstraintRolePrefix}LaunchConstraint'
+                  - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/*presigned-url-sagemaker-notebook-role'
+        - !If
+          - isAppStreamAndCustomDomain
+          - PolicyName: route53-access
+            PolicyDocument:
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - route53:ChangeResourceRecordSets
+                  Resource:
+                    - !Sub 'arn:aws:route53:::hostedzone/${Route53HostedZone}'
+          - !Ref 'AWS::NoValue'
+
+  CrossAccountEnvMgmtPermissionsBoundary:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Permission boundary for cross account EnvMgmt role
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - iam:GetGroup
+              - iam:GetRole
+              - iam:GetUser
+              - iam:ListGroups
+              - iam:ListRoles
+              - iam:ListUsers
+            Resource: '*' # These non-mutating IAM actions cover the permissions in managed policy AWSServiceCatalogAdminFullAccess
+          - !If
+            - isAppStreamAndCustomDomain
+            - Effect: Allow
+              Action:
+                - route53:ChangeResourceRecordSets
+              Resource:
+                - !Sub 'arn:aws:route53:::hostedzone/${Route53HostedZone}'
+            - !Ref 'AWS::NoValue'
+
+  PolicyCfnStatus:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Allows main account to onboard and check status of aws accounts
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - cloudformation:DescribeStacks
+              - cloudformation:GetTemplate
+            Resource: !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/initial-stack*'
+
   AppStreamFleet:
     Type: 'AWS::AppStream::Fleet'
     Condition: isAppStream

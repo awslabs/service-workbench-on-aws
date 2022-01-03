@@ -458,6 +458,7 @@ importers:
       node-cache: ^4.2.1
       node-fetch: ^2.6.0
       node-rsa: ^1.1.1
+      object-path: ^0.11.8
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
       request: ^2.88.2
@@ -481,6 +482,7 @@ importers:
       node-cache: 4.2.1
       node-fetch: 2.6.0
       node-rsa: 1.1.1
+      object-path: 0.11.8
       request: 2.88.2
       request-promise-native: 1.0.8_request@2.88.2
       uuid: 3.4.0
@@ -18051,6 +18053,11 @@ packages:
   /object-keys/1.1.1:
     resolution: {integrity: sha512-NuAESUOUMrlIXOfHKzD6bpPu3tYt3xvjNdRIQ+FeT0lNb4K8WR70CaDxhuNguS2XG+GjkyMwOzsN5ZktImfhLA==}
     engines: {node: '>= 0.4'}
+
+  /object-path/0.11.8:
+    resolution: {integrity: sha512-YJjNZrlXJFM42wTBn6zgOJVar9KFJvzx6sTWDte8sWZF//cnjl0BxHNpfZx+ZffXX63A9q0b1zsFiBX4g4X5KA==}
+    engines: {node: '>= 10.12.0'}
+    dev: false
 
   /object-visit/1.0.1:
     resolution: {integrity: sha1-95xEk68MU3e1n+OdOV5BBC3QRbs=}
