@@ -26,7 +26,8 @@
     },
     "email": {
       "type": "string",
-      "pattern": "^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$"
+      "maxLength": 512,
+      "format": "email"
     },
     "firstName": {
       "type": "string",
