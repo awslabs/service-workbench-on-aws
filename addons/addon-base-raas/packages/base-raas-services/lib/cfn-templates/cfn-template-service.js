@@ -60,7 +60,7 @@ class CfnTemplateService extends Service {
       const policies = _.get(doc, policiesPath);
       let index;
       for (let i = 0; i < policies.length; i += 1) {
-        // If statement with condition of 'isAppStream' or 'isAppStreamAndCustomDomain'
+        // If policies with condition of 'isAppStream' or 'isAppStreamAndCustomDomain'
         if (policies[i]['Fn::If'] && ['isAppStream', 'isAppStreamAndCustomDomain'].includes(policies[i]['Fn::If'][0])) {
           const elseClause = _.get(policies, `${i}.Fn::If.2.Ref`);
           if (elseClause === 'AWS::NoValue') {

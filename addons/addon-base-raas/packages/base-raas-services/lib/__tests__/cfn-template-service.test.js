@@ -69,6 +69,7 @@ describe('cfn-template-service', () => {
       const parsedYaml = yamlParse(updatedTemplate);
       expect(parsedYaml.Resources.PolicyCfnStatus).toBeDefined();
       expect(parsedYaml.Outputs.CrossAccountEnvMgmtRoleArn).toBeDefined();
+      // Only 1 policy, because policy with IF statement for AppStream was removed
       expect(parsedYaml.Resources.CrossAccountRoleEnvMgmt.Properties.Policies.length).toEqual(1);
       expect(
         parsedYaml.Resources.CrossAccountEnvMgmtPermissionsBoundary.Properties.PolicyDocument.Statement.length,
