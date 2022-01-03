@@ -170,9 +170,7 @@ class EnvironmentMountService extends Service {
         // Get statements for listing and reading study data, respectively
         const statements = s3Policy.Statement;
         s3Prefixes.forEach(prefix => {
-          // eslint-disable-next-line prefer-const
-          let allStatements = this.getAllStatements(s3BucketName, prefix);
-          // eslint-disable-next-line no-unused-vars
+          const allStatements = this.getAllStatements(s3BucketName, prefix);
           let [listStatement, getStatement, putStatement] = allStatements;
           const listSid = `List:${prefix}`;
           const getSid = `Get:${prefix}`;
