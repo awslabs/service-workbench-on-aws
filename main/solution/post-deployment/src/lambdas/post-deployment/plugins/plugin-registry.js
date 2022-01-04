@@ -32,6 +32,7 @@ const environmentScWfPlugin = require('@aws-ee/environment-sc-workflows/lib/plug
 const userIdUpgradeServicesPlugin = require('@aws-ee/user-id-upgrade-post-deployment/lib/plugins/services-plugin');
 const userIdUpgradeStepsPlugin = require('@aws-ee/user-id-upgrade-post-deployment/lib/plugins/steps-plugin');
 const updateCfnStackPolicyStepsPlugin = require('@aws-ee/cfn-stack-policy/lib/plugins/steps-plugin');
+const editS3BucketPolicyStepsPlugin = require('@aws-ee/edit-s3-bucket-policy/lib/plugins/edit-s3-bucket-policy-plugin');
 
 const servicesPlugin = require('./services-plugin');
 const stepsPlugin = require('./steps-plugin');
@@ -53,6 +54,7 @@ const extensionPoints = {
     stepsPlugin,
     userIdUpgradeStepsPlugin,
     updateCfnStackPolicyStepsPlugin,
+    editS3BucketPolicyStepsPlugin,
   ],
   'authentication-provider-type': [], // No plugins at this point. The built in authentication provider types are registered by "addon-base-rest-api/packages/services/lib/authentication-providers/authentication-provider-type-service.js" service
   'workflow-steps': [baseWfStepsPlugin, baseRaasWfStepsPlugin, environmentScWfStepsPlugin],
