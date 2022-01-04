@@ -47,7 +47,7 @@ function removeStack() {
     shouldStackBeRemoved $ASK_CONFIRMATION stackName shouldBeRemoved
 
     if [[ "$shouldBeRemoved" == "TRUE" && "$stackName" != "NO_STACK" ]]; then
-        emptyS3BucketsFromNames "DO_NOT_DELETE" ${bucket_names[@]}
+        emptyS3BucketsFromNames "DO_NOT_DELETE" "DONT_ASK_CONFIRMATION" ${bucket_names[@]}
         printf "\n- Removing Stack $COMPONENT_NAME ...\n"
         set +e
         $EXEC sls remove -s "$STAGE"
@@ -97,42 +97,54 @@ function shouldStackBeRemoved() {
 }
 
 function removeCfLambdaAssociations() {
-    local stackName
-    local __novar
-
-    cd "$SOLUTION_DIR/infrastructure"
-    shouldStackBeRemoved "DONT_ASK_CONFIRMATION" stackName __novar
-
-    if [[ "$stackName" != "NO_STACK" ]]; then
-
-        # Find information about the Cluodfront Distribution
-        local region=$(grep '^awsRegion:' --ignore-case <"$CONFIG_DIR/settings/$STAGE.yml" | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
-        local distributionId=$(aws cloudformation describe-stacks --stack-name "$stackName" --output text --region "$region" --query 'Stacks[0].Outputs[?OutputKey==`CloudFrontId`].OutputValue')
-
-        printf "\n-> Removing Edge Lambda Associations from Cloudfront Distribution $distributionId ..."
-
-        # Retrieve distribution configuration
-        local response=$(aws cloudfront get-distribution-config --id "$distributionId" | jq '.')
-
-        # Keep ETag for later, and save up-to-date configuration with no Lambda associations in a temporary json file
-        local ETag=$(jq '.ETag' <<<$response | tr -d \")
-        local distributionConfig=$(jq '.DistributionConfig' <<<$response)
-
-        currentAssociations=$(jq '.DefaultCacheBehavior.LambdaFunctionAssociations' <<<$distributionConfig)
-        jsonString='{ "Quantity": 0 }'
-        noAssociations=$(jq '.' <<<$jsonString)
-
-        if [[ "$currentAssociations" != "$jsonString" ]]; then
-            # Update Cloudfront Distribution
-            jq '.DefaultCacheBehavior.LambdaFunctionAssociations = { "Quantity": 0 }' <<<$distributionConfig >temp_cf_config.json
-            cmd=$(aws cloudfront update-distribution --distribution-config file://temp_cf_config.json --id $distributionId --if-match $ETag)
-            rm temp_cf_config.json
-            printf "Done !"
-        else
-            printf "\nNo need to update config. currentAssociations: $currentAssociations"
-        fi
-
+    set +e # Avoid interrupting this script in case of an exception
+    local lambdaFunctionName=$1
+    if [[ "$functionName" != "" ]]; then
+        aws lambda delete-function --function-name $lambdaFunctionName
     fi
+    set -e
+}
+
+function getCfLambdaAssociations() {
+
+    set +e # Avoid interrupting this script in case of an exception
+
+    # Find information about the Cloudfront Distribution
+    local region=$(grep '^awsRegion:' --ignore-case <"$CONFIG_DIR/settings/$STAGE.yml" | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
+    local aws_region_shortname=$(cat $CONFIG_DIR/settings/.defaults.yml | grep \'$region\' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015' | tr -d "'")
+    local solutionName=$(cat "$CONFIG_DIR/settings/$STAGE.yml" "$CONFIG_DIR/settings/.defaults.yml" | grep '^solutionName:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
+    local stackName="$STAGE-$aws_region_shortname-$solutionName-infrastructure"
+    local distributionId=$(aws cloudformation describe-stacks --stack-name "$stackName" --output text --region "$region" --query 'Stacks[0].Outputs[?OutputKey==`CloudFrontId`].OutputValue')
+
+    printf "\n-> Removing Edge Lambda Associations from Cloudfront Distribution $distributionId ..."
+
+    # Retrieve distribution configuration
+    local response=$(aws cloudfront get-distribution-config --id "$distributionId" | jq '.')
+
+    # Keep ETag for later, and save up-to-date configuration with no Lambda associations in a temporary json file
+    local ETag=$(jq '.ETag' <<<$response | tr -d \")
+    local distributionConfig=$(jq '.DistributionConfig' <<<$response)
+
+    currentAssociations=$(jq '.DefaultCacheBehavior.LambdaFunctionAssociations' <<<$distributionConfig)
+    jsonString='{ "Quantity": 0 }'
+    noAssociations=$(jq '.' <<<$jsonString)
+    local __funcName=""
+
+    if [[ "$currentAssociations" != "$jsonString" ]]; then
+        # Update Cloudfront Distribution
+        jq '.DefaultCacheBehavior.LambdaFunctionAssociations = { "Quantity": 0 }' <<<$distributionConfig >temp_cf_config.json
+        cmd=$(aws cloudfront update-distribution --distribution-config file://temp_cf_config.json --id $distributionId --if-match $ETag)
+        rm temp_cf_config.json
+        printf "\nCloudFront separated from Edge Lambda function.\n"
+        local edgeLambdaARN=$(jq -r '.Items[0].LambdaFunctionARN' <<<$currentAssociations)
+        __funcName="$(grep -o "$STAGE-[^:]*\b" <<<$edgeLambdaARN)"
+    else
+        printf "\nNo need to update config. currentAssociations: $currentAssociations"
+    fi
+
+    # Return-like statement
+    echo "$__funcName"
+    set -e
 }
 
 function emptyS3Bucket() {
@@ -181,49 +193,93 @@ function emptyS3Bucket() {
 }
 
 function emptyS3BucketsFromNames() {
-    local deleteBucket=$1
-    local buckets_to_remove=("${@:2}")
-    local aws_region="$(cat $CONFIG_DIR/settings/$STAGE.yml | grep 'awsRegion:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
-    local aws_region_shortname=$(cat $CONFIG_DIR/settings/.defaults.yml | grep \'$aws_region\' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015' | tr -d "'")
-    local solution_name="$(cat $CONFIG_DIR/settings/$STAGE.yml $CONFIG_DIR/settings/.defaults.yml | grep 'solutionName:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
-    local bucket_prefix="$STAGE-$aws_region_shortname-$solution_name"
 
-    for bucket_to_remove in "${buckets_to_remove[@]}"; do
-        local buckets_list=$(aws s3api list-buckets --query "Buckets[].Name" | jq '.[]' | sed 's/"//g')
-        local buckets_list=(${buckets_list[0]})
-        for bucket in "${buckets_list[@]}"; do
-            if [[ $bucket == *"$bucket_prefix-$bucket_to_remove" ]]; then
-                emptyS3Bucket $bucket $aws_region $deleteBucket
-            fi
+    set +e # Avoid interrupting this script in case an exception such as NoSuchBucket is raised.
+
+    local deleteBucket=$1
+    local ASK_CONFIRMATION=$2
+    local buckets_to_remove=("${@:3}")
+    local __shouldBeRemoved="FALSE"
+
+    if [ "$ASK_CONFIRMATION" != "DONT_ASK_CONFIRMATION" ]; then
+        printf "\nDo you want to remove the buckets ($buckets_to_remove) ? (y/n): "
+        read -r __confirmation
+        if [ "$__confirmation" == "y" ]; then
+            __shouldBeRemoved="TRUE"
+        fi
+    else
+        __shouldBeRemoved="TRUE"
+    fi
+
+    if [ "$__shouldBeRemoved" == "TRUE" ]; then
+        local aws_region="$(cat $CONFIG_DIR/settings/$STAGE.yml | grep 'awsRegion:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
+        local aws_region_shortname=$(cat $CONFIG_DIR/settings/.defaults.yml | grep \'$aws_region\' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015' | tr -d "'")
+        local solution_name="$(cat $CONFIG_DIR/settings/$STAGE.yml $CONFIG_DIR/settings/.defaults.yml | grep 'solutionName:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
+        local account_number=$(aws sts get-caller-identity --query Account --output text)
+        local bucket_prefix="$account_number-$STAGE-$aws_region_shortname-$solution_name"
+
+        for bucket_to_remove in "${buckets_to_remove[@]}"; do
+            local bucket="$bucket_prefix-$bucket_to_remove"
+            emptyS3Bucket $bucket $aws_region $deleteBucket
         done
-    done
+    fi
+
+    set -e
 }
 
 function removeSsmParams() {
-    local ASK_CONFIRMATION=$1
+
+    set +e
 
     local solutionName=$(cat "$CONFIG_DIR/settings/$STAGE.yml" "$CONFIG_DIR/settings/.defaults.yml" | grep '^solutionName:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
     local regionName=$(cat "$CONFIG_DIR/settings/$STAGE.yml" "$CONFIG_DIR/settings/.defaults.yml" | grep '^awsRegion:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
 
     printf "\n\n\n---- SSM Parameters"
-    local paramNames=("/$STAGE/$solutionName/jwt/secret" "/$STAGE/$solutionName/user/root/password" "/$STAGE/$solutionName/github/token")
-    local existing_params="$(aws ssm describe-parameters)"
+    local paramNames=("/$STAGE/$solutionName/jwt/secret" "/$STAGE/$solutionName/user/root/password")
 
-    local _confirmation="y"
     for param in "${paramNames[@]}"; do
-        if [[ $existing_params != *"$param"* ]]; then _confirmation="n"; fi
-
-        if [[ "$ASK_CONFIRMATION" != "DONT_ASK_CONFIRMATION" && "$_confirmation" == "y" ]]; then
-            printf "\nRemove param $param ? (y/n): "
-            read -r _confirmation
-        fi
-
-        if [[ "$_confirmation" == "y" ]]; then
-            set +e
-            aws ssm delete-parameter --region $regionName --name $param
-            set -e
-        fi
+        set +e
+        printf "\nDeleting param $param"
+        aws ssm delete-parameter --name $param > /dev/null
+        set -e
     done
+
+    set -e
+}
+
+function removeServiceCatalogPortfolio() {
+    set +e
+
+    local aws_region="$(cat $CONFIG_DIR/settings/$STAGE.yml | grep 'awsRegion:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
+    local aws_region_shortname=$(cat $CONFIG_DIR/settings/.defaults.yml | grep \'$aws_region\' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015' | tr -d "'")
+    local solutionName=$(cat "$CONFIG_DIR/settings/$STAGE.yml" "$CONFIG_DIR/settings/.defaults.yml" | grep '^solutionName:' -m 1 --ignore-case | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')
+    local portfolioId=$(aws dynamodb get-item --region $aws_region --table-name "$STAGE-$aws_region_shortname-$solutionName-DeploymentStore" --key '{"type": {"S": "default-sc-portfolio"}, "id": {"S": "default-SC-portfolio-1"}}' --output text | grep -o 'port-[^"]*\b')
+    
+    if [[ "$portfolioId" != "" ]]; then
+        local constraintIds=$(aws servicecatalog list-constraints-for-portfolio --region $aws_region --portfolio-id "$portfolioId" --query "ConstraintDetails[].ConstraintId" --output text)
+        constraintIds=(`echo ${constraintIds}`)
+        local productIds=$(aws servicecatalog list-constraints-for-portfolio --region $aws_region --portfolio-id "$portfolioId" --query "ConstraintDetails[].ProductId" --output text)
+        productIds=(`echo ${productIds}`)
+        local principals=$(aws servicecatalog list-principals-for-portfolio --region $aws_region --portfolio-id "$portfolioId" --query "Principals[].PrincipalARN" --output text)
+        principals=(`echo ${principals}`)
+        
+        for constraint in "${constraintIds[@]}"; do
+            aws servicecatalog --region $aws_region delete-constraint --id $constraint > /dev/null
+        done
+
+        for product in ${productIds[@]}; do
+            aws servicecatalog --region $aws_region disassociate-product-from-portfolio --product-id $product --portfolio-id $portfolioId > /dev/null
+            aws servicecatalog --region $aws_region delete-product --id $product > /dev/null
+        done
+
+        for principal in ${principals[@]}; do
+            aws servicecatalog --region $aws_region disassociate-principal-from-portfolio --portfolio-id $portfolioId --principal-arn $principal > /dev/null
+        done
+
+        aws servicecatalog --region $aws_region delete-portfolio --id $portfolioId > /dev/null
+    fi
+    
+    set -e
 }
 
 # Ask for confirmation to begin removal procedure
@@ -238,6 +294,10 @@ if [[ "$STAGE" != "$confirmation" ]]; then
 fi
 
 printf "\n\nStarting to clear the application for stage [$STAGE] ...\n"
+
+# -- Service Catalog portfolio
+printf "\n\n\n--- Removing associated Service Catalog portfolio\n"
+removeServiceCatalogPortfolio
 
 # -- UI
 printf "\n\n\n--- UI builds\n"
@@ -262,6 +322,7 @@ removeStack "Pre-Deployment" "$SOLUTION_DIR/pre-deployment" "DONT_ASK_CONFIRMATI
 
 # -- Infrastructure stack
 printf "\n\n\n--- Infrastructure stack"
+edgeLambdaFunctionName=$(getCfLambdaAssociations)
 buckets=("website" "logging")
 removeStack "Infrastructure" "$SOLUTION_DIR/infrastructure" "DONT_ASK_CONFIRMATION" ${buckets[@]}
 
@@ -270,15 +331,11 @@ printf "\n\n\n--- Master-Account-Role stack"
 buckets=("raas-master-artifacts")
 removeStack "Prep-Master-Account" "$SOLUTION_DIR/prepare-master-acc" "DONT_ASK_CONFIRMATION"
 # The '-raas-master-artifacts' bucket is the deployment bucket and has to be removed after the stack deletion
-emptyS3BucketsFromNames "DELETE_AFTER_EMPTYING" ${buckets[@]}
+emptyS3BucketsFromNames "DELETE_AFTER_EMPTYING" "DONT_ASK_CONFIRMATION" ${buckets[@]}
 
 # -- Machine images
 printf "\n\n\n--- Machine Images stack"
 removeStack "Machine-Images" "$SOLUTION_DIR/machine-images" "DONT_ASK_CONFIRMATION"
-
-# -- Lambda@edge associations in Cloudfront (if Cloudfront has not been deleted yet)
-printf "\n\n\n--- Edge Lambda Associations in Cloudfront Distribution\n"
-removeCfLambdaAssociations
 
 # -- CICD
 printf "\n\n\n--- CICD"
@@ -289,20 +346,26 @@ removeStack "CICD-Source" "$SOLUTION_ROOT_DIR/main/cicd/cicd-source" "ASK_CONFIR
 # -- Deployment buckets
 printf "\n\n\n--- Deployment buckets"
 buckets=("artifacts")
-emptyS3BucketsFromNames "DELETE_AFTER_EMPTYING" ${buckets[@]}
+emptyS3BucketsFromNames "DELETE_AFTER_EMPTYING" "ASK_CONFIRMATION" ${buckets[@]}
 
 # -- SSM parameters
-removeSsmParams "ASK_CONFIRMATION"
+removeSsmParams
+
+# -- Lambda@edge associations in Cloudfront (if Cloudfront has not been deleted yet)
+printf "\n\n\n--- Edge Lambda Associations in Cloudfront Distribution\n"
+removeCfLambdaAssociations $edgeLambdaFunctionName
 
 printf "\n\n*******************************************************************"
 printf "\n*****     ----- ENVIRONMENT DELETED SUCCESSFULLY  🎉!! -----     *****"
 printf "\n*******************************************************************"
 printf "\nYou still have to remove the following elements :"
 printf "\n  -[Edge lambda]: It can be deleted manually in 1 hour,"
-printf "\n     see it at https://console.aws.amazon.com/lambda"
-printf "\n  -[Consumer Accounts]: The resources deployed on your"
-printf "\n     AWS consumer accounts will still be there."
-printf "\n     see at "
+printf "\n     Navigate here on the main account:"
+printf "\n       https://console.aws.amazon.com/lambda"
+printf "\n  -[Consumer Accounts]: The stacks and resources deployed on your"
+printf "\n     hosting accounts are not deleted as part of this script"
+printf "\n     Navigate here on those accounts:"
 printf "\n       https://console.aws.amazon.com/ec2/v2/home,"
 printf "\n       https://console.aws.amazon.com/sagemaker/home"
+printf "\n       https://console.aws.amazon.com/cloudformation"
 printf "\n\n\n"

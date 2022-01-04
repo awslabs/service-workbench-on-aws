@@ -20,6 +20,7 @@ jest.mock('@aws-ee/base-services/lib/db-service');
 jest.mock('@aws-ee/base-services/lib/lock/lock-service');
 jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
 jest.mock('../../environment/service-catalog/environment-sc-service');
+jest.mock('@aws-ee/base-services/lib/user/user-service');
 
 const AWSMock = require('aws-sdk-mock');
 const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
@@ -28,6 +29,7 @@ const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-sche
 const DbServiceMock = require('@aws-ee/base-services/lib/db-service');
 const AuditWriterService = require('@aws-ee/base-services/lib/audit/audit-writer-service');
 const S3Service = require('@aws-ee/base-services/lib/s3-service');
+const UserService = require('@aws-ee/base-services/lib/user/user-service');
 const LockService = require('@aws-ee/base-services/lib/lock/lock-service');
 const EnvironmentScService = require('../../environment/service-catalog/environment-sc-service');
 const DataEgressService = require('../data-egress-service');
@@ -50,6 +52,7 @@ describe('DataEgressService', () => {
   let lockService;
   let dbService;
   let auditWriterService;
+  let userService;
 
   const testS3PolicyFn = () => {
     return {
@@ -103,6 +106,7 @@ describe('DataEgressService', () => {
     container.register('lockService', new LockService());
     container.register('environmentScService', new EnvironmentScService());
     container.register('dataEgressService', new DataEgressService());
+    container.register('userService', new UserService());
     await container.initServices();
 
     // Get instance of the service we are testing
@@ -115,6 +119,7 @@ describe('DataEgressService', () => {
     lockService = await container.find('lockService');
     dbService = await dataEgressService.service('dbService');
     auditWriterService = await container.find('auditWriterService');
+    userService = await container.find('userService');
   });
 
   afterEach(() => {
@@ -944,6 +949,16 @@ describe('DataEgressService', () => {
         callback(null, {});
       });
 
+      userService.mustFindUser = jest.fn(({ uid }) => {
+        if (uid === 'createdBy') {
+          return { email: 'sampleCreatedByUser@example.com' };
+        }
+        if (uid === 'updatedBy') {
+          return { email: 'sampledUpdateByUser@example.com' };
+        }
+        return '';
+      });
+
       dbService.table.get.mockResolvedValue(mockEgressStoreInfo);
       const mockRequestContext = { principalIdentifier: { uid: 'createdBy' } };
       dataEgressService.lockAndUpdate = jest.fn();
@@ -958,6 +973,7 @@ describe('DataEgressService', () => {
           body: {
             created_at: 'createdAt',
             created_by: 'createdBy',
+            created_by_email: 'sampleCreatedByUser@example.com',
             egress_store_id: 'id',
             egress_store_name: 'egressStoreName',
             egress_store_object_list_location:
@@ -969,6 +985,7 @@ describe('DataEgressService', () => {
             status: 'PENDING',
             updated_at: expect.anything(),
             updated_by: 'createdBy',
+            updated_by_email: 'sampleCreatedByUser@example.com',
             ver: 1,
             workspace_id: 'workspaceId',
           },

@@ -21,6 +21,9 @@ selectedSteps:
   - stepTemplateId: st-share-portfolio-with-target-acc
     stepTemplateVer: 1
     id: wf-step_3_1576783029739_23
+  - stepTemplateId: st-check-launch-dependency
+    stepTemplateVer: 1
+    id: wf-step_4_1576783029739_24
   - stepTemplateId: st-launch-product
     stepTemplateVer: 1
     id: wf-step_5_1576783029739_25

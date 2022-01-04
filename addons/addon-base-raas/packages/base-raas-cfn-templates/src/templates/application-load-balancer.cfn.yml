@@ -1,0 +1,191 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: Service-Workbench-on-AWS ALB for RStudio IDE
+
+Parameters:
+  Namespace:
+    Type: String
+    Description: An environment name that will be prefixed to resource names
+  VPC:
+    Description: The VPC in which the ALB will reside
+    Type: AWS::EC2::VPC::Id
+  ACMSSLCertARN:
+    Type: String
+    Description: The ARN of the AWS Certificate Manager SSL Certificate to associate with the Load Balancer
+  IsAppStreamEnabled:
+    Type: String
+    AllowedValues: [true, false]
+    Description: Is AppStream enabled for this workspace
+  AppStreamSG:
+    Type: String
+    Description: AppStream Security Group ID
+  PublicRouteTableId:
+    Type: String
+    Description: Public Route Table ID
+  LoggingBucket:
+    Type: String
+    Description: Bucket for ELB Logs
+
+  # For an ALB - You must specify subnets from at least two Availability Zones.
+  # AWS recommends Availability Zone subnet for your load balancer to have a CIDR block with at least a /27 bitmask
+  # Assigning bitmask of /25 to be safe and allow 128 hosts per subnet
+  # Keeping non-overlapping between public/private CIDR ranges to account for failed non-AppStream env termination
+
+  # Range from 10.0.96.0 to 10.0.96.127
+  PublicSubnet1Cidr:
+    Type: String
+    Default: 10.0.96.0/25
+
+  # Range from 10.0.96.128 to 10.0.96.255
+  PublicSubnet2Cidr:
+    Type: String
+    Default: 10.0.96.128/25
+
+  # Range from 10.0.97.0 to 10.0.97.127
+  PrivateSubnet1Cidr:
+    Type: String
+    Default: 10.0.97.0/25
+
+  # Range from 10.0.97.128 to 10.0.97.255
+  PrivateSubnet2Cidr:
+    Type: String
+    Default: 10.0.97.128/25
+
+Conditions:
+  AppStreamEnabled: !Equals [!Ref IsAppStreamEnabled, 'true']
+  AppStreamDisabled: !Equals [!Ref IsAppStreamEnabled, 'false']
+
+Resources:
+  PublicSubnet1:
+    Type: AWS::EC2::Subnet
+    Condition: AppStreamDisabled
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs ]
+      CidrBlock: !Ref PublicSubnet1Cidr
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${Namespace} ALB public subnet 1
+
+  PublicSubnet2:
+    Type: AWS::EC2::Subnet
+    Condition: AppStreamDisabled
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !GetAZs ]
+      CidrBlock: !Ref PublicSubnet2Cidr
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${Namespace} ALB public subnet 2
+
+  PublicSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: AppStreamDisabled
+    Properties:
+      RouteTableId: !Ref PublicRouteTableId
+      SubnetId: !Ref PublicSubnet1
+
+  PublicSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Condition: AppStreamDisabled
+    Properties:
+      RouteTableId: !Ref PublicRouteTableId
+      SubnetId: !Ref PublicSubnet2
+
+  AppStreamSecurityGroupEgress:
+    Type: AWS::EC2::SecurityGroupEgress
+    Condition: AppStreamEnabled
+    Properties:
+      GroupId: !Ref AppStreamSG
+      DestinationSecurityGroupId: !Ref ALBSecurityGroup
+      Description: 'Allow AppStream egress to ALB'
+      IpProtocol: '-1'
+
+  PrivateSubnet1:
+    Type: AWS::EC2::Subnet
+    Condition: AppStreamEnabled
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [0, !GetAZs '']
+      CidrBlock: !Ref PrivateSubnet1Cidr
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${Namespace} ALB private subnet 1
+
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Condition: AppStreamEnabled
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [1, !GetAZs '']
+      CidrBlock: !Ref PrivateSubnet2Cidr
+      MapPublicIpOnLaunch: false
+      Tags:
+        - Key: Name
+          Value: !Sub ${Namespace} ALB private subnet 2
+
+  ALBListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      DefaultActions:
+        - Type: fixed-response
+          FixedResponseConfig:
+            ContentType: 'text/plain'
+            MessageBody: 'Forbidden'
+            StatusCode: '403'
+      LoadBalancerArn:
+        Ref: ApplicationLoadBalancer
+      Port: 443
+      Protocol: HTTPS
+      SslPolicy: ELBSecurityPolicy-2016-08
+      Certificates:
+        - CertificateArn: !Ref ACMSSLCertARN
+
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Ref Namespace
+      Scheme: !If [AppStreamEnabled, 'internal', 'internet-facing']
+      Subnets:
+        !If [AppStreamEnabled, [!Ref PrivateSubnet1, !Ref PrivateSubnet2], [!Ref PublicSubnet1, !Ref PublicSubnet2]]
+      SecurityGroups:
+        - Ref: ALBSecurityGroup
+      LoadBalancerAttributes:
+        - Key: 'access_logs.s3.enabled'
+          Value: 'true'
+        - Key: 'access_logs.s3.bucket'
+          Value: !Ref LoggingBucket
+        - Key: 'access_logs.s3.prefix'
+          Value: 'elb'
+
+  ALBSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      SecurityGroupIngress:
+        - !If
+          - AppStreamEnabled
+          - SourceSecurityGroupId: !Ref AppStreamSG
+            IpProtocol: '-1'
+          - CidrIp: '0.0.0.0/0'
+            FromPort: 443
+            ToPort: 443
+            IpProtocol: tcp
+      GroupDescription: ALB SecurityGroup
+      VpcId: !Ref VPC
+
+Outputs:
+  LoadBalancerArn:
+    Description: ARN of Application Load Balancer
+    Value: !Ref ApplicationLoadBalancer
+  ALBDNSName:
+    Description: DNS Name of Application Load Balancer
+    Value: !GetAtt ApplicationLoadBalancer.DNSName
+  ListenerArn:
+    Description: ARN of Application Load Balancer Listener
+    Value: !Ref ALBListener
+  ALBSecurityGroupId:
+    Description: Security Group of Application Load Balancer Listener
+    Value: !Ref ALBSecurityGroup

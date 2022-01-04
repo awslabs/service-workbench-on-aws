@@ -18,7 +18,7 @@ function terminateWorkspaces() {
   //  If there are workspaces, the cards will contain the word "Workspace" in the details table ("Workspace Type" in full)
   //  If there are not any workspaces, the displayed message is "No research workspaces"
   //  Both cases will be caught with this contains as it is case insensitive and doesn't match whole words
-  cy.get('[data-testid=workspaces]').contains('CypressTest', { matchCase: false });
+  cy.get('[data-testid=workspaces]').contains('workspace', { matchCase: false });
   cy.get('#root').then($body => {
     if ($body.find('[data-testid=sc-env-terminate]').length > 0) {
       cy.get('#root')
@@ -28,6 +28,8 @@ function terminateWorkspaces() {
           cy.get('.modals')
             .contains('Terminate')
             .click();
+          // eslint-disable-next-line cypress/no-unnecessary-waiting
+          cy.wait(3000);
         });
     }
   });
@@ -106,9 +108,28 @@ function checkDetailsTable(workspaceName) {
     .get('[data-testid=environment-card-details-table]')
     .contains('Instance Type');
 }
+
+function checkWorkspaceAvailableAndClickConnectionsButton(workspaceName) {
+  cy.contains(workspaceName)
+    .parent()
+    .contains('AVAILABLE', { timeout: 900000 });
+  cy.contains(workspaceName)
+    .parent()
+    .find('[data-testid=sc-environment-connection-button]')
+    .click();
+}
+
+function checkWorkspaceAvailable(workspaceName) {
+  cy.contains(workspaceName)
+    .parent()
+    .contains('AVAILABLE', { timeout: 1000000 });
+}
+
 module.exports = {
   terminateWorkspaces,
   launchWorkspace,
   navigateToWorkspaces,
   checkDetailsTable,
+  checkWorkspaceAvailableAndClickConnectionsButton,
+  checkWorkspaceAvailable,
 };

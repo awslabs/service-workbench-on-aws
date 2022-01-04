@@ -18,6 +18,10 @@ const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-sche
 const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
 const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
 
+jest.mock('../../../alb/alb-service');
+
+jest.mock('../../../indexes/indexes-service');
+
 // Mocked dependencies
 jest.mock('@aws-ee/base-services/lib/authorization/authorization-service');
 const AuthServiceMock = require('@aws-ee/base-services/lib/authorization/authorization-service');
@@ -30,6 +34,8 @@ const AuditServiceMock = require('@aws-ee/base-services/lib/audit/audit-writer-s
 
 jest.mock('@aws-ee/base-services/lib/lock/lock-service');
 const LockServiceMock = require('@aws-ee/base-services/lib/lock/lock-service');
+const IndexServiceMock = require('../../../indexes/indexes-service');
+const ALBService = require('../../../alb/alb-service');
 
 jest.mock('../../environment-authz-service.js');
 const EnvironmentAuthZServiceMock = require('../../environment-authz-service.js');
@@ -53,6 +59,8 @@ describe('EnvironmentScCidrService', () => {
     container.register('jsonSchemaValidationService', new JsonSchemaValidationService());
     container.register('log', new Logger());
     container.register('lockService', new LockServiceMock());
+    container.register('albService', new ALBService());
+    container.register('indexesService', new IndexServiceMock());
     container.register('aws', new AwsService());
     container.register('auditWriterService', new AuditServiceMock());
     container.register('settings', new SettingsServiceMock());
@@ -351,6 +359,12 @@ describe('EnvironmentScCidrService', () => {
           },
         ],
       };
+      service.modifyELBRule = jest.fn().mockImplementation(() => {
+        return {
+          productName: 'RStudioV2',
+          cloneUpdateRequest: "{cidrBlocks: ['123.123.123.123/32']",
+        };
+      });
       service.assertAuthorized.mockImplementationOnce(() => {
         throw new Error('User is not authorized');
       });
@@ -412,6 +426,13 @@ describe('EnvironmentScCidrService', () => {
         return {};
       });
 
+      service.modifyELBRule = jest.fn().mockImplementation(() => {
+        return {
+          productName: 'RStudioV2',
+          cloneUpdateRequest: JSON.stringify({ cidrBlocks: ['123.123.123.123/32'] }),
+        };
+      });
+
       // OPERATE
       await service.update(requestContext, params);
 
@@ -456,7 +477,12 @@ describe('EnvironmentScCidrService', () => {
       }));
       service.revokeSecurityGroupIngress = jest.fn();
       service.authorizeSecurityGroupIngress = jest.fn();
-
+      service.modifyELBRule = jest.fn().mockImplementation(() => {
+        return {
+          productName: 'RStudioV2',
+          cloneUpdateRequest: JSON.stringify({ cidrBlocks: ['123.123.123.123/32'] }),
+        };
+      });
       // OPERATE
       try {
         await service.update(requestContext, params);
@@ -493,7 +519,12 @@ describe('EnvironmentScCidrService', () => {
         currentIngressRules,
         securityGroupId,
       }));
-
+      service.modifyELBRule = jest.fn().mockImplementation(() => {
+        return {
+          productName: 'RStudioV2',
+          cloneUpdateRequest: JSON.stringify({ cidrBlocks: ['123.123.123.123/32'] }),
+        };
+      });
       try {
         await service.update(requestContext, params);
         expect.hasAssertions();
@@ -501,6 +532,48 @@ describe('EnvironmentScCidrService', () => {
         expect(err.message).toEqual(
           'The Security Group for this workspace does not contain any ingress rules configured in the Service Catalog product template',
         );
+      }
+    });
+
+    it('should not call anything since request has invalid port numbers', async () => {
+      // BUILD
+      const requestContext = {};
+      let params = {
+        id: 'testId',
+        updateRequest: [
+          {
+            protocol: 'tcp',
+            fromPort: 65536,
+            toPort: 65536,
+            cidrBlocks: ['123.123.123.123/32'],
+          },
+        ],
+      };
+      // OPERATE
+      try {
+        await service.update(requestContext, params);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(err.message).toEqual('Input has validation errors');
+      }
+
+      params = {
+        id: 'testId',
+        updateRequest: [
+          {
+            protocol: 'tcp',
+            fromPort: -10,
+            toPort: -10,
+            cidrBlocks: ['123.123.123.123/32'],
+          },
+        ],
+      };
+      // OPERATE
+      try {
+        await service.update(requestContext, params);
+        expect.hasAssertions();
+      } catch (err) {
+        expect(err.message).toEqual('Input has validation errors');
       }
     });
 
@@ -541,7 +614,12 @@ describe('EnvironmentScCidrService', () => {
       service.revokeSecurityGroupIngress.mockImplementationOnce(() => {
         throw new Error('An unknown error occurred while revoking ingress rules');
       });
-
+      service.modifyELBRule = jest.fn().mockImplementation(() => {
+        return {
+          productName: 'RStudioV2',
+          cloneUpdateRequest: JSON.stringify({ cidrBlocks: ['123.123.123.123/32'] }),
+        };
+      });
       // OPERATE
       try {
         await service.update(requestContext, params);
@@ -589,7 +667,12 @@ describe('EnvironmentScCidrService', () => {
       service.authorizeSecurityGroupIngress.mockImplementationOnce(() => {
         throw new Error('An unknown error occurred while authorizing ingress rules');
       });
-
+      service.modifyELBRule = jest.fn().mockImplementation(() => {
+        return {
+          productName: 'RStudioV2',
+          cloneUpdateRequest: JSON.stringify({ cidrBlocks: ['123.123.123.123/32'] }),
+        };
+      });
       // OPERATE
       try {
         await service.update(requestContext, params);
@@ -647,7 +730,12 @@ describe('EnvironmentScCidrService', () => {
       service.getEc2Client = jest.fn(() => {
         return {};
       });
-
+      service.modifyELBRule = jest.fn().mockImplementation(() => {
+        return {
+          productName: 'RStudioV2',
+          cloneUpdateRequest: JSON.stringify({ cidrBlocks: ['123.123.123.123/32'] }),
+        };
+      });
       // OPERATE
       await service.update(requestContext, params);
 
@@ -705,7 +793,12 @@ describe('EnvironmentScCidrService', () => {
       service.getEc2Client = jest.fn(() => {
         return {};
       });
-
+      service.modifyELBRule = jest.fn().mockImplementation(() => {
+        return {
+          productName: 'RStudioV2',
+          cloneUpdateRequest: JSON.stringify({ cidrBlocks: ['123.123.123.123/32'] }),
+        };
+      });
       // OPERATE
       await service.update(requestContext, params);
 
@@ -767,7 +860,12 @@ describe('EnvironmentScCidrService', () => {
       service.getEc2Client = jest.fn(() => {
         return {};
       });
-
+      service.modifyELBRule = jest.fn().mockImplementation(() => {
+        return {
+          productName: 'RStudioV2',
+          cloneUpdateRequest: JSON.stringify({ cidrBlocks: ['123.123.123.123/32'] }),
+        };
+      });
       // OPERATE
       await service.update(requestContext, params);
 
@@ -812,13 +910,134 @@ describe('EnvironmentScCidrService', () => {
       }));
       service.revokeSecurityGroupIngress = jest.fn();
       service.authorizeSecurityGroupIngress = jest.fn();
-
+      service.modifyELBRule = jest.fn().mockImplementation(() => {
+        return {
+          productName: 'RStudioV2',
+          cloneUpdateRequest: JSON.stringify({ cidrBlocks: ['123.123.123.123/32'] }),
+        };
+      });
       // OPERATE
       await service.update(requestContext, params);
 
       // CHECK
       expect(service.revokeSecurityGroupIngress).not.toHaveBeenCalled();
       expect(service.authorizeSecurityGroupIngress).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('modifyELBRule', () => {
+    it('should pass and return the product name and cloned update request', async () => {
+      const updateRequest = [
+        { protocol: 'tcp', fromPort: 22, toPort: 22, cidrBlocks: ['0.0.0.0/0'] },
+        { protocol: 'tcp', fromPort: 80, toPort: 80, cidrBlocks: ['0.0.0.0/0'] },
+        { protocol: 'tcp', fromPort: 443, toPort: 443, cidrBlocks: ['0.0.0.0/0', '223.226.19.63/32'] },
+      ];
+      const existingEnvironment = {
+        outputs: [
+          { OutputKey: 'MetaConnection1Type', OutputValue: 'RStudioV2' },
+          { OutputKey: 'ListenerRuleARN', OutputValue: 'ListenerRuleARN' },
+        ],
+      };
+      const responseObj = {
+        productName: 'RStudioV2',
+        cloneUpdateRequest: JSON.stringify(updateRequest),
+      };
+      const albService = {
+        modifyRule: jest.fn(),
+      };
+      albService.modifyRule = jest.fn().mockImplementation(() => {
+        return {};
+      });
+      const response = await service.modifyELBRule(existingEnvironment, updateRequest, albService, {});
+      expect(response).toEqual(responseObj);
+    });
+  });
+
+  describe('authorizeIngressRuleWithSecurityGroup', () => {
+    it('should call authorize security group', async () => {
+      const updateRule = {
+        fromPort: 443,
+        toPort: 443,
+        protocol: 'tcp',
+        groupId: 'alb-groupId',
+      };
+      const expectedParam = {
+        GroupId: 'instance-groupId',
+        IpPermissions: [
+          {
+            FromPort: 443,
+            ToPort: 443,
+            IpProtocol: 'tcp',
+            UserIdGroupPairs: [
+              {
+                GroupId: 'alb-groupId',
+              },
+            ],
+          },
+        ],
+      };
+      service.authorizeSecurityGroupIngress = jest.fn();
+      service.getEc2Client = jest.fn(() => {
+        return {};
+      });
+      await service.authorizeIngressRuleWithSecurityGroup({}, 'envId', updateRule, 'instance-groupId');
+      expect(service.authorizeSecurityGroupIngress).toHaveBeenCalledWith({}, expectedParam);
+    });
+
+    it('should throw error when authorize scurity group fails', async () => {
+      service.authorizeSecurityGroupIngress = jest.fn(() => {
+        throw new Error('Security group update failed');
+      });
+      service.getEc2Client = jest.fn(() => {
+        return {};
+      });
+      await expect(service.authorizeIngressRuleWithSecurityGroup({}, 'envId', {}, 'groupId')).rejects.toThrow(
+        'Instance security group update failed with message - Security group update failed',
+      );
+    });
+  });
+
+  describe('revokeIngressRuleWithSecurityGroup', () => {
+    it('should call revoke security group', async () => {
+      const updateRule = {
+        fromPort: 443,
+        toPort: 443,
+        protocol: 'tcp',
+        groupId: 'alb-groupId',
+      };
+      const expectedParam = {
+        GroupId: 'instance-groupId',
+        IpPermissions: [
+          {
+            FromPort: 443,
+            ToPort: 443,
+            IpProtocol: 'tcp',
+            UserIdGroupPairs: [
+              {
+                GroupId: 'alb-groupId',
+              },
+            ],
+          },
+        ],
+      };
+      service.revokeSecurityGroupIngress = jest.fn();
+      service.getEc2Client = jest.fn(() => {
+        return {};
+      });
+      await service.revokeIngressRuleWithSecurityGroup({}, 'envId', updateRule, 'instance-groupId');
+      expect(service.revokeSecurityGroupIngress).toHaveBeenCalledWith({}, expectedParam);
+    });
+
+    it('should throw error when authorize scurity group fails', async () => {
+      service.revokeSecurityGroupIngress = jest.fn(() => {
+        throw new Error('Security group update failed');
+      });
+      service.getEc2Client = jest.fn(() => {
+        return {};
+      });
+      await expect(service.revokeIngressRuleWithSecurityGroup({}, 'envId', {}, 'groupId')).rejects.toThrow(
+        'Instance security group update failed with message - Security group update failed',
+      );
     });
   });
 });

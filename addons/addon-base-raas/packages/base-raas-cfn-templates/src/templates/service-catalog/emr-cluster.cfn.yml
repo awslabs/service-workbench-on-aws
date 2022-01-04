@@ -120,6 +120,26 @@ Resources:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
+      VersioningConfiguration:
+        Status: Enabled
+
+  LogBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Properties:
+      Bucket: !Ref LogBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: Deny requests that do not use TLS/HTTPS
+            Effect: Deny
+            Principal: '*'
+            Action: s3:*
+            Resource:
+              - !Join ['/', [!GetAtt LogBucket.Arn, '*']]
+              - !GetAtt LogBucket.Arn
+            Condition:
+              Bool:
+                aws:SecureTransport: false
 
   MasterSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -195,6 +215,7 @@ Resources:
                 Action: 's3:GetObject'
                 Resource:
                   - !Sub 'arn:aws:s3:::${AWS::Region}.elasticmapreduce/bootstrap-actions/run-if'
+                  - 'arn:aws:s3:::elasticmapreduce/bootstrap-actions/log4j/patch-log4j-emr-5.27.1-v1.sh'
                   - !Sub
                     - 'arn:aws:s3:::${S3Location}/*'
                     # Remove "s3://" prefix from EnvironmentInstanceFiles
@@ -273,6 +294,9 @@ Resources:
             Args:
               - !Ref EnvironmentInstanceFiles
               - !Ref S3Mounts
+        - Name: Patch-Log-4j
+          ScriptBootstrapAction:
+            Path: 's3://elasticmapreduce/bootstrap-actions/log4j/patch-log4j-emr-5.27.1-v1.sh'
       CustomAmiId:
         Ref: AmiId
       Configurations:
@@ -343,7 +367,7 @@ Resources:
           Value: !Sub '${Namespace}-emr'
       ServiceRole:
         Ref: ServiceRole
-      ReleaseLabel: emr-5.27.0
+      ReleaseLabel: emr-5.27.1 # Make sure to change/remove the S3 location from Patch-Log-4j bootstrap if changing the release label
       # This has to be true because we assume a new user each time.
       VisibleToAllUsers: true
       SecurityConfiguration: !Ref EmrSecurityConfiguration

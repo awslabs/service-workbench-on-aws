@@ -10,6 +10,8 @@ Conditions:
     - !Equals ['${self:custom.settings.sourceAccountId}', '']
   CreateStagingEnv: !Equals ['${self:custom.settings.createStagingEnv}', true]
   RunTestsAgainstTargetEnv: !Equals ['${self:custom.settings.runTestsAgainstTargetEnv}', true]
+  DeleteTargetEnv: !Equals ['${self:custom.settings.deleteAfterInstall}', true]
+  PreventCollision: !Equals ['${self:custom.settings.preventCollision}', true]
   AddManualApproval: !Equals ['${self:custom.settings.requireManualApproval}', true]
   SubscribeNotificationEmail: !Not
     - !Equals ['${self:custom.settings.emailForNotifications}', '']
@@ -193,6 +195,17 @@ Resources:
                   - !GetAtt TestStgEnvProject.Arn
                   - !GetAtt TargetEnvDeployProject.Arn
                   - !GetAtt TestTargetEnvProject.Arn
+                  - !If
+                    - DeleteTargetEnv
+                    - !GetAtt DeleteTargetEnvProject.Arn
+                    - !Ref AWS::NoValue
+                  - !If
+                    - DeleteTargetEnv
+                    - !If
+                      - PreventCollision
+                      - !GetAtt PreventCollisionProject.Arn
+                      - !Ref AWS::NoValue
+                    - !Ref AWS::NoValue
               - !If
                 - UseCodeCommit
                 - Action:
@@ -277,6 +290,7 @@ Resources:
           - Effect: Allow
             Action:
               - ssm:GetParameter
+              - ssm:DeleteParameter
             Resource:
               - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.envName}/*'
           - Effect: Allow
@@ -290,7 +304,7 @@ Resources:
               - kms:ListAliases
               - kms:PutKeyPolicy
               - kms:GenerateRandom
-              - s3:ListBuckets
+              - s3:ListBucket
             Resource:
               - '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
           - Effect: Allow
@@ -309,6 +323,27 @@ Resources:
               - codebuild:UpdateReport
             Resource:
               - !Sub 'arn:aws:codebuild:${AWS::Region}:${AWS::AccountId}:report-group/*'
+          - !If
+            - DeleteTargetEnv
+            - Effect: Allow
+              Action:
+                - servicecatalog:ListPrincipalsForPortfolio
+                - servicecatalog:DeleteProduct
+                - servicecatalog:DeletePortfolio
+                - servicecatalog:DisassociatePrincipalFromPortfolio
+              Resource:
+                - !Sub 'arn:aws:catalog:${AWS::Region}:${AWS::AccountId}:portfolio/*'
+                - !Sub 'arn:aws:catalog:${AWS::Region}:${AWS::AccountId}:product/*'
+            - !Ref AWS::NoValue
+          - !If
+            - DeleteTargetEnv
+            - Effect: Allow
+              Action:
+                - servicecatalog:ListConstraintsForPortfolio
+                - servicecatalog:DeleteConstraint
+                - servicecatalog:DisassociateProductFromPortfolio
+              Resource: '*'
+            - !Ref AWS::NoValue
           - Effect: Allow
             Action:
               - cloudformation:CreateStack
@@ -328,6 +363,8 @@ Resources:
               - kms:Encrypt
               - kms:Decrypt
               - kms:CreateAlias
+              - kms:DeleteAlias
+              - kms:ScheduleKeyDeletion
               - kms:ListKeyPolicies
               - kms:ReEncrypt*
               - kms:GenerateDataKey
@@ -338,6 +375,7 @@ Resources:
               - kms:TagResource
               - kms:UntagResource
               - kms:GetKeyPolicy
+              - kms:EnableKeyRotation
             Resource:
               - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/*${self:custom.settings.namespace}*'
               - !Sub 'arn:aws:kms:${AWS::Region}:${AWS::AccountId}:key/*'
@@ -358,6 +396,22 @@ Resources:
             Resource:
               - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-cicd-pipeline-AppDeployerRole-*'
               - !Sub 'arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.namespace}-cicd-pipeline-PolicyAppDeployer-*'
+          - !If
+            - RunTestsAgainstTargetEnv
+            - Effect: 'Allow'
+              Action:
+                - servicecatalog:CreateProduct
+                - servicecatalog:AssociateProductWithPortfolio
+                - servicecatalog:DisassociateProductFromPortfolio
+                - servicecatalog:CreateConstraint
+                - servicecatalog:DeleteConstraint
+                - servicecatalog:DeleteProduct
+              Resource:
+                - !Sub 'arn:aws:servicecatalog:${AWS::Region}:${AWS::AccountId}:*'
+                - !Sub 'arn:aws:servicecatalog:${AWS::Region}:${AWS::AccountId}:*/*'
+                - !Sub 'arn:aws:catalog:${AWS::Region}:${AWS::AccountId}:portfolio/*'
+                - !Sub 'arn:aws:catalog:${AWS::Region}:${AWS::AccountId}:product/*'
+            - !Ref AWS::NoValue
 
   AppDeployerRole:
     Type: AWS::IAM::Role
@@ -501,6 +555,26 @@ Resources:
                 Configuration:
                   NotificationArn: !Ref PipelineNotificationsTopic
           - !Ref AWS::NoValue
+        # Add a stage to prevent build collision if the DeleteTargetEnv and PreventCollision conditions are true
+        - !If
+          - DeleteTargetEnv
+          - !If
+            - PreventCollision
+            - Name: Prevent-Run-Collision-${self:custom.settings.envName}
+              Actions:
+                - Name: Prevent-Run-Collision
+                  RunOrder: 1
+                  ActionTypeId:
+                    Category: Build
+                    Owner: AWS
+                    Provider: CodeBuild
+                    Version: '1'
+                  Configuration:
+                    ProjectName: !Ref PreventCollisionProject
+                  InputArtifacts:
+                    - Name: SourceArtifact
+            - !Ref AWS::NoValue
+          - !Ref AWS::NoValue
         # Deploy to target environment after manual approval
         - Name: Build-and-Deploy-to-Target-Env-${self:custom.settings.envName}
           Actions:
@@ -529,6 +603,23 @@ Resources:
                   Version: '1'
                 Configuration:
                   ProjectName: !Ref TestTargetEnvProject
+                InputArtifacts:
+                  - Name: SourceArtifact
+          - !Ref AWS::NoValue
+        # Add a stage for deleting the environment if the DeleteTargetEnv condition is true
+        - !If
+          - DeleteTargetEnv
+          - Name: Delete-Target-Env-${self:custom.settings.envName}
+            Actions:
+              - Name: Delete-Target-Env
+                RunOrder: 1
+                ActionTypeId:
+                  Category: Build
+                  Owner: AWS
+                  Provider: CodeBuild
+                  Version: '1'
+                Configuration:
+                  ProjectName: !Ref DeleteTargetEnvProject
                 InputArtifacts:
                   - Name: SourceArtifact
           - !Ref AWS::NoValue
@@ -566,6 +657,8 @@ Resources:
   TargetEnvDeployProject:
     Type: AWS::CodeBuild::Project
     Properties:
+      QueuedTimeoutInMinutes: 180
+      TimeoutInMinutes: 90
       Artifacts:
         Type: CODEPIPELINE
       Source:
@@ -635,6 +728,58 @@ Resources:
           - Name: ENV_NAME
             Value: ${self:custom.settings.envName}
       ServiceRole: !GetAtt AppDeployerRole.Arn
+      QueuedTimeoutInMinutes: 60
+      Cache:
+        # Use local caching to cache dirs specified in buildspec.yml (i.e., the node_modules dirs)
+        # See https://docs.aws.amazon.com/codebuild/latest/userguide/build-caching.html for various build caching options
+        Type: LOCAL
+        Modes:
+          - LOCAL_SOURCE_CACHE
+          - LOCAL_CUSTOM_CACHE
+
+  # A CodeBuild project to delete target environment solution
+  DeleteTargetEnvProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: main/cicd/cicd-pipeline/config/buildspec/buildspec-uninstall.yml
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Type: LINUX_CONTAINER
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:2.0
+        EnvironmentVariables:
+          - Name: DEPLOYMENT_BUCKET
+            Value: ${self:provider.deploymentBucket}
+          - Name: ENV_NAME
+            Value: ${self:custom.settings.envName}
+      ServiceRole: !GetAtt AppDeployerRole.Arn
+      Cache:
+        # Use local caching to cache dirs specified in buildspec.yml (i.e., the node_modules dirs)
+        # See https://docs.aws.amazon.com/codebuild/latest/userguide/build-caching.html for various build caching options
+        Type: LOCAL
+        Modes:
+          - LOCAL_SOURCE_CACHE
+          - LOCAL_CUSTOM_CACHE
+
+  # A CodeBuild project to prevent collision between builds
+  PreventCollisionProject:
+    Type: AWS::CodeBuild::Project
+    Properties:
+      Artifacts:
+        Type: CODEPIPELINE
+      Source:
+        Type: CODEPIPELINE
+        BuildSpec: main/cicd/cicd-pipeline/config/buildspec/buildspec-delay.yml
+      Environment:
+        ComputeType: BUILD_GENERAL1_LARGE
+        Type: LINUX_CONTAINER
+        Image: aws/codebuild/amazonlinux2-x86_64-standard:2.0
+      ServiceRole: !GetAtt AppDeployerRole.Arn
+      QueuedTimeoutInMinutes: 180
+      TimeoutInMinutes: 90
       Cache:
         # Use local caching to cache dirs specified in buildspec.yml (i.e., the node_modules dirs)
         # See https://docs.aws.amazon.com/codebuild/latest/userguide/build-caching.html for various build caching options

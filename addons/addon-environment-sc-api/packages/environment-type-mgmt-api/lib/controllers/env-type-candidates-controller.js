@@ -64,7 +64,9 @@ async function configure(context) {
       const list = await envTypeService.list(requestContext, {
         filter: toFilter(req.query.status, req.query.version),
       });
-      res.status(200).json(list);
+      const portfolioId = await envTypeService.getPortfolioId();
+      const results = { list, portfolioId };
+      res.status(200).json(results);
     }),
   );
 

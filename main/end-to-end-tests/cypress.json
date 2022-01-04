@@ -31,6 +31,11 @@
         "workspaceTypeName": "<NAME OF EMR WORKSPACE TYPE>",
         "configuration": "<EMR WORKSPACE CONFIGURATION>",
         "projectId": "<PROJECT TO LAUNCH EMR WORKSPACE IN>"
+      },
+      "rstudioServer": {
+        "workspaceTypeName": "<NAME OF RSTUDIO SERVER WORKSPACE TYPE>",
+        "configuration": "<RSTUDIO SERVER WORKSPACE CONFIGURATION>",
+        "projectId": "<PROJECT TO LAUNCH RSTUDIO SERVER WORKSPACE IN>"
       }
     },
     "studies": {

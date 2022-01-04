@@ -11,13 +11,15 @@ To run the E2E tests, you will need the following items:
 - A Service Workbench environment setup with Service Catalog
 - Username and password of an admin for the Service Workbench environment
 - Username and password of a researcher for the Service Workbench environment
-- A project set up for that researcher that can launch EC2 workspaces and Sagemaker workspaces
+- A project set up for that researcher that can launch workspaces
 	- Within that project, a study where the researcher is admin
 	- Within that project, a study where the researcher is not an admin
 - A configured EC2 Linux workspace
 - A configured Sagemaker workspace
 - A configured EC2 Windows workspace
 - A configured EMR workspace
+- A configured RStudio Server workspace
+- An SSH Key pair created *by the researcher user*
 
 Once you've confirmed that you have the items above setup, you can create a `cypress.dev.json` and a `cypress.local.json` file with the configurations needed for your tests. You can use `cypress.json` as a template for your new configuration files. An example file is included as `cypress.local.example.json`
 

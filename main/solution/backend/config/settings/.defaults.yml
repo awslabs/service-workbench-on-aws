@@ -38,9 +38,6 @@ dataBucketName: ${self:custom.settings.globalNamespace}-data
 # The S3 bucket name to be where the external CloudFormation templates will be stored
 externalCfnTemplatesBucketName: ${self:custom.settings.globalNamespace}-external-templates
 
-# The name of the S3 bucket used to store uploaded study data
-studyDataBucketName: ${self:custom.settings.globalNamespace}-studydata
-
 # The alias used for the KMS key created to encrypt/decrypt study data
 studyDataKmsKeyAlias: ${self:custom.settings.globalNamespace}/s3/studydata
 
@@ -181,6 +178,8 @@ dbKeyPairs: ${self:custom.settings.dbPrefix}-KeyPairs
 # DynamoDB table for managing StorageGateway
 dbStorageGateway: ${self:custom.settings.dbPrefix}-StorageGateway
 
+# DynamoDB table name for the deployment store
+dbDeploymentStore: ${self:custom.settings.dbPrefix}-DeploymentStore
 # DynamoDB table name for Data source accounts
 dbDsAccounts: ${self:custom.settings.dbPrefix}-DsAccounts
 

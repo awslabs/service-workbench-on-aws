@@ -19,6 +19,7 @@ module.exports = {
           "installation_guide/installation/ami-install",
           "installation_guide/installation/ec2install",
           "installation_guide/installation/cloud9install",
+          "installation_guide/installation/rstudio",
         ],
       },
       {
@@ -59,6 +60,7 @@ module.exports = {
           "installation_guide/installation/ami-install",
           "installation_guide/installation/ec2install",
           "installation_guide/installation/cloud9install",
+          "installation_guide/installation/rstudio",
         ],
       },
       {
@@ -87,7 +89,9 @@ module.exports = {
         "Post Deployment": [
           "deployment/post_deployment/index",
           "deployment/post_deployment/account_structure",
+          "deployment/reference/prepare_master_account",
           // "deployment/post_deployment/cost_explorer",
+          "deployment/post_deployment/appstream",
           "deployment/post_deployment/aws_accounts",
           "deployment/post_deployment/create_index_project",
           "deployment/post_deployment/create_admin_user",
@@ -95,13 +99,12 @@ module.exports = {
           "deployment/post_deployment/logs",
         ],
       },
-
       "deployment/redeployment",
       {
         Reference: [
           "deployment/reference/iam_role",
           "deployment/reference/aws_services",
-          "deployment/reference/prepare_master_account"
+          "deployment/reference/prepare_master_account",
         ],
       },
     ],
@@ -191,8 +194,6 @@ module.exports = {
       "best_practices/cicd",
       "best_practices/rotating_jwt_token",
     ],
-    "Development Guide": [
-      "development/introduction"
-    ],
+    "Development Guide": ["development/introduction"],
   },
 };

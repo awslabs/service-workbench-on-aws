@@ -47,6 +47,10 @@ const stopSageMakerYaml = require('../steps/stop-sagemaker-environment/stop-sage
 const terminateProduct = require('../steps/terminate-product/terminate-product');
 const terminateProductYaml = require('../steps/terminate-product/terminate-product.yml');
 
+const CheckLaunchDependency = require('../steps/check-launch-dependency/check-launch-dependency');
+const CheckLaunchDependencyYaml = require('../steps/check-launch-dependency/check-launch-dependency.yml');
+const TerminateLaunchDependency = require('../steps/terminate-launch-dependency/terminate-launch-dependency');
+const TerminateLaunchDependencyYaml = require('../steps/terminate-launch-dependency/terminate-launch-dependency.yml');
 const preProvisioning = require('../steps/pre-environment-provisioning/pre-environment-provisioning.js');
 const preProvisioningYaml = require('../steps/pre-environment-provisioning/pre-environment-provisioning.yml');
 
@@ -65,6 +69,8 @@ const steps = [
   add(startSageMaker, startSageMakerYaml),
   add(stopSageMaker, stopSageMakerYaml),
   add(terminateProduct, terminateProductYaml),
+  add(CheckLaunchDependency, CheckLaunchDependencyYaml),
+  add(TerminateLaunchDependency, TerminateLaunchDependencyYaml),
   add(preProvisioning, preProvisioningYaml),
 ];
 

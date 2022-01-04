@@ -34,6 +34,7 @@ class EnvironmentScCidrService extends Service {
       'authorizationService',
       'jsonSchemaValidationService',
       'lockService',
+      'albService',
     ]);
   }
 
@@ -90,10 +91,11 @@ class EnvironmentScCidrService extends Service {
    * @returns {Promise<*>} ScEnvironment entity object with updated cidr
    */
   async update(requestContext, { id, updateRequest }) {
-    const [environmentScService, lockService, validationService] = await this.service([
+    const [environmentScService, lockService, validationService, albService] = await this.service([
       'environmentScService',
       'lockService',
       'jsonSchemaValidationService',
+      'albService',
     ]);
 
     // Validate input
@@ -113,6 +115,13 @@ class EnvironmentScCidrService extends Service {
     await environmentScService.verifyAppStreamConfig(requestContext, existingEnvironment.projectId);
 
     await lockService.tryWriteLockAndRun({ id: `${id}-CidrUpdate` }, async () => {
+      // Validate the CFT output if RStudio is exist then modify the elb rule
+      let {
+        // eslint-disable-next-line prefer-const
+        productName,
+        cloneUpdateRequest,
+      } = await this.modifyELBRule(existingEnvironment, updateRequest, albService, requestContext);
+
       // Calculate diff and update CIDR ranges in ingress rules
       const { currentIngressRules, securityGroupId } = await environmentScService.getSecurityGroupDetails(
         requestContext,
@@ -124,7 +133,6 @@ class EnvironmentScCidrService extends Service {
           'The Security Group for this workspace does not contain any ingress rules configured in the Service Catalog product template',
           true,
         );
-
       // Perform the actual security group ingress rule updates
       const newCidrList = await this.getUpdatedIngressRules(requestContext, {
         existingEnvironment,
@@ -132,16 +140,94 @@ class EnvironmentScCidrService extends Service {
         currentIngressRules,
         updateRequest,
       });
-
       // Not storing the changes in the DB, but since all went well
       // we return the cidr field as part of the env obj
       existingEnvironment.cidr = newCidrList;
-    });
 
+      // As we removed the 443 Port CIDRs values for Rstudio during the ingress rule updates.
+      // So once it is done we replace the original values to the existing env.
+      if (productName === 'RStudioV2') {
+        cloneUpdateRequest = JSON.parse(cloneUpdateRequest);
+        existingEnvironment.cidr = cloneUpdateRequest;
+      }
+    });
     // Write audit event
     await this.audit(requestContext, { action: 'update-environment-sc-cidr', body: existingEnvironment });
-
     return existingEnvironment;
+  }
+
+  async modifyELBRule(existingEnvironment, updateRequest, albService, requestContext) {
+    // clone the update request for future use to replace the existing env data
+    const cloneUpdateRequest = JSON.stringify(updateRequest);
+    const eEnvOutputs = existingEnvironment.outputs;
+    let productName = null;
+    const metaConnection1Type = eEnvOutputs.find(obj => obj.OutputKey === 'MetaConnection1Type');
+    if (metaConnection1Type) {
+      productName = metaConnection1Type.OutputValue;
+      const listenerRuleARN = eEnvOutputs.find(obj => obj.OutputKey === 'ListenerRuleARN');
+      if (productName === 'RStudioV2' && listenerRuleARN) {
+        const cidrObj = updateRequest.find(obj => obj.fromPort === 443);
+        const ruleARN = listenerRuleARN.OutputValue;
+        const projectId = existingEnvironment.projectId;
+        const resolvedVars = {
+          prefix: 'rstudio',
+          ruleARN,
+          projectId,
+          cidr: cidrObj.cidrBlocks,
+          envId: existingEnvironment.id,
+        };
+        await albService.modifyRule(requestContext, resolvedVars);
+        // Removed the 443 Port CIDRs in the updateRequest because the new RStudio are not storing
+        // 443 Port CIDRs into security group.
+        const index = updateRequest.findIndex(x => x.fromPort === 443);
+        delete updateRequest[index];
+      }
+    }
+    return { productName, cloneUpdateRequest };
+  }
+
+  async authorizeIngressRuleWithSecurityGroup(requestContext, envId, updateRule, groupId) {
+    try {
+      const IpPermission = [
+        {
+          FromPort: updateRule.fromPort,
+          ToPort: updateRule.toPort,
+          IpProtocol: updateRule.protocol,
+          UserIdGroupPairs: [
+            {
+              GroupId: updateRule.groupId,
+            },
+          ],
+        },
+      ];
+      const authorizeParams = { GroupId: groupId, IpPermissions: IpPermission };
+      const ec2Client = await this.getEc2Client(requestContext, envId);
+      await this.authorizeSecurityGroupIngress(ec2Client, authorizeParams);
+    } catch (err) {
+      throw new Error(`Instance security group update failed with message - ${err.message}`);
+    }
+  }
+
+  async revokeIngressRuleWithSecurityGroup(requestContext, envId, updateRule, groupId) {
+    try {
+      const IpPermission = [
+        {
+          FromPort: updateRule.fromPort,
+          ToPort: updateRule.toPort,
+          IpProtocol: updateRule.protocol,
+          UserIdGroupPairs: [
+            {
+              GroupId: updateRule.groupId,
+            },
+          ],
+        },
+      ];
+      const revokeParams = { GroupId: groupId, IpPermissions: IpPermission };
+      const ec2Client = await this.getEc2Client(requestContext, envId);
+      await this.revokeSecurityGroupIngress(ec2Client, revokeParams);
+    } catch (err) {
+      throw new Error(`Instance security group update failed with message - ${err.message}`);
+    }
   }
 
   // This method is responsible for generating the IpPermissions object

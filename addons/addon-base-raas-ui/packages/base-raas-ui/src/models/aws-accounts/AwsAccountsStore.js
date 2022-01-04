@@ -35,6 +35,7 @@ const filterNames = {
   UPDATEME: 'Needs Update',
   NEW: 'Needs Onboarding',
   ERRORED: 'Errored',
+  PENDING: 'Pending',
 };
 
 // A map, with the key being the filter name and the value being the function that will be used to filter the workspace
@@ -45,6 +46,7 @@ const filters = {
   [filterNames.UPDATEME]: account => account.permissionStatus === 'NEEDS_UPDATE',
   [filterNames.NEW]: account => account.permissionStatus === 'NEEDS_ONBOARD',
   [filterNames.ERRORED]: account => account.permissionStatus === 'ERRORED',
+  [filterNames.PENDING]: account => account.permissionStatus === 'PENDING',
 };
 
 // ==================================================================

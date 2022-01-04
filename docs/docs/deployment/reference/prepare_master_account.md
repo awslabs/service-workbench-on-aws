@@ -6,7 +6,7 @@ sidebar_label: Prepare the organizational Account
 
 import useBaseUrl from '@docusaurus/useBaseUrl';
 
-This section is required only if Service Workbench is to be used to vend accounts in the AWS Organization by using **Create Account**. If Service Workbench uses only billing accounts onboarded using **Add Account**, this section can be omitted.
+**Note**: *This section is required only if Service Workbench is to be used to vend accounts in the AWS Organization by using **Create Account**. If Service Workbench uses only billing accounts onboarded using **Add Account**, this section can be omitted.*
 
 In this step, you deploy the prepare_master_acc Separately Deployable Component (SDC) in the `main/solution/prepare-master-acc` directory. This creates a role in the organizational account that allows `AssumeRole`, and has the main account as its trusted entity. If you have deployed Service Workbench in an organizational account, the main account is also the organizational account, and the trusted entity is the same account ID as the organizational account.
 
@@ -61,3 +61,6 @@ _**Figure: Permissions policies**_
 <img src={useBaseUrl('img/deployment/post_deployment/prepare_master_account_1.jpg')} />
 
 _**Figure: Edit trust relationships**_
+
+
+

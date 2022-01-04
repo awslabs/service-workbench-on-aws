@@ -1,6 +1,6 @@
 # Overview
 
-This following guide will show you how to set up an AppStream image with the following applications installed: Firefox, Notepad, PuttyGen, and Putty. AppStream should be built in the **member account**. 
+This following guide will show you how to set up an AppStream image with the following applications installed: Firefox, Notepad, PuttyGen, and Putty. AppStream should be built in the **main account**. 
 
 ### High Level Overview
 1. We launch an AppStream Image Builder instance.
@@ -16,7 +16,7 @@ If you haven't navigated to AWS AppStream in your main account via the AWS Manag
 ```
 npm install
 npm run start-image-builder -- <AWS Profile> <region> <Base image name> <instance size>
-# Example: npm run start-image-builder -- default us-east-1 AppStream-WinServer2019-06-01-2021 stream.standard.medium
+# Example: npm run start-image-builder -- default us-east-1 AppStream-WinServer2019-10-08-2021 stream.standard.medium
 # If preferred you can choose the default base image name and instance size by running this command: npm run start-image-builder -- default us-east-1 default default 
 ```
 Note: Please set up your [AWS Profile](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html) beforehand so that you have permission to launch an AppStream image builder instance in your AWS Account.

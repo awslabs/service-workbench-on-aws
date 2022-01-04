@@ -9,6 +9,9 @@ hidden: false
 builtin: true
 instanceTtl: 30 # In days, however, empty value means that it is indefinite
 selectedSteps:
+  - stepTemplateId: st-terminate-launch-dependency
+    stepTemplateVer: 1
+    id: wf-step_1_1576783029739_24
   - stepTemplateId: st-terminate-product
     stepTemplateVer: 1
-    id: wf-step_1_1576783029739_26
+    id: wf-step_2_1576783029739_26

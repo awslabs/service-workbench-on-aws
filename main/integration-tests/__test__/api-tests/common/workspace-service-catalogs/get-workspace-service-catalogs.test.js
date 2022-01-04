@@ -13,6 +13,7 @@
  *  permissions and limitations under the License.
  */
 
+const _ = require('lodash');
 const { runSetup } = require('../../../../support/setup');
 const errorCode = require('../../../../support/utils/error-code');
 
@@ -23,11 +24,13 @@ const {
   createDefaultServiceCatalogProduct,
   deleteDefaultServiceCatalogProduct,
 } = require('../../../../support/complex/default-integration-test-product');
+const { deleteWorkspaceServiceCatalog } = require('../../../../support/complex/delete-workspace-service-catalog');
 
 describe('Get workspace-service-catalogs scenarios', () => {
   let setup;
   let adminSession;
   let productInfo;
+  const dummyWorkspacesToDelete = [];
 
   beforeAll(async () => {
     setup = await runSetup();
@@ -37,6 +40,11 @@ describe('Get workspace-service-catalogs scenarios', () => {
 
   afterAll(async () => {
     await deleteDefaultServiceCatalogProduct(setup, productInfo);
+    await Promise.all(
+      _.map(dummyWorkspacesToDelete, async envId => {
+        await deleteWorkspaceServiceCatalog({ aws: setup.aws, id: envId });
+      }),
+    );
     await setup.cleanup();
   });
 
@@ -73,7 +81,7 @@ describe('Get workspace-service-catalogs scenarios', () => {
         ['researcher'],
       );
 
-      await researcherSession.resources.workspaceServiceCatalogs.create({
+      const response = await researcherSession.resources.workspaceServiceCatalogs.create({
         name: workspaceName,
         envTypeId: workspaceTypeId,
         envTypeConfigId: configurationId,
@@ -84,6 +92,8 @@ describe('Get workspace-service-catalogs scenarios', () => {
           expect.objectContaining({ envTypeId: workspaceTypeId, envTypeConfigId: configurationId }),
         ]),
       );
+
+      dummyWorkspacesToDelete.push(response.id);
     });
   });
 });

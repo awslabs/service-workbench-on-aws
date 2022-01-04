@@ -102,6 +102,8 @@ Parameters:
     Type: String
     Default: ''
 
+  # Note: While adding additional CIDRs/Subnets ensure they don't overlap with those used by RStudio ALB (10.0.96.0 to 10.0.97.255)
+
 Metadata:
   AWS::CloudFormation::Interface:
     ParameterGroups:
@@ -119,11 +121,13 @@ Metadata:
         Parameters:
           - VpcCidr
           - PublicSubnetCidr
+
 Conditions:
   isAppStream: !Equals
     - !Ref EnableAppStream
     - true
   isNotAppStream: !Not [Condition: isAppStream]
+  hasCustomDomain: !Not [!Equals [!Ref "DomainName", ""]]
   isAppStreamAndCustomDomain: !And
     - !Not [!Equals [!Ref "DomainName", ""]]
     - !Condition isAppStream
@@ -177,8 +181,8 @@ Resources:
                 - ec2:DescribeImages
                 - ec2:DescribeInstances
                 - ec2:DescribeSecurityGroups
-                - ec2:RevokeSecurityGroupIngress
-                - ec2:AuthorizeSecurityGroupIngress
+                - ec2:RevokeSecurityGroup*
+                - ec2:AuthorizeSecurityGroup*
                 - ec2-instance-connect:SendSSHPublicKey
               Resource: '*'
         - PolicyName: cfn-access
@@ -368,7 +372,9 @@ Resources:
               - cloudformation:DeleteStack
               - cloudformation:DescribeStacks
               - cloudformation:DescribeStackEvents
-            Resource: !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/SC-*'
+            Resource:
+              - !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/SC-*'
+              - !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/analysis-*' # ALB stack used this pattern
           - Effect: Allow
             Action:
               - sagemaker:CreatePresignedNotebookInstanceUrl
@@ -408,19 +414,85 @@ Resources:
             Action:
               - ec2:DescribeInstanceStatus
               - ec2:DescribeInstances
+              - ec2:DescribeRouteTables
+              - ec2:AssociateRouteTable
+              - ec2:DisassociateRouteTable
             Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
           - Effect: Allow
             Action:
               - ec2:DescribeSubnets
               - ec2:DescribeVpcs
               - ec2:DescribeNetworkInterfaces
+              - ec2:DescribeSecurityGroups
+              - ec2:DescribeAvailabilityZones
+              - ec2:DescribeAccountAttributes
+              - ec2:CreateTags
+              - ec2:DeleteTags
+              - ec2:DescribeInternetGateways
             Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
           - Effect: Allow
             Action:
               - ssm:GetParameter
             Resource:
               - !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/*'
-
+          - Effect: Allow
+            Action:
+              - ec2:CreateSubnet
+              - ec2:DeleteSubnet
+              - ec2:ModifySubnetAttribute
+              - ec2:AssociateSubnetCidrBlock
+              - ec2:DisassociateSubnetCidrBlock
+            Resource:
+              - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:vpc/*'
+              - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:subnet/*'
+          - Effect: Allow
+            Action:
+              - ec2:CreateSecurityGroup
+              - ec2:DeleteSecurityGroup
+              - ec2:AuthorizeSecurityGroup*
+              - ec2:RevokeSecurityGroup*
+            Resource:
+              - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:vpc/*'
+              - !Sub 'arn:aws:ec2:${AWS::Region}:${AWS::AccountId}:security-group/*'
+          - Effect: Allow
+            Action:
+              - elasticloadbalancing:DescribeLoadBalancers
+              - elasticloadbalancing:DescribeListeners
+              - elasticloadbalancing:DescribeRules
+              - elasticloadbalancing:AddTags
+              - elasticloadbalancing:RemoveTags
+              - elasticloadbalancing:ModifyLoadBalancerAttributes
+            Resource: '*' # For the actions listed above IAM does not support resource-level permissions and requires all resources to be chosen
+          - Effect: Allow
+            Action:
+              - elasticloadbalancing:CreateLoadBalancer
+              - elasticloadbalancing:DeleteLoadBalancer
+              - elasticloadbalancing:SetSecurityGroups
+              - elasticloadbalancing:SetSubnets
+            Resource:
+              - !Sub 'arn:aws:elasticloadbalancing:${AWS::Region}:${AWS::AccountId}:loadbalancer/app/analysis-*'
+          - Effect: Allow
+            Action:
+              - elasticloadbalancing:CreateListener
+              - elasticloadbalancing:DeleteListener
+              - elasticloadbalancing:AddListenerCertificates
+              - elasticloadbalancing:RemoveListenerCertificates
+            Resource:
+              - !Sub 'arn:aws:elasticloadbalancing:${AWS::Region}:${AWS::AccountId}:loadbalancer/app/analysis-*'
+              - !Sub 'arn:aws:elasticloadbalancing:${AWS::Region}:${AWS::AccountId}:listener/app/analysis-*'
+          - Effect: Allow
+            Action:
+              - elasticloadbalancing:CreateRule
+              - elasticloadbalancing:DeleteRule
+              - elasticloadbalancing:ModifyRule
+            Resource:
+              - !Sub 'arn:aws:elasticloadbalancing:${AWS::Region}:${AWS::AccountId}:listener/app/analysis-*'
+              - !Sub 'arn:aws:elasticloadbalancing:${AWS::Region}:${AWS::AccountId}:listener-rule/app/analysis-*'
+          - Effect: Allow
+            Action:
+              - iam:CreateServiceLinkedRole
+            Resource:
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/elasticloadbalancing.amazonaws.com/AWSServiceRoleForElasticLoadBalancing'
   CrossAccountExecutionRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -551,7 +623,7 @@ Resources:
     Condition: isNotAppStream
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Select [0, !GetAZs ]
+      AvailabilityZone: !Select [0, !GetAZs '' ]
       CidrBlock: !Ref PublicSubnetCidr
       MapPublicIpOnLaunch: true
       Tags:
@@ -960,6 +1032,11 @@ Outputs:
   OnboardStatusRoleArn:
     Description: The arn of the role SWB uses to check permissions status
     Value: !GetAtt [CfnStatusRole, Arn]
+
+  PublicRouteTableId:
+    Condition: isNotAppStream
+    Description: The public route table assigned to the workspace VPC
+    Value: !Ref PublicRouteTable
 
   #------------AppStream Output Below-------
   PrivateAppStreamSubnet:

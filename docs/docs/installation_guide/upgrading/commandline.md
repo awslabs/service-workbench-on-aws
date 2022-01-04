@@ -29,6 +29,8 @@ On the deployment instance, verify if there is a directory named `service-workbe
 
 Download the latest source code from GitHub using git clone, as described in Installing Service Workbench. 
 
+When upgrading Service Workbench, refer to the [CHANGELOG](https://github.com/awslabs/service-workbench-on-aws/blob/mainline/CHANGELOG.md) for additional steps that might be required for the upgraded version.
+
 ### Setting the configuration
 
 Follow the steps in Configuration settings, where the name of the file comes from the stage name in the bucket name stem.  In the configuration file, configure the settings:

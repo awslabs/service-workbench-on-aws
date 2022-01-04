@@ -7,7 +7,7 @@ name: Deploy & Integration Test (AppStream and Egress Enabled)
 on:
   push:
     branches:
-      - feat-secure-workspace-egress
+      - develop
 jobs:
   pre-deployment-check:
     name: Pre deployment check
@@ -45,8 +45,12 @@ jobs:
           STAGE_NAME: tre
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID_APPSTREAM_EGRESS}}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY_APPSTREAM_EGRESS }}
+          AWS_CERTIFICATE_ARN: ${{ secrets.AWS_CERTIFICATE_ARN_APPSTREAM_EGRESS }}
+          AWS_DOMAIN_NAME: ${{ secrets.AWS_DOMAIN_NAME_APPSTREAM_EGRESS }}
+          AWS_HOSTED_ZONE_ID: ${{ secrets.AWS_HOSTED_ZONE_ID_APPSTREAM_EGRESS }}
         run: |
           cp ./main/end-to-end-tests/e2eGitHubConfig.AppStreamEgress.yml ./main/config/settings/${STAGE_NAME}.yml
+          ./scripts/read-values-for-github-action.sh
           ./scripts/environment-deploy.sh ${STAGE_NAME}
   infrastructure-test:
     name: Infrastructure test

@@ -104,12 +104,20 @@ Resources:
         - PolicyName: s3-access
           PolicyDocument:
             Statement:
-              Effect: Allow
-              Action:
-                - s3:GetObject
-              Resource:
-                - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.deploymentBucketName}/saml-metadata/*'
-                - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.deploymentBucketName}/service-catalog-products/*'
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.deploymentBucketName}/saml-metadata/*'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.deploymentBucketName}/service-catalog-products/*'
+              - Effect: Allow
+                Action:
+                  - s3:GetBucketPolicy
+                  - s3:PutBucketPolicy
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.environmentsBootstrapBucketName}'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.studyDataBucketName}'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.deploymentBucketName}'
         - PolicyName: db-access
           PolicyDocument:
             Statement:
@@ -359,6 +367,10 @@ Resources:
                   - s3:PutBucketPublicAccessBlock
                   - s3:PutBucketTagging
                   - s3:PutEncryptionConfiguration
+                  - s3:PutBucketVersioning
+                  - s3:PutBucketPolicy
+                  - s3:GetBucketPolicy
+                  - s3:DeleteBucketPolicy
                 Resource: 'arn:aws:s3:::sc-*-logbucket-*'
               - Effect: Allow
                 Action:
@@ -434,6 +446,24 @@ Resources:
                 Condition:
                   StringLike:
                     ec2:ResourceTag/name: 'analysis-*-sg'
+        - PolicyName: RstudioLaunchPermissions
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - elasticloadbalancing:DescribeTargetHealth
+                  - elasticloadbalancing:DescribeTargetGroups # DescribeTargetGroups does not support specifying resources
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - elasticloadbalancing:CreateTargetGroup
+                  - elasticloadbalancing:RegisterTargets
+                  - elasticloadbalancing:DeleteTargetGroup
+                  - elasticloadbalancing:DeregisterTargets
+                  - elasticloadbalancing:AddTags
+                Resource:
+                  - 'arn:aws:elasticloadbalancing:*:*:targetgroup/analysis-*'
 
   # =============================================================================================
   # Dynamo db

@@ -18,6 +18,7 @@ import {
   launchWorkspace,
   navigateToWorkspaces,
   checkDetailsTable,
+  checkWorkspaceAvailableAndClickConnectionsButton,
 } from '../../support/workspace-util';
 
 describe('Launch new workspaces', () => {
@@ -32,15 +33,17 @@ describe('Launch new workspaces', () => {
 
   let expectedNumberOfNewlyOpenBrowserWindows = 0;
 
-  it('should launch Sagemaker, Linux, and Windows successfully', () => {
+  it('should launch Sagemaker, Linux, Windows, and RStudio workspaces successfully', () => {
     const workspaces = Cypress.env('workspaces');
     const sagemakerWorkspaceName = launchWorkspace(workspaces.sagemaker, 'Sagemaker');
     const linuxWorkspaceName = launchWorkspace(workspaces.ec2.linux, 'Linux');
     const windowsWorkspaceName = launchWorkspace(workspaces.ec2.windows, 'Windows');
+    const rstudioWorkspaceName = launchWorkspace(workspaces.rstudioServer, 'RStudio-Server');
 
     checkSagemaker(sagemakerWorkspaceName);
     checkLinux(linuxWorkspaceName);
     checkWindows(windowsWorkspaceName);
+    checkRstudio(rstudioWorkspaceName);
 
     // Each time we click the "Connect" button on a workspace, it should open a new browser window connected to an AppStream instance.
     // Let's check the expected number of new browser windows are opened
@@ -117,16 +120,37 @@ describe('Launch new workspaces', () => {
       .find('[data-testid=connect-to-workspace-button]')
       .click();
     expectedNumberOfNewlyOpenBrowserWindows += 1;
-  }
 
-  function checkWorkspaceAvailableAndClickConnectionsButton(workspaceName) {
-    cy.contains(workspaceName)
-      .parent()
-      .contains('AVAILABLE', { timeout: 900000 });
+    // Close the connections tab so the rstudio test is clean
     cy.contains(workspaceName)
       .parent()
       .find('[data-testid=sc-environment-connection-button]')
       .click();
+  }
+
+  function checkRstudio(workspaceName) {
+    checkDetailsTable(workspaceName);
+    checkWorkspaceAvailableAndClickConnectionsButton(workspaceName);
+    cy.contains(workspaceName)
+      .parent()
+      .find('[data-testid=sc-environment-generate-url-button]', { timeout: 60000 })
+      .click();
+
+    // Try to access the rstudio server url via command line curl and should get an error that the server was not found
+    cy.get('[data-testid=destination-url]')
+      .invoke('text')
+      .then(url =>
+        cy
+          .exec(`curl "${url}"`, { failOnNonZeroExit: false })
+          .its('stderr')
+          .should('contain', 'Could not resolve host'),
+      );
+
+    cy.contains(workspaceName)
+      .parent()
+      .find('[data-testid=connect-to-workspace-button]')
+      .click();
+    expectedNumberOfNewlyOpenBrowserWindows += 1;
   }
 
   /**

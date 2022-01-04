@@ -2,8 +2,67 @@ Conditions:
   IsDev: !Equals ['${self:custom.settings.envType}', 'dev']
   UseCustomDomain: !Not
     - !Equals ['${self:custom.settings.domainName}', '']
+  UseHostedZoneId: !Not
+    - !Equals ['${self:custom.settings.hostedZoneId}', '']
+  CustomDomainWithoutHostedZoneId: !And
+    - !Not
+      - !Equals ['${self:custom.settings.domainName}', '']
+    - !Equals ['${self:custom.settings.hostedZoneId}', '']
 
 Description: (SO0144) Service Workbench on AWS Solution
+
+Mappings:
+  ELBAccountIDMapping:
+    us-east-1:
+      Id: '127311923021'
+    us-east-2:
+      Id: '033677994240'
+    us-west-1:
+      Id: '027434742980'
+    us-west-2:
+      Id: '797873946194'
+    af-south-1:
+      Id: '098369216593'
+    ca-central-1:
+      Id: '985666609251'
+    eu-central-1:
+      Id: '054676820928'
+    eu-west-1:
+      Id: '156460612806'
+    eu-west-2:
+      Id: '652711504416'
+    eu-south-1:
+      Id: '635631232127'
+    eu-west-3:
+      Id: '009996457667'
+    eu-north-1:
+      Id: '897822967062'
+    ap-east-1:
+      Id: '754344448648'
+    ap-northeast-1:
+      Id: '582318560864'
+    ap-northeast-2:
+      Id: '600734575887'
+    ap-northeast-3:
+      Id: '383597477331'
+    ap-southeast-1:
+      Id: '114774131450'
+    ap-southeast-2:
+      Id: '783225319266'
+    ap-south-1:
+      Id: '718504428378'
+    me-south-1:
+      Id: '076674570225'
+    sa-east-1:
+      Id: '507241528517'
+    us-gov-west-1:
+      Id: '048591011584'
+    us-gov-east-1:
+      Id: '190560391635'
+    cn-north-1:
+      Id: '638102146993'
+    cn-northwest-1:
+      Id: '037604701340'
 
 Resources:
   # =============================================================================================
@@ -25,6 +84,8 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
 
   LoggingBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -32,11 +93,13 @@ Resources:
       Bucket: !Ref LoggingBucket
       PolicyDocument:
         Statement:
-          - Sid: Deny requests that do not use TLS
+          - Sid: Deny requests that do not use TLS/HTTPS
             Effect: Deny
             Principal: '*'
             Action: s3:*
-            Resource: !Join ['/', [!GetAtt LoggingBucket.Arn, '*']]
+            Resource:
+              - !Join ['/', [!GetAtt LoggingBucket.Arn, '*']]
+              - !GetAtt LoggingBucket.Arn
             Condition:
               Bool:
                 aws:SecureTransport: false
@@ -48,6 +111,27 @@ Resources:
             Condition:
               StringNotEquals:
                 s3:signatureversion: 'AWS4-HMAC-SHA256'
+          - Sid: ELB Logging permissions
+            Effect: Allow
+            Principal:
+              AWS: !Join ['', ['arn:aws:iam::', !FindInMap [ELBAccountIDMapping, !Ref 'AWS::Region', Id], ':root']]
+            Action: s3:PutObject
+            Resource: !Join ['', ['arn:aws:s3:::', !Ref LoggingBucket, '/elb/AWSLogs/*/*']]
+          - Sid: ELB Logging permissions
+            Effect: Allow
+            Principal:
+              Service: delivery.logs.amazonaws.com
+            Action: s3:PutObject
+            Resource: !Join ['', ['arn:aws:s3:::', !Ref LoggingBucket, '/elb/AWSLogs/*/*']]
+            Condition:
+              StringEquals:
+                s3:x-amz-acl: bucket-owner-full-control
+          - Sid: ELB Logging permissions
+            Effect: Allow
+            Principal:
+              Service: delivery.logs.amazonaws.com
+            Action: s3:GetBucketAcl
+            Resource: !Join ['', ['arn:aws:s3:::', !Ref LoggingBucket]]
 
   # S3 Bucket for the static website
   WebsiteBucket:
@@ -66,6 +150,8 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+      VersioningConfiguration:
+        Status: Enabled
 
   WebsiteBucketPolicy:
     Type: AWS::S3::BucketPolicy
@@ -81,11 +167,13 @@ Resources:
               AWS: !Join ['', ['arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ', !Ref 'CloudFrontOAI']]
             Resource:
               - !Join ['', ['arn:aws:s3:::', !Ref 'WebsiteBucket', '/*']]
-          - Sid: Deny requests that do not use TLS
+          - Sid: Deny requests that do not use TLS/HTTPS
             Effect: Deny
             Principal: '*'
             Action: s3:*
-            Resource: !Join ['/', [!GetAtt WebsiteBucket.Arn, '*']]
+            Resource:
+              - !Join ['/', [!GetAtt WebsiteBucket.Arn, '*']]
+              - !GetAtt WebsiteBucket.Arn
             Condition:
               Bool:
                 aws:SecureTransport: false
@@ -168,7 +256,7 @@ Resources:
 
   HostedZone:
     Type: AWS::Route53::HostedZone
-    Condition: UseCustomDomain
+    Condition: CustomDomainWithoutHostedZoneId
     DeletionPolicy: Retain
     Properties:
       Name: ${self:custom.settings.domainName}
@@ -177,7 +265,12 @@ Resources:
     Type: AWS::Route53::RecordSetGroup
     Condition: UseCustomDomain
     Properties:
-      HostedZoneId: !Ref HostedZone
+      # Blank hosted zone ID in stage file creates a new one
+      # This is to ensure backwards compatibility
+      HostedZoneId: !If
+        - UseHostedZoneId
+        - ${self:custom.settings.hostedZoneId}
+        - !Ref HostedZone
       RecordSets:
         - Name: ${self:custom.settings.domainName}
           Type: A
@@ -209,5 +302,8 @@ Outputs:
     Description: Id of the hosted zone created when a custom domain is used
     Value: !If
       - UseCustomDomain
-      - !Ref HostedZone
-      - 'NotSetAsCustomDomainDisabled'
+      - !If
+        - UseHostedZoneId
+        - ${self:custom.settings.hostedZoneId}
+        - !Ref HostedZone
+      - 'CustomDomainNotSet'

@@ -8,9 +8,6 @@ dbStudies: ${self:custom.settings.dbPrefix}-Studies
 # DynamoDB table global secondary index name for the "category" field
 dbStudiesCategoryIndex: CategoryIndex
 
-# The name of the S3 bucket used to store uploaded study data
-studyDataBucketName: ${self:custom.settings.globalNamespace}-studydata
-
 # DynamoDB table global secondary index name for the "accountId" field
 dbStudiesAccountIdIndex: AccountIdIndex
 

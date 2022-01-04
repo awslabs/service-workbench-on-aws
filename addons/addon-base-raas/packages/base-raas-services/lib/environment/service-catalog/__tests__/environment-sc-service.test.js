@@ -57,6 +57,9 @@ const StorageGatewayService = require('../../../storage-gateway/storage-gateway-
 jest.mock('../../../study/study-service');
 const StudyService = require('../../../study/study-service');
 
+jest.mock('../../../alb/alb-service');
+const ALBService = require('../../../alb/alb-service');
+
 const EnvironmentSCService = require('../environment-sc-service');
 
 const workflowIds = {
@@ -66,6 +69,7 @@ const workflowIds = {
 
 describe('EnvironmentSCService', () => {
   let service = null;
+  let albService = null;
   let dbService = null;
   let projectService = null;
   let indexesService = null;
@@ -89,6 +93,7 @@ describe('EnvironmentSCService', () => {
     container.register('projectService', new ProjectServiceMock());
     container.register('awsAccountsService', new AwsAccountsServiceMock());
     container.register('indexesService', new IndexesServiceMock());
+    container.register('albService', new ALBService());
     container.register('environmentSCService', new EnvironmentSCService());
     container.register('storageGatewayService', new StorageGatewayService());
     container.register('iamService', new IamService());
@@ -100,6 +105,7 @@ describe('EnvironmentSCService', () => {
 
     // Get instance of the service we are testing
     service = await container.find('environmentSCService');
+    albService = await container.find('albService');
     dbService = await container.find('dbService');
     projectService = await container.find('projectService');
     indexesService = await container.find('indexesService');
@@ -1893,6 +1899,32 @@ Quisque egestas, eros nec feugiat venenatis, lorem turpis placerat tortor, ullam
       // CHECK
       await expect(ec2Updated).toEqual({ 'instance-name': 'Updated', 'instance-name-1': 'Updated' });
       await expect(Object.keys(ec2Updated).length).toEqual(Object.keys(ec2Instances).length);
+    });
+  });
+
+  describe('describeELBRule', () => {
+    it('should pass and add alb rule cidr blocks in currentIngressRules', async () => {
+      const currentIngressRules = [
+        { protocol: 'tcp', fromPort: 22, toPort: 22, cidrBlocks: ['0.0.0.0/0'] },
+        { protocol: 'tcp', fromPort: 80, toPort: 80, cidrBlocks: ['0.0.0.0/0'] },
+      ];
+      const responseIngressRules = [
+        { protocol: 'tcp', fromPort: 22, toPort: 22, cidrBlocks: ['0.0.0.0/0'] },
+        { protocol: 'tcp', fromPort: 80, toPort: 80, cidrBlocks: ['0.0.0.0/0'] },
+        { protocol: 'tcp', fromPort: 443, toPort: 443, cidrBlocks: ['0.0.0.0/0', '223.226.19.63/32'] },
+      ];
+      const existingEnvironment = {
+        outputs: [
+          { OutputKey: 'MetaConnection1Type', OutputValue: 'RStudioV2' },
+          { OutputKey: 'ListenerRuleARN', OutputValue: 'ListenerRuleARN' },
+        ],
+        projectId: 'bio-research-vir2',
+      };
+      albService.describeRules = jest.fn().mockImplementation(() => {
+        return ['0.0.0.0/0', '223.226.19.63/32'];
+      });
+      await service.describeELBRule(existingEnvironment, {}, currentIngressRules);
+      expect(responseIngressRules).toEqual(currentIngressRules);
     });
   });
 });

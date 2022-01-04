@@ -289,6 +289,7 @@ class ProvisionAccount extends StepBase {
           vpcId: cfnOutputs.VPC,
           encryptionKeyArn: cfnOutputs.EncryptionKeyArn,
           onboardStatusRoleArn: cfnOutputs.OnboardStatusRoleArn,
+          publicRouteTableId: cfnOutputs.PublicRouteTableId,
           cfnStackName: stackInfo.StackName,
           cfnStackId: stackInfo.StackId,
           permissionStatus: 'CURRENT',
@@ -377,7 +378,7 @@ class ProvisionAccount extends StepBase {
     /* response example:
       data = {
         CreateAccountStatus: {
-        AccountId: "333333333333", 
+        AccountId: "333333333333",
         Id: "car-exampleaccountcreationrequestid", 
         State: "SUCCEEDED"
         }
