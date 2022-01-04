@@ -10,7 +10,7 @@ As a researcher, if you have AppStream and Egress store enabled, AppStream provi
 
 In the following example, you don’t currently have access to the `hello.txt` file out of your workspace. Hence, you need permission to export this file. The **Submit Egress Request** button shown in the figure below is used to export data from your workspace. 
 
- <img src={useBaseUrl('img/deployment/reference/e1.png')} />
+ <img src={useBaseUrl('img/deployment/reference/egress1.png')} />
 
 When you choose **Submit Egress Request**, the file gets picked up by the SNS topic. The SNS topic has following format:
 
@@ -20,11 +20,11 @@ For example, it can look like this:
 
 `prod-iad-sw-EgressTopic`
 
- <img src={useBaseUrl('img/deployment/reference/e2.png')} />
+ <img src={useBaseUrl('img/deployment/reference/egress2.png')} />
 
 The SNS topic allows an administrator to determine which files you would like to export from the workspace. The administrator can subscribe to the SNS topic to receive updates when a user submits an Egress request. For example, the administrator can subscribe a Lambda function to process the Egress submission request or could also provide an email address.
 
- <img src={useBaseUrl('img/deployment/reference/e3.png')} />
+ <img src={useBaseUrl('img/deployment/reference/egress3.png')} />
 
 After subscribing to the SNS topic, the administrator receives information in the following JSON file format:
 
