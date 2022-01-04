@@ -10,21 +10,21 @@ As a researcher, if you have AppStream and Egress store enabled, AppStream provi
 
 In the following example, you don’t currently have access to the `hello.txt` file out of your workspace. Hence, you need permission to export this file. The **Submit Egress Request** button shown in the figure below is used to export data from your workspace. 
 
- <img src={useBaseUrl('img/deployment/post_deployment/e1.png')} />
+ <img src={useBaseUrl('img/deployment/reference/e1.png')} />
 
 When you choose **Submit Egress Request**, the file gets picked up by the SNS topic. The SNS topic has following format:
 
 `<env-name>-<AwsRegionName>-<SolutionName>-EgressTopic`
 
-For example, it looks like this:
+For example, it can look like this:
 
 `prod-iad-sw-EgressTopic`
 
- <img src={useBaseUrl('img/deployment/post_deployment/e2.png')} />
+ <img src={useBaseUrl('img/deployment/reference/e2.png')} />
 
-The SNS topic allows an administrator to determine which files you would like to export from the workspace. The administrator can subscribe to the SNS topic to receive updates when a user submits an Egress request. For example, the administrator can subscribe a Lambda function to process the Egress submission request or could also provide the email address.
+The SNS topic allows an administrator to determine which files you would like to export from the workspace. The administrator can subscribe to the SNS topic to receive updates when a user submits an Egress request. For example, the administrator can subscribe a Lambda function to process the Egress submission request or could also provide an email address.
 
- <img src={useBaseUrl('img/deployment/post_deployment/e3.png')} />
+ <img src={useBaseUrl('img/deployment/reference/e3.png')} />
 
 After subscribing to the SNS topic, the administrator receives information in the following JSON file format:
 
@@ -48,7 +48,7 @@ After subscribing to the SNS topic, the administrator receives information in th
       "ver": 1
 }
 ```
-The egress_store_object_list_location section of the code provides the S3 location of a JSON file that lists the files for which the export request has been made by the researcher. For example, the JSON file appears as:
+The `egress_store_object_list_location` section of the code provides the S3 location of a JSON file that lists the files for which the export request has been made by the researcher. For example, the JSON file appears as:
 ```
 {
     "objects": [
@@ -79,7 +79,7 @@ The egress_store_object_list_location section of the code provides the S3 locati
 ```
 This means that the researcher requested permission for exporting the `hello.txt` file, which is stored in the `ddf05a79-646d-442c-9dd3-88454753a1f2` folder.
 
-The file is stored in an S3 bucket of the main account in the following format:
+The file is stored in an S3 bucket of the main account. The S3 bucket has the following format:
 
 `<aws-account-id>-<env-name>-<AwsRegionName>-<SolutionName>-egress-store`
 
