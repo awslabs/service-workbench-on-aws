@@ -12,8 +12,11 @@ Object {
       },
       "Effect": "Deny",
       "Principal": "*",
-      "Resource": "arn:aws:s3:::dummyBucket/*",
-      "Sid": "Deny requests that do not use TLS",
+      "Resource": Array [
+        "arn:aws:s3:::dummyBucket/*",
+        "arn:aws:s3:::dummyBucket",
+      ],
+      "Sid": "Deny requests that do not use TLS/HTTPS",
     },
     Object {
       "Action": "s3:*",

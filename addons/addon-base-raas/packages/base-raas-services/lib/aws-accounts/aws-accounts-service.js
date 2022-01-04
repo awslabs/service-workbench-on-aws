@@ -98,11 +98,11 @@ class AwsAccountsService extends Service {
 
       const securityStatements = [
         {
-          Sid: 'Deny requests that do not use TLS',
+          Sid: 'Deny requests that do not use TLS/HTTPS',
           Effect: 'Deny',
           Principal: '*',
           Action: 's3:*',
-          Resource: `arn:aws:s3:::${s3BucketName}/*`,
+          Resource: [`arn:aws:s3:::${s3BucketName}/*`, `arn:aws:s3:::${s3BucketName}`],
           Condition: { Bool: { 'aws:SecureTransport': false } },
         },
         {

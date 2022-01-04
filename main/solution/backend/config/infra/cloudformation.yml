@@ -57,6 +57,7 @@ Resources:
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
 
+  # THIS IS A DYNAMIC BUCKET POLICY DO NOT EDIT ANYTHING HERE--USE EDIT-S3-BUCKET-POLICY-SERVICE
   StudyDataBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
@@ -218,6 +219,7 @@ Resources:
       VersioningConfiguration:
         Status: Enabled
 
+  # THIS IS A DYNAMIC BUCKET POLICY DO NOT EDIT ANYTHING HERE--USE EDIT-S3-BUCKET-POLICY-SERVICE
   EnvironmentsBootstrapBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:

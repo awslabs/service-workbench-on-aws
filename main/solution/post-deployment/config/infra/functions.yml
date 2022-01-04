@@ -36,6 +36,8 @@ postDeployment:
     APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
     APP_ENABLE_EGRESS_STORE: ${self:custom.settings.enableEgressStore}
     APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
+    APP_ENVIRONMENTS_BOOTSTRAP_BUCKET_NAME: ${self:custom.settings.environmentsBootstrapBucketName}
+    APP_STUDY_DATA_BUCKET_NAME: ${self:custom.settings.studyDataBucketName}
 
 egressStoreObjectsHandler:
   role: RoleEgressStoreObjectsHandler

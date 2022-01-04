@@ -104,12 +104,20 @@ Resources:
         - PolicyName: s3-access
           PolicyDocument:
             Statement:
-              Effect: Allow
-              Action:
-                - s3:GetObject
-              Resource:
-                - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.deploymentBucketName}/saml-metadata/*'
-                - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.deploymentBucketName}/service-catalog-products/*'
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.deploymentBucketName}/saml-metadata/*'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.deploymentBucketName}/service-catalog-products/*'
+              - Effect: Allow
+                Action:
+                  - s3:GetBucketPolicy
+                  - s3:PutBucketPolicy
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.environmentsBootstrapBucketName}'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.studyDataBucketName}'
+                  - !Sub 'arn:${AWS::Partition}:s3:::${self:custom.settings.deploymentBucketName}'
         - PolicyName: db-access
           PolicyDocument:
             Statement:

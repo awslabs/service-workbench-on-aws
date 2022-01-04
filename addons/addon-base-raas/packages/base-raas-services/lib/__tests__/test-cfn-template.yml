@@ -1,0 +1,175 @@
+AWSTemplateFormatVersion: 2010-09-09
+
+Description: This stack provisions resources necessary to use this AWS account with Service Workbench.
+
+Parameters:
+  EnableAppStream:
+    Type: String
+    AllowedValues: [true, false]
+    Description: Onboard this account to support AppStream
+
+Resources:
+  Route53HostedZone:
+    Type: AWS::Route53::HostedZone
+    Condition: isAppStreamAndCustomDomain
+    Properties:
+      Name: !Ref DomainName
+      VPCs:
+        - VPCId: !Ref VPC
+          VPCRegion: !Ref "AWS::Region"
+
+  CrossAccountRoleEnvMgmt:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Join ['-', [Ref: Namespace, 'xacc-env-mgmt']]
+      Path: '/'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              AWS:
+                - !Join [':', ['arn:aws:iam:', Ref: CentralAccountId, 'root']]
+                - !Ref ApiHandlerArn
+                - !Ref WorkflowRoleArn
+            Action:
+              - 'sts:AssumeRole'
+            Condition:
+              StringEquals:
+                sts:ExternalId: !Ref ExternalId
+      Policies:
+        - PolicyName: iam-role-access
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - iam:CreateRole
+                  - iam:TagRole
+                  - iam:GetRolePolicy
+                  - iam:PutRolePolicy
+                  - iam:DeleteRolePolicy
+                  - iam:ListRolePolicies
+                  - iam:ListAttachedRolePolicies
+                  - iam:UpdateAssumeRolePolicy
+                  - iam:UpdateRoleDescription
+                  - iam:AttachRolePolicy
+                  - iam:DetachRolePolicy
+                Resource:
+                  - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${LaunchConstraintRolePrefix}LaunchConstraint'
+                  - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/*presigned-url-sagemaker-notebook-role'
+        - !If
+          - isAppStreamAndCustomDomain
+          - PolicyName: route53-access
+            PolicyDocument:
+              Statement:
+                - Effect: Allow
+                  Action:
+                    - route53:ChangeResourceRecordSets
+                  Resource:
+                    - !Sub 'arn:aws:route53:::hostedzone/${Route53HostedZone}'
+          - !Ref 'AWS::NoValue'
+
+  CrossAccountEnvMgmtPermissionsBoundary:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Permission boundary for cross account EnvMgmt role
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - iam:GetGroup
+              - iam:GetRole
+              - iam:GetUser
+              - iam:ListGroups
+              - iam:ListRoles
+              - iam:ListUsers
+            Resource: '*' # These non-mutating IAM actions cover the permissions in managed policy AWSServiceCatalogAdminFullAccess
+          - !If
+            - isAppStreamAndCustomDomain
+            - Effect: Allow
+              Action:
+                - route53:ChangeResourceRecordSets
+              Resource:
+                - !Sub 'arn:aws:route53:::hostedzone/${Route53HostedZone}'
+            - !Ref 'AWS::NoValue'
+
+  PolicyCfnStatus:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      Description: Allows main account to onboard and check status of aws accounts
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - cloudformation:DescribeStacks
+              - cloudformation:GetTemplate
+            Resource: !Sub 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/initial-stack*'
+
+  AppStreamFleet:
+    Type: 'AWS::AppStream::Fleet'
+    Condition: isAppStream
+    Properties:
+      ComputeCapacity:
+        DesiredInstances: !Ref AppStreamFleetDesiredInstances
+      Description: 'SWB AppStream Fleet'
+      DisconnectTimeoutInSeconds: !Ref AppStreamDisconnectTimeoutSeconds
+      DisplayName: 'SWB Fleet'
+      EnableDefaultInternetAccess: False
+      FleetType: !Ref AppStreamFleetType
+      IdleDisconnectTimeoutInSeconds: !Ref AppStreamIdleDisconnectTimeoutSeconds
+      ImageArn: !Sub 'arn:aws:appstream:${AWS::Region}:${CentralAccountId}:image/${AppStreamImageName}'
+      InstanceType: !Ref AppStreamInstanceType
+      MaxUserDurationInSeconds: !Ref AppStreamMaxUserDurationSeconds
+      Name: !Sub ${Namespace}-ServiceWorkbenchFleet
+      StreamView: 'APP'
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref AppStreamSecurityGroup
+        SubnetIds:
+          - !Ref PrivateAppStreamSubnet
+
+  AppStreamStack:
+    Type: 'AWS::AppStream::Stack'
+    Condition: isAppStream
+    Properties:
+      ApplicationSettings:
+        Enabled: False
+      Description: 'SWB AppStream Stack'
+      DisplayName: 'SWB Stack'
+      Name: !Sub ${Namespace}-ServiceWorkbenchStack
+      UserSettings:
+        - Action: 'CLIPBOARD_COPY_FROM_LOCAL_DEVICE'
+          Permission: 'ENABLED'
+        - Action: 'CLIPBOARD_COPY_TO_LOCAL_DEVICE'
+          Permission: 'DISABLED'
+        - Action: 'FILE_DOWNLOAD'
+          Permission: 'DISABLED'
+        - Action: 'FILE_UPLOAD'
+          Permission: 'DISABLED'
+        - Action: 'PRINTING_TO_LOCAL_DEVICE'
+          Permission: 'DISABLED'
+
+  AppStreamStackFleetAssociation:
+    Type: AWS::AppStream::StackFleetAssociation
+    Condition: isAppStream
+    Properties:
+      FleetName: !Ref AppStreamFleet
+      StackName: !Ref AppStreamStack
+
+Outputs:
+  CrossAccountEnvMgmtRoleArn:
+    Description: The arn of the cross account role for environment management using AWS Service Catalog
+    Value: !GetAtt [CrossAccountRoleEnvMgmt, Arn]
+
+  #------------AppStream Output Below-------
+  AppStreamFleet:
+    Description: AppStream Fleet
+    Condition: isAppStream
+    Value: !Ref AppStreamFleet
+
+  AppStreamStack:
+    Description: AppStream Stack
+    Condition: isAppStream
+    Value: !Ref AppStreamStack
