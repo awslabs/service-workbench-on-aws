@@ -170,45 +170,11 @@ class EnvironmentMountService extends Service {
         // Get statements for listing and reading study data, respectively
         const statements = s3Policy.Statement;
         s3Prefixes.forEach(prefix => {
+          const allStatements = this.getAllStatements(s3BucketName, prefix);
+          let [listStatement, getStatement, putStatement] = allStatements;
           const listSid = `List:${prefix}`;
           const getSid = `Get:${prefix}`;
           const putSid = `Put:${prefix}`;
-
-          // Define default statements to be used if we can't find existing ones
-          let listStatement = {
-            Sid: listSid,
-            Effect: 'Allow',
-            Principal: { AWS: [] },
-            Action: 's3:ListBucket',
-            Resource: `arn:aws:s3:::${s3BucketName}`,
-            Condition: {
-              StringLike: {
-                's3:prefix': [`${prefix}*`],
-              },
-            },
-          };
-          // Read Permission
-          let getStatement = {
-            Sid: getSid,
-            Effect: 'Allow',
-            Principal: { AWS: [] },
-            Action: ['s3:GetObject'],
-            Resource: [`arn:aws:s3:::${s3BucketName}/${prefix}*`],
-          };
-          // Write Permission
-          let putStatement = {
-            Sid: putSid,
-            Effect: 'Allow',
-            Principal: { AWS: [] },
-            Action: [
-              's3:AbortMultipartUpload',
-              's3:ListMultipartUploadParts',
-              's3:PutObject',
-              's3:PutObjectAcl',
-              's3:DeleteObject',
-            ],
-            Resource: [`arn:aws:s3:::${s3BucketName}/${prefix}*`],
-          };
 
           // Pull out existing statements if available
           statements.forEach(statement => {
@@ -230,7 +196,7 @@ class EnvironmentMountService extends Service {
           s3Policy.Statement = s3Policy.Statement.filter(
             statement => ![listSid, getSid, putSid].includes(statement.Sid),
           );
-          [listStatement, getStatement, putStatement].forEach(statement => {
+          allStatements.forEach(statement => {
             // Only add updated statement if it contains principals (otherwise leave it out)
             if (statement.Principal.AWS.length > 0) {
               s3Policy.Statement.push(statement);
@@ -279,6 +245,58 @@ class EnvironmentMountService extends Service {
           .promise();
       }),
     ]);
+  }
+
+  /**
+   * Helper method to generate the default statements to be used to update the S3 policy.
+   *
+   * @param {String} s3BucketName - name of the bucket that these statements apply to
+   * @param {String} prefix - S3 prefix to apply to these statements
+   * @returns {Array<Object>} - the generic list statement, read statement, and write statement as well as the security
+   *                            statement to require TLS/HTTPS traffic
+   */
+  getAllStatements(s3BucketName, prefix) {
+    const listSid = `List:${prefix}`;
+    const getSid = `Get:${prefix}`;
+    const putSid = `Put:${prefix}`;
+
+    // Define default statements to be used if we can't find existing ones
+    const listStatement = {
+      Sid: listSid,
+      Effect: 'Allow',
+      Principal: { AWS: [] },
+      Action: 's3:ListBucket',
+      Resource: `arn:aws:s3:::${s3BucketName}`,
+      Condition: {
+        StringLike: {
+          's3:prefix': [`${prefix}*`],
+        },
+      },
+    };
+    // Read Permission
+    const getStatement = {
+      Sid: getSid,
+      Effect: 'Allow',
+      Principal: { AWS: [] },
+      Action: ['s3:GetObject'],
+      Resource: [`arn:aws:s3:::${s3BucketName}/${prefix}*`],
+    };
+    // Write Permission
+    const putStatement = {
+      Sid: putSid,
+      Effect: 'Allow',
+      Principal: { AWS: [] },
+      Action: [
+        's3:AbortMultipartUpload',
+        's3:ListMultipartUploadParts',
+        's3:PutObject',
+        's3:PutObjectAcl',
+        's3:DeleteObject',
+      ],
+      Resource: [`arn:aws:s3:::${s3BucketName}/${prefix}*`],
+    };
+
+    return [listStatement, getStatement, putStatement];
   }
 
   /**

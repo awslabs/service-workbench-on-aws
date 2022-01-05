@@ -57,6 +57,7 @@ Resources:
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
 
+  # THIS IS A DYNAMIC BUCKET POLICY DO NOT EDIT ANYTHING HERE--USE EDIT-S3-BUCKET-POLICY-SERVICE
   StudyDataBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
@@ -113,6 +114,7 @@ Resources:
       Description: >-
         Master key used to encrypt objects stored in the
         ${self:custom.settings.studyDataBucketName} bucket
+      EnableKeyRotation: true
       KeyPolicy:
         Version: '2012-10-17'
         Id: study-data-kms-policy
@@ -217,6 +219,7 @@ Resources:
       VersioningConfiguration:
         Status: Enabled
 
+  # THIS IS A DYNAMIC BUCKET POLICY DO NOT EDIT ANYTHING HERE--USE EDIT-S3-BUCKET-POLICY-SERVICE
   EnvironmentsBootstrapBucketPolicy:
     Type: AWS::S3::BucketPolicy
     Properties:
@@ -297,6 +300,7 @@ Resources:
       Description: >-
         Master key used to encrypt objects stored in the
         ${self:custom.settings.egressStoreBucketName} bucket
+      EnableKeyRotation: true
       KeyPolicy:
         Version: '2012-10-17'
         Id: egress-store-kms-policy

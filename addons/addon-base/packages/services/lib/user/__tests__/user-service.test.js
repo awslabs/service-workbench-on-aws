@@ -169,6 +169,77 @@ describe('UserService', () => {
       );
       expect(service.audit).toHaveBeenCalledWith({}, expect.objectContaining({ action: 'create-user' }));
     });
+
+    const validEmails = [
+      'email@domain.com',
+      'firstname.lastname@domain.com',
+      'email@subdomain.domain.com',
+      'firstname+lastname@domain.com',
+      '1234567890@domain.com',
+      'email@domain-one.com', // Dash in domain name is valid
+      '_______@domain.com', // Underscore in the address field is valid
+      'email@domain.name',
+      'email@domain.co.jp',
+      'firstname-lastname@domain.com',
+    ];
+    it.each(validEmails)('should pass when creating users with valid email: %p', async email => {
+      // BUILD
+      const newUser = {
+        username: 'nstark',
+        email,
+        firstName: 'Ned',
+        lastName: 'Stark',
+      };
+      service.getUserByPrincipal = jest.fn();
+      service.audit = jest.fn();
+
+      // OPERATE
+      await service.createUser({}, newUser);
+
+      // CHECK
+      expect(dbService.table.key).toHaveBeenCalledWith(
+        expect.objectContaining({
+          uid: expect.any(String),
+        }),
+      );
+      expect(service.audit).toHaveBeenCalledWith({}, expect.objectContaining({ action: 'create-user' }));
+    });
+
+    const invalidEmails = [
+      'plainaddress',
+      '#@%^%#$@#$@#.com', // Garbage
+      '@domain.com', // Missing username
+      'Joe Smith <email@domain.com>', // Encoded html within email
+      'email.domain.com', // Missing @
+      'email@domain@domain.com', // Two @ sign
+      '.email@domain.com', // Leading dot in address
+      'email.@domain.com', // Trailing dot in address
+      'あいうえお@domain.com', // Unicode char as address
+      'email@domain.com (Joe Smith)', // Text followed email is not allowed
+      'email@domain', // Missing top level domain (.com/.net/.org/etc)
+      'email@-domain.com', // Leading dash in front of domain is invalid
+      'email@domain..com', // Multiple dot in the domain portion is invalid
+    ];
+    it.each(invalidEmails)('should fail when creating users with invalid email: %p', async email => {
+      // BUILD
+      const newUser = {
+        username: 'nstark',
+        email,
+        firstName: 'Ned',
+        lastName: 'Stark',
+      };
+      service.getUserByPrincipal = jest.fn();
+      service.audit = jest.fn();
+
+      // OPERATE
+      try {
+        await service.createUser({}, newUser);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Input has validation errors');
+      }
+    });
   });
 
   describe('updateUser', () => {

@@ -22,6 +22,11 @@ describe('Launch and terminate RStudio instance', () => {
   let setup;
   let adminSession;
 
+  beforeEach(async () => {
+    await terminateAllRStudioWorkspaces();
+    await checkAllRstudioWorkspaceIsTerminated();
+  });
+
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
@@ -62,14 +67,27 @@ describe('Launch and terminate RStudio instance', () => {
     }
   }
 
+  async function terminateAllRStudioWorkspaces() {
+    const response = await adminSession.resources.workspaceServiceCatalogs.get();
+    const rstudioEnvTypeId = setup.defaults.envTypes.rstudio.envTypeId;
+    const nonTerminatedWorkspaces = response.filter(workspace => {
+      return workspace.envTypeId === rstudioEnvTypeId && ['COMPLETED', 'STOPPED'].includes(workspace.status);
+    });
+    console.log('Non Terminated workspaces', nonTerminatedWorkspaces);
+    for (let i = 0; i < nonTerminatedWorkspaces.length; i += 1) {
+      console.log(`Terminating ${nonTerminatedWorkspaces[i].id}`);
+      // eslint-disable-next-line no-await-in-loop
+      await adminSession.resources.workspaceServiceCatalogs
+        .workspaceServiceCatalog(nonTerminatedWorkspaces[i].id)
+        .delete();
+    }
+  }
+
   // eslint-disable-next-line jest/expect-expect
   it('should launch a RStudio instance', async () => {
     if (setup.defaults.envTypes.rstudio.envTypeId === 'N/A') {
       return;
     }
-    // Putting checkAllRstudioWorkspaceIsTerminated check here, because putting this check in `beforeAll` will not stop executing the test if the check does fail
-    // https://github.com/facebook/jest/issues/2713
-    await checkAllRstudioWorkspaceIsTerminated();
 
     const envId = await launchRStudioWorkspace();
 
@@ -77,9 +95,6 @@ describe('Launch and terminate RStudio instance', () => {
     if (!setup.defaults.isAppStreamEnabled) {
       await checkCIDR(envId);
     }
-
-    // Allow 90 seconds for EC2 to initialize and create SSM parameters
-    await sleep(90 * 1000);
 
     const rstudioServerUrlResponse = await checkConnectionUrlCanBeCreated(envId);
     await checkConnectionUrlNetworkConnectivity(rstudioServerUrlResponse);
@@ -156,17 +171,46 @@ describe('Launch and terminate RStudio instance', () => {
 
   async function checkConnectionUrlCanBeCreated(envId) {
     console.log('Check Connection URL can be created');
-    const rstudioServerUrlResponse = await adminSession.resources.workspaceServiceCatalogs
-      .workspaceServiceCatalog(envId)
-      .connections()
-      .connection('id-1')
-      .createUrl();
-    expect(rstudioServerUrlResponse.url).toBeDefined();
-    if (setup.defaults.isAppStreamEnabled) {
-      expect(rstudioServerUrlResponse.appstreamDestinationUrl).toBeDefined();
+    // Wait for a maximum of 360 seconds for RStudio Connection URL
+    const maxWaitTimeInSeconds = 360;
+    const startTime = Date.now();
+    await sleep(90 * 1000);
+
+    const isUrlDefined = urlResponse => {
+      if (setup.defaults.isAppStreamEnabled) {
+        return urlResponse.appstreamDestinationUrl !== undefined;
+      }
+      return urlResponse.url !== undefined;
+    };
+
+    let rstudioServerUrlResponse = {};
+    rstudioServerUrlResponse = await getRStudioConnectionUrl(envId);
+    while (Date.now() - startTime <= maxWaitTimeInSeconds * 1000 && !isUrlDefined(rstudioServerUrlResponse)) {
+      // eslint-disable-next-line no-await-in-loop
+      await sleep(90 * 1000);
+      console.log('rstudioServerUrlResponse', rstudioServerUrlResponse);
+      console.log('Sleeping for 90 seconds and trying to get RStudio Connection URL again');
+      // eslint-disable-next-line no-await-in-loop
+      rstudioServerUrlResponse = await getRStudioConnectionUrl(envId);
     }
 
+    expect(isUrlDefined(rstudioServerUrlResponse)).toBeTruthy();
+
     return rstudioServerUrlResponse;
+  }
+
+  async function getRStudioConnectionUrl(envId) {
+    try {
+      // eslint-disable-next-line no-await-in-loop
+      return adminSession.resources.workspaceServiceCatalogs
+        .workspaceServiceCatalog(envId)
+        .connections()
+        .connection('id-1')
+        .createUrl();
+    } catch (e) {
+      console.log('Failed to get RStudio URL', e);
+    }
+    return {};
   }
 
   async function checkConnectionUrlNetworkConnectivity(rstudioServerUrlResponse) {

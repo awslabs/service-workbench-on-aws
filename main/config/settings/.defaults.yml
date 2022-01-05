@@ -46,17 +46,22 @@ globalNamespace: ${self:custom.settings.awsAccountInfo.awsAccountId}-${self:cust
 deploymentBucketName: ${self:custom.settings.globalNamespace}-artifacts
 
 # Bucket policy for the deployment bucket.
+# THIS IS A DYNAMIC BUCKET POLICY DO NOT EDIT ANYTHING HERE--USE EDIT-S3-BUCKET-POLICY-SERVICE
 deploymentBucketPolicy:
   {
     'Version': '2008-10-17',
     'Statement':
       [
         {
-          'Sid': 'Deny requests that do not use TLS',
+          'Sid': 'Deny requests that do not use TLS/HTTPS',
           'Effect': 'Deny',
           'Principal': '*',
           'Action': 's3:*',
-          'Resource': 'arn:aws:s3:::${self:custom.settings.deploymentBucketName}/*',
+          'Resource':
+            [
+              'arn:aws:s3:::${self:custom.settings.deploymentBucketName}/*',
+              'arn:aws:s3:::${self:custom.settings.deploymentBucketName}',
+            ],
           'Condition': { 'Bool': { 'aws:SecureTransport': 'false' } },
         },
         {
@@ -202,3 +207,6 @@ egressNotificationTopicName: ${self:custom.settings.namespace}-EgressTopic
 # Error validating existing stack policy: Unknown logical id 'LogicalResourceId/AppStream*' in statement {} - stack policies can only be applied to logical ids referenced in the template
 # Stack policies are applied here: addons/addon-stack-policy/packages/stack-policy/lib/steps/update-cfn-stack-policy.js
 isAppStreamEnabled: false
+
+# The name of the S3 bucket used to store uploaded study data
+studyDataBucketName: ${self:custom.settings.globalNamespace}-studydata

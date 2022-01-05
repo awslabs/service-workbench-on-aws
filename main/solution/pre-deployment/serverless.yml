@@ -35,6 +35,7 @@ custom:
     Name: ${self:custom.settings.envName}-${self:service}
   deploymentBucket:
     policy: ${self:custom.settings.deploymentBucketPolicy}
+    versioning: true
   webpack:
     webpackConfig: ./config/build/webpack.config.js
     packager: pnpm
