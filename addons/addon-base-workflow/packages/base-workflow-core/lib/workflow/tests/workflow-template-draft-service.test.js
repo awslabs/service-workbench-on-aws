@@ -97,11 +97,11 @@ describe('WorkflowTemplateDraftService', () => {
     };
 
     await expect(workflowTemplateDraftService.updateDraft(requestContext, draft)).rejects.toThrow(
-      new Error('The provided template is not an object'),
+      new Error('The provided template is not a valid JSON object'),
     );
   });
 
-  it('should throw error when given template is missing and id', async () => {
+  it('should throw error when given template is missing an id', async () => {
     const uid = 'owner-user';
     const requestContext = { principalIdentifier: { uid }, principal: { isAdmin: true, status: 'active' } };
 
