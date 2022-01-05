@@ -139,6 +139,9 @@ class WorkflowTemplateDraftService extends Service {
     // Check if the owner of this draft is the same entity that is trying to update the draft
     if (originalDraft.uid !== by) throw this.boom.forbidden('You are not authorized to perform this operation', true);
 
+    if (!_.isObject(template)) throw this.boom.badRequest('The provided template is not a valid JSON object', true);
+    if (_.isUndefined(template.id)) throw this.boom.badRequest('The provided template is missing an id', true);
+
     let originalTemplate = originalDraft.template;
     if (template.id !== originalTemplate.id || template.v !== originalTemplate.v) {
       originalTemplate = await workflowTemplateService.mustFindVersion({ id: template.id, v: template.v });
