@@ -18,7 +18,7 @@ websiteUrl: ${cf:${self:custom.settings.infrastructureStackName}.WebsiteUrl}
 # If a Cognito user pool is setup for the solution, this setting indicates whether native
 # Cognito users should be used or if the Cognito user pool will only be used to federate to
 # other identity providers
-enableNativeUserPoolUsers: false
+enableNativeUserPoolUsers: true
 
 # Cognito domain prefix. Note random string will be padded at the end if specified domain is not available
 cognitoUserPoolDomainPrefix: ${self:custom.settings.envName}-${self:custom.settings.solutionName}

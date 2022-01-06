@@ -122,7 +122,7 @@ class ProvisionerService extends Service {
     const solutionName = this.settings.get(settingKeys.solutionName);
     const userPoolName = providerConfig.userPoolName || `${envName}-${envType}-${solutionName}-userpool`;
     const params = {
-      AdminCreateUserConfig: { AllowAdminCreateUserOnly: true },
+      AdminCreateUserConfig: { AllowAdminCreateUserOnly: false },
       AutoVerifiedAttributes: ['email'],
       Schema: [
         {
