@@ -17,7 +17,6 @@
 const constants = {
   authenticationProviders: {
     internalAuthProviderTypeId: 'internal',
-    internalAuthProviderId: 'internal',
     cognitoAuthProviderTypeId: 'cognito_user_pool',
     status: {
       initializing: 'initializing',
