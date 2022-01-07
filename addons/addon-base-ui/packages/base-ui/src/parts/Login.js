@@ -16,7 +16,7 @@
 import _ from 'lodash';
 import React from 'react';
 import { withRouter } from 'react-router-dom';
-import { observable, action, decorate, runInAction, computed } from 'mobx';
+import { observable, action, decorate, runInAction } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { Button, Form, Grid, Header, Segment, Label, Input, Select, Image } from 'semantic-ui-react';
 
