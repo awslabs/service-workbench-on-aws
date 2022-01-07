@@ -28,7 +28,6 @@ else
   echo "STAGE supplied as command line argument: ${1}"
   STAGE=$1
 fi
-# STAGE="${1:-${STAGE:-$USER}}"
 
 pushd "${DIR}/.."  > /dev/null
 export SOLUTION_ROOT_DIR="${PWD}"
@@ -42,7 +41,7 @@ popd > /dev/null
 
 function init_package_manager() {
   PACKAGE_MANAGER=pnpm
-    if ! command -v $PACKAGE_MANAGER &> /dev/null; then
+  if ! command -v $PACKAGE_MANAGER &> /dev/null; then
     npm install -g pnpm@5.18.9
   fi
   case "$PACKAGE_MANAGER" in
