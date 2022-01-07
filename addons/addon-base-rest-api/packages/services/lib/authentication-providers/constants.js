@@ -16,7 +16,6 @@
 // TODO - move this to base-services in base addon
 const constants = {
   authenticationProviders: {
-    internalAuthProviderTypeId: 'internal',
     cognitoAuthProviderTypeId: 'cognito_user_pool',
     status: {
       initializing: 'initializing',
