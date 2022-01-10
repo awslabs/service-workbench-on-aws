@@ -2147,6 +2147,23 @@ paths:
       responses:
         '200':
           description: 'Return success update message'
+  /api/migrate/mystudies:
+    put:
+      tags:
+        - migrate
+        - admins
+        - adminOnly
+      summary: migrate My Study(s) to new user(s)
+      operationId: migrateMyStudyPermissions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MigrationMappings'
+      responses:
+        '200':
+          description: 'Return updated My Study permissions'
   
 components:
   securitySchemes:
@@ -3592,5 +3609,14 @@ components:
               description: thresholds and notification depend on each other
           additionalProperties: false
       additionalProperties: false
+    MigrationMappings:
+      type: array
+      items:
+        type: object
+        properties:
+          studyId:
+            $ref: '#/components/schemas/StudyId'
+          uid:
+            $ref: '#/components/schemas/UserId'
 security:
   - bearerAuth: []

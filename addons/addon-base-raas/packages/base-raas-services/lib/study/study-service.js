@@ -388,7 +388,8 @@ class StudyService extends Service {
       throw this.boom.forbidden('Permissions cannot be set for studies in the "Open Data" category', true);
     }
 
-    if (isMyStudies(studyEntity)) {
+    // If study entity is My Study and not part of a migration request, throw error
+    if (isMyStudies(studyEntity) && updateRequest.usersToRemove[0].uid !== '*') {
       throw this.boom.forbidden('Permissions cannot be set for studies in the "My Studies" category', true);
     }
 

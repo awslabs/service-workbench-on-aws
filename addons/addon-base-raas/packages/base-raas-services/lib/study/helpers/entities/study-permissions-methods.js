@@ -52,14 +52,22 @@ function isAdmin(studyPermissionsEntity, uid) {
 function applyUpdateRequest(studyPermissionsEntity, updateRequest) {
   const entity = studyPermissionsEntity;
 
+  if (updateRequest.usersToRemove[0].uid === '*') {
+    // For mitigation of old internal users My Studies
+    const level = `${updateRequest.usersToRemove[0].permissionLevel}Users`;
+    const oldUser = entity[level][0];
+    updateRequest.usersToRemove = [{ uid: oldUser, permissionLevel: 'admin' }];
+    entity[level] = [];
+  } else {
+    _.forEach(updateRequest.usersToRemove, item => {
+      const level = `${item.permissionLevel}Users`;
+      _.pull(entity[level], item.uid);
+    });
+  }
+
   _.forEach(updateRequest.usersToAdd, item => {
     const level = `${item.permissionLevel}Users`;
     entity[level] = _.uniq([...(entity[level] || []), item.uid]);
-  });
-
-  _.forEach(updateRequest.usersToRemove, item => {
-    const level = `${item.permissionLevel}Users`;
-    _.pull(entity[level], item.uid);
   });
 }
 
