@@ -18,7 +18,7 @@ jobs:
         id: branch-name
         uses: tj-actions/branch-names@v5.1
       - name: mainline protection
-        if: steps.branch-name.outputs.base_ref_branch == 'mainline' || steps.branch-name.outputs.base_ref_branch == 'smart-mainline'
+        if: steps.branch-name.outputs.base_ref_branch == 'mainline'
         run: |
           echo "PR has target branch ${{ steps.branch-name.outputs.base_ref_branch }}. Failing workflow..."
           exit 1
