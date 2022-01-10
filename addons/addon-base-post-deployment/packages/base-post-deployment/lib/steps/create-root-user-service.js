@@ -35,8 +35,8 @@ class CreateRootUserService extends Service {
     this.dependency(['userService', 'dbPasswordService', 'aws']);
   }
 
+  // TODO: Create Root User in Cognito
   async createRootUser() {
-    // TODO: Create Root User in Cognito
     // const rootUserName = this.settings.get(settingKeys.rootUserName);
     // const rootUserEmail = this.settings.get(settingKeys.rootUserEmail);
     // const rootUserFirstName = this.settings.get(settingKeys.rootUserFirstName);

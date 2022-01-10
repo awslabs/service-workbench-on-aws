@@ -41,7 +41,6 @@ class AddAuthProviders extends Service {
       'authenticationProviderConfigService',
       'authenticationProviderTypeService',
       'cognitoUserPoolAuthenticationProvisionerService',
-      'internalAuthenticationProvisionerService',
     ]);
   }
 
