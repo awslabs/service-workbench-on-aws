@@ -26,7 +26,20 @@ async function configure(context) {
       const migrationService = await context.service('migrationService');
       const requestContext = res.locals.requestContext;
       const migrationMappings = req.body;
-      const result = await migrationService.migratePermissions(requestContext, migrationMappings);
+      const result = await migrationService.migrateMyStudiesPermissions(requestContext, migrationMappings);
+      res.status(200).json(result);
+    }),
+  );
+
+  // ===============================================================
+  //  GET /mystudies (mounted to /api/migrate)
+  // ===============================================================
+  router.get(
+    '/mystudies',
+    wrap(async (req, res) => {
+      const migrationService = await context.service('migrationService');
+      const requestContext = res.locals.requestContext;
+      const result = await migrationService.listMyStudies(requestContext);
       res.status(200).json(result);
     }),
   );

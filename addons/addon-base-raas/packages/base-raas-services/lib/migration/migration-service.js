@@ -14,14 +14,31 @@
  */
 
 const Service = require('@aws-ee/base-services-container/lib/service');
+const { isAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
+
+const settingKeys = { studiesTableName: 'dbStudies', categoryIndexName: 'dbStudiesCategoryIndex' };
 
 class MigrationService extends Service {
   constructor() {
     super();
-    this.dependency(['studyOperationService']);
+    this.dependency(['studyOperationService', 'dbService']);
   }
 
-  async migratePermissions(requestContext, migrationMappings) {
+  async init() {
+    await super.init();
+    const dbService = await this.service('dbService');
+
+    const studiesTable = this.settings.get(settingKeys.studiesTableName);
+    this._getter = () => dbService.helper.getter().table(studiesTable);
+    this._updater = () => dbService.helper.updater().table(studiesTable);
+    this._query = () => dbService.helper.query().table(studiesTable);
+    this._deleter = () => dbService.helper.deleter().table(studiesTable);
+    this._scanner = () => dbService.helper.scanner().table(studiesTable);
+
+    this.categoryIndex = this.settings.get(settingKeys.categoryIndexName);
+  }
+
+  async migrateMyStudiesPermissions(requestContext, migrationMappings) {
     const studyOperationService = await this.service('studyOperationService');
 
     const migrationResults = [];
@@ -35,6 +52,20 @@ class MigrationService extends Service {
       }),
     );
     return migrationResults;
+  }
+
+  async listMyStudies(requestContext) {
+    if (!isAdmin(requestContext)) {
+      throw this.boom.forbidden("You don't have permission to list all My Studies in this environment", true);
+    }
+
+    const result = await this._query()
+      .index(this.categoryIndex)
+      .key('category', 'My Studies')
+      .limit(1000)
+      .query();
+
+    return result;
   }
 }
 

@@ -2164,6 +2164,17 @@ paths:
       responses:
         '200':
           description: 'Return updated My Study permissions'
+    get:
+      tags:
+        - migrate
+        - admins
+        - list
+        - My Study
+      summary: list My Study(s) in environment
+      operationId: listMyStudies
+      responses:
+        '200':
+          description: 'Return My Study(s) for environment'
   
 components:
   securitySchemes:
