@@ -2093,6 +2093,7 @@ importers:
 
   main/end-to-end-tests:
     specifiers:
+      amazon-cognito-identity-js: ^5.2.4
       clipboardy: ^2.3.0
       cypress: ^4.12.1
       eslint: ^6.8.0
@@ -2110,6 +2111,7 @@ importers:
       pretty-quick: ^1.11.1
       tcp-ping: ^0.1.1
     devDependencies:
+      amazon-cognito-identity-js: 5.2.4
       clipboardy: 2.3.0
       cypress: 4.12.1
       eslint: 6.8.0
@@ -8040,6 +8042,16 @@ packages:
     resolution: {integrity: sha1-l6ERlkmyEa0zaR2fn0hqjsn74KM=}
     dev: true
 
+  /amazon-cognito-identity-js/5.2.4:
+    resolution: {integrity: sha512-CTRG5LKBfMYmNrqAU0l7X0SA4OOXsPFdHmkW0Ky3NOZZo767W5GZecm5uPz3YyAVde1OHaUyLXYzhXEmnn+VcQ==}
+    dependencies:
+      buffer: 4.9.2
+      crypto-js: 4.1.1
+      fast-base64-decode: 1.0.0
+      isomorphic-unfetch: 3.1.0
+      js-cookie: 2.2.1
+    dev: true
+
   /animate.css/3.7.0:
     resolution: {integrity: sha512-u3iMXDJr0cxMdQocIciDiou9Au4L5f9uT+/jCtprw3s1j3HcfCuI+khF+90Ps2KdsEhM2soF7SXB4WUvI3HlXg==}
     dev: false
@@ -10531,6 +10543,10 @@ packages:
       randombytes: 2.1.0
       randomfill: 1.0.4
 
+  /crypto-js/4.1.1:
+    resolution: {integrity: sha512-o2JlM7ydqd3Qk9CA0L4NL6mTzU2sdx96a+oOfPu8Mkl/PK51vSyoi8/rQ8NknZtk44vq15lmhAj9CIAGwgeWKw==}
+    dev: true
+
   /crypto-random-string/1.0.0:
     resolution: {integrity: sha1-ojD2T1aDEOFJgAmUB5DsmVRbyn4=}
     engines: {node: '>=4'}
@@ -12901,6 +12917,10 @@ packages:
     resolution: {integrity: sha1-lpGEQOMEGnpBT4xS48V06zw+HgU=}
     engines: {'0': node >=0.6.0}
 
+  /fast-base64-decode/1.0.0:
+    resolution: {integrity: sha512-qwaScUgUGBYeDNRnbc/KyllVU88Jk1pRHPStuF/lO7B0/RTRLj7U0lkdTAutlBblY08rwZDff6tNU9cjv6j//Q==}
+    dev: true
+
   /fast-deep-equal/3.1.1:
     resolution: {integrity: sha512-8UEa58QDLauDNfpbrX55Q9jrGHThw2ZMdOky5Gl1CDtVeJDPVrG4Jxx1N8jw2gkWaff5UUuX1KJd+9zGe2B+ZA==}
 
@@ -15202,6 +15222,13 @@ packages:
       whatwg-fetch: 3.0.0
     dev: true
 
+  /isomorphic-unfetch/3.1.0:
+    resolution: {integrity: sha512-geDJjpoZ8N0kWexiwkX8F9NkTsXhetLPVbZFQ+JTW239QNOwvB0gniuR1Wc6f0AMTn7/mFGyXvHTifrCp/GH8Q==}
+    dependencies:
+      node-fetch: 2.6.1
+      unfetch: 4.2.0
+    dev: true
+
   /isomorphic-ws/4.0.1_ws@7.2.3:
     resolution: {integrity: sha512-BhBvN2MBpWTaSHdWRb/bwdZJ1WaehQ2L1KngkCkfLUGF0mAWAT1sQUQacEmQ0jXkFw/czDXPNQSL5u2/Krsz1w==}
     peerDependencies:
@@ -16214,6 +16241,10 @@ packages:
   /jquery/3.5.1:
     resolution: {integrity: sha512-XwIBPqcMn57FxfT+Go5pzySnm4KWkT1Tv7gjrpT1srtf8Weynl6R273VJ5GjkRb51IzMp5nbaPjJXMWeju2MKg==}
     dev: false
+
+  /js-cookie/2.2.1:
+    resolution: {integrity: sha512-HvdH2LzI/EAZcUwA8+0nKNtWHqS+ZmijLA30RwZA0bo7ToCckjK5MkGhjED9KoRcXO6BaGI3I9UIzSA1FKFPOQ==}
+    dev: true
 
   /js-string-escape/1.0.1:
     resolution: {integrity: sha1-4mJbrbwNZ8dTPp7cEGjFh65BN+8=}
@@ -23184,6 +23215,10 @@ packages:
   /unfetch/4.1.0:
     resolution: {integrity: sha512-crP/n3eAPUJxZXM9T80/yv0YhkTEx2K1D3h7D1AJM6fzsWZrxdyRuLN0JH/dkZh1LNH8LxCnBzoPFCPbb2iGpg==}
     dev: false
+
+  /unfetch/4.2.0:
+    resolution: {integrity: sha512-F9p7yYCn6cIW9El1zi0HI6vqpeIvBsr3dSuRO6Xuppb1u5rXpCPmMvLSyECLhybr9isec8Ohl0hPekMVrEinDA==}
+    dev: true
 
   /unicode-canonical-property-names-ecmascript/1.0.4:
     resolution: {integrity: sha512-jDrNnXWHd4oHiTZnx/ZG7gtUTVp+gCcTTKr8L0HjlwphROEW3+Him+IpvC+xcJEFegapiMZyZe02CyuOnRmbnQ==}

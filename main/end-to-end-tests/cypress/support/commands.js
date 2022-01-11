@@ -64,10 +64,11 @@ Cypress.Commands.add('login', role => {
     Username: loginInfo.email,
     Password: loginInfo.password,
   };
+
   const authenticationDetails = new AuthenticationDetails(authenticationData);
   const poolData = {
-    UserPoolId: 'eu-west-3_U204NRMAr', // Your user pool id here
-    ClientId: '3kiflhc1q0nb7043qqq73f1rpu', // Your client id here
+    UserPoolId: Cypress.env('cognitoUserPoolId'),
+    ClientId: Cypress.env('cognitoClientId'),
   };
   const userPool = new CognitoUserPool(poolData);
   const userData = {
