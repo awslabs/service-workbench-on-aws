@@ -39,6 +39,9 @@ class MigrationService extends Service {
   }
 
   async migrateMyStudiesPermissions(requestContext, migrationMappings) {
+    if (!isAdmin(requestContext)) {
+      throw this.boom.forbidden("You don't have permission to migrate My Studies", true);
+    }
     const studyOperationService = await this.service('studyOperationService');
 
     const migrationResults = [];

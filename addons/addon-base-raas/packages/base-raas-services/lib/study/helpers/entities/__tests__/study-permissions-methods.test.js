@@ -55,5 +55,54 @@ describe('study permissions methods', () => {
         writeonlyUsers: ['u-4'],
       });
     });
+
+    it('should apply requested changes for migration', () => {
+      // BUILD
+      const updateRequest = {
+        usersToAdd: [
+          {
+            uid: 'newExternalUser',
+            permissionLevel: 'admin',
+          },
+        ],
+        usersToRemove: [
+          {
+            uid: '*',
+            permissionLevel: 'admin',
+          },
+        ],
+      };
+      const entity = {
+        adminUsers: ['oldInternalUser'],
+        readonlyUsers: [],
+        readwriteUsers: [],
+        writeonlyUsers: [],
+      };
+
+      // OPERATE
+      applyUpdateRequest(entity, updateRequest);
+
+      // CHECK
+      expect(entity).toStrictEqual({
+        adminUsers: ['newExternalUser'],
+        readonlyUsers: [],
+        readwriteUsers: [],
+        writeonlyUsers: [],
+      });
+      expect(updateRequest).toStrictEqual({
+        usersToAdd: [
+          {
+            uid: 'newExternalUser',
+            permissionLevel: 'admin',
+          },
+        ],
+        usersToRemove: [
+          {
+            uid: 'oldInternalUser',
+            permissionLevel: 'admin',
+          },
+        ],
+      });
+    });
   });
 });
