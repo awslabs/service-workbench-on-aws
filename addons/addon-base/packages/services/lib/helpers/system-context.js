@@ -29,7 +29,7 @@ function getSystemRequestContext() {
 
   const systemUid = '_system_';
   const systemUsername = '_system_';
-  const systemUserNamespace = 'cognito';
+  const systemUserNamespace = '_system_';
 
   ctx.authenticated = true;
   ctx.principal = {
