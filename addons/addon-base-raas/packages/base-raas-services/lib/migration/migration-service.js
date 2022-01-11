@@ -21,7 +21,7 @@ const settingKeys = { studiesTableName: 'dbStudies', categoryIndexName: 'dbStudi
 class MigrationService extends Service {
   constructor() {
     super();
-    this.dependency(['studyOperationService', 'dbService']);
+    this.dependency(['studyOperationService', 'dbService', 'userService', 'studyService']);
   }
 
   async init() {
@@ -43,12 +43,26 @@ class MigrationService extends Service {
       throw this.boom.forbidden("You don't have permission to migrate My Studies", true);
     }
     const studyOperationService = await this.service('studyOperationService');
+    const userService = await this.service('userService');
+    const studyService = await this.service('studyService');
 
     const migrationResults = [];
     await Promise.all(
       migrationMappings.map(async item => {
-        const result = await studyOperationService.updatePermissions(requestContext, item.studyId, {
-          usersToAdd: [{ uid: item.uid, permissionLevel: 'admin' }],
+        const endUser = item.uid;
+        const studyId = item.studyId;
+        // console.log(result1);
+        if (await userService.isInternalAuthUser(endUser)) {
+          throw this.boom.forbidden('You cannot migrate My Studies to internal user', true);
+        }
+
+        // check that end user is not already owner
+        if (await studyService.isStudyAdmin(requestContext, studyId, endUser)) {
+          throw this.boom.forbidden('You cannot migrate My Studies to current owner', true);
+        }
+
+        const result = await studyOperationService.updatePermissions(requestContext, studyId, {
+          usersToAdd: [{ uid: endUser, permissionLevel: 'admin' }],
           usersToRemove: [{ uid: '*', permissionLevel: 'admin' }],
         });
         migrationResults.push(result);

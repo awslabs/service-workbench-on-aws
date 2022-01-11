@@ -711,6 +711,11 @@ class StudyService extends Service {
     );
   }
 
+  async isStudyAdmin(requestContext, studyId, uid) {
+    const studyEntity = await this.getStudyPermissions(requestContext, studyId);
+    return isStudyAdmin(studyEntity.permissions, uid);
+  }
+
   /**
    * Private Methods
    */

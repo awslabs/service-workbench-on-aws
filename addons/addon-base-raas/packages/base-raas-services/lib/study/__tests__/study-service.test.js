@@ -1359,4 +1359,38 @@ describe('studyService', () => {
       expect(studyPermissionService.update).toHaveBeenCalledWith(requestContext, studyEntity, updateRequest);
     });
   });
+
+  describe('isStudyAdmin', () => {
+    it('should return true when user is study admin', async () => {
+      // BUILD
+      const requestContext = 'dummyRequestContext';
+      const uid = 'sample-user';
+      const studyId = 'sample-study';
+      service.getStudyPermissions = jest.fn().mockImplementationOnce(() => {
+        return { permissions: { adminUsers: [uid] } };
+      });
+
+      // OPERATE
+      const result = await service.isStudyAdmin(requestContext, studyId, uid);
+
+      // CHECK
+      expect(result).toBeTruthy();
+    });
+
+    it('should return false when user is not study admin', async () => {
+      // BUILD
+      const requestContext = 'dummyRequestContext';
+      const uid = 'sample-user';
+      const studyId = 'sample-study';
+      service.getStudyPermissions = jest.fn().mockImplementationOnce(() => {
+        return { permissions: { adminUsers: ['some-other-user'] } };
+      });
+
+      // OPERATE
+      const result = await service.isStudyAdmin(requestContext, studyId, uid);
+
+      // CHECK
+      expect(result).toBeFalsy();
+    });
+  });
 });
