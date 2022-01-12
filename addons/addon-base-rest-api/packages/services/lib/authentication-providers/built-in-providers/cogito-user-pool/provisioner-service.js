@@ -24,6 +24,10 @@ const settingKeys = {
   envType: 'envType',
   solutionName: 'solutionName',
   websiteUrl: 'websiteUrl',
+  enableUserSignUps: 'enableUserSignUps',
+  enableNativeUserPoolUsers: 'enableNativeUserPoolUsers',
+  autoConfirmNativeUsers: 'autoConfirmNativeUsers',
+  namespace: 'namespace',
 };
 
 class ProvisionerService extends Service {
@@ -121,8 +125,30 @@ class ProvisionerService extends Service {
     const envName = this.settings.get(settingKeys.envName);
     const solutionName = this.settings.get(settingKeys.solutionName);
     const userPoolName = providerConfig.userPoolName || `${envName}-${envType}-${solutionName}-userpool`;
+
+    // Get PreSignUpLambdaArn output from CFN stack, get undefined if not present
+    const cfnClient = new aws.sdk.CloudFormation({ apiVersion: '2010-05-15' });
+    const stackDetails = await cfnClient
+      .describeStacks({ StackName: `${this.settings.get(settingKeys.namespace)}-postDeployment` })
+      .promise();
+    const cfnData = _.get(stackDetails, 'Stacks[0]');
+    const outputs = _.get(cfnData, 'Outputs', []);
+    const cfnOutputsResult = {};
+    _.forEach(outputs, item => {
+      cfnOutputsResult[item.OutputKey] = item.OutputValue;
+    });
+
     const params = {
-      AdminCreateUserConfig: { AllowAdminCreateUserOnly: false },
+      AdminCreateUserConfig: {
+        AllowAdminCreateUserOnly: !this.settings.getBoolean(settingKeys.enableUserSignUps),
+      },
+      LambdaConfig:
+        this.settings.getBoolean(settingKeys.enableNativeUserPoolUsers) &&
+        this.settings.getBoolean(settingKeys.autoConfirmNativeUsers)
+          ? {
+              PreSignUp: cfnOutputsResult.PreSignUpLambdaArn,
+            }
+          : undefined,
       AutoVerifiedAttributes: ['email'],
       Schema: [
         {
@@ -142,10 +168,29 @@ class ProvisionerService extends Service {
         },
       ],
     };
+
+    let userPoolArn;
     if (providerConfig.userPoolId) {
       // If userPoolId is specified then this must be for update so make sure it points to a valid cognito user pool
       try {
-        await cognitoIdentityServiceProvider.describeUserPool({ UserPoolId: providerConfig.userPoolId }).promise();
+        const poolDetails = await cognitoIdentityServiceProvider
+          .describeUserPool({ UserPoolId: providerConfig.userPoolId })
+          .promise();
+        userPoolArn = poolDetails.UserPool.Arn;
+
+        this.log.info('Updating Cognito User Pool as per config changes, if any');
+        const updateParams = {
+          UserPoolId: providerConfig.userPoolId,
+          AdminCreateUserConfig: {
+            AllowAdminCreateUserOnly: !this.settings.getBoolean(settingKeys.enableUserSignUps),
+          },
+          LambdaConfig: {
+            // We don't check for autoConfirmNativeUsers and enableNativeUserPoolUsers config setting values in the update cycle
+            // because preSignUp lambda is created based on the same conditions, therefore this logic can set or reset the cognito trigger
+            PreSignUp: cfnOutputsResult.PreSignUpLambdaArn,
+          },
+        };
+        await cognitoIdentityServiceProvider.updateUserPool(updateParams).promise();
       } catch (err) {
         if (err.code === 'ResourceNotFoundException') {
           throw this.boom.badRequest(
@@ -160,8 +205,36 @@ class ProvisionerService extends Service {
       // userPoolId is not specified so create new user pool
       params.PoolName = userPoolName;
       const data = await cognitoIdentityServiceProvider.createUserPool(params).promise();
+      userPoolArn = data.UserPool.Arn;
       providerConfig.userPoolId = data.UserPool.Id;
     }
+
+    // If PreSignUpLambdaArn is not undefined, allow it to be invoked by Cognito
+    if (!_.isUndefined(cfnOutputsResult.PreSignUpLambdaArn)) {
+      const lambda = new aws.sdk.Lambda();
+      const invokePermParam = {
+        Action: 'lambda:InvokeFunction',
+        FunctionName: cfnOutputsResult.PreSignUpLambdaArn,
+        Principal: 'cognito-idp.amazonaws.com',
+        StatementId: 'CognitoLambdaInvokePermission',
+        SourceArn: userPoolArn,
+      };
+
+      try {
+        await lambda.addPermission(invokePermParam).promise();
+      } catch (err) {
+        if (err.code === 'ResourceConflictException') {
+          this.log.info('Lambda invoke permission already assigned');
+        } else {
+          // In case of any other error, let it propagate
+          throw this.boom.badRequest(
+            `Adding cognito invoke permission to lambda ${cfnOutputsResult.PreSignUpLambdaArn} failed with code: ${err.code}`,
+            true,
+          );
+        }
+      }
+    }
+
     providerConfig.userPoolName = userPoolName;
     return providerConfig;
   }

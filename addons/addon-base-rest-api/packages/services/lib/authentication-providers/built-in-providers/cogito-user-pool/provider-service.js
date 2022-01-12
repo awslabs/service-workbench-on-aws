@@ -57,7 +57,15 @@ class ProviderService extends Service {
     const userAttributesMapperService = await this.service('userAttributesMapperService');
     // Ask user attributes mapper service to read information from the decoded token and map them to user attributes
     const userAttributes = await userAttributesMapperService.mapAttributes(decodedToken);
-    if (userAttributes.isSamlAuthenticatedUser) {
+
+    if (userAttributes.isNativePoolUser) {
+      // TODO: Check if usernameInIdp is in email format, if not throw error - Do it in pre-signup lambda trigger
+      // This is done to keep the pattern of username consistent in the SWB database
+      userAttributes.username = userAttributes.usernameInIdp;
+      userAttributes.email = userAttributes.usernameInIdp;
+    }
+
+    if (userAttributes.isSamlAuthenticatedUser || _.startsWith(authenticationProviderId, 'https://cognito-idp')) {
       // If this user is authenticated via SAML then we need to add it to our user table if it doesn't exist already
       const userService = await this.service('userService');
 
