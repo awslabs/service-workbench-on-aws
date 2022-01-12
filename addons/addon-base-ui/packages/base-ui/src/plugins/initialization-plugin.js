@@ -16,7 +16,6 @@
 import _ from 'lodash';
 
 import { setIdToken } from '../helpers/api';
-import { displayWarning } from '../helpers/notification';
 
 const AUTHN_EXTENSION_POINT = 'authentication';
 
@@ -76,21 +75,9 @@ async function postInit(payload, appContext) {
   const tokenNotExpired = _.get(payload, 'tokenInfo.status') === 'notExpired';
   if (!tokenNotExpired) return; // Continue only if we have a token that is not expired
 
+  // Loading of userStore is required after login
   const userStore = appContext.userStore;
   await userStore.load();
-
-  const isRootUser = userStore.user.isRootUser;
-  const isInternalAuthUser = userStore.user.isInternalAuthUser;
-  if (isRootUser) {
-    displayWarning('You have logged in as root user. Logging in as root user is discouraged.');
-  }
-
-  const isProduction = process.env.REACT_APP_SITE_ENV_TYPE === 'prod';
-  if (isInternalAuthUser && isProduction) {
-    displayWarning(
-      'You are using internal Authentication for this user. Internal Authentication is not recommended for prod environments. Please consider using an IDP.',
-    );
-  }
 }
 
 const plugin = {
