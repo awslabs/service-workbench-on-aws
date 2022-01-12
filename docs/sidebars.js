@@ -105,6 +105,7 @@ module.exports = {
           "deployment/reference/iam_role",
           "deployment/reference/aws_services",
           "deployment/reference/prepare_master_account",
+          "deployment/reference/egress_store_approval_process",
         ],
       },
     ],
