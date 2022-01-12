@@ -16,7 +16,6 @@
 const Service = require('@aws-ee/base-services-container/lib/service');
 const _ = require('lodash');
 
-const internalAuthenticationProviderType = require('./built-in-providers/internal/type');
 const cognitoUserPoolAuthenticationProviderType = require('./built-in-providers/cogito-user-pool/type');
 
 class AuthenticationProviderTypeService extends Service {
@@ -26,7 +25,7 @@ class AuthenticationProviderTypeService extends Service {
   }
 
   async getAuthenticationProviderTypes(requestContext) {
-    const types = [internalAuthenticationProviderType, cognitoUserPoolAuthenticationProviderType];
+    const types = [cognitoUserPoolAuthenticationProviderType];
 
     // Give all plugins a chance in registering their authentication provider types
     // Each plugin will receive the following payload object with the shape {requestContext, container, types}
