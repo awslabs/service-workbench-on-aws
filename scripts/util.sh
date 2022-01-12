@@ -15,7 +15,19 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
 # This sets STAGE to $1 if present and not null, otherwise it sets stage to
 # $STAGE from the environment if present, else it defaults to $USER
-STAGE="${1:-${STAGE:-$USER}}"
+if [ -z "$1" ]; then 
+  echo "STAGE not supplied as command line argument"
+  if [ -z "$STAGE" ]; then 
+    echo "STAGE not supplied as environment variable STAGE"
+    echo "Setting STAGE from environment variable USER: ${USER}"
+    STAGE=$USER
+  else
+    echo "STAGE supplied as environment variable STAGE: ${STAGE}"
+  fi
+else
+  echo "STAGE supplied as command line argument: ${1}"
+  STAGE=$1
+fi
 
 pushd "${DIR}/.."  > /dev/null
 export SOLUTION_ROOT_DIR="${PWD}"
@@ -29,7 +41,7 @@ popd > /dev/null
 
 function init_package_manager() {
   PACKAGE_MANAGER=pnpm
-  if ! command -v $PACKAGE_MANAGER; then
+  if ! command -v $PACKAGE_MANAGER &> /dev/null; then
     npm install -g pnpm@5.18.9
   fi
   case "$PACKAGE_MANAGER" in
@@ -60,7 +72,7 @@ function install_dependencies() {
   init_package_manager
 
   # Install
-  pushd "$SOLUTION_DIR"
+  pushd "$SOLUTION_DIR" &> /dev/null
   [[ -n "$INSTALL_RECURSIVE" ]] && $INSTALL_RECURSIVE
   popd
 }
