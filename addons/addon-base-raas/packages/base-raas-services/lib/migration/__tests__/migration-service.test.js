@@ -16,10 +16,17 @@
 jest.mock('@aws-ee/base-services/lib/db-service');
 const DbServiceMock = require('@aws-ee/base-services/lib/db-service');
 
+jest.mock('@aws-ee/base-services/lib/user/user-service');
+const UserServiceMock = require('@aws-ee/base-services/lib/user/user-service');
+
 jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
 const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
 
 const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
+
+jest.mock('../../study/study-service');
+const StudyServiceMock = require('../../study/study-service');
+
 const MigrationService = require('../migration-service');
 
 jest.mock('../../study/study-operation-service');
@@ -45,6 +52,8 @@ describe('migrationService', () => {
     container.register('dbService', new DbServiceMock());
     container.register('studyOperationService', new StudyOperationServiceMock());
     container.register('settings', new SettingsServiceMock());
+    container.register('userService', new UserServiceMock());
+    container.register('studyService', new StudyServiceMock());
 
     container.initServices();
     service = await container.find('migrationService');
