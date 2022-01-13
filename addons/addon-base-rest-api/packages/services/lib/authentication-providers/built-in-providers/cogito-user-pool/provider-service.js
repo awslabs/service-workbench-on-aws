@@ -102,8 +102,8 @@ class ProviderService extends Service {
       await this.syncNativeEmailWithUsername(userAttributes.usernameInIdp, authenticationProviderId);
     }
 
-    if (userAttributes.isSamlAuthenticatedUser || _.startsWith(authenticationProviderId, 'https://cognito-idp')) {
-      // If this user is authenticated via SAML then we need to add it to our user table if it doesn't exist already
+    if (userAttributes.isSamlAuthenticatedUser || userAttributes.isNativePoolUser) {
+      // If this user is authenticated via SAML or native user pool then we need to add it to our user table if it doesn't exist already
       const userService = await this.service('userService');
 
       const user = await userService.findUserByPrincipal({

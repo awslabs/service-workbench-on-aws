@@ -51,10 +51,10 @@ class CreateRootUserService extends Service {
     // Auto-generate password for the root user
     const rootUserPassword = this.generatePassword();
 
-    const [userService, dbPasswordService, aws] = await this.service(['userService', 'dbPasswordService', 'aws']);
+    const dbPasswordService = await this.service('aws');
 
     try {
-      const createdUser = await userService.createUser(getSystemRequestContext(), {
+      const createdUser = await this.createUser({
         username: rootUserName,
         authenticationProviderId: authProviderConstants.internalAuthProviderId,
         firstName: rootUserFirstName,
@@ -71,16 +71,14 @@ class CreateRootUserService extends Service {
       });
       this.log.info("Created root user's password");
 
-      const ssm = new aws.sdk.SSM({ apiVersion: '2014-11-06' });
-      await ssm
-        .putParameter({
-          Name: rootUserPasswordParamName,
-          Type: 'SecureString',
-          Value: rootUserPassword,
-          Description: `root user password for the ${solutionName}`,
-          Overwrite: true,
-        })
-        .promise();
+      await this.putSsmParam({
+        Name: rootUserPasswordParamName,
+        Type: 'SecureString',
+        Value: rootUserPassword,
+        Description: `root user password for the ${solutionName}`,
+        Overwrite: true,
+      });
+
       this.log.info(`Created root user with user name = ${rootUserName}`);
       this.log.info(`Please find the root user's password in parameter store at = ${rootUserPasswordParamName}`);
     } catch (err) {
@@ -111,7 +109,7 @@ class CreateRootUserService extends Service {
     const awsRegion = this.settings.get(settingKeys.awsRegion);
     const envName = this.settings.get(settingKeys.envName);
 
-    const [userService, aws] = await this.service(['userService', 'aws']);
+    const aws = await this.service('aws');
     const cognitoIdentityServiceProvider = new aws.sdk.CognitoIdentityServiceProvider();
     const result = await cognitoIdentityServiceProvider.listUserPools({ MaxResults: '60' }).promise();
     const userPoolName = `${envName}-${solutionName}-userPool`;
@@ -131,7 +129,7 @@ class CreateRootUserService extends Service {
     const userPoolId = userPool.Id;
 
     try {
-      await userService.createUser(getSystemRequestContext(), {
+      await this.createUser({
         username: nativeAdminUserEmail,
         authenticationProviderId: `https://cognito-idp.${awsRegion}.amazonaws.com/${userPoolId}`,
         identityProviderName: 'Cognito Native Pool',
@@ -184,7 +182,7 @@ class CreateRootUserService extends Service {
               Name: 'given_name',
               Value: nativeAdminUserFirstName,
             },
-            // These two attributes helps users leverage Cognito native user pool's Forgot Password feature
+            // These two attributes help users leverage Cognito native user pool's Forgot Password feature
             {
               Name: 'email',
               Value: nativeAdminUserEmail,
@@ -207,22 +205,19 @@ class CreateRootUserService extends Service {
       }
     }
 
-    const ssm = new aws.sdk.SSM({ apiVersion: '2014-11-06' });
     try {
-      await ssm.getParameter({ Name: nativeAdminPasswordParamName, WithDecryption: true }).promise();
-      // TODO - future: If cognito user UserStatus === 'CONFIRMED', we can safely remove the SSM parameter value
+      await this.getSsmParam({ Name: nativeAdminPasswordParamName, WithDecryption: true });
+      // TODO - future: If cognito user's UserStatus === 'CONFIRMED', we can safely remove the SSM parameter value
     } catch (err) {
       if (err.code === 'ParameterNotFound') {
         // Create parameter if not available yet
-        await ssm
-          .putParameter({
-            Name: nativeAdminPasswordParamName,
-            Type: 'SecureString',
-            Value: nativeAdminPassword,
-            Description: `Temporary Cognito native pool user password for the ${solutionName}`,
-            Overwrite: true,
-          })
-          .promise();
+        await this.putSsmParam({
+          Name: nativeAdminPasswordParamName,
+          Type: 'SecureString',
+          Value: nativeAdminPassword,
+          Description: `Temporary Cognito native pool user password for the ${solutionName}`,
+          Overwrite: true,
+        });
 
         this.log.info(
           `Please find the native pool user temporary password in parameter store at ${nativeAdminPasswordParamName}`,
@@ -234,6 +229,23 @@ class CreateRootUserService extends Service {
         );
       }
     }
+  }
+
+  async createUser(rawData) {
+    const userService = await this.service('userService');
+    return userService.createUser(getSystemRequestContext(), rawData);
+  }
+
+  async putSsmParam(rawData) {
+    const aws = await this.service('aws');
+    const ssm = new aws.sdk.SSM({ apiVersion: '2014-11-06' });
+    await ssm.putParameter(rawData).promise();
+  }
+
+  async getSsmParam(rawData) {
+    const aws = await this.service('aws');
+    const ssm = new aws.sdk.SSM({ apiVersion: '2014-11-06' });
+    await ssm.getParameter(rawData).promise();
   }
 
   generatePassword() {
