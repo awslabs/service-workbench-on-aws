@@ -184,9 +184,14 @@ class CreateRootUserService extends Service {
               Name: 'given_name',
               Value: nativeAdminUserFirstName,
             },
+            // These two attributes helps users leverage Cognito native user pool's Forgot Password feature
             {
               Name: 'email',
               Value: nativeAdminUserEmail,
+            },
+            {
+              Name: 'email_verified',
+              Value: 'true',
             },
           ],
           Username: nativeAdminUserEmail,
