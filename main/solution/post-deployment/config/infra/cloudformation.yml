@@ -522,6 +522,7 @@ Resources:
         ZipFile: |
           exports.handler = (event, context, callback) => {
           event.response.autoConfirmUser = true;
+          // This regex check should be the same as the one in create-user email pattern
           const emailRegex = /^\w+([\.+-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
           const { userPoolId, triggerSource, request, userName } = event
           const logInfo = { userPoolId, triggerSource, userName, 

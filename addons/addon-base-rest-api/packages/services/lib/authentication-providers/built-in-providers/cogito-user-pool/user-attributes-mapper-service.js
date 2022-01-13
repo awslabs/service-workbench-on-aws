@@ -58,8 +58,7 @@ class UserAttributesMapperService extends Service {
       decodedToken.identities &&
       decodedToken.identities[0] &&
       _.toUpper(decodedToken.identities[0].providerType) === 'SAML';
-    if (_.isUndefined(isSamlAuthenticatedUser)) return false;
-    return isSamlAuthenticatedUser;
+    return !_.isUndefined(isSamlAuthenticatedUser) && isSamlAuthenticatedUser;
   }
 
   isNativePoolUser(decodedToken) {

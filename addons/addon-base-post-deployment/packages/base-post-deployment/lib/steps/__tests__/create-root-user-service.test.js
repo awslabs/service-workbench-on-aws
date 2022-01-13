@@ -65,7 +65,7 @@ describe('CreateRootUserService', () => {
   });
 
   describe('createNativeAdminUser', () => {
-    it('should attempt to store password even if first admin of native user pool exists', async () => {
+    it('should attempt to store password if native pool admin existed but password did not', async () => {
       // BUILD
       const userPoolName = 'envName-solutionName-userPool';
       AWSMock.mock('CognitoIdentityServiceProvider', 'listUserPools', (_, callback) => {
@@ -160,14 +160,17 @@ describe('CreateRootUserService', () => {
       // user exists in SWB DDB
       service.createUser = jest.fn();
       // Password already exists in SSM
-      service.getSsmParam = jest.fn();
+      service.getSsmParam = jest.fn(() => {
+        // eslint-disable-next-line no-throw-literal
+        throw { code: 'ParameterNotFound' };
+      });
       service.putSsmParam = jest.fn();
 
       // OPERATE
       await service.createNativeAdminUser();
 
       // CHECK
-      expect(service.putSsmParam).not.toHaveBeenCalled();
+      expect(service.putSsmParam).toHaveBeenCalled();
     });
   });
 });

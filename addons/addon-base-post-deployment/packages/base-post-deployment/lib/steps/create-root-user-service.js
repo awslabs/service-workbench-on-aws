@@ -51,7 +51,7 @@ class CreateRootUserService extends Service {
     // Auto-generate password for the root user
     const rootUserPassword = this.generatePassword();
 
-    const dbPasswordService = await this.service('aws');
+    const dbPasswordService = await this.service('dbPasswordService');
 
     try {
       const createdUser = await this.createUser({

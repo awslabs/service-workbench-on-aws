@@ -107,7 +107,7 @@ describe('ProviderService', () => {
       const userPoolId = 'swb-is-fun';
       const username = 'sampleUsername';
       const authProviderId = `https://cognito-idp.someregion.amazonaws.com/${userPoolId}`;
-      // Not need to mock and expect adminUpdateUserAttributes params since that won't be called
+      // No need to mock and expect adminUpdateUserAttributes params since that won't be called
       AWSMock.mock('CognitoIdentityServiceProvider', 'adminGetUser', (params, callback) => {
         expect(params).toMatchObject({ UserPoolId: userPoolId, Username: username });
         callback(null, {

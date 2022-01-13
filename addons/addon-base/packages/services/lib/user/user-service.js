@@ -53,6 +53,7 @@ class UserService extends Service {
     await this.assertAuthorized(requestContext, { action: 'create', conditions: [this.allowAuthorized] }, user);
 
     // Validate input
+    // The regex check for email must be the same as the one applied for native pool presignup lambda
     await this.validateCreateUser(requestContext, user);
 
     const { username, password } = user;
