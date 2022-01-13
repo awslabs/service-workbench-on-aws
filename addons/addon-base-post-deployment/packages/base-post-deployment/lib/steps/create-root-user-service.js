@@ -109,11 +109,26 @@ class CreateRootUserService extends Service {
     const nativeAdminPasswordParamName = this.settings.get(settingKeys.nativeAdminPasswordParamName);
     const solutionName = this.settings.get(settingKeys.solutionName);
     const awsRegion = this.settings.get(settingKeys.awsRegion);
+    const envName = this.settings.get(settingKeys.envName);
+
+    const [userService, aws] = await this.service(['userService', 'aws']);
+    const cognitoIdentityServiceProvider = new aws.sdk.CognitoIdentityServiceProvider();
+    const result = await cognitoIdentityServiceProvider.listUserPools({ MaxResults: '60' }).promise();
+    const userPoolName = `${envName}-${solutionName}-userPool`;
+    const userPool = _.find(result.UserPools, { Name: userPoolName });
+
+    if (!userPool) {
+      // TODO - future: When we deprecate internal authentication, code inside this if block should throw an error
+      this.log.info(
+        'Cognito User Pool is not available. This means only internal authentication provider is being used',
+      );
+      return;
+    }
 
     // Auto-generate password for the native admin user
     const nativeAdminPassword = this.generatePassword();
 
-    const [userService, aws] = await this.service(['userService', 'aws']);
+    const userPoolId = userPool.Id;
 
     try {
       await userService.createUser(getSystemRequestContext(), {
@@ -127,79 +142,6 @@ class CreateRootUserService extends Service {
         status: 'active',
         userRole: 'admin',
       });
-
-      const cognitoIdentityServiceProvider = new aws.sdk.CognitoIdentityServiceProvider();
-      const result = await cognitoIdentityServiceProvider.listUserPools({ MaxResults: '60' }).promise();
-      this.log.info(`${JSON.stringify(result)}`);
-      const envName = this.settings.get(settingKeys.envName);
-      const userPoolName = `${envName}-${solutionName}-userPool`;
-      const userPool = _.find(result.UserPools, { Name: userPoolName });
-
-      if (!userPool)
-        // TODO - future: When we deprecate internal authentication, code inside this if block should throw an error
-        this.log.info(
-          'Cognito User Pool is not available. This means only internal authentication provider is being used',
-        );
-
-      const userPoolId = userPool.Id;
-      try {
-        await cognitoIdentityServiceProvider
-          .adminGetUser({ Username: nativeAdminUserEmail, UserPoolId: userPoolId })
-          .promise();
-        this.log.info(
-          `The native cognito user ${nativeAdminUserEmail} already exists in user pool ${userPoolId}. Not creating a new one.`,
-        );
-      } catch (err) {
-        if (err.code === 'UserNotFoundException') {
-          this.log.info(
-            `User with username ${nativeAdminUserEmail} not found in native user pool ${userPoolId}. Creating a new one.`,
-          );
-          const nativeAdminParams = {
-            TemporaryPassword: nativeAdminPassword,
-            UserAttributes: [
-              {
-                Name: 'family_name',
-                Value: nativeAdminUserLastName,
-              },
-              {
-                Name: 'name',
-                Value: nativeAdminUserFirstName,
-              },
-              {
-                Name: 'given_name',
-                Value: nativeAdminUserFirstName,
-              },
-              {
-                Name: 'email',
-                Value: nativeAdminUserEmail,
-              },
-            ],
-            Username: nativeAdminUserEmail,
-            UserPoolId: userPoolId,
-          };
-          await cognitoIdentityServiceProvider.adminCreateUser(nativeAdminParams).promise();
-        } else {
-          throw this.boom.badRequest(
-            `There was a problem getting the default native pool user. Username: ${nativeAdminUserEmail} UserPoolId: ${userPoolId}. Error code: ${err.code}`,
-            true,
-          );
-        }
-      }
-
-      const ssm = new aws.sdk.SSM({ apiVersion: '2014-11-06' });
-      await ssm
-        .putParameter({
-          Name: nativeAdminPasswordParamName,
-          Type: 'SecureString',
-          Value: nativeAdminPassword,
-          Description: `Native pool user password for the ${solutionName}`,
-          Overwrite: true,
-        })
-        .promise();
-      this.log.info(`Created native pool user with user name = ${nativeAdminUserEmail}`);
-      this.log.info(
-        `Please find the native pool user password in parameter store at = ${nativeAdminPasswordParamName}`,
-      );
     } catch (err) {
       if (err.code === 'alreadyExists') {
         // The native admin already exists. Nothing to do.
@@ -208,7 +150,83 @@ class CreateRootUserService extends Service {
         );
       } else {
         // In case of any other error let it bubble up
-        throw err;
+        throw this.boom.internalError(
+          `There was a problem creating the default native user in DDB. Username: ${nativeAdminUserEmail}. Error code: ${err.code}`,
+          true,
+        );
+      }
+    }
+
+    try {
+      await cognitoIdentityServiceProvider
+        .adminGetUser({ Username: nativeAdminUserEmail, UserPoolId: userPoolId })
+        .promise();
+      this.log.info(
+        `The native cognito user ${nativeAdminUserEmail} already exists in user pool ${userPoolId}. Not creating a new one.`,
+      );
+    } catch (err) {
+      if (err.code === 'UserNotFoundException') {
+        this.log.info(
+          `User with username ${nativeAdminUserEmail} not found in native user pool ${userPoolId}. Creating a new one.`,
+        );
+        const nativeAdminParams = {
+          TemporaryPassword: nativeAdminPassword,
+          UserAttributes: [
+            {
+              Name: 'family_name',
+              Value: nativeAdminUserLastName,
+            },
+            {
+              Name: 'name',
+              Value: nativeAdminUserFirstName,
+            },
+            {
+              Name: 'given_name',
+              Value: nativeAdminUserFirstName,
+            },
+            {
+              Name: 'email',
+              Value: nativeAdminUserEmail,
+            },
+          ],
+          Username: nativeAdminUserEmail,
+          UserPoolId: userPoolId,
+        };
+        await cognitoIdentityServiceProvider.adminCreateUser(nativeAdminParams).promise();
+        this.log.info(`Created native pool user with user name = ${nativeAdminUserEmail}`);
+      } else {
+        throw this.boom.internalError(
+          `There was a problem getting the default native pool user. Username: ${nativeAdminUserEmail} UserPoolId: ${userPoolId}. Error code: ${err.code}`,
+          true,
+        );
+      }
+    }
+
+    const ssm = new aws.sdk.SSM({ apiVersion: '2014-11-06' });
+    try {
+      await ssm.getParameter({ Name: nativeAdminPasswordParamName, WithDecryption: true }).promise();
+      // TODO - future: If cognito user UserStatus === 'CONFIRMED', we can safely remove the SSM parameter value
+    } catch (err) {
+      if (err.code === 'ParameterNotFound') {
+        // Create parameter if not available yet
+        await ssm
+          .putParameter({
+            Name: nativeAdminPasswordParamName,
+            Type: 'SecureString',
+            Value: nativeAdminPassword,
+            Description: `Temporary Cognito native pool user password for the ${solutionName}`,
+            Overwrite: true,
+          })
+          .promise();
+
+        this.log.info(
+          `Please find the native pool user temporary password in parameter store at ${nativeAdminPasswordParamName}`,
+        );
+      } else {
+        throw this.boom.internalError(
+          `There was a problem setting the native pool user temporary password. SSM param: ${nativeAdminPasswordParamName}. Error code: ${err.code}`,
+          true,
+        );
       }
     }
   }

@@ -529,7 +529,7 @@ Resources:
           console.info("Event-parsed details:\n" + JSON.stringify(logInfo, null, 2));
 
           // Only perform email verification for native user pool users, external IdPs should send valid data
-          if(triggerSource === 'PreSignUp_SignUp' && !emailRegex.test(userName)){
+          if(triggerSource !== 'PreSignUp_ExternalProvider' && !emailRegex.test(userName)){
               throw new Error("Username should be in email format");
           }
 
