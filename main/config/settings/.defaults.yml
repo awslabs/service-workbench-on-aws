@@ -108,6 +108,7 @@ paramStoreRoot: '${self:custom.settings.envName}/${self:custom.settings.solution
 # Information about the root admin user.
 # The root admin user is created by default in the internal authentication provider
 # The root user can be used for provisioning additional authentication providers
+# Note: These details are also used for creating the first admin user in the Cognito native user pool, if enableNativeUserPoolUsers is set to true
 # Root user's username
 rootUserName: root
 # Root user's first name
@@ -115,6 +116,7 @@ rootUserFirstName: root
 # Root user's last name
 rootUserLastName: root
 # Root user's email address
+# Note: The value set to rootUserEmail will be used ad the username for Cognito native user pool's default user
 rootUserEmail: root@example.com
 
 # Enable/disable external researchers feature

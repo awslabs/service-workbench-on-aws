@@ -4,6 +4,9 @@ jwtOptions: '{"algorithm":"HS256","expiresIn":"2 days"}'
 # Name of the parameter in the parameter store to save the generated password of the root user
 rootUserPasswordParamName: /${self:custom.settings.paramStoreRoot}/user/root/password
 
+# Name of the parameter in the parameter store to save the generated password of the native user pool's first admin
+nativeAdminPasswordParamName: /${self:custom.settings.paramStoreRoot}/user/native/admin/password
+
 # Name of the parameter in parameter store containing secret key for JWT. This key is used for signing and validating JWT tokens
 # issued by data lake authentication providers
 paramStoreJwtSecret: '/${self:custom.settings.paramStoreRoot}/jwt/secret'
@@ -16,9 +19,18 @@ infrastructureStackName: ${self:custom.settings.namespace}-infrastructure
 websiteUrl: ${cf:${self:custom.settings.infrastructureStackName}.WebsiteUrl}
 
 # If a Cognito user pool is setup for the solution, this setting indicates whether native
-# Cognito users should be used or if the Cognito user pool will only be used to federate to
-# other identity providers
-enableNativeUserPoolUsers: false
+# Cognito users should be used or if the Cognito user pool will only be used to federate to other identity providers
+# IMPORTANT: We recommend keeping this flag value set to true when installing SWB for the very first time.
+enableNativeUserPoolUsers: true
+
+# Setting this flag creates a lambda used for PreSignUp trigger by Cognito user pool
+# When enabled, account admins do not need to manually confirm each new user entry in the native user pool
+# https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-lambda-pre-sign-up.html
+autoConfirmNativeUsers: true
+
+# Setting this flag enables users to sign themselves up into Cognito via an external IdP or the native user pool
+# These users still need to be activated by a Service Workbench administrator prior to accessing the application
+enableUserSignUps: true
 
 # Cognito domain prefix. Note random string will be padded at the end if specified domain is not available
 cognitoUserPoolDomainPrefix: ${self:custom.settings.envName}-${self:custom.settings.solutionName}
@@ -27,7 +39,7 @@ cognitoUserPoolDomainPrefix: ${self:custom.settings.envName}-${self:custom.setti
 defaultAuthNProviderTitle: 'Default Login'
 
 # Title of the Cognito authentication provider that federates with Active Directory identity provider.
-cognitoAuthNProviderTitle: 'Login using Active Directory'
+cognitoAuthNProviderTitle: 'Cognito Native Pool'
 
 # The stack name of the 'backend' serverless service
 backendStackName: ${self:custom.settings.namespace}-backend

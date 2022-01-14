@@ -80,14 +80,11 @@ function registerRoutes(routesMap, { location, appContext }) {
 function getDefaultRouteLocation({ location, appContext }) {
   const userStore = appContext.userStore;
   let defaultRoute = '/dashboard';
-  const isRootUser = _.get(userStore, 'user.isRootUser');
   const isExternalResearcher = _.get(userStore, 'user.isExternalResearcher');
   const isInternalGuest = _.get(userStore, 'user.isInternalGuest');
   const isExternalGuest = _.get(userStore, 'user.isExternalGuest');
 
-  if (isRootUser) {
-    defaultRoute = '/users';
-  } else if (isExternalResearcher) {
+  if (isExternalResearcher) {
     defaultRoute = '/workspaces';
   } else if (isInternalGuest || isExternalGuest) {
     defaultRoute = '/studies';
