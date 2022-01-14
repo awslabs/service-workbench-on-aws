@@ -33,6 +33,7 @@ const ProvisionerService = require('../provisioner-service');
 
 describe('ProvisionerService', () => {
   let service;
+  let settings;
   beforeAll(async () => {
     // Initialize services container and register dependencies
     const container = new ServicesContainer();
@@ -50,7 +51,7 @@ describe('ProvisionerService', () => {
     service = await container.find('provisionerService');
 
     // Mock return for settings get
-    const settings = await container.find('settings');
+    settings = await container.find('settings');
     settings.get = jest.fn(input => input);
   });
 
@@ -142,6 +143,133 @@ describe('ProvisionerService', () => {
       await service.configureUserPoolDomain(providerConfig);
       // CHECK
       expect(service.retryCreateDomain).toHaveBeenCalled();
+    });
+  });
+
+  describe('saveCognitoUserPool', () => {
+    it('should update user pool if exists', async () => {
+      // BUILD
+      const providerConfig = {
+        userPoolDomain: 'swb-dev',
+        userPoolId: 'some-user-pool-id',
+      };
+      AWSMock.mock('Lambda', 'addPermission', (params, callback) => {
+        expect(params).toMatchObject({
+          Action: 'lambda:InvokeFunction',
+          FunctionName: 'samplePreSignUpLambdaArn',
+          Principal: 'cognito-idp.amazonaws.com',
+          StatementId: 'CognitoLambdaInvokePermission',
+          SourceArn: 'SampleUserPoolArn',
+        });
+        callback(null, {});
+      });
+      AWSMock.mock('CognitoIdentityServiceProvider', 'describeUserPool', (params, callback) => {
+        expect(params).toMatchObject({ UserPoolId: providerConfig.userPoolId });
+        callback(null, { UserPool: { Arn: 'SampleUserPoolArn' } });
+      });
+      AWSMock.mock('CognitoIdentityServiceProvider', 'updateUserPool', (params, callback) => {
+        expect(params).toMatchObject({
+          UserPoolId: providerConfig.userPoolId,
+          AdminCreateUserConfig: {
+            AllowAdminCreateUserOnly: false,
+          },
+          LambdaConfig: {
+            PreSignUp: 'samplePreSignUpLambdaArn',
+          },
+        });
+        callback(null, { UserPool: { Arn: 'SampleUserPoolArn' } });
+      });
+      settings.get = jest.fn(key => {
+        return key;
+      });
+      settings.getBoolean = jest.fn(key => {
+        if (key === 'enableNativeUserPoolUsers' || key === 'enableUserSignUps' || key === 'autoConfirmNativeUsers') {
+          return true;
+        }
+        return false;
+      });
+      service.getPreSignUpLambdaArn = jest.fn(() => {
+        return 'samplePreSignUpLambdaArn';
+      });
+
+      // OPERATE
+      const response = await service.saveCognitoUserPool(providerConfig);
+
+      // CHECK
+      expect(response).toEqual({
+        userPoolDomain: 'swb-dev',
+        userPoolId: 'some-user-pool-id',
+        userPoolName: 'envName-envType-solutionName-userpool',
+      });
+    });
+
+    it('should create user pool if does not exist', async () => {
+      // BUILD
+      const providerConfig = {};
+      AWSMock.mock('Lambda', 'addPermission', (params, callback) => {
+        expect(params).toMatchObject({
+          Action: 'lambda:InvokeFunction',
+          FunctionName: 'samplePreSignUpLambdaArn',
+          Principal: 'cognito-idp.amazonaws.com',
+          StatementId: 'CognitoLambdaInvokePermission',
+          SourceArn: 'SampleUserPoolArn',
+        });
+        callback(null, {});
+      });
+      AWSMock.mock('CognitoIdentityServiceProvider', 'describeUserPool', (params, callback) => {
+        expect(params).toMatchObject({ UserPoolId: providerConfig.userPoolId });
+        callback(null, { UserPool: { Arn: 'SampleUserPoolArn' } });
+      });
+      AWSMock.mock('CognitoIdentityServiceProvider', 'createUserPool', (params, callback) => {
+        expect(params).toMatchObject({
+          AdminCreateUserConfig: {
+            AllowAdminCreateUserOnly: false,
+          },
+          LambdaConfig: {
+            PreSignUp: 'samplePreSignUpLambdaArn',
+          },
+          AutoVerifiedAttributes: ['email'],
+          Schema: [
+            {
+              Name: 'name',
+              Mutable: true,
+              Required: true,
+            },
+            {
+              Name: 'family_name',
+              Mutable: true,
+              Required: true,
+            },
+            {
+              Name: 'middle_name',
+              Mutable: true,
+              Required: false,
+            },
+          ],
+        });
+        callback(null, { UserPool: { Arn: 'SampleUserPoolArn', Id: 'SampleUserPoolId' } });
+      });
+      settings.get = jest.fn(key => {
+        return key;
+      });
+      settings.getBoolean = jest.fn(key => {
+        if (key === 'enableNativeUserPoolUsers' || key === 'enableUserSignUps' || key === 'autoConfirmNativeUsers') {
+          return true;
+        }
+        return false;
+      });
+      service.getPreSignUpLambdaArn = jest.fn(() => {
+        return 'samplePreSignUpLambdaArn';
+      });
+
+      // OPERATE
+      const response = await service.saveCognitoUserPool(providerConfig);
+
+      // CHECK
+      expect(response).toEqual({
+        userPoolId: 'SampleUserPoolId',
+        userPoolName: 'envName-envType-solutionName-userpool',
+      });
     });
   });
 });

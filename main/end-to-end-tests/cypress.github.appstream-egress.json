@@ -5,7 +5,7 @@
   "video": false,
   "env": {
     "isAppStreamEnabled": true,
-    "isCognitoEnabled": false,
+    "isCognitoEnabled": true,
     "workspaces": {
       "sagemaker": {
         "workspaceTypeName": "SageMaker Notebook-v5",
