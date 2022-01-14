@@ -165,7 +165,7 @@ class UpdateUser extends React.Component {
         ? makeButton({
             label: 'Deactivate User',
             floated: 'right',
-            disabled: currentUser.isRootUser || this.processing,
+            disabled: this.processing,
             onClick: () => this.handleApproveDisapproveClick('inactive'),
           })
         : '';

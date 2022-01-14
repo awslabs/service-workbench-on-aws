@@ -43,7 +43,20 @@ function toIdpOptions(providerConfigs) {
         });
       });
     }
+
+    // If native user pool is enabled, add Cognito User Pool
+    if (!_.isUndefined(config.enableNativeUserPoolUsers) && config.enableNativeUserPoolUsers) {
+      options.push({
+        key: config.title,
+        text: config.title,
+        value: JSON.stringify({
+          authNProviderId: config.id,
+          idpName: config.title,
+        }),
+      });
+    }
   });
+
   return options;
 }
 
