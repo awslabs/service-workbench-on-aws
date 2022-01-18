@@ -127,7 +127,7 @@ describe('migrationService', () => {
 
       // OPERATE n CHECK
       await expect(service.migrateMyStudiesPermissions(requestContext, migrationMapping)).rejects.toThrow(
-        "You don't have permission to migrate My Studies",
+        'You need admin permissions to migrate My Studies',
       );
     });
 
@@ -154,7 +154,7 @@ describe('migrationService', () => {
 
       // OPERATE n CHECK
       await expect(service.listMyStudies(requestContext)).rejects.toThrow(
-        "You don't have permission to list all My Studies in this environment",
+        'You need admin permissions to list all My Studies in this environment',
       );
     });
   });

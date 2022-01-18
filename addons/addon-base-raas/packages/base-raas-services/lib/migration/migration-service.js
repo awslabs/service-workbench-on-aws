@@ -72,7 +72,7 @@ class MigrationService extends Service {
 
   async listMyStudies(requestContext) {
     if (!isAdmin(requestContext)) {
-      throw this.boom.forbidden('You ned admin permissions to list all My Studies in this environment', true);
+      throw this.boom.forbidden('You need admin permissions to list all My Studies in this environment', true);
     }
 
     const studyService = await this.service('studyService');
@@ -85,26 +85,28 @@ class MigrationService extends Service {
       .query();
 
     const helpfulResult = await Promise.all(
-      result.map(async study => {
-        const currentStudyPermissions = await studyService.getStudyPermissions(requestContext, study.id);
-        const currentOwner = currentStudyPermissions.permissions.adminUsers[0];
-        const currentOwnerInformation = await userService.findUser({ uid: currentOwner });
-        const currentOwnerUsername = currentOwnerInformation.username;
-        const currentOwnerAuthProvider =
-          currentOwnerInformation.authenticationProviderId === 'internal'
-            ? 'internal'
-            : currentOwnerInformation.identityProviderName;
+      result
+        .map(async study => {
+          const currentStudyPermissions = await studyService.getStudyPermissions(requestContext, study.id);
+          const currentOwner = currentStudyPermissions.permissions.adminUsers[0];
+          const currentOwnerInformation = await userService.findUser({ uid: currentOwner });
+          const currentOwnerUsername = currentOwnerInformation.username;
+          const currentOwnerAuthProvider =
+            currentOwnerInformation.authenticationProviderId === 'internal'
+              ? 'internal'
+              : currentOwnerInformation.identityProviderName;
 
-        return {
-          studyId: study.id,
-          uid: currentOwner,
-          username: currentOwnerUsername,
-          authProvider: currentOwnerAuthProvider,
-        };
-      }),
+          return {
+            studyId: study.id,
+            uid: currentOwner,
+            username: currentOwnerUsername,
+            authProvider: currentOwnerAuthProvider,
+          };
+        })
+        .filter(study => study.authProvider === 'internal'),
     );
 
-    return helpfulResult;
+    return helpfulResult.length > 0 ? helpfulResult : 'No My Studies are owned my internal users. No migration needed.';
   }
 }
 
