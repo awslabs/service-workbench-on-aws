@@ -72,19 +72,20 @@ function get_info() {
   echo "Solution                           : ${solution_name}"
   echo "Website URL                        : ${WEBSITE_URL}"
   echo "API Endpoint                       : ${API_ENDPOINT}"
-  
 
+  # only show profile and root password when running in an interactive terminal
+  if [ -t 1 ] ; then
     [ -z "${aws_profile}" ] || echo "AWS Profile                        : ${aws_profile}"
-
+    root_passwd="$(${root_psswd_cmd})"
     echo "Root Password                      : ${root_passwd}"
     native_admin_psswd="$(${native_admin_psswd_cmd})"
     echo "Temporary Native Pool Password     : ${native_admin_psswd}"
-
+  else
     echo "Root Password             : execute ${root_psswd_cmd}"
     echo "Temporary Native Pool Password     : execute ${native_admin_psswd_cmd}"
+  fi
 
-
-
+  echo "-------------------------------------------------------------------------"
 }
 
 get_info

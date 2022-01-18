@@ -81,9 +81,9 @@ Cypress.Commands.add('login', role => {
   const authResult = new Cypress.Promise((resolve, reject) => {
     cognitoUser.authenticateUser(authenticationDetails, {
       onSuccess(result) {
-        const accessToken = result.getAccessToken().getJwtToken();
+        const accessToken = result.getIdToken().getJwtToken();
         window.localStorage.setItem('appIdToken', accessToken);
-        resolve(`Auth token ${accessToken}`);
+        resolve('Successfully authenticated user');
       },
 
       onFailure(err) {
@@ -92,7 +92,7 @@ Cypress.Commands.add('login', role => {
       },
     });
   });
-  cy.wrap(authResult).should('contain', 'Auth token');
+  cy.wrap(authResult);
   cy.visit('/dashboard');
   cy.get("div[data-testid='page-title'] div").contains('Dashboard');
 });
