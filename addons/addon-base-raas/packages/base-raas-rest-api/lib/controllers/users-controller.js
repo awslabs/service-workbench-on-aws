@@ -17,7 +17,7 @@ async function configure(context) {
   const router = context.router();
   const wrap = context.wrap;
   // const boom = context.boom;
-  const [userService, dbPasswordService] = await context.service(['userService', 'dbPasswordService']);
+  const [userService] = await context.service(['userService', 'dbPasswordService']);
 
   // ===============================================================
   //  GET / (mounted to /api/users)
