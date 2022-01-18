@@ -17,7 +17,7 @@ async function configure(context) {
   const router = context.router();
   const wrap = context.wrap;
   // const boom = context.boom;
-  const [userService] = await context.service(['userService', 'dbPasswordService']);
+  const [userService, dbPasswordService] = await context.service(['userService', 'dbPasswordService']);
 
   // ===============================================================
   //  GET / (mounted to /api/users)
@@ -31,18 +31,17 @@ async function configure(context) {
     }),
   );
 
-  // TODO: Do we want to keep this API and support creating Cognito users? Currently API only support creating internal users
   // ===============================================================
   //  POST / (mounted to /api/users)
   // ===============================================================
-  // router.post(
-  //   '/',
-  //   wrap(async (req, res) => {
-  //     const requestContext = res.locals.requestContext;
-  //     const createdUser = await userService.createUser(requestContext, req.body);
-  //     res.status(200).json(createdUser);
-  //   }),
-  // );
+  router.post(
+    '/',
+    wrap(async (req, res) => {
+      const requestContext = res.locals.requestContext;
+      const createdUser = await userService.createUser(requestContext, req.body);
+      res.status(200).json(createdUser);
+    }),
+  );
 
   // ===============================================================
   //  POST / (mounted to /api/users/bulk)

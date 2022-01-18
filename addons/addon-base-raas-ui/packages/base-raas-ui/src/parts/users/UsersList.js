@@ -76,10 +76,6 @@ class UsersList extends React.Component {
     this.goto('/users/add');
   };
 
-  handleAddLocalUser = () => {
-    this.goto('/users/add/local');
-  };
-
   handleAddAuthenticationProvider = () => {
     this.goto('/authentication-providers');
   };
@@ -99,10 +95,6 @@ class UsersList extends React.Component {
             {this.renderTotal()}
           </Header.Content>
         </Header>
-        <Button color="blue" size="medium" className="mr2" basic onClick={this.handleAddLocalUser}>
-          {' '}
-          Add Local User{' '}
-        </Button>
         <Button color="blue" size="medium" basic onClick={this.handleAddUser}>
           {' '}
           Add Federated User{' '}
