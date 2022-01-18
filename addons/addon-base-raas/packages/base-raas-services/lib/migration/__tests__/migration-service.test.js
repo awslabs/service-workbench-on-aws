@@ -112,7 +112,6 @@ describe('migrationService', () => {
 
       // OPERATE
       const results = await service.migrateMyStudiesPermissions(requestContext, migrationMapping);
-      //   console.log(results);
 
       // CHECK
       expect(results.length).toEqual(migrationMapping.length);
@@ -139,7 +138,6 @@ describe('migrationService', () => {
 
       // OPERATE
       await service.migrateMyStudiesPermissions(requestContext, migrationMapping);
-      //   console.log(results);
 
       // CHECK
       expect(studyOperationService.updatePermissions).toHaveBeenCalledWith(requestContext, 'testStudy1', {

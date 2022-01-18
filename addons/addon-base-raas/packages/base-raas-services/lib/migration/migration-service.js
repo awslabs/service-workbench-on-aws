@@ -40,7 +40,7 @@ class MigrationService extends Service {
 
   async migrateMyStudiesPermissions(requestContext, migrationMappings) {
     if (!isAdmin(requestContext)) {
-      throw this.boom.forbidden("You don't have permission to migrate My Studies", true);
+      throw this.boom.forbidden('You need admin permissions to migrate My Studies', true);
     }
     const studyOperationService = await this.service('studyOperationService');
     const userService = await this.service('userService');
@@ -51,14 +51,13 @@ class MigrationService extends Service {
       migrationMappings.map(async item => {
         const endUser = item.uid;
         const studyId = item.studyId;
-        // console.log(result1);
         if (await userService.isInternalAuthUser(endUser)) {
-          throw this.boom.forbidden('You cannot migrate My Studies to internal user', true);
+          throw this.boom.badRequest('You cannot migrate My Studies to internal user', true);
         }
 
         // check that end user is not already owner
         if (await studyService.isStudyAdmin(requestContext, studyId, endUser)) {
-          throw this.boom.forbidden('You cannot migrate My Studies to current owner', true);
+          throw this.boom.badRequest(`Current study is already owned by ${endUser}`, true);
         }
 
         const result = await studyOperationService.updatePermissions(requestContext, studyId, {
@@ -73,8 +72,11 @@ class MigrationService extends Service {
 
   async listMyStudies(requestContext) {
     if (!isAdmin(requestContext)) {
-      throw this.boom.forbidden("You don't have permission to list all My Studies in this environment", true);
+      throw this.boom.forbidden('You ned admin permissions to list all My Studies in this environment', true);
     }
+
+    const studyService = await this.service('studyService');
+    const userService = await this.service('userService');
 
     const result = await this._query()
       .index(this.categoryIndex)
@@ -82,7 +84,27 @@ class MigrationService extends Service {
       .limit(1000)
       .query();
 
-    return result;
+    const helpfulResult = await Promise.all(
+      result.map(async study => {
+        const currentStudyPermissions = await studyService.getStudyPermissions(requestContext, study.id);
+        const currentOwner = currentStudyPermissions.permissions.adminUsers[0];
+        const currentOwnerInformation = await userService.findUser({ uid: currentOwner });
+        const currentOwnerUsername = currentOwnerInformation.username;
+        const currentOwnerAuthProvider =
+          currentOwnerInformation.authenticationProviderId === 'internal'
+            ? 'internal'
+            : currentOwnerInformation.identityProviderName;
+
+        return {
+          studyId: study.id,
+          uid: currentOwner,
+          username: currentOwnerUsername,
+          authProvider: currentOwnerAuthProvider,
+        };
+      }),
+    );
+
+    return helpfulResult;
   }
 }
 
