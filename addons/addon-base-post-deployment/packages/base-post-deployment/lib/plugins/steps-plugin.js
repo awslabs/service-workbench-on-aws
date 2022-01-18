@@ -29,9 +29,9 @@ const CreateJwtKeyService = require('../steps/create-jwt-key-service');
 async function getSteps(existingStepsMap, pluginRegistry) {
   const stepsMap = new Map([
     ...existingStepsMap,
-    ['createRootUser', new CreateRootUserService()],
     ['createJwtKeyService', new CreateJwtKeyService()],
     ['addAuthProviders', new AddAuthProviders()],
+    ['createRootUser', new CreateRootUserService()],
   ]);
 
   return stepsMap;
