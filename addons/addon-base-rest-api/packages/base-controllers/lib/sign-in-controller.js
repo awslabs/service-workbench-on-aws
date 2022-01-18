@@ -15,8 +15,6 @@
 
 const _ = require('lodash');
 const { newInvoker } = require('@aws-ee/base-api-services/lib/authentication-providers/helpers/invoker');
-const authProviderConstants = require('@aws-ee/base-api-services/lib/authentication-providers/constants')
-  .authenticationProviders;
 
 async function configure(context) {
   const router = context.router();
@@ -34,13 +32,10 @@ async function configure(context) {
     wrap(async (req, res) => {
       const { username, password, authenticationProviderId } = req.body;
 
-      // If no authentication provider id is specified in the request then assume this to be authenticated by the
-      // internal authentication provider
-      const authenticationProviderIdToUse = authenticationProviderId || authProviderConstants.internalAuthProviderId;
-
       const authProviderConfig = await authenticationProviderConfigService.getAuthenticationProviderConfig(
-        authenticationProviderIdToUse,
+        authenticationProviderId,
       );
+      // Provider type is pulled from DDB and then the auth service is invoked
       const tokenIssuerLocator = _.get(authProviderConfig, 'config.type.config.impl.tokenIssuerLocator');
       const idToken = await invoke(tokenIssuerLocator, { username, password }, authProviderConfig);
       res.status(200).json({ idToken });

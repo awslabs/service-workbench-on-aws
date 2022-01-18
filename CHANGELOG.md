@@ -3,7 +3,18 @@
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
 ## Beta
-[This release is in beta. Click here to see changes since 4.1.2.](https://github.com/awslabs/service-workbench-on-aws/compare/v4.1.2...mainline)
+[This release is in beta. Click here to see changes since 4.1.3.](https://github.com/awslabs/service-workbench-on-aws/compare/v4.1.3...mainline)
+
+### [4.1.3](https://github.com/awslabs/service-workbench-on-aws/compare/v4.1.2...v4.1.3) (2022-01-06)
+
+
+### Bug Fixes
+
+* Allow onboarding member account in non AppStream supported regions ([#844](https://github.com/awslabs/service-workbench-on-aws/issues/844)) ([93dc465](https://github.com/awslabs/service-workbench-on-aws/commit/93dc4658af2f6bbf9286cc1b882b7f944f365d0e))
+* force securetransport traffic only for buckets with dynamic bucket policies ([#832](https://github.com/awslabs/service-workbench-on-aws/issues/832)) ([33a4346](https://github.com/awslabs/service-workbench-on-aws/commit/33a4346f34c79c1bce2ea57d445efd78b65fe705))
+* unhandled workflow error ([#852](https://github.com/awslabs/service-workbench-on-aws/issues/852)) ([be127d7](https://github.com/awslabs/service-workbench-on-aws/commit/be127d7f5a8a0f9c9b5bde21d700526a50f3aa89))
+* update dependabot suggested libraries ([#848](https://github.com/awslabs/service-workbench-on-aws/issues/848)) ([7b4e7c6](https://github.com/awslabs/service-workbench-on-aws/commit/7b4e7c646d288771e4510026ce08931f40a51407))
+* use format instead of regex for email validN ([#849](https://github.com/awslabs/service-workbench-on-aws/issues/849)) ([640bef1](https://github.com/awslabs/service-workbench-on-aws/commit/640bef1875ab36eaf054c217097a108e3de65cc5))
 
 ### [4.1.2](https://github.com/awslabs/service-workbench-on-aws/compare/v4.1.1...v4.1.2) (2021-12-27)
 

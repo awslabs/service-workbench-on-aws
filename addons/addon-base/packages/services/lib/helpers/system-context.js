@@ -15,8 +15,6 @@
 
 const RequestContext = require('@aws-ee/base-services-container/lib/request-context');
 
-const internalAuthProviderId = 'internal'; // TODO - make this string comes from constants
-
 /**
  * A helper function that helps create requestContext for system users.
  * Most of the services accept "requestContext" argument which provides context about the service call (such as who is the caller of the service i.e., the "principal" etc)
@@ -31,7 +29,7 @@ function getSystemRequestContext() {
 
   const systemUid = '_system_';
   const systemUsername = '_system_';
-  const systemUserNamespace = internalAuthProviderId;
+  const systemUserNamespace = '_system_';
 
   ctx.authenticated = true;
   ctx.principal = {

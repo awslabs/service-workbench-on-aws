@@ -16,7 +16,6 @@
 const _ = require('lodash');
 
 const CollectionResource = require('../base/collection-resource');
-const InternalAuthProviderConfig = require('./helpers/default-auth-provider-config-internal.json');
 
 class AuthenticationProviderConfigs extends CollectionResource {
   constructor({ clientSession, parent }) {
@@ -45,8 +44,9 @@ class AuthenticationProviderConfigs extends CollectionResource {
   }
 
   // ************************ Helpers methods ************************
+  // TODO: Return Cognito as default config
   defaultConfigs() {
-    return InternalAuthProviderConfig;
+    // return InternalAuthProviderConfig;
   }
 }
 

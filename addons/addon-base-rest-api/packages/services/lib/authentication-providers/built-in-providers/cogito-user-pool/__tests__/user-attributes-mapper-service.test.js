@@ -143,5 +143,70 @@ describe('UserAttributeMapperService', () => {
       expect(result.username).toEqual('auth0_5ef37c962da');
       expect(result.usernameInIdp).toEqual('5ef37c962da');
     });
+
+    it('should map firstname from Cognito users correctly', () => {
+      const decodedToken = {
+        name: 'sampleUserFirstName',
+        isSamlAuthenticatedUser: false,
+        iss: 'https://cognito-idp.someregion.amazonaws.com/swb-is-fun',
+      };
+
+      const result = service.getFirstName(decodedToken);
+      expect(result).toEqual('sampleUserFirstName');
+    });
+
+    it('should map firstname from non-Cognito users correctly', () => {
+      const decodedToken = {
+        given_name: 'sampleUserFirstName',
+        isSamlAuthenticatedUser: true,
+      };
+
+      const result = service.getFirstName(decodedToken);
+      expect(result).toEqual('sampleUserFirstName');
+    });
+
+    it('should map isNativePoolUser flag for Cognito users correctly', () => {
+      const decodedToken = {
+        isSamlAuthenticatedUser: false,
+        iss: 'https://cognito-idp.someregion.amazonaws.com/swb-is-fun',
+      };
+
+      const result = service.isNativePoolUser(decodedToken);
+      expect(result).toEqual(true);
+    });
+
+    it('should map isNativePoolUser flag for non-Cognito users correctly', () => {
+      const decodedToken = {
+        isSamlAuthenticatedUser: true,
+      };
+
+      const result = service.isNativePoolUser(decodedToken);
+      expect(result).toEqual(false);
+    });
+
+    it('should map IdP name for Cognito users correctly', () => {
+      const decodedToken = {
+        isSamlAuthenticatedUser: false,
+        iss: 'https://cognito-idp.someregion.amazonaws.com/swb-is-fun',
+      };
+
+      const result = service.getIdpName(decodedToken);
+      expect(result).toEqual('Cognito Native Pool');
+    });
+
+    it('should map IdP name for non-Cognito users correctly', () => {
+      const decodedToken = {
+        'cognito:username': 'Auth0_auth0|5ef37c962da',
+        'identities': [
+          {
+            userId: 'auth0|5ef37c962da',
+            providerName: 'Auth0',
+          },
+        ],
+      };
+
+      const result = service.getIdpName(decodedToken);
+      expect(result).toEqual('Auth0');
+    });
   });
 });

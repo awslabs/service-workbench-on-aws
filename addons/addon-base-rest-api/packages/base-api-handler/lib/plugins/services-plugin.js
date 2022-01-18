@@ -32,7 +32,6 @@ const DbPasswordService = require('@aws-ee/base-services/lib/db-password/db-pass
 const JwtService = require('@aws-ee/base-api-services/lib/jwt-service');
 const registerBuiltInAuthProviders = require('@aws-ee/base-api-services/lib/authentication-providers/register-built-in-provider-services');
 const registerBuiltInAuthProvisioners = require('@aws-ee/base-api-services/lib/authentication-providers/register-built-in-provisioner-services');
-const ApiKeyService = require('@aws-ee/base-api-services/lib/authentication-providers/built-in-providers/internal/api-key-service');
 const TokenRevocationService = require('@aws-ee/base-api-services/lib/token-revocation-service');
 
 const settingKeys = {
@@ -65,7 +64,6 @@ async function registerServices(container, pluginRegistry) {
   container.register('s3Service', new S3Service());
   container.register('iamService', new IamService());
   container.register('lockService', new LockService());
-  container.register('apiKeyService', new ApiKeyService());
   container.register('tokenRevocationService', new TokenRevocationService());
   container.register('auditWriterService', new AuditWriterService());
   container.register('pluginRegistryService', new PluginRegistryService(pluginRegistry), { lazy: false });
