@@ -257,30 +257,6 @@ paths:
       responses:
         '200':
           description: User updated
-  /api/users/{userId}/password:
-    put:
-      tags:
-        - admins
-        - User
-      summary: Update user password
-      operationId: UpdateUserPassword
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            $ref: '#/components/schemas/UserId'
-      requestBody:
-        description: password of the user
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateUserPasswordRequest'
-      description: |
-        Update a user
-      responses:
-        '200':
-          description: User password updated
   /api/user:
     get:
       tags:
