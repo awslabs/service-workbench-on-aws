@@ -17,6 +17,7 @@ const _ = require('lodash');
 
 const CloudFormation = require('./services/cloudformation');
 const ParameterStore = require('./services/parameter-store');
+const CognitoIdp = require('./services/cognito-idp');
 const DynamoDb = require('./services/dynamodb');
 const S3 = require('./services/s3');
 const ServiceCatalog = require('./services/service-catalog');
@@ -56,6 +57,7 @@ async function getServices({ aws }) {
   // Future: allow components to contribute services via an extension point
   const services = {
     cloudFormation: async (options = {}, roleInfo = {}) => getInstance(CloudFormation, { aws }, options, roleInfo),
+    cognitoIdp: async (options = {}, roleInfo = {}) => getInstance(CognitoIdp, { aws }, options, roleInfo),
     parameterStore: async (options = {}, roleInfo = {}) => getInstance(ParameterStore, { aws }, options, roleInfo),
     dynamoDb: async (options = {}, roleInfo = {}) => getInstance(DynamoDb, { aws }, options, roleInfo),
     s3: async (options = {}, roleInfo = {}) => getInstance(S3, { aws }, options, roleInfo),

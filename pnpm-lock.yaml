@@ -2130,6 +2130,7 @@ importers:
       axios: 0.21.4
       chance: 1.1.7
       fs-extra: 9.1.0
+      generate-password: 1.5.1
       js-yaml: 4.1.0
       jwt-decode: 2.2.0
       lodash: 4.17.21
@@ -2169,6 +2170,7 @@ importers:
       eslint-plugin-jsx-a11y: ^6.4.1
       eslint-plugin-prettier: ^3.4.0
       fs-extra: ^9.1.0
+      generate-password: ^1.5.0
       husky: ^3.1.0
       jest: ^26.6.3
       jest-circus: ^26.6.3
