@@ -12,7 +12,7 @@ For more information, read [Using native Amazon Cognito user pool for authentica
 
 ### Customer Impact:
 * You will find the default (user-customizable) configurations determining the native Amazon Cognito user pool behavior in the `main/solution/post-deployment/config/settings/.defaults.yml` file. 
-* By default, users can sign up themselves onto the native pool, but can only access Service Workbench once they are approved by the application admin. The user addition experience on Service Workbench for native Amazon Cognito user pool is similar to that of an external IdP.
+* If using native Amazon Cognito user pool, users can sign up for a user account, but can not access Service Workbench until they are approved by the application admin. The user addition experience on Service Workbench for native Amazon Cognito user pool is similar to that of an external IdP.
 * A new admin user would be created in Service Workbench using the `rootUserEmail` value as provided by your stage configuration. A temporary password will be available in the installation summary necessary for logging the native admin user in for the first time.
 * You can still log in using the `internal` authentication method by adding the text `/?internal` to your Service Workbench URL (for eg. `https://<random_string>.cloudfront.net/?internal`).
 
