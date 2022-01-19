@@ -43,7 +43,6 @@ class Users extends CollectionResource {
     return {
       username,
       email: username,
-      password: gen.password(),
       firstName: gen.firstName(),
       lastName: gen.lastName(),
       isAdmin: false,
