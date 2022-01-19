@@ -40,8 +40,8 @@ async function getGenerators({ setup }) {
     string,
     username: ({ prefix = 'test' } = {}) => string({ prefix, suffix: '@example.com' }),
     password: () => generatePassword(),
-    firstName: () => `TestUser${chance.first({ nationality: 'en' })}`,
-    lastName: () => `TestUser${chance.last({ nationality: 'en' })}`,
+    firstName: () => chance.first({ nationality: 'en' }),
+    lastName: () => chance.last({ nationality: 'en' }),
     description: () => `Resource automatically created by SWB integration test - ${runId}`,
     accountId: () => chance.string({ length: 12, pool: '123456789012' }), // aws account ids are always 12 digits
     integer: (thresholds = {}) => chance.integer({ min: 0, max: 50000, ...thresholds }),
