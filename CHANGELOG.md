@@ -2,8 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## Beta
-[This release is in beta. Click here to see changes since 4.1.3.](https://github.com/awslabs/service-workbench-on-aws/compare/v4.1.3...mainline)
+### [4.1.4](https://github.com/awslabs/service-workbench-on-aws/compare/v4.1.3...v4.1.4) (2022-01-19)
+
+
+### Bug Fixes
+
+* cypress login page for Cognito enabled ([#859](https://github.com/awslabs/service-workbench-on-aws/issues/859)) ([726b957](https://github.com/awslabs/service-workbench-on-aws/commit/726b9573a1d7acefa4621cf9d64a2dd8ba21cc59))
 
 ### [4.1.3](https://github.com/awslabs/service-workbench-on-aws/compare/v4.1.2...v4.1.3) (2022-01-06)
 
