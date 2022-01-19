@@ -2,12 +2,21 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### [4.1.4](https://github.com/awslabs/service-workbench-on-aws/compare/v4.1.3...v4.1.4) (2022-01-19)
 
+### [**4.2.0**](https://github.com/awslabs/service-workbench-on-aws/compare/v4.1.3...v4.2.0) (2022-01-19)
+Customer Impact:
+* As a security enhancement, the `internal` authentication method used by Service Workbench (the legacy default authentication method) will soon be deprecated. 
+* After installing this release, the native Amazon Cognito user pool will soon become the default authentication method, and will be reflected accordingly on the application's login page (alongside your external SAML IdP integrations, if any).
+* You will find the default (but user-customizable) configurations determining the native Amazon Cognito user pool behavior in the `main/solution/post-deployment/config/settings/.defaults.yml` file. 
+* By default, users can sign up themselves onto the native pool, but can only access Service Workbench once they are approved by the application admin. The user addition experience on Service Workbench for native Amazon Cognito user pool is similar to that of an external IdP.
+* A new admin user would be created in Service Workbench using the `rootUserEmail` value as provided by your stage configuration. A temporary password will be available in the installation summary necessary for logging the native admin user in for the first time.
+* You can still log in using the `internal` authentication method by adding the text `/?internal` to your Service Workbench URL (for eg. `https://<random_string>.cloudfront.net/?internal`).
+* We suggest creating new users in native Amazon Cognito user pool (or an external IdP, if you use one) corresponding to their internal auth counterparts, and migrating resource permissions over to these new users.
 
+### Features
+* Implementation for Cognito Native Pool feature ([#858](_https://github.com/awslabs/service-workbench-on-aws/pull/858_)) ([44dd9a6](_https://github.com/awslabs/service-workbench-on-aws/commit/44dd9a6056bd7e3a0fd5f2f582726ba991da8a85_)).
 ### Bug Fixes
-
-* cypress login page for Cognito enabled ([#859](https://github.com/awslabs/service-workbench-on-aws/issues/859)) ([726b957](https://github.com/awslabs/service-workbench-on-aws/commit/726b9573a1d7acefa4621cf9d64a2dd8ba21cc59))
+* cypress login page for Cognito enabled ([#859](_https://github.com/awslabs/service-workbench-on-aws/issues/859_)) ([726b957](_https://github.com/awslabs/service-workbench-on-aws/commit/726b9573a1d7acefa4621cf9d64a2dd8ba21cc59_))
 
 ### [4.1.3](https://github.com/awslabs/service-workbench-on-aws/compare/v4.1.2...v4.1.3) (2022-01-06)
 
