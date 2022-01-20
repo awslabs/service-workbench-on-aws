@@ -22,7 +22,7 @@ const { getCognitoTokenVerifier } = require('./cognito-token-verifier');
 class ProviderService extends Service {
   constructor() {
     super();
-    this.dependency(['userService', 'userAttributesMapperService', 'tokenRevocationService']);
+    this.dependency(['aws', 'userService', 'userAttributesMapperService', 'tokenRevocationService']);
     this.cognitoTokenVerifiersCache = {}; // Cache object containing token verifier objects. Each token verifier is keyed by the userPoolUri
   }
 
@@ -53,12 +53,57 @@ class ProviderService extends Service {
     return { verifiedToken, username, uid, identityProviderName };
   }
 
+  // Username in Cognito user pool should be the same as Email. So save it in user pool accordingly
+  // Once email is updated correctly for the native pool user,
+  // users can leverage Cognito native user pool's Forgot Password feature to get temporary credentials
+  async syncNativeEmailWithUsername(username, authenticationProviderId) {
+    const aws = await this.service('aws');
+    const userPoolId = authenticationProviderId.split('/')[3];
+    const cognitoIdentityServiceProvider = new aws.sdk.CognitoIdentityServiceProvider();
+    const userData = await cognitoIdentityServiceProvider
+      .adminGetUser({ Username: username, UserPoolId: userPoolId })
+      .promise();
+    const attributes = _.get(userData, 'UserAttributes', []);
+    const attributesResult = {};
+    _.forEach(attributes, item => {
+      attributesResult[item.Name] = item.Value;
+    });
+
+    if (_.isUndefined(attributesResult.email)) {
+      await cognitoIdentityServiceProvider
+        .adminUpdateUserAttributes({
+          UserAttributes: [
+            {
+              Name: 'email',
+              Value: username,
+            },
+            {
+              Name: 'email_verified',
+              Value: 'true',
+            },
+          ],
+          UserPoolId: userPoolId,
+          Username: username,
+        })
+        .promise();
+    }
+  }
+
   async saveUser(decodedToken, authenticationProviderId) {
     const userAttributesMapperService = await this.service('userAttributesMapperService');
     // Ask user attributes mapper service to read information from the decoded token and map them to user attributes
     const userAttributes = await userAttributesMapperService.mapAttributes(decodedToken);
-    if (userAttributes.isSamlAuthenticatedUser) {
-      // If this user is authenticated via SAML then we need to add it to our user table if it doesn't exist already
+
+    if (userAttributes.isNativePoolUser) {
+      userAttributes.username = userAttributes.usernameInIdp;
+      userAttributes.email = userAttributes.usernameInIdp;
+
+      // For native pool users, authenticationProviderId is in the format https://cognito-idp.<region>.amazonaws.com/<userPoolId>
+      await this.syncNativeEmailWithUsername(userAttributes.usernameInIdp, authenticationProviderId);
+    }
+
+    if (userAttributes.isSamlAuthenticatedUser || userAttributes.isNativePoolUser) {
+      // If this user is authenticated via SAML or native user pool then we need to add it to our user table if it doesn't exist already
       const userService = await this.service('userService');
 
       const user = await userService.findUserByPrincipal({

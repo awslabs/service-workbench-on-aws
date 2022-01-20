@@ -31,6 +31,10 @@
     "isSamlAuthenticatedUser": {
       "type": "boolean"
     },
+    "isNativePoolUser": {
+      "type": "boolean",
+      "default": false
+    },
     "isAdmin": {
       "type": "boolean"
     },

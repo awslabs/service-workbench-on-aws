@@ -89,7 +89,7 @@ class UserAuthzService extends Service {
       const newValue = _.get(user, attribName);
       // The update ignores undefined values during update (i.e., it retains existing values for those)
       // so compare for only if the new value is undefined
-      return !_.isUndefined(newValue) && oldValue !== newValue;
+      return !_.isUndefined(newValue) && !_.isEqual(oldValue, newValue);
     };
 
     let permissionSoFar;

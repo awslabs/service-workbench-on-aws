@@ -520,6 +520,15 @@ Resources:
               Action:
                 - ssm:GetParameter
               Resource: !Sub 'arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter/${self:custom.settings.paramStoreRoot}/*'
+        - PolicyName: cognito-access
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - cognito-idp:AdminGetUser
+                - cognito-idp:AdminUpdateUserAttributes
+              Resource:
+                - !Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*'
 
   PolicyApiHandler:
     Type: AWS::IAM::ManagedPolicy
@@ -635,6 +644,13 @@ Resources:
               - appstream:UpdateImagePermissions
             Resource:
               - !Sub 'arn:aws:appstream:${AWS::Region}:${AWS::AccountId}:image/ServiceWorkbench*'
+          - Effect: Allow
+            Action:
+              - cognito-idp:AdminGetUser
+              - cognito-idp:AdminUpdateUserAttributes
+            Resource:
+              - !Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*'
+
   # IAM Role for the apiHandler Function
   RoleApiHandler:
     Type: 'AWS::IAM::Role'
