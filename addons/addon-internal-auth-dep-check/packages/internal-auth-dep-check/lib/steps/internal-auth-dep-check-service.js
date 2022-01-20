@@ -14,11 +14,11 @@
  */
 const _ = require('lodash');
 const Service = require('@aws-ee/base-services-container/lib/service');
+const CompositeError = require('../utils/composite-error');
 
 const settingKeys = {
   keyPairsTableName: 'dbKeyPairs',
   usersTableName: 'dbUsers',
-  projectsTableName: 'dbProjects',
   studiesTableName: 'dbStudies',
   studyPermissionsTableName: 'dbStudyPermissions',
   environemntsTableName: 'dbEnvironmentsSc',
@@ -27,46 +27,68 @@ const settingKeys = {
 class InternalAuthDepCheckService extends Service {
   constructor() {
     super();
-    this.dependency(['dbService']);
+    this.dependency(['dbService', 'userService']);
   }
 
   async init() {
     await super.init();
     // Setup services and SDK clients
     this.dbService = await this.service('dbService');
+    this.userService = await this.service('userService');
     this.dynamoDB = this.dbService.helper;
   }
 
   // method runs during pre deployment step
   async execute() {
+    // Keep track of resources blocking upgrade
+    const blockers = {};
+
     // get necessary lists
-    const { listOfInternalUsers, listOfInternalStatuses } = await this._listInternalUsers();
-
-    // Verify all Workspaces linked to internal users have been terminated
-    if (!(await this.verifyInternalUserWorkspacesAreTerminated(listOfInternalUsers))) {
-      throw this.boom.badRequest('Please terminate all internal user-owned workspaces before upgrading');
-    }
-
-    // Verify all SSH keys linked to internal users have been deleted
-    if (!(await this.verifyNoInternalUserSSHKey(listOfInternalUsers))) {
-      throw this.boom.badRequest('Please deactive all SSH Keys linked to internal users before upgrading');
-    }
-
-    // Verify internal users are not linked to the following resources: Projects, Org Studies, DS Accounts
-    if (!(await this.verifyNoInternalUserProjects(listOfInternalUsers))) {
-      throw this.boom.badRequest('Please deassociate all internal users from Projects before upgrading');
-    }
-    if (!(await this.verifyNoInternalUserOrgStudies(listOfInternalUsers))) {
-      throw this.boom.badRequest('Please deassociate all internal users from Organization Studies before upgrading');
-    }
+    const {
+      listOfInternalUsers,
+      listOfInternalUsernames,
+      activeUserBlockers,
+      interalUserProjectBlockers,
+    } = await this._listInternalUsers();
 
     // Verify all internal users (including root) are deactivated
-    if (!(await this.verifyNoActiveInternalUsers(listOfInternalStatuses))) {
-      throw this.boom.badRequest('Please deactive all Internal IdP users before upgrading');
+    blockers.activeUsers = activeUserBlockers;
+    // Verify internal users are not linked to projects
+    blockers.projects = interalUserProjectBlockers;
+
+    // Verify all Workspaces linked to internal users have been terminated
+    const workspaceBlockers = await this.verifyInternalUserWorkspacesAreTerminated(
+      listOfInternalUsers,
+      listOfInternalUsernames,
+    );
+    blockers.workspace = workspaceBlockers;
+
+    // Verify all SSH keys linked to internal users have been deactivated
+    const sshKeyBlockers = await this.verifyNoInternalUserSSHKey(listOfInternalUsers, listOfInternalUsernames);
+    blockers.sshKeys = sshKeyBlockers;
+
+    // Verify internal users are not linked to Org Studies
+    const orgStudiesBlockers = await this.verifyNoInternalUserOrgStudies(listOfInternalUsers, listOfInternalUsernames);
+    blockers.orgStudies = orgStudiesBlockers;
+
+    if (Object.keys(blockers).length > 0) {
+      const compositeError = this.createBlockerReport(blockers);
+      if (compositeError.hasErrors) throw compositeError;
     }
   }
 
-  async verifyInternalUserWorkspacesAreTerminated(listOfInternalUsers) {
+  createBlockerReport(blockers) {
+    const compositeError = new CompositeError();
+    Object.keys(blockers).forEach(resource => {
+      blockers[resource].forEach(item => {
+        compositeError.addError(this.boom.badRequest(item, true));
+      });
+    });
+    return compositeError;
+  }
+
+  async verifyInternalUserWorkspacesAreTerminated(listOfInternalUsers, listOfInternalUsernames) {
+    const blockers = [];
     const table = this.settings.get(settingKeys.environemntsTableName);
 
     // Scan for any environments that are not in a failed or terminated state
@@ -79,19 +101,21 @@ class InternalAuthDepCheckService extends Service {
       .projection(['id', 'createdBy'])
       .scan();
 
-    const listOfNonTerminatedWorkspaces = _.uniq(
-      result.filter(item => listOfInternalUsers.includes(item.createdBy)).map(item => item.id),
-    );
+    result
+      .filter(item => listOfInternalUsers.includes(item.createdBy))
+      .forEach(item => {
+        blockers.push(`${item.id} owned by user ${item.createdBy} (${listOfInternalUsernames[item.createdBy]})`);
+      });
 
-    if (listOfNonTerminatedWorkspaces.length > 0) {
-      this.log.error(`Found at least one workspace that is not terminated: ${listOfNonTerminatedWorkspaces}`);
-      return false;
+    if (blockers.length > 0) {
+      blockers.unshift('Terminate the following workspaces owned by internal users:');
     }
 
-    return true;
+    return blockers;
   }
 
-  async verifyNoInternalUserSSHKey(listOfInternalUsers) {
+  async verifyNoInternalUserSSHKey(listOfInternalUsers, listOfInternalUsernames) {
+    const blockers = [];
     const table = this.settings.get(settingKeys.keyPairsTableName);
 
     // Scan for active ssh keys
@@ -101,19 +125,25 @@ class InternalAuthDepCheckService extends Service {
       .names({ '#s': 'status' })
       .values({ ':a': 'active' })
       .filter('#s = :a')
-      .projection('uid')
+      .projection(['uid', 'id'])
       .scan();
 
-    const listOfUsers = _.uniq(result.filter(item => listOfInternalUsers.includes(item.uid)).map(item => item.uid));
+    result
+      .filter(item => listOfInternalUsers.includes(item.uid))
+      .forEach(item => {
+        blockers.push(`${item.id} owned by user ${item.uid} (${listOfInternalUsernames[item.uid]})`);
+      });
 
-    if (listOfUsers.length > 0) {
-      this.log.error(`Found at least one user with active SSH key: ${listOfUsers}`);
-      return false;
+    if (blockers.length > 0) {
+      blockers.unshift('Deactivate the following SSH Keys owned by internal users:');
     }
-    return true;
+
+    return blockers;
   }
 
   async _listInternalUsers() {
+    const activeUserBlockers = [];
+    const interalUserProjectBlockers = [];
     const table = this.settings.get(settingKeys.usersTableName);
 
     // Scan for internal authentication users
@@ -123,75 +153,60 @@ class InternalAuthDepCheckService extends Service {
       .names({ '#a': 'authenticationProviderId' })
       .values({ ':i': 'internal' })
       .filter('#a = :i')
-      .projection(['uid', 'status'])
+      .projection(['uid', 'status', 'projectId'])
       .scan();
 
     const listOfInternalUsers = _.uniq(result.map(item => item.uid));
-    const listOfInternalStatuses = _.uniq(result.map(item => item.status));
+    const listOfInternalUsernames = await this.getUserNames(listOfInternalUsers);
+    result
+      .filter(item => item.status === 'active')
+      .forEach(item => {
+        activeUserBlockers.push(`${item.uid} (${listOfInternalUsernames[item.uid]}) is still active`);
+        if (!_.isEmpty(item.projectId)) {
+          interalUserProjectBlockers.push(
+            `${item.projectId.flat()} associated to user ${item.uid} (${listOfInternalUsernames[item.uid]})`,
+          );
+        }
+      });
 
-    return { listOfInternalUsers, listOfInternalStatuses };
-  }
-
-  async verifyNoActiveInternalUsers(listOfInternalStatuses) {
-    if (listOfInternalStatuses.includes('active')) {
-      this.log.error(`Found an least one active internal user`);
-      return false;
-    }
-    return true;
-  }
-
-  async verifyNoInternalUserProjects(listOfInternalUsers) {
-    const table = this.settings.get(settingKeys.projectsTableName);
-
-    // Scan for project admins
-    const result = await this.dynamoDB
-      .scanner()
-      .table(table)
-      .projection('projectAdmins')
-      .scan();
-
-    const listOfProjectAdmins = _.uniq(
-      result
-        .map(item => item.projectAdmins)
-        .flat()
-        .filter(item => listOfInternalUsers.includes(item)),
-    );
-
-    if (listOfProjectAdmins.length > 0) {
-      this.log.error(`Found at least one user associated with a project: ${listOfProjectAdmins}`);
-      return false;
+    if (activeUserBlockers.length > 0) {
+      activeUserBlockers.unshift('Deactivate the following internal users:');
     }
 
-    return true;
+    if (interalUserProjectBlockers.length > 0) {
+      interalUserProjectBlockers.unshift('Disassociate the following projects from the following internal users:');
+    }
+
+    return { listOfInternalUsers, listOfInternalUsernames, activeUserBlockers, interalUserProjectBlockers };
   }
 
-  async verifyNoInternalUserOrgStudies(listOfInternalUsers) {
+  async verifyNoInternalUserOrgStudies(listOfInternalUsers, listOfInternalUsernames) {
+    const blockers = [];
     const listOfOrganizationStudyIds = await this._listOrganizationStudyIds();
     for (let i = 0; i < listOfOrganizationStudyIds.length; i += 1) {
       // eslint-disable-next-line no-await-in-loop
-      const listOfOrganizationStudyUsers = await this._getPermissionsForStudy(listOfOrganizationStudyIds[i]);
+      const { listOfOrganizationStudyUsers, adminUsers } = await this._getPermissionsForStudy(
+        listOfOrganizationStudyIds[i],
+        listOfInternalUsernames,
+      );
       for (let j = 0; j < listOfOrganizationStudyUsers.length; j += 1) {
         if (listOfInternalUsers.includes(listOfOrganizationStudyUsers[j])) {
-          this.log.error(
-            `Found Org Study with internal user permissions: user ${listOfOrganizationStudyUsers[j]} associated with study ${listOfOrganizationStudyIds[i]}`,
+          blockers.push(
+            `Found Org Study with internal user permissions: user ${listOfOrganizationStudyUsers[j]} (${
+              listOfInternalUsernames[listOfOrganizationStudyUsers[j]]
+            }) associated with study ${
+              listOfOrganizationStudyIds[i]
+            }. Contact admin users ${adminUsers} for assistance.`,
           );
-          return false;
         }
       }
     }
-    for (let i = 0; i < listOfInternalUsers.length; i += 1) {
-      // eslint-disable-next-line no-await-in-loop
-      const listOfInternalUsersStudies = await this._getPermissionsForUser(listOfInternalUsers[i]);
-      for (let j = 0; j < listOfInternalUsersStudies.length; j += 1) {
-        if (listOfOrganizationStudyIds.includes(listOfInternalUsersStudies[j])) {
-          this.log.error(
-            `Found Org Study with internal user permissions: user ${listOfInternalUsers[i]} associated with study ${listOfInternalUsersStudies[j]}`,
-          );
-          return false;
-        }
-      }
+
+    if (blockers.length > 0) {
+      blockers.unshift('Disassociate the following organizational studies with internal users:');
     }
-    return true;
+
+    return blockers;
   }
 
   async _listOrganizationStudyIds() {
@@ -212,7 +227,7 @@ class InternalAuthDepCheckService extends Service {
     return listOfOrganizationStudyIds;
   }
 
-  async _getPermissionsForStudy(studyId) {
+  async _getPermissionsForStudy(studyId, listOfInternalUsernames) {
     const table = this.settings.get(settingKeys.studyPermissionsTableName);
 
     // Query Study Id for permissions
@@ -227,7 +242,12 @@ class InternalAuthDepCheckService extends Service {
       result.map(item => [item.adminUsers, item.readonlyUsers, item.readwriteUsers, item.writeonlyUsers].flat()).flat(),
     );
 
-    return listOfOrganizationStudyUsers;
+    const adminUsers = result
+      .map(item => item.adminUsers)
+      .flat()
+      .map(uid => listOfInternalUsernames[uid]);
+
+    return { listOfOrganizationStudyUsers, adminUsers };
   }
 
   async _getPermissionsForUser(userId) {
@@ -248,6 +268,18 @@ class InternalAuthDepCheckService extends Service {
     );
 
     return listOfInternalUsersStudies;
+  }
+
+  async getUserNames(listOfInternalUsers) {
+    const listOfInternalUsernames = {};
+    await Promise.all(
+      listOfInternalUsers.map(async uid => {
+        const currentUsername = await this.userService.findUser({ uid: uid, fields: 'username' });
+        listOfInternalUsernames[uid] = currentUsername.username;
+      }),
+    );
+
+    return listOfInternalUsernames;
   }
 }
 

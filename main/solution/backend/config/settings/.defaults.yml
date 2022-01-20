@@ -157,6 +157,9 @@ dbCostApiCaches: ${self:custom.settings.dbPrefix}-CostApiCaches
 # DynamoDB table name for Accounts
 dbAccounts: ${self:custom.settings.dbPrefix}-Accounts
 
+# DynamoDB table name for Projects
+dbProjects: ${self:custom.settings.dbPrefix}-Projects
+
 # DynamoDB table name for EnvironmentTokens
 dbEnvironmentTokens: ${self:custom.settings.dbPrefix}-EnvironmentTokens
 
