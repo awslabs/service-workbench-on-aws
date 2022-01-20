@@ -411,6 +411,7 @@ Resources:
                 - !Sub 'arn:aws:servicecatalog:${AWS::Region}:${AWS::AccountId}:*/*'
                 - !Sub 'arn:aws:catalog:${AWS::Region}:${AWS::AccountId}:portfolio/*'
                 - !Sub 'arn:aws:catalog:${AWS::Region}:${AWS::AccountId}:product/*'
+                - !Sub arn:${AWS::Partition}:catalog:${AWS::Region}:${AWS::AccountId}:*
             - !Ref AWS::NoValue
 
   AppDeployerRole:
