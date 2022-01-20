@@ -39,12 +39,12 @@ function get_info() {
   aws_profile="$(cat "$CONFIG_DIR/settings/$STAGE.yml" "$CONFIG_DIR/settings/.defaults.yml" 2> /dev/null | grep '^awsProfile:' -m 1 | sed 's/ //g' | cut -d':' -f2 | tr -d '\012\015')"
   set -e
 
-  local root_psswd_cmd=''
+
   local website_domain_name=''
   local native_admin_psswd_cmd=''
 
   if [ "$aws_profile" ]; then
-    root_psswd_cmd="aws ssm get-parameters --names /$STAGE/$solution_name/user/root/password --output text --region $aws_region --profile $aws_profile --with-decryption --query Parameters[0].Value"
+
     # shellcheck disable=SC2016
     native_admin_psswd_cmd="aws ssm get-parameters --names /$STAGE/$solution_name/user/native/admin/password --output text --region $aws_region --profile $aws_profile --with-decryption --query Parameters[0].Value"
     # shellcheck disable=SC2016
@@ -52,7 +52,7 @@ function get_info() {
     # shellcheck disable=SC2016
     api_endpoint="$(aws cloudformation describe-stacks --stack-name "$stack_name_backend" --output text --region "$aws_region" --profile "$aws_profile" --query 'Stacks[0].Outputs[?OutputKey==`ServiceEndpoint`].OutputValue')"
   else
-    root_psswd_cmd="aws ssm get-parameters --names /$STAGE/$solution_name/user/root/password --output text --region $aws_region --with-decryption --query Parameters[0].Value"
+
     # shellcheck disable=SC2016
     native_admin_psswd_cmd="aws ssm get-parameters --names /$STAGE/$solution_name/user/native/admin/password --output text --region $aws_region --with-decryption --query Parameters[0].Value"
     # shellcheck disable=SC2016
@@ -72,16 +72,13 @@ function get_info() {
   echo "Solution                           : ${solution_name}"
   echo "Website URL                        : ${WEBSITE_URL}"
   echo "API Endpoint                       : ${API_ENDPOINT}"
-  
+
   # only show profile and root password when running in an interactive terminal
   if [ -t 1 ] ; then
     [ -z "${aws_profile}" ] || echo "AWS Profile                        : ${aws_profile}"
-    root_passwd="$(${root_psswd_cmd})"
-    echo "Root Password                      : ${root_passwd}"
     native_admin_psswd="$(${native_admin_psswd_cmd})"
     echo "Temporary Native Pool Password     : ${native_admin_psswd}"
   else
-    echo "Root Password             : execute ${root_psswd_cmd}"
     echo "Temporary Native Pool Password     : execute ${native_admin_psswd_cmd}"
   fi
 
