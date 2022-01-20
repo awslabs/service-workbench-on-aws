@@ -269,6 +269,7 @@ Resources:
                 - !Sub arn:${AWS::Partition}:servicecatalog:${AWS::Region}:${AWS::AccountId}:*/*
                 - !Sub arn:${AWS::Partition}:catalog:${AWS::Region}:${AWS::AccountId}:portfolio/*
                 - !Sub arn:${AWS::Partition}:catalog:${AWS::Region}:${AWS::AccountId}:product/*
+                - !Sub arn:${AWS::Partition}:catalog:${AWS::Region}:${AWS::AccountId}:*
         - PolicyName: cloudformation-access
           PolicyDocument:
             Statement:
