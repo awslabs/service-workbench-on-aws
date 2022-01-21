@@ -65,6 +65,11 @@ async function deleteUser({ aws, id = '' }) {
       .delete(),
   );
 
+  // Delete user from Cognito user pool
+  const cognito = await aws.services.cognitoIdp();
+  const userPoolId = aws.settings.get('userPoolId');
+  await cognito.deleteUser({ username, userPoolId });
+
   // Delete api keys
   await deleteApiKeys({ db, id });
 

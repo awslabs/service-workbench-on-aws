@@ -14,6 +14,7 @@
  */
 
 const chance = require('chance').Chance();
+const passwordGenerator = require('generate-password');
 
 /**
  * In many scenarios during the tests, we need to generate different values. These generators make this
@@ -25,13 +26,22 @@ async function getGenerators({ setup }) {
   const runId = setup.settings.get('runId');
   const string = ({ prefix = 'test', suffix = '', length = 6 } = {}) =>
     `${prefix}-${runId}-${chance.string({ alpha: true, casing: 'lower', length })}${suffix}`;
+  const generatePassword = () => {
+    return passwordGenerator.generate({
+      length: 12, // 12 characters in password
+      numbers: true, // include numbers in password
+      symbols: true, // include symbols
+      uppercase: true, // include uppercase
+      strict: true, // make sure to include at least one character from each pool
+    });
+  };
 
   const generators = {
     string,
     username: ({ prefix = 'test' } = {}) => string({ prefix, suffix: '@example.com' }),
-    password: () => `${runId}-${chance.string()}`,
-    firstName: () => `TestUser${chance.first({ nationality: 'en' })}`,
-    lastName: () => `TestUser${chance.last({ nationality: 'en' })}`,
+    password: () => generatePassword(),
+    firstName: () => chance.first({ nationality: 'en' }),
+    lastName: () => chance.last({ nationality: 'en' }),
     description: () => `Resource automatically created by SWB integration test - ${runId}`,
     accountId: () => chance.string({ length: 12, pool: '123456789012' }), // aws account ids are always 12 digits
     integer: (thresholds = {}) => chance.integer({ min: 0, max: 50000, ...thresholds }),

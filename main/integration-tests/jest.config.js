@@ -21,7 +21,6 @@ const parse = require('yargs-parser');
 
 const Settings = require('./support/utils/settings');
 const { initAws } = require('./support/aws/init-aws');
-const { getIdToken } = require('./support/utils/id-token');
 const { getCallerAccountId } = require('./support/aws/utils/caller-account-id');
 
 let settings;
@@ -83,14 +82,22 @@ async function init() {
   const passwordPath = settingsStore.get('passwordPath');
   const password = await ssm.getParameter(passwordPath);
 
-  const adminIdToken = await getIdToken({
+  const cognito = await aws.services.cognitoIdp();
+  const payload = {
+    userPoolId: settingsStore.get('userPoolId'),
+    appClientId: settingsStore.get('appClientId'),
     username: settingsStore.get('username'),
     password,
-    apiEndpoint,
-    authenticationProviderId: settingsStore.get('authenticationProviderId'),
-  });
+  };
+  const idToken = await cognito.getIdToken(payload);
 
-  settings = { ...settingsStore.entries, apiEndpoint, password, adminIdToken, awsAccountId };
+  settings = {
+    ...settingsStore.entries,
+    apiEndpoint,
+    password,
+    adminIdToken: idToken,
+    awsAccountId,
+  };
 }
 
 // async function that returns the configuration

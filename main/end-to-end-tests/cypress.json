@@ -8,7 +8,8 @@
     "researcherPassword": "<RESEARCHER ACCOUNT PASSWORD>",
     "adminEmail": "<EMAIL ACCOUNT OF PREMADE ADMIN>",
     "adminPassword": "<ADMIN ACCOUNT PASSWORD>",
-    "isCognitoEnabled": false,
+    "cognitoUserPoolId": "<COGNITO USER POOL ID>",
+    "cognitoClientId": "<COGNITO CLIENT ID>",
     "workspaces": {
       "sagemaker": {
         "workspaceTypeName": "<NAME OF SAGEMAKER WORKSPACE TYPE>",

@@ -31,7 +31,6 @@ import AwsAccountUpdatePage from '../parts/accounts/AwsAccountUpdatePage';
 import UpdateBudget from '../parts/accounts/UpdateBudget';
 import EnvironmentSetup from '../parts/environments/EnvironmentSetup';
 import AddProject from '../parts/projects/AddProject';
-import AddSingleLocalUser from '../parts/users/AddSingleLocalUser';
 import DataSourceAccountsList from '../parts/data-sources/DataSourceAccountsList';
 import RegisterStudy from '../parts/data-sources/register/RegisterStudy';
 
@@ -50,7 +49,6 @@ function registerRoutes(routesMap, { location, appContext }) {
 
   const routes = new Map([
     ...routesMap,
-    ['/users/add/local', withAuth(AddSingleLocalUser)],
     ['/users/add', withAuth(AddUser)],
     ['/users', withAuth(User)],
     ['/indexes/add', withAuth(AddIndex)],

@@ -27,14 +27,15 @@ envType: dev
 # Provide the Test Administrator username and the location of the password in the parameter store
 # Please make sure this user has admin privileges
 username: ""
-passwordPath: # This is the parameter name/path where you stored the password. Example: alan/int-test-user/password
+passwordPath: # This is the parameter name/path where you stored the Cognito native user's password. Example: alan/int-test-user/password
 
 # This is a Project ID in your SWB deployment. Please ensure it is safe to be used by integration tests
 # Please ensure the AWS account this project is associated with has a Budget created through SWB
 projectId: ""
 
-# Currently only "internal" auth provider is supported for test admin credentials.
-authenticationProviderId: "internal"
+# Currently only "Cognito Native Pool" auth provider is supported for test admin credentials.
+userPoolId: "sampleUserPoolId"
+appClientId: "sampleUserPoolClientId"
 
 # Set this to true if debugging locally
 isLocal: false
