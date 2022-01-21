@@ -48,13 +48,13 @@ class InternalAuthDepCheckService extends Service {
       listOfInternalUsers,
       listOfInternalUsernames,
       activeUserBlockers,
-      interalUserProjectBlockers,
+      internalUserProjectBlockers,
     } = await this._listInternalUsers();
 
     // Verify all internal users (including root) are deactivated
     blockers.activeUsers = activeUserBlockers;
     // Verify internal users are not linked to projects
-    blockers.projects = interalUserProjectBlockers;
+    blockers.projects = internalUserProjectBlockers;
 
     // Verify all Workspaces linked to internal users have been terminated
     const workspaceBlockers = await this.verifyInternalUserWorkspacesAreTerminated(
@@ -143,7 +143,7 @@ class InternalAuthDepCheckService extends Service {
 
   async _listInternalUsers() {
     const activeUserBlockers = [];
-    const interalUserProjectBlockers = [];
+    const internalUserProjectBlockers = [];
     const table = this.settings.get(settingKeys.usersTableName);
 
     // Scan for internal authentication users
@@ -163,7 +163,7 @@ class InternalAuthDepCheckService extends Service {
       .forEach(item => {
         activeUserBlockers.push(`${item.uid} (${listOfInternalUsernames[item.uid]}) is still active`);
         if (!_.isEmpty(item.projectId)) {
-          interalUserProjectBlockers.push(
+          internalUserProjectBlockers.push(
             `${item.projectId.flat()} associated to user ${item.uid} (${listOfInternalUsernames[item.uid]})`,
           );
         }
@@ -173,11 +173,11 @@ class InternalAuthDepCheckService extends Service {
       activeUserBlockers.unshift('Deactivate the following internal users:');
     }
 
-    if (interalUserProjectBlockers.length > 0) {
-      interalUserProjectBlockers.unshift('Disassociate the following projects from the following internal users:');
+    if (internalUserProjectBlockers.length > 0) {
+      internalUserProjectBlockers.unshift('Disassociate the following projects from the following internal users:');
     }
 
-    return { listOfInternalUsers, listOfInternalUsernames, activeUserBlockers, interalUserProjectBlockers };
+    return { listOfInternalUsers, listOfInternalUsernames, activeUserBlockers, internalUserProjectBlockers };
   }
 
   async verifyNoInternalUserOrgStudies(listOfInternalUsers, listOfInternalUsernames) {

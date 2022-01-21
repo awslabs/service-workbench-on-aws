@@ -21,29 +21,39 @@ const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
 jest.mock('@aws-ee/base-services/lib/db-service');
 const DbServiceMock = require('@aws-ee/base-services/lib/db-service');
 
+jest.mock('@aws-ee/base-services/lib/user/user-service');
+const UserServiceMock = require('@aws-ee/base-services/lib/user/user-service');
+
 const InternalAuthDepCheckService = require('../internal-auth-dep-check-service');
 
 describe('InternalAuthDepCheckService', () => {
   let service;
   let dbService;
+  let userService;
   let container;
   let settings;
 
   const listOfInternalUsers = ['u-internal'];
+  const listOfInternalUsernames = { 'u-internal': 'internal@amazon.com' };
 
   beforeEach(async () => {
     // Initialize services container and register dependencies
     container = new ServicesContainer();
     container.register('log', new Logger());
     container.register('dbService', new DbServiceMock());
+    container.register('userService', new UserServiceMock());
     container.register('InternalAuthDepCheckService', new InternalAuthDepCheckService());
     container.register('settings', new SettingsServiceMock());
     console.info = jest.fn;
 
     await container.initServices();
     service = await container.find('InternalAuthDepCheckService');
+
     dbService = await container.find('dbService');
     service.dbService = dbService;
+
+    userService = await container.find('userService');
+    service.userService = userService;
 
     settings = await container.find('settings');
     settings.get = jest.fn(key => {
@@ -78,109 +88,93 @@ describe('InternalAuthDepCheckService', () => {
       service.dbService.table.scan = jest
         .fn()
         .mockResolvedValueOnce([{ id: 'someWorkspace', createdBy: 'u-internal' }]);
+      const expected = [
+        'Terminate the following workspaces owned by internal users:',
+        'someWorkspace owned by user u-internal (internal@amazon.com)',
+      ];
 
       // OPERATE
-      const result = await service.verifyInternalUserWorkspacesAreTerminated(listOfInternalUsers);
+      const result = await service.verifyInternalUserWorkspacesAreTerminated(
+        listOfInternalUsers,
+        listOfInternalUsernames,
+      );
 
       // CHECK
-      expect(result).toBeFalsy();
+      expect(result).toEqual(expected);
     });
 
     it('should return true when internal user workspaces are all terminated or failed', async () => {
       // BUILD
       service.dbService.table.scan = jest.fn().mockResolvedValueOnce([{ id: 'someWorkspace', createdBy: 'u-cognito' }]);
+      const expected = [];
 
       // OPERATE
-      const result = await service.verifyInternalUserWorkspacesAreTerminated(listOfInternalUsers);
+      const result = await service.verifyInternalUserWorkspacesAreTerminated(
+        listOfInternalUsers,
+        listOfInternalUsernames,
+      );
 
       // CHECK
-      expect(result).toBeTruthy();
+      expect(result).toEqual(expected);
     });
   });
 
   describe('verifyNoInternalUserSSHKey', () => {
     it('should return false when active SSH keys are linked internal users', async () => {
       // BUILD
-      service.dbService.table.scan = jest.fn().mockResolvedValueOnce([{ uid: 'u-internal' }]);
+      service.dbService.table.scan = jest.fn().mockResolvedValueOnce([{ uid: 'u-internal', id: 'somekeyid' }]);
+      const expected = [
+        'Deactivate the following SSH Keys owned by internal users:',
+        'somekeyid owned by user u-internal (internal@amazon.com)',
+      ];
 
       // OPERATE
-      const result = await service.verifyNoInternalUserSSHKey(listOfInternalUsers);
+      const result = await service.verifyNoInternalUserSSHKey(listOfInternalUsers, listOfInternalUsernames);
 
       // CHECK
-      expect(result).toBeFalsy();
+      expect(result).toEqual(expected);
     });
 
     it('should return true when active SSH keys are not linked internal users', async () => {
       // BUILD
       service.dbService.table.scan = jest.fn().mockResolvedValueOnce([{ uid: 'u-cognito' }]);
+      const expected = [];
 
       // OPERATE
-      const result = await service.verifyNoInternalUserSSHKey(listOfInternalUsers);
+      const result = await service.verifyNoInternalUserSSHKey(listOfInternalUsers, listOfInternalUsernames);
 
       // CHECK
-      expect(result).toBeTruthy();
+      expect(result).toEqual(expected);
     });
   });
 
   describe('_listInternalUsers', () => {
     it('should return two lists of the uids and statuses', async () => {
       // BUILD
-      service.dbService.table.scan = jest.fn().mockResolvedValueOnce([{ uid: 'u-internal', status: 'active' }]);
-      const expectedResult = { listOfInternalUsers: ['u-internal'], listOfInternalStatuses: ['active'] };
+      service.dbService.table.scan = jest
+        .fn()
+        .mockResolvedValueOnce([{ uid: 'u-internal', status: 'active', projectId: ['someProject', 'otherProject'] }]);
+      service.getUserNames = jest.fn().mockImplementationOnce(() => {
+        return { 'u-internal': 'internal@amazon.com' };
+      });
+      const expectedResult = {
+        listOfInternalUsers: ['u-internal'],
+        listOfInternalUsernames: { 'u-internal': 'internal@amazon.com' },
+        activeUserBlockers: [
+          'Deactivate the following internal users:',
+          'u-internal (internal@amazon.com) is still active',
+        ],
+        internalUserProjectBlockers: [
+          'Disassociate the following projects from the following internal users:',
+          'someProject,otherProject associated to user u-internal (internal@amazon.com)',
+        ],
+      };
 
       // OPERATE
       const result = await service._listInternalUsers();
 
       // CHECK
       expect(result).toEqual(expectedResult);
-    });
-  });
-
-  describe('verifyNoActiveInternalUsers', () => {
-    it('should return false when there are active internal users', async () => {
-      // BUILD
-      const listOfInternalStatuses = ['active', 'inactive'];
-
-      // OPERATE
-      const result = await service.verifyNoActiveInternalUsers(listOfInternalStatuses);
-
-      // CHECK
-      expect(result).toBeFalsy();
-    });
-
-    it('should return true when there are not active internal users', async () => {
-      // BUILD
-      const listOfInternalStatuses = ['inactive'];
-
-      // OPERATE
-      const result = await service.verifyNoActiveInternalUsers(listOfInternalStatuses);
-
-      // CHECK
-      expect(result).toBeTruthy();
-    });
-  });
-
-  describe('verifyNoInternalUserProjects', () => {
-    it('should return false when Projects are linked internal users', async () => {
-      // BUILD
-      service.dbService.table.scan = jest.fn().mockResolvedValueOnce([{ projectAdmins: ['u-internal'] }]);
-
-      // OPERATE
-      const result = await service.verifyNoInternalUserProjects(listOfInternalUsers);
-
-      // CHECK
-      expect(result).toBeFalsy();
-    });
-
-    it('should return true when Projects are not linked internal users', async () => {
-      // BUILD
-      service.dbService.table.scan = jest.fn().mockResolvedValueOnce([{ projectAdmins: ['u-cognito'] }]);
-
-      // OPERATE
-      const result = await service.verifyNoInternalUserProjects(listOfInternalUsers);
-
-      // CHECK
-      expect(result).toBeTruthy();
     });
   });
 
@@ -193,29 +187,16 @@ describe('InternalAuthDepCheckService', () => {
         .mockResolvedValueOnce([
           { adminUsers: ['u-internal'], readonlyUsers: [], readwriteUsers: [], writeonlyUsers: [] },
         ]);
+      const expected = [
+        'Disassociate the following organizational studies with internal users:',
+        'Found Org Study with internal user permissions: user u-internal (internal@amazon.com) associated with study org-study-1. Contact admin users internal@amazon.com for assistance.',
+      ];
 
       // OPERATE
-      const result = await service.verifyNoInternalUserOrgStudies(listOfInternalUsers);
+      const result = await service.verifyNoInternalUserOrgStudies(listOfInternalUsers, listOfInternalUsernames);
 
       // CHECK
-      expect(result).toBeFalsy();
-    });
-
-    it('should return false when Organization studies are linked internal users in user table entry', async () => {
-      // BUILD
-      service.dbService.table.scan = jest.fn().mockResolvedValueOnce([{ id: 'org-study-1' }]);
-      service.dbService.table.query = jest
-        .fn()
-        .mockResolvedValueOnce([{ adminUsers: [], readonlyUsers: [], readwriteUsers: [], writeonlyUsers: [] }])
-        .mockResolvedValueOnce([
-          { adminAccess: ['org-study-1'], readonlyAccess: [], readwriteAccess: [], writeonlyAccess: [] },
-        ]);
-
-      // OPERATE
-      const result = await service.verifyNoInternalUserOrgStudies(listOfInternalUsers);
-
-      // CHECK
-      expect(result).toBeFalsy();
+      expect(result).toEqual(expected);
     });
 
     it('should return true when Organization studies are not linked internal users', async () => {
@@ -225,14 +206,14 @@ describe('InternalAuthDepCheckService', () => {
         .fn()
         .mockResolvedValueOnce([
           { adminUsers: ['u-cognito'], readonlyUsers: [], readwriteUsers: [], writeonlyUsers: [] },
-        ])
-        .mockResolvedValueOnce([{ adminAccess: [], readonlyAccess: [], readwriteAccess: [], writeonlyAccess: [] }]);
+        ]);
+      const expected = [];
 
       // OPERATE
-      const result = await service.verifyNoInternalUserOrgStudies(listOfInternalUsers);
+      const result = await service.verifyNoInternalUserOrgStudies(listOfInternalUsers, listOfInternalUsernames);
 
       // CHECK
-      expect(result).toBeTruthy();
+      expect(result).toEqual(expected);
     });
   });
 });
