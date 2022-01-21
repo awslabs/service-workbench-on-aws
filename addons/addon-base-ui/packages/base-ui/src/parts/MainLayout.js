@@ -97,7 +97,7 @@ class MainLayout extends React.Component {
         </Menu.Menu>
       </Menu>,
       <div
-        className="fit animated fadeIn"
+        className="mainLayout fit animated fadeIn"
         style={{
           paddingTop: '40px',
           paddingLeft: '84px',
