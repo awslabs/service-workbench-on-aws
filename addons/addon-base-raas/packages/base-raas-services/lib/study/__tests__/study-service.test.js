@@ -1296,7 +1296,7 @@ describe('studyService', () => {
   });
 
   describe('updatePermissions', () => {
-    it('should throw error if My Study but not migration request', async () => {
+    it('should throw error if My Study but not migration request (usersToRemove is not *)', async () => {
       // BUILD
       const studyId = 'sampleMyStudy';
       const updateRequest = {
@@ -1325,7 +1325,7 @@ describe('studyService', () => {
       );
     });
 
-    it('should call update if My Study and migration request', async () => {
+    it('should call update if My Study and migration request (usersToRemove is *)', async () => {
       // BUILD
       const studyId = 'sampleMyStudy';
       const updateRequest = {

@@ -2147,7 +2147,7 @@ paths:
       responses:
         '200':
           description: 'Return success update message'
-  /api/migrate/mystudies:
+  /api/migrate/my-studies:
     put:
       tags:
         - migrate

@@ -18,10 +18,10 @@ async function configure(context) {
   const wrap = context.wrap;
 
   // ===============================================================
-  //  PUT /mystudies (mounted to /api/migrate)
+  //  PUT /my-studies (mounted to /api/migrate)
   // ===============================================================
   router.put(
-    '/mystudies',
+    '/my-studies',
     wrap(async (req, res) => {
       const migrationService = await context.service('migrationService');
       const requestContext = res.locals.requestContext;
@@ -32,10 +32,10 @@ async function configure(context) {
   );
 
   // ===============================================================
-  //  GET /mystudies (mounted to /api/migrate)
+  //  GET /my-studies (mounted to /api/migrate)
   // ===============================================================
   router.get(
-    '/mystudies',
+    '/my-studies',
     wrap(async (req, res) => {
       const migrationService = await context.service('migrationService');
       const requestContext = res.locals.requestContext;
