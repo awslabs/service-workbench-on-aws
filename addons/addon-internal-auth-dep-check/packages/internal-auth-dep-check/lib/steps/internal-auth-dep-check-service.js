@@ -274,7 +274,7 @@ class InternalAuthDepCheckService extends Service {
     const listOfInternalUsernames = {};
     await Promise.all(
       listOfInternalUsers.map(async uid => {
-        const currentUsername = await this.userService.findUser({ uid: uid, fields: 'username' });
+        const currentUsername = await this.userService.findUser({ uid, fields: 'username' });
         listOfInternalUsernames[uid] = currentUsername.username;
       }),
     );
