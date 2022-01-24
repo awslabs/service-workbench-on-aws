@@ -12,3 +12,8 @@ preDeployment:
     APP_DB_STUDIES_CATEGORY_INDEX: ${self:custom.settings.dbStudiesCategoryIndex}
     APP_DB_STUDIES_ACCOUNTID_INDEX: ${self:custom.settings.dbStudiesAccountIdIndex}
     APP_STUDY_DATA_BUCKET_NAME: ${self:custom.settings.studyDataBucketName}
+    APP_KEY_PAIRS_TABLE_NAME: ${self:custom.settings.dbKeyPairs}
+    APP_USERS_TABLE_NAME: ${self:custom.settings.dbUsers}
+    APP_STUDIES_TABLE_NAME: ${self:custom.settings.dbStudies}
+    APP_STUDY_PERMISSIONS_TABLE_NAME: ${self:custom.settings.dbStudyPermissions}
+    APP_ENVIRONMENTS_TABLE_NAME: ${self:custom.settings.dbEnvironmentsSc}

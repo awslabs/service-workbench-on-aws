@@ -19,6 +19,7 @@ const workflowServicesPlugin = require('@aws-ee/base-workflow-core/lib/runner/pl
 const baseRaasServicesPlugin = require('@aws-ee/base-raas-rest-api/lib/plugins/services-plugin');
 const environmentTypeServicesPlugin = require('@aws-ee/environment-type-mgmt-services/lib/plugins/services-plugin');
 const keyPairServicesPlugin = require('@aws-ee/key-pair-mgmt-services/lib/plugins/services-plugin');
+const internalAuthDepCheckPlugin = require('@aws-ee/internal-auth-dep-check/lib/plugins/internal-auth-dep-check-plugin');
 
 const servicesPlugin = require('./services-plugin');
 const stepsPlugin = require('./steps-plugin');
@@ -32,7 +33,7 @@ const extensionPoints = {
     keyPairServicesPlugin,
     servicesPlugin,
   ],
-  preDeploymentStep: [baseStepsPlugin, stepsPlugin],
+  preDeploymentStep: [baseStepsPlugin, stepsPlugin, internalAuthDepCheckPlugin],
 };
 
 async function getPlugins(extensionPoint) {
