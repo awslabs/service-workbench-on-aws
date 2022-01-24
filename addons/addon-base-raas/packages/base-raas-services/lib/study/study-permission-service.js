@@ -339,7 +339,7 @@ class StudyPermissionService extends Service {
       );
 
       // Ensure only migration requests can have wildcards in the updateRequest
-      if (!('isMigration' in requestContext) && !isValidUpdateRequest(updateRequest)) {
+      if (!requestContext.isMigration && !isValidUpdateRequest(updateRequest)) {
         throw this.boom.badRequest(
           'You cannot use the wildcard (*) as a UID in a study permissions update request.',
           true,

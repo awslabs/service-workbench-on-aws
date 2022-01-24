@@ -389,7 +389,7 @@ class StudyService extends Service {
     }
 
     // If study entity is My Study and not part of a migration request, throw error
-    if (isMyStudies(studyEntity) && !('isMigration' in requestContext)) {
+    if (isMyStudies(studyEntity) && !requestContext.isMigration) {
       throw this.boom.forbidden('Permissions cannot be set for studies in the "My Studies" category', true);
     }
 

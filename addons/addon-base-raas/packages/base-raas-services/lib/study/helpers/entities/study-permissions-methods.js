@@ -73,9 +73,8 @@ function applyUpdateRequest(studyPermissionsEntity, updateRequest) {
 
 function isValidUpdateRequest(updateRequest) {
   // Check to make sure the wildcard is not used as a uid in usersToRemove
-  const wildcardEntries = updateRequest.usersToRemove.filter(entry => entry.uid === '*');
 
-  return wildcardEntries.length === 0;
+  return !updateRequest.usersToRemove.some(entry => entry.uid === '*');
 }
 
 function getEmptyStudyPermissions() {
