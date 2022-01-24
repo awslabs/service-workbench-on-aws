@@ -88,7 +88,7 @@ describe('UserService', () => {
     it('should fail because password cannot be provided with federated users', async () => {
       // BUILD
       const newUser = {
-        username: 'tlannister',
+        username: 'dragonsrkool@example.com',
         email: 'dragonsrkool@example.com',
         firstName: 'Tirion',
         lastName: 'Lannister',
@@ -109,7 +109,7 @@ describe('UserService', () => {
     it('should fail because user already exists', async () => {
       // BUILD
       const newUser = {
-        username: 'jsnow',
+        username: 'nightwatch@example.com',
         email: 'nightwatch@example.com',
         firstName: 'Jon',
         lastName: 'Snow',
@@ -129,7 +129,7 @@ describe('UserService', () => {
     it('should not save user password to the DB', async () => {
       // BUILD
       const newUser = {
-        username: 'hpie',
+        username: 'sourcherries@example.com',
         email: 'sourcherries@example.com',
         firstName: 'Hot',
         lastName: 'Pie',
@@ -150,7 +150,7 @@ describe('UserService', () => {
     it('should try to create a user', async () => {
       // BUILD
       const newUser = {
-        username: 'nstark',
+        username: 'headlesshorseman@example.com',
         email: 'headlesshorseman@example.com',
         firstName: 'Ned',
         lastName: 'Stark',
@@ -185,7 +185,7 @@ describe('UserService', () => {
     it.each(validEmails)('should pass when creating users with valid email: %p', async email => {
       // BUILD
       const newUser = {
-        username: 'nstark',
+        username: email,
         email,
         firstName: 'Ned',
         lastName: 'Stark',
@@ -223,7 +223,7 @@ describe('UserService', () => {
     it.each(invalidEmails)('should fail when creating users with invalid email: %p', async email => {
       // BUILD
       const newUser = {
-        username: 'nstark',
+        username: email,
         email,
         firstName: 'Ned',
         lastName: 'Stark',
@@ -246,7 +246,7 @@ describe('UserService', () => {
     const uid = 'u-testUpdateUserId';
     const newUser = {
       uid,
-      username: 'dtargaryen',
+      username: 'dragonseverywhere@example.com',
       email: 'dragonseverywhere@example.com',
       firstName: 'Daenerys',
       lastName: 'Targaryen',
@@ -254,7 +254,7 @@ describe('UserService', () => {
     it('should fail because no value of rev was provided', async () => {
       // BUILD
       const toUpdate = {
-        username: 'dtargaryen',
+        username: 'dragonseverywhere@example.com',
       };
 
       service.findUser = jest.fn().mockResolvedValue(newUser);
@@ -334,7 +334,7 @@ describe('UserService', () => {
     const uid = 'u-testDeleteUserId';
     const curUser = {
       uid,
-      username: 'astark',
+      username: 'ilovemasks@example.com',
       email: 'ilovemasks@example.com',
       firstName: 'Arya',
       lastName: 'Stark',
@@ -348,7 +348,7 @@ describe('UserService', () => {
 
       // OPERATE
       try {
-        await service.deleteUser({}, { username: 'lskywalker' });
+        await service.deleteUser({}, { username: 'ilovemasks@example.com' });
         expect.hasAssertions();
       } catch (err) {
         // CHECK

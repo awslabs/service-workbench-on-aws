@@ -21,7 +21,6 @@ const jwtDecode = require('jwt-decode');
 const { retry } = require('@aws-ee/base-services/lib/helpers/utils');
 
 const Settings = require('./utils/settings');
-const { getIdToken } = require('./utils/id-token');
 const { getClientSession } = require('./client-session');
 const { getGenerators } = require('./utils/generators');
 const { initAws } = require('./aws/init-aws');
@@ -87,11 +86,16 @@ class Setup {
     const passwordPath = this.settings.get('passwordPath');
     const password = await ssm.getParameter(passwordPath);
 
-    const adminIdToken = await getIdToken({
+    // Get IdToken from Cognito IdP
+    const userPoolId = this.settings.get('userPoolId');
+    const appClientId = this.settings.get('appClientId');
+    const cognito = await this.aws.services.cognitoIdp();
+
+    const adminIdToken = await cognito.getIdToken({
       username: this.settings.get('username'),
       password,
-      apiEndpoint,
-      authenticationProviderId: this.settings.get('authenticationProviderId'),
+      userPoolId,
+      appClientId,
     });
 
     return adminIdToken;
@@ -195,16 +199,23 @@ class Setup {
     const adminSession = await this.defaultAdminSession();
     const username = this.gen.username({ prefix: 'test-admin' });
     const password = this.gen.password();
+    const firstName = this.gen.firstName();
+    const lastName = this.gen.lastName();
 
     await adminSession.resources.users.create({
       username,
       email: username,
-      password,
       isAdmin: true,
       userRole: 'admin',
+      firstName,
+      lastName,
+      identityProviderName: 'Cognito Native Pool',
+      authenticationProviderId: `https://cognito-idp.${this.settings.get(
+        'awsRegion',
+      )}.amazonaws.com/${this.settings.get('userPoolId')}`,
     });
+    const idToken = await this.createCognitoUser({ username, password, fullName: `${firstName} ${lastName}` });
 
-    const idToken = await getIdToken({ username, password, apiEndpoint: this.apiEndpoint });
     const session = await getClientSession({ idToken, setup: this });
     this.sessions.push(session);
 
@@ -214,17 +225,25 @@ class Setup {
   async createResearcherSession({
     username = this.gen.username(),
     password = this.gen.password(),
+    firstName = this.gen.firstName(),
+    lastName = this.gen.lastName(),
     projectId = [this.defaults.project.id],
   } = {}) {
     const adminSession = await this.defaultAdminSession();
     await adminSession.resources.users.create({
       username,
       email: username,
-      password,
       userRole: 'researcher',
       projectId,
+      firstName,
+      lastName,
+      identityProviderName: 'Cognito Native Pool',
+      authenticationProviderId: `https://cognito-idp.${this.settings.get(
+        'awsRegion',
+      )}.amazonaws.com/${this.settings.get('userPoolId')}`,
     });
-    const idToken = await getIdToken({ username, password, apiEndpoint: this.apiEndpoint });
+    const idToken = await this.createCognitoUser({ username, password, fullName: `${firstName} ${lastName}` });
+
     const session = await getClientSession({ idToken, setup: this });
     this.sessions.push(session);
     return session;
@@ -234,21 +253,47 @@ class Setup {
     userRole = 'internal-guest',
     username = this.gen.username(),
     password = this.gen.password(),
+    firstName = this.gen.firstName(),
+    lastName = this.gen.lastName(),
     projectId = [this.defaults.project.id],
   } = {}) {
     const adminSession = await this.defaultAdminSession();
     await adminSession.resources.users.create({
       username,
       email: username,
-      password,
       userRole,
       projectId,
+      firstName,
+      lastName,
+      identityProviderName: 'Cognito Native Pool',
+      authenticationProviderId: `https://cognito-idp.${this.settings.get(
+        'awsRegion',
+      )}.amazonaws.com/${this.settings.get('userPoolId')}`,
     });
-    const idToken = await getIdToken({ username, password, apiEndpoint: this.apiEndpoint });
+    const idToken = await this.createCognitoUser({ username, password, fullName: `${firstName} ${lastName}` });
+
     const session = await getClientSession({ idToken, setup: this });
     this.sessions.push(session);
 
     return session;
+  }
+
+  async createCognitoUser({ username, password, fullName } = {}) {
+    // Get IdToken from Cognito IdP
+    const cognito = await this.aws.services.cognitoIdp();
+    const appClientId = this.settings.get('appClientId');
+    const userPoolId = this.settings.get('userPoolId');
+
+    // Sign-up user in Cognito
+    await cognito.signUpUser({ username, password, appClientId, fullName });
+
+    const idToken = await cognito.getIdToken({
+      username,
+      password,
+      userPoolId,
+      appClientId,
+    });
+    return idToken;
   }
 
   async createAnonymousSession() {

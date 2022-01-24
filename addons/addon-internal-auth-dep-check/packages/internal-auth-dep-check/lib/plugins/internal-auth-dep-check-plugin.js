@@ -13,12 +13,10 @@
  *  permissions and limitations under the License.
  */
 
-const CreateRootUserService = require('../steps/create-root-user-service');
-const AddAuthProviders = require('../steps/add-auth-providers');
-const CreateJwtKeyService = require('../steps/create-jwt-key-service');
+const InternalAuthDepCheckService = require('../steps/internal-auth-dep-check-service');
 
 /**
- * Returns a map of post deployment steps
+ * Returns a map of pre deployment steps
  *
  * @param existingStepsMap Map of existing post deployment steps
  * @param pluginRegistry A registry that provides plugins registered by various addons for the specified extension point.
@@ -27,13 +25,7 @@ const CreateJwtKeyService = require('../steps/create-jwt-key-service');
  */
 // eslint-disable-next-line no-unused-vars
 async function getSteps(existingStepsMap, pluginRegistry) {
-  const stepsMap = new Map([
-    ...existingStepsMap,
-    ['createJwtKeyService', new CreateJwtKeyService()],
-    ['addAuthProviders', new AddAuthProviders()],
-    ['createRootUser', new CreateRootUserService()],
-  ]);
-
+  const stepsMap = new Map([['InternalAuthDepCheckService', new InternalAuthDepCheckService()], ...existingStepsMap]);
   return stepsMap;
 }
 

@@ -120,9 +120,6 @@ dbAuthenticationProviderTypes: ${self:custom.settings.dbPrefix}-AuthenticationPr
 # DynamoDB table name for authentication provider configurations
 dbAuthenticationProviderConfigs: ${self:custom.settings.dbPrefix}-AuthenticationProviderConfigs
 
-# DynamoDB table name for data lake users
-dbUsers: ${self:custom.settings.dbPrefix}-Users
-
 # DynamoDB table name for passwords for the internal data lake users
 # (applicable only to the users authenticated by internal authentication provider)
 dbPasswords: ${self:custom.settings.dbPrefix}-Passwords
@@ -170,9 +167,6 @@ dbStudiesAccountIdIndex: AccountIdIndex
 # DynamoDB table name for Environments
 dbEnvironments: ${self:custom.settings.dbPrefix}-Environments
 
-# DynamoDB table name for Environments created using AWS Service Catalog
-dbEnvironmentsSc: ${self:custom.settings.dbPrefix}-EnvironmentsSc
-
 # DynamoDB table name for Environment Types
 dbEnvironmentTypes: ${self:custom.settings.dbPrefix}-EnvironmentTypes
 
@@ -196,12 +190,6 @@ dbProjects: ${self:custom.settings.dbPrefix}-Projects
 
 # DynamoDB table name for EnvironmentTokens
 dbEnvironmentTokens: ${self:custom.settings.dbPrefix}-EnvironmentTokens
-
-# DynamoDB table name for StudyPermissions
-dbStudyPermissions: ${self:custom.settings.dbPrefix}-StudyPermissions
-
-# DynamoDB table name for KeyPairs
-dbKeyPairs: ${self:custom.settings.dbPrefix}-KeyPairs
 
 # ================================ DB Settings - Depreciated ===========================================
 
