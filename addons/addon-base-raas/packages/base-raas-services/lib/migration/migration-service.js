@@ -46,6 +46,9 @@ class MigrationService extends Service {
     const userService = await this.service('userService');
     const studyService = await this.service('studyService');
 
+    // append RequestContext to signify migraiton request
+    requestContext.isMigration = true;
+
     const migrationResults = [];
     await Promise.all(
       migrationMappings.map(async item => {
@@ -84,27 +87,27 @@ class MigrationService extends Service {
       .limit(1000)
       .query();
 
-    const helpfulResult = await Promise.all(
-      result
-        .map(async study => {
-          const currentStudyPermissions = await studyService.getStudyPermissions(requestContext, study.id);
-          const currentOwner = currentStudyPermissions.permissions.adminUsers[0];
-          const currentOwnerInformation = await userService.findUser({ uid: currentOwner });
-          const currentOwnerUsername = currentOwnerInformation.username;
-          const currentOwnerAuthProvider =
-            currentOwnerInformation.authenticationProviderId === 'internal'
-              ? 'internal'
-              : currentOwnerInformation.identityProviderName;
+    let helpfulResult = await Promise.all(
+      await result.map(async study => {
+        const currentStudyPermissions = await studyService.getStudyPermissions(requestContext, study.id);
+        const currentOwner = currentStudyPermissions.permissions.adminUsers[0];
+        const currentOwnerInformation = await userService.findUser({ uid: currentOwner });
+        const currentOwnerUsername = currentOwnerInformation.username;
+        const currentOwnerAuthProvider =
+          currentOwnerInformation.authenticationProviderId === 'internal'
+            ? 'internal'
+            : currentOwnerInformation.identityProviderName;
 
-          return {
-            studyId: study.id,
-            uid: currentOwner,
-            username: currentOwnerUsername,
-            authProvider: currentOwnerAuthProvider,
-          };
-        })
-        .filter(study => study.authProvider === 'internal'),
+        return {
+          studyId: study.id,
+          uid: currentOwner,
+          username: currentOwnerUsername,
+          authProvider: currentOwnerAuthProvider,
+        };
+      }),
     );
+
+    helpfulResult = helpfulResult.filter(study => study.authProvider === 'internal');
 
     return helpfulResult.length > 0 ? helpfulResult : 'No My Studies are owned my internal users. No migration needed.';
   }

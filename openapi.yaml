@@ -2561,7 +2561,6 @@ components:
       type: string
       example: 'u-C-l14OuIfNk7vL7AqmjvC'
       description: id used to uniquely identify a user
-      minLength: 4
     ConnectionId:
       type: string
       example: 'id-0'

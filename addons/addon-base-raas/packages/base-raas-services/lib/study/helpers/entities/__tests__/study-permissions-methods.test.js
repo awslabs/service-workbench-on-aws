@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-const { applyUpdateRequest } = require('../study-permissions-methods');
+const { applyUpdateRequest, isValidUpdateRequest } = require('../study-permissions-methods');
 
 describe('study permissions methods', () => {
   describe('applyUpdateRequest', () => {
@@ -103,6 +103,28 @@ describe('study permissions methods', () => {
           },
         ],
       });
+    });
+  });
+
+  describe('isValidUpdateRequest', () => {
+    it('should return true when there are no wildcard entries in usersToRemove', async () => {
+      // BUILD
+      const updateRequest = {
+        usersToRemove: [{ uid: 'u-1', permissionLevel: 'admin' }],
+      };
+
+      // OPERATE N CHECK
+      expect(isValidUpdateRequest(updateRequest)).toBeTruthy();
+    });
+
+    it('should return false when there are wildcard entries in usersToRemove', async () => {
+      // BUILD
+      const updateRequest = {
+        usersToRemove: [{ uid: '*', permissionLevel: 'admin' }],
+      };
+
+      // OPERATE N CHECK
+      expect(isValidUpdateRequest(updateRequest)).toBeFalsy();
     });
   });
 });

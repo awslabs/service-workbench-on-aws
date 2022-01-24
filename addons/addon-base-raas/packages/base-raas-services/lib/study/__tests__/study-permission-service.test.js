@@ -671,5 +671,69 @@ describe('StudyPermissionService', () => {
       expect(service.findStudyPermissions).toHaveBeenCalledWith(requestContext, studyEntity);
       expect(service.assertValidUsers).toHaveBeenCalledWith(['uid-1']);
     });
+
+    it('should fail when wildcard present in update request when not a migration request', async () => {
+      // BUILD
+      const uid = 'u-admin1';
+      const requestContext = {
+        principalIdentifier: { uid },
+        principal: { userRole: 'admin', status: 'active' },
+      };
+      const studyEntity = {
+        id: 'study1',
+      };
+      const updateRequest = {
+        usersToAdd: [{ uid: 'uid-1', permissionLevel: 'readonly' }],
+        usersToRemove: [{ uid: '*', permissionLevel: 'readwrite' }],
+      };
+      lockService.tryWriteLockAndRun = jest.fn((params, callback) => callback());
+      service.findStudyPermissions = jest.fn().mockImplementationOnce(() => {
+        return {
+          adminUsers: ['u-admin1'],
+          readonlyUsers: [],
+          readwriteUsers: [],
+          writeonlyUsers: [],
+        };
+      });
+      service.assertValidUsers = jest.fn().mockImplementationOnce(() => {});
+      // OPERATE n CHECK
+      await expect(service.update(requestContext, studyEntity, updateRequest)).rejects.toThrow(
+        'You cannot use the wildcard (*) as a UID in a study permissions update request.',
+      );
+    });
+
+    it('should not fail when wildcard present in update request when a migration request', async () => {
+      // BUILD
+      const uid = 'u-admin1';
+      const requestContext = {
+        principalIdentifier: { uid },
+        principal: { userRole: 'admin', status: 'active' },
+        isMigration: true,
+      };
+      const studyEntity = {
+        id: 'study1',
+      };
+      const updateRequest = {
+        usersToAdd: [{ uid: 'uid-1', permissionLevel: 'readonly' }],
+        usersToRemove: [{ uid: '*', permissionLevel: 'readwrite' }],
+      };
+      lockService.tryWriteLockAndRun = jest.fn((params, callback) => callback());
+      service.findStudyPermissions = jest.fn().mockImplementationOnce(() => {
+        return {
+          adminUsers: ['u-admin1'],
+          readonlyUsers: [],
+          readwriteUsers: [],
+          writeonlyUsers: [],
+        };
+      });
+      service.assertValidUsers = jest.fn().mockImplementationOnce(() => {});
+
+      // OPERATE
+      await service.update(requestContext, studyEntity, updateRequest);
+
+      // CHECK
+      expect(service.findStudyPermissions).toHaveBeenCalledWith(requestContext, studyEntity);
+      expect(service.assertValidUsers).toHaveBeenCalledWith(['uid-1']);
+    });
   });
 });

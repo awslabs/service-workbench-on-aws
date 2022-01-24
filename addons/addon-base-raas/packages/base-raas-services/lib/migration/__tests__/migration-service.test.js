@@ -46,6 +46,9 @@ describe('migrationService', () => {
   let service;
   let studyOperationService;
   let settings;
+  let dbService;
+  let userService;
+  let studyService;
   beforeEach(async () => {
     const container = new ServicesContainer();
     container.register('migrationService', new MigrationService());
@@ -99,6 +102,9 @@ describe('migrationService', () => {
       }
       return undefined;
     });
+    dbService = await container.find('dbService');
+    userService = await container.find('userService');
+    studyService = await container.find('studyService');
   });
 
   describe('migrateMyStudiesPermissions', () => {
@@ -156,6 +162,74 @@ describe('migrationService', () => {
       await expect(service.listMyStudies(requestContext)).rejects.toThrow(
         'You need admin permissions to list all My Studies in this environment',
       );
+    });
+
+    it('should output a helpful result when migration is needed', async () => {
+      // BUILD
+      const requestContext = createAdminContext();
+      const expectedResult = [
+        { studyId: 'my-study-1', uid: 'u-internal', username: 'internal@amazon.com', authProvider: 'internal' },
+        { studyId: 'my-study-2', uid: 'u-internal', username: 'internal@amazon.com', authProvider: 'internal' },
+      ];
+      dbService.table.query = jest.fn().mockResolvedValueOnce([{ id: 'my-study-1' }, { id: 'my-study-2' }]);
+      studyService.getStudyPermissions = jest
+        .fn()
+        .mockResolvedValueOnce({ permissions: { adminUsers: ['u-internal'] } })
+        .mockResolvedValueOnce({ permissions: { adminUsers: ['u-internal'] } });
+      userService.findUser = jest
+        .fn()
+        .mockResolvedValueOnce({ username: 'internal@amazon.com', authenticationProviderId: 'internal' })
+        .mockResolvedValueOnce({ username: 'internal@amazon.com', authenticationProviderId: 'internal' });
+
+      // OPERATE
+      const result = await service.listMyStudies(requestContext);
+
+      // CHECK
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should output a message when migration is not needed', async () => {
+      // BUILD
+      const requestContext = createAdminContext();
+      const expectedResult = 'No My Studies are owned my internal users. No migration needed.';
+      dbService.table.query = jest.fn().mockResolvedValueOnce([{ id: 'my-study-1' }, { id: 'my-study-2' }]);
+      studyService.getStudyPermissions = jest
+        .fn()
+        .mockResolvedValueOnce({ permissions: { adminUsers: ['u-cognito'] } })
+        .mockResolvedValueOnce({ permissions: { adminUsers: ['u-cognito'] } });
+      userService.findUser = jest
+        .fn()
+        .mockResolvedValueOnce({ username: 'cognito@amazon.com', authenticationProviderId: 'cognito' })
+        .mockResolvedValueOnce({ username: 'cognito@amazon.com', authenticationProviderId: 'cognito' });
+
+      // OPERATE
+      const result = await service.listMyStudies(requestContext);
+
+      // CHECK
+      expect(result).toEqual(expectedResult);
+    });
+
+    it('should filter out internal user-owned studies when migration is needed but some have already been migrated', async () => {
+      // BUILD
+      const requestContext = createAdminContext();
+      const expectedResult = [
+        { studyId: 'my-study-2', uid: 'u-internal', username: 'internal@amazon.com', authProvider: 'internal' },
+      ];
+      dbService.table.query = jest.fn().mockResolvedValueOnce([{ id: 'my-study-1' }, { id: 'my-study-2' }]);
+      studyService.getStudyPermissions = jest
+        .fn()
+        .mockResolvedValueOnce({ permissions: { adminUsers: ['u-cognito'] } })
+        .mockResolvedValueOnce({ permissions: { adminUsers: ['u-internal'] } });
+      userService.findUser = jest
+        .fn()
+        .mockResolvedValueOnce({ username: 'cognito@amazon.com', authenticationProviderId: 'cognito' })
+        .mockResolvedValueOnce({ username: 'internal@amazon.com', authenticationProviderId: 'internal' });
+
+      // OPERATE
+      const result = await service.listMyStudies(requestContext);
+
+      // CHECK
+      expect(result).toEqual(expectedResult);
     });
   });
 });
