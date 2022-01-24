@@ -407,4 +407,34 @@ describe('UserService', () => {
       ]);
     });
   });
+
+  describe('isInternalAuthUser', () => {
+    it('should return true when user is internal', async () => {
+      // BUILD
+      const uid = 'sample-user';
+      service.mustFindUser = jest.fn().mockImplementationOnce(() => {
+        return { authenticationProviderId: 'internal' };
+      });
+
+      // OPERATE
+      const result = await service.isInternalAuthUser(uid);
+
+      // CHECK
+      expect(result).toBeTruthy();
+    });
+
+    it('should return false when user is not internal', async () => {
+      // BUILD
+      const uid = 'sample-user';
+      service.mustFindUser = jest.fn().mockImplementationOnce(() => {
+        return { authenticationProviderId: 'some-auth-id' };
+      });
+
+      // OPERATE
+      const result = await service.isInternalAuthUser(uid);
+
+      // CHECK
+      expect(result).toBeFalsy();
+    });
+  });
 });
