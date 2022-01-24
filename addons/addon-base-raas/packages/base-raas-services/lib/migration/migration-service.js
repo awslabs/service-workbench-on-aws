@@ -57,7 +57,7 @@ class MigrationService extends Service {
 
         // check that end user is not already owner
         if (await studyService.isStudyAdmin(requestContext, studyId, endUser)) {
-          throw this.boom.badRequest(`Current study is already owned by ${endUser}`, true);
+          throw this.boom.badRequest(`The study ${studyId} is already owned by ${endUser}`, true);
         }
 
         const result = await studyOperationService.updatePermissions(requestContext, studyId, {
