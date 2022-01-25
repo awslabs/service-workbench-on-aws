@@ -65,6 +65,7 @@ const getCreateStackUrl = (cfnTemplateInfo, createParams) => {
     appStreamInstanceType,
     appStreamMaxUserDurationSeconds,
     enableAppStream,
+    enableFlowLogs,
     domainName,
   } = createParams;
   const url = [
@@ -84,6 +85,7 @@ const getCreateStackUrl = (cfnTemplateInfo, createParams) => {
     `&param_AppStreamInstanceType=${appStreamInstanceType || ''}`,
     `&param_AppStreamMaxUserDurationSeconds=${appStreamMaxUserDurationSeconds || '86400'}`,
     `&param_EnableAppStream=${enableAppStream || 'false'}`,
+    `&param_EnableFlowLogs=${enableFlowLogs || 'true'}`,
     `&param_DomainName=${domainName || ''}`,
   ].join('');
 
@@ -208,6 +210,7 @@ class AwsCfnService extends Service {
     createParams.apiHandlerRoleArn = this.settings.get(settingKeys.apiHandlerRoleArn);
     createParams.workflowLoopRunnerRoleArn = this.settings.get(settingKeys.workflowLoopRunnerRoleArn);
     createParams.enableAppStream = this.settings.get(settingKeys.isAppStreamEnabled);
+    createParams.enableFlowLogs = this.settings.get(settingKeys.enableFlowLogs);
     createParams.domainName = this.settings.optional(settingKeys.domainName, '');
     createParams.externalId = account.externalId;
     createParams.namespace = cfnTemplateInfo.name;

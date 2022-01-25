@@ -50,6 +50,11 @@ Parameters:
     Type: String
     Default: '*'
 
+  EnableFlowLogs:
+    Type: String
+    AllowedValues: [true, false]
+    Description: Enable flow logs on VPCs and Subnets created on this account
+
   #------------AppStream Parameters Below-------
   # Range from 10.0.32.0 to 10.0.63.255
   AppStreamSubnetCidr:
@@ -127,10 +132,13 @@ Conditions:
     - !Ref EnableAppStream
     - true
   isNotAppStream: !Not [Condition: isAppStream]
-  hasCustomDomain: !Not [!Equals [!Ref "DomainName", ""]]
+  hasCustomDomain: !Not [!Equals [!Ref 'DomainName', '']]
   isAppStreamAndCustomDomain: !And
-    - !Not [!Equals [!Ref "DomainName", ""]]
+    - !Not [!Equals [!Ref 'DomainName', '']]
     - !Condition isAppStream
+  enableFlowLogs: !Equals
+    - !Ref EnableFlowLogs
+    - true
 
 Resources:
   Route53HostedZone:
@@ -140,7 +148,7 @@ Resources:
       Name: !Ref DomainName
       VPCs:
         - VPCId: !Ref VPC
-          VPCRegion: !Ref "AWS::Region"
+          VPCRegion: !Ref 'AWS::Region'
 
   # A role used for launching environments using AWS Service Catalog
   # This is the role that code (ApiHandlerLambda and WorkflowLoopRunnerLambda) in central account
@@ -266,6 +274,17 @@ Resources:
                 Resource:
                   - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/${LaunchConstraintRolePrefix}LaunchConstraint'
                   - !Sub 'arn:${AWS::Partition}:iam::${AWS::AccountId}:role/*presigned-url-sagemaker-notebook-role'
+        - PolicyName: cloudwatch-access-policy
+          PolicyDocument:
+            Statement:
+              Effect: Allow
+              Action:
+                - logs:CreateLogGroup
+                - logs:CreateLogStream
+                - logs:PutLogEvents
+              Resource:
+                - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:${Namespace}-*:*'
+                - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:${Namespace}-*:log-stream:*'
         - !If
           - isAppStreamAndCustomDomain
           - PolicyName: route53-access
@@ -302,6 +321,14 @@ Resources:
               - servicecatalog:*
               - ec2-instance-connect:*
             Resource: '*'
+          - Effect: Allow
+            Action:
+              - logs:CreateLogGroup
+              - logs:CreateLogStream
+              - logs:PutLogEvents
+            Resource:
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:${Namespace}-*:*'
+              - !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:${Namespace}-*:log-stream:*'
           - Effect: Allow
             Action:
               - iam:PassRole
@@ -603,6 +630,22 @@ Resources:
         - Key: Name
           Value: !Sub ${Namespace} vpc
 
+  FlowLogVPC:
+    Type: AWS::EC2::FlowLog
+    Condition: enableFlowLogs
+    Properties:
+      ResourceId: !Ref VPC
+      ResourceType: VPC
+      TrafficType: ACCEPT
+      DeliverLogsPermissionArn: !GetAtt CrossAccountRoleEnvMgmt.Arn
+      LogGroupName: VPCLogGroup
+      LogFormat: '${version} ${vpc-id} ${subnet-id} ${instance-id} ${srcaddr} ${dstaddr} ${srcport} ${dstport} ${protocol} ${tcp-flags} ${type} ${pkt-srcaddr} ${pkt-dstaddr}'
+      Tags:
+        - Key: Name
+          Value: FlowLogForVPC
+        - Key: Purpose
+          Value: AcceptTraffic
+
   InternetGateway:
     Type: AWS::EC2::InternetGateway
     Condition: isNotAppStream
@@ -623,12 +666,28 @@ Resources:
     Condition: isNotAppStream
     Properties:
       VpcId: !Ref VPC
-      AvailabilityZone: !Select [0, !GetAZs '' ]
+      AvailabilityZone: !Select [0, !GetAZs '']
       CidrBlock: !Ref PublicSubnetCidr
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
           Value: !Sub ${Namespace} public subnet 1
+
+  FlowLogPublicSubnet1:
+    Type: AWS::EC2::FlowLog
+    Condition: enableFlowLogs
+    Properties:
+      ResourceId: !Ref PublicSubnet1
+      ResourceType: Subnet
+      TrafficType: ACCEPT
+      DeliverLogsPermissionArn: !GetAtt CrossAccountRoleEnvMgmt.Arn
+      LogGroupName: PublicSubnet1LogGroup
+      LogFormat: '${version} ${vpc-id} ${subnet-id} ${instance-id} ${srcaddr} ${dstaddr} ${srcport} ${dstport} ${protocol} ${tcp-flags} ${type} ${pkt-srcaddr} ${pkt-dstaddr}'
+      Tags:
+        - Key: Name
+          Value: FlowLogForPublicSubnet1
+        - Key: Purpose
+          Value: AcceptTraffic
 
   PublicRouteTable:
     Type: AWS::EC2::RouteTable
@@ -707,6 +766,22 @@ Resources:
         - Key: Name
           Value: Private AppStream Subnet
 
+  FlowLogPrivateAppStreamSubnet:
+    Type: AWS::EC2::FlowLog
+    Condition: !And [isAppStream, enableFlowLogs]
+    Properties:
+      ResourceId: !Ref PrivateAppStreamSubnet
+      ResourceType: Subnet
+      TrafficType: ACCEPT
+      DeliverLogsPermissionArn: !GetAtt CrossAccountRoleEnvMgmt.Arn
+      LogGroupName: PrivateAppStreamSubnetLogGroup
+      LogFormat: '${version} ${vpc-id} ${subnet-id} ${instance-id} ${srcaddr} ${dstaddr} ${srcport} ${dstport} ${protocol} ${tcp-flags} ${type} ${pkt-srcaddr} ${pkt-dstaddr}'
+      Tags:
+        - Key: Name
+          Value: FlowLogPrivateAppStreamSubnet
+        - Key: Purpose
+          Value: AcceptTraffic
+
   PrivateWorkspaceSubnet:
     Type: AWS::EC2::Subnet
     Condition: isAppStream
@@ -718,6 +793,22 @@ Resources:
       Tags:
         - Key: Name
           Value: Private Workspace Subnet
+
+  FlowLogPrivateWorkspaceSubnet:
+    Type: AWS::EC2::FlowLog
+    Condition: !And [isAppStream, enableFlowLogs]
+    Properties:
+      ResourceId: !Ref PrivateWorkspaceSubnet
+      ResourceType: Subnet
+      TrafficType: ACCEPT
+      DeliverLogsPermissionArn: !GetAtt CrossAccountRoleEnvMgmt.Arn
+      LogGroupName: PrivateWorkspaceSubnetLogGroup
+      LogFormat: '${version} ${vpc-id} ${subnet-id} ${instance-id} ${srcaddr} ${dstaddr} ${srcport} ${dstport} ${protocol} ${tcp-flags} ${type} ${pkt-srcaddr} ${pkt-dstaddr}'
+      Tags:
+        - Key: Name
+          Value: FlowLogForPrivateWorkspaceSubnet
+        - Key: Purpose
+          Value: AcceptTraffic
 
   PrivateWorkspaceRouteTable:
     Type: 'AWS::EC2::RouteTable'
@@ -898,7 +989,7 @@ Resources:
         - !Ref PrivateWorkspaceSubnet
       VpcEndpointType: Interface
       PrivateDnsEnabled: true
-      ServiceName: !Sub "com.amazonaws.${AWS::Region}.sagemaker.api"
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.sagemaker.api'
       VpcId: !Ref VPC
       SecurityGroupIds:
         - !Ref SagemakerApiEndpointSecurityGroup
