@@ -240,9 +240,9 @@ Resources:
               Forward: none
           ViewerProtocolPolicy: redirect-to-https
         PriceClass: PriceClass_100
-        Logging:
-          Bucket: ${self:custom.settings.loggingBucketName}.s3.amazonaws.com
-          Prefix: cloudfront/
+#        Logging:
+#          Bucket: ${self:custom.settings.loggingBucketName}.s3.amazonaws.com
+#          Prefix: cloudfront/
 
   CloudFrontOAI:
     Type: AWS::CloudFront::CloudFrontOriginAccessIdentity

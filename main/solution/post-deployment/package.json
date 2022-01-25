@@ -55,7 +55,7 @@
     "pretty-quick": "^1.11.1",
     "serverless": "^1.63.0",
     "serverless-deployment-bucket": "^1.1.0",
-    "serverless-s3-sync": "^1.10.2",
+    "serverless-s3-sync": "^1.17.3",
     "serverless-webpack": "^5.3.3",
     "source-map-support": "^0.5.16",
     "webpack": "^4.41.5",

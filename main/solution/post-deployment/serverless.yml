@@ -55,16 +55,18 @@ custom:
             APP_LOCAL_ROLE_ARN: ${cfnOutput('PostDeploymentRoleArn')} # When running locally, run under this role
 
   s3Sync:
-    - bucketName: ${self:custom.settings.deploymentBucketName}
-      bucketPrefix: saml-metadata/
-      localDir: config/saml-metadata
-    - bucketName: ${self:custom.settings.environmentsBootstrapBucketName}
-      bucketPrefix: ${self:custom.settings.environmentsBootstrapBucketPrefix}/
-      localDir: config/environment-files
-      deleteRemoved: false # Do not remove any additional files directly placed in the environment-files S3 prefix in the environments bootstrap bucket
-    - bucketName: ${self:custom.settings.deploymentBucketName}
-      bucketPrefix: service-catalog-products/
-      localDir: ../../../addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/service-catalog
+    endpoint: https://s3.ap-east-1.amazonaws.com
+    buckets:
+      - bucketName: ${self:custom.settings.deploymentBucketName}
+        bucketPrefix: saml-metadata/
+        localDir: config/saml-metadata
+      - bucketName: ${self:custom.settings.environmentsBootstrapBucketName}
+        bucketPrefix: ${self:custom.settings.environmentsBootstrapBucketPrefix}/
+        localDir: config/environment-files
+        deleteRemoved: false # Do not remove any additional files directly placed in the environment-files S3 prefix in the environments bootstrap bucket
+      - bucketName: ${self:custom.settings.deploymentBucketName}
+        bucketPrefix: service-catalog-products/
+        localDir: ../../../addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/service-catalog
   serverlessIfElse:
     - If: '"${file(./bool-to-str.js)}" == "false"'
       Exclude:

@@ -84,8 +84,10 @@ custom:
           environment:
             APP_LOCAL_ROLE_ARN: ${cfnOutput('DataSourceReachabilityHandlerRoleArn')} # Use same role arn as the one above (used for more frequent cron lambda)
   s3Sync:
-    - bucketName: ${self:custom.settings.externalCfnTemplatesBucketName} # required
-      localDir: ../../../addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/external
+    endpoint: https://s3.ap-east-1.amazonaws.com
+    buckets:
+      - bucketName: ${self:custom.settings.externalCfnTemplatesBucketName} # required
+        localDir: ../../../addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/external
 
 functions: ${file(./config/infra/functions.yml)}
 
