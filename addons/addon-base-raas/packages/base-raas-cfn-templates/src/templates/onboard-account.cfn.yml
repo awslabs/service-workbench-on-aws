@@ -139,6 +139,7 @@ Conditions:
   enableFlowLogs: !Equals
     - !Ref EnableFlowLogs
     - true
+  enableFlowLogsAppStream: !And [!Condition isAppStream, !Condition enableFlowLogs]
 
 Resources:
   Route53HostedZone:
@@ -768,7 +769,7 @@ Resources:
 
   FlowLogPrivateAppStreamSubnet:
     Type: AWS::EC2::FlowLog
-    Condition: !And [isAppStream, enableFlowLogs]
+    Condition: enableFlowLogsAppStream
     Properties:
       ResourceId: !Ref PrivateAppStreamSubnet
       ResourceType: Subnet
@@ -796,7 +797,7 @@ Resources:
 
   FlowLogPrivateWorkspaceSubnet:
     Type: AWS::EC2::FlowLog
-    Condition: !And [isAppStream, enableFlowLogs]
+    Condition: enableFlowLogsAppStream
     Properties:
       ResourceId: !Ref PrivateWorkspaceSubnet
       ResourceType: Subnet
