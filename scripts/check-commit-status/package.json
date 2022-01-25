@@ -10,6 +10,7 @@
     "@octokit/rest": "^18.12.0"
   },
   "overrides": {
-    "follow-redirects": "^1.14.7"
+    "follow-redirects": "^1.14.7",
+    "node-fetch": "^2.6.7"
   }
 }
