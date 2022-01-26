@@ -27,6 +27,9 @@
     "pretty-quick": "^1.11.1",
     "source-map-support": "^0.5.16"
   },
+  "overrides": {
+    "node-forge": ">=1.0.0"
+  },
   "scripts": {
     "coverage": "NODE_ENV=test jest --config jest.config.js --passWithNoTests --verbose --collectCoverage --watchAll=false --coverage && codecov --disable=gcov",
     "test": "NODE_ENV=test jest --config jest.config.js --passWithNoTests",
