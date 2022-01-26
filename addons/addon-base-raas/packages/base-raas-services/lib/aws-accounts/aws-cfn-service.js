@@ -34,6 +34,7 @@ const settingKeys = {
   swbMainAccount: 'mainAcct',
   stage: 'envName',
   isAppStreamEnabled: 'isAppStreamEnabled',
+  enableFlowLogs: 'enableFlowLogs',
   domainName: 'domainName',
 };
 

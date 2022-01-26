@@ -136,10 +136,13 @@ Conditions:
   isAppStreamAndCustomDomain: !And
     - !Not [!Equals [!Ref 'DomainName', '']]
     - !Condition isAppStream
-  enableFlowLogs: !Equals
-    - !Ref EnableFlowLogs
-    - true
-  enableFlowLogsAppStream: !And [!Condition isAppStream, !Condition enableFlowLogs]
+  enableFlowLogs: !Equals [!Ref EnableFlowLogs, true]
+  enableFlowLogsNonAppStream: !And
+    - !Not [!Equals [!Ref EnableAppStream, true]]
+    - !Equals [!Ref EnableFlowLogs, true]
+  enableFlowLogsWithAppStream: !And
+    - !Equals [!Ref EnableFlowLogs, true]
+    - !Equals [!Ref EnableAppStream, true]
 
 Resources:
   Route53HostedZone:
@@ -676,7 +679,7 @@ Resources:
 
   FlowLogPublicSubnet1:
     Type: AWS::EC2::FlowLog
-    Condition: enableFlowLogs
+    Condition: enableFlowLogsNonAppStream
     Properties:
       ResourceId: !Ref PublicSubnet1
       ResourceType: Subnet
@@ -769,7 +772,7 @@ Resources:
 
   FlowLogPrivateAppStreamSubnet:
     Type: AWS::EC2::FlowLog
-    Condition: enableFlowLogsAppStream
+    Condition: enableFlowLogsWithAppStream
     Properties:
       ResourceId: !Ref PrivateAppStreamSubnet
       ResourceType: Subnet
@@ -797,7 +800,7 @@ Resources:
 
   FlowLogPrivateWorkspaceSubnet:
     Type: AWS::EC2::FlowLog
-    Condition: enableFlowLogsAppStream
+    Condition: enableFlowLogsWithAppStream
     Properties:
       ResourceId: !Ref PrivateWorkspaceSubnet
       ResourceType: Subnet
