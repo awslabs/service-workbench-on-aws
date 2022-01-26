@@ -8,6 +8,11 @@ Parameters:
     AllowedValues: [true, false]
     Description: Onboard this account to support AppStream
 
+  EnableFlowLogs:
+    Type: String
+    AllowedValues: [true, false]
+    Description: Enable flow logs on VPCs and Subnets created on this account
+
   Namespace:
     Type: String
     Description: An environment name that will be prefixed to resource names
@@ -49,11 +54,6 @@ Parameters:
     Description: Customer managed policy name prefix to use when creating a launch constraint role in the on-boarded account
     Type: String
     Default: '*'
-
-  EnableFlowLogs:
-    Type: String
-    AllowedValues: [true, false]
-    Description: Enable flow logs on VPCs and Subnets created on this account
 
   #------------AppStream Parameters Below-------
   # Range from 10.0.32.0 to 10.0.63.255
@@ -127,6 +127,8 @@ Metadata:
           - VpcCidr
           - PublicSubnetCidr
 
+# Resources linked to AppStream conditions are evaluated further prior to getting sent to CloudFormation
+# Take a look at addons/addon-base-raas/packages/base-raas-services/lib/cfn-templates/cfn-template-service.getTemplate()
 Conditions:
   isAppStream: !Equals
     - !Ref EnableAppStream
@@ -137,12 +139,8 @@ Conditions:
     - !Not [!Equals [!Ref 'DomainName', '']]
     - !Condition isAppStream
   enableFlowLogs: !Equals [!Ref EnableFlowLogs, true]
-  enableFlowLogsNonAppStream: !And
-    - !Not [!Equals [!Ref EnableAppStream, true]]
-    - !Equals [!Ref EnableFlowLogs, true]
-  enableFlowLogsWithAppStream: !And
-    - !Equals [!Ref EnableFlowLogs, true]
-    - !Equals [!Ref EnableAppStream, true]
+  enableFlowLogsNonAppStream: !And [Condition: isNotAppStream,Condition: enableFlowLogs]
+  enableFlowLogsWithAppStream: !And [Condition: isAppStream,Condition: enableFlowLogs]
 
 Resources:
   Route53HostedZone:

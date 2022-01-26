@@ -36,6 +36,7 @@ postDeployment:
     APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
     APP_ENABLE_EGRESS_STORE: ${self:custom.settings.enableEgressStore}
     APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
+    APP_ENABLE_FLOW_LOGS: ${self:custom.settings.enableFlowLogs}
     APP_ENVIRONMENTS_BOOTSTRAP_BUCKET_NAME: ${self:custom.settings.environmentsBootstrapBucketName}
     APP_STUDY_DATA_BUCKET_NAME: ${self:custom.settings.studyDataBucketName}
     APP_ENABLE_NATIVE_USER_POOL_USERS: ${self:custom.settings.enableNativeUserPoolUsers}

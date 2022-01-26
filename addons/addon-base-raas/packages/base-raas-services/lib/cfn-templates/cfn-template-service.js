@@ -84,7 +84,7 @@ class CfnTemplateService extends Service {
       let resourceAttributeToDelete = [];
       Object.keys(doc.Resources).forEach(resource => {
         if (
-          ['isAppStreamAndCustomDomain', 'isAppStream'].includes(
+          ['isAppStreamAndCustomDomain', 'isAppStream', 'enableFlowLogsWithAppStream'].includes(
             doc.Resources[resource].Condition && doc.Resources[resource].Condition,
           )
         ) {
@@ -108,7 +108,7 @@ class CfnTemplateService extends Service {
       const outputsToDelete = [];
       Object.keys(doc.Outputs).forEach(output => {
         if (
-          ['isAppStreamAndCustomDomain', 'isAppStream'].includes(
+          ['isAppStreamAndCustomDomain', 'isAppStream', 'enableFlowLogsWithAppStream'].includes(
             doc.Outputs[output].Condition && doc.Outputs[output].Condition,
           )
         ) {
