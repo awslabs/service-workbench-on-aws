@@ -5,7 +5,8 @@
   "video": false,
   "env": {
     "isAppStreamEnabled": false,
-    "isCognitoEnabled": true,
+    "cognitoUserPoolId": "us-east-1_fGB4nQKqN",
+    "cognitoClientId": "6dmj4qhbihtkigcbsjo346hjmi",
     "workspaces": {
       "sagemaker": {
         "workspaceTypeName": "SageMaker Notebook-v4",
