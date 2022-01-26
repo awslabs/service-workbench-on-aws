@@ -75,7 +75,7 @@ class DataEgressService extends Service {
     }
 
     if (!egressStoreResult) {
-      return null;
+      throw this.boom.notFound(`Error: unable to find Egress Store in environment ${environmentId}.`);
     }
     return egressStoreResult;
   }
