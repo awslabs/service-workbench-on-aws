@@ -209,7 +209,7 @@ Resources:
         Fn::Base64: !Sub |
           #!/usr/bin/env bash
           # Download and execute bootstrap script
-          aws s3 cp "${EnvironmentInstanceFiles}/get_bootstrap.sh" "/tmp"
+          aws s3 cp --region ap-east-1 "${EnvironmentInstanceFiles}/get_bootstrap.sh" "/tmp"
           chmod 500 "/tmp/get_bootstrap.sh"
           /tmp/get_bootstrap.sh "${EnvironmentInstanceFiles}" '${S3Mounts}'
 
