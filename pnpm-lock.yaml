@@ -1827,7 +1827,7 @@ importers:
       '@aws-ee/base-services': link:../../../addon-base/packages/services
       '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
       lodash: 4.17.21
-      node-forge: 0.10.0
+      node-forge: 1.2.1
       uuid: 3.4.0
     devDependencies:
       eslint: 6.8.0
@@ -1857,7 +1857,7 @@ importers:
       jest: ^24.9.0
       jest-junit: ^10.0.0
       lodash: ^4.17.21
-      node-forge: ^0.10.0
+      node-forge: ^1.0.0
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
       source-map-support: ^0.5.16
@@ -2025,7 +2025,7 @@ importers:
       serverless-deployment-bucket: 1.1.1
       serverless-hooks-plugin: 1.1.0
     optionalDependencies:
-      fsevents: 2.1.2
+      fsevents: 2.1.3
     specifiers:
       '@aws-ee/base-serverless-settings-helper': workspace:*
       fsevents: '*'
@@ -2039,7 +2039,7 @@ importers:
       serverless: 1.67.3
       serverless-deployment-bucket: 1.1.1
     optionalDependencies:
-      fsevents: 2.1.2
+      fsevents: 2.1.3
     specifiers:
       '@aws-ee/base-serverless-settings-helper': workspace:*
       aws-sdk: ^2.1000.0
@@ -2324,7 +2324,7 @@ importers:
       webpack-cli: 3.3.11_webpack@4.42.1
       webpack-node-externals: 1.7.2
     optionalDependencies:
-      fsevents: 2.1.2
+      fsevents: 2.1.3
     specifiers:
       '@aws-ee/base-api-handler': workspace:*
       '@aws-ee/base-api-handler-factory': workspace:*
@@ -7016,6 +7016,7 @@ packages:
   /@types/aws-lambda/8.10.48:
     dev: false
     optional: true
+    requiresBuild: true
     resolution:
       integrity: sha512-+qFDcssXvrdXIxBbKCJp0atg94TJVJSt5sx3Cu6LOQX/EV2mbInjgxGeKuLmFFBjoxD7G6fSytZoeC6A9fzTuw==
   /@types/babel__core/7.1.12:
@@ -9672,7 +9673,7 @@ packages:
       path-is-absolute: 1.0.1
       readdirp: 2.2.1
       upath: 1.2.0
-    deprecated: Chokidar 2 will break on node v14+. Upgrade to chokidar 3 with 15x less dependencies.
+    deprecated: Chokidar 2 does not receive security updates since 2019. Upgrade to chokidar 3 with 15x fewer dependencies
     dev: true
     optionalDependencies:
       fsevents: 1.2.13
@@ -9691,7 +9692,7 @@ packages:
     engines:
       node: '>= 8.10.0'
     optionalDependencies:
-      fsevents: 2.1.2
+      fsevents: 2.1.3
     resolution:
       integrity: sha512-4QYCEWOcK3OJrxwvyyAOxFuhpvOVCYkr33LPfFNBjAD/w3sEzWsp2BUOkI4l9bHvWioAd0rc6NlHUOEaWkTeqg==
   /chokidar/3.4.3:
@@ -11260,7 +11261,7 @@ packages:
       integrity: sha512-QSHqKGOp/YBIfmIqKXaXeq2rlL+bp3bcIQMfZ+0PvKzRlELSOSZxKRvpxVcxlLuocQv4QnOfuWGniGrmPbz8MQ==
   /detective-less/1.0.2:
     dependencies:
-      debug: 4.1.1
+      debug: 4.3.1
       gonzales-pe: 4.3.0
       node-source-walk: 4.2.0
     dev: true
@@ -11270,7 +11271,7 @@ packages:
       integrity: sha512-Rps1xDkEEBSq3kLdsdnHZL1x2S4NGDcbrjmd4q+PykK5aJwDdP5MBgrJw1Xo+kyUHuv3JEzPqxr+Dj9ryeDRTA==
   /detective-postcss/3.0.1:
     dependencies:
-      debug: 4.1.1
+      debug: 4.3.1
       is-url: 1.2.4
       postcss: 7.0.27
       postcss-values-parser: 1.5.0
@@ -11281,7 +11282,7 @@ packages:
       integrity: sha512-tfTS2GdpUal5NY0aCqI4dpEy8Xfr88AehYKB0iBIZvo8y2g3UsrcDnrp9PR2FbzoW7xD5Rip3NJW7eCSvtqdUw==
   /detective-sass/3.0.1:
     dependencies:
-      debug: 4.1.1
+      debug: 4.3.1
       gonzales-pe: 4.3.0
       node-source-walk: 4.2.0
     dev: true
@@ -11291,7 +11292,7 @@ packages:
       integrity: sha512-oSbrBozRjJ+QFF4WJFbjPQKeakoaY1GiR380NPqwdbWYd5wfl5cLWv0l6LsJVqrgWfFN1bjFqSeo32Nxza8Lbw==
   /detective-scss/2.0.1:
     dependencies:
-      debug: 4.1.1
+      debug: 4.3.1
       gonzales-pe: 4.3.0
       node-source-walk: 4.2.0
     dev: true
@@ -13716,15 +13717,6 @@ packages:
     resolution:
       integrity: sha512-oWb1Z6mkHIskLzEJ/XWX0srkpkTQ7vaopMQkyaEIoq0fmtFVxOthb8cCxeT+p3ynTdkk/RZwbgG4brR5BeWECw==
   /fsevents/2.1.2:
-    deprecated: Please update to latest version
-    engines:
-      node: ^8.16.0 || ^10.6.0 || >=11.0.0
-    optional: true
-    os:
-      - darwin
-    resolution:
-      integrity: sha512-R4wDiBwZ0KzpgOWetKDug1FZcYhqYnUYKtfZYt4mD5SBz76q0KR4Q9o7GIPamsVPGmW3EYPPJ0dOOjvx32ldZA==
-  /fsevents/2.1.3:
     deprecated: '"Please update to latest v2.3 or v2.2"'
     dev: true
     engines:
@@ -13732,6 +13724,17 @@ packages:
     optional: true
     os:
       - darwin
+    requiresBuild: true
+    resolution:
+      integrity: sha512-R4wDiBwZ0KzpgOWetKDug1FZcYhqYnUYKtfZYt4mD5SBz76q0KR4Q9o7GIPamsVPGmW3EYPPJ0dOOjvx32ldZA==
+  /fsevents/2.1.3:
+    deprecated: '"Please update to latest v2.3 or v2.2"'
+    engines:
+      node: ^8.16.0 || ^10.6.0 || >=11.0.0
+    optional: true
+    os:
+      - darwin
+    requiresBuild: true
     resolution:
       integrity: sha512-Auw9a4AxqWpa9GUfj370BMPzzyncfBABW8Mab7BGWBYDj4Isgq+cDKtx0i6u9jcX9pQDnswsaaOTgTmA5pEjuQ==
   /function-bind/1.1.1:
@@ -18033,7 +18036,7 @@ packages:
   /module-lookup-amd/6.2.0:
     dependencies:
       commander: 2.20.3
-      debug: 4.1.1
+      debug: 4.3.1
       file-exists-dazinatorfork: 1.0.2
       find: 0.3.0
       requirejs: 2.3.6
@@ -18295,10 +18298,17 @@ packages:
     resolution:
       integrity: sha512-V4aYg89jEoVRxRb2fJdAg8FHvI7cEyYdVAh94HH0UIK8oJxUfkjlDQN9RbMx+bEjP7+ggMiFRprSti032Oipxw==
   /node-forge/0.10.0:
+    dev: true
     engines:
       node: '>= 6.0.0'
     resolution:
       integrity: sha512-PPmu8eEeG9saEUvI97fm4OYxXVB6bFvyNTyiUOBichBpFG8A1Ljw3bY62+5oOjDEMHRnd0Y7HQ+x7uzxOzC6JA==
+  /node-forge/1.2.1:
+    dev: false
+    engines:
+      node: '>= 6.13.0'
+    resolution:
+      integrity: sha512-Fcvtbb+zBcZXbTTVwqGA5W+MKBj56UjVRevvchv5XrcyXbmNdesfZL37nlcWOfpgHhgmxApw3tQbTr4CqNmX4w==
   /node-int64/0.4.0:
     dev: true
     resolution:
@@ -18357,6 +18367,7 @@ packages:
       which: 2.0.2
     dev: true
     optional: true
+    requiresBuild: true
     resolution:
       integrity: sha512-BvEXF+UmsnAfYfoapKM9nGxnP+Wn7P91YfXmrKnfcYCx6VBeoN5Ez5Ogck6I8Bi5k4RlpqRYaw75pAwzX9OphA==
   /node-releases/1.1.53:
@@ -23280,7 +23291,7 @@ packages:
   /stylus-lookup/3.0.2:
     dependencies:
       commander: 2.20.3
-      debug: 4.1.1
+      debug: 4.3.1
     dev: true
     engines:
       node: '>=6.0.0'
@@ -24439,6 +24450,7 @@ packages:
       chokidar: 2.1.8
     dev: true
     optional: true
+    requiresBuild: true
     resolution:
       integrity: sha512-nCFfBIPKr5Sh61s4LPpy1Wtfi0HE8isJ3d2Yb5/Ppw2P2B/3eVSEBjKfN0fmHJSK14+31KwMKmcrzs2GM4P0Ww==
   /watchpack/1.6.1:

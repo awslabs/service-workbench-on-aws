@@ -9,7 +9,7 @@
     "@aws-ee/base-services": "workspace:*",
     "@aws-ee/base-services-container": "workspace:*",
     "lodash": "^4.17.21",
-    "node-forge": "^0.10.0",
+    "node-forge": "^1.0.0",
     "uuid": "^3.4.0"
   },
   "devDependencies": {
@@ -26,11 +26,6 @@
     "prettier": "^1.19.1",
     "pretty-quick": "^1.11.1",
     "source-map-support": "^0.5.16"
-  },
-  "pnpm": {
-    "overrides": {
-      "node-forge": "^1.0.0"
-    }
   },
   "scripts": {
     "coverage": "NODE_ENV=test jest --config jest.config.js --passWithNoTests --verbose --collectCoverage --watchAll=false --coverage && codecov --disable=gcov",
