@@ -9,7 +9,7 @@
     "@aws-ee/base-services": "workspace:*",
     "@aws-ee/base-services-container": "workspace:*",
     "lodash": "^4.17.21",
-    "node-forge": "^0.10.0",
+    "node-forge": "^1.0.0",
     "uuid": "^3.4.0"
   },
   "devDependencies": {
