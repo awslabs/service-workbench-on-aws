@@ -79,7 +79,7 @@ You first need to download the Service Workbench [source code](https://github.co
 
 ## Software requirements
 
-- **Node.Js:** [Node.js v12.x](https://nodejs.org/en/) or later is required.
+- **Node.Js:** [Node.js v14.x](https://nodejs.org/en/) is required.
 - **PNPM:** Install [pnpm](https://pnpm.js.org/en/) as follows
 
 ```bash

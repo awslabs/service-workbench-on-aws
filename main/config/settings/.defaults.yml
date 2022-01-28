@@ -181,6 +181,11 @@ createServiceCatalogPortfolio: true
 # Metadata provided with AWS SDK calls
 customUserAgent: 'AwsLabs/SO0144/${self:custom.settings.versionNumber}'
 
+# Flow Logs are a feature that allows users to capture information about network traffic to, from, and within a Subnet.
+# Flow Logs are stored using AWS CloudWatch, which can be configured to alarm in the event there is anomalous traffic, or to aid in forensic efforts after a network compromise.
+# Recommended: Turning this on captures network traffic information on the hosting account's VPCs and subnets
+enableFlowLogs: true
+
 # ================================ Data Egress Feature Settings ===========================================
 # NOTE: Following properties are ONLY allowed to change for the initial deployment. It's NOT recommended to change the following properties if you have enabled data egress feature.
 # Enable the Egress Store feature would allow researchers to securely egress data from lockdown Workspace

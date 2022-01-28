@@ -2,7 +2,7 @@
 
 #### Tools
 
-- Node 12.x or later
+- Node 14.x
 - [Hashicorp Packer](https://www.packer.io/)
     - The Service Workbench code is tested with Packer 1.6.0. You can install Packer 1.6.0 by using Packer version manager [pkenv](https://github.com/iamhsa/pkenv).
 
