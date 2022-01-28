@@ -25,7 +25,8 @@
     "ws": "^7.4.6",
     "normalize-url": "^4.5.1",
     "glob-parent": "^5.1.2",
-    "path-parse": "^1.0.7"
+    "path-parse": "^1.0.7",
+    "node-fetch": "^2.6.7"
   },
   "browserslist": {
     "production": [

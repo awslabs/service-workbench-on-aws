@@ -3,17 +3,17 @@ Resources:
   # IAM Role for CloudFront Interceptor Lambda (Lambda@Edge)
   # =============================================================================================
   RoleCloudFrontInterceptor:
-    Type: "AWS::IAM::Role"
+    Type: 'AWS::IAM::Role'
     Properties:
       AssumeRolePolicyDocument:
-        Version: "2012-10-17"
+        Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Principal:
               Service:
                 - lambda.amazonaws.com
                 - edgelambda.amazonaws.com
-            Action: "sts:AssumeRole"
+            Action: 'sts:AssumeRole'
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/AWSLambdaExecute
         - arn:aws:iam::aws:policy/AmazonS3ReadOnlyAccess
@@ -26,7 +26,7 @@ Resources:
                 - logs:CreateLogGroup
                 - logs:CreateLogStream
                 - logs:PutLogEvents
-              Resource: "arn:aws:logs:*:*:*"
+              Resource: 'arn:aws:logs:*:*:*'
 
   # =============================================================================================
   # CloudFront Interceptor Lambda (Lambda@Edge)
@@ -34,9 +34,9 @@ Resources:
 
   # Lambda@Edge that intercepts CloudFront response and adds various security headers in the response
   EdgeLambda:
-    Type: "AWS::Lambda::Function"
-    # Avoid to try to delete the Edge Lambda because it raises errors until all associations with Cloudfront are removed. 
-    # Even then, replicas are being automatically deleted only 1 hour after the removal of all associations. 
+    Type: 'AWS::Lambda::Function'
+    # Avoid to try to delete the Edge Lambda because it raises errors until all associations with Cloudfront are removed.
+    # Even then, replicas are being automatically deleted only 1 hour after the removal of all associations.
     # After that, the Edge lambda can be deleted manually at https://console.aws.amazon.com/lambda/home
     DeletionPolicy: Retain
     Properties:
@@ -73,7 +73,7 @@ Resources:
             headers["content-security-policy"] = [
               {
                 key: "Content-Security-Policy",
-                value: `default-src 'none'; connect-src ${connectSrc}; img-src 'self' data:; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self' data:`
+                value: `default-src 'none'; connect-src ${connectSrc}; img-src 'self' data:; script-src 'self'; style-src 'strict-dynamic' 'self'; font-src 'self' data:`
               }
             ];
 
