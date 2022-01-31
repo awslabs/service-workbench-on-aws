@@ -161,8 +161,12 @@ class UserService extends BaseUserService {
 
     const isAdmin = _.get(requestContext, 'principal.isAdmin', false);
 
-    const fieldsToOmit = isAdmin ? ['encryptedCreds'] : ['encryptedCreds', 'userRole'];
-    const sanitizedUsers = users.map(user => _.omit(user, fieldsToOmit));
+    let sanitizedUsers = [];
+    if (isAdmin) {
+      sanitizedUsers = users.map(user => _.omit(user, ['encryptedCreds']));
+    } else {
+      sanitizedUsers = users.map(user => _.pick(user, ['firstName', 'lastName', 'email', 'uid', 'username']));
+    }
     return sanitizedUsers;
   }
 
