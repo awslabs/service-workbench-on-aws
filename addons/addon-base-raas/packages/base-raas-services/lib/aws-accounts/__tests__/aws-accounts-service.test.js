@@ -166,6 +166,40 @@ describe('AwsAccountService', () => {
       // CHECK
       expect(s3Client.putBucketPolicy).toHaveBeenCalled();
     });
+
+    it('should throw a pre-determined error if policy update fails on the bucket', async () => {
+      // BUILD
+      const s3Client = {};
+      s3Client.putBucketPolicy = jest.fn();
+      s3Client.putBucketPolicy.mockImplementationOnce(() => {
+        // eslint-disable-next-line no-throw-literal
+        throw {
+          message: 'Something bad happened while updating bucket policy: <Overly descriptive stack trace>',
+          code: 'RandomError',
+        };
+      });
+
+      s3Service.api = s3Client;
+      s3Service.parseS3Details.mockReturnValue({
+        s3BucketName: 'dummyBucket',
+        s3Prefix: 'dummyKey',
+      });
+
+      const accountList = [{ accountId: '0123456789' }];
+      service.list = jest.fn().mockReturnValueOnce(accountList);
+
+      // Mock locking so that the putBucketPolicy actually gets called
+      lockService.tryWriteLockAndRun = jest.fn((params, callback) => callback());
+
+      // OPERATE
+      try {
+        await service.updateEnvironmentInstanceFilesBucketPolicy();
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Could not update bucket policy for bucket "dummyBucket". Error code: RandomError');
+      }
+    });
   });
 
   describe('create', () => {
