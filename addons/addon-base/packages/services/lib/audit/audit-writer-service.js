@@ -120,6 +120,10 @@ class AuditWriterService extends Service {
       // Add lastName, if it's not there
       auditEvent.lastName = _.get(requestContext, 'principal.lastName');
     }
+    if (!auditEvent.userRole) {
+      // Add userRole, if it's not there
+      auditEvent.userRole = _.get(requestContext, 'principal.userRole');
+    }
     if (!auditEvent.timestamp) {
       // Add timestamp, if it's not there
       auditEvent.timestamp = Date.now();
