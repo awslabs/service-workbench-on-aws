@@ -77,7 +77,7 @@ _**Figure: Create an AppStream image**_
 4. Right-click the application and choose **Run as administrator**.
 5. Enter the following commands:
      ```
-     \cd ~\Documents
+     cd ~\Documents
 
      # Pull the Image Builder script from Github
      Invoke-WebRequest -Uri https://raw.githubusercontent.com/awslabs/service-workbench-on-aws/mainline/scripts/app-stream/buildImage.ps1 -OutFile buildImage.ps1
