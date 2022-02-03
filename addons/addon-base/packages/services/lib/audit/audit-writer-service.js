@@ -112,9 +112,25 @@ class AuditWriterService extends Service {
       // Add actor, if it's not there
       auditEvent.actor = _.get(requestContext, 'principalIdentifier.uid');
     }
-    if (auditEvent.timestamp) {
+    if (!auditEvent.firstName) {
+      // Add firstName, if it's not there
+      auditEvent.firstName = _.get(requestContext, 'principal.firstName');
+    }
+    if (!auditEvent.lastName) {
+      // Add lastName, if it's not there
+      auditEvent.lastName = _.get(requestContext, 'principal.lastName');
+    }
+    if (!auditEvent.userRole) {
+      // Add userRole, if it's not there
+      auditEvent.userRole = _.get(requestContext, 'principal.userRole');
+    }
+    if (!auditEvent.timestamp) {
       // Add timestamp, if it's not there
       auditEvent.timestamp = Date.now();
+    }
+    if (!auditEvent.ipAddress) {
+      // Add ipAddress, if it's not there
+      auditEvent.ipAddress = requestContext.ipAddress;
     }
 
     // Give all plugins a chance in preparing the audit event
