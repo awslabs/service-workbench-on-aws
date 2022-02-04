@@ -112,7 +112,7 @@ class ProviderService extends Service {
         identityProviderName: userAttributes.identityProviderName,
       });
       if (user) {
-        await this.updateUser(authenticationProviderId, userAttributes, user);
+        await this.updateUser(userAttributes, user);
         userAttributes.uid = user.uid;
       } else {
         const createdUser = await this.createUser(authenticationProviderId, userAttributes);
@@ -146,13 +146,12 @@ class ProviderService extends Service {
    * This base implementation updates only those user attributes in the system which are missing or outdated but are available in
    * the SAML user attributes.
    *
-   * @param authenticationProviderId ID of the authentication provider
    * @param userAttributes An object containing attributes mapped from SAML IdP
    * @param existingUser The existing user in the system
    *
    * @returns {Promise<void>}
    */
-  async updateUser(authenticationProviderId, userAttributes, existingUser) {
+  async updateUser(userAttributes, existingUser) {
     // Find all attributes present in the userAttributes but missing in existingUser
     const missingAttribs = {};
     const updatedAttribs = {};
