@@ -114,7 +114,7 @@ describe('WorkflowDraftService', () => {
     const meta = {
       workflowId: 'wf-start-ec2-environment-sc',
       workflowVer: 1,
-      smWorkflow: 'arn:aws:states:eu-west-3:111111111111:stateMachine:abc',
+      smWorkflow: 'arn:aws:states:eu-west-3:foo',
     };
     const input = {
       environmentId: '1234567',
@@ -127,13 +127,13 @@ describe('WorkflowDraftService', () => {
     });
 
     const params = {
-      stateMachineArn: 'arn:aws:states:eu-west-3:111111111111:stateMachine:abc',
+      stateMachineArn: 'arn:aws:states:eu-west-3:foo',
       input:
-        '{"meta":{"workflowId":"wf-start-ec2-environment-sc","workflowVer":1,"smWorkflow":"arn:aws:states:eu-west-3:111111111111:stateMachine:abc","wid":"wf-start-ec2-environment-sc","sid":"BCigolBoG4svWa0uiZTR9","wrv":1},"input":{"environmentId":"1234567","instanceIdentifier":"some-ec2-instance-id","cfnExecutionRole":"cfnExecutionRole","roleExternalId":"roleExternalId"}}',
+        '{"meta":{"workflowId":"wf-start-ec2-environment-sc","workflowVer":1,"smWorkflow":"arn:aws:states:eu-west-3:foo","wid":"wf-start-ec2-environment-sc","sid":"BCigolBoG4svWa0uiZTR9","wrv":1},"input":{"environmentId":"1234567","instanceIdentifier":"some-ec2-instance-id","cfnExecutionRole":"cfnExecutionRole","roleExternalId":"roleExternalId"}}',
       name: 'wf-start-ec2-environment-sc_1_BCigolBoG4svWa0uiZTR9',
     };
     await expect(workflowTriggerService.triggerWorkflow(requestContext, meta, input)).rejects.toThrow(
-      `Step Function could not start execution for State Machine arn:aws:states:eu-west-3:111111111111:stateMachine:abc with params ${JSON.stringify(
+      `Step Function could not start execution for State Machine arn:aws:states:eu-west-3:foo with params ${JSON.stringify(
         params,
       )}. Error code: InvalidArn`,
     );
