@@ -60,11 +60,12 @@ class UserService extends Service {
     delete user.password;
 
     // ensure that an internal user is not created in this request
-    if (_.isUndefined(user.authenticationProviderId))
+    if (_.isUndefined(user.authenticationProviderId) || user.authenticationProviderId === 'internal') {
       throw this.boom.badRequest(
         'Internal users cannot be created. Please use an external IdP or the native Cognito user pool',
         true,
       );
+    }
 
     const authenticationProviderId = user.authenticationProviderId;
     if (password && authenticationProviderId !== 'internal') {

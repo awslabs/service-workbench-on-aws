@@ -224,6 +224,31 @@ describe('UserService', () => {
         expect(err.message).toEqual('Input has validation errors');
       }
     });
+
+    it('should fail when creating internal auth users', async () => {
+      // BUILD
+      const email = 'test@example.com';
+      const newUser = {
+        username: email,
+        email,
+        firstName: 'Ned',
+        lastName: 'Stark',
+        authenticationProviderId: 'internal',
+      };
+      service.getUserByPrincipal = jest.fn();
+      service.audit = jest.fn();
+
+      // OPERATE
+      try {
+        await service.createUser({}, newUser);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual(
+          'Internal users cannot be created. Please use an external IdP or the native Cognito user pool',
+        );
+      }
+    });
   });
 
   describe('updateUser', () => {
