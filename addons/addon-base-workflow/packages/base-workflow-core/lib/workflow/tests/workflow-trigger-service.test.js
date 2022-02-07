@@ -74,6 +74,7 @@ describe('WorkflowDraftService', () => {
   });
   describe('triggerWorkflow', () => {
     it('should successfully triggerWorkflow', async () => {
+      // BUILD
       const requestContext = {};
       const meta = {
         workflowId: 'wf-start-ec2-environment-sc',
@@ -94,6 +95,7 @@ describe('WorkflowDraftService', () => {
         });
       });
 
+      // OPERATE, CHECK
       await expect(workflowTriggerService.triggerWorkflow(requestContext, meta, input)).resolves.toMatchObject({
         executionArn:
           'arn:aws:states:eu-west-3:111111111111:execution:abc:wf-start-ec2-environment-sc_1_BCigolBoG4svWa0uiZTR9',
@@ -110,6 +112,7 @@ describe('WorkflowDraftService', () => {
     });
   });
   it('should throw error because Step Function cannot execute state machine', async () => {
+    // BUILD
     const requestContext = {};
     const meta = {
       workflowId: 'wf-start-ec2-environment-sc',
@@ -132,6 +135,8 @@ describe('WorkflowDraftService', () => {
         '{"meta":{"workflowId":"wf-start-ec2-environment-sc","workflowVer":1,"smWorkflow":"arn:aws:states:eu-west-3:foo","wid":"wf-start-ec2-environment-sc","sid":"BCigolBoG4svWa0uiZTR9","wrv":1},"input":{"environmentId":"1234567","instanceIdentifier":"some-ec2-instance-id","cfnExecutionRole":"cfnExecutionRole","roleExternalId":"roleExternalId"}}',
       name: 'wf-start-ec2-environment-sc_1_BCigolBoG4svWa0uiZTR9',
     };
+
+    // OPERATE, CHECK
     await expect(workflowTriggerService.triggerWorkflow(requestContext, meta, input)).rejects.toThrow(
       `Step Function could not start execution for State Machine arn:aws:states:eu-west-3:foo with params ${JSON.stringify(
         params,
