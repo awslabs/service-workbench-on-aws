@@ -87,7 +87,7 @@ class MigrationService extends Service {
       .limit(1000)
       .query();
 
-    let helpfulResult = await Promise.all(
+    const helpfulResult = await Promise.all(
       await result.map(async study => {
         const currentStudyPermissions = await studyService.getStudyPermissions(requestContext, study.id);
         const currentOwner = currentStudyPermissions.permissions.adminUsers[0];
