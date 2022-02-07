@@ -2150,7 +2150,7 @@ paths:
       operationId: listMyStudies
       responses:
         '200':
-          description: 'Return My Study(s) for environment'
+          description: 'Return My Study(s) owned by internal auth users that need migration. Empty list means nothing to migrate.'
   
 components:
   securitySchemes:

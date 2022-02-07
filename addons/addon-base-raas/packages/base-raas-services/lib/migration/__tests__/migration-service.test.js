@@ -191,7 +191,7 @@ describe('migrationService', () => {
     it('should output a message when migration is not needed', async () => {
       // BUILD
       const requestContext = createAdminContext();
-      const expectedResult = 'No My Studies are owned my internal users. No migration needed.';
+      const expectedResult = [];
       dbService.table.query = jest.fn().mockResolvedValueOnce([{ id: 'my-study-1' }, { id: 'my-study-2' }]);
       studyService.getStudyPermissions = jest
         .fn()
