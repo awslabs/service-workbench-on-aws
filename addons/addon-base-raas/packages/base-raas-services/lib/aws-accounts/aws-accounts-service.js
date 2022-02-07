@@ -142,7 +142,17 @@ class AwsAccountsService extends Service {
         Version: '2012-10-17',
         Statement: [...securityStatements, listStatement, getStatement],
       });
-      return s3Client.putBucketPolicy({ Bucket: s3BucketName, Policy }).promise();
+
+      let response;
+      try {
+        response = await s3Client.putBucketPolicy({ Bucket: s3BucketName, Policy }).promise();
+      } catch (err) {
+        throw this.boom.badRequest(
+          `Could not update bucket policy for bucket "${s3BucketName}". Error code: ${err.code}`,
+          true,
+        );
+      }
+      return response;
     });
   }
 
