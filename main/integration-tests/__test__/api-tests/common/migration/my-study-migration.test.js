@@ -19,21 +19,15 @@ const errorCode = require('../../../../support/utils/error-code');
 describe('Migration for My Studies scenarios', () => {
   let setup;
   let adminSession;
-  let defaultUser;
-  let defaultUserSession;
+  let targetUser;
+  let targetUserSession;
 
   beforeAll(async () => {
     setup = await runSetup();
     adminSession = await setup.defaultAdminSession();
     // Create cognito user to migrate ownership to
-    // Proper way that currently doesn't work:
-    // const username = setup.gen.username();
-    // defaultUser = adminSession.resources.users.defaults({ username });
-    // defaultUser = await await adminSession.resources.users.create(defaultUser);
-    // await adminSession.resources.users.user(defaultUser.uid);
-    // Workaround:
-    defaultUserSession = await setup.createResearcherSession();
-    defaultUser = defaultUserSession.user;
+    targetUserSession = await setup.createResearcherSession();
+    targetUser = targetUserSession.user;
   });
 
   afterAll(async () => {
@@ -48,10 +42,8 @@ describe('Migration for My Studies scenarios', () => {
       });
     });
 
-    it('should return message that there is nothing to migrate', async () => {
-      await expect(adminSession.resources.migration.listInternaAuthUserMyStudies()).resolves.toStrictEqual(
-        'No My Studies are owned my internal users. No migration needed.',
-      );
+    it('should return empty list if nothing to migrate', async () => {
+      await expect(adminSession.resources.migration.listInternaAuthUserMyStudies()).resolves.toStrictEqual([]);
     });
   });
 
@@ -61,11 +53,10 @@ describe('Migration for My Studies scenarios', () => {
     it('should fail if request not by admin', async () => {
       const researcherSession = await setup.createResearcherSession();
       // Create My Study
-      studyId = setup.gen.string({ prefix: `create-my-study-test` });
+      studyId = setup.gen.string({ prefix: `migrate-my-study-test` });
       await researcherSession.resources.studies.create({ id: studyId, name: studyId, category: 'My Studies' });
-      await researcherSession.resources.studies.study(studyId);
 
-      const body = [{ studyId, uid: defaultUser.uid }];
+      const body = [{ studyId, uid: targetUser.uid }];
       await expect(researcherSession.resources.migration.migrateMyStudyOwnership(body)).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
@@ -73,11 +64,10 @@ describe('Migration for My Studies scenarios', () => {
 
     it('should succeed if end user is non internal and fail on reattempt after success', async () => {
       // Create My Study
-      studyId = setup.gen.string({ prefix: `create-my-study-test` });
+      studyId = setup.gen.string({ prefix: `migrate-my-study-test` });
       await adminSession.resources.studies.create({ id: studyId, name: studyId, category: 'My Studies' });
-      await adminSession.resources.studies.study(studyId);
 
-      const body = [{ studyId, uid: defaultUser.uid }];
+      const body = [{ studyId, uid: targetUser.uid }];
       const expectedContents = {
         category: 'My Studies',
         id: studyId,

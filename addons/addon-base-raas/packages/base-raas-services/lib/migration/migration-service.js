@@ -107,9 +107,7 @@ class MigrationService extends Service {
       }),
     );
 
-    helpfulResult = helpfulResult.filter(study => study.authProvider === 'internal');
-
-    return helpfulResult.length > 0 ? helpfulResult : 'No My Studies are owned my internal users. No migration needed.';
+    return helpfulResult.filter(study => study.authProvider === 'internal');
   }
 }
 

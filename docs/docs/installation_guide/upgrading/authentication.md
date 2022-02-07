@@ -187,7 +187,7 @@ We will be using API calls to migrate My Study resources.<a name="migrating"></a
 1. If you do not know which My Study resources you need to migrate, first use the `{{baseUrl}}/api/migrate/my-studies GET` API. When using Postman, make sure you have a valid token in your environment variable. For more information on how to get this token, see [Getting authentication token](#token).     
    + In the Collections or APIs section, navigate to the `service-workbench-on-aws/api/migrate/my-studies` API.    
    + Choose **GET list My Study(s)** in environment.     
-   +  Choose **Send**. Either the response will contain a list of My Study Ids and current owner user IDs or it will say `"No My Studies are owned my internal users. No migration needed."` In the latter case, nothing more is needed to be done in this section.   
+   +  Choose **Send**. The response will either be an empty list or a list of My Study Ids and current owner user IDs. In the former case, nothing more is needed to be done in this section as no migration of My Study resources is needed.   
    + For command line, make sure you have a valid token. For more information on how to get this token, see [Getting authentication token](#token). In your terminal paste and substitute the following:
            ```
            curl --location --request GET 'https://{{baseUrl}}/api/migrate/my-studies' \
