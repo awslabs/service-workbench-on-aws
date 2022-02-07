@@ -209,6 +209,43 @@ describe('ProviderService', () => {
       expect(userService.updateUser).toHaveBeenCalledWith(systemContext, expected);
     });
 
+    it('should update sample user created via SWB UI with updated names in attribute mappings', async () => {
+      // BUILD
+      userService.updateUser = jest.fn();
+      const systemContext = getSystemRequestContext();
+      const username = 'test@example.com';
+      const userAttributes = {
+        username,
+        usernameInIdp: username,
+        identityProviderName: 'Cognito Native Pool',
+        isSamlAuthenticatedUser: false,
+        isNativePoolUser: true,
+        firstName: 'Jen',
+        lastName: 'Doe',
+        email: 'jen+doe@example.com',
+      };
+      const existingUser = {
+        identityProviderName: 'Cognito Native Pool',
+        uid: 'sample-user-uid',
+        username,
+        firstName: 'jen+doe',
+        lastName: 'jen+doe',
+        isNativePoolUser: true,
+        isSamlAuthenticatedUser: false,
+        usernameInIdp: username,
+        email: username,
+        rev: 2,
+      };
+      const expected = { firstName: 'Jen', lastName: 'Doe', rev: 2, uid: 'sample-user-uid' };
+
+      // OPERATE
+      await service.updateUser(userAttributes, existingUser);
+
+      // CHECK
+      expect(userService.updateUser).toHaveBeenCalled();
+      expect(userService.updateUser).toHaveBeenCalledWith(systemContext, expected);
+    });
+
     it('should not update existing user if values in sync with attribute mappings', async () => {
       // BUILD
       userService.updateUser = jest.fn();
