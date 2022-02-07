@@ -65,7 +65,7 @@ describe('Migration for My Studies scenarios', () => {
       await researcherSession.resources.studies.create({ id: studyId, name: studyId, category: 'My Studies' });
       await researcherSession.resources.studies.study(studyId);
 
-      const body = [{ studyId: studyId, uid: defaultUser.uid }];
+      const body = [{ studyId, uid: defaultUser.uid }];
       await expect(researcherSession.resources.migration.migrateMyStudyOwnership(body)).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
@@ -77,7 +77,7 @@ describe('Migration for My Studies scenarios', () => {
       await adminSession.resources.studies.create({ id: studyId, name: studyId, category: 'My Studies' });
       await adminSession.resources.studies.study(studyId);
 
-      const body = [{ studyId: studyId, uid: defaultUser.uid }];
+      const body = [{ studyId, uid: defaultUser.uid }];
       const expectedContents = {
         category: 'My Studies',
         id: studyId,
