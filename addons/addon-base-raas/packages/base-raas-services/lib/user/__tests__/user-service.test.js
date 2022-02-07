@@ -37,6 +37,7 @@ jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
 const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
 
 jest.mock('../../user-roles/user-roles-service');
+const _ = require('lodash');
 const UserRolesServiceMock = require('../../user-roles/user-roles-service');
 
 const UserService = require('../user-service');
@@ -337,11 +338,21 @@ describe('UserService', () => {
       identityProviderId: 'ned2',
     };
 
-    it('should list all users', async () => {
+    it('admin: should list all users with all fields', async () => {
       // OPERATE
       dbService.table.scan.mockResolvedValueOnce([user1, user2]);
       const result = await service.listUsers({ principal: { isAdmin: true } }, {});
       expect(result).toEqual([user1, user2]);
+    });
+
+    it('researcher: should list all users with subset of fields', async () => {
+      // OPERATE
+      dbService.table.scan.mockResolvedValueOnce([user1, user2]);
+      const result = await service.listUsers({ principal: { isAdmin: false } }, {});
+      const expectedUser1 = _.pick(user1, ['firstName', 'lastName', 'email', 'uid', 'username']);
+      const expectedUser2 = _.pick(user2, ['firstName', 'lastName', 'email', 'uid', 'username']);
+
+      expect(result).toEqual([expectedUser1, expectedUser2]);
     });
   });
 });

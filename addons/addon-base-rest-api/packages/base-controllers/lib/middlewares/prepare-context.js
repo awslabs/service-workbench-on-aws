@@ -14,6 +14,7 @@
  */
 
 const RequestContext = require('@aws-ee/base-services-container/lib/request-context');
+const _ = require('lodash');
 
 async function configure(context) {
   const router = context.router();
@@ -38,12 +39,24 @@ async function configure(context) {
       requestContext.authenticated = authenticated;
       requestContext.principal = user;
       requestContext.principalIdentifier = { uid };
+      requestContext.ipAddress = getRemoteIpAddress(req);
 
       return next();
     }),
   );
 
   return router;
+}
+
+function getRemoteIpAddress(req) {
+  const ipString =
+    req.header('X-Forwarded-For') ||
+    _.get(req, 'requestContext.identity.sourceIp') ||
+    _.get(req, 'connection.remoteAddress');
+
+  // Sometime 'X-Forwarded-For' can be an string with ', ' if there were multiple forwards.
+  // We take the first element.
+  return _.trim(_.first(_.split(ipString, ',')));
 }
 
 module.exports = configure;

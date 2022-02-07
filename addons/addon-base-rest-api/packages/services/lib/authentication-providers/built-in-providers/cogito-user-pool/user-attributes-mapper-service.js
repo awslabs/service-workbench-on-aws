@@ -48,9 +48,7 @@ class UserAttributesMapperService extends Service {
   }
 
   getFirstName(decodedToken) {
-    // Cognito token sends first name in its token differently than SAML IdPs
-    if (this.isNativePoolUser(decodedToken)) return decodedToken.name;
-    return decodedToken.given_name;
+    return decodedToken.given_name || decodedToken.name;
   }
 
   isSamlAuthenticatedUser(decodedToken) {
