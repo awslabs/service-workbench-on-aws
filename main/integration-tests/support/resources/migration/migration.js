@@ -13,8 +13,6 @@
  *  permissions and limitations under the License.
  */
 
-const _ = require('lodash');
-
 const Resource = require('../base/resource');
 
 class Migration extends Resource {
