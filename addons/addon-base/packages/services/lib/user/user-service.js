@@ -428,6 +428,11 @@ class UserService extends Service {
     // return auditWriterService.write(requestContext, auditEvent);
     return auditWriterService.writeAndForget(requestContext, auditEvent);
   }
+
+  async isInternalAuthUser(uid) {
+    const user = await this.mustFindUser({ uid });
+    return _.get(user, 'authenticationProviderId') === 'internal';
+  }
 }
 
 module.exports = UserService;
