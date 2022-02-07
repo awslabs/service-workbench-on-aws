@@ -1887,6 +1887,7 @@ importers:
       '@aws-ee/base-controllers': link:../../../addon-base-rest-api/packages/base-controllers
       '@aws-ee/key-pair-mgmt-services': link:../key-pair-mgmt-services
       lodash: 4.17.21
+      node-forge: 1.2.1
       uuid: 3.4.0
     devDependencies:
       eslint: 6.8.0
@@ -1918,7 +1919,7 @@ importers:
       jest: ^24.9.0
       jest-junit: ^10.0.0
       lodash: ^4.17.21
-      node-forge: ^0.10.0
+      node-forge: ^1.0.0
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
       source-map-support: ^0.5.16
@@ -2089,22 +2090,12 @@ importers:
       aws-sdk: 2.1015.0
       lodash: 4.17.21
     devDependencies:
-      '@aws-ee/base-api-handler': link:../../../addon-base-rest-api/packages/base-api-handler
-      '@aws-ee/base-post-deployment': link:../../../addon-base-post-deployment/packages/base-post-deployment
-      eslint: 6.8.0
-      eslint-config-airbnb-base: 14.1.0_8cdb6d8c18c3319a1365bd5afa0063a3
-      eslint-config-prettier: 6.10.1_eslint@6.8.0
-      eslint-import-resolver-node: 0.3.3
-      eslint-plugin-import: 2.20.2_eslint@6.8.0
-      eslint-plugin-jest: 22.21.0_eslint@6.8.0
-      eslint-plugin-prettier: 3.1.2_eslint@6.8.0+prettier@1.19.1
-      husky: 3.1.0
-      jest: 24.9.0
-      jest-junit: 10.0.0
-      prettier: 1.19.1
-      source-map-support: 0.5.16
-
-  main/cicd/cicd-pipeline:
+      '@aws-ee/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
+      serverless: 1.67.3
+      serverless-deployment-bucket: 1.1.1
+      serverless-hooks-plugin: 1.1.0
+    optionalDependencies:
+      fsevents: 2.1.3
     specifiers:
       '@aws-ee/base-serverless-settings-helper': workspace:*
       fsevents: '*'
@@ -2117,9 +2108,8 @@ importers:
       '@aws-ee/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
       serverless: 1.67.3
       serverless-deployment-bucket: 1.1.1
-      serverless-hooks-plugin: 1.1.0
-
-  main/cicd/cicd-source:
+    optionalDependencies:
+      fsevents: 2.1.3
     specifiers:
       '@aws-ee/base-serverless-settings-helper': workspace:*
       aws-sdk: ^2.1000.0
@@ -2485,50 +2475,8 @@ importers:
       webpack: 4.42.1
       webpack-cli: 3.3.11_webpack@4.42.1
       webpack-node-externals: 1.7.2
-
-  main/solution/edge-lambda:
-    specifiers:
-      '@aws-ee/base-serverless-settings-helper': workspace:*
-      serverless: ^1.63.0
-      serverless-deployment-bucket: ^1.5.1
-    devDependencies:
-      '@aws-ee/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
-      serverless: 1.67.3
-      serverless-deployment-bucket: 1.5.1
-
-  main/solution/environment-tools:
-    specifiers:
-      '@aws-ee/base-serverless-settings-helper': workspace:*
-      '@aws-ee/s3-synchronizer': workspace:*
-      '@aws-ee/serverless-go-build-tools': workspace:*
-      serverless: ^1.63.0
-    devDependencies:
-      '@aws-ee/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
-      '@aws-ee/s3-synchronizer': link:../../../addons/addon-raas-s3-copy/packages/s3-synchronizer
-      '@aws-ee/serverless-go-build-tools': link:../../../addons/addon-base/packages/serverless-go-build-tools
-      serverless: 1.67.3
-
-  main/solution/infrastructure:
-    specifiers:
-      '@aws-ee/base-serverless-settings-helper': workspace:*
-      serverless: ^1.63.0
-      serverless-deployment-bucket: ^1.5.1
-    devDependencies:
-      '@aws-ee/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
-      serverless: 1.67.3
-      serverless-deployment-bucket: 1.5.1
-
-  main/solution/machine-images:
-    specifiers:
-      '@aws-ee/base-serverless-settings-helper': workspace:*
-      '@aws-ee/serverless-packer': workspace:*
-      serverless: ^1.63.0
-    devDependencies:
-      '@aws-ee/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
-      '@aws-ee/serverless-packer': link:../../../addons/addon-base-raas/packages/serverless-packer
-      serverless: 1.67.3
-
-  main/solution/post-deployment:
+    optionalDependencies:
+      fsevents: 2.1.3
     specifiers:
       '@aws-ee/base-api-handler': workspace:*
       '@aws-ee/base-post-deployment': workspace:*
@@ -7213,7 +7161,9 @@ packages:
     resolution: {integrity: sha512-+qFDcssXvrdXIxBbKCJp0atg94TJVJSt5sx3Cu6LOQX/EV2mbInjgxGeKuLmFFBjoxD7G6fSytZoeC6A9fzTuw==}
     dev: false
     optional: true
-
+    requiresBuild: true
+    resolution:
+      integrity: sha512-+qFDcssXvrdXIxBbKCJp0atg94TJVJSt5sx3Cu6LOQX/EV2mbInjgxGeKuLmFFBjoxD7G6fSytZoeC6A9fzTuw==
   /@types/babel__core/7.1.12:
     resolution: {integrity: sha512-wMTHiiTiBAAPebqaPiPDLFA4LYPKr6Ph0Xq/6rq1Ur3v66HXyG+clfR9CNETkD7MQS8ZHvpQOtA53DLws5WAEQ==}
     dependencies:
@@ -9780,6 +9730,8 @@ packages:
       path-is-absolute: 1.0.1
       readdirp: 2.2.1
       upath: 1.2.0
+    deprecated: Chokidar 2 does not receive security updates since 2019. Upgrade to chokidar 3 with 15x fewer dependencies
+    dev: true
     optionalDependencies:
       fsevents: 1.2.13
     dev: true
@@ -9796,9 +9748,9 @@ packages:
       normalize-path: 3.0.0
       readdirp: 3.3.0
     optionalDependencies:
-      fsevents: 2.1.2
-    dev: true
-
+      fsevents: 2.1.3
+    resolution:
+      integrity: sha512-4QYCEWOcK3OJrxwvyyAOxFuhpvOVCYkr33LPfFNBjAD/w3sEzWsp2BUOkI4l9bHvWioAd0rc6NlHUOEaWkTeqg==
   /chokidar/3.4.3:
     resolution: {integrity: sha512-DtM3g7juCXQxFVSNPNByEC2+NImtBuxQQvWlHunpJIS5Ocr0lG306cC7FCi7cEA0fzmybPUIl4txBIobk1gGOQ==}
     engines: {node: '>= 8.10.0'}
@@ -11264,7 +11216,7 @@ packages:
     resolution: {integrity: sha512-Rps1xDkEEBSq3kLdsdnHZL1x2S4NGDcbrjmd4q+PykK5aJwDdP5MBgrJw1Xo+kyUHuv3JEzPqxr+Dj9ryeDRTA==}
     engines: {node: '>= 6.0'}
     dependencies:
-      debug: 4.1.1
+      debug: 4.3.1
       gonzales-pe: 4.3.0
       node-source-walk: 4.2.0
     dev: true
@@ -11273,7 +11225,7 @@ packages:
     resolution: {integrity: sha512-tfTS2GdpUal5NY0aCqI4dpEy8Xfr88AehYKB0iBIZvo8y2g3UsrcDnrp9PR2FbzoW7xD5Rip3NJW7eCSvtqdUw==}
     engines: {node: '>=6.0.0'}
     dependencies:
-      debug: 4.1.1
+      debug: 4.3.1
       is-url: 1.2.4
       postcss: 7.0.27
       postcss-values-parser: 1.5.0
@@ -11283,7 +11235,7 @@ packages:
     resolution: {integrity: sha512-oSbrBozRjJ+QFF4WJFbjPQKeakoaY1GiR380NPqwdbWYd5wfl5cLWv0l6LsJVqrgWfFN1bjFqSeo32Nxza8Lbw==}
     engines: {node: '>= 6.0'}
     dependencies:
-      debug: 4.1.1
+      debug: 4.3.1
       gonzales-pe: 4.3.0
       node-source-walk: 4.2.0
     dev: true
@@ -11292,7 +11244,7 @@ packages:
     resolution: {integrity: sha512-VveyXW4WQE04s05KlJ8K0bG34jtHQVgTc9InspqoQxvnelj/rdgSAy7i2DXAazyQNFKlWSWbS+Ro2DWKFOKTPQ==}
     engines: {node: '>= 6.0'}
     dependencies:
-      debug: 4.1.1
+      debug: 4.3.1
       gonzales-pe: 4.3.0
       node-source-walk: 4.2.0
     dev: true
@@ -13575,20 +13527,29 @@ packages:
     optional: true
 
   /fsevents/2.1.2:
-    resolution: {integrity: sha512-R4wDiBwZ0KzpgOWetKDug1FZcYhqYnUYKtfZYt4mD5SBz76q0KR4Q9o7GIPamsVPGmW3EYPPJ0dOOjvx32ldZA==}
-    engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
-    os: [darwin]
-    deprecated: Please update to latest version
+    deprecated: '"Please update to latest v2.3 or v2.2"'
+    dev: true
+    engines:
+      node: ^8.16.0 || ^10.6.0 || >=11.0.0
     optional: true
-
+    os:
+      - darwin
+    requiresBuild: true
+    resolution:
+      integrity: sha512-R4wDiBwZ0KzpgOWetKDug1FZcYhqYnUYKtfZYt4mD5SBz76q0KR4Q9o7GIPamsVPGmW3EYPPJ0dOOjvx32ldZA==
   /fsevents/2.1.3:
     resolution: {integrity: sha512-Auw9a4AxqWpa9GUfj370BMPzzyncfBABW8Mab7BGWBYDj4Isgq+cDKtx0i6u9jcX9pQDnswsaaOTgTmA5pEjuQ==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
     os: [darwin]
     deprecated: '"Please update to latest v2.3 or v2.2"'
-    dev: true
+    engines:
+      node: ^8.16.0 || ^10.6.0 || >=11.0.0
     optional: true
-
+    os:
+      - darwin
+    requiresBuild: true
+    resolution:
+      integrity: sha512-Auw9a4AxqWpa9GUfj370BMPzzyncfBABW8Mab7BGWBYDj4Isgq+cDKtx0i6u9jcX9pQDnswsaaOTgTmA5pEjuQ==
   /function-bind/1.1.1:
     resolution: {integrity: sha512-yIovAzMX49sF8Yl58fSCWJ5svSLuaibPxXQJFLmBObTuCr0Mf1KiPopGM9NiFjiYBCbfaa2Fh6breQ6ANVTI0A==}
 
@@ -17661,7 +17622,7 @@ packages:
     hasBin: true
     dependencies:
       commander: 2.20.3
-      debug: 4.1.1
+      debug: 4.3.1
       file-exists-dazinatorfork: 1.0.2
       find: 0.3.0
       requirejs: 2.3.6
@@ -17909,9 +17870,17 @@ packages:
     dev: true
 
   /node-forge/0.10.0:
-    resolution: {integrity: sha512-PPmu8eEeG9saEUvI97fm4OYxXVB6bFvyNTyiUOBichBpFG8A1Ljw3bY62+5oOjDEMHRnd0Y7HQ+x7uzxOzC6JA==}
-    engines: {node: '>= 6.0.0'}
-
+    dev: true
+    engines:
+      node: '>= 6.0.0'
+    resolution:
+      integrity: sha512-PPmu8eEeG9saEUvI97fm4OYxXVB6bFvyNTyiUOBichBpFG8A1Ljw3bY62+5oOjDEMHRnd0Y7HQ+x7uzxOzC6JA==
+  /node-forge/1.2.1:
+    dev: false
+    engines:
+      node: '>= 6.13.0'
+    resolution:
+      integrity: sha512-Fcvtbb+zBcZXbTTVwqGA5W+MKBj56UjVRevvchv5XrcyXbmNdesfZL37nlcWOfpgHhgmxApw3tQbTr4CqNmX4w==
   /node-int64/0.4.0:
     resolution: {integrity: sha1-h6kGXNs1XTGC2PlM4RGIuCXGijs=}
     dev: true
@@ -17970,7 +17939,9 @@ packages:
       which: 2.0.2
     dev: true
     optional: true
-
+    requiresBuild: true
+    resolution:
+      integrity: sha512-BvEXF+UmsnAfYfoapKM9nGxnP+Wn7P91YfXmrKnfcYCx6VBeoN5Ez5Ogck6I8Bi5k4RlpqRYaw75pAwzX9OphA==
   /node-releases/1.1.53:
     resolution: {integrity: sha512-wp8zyQVwef2hpZ/dJH7SfSrIPD6YoJz6BDQDpGEkcA0s3LpAQoxBIYmfIq6QAhC1DhwsyCgTaTTcONwX8qzCuQ==}
     dev: true
@@ -22584,7 +22555,7 @@ packages:
     hasBin: true
     dependencies:
       commander: 2.20.3
-      debug: 4.1.1
+      debug: 4.3.1
     dev: true
 
   /superagent/3.8.3:
@@ -23667,7 +23638,9 @@ packages:
       chokidar: 2.1.8
     dev: true
     optional: true
-
+    requiresBuild: true
+    resolution:
+      integrity: sha512-nCFfBIPKr5Sh61s4LPpy1Wtfi0HE8isJ3d2Yb5/Ppw2P2B/3eVSEBjKfN0fmHJSK14+31KwMKmcrzs2GM4P0Ww==
   /watchpack/1.6.1:
     resolution: {integrity: sha512-+IF9hfUFOrYOOaKyfaI7h7dquUIOgyEMoQMLA7OP5FxegKA2+XdXThAZ9TU2kucfhDH7rfMHs1oPYziVGWRnZA==}
     dependencies:

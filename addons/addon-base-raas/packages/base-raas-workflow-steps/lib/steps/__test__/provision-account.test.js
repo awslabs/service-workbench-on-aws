@@ -96,6 +96,9 @@ describe('ProvisionAccount', () => {
           if (key === 'isAppStreamEnabled') {
             return false;
           }
+          if (key === 'enableFlowLogs') {
+            return true;
+          }
           throw new Error('Unexpected key');
         },
       };
@@ -174,6 +177,9 @@ describe('ProvisionAccount', () => {
           if (key === 'isAppStreamEnabled') {
             return 'false';
           }
+          if (key === 'enableFlowLogs') {
+            return 'true';
+          }
           if (key === 'launchConstraintRolePrefix') {
             return '*';
           }
@@ -233,6 +239,9 @@ describe('ProvisionAccount', () => {
           if (key === 'isAppStreamEnabled') {
             return 'true';
           }
+          if (key === 'enableFlowLogs') {
+            return 'true';
+          }
           if (key === 'launchConstraintRolePrefix') {
             return '*';
           }
@@ -288,6 +297,9 @@ describe('ProvisionAccount', () => {
         getBoolean: key => {
           if (key === 'isAppStreamEnabled') {
             return false;
+          }
+          if (key === 'enableFlowLogs') {
+            return true;
           }
           throw new Error('Unexpected key');
         },

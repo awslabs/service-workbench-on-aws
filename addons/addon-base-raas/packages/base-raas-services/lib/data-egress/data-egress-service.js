@@ -312,6 +312,9 @@ class DataEgressService extends Service {
     }
 
     const egressStoreInfo = await this.getEgressStoreInfo(environmentId);
+    if (!egressStoreInfo) {
+      throw this.boom.notFound(`Error: egress store info not found for environment ${environmentId}!`, true);
+    }
     const isEgressStoreOwner = egressStoreInfo.createdBy === curUser;
     if (!isAdmin(requestContext) && !isEgressStoreOwner) {
       throw this.boom.forbidden(

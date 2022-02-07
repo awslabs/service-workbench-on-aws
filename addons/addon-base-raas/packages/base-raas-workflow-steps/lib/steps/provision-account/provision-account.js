@@ -32,6 +32,7 @@ const settingKeys = {
   launchConstraintRolePrefix: 'launchConstraintRolePrefix',
   launchConstraintPolicyPrefix: 'launchConstraintPolicyPrefix',
   isAppStreamEnabled: 'isAppStreamEnabled',
+  enableFlowLogs: 'enableFlowLogs',
   domainName: 'domainName',
 };
 
@@ -224,6 +225,7 @@ class ProvisionAccount extends StepBase {
     addParam('LaunchConstraintRolePrefix', this.settings.get(settingKeys.launchConstraintRolePrefix));
     addParam('LaunchConstraintPolicyPrefix', this.settings.get(settingKeys.launchConstraintPolicyPrefix));
     addParam('EnableAppStream', this.settings.get(settingKeys.isAppStreamEnabled));
+    addParam('EnableFlowLogs', this.settings.get(settingKeys.enableFlowLogs));
     addParam('DomainName', this.settings.optional(settingKeys.domainName, ''));
 
     const input = {
