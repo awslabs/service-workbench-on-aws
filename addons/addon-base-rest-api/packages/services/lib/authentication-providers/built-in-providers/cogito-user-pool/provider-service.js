@@ -112,7 +112,7 @@ class ProviderService extends Service {
         identityProviderName: userAttributes.identityProviderName,
       });
       if (user) {
-        await this.updateUser(authenticationProviderId, userAttributes, user);
+        await this.updateUser(userAttributes, user);
         userAttributes.uid = user.uid;
       } else {
         const createdUser = await this.createUser(authenticationProviderId, userAttributes);
@@ -143,19 +143,18 @@ class ProviderService extends Service {
 
   /**
    * Updates user in the system based on the user attributes provided by the SAML Identity Provider (IdP).
-   * This base implementation updates only those user attributes in the system which are missing but are available in
-   * the SAML user attributes. Subclasses can override this method to provide different implementation (for example,
-   * update all user attributes in the system if they are updated in SAML IdP etc)
+   * This base implementation updates only those user attributes in the system which are missing or outdated but are available in
+   * the SAML user attributes.
    *
-   * @param authenticationProviderId ID of the authentication provider
    * @param userAttributes An object containing attributes mapped from SAML IdP
    * @param existingUser The existing user in the system
    *
    * @returns {Promise<void>}
    */
-  async updateUser(authenticationProviderId, userAttributes, existingUser) {
+  async updateUser(userAttributes, existingUser) {
     // Find all attributes present in the userAttributes but missing in existingUser
     const missingAttribs = {};
+    const updatedAttribs = {};
     const keys = _.keys(userAttributes);
     if (!_.isEmpty(keys)) {
       _.forEach(keys, key => {
@@ -168,11 +167,25 @@ class ProviderService extends Service {
           missingAttribs[key] = value;
         }
       });
+
+      // When IdP users are created via SWB UI, by default we use the username part of provided email address as first and last names
+      // To update these default names, we extract the mapped attribute values coming from the Cognito token
+      // Some IdPs send email value in their firstName and lastName attribute fields, so splitting string to ignore domain
+      const updateIfDifferent = attribName => {
+        if (
+          !_.isUndefined(userAttributes[attribName]) &&
+          existingUser[attribName] !== userAttributes[attribName].split('@')[0]
+        ) {
+          updatedAttribs[attribName] = userAttributes[attribName].split('@')[0];
+        }
+      };
+      updateIfDifferent('firstName');
+      updateIfDifferent('lastName');
     }
 
-    // If there are any attributes that are present in the userAttributes but missing in existingUser
-    // then update the user in the system to set the missing attributes
-    if (!_.isEmpty(missingAttribs)) {
+    // If there are any attributes that are present in the userAttributes but missing or outdated in existingUser
+    // then update the user in the system to set the correct attribute values
+    if (!_.isEmpty(missingAttribs) || !_.isEmpty(updatedAttribs)) {
       const userService = await this.service('userService');
       const { uid, rev } = existingUser;
       try {
@@ -180,6 +193,7 @@ class ProviderService extends Service {
           uid,
           rev,
           ...missingAttribs,
+          ...updatedAttribs,
         });
       } catch (err) {
         this.log.error(err);
