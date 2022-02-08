@@ -51,8 +51,6 @@ class InternalAuthDepCheckService extends Service {
       internalUserProjectBlockers,
     } = await this._listInternalUsers();
 
-    // Verify all internal users (including root) are deactivated
-    blockers.activeUsers = activeUserBlockers;
     // Verify internal users are not linked to projects
     blockers.projects = internalUserProjectBlockers;
 
@@ -70,6 +68,9 @@ class InternalAuthDepCheckService extends Service {
     // Verify internal users are not linked to Org Studies
     const orgStudiesBlockers = await this.verifyNoInternalUserOrgStudies(listOfInternalUsers, listOfInternalUsernames);
     blockers.orgStudies = orgStudiesBlockers;
+
+    // LASTLY, verify all internal users (including root) are deactivated
+    blockers.activeUsers = activeUserBlockers;
 
     if (Object.keys(blockers).length > 0) {
       const compositeError = this.createBlockerReport(blockers);
