@@ -37,7 +37,8 @@ Follow the steps in Configuration settings, where the name of the file comes fro
 
 - `awsRegion`: Refer to the [Regional code mapping](/installation_guide/uninstall) section to verify the full region name for the region code. For example, set awsRegion: us-east-1 for the region code va.
 - `solutionName`: Use the solution name from the bucket name stem (for example: solutionName: sw)
-Upgrading Service Workbench
+
+### Upgrading Service Workbench
 
 After creating the configuration file, run the main deployment script as described in Installing Service Workbench.
 
