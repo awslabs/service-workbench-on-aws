@@ -14,7 +14,6 @@
  */
 
 const Resource = require('../base/resource');
-const AuthenticationIdTokens = require('./authentication-id-tokens');
 const AuthenticationProviderTypes = require('./authentication-provider-types');
 const AuthenticationProviderConfigs = require('./authentication-provider-configs');
 
@@ -33,10 +32,6 @@ class Authentication extends Resource {
 
   types() {
     return new AuthenticationProviderTypes({ clientSession: this.clientSession, parent: this });
-  }
-
-  idTokens() {
-    return new AuthenticationIdTokens({ clientSession: this.clientSession, parent: this });
   }
 
   async logout() {

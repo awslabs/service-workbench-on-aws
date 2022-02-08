@@ -49,6 +49,8 @@ class Users extends CollectionResource {
       status: 'active',
       projectId: [this.setup.defaults.project.id],
       userRole: 'researcher',
+      identityProviderName: 'Cognito Native Pool',
+      authenticationProviderId: `https://cognito-idp.${this.setup.defaults.awsRegion}.amazonaws.com/${this.setup.defaults.userPoolId}`,
       ...user,
     };
   }

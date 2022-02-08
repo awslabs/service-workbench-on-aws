@@ -99,31 +99,6 @@ paths:
       responses:
         '200':
           description: Array of authN provider configs
-  /api/authentication/id-tokens/:
-    post:
-      tags:
-        - public
-        - authN
-      summary: Log in
-      operationId: LogIn
-      description: |
-        Log In
-      parameters:
-        - in: query
-          name: redirect_uri
-          schema:
-            type: string
-            description: 'uri to redirect to after success login'
-          required: true
-      requestBody:
-        description: Log in information
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LogInRequest'
-      responses:
-        '200':
-          description: Success log in message
   /api/authentication/logout:
     post:
       tags:
