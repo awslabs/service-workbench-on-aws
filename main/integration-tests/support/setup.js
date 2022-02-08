@@ -163,6 +163,10 @@ class Setup {
       },
     };
 
+    const userPoolId = this.settings.get('userPoolId');
+    const appClientId = this.settings.get('appClientId');
+    const awsRegion = this.settings.get('awsRegion');
+
     const byobStudy = await this.settings.get('byobStudy');
 
     const stepTemplate = await adminSession.resources.stepTemplates
@@ -179,10 +183,13 @@ class Setup {
       project,
       index,
       awsAccount,
+      awsRegion,
       stepTemplate,
       workflowTemplateId,
       envTypes,
       byobStudy,
+      appClientId,
+      userPoolId,
       ...(await this.getConfigForAppStreamEnabledTests()),
     };
   }
@@ -210,9 +217,7 @@ class Setup {
       firstName,
       lastName,
       identityProviderName: 'Cognito Native Pool',
-      authenticationProviderId: `https://cognito-idp.${this.settings.get(
-        'awsRegion',
-      )}.amazonaws.com/${this.settings.get('userPoolId')}`,
+      authenticationProviderId: `https://cognito-idp.${this.defaults.awsRegion}.amazonaws.com/${this.defaults.userPoolId}`,
     });
     const idToken = await this.createCognitoUser({ username, password, fullName: `${firstName} ${lastName}` });
 
@@ -238,9 +243,7 @@ class Setup {
       firstName,
       lastName,
       identityProviderName: 'Cognito Native Pool',
-      authenticationProviderId: `https://cognito-idp.${this.settings.get(
-        'awsRegion',
-      )}.amazonaws.com/${this.settings.get('userPoolId')}`,
+      authenticationProviderId: `https://cognito-idp.${this.defaults.awsRegion}.amazonaws.com/${this.defaults.userPoolId}`,
     });
     const idToken = await this.createCognitoUser({ username, password, fullName: `${firstName} ${lastName}` });
 
@@ -266,9 +269,7 @@ class Setup {
       firstName,
       lastName,
       identityProviderName: 'Cognito Native Pool',
-      authenticationProviderId: `https://cognito-idp.${this.settings.get(
-        'awsRegion',
-      )}.amazonaws.com/${this.settings.get('userPoolId')}`,
+      authenticationProviderId: `https://cognito-idp.${this.defaults.awsRegion}.amazonaws.com/${this.defaults.userPoolId}`,
     });
     const idToken = await this.createCognitoUser({ username, password, fullName: `${firstName} ${lastName}` });
 
@@ -281,8 +282,8 @@ class Setup {
   async createCognitoUser({ username, password, fullName } = {}) {
     // Get IdToken from Cognito IdP
     const cognito = await this.aws.services.cognitoIdp();
-    const appClientId = this.settings.get('appClientId');
-    const userPoolId = this.settings.get('userPoolId');
+    const appClientId = this.defaults.appClientId;
+    const userPoolId = this.defaults.userPoolId;
 
     // Sign-up user in Cognito
     await cognito.signUpUser({ username, password, appClientId, fullName });
