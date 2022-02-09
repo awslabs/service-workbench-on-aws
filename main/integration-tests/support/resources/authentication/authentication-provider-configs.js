@@ -44,9 +44,11 @@ class AuthenticationProviderConfigs extends CollectionResource {
   }
 
   // ************************ Helpers methods ************************
-  // TODO: Return Cognito as default config
   defaultConfigs() {
-    // return InternalAuthProviderConfig;
+    return {
+      id: `https://cognito-idp.${this.setup.defaults.awsRegion}.amazonaws.com/${this.setup.defaults.userPoolId}`,
+      status: 'active',
+    };
   }
 }
 
