@@ -58,7 +58,16 @@ class UserService extends Service {
 
     const { username, password } = user;
     delete user.password;
-    const authenticationProviderId = user.authenticationProviderId || 'internal';
+
+    // ensure that an internal user is not created in this request
+    if (_.isUndefined(user.authenticationProviderId) || user.authenticationProviderId === 'internal') {
+      throw this.boom.badRequest(
+        'Internal users cannot be created. Please use an external IdP or the native Cognito user pool',
+        true,
+      );
+    }
+
+    const authenticationProviderId = user.authenticationProviderId;
     if (password && authenticationProviderId !== 'internal') {
       // If password is specified then make sure this is for adding user to internal authentication provider only
       // Password cannot be specified for any other auth providers
@@ -132,6 +141,10 @@ class UserService extends Service {
 
     let result;
     if (existingUser) {
+      // ensure that an internal user is not getting activated in this request
+      if (existingUser.ns === 'internal' && user.status === 'active')
+        throw this.boom.badRequest('Internal users cannot be activated', true);
+
       // ensure that the caller has permissions to update the user
       // The following will result in checking permissions by calling the condition function "this.allowAuthorized" first
       await this.assertAuthorized(
@@ -415,6 +428,11 @@ class UserService extends Service {
     // If the main call also needs to fail in case writing to any audit destination fails then switch to "write" method as follows
     // return auditWriterService.write(requestContext, auditEvent);
     return auditWriterService.writeAndForget(requestContext, auditEvent);
+  }
+
+  async isInternalAuthUser(uid) {
+    const user = await this.mustFindUser({ uid });
+    return _.get(user, 'authenticationProviderId') === 'internal';
   }
 }
 

@@ -43,13 +43,14 @@ class Users extends CollectionResource {
     return {
       username,
       email: username,
-      password: gen.password(),
       firstName: gen.firstName(),
       lastName: gen.lastName(),
       isAdmin: false,
       status: 'active',
       projectId: [this.setup.defaults.project.id],
       userRole: 'researcher',
+      identityProviderName: 'Cognito Native Pool',
+      authenticationProviderId: `https://cognito-idp.${this.setup.defaults.awsRegion}.amazonaws.com/${this.setup.defaults.userPoolId}`,
       ...user,
     };
   }

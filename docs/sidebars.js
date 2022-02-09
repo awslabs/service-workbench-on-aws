@@ -26,6 +26,7 @@ module.exports = {
         "Upgrading Service Workbench": [
           "installation_guide/upgrading/commandline",
           "installation_guide/upgrading/solutions",
+          "installation_guide/upgrading/authentication",
         ],
       },
       "installation_guide/postupgrade",

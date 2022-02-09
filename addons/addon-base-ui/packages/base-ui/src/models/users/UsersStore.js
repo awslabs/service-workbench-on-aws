@@ -68,17 +68,9 @@ const UsersStore = BaseStore.named('UsersStore')
       return self.users.size === 0;
     },
 
-    get hasNonRootAdmins() {
-      const nonRootAdmins = _.filter(self.list, user => user.isAdmin && !user.isRootUser);
-      return !_.isEmpty(nonRootAdmins);
-    },
-
-    get hasNonRootUsers() {
-      return !_.isEmpty(self.nonRootUsers);
-    },
-
-    get nonRootUsers() {
-      return _.filter(self.list, user => !user.isRootUser);
+    get hasAdmins() {
+      const admins = _.filter(self.list, user => user.isAdmin);
+      return !_.isEmpty(admins);
     },
 
     get list() {

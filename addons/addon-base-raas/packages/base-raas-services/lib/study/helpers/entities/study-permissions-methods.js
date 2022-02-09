@@ -52,15 +52,29 @@ function isAdmin(studyPermissionsEntity, uid) {
 function applyUpdateRequest(studyPermissionsEntity, updateRequest) {
   const entity = studyPermissionsEntity;
 
+  if (updateRequest.usersToRemove.length > 0 && updateRequest.usersToRemove[0].uid === '*') {
+    // For mitigation of old internal users My Studies
+    const level = `${updateRequest.usersToRemove[0].permissionLevel}Users`;
+    const oldUser = entity[level][0];
+    updateRequest.usersToRemove = [{ uid: oldUser, permissionLevel: 'admin' }];
+    entity[level] = [];
+  } else {
+    _.forEach(updateRequest.usersToRemove, item => {
+      const level = `${item.permissionLevel}Users`;
+      _.pull(entity[level], item.uid);
+    });
+  }
+
   _.forEach(updateRequest.usersToAdd, item => {
     const level = `${item.permissionLevel}Users`;
     entity[level] = _.uniq([...(entity[level] || []), item.uid]);
   });
+}
 
-  _.forEach(updateRequest.usersToRemove, item => {
-    const level = `${item.permissionLevel}Users`;
-    _.pull(entity[level], item.uid);
-  });
+function isValidUpdateRequest(updateRequest) {
+  // Check to make sure the wildcard is not used as a uid in usersToRemove
+
+  return !updateRequest.usersToRemove.some(entry => entry.uid === '*');
 }
 
 function getEmptyStudyPermissions() {
@@ -78,4 +92,5 @@ module.exports = {
   getUserIds,
   applyUpdateRequest,
   getEmptyStudyPermissions,
+  isValidUpdateRequest,
 };

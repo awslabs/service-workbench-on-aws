@@ -98,14 +98,6 @@ const User = types
       return !self.firstName && !self.lastName;
     },
 
-    get isRootUser() {
-      return _.toLower(self.userType) === 'root';
-    },
-
-    get isInternalAuthUser() {
-      return _.toLower(self.authenticationProviderId) === 'internal';
-    },
-
     get isActive() {
       return _.toLower(self.status) === 'active';
     },

@@ -15,7 +15,7 @@
 
 import React from 'react';
 import { shallow } from 'enzyme';
-import AddSingleLocalUser from '../AddSingleLocalUser';
+import AddSingleUser from '../AddSingleUser';
 
 jest.mock('@aws-ee/base-ui/dist/helpers/notification');
 const displayErrorMock = require('@aws-ee/base-ui/dist/helpers/notification');
@@ -41,7 +41,7 @@ describe('AddSingleLocalUser', () => {
   beforeEach(() => {
     // Render component
     wrapper = shallow(
-      <AddSingleLocalUser.WrappedComponent
+      <AddSingleUser.WrappedComponent
         projectsStore={projectsStore}
         userRolesStore={userRolesStore}
         usersStore={usersStore}
@@ -67,6 +67,8 @@ describe('AddSingleLocalUser', () => {
     // BUILD
     const ret = {
       userRole: 'internalUser',
+      identityProviderName:
+        '{"authNProviderId": "https://cognito-idp.eu-west-3.amazonaws.com", "idpName": "Cognito Native Pool"}',
     };
     const error = { message: 'adding failed' };
     const form = {
@@ -89,6 +91,8 @@ describe('AddSingleLocalUser', () => {
     const ret = {
       userRole: 'internalUser',
       projectId: ['potatoes'],
+      identityProviderName:
+        '{"authNProviderId": "https://cognito-idp.eu-west-3.amazonaws.com", "idpName": "Cognito Native Pool"}',
     };
 
     const form = {
@@ -102,7 +106,7 @@ describe('AddSingleLocalUser', () => {
     await component.handleFormSubmission(form);
 
     // CHECK
-    expect(displayErrorMock.displaySuccess).toHaveBeenCalledWith('Added local user successfully');
+    expect(displayErrorMock.displaySuccess).toHaveBeenCalledWith('Added user successfully');
     expect(displayErrorMock.displayError).not.toHaveBeenCalled();
     expect(usersStore.addUser).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -115,11 +119,15 @@ describe('AddSingleLocalUser', () => {
     const ret = {
       userRole: 'internalGuest',
       projectId: ['potatoes'],
+      identityProviderName:
+        '{"authNProviderId": "https://cognito-idp.eu-west-3.amazonaws.com", "idpName": "Cognito Native Pool"}',
     };
 
     const check = {
       userRole: ret.userRole,
       projectId: [],
+      authenticationProviderId: 'https://cognito-idp.eu-west-3.amazonaws.com',
+      identityProviderName: 'Cognito Native Pool',
     };
 
     const form = {
@@ -133,7 +141,7 @@ describe('AddSingleLocalUser', () => {
     await component.handleFormSubmission(form);
 
     // CHECK
-    expect(displayErrorMock.displaySuccess).toHaveBeenCalledWith('Added local user successfully');
+    expect(displayErrorMock.displaySuccess).toHaveBeenCalledWith('Added user successfully');
     expect(displayErrorMock.displayError).not.toHaveBeenCalled();
     expect(usersStore.addUser).toHaveBeenCalledWith(check);
   });

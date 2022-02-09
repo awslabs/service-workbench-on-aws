@@ -17,8 +17,6 @@ const jwtDecode = require('jwt-decode');
 const _ = require('lodash');
 
 const Service = require('@aws-ee/base-services-container/lib/service');
-const internalAuthProviderId = require('./authentication-providers/constants').authenticationProviders
-  .internalAuthProviderId;
 const { newInvoker } = require('./authentication-providers/helpers/invoker');
 
 const notAuthenticated = claims => ({ ...claims, authenticated: false });
@@ -27,7 +25,7 @@ const authenticated = claims => ({ ...claims, authenticated: true });
 class AuthenticationService extends Service {
   constructor() {
     super();
-    this.dependency(['authenticationProviderConfigService', 'apiKeyService', 'pluginRegistryService']);
+    this.dependency(['authenticationProviderConfigService', 'pluginRegistryService']);
   }
 
   async init() {
@@ -58,10 +56,7 @@ class AuthenticationService extends Service {
    */
   // TODO return username even if authentication fails.
   async authenticateMain(token) {
-    const [authenticationProviderConfigService, apiKeyService] = await this.service([
-      'authenticationProviderConfigService',
-      'apiKeyService',
-    ]);
+    const [authenticationProviderConfigService] = await this.service(['authenticationProviderConfigService']);
     if (!token) {
       return notAuthenticated({ error: 'empty token' });
     }
@@ -73,30 +68,7 @@ class AuthenticationService extends Service {
         error: `jwt decode error: ${error.toString()}`,
       });
     }
-    const isApiKey = await apiKeyService.isApiKeyToken(claims);
-    if (isApiKey) {
-      try {
-        const { verifiedToken, uid } = await apiKeyService.validateApiKey(token);
-
-        return authenticated({
-          token,
-          isApiKey,
-          verifiedToken,
-          uid,
-          authenticationProviderId: _.get(claims, 'custom:authenticationProviderId', internalAuthProviderId),
-          identityProviderName: _.get(claims, 'custom:identityProviderName', ''),
-        });
-      } catch (error) {
-        return notAuthenticated({
-          uid: claims.sub,
-          username: claims.username,
-          authenticationProviderId: _.get(claims, 'custom:authenticationProviderId', internalAuthProviderId),
-          identityProviderName: _.get(claims, 'custom:identityProviderName', ''),
-          error,
-        });
-      }
-    }
-    const providerId = claims.iss || internalAuthProviderId;
+    const providerId = claims.iss;
     const providerConfig = await authenticationProviderConfigService.getAuthenticationProviderConfig(providerId);
     if (!providerConfig) {
       return notAuthenticated({

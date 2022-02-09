@@ -7,13 +7,13 @@
       "type": "string",
       "minLength": 3,
       "maxLength": 300,
-      "pattern": "^[A-Za-z0-9-_.]+$|^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$"
+      "format": "email",
+      "pattern": "^([^.%+!$&*=^|~#%{}]+)[a-zA-Z0-9\\._%+!$&*=^|~#%{}/\\-]+([^.!]+)@([^-.!](([a-zA-Z0-9\\-]+\\.){1,}([a-zA-Z]{2,3})))"
     },
     "usernameInIdp": {
       "type": "string",
       "minLength": 3,
-      "maxLength": 300,
-      "pattern": "^[A-Za-z0-9-_.]+$|^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$"
+      "maxLength": 300
     },
     "password": {
       "type": "string"

@@ -36,6 +36,7 @@ const Budgets = require('./resources/budgets/budgets');
 const WorkspaceServiceCatalogs = require('./resources/workspace-service-catalogs/workspace-service-catalogs');
 const Workflows = require('./resources/workflows/workflows');
 const DataEgresses = require('./resources/data-egress/data-egresses');
+const Migration = require('./resources/migration/migration');
 
 // Returns the top level resource operations helpers. You should not use this directly in your tests.
 // These top level resource operation helpers are available via client sessions.
@@ -64,6 +65,7 @@ async function getResources({ clientSession }) {
     workspaceServiceCatalogs: new WorkspaceServiceCatalogs({ clientSession }),
     workflows: new Workflows({ clientSession }),
     dataEgresses: new DataEgresses({ clientSession }),
+    migration: new Migration({ clientSession }),
   };
 
   return resources;

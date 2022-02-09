@@ -16,7 +16,7 @@
 import _ from 'lodash';
 import React from 'react';
 import { withRouter } from 'react-router-dom';
-import { observable, action, decorate, runInAction, computed } from 'mobx';
+import { observable, action, decorate, runInAction } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { Button, Form, Grid, Header, Segment, Label, Input, Select, Image } from 'semantic-ui-react';
 
@@ -44,29 +44,14 @@ class Login extends React.Component {
       // When the login page is shown, we default to the auth provider id of the first provider
       // in the this.authProviderOptions list
       const authentication = this.props.authentication;
-      authentication.setSelectedAuthenticationProviderId(_.get(this.authProviderOptions, '[0].key', ''));
+      authentication.setSelectedAuthenticationProviderId(
+        _.get(this.getStore().authenticationProviderOptions, '[0].key', ''),
+      );
     });
   }
 
   getStore() {
     return this.props.authenticationProviderPublicConfigsStore;
-  }
-
-  get authProviderOptions() {
-    const params = new URL(document.location).searchParams;
-    const showInternal = _.isString(params.get('internal'));
-    const store = this.getStore();
-    const options = store.authenticationProviderOptions;
-    const size = _.size(options);
-
-    // If we have one or zero options, we don't want to filter them, otherwise
-    // we might be filtering the only option available.
-    if (size <= 1) return options;
-
-    return _.filter(store.authenticationProviderOptions, config => {
-      if (config.key === 'internal' && showInternal) return true;
-      return config.key !== 'internal';
-    });
   }
 
   handleChange = name =>
@@ -148,7 +133,7 @@ class Login extends React.Component {
   render() {
     const error = !!(this.usernameError || this.passwordError || this.authenticationProviderError);
 
-    const authenticationProviderOptions = this.authProviderOptions;
+    const authenticationProviderOptions = this.getStore().authenticationProviderOptions;
     const selectedAuthenticationProviderId = this.props.authentication.selectedAuthenticationProviderId;
 
     const renderAuthenticationProviders = () => {
@@ -266,7 +251,6 @@ decorate(Login, {
   authenticationProviderError: observable,
   usernameError: observable,
   passwordError: observable,
-  authProviderOptions: computed,
 });
 
 export default inject(

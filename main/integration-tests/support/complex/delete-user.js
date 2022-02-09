@@ -65,6 +65,16 @@ async function deleteUser({ aws, id = '' }) {
       .delete(),
   );
 
+  // Try deleting the user from Cognito user pool
+  // Some users might not have been created during negative authZ tests, so they won't be available in the user pool at all
+  try {
+    const cognito = await aws.services.cognitoIdp();
+    const userPoolId = aws.settings.get('userPoolId');
+    await cognito.deleteUser({ username, userPoolId });
+  } catch (err) {
+    console.log(`User ${username} deletion from Cognito user pool failed with error: ${err.code}`);
+  }
+
   // Delete api keys
   await deleteApiKeys({ db, id });
 

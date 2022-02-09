@@ -60,6 +60,7 @@ const LegacyEnvironmentResourceService = require('@aws-ee/base-raas-services/lib
 const ResourceUsageService = require('@aws-ee/base-raas-services/lib/usage/resource-usage-service');
 const StudyOperationService = require('@aws-ee/base-raas-services/lib/study/study-operation-service');
 const DataEgressService = require('@aws-ee/base-raas-services/lib/data-egress/data-egress-service');
+const MigrationService = require('@aws-ee/base-raas-services/lib/migration/migration-service');
 
 const settingKeys = {
   tablePrefix: 'dbPrefix',
@@ -122,6 +123,7 @@ async function registerServices(container, pluginRegistry) {
   container.register('resourceUsageService', new ResourceUsageService());
   container.register('studyOperationService', new StudyOperationService());
   container.register('dataEgressService', new DataEgressService());
+  container.register('migrationService', new MigrationService());
 
   // Authorization Services from raas addon
   container.register('raasUserAuthzService', new UserAuthzService());

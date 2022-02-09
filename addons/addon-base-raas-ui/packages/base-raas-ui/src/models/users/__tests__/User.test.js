@@ -23,9 +23,9 @@ describe('User', () => {
       isAdmin: false,
       isExternalUser: false,
       username: 'JohnSmith@amazon.com',
-      ns: 'internal',
+      ns: 'Auth0||||https://cognito-idp.eu-west-3.amazonaws.com/eu-west-3_ABCD',
       email: 'JohnSmith@amazon.com',
-      authenticationProviderId: 'internal',
+      authenticationProviderId: 'https://cognito-idp.eu-west-3.amazonaws.com/eu-west-3_ABCD',
       status: 'active',
       createdBy: 'u-0Jse-jzwgiczKaa74IFKg',
       rev: 1,
@@ -40,8 +40,6 @@ describe('User', () => {
     expect(user.displayName).toEqual('John Smith');
     expect(user.longDisplayName).toEqual('John Smith (JohnSmith@amazon.com)');
     expect(user.unknown).toEqual(false);
-    expect(user.isRootUser).toEqual(false);
-    expect(user.isInternalAuthUser).toEqual(true);
     expect(user.isActive).toEqual(true);
     expect(user.isInternalGuest).toEqual(false);
     expect(user.isExternalGuest).toEqual(false);
@@ -50,8 +48,16 @@ describe('User', () => {
     expect(user.isSame('abcd')).toEqual(false);
     expect(user.isSamePrincipal('abcd', 'xyz')).toEqual(false);
     expect(user.id).toEqual('u-N__Z_pJTr5oSNUaM6-oP7');
-    expect(user.principal).toEqual({ username: 'JohnSmith@amazon.com', ns: 'internal' });
-    expect(user.principalStr).toEqual(JSON.stringify({ username: 'JohnSmith@amazon.com', ns: 'internal' }));
+    expect(user.principal).toEqual({
+      username: 'JohnSmith@amazon.com',
+      ns: 'Auth0||||https://cognito-idp.eu-west-3.amazonaws.com/eu-west-3_ABCD',
+    });
+    expect(user.principalStr).toEqual(
+      JSON.stringify({
+        username: 'JohnSmith@amazon.com',
+        ns: 'Auth0||||https://cognito-idp.eu-west-3.amazonaws.com/eu-west-3_ABCD',
+      }),
+    );
     expect(user.hasProjects).toEqual(true);
     expect(user.hasCredentials).toEqual(false);
     expect(user.capabilities).toEqual({
