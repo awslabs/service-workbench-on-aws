@@ -51,7 +51,7 @@ describe('Get authentication config list scenarios', () => {
       const admin2Session = await setup.createAdminSession();
       const response = await admin2Session.resources.authentication.configs().get();
 
-      await expect(response).toEqual(
+      expect(response).toEqual(
         expect.arrayContaining([
           expect.objectContaining(admin2Session.resources.authentication.configs().defaultConfigs()),
         ]),
