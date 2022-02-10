@@ -16,7 +16,6 @@
 const _ = require('lodash');
 
 const CollectionResource = require('../base/collection-resource');
-const InternalAuthProviderType = require('./helpers/default-auth-provider-type-internal.json');
 const CognitoAuthProviderType = require('./helpers/default-auth-provider-type-cognito.json');
 
 class AuthenticationProviderTypes extends CollectionResource {
@@ -33,7 +32,7 @@ class AuthenticationProviderTypes extends CollectionResource {
 
   // ************************ Helpers methods ************************
   defaultTypes() {
-    return [InternalAuthProviderType, CognitoAuthProviderType];
+    return [CognitoAuthProviderType];
   }
 }
 
