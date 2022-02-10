@@ -93,6 +93,11 @@ Cypress.Commands.add('login', role => {
     });
   });
   cy.wrap(authResult);
-  cy.visit('/dashboard');
+  cy.visit('/dashboard', {
+    onBeforeLoad(window) {
+      // Allows us to check for window open event
+      cy.stub(window, 'open');
+    },
+  });
   cy.get("div[data-testid='page-title'] div").contains('Dashboard');
 });
