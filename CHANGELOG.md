@@ -5,8 +5,8 @@ All notable changes to this project will be documented in this file. See [standa
 ## [5.0.0](https://github.com/awslabs/service-workbench-on-aws/compare/v4.3.1...v5.0.0) (2022-02-11)
 
 ## Internal Auth deprecation
-* Starting with this release, the internal authentication provider in Service Workbench has been deprecated. Logging into Service Workbench using the legacy internal authentication route would not work.
-* Resources owned by `internal` users need to be deactivated or their ownership needs to be transferred to native Cognito user pool/external IdP users. Users marked with an `internal` auth provider would then need to be deactivated. Please follow the detailed [instructions](https://github.com/awslabs/service-workbench-on-aws/blob/mainline/docs/docs/installation_guide/upgrading/authentication.md) for a smooth upgrade experience.
+* Starting with this release, internal authentication provider in Service Workbench will remain deprecated. Logging into Service Workbench using the legacy internal authentication route will not work.
+* Resources owned by `internal` users need to be deactivated or their ownership needs to be transferred to native Cognito user pool/external IdP users. Users marked with an `internal` auth provider will need to be deactivated. Please follow the detailed instructions [here](https://github.com/awslabs/service-workbench-on-aws/blob/mainline/docs/docs/installation_guide/upgrading/authentication.md) for a smooth upgrade experience.
 
 ### Features
 
