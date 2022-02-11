@@ -50,7 +50,7 @@ class InternalAuthDepCheckService extends Service {
     } catch (e) {
       if (e.code === 'ResourceNotFoundException') {
         this.log.info('This is first time deployment, no resources exist.');
-        return [];
+        return;
       }
       throw new Error(
         `Error in pre-deployment internal auth check, can not describe backend table: ${usersTable}, message: ${e.message}`,
