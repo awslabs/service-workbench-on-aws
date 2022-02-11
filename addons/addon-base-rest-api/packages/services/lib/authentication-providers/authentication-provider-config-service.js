@@ -47,6 +47,12 @@ class AuthenticationProviderConfigService extends Service {
   }
 
   async getAuthenticationProviderConfig(providerId, fields = []) {
+    if (providerId === 'internal') {
+      throw this.boom.badRequest(
+        'Internal users cannot log in. Please use an external IdP or native Cognito user pool user.',
+        true,
+      );
+    }
     const dbService = await this.service('dbService');
     const table = this.settings.get(settingKeys.tableName);
     const dbResult = await dbService.helper

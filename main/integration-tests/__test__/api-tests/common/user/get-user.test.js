@@ -47,7 +47,7 @@ describe('Get current user scenarios', () => {
       'should return current user information for user in status %a',
       async a => {
         const researcher2Session = await setup.createResearcherSession();
-        await researcher2Session.resources.currentUser.update({ status: a, rev: 0 });
+        await researcher2Session.resources.currentUser.update({ status: a, rev: 1 });
         await expect(researcher2Session.resources.currentUser.get()).resolves.toMatchObject({ status: a });
       },
     );

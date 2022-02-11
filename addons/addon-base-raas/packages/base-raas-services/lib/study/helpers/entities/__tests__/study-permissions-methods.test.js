@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-const { applyUpdateRequest } = require('../study-permissions-methods');
+const { applyUpdateRequest, isValidUpdateRequest } = require('../study-permissions-methods');
 
 describe('study permissions methods', () => {
   describe('applyUpdateRequest', () => {
@@ -54,6 +54,77 @@ describe('study permissions methods', () => {
         readwriteUsers: [],
         writeonlyUsers: ['u-4'],
       });
+    });
+
+    it('should apply requested changes for migration', () => {
+      // BUILD
+      const updateRequest = {
+        usersToAdd: [
+          {
+            uid: 'newExternalUser',
+            permissionLevel: 'admin',
+          },
+        ],
+        usersToRemove: [
+          {
+            uid: '*',
+            permissionLevel: 'admin',
+          },
+        ],
+      };
+      const entity = {
+        adminUsers: ['oldInternalUser'],
+        readonlyUsers: [],
+        readwriteUsers: [],
+        writeonlyUsers: [],
+      };
+
+      // OPERATE
+      applyUpdateRequest(entity, updateRequest);
+
+      // CHECK
+      expect(entity).toStrictEqual({
+        adminUsers: ['newExternalUser'],
+        readonlyUsers: [],
+        readwriteUsers: [],
+        writeonlyUsers: [],
+      });
+      expect(updateRequest).toStrictEqual({
+        usersToAdd: [
+          {
+            uid: 'newExternalUser',
+            permissionLevel: 'admin',
+          },
+        ],
+        usersToRemove: [
+          {
+            uid: 'oldInternalUser',
+            permissionLevel: 'admin',
+          },
+        ],
+      });
+    });
+  });
+
+  describe('isValidUpdateRequest', () => {
+    it('should return true when there are no wildcard entries in usersToRemove', async () => {
+      // BUILD
+      const updateRequest = {
+        usersToRemove: [{ uid: 'u-1', permissionLevel: 'admin' }],
+      };
+
+      // OPERATE N CHECK
+      expect(isValidUpdateRequest(updateRequest)).toBeTruthy();
+    });
+
+    it('should return false when there are wildcard entries in usersToRemove', async () => {
+      // BUILD
+      const updateRequest = {
+        usersToRemove: [{ uid: '*', permissionLevel: 'admin' }],
+      };
+
+      // OPERATE N CHECK
+      expect(isValidUpdateRequest(updateRequest)).toBeFalsy();
     });
   });
 });

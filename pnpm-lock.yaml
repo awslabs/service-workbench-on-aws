@@ -1784,6 +1784,46 @@ importers:
       react-timeago: ^4.4.0
       regenerator-runtime: ^0.13.5
       semantic-ui-react: ^0.88.2
+  addons/addon-internal-auth-dep-check/packages/internal-auth-dep-check:
+    dependencies:
+      '@aws-ee/base-services': link:../../../addon-base/packages/services
+      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      aws-sdk: 2.1015.0
+      lodash: 4.17.21
+    devDependencies:
+      '@aws-ee/base-api-handler': link:../../../addon-base-rest-api/packages/base-api-handler
+      '@aws-ee/base-post-deployment': link:../../../addon-base-post-deployment/packages/base-post-deployment
+      eslint: 6.8.0
+      eslint-config-airbnb-base: 14.2.1_3d9516f15116c38f3750ecaf3d966000
+      eslint-config-prettier: 6.15.0_eslint@6.8.0
+      eslint-import-resolver-node: 0.3.4
+      eslint-plugin-import: 2.23.4_eslint@6.8.0
+      eslint-plugin-jest: 22.21.0_eslint@6.8.0
+      eslint-plugin-prettier: 3.4.0_b77cd85fda941e232840dc83bf6b7690
+      husky: 3.1.0
+      jest: 24.9.0
+      jest-junit: 10.0.0
+      prettier: 1.19.1
+      source-map-support: 0.5.19
+    specifiers:
+      '@aws-ee/base-api-handler': workspace:*
+      '@aws-ee/base-post-deployment': workspace:*
+      '@aws-ee/base-services': workspace:*
+      '@aws-ee/base-services-container': workspace:*
+      aws-sdk: ^2.647.0
+      eslint: ^6.8.0
+      eslint-config-airbnb-base: ^14.0.0
+      eslint-config-prettier: ^6.10.0
+      eslint-import-resolver-node: ^0.3.3
+      eslint-plugin-import: ^2.20.1
+      eslint-plugin-jest: ^22.21.0
+      eslint-plugin-prettier: ^3.1.2
+      husky: ^3.1.0
+      jest: ^24.9.0
+      jest-junit: ^10.0.0
+      lodash: ^4.17.21
+      prettier: ^1.19.1
+      source-map-support: ^0.5.16
   addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-api:
     dependencies:
       '@aws-ee/base-controllers': link:../../../addon-base-rest-api/packages/base-controllers
@@ -2048,6 +2088,7 @@ importers:
       serverless-deployment-bucket: ^1.1.0
   main/end-to-end-tests:
     devDependencies:
+      amazon-cognito-identity-js: 5.2.4
       clipboardy: 2.3.0
       cypress: 4.12.1
       eslint: 6.8.0
@@ -2065,6 +2106,7 @@ importers:
       pretty-quick: 1.11.1_prettier@1.19.1
       tcp-ping: 0.1.1
     specifiers:
+      amazon-cognito-identity-js: ^5.2.4
       clipboardy: ^2.3.0
       cypress: ^4.12.1
       eslint: ^6.8.0
@@ -2130,6 +2172,7 @@ importers:
       axios: 0.21.4
       chance: 1.1.7
       fs-extra: 9.1.0
+      generate-password: 1.5.1
       js-yaml: 4.1.0
       jwt-decode: 2.2.0
       lodash: 4.17.21
@@ -2169,6 +2212,7 @@ importers:
       eslint-plugin-jsx-a11y: ^6.4.1
       eslint-plugin-prettier: ^3.4.0
       fs-extra: ^9.1.0
+      generate-password: ^1.5.0
       husky: ^3.1.0
       jest: ^26.6.3
       jest-circus: ^26.6.3
@@ -2544,6 +2588,7 @@ importers:
       '@aws-ee/base-services-container': link:../../../addons/addon-base/packages/services-container
       '@aws-ee/base-workflow-core': link:../../../addons/addon-base-workflow/packages/base-workflow-core
       '@aws-ee/environment-type-mgmt-services': link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-services
+      '@aws-ee/internal-auth-dep-check': link:../../../addons/addon-internal-auth-dep-check/packages/internal-auth-dep-check
       '@aws-ee/key-pair-mgmt-services': link:../../../addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-services
       aws-sdk: 2.1015.0
       lodash: 4.17.21
@@ -2587,6 +2632,7 @@ importers:
       '@aws-ee/base-services-container': workspace:*
       '@aws-ee/base-workflow-core': workspace:*
       '@aws-ee/environment-type-mgmt-services': workspace:*
+      '@aws-ee/internal-auth-dep-check': workspace:*
       '@aws-ee/key-pair-mgmt-services': workspace:*
       '@babel/core': ^7.8.4
       '@babel/preset-env': ^7.8.4
@@ -7904,6 +7950,16 @@ packages:
     dev: true
     resolution:
       integrity: sha1-l6ERlkmyEa0zaR2fn0hqjsn74KM=
+  /amazon-cognito-identity-js/5.2.4:
+    dependencies:
+      buffer: 4.9.2
+      crypto-js: 4.1.1
+      fast-base64-decode: 1.0.0
+      isomorphic-unfetch: 3.1.0
+      js-cookie: 2.2.1
+    dev: true
+    resolution:
+      integrity: sha512-CTRG5LKBfMYmNrqAU0l7X0SA4OOXsPFdHmkW0Ky3NOZZo767W5GZecm5uPz3YyAVde1OHaUyLXYzhXEmnn+VcQ==
   /animate.css/3.7.0:
     dev: false
     resolution:
@@ -10528,6 +10584,10 @@ packages:
       randomfill: 1.0.4
     resolution:
       integrity: sha512-fz4spIh+znjO2VjL+IdhEpRJ3YN6sMzITSBijk6FK2UvTqruSQW+/cCZTSNsMiZNvUeq0CqurF+dAbyiGOY6Wg==
+  /crypto-js/4.1.1:
+    dev: true
+    resolution:
+      integrity: sha512-o2JlM7ydqd3Qk9CA0L4NL6mTzU2sdx96a+oOfPu8Mkl/PK51vSyoi8/rQ8NknZtk44vq15lmhAj9CIAGwgeWKw==
   /crypto-random-string/1.0.0:
     dev: true
     engines:
@@ -13041,6 +13101,10 @@ packages:
       '0': node >=0.6.0
     resolution:
       integrity: sha1-lpGEQOMEGnpBT4xS48V06zw+HgU=
+  /fast-base64-decode/1.0.0:
+    dev: true
+    resolution:
+      integrity: sha512-qwaScUgUGBYeDNRnbc/KyllVU88Jk1pRHPStuF/lO7B0/RTRLj7U0lkdTAutlBblY08rwZDff6tNU9cjv6j//Q==
   /fast-deep-equal/3.1.1:
     resolution:
       integrity: sha512-8UEa58QDLauDNfpbrX55Q9jrGHThw2ZMdOky5Gl1CDtVeJDPVrG4Jxx1N8jw2gkWaff5UUuX1KJd+9zGe2B+ZA==
@@ -15558,6 +15622,13 @@ packages:
     dev: true
     resolution:
       integrity: sha1-YRrhrPFPXoH3KVB0coGf6XM1WKk=
+  /isomorphic-unfetch/3.1.0:
+    dependencies:
+      node-fetch: 2.6.1
+      unfetch: 4.2.0
+    dev: true
+    resolution:
+      integrity: sha512-geDJjpoZ8N0kWexiwkX8F9NkTsXhetLPVbZFQ+JTW239QNOwvB0gniuR1Wc6f0AMTn7/mFGyXvHTifrCp/GH8Q==
   /isomorphic-ws/4.0.1_ws@7.2.3:
     dependencies:
       ws: 7.2.3
@@ -16571,6 +16642,10 @@ packages:
     dev: false
     resolution:
       integrity: sha512-XwIBPqcMn57FxfT+Go5pzySnm4KWkT1Tv7gjrpT1srtf8Weynl6R273VJ5GjkRb51IzMp5nbaPjJXMWeju2MKg==
+  /js-cookie/2.2.1:
+    dev: true
+    resolution:
+      integrity: sha512-HvdH2LzI/EAZcUwA8+0nKNtWHqS+ZmijLA30RwZA0bo7ToCckjK5MkGhjED9KoRcXO6BaGI3I9UIzSA1FKFPOQ==
   /js-string-escape/1.0.1:
     dev: true
     engines:
@@ -24008,6 +24083,10 @@ packages:
     dev: false
     resolution:
       integrity: sha512-crP/n3eAPUJxZXM9T80/yv0YhkTEx2K1D3h7D1AJM6fzsWZrxdyRuLN0JH/dkZh1LNH8LxCnBzoPFCPbb2iGpg==
+  /unfetch/4.2.0:
+    dev: true
+    resolution:
+      integrity: sha512-F9p7yYCn6cIW9El1zi0HI6vqpeIvBsr3dSuRO6Xuppb1u5rXpCPmMvLSyECLhybr9isec8Ohl0hPekMVrEinDA==
   /unicode-canonical-property-names-ecmascript/1.0.4:
     dev: true
     engines:

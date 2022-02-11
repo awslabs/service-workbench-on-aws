@@ -413,6 +413,16 @@ Resources:
                 - !Sub 'arn:aws:catalog:${AWS::Region}:${AWS::AccountId}:product/*'
                 - !Sub arn:${AWS::Partition}:catalog:${AWS::Region}:${AWS::AccountId}:*
             - !Ref AWS::NoValue
+          - !If
+            - RunTestsAgainstTargetEnv
+            - Effect: 'Allow'
+              Action:
+                - cognito-idp:AdminInitiateAuth
+                - cognito-idp:AdminDeleteUser
+                - cognito-idp:SignUp
+              Resource:
+                - !Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*'
+            - !Ref AWS::NoValue
 
   AppDeployerRole:
     Type: AWS::IAM::Role
