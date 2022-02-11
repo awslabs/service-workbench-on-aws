@@ -82,6 +82,17 @@ describe('InternalAuthDepCheckService', () => {
     jest.spyOn(console, 'error').mockImplementation();
   });
 
+  describe('execute', () => {
+    it('should skip check on fresh install', async () => {
+      // BUILD
+      service.dbService.describeTable = jest.fn().mockRejectedValueOnce({ code: 'ResourceNotFoundException' });
+      service._listInternalUsers = jest.fn();
+
+      // OPERATE n CHECK it didn't get past the try catch block
+      expect(service._listInternalUsers).not.toHaveBeenCalled();
+    });
+  });
+
   describe('verifyInternalUserWorkspacesAreTerminated', () => {
     it('should return false when internal user workspaces are not terminated or failed', async () => {
       // BUILD
