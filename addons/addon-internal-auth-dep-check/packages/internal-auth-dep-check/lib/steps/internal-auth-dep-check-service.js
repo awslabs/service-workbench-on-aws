@@ -42,6 +42,20 @@ class InternalAuthDepCheckService extends Service {
   async execute() {
     // Keep track of resources blocking upgrade
     const blockers = {};
+    const usersTable = this.settings.get(settingKeys.usersTableName);
+
+    // check not fresh install
+    try {
+      await this.dbService.dynamoDb.describeTable({ TableName: usersTable }).promise();
+    } catch (e) {
+      if (e.code === 'ResourceNotFoundException') {
+        this.log.info('This is first time deployment, no resources exist.');
+        return [];
+      }
+      throw new Error(
+        `Error in pre-deployment internal auth check, can not describe backend table: ${usersTable}, message: ${e.message}`,
+      );
+    }
 
     // get necessary lists
     const {
