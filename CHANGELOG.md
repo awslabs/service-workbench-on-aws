@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## [5.0.0](https://github.com/awslabs/service-workbench-on-aws/compare/v4.3.1...v4.4.0) (2022-02-11)
+## [5.0.0](https://github.com/awslabs/service-workbench-on-aws/compare/v4.3.1...v5.0.0) (2022-02-11)
 
 ## Internal Auth deprecation
 * Starting with this release, the internal authentication provider in Service Workbench has been deprecated. Logging into Service Workbench using the legacy internal authentication route would not work.
