@@ -97,9 +97,10 @@ class ProvisionerService extends Service {
     const clientId = providerConfigWithOutputs.clientId;
     const websiteUrl = this.settings.get(settingKeys.websiteUrl);
 
-    providerConfigWithOutputs.id = `https://cognito-idp.${awsRegion}.amazonaws.com/${providerConfigWithOutputs.userPoolId}`;
+    const awsCognitoRegion = 'us-east-1';
+    providerConfigWithOutputs.id = `https://cognito-idp.${awsCognitoRegion}.amazonaws.com/${providerConfigWithOutputs.userPoolId}`;
 
-    const baseAuthUri = `https://${userPoolDomain}.auth.${awsRegion}.amazoncognito.com`;
+    const baseAuthUri = `https://${userPoolDomain}.auth.${awsCognitoRegion}.amazoncognito.com`;
     providerConfigWithOutputs.signInUri = `${baseAuthUri}/oauth2/authorize?response_type=token&client_id=${clientId}&redirect_uri=${websiteUrl}`;
     providerConfigWithOutputs.signOutUri = `${baseAuthUri}/logout?client_id=${clientId}&logout_uri=${websiteUrl}`;
 
