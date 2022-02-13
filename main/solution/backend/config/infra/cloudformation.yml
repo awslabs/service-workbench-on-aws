@@ -528,7 +528,7 @@ Resources:
                 - cognito-idp:AdminGetUser
                 - cognito-idp:AdminUpdateUserAttributes
               Resource:
-                - !Sub 'arn:aws:cognito-idp:${AWS::Region}:${AWS::AccountId}:userpool/*'
+                - !Sub 'arn:aws:cognito-idp:us-east-1:${AWS::AccountId}:userpool/*'
 
   PolicyApiHandler:
     Type: AWS::IAM::ManagedPolicy
