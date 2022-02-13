@@ -499,13 +499,14 @@ class ProvisionerService extends Service {
     // for the Cognito User Pool. The Conito User Pool FQDN URL is passed to SAML IdP. The SAML IdP then returns the SAML assertion
     // back by redirecting the client to this URL.
     const envType = this.settings.get(settingKeys.envType);
-    this.log.info('step 1,  envType: ', envType);
+    this.log.info(`step 1,  envType: ${envType} .`);
     const envName = this.settings.get(settingKeys.envName);
-    this.log.info('step 2,  envName: ', envName);
+    this.log.info(`step 2,  envName: ${envName} .`);
     const solutionName = this.settings.get(settingKeys.solutionName);
-    this.log.info('step 3,  solutionName: ', solutionName);
+    this.log.info(`step 3,  solutionName: ${solutionName} .`);
     const userPoolDomain = providerConfig.userPoolDomain || `${envName}-${envType}-${solutionName}`;
-    this.log.info('step 4,  userPoolDomain: ', userPoolDomain);
+    this.log.info(`step 5,  userPoolDomain: ${userPoolDomain} .`);
+    this.log.info(`step 4,  providerConfig.userPoolDomain: ${providerConfig.userPoolDomain} .`);
     const params = {
       Domain: userPoolDomain,
       UserPoolId: userPoolId,
