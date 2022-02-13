@@ -110,7 +110,10 @@ class CreateRootUserService extends Service {
     const envName = this.settings.get(settingKeys.envName);
 
     const aws = await this.service('aws');
-    const cognitoIdentityServiceProvider = new aws.sdk.CognitoIdentityServiceProvider();
+    // const cognitoIdentityServiceProvider = new aws.sdk.CognitoIdentityServiceProvider();
+    var AWS_SDK = require("aws-sdk");
+    const cognitoIdentityServiceProvider = new AWS_SDK.CognitoIdentityServiceProvider({apiVersion: '2016-04-18', region: 'us-east-1'});
+    
     const result = await cognitoIdentityServiceProvider.listUserPools({ MaxResults: '60' }).promise();
     const userPoolName = `${envName}-${solutionName}-userPool`;
     const userPool = _.find(result.UserPools, { Name: userPoolName });

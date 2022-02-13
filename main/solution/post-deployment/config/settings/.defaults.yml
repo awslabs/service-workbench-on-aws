@@ -21,7 +21,7 @@ websiteUrl: ${cf:${self:custom.settings.infrastructureStackName}.WebsiteUrl}
 # If a Cognito user pool is setup for the solution, this setting indicates whether native
 # Cognito users should be used or if the Cognito user pool will only be used to federate to other identity providers
 # IMPORTANT: We recommend keeping this flag value set to true when installing SWB for the very first time.
-enableNativeUserPoolUsers: false
+enableNativeUserPoolUsers: true
 
 # Setting this flag creates a lambda used for PreSignUp trigger by Cognito user pool
 # When enabled, account admins do not need to manually confirm each new user entry in the native user pool

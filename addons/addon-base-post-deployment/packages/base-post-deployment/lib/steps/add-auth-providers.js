@@ -133,14 +133,20 @@ class AddAuthProviders extends Service {
     });
 
     // Check whether user pool already exists
+    this.log.info('##### addCognitoAuthenticationProviderWithSamlFederation step 8');
     const aws = await this.service('aws');
-    const cognitoIdentityServiceProvider = new aws.sdk.CognitoIdentityServiceProvider();
+    // const cognitoIdentityServiceProvider = new aws.sdk.CognitoIdentityServiceProvider();
+    var AWS_SDK = require("aws-sdk");
+    const cognitoIdentityServiceProvider = new AWS_SDK.CognitoIdentityServiceProvider({apiVersion: '2016-04-18', region: 'us-east-1'});
+    this.log.info('##### addCognitoAuthenticationProviderWithSamlFederation step 9');
     // TODO: Handle pagination (hopefully there aren't more than 1000 user pools)
     const result = await cognitoIdentityServiceProvider.listUserPools({ MaxResults: '60' }).promise();
+    this.log.info('##### addCognitoAuthenticationProviderWithSamlFederation step 10');
     const userPool = _.find(result.UserPools, { Name: userPoolName });
 
     let authProviderExists = false;
     if (userPool) {
+      this.log.info('##### addCognitoAuthenticationProviderWithSamlFederation step 11');
       // If pool exists, set its ID in the config so it can be updated
       cognitoAuthProviderConfig.userPoolId = userPool.Id;
 
@@ -151,7 +157,8 @@ class AddAuthProviders extends Service {
       cognitoAuthProviderConfig.userPoolDomain = userPoolDetailResult.UserPool.Domain;
 
       // Verify that the stored auth provider config also exists
-      const awsRegion = this.settings.get(settingKeys.awsRegion);
+      // const awsRegion = this.settings.get(settingKeys.awsRegion);
+      const awsRegion = 'us-east-1';
       const authProviderId = `https://cognito-idp.${awsRegion}.amazonaws.com/${userPool.Id}`;
 
       const authenticationProviderConfigService = await this.service('authenticationProviderConfigService');
@@ -163,7 +170,7 @@ class AddAuthProviders extends Service {
         cognitoAuthProviderConfig.id = authProviderId;
       }
     }
-
+    this.log.info('##### addCognitoAuthenticationProviderWithSamlFederation step 12');
     // Create or update user pool
     const action = authProviderExists
       ? authProviderConstants.provisioningAction.update
@@ -172,11 +179,13 @@ class AddAuthProviders extends Service {
     const cognitoAuthenticationProvisionerService = await this.service(
       'cognitoUserPoolAuthenticationProvisionerService',
     );
+    this.log.info('##### addCognitoAuthenticationProviderWithSamlFederation step 13');
     await cognitoAuthenticationProvisionerService.provision({
       providerTypeConfig: cognitoAuthProviderTypeConfig,
       providerConfig: cognitoAuthProviderConfig,
       action,
     });
+    this.log.info('##### addCognitoAuthenticationProviderWithSamlFederation step 14');    
   }
 
   async execute() {

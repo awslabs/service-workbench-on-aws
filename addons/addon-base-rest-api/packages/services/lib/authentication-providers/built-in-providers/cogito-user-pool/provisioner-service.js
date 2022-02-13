@@ -135,7 +135,10 @@ class ProvisionerService extends Service {
     this.log.info('Creating or configuring Cognito User Pool');
 
     const aws = await this.service('aws');
-    const cognitoIdentityServiceProvider = new aws.sdk.CognitoIdentityServiceProvider();
+    // const cognitoIdentityServiceProvider = new aws.sdk.CognitoIdentityServiceProvider();
+    var AWS_SDK = require("aws-sdk");
+    const cognitoIdentityServiceProvider = new AWS_SDK.CognitoIdentityServiceProvider({apiVersion: '2016-04-18', region: 'us-east-1'});
+
 
     const envType = this.settings.get(settingKeys.envType);
     const envName = this.settings.get(settingKeys.envName);
@@ -251,8 +254,10 @@ class ProvisionerService extends Service {
     if (!providerConfig.userPoolId) {
       throw this.boom.badRequest('Can not create Cognito User Pool Client. Missing userPoolId.', true);
     }
-    const aws = await this.service('aws');
-    const cognitoIdentityServiceProvider = new aws.sdk.CognitoIdentityServiceProvider();
+    // const aws = await this.service('aws');
+    // const cognitoIdentityServiceProvider = new aws.sdk.CognitoIdentityServiceProvider();
+    var AWS_SDK = require("aws-sdk");
+    const cognitoIdentityServiceProvider = new AWS_SDK.CognitoIdentityServiceProvider({apiVersion: '2016-04-18', region: 'us-east-1'});    
 
     function getUrls() {
       const websiteUrl = this.settings.get(settingKeys.websiteUrl);
@@ -349,7 +354,10 @@ class ProvisionerService extends Service {
       throw this.boom.badRequest('Can not update Cognito User Pool Client. Missing clientId.', true);
     }
     const aws = await this.service('aws');
-    const cognitoIdentityServiceProvider = new aws.sdk.CognitoIdentityServiceProvider();
+    // const cognitoIdentityServiceProvider = new aws.sdk.CognitoIdentityServiceProvider();
+    var AWS_SDK = require("aws-sdk");
+    const cognitoIdentityServiceProvider = new AWS_SDK.CognitoIdentityServiceProvider({apiVersion: '2016-04-18', region: 'us-east-1'});
+
 
     // At this point the cognito client should have already been created.
     const result = await cognitoIdentityServiceProvider
@@ -422,7 +430,10 @@ class ProvisionerService extends Service {
 
     this.log.info('Configuring Cognito Identity Providers');
     const aws = await this.service('aws');
-    const cognitoIdentityServiceProvider = new aws.sdk.CognitoIdentityServiceProvider();
+    // const cognitoIdentityServiceProvider = new aws.sdk.CognitoIdentityServiceProvider();
+    var AWS_SDK = require("aws-sdk");
+    const cognitoIdentityServiceProvider = new AWS_SDK.CognitoIdentityServiceProvider({apiVersion: '2016-04-18', region: 'us-east-1'});
+
 
     const idpCreationPromises = _.map(providerConfig.federatedIdentityProviders, async idp => {
       let metadata = idp.metadata;
@@ -497,7 +508,10 @@ class ProvisionerService extends Service {
     };
 
     const aws = await this.service('aws');
-    const cognitoIdentityServiceProvider = new aws.sdk.CognitoIdentityServiceProvider();
+    // const cognitoIdentityServiceProvider = new aws.sdk.CognitoIdentityServiceProvider();
+    var AWS_SDK = require("aws-sdk");
+    const cognitoIdentityServiceProvider = new AWS_SDK.CognitoIdentityServiceProvider({apiVersion: '2016-04-18', region: 'us-east-1'});
+
 
     try {
       await cognitoIdentityServiceProvider.createUserPoolDomain(params).promise();

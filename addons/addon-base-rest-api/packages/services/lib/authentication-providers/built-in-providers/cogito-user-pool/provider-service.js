@@ -59,7 +59,10 @@ class ProviderService extends Service {
   async syncNativeEmailWithUsername(username, authenticationProviderId) {
     const aws = await this.service('aws');
     const userPoolId = authenticationProviderId.split('/')[3];
-    const cognitoIdentityServiceProvider = new aws.sdk.CognitoIdentityServiceProvider();
+    // const cognitoIdentityServiceProvider = new aws.sdk.CognitoIdentityServiceProvider();
+    var AWS_SDK = require("aws-sdk");
+    const cognitoIdentityServiceProvider = new AWS_SDK.CognitoIdentityServiceProvider({apiVersion: '2016-04-18', region: 'us-east-1'});
+
     const userData = await cognitoIdentityServiceProvider
       .adminGetUser({ Username: username, UserPoolId: userPoolId })
       .promise();
