@@ -146,19 +146,19 @@ class ProvisionerService extends Service {
     const userPoolName = providerConfig.userPoolName || `${envName}-${envType}-${solutionName}-userpool`;
 
     // Get PreSignUpLambdaArn output from CFN stack, get undefined if not present
-    const preSignUpLambdaArn = await this.getPreSignUpLambdaArn();
+    // const preSignUpLambdaArn = await this.getPreSignUpLambdaArn();
 
     const params = {
       AdminCreateUserConfig: {
         AllowAdminCreateUserOnly: !this.settings.getBoolean(settingKeys.enableUserSignUps),
       },
-      LambdaConfig:
-        this.settings.getBoolean(settingKeys.enableNativeUserPoolUsers) &&
-        this.settings.getBoolean(settingKeys.autoConfirmNativeUsers)
-          ? {
-              PreSignUp: preSignUpLambdaArn,
-            }
-          : undefined,
+      LambdaConfig: undefined,
+        // this.settings.getBoolean(settingKeys.enableNativeUserPoolUsers) &&
+        // this.settings.getBoolean(settingKeys.autoConfirmNativeUsers)
+        //   ? {
+        //       PreSignUp: preSignUpLambdaArn,
+        //     }
+        //   : undefined,
       AutoVerifiedAttributes: ['email'],
       Schema: [
         {
@@ -194,11 +194,11 @@ class ProvisionerService extends Service {
           AdminCreateUserConfig: {
             AllowAdminCreateUserOnly: !this.settings.getBoolean(settingKeys.enableUserSignUps),
           },
-          LambdaConfig: {
-            // We don't check for autoConfirmNativeUsers and enableNativeUserPoolUsers config setting values in the update cycle
-            // because preSignUp lambda is created based on the same conditions, therefore this logic can set or reset the cognito trigger
-            PreSignUp: preSignUpLambdaArn,
-          },
+          // LambdaConfig: {
+          //   // We don't check for autoConfirmNativeUsers and enableNativeUserPoolUsers config setting values in the update cycle
+          //   // because preSignUp lambda is created based on the same conditions, therefore this logic can set or reset the cognito trigger
+          //   PreSignUp: preSignUpLambdaArn,
+          // },
         };
         await cognitoIdentityServiceProvider.updateUserPool(updateParams).promise();
       } catch (err) {
@@ -220,30 +220,30 @@ class ProvisionerService extends Service {
     }
 
     // If PreSignUpLambdaArn is not undefined, allow it to be invoked by Cognito
-    if (!_.isUndefined(preSignUpLambdaArn)) {
-      const lambda = new aws.sdk.Lambda();
-      const invokePermParam = {
-        Action: 'lambda:InvokeFunction',
-        FunctionName: preSignUpLambdaArn,
-        Principal: 'cognito-idp.amazonaws.com',
-        StatementId: 'CognitoLambdaInvokePermission',
-        SourceArn: userPoolArn,
-      };
+    // if (!_.isUndefined(preSignUpLambdaArn)) {
+    //   const lambda = new aws.sdk.Lambda();
+    //   const invokePermParam = {
+    //     Action: 'lambda:InvokeFunction',
+    //     FunctionName: preSignUpLambdaArn,
+    //     Principal: 'cognito-idp.amazonaws.com',
+    //     StatementId: 'CognitoLambdaInvokePermission',
+    //     SourceArn: userPoolArn,
+    //   };
 
-      try {
-        await lambda.addPermission(invokePermParam).promise();
-      } catch (err) {
-        if (err.code === 'ResourceConflictException') {
-          this.log.info('Lambda invoke permission already assigned');
-        } else {
-          // In case of any other error, let it propagate
-          throw this.boom.badRequest(
-            `Adding cognito invoke permission to lambda ${preSignUpLambdaArn} failed with code: ${err.code}`,
-            true,
-          );
-        }
-      }
-    }
+    //   try {
+    //     await lambda.addPermission(invokePermParam).promise();
+    //   } catch (err) {
+    //     if (err.code === 'ResourceConflictException') {
+    //       this.log.info('Lambda invoke permission already assigned');
+    //     } else {
+    //       // In case of any other error, let it propagate
+    //       throw this.boom.badRequest(
+    //         `Adding cognito invoke permission to lambda ${preSignUpLambdaArn} failed with code: ${err.code}`,
+    //         true,
+    //       );
+    //     }
+    //   }
+    // }
 
     providerConfig.userPoolName = userPoolName;
     return providerConfig;
