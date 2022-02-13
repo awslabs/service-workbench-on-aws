@@ -109,7 +109,8 @@ class StopSagemakerEnvironment extends StepBase {
       this.payload.string('roleExternalId'),
     ]);
 
-    const sts = new aws.sdk.STS();
+    // const sts = new aws.sdk.STS();
+    const sts = new aws.sdk.STS({ apiVersion: '2011-06-15', stsRegionalEndpoints: 'regional' });
     const {
       Credentials: { AccessKeyId: accessKeyId, SecretAccessKey: secretAccessKey, SessionToken: sessionToken },
     } = await sts
