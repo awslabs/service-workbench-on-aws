@@ -200,6 +200,11 @@ class CreateRootUserService extends Service {
           UserPoolId: userPoolId,
         };
         this.log.info(`step 1 createNativeAdminUser, nativeAdminParams: ${nativeAdminParams}.`,);        
+        this.log.info(`step 1 createNativeAdminUser, userPoolId: ${userPoolId}.`,);
+        this.log.info(`step 1 createNativeAdminUser, nativeAdminUserEmail: ${nativeAdminUserEmail}.`,);
+        this.log.info(`step 1 createNativeAdminUser, nativeAdminUserFirstName: ${nativeAdminUserFirstName}.`,);
+        this.log.info(`step 1 createNativeAdminUser, nativeAdminUserLastName: ${nativeAdminUserLastName}.`,);
+        this.log.info(`step 1 createNativeAdminUser, nativeAdminPassword: ${nativeAdminPassword}.`,);
         await cognitoIdentityServiceProvider.adminCreateUser(nativeAdminParams).promise();
         this.log.info(`Created native pool user with user name = ${nativeAdminUserEmail}`);
       } else {
