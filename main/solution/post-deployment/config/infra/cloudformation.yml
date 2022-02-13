@@ -522,6 +522,7 @@ Resources:
       Code:
         ZipFile: |
           exports.handler = (event, context, callback) => {
+          console.info("lambda start!!!");
           event.response.autoConfirmUser = true;
           // This regex check should be the same as the one in create-user email pattern
           const emailRegex = /^\w+([\.+-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/
