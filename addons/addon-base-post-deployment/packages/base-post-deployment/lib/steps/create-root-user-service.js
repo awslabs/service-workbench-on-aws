@@ -113,7 +113,7 @@ class CreateRootUserService extends Service {
     // const cognitoIdentityServiceProvider = new aws.sdk.CognitoIdentityServiceProvider();
     var AWS_SDK = require("aws-sdk");
     const cognitoIdentityServiceProvider = new AWS_SDK.CognitoIdentityServiceProvider({apiVersion: '2016-04-18', region: 'us-east-1'});
-    
+
     const result = await cognitoIdentityServiceProvider.listUserPools({ MaxResults: '60' }).promise();
     const userPoolName = `${envName}-${solutionName}-userPool`;
     const userPool = _.find(result.UserPools, { Name: userPoolName });
@@ -132,9 +132,10 @@ class CreateRootUserService extends Service {
     const userPoolId = userPool.Id;
 
     try {
+      var cognitoRegion = 'us-east-1'
       await this.createUser({
         username: nativeAdminUserEmail,
-        authenticationProviderId: `https://cognito-idp.${awsRegion}.amazonaws.com/${userPoolId}`,
+        authenticationProviderId: `https://cognito-idp.${cognitoRegion}.amazonaws.com/${userPoolId}`,
         identityProviderName: 'Cognito Native Pool',
         firstName: nativeAdminUserFirstName,
         lastName: nativeAdminUserLastName,
