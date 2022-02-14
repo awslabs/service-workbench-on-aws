@@ -81,6 +81,8 @@ class DbService extends Service {
       query: jest.fn().mockReturnValue({ table: tableFn }),
       deleter: jest.fn().mockReturnValue({ table: tableFn }),
     };
+
+    this.describeTable = jest.fn().mockReturnThis();
   }
 }
 

@@ -28,6 +28,7 @@ Resources:
                 - dynamodb:UpdateItem
                 - dynamodb:Query
                 - dynamodb:Scan
+                - dynamodb:DescribeTable
               Resource:
                 - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbStudies}'
                 - !Sub 'arn:${AWS::Partition}:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${self:custom.settings.dbStudies}/*'
