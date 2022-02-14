@@ -500,14 +500,9 @@ class ProvisionerService extends Service {
     // for the Cognito User Pool. The Conito User Pool FQDN URL is passed to SAML IdP. The SAML IdP then returns the SAML assertion
     // back by redirecting the client to this URL.
     const envType = this.settings.get(settingKeys.envType);
-    this.log.info(`step 1,  envType: ${envType} .`);
     const envName = this.settings.get(settingKeys.envName);
-    this.log.info(`step 2,  envName: ${envName} .`);
     const solutionName = this.settings.get(settingKeys.solutionName);
-    this.log.info(`step 3,  solutionName: ${solutionName} .`);
     const userPoolDomain = providerConfig.userPoolDomain || `${envName}-${envType}-${solutionName}`;
-    this.log.info(`step 5,  userPoolDomain: ${userPoolDomain} .`);
-    this.log.info(`step 4,  providerConfig.userPoolDomain: ${providerConfig.userPoolDomain} .`);
     const params = {
       Domain: userPoolDomain,
       UserPoolId: userPoolId,
@@ -517,11 +512,9 @@ class ProvisionerService extends Service {
     // const cognitoIdentityServiceProvider = new aws.sdk.CognitoIdentityServiceProvider();
     var AWS_SDK = require("aws-sdk");
     const cognitoIdentityServiceProvider = new AWS_SDK.CognitoIdentityServiceProvider({apiVersion: '2016-04-18', region: 'us-east-1'});
-    this.log.info('configureUserPoolDomain, step 5');
 
     try {
       await cognitoIdentityServiceProvider.createUserPoolDomain(params).promise();
-      this.log.info('configureUserPoolDomain, step 6');
     } catch (err) {
       if (err.code === 'InvalidParameterException' && err.message.indexOf('already exists') >= 0) {
         // The domain already exists so nothing to do. Just log and move on.
@@ -539,7 +532,6 @@ class ProvisionerService extends Service {
       }
     }
     providerConfig.userPoolDomain = userPoolDomain;
-    this.log.info('configureUserPoolDomain, step 7, providerConfig.userPoolDomain: ', providerConfig.userPoolDomain);
     return providerConfig;
   }
 
