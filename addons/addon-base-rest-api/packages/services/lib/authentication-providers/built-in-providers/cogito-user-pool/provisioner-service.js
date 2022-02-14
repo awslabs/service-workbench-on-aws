@@ -503,6 +503,8 @@ class ProvisionerService extends Service {
     const envName = this.settings.get(settingKeys.envName);
     const solutionName = this.settings.get(settingKeys.solutionName);
     const userPoolDomain = providerConfig.userPoolDomain || `${envName}-${envType}-${solutionName}`;
+    this.log.info(`step 5,  userPoolDomain: ${userPoolDomain} .`);
+    this.log.info(`step 4,  providerConfig.userPoolDomain: ${providerConfig.userPoolDomain} .`);    
     const params = {
       Domain: userPoolDomain,
       UserPoolId: userPoolId,
@@ -532,6 +534,7 @@ class ProvisionerService extends Service {
       }
     }
     providerConfig.userPoolDomain = userPoolDomain;
+    this.log.info(`step 6,  providerConfig.userPoolDomain: ${providerConfig.userPoolDomain} .`);
     return providerConfig;
   }
 
