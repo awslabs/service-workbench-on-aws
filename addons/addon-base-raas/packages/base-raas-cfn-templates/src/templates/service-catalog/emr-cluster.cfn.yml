@@ -296,7 +296,7 @@ Resources:
               - !Ref S3Mounts
         - Name: Patch-Log-4j
           ScriptBootstrapAction:
-            Path: 's3://elasticmapreduce/bootstrap-actions/log4j/patch-log4j-emr-5.27.1-v1.sh'
+            Path: !Sub '${EnvironmentInstanceFiles}/patch-log4j-emr-5.27.1-v1.sh'
       CustomAmiId:
         Ref: AmiId
       Configurations:
