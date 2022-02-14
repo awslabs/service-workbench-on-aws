@@ -217,3 +217,15 @@ isAppStreamEnabled: false
 
 # The name of the S3 bucket used to store uploaded study data
 studyDataBucketName: ${self:custom.settings.globalNamespace}-studydata
+
+# DynamoDB table name for KeyPairs
+dbKeyPairs: ${self:custom.settings.dbPrefix}-KeyPairs
+
+# DynamoDB table name for data lake users
+dbUsers: ${self:custom.settings.dbPrefix}-Users
+
+# DynamoDB table name for StudyPermissions
+dbStudyPermissions: ${self:custom.settings.dbPrefix}-StudyPermissions
+
+# DynamoDB table name for Environments created using AWS Service Catalog
+dbEnvironmentsSc: ${self:custom.settings.dbPrefix}-EnvironmentsSc

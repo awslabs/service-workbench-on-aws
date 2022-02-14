@@ -13,8 +13,6 @@
  *  permissions and limitations under the License.
  */
 
-import _ from 'lodash';
-
 import Dashboard from '../parts/dashboard/Dashboard';
 import AddAuthenticationProvider from '../parts/authentication-providers/AddAuthenticationProvider';
 import EditAuthenticationProvider from '../parts/authentication-providers/EditAuthenticationProvider';
@@ -52,12 +50,9 @@ function registerRoutes(routesMap, { location, appContext }) {
  * '/users' route for root user.
  * @returns {{search: *, state: *, hash: *, pathname: string}}
  */
-function getDefaultRouteLocation({ location, appContext }) {
-  const userStore = appContext.userStore;
-  // See https://reacttraining.com/react-router/web/api/withRouter
-  const isRootUser = _.get(userStore, 'user.isRootUser');
+function getDefaultRouteLocation({ location }) {
   const defaultLocation = {
-    pathname: isRootUser ? '/users' : '/dashboard',
+    pathname: '/dashboard',
     search: location.search, // we want to keep any query parameters
     hash: location.hash,
     state: location.state,

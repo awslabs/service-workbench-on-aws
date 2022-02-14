@@ -13,39 +13,34 @@
  *  permissions and limitations under the License.
  */
 
-const _ = require('lodash');
-const { newInvoker } = require('@aws-ee/base-api-services/lib/authentication-providers/helpers/invoker');
-const authProviderConstants = require('@aws-ee/base-api-services/lib/authentication-providers/constants')
-  .authenticationProviders;
+// const _ = require('lodash');
+// const { newInvoker } = require('@aws-ee/base-api-services/lib/authentication-providers/helpers/invoker');
 
 async function configure(context) {
   const router = context.router();
-  const wrap = context.wrap;
+  // const wrap = context.wrap;
   // const settings = context.settings;
   // const boom = context.boom;
 
-  const authenticationProviderConfigService = await context.service('authenticationProviderConfigService');
-  const invoke = newInvoker(context.service.bind(context));
+  // const authenticationProviderConfigService = await context.service('authenticationProviderConfigService');
+  // const invoke = newInvoker(context.service.bind(context));
   // ===============================================================
   //  POST / (mounted to /api/authentication/id-tokens)
   // ===============================================================
-  router.post(
-    '/',
-    wrap(async (req, res) => {
-      const { username, password, authenticationProviderId } = req.body;
+  // router.post(
+  //   '/',
+  //   wrap(async (req, res) => {
+  //     const { username, password, authenticationProviderId } = req.body;
 
-      // If no authentication provider id is specified in the request then assume this to be authenticated by the
-      // internal authentication provider
-      const authenticationProviderIdToUse = authenticationProviderId || authProviderConstants.internalAuthProviderId;
-
-      const authProviderConfig = await authenticationProviderConfigService.getAuthenticationProviderConfig(
-        authenticationProviderIdToUse,
-      );
-      const tokenIssuerLocator = _.get(authProviderConfig, 'config.type.config.impl.tokenIssuerLocator');
-      const idToken = await invoke(tokenIssuerLocator, { username, password }, authProviderConfig);
-      res.status(200).json({ idToken });
-    }),
-  );
+  //     const authProviderConfig = await authenticationProviderConfigService.getAuthenticationProviderConfig(
+  //       authenticationProviderId,
+  //     );
+  //     // Provider type is pulled from DDB and then the auth service is invoked
+  //     const tokenIssuerLocator = _.get(authProviderConfig, 'config.type.config.impl.tokenIssuerLocator');
+  //     const idToken = await invoke(tokenIssuerLocator, { username, password }, authProviderConfig);
+  //     res.status(200).json({ idToken });
+  //   }),
+  // );
 
   return router;
 }

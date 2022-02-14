@@ -1294,4 +1294,103 @@ describe('studyService', () => {
       expect(retVal).toEqual(false);
     });
   });
+
+  describe('updatePermissions', () => {
+    it('should throw error if My Study but not migration request', async () => {
+      // BUILD
+      const studyId = 'sampleMyStudy';
+      const updateRequest = {
+        usersToAdd: [
+          {
+            uid: 'u-1',
+            permissionLevel: 'admin',
+          },
+        ],
+        usersToRemove: [
+          {
+            uid: 'u-2',
+            permissionLevel: 'admin',
+          },
+        ],
+      };
+      const studyEntity = { id: studyId, category: 'My Studies' };
+      const requestContext = { sampleMyStudy: studyEntity };
+      service.find = jest.fn(() => {
+        return studyEntity;
+      });
+
+      // UPDATE n CHECK
+      await expect(service.updatePermissions(requestContext, studyId, updateRequest)).rejects.toThrow(
+        'Permissions cannot be set for studies in the "My Studies" category',
+      );
+    });
+
+    it('should call update if My Study and migration request', async () => {
+      // BUILD
+      const studyId = 'sampleMyStudy';
+      const updateRequest = {
+        usersToAdd: [
+          {
+            uid: 'u-1',
+            permissionLevel: 'admin',
+          },
+        ],
+        usersToRemove: [
+          {
+            uid: '*',
+            permissionLevel: 'admin',
+          },
+        ],
+      };
+      const studyEntity = { id: studyId, category: 'My Studies' };
+      const requestContext = { sampleMyStudy: studyEntity, isMigration: true };
+      service.find = jest.fn(() => {
+        return studyEntity;
+      });
+      studyPermissionService.update = jest.fn().mockImplementationOnce(() => {
+        return {};
+      });
+
+      // UPDATE
+      await service.updatePermissions(requestContext, studyId, updateRequest);
+
+      // CHECK
+      expect(studyPermissionService.update).toHaveBeenCalledTimes(1);
+      expect(studyPermissionService.update).toHaveBeenCalledWith(requestContext, studyEntity, updateRequest);
+    });
+  });
+
+  describe('isStudyAdmin', () => {
+    it('should return true when user is study admin', async () => {
+      // BUILD
+      const requestContext = 'dummyRequestContext';
+      const uid = 'sample-user';
+      const studyId = 'sample-study';
+      service.getStudyPermissions = jest.fn().mockImplementationOnce(() => {
+        return { permissions: { adminUsers: [uid] } };
+      });
+
+      // OPERATE
+      const result = await service.isStudyAdmin(requestContext, studyId, uid);
+
+      // CHECK
+      expect(result).toBeTruthy();
+    });
+
+    it('should return false when user is not study admin', async () => {
+      // BUILD
+      const requestContext = 'dummyRequestContext';
+      const uid = 'sample-user';
+      const studyId = 'sample-study';
+      service.getStudyPermissions = jest.fn().mockImplementationOnce(() => {
+        return { permissions: { adminUsers: ['some-other-user'] } };
+      });
+
+      // OPERATE
+      const result = await service.isStudyAdmin(requestContext, studyId, uid);
+
+      // CHECK
+      expect(result).toBeFalsy();
+    });
+  });
 });

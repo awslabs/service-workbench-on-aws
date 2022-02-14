@@ -20,7 +20,6 @@ import { decorate, observable, runInAction, action } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import ReactTable from 'react-table';
 import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import { displayWarning } from '@aws-ee/base-ui/dist/helpers/notification';
 import { isStoreError, isStoreLoading, isStoreReady } from '@aws-ee/base-ui/dist/models/BaseStore';
 import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
 import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
@@ -31,7 +30,6 @@ import UpdateUser from './UpdateUser';
 class UsersList extends React.Component {
   constructor(props) {
     super(props);
-    this.notifyNonRootUsers = true;
     this.state = {
       // eslint-disable-next-line react/no-unused-state
       selectedRole: '',
@@ -78,10 +76,6 @@ class UsersList extends React.Component {
     this.goto('/users/add');
   };
 
-  handleAddLocalUser = () => {
-    this.goto('/users/add/local');
-  };
-
   handleAddAuthenticationProvider = () => {
     this.goto('/authentication-providers');
   };
@@ -101,10 +95,6 @@ class UsersList extends React.Component {
             {this.renderTotal()}
           </Header.Content>
         </Header>
-        <Button color="blue" size="medium" className="mr2" basic onClick={this.handleAddLocalUser}>
-          {' '}
-          Add Local User{' '}
-        </Button>
         <Button color="blue" size="medium" basic onClick={this.handleAddUser}>
           {' '}
           Add Federated User{' '}
@@ -116,8 +106,8 @@ class UsersList extends React.Component {
   renderTotal() {
     const store = this.getStore();
     if (isStoreError(store) || isStoreLoading(store)) return null;
-    const nonRootUsers = store.nonRootUsers;
-    const count = nonRootUsers.length;
+    const usersList = store.list;
+    const count = usersList.length;
 
     return <Label circular>{count}</Label>;
   }
@@ -295,14 +285,6 @@ class UsersList extends React.Component {
     } else if (isStoreLoading(store)) {
       content = <BasicProgressPlaceholder segmentCount={3} />;
     } else if (isStoreReady(store)) {
-      if (!store.hasNonRootUsers) {
-        if (this.notifyNonRootUsers) {
-          this.notifyNonRootUsers = false;
-          displayWarning(
-            'Please add users in the Data Lake. May need to configure authentication provider in the Auth tab at left. Then login as a regular non-root User.',
-          );
-        }
-      }
       content = this.renderMain();
     }
 
