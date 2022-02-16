@@ -527,7 +527,7 @@ class ProvisionerService extends Service {
         // Cognito user pool domain prefix hard limit is 63, we keep it at less then 62 so the retry logic has a decent chance to succeed
         userPoolDomain.length < 62
       ) {
-        await this.retryCreateDomain(cognitoIdentityServiceProvider, params, userPoolDomain, 10);
+        providerConfig.userPoolDomain = await this.retryCreateDomain(cognitoIdentityServiceProvider, params, userPoolDomain, 10);
       } else {
         // Re-throw any other error, so it doesn't fail silently
         throw err;
@@ -547,6 +547,7 @@ class ProvisionerService extends Service {
       .toLowerCase();
     try {
       await cognitoIdentityServiceProvider.createUserPoolDomain(params).promise();
+      return params.Domain;
     } catch (err) {
       retryCount -= 1;
       if (retryCount < 0) {
@@ -555,7 +556,7 @@ class ProvisionerService extends Service {
         err.code === 'InvalidParameterException' &&
         err.message.indexOf('already associated with another user pool') >= 0
       ) {
-        await this.retryCreateDomain(cognitoIdentityServiceProvider, params, userPoolDomain, retryCount);
+        return await this.retryCreateDomain(cognitoIdentityServiceProvider, params, userPoolDomain, retryCount);
       } else {
         throw err;
       }
