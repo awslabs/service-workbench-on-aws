@@ -25,7 +25,7 @@
   "devDependencies": {
     "amazon-cognito-identity-js": "^5.2.4",
     "clipboardy": "^2.3.0",
-    "cypress": "^4.12.1",
+    "cypress": "^9.5.0",
     "eslint": "^6.8.0",
     "eslint-config-airbnb": "^18.0.1",
     "eslint-config-airbnb-base": "^14.0.0",
