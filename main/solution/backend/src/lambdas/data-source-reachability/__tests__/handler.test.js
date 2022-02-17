@@ -81,7 +81,7 @@ describe('handler', () => {
         authenticated: true,
         principal: {
           isAdmin: true,
-          ns: 'internal',
+          ns: '_system_',
           status: 'active',
           uid: '_system_',
           userRole: 'admin',
@@ -99,7 +99,7 @@ describe('handler', () => {
         authenticated: true,
         principal: {
           isAdmin: true,
-          ns: 'internal',
+          ns: '_system_',
           status: 'active',
           uid: '_system_',
           userRole: 'admin',
@@ -119,7 +119,7 @@ describe('handler', () => {
         authenticated: true,
         principal: {
           isAdmin: true,
-          ns: 'internal',
+          ns: '_system_',
           status: 'active',
           uid: '_system_',
           userRole: 'admin',
@@ -137,7 +137,7 @@ describe('handler', () => {
         authenticated: true,
         principal: {
           isAdmin: true,
-          ns: 'internal',
+          ns: '_system_',
           status: 'active',
           uid: '_system_',
           userRole: 'admin',
@@ -155,7 +155,7 @@ describe('handler', () => {
         authenticated: true,
         principal: {
           isAdmin: true,
-          ns: 'internal',
+          ns: '_system_',
           status: 'active',
           uid: '_system_',
           userRole: 'admin',
@@ -173,7 +173,7 @@ describe('handler', () => {
         authenticated: true,
         principal: {
           isAdmin: true,
-          ns: 'internal',
+          ns: '_system_',
           status: 'active',
           uid: '_system_',
           userRole: 'admin',
@@ -210,7 +210,7 @@ describe('handler', () => {
         authenticated: true,
         principal: {
           isAdmin: true,
-          ns: 'internal',
+          ns: '_system_',
           status: 'active',
           uid: '_system_',
           userRole: 'admin',
@@ -228,7 +228,7 @@ describe('handler', () => {
         authenticated: true,
         principal: {
           isAdmin: true,
-          ns: 'internal',
+          ns: '_system_',
           status: 'active',
           uid: '_system_',
           userRole: 'admin',

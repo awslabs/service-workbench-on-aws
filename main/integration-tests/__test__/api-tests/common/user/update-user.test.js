@@ -30,7 +30,7 @@ describe('Update current user scenarios', () => {
   describe('updating current user', () => {
     it('should fail for anonymous user', async () => {
       const anonymousSession = await setup.createAnonymousSession();
-      await expect(anonymousSession.resources.currentUser.update({ rev: 0 })).rejects.toMatchObject({
+      await expect(anonymousSession.resources.currentUser.update({ rev: 1 })).rejects.toMatchObject({
         code: errorCode.http.code.badImplementation,
       });
     });
@@ -41,7 +41,7 @@ describe('Update current user scenarios', () => {
       const researcher2Info = await researcher2Session.resources.currentUser.get();
       const researcher1Info = await researcher1Session.resources.currentUser.get();
       await expect(
-        researcher1Session.resources.currentUser.update({ uid: researcher2Info.uid, rev: 0, status: 'pending' }),
+        researcher1Session.resources.currentUser.update({ uid: researcher2Info.uid, rev: 1, status: 'pending' }),
       ).resolves.toEqual(expect.objectContaining({ uid: researcher1Info.uid }));
     });
 
@@ -49,7 +49,7 @@ describe('Update current user scenarios', () => {
       'should fail if non-admin user update restrictive field %a',
       async a => {
         const researcherSession = await setup.createResearcherSession();
-        await expect(researcherSession.resources.currentUser.update({ rev: 0, ...a })).rejects.toMatchObject({
+        await expect(researcherSession.resources.currentUser.update({ rev: 1, ...a })).rejects.toMatchObject({
           code: errorCode.http.code.forbidden,
         });
       },
@@ -57,14 +57,14 @@ describe('Update current user scenarios', () => {
 
     it('should not allow admin elevate to root', async () => {
       const admin2Session = await setup.createAdminSession();
-      await expect(admin2Session.resources.currentUser.update({ rev: 0, userRole: 'root' })).rejects.toMatchObject({
+      await expect(admin2Session.resources.currentUser.update({ rev: 1, userRole: 'root' })).rejects.toMatchObject({
         code: errorCode.http.code.notFound,
       });
     });
 
     it('should not allow inactive user to become active', async () => {
       const researcherSession = await setup.createResearcherSession();
-      await researcherSession.resources.currentUser.update({ rev: 0, status: 'inactive' });
+      await researcherSession.resources.currentUser.update({ rev: 1, status: 'inactive' });
       await expect(researcherSession.resources.currentUser.update({ rev: 1, status: 'active' })).rejects.toMatchObject({
         code: errorCode.http.code.forbidden,
       });
@@ -73,9 +73,9 @@ describe('Update current user scenarios', () => {
     // Note: This use-case is for federated user self-registration
     it('should allow inactive user to become pending', async () => {
       const researcherSession = await setup.createResearcherSession();
-      await researcherSession.resources.currentUser.update({ rev: 0, status: 'inactive' });
+      await researcherSession.resources.currentUser.update({ rev: 1, status: 'inactive' });
       await expect(
-        researcherSession.resources.currentUser.update({ rev: 1, status: 'pending' }),
+        researcherSession.resources.currentUser.update({ rev: 2, status: 'pending' }),
       ).resolves.toMatchObject({
         status: 'pending',
       });
@@ -84,11 +84,11 @@ describe('Update current user scenarios', () => {
     it('should update successfully', async () => {
       const researcherSession = await setup.createResearcherSession();
       await expect(
-        researcherSession.resources.currentUser.update({ rev: 0, firstName: 'John', lastName: 'Snow' }),
+        researcherSession.resources.currentUser.update({ rev: 1, firstName: 'John', lastName: 'Snow' }),
       ).resolves.toMatchObject({
         firstName: 'John',
         lastName: 'Snow',
-        rev: 1,
+        rev: 2,
       });
     });
   });

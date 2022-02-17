@@ -99,31 +99,6 @@ paths:
       responses:
         '200':
           description: Array of authN provider configs
-  /api/authentication/id-tokens/:
-    post:
-      tags:
-        - public
-        - authN
-      summary: Log in
-      operationId: LogIn
-      description: |
-        Log In
-      parameters:
-        - in: query
-          name: redirect_uri
-          schema:
-            type: string
-            description: 'uri to redirect to after success login'
-          required: true
-      requestBody:
-        description: Log in information
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/LogInRequest'
-      responses:
-        '200':
-          description: Success log in message
   /api/authentication/logout:
     post:
       tags:
@@ -257,30 +232,6 @@ paths:
       responses:
         '200':
           description: User updated
-  /api/users/{userId}/password:
-    put:
-      tags:
-        - admins
-        - User
-      summary: Update user password
-      operationId: UpdateUserPassword
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            $ref: '#/components/schemas/UserId'
-      requestBody:
-        description: password of the user
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UpdateUserPasswordRequest'
-      description: |
-        Update a user
-      responses:
-        '200':
-          description: User password updated
   /api/user:
     get:
       tags:
@@ -2147,6 +2098,34 @@ paths:
       responses:
         '200':
           description: 'Return success update message'
+  /api/migrate/my-studies:
+    put:
+      tags:
+        - migrate
+        - admins
+        - adminOnly
+      summary: migrate My Study(s) to new user(s)
+      operationId: migrateMyStudyPermissions
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MigrationMappings'
+      responses:
+        '200':
+          description: 'Return updated My Study permissions'
+    get:
+      tags:
+        - migrate
+        - admins
+        - list
+        - My Study
+      summary: list My Study(s) in environment
+      operationId: listMyStudies
+      responses:
+        '200':
+          description: 'Return My Study(s) owned by internal auth users that need migration. Empty list means nothing to migrate.'
   
 components:
   securitySchemes:
@@ -3592,5 +3571,14 @@ components:
               description: thresholds and notification depend on each other
           additionalProperties: false
       additionalProperties: false
+    MigrationMappings:
+      type: array
+      items:
+        type: object
+        properties:
+          studyId:
+            $ref: '#/components/schemas/StudyId'
+          uid:
+            $ref: '#/components/schemas/UserId'
 security:
   - bearerAuth: []

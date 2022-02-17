@@ -17,7 +17,7 @@ async function configure(context) {
   const router = context.router();
   const wrap = context.wrap;
   // const boom = context.boom;
-  const [userService, dbPasswordService] = await context.service(['userService', 'dbPasswordService']);
+  const [userService] = await context.service(['userService']);
 
   // ===============================================================
   //  GET / (mounted to /api/users)
@@ -71,23 +71,6 @@ async function configure(context) {
         uid,
       });
       res.status(200).json(user);
-    }),
-  );
-
-  // ===============================================================
-  //  PUT /:username/password (mounted to /api/users)
-  //  In this case it is relevant to identify user by username/authProvider
-  // ===============================================================
-  router.put(
-    '/:username/password',
-    wrap(async (req, res) => {
-      const requestContext = res.locals.requestContext;
-      const username = req.params.username;
-      const { password } = req.body;
-
-      // Save password salted hash for the user in internal auth provider (i.e., in passwords table)
-      await dbPasswordService.savePassword(requestContext, { username, password });
-      res.status(200).json({ username, message: `Password successfully updated for user ${username}` });
     }),
   );
 

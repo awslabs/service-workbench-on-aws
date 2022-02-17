@@ -36,6 +36,7 @@ const ipController = require('../controllers/ip-controller');
 const budgetsController = require('../controllers/budgets-controller');
 const dataSourceController = require('../controllers/data-source-controller');
 const dataEgressController = require('../controllers/data-egress-controller');
+const migrationController = require('../controllers/migration-controller');
 
 /**
  * Adds routes to the given routesMap.
@@ -86,6 +87,7 @@ async function getRoutes(routesMap, pluginRegistry) {
     ['/api/accounts', [setupAuthContext, prepareContext, ensureActive, ensureAdmin, accountsController]],
     ['/api/budgets', [setupAuthContext, prepareContext, ensureActive, ensureAdmin, budgetsController]],
     ['/api/data-sources', [setupAuthContext, prepareContext, ensureActive, ensureAdmin, dataSourceController]],
+    ['/api/migrate', [setupAuthContext, prepareContext, ensureActive, ensureAdmin, migrationController]],
   ]);
   return routes;
 }
