@@ -57,3 +57,24 @@ Download the latest source code by using [this link](https://github.com/awslabs/
 `curl -o serviceworkbench.zip <URL>`
 
 **Note**: Setting the configuration is required. If you are deploying an installation, you can use the default configuration.
+
+### Supported regions
+
+The following regions support all the AWS services and features needed to run Service Workbench:
++ US East (Ohio)
++ US East (N. Virginia)
++ US West (N. California)
++ US West (Oregon)
++ Asia Pacific (Mumbai)
++ Asia Pacific (Seoul)
++ Asia Pacific (Singapore)
++ Asia Pacific (Sydney)
++ Asia Pacific (Tokyo)
++ Canada (Central)
++ Europe (Frankfurt)
++ Europe (Ireland)
++ Europe (London)
++ Europe (Paris)
++ Europe (Stockholm)
++ South America (São Paulo)
+
