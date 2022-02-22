@@ -21,7 +21,6 @@ import { Header, Divider, List, Checkbox, Form, Icon, TextArea, Message, Button,
 import TimeAgo from 'react-timeago';
 
 import YesNo from '@aws-ee/base-ui/dist/parts/helpers/fields/YesNo';
-import SelectionButtons from '@aws-ee/base-ui/dist/parts/helpers/fields/SelectionButtons';
 import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
 import { isAppStreamEnabled } from '../../helpers/settings';
 import CopyToClipboard from '../helpers/CopyToClipboard';
@@ -147,8 +146,6 @@ class AwsAccountUpdateContent extends React.Component {
 
   renderMain() {
     const { accountId } = this.account;
-    const form = this.form;
-    const field = form.$('managed');
 
     return (
       <>
