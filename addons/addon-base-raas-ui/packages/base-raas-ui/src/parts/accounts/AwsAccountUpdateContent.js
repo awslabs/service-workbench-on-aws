@@ -402,36 +402,6 @@ class AwsAccountUpdateContent extends React.Component {
     );
   }
 
-  renderEmailTemplate(update = false) {
-    const account = this.account;
-    const stackInfo = this.stackInfo;
-    const textSize = this.textSize;
-    const emailTemplate = update ? account.updateStackEmailTemplate : account.createStackEmailTemplate;
-    return (
-      <div className="animated fadeIn">
-        <List ordered size={textSize}>
-          <List.Item>You can use the following email template to send an email to the admin of the account.</List.Item>
-          <Form className="mb3">
-            <div className="flex justify-between">
-              <Header as="h4" className="mb2 mt2">
-                Email Template
-              </Header>
-              <div className="mt2 mr4">{this.renderExpires(stackInfo)}</div>
-            </div>
-            <div className="mb2 flex">
-              <div className="flex-auto">
-                <TextArea value={emailTemplate} rows={20} />
-              </div>
-              <div className="mt1 p0">
-                <CopyToClipboard text={emailTemplate} />
-              </div>
-            </div>
-          </Form>
-        </List>
-      </div>
-    );
-  }
-
   renderExpires(stackInfo) {
     const { urlExpiry, expired } = stackInfo;
 
