@@ -163,6 +163,7 @@ describe('UserService', () => {
       'email@domain.name',
       'email@domain.co.jp',
       'firstname-lastname@domain.com',
+      'firstname-lastname@domain.aridiculouslylongtldfortesting',
     ];
     it.each(validEmails)('should pass when creating users with valid email: %p', async email => {
       // BUILD
@@ -202,6 +203,7 @@ describe('UserService', () => {
       'email@domain', // Missing top level domain (.com/.net/.org/etc)
       'email@-domain.com', // Leading dash in front of domain is invalid
       'email@domain..com', // Multiple dot in the domain portion is invalid
+      'firstname-lastname@domain.12345678901234567890123456789012345678901234567890123456789012345678901234567890abittoolongtld',
     ];
     it.each(invalidEmails)('should fail when creating users with invalid email: %p', async email => {
       // BUILD

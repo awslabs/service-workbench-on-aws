@@ -112,19 +112,11 @@ class TerminateProduct extends StepBase {
     const targetScClient = await this.getScClientForTargetAccount();
     const { RecordDetail: recordDetail } = await targetScClient.describeRecord({ Id: recordId }).promise();
 
-    const toErrorMessage = recordErrors =>
-      _.join(
-        _.map(recordErrors, e => `[${e.Code}] - ${e.Description}`),
-        ', ',
-      );
-
     if (_.includes(failureStatuses, recordDetail.Status)) {
       // If terminating failed then throw error, any unhandled workflow errors
       // are handled in "onFail" method
       throw new Error(
-        `Error terminating environment ${envName} with id ${envId}. Reason: ${toErrorMessage(
-          recordDetail.RecordErrors,
-        )}`,
+        `Error terminating environment ${envName} with id ${envId}. Please navigate to the environment's CloudFormation stack in the hosting account for error details`,
       );
     }
 
