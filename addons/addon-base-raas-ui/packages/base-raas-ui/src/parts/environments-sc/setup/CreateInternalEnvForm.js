@@ -16,7 +16,7 @@ import _ from 'lodash';
 import React from 'react';
 import { decorate, computed, runInAction, observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import { Segment, Button, Header, Icon } from 'semantic-ui-react';
+import { Segment, Button, Header, Icon, Message } from 'semantic-ui-react';
 import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
 import Dropdown from '@aws-ee/base-ui/dist/parts/helpers/fields/DropDown';
 import Form from '@aws-ee/base-ui/dist/parts/helpers/fields/Form';
@@ -164,6 +164,7 @@ class CreateInternalEnvForm extends React.Component {
     const form = this.form;
     const askForCidr = !_.isUndefined(this.props.defaultCidr) && !this.isAppStreamEnabled;
     const configurations = this.configurations;
+    const field = form.$('cidr');
 
     // we show the AppStream configuration warning when the feature is enabled,
     // and the user's projects are not linked to AppStream-configured accounts
@@ -175,10 +176,19 @@ class CreateInternalEnvForm extends React.Component {
     return (
       <Segment clearing className="p3 mb3">
         <Form form={form} onCancel={this.handlePrevious} onSuccess={this.handleNext}>
-          {({ processing, /* onSubmit, */ onCancel }) => (
+          {({ processing, onCancel }) => (
             <>
               <Input dataTestId="workspace-name" field={form.$('name')} />
-              {askForCidr && <Input field={form.$('cidr')} />}
+              {askForCidr && <Input field={field} />}
+              {askForCidr && !_.isEmpty(field.value) && field.value.split('/')[1] <= 16 && (
+                <Message
+                  className="mb4"
+                  icon="warning"
+                  header="Wide CIDR block detected"
+                  content="One or more CIDR blocks entered might be too wide and could allow workspace access to a vast number of IP ranges. 
+                  Please proceed only after you ensure this is intended."
+                />
+              )}
               <Dropdown dataTestId="project-id" field={form.$('projectId')} fluid selection />
               <SelectConfigurationCards configurations={configurations} formField={form.$('envTypeConfigId')} />
               <TextArea dataTestId="description-text-area" field={form.$('description')} />
