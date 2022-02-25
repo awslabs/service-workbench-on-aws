@@ -117,6 +117,10 @@ const RegisterStudyWizard = types
       }
     },
 
+    goToInputStep: () => {
+      self.step = 'input';
+    },
+
     cleanup: () => {
       self.step = 'start';
       if (self.operations) self.operations.clear();

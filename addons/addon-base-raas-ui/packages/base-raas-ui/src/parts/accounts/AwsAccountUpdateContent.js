@@ -21,22 +21,10 @@ import { Header, Divider, List, Checkbox, Form, Icon, TextArea, Message, Button,
 import TimeAgo from 'react-timeago';
 
 import YesNo from '@aws-ee/base-ui/dist/parts/helpers/fields/YesNo';
-import SelectionButtons from '@aws-ee/base-ui/dist/parts/helpers/fields/SelectionButtons';
 import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
 import { isAppStreamEnabled } from '../../helpers/settings';
 import CopyToClipboard from '../helpers/CopyToClipboard';
 import { createForm } from '../../helpers/form';
-
-const adminOptions = [
-  {
-    text: 'I have admin access',
-    value: 'admin',
-  },
-  {
-    text: 'I do not have admin access',
-    value: 'notAdmin',
-  },
-];
 
 // Example: http://localhost:3000/aws-accounts/onboard/39ef39d0-ba3e-11eb-8d52-c973518136fb
 
@@ -158,8 +146,6 @@ class AwsAccountUpdateContent extends React.Component {
 
   renderMain() {
     const { accountId } = this.account;
-    const form = this.form;
-    const field = form.$('managed');
 
     return (
       <>
@@ -170,7 +156,6 @@ class AwsAccountUpdateContent extends React.Component {
             <Header as="h4" className="mb0 mt1 flex-auto">
               AWS Account # {accountId}
             </Header>
-            <SelectionButtons field={field} options={adminOptions} show="buttonsOnly" className="mb0" />
           </div>
           <Divider />
         </div>
@@ -215,13 +200,12 @@ class AwsAccountUpdateContent extends React.Component {
     const { hasUpdateStackUrl } = stackInfo;
     const field = form.$('createOrUpdate');
     const isUpdateStep = field.value === 'update';
-    const hasAdminAccess = form.$('managed').value === 'admin';
 
-    return { isUpdateStep, hasAdminAccess, hasUpdateStackUrl, field };
+    return { isUpdateStep, hasUpdateStackUrl, field };
   }
 
   renderSteps() {
-    const { isUpdateStep, hasAdminAccess, hasUpdateStackUrl, field } = this.getStep();
+    const { isUpdateStep, hasUpdateStackUrl, field } = this.getStep();
 
     return (
       <>
@@ -231,9 +215,8 @@ class AwsAccountUpdateContent extends React.Component {
           </Header>
           {hasUpdateStackUrl && <YesNo field={field} className="mb0 mt0" />}
         </div>
-        {!isUpdateStep && hasAdminAccess && this.renderCreateSteps()}
-        {isUpdateStep && hasAdminAccess && this.renderUpdateSteps()}
-        {!hasAdminAccess && this.renderEmailTemplate(isUpdateStep)}
+        {!isUpdateStep && this.renderCreateSteps()}
+        {isUpdateStep && this.renderUpdateSteps()}
       </>
     );
   }
@@ -411,36 +394,6 @@ class AwsAccountUpdateContent extends React.Component {
             account status in SWB. During this time, it is safe to navigate away from this page and/or leave SWB. You
             can check the status of your account at any time in the AWS Accounts list page.
           </List.Item>
-        </List>
-      </div>
-    );
-  }
-
-  renderEmailTemplate(update = false) {
-    const account = this.account;
-    const stackInfo = this.stackInfo;
-    const textSize = this.textSize;
-    const emailTemplate = update ? account.updateStackEmailTemplate : account.createStackEmailTemplate;
-    return (
-      <div className="animated fadeIn">
-        <List ordered size={textSize}>
-          <List.Item>You can use the following email template to send an email to the admin of the account.</List.Item>
-          <Form className="mb3">
-            <div className="flex justify-between">
-              <Header as="h4" className="mb2 mt2">
-                Email Template
-              </Header>
-              <div className="mt2 mr4">{this.renderExpires(stackInfo)}</div>
-            </div>
-            <div className="mb2 flex">
-              <div className="flex-auto">
-                <TextArea value={emailTemplate} rows={20} />
-              </div>
-              <div className="mt1 p0">
-                <CopyToClipboard text={emailTemplate} />
-              </div>
-            </div>
-          </Form>
         </List>
       </div>
     );
