@@ -164,7 +164,7 @@ class CreateInternalEnvForm extends React.Component {
     const form = this.form;
     const askForCidr = !_.isUndefined(this.props.defaultCidr) && !this.isAppStreamEnabled;
     const configurations = this.configurations;
-    const field = form.$('cidr');
+    const field = !this.isAppStreamEnabled ? form.$('cidr') : undefined;
 
     // we show the AppStream configuration warning when the feature is enabled,
     // and the user's projects are not linked to AppStream-configured accounts
