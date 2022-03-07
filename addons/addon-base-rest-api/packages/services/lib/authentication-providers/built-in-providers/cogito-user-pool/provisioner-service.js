@@ -100,7 +100,7 @@ class ProvisionerService extends Service {
     providerConfigWithOutputs.id = `https://cognito-idp.${awsRegion}.amazonaws.com/${providerConfigWithOutputs.userPoolId}`;
 
     const baseAuthUri = `https://${userPoolDomain}.auth.${awsRegion}.amazoncognito.com`;
-    providerConfigWithOutputs.signInUri = `${baseAuthUri}/oauth2/authorize?response_type=token&client_id=${clientId}&redirect_uri=${websiteUrl}`;
+    providerConfigWithOutputs.signInUri = `${baseAuthUri}/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${websiteUrl}`;
     providerConfigWithOutputs.signOutUri = `${baseAuthUri}/logout?client_id=${clientId}&logout_uri=${websiteUrl}`;
 
     this.log.info('Saving Cognito User Pool Authentication Provider Configuration.');
@@ -301,7 +301,7 @@ class ProvisionerService extends Service {
       const params = {
         ClientName: clientName,
         UserPoolId: providerConfig.userPoolId,
-        AllowedOAuthFlows: ['implicit'],
+        AllowedOAuthFlows: ['code'], // update app client's auth flow to use authorization code grant for new installs
         AllowedOAuthFlowsUserPoolClient: true,
         AllowedOAuthScopes: ['email', 'openid', 'profile'],
         CallbackURLs: callbackUrls,
@@ -383,7 +383,7 @@ class ProvisionerService extends Service {
     const params = {
       ClientId: existingClientConfig.ClientId,
       UserPoolId: existingClientConfig.UserPoolId,
-      AllowedOAuthFlows: existingClientConfig.AllowedOAuthFlows,
+      AllowedOAuthFlows: ['code'], // update app client's auth flow to use authorization code grant instead of implicit (legacy)
       AllowedOAuthFlowsUserPoolClient: existingClientConfig.AllowedOAuthFlowsUserPoolClient,
       AllowedOAuthScopes: existingClientConfig.AllowedOAuthScopes,
       CallbackURLs: existingClientConfig.CallbackURLs,
