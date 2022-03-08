@@ -162,9 +162,9 @@ class CreateInternalEnvForm extends React.Component {
 
   renderForm() {
     const form = this.form;
-    const askForCidr = !_.isUndefined(this.props.defaultCidr) && !this.isAppStreamEnabled;
+    const shouldAskforCidr = !_.isUndefined(this.props.defaultCidr) && !this.isAppStreamEnabled;
     const configurations = this.configurations;
-    const field = form.$('cidr');
+    const cidrField = shouldAskforCidr ? form.$('cidr') : undefined;
 
     // we show the AppStream configuration warning when the feature is enabled,
     // and the user's projects are not linked to AppStream-configured accounts
@@ -179,8 +179,8 @@ class CreateInternalEnvForm extends React.Component {
           {({ processing, onCancel }) => (
             <>
               <Input dataTestId="workspace-name" field={form.$('name')} />
-              {askForCidr && <Input field={field} />}
-              {askForCidr && !_.isEmpty(field.value) && field.value.split('/')[1] <= 16 && (
+              {shouldAskforCidr && <Input field={cidrField} />}
+              {shouldAskforCidr && !_.isEmpty(cidrField.value) && cidrField.value.split('/')[1] <= 16 && (
                 <Message
                   className="mb4"
                   icon="warning"
