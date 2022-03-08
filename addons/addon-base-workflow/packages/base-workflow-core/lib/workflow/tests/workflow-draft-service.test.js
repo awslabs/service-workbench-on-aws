@@ -8,7 +8,6 @@ const WorkflowTemplateService = require('../workflow-template-service');
 const WorkflowDraftService = require('../workflow-draft-service');
 const WorkflowService = require('../workflow-service');
 
-// jest.mock('@aws-ee/base-workflow-core/workflow-draft-service');
 jest.mock('../step/step-template-service');
 jest.mock('@aws-ee/base-services/lib/audit/audit-writer-service');
 jest.mock('@aws-ee/base-services/lib/db-service');

@@ -20,70 +20,6 @@
 
 const _ = require('lodash');
 
-const inputManifestForCreate = {
-  sections: [
-    {
-      title: 'General Information',
-      children: [
-        {
-          name: 'id',
-          type: 'stringInput',
-          title: 'ID',
-          rules: 'required|string|between:2,64|regex:/^[a-zA-Z][a-zA-Z0-9_-]+$/',
-          desc:
-            'This is a required field. This is used for uniquely identifying the authentication provider. It must be between 2 to 64 characters long and must start with an alphabet and may contain alpha numeric characters, underscores, and dashes. No other special symbols are allowed.',
-        },
-        {
-          name: 'title',
-          type: 'stringInput',
-          title: 'Title',
-          rules: 'required|between:3,255',
-          desc: 'This is a required field and must be between 3 and 255 characters long.',
-        },
-        {
-          name: 'signInUri',
-          type: 'stringInput',
-          title: 'Sign In URI',
-          rules: 'required|between:3,255',
-          desc: 'The Sign In URI that accepts username/password for signing in.',
-        },
-        {
-          name: 'signOutUri',
-          type: 'stringInput',
-          title: 'Sign Out URI',
-          rules: 'required|between:3,255',
-          desc: 'The Sign Out URI to log out user.',
-        },
-      ],
-    },
-  ],
-};
-
-const inputManifestForUpdate = {
-  sections: [
-    {
-      title: 'General Information',
-      children: [
-        {
-          name: 'id',
-          type: 'stringInput',
-          title: 'ID',
-          rules: 'required|string|between:2,64|regex:/^[a-zA-Z][a-zA-Z0-9_-]+$/',
-          desc:
-            'This is a required field. This is used for uniquely identifying the authentication provider. It must be between 2 to 64 characters long and must start with an alphabet and may contain alpha numeric characters, underscores, and dashes. No other special symbols are allowed.',
-        },
-        {
-          name: 'title',
-          type: 'stringInput',
-          title: 'Title',
-          rules: 'required|between:3,255',
-          desc: 'This is a required field and must be between 3 and 255 characters long.',
-        },
-      ],
-    },
-  ],
-};
-
 const inputManifestForCreateCognito = {
   sections: [
     {
@@ -325,48 +261,6 @@ const cognitoType = {
 
 const configurations = [
   {
-    createdAt: '2020-02-14T22:34:20.560Z',
-    id: 'internal',
-    config: {
-      id: 'internal',
-      title: 'Default Login',
-      signInUri: 'api/authentication/id-tokens',
-      signOutUri: 'api/authentication/logout',
-      type: {
-        type: 'internal',
-        title: 'Internal',
-        description:
-          'This is a built-in internal authentication provider. The internal authentication provider uses an internal user directory for authenticating the users. This provider is only intended to be used for development and testing. It currently lacks many features required for production usage such as ability to force password rotations, ability to reset passwords, and support "forgot password" etc. For production use, please add other authentication provider with identity federation for production use.',
-        config: {
-          credentialHandlingType: 'submit',
-          inputSchema: {
-            definitions: {},
-            $schema: 'http://json-schema.org/draft-07/schema#',
-            $id: 'http://example.com/root.json',
-            type: 'object',
-            required: ['id', 'title', 'signInUri'],
-            properties: {
-              id: { $id: '#/properties/id', type: 'string' },
-              title: { $id: '#/properties/title', type: 'string' },
-              signInUri: { $id: '#/properties/signInUri', type: 'string' },
-              signOutUri: { $id: '#/properties/signOutUri', type: 'string' },
-            },
-          },
-          inputManifestForCreate,
-          inputManifestForUpdate,
-          impl: {
-            tokenIssuerLocator: 'locator:service:internalAuthenticationProviderService/issueToken',
-            tokenValidatorLocator: 'locator:service:internalAuthenticationProviderService/validateToken',
-            tokenRevokerLocator: 'locator:service:internalAuthenticationProviderService/revokeToken',
-            provisionerLocator: 'locator:service:internalAuthenticationProvisionerService/provision',
-          },
-        },
-      },
-    },
-    updatedAt: '2020-06-23T03:29:08.181Z',
-    status: 'active',
-  },
-  {
     createdAt: '2020-02-14T22:34:22.185Z',
     id: 'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_poolId1',
     config: {
@@ -427,14 +321,6 @@ const configurations = [
 ];
 
 const publicConfigurations = [
-  {
-    id: 'internal',
-    title: 'Default Login',
-    type: 'internal',
-    credentialHandlingType: 'submit',
-    signInUri: 'api/authentication/id-tokens',
-    signOutUri: 'api/authentication/logout',
-  },
   {
     id: 'https://cognito-idp.us-east-1.amazonaws.com/us-east-1_poolId1',
     title: 'Login using Active Directory',

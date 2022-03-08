@@ -31,13 +31,15 @@ describe('Get public auth provider config scenarios', () => {
   it('return at least one auth provider', async () => {
     await expect(anonymousSession.resources.publicAuthProviderConfigs.get()).resolves.toEqual(
       expect.arrayContaining([
-        {
-          id: 'internal',
-          title: 'Default Login',
-          type: 'internal',
-          credentialHandlingType: 'submit',
-          signInUri: 'api/authentication/id-tokens',
-        },
+        expect.objectContaining({
+          id: `https://cognito-idp.${setup.defaults.awsRegion}.amazonaws.com/${setup.defaults.userPoolId}`,
+          title: 'Cognito Native Pool',
+          type: 'cognito_user_pool',
+          credentialHandlingType: 'redirect',
+          userPoolId: setup.defaults.userPoolId,
+          clientId: setup.defaults.appClientId,
+          enableNativeUserPoolUsers: true,
+        }),
       ]),
     );
   });

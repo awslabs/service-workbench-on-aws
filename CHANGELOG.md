@@ -3,7 +3,27 @@
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
 ## Beta
-[This release is in beta. Click here to see changes since 4.3.1.](https://github.com/awslabs/service-workbench-on-aws/compare/v4.3.1...mainline)
+[This release is in beta. Click here to see changes since 5.0.0.](https://github.com/awslabs/service-workbench-on-aws/compare/v5.0.0...mainline)
+
+## [5.0.0](https://github.com/awslabs/service-workbench-on-aws/compare/v4.3.1...v5.0.0) (2022-02-11)
+
+## Internal Auth deprecation
+* Starting with this release, internal authentication provider in Service Workbench will remain deprecated. Logging into Service Workbench using the legacy internal authentication route will not work.
+* Resources owned by `internal` users need to be deactivated or their ownership needs to be transferred to native Cognito user pool/external IdP users. Users marked with an `internal` auth provider will need to be deactivated. Please follow the detailed instructions [here](https://github.com/awslabs/service-workbench-on-aws/blob/mainline/docs/docs/installation_guide/upgrading/authentication.md) for a smooth upgrade experience.
+
+### Features
+
+* Internal auth deprecation ([#913](https://github.com/awslabs/service-workbench-on-aws/issues/913)) ([b334136](https://github.com/awslabs/service-workbench-on-aws/commit/b3341364a62b62b8f235c9eed5bb91dae6008f35))
+
+
+### Bug Fixes
+
+* add attributes for better logging ([#897](https://github.com/awslabs/service-workbench-on-aws/issues/897)) ([0a3ea5c](https://github.com/awslabs/service-workbench-on-aws/commit/0a3ea5c816cad5e5d327a53d41e6848b7d171e0a))
+* Allow CICD pipeline to have cognito permission for creating root user ([#914](https://github.com/awslabs/service-workbench-on-aws/issues/914)) ([93618cb](https://github.com/awslabs/service-workbench-on-aws/commit/93618cb84476369770a848026060a2d78645d326))
+* integ tests for auth change ([#915](https://github.com/awslabs/service-workbench-on-aws/issues/915)) ([86c6e19](https://github.com/awslabs/service-workbench-on-aws/commit/86c6e19d2487f7b0f1ad2fb133274eef4e2afe65))
+* Reduce scope of list users API for non admin users ([#898](https://github.com/awslabs/service-workbench-on-aws/issues/898)) ([1999b26](https://github.com/awslabs/service-workbench-on-aws/commit/1999b269b8113a621a5b693802bf5d1bb406c983))
+* throw less descriptive errors ([#895](https://github.com/awslabs/service-workbench-on-aws/issues/895)) ([85ae1e2](https://github.com/awslabs/service-workbench-on-aws/commit/85ae1e29974a870b133394dacf8a2f2b50ddfba7))
+* user names update ([#899](https://github.com/awslabs/service-workbench-on-aws/issues/899)) ([89b9936](https://github.com/awslabs/service-workbench-on-aws/commit/89b99364d7c2c445b3b8a4119b8d3994f660896c))
 
 ### [4.3.1](https://github.com/awslabs/service-workbench-on-aws/compare/v4.3.0...v4.3.1) (2022-02-01)
 

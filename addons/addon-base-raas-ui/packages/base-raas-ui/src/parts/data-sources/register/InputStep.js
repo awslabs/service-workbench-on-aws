@@ -72,7 +72,6 @@ class InputStep extends React.Component {
     const result = [];
     _.forEach(list, user => {
       if (!user.isActive) return;
-      if (user.isRootUser) return;
       if (user.isAdmin || user.isInternalResearcher || user.userRole === 'admin') {
         result.push({
           key: user.id,

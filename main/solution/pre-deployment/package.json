@@ -15,6 +15,7 @@
     "@aws-ee/environment-type-mgmt-services": "workspace:*",
     "@aws-ee/key-pair-mgmt-services": "workspace:*",
     "@aws-ee/base-raas-rest-api": "workspace:*",
+    "@aws-ee/internal-auth-dep-check": "workspace:*",
     "aws-sdk": "^2.1000.0",
     "lodash": "^4.17.21",
     "services": "workspace:*"

@@ -9,12 +9,11 @@
     "usernameInIdp": {
       "type": "string",
       "minLength": 3,
-      "maxLength": 300,
-      "pattern": "^[A-Za-z0-9-_.]+$|^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$"
+      "maxLength": 300
     },
     "email": {
       "type": "string",
-      "pattern": "^[a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$"
+      "pattern": "^([^.%+!$&*=^|~#%{}]+)[a-zA-Z0-9\\._%+!$&*=^|~#%{}/\\-]+([^.!]+)@([^-.!](([a-zA-Z0-9\\-]+\\.){1,}([a-zA-Z]{2,63})))"
     },
     "firstName": {
       "type": "string",

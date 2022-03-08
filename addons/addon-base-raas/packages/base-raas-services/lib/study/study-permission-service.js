@@ -33,6 +33,7 @@ const {
   getEmptyStudyPermissions,
   getUserIds,
   applyUpdateRequest,
+  isValidUpdateRequest,
 } = require('./helpers/entities/study-permissions-methods');
 const { getEmptyUserPermissions } = require('./helpers/entities/user-permissions-methods');
 const {
@@ -336,6 +337,14 @@ class StudyPermissionService extends Service {
         },
         { studyEntity, studyPermissionsEntity },
       );
+
+      // Ensure only migration requests can have wildcards in the updateRequest
+      if (!requestContext.isMigration && !isValidUpdateRequest(updateRequest)) {
+        throw this.boom.badRequest(
+          'You cannot use the wildcard (*) as a UID in a study permissions update request.',
+          true,
+        );
+      }
 
       applyUpdateRequest(studyPermissionsEntity, updateRequest);
 

@@ -73,6 +73,7 @@ describe('UserService', () => {
         email: 'example@example.com',
         firstName: 'Jaime',
         lastName: 'Lannister',
+        authenticationProviderId: 'someIdpId',
       };
 
       // OPERATE
@@ -88,7 +89,7 @@ describe('UserService', () => {
     it('should fail because password cannot be provided with federated users', async () => {
       // BUILD
       const newUser = {
-        username: 'tlannister',
+        username: 'dragonsrkool@example.com',
         email: 'dragonsrkool@example.com',
         firstName: 'Tirion',
         lastName: 'Lannister',
@@ -109,10 +110,11 @@ describe('UserService', () => {
     it('should fail because user already exists', async () => {
       // BUILD
       const newUser = {
-        username: 'jsnow',
+        username: 'nightwatch@example.com',
         email: 'nightwatch@example.com',
         firstName: 'Jon',
         lastName: 'Snow',
+        authenticationProviderId: 'someIdpId',
       };
       service.getUserByPrincipal = jest.fn().mockResolvedValue(newUser);
 
@@ -126,34 +128,14 @@ describe('UserService', () => {
       }
     });
 
-    it('should not save user password to the DB', async () => {
-      // BUILD
-      const newUser = {
-        username: 'hpie',
-        email: 'sourcherries@example.com',
-        firstName: 'Hot',
-        lastName: 'Pie',
-        password: 'i-hope-youre-not-storing-me!',
-      };
-      service.getUserByPrincipal = jest.fn();
-      service.audit = jest.fn();
-
-      const toCheck = { password: newUser.password };
-      // OPERATE
-      await service.createUser({}, newUser);
-
-      // CHECK
-      expect(dbService.table.item).not.toHaveBeenCalledWith(expect.objectContaining(toCheck));
-      expect(service.audit).not.toHaveBeenCalledWith({}, expect.objectContaining(toCheck));
-    });
-
     it('should try to create a user', async () => {
       // BUILD
       const newUser = {
-        username: 'nstark',
+        username: 'headlesshorseman@example.com',
         email: 'headlesshorseman@example.com',
         firstName: 'Ned',
         lastName: 'Stark',
+        authenticationProviderId: 'someIdpId',
       };
       service.getUserByPrincipal = jest.fn();
       service.audit = jest.fn();
@@ -181,14 +163,16 @@ describe('UserService', () => {
       'email@domain.name',
       'email@domain.co.jp',
       'firstname-lastname@domain.com',
+      'firstname-lastname@domain.aridiculouslylongtldfortesting',
     ];
     it.each(validEmails)('should pass when creating users with valid email: %p', async email => {
       // BUILD
       const newUser = {
-        username: 'nstark',
+        username: email,
         email,
         firstName: 'Ned',
         lastName: 'Stark',
+        authenticationProviderId: 'someIdpId',
       };
       service.getUserByPrincipal = jest.fn();
       service.audit = jest.fn();
@@ -219,14 +203,16 @@ describe('UserService', () => {
       'email@domain', // Missing top level domain (.com/.net/.org/etc)
       'email@-domain.com', // Leading dash in front of domain is invalid
       'email@domain..com', // Multiple dot in the domain portion is invalid
+      'firstname-lastname@domain.12345678901234567890123456789012345678901234567890123456789012345678901234567890abittoolongtld',
     ];
     it.each(invalidEmails)('should fail when creating users with invalid email: %p', async email => {
       // BUILD
       const newUser = {
-        username: 'nstark',
+        username: email,
         email,
         firstName: 'Ned',
         lastName: 'Stark',
+        authenticationProviderId: 'someIdpId',
       };
       service.getUserByPrincipal = jest.fn();
       service.audit = jest.fn();
@@ -240,21 +226,47 @@ describe('UserService', () => {
         expect(err.message).toEqual('Input has validation errors');
       }
     });
+
+    it('should fail when creating internal auth users', async () => {
+      // BUILD
+      const email = 'test@example.com';
+      const newUser = {
+        username: email,
+        email,
+        firstName: 'Ned',
+        lastName: 'Stark',
+        authenticationProviderId: 'internal',
+      };
+      service.getUserByPrincipal = jest.fn();
+      service.audit = jest.fn();
+
+      // OPERATE
+      try {
+        await service.createUser({}, newUser);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual(
+          'Internal users cannot be created. Please use an external IdP or the native Cognito user pool',
+        );
+      }
+    });
   });
 
   describe('updateUser', () => {
     const uid = 'u-testUpdateUserId';
     const newUser = {
       uid,
-      username: 'dtargaryen',
+      username: 'dragonseverywhere@example.com',
       email: 'dragonseverywhere@example.com',
       firstName: 'Daenerys',
       lastName: 'Targaryen',
+      ns: 'IdPNamespace',
     };
     it('should fail because no value of rev was provided', async () => {
       // BUILD
       const toUpdate = {
-        username: 'dtargaryen',
+        username: 'dragonseverywhere@example.com',
       };
 
       service.findUser = jest.fn().mockResolvedValue(newUser);
@@ -266,6 +278,35 @@ describe('UserService', () => {
       } catch (err) {
         // CHECK
         expect(err.message).toEqual('Input has validation errors');
+      }
+    });
+
+    it('should fail because internal user cannot be activated', async () => {
+      // BUILD
+      const toUpdate = {
+        uid,
+        status: 'active',
+        rev: 2,
+      };
+
+      const existingUser = {
+        uid,
+        username: 'dragonseverywhere@example.com',
+        email: 'dragonseverywhere@example.com',
+        firstName: 'Daenerys',
+        lastName: 'Targaryen',
+        ns: 'internal',
+      };
+
+      service.findUser = jest.fn().mockResolvedValue(existingUser);
+
+      // OPERATE
+      try {
+        await service.updateUser({}, toUpdate);
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Internal users cannot be activated');
       }
     });
 
@@ -334,7 +375,7 @@ describe('UserService', () => {
     const uid = 'u-testDeleteUserId';
     const curUser = {
       uid,
-      username: 'astark',
+      username: 'ilovemasks@example.com',
       email: 'ilovemasks@example.com',
       firstName: 'Arya',
       lastName: 'Stark',
@@ -348,7 +389,7 @@ describe('UserService', () => {
 
       // OPERATE
       try {
-        await service.deleteUser({}, { username: 'lskywalker' });
+        await service.deleteUser({}, { username: 'ilovemasks@example.com' });
         expect.hasAssertions();
       } catch (err) {
         // CHECK
@@ -405,6 +446,36 @@ describe('UserService', () => {
           isAdmin: true,
         },
       ]);
+    });
+  });
+
+  describe('isInternalAuthUser', () => {
+    it('should return true when user is internal', async () => {
+      // BUILD
+      const uid = 'sample-user';
+      service.mustFindUser = jest.fn().mockImplementationOnce(() => {
+        return { authenticationProviderId: 'internal' };
+      });
+
+      // OPERATE
+      const result = await service.isInternalAuthUser(uid);
+
+      // CHECK
+      expect(result).toBeTruthy();
+    });
+
+    it('should return false when user is not internal', async () => {
+      // BUILD
+      const uid = 'sample-user';
+      service.mustFindUser = jest.fn().mockImplementationOnce(() => {
+        return { authenticationProviderId: 'some-auth-id' };
+      });
+
+      // OPERATE
+      const result = await service.isInternalAuthUser(uid);
+
+      // CHECK
+      expect(result).toBeFalsy();
     });
   });
 });

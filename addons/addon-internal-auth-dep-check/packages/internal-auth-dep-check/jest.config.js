@@ -13,26 +13,13 @@
  *  permissions and limitations under the License.
  */
 
-const _ = require('lodash');
-const Resource = require('../base/resource');
-
-class AuthenticationIdToken extends Resource {
-  constructor({ clientSession, id, parent }) {
-    super({
-      clientSession,
-      type: 'idToken',
-      id,
-      parent,
-    });
-
-    if (_.isEmpty(parent)) throw Error('A parent resource was not provided to resource type [idToken]');
-  }
-
-  async cleanup() {
-    return this.parent.parent.logout();
-  }
-
-  // ************************ Helpers methods ************************
-}
-
-module.exports = AuthenticationIdToken;
+// jest.config.js
+module.exports = {
+  // verbose: true,
+  notify: false,
+  testEnvironment: 'node',
+  testPathIgnorePatterns: ['/node_modules/', '/.history/', '/__tests__/__fixtures__/'],
+  // Configure JUnit reporter as CodeBuild currently only supports JUnit or Cucumber reports
+  // See https://docs.aws.amazon.com/codebuild/latest/userguide/test-reporting.html
+  reporters: ['default', ['jest-junit', { suiteName: 'jest tests', outputDirectory: './.build/test' }]],
+};

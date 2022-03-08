@@ -102,6 +102,7 @@ class SelectConfigurationCards extends React.Component {
                 <Divider />
                 {this.renderEstimatedCostInfo(config)}
                 {this.renderInstanceType(config)}
+                {this.renderCidr(config)}
               </Card.Description>
             </Card.Content>
           </Card>
@@ -140,6 +141,25 @@ class SelectConfigurationCards extends React.Component {
     );
 
     return content;
+  }
+
+  renderCidr(config) {
+    let hardcodedCidr;
+    _.forEach(config.params, param => {
+      // eslint-disable-next-line no-template-curly-in-string
+      if (param.key === 'AccessFromCIDRBlock' && param.value !== '${cidr}') {
+        hardcodedCidr = param.value;
+      }
+    });
+
+    const content = (
+      <div className="flex p1">
+        <div className="bold flex-auto">Hardcoded CIDR</div>
+        <div className="pr1">{hardcodedCidr}</div>
+      </div>
+    );
+
+    return _.isUndefined(hardcodedCidr) ? <></> : content;
   }
 
   renderTableInfo(config) {
