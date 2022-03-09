@@ -1449,6 +1449,36 @@ Quisque egestas, eros nec feugiat venenatis, lorem turpis placerat tortor, ullam
       }
     });
 
+    it('should fail because the environment is in termination failed status', async () => {
+      // BUILD
+      const requestContext = {
+        principal: {
+          isExternalUser: false,
+        },
+      };
+      const existingEnv = {
+        id: 'abc',
+        name: 'exampleName',
+        envTypeId: 'exampleETI',
+        envTypeConfigId: 'exampleETCI',
+        status: environmentScStatus.TERMINATING_FAILED,
+      };
+
+      service.mustFind = jest.fn().mockResolvedValueOnce(existingEnv);
+
+      // OPERATE
+      try {
+        await service.delete(requestContext, { id: existingEnv.id });
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(service.boom.is(err, 'badRequest')).toBe(true);
+        expect(err.message).toContain(
+          `Workspace '${existingEnv.id}' can not be terminated while in ${environmentScStatus.TERMINATING_FAILED} status`,
+        );
+      }
+    });
+
     it('should fail because the workflow failed to trigger', async () => {
       // BUILD
       const requestContext = {

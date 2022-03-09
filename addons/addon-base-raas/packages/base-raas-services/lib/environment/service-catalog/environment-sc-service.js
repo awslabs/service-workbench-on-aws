@@ -987,6 +987,13 @@ class EnvironmentScService extends Service {
       throw this.boom.badRequest(`Workspace '${id}' is already being terminated`, true);
     }
 
+    if (existingEnvironment.status === environmentScStatus.TERMINATING_FAILED) {
+      throw this.boom.badRequest(
+        `Workspace '${id}' can not be terminated while in ${environmentScStatus.TERMINATING_FAILED} status`,
+        true,
+      );
+    }
+
     await this.update(requestContext, {
       id,
       rev: existingEnvironment.rev,
