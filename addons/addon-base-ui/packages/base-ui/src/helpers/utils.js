@@ -186,26 +186,18 @@ function removeQueryParams(location, keys) {
 }
 
 function getFragmentParam(location, key) {
-  const fragmentParams = _.get(location, 'hash') || new URL(location).hash;
-  const hashKeyValues = {};
-  const params = fragmentParams.substring(1).split('&');
-  if (params) {
-    params.forEach(param => {
-      const keyValueArr = param.split('=');
-      const currentKey = keyValueArr[0];
-      const value = keyValueArr[1];
-      if (value) {
-        hashKeyValues[currentKey] = value;
-      }
-    });
-  }
-  return hashKeyValues[key];
+  const fragmentParams = location.search || new URL(location).search;
+  // There's only one key expected here ("code")
+  const keyValueArr = fragmentParams.split('=');
+  const currKey = keyValueArr[0].replace('?', '');
+  const value = keyValueArr[1];
+  return currKey === key ? value : undefined;
 }
 
 function removeFragmentParams(location, keyNamesToRemove) {
   const url = new URL(location);
-  const fragmentParams = url.hash;
-  let hashStr = '#';
+  const fragmentParams = url.search;
+  let searchStr = '?';
   const params = fragmentParams.substring(1).split('&');
   if (params) {
     params.forEach(param => {
@@ -214,11 +206,12 @@ function removeFragmentParams(location, keyNamesToRemove) {
       const value = keyValueArr[1];
       // Do not include the currentKey if it is the one specified in the array of keyNamesToRemove
       if (value && _.indexOf(keyNamesToRemove, currentKey) < 0) {
-        hashStr = `${hashStr}${currentKey}=${value}`;
+        searchStr = `${searchStr}${currentKey}=${value}`;
       }
     });
   }
-  return `${url.protocol}//${url.host}${url.search}${hashStr === '#' ? '' : hashStr}`;
+  // Empty out all search parameters from the URL (no hash params expected)
+  return `${url.protocol}//${url.host}${searchStr === '?' ? '' : searchStr}`;
 }
 
 function isAbsoluteUrl(url) {

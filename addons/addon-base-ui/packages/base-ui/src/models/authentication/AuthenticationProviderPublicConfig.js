@@ -146,6 +146,8 @@ const AuthenticationProviderPublicConfig = types
       //  from a central "AuthenticationProviderConfigService" on the server side and the providers do not get a chance to adjust "signInUri"
       //  (or any other config variables) before returning them during local development, once we move to "provider registry" the registry will
       //  pick appropriate auth provider impl and give it a chance to adjust variables or create derived variables
+
+      // TODO: Assign state (and PKCE?) string here
       return adjustRedirectUri(toAbsoluteUrl(self.signInUri));
     },
     get absoluteSignOutUrl() {

@@ -13,7 +13,7 @@
       "args": [
         "offline",
         "-s",
-        "${env:USER}",
+        "custom-dom",
         "--noTimeout",
         "--dontPrintOutput"
       ],
@@ -35,7 +35,7 @@
         "-f",
         "postDeployment",
         "-s",
-        "${env:USER}",
+        "custom-dom",
         "--noTimeout",
         "--dontPrintOutput",
         "--data",

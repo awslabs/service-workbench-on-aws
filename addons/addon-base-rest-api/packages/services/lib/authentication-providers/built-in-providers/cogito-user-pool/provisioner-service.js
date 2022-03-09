@@ -100,8 +100,11 @@ class ProvisionerService extends Service {
     providerConfigWithOutputs.id = `https://cognito-idp.${awsRegion}.amazonaws.com/${providerConfigWithOutputs.userPoolId}`;
 
     const baseAuthUri = `https://${userPoolDomain}.auth.${awsRegion}.amazoncognito.com`;
-    providerConfigWithOutputs.signInUri = `${baseAuthUri}/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${websiteUrl}`;
-    providerConfigWithOutputs.signOutUri = `${baseAuthUri}/logout?client_id=${clientId}&logout_uri=${websiteUrl}`;
+    providerConfigWithOutputs.baseAuthUri = baseAuthUri;
+    // TODO: Optional additions "&code_challenge_method=S256&code_challenge=${CODE_CHALLENGE}&state=${STATE}"
+    providerConfigWithOutputs.signInUri = `${baseAuthUri}/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${websiteUrl}/`;
+    providerConfigWithOutputs.signOutUri = `${baseAuthUri}/logout?client_id=${clientId}&response_type=code&redirect_uri=${websiteUrl}/`;
+    providerConfigWithOutputs.authCodeTokenExchangeUri = `${baseAuthUri}/oauth2/token`;
 
     this.log.info('Saving Cognito User Pool Authentication Provider Configuration.');
 
@@ -304,10 +307,10 @@ class ProvisionerService extends Service {
         AllowedOAuthFlows: ['code'], // update app client's auth flow to use authorization code grant for new installs
         AllowedOAuthFlowsUserPoolClient: true,
         AllowedOAuthScopes: ['email', 'openid', 'profile'],
-        CallbackURLs: callbackUrls,
-        DefaultRedirectURI: defaultRedirectUri,
+        CallbackURLs: this.ensureTrailingSlash(callbackUrls),
+        DefaultRedirectURI: this.ensureTrailingSlash(defaultRedirectUri),
         ExplicitAuthFlows: ['ADMIN_NO_SRP_AUTH'],
-        LogoutURLs: logoutUrls,
+        LogoutURLs: this.ensureTrailingSlash(logoutUrls),
         // Make certain attributes readable and writable by this client.
         // See "https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html" for list of attributes Cognito supports by default
         ReadAttributes: [
@@ -386,11 +389,11 @@ class ProvisionerService extends Service {
       AllowedOAuthFlows: ['code'], // update app client's auth flow to use authorization code grant instead of implicit (legacy)
       AllowedOAuthFlowsUserPoolClient: existingClientConfig.AllowedOAuthFlowsUserPoolClient,
       AllowedOAuthScopes: existingClientConfig.AllowedOAuthScopes,
-      CallbackURLs: existingClientConfig.CallbackURLs,
+      CallbackURLs: this.ensureTrailingSlash(existingClientConfig.CallbackURLs), // authorization code grant requires redirect URLs to have a trailing forward slash '/'
+      LogoutURLs: this.ensureTrailingSlash(existingClientConfig.LogoutURLs),
       ClientName: existingClientConfig.ClientName,
-      DefaultRedirectURI: existingClientConfig.DefaultRedirectURI,
+      DefaultRedirectURI: this.ensureTrailingSlash(existingClientConfig.DefaultRedirectURI),
       ExplicitAuthFlows: existingClientConfig.ExplicitAuthFlows,
-      LogoutURLs: existingClientConfig.LogoutURLs,
       ReadAttributes: existingClientConfig.ReadAttributes,
       RefreshTokenValidity: existingClientConfig.RefreshTokenValidity,
       WriteAttributes: existingClientConfig.WriteAttributes,
@@ -400,6 +403,20 @@ class ProvisionerService extends Service {
     // The below call will fail without that. The idp names specified in SupportedIdentityProviders must match the ones created in "configureCognitoIdentityProviders"
     await cognitoIdentityServiceProvider.updateUserPoolClient(params).promise();
     return providerConfig;
+  }
+
+  ensureTrailingSlash(data) {
+    // No changes needed for undefined values
+    if (_.isUndefined(data)) return undefined;
+
+    // If only one URL needs formatting
+    if (!_.isArray(data)) return _.endsWith(data, '/') ? data : `${data}/`;
+
+    // If an array of URLs need formatting
+    const updatedUrls = _.map(data, url => {
+      return _.endsWith(url, '/') ? url : `${url}/`;
+    });
+    return updatedUrls;
   }
 
   async configureCognitoIdentityProviders(providerConfig) {

@@ -13,34 +13,55 @@
  *  permissions and limitations under the License.
  */
 
-// const _ = require('lodash');
-// const { newInvoker } = require('@aws-ee/base-api-services/lib/authentication-providers/helpers/invoker');
+import fetch from 'node-fetch';
+import _ from 'lodash';
 
 async function configure(context) {
   const router = context.router();
-  // const wrap = context.wrap;
-  // const settings = context.settings;
-  // const boom = context.boom;
+  const wrap = context.wrap;
+  const boom = context.boom;
 
-  // const authenticationProviderConfigService = await context.service('authenticationProviderConfigService');
-  // const invoke = newInvoker(context.service.bind(context));
+  const authenticationProviderConfigService = await context.service('authenticationProviderConfigService');
   // ===============================================================
   //  POST / (mounted to /api/authentication/id-tokens)
   // ===============================================================
-  // router.post(
-  //   '/',
-  //   wrap(async (req, res) => {
-  //     const { username, password, authenticationProviderId } = req.body;
+  router.post(
+    '/',
+    wrap(async (req, res) => {
+      const { code, pkce, mainUrl } = req.body;
 
-  //     const authProviderConfig = await authenticationProviderConfigService.getAuthenticationProviderConfig(
-  //       authenticationProviderId,
-  //     );
-  //     // Provider type is pulled from DDB and then the auth service is invoked
-  //     const tokenIssuerLocator = _.get(authProviderConfig, 'config.type.config.impl.tokenIssuerLocator');
-  //     const idToken = await invoke(tokenIssuerLocator, { username, password }, authProviderConfig);
-  //     res.status(200).json({ idToken });
-  //   }),
-  // );
+      const providers = await authenticationProviderConfigService.getAuthenticationProviderConfigs();
+      const cognitoAuthConfig = _.find(providers, provider => {
+        return provider.config.type.type === 'cognito_user_pool';
+      });
+
+      const params = {
+        code,
+        grant_type: 'authorization_code',
+        client_id: cognitoAuthConfig.config.clientId,
+        redirect_uri: mainUrl,
+        code_verifier: pkce,
+      };
+
+      const authCodeTokenExchangeUri = cognitoAuthConfig.config.authCodeTokenExchangeUri;
+
+      // Make a POST request to exchange code for token
+      const url = new URL(authCodeTokenExchangeUri);
+      const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+      Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
+
+      // TODO: Use axios instead of node-fetch
+      try {
+        const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(params) }).then(result => {
+          return result.json();
+        });
+
+        res.status(200).json({ token: _.get(response, 'id_token') });
+      } catch (e) {
+        throw boom.badRequest(`Error received while  call: ${e}`, true);
+      }
+    }),
+  );
 
   return router;
 }

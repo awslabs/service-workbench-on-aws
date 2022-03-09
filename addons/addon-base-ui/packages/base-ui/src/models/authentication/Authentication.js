@@ -15,16 +15,17 @@
 
 import _ from 'lodash';
 import { getEnv, types } from 'mobx-state-tree';
+import pkceChallenge from 'pkce-challenge';
 
 import jwtDecode from 'jwt-decode';
 import { storage, getFragmentParam, removeFragmentParams } from '../../helpers/utils';
-import { setIdToken } from '../../helpers/api';
+import { getIdToken, setIdToken } from '../../helpers/api';
 
 import localStorageKeys from '../constants/local-storage-keys';
 import { boom } from '../../helpers/errors';
 
 function removeTokensFromUrl() {
-  const newUrl = removeFragmentParams(document.location, ['id_token', 'access_token', 'token_type', 'expires_in']);
+  const newUrl = removeFragmentParams(document.location, ['code', 'id_token']);
   window.history.replaceState({}, document.title, newUrl);
 }
 
@@ -70,12 +71,33 @@ const Authentication = types
       // any auth providers that set id token either in local storage as "appIdToken" or deliver to us
       // via URL fragment parameter as "id_token".
       // This code will NOT work for auth providers issuing id token and delivering via any other mechanism.
-      const idTokenFromUrl = getFragmentParam(document.location, 'id_token');
-      if (idTokenFromUrl) removeTokensFromUrl(); // we remove the idToken from the url for a good security measure
+
+      const authCode = getFragmentParam(document.location, 'code');
+
+      const challenge = pkceChallenge(128);
+
+      // save the PKCE verification code to local storage
+      // we need to present this code after we are redirected back from the IDP
+      storage.setItem(localStorageKeys.pkceVerifier, challenge.code_verifier);
+
+      // Use this code to send to Cognito to get auth token
+      // Then store auth token as appIdToken on client
+      let newIdToken;
+      if (authCode) {
+        const mainUrl = document.location.href.split('?code')[0];
+        newIdToken = await getIdToken({
+          code: authCode,
+          pkce: challenge.code_verifier,
+          mainUrl,
+        });
+
+        // we remove the code from the url for a good security measure
+        removeTokensFromUrl();
+      }
 
       const idTokenFromLocal = storage.getItem(localStorageKeys.appIdToken);
 
-      const idToken = idTokenFromUrl || idTokenFromLocal;
+      const idToken = _.isUndefined(newIdToken) ? idTokenFromLocal : newIdToken.token;
       return idToken;
     },
 
