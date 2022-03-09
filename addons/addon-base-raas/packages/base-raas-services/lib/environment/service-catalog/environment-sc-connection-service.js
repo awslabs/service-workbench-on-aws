@@ -396,7 +396,7 @@ class EnvironmentScConnectionService extends Service {
         const iam = await environmentScService.getClientSdkWithEnvMgmtRole(
           requestContext,
           { id: envId },
-          { clientName: 'STS', options: { apiVersion: '2017-07-24' } },
+          { clientName: 'IAM', options: { apiVersion: '2017-07-24' } },
         );
         const currentPolicyResponse = await this.getCurrentRolePolicy(iam, connection);
         await this.updateRoleToIncludeCurrentIP(iam, connection, currentPolicyResponse);
