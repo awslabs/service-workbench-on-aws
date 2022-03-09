@@ -383,46 +383,54 @@ class EnvironmentScConnectionService extends Service {
 
   async createPrivateSageMakerUrl(requestContext, envId, connection, presign_retries = 10) {
     const lockService = await this.service('lockService');
-    const signedURL = await lockService.tryWriteLockAndRun({ id: `${envId}presign` }, async () => {
-      if (!(_.toLower(_.get(connection, 'type', '')) === 'sagemaker')) {
-        throw this.boom.badRequest(
-          `Cannot generate presigned URL for non-sagemaker connection ${connection.type}`,
-          true,
-        );
-      }
-      const environmentScService = await this.service('environmentScService');
-      const iam = await environmentScService.getClientSdkWithEnvMgmtRole(
-        requestContext,
-        { id: envId },
-        { clientName: 'IAM', options: { apiVersion: '2017-07-24' } },
-      );
-      const currentPolicyResponse = await this.getCurrentRolePolicy(iam, connection);
-      await this.updateRoleToIncludeCurrentIP(iam, connection, currentPolicyResponse);
-      const createPresignedURLFn = async () => {
-        const stsEnvMgmt = await environmentScService.getClientSdkWithEnvMgmtRole(
+    let signedURL = '';
+    try {
+      signedURL = await lockService.tryWriteLockAndRun({ id: `${envId}presign` }, async () => {
+        if (!(_.toLower(_.get(connection, 'type', '')) === 'sagemaker')) {
+          throw this.boom.badRequest(
+            `Cannot generate presigned URL for non-sagemaker connection ${connection.type}`,
+            true,
+          );
+        }
+        const environmentScService = await this.service('environmentScService');
+        const iam = await environmentScService.getClientSdkWithEnvMgmtRole(
           requestContext,
           { id: envId },
-          { clientName: 'STS', options: { apiVersion: '2017-07-24' } },
+          { clientName: 'IAM', options: { apiVersion: '2017-07-24' } },
         );
-        const sageMakerResponse = await this.createPresignedURL(stsEnvMgmt, connection);
-        return sageMakerResponse;
-      };
-      try {
-        // Give sufficient number of retries to create presigned URL.
-        // This is needed because IAM role takes a while to propagate
-        // call with a linear strategy where we wait 2 seconds between retries
-        // This makes it 20 seconds with default of 10 retries
-        const sageMakerResponse = await retry(createPresignedURLFn, presign_retries, () => linearInterval(1, 2000));
-        return _.get(sageMakerResponse, 'AuthorizedUrl');
-      } catch (error) {
-        throw this.boom.internalError(`Could not generate presigned URL`, true).cause(error);
-      } finally {
-        // restore the original policy document. This ensures that caller IP address which was responsible for
-        // creating the presigned URL doesn't have access
-        const oldPolicyDocument = decodeURIComponent(currentPolicyResponse.PolicyDocument);
-        await this.putRolePolicy(iam, connection, oldPolicyDocument);
+        const currentPolicyResponse = await this.getCurrentRolePolicy(iam, connection);
+        await this.updateRoleToIncludeCurrentIP(iam, connection, currentPolicyResponse);
+        const createPresignedURLFn = async () => {
+          const stsEnvMgmt = await environmentScService.getClientSdkWithEnvMgmtRole(
+            requestContext,
+            { id: envId },
+            { clientName: 'STS', options: { apiVersion: '2017-07-24' } },
+          );
+          const sageMakerResponse = await this.createPresignedURL(stsEnvMgmt, connection);
+          return sageMakerResponse;
+        };
+        try {
+          // Give sufficient number of retries to create presigned URL.
+          // This is needed because IAM role takes a while to propagate
+          // call with a linear strategy where we wait 2 seconds between retries
+          // This makes it 20 seconds with default of 10 retries
+          const sageMakerResponse = await retry(createPresignedURLFn, presign_retries, () => linearInterval(1, 2000));
+          return _.get(sageMakerResponse, 'AuthorizedUrl');
+        } catch (error) {
+          throw this.boom.internalError(`Could not generate presigned URL`, true).cause(error);
+        } finally {
+          // restore the original policy document. This ensures that caller IP address which was responsible for
+          // creating the presigned URL doesn't have access
+          const oldPolicyDocument = decodeURIComponent(currentPolicyResponse.PolicyDocument);
+          await this.putRolePolicy(iam, connection, oldPolicyDocument);
+        }
+      });
+    } catch (e) {
+      if (this.boom.is(e, 'internalError') && e.message === 'Could not obtain a lock') {
+        throw this.boom.tooManyRequests('Please wait 30 seconds before requesting Sagemaker URL', true);
       }
-    });
+      throw e;
+    }
     return signedURL;
   }
 
