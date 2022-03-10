@@ -743,8 +743,8 @@ importers:
       '@aws-ee/base-api-services': link:../services
       '@aws-ee/base-services': link:../../../addon-base/packages/services
       '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      axios: 0.21.4
       lodash: 4.17.21
-      node-fetch: 2.6.7
     devDependencies:
       eslint: 6.8.0
       eslint-config-airbnb-base: 14.1.0_8cdb6d8c18c3319a1365bd5afa0063a3
@@ -762,6 +762,7 @@ importers:
       '@aws-ee/base-api-services': workspace:*
       '@aws-ee/base-services': workspace:*
       '@aws-ee/base-services-container': workspace:*
+      axios: ^0.21.2
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.0.0
       eslint-config-prettier: ^6.10.0
@@ -773,7 +774,6 @@ importers:
       jest: ^24.9.0
       jest-junit: ^10.0.0
       lodash: ^4.17.21
-      node-fetch: ^2.6.7
       prettier: ^1.19.1
       source-map-support: ^0.5.16
   addons/addon-base-rest-api/packages/services:
@@ -18328,19 +18328,6 @@ packages:
       node: 4.x || >=6.0.0
     resolution:
       integrity: sha512-V4aYg89jEoVRxRb2fJdAg8FHvI7cEyYdVAh94HH0UIK8oJxUfkjlDQN9RbMx+bEjP7+ggMiFRprSti032Oipxw==
-  /node-fetch/2.6.7:
-    dependencies:
-      whatwg-url: 5.0.0
-    dev: false
-    engines:
-      node: 4.x || >=6.0.0
-    peerDependencies:
-      encoding: ^0.1.0
-    peerDependenciesMeta:
-      encoding:
-        optional: true
-    resolution:
-      integrity: sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==
   /node-forge/0.10.0:
     dev: true
     engines:
@@ -23842,10 +23829,6 @@ packages:
       node: '>=6'
     resolution:
       integrity: sha512-yQyJ0u4pZsv9D4clxO69OEjLWYw+jbgspjTue4lTQZLfV0c5l1VmK2y1JK8E9ahdpltPOaAThPcp5nKPUgSnsg==
-  /tr46/0.0.3:
-    dev: false
-    resolution:
-      integrity: sha1-gYT9NH2snNwYWZLzpmIuFLnZq2o=
   /tr46/1.0.1:
     dependencies:
       punycode: 2.1.1
@@ -24556,10 +24539,6 @@ packages:
     dev: true
     resolution:
       integrity: sha512-O84QOnr0icsbFGLS0O3bI5FswxzRr8/gHwWkDlQFskhSPryQXvrTMxjxGP4+iWYoauLoBvfDpkrOauZ+0iZpDA==
-  /webidl-conversions/3.0.1:
-    dev: false
-    resolution:
-      integrity: sha1-JFNCdeKnvGvnvIZhHMFq4KVlSHE=
   /webidl-conversions/4.0.2:
     dev: true
     resolution:
@@ -24839,13 +24818,6 @@ packages:
     dev: true
     resolution:
       integrity: sha512-M4yMwr6mAnQz76TbJm914+gPpB/nCwvZbJU28cUD6dR004SAxDLOOSUaB1JDRqLtaOV/vi0IC5lEAGFgrjGv/g==
-  /whatwg-url/5.0.0:
-    dependencies:
-      tr46: 0.0.3
-      webidl-conversions: 3.0.1
-    dev: false
-    resolution:
-      integrity: sha1-lmRU6HZUYuN2RNNib2dCzotwll0=
   /whatwg-url/6.5.0:
     dependencies:
       lodash.sortby: 4.7.0

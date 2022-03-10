@@ -13,8 +13,8 @@
  *  permissions and limitations under the License.
  */
 
-import fetch from 'node-fetch';
-import _ from 'lodash';
+const _ = require('lodash');
+const axios = require('axios').default;
 
 async function configure(context) {
   const router = context.router();
@@ -46,17 +46,19 @@ async function configure(context) {
       const authCodeTokenExchangeUri = cognitoAuthConfig.config.authCodeTokenExchangeUri;
 
       // Make a POST request to exchange code for token
-      const url = new URL(authCodeTokenExchangeUri);
       const headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
-      Object.keys(params).forEach(key => url.searchParams.append(key, params[key]));
 
-      // TODO: Use axios instead of node-fetch
+      // TODO:
+      // 1. Use state
+      // 2. Store token as HttpOnly + Secure cookie
       try {
-        const response = await fetch(url, { method: 'POST', headers, body: JSON.stringify(params) }).then(result => {
-          return result.json();
+        const axiosClient = axios.create({
+          baseURL: authCodeTokenExchangeUri,
+          headers,
         });
 
-        res.status(200).json({ token: _.get(response, 'id_token') });
+        const response = await axiosClient.post(authCodeTokenExchangeUri, params, { params });
+        res.status(200).json({ token: _.get(response, 'data.id_token') });
       } catch (e) {
         throw boom.badRequest(`Error received while  call: ${e}`, true);
       }
