@@ -33,6 +33,7 @@ class Boom {
       // revision of the same is updated by someone else before that)
       ['outdatedUpdateAttempt', 409],
       ['timeout', 408],
+      ['tooManyRequests', 429],
       ['badImplementation', 500],
       ['internalError', 500],
     );
