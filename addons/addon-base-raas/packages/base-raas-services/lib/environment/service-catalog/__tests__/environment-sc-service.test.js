@@ -35,6 +35,7 @@ const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-sett
 
 jest.mock('@aws-ee/base-services/lib/audit/audit-writer-service');
 const AuditServiceMock = require('@aws-ee/base-services/lib/audit/audit-writer-service');
+const environmentScStatus = require('../environent-sc-status-enum');
 
 jest.mock('../../environment-authz-service.js');
 const EnvironmentAuthZServiceMock = require('../../environment-authz-service.js');
@@ -1389,6 +1390,92 @@ Quisque egestas, eros nec feugiat venenatis, lorem turpis placerat tortor, ullam
       } catch (err) {
         expect(service.boom.is(err, 'forbidden')).toBe(true);
         expect(err.message).toContain('not authorized');
+      }
+    });
+
+    it('should fail because the environment is already terminated', async () => {
+      // BUILD
+      const requestContext = {
+        principal: {
+          isExternalUser: false,
+        },
+      };
+      const existingEnv = {
+        id: 'abc',
+        name: 'exampleName',
+        envTypeId: 'exampleETI',
+        envTypeConfigId: 'exampleETCI',
+        status: environmentScStatus.TERMINATED,
+      };
+
+      service.mustFind = jest.fn().mockResolvedValueOnce(existingEnv);
+
+      // OPERATE
+      try {
+        await service.delete(requestContext, { id: existingEnv.id });
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(service.boom.is(err, 'badRequest')).toBe(true);
+        expect(err.message).toContain(`Workspace '${existingEnv.id}' has already been terminated`);
+      }
+    });
+
+    it('should fail because the environment is being terminated', async () => {
+      // BUILD
+      const requestContext = {
+        principal: {
+          isExternalUser: false,
+        },
+      };
+      const existingEnv = {
+        id: 'abc',
+        name: 'exampleName',
+        envTypeId: 'exampleETI',
+        envTypeConfigId: 'exampleETCI',
+        status: environmentScStatus.TERMINATING,
+      };
+
+      service.mustFind = jest.fn().mockResolvedValueOnce(existingEnv);
+
+      // OPERATE
+      try {
+        await service.delete(requestContext, { id: existingEnv.id });
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(service.boom.is(err, 'badRequest')).toBe(true);
+        expect(err.message).toContain(`Workspace '${existingEnv.id}' is already being terminated`);
+      }
+    });
+
+    it('should fail because the environment is in termination failed status', async () => {
+      // BUILD
+      const requestContext = {
+        principal: {
+          isExternalUser: false,
+        },
+      };
+      const existingEnv = {
+        id: 'abc',
+        name: 'exampleName',
+        envTypeId: 'exampleETI',
+        envTypeConfigId: 'exampleETCI',
+        status: environmentScStatus.TERMINATING_FAILED,
+      };
+
+      service.mustFind = jest.fn().mockResolvedValueOnce(existingEnv);
+
+      // OPERATE
+      try {
+        await service.delete(requestContext, { id: existingEnv.id });
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(service.boom.is(err, 'badRequest')).toBe(true);
+        expect(err.message).toContain(
+          `Workspace '${existingEnv.id}' can not be terminated while in ${environmentScStatus.TERMINATING_FAILED} status`,
+        );
       }
     });
 

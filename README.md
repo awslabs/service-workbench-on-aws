@@ -185,14 +185,14 @@ For more information, refer to *Service Workbench Installation Guide*.
 
 ## Creating a new user in Service Workbench
 
-Once Service Workbench is fully deployed, the console will output the Website URL and Root Password for Service Workbench. You can log in by navigating to the Website URL in any browser, and then using the username 'root' and the Root Password given by the console. Please note that logging as the root user is highly discouraged, and should only be used for initial setup. You can create a new user by clicking the "Users" tab on the left, then "Add Local User". Follow the instructions given to create the user (you can leave the 'Project' field blank for now), then log out of the root account and into your new user account.
+Once Service Workbench is fully deployed, the console will output the Website URL and Root Password for Service Workbench. You can log in by navigating to the Website URL in any browser, and then using the username root and the Root Password given by the console. Please note that logging as the root user is highly discouraged, and should only be used for initial setup. You can create a new user by clicking the **Users** tab on the left, then **Add Local User**. Follow the instructions given to create the user (you can leave the Project field blank for now), then log out of the root account and into your new user account.
 
 Adding a local user should only be done in test environments. We highly recommend using an IDP for prod environments. For more details on how to set up an IDP, click [here](/docs/docs/user_guide/sidebar/admin/auth/introduction.md)
 ## Linking an existing AWS account
 
-Once in your user account, you'll need to link your AWS account. Navigate to "AWS Accounts" in the left bar, then click the "AWS Accounts" tab. From here, you can create an AWS account, or link an existing one.
+Once in your user account, you'll need to link your AWS account. Navigate to **AWS Accounts** in the left bar, then click the **AWS Accounts** tab. From here, you can create an AWS account, or link an existing one.
 
-To create a new AWS account, you'll need the "Master Role ARN" value, which you can get by contacting the owner of your Organization's master account. If you are the owner, you can find it in the Roles section of [AWS IAM](https://aws.amazon.com/iam/) from the [AWS management console](https://aws.amazon.com/console/).
+To create a new AWS account, you'll need the **Master Role ARN** value, which you can get by contacting the owner of your Organization's master account. If you are the owner, you can find it in the Roles section of [AWS IAM](https://aws.amazon.com/iam/) from the [AWS management console](https://aws.amazon.com/console/).
 
 To link an existing account, follow the instructions listed. You'll need the following credentials:
 
@@ -218,16 +218,17 @@ Now that you have a user and have a working AWS account, we can start generating
 6. Navigate to the **Users** page to see that the project has been successfully associated with your account.
 
 ### Creating a workspace
-Pre-requisites: Before creating a workspace, you must setup Service Catalog. Refer to the “Import a Product” section of the Service Workbench Deployment Guide for information on installing Service Catalog.
+Pre-requisites: Before creating a workspace, you must setup Service Catalog. Refer to the *Import a Product* section of the Service Workbench Deployment Guide for information on installing Service Catalog.
 
-1.	In the Workspaces tab, choose **Create Research Workspace**. A menu with options is displayed. 
+1.	In the Workspaces tab, choose **Create Research Workspace**. A menu with options is displayed.  
      **Note**: Service Workbench automatically provisions AWS resources according to your selection, so you can run your projects on AWS without having to worry about the setup.
 2. Choose the desired platform and then choose Next.
-3. Enter appropriate values for the field names (leave 'Restricted CIDR' as-is if you don't know what it is) and select a configuration.
+3. Enter appropriate values for the field names (leave 'Restricted CIDR' as-is if you don't know what it is) and select a configuration.  
      **Note**: Each configuration lists the details for its instance--On Demand instances are more expensive than Spot instances, but they're available whenever you need them. For more details on pricing and configurations, refer to the [Instance Purchasing Options](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/instance-purchasing-options.html) and the [AWS Pricing](https://aws.amazon.com/pricing/) pages.
 4.	Your workspace may take some time to launch. Once it is up and running, you can connect to it by choosing Connect. For more details, see the following documentation pages:
      + AWS SageMaker: Service Workbench takes care of provisioning the workspace for you, so you can jump straight to working with SageMaker Notebooks. For more information, see the [SageMaker Getting Started Guide](https://docs.aws.amazon.com/sagemaker/latest/dg/gs-console.html) (you can jump straight to Step 4).
-     + AWS ElasticMapReduce (EMR): Service Workbench takes care of setting up the EMR instance for you, so you can jump straight to working with EMR Notebooks. For more information on using EMR Notebooks, see [Using EMR Notebooks](https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-managed-notebooks.html). **Note:** A password may be required to access the EMR Notebooks. By default, this password is 'go-research-on-aws' (without the quotes).
+     + AWS ElasticMapReduce (EMR): Service Workbench takes care of setting up the EMR instance for you, so you can jump straight to working with EMR Notebooks. A password may be required to access the EMR Notebooks. By default, this password is ``go-research-on-aws``. For more information on using EMR Notebooks, see [Using EMR Notebooks](https://docs.aws.amazon.com/emr/latest/ManagementGuide/emr-managed-notebooks.html).  
+     **Note:** EMR workspaces are not available if AppStream is enabled for the deployment.
      + RStudio: You can connect to RStudio workspace type by using the template and AMI provided in AWS partner's [repository](https://github.com/RLOpenCatalyst/Service_Workbench_Templates). For more information, refer to the [Create RStudio ALB workspace](/deployment/post_deployment/aws_accounts#creating-rstudio-alb-workspace) section of *Service Workbench Post Deployment Guide*.
      + AWS Elastic Compute Cloud (EC2): EC2 instances are essentially Virtual Machines in the cloud. For more information, see the [EC2 Documentation](https://aws.amazon.com/ec2/).
 

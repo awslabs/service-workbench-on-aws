@@ -17,6 +17,7 @@ const ServicesContainer = require('@aws-ee/base-services-container/lib/services-
 const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
 const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
 const crypto = require('crypto');
+const Boom = require('@aws-ee/base-services-container/lib/boom');
 
 // Mocked dependencies
 const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
@@ -337,6 +338,17 @@ describe('EnvironmentScConnectionService', () => {
       expect(envScService.getClientSdkWithEnvMgmtRole).toHaveBeenCalledTimes(2);
     });
 
+    it('should return too many requests error if request cannot obtain a lock', async () => {
+      // BUILD
+      lockService.tryWriteLockAndRun = jest.fn(() => {
+        throw service.boom.internalError('Could not obtain a lock', true);
+      });
+
+      // OPERATE, CHECK
+      await expect(service.createPrivateSageMakerUrl({}, 'envId1', {})).rejects.toEqual(
+        new Boom().tooManyRequests('Please wait 30 seconds before requesting Sagemaker URL', true),
+      );
+    });
     it('should return private SageMaker URL', async () => {
       // BUILD
       lockService.tryWriteLockAndRun = jest.fn((id, func) => {
