@@ -187,11 +187,19 @@ function removeQueryParams(location, keys) {
 
 function getFragmentParam(location, key) {
   const fragmentParams = location.search || new URL(location).search;
-  // There's only one key expected here ("code")
-  const keyValueArr = fragmentParams.split('=');
-  const currKey = keyValueArr[0].replace('?', '');
-  const value = keyValueArr[1];
-  return currKey === key ? value : undefined;
+  const keyValues = {};
+  const params = fragmentParams.substring(1).split('&');
+  if (params) {
+    params.forEach(param => {
+      const keyValueArr = param.split('=');
+      const currentKey = keyValueArr[0].replace('?', '');
+      const value = keyValueArr[1];
+      if (value) {
+        keyValues[currentKey] = value;
+      }
+    });
+  }
+  return keyValues[key];
 }
 
 function removeFragmentParams(location, keyNamesToRemove) {

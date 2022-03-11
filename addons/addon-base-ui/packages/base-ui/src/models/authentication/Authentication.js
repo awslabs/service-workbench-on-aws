@@ -15,7 +15,6 @@
 
 import _ from 'lodash';
 import { getEnv, types } from 'mobx-state-tree';
-import pkceChallenge from 'pkce-challenge';
 
 import jwtDecode from 'jwt-decode';
 import { storage, getFragmentParam, removeFragmentParams } from '../../helpers/utils';
@@ -25,7 +24,7 @@ import localStorageKeys from '../constants/local-storage-keys';
 import { boom } from '../../helpers/errors';
 
 function removeTokensFromUrl() {
-  const newUrl = removeFragmentParams(document.location, ['code', 'id_token']);
+  const newUrl = removeFragmentParams(document.location, ['code', 'id_token', 'state']);
   window.history.replaceState({}, document.title, newUrl);
 }
 
@@ -73,12 +72,20 @@ const Authentication = types
       // This code will NOT work for auth providers issuing id token and delivering via any other mechanism.
 
       const authCode = getFragmentParam(document.location, 'code');
+      const state = getFragmentParam(document.location, 'state');
 
-      const challenge = pkceChallenge(128);
+      const stateVerifier = storage.getItem(localStorageKeys.stateVerifier);
 
-      // save the PKCE verification code to local storage
-      // we need to present this code after we are redirected back from the IDP
-      storage.setItem(localStorageKeys.pkceVerifier, challenge.code_verifier);
+      // these are a one-time codes so we delete it as it is no longer useful after this
+      storage.removeItem(localStorageKeys.stateVerifier);
+
+      console.log(state);
+      console.log(stateVerifier);
+
+      // If either is defined, both values must be equal
+      if (!(_.isNil(state) && _.isNil(stateVerifier)) && state !== stateVerifier) {
+        throw boom.badRequest(`The provided state does not match the client's state. Stopping login attempt.`);
+      }
 
       // Use this code to send to Cognito to get auth token
       // Then store auth token as appIdToken on client
@@ -87,7 +94,6 @@ const Authentication = types
         const mainUrl = document.location.href.split('?code')[0];
         newIdToken = await getIdToken({
           code: authCode,
-          pkce: challenge.code_verifier,
           mainUrl,
         });
 

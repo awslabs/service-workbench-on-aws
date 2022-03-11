@@ -14,9 +14,12 @@
  */
 
 import _ from 'lodash';
+import uuid from 'uuid/v4';
 import { getEnv, types } from 'mobx-state-tree';
 import { authenticate, config } from '../../helpers/api';
-import { isAbsoluteUrl, getQueryParam, removeQueryParams, addQueryParams } from '../../helpers/utils';
+import { storage, isAbsoluteUrl, getQueryParam, removeQueryParams, addQueryParams } from '../../helpers/utils';
+
+import localStorageKeys from '../constants/local-storage-keys';
 import { boom } from '../../helpers/errors';
 import { websiteUrl } from '../../helpers/settings';
 
@@ -67,6 +70,12 @@ const AuthenticationProviderPublicConfig = types
     },
 
     login: async ({ username, password } = {}) => {
+      // save the state verifier code to local storage (this is to protect against CSRF attacks)
+      // we need to verify this code after we are redirected back from the IDP
+      const nonceState = uuid();
+      storage.setItem(localStorageKeys.stateVerifier, nonceState);
+      self.signInUri = self.signInUri.replace('TEMP_STATE_VERIFIER', nonceState);
+
       const pluginRegistry = getEnv(self).pluginRegistry;
 
       const handleException = err => {
@@ -147,7 +156,6 @@ const AuthenticationProviderPublicConfig = types
       //  (or any other config variables) before returning them during local development, once we move to "provider registry" the registry will
       //  pick appropriate auth provider impl and give it a chance to adjust variables or create derived variables
 
-      // TODO: Assign state (and PKCE?) string here
       return adjustRedirectUri(toAbsoluteUrl(self.signInUri));
     },
     get absoluteSignOutUrl() {

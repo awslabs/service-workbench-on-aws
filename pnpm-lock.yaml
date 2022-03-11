@@ -842,7 +842,6 @@ importers:
       mobx-react-form: 2.0.9_mobx@5.15.4
       mobx-state-tree: 3.15.0_mobx@5.15.4
       numeral: 2.0.6
-      pkce-challenge: 2.2.0
       react: 16.13.1
       react-avatar: 3.9.2_prop-types@15.7.2+react@16.13.1
       react-beautiful-dnd: 11.0.5_react-dom@16.13.1+react@16.13.1
@@ -859,6 +858,7 @@ importers:
       showdown: 1.9.1
       toastr: 2.1.4
       typeface-lato: 0.0.75
+      uuid: 3.4.0
       validatorjs: 3.18.1
     devDependencies:
       '@aws-ee/base-serverless-settings-helper': link:../../../addon-base/packages/serverless-settings-helper
@@ -928,7 +928,6 @@ importers:
       mobx-react-form: ^2.0.9
       mobx-state-tree: ^3.15.0
       numeral: ^2.0.6
-      pkce-challenge: ^2.2.0
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
       prop-types: ^15.7.2
@@ -952,6 +951,7 @@ importers:
       toastr: ^2.1.4
       typeface-lato: 0.0.75
       typescript: ^3.7.5
+      uuid: ^3.4.0
       validatorjs: ^3.18.1
       webpack: 4.41.2
   addons/addon-base-ui/packages/serverless-ui-tools:
@@ -19352,10 +19352,6 @@ packages:
       node: '>= 6'
     resolution:
       integrity: sha512-WuNqLTbMI3tmfef2TKxlQmAiLHKtFhlsCZnPIpuv2Ow0RDVO8lfy1Opf4NUzlMXLjPl+Men7AuVdX6TA+s+uGA==
-  /pkce-challenge/2.2.0:
-    dev: false
-    resolution:
-      integrity: sha512-Ly0Y0OwhtG2N1ynk5ruqoyJxkrWhAPmvdRk0teiLh9Dp2+J4URKpv1JSKWD0j1Sd+QCeiwO9lTl0EjmrB2jWeA==
   /pkg-dir/1.0.0:
     dependencies:
       find-up: 1.1.2
@@ -24390,6 +24386,7 @@ packages:
     resolution:
       integrity: sha512-yXJmeNaw3DnnKAOKJE51sL/ZaYfWJRl1pK9dr19YFCu0ObS231AB1/LbqTKRAQ5kw8A90rA6fr4riOUpTZvQZA==
   /uuid/3.4.0:
+    deprecated: Please upgrade  to version 7 or higher.  Older versions may use Math.random() in certain circumstances, which is known to be problematic.  See https://v8.dev/blog/math-random for details.
     hasBin: true
     resolution:
       integrity: sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==

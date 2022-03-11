@@ -101,8 +101,7 @@ class ProvisionerService extends Service {
 
     const baseAuthUri = `https://${userPoolDomain}.auth.${awsRegion}.amazoncognito.com`;
     providerConfigWithOutputs.baseAuthUri = baseAuthUri;
-    // TODO: Optional additions "&code_challenge_method=S256&code_challenge=${CODE_CHALLENGE}&state=${STATE}"
-    providerConfigWithOutputs.signInUri = `${baseAuthUri}/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${websiteUrl}/`;
+    providerConfigWithOutputs.signInUri = `${baseAuthUri}/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${websiteUrl}/&state=TEMP_STATE_VERIFIER`;
     providerConfigWithOutputs.signOutUri = `${baseAuthUri}/logout?client_id=${clientId}&response_type=code&redirect_uri=${websiteUrl}/`;
     providerConfigWithOutputs.authCodeTokenExchangeUri = `${baseAuthUri}/oauth2/token`;
 
