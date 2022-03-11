@@ -79,9 +79,6 @@ const Authentication = types
       // these are a one-time codes so we delete it as it is no longer useful after this
       storage.removeItem(localStorageKeys.stateVerifier);
 
-      console.log(state);
-      console.log(stateVerifier);
-
       // If either is defined, both values must be equal
       if (!(_.isNil(state) && _.isNil(stateVerifier)) && state !== stateVerifier) {
         throw boom.badRequest(`The provided state does not match the client's state. Stopping login attempt.`);
