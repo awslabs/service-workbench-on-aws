@@ -842,6 +842,7 @@ importers:
       mobx-react-form: 2.0.9_mobx@5.15.4
       mobx-state-tree: 3.15.0_mobx@5.15.4
       numeral: 2.0.6
+      pkce-challenge: 2.2.0
       react: 16.13.1
       react-avatar: 3.9.2_prop-types@15.7.2+react@16.13.1
       react-beautiful-dnd: 11.0.5_react-dom@16.13.1+react@16.13.1
@@ -928,6 +929,7 @@ importers:
       mobx-react-form: ^2.0.9
       mobx-state-tree: ^3.15.0
       numeral: ^2.0.6
+      pkce-challenge: ^2.2.0
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
       prop-types: ^15.7.2
@@ -19352,6 +19354,10 @@ packages:
       node: '>= 6'
     resolution:
       integrity: sha512-WuNqLTbMI3tmfef2TKxlQmAiLHKtFhlsCZnPIpuv2Ow0RDVO8lfy1Opf4NUzlMXLjPl+Men7AuVdX6TA+s+uGA==
+  /pkce-challenge/2.2.0:
+    dev: false
+    resolution:
+      integrity: sha512-Ly0Y0OwhtG2N1ynk5ruqoyJxkrWhAPmvdRk0teiLh9Dp2+J4URKpv1JSKWD0j1Sd+QCeiwO9lTl0EjmrB2jWeA==
   /pkg-dir/1.0.0:
     dependencies:
       find-up: 1.1.2

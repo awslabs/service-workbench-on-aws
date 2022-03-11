@@ -28,7 +28,7 @@ async function configure(context) {
   router.post(
     '/',
     wrap(async (req, res) => {
-      const { code, mainUrl } = req.body;
+      const { code, pkce, mainUrl } = req.body;
 
       const providers = await authenticationProviderConfigService.getAuthenticationProviderConfigs();
       const cognitoAuthConfig = _.find(providers, provider => {
@@ -40,6 +40,7 @@ async function configure(context) {
         grant_type: 'authorization_code',
         client_id: cognitoAuthConfig.config.clientId,
         redirect_uri: mainUrl,
+        code_verifier: pkce,
       };
 
       const authCodeTokenExchangeUri = cognitoAuthConfig.config.authCodeTokenExchangeUri;

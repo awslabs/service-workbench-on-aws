@@ -137,7 +137,7 @@ class ProviderService extends Service {
       });
     } catch (err) {
       this.log.error(err);
-      throw this.boom.internalError('error creating user');
+      throw this.boom.badRequest(`Error creating user: ${err.message}`, true);
     }
   }
 
@@ -197,7 +197,7 @@ class ProviderService extends Service {
         });
       } catch (err) {
         this.log.error(err);
-        throw this.boom.internalError('error updating user');
+        throw this.boom.badRequest(`Error updating user: ${err.message}`, true);
       }
     }
   }

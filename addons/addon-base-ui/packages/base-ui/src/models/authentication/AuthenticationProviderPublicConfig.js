@@ -14,6 +14,7 @@
  */
 
 import _ from 'lodash';
+import pkceChallenge from 'pkce-challenge';
 import uuid from 'uuid/v4';
 import { getEnv, types } from 'mobx-state-tree';
 import { authenticate, config } from '../../helpers/api';
@@ -70,6 +71,12 @@ const AuthenticationProviderPublicConfig = types
     },
 
     login: async ({ username, password } = {}) => {
+      // save the PKCE verification code to local storage (this is to protect against redirect attacks)
+      // we need to present this code after we are redirected back from the IDP
+      const challenge = pkceChallenge(128);
+      storage.setItem(localStorageKeys.pkceVerifier, challenge.code_verifier);
+      self.signInUri = self.signInUri.replace('TEMP_PKCE_VERIFIER', challenge.code_challenge);
+
       // save the state verifier code to local storage (this is to protect against CSRF attacks)
       // we need to verify this code after we are redirected back from the IDP
       const nonceState = uuid();

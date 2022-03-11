@@ -74,14 +74,16 @@ const Authentication = types
       const authCode = getFragmentParam(document.location, 'code');
       const state = getFragmentParam(document.location, 'state');
 
+      const pkceCodeVerifier = storage.getItem(localStorageKeys.pkceVerifier);
       const stateVerifier = storage.getItem(localStorageKeys.stateVerifier);
 
       // these are a one-time codes so we delete it as it is no longer useful after this
+      storage.removeItem(localStorageKeys.pkceVerifier);
       storage.removeItem(localStorageKeys.stateVerifier);
 
       // If either is defined, both values must be equal
       if (!(_.isNil(state) && _.isNil(stateVerifier)) && state !== stateVerifier) {
-        throw boom.badRequest(`The provided state does not match the client's state. Stopping login attempt.`);
+        throw boom.badRequest(`Received an unexpected state. Stopping login attempt; please refresh to try again.`);
       }
 
       // Use this code to send to Cognito to get auth token
@@ -91,6 +93,7 @@ const Authentication = types
         const mainUrl = document.location.href.split('?code')[0];
         newIdToken = await getIdToken({
           code: authCode,
+          pkce: pkceCodeVerifier,
           mainUrl,
         });
 
