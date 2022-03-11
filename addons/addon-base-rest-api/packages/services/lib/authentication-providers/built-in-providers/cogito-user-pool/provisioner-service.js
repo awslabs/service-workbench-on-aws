@@ -102,7 +102,7 @@ class ProvisionerService extends Service {
     const baseAuthUri = `https://${userPoolDomain}.auth.${awsRegion}.amazoncognito.com`;
     providerConfigWithOutputs.baseAuthUri = baseAuthUri;
     providerConfigWithOutputs.signInUri = `${baseAuthUri}/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${websiteUrl}/&state=TEMP_STATE_VERIFIER`;
-    providerConfigWithOutputs.signOutUri = `${baseAuthUri}/logout?client_id=${clientId}&response_type=code&redirect_uri=${websiteUrl}/`;
+    providerConfigWithOutputs.signOutUri = `${baseAuthUri}/logout?client_id=${clientId}&response_type=code&redirect_uri=${websiteUrl}`;
     providerConfigWithOutputs.authCodeTokenExchangeUri = `${baseAuthUri}/oauth2/token`;
 
     this.log.info('Saving Cognito User Pool Authentication Provider Configuration.');
@@ -309,7 +309,7 @@ class ProvisionerService extends Service {
         CallbackURLs: this.ensureTrailingSlash(callbackUrls),
         DefaultRedirectURI: this.ensureTrailingSlash(defaultRedirectUri),
         ExplicitAuthFlows: ['ADMIN_NO_SRP_AUTH'],
-        LogoutURLs: this.ensureTrailingSlash(logoutUrls),
+        LogoutURLs: logoutUrls,
         // Make certain attributes readable and writable by this client.
         // See "https://docs.aws.amazon.com/cognito/latest/developerguide/user-pool-settings-attributes.html" for list of attributes Cognito supports by default
         ReadAttributes: [
@@ -389,7 +389,7 @@ class ProvisionerService extends Service {
       AllowedOAuthFlowsUserPoolClient: existingClientConfig.AllowedOAuthFlowsUserPoolClient,
       AllowedOAuthScopes: existingClientConfig.AllowedOAuthScopes,
       CallbackURLs: this.ensureTrailingSlash(existingClientConfig.CallbackURLs), // authorization code grant requires redirect URLs to have a trailing forward slash '/'
-      LogoutURLs: this.ensureTrailingSlash(existingClientConfig.LogoutURLs),
+      LogoutURLs: existingClientConfig.LogoutURLs,
       ClientName: existingClientConfig.ClientName,
       DefaultRedirectURI: this.ensureTrailingSlash(existingClientConfig.DefaultRedirectURI),
       ExplicitAuthFlows: existingClientConfig.ExplicitAuthFlows,
