@@ -38,6 +38,14 @@
       "$id": "#/properties/signInUri",
       "type": "string"
     },
+    "authCodeTokenExchangeUri": {
+      "$id": "#/properties/authCodeTokenExchangeUri",
+      "type": "string"
+    },
+    "baseAuthUri": {
+      "$id": "#/properties/baseAuthUri",
+      "type": "string"
+    },
     "signOutUri": {
       "$id": "#/properties/signOutUri",
       "type": "string"
