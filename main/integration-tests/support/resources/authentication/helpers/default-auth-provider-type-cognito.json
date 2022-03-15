@@ -173,6 +173,14 @@
         "additionalProperties": false,
         "definitions": {},
         "properties": {
+            "authCodeTokenExchangeUri": {
+               "$id": "#/properties/authCodeTokenExchangeUri",
+               "type": "string"
+            },
+            "baseAuthUri": {
+               "$id": "#/properties/baseAuthUri",
+               "type": "string"
+            },
            "clientId": {
               "$id": "#/properties/clientId",
               "type": "string"
