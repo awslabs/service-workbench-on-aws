@@ -1,6 +1,13 @@
 #!/bin/bash
 set -e
 
+# jq is required for this script. Check that 'jq' is installed and exit early if 'jq' is not installed
+jq --version > /dev/null
+if [[ $? != 0 ]]; then
+  echo "The package 'jq' is not installed on your system. Please install it. This script will now exit"
+  exit 1
+fi
+
 cd "$(dirname "${BASH_SOURCE[0]}")"
 # shellcheck disable=SC1091
 [[ $UTIL_SOURCED != yes && -f ./util.sh ]] && source ./util.sh
@@ -240,7 +247,7 @@ function removeSsmParams() {
     for param in "${paramNames[@]}"; do
         set +e
         printf "\nDeleting param $param"
-        aws ssm delete-parameter --name $param > /dev/null
+        aws ssm delete-parameter --region $regionName --name $param > /dev/null
         set -e
     done
 
