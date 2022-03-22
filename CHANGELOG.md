@@ -5,7 +5,9 @@ All notable changes to this project will be documented in this file. See [standa
 ### [5.1.0](https://github.com/awslabs/service-workbench-on-aws/compare/v5.0.0...v5.1.0) (2022-03-22)
 
 ### Features
+
 * OAuth flow: Switch to Authorization Code grant ([#947](https://github.com/awslabs/service-workbench-on-aws/issues/947)) ([9edbc12](https://github.com/awslabs/service-workbench-on-aws/commit/9edbc12bd85e0ddf4c2b271775b2fd41d9c2c236))
+
 ### Bug Fixes
 
 * -raas-master-artifacts versioning ([#930](https://github.com/awslabs/service-workbench-on-aws/issues/930)) ([1465431](https://github.com/awslabs/service-workbench-on-aws/commit/14654313d9d472beaf497fee5b1e918aad9ff756))
