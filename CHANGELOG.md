@@ -2,9 +2,10 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### [5.0.1](https://github.com/awslabs/service-workbench-on-aws/compare/v5.0.0...v5.0.1) (2022-03-22)
+### [5.1.0](https://github.com/awslabs/service-workbench-on-aws/compare/v5.0.0...v5.1.0) (2022-03-22)
 
-
+### Features
+* OAuth flow: Switch to Authorization Code grant ([#947](https://github.com/awslabs/service-workbench-on-aws/issues/947)) ([9edbc12](https://github.com/awslabs/service-workbench-on-aws/commit/9edbc12bd85e0ddf4c2b271775b2fd41d9c2c236))
 ### Bug Fixes
 
 * -raas-master-artifacts versioning ([#930](https://github.com/awslabs/service-workbench-on-aws/issues/930)) ([1465431](https://github.com/awslabs/service-workbench-on-aws/commit/14654313d9d472beaf497fee5b1e918aad9ff756))
@@ -14,7 +15,6 @@ All notable changes to this project will be documented in this file. See [standa
 * Exit early if jq is not installed. Fix ssm delete error ([#953](https://github.com/awslabs/service-workbench-on-aws/issues/953)) ([5c9c571](https://github.com/awslabs/service-workbench-on-aws/commit/5c9c5714947fd116ae58d39d60cb72d60914d548))
 * Handle workflow-trigger-service StepFunction execution failure ([#903](https://github.com/awslabs/service-workbench-on-aws/issues/903)) ([52b24c3](https://github.com/awslabs/service-workbench-on-aws/commit/52b24c346dd3cfa91b1a385c0f8611a6ec55f678))
 * no cidr form field in TRE env ([#940](https://github.com/awslabs/service-workbench-on-aws/issues/940)) ([dd2ccfd](https://github.com/awslabs/service-workbench-on-aws/commit/dd2ccfd2c606822ef0dae901ba911d560bf3df08))
-* OAuth grant type ([#947](https://github.com/awslabs/service-workbench-on-aws/issues/947)) ([9edbc12](https://github.com/awslabs/service-workbench-on-aws/commit/9edbc12bd85e0ddf4c2b271775b2fd41d9c2c236))
 * Remove non admin option for onboarding a hosting account ([#933](https://github.com/awslabs/service-workbench-on-aws/issues/933)) ([4b26589](https://github.com/awslabs/service-workbench-on-aws/commit/4b2658950b9565a7f5e0074031ce1a4625aedc7a))
 * remove unnecessary file ([4d20541](https://github.com/awslabs/service-workbench-on-aws/commit/4d2054160e874a512acecb7c9c714f3a8d5cf2b6))
 * Return badRequest if trying to terminate an environment that has already been terminated ([#946](https://github.com/awslabs/service-workbench-on-aws/issues/946)) ([15eb4d3](https://github.com/awslabs/service-workbench-on-aws/commit/15eb4d35320c2ba9babaa946fbecb34a9ec393b2))
