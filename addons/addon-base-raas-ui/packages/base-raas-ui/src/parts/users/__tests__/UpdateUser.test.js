@@ -1,3 +1,4 @@
+/* eslint-disable react/jsx-pascal-case */
 /*
  *  Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
  *
