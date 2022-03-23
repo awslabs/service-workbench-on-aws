@@ -46,6 +46,7 @@ describe('CreateStudy', () => {
   let wrapper = null;
   beforeEach(() => {
     // Render component
+    // eslint-disable-next-line react/jsx-pascal-case
     wrapper = shallow(<CreateStudy.wrappedComponent userStore={userStore} studiesStoresMap={studiesStoresMap} />);
 
     // Get instance of the component
