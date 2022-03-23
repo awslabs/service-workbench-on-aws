@@ -43,6 +43,7 @@ describe('EnvTypeConfigEditor', () => {
   beforeEach(() => {
     // render component
     wrapper = shallow(
+      // eslint-disable-next-line react/jsx-pascal-case
       <EnvTypeConfigEditor.wrappedComponent
         envTypeConfigsStore={envTypeConfigsStore}
         userRolesStore={userRolesStore}

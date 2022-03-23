@@ -19,9 +19,9 @@ const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
 const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
 
 const { generateId } = require('../helpers/utils');
-const registerSchema = require('../schema/register-data-source-account');
-const updateSchema = require('../schema/update-data-source-account');
-const updateStackInfoSchema = require('../schema/update-ds-account-stack-info');
+const registerSchema = require('../schema/register-data-source-account.json');
+const updateSchema = require('../schema/update-data-source-account.json');
+const updateStackInfoSchema = require('../schema/update-ds-account-stack-info.json');
 const { toDsAccountEntity, toDbEntity } = require('./helpers/entities/data-source-account-methods');
 const { toBucketEntity } = require('./helpers/entities/data-source-bucket-methods');
 const { accountIdCompositeKey, bucketIdCompositeKey } = require('./helpers/composite-keys');

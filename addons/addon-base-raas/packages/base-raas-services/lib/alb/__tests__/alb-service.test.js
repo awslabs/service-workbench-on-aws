@@ -34,7 +34,7 @@ jest.mock('../../project/project-service');
 const ProjectServiceMock = require('../../project/project-service');
 
 jest.mock('../../../../../../addon-base-post-deployment/packages/base-post-deployment/lib/deployment-store-service.js');
-const DeploymentStoreServiceMock = require('../../../../../../addon-base-post-deployment/packages/base-post-deployment/lib/deployment-store-service.js');
+const DeploymentStoreServiceMock = require('../../../../../../addon-base-post-deployment/packages/base-post-deployment/lib/deployment-store-service');
 
 jest.mock('../../aws-accounts/aws-accounts-service');
 const AwsAccountsServiceMock = require('../../aws-accounts/aws-accounts-service');

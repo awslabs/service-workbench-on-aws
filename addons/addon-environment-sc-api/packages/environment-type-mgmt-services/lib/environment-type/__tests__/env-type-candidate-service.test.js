@@ -27,7 +27,7 @@ jest.mock('../env-type-service');
 const EnvTypeServiceMock = require('../env-type-service');
 
 jest.mock('../../../../../../addon-base-post-deployment/packages/base-post-deployment/lib/deployment-store-service.js');
-const DeploymentStoreServiceMock = require('../../../../../../addon-base-post-deployment/packages/base-post-deployment/lib/deployment-store-service.js');
+const DeploymentStoreServiceMock = require('../../../../../../addon-base-post-deployment/packages/base-post-deployment/lib/deployment-store-service');
 
 const EnvTypeCandidateService = require('../env-type-candidate-service');
 

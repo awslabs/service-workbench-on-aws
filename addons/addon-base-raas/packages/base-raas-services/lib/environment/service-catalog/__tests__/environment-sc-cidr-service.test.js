@@ -38,7 +38,7 @@ const IndexServiceMock = require('../../../indexes/indexes-service');
 const ALBService = require('../../../alb/alb-service');
 
 jest.mock('../../environment-authz-service.js');
-const EnvironmentAuthZServiceMock = require('../../environment-authz-service.js');
+const EnvironmentAuthZServiceMock = require('../../environment-authz-service');
 
 jest.mock('../../../../../../../addon-base-workflow/packages/base-workflow-core/lib/workflow/workflow-trigger-service');
 const WorkflowTriggerServiceMock = require('../../../../../../../addon-base-workflow/packages/base-workflow-core/lib/workflow/workflow-trigger-service');

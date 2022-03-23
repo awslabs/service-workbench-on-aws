@@ -20,8 +20,8 @@ const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/autho
 const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
 
 const { isExternalGuest, isExternalResearcher, isInternalGuest, isAdmin, isSystem } = require('../helpers/is-role');
-const createSchema = require('../schema/create-project');
-const updateSchema = require('../schema/update-project');
+const createSchema = require('../schema/create-project.json');
+const updateSchema = require('../schema/update-project.json');
 
 const settingKeys = {
   tableName: 'dbProjects',

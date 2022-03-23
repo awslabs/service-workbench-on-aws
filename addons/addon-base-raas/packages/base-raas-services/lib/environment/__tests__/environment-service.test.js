@@ -57,13 +57,13 @@ jest.mock('../../study/study-permission-service');
 const StudyPermissionServiceMock = require('../../study/study-permission-service');
 
 jest.mock('../environment-ami-service.js');
-const EnvironmentAmiServiceMock = require('../environment-ami-service.js');
+const EnvironmentAmiServiceMock = require('../environment-ami-service');
 
 jest.mock('../environment-authz-service.js');
-const EnvironmentAuthZServiceMock = require('../environment-authz-service.js');
+const EnvironmentAuthZServiceMock = require('../environment-authz-service');
 
 jest.mock('../environment-mount-service.js');
-const EnvironmentMountServiceMock = require('../environment-mount-service.js');
+const EnvironmentMountServiceMock = require('../environment-mount-service');
 
 const EnvironmentService = require('../built-in/environment-service');
 

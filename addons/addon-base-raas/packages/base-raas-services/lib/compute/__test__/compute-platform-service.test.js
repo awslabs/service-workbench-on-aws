@@ -26,7 +26,7 @@ const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-sett
 const JsonSchemaValidationServiceMock = require('@aws-ee/base-services/lib/json-schema-validation-service');
 
 jest.mock('../compute-price-service.js');
-const ComputePriceService = require('../compute-price-service.js');
+const ComputePriceService = require('../compute-price-service');
 const ComputePlatformService = require('../compute-platform-service');
 
 describe('ComputePlatformService', () => {

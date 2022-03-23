@@ -25,6 +25,7 @@ describe('ForceLogout', () => {
   let renderModalSnapshot = null;
   let renderSnapshot = null;
   beforeAll(() => {
+    // eslint-disable-next-line react/jsx-pascal-case
     wrapper = shallow(<ForceLogout.wrappedComponent authentication={AuthenticationProviderConfigsStore} app={app} />);
     const component = wrapper.instance();
     component.tokenActive = false;
@@ -83,6 +84,7 @@ describe('ForceLogout', () => {
   it('should make render return null when user is not authenticated', () => {
     const userAuth = { userAuthenticated: false };
     const tempWrapper = shallow(
+      // eslint-disable-next-line react/jsx-pascal-case
       <ForceLogout.wrappedComponent authentication={AuthenticationProviderConfigsStore} app={userAuth} />,
     );
     const component = tempWrapper.instance();

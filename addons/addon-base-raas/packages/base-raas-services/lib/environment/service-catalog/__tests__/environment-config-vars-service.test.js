@@ -36,7 +36,7 @@ jest.mock('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
 const PluginRegistryService = require('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
 
 jest.mock('../../environment-authz-service.js');
-const EnvironmentAuthZServiceMock = require('../../environment-authz-service.js');
+const EnvironmentAuthZServiceMock = require('../../environment-authz-service');
 
 jest.mock('../../../aws-accounts/aws-accounts-service');
 const AwsAccountsServiceMock = require('../../../aws-accounts/aws-accounts-service');
@@ -45,7 +45,7 @@ jest.mock('../../../user/user-service');
 const UserServiceMock = require('../../../user/user-service');
 
 jest.mock('../../environment-ami-service.js');
-const EnvironmentAmiServiceMock = require('../../environment-ami-service.js');
+const EnvironmentAmiServiceMock = require('../../environment-ami-service');
 
 jest.mock('../../../indexes/indexes-service');
 const IndexesServiceMock = require('../../../indexes/indexes-service');
@@ -60,7 +60,7 @@ jest.mock('../environment-sc-keypair-service');
 const EnvironmentSCKeyPairServiceMock = require('../environment-sc-keypair-service');
 
 jest.mock('../../../data-egress/data-egress-service.js');
-const DataEgressService = require('../../../data-egress/data-egress-service.js');
+const DataEgressService = require('../../../data-egress/data-egress-service');
 
 const EnvironmentConfigVarsService = require('../environment-config-vars-service');
 
