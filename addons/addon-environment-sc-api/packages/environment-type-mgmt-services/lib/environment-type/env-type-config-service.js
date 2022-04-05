@@ -15,8 +15,8 @@
 
 /* eslint-disable no-template-curly-in-string */
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
-const { isAllow, allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
+const Service = require('@amzn/base-services-container/lib/service');
+const { isAllow, allowIfActive, allowIfAdmin } = require('@amzn/base-services/lib/authorization/authorization-utils');
 
 const createEnvTypeConfigSchema = require('./schema/create-or-update-env-type-config');
 

@@ -13,10 +13,8 @@
  *  permissions and limitations under the License.
  */
 
-const {
-  registerServices: registerServicesUtil,
-} = require('@aws-ee/base-services/lib/utils/services-registration-util');
-const handlerFactory = require('@aws-ee/base-workflow-core/lib/runner/handler');
+const { registerServices: registerServicesUtil } = require('@amzn/base-services/lib/utils/services-registration-util');
+const handlerFactory = require('@amzn/base-workflow-core/lib/runner/handler');
 
 const pluginRegistry = require('./plugins/plugin-registry');
 

@@ -14,9 +14,9 @@
  */
 const _ = require('lodash');
 const uuid = require('uuid');
-const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
-const Service = require('@aws-ee/base-services-container/lib/service');
-const { isAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
+const { runAndCatch } = require('@amzn/base-services/lib/helpers/utils');
+const Service = require('@amzn/base-services-container/lib/service');
+const { isAdmin } = require('@amzn/base-services/lib/authorization/authorization-utils');
 const createSchema = require('../schema/create-egress-store.json');
 const { StudyPolicy } = require('../helpers/iam/study-policy');
 

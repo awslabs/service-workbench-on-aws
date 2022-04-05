@@ -15,7 +15,7 @@
 
 import _ from 'lodash';
 import { types, getParent, getEnv, getSnapshot } from 'mobx-state-tree';
-import { visit } from '@aws-ee/base-ui/dist/models/forms/InputManifest';
+import { visit } from '@amzn/base-ui/dist/models/forms/InputManifest';
 
 import getWorkflowStepDescForm from '../../../forms/WorkflowStepDescForm';
 import getWorkflowStepPropsForm from '../../../forms/WorkflowStepPropsForm';

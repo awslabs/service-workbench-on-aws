@@ -14,9 +14,9 @@
  */
 
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
-const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
-const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
+const Service = require('@amzn/base-services-container/lib/service');
+const { runAndCatch } = require('@amzn/base-services/lib/helpers/utils');
+const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/system-context');
 
 const uuid = require('uuid/v1');
 let fetch = require('node-fetch');

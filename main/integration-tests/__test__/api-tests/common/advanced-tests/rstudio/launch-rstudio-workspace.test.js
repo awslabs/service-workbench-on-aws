@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
+const { sleep } = require('@amzn/base-services/lib/helpers/utils');
 const axios = require('axios').default;
 const { runSetup } = require('../../../../../support/setup');
 const { deleteWorkspaceServiceCatalog } = require('../../../../../support/complex/delete-workspace-service-catalog');

@@ -12,25 +12,25 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
 
 // Mocked services
-jest.mock('@aws-ee/base-services/lib/audit/audit-writer-service');
-jest.mock('@aws-ee/base-services/lib/db-service');
-jest.mock('@aws-ee/base-services/lib/lock/lock-service');
-jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
+jest.mock('@amzn/base-services/lib/audit/audit-writer-service');
+jest.mock('@amzn/base-services/lib/db-service');
+jest.mock('@amzn/base-services/lib/lock/lock-service');
+jest.mock('@amzn/base-services/lib/settings/env-settings-service');
 jest.mock('../../environment/service-catalog/environment-sc-service');
-jest.mock('@aws-ee/base-services/lib/user/user-service');
+jest.mock('@amzn/base-services/lib/user/user-service');
 
 const AWSMock = require('aws-sdk-mock');
-const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
-const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
-const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
-const DbServiceMock = require('@aws-ee/base-services/lib/db-service');
-const AuditWriterService = require('@aws-ee/base-services/lib/audit/audit-writer-service');
-const S3Service = require('@aws-ee/base-services/lib/s3-service');
-const UserService = require('@aws-ee/base-services/lib/user/user-service');
-const LockService = require('@aws-ee/base-services/lib/lock/lock-service');
+const SettingsServiceMock = require('@amzn/base-services/lib/settings/env-settings-service');
+const AwsService = require('@amzn/base-services/lib/aws/aws-service');
+const JsonSchemaValidationService = require('@amzn/base-services/lib/json-schema-validation-service');
+const DbServiceMock = require('@amzn/base-services/lib/db-service');
+const AuditWriterService = require('@amzn/base-services/lib/audit/audit-writer-service');
+const S3Service = require('@amzn/base-services/lib/s3-service');
+const UserService = require('@amzn/base-services/lib/user/user-service');
+const LockService = require('@amzn/base-services/lib/lock/lock-service');
 const EnvironmentScService = require('../../environment/service-catalog/environment-sc-service');
 const DataEgressService = require('../data-egress-service');
 

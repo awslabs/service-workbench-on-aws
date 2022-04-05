@@ -1,4 +1,4 @@
-# @aws-ee/base-serverless-settings-helper
+# @amzn/base-serverless-settings-helper
 
 This package provides a helper to merge solution settings files with local and solution-level defaults.
 
@@ -37,7 +37,7 @@ resources:
 Finally, in `settings.js`:
 
 ```javascript
-module.exports.merged = require('@aws-ee/base-serverless-settings-helper').mergeSettings(__dirname, [
+module.exports.merged = require('@amzn/base-serverless-settings-helper').mergeSettings(__dirname, [
   './sls-settings.defaults.yml',
   './sls-settings.${stage}.yml',
 ]);

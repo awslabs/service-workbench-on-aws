@@ -15,11 +15,11 @@
 
 // TODO: Remove extra classes if found a better way
 /* eslint-disable max-classes-per-file */
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
-const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
+const Logger = require('@amzn/base-services/lib/logger/logger-service');
 
-jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
-const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
+jest.mock('@amzn/base-services/lib/settings/env-settings-service');
+const SettingsServiceMock = require('@amzn/base-services/lib/settings/env-settings-service');
 
 // Mocked dependencies
 jest.mock('../../../../../../addon-base/packages/services/lib/aws/aws-service');

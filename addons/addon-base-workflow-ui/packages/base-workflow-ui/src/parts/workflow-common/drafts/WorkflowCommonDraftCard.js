@@ -20,7 +20,7 @@ import { decorate, action, observable, runInAction } from 'mobx';
 import TimeAgo from 'react-timeago';
 import { Header, Label, Button, Icon, Modal } from 'semantic-ui-react';
 import c from 'classnames';
-import { displayError, displaySuccess } from '@aws-ee/base-ui/dist/helpers/notification';
+import { displayError, displaySuccess } from '@amzn/base-ui/dist/helpers/notification';
 
 import getUIState from '../component-states/WorkflowCommonCardState';
 

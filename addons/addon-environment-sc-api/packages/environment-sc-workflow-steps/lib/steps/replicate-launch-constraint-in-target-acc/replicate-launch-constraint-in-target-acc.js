@@ -14,11 +14,11 @@
  */
 
 const _ = require('lodash');
-const StepBase = require('@aws-ee/base-workflow-core/lib/workflow/helpers/step-base');
+const StepBase = require('@amzn/base-workflow-core/lib/workflow/helpers/step-base');
 const {
   getServiceCatalogClient,
-} = require('@aws-ee/environment-type-mgmt-services/lib/environment-type/helpers/env-type-service-catalog-helper');
-const { paginatedList, paginatedFind } = require('@aws-ee/base-services/lib/helpers/utils');
+} = require('@amzn/environment-type-mgmt-services/lib/environment-type/helpers/env-type-service-catalog-helper');
+const { paginatedList, paginatedFind } = require('@amzn/base-services/lib/helpers/utils');
 const environmentStatusEnum = require('../../helpers/environment-status-enum');
 
 const inPayloadKeys = {

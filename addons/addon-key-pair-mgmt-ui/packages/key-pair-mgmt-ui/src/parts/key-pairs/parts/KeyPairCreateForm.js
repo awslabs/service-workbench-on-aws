@@ -17,10 +17,10 @@ import { decorate, runInAction, observable, action, computed } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Button, Header, Message } from 'semantic-ui-react';
-import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
-import Form from '@aws-ee/base-ui/dist/parts/helpers/fields/Form';
-import Input from '@aws-ee/base-ui/dist/parts/helpers/fields/Input';
-import TextArea from '@aws-ee/base-ui/dist/parts/helpers/fields/TextArea';
+import { displayError } from '@amzn/base-ui/dist/helpers/notification';
+import Form from '@amzn/base-ui/dist/parts/helpers/fields/Form';
+import Input from '@amzn/base-ui/dist/parts/helpers/fields/Input';
+import TextArea from '@amzn/base-ui/dist/parts/helpers/fields/TextArea';
 
 import { getKeyPairCreateForm } from '../../../models/forms/KeyPairCreateForm';
 

@@ -14,7 +14,7 @@
  */
 
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
+const Service = require('@amzn/base-services-container/lib/service');
 
 const {
   isDeny,
@@ -24,7 +24,7 @@ const {
   allowIfRoot,
   allow,
   deny,
-} = require('@aws-ee/base-services/lib/authorization/authorization-utils');
+} = require('@amzn/base-services/lib/authorization/authorization-utils');
 
 class UserAuthzService extends Service {
   async authorize(requestContext, { resource, action, effect, reason }, ...args) {

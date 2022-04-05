@@ -15,7 +15,7 @@
  */
 
 const _ = require('lodash');
-const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
+const { processInBatches } = require('@amzn/base-services/lib/helpers/utils');
 
 const { parseS3Arn } = require('../aws/utils/s3-arn');
 const { run } = require('../utils/utils');

@@ -18,7 +18,7 @@ import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Button, Modal } from 'semantic-ui-react';
 
-import { displayError, displaySuccess } from '@aws-ee/base-ui/dist/helpers/notification';
+import { displayError, displaySuccess } from '@amzn/base-ui/dist/helpers/notification';
 
 // expected props
 // - keyPair (via prop)

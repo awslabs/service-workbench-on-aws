@@ -14,10 +14,10 @@
  */
 
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
-const { ensureAdmin } = require('@aws-ee/base-services/lib/authorization/assertions');
+const Service = require('@amzn/base-services-container/lib/service');
+const { ensureAdmin } = require('@amzn/base-services/lib/authorization/assertions');
 
-const { toVersionString, parseVersionString, runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
+const { toVersionString, parseVersionString, runAndCatch } = require('@amzn/base-services/lib/helpers/utils');
 const inputSchema = require('../../schema/step-template');
 
 const settingKeys = {

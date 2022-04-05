@@ -18,7 +18,7 @@ import React from 'react';
 import { inject, observer } from 'mobx-react';
 import { computed, decorate } from 'mobx';
 
-import DropDown from '@aws-ee/base-ui/dist/parts/helpers/fields/DropDown';
+import DropDown from '@amzn/base-ui/dist/parts/helpers/fields/DropDown';
 import BaseEnvTypeConfigStep from './BaseEnvTypeConfigStep';
 
 class AccessControlStep extends BaseEnvTypeConfigStep {

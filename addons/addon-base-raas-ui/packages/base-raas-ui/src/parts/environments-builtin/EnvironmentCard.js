@@ -22,8 +22,8 @@ import TimeAgo from 'react-timeago';
 import { Header, Icon, Label, Image, Modal, Button } from 'semantic-ui-react';
 import Dotdotdot from 'react-dotdotdot';
 
-import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
-import { storage } from '@aws-ee/base-ui/dist/helpers/utils';
+import { displayError } from '@amzn/base-ui/dist/helpers/notification';
+import { storage } from '@amzn/base-ui/dist/helpers/utils';
 
 import EnvironmentStatusIcon from './EnvironmentStatusIcon';
 import By from '../helpers/By';

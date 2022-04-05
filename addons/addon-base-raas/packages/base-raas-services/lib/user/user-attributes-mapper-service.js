@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-const BaseAttribMapperService = require('@aws-ee/base-api-services/lib/authentication-providers/built-in-providers/cogito-user-pool/user-attributes-mapper-service');
+const BaseAttribMapperService = require('@amzn/base-api-services/lib/authentication-providers/built-in-providers/cogito-user-pool/user-attributes-mapper-service');
 
 class UserAttributesMapperService extends BaseAttribMapperService {
   mapAttributes(decodedToken) {

@@ -34,11 +34,11 @@ import {
 } from 'semantic-ui-react';
 import TimeAgo from 'react-timeago';
 
-import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import { isStoreLoading, isStoreError, isStoreReady } from '@aws-ee/base-ui/dist/models/BaseStore';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
-import ProgressPlaceHolder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import { gotoFn } from '@amzn/base-ui/dist/helpers/routing';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
+import { isStoreLoading, isStoreError, isStoreReady } from '@amzn/base-ui/dist/models/BaseStore';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
+import ProgressPlaceHolder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 
 import By from '../helpers/By';
 import ScEnvironmentButtons from './parts/ScEnvironmentButtons';

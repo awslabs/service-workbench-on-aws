@@ -15,7 +15,7 @@
  *  permissions and limitations under the License.
  */
 
-const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
+const { sleep } = require('@amzn/base-services/lib/helpers/utils');
 const _ = require('lodash');
 
 /**

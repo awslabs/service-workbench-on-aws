@@ -17,10 +17,10 @@ import React from 'react';
 import { decorate, computed, runInAction, observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { Icon, Header, Segment, Button } from 'semantic-ui-react';
-import { isStoreLoading, isStoreError, isStoreEmpty } from '@aws-ee/base-ui/dist/models/BaseStore';
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
+import { isStoreLoading, isStoreError, isStoreEmpty } from '@amzn/base-ui/dist/models/BaseStore';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
+import BasicProgressPlaceholder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
 
 import UserOnboarding from '../users/UserOnboarding';
 import SelectComputePlatformStep from './SelectComputePlatformStep';

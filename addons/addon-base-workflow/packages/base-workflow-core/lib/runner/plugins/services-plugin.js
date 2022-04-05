@@ -13,19 +13,19 @@
  *  permissions and limitations under the License.
  */
 
-const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
-const DbService = require('@aws-ee/base-services/lib/db-service');
-const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
-const InputManifestValidationService = require('@aws-ee/base-services/lib/input-manifest/input-manifest-validation-service');
-const S3Service = require('@aws-ee/base-services/lib/s3-service');
-const IamService = require('@aws-ee/base-services/lib/iam/iam-service');
-const LockService = require('@aws-ee/base-services/lib/lock/lock-service');
-const PluginRegistryService = require('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
-const AuditWriterService = require('@aws-ee/base-services/lib/audit/audit-writer-service');
-const AuthorizationService = require('@aws-ee/base-services/lib/authorization/authorization-service');
-const UserAuthzService = require('@aws-ee/base-services/lib/user/user-authz-service');
-const UserService = require('@aws-ee/base-services/lib/user/user-service');
-const DbPasswordService = require('@aws-ee/base-services/lib/db-password/db-password-service');
+const AwsService = require('@amzn/base-services/lib/aws/aws-service');
+const DbService = require('@amzn/base-services/lib/db-service');
+const JsonSchemaValidationService = require('@amzn/base-services/lib/json-schema-validation-service');
+const InputManifestValidationService = require('@amzn/base-services/lib/input-manifest/input-manifest-validation-service');
+const S3Service = require('@amzn/base-services/lib/s3-service');
+const IamService = require('@amzn/base-services/lib/iam/iam-service');
+const LockService = require('@amzn/base-services/lib/lock/lock-service');
+const PluginRegistryService = require('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
+const AuditWriterService = require('@amzn/base-services/lib/audit/audit-writer-service');
+const AuthorizationService = require('@amzn/base-services/lib/authorization/authorization-service');
+const UserAuthzService = require('@amzn/base-services/lib/user/user-authz-service');
+const UserService = require('@amzn/base-services/lib/user/user-service');
+const DbPasswordService = require('@amzn/base-services/lib/db-password/db-password-service');
 const StepRegistryService = require('../../workflow/step/step-registry-service');
 const StepTemplateService = require('../../workflow/step/step-template-service');
 const WorkflowTemplateRegistryService = require('../../workflow/workflow-template-registry-service');

@@ -14,15 +14,15 @@
  */
 
 const _ = require('lodash');
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
-const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
-const WorkflowLoop = require('@aws-ee/workflow-engine/lib/workflow-loop');
-const StepStateProvider = require('@aws-ee/workflow-engine/lib/step/step-state-provider');
-const WorkflowPayload = require('@aws-ee/workflow-engine/lib/workflow-payload');
-const StepLoopProvider = require('@aws-ee/workflow-engine/lib/step/step-loop-provider');
-const WorkflowInstance = require('@aws-ee/workflow-engine/lib/workflow-instance');
-const WorkflowInput = require('@aws-ee/workflow-engine/lib/workflow-input');
-const { catchIfErrorAsync } = require('@aws-ee/workflow-engine/lib/helpers/utils');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
+const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/system-context');
+const WorkflowLoop = require('@amzn/workflow-engine/lib/workflow-loop');
+const StepStateProvider = require('@amzn/workflow-engine/lib/step/step-state-provider');
+const WorkflowPayload = require('@amzn/workflow-engine/lib/workflow-payload');
+const StepLoopProvider = require('@amzn/workflow-engine/lib/step/step-loop-provider');
+const WorkflowInstance = require('@amzn/workflow-engine/lib/workflow-instance');
+const WorkflowInput = require('@amzn/workflow-engine/lib/workflow-input');
+const { catchIfErrorAsync } = require('@amzn/workflow-engine/lib/helpers/utils');
 
 const WorkflowReporter = require('../workflow/helpers/workflow-reporter');
 

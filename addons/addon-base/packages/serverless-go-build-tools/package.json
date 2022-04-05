@@ -1,5 +1,5 @@
 {
-  "name": "@aws-ee/serverless-go-build-tools",
+  "name": "@amzn/serverless-go-build-tools",
   "version": "1.0.0",
   "private": true,
   "description": "A collection of serverless commands to help with building go tools",

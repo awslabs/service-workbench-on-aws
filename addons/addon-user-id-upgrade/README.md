@@ -4,4 +4,4 @@ The purpose of this add-on is to apply the necessary upgrade tasks needed to sup
 
 ## npm packages
 
-- @aws-ee/user-id-upgrade-post-deployment
+- @amzn/user-id-upgrade-post-deployment

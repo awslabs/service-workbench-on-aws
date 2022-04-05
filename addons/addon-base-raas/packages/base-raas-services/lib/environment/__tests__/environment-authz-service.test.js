@@ -13,15 +13,15 @@
  *  permissions and limitations under the License.
  */
 
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
 
 // Mocked dependencies
 
-jest.mock('@aws-ee/environment-type-mgmt-services/lib/environment-type/env-type-config-service');
-const EnvTypeConfigService = require('@aws-ee/environment-type-mgmt-services/lib/environment-type/env-type-config-service');
+jest.mock('@amzn/environment-type-mgmt-services/lib/environment-type/env-type-config-service');
+const EnvTypeConfigService = require('@amzn/environment-type-mgmt-services/lib/environment-type/env-type-config-service');
 
-jest.mock('@aws-ee/environment-type-mgmt-services/lib/environment-type/env-type-config-authz-service');
-const EnvTypeConfigAuthzService = require('@aws-ee/environment-type-mgmt-services/lib/environment-type/env-type-config-authz-service');
+jest.mock('@amzn/environment-type-mgmt-services/lib/environment-type/env-type-config-authz-service');
+const EnvTypeConfigAuthzService = require('@amzn/environment-type-mgmt-services/lib/environment-type/env-type-config-authz-service');
 
 jest.mock('../../project/project-service');
 const ProjectServiceMock = require('../../project/project-service');

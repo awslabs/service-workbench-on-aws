@@ -14,7 +14,7 @@
  */
 
 import { types } from 'mobx-state-tree';
-import { sessionStore, uiEventBus } from '@aws-ee/base-ui/dist/models/SessionStore';
+import { sessionStore, uiEventBus } from '@amzn/base-ui/dist/models/SessionStore';
 
 const WorkflowCommonUIState = types
   .model('WorkflowCommonUIState', {

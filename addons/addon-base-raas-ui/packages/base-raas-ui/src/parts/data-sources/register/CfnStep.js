@@ -19,7 +19,7 @@ import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Segment, Button, Header, List } from 'semantic-ui-react';
 
-import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
+import { gotoFn } from '@amzn/base-ui/dist/helpers/routing';
 
 import AccountCfnPanel from '../parts/AccountCfnPanel';
 

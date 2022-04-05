@@ -13,7 +13,7 @@
  * permissions and limitations under the License.
  */
 
-const Service = require('@aws-ee/base-services-container/lib/service');
+const Service = require('@amzn/base-services-container/lib/service');
 /**
  * Creation of Environment Type Configuration requires specifying mapping between AWS CloudFormation Input Parameters
  * and predefined values. Many times, the values are not available at the time of creating this mapping. In such cases,

@@ -14,7 +14,7 @@
  */
 
 /* eslint-disable import/prefer-default-export */
-import { httpApiGet, httpApiPost, httpApiPut, httpApiDelete } from '@aws-ee/base-ui/dist/helpers/api';
+import { httpApiGet, httpApiPost, httpApiPut, httpApiDelete } from '@amzn/base-ui/dist/helpers/api';
 
 async function getWorkflowTemplates() {
   return httpApiGet('api/workflow-templates');

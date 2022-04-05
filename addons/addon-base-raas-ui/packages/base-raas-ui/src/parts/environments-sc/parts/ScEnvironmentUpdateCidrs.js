@@ -21,14 +21,14 @@ import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Container, Segment, Button, Message, Table } from 'semantic-ui-react';
 
-import Stores from '@aws-ee/base-ui/dist/models/Stores';
-import { displayError, displaySuccess } from '@aws-ee/base-ui/dist/helpers/notification';
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
-import ProgressPlaceHolder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
-import Dropdown from '@aws-ee/base-ui/dist/parts/helpers/fields/DropDown';
-import Form from '@aws-ee/base-ui/dist/parts/helpers/fields/Form';
-import Input from '@aws-ee/base-ui/dist/parts/helpers/fields/Input';
+import Stores from '@amzn/base-ui/dist/models/Stores';
+import { displayError, displaySuccess } from '@amzn/base-ui/dist/helpers/notification';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
+import ProgressPlaceHolder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import Dropdown from '@amzn/base-ui/dist/parts/helpers/fields/DropDown';
+import Form from '@amzn/base-ui/dist/parts/helpers/fields/Form';
+import Input from '@amzn/base-ui/dist/parts/helpers/fields/Input';
 import { createCidrFormModel } from '../../../models/forms/CreateCidrFormModel';
 
 // expected props

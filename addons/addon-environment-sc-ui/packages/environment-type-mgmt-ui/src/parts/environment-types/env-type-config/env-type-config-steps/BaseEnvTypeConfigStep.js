@@ -17,7 +17,7 @@ import React from 'react';
 import { runInAction } from 'mobx';
 import { Button, Segment } from 'semantic-ui-react';
 
-import Form from '@aws-ee/base-ui/dist/parts/helpers/fields/Form';
+import Form from '@amzn/base-ui/dist/parts/helpers/fields/Form';
 
 class BaseEnvTypeConfigStep extends React.Component {
   constructor(props) {

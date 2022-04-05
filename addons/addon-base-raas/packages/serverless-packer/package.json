@@ -1,5 +1,5 @@
 {
-  "name": "@aws-ee/serverless-packer",
+  "name": "@amzn/serverless-packer",
   "private": true,
   "version": "1.0.0",
   "description": "A serverless framework plugin to help with using packer",

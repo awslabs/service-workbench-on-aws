@@ -14,7 +14,7 @@
  */
 
 const _ = require('lodash');
-const { newInvoker } = require('@aws-ee/base-api-services/lib/authentication-providers/helpers/invoker');
+const { newInvoker } = require('@amzn/base-api-services/lib/authentication-providers/helpers/invoker');
 
 async function configure(context) {
   const router = context.router();

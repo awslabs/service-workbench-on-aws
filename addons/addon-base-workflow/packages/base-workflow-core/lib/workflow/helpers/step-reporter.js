@@ -13,8 +13,8 @@
  *  permissions and limitations under the License.
  */
 
-const StepReporterBase = require('@aws-ee/workflow-engine/lib/step/step-reporter');
-const { normalizeError } = require('@aws-ee/workflow-engine/lib/helpers/utils');
+const StepReporterBase = require('@amzn/workflow-engine/lib/step/step-reporter');
+const { normalizeError } = require('@amzn/workflow-engine/lib/helpers/utils');
 
 // --------------------------------------------------
 // StepReporter

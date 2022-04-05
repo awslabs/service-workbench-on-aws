@@ -4,4 +4,4 @@ The purpose of this add-on is to check that the environment is ready for deploym
 
 ## npm packages
 
-- @aws-ee/internal-auth-dep-check
+- @amzn/internal-auth-dep-check

@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-import withAuth from '@aws-ee/base-ui/dist/withAuth';
+import withAuth from '@amzn/base-ui/dist/withAuth';
 
 import _ from 'lodash';
 import EnvTypesManagement from '../parts/environment-types/EnvTypesManagement';

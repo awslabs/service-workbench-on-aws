@@ -20,8 +20,8 @@ import { withRouter } from 'react-router-dom';
 import { Header, Label, Popup, TextArea, Tab, Form, Icon, Segment } from 'semantic-ui-react';
 import TimeAgo from 'react-timeago';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
-import By from '@aws-ee/base-ui/dist/parts/helpers/By';
-import { displaySuccess } from '@aws-ee/base-ui/dist/helpers/notification';
+import By from '@amzn/base-ui/dist/parts/helpers/By';
+import { displaySuccess } from '@amzn/base-ui/dist/helpers/notification';
 
 import KeyPairButtons from './parts/KeyPairButtons';
 

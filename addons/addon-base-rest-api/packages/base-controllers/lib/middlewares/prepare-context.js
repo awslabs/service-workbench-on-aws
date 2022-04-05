@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-const RequestContext = require('@aws-ee/base-services-container/lib/request-context');
+const RequestContext = require('@amzn/base-services-container/lib/request-context');
 const _ = require('lodash');
 
 async function configure(context) {

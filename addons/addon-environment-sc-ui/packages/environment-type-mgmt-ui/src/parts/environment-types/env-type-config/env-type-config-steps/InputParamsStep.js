@@ -19,10 +19,10 @@ import { observer } from 'mobx-react';
 import { action, decorate, runInAction } from 'mobx';
 import { Header, Segment } from 'semantic-ui-react';
 
-import Form from '@aws-ee/base-ui/dist/parts/helpers/fields/Form';
-import DropDown from '@aws-ee/base-ui/dist/parts/helpers/fields/DropDown';
+import Form from '@amzn/base-ui/dist/parts/helpers/fields/Form';
+import DropDown from '@amzn/base-ui/dist/parts/helpers/fields/DropDown';
 
-import { sessionStore } from '@aws-ee/base-ui/dist/models/SessionStore';
+import { sessionStore } from '@amzn/base-ui/dist/models/SessionStore';
 import { getCfnParamsForm } from '../../../../models/forms/CfnParamsForm';
 import BaseEnvTypeConfigStep from './BaseEnvTypeConfigStep';
 

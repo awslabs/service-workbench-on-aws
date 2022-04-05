@@ -15,8 +15,8 @@
 
 const _ = require('lodash');
 const passwordGenerator = require('generate-password');
-const Service = require('@aws-ee/base-services-container/lib/service');
-const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
+const Service = require('@amzn/base-services-container/lib/service');
+const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/system-context');
 
 const settingKeys = {
   paramStoreJwtSecret: 'paramStoreJwtSecret',

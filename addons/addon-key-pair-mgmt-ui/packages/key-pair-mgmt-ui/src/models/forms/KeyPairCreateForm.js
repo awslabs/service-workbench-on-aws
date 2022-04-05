@@ -12,7 +12,7 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-import { createForm } from '@aws-ee/base-ui/dist/helpers/form';
+import { createForm } from '@amzn/base-ui/dist/helpers/form';
 
 function getKeyPairCreateForm() {
   const fields = {

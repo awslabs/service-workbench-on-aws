@@ -14,7 +14,7 @@
  */
 
 const _ = require('lodash');
-const StepBase = require('@aws-ee/base-workflow-core/lib/workflow/helpers/step-base');
+const StepBase = require('@amzn/base-workflow-core/lib/workflow/helpers/step-base');
 
 class ObtainLock extends StepBase {
   async start() {

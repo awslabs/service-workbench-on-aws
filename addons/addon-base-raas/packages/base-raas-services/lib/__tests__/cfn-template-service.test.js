@@ -13,9 +13,9 @@
  *  permissions and limitations under the License.
  */
 
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
 const fs = require('fs');
-const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
+const SettingsServiceMock = require('@amzn/base-services/lib/settings/env-settings-service');
 
 const { yamlParse } = require('yaml-cfn');
 const CfnTemplateService = require('../cfn-templates/cfn-template-service');

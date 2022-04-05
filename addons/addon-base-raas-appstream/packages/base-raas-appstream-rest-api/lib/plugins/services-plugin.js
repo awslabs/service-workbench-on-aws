@@ -13,8 +13,8 @@
  * permissions and limitations under the License.
  */
 
-const AppStreamScEnvConfigVarsService = require('@aws-ee/base-raas-appstream-services/lib/appstream/appstream-sc-env-config-vars-service');
-const AppStreamScService = require('@aws-ee/base-raas-appstream-services/lib/appstream/appstream-sc-service');
+const AppStreamScEnvConfigVarsService = require('@amzn/base-raas-appstream-services/lib/appstream/appstream-sc-env-config-vars-service');
+const AppStreamScService = require('@amzn/base-raas-appstream-services/lib/appstream/appstream-sc-service');
 
 /**
  * Registers the services needed by the workflow loop runner lambda function

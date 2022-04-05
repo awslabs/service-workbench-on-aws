@@ -19,12 +19,12 @@ import { action, decorate, observable, runInAction } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import { Button, Dimmer, Dropdown, Loader, Icon, Table } from 'semantic-ui-react';
 
-import { displayError, displaySuccess } from '@aws-ee/base-ui/dist/helpers/notification';
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import { isStoreError, isStoreLoading, isStoreNew, stopHeartbeat } from '@aws-ee/base-ui/dist/models/BaseStore';
-import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
-import UserLabels from '@aws-ee/base-ui/dist/parts/helpers/UserLabels';
+import { displayError, displaySuccess } from '@amzn/base-ui/dist/helpers/notification';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
+import { isStoreError, isStoreLoading, isStoreNew, stopHeartbeat } from '@amzn/base-ui/dist/models/BaseStore';
+import BasicProgressPlaceholder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
+import UserLabels from '@amzn/base-ui/dist/parts/helpers/UserLabels';
 
 // expected props
 // - study

@@ -20,17 +20,17 @@ import { withRouter } from 'react-router-dom';
 import { decorate, computed, runInAction } from 'mobx';
 import { Segment, Button } from 'semantic-ui-react';
 
-import { displaySuccess, displayError } from '@aws-ee/base-ui/dist//helpers/notification';
+import { displaySuccess, displayError } from '@amzn/base-ui/dist//helpers/notification';
 
-import Stores from '@aws-ee/base-ui/dist/models/Stores';
-import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import Form from '@aws-ee/base-ui/dist/parts/helpers/fields/Form';
-import YesNo from '@aws-ee/base-ui/dist/parts/helpers/fields/YesNo';
-import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
-import DropDown from '@aws-ee/base-ui/dist/parts/helpers/fields/DropDown';
-import Input from '@aws-ee/base-ui/dist/parts/helpers/fields/Input';
+import Stores from '@amzn/base-ui/dist/models/Stores';
+import BasicProgressPlaceholder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
+import Form from '@amzn/base-ui/dist/parts/helpers/fields/Form';
+import YesNo from '@amzn/base-ui/dist/parts/helpers/fields/YesNo';
+import { gotoFn } from '@amzn/base-ui/dist/helpers/routing';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
+import DropDown from '@amzn/base-ui/dist/parts/helpers/fields/DropDown';
+import Input from '@amzn/base-ui/dist/parts/helpers/fields/Input';
 import { getAddUserForm, getAddUserFormFields } from '../../models/forms/AddUserForm';
 import { toIdpFromValue, toIdpOptions } from '../../models/forms/UserFormUtils';
 

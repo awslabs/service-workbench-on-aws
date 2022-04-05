@@ -14,11 +14,11 @@
  */
 
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
+const Service = require('@amzn/base-services-container/lib/service');
 const crypto = require('crypto');
 
-const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
-const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
+const { allowIfActive, allowIfAdmin } = require('@amzn/base-services/lib/authorization/authorization-utils');
+const { processInBatches } = require('@amzn/base-services/lib/helpers/utils');
 
 // const { generateId } = require('../helpers/utils');
 

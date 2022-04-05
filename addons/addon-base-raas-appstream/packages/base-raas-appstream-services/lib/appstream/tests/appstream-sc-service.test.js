@@ -13,31 +13,31 @@
  *  permissions and limitations under the License.
  */
 
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
-const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
+const AwsService = require('@amzn/base-services/lib/aws/aws-service');
 
 const AWSMock = require('aws-sdk-mock');
 
-jest.mock('@aws-ee/base-raas-services/lib/aws-accounts/aws-accounts-service');
-const AwsAccountsServiceMock = require('@aws-ee/base-raas-services/lib/aws-accounts/aws-accounts-service');
+jest.mock('@amzn/base-raas-services/lib/aws-accounts/aws-accounts-service');
+const AwsAccountsServiceMock = require('@amzn/base-raas-services/lib/aws-accounts/aws-accounts-service');
 
-jest.mock('@aws-ee/base-raas-services/lib/indexes/indexes-service');
-const IndexesServiceMock = require('@aws-ee/base-raas-services/lib/indexes/indexes-service');
+jest.mock('@amzn/base-raas-services/lib/indexes/indexes-service');
+const IndexesServiceMock = require('@amzn/base-raas-services/lib/indexes/indexes-service');
 
-jest.mock('@aws-ee/base-services/lib/audit/audit-writer-service');
-const AuditServiceMock = require('@aws-ee/base-services/lib/audit/audit-writer-service');
+jest.mock('@amzn/base-services/lib/audit/audit-writer-service');
+const AuditServiceMock = require('@amzn/base-services/lib/audit/audit-writer-service');
 
-jest.mock('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-service');
-const EnvironmentScServiceMock = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-service');
+jest.mock('@amzn/base-raas-services/lib/environment/service-catalog/environment-sc-service');
+const EnvironmentScServiceMock = require('@amzn/base-raas-services/lib/environment/service-catalog/environment-sc-service');
 
-jest.mock('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-keypair-service');
-const EnvironmentScKeyPairServiceMock = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-keypair-service');
+jest.mock('@amzn/base-raas-services/lib/environment/service-catalog/environment-sc-keypair-service');
+const EnvironmentScKeyPairServiceMock = require('@amzn/base-raas-services/lib/environment/service-catalog/environment-sc-keypair-service');
 
-jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
-const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
+jest.mock('@amzn/base-services/lib/settings/env-settings-service');
+const SettingsServiceMock = require('@amzn/base-services/lib/settings/env-settings-service');
 
-jest.mock('@aws-ee/base-services/lib/logger/logger-service');
-const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
+jest.mock('@amzn/base-services/lib/logger/logger-service');
+const Logger = require('@amzn/base-services/lib/logger/logger-service');
 
 const AppStreamScService = require('../appstream-sc-service');
 

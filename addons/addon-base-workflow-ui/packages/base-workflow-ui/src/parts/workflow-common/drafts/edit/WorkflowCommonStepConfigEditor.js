@@ -18,9 +18,9 @@ import React from 'react';
 import { observer, inject } from 'mobx-react';
 import { decorate, action, computed } from 'mobx';
 import { Segment, Icon, Divider, Header } from 'semantic-ui-react';
-import ConfigTable from '@aws-ee/base-ui/dist/parts/configuration/ConfigTable';
-import ConfigurationEditor from '@aws-ee/base-ui/dist/parts/configuration/ConfigurationEditor';
-import ConfigurationReview from '@aws-ee/base-ui/dist/parts/configuration/ConfigurationReview';
+import ConfigTable from '@amzn/base-ui/dist/parts/configuration/ConfigTable';
+import ConfigurationEditor from '@amzn/base-ui/dist/parts/configuration/ConfigurationEditor';
+import ConfigurationReview from '@amzn/base-ui/dist/parts/configuration/ConfigurationReview';
 
 // expected props
 // - stepEditor - a WorkflowStepEditor or a WorkflowTemplateStepEditor model instance (via props)

@@ -13,6 +13,6 @@
  *  permissions and limitations under the License.
  */
 
-const authorizationPluginFactory = require('@aws-ee/base-services/lib/authorization/authorization-plugin-factory');
+const authorizationPluginFactory = require('@amzn/base-services/lib/authorization/authorization-plugin-factory');
 
 module.exports = authorizationPluginFactory('raasUserAuthzService');

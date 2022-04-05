@@ -19,8 +19,8 @@ import { observer, inject } from 'mobx-react';
 import { decorate, action, runInAction, observable } from 'mobx';
 import { withRouter } from 'react-router-dom';
 import { Button, Header, Dimmer, Loader } from 'semantic-ui-react';
-import { displayError, displaySuccess } from '@aws-ee/base-ui/dist/helpers/notification';
-import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
+import { displayError, displaySuccess } from '@amzn/base-ui/dist/helpers/notification';
+import { gotoFn } from '@amzn/base-ui/dist/helpers/routing';
 
 import getUIState from '../../../workflow-common/component-states/WorkflowCommonCardState';
 import WorkflowTemplateCardTabs from '../../../workflow-templates/WorkflowTemplateCardTabs';
