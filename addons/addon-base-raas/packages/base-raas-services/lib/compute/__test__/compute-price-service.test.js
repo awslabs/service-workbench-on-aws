@@ -13,19 +13,19 @@
  *  permissions and limitations under the License.
  */
 
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
 
 // Mocked services
-jest.mock('@aws-ee/base-services/lib/db-service');
-const DBServiceMock = require('@aws-ee/base-services/lib/db-service');
+jest.mock('@amzn/base-services/lib/db-service');
+const DBServiceMock = require('@amzn/base-services/lib/db-service');
 
-jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
-const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
+jest.mock('@amzn/base-services/lib/settings/env-settings-service');
+const SettingsServiceMock = require('@amzn/base-services/lib/settings/env-settings-service');
 
-// jest.mock('@aws-ee/base-services/lib/json-schema-validation-service');
-const JsonSchemaValidationServiceMock = require('@aws-ee/base-services/lib/json-schema-validation-service');
+// jest.mock('@amzn/base-services/lib/json-schema-validation-service');
+const JsonSchemaValidationServiceMock = require('@amzn/base-services/lib/json-schema-validation-service');
 
-const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
+const AwsService = require('@amzn/base-services/lib/aws/aws-service');
 const AWSMock = require('aws-sdk-mock');
 
 jest.mock('../compute-platform-service');

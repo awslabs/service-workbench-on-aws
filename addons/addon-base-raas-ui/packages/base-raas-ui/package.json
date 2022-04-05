@@ -1,14 +1,14 @@
 {
-  "name": "@aws-ee/base-raas-ui",
+  "name": "@amzn/base-raas-ui",
   "version": "0.1.0",
   "private": true,
   "author": "Amazon Web Services",
   "license": "Apache-2.0",
   "dependencies": {
     "@auth0/auth0-spa-js": "^1.2.3",
-    "@aws-ee/base-ui": "workspace:*",
-    "@aws-ee/base-services": "workspace:*",
-    "@aws-ee/key-pair-mgmt-ui": "workspace:*",
+    "@amzn/base-ui": "workspace:*",
+    "@amzn/base-services": "workspace:*",
+    "@amzn/key-pair-mgmt-ui": "workspace:*",
     "aws-sdk": "^2.1000.0",
     "chart.js": "^2.9.4",
     "classnames": "^2.2.6",

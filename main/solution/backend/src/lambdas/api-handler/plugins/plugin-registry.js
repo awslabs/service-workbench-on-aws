@@ -13,28 +13,28 @@
  *  permissions and limitations under the License.
  */
 
-const baseAuditPlugin = require('@aws-ee/base-services/lib/plugins/audit-plugin');
-const baseServicesPlugin = require('@aws-ee/base-api-handler/lib/plugins/services-plugin');
-const baseRoutesPlugin = require('@aws-ee/base-controllers/lib/plugins/routes-plugin');
-const baseWfServicesPlugin = require('@aws-ee/base-workflow-api/lib/plugins/services-plugin');
-const baseWfRoutesPlugin = require('@aws-ee/base-workflow-api/lib/plugins/routes-plugin');
-const bassRaasServicesPlugin = require('@aws-ee/base-raas-rest-api/lib/plugins/services-plugin');
-const baseRaasRoutesPlugin = require('@aws-ee/base-raas-rest-api/lib/plugins/routes-plugin');
-const baseRaasCfnTemplatesPlugin = require('@aws-ee/base-raas-cfn-templates/dist/plugins/cfn-templates-plugin');
-const baseRaasUserAuthzPlugin = require('@aws-ee/base-raas-services/lib/user/user-authz-plugin');
-const environmentTypeRoutesPlugin = require('@aws-ee/environment-type-mgmt-api/lib/plugins/routes-plugin');
-const environmentTypeServicesPlugin = require('@aws-ee/environment-type-mgmt-services/lib/plugins/services-plugin');
+const baseAuditPlugin = require('@amzn/base-services/lib/plugins/audit-plugin');
+const baseServicesPlugin = require('@amzn/base-api-handler/lib/plugins/services-plugin');
+const baseRoutesPlugin = require('@amzn/base-controllers/lib/plugins/routes-plugin');
+const baseWfServicesPlugin = require('@amzn/base-workflow-api/lib/plugins/services-plugin');
+const baseWfRoutesPlugin = require('@amzn/base-workflow-api/lib/plugins/routes-plugin');
+const bassRaasServicesPlugin = require('@amzn/base-raas-rest-api/lib/plugins/services-plugin');
+const baseRaasRoutesPlugin = require('@amzn/base-raas-rest-api/lib/plugins/routes-plugin');
+const baseRaasCfnTemplatesPlugin = require('@amzn/base-raas-cfn-templates/dist/plugins/cfn-templates-plugin');
+const baseRaasUserAuthzPlugin = require('@amzn/base-raas-services/lib/user/user-authz-plugin');
+const environmentTypeRoutesPlugin = require('@amzn/environment-type-mgmt-api/lib/plugins/routes-plugin');
+const environmentTypeServicesPlugin = require('@amzn/environment-type-mgmt-services/lib/plugins/services-plugin');
 const servicesPlugin = require('services/lib/plugins/services-plugin');
-const baseRaasSchemaPlugin = require('@aws-ee/base-raas-services/lib/plugins/schema-plugin');
-const bassRaasEnvTypeVarsPlugin = require('@aws-ee/base-raas-services/lib/plugins/env-provisioning-plugin');
-const keyPairRoutesPlugin = require('@aws-ee/key-pair-mgmt-api/lib/plugins/routes-plugin');
-const keyPairServicesPlugin = require('@aws-ee/key-pair-mgmt-services/lib/plugins/services-plugin');
-const rolesOnlyStrategyPlugin = require('@aws-ee/base-raas-services/lib/plugins/roles-only-strategy-plugin');
-const legacyStrategyPlugin = require('@aws-ee/base-raas-services/lib/plugins/legacy-strategy-plugin');
-const baseRaasAppstreamServicesPlugin = require('@aws-ee/base-raas-appstream-rest-api/lib/plugins/services-plugin');
-const baseRaasAppstreamEnvTypeVarsPlugin = require('@aws-ee/base-raas-appstream-services/lib/plugins/env-sc-provisioning-plugin');
-const baseRaasAppStreamConnectionUrlPlugin = require('@aws-ee/base-raas-appstream-services/lib/plugins/env-sc-connection-url-plugin');
-const baseRaasAppStreamAwsAccountMgmtPlugin = require('@aws-ee/base-raas-appstream-services/lib/plugins/aws-account-mgmt-plugin');
+const baseRaasSchemaPlugin = require('@amzn/base-raas-services/lib/plugins/schema-plugin');
+const bassRaasEnvTypeVarsPlugin = require('@amzn/base-raas-services/lib/plugins/env-provisioning-plugin');
+const keyPairRoutesPlugin = require('@amzn/key-pair-mgmt-api/lib/plugins/routes-plugin');
+const keyPairServicesPlugin = require('@amzn/key-pair-mgmt-services/lib/plugins/services-plugin');
+const rolesOnlyStrategyPlugin = require('@amzn/base-raas-services/lib/plugins/roles-only-strategy-plugin');
+const legacyStrategyPlugin = require('@amzn/base-raas-services/lib/plugins/legacy-strategy-plugin');
+const baseRaasAppstreamServicesPlugin = require('@amzn/base-raas-appstream-rest-api/lib/plugins/services-plugin');
+const baseRaasAppstreamEnvTypeVarsPlugin = require('@amzn/base-raas-appstream-services/lib/plugins/env-sc-provisioning-plugin');
+const baseRaasAppStreamConnectionUrlPlugin = require('@amzn/base-raas-appstream-services/lib/plugins/env-sc-connection-url-plugin');
+const baseRaasAppStreamAwsAccountMgmtPlugin = require('@amzn/base-raas-appstream-services/lib/plugins/aws-account-mgmt-plugin');
 
 const routesPlugin = require('./routes-plugin');
 

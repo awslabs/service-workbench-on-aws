@@ -1,5 +1,5 @@
 {
-  "name": "@aws-ee/s3-synchronizer",
+  "name": "@amzn/s3-synchronizer",
   "private": true,
   "version": "1.0.0",
   "description": "An application that replicates files to/from an S3 prefix.",

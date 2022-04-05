@@ -14,29 +14,29 @@
  */
 
 const _ = require('lodash');
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
-const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
-const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
-const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
+const JsonSchemaValidationService = require('@amzn/base-services/lib/json-schema-validation-service');
+const AwsService = require('@amzn/base-services/lib/aws/aws-service');
+const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/system-context');
 
-jest.mock('@aws-ee/base-services/lib/db-service');
-jest.mock('@aws-ee/base-services/lib/logger/logger-service');
-jest.mock('@aws-ee/base-services/lib/audit/audit-writer-service');
-jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
-jest.mock('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
-jest.mock('@aws-ee/base-services/lib/s3-service');
-jest.mock('@aws-ee/base-services/lib/lock/lock-service');
+jest.mock('@amzn/base-services/lib/db-service');
+jest.mock('@amzn/base-services/lib/logger/logger-service');
+jest.mock('@amzn/base-services/lib/audit/audit-writer-service');
+jest.mock('@amzn/base-services/lib/settings/env-settings-service');
+jest.mock('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
+jest.mock('@amzn/base-services/lib/s3-service');
+jest.mock('@amzn/base-services/lib/lock/lock-service');
 jest.mock('../../user/user-service');
 jest.mock('../../project/project-service');
 
-const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
-const LockService = require('@aws-ee/base-services/lib/lock/lock-service');
-const DbServiceMock = require('@aws-ee/base-services/lib/db-service');
-const AuthService = require('@aws-ee/base-services/lib/authorization/authorization-service');
-const AuditServiceMock = require('@aws-ee/base-services/lib/audit/audit-writer-service');
-const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
-const PluginRegistryService = require('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
-const S3ServiceMock = require('@aws-ee/base-services/lib/s3-service');
+const Logger = require('@amzn/base-services/lib/logger/logger-service');
+const LockService = require('@amzn/base-services/lib/lock/lock-service');
+const DbServiceMock = require('@amzn/base-services/lib/db-service');
+const AuthService = require('@amzn/base-services/lib/authorization/authorization-service');
+const AuditServiceMock = require('@amzn/base-services/lib/audit/audit-writer-service');
+const SettingsServiceMock = require('@amzn/base-services/lib/settings/env-settings-service');
+const PluginRegistryService = require('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
+const S3ServiceMock = require('@amzn/base-services/lib/s3-service');
 const ProjectServiceMock = require('../../project/project-service');
 const UserService = require('../../user/user-service');
 const StudyPermissionService = require('../study-permission-service');

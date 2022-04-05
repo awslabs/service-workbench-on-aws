@@ -13,14 +13,14 @@
  *  permissions and limitations under the License.
  */
 
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
-const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
-const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
-const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
+const SettingsServiceMock = require('@amzn/base-services/lib/settings/env-settings-service');
+const AwsService = require('@amzn/base-services/lib/aws/aws-service');
+const JsonSchemaValidationService = require('@amzn/base-services/lib/json-schema-validation-service');
 const AWSMock = require('aws-sdk-mock');
 const S3Service = require('../s3-service');
 
-jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
+jest.mock('@amzn/base-services/lib/settings/env-settings-service');
 
 describe('S3Service', () => {
   let s3Service;

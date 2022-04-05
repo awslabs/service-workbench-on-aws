@@ -20,8 +20,8 @@ import { withRouter } from 'react-router-dom';
 import { Header, Divider, List, Checkbox, Form, Icon, TextArea, Message, Button, Container } from 'semantic-ui-react';
 import TimeAgo from 'react-timeago';
 
-import YesNo from '@aws-ee/base-ui/dist/parts/helpers/fields/YesNo';
-import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
+import YesNo from '@amzn/base-ui/dist/parts/helpers/fields/YesNo';
+import { createLink } from '@amzn/base-ui/dist/helpers/routing';
 import { isAppStreamEnabled } from '../../helpers/settings';
 import CopyToClipboard from '../helpers/CopyToClipboard';
 import { createForm } from '../../helpers/form';

@@ -13,12 +13,12 @@
  *  permissions and limitations under the License.
  */
 
-const baseAuditPlugin = require('@aws-ee/base-services/lib/plugins/audit-plugin');
-const baseServicesPlugin = require('@aws-ee/base-authn-handler/lib/plugins/services-plugin');
-const bassRaasServicesPlugin = require('@aws-ee/base-raas-rest-api/lib/plugins/authn-handler-services-plugin');
-const baseRaasUserAuthzPlugin = require('@aws-ee/base-raas-services/lib/user/user-authz-plugin');
-const baseRaasAuthnPlugin = require('@aws-ee/base-raas-rest-api/lib/plugins/authentication-plugin');
-const baseRaasSchemaPlugin = require('@aws-ee/base-raas-services/lib/plugins/schema-plugin');
+const baseAuditPlugin = require('@amzn/base-services/lib/plugins/audit-plugin');
+const baseServicesPlugin = require('@amzn/base-authn-handler/lib/plugins/services-plugin');
+const bassRaasServicesPlugin = require('@amzn/base-raas-rest-api/lib/plugins/authn-handler-services-plugin');
+const baseRaasUserAuthzPlugin = require('@amzn/base-raas-services/lib/user/user-authz-plugin');
+const baseRaasAuthnPlugin = require('@amzn/base-raas-rest-api/lib/plugins/authentication-plugin');
+const baseRaasSchemaPlugin = require('@amzn/base-raas-services/lib/plugins/schema-plugin');
 
 const servicesPlugin = require('services/lib/plugins/services-plugin');
 

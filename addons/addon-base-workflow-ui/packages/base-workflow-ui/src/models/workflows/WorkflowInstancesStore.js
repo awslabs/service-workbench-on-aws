@@ -15,7 +15,7 @@
 
 import _ from 'lodash';
 import { types, getParent } from 'mobx-state-tree';
-import { BaseStore, isStoreReady } from '@aws-ee/base-ui/dist/models/BaseStore';
+import { BaseStore, isStoreReady } from '@amzn/base-ui/dist/models/BaseStore';
 
 import { getWorkflowInstances, triggerWorkflow } from '../../helpers/api';
 

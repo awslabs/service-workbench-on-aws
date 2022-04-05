@@ -14,9 +14,9 @@
  */
 
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
+const Service = require('@amzn/base-services-container/lib/service');
 
-const { allow, deny, isDeny, allowIfActive } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
+const { allow, deny, isDeny, allowIfActive } = require('@amzn/base-services/lib/authorization/authorization-utils');
 
 class EnvTypeConfigAuthzService extends Service {
   async authorize(requestContext, { resource, action, effect, reason }, ...args) {

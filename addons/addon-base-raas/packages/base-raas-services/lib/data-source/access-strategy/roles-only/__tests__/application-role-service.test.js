@@ -13,21 +13,21 @@
  *  permissions and limitations under the License.
  */
 
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
 
 // Mocked services
-jest.mock('@aws-ee/base-services/lib/db-service');
-jest.mock('@aws-ee/base-services/lib/logger/logger-service');
-jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
-jest.mock('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
-jest.mock('@aws-ee/base-services/lib/audit/audit-writer-service');
+jest.mock('@amzn/base-services/lib/db-service');
+jest.mock('@amzn/base-services/lib/logger/logger-service');
+jest.mock('@amzn/base-services/lib/settings/env-settings-service');
+jest.mock('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
+jest.mock('@amzn/base-services/lib/audit/audit-writer-service');
 
-const DbService = require('@aws-ee/base-services/lib/db-service');
-const SettingsService = require('@aws-ee/base-services/lib/settings/env-settings-service');
-const AuthService = require('@aws-ee/base-services/lib/authorization/authorization-service');
-const AuditService = require('@aws-ee/base-services/lib/audit/audit-writer-service');
-const PluginRegistryService = require('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
-const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
+const DbService = require('@amzn/base-services/lib/db-service');
+const SettingsService = require('@amzn/base-services/lib/settings/env-settings-service');
+const AuthService = require('@amzn/base-services/lib/authorization/authorization-service');
+const AuditService = require('@amzn/base-services/lib/audit/audit-writer-service');
+const PluginRegistryService = require('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
+const JsonSchemaValidationService = require('@amzn/base-services/lib/json-schema-validation-service');
 const ApplicationRoleService = require('../application-role-service');
 const AppRoleMethods = require('../helpers/entities/application-role-methods');
 

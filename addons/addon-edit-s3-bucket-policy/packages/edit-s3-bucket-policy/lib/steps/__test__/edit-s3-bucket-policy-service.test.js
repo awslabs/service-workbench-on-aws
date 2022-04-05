@@ -15,15 +15,15 @@
  */
 
 /* eslint-disable max-classes-per-file */
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
-const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
-const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
+const SettingsServiceMock = require('@amzn/base-services/lib/settings/env-settings-service');
+const Logger = require('@amzn/base-services/lib/logger/logger-service');
 
-jest.mock('@aws-ee/base-services/lib/lock/lock-service');
-const LockServiceMock = require('@aws-ee/base-services/lib/lock/lock-service');
+jest.mock('@amzn/base-services/lib/lock/lock-service');
+const LockServiceMock = require('@amzn/base-services/lib/lock/lock-service');
 
-jest.mock('@aws-ee/base-services/lib/s3-service');
-const S3ServiceMock = require('@aws-ee/base-services/lib/s3-service');
+jest.mock('@amzn/base-services/lib/s3-service');
+const S3ServiceMock = require('@amzn/base-services/lib/s3-service');
 
 const EditS3BucketPolicyService = require('../edit-s3-bucket-policy-service');
 const registerSettings = require('./__fixtures__/settings');

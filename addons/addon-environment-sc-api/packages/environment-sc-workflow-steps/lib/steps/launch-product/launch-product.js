@@ -14,10 +14,10 @@
  */
 
 const _ = require('lodash');
-const StepBase = require('@aws-ee/base-workflow-core/lib/workflow/helpers/step-base');
+const StepBase = require('@amzn/base-workflow-core/lib/workflow/helpers/step-base');
 const {
   getServiceCatalogClient,
-} = require('@aws-ee/environment-type-mgmt-services/lib/environment-type/helpers/env-type-service-catalog-helper');
+} = require('@amzn/environment-type-mgmt-services/lib/environment-type/helpers/env-type-service-catalog-helper');
 
 const environmentStatusEnum = require('../../helpers/environment-status-enum');
 

@@ -14,7 +14,7 @@
  */
 
 import React from 'react';
-import Input from '@aws-ee/base-ui/dist/parts/helpers/fields/Input';
+import Input from '@amzn/base-ui/dist/parts/helpers/fields/Input';
 
 export default class PinInput extends React.PureComponent {
   render() {

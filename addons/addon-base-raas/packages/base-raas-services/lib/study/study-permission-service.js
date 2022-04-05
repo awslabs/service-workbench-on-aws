@@ -15,14 +15,14 @@
  */
 
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
-const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
+const Service = require('@amzn/base-services-container/lib/service');
+const { runAndCatch } = require('@amzn/base-services/lib/helpers/utils');
 const {
   allowIfActive,
   allowIfCurrentUserOrAdmin,
   allow,
   deny,
-} = require('@aws-ee/base-services/lib/authorization/authorization-utils');
+} = require('@amzn/base-services/lib/authorization/authorization-utils');
 
 const createSchema = require('../schema/create-study-permissions');
 const updateSchema = require('../schema/update-study-permissions');

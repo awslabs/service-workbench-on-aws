@@ -15,8 +15,8 @@
 
 import ProjectConfigure from '../ProjectConfigure';
 
-jest.mock('@aws-ee/base-ui/dist/helpers/notification');
-const notificationMock = require('@aws-ee/base-ui/dist/helpers/notification');
+jest.mock('@amzn/base-ui/dist/helpers/notification');
+const notificationMock = require('@amzn/base-ui/dist/helpers/notification');
 
 const usersStore = {};
 const userStore = {};

@@ -19,16 +19,16 @@ import { decorate, observable, action, computed, runInAction } from 'mobx';
 import { Button, Header, Label, Segment, Modal, Menu, Icon, Table } from 'semantic-ui-react';
 import _ from 'lodash';
 
-import Stores from '@aws-ee/base-ui/dist/models/Stores';
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
+import Stores from '@amzn/base-ui/dist/models/Stores';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
 
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
-import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
-import Form from '@aws-ee/base-ui/dist/parts/helpers/fields/Form';
-import Input from '@aws-ee/base-ui/dist/parts/helpers/fields/Input';
-import DropDown from '@aws-ee/base-ui/dist/parts/helpers/fields/DropDown';
-import YesNo from '@aws-ee/base-ui/dist/parts/helpers/fields/YesNo';
-import { displayError, displaySuccess } from '@aws-ee/base-ui/dist/helpers/notification';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
+import BasicProgressPlaceholder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import Form from '@amzn/base-ui/dist/parts/helpers/fields/Form';
+import Input from '@amzn/base-ui/dist/parts/helpers/fields/Input';
+import DropDown from '@amzn/base-ui/dist/parts/helpers/fields/DropDown';
+import YesNo from '@amzn/base-ui/dist/parts/helpers/fields/YesNo';
+import { displayError, displaySuccess } from '@amzn/base-ui/dist/helpers/notification';
 import { getUpdateUserConfigForm } from '../../models/forms/UpdateUserConfig';
 import { toIdpFromValue, toIdpOptions } from '../../models/forms/UserFormUtils';
 

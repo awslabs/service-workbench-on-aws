@@ -15,7 +15,7 @@
 
 /* eslint-disable import/prefer-default-export */
 import { getParent } from 'mobx-state-tree';
-import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
+import { BaseStore } from '@amzn/base-ui/dist/models/BaseStore';
 
 import { getComputeConfigurations } from '../../helpers/api';
 

@@ -15,12 +15,12 @@
 
 const _ = require('lodash');
 
-const Scanner = require('@aws-ee/base-services/lib/db/scanner');
-const Updater = require('@aws-ee/base-services/lib/db/updater');
-const Getter = require('@aws-ee/base-services/lib/db/getter');
-const Query = require('@aws-ee/base-services/lib/db/query');
-const Deleter = require('@aws-ee/base-services/lib/db/deleter');
-const unmarshal = require('@aws-ee/base-services/lib/db/unmarshal');
+const Scanner = require('@amzn/base-services/lib/db/scanner');
+const Updater = require('@amzn/base-services/lib/db/updater');
+const Getter = require('@amzn/base-services/lib/db/getter');
+const Query = require('@amzn/base-services/lib/db/query');
+const Deleter = require('@amzn/base-services/lib/db/deleter');
+const unmarshal = require('@amzn/base-services/lib/db/unmarshal');
 
 const { getTables } = require('../tables');
 

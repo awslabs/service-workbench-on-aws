@@ -1,5 +1,5 @@
 {
-  "name": "@aws-ee/ui",
+  "name": "@amzn/ui",
   "version": "0.1.0",
   "private": true,
   "description": "Client-side UI application",
@@ -14,11 +14,11 @@
     "not op_mini all"
   ],
   "dependencies": {
-    "@aws-ee/base-raas-ui": "workspace:*",
-    "@aws-ee/base-ui": "workspace:*",
-    "@aws-ee/base-workflow-ui": "workspace:*",
-    "@aws-ee/environment-type-mgmt-ui": "workspace:*",
-    "@aws-ee/key-pair-mgmt-ui": "workspace:*",
+    "@amzn/base-raas-ui": "workspace:*",
+    "@amzn/base-ui": "workspace:*",
+    "@amzn/base-workflow-ui": "workspace:*",
+    "@amzn/environment-type-mgmt-ui": "workspace:*",
+    "@amzn/key-pair-mgmt-ui": "workspace:*",
     "animate.css": "3.7.0",
     "aws-sdk": "^2.1000.0",
     "classnames": "^2.2.6",
@@ -39,8 +39,8 @@
     "uuid": "^3.4.0"
   },
   "devDependencies": {
-    "@aws-ee/base-serverless-settings-helper": "workspace:*",
-    "@aws-ee/base-serverless-ui-tools": "workspace:*",
+    "@amzn/base-serverless-settings-helper": "workspace:*",
+    "@amzn/base-serverless-ui-tools": "workspace:*",
     "babel-eslint": "^10.1.0",
     "eslint": "^6.8.0",
     "eslint-config-airbnb": "^18.2.1",

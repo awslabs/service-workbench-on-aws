@@ -13,20 +13,20 @@
  *  permissions and limitations under the License.
  */
 
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
 
 // Mocked dependencies
-jest.mock('@aws-ee/base-services/lib/logger/logger-service');
-const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
+jest.mock('@amzn/base-services/lib/logger/logger-service');
+const Logger = require('@amzn/base-services/lib/logger/logger-service');
 
-jest.mock('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
-const PluginRegistryService = require('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
+jest.mock('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
+const PluginRegistryService = require('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
 
-jest.mock('@aws-ee/base-services/lib/lock/lock-service');
-const LockService = require('@aws-ee/base-services/lib/lock/lock-service');
+jest.mock('@amzn/base-services/lib/lock/lock-service');
+const LockService = require('@amzn/base-services/lib/lock/lock-service');
 
 jest.mock('../../environment/service-catalog/environment-sc-service');
-const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
+const SettingsServiceMock = require('@amzn/base-services/lib/settings/env-settings-service');
 const EnvironmentScService = require('../../environment/service-catalog/environment-sc-service');
 
 jest.mock('../../environment/service-catalog/environment-sc-cidr-service');
@@ -41,7 +41,7 @@ const AlbService = require('../../alb/alb-service');
 jest.mock('../../environment/service-catalog/environment-sc-keypair-service');
 const EnvironmentSCKeyPairService = require('../../environment/service-catalog/environment-sc-keypair-service');
 
-jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
+jest.mock('@amzn/base-services/lib/settings/env-settings-service');
 
 const plugin = require('../env-provisioning-plugin');
 

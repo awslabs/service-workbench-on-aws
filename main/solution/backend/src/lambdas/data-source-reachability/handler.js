@@ -14,10 +14,10 @@
  */
 
 const _ = require('lodash');
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
-const { registerServices } = require('@aws-ee/base-services/lib/utils/services-registration-util');
-const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
-const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
+const { registerServices } = require('@amzn/base-services/lib/utils/services-registration-util');
+const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/system-context');
+const { processInBatches } = require('@amzn/base-services/lib/helpers/utils');
 
 const pluginRegistry = require('./plugins/plugin-registry');
 

@@ -15,7 +15,7 @@
 
 import _ from 'lodash';
 import { types, getSnapshot, getEnv } from 'mobx-state-tree';
-import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
+import { BaseStore } from '@amzn/base-ui/dist/models/BaseStore';
 
 import {
   getWorkflowTemplateDrafts,

@@ -20,16 +20,16 @@ import { Button, Card, Container, Header, Icon, Modal, Segment } from 'semantic-
 import { action, computed, decorate, observable, runInAction } from 'mobx';
 import { withRouter } from 'react-router-dom';
 
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
 import {
   isStoreEmpty,
   isStoreError,
   isStoreLoading,
   isStoreNotEmpty,
   isStoreReady,
-} from '@aws-ee/base-ui/dist/models/BaseStore';
-import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
+} from '@amzn/base-ui/dist/models/BaseStore';
+import BasicProgressPlaceholder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
 import EnvTypeConfigCard from '../env-type-config/EnvTypeConfigCard';
 import EnvTypeConfigEditor from '../env-type-config/EnvTypeConfigEditor';
 

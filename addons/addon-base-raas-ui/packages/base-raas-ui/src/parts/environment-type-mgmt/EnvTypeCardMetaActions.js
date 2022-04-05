@@ -18,7 +18,7 @@ import { withRouter } from 'react-router-dom';
 import { Divider, Popup, Button } from 'semantic-ui-react';
 import { observer } from 'mobx-react';
 
-import { gotoFn } from '@aws-ee/base-ui/src/helpers/routing';
+import { gotoFn } from '@amzn/base-ui/src/helpers/routing';
 
 /**
  * A plugin component that adds "Test Launch" and "Test launch with data" buttons on the environment type card for

@@ -13,25 +13,25 @@
  *  permissions and limitations under the License.
  */
 
-const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
-const DbService = require('@aws-ee/base-services/lib/db-service');
-const S3Service = require('@aws-ee/base-services/lib/s3-service');
-const IamService = require('@aws-ee/base-services/lib/iam/iam-service');
-const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
-const PluginRegistryService = require('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
-const AuditWriterService = require('@aws-ee/base-services/lib/audit/audit-writer-service');
-const AuthorizationService = require('@aws-ee/base-services/lib/authorization/authorization-service');
-const UserAuthzService = require('@aws-ee/base-services/lib/user/user-authz-service');
-const UserService = require('@aws-ee/base-services/lib/user/user-service');
-const AuthenticationService = require('@aws-ee/base-api-services/lib/authentication-service');
-const AuthenticationProviderConfigService = require('@aws-ee/base-api-services/lib/authentication-providers/authentication-provider-config-service');
-const AuthenticationProviderTypeService = require('@aws-ee/base-api-services/lib/authentication-providers/authentication-provider-type-service');
-const DbAuthenticationService = require('@aws-ee/base-api-services/lib/db-authentication-service');
-const DbPasswordService = require('@aws-ee/base-services/lib/db-password/db-password-service');
-const JwtService = require('@aws-ee/base-api-services/lib/jwt-service');
-const TokenRevocationService = require('@aws-ee/base-api-services/lib/token-revocation-service');
-const registerBuiltInAuthProviders = require('@aws-ee/base-api-services/lib/authentication-providers/register-built-in-provider-services');
-const registerBuiltInAuthProvisioners = require('@aws-ee/base-api-services/lib/authentication-providers/register-built-in-provisioner-services');
+const AwsService = require('@amzn/base-services/lib/aws/aws-service');
+const DbService = require('@amzn/base-services/lib/db-service');
+const S3Service = require('@amzn/base-services/lib/s3-service');
+const IamService = require('@amzn/base-services/lib/iam/iam-service');
+const JsonSchemaValidationService = require('@amzn/base-services/lib/json-schema-validation-service');
+const PluginRegistryService = require('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
+const AuditWriterService = require('@amzn/base-services/lib/audit/audit-writer-service');
+const AuthorizationService = require('@amzn/base-services/lib/authorization/authorization-service');
+const UserAuthzService = require('@amzn/base-services/lib/user/user-authz-service');
+const UserService = require('@amzn/base-services/lib/user/user-service');
+const AuthenticationService = require('@amzn/base-api-services/lib/authentication-service');
+const AuthenticationProviderConfigService = require('@amzn/base-api-services/lib/authentication-providers/authentication-provider-config-service');
+const AuthenticationProviderTypeService = require('@amzn/base-api-services/lib/authentication-providers/authentication-provider-type-service');
+const DbAuthenticationService = require('@amzn/base-api-services/lib/db-authentication-service');
+const DbPasswordService = require('@amzn/base-services/lib/db-password/db-password-service');
+const JwtService = require('@amzn/base-api-services/lib/jwt-service');
+const TokenRevocationService = require('@amzn/base-api-services/lib/token-revocation-service');
+const registerBuiltInAuthProviders = require('@amzn/base-api-services/lib/authentication-providers/register-built-in-provider-services');
+const registerBuiltInAuthProvisioners = require('@amzn/base-api-services/lib/authentication-providers/register-built-in-provisioner-services');
 
 const settingKeys = {
   tablePrefix: 'dbPrefix',

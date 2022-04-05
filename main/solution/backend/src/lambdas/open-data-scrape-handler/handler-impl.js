@@ -18,7 +18,7 @@
 // 2. Filter for the desired tags
 // 3. Write to study-service
 //
-const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
+const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/system-context');
 
 const consoleLogger = {
   info(...args) {

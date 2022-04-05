@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-const Service = require('@aws-ee/base-services-container/lib/service');
+const Service = require('@amzn/base-services-container/lib/service');
 const _ = require('lodash');
 
 const cognitoUserPoolAuthenticationProviderType = require('./built-in-providers/cogito-user-pool/type');

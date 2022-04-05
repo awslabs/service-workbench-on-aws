@@ -22,9 +22,9 @@ import { Accordion, Header, Icon, Segment, List, Modal, Button, Step, Table } fr
 import SyntaxHighlighter from 'react-syntax-highlighter';
 import { docco } from 'react-syntax-highlighter/dist/esm/styles/hljs';
 
-import Form from '@aws-ee/base-ui/dist/parts/helpers/fields/Form';
-import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
-import { awsRegion } from '@aws-ee/base-ui/dist/helpers/settings';
+import Form from '@amzn/base-ui/dist/parts/helpers/fields/Form';
+import { displayError } from '@amzn/base-ui/dist/helpers/notification';
+import { awsRegion } from '@amzn/base-ui/dist/helpers/settings';
 
 import { getExternalUserPinForm } from '../../models/forms/ExternalUserPinForm';
 import CfnService from '../../helpers/cfn-service';

@@ -13,8 +13,8 @@
  *  permissions and limitations under the License.
  */
 
-const Service = require('@aws-ee/base-services-container/lib/service');
-const { isAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
+const Service = require('@amzn/base-services-container/lib/service');
+const { isAdmin } = require('@amzn/base-services/lib/authorization/authorization-utils');
 
 const settingKeys = { studiesTableName: 'dbStudies', categoryIndexName: 'dbStudiesCategoryIndex' };
 

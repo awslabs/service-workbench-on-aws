@@ -12,7 +12,7 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
+const { sleep } = require('@amzn/base-services/lib/helpers/utils');
 const { NodeSSH } = require('node-ssh');
 const { mountStudies, readWrite } = require('../../../../support/complex/run-shell-command');
 const { runSetup } = require('../../../../support/setup');

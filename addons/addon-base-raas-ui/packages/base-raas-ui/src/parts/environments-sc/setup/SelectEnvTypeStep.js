@@ -19,12 +19,12 @@ import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Icon, Header, Segment, Button, Card, Radio, Divider } from 'semantic-ui-react';
 import c from 'classnames';
-import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import { isStoreLoading, isStoreError, isStoreEmpty } from '@aws-ee/base-ui/dist/models/BaseStore';
-import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
-import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
+import { displayError } from '@amzn/base-ui/dist/helpers/notification';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
+import { isStoreLoading, isStoreError, isStoreEmpty } from '@amzn/base-ui/dist/models/BaseStore';
+import BasicProgressPlaceholder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import { gotoFn } from '@amzn/base-ui/dist/helpers/routing';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
 
 // expected props
 // - onPrevious (via props)

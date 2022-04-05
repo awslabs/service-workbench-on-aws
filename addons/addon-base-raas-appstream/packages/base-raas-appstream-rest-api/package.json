@@ -1,15 +1,15 @@
 {
-  "name": "@aws-ee/base-raas-appstream-rest-api",
+  "name": "@amzn/base-raas-appstream-rest-api",
   "private": true,
   "version": "1.0.0",
   "description": "A library containing a set of base RaaS AppStream related controllers",
   "author": "Amazon Web Services",
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-ee/base-controllers": "workspace:*",
-    "@aws-ee/base-raas-appstream-services": "workspace:*",
-    "@aws-ee/base-raas-services": "workspace:*",
-    "@aws-ee/base-services": "workspace:*",
+    "@amzn/base-controllers": "workspace:*",
+    "@amzn/base-raas-appstream-services": "workspace:*",
+    "@amzn/base-raas-services": "workspace:*",
+    "@amzn/base-services": "workspace:*",
     "lodash": "^4.17.21"
   },
   "devDependencies": {

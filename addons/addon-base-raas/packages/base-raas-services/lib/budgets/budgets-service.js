@@ -15,9 +15,9 @@
 
 const _ = require('lodash');
 const moment = require('moment');
-const Service = require('@aws-ee/base-services-container/lib/service');
-const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
-const { isAdmin, isActive } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
+const Service = require('@amzn/base-services-container/lib/service');
+const { runAndCatch } = require('@amzn/base-services/lib/helpers/utils');
+const { isAdmin, isActive } = require('@amzn/base-services/lib/authorization/authorization-utils');
 const createSchema = require('../schema/create-budget');
 
 class BudgetsService extends Service {

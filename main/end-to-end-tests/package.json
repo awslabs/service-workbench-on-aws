@@ -1,5 +1,5 @@
 {
-  "name": "@aws-ee/end-to-end-tests",
+  "name": "@amzn/end-to-end-tests",
   "version": "1.0.0",
   "private": true,
   "description": "End to end tests for the base-poc solution",

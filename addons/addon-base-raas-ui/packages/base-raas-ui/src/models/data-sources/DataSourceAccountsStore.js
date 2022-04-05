@@ -18,8 +18,8 @@ import React from 'react';
 import { Header } from 'semantic-ui-react';
 import { values } from 'mobx';
 import { types } from 'mobx-state-tree';
-import { consolidateToMap } from '@aws-ee/base-ui/dist/helpers/utils';
-import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
+import { consolidateToMap } from '@amzn/base-ui/dist/helpers/utils';
+import { BaseStore } from '@amzn/base-ui/dist/models/BaseStore';
 
 import {
   getDataSourceAccounts,

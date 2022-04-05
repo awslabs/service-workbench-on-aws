@@ -18,7 +18,7 @@ import React from 'react';
 import { observer } from 'mobx-react';
 import { Table, Icon } from 'semantic-ui-react';
 import c from 'classnames';
-import Toggle from '@aws-ee/base-ui/dist/parts/helpers/fields/Toggle';
+import Toggle from '@amzn/base-ui/dist/parts/helpers/fields/Toggle';
 
 // expected props
 // - rows (via props), an array of objects, [ { name, title, allowed }, { name, title, allowed }, ... ], if editable = false

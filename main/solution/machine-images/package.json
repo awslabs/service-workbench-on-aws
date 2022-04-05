@@ -1,5 +1,5 @@
 {
-  "name": "@aws-ee/machine-images",
+  "name": "@amzn/machine-images",
   "version": "0.1.0",
   "private": true,
   "author": "Amazon Web Services",
@@ -11,8 +11,8 @@
     "not op_mini all"
   ],
   "devDependencies": {
-    "@aws-ee/serverless-packer": "workspace:*",
-    "@aws-ee/base-serverless-settings-helper": "workspace:*",
+    "@amzn/serverless-packer": "workspace:*",
+    "@amzn/base-serverless-settings-helper": "workspace:*",
     "serverless": "^1.63.0"
   }
 }

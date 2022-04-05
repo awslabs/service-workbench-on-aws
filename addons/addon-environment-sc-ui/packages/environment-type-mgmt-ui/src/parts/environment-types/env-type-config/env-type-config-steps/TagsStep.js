@@ -18,8 +18,8 @@ import { observer } from 'mobx-react';
 import { action, decorate, observable, runInAction } from 'mobx';
 import { Button, Dimmer, Header, Icon, Segment, Table } from 'semantic-ui-react';
 
-import Form from '@aws-ee/base-ui/dist/parts/helpers/fields/Form';
-import NameValuesEditor from '@aws-ee/base-ui/dist/parts/helpers/fields/NameValuesEditor';
+import Form from '@amzn/base-ui/dist/parts/helpers/fields/Form';
+import NameValuesEditor from '@amzn/base-ui/dist/parts/helpers/fields/NameValuesEditor';
 import BaseEnvTypeConfigStep from './BaseEnvTypeConfigStep';
 
 class TagsStep extends BaseEnvTypeConfigStep {
