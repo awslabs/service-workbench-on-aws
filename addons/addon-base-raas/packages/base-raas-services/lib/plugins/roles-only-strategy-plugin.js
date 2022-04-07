@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
+const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/system-context');
 
 /**
  * A plugin method to implement any specific logic for the 'roles only' access logic when a study is registered

@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
+const Service = require('@amzn/base-services-container/lib/service');
 const CompositeError = require('../utils/composite-error');
 
 const settingKeys = {

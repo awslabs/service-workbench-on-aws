@@ -14,7 +14,7 @@
  */
 
 import { getParent, types } from 'mobx-state-tree';
-import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
+import { BaseStore } from '@amzn/base-ui/dist/models/BaseStore';
 
 import { getDataSourceStudies } from '../../helpers/api';
 import { DataSourceStudyStore } from './DataSourceStudyStore';

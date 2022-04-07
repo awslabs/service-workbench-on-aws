@@ -16,8 +16,8 @@
 import _ from 'lodash';
 import { types, getSnapshot, applySnapshot } from 'mobx-state-tree';
 
-import { createForm } from '@aws-ee/base-ui/dist/helpers/form';
-import { InputManifest, toMobxFormFields, isConditionTrue } from '@aws-ee/base-ui/dist/models/forms/InputManifest';
+import { createForm } from '@amzn/base-ui/dist/helpers/form';
+import { InputManifest, toMobxFormFields, isConditionTrue } from '@amzn/base-ui/dist/models/forms/InputManifest';
 
 // ==================================================================
 // ConfigurationEditor

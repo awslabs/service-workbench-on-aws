@@ -17,7 +17,7 @@ provider:
 custom:
   settings: ${file(./config/settings/.settings.js):merged}
   goBuilds:
-    - name: '@aws-ee/s3-synchronizer'
+    - name: '@amzn/s3-synchronizer'
       packagePath: ${file(./config/settings/.synchronizer.js):path}
       sourceDirectory: ./src
       outputPrefix: bin/s3-synchronizer-
@@ -31,4 +31,4 @@ custom:
       destinationPrefix: ${self:custom.settings.environmentsBootstrapBucketPrefix}
 
 plugins:
-  - '@aws-ee/serverless-go-build-tools'
+  - '@amzn/serverless-go-build-tools'

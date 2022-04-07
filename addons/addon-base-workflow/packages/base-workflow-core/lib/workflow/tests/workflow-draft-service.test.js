@@ -1,19 +1,19 @@
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
-const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
-const DbService = require('@aws-ee/base-services/lib/db-service');
-const AuditWriterService = require('@aws-ee/base-services/lib/audit/audit-writer-service');
-const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
+const JsonSchemaValidationService = require('@amzn/base-services/lib/json-schema-validation-service');
+const DbService = require('@amzn/base-services/lib/db-service');
+const AuditWriterService = require('@amzn/base-services/lib/audit/audit-writer-service');
+const SettingsServiceMock = require('@amzn/base-services/lib/settings/env-settings-service');
 const StepTemplateService = require('../step/step-template-service');
 const WorkflowTemplateService = require('../workflow-template-service');
 const WorkflowDraftService = require('../workflow-draft-service');
 const WorkflowService = require('../workflow-service');
 
 jest.mock('../step/step-template-service');
-jest.mock('@aws-ee/base-services/lib/audit/audit-writer-service');
-jest.mock('@aws-ee/base-services/lib/db-service');
+jest.mock('@amzn/base-services/lib/audit/audit-writer-service');
+jest.mock('@amzn/base-services/lib/db-service');
 jest.mock('../workflow-template-service');
 jest.mock('../workflow-service');
-jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
+jest.mock('@amzn/base-services/lib/settings/env-settings-service');
 
 describe('WorkflowDraftService', () => {
   let workflowDraftService;

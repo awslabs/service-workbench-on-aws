@@ -18,9 +18,9 @@ as an environment type.
 
 ## npm packages
 
-- @aws-ee/environment-type-mgmt-api
-- @aws-ee/environment-sc-workflow-steps
-- @aws-ee/environment-sc-workflows
+- @amzn/environment-type-mgmt-api
+- @amzn/environment-sc-workflow-steps
+- @amzn/environment-sc-workflows
 
 ## Runtime extension points
 - New

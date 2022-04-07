@@ -1,14 +1,14 @@
 {
-  "name": "@aws-ee/base-raas-appstream-services",
+  "name": "@amzn/base-raas-appstream-services",
   "private": true,
   "version": "1.0.0",
   "description": "A library containing a set of base RaaS AppStream related services",
   "author": "Amazon Web Services",
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-ee/base-raas-services": "workspace:*",
-    "@aws-ee/base-services": "workspace:*",
-    "@aws-ee/base-services-container": "workspace:*",
+    "@amzn/base-raas-services": "workspace:*",
+    "@amzn/base-services": "workspace:*",
+    "@amzn/base-services-container": "workspace:*",
     "lodash": "^4.17.21",
     "uuid": "^3.4.0"
   },

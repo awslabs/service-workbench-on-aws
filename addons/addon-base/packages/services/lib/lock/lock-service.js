@@ -14,7 +14,7 @@
  */
 
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
+const Service = require('@amzn/base-services-container/lib/service');
 
 const { runAndCatch, sleep } = require('../helpers/utils');
 const obtainWriteLockSchema = require('../schema/obtain-write-lock');

@@ -20,10 +20,10 @@ import { decorate, observable, runInAction } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import ReactTable from 'react-table';
 
-import { isStoreError, isStoreLoading } from '@aws-ee/base-ui/dist/models/BaseStore';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
-import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
-import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import { isStoreError, isStoreLoading } from '@amzn/base-ui/dist/models/BaseStore';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
+import { createLink } from '@amzn/base-ui/dist/helpers/routing';
+import BasicProgressPlaceholder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 
 class RolesList extends React.Component {
   constructor(props) {

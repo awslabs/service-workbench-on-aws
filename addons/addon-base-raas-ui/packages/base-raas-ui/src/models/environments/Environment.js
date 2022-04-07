@@ -15,8 +15,8 @@
 
 import _ from 'lodash';
 import { types, applySnapshot } from 'mobx-state-tree';
-import { uiEventBus } from '@aws-ee/base-ui/dist/models/SessionStore';
-import { storage } from '@aws-ee/base-ui/dist/helpers/utils';
+import { uiEventBus } from '@amzn/base-ui/dist/models/SessionStore';
+import { storage } from '@amzn/base-ui/dist/helpers/utils';
 
 import { InstanceInfo } from './InstanceInfo';
 import { getEnvironmentKeypair, getEnvironmentUrl, getEnvironmentPasswordData } from '../../helpers/api';

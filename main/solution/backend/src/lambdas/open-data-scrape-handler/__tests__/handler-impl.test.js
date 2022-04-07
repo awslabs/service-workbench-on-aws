@@ -12,13 +12,13 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-jest.mock('@aws-ee/base-raas-services/lib/study/study-service');
-const StudyService = require('@aws-ee/base-raas-services/lib/study/study-service');
+jest.mock('@amzn/base-raas-services/lib/study/study-service');
+const StudyService = require('@amzn/base-raas-services/lib/study/study-service');
 
-jest.mock('@aws-ee/base-services/lib/logger/logger-service');
-const Log = require('@aws-ee/base-services/lib/logger/logger-service');
+jest.mock('@amzn/base-services/lib/logger/logger-service');
+const Log = require('@amzn/base-services/lib/logger/logger-service');
 
-const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
+const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/system-context');
 
 const _ = require('lodash');
 const { fetchOpenData, saveOpenData } = require('../handler-impl');

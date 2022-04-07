@@ -13,12 +13,12 @@
  *  permissions and limitations under the License.
  */
 
-import { addUser, updateUser, getUsers } from '@aws-ee/base-ui/dist/helpers/api';
+import { addUser, updateUser, getUsers } from '@amzn/base-ui/dist/helpers/api';
 import { addUsers } from '../../../helpers/api';
 
 import { registerContextItems as registerUsersStore } from '../UsersStore';
 
-jest.mock('@aws-ee/base-ui/dist/helpers/api');
+jest.mock('@amzn/base-ui/dist/helpers/api');
 jest.mock('../../../helpers/api');
 
 describe('UsersStore', () => {

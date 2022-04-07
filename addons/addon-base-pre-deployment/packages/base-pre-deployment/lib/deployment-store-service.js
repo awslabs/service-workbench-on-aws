@@ -13,8 +13,8 @@
  *  permissions and limitations under the License.
  */
 
-const Service = require('@aws-ee/base-services-container/lib/service');
-const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
+const Service = require('@amzn/base-services-container/lib/service');
+const { runAndCatch } = require('@amzn/base-services/lib/helpers/utils');
 
 const createOrUpdateSchema = require('./schema/deployment-item.json');
 

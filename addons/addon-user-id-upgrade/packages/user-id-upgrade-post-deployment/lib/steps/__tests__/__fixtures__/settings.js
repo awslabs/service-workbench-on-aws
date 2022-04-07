@@ -13,9 +13,9 @@
  *  permissions and limitations under the License.
  */
 
-const { registerServices } = require('@aws-ee/base-services/lib/utils/services-registration-util');
-const basePlugin = require('@aws-ee/base-api-handler/lib/plugins/services-plugin');
-const postPlugin = require('@aws-ee/base-post-deployment/lib/plugins/services-plugin');
+const { registerServices } = require('@amzn/base-services/lib/utils/services-registration-util');
+const basePlugin = require('@amzn/base-api-handler/lib/plugins/services-plugin');
+const postPlugin = require('@amzn/base-post-deployment/lib/plugins/services-plugin');
 
 const plugin = require('../../../plugins/services-plugin');
 

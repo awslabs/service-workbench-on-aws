@@ -20,10 +20,10 @@ import { decorate, action, runInAction } from 'mobx';
 import { withRouter } from 'react-router-dom';
 import TimeAgo from 'react-timeago';
 import { Header, Icon, Segment, Message, Table } from 'semantic-ui-react';
-import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
-import { isStoreEmpty, isStoreNotEmpty } from '@aws-ee/base-ui/dist/models/BaseStore';
-import Stores from '@aws-ee/base-ui/dist/models/Stores';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
+import { gotoFn } from '@amzn/base-ui/dist/helpers/routing';
+import { isStoreEmpty, isStoreNotEmpty } from '@amzn/base-ui/dist/models/BaseStore';
+import Stores from '@amzn/base-ui/dist/models/Stores';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
 
 // eslint-disable-next-line import/no-useless-path-segments
 import whiteGradient from '../../../../src/images/white-gradient.png'; // We need this because we are getting the image from src and not dist

@@ -14,15 +14,15 @@
  *  permissions and limitations under the License.
  */
 
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
-const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
-const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
+const SettingsServiceMock = require('@amzn/base-services/lib/settings/env-settings-service');
+const Logger = require('@amzn/base-services/lib/logger/logger-service');
 
-jest.mock('@aws-ee/base-services/lib/db-service');
-const DbServiceMock = require('@aws-ee/base-services/lib/db-service');
+jest.mock('@amzn/base-services/lib/db-service');
+const DbServiceMock = require('@amzn/base-services/lib/db-service');
 
-jest.mock('@aws-ee/base-services/lib/user/user-service');
-const UserServiceMock = require('@aws-ee/base-services/lib/user/user-service');
+jest.mock('@amzn/base-services/lib/user/user-service');
+const UserServiceMock = require('@amzn/base-services/lib/user/user-service');
 
 const InternalAuthDepCheckService = require('../internal-auth-dep-check-service');
 

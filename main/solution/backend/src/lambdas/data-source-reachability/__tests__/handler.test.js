@@ -13,18 +13,18 @@
  *  permissions and limitations under the License.
  */
 
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
-const DataSourceReachabilityService = require('@aws-ee/base-raas-services/lib/data-source/data-source-reachability-service');
-const StudyService = require('@aws-ee/base-raas-services/lib/study/study-service');
-const DataSourceAccountService = require('@aws-ee/base-raas-services/lib/data-source/data-source-account-service');
-const SettingsService = require('@aws-ee/base-services/lib/settings/env-settings-service');
-const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
+const DataSourceReachabilityService = require('@amzn/base-raas-services/lib/data-source/data-source-reachability-service');
+const StudyService = require('@amzn/base-raas-services/lib/study/study-service');
+const DataSourceAccountService = require('@amzn/base-raas-services/lib/data-source/data-source-account-service');
+const SettingsService = require('@amzn/base-services/lib/settings/env-settings-service');
+const Logger = require('@amzn/base-services/lib/logger/logger-service');
 
-jest.mock('@aws-ee/base-raas-services/lib/data-source/data-source-reachability-service');
-jest.mock('@aws-ee/base-raas-services/lib/study/study-service');
-jest.mock('@aws-ee/base-raas-services/lib/data-source/data-source-account-service');
-jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
-jest.mock('@aws-ee/base-services/lib/logger/logger-service');
+jest.mock('@amzn/base-raas-services/lib/data-source/data-source-reachability-service');
+jest.mock('@amzn/base-raas-services/lib/study/study-service');
+jest.mock('@amzn/base-raas-services/lib/data-source/data-source-account-service');
+jest.mock('@amzn/base-services/lib/settings/env-settings-service');
+jest.mock('@amzn/base-services/lib/logger/logger-service');
 
 const { handlerWithContainer } = require('../handler');
 

@@ -18,15 +18,15 @@ import { inject, observer } from 'mobx-react';
 import { decorate, action } from 'mobx';
 import { Button, Header } from 'semantic-ui-react';
 
-import { displaySuccess, displayError } from '@aws-ee/base-ui/dist//helpers/notification';
+import { displaySuccess, displayError } from '@amzn/base-ui/dist//helpers/notification';
 
-import Form from '@aws-ee/base-ui/dist/parts/helpers/fields/Form';
-import Input from '@aws-ee/base-ui/dist/parts/helpers/fields/Input';
-import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
-import { isStoreError, isStoreLoading } from '@aws-ee/base-ui/dist/models/BaseStore';
-import DropDown from '@aws-ee/base-ui/dist/parts/helpers/fields/DropDown';
-import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
+import Form from '@amzn/base-ui/dist/parts/helpers/fields/Form';
+import Input from '@amzn/base-ui/dist/parts/helpers/fields/Input';
+import BasicProgressPlaceholder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
+import { isStoreError, isStoreLoading } from '@amzn/base-ui/dist/models/BaseStore';
+import DropDown from '@amzn/base-ui/dist/parts/helpers/fields/DropDown';
+import { createLink } from '@amzn/base-ui/dist/helpers/routing';
 import getBudgetForm from '../../models/forms/AddBudgetForm';
 
 // expected props

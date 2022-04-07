@@ -14,9 +14,9 @@
  */
 
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
-const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
-const { allowIfActive } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
+const Service = require('@amzn/base-services-container/lib/service');
+const { runAndCatch } = require('@amzn/base-services/lib/helpers/utils');
+const { allowIfActive } = require('@amzn/base-services/lib/authorization/authorization-utils');
 const { allowIfHasRole } = require('../user/helpers/user-authz-utils');
 
 class CostsService extends Service {

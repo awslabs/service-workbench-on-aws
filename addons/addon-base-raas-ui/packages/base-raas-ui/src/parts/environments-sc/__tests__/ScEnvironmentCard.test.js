@@ -27,8 +27,8 @@ import {} from '../parts/ScEnvironmentButtons';
 // eslint-disable-next-line import/first
 import ScEnvironmentCard from '../ScEnvironmentCard';
 
-jest.mock('@aws-ee/base-ui/dist/helpers/notification');
-const displayErrorMock = require('@aws-ee/base-ui/dist/helpers/notification');
+jest.mock('@amzn/base-ui/dist/helpers/notification');
+const displayErrorMock = require('@amzn/base-ui/dist/helpers/notification');
 
 const scEnvironment = {
   id: 'id',

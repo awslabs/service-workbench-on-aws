@@ -1,5 +1,5 @@
 {
-  "name": "@aws-ee/base-raas-cfn-templates",
+  "name": "@amzn/base-raas-cfn-templates",
   "version": "1.0.0",
   "private": true,
   "description": "Contains base Service Workbench CFN templates",

@@ -12,27 +12,27 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
 
 // Mocked services
-jest.mock('@aws-ee/base-services/lib/db-service');
-jest.mock('@aws-ee/base-services/lib/logger/logger-service');
-jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
-jest.mock('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
-jest.mock('@aws-ee/base-services/lib/audit/audit-writer-service');
-jest.mock('@aws-ee/base-workflow-core/lib/workflow/workflow-trigger-service');
+jest.mock('@amzn/base-services/lib/db-service');
+jest.mock('@amzn/base-services/lib/logger/logger-service');
+jest.mock('@amzn/base-services/lib/settings/env-settings-service');
+jest.mock('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
+jest.mock('@amzn/base-services/lib/audit/audit-writer-service');
+jest.mock('@amzn/base-workflow-core/lib/workflow/workflow-trigger-service');
 jest.mock('../../study/study-service');
 jest.mock('../data-source-account-service');
 jest.mock('../access-strategy/roles-only/application-role-service');
 
-const Aws = require('@aws-ee/base-services/lib/aws/aws-service');
-const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
-const PluginRegistryService = require('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
-const SettingsService = require('@aws-ee/base-services/lib/settings/env-settings-service');
-const AuthService = require('@aws-ee/base-services/lib/authorization/authorization-service');
-const AuditService = require('@aws-ee/base-services/lib/audit/audit-writer-service');
-const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
-const WorkflowTriggerService = require('@aws-ee/base-workflow-core/lib/workflow/workflow-trigger-service');
+const Aws = require('@amzn/base-services/lib/aws/aws-service');
+const Logger = require('@amzn/base-services/lib/logger/logger-service');
+const PluginRegistryService = require('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
+const SettingsService = require('@amzn/base-services/lib/settings/env-settings-service');
+const AuthService = require('@amzn/base-services/lib/authorization/authorization-service');
+const AuditService = require('@amzn/base-services/lib/audit/audit-writer-service');
+const JsonSchemaValidationService = require('@amzn/base-services/lib/json-schema-validation-service');
+const WorkflowTriggerService = require('@amzn/base-workflow-core/lib/workflow/workflow-trigger-service');
 const StudyService = require('../../study/study-service');
 const DataSourceAccountService = require('../data-source-account-service');
 const ApplicationRoleService = require('../access-strategy/roles-only/application-role-service');

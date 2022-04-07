@@ -14,7 +14,7 @@
  */
 
 const _ = require('lodash');
-const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
+const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/system-context');
 
 /**
  * The main authentication plugin function. This plugin implementation adds customization by

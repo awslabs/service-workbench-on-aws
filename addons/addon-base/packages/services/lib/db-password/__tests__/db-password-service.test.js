@@ -12,16 +12,16 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
-const Boom = require('@aws-ee/base-services-container/lib/boom');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
+const Boom = require('@amzn/base-services-container/lib/boom');
 
-const DbServiceMock = require('@aws-ee/base-services/lib/db-service');
-const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
+const DbServiceMock = require('@amzn/base-services/lib/db-service');
+const SettingsServiceMock = require('@amzn/base-services/lib/settings/env-settings-service');
 const DbPasswordService = require('../db-password-service');
 
 // Mocked dependencies
-jest.mock('@aws-ee/base-services/lib/db-service');
-jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
+jest.mock('@amzn/base-services/lib/db-service');
+jest.mock('@amzn/base-services/lib/settings/env-settings-service');
 
 describe('db-password-service', () => {
   let service = null;

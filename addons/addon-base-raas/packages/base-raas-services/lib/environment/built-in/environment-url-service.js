@@ -17,7 +17,7 @@ const crypto = require('crypto');
 const NodeRSA = require('node-rsa');
 const querystring = require('querystring');
 const request = require('request-promise-native');
-const Service = require('@aws-ee/base-services-container/lib/service');
+const Service = require('@amzn/base-services-container/lib/service');
 
 class EnvironmentUrlService extends Service {
   constructor() {

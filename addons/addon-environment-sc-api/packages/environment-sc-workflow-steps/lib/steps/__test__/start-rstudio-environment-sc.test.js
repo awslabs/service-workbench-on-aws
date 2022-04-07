@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-const WorkflowPayload = require('@aws-ee/workflow-engine/lib/workflow-payload');
+const WorkflowPayload = require('@amzn/workflow-engine/lib/workflow-payload');
 const StartRStudioEnvironmentSc = require('../start-rstudio-environment/start-rstudio-environment-sc');
 
 describe('StartRStudioEnvironmentStep', () => {

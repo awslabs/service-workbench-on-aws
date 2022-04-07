@@ -15,9 +15,9 @@
 
 import _ from 'lodash';
 import { types } from 'mobx-state-tree';
-import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
+import { BaseStore } from '@amzn/base-ui/dist/models/BaseStore';
 
-import { consolidateToMap } from '@aws-ee/base-ui/dist/helpers/utils';
+import { consolidateToMap } from '@amzn/base-ui/dist/helpers/utils';
 import { getUserRoles } from '../../helpers/api';
 import { UserRole } from './UserRole';
 

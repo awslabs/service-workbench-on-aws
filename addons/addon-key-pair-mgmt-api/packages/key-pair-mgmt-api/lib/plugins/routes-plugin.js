@@ -12,9 +12,9 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-const setupAuthContext = require('@aws-ee/base-controllers/lib/middlewares/setup-auth-context');
-const prepareContext = require('@aws-ee/base-controllers/lib/middlewares/prepare-context');
-const ensureActive = require('@aws-ee/base-controllers/lib/middlewares/ensure-active');
+const setupAuthContext = require('@amzn/base-controllers/lib/middlewares/setup-auth-context');
+const prepareContext = require('@amzn/base-controllers/lib/middlewares/prepare-context');
+const ensureActive = require('@amzn/base-controllers/lib/middlewares/ensure-active');
 
 const keyPairController = require('../controllers/key-pair-controller');
 

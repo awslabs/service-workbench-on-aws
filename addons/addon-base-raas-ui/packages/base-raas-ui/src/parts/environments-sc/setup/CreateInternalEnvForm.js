@@ -17,11 +17,11 @@ import React from 'react';
 import { decorate, computed, runInAction, observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { Segment, Button, Header, Icon, Message } from 'semantic-ui-react';
-import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
-import Dropdown from '@aws-ee/base-ui/dist/parts/helpers/fields/DropDown';
-import Form from '@aws-ee/base-ui/dist/parts/helpers/fields/Form';
-import Input from '@aws-ee/base-ui/dist/parts/helpers/fields/Input';
-import TextArea from '@aws-ee/base-ui/dist/parts/helpers/fields/TextArea';
+import { displayError } from '@amzn/base-ui/dist/helpers/notification';
+import Dropdown from '@amzn/base-ui/dist/parts/helpers/fields/DropDown';
+import Form from '@amzn/base-ui/dist/parts/helpers/fields/Form';
+import Input from '@amzn/base-ui/dist/parts/helpers/fields/Input';
+import TextArea from '@amzn/base-ui/dist/parts/helpers/fields/TextArea';
 
 import { getCreateInternalEnvForm } from '../../../models/forms/CreateInternalEnvForm';
 import SelectConfigurationCards from './SelectConfigurationCards';

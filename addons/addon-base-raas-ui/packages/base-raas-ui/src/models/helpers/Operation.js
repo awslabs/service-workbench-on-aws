@@ -14,7 +14,7 @@
  */
 
 import { types } from 'mobx-state-tree';
-import { toErr, Err } from '@aws-ee/base-ui/dist/models/Err';
+import { toErr, Err } from '@amzn/base-ui/dist/models/Err';
 
 // ==================================================================
 // Operation

@@ -20,10 +20,10 @@ import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Button } from 'semantic-ui-react';
 
-import { displaySuccess, displayError } from '@aws-ee/base-ui/dist/helpers/notification';
-import Form from '@aws-ee/base-ui/dist/parts/helpers/fields/Form';
-import Input from '@aws-ee/base-ui/dist/parts/helpers/fields/Input';
-import TextArea from '@aws-ee/base-ui/dist/parts/helpers/fields/TextArea';
+import { displaySuccess, displayError } from '@amzn/base-ui/dist/helpers/notification';
+import Form from '@amzn/base-ui/dist/parts/helpers/fields/Form';
+import Input from '@amzn/base-ui/dist/parts/helpers/fields/Input';
+import TextArea from '@amzn/base-ui/dist/parts/helpers/fields/TextArea';
 
 import { getAccountForm } from '../../models/forms/UpdateRegisteredAccountForm';
 

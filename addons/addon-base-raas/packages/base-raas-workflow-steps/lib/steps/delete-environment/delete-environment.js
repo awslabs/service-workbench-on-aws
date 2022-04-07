@@ -13,9 +13,9 @@
  *  permissions and limitations under the License.
  */
 
-const { fuzz } = require('@aws-ee/base-services/lib/helpers/utils');
+const { fuzz } = require('@amzn/base-services/lib/helpers/utils');
 
-const StepBase = require('@aws-ee/base-workflow-core/lib/workflow/helpers/step-base');
+const StepBase = require('@amzn/base-workflow-core/lib/workflow/helpers/step-base');
 
 const STACK_FAILED = [
   'CREATE_FAILED',

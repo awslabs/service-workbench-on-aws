@@ -17,12 +17,12 @@ import React from 'react';
 import { inject, observer } from 'mobx-react';
 import { decorate, observable, action, runInAction } from 'mobx';
 import { Button, Header, Modal, Segment } from 'semantic-ui-react';
-import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
-import Dropdown from '@aws-ee/base-ui/dist/parts/helpers/fields/DropDown';
-import Form from '@aws-ee/base-ui/dist/parts/helpers/fields/Form';
-import Input from '@aws-ee/base-ui/dist/parts/helpers/fields/Input';
-import TextArea from '@aws-ee/base-ui/dist/parts/helpers/fields/TextArea';
-import YesNo from '@aws-ee/base-ui/dist/parts/helpers/fields/YesNo';
+import { displayError } from '@amzn/base-ui/dist/helpers/notification';
+import Dropdown from '@amzn/base-ui/dist/parts/helpers/fields/DropDown';
+import Form from '@amzn/base-ui/dist/parts/helpers/fields/Form';
+import Input from '@amzn/base-ui/dist/parts/helpers/fields/Input';
+import TextArea from '@amzn/base-ui/dist/parts/helpers/fields/TextArea';
+import YesNo from '@amzn/base-ui/dist/parts/helpers/fields/YesNo';
 
 import { getCreateStudyForm } from '../../models/forms/CreateStudy';
 import { getCategoryById } from '../../models/studies/categories';

@@ -14,9 +14,9 @@
  */
 
 const _ = require('lodash');
-const { ensureCurrentUser } = require('@aws-ee/base-services/lib/authorization/assertions');
-const BaseUserService = require('@aws-ee/base-services/lib/user/user-service');
-const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
+const { ensureCurrentUser } = require('@amzn/base-services/lib/authorization/assertions');
+const BaseUserService = require('@amzn/base-services/lib/user/user-service');
+const { processInBatches } = require('@amzn/base-services/lib/helpers/utils');
 
 const createUserJsonSchema = require('../schema/create-user');
 const updateUserJsonSchema = require('../schema/update-user');

@@ -20,11 +20,11 @@ import { withRouter } from 'react-router-dom';
 import { decorate, observable, runInAction, action } from 'mobx';
 import { inject, observer } from 'mobx-react';
 
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import { isStoreError, isStoreLoading } from '@aws-ee/base-ui/dist/models/BaseStore';
-import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
-import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
+import { isStoreError, isStoreLoading } from '@amzn/base-ui/dist/models/BaseStore';
+import { createLink } from '@amzn/base-ui/dist/helpers/routing';
+import BasicProgressPlaceholder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
 import AccountCard from './AccountCard';
 import AccountsFilterButtons from './AccountsFilterButtons';
 

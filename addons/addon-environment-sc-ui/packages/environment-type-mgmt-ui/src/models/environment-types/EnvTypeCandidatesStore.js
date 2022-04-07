@@ -16,9 +16,9 @@
 import _ from 'lodash';
 import { detach, types } from 'mobx-state-tree';
 
-import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
+import { BaseStore } from '@amzn/base-ui/dist/models/BaseStore';
 
-import { consolidateToMap, mapToArray } from '@aws-ee/base-ui/dist/helpers/utils';
+import { consolidateToMap, mapToArray } from '@amzn/base-ui/dist/helpers/utils';
 import { getAllEnvTypeCandidatesNotImported } from '../../helpers/api';
 import { EnvTypeCandidate } from './EnvTypeCandidate';
 

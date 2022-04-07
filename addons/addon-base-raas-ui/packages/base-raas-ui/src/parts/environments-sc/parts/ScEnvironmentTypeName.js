@@ -19,8 +19,8 @@ import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Label, Popup, Placeholder } from 'semantic-ui-react';
 
-import { isStoreLoading, isStoreError, isStoreReady } from '@aws-ee/base-ui/dist/models/BaseStore';
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
+import { isStoreLoading, isStoreError, isStoreReady } from '@amzn/base-ui/dist/models/BaseStore';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
 
 // This component displays the name of the env type. The envTypeId is expected to be passed
 // as a prop to this component. This component displays a progress place holder or an error with a popup

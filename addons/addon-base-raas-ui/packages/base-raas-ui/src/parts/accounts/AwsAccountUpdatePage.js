@@ -18,9 +18,9 @@ import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Container, Icon, Message } from 'semantic-ui-react';
 
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import { isStoreReady, isStoreLoading, isStoreError } from '@aws-ee/base-ui/dist/models/BaseStore';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
+import { isStoreReady, isStoreLoading, isStoreError } from '@amzn/base-ui/dist/models/BaseStore';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
 
 import AwsAccountUpdateContent from './AwsAccountUpdateContent';
 

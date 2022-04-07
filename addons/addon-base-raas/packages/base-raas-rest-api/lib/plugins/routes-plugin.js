@@ -14,11 +14,11 @@
  */
 
 const _ = require('lodash');
-const setupAuthContext = require('@aws-ee/base-controllers/lib/middlewares/setup-auth-context');
-const prepareContext = require('@aws-ee/base-controllers/lib/middlewares/prepare-context');
-const ensureActive = require('@aws-ee/base-controllers/lib/middlewares/ensure-active');
-const ensureAdmin = require('@aws-ee/base-controllers/lib/middlewares/ensure-admin');
-const userController = require('@aws-ee/base-controllers/lib/user-controller');
+const setupAuthContext = require('@amzn/base-controllers/lib/middlewares/setup-auth-context');
+const prepareContext = require('@amzn/base-controllers/lib/middlewares/prepare-context');
+const ensureActive = require('@amzn/base-controllers/lib/middlewares/ensure-active');
+const ensureAdmin = require('@amzn/base-controllers/lib/middlewares/ensure-admin');
+const userController = require('@amzn/base-controllers/lib/user-controller');
 
 const usersController = require('../controllers/users-controller');
 const studyController = require('../controllers/study-controller');

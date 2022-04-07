@@ -14,7 +14,7 @@
  */
 
 const _ = require('lodash');
-const { allow, deny } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
+const { allow, deny } = require('@amzn/base-services/lib/authorization/authorization-utils');
 
 function allowIfHasRole(requestContext, { action, resource }, allowedUserRoles) {
   const userRole = _.get(requestContext, 'principal.userRole');

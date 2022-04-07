@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-const { ensureAdmin } = require('@aws-ee/base-services/lib/authorization/assertions');
+const { ensureAdmin } = require('@amzn/base-services/lib/authorization/assertions');
 
 async function configure(context) {
   const router = context.router();

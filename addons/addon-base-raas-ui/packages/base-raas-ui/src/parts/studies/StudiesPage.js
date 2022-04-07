@@ -20,10 +20,10 @@ import { decorate, action, observable, computed } from 'mobx';
 import { observer, inject, Observer } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Container, Icon, Button, Label, Header, Tab, Message, Menu } from 'semantic-ui-react';
-import { niceNumber } from '@aws-ee/base-ui/dist/helpers/utils';
-import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
+import { niceNumber } from '@amzn/base-ui/dist/helpers/utils';
+import { gotoFn } from '@amzn/base-ui/dist/helpers/routing';
 
-import { isStoreError, isStoreNew, isStoreLoading } from '@aws-ee/base-ui/dist/models/BaseStore';
+import { isStoreError, isStoreNew, isStoreLoading } from '@amzn/base-ui/dist/models/BaseStore';
 import { categories } from '../../models/studies/categories';
 import StudiesTab from './StudiesTab';
 import CreateStudy from './CreateStudy';

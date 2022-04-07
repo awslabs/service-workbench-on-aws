@@ -20,7 +20,7 @@ import { withRouter } from 'react-router-dom';
 import { Button, Card, Divider, Header, Icon, Modal } from 'semantic-ui-react';
 import { action, computed, decorate, observable, runInAction } from 'mobx';
 
-import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
+import { displayError } from '@amzn/base-ui/dist/helpers/notification';
 import EnvTypeConfigEditor from './EnvTypeConfigEditor';
 
 class EnvTypeConfigCard extends Component {

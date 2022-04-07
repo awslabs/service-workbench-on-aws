@@ -16,7 +16,7 @@
 const jwtDecode = require('jwt-decode');
 const _ = require('lodash');
 
-const Service = require('@aws-ee/base-services-container/lib/service');
+const Service = require('@amzn/base-services-container/lib/service');
 const { newInvoker } = require('./authentication-providers/helpers/invoker');
 
 const notAuthenticated = claims => ({ ...claims, authenticated: false });

@@ -17,13 +17,13 @@ const uuid = require('uuid/v4');
 const { generateKeyPair } = require('crypto');
 const forge = require('node-forge');
 
-const Service = require('@aws-ee/base-services-container/lib/service');
+const Service = require('@amzn/base-services-container/lib/service');
 const {
   isAllow,
   allowIfActive,
   allowIfCurrentUserOrAdmin,
-} = require('@aws-ee/base-services/lib/authorization/authorization-utils');
-const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
+} = require('@amzn/base-services/lib/authorization/authorization-utils');
+const { runAndCatch } = require('@amzn/base-services/lib/helpers/utils');
 const createKeyPairSchema = require('./schema/create-key-pair');
 const updateKeyPairSchema = require('./schema/update-key-pair');
 

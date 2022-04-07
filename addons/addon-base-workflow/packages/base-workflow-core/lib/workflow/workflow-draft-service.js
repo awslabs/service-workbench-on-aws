@@ -16,8 +16,8 @@
 /* eslint-disable no-await-in-loop */
 const _ = require('lodash');
 const slugify = require('slugify');
-const Service = require('@aws-ee/base-services-container/lib/service');
-const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
+const Service = require('@amzn/base-services-container/lib/service');
+const { runAndCatch } = require('@amzn/base-services/lib/helpers/utils');
 
 // const { ensureAdmin } = require('../authorization-assertions/assertions');
 const inputSchema = require('../schema/workflow');

@@ -17,8 +17,8 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import EnvTypeEditor from '../EnvTypeEditor';
 
-jest.mock('@aws-ee/base-ui/dist/helpers/routing');
-const gotoMock = require('@aws-ee/base-ui/dist/helpers/routing');
+jest.mock('@amzn/base-ui/dist/helpers/routing');
+const gotoMock = require('@amzn/base-ui/dist/helpers/routing');
 
 const envTypeCandidatesStore = {};
 const envTypesStore = {

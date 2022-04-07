@@ -14,8 +14,8 @@
  */
 
 // const _ = require('lodash');
-const StepBase = require('@aws-ee/base-workflow-core/lib/workflow/helpers/step-base');
-const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
+const StepBase = require('@amzn/base-workflow-core/lib/workflow/helpers/step-base');
+const { processInBatches } = require('@amzn/base-services/lib/helpers/utils');
 
 class DsAccountStatusChange extends StepBase {
   async start() {

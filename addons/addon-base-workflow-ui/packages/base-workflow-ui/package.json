@@ -1,11 +1,11 @@
 {
-  "name": "@aws-ee/base-workflow-ui",
+  "name": "@amzn/base-workflow-ui",
   "version": "0.1.0",
   "private": true,
   "author": "Amazon Web Services",
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-ee/base-ui": "workspace:*",
+    "@amzn/base-ui": "workspace:*",
     "aws-sdk": "^2.1000.0",
     "chart.js": "^2.9.4",
     "classnames": "^2.2.6",

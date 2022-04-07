@@ -20,17 +20,17 @@ import { inject, observer } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Container, Header, Card, Icon, Divider, Checkbox, Label, Segment, Button, Image } from 'semantic-ui-react';
 
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
-import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
+import BasicProgressPlaceholder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
 import {
   isStoreEmpty,
   isStoreError,
   isStoreLoading,
   isStoreNotEmpty,
   isStoreReady,
-} from '@aws-ee/base-ui/dist/models/BaseStore';
-import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
+} from '@amzn/base-ui/dist/models/BaseStore';
+import { gotoFn } from '@amzn/base-ui/dist/helpers/routing';
 import { envMgmtRoleName } from '../../helpers/settings';
 import awsServiceCatalogIcon from '../../../images/AWS-Service-Catalog.svg';
 

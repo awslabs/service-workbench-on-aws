@@ -18,10 +18,10 @@ import { inject, observer } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Container, Header, Icon, Tab, Grid } from 'semantic-ui-react';
 
-import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
-import { isStoreError, isStoreLoading, isStoreReady } from '@aws-ee/base-ui/dist/models/BaseStore';
+import BasicProgressPlaceholder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
+import { isStoreError, isStoreLoading, isStoreReady } from '@amzn/base-ui/dist/models/BaseStore';
 import { toIdpOptions } from '../../models/forms/UserFormUtils';
 import DragDrop from './DragDrop';
 import AddSingleUser from './AddSingleUser';

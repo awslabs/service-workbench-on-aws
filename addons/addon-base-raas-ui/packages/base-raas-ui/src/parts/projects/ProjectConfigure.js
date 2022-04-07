@@ -18,11 +18,11 @@ import { observer } from 'mobx-react';
 import { decorate, observable, action, runInAction, computed } from 'mobx';
 import { Button, Dimmer, Header, Loader, Table, Label, Dropdown, Segment, Modal } from 'semantic-ui-react';
 import _ from 'lodash';
-import { displayError, displaySuccess } from '@aws-ee/base-ui/dist/helpers/notification';
-import Stores from '@aws-ee/base-ui/dist/models/Stores';
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
-import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import { displayError, displaySuccess } from '@amzn/base-ui/dist/helpers/notification';
+import Stores from '@amzn/base-ui/dist/models/Stores';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
+import BasicProgressPlaceholder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 import { getAddProjectFormFields, getAddProjectForm } from '../../models/forms/AddProjectForm';
 
 class ProjectConfigure extends React.Component {

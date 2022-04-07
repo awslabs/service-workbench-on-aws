@@ -18,11 +18,11 @@ import React from 'react';
 import { decorate, computed, runInAction, observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { Segment, Button, Header } from 'semantic-ui-react';
-import Form from '@aws-ee/base-ui/dist/parts/helpers/fields/Form';
-import Input from '@aws-ee/base-ui/dist/parts/helpers/fields/Input';
-import TextArea from '@aws-ee/base-ui/dist/parts/helpers/fields/TextArea';
-import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
-import { awsRegion } from '@aws-ee/base-ui/dist/helpers/settings';
+import Form from '@amzn/base-ui/dist/parts/helpers/fields/Form';
+import Input from '@amzn/base-ui/dist/parts/helpers/fields/Input';
+import TextArea from '@amzn/base-ui/dist/parts/helpers/fields/TextArea';
+import { displayError } from '@amzn/base-ui/dist/helpers/notification';
+import { awsRegion } from '@amzn/base-ui/dist/helpers/settings';
 
 import { getCreateExternalPlatformForm } from '../../../models/forms/CreateExternalPlatformForm';
 import SelectConfigurationCards from './SelectConfigurationCards';

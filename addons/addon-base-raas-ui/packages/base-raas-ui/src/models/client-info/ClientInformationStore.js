@@ -14,7 +14,7 @@
  */
 
 import { types } from 'mobx-state-tree';
-import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
+import { BaseStore } from '@amzn/base-ui/dist/models/BaseStore';
 
 import { getClientIpAddress } from '../../helpers/api';
 import { ClientInformation } from './ClientInformation';

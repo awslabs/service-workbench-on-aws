@@ -19,8 +19,8 @@ import { inject, observer } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Button, Card, Divider, Header, Icon, Label, Modal } from 'semantic-ui-react';
 import { action, computed, decorate, observable, runInAction } from 'mobx';
-import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
-import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
+import { displayError } from '@amzn/base-ui/dist/helpers/notification';
+import { gotoFn } from '@amzn/base-ui/dist/helpers/routing';
 
 import * as EnvTypeStatusEnum from '../../models/environment-types/EnvTypeStatusEnum';
 

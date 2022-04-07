@@ -16,7 +16,7 @@
 const _ = require('lodash');
 const crypto = require('crypto');
 const uuid = require('uuid/v4');
-const Service = require('@aws-ee/base-services-container/lib/service');
+const Service = require('@amzn/base-services-container/lib/service');
 const { ensureCurrentUserOrAdmin } = require('../authorization/assertions');
 const { runAndCatch } = require('../helpers/utils');
 const { isSystem } = require('../authorization/authorization-utils');

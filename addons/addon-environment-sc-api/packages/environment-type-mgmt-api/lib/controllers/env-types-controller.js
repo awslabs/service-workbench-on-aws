@@ -15,7 +15,7 @@
 
 const _ = require('lodash');
 
-const envTypeStatusEnum = require('@aws-ee/environment-type-mgmt-services/lib/environment-type/helpers/env-type-status-enum');
+const envTypeStatusEnum = require('@amzn/environment-type-mgmt-services/lib/environment-type/helpers/env-type-status-enum');
 
 async function configure(context) {
   const router = context.router();

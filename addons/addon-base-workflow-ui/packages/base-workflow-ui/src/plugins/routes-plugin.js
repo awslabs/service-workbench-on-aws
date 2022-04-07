@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-import withAuth from '@aws-ee/base-ui/dist/withAuth';
+import withAuth from '@amzn/base-ui/dist/withAuth';
 
 import WorkflowTemplatesList from '../parts/workflow-templates/WorkflowTemplatesList';
 import WorkflowTemplateDraftEditor from '../parts/workflow-templates/drafts/edit/WorkflowTemplateDraftEditor';
