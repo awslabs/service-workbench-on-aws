@@ -2,8 +2,12 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-## Beta
-[This release is in beta. Click here to see changes since 5.1.0.](https://github.com/awslabs/service-workbench-on-aws/compare/v5.1.0...mainline)
+### [5.1.1](https://github.com/awslabs/service-workbench-on-aws/compare/v5.1.0...v5.1.1) (2022-04-08)
+
+
+### Bug Fixes
+
+* replace aws-ee package name prefix with amzn ([#960](https://github.com/awslabs/service-workbench-on-aws/issues/960)) ([9e224ff](https://github.com/awslabs/service-workbench-on-aws/commit/9e224ff1aee34ccbdea14f330c7c840a9a39b125))
 
 ### [5.1.0](https://github.com/awslabs/service-workbench-on-aws/compare/v5.0.0...v5.1.0) (2022-03-22)
 
