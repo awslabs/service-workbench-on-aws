@@ -13,14 +13,14 @@
  *  permissions and limitations under the License.
  */
 
-const StepTemplateService = require('@aws-ee/base-workflow-core/lib/workflow/step/step-template-service');
-const WorkflowTemplateDraftService = require('@aws-ee/base-workflow-core/lib/workflow/workflow-template-draft-service');
-const WorkflowTemplateService = require('@aws-ee/base-workflow-core/lib/workflow/workflow-template-service');
-const WorkflowService = require('@aws-ee/base-workflow-core/lib/workflow/workflow-service');
-const WorkflowDraftService = require('@aws-ee/base-workflow-core/lib/workflow/workflow-draft-service');
-const WorkflowAssignmentService = require('@aws-ee/base-workflow-core/lib/workflow/workflow-assignment-service');
-const WorkflowInstanceService = require('@aws-ee/base-workflow-core/lib/workflow/workflow-instance-service');
-const WorkflowTriggerService = require('@aws-ee/base-workflow-core/lib/workflow/workflow-trigger-service');
+const StepTemplateService = require('@amzn/base-workflow-core/lib/workflow/step/step-template-service');
+const WorkflowTemplateDraftService = require('@amzn/base-workflow-core/lib/workflow/workflow-template-draft-service');
+const WorkflowTemplateService = require('@amzn/base-workflow-core/lib/workflow/workflow-template-service');
+const WorkflowService = require('@amzn/base-workflow-core/lib/workflow/workflow-service');
+const WorkflowDraftService = require('@amzn/base-workflow-core/lib/workflow/workflow-draft-service');
+const WorkflowAssignmentService = require('@amzn/base-workflow-core/lib/workflow/workflow-assignment-service');
+const WorkflowInstanceService = require('@amzn/base-workflow-core/lib/workflow/workflow-instance-service');
+const WorkflowTriggerService = require('@amzn/base-workflow-core/lib/workflow/workflow-trigger-service');
 
 const settingKeys = {
   tablePrefix: 'dbPrefix',

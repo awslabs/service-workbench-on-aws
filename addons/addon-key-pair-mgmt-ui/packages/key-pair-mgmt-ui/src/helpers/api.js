@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 // eslint-disable-next-line no-unused-vars
-import { httpApiGet, httpApiPost, httpApiPut, httpApiDelete } from '@aws-ee/base-ui/dist/helpers/api';
+import { httpApiGet, httpApiPost, httpApiPut, httpApiDelete } from '@amzn/base-ui/dist/helpers/api';
 
 function getKeyPairs() {
   return httpApiGet('api/key-pairs/');

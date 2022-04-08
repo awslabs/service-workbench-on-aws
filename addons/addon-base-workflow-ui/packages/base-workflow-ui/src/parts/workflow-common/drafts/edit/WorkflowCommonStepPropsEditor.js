@@ -19,8 +19,8 @@ import { observer, inject } from 'mobx-react';
 import { decorate, action, computed } from 'mobx';
 import { Icon, Divider, Button, Segment, Header } from 'semantic-ui-react';
 
-import Form from '@aws-ee/base-ui/dist/parts/helpers/fields/Form';
-import Toggle from '@aws-ee/base-ui/dist/parts/helpers/fields/Toggle';
+import Form from '@amzn/base-ui/dist/parts/helpers/fields/Form';
+import Toggle from '@amzn/base-ui/dist/parts/helpers/fields/Toggle';
 import PropertyTable from '../../../workflow-templates/PropertyTable';
 
 // expected props

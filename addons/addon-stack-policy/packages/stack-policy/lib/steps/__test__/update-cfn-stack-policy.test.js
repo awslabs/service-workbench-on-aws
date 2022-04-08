@@ -15,12 +15,12 @@
  */
 
 /* eslint-disable max-classes-per-file */
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
-const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
-const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
+const SettingsServiceMock = require('@amzn/base-services/lib/settings/env-settings-service');
+const Logger = require('@amzn/base-services/lib/logger/logger-service');
 
-jest.mock('@aws-ee/base-services/lib/aws/aws-service');
-const AwsServiceMock = require('@aws-ee/base-services/lib/aws/aws-service');
+jest.mock('@amzn/base-services/lib/aws/aws-service');
+const AwsServiceMock = require('@amzn/base-services/lib/aws/aws-service');
 
 const UpdateCfnStackPolicy = require('../update-cfn-stack-policy');
 const CloudFormation = require('./__fixtures__/cloudformation');

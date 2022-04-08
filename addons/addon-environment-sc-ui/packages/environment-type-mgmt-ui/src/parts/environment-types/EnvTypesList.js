@@ -20,16 +20,16 @@ import { inject, observer } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Container, Header, Card, Icon, Label, Segment, Radio } from 'semantic-ui-react';
 
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
-import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
+import BasicProgressPlaceholder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
 import {
   isStoreEmpty,
   isStoreError,
   isStoreLoading,
   isStoreNotEmpty,
   isStoreReady,
-} from '@aws-ee/base-ui/dist/models/BaseStore';
+} from '@amzn/base-ui/dist/models/BaseStore';
 import { envMgmtRoleName } from '../../helpers/settings';
 import * as EnvTypeStatusEnum from '../../models/environment-types/EnvTypeStatusEnum';
 import EnvTypeCard from './EnvTypeCard';

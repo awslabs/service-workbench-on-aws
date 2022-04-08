@@ -13,9 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-const RequestContext = require('@aws-ee/base-services-container/lib/request-context');
-
-const internalAuthProviderId = 'internal'; // TODO - make this string comes from constants
+const RequestContext = require('@amzn/base-services-container/lib/request-context');
 
 /**
  * A helper function that helps create requestContext for system users.
@@ -31,7 +29,7 @@ function getSystemRequestContext() {
 
   const systemUid = '_system_';
   const systemUsername = '_system_';
-  const systemUserNamespace = internalAuthProviderId;
+  const systemUserNamespace = '_system_';
 
   ctx.authenticated = true;
   ctx.principal = {

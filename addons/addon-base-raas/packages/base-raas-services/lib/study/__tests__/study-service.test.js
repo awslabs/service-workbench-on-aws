@@ -14,29 +14,29 @@
  */
 
 const _ = require('lodash');
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
-const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
-const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
-const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
+const JsonSchemaValidationService = require('@amzn/base-services/lib/json-schema-validation-service');
+const AwsService = require('@amzn/base-services/lib/aws/aws-service');
+const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/system-context');
 
-jest.mock('@aws-ee/base-services/lib/db-service');
-jest.mock('@aws-ee/base-services/lib/logger/logger-service');
-jest.mock('@aws-ee/base-services/lib/audit/audit-writer-service');
-jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
-jest.mock('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
-jest.mock('@aws-ee/base-services/lib/s3-service');
-jest.mock('@aws-ee/base-services/lib/lock/lock-service');
+jest.mock('@amzn/base-services/lib/db-service');
+jest.mock('@amzn/base-services/lib/logger/logger-service');
+jest.mock('@amzn/base-services/lib/audit/audit-writer-service');
+jest.mock('@amzn/base-services/lib/settings/env-settings-service');
+jest.mock('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
+jest.mock('@amzn/base-services/lib/s3-service');
+jest.mock('@amzn/base-services/lib/lock/lock-service');
 jest.mock('../../user/user-service');
 jest.mock('../../project/project-service');
 
-const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
-const LockService = require('@aws-ee/base-services/lib/lock/lock-service');
-const DbServiceMock = require('@aws-ee/base-services/lib/db-service');
-const AuthService = require('@aws-ee/base-services/lib/authorization/authorization-service');
-const AuditServiceMock = require('@aws-ee/base-services/lib/audit/audit-writer-service');
-const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
-const PluginRegistryService = require('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
-const S3ServiceMock = require('@aws-ee/base-services/lib/s3-service');
+const Logger = require('@amzn/base-services/lib/logger/logger-service');
+const LockService = require('@amzn/base-services/lib/lock/lock-service');
+const DbServiceMock = require('@amzn/base-services/lib/db-service');
+const AuthService = require('@amzn/base-services/lib/authorization/authorization-service');
+const AuditServiceMock = require('@amzn/base-services/lib/audit/audit-writer-service');
+const SettingsServiceMock = require('@amzn/base-services/lib/settings/env-settings-service');
+const PluginRegistryService = require('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
+const S3ServiceMock = require('@amzn/base-services/lib/s3-service');
 const ProjectServiceMock = require('../../project/project-service');
 const UserService = require('../../user/user-service');
 const StudyPermissionService = require('../study-permission-service');
@@ -1292,6 +1292,105 @@ describe('studyService', () => {
       const retVal = await service.isOverlapping(requestContext, accountId, bucketName, folder);
       // CHECK
       expect(retVal).toEqual(false);
+    });
+  });
+
+  describe('updatePermissions', () => {
+    it('should throw error if My Study but not migration request', async () => {
+      // BUILD
+      const studyId = 'sampleMyStudy';
+      const updateRequest = {
+        usersToAdd: [
+          {
+            uid: 'u-1',
+            permissionLevel: 'admin',
+          },
+        ],
+        usersToRemove: [
+          {
+            uid: 'u-2',
+            permissionLevel: 'admin',
+          },
+        ],
+      };
+      const studyEntity = { id: studyId, category: 'My Studies' };
+      const requestContext = { sampleMyStudy: studyEntity };
+      service.find = jest.fn(() => {
+        return studyEntity;
+      });
+
+      // UPDATE n CHECK
+      await expect(service.updatePermissions(requestContext, studyId, updateRequest)).rejects.toThrow(
+        'Permissions cannot be set for studies in the "My Studies" category',
+      );
+    });
+
+    it('should call update if My Study and migration request', async () => {
+      // BUILD
+      const studyId = 'sampleMyStudy';
+      const updateRequest = {
+        usersToAdd: [
+          {
+            uid: 'u-1',
+            permissionLevel: 'admin',
+          },
+        ],
+        usersToRemove: [
+          {
+            uid: '*',
+            permissionLevel: 'admin',
+          },
+        ],
+      };
+      const studyEntity = { id: studyId, category: 'My Studies' };
+      const requestContext = { sampleMyStudy: studyEntity, isMigration: true };
+      service.find = jest.fn(() => {
+        return studyEntity;
+      });
+      studyPermissionService.update = jest.fn().mockImplementationOnce(() => {
+        return {};
+      });
+
+      // UPDATE
+      await service.updatePermissions(requestContext, studyId, updateRequest);
+
+      // CHECK
+      expect(studyPermissionService.update).toHaveBeenCalledTimes(1);
+      expect(studyPermissionService.update).toHaveBeenCalledWith(requestContext, studyEntity, updateRequest);
+    });
+  });
+
+  describe('isStudyAdmin', () => {
+    it('should return true when user is study admin', async () => {
+      // BUILD
+      const requestContext = 'dummyRequestContext';
+      const uid = 'sample-user';
+      const studyId = 'sample-study';
+      service.getStudyPermissions = jest.fn().mockImplementationOnce(() => {
+        return { permissions: { adminUsers: [uid] } };
+      });
+
+      // OPERATE
+      const result = await service.isStudyAdmin(requestContext, studyId, uid);
+
+      // CHECK
+      expect(result).toBeTruthy();
+    });
+
+    it('should return false when user is not study admin', async () => {
+      // BUILD
+      const requestContext = 'dummyRequestContext';
+      const uid = 'sample-user';
+      const studyId = 'sample-study';
+      service.getStudyPermissions = jest.fn().mockImplementationOnce(() => {
+        return { permissions: { adminUsers: ['some-other-user'] } };
+      });
+
+      // OPERATE
+      const result = await service.isStudyAdmin(requestContext, studyId, uid);
+
+      // CHECK
+      expect(result).toBeFalsy();
     });
   });
 });

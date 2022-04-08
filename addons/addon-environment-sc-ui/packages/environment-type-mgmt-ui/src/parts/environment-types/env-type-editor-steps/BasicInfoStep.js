@@ -18,11 +18,11 @@ import { runInAction } from 'mobx';
 import { observer } from 'mobx-react';
 import { Button, Segment } from 'semantic-ui-react';
 
-import Input from '@aws-ee/base-ui/dist/parts/helpers/fields/Input';
-import TextArea from '@aws-ee/base-ui/dist/parts/helpers/fields/TextArea';
-import Form from '@aws-ee/base-ui/dist/parts/helpers/fields/Form';
+import Input from '@amzn/base-ui/dist/parts/helpers/fields/Input';
+import TextArea from '@amzn/base-ui/dist/parts/helpers/fields/TextArea';
+import Form from '@amzn/base-ui/dist/parts/helpers/fields/Form';
 
-import { displayError, displaySuccess } from '@aws-ee/base-ui/dist/helpers/notification';
+import { displayError, displaySuccess } from '@amzn/base-ui/dist/helpers/notification';
 import { getAddEnvTypeBasicInfoForm } from '../../../models/forms/EnvTypeBasicInfoForm';
 import EnvTypeStatusEnum from '../../../models/environment-types/EnvTypeStatusEnum';
 

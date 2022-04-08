@@ -85,6 +85,7 @@ awsAccountOnboardingHandler:
     APP_SM_WORKFLOW: ${self:custom.settings.workflowStateMachineArn}
     APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
     APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
+    APP_ENABLE_FLOW_LOGS: ${self:custom.settings.enableFlowLogs}
     APP_DOMAIN_NAME: ${self:custom.settings.domainName}
 
 apiHandler:
@@ -177,6 +178,7 @@ apiHandler:
     APP_ROOT_USER_NAME: ${self:custom.settings.rootUserName}
     APP_ENABLE_EGRESS_STORE: ${self:custom.settings.enableEgressStore}
     APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
+    APP_ENABLE_FLOW_LOGS: ${self:custom.settings.enableFlowLogs}
     APP_EGRESS_STORE_BUCKET_NAME: ${self:custom.settings.egressStoreBucketName}
     APP_EGRESS_NOTIFICATION_BUCKET_NAME: ${self:custom.settings.egressNotificationBucketName}
     APP_EGRESS_NOTIFICATION_SNS_TOPIC_ARN: ${self:custom.settings.egressNotificationSnsTopicArn}
@@ -215,5 +217,6 @@ workflowLoopRunner:
     APP_EGRESS_STORE_KMS_KEY_ARN: !Sub arn:aws:kms:${AWS::Region}:${AWS::AccountId}:alias/${self:custom.settings.egressStoreKmsKeyAlias}
     APP_EGRESS_STORE_KMS_POLICY_WORKSPACE_SID: ${self:custom.settings.egressStoreKmsPolicyWorkspaceSid}
     APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
+    APP_ENABLE_FLOW_LOGS: ${self:custom.settings.enableFlowLogs}
     APP_PERMISSION_BOUNDARY_POLICY_STUDY_BUCKET_ARN: !Sub arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.permissionBoundaryPolicyStudyBucket}
     APP_LOGGING_BUCKET_NAME: ${self:custom.settings.loggingBucketName}

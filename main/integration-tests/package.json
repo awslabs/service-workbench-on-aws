@@ -1,5 +1,5 @@
 {
-  "name": "@aws-ee/integration-tests",
+  "name": "@amzn/integration-tests",
   "version": "1.0.0",
   "private": true,
   "description": "Integration tests for the base-poc solution",
@@ -23,10 +23,11 @@
     }
   },
   "dependencies": {
-    "@aws-ee/base-services": "workspace:*",
+    "@amzn/base-services": "workspace:*",
     "aws-sdk": "^2.1000.0",
     "axios": "^0.21.2",
     "chance": "^1.1.7",
+    "generate-password": "^1.5.0",
     "fs-extra": "^9.1.0",
     "js-yaml": "^4.1.0",
     "jwt-decode": "^2.2.0",

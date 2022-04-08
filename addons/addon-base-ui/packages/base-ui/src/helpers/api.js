@@ -224,6 +224,10 @@ function logout() {
   return httpApiPost('api/authentication/logout');
 }
 
+function getIdToken(data = {}) {
+  return httpApiPost('api/authentication/id-tokens', { data });
+}
+
 function getApiKeys({ username, ns } = {}) {
   return httpApiGet('api/api-keys', { params: { username, ns } });
 }
@@ -323,5 +327,6 @@ export {
   getUsers,
   authenticate,
   logout,
+  getIdToken,
   config,
 };

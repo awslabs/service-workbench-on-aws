@@ -13,13 +13,13 @@
  *  permissions and limitations under the License.
  */
 
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
 
 // Mocked dependencies
-jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
-const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
+jest.mock('@amzn/base-services/lib/settings/env-settings-service');
+const SettingsServiceMock = require('@amzn/base-services/lib/settings/env-settings-service');
 
-const Aws = require('@aws-ee/base-services/lib/aws/aws-service');
+const Aws = require('@amzn/base-services/lib/aws/aws-service');
 
 jest.mock('../service-catalog/environment-sc-service');
 const EnvironmentScService = require('../service-catalog/environment-sc-service');

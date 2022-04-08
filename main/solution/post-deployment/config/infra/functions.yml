@@ -13,7 +13,7 @@ postDeployment:
     APP_ROOT_USER_PASSWORD_PARAM_NAME: ${self:custom.settings.rootUserPasswordParamName}
     APP_PARAM_STORE_JWT_SECRET: ${self:custom.settings.paramStoreJwtSecret}
     APP_JWT_OPTIONS: ${self:custom.settings.jwtOptions}
-    APP_ENABLE_NATIVE_USER_POOL_USERS: ${self:custom.settings.enableNativeUserPoolUsers}
+    APP_ENABLE_USER_SIGN_UPS: ${self:custom.settings.enableUserSignUps}
     APP_COGNITO_USER_POOL_DOMAIN_PREFIX: ${self:custom.settings.cognitoUserPoolDomainPrefix}
     APP_FED_IDP_IDS: ${self:custom.settings.fedIdpIds}
     APP_FED_IDP_NAMES: ${self:custom.settings.fedIdpNames}
@@ -36,8 +36,13 @@ postDeployment:
     APP_CUSTOM_USER_AGENT: ${self:custom.settings.customUserAgent}
     APP_ENABLE_EGRESS_STORE: ${self:custom.settings.enableEgressStore}
     APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
+    APP_ENABLE_FLOW_LOGS: ${self:custom.settings.enableFlowLogs}
     APP_ENVIRONMENTS_BOOTSTRAP_BUCKET_NAME: ${self:custom.settings.environmentsBootstrapBucketName}
     APP_STUDY_DATA_BUCKET_NAME: ${self:custom.settings.studyDataBucketName}
+    APP_ENABLE_NATIVE_USER_POOL_USERS: ${self:custom.settings.enableNativeUserPoolUsers}
+    APP_AUTO_CONFIRM_NATIVE_USERS: ${self:custom.settings.autoConfirmNativeUsers}
+    APP_NATIVE_ADMIN_PASSWORD_PARAM_NAME: ${self:custom.settings.nativeAdminPasswordParamName}
+    APP_ENV_NAME: ${self:custom.settings.envName}
 
 egressStoreObjectsHandler:
   role: RoleEgressStoreObjectsHandler

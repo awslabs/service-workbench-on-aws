@@ -20,7 +20,7 @@ import PropTypes from 'prop-types';
 import React from 'react';
 import { Button, Grid, Header, Segment } from 'semantic-ui-react';
 
-import { displayError, displaySuccess, displayWarning } from '@aws-ee/base-ui/dist/helpers/notification';
+import { displayError, displaySuccess, displayWarning } from '@amzn/base-ui/dist/helpers/notification';
 
 import toastr from 'toastr';
 import StudyFileDropZone from './FileDropZone';

@@ -19,10 +19,10 @@ import { decorate, computed, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { Card, Radio, Divider, Table } from 'semantic-ui-react';
 import c from 'classnames';
-import Header from '@aws-ee/base-ui/dist/parts/helpers/fields/Header';
-import Description from '@aws-ee/base-ui/dist/parts/helpers/fields/Description';
-import ErrorPointer from '@aws-ee/base-ui/dist/parts/helpers/fields/ErrorPointer';
-import { nicePrice } from '@aws-ee/base-ui/dist/helpers/utils';
+import Header from '@amzn/base-ui/dist/parts/helpers/fields/Header';
+import Description from '@amzn/base-ui/dist/parts/helpers/fields/Description';
+import ErrorPointer from '@amzn/base-ui/dist/parts/helpers/fields/ErrorPointer';
+import { nicePrice } from '@amzn/base-ui/dist/helpers/utils';
 
 // expected props
 // - configurations (via props) and array of the compute configurations MST

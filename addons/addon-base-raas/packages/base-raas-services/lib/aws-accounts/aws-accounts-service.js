@@ -14,10 +14,10 @@
  */
 
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
+const Service = require('@amzn/base-services-container/lib/service');
 const uuid = require('uuid/v1');
-const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
-const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
+const { runAndCatch } = require('@amzn/base-services/lib/helpers/utils');
+const { allowIfActive, allowIfAdmin } = require('@amzn/base-services/lib/authorization/authorization-utils');
 
 const { isExternalGuest, isExternalResearcher, isInternalGuest, isInternalResearcher } = require('../helpers/is-role');
 const createSchema = require('../schema/create-aws-accounts');
@@ -142,7 +142,17 @@ class AwsAccountsService extends Service {
         Version: '2012-10-17',
         Statement: [...securityStatements, listStatement, getStatement],
       });
-      return s3Client.putBucketPolicy({ Bucket: s3BucketName, Policy }).promise();
+
+      let response;
+      try {
+        response = await s3Client.putBucketPolicy({ Bucket: s3BucketName, Policy }).promise();
+      } catch (err) {
+        throw this.boom.badRequest(
+          `Could not update bucket policy for bucket "${s3BucketName}". Error code: ${err.code}`,
+          true,
+        );
+      }
+      return response;
     });
   }
 

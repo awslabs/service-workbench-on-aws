@@ -18,10 +18,10 @@ import { decorate, computed, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { Card, Radio, Divider, Table, Header as SemanticHeader } from 'semantic-ui-react';
 import c from 'classnames';
-import Header from '@aws-ee/base-ui/dist/parts/helpers/fields/Header';
-import Description from '@aws-ee/base-ui/dist/parts/helpers/fields/Description';
-import ErrorPointer from '@aws-ee/base-ui/dist/parts/helpers/fields/ErrorPointer';
-import { nicePrice } from '@aws-ee/base-ui/dist/helpers/utils';
+import Header from '@amzn/base-ui/dist/parts/helpers/fields/Header';
+import Description from '@amzn/base-ui/dist/parts/helpers/fields/Description';
+import ErrorPointer from '@amzn/base-ui/dist/parts/helpers/fields/ErrorPointer';
+import { nicePrice } from '@amzn/base-ui/dist/helpers/utils';
 
 // expected props
 // - configurations (via props) and array of the env type configurations MST
@@ -102,6 +102,7 @@ class SelectConfigurationCards extends React.Component {
                 <Divider />
                 {this.renderEstimatedCostInfo(config)}
                 {this.renderInstanceType(config)}
+                {this.renderCidr(config)}
               </Card.Description>
             </Card.Content>
           </Card>
@@ -140,6 +141,25 @@ class SelectConfigurationCards extends React.Component {
     );
 
     return content;
+  }
+
+  renderCidr(config) {
+    let hardcodedCidr;
+    _.forEach(config.params, param => {
+      // eslint-disable-next-line no-template-curly-in-string
+      if (param.key === 'AccessFromCIDRBlock' && param.value !== '${cidr}') {
+        hardcodedCidr = param.value;
+      }
+    });
+
+    const content = (
+      <div className="flex p1">
+        <div className="bold flex-auto">Hardcoded CIDR</div>
+        <div className="pr1">{hardcodedCidr}</div>
+      </div>
+    );
+
+    return _.isUndefined(hardcodedCidr) ? <></> : content;
   }
 
   renderTableInfo(config) {

@@ -20,11 +20,11 @@ import { decorate, computed } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Container, Icon, Header, Segment } from 'semantic-ui-react';
-import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import { isStoreLoading, isStoreError, isStoreEmpty, isStoreReady } from '@aws-ee/base-ui/dist/models/BaseStore';
-import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
+import { gotoFn } from '@amzn/base-ui/dist/helpers/routing';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
+import { isStoreLoading, isStoreError, isStoreEmpty, isStoreReady } from '@amzn/base-ui/dist/models/BaseStore';
+import BasicProgressPlaceholder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
 
 // expected props
 // - helloStore (via injection)

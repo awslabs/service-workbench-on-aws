@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-const WorkflowPayload = require('@aws-ee/workflow-engine/lib/workflow-payload');
+const WorkflowPayload = require('@amzn/workflow-engine/lib/workflow-payload');
 const LaunchProduct = require('../launch-product/launch-product');
 
 describe('LaunchProduct', () => {

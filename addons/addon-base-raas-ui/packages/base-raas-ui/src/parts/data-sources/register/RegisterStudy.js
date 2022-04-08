@@ -19,10 +19,10 @@ import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Container, Header, Icon } from 'semantic-ui-react';
 
-import Stores from '@aws-ee/base-ui/dist/models/Stores';
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
-import ProgressPlaceHolder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import Stores from '@amzn/base-ui/dist/models/Stores';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
+import ProgressPlaceHolder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 
 import InputStep from './InputStep';
 import SubmitStep from './SubmitStep';

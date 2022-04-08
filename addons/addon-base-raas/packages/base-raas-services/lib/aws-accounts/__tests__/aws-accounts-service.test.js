@@ -13,36 +13,36 @@
  *  permissions and limitations under the License.
  */
 
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
-const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
+const JsonSchemaValidationService = require('@amzn/base-services/lib/json-schema-validation-service');
 
 // Mocked dependencies
 jest.mock('uuid/v1');
 const uuidMock = require('uuid/v1');
 
-jest.mock('@aws-ee/base-services/lib/db-service');
-const DbServiceMock = require('@aws-ee/base-services/lib/db-service');
+jest.mock('@amzn/base-services/lib/db-service');
+const DbServiceMock = require('@amzn/base-services/lib/db-service');
 
-jest.mock('@aws-ee/base-services/lib/authorization/authorization-service');
-const AuthServiceMock = require('@aws-ee/base-services/lib/authorization/authorization-service');
+jest.mock('@amzn/base-services/lib/authorization/authorization-service');
+const AuthServiceMock = require('@amzn/base-services/lib/authorization/authorization-service');
 
-jest.mock('@aws-ee/base-services/lib/audit/audit-writer-service');
-const AuditServiceMock = require('@aws-ee/base-services/lib/audit/audit-writer-service');
+jest.mock('@amzn/base-services/lib/audit/audit-writer-service');
+const AuditServiceMock = require('@amzn/base-services/lib/audit/audit-writer-service');
 
-jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
-const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
+jest.mock('@amzn/base-services/lib/settings/env-settings-service');
+const SettingsServiceMock = require('@amzn/base-services/lib/settings/env-settings-service');
 
-jest.mock('@aws-ee/base-services/lib/lock/lock-service');
-const LockServiceMock = require('@aws-ee/base-services/lib/lock/lock-service');
+jest.mock('@amzn/base-services/lib/lock/lock-service');
+const LockServiceMock = require('@amzn/base-services/lib/lock/lock-service');
 
-jest.mock('@aws-ee/base-services/lib/s3-service');
-const S3ServiceMock = require('@aws-ee/base-services/lib/s3-service');
+jest.mock('@amzn/base-services/lib/s3-service');
+const S3ServiceMock = require('@amzn/base-services/lib/s3-service');
 
-jest.mock('@aws-ee/base-services/lib/aws/aws-service');
-const AwsServiceMock = require('@aws-ee/base-services/lib/aws/aws-service');
+jest.mock('@amzn/base-services/lib/aws/aws-service');
+const AwsServiceMock = require('@amzn/base-services/lib/aws/aws-service');
 
-jest.mock('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
-const PluginRegistryService = require('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
+jest.mock('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
+const PluginRegistryService = require('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
 
 const AwsAccountService = require('../aws-accounts-service');
 
@@ -165,6 +165,40 @@ describe('AwsAccountService', () => {
 
       // CHECK
       expect(s3Client.putBucketPolicy).toHaveBeenCalled();
+    });
+
+    it('should throw a pre-determined error if policy update fails on the bucket', async () => {
+      // BUILD
+      const s3Client = {};
+      s3Client.putBucketPolicy = jest.fn();
+      s3Client.putBucketPolicy.mockImplementationOnce(() => {
+        // eslint-disable-next-line no-throw-literal
+        throw {
+          message: 'Something bad happened while updating bucket policy: <Overly descriptive stack trace>',
+          code: 'RandomError',
+        };
+      });
+
+      s3Service.api = s3Client;
+      s3Service.parseS3Details.mockReturnValue({
+        s3BucketName: 'dummyBucket',
+        s3Prefix: 'dummyKey',
+      });
+
+      const accountList = [{ accountId: '0123456789' }];
+      service.list = jest.fn().mockReturnValueOnce(accountList);
+
+      // Mock locking so that the putBucketPolicy actually gets called
+      lockService.tryWriteLockAndRun = jest.fn((params, callback) => callback());
+
+      // OPERATE
+      try {
+        await service.updateEnvironmentInstanceFilesBucketPolicy();
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(err.message).toEqual('Could not update bucket policy for bucket "dummyBucket". Error code: RandomError');
+      }
     });
   });
 

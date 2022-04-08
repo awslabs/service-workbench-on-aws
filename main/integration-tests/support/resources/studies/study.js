@@ -15,7 +15,7 @@
  */
 
 const _ = require('lodash');
-const { sleep } = require('@aws-ee/base-services/lib/helpers/utils');
+const { sleep } = require('@amzn/base-services/lib/helpers/utils');
 
 const Resource = require('../base/resource');
 const StudyPermissions = require('./study-permissions');

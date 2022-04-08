@@ -14,9 +14,13 @@
  */
 
 import _ from 'lodash';
+import pkceChallenge from 'pkce-challenge';
+import uuid from 'uuid/v4';
 import { getEnv, types } from 'mobx-state-tree';
 import { authenticate, config } from '../../helpers/api';
-import { isAbsoluteUrl, getQueryParam, removeQueryParams, addQueryParams } from '../../helpers/utils';
+import { storage, isAbsoluteUrl, getQueryParam, removeQueryParams, addQueryParams } from '../../helpers/utils';
+
+import localStorageKeys from '../constants/local-storage-keys';
 import { boom } from '../../helpers/errors';
 import { websiteUrl } from '../../helpers/settings';
 
@@ -67,6 +71,18 @@ const AuthenticationProviderPublicConfig = types
     },
 
     login: async ({ username, password } = {}) => {
+      // save the PKCE verification code to local storage (this is to protect against redirect attacks)
+      // we need to present this code after we are redirected back from the IDP
+      const challenge = pkceChallenge(128);
+      storage.setItem(localStorageKeys.pkceVerifier, challenge.code_verifier);
+      self.signInUri = self.signInUri.replace('TEMP_PKCE_VERIFIER', challenge.code_challenge);
+
+      // save the state verifier code to local storage (this is to protect against CSRF attacks)
+      // we need to verify this code after we are redirected back from the IDP
+      const nonceState = uuid();
+      storage.setItem(localStorageKeys.stateVerifier, nonceState);
+      self.signInUri = self.signInUri.replace('TEMP_STATE_VERIFIER', nonceState);
+
       const pluginRegistry = getEnv(self).pluginRegistry;
 
       const handleException = err => {
@@ -146,6 +162,7 @@ const AuthenticationProviderPublicConfig = types
       //  from a central "AuthenticationProviderConfigService" on the server side and the providers do not get a chance to adjust "signInUri"
       //  (or any other config variables) before returning them during local development, once we move to "provider registry" the registry will
       //  pick appropriate auth provider impl and give it a chance to adjust variables or create derived variables
+
       return adjustRedirectUri(toAbsoluteUrl(self.signInUri));
     },
     get absoluteSignOutUrl() {

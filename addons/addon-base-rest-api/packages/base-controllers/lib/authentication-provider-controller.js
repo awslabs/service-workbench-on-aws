@@ -14,9 +14,9 @@
  */
 
 const _ = require('lodash');
-const { ensureAdmin } = require('@aws-ee/base-services/lib/authorization/assertions');
-const { newInvoker } = require('@aws-ee/base-api-services/lib/authentication-providers/helpers/invoker');
-const authProviderConstants = require('@aws-ee/base-api-services/lib/authentication-providers/constants')
+const { ensureAdmin } = require('@amzn/base-services/lib/authorization/assertions');
+const { newInvoker } = require('@amzn/base-api-services/lib/authentication-providers/helpers/invoker');
+const authProviderConstants = require('@amzn/base-api-services/lib/authentication-providers/constants')
   .authenticationProviders;
 
 /**

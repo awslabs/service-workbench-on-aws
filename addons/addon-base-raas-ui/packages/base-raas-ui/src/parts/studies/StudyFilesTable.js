@@ -18,10 +18,10 @@ import { observable, runInAction, decorate } from 'mobx';
 import { observer } from 'mobx-react';
 import { Table, Segment, Header, Icon } from 'semantic-ui-react';
 
-import { formatBytes, swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import { isStoreError, isStoreLoading, isStoreEmpty, stopHeartbeat } from '@aws-ee/base-ui/dist/models/BaseStore';
-import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
+import { formatBytes, swallowError } from '@amzn/base-ui/dist/helpers/utils';
+import { isStoreError, isStoreLoading, isStoreEmpty, stopHeartbeat } from '@amzn/base-ui/dist/models/BaseStore';
+import BasicProgressPlaceholder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
 
 // expected props
 // - study

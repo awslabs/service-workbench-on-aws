@@ -19,16 +19,16 @@ import { decorate, observable, action, computed, runInAction } from 'mobx';
 import { Button, Header, Label, Segment, Modal, Menu, Icon, Table } from 'semantic-ui-react';
 import _ from 'lodash';
 
-import Stores from '@aws-ee/base-ui/dist/models/Stores';
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
+import Stores from '@amzn/base-ui/dist/models/Stores';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
 
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
-import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
-import Form from '@aws-ee/base-ui/dist/parts/helpers/fields/Form';
-import Input from '@aws-ee/base-ui/dist/parts/helpers/fields/Input';
-import DropDown from '@aws-ee/base-ui/dist/parts/helpers/fields/DropDown';
-import YesNo from '@aws-ee/base-ui/dist/parts/helpers/fields/YesNo';
-import { displayError, displaySuccess } from '@aws-ee/base-ui/dist/helpers/notification';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
+import BasicProgressPlaceholder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import Form from '@amzn/base-ui/dist/parts/helpers/fields/Form';
+import Input from '@amzn/base-ui/dist/parts/helpers/fields/Input';
+import DropDown from '@amzn/base-ui/dist/parts/helpers/fields/DropDown';
+import YesNo from '@amzn/base-ui/dist/parts/helpers/fields/YesNo';
+import { displayError, displaySuccess } from '@amzn/base-ui/dist/helpers/notification';
 import { getUpdateUserConfigForm } from '../../models/forms/UpdateUserConfig';
 import { toIdpFromValue, toIdpOptions } from '../../models/forms/UserFormUtils';
 
@@ -112,15 +112,13 @@ class UpdateUser extends React.Component {
             <Table.Row>{toRow('firstName')}</Table.Row>
             <Table.Row>{toRow('lastName')}</Table.Row>
             <Table.Row>{toRow('email')}</Table.Row>
-            {this.getCurrentUser().isRootUser ? null : (
-              <>
-                <Table.Row>{toRow('userRole')}</Table.Row>
-                <Table.Row>{toRow('identityProviderName')}</Table.Row>
-                <Table.Row>{toRow('projectId')}</Table.Row>
-                {this.getCurrentUser().status === 'pending' && <Table.Row>{toRow('applyReason')}</Table.Row>}
-                <Table.Row>{toRow('status')}</Table.Row>
-              </>
-            )}
+            <>
+              <Table.Row>{toRow('userRole')}</Table.Row>
+              <Table.Row>{toRow('identityProviderName')}</Table.Row>
+              <Table.Row>{toRow('projectId')}</Table.Row>
+              {this.getCurrentUser().status === 'pending' && <Table.Row>{toRow('applyReason')}</Table.Row>}
+              <Table.Row>{toRow('status')}</Table.Row>
+            </>
           </Table.Body>
         </Table>
         {this.renderDetailViewButtons()}
@@ -165,7 +163,7 @@ class UpdateUser extends React.Component {
         ? makeButton({
             label: 'Deactivate User',
             floated: 'right',
-            disabled: currentUser.isRootUser || this.processing,
+            disabled: this.processing,
             onClick: () => this.handleApproveDisapproveClick('inactive'),
           })
         : '';
@@ -227,36 +225,34 @@ class UpdateUser extends React.Component {
               <Input field={firstNameField} disabled={processing} />
               <Input field={lastNameField} disabled={processing} />
               <Input field={emailField} disabled={processing} />
-              {this.getCurrentUser().isRootUser ? null : (
-                <>
-                  {isAdminMode && (
-                    <DropDown
-                      field={identityProviderNameField}
-                      options={identityProviderOptions}
-                      selection
-                      fluid
-                      disabled={processing}
-                    />
-                  )}
-                  {isAdminMode && (
-                    <DropDown field={userRoleField} options={userRoleOptions} selection fluid disabled={processing} />
-                  )}
+              <>
+                {isAdminMode && (
+                  <DropDown
+                    field={identityProviderNameField}
+                    options={identityProviderOptions}
+                    selection
+                    fluid
+                    disabled={processing}
+                  />
+                )}
+                {isAdminMode && (
+                  <DropDown field={userRoleField} options={userRoleOptions} selection fluid disabled={processing} />
+                )}
 
-                  {isAdminMode && showProjectField && (
-                    <DropDown
-                      field={projectIdField}
-                      options={projectIdOptions}
-                      multiple
-                      selection
-                      clearable
-                      fluid
-                      disabled={processing}
-                    />
-                  )}
+                {isAdminMode && showProjectField && (
+                  <DropDown
+                    field={projectIdField}
+                    options={projectIdOptions}
+                    multiple
+                    selection
+                    clearable
+                    fluid
+                    disabled={processing}
+                  />
+                )}
 
-                  <YesNo field={statusField} disabled={processing} />
-                </>
-              )}
+                <YesNo field={statusField} disabled={processing} />
+              </>
 
               <div className="mt3">
                 <Button floated="right" color="blue" icon disabled={processing} className="ml2" type="submit">
@@ -322,7 +318,7 @@ class UpdateUser extends React.Component {
     const identityProviderNameField = form.$('identityProviderName');
 
     let userToUpdate = { ...this.getCurrentUser(), firstName, lastName, email };
-    if (this.props.adminMode && !this.getCurrentUser().isRootUser) {
+    if (this.props.adminMode) {
       userToUpdate = { ...userToUpdate, userRole, isAdmin, projectId, status };
     }
 

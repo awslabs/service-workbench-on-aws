@@ -1,5 +1,5 @@
 {
-  "name": "@aws-ee/base-serverless-settings-helper",
+  "name": "@amzn/base-serverless-settings-helper",
   "private": true,
   "version": "1.0.0",
   "description": "This package provides a helper to merge solution settings files with local and solution-level defaults",

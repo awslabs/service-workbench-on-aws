@@ -1,3 +1,8 @@
+Conditions:
+  PreSignUpNativePoolUsers: !And
+    - !Equals ['${self:custom.settings.enableNativeUserPoolUsers}', 'true']
+    - !Equals ['${self:custom.settings.autoConfirmNativeUsers}', 'true']
+
 Resources:
   # =============================================================================================
   # IAM Roles
@@ -211,6 +216,7 @@ Resources:
                 - cloudformation:DescribeStacks
               Resource:
                 - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${self:custom.settings.backendStackName}/*'
+                - !Sub 'arn:${AWS::Partition}:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${self:custom.settings.namespace}-postDeployment/*'
         - PolicyName: cloudfront-access
           PolicyDocument:
             Statement:
@@ -229,6 +235,11 @@ Resources:
                   - lambda:UpdateFunctionConfiguration
                 Resource:
                   - !Sub 'arn:${AWS::Partition}:lambda:${AWS::Region}:${AWS::AccountId}:function:${self:custom.settings.workflowLambdaName}'
+              - Effect: Allow
+                Action:
+                  - lambda:AddPermission
+                Resource:
+                  - !Sub 'arn:aws:lambda:${AWS::Region}:${AWS::AccountId}:function:${self:custom.settings.namespace}-Cognito-PreSignUp'
               - Effect: Allow
                 Action:
                   - lambda:GetFunction
@@ -258,6 +269,7 @@ Resources:
                 - !Sub arn:${AWS::Partition}:servicecatalog:${AWS::Region}:${AWS::AccountId}:*/*
                 - !Sub arn:${AWS::Partition}:catalog:${AWS::Region}:${AWS::AccountId}:portfolio/*
                 - !Sub arn:${AWS::Partition}:catalog:${AWS::Region}:${AWS::AccountId}:product/*
+                - !Sub arn:${AWS::Partition}:catalog:${AWS::Region}:${AWS::AccountId}:*
         - PolicyName: cloudformation-access
           PolicyDocument:
             Statement:
@@ -466,6 +478,67 @@ Resources:
                   - 'arn:aws:elasticloadbalancing:*:*:targetgroup/analysis-*'
 
   # =============================================================================================
+  # Cognito PreSignUp trigger
+  # =============================================================================================
+
+  PreSignUpLambdaRole:
+    Condition: PreSignUpNativePoolUsers
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: !Sub '${self:custom.settings.namespace}-Cognito-PreSignUp-Role'
+      Path: '/'
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service:
+                - 'lambda.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: cloudwatch-access
+          PolicyDocument:
+            Statement:
+              - Effect: 'Allow'
+                Action: logs:CreateLogGroup
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:*'
+              - Effect: 'Allow'
+                Action:
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: !Sub 'arn:aws:logs:${AWS::Region}:${AWS::AccountId}:log-group:/aws/lambda/${self:custom.settings.namespace}-Cognito-PreSignUp:*'
+
+  # Lambda that automatically confirms newly signed up Cognito users based on pre-defined logic
+  PreSignUpLambda:
+    Condition: PreSignUpNativePoolUsers
+    Type: 'AWS::Lambda::Function'
+    Properties:
+      Description: PreSignUp lambda to auto-confirm newly signed up users in Cognito
+      Runtime: nodejs14.x
+      Handler: index.handler
+      FunctionName: !Sub '${self:custom.settings.namespace}-Cognito-PreSignUp'
+      Role: !GetAtt PreSignUpLambdaRole.Arn
+      Code:
+        ZipFile: |
+          exports.handler = (event, context, callback) => {
+          event.response.autoConfirmUser = true;
+          // This regex check should be the same as the one in create-user email pattern
+          const emailRegex = /^\w+([\.+-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,63})+$/
+          const { userPoolId, triggerSource, request, userName } = event
+          const logInfo = { userPoolId, triggerSource, userName, 
+          requestBody: { name: request.name, given_name: request.given_name, family_name: request.family_name, email: request.email } }
+          console.info("Event-parsed details:\n" + JSON.stringify(logInfo, null, 2));
+
+          // Only perform email verification for native user pool users, external IdPs should send valid data
+          if(triggerSource !== 'PreSignUp_ExternalProvider' && !emailRegex.test(userName)){
+              throw new Error("Username should be in email format");
+          }
+
+          callback(null, event);
+          };
+
+  # =============================================================================================
   # Dynamo db
   # =============================================================================================
 
@@ -513,3 +586,6 @@ Outputs:
     Value: !GetAtt RolePostDeploymentLambda.Arn
   EgressStoreObjectsHandlerRoleArn:
     Value: !GetAtt RoleEgressStoreObjectsHandler.Arn
+  PreSignUpLambdaArn:
+    Condition: PreSignUpNativePoolUsers
+    Value: !GetAtt PreSignUpLambda.Arn

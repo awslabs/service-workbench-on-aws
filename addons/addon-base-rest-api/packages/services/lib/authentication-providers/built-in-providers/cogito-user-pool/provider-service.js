@@ -14,15 +14,15 @@
  */
 
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
-const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
+const Service = require('@amzn/base-services-container/lib/service');
+const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/system-context');
 
 const { getCognitoTokenVerifier } = require('./cognito-token-verifier');
 
 class ProviderService extends Service {
   constructor() {
     super();
-    this.dependency(['userService', 'userAttributesMapperService', 'tokenRevocationService']);
+    this.dependency(['aws', 'userService', 'userAttributesMapperService', 'tokenRevocationService']);
     this.cognitoTokenVerifiersCache = {}; // Cache object containing token verifier objects. Each token verifier is keyed by the userPoolUri
   }
 
@@ -53,12 +53,57 @@ class ProviderService extends Service {
     return { verifiedToken, username, uid, identityProviderName };
   }
 
+  // Username in Cognito user pool should be the same as Email. So save it in user pool accordingly
+  // Once email is updated correctly for the native pool user,
+  // users can leverage Cognito native user pool's Forgot Password feature to get temporary credentials
+  async syncNativeEmailWithUsername(username, authenticationProviderId) {
+    const aws = await this.service('aws');
+    const userPoolId = authenticationProviderId.split('/')[3];
+    const cognitoIdentityServiceProvider = new aws.sdk.CognitoIdentityServiceProvider();
+    const userData = await cognitoIdentityServiceProvider
+      .adminGetUser({ Username: username, UserPoolId: userPoolId })
+      .promise();
+    const attributes = _.get(userData, 'UserAttributes', []);
+    const attributesResult = {};
+    _.forEach(attributes, item => {
+      attributesResult[item.Name] = item.Value;
+    });
+
+    if (_.isUndefined(attributesResult.email)) {
+      await cognitoIdentityServiceProvider
+        .adminUpdateUserAttributes({
+          UserAttributes: [
+            {
+              Name: 'email',
+              Value: username,
+            },
+            {
+              Name: 'email_verified',
+              Value: 'true',
+            },
+          ],
+          UserPoolId: userPoolId,
+          Username: username,
+        })
+        .promise();
+    }
+  }
+
   async saveUser(decodedToken, authenticationProviderId) {
     const userAttributesMapperService = await this.service('userAttributesMapperService');
     // Ask user attributes mapper service to read information from the decoded token and map them to user attributes
     const userAttributes = await userAttributesMapperService.mapAttributes(decodedToken);
-    if (userAttributes.isSamlAuthenticatedUser) {
-      // If this user is authenticated via SAML then we need to add it to our user table if it doesn't exist already
+
+    if (userAttributes.isNativePoolUser) {
+      userAttributes.username = userAttributes.usernameInIdp;
+      userAttributes.email = userAttributes.usernameInIdp;
+
+      // For native pool users, authenticationProviderId is in the format https://cognito-idp.<region>.amazonaws.com/<userPoolId>
+      await this.syncNativeEmailWithUsername(userAttributes.usernameInIdp, authenticationProviderId);
+    }
+
+    if (userAttributes.isSamlAuthenticatedUser || userAttributes.isNativePoolUser) {
+      // If this user is authenticated via SAML or native user pool then we need to add it to our user table if it doesn't exist already
       const userService = await this.service('userService');
 
       const user = await userService.findUserByPrincipal({
@@ -67,7 +112,7 @@ class ProviderService extends Service {
         identityProviderName: userAttributes.identityProviderName,
       });
       if (user) {
-        await this.updateUser(authenticationProviderId, userAttributes, user);
+        await this.updateUser(userAttributes, user);
         userAttributes.uid = user.uid;
       } else {
         const createdUser = await this.createUser(authenticationProviderId, userAttributes);
@@ -92,25 +137,24 @@ class ProviderService extends Service {
       });
     } catch (err) {
       this.log.error(err);
-      throw this.boom.internalError('error creating user');
+      throw this.boom.badRequest(`Error creating user: ${err.message}`, true);
     }
   }
 
   /**
    * Updates user in the system based on the user attributes provided by the SAML Identity Provider (IdP).
-   * This base implementation updates only those user attributes in the system which are missing but are available in
-   * the SAML user attributes. Subclasses can override this method to provide different implementation (for example,
-   * update all user attributes in the system if they are updated in SAML IdP etc)
+   * This base implementation updates only those user attributes in the system which are missing or outdated but are available in
+   * the SAML user attributes.
    *
-   * @param authenticationProviderId ID of the authentication provider
    * @param userAttributes An object containing attributes mapped from SAML IdP
    * @param existingUser The existing user in the system
    *
    * @returns {Promise<void>}
    */
-  async updateUser(authenticationProviderId, userAttributes, existingUser) {
+  async updateUser(userAttributes, existingUser) {
     // Find all attributes present in the userAttributes but missing in existingUser
     const missingAttribs = {};
+    const updatedAttribs = {};
     const keys = _.keys(userAttributes);
     if (!_.isEmpty(keys)) {
       _.forEach(keys, key => {
@@ -123,11 +167,25 @@ class ProviderService extends Service {
           missingAttribs[key] = value;
         }
       });
+
+      // When IdP users are created via SWB UI, by default we use the username part of provided email address as first and last names
+      // To update these default names, we extract the mapped attribute values coming from the Cognito token
+      // Some IdPs send email value in their firstName and lastName attribute fields, so splitting string to ignore domain
+      const updateIfDifferent = attribName => {
+        if (
+          !_.isUndefined(userAttributes[attribName]) &&
+          existingUser[attribName] !== userAttributes[attribName].split('@')[0]
+        ) {
+          updatedAttribs[attribName] = userAttributes[attribName].split('@')[0];
+        }
+      };
+      updateIfDifferent('firstName');
+      updateIfDifferent('lastName');
     }
 
-    // If there are any attributes that are present in the userAttributes but missing in existingUser
-    // then update the user in the system to set the missing attributes
-    if (!_.isEmpty(missingAttribs)) {
+    // If there are any attributes that are present in the userAttributes but missing or outdated in existingUser
+    // then update the user in the system to set the correct attribute values
+    if (!_.isEmpty(missingAttribs) || !_.isEmpty(updatedAttribs)) {
       const userService = await this.service('userService');
       const { uid, rev } = existingUser;
       try {
@@ -135,10 +193,11 @@ class ProviderService extends Service {
           uid,
           rev,
           ...missingAttribs,
+          ...updatedAttribs,
         });
       } catch (err) {
         this.log.error(err);
-        throw this.boom.internalError('error updating user');
+        throw this.boom.badRequest(`Error updating user: ${err.message}`, true);
       }
     }
   }

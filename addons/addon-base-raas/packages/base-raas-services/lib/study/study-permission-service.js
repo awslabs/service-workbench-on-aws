@@ -15,14 +15,14 @@
  */
 
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
-const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
+const Service = require('@amzn/base-services-container/lib/service');
+const { runAndCatch } = require('@amzn/base-services/lib/helpers/utils');
 const {
   allowIfActive,
   allowIfCurrentUserOrAdmin,
   allow,
   deny,
-} = require('@aws-ee/base-services/lib/authorization/authorization-utils');
+} = require('@amzn/base-services/lib/authorization/authorization-utils');
 
 const createSchema = require('../schema/create-study-permissions');
 const updateSchema = require('../schema/update-study-permissions');
@@ -33,6 +33,7 @@ const {
   getEmptyStudyPermissions,
   getUserIds,
   applyUpdateRequest,
+  isValidUpdateRequest,
 } = require('./helpers/entities/study-permissions-methods');
 const { getEmptyUserPermissions } = require('./helpers/entities/user-permissions-methods');
 const {
@@ -336,6 +337,14 @@ class StudyPermissionService extends Service {
         },
         { studyEntity, studyPermissionsEntity },
       );
+
+      // Ensure only migration requests can have wildcards in the updateRequest
+      if (!requestContext.isMigration && !isValidUpdateRequest(updateRequest)) {
+        throw this.boom.badRequest(
+          'You cannot use the wildcard (*) as a UID in a study permissions update request.',
+          true,
+        );
+      }
 
       applyUpdateRequest(studyPermissionsEntity, updateRequest);
 

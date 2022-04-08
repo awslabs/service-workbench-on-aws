@@ -15,7 +15,7 @@
 
 import { types } from 'mobx-state-tree';
 import _ from 'lodash';
-import { storage, removeNulls } from '@aws-ee/base-ui/dist/helpers/utils';
+import { storage, removeNulls } from '@amzn/base-ui/dist/helpers/utils';
 import { aesGcmEncrypt, aesGcmDecrypt } from '../../helpers/crypto';
 import localStorageKeys from '../constants/local-storage-keys';
 
@@ -96,14 +96,6 @@ const User = types
 
     get unknown() {
       return !self.firstName && !self.lastName;
-    },
-
-    get isRootUser() {
-      return _.toLower(self.userType) === 'root';
-    },
-
-    get isInternalAuthUser() {
-      return _.toLower(self.authenticationProviderId) === 'internal';
     },
 
     get isActive() {

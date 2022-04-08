@@ -13,26 +13,26 @@
  *  permissions and limitations under the License.
  */
 
-const baseAuditPlugin = require('@aws-ee/base-services/lib/plugins/audit-plugin');
-const baseServicesPlugin = require('@aws-ee/base-post-deployment/lib/plugins/services-plugin');
-const baseStepsPlugin = require('@aws-ee/base-post-deployment/lib/plugins/steps-plugin');
-const workflowServicesPlugin = require('@aws-ee/base-workflow-core/lib/runner/plugins/services-plugin');
-const workflowPostDeploymentStepsPlugin = require('@aws-ee/base-workflow-core/lib/post-deployment/plugins/steps-plugin');
-const baseWfStepsPlugin = require('@aws-ee/base-workflow-steps/steps/workflow-steps-plugin');
-const baseWfTemplatesPlugin = require('@aws-ee/base-workflow-templates/templates/workflow-templates-plugin');
-const baseRaasServicesPlugin = require('@aws-ee/base-raas-rest-api/lib/plugins/services-plugin');
-const baseRaasPostDeploymentStepsPlugin = require('@aws-ee/base-raas-post-deployment/lib/plugins/steps-plugin');
-const baseRaasWfStepsPlugin = require('@aws-ee/base-raas-workflow-steps/lib/plugins/workflow-steps-plugin');
-const baseRaasWorkflowsPlugin = require('@aws-ee/base-raas-workflows/lib/plugins/workflows-plugin');
-const baseRaasUserAuthzPlugin = require('@aws-ee/base-raas-services/lib/user/user-authz-plugin');
-const environmentTypeServicesPlugin = require('@aws-ee/environment-type-mgmt-services/lib/plugins/services-plugin');
-const keyPairServicesPlugin = require('@aws-ee/key-pair-mgmt-services/lib/plugins/services-plugin');
-const environmentScWfStepsPlugin = require('@aws-ee/environment-sc-workflow-steps/lib/plugins/workflow-steps-plugin');
-const environmentScWfPlugin = require('@aws-ee/environment-sc-workflows/lib/plugins/workflows-plugin');
-const userIdUpgradeServicesPlugin = require('@aws-ee/user-id-upgrade-post-deployment/lib/plugins/services-plugin');
-const userIdUpgradeStepsPlugin = require('@aws-ee/user-id-upgrade-post-deployment/lib/plugins/steps-plugin');
-const updateCfnStackPolicyStepsPlugin = require('@aws-ee/cfn-stack-policy/lib/plugins/steps-plugin');
-const editS3BucketPolicyStepsPlugin = require('@aws-ee/edit-s3-bucket-policy/lib/plugins/edit-s3-bucket-policy-plugin');
+const baseAuditPlugin = require('@amzn/base-services/lib/plugins/audit-plugin');
+const baseServicesPlugin = require('@amzn/base-post-deployment/lib/plugins/services-plugin');
+const baseStepsPlugin = require('@amzn/base-post-deployment/lib/plugins/steps-plugin');
+const workflowServicesPlugin = require('@amzn/base-workflow-core/lib/runner/plugins/services-plugin');
+const workflowPostDeploymentStepsPlugin = require('@amzn/base-workflow-core/lib/post-deployment/plugins/steps-plugin');
+const baseWfStepsPlugin = require('@amzn/base-workflow-steps/steps/workflow-steps-plugin');
+const baseWfTemplatesPlugin = require('@amzn/base-workflow-templates/templates/workflow-templates-plugin');
+const baseRaasServicesPlugin = require('@amzn/base-raas-rest-api/lib/plugins/services-plugin');
+const baseRaasPostDeploymentStepsPlugin = require('@amzn/base-raas-post-deployment/lib/plugins/steps-plugin');
+const baseRaasWfStepsPlugin = require('@amzn/base-raas-workflow-steps/lib/plugins/workflow-steps-plugin');
+const baseRaasWorkflowsPlugin = require('@amzn/base-raas-workflows/lib/plugins/workflows-plugin');
+const baseRaasUserAuthzPlugin = require('@amzn/base-raas-services/lib/user/user-authz-plugin');
+const environmentTypeServicesPlugin = require('@amzn/environment-type-mgmt-services/lib/plugins/services-plugin');
+const keyPairServicesPlugin = require('@amzn/key-pair-mgmt-services/lib/plugins/services-plugin');
+const environmentScWfStepsPlugin = require('@amzn/environment-sc-workflow-steps/lib/plugins/workflow-steps-plugin');
+const environmentScWfPlugin = require('@amzn/environment-sc-workflows/lib/plugins/workflows-plugin');
+const userIdUpgradeServicesPlugin = require('@amzn/user-id-upgrade-post-deployment/lib/plugins/services-plugin');
+const userIdUpgradeStepsPlugin = require('@amzn/user-id-upgrade-post-deployment/lib/plugins/steps-plugin');
+const updateCfnStackPolicyStepsPlugin = require('@amzn/cfn-stack-policy/lib/plugins/steps-plugin');
+const editS3BucketPolicyStepsPlugin = require('@amzn/edit-s3-bucket-policy/lib/plugins/edit-s3-bucket-policy-plugin');
 
 const servicesPlugin = require('./services-plugin');
 const stepsPlugin = require('./steps-plugin');

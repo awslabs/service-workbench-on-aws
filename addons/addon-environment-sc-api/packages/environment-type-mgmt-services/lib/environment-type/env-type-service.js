@@ -14,9 +14,9 @@
  */
 
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
-const { isAllow, allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
-const { runAndCatch, retry } = require('@aws-ee/base-services/lib/helpers/utils');
+const Service = require('@amzn/base-services-container/lib/service');
+const { isAllow, allowIfActive, allowIfAdmin } = require('@amzn/base-services/lib/authorization/authorization-utils');
+const { runAndCatch, retry } = require('@amzn/base-services/lib/helpers/utils');
 
 const { getServiceCatalogClient } = require('./helpers/env-type-service-catalog-helper');
 const envTypeStatusEnum = require('./helpers/env-type-status-enum');

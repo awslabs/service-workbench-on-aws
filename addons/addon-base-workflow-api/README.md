@@ -6,7 +6,7 @@ The following sections list the add-on contribution.
 
 ## npm packages
 
-- @aws-ee/base-workflow-api
+- @amzn/base-workflow-api
 
 ## Runtime extension points
 - Used

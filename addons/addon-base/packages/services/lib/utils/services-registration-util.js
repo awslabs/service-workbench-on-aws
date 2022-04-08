@@ -112,7 +112,7 @@ async function registerLoggerService(container, plugins, settingsService, plugin
   // Each plugin is passed an array containing the names of the fields to mask. The plugins are called in the same order as returned by the
   // registry.
   // Each plugin gets a chance to add, remove, update, or delete fields to mask array by mutating the provided fieldsToMask array.
-  const initialFieldsToMask = ['x-amz-security-token', 'user', 'accessKey', 'password']; // initialize with default fields to mask
+  const initialFieldsToMask = ['x-amz-security-token', 'accessKey', 'password']; // initialize with default fields to mask
   const fieldsToMask = await _.reduce(
     plugins,
     async (fieldsToMaskSoFar, plugin) => {

@@ -14,7 +14,7 @@
  */
 
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
+const Service = require('@amzn/base-services-container/lib/service');
 
 const {
   isDeny,
@@ -24,7 +24,7 @@ const {
   allowIfRoot,
   allow,
   deny,
-} = require('@aws-ee/base-services/lib/authorization/authorization-utils');
+} = require('@amzn/base-services/lib/authorization/authorization-utils');
 
 class UserAuthzService extends Service {
   async authorize(requestContext, { resource, action, effect, reason }, ...args) {
@@ -89,7 +89,7 @@ class UserAuthzService extends Service {
       const newValue = _.get(user, attribName);
       // The update ignores undefined values during update (i.e., it retains existing values for those)
       // so compare for only if the new value is undefined
-      return !_.isUndefined(newValue) && oldValue !== newValue;
+      return !_.isUndefined(newValue) && !_.isEqual(oldValue, newValue);
     };
 
     let permissionSoFar;

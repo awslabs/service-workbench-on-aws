@@ -38,12 +38,9 @@
 //
 // -- This will overwrite an existing command --
 // Cypress.Commands.overwrite("visit", (originalFn, url, options) => { ... })
+// eslint-disable-next-line import/no-extraneous-dependencies
+import { CognitoUserPool, CognitoUser, AuthenticationDetails } from 'amazon-cognito-identity-js';
 
-// TODO: Look into using requests for logging in, instead of using the UI
-// https://docs.cypress.io/api/commands/request.html#HTML-form-submissions-using-form-option
-
-// TODO: If an environment is configured with an Identity Provider, the login steps needs to select an
-// identity provider
 Cypress.Commands.add('login', role => {
   let loginInfo = {};
   if (role === 'researcher') {
@@ -63,25 +60,44 @@ Cypress.Commands.add('login', role => {
       password: Cypress.env('adminPassword'),
     };
   }
-  const isCognitoEnabled = Cypress.env('isCognitoEnabled');
+  const authenticationData = {
+    Username: loginInfo.email,
+    Password: loginInfo.password,
+  };
 
-  if (isCognitoEnabled) {
-    cy.visit('/?internal', {
+  const authenticationDetails = new AuthenticationDetails(authenticationData);
+  const poolData = {
+    UserPoolId: Cypress.env('cognitoUserPoolId'),
+    ClientId: Cypress.env('cognitoClientId'),
+  };
+  const userPool = new CognitoUserPool(poolData);
+  const userData = {
+    Username: loginInfo.email,
+    Pool: userPool,
+  };
+
+  const cognitoUser = new CognitoUser(userData);
+
+  const authResult = new Cypress.Promise((resolve, reject) => {
+    cognitoUser.authenticateUser(authenticationDetails, {
+      onSuccess(result) {
+        const accessToken = result.getIdToken().getJwtToken();
+        window.localStorage.setItem('appIdToken', accessToken);
+        resolve('Successfully authenticated user');
+      },
+
+      onFailure(err) {
+        Cypress.log({ message: `Failed to authenticate user ${JSON.stringify(err)}` });
+        reject('Failed to authenticate user');
+      },
+    });
+  });
+  cy.wrap(authResult);
+  cy.visit('/dashboard', {
+    onBeforeLoad(window) {
       // Allows us to check for window open event
-      onBeforeLoad(window) {
-        cy.stub(window, 'open');
-      },
-    });
-  } else {
-    cy.visit('/', {
-      onBeforeLoad(window) {
-        // Allows us to check for window open event
-        cy.stub(window, 'open');
-      },
-    });
-  }
-  cy.get("div[data-testid='username'] input").type(loginInfo.email);
-  cy.get("div[data-testid='password'] input").type(loginInfo.password);
-  cy.get("button[data-testid='login']").click();
+      cy.stub(window, 'open');
+    },
+  });
   cy.get("div[data-testid='page-title'] div").contains('Dashboard');
 });

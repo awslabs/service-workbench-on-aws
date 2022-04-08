@@ -16,10 +16,10 @@
 const _ = require('lodash');
 const YAML = require('js-yaml');
 const { v4: uuid } = require('uuid');
-const Service = require('@aws-ee/base-services-container/lib/service');
-const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
-const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
-const { isAdmin, isCurrentUser } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
+const Service = require('@amzn/base-services-container/lib/service');
+const { runAndCatch } = require('@amzn/base-services/lib/helpers/utils');
+const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/system-context');
+const { isAdmin, isCurrentUser } = require('@amzn/base-services/lib/authorization/authorization-utils');
 
 const createSchema = require('../../schema/create-environment-sc');
 const updateSchema = require('../../schema/update-environment-sc');
@@ -978,6 +978,21 @@ class EnvironmentScService extends Service {
       { action: 'delete-sc', conditions: [this._allowAuthorized] },
       existingEnvironment,
     );
+
+    if (existingEnvironment.status === environmentScStatus.TERMINATED) {
+      throw this.boom.badRequest(`Workspace '${id}' has already been terminated`, true);
+    }
+
+    if (existingEnvironment.status === environmentScStatus.TERMINATING) {
+      throw this.boom.badRequest(`Workspace '${id}' is already being terminated`, true);
+    }
+
+    if (existingEnvironment.status === environmentScStatus.TERMINATING_FAILED) {
+      throw this.boom.badRequest(
+        `Workspace '${id}' can not be terminated while in ${environmentScStatus.TERMINATING_FAILED} status`,
+        true,
+      );
+    }
 
     await this.update(requestContext, {
       id,

@@ -14,11 +14,11 @@
  */
 
 const _ = require('lodash');
-const setupAuthContext = require('@aws-ee/base-controllers/lib/middlewares/setup-auth-context');
-const prepareContext = require('@aws-ee/base-controllers/lib/middlewares/prepare-context');
-const ensureActive = require('@aws-ee/base-controllers/lib/middlewares/ensure-active');
-const ensureAdmin = require('@aws-ee/base-controllers/lib/middlewares/ensure-admin');
-const userController = require('@aws-ee/base-controllers/lib/user-controller');
+const setupAuthContext = require('@amzn/base-controllers/lib/middlewares/setup-auth-context');
+const prepareContext = require('@amzn/base-controllers/lib/middlewares/prepare-context');
+const ensureActive = require('@amzn/base-controllers/lib/middlewares/ensure-active');
+const ensureAdmin = require('@amzn/base-controllers/lib/middlewares/ensure-admin');
+const userController = require('@amzn/base-controllers/lib/user-controller');
 
 const usersController = require('../controllers/users-controller');
 const studyController = require('../controllers/study-controller');
@@ -36,6 +36,7 @@ const ipController = require('../controllers/ip-controller');
 const budgetsController = require('../controllers/budgets-controller');
 const dataSourceController = require('../controllers/data-source-controller');
 const dataEgressController = require('../controllers/data-egress-controller');
+const migrationController = require('../controllers/migration-controller');
 
 /**
  * Adds routes to the given routesMap.
@@ -86,6 +87,7 @@ async function getRoutes(routesMap, pluginRegistry) {
     ['/api/accounts', [setupAuthContext, prepareContext, ensureActive, ensureAdmin, accountsController]],
     ['/api/budgets', [setupAuthContext, prepareContext, ensureActive, ensureAdmin, budgetsController]],
     ['/api/data-sources', [setupAuthContext, prepareContext, ensureActive, ensureAdmin, dataSourceController]],
+    ['/api/migrate', [setupAuthContext, prepareContext, ensureActive, ensureAdmin, migrationController]],
   ]);
   return routes;
 }

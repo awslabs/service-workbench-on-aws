@@ -20,8 +20,8 @@ import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Segment, Button, Icon, Header, Progress, Message } from 'semantic-ui-react';
 
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
+import { gotoFn } from '@amzn/base-ui/dist/helpers/routing';
 
 // expected props
 // - wizard (via prop)
@@ -59,6 +59,10 @@ class SubmitStep extends React.Component {
     this.wizard.reset();
 
     goto('/data-sources');
+  };
+
+  handlePrevious = () => {
+    this.wizard.goToInputStep();
   };
 
   handleRetry = () => {
@@ -122,6 +126,9 @@ class SubmitStep extends React.Component {
         <Message.Header>Failures have occurred</Message.Header>
         <p>It seems that one or more steps have failed while registration. Please fix the errors and retry.</p>
         <p>
+          You can click the &#39;Previous&#39; button to go back fix the configuration error shown in the steps above.
+        </p>
+        <p>
           If you wish to proceed anyway with creating/updating the CloudFormation stack, resources corresponding to the
           failed steps might not be reflected in the CloudFormation template.
         </p>
@@ -177,6 +184,7 @@ class SubmitStep extends React.Component {
     const showNext = !allFailed && (failure || success);
     const showRetry = allFailed || failure;
     const showCancel = showRetry;
+    const showPrevious = failure;
 
     return (
       <div className="mt3">
@@ -209,6 +217,15 @@ class SubmitStep extends React.Component {
 
         {showCancel && (
           <Button floated="right" className="ml2" content="Cancel" disabled={disabled} onClick={this.handleCancel} />
+        )}
+        {showPrevious && (
+          <Button
+            floated="right"
+            className="ml2"
+            content="Previous"
+            disabled={disabled}
+            onClick={this.handlePrevious}
+          />
         )}
       </div>
     );

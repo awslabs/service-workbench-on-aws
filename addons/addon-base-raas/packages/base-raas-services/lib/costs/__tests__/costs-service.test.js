@@ -13,14 +13,14 @@
  *  permissions and limitations under the License.
  */
 
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
 
 // Mocked services
-jest.mock('@aws-ee/base-services/lib/aws/aws-service');
-const AWSMock = require('@aws-ee/base-services/lib/aws/aws-service');
+jest.mock('@amzn/base-services/lib/aws/aws-service');
+const AWSMock = require('@amzn/base-services/lib/aws/aws-service');
 
-jest.mock('@aws-ee/base-services/lib/authorization/authorization-service');
-const AuthServiceMock = require('@aws-ee/base-services/lib/authorization/authorization-service');
+jest.mock('@amzn/base-services/lib/authorization/authorization-service');
+const AuthServiceMock = require('@amzn/base-services/lib/authorization/authorization-service');
 
 jest.mock('../../aws-accounts/aws-accounts-service');
 const AWSAccountsServiceMock = require('../../aws-accounts/aws-accounts-service');

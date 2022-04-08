@@ -15,8 +15,8 @@
 
 /* eslint-disable no-await-in-loop */
 // const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
-const { allowIfActive, allowIfAdmin } = require('@aws-ee/base-services/lib/authorization/authorization-utils');
+const Service = require('@amzn/base-services-container/lib/service');
+const { allowIfActive, allowIfAdmin } = require('@amzn/base-services/lib/authorization/authorization-utils');
 
 // const helloMessagesSchema = require('../schema/hello-messages'); // your input schema
 

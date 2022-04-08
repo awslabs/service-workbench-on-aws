@@ -50,7 +50,8 @@ const getFields = ({ projectIdOptions, cidr }) => {
     fields.cidr = {
       label: 'Restricted CIDR',
       extra: {
-        explain: `This research workspace will only be reachable from this CIDR. You can get your organization's CIDR range from your IT department. The provided default is the CIDR that restricts to your IP address.`,
+        explain: `This research workspace will only be reachable from this CIDR. You can get your organization's CIDR range from your IT department. The provided default is the CIDR that restricts to your IP address.
+        Note: An environment config with a hardcoded CIDR will overwrite this value.`,
       },
       placeholder: 'The CIDR range to restrict research workspace access to',
       rules: 'required|cidr',

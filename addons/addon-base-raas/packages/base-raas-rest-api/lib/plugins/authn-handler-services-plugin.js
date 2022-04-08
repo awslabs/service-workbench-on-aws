@@ -13,11 +13,11 @@
  *  permissions and limitations under the License.
  */
 
-const PluginRegistryService = require('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
-const UserService = require('@aws-ee/base-raas-services/lib/user/user-service');
-const UserAuthzService = require('@aws-ee/base-raas-services/lib/user/user-authz-service');
-const UserRoleService = require('@aws-ee/base-raas-services/lib/user-roles/user-roles-service');
-const UserAttributesMapperService = require('@aws-ee/base-raas-services/lib/user/user-attributes-mapper-service');
+const PluginRegistryService = require('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
+const UserService = require('@amzn/base-raas-services/lib/user/user-service');
+const UserAuthzService = require('@amzn/base-raas-services/lib/user/user-authz-service');
+const UserRoleService = require('@amzn/base-raas-services/lib/user-roles/user-roles-service');
+const UserAttributesMapperService = require('@amzn/base-raas-services/lib/user/user-attributes-mapper-service');
 
 const settingKeys = {
   tablePrefix: 'dbPrefix',

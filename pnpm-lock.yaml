@@ -4,10 +4,11 @@ importers:
 
   addons/addon-base-post-deployment/packages/base-post-deployment:
     specifiers:
-      '@aws-ee/base-api-services': workspace:*
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@amzn/base-api-services': workspace:*
+      '@amzn/base-services': workspace:*
+      '@amzn/base-services-container': workspace:*
       aws-sdk: ^2.1000.0
+      aws-sdk-mock: ^5.1.0
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.0.0
       eslint-config-prettier: ^6.10.0
@@ -23,13 +24,14 @@ importers:
       prettier: ^1.19.1
       source-map-support: ^0.5.16
     dependencies:
-      '@aws-ee/base-api-services': link:../../../addon-base-rest-api/packages/services
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      '@amzn/base-api-services': link:../../../addon-base-rest-api/packages/services
+      '@amzn/base-services': link:../../../addon-base/packages/services
+      '@amzn/base-services-container': link:../../../addon-base/packages/services-container
       aws-sdk: 2.1015.0
       generate-password: 1.5.1
       lodash: 4.17.21
     devDependencies:
+      aws-sdk-mock: 5.1.0
       eslint: 6.8.0
       eslint-config-airbnb-base: 14.1.0_8cdb6d8c18c3319a1365bd5afa0063a3
       eslint-config-prettier: 6.10.1_eslint@6.8.0
@@ -45,9 +47,9 @@ importers:
 
   addons/addon-base-pre-deployment/packages/base-pre-deployment:
     specifiers:
-      '@aws-ee/base-api-services': workspace:*
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@amzn/base-api-services': workspace:*
+      '@amzn/base-services': workspace:*
+      '@amzn/base-services-container': workspace:*
       aws-sdk: ^2.1000.0
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.0.0
@@ -64,9 +66,9 @@ importers:
       prettier: ^1.19.1
       source-map-support: ^0.5.16
     dependencies:
-      '@aws-ee/base-api-services': link:../../../addon-base-rest-api/packages/services
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      '@amzn/base-api-services': link:../../../addon-base-rest-api/packages/services
+      '@amzn/base-services': link:../../../addon-base/packages/services
+      '@amzn/base-services-container': link:../../../addon-base/packages/services-container
       aws-sdk: 2.1015.0
       generate-password: 1.5.1
       lodash: 4.17.21
@@ -86,10 +88,10 @@ importers:
 
   addons/addon-base-raas-appstream/packages/base-raas-appstream-rest-api:
     specifiers:
-      '@aws-ee/base-controllers': workspace:*
-      '@aws-ee/base-raas-appstream-services': workspace:*
-      '@aws-ee/base-raas-services': workspace:*
-      '@aws-ee/base-services': workspace:*
+      '@amzn/base-controllers': workspace:*
+      '@amzn/base-raas-appstream-services': workspace:*
+      '@amzn/base-raas-services': workspace:*
+      '@amzn/base-services': workspace:*
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.1.0
       eslint-config-prettier: ^6.10.0
@@ -105,10 +107,10 @@ importers:
       pretty-quick: ^1.11.1
       source-map-support: ^0.5.16
     dependencies:
-      '@aws-ee/base-controllers': link:../../../addon-base-rest-api/packages/base-controllers
-      '@aws-ee/base-raas-appstream-services': link:../base-raas-appstream-services
-      '@aws-ee/base-raas-services': link:../../../addon-base-raas/packages/base-raas-services
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
+      '@amzn/base-controllers': link:../../../addon-base-rest-api/packages/base-controllers
+      '@amzn/base-raas-appstream-services': link:../base-raas-appstream-services
+      '@amzn/base-raas-services': link:../../../addon-base-raas/packages/base-raas-services
+      '@amzn/base-services': link:../../../addon-base/packages/services
       lodash: 4.17.21
     devDependencies:
       eslint: 6.8.0
@@ -127,9 +129,9 @@ importers:
 
   addons/addon-base-raas-appstream/packages/base-raas-appstream-services:
     specifiers:
-      '@aws-ee/base-raas-services': workspace:*
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@amzn/base-raas-services': workspace:*
+      '@amzn/base-services': workspace:*
+      '@amzn/base-services-container': workspace:*
       aws-sdk-mock: ^5.1.0
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.1.0
@@ -147,9 +149,9 @@ importers:
       source-map-support: ^0.5.16
       uuid: ^3.4.0
     dependencies:
-      '@aws-ee/base-raas-services': link:../../../addon-base-raas/packages/base-raas-services
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      '@amzn/base-raas-services': link:../../../addon-base-raas/packages/base-raas-services
+      '@amzn/base-services': link:../../../addon-base/packages/services
+      '@amzn/base-services-container': link:../../../addon-base/packages/services-container
       lodash: 4.17.21
       uuid: 3.4.0
     devDependencies:
@@ -170,10 +172,10 @@ importers:
 
   addons/addon-base-raas-ui/packages/base-raas-ui:
     specifiers:
+      '@amzn/base-services': workspace:*
+      '@amzn/base-ui': workspace:*
+      '@amzn/key-pair-mgmt-ui': workspace:*
       '@auth0/auth0-spa-js': ^1.2.3
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-ui': workspace:*
-      '@aws-ee/key-pair-mgmt-ui': workspace:*
       '@babel/cli': ^7.8.4
       '@babel/core': ^7.8.6
       '@babel/plugin-proposal-class-properties': ^7.8.3
@@ -241,10 +243,10 @@ importers:
       validatorjs: ^3.18.1
       webpack: 4.41.2
     dependencies:
+      '@amzn/base-services': link:../../../addon-base/packages/services
+      '@amzn/base-ui': link:../../../addon-base-ui/packages/base-ui
+      '@amzn/key-pair-mgmt-ui': link:../../../addon-key-pair-mgmt-ui/packages/key-pair-mgmt-ui
       '@auth0/auth0-spa-js': 1.6.5
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-ui': link:../../../addon-base-ui/packages/base-ui
-      '@aws-ee/key-pair-mgmt-ui': link:../../../addon-key-pair-mgmt-ui/packages/key-pair-mgmt-ui
       aws-sdk: 2.1015.0
       chart.js: 2.9.4
       classnames: 2.2.6
@@ -349,9 +351,9 @@ importers:
 
   addons/addon-base-raas/packages/base-raas-post-deployment:
     specifiers:
-      '@aws-ee/base-raas-services': workspace:*
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@amzn/base-raas-services': workspace:*
+      '@amzn/base-services': workspace:*
+      '@amzn/base-services-container': workspace:*
       eslint: ^6.8.0
       eslint-config-airbnb: ^18.1.0
       eslint-config-airbnb-base: ^14.1.0
@@ -368,9 +370,9 @@ importers:
       pretty-quick: ^1.11.1
       source-map-support: ^0.5.16
     dependencies:
-      '@aws-ee/base-raas-services': link:../base-raas-services
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      '@amzn/base-raas-services': link:../base-raas-services
+      '@amzn/base-services': link:../../../addon-base/packages/services
+      '@amzn/base-services-container': link:../../../addon-base/packages/services-container
       lodash: 4.17.21
     devDependencies:
       eslint: 6.8.0
@@ -390,11 +392,11 @@ importers:
 
   addons/addon-base-raas/packages/base-raas-rest-api:
     specifiers:
-      '@aws-ee/base-api-services': workspace:*
-      '@aws-ee/base-controllers': workspace:*
-      '@aws-ee/base-post-deployment': workspace:*
-      '@aws-ee/base-raas-services': workspace:*
-      '@aws-ee/base-services': workspace:*
+      '@amzn/base-api-services': workspace:*
+      '@amzn/base-controllers': workspace:*
+      '@amzn/base-post-deployment': workspace:*
+      '@amzn/base-raas-services': workspace:*
+      '@amzn/base-services': workspace:*
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.1.0
       eslint-config-prettier: ^6.10.0
@@ -410,11 +412,11 @@ importers:
       pretty-quick: ^1.11.1
       source-map-support: ^0.5.16
     dependencies:
-      '@aws-ee/base-api-services': link:../../../addon-base-rest-api/packages/services
-      '@aws-ee/base-controllers': link:../../../addon-base-rest-api/packages/base-controllers
-      '@aws-ee/base-post-deployment': link:../../../addon-base-post-deployment/packages/base-post-deployment
-      '@aws-ee/base-raas-services': link:../base-raas-services
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
+      '@amzn/base-api-services': link:../../../addon-base-rest-api/packages/services
+      '@amzn/base-controllers': link:../../../addon-base-rest-api/packages/base-controllers
+      '@amzn/base-post-deployment': link:../../../addon-base-post-deployment/packages/base-post-deployment
+      '@amzn/base-raas-services': link:../base-raas-services
+      '@amzn/base-services': link:../../../addon-base/packages/services
       lodash: 4.17.21
     devDependencies:
       eslint: 6.8.0
@@ -433,12 +435,12 @@ importers:
 
   addons/addon-base-raas/packages/base-raas-services:
     specifiers:
-      '@aws-ee/base-api-services': workspace:*
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
-      '@aws-ee/base-workflow-core': workspace:*
-      '@aws-ee/environment-type-mgmt-services': workspace:*
-      '@aws-ee/key-pair-mgmt-services': workspace:*
+      '@amzn/base-api-services': workspace:*
+      '@amzn/base-services': workspace:*
+      '@amzn/base-services-container': workspace:*
+      '@amzn/base-workflow-core': workspace:*
+      '@amzn/environment-type-mgmt-services': workspace:*
+      '@amzn/key-pair-mgmt-services': workspace:*
       aws-sdk-mock: ^5.1.0
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.1.0
@@ -456,7 +458,7 @@ importers:
       moment: ^2.27.0
       nanoid: ^3.1.16
       node-cache: ^4.2.1
-      node-fetch: ^2.6.0
+      node-fetch: ^2.6.7
       node-rsa: ^1.1.1
       object-path: ^0.11.8
       prettier: ^1.19.1
@@ -470,17 +472,17 @@ importers:
       yaml: ^1.10.2
       yaml-cfn: ^0.3.1
     dependencies:
-      '@aws-ee/base-api-services': link:../../../addon-base-rest-api/packages/services
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
-      '@aws-ee/key-pair-mgmt-services': link:../../../addon-key-pair-mgmt-api/packages/key-pair-mgmt-services
+      '@amzn/base-api-services': link:../../../addon-base-rest-api/packages/services
+      '@amzn/base-services': link:../../../addon-base/packages/services
+      '@amzn/base-services-container': link:../../../addon-base/packages/services-container
+      '@amzn/key-pair-mgmt-services': link:../../../addon-key-pair-mgmt-api/packages/key-pair-mgmt-services
       is-cidr: 3.1.0
       js-yaml: 4.0.0
       lodash: 4.17.21
       moment: 2.27.0
       nanoid: 3.1.20
       node-cache: 4.2.1
-      node-fetch: 2.6.0
+      node-fetch: 2.6.7
       node-rsa: 1.1.1
       object-path: 0.11.8
       request: 2.88.2
@@ -490,8 +492,8 @@ importers:
       yaml: 1.10.2
       yaml-cfn: 0.3.1
     devDependencies:
-      '@aws-ee/base-workflow-core': link:../../../addon-base-workflow/packages/base-workflow-core
-      '@aws-ee/environment-type-mgmt-services': link:../../../addon-environment-sc-api/packages/environment-type-mgmt-services
+      '@amzn/base-workflow-core': link:../../../addon-base-workflow/packages/base-workflow-core
+      '@amzn/environment-type-mgmt-services': link:../../../addon-environment-sc-api/packages/environment-type-mgmt-services
       aws-sdk-mock: 5.1.0
       eslint: 6.8.0
       eslint-config-airbnb-base: 14.1.0_8cdb6d8c18c3319a1365bd5afa0063a3
@@ -510,10 +512,10 @@ importers:
 
   addons/addon-base-raas/packages/base-raas-workflow-steps:
     specifiers:
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
-      '@aws-ee/base-workflow-core': workspace:*
-      '@aws-ee/workflow-engine': workspace:*
+      '@amzn/base-services': workspace:*
+      '@amzn/base-services-container': workspace:*
+      '@amzn/base-workflow-core': workspace:*
+      '@amzn/workflow-engine': workspace:*
       aws-sdk-mock: ^5.1.0
       eslint: ^6.8.0
       eslint-config-airbnb: ^18.1.0
@@ -532,13 +534,13 @@ importers:
       slugify: ^1.4.0
       source-map-support: ^0.5.16
     dependencies:
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-workflow-core': link:../../../addon-base-workflow/packages/base-workflow-core
+      '@amzn/base-services': link:../../../addon-base/packages/services
+      '@amzn/base-workflow-core': link:../../../addon-base-workflow/packages/base-workflow-core
       lodash: 4.17.21
       slugify: 1.4.0
     devDependencies:
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
-      '@aws-ee/workflow-engine': link:../../../addon-base-workflow/packages/workflow-engine
+      '@amzn/base-services-container': link:../../../addon-base/packages/services-container
+      '@amzn/workflow-engine': link:../../../addon-base-workflow/packages/workflow-engine
       aws-sdk-mock: 5.1.0
       eslint: 6.8.0
       eslint-config-airbnb: 18.1.0_8cdb6d8c18c3319a1365bd5afa0063a3
@@ -557,7 +559,7 @@ importers:
 
   addons/addon-base-raas/packages/base-raas-workflows:
     specifiers:
-      '@aws-ee/base-workflow-core': workspace:*
+      '@amzn/base-workflow-core': workspace:*
       eslint: ^6.8.0
       eslint-config-airbnb: ^18.1.0
       eslint-config-airbnb-base: ^14.1.0
@@ -575,7 +577,7 @@ importers:
       slugify: ^1.4.0
       source-map-support: ^0.5.16
     dependencies:
-      '@aws-ee/base-workflow-core': link:../../../addon-base-workflow/packages/base-workflow-core
+      '@amzn/base-workflow-core': link:../../../addon-base-workflow/packages/base-workflow-core
       lodash: 4.17.21
       slugify: 1.4.0
     devDependencies:
@@ -629,7 +631,7 @@ importers:
 
   addons/addon-base-rest-api/packages/api-handler-factory:
     specifiers:
-      '@aws-ee/base-services-container': workspace:*
+      '@amzn/base-services-container': workspace:*
       body-parser: ^1.19.0
       compression: ^1.7.4
       cors: ^2.8.5
@@ -650,7 +652,7 @@ importers:
       serverless-http: ^2.3.1
       source-map-support: ^0.5.16
     dependencies:
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      '@amzn/base-services-container': link:../../../addon-base/packages/services-container
       body-parser: 1.19.0
       compression: 1.7.4
       cors: 2.8.5
@@ -674,9 +676,9 @@ importers:
 
   addons/addon-base-rest-api/packages/base-api-handler:
     specifiers:
-      '@aws-ee/base-api-services': workspace:*
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@amzn/base-api-services': workspace:*
+      '@amzn/base-services': workspace:*
+      '@amzn/base-services-container': workspace:*
       aws-sdk: ^2.1000.0
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.0.0
@@ -693,9 +695,9 @@ importers:
       prettier: ^1.19.1
       source-map-support: ^0.5.16
     dependencies:
-      '@aws-ee/base-api-services': link:../services
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      '@amzn/base-api-services': link:../services
+      '@amzn/base-services': link:../../../addon-base/packages/services
+      '@amzn/base-services-container': link:../../../addon-base/packages/services-container
       aws-sdk: 2.1015.0
       generate-password: 1.5.1
       lodash: 4.17.21
@@ -715,9 +717,9 @@ importers:
 
   addons/addon-base-rest-api/packages/base-authn-handler:
     specifiers:
-      '@aws-ee/base-api-services': workspace:*
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@amzn/base-api-services': workspace:*
+      '@amzn/base-services': workspace:*
+      '@amzn/base-services-container': workspace:*
       aws-sdk: ^2.1000.0
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.0.0
@@ -734,9 +736,9 @@ importers:
       prettier: ^1.19.1
       source-map-support: ^0.5.16
     dependencies:
-      '@aws-ee/base-api-services': link:../services
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      '@amzn/base-api-services': link:../services
+      '@amzn/base-services': link:../../../addon-base/packages/services
+      '@amzn/base-services-container': link:../../../addon-base/packages/services-container
       aws-sdk: 2.1015.0
       generate-password: 1.5.1
       lodash: 4.17.21
@@ -756,9 +758,10 @@ importers:
 
   addons/addon-base-rest-api/packages/base-controllers:
     specifiers:
-      '@aws-ee/base-api-services': workspace:*
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@amzn/base-api-services': workspace:*
+      '@amzn/base-services': workspace:*
+      '@amzn/base-services-container': workspace:*
+      axios: ^0.21.2
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.0.0
       eslint-config-prettier: ^6.10.0
@@ -773,9 +776,10 @@ importers:
       prettier: ^1.19.1
       source-map-support: ^0.5.16
     dependencies:
-      '@aws-ee/base-api-services': link:../services
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      '@amzn/base-api-services': link:../services
+      '@amzn/base-services': link:../../../addon-base/packages/services
+      '@amzn/base-services-container': link:../../../addon-base/packages/services-container
+      axios: 0.21.4
       lodash: 4.17.21
     devDependencies:
       eslint: 6.8.0
@@ -793,8 +797,8 @@ importers:
 
   addons/addon-base-rest-api/packages/services:
     specifiers:
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@amzn/base-services': workspace:*
+      '@amzn/base-services-container': workspace:*
       ajv: ^6.11.0
       aws-sdk: ^2.1000.0
       aws-sdk-mock: ^5.1.0
@@ -819,8 +823,8 @@ importers:
       uuid: ^3.4.0
       validatorjs: ^3.18.1
     dependencies:
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      '@amzn/base-services': link:../../../addon-base/packages/services
+      '@amzn/base-services-container': link:../../../addon-base/packages/services-container
       ajv: 6.12.0
       aws-sdk: 2.1015.0
       jsonwebtoken: 8.5.1
@@ -848,8 +852,8 @@ importers:
 
   addons/addon-base-ui/packages/base-ui:
     specifiers:
-      '@aws-ee/base-serverless-settings-helper': workspace:*
-      '@aws-ee/base-serverless-ui-tools': workspace:*
+      '@amzn/base-serverless-settings-helper': workspace:*
+      '@amzn/base-serverless-ui-tools': workspace:*
       '@babel/cli': ^7.8.4
       '@babel/core': ^7.8.6
       '@babel/plugin-proposal-class-properties': ^7.8.3
@@ -882,6 +886,7 @@ importers:
       mobx-react-form: ^2.0.9
       mobx-state-tree: ^3.15.0
       numeral: ^2.0.6
+      pkce-challenge: ^2.2.0
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
       prop-types: ^15.7.2
@@ -905,6 +910,7 @@ importers:
       toastr: ^2.1.4
       typeface-lato: 0.0.75
       typescript: ^3.7.5
+      uuid: ^3.4.0
       validatorjs: ^3.18.1
       webpack: 4.41.2
     dependencies:
@@ -918,6 +924,7 @@ importers:
       mobx-react-form: 2.0.9_mobx@5.15.4
       mobx-state-tree: 3.15.0_mobx@5.15.4
       numeral: 2.0.6
+      pkce-challenge: 2.2.0
       react: 16.13.1
       react-avatar: 3.9.2_prop-types@15.7.2+react@16.13.1
       react-beautiful-dnd: 11.0.5_react-dom@16.13.1+react@16.13.1
@@ -934,10 +941,11 @@ importers:
       showdown: 1.9.1
       toastr: 2.1.4
       typeface-lato: 0.0.75
+      uuid: 3.4.0
       validatorjs: 3.18.1
     devDependencies:
-      '@aws-ee/base-serverless-settings-helper': link:../../../addon-base/packages/serverless-settings-helper
-      '@aws-ee/base-serverless-ui-tools': link:../serverless-ui-tools
+      '@amzn/base-serverless-settings-helper': link:../../../addon-base/packages/serverless-settings-helper
+      '@amzn/base-serverless-ui-tools': link:../serverless-ui-tools
       '@babel/cli': 7.8.4_@babel+core@7.9.0
       '@babel/core': 7.9.0
       '@babel/plugin-proposal-class-properties': 7.8.3_@babel+core@7.9.0
@@ -1008,8 +1016,8 @@ importers:
 
   addons/addon-base-workflow-api/packages/base-worklfow-api:
     specifiers:
-      '@aws-ee/base-controllers': workspace:*
-      '@aws-ee/base-workflow-core': workspace:*
+      '@amzn/base-controllers': workspace:*
+      '@amzn/base-workflow-core': workspace:*
       eslint: ^6.8.0
       eslint-config-airbnb: ^18.1.0
       eslint-config-airbnb-base: ^14.1.0
@@ -1026,8 +1034,8 @@ importers:
       pretty-quick: ^1.11.1
       source-map-support: ^0.5.16
     dependencies:
-      '@aws-ee/base-controllers': link:../../../addon-base-rest-api/packages/base-controllers
-      '@aws-ee/base-workflow-core': link:../../../addon-base-workflow/packages/base-workflow-core
+      '@amzn/base-controllers': link:../../../addon-base-rest-api/packages/base-controllers
+      '@amzn/base-workflow-core': link:../../../addon-base-workflow/packages/base-workflow-core
       lodash: 4.17.21
     devDependencies:
       eslint: 6.8.0
@@ -1047,7 +1055,7 @@ importers:
 
   addons/addon-base-workflow-ui/packages/base-workflow-ui:
     specifiers:
-      '@aws-ee/base-ui': workspace:*
+      '@amzn/base-ui': workspace:*
       '@babel/cli': ^7.8.4
       '@babel/core': ^7.8.6
       '@babel/plugin-proposal-class-properties': ^7.8.3
@@ -1102,7 +1110,7 @@ importers:
       validatorjs: ^3.18.1
       webpack: 4.41.2
     dependencies:
-      '@aws-ee/base-ui': link:../../../addon-base-ui/packages/base-ui
+      '@amzn/base-ui': link:../../../addon-base-ui/packages/base-ui
       aws-sdk: 2.1015.0
       chart.js: 2.9.4
       classnames: 2.2.6
@@ -1160,9 +1168,10 @@ importers:
 
   addons/addon-base-workflow/packages/base-workflow-core:
     specifiers:
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
-      '@aws-ee/workflow-engine': workspace:*
+      '@amzn/base-services': workspace:*
+      '@amzn/base-services-container': workspace:*
+      '@amzn/workflow-engine': workspace:*
+      aws-sdk-mock: ^5.1.0
       eslint: ^6.8.0
       eslint-config-airbnb: ^18.1.0
       eslint-config-airbnb-base: ^14.1.0
@@ -1180,12 +1189,13 @@ importers:
       slugify: ^1.4.0
       source-map-support: ^0.5.16
     dependencies:
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
-      '@aws-ee/workflow-engine': link:../workflow-engine
+      '@amzn/base-services': link:../../../addon-base/packages/services
+      '@amzn/base-services-container': link:../../../addon-base/packages/services-container
+      '@amzn/workflow-engine': link:../workflow-engine
       lodash: 4.17.21
       slugify: 1.4.0
     devDependencies:
+      aws-sdk-mock: 5.1.0
       eslint: 6.8.0
       eslint-config-airbnb: 18.1.0_8cdb6d8c18c3319a1365bd5afa0063a3
       eslint-config-airbnb-base: 14.1.0_8cdb6d8c18c3319a1365bd5afa0063a3
@@ -1203,7 +1213,7 @@ importers:
 
   addons/addon-base-workflow/packages/base-workflow-templates:
     specifiers:
-      '@aws-ee/base-workflow-core': workspace:*
+      '@amzn/base-workflow-core': workspace:*
       eslint: ^6.8.0
       eslint-config-airbnb: ^18.1.0
       eslint-config-airbnb-base: ^14.1.0
@@ -1221,7 +1231,7 @@ importers:
       slugify: ^1.4.0
       source-map-support: ^0.5.16
     dependencies:
-      '@aws-ee/base-workflow-core': link:../base-workflow-core
+      '@amzn/base-workflow-core': link:../base-workflow-core
       lodash: 4.17.21
       slugify: 1.4.0
     devDependencies:
@@ -1242,7 +1252,7 @@ importers:
 
   addons/addon-base-workflow/packages/base-worklfow-steps:
     specifiers:
-      '@aws-ee/base-workflow-core': workspace:*
+      '@amzn/base-workflow-core': workspace:*
       eslint: ^6.8.0
       eslint-config-airbnb: ^18.1.0
       eslint-config-airbnb-base: ^14.1.0
@@ -1260,7 +1270,7 @@ importers:
       slugify: ^1.4.0
       source-map-support: ^0.5.16
     dependencies:
-      '@aws-ee/base-workflow-core': link:../base-workflow-core
+      '@amzn/base-workflow-core': link:../base-workflow-core
       lodash: 4.17.21
       slugify: 1.4.0
     devDependencies:
@@ -1431,8 +1441,8 @@ importers:
 
   addons/addon-base/packages/services:
     specifiers:
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@amzn/base-services': workspace:*
+      '@amzn/base-services-container': workspace:*
       ajv: ^6.11.0
       aws-sdk: ^2.1000.0
       aws-sdk-mock: ^5.1.0
@@ -1460,7 +1470,7 @@ importers:
       uuid: ^3.4.0
       validatorjs: ^3.18.1
     dependencies:
-      '@aws-ee/base-services-container': link:../services-container
+      '@amzn/base-services-container': link:../services-container
       ajv: 6.12.0
       aws-sdk: 2.1015.0
       aws-xray-sdk: 3.2.0
@@ -1475,7 +1485,7 @@ importers:
       uuid: 3.4.0
       validatorjs: 3.18.1
     devDependencies:
-      '@aws-ee/base-services': 'link:'
+      '@amzn/base-services': 'link:'
       aws-sdk-mock: 5.1.0
       eslint: 6.8.0
       eslint-config-airbnb-base: 14.1.0_8cdb6d8c18c3319a1365bd5afa0063a3
@@ -1529,10 +1539,10 @@ importers:
 
   addons/addon-edit-s3-bucket-policy/packages/edit-s3-bucket-policy:
     specifiers:
-      '@aws-ee/base-api-handler': workspace:*
-      '@aws-ee/base-post-deployment': workspace:*
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@amzn/base-api-handler': workspace:*
+      '@amzn/base-post-deployment': workspace:*
+      '@amzn/base-services': workspace:*
+      '@amzn/base-services-container': workspace:*
       aws-sdk: ^2.647.0
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.0.0
@@ -1548,13 +1558,13 @@ importers:
       prettier: ^1.19.1
       source-map-support: ^0.5.16
     dependencies:
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      '@amzn/base-services': link:../../../addon-base/packages/services
+      '@amzn/base-services-container': link:../../../addon-base/packages/services-container
       aws-sdk: 2.1015.0
       lodash: 4.17.21
     devDependencies:
-      '@aws-ee/base-api-handler': link:../../../addon-base-rest-api/packages/base-api-handler
-      '@aws-ee/base-post-deployment': link:../../../addon-base-post-deployment/packages/base-post-deployment
+      '@amzn/base-api-handler': link:../../../addon-base-rest-api/packages/base-api-handler
+      '@amzn/base-post-deployment': link:../../../addon-base-post-deployment/packages/base-post-deployment
       eslint: 6.8.0
       eslint-config-airbnb-base: 14.2.1_3d9516f15116c38f3750ecaf3d966000
       eslint-config-prettier: 6.15.0_eslint@6.8.0
@@ -1570,12 +1580,12 @@ importers:
 
   addons/addon-environment-sc-api/packages/environment-sc-workflow-steps:
     specifiers:
-      '@aws-ee/base-raas-services': workspace:*
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
-      '@aws-ee/base-workflow-core': workspace:*
-      '@aws-ee/environment-type-mgmt-services': workspace:*
-      '@aws-ee/workflow-engine': workspace:*
+      '@amzn/base-raas-services': workspace:*
+      '@amzn/base-services': workspace:*
+      '@amzn/base-services-container': workspace:*
+      '@amzn/base-workflow-core': workspace:*
+      '@amzn/environment-type-mgmt-services': workspace:*
+      '@amzn/workflow-engine': workspace:*
       eslint: ^6.8.0
       eslint-config-airbnb: ^18.1.0
       eslint-config-airbnb-base: ^14.1.0
@@ -1595,17 +1605,17 @@ importers:
       source-map-support: ^0.5.16
       uuid: ^8.2.0
     dependencies:
-      '@aws-ee/base-raas-services': link:../../../addon-base-raas/packages/base-raas-services
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
-      '@aws-ee/base-workflow-core': link:../../../addon-base-workflow/packages/base-workflow-core
-      '@aws-ee/environment-type-mgmt-services': link:../environment-type-mgmt-services
+      '@amzn/base-raas-services': link:../../../addon-base-raas/packages/base-raas-services
+      '@amzn/base-services': link:../../../addon-base/packages/services
+      '@amzn/base-services-container': link:../../../addon-base/packages/services-container
+      '@amzn/base-workflow-core': link:../../../addon-base-workflow/packages/base-workflow-core
+      '@amzn/environment-type-mgmt-services': link:../environment-type-mgmt-services
       js-yaml: 4.1.0
       lodash: 4.17.21
       slugify: 1.4.0
       uuid: 8.2.0
     devDependencies:
-      '@aws-ee/workflow-engine': link:../../../addon-base-workflow/packages/workflow-engine
+      '@amzn/workflow-engine': link:../../../addon-base-workflow/packages/workflow-engine
       eslint: 6.8.0
       eslint-config-airbnb: 18.1.0_8cdb6d8c18c3319a1365bd5afa0063a3
       eslint-config-airbnb-base: 14.1.0_8cdb6d8c18c3319a1365bd5afa0063a3
@@ -1623,7 +1633,7 @@ importers:
 
   addons/addon-environment-sc-api/packages/environment-sc-workflows:
     specifiers:
-      '@aws-ee/base-workflow-core': workspace:*
+      '@amzn/base-workflow-core': workspace:*
       eslint: ^6.8.0
       eslint-config-airbnb: ^18.1.0
       eslint-config-airbnb-base: ^14.1.0
@@ -1641,7 +1651,7 @@ importers:
       slugify: ^1.4.0
       source-map-support: ^0.5.16
     dependencies:
-      '@aws-ee/base-workflow-core': link:../../../addon-base-workflow/packages/base-workflow-core
+      '@amzn/base-workflow-core': link:../../../addon-base-workflow/packages/base-workflow-core
       lodash: 4.17.21
       slugify: 1.4.0
     devDependencies:
@@ -1662,8 +1672,8 @@ importers:
 
   addons/addon-environment-sc-api/packages/environment-type-mgmt-api:
     specifiers:
-      '@aws-ee/base-controllers': workspace:*
-      '@aws-ee/environment-type-mgmt-services': workspace:*
+      '@amzn/base-controllers': workspace:*
+      '@amzn/environment-type-mgmt-services': workspace:*
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.1.0
       eslint-config-prettier: ^6.10.0
@@ -1680,8 +1690,8 @@ importers:
       source-map-support: ^0.5.16
       uuid: ^3.4.0
     dependencies:
-      '@aws-ee/base-controllers': link:../../../addon-base-rest-api/packages/base-controllers
-      '@aws-ee/environment-type-mgmt-services': link:../environment-type-mgmt-services
+      '@amzn/base-controllers': link:../../../addon-base-rest-api/packages/base-controllers
+      '@amzn/environment-type-mgmt-services': link:../environment-type-mgmt-services
       lodash: 4.17.21
       uuid: 3.4.0
     devDependencies:
@@ -1701,8 +1711,8 @@ importers:
 
   addons/addon-environment-sc-api/packages/environment-type-mgmt-services:
     specifiers:
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@amzn/base-services': workspace:*
+      '@amzn/base-services-container': workspace:*
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.1.0
       eslint-config-prettier: ^6.10.0
@@ -1719,8 +1729,8 @@ importers:
       source-map-support: ^0.5.16
       uuid: ^3.4.0
     dependencies:
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      '@amzn/base-services': link:../../../addon-base/packages/services
+      '@amzn/base-services-container': link:../../../addon-base/packages/services-container
       lodash: 4.17.21
       uuid: 3.4.0
     devDependencies:
@@ -1740,7 +1750,7 @@ importers:
 
   addons/addon-environment-sc-ui/packages/environment-type-mgmt-ui:
     specifiers:
-      '@aws-ee/base-ui': workspace:*
+      '@amzn/base-ui': workspace:*
       '@babel/cli': ^7.8.4
       '@babel/core': ^7.8.6
       '@babel/plugin-proposal-class-properties': ^7.8.3
@@ -1780,7 +1790,7 @@ importers:
       regenerator-runtime: ^0.13.5
       semantic-ui-react: ^0.88.2
     dependencies:
-      '@aws-ee/base-ui': link:../../../addon-base-ui/packages/base-ui
+      '@amzn/base-ui': link:../../../addon-base-ui/packages/base-ui
       lodash: 4.17.21
       mobx: 5.15.4
       mobx-react: 6.2.2_mobx@5.15.4+react@16.13.1
@@ -1821,10 +1831,51 @@ importers:
       pretty-quick: 1.11.1_prettier@1.19.1
       regenerator-runtime: 0.13.5
 
+  addons/addon-internal-auth-dep-check/packages/internal-auth-dep-check:
+    specifiers:
+      '@amzn/base-api-handler': workspace:*
+      '@amzn/base-post-deployment': workspace:*
+      '@amzn/base-services': workspace:*
+      '@amzn/base-services-container': workspace:*
+      aws-sdk: ^2.647.0
+      eslint: ^6.8.0
+      eslint-config-airbnb-base: ^14.0.0
+      eslint-config-prettier: ^6.10.0
+      eslint-import-resolver-node: ^0.3.3
+      eslint-plugin-import: ^2.20.1
+      eslint-plugin-jest: ^22.21.0
+      eslint-plugin-prettier: ^3.1.2
+      husky: ^3.1.0
+      jest: ^24.9.0
+      jest-junit: ^10.0.0
+      lodash: ^4.17.21
+      prettier: ^1.19.1
+      source-map-support: ^0.5.16
+    dependencies:
+      '@amzn/base-services': link:../../../addon-base/packages/services
+      '@amzn/base-services-container': link:../../../addon-base/packages/services-container
+      aws-sdk: 2.1015.0
+      lodash: 4.17.21
+    devDependencies:
+      '@amzn/base-api-handler': link:../../../addon-base-rest-api/packages/base-api-handler
+      '@amzn/base-post-deployment': link:../../../addon-base-post-deployment/packages/base-post-deployment
+      eslint: 6.8.0
+      eslint-config-airbnb-base: 14.2.1_3d9516f15116c38f3750ecaf3d966000
+      eslint-config-prettier: 6.15.0_eslint@6.8.0
+      eslint-import-resolver-node: 0.3.4
+      eslint-plugin-import: 2.23.4_eslint@6.8.0
+      eslint-plugin-jest: 22.21.0_eslint@6.8.0
+      eslint-plugin-prettier: 3.4.0_b77cd85fda941e232840dc83bf6b7690
+      husky: 3.1.0
+      jest: 24.9.0
+      jest-junit: 10.0.0
+      prettier: 1.19.1
+      source-map-support: 0.5.19
+
   addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-api:
     specifiers:
-      '@aws-ee/base-controllers': workspace:*
-      '@aws-ee/key-pair-mgmt-services': workspace:*
+      '@amzn/base-controllers': workspace:*
+      '@amzn/key-pair-mgmt-services': workspace:*
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.1.0
       eslint-config-prettier: ^6.10.0
@@ -1841,8 +1892,8 @@ importers:
       source-map-support: ^0.5.16
       uuid: ^3.4.0
     dependencies:
-      '@aws-ee/base-controllers': link:../../../addon-base-rest-api/packages/base-controllers
-      '@aws-ee/key-pair-mgmt-services': link:../key-pair-mgmt-services
+      '@amzn/base-controllers': link:../../../addon-base-rest-api/packages/base-controllers
+      '@amzn/key-pair-mgmt-services': link:../key-pair-mgmt-services
       lodash: 4.17.21
       uuid: 3.4.0
     devDependencies:
@@ -1862,8 +1913,8 @@ importers:
 
   addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-services:
     specifiers:
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@amzn/base-services': workspace:*
+      '@amzn/base-services-container': workspace:*
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.1.0
       eslint-config-prettier: ^6.10.0
@@ -1875,16 +1926,16 @@ importers:
       jest: ^24.9.0
       jest-junit: ^10.0.0
       lodash: ^4.17.21
-      node-forge: ^0.10.0
+      node-forge: ^1.3.0
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
       source-map-support: ^0.5.16
       uuid: ^3.4.0
     dependencies:
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      '@amzn/base-services': link:../../../addon-base/packages/services
+      '@amzn/base-services-container': link:../../../addon-base/packages/services-container
       lodash: 4.17.21
-      node-forge: 0.10.0
+      node-forge: 1.3.0
       uuid: 3.4.0
     devDependencies:
       eslint: 6.8.0
@@ -1903,7 +1954,7 @@ importers:
 
   addons/addon-key-pair-mgmt-ui/packages/key-pair-mgmt-ui:
     specifiers:
-      '@aws-ee/base-ui': workspace:*
+      '@amzn/base-ui': workspace:*
       '@babel/cli': ^7.8.4
       '@babel/core': ^7.8.6
       '@babel/plugin-proposal-class-properties': ^7.8.3
@@ -1939,7 +1990,7 @@ importers:
       react-timeago: ^4.4.0
       semantic-ui-react: ^0.88.2
     dependencies:
-      '@aws-ee/base-ui': link:../../../addon-base-ui/packages/base-ui
+      '@amzn/base-ui': link:../../../addon-base-ui/packages/base-ui
       lodash: 4.17.21
       mobx: 5.15.4
       mobx-react: 6.2.2_mobx@5.15.4+react@16.13.1
@@ -1981,10 +2032,10 @@ importers:
 
   addons/addon-stack-policy/packages/stack-policy:
     specifiers:
-      '@aws-ee/base-api-handler': workspace:*
-      '@aws-ee/base-post-deployment': workspace:*
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@amzn/base-api-handler': workspace:*
+      '@amzn/base-post-deployment': workspace:*
+      '@amzn/base-services': workspace:*
+      '@amzn/base-services-container': workspace:*
       aws-sdk: ^2.647.0
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.0.0
@@ -2000,13 +2051,13 @@ importers:
       prettier: ^1.19.1
       source-map-support: ^0.5.16
     dependencies:
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      '@amzn/base-services': link:../../../addon-base/packages/services
+      '@amzn/base-services-container': link:../../../addon-base/packages/services-container
       aws-sdk: 2.1015.0
       lodash: 4.17.21
     devDependencies:
-      '@aws-ee/base-api-handler': link:../../../addon-base-rest-api/packages/base-api-handler
-      '@aws-ee/base-post-deployment': link:../../../addon-base-post-deployment/packages/base-post-deployment
+      '@amzn/base-api-handler': link:../../../addon-base-rest-api/packages/base-api-handler
+      '@amzn/base-post-deployment': link:../../../addon-base-post-deployment/packages/base-post-deployment
       eslint: 6.8.0
       eslint-config-airbnb-base: 14.2.1_3d9516f15116c38f3750ecaf3d966000
       eslint-config-prettier: 6.15.0_eslint@6.8.0
@@ -2022,10 +2073,10 @@ importers:
 
   addons/addon-user-id-upgrade/packages/user-id-upgrade-post-deployment:
     specifiers:
-      '@aws-ee/base-api-handler': workspace:*
-      '@aws-ee/base-post-deployment': workspace:*
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@amzn/base-api-handler': workspace:*
+      '@amzn/base-post-deployment': workspace:*
+      '@amzn/base-services': workspace:*
+      '@amzn/base-services-container': workspace:*
       aws-sdk: ^2.1000.0
       eslint: ^6.8.0
       eslint-config-airbnb-base: ^14.0.0
@@ -2041,13 +2092,13 @@ importers:
       prettier: ^1.19.1
       source-map-support: ^0.5.16
     dependencies:
-      '@aws-ee/base-services': link:../../../addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addon-base/packages/services-container
+      '@amzn/base-services': link:../../../addon-base/packages/services
+      '@amzn/base-services-container': link:../../../addon-base/packages/services-container
       aws-sdk: 2.1015.0
       lodash: 4.17.21
     devDependencies:
-      '@aws-ee/base-api-handler': link:../../../addon-base-rest-api/packages/base-api-handler
-      '@aws-ee/base-post-deployment': link:../../../addon-base-post-deployment/packages/base-post-deployment
+      '@amzn/base-api-handler': link:../../../addon-base-rest-api/packages/base-api-handler
+      '@amzn/base-post-deployment': link:../../../addon-base-post-deployment/packages/base-post-deployment
       eslint: 6.8.0
       eslint-config-airbnb-base: 14.1.0_8cdb6d8c18c3319a1365bd5afa0063a3
       eslint-config-prettier: 6.10.1_eslint@6.8.0
@@ -2063,45 +2114,46 @@ importers:
 
   main/cicd/cicd-pipeline:
     specifiers:
-      '@aws-ee/base-serverless-settings-helper': workspace:*
+      '@amzn/base-serverless-settings-helper': workspace:*
       fsevents: '*'
       serverless: ^1.63.0
       serverless-deployment-bucket: ^1.1.0
       serverless-hooks-plugin: ^1.1.0
     optionalDependencies:
-      fsevents: 2.1.2
+      fsevents: 2.1.3
     devDependencies:
-      '@aws-ee/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
+      '@amzn/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
       serverless: 1.67.3
       serverless-deployment-bucket: 1.1.1
       serverless-hooks-plugin: 1.1.0
 
   main/cicd/cicd-source:
     specifiers:
-      '@aws-ee/base-serverless-settings-helper': workspace:*
+      '@amzn/base-serverless-settings-helper': workspace:*
       aws-sdk: ^2.1000.0
       fsevents: '*'
       serverless: ^1.63.0
       serverless-deployment-bucket: ^1.1.0
     optionalDependencies:
-      fsevents: 2.1.2
+      fsevents: 2.1.3
     devDependencies:
-      '@aws-ee/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
+      '@amzn/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
       aws-sdk: 2.1015.0
       serverless: 1.67.3
       serverless-deployment-bucket: 1.1.1
 
   main/end-to-end-tests:
     specifiers:
+      amazon-cognito-identity-js: ^5.2.4
       clipboardy: ^2.3.0
-      cypress: ^4.12.1
-      eslint: ^6.8.0
-      eslint-config-airbnb: ^18.0.1
-      eslint-config-airbnb-base: ^14.0.0
-      eslint-config-prettier: ^6.10.0
+      cypress: ^9.5.0
+      eslint: ^8.11.0
+      eslint-config-airbnb: ^19.0.4
+      eslint-config-airbnb-base: ^15.0.0
+      eslint-config-prettier: ^8.5.0
       eslint-import-resolver-node: ^0.3.3
       eslint-plugin-cypress: ^2.11.1
-      eslint-plugin-import: ^2.20.1
+      eslint-plugin-import: ^2.25.4
       eslint-plugin-jsx-a11y: ^6.2.3
       eslint-plugin-prettier: ^3.1.2
       husky: ^3.1.0
@@ -2110,17 +2162,18 @@ importers:
       pretty-quick: ^1.11.1
       tcp-ping: ^0.1.1
     devDependencies:
+      amazon-cognito-identity-js: 5.2.4
       clipboardy: 2.3.0
-      cypress: 4.12.1
-      eslint: 6.8.0
-      eslint-config-airbnb: 18.2.1_fdb7bbbc49566f392bdf537c74c00196
-      eslint-config-airbnb-base: 14.2.1_3d9516f15116c38f3750ecaf3d966000
-      eslint-config-prettier: 6.15.0_eslint@6.8.0
+      cypress: 9.5.0
+      eslint: 8.11.0
+      eslint-config-airbnb: 19.0.4_6e2b3c7d5a0ae98a97389954576cf0c3
+      eslint-config-airbnb-base: 15.0.0_fe22d862ffeecaee86c93a006d59e41e
+      eslint-config-prettier: 8.5.0_eslint@8.11.0
       eslint-import-resolver-node: 0.3.4
-      eslint-plugin-cypress: 2.11.1_eslint@6.8.0
-      eslint-plugin-import: 2.23.4_eslint@6.8.0
-      eslint-plugin-jsx-a11y: 6.4.1_eslint@6.8.0
-      eslint-plugin-prettier: 3.4.0_b77cd85fda941e232840dc83bf6b7690
+      eslint-plugin-cypress: 2.11.1_eslint@8.11.0
+      eslint-plugin-import: 2.25.4_eslint@8.11.0
+      eslint-plugin-jsx-a11y: 6.4.1_eslint@8.11.0
+      eslint-plugin-prettier: 3.4.0_6188649406ba029b27b4fb6038e89fc2
       husky: 3.1.0
       lodash: 4.17.21
       prettier: 1.19.1
@@ -2172,7 +2225,7 @@ importers:
 
   main/integration-tests:
     specifiers:
-      '@aws-ee/base-services': workspace:*
+      '@amzn/base-services': workspace:*
       aws-sdk: ^2.1000.0
       axios: ^0.21.2
       chance: ^1.1.7
@@ -2186,6 +2239,7 @@ importers:
       eslint-plugin-jsx-a11y: ^6.4.1
       eslint-plugin-prettier: ^3.4.0
       fs-extra: ^9.1.0
+      generate-password: ^1.5.0
       husky: ^3.1.0
       jest: ^26.6.3
       jest-circus: ^26.6.3
@@ -2201,11 +2255,12 @@ importers:
       services: workspace:*
       yargs-parser: ^20.2.9
     dependencies:
-      '@aws-ee/base-services': link:../../addons/addon-base/packages/services
+      '@amzn/base-services': link:../../addons/addon-base/packages/services
       aws-sdk: 2.1015.0
       axios: 0.21.4
       chance: 1.1.7
       fs-extra: 9.1.0
+      generate-password: 1.5.1
       js-yaml: 4.1.0
       jwt-decode: 2.2.0
       lodash: 4.17.21
@@ -2233,7 +2288,7 @@ importers:
 
   main/packages/controllers:
     specifiers:
-      '@aws-ee/base-controllers': workspace:*
+      '@amzn/base-controllers': workspace:*
       eslint: ^6.8.0
       eslint-config-airbnb: ^18.1.0
       eslint-config-airbnb-base: ^14.1.0
@@ -2251,7 +2306,7 @@ importers:
       services: workspace:*
       source-map-support: ^0.5.16
     dependencies:
-      '@aws-ee/base-controllers': link:../../../addons/addon-base-rest-api/packages/base-controllers
+      '@amzn/base-controllers': link:../../../addons/addon-base-rest-api/packages/base-controllers
       lodash: 4.17.21
       services: link:../services
     devDependencies:
@@ -2272,8 +2327,8 @@ importers:
 
   main/packages/services:
     specifiers:
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
+      '@amzn/base-services': workspace:*
+      '@amzn/base-services-container': workspace:*
       eslint: ^6.8.0
       eslint-config-airbnb: ^18.1.0
       eslint-config-airbnb-base: ^14.1.0
@@ -2290,8 +2345,8 @@ importers:
       pretty-quick: ^1.11.1
       source-map-support: ^0.5.16
     dependencies:
-      '@aws-ee/base-services': link:../../../addons/addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addons/addon-base/packages/services-container
+      '@amzn/base-services': link:../../../addons/addon-base/packages/services
+      '@amzn/base-services-container': link:../../../addons/addon-base/packages/services-container
       lodash: 4.17.21
     devDependencies:
       eslint: 6.8.0
@@ -2311,31 +2366,31 @@ importers:
 
   main/solution/backend:
     specifiers:
-      '@aws-ee/base-api-handler': workspace:*
-      '@aws-ee/base-api-handler-factory': workspace:*
-      '@aws-ee/base-api-services': workspace:*
-      '@aws-ee/base-authn-handler': workspace:*
-      '@aws-ee/base-controllers': workspace:*
-      '@aws-ee/base-raas-appstream-rest-api': workspace:*
-      '@aws-ee/base-raas-appstream-services': workspace:*
-      '@aws-ee/base-raas-cfn-templates': workspace:*
-      '@aws-ee/base-raas-rest-api': workspace:*
-      '@aws-ee/base-raas-services': workspace:*
-      '@aws-ee/base-raas-workflow-steps': workspace:*
-      '@aws-ee/base-raas-workflows': workspace:*
-      '@aws-ee/base-serverless-backend-tools': workspace:*
-      '@aws-ee/base-serverless-settings-helper': workspace:*
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
-      '@aws-ee/base-workflow-api': workspace:*
-      '@aws-ee/base-workflow-core': workspace:*
-      '@aws-ee/base-workflow-steps': workspace:*
-      '@aws-ee/environment-sc-workflow-steps': workspace:*
-      '@aws-ee/environment-sc-workflows': workspace:*
-      '@aws-ee/environment-type-mgmt-api': workspace:*
-      '@aws-ee/environment-type-mgmt-services': workspace:*
-      '@aws-ee/key-pair-mgmt-api': workspace:*
-      '@aws-ee/key-pair-mgmt-services': workspace:*
+      '@amzn/base-api-handler': workspace:*
+      '@amzn/base-api-handler-factory': workspace:*
+      '@amzn/base-api-services': workspace:*
+      '@amzn/base-authn-handler': workspace:*
+      '@amzn/base-controllers': workspace:*
+      '@amzn/base-raas-appstream-rest-api': workspace:*
+      '@amzn/base-raas-appstream-services': workspace:*
+      '@amzn/base-raas-cfn-templates': workspace:*
+      '@amzn/base-raas-rest-api': workspace:*
+      '@amzn/base-raas-services': workspace:*
+      '@amzn/base-raas-workflow-steps': workspace:*
+      '@amzn/base-raas-workflows': workspace:*
+      '@amzn/base-serverless-backend-tools': workspace:*
+      '@amzn/base-serverless-settings-helper': workspace:*
+      '@amzn/base-services': workspace:*
+      '@amzn/base-services-container': workspace:*
+      '@amzn/base-workflow-api': workspace:*
+      '@amzn/base-workflow-core': workspace:*
+      '@amzn/base-workflow-steps': workspace:*
+      '@amzn/environment-sc-workflow-steps': workspace:*
+      '@amzn/environment-sc-workflows': workspace:*
+      '@amzn/environment-type-mgmt-api': workspace:*
+      '@amzn/environment-type-mgmt-services': workspace:*
+      '@amzn/key-pair-mgmt-api': workspace:*
+      '@amzn/key-pair-mgmt-services': workspace:*
       '@babel/core': ^7.8.4
       '@babel/plugin-transform-runtime': ^7.8.3
       '@babel/preset-env': ^7.8.4
@@ -2360,7 +2415,7 @@ importers:
       js-yaml-loader: ^1.2.2
       jwt-decode: ^2.2.0
       lodash: ^4.17.21
-      node-fetch: ^2.6.0
+      node-fetch: ^2.6.7
       prettier: ^1.19.1
       pretty-quick: ^1.11.1
       serverless: ^1.63.0
@@ -2374,41 +2429,41 @@ importers:
       webpack-cli: ^3.3.10
       webpack-node-externals: ^1.7.2
     dependencies:
-      '@aws-ee/base-api-handler': link:../../../addons/addon-base-rest-api/packages/base-api-handler
-      '@aws-ee/base-api-handler-factory': link:../../../addons/addon-base-rest-api/packages/api-handler-factory
-      '@aws-ee/base-api-services': link:../../../addons/addon-base-rest-api/packages/services
-      '@aws-ee/base-authn-handler': link:../../../addons/addon-base-rest-api/packages/base-authn-handler
-      '@aws-ee/base-controllers': link:../../../addons/addon-base-rest-api/packages/base-controllers
-      '@aws-ee/base-raas-appstream-rest-api': link:../../../addons/addon-base-raas-appstream/packages/base-raas-appstream-rest-api
-      '@aws-ee/base-raas-appstream-services': link:../../../addons/addon-base-raas-appstream/packages/base-raas-appstream-services
-      '@aws-ee/base-raas-cfn-templates': link:../../../addons/addon-base-raas/packages/base-raas-cfn-templates
-      '@aws-ee/base-raas-rest-api': link:../../../addons/addon-base-raas/packages/base-raas-rest-api
-      '@aws-ee/base-raas-services': link:../../../addons/addon-base-raas/packages/base-raas-services
-      '@aws-ee/base-raas-workflow-steps': link:../../../addons/addon-base-raas/packages/base-raas-workflow-steps
-      '@aws-ee/base-raas-workflows': link:../../../addons/addon-base-raas/packages/base-raas-workflows
-      '@aws-ee/base-services': link:../../../addons/addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addons/addon-base/packages/services-container
-      '@aws-ee/base-workflow-api': link:../../../addons/addon-base-workflow-api/packages/base-worklfow-api
-      '@aws-ee/base-workflow-core': link:../../../addons/addon-base-workflow/packages/base-workflow-core
-      '@aws-ee/base-workflow-steps': link:../../../addons/addon-base-workflow/packages/base-worklfow-steps
-      '@aws-ee/environment-sc-workflow-steps': link:../../../addons/addon-environment-sc-api/packages/environment-sc-workflow-steps
-      '@aws-ee/environment-sc-workflows': link:../../../addons/addon-environment-sc-api/packages/environment-sc-workflows
-      '@aws-ee/environment-type-mgmt-api': link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-api
-      '@aws-ee/environment-type-mgmt-services': link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-services
-      '@aws-ee/key-pair-mgmt-api': link:../../../addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-api
-      '@aws-ee/key-pair-mgmt-services': link:../../../addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-services
+      '@amzn/base-api-handler': link:../../../addons/addon-base-rest-api/packages/base-api-handler
+      '@amzn/base-api-handler-factory': link:../../../addons/addon-base-rest-api/packages/api-handler-factory
+      '@amzn/base-api-services': link:../../../addons/addon-base-rest-api/packages/services
+      '@amzn/base-authn-handler': link:../../../addons/addon-base-rest-api/packages/base-authn-handler
+      '@amzn/base-controllers': link:../../../addons/addon-base-rest-api/packages/base-controllers
+      '@amzn/base-raas-appstream-rest-api': link:../../../addons/addon-base-raas-appstream/packages/base-raas-appstream-rest-api
+      '@amzn/base-raas-appstream-services': link:../../../addons/addon-base-raas-appstream/packages/base-raas-appstream-services
+      '@amzn/base-raas-cfn-templates': link:../../../addons/addon-base-raas/packages/base-raas-cfn-templates
+      '@amzn/base-raas-rest-api': link:../../../addons/addon-base-raas/packages/base-raas-rest-api
+      '@amzn/base-raas-services': link:../../../addons/addon-base-raas/packages/base-raas-services
+      '@amzn/base-raas-workflow-steps': link:../../../addons/addon-base-raas/packages/base-raas-workflow-steps
+      '@amzn/base-raas-workflows': link:../../../addons/addon-base-raas/packages/base-raas-workflows
+      '@amzn/base-services': link:../../../addons/addon-base/packages/services
+      '@amzn/base-services-container': link:../../../addons/addon-base/packages/services-container
+      '@amzn/base-workflow-api': link:../../../addons/addon-base-workflow-api/packages/base-worklfow-api
+      '@amzn/base-workflow-core': link:../../../addons/addon-base-workflow/packages/base-workflow-core
+      '@amzn/base-workflow-steps': link:../../../addons/addon-base-workflow/packages/base-worklfow-steps
+      '@amzn/environment-sc-workflow-steps': link:../../../addons/addon-environment-sc-api/packages/environment-sc-workflow-steps
+      '@amzn/environment-sc-workflows': link:../../../addons/addon-environment-sc-api/packages/environment-sc-workflows
+      '@amzn/environment-type-mgmt-api': link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-api
+      '@amzn/environment-type-mgmt-services': link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-services
+      '@amzn/key-pair-mgmt-api': link:../../../addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-api
+      '@amzn/key-pair-mgmt-services': link:../../../addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-services
       aws-sdk: 2.1015.0
       controllers: link:../../packages/controllers
       js-yaml: 3.13.1
       jwt-decode: 2.2.0
       lodash: 4.17.21
-      node-fetch: 2.6.0
+      node-fetch: 2.6.7
       services: link:../../packages/services
     optionalDependencies:
-      fsevents: 2.1.2
+      fsevents: 2.1.3
     devDependencies:
-      '@aws-ee/base-serverless-backend-tools': link:../../../addons/addon-base/packages/serverless-backend-tools
-      '@aws-ee/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
+      '@amzn/base-serverless-backend-tools': link:../../../addons/addon-base/packages/serverless-backend-tools
+      '@amzn/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
       '@babel/core': 7.9.0
       '@babel/plugin-transform-runtime': 7.9.0_@babel+core@7.9.0
       '@babel/preset-env': 7.9.5_@babel+core@7.9.0
@@ -2441,72 +2496,72 @@ importers:
 
   main/solution/edge-lambda:
     specifiers:
-      '@aws-ee/base-serverless-settings-helper': workspace:*
+      '@amzn/base-serverless-settings-helper': workspace:*
       serverless: ^1.63.0
       serverless-deployment-bucket: ^1.5.1
     devDependencies:
-      '@aws-ee/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
+      '@amzn/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
       serverless: 1.67.3
       serverless-deployment-bucket: 1.5.1
 
   main/solution/environment-tools:
     specifiers:
-      '@aws-ee/base-serverless-settings-helper': workspace:*
-      '@aws-ee/s3-synchronizer': workspace:*
-      '@aws-ee/serverless-go-build-tools': workspace:*
+      '@amzn/base-serverless-settings-helper': workspace:*
+      '@amzn/s3-synchronizer': workspace:*
+      '@amzn/serverless-go-build-tools': workspace:*
       serverless: ^1.63.0
     devDependencies:
-      '@aws-ee/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
-      '@aws-ee/s3-synchronizer': link:../../../addons/addon-raas-s3-copy/packages/s3-synchronizer
-      '@aws-ee/serverless-go-build-tools': link:../../../addons/addon-base/packages/serverless-go-build-tools
+      '@amzn/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
+      '@amzn/s3-synchronizer': link:../../../addons/addon-raas-s3-copy/packages/s3-synchronizer
+      '@amzn/serverless-go-build-tools': link:../../../addons/addon-base/packages/serverless-go-build-tools
       serverless: 1.67.3
 
   main/solution/infrastructure:
     specifiers:
-      '@aws-ee/base-serverless-settings-helper': workspace:*
+      '@amzn/base-serverless-settings-helper': workspace:*
       serverless: ^1.63.0
       serverless-deployment-bucket: ^1.5.1
     devDependencies:
-      '@aws-ee/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
+      '@amzn/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
       serverless: 1.67.3
       serverless-deployment-bucket: 1.5.1
 
   main/solution/machine-images:
     specifiers:
-      '@aws-ee/base-serverless-settings-helper': workspace:*
-      '@aws-ee/serverless-packer': workspace:*
+      '@amzn/base-serverless-settings-helper': workspace:*
+      '@amzn/serverless-packer': workspace:*
       serverless: ^1.63.0
     devDependencies:
-      '@aws-ee/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
-      '@aws-ee/serverless-packer': link:../../../addons/addon-base-raas/packages/serverless-packer
+      '@amzn/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
+      '@amzn/serverless-packer': link:../../../addons/addon-base-raas/packages/serverless-packer
       serverless: 1.67.3
 
   main/solution/post-deployment:
     specifiers:
-      '@aws-ee/base-api-handler': workspace:*
-      '@aws-ee/base-post-deployment': workspace:*
-      '@aws-ee/base-raas-cfn-templates': workspace:*
-      '@aws-ee/base-raas-post-deployment': workspace:*
-      '@aws-ee/base-raas-rest-api': workspace:*
-      '@aws-ee/base-raas-services': workspace:*
-      '@aws-ee/base-raas-workflow-steps': workspace:*
-      '@aws-ee/base-raas-workflows': workspace:*
-      '@aws-ee/base-serverless-backend-tools': workspace:*
-      '@aws-ee/base-serverless-settings-helper': workspace:*
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
-      '@aws-ee/base-workflow-api': workspace:*
-      '@aws-ee/base-workflow-core': workspace:*
-      '@aws-ee/base-workflow-steps': workspace:*
-      '@aws-ee/base-workflow-templates': workspace:*
-      '@aws-ee/cfn-stack-policy': workspace:*
-      '@aws-ee/edit-s3-bucket-policy': workspace:*
-      '@aws-ee/environment-sc-workflow-steps': workspace:*
-      '@aws-ee/environment-sc-workflows': workspace:*
-      '@aws-ee/environment-type-mgmt-api': workspace:*
-      '@aws-ee/environment-type-mgmt-services': workspace:*
-      '@aws-ee/key-pair-mgmt-services': workspace:*
-      '@aws-ee/user-id-upgrade-post-deployment': workspace:*
+      '@amzn/base-api-handler': workspace:*
+      '@amzn/base-post-deployment': workspace:*
+      '@amzn/base-raas-cfn-templates': workspace:*
+      '@amzn/base-raas-post-deployment': workspace:*
+      '@amzn/base-raas-rest-api': workspace:*
+      '@amzn/base-raas-services': workspace:*
+      '@amzn/base-raas-workflow-steps': workspace:*
+      '@amzn/base-raas-workflows': workspace:*
+      '@amzn/base-serverless-backend-tools': workspace:*
+      '@amzn/base-serverless-settings-helper': workspace:*
+      '@amzn/base-services': workspace:*
+      '@amzn/base-services-container': workspace:*
+      '@amzn/base-workflow-api': workspace:*
+      '@amzn/base-workflow-core': workspace:*
+      '@amzn/base-workflow-steps': workspace:*
+      '@amzn/base-workflow-templates': workspace:*
+      '@amzn/cfn-stack-policy': workspace:*
+      '@amzn/edit-s3-bucket-policy': workspace:*
+      '@amzn/environment-sc-workflow-steps': workspace:*
+      '@amzn/environment-sc-workflows': workspace:*
+      '@amzn/environment-type-mgmt-api': workspace:*
+      '@amzn/environment-type-mgmt-services': workspace:*
+      '@amzn/key-pair-mgmt-services': workspace:*
+      '@amzn/user-id-upgrade-post-deployment': workspace:*
       '@babel/core': ^7.8.4
       '@babel/preset-env': ^7.8.4
       aws-sdk: ^2.1000.0
@@ -2536,34 +2591,34 @@ importers:
       source-map-support: ^0.5.16
       webpack: ^4.41.5
     dependencies:
-      '@aws-ee/base-api-handler': link:../../../addons/addon-base-rest-api/packages/base-api-handler
-      '@aws-ee/base-post-deployment': link:../../../addons/addon-base-post-deployment/packages/base-post-deployment
-      '@aws-ee/base-raas-cfn-templates': link:../../../addons/addon-base-raas/packages/base-raas-cfn-templates
-      '@aws-ee/base-raas-post-deployment': link:../../../addons/addon-base-raas/packages/base-raas-post-deployment
-      '@aws-ee/base-raas-rest-api': link:../../../addons/addon-base-raas/packages/base-raas-rest-api
-      '@aws-ee/base-raas-services': link:../../../addons/addon-base-raas/packages/base-raas-services
-      '@aws-ee/base-raas-workflow-steps': link:../../../addons/addon-base-raas/packages/base-raas-workflow-steps
-      '@aws-ee/base-raas-workflows': link:../../../addons/addon-base-raas/packages/base-raas-workflows
-      '@aws-ee/base-services': link:../../../addons/addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addons/addon-base/packages/services-container
-      '@aws-ee/base-workflow-api': link:../../../addons/addon-base-workflow-api/packages/base-worklfow-api
-      '@aws-ee/base-workflow-core': link:../../../addons/addon-base-workflow/packages/base-workflow-core
-      '@aws-ee/base-workflow-steps': link:../../../addons/addon-base-workflow/packages/base-worklfow-steps
-      '@aws-ee/base-workflow-templates': link:../../../addons/addon-base-workflow/packages/base-workflow-templates
-      '@aws-ee/cfn-stack-policy': link:../../../addons/addon-stack-policy/packages/stack-policy
-      '@aws-ee/edit-s3-bucket-policy': link:../../../addons/addon-edit-s3-bucket-policy/packages/edit-s3-bucket-policy
-      '@aws-ee/environment-sc-workflow-steps': link:../../../addons/addon-environment-sc-api/packages/environment-sc-workflow-steps
-      '@aws-ee/environment-sc-workflows': link:../../../addons/addon-environment-sc-api/packages/environment-sc-workflows
-      '@aws-ee/environment-type-mgmt-api': link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-api
-      '@aws-ee/environment-type-mgmt-services': link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-services
-      '@aws-ee/key-pair-mgmt-services': link:../../../addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-services
-      '@aws-ee/user-id-upgrade-post-deployment': link:../../../addons/addon-user-id-upgrade/packages/user-id-upgrade-post-deployment
+      '@amzn/base-api-handler': link:../../../addons/addon-base-rest-api/packages/base-api-handler
+      '@amzn/base-post-deployment': link:../../../addons/addon-base-post-deployment/packages/base-post-deployment
+      '@amzn/base-raas-cfn-templates': link:../../../addons/addon-base-raas/packages/base-raas-cfn-templates
+      '@amzn/base-raas-post-deployment': link:../../../addons/addon-base-raas/packages/base-raas-post-deployment
+      '@amzn/base-raas-rest-api': link:../../../addons/addon-base-raas/packages/base-raas-rest-api
+      '@amzn/base-raas-services': link:../../../addons/addon-base-raas/packages/base-raas-services
+      '@amzn/base-raas-workflow-steps': link:../../../addons/addon-base-raas/packages/base-raas-workflow-steps
+      '@amzn/base-raas-workflows': link:../../../addons/addon-base-raas/packages/base-raas-workflows
+      '@amzn/base-services': link:../../../addons/addon-base/packages/services
+      '@amzn/base-services-container': link:../../../addons/addon-base/packages/services-container
+      '@amzn/base-workflow-api': link:../../../addons/addon-base-workflow-api/packages/base-worklfow-api
+      '@amzn/base-workflow-core': link:../../../addons/addon-base-workflow/packages/base-workflow-core
+      '@amzn/base-workflow-steps': link:../../../addons/addon-base-workflow/packages/base-worklfow-steps
+      '@amzn/base-workflow-templates': link:../../../addons/addon-base-workflow/packages/base-workflow-templates
+      '@amzn/cfn-stack-policy': link:../../../addons/addon-stack-policy/packages/stack-policy
+      '@amzn/edit-s3-bucket-policy': link:../../../addons/addon-edit-s3-bucket-policy/packages/edit-s3-bucket-policy
+      '@amzn/environment-sc-workflow-steps': link:../../../addons/addon-environment-sc-api/packages/environment-sc-workflow-steps
+      '@amzn/environment-sc-workflows': link:../../../addons/addon-environment-sc-api/packages/environment-sc-workflows
+      '@amzn/environment-type-mgmt-api': link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-api
+      '@amzn/environment-type-mgmt-services': link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-services
+      '@amzn/key-pair-mgmt-services': link:../../../addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-services
+      '@amzn/user-id-upgrade-post-deployment': link:../../../addons/addon-user-id-upgrade/packages/user-id-upgrade-post-deployment
       aws-sdk: 2.1015.0
       lodash: 4.17.21
       services: link:../../packages/services
     devDependencies:
-      '@aws-ee/base-serverless-backend-tools': link:../../../addons/addon-base/packages/serverless-backend-tools
-      '@aws-ee/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
+      '@amzn/base-serverless-backend-tools': link:../../../addons/addon-base/packages/serverless-backend-tools
+      '@amzn/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
       '@babel/core': 7.9.0
       '@babel/preset-env': 7.9.5_@babel+core@7.9.0
       babel-loader: 8.1.0_@babel+core@7.9.0+webpack@4.42.1
@@ -2592,17 +2647,18 @@ importers:
 
   main/solution/pre-deployment:
     specifiers:
-      '@aws-ee/base-pre-deployment': workspace:*
-      '@aws-ee/base-raas-post-deployment': workspace:*
-      '@aws-ee/base-raas-rest-api': workspace:*
-      '@aws-ee/base-raas-services': workspace:*
-      '@aws-ee/base-serverless-backend-tools': workspace:*
-      '@aws-ee/base-serverless-settings-helper': workspace:*
-      '@aws-ee/base-services': workspace:*
-      '@aws-ee/base-services-container': workspace:*
-      '@aws-ee/base-workflow-core': workspace:*
-      '@aws-ee/environment-type-mgmt-services': workspace:*
-      '@aws-ee/key-pair-mgmt-services': workspace:*
+      '@amzn/base-pre-deployment': workspace:*
+      '@amzn/base-raas-post-deployment': workspace:*
+      '@amzn/base-raas-rest-api': workspace:*
+      '@amzn/base-raas-services': workspace:*
+      '@amzn/base-serverless-backend-tools': workspace:*
+      '@amzn/base-serverless-settings-helper': workspace:*
+      '@amzn/base-services': workspace:*
+      '@amzn/base-services-container': workspace:*
+      '@amzn/base-workflow-core': workspace:*
+      '@amzn/environment-type-mgmt-services': workspace:*
+      '@amzn/internal-auth-dep-check': workspace:*
+      '@amzn/key-pair-mgmt-services': workspace:*
       '@babel/core': ^7.8.4
       '@babel/preset-env': ^7.8.4
       aws-sdk: ^2.1000.0
@@ -2632,21 +2688,22 @@ importers:
       source-map-support: ^0.5.16
       webpack: ^4.41.5
     dependencies:
-      '@aws-ee/base-pre-deployment': link:../../../addons/addon-base-pre-deployment/packages/base-pre-deployment
-      '@aws-ee/base-raas-post-deployment': link:../../../addons/addon-base-raas/packages/base-raas-post-deployment
-      '@aws-ee/base-raas-rest-api': link:../../../addons/addon-base-raas/packages/base-raas-rest-api
-      '@aws-ee/base-raas-services': link:../../../addons/addon-base-raas/packages/base-raas-services
-      '@aws-ee/base-services': link:../../../addons/addon-base/packages/services
-      '@aws-ee/base-services-container': link:../../../addons/addon-base/packages/services-container
-      '@aws-ee/base-workflow-core': link:../../../addons/addon-base-workflow/packages/base-workflow-core
-      '@aws-ee/environment-type-mgmt-services': link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-services
-      '@aws-ee/key-pair-mgmt-services': link:../../../addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-services
+      '@amzn/base-pre-deployment': link:../../../addons/addon-base-pre-deployment/packages/base-pre-deployment
+      '@amzn/base-raas-post-deployment': link:../../../addons/addon-base-raas/packages/base-raas-post-deployment
+      '@amzn/base-raas-rest-api': link:../../../addons/addon-base-raas/packages/base-raas-rest-api
+      '@amzn/base-raas-services': link:../../../addons/addon-base-raas/packages/base-raas-services
+      '@amzn/base-services': link:../../../addons/addon-base/packages/services
+      '@amzn/base-services-container': link:../../../addons/addon-base/packages/services-container
+      '@amzn/base-workflow-core': link:../../../addons/addon-base-workflow/packages/base-workflow-core
+      '@amzn/environment-type-mgmt-services': link:../../../addons/addon-environment-sc-api/packages/environment-type-mgmt-services
+      '@amzn/internal-auth-dep-check': link:../../../addons/addon-internal-auth-dep-check/packages/internal-auth-dep-check
+      '@amzn/key-pair-mgmt-services': link:../../../addons/addon-key-pair-mgmt-api/packages/key-pair-mgmt-services
       aws-sdk: 2.1015.0
       lodash: 4.17.21
       services: link:../../packages/services
     devDependencies:
-      '@aws-ee/base-serverless-backend-tools': link:../../../addons/addon-base/packages/serverless-backend-tools
-      '@aws-ee/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
+      '@amzn/base-serverless-backend-tools': link:../../../addons/addon-base/packages/serverless-backend-tools
+      '@amzn/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
       '@babel/core': 7.12.9
       '@babel/preset-env': 7.12.7_@babel+core@7.12.9
       babel-loader: 8.1.0_dd01e8cbc2bbf2b3fa238148aaaef39d
@@ -2675,23 +2732,23 @@ importers:
 
   main/solution/prepare-master-acc:
     specifiers:
-      '@aws-ee/base-serverless-settings-helper': workspace:*
+      '@amzn/base-serverless-settings-helper': workspace:*
       serverless: ^1.63.0
       serverless-deployment-bucket: ^1.1.0
     devDependencies:
-      '@aws-ee/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
+      '@amzn/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
       serverless: 1.67.3
       serverless-deployment-bucket: 1.1.1
 
   main/solution/ui:
     specifiers:
-      '@aws-ee/base-raas-ui': workspace:*
-      '@aws-ee/base-serverless-settings-helper': workspace:*
-      '@aws-ee/base-serverless-ui-tools': workspace:*
-      '@aws-ee/base-ui': workspace:*
-      '@aws-ee/base-workflow-ui': workspace:*
-      '@aws-ee/environment-type-mgmt-ui': workspace:*
-      '@aws-ee/key-pair-mgmt-ui': workspace:*
+      '@amzn/base-raas-ui': workspace:*
+      '@amzn/base-serverless-settings-helper': workspace:*
+      '@amzn/base-serverless-ui-tools': workspace:*
+      '@amzn/base-ui': workspace:*
+      '@amzn/base-workflow-ui': workspace:*
+      '@amzn/environment-type-mgmt-ui': workspace:*
+      '@amzn/key-pair-mgmt-ui': workspace:*
       animate.css: 3.7.0
       aws-sdk: ^2.1000.0
       babel-eslint: ^10.1.0
@@ -2730,11 +2787,11 @@ importers:
       typeface-lato: 0.0.75
       uuid: ^3.4.0
     dependencies:
-      '@aws-ee/base-raas-ui': link:../../../addons/addon-base-raas-ui/packages/base-raas-ui
-      '@aws-ee/base-ui': link:../../../addons/addon-base-ui/packages/base-ui
-      '@aws-ee/base-workflow-ui': link:../../../addons/addon-base-workflow-ui/packages/base-workflow-ui
-      '@aws-ee/environment-type-mgmt-ui': link:../../../addons/addon-environment-sc-ui/packages/environment-type-mgmt-ui
-      '@aws-ee/key-pair-mgmt-ui': link:../../../addons/addon-key-pair-mgmt-ui/packages/key-pair-mgmt-ui
+      '@amzn/base-raas-ui': link:../../../addons/addon-base-raas-ui/packages/base-raas-ui
+      '@amzn/base-ui': link:../../../addons/addon-base-ui/packages/base-ui
+      '@amzn/base-workflow-ui': link:../../../addons/addon-base-workflow-ui/packages/base-workflow-ui
+      '@amzn/environment-type-mgmt-ui': link:../../../addons/addon-environment-sc-ui/packages/environment-type-mgmt-ui
+      '@amzn/key-pair-mgmt-ui': link:../../../addons/addon-key-pair-mgmt-ui/packages/key-pair-mgmt-ui
       animate.css: 3.7.0
       aws-sdk: 2.1015.0
       classnames: 2.2.6
@@ -2754,8 +2811,8 @@ importers:
       typeface-lato: 0.0.75
       uuid: 3.4.0
     devDependencies:
-      '@aws-ee/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
-      '@aws-ee/base-serverless-ui-tools': link:../../../addons/addon-base-ui/packages/serverless-ui-tools
+      '@amzn/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
+      '@amzn/base-serverless-ui-tools': link:../../../addons/addon-base-ui/packages/serverless-ui-tools
       babel-eslint: 10.1.0_eslint@6.8.0
       eslint: 6.8.0
       eslint-config-airbnb: 18.2.1_89debf8fda32fbe99f1ba8ab582a8be5
@@ -5665,46 +5722,34 @@ packages:
     resolution: {integrity: sha512-ij4wRiunFfaJxjB0BdrYHIH8FxBJpOwNPhhAcunlmPdXudL1WQV1qoP9un6JsEBAgQH+7UXyyjh0g7jTxXK6tg==}
     dev: true
 
-  /@cypress/listr-verbose-renderer/0.4.1:
-    resolution: {integrity: sha1-p3SS9LEdzHxEajSz4ochr9M8ZCo=}
-    engines: {node: '>=4'}
-    dependencies:
-      chalk: 1.1.3
-      cli-cursor: 1.0.2
-      date-fns: 1.30.1
-      figures: 1.7.0
-    dev: true
-
-  /@cypress/request/2.88.5:
-    resolution: {integrity: sha512-TzEC1XMi1hJkywWpRfD2clreTa/Z+lOrXDCxxBTBPEcY5azdPi56A6Xw+O4tWJnaJH3iIE7G5aDXZC6JgRZLcA==}
+  /@cypress/request/2.88.10:
+    resolution: {integrity: sha512-Zp7F+R93N0yZyG34GutyTNr+okam7s/Fzc1+i3kcqOP8vk6OuajuE9qZJ6Rs+10/1JFtXFYMdyarnU1rZuJesg==}
     engines: {node: '>= 6'}
     dependencies:
       aws-sign2: 0.7.0
-      aws4: 1.9.1
+      aws4: 1.11.0
       caseless: 0.12.0
       combined-stream: 1.0.8
       extend: 3.0.2
       forever-agent: 0.6.1
       form-data: 2.3.3
-      har-validator: 5.1.3
-      http-signature: 1.2.0
+      http-signature: 1.3.6
       is-typedarray: 1.0.0
       isstream: 0.1.2
       json-stringify-safe: 5.0.1
-      mime-types: 2.1.26
-      oauth-sign: 0.9.0
+      mime-types: 2.1.31
       performance-now: 2.1.0
       qs: 6.5.2
       safe-buffer: 5.2.1
       tough-cookie: 2.5.0
       tunnel-agent: 0.6.0
-      uuid: 3.4.0
+      uuid: 8.3.2
     dev: true
 
   /@cypress/xvfb/1.2.4:
     resolution: {integrity: sha512-skbBzPggOVYCbnGgV+0dmBdW/s77ZkAOXIC1knS8NagwDjBrNC1LuXtQJeiN6l+m7lzmHtaoUw/ctJKdqkG57Q==}
     dependencies:
-      debug: 3.2.6
+      debug: 3.2.7
       lodash.once: 4.1.1
     dev: true
 
@@ -5784,6 +5829,23 @@ packages:
   /@emotion/weak-memoize/0.2.5:
     resolution: {integrity: sha512-6U71C2Wp7r5XtFtQzYrW5iKFT67OixrSxjI4MptCHzdSVlgabczzqLe0ZSgnub/5Kp4hSbpDB1tMytZY9pwxxA==}
     dev: false
+
+  /@eslint/eslintrc/1.2.1:
+    resolution: {integrity: sha512-bxvbYnBPN1Gibwyp6NrpnFzA3YtRL3BBAyEAFVIpNTm2Rn4Vy87GA5M4aSn3InRrlsbX5N0GW7XIx+U4SAEKdQ==}
+    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    dependencies:
+      ajv: 6.12.6
+      debug: 4.3.3
+      espree: 9.3.1
+      globals: 13.13.0
+      ignore: 5.2.0
+      import-fresh: 3.2.2
+      js-yaml: 4.1.0
+      minimatch: 3.0.4
+      strip-json-comments: 3.1.1
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
 
   /@hapi/accept/3.2.4:
     resolution: {integrity: sha512-soThGB+QMgfxlh0Vzhzlf3ZOEOPk5biEwcOXhkF0Eedqx8VnhGiggL9UYHrIsOb1rUg3Be3K8kp0iDL2wbVSOQ==}
@@ -6051,6 +6113,21 @@ packages:
       '@hapi/boom': 7.4.11
       '@hapi/bourne': 1.3.2
       '@hapi/hoek': 8.5.1
+    dev: true
+
+  /@humanwhocodes/config-array/0.9.5:
+    resolution: {integrity: sha512-ObyMyWxZiCu/yTisA7uzx81s40xR2fD5Cg/2Kq7G02ajkNubJf6BopgDTmDyc3U7sXpNKM8cYOw7s7Tyr+DnCw==}
+    engines: {node: '>=10.10.0'}
+    dependencies:
+      '@humanwhocodes/object-schema': 1.2.1
+      debug: 4.3.3
+      minimatch: 3.0.4
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
+  /@humanwhocodes/object-schema/1.2.1:
+    resolution: {integrity: sha512-ZnQMnLV4e7hDlUvw8H+U8ASL02SS2Gn6+9Ac3wGGLIe7+je2AeAOxPY+izIPJDfFDb7eDjev0Us8MO1iFRN8hA==}
     dev: true
 
   /@istanbuljs/load-nyc-config/1.0.0:
@@ -6488,22 +6565,6 @@ packages:
 
   /@protobufjs/utf8/1.1.0:
     resolution: {integrity: sha1-p3c2C1s5oaLlEG+OhY8v0tBgxXA=}
-    dev: true
-
-  /@samverschueren/stream-to-observable/0.3.1_rxjs@6.5.5:
-    resolution: {integrity: sha512-c/qwwcHyafOQuVQJj0IlBjf5yYgBI7YPJ77k4fOJYesb41jio65eaJODRUmfYKhTOFBrIZ66kgvGPlNbjuoRdQ==}
-    engines: {node: '>=6'}
-    peerDependencies:
-      rxjs: '*'
-      zen-observable: '*'
-    peerDependenciesMeta:
-      rxjs:
-        optional: true
-      zen-observable:
-        optional: true
-    dependencies:
-      any-observable: 0.3.0
-      rxjs: 6.5.5
     dev: true
 
   /@semantic-ui-react/event-stack/3.1.1_react-dom@16.13.1+react@16.13.1:
@@ -7162,6 +7223,7 @@ packages:
 
   /@types/aws-lambda/8.10.48:
     resolution: {integrity: sha512-+qFDcssXvrdXIxBbKCJp0atg94TJVJSt5sx3Cu6LOQX/EV2mbInjgxGeKuLmFFBjoxD7G6fSytZoeC6A9fzTuw==}
+    requiresBuild: true
     dev: false
     optional: true
 
@@ -7333,6 +7395,10 @@ packages:
     resolution: {integrity: sha512-J32dgx2hw8vXrSbu4ZlVhn1Nm3GbeCFNw2FWL8S5QKucHGY0cyNwjdQdO+KMBZ4wpmC7KhLCiNsdk1RFRIYUQQ==}
     dev: true
 
+  /@types/node/14.18.12:
+    resolution: {integrity: sha512-q4jlIR71hUpWTnGhXWcakgkZeHa3CCjcQcnuzU8M891BAWA2jHiziiWEPEkdS5pFsz7H9HJiy8BrK7tBRNrY7A==}
+    dev: true
+
   /@types/node/15.14.0:
     resolution: {integrity: sha512-um/+/ip3QZmwLfIkWZSNtQIJNVAqrJ92OkLMeuZrjZMTAJniI7fh8N8OICyDhAJ2mzgk/fmYFo72jRr5HyZ1EQ==}
 
@@ -7410,8 +7476,8 @@ packages:
       '@types/node': 15.14.0
     dev: false
 
-  /@types/sinonjs__fake-timers/6.0.1:
-    resolution: {integrity: sha512-yYezQwGWty8ziyYLdZjwxyMb0CZR49h8JALHGrxjQHWlqGgc8kLdHEgWrgL0uZ29DMvEVBDnHU2Wg36zKSIUtA==}
+  /@types/sinonjs__fake-timers/8.1.1:
+    resolution: {integrity: sha512-0kSuKjAS0TrGLJ0M/+8MaFkGsQhZpB6pxOmvS3K8FYI72K//YmdfoW9X2qPsAKh1mkwxGD5zib9s1FIFed6E8g==}
     dev: true
 
   /@types/sizzle/2.3.2:
@@ -7449,6 +7515,13 @@ packages:
     dependencies:
       '@types/yargs-parser': 15.0.0
     dev: true
+
+  /@types/yauzl/2.9.2:
+    resolution: {integrity: sha512-8uALY5LTvSuHgloDVUvWP3pIauILm+8/0pDMokuDYIoNsOkSwd5AiHBTSEJjKTDcZr5z8UpgOWZkxBF4iJftoA==}
+    dependencies:
+      '@types/node': 15.14.0
+    dev: true
+    optional: true
 
   /@typescript-eslint/eslint-plugin/2.34.0_984cbb313f9ea271f36cadd8f9814e06:
     resolution: {integrity: sha512-4zY3Z88rEE99+CNvTbXSyovv2z9PNOVffTWD2W8QF5s2prBQtwN2zadqERcrHpcR7O/+KMI3fcTAmUUhK/iQcQ==}
@@ -7878,6 +7951,14 @@ packages:
       acorn: 7.4.1
     dev: true
 
+  /acorn-jsx/5.3.1_acorn@8.7.0:
+    resolution: {integrity: sha512-K0Ptm/47OKfQRpNQ2J/oIN/3QYiK6FwW+eJbILhsdxh2WTLdl+30o8aGdTbm5JbffpFFAg/g+zi1E+jvJha5ng==}
+    peerDependencies:
+      acorn: ^6.0.0 || ^7.0.0 || ^8.0.0
+    dependencies:
+      acorn: 8.7.0
+    dev: true
+
   /acorn-walk/6.2.0:
     resolution: {integrity: sha512-7evsyfH1cLOCdAzZAd43Cic04yKydNx0cF+7tiA19p1XnLLPU4dpCQOqpjqwokFe//vS0QqfqqjCS2JkiIs0cA==}
     engines: {node: '>=0.4.0'}
@@ -7908,6 +7989,12 @@ packages:
 
   /acorn/7.4.1:
     resolution: {integrity: sha512-nQyp0o1/mNdbTO1PO6kHkwSrmgZ0MT/jCCpNiwbUjGoRN4dlBhqJtoQuCnEOKzgTVwg0ZWiCoQy6SxMebQVh8A==}
+    engines: {node: '>=0.4.0'}
+    hasBin: true
+    dev: true
+
+  /acorn/8.7.0:
+    resolution: {integrity: sha512-V/LGr1APy+PXIwKebEWrkZPwoeoF+w1jiOBUmuxuiUIaOHtob8Qc9BTrYo7VuI5fR8tqsy+buA2WFooR5olqvQ==}
     engines: {node: '>=0.4.0'}
     hasBin: true
     dev: true
@@ -8040,6 +8127,16 @@ packages:
     resolution: {integrity: sha1-l6ERlkmyEa0zaR2fn0hqjsn74KM=}
     dev: true
 
+  /amazon-cognito-identity-js/5.2.4:
+    resolution: {integrity: sha512-CTRG5LKBfMYmNrqAU0l7X0SA4OOXsPFdHmkW0Ky3NOZZo767W5GZecm5uPz3YyAVde1OHaUyLXYzhXEmnn+VcQ==}
+    dependencies:
+      buffer: 4.9.2
+      crypto-js: 4.1.1
+      fast-base64-decode: 1.0.0
+      isomorphic-unfetch: 3.1.0
+      js-cookie: 2.2.1
+    dev: true
+
   /animate.css/3.7.0:
     resolution: {integrity: sha512-u3iMXDJr0cxMdQocIciDiou9Au4L5f9uT+/jCtprw3s1j3HcfCuI+khF+90Ps2KdsEhM2soF7SXB4WUvI3HlXg==}
     dev: false
@@ -8058,6 +8155,11 @@ packages:
 
   /ansi-colors/3.2.4:
     resolution: {integrity: sha512-hHUXGagefjN2iRrID63xckIvotOXOojhQKWIPUZ4mNUZ9nLZW+7FMNoE1lOkEhNWYsx/7ysGIuJYCiMAA9FnrA==}
+    engines: {node: '>=6'}
+    dev: true
+
+  /ansi-colors/4.1.1:
+    resolution: {integrity: sha512-JoX0apGbHaUJBNl6yF+p6JAFYZ666/hhCGKN5t9QFjbJQKUU/g8MNbFDbvfrgKXvI1QpZplPOnwIo99lX/AAmA==}
     engines: {node: '>=6'}
     dev: true
 
@@ -8098,6 +8200,11 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
+  /ansi-regex/5.0.1:
+    resolution: {integrity: sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ==}
+    engines: {node: '>=8'}
+    dev: true
+
   /ansi-styles/2.2.1:
     resolution: {integrity: sha1-tDLdM1i2NM914eRmQ2gkBTPB3b4=}
     engines: {node: '>=0.10.0'}
@@ -8122,11 +8229,6 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       color-convert: 2.0.1
-    dev: true
-
-  /any-observable/0.3.0:
-    resolution: {integrity: sha512-/FQM1EDkTsf63Ub2C6O7GuYFDsSXUwsaZDurV0np41ocwq0jthUAYCmhBX9f+KwlaCgIuWyr/4WlUQUBfKfZog==}
-    engines: {node: '>=6'}
     dev: true
 
   /anymatch/2.0.0:
@@ -8154,6 +8256,10 @@ packages:
 
   /arch/2.1.2:
     resolution: {integrity: sha512-NTBIIbAfkJeIletyABbVtdPgeKfDafR+1mZV/AyyfC1UkVkp9iUjV+wwmqtUgphHYajbI86jejBJp5e+jkGTiQ==}
+    dev: true
+
+  /arch/2.2.0:
+    resolution: {integrity: sha512-Of/R0wqp83cgHozfIYLbBMnej79U/SVGOOyuB3VVFv1NRM/PSFMK12x9KVtiYzJqmnU5WR2qp0Z5rHb7sWGnFQ==}
     dev: true
 
   /archive-type/4.0.0:
@@ -8243,7 +8349,6 @@ packages:
 
   /argparse/2.0.1:
     resolution: {integrity: sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==}
-    dev: false
 
   /aria-query/3.0.0:
     resolution: {integrity: sha1-ZbP8wcoRVajJrmTW7uKX8V1RM8w=}
@@ -8330,6 +8435,17 @@ packages:
       is-string: 1.0.6
     dev: true
 
+  /array-includes/3.1.4:
+    resolution: {integrity: sha512-ZTNSQkmWumEbiHO2GF4GmWxYVTiQyJy2XOTa15sdQSrvKn7l+180egQMqlrMOUMCyLMD7pmyQe4mMDUT6Behrw==}
+    engines: {node: '>= 0.4'}
+    dependencies:
+      call-bind: 1.0.2
+      define-properties: 1.1.3
+      es-abstract: 1.19.1
+      get-intrinsic: 1.1.1
+      is-string: 1.0.7
+    dev: true
+
   /array-union/1.0.2:
     resolution: {integrity: sha1-mjRBDk9OPaI96jdb5b5w8kd47Dk=}
     engines: {node: '>=0.10.0'}
@@ -8374,6 +8490,15 @@ packages:
       call-bind: 1.0.2
       define-properties: 1.1.3
       es-abstract: 1.18.3
+    dev: true
+
+  /array.prototype.flat/1.2.5:
+    resolution: {integrity: sha512-KaYU+S+ndVqyUnignHftkwc58o3uVU1jzczILJ1tN2YaIZpFIKBiP/x/j97E5MVPsaCloPbqWLB/8qCTVvT2qg==}
+    engines: {node: '>= 0.4'}
+    dependencies:
+      call-bind: 1.0.2
+      define-properties: 1.1.3
+      es-abstract: 1.19.1
     dev: true
 
   /array.prototype.flatmap/1.2.4:
@@ -8441,6 +8566,11 @@ packages:
     engines: {node: '>=4'}
     dev: true
 
+  /astral-regex/2.0.0:
+    resolution: {integrity: sha512-Z7tMw1ytTXt5jqMcOP+OQteU1VuNK9Y02uuJtKQ1Sv69jXQKKg5cibLwGJow8yzZP+eAc18EmLGPal0bp36rvQ==}
+    engines: {node: '>=8'}
+    dev: true
+
   /async-each/1.0.3:
     resolution: {integrity: sha512-z/WhQ5FPySLdvREByI2vZiTWwCnF0moMJ1hK9YQwDTHKh6I7/uSckMetoRGb5UBZPC1z0jlw+n/XCgjeH7y1AQ==}
     dev: true
@@ -8476,7 +8606,6 @@ packages:
   /at-least-node/1.0.0:
     resolution: {integrity: sha512-+q/t7Ekv1EDY2l6Gda6LLiX14rU9TV20Wa3ofeQmwPFZbOMo9DXrLbOjFaaclkXKWidIaopwAObQDqwWtGUjqg==}
     engines: {node: '>= 4.0.0'}
-    dev: false
 
   /atob/2.1.2:
     resolution: {integrity: sha512-Wm6ukoaOGJi/73p/cl2GvLjTI5JM1k/O14isD73YML8StrH/7/lRFgmg8nICZgD3bZZvjwCGxtMOD3wWNAu8cg==}
@@ -8509,7 +8638,7 @@ packages:
   /aws-sdk-mock/5.1.0:
     resolution: {integrity: sha512-Wa5eCSo8HX0Snqb7FdBylaXMmfrAWoWZ+d7MFhiYsgHPvNvMEGjV945FF2qqE1U0Tolr1ALzik1fcwgaOhqUWQ==}
     dependencies:
-      aws-sdk: 2.847.0
+      aws-sdk: 2.1015.0
       sinon: 9.0.3
       traverse: 0.6.6
     dev: true
@@ -8561,21 +8690,6 @@ packages:
 
   /aws-sdk/2.802.0:
     resolution: {integrity: sha512-PfjBr5Ag4PdcEYPrfMclVWk85kFSJNe7qllZBE8RhYNu+K+Z2pveKfYkC5mqYoKEYIQyI9by9N47F+Tqm1GXtg==}
-    engines: {node: '>= 0.8.0'}
-    dependencies:
-      buffer: 4.9.2
-      events: 1.1.1
-      ieee754: 1.1.13
-      jmespath: 0.15.0
-      querystring: 0.2.0
-      sax: 1.2.1
-      url: 0.10.3
-      uuid: 3.3.2
-      xml2js: 0.4.19
-    dev: true
-
-  /aws-sdk/2.847.0:
-    resolution: {integrity: sha512-1iWlJiMoiFJVIVPrnUZ+E3h9YqmzgLn/Etv2XsupQY4QvFHWnZHEGXsWS2bEkC9+Ovg8TTwAQIRvqYWlKQjkVg==}
     engines: {node: '>= 0.8.0'}
     dependencies:
       buffer: 4.9.2
@@ -8646,10 +8760,6 @@ packages:
 
   /aws4/1.11.0:
     resolution: {integrity: sha512-xh1Rl34h6Fi1DC2WWKfxUTVqRsNnr6LsKz2+hfwDxQJWmrx8+c7ylaqBMcHfl1U1r2dsifOvKX3LQuLNZ+XSvA==}
-
-  /aws4/1.9.1:
-    resolution: {integrity: sha512-wMHVg2EOHaMRxbzgFJ9gtjOOCrI80OHLG14rxi28XwOW8ux6IiEbRCGGGqCtdAIg4FQCbW20k9RsT4y3gJlFug==}
-    dev: true
 
   /axe-core/4.1.1:
     resolution: {integrity: sha512-5Kgy8Cz6LPC9DJcNb3yjAXTu3XihQgEdnIg50c//zOC/MyLP0Clg+Y8Sh9ZjjnvBrDZU4DgXS9C3T9r4/scGZQ==}
@@ -9122,6 +9232,10 @@ packages:
       buffer: 5.7.1
       inherits: 2.0.4
       readable-stream: 3.6.0
+    dev: true
+
+  /blob-util/2.0.2:
+    resolution: {integrity: sha512-T7JQa+zsXXEa6/8ZhHcQEW1UFfVM49Ts65uBkFL6fz2QmrElqmbajIDJvuA0tEhRe5eIjpV9ZF+0RfZR9voJFQ==}
     dev: true
 
   /blob/0.0.5:
@@ -9723,7 +9837,7 @@ packages:
 
   /chokidar/2.1.8:
     resolution: {integrity: sha512-ZmZUazfOzf0Nve7duiCKD23PFSCs4JPoYyccjUFF3aQkQadqBhfzhjkwBH2mNOG9cTBwhamM37EIsIkZw3nRgg==}
-    deprecated: Chokidar 2 will break on node v14+. Upgrade to chokidar 3 with 15x less dependencies.
+    deprecated: Chokidar 2 does not receive security updates since 2019. Upgrade to chokidar 3 with 15x fewer dependencies
     dependencies:
       anymatch: 2.0.0
       async-each: 1.0.3
@@ -9752,7 +9866,7 @@ packages:
       normalize-path: 3.0.0
       readdirp: 3.3.0
     optionalDependencies:
-      fsevents: 2.1.2
+      fsevents: 2.1.3
     dev: true
 
   /chokidar/3.4.3:
@@ -9787,6 +9901,10 @@ packages:
 
   /ci-info/2.0.0:
     resolution: {integrity: sha512-5tK7EtrZ0N+OLFMthtqOj4fI2Jeb88C4CAZPu25LDVUgXJ0A3Js4PMGqrn0JU1W0Mh1/Z8wZzYPxqUrXeBboCQ==}
+    dev: true
+
+  /ci-info/3.3.0:
+    resolution: {integrity: sha512-riT/3vI5YpVH6/qomlDnJow6TBee2PBKSEpx3O32EGPYbWGIRsIlGRms3Sm74wYE1JMo8RnO04Hb12+v1J5ICw==}
     dev: true
 
   /cidr-regex/2.0.10:
@@ -9853,13 +9971,6 @@ packages:
       timers-ext: 0.1.7
     dev: true
 
-  /cli-cursor/1.0.2:
-    resolution: {integrity: sha1-ZNo/fValRBLll5S9Ytw1KV6PKYc=}
-    engines: {node: '>=0.10.0'}
-    dependencies:
-      restore-cursor: 1.0.1
-    dev: true
-
   /cli-cursor/2.1.0:
     resolution: {integrity: sha1-s12sN2R5+sw+lHR9QdDQ9SOP/LU=}
     engines: {node: '>=4'}
@@ -9874,22 +9985,21 @@ packages:
       restore-cursor: 3.1.0
     dev: true
 
-  /cli-table3/0.5.1:
-    resolution: {integrity: sha512-7Qg2Jrep1S/+Q3EceiZtQcDPWxhAvBw+ERf1162v4sikJrvojMHFqXt8QIVha8UlH9rgU0BeWPytZ9/TzYqlUw==}
-    engines: {node: '>=6'}
+  /cli-table3/0.6.1:
+    resolution: {integrity: sha512-w0q/enDHhPLq44ovMGdQeeDLvwxwavsJX7oQGYt/LrBlYsyaxyDnp6z3QzFut/6kLLKnlcUVJLrpB7KBfgG/RA==}
+    engines: {node: 10.* || >= 12.*}
     dependencies:
-      object-assign: 4.1.1
-      string-width: 2.1.1
+      string-width: 4.2.0
     optionalDependencies:
       colors: 1.4.0
     dev: true
 
-  /cli-truncate/0.2.1:
-    resolution: {integrity: sha1-nxXPuwcFAFNpIWxiasfQWrkN1XQ=}
-    engines: {node: '>=0.10.0'}
+  /cli-truncate/2.1.0:
+    resolution: {integrity: sha512-n8fOixwDD6b/ObinzTrp1ZKFzbgvKZvuz/TvejnLn1aQfC6r52XEx85FmuC+3HI+JM7coBRXUvNqEU2PHVrHpg==}
+    engines: {node: '>=8'}
     dependencies:
-      slice-ansi: 0.0.4
-      string-width: 1.0.2
+      slice-ansi: 3.0.0
+      string-width: 4.2.0
     dev: true
 
   /cli-width/2.2.1:
@@ -9979,11 +10089,6 @@ packages:
       q: 1.5.1
     dev: true
 
-  /code-point-at/1.1.0:
-    resolution: {integrity: sha1-DQcLTQQ6W+ozovGkDi7bPZpMz3c=}
-    engines: {node: '>=0.10.0'}
-    dev: true
-
   /collect-v8-coverage/1.0.1:
     resolution: {integrity: sha512-iBPtljfCNcTKNAto0KEtDfZ3qzjJvqE3aTGZsbhjSBlorqpXJlaWWtPO35D+ZImoC3KWejX64o+yPGxhWSTzfg==}
     dev: true
@@ -10044,6 +10149,10 @@ packages:
 
   /colorette/1.2.1:
     resolution: {integrity: sha512-puCDz0CzydiSYOrnXpz/PKd69zRrribezjtE9yd4zvytoRc8+RY/KJPvtPFKZS3E3wP6neGyMe0vOTlHO5L3Pw==}
+    dev: true
+
+  /colorette/2.0.16:
+    resolution: {integrity: sha512-hUewv7oMjCp+wkBv5Rm0v87eJhq4woh5rSR+42YSQJKecCqgIqNkZ6lAlQms/BwHPJA5NKMRlpxPRv0n8HQW6g==}
     dev: true
 
   /colornames/1.1.1:
@@ -10531,6 +10640,10 @@ packages:
       randombytes: 2.1.0
       randomfill: 1.0.4
 
+  /crypto-js/4.1.1:
+    resolution: {integrity: sha512-o2JlM7ydqd3Qk9CA0L4NL6mTzU2sdx96a+oOfPu8Mkl/PK51vSyoi8/rQ8NknZtk44vq15lmhAj9CIAGwgeWKw==}
+    dev: true
+
   /crypto-random-string/1.0.0:
     resolution: {integrity: sha1-ojD2T1aDEOFJgAmUB5DsmVRbyn4=}
     engines: {node: '>=4'}
@@ -10799,51 +10912,54 @@ packages:
     resolution: {integrity: sha1-WW6WmP0MgOEgOMK4LW6xs1tiJNk=}
     dev: true
 
-  /cypress/4.12.1:
-    resolution: {integrity: sha512-9SGIPEmqU8vuRA6xst2CMTYd9sCFCxKSzrHt0wr+w2iAQMCIIsXsQ5Gplns1sT6LDbZcmLv6uehabAOl3fhc9Q==}
-    engines: {node: '>=8.0.0'}
+  /cypress/9.5.0:
+    resolution: {integrity: sha512-rC5QPolKsVjJ8QJZ7IeZ6HlKM4gswBGZc0XvoAJNL8urQCSL8zTX0A/ai/h35WfF47NQ0iSZnwIXBlHX3MOUIQ==}
+    engines: {node: '>=12.0.0'}
     hasBin: true
     requiresBuild: true
     dependencies:
-      '@cypress/listr-verbose-renderer': 0.4.1
-      '@cypress/request': 2.88.5
+      '@cypress/request': 2.88.10
       '@cypress/xvfb': 1.2.4
-      '@types/sinonjs__fake-timers': 6.0.1
+      '@types/node': 14.18.12
+      '@types/sinonjs__fake-timers': 8.1.1
       '@types/sizzle': 2.3.2
-      arch: 2.1.2
+      arch: 2.2.0
+      blob-util: 2.0.2
       bluebird: 3.7.2
+      buffer: 5.7.1
       cachedir: 2.3.0
-      chalk: 2.4.2
+      chalk: 4.1.0
       check-more-types: 2.24.0
-      cli-table3: 0.5.1
-      commander: 4.1.1
+      cli-cursor: 3.1.0
+      cli-table3: 0.6.1
+      commander: 5.1.0
       common-tags: 1.8.0
-      debug: 4.1.1
+      dayjs: 1.10.7
+      debug: 4.3.3_supports-color@8.1.1
+      enquirer: 2.3.6
       eventemitter2: 6.4.3
-      execa: 1.0.0
+      execa: 4.1.0
       executable: 4.1.1
-      extract-zip: 1.7.0
-      fs-extra: 8.1.0
+      extract-zip: 2.0.1_supports-color@8.1.1
+      figures: 3.2.0
+      fs-extra: 9.1.0
       getos: 3.2.1
-      is-ci: 2.0.0
-      is-installed-globally: 0.3.2
+      is-ci: 3.0.1
+      is-installed-globally: 0.4.0
       lazy-ass: 1.6.0
-      listr: 0.14.3
+      listr2: 3.14.0_enquirer@2.3.6
       lodash: 4.17.21
-      log-symbols: 3.0.0
+      log-symbols: 4.1.0
       minimist: 1.2.5
-      moment: 2.27.0
       ospath: 1.2.2
-      pretty-bytes: 5.3.0
-      ramda: 0.26.1
+      pretty-bytes: 5.6.0
+      proxy-from-env: 1.0.0
       request-progress: 3.0.0
-      supports-color: 7.1.0
-      tmp: 0.1.0
+      semver: 7.3.4
+      supports-color: 8.1.1
+      tmp: 0.2.1
       untildify: 4.0.0
-      url: 0.11.0
       yauzl: 2.10.0
-    transitivePeerDependencies:
-      - zen-observable
     dev: true
 
   /d/1.0.1:
@@ -10880,13 +10996,13 @@ packages:
       whatwg-url: 8.4.0
     dev: true
 
-  /date-fns/1.30.1:
-    resolution: {integrity: sha512-hBSVCvSmWC+QypYObzwGOd9wqdDpOt+0wl0KbU+R+uuZBS1jN8VsD1ss3irQDknRj5NvxiTF6oj/nDRnN/UQNw==}
-    dev: true
-
   /date-fns/2.1.0:
     resolution: {integrity: sha512-eKeLk3sLCnxB/0PN4t1+zqDtSs4jb4mXRSTZ2okmx/myfWyDqeO4r5nnmA5LClJiCwpuTMeK2v5UQPuE4uMaxA==}
     dev: false
+
+  /dayjs/1.10.7:
+    resolution: {integrity: sha512-P6twpd70BcPK34K26uJ1KT3wlhpuOAPoMwJzpsIWUxHZ7wpmbdZL/hQqBDfz7hGurYSa5PhzdhDHtt319hL3ig==}
+    dev: true
 
   /dayjs/1.8.23:
     resolution: {integrity: sha512-NmYHMFONftoZbeOhVz6jfiXI4zSiPN6NoVWJgC0aZQfYVwzy/ZpESPHuCcI0B8BUMpSJQ08zenHDbofOLKq8hQ==}
@@ -10911,12 +11027,6 @@ packages:
     resolution: {integrity: sha512-OX8XqP7/1a9cqkxYw2yXss15f26NKWBpDXQd0/uK/KPqdQhxbPa994hnzjcE2VqQpDslf55723cKPUOGSmMY3g==}
     dependencies:
       ms: 2.0.0
-    dev: true
-
-  /debug/3.2.6:
-    resolution: {integrity: sha512-mel+jf7nrtEl5Pn1Qx46zARXKDpBbvzezse7p7LqINmdoIk8PYP5SySaxEmYv6TZ0JyEKA1hsCId6DIhgITtWQ==}
-    dependencies:
-      ms: 2.1.2
     dev: true
 
   /debug/3.2.7:
@@ -10954,6 +11064,31 @@ packages:
     dependencies:
       ms: 2.1.2
       supports-color: 6.1.0
+    dev: true
+
+  /debug/4.3.3:
+    resolution: {integrity: sha512-/zxw5+vh1Tfv+4Qn7a5nsbcJKPaSvCDhojn6FEl9vupwK2VCSDtEiEtqr8DFtzYFOdz63LBkxec7DYuc2jon6Q==}
+    engines: {node: '>=6.0'}
+    peerDependencies:
+      supports-color: '*'
+    peerDependenciesMeta:
+      supports-color:
+        optional: true
+    dependencies:
+      ms: 2.1.2
+    dev: true
+
+  /debug/4.3.3_supports-color@8.1.1:
+    resolution: {integrity: sha512-/zxw5+vh1Tfv+4Qn7a5nsbcJKPaSvCDhojn6FEl9vupwK2VCSDtEiEtqr8DFtzYFOdz63LBkxec7DYuc2jon6Q==}
+    engines: {node: '>=6.0'}
+    peerDependencies:
+      supports-color: '*'
+    peerDependenciesMeta:
+      supports-color:
+        optional: true
+    dependencies:
+      ms: 2.1.2
+      supports-color: 8.1.1
     dev: true
 
   /decamelize/1.2.0:
@@ -11216,37 +11351,45 @@ packages:
     resolution: {integrity: sha512-Rps1xDkEEBSq3kLdsdnHZL1x2S4NGDcbrjmd4q+PykK5aJwDdP5MBgrJw1Xo+kyUHuv3JEzPqxr+Dj9ryeDRTA==}
     engines: {node: '>= 6.0'}
     dependencies:
-      debug: 4.1.1
+      debug: 4.3.1
       gonzales-pe: 4.3.0
       node-source-walk: 4.2.0
+    transitivePeerDependencies:
+      - supports-color
     dev: true
 
   /detective-postcss/3.0.1:
     resolution: {integrity: sha512-tfTS2GdpUal5NY0aCqI4dpEy8Xfr88AehYKB0iBIZvo8y2g3UsrcDnrp9PR2FbzoW7xD5Rip3NJW7eCSvtqdUw==}
     engines: {node: '>=6.0.0'}
     dependencies:
-      debug: 4.1.1
+      debug: 4.3.1
       is-url: 1.2.4
       postcss: 7.0.27
       postcss-values-parser: 1.5.0
+    transitivePeerDependencies:
+      - supports-color
     dev: true
 
   /detective-sass/3.0.1:
     resolution: {integrity: sha512-oSbrBozRjJ+QFF4WJFbjPQKeakoaY1GiR380NPqwdbWYd5wfl5cLWv0l6LsJVqrgWfFN1bjFqSeo32Nxza8Lbw==}
     engines: {node: '>= 6.0'}
     dependencies:
-      debug: 4.1.1
+      debug: 4.3.1
       gonzales-pe: 4.3.0
       node-source-walk: 4.2.0
+    transitivePeerDependencies:
+      - supports-color
     dev: true
 
   /detective-scss/2.0.1:
     resolution: {integrity: sha512-VveyXW4WQE04s05KlJ8K0bG34jtHQVgTc9InspqoQxvnelj/rdgSAy7i2DXAazyQNFKlWSWbS+Ro2DWKFOKTPQ==}
     engines: {node: '>= 6.0'}
     dependencies:
-      debug: 4.1.1
+      debug: 4.3.1
       gonzales-pe: 4.3.0
       node-source-walk: 4.2.0
+    transitivePeerDependencies:
+      - supports-color
     dev: true
 
   /detective-stylus/1.0.0:
@@ -11548,11 +11691,6 @@ packages:
     resolution: {integrity: sha512-JMDl46mg4G+n6q/hAJkwy9eMTj5FJjsE+8f/irAGRMLM4yeRVbMuRrdZrbbGGOrGVcZc4vJPjUpEUWNb/fA6hg==}
     dev: true
 
-  /elegant-spinner/1.0.1:
-    resolution: {integrity: sha1-2wQ1IcldfjA/2PNFvtwzSc+wcp4=}
-    engines: {node: '>=0.10.0'}
-    dev: true
-
   /elliptic/6.5.3:
     resolution: {integrity: sha512-IMqzv5wNQf+E6aHeIqATs0tOLeOTwj1QKbRcS3jBbYkl5oLAserA8yJTT7/VyHUYG91PRmPyeQDObKLPpeS4dw==}
     dependencies:
@@ -11714,6 +11852,13 @@ packages:
       graceful-fs: 4.2.4
       memory-fs: 0.5.0
       tapable: 1.1.3
+    dev: true
+
+  /enquirer/2.3.6:
+    resolution: {integrity: sha512-yjNnPr315/FjS4zIsUxYguYUPP2e1NK4d7E7ZOLiyYCcbFBiTMyID+2wvm2w6+pZ/odMA7cRkjhsPbltwBOrLg==}
+    engines: {node: '>=8.6'}
+    dependencies:
+      ansi-colors: 4.1.1
     dev: true
 
   /entities/1.1.2:
@@ -11882,6 +12027,32 @@ packages:
       string.prototype.trimstart: 1.0.4
       unbox-primitive: 1.0.1
 
+  /es-abstract/1.19.1:
+    resolution: {integrity: sha512-2vJ6tjA/UfqLm2MPs7jxVybLoB8i1t1Jd9R3kISld20sIxPcTbLuggQOUxeWeAvIUkduv/CfMjuh4WmiXr2v9w==}
+    engines: {node: '>= 0.4'}
+    dependencies:
+      call-bind: 1.0.2
+      es-to-primitive: 1.2.1
+      function-bind: 1.1.1
+      get-intrinsic: 1.1.1
+      get-symbol-description: 1.0.0
+      has: 1.0.3
+      has-symbols: 1.0.2
+      internal-slot: 1.0.3
+      is-callable: 1.2.4
+      is-negative-zero: 2.0.1
+      is-regex: 1.1.4
+      is-shared-array-buffer: 1.0.1
+      is-string: 1.0.7
+      is-weakref: 1.0.2
+      object-inspect: 1.11.0
+      object-keys: 1.1.1
+      object.assign: 4.1.2
+      string.prototype.trimend: 1.0.4
+      string.prototype.trimstart: 1.0.4
+      unbox-primitive: 1.0.1
+    dev: true
+
   /es-cookie/1.3.2:
     resolution: {integrity: sha512-UTlYYhXGLOy05P/vKVT2Ui7WtC7NiRzGtJyAKKn32g5Gvcjn7KAClLPWlipCtxIus934dFg9o9jXiBL0nP+t9Q==}
     dev: false
@@ -11890,7 +12061,7 @@ packages:
     resolution: {integrity: sha512-QCOllgZJtaUo9miYBcLChTUaHNjJF3PYs1VidD7AwiEj1kYxKeQTctLAezAOH5ZKRH0g2IgPn6KwB4IT8iRpvA==}
     engines: {node: '>= 0.4'}
     dependencies:
-      is-callable: 1.2.3
+      is-callable: 1.2.4
       is-date-object: 1.0.2
       is-symbol: 1.0.3
 
@@ -11962,6 +12133,11 @@ packages:
   /escape-string-regexp/2.0.0:
     resolution: {integrity: sha512-UpzcLCXolUWcNu5HtVMHYdXJjArjsF9C0aNnquZYY4uW/Vu0miy5YoWvbV345HauVvcAUnpRuhMMcqTcGOY2+w==}
     engines: {node: '>=8'}
+    dev: true
+
+  /escape-string-regexp/4.0.0:
+    resolution: {integrity: sha512-TtpcNJ3XAzx3Gq8sWRzJaVajRs0uVxA2YAkdb1jm2YkPz4G6egUFAyA3n5vtEIZefPk5Wa4UXbKuS5fKkJWdgA==}
+    engines: {node: '>=10'}
     dev: true
 
   /escodegen/1.14.1:
@@ -12046,6 +12222,21 @@ packages:
       object.entries: 1.1.3
     dev: true
 
+  /eslint-config-airbnb-base/15.0.0_fe22d862ffeecaee86c93a006d59e41e:
+    resolution: {integrity: sha512-xaX3z4ZZIcFLvh2oUNvcX5oEofXda7giYmuplVxoOg5A7EXJMrUyqRgR+mhDhPK8LZ4PttFOBvCYDbX3sUoUig==}
+    engines: {node: ^10.12.0 || >=12.0.0}
+    peerDependencies:
+      eslint: ^7.32.0 || ^8.2.0
+      eslint-plugin-import: ^2.25.2
+    dependencies:
+      confusing-browser-globals: 1.0.10
+      eslint: 8.11.0
+      eslint-plugin-import: 2.25.4_eslint@8.11.0
+      object.assign: 4.1.2
+      object.entries: 1.1.5
+      semver: 6.3.0
+    dev: true
+
   /eslint-config-airbnb/18.1.0_7221e9efc3e1df952f9031babfc371af:
     resolution: {integrity: sha512-kZFuQC/MPnH7KJp6v95xsLBf63G/w7YqdPfQ0MUanxQ7zcKUNG8j+sSY860g3NwCBOa62apw16J6pRN+AOgXzw==}
     engines: {node: '>= 6'}
@@ -12121,6 +12312,24 @@ packages:
       object.entries: 1.1.3
     dev: true
 
+  /eslint-config-airbnb/19.0.4_6e2b3c7d5a0ae98a97389954576cf0c3:
+    resolution: {integrity: sha512-T75QYQVQX57jiNgpF9r1KegMICE94VYwoFQyMGhrvc+lB8YF2E/M/PYDaQe1AJcWaEgqLE+ErXV1Og/+6Vyzew==}
+    engines: {node: ^10.12.0 || ^12.22.0 || ^14.17.0 || >=16.0.0}
+    peerDependencies:
+      eslint: ^7.32.0 || ^8.2.0
+      eslint-plugin-import: ^2.25.3
+      eslint-plugin-jsx-a11y: ^6.5.1
+      eslint-plugin-react: ^7.28.0
+      eslint-plugin-react-hooks: ^4.3.0
+    dependencies:
+      eslint: 8.11.0
+      eslint-config-airbnb-base: 15.0.0_fe22d862ffeecaee86c93a006d59e41e
+      eslint-plugin-import: 2.25.4_eslint@8.11.0
+      eslint-plugin-jsx-a11y: 6.4.1_eslint@8.11.0
+      object.assign: 4.1.2
+      object.entries: 1.1.5
+    dev: true
+
   /eslint-config-prettier/6.10.1_eslint@6.8.0:
     resolution: {integrity: sha512-svTy6zh1ecQojvpbJSgH3aei/Rt7C6i090l5f2WQ4aB05lYHeZIR1qL4wZyyILTbtmnbHP5Yn8MrsOJMGa8RkQ==}
     hasBin: true
@@ -12139,6 +12348,15 @@ packages:
     dependencies:
       eslint: 6.8.0
       get-stdin: 6.0.0
+    dev: true
+
+  /eslint-config-prettier/8.5.0_eslint@8.11.0:
+    resolution: {integrity: sha512-obmWKLUNCnhtQRKc+tmnYuQl0pFU1ibYJQ5BGhTVB08bHe9wC8qUeG7c08dj9XX+AuPj1YSGSQIHl1pnDHZR0Q==}
+    hasBin: true
+    peerDependencies:
+      eslint: '>=7.0.0'
+    dependencies:
+      eslint: 8.11.0
     dev: true
 
   /eslint-config-react-app/5.2.1_f8f91f27f800428497667fb337aaf85d:
@@ -12180,6 +12398,13 @@ packages:
       resolve: 1.20.0
     dev: true
 
+  /eslint-import-resolver-node/0.3.6:
+    resolution: {integrity: sha512-0En0w03NRVMn9Uiyn8YRPDKvWjxCWkslUEhGNTdGx15RvPJYQ+lbOlqrlNI2vEAs4pDYK4f/HN2TbDmk5TP0iw==}
+    dependencies:
+      debug: 3.2.7
+      resolve: 1.20.0
+    dev: true
+
   /eslint-loader/3.0.3_eslint@6.8.0+webpack@4.42.0:
     resolution: {integrity: sha512-+YRqB95PnNvxNp1HEjQmvf9KNvCin5HXYYseOXVC2U0KEcw4IkQ2IQEBG46j7+gW39bMzeu0GsUhVbBY3Votpw==}
     engines: {node: '>= 8.9.0'}
@@ -12213,12 +12438,20 @@ packages:
       pkg-dir: 2.0.0
     dev: true
 
-  /eslint-plugin-cypress/2.11.1_eslint@6.8.0:
+  /eslint-module-utils/2.7.3:
+    resolution: {integrity: sha512-088JEC7O3lDZM9xGe0RerkOMd0EjFl+Yvd1jPWIkMT5u3H9+HC34mWWPnqPrN13gieT9pBOO+Qt07Nb/6TresQ==}
+    engines: {node: '>=4'}
+    dependencies:
+      debug: 3.2.7
+      find-up: 2.1.0
+    dev: true
+
+  /eslint-plugin-cypress/2.11.1_eslint@8.11.0:
     resolution: {integrity: sha512-MxMYoReSO5+IZMGgpBZHHSx64zYPSPTpXDwsgW7ChlJTF/sA+obqRbHplxD6sBStE+g4Mi0LCLkG4t9liu//mQ==}
     peerDependencies:
       eslint: '>= 3.2.1'
     dependencies:
-      eslint: 6.8.0
+      eslint: 8.11.0
       globals: 11.12.0
     dev: true
 
@@ -12320,6 +12553,28 @@ packages:
       tsconfig-paths: 3.9.0
     dev: true
 
+  /eslint-plugin-import/2.25.4_eslint@8.11.0:
+    resolution: {integrity: sha512-/KJBASVFxpu0xg1kIBn9AUa8hQVnszpwgE7Ld0lKAlx7Ie87yzEzCgSkekt+le/YVhiaosO4Y14GDAOc41nfxA==}
+    engines: {node: '>=4'}
+    peerDependencies:
+      eslint: ^2 || ^3 || ^4 || ^5 || ^6 || ^7.2.0 || ^8
+    dependencies:
+      array-includes: 3.1.4
+      array.prototype.flat: 1.2.5
+      debug: 2.6.9
+      doctrine: 2.1.0
+      eslint: 8.11.0
+      eslint-import-resolver-node: 0.3.6
+      eslint-module-utils: 2.7.3
+      has: 1.0.3
+      is-core-module: 2.8.1
+      is-glob: 4.0.3
+      minimatch: 3.0.4
+      object.values: 1.1.5
+      resolve: 1.20.0
+      tsconfig-paths: 3.14.0
+    dev: true
+
   /eslint-plugin-jest/22.21.0_eslint@6.8.0:
     resolution: {integrity: sha512-OaqnSS7uBgcGiqXUiEnjoqxPNKvR4JWG5mSRkzVoR6+vDwlqqp11beeql1hYs0HTbdhiwrxWLxbX0Vx7roG3Ew==}
     engines: {node: '>=6'}
@@ -12383,6 +12638,26 @@ packages:
       language-tags: 1.0.5
     dev: true
 
+  /eslint-plugin-jsx-a11y/6.4.1_eslint@8.11.0:
+    resolution: {integrity: sha512-0rGPJBbwHoGNPU73/QCLP/vveMlM1b1Z9PponxO87jfr6tuH5ligXbDT6nHSSzBC8ovX2Z+BQu7Bk5D/Xgq9zg==}
+    engines: {node: '>=4.0'}
+    peerDependencies:
+      eslint: ^3 || ^4 || ^5 || ^6 || ^7
+    dependencies:
+      '@babel/runtime': 7.12.5
+      aria-query: 4.2.2
+      array-includes: 3.1.3
+      ast-types-flow: 0.0.7
+      axe-core: 4.1.1
+      axobject-query: 2.2.0
+      damerau-levenshtein: 1.0.6
+      emoji-regex: 9.2.0
+      eslint: 8.11.0
+      has: 1.0.3
+      jsx-ast-utils: 3.1.0
+      language-tags: 1.0.5
+    dev: true
+
   /eslint-plugin-prettier/3.1.2_eslint@6.8.0+prettier@1.19.1:
     resolution: {integrity: sha512-GlolCC9y3XZfv3RQfwGew7NnuFDKsfI4lbvRK+PIIo23SFH+LemGs4cKwzAaRa+Mdb+lQO/STaIayno8T5sJJA==}
     engines: {node: '>=6.0.0'}
@@ -12403,6 +12678,23 @@ packages:
       prettier: '>=1.13.0'
     dependencies:
       eslint: 6.8.0
+      prettier: 1.19.1
+      prettier-linter-helpers: 1.0.0
+    dev: true
+
+  /eslint-plugin-prettier/3.4.0_6188649406ba029b27b4fb6038e89fc2:
+    resolution: {integrity: sha512-UDK6rJT6INSfcOo545jiaOwB701uAIt2/dR7WnFQoGCVl1/EMqdANBmwUaqqQ45aXprsTGzSa39LI1PyuRBxxw==}
+    engines: {node: '>=6.0.0'}
+    peerDependencies:
+      eslint: '>=5.0.0'
+      eslint-config-prettier: '*'
+      prettier: '>=1.13.0'
+    peerDependenciesMeta:
+      eslint-config-prettier:
+        optional: true
+    dependencies:
+      eslint: 8.11.0
+      eslint-config-prettier: 8.5.0_eslint@8.11.0
       prettier: 1.19.1
       prettier-linter-helpers: 1.0.0
     dev: true
@@ -12499,6 +12791,14 @@ packages:
       estraverse: 4.3.0
     dev: true
 
+  /eslint-scope/7.1.1:
+    resolution: {integrity: sha512-QKQM/UXpIiHcLqJ5AOyIW7XZmzjkzQXYE54n1++wb0u9V/abW3l9uQnxX8Z5Xd18xyKIMTUAyQ0k1e8pz6LUrw==}
+    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    dependencies:
+      esrecurse: 4.3.0
+      estraverse: 5.2.0
+    dev: true
+
   /eslint-utils/1.4.3:
     resolution: {integrity: sha512-fbBN5W2xdY45KulGXmLHZ3c3FHfVYmKg0IrAKGOkT/464PQsx2UeIzfz1RmEci+KLm1bBaAzZAh8+/E+XAeZ8Q==}
     engines: {node: '>=6'}
@@ -12513,9 +12813,29 @@ packages:
       eslint-visitor-keys: 1.3.0
     dev: true
 
+  /eslint-utils/3.0.0_eslint@8.11.0:
+    resolution: {integrity: sha512-uuQC43IGctw68pJA1RgbQS8/NP7rch6Cwd4j3ZBtgo4/8Flj4eGE7ZYSZRN3iq5pVUv6GPdW5Z1RFleo84uLDA==}
+    engines: {node: ^10.0.0 || ^12.0.0 || >= 14.0.0}
+    peerDependencies:
+      eslint: '>=5'
+    dependencies:
+      eslint: 8.11.0
+      eslint-visitor-keys: 2.1.0
+    dev: true
+
   /eslint-visitor-keys/1.3.0:
     resolution: {integrity: sha512-6J72N8UNa462wa/KFODt/PJ3IU60SDpC3QXC1Hjc1BXXpfL2C9R5+AU7jhe0F6GREqVMh4Juu+NY7xn+6dipUQ==}
     engines: {node: '>=4'}
+    dev: true
+
+  /eslint-visitor-keys/2.1.0:
+    resolution: {integrity: sha512-0rSmRBzXgDzIsD6mGdJgevzgezI534Cer5L/vyMX0kHzT/jiB43jRhd9YUlMGYLQy2zprNmoT8qasCGtY+QaKw==}
+    engines: {node: '>=10'}
+    dev: true
+
+  /eslint-visitor-keys/3.3.0:
+    resolution: {integrity: sha512-mQ+suqKJVyeuwGYHAdjMFqjCyfl8+Ldnxuyp3ldiMBFKkvytrXUZWaiPCEav8qDHKty44bD+qV1IP4T+w+xXRA==}
+    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
     dev: true
 
   /eslint/6.8.0:
@@ -12564,6 +12884,50 @@ packages:
       - supports-color
     dev: true
 
+  /eslint/8.11.0:
+    resolution: {integrity: sha512-/KRpd9mIRg2raGxHRGwW9ZywYNAClZrHjdueHcrVDuO3a6bj83eoTirCCk0M0yPwOjWYKHwRVRid+xK4F/GHgA==}
+    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    hasBin: true
+    dependencies:
+      '@eslint/eslintrc': 1.2.1
+      '@humanwhocodes/config-array': 0.9.5
+      ajv: 6.12.6
+      chalk: 4.1.0
+      cross-spawn: 7.0.2
+      debug: 4.3.3
+      doctrine: 3.0.0
+      escape-string-regexp: 4.0.0
+      eslint-scope: 7.1.1
+      eslint-utils: 3.0.0_eslint@8.11.0
+      eslint-visitor-keys: 3.3.0
+      espree: 9.3.1
+      esquery: 1.4.0
+      esutils: 2.0.3
+      fast-deep-equal: 3.1.3
+      file-entry-cache: 6.0.1
+      functional-red-black-tree: 1.0.1
+      glob-parent: 6.0.2
+      globals: 13.13.0
+      ignore: 5.2.0
+      import-fresh: 3.2.2
+      imurmurhash: 0.1.4
+      is-glob: 4.0.3
+      js-yaml: 4.1.0
+      json-stable-stringify-without-jsonify: 1.0.1
+      levn: 0.4.1
+      lodash.merge: 4.6.2
+      minimatch: 3.0.4
+      natural-compare: 1.4.0
+      optionator: 0.9.1
+      regexpp: 3.2.0
+      strip-ansi: 6.0.1
+      strip-json-comments: 3.1.1
+      text-table: 0.2.0
+      v8-compile-cache: 2.2.0
+    transitivePeerDependencies:
+      - supports-color
+    dev: true
+
   /esniff/1.1.0:
     resolution: {integrity: sha1-xmhJIp+RRk3t4uDUAgHtar9l8qw=}
     dependencies:
@@ -12578,6 +12942,15 @@ packages:
       acorn: 7.4.1
       acorn-jsx: 5.3.1_acorn@7.4.1
       eslint-visitor-keys: 1.3.0
+    dev: true
+
+  /espree/9.3.1:
+    resolution: {integrity: sha512-bvdyLmJMfwkV3NCRl5ZhJf22zBFo1y8bYh3VYb+bfzqNB4Je68P2sSuXyuFquzWLebHpNd2/d5uv7yoP9ISnGQ==}
+    engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
+    dependencies:
+      acorn: 8.7.0
+      acorn-jsx: 5.3.1_acorn@8.7.0
+      eslint-visitor-keys: 3.3.0
     dev: true
 
   /esprima/4.0.1:
@@ -12736,11 +13109,6 @@ packages:
     resolution: {integrity: sha1-KueOhdmJQVhnCwPUe+wfA72Ru50=}
     dev: false
 
-  /exit-hook/1.1.1:
-    resolution: {integrity: sha1-8FyiM7SMBdVP/wd2XfhQfpXAL/g=}
-    engines: {node: '>=0.10.0'}
-    dev: true
-
   /exit/0.1.2:
     resolution: {integrity: sha1-BjJjj42HfMghB9MKD/8aF8uhzQw=}
     engines: {node: '>= 0.8.0'}
@@ -12887,19 +13255,27 @@ packages:
       to-regex: 3.0.2
     dev: true
 
-  /extract-zip/1.7.0:
-    resolution: {integrity: sha512-xoh5G1W/PB0/27lXgMQyIhP5DSY/LhoCsOyZgb+6iMmRtCwVBo55uKaMoEYrDCKQhWvqEip5ZPKAc6eFNyf/MA==}
+  /extract-zip/2.0.1_supports-color@8.1.1:
+    resolution: {integrity: sha512-GDhU9ntwuKyGXdZBUgTIe+vXnWj0fppUEtMDL0+idd5Sta8TGpHssn/eusA9mrPr9qNDym6SxAYZjNvCn/9RBg==}
+    engines: {node: '>= 10.17.0'}
     hasBin: true
     dependencies:
-      concat-stream: 1.6.2
-      debug: 2.6.9
-      mkdirp: 0.5.5
+      debug: 4.3.3_supports-color@8.1.1
+      get-stream: 5.2.0
       yauzl: 2.10.0
+    optionalDependencies:
+      '@types/yauzl': 2.9.2
+    transitivePeerDependencies:
+      - supports-color
     dev: true
 
   /extsprintf/1.3.0:
     resolution: {integrity: sha1-lpGEQOMEGnpBT4xS48V06zw+HgU=}
     engines: {'0': node >=0.6.0}
+
+  /fast-base64-decode/1.0.0:
+    resolution: {integrity: sha512-qwaScUgUGBYeDNRnbc/KyllVU88Jk1pRHPStuF/lO7B0/RTRLj7U0lkdTAutlBblY08rwZDff6tNU9cjv6j//Q==}
+    dev: true
 
   /fast-deep-equal/3.1.1:
     resolution: {integrity: sha512-8UEa58QDLauDNfpbrX55Q9jrGHThw2ZMdOky5Gl1CDtVeJDPVrG4Jxx1N8jw2gkWaff5UUuX1KJd+9zGe2B+ZA==}
@@ -13002,14 +13378,6 @@ packages:
     resolution: {integrity: sha512-0btnI/H8f2pavGMN8w40mlSKOfTK2SVJmBfBeVIj3kNw0swwgzyRq0d5TJVOwodFmtvpPeWPN/MCcfuWF0Ezbw==}
     dev: true
 
-  /figures/1.7.0:
-    resolution: {integrity: sha1-y+Hjr/zxzUS4DK3+0o3Hk6lwHS4=}
-    engines: {node: '>=0.10.0'}
-    dependencies:
-      escape-string-regexp: 1.0.5
-      object-assign: 4.1.1
-    dev: true
-
   /figures/2.0.0:
     resolution: {integrity: sha1-OrGi0qYsi/tDGgyUy3l6L84nyWI=}
     engines: {node: '>=4'}
@@ -13029,6 +13397,13 @@ packages:
     engines: {node: '>=4'}
     dependencies:
       flat-cache: 2.0.1
+    dev: true
+
+  /file-entry-cache/6.0.1:
+    resolution: {integrity: sha512-7Gps/XWymbLk2QLYK4NzpMOrYjMhdIxXuIvy2QBsLE6ljuodKvdkWs/cpyJJ3CVIVpH0Oi1Hvg1ovbMzLdFBBg==}
+    engines: {node: ^10.12.0 || >=12.0.0}
+    dependencies:
+      flat-cache: 3.0.4
     dev: true
 
   /file-exists-dazinatorfork/1.0.2:
@@ -13126,6 +13501,8 @@ packages:
       sass-lookup: 3.0.0
       stylus-lookup: 3.0.2
       typescript: 3.8.3
+    transitivePeerDependencies:
+      - supports-color
     dev: true
 
   /fill-range/4.0.0:
@@ -13275,6 +13652,14 @@ packages:
       write: 1.0.3
     dev: true
 
+  /flat-cache/3.0.4:
+    resolution: {integrity: sha512-dm9s5Pw7Jc0GvMYbshN6zchCA9RgQlzzEZX3vylR9IqFfS8XciblUXOKfW6SiuJ0e13eDYZoZV5wdrev7P3Nwg==}
+    engines: {node: ^10.12.0 || >=12.0.0}
+    dependencies:
+      flatted: 3.2.5
+      rimraf: 3.0.2
+    dev: true
+
   /flat/5.0.0:
     resolution: {integrity: sha512-6KSMM+cHHzXC/hpldXApL2S8Uz+QZv+tq5o/L0KQYleoG+GcwrnIJhTWC7tCOiKQp8D/fIvryINU1OZCCwevjA==}
     deprecated: Fixed a prototype pollution security issue in 5.0.0, please upgrade to ^5.0.1.
@@ -13290,6 +13675,10 @@ packages:
 
   /flatted/2.0.2:
     resolution: {integrity: sha512-r5wGx7YeOwNWNlCA0wQ86zKyDLMQr+/RB8xy74M4hTphfmjlijTSSXGuH8rnvKZnfT9i+75zmd8jcKdMR4O6jA==}
+    dev: true
+
+  /flatted/3.2.5:
+    resolution: {integrity: sha512-WIWGi2L3DyTUvUrwRKgGi9TwxQMUEqPOPQBVi71R96jZXJdFskXEmf54BoZaS1kknGODoIGASGEzBUYdyMCBJg==}
     dev: true
 
   /flatten/1.0.3:
@@ -13458,7 +13847,6 @@ packages:
       graceful-fs: 4.2.4
       jsonfile: 6.1.0
       universalify: 2.0.0
-    dev: false
 
   /fs-minipass/2.1.0:
     resolution: {integrity: sha512-V/JgOLFCS+R6Vcq0slCuaeWEdNC3ouDlJMNIsacH2VtALiu9mV4LPrHc5cDl8k5aw6J8jwgWWpiTo5RYhmIzvg==}
@@ -13526,7 +13914,9 @@ packages:
     resolution: {integrity: sha512-R4wDiBwZ0KzpgOWetKDug1FZcYhqYnUYKtfZYt4mD5SBz76q0KR4Q9o7GIPamsVPGmW3EYPPJ0dOOjvx32ldZA==}
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
     os: [darwin]
-    deprecated: Please update to latest version
+    deprecated: '"Please update to latest v2.3 or v2.2"'
+    requiresBuild: true
+    dev: true
     optional: true
 
   /fsevents/2.1.3:
@@ -13534,7 +13924,7 @@ packages:
     engines: {node: ^8.16.0 || ^10.6.0 || >=11.0.0}
     os: [darwin]
     deprecated: '"Please update to latest v2.3 or v2.2"'
-    dev: true
+    requiresBuild: true
     optional: true
 
   /function-bind/1.1.1:
@@ -13645,6 +14035,14 @@ packages:
       pump: 3.0.0
     dev: true
 
+  /get-symbol-description/1.0.0:
+    resolution: {integrity: sha512-2EmdH1YvIQiZpltCNgkuiUnyukzxM/R6NDJX31Ke3BG1Nq5b0S2PhX59UKi9vZpPDQVdqn+1IcaAwnzTT5vCjw==}
+    engines: {node: '>= 0.4'}
+    dependencies:
+      call-bind: 1.0.2
+      get-intrinsic: 1.1.1
+    dev: true
+
   /get-value/2.0.6:
     resolution: {integrity: sha1-3BXKHGcjh8p2vTesCjlbogQqLCg=}
     engines: {node: '>=0.10.0'}
@@ -13682,6 +14080,13 @@ packages:
       is-glob: 4.0.1
     dev: true
 
+  /glob-parent/6.0.2:
+    resolution: {integrity: sha512-XxwI8EOhVQgWp6iDL+3b0r86f4d6AX6zSU55HfB4ydCEuXLXc5FcYeOu+nnGftS4TEju/11rt4KJPTMgbfmv4A==}
+    engines: {node: '>=10.13.0'}
+    dependencies:
+      is-glob: 4.0.3
+    dev: true
+
   /glob-to-regexp/0.3.0:
     resolution: {integrity: sha1-jFoUlNIGbFcMw7/kSWF1rMTVAqs=}
     dev: true
@@ -13704,11 +14109,11 @@ packages:
       ini: 1.3.5
     dev: true
 
-  /global-dirs/2.0.1:
-    resolution: {integrity: sha512-5HqUqdhkEovj2Of/ms3IeS/EekcO54ytHRLV4PEY2rhRwrHXLQjeVEES0Lhka0xwNDtGYn58wyC4s5+MHsOO6A==}
-    engines: {node: '>=8'}
+  /global-dirs/3.0.0:
+    resolution: {integrity: sha512-v8ho2DS5RiCjftj1nD9NmnfaOzTdud7RRnVd9kFNOjqZbISlx5DQ+OrTkywgd0dIt7oFCvKetZSHoHcP3sDdiA==}
+    engines: {node: '>=10'}
     dependencies:
-      ini: 1.3.5
+      ini: 2.0.0
     dev: true
 
   /global-modules/1.0.0:
@@ -13757,6 +14162,13 @@ packages:
     engines: {node: '>=8'}
     dependencies:
       type-fest: 0.8.1
+    dev: true
+
+  /globals/13.13.0:
+    resolution: {integrity: sha512-EQ7Q18AJlPwp3vUDL4mKA0KXrXyNIQyWon6T6XQiBQF0XHvRsiCSrWmmeATpUzdJN2HhWZU6Pdl0a9zdep5p6A==}
+    engines: {node: '>=8'}
+    dependencies:
+      type-fest: 0.20.2
     dev: true
 
   /globby/10.0.2:
@@ -13946,15 +14358,6 @@ packages:
     resolution: {integrity: sha1-qUwiJOvKwEeCoNkDVSHyRzW37JI=}
     engines: {node: '>=4'}
 
-  /har-validator/5.1.3:
-    resolution: {integrity: sha512-sNvOCzEQNr/qrvJgc3UG/kD4QtlHycrzwS+6mfTrrSq97BvaYcPZZI1ZSqGSPR73Cxn4LKTD4PttRwfU7jWq5g==}
-    engines: {node: '>=6'}
-    deprecated: this library is no longer supported
-    dependencies:
-      ajv: 6.12.2
-      har-schema: 2.0.0
-    dev: true
-
   /har-validator/5.1.5:
     resolution: {integrity: sha512-nmT2T0lljbxdQZfspsno9hgrG3Uir6Ks5afism62poxqBM6sDnMEuPmzTq8XN0OEwqKLLdh1jQI3qyE66Nzb3w==}
     engines: {node: '>=6'}
@@ -14013,6 +14416,12 @@ packages:
     dependencies:
       has-symbol-support-x: 1.4.2
     dev: true
+
+  /has-tostringtag/1.0.0:
+    resolution: {integrity: sha512-kFjcSNhnlGV1kyoGk7OXKSawH5JOb/LzUc5w9B02hOTO0dfFRjbHQKvg1d6cf3HbeUmtU9VbbV3qzZ2Teh97WQ==}
+    engines: {node: '>= 0.4'}
+    dependencies:
+      has-symbols: 1.0.2
 
   /has-value/0.3.1:
     resolution: {integrity: sha1-ex9YutpiyoJ+wKIHgCVlSEWZXh8=}
@@ -14293,6 +14702,15 @@ packages:
       jsprim: 1.4.1
       sshpk: 1.16.1
 
+  /http-signature/1.3.6:
+    resolution: {integrity: sha512-3adrsD6zqo4GsTqtO7FyrejHNv+NgiIfAfv68+jVlFmSr9OGy7zrxONceFRLKvnnZA5jbxQBX1u9PpB6Wi32Gw==}
+    engines: {node: '>=0.10'}
+    dependencies:
+      assert-plus: 1.0.0
+      jsprim: 2.0.2
+      sshpk: 1.16.1
+    dev: true
+
   /https-browserify/1.0.0:
     resolution: {integrity: sha1-7AbBDgo0wPL68Zn3/X/Hj//QPHM=}
     dev: true
@@ -14390,6 +14808,11 @@ packages:
     engines: {node: '>= 4'}
     dev: true
 
+  /ignore/5.2.0:
+    resolution: {integrity: sha512-CmxgYGiEPCLhfLnpPp1MoRmifwEIOgjcHXxOBjv7mY96c+eWScsOP9c112ZyLdWHi0FxHjI+4uVhKYp/gcdRmQ==}
+    engines: {node: '>= 4'}
+    dev: true
+
   /immediate/3.0.6:
     resolution: {integrity: sha1-nbHb0Pr43m++D13V5Wu2BigN5ps=}
     dev: true
@@ -14455,11 +14878,6 @@ packages:
     engines: {node: '>=0.8.19'}
     dev: true
 
-  /indent-string/3.2.0:
-    resolution: {integrity: sha1-Sl/W0nzDMvN+VBmlBNu4NxBckok=}
-    engines: {node: '>=4'}
-    dev: true
-
   /indent-string/4.0.0:
     resolution: {integrity: sha512-EdDDZu4A2OyIK7Lr/2zG+w5jmbuk1DVBnEwREQvBzspBJkCEbRa8GxU1lghYcaGJCnRWibjDXlq779X1/y5xwg==}
     engines: {node: '>=8'}
@@ -14497,6 +14915,11 @@ packages:
   /ini/1.3.5:
     resolution: {integrity: sha512-RZY5huIKCMRWDUqZlEi72f/lmXKMvuszcMBduliQ3nnWbx9X/ZBQO7DijMEYS9EhHBb2qacRUMtC7svLwe0lcw==}
     deprecated: Please update to ini >=1.3.6 to avoid a prototype pollution issue
+    dev: true
+
+  /ini/2.0.0:
+    resolution: {integrity: sha512-7PnF4oN3CvZF23ADhA5wRaYEQpJ8qygSkbtTXWBeXWXmEVRXK+1ITciHWwHhsjv1TmW0MgacIv6hEi5pX5NQdA==}
+    engines: {node: '>=10'}
     dev: true
 
   /inquirer-autocomplete-prompt/1.3.0:
@@ -14607,6 +15030,15 @@ packages:
       es-abstract: 1.18.3
       has: 1.0.3
       side-channel: 1.0.3
+    dev: true
+
+  /internal-slot/1.0.3:
+    resolution: {integrity: sha512-O0DB1JC/sPyZl7cIo78n5dR7eUSwwpYPiXRhTzNxZVAMUuB8vlnRFyLxdrVToks6XPLVnFfbzaVd5WLjhgg+vA==}
+    engines: {node: '>= 0.4'}
+    dependencies:
+      get-intrinsic: 1.1.1
+      has: 1.0.3
+      side-channel: 1.0.4
     dev: true
 
   /interpret/1.2.0:
@@ -14748,6 +15180,10 @@ packages:
     resolution: {integrity: sha512-J1DcMe8UYTBSrKezuIUTUwjXsho29693unXM2YhJUTR2txK/eG47bvNa/wipPFmZFgr/N6f1GA66dv0mEyTIyQ==}
     engines: {node: '>= 0.4'}
 
+  /is-callable/1.2.4:
+    resolution: {integrity: sha512-nsuwtxZfMX67Oryl9LCQ+upnC0Z0BgpwntpS89m1H/TLF0zNfzfLMV/9Wa/6MZsj0acpEjAO0KF1xT6ZdLl95w==}
+    engines: {node: '>= 0.4'}
+
   /is-ci/1.2.1:
     resolution: {integrity: sha512-s6tfsaQaQi3JNciBH6shVqEDvhGut0SUXr31ag8Pd8BBbVVlcGfWhpPmEOoM6RJ5TFhbypvf5yyRw/VXW1IiWg==}
     hasBin: true
@@ -14760,6 +15196,13 @@ packages:
     hasBin: true
     dependencies:
       ci-info: 2.0.0
+    dev: true
+
+  /is-ci/3.0.1:
+    resolution: {integrity: sha512-ZYvCgrefwqoQ6yTyYUbQu64HsITZ3NfKX1lzaEYdkTDcfKzzCI/wthRRYKkdjHKFVgNiXKAKm65Zo1pk2as/QQ==}
+    hasBin: true
+    dependencies:
+      ci-info: 3.3.0
     dev: true
 
   /is-cidr/3.1.0:
@@ -14787,6 +15230,12 @@ packages:
 
   /is-core-module/2.5.0:
     resolution: {integrity: sha512-TXCMSDsEHMEEZ6eCA8rwRDbLu55MRGmrctljsBX/2v1d9/GzqHOxW5c5oPSgrUt2vBFXebu9rGqckXGPWOlYpg==}
+    dependencies:
+      has: 1.0.3
+    dev: true
+
+  /is-core-module/2.8.1:
+    resolution: {integrity: sha512-SdNCUs284hr40hFTFP6l0IfZ/RSrMXF3qgoRHd3/79unUTvrFO/JoXwkGm+5J/Oe3E/b5GsnG330uUNgRpu1PA==}
     dependencies:
       has: 1.0.3
     dev: true
@@ -14869,13 +15318,6 @@ packages:
     engines: {node: '>=0.10.0'}
     dev: true
 
-  /is-fullwidth-code-point/1.0.0:
-    resolution: {integrity: sha1-754xOG8DGn8NZDr4L95QxFfvAMs=}
-    engines: {node: '>=0.10.0'}
-    dependencies:
-      number-is-nan: 1.0.1
-    dev: true
-
   /is-fullwidth-code-point/2.0.0:
     resolution: {integrity: sha1-o7MKXE8ZkYMWeqq5O+764937ZU8=}
     engines: {node: '>=4'}
@@ -14904,6 +15346,13 @@ packages:
       is-extglob: 2.1.1
     dev: true
 
+  /is-glob/4.0.3:
+    resolution: {integrity: sha512-xelSayHH36ZgE7ZWhli7pW34hNbNl8Ojv5KVmkJD4hBdD3th8Tfk9vYasLM+mXWOZhFkgZfxhLSnrwRr4elSSg==}
+    engines: {node: '>=0.10.0'}
+    dependencies:
+      is-extglob: 2.1.1
+    dev: true
+
   /is-hexadecimal/1.0.4:
     resolution: {integrity: sha512-gyPJuv83bHMpocVYoqof5VDiZveEoGoFL8m3BXNb2VW8Xs+rz9kqO8LOQ5DH6EsuvilT1ApazU0pyl+ytbPtlw==}
     dev: false
@@ -14916,11 +15365,11 @@ packages:
       is-path-inside: 1.0.1
     dev: true
 
-  /is-installed-globally/0.3.2:
-    resolution: {integrity: sha512-wZ8x1js7Ia0kecP/CHM/3ABkAmujX7WPvQk6uu3Fly/Mk44pySulQpnHG46OMjHGXApINnV4QhY3SWnECO2z5g==}
-    engines: {node: '>=8'}
+  /is-installed-globally/0.4.0:
+    resolution: {integrity: sha512-iwGqO3J21aaSkC7jWnHP/difazwS7SFeIqxv6wEtLU8Y5KlzFTjyqcSIT0d8s4+dDhKytsk9PJZ2BkS5eZwQRQ==}
+    engines: {node: '>=10'}
     dependencies:
-      global-dirs: 2.0.1
+      global-dirs: 3.0.0
       is-path-inside: 3.0.2
     dev: true
 
@@ -14977,13 +15426,6 @@ packages:
     resolution: {integrity: sha512-2rRIahhZr2UWb45fIOuvZGpFtz0TyOZLf32KxBbSoUCeZR495zCKlWUKKUByk3geS2eAs7ZAABt0Y/Rx0GiQGA==}
     dev: true
 
-  /is-observable/1.1.0:
-    resolution: {integrity: sha512-NqCa4Sa2d+u7BWc6CukaObG3Fh+CU9bvixbpcXYhy2VvYS7vVGIdAgnIS5Ks3A/cqk4rebLJ9s8zBstT2aKnIA==}
-    engines: {node: '>=4'}
-    dependencies:
-      symbol-observable: 1.2.0
-    dev: true
-
   /is-path-cwd/2.2.0:
     resolution: {integrity: sha512-w942bTcih8fdJPJmQHFzkS76NEP8Kzzvmw92cXsazb8intwLqPibPPdXf4ANdKV3rYMuuQYGIWtvz9JilB3NFQ==}
     engines: {node: '>=6'}
@@ -15031,10 +15473,6 @@ packages:
     resolution: {integrity: sha1-DFLlS8yjkbssSUsh6GJtczbG45c=}
     dev: true
 
-  /is-promise/2.1.0:
-    resolution: {integrity: sha1-eaKp7OfwlugPNtKy87wWwf9L8/o=}
-    dev: true
-
   /is-promise/2.2.2:
     resolution: {integrity: sha512-+lP4/6lKUBfQjZ2pdxThZvLUAafmZb8OAxFb8XXtiQmS35INgr85hdOGoEs124ez1FCnZJt6jau/T+alh58QFQ==}
     dev: true
@@ -15064,6 +15502,14 @@ packages:
       call-bind: 1.0.2
       has-symbols: 1.0.2
 
+  /is-regex/1.1.4:
+    resolution: {integrity: sha512-kvRdxDsxZjhzUX07ZnLydzS1TU/TJlTUHHY4YLL87e37oUA49DfkLqgy+VjFocowy29cKvcSiu+kIv728jTTVg==}
+    engines: {node: '>= 0.4'}
+    dependencies:
+      call-bind: 1.0.2
+      has-tostringtag: 1.0.0
+    dev: true
+
   /is-regexp/1.0.0:
     resolution: {integrity: sha1-/S2INUXEa6xaYz57mgnof6LLUGk=}
     engines: {node: '>=0.10.0'}
@@ -15091,6 +15537,10 @@ packages:
     engines: {node: '>=6'}
     dev: true
 
+  /is-shared-array-buffer/1.0.1:
+    resolution: {integrity: sha512-IU0NmyknYZN0rChcKhRO1X8LYz5Isj/Fsqh8NJOSf+N/hCOTwy29F32Ik7a+QszE63IdvmwdTPDd6cZ5pg4cwA==}
+    dev: true
+
   /is-stream/1.1.0:
     resolution: {integrity: sha1-EtSj3U5o4Lec6428hBc66A2RykQ=}
     engines: {node: '>=0.10.0'}
@@ -15108,6 +15558,12 @@ packages:
   /is-string/1.0.6:
     resolution: {integrity: sha512-2gdzbKUuqtQ3lYNrUTQYoClPhm7oQu4UdpSZMp1/DGgkHBT8E2Z1l0yMdb6D4zNAxwDiMv8MdulKROJGNl0Q0w==}
     engines: {node: '>= 0.4'}
+
+  /is-string/1.0.7:
+    resolution: {integrity: sha512-tE2UXzivje6ofPW7l23cjDOMa09gb7xlAqG6jG5ej6uPV32TlWP3NKPigtaGeHNu9fohccRYvIiZMfOOnOYUtg==}
+    engines: {node: '>= 0.4'}
+    dependencies:
+      has-tostringtag: 1.0.0
 
   /is-subset/0.1.1:
     resolution: {integrity: sha1-ilkRfZMt4d4A8kX83TnOQ/HpOaY=}
@@ -15129,6 +15585,11 @@ packages:
   /is-typedarray/1.0.0:
     resolution: {integrity: sha1-5HnICFjfDBsR3dppQPlgEfzaSpo=}
 
+  /is-unicode-supported/0.1.0:
+    resolution: {integrity: sha512-knxG2q4UC3u8stRGyAVJCOdxFmv5DZiRcdlIaAQXAbSfJya+OhopNotLQrstBhququ4ZpuKbDc/8S6mgXgPFPw==}
+    engines: {node: '>=10'}
+    dev: true
+
   /is-url/1.2.4:
     resolution: {integrity: sha512-ITvGim8FhRiYe4IQ5uHSkj7pVaPDrCTkNd3yq3cV7iZAcJdHTUMPMEHcqSOy9xZ9qFenQCvi+2wjH9a1nXqHww==}
     dev: true
@@ -15136,6 +15597,12 @@ packages:
   /is-utf8/0.2.1:
     resolution: {integrity: sha1-Sw2hRCEE0bM2NA6AeX6GXPOffXI=}
     dev: false
+
+  /is-weakref/1.0.2:
+    resolution: {integrity: sha512-qctsuLZmIQ0+vSSMfoVvyFe2+GSEvnmZ2ezTup1SBse9+twCCeial6EEi3Nc2KFcf6+qz2FBPnjXsk8xhKSaPQ==}
+    dependencies:
+      call-bind: 1.0.2
+    dev: true
 
   /is-windows/1.0.2:
     resolution: {integrity: sha512-eXK1UInq2bPmjyX6e3VHIzMLobc4J94i4AWn+Hpq3OU5KkrRC96OAcR3PRJ/pGu6m8TRnBHP9dkXQVsT/COVIA==}
@@ -15200,6 +15667,13 @@ packages:
     dependencies:
       node-fetch: 1.7.3
       whatwg-fetch: 3.0.0
+    dev: true
+
+  /isomorphic-unfetch/3.1.0:
+    resolution: {integrity: sha512-geDJjpoZ8N0kWexiwkX8F9NkTsXhetLPVbZFQ+JTW239QNOwvB0gniuR1Wc6f0AMTn7/mFGyXvHTifrCp/GH8Q==}
+    dependencies:
+      node-fetch: 2.6.1
+      unfetch: 4.2.0
     dev: true
 
   /isomorphic-ws/4.0.1_ws@7.2.3:
@@ -16215,6 +16689,10 @@ packages:
     resolution: {integrity: sha512-XwIBPqcMn57FxfT+Go5pzySnm4KWkT1Tv7gjrpT1srtf8Weynl6R273VJ5GjkRb51IzMp5nbaPjJXMWeju2MKg==}
     dev: false
 
+  /js-cookie/2.2.1:
+    resolution: {integrity: sha512-HvdH2LzI/EAZcUwA8+0nKNtWHqS+ZmijLA30RwZA0bo7ToCckjK5MkGhjED9KoRcXO6BaGI3I9UIzSA1FKFPOQ==}
+    dev: true
+
   /js-string-escape/1.0.1:
     resolution: {integrity: sha1-4mJbrbwNZ8dTPp7cEGjFh65BN+8=}
     engines: {node: '>= 0.8'}
@@ -16262,7 +16740,6 @@ packages:
     hasBin: true
     dependencies:
       argparse: 2.0.1
-    dev: false
 
   /jsbn/0.1.1:
     resolution: {integrity: sha1-peZUwuWi3rXyAdls77yoDA7y9RM=}
@@ -16432,6 +16909,10 @@ packages:
   /json-schema/0.2.3:
     resolution: {integrity: sha1-tIDIkuWaLwWVTOcnvT8qTogvnhM=}
 
+  /json-schema/0.4.0:
+    resolution: {integrity: sha512-es94M3nTIfsEPisRafak+HDLfHXnKBhV3vU5eqPcS3flIWqcxJWgXHXiey3YrpaNsanY5ei1VoYEbOzijuq9BA==}
+    dev: true
+
   /json-stable-stringify-without-jsonify/1.0.1:
     resolution: {integrity: sha1-nbe1lJatPzz+8wp1FC0tkwrXJlE=}
     dev: true
@@ -16491,7 +16972,6 @@ packages:
       universalify: 2.0.0
     optionalDependencies:
       graceful-fs: 4.2.4
-    dev: false
 
   /jsonify/0.0.0:
     resolution: {integrity: sha1-LHS27kHZPKUbe1qu6PUDYx0lKnM=}
@@ -16525,6 +17005,16 @@ packages:
       extsprintf: 1.3.0
       json-schema: 0.2.3
       verror: 1.10.0
+
+  /jsprim/2.0.2:
+    resolution: {integrity: sha512-gqXddjPqQ6G40VdnI6T6yObEC+pDNvyP95wdQhkWkg7crHH3km5qP1FsOXEkzEQwnz6gz5qGTn1c2Y52wP3OyQ==}
+    engines: {'0': node >=0.6.0}
+    dependencies:
+      assert-plus: 1.0.0
+      extsprintf: 1.3.0
+      json-schema: 0.4.0
+      verror: 1.10.0
+    dev: true
 
   /jsx-ast-utils/2.4.1:
     resolution: {integrity: sha512-z1xSldJ6imESSzOjd3NNkieVJKRlKYSOtMG8SFyCj2FIrvSaSuli/WjpBkEzCBoR9bYYYFgqJw61Xhu7Lcgk+w==}
@@ -16745,6 +17235,14 @@ packages:
       type-check: 0.3.2
     dev: true
 
+  /levn/0.4.1:
+    resolution: {integrity: sha512-+bT2uH4E5LGE7h/n3evcS/sQlJXCpIp6ym8OWJ5eV6+67Dsql/LaaT7qJBAt2rzfoa/5QBGBhxDix1dMt2kQKQ==}
+    engines: {node: '>= 0.8.0'}
+    dependencies:
+      prelude-ls: 1.2.1
+      type-check: 0.4.0
+    dev: true
+
   /lie/3.3.0:
     resolution: {integrity: sha512-UaiMJzeWRlEujzAuw5LokY1L5ecNQYZKfmyZ9L7wDHb/p5etKaxXhohBcrw0EYby+G/NA52vRSN4N39dxHAIwQ==}
     dependencies:
@@ -16754,53 +17252,24 @@ packages:
   /lines-and-columns/1.1.6:
     resolution: {integrity: sha1-HADHQ7QzzQpOgHWPe2SldEDZ/wA=}
 
-  /listr-silent-renderer/1.1.1:
-    resolution: {integrity: sha1-kktaN1cVN3C/Go4/v3S4u/P5JC4=}
-    engines: {node: '>=4'}
-    dev: true
-
-  /listr-update-renderer/0.5.0_listr@0.14.3:
-    resolution: {integrity: sha512-tKRsZpKz8GSGqoI/+caPmfrypiaq+OQCbd+CovEC24uk1h952lVj5sC7SqyFUm+OaJ5HN/a1YLt5cit2FMNsFA==}
-    engines: {node: '>=6'}
+  /listr2/3.14.0_enquirer@2.3.6:
+    resolution: {integrity: sha512-TyWI8G99GX9GjE54cJ+RrNMcIFBfwMPxc3XTFiAYGN4s10hWROGtOg7+O6u6LE3mNkyld7RSLE6nrKBvTfcs3g==}
+    engines: {node: '>=10.0.0'}
     peerDependencies:
-      listr: ^0.14.2
+      enquirer: '>= 2.3.0 < 3'
+    peerDependenciesMeta:
+      enquirer:
+        optional: true
     dependencies:
-      chalk: 1.1.3
-      cli-truncate: 0.2.1
-      elegant-spinner: 1.0.1
-      figures: 1.7.0
-      indent-string: 3.2.0
-      listr: 0.14.3
-      log-symbols: 1.0.2
-      log-update: 2.3.0
-      strip-ansi: 3.0.1
-    dev: true
-
-  /listr-verbose-renderer/0.5.0:
-    resolution: {integrity: sha512-04PDPqSlsqIOaaaGZ+41vq5FejI9auqTInicFRndCBgE3bXG8D6W1I+mWhk+1nqbHmyhla/6BUrd5OSiHwKRXw==}
-    engines: {node: '>=4'}
-    dependencies:
-      chalk: 2.4.2
-      cli-cursor: 2.1.0
-      date-fns: 1.30.1
-      figures: 2.0.0
-    dev: true
-
-  /listr/0.14.3:
-    resolution: {integrity: sha512-RmAl7su35BFd/xoMamRjpIE4j3v+L28o8CT5YhAXQJm1fD+1l9ngXY8JAQRJ+tFK2i5njvi0iRUKV09vPwA0iA==}
-    engines: {node: '>=6'}
-    dependencies:
-      '@samverschueren/stream-to-observable': 0.3.1_rxjs@6.5.5
-      is-observable: 1.1.0
-      is-promise: 2.1.0
-      is-stream: 1.1.0
-      listr-silent-renderer: 1.1.1
-      listr-update-renderer: 0.5.0_listr@0.14.3
-      listr-verbose-renderer: 0.5.0
-      p-map: 2.1.0
-      rxjs: 6.5.5
-    transitivePeerDependencies:
-      - zen-observable
+      cli-truncate: 2.1.0
+      colorette: 2.0.16
+      enquirer: 2.3.6
+      log-update: 4.0.0
+      p-map: 4.0.0
+      rfdc: 1.3.0
+      rxjs: 7.5.4
+      through: 2.3.8
+      wrap-ansi: 7.0.0
     dev: true
 
   /load-json-file/2.0.0:
@@ -16938,6 +17407,10 @@ packages:
     resolution: {integrity: sha1-vMbEmkKihA7Zl/Mj6tpezRguC/4=}
     dev: true
 
+  /lodash.merge/4.6.2:
+    resolution: {integrity: sha512-0KpjqXRVvrYyCsX1swR/XTK0va6VQkQM6MNo7PqW77ByjAhoARA8EfrP1N4+KlKj8YS0ZUCtRT/YUuhyYDujIQ==}
+    dev: true
+
   /lodash.once/4.1.1:
     resolution: {integrity: sha1-DdOXEhPHxW34gJd9UEyI+0cal6w=}
 
@@ -16973,27 +17446,22 @@ packages:
   /lodash/4.17.21:
     resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
 
-  /log-symbols/1.0.2:
-    resolution: {integrity: sha1-N2/3tY6jCGoPCfrMdGF+ylAeGhg=}
-    engines: {node: '>=0.10.0'}
+  /log-symbols/4.1.0:
+    resolution: {integrity: sha512-8XPvpAA8uyhfteu8pIvQxpJZ7SYYdpUivZpGy6sFsBuKRY/7rQGavedeB8aK+Zkyq6upMFVL/9AW6vOYzfRyLg==}
+    engines: {node: '>=10'}
     dependencies:
-      chalk: 1.1.3
+      chalk: 4.1.0
+      is-unicode-supported: 0.1.0
     dev: true
 
-  /log-symbols/3.0.0:
-    resolution: {integrity: sha512-dSkNGuI7iG3mfvDzUuYZyvk5dD9ocYCYzNU6CYDE6+Xqd+gwme6Z00NS3dUh8mq/73HaEtT7m6W+yUPtU6BZnQ==}
-    engines: {node: '>=8'}
+  /log-update/4.0.0:
+    resolution: {integrity: sha512-9fkkDevMefjg0mmzWFBW8YkFP91OrizzkW3diF7CpG+S2EYdy4+TVfGwz1zeF8x7hCx1ovSPTOE9Ngib74qqUg==}
+    engines: {node: '>=10'}
     dependencies:
-      chalk: 2.4.2
-    dev: true
-
-  /log-update/2.3.0:
-    resolution: {integrity: sha1-iDKP19HOeTiykoN0bwsbwSayRwg=}
-    engines: {node: '>=4'}
-    dependencies:
-      ansi-escapes: 3.2.0
-      cli-cursor: 2.1.0
-      wrap-ansi: 3.0.1
+      ansi-escapes: 4.3.1
+      cli-cursor: 3.1.0
+      slice-ansi: 4.0.0
+      wrap-ansi: 6.2.0
     dev: true
 
   /log/6.0.0:
@@ -17304,13 +17772,6 @@ packages:
     resolution: {integrity: sha512-FM3QwxV+TnZYQ2aRqhlKBMHxk10lTbMt3bBkMAp54ddrNeVSfcQYOOKuGuy3Ddrm38I04If834fOUSq1yzslJQ==}
     engines: {node: '>= 0.6'}
 
-  /mime-types/2.1.26:
-    resolution: {integrity: sha512-01paPWYgLrkqAyrlDorC1uDwl2p3qZT7yl806vW7DvDoxwXi46jsjFbg+WdwotBIk6/MbEhO/dh5aZ5sNj/dWQ==}
-    engines: {node: '>= 0.6'}
-    dependencies:
-      mime-db: 1.43.0
-    dev: true
-
   /mime-types/2.1.27:
     resolution: {integrity: sha512-JIhqnCasI9yD+SsmkquHBxTSEuZdQX5BuQnS2Vc7puQQQ+8yiP5AY5uWhpdv4YL4VM5c6iliiYWPgJ/nJQLp7w==}
     engines: {node: '>= 0.6'}
@@ -17598,11 +18059,13 @@ packages:
     hasBin: true
     dependencies:
       commander: 2.20.3
-      debug: 4.1.1
+      debug: 4.3.1
       file-exists-dazinatorfork: 1.0.2
       find: 0.3.0
       requirejs: 2.3.6
       requirejs-config-file: 3.1.2
+    transitivePeerDependencies:
+      - supports-color
     dev: true
 
   /moment/2.27.0:
@@ -17839,15 +18302,34 @@ packages:
   /node-fetch/2.6.0:
     resolution: {integrity: sha512-8dG4H5ujfvFiqDmVu9fQ5bOHUC15JMjMY/Zumv26oOvvVJjM67KF8koCWIabKQ1GJIa9r2mMZscBq/TbdOcmNA==}
     engines: {node: 4.x || >=6.0.0}
+    dev: true
 
   /node-fetch/2.6.1:
     resolution: {integrity: sha512-V4aYg89jEoVRxRb2fJdAg8FHvI7cEyYdVAh94HH0UIK8oJxUfkjlDQN9RbMx+bEjP7+ggMiFRprSti032Oipxw==}
     engines: {node: 4.x || >=6.0.0}
     dev: true
 
+  /node-fetch/2.6.7:
+    resolution: {integrity: sha512-ZjMPFEfVx5j+y2yF35Kzx5sF7kDzxuDj6ziH4FFbOp87zKDZNx8yExJIb05OGF4Nlt9IHFIMBkRl41VdvcNdbQ==}
+    engines: {node: 4.x || >=6.0.0}
+    peerDependencies:
+      encoding: ^0.1.0
+    peerDependenciesMeta:
+      encoding:
+        optional: true
+    dependencies:
+      whatwg-url: 5.0.0
+    dev: false
+
   /node-forge/0.10.0:
     resolution: {integrity: sha512-PPmu8eEeG9saEUvI97fm4OYxXVB6bFvyNTyiUOBichBpFG8A1Ljw3bY62+5oOjDEMHRnd0Y7HQ+x7uzxOzC6JA==}
     engines: {node: '>= 6.0.0'}
+    dev: true
+
+  /node-forge/1.3.0:
+    resolution: {integrity: sha512-08ARB91bUi6zNKzVmaj3QO7cr397uiDT2nJ63cHjyNtCTWIgvS47j3eT0WfzUwS9+6Z5YshRaoasFkXCKrIYbA==}
+    engines: {node: '>= 6.13.0'}
+    dev: false
 
   /node-int64/0.4.0:
     resolution: {integrity: sha1-h6kGXNs1XTGC2PlM4RGIuCXGijs=}
@@ -17898,6 +18380,7 @@ packages:
 
   /node-notifier/8.0.1:
     resolution: {integrity: sha512-BvEXF+UmsnAfYfoapKM9nGxnP+Wn7P91YfXmrKnfcYCx6VBeoN5Ez5Ogck6I8Bi5k4RlpqRYaw75pAwzX9OphA==}
+    requiresBuild: true
     dependencies:
       growly: 1.3.0
       is-wsl: 2.2.0
@@ -18033,11 +18516,6 @@ packages:
     resolution: {integrity: sha1-b2gragJ6Tp3fpFZM0lidHU5mnt4=}
     dev: true
 
-  /number-is-nan/1.0.1:
-    resolution: {integrity: sha1-CXtgK1NCKlIsGvuHkDGDNpQaAR0=}
-    engines: {node: '>=0.10.0'}
-    dev: true
-
   /numeral/2.0.6:
     resolution: {integrity: sha1-StCAk21EPCVhrtnyGX7//iX05QY=}
     dev: false
@@ -18157,6 +18635,15 @@ packages:
       has: 1.0.3
     dev: true
 
+  /object.entries/1.1.5:
+    resolution: {integrity: sha512-TyxmjUoZggd4OrrU1W66FMDG6CuqJxsFvymeyXI51+vQLN67zYfZseptRge703kKQdo4uccgAKebXFcRCzk4+g==}
+    engines: {node: '>= 0.4'}
+    dependencies:
+      call-bind: 1.0.2
+      define-properties: 1.1.3
+      es-abstract: 1.19.1
+    dev: true
+
   /object.fromentries/2.0.2:
     resolution: {integrity: sha512-r3ZiBH7MQppDJVLx6fhD618GKNG40CZYH9wgwdhKxBDDbQgjeWGGd4AtkZad84d291YxvWe7bJGuE65Anh0dxQ==}
     engines: {node: '>= 0.4'}
@@ -18221,6 +18708,15 @@ packages:
       es-abstract: 1.18.3
     dev: true
 
+  /object.values/1.1.5:
+    resolution: {integrity: sha512-QUZRW0ilQ3PnPpbNtgdNV1PDbEqLIiSFB3l+EnGtBQ/8SUTLj1PZwtQHABZtLgwpJZTSZhuGLOGk57Drx2IvYg==}
+    engines: {node: '>= 0.4'}
+    dependencies:
+      call-bind: 1.0.2
+      define-properties: 1.1.3
+      es-abstract: 1.19.1
+    dev: true
+
   /obuf/1.1.2:
     resolution: {integrity: sha512-PX1wu0AmAdPqOL1mWhqmlOd8kOIZQwGZw6rh7uby9fTc5lhaOWFLX3I6R1hrF9k3zUY40e6igsLGkDXK92LJNg==}
     dev: true
@@ -18249,11 +18745,6 @@ packages:
     resolution: {integrity: sha512-5DXOiRKwuSEcQ/l0kGCF6Q3jcADFv5tSmRaJck/OqkVFcOzutB134KRSfF0xDrL39MNnqxbHBbUUcjZIhTgb2g==}
     dependencies:
       fn.name: 1.1.0
-    dev: true
-
-  /onetime/1.1.0:
-    resolution: {integrity: sha1-ofeDj4MUxRbwXs78vEzP4EtO14k=}
-    engines: {node: '>=0.10.0'}
     dev: true
 
   /onetime/2.0.1:
@@ -18317,6 +18808,18 @@ packages:
       levn: 0.3.0
       prelude-ls: 1.1.2
       type-check: 0.3.2
+      word-wrap: 1.2.3
+    dev: true
+
+  /optionator/0.9.1:
+    resolution: {integrity: sha512-74RlY5FCnhq4jRxVUPKDaRwrVNXMqsGsiW6AJw4XK8hmtm10wC0ypZBLw5IIp85NZMr91+qd1RvvENwg7jjRFw==}
+    engines: {node: '>= 0.8.0'}
+    dependencies:
+      deep-is: 0.1.3
+      fast-levenshtein: 2.0.6
+      levn: 0.4.1
+      prelude-ls: 1.2.1
+      type-check: 0.4.0
       word-wrap: 1.2.3
     dev: true
 
@@ -18438,6 +18941,13 @@ packages:
   /p-map/3.0.0:
     resolution: {integrity: sha512-d3qXVTF/s+W+CdJ5A29wywV2n8CQQYahlgz2bFiA+4eVNJbHJodPZ+/gXwPGh0bOqA+j8S+6+ckmvLGPk1QpxQ==}
     engines: {node: '>=8'}
+    dependencies:
+      aggregate-error: 3.1.0
+    dev: true
+
+  /p-map/4.0.0:
+    resolution: {integrity: sha512-/bjOqmgETBYB5BoEeGVea8dmvHb2m9GLy1E9W43yeyfP6QQCZGFNa+XRceJEuDB6zqr+gKpIAmlLebMpykw/MQ==}
+    engines: {node: '>=10'}
     dependencies:
       aggregate-error: 3.1.0
     dev: true
@@ -18767,6 +19277,10 @@ packages:
     dependencies:
       node-modules-regexp: 1.0.0
     dev: true
+
+  /pkce-challenge/2.2.0:
+    resolution: {integrity: sha512-Ly0Y0OwhtG2N1ynk5ruqoyJxkrWhAPmvdRk0teiLh9Dp2+J4URKpv1JSKWD0j1Sd+QCeiwO9lTl0EjmrB2jWeA==}
+    dev: false
 
   /pkg-dir/1.0.0:
     resolution: {integrity: sha1-ektQio1bstYp1EcFb/TpyTFM89Q=}
@@ -19573,6 +20087,11 @@ packages:
     engines: {node: '>= 0.8.0'}
     dev: true
 
+  /prelude-ls/1.2.1:
+    resolution: {integrity: sha512-vkcDPrRZo1QZLbn5RLGPpg/WmIQ65qoWWhcGKf/b5eplkkarX0m9z8ppCat4mlOqUsWpyNuYgO3VRyrYHSzX5g==}
+    engines: {node: '>= 0.8.0'}
+    dev: true
+
   /prepend-http/1.0.4:
     resolution: {integrity: sha1-1PRWKwzjaW5BrFLQ4ALlemNdxtw=}
     engines: {node: '>=0.10.0'}
@@ -19599,9 +20118,15 @@ packages:
   /pretty-bytes/5.3.0:
     resolution: {integrity: sha512-hjGrh+P926p4R4WbaB6OckyRtO0F0/lQBiT+0gnxjV+5kjPBrfVBFCsCLbMqVQeydvIoouYTCmmEURiH3R1Bdg==}
     engines: {node: '>=6'}
+    dev: false
 
   /pretty-bytes/5.4.1:
     resolution: {integrity: sha512-s1Iam6Gwz3JI5Hweaz4GoCD1WUNUIyzePFy5+Js2hjwGVt2Z79wNN+ZKOZ2vB6C+Xs6njyB84Z1IthQg8d9LxA==}
+    engines: {node: '>=6'}
+    dev: true
+
+  /pretty-bytes/5.6.0:
+    resolution: {integrity: sha512-FFw039TmrBqFK8ma/7OL3sDz/VytdtJr044/QUJtH0wK9lb9jLq9tJyIxUwtQJHwar2BqtiA4iCWSwo9JLkzFg==}
     engines: {node: '>=6'}
     dev: true
 
@@ -19762,6 +20287,10 @@ packages:
     dependencies:
       forwarded: 0.1.2
       ipaddr.js: 1.9.1
+
+  /proxy-from-env/1.0.0:
+    resolution: {integrity: sha1-M8UDmPcOp+uW0h97gXYwpVeRx+4=}
+    dev: true
 
   /prr/1.0.1:
     resolution: {integrity: sha1-0/wRS6BplaRexok/SEzrHXj19HY=}
@@ -20721,6 +21250,11 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
+  /regexpp/3.2.0:
+    resolution: {integrity: sha512-pq2bWo9mVD43nbts2wGv17XLiNLya+GklZ8kaDLV2Z08gDCsGpnKn9BFMepvWuHCbyVvY7J5o5+BVvoQbmlJLg==}
+    engines: {node: '>=8'}
+    dev: true
+
   /regexpu-core/4.7.0:
     resolution: {integrity: sha512-TQ4KXRnIn6tz6tjnrXEkD/sshygKH/j5KzK86X8MkeHyZ8qst/LZ89j3X4/8HEIfHANTFIP/AbXakeRhWIl5YQ==}
     engines: {node: '>=4'}
@@ -21022,7 +21556,7 @@ packages:
   /resolve/1.20.0:
     resolution: {integrity: sha512-wENBPt4ySzg4ybFQW2TT1zMQucPK95HSh/nq2CFTZVOGut2+pQvSsgtda4d26YrYcr067wjbmzOG8byDPBX63A==}
     dependencies:
-      is-core-module: 2.5.0
+      is-core-module: 2.8.1
       path-parse: 1.0.6
     dev: true
 
@@ -21030,14 +21564,6 @@ packages:
     resolution: {integrity: sha1-kYcg7ztjHFZCvgaPFa3lpG9Loec=}
     dependencies:
       lowercase-keys: 1.0.1
-    dev: true
-
-  /restore-cursor/1.0.1:
-    resolution: {integrity: sha1-NGYfRohjJ/7SmRR5FSJS35LapUE=}
-    engines: {node: '>=0.10.0'}
-    dependencies:
-      exit-hook: 1.1.1
-      onetime: 1.1.0
     dev: true
 
   /restore-cursor/2.0.0:
@@ -21080,6 +21606,10 @@ packages:
     dependencies:
       convert-source-map: 0.3.5
       css: 2.2.4
+    dev: true
+
+  /rfdc/1.3.0:
+    resolution: {integrity: sha512-V2hovdzFbOi77/WajaSMXk2OLm+xNIeQdMMuB7icj7bk6zi2F8GGAxigcnDFpJHbNyNcgyJDiP+8nOrY5cZGrA==}
     dev: true
 
   /rgb-regex/1.0.1:
@@ -21167,6 +21697,12 @@ packages:
     engines: {npm: '>=2.0.0'}
     dependencies:
       tslib: 1.14.1
+    dev: true
+
+  /rxjs/7.5.4:
+    resolution: {integrity: sha512-h5M3Hk78r6wAheJF0a5YahB1yRQKCsZ4MsGdZ5O9ETbVtjPcScGfrMmoOq7EBsCRzd4BDkvDJ7ogP8Sz5tTFiQ==}
+    dependencies:
+      tslib: 2.3.1
     dev: true
 
   /safe-buffer/5.1.2:
@@ -21811,6 +22347,14 @@ packages:
       object-inspect: 1.11.0
     dev: true
 
+  /side-channel/1.0.4:
+    resolution: {integrity: sha512-q5XPytqFEIKHkGdiMIrY10mvLRvnQh42/+GoBlFW3b2LXLE2xxJpZFdm94we0BaoV3RwJyGqg5wS7epxTv0Zvw==}
+    dependencies:
+      call-bind: 1.0.2
+      get-intrinsic: 1.1.1
+      object-inspect: 1.11.0
+    dev: true
+
   /signal-exit/3.0.3:
     resolution: {integrity: sha512-VUJ49FC8U1OxwZLxIbTTrDvLnf/6TDgxZcK8wxR8zs13xpx7xbG60ndBlhNrFi2EMuFRoeDoJO7wthSLq42EjA==}
     dev: true
@@ -21838,7 +22382,7 @@ packages:
       '@sinonjs/samsam': 5.1.0
       diff: 4.0.2
       nise: 4.0.4
-      supports-color: 7.1.0
+      supports-color: 7.2.0
     dev: true
 
   /sisteransi/1.0.5:
@@ -21860,11 +22404,6 @@ packages:
     engines: {node: '>=8'}
     dev: true
 
-  /slice-ansi/0.0.4:
-    resolution: {integrity: sha1-7b+JA/ZvfOL46v1s7tZeJkyDGzU=}
-    engines: {node: '>=0.10.0'}
-    dev: true
-
   /slice-ansi/2.1.0:
     resolution: {integrity: sha512-Qu+VC3EwYLldKa1fCxuuvULvSJOKEgk9pi8dZeCVK7TqBfUNTH4sFkk4joj8afVSfAYgJoSOetjx9QWOJ5mYoQ==}
     engines: {node: '>=6'}
@@ -21872,6 +22411,24 @@ packages:
       ansi-styles: 3.2.1
       astral-regex: 1.0.0
       is-fullwidth-code-point: 2.0.0
+    dev: true
+
+  /slice-ansi/3.0.0:
+    resolution: {integrity: sha512-pSyv7bSTC7ig9Dcgbw9AuRNUb5k5V6oDudjZoMBSr13qpLBG7tB+zgCkARjq7xIUgdz5P1Qe8u+rSGdouOOIyQ==}
+    engines: {node: '>=8'}
+    dependencies:
+      ansi-styles: 4.3.0
+      astral-regex: 2.0.0
+      is-fullwidth-code-point: 3.0.0
+    dev: true
+
+  /slice-ansi/4.0.0:
+    resolution: {integrity: sha512-qMCMfhY040cVHT43K9BFygqYbUPFZKHOg7K73mtTWJRb8pyP3fzf4Ixd5SzdEJQ6MRUg/WBnOLxghZtKKurENQ==}
+    engines: {node: '>=10'}
+    dependencies:
+      ansi-styles: 4.3.0
+      astral-regex: 2.0.0
+      is-fullwidth-code-point: 3.0.0
     dev: true
 
   /slugify/1.4.0:
@@ -22298,15 +22855,6 @@ packages:
       strip-ansi: 6.0.0
     dev: true
 
-  /string-width/1.0.2:
-    resolution: {integrity: sha1-EYvfW4zcUaKn5w0hHgfisLmxB9M=}
-    engines: {node: '>=0.10.0'}
-    dependencies:
-      code-point-at: 1.1.0
-      is-fullwidth-code-point: 1.0.0
-      strip-ansi: 3.0.1
-    dev: true
-
   /string-width/2.1.1:
     resolution: {integrity: sha512-nOqH59deCq9SRHlxq1Aw85Jnt4w6KvLKqWVik6oA9ZklXLNIOlqg4F2yrT1MVaTjAqvVwdfeZ7w7aCvJD7ugkw==}
     engines: {node: '>=4'}
@@ -22440,6 +22988,13 @@ packages:
       ansi-regex: 5.0.0
     dev: true
 
+  /strip-ansi/6.0.1:
+    resolution: {integrity: sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A==}
+    engines: {node: '>=8'}
+    dependencies:
+      ansi-regex: 5.0.1
+    dev: true
+
   /strip-bom/2.0.0:
     resolution: {integrity: sha1-YhmoVhZSBJHzV4i9vxRHqZx+aw4=}
     engines: {node: '>=0.10.0'}
@@ -22521,7 +23076,9 @@ packages:
     hasBin: true
     dependencies:
       commander: 2.20.3
-      debug: 4.1.1
+      debug: 4.3.1
+    transitivePeerDependencies:
+      - supports-color
     dev: true
 
   /superagent/3.8.3:
@@ -22572,6 +23129,13 @@ packages:
       has-flag: 4.0.0
     dev: true
 
+  /supports-color/8.1.1:
+    resolution: {integrity: sha512-MpUEN2OodtUzxvKQl72cUF7RQ5EiHsGvSsVG0ia9c5RbWGL2CI4C7EpPS8UTBIplnlzZiNuV56w+FuNxy3ty2Q==}
+    engines: {node: '>=10'}
+    dependencies:
+      has-flag: 4.0.0
+    dev: true
+
   /supports-hyperlinks/2.1.0:
     resolution: {integrity: sha512-zoE5/e+dnEijk6ASB6/qrK+oYdm2do1hjoLWrqUC/8WEIW1gbxFcKuBof7sW8ArN6e+AYvsE8HBGiVRWL/F5CA==}
     engines: {node: '>=8'}
@@ -22607,6 +23171,7 @@ packages:
   /symbol-observable/1.2.0:
     resolution: {integrity: sha512-e900nM8RRtGhlV36KGEU9k65K3mPb1WV70OdjfxlG2EAuM1noi/E/BaW/uMhL7bPEssK8QV57vN3esixjUvcXQ==}
     engines: {node: '>=0.10.0'}
+    dev: false
 
   /symbol-tree/3.2.4:
     resolution: {integrity: sha512-9QNk5KwDF+Bvz+PyObkmSYjI5ksVUYtjW7AU22r2NKcfLJcXp96hkDWU3+XndOsUb+AQ9QhfzfCT2O+CNWT5Tw==}
@@ -22867,11 +23432,11 @@ packages:
       os-tmpdir: 1.0.2
     dev: true
 
-  /tmp/0.1.0:
-    resolution: {integrity: sha512-J7Z2K08jbGcdA1kkQpJSqLF6T0tdQqpR2pnSUXsIchbPdTI9v3e85cLW0d6WDhwuAleOV71j2xWs8qMPfK7nKw==}
-    engines: {node: '>=6'}
+  /tmp/0.2.1:
+    resolution: {integrity: sha512-76SUhtfqR2Ijn+xllcI5P1oyannHNHByD80W1q447gU3mp9G9PSpGdWmjUOHRDPiHYacIk66W7ubDTuPF3BEtQ==}
+    engines: {node: '>=8.17.0'}
     dependencies:
-      rimraf: 2.7.1
+      rimraf: 3.0.2
     dev: true
 
   /tmpl/1.0.4:
@@ -22965,6 +23530,10 @@ packages:
       punycode: 2.1.1
     dev: true
 
+  /tr46/0.0.3:
+    resolution: {integrity: sha1-gYT9NH2snNwYWZLzpmIuFLnZq2o=}
+    dev: false
+
   /tr46/1.0.1:
     resolution: {integrity: sha1-qLE/1r/SSJUZZ0zN5VujaTtwbQk=}
     dependencies:
@@ -23026,6 +23595,15 @@ packages:
         optional: true
     dev: true
 
+  /tsconfig-paths/3.14.0:
+    resolution: {integrity: sha512-cg/1jAZoL57R39+wiw4u/SCC6Ic9Q5NqjBOb+9xISedOYurfog9ZNmKJSxAnb2m/5Bq4lE9lhUcau33Ml8DM0g==}
+    dependencies:
+      '@types/json5': 0.0.29
+      json5: 1.0.1
+      minimist: 1.2.5
+      strip-bom: 3.0.0
+    dev: true
+
   /tsconfig-paths/3.9.0:
     resolution: {integrity: sha512-dRcuzokWhajtZWkQsDVKbWyY+jgcLC5sqJhg2PSgf4ZkH2aHPvaOY8YWGhmjb68b5qqTfasSsDO9k7RUiEmZAw==}
     dependencies:
@@ -23049,6 +23627,10 @@ packages:
 
   /tslib/2.0.3:
     resolution: {integrity: sha512-uZtkfKblCEQtZKBF6EBXVZeQNl82yqtDQdv+eck8u7tdPxjLu2/lp5/uPW+um2tpuxINHWy3GhiccY7QgEaVHQ==}
+    dev: true
+
+  /tslib/2.3.1:
+    resolution: {integrity: sha512-77EbyPPpMz+FRFRuAFlWMtmgUWGe9UOG2Z25NqCwiIjRhOf5iKGuzSe5P2w1laq+FkRy4p+PCuVkJSGkzTEKVw==}
     dev: true
 
   /tsutils/3.17.1:
@@ -23090,6 +23672,13 @@ packages:
       prelude-ls: 1.1.2
     dev: true
 
+  /type-check/0.4.0:
+    resolution: {integrity: sha512-XleUoc9uwGXqjWwXaUTZAmzMcFZ5858QA2vvx1Ur5xIcixXIP+8LnFDgRplU30us6teqdlskFfu+ae4K79Ooew==}
+    engines: {node: '>= 0.8.0'}
+    dependencies:
+      prelude-ls: 1.2.1
+    dev: true
+
   /type-detect/4.0.8:
     resolution: {integrity: sha512-0fr/mIH1dlO+x7TlcMy+bIDqKPsw/70tVyeHW787goQjhmqaZe10uwLujubK9q9Lg6Fiho1KUKDYz0Z7k7g5/g==}
     engines: {node: '>=4'}
@@ -23098,6 +23687,11 @@ packages:
   /type-fest/0.11.0:
     resolution: {integrity: sha512-OdjXJxnCN1AvyLSzeKIgXTXxV+99ZuXl3Hpo9XpJAv9MBcHrrJOQ5kV7ypXOuQie+AmWG25hLbiKdwYTifzcfQ==}
     engines: {node: '>=8'}
+    dev: true
+
+  /type-fest/0.20.2:
+    resolution: {integrity: sha512-Ne+eE4r0/iWnpAxD852z3A+N0Bt5RN//NjJwRd2VFHEmrywxf5vsZlh4R6lixl6B+wz/8d+maTSAkN1FIkI3LQ==}
+    engines: {node: '>=10'}
     dev: true
 
   /type-fest/0.3.1:
@@ -23185,6 +23779,10 @@ packages:
     resolution: {integrity: sha512-crP/n3eAPUJxZXM9T80/yv0YhkTEx2K1D3h7D1AJM6fzsWZrxdyRuLN0JH/dkZh1LNH8LxCnBzoPFCPbb2iGpg==}
     dev: false
 
+  /unfetch/4.2.0:
+    resolution: {integrity: sha512-F9p7yYCn6cIW9El1zi0HI6vqpeIvBsr3dSuRO6Xuppb1u5rXpCPmMvLSyECLhybr9isec8Ohl0hPekMVrEinDA==}
+    dev: true
+
   /unicode-canonical-property-names-ecmascript/1.0.4:
     resolution: {integrity: sha512-jDrNnXWHd4oHiTZnx/ZG7gtUTVp+gCcTTKr8L0HjlwphROEW3+Him+IpvC+xcJEFegapiMZyZe02CyuOnRmbnQ==}
     engines: {node: '>=4'}
@@ -23252,7 +23850,6 @@ packages:
   /universalify/2.0.0:
     resolution: {integrity: sha512-hAZsKq7Yy11Zu1DE0OzWjw7nnLZmJZYTDZZyEFHZdUhV8FkH5MCfoU1XMaxXovpyW5nq5scPqq0ZDP9Zyl04oQ==}
     engines: {node: '>= 10.0.0'}
-    dev: false
 
   /unpipe/1.0.0:
     resolution: {integrity: sha1-sr9O6FFKrmFltIF4KdIbLvSZBOw=}
@@ -23483,6 +24080,7 @@ packages:
 
   /uuid/3.4.0:
     resolution: {integrity: sha512-HjSDRw6gZE5JMggctHBcjVak08+KEVhSIiDzFnT9S9aegmp85S/bReBVTb4QTFaRNptJ9kuYaNhnbNEOkbKb/A==}
+    deprecated: Please upgrade  to version 7 or higher.  Older versions may use Math.random() in certain circumstances, which is known to be problematic.  See https://v8.dev/blog/math-random for details.
     hasBin: true
 
   /uuid/8.2.0:
@@ -23494,7 +24092,6 @@ packages:
     resolution: {integrity: sha512-+NYs2QeMWy+GWFOEm9xnn6HCDp0l7QBD7ml8zLUmJ+93Q5NF0NocErnwkTkXVFNiX3/fpC6afS8Dhb/gz7R7eg==}
     hasBin: true
     dev: true
-    optional: true
 
   /v8-compile-cache/2.0.3:
     resolution: {integrity: sha512-CNmdbwQMBjwr9Gsmohvm0pbL954tJrNzf6gWL3K+QMQf00PF7ERGrEiLgjuU3mKreLC2MeGhUsNV9ybTbLgd3w==}
@@ -23596,6 +24193,7 @@ packages:
 
   /watchpack-chokidar2/2.0.1:
     resolution: {integrity: sha512-nCFfBIPKr5Sh61s4LPpy1Wtfi0HE8isJ3d2Yb5/Ppw2P2B/3eVSEBjKfN0fmHJSK14+31KwMKmcrzs2GM4P0Ww==}
+    requiresBuild: true
     dependencies:
       chokidar: 2.1.8
     dev: true
@@ -23624,6 +24222,10 @@ packages:
     dependencies:
       minimalistic-assert: 1.0.1
     dev: true
+
+  /webidl-conversions/3.0.1:
+    resolution: {integrity: sha1-JFNCdeKnvGvnvIZhHMFq4KVlSHE=}
+    dev: false
 
   /webidl-conversions/4.0.2:
     resolution: {integrity: sha512-YQ+BmxuTgd6UXZW3+ICGfyqRyHXVlD5GtQr5+qjiNW7bF0cqrzX500HVXPBOvgXb5YnzDd+h0zqyv61KUD7+Sg==}
@@ -23890,6 +24492,13 @@ packages:
     resolution: {integrity: sha512-M4yMwr6mAnQz76TbJm914+gPpB/nCwvZbJU28cUD6dR004SAxDLOOSUaB1JDRqLtaOV/vi0IC5lEAGFgrjGv/g==}
     dev: true
 
+  /whatwg-url/5.0.0:
+    resolution: {integrity: sha1-lmRU6HZUYuN2RNNib2dCzotwll0=}
+    dependencies:
+      tr46: 0.0.3
+      webidl-conversions: 3.0.1
+    dev: false
+
   /whatwg-url/6.5.0:
     resolution: {integrity: sha512-rhRZRqx/TLJQWUpQ6bmrt2UV4f0HCQ463yQuONJqC6fO2VoEb1pTYddbe59SkYq87aoM5A3bdhMZiUiVws+fzQ==}
     dependencies:
@@ -23921,7 +24530,7 @@ packages:
       is-bigint: 1.0.2
       is-boolean-object: 1.1.1
       is-number-object: 1.0.4
-      is-string: 1.0.6
+      is-string: 1.0.7
       is-symbol: 1.0.3
 
   /which-module/2.0.0:
@@ -24126,14 +24735,6 @@ packages:
       microevent.ts: 0.1.1
     dev: true
 
-  /wrap-ansi/3.0.1:
-    resolution: {integrity: sha1-KIoE2H7aXChuBg3+jxNc6NAH+Lo=}
-    engines: {node: '>=4'}
-    dependencies:
-      string-width: 2.1.1
-      strip-ansi: 4.0.0
-    dev: true
-
   /wrap-ansi/5.1.0:
     resolution: {integrity: sha512-QC1/iN/2/RPVJ5jYK8BGttj5z83LmSKmvbvrXPNCLZSEb32KKVDJDl/MOt2N01qU2H/FkzEa9PKto1BqDjtd7Q==}
     engines: {node: '>=6'}
@@ -24145,6 +24746,15 @@ packages:
   /wrap-ansi/6.2.0:
     resolution: {integrity: sha512-r6lPcBGxZXlIcymEu7InxDMhdW0KDxpLgoFLcguasxCaJ/SOIZwINatK9KY/tf+ZrlywOKU0UDj3ATXUBfxJXA==}
     engines: {node: '>=8'}
+    dependencies:
+      ansi-styles: 4.3.0
+      string-width: 4.2.0
+      strip-ansi: 6.0.0
+    dev: true
+
+  /wrap-ansi/7.0.0:
+    resolution: {integrity: sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q==}
+    engines: {node: '>=10'}
     dependencies:
       ansi-styles: 4.3.0
       string-width: 4.2.0

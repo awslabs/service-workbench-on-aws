@@ -64,7 +64,7 @@ Type `node --version`
 
 To install long-term support version, enter:
 
-`nvm install lts/erbium`
+`nvm install 14`
 
 ### Installing Node Package Manager
 

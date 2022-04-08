@@ -15,7 +15,7 @@
 
 const _ = require('lodash');
 const express = require('express');
-const Boom = require('@aws-ee/base-services-container/lib/boom');
+const Boom = require('@amzn/base-services-container/lib/boom');
 
 class AppContext {
   constructor({ app, settings, log, servicesContainer }) {

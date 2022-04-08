@@ -13,11 +13,9 @@
  *  permissions and limitations under the License.
  */
 
-const handlerFactory = require('@aws-ee/base-api-handler-factory');
-const {
-  registerServices: registerServicesUtil,
-} = require('@aws-ee/base-services/lib/utils/services-registration-util');
-const { registerRoutes: registerRoutesUtil } = require('@aws-ee/base-api-handler/lib/routes-registration-util');
+const handlerFactory = require('@amzn/base-api-handler-factory');
+const { registerServices: registerServicesUtil } = require('@amzn/base-services/lib/utils/services-registration-util');
+const { registerRoutes: registerRoutesUtil } = require('@amzn/base-api-handler/lib/routes-registration-util');
 
 const pluginRegistry = require('./plugins/plugin-registry');
 

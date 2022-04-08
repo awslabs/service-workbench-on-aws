@@ -20,7 +20,7 @@ import { decorate, runInAction, action } from 'mobx';
 import { withRouter } from 'react-router-dom';
 import TimeAgo from 'react-timeago';
 import { Header, Dropdown, Label } from 'semantic-ui-react';
-import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
+import { displayError } from '@amzn/base-ui/dist/helpers/notification';
 
 import getUIState from '../workflow-common/component-states/WorkflowCommonCardState';
 import WorkflowTemplateCardTabs from './WorkflowTemplateCardTabs';

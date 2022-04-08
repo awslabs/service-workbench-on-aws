@@ -70,7 +70,7 @@ class UsersList extends React.Component {
     history.push(link);
   }
 
-  renderNoNonRootAdmins() {
+  renderNoAdmins() {
     return (
       <Segment placeholder>
         <Header icon className="color-grey">
@@ -113,8 +113,8 @@ class UsersList extends React.Component {
   renderTotal() {
     const store = this.getStore();
     if (isStoreError(store) || isStoreLoading(store)) return null;
-    const nonRootUsers = store.nonRootUsers;
-    const count = nonRootUsers.length;
+    const usersList = store.list;
+    const count = usersList.length;
 
     return <Label circular>{count}</Label>;
   }
@@ -133,10 +133,10 @@ class UsersList extends React.Component {
     const usersBeingEditedMap = this.mapOfUsersBeingEdited;
 
     const store = this.getStore();
-    const nonRootUsers = store.nonRootUsers;
+    const usersList = store.list;
     // const nonRootUsers = store.list;
-    const pageSize = Math.min(nonRootUsers.length, 50);
-    const showPagination = nonRootUsers.length > pageSize;
+    const pageSize = Math.min(usersList.length, 50);
+    const showPagination = usersList.length > pageSize;
 
     const displayEditableInput = attributeName => row => {
       const user = row.original;
@@ -184,10 +184,6 @@ class UsersList extends React.Component {
 
     const processing = this.formProcessing;
 
-    if (!store.hasNonRootUsers) {
-      return null;
-    }
-
     return (
       // TODO: add api token stats and active flag here in the table
       <Segment basic className="p0">
@@ -195,7 +191,7 @@ class UsersList extends React.Component {
           <Loader inverted>Updating</Loader>
         </Dimmer>
         <ReactTable
-          data={nonRootUsers}
+          data={usersList}
           defaultSorted={[{ id: 'lastName', desc: true }]}
           showPagination={showPagination}
           defaultPageSize={pageSize}
@@ -331,9 +327,9 @@ class UsersList extends React.Component {
       content = <ErrorBox error={store.error} />;
     } else if (isStoreLoading(store)) {
       content = <BasicProgressPlaceholder segmentCount={3} />;
-    } else if (isStoreReady(store) && !store.hasNonRootAdmins) {
-      content = this.renderNoNonRootAdmins();
-    } else if (isStoreReady(store) && store.hasNonRootAdmins) {
+    } else if (isStoreReady(store) && !store.hasAdmins) {
+      content = this.renderNoAdmins();
+    } else if (isStoreReady(store) && store.hasAdmins) {
       content = this.renderMain();
     } else {
       content = null;

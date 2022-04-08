@@ -13,12 +13,13 @@
  *  permissions and limitations under the License.
  */
 
-const baseServicesPlugin = require('@aws-ee/base-pre-deployment/lib/plugins/services-plugin');
-const baseStepsPlugin = require('@aws-ee/base-pre-deployment/lib/plugins/steps-plugin');
-const workflowServicesPlugin = require('@aws-ee/base-workflow-core/lib/runner/plugins/services-plugin');
-const baseRaasServicesPlugin = require('@aws-ee/base-raas-rest-api/lib/plugins/services-plugin');
-const environmentTypeServicesPlugin = require('@aws-ee/environment-type-mgmt-services/lib/plugins/services-plugin');
-const keyPairServicesPlugin = require('@aws-ee/key-pair-mgmt-services/lib/plugins/services-plugin');
+const baseServicesPlugin = require('@amzn/base-pre-deployment/lib/plugins/services-plugin');
+const baseStepsPlugin = require('@amzn/base-pre-deployment/lib/plugins/steps-plugin');
+const workflowServicesPlugin = require('@amzn/base-workflow-core/lib/runner/plugins/services-plugin');
+const baseRaasServicesPlugin = require('@amzn/base-raas-rest-api/lib/plugins/services-plugin');
+const environmentTypeServicesPlugin = require('@amzn/environment-type-mgmt-services/lib/plugins/services-plugin');
+const keyPairServicesPlugin = require('@amzn/key-pair-mgmt-services/lib/plugins/services-plugin');
+const internalAuthDepCheckPlugin = require('@amzn/internal-auth-dep-check/lib/plugins/internal-auth-dep-check-plugin');
 
 const servicesPlugin = require('./services-plugin');
 const stepsPlugin = require('./steps-plugin');
@@ -32,7 +33,7 @@ const extensionPoints = {
     keyPairServicesPlugin,
     servicesPlugin,
   ],
-  preDeploymentStep: [baseStepsPlugin, stepsPlugin],
+  preDeploymentStep: [baseStepsPlugin, stepsPlugin, internalAuthDepCheckPlugin],
 };
 
 async function getPlugins(extensionPoint) {

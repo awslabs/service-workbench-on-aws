@@ -15,10 +15,10 @@
 
 const _ = require('lodash');
 const sinon = require('sinon');
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
-const Aws = require('@aws-ee/base-services/lib/aws/aws-service');
-const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
-const SettingsService = require('@aws-ee/base-services/lib/settings/env-settings-service');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
+const Aws = require('@amzn/base-services/lib/aws/aws-service');
+const JsonSchemaValidationService = require('@amzn/base-services/lib/json-schema-validation-service');
+const SettingsService = require('@amzn/base-services/lib/settings/env-settings-service');
 const AWSMock = require('aws-sdk-mock');
 
 // Mocked dependencies

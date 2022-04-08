@@ -14,9 +14,9 @@
  */
 
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
+const Service = require('@amzn/base-services-container/lib/service');
 
-const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
+const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/system-context');
 
 const settingKeys = {
   enableEgressStore: 'enableEgressStore',

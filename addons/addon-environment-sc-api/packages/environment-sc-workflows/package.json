@@ -1,12 +1,12 @@
 {
-  "name": "@aws-ee/environment-sc-workflows",
+  "name": "@amzn/environment-sc-workflows",
   "private": true,
   "version": "1.0.0",
   "description": "Workflows for environment type management including the main workflow for launching environments for a given environment type",
   "author": "Amazon Web Services",
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-ee/base-workflow-core": "workspace:*",
+    "@amzn/base-workflow-core": "workspace:*",
     "lodash": "^4.17.21",
     "slugify": "^1.4.0"
   },

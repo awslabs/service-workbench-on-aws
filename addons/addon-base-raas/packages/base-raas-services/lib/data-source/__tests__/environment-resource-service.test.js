@@ -12,23 +12,23 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
 
 // Mocked services
-jest.mock('@aws-ee/base-services/lib/audit/audit-writer-service');
-jest.mock('@aws-ee/base-services/lib/json-schema-validation-service');
-jest.mock('@aws-ee/base-services/lib/lock/lock-service');
-jest.mock('@aws-ee/base-services/lib/db-service');
-jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
+jest.mock('@amzn/base-services/lib/audit/audit-writer-service');
+jest.mock('@amzn/base-services/lib/json-schema-validation-service');
+jest.mock('@amzn/base-services/lib/lock/lock-service');
+jest.mock('@amzn/base-services/lib/db-service');
+jest.mock('@amzn/base-services/lib/settings/env-settings-service');
 
-const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
-const AuditWriterService = require('@aws-ee/base-services/lib/audit/audit-writer-service');
-const DBService = require('@aws-ee/base-services/lib/db-service');
-const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
-const LockService = require('@aws-ee/base-services/lib/lock/lock-service');
-const SettingsService = require('@aws-ee/base-services/lib/settings/env-settings-service');
+const AwsService = require('@amzn/base-services/lib/aws/aws-service');
+const AuditWriterService = require('@amzn/base-services/lib/audit/audit-writer-service');
+const DBService = require('@amzn/base-services/lib/db-service');
+const JsonSchemaValidationService = require('@amzn/base-services/lib/json-schema-validation-service');
+const LockService = require('@amzn/base-services/lib/lock/lock-service');
+const SettingsService = require('@amzn/base-services/lib/settings/env-settings-service');
 const AWSMock = require('aws-sdk-mock');
-const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
+const Logger = require('@amzn/base-services/lib/logger/logger-service');
 const ResourceUsageService = require('../../usage/resource-usage-service');
 const EnvironmentResourceService = require('../access-strategy/legacy/environment-resource-service');
 

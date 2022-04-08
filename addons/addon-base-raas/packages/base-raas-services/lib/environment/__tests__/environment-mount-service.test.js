@@ -13,22 +13,22 @@
  *  permissions and limitations under the License.
  */
 
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
 
-const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
+const JsonSchemaValidationService = require('@amzn/base-services/lib/json-schema-validation-service');
 
 // Mocked dependencies
-jest.mock('@aws-ee/base-services/lib/lock/lock-service');
-const LockServiceMock = require('@aws-ee/base-services/lib/lock/lock-service');
+jest.mock('@amzn/base-services/lib/lock/lock-service');
+const LockServiceMock = require('@amzn/base-services/lib/lock/lock-service');
 
-jest.mock('@aws-ee/base-services/lib/iam/iam-service');
-const IamServiceMock = require('@aws-ee/base-services/lib/iam/iam-service');
+jest.mock('@amzn/base-services/lib/iam/iam-service');
+const IamServiceMock = require('@amzn/base-services/lib/iam/iam-service');
 
-jest.mock('@aws-ee/base-services/lib/aws/aws-service');
-const AwsServiceMock = require('@aws-ee/base-services/lib/aws/aws-service');
+jest.mock('@amzn/base-services/lib/aws/aws-service');
+const AwsServiceMock = require('@amzn/base-services/lib/aws/aws-service');
 
-jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
-const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
+jest.mock('@amzn/base-services/lib/settings/env-settings-service');
+const SettingsServiceMock = require('@amzn/base-services/lib/settings/env-settings-service');
 
 jest.mock('../../study/study-service');
 const StudyServiceMock = require('../../study/study-service');

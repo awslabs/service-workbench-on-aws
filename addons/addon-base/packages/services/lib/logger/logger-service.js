@@ -13,15 +13,11 @@
  *  permissions and limitations under the License.
  */
 
-const Service = require('@aws-ee/base-services-container/lib/service');
+const Service = require('@amzn/base-services-container/lib/service');
 const LogTransformer = require('./log-transformer');
 
 class LoggerService extends Service {
-  constructor(
-    logger = console,
-    loggingContext = {},
-    fieldsToMask = ['x-amz-security-token', 'user', 'accessKey', 'password'],
-  ) {
+  constructor(logger = console, loggingContext = {}, fieldsToMask = ['x-amz-security-token', 'accessKey', 'password']) {
     super();
     this.logger = logger;
     this.logTransformer = new LogTransformer(loggingContext, fieldsToMask);

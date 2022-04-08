@@ -16,8 +16,8 @@
 import _ from 'lodash';
 import { types } from 'mobx-state-tree';
 
-import { getUser } from '@aws-ee/base-ui/dist/helpers/api';
-import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
+import { getUser } from '@amzn/base-ui/dist/helpers/api';
+import { BaseStore } from '@amzn/base-ui/dist/models/BaseStore';
 
 import { User } from './User';
 

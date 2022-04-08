@@ -1,5 +1,5 @@
 {
-  "name": "@aws-ee/environment-tools",
+  "name": "@amzn/environment-tools",
   "version": "0.1.0",
   "private": true,
   "author": "Amazon Web Services",
@@ -11,9 +11,9 @@
     "not op_mini all"
   ],
   "devDependencies": {
-    "@aws-ee/serverless-go-build-tools": "workspace:*",
-    "@aws-ee/base-serverless-settings-helper": "workspace:*",
-    "@aws-ee/s3-synchronizer": "workspace:*",
+    "@amzn/serverless-go-build-tools": "workspace:*",
+    "@amzn/base-serverless-settings-helper": "workspace:*",
+    "@amzn/s3-synchronizer": "workspace:*",
     "serverless": "^1.63.0"
   }
 }

@@ -129,6 +129,8 @@ The following figures display screenshot images that exemplify Amazon SageMaker 
 
 ### Configuration for Amazon EMR
 
+**Note**: EMR workspaces are not available if AppStream is enabled for the deployment. Therefore, it is unnecessary to import or add a configuration for this workspace.
+
 Amazon EMR requires a few more fields that are not available in the drop-down menu, including the following: 
 - DiskSizeGB (>=10)
 - CoreNodeCount (1-80)

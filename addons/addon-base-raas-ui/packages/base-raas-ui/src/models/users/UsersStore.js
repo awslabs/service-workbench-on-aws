@@ -15,8 +15,8 @@
 
 import _ from 'lodash';
 import { applySnapshot, detach, getSnapshot, types } from 'mobx-state-tree';
-import { addUser, updateUser, getUsers } from '@aws-ee/base-ui/dist/helpers/api';
-import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
+import { addUser, updateUser, getUsers } from '@amzn/base-ui/dist/helpers/api';
+import { BaseStore } from '@amzn/base-ui/dist/models/BaseStore';
 
 import { deleteUser, addUsers, updateUserApplication } from '../../helpers/api';
 import { User } from './User';
@@ -96,17 +96,9 @@ const UsersStore = BaseStore.named('UsersStore')
       return self.users.size === 0;
     },
 
-    get hasNonRootAdmins() {
-      const nonRootAdmins = _.filter(self.list, user => user.isAdmin && !user.isRootUser);
-      return !_.isEmpty(nonRootAdmins);
-    },
-
-    get hasNonRootUsers() {
-      return !_.isEmpty(self.nonRootUsers);
-    },
-
-    get nonRootUsers() {
-      return _.filter(self.list, user => !user.isRootUser);
+    get hasAdmins() {
+      const admins = _.filter(self.list, user => user.isAdmin);
+      return !_.isEmpty(admins);
     },
 
     get list() {

@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-const Service = require('@aws-ee/base-services-container/lib/service');
+const Service = require('@amzn/base-services-container/lib/service');
 
 class DbService extends Service {
   async init() {
@@ -60,6 +60,7 @@ class DbService extends Service {
       values: jest.fn().mockReturnThis(),
       return: jest.fn().mockReturnThis(),
       strong: jest.fn().mockReturnThis(),
+      filter: jest.fn().mockReturnThis(),
 
       // Following functions are actual calls to dynamo
       scan: jest.fn(),
@@ -80,6 +81,8 @@ class DbService extends Service {
       query: jest.fn().mockReturnValue({ table: tableFn }),
       deleter: jest.fn().mockReturnValue({ table: tableFn }),
     };
+
+    this.describeTable = jest.fn().mockReturnThis();
   }
 }
 

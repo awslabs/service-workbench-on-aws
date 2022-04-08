@@ -14,8 +14,8 @@
  */
 
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
-const { generateIdSync } = require('@aws-ee/base-services/lib/helpers/utils');
+const Service = require('@amzn/base-services-container/lib/service');
+const { generateIdSync } = require('@amzn/base-services/lib/helpers/utils');
 const authProviderConstants = require('../../constants').authenticationProviders;
 
 const settingKeys = {
@@ -24,6 +24,10 @@ const settingKeys = {
   envType: 'envType',
   solutionName: 'solutionName',
   websiteUrl: 'websiteUrl',
+  enableUserSignUps: 'enableUserSignUps',
+  enableNativeUserPoolUsers: 'enableNativeUserPoolUsers',
+  autoConfirmNativeUsers: 'autoConfirmNativeUsers',
+  namespace: 'namespace',
 };
 
 class ProvisionerService extends Service {
@@ -96,8 +100,10 @@ class ProvisionerService extends Service {
     providerConfigWithOutputs.id = `https://cognito-idp.${awsRegion}.amazonaws.com/${providerConfigWithOutputs.userPoolId}`;
 
     const baseAuthUri = `https://${userPoolDomain}.auth.${awsRegion}.amazoncognito.com`;
-    providerConfigWithOutputs.signInUri = `${baseAuthUri}/oauth2/authorize?response_type=token&client_id=${clientId}&redirect_uri=${websiteUrl}`;
-    providerConfigWithOutputs.signOutUri = `${baseAuthUri}/logout?client_id=${clientId}&logout_uri=${websiteUrl}`;
+    providerConfigWithOutputs.baseAuthUri = baseAuthUri;
+    providerConfigWithOutputs.signInUri = `${baseAuthUri}/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${websiteUrl}/&code_challenge_method=S256&code_challenge=TEMP_PKCE_VERIFIER&state=TEMP_STATE_VERIFIER`;
+    providerConfigWithOutputs.signOutUri = `${baseAuthUri}/logout?client_id=${clientId}&response_type=code&redirect_uri=${websiteUrl}`;
+    providerConfigWithOutputs.authCodeTokenExchangeUri = `${baseAuthUri}/oauth2/token`;
 
     this.log.info('Saving Cognito User Pool Authentication Provider Configuration.');
 
@@ -108,6 +114,22 @@ class ProvisionerService extends Service {
       status: authProviderConstants.status.active,
     });
     return result;
+  }
+
+  async getPreSignUpLambdaArn() {
+    const aws = await this.service('aws');
+    const cfnClient = new aws.sdk.CloudFormation({ apiVersion: '2010-05-15' });
+    const stackDetails = await cfnClient
+      .describeStacks({ StackName: `${this.settings.get(settingKeys.namespace)}-postDeployment` })
+      .promise();
+    const cfnData = _.get(stackDetails, 'Stacks[0]');
+    const outputs = _.get(cfnData, 'Outputs', []);
+    const cfnOutputsResult = {};
+    _.forEach(outputs, item => {
+      cfnOutputsResult[item.OutputKey] = item.OutputValue;
+    });
+
+    return cfnOutputsResult.PreSignUpLambdaArn;
   }
 
   /* ************** Provisioning Steps ************** */
@@ -121,8 +143,21 @@ class ProvisionerService extends Service {
     const envName = this.settings.get(settingKeys.envName);
     const solutionName = this.settings.get(settingKeys.solutionName);
     const userPoolName = providerConfig.userPoolName || `${envName}-${envType}-${solutionName}-userpool`;
+
+    // Get PreSignUpLambdaArn output from CFN stack, get undefined if not present
+    const preSignUpLambdaArn = await this.getPreSignUpLambdaArn();
+
     const params = {
-      AdminCreateUserConfig: { AllowAdminCreateUserOnly: true },
+      AdminCreateUserConfig: {
+        AllowAdminCreateUserOnly: !this.settings.getBoolean(settingKeys.enableUserSignUps),
+      },
+      LambdaConfig:
+        this.settings.getBoolean(settingKeys.enableNativeUserPoolUsers) &&
+        this.settings.getBoolean(settingKeys.autoConfirmNativeUsers)
+          ? {
+              PreSignUp: preSignUpLambdaArn,
+            }
+          : undefined,
       AutoVerifiedAttributes: ['email'],
       Schema: [
         {
@@ -142,10 +177,29 @@ class ProvisionerService extends Service {
         },
       ],
     };
+
+    let userPoolArn;
     if (providerConfig.userPoolId) {
       // If userPoolId is specified then this must be for update so make sure it points to a valid cognito user pool
       try {
-        await cognitoIdentityServiceProvider.describeUserPool({ UserPoolId: providerConfig.userPoolId }).promise();
+        const poolDetails = await cognitoIdentityServiceProvider
+          .describeUserPool({ UserPoolId: providerConfig.userPoolId })
+          .promise();
+        userPoolArn = poolDetails.UserPool.Arn;
+
+        this.log.info('Updating Cognito User Pool as per config changes, if any');
+        const updateParams = {
+          UserPoolId: providerConfig.userPoolId,
+          AdminCreateUserConfig: {
+            AllowAdminCreateUserOnly: !this.settings.getBoolean(settingKeys.enableUserSignUps),
+          },
+          LambdaConfig: {
+            // We don't check for autoConfirmNativeUsers and enableNativeUserPoolUsers config setting values in the update cycle
+            // because preSignUp lambda is created based on the same conditions, therefore this logic can set or reset the cognito trigger
+            PreSignUp: preSignUpLambdaArn,
+          },
+        };
+        await cognitoIdentityServiceProvider.updateUserPool(updateParams).promise();
       } catch (err) {
         if (err.code === 'ResourceNotFoundException') {
           throw this.boom.badRequest(
@@ -160,8 +214,36 @@ class ProvisionerService extends Service {
       // userPoolId is not specified so create new user pool
       params.PoolName = userPoolName;
       const data = await cognitoIdentityServiceProvider.createUserPool(params).promise();
+      userPoolArn = data.UserPool.Arn;
       providerConfig.userPoolId = data.UserPool.Id;
     }
+
+    // If PreSignUpLambdaArn is not undefined, allow it to be invoked by Cognito
+    if (!_.isUndefined(preSignUpLambdaArn)) {
+      const lambda = new aws.sdk.Lambda();
+      const invokePermParam = {
+        Action: 'lambda:InvokeFunction',
+        FunctionName: preSignUpLambdaArn,
+        Principal: 'cognito-idp.amazonaws.com',
+        StatementId: 'CognitoLambdaInvokePermission',
+        SourceArn: userPoolArn,
+      };
+
+      try {
+        await lambda.addPermission(invokePermParam).promise();
+      } catch (err) {
+        if (err.code === 'ResourceConflictException') {
+          this.log.info('Lambda invoke permission already assigned');
+        } else {
+          // In case of any other error, let it propagate
+          throw this.boom.badRequest(
+            `Adding cognito invoke permission to lambda ${preSignUpLambdaArn} failed with code: ${err.code}`,
+            true,
+          );
+        }
+      }
+    }
+
     providerConfig.userPoolName = userPoolName;
     return providerConfig;
   }
@@ -221,11 +303,11 @@ class ProvisionerService extends Service {
       const params = {
         ClientName: clientName,
         UserPoolId: providerConfig.userPoolId,
-        AllowedOAuthFlows: ['implicit'],
+        AllowedOAuthFlows: ['code'], // update app client's auth flow to use authorization code grant for new installs
         AllowedOAuthFlowsUserPoolClient: true,
         AllowedOAuthScopes: ['email', 'openid', 'profile'],
-        CallbackURLs: callbackUrls,
-        DefaultRedirectURI: defaultRedirectUri,
+        CallbackURLs: this.ensureTrailingSlash(callbackUrls),
+        DefaultRedirectURI: this.ensureTrailingSlash(defaultRedirectUri),
         ExplicitAuthFlows: ['ADMIN_NO_SRP_AUTH'],
         LogoutURLs: logoutUrls,
         // Make certain attributes readable and writable by this client.
@@ -303,14 +385,14 @@ class ProvisionerService extends Service {
     const params = {
       ClientId: existingClientConfig.ClientId,
       UserPoolId: existingClientConfig.UserPoolId,
-      AllowedOAuthFlows: existingClientConfig.AllowedOAuthFlows,
+      AllowedOAuthFlows: ['code'], // update app client's auth flow to use authorization code grant instead of implicit (legacy)
       AllowedOAuthFlowsUserPoolClient: existingClientConfig.AllowedOAuthFlowsUserPoolClient,
       AllowedOAuthScopes: existingClientConfig.AllowedOAuthScopes,
-      CallbackURLs: existingClientConfig.CallbackURLs,
-      ClientName: existingClientConfig.ClientName,
-      DefaultRedirectURI: existingClientConfig.DefaultRedirectURI,
-      ExplicitAuthFlows: existingClientConfig.ExplicitAuthFlows,
+      CallbackURLs: this.ensureTrailingSlash(existingClientConfig.CallbackURLs), // authorization code grant requires redirect URLs to have a trailing forward slash '/'
       LogoutURLs: existingClientConfig.LogoutURLs,
+      ClientName: existingClientConfig.ClientName,
+      DefaultRedirectURI: this.ensureTrailingSlash(existingClientConfig.DefaultRedirectURI),
+      ExplicitAuthFlows: existingClientConfig.ExplicitAuthFlows,
       ReadAttributes: existingClientConfig.ReadAttributes,
       RefreshTokenValidity: existingClientConfig.RefreshTokenValidity,
       WriteAttributes: existingClientConfig.WriteAttributes,
@@ -320,6 +402,20 @@ class ProvisionerService extends Service {
     // The below call will fail without that. The idp names specified in SupportedIdentityProviders must match the ones created in "configureCognitoIdentityProviders"
     await cognitoIdentityServiceProvider.updateUserPoolClient(params).promise();
     return providerConfig;
+  }
+
+  ensureTrailingSlash(data) {
+    // No changes needed for undefined values
+    if (_.isUndefined(data)) return undefined;
+
+    // If only one URL needs formatting
+    if (!_.isArray(data)) return _.endsWith(data, '/') ? data : `${data}/`;
+
+    // If an array of URLs need formatting
+    const updatedUrls = _.map(data, url => {
+      return _.endsWith(url, '/') ? url : `${url}/`;
+    });
+    return updatedUrls;
   }
 
   async configureCognitoIdentityProviders(providerConfig) {

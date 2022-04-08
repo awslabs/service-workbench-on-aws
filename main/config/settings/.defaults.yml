@@ -108,6 +108,7 @@ paramStoreRoot: '${self:custom.settings.envName}/${self:custom.settings.solution
 # Information about the root admin user.
 # The root admin user is created by default in the internal authentication provider
 # The root user can be used for provisioning additional authentication providers
+# Note: These details are also used for creating the first admin user in the Cognito native user pool, if enableNativeUserPoolUsers is set to true
 # Root user's username
 rootUserName: root
 # Root user's first name
@@ -115,6 +116,7 @@ rootUserFirstName: root
 # Root user's last name
 rootUserLastName: root
 # Root user's email address
+# Note: The value set to rootUserEmail will be used ad the username for Cognito native user pool's default user
 rootUserEmail: root@example.com
 
 # Enable/disable external researchers feature
@@ -179,6 +181,11 @@ createServiceCatalogPortfolio: true
 # Metadata provided with AWS SDK calls
 customUserAgent: 'AwsLabs/SO0144/${self:custom.settings.versionNumber}'
 
+# Flow Logs are a feature that allows users to capture information about network traffic to, from, and within a Subnet.
+# Flow Logs are stored using AWS CloudWatch, which can be configured to alarm in the event there is anomalous traffic, or to aid in forensic efforts after a network compromise.
+# Recommended: Turning this on captures network traffic information on the hosting account's VPCs and subnets
+enableFlowLogs: true
+
 # ================================ Data Egress Feature Settings ===========================================
 # NOTE: Following properties are ONLY allowed to change for the initial deployment. It's NOT recommended to change the following properties if you have enabled data egress feature.
 # Enable the Egress Store feature would allow researchers to securely egress data from lockdown Workspace
@@ -210,3 +217,15 @@ isAppStreamEnabled: false
 
 # The name of the S3 bucket used to store uploaded study data
 studyDataBucketName: ${self:custom.settings.globalNamespace}-studydata
+
+# DynamoDB table name for KeyPairs
+dbKeyPairs: ${self:custom.settings.dbPrefix}-KeyPairs
+
+# DynamoDB table name for data lake users
+dbUsers: ${self:custom.settings.dbPrefix}-Users
+
+# DynamoDB table name for StudyPermissions
+dbStudyPermissions: ${self:custom.settings.dbPrefix}-StudyPermissions
+
+# DynamoDB table name for Environments created using AWS Service Catalog
+dbEnvironmentsSc: ${self:custom.settings.dbPrefix}-EnvironmentsSc

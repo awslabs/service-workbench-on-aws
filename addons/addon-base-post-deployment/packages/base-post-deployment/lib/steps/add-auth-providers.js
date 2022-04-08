@@ -14,9 +14,9 @@
  */
 
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
-const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
-const authProviderConstants = require('@aws-ee/base-api-services/lib/authentication-providers/constants')
+const Service = require('@amzn/base-services-container/lib/service');
+const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/system-context');
+const authProviderConstants = require('@amzn/base-api-services/lib/authentication-providers/constants')
   .authenticationProviders;
 
 const settingKeys = {
@@ -41,33 +41,7 @@ class AddAuthProviders extends Service {
       'authenticationProviderConfigService',
       'authenticationProviderTypeService',
       'cognitoUserPoolAuthenticationProvisionerService',
-      'internalAuthenticationProvisionerService',
     ]);
-  }
-
-  async addDefaultAuthenticationProviderConfig() {
-    const authenticationProviderTypeService = await this.service('authenticationProviderTypeService');
-    const authenticationProviderTypes = await authenticationProviderTypeService.getAuthenticationProviderTypes(
-      getSystemRequestContext(),
-    );
-
-    const internalAuthProviderTypeConfig = _.find(authenticationProviderTypes, {
-      type: authProviderConstants.internalAuthProviderTypeId,
-    });
-    // Each provider can ask for their specific config at the time of registering the provider
-    // The config below for "internal" provider can be hard-coded.
-    const defaultAuthProviderConfig = {
-      id: authProviderConstants.internalAuthProviderId,
-      title: this.settings.get(settingKeys.defaultAuthNProviderTitle),
-      signInUri: 'api/authentication/id-tokens',
-      // signOutUri: '',
-    };
-
-    const internalAuthenticationProvisionerService = await this.service('internalAuthenticationProvisionerService');
-    await internalAuthenticationProvisionerService.provision({
-      providerTypeConfig: internalAuthProviderTypeConfig,
-      providerConfig: defaultAuthProviderConfig,
-    });
   }
 
   /**
@@ -182,7 +156,6 @@ class AddAuthProviders extends Service {
   async execute() {
     // Setup both the default (internal) auth provider as well as a Cognito
     // auth provider (if configured)
-    await this.addDefaultAuthenticationProviderConfig();
     await this.addCognitoAuthenticationProviderWithSamlFederation();
   }
 }

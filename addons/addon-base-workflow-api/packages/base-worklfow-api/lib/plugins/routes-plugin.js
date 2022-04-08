@@ -13,9 +13,9 @@
  *  permissions and limitations under the License.
  */
 
-const setupAuthContext = require('@aws-ee/base-controllers/lib/middlewares/setup-auth-context');
-const prepareContext = require('@aws-ee/base-controllers/lib/middlewares/prepare-context');
-const ensureActive = require('@aws-ee/base-controllers/lib/middlewares/ensure-active');
+const setupAuthContext = require('@amzn/base-controllers/lib/middlewares/setup-auth-context');
+const prepareContext = require('@amzn/base-controllers/lib/middlewares/prepare-context');
+const ensureActive = require('@amzn/base-controllers/lib/middlewares/ensure-active');
 
 const stepTemplateController = require('../controllers/step-template-controller');
 const workflowTemplateController = require('../controllers/workflow-template-controller');

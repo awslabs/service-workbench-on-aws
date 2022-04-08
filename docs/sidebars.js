@@ -26,6 +26,7 @@ module.exports = {
         "Upgrading Service Workbench": [
           "installation_guide/upgrading/commandline",
           "installation_guide/upgrading/solutions",
+          "installation_guide/upgrading/authentication",
         ],
       },
       "installation_guide/postupgrade",
@@ -105,6 +106,7 @@ module.exports = {
           "deployment/reference/iam_role",
           "deployment/reference/aws_services",
           "deployment/reference/prepare_master_account",
+          "deployment/reference/egress_store_approval_process",
         ],
       },
     ],

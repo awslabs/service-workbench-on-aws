@@ -14,13 +14,14 @@
  */
 
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
+const Service = require('@amzn/base-services-container/lib/service');
 
 class UserAttributesMapperService extends Service {
   mapAttributes(decodedToken) {
     const { username, usernameInIdp } = this.getUsername(decodedToken);
     const identityProviderName = this.getIdpName(decodedToken);
     const isSamlAuthenticatedUser = this.isSamlAuthenticatedUser(decodedToken);
+    const isNativePoolUser = this.isNativePoolUser(decodedToken);
     const firstName = this.getFirstName(decodedToken);
     const lastName = this.getLastName(decodedToken);
     const email = this.getEmail(decodedToken);
@@ -30,6 +31,7 @@ class UserAttributesMapperService extends Service {
       usernameInIdp,
       identityProviderName,
       isSamlAuthenticatedUser,
+      isNativePoolUser,
 
       firstName,
       lastName,
@@ -46,7 +48,7 @@ class UserAttributesMapperService extends Service {
   }
 
   getFirstName(decodedToken) {
-    return decodedToken.given_name;
+    return decodedToken.given_name || decodedToken.name;
   }
 
   isSamlAuthenticatedUser(decodedToken) {
@@ -54,7 +56,12 @@ class UserAttributesMapperService extends Service {
       decodedToken.identities &&
       decodedToken.identities[0] &&
       _.toUpper(decodedToken.identities[0].providerType) === 'SAML';
-    return isSamlAuthenticatedUser;
+    return !_.isUndefined(isSamlAuthenticatedUser) && isSamlAuthenticatedUser;
+  }
+
+  isNativePoolUser(decodedToken) {
+    const issuer = decodedToken.iss;
+    return !this.isSamlAuthenticatedUser(decodedToken) && _.startsWith(issuer, 'https://cognito-idp');
   }
 
   getIdpName(decodedToken) {
@@ -62,6 +69,8 @@ class UserAttributesMapperService extends Service {
     if (decodedToken.identities && decodedToken.identities[0] && decodedToken.identities[0].providerName) {
       identityProviderName = decodedToken.identities[0].providerName;
     }
+    if (identityProviderName === '' && this.isNativePoolUser(decodedToken))
+      identityProviderName = 'Cognito Native Pool';
     return identityProviderName;
   }
 

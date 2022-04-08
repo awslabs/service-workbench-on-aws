@@ -19,15 +19,15 @@ import { inject, Observer, observer } from 'mobx-react';
 import { action, computed, decorate, observable, runInAction } from 'mobx';
 import { Header, Icon, Step, Tab } from 'semantic-ui-react';
 
-import Stores from '@aws-ee/base-ui/dist/models/Stores';
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
-import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
-import { isStoreLoading, isStoreReady } from '@aws-ee/base-ui/dist/models/BaseStore';
+import Stores from '@amzn/base-ui/dist/models/Stores';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
+import BasicProgressPlaceholder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import { isStoreLoading, isStoreReady } from '@amzn/base-ui/dist/models/BaseStore';
 
-import { createWizard } from '@aws-ee/base-ui/dist/models/Wizard';
-import { displayError, displaySuccess } from '@aws-ee/base-ui/dist/helpers/notification';
-import { sessionStore } from '@aws-ee/base-ui/dist/models/SessionStore';
+import { createWizard } from '@amzn/base-ui/dist/models/Wizard';
+import { displayError, displaySuccess } from '@amzn/base-ui/dist/helpers/notification';
+import { sessionStore } from '@amzn/base-ui/dist/models/SessionStore';
 import { getEnvTypeConfigForm } from '../../../models/forms/EnvTypeConfigForm';
 import BasicInfoStep from './env-type-config-steps/BasicInfoStep';
 import AccessControlStep from './env-type-config-steps/AccessControlStep';

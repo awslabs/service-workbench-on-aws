@@ -1,5 +1,5 @@
 {
-  "name": "@aws-ee/base-serverless-backend-tools",
+  "name": "@amzn/base-serverless-backend-tools",
   "version": "1.0.0",
   "private": true,
   "description": "A collection of serverless commands to help with the backend development and deployment",

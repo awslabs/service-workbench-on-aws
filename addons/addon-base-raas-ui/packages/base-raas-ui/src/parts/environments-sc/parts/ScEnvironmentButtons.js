@@ -4,8 +4,8 @@ import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Button, Modal } from 'semantic-ui-react';
 
-import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
-import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
+import { gotoFn } from '@amzn/base-ui/dist/helpers/routing';
+import { displayError } from '@amzn/base-ui/dist/helpers/notification';
 
 import ScEnvironmentConnections from './ScEnvironmentConnections';
 import ScEnvironmentUpdateCidrs from './ScEnvironmentUpdateCidrs';

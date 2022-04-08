@@ -15,7 +15,7 @@
 
 const _ = require('lodash');
 const IsCidr = require('is-cidr');
-const Service = require('@aws-ee/base-services-container/lib/service');
+const Service = require('@amzn/base-services-container/lib/service');
 
 const cidrUpdateSchema = require('../../schema/update-environment-sc-cidr');
 

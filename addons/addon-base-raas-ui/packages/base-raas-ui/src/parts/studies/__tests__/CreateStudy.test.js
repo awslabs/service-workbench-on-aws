@@ -17,8 +17,8 @@ import React from 'react';
 import { shallow } from 'enzyme';
 import CreateStudy from '../CreateStudy';
 
-jest.mock('@aws-ee/base-ui/dist/helpers/notification');
-const displayErrorMock = require('@aws-ee/base-ui/dist/helpers/notification');
+jest.mock('@amzn/base-ui/dist/helpers/notification');
+const displayErrorMock = require('@amzn/base-ui/dist/helpers/notification');
 
 const userStore = {
   asDropDownOptions: () => [

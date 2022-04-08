@@ -13,28 +13,29 @@
  *  permissions and limitations under the License.
  */
 const YAML = require('js-yaml');
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
-const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
+const JsonSchemaValidationService = require('@amzn/base-services/lib/json-schema-validation-service');
 
-jest.mock('@aws-ee/base-services/lib/iam/iam-service.js');
-jest.mock('@aws-ee/base-services/lib/logger/logger-service');
-const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
+jest.mock('@amzn/base-services/lib/iam/iam-service.js');
+jest.mock('@amzn/base-services/lib/logger/logger-service');
+const Logger = require('@amzn/base-services/lib/logger/logger-service');
 const AWSMock = require('aws-sdk-mock');
-const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
-const IamService = require('@aws-ee/base-services/lib/iam/iam-service.js');
+const AwsService = require('@amzn/base-services/lib/aws/aws-service');
+const IamService = require('@amzn/base-services/lib/iam/iam-service.js');
 
 // Mocked dependencies
-jest.mock('@aws-ee/base-services/lib/db-service');
-const DbServiceMock = require('@aws-ee/base-services/lib/db-service');
+jest.mock('@amzn/base-services/lib/db-service');
+const DbServiceMock = require('@amzn/base-services/lib/db-service');
 
-jest.mock('@aws-ee/base-services/lib/authorization/authorization-service');
-const AuthServiceMock = require('@aws-ee/base-services/lib/authorization/authorization-service');
+jest.mock('@amzn/base-services/lib/authorization/authorization-service');
+const AuthServiceMock = require('@amzn/base-services/lib/authorization/authorization-service');
 
-jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
-const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
+jest.mock('@amzn/base-services/lib/settings/env-settings-service');
+const SettingsServiceMock = require('@amzn/base-services/lib/settings/env-settings-service');
 
-jest.mock('@aws-ee/base-services/lib/audit/audit-writer-service');
-const AuditServiceMock = require('@aws-ee/base-services/lib/audit/audit-writer-service');
+jest.mock('@amzn/base-services/lib/audit/audit-writer-service');
+const AuditServiceMock = require('@amzn/base-services/lib/audit/audit-writer-service');
+const environmentScStatus = require('../environent-sc-status-enum');
 
 jest.mock('../../environment-authz-service.js');
 const EnvironmentAuthZServiceMock = require('../../environment-authz-service.js');
@@ -1389,6 +1390,92 @@ Quisque egestas, eros nec feugiat venenatis, lorem turpis placerat tortor, ullam
       } catch (err) {
         expect(service.boom.is(err, 'forbidden')).toBe(true);
         expect(err.message).toContain('not authorized');
+      }
+    });
+
+    it('should fail because the environment is already terminated', async () => {
+      // BUILD
+      const requestContext = {
+        principal: {
+          isExternalUser: false,
+        },
+      };
+      const existingEnv = {
+        id: 'abc',
+        name: 'exampleName',
+        envTypeId: 'exampleETI',
+        envTypeConfigId: 'exampleETCI',
+        status: environmentScStatus.TERMINATED,
+      };
+
+      service.mustFind = jest.fn().mockResolvedValueOnce(existingEnv);
+
+      // OPERATE
+      try {
+        await service.delete(requestContext, { id: existingEnv.id });
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(service.boom.is(err, 'badRequest')).toBe(true);
+        expect(err.message).toContain(`Workspace '${existingEnv.id}' has already been terminated`);
+      }
+    });
+
+    it('should fail because the environment is being terminated', async () => {
+      // BUILD
+      const requestContext = {
+        principal: {
+          isExternalUser: false,
+        },
+      };
+      const existingEnv = {
+        id: 'abc',
+        name: 'exampleName',
+        envTypeId: 'exampleETI',
+        envTypeConfigId: 'exampleETCI',
+        status: environmentScStatus.TERMINATING,
+      };
+
+      service.mustFind = jest.fn().mockResolvedValueOnce(existingEnv);
+
+      // OPERATE
+      try {
+        await service.delete(requestContext, { id: existingEnv.id });
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(service.boom.is(err, 'badRequest')).toBe(true);
+        expect(err.message).toContain(`Workspace '${existingEnv.id}' is already being terminated`);
+      }
+    });
+
+    it('should fail because the environment is in termination failed status', async () => {
+      // BUILD
+      const requestContext = {
+        principal: {
+          isExternalUser: false,
+        },
+      };
+      const existingEnv = {
+        id: 'abc',
+        name: 'exampleName',
+        envTypeId: 'exampleETI',
+        envTypeConfigId: 'exampleETCI',
+        status: environmentScStatus.TERMINATING_FAILED,
+      };
+
+      service.mustFind = jest.fn().mockResolvedValueOnce(existingEnv);
+
+      // OPERATE
+      try {
+        await service.delete(requestContext, { id: existingEnv.id });
+        expect.hasAssertions();
+      } catch (err) {
+        // CHECK
+        expect(service.boom.is(err, 'badRequest')).toBe(true);
+        expect(err.message).toContain(
+          `Workspace '${existingEnv.id}' can not be terminated while in ${environmentScStatus.TERMINATING_FAILED} status`,
+        );
       }
     });
 

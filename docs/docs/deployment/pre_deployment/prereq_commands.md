@@ -8,7 +8,7 @@ The prerequisite software installation includes installing the required tools an
 ## Install the Required Tools
 Before building this solution, you must install the tools that are listed below:
 
-* [Node.js](https://nodejs.org/) (12.x or later) 
+* [Node.js](https://nodejs.org/) (14.x) 
 * [AWS Command Line Interface](https://aws.amazon.com/cli/)
 * [PNPM](https://pnpm.js.org/) 
 * [Serverless Framework](http://www.serverless.com)

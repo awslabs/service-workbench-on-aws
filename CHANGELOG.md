@@ -3,7 +3,104 @@
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
 ## Beta
-[This release is in beta. Click here to see changes since 4.1.2.](https://github.com/awslabs/service-workbench-on-aws/compare/v4.1.2...mainline)
+[This release is in beta. Click here to see changes since 5.1.0.](https://github.com/awslabs/service-workbench-on-aws/compare/v5.1.0...mainline)
+
+### [5.1.0](https://github.com/awslabs/service-workbench-on-aws/compare/v5.0.0...v5.1.0) (2022-03-22)
+
+### Features
+
+* OAuth flow: Switch to Authorization Code grant ([#947](https://github.com/awslabs/service-workbench-on-aws/issues/947)) ([9edbc12](https://github.com/awslabs/service-workbench-on-aws/commit/9edbc12bd85e0ddf4c2b271775b2fd41d9c2c236))
+
+### Bug Fixes
+
+* -raas-master-artifacts versioning ([#930](https://github.com/awslabs/service-workbench-on-aws/issues/930)) ([1465431](https://github.com/awslabs/service-workbench-on-aws/commit/14654313d9d472beaf497fee5b1e918aad9ff756))
+* Allow users to go back and fix configuration errors ([#934](https://github.com/awslabs/service-workbench-on-aws/issues/934)) ([4f6a66d](https://github.com/awslabs/service-workbench-on-aws/commit/4f6a66dc0e6bc7f5465172045df500c825afb7a2))
+* config integ test ([#950](https://github.com/awslabs/service-workbench-on-aws/issues/950)) ([2b285b7](https://github.com/awslabs/service-workbench-on-aws/commit/2b285b724cbdb3c361232b932b524dae8ba53d60))
+* email TLD can be longer than 3 chars ([#928](https://github.com/awslabs/service-workbench-on-aws/issues/928)) ([eab8ec9](https://github.com/awslabs/service-workbench-on-aws/commit/eab8ec925780c5a47507cc8f93ac0faabdeb38a2))
+* Exit early if jq is not installed. Fix ssm delete error ([#953](https://github.com/awslabs/service-workbench-on-aws/issues/953)) ([5c9c571](https://github.com/awslabs/service-workbench-on-aws/commit/5c9c5714947fd116ae58d39d60cb72d60914d548))
+* Handle workflow-trigger-service StepFunction execution failure ([#903](https://github.com/awslabs/service-workbench-on-aws/issues/903)) ([52b24c3](https://github.com/awslabs/service-workbench-on-aws/commit/52b24c346dd3cfa91b1a385c0f8611a6ec55f678))
+* no cidr form field in TRE env ([#940](https://github.com/awslabs/service-workbench-on-aws/issues/940)) ([dd2ccfd](https://github.com/awslabs/service-workbench-on-aws/commit/dd2ccfd2c606822ef0dae901ba911d560bf3df08))
+* Remove non admin option for onboarding a hosting account ([#933](https://github.com/awslabs/service-workbench-on-aws/issues/933)) ([4b26589](https://github.com/awslabs/service-workbench-on-aws/commit/4b2658950b9565a7f5e0074031ce1a4625aedc7a))
+* remove unnecessary file ([4d20541](https://github.com/awslabs/service-workbench-on-aws/commit/4d2054160e874a512acecb7c9c714f3a8d5cf2b6))
+* Return badRequest if trying to terminate an environment that has already been terminated ([#946](https://github.com/awslabs/service-workbench-on-aws/issues/946)) ([15eb4d3](https://github.com/awslabs/service-workbench-on-aws/commit/15eb4d35320c2ba9babaa946fbecb34a9ec393b2))
+* select cidr field only in non-TRE env ([#941](https://github.com/awslabs/service-workbench-on-aws/issues/941)) ([897670b](https://github.com/awslabs/service-workbench-on-aws/commit/897670b2332734ab84ffe5b537fc35f3ab17343c))
+* termination failure to show fewer details ([#931](https://github.com/awslabs/service-workbench-on-aws/issues/931)) ([6700c29](https://github.com/awslabs/service-workbench-on-aws/commit/6700c2999cb1dcd2cb72b7ae40362def9650c49c))
+* Throw HTTP Status 429 error when there are too many get Sagemaker Presigned URL requests ([#942](https://github.com/awslabs/service-workbench-on-aws/issues/942)) ([3dea763](https://github.com/awslabs/service-workbench-on-aws/commit/3dea7630a584051b7e2eb152f71f8423e55fc827))
+* wide cidr warning and env config dep ([#935](https://github.com/awslabs/service-workbench-on-aws/issues/935)) ([95c5d95](https://github.com/awslabs/service-workbench-on-aws/commit/95c5d9579bc01c1d092487b961ebd6e6f1168eeb))
+
+## [5.0.0](https://github.com/awslabs/service-workbench-on-aws/compare/v4.3.1...v5.0.0) (2022-02-11)
+
+## Internal Auth deprecation
+* Starting with this release, internal authentication provider in Service Workbench will remain deprecated. Logging into Service Workbench using the legacy internal authentication route will not work.
+* Resources owned by `internal` users need to be deactivated or their ownership needs to be transferred to native Cognito user pool/external IdP users. Users marked with an `internal` auth provider will need to be deactivated. Please follow the detailed instructions [here](https://github.com/awslabs/service-workbench-on-aws/blob/mainline/docs/docs/installation_guide/upgrading/authentication.md) for a smooth upgrade experience.
+
+### Features
+
+* Internal auth deprecation ([#913](https://github.com/awslabs/service-workbench-on-aws/issues/913)) ([b334136](https://github.com/awslabs/service-workbench-on-aws/commit/b3341364a62b62b8f235c9eed5bb91dae6008f35))
+
+
+### Bug Fixes
+
+* add attributes for better logging ([#897](https://github.com/awslabs/service-workbench-on-aws/issues/897)) ([0a3ea5c](https://github.com/awslabs/service-workbench-on-aws/commit/0a3ea5c816cad5e5d327a53d41e6848b7d171e0a))
+* Allow CICD pipeline to have cognito permission for creating root user ([#914](https://github.com/awslabs/service-workbench-on-aws/issues/914)) ([93618cb](https://github.com/awslabs/service-workbench-on-aws/commit/93618cb84476369770a848026060a2d78645d326))
+* integ tests for auth change ([#915](https://github.com/awslabs/service-workbench-on-aws/issues/915)) ([86c6e19](https://github.com/awslabs/service-workbench-on-aws/commit/86c6e19d2487f7b0f1ad2fb133274eef4e2afe65))
+* Reduce scope of list users API for non admin users ([#898](https://github.com/awslabs/service-workbench-on-aws/issues/898)) ([1999b26](https://github.com/awslabs/service-workbench-on-aws/commit/1999b269b8113a621a5b693802bf5d1bb406c983))
+* throw less descriptive errors ([#895](https://github.com/awslabs/service-workbench-on-aws/issues/895)) ([85ae1e2](https://github.com/awslabs/service-workbench-on-aws/commit/85ae1e29974a870b133394dacf8a2f2b50ddfba7))
+* user names update ([#899](https://github.com/awslabs/service-workbench-on-aws/issues/899)) ([89b9936](https://github.com/awslabs/service-workbench-on-aws/commit/89b99364d7c2c445b3b8a4119b8d3994f660896c))
+
+### [4.3.1](https://github.com/awslabs/service-workbench-on-aws/compare/v4.3.0...v4.3.1) (2022-02-01)
+
+
+### Bug Fixes
+
+* Apply correct SWB version number by using properly formatted commit message ([6b26e0a](https://github.com/awslabs/service-workbench-on-aws/commit/6b26e0a830d47765c1721e68e5dfb591c17cfc33))
+
+## [4.3.0](https://github.com/awslabs/service-workbench-on-aws/compare/v4.2.0...v4.3.0) (2022-01-26)
+
+
+### Features
+
+* enable flow logs for network monitoring ([#883](https://github.com/awslabs/service-workbench-on-aws/issues/883)) ([a36702b](https://github.com/awslabs/service-workbench-on-aws/commit/a36702b526a5d2c2f96e72f97e192c3a776e190b))
+
+
+### Bug Fixes
+
+* notify api returns internal error on malformed id ([#885](https://github.com/awslabs/service-workbench-on-aws/issues/885)) ([fa2550c](https://github.com/awslabs/service-workbench-on-aws/commit/fa2550c64d91612d4d19024026e58c72496c2deb))
+* strengthen CSP headers for style ([#880](https://github.com/awslabs/service-workbench-on-aws/issues/880)) ([7e64ba4](https://github.com/awslabs/service-workbench-on-aws/commit/7e64ba4ef34544583df4b02568edcc2560207247))
+* temp perm changes for servicecatalog ([#877](https://github.com/awslabs/service-workbench-on-aws/issues/877)) ([fbff7c0](https://github.com/awslabs/service-workbench-on-aws/commit/fbff7c0ab64e5d5a2af9e069a18f10c93a708b88))
+* temp srevice catalog changes ([#878](https://github.com/awslabs/service-workbench-on-aws/issues/878)) ([e6804bf](https://github.com/awslabs/service-workbench-on-aws/commit/e6804bfceed3cf2bdcba49b353372eb39346a16b))
+
+### [**4.2.0**](https://github.com/awslabs/service-workbench-on-aws/compare/v4.1.3...v4.2.0) (2022-01-19)
+## Enhanced default authentication method
+Starting with the Service Workbench 4.2.0 release, the native Amazon Cognito user pool is the default authentication method, and is reflected accordingly on the application's login page (alongside your external SAML IdP integrations, if any). 
+
+Note: As a security enhancement, the internal authentication method used by Service Workbench (the legacy default authentication method) will soon be deprecated. 
+For more information, read [Using native Amazon Cognito user pool for authentication](https://github.com/awslabs/service-workbench-on-aws/blob/mainline/docs/docs/configuration_guide/workflow.md)
+
+### Customer Impact:
+* You will find the default (user-customizable) configurations determining the native Amazon Cognito user pool behavior in the `main/solution/post-deployment/config/settings/.defaults.yml` file. 
+* If using native Amazon Cognito user pool, users can sign up for a user account, but can not access Service Workbench until they are approved by the application admin. The user addition experience on Service Workbench for native Amazon Cognito user pool is similar to that of an external IdP.
+* A new admin user would be created in Service Workbench using the `rootUserEmail` value as provided by your stage configuration. A temporary password will be available in the installation summary necessary for logging the native admin user in for the first time.
+* You can still log in using the `internal` authentication method by adding the text `/?internal` to your Service Workbench URL (for eg. `https://<random_string>.cloudfront.net/?internal`).
+
+### Important
+* We suggest creating new users in native Amazon Cognito user pool (or an external IdP, if you use one) corresponding to their internal auth counterparts, and migrating resource permissions over to these new users.
+
+### Features
+* Implementation for Cognito Native Pool feature ([#858](_https://github.com/awslabs/service-workbench-on-aws/pull/858_)) ([44dd9a6](_https://github.com/awslabs/service-workbench-on-aws/commit/44dd9a6056bd7e3a0fd5f2f582726ba991da8a85_)).
+### Bug Fixes
+* cypress login page for Cognito enabled ([#859](_https://github.com/awslabs/service-workbench-on-aws/issues/859_)) ([726b957](_https://github.com/awslabs/service-workbench-on-aws/commit/726b9573a1d7acefa4621cf9d64a2dd8ba21cc59_))
+
+### [4.1.3](https://github.com/awslabs/service-workbench-on-aws/compare/v4.1.2...v4.1.3) (2022-01-06)
+
+
+### Bug Fixes
+
+* Allow onboarding member account in non AppStream supported regions ([#844](https://github.com/awslabs/service-workbench-on-aws/issues/844)) ([93dc465](https://github.com/awslabs/service-workbench-on-aws/commit/93dc4658af2f6bbf9286cc1b882b7f944f365d0e))
+* force securetransport traffic only for buckets with dynamic bucket policies ([#832](https://github.com/awslabs/service-workbench-on-aws/issues/832)) ([33a4346](https://github.com/awslabs/service-workbench-on-aws/commit/33a4346f34c79c1bce2ea57d445efd78b65fe705))
+* unhandled workflow error ([#852](https://github.com/awslabs/service-workbench-on-aws/issues/852)) ([be127d7](https://github.com/awslabs/service-workbench-on-aws/commit/be127d7f5a8a0f9c9b5bde21d700526a50f3aa89))
+* update dependabot suggested libraries ([#848](https://github.com/awslabs/service-workbench-on-aws/issues/848)) ([7b4e7c6](https://github.com/awslabs/service-workbench-on-aws/commit/7b4e7c646d288771e4510026ce08931f40a51407))
+* use format instead of regex for email validN ([#849](https://github.com/awslabs/service-workbench-on-aws/issues/849)) ([640bef1](https://github.com/awslabs/service-workbench-on-aws/commit/640bef1875ab36eaf054c217097a108e3de65cc5))
 
 ### [4.1.2](https://github.com/awslabs/service-workbench-on-aws/compare/v4.1.1...v4.1.2) (2021-12-27)
 

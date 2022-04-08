@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-const Service = require('@aws-ee/base-services-container/lib/service');
+const Service = require('@amzn/base-services-container/lib/service');
 const _ = require('lodash');
 const authProviderConstants = require('./constants').authenticationProviders;
 
@@ -47,6 +47,12 @@ class AuthenticationProviderConfigService extends Service {
   }
 
   async getAuthenticationProviderConfig(providerId, fields = []) {
+    if (providerId === 'internal') {
+      throw this.boom.badRequest(
+        'Internal users cannot log in. Please use an external IdP or native Cognito user pool user.',
+        true,
+      );
+    }
     const dbService = await this.service('dbService');
     const table = this.settings.get(settingKeys.tableName);
     const dbResult = await dbService.helper
