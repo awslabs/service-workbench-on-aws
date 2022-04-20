@@ -35,7 +35,7 @@ const states = [
   {
     key: 'PENDING',
     display: 'PENDING',
-    color: 'orange',
+    color: 'yellow',
     tip: 'The workspace is being prepared, this could take sometime.',
     spinner: true,
     canTerminate: false,
