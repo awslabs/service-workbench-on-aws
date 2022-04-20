@@ -1,13 +1,13 @@
 {
-  "name": "@aws-ee/base-workflow-api",
+  "name": "@amzn/base-workflow-api",
   "private": true,
   "version": "1.0.0",
   "description": "A library containing the controllers and routes for the base workflow api",
   "author": "Amazon Web Services",
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-ee/base-workflow-core": "workspace:*",
-    "@aws-ee/base-controllers": "workspace:*",
+    "@amzn/base-workflow-core": "workspace:*",
+    "@amzn/base-controllers": "workspace:*",
     "lodash": "^4.17.21"
   },
   "devDependencies": {

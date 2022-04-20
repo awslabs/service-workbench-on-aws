@@ -17,7 +17,7 @@ import { observer } from 'mobx-react';
 import c from 'classnames';
 import { CopyToClipboard } from 'react-copy-to-clipboard';
 import { Popup, Icon } from 'semantic-ui-react';
-import { displaySuccess } from '@aws-ee/base-ui/dist/helpers/notification';
+import { displaySuccess } from '@amzn/base-ui/dist/helpers/notification';
 
 // expected props
 // - text (via props)

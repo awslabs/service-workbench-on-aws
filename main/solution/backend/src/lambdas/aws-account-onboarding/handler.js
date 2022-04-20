@@ -13,9 +13,9 @@
  *  permissions and limitations under the License.
  */
 
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
-const { registerServices } = require('@aws-ee/base-services/lib/utils/services-registration-util');
-const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
+const { registerServices } = require('@amzn/base-services/lib/utils/services-registration-util');
+const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/system-context');
 
 const pluginRegistry = require('./plugins/plugin-registry');
 

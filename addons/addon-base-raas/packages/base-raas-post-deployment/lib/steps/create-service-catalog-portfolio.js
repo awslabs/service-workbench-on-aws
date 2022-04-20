@@ -14,9 +14,9 @@
  */
 
 const _ = require('lodash');
-const { createHash } = require('@aws-ee/base-services/lib/helpers/utils');
-const Service = require('@aws-ee/base-services-container/lib/service');
-const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
+const { createHash } = require('@amzn/base-services/lib/helpers/utils');
+const Service = require('@amzn/base-services-container/lib/service');
+const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/system-context');
 
 // To add a new service catalog CfN template,
 // Add the file in addons/addon-base-raas/packages/base-raas-cfn-templates/src/templates/service-catalog

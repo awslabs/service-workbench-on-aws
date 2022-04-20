@@ -14,8 +14,8 @@
  */
 
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
-const { generateIdSync } = require('@aws-ee/base-services/lib/helpers/utils');
+const Service = require('@amzn/base-services-container/lib/service');
+const { generateIdSync } = require('@amzn/base-services/lib/helpers/utils');
 const authProviderConstants = require('../../constants').authenticationProviders;
 
 const settingKeys = {
@@ -100,8 +100,10 @@ class ProvisionerService extends Service {
     providerConfigWithOutputs.id = `https://cognito-idp.${awsRegion}.amazonaws.com/${providerConfigWithOutputs.userPoolId}`;
 
     const baseAuthUri = `https://${userPoolDomain}.auth.${awsRegion}.amazoncognito.com`;
-    providerConfigWithOutputs.signInUri = `${baseAuthUri}/oauth2/authorize?response_type=token&client_id=${clientId}&redirect_uri=${websiteUrl}`;
-    providerConfigWithOutputs.signOutUri = `${baseAuthUri}/logout?client_id=${clientId}&logout_uri=${websiteUrl}`;
+    providerConfigWithOutputs.baseAuthUri = baseAuthUri;
+    providerConfigWithOutputs.signInUri = `${baseAuthUri}/oauth2/authorize?response_type=code&client_id=${clientId}&redirect_uri=${websiteUrl}/&code_challenge_method=S256&code_challenge=TEMP_PKCE_VERIFIER&state=TEMP_STATE_VERIFIER`;
+    providerConfigWithOutputs.signOutUri = `${baseAuthUri}/logout?client_id=${clientId}&response_type=code&redirect_uri=${websiteUrl}`;
+    providerConfigWithOutputs.authCodeTokenExchangeUri = `${baseAuthUri}/oauth2/token`;
 
     this.log.info('Saving Cognito User Pool Authentication Provider Configuration.');
 
@@ -301,11 +303,11 @@ class ProvisionerService extends Service {
       const params = {
         ClientName: clientName,
         UserPoolId: providerConfig.userPoolId,
-        AllowedOAuthFlows: ['implicit'],
+        AllowedOAuthFlows: ['code'], // update app client's auth flow to use authorization code grant for new installs
         AllowedOAuthFlowsUserPoolClient: true,
         AllowedOAuthScopes: ['email', 'openid', 'profile'],
-        CallbackURLs: callbackUrls,
-        DefaultRedirectURI: defaultRedirectUri,
+        CallbackURLs: this.ensureTrailingSlash(callbackUrls),
+        DefaultRedirectURI: this.ensureTrailingSlash(defaultRedirectUri),
         ExplicitAuthFlows: ['ADMIN_NO_SRP_AUTH'],
         LogoutURLs: logoutUrls,
         // Make certain attributes readable and writable by this client.
@@ -383,14 +385,14 @@ class ProvisionerService extends Service {
     const params = {
       ClientId: existingClientConfig.ClientId,
       UserPoolId: existingClientConfig.UserPoolId,
-      AllowedOAuthFlows: existingClientConfig.AllowedOAuthFlows,
+      AllowedOAuthFlows: ['code'], // update app client's auth flow to use authorization code grant instead of implicit (legacy)
       AllowedOAuthFlowsUserPoolClient: existingClientConfig.AllowedOAuthFlowsUserPoolClient,
       AllowedOAuthScopes: existingClientConfig.AllowedOAuthScopes,
-      CallbackURLs: existingClientConfig.CallbackURLs,
-      ClientName: existingClientConfig.ClientName,
-      DefaultRedirectURI: existingClientConfig.DefaultRedirectURI,
-      ExplicitAuthFlows: existingClientConfig.ExplicitAuthFlows,
+      CallbackURLs: this.ensureTrailingSlash(existingClientConfig.CallbackURLs), // authorization code grant requires redirect URLs to have a trailing forward slash '/'
       LogoutURLs: existingClientConfig.LogoutURLs,
+      ClientName: existingClientConfig.ClientName,
+      DefaultRedirectURI: this.ensureTrailingSlash(existingClientConfig.DefaultRedirectURI),
+      ExplicitAuthFlows: existingClientConfig.ExplicitAuthFlows,
       ReadAttributes: existingClientConfig.ReadAttributes,
       RefreshTokenValidity: existingClientConfig.RefreshTokenValidity,
       WriteAttributes: existingClientConfig.WriteAttributes,
@@ -400,6 +402,20 @@ class ProvisionerService extends Service {
     // The below call will fail without that. The idp names specified in SupportedIdentityProviders must match the ones created in "configureCognitoIdentityProviders"
     await cognitoIdentityServiceProvider.updateUserPoolClient(params).promise();
     return providerConfig;
+  }
+
+  ensureTrailingSlash(data) {
+    // No changes needed for undefined values
+    if (_.isUndefined(data)) return undefined;
+
+    // If only one URL needs formatting
+    if (!_.isArray(data)) return _.endsWith(data, '/') ? data : `${data}/`;
+
+    // If an array of URLs need formatting
+    const updatedUrls = _.map(data, url => {
+      return _.endsWith(url, '/') ? url : `${url}/`;
+    });
+    return updatedUrls;
   }
 
   async configureCognitoIdentityProviders(providerConfig) {
@@ -490,7 +506,9 @@ class ProvisionerService extends Service {
     const envType = this.settings.get(settingKeys.envType);
     const envName = this.settings.get(settingKeys.envName);
     const solutionName = this.settings.get(settingKeys.solutionName);
-    const userPoolDomain = providerConfig.userPoolDomain || `${envName}-${envType}-${solutionName}`;
+    let userPoolDomain = _.isEmpty(providerConfig.userPoolDomain)
+      ? `${envName}-${envType}-${solutionName}`
+      : providerConfig.userPoolDomain;
     const params = {
       Domain: userPoolDomain,
       UserPoolId: userPoolId,
@@ -511,7 +529,7 @@ class ProvisionerService extends Service {
         // Cognito user pool domain prefix hard limit is 63, we keep it at less then 62 so the retry logic has a decent chance to succeed
         userPoolDomain.length < 62
       ) {
-        await this.retryCreateDomain(cognitoIdentityServiceProvider, params, userPoolDomain, 10);
+        userPoolDomain = await this.retryCreateDomain(cognitoIdentityServiceProvider, params, userPoolDomain, 10);
       } else {
         // Re-throw any other error, so it doesn't fail silently
         throw err;
@@ -522,7 +540,8 @@ class ProvisionerService extends Service {
   }
 
   // Recursive function that retries padding different strings for cognito domain
-  // Recursion ends when a valid Cognito domain is found, an error other than domin already associated is thrown, or retryCount reached
+  // Recursion ends when a valid Cognito domain is found, an error other than domain already associated is thrown, or retryCount reached
+  // Returns the newly generated userPoolDomain to be stored in DDB auth config
   async retryCreateDomain(cognitoIdentityServiceProvider, params, userPoolDomain, retryCount) {
     // Cognito requires domain prefix to be 63 or shorter
     params.Domain = generateIdSync(userPoolDomain)
@@ -538,11 +557,12 @@ class ProvisionerService extends Service {
         err.code === 'InvalidParameterException' &&
         err.message.indexOf('already associated with another user pool') >= 0
       ) {
-        await this.retryCreateDomain(cognitoIdentityServiceProvider, params, userPoolDomain, retryCount);
+        return this.retryCreateDomain(cognitoIdentityServiceProvider, params, userPoolDomain, retryCount);
       } else {
         throw err;
       }
     }
+    return params.Domain;
   }
 }
 

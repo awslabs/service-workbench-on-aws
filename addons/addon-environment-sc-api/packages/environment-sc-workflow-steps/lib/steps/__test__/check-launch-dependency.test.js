@@ -13,23 +13,23 @@
  *  permissions and limitations under the License.
  */
 
-jest.mock('@aws-ee/base-services/lib/aws/aws-service');
-const AwsServiceMock = require('@aws-ee/base-services/lib/aws/aws-service');
+jest.mock('@amzn/base-services/lib/aws/aws-service');
+const AwsServiceMock = require('@amzn/base-services/lib/aws/aws-service');
 
-const WorkflowPayload = require('@aws-ee/workflow-engine/lib/workflow-payload');
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
+const WorkflowPayload = require('@amzn/workflow-engine/lib/workflow-payload');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
 
-jest.mock('@aws-ee/base-raas-services/lib/alb/alb-service');
-const AlbServiceMock = require('@aws-ee/base-raas-services/lib/alb/alb-service');
+jest.mock('@amzn/base-raas-services/lib/alb/alb-service');
+const AlbServiceMock = require('@amzn/base-raas-services/lib/alb/alb-service');
 
-jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
-const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
+jest.mock('@amzn/base-services/lib/settings/env-settings-service');
+const SettingsServiceMock = require('@amzn/base-services/lib/settings/env-settings-service');
 
-jest.mock('@aws-ee/base-services/lib/lock/lock-service');
-const LockServiceMock = require('@aws-ee/base-services/lib/lock/lock-service');
+jest.mock('@amzn/base-services/lib/lock/lock-service');
+const LockServiceMock = require('@amzn/base-services/lib/lock/lock-service');
 
-jest.mock('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
-const PluginRegistryServiceMock = require('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
+jest.mock('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
+const PluginRegistryServiceMock = require('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
 
 jest.mock('../../../../environment-type-mgmt-services/lib/environment-type/env-type-config-service.js');
 const EnvTypeConfigServiceMock = require('../../../../environment-type-mgmt-services/lib/environment-type/env-type-config-service.js');

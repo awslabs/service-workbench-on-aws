@@ -20,8 +20,8 @@ import { withRouter } from 'react-router-dom';
 import { Header, Divider, List, Form, TextArea, Message, Button } from 'semantic-ui-react';
 import TimeAgo from 'react-timeago';
 
-import YesNo from '@aws-ee/base-ui/dist/parts/helpers/fields/YesNo';
-import SelectionButtons from '@aws-ee/base-ui/dist/parts/helpers/fields/SelectionButtons';
+import YesNo from '@amzn/base-ui/dist/parts/helpers/fields/YesNo';
+import SelectionButtons from '@amzn/base-ui/dist/parts/helpers/fields/SelectionButtons';
 
 import CopyToClipboard from '../../helpers/CopyToClipboard';
 import { createForm } from '../../../helpers/form';

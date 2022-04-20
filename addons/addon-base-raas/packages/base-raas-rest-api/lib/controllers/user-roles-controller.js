@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-// const authProviderConstants = require('@aws-ee/base-services/lib/authentication-providers/constants')
+// const authProviderConstants = require('@amzn/base-services/lib/authentication-providers/constants')
 //   .authenticationProviders;
 // const _ = require('lodash');
 

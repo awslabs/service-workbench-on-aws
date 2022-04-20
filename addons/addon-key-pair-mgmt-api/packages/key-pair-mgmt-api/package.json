@@ -1,13 +1,13 @@
 {
-  "name": "@aws-ee/key-pair-mgmt-api",
+  "name": "@amzn/key-pair-mgmt-api",
   "private": true,
   "version": "1.0.0",
   "description": "A library containing user's key-pair management related controllers",
   "author": "Amazon Web Services",
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-ee/key-pair-mgmt-services": "workspace:*",
-    "@aws-ee/base-controllers": "workspace:*",
+    "@amzn/key-pair-mgmt-services": "workspace:*",
+    "@amzn/base-controllers": "workspace:*",
     "lodash": "^4.17.21",
     "uuid": "^3.4.0"
   },

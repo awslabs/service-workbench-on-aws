@@ -14,8 +14,8 @@
  */
 
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
-const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
+const Service = require('@amzn/base-services-container/lib/service');
+const { runAndCatch } = require('@amzn/base-services/lib/helpers/utils');
 
 const createSchema = require('../schema/create-wf-assignment');
 const updateSchema = require('../schema/update-wf-assignment');

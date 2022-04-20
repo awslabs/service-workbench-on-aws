@@ -15,9 +15,9 @@
  */
 
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
-const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
-const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
+const Service = require('@amzn/base-services-container/lib/service');
+const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/system-context');
+const { processInBatches } = require('@amzn/base-services/lib/helpers/utils');
 
 /**
  * This service is responsible for allocating and de-allocating AWS resources for the environment so that

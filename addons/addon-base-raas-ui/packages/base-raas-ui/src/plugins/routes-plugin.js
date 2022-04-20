@@ -14,7 +14,7 @@
  */
 
 import _ from 'lodash';
-import withAuth from '@aws-ee/base-ui/dist/withAuth';
+import withAuth from '@amzn/base-ui/dist/withAuth';
 
 import User from '../parts/users/User';
 import Accounts from '../parts/accounts/Accounts';

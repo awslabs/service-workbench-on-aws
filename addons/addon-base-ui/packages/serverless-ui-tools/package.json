@@ -1,5 +1,5 @@
 {
-  "name": "@aws-ee/base-serverless-ui-tools",
+  "name": "@amzn/base-serverless-ui-tools",
   "version": "1.0.0",
   "private": true,
   "description": "A serverless framework plugin to help with packaging and deploying a UI",

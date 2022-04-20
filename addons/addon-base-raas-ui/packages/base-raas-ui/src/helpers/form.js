@@ -17,7 +17,7 @@ import dvr from 'mobx-react-form/lib/validators/DVR';
 import validatorjs from 'validatorjs';
 import MobxReactForm from 'mobx-react-form';
 import isCidr from 'is-cidr';
-import * as baseFormHelper from '@aws-ee/base-ui/dist/helpers/form';
+import * as baseFormHelper from '@amzn/base-ui/dist/helpers/form';
 
 const dvrRules = {
   cidr: {

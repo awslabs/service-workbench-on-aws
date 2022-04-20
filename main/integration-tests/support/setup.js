@@ -18,7 +18,7 @@
 
 const _ = require('lodash');
 const jwtDecode = require('jwt-decode');
-const { retry } = require('@aws-ee/base-services/lib/helpers/utils');
+const { retry } = require('@amzn/base-services/lib/helpers/utils');
 
 const Settings = require('./utils/settings');
 const { getClientSession } = require('./client-session');

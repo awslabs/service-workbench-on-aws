@@ -20,9 +20,9 @@ import { decorate } from 'mobx';
 import { withRouter } from 'react-router-dom';
 import TimeAgo from 'react-timeago';
 import { Header, Segment, Icon, Table } from 'semantic-ui-react';
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import { isStoreError, isStoreReady, isStoreLoading, isStoreEmpty } from '@aws-ee/base-ui/dist/models/BaseStore';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
+import { isStoreError, isStoreReady, isStoreLoading, isStoreEmpty } from '@amzn/base-ui/dist/models/BaseStore';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
 
 import ProgressPlaceHolder from '../../workflow-common/ProgressPlaceholder';
 

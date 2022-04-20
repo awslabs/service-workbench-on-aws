@@ -20,11 +20,11 @@ import EnvironmentDetailPage from '../EnvironmentDetailPage';
 
 const { generateKeyPairSync, publicEncrypt, constants } = require('crypto');
 
-jest.mock('@aws-ee/base-ui/dist/helpers/notification');
-const displayErrorMock = require('@aws-ee/base-ui/dist/helpers/notification');
+jest.mock('@amzn/base-ui/dist/helpers/notification');
+const displayErrorMock = require('@amzn/base-ui/dist/helpers/notification');
 
-jest.mock('@aws-ee/base-ui/dist/helpers/routing');
-const gotoMock = require('@aws-ee/base-ui/dist/helpers/routing');
+jest.mock('@amzn/base-ui/dist/helpers/routing');
+const gotoMock = require('@amzn/base-ui/dist/helpers/routing');
 
 const environmentInstance = {
   name: 'name',

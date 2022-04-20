@@ -15,7 +15,7 @@
 
 const _ = require('lodash');
 const crypto = require('crypto');
-const Service = require('@aws-ee/base-services-container/lib/service');
+const Service = require('@amzn/base-services-container/lib/service');
 
 const { CfnTemplate } = require('../helpers/cfn-template');
 const { toAppStackCfnResource } = require('./helpers/app-stack-cfn-resource');

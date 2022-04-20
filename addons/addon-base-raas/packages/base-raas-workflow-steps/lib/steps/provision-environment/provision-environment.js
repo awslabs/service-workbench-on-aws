@@ -14,8 +14,8 @@
  */
 
 const _ = require('lodash');
-const { fuzz, randomString } = require('@aws-ee/base-services/lib/helpers/utils');
-const StepBase = require('@aws-ee/base-workflow-core/lib/workflow/helpers/step-base');
+const { fuzz, randomString } = require('@amzn/base-services/lib/helpers/utils');
+const StepBase = require('@amzn/base-workflow-core/lib/workflow/helpers/step-base');
 
 const STACK_FAILED = [
   'CREATE_FAILED',

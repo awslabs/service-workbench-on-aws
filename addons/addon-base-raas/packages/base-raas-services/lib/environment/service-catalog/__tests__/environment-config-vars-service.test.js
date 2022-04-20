@@ -13,27 +13,27 @@
  *  permissions and limitations under the License.
  */
 
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
 
-jest.mock('@aws-ee/base-services/lib/iam/iam-service.js');
-jest.mock('@aws-ee/base-services/lib/logger/logger-service');
-const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
+jest.mock('@amzn/base-services/lib/iam/iam-service.js');
+jest.mock('@amzn/base-services/lib/logger/logger-service');
+const AwsService = require('@amzn/base-services/lib/aws/aws-service');
 
 // Mocked dependencies
-jest.mock('@aws-ee/base-services/lib/authorization/authorization-service');
-const AuthServiceMock = require('@aws-ee/base-services/lib/authorization/authorization-service');
+jest.mock('@amzn/base-services/lib/authorization/authorization-service');
+const AuthServiceMock = require('@amzn/base-services/lib/authorization/authorization-service');
 
-jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
-const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
+jest.mock('@amzn/base-services/lib/settings/env-settings-service');
+const SettingsServiceMock = require('@amzn/base-services/lib/settings/env-settings-service');
 
-jest.mock('@aws-ee/base-services/lib/audit/audit-writer-service');
-const AuditServiceMock = require('@aws-ee/base-services/lib/audit/audit-writer-service');
+jest.mock('@amzn/base-services/lib/audit/audit-writer-service');
+const AuditServiceMock = require('@amzn/base-services/lib/audit/audit-writer-service');
 
-jest.mock('@aws-ee/environment-type-mgmt-services/lib/environment-type/env-type-config-service');
-const EnvTypeConfigServiceMock = require('@aws-ee/environment-type-mgmt-services/lib/environment-type/env-type-config-service');
+jest.mock('@amzn/environment-type-mgmt-services/lib/environment-type/env-type-config-service');
+const EnvTypeConfigServiceMock = require('@amzn/environment-type-mgmt-services/lib/environment-type/env-type-config-service');
 
-jest.mock('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
-const PluginRegistryService = require('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
+jest.mock('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
+const PluginRegistryService = require('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
 
 jest.mock('../../environment-authz-service.js');
 const EnvironmentAuthZServiceMock = require('../../environment-authz-service.js');

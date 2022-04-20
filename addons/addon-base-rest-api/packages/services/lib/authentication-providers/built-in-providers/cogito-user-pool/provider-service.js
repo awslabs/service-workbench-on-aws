@@ -14,8 +14,8 @@
  */
 
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
-const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
+const Service = require('@amzn/base-services-container/lib/service');
+const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/system-context');
 
 const { getCognitoTokenVerifier } = require('./cognito-token-verifier');
 
@@ -137,7 +137,7 @@ class ProviderService extends Service {
       });
     } catch (err) {
       this.log.error(err);
-      throw this.boom.internalError('error creating user');
+      throw this.boom.badRequest(`Error creating user: ${err.message}`, true);
     }
   }
 
@@ -197,7 +197,7 @@ class ProviderService extends Service {
         });
       } catch (err) {
         this.log.error(err);
-        throw this.boom.internalError('error updating user');
+        throw this.boom.badRequest(`Error updating user: ${err.message}`, true);
       }
     }
   }

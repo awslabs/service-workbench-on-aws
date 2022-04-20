@@ -20,9 +20,9 @@ import { decorate, observable, action, runInAction } from 'mobx';
 import { Button, Dimmer, Header, List, Loader, Segment } from 'semantic-ui-react';
 import _ from 'lodash';
 
-import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
-import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
-import validate from '@aws-ee/base-ui/dist/models/forms/Validate';
+import { displayError } from '@amzn/base-ui/dist/helpers/notification';
+import { createLink } from '@amzn/base-ui/dist/helpers/routing';
+import validate from '@amzn/base-ui/dist/models/forms/Validate';
 
 import {
   getCreateAwsAccountForm,

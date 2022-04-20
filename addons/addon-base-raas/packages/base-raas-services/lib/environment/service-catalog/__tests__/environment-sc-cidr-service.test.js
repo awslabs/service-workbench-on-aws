@@ -13,27 +13,27 @@
  *  permissions and limitations under the License.
  */
 
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
-const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
-const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
-const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
+const JsonSchemaValidationService = require('@amzn/base-services/lib/json-schema-validation-service');
+const Logger = require('@amzn/base-services/lib/logger/logger-service');
+const AwsService = require('@amzn/base-services/lib/aws/aws-service');
 
 jest.mock('../../../alb/alb-service');
 
 jest.mock('../../../indexes/indexes-service');
 
 // Mocked dependencies
-jest.mock('@aws-ee/base-services/lib/authorization/authorization-service');
-const AuthServiceMock = require('@aws-ee/base-services/lib/authorization/authorization-service');
+jest.mock('@amzn/base-services/lib/authorization/authorization-service');
+const AuthServiceMock = require('@amzn/base-services/lib/authorization/authorization-service');
 
-jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
-const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
+jest.mock('@amzn/base-services/lib/settings/env-settings-service');
+const SettingsServiceMock = require('@amzn/base-services/lib/settings/env-settings-service');
 
-jest.mock('@aws-ee/base-services/lib/audit/audit-writer-service');
-const AuditServiceMock = require('@aws-ee/base-services/lib/audit/audit-writer-service');
+jest.mock('@amzn/base-services/lib/audit/audit-writer-service');
+const AuditServiceMock = require('@amzn/base-services/lib/audit/audit-writer-service');
 
-jest.mock('@aws-ee/base-services/lib/lock/lock-service');
-const LockServiceMock = require('@aws-ee/base-services/lib/lock/lock-service');
+jest.mock('@amzn/base-services/lib/lock/lock-service');
+const LockServiceMock = require('@amzn/base-services/lib/lock/lock-service');
 const IndexServiceMock = require('../../../indexes/indexes-service');
 const ALBService = require('../../../alb/alb-service');
 

@@ -14,9 +14,9 @@
  */
 
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
-const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
-const { processInBatches } = require('@aws-ee/base-services/lib/helpers/utils');
+const Service = require('@amzn/base-services-container/lib/service');
+const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/system-context');
+const { processInBatches } = require('@amzn/base-services/lib/helpers/utils');
 
 const { StudyPolicy } = require('../helpers/iam/study-policy');
 const { hasAccess, accessLevels } = require('./helpers/entities/study-methods');

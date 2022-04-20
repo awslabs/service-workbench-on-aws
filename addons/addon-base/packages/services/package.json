@@ -1,12 +1,12 @@
 {
-  "name": "@aws-ee/base-services",
+  "name": "@amzn/base-services",
   "private": true,
   "version": "1.0.0",
   "description": "A library containing base set of services to be used with solutions based on <TODO-NAME> addons",
   "author": "Amazon Web Services",
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-ee/base-services-container": "workspace:*",
+    "@amzn/base-services-container": "workspace:*",
     "ajv": "^6.11.0",
     "aws-sdk": "^2.1000.0",
     "aws-xray-sdk": "^3.2.0",
@@ -22,7 +22,7 @@
     "validatorjs": "^3.18.1"
   },
   "devDependencies": {
-    "@aws-ee/base-services": "workspace:*",
+    "@amzn/base-services": "workspace:*",
     "eslint": "^6.8.0",
     "eslint-config-airbnb-base": "^14.0.0",
     "eslint-config-prettier": "^6.10.0",

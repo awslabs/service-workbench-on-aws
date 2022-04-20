@@ -15,7 +15,7 @@
 
 const _ = require('lodash');
 const path = require('path');
-const Service = require('@aws-ee/base-services-container/lib/service');
+const Service = require('@amzn/base-services-container/lib/service');
 
 const moveS3ObjectSchema = require('./schema/move-s3-object');
 

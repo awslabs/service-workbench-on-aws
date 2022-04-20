@@ -19,7 +19,7 @@ import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Segment, Header, Icon, Table } from 'semantic-ui-react';
 
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
 import {
   isStoreReady,
   isStoreLoading,
@@ -27,9 +27,9 @@ import {
   isStoreNotEmpty,
   isStoreError,
   stopHeartbeat,
-} from '@aws-ee/base-ui/dist/models/BaseStore';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
-import ProgressPlaceHolder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+} from '@amzn/base-ui/dist/models/BaseStore';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
+import ProgressPlaceHolder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 
 import DataSourceStudyRow from './DataSourceStudyRow';
 

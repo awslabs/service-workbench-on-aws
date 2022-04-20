@@ -13,29 +13,29 @@
  *  permissions and limitations under the License.
  */
 
-import baseAppContextItemsPlugin from '@aws-ee/base-ui/dist/plugins/app-context-items-plugin';
-import baseInitializationPlugin from '@aws-ee/base-ui/dist/plugins/initialization-plugin';
-import baseAuthenticationPlugin from '@aws-ee/base-ui/dist/plugins/authentication-plugin';
-import baseAppComponentPlugin from '@aws-ee/base-ui/dist/plugins/app-component-plugin';
-import baseMenuItemsPlugin from '@aws-ee/base-ui/dist/plugins/menu-items-plugin';
-import baseRoutesPlugin from '@aws-ee/base-ui/dist/plugins/routes-plugin';
-import workflowAppContextItemsPlugin from '@aws-ee/base-workflow-ui/dist/plugins/app-context-items-plugin';
-import workflowMenuItemsPlugin from '@aws-ee/base-workflow-ui/dist/plugins/menu-items-plugin';
-import workflowRoutesPlugin from '@aws-ee/base-workflow-ui/dist/plugins/routes-plugin';
-import raasAppContextItemsPlugin from '@aws-ee/base-raas-ui/dist/plugins/app-context-items-plugin';
-import raasInitializationPlugin from '@aws-ee/base-raas-ui/dist/plugins/initialization-plugin';
-import raasAppComponentPlugin from '@aws-ee/base-raas-ui/dist/plugins/app-component-plugin';
-import raasMenuItemsPlugin from '@aws-ee/base-raas-ui/dist/plugins/menu-items-plugin';
-import raasRoutesPlugin from '@aws-ee/base-raas-ui/dist/plugins/routes-plugin';
-import raasEnvTypeMgmtPlugin from '@aws-ee/base-raas-ui/dist/plugins/env-type-mgmt-plugin';
+import baseAppContextItemsPlugin from '@amzn/base-ui/dist/plugins/app-context-items-plugin';
+import baseInitializationPlugin from '@amzn/base-ui/dist/plugins/initialization-plugin';
+import baseAuthenticationPlugin from '@amzn/base-ui/dist/plugins/authentication-plugin';
+import baseAppComponentPlugin from '@amzn/base-ui/dist/plugins/app-component-plugin';
+import baseMenuItemsPlugin from '@amzn/base-ui/dist/plugins/menu-items-plugin';
+import baseRoutesPlugin from '@amzn/base-ui/dist/plugins/routes-plugin';
+import workflowAppContextItemsPlugin from '@amzn/base-workflow-ui/dist/plugins/app-context-items-plugin';
+import workflowMenuItemsPlugin from '@amzn/base-workflow-ui/dist/plugins/menu-items-plugin';
+import workflowRoutesPlugin from '@amzn/base-workflow-ui/dist/plugins/routes-plugin';
+import raasAppContextItemsPlugin from '@amzn/base-raas-ui/dist/plugins/app-context-items-plugin';
+import raasInitializationPlugin from '@amzn/base-raas-ui/dist/plugins/initialization-plugin';
+import raasAppComponentPlugin from '@amzn/base-raas-ui/dist/plugins/app-component-plugin';
+import raasMenuItemsPlugin from '@amzn/base-raas-ui/dist/plugins/menu-items-plugin';
+import raasRoutesPlugin from '@amzn/base-raas-ui/dist/plugins/routes-plugin';
+import raasEnvTypeMgmtPlugin from '@amzn/base-raas-ui/dist/plugins/env-type-mgmt-plugin';
 
-import envMgmtMenuItemsPlugin from '@aws-ee/environment-type-mgmt-ui/dist/plugins/menu-items-plugin';
-import envMgmtRoutesPlugin from '@aws-ee/environment-type-mgmt-ui/dist/plugins/routes-plugin';
-import envMgmtAppContextItemsPlugin from '@aws-ee/environment-type-mgmt-ui/dist/plugins/app-context-items-plugin';
+import envMgmtMenuItemsPlugin from '@amzn/environment-type-mgmt-ui/dist/plugins/menu-items-plugin';
+import envMgmtRoutesPlugin from '@amzn/environment-type-mgmt-ui/dist/plugins/routes-plugin';
+import envMgmtAppContextItemsPlugin from '@amzn/environment-type-mgmt-ui/dist/plugins/app-context-items-plugin';
 
-import keyPairAppContextItemsPlugin from '@aws-ee/key-pair-mgmt-ui/dist/plugins/app-context-items-plugin';
-import keyPairMenuItemsPlugin from '@aws-ee/key-pair-mgmt-ui/dist/plugins/menu-items-plugin';
-import keyPairRoutesPlugin from '@aws-ee/key-pair-mgmt-ui/dist/plugins/routes-plugin';
+import keyPairAppContextItemsPlugin from '@amzn/key-pair-mgmt-ui/dist/plugins/app-context-items-plugin';
+import keyPairMenuItemsPlugin from '@amzn/key-pair-mgmt-ui/dist/plugins/menu-items-plugin';
+import keyPairRoutesPlugin from '@amzn/key-pair-mgmt-ui/dist/plugins/routes-plugin';
 
 import appContextItemsPlugin from './app-context-items-plugin';
 import initializationPlugin from './initialization-plugin';

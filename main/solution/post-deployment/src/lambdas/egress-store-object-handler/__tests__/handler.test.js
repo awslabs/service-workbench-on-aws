@@ -13,16 +13,16 @@
  *  permissions and limitations under the License.
  */
 
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
-const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
-const S3Service = require('@aws-ee/base-services/lib/s3-service');
-const DataEgressService = require('@aws-ee/base-raas-services/lib/data-egress/data-egress-service');
-const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
+const Logger = require('@amzn/base-services/lib/logger/logger-service');
+const S3Service = require('@amzn/base-services/lib/s3-service');
+const DataEgressService = require('@amzn/base-raas-services/lib/data-egress/data-egress-service');
+const SettingsServiceMock = require('@amzn/base-services/lib/settings/env-settings-service');
 
-jest.mock('@aws-ee/base-services/lib/s3-service');
-jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
-jest.mock('@aws-ee/base-services/lib/logger/logger-service');
-jest.mock('@aws-ee/base-raas-services/lib/data-egress/data-egress-service');
+jest.mock('@amzn/base-services/lib/s3-service');
+jest.mock('@amzn/base-services/lib/settings/env-settings-service');
+jest.mock('@amzn/base-services/lib/logger/logger-service');
+jest.mock('@amzn/base-raas-services/lib/data-egress/data-egress-service');
 
 const { handlerWithContainer } = require('../handler');
 

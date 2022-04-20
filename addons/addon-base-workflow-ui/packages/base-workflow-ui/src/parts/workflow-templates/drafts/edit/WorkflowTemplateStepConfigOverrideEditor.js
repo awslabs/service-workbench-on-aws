@@ -18,7 +18,7 @@ import React from 'react';
 import { observer, inject } from 'mobx-react';
 import { decorate, action, computed } from 'mobx';
 import { Icon, Divider, Button, Segment, Header } from 'semantic-ui-react';
-import Form from '@aws-ee/base-ui/dist/parts/helpers/fields/Form';
+import Form from '@amzn/base-ui/dist/parts/helpers/fields/Form';
 
 import ConfigOverrideTable from '../../ConfigOverrideTable';
 

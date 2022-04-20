@@ -16,7 +16,7 @@
 import _ from 'lodash';
 import { types, applySnapshot, getEnv, getSnapshot } from 'mobx-state-tree';
 
-import { InputManifest, applyMarkdown, visit } from '@aws-ee/base-ui/dist/models/forms/InputManifest';
+import { InputManifest, applyMarkdown, visit } from '@amzn/base-ui/dist/models/forms/InputManifest';
 
 // ==================================================================
 // Helpers

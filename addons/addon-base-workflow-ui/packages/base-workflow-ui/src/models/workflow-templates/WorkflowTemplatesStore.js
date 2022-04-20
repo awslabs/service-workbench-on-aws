@@ -15,8 +15,8 @@
 
 import _ from 'lodash';
 import { types } from 'mobx-state-tree';
-import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
-import { uiEventBus } from '@aws-ee/base-ui/dist/models/SessionStore';
+import { BaseStore } from '@amzn/base-ui/dist/models/BaseStore';
+import { uiEventBus } from '@amzn/base-ui/dist/models/SessionStore';
 
 import { getWorkflowTemplates } from '../../helpers/api';
 import { WorkflowTemplate } from './WorkflowTemplate';

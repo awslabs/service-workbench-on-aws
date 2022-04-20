@@ -14,9 +14,9 @@
  */
 
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
-const { getSystemRequestContext } = require('@aws-ee/base-services/lib/helpers/system-context');
-const authProviderConstants = require('@aws-ee/base-api-services/lib/authentication-providers/constants')
+const Service = require('@amzn/base-services-container/lib/service');
+const { getSystemRequestContext } = require('@amzn/base-services/lib/helpers/system-context');
+const authProviderConstants = require('@amzn/base-api-services/lib/authentication-providers/constants')
   .authenticationProviders;
 
 const settingKeys = {

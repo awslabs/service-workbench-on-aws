@@ -13,28 +13,28 @@
  *  permissions and limitations under the License.
  */
 
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
-const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
-const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
+const JsonSchemaValidationService = require('@amzn/base-services/lib/json-schema-validation-service');
+const Logger = require('@amzn/base-services/lib/logger/logger-service');
 
 // Mocked dependencies
-jest.mock('@aws-ee/base-services/lib/db-service');
-const DbServiceMock = require('@aws-ee/base-services/lib/db-service');
+jest.mock('@amzn/base-services/lib/db-service');
+const DbServiceMock = require('@amzn/base-services/lib/db-service');
 
-jest.mock('@aws-ee/base-services/lib/db-password/db-password-service');
-const DbPasswordServiceMock = require('@aws-ee/base-services/lib/db-password/db-password-service');
+jest.mock('@amzn/base-services/lib/db-password/db-password-service');
+const DbPasswordServiceMock = require('@amzn/base-services/lib/db-password/db-password-service');
 
-jest.mock('@aws-ee/base-services/lib/authorization/authorization-service');
-const AuthServiceMock = require('@aws-ee/base-services/lib/authorization/authorization-service');
+jest.mock('@amzn/base-services/lib/authorization/authorization-service');
+const AuthServiceMock = require('@amzn/base-services/lib/authorization/authorization-service');
 
-jest.mock('@aws-ee/base-services/lib/user/user-authz-service');
-const UserAuthzServiceMock = require('@aws-ee/base-services/lib/user/user-authz-service');
+jest.mock('@amzn/base-services/lib/user/user-authz-service');
+const UserAuthzServiceMock = require('@amzn/base-services/lib/user/user-authz-service');
 
-jest.mock('@aws-ee/base-services/lib/audit/audit-writer-service');
-const AuditServiceMock = require('@aws-ee/base-services/lib/audit/audit-writer-service');
+jest.mock('@amzn/base-services/lib/audit/audit-writer-service');
+const AuditServiceMock = require('@amzn/base-services/lib/audit/audit-writer-service');
 
-jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
-const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
+jest.mock('@amzn/base-services/lib/settings/env-settings-service');
+const SettingsServiceMock = require('@amzn/base-services/lib/settings/env-settings-service');
 
 jest.mock('../../user-roles/user-roles-service');
 const _ = require('lodash');

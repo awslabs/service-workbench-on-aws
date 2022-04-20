@@ -16,7 +16,7 @@
  */
 
 const _ = require('lodash');
-const { generateId } = require('@aws-ee/base-services/lib/helpers/utils');
+const { generateId } = require('@amzn/base-services/lib/helpers/utils');
 
 const { parseAttributeValue, toStringAttributeValue } = require('../utils/attribute-value');
 const ErrorWithSuggestions = require('../utils/error-with-suggestions');

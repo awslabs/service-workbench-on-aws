@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-const StepBase = require('@aws-ee/base-workflow-core/lib/workflow/helpers/step-base');
+const StepBase = require('@amzn/base-workflow-core/lib/workflow/helpers/step-base');
 const environmentStatusEnum = require('../../helpers/environment-status-enum');
 
 const inPayloadKeys = {

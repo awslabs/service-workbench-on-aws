@@ -15,7 +15,7 @@
 
 import _ from 'lodash';
 import { types } from 'mobx-state-tree';
-import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
+import { BaseStore } from '@amzn/base-ui/dist/models/BaseStore';
 
 import { listStudyFiles } from '../../helpers/api';
 

@@ -33,7 +33,7 @@ async function registerServices(container, pluginRegistry) {
  * Function to register solution specific static settings. "static settings" is a plain JavaScript object containing
  * settings as key/value. In Lambda environment, the settings are provided by environment variables.
  * There is 4K limit to the env variables that can be passed to a Lambda. The default settings service impl provided by the
- * "@aws-ee/base-services" package reads settings from env variables.
+ * "@amzn/base-services" package reads settings from env variables.
  * In addition to those, any other settings that be derived via convention should be passed as "static settings" to
  * avoid occupying space in env variables space.
  *
@@ -169,7 +169,7 @@ async function getFieldsToMask(existingFieldsToMask, pluginRegistry) {
 
 /**
  * Function to register solution specific implementation for settings service. This is an optional function.
- * By default, an implementation of settings service (i.e., "@aws-ee/base-services/lib/settings/env-settings-service")
+ * By default, an implementation of settings service (i.e., "@amzn/base-services/lib/settings/env-settings-service")
  * that resolves settings from environment variables is already registered in the "container"
  *
  * @param container Services container
@@ -188,7 +188,7 @@ async function registerSettingsService(container, pluginRegistry) {
 
 /**
  * Function to register solution specific implementation for logger service. This is an optional function.
- * By default, an implementation of logger service (i.e., "@aws-ee/base-services/lib/logger/logger-service") is
+ * By default, an implementation of logger service (i.e., "@amzn/base-services/lib/logger/logger-service") is
  * already registered in the "container"
  *
  * @param container Services container

@@ -13,33 +13,34 @@
  *  permissions and limitations under the License.
  */
 
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
-const JsonSchemaValidationService = require('@aws-ee/base-services/lib/json-schema-validation-service');
-const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
+const JsonSchemaValidationService = require('@amzn/base-services/lib/json-schema-validation-service');
+const Logger = require('@amzn/base-services/lib/logger/logger-service');
 const crypto = require('crypto');
+const Boom = require('@amzn/base-services-container/lib/boom');
 
 // Mocked dependencies
-const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
+const AwsService = require('@amzn/base-services/lib/aws/aws-service');
 
 const AWSMock = require('aws-sdk-mock');
 
-jest.mock('@aws-ee/base-services/lib/lock/lock-service');
-const LockServiceMock = require('@aws-ee/base-services/lib/lock/lock-service');
+jest.mock('@amzn/base-services/lib/lock/lock-service');
+const LockServiceMock = require('@amzn/base-services/lib/lock/lock-service');
 
-jest.mock('@aws-ee/base-api-services/lib/jwt-service');
-const JwtService = require('@aws-ee/base-api-services/lib/jwt-service');
+jest.mock('@amzn/base-api-services/lib/jwt-service');
+const JwtService = require('@amzn/base-api-services/lib/jwt-service');
 
-jest.mock('@aws-ee/key-pair-mgmt-services/lib/key-pair/key-pair-service');
-const KeyPairServiceMock = require('@aws-ee/key-pair-mgmt-services/lib/key-pair/key-pair-service');
+jest.mock('@amzn/key-pair-mgmt-services/lib/key-pair/key-pair-service');
+const KeyPairServiceMock = require('@amzn/key-pair-mgmt-services/lib/key-pair/key-pair-service');
 
-jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
-const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
+jest.mock('@amzn/base-services/lib/settings/env-settings-service');
+const SettingsServiceMock = require('@amzn/base-services/lib/settings/env-settings-service');
 
-jest.mock('@aws-ee/base-services/lib/audit/audit-writer-service');
-const AuditServiceMock = require('@aws-ee/base-services/lib/audit/audit-writer-service');
+jest.mock('@amzn/base-services/lib/audit/audit-writer-service');
+const AuditServiceMock = require('@amzn/base-services/lib/audit/audit-writer-service');
 
-jest.mock('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
-const PluginRegistryServiceMock = require('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
+jest.mock('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
+const PluginRegistryServiceMock = require('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
 
 jest.mock('../../environment-dns-service.js');
 const EnvironmentDnsServiceMock = require('../../environment-dns-service.js');
@@ -337,6 +338,17 @@ describe('EnvironmentScConnectionService', () => {
       expect(envScService.getClientSdkWithEnvMgmtRole).toHaveBeenCalledTimes(2);
     });
 
+    it('should return too many requests error if request cannot obtain a lock', async () => {
+      // BUILD
+      lockService.tryWriteLockAndRun = jest.fn(() => {
+        throw service.boom.internalError('Could not obtain a lock', true);
+      });
+
+      // OPERATE, CHECK
+      await expect(service.createPrivateSageMakerUrl({}, 'envId1', {})).rejects.toEqual(
+        new Boom().tooManyRequests('Please wait 30 seconds before requesting Sagemaker URL', true),
+      );
+    });
     it('should return private SageMaker URL', async () => {
       // BUILD
       lockService.tryWriteLockAndRun = jest.fn((id, func) => {

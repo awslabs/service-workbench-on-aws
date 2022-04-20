@@ -19,7 +19,7 @@ const serverless = require('serverless-http');
 const compression = require('compression');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
 
 const errorHandler = require('./error-handler');
 const AppContext = require('./app-context');

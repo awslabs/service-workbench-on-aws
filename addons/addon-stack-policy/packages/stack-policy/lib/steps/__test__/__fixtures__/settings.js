@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-const { registerServices } = require('@aws-ee/base-services/lib/utils/services-registration-util');
+const { registerServices } = require('@amzn/base-services/lib/utils/services-registration-util');
 
 const keys = {
   enableegressstore: 'enableegressstore',

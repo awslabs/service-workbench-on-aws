@@ -19,8 +19,8 @@ import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Label, Popup, Statistic, Placeholder } from 'semantic-ui-react';
 
-import { isStoreError, isStoreReady } from '@aws-ee/base-ui/dist/models/BaseStore';
-import { swallowError, nicePrice } from '@aws-ee/base-ui/dist/helpers/utils';
+import { isStoreError, isStoreReady } from '@amzn/base-ui/dist/models/BaseStore';
+import { swallowError, nicePrice } from '@amzn/base-ui/dist/helpers/utils';
 
 // expected props
 // - envId (via prop)

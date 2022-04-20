@@ -19,8 +19,8 @@ import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Header, Segment, Accordion, Icon, Label, Table, Button } from 'semantic-ui-react';
 import c from 'classnames';
-import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
-import { displayWarning } from '@aws-ee/base-ui/dist/helpers/notification';
+import { createLink } from '@amzn/base-ui/dist/helpers/routing';
+import { displayWarning } from '@amzn/base-ui/dist/helpers/notification';
 import { isAppStreamEnabled } from '../../helpers/settings';
 
 const { getAccountIdsOfActiveEnvironments } = require('./AccountUtils');

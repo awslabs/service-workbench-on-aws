@@ -16,7 +16,7 @@
 import React from 'react';
 import { observer } from 'mobx-react';
 import { Segment } from 'semantic-ui-react';
-import ConfigTable from '@aws-ee/base-ui/dist/parts/configuration/ConfigTable';
+import ConfigTable from '@amzn/base-ui/dist/parts/configuration/ConfigTable';
 
 import ConfigOverrideTable from './ConfigOverrideTable';
 

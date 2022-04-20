@@ -16,7 +16,7 @@
 const _ = require('lodash');
 const jwtDecode = require('jwt-decode');
 
-const Service = require('@aws-ee/base-services-container/lib/service');
+const Service = require('@amzn/base-services-container/lib/service');
 
 const settingKeys = {
   tableName: 'dbRevokedTokens',

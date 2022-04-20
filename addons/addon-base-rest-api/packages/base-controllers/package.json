@@ -1,15 +1,16 @@
 {
-  "name": "@aws-ee/base-controllers",
+  "name": "@amzn/base-controllers",
   "private": true,
   "version": "1.0.0",
   "description": "A library containing a set of base controllers",
   "author": "Amazon Web Services",
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-ee/base-services": "workspace:*",
-    "@aws-ee/base-api-services": "workspace:*",
-    "@aws-ee/base-services-container": "workspace:*",
-    "lodash": "^4.17.21"
+    "@amzn/base-services": "workspace:*",
+    "@amzn/base-api-services": "workspace:*",
+    "@amzn/base-services-container": "workspace:*",
+    "lodash": "^4.17.21",
+    "axios": "^0.21.2"
   },
   "devDependencies": {
     "eslint": "^6.8.0",

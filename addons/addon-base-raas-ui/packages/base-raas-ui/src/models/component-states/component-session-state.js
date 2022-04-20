@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-import { sessionStore } from '@aws-ee/base-ui/dist/models/SessionStore';
+import { sessionStore } from '@amzn/base-ui/dist/models/SessionStore';
 
 /**
  * A function that returns component's state (as MST model).

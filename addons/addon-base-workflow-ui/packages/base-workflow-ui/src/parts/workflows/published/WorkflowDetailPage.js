@@ -20,10 +20,10 @@ import { decorate, action } from 'mobx';
 import { withRouter } from 'react-router-dom';
 import TimeAgo from 'react-timeago';
 import { Header, Label, Breadcrumb, Container, Dropdown } from 'semantic-ui-react';
-import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import { isStoreError, isStoreReady, isStoreLoading } from '@aws-ee/base-ui/dist/models/BaseStore';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
+import { gotoFn } from '@amzn/base-ui/dist/helpers/routing';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
+import { isStoreError, isStoreReady, isStoreLoading } from '@amzn/base-ui/dist/models/BaseStore';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
 
 import ProgressPlaceHolder from '../../workflow-common/ProgressPlaceholder';
 import getUIState from '../../workflow-common/component-states/WorkflowCommonCardState';

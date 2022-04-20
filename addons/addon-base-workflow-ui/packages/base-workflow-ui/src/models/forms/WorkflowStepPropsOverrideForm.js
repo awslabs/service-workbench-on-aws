@@ -14,7 +14,7 @@
  */
 
 import _ from 'lodash';
-import { createForm } from '@aws-ee/base-ui/dist/helpers/form';
+import { createForm } from '@amzn/base-ui/dist/helpers/form';
 
 const workflowStepPropsOverrideFields = step => {
   const rows = step.propertyOverrideSummaryRows || [];

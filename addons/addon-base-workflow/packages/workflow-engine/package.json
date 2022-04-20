@@ -1,5 +1,5 @@
 {
-  "name": "@aws-ee/workflow-engine",
+  "name": "@amzn/workflow-engine",
   "private": true,
   "version": "1.0.0",
   "description": "A simple workflow engine",

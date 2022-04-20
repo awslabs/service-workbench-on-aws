@@ -129,4 +129,4 @@ plugins:
   - serverless-offline
   - serverless-deployment-bucket
   - serverless-s3-sync
-  - '@aws-ee/base-serverless-backend-tools'
+  - '@amzn/base-serverless-backend-tools'

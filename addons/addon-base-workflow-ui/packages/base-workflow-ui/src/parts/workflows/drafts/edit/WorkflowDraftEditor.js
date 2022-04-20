@@ -21,10 +21,10 @@ import { withRouter } from 'react-router-dom';
 import TimeAgo from 'react-timeago';
 import { Header, Container, Breadcrumb, Label, Segment } from 'semantic-ui-react';
 import c from 'classnames';
-import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
-import { isStoreReady, isStoreEmpty, isStoreNotEmpty } from '@aws-ee/base-ui/dist/models/BaseStore';
-import Stores from '@aws-ee/base-ui/dist/models/Stores';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
+import { gotoFn } from '@amzn/base-ui/dist/helpers/routing';
+import { isStoreReady, isStoreEmpty, isStoreNotEmpty } from '@amzn/base-ui/dist/models/BaseStore';
+import Stores from '@amzn/base-ui/dist/models/Stores';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
 
 import ProgressPlaceHolder from '../../../workflow-common/ProgressPlaceholder';
 import { getWorkflowDraftEditor } from '../../../../models/workflows/drafts/edit/WorkflowDraftEditor';

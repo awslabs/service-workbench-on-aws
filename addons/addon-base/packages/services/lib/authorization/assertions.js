@@ -14,7 +14,7 @@
  */
 
 const _ = require('lodash');
-const Boom = require('@aws-ee/base-services-container/lib/boom');
+const Boom = require('@amzn/base-services-container/lib/boom');
 
 const boom = new Boom();
 

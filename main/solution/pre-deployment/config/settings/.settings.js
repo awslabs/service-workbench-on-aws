@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-module.exports.merged = require('@aws-ee/base-serverless-settings-helper').mergeSettings(__dirname, [
+module.exports.merged = require('@amzn/base-serverless-settings-helper').mergeSettings(__dirname, [
   '../../../../config/settings/.defaults.yml',
   './.defaults.yml',
   '../../../../config/settings/${stage}.yml',

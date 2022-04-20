@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-const cognitoAuthType = require('@aws-ee/base-api-services/lib/authentication-providers/built-in-providers/cogito-user-pool/type')
+const cognitoAuthType = require('@amzn/base-api-services/lib/authentication-providers/built-in-providers/cogito-user-pool/type')
   .type;
 
 async function configure(context) {
