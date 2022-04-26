@@ -72,9 +72,9 @@ class InputStep extends React.Component {
     const result = [];
     _.forEach(list, user => {
       if (!user.isActive) return;
-      //  Validate the flag "disableAdminBYOBSelfAssignment" if it set to "true" 
+      //  Validate the flag "disableAdminBYOBSelfAssignment" if it set to "true"
       //  execute the "Feature 2B" - Admin can assign only a researcher as a study admin in the BYOB feature.
-      if(disableAdminBYOBSelfAssignment == true) {
+      if (disableAdminBYOBSelfAssignment === true) {
         if (user.isInternalResearcher) {
           result.push({
             key: user.id,
@@ -82,7 +82,8 @@ class InputStep extends React.Component {
             text: user.longDisplayName,
           });
         }
-      } else {
+      }
+      if (disableAdminBYOBSelfAssignment !== true) {
         if (user.isAdmin || user.isInternalResearcher || user.userRole === 'admin') {
           result.push({
             key: user.id,
