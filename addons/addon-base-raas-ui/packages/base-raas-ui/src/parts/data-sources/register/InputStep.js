@@ -32,7 +32,7 @@ import { gotoFn } from '@amzn/base-ui/dist/helpers/routing';
 import { regionOptions } from '../../../models/constants/aws-regions';
 import { encryptionOptions } from '../../../models/constants/bucket';
 import { getRegisterStudyForm } from '../../../models/forms/RegisterStudyForm';
-import { enableEgressStore } from '../../../helpers/settings';
+import { enableEgressStore, disableAdminBYOBSelfAssignment } from '../../../helpers/settings';
 
 const fieldRuleKey = (container, name) => `${container.key}-${name}`;
 
@@ -72,12 +72,24 @@ class InputStep extends React.Component {
     const result = [];
     _.forEach(list, user => {
       if (!user.isActive) return;
-      if (user.isAdmin || user.isInternalResearcher || user.userRole === 'admin') {
-        result.push({
-          key: user.id,
-          value: user.id,
-          text: user.longDisplayName,
-        });
+      //  Validate the flag "disableAdminBYOBSelfAssignment" if it set to "true" 
+      //  execute the "Feature 2B" - Admin can assign only a researcher as a study admin in the BYOB feature.
+      if(disableAdminBYOBSelfAssignment == true) {
+        if (user.isInternalResearcher) {
+          result.push({
+            key: user.id,
+            value: user.id,
+            text: user.longDisplayName,
+          });
+        }
+      } else {
+        if (user.isAdmin || user.isInternalResearcher || user.userRole === 'admin') {
+          result.push({
+            key: user.id,
+            value: user.id,
+            text: user.longDisplayName,
+          });
+        }
       }
     });
 
