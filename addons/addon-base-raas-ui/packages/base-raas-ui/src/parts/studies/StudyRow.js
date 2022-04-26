@@ -18,7 +18,7 @@ import { decorate, action, computed, runInAction, observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import { Header, Checkbox, Segment, Accordion, Icon, Popup, Label } from 'semantic-ui-react';
 import c from 'classnames';
-import { isAppStreamEnabled, disableStudyUploadByResearcher } from '../../helpers/settings';
+import { disableStudyUploadByResearcher } from '../../helpers/settings';
 
 import StudyFilesTable from './StudyFilesTable';
 import StudyPermissionsTable from './StudyPermissionsTable';
@@ -98,10 +98,10 @@ class StudyRow extends React.Component {
   }
 
   renderHeader(study) {
-    // Disable the upload files button for the researcher. This feature would be enable based on 
-    // the flag "disableStudyUploadByResearcher" is set to true. 
+    // Disable the upload files button for the researcher. This feature would be enable based on
+    // the flag "disableStudyUploadByResearcher" is set to true.
     let getAccess = true;
-    if(this.getUserRole === 'researcher' && disableStudyUploadByResearcher === true) {
+    if (this.getUserRole === 'researcher' && disableStudyUploadByResearcher === true) {
       getAccess = false;
     }
 

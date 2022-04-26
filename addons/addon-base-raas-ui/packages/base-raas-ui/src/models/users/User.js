@@ -178,10 +178,9 @@ const User = types
       const external = self.isExternalUser; // Either external guest or external user
       const externalGuest = self.isExternalGuest;
       const internalGuest = self.isInternalGuest;
-      // Disable the create study/org button for the researcher. This feature would be enable based on 
-      // the flag "disableStudyUploadByResearcher" is set to true.
+      // Disable the create study/org button for the researcher. This feature would be enable based on the flag "disableStudyUploadByResearcher" is set to true.
       let getAccess = true;
-      if(self.isInternalResearcher && disableStudyUploadByResearcher === true) {
+      if (self.isInternalResearcher && disableStudyUploadByResearcher === true) {
         getAccess = false;
       }
 

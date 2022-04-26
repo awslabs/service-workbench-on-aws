@@ -146,15 +146,15 @@ class ScEnvironmentButtons extends React.Component {
     const isAdmin = user.isAdmin;
     const uid = user.uid;
     let getAccess = true;
-    
-    //  Validate the flag "restrictAdminWorkspaceConnection" if it set to "true" 
-    //  execute the "Feature 2A" - Restrict the admin to access workspaces only created by them.  
-    if(restrictAdminWorkspaceConnection == true) {
-      if(isAdmin == true) { 
+
+    //  Validate the flag "restrictAdminWorkspaceConnection" if it set to "true"
+    //  execute the "Feature 2A" - Restrict the admin to access workspaces only created by them.
+    if (restrictAdminWorkspaceConnection === true) {
+      if (isAdmin === true) {
         getAccess = false;
-      } 
-      if(uid == envCreatedBy) { 
-        getAccess = true;  
+      }
+      if (uid === envCreatedBy) {
+        getAccess = true;
       }
     }
 

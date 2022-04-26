@@ -20,5 +20,11 @@ const disableStudyUploadByResearcher = process.env.REACT_APP_DISABLE_STUDY_UPLOA
 const restrictAdminWorkspaceConnection = process.env.REACT_APP_RESTRICT_ADMIN_WORKSPACE_CONNECTION === 'true';
 const disableAdminBYOBSelfAssignment = process.env.REACT_APP_DISABLE_ADMIN_BYOB_SELF_ASSIGNMENT === 'true';
 
-export { enableBuiltInWorkspaces, enableEgressStore, isAppStreamEnabled, disableStudyUploadByResearcher, restrictAdminWorkspaceConnection, disableAdminBYOBSelfAssignment };
- 
+export {
+  enableBuiltInWorkspaces,
+  enableEgressStore,
+  isAppStreamEnabled,
+  disableStudyUploadByResearcher,
+  restrictAdminWorkspaceConnection,
+  disableAdminBYOBSelfAssignment,
+};
