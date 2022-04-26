@@ -18,6 +18,7 @@ import { decorate, action, computed, runInAction, observable } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import { Header, Checkbox, Segment, Accordion, Icon, Popup, Label } from 'semantic-ui-react';
 import c from 'classnames';
+import { isAppStreamEnabled, disableStudyUploadByResearcher } from '../../helpers/settings';
 
 import StudyFilesTable from './StudyFilesTable';
 import StudyPermissionsTable from './StudyPermissionsTable';
@@ -34,6 +35,10 @@ class StudyRow extends React.Component {
       this.filesExpanded = false;
       this.permissionsExpanded = false;
     });
+  }
+
+  get getUserRole() {
+    return this.props.userRole;
   }
 
   get study() {
@@ -93,6 +98,13 @@ class StudyRow extends React.Component {
   }
 
   renderHeader(study) {
+    // Disable the upload files button for the researcher. This feature would be enable based on 
+    // the flag "disableStudyUploadByResearcher" is set to true. 
+    let getAccess = true;
+    if(this.getUserRole === 'researcher' && disableStudyUploadByResearcher === true) {
+      getAccess = false;
+    }
+
     const isSelectable = this.isSelectable; // Internal and external guests can't select studies
     const onClickAttr = {};
 
@@ -101,7 +113,7 @@ class StudyRow extends React.Component {
     return (
       <div>
         <Header as="h3" color="blue" className={c('mt2', isSelectable ? 'cursor-pointer' : '')} {...onClickAttr}>
-          {study.uploadLocationEnabled && study.canUpload && <UploadStudyFiles studyId={study.id} />}
+          {study.uploadLocationEnabled && study.canUpload && getAccess && <UploadStudyFiles studyId={study.id} />}
           {study.name}
           <Header.Subheader>
             <span className="pt1 fs-8 color-grey">{study.id}</span>

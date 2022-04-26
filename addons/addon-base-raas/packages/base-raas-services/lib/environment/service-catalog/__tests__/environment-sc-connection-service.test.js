@@ -635,4 +635,30 @@ jM0re//6SUWx/9VfBLN+6Ul8wcqGR2uCmK/PJpzWYxz0IzhnyA==
       );
     });
   });
+
+  describe('verifyAdminAccess', () => {
+    it('Should fail if the admin is try to access the researcher workspace', async () => {
+      // Env is created by the researcher 
+      process.env.APP_RESTRICT_ADMIN_WORKSPACE_CONNECTION = true;
+      const createdBy = 'u-moQvVGabqpcaypegCqwsa'; // researcher uid
+      const projectId = 'Project-2';
+      const requestContext = { principal: { isAdmin: true, status: 'active' }, principalIdentifier: { uid: 'u-moQvVGabqpcaypegCqwso' }, };
+      try { 
+        await service.verifyAdminAccess(requestContext, createdBy, projectId);
+      } catch (err) {
+        expect(err.message).toEqual(`You do not have access to workspace "${projectId}". Please contact your administrator.”`);
+      }
+    });
+
+    it('Should pass if the admin is try to access the researcher workspace', async () => {
+      // Env is created by the researcher 
+      process.env.APP_RESTRICT_ADMIN_WORKSPACE_CONNECTION = false;
+      const createdBy = 'u-moQvVGabqpcaypegCqwsa'; // researcher uid
+      const projectId = 'Project-2';
+      const requestContext = { principal: { isAdmin: true, status: 'active' }, principalIdentifier: { uid: 'u-moQvVGabqpcaypegCqwso' }, };
+      const status = await service.verifyAdminAccess(requestContext, createdBy, projectId);
+      expect(status).toEqual(true);
+    }); 
+  });
+  
 });

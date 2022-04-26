@@ -23,6 +23,7 @@ const { retry, linearInterval } = require('@amzn/base-services/lib/helpers/utils
 const sshConnectionInfoSchema = require('../../schema/ssh-connection-info-sc');
 const { connectionScheme } = require('./environment-sc-connection-enum');
 const { cfnOutputsToConnections } = require('./helpers/connections-util');
+const { get } = require('lodash');
 
 // Webpack messes with the fetch function import and it breaks in lambda.
 if (typeof fetch !== 'function' && fetch.default && typeof fetch.default === 'function') {
@@ -92,7 +93,9 @@ class EnvironmentScConnectionService extends Service {
       'pluginRegistryService',
     ]);
     // The following will succeed only if the user has permissions to access the specified environment
-    const { outputs, projectId } = await environmentScService.mustFind(requestContext, { id: envId });
+    const { outputs, projectId, createdBy } = await environmentScService.mustFind(requestContext, { id: envId });
+    // TODO : Restrict the admin to access workspace not owned by them.
+    await this.verifyAdminAccess(requestContext, createdBy, projectId); 
 
     // Verify environment is linked to an AppStream project when application has AppStream enabled
     await environmentScService.verifyAppStreamConfig(requestContext, projectId);
@@ -122,6 +125,23 @@ class EnvironmentScConnectionService extends Service {
       }),
     );
     return adjustedConnections;
+  }
+
+  async verifyAdminAccess(requestContext, createdBy, projectId){
+    const restrictAdminWorkspaceConnection = process.env.APP_RESTRICT_ADMIN_WORKSPACE_CONNECTION || false; 
+    const uid = _.get(requestContext, 'principalIdentifier.uid');
+    const isAdmin = _.get(requestContext, 'principal.isAdmin');
+    let getAccess = true;
+    if(restrictAdminWorkspaceConnection == 'true') {
+      if(isAdmin == true) { 
+        getAccess = false;
+      } 
+      if(uid == createdBy) { 
+        getAccess = true;
+      }
+    }
+    if (!getAccess) throw this.boom.notFound(`You do not have access to workspace "${projectId}". Please contact your administrator.”`, true);
+    return getAccess;
   }
 
   async findConnection(requestContext, envId, connectionId) {

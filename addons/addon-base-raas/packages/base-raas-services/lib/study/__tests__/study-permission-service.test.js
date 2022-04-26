@@ -43,6 +43,7 @@ describe('StudyPermissionService', () => {
   let service;
   let dbService;
   let lockService;
+  let userService;
 
   beforeEach(async () => {
     // Initialize services container and register dependencies
@@ -64,6 +65,7 @@ describe('StudyPermissionService', () => {
     service = await container.find('studyPermissionService');
     dbService = await container.find('dbService');
     lockService = await container.find('lockService');
+    userService = await container.find('userService');
   });
 
   describe('findStudyPermissions', () => {
@@ -736,4 +738,32 @@ describe('StudyPermissionService', () => {
       expect(service.assertValidUsers).toHaveBeenCalledWith(['uid-1']);
     });
   });
+
+  describe('assertValidUsers', () => {
+    it('should fail if the admin username is present in the userIds, when APP_DISABLE_ADMIN_BYOB_SELF_ASSIGNMENT is set to true', async () => {
+      // BUILD 
+      const username = 'narendran.ranganathan@relevancelab.com'; 
+      const userIds = [ 'u-moQvVGabqpcaypegCqwso' ]; 
+      userService.mustFindUser = jest.fn(() => {
+        return {isAdmin:true, status: 'active', userRole: 'admin', username};
+      });  
+      process.env.APP_DISABLE_ADMIN_BYOB_SELF_ASSIGNMENT = 'true';  
+      await expect(service.assertValidUsers(userIds)).rejects.toThrow( 
+        expect.objectContaining({ message: `User ${username} must be active and has the role of researcher` }),
+      ); 
+    });
+
+    it('should pass if the admin username is present in the userIds, when APP_DISABLE_ADMIN_BYOB_SELF_ASSIGNMENT is set to false', async () => {
+      // BUILD 
+      const username = 'narendran.ranganathan@relevancelab.com'; 
+      const userIds = [ 'u-moQvVGabqpcaypegCqwso' ]; 
+      userService.mustFindUser = jest.fn(() => {
+        return {isAdmin:true, status: 'active', userRole: 'admin', username};
+      });  
+      process.env.APP_DISABLE_ADMIN_BYOB_SELF_ASSIGNMENT = 'false';   
+      const response = await service.assertValidUsers(userIds);
+      expect(response).toBeUndefined();
+    });
+  });
+
 });

@@ -1393,4 +1393,151 @@ describe('studyService', () => {
       expect(result).toBeFalsy();
     });
   });
+
+  describe('Create Study', () => {
+    it('should fail when the researcher is tries to create study', async () => { 
+      const studyData = {
+        description: 'Example study 1',
+        id: 'study-2',
+        name: 'Study 1',
+        resources: [
+          {
+            arn: 'arn:aws:s3:::study1',
+          },
+        ],
+        sha: '19d5b9z735712185ca1c691143t458a7aa2b7f69',
+        category: 'My Studies',
+      };
+      // BUILD
+      const uid = 'u-currentUserId';
+      const requestContext = {
+        principalIdentifier: { uid },
+        principal: { userRole: 'researcher', status: 'active' },
+      }; 
+      process.env.APP_DISABLE_STUDY_UPLOAD_BY_RESEARCHER = 'true';
+      // OPERATE
+      await expect(service.create(requestContext, studyData)).rejects.toThrow(
+        // CHECK
+        expect.objectContaining({ message: 'Only admin are authorized to create studies.' }),
+      );
+    });
+
+    it('should pass when the researcher is tries to create study', async () => { 
+      
+      process.env.APP_DISABLE_STUDY_UPLOAD_BY_RESEARCHER = 'false'; 
+      const sid = 'doppelganger';
+      const uid = 'u-currentUserId';
+      const requestContext = {
+        principal: { userRole: 'admin', status: 'active' },
+        principalIdentifier: { uid: '_system_' },
+      }; 
+      const studyEntity = {
+        id: sid,
+        category: 'My Studies',
+        accessType: 'readwrite',
+        projectId: 'p1',
+      };
+      projectService.verifyUserProjectAssociation.mockImplementationOnce(() => true);
+      let pKey1;
+      let pKey2;
+      dbService.table.key = jest
+        .fn()
+        .mockImplementationOnce(({ id }) => {
+          pKey1 = id;
+          return dbService.table;
+        })
+        .mockImplementationOnce(({ id }) => {
+          pKey2 = id;
+          return dbService.table;
+        })
+        .mockImplementationOnce(() => {
+          // Covers the call to get the User PermissionsEntity
+          return dbService.table;
+        })
+        .mockImplementationOnce(() => {
+          // Covers the call to update the User PermissionsEntity
+          return dbService.table;
+        });
+
+      dbService.table.update = jest
+        .fn()
+        .mockImplementationOnce(() => {
+          if (pKey1 !== sid) return undefined;
+          return studyEntity;
+        })
+        .mockImplementationOnce(() => {
+          if (pKey2 !== `Study:${sid}`) return undefined;
+          return { adminUsers: [uid] };
+        });
+
+      await expect(service.create(requestContext, studyEntity)).resolves.toStrictEqual({
+        ...studyEntity,
+        status: 'reachable',
+        permissions: { ...getEmptyStudyPermissions(), adminUsers: [uid] },
+      });
+      
+    });
+    
+ 
+  });
+
+  describe('createPresignedPostRequests', () => {
+    it('should fail when the researcher is tries to upload files', async () => { 
+      // BUILD
+      const uid = 'u-currentUserId';
+      const requestContext = {
+        principalIdentifier: { uid },
+        principal: { userRole: 'researcher', status: 'active' },
+      }; 
+      process.env.APP_DISABLE_STUDY_UPLOAD_BY_RESEARCHER = 'true';
+      // OPERATE
+      await expect(service.createPresignedPostRequests(requestContext, 'study-2', filenames=[], encrypt = true, multiPart = true)).rejects.toThrow(
+        // CHECK
+        expect.objectContaining({ message: 'Only admin are autenabledhorized to upload files.' }),
+      );
+    });
+
+    it('should pass when the researcher is tries to upload files', async () => { 
+      // BUILD
+      const uid = 'u-currentUserId';
+      const requestContext = {
+        principalIdentifier: { uid },
+        principal: { userRole: 'researcher', status: 'active' },
+      };
+      const studyId = 'study-2'; 
+      process.env.APP_DISABLE_STUDY_UPLOAD_BY_RESEARCHER = 'false';
+      // OPERATE
+      await expect(service.createPresignedPostRequests(requestContext, studyId, filenames=[], encrypt = true, multiPart = true)).rejects.toThrow(
+        // CHECK
+        expect.objectContaining({ message: `Study with id \"study-2\" does not exist` }),
+      );
+    });
+  });
+
 });
+describe('assertValidUsers', () => {
+    it('should fail if the admin username is present in the userIds, when APP_DISABLE_ADMIN_BYOB_SELF_ASSIGNMENT is set to true', async () => {
+      // BUILD 
+      const username = 'narendran.ranganathan@relevancelab.com'; 
+      const userIds = [ 'u-moQvVGabqpcaypegCqwso' ]; 
+      userService.mustFindUser = jest.fn(() => {
+        return {isAdmin:true, status: 'active', userRole: 'admin', username};
+      });  
+      process.env.APP_DISABLE_ADMIN_BYOB_SELF_ASSIGNMENT = 'true';  
+      await expect(service.assertValidUsers(userIds)).rejects.toThrow( 
+        expect.objectContaining({ message: `User ${username} must be active and has the role of researcher` }),
+      ); 
+    });
+
+    it('should pass if the admin username is present in the userIds, when APP_DISABLE_ADMIN_BYOB_SELF_ASSIGNMENT is set to false', async () => {
+      // BUILD 
+      const username = 'narendran.ranganathan@relevancelab.com'; 
+      const userIds = [ 'u-moQvVGabqpcaypegCqwso' ]; 
+      userService.mustFindUser = jest.fn(() => {
+        return {isAdmin:true, status: 'active', userRole: 'admin', username};
+      });  
+      process.env.APP_DISABLE_ADMIN_BYOB_SELF_ASSIGNMENT = 'false';   
+      const response = await service.assertValidUsers(userIds);
+      expect(response).toBeUndefined();
+    });
+  });
