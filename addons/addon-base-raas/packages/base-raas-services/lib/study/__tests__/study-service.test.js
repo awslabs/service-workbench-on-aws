@@ -1395,7 +1395,7 @@ describe('studyService', () => {
   });
 
   describe('Create Study', () => {
-    it('should fail when the researcher is tries to create study', async () => { 
+    it('should fail when the researcher is tries to create study', async () => {
       const studyData = {
         description: 'Example study 1',
         id: 'study-2',
@@ -1413,7 +1413,7 @@ describe('studyService', () => {
       const requestContext = {
         principalIdentifier: { uid },
         principal: { userRole: 'researcher', status: 'active' },
-      }; 
+      };
       process.env.APP_DISABLE_STUDY_UPLOAD_BY_RESEARCHER = 'true';
       // OPERATE
       await expect(service.create(requestContext, studyData)).rejects.toThrow(
@@ -1422,15 +1422,14 @@ describe('studyService', () => {
       );
     });
 
-    it('should pass when the researcher is tries to create study', async () => { 
-      
-      process.env.APP_DISABLE_STUDY_UPLOAD_BY_RESEARCHER = 'false'; 
+    it('should pass when the researcher is tries to create study', async () => {
+      process.env.APP_DISABLE_STUDY_UPLOAD_BY_RESEARCHER = 'false';
       const sid = 'doppelganger';
       const uid = 'u-currentUserId';
       const requestContext = {
         principal: { userRole: 'admin', status: 'active' },
         principalIdentifier: { uid: '_system_' },
-      }; 
+      };
       const studyEntity = {
         id: sid,
         category: 'My Studies',
@@ -1475,69 +1474,50 @@ describe('studyService', () => {
         status: 'reachable',
         permissions: { ...getEmptyStudyPermissions(), adminUsers: [uid] },
       });
-      
     });
-    
- 
   });
 
   describe('createPresignedPostRequests', () => {
-    it('should fail when the researcher is tries to upload files', async () => { 
+    it('should fail when the researcher is tries to upload files', async () => {
       // BUILD
       const uid = 'u-currentUserId';
+      const filenames = [];
+      const encrypt = true;
+      const multiPart = true;
       const requestContext = {
         principalIdentifier: { uid },
         principal: { userRole: 'researcher', status: 'active' },
-      }; 
+      };
       process.env.APP_DISABLE_STUDY_UPLOAD_BY_RESEARCHER = 'true';
       // OPERATE
-      await expect(service.createPresignedPostRequests(requestContext, 'study-2', filenames=[], encrypt = true, multiPart = true)).rejects.toThrow(
+      await expect(
+        service.createPresignedPostRequests(requestContext, 'study-2', filenames, encrypt, multiPart),
+      ).rejects.toThrow(
         // CHECK
         expect.objectContaining({ message: 'Only admin are autenabledhorized to upload files.' }),
       );
     });
 
-    it('should pass when the researcher is tries to upload files', async () => { 
+    it('should pass when the researcher is tries to upload files', async () => {
       // BUILD
       const uid = 'u-currentUserId';
+      const filenames = [];
+      const encrypt = true;
+      const multiPart = true;
       const requestContext = {
         principalIdentifier: { uid },
         principal: { userRole: 'researcher', status: 'active' },
       };
-      const studyId = 'study-2'; 
+      const studyId = 'study-2';
       process.env.APP_DISABLE_STUDY_UPLOAD_BY_RESEARCHER = 'false';
       // OPERATE
-      await expect(service.createPresignedPostRequests(requestContext, studyId, filenames=[], encrypt = true, multiPart = true)).rejects.toThrow(
+      await expect(
+        service.createPresignedPostRequests(requestContext, studyId, filenames, encrypt, multiPart),
+      ).rejects.toThrow(
         // CHECK
+        // eslint-disable-next-line
         expect.objectContaining({ message: `Study with id \"study-2\" does not exist` }),
       );
     });
   });
-
 });
-describe('assertValidUsers', () => {
-    it('should fail if the admin username is present in the userIds, when APP_DISABLE_ADMIN_BYOB_SELF_ASSIGNMENT is set to true', async () => {
-      // BUILD 
-      const username = 'narendran.ranganathan@relevancelab.com'; 
-      const userIds = [ 'u-moQvVGabqpcaypegCqwso' ]; 
-      userService.mustFindUser = jest.fn(() => {
-        return {isAdmin:true, status: 'active', userRole: 'admin', username};
-      });  
-      process.env.APP_DISABLE_ADMIN_BYOB_SELF_ASSIGNMENT = 'true';  
-      await expect(service.assertValidUsers(userIds)).rejects.toThrow( 
-        expect.objectContaining({ message: `User ${username} must be active and has the role of researcher` }),
-      ); 
-    });
-
-    it('should pass if the admin username is present in the userIds, when APP_DISABLE_ADMIN_BYOB_SELF_ASSIGNMENT is set to false', async () => {
-      // BUILD 
-      const username = 'narendran.ranganathan@relevancelab.com'; 
-      const userIds = [ 'u-moQvVGabqpcaypegCqwso' ]; 
-      userService.mustFindUser = jest.fn(() => {
-        return {isAdmin:true, status: 'active', userRole: 'admin', username};
-      });  
-      process.env.APP_DISABLE_ADMIN_BYOB_SELF_ASSIGNMENT = 'false';   
-      const response = await service.assertValidUsers(userIds);
-      expect(response).toBeUndefined();
-    });
-  });

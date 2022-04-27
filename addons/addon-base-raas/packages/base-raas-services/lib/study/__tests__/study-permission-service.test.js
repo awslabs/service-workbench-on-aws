@@ -741,29 +741,28 @@ describe('StudyPermissionService', () => {
 
   describe('assertValidUsers', () => {
     it('should fail if the admin username is present in the userIds, when APP_DISABLE_ADMIN_BYOB_SELF_ASSIGNMENT is set to true', async () => {
-      // BUILD 
-      const username = 'narendran.ranganathan@relevancelab.com'; 
-      const userIds = [ 'u-moQvVGabqpcaypegCqwso' ]; 
+      // BUILD
+      const username = 'narendran.ranganathan@relevancelab.com';
+      const userIds = ['u-moQvVGabqpcaypegCqwso'];
       userService.mustFindUser = jest.fn(() => {
-        return {isAdmin:true, status: 'active', userRole: 'admin', username};
-      });  
-      process.env.APP_DISABLE_ADMIN_BYOB_SELF_ASSIGNMENT = 'true';  
-      await expect(service.assertValidUsers(userIds)).rejects.toThrow( 
+        return { isAdmin: true, status: 'active', userRole: 'admin', username };
+      });
+      process.env.APP_DISABLE_ADMIN_BYOB_SELF_ASSIGNMENT = 'true';
+      await expect(service.assertValidUsers(userIds)).rejects.toThrow(
         expect.objectContaining({ message: `User ${username} must be active and has the role of researcher` }),
-      ); 
+      );
     });
 
     it('should pass if the admin username is present in the userIds, when APP_DISABLE_ADMIN_BYOB_SELF_ASSIGNMENT is set to false', async () => {
-      // BUILD 
-      const username = 'narendran.ranganathan@relevancelab.com'; 
-      const userIds = [ 'u-moQvVGabqpcaypegCqwso' ]; 
+      // BUILD
+      const username = 'narendran.ranganathan@relevancelab.com';
+      const userIds = ['u-moQvVGabqpcaypegCqwso'];
       userService.mustFindUser = jest.fn(() => {
-        return {isAdmin:true, status: 'active', userRole: 'admin', username};
-      });  
-      process.env.APP_DISABLE_ADMIN_BYOB_SELF_ASSIGNMENT = 'false';   
+        return { isAdmin: true, status: 'active', userRole: 'admin', username };
+      });
+      process.env.APP_DISABLE_ADMIN_BYOB_SELF_ASSIGNMENT = 'false';
       const response = await service.assertValidUsers(userIds);
       expect(response).toBeUndefined();
     });
   });
-
 });
