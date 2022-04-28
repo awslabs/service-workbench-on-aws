@@ -220,3 +220,6 @@ workflowLoopRunner:
     APP_ENABLE_FLOW_LOGS: ${self:custom.settings.enableFlowLogs}
     APP_PERMISSION_BOUNDARY_POLICY_STUDY_BUCKET_ARN: !Sub arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.permissionBoundaryPolicyStudyBucket}
     APP_LOGGING_BUCKET_NAME: ${self:custom.settings.loggingBucketName}
+    APP_ENABLE_AMI_SHARING: ${self:custom.settings.enableAmiSharing}
+    APP_DEVOPS_ROLE_ARN: ${self:custom.settings.devopsRoleArn, 'null'}
+    APP_DEVOPS_ROLE_EXTERNAL_ID: ${self:custom.settings.devopsRoleExternalId}

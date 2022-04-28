@@ -17,6 +17,12 @@ const _ = require('lodash');
 const NodeCache = require('node-cache');
 const Service = require('@amzn/base-services-container/lib/service');
 
+const settingKeys = {
+  enableAmiSharing: 'enableAmiSharing',
+  devopsRoleArn: 'devopsRoleArn',
+  devopsRoleExternalId: 'devopsRoleExternalId',
+};
+
 class EnvironmentAmiService extends Service {
   constructor() {
     super();
@@ -26,8 +32,7 @@ class EnvironmentAmiService extends Service {
 
   async init() {
     await super.init();
-    const aws = await this.service('aws');
-    this.ec2 = new aws.sdk.EC2();
+    this.ec2 = await this.getEc2Sdk();
   }
 
   async getLatest(amiPrefix) {
@@ -76,6 +81,9 @@ class EnvironmentAmiService extends Service {
         ImageIds: [imageId],
       })
       .promise();
+    if (_.isEmpty(images)) {
+      throw this.boom.notFound(`Unable to find the AMI with ID ${imageId} to create the environment`, true);
+    }
     const image = images[0]; // Expecting only one
     if (image.Public) {
       // If image is already public, the given account already has permissions so return
@@ -101,6 +109,37 @@ class EnvironmentAmiService extends Service {
         throw this.boom.badRequest(`Unable to modify permissions on the software image for the selected index.`, true);
       }
     })();
+  }
+
+  async getEc2Sdk() {
+    const [aws] = await this.service(['aws']);
+    const isAmiSharingEnabled = await this.checkIfAmiSharingEnabled();
+    let ec2Client;
+    // Get Devops account client if AMI sharing enabled.
+    if (isAmiSharingEnabled) {
+      this.log.info(`AMI Sharing enabled. Reading SDK using DevOps account role`);
+      const { roleArn, externalId } = await this.getDevopsAccountDetails();
+      ec2Client = await aws.getClientSdkForRole({
+        roleArn,
+        clientName: 'EC2',
+        options: { apiVersion: '2015-12-10' },
+        externalId,
+      });
+    } else {
+      ec2Client = new aws.sdk.EC2();
+    }
+    return ec2Client;
+  }
+
+  async getDevopsAccountDetails() {
+    return {
+      roleArn: this.settings.get(settingKeys.devopsRoleArn),
+      externalId: this.settings.get(settingKeys.devopsRoleExternalId),
+    };
+  }
+
+  async checkIfAmiSharingEnabled() {
+    return this.settings.getBoolean(settingKeys.enableAmiSharing);
   }
 }
 

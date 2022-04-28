@@ -102,3 +102,10 @@
 # Error validating existing stack policy: Unknown logical id 'LogicalResourceId/AppStream*' in statement {} - stack policies can only be applied to logical ids referenced in the template
 # Stack policies are applied here: addons/addon-stack-policy/packages/stack-policy/lib/steps/update-cfn-stack-policy.js
 #isAppStreamEnabled: false
+
+# Enable the AMI sharing feature so the AMIs and Appstream images can be maintained in a central devops account
+#enableAmiSharing: false
+
+# The images will be shared using the AWS CLI profile mentioned below.
+# Please make sure that the profile has necessary permissions to create images and create IAM role
+#devopsProfile: devops

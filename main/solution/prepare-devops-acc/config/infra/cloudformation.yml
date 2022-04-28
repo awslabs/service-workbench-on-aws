@@ -1,0 +1,30 @@
+Resources:
+  DevOpsRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      RoleName: ${self:custom.settings.devopsRoleName}
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              AWS:
+                - !Sub ${self:custom.settings.workflowLoopRunnerRoleArn}
+            Action:
+              - 'sts:AssumeRole'
+            Condition:
+              StringEquals:
+                sts:ExternalId: ${self:custom.settings.externalId}
+      Policies:
+        - PolicyName: AllowAMISharingtoSWBMainAccount
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Sid: EC2AMISharingAccess
+                Effect: Allow
+                Action:
+                  - ec2:ModifyImageAttribute
+                Resource: "*"
+Outputs:
+  DevOpsRoleArn:
+    Value: !GetAtt DevOpsRole.Arn
