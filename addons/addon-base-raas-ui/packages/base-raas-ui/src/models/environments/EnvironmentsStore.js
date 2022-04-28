@@ -15,11 +15,11 @@
 
 import _ from 'lodash';
 import { getEnv, types } from 'mobx-state-tree';
-import { displayWarning } from '@aws-ee/base-ui/dist/helpers/notification';
-import { consolidateToMap, storage } from '@aws-ee/base-ui/dist/helpers/utils';
-import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
+import { displayWarning } from '@amzn/base-ui/dist/helpers/notification';
+import { consolidateToMap, storage } from '@amzn/base-ui/dist/helpers/utils';
+import { BaseStore } from '@amzn/base-ui/dist/models/BaseStore';
 
-import { randomString } from '@aws-ee/base-services/lib/helpers/utils';
+import { randomString } from '@amzn/base-services/lib/helpers/utils';
 import { getEstimatedCost } from '../../helpers/externalCostUtil';
 import localStorageKeys from '../constants/local-storage-keys';
 import {

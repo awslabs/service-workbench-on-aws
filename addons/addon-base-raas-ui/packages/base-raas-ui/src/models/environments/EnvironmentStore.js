@@ -14,8 +14,8 @@
  */
 
 import { getParent } from 'mobx-state-tree';
-import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
-import { displayWarning } from '@aws-ee/base-ui/dist/helpers/notification';
+import { BaseStore } from '@amzn/base-ui/dist/models/BaseStore';
+import { displayWarning } from '@amzn/base-ui/dist/helpers/notification';
 
 import { getEnvironment, getEnvironmentCost } from '../../helpers/api';
 import { getEstimatedCost } from '../../helpers/externalCostUtil';

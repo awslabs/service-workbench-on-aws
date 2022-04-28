@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-const WorkflowPayload = require('@aws-ee/workflow-engine/lib/workflow-payload');
+const WorkflowPayload = require('@amzn/workflow-engine/lib/workflow-payload');
 const StartEc2EnvironmentSc = require('../start-ec2-environment/start-ec2-environment-sc');
 
 describe('StartEc2EnvironmentStep', () => {

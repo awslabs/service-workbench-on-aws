@@ -22,8 +22,8 @@ import { withRouter } from 'react-router-dom';
 import { Header, Tab, Label, Menu, Button, Message } from 'semantic-ui-react';
 import TimeAgo from 'react-timeago';
 
-import { niceNumber, swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import { isStoreError, isStoreNew, isStoreLoading } from '@aws-ee/base-ui/dist/models/BaseStore';
+import { niceNumber, swallowError } from '@amzn/base-ui/dist/helpers/utils';
+import { isStoreError, isStoreNew, isStoreLoading } from '@amzn/base-ui/dist/models/BaseStore';
 
 import By from '../helpers/By';
 import DataSourceStudiesList from './DataSourceStudiesList';

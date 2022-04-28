@@ -7,10 +7,10 @@ The following sections list the add-on contribution.
 
 ## npm packages
 
-- @aws-ee/workflow-engine
-- @aws-ee/base-workflow-core
-- @aws-ee/base-workflow-steps
-- @aws-ee/base-workflow-templates
+- @amzn/workflow-engine
+- @amzn/base-workflow-core
+- @amzn/base-workflow-steps
+- @amzn/base-workflow-templates
 
 ## Database tables
 

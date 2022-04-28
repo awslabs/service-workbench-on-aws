@@ -21,11 +21,11 @@ import { inject, observer } from 'mobx-react';
 import ReactTable from 'react-table';
 import _ from 'lodash';
 
-import { isStoreError, isStoreLoading } from '@aws-ee/base-ui/dist/models/BaseStore';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
-import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
-import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
-import Stores from '@aws-ee/base-ui/dist/models/Stores';
+import { isStoreError, isStoreLoading } from '@amzn/base-ui/dist/models/BaseStore';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
+import { createLink } from '@amzn/base-ui/dist/helpers/routing';
+import BasicProgressPlaceholder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import Stores from '@amzn/base-ui/dist/models/Stores';
 
 import ProjectConfigure from './ProjectConfigure';
 

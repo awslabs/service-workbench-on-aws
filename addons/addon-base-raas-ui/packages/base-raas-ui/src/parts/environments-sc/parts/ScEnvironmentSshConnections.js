@@ -19,11 +19,11 @@ import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Segment, Icon, Button, Header, Table, Message, List } from 'semantic-ui-react';
 
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import { isStoreLoading, isStoreError, isStoreReady } from '@aws-ee/base-ui/dist/models/BaseStore';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
-import ProgressPlaceHolder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
-import KeyPairCreateForm from '@aws-ee/key-pair-mgmt-ui/dist/parts/key-pairs/parts/KeyPairCreateForm';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
+import { isStoreLoading, isStoreError, isStoreReady } from '@amzn/base-ui/dist/models/BaseStore';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
+import ProgressPlaceHolder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import KeyPairCreateForm from '@amzn/key-pair-mgmt-ui/dist/parts/key-pairs/parts/KeyPairCreateForm';
 
 import ScEnvironmentSshConnectionRow from './ScEnvironmentSshConnectionRow';
 

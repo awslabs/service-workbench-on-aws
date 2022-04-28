@@ -63,4 +63,4 @@ resources:
 plugins:
   - serverless-webpack
   - serverless-deployment-bucket
-  - '@aws-ee/base-serverless-backend-tools'
+  - '@amzn/base-serverless-backend-tools'

@@ -15,8 +15,8 @@
 
 import React from 'react';
 import { observer } from 'mobx-react';
-import Input from '@aws-ee/base-ui/dist/parts/helpers/fields/Input';
-import TextArea from '@aws-ee/base-ui/dist/parts/helpers/fields/TextArea';
+import Input from '@amzn/base-ui/dist/parts/helpers/fields/Input';
+import TextArea from '@amzn/base-ui/dist/parts/helpers/fields/TextArea';
 import BaseEnvTypeConfigStep from './BaseEnvTypeConfigStep';
 
 class BasicInfoStep extends BaseEnvTypeConfigStep {

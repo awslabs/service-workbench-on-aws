@@ -15,17 +15,17 @@
  */
 
 /* eslint-disable max-classes-per-file */
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
-const Logger = require('@aws-ee/base-services/lib/logger/logger-service');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
+const Logger = require('@amzn/base-services/lib/logger/logger-service');
 
-jest.mock('@aws-ee/base-services/lib/aws/aws-service');
-const AwsServiceMock = require('@aws-ee/base-services/lib/aws/aws-service');
+jest.mock('@amzn/base-services/lib/aws/aws-service');
+const AwsServiceMock = require('@amzn/base-services/lib/aws/aws-service');
 
-jest.mock('@aws-ee/base-services/lib/db-service');
-const DbServiceMock = require('@aws-ee/base-services/lib/db-service');
+jest.mock('@amzn/base-services/lib/db-service');
+const DbServiceMock = require('@amzn/base-services/lib/db-service');
 
-jest.mock('@aws-ee/base-post-deployment/lib/deployment-store-service');
-const DeploymentStoreServiceMock = require('@aws-ee/base-post-deployment/lib/deployment-store-service');
+jest.mock('@amzn/base-post-deployment/lib/deployment-store-service');
+const DeploymentStoreServiceMock = require('@amzn/base-post-deployment/lib/deployment-store-service');
 
 const UpgradeToUserId = require('../upgrade-to-user-id');
 const DynamoDB = require('./__fixtures__/dynamodb');

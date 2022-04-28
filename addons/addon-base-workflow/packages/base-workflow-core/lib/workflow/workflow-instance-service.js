@@ -16,9 +16,9 @@
 /* eslint-disable no-await-in-loop */
 
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
-const { ensureAdmin } = require('@aws-ee/base-services/lib/authorization/assertions');
-const { runAndCatch, generateId } = require('@aws-ee/base-services/lib/helpers/utils');
+const Service = require('@amzn/base-services-container/lib/service');
+const { ensureAdmin } = require('@amzn/base-services/lib/authorization/assertions');
+const { runAndCatch, generateId } = require('@amzn/base-services/lib/helpers/utils');
 
 const inputSchema = require('../schema/create-workflow-instance');
 const changeWorkflowStatusSchema = require('../schema/change-workflow-status');

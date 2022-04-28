@@ -19,8 +19,8 @@ import { decorate, computed, runInAction, observable, action } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Icon, Container, Header, Segment, Button } from 'semantic-ui-react';
-import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
-import { displaySuccess } from '@aws-ee/base-ui/dist/helpers/notification';
+import { gotoFn } from '@amzn/base-ui/dist/helpers/routing';
+import { displaySuccess } from '@amzn/base-ui/dist/helpers/notification';
 
 import { enableBuiltInWorkspaces } from '../../helpers/settings';
 import { CurrentStep } from '../compute/helpers/CurrentStep';

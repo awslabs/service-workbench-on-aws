@@ -20,8 +20,8 @@ import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Segment, Button, Icon, Header, Progress, Message } from 'semantic-ui-react';
 
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
+import { gotoFn } from '@amzn/base-ui/dist/helpers/routing';
 
 // expected props
 // - wizard (via prop)

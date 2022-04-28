@@ -19,16 +19,16 @@ import _ from 'lodash';
 import { computed, decorate } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { Header, Icon, Segment } from 'semantic-ui-react';
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
 import {
   isStoreLoading,
   isStoreError,
   isStoreReady,
   isStoreEmpty,
   stopHeartbeat,
-} from '@aws-ee/base-ui/dist/models/BaseStore';
-import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
+} from '@amzn/base-ui/dist/models/BaseStore';
+import BasicProgressPlaceholder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
 
 import StudyRow from './StudyRow';
 import { categories } from '../../models/studies/categories';

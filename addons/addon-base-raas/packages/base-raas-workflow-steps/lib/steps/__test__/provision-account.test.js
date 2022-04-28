@@ -13,10 +13,10 @@
  *  permissions and limitations under the License.
  */
 
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
-const WorkflowPayload = require('@aws-ee/workflow-engine/lib/workflow-payload');
-const AwsService = require('@aws-ee/base-services/lib/aws/aws-service');
-const SettingsService = require('@aws-ee/base-services/lib/settings/env-settings-service');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
+const WorkflowPayload = require('@amzn/workflow-engine/lib/workflow-payload');
+const AwsService = require('@amzn/base-services/lib/aws/aws-service');
+const SettingsService = require('@amzn/base-services/lib/settings/env-settings-service');
 const ProvisionAccount = require('../provision-account/provision-account');
 
 describe('ProvisionAccount', () => {

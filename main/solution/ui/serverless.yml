@@ -28,4 +28,4 @@ resources:
 
 plugins:
   - serverless-deployment-bucket
-  - '@aws-ee/base-serverless-ui-tools'
+  - '@amzn/base-serverless-ui-tools'

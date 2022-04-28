@@ -15,7 +15,7 @@
 
 import { decorate, action } from 'mobx';
 
-import { delay } from '@aws-ee/base-ui/dist/helpers/utils';
+import { delay } from '@amzn/base-ui/dist/helpers/utils';
 
 import { generateAccountCfnTemplate } from '../../../../helpers/api';
 import Operation from '../../../operations/Operation';

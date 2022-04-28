@@ -15,8 +15,8 @@
 
 import { getCfnParamsForm } from '../CfnParamsForm';
 
-jest.mock('@aws-ee/base-ui/dist/helpers/form');
-const formMock = require('@aws-ee/base-ui/dist/helpers/form');
+jest.mock('@amzn/base-ui/dist/helpers/form');
+const formMock = require('@amzn/base-ui/dist/helpers/form');
 
 describe('CfnParamsForm', () => {
   const param1 = { ParameterKey: 'key1', Description: 'desc1', DefaultValue: 'default1' };

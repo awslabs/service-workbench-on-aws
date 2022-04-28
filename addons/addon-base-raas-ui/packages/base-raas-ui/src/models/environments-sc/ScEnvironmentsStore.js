@@ -15,8 +15,8 @@
 import _ from 'lodash';
 import { values } from 'mobx';
 import { getEnv, types } from 'mobx-state-tree';
-import { consolidateToMap } from '@aws-ee/base-ui/dist/helpers/utils';
-import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
+import { consolidateToMap } from '@amzn/base-ui/dist/helpers/utils';
+import { BaseStore } from '@amzn/base-ui/dist/models/BaseStore';
 
 import {
   getScEnvironments,

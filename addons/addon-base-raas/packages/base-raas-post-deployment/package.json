@@ -1,14 +1,14 @@
 {
-  "name": "@aws-ee/base-raas-post-deployment",
+  "name": "@amzn/base-raas-post-deployment",
   "private": true,
   "version": "1.0.0",
   "description": "A collection of base Service Workbench post deployment steps",
   "author": "Amazon Web Services",
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-ee/base-services": "workspace:*",
-    "@aws-ee/base-services-container": "workspace:*",
-    "@aws-ee/base-raas-services": "workspace:*",
+    "@amzn/base-services": "workspace:*",
+    "@amzn/base-services-container": "workspace:*",
+    "@amzn/base-raas-services": "workspace:*",
     "lodash": "^4.17.21"
   },
   "devDependencies": {

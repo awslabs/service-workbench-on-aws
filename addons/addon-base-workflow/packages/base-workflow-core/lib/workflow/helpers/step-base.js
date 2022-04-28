@@ -14,7 +14,7 @@
  */
 
 const _ = require('lodash');
-const StepBaseFromWorkflowEngine = require('@aws-ee/workflow-engine/lib/step/step-base');
+const StepBaseFromWorkflowEngine = require('@amzn/workflow-engine/lib/step/step-base');
 
 class StepBase extends StepBaseFromWorkflowEngine {
   constructor({ input, workflowInstance, workflowPayload, stepState, container, step, stepReporter, workflowStatus }) {

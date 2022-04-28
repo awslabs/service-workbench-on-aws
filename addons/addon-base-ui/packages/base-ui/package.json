@@ -1,5 +1,5 @@
 {
-  "name": "@aws-ee/base-ui",
+  "name": "@amzn/base-ui",
   "version": "0.1.0",
   "private": true,
   "author": "aws-ee",
@@ -35,8 +35,8 @@
     "validatorjs": "^3.18.1"
   },
   "devDependencies": {
-    "@aws-ee/base-serverless-settings-helper": "workspace:*",
-    "@aws-ee/base-serverless-ui-tools": "workspace:*",
+    "@amzn/base-serverless-settings-helper": "workspace:*",
+    "@amzn/base-serverless-ui-tools": "workspace:*",
     "@babel/cli": "^7.8.4",
     "@babel/core": "^7.8.6",
     "@babel/plugin-proposal-class-properties": "^7.8.3",

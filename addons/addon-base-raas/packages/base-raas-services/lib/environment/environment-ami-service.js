@@ -15,7 +15,7 @@
 
 const _ = require('lodash');
 const NodeCache = require('node-cache');
-const Service = require('@aws-ee/base-services-container/lib/service');
+const Service = require('@amzn/base-services-container/lib/service');
 
 const settingKeys = {
   enableAmiSharing: 'enableAmiSharing',

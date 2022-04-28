@@ -20,7 +20,7 @@ import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Progress } from 'semantic-ui-react';
 
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
 
 import StudyStatusMessage from './StudyStatusMessage';
 

@@ -13,15 +13,15 @@
  *  permissions and limitations under the License.
  */
 
-const baseAuditPlugin = require('@aws-ee/base-services/lib/plugins/audit-plugin');
-const baseServicesPlugin = require('@aws-ee/base-api-handler/lib/plugins/services-plugin');
-const baseRaasCfnTemplatesPlugin = require('@aws-ee/base-raas-cfn-templates/dist/plugins/cfn-templates-plugin');
-const baseRaasUserAuthzPlugin = require('@aws-ee/base-raas-services/lib/user/user-authz-plugin');
-const baseRaasSchemaPlugin = require('@aws-ee/base-raas-services/lib/plugins/schema-plugin');
-const bassRaasServicesPlugin = require('@aws-ee/base-raas-rest-api/lib/plugins/services-plugin');
-const baseWfServicesPlugin = require('@aws-ee/base-workflow-api/lib/plugins/services-plugin');
-const environmentTypeServicesPlugin = require('@aws-ee/environment-type-mgmt-services/lib/plugins/services-plugin');
-const keyPairServicesPlugin = require('@aws-ee/key-pair-mgmt-services/lib/plugins/services-plugin');
+const baseAuditPlugin = require('@amzn/base-services/lib/plugins/audit-plugin');
+const baseServicesPlugin = require('@amzn/base-api-handler/lib/plugins/services-plugin');
+const baseRaasCfnTemplatesPlugin = require('@amzn/base-raas-cfn-templates/dist/plugins/cfn-templates-plugin');
+const baseRaasUserAuthzPlugin = require('@amzn/base-raas-services/lib/user/user-authz-plugin');
+const baseRaasSchemaPlugin = require('@amzn/base-raas-services/lib/plugins/schema-plugin');
+const bassRaasServicesPlugin = require('@amzn/base-raas-rest-api/lib/plugins/services-plugin');
+const baseWfServicesPlugin = require('@amzn/base-workflow-api/lib/plugins/services-plugin');
+const environmentTypeServicesPlugin = require('@amzn/environment-type-mgmt-services/lib/plugins/services-plugin');
+const keyPairServicesPlugin = require('@amzn/key-pair-mgmt-services/lib/plugins/services-plugin');
 
 const servicesPlugin = require('services/lib/plugins/services-plugin');
 

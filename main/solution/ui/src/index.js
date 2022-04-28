@@ -13,8 +13,8 @@
  *  permissions and limitations under the License.
  */
 
-import { renderAppContainer, renderError, renderProgress } from '@aws-ee/base-ui/dist/render-utils';
-import bootstrapApp from '@aws-ee/base-ui/dist/bootstrap-app';
+import { renderAppContainer, renderError, renderProgress } from '@amzn/base-ui/dist/render-utils';
+import bootstrapApp from '@amzn/base-ui/dist/bootstrap-app';
 import pluginRegistry from './plugins/plugin-registry';
 
 import 'typeface-lato';

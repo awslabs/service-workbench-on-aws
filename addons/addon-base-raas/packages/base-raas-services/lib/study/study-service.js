@@ -15,8 +15,8 @@
  */
 
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
-const { runAndCatch } = require('@aws-ee/base-services/lib/helpers/utils');
+const Service = require('@amzn/base-services-container/lib/service');
+const { runAndCatch } = require('@amzn/base-services/lib/helpers/utils');
 
 const { buildTaggingXml } = require('../helpers/aws-tags');
 const { isInternalResearcher, isAdmin, isSystem } = require('../helpers/is-role');
@@ -621,7 +621,7 @@ class StudyService extends Service {
    * Note: In order for browser uplaod to work, the destination bucket will need to have an appropriate CORS policy configured.
    * @see https://docs.aws.amazon.com/AmazonS3/latest/API/API_PutBucketCors.html
    *
-   * @param {Object} requestContext the request context provided by @aws-ee/base-services-container/lib/request-context
+   * @param {Object} requestContext the request context provided by @amzn/base-services-container/lib/request-context
    * @param {string} studyId the ID of the study in which the uploaded files should be shored.
    * @param {string} filenames the filenames that will be used for the upload.
    * @param {CreatePresignedPostOptions} options additional options.

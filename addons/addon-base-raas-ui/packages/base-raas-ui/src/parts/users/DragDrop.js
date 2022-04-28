@@ -20,13 +20,13 @@ import { withRouter } from 'react-router-dom';
 import { inject, observer } from 'mobx-react';
 import { Segment, Icon, Header, Button, Message, Container } from 'semantic-ui-react';
 import { computed, decorate, observable, action, runInAction } from 'mobx';
-import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
-import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
+import { displayError } from '@amzn/base-ui/dist/helpers/notification';
+import { createLink } from '@amzn/base-ui/dist/helpers/routing';
 
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
-import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
-import Stores from '@aws-ee/base-ui/dist/models/Stores';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
+import BasicProgressPlaceholder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import Stores from '@amzn/base-ui/dist/models/Stores';
 import UserTable from './UserTable';
 
 class DragDrop extends Component {

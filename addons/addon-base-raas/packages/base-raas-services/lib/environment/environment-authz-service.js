@@ -14,7 +14,7 @@
  */
 
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
+const Service = require('@amzn/base-services-container/lib/service');
 
 const {
   allow,
@@ -22,7 +22,7 @@ const {
   isDeny,
   allowIfActive,
   allowIfCurrentUserOrAdmin,
-} = require('@aws-ee/base-services/lib/authorization/authorization-utils');
+} = require('@amzn/base-services/lib/authorization/authorization-utils');
 
 const { allowIfHasRole } = require('../user/helpers/user-authz-utils');
 

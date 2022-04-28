@@ -19,11 +19,11 @@ import { withRouter } from 'react-router-dom';
 import { decorate, observable, runInAction, action } from 'mobx';
 import { inject, observer } from 'mobx-react';
 import ReactTable from 'react-table';
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import { isStoreError, isStoreLoading, isStoreReady } from '@aws-ee/base-ui/dist/models/BaseStore';
-import { createLink } from '@aws-ee/base-ui/dist/helpers/routing';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
-import BasicProgressPlaceholder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
+import { isStoreError, isStoreLoading, isStoreReady } from '@amzn/base-ui/dist/models/BaseStore';
+import { createLink } from '@amzn/base-ui/dist/helpers/routing';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
+import BasicProgressPlaceholder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 
 import UpdateUser from './UpdateUser';
 

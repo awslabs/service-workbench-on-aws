@@ -237,11 +237,15 @@ Resources:
               - iam:UpdateRoleDescription
               - iam:*TagRole*
             Effect: Allow
-            Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*'
+            Resource:
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*'
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-edgeLambda-RoleCloudFrontInterceptor-*'
           - Action:
               - iam:PassRole
             Effect: Allow
-            Resource: !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*'
+            Resource:
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.namespace}-*'
+              - !Sub 'arn:aws:iam::${AWS::AccountId}:role/${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-edgeLambda-RoleCloudFrontInterceptor-*'
           - Action:
               - iam:CreatePolicy
               - iam:GetPolicy
@@ -279,6 +283,8 @@ Resources:
               - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.namespace}*'
               - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-*-${self:custom.settings.envName}-*:*'
               - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.awsRegionShortName}-${self:custom.settings.solutionName}-*-${self:custom.settings.envName}-*'
+              - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-*:*'
+              - !Sub 'arn:aws:lambda:*:${AWS::AccountId}:function:${self:custom.settings.envName}-va-${self:custom.settings.solutionName}-*'
           - Action:
               - 's3:*'
             Effect: Allow

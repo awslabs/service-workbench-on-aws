@@ -5,7 +5,7 @@ import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Button, Table, List, Label } from 'semantic-ui-react';
 
-import { displayError } from '@aws-ee/base-ui/dist/helpers/notification';
+import { displayError } from '@amzn/base-ui/dist/helpers/notification';
 
 import CopyToClipboard from '../../helpers/CopyToClipboard';
 

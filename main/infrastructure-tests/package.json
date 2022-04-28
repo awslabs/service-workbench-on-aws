@@ -1,5 +1,5 @@
 {
-  "name": "@aws-ee/infrastructure-tests",
+  "name": "@amzn/infrastructure-tests",
   "version": "1.0.0",
   "private": true,
   "description": "Infrastructure tests SWB",

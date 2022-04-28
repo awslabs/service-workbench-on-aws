@@ -20,8 +20,8 @@ import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Pie } from 'react-chartjs-2';
 import { Container, Header, Segment, Icon } from 'semantic-ui-react';
-import { displayError, displayWarning } from '@aws-ee/base-ui/dist/helpers/notification';
-import ProgressPlaceHolder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import { displayError, displayWarning } from '@amzn/base-ui/dist/helpers/notification';
+import ProgressPlaceHolder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 
 import { getEnvironments, getEnvironmentCost, getScEnvironments, getScEnvironmentCost } from '../../helpers/api';
 import { enableBuiltInWorkspaces } from '../../helpers/settings';

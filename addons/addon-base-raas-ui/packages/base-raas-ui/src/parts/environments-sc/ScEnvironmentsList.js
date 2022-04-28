@@ -19,18 +19,18 @@ import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Container, Segment, Header, Icon, Button, Label } from 'semantic-ui-react';
 
-import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
-import { swallowError, storage } from '@aws-ee/base-ui/dist/helpers/utils';
-import storageKeys from '@aws-ee/base-ui/dist/models/constants/local-storage-keys';
+import { gotoFn } from '@amzn/base-ui/dist/helpers/routing';
+import { swallowError, storage } from '@amzn/base-ui/dist/helpers/utils';
+import storageKeys from '@amzn/base-ui/dist/models/constants/local-storage-keys';
 import {
   isStoreLoading,
   isStoreEmpty,
   isStoreNotEmpty,
   isStoreError,
   isStoreReady,
-} from '@aws-ee/base-ui/dist/models/BaseStore';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
-import ProgressPlaceHolder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+} from '@amzn/base-ui/dist/models/BaseStore';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
+import ProgressPlaceHolder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 
 import { filterNames } from '../../models/environments-sc/ScEnvironmentsStore';
 import ScEnvironmentCard from './ScEnvironmentCard';

@@ -15,7 +15,7 @@
 
 import _ from 'lodash';
 import { types, getParent } from 'mobx-state-tree';
-import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
+import { BaseStore } from '@amzn/base-ui/dist/models/BaseStore';
 
 import { getWorkflow } from '../../helpers/api';
 import { toWorkflows } from './Workflow';

@@ -19,16 +19,16 @@ import { observer, inject } from 'mobx-react';
 import { decorate, action, runInAction, observable } from 'mobx';
 import { withRouter } from 'react-router-dom';
 import { Header, Icon, Segment, Button } from 'semantic-ui-react';
-import { gotoFn } from '@aws-ee/base-ui/dist/helpers/routing';
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
+import { gotoFn } from '@amzn/base-ui/dist/helpers/routing';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
 import {
   isStoreLoading,
   isStoreReady,
   isStoreEmpty,
   isStoreNotEmpty,
   isStoreError,
-} from '@aws-ee/base-ui/dist/models/BaseStore';
+} from '@amzn/base-ui/dist/models/BaseStore';
 
 import WorkflowCommonDraftCard from '../../workflow-common/drafts/WorkflowCommonDraftCard';
 import ProgressPlaceHolder from '../../workflow-common/ProgressPlaceholder';

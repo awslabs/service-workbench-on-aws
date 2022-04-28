@@ -19,10 +19,10 @@ import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Table, Message } from 'semantic-ui-react';
 
-import { isStoreLoading, isStoreError, isStoreReady } from '@aws-ee/base-ui/dist/models/BaseStore';
-import { swallowError, nicePrice } from '@aws-ee/base-ui/dist/helpers/utils';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
-import ProgressPlaceHolder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import { isStoreLoading, isStoreError, isStoreReady } from '@amzn/base-ui/dist/models/BaseStore';
+import { swallowError, nicePrice } from '@amzn/base-ui/dist/helpers/utils';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
+import ProgressPlaceHolder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 
 // expected props
 // - envId (via prop)

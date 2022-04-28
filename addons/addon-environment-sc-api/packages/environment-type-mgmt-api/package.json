@@ -1,13 +1,13 @@
 {
-  "name": "@aws-ee/environment-type-mgmt-api",
+  "name": "@amzn/environment-type-mgmt-api",
   "private": true,
   "version": "1.0.0",
   "description": "A library containing a set of analytics environment types management related controllers",
   "author": "Amazon Web Services",
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-ee/environment-type-mgmt-services": "workspace:*",
-    "@aws-ee/base-controllers": "workspace:*",
+    "@amzn/environment-type-mgmt-services": "workspace:*",
+    "@amzn/base-controllers": "workspace:*",
     "lodash": "^4.17.21",
     "uuid": "^3.4.0"
   },

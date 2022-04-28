@@ -15,8 +15,8 @@
 
 /* eslint-disable import/prefer-default-export */
 import _ from 'lodash';
-import { httpApiGet, httpApiPost, httpApiPut, httpApiDelete } from '@aws-ee/base-ui/dist/helpers/api';
-import { removeNulls } from '@aws-ee/base-ui/dist/helpers/utils';
+import { httpApiGet, httpApiPost, httpApiPut, httpApiDelete } from '@amzn/base-ui/dist/helpers/api';
+import { removeNulls } from '@amzn/base-ui/dist/helpers/utils';
 
 function getUserRoles() {
   return httpApiGet('api/user-roles');

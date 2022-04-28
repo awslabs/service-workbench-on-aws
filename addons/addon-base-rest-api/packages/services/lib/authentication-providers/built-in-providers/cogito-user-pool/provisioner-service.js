@@ -14,8 +14,8 @@
  */
 
 const _ = require('lodash');
-const Service = require('@aws-ee/base-services-container/lib/service');
-const { generateIdSync } = require('@aws-ee/base-services/lib/helpers/utils');
+const Service = require('@amzn/base-services-container/lib/service');
+const { generateIdSync } = require('@amzn/base-services/lib/helpers/utils');
 const authProviderConstants = require('../../constants').authenticationProviders;
 
 const settingKeys = {
@@ -506,7 +506,9 @@ class ProvisionerService extends Service {
     const envType = this.settings.get(settingKeys.envType);
     const envName = this.settings.get(settingKeys.envName);
     const solutionName = this.settings.get(settingKeys.solutionName);
-    const userPoolDomain = providerConfig.userPoolDomain || `${envName}-${envType}-${solutionName}`;
+    let userPoolDomain = _.isEmpty(providerConfig.userPoolDomain)
+      ? `${envName}-${envType}-${solutionName}`
+      : providerConfig.userPoolDomain;
     const params = {
       Domain: userPoolDomain,
       UserPoolId: userPoolId,
@@ -527,7 +529,7 @@ class ProvisionerService extends Service {
         // Cognito user pool domain prefix hard limit is 63, we keep it at less then 62 so the retry logic has a decent chance to succeed
         userPoolDomain.length < 62
       ) {
-        await this.retryCreateDomain(cognitoIdentityServiceProvider, params, userPoolDomain, 10);
+        userPoolDomain = await this.retryCreateDomain(cognitoIdentityServiceProvider, params, userPoolDomain, 10);
       } else {
         // Re-throw any other error, so it doesn't fail silently
         throw err;
@@ -538,7 +540,8 @@ class ProvisionerService extends Service {
   }
 
   // Recursive function that retries padding different strings for cognito domain
-  // Recursion ends when a valid Cognito domain is found, an error other than domin already associated is thrown, or retryCount reached
+  // Recursion ends when a valid Cognito domain is found, an error other than domain already associated is thrown, or retryCount reached
+  // Returns the newly generated userPoolDomain to be stored in DDB auth config
   async retryCreateDomain(cognitoIdentityServiceProvider, params, userPoolDomain, retryCount) {
     // Cognito requires domain prefix to be 63 or shorter
     params.Domain = generateIdSync(userPoolDomain)
@@ -554,11 +557,12 @@ class ProvisionerService extends Service {
         err.code === 'InvalidParameterException' &&
         err.message.indexOf('already associated with another user pool') >= 0
       ) {
-        await this.retryCreateDomain(cognitoIdentityServiceProvider, params, userPoolDomain, retryCount);
+        return this.retryCreateDomain(cognitoIdentityServiceProvider, params, userPoolDomain, retryCount);
       } else {
         throw err;
       }
     }
+    return params.Domain;
   }
 }
 

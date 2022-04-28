@@ -14,7 +14,7 @@
  */
 
 import { types, getEnv, clone } from 'mobx-state-tree';
-import { uiEventBus } from '@aws-ee/base-ui/dist/models/SessionStore';
+import { uiEventBus } from '@amzn/base-ui/dist/models/SessionStore';
 
 import getEditWorkflowTemplateDraftMetaForm from '../../../forms/EditWorkflowTemplateDraftMetaForm';
 import WorkflowTemplateStepEditor from './WorkflowTemplateStepEditor';

@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-import { createForm } from '@aws-ee/base-ui/dist/helpers/form';
+import { createForm } from '@amzn/base-ui/dist/helpers/form';
 
 const workflowStepDescFields = (step, { isTemplate = true } = {}) => {
   const { title = '', desc = '', derivedTitle = '', derivedDesc = '' } = step;

@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-const Service = require('@aws-ee/base-services-container/lib/service');
+const Service = require('@amzn/base-services-container/lib/service');
 const LogTransformer = require('./log-transformer');
 
 class LoggerService extends Service {

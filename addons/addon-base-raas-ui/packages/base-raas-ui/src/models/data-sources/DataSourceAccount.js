@@ -17,7 +17,7 @@ import _ from 'lodash';
 import { values } from 'mobx';
 import { types } from 'mobx-state-tree';
 
-import { consolidateToMap } from '@aws-ee/base-ui/dist/helpers/utils';
+import { consolidateToMap } from '@amzn/base-ui/dist/helpers/utils';
 
 import { DataSourceStudy } from './DataSourceStudy';
 import { StackInfo } from './StackInfo';

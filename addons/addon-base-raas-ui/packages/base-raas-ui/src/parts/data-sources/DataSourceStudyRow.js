@@ -19,11 +19,11 @@ import { observer, inject } from 'mobx-react';
 import { withRouter } from 'react-router-dom';
 import { Icon, Table, Label, Grid, Button } from 'semantic-ui-react';
 import TimeAgo from 'react-timeago';
-import { swallowError } from '@aws-ee/base-ui/dist/helpers/utils';
-import UserLabels from '@aws-ee/base-ui/dist/parts/helpers/UserLabels';
-import { isStoreReady, isStoreLoading, isStoreError, stopHeartbeat } from '@aws-ee/base-ui/dist/models/BaseStore';
-import ErrorBox from '@aws-ee/base-ui/dist/parts/helpers/ErrorBox';
-import ProgressPlaceHolder from '@aws-ee/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
+import { swallowError } from '@amzn/base-ui/dist/helpers/utils';
+import UserLabels from '@amzn/base-ui/dist/parts/helpers/UserLabels';
+import { isStoreReady, isStoreLoading, isStoreError, stopHeartbeat } from '@amzn/base-ui/dist/models/BaseStore';
+import ErrorBox from '@amzn/base-ui/dist/parts/helpers/ErrorBox';
+import ProgressPlaceHolder from '@amzn/base-ui/dist/parts/helpers/BasicProgressPlaceholder';
 
 import { Operation } from '../../models/helpers/Operation';
 import StudyConnectionPanel from './parts/StudyConnectionPanel';

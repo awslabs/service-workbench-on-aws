@@ -15,7 +15,7 @@
 
 import _ from 'lodash';
 import { types, getEnv, applySnapshot, detach } from 'mobx-state-tree';
-import { generateId, consolidateToMap } from '@aws-ee/base-ui/dist/helpers/utils';
+import { generateId, consolidateToMap } from '@amzn/base-ui/dist/helpers/utils';
 
 import { RunSpec } from '../workflow-templates/WorkflowTemplate';
 import WorkflowStep from './WorkflowStep';

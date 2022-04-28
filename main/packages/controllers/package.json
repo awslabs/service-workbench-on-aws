@@ -5,7 +5,7 @@
   "description": "The solution controllers",
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-ee/base-controllers": "workspace:*",
+    "@amzn/base-controllers": "workspace:*",
     "services": "workspace:*",
     "lodash": "^4.17.21"
   },

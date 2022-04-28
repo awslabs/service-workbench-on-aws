@@ -13,7 +13,7 @@
  *  permissions and limitations under the License.
  */
 
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
 
 // Mocked dependencies
 

@@ -12,7 +12,7 @@
  *  express or implied. See the License for the specific language governing
  *  permissions and limitations under the License.
  */
-import { BaseStore } from '@aws-ee/base-ui/dist/models/BaseStore';
+import { BaseStore } from '@amzn/base-ui/dist/models/BaseStore';
 import { getParent, types } from 'mobx-state-tree';
 import { egressNotifySns, getEgressStore } from '../../helpers/api';
 import { enableEgressStore } from '../../helpers/settings';

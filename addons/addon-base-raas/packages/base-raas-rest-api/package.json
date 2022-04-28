@@ -1,16 +1,16 @@
 {
-  "name": "@aws-ee/base-raas-rest-api",
+  "name": "@amzn/base-raas-rest-api",
   "private": true,
   "version": "1.0.0",
   "description": "A library containing a set of base Service Workbench related controllers",
   "author": "Amazon Web Services",
   "license": "Apache-2.0",
   "dependencies": {
-    "@aws-ee/base-api-services": "workspace:*",
-    "@aws-ee/base-controllers": "workspace:*",
-    "@aws-ee/base-raas-services": "workspace:*",
-    "@aws-ee/base-services": "workspace:*",
-    "@aws-ee/base-post-deployment": "workspace:*",
+    "@amzn/base-api-services": "workspace:*",
+    "@amzn/base-controllers": "workspace:*",
+    "@amzn/base-raas-services": "workspace:*",
+    "@amzn/base-services": "workspace:*",
+    "@amzn/base-post-deployment": "workspace:*",
     "lodash": "^4.17.21"
   },
   "devDependencies": {

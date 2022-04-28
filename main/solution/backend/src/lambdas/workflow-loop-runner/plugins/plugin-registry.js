@@ -13,25 +13,25 @@
  *  permissions and limitations under the License.
  */
 
-const baseAuditPlugin = require('@aws-ee/base-services/lib/plugins/audit-plugin');
-const baseServicesPlugin = require('@aws-ee/base-api-handler/lib/plugins/services-plugin');
-const baseWfServicesPlugin = require('@aws-ee/base-workflow-core/lib/runner/plugins/services-plugin');
-const baseWfStepsPlugin = require('@aws-ee/base-workflow-steps/steps/workflow-steps-plugin');
-const baseRaasServicesPlugin = require('@aws-ee/base-raas-rest-api/lib/plugins/services-plugin');
-const baseRaasCfnTemplatesPlugin = require('@aws-ee/base-raas-cfn-templates/dist/plugins/cfn-templates-plugin');
-const baseRaasWfStepsPlugin = require('@aws-ee/base-raas-workflow-steps/lib/plugins/workflow-steps-plugin');
-const baseRaasWorkflowsPlugin = require('@aws-ee/base-raas-workflows/lib/plugins/workflows-plugin');
-const baseRaasUserAuthzPlugin = require('@aws-ee/base-raas-services/lib/user/user-authz-plugin');
-const baseRaasSchemaPlugin = require('@aws-ee/base-raas-services/lib/plugins/schema-plugin');
-const environmentTypeServicesPlugin = require('@aws-ee/environment-type-mgmt-services/lib/plugins/services-plugin');
-const keyPairServicesPlugin = require('@aws-ee/key-pair-mgmt-services/lib/plugins/services-plugin');
-const environmentScWfStepsPlugin = require('@aws-ee/environment-sc-workflow-steps/lib/plugins/workflow-steps-plugin');
-const environmentScWfPlugin = require('@aws-ee/environment-sc-workflows/lib/plugins/workflows-plugin');
-const bassRaasEnvTypeVarsPlugin = require('@aws-ee/base-raas-services/lib/plugins/env-provisioning-plugin');
-const rolesOnlyStrategyPlugin = require('@aws-ee/base-raas-services/lib/plugins/roles-only-strategy-plugin');
-const legacyStrategyPlugin = require('@aws-ee/base-raas-services/lib/plugins/legacy-strategy-plugin');
-const baseRaasAppstreamServicesPlugin = require('@aws-ee/base-raas-appstream-rest-api/lib/plugins/services-plugin');
-const baseRaasAppstreamEnvTypeVarsPlugin = require('@aws-ee/base-raas-appstream-services/lib/plugins/env-sc-provisioning-plugin');
+const baseAuditPlugin = require('@amzn/base-services/lib/plugins/audit-plugin');
+const baseServicesPlugin = require('@amzn/base-api-handler/lib/plugins/services-plugin');
+const baseWfServicesPlugin = require('@amzn/base-workflow-core/lib/runner/plugins/services-plugin');
+const baseWfStepsPlugin = require('@amzn/base-workflow-steps/steps/workflow-steps-plugin');
+const baseRaasServicesPlugin = require('@amzn/base-raas-rest-api/lib/plugins/services-plugin');
+const baseRaasCfnTemplatesPlugin = require('@amzn/base-raas-cfn-templates/dist/plugins/cfn-templates-plugin');
+const baseRaasWfStepsPlugin = require('@amzn/base-raas-workflow-steps/lib/plugins/workflow-steps-plugin');
+const baseRaasWorkflowsPlugin = require('@amzn/base-raas-workflows/lib/plugins/workflows-plugin');
+const baseRaasUserAuthzPlugin = require('@amzn/base-raas-services/lib/user/user-authz-plugin');
+const baseRaasSchemaPlugin = require('@amzn/base-raas-services/lib/plugins/schema-plugin');
+const environmentTypeServicesPlugin = require('@amzn/environment-type-mgmt-services/lib/plugins/services-plugin');
+const keyPairServicesPlugin = require('@amzn/key-pair-mgmt-services/lib/plugins/services-plugin');
+const environmentScWfStepsPlugin = require('@amzn/environment-sc-workflow-steps/lib/plugins/workflow-steps-plugin');
+const environmentScWfPlugin = require('@amzn/environment-sc-workflows/lib/plugins/workflows-plugin');
+const bassRaasEnvTypeVarsPlugin = require('@amzn/base-raas-services/lib/plugins/env-provisioning-plugin');
+const rolesOnlyStrategyPlugin = require('@amzn/base-raas-services/lib/plugins/roles-only-strategy-plugin');
+const legacyStrategyPlugin = require('@amzn/base-raas-services/lib/plugins/legacy-strategy-plugin');
+const baseRaasAppstreamServicesPlugin = require('@amzn/base-raas-appstream-rest-api/lib/plugins/services-plugin');
+const baseRaasAppstreamEnvTypeVarsPlugin = require('@amzn/base-raas-appstream-services/lib/plugins/env-sc-provisioning-plugin');
 
 const servicesPlugin = require('services/lib/plugins/services-plugin');
 

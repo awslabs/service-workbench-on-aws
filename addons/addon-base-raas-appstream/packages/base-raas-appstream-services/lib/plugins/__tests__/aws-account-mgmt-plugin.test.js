@@ -13,20 +13,20 @@
  *  permissions and limitations under the License.
  */
 
-const ServicesContainer = require('@aws-ee/base-services-container/lib/services-container');
+const ServicesContainer = require('@amzn/base-services-container/lib/services-container');
 
 // Mocked dependencies
-jest.mock('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
-const PluginRegistryService = require('@aws-ee/base-services/lib/plugin-registry/plugin-registry-service');
+jest.mock('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
+const PluginRegistryService = require('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
 
-jest.mock('@aws-ee/base-services/lib/settings/env-settings-service');
-const SettingsServiceMock = require('@aws-ee/base-services/lib/settings/env-settings-service');
+jest.mock('@amzn/base-services/lib/settings/env-settings-service');
+const SettingsServiceMock = require('@amzn/base-services/lib/settings/env-settings-service');
 
-jest.mock('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-service');
-const EnvironmentScServiceMock = require('@aws-ee/base-raas-services/lib/environment/service-catalog/environment-sc-service');
+jest.mock('@amzn/base-raas-services/lib/environment/service-catalog/environment-sc-service');
+const EnvironmentScServiceMock = require('@amzn/base-raas-services/lib/environment/service-catalog/environment-sc-service');
 
-jest.mock('@aws-ee/base-raas-services/lib/indexes/indexes-service');
-const IndexesServiceMock = require('@aws-ee/base-raas-services/lib/indexes/indexes-service');
+jest.mock('@amzn/base-raas-services/lib/indexes/indexes-service');
+const IndexesServiceMock = require('@amzn/base-raas-services/lib/indexes/indexes-service');
 
 const plugin = require('../aws-account-mgmt-plugin');
 

@@ -20,7 +20,7 @@ import { decorate, action, runInAction, observable } from 'mobx';
 import { Button, Header, Dimmer, Loader, Message } from 'semantic-ui-react';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import c from 'classnames';
-import { displayError, displaySuccess } from '@aws-ee/base-ui/dist/helpers/notification';
+import { displayError, displaySuccess } from '@amzn/base-ui/dist/helpers/notification';
 
 import AddStepDropDown from '../../../workflow-step-templates/AddStepDropDown';
 
