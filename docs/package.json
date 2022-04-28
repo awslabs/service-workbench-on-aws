@@ -17,6 +17,8 @@
     "react-dom": "^16.8.4"
   },
   "resolutions": {
+    "follow-redirects": "^1.14.7",
+    "prismjs": "^1.27.0",
     "immer": "^9.0.6",
     "is-svg": "^4.3.0",
     "nth-check":"^2.0.1",
