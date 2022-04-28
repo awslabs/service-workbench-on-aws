@@ -24,6 +24,7 @@ Resources:
                 Effect: Allow
                 Action:
                   - ec2:ModifyImageAttribute
+                  - ec2:DescribeImages
                 Resource: "*"
 Outputs:
   DevOpsRoleArn:
