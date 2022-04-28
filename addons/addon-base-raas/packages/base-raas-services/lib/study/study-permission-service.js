@@ -491,18 +491,14 @@ class StudyPermissionService extends Service {
 
         const disableAdminBYOBSelfAssignment =
           this.settings.getBoolean(settingKeys.disableAdminBYOBSelfAssignment) || false;
-        if (disableAdminBYOBSelfAssignment === 'true') {
-          if (!(isActive && isResearcher)) {
-            throw this.boom.badRequest(`User ${user.username} must be active and has the role of researcher`, true);
-          }
+        if (disableAdminBYOBSelfAssignment === true && !(isActive && isResearcher)) {
+          throw this.boom.badRequest(`User ${user.username} must be active and has the role of researcher`, true);
         }
-        if (disableAdminBYOBSelfAssignment !== 'true') {
-          if (!(isActive && (isAdminUser || isResearcher))) {
-            throw this.boom.badRequest(
-              `User ${user.username} must be active and either has the role of admin or the role of researcher`,
-              true,
-            );
-          }
+        if (disableAdminBYOBSelfAssignment !== true && !(isActive && (isAdminUser || isResearcher))) {
+          throw this.boom.badRequest(
+            `User ${user.username} must be active and either has the role of admin or the role of researcher`,
+            true,
+          );
         }
       } catch (error) {
         errors.push(error.message);

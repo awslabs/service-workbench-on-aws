@@ -642,7 +642,7 @@ jM0re//6SUWx/9VfBLN+6Ul8wcqGR2uCmK/PJpzWYxz0IzhnyA==
       service._settings = {
         getBoolean: settingName => {
           if (settingName === 'restrictAdminWorkspaceConnection') {
-            return 'true';
+            return true;
           }
           return undefined;
         },
@@ -665,7 +665,7 @@ jM0re//6SUWx/9VfBLN+6Ul8wcqGR2uCmK/PJpzWYxz0IzhnyA==
       service._settings = {
         getBoolean: settingName => {
           if (settingName === 'restrictAdminWorkspaceConnection') {
-            return 'false';
+            return false;
           }
           return undefined;
         },
