@@ -636,10 +636,17 @@ jM0re//6SUWx/9VfBLN+6Ul8wcqGR2uCmK/PJpzWYxz0IzhnyA==
     });
   });
 
-  describe('verifyAdminAccess', () => {
+  describe('verifyAccess', () => {
     it('Should fail if the admin is try to access the researcher workspace', async () => {
       // Env is created by the researcher
-      process.env.APP_RESTRICT_ADMIN_WORKSPACE_CONNECTION = true;
+      service._settings = {
+        getBoolean: settingName => {
+          if (settingName === 'restrictAdminWorkspaceConnection') {
+            return 'true';
+          }
+          return undefined;
+        },
+      };
       const createdBy = 'u-moQvVGabqpcaypegCqwsa'; // researcher uid
       const projectId = 'Project-2';
       const requestContext = {
@@ -647,24 +654,29 @@ jM0re//6SUWx/9VfBLN+6Ul8wcqGR2uCmK/PJpzWYxz0IzhnyA==
         principalIdentifier: { uid: 'u-moQvVGabqpcaypegCqwso' },
       };
       try {
-        await service.verifyAdminAccess(requestContext, createdBy, projectId);
+        await service.verifyAccess(requestContext, createdBy, projectId);
       } catch (err) {
-        expect(err.message).toEqual(
-          `You do not have access to workspace "${projectId}". Please contact your administrator.”`,
-        );
+        expect(err.message).toEqual(`You do not have access to other user's workspace`);
       }
     });
 
     it('Should pass if the admin is try to access the researcher workspace', async () => {
       // Env is created by the researcher
-      process.env.APP_RESTRICT_ADMIN_WORKSPACE_CONNECTION = false;
+      service._settings = {
+        getBoolean: settingName => {
+          if (settingName === 'restrictAdminWorkspaceConnection') {
+            return 'false';
+          }
+          return undefined;
+        },
+      };
       const createdBy = 'u-moQvVGabqpcaypegCqwsa'; // researcher uid
       const projectId = 'Project-2';
       const requestContext = {
         principal: { isAdmin: true, status: 'active' },
         principalIdentifier: { uid: 'u-moQvVGabqpcaypegCqwso' },
       };
-      const status = await service.verifyAdminAccess(requestContext, createdBy, projectId);
+      const status = await service.verifyAccess(requestContext, createdBy, projectId);
       expect(status).toEqual(true);
     });
   });

@@ -747,7 +747,14 @@ describe('StudyPermissionService', () => {
       userService.mustFindUser = jest.fn(() => {
         return { isAdmin: true, status: 'active', userRole: 'admin', username };
       });
-      process.env.APP_DISABLE_ADMIN_BYOB_SELF_ASSIGNMENT = 'true';
+      service._settings = {
+        getBoolean: settingName => {
+          if (settingName === 'disableAdminBYOBSelfAssignment') {
+            return 'true';
+          }
+          return undefined;
+        },
+      };
       await expect(service.assertValidUsers(userIds)).rejects.toThrow(
         expect.objectContaining({ message: `User ${username} must be active and has the role of researcher` }),
       );
@@ -760,7 +767,14 @@ describe('StudyPermissionService', () => {
       userService.mustFindUser = jest.fn(() => {
         return { isAdmin: true, status: 'active', userRole: 'admin', username };
       });
-      process.env.APP_DISABLE_ADMIN_BYOB_SELF_ASSIGNMENT = 'false';
+      service._settings = {
+        getBoolean: settingName => {
+          if (settingName === 'disableAdminBYOBSelfAssignment') {
+            return 'false';
+          }
+          return undefined;
+        },
+      };
       const response = await service.assertValidUsers(userIds);
       expect(response).toBeUndefined();
     });

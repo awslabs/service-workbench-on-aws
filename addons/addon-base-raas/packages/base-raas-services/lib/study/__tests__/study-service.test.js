@@ -1414,7 +1414,14 @@ describe('studyService', () => {
         principalIdentifier: { uid },
         principal: { userRole: 'researcher', status: 'active' },
       };
-      process.env.APP_DISABLE_STUDY_UPLOAD_BY_RESEARCHER = 'true';
+      service._settings = {
+        getBoolean: settingName => {
+          if (settingName === 'disableStudyUploadByResearcher') {
+            return 'true';
+          }
+          return undefined;
+        },
+      };
       // OPERATE
       await expect(service.create(requestContext, studyData)).rejects.toThrow(
         // CHECK
@@ -1423,7 +1430,14 @@ describe('studyService', () => {
     });
 
     it('should pass when the researcher is tries to create study', async () => {
-      process.env.APP_DISABLE_STUDY_UPLOAD_BY_RESEARCHER = 'false';
+      service._settings = {
+        getBoolean: settingName => {
+          if (settingName === 'disableStudyUploadByResearcher') {
+            return 'false';
+          }
+          return undefined;
+        },
+      };
       const sid = 'doppelganger';
       const uid = 'u-currentUserId';
       const requestContext = {
@@ -1488,13 +1502,20 @@ describe('studyService', () => {
         principalIdentifier: { uid },
         principal: { userRole: 'researcher', status: 'active' },
       };
-      process.env.APP_DISABLE_STUDY_UPLOAD_BY_RESEARCHER = 'true';
+      service._settings = {
+        getBoolean: settingName => {
+          if (settingName === 'disableStudyUploadByResearcher') {
+            return 'true';
+          }
+          return undefined;
+        },
+      };
       // OPERATE
       await expect(
         service.createPresignedPostRequests(requestContext, 'study-2', filenames, encrypt, multiPart),
       ).rejects.toThrow(
         // CHECK
-        expect.objectContaining({ message: 'Only admin are autenabledhorized to upload files.' }),
+        expect.objectContaining({ message: 'Only admin are authorized to upload files.' }),
       );
     });
 
@@ -1509,7 +1530,14 @@ describe('studyService', () => {
         principal: { userRole: 'researcher', status: 'active' },
       };
       const studyId = 'study-2';
-      process.env.APP_DISABLE_STUDY_UPLOAD_BY_RESEARCHER = 'false';
+      service._settings = {
+        getBoolean: settingName => {
+          if (settingName === 'disableStudyUploadByResearcher') {
+            return 'false';
+          }
+          return undefined;
+        },
+      };
       // OPERATE
       await expect(
         service.createPresignedPostRequests(requestContext, studyId, filenames, encrypt, multiPart),
