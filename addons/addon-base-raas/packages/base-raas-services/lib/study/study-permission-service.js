@@ -51,6 +51,7 @@ const {
 
 const settingKeys = {
   tableName: 'dbStudyPermissions',
+  disableAdminBYOBSelfAssignment: 'disableAdminBYOBSelfAssignment',
 };
 
 const composeStudyPermissionsKey = studyId => `Study:${studyId}`;
@@ -487,8 +488,9 @@ class StudyPermissionService extends Service {
         const isActive = _.toLower(user.status) === 'active';
         const isResearcher = user.userRole === 'researcher';
         // Admin can assign only a researcher as a study admin in the BYOB feature.
-        // This feature will be configurable using flag APP_DISABLE_ADMIN_BYOB_SELF_ASSIGNMENT
-        const disableAdminBYOBSelfAssignment = process.env.APP_DISABLE_ADMIN_BYOB_SELF_ASSIGNMENT || false;
+
+        const disableAdminBYOBSelfAssignment =
+          this.settings.getBoolean(settingKeys.disableAdminBYOBSelfAssignment) || false;
         if (disableAdminBYOBSelfAssignment === 'true') {
           if (!(isActive && isResearcher)) {
             throw this.boom.badRequest(`User ${user.username} must be active and has the role of researcher`, true);

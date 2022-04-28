@@ -179,12 +179,9 @@ const User = types
       const externalGuest = self.isExternalGuest;
       const internalGuest = self.isInternalGuest;
       // Disable the create study/org button for the researcher. This feature would be enable based on the flag "disableStudyUploadByResearcher" is set to true.
-      let getAccess = true;
-      if (self.isInternalResearcher && disableStudyUploadByResearcher === true) {
-        getAccess = false;
-      }
+      const internalResearcherRestricted = self.isInternalResearcher && disableStudyUploadByResearcher === true;
 
-      const canCreateStudy = active && !external && !internalGuest && getAccess;
+      const canCreateStudy = active && !external && !internalGuest && !internalResearcherRestricted;
       const canCreateWorkspace = active && !externalGuest && !internalGuest;
       const canSelectStudy = active && !externalGuest && !internalGuest;
       const canViewDashboard = active && !external && !internalGuest;

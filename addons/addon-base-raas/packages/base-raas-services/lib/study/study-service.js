@@ -42,6 +42,7 @@ const settingKeys = {
   accountIdIndexName: 'dbStudiesAccountIdIndex',
   studyDataBucketName: 'studyDataBucketName',
   enableEgressStore: 'enableEgressStore',
+  disableStudyUploadByResearcher: 'disableStudyUploadByResearcher',
 };
 
 class StudyService extends Service {
@@ -286,17 +287,17 @@ class StudyService extends Service {
   async create(requestContext, rawStudyEntity) {
     // This flag was introduced for the Researcher to restrict the create study/org
     // if it set to true
-    const disableResearcherAccess = process.env.APP_DISABLE_STUDY_UPLOAD_BY_RESEARCHER || false;
+    const disableStudyUploadByResearcher =
+      this.settings.getBoolean(settingKeys.disableStudyUploadByResearcher) || false;
 
-    if (disableResearcherAccess === 'true') {
-      if (!isAdmin(requestContext)) {
-        throw this.boom.forbidden('Only admin are authorized to create studies.', true);
-      }
+    if (disableStudyUploadByResearcher === 'true' && !isAdmin(requestContext)) {
+      throw this.boom.forbidden('Only admin are authorized to create studies.', true);
     }
-    if (disableResearcherAccess !== 'true') {
-      if (!(isInternalResearcher(requestContext) || isAdmin(requestContext))) {
-        throw this.boom.forbidden('Only admin and internal researcher are authorized to create studies.', true);
-      }
+    if (
+      disableStudyUploadByResearcher !== 'true' &&
+      !(isInternalResearcher(requestContext) || isAdmin(requestContext))
+    ) {
+      throw this.boom.forbidden('Only admin and internal researcher are authorized to create studies.', true);
     }
     if (isOpenData(rawStudyEntity) && !isSystem(requestContext)) {
       throw this.boom.forbidden('Only the system can create Open Data studies.', true);
@@ -644,18 +645,17 @@ class StudyService extends Service {
    */
   async createPresignedPostRequests(requestContext, studyId, filenames, encrypt = true, multiPart = true) {
     // This flag was introduced for the Researcher to restrict the uploading
-    // files if it set to true
-    const disableResearcherAccess = process.env.APP_DISABLE_STUDY_UPLOAD_BY_RESEARCHER || false;
+    const disableStudyUploadByResearcher =
+      this.settings.getBoolean(settingKeys.disableStudyUploadByResearcher) || false;
 
-    if (disableResearcherAccess === 'true') {
-      if (!isAdmin(requestContext)) {
-        throw this.boom.forbidden('Only admin are autenabledhorized to upload files.', true);
-      }
+    if (disableStudyUploadByResearcher === 'true' && !isAdmin(requestContext)) {
+      throw this.boom.forbidden('Only admin are authorized to create studies.', true);
     }
-    if (disableResearcherAccess !== 'true') {
-      if (!(isInternalResearcher(requestContext) || isAdmin(requestContext))) {
-        throw this.boom.forbidden('Only admin and internal researcher are authorized to upload files.', true);
-      }
+    if (
+      disableStudyUploadByResearcher !== 'true' &&
+      !(isInternalResearcher(requestContext) || isAdmin(requestContext))
+    ) {
+      throw this.boom.forbidden('Only admin and internal researcher are authorized to create studies.', true);
     }
 
     // Get study details and check permissions

@@ -29,6 +29,10 @@ if (typeof fetch !== 'function' && fetch.default && typeof fetch.default === 'fu
   fetch = fetch.default;
 }
 
+const settingKeys = {
+  restrictAdminWorkspaceConnection: 'restrictAdminWorkspaceConnection',
+};
+
 class EnvironmentScConnectionService extends Service {
   constructor() {
     super();
@@ -94,8 +98,7 @@ class EnvironmentScConnectionService extends Service {
     // The following will succeed only if the user has permissions to access the specified environment
     const { outputs, projectId, createdBy } = await environmentScService.mustFind(requestContext, { id: envId });
     // Restrict the admin to access workspace not owned by them.
-    await this.verifyAdminAccess(requestContext, createdBy, projectId);
-
+    this.verifyAccess(requestContext, createdBy);
     // Verify environment is linked to an AppStream project when application has AppStream enabled
     await environmentScService.verifyAppStreamConfig(requestContext, projectId);
 
@@ -126,25 +129,18 @@ class EnvironmentScConnectionService extends Service {
     return adjustedConnections;
   }
 
-  async verifyAdminAccess(requestContext, createdBy, projectId) {
-    const restrictAdminWorkspaceConnection = process.env.APP_RESTRICT_ADMIN_WORKSPACE_CONNECTION || false;
+  verifyAccess(requestContext, createdBy) {
+    const restrictAdminWorkspaceConnection =
+      this.settings.getBoolean(settingKeys.restrictAdminWorkspaceConnection) || false;
     const uid = _.get(requestContext, 'principalIdentifier.uid');
     const isAdmin = _.get(requestContext, 'principal.isAdmin');
-    let getAccess = true;
-    if (restrictAdminWorkspaceConnection === 'true') {
-      if (isAdmin === true) {
-        getAccess = false;
-      }
-      if (uid === createdBy) {
-        getAccess = true;
-      }
+    if (restrictAdminWorkspaceConnection !== 'true') {
+      return true;
     }
-    if (!getAccess)
-      throw this.boom.notFound(
-        `You do not have access to workspace "${projectId}". Please contact your administrator.”`,
-        true,
-      );
-    return getAccess;
+    if (isAdmin === true && uid !== createdBy) {
+      throw this.boom.notFound(`You do not have access to other user's workspace`, true);
+    }
+    return true;
   }
 
   async findConnection(requestContext, envId, connectionId) {
