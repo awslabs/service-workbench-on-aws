@@ -18,6 +18,7 @@ const fs = require('fs');
 
 const { getAwsAccountInfo } = require('./aws-acc-context');
 const { getCloudFormationCrossRegionValues } = require('./cloud-formation-cross-region-values');
+const { getCloudFormationCrossAccountValues } = require('./cloud-formation-cross-account-values');
 
 /**
  * Expands environment variables in a string.
@@ -131,7 +132,7 @@ module.exports = {
   mergeSettings: (
     cwd,
     files,
-    { missingFiles = true, emptyFiles = true, crossRegionCloudFormation } = {},
+    { missingFiles = true, emptyFiles = true, crossRegionCloudFormation, crossAccountCloudFormation } = {},
   ) => async serverless => {
     const stage = serverless.variables.options.s || serverless.variables.options.stage || undefined;
     const loadFile = newFileLoader(serverless, { missingFiles, emptyFiles });
@@ -167,6 +168,12 @@ module.exports = {
       mergedSettingsObj.additionalAwsRegion = 'us-east-1';
     }
 
+    // If enableAmiSharing flag is set to true, we will need to pull cloudformation
+    // outputs from devops account. So set devopsProfile as additional profile
+    if (mergedSettingsObj.enableAmiSharing) {
+      mergedSettingsObj.additionalAwsProfile = mergedSettingsObj.devopsProfile;
+    }
+
     const { awsProfile, awsRegion } = mergedSettingsObj;
 
     // Adding AWS Account Context
@@ -184,6 +191,20 @@ module.exports = {
         crossRegionCloudFormation,
       );
       Object.assign(mergedSettingsObj, crossRegionSettings);
+    }
+
+    // Enrich settings with any cross-account variables if
+    // the additionalAwsProfile variable has been set above
+    if (crossAccountCloudFormation && 'additionalAwsProfile' in mergedSettingsObj) {
+      const { additionalAwsProfile } = mergedSettingsObj;
+      const crossAccountSettings = await getCloudFormationCrossAccountValues(
+        stage,
+        additionalAwsProfile,
+        awsRegion,
+        mergedSettingsObj,
+        crossAccountCloudFormation,
+      );
+      Object.assign(mergedSettingsObj, crossAccountSettings);
     }
 
     return mergedSettingsObj;

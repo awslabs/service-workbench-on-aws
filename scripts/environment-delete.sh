@@ -162,6 +162,11 @@ function emptyS3Bucket() {
     local region=$2
     local delete_option=$3
 
+    # Set AWS profile so cross account buckets can be deleted
+    if [ ! -z "$4" ]; then
+        export AWS_PROFILE=$4
+    fi
+
     blank="                                                                                                                        "
     message="\\r$blank\\r- Emptying bucket $bucket ... "
     printf "\n$message"
@@ -196,6 +201,7 @@ function emptyS3Bucket() {
         cmd=$(aws s3api delete-bucket --bucket $bucket --region $region)
         printf "Done !"
     fi
+    unset AWS_PROFILE
     set -e
 }
 
@@ -227,7 +233,8 @@ function emptyS3BucketsFromNames() {
 
         for bucket_to_remove in "${buckets_to_remove[@]}"; do
             local bucket="$bucket_prefix-$bucket_to_remove"
-            emptyS3Bucket $bucket $aws_region $deleteBucket
+            # Pass optional AWS Profile argument
+            emptyS3Bucket $bucket $aws_region $deleteBucket $4
         done
     fi
 
@@ -332,6 +339,21 @@ printf "\n\n\n--- Infrastructure stack"
 edgeLambdaFunctionName=$(getCfLambdaAssociations)
 buckets=("website" "logging")
 removeStack "Infrastructure" "$SOLUTION_DIR/infrastructure" "DONT_ASK_CONFIRMATION" ${buckets[@]}
+
+# -- Prep-Devops stack (devops role)
+# Check if AMI Sharing is enabled and delete prep-devops-account
+amiSharingEnabled=$( get_stage_value "enableAmiSharing" )
+devopsProfile=$( get_stage_value "devopsProfile" )
+if [ "$amiSharingEnabled" = true ]; then
+    printf "AMI Sharing Enabled. Deleting DevOps account stack"
+    printf "\n\n\n--- DevOps-Account-Role stack"
+    buckets=("devops-artifact")
+    removeStack "Prep-DevOps-Account" "$SOLUTION_DIR/prepare-devops-acc" "DONT_ASK_CONFIRMATION"
+    # The '-raas-master-artifacts' bucket is the deployment bucket and has to be removed after the stack deletion
+    emptyS3BucketsFromNames "DELETE_AFTER_EMPTYING" "DONT_ASK_CONFIRMATION" ${buckets[@]} $devopsProfile
+else
+    printf "AMI Sharing Disabled. Skip DevOps account stack"
+fi
 
 # -- Prep-Master stack (master role)
 printf "\n\n\n--- Master-Account-Role stack"
