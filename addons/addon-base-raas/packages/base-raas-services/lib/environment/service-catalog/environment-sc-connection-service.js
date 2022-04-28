@@ -29,6 +29,10 @@ if (typeof fetch !== 'function' && fetch.default && typeof fetch.default === 'fu
   fetch = fetch.default;
 }
 
+const settingKeys = {
+  restrictAdminWorkspaceConnection: 'restrictAdminWorkspaceConnection',
+};
+
 class EnvironmentScConnectionService extends Service {
   constructor() {
     super();
@@ -92,8 +96,9 @@ class EnvironmentScConnectionService extends Service {
       'pluginRegistryService',
     ]);
     // The following will succeed only if the user has permissions to access the specified environment
-    const { outputs, projectId } = await environmentScService.mustFind(requestContext, { id: envId });
-
+    const { outputs, projectId, createdBy } = await environmentScService.mustFind(requestContext, { id: envId });
+    // Restrict the admin to access workspace not owned by them.
+    this.verifyAccess(requestContext, createdBy);
     // Verify environment is linked to an AppStream project when application has AppStream enabled
     await environmentScService.verifyAppStreamConfig(requestContext, projectId);
 
@@ -122,6 +127,20 @@ class EnvironmentScConnectionService extends Service {
       }),
     );
     return adjustedConnections;
+  }
+
+  verifyAccess(requestContext, createdBy) {
+    const restrictAdminWorkspaceConnection =
+      this.settings.getBoolean(settingKeys.restrictAdminWorkspaceConnection) || false;
+    const uid = _.get(requestContext, 'principalIdentifier.uid');
+    const isAdmin = _.get(requestContext, 'principal.isAdmin');
+    if (restrictAdminWorkspaceConnection !== true) {
+      return true;
+    }
+    if (isAdmin === true && uid !== createdBy) {
+      throw this.boom.notFound(`You do not have access to other user's workspace`, true);
+    }
+    return true;
   }
 
   async findConnection(requestContext, envId, connectionId) {
