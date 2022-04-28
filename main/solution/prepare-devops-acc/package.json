@@ -6,7 +6,7 @@
   "author": "Amazon Web Services",
   "license": "Apache-2.0",
   "devDependencies": {
-    "@aws-ee/base-serverless-settings-helper": "workspace:*",
+    "@amzn/base-serverless-settings-helper": "workspace:*",
     "serverless": "^1.63.0",
     "serverless-deployment-bucket": "^1.1.0"
   }
