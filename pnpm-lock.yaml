@@ -2670,6 +2670,15 @@ importers:
       services: workspace:*
       source-map-support: ^0.5.16
       webpack: ^4.41.5
+  main/solution/prepare-devops-acc:
+    specifiers:
+      '@amzn/base-serverless-settings-helper': workspace:*
+      serverless: ^1.63.0
+      serverless-deployment-bucket: ^1.1.0
+    devDependencies:
+      '@amzn/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
+      serverless: 1.83.2
+      serverless-deployment-bucket: 1.5.1
   main/solution/prepare-master-acc:
     devDependencies:
       '@amzn/base-serverless-settings-helper': link:../../../addons/addon-base/packages/serverless-settings-helper
