@@ -100,10 +100,7 @@ class StudyRow extends React.Component {
   renderHeader(study) {
     // Disable the upload files button for the researcher. This feature would be enable based on
     // the flag "disableStudyUploadByResearcher" is set to true.
-    let getAccess = true;
-    if (this.getUserRole === 'researcher' && disableStudyUploadByResearcher === true) {
-      getAccess = false;
-    }
+    const disableResearcherAccess = this.getUserRole === 'researcher' && disableStudyUploadByResearcher === true;
 
     const isSelectable = this.isSelectable; // Internal and external guests can't select studies
     const onClickAttr = {};
@@ -113,7 +110,9 @@ class StudyRow extends React.Component {
     return (
       <div>
         <Header as="h3" color="blue" className={c('mt2', isSelectable ? 'cursor-pointer' : '')} {...onClickAttr}>
-          {study.uploadLocationEnabled && study.canUpload && getAccess && <UploadStudyFiles studyId={study.id} />}
+          {study.uploadLocationEnabled && study.canUpload && !disableResearcherAccess && (
+            <UploadStudyFiles studyId={study.id} />
+          )}
           {study.name}
           <Header.Subheader>
             <span className="pt1 fs-8 color-grey">{study.id}</span>
