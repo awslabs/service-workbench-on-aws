@@ -134,7 +134,7 @@ class EnvironmentScConnectionService extends Service {
       this.settings.getBoolean(settingKeys.restrictAdminWorkspaceConnection) || false;
     const uid = _.get(requestContext, 'principalIdentifier.uid');
     const isAdmin = _.get(requestContext, 'principal.isAdmin');
-    if (restrictAdminWorkspaceConnection !== 'true') {
+    if (restrictAdminWorkspaceConnection !== true) {
       return true;
     }
     if (isAdmin === true && uid !== createdBy) {

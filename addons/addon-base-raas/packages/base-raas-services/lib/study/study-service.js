@@ -290,13 +290,10 @@ class StudyService extends Service {
     const disableStudyUploadByResearcher =
       this.settings.getBoolean(settingKeys.disableStudyUploadByResearcher) || false;
 
-    if (disableStudyUploadByResearcher === 'true' && !isAdmin(requestContext)) {
+    if (disableStudyUploadByResearcher === true && !isAdmin(requestContext)) {
       throw this.boom.forbidden('Only admin are authorized to create studies.', true);
     }
-    if (
-      disableStudyUploadByResearcher !== 'true' &&
-      !(isInternalResearcher(requestContext) || isAdmin(requestContext))
-    ) {
+    if (disableStudyUploadByResearcher !== true && !(isInternalResearcher(requestContext) || isAdmin(requestContext))) {
       throw this.boom.forbidden('Only admin and internal researcher are authorized to create studies.', true);
     }
     if (isOpenData(rawStudyEntity) && !isSystem(requestContext)) {
@@ -648,13 +645,10 @@ class StudyService extends Service {
     const disableStudyUploadByResearcher =
       this.settings.getBoolean(settingKeys.disableStudyUploadByResearcher) || false;
 
-    if (disableStudyUploadByResearcher === 'true' && !isAdmin(requestContext)) {
+    if (disableStudyUploadByResearcher === true && !isAdmin(requestContext)) {
       throw this.boom.forbidden('Only admin are authorized to upload files.', true);
     }
-    if (
-      disableStudyUploadByResearcher !== 'true' &&
-      !(isInternalResearcher(requestContext) || isAdmin(requestContext))
-    ) {
+    if (disableStudyUploadByResearcher !== true && !(isInternalResearcher(requestContext) || isAdmin(requestContext))) {
       throw this.boom.forbidden('Only admin and internal researcher are authorized to upload files.', true);
     }
 

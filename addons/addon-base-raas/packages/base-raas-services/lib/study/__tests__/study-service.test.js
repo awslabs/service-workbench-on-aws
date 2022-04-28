@@ -1417,7 +1417,7 @@ describe('studyService', () => {
       service._settings = {
         getBoolean: settingName => {
           if (settingName === 'disableStudyUploadByResearcher') {
-            return 'true';
+            return true;
           }
           return undefined;
         },
@@ -1433,7 +1433,7 @@ describe('studyService', () => {
       service._settings = {
         getBoolean: settingName => {
           if (settingName === 'disableStudyUploadByResearcher') {
-            return 'false';
+            return false;
           }
           return undefined;
         },
@@ -1505,7 +1505,7 @@ describe('studyService', () => {
       service._settings = {
         getBoolean: settingName => {
           if (settingName === 'disableStudyUploadByResearcher') {
-            return 'true';
+            return true;
           }
           return undefined;
         },
@@ -1533,7 +1533,7 @@ describe('studyService', () => {
       service._settings = {
         getBoolean: settingName => {
           if (settingName === 'disableStudyUploadByResearcher') {
-            return 'false';
+            return false;
           }
           return undefined;
         },

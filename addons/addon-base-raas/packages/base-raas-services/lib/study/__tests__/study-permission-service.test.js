@@ -750,7 +750,7 @@ describe('StudyPermissionService', () => {
       service._settings = {
         getBoolean: settingName => {
           if (settingName === 'disableAdminBYOBSelfAssignment') {
-            return 'true';
+            return true;
           }
           return undefined;
         },
@@ -770,7 +770,7 @@ describe('StudyPermissionService', () => {
       service._settings = {
         getBoolean: settingName => {
           if (settingName === 'disableAdminBYOBSelfAssignment') {
-            return 'false';
+            return false;
           }
           return undefined;
         },
