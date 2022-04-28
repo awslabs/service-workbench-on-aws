@@ -649,13 +649,13 @@ class StudyService extends Service {
       this.settings.getBoolean(settingKeys.disableStudyUploadByResearcher) || false;
 
     if (disableStudyUploadByResearcher === 'true' && !isAdmin(requestContext)) {
-      throw this.boom.forbidden('Only admin are authorized to create studies.', true);
+      throw this.boom.forbidden('Only admin are authorized to upload files.', true);
     }
     if (
       disableStudyUploadByResearcher !== 'true' &&
       !(isInternalResearcher(requestContext) || isAdmin(requestContext))
     ) {
-      throw this.boom.forbidden('Only admin and internal researcher are authorized to create studies.', true);
+      throw this.boom.forbidden('Only admin and internal researcher are authorized to upload files.', true);
     }
 
     // Get study details and check permissions
