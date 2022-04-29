@@ -111,8 +111,12 @@ class ServerlessPackerPlugin {
   }
 
   packageVarArgs() {
+    const customSettings = this.serverless.service.custom.settings;
+    if (customSettings.enableAmiSharing) {
+      customSettings.awsProfile = customSettings.devopsProfile;
+    }
     const varArgs = [];
-    _.forEach(this.serverless.service.custom.settings, (value, key) => {
+    _.forEach(customSettings, (value, key) => {
       varArgs.push('-var');
       varArgs.push(`${key}=${value}`);
     });
