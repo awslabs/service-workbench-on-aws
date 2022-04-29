@@ -271,7 +271,8 @@ describe('AwsAccountService', () => {
           'param_AppStreamDisconnectTimeoutSeconds=60&param_AppStreamFleetDesiredInstances=2&' +
           'param_AppStreamIdleDisconnectTimeoutSeconds=600&param_AppStreamImageName=&' +
           'param_AppStreamInstanceType=&param_AppStreamMaxUserDurationSeconds=86400&' +
-          'param_EnableAppStream=false&param_EnableFlowLogs=true&param_DomainName=',
+          'param_EnableAppStream=false&param_EnableFlowLogs=true&param_DomainName=&' +
+          'param_EnableAmiSharing=false&param_DevopsAccountId=',
       );
     });
 
@@ -308,7 +309,8 @@ describe('AwsAccountService', () => {
           'param_AppStreamDisconnectTimeoutSeconds=60&param_AppStreamFleetDesiredInstances=2&' +
           'param_AppStreamIdleDisconnectTimeoutSeconds=600&param_AppStreamImageName=&' +
           'param_AppStreamInstanceType=&param_AppStreamMaxUserDurationSeconds=86400&' +
-          'param_EnableAppStream=false&param_EnableFlowLogs=true&param_DomainName=testdomain.aws',
+          'param_EnableAppStream=false&param_EnableFlowLogs=true&param_DomainName=testdomain.aws&' +
+          'param_EnableAmiSharing=false&param_DevopsAccountId=',
       );
       expect(awsAccountsService.update).toHaveBeenCalledWith(requestContext, update);
     });

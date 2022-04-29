@@ -186,6 +186,12 @@ describe('ProvisionAccount', () => {
           if (key === 'launchConstraintPolicyPrefix') {
             return '*';
           }
+          if (key === 'enableAmiSharing') {
+            return 'false';
+          }
+          if (key === 'devopsRoleArn') {
+            return '';
+          }
           throw new Error('Unexpected key');
         },
         optional: key => {
@@ -247,6 +253,12 @@ describe('ProvisionAccount', () => {
           }
           if (key === 'launchConstraintPolicyPrefix') {
             return '*';
+          }
+          if (key === 'enableAmiSharing') {
+            return 'false';
+          }
+          if (key === 'devopsRoleArn') {
+            return '';
           }
           throw new Error('Unexpected key');
         },

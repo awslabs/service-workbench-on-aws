@@ -7,5 +7,11 @@ workflowLoopRunnerRoleName: ${self:custom.settings.namespace}-WorkflowLoopRunner
 # The IAM role arn for the workflow loop runner lambda
 workflowLoopRunnerRoleArn: 'arn:aws:iam::${self:custom.settings.awsAccountInfo.awsAccountId}:role/${self:custom.settings.workflowLoopRunnerRoleName}'
 
+# The name of the IAM role created for the Lambda API handler
+apiHandlerRoleName: ${self:custom.settings.namespace}-ApiHandler
+
+# The IAM role arn for the Lambda API handler, we need to define it in the settings because it is being passed to lambdas as an env var
+apiHandlerRoleArn: 'arn:aws:iam::${self:custom.settings.awsAccountInfo.awsAccountId}:role/${self:custom.settings.apiHandlerRoleName}'
+
 #External ID (AWS account ID of the main account) used to assume the Devops Role
 externalId: ${self:custom.settings.awsAccountInfo.awsAccountId}

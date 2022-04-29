@@ -34,6 +34,8 @@ const settingKeys = {
   isAppStreamEnabled: 'isAppStreamEnabled',
   enableFlowLogs: 'enableFlowLogs',
   domainName: 'domainName',
+  enableAmiSharing: 'enableAmiSharing',
+  devopsRoleArn: 'devopsRoleArn',
 };
 
 class ProvisionAccount extends StepBase {
@@ -227,6 +229,9 @@ class ProvisionAccount extends StepBase {
     addParam('EnableAppStream', this.settings.get(settingKeys.isAppStreamEnabled));
     addParam('EnableFlowLogs', this.settings.get(settingKeys.enableFlowLogs));
     addParam('DomainName', this.settings.optional(settingKeys.domainName, ''));
+    addParam('EnableAmiSharing', this.settings.get(settingKeys.enableAmiSharing));
+    const devopsAccountId = _.split(this.settings.get(settingKeys.devopsRoleArn), ':')[4];
+    addParam('DevopsAccountId', `${devopsAccountId || ''}`);
 
     const input = {
       StackName: stackName,
