@@ -10,6 +10,7 @@ Resources:
             Principal:
               AWS:
                 - !Sub ${self:custom.settings.workflowLoopRunnerRoleArn}
+                - !Sub ${self:custom.settings.apiHandlerRoleArn}
             Action:
               - 'sts:AssumeRole'
             Condition:
@@ -25,6 +26,7 @@ Resources:
                 Action:
                   - ec2:ModifyImageAttribute
                   - ec2:DescribeImages
+                  - appstream:UpdateImagePermissions
                 Resource: "*"
 Outputs:
   DevOpsRoleArn:

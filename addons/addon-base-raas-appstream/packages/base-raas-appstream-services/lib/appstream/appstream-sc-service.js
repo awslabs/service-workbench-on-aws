@@ -16,6 +16,12 @@
 const _ = require('lodash');
 const Service = require('@amzn/base-services-container/lib/service');
 
+const settingKeys = {
+  enableAmiSharing: 'enableAmiSharing',
+  devopsRoleArn: 'devopsRoleArn',
+  devopsRoleExternalId: 'devopsRoleExternalId',
+};
+
 class AppStreamScService extends Service {
   constructor() {
     super();
@@ -210,7 +216,33 @@ class AppStreamScService extends Service {
 
   async getAppStream() {
     const aws = await this.getAWS();
-    return new aws.sdk.AppStream();
+    const isAmiSharingEnabled = await this.checkIfAmiSharingEnabled();
+    let appstreamClient;
+    // Get Devops account client if AMI sharing enabled.
+    if (isAmiSharingEnabled) {
+      this.log.info(`AMI Sharing enabled. Reading SDK using DevOps account role`);
+      const { roleArn, externalId } = await this.getDevopsAccountDetails();
+      appstreamClient = await aws.getClientSdkForRole({
+        roleArn,
+        clientName: 'AppStream',
+        options: { apiVersion: '2016-12-01' },
+        externalId,
+      });
+    } else {
+      appstreamClient = await new aws.sdk.AppStream();
+    }
+    return appstreamClient;
+  }
+
+  async getDevopsAccountDetails() {
+    return {
+      roleArn: this.settings.get(settingKeys.devopsRoleArn),
+      externalId: this.settings.get(settingKeys.devopsRoleExternalId),
+    };
+  }
+
+  async checkIfAmiSharingEnabled() {
+    return this.settings.getBoolean(settingKeys.enableAmiSharing);
   }
 }
 

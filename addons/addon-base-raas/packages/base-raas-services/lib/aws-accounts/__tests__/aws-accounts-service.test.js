@@ -38,7 +38,6 @@ const LockServiceMock = require('@amzn/base-services/lib/lock/lock-service');
 jest.mock('@amzn/base-services/lib/s3-service');
 const S3ServiceMock = require('@amzn/base-services/lib/s3-service');
 
-jest.mock('@amzn/base-services/lib/aws/aws-service');
 const AwsServiceMock = require('@amzn/base-services/lib/aws/aws-service');
 
 jest.mock('@amzn/base-services/lib/plugin-registry/plugin-registry-service');
@@ -47,6 +46,7 @@ const PluginRegistryService = require('@amzn/base-services/lib/plugin-registry/p
 const AwsAccountService = require('../aws-accounts-service');
 
 describe('AwsAccountService', () => {
+  let aws = null;
   let service = null;
   let dbService = null;
   let s3Service = null;
@@ -78,6 +78,8 @@ describe('AwsAccountService', () => {
 
     // Skip authorization by default
     service.assertAuthorized = jest.fn();
+    aws = await container.find('aws');
+    aws.getClientSdkForRole = jest.fn();
   });
 
   describe('find', () => {
@@ -593,6 +595,36 @@ describe('AwsAccountService', () => {
           'This account has active non-AppStream environments. Please terminate them and retry this operation',
         );
       }
+    });
+  });
+
+  describe('getAppstreamSdk', () => {
+    it('should call getDevopsAccountDetails when AMI sharing is enabled', async () => {
+      service.checkIfAmiSharingEnabled = jest.fn(() => {
+        return true;
+      });
+      service.getDevopsAccountDetails = jest.fn(() => {
+        return {
+          roleArn: 'Test_ARN',
+          externalId: 'Test_ID',
+        };
+      });
+      await service.getAppstreamSdk();
+      expect(service.getDevopsAccountDetails).toHaveBeenCalled();
+    });
+
+    it('should not call getDevopsAccountDetails when AMI sharing is disabled', async () => {
+      service.checkIfAmiSharingEnabled = jest.fn(() => {
+        return false;
+      });
+      service.getDevopsAccountDetails = jest.fn(() => {
+        return {
+          roleArn: 'Test_ARN',
+          externalId: 'Test_ID',
+        };
+      });
+      await service.getAppstreamSdk();
+      expect(service.getDevopsAccountDetails).not.toHaveBeenCalled();
     });
   });
 });
