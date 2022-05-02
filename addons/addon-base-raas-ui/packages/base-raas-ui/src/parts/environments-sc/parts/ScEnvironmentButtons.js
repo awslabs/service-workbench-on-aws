@@ -137,7 +137,7 @@ class ScEnvironmentButtons extends React.Component {
     const connectionsButtonActive = this.connectionsButtonActive;
     const egressStoreButtonActive = this.egressStoreButtonActive;
     const editCidrButtonActive = this.editCidrButtonActive;
-    const canConnect = state.canConnect;
+    let canConnect = state.canConnect;
     const canStart = state.canStart && this.canChangeState();
     const canStop = state.canStop && this.canChangeState();
 
@@ -145,19 +145,17 @@ class ScEnvironmentButtons extends React.Component {
     const user = this.userStore.user;
     const isAdmin = user.isAdmin;
     const uid = user.uid;
-    let restrictWorkspaceConnection = true;
 
     //  Validate the flag "restrictAdminWorkspaceConnection" if it set to "true"
     //  Restrict the admin to access workspaces only created by them.
     if (restrictAdminWorkspaceConnection === true) {
       if (isAdmin === true) {
-        restrictWorkspaceConnection = false;
+        canConnect = false;
       }
       if (uid === envCreatedBy) {
-        restrictWorkspaceConnection = true;
+        canConnect = true;
       }
     }
-
     return (
       <>
         <div className="clearfix" style={{ minHeight: '42px' }}>
@@ -218,7 +216,7 @@ class ScEnvironmentButtons extends React.Component {
             1. AppStream is not enabled and environment can be connected to
             2. AppStream is enabled, environment is linked to an AppStream-configured account, and environment can be connected to 
           */}
-          {restrictWorkspaceConnection && canConnect && (!isAppStreamEnabled || env.isAppStreamConfigured) && (
+          {canConnect && (!isAppStreamEnabled || env.isAppStreamConfigured) && (
             <Button
               floated="left"
               basic
