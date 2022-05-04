@@ -430,11 +430,11 @@ class AwsAccountsService extends Service {
 
   async getAppstreamSdk() {
     const aws = await this.service('aws');
-    const isAmiSharingEnabled = await this.checkIfAmiSharingEnabled();
+    const isAmiSharingEnabled = this.checkIfAmiSharingEnabled();
     let appstreamClient;
     // Get Devops account client if AMI sharing enabled.
     if (isAmiSharingEnabled) {
-      const { roleArn, externalId } = await this.getDevopsAccountDetails();
+      const { roleArn, externalId } = this.getDevopsAccountDetails();
       appstreamClient = await aws.getClientSdkForRole({
         roleArn,
         clientName: 'AppStream',
@@ -447,14 +447,14 @@ class AwsAccountsService extends Service {
     return appstreamClient;
   }
 
-  async getDevopsAccountDetails() {
+  getDevopsAccountDetails() {
     return {
       roleArn: this.settings.get(settingKeys.devopsRoleArn),
       externalId: this.settings.get(settingKeys.devopsRoleExternalId),
     };
   }
 
-  async checkIfAmiSharingEnabled() {
+  checkIfAmiSharingEnabled() {
     return this.settings.getBoolean(settingKeys.enableAmiSharing);
   }
 
