@@ -640,7 +640,7 @@ Resources:
       ResourceType: VPC
       TrafficType: ACCEPT
       DeliverLogsPermissionArn: !GetAtt CrossAccountRoleEnvMgmt.Arn
-      LogGroupName: VPCLogGroup
+      LogGroupName: !Ref FlowLogCloudwatchGroup
       LogFormat: '${version} ${vpc-id} ${subnet-id} ${instance-id} ${srcaddr} ${dstaddr} ${srcport} ${dstport} ${protocol} ${tcp-flags} ${type} ${pkt-srcaddr} ${pkt-dstaddr}'
       Tags:
         - Key: Name
@@ -683,7 +683,7 @@ Resources:
       ResourceType: Subnet
       TrafficType: ACCEPT
       DeliverLogsPermissionArn: !GetAtt CrossAccountRoleEnvMgmt.Arn
-      LogGroupName: PublicSubnet1LogGroup
+      LogGroupName: !Ref FlowLogCloudwatchGroup
       LogFormat: '${version} ${vpc-id} ${subnet-id} ${instance-id} ${srcaddr} ${dstaddr} ${srcport} ${dstport} ${protocol} ${tcp-flags} ${type} ${pkt-srcaddr} ${pkt-dstaddr}'
       Tags:
         - Key: Name
@@ -754,6 +754,13 @@ Resources:
     Properties:
       AliasName: !Join ['', ['alias/', Ref: Namespace, '-encryption-key']]
       TargetKeyId: !Ref EncryptionKey
+  
+  FlowLogCloudwatchGroup:
+    Type: 'AWS::Logs::LogGroup'
+    DeletionPolicy: Retain
+    Properties:
+      LogGroupName: !Join ['', [Ref: Namespace, '-flow-logger']]
+      RetentionInDays: 30
 
   #------------AppStream Resources Below-------
   PrivateAppStreamSubnet:
@@ -776,7 +783,7 @@ Resources:
       ResourceType: Subnet
       TrafficType: ACCEPT
       DeliverLogsPermissionArn: !GetAtt CrossAccountRoleEnvMgmt.Arn
-      LogGroupName: PrivateAppStreamSubnetLogGroup
+      LogGroupName: !Ref FlowLogCloudwatchGroup
       LogFormat: '${version} ${vpc-id} ${subnet-id} ${instance-id} ${srcaddr} ${dstaddr} ${srcport} ${dstport} ${protocol} ${tcp-flags} ${type} ${pkt-srcaddr} ${pkt-dstaddr}'
       Tags:
         - Key: Name
