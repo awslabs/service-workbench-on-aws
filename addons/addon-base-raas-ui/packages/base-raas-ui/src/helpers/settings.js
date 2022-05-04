@@ -16,5 +16,15 @@
 const enableBuiltInWorkspaces = process.env.REACT_APP_ENABLE_BUILT_IN_WORKSPACES === 'true';
 const enableEgressStore = process.env.REACT_APP_ENABLE_EGRESS_STORE === 'true';
 const isAppStreamEnabled = process.env.REACT_APP_IS_APP_STREAM_ENABLED === 'true';
+const disableStudyUploadByResearcher = process.env.REACT_APP_DISABLE_STUDY_UPLOAD_BY_RESEARCHER === 'true';
+const restrictAdminWorkspaceConnection = process.env.REACT_APP_RESTRICT_ADMIN_WORKSPACE_CONNECTION === 'true';
+const disableAdminBYOBSelfAssignment = process.env.REACT_APP_DISABLE_ADMIN_BYOB_SELF_ASSIGNMENT === 'true';
 
-export { enableBuiltInWorkspaces, enableEgressStore, isAppStreamEnabled };
+export {
+  enableBuiltInWorkspaces,
+  enableEgressStore,
+  isAppStreamEnabled,
+  disableStudyUploadByResearcher,
+  restrictAdminWorkspaceConnection,
+  disableAdminBYOBSelfAssignment,
+};
