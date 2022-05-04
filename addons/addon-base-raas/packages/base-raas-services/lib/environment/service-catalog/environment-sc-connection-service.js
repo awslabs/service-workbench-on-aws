@@ -134,10 +134,10 @@ class EnvironmentScConnectionService extends Service {
       this.settings.getBoolean(settingKeys.restrictAdminWorkspaceConnection) || false;
     const uid = _.get(requestContext, 'principalIdentifier.uid');
     const isAdmin = _.get(requestContext, 'principal.isAdmin');
-    if (restrictAdminWorkspaceConnection !== true) {
+    if (!restrictAdminWorkspaceConnection || (isAdmin && uid === createdBy)) {
       return true;
     }
-    if (isAdmin === true && uid !== createdBy) {
+    if (isAdmin && uid !== createdBy) {
       throw this.boom.notFound(`You do not have access to other user's workspace`, true);
     }
     return true;
