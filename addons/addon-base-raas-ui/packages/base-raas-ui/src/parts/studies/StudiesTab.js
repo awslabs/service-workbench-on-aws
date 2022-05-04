@@ -57,6 +57,10 @@ class StudiesTab extends React.Component {
     return _.get(this.props.userStore, 'user.capabilities.canCreateStudy', true) && this.hasProjects;
   }
 
+  get getUserRole() {
+    return _.get(this.props.userStore, 'user.userRole', true);
+  }
+
   get canSelectStudy() {
     const can = _.get(this.props.userStore, 'user.capabilities.canSelectStudy', true);
     if (!can) return can; // If can't select study, then return early, no need to examine if the user is internal and does not have projects
@@ -96,10 +100,11 @@ class StudiesTab extends React.Component {
   renderContent() {
     const studiesStore = this.studiesStore;
     const isSelectable = this.canSelectStudy;
+    const getUserRole = this.getUserRole;
     return (
       <div className="mt3 mr0 ml0">
         {studiesStore.list.map(study => (
-          <StudyRow key={study.id} study={study} isSelectable={isSelectable} />
+          <StudyRow key={study.id} study={study} userRole={getUserRole} isSelectable={isSelectable} />
         ))}
       </div>
     );

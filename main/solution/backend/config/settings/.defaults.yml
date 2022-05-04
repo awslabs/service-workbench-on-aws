@@ -289,3 +289,12 @@ egressStoreKmsPolicyWorkspaceSid: Allow workspace environments to access egress 
 # The name of the IAM role created for the Lambda egressStoreObjectsHandler
 egressStoreObjectHandlerRoleName: ${self:custom.settings.namespace}-EgressStoreObject
 # =========================================================================================================
+
+# ================================ DevOps Role details ===========================================
+# Stack name of the prep-devops component
+# Expanding global namespace since the settings expander only supports upto two levels currently
+prepDevopsStackName: prep-devops-account-${self:custom.settings.awsAccountInfo.awsAccountId}-${self:custom.settings.namespace}
+
+# ExternalID to assume the above role
+devopsRoleExternalId: ${self:custom.settings.awsAccountInfo.awsAccountId}
+# =========================================================================================================

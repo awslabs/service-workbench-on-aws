@@ -53,6 +53,15 @@ pushd "$SOLUTION_DIR/pre-deployment" > /dev/null
 $EXEC sls invoke -f preDeployment -s "$STAGE"
 popd > /dev/null
 
+# Check if AMI Sharing is enabled and call prep-devops-account
+amiSharingEnabled=$( get_stage_value "enableAmiSharing" )
+if [ "$amiSharingEnabled" = true ]; then
+  printf "AMI Sharing Enabled. Deploying DevOps account stack"
+  componentDeploy "prepare-devops-acc" "Prepare-DevOps-Account"
+else
+  printf "AMI Sharing Disabled. Skip DevOps account stack"
+fi
+
 componentDeploy "backend" "Backend"
 componentDeploy "edge-lambda" "Edge-Lambda"
 componentDeploy "post-deployment" "Post-Deployment"

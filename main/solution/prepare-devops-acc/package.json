@@ -1,0 +1,13 @@
+{
+  "name": "@aws-ee/prepare-devops-acc",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A utility component to prepare DevOps account to maintain central AMIs",
+  "author": "Amazon Web Services",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@amzn/base-serverless-settings-helper": "workspace:*",
+    "serverless": "^1.63.0",
+    "serverless-deployment-bucket": "^1.1.0"
+  }
+}
