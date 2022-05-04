@@ -36,6 +36,8 @@ const settingKeys = {
   isAppStreamEnabled: 'isAppStreamEnabled',
   enableFlowLogs: 'enableFlowLogs',
   domainName: 'domainName',
+  enableAmiSharing: 'enableAmiSharing',
+  devopsRoleArn: 'devopsRoleArn',
 };
 
 // see https://github.com/rvedotrc/aws-cloudformation-stack-states for all states
@@ -68,6 +70,8 @@ const getCreateStackUrl = (cfnTemplateInfo, createParams) => {
     enableAppStream,
     enableFlowLogs,
     domainName,
+    enableAmiSharing,
+    devopsAccountId,
   } = createParams;
   const url = [
     `https://console.aws.amazon.com/cloudformation/home?region=${region}#/stacks/create/review/`,
@@ -88,6 +92,8 @@ const getCreateStackUrl = (cfnTemplateInfo, createParams) => {
     `&param_EnableAppStream=${enableAppStream || 'false'}`,
     `&param_EnableFlowLogs=${enableFlowLogs || 'true'}`,
     `&param_DomainName=${domainName || ''}`,
+    `&param_EnableAmiSharing=${enableAmiSharing || false}`,
+    `&param_DevopsAccountId=${devopsAccountId || ''}`,
   ].join('');
 
   // This one takes us directly to the review stage but will require that we access the cloudformation console first
@@ -215,6 +221,8 @@ class AwsCfnService extends Service {
     createParams.domainName = this.settings.optional(settingKeys.domainName, '');
     createParams.externalId = account.externalId;
     createParams.namespace = cfnTemplateInfo.name;
+    createParams.enableAmiSharing = this.settings.get(settingKeys.enableAmiSharing);
+    createParams.devopsAccountId = _.split(this.settings.get(settingKeys.devopsRoleArn), ':')[4];
 
     // The id of the template is actually the hash of the of the content of the template
     const hash = crypto.createHash('sha256');

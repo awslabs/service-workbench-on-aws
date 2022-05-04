@@ -74,11 +74,42 @@ describe('AppStreamScService', () => {
 
   beforeEach(async () => {
     const aws = await service.service('aws');
+    aws.getClientSdkForRole = jest.fn();
     AWSMock.setSDKInstance(aws.sdk);
   });
 
   afterEach(async () => {
     AWSMock.restore();
+  });
+
+  describe('getAppStream', () => {
+    it('should call getDevopsAccountDetails when AMI sharing is enabled', async () => {
+      service.checkIfAmiSharingEnabled = jest.fn(() => {
+        return true;
+      });
+      service.getDevopsAccountDetails = jest.fn(() => {
+        return {
+          roleArn: 'Test_ARN',
+          externalId: 'Test_ID',
+        };
+      });
+      await service.getAppStream();
+      expect(service.getDevopsAccountDetails).toHaveBeenCalled();
+    });
+
+    it('should not call getDevopsAccountDetails when AMI sharing is disabled', async () => {
+      service.checkIfAmiSharingEnabled = jest.fn(() => {
+        return false;
+      });
+      service.getDevopsAccountDetails = jest.fn(() => {
+        return {
+          roleArn: 'Test_ARN',
+          externalId: 'Test_ID',
+        };
+      });
+      await service.getAppStream();
+      expect(service.getDevopsAccountDetails).not.toHaveBeenCalled();
+    });
   });
 
   describe('appstreamScService functions', () => {

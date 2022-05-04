@@ -87,6 +87,9 @@ awsAccountOnboardingHandler:
     APP_IS_APP_STREAM_ENABLED: ${self:custom.settings.isAppStreamEnabled}
     APP_ENABLE_FLOW_LOGS: ${self:custom.settings.enableFlowLogs}
     APP_DOMAIN_NAME: ${self:custom.settings.domainName}
+    APP_ENABLE_AMI_SHARING: ${self:custom.settings.enableAmiSharing}
+    APP_DEVOPS_ROLE_ARN: ${self:custom.settings.devopsRoleArn, 'null'}
+    APP_DEVOPS_ROLE_EXTERNAL_ID: ${self:custom.settings.devopsRoleExternalId}
 
 apiHandler:
   timeout: 30 # in seconds, default is 6
@@ -182,6 +185,9 @@ apiHandler:
     APP_EGRESS_STORE_BUCKET_NAME: ${self:custom.settings.egressStoreBucketName}
     APP_EGRESS_NOTIFICATION_BUCKET_NAME: ${self:custom.settings.egressNotificationBucketName}
     APP_EGRESS_NOTIFICATION_SNS_TOPIC_ARN: ${self:custom.settings.egressNotificationSnsTopicArn}
+    APP_ENABLE_AMI_SHARING: ${self:custom.settings.enableAmiSharing}
+    APP_DEVOPS_ROLE_ARN: ${self:custom.settings.devopsRoleArn, 'null'}
+    APP_DEVOPS_ROLE_EXTERNAL_ID: ${self:custom.settings.devopsRoleExternalId}
 
 workflowLoopRunner:
   handler: src/lambdas/workflow-loop-runner/handler.handler
@@ -220,3 +226,6 @@ workflowLoopRunner:
     APP_ENABLE_FLOW_LOGS: ${self:custom.settings.enableFlowLogs}
     APP_PERMISSION_BOUNDARY_POLICY_STUDY_BUCKET_ARN: !Sub arn:aws:iam::${AWS::AccountId}:policy/${self:custom.settings.permissionBoundaryPolicyStudyBucket}
     APP_LOGGING_BUCKET_NAME: ${self:custom.settings.loggingBucketName}
+    APP_ENABLE_AMI_SHARING: ${self:custom.settings.enableAmiSharing}
+    APP_DEVOPS_ROLE_ARN: ${self:custom.settings.devopsRoleArn, 'null'}
+    APP_DEVOPS_ROLE_EXTERNAL_ID: ${self:custom.settings.devopsRoleExternalId}

@@ -229,3 +229,8 @@ dbStudyPermissions: ${self:custom.settings.dbPrefix}-StudyPermissions
 
 # DynamoDB table name for Environments created using AWS Service Catalog
 dbEnvironmentsSc: ${self:custom.settings.dbPrefix}-EnvironmentsSc
+
+# ==================== AMI Sharing Feature Settings ====================
+enableAmiSharing: false
+devopsProfile: devops
+# ======================================================================
