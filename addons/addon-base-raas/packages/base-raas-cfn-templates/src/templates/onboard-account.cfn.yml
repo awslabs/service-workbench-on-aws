@@ -111,6 +111,7 @@ Parameters:
     Type: String
     AllowedValues: [true, false]
     Description: Use appstream image from the central devops account
+    Default: false
   
   DevopsAccountId:
     Type: String

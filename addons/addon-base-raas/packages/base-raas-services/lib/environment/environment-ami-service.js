@@ -113,12 +113,12 @@ class EnvironmentAmiService extends Service {
 
   async getEc2Sdk() {
     const [aws] = await this.service(['aws']);
-    const isAmiSharingEnabled = await this.checkIfAmiSharingEnabled();
+    const isAmiSharingEnabled = this.checkIfAmiSharingEnabled();
     let ec2Client;
     // Get Devops account client if AMI sharing enabled.
     if (isAmiSharingEnabled) {
       this.log.info(`AMI Sharing enabled. Reading SDK using DevOps account role`);
-      const { roleArn, externalId } = await this.getDevopsAccountDetails();
+      const { roleArn, externalId } = this.getDevopsAccountDetails();
       ec2Client = await aws.getClientSdkForRole({
         roleArn,
         clientName: 'EC2',
@@ -131,14 +131,14 @@ class EnvironmentAmiService extends Service {
     return ec2Client;
   }
 
-  async getDevopsAccountDetails() {
+  getDevopsAccountDetails() {
     return {
       roleArn: this.settings.get(settingKeys.devopsRoleArn),
       externalId: this.settings.get(settingKeys.devopsRoleExternalId),
     };
   }
 
-  async checkIfAmiSharingEnabled() {
+  checkIfAmiSharingEnabled() {
     return this.settings.getBoolean(settingKeys.enableAmiSharing);
   }
 }
