@@ -51,6 +51,7 @@ const {
 
 const settingKeys = {
   tableName: 'dbStudyPermissions',
+  disableAdminBYOBSelfAssignment: 'disableAdminBYOBSelfAssignment',
 };
 
 const composeStudyPermissionsKey = studyId => `Study:${studyId}`;
@@ -486,7 +487,14 @@ class StudyPermissionService extends Service {
         const isAdminUser = user.isAdmin;
         const isActive = _.toLower(user.status) === 'active';
         const isResearcher = user.userRole === 'researcher';
-        if (!(isActive && (isAdminUser || isResearcher))) {
+        // Admin can assign only a researcher as a study admin in the BYOB feature.
+
+        const disableAdminBYOBSelfAssignment =
+          this.settings.getBoolean(settingKeys.disableAdminBYOBSelfAssignment) || false;
+        if (disableAdminBYOBSelfAssignment === true && !(isActive && isResearcher)) {
+          throw this.boom.badRequest(`User ${user.username} must be active and has the role of researcher`, true);
+        }
+        if (disableAdminBYOBSelfAssignment !== true && !(isActive && (isAdminUser || isResearcher))) {
           throw this.boom.badRequest(
             `User ${user.username} must be active and either has the role of admin or the role of researcher`,
             true,

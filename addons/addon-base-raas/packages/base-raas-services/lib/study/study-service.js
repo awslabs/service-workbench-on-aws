@@ -42,6 +42,7 @@ const settingKeys = {
   accountIdIndexName: 'dbStudiesAccountIdIndex',
   studyDataBucketName: 'studyDataBucketName',
   enableEgressStore: 'enableEgressStore',
+  disableStudyUploadByResearcher: 'disableStudyUploadByResearcher',
 };
 
 class StudyService extends Service {
@@ -284,7 +285,15 @@ class StudyService extends Service {
   }
 
   async create(requestContext, rawStudyEntity) {
-    if (!(isInternalResearcher(requestContext) || isAdmin(requestContext))) {
+    // This flag was introduced for the Researcher to restrict the create study/org
+    // if it set to true
+    const disableStudyUploadByResearcher =
+      this.settings.getBoolean(settingKeys.disableStudyUploadByResearcher) || false;
+
+    if (disableStudyUploadByResearcher === true && !isAdmin(requestContext)) {
+      throw this.boom.forbidden('Only admin are authorized to create studies.', true);
+    }
+    if (disableStudyUploadByResearcher !== true && !(isInternalResearcher(requestContext) || isAdmin(requestContext))) {
       throw this.boom.forbidden('Only admin and internal researcher are authorized to create studies.', true);
     }
     if (isOpenData(rawStudyEntity) && !isSystem(requestContext)) {
@@ -632,6 +641,17 @@ class StudyService extends Service {
    * @returns {Promise<AWS.S3.PresignedPost>} the url and fields to use when performing the upload
    */
   async createPresignedPostRequests(requestContext, studyId, filenames, encrypt = true, multiPart = true) {
+    // This flag was introduced for the Researcher to restrict the uploading
+    const disableStudyUploadByResearcher =
+      this.settings.getBoolean(settingKeys.disableStudyUploadByResearcher) || false;
+
+    if (disableStudyUploadByResearcher === true && !isAdmin(requestContext)) {
+      throw this.boom.forbidden('Only admin are authorized to upload files.', true);
+    }
+    if (disableStudyUploadByResearcher !== true && !(isInternalResearcher(requestContext) || isAdmin(requestContext))) {
+      throw this.boom.forbidden('Only admin and internal researcher are authorized to upload files.', true);
+    }
+
     // Get study details and check permissions
     const uid = _.get(requestContext, 'principalIdentifier.uid');
 
