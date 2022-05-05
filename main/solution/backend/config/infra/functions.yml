@@ -187,7 +187,7 @@ apiHandler:
     APP_EGRESS_NOTIFICATION_SNS_TOPIC_ARN: ${self:custom.settings.egressNotificationSnsTopicArn}
     APP_ENABLE_AMI_SHARING: ${self:custom.settings.enableAmiSharing}
     APP_DEVOPS_ROLE_ARN: ${self:custom.settings.devopsRoleArn, 'null'}
-    APP_DEVOPS_ROLE_EXTERNAL_ID: ${self:custom.settings.devopsRoleExternalId}
+    APP_DEVOPS_ROLE_EXTERNAL_ID: ${self:custom.settings.devopsRoleExternalId} 
     APP_DISABLE_STUDY_UPLOAD_BY_RESEARCHER: ${self:custom.settings.disableStudyUploadByResearcher}
     APP_RESTRICT_ADMIN_WORKSPACE_CONNECTION: ${self:custom.settings.restrictAdminWorkspaceConnection}
     APP_DISABLE_ADMIN_BYOB_SELF_ASSIGNMENT: ${self:custom.settings.disableAdminBYOBSelfAssignment}
