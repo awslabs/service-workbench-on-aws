@@ -29,6 +29,9 @@ const settingKeys = {
   environmentInstanceFiles: 'environmentInstanceFiles',
   isAppStreamEnabled: 'isAppStreamEnabled',
   swbMainAccount: 'mainAcct',
+  enableAmiSharing: 'enableAmiSharing',
+  devopsRoleArn: 'devopsRoleArn',
+  devopsRoleExternalId: 'devopsRoleExternalId',
 };
 
 class AwsAccountsService extends Service {
@@ -227,8 +230,7 @@ class AwsAccountsService extends Service {
       action: 'shareAppStreamImageWithMemberAccount',
       conditions: [allowIfActive, allowIfAdmin],
     });
-    const aws = await this.service('aws');
-    const appStream = await new aws.sdk.AppStream({ apiVersion: '2016-12-01' });
+    const appStream = await this.getAppstreamSdk();
     const params = {
       ImagePermissions: {
         allowFleet: true,
@@ -237,6 +239,7 @@ class AwsAccountsService extends Service {
       Name: appStreamImageName,
       SharedAccountId: memberAccountId,
     };
+    await this.audit(requestContext, { action: 'share-appstream-image', body: params });
 
     await appStream.updateImagePermissions(params).promise();
   }
@@ -423,6 +426,36 @@ class AwsAccountsService extends Service {
 
     const dataObject = { ...rawDb, ...overridingProps };
     return dataObject;
+  }
+
+  async getAppstreamSdk() {
+    const aws = await this.service('aws');
+    const isAmiSharingEnabled = this.checkIfAmiSharingEnabled();
+    let appstreamClient;
+    // Get Devops account client if AMI sharing enabled.
+    if (isAmiSharingEnabled) {
+      const { roleArn, externalId } = this.getDevopsAccountDetails();
+      appstreamClient = await aws.getClientSdkForRole({
+        roleArn,
+        clientName: 'AppStream',
+        options: { apiVersion: '2016-12-01' },
+        externalId,
+      });
+    } else {
+      appstreamClient = new aws.sdk.AppStream({ apiVersion: '2016-12-01' });
+    }
+    return appstreamClient;
+  }
+
+  getDevopsAccountDetails() {
+    return {
+      roleArn: this.settings.get(settingKeys.devopsRoleArn),
+      externalId: this.settings.get(settingKeys.devopsRoleExternalId),
+    };
+  }
+
+  checkIfAmiSharingEnabled() {
+    return this.settings.getBoolean(settingKeys.enableAmiSharing);
   }
 
   async assertAuthorized(requestContext, { action, conditions }, ...args) {
